@@ -82,18 +82,22 @@ STRING   kHelpExample =
 **************************************************************************/
 
 #define BOARDSIZE 33    /* 7x7 Crosscross Board */
-#define GEESE_MAX 24
-#define GEESE_MIN 9
+#define GEESE_MAX 4 
+#define GEESE_MIN 1
 #define FOX_MAX 2
 #define FOX_MIN 2
 #define GEESE_PLAYER 1
 #define FOX_PLAYER 2
 
+#define DEBUG 0
+#define DOMOVE_TEST 0
+#define HASH_TEST 1
+
 char start_standard_board[33]={      	     'G','G','G',
-	                                     'G','G','G',
-			             'G','G','G','G','G','G','G',
-				     'G','G','G','G','G','G','G',
-				     'G','G',' ',' ',' ','G','G',
+	                                     ' ','G',' ',
+			             ' ',' ',' ',' ',' ',' ',' ',
+				     ' ',' ',' ',' ',' ',' ',' ',
+				     ' ',' ',' ',' ',' ',' ',' ',
 				             ' ',' ',' ',
 					     'F',' ','F'};
 
@@ -177,16 +181,40 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
 	int hash_data[] =  {' ', 0, BOARDSIZE,
-		  	        'F', FOX_MIN, FOX_MAX,
-				'G', GEESE_MIN, GEESE_MAX, -1};
+		  	    'F', FOX_MIN, FOX_MAX,
+		            'G', GEESE_MIN, GEESE_MAX, -1};
 	int max;
 	int init;
 	
+	if (DEBUG) { printf("mASALTO - InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
+	
+	if (DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n"); }
+	
 	max = generic_hash_init(BOARDSIZE, hash_data, NULL);
+	
+	if (DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash_init: %d\n",max); }
+	
+	if (DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash\n"); }
+	
+	if (HASH_TEST) {printf("INIT CURRENT BOARD\n"); PrintBoard(start_standard_board);}
+	
 	init = generic_hash(start_standard_board,GEESE_PLAYER);
+	
+	if (DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash: %d\n",init); }
+
+	if (HASH_TEST)
+	{
+		char test_board[33];
+		printf("Hash Test. Unhashed Board. Hash Value %d\n", init);
+		generic_unhash(init, test_board);
+		PrintBoard(test_board);
+	}
+		
 	gInitialPosition = init;
 	gNumberOfPositions = max;
+	
+	if (DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
 /************************************************************************
 **
@@ -291,8 +319,9 @@ POSITION DoMove (thePosition, theMove)
 	int goAgain = 0;
 	int next_player = 0;
 	
+	if (DEBUG) { printf("mASALTO - DoMove() Running...\n"); }
 	generic_unhash(thePosition, board);
-	
+	if (DOMOVE_TEST) { printf("CURRENT BOARD: \n"); PrintBoard(board);}
 	
 	unHashMove(theMove, move);
 	
@@ -325,6 +354,13 @@ POSITION DoMove (thePosition, theMove)
 	{
 		next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
 	}
+	if (DOMOVE_TEST)
+	{
+		printf("MOVE FOR NEXT BOARD: "); PrintMove(theMove);
+		printf("\n");
+		PrintBoard(board);
+	}
+	if (DEBUG) { printf("mASALTO - DoMove() Done\n"); }
 	return generic_hash(board,next_player);
 }
 
@@ -457,8 +493,11 @@ VALUE Primitive (pos)
 	char board[33];
 	int player = whoseMove(pos);
 	
+	
+	if (DEBUG) { printf("mASALTO - Primitive() Running...\n"); }
 	generic_unhash(pos, board);
 	boardPieceStats(board, boardStats);
+	if (DEBUG) { printf("mASALTO - Primitive() Returning...\n"); }
 	if ( numGeese(boardStats) < GEESE_MIN && player == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
 	{
 		return (gStandardGame ? lose : win);
@@ -536,6 +575,8 @@ MOVELIST *GenerateMoves (position)
 	char board[33];
 	int i=0;
 	int player = whoseMove(position);
+	
+	if (DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); }
 	generic_unhash(position, board);
 	
 	if(player = FOX_PLAYER)
@@ -558,6 +599,7 @@ MOVELIST *GenerateMoves (position)
 			}
 		}
 	}
+	if (DEBUG) { printf("mASALTO - GenerateMoves() Done.\n"); }
 	return(moves);
 }
 
@@ -1352,8 +1394,8 @@ void UserInputCoordinate(int coordinate[2])
 }
 void coordToGridCoordinate(int coordinate[2], char human[2])
 {
-	human[0] = (char) (coordinate[1] + '0' + 1);
-	human[1] = (char) (coordinate[0] + 'A');
+	human[0] = (char) (coordinate[1] + 'A');
+	human[1] = (char) (coordinate[0] + '0' + 1);
 }
 void gridCoordinatetoCoord(char human[2], int coord[2])
 {
