@@ -202,9 +202,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	    moves = CreateMovelistNode(move_make(i, x), moves);
 	    }
 	}
-      }
-      else 
-	if (i == 1){
+      } else if (i == 1){
 	  if (gBoard[8] == '_'){
 	    moves = CreateMovelistNode(move_make(i, 8), moves);
 	  } else if (gBoard[8] == opp && gBoard[0] == '_'){
@@ -214,20 +212,17 @@ MOVELIST *GenerateMoves (POSITION position)
 	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
 	    moves = CreateMovelistNode(move_make(i, 0), moves);
 	  }
+      } else if (i == 8){
+	if (gBoard[1] == '_'){
+	  moves = CreateMovelistNode(move_make(i, 1), moves);
+	} else if (gBoard[1] == opp && gBoard[0] == '_'){
+	  moves = CreateMovelistNode(move_make(i, 0), moves);
+	} else if (gBoard[i-1] == '_'){
+	  moves = CreateMovelistNode(move_make(i, i-1), moves);
+	} else if (gBoard[i-1] == opp && gBoard[0] == '_'){
+	  moves = CreateMovelistNode(move_make(i, 0), moves);
 	}
-	else 
-	  if (i == 8){
-	    if (gBoard[1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 1), moves);
-	    } else if (gBoard[1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
-	    } else if (gBoard[i-1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i-1), moves);
-	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
-	    }
-	  }
-	  else {
+      } else {
 	    if (gBoard[i-1] == '_'){
 	      moves = CreateMovelistNode(move_make(i, i-1), moves);
 	    } else if (gBoard[i+1] == '_'){
@@ -314,7 +309,10 @@ VALUE Primitive (POSITION position)
   if (GenerateMoves(position) != NULL){
     return undecided;
   } else {
-      return gStandardGame ? win : lose;
+    if(gStandardGame)
+      return lose;
+    else
+      return win;
   }
 }
 
@@ -367,7 +365,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  printf("%8s's move               : %2d\n", computersName, move_to(computersMove));
+  printf("%8s's move               : [%d%d]\n", computersName, move_from(computersMove),move_to(computersMove));
 
 }
 
@@ -417,7 +415,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(## FromTo [80])] : ", playersName);
+	printf("%8s's move [(undo)/(## FromTo)] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	

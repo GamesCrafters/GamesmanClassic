@@ -84,6 +84,9 @@ void	FoundBadPosition(POSITION, POSITION, MOVE);
 /* low memory solver internal fucntion prototypes */
 VALUE DetermineZeroValue(POSITION position);
 
+/* mid memory solver */
+VALUE DetermineMidValue(POSITION position);
+
 /* non-loopy solver internal function prototypes */
 VALUE   DetermineValue1(POSITION position);
 
@@ -573,8 +576,11 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
 	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
-	
-	printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gameValue]);
+	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
+	  printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
+	} else {
+printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
+	}
 	gMenuMode = Evaluated;
 	if(gameValue == lose)
 	    gHumanGoesFirst = FALSE;
@@ -2846,6 +2852,28 @@ VALUE DetermineZeroValue(POSITION position)
  **
  **
  *************/
+
+VALUE DetermineMidValue(POSITION position){
+  POSITION parent, child;
+  MOVELIST *moves,*movesHead;
+  POSITIONLIST *knownPositions,*knownHead,*weirdPositions,*weirdHead;
+  POSITIONLIST *iter;
+
+  knownPositions = knownHead = StorePositionInList(position,knownPositions);
+  while(knownPositions != NULL){
+    parent = knownPositions->position;
+    if(Primative(parent) == undecided){
+      moves = movesHead = GenerateMoves(parent);
+      while(moves != NULL){
+	child = DoMove(parent,moves->move);
+	knownHead = StorePositionInList(child,headKnown);
+	moves = moves->next;
+      }
+      FreeMoveList(movesHead);
+      
+
+
+}
 
 //// START LOOPY
 

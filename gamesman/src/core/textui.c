@@ -209,8 +209,12 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
 	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
+	printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
+	}else{
+printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
+	}
 	
-	printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gameValue]);
 	gMenuMode = Evaluated;
 	if(gameValue == lose)
 	    gHumanGoesFirst = FALSE;
