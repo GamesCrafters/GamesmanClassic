@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Abalone
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHOR:      Michael Mottmann & Melinda Franco
 **
 ** DATE:        WHEN YOU START/FINISH
 **
@@ -30,14 +30,14 @@
 #include <math.h>
 
 extern STRING gValueString[];
-POSITION gNumberOfPositions  = 22211000;
+POSITION gNumberOfPositions  = 924;
 
-POSITION gInitialPosition    = 12200011;
+POSITION gInitialPosition    = 9;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kGameName           = "";
-STRING   kDBName             = "";
+STRING   kGameName           = "abalone";
+STRING   kDBName             = "Abalone";
 BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
@@ -94,11 +94,7 @@ STRING   kHelpExample =
   be modifiable based on N, not just set here?*/
 
 #define BOARDSIZE 7
-char gBoard[BOARDSIZE + 1];
-
-/*???do we do this ourselves?  do we need to update it or put it into the hash somehow?*/
-char whosTurn;
-
+char gBoard[BOARDSIZE];
 
 struct row {
   int size;
@@ -176,16 +172,15 @@ void InitializeGame()
   gBoard[4]='-';
   gBoard[5]='o';
   gBoard[6]='o';
-  gBoard[7]='x';
   
-  int init_array[] = {'o', 1, 3, 'x', 1, 3, '-', 3, 5, -1};
+  int init_array[] = {'o', 1, 2, 'x', 1, 2, '-', 3, 5, -1};
   int count;
 
-  max = generic_hash_init(BOARDSIZE + 1,init_array,NULL);
+  max = generic_hash_init(BOARDSIZE,init_array,NULL);
   printf("%d  # of hash positions!\n",max);
   
-  init = m_generic_hash(gBoard);
-  m_generic_unhash(init,gBoard);
+  init = generic_hash(gBoard, 1);
+  generic_unhash(init,gBoard);
   printf("%d  is the initial position\n",init);
 
   /*
@@ -266,8 +261,8 @@ POSITION DoMove(thePosition, theMove)
 {
   /*printf("Starting Do Move with input: %d\n", theMove);*/
   int destination(int,int);
-
-  m_generic_unhash(thePosition, gBoard);
+  int whoseTurn;
+  generic_unhash(thePosition, gBoard);
   int direction;
   int slot1;
   int slot2;
@@ -295,7 +290,6 @@ POSITION DoMove(thePosition, theMove)
     slot1 = slot2;
   }
   
- 
 
   dest1 = destination(slot1, direction);
   if (twopieces) dest2 = destination(slot2, direction);
@@ -317,14 +311,15 @@ POSITION DoMove(thePosition, theMove)
     gBoard[slot2] = '-';
   }
 
-  if (gBoard[7]=='x') {
-    gBoard[7] = 'o';
+  if (whoseMove(thePosition) == 1) {
+    whoseTurn = 2;
   }
   else {
-    gBoard[7] = 'x';
+    whoseTurn = 1;
   }
+
   /*printf("finished do move\n");*/
-  return (m_generic_hash(gBoard));
+  return (generic_hash(gBoard,whoseTurn));
 }
 
 /************************************************************************
@@ -358,7 +353,7 @@ void PrintComputersMove(computersMove, computersName)
      MOVE computersMove;
      STRING computersName;
 {
-  
+  printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
 
@@ -386,7 +381,7 @@ VALUE Primitive ( POSITION h )
   /*printf("prim\n");*/
   BOOLEAN game_over(char[]);
 
-  m_generic_unhash(h,gBoard);
+  generic_unhash(h,gBoard);
   
   if (game_over(gBoard)) {
     /*printf("endprim\n");*/
@@ -435,7 +430,7 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
-  m_generic_unhash(position, gBoard);
+  generic_unhash(position, gBoard);
   printf("\nCurrent board:   Legend:         Direction Key:           \n");
   printf("                |               |      3   2      |  To move one piece: \n");
   printf("    (%c)(%c)      |    (5) (6)    |       \\ /       |      direction, piece1 \n",gBoard[5], gBoard[6]);
@@ -471,14 +466,20 @@ MOVELIST *GenerateMoves(position)
   MOVELIST *CreateMovelistNode(); /* In gamesman.c */
   VALUE Primitive();
   int slot, slot2, dest0, dest1, dest2, direction, ssdir;
+  char whoseTurn;
 
-  m_generic_unhash(position,gBoard);
+  if (whoseMove(position) == 1) {
+    whoseTurn = 'x';
+  }
+  else {
+    whoseTurn = 'o';
+  }
+
+  generic_unhash(position,gBoard);
   
-  whosTurn=gBoard[7];
-
   if (Primitive(position) == undecided) {
     for (slot = 0; slot < BOARDSIZE ; slot++) {
-      if (gBoard[slot] == whosTurn) {
+      if (gBoard[slot] == whoseTurn) {
 	for (direction = 1; direction <= 3; direction++) {
 	  
 	  slot2 = destination(slot, direction);
@@ -493,7 +494,7 @@ MOVELIST *GenerateMoves(position)
 	  }
 	  
 	  /*Double Piece Moves*/
-	  else if (gBoard[slot2] == whosTurn) {
+	  else if (gBoard[slot2] == whoseTurn) {
 	    /*Test for pushes in both directions*/
 	    /*the oppositve direction is represented by the negative of that direction*/
 	      
@@ -501,7 +502,7 @@ MOVELIST *GenerateMoves(position)
 	      
 	      if (dest1 != NULLSLOT) {
 		dest2 = destination(dest1,direction);
-		if ((gBoard[dest1] != whosTurn) && ((gBoard[dest2]== '-') ||(dest2 == NULLSLOT))) {
+		if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '-') ||(dest2 == NULLSLOT))) {
 		  head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
 		}
 	      }
@@ -510,7 +511,7 @@ MOVELIST *GenerateMoves(position)
 	      
 	      if (dest1 != NULLSLOT) {
 		dest2 = destination(dest1,direction);
-		if ((gBoard[dest1] != whosTurn) && ((gBoard[dest2]== '-') || (dest2 == NULLSLOT))) {
+		if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '-') || (dest2 == NULLSLOT))) {
 		  head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
 		}
 	      }
