@@ -61,10 +61,12 @@ extern STRING gValueString[];
 
 int      gNumberOfPositions  = 4194304;  /* 2^14 times 256 */
 
-POSITION gInitialPosition    = 8357;  
+POSITION gInitialPosition    = 8357;
+POSITION gMinimalPosition    = 8357; /* This may not be the minimal position. Use the upward solver when it's invented */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Snake";
+STRING   kDBName             = "snake";
 BOOLEAN  kPartizan           = TRUE; /* each player only has control 
                                       * over one type of piece, so 
                                       * both players do not have the 
@@ -108,7 +110,7 @@ Head's turn. \n     Dan's move [(u)ndo/1-9] : 1 2 \n          1   2   3   4     
 
 /*************************************************************************
 **
-** Everything above here must be in every game file
+* Everything above here must be in every game file
 **
 **************************************************************************/
 
@@ -158,31 +160,7 @@ void PrintMove(MOVE theMove);
 void SnakeUnhash(POSITION thePos, BlankBHT *theBlankBHT);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-VALUE     *gDatabase;
-
-/************************************************************************
-**
-** NAME:        InitializeDatabases
-**
-** DESCRIPTION: Initialize the gDatabase, a global variable.
-** 
-************************************************************************/
-
-void InitializeDatabases()
-{
-  GENERIC_PTR SafeMalloc();
-  int i;
-
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
+void InitializeGame() {
 }
 
 /************************************************************************
@@ -211,9 +189,7 @@ void DebugMenu()
 void GameSpecificMenu() 
 {
   char GetMyChar();
-  BOOLEAN tempPredictions = gPredictions;
   POSITION GetInitialPosition();
-  gPredictions = FALSE;
   
   do {
     printf(" \n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -226,7 +202,9 @@ void GameSpecificMenu()
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
     
-    printf("\tM)\tPlayer can (M)ove either head or tail piece on each turn\n");
+    printf("\tM)\tSwitch (M)ovable parts from %s to $s\n",
+	   !moveHandT ? "HEAD ONLY" : "EITHER HEAD OR TAIL",
+	   moveHandT ? "EITHER HEAD OR TAIL" : "HEAD ONLY");
     
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
@@ -244,10 +222,9 @@ void GameSpecificMenu()
       gToTrapIsToWin = !gToTrapIsToWin;
       break;
     case 'b': case 'B':
-      gPredictions = tempPredictions;
       return;
     case 'M': case 'm':
-      moveHandT = TRUE;      
+      moveHandT = !moveHandT;      
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -398,48 +375,6 @@ POSITION GetInitialPosition()
   printf("In this game, the head of the snake always goes first.\n");
   
   return(SnakeHash(theBlankBHT));
-}
-
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       int GetRandomNumber()
-**
-************************************************************************/
-
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-  MOVE theMove;
-  
-  if(gPossibleMoves) 
-    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  while(ptr != NULL) {
-    numberMoves++;
-    if(gPossibleMoves) 
-      PrintMove(ptr->move);
-    ptr = ptr->next;
-  }
-  if(gPossibleMoves) 
-    printf("]\n\n");
-  randomMove = GetRandomNumber(numberMoves);
-  ptr = head;
-  for(i = 0; i < randomMove ; i++)
-    ptr = ptr->next;
-
-  theMove = ptr->move;
-  FreeMoveList(head);
-  return(theMove);
 }
 
 /************************************************************************
@@ -1035,7 +970,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   SnakeUnhash(thePosition,theBlankBHT);
   
   do {
-    printf("%8s's move [(u)ndo/1-9] : ", playerName);
+    printf("%8s's move [(u)ndo/1-%d 1-%d] : ", playerName, BOARDSIZE, BOARDSIZE);
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -1122,142 +1057,6 @@ void PrintMove(theMove)
   printf("[ %d %d ] ", fromSlot+1, toSlot+1);
 }
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-************************************************************************/
-
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** 
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-************************************************************************/
-
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  return(&gDatabase[position]);
-}
-
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** 
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
-
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-  
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-  
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
-}
-
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
 
 /************************************************************************
 *************************************************************************
@@ -1287,9 +1086,9 @@ void SnakeUnhash(thePos,theBlankBHT)
   int findBody = (thePos >> 8);
   int i;
 
-  // initialize the board to be all NULL
+  // initialize the board to be all Blank
   for (i = 0; i < BOARDSIZE; i++)
-      theBlankBHT[i] = NULL;
+      theBlankBHT[i] = Blank;
 
   // get head bits and place head on the board
   theBlankBHT[findHead] = h;
@@ -1299,7 +1098,7 @@ void SnakeUnhash(thePos,theBlankBHT)
 
   // get slot bits and fill in the board
   for(i = 0; i < BOARDSIZE; i++) {
-    if(theBlankBHT[i] == NULL) {
+    if(theBlankBHT[i] == Blank) {
       if(findBody & 1) {
 	theBlankBHT[i] = b;
 	findBody = findBody >> 1;
@@ -1391,4 +1190,48 @@ POSITION SnakeHash(theBlankBHT)
   }
   
   return thePosition;
+}
+
+
+/* Database info */
+
+int NumberOfOptions()
+{
+  return 2*2*2;
+}
+
+int getOption()
+{
+  int option = 1;
+  option += 1 * gStandardGame ? 0 : 1;
+  option += 2 * gToTrapIsToWin ? 0 : 1;
+  option += 2*2 * moveHandT ? 1 : 0;
+  return option;
+}
+
+void setOption(int option)
+{
+  option -= 1;
+  
+  if (option >= 2*2) {
+    option -= 2*2;
+    moveHandT = TRUE;
+  }
+  else 
+    moveHandT = FALSE;
+  
+  if (option >= 2) {
+    option -= 2;
+    gToTrapIsToWin = FALSE;
+  }
+  else
+    gToTrapIsToWin = TRUE;
+
+  if (option >= 1) {
+    option -= 1;
+    gStandardGame = FALSE;
+  }
+  else
+    gStandardGame = TRUE;
+
 }
