@@ -68,8 +68,10 @@ you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."; 
 
 STRING   kHelpOnYourTurn =
-"You can either say 1, 2, or 3, a running total sum is kept. Keep in mind though that in this game, odd and even\
-number of matches is also stored to determine the final outcome.";
+"You can enter 1, 2, or 3 to indicate how many match(es) you want take off board.\
+A running total of how many matches you and your opponents have will be kept.\
+Keep in mind though that the objective is not to get the last match; instead, you would have to have\
+an even number of matches to win";
 
 STRING   kHelpStandardObjective =
 "At the end game, to have an even number of matches.";
@@ -101,6 +103,7 @@ STRING   kHelpExample =
 *************************************************************************/
 
 const int MULTIPLE = 100;
+int MAXMOVE = 3; /* Maximum matches that is allowed to be taken off the board */
 int currentTurn = FIRST_TURN; /* current turn for player */
 
 /*************************************************************************
@@ -168,36 +171,26 @@ void InitializeGame ()
 MOVELIST *GenerateMoves (POSITION position)
 {
       MOVELIST *moves = NULL;
-	POSITION original = numberOfMatches(position);
+	int matchCount = numberOfMatches(position);
 	int whoseTurn = playersTurn(position);
-	if(original == 0) {
+	int moveCount = 1; /* Minimum move is 1 */
+	if(matchCount == 0) {
 		moves = CreateMovelistNode(whoseTurn*MULTIPLE, moves);
 	}
 else
     if(whoseTurn == FIRST_TURN) {
-		moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + 1, moves);
-		if(original > 1) {
-			if(original == 2) {
-				moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + 2, moves);
-			}
-			else {
-				moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + 2, moves);
-				moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + 3, moves);
-			}
+		while(matchCount > 0 && moveCount <= MAXMOVE) {
+			moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + moveCount, moves);
+			--matchCount;
+			++moveCount;
 		}
 	}
 	else {
-		moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + 1, moves);
-		if(original > 1) {
-			if(original == 2) {
-				moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + 2, moves);
-			}
-			else {
-				moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + 2, moves);
-				moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + 3, moves);
-			}
+		while(matchCount > 0 && moveCount <= MAXMOVE) {
+			moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + moveCount, moves);
+			--matchCount;
+			++moveCount;
 		}
-
 	}
     
     return moves;
@@ -224,11 +217,15 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 	int whoseTurn = move / MULTIPLE;
 	int matches = move % MULTIPLE;
+	int matchesLeft = numberOfMatches(position);
 	int addition;
 	if(whoseTurn == FIRST_TURN) {
 		addition = matches * MULTIPLE;
 		matches = matches * power(MULTIPLE, 2);
-		currentTurn = SECOND_TURN;
+		if(matchesLeft - matches <= 0)
+			currentTurn = FIRST_TURN;
+		else
+			currentTurn = SECOND_TURN;
 		return (position + power(MULTIPLE, 3) - matches + addition);
 		/* Add 1000000 to get second player turn*/
 	}
@@ -328,6 +325,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 	printf("\n");
 	printf("\n");
+	printf("The number of matches currently on the board: %d \n", currentMatches);
 	printf("The number of matches first player has is: %d \n", firstPlayerMatches(position));
 	printf("The number of matches second player has is: %d \n", secondPlayerMatches(position));
 	printf("\n");
@@ -364,7 +362,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 {
     /* Not quitesure whether this is only for player's move, but... */
-	printf("Remove [%d] matches.\n", move % 100);
+	printf("[%d]", move % 100);
 }
 
 
@@ -438,7 +436,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
 	
-  return (input[0] == '3' || input[0] == '2' || input[0] == '1');
+  return (input[0] <= (MAXMOVE + '0') && input[0] >= '1');
 }
 
 
@@ -539,8 +537,8 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-	/* A little unsure what it is... */
-    return 0;
+	
+    return 1; /* Currently only have the option of changing the number of matches */
 }
 
 
@@ -558,7 +556,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+    return 1; /* ???? */
 }
 
 
@@ -575,7 +573,11 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+	int maxMoves;
+	printf("Please enter the number of matches you allow to be taken off board each time:");
+    scanf("%d", &maxMoves);
+	MAXMOVE = maxMoves;
+	
 }
 
 
