@@ -411,7 +411,6 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     char **argv;			/* Argument strings. */
 {
   int position;
-  MOVE DoMove();
   VALUE GetValueOfPosition();
   MOVELIST *ptr, *head, *GenerateMoves();
   char theAnswer[10000], tmp[1000];

@@ -247,7 +247,7 @@ GetComputersMoveCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     sprintf(interp->result,"%d",(int)GetComputersMove(position));
@@ -291,15 +291,15 @@ DetermineValueCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
+  POSITION position;
   VALUE DetermineValue(), DetermineLoopyValue();
 
   if (argc != 2) {
-    interp->result = "wrong # args: DetermineValue (int)Position";
+    interp->result = "wrong # args: DetermineValue (POSITION)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     if(kLoopy)
@@ -318,15 +318,15 @@ GetValueOfPositionCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
+  POSITION position;
   VALUE GetValueOfPosition();
 
   if (argc != 2) {
-    interp->result = "wrong # args: GetValueOfPosition (int)Position";
+    interp->result = "wrong # args: GetValueOfPosition (POSITION)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     interp->result = gValueString[(int)GetValueOfPosition(position)];
@@ -341,15 +341,15 @@ RemotenessCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
+  POSITION position;
   REMOTENESS Remoteness();
 
   if (argc != 2) {
-    interp->result = "wrong # args: Remoteness (int)Position";
+    interp->result = "wrong # args: Remoteness (POSITION)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     sprintf(interp->result,"%d",(int)Remoteness(position));
@@ -364,21 +364,21 @@ MexCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
+  POSITION position;
   REMOTENESS Remoteness();
 
   if (argc != 2) {
-    interp->result = "wrong # args: Mex (int)Position";
+    interp->result = "wrong # args: Mex (POSITION)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     if(!kPartizan)
       MexFormat(position,interp->result);
     else
-      sprintf(interp->result,"");
+      sprintf(interp->result," ");
     return TCL_OK;
   }
 }
@@ -390,7 +390,8 @@ DoMoveCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position, move;
+  POSITION position;
+  MOVE move;
   POSITION DoMove();
 
   if (argc != 3) {
@@ -398,7 +399,7 @@ DoMoveCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
     if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
       return TCL_ERROR;
@@ -415,7 +416,8 @@ GoAgainCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position, move;
+  POSITION position;
+  MOVE move;
   extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
   if (argc != 3) {
@@ -423,7 +425,7 @@ GoAgainCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
     if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
       return TCL_ERROR;
@@ -440,7 +442,7 @@ PrimitiveCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
+  POSITION position;
   VALUE Primitive();
 
   if (argc != 2) {
@@ -448,7 +450,7 @@ PrimitiveCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     interp->result = gValueString[(int)Primitive(position)];
@@ -463,8 +465,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int position;
-  MOVE DoMove();
+  POSITION position;
   VALUE GetValueOfPosition();
   MOVELIST *ptr, *head, *GenerateMoves();
   char theAnswer[10000], tmp[1000];
@@ -474,7 +475,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     head = ptr = GenerateMoves(position);
@@ -527,7 +528,6 @@ GetPredictionCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   STRING playerName, prediction;
-  STRING GetPrediction();
   
   if (argc != 3) {
     interp->result = "wrong # args: GetPrediction position playerName";
@@ -535,7 +535,7 @@ GetPredictionCmd(dummy, interp, argc, argv)
   }
 
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
     playerName = (STRING) argv[2];
 

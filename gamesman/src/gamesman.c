@@ -6,8 +6,6 @@
 
 #include "gamesman.h"
 
-#define TRUE    1
-#define FALSE   0
 #define FREQTABLESIZE   256
 #define HUFFTREESIZE    550
 /* reserved value for parent, lChild, rChild fields */
@@ -34,6 +32,106 @@ typedef struct
 	int nodeCount;
 	int rootNode;
 }HuffTree;
+
+/* gameplay-related internal function prototypes */
+BOOLEAN  DefaultGoAgain(POSITION pos, MOVE move);
+void     Menus();
+void     MenusBeforeEvaluation();
+void     MenusEvaluated();
+void     ParseMenuChoice(char c);
+BOOLEAN  ParseConstantMenuChoice(char c);
+void     ParseBeforeEvaluationMenuChoice(char c);
+void     ParseEvaluatedMenuChoice(char c);
+void     HelpMenus();
+void     ParseHelpMenuChoice(char c);
+void     BadMenuChoice();
+void     DebugModule();
+void     PlayAgainstHuman();
+void     PlayAgainstComputer();
+int      randSafe();
+BOOLEAN  ValidMove(POSITION thePosition, MOVE theMove);
+BOOLEAN  PrintPossibleMoves(POSITION thePosition);
+int      Stopwatch();
+POSITION GetNextPosition();
+BOOLEAN  CorruptedValuesP();
+void     AnalysisMenu();
+void     PrintRawGameValues(BOOLEAN toFile);
+void     PrintBadPositions(char c, int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions);
+void     PrintGameValueSummary();
+void     PrintValuePositions(char c, int maxPositions);
+void     PrintComputerValueExplanation();
+void     PrintHumanValueExplanation();
+
+/* database internal function prototypes */
+VALUE   *GetRawValueFromDatabase(POSITION position);
+
+/* smarter computer function prototypes */
+void         PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr);
+void         PrintValueMoves(POSITION thePosition);
+MOVE         RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList);
+MOVE         RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenessList);
+VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES *valueMoves);
+VALUE_MOVES* GetValueMoves(POSITION thePosition);
+void         SmarterComputerMenu();
+VALUE_MOVES* StoreMoveInList(MOVE theMove, REMOTENESS remoteness, VALUE_MOVES* valueMoves, int typeofMove);
+
+/* undo internal function prototypes */
+void    ResetUndoList(UNDO* undo);
+UNDO*   HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error);
+UNDO*   UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort);
+UNDO*   InitializeUndo();
+UNDO*   Stalemate(UNDO* undo,POSITION stalematePosition, BOOLEAN* abort);
+
+/* non-loopy solver internal function prototypes */
+VALUE   DetermineValue1(POSITION position);
+
+/* loopy solver internal function prototypes */
+void     MyPrintParents();
+VALUE    DetermineLoopyValue1(POSITION position);
+VALUE    DetermineLoopyValue(POSITION position);
+void     SetParents (POSITION parent, POSITION root);
+void     ParentInitialize();
+void     ParentFree();
+void     NumberChildrenInitialize();
+void     NumberChildrenFree();
+void     InitializeFR();
+POSITION DeQueueWinFR();
+POSITION DeQueueLoseFR();
+POSITION DeQueueTieFR();
+POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR);
+void     InsertWinFR(POSITION position);
+void     InsertLoseFR(POSITION position);
+void     InsertTieFR(POSITION position);
+void     InsertFR(POSITION position, FRnode **firstnode, FRnode **lastnode);
+
+/* mex values internal function prototypes */
+MEXCALC MexAdd(MEXCALC theMexCalc,MEX theMex);
+MEX     MexCompute(MEXCALC theMexCalc);
+MEXCALC MexCalcInit();
+void    MexStore(POSITION position, MEX theMex);
+MEX     MexLoad(POSITION position);
+void    MexFormat(POSITION position, STRING string);
+MEX     MexPrimitive(VALUE value);
+void    PrintMexValues(MEX mexValue, int maxPositions);
+
+/* sunil database internal function prototypes */
+void SolveAndStoreRaw(int option);
+void SolveAndStore(int option);
+int  writeDatabase();
+int  loadDatabase();
+int  BuildFreqTable(char fileName[], unsigned int freqTable[FREQTABLESIZE]);
+int  LocateTwoSmallestNodes(HuffTree *huffTree, int *first, int *second);
+void BuildHuffmanTree(unsigned int freqTable[FREQTABLESIZE], HuffTree *huffTree);
+int  CompressFile(char inFileName[], char outFileName[]);
+int  UncompressFile(char inFileName[], char outFileName[]);
+
+/* sunil server/client internal function prototypes */
+int     getLength(void * line);
+void    setLength(void * line, short length);
+int     stuff(char * source, char * dest);
+int     InitClient();
+ssize_t writen(int fd, const void *vptr, size_t n);
+ssize_t readn(int fd, void *vptr, size_t n);
 
 STRING   kOpeningCredits =
 "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n\
@@ -158,11 +256,11 @@ char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/use
 VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
 
-int smartness = SMART;
-int scalelvl = MAXSCALE;
-int remainingGivebacks = 0;
-int initialGivebacks = 0;
-int oldValueOfPosition = tie;
+int   smartness = SMART;
+int   scalelvl = MAXSCALE;
+int   remainingGivebacks = 0;
+int   initialGivebacks = 0;
+VALUE oldValueOfPosition = tie;
 
 static MENU gMenuMode ;
 BOOLEAN gPrintHints = FALSE ;
@@ -207,7 +305,7 @@ extern BOOLEAN  kPartizan;             /* TRUE <==> module is a Partizan game */
 extern BOOLEAN  kGameSpecificMenu;     /* TRUE <==> module supports GameSpecificMenu() */
 extern BOOLEAN  kTieIsPossible;        /* TRUE <==> A Tie is possible */
 extern BOOLEAN  kLoopy;                /* TRUE <==> Game graph has cycles */
-extern int      gNumberOfPositions;    /* The number of positions in the game */
+extern POSITION gNumberOfPositions;    /* The number of positions in the game */
 extern BOOLEAN  gPrintHints ;
 extern STRING   kGameName ;
 extern STRING   kAuthorName ;
@@ -215,14 +313,6 @@ extern BOOLEAN  kDebugMenu ;
 extern STRING   kDBName ;
 extern BOOLEAN  kDebugDetermineValue ;
 
-// for atilla's hash code ...
-int *gHashOffset = NULL ;
-int *gNCR = NULL ;
-static int gHashOffsetSize;
-static int gHashBoardSize;
-static int gHashMinMax[4];
-static int gHashNumberOfPos;
-// end for atilla's hash code
 
 BOOLEAN DefaultGoAgain(POSITION pos,MOVE move)
 {
@@ -239,9 +329,8 @@ char GetMyChar()
   return(ans);
 }
 
-InitializeDatabases()
+void InitializeDatabases()
 {
-  GENERIC_PTR SafeMalloc();
   POSITION i;
   if (gDatabase!=NULL) {
     SafeFree((GENERIC_PTR) gDatabase);
@@ -253,7 +342,7 @@ InitializeDatabases()
     gDatabase[i] = undecided;
 }
 
-Initialize()
+void Initialize()
 {
   srand(time(NULL));
 
@@ -270,8 +359,7 @@ Initialize()
   InitializeGame() ;
 }
 
-
-Menus()
+void Menus()
 {
   printf(kOpeningCredits,kSolveVersion,kGameName);
 
@@ -294,7 +382,7 @@ Menus()
   } while(TRUE);
 }
 
-MenusBeforeEvaluation()
+void MenusBeforeEvaluation()
 {
   printf("\n\ts)\t(S)TART THE GAME\n");
 
@@ -308,7 +396,7 @@ MenusBeforeEvaluation()
     printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
 }
 
-MenusEvaluated()
+void MenusEvaluated()
 {
   printf("\n\tPlayer Name Options:\n\n");
       
@@ -362,7 +450,7 @@ MenusEvaluated()
   else if (smartness==RANDOM) {
     printf("randomly");
   }
-  printf (" w%/%d givebacks)\n", initialGivebacks);
+  printf (" w/%d givebacks)\n", initialGivebacks);
   
   if(kDebugMenu)
     printf("\td)\t(D)ebug Game AFTER Evaluation\n");
@@ -371,11 +459,9 @@ MenusEvaluated()
   printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position.\n");
 }
 
-ParseMenuChoice(c)
+void ParseMenuChoice(c)
 char c;
 {
-  BOOLEAN ParseConstantMenuChoice();	
-
   if (ParseConstantMenuChoice(c));
   else if(gMenuMode == BeforeEvaluation)
     ParseBeforeEvaluationMenuChoice(c);
@@ -393,6 +479,7 @@ BOOLEAN ParseConstantMenuChoice(c)
   switch(c) {
   case 'Q': case 'q':
     ExitStageRight();
+    exit(0);
   case 'h': case 'H':
     HelpMenus();
     break;
@@ -402,10 +489,9 @@ BOOLEAN ParseConstantMenuChoice(c)
   return(TRUE);       /* Yep, it was parsed here! */
 }
 
-ParseBeforeEvaluationMenuChoice(c)
+void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
-  VALUE DetermineValue(), DetermineLoopyValue();
   BOOLEAN tempPredictions ;
 
   switch(c) {
@@ -466,7 +552,7 @@ ParseBeforeEvaluationMenuChoice(c)
   }
 }
 
-ParseEvaluatedMenuChoice(c)
+void ParseEvaluatedMenuChoice(c)
      char c;
 {
   char tmpName[MAXNAME];
@@ -539,9 +625,9 @@ ParseEvaluatedMenuChoice(c)
   }
 }
 
-HelpMenus()
+void HelpMenus()
 {
-  char c, GetMyChar();
+  char c;
 
   do {
     printf("\n\t----- HELP for %s module -----\n\n", kGameName);
@@ -574,12 +660,13 @@ HelpMenus()
   } while(c != 'b' && c != 'B');
 }
 
-ParseHelpMenuChoice(c)
+void ParseHelpMenuChoice(c)
      char c;
 {
   switch(c) {
   case 'Q': case 'q':
     ExitStageRight();
+    exit(0);
   case '1':
     printf("\n\t----- What do I do on MY TURN? -----\n\n");
     printf("%s\n",kHelpOnYourTurn);
@@ -642,21 +729,17 @@ ParseHelpMenuChoice(c)
   HitAnyKeyToContinue();
 }
 
-BadMenuChoice()
+void BadMenuChoice()
 {
   printf("\nSorry, I don't know that option. Try another.\n");
 }
 
-DebugModule()
+void DebugModule()
 {
-  char GetMyChar();
-  int numberMoves = 0, move;
-  POSITION DoMove(), GetInitialPosition();
-  VALUE Primitive();
-  MOVELIST *head = NULL, *ptr, *GenerateMoves();
+  int numberMoves = 0;
+  MOVELIST *head = NULL, *ptr;
   MOVE theMove;
   BOOLEAN haveMove = FALSE, tempPredictions = gPrintPredictions;
-  USERINPUT GetAndPrintPlayersMove();
 
   gPrintPredictions = FALSE;
   
@@ -679,6 +762,7 @@ DebugModule()
     switch(GetMyChar()) {
     case 'Q': case 'q':
       ExitStageRight();
+      exit(0);
     case 'H': case 'h':
       HelpMenus();
       break;
@@ -728,14 +812,13 @@ DebugModule()
   
 }
 
-PlayAgainstHuman()
+void PlayAgainstHuman()
 {
   POSITION currentPosition;
   MOVE theMove;
-  VALUE Primitive();
-  UNDO *undo, *InitializeUndo(), *HandleUndoRequest(), *UpdateUndo();
+  UNDO *undo;
   BOOLEAN playerOneTurn = TRUE, error, player_draw;
-  USERINPUT userInput, GetAndPrintPlayersMove();
+  USERINPUT userInput = Continue; /* default added to satify compiler */
 
   currentPosition = gInitialPosition;
   undo = InitializeUndo();
@@ -791,14 +874,13 @@ PlayAgainstHuman()
   ResetUndoList(undo);
 }
 
-PlayAgainstComputer()
+void PlayAgainstComputer()
 {
   POSITION thePosition;
-  MOVE theMove, GetComputersMove();
-  VALUE Primitive();
-  UNDO *undo, *InitializeUndo(), *HandleUndoRequest(), *UpdateUndo();
+  MOVE theMove;
+  UNDO *undo;
   BOOLEAN usersTurn, error, player_draw;
-  USERINPUT userInput, GetAndPrintPlayersMove();
+  USERINPUT userInput = Continue; /* default added to satisfy compiler */
   int oldRemainingGivebacks;
 
   thePosition = gInitialPosition;
@@ -869,12 +951,11 @@ PlayAgainstComputer()
   ResetUndoList(undo);
 }
 
-ResetUndoList(undo)
+void ResetUndoList(undo)
      UNDO *undo;
 {
   POSITION position;
   BOOLEAN error, oldAgainstComputer; /* kludge so that it resets everything */
-  UNDO *HandleUndoRequest();
 
   oldAgainstComputer = gAgainstComputer;
   gAgainstComputer = FALSE;
@@ -892,8 +973,8 @@ UNDO *HandleUndoRequest(thePosition, undo, error)
 {
   UNDO *tmp;
 
-  if(*error = ((undo->next == NULL) ||
-	       (gAgainstComputer && (undo->next->next == NULL)))) {
+  if((*error = ((undo->next == NULL) ||
+	       (gAgainstComputer && (undo->next->next == NULL))))) {
 
     printf("\nSorry - can't undo, I'm already at beginning!\n");
     return(undo);
@@ -928,9 +1009,7 @@ UNDO *UpdateUndo(thePosition, undo, abort)
      UNDO *undo;
      BOOLEAN *abort;
 {
-  BOOLEAN Visited();
-  UNDO *tmp, *Stalemate();
-  GENERIC_PTR SafeMalloc();
+  UNDO *tmp;
 
   if(Visited(thePosition)) 
     undo = Stalemate(undo,thePosition,abort);
@@ -950,7 +1029,6 @@ UNDO *UpdateUndo(thePosition, undo, abort)
 UNDO *InitializeUndo()
 {
   UNDO *undo;
-  GENERIC_PTR SafeMalloc();
 
   undo = (UNDO *) SafeMalloc (sizeof(UNDO));    /* Initialize the undo list */
   undo->position = gInitialPosition;
@@ -959,7 +1037,7 @@ UNDO *InitializeUndo()
   return(undo);
 }
 
-PrintHumanValueExplanation()
+void PrintHumanValueExplanation()
 {
   if(gValue == tie) {
     printf("Since this game is a TIE game, the following should happen. The player\n");
@@ -980,7 +1058,7 @@ PrintHumanValueExplanation()
   }
 }
 
-PrintComputerValueExplanation()
+void PrintComputerValueExplanation()
 {
   if(gValue == tie) {
     printf("You should know that since this is a TIE game, the player who goes\n");
@@ -1023,7 +1101,6 @@ UNDO *Stalemate(undo,stalematePosition, abort)
      POSITION stalematePosition;
      BOOLEAN *abort;
 {
-  char GetMyChar();
   UNDO *tmp;
 
   printf("\nWe have reached a position we have already encountered. We have\n");
@@ -1050,15 +1127,13 @@ UNDO *Stalemate(undo,stalematePosition, abort)
 VALUE DetermineValue1(position)
 POSITION position;
 {
-  BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE, Visited();
-  MOVELIST *ptr, *head, *GenerateMoves();
-  VALUE StoreValueOfPosition(), GetValueOfPosition(), Primitive(), value;
-  BOOLEAN dan = FALSE;
+  BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
+  MOVELIST *ptr, *head;
+  VALUE value;
   POSITION child;
   REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
   REMOTENESS minTieRemoteness = MAXINT2, remoteness;
-  MEXCALC theMexCalc, MexAdd(), MexCalcInit();
-  MEX MexCompute(), MexLoad(), MexPrimitive();
+  MEXCALC theMexCalc = 0; /* default to satisfy compiler */
 
   if(Visited(position)) { /* Cycle! */
     return(win);
@@ -1088,6 +1163,7 @@ POSITION position;
         {
         case lose: value=win;break;
         case win: value=lose;break;
+	default: break; /* value stays the same */
         }
 
       remoteness = Remoteness(child);
@@ -1150,9 +1226,11 @@ MEX theMex;
   if(theMex > 31) {
     printf("Error: MexAdd handed a theMex greater than 31\n");
     ExitStageRight();
+    exit(0);
   } else if (theMex == kBadMexValue) {
     printf("Error: MexAdd handed a kBadMexValue for theMex\n");
     ExitStageRight();
+    exit(0);
   }
   return(theMexCalc | (1 << theMex));
 }
@@ -1171,7 +1249,7 @@ MEXCALC MexCalcInit()
   return((MEXCALC) 0);
 }
 
-MexStore(position,theMex)
+void MexStore(position,theMex)
 POSITION position;
 MEX theMex;
 {
@@ -1190,7 +1268,7 @@ POSITION position;
 	if(sockfd < 0)
 		InitClient() ;
 
-	sprintf(userinput, "%s -RawRead %d %d", kDBName, getOption(), position) ;
+	sprintf(userinput, "%s -RawRead %d " POSITION_FORMAT, kDBName, getOption(), position) ;
 	a = stuff(userinput, buffer) ;
 	writen(sockfd, buffer, a) ;
 	readn(sockfd, buffer, 2) ;
@@ -1199,7 +1277,7 @@ POSITION position;
 	readn(sockfd, buffer, a) ;
 	buffer[a] = (char)NULL ;
 	//printf("'%s'\n", buffer) ;
-	sscanf(buffer, "%d", &position) ;
+	sscanf(buffer, POSITION_FORMAT, &position) ;
 	return((position /8)%32);
   }
   else
@@ -1208,11 +1286,11 @@ POSITION position;
   }
 }
 
-MexFormat(position,string)
+void MexFormat(position,string)
 POSITION position;
 STRING string;
 {
-  MEX theMex, MexLoad();
+  MEX theMex;
   char tmp[5];
 
   if (!kPartizan) { /* Impartial, mex value available */
@@ -1226,7 +1304,7 @@ STRING string;
       
     (void) sprintf(string,"[Val = %s]",tmp);
   } else
-    (void) sprintf(string,"");
+    sprintf(string, " ");
 }
 
 MEX MexPrimitive(value)
@@ -1235,9 +1313,11 @@ VALUE value;
   if(value == undecided) {
     printf("Error: MexPrimitive handed a value other than win/lose (undecided)\n");
     ExitStageRight();
+    exit(0);
   } else if(value == tie) {
     printf("Error: MexPrimitive handed a value other than win/lose (tie)\n");
     ExitStageRight();
+    exit(0);
   } else if(value == win) 
     return((MEX)1); /* A win terminal is not ideal, but it's a star */
   else if (value == lose)
@@ -1245,10 +1325,11 @@ VALUE value;
   else {
     BadElse("MexPrimitive");
     ExitStageRight();
+    exit(0);
   }
 }
 
-FreeMoveList(ptr)
+void FreeMoveList(ptr)
      MOVELIST *ptr;
 {
   MOVELIST *last;
@@ -1259,7 +1340,7 @@ FreeMoveList(ptr)
   }
 }
 
-FreeRemotenessList(REMOTENESSLIST* ptr) 
+void FreeRemotenessList(REMOTENESSLIST* ptr) 
 {
   REMOTENESSLIST* last;
   while (ptr != NULL) {
@@ -1270,7 +1351,7 @@ FreeRemotenessList(REMOTENESSLIST* ptr)
   }
 }
 
-FreePositionList(ptr)
+void FreePositionList(ptr)
      POSITIONLIST *ptr;
 {
   POSITIONLIST *last;
@@ -1341,7 +1422,7 @@ BOOLEAN ValidMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  MOVELIST *ptr, *head, *GenerateMoves();
+  MOVELIST *ptr, *head;
 
   head = ptr = GenerateMoves(thePosition);
   while (ptr != NULL) {
@@ -1358,7 +1439,7 @@ BOOLEAN ValidMove(thePosition, theMove)
 BOOLEAN PrintPossibleMoves(thePosition)
      POSITION thePosition;
 {
-  MOVELIST *ptr, *head, *GenerateMoves();
+  MOVELIST *ptr, *head;
 
   head = ptr = GenerateMoves(thePosition);
   printf("\nValid Moves : [ ");
@@ -1373,7 +1454,7 @@ BOOLEAN PrintPossibleMoves(thePosition)
 }
 
 /* Jiong */
-PrintMoves(ptr, remoteptr)
+void PrintMoves(ptr, remoteptr)
      MOVELIST *ptr;
      REMOTENESSLIST *remoteptr;
 {
@@ -1381,7 +1462,7 @@ PrintMoves(ptr, remoteptr)
     printf("\n\t\t");
     PrintMove(ptr->move);
     printf(" \t");
-    if(((int) remoteptr->remoteness) == REMOTENESS_MAX)
+    if((remoteptr->remoteness) == REMOTENESS_MAX)
       printf("Draw");
     else
       printf("%d", (int) remoteptr->remoteness);
@@ -1392,11 +1473,10 @@ PrintMoves(ptr, remoteptr)
 }
 
 /* Jiong */
-PrintValueMoves(thePosition)
+void PrintValueMoves(thePosition)
      POSITION thePosition;
 {
-  VALUE_MOVES *ptr, *GetValueMoves();
-  GENERIC_PTR SafeMalloc();
+  VALUE_MOVES *ptr;
 
   ptr = GetValueMoves(thePosition);
 
@@ -1420,8 +1500,7 @@ STRING GetPrediction(position,playerName,usersTurn)
 {
   static char prediction[80];
   char mexString[20];
-  REMOTENESS Remoteness();
-  VALUE value, GetValueOfPosition();
+  VALUE value;
 
   if(gPrintPredictions && (gMenuMode == Evaluated)) {
     MexFormat(position,mexString);
@@ -1447,12 +1526,12 @@ STRING GetPrediction(position,playerName,usersTurn)
     }
   }
   else
-    (void) sprintf(prediction,"");
+    (void) sprintf(prediction," ");
 
   return(prediction);
 }
 
-Stopwatch()
+int Stopwatch()
 {
   static int first = 1;
   static time_t oldT, newT;
@@ -1466,7 +1545,7 @@ Stopwatch()
   return(difftime(newT, oldT));
 }
 
-ExitStageRight()
+void ExitStageRight()
 {
   printf("\nThanks for playing %s!\n",kGameName); /* quit */
   // This is good practice
@@ -1474,7 +1553,7 @@ ExitStageRight()
   exit(0);
 }
 
-ExitStageRightErrorString(errorMsg)
+void ExitStageRightErrorString(errorMsg)
 char errorMsg[];
 {
   printf("\nError: %s\n",errorMsg);
@@ -1490,14 +1569,14 @@ GENERIC_PTR SafeMalloc(amount)
   if((ptr = malloc(amount)) == NULL) {
     printf("Error: SafeMalloc could not allocate the requested %d bytes\n",amount);
     ExitStageRight();
-    return(ptr); /* never reached - added to make lint happy */
+    exit(0);
   }
   else {
     return(ptr);
   }
 }
 
-SafeFree(ptr)
+void SafeFree(ptr)
      GENERIC_PTR ptr;
 {
   free(ptr);
@@ -1507,12 +1586,13 @@ VALUE StoreValueOfPosition(position, value)
      POSITION position;
      VALUE value;
 {
-  VALUE *GetRawValueFromDatabase(), *ptr, GetValueOfPosition(), oldValue;
+  VALUE *ptr;
+  //VALUE oldValue;
 		
   ptr = GetRawValueFromDatabase(position);
 
 //  if((oldValue = GetValueOfPosition(position)) != undecided)
-  //  printf("Error: StoreValueOfPosition(%d,%s) found a slot already filled with %s.\n",position,gValueString[value],gValueString[oldValue]);
+  //  printf("Error: StoreValueOfPosition(" POSITION_FORMAT ",%s) found a slot already filled with %s.\n",position,gValueString[value],gValueString[oldValue]);
 
   /* put it in the right position, but we have to blank field and then
   ** add new value to right slot, keeping old slots */
@@ -1532,7 +1612,7 @@ VALUE GetValueOfPosition(position)
 	if(sockfd < 0)
 		InitClient() ;
 
-	sprintf(userinput, "%s -RawRead %d %d", kDBName, getOption(), position) ;
+	sprintf(userinput, "%s -RawRead %d " POSITION_FORMAT, kDBName, getOption(), position) ;
 	a = stuff(userinput, buffer) ;
 	writen(sockfd, buffer, a) ;
 	readn(sockfd, buffer, 2) ;
@@ -1541,7 +1621,7 @@ VALUE GetValueOfPosition(position)
 	readn(sockfd, buffer, a) ;
 	buffer[a] = (char)NULL ;
 	//printf("'%s'\n", buffer) ;
-	sscanf(buffer, "%d", &position) ;
+	sscanf(buffer, POSITION_FORMAT, &position) ;
 	return position % 4;
   }
   else
@@ -1557,7 +1637,6 @@ MOVELIST *CreateMovelistNode(theMove, theNextMove)
      MOVELIST *theNextMove;
 {
   MOVELIST *theHead;
-  GENERIC_PTR SafeMalloc();
 
   theHead = (MOVELIST *) SafeMalloc (sizeof(MOVELIST));
   theHead->move = theMove;
@@ -1570,7 +1649,6 @@ MOVELIST *CopyMovelist(theMovelist)
      MOVELIST *theMovelist;
 {
   MOVELIST *ptr, *head = NULL;
-  MOVELIST *CreateMovelistNode();
   
   /* Walk down the graph children and copy it into a new structure */
   /* Unfortunately, it reverses the order, which is ok */
@@ -1584,6 +1662,7 @@ MOVELIST *CopyMovelist(theMovelist)
   return(head);
 }
 
+
 REMOTENESS Remoteness(position)
      POSITION position;
 {
@@ -1596,7 +1675,7 @@ REMOTENESS Remoteness(position)
 	if(sockfd < 0)
 		InitClient() ;
 
-	sprintf(userinput, "%s -RawRead %d %d", kDBName, getOption(), position) ;
+	sprintf(userinput, "%s -RawRead %d " POSITION_FORMAT, kDBName, getOption(), position) ;
 	a = stuff(userinput, buffer) ;
 	writen(sockfd, buffer, a) ;
 	readn(sockfd, buffer, 2) ;
@@ -1605,7 +1684,7 @@ REMOTENESS Remoteness(position)
 	readn(sockfd, buffer, a) ;
 	buffer[a] = (char)NULL ;
 	//printf("'%s'\n", buffer) ;
-	sscanf(buffer, "%d", &position) ;
+	sscanf(buffer, POSITION_FORMAT, &position) ;
 	return ( (position & REMOTENESS_MASK) >> REMOTENESS_SHIFT );
   }
   else
@@ -1616,17 +1695,18 @@ REMOTENESS Remoteness(position)
   }
 }
 
-SetRemoteness (position, remoteness)
+void SetRemoteness (position, remoteness)
      POSITION position;
      REMOTENESS remoteness;
 {
-  VALUE *GetRawValueFromDatabase(), *ptr;
+  VALUE *ptr;
 
   ptr = GetRawValueFromDatabase(position);
 
   if(remoteness > REMOTENESS_MAX) {
-    printf("Remoteness request (%d) for %d larger than Max Remoteness (%d)\n",remoteness,position,REMOTENESS_MAX);
+    printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",remoteness,position,REMOTENESS_MAX);
     ExitStageRight();
+    exit(0);
   }
 
   /* blank field then add new remoteness */
@@ -1637,40 +1717,40 @@ SetRemoteness (position, remoteness)
 BOOLEAN Visited(position)
      POSITION position;
 {
-  VALUE *GetRawValueFromDatabase(), *ptr;
+  VALUE *ptr;
 
   ptr = GetRawValueFromDatabase(position);
 
   return((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
 }
 
-MarkAsVisited (position)
+void MarkAsVisited (position)
      POSITION position;
 {
-  VALUE *GetRawValueFromDatabase(), *ptr;
+  VALUE *ptr;
 
   ptr = GetRawValueFromDatabase(position);
 
   *ptr = (VALUE)((int)*ptr | VISITED_MASK);       /* Turn bit on */
 }
 
-UnMarkAsVisited (position)
+void UnMarkAsVisited (position)
      POSITION position;
 {
-  VALUE *GetRawValueFromDatabase(), *ptr;
+  VALUE *ptr;
 
   ptr = GetRawValueFromDatabase(position);
 
   *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
 
-BadElse(function)
+void BadElse(function)
      STRING function;
 {
   printf("Error: %s() just reached an else clause it shouldn't have!\n\n",function);
 }
 
-HitAnyKeyToContinue()
+void HitAnyKeyToContinue()
 {
   static BOOLEAN first = TRUE;
 
@@ -1684,8 +1764,7 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  MOVE ConvertTextInputToMove(), tmpMove;
-  BOOLEAN ValidTextInput();
+  MOVE tmpMove;
   char tmpAns[2], input[MAXINPUTLENGTH];
 
   GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
@@ -1705,6 +1784,7 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
     switch(input[0]) {
     case 'Q': case 'q':
       ExitStageRight();
+      exit(0);
     case 'u': case 'U':
       return(Undo);
     case 'a': case 'A':
@@ -1718,13 +1798,13 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
     case 'H': case 'h':
       HelpMenus();
       printf("");
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, TRUE);
       break;
     case 'c': case 'C':
       SmarterComputerMenu();
       break;
     case 'r': case 'R':
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, TRUE);
       break;
     case 's': case 'S':
       PrintValueMoves(thePosition);
@@ -1744,7 +1824,7 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
 }
 
 
-GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
+void GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
      char *name;
      int   size;
      BOOLEAN eatFirstChar, putCarraigeReturnBack;
@@ -1780,15 +1860,13 @@ VALUE *GetRawValueFromDatabase(position)
 MOVE GetComputersMove(thePosition)
      POSITION thePosition;
 {
-  MOVE DecodeMove(), theMove;
-  MOVE RandomLargestRemotenessMove(), RandomSmallestRemotenessMove();
+  MOVE theMove = -1;
   int i, randomMove, numberMoves = 0;
   MOVELIST *ptr, *head, *prev;
-  VALUE_MOVES *moves, *GetValueMoves();
-  REMOTENESSLIST *rptr, *rhead;
+  VALUE_MOVES *moves;
+  REMOTENESSLIST *rptr=NULL, *rhead;
   BOOLEAN setBackSmartness = FALSE;
-  BOOLEAN moveFound;
-  int moveType;
+  int moveType = -1;
   int oldsmartness = smartness;
   ptr = head = prev = NULL;
   i = 0;
@@ -1940,13 +2018,14 @@ MOVE GetComputersMove(thePosition)
 
   } else {
     printf("Error in GetComputerMove: no such intelligence level!\n");
+    ExitStageRight();
+    exit(0);
   }
 }
 
 MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList) {
-  MOVELIST *maxRemotenessMoveList;
+  MOVELIST *maxRemotenessMoveList = NULL;
   REMOTENESS maxRemoteness;
-  MOVE theMove;
   int numMoves, random;
 
   numMoves = 0;
@@ -1977,7 +2056,6 @@ MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessL
 
 MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenessList) {
   int numMoves, random;
-  MOVE theMove;
   REMOTENESS minRemoteness;
 
   numMoves = 0;
@@ -2001,7 +2079,6 @@ MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenes
 
 POSITION GetNextPosition()
 {
-  VALUE GetValueOfPosition();
   static POSITION thePosition = 0; /* Cycle through every position */
   POSITION returnPosition;
   
@@ -2025,11 +2102,7 @@ VALUE_MOVES* SortMoves (thePosition, move, valueMoves)
      MOVE move;
      VALUE_MOVES *valueMoves;
 {
-  MOVELIST *GenerateMoves();
   POSITION child;
-  VALUE_MOVES* StoreMoveInList(); 
-  VALUE GetValueOfPosition(), Primitive();
-  REMOTENESS Remoteness();
 
   if (GetValueOfPosition(child = DoMove(thePosition, move)) == lose) {  //winning moves
     valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
@@ -2045,11 +2118,9 @@ VALUE_MOVES* SortMoves (thePosition, move, valueMoves)
 VALUE_MOVES* GetValueMoves(thePosition)
      POSITION thePosition;
 {
-  MOVELIST *ptr, *head, *GenerateMoves();
-  VALUE_MOVES *SortMoves(), *valueMoves;
-  VALUE GetValueOfPosition(), theValue, Primitive();
-  POSITION child;
-  GENERIC_PTR SafeMalloc();
+  MOVELIST *ptr, *head;
+  VALUE_MOVES *valueMoves;
+  VALUE theValue;
 
   valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
   valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
@@ -2074,8 +2145,8 @@ VALUE_MOVES* GetValueMoves(thePosition)
 
 BOOLEAN CorruptedValuesP()
 {
-  MOVELIST *ptr, *head, *GenerateMoves();
-  VALUE GetValueOfPosition(), Primitive(), parentValue, childValue;
+  MOVELIST *ptr, *head;
+  VALUE parentValue, childValue;
   POSITION position, child;
   BOOLEAN parentIsWin, foundLosingChild, parentIsTie, foundTieingChild, corrupted;
 
@@ -2094,7 +2165,7 @@ BOOLEAN CorruptedValuesP()
 	  if(parentValue == lose) {
 	    if(childValue != win) {
 	      corrupted = TRUE;
-	      printf("Corruption: Losing Parent %d has %s child %d, shouldn't be losing\n",position,gValueString[childValue],child);
+	      printf("Corruption: Losing Parent " POSITION_FORMAT " has %s child " POSITION_FORMAT ", shouldn't be losing\n",position,gValueString[childValue],child);
 	    }
 	  } else if (parentValue == win) {
 	    parentIsWin = TRUE;
@@ -2104,7 +2175,7 @@ BOOLEAN CorruptedValuesP()
 	    parentIsTie = TRUE;
 	    if(childValue == lose) {
 	      corrupted = TRUE;
-	      printf("Corruption: Tieing Parent %d has Lose child %d, should be win\n",position,child);
+	      printf("Corruption: Tieing Parent " POSITION_FORMAT " has Lose child " POSITION_FORMAT ", should be win\n",position,child);
 	    } else if (childValue == tie)
 	      foundTieingChild = TRUE;
 	  } else 
@@ -2114,11 +2185,11 @@ BOOLEAN CorruptedValuesP()
 	FreeMoveList(head);
 	if(parentIsWin && !foundLosingChild) {
 	  corrupted = TRUE;
-	  printf("Corruption: Winning Parent %d has no losing children, shouldn't be win\n",position);
+	  printf("Corruption: Winning Parent " POSITION_FORMAT " has no losing children, shouldn't be win\n",position);
 	}
 	if(parentIsTie && !foundTieingChild) {
 	  corrupted = TRUE;
-	  printf("Corruption: Tieing Parent %d has no tieing children, should be a lose\n",position);
+	  printf("Corruption: Tieing Parent " POSITION_FORMAT " has no tieing children, should be a lose\n",position);
 	}
       } /* if not primitive */
     } /* if valid position */
@@ -2127,7 +2198,7 @@ BOOLEAN CorruptedValuesP()
 }
 
 /* Jiong */
-SmarterComputerMenu()
+void SmarterComputerMenu()
 {
   char c;
   do {
@@ -2188,13 +2259,13 @@ SmarterComputerMenu()
   } while(TRUE);
 }
 
-AnalysisMenu()
+void AnalysisMenu()
 {
   POSITIONLIST *badWinPositions = NULL, *badTiePositions = NULL, *badLosePositions = NULL;
   BOOLEAN tempPredictions = gPrintPredictions, CorruptedValuesP();
   MEX mexValue = 0;
   int mexInt, maxPositions = 10;
-  char GetMyChar(), c;
+  char c;
 
   gPrintPredictions = FALSE;
   
@@ -2231,6 +2302,7 @@ AnalysisMenu()
     switch(c = GetMyChar()) {
     case 'Q': case 'q':
       ExitStageRight();
+      exit(0);
     case 'H': case 'h':
       HelpMenus();
       break;
@@ -2250,7 +2322,7 @@ AnalysisMenu()
       break;
     case 'i': case 'I':
       printf("\n\t----- The Initial Position is shown below -----\n");
-      PrintPosition(gInitialPosition);
+      PrintPosition(gInitialPosition, "Nobody", TRUE);
       HitAnyKeyToContinue();
       break;
     case 'p': case 'P':
@@ -2299,21 +2371,22 @@ AnalysisMenu()
   } while(TRUE);
 }
 
-PrintRawGameValues(toFile)
+void PrintRawGameValues(toFile)
 BOOLEAN toFile;
 {
-  BOOLEAN Visited();
   FILE *fp;
   char filename[80];
-  int i;
-  VALUE GetValueOfPosition(), value;
+  POSITION i;
+  VALUE value;
 
   if(toFile) {
     printf("File to save to: ");
     scanf("%s",filename);
     
-    if((fp = fopen(filename, "w")) == NULL)
+    if((fp = fopen(filename, "w")) == NULL) {
       ExitStageRightErrorString("Couldn't open file, sorry.");
+      exit(0);
+    }
   } else
     fp = stdout;
   
@@ -2322,7 +2395,7 @@ BOOLEAN toFile;
   
   for(i=0 ; i<gNumberOfPositions ; i++)
     if((value = GetValueOfPosition((POSITION)i)) != undecided)
-      fprintf(fp,"%00005d | %c %4s in %d\n",
+      fprintf(fp,POSITION_FORMAT " | %c %4s in %d\n",
 	      i,
 	      Visited((POSITION)i) ? 'V' : '-',
 	      gValueString[value],
@@ -2332,15 +2405,14 @@ BOOLEAN toFile;
     fclose(fp);
 }
 
-PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositions)
+void PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositions)
      char c;
      int maxPositions;
      POSITIONLIST *badWinPositions, *badTiePositions, *badLosePositions;
 {
-  POSITIONLIST *ptr;
+  POSITIONLIST *ptr = NULL;
   BOOLEAN continueSearching = TRUE;
-  POSITION thePosition, GetNextPosition();
-  VALUE GetValueOfPosition(), theValue;
+  POSITION thePosition;
   int j;
   char yesOrNo;
 
@@ -2354,7 +2426,7 @@ PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositi
   do {
     for(j = 0 ; ptr != NULL && j < maxPositions ;j++) {
       thePosition = ptr->position;
-      PrintPosition(thePosition);
+      PrintPosition(thePosition, "Nobody", TRUE);
       ptr = ptr->next;
     }
     if(ptr != NULL) {
@@ -2369,10 +2441,10 @@ PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositi
   } while (continueSearching && ((ptr = ptr->next) != NULL));
 }
 
-PrintGameValueSummary()
+void PrintGameValueSummary()
 {
-  POSITION thePosition, GetNextPosition();
-  VALUE GetValueOfPosition(), theValue;
+  POSITION thePosition;
+  VALUE theValue;
   POSITION winCount, loseCount, tieCount, unknownCount;
   POSITION totalPositions;
 
@@ -2401,14 +2473,12 @@ PrintGameValueSummary()
 	 gNumberOfPositions);
 }
 
-PrintMexValues(mexValue,maxPositions)
+void PrintMexValues(mexValue,maxPositions)
      MEX mexValue;
      int maxPositions;
 {
   BOOLEAN continueSearching = TRUE;
-  POSITION thePosition, GetNextPosition();
-  VALUE GetValueOfPosition(), theValue;
-  MEX MexLoad();
+  POSITION thePosition;
   int j;
   char yesOrNo;
 
@@ -2417,7 +2487,7 @@ PrintMexValues(mexValue,maxPositions)
   do {
     for(j = 0 ; ((thePosition = GetNextPosition()) != kBadPosition) && j < maxPositions ;) {
       if (MexLoad(thePosition) == mexValue) {
-	PrintPosition(thePosition);
+	PrintPosition(thePosition, "Nobody", TRUE);
 	j++;
       }
     }
@@ -2434,13 +2504,13 @@ PrintMexValues(mexValue,maxPositions)
 	HitAnyKeyToContinue();
 }
 
-PrintValuePositions(c,maxPositions)
+void PrintValuePositions(c,maxPositions)
      char c;
      int maxPositions;
 {      
   BOOLEAN continueSearching = TRUE;
-  POSITION thePosition, GetNextPosition();
-  VALUE GetValueOfPosition(), theValue;
+  POSITION thePosition;
+  VALUE theValue;
   int j;
   char yesOrNo;
 
@@ -2452,7 +2522,7 @@ PrintValuePositions(c,maxPositions)
       if((theValue == win  && (c == 'w' || c == 'W')) || 
 	 (theValue == lose && (c == 'l' || c == 'L')) ||
 	 (theValue == tie  && (c == 't' || c == 'T'))) {
-	PrintPosition(thePosition);
+	PrintPosition(thePosition, "Nobody", TRUE);
 	j++;
       }
     }
@@ -2474,7 +2544,6 @@ POSITIONLIST *StorePositionInList(thePosition,thePositionList)
      POSITIONLIST *thePositionList;
 {
   POSITIONLIST *next, *tmp;
-  GENERIC_PTR SafeMalloc();
   
   next = thePositionList;
   tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
@@ -2484,15 +2553,29 @@ POSITIONLIST *StorePositionInList(thePosition,thePositionList)
   return(tmp);
 }
 
+POSITIONLIST *CopyPositionlist(thePositionlist)
+     POSITIONLIST *thePositionlist;
+{
+  POSITIONLIST *ptr, *head = NULL;
+  
+  ptr = thePositionlist;
+  while (ptr != NULL) {
+    head = StorePositionInList(ptr->position, head);
+    ptr = ptr->next;
+  }
+
+  return(head);
+}
+
 /* Jiong */
 VALUE_MOVES* StoreMoveInList(theMove, remoteness, valueMoves, typeofMove)
-     MOVE     theMove;
-     int      remoteness, typeofMove;
-     VALUE_MOVES *valueMoves;
+     MOVE         theMove;
+     REMOTENESS   remoteness;
+     int          typeofMove;
+     VALUE_MOVES* valueMoves;
 {
   MOVELIST *moveList, *newMove, *prevMoveList;
   REMOTENESSLIST *remotenessList, *newRemoteness, *prevRemotenessList;
-  GENERIC_PTR SafeMalloc();
   
   moveList = valueMoves->moveList[typeofMove];
   remotenessList = valueMoves->remotenessList[typeofMove];
@@ -2543,21 +2626,19 @@ VALUE_MOVES* StoreMoveInList(theMove, remoteness, valueMoves, typeofMove)
 
 //// START LOOPY
 
-MyPrintParents()
+void MyPrintParents()
 {
-  int i;
+  POSITION i;
   POSITIONLIST *ptr;
-  VALUE GetValueOfPosition();
-  BOOLEAN Visited();
 
   printf("PARENTS | #Children | Value\n");
   
   for(i=0 ; i<gNumberOfPositions ; i++)
     if(Visited(i)) {
       ptr = gParents[i];
-      printf("%2d: ",i);
+      printf(POSITION_FORMAT ": ",i);
       while (ptr != NULL) {
-	printf("[%2d] ",ptr->position);
+	printf("[" POSITION_FORMAT "] ",ptr->position);
 	ptr = ptr->next;
       }
       printf("| %d children | %s value",(int)gNumberChildren[i],gValueString[GetValueOfPosition((POSITION)i)]);
@@ -2568,19 +2649,18 @@ MyPrintParents()
 VALUE DetermineLoopyValue1(position)
 POSITION position;
 {				
-  POSITION DeQueueWinFR(), DeQueueLoseFR(), DeQueueTieFR(), child, parent;
+  POSITION child=kBadPosition, parent;
   POSITIONLIST *ptr;
-  VALUE GetValueOfPosition(), childValue;
-  REMOTENESS remotenessChild, Remoteness();
-  void SetParents();
-  int i;
+  VALUE childValue;
+  REMOTENESS remotenessChild;
+  POSITION i;
 
   /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
   SetParents(kBadPosition,position);
   if(kDebugDetermineValue) {
     printf("---------------------------------------------------------------\n");
-    printf("Number of Positions = [%d]\n",gNumberOfPositions);
+    printf("Number of Positions = [" POSITION_FORMAT "]\n",gNumberOfPositions);
     printf("---------------------------------------------------------------\n");
     // MyPrintParents();
     printf("---------------------------------------------------------------\n");
@@ -2602,7 +2682,7 @@ POSITION position;
 
     /* If debugging, print who's in list */
     if(kDebugDetermineValue)
-      printf("Grabbing %d (%s) remoteness = %d off of FR\n",
+      printf("Grabbing " POSITION_FORMAT " (%s) remoteness = %d off of FR\n",
 	     child,gValueString[childValue],remotenessChild);
 
     /* Remove the child from the FRontier, we're working with it now */
@@ -2622,15 +2702,17 @@ POSITION position;
 	  if (GetValueOfPosition(parent) == undecided) {
 	    /* This is the first time we know the parent is a win */
 	    InsertWinFR(parent);
-	    if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
+	    if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
 	    StoreValueOfPosition(parent,win); 
 	    SetRemoteness(parent, remotenessChild + 1);
 	  } 
 	  else {
 	    /* We already know the parent is a winning position. */
 	    
-	    if (GetValueOfPosition(parent) != win)
-	      BadElse("&d should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
+	    if (GetValueOfPosition(parent) != win) {
+	      printf(POSITION_FORMAT " should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
+	      BadElse("DetermineLoopyValue");
+	    }
 	    
 	    /* This should always hold because the frontier is a queue.
 	    ** We always examine losing nodes with less remoteness first */
@@ -2654,7 +2736,7 @@ POSITION position;
 	  assert(GetValueOfPosition(parent) == undecided);
 
 	  InsertLoseFR(parent);
-	  if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
+	  if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
 	  StoreValueOfPosition(parent,lose);
 	  /* We always need to change the remoteness because we examine winning node with
 	  ** less remoteness first. */
@@ -2698,7 +2780,7 @@ POSITION position;
          * consistent with DetermineValue for non-loopy games. */
 	
 	InsertTieFR(parent);
-	if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
+	if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
 	StoreValueOfPosition(parent,tie); 
 	SetRemoteness(parent, remotenessChild + 1);
       }
@@ -2722,17 +2804,17 @@ POSITION position;
   for (i = 0; i < gNumberOfPositions; i++)
     if(Visited(i)) {
       if(kDebugDetermineValue)
-	printf("%d was visited...",i);
+	printf(POSITION_FORMAT " was visited...",i);
       if(GetValueOfPosition((POSITION)i) == undecided) {
 	StoreValueOfPosition((POSITION)i,tie);
 	SetRemoteness((POSITION)i,REMOTENESS_MAX);
 	//we are done with this position and no longer need to keep around its list of parents
 	if (gParents[child]) FreePositionList(gParents[child]);
 	if(kDebugDetermineValue)
-	  printf("and was undecided, setting to tie\n",i);
+	  printf("and was undecided, setting to tie\n");
       } else
 	if(kDebugDetermineValue)
-	  printf("but was decided, ignoring\n",i);
+	  printf("but was decided, ignoring\n");
       UnMarkAsVisited((POSITION)i);
     }
 
@@ -2763,12 +2845,6 @@ POSITION position;
 
 void SetParents (POSITION parent, POSITION root)
 {
-  // Prototypes
-  BOOLEAN Visited();
-  MOVELIST* GenerateMoves();
-  VALUE Primitive();
-  POSITIONLIST* StorePositionInList();
-  
   MOVELIST* moveptr, * movehead;
   POSITIONLIST* posptr, * thisLevel, * nextLevel;
   POSITION pos, child;
@@ -2833,19 +2909,18 @@ void SetParents (POSITION parent, POSITION root)
   }
 }
 
-ParentInitialize()
+void ParentInitialize()
 {
-  GENERIC_PTR SafeMalloc();
-  int i;
+  POSITION i;
 
   gParents = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
   for(i = 0; i < gNumberOfPositions; i++)
     gParents[i] = NULL;
 }
 
-ParentFree()
+void ParentFree()
 {
-  int i;
+  POSITION i;
 
   for (i = 0; i < gNumberOfPositions; i++) {
     FreePositionList(gParents[i]);
@@ -2854,22 +2929,21 @@ ParentFree()
   SafeFree(gParents);
 }
 
-NumberChildrenInitialize()
+void NumberChildrenInitialize()
 {
-  GENERIC_PTR SafeMalloc();
-  int i;
+  POSITION i;
 
   gNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
   for(i = 0; i < gNumberOfPositions; i++)
     gNumberChildren[i] = 0;
 }
 
-NumberChildrenFree()
+void NumberChildrenFree()
 {
   SafeFree(gNumberChildren);
 }
 
-InitializeFR()
+void InitializeFR()
 {
   gHeadWinFR = NULL;
   gTailWinFR = NULL;
@@ -2881,19 +2955,16 @@ InitializeFR()
 
 POSITION DeQueueWinFR()
 {
-  POSITION DeQueueFR();
   return DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
 POSITION DeQueueLoseFR()
 {
-  POSITION DeQueueFR();
   return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
 POSITION DeQueueTieFR()
 {
-  POSITION DeQueueFR();
   return DeQueueFR(&gHeadTieFR, &gTailTieFR);
 }
 
@@ -2916,25 +2987,25 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
   return position;
 }
 
-InsertWinFR(POSITION position)
+void InsertWinFR(POSITION position)
 {
   /* printf("Inserting WinFR...\n"); */
   InsertFR(position, &gHeadWinFR, &gTailWinFR);
 }
 
 
-InsertLoseFR(POSITION position)
+void InsertLoseFR(POSITION position)
 {
   /* printf("Inserting LoseFR...\n"); */
   InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
 }
 
-InsertTieFR(POSITION position)
+void InsertTieFR(POSITION position)
 {
   InsertFR(position, &gHeadTieFR, &gTailTieFR);
 }
 
-InsertFR(POSITION position, FRnode **firstnode,
+void InsertFR(POSITION position, FRnode **firstnode,
 			FRnode **lastnode)
 {
   FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
@@ -2958,15 +3029,14 @@ InsertFR(POSITION position, FRnode **firstnode,
 
 void SolveAndStoreRaw(int option)
 {
-	int i, j ;
-	int n = NumberOfOptions() ;
+	POSITION i ;
 	char outfilename[256] ;
 	FILE * filep ;
 
 	for(i = 0 ; i < gNumberOfPositions ; i++)
 		gDatabase[i] = undecided ;
 
-	sprintf(outfilename, "data/m%s_%d_raw.dat", kDBName, option) ;
+	sprintf(outfilename, "../bin/data/m%s_%d_raw.dat", kDBName, option) ;
 	if((filep = fopen(outfilename, "w")) == NULL)
 		printf("Unable to open file to write. Quitting.\n"), exit(1) ;
 
@@ -2983,8 +3053,7 @@ void SolveAndStoreRaw(int option)
 
 void SolveAndStore(int option)
 {
-	int i, j ;
-	int n = NumberOfOptions() ;
+	POSITION i;
 
 	for(i = 0 ; i < gNumberOfPositions ; i++)
 		gDatabase[i] = undecided ;
@@ -3000,21 +3069,20 @@ void SolveAndStore(int option)
 
 int writeDatabase()
 {
-	int i ;
-	int badcount ;
+	POSITION i ;
+	POSITION badcount ;
 	FILE * filep ;
-	FILE * rawfilep ;
 	STRING tempfilename = "gamesman.dump" ;
 	char outfilename[256] ;
 
 	mkdir("data", 0755) ;
 
-	sprintf(outfilename, "data/m%s_%d.dat", kDBName, getOption()) ;
+	sprintf(outfilename, "../bin/data/m%s_%d.dat", kDBName, getOption()) ;
 
 	if((filep = fopen(tempfilename, "w")) == NULL) // ... if we are  unable to create a temporary file
 	{
 		printf("Unable to create temporary file") ;
-		return 0 ;
+		return 0;
 	}
 
 	// start our compression algorithm
@@ -3044,17 +3112,17 @@ int writeDatabase()
 
 	CompressFile(tempfilename, outfilename) ;
 	remove(tempfilename) ;
+	return 1;
 }
 
 int loadDatabase()
 {
-	int i, temp ;
+        POSITION i;
+        int temp ;
 	FILE * filep ;
 	STRING tempfilename = "/tmp/gamesman/gamesman.dump" ;
 	char outfilename[256] ;
-
-	sprintf(outfilename, "data/m%s_%d.dat", kDBName, getOption()) ;
-
+	sprintf(outfilename, "../bin/data/m%s_%d.dat", kDBName, getOption()) ;
 	if((filep = fopen(outfilename, "r")) == NULL) return 0 ;
 	fclose(filep) ;
 
@@ -3222,7 +3290,7 @@ int CompressFile(char inFileName[], char outFileName[])
 	HuffTree huffTree;                       /* Huffman tree */
 	long bytesInInputFile;                   /* stored in output file */
 	int bitPointer;        /* used to track when to write a byteful of data out */
-	char byteToBeWritten;
+	char byteToBeWritten = 0;
 	int loopCounter;
 	unsigned char charToEncode;   /* the character read in, to be encoded */
 	int nodePointer;         /* Huffman tree pointer used in encoding chars */
@@ -3393,45 +3461,45 @@ int main(int argc, char ** argv)
 		int gameoption ;
 		sscanf(argv[2], "%d", &gameoption) ;
 		setOption(gameoption) ;
-		printf("'%s' has %d positions.", kGameName, gNumberOfPositions) ;
+		printf("'%s' has " POSITION_FORMAT " positions.", kGameName, gNumberOfPositions) ;
 	}
 	else if(!strcmp(argv[1], "-PrintPosition"))
 	{
-		int myposition ;
+		POSITION myposition ;
 		char playername[256] ;
 		int kPlayersTurn ;
 		int gameoption ;
 
 		sscanf(argv[2], "%d", &gameoption) ;
 		setOption(gameoption) ;
-		sscanf(argv[3], "%d", &myposition) ;
+		sscanf(argv[3], POSITION_FORMAT, &myposition) ;
 		sscanf(argv[4], "%s", playername) ;
 		sscanf(argv[5], "%d", &kPlayersTurn) ;
 		PrintPosition(myposition, playername, kPlayersTurn) ;
 	}
 	else if(!strcmp(argv[1], "-DoMove"))
 	{
-		int myposition ;
+		POSITION myposition ;
 		int mymove ;
 		int gameoption ;
 
 		sscanf(argv[2], "%d", &gameoption) ;
-		sscanf(argv[3], "%d", &myposition) ;
+		sscanf(argv[3], POSITION_FORMAT, &myposition) ;
 		sscanf(argv[4], "%d", &mymove) ;
 		setOption(gameoption) ;
 
-		printf("%d", DoMove(myposition, mymove)) ;
+		printf(POSITION_FORMAT, DoMove(myposition, mymove)) ;
 	}
 	else if(!strcmp(argv[1], "-GenerateMoves"))
 	{
-		int myposition ;
+		POSITION myposition ;
 		int gameoption ;
 		MOVELIST * head = NULL ;
 		MOVELIST * tail ;
 		int count = 0 ;
 
 		sscanf(argv[2], "%d", &gameoption) ;
-		sscanf(argv[3], "%d", &myposition) ;
+		sscanf(argv[3], POSITION_FORMAT, &myposition) ;
 
 		setOption(gameoption) ;
 
@@ -3452,11 +3520,11 @@ int main(int argc, char ** argv)
 	}
 	else if(!strcmp(argv[1], "-Primitive"))
 	{
-		int myposition ;
+		POSITION myposition ;
 		int gameoption ;
 
 		sscanf(argv[2], "%d", &gameoption) ;
-		sscanf(argv[3], "%d", &myposition) ;
+		sscanf(argv[3], POSITION_FORMAT, &myposition) ;
 
 		setOption(gameoption) ;
 
@@ -3464,12 +3532,12 @@ int main(int argc, char ** argv)
 	}
 	else if(!strcmp(argv[1], "-GoAgain"))
 	{
-		int myposition ;
+		POSITION myposition ;
 		int gameoption ;
 		int mymove ;
 
 		sscanf(argv[2], "%d", &gameoption) ;
-		sscanf(argv[3], "%d", &myposition) ;
+		sscanf(argv[3], POSITION_FORMAT, &myposition) ;
 		sscanf(argv[4], "%d", &mymove) ;
 
 		setOption(gameoption) ;
@@ -3479,7 +3547,6 @@ int main(int argc, char ** argv)
 	else if(!strcmp(argv[1], "-ConvertTextInputToMove"))
 	{
 		int gameoption ;
-		int count ;
 		char movestring[256] ;
 		int i ;
 
@@ -3514,11 +3581,11 @@ int main(int argc, char ** argv)
 		int gameoption ;
 		char outfilename[256] ;
 		FILE * filep ;
-		int position ;
+		POSITION position ;
 		int value ;
 		sscanf(argv[2], "%d", &gameoption) ;
-		sscanf(argv[3], "%d", &position) ;
-		sprintf(outfilename, "data/m%s_%d_raw.dat", kDBName, gameoption) ;
+		sscanf(argv[3], POSITION_FORMAT, &position) ;
+		sprintf(outfilename, "../bin/data/m%s_%d_raw.dat", kDBName, gameoption) ;
 		if((filep = fopen(outfilename, "r")) == NULL)
 			printf("Unable to open file to read. Quitting.\n"), exit(1) ;
 		fseek(filep, position*sizeof(int), SEEK_SET) ;
@@ -3606,6 +3673,7 @@ int InitClient()
 		printf("gameline: connect failed\n") ;
 		return 0 ;
 	}
+	return 1;
 }
 
 ssize_t writen(int fd, const void *vptr, size_t n)

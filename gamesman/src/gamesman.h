@@ -1,7 +1,27 @@
 #ifndef __GAMESMAN_H__
 #define __GAMESMAN_H__
 
-#include<math.h>
+#include "tcl.h"
+#include "tk.h"
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <ctype.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <strings.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <sys/utsname.h>
+#include <sys/time.h> 
 
 #define  MAXINT2          1073741823 /* 2^30 - 1 */
 #define  MAXNAME          15         /* arbitrary */
@@ -30,10 +50,11 @@
 typedef long POSITION;      /* This used to be determined by mTempTypedef.h */
 typedef int MOVE;           /* but I decided to hardcode it for now, so as  */
 typedef int MOVES;          /* to make it a leeeetle bit easier and cleaner */
+#define POSITION_FORMAT "%ld"
 
-typedef int  REMOTENESS;
-typedef char *STRING;
-typedef char *GENERIC_PTR;
+typedef int   REMOTENESS;
+typedef char* STRING;
+typedef void* GENERIC_PTR;
 
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
 #ifdef WIN32
@@ -134,25 +155,65 @@ extern FRnode *gTailLoseFR;
 extern POSITIONLIST **gParents;         /* The Parent of each node in a list */
 // End for loopy games
 
-#include "tcl.h"
-#include "tk.h"
+/* memory-related function prototypes for games */
+GENERIC_PTR SafeMalloc(size_t amount);
+void        SafeFree(GENERIC_PTR ptr);
+void        FreeMoveList(MOVELIST* ptr);
+void        FreeRemotenessList(REMOTENESSLIST* ptr);
+void        FreePositionList(POSITIONLIST* ptr);
+void        FreeValueMoves(VALUE_MOVES *ptr);
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <strings.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdarg.h>
-#include <errno.h>
-#include <sys/utsname.h>
-#include <sys/time.h>   
+/* utility function prototypes for games */
+char          GetMyChar();
+int           GetRandomNumber(int n);
+int           GetSmallRandomNumber(int n);
+void          ExitStageRight();
+void          ExitStageRightErrorString(char errorMsg[]);
+MOVELIST*     CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove);
+MOVELIST*     CopyMovelist(MOVELIST* theMovelist);
+void          BadElse(STRING function);
+void          HitAnyKeyToContinue();
+USERINPUT     HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING playerName);
+void          GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN putCarraigeReturnBack);
+POSITIONLIST* StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList);
+POSITIONLIST* CopyPositionlist(POSITIONLIST* thePositionlist);
+STRING        GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn);
+
+/* function prototypes for tcl */
+void        InitializeDatabases();
+void        Initialize();
+VALUE       DetermineValue(POSITION position);
+VALUE       StoreValueOfPosition(POSITION position, VALUE value);
+VALUE       GetValueOfPosition(POSITION position);
+REMOTENESS  Remoteness(POSITION position);
+void        SetRemoteness (POSITION position, REMOTENESS remoteness);
+BOOLEAN     Visited(POSITION position);
+void        MarkAsVisited (POSITION position);
+void        UnMarkAsVisited (POSITION position);
+MOVE        GetComputersMove(POSITION thePosition);
+
+/* function prototypes for functions included in modules */
+void      InitializeGame();
+void      FreeGame();
+void      DebugMenu();
+void      GameSpecificMenu();
+POSITION  DoMove(POSITION thePosition, MOVE theMove);
+POSITION  GetInitialPosition();
+void      PrintComputersMove(MOVE computersMove, STRING computersName);
+VALUE     Primitive(POSITION position);
+void      PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
+MOVELIST* GenerateMoves(POSITION position);
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove, 
+				 STRING playerName);
+BOOLEAN   ValidTextInput(STRING input);
+MOVE      ConvertTextInputToMove(STRING input);
+void      PrintMove(MOVE theMove);
+int       NumberOfOptions();
+int       getOption();
+void      setOption(int option);
+
+/* deprecated function prototypes for functions included in modules */
+void SetTclCGameSpecificOptions(int theOptions[]);
+
 
 #endif
