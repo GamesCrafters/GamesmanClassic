@@ -1059,7 +1059,9 @@ int NumberOfOptions()
 
 int getOption()
 {
-  return 0;
+  int option = N * 100;
+  option += MISERE;
+  option += 10 * SS;
 }
 
 /************************************************************************
@@ -1075,7 +1077,16 @@ int getOption()
 ************************************************************************/
 void setOption(int option)
 {
+  int m, ss;
+  m = option % 10;
+  option = option /10;
+  ss = option % 10;
+  option = option / 10;
 
+  N = option;
+  SS = ss;
+  MISERE = m;
+  
 }
 
 /************************************************************************
