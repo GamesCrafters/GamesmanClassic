@@ -1451,7 +1451,6 @@ POSITION hash(blankox *b_board, blankox turn)
 
   char c_board[BOARDSIZE];
   int raw_hash;
-  int generic_hash();
   int player;
 
   if (turn == x) 
@@ -2183,6 +2182,11 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.71  2004/10/03 21:50:13  nizebulous
+//
+//Changed everything to work with kAuthorName.  Was not working before.
+//-Dom
+//
 //Revision 1.70  2004/05/06 04:33:55  ogren
 //kHelpExample written. -Elmer
 //
