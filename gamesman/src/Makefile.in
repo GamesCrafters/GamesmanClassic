@@ -175,7 +175,7 @@ MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
 1TON_OBJ		= m1ton$(OBJSUFFIX)
 1TON_SO			= $(LIBDIR)/libm1ton$(LIBSUFFIX)
 
-ABALONE_EXE		= $(BINDIR)/mabalone$(EXESUFFIX) #yay
+ABALONE_EXE		= $(BINDIR)/mabalone$(EXESUFFIX) #The TITillating game of abalone!
 ABALONE_OBJ		= mabalone$(OBJSUFFIX)
 ABALONE_SO		= $(LIBDIR)/libmabalone$(LIBSUFFIX)
 
