@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 #include "hash.h"
+// #include "loopygasolver.h"
 
 int debug = 0;
 int printMethods = 0;
@@ -43,12 +44,11 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING   kHelpGraphicInterface ="";
 
-STRING   kHelpTextInterface    ="";
-/*
+STRING   kHelpTextInterface    =
 "On your turn use the file letter and row number to determine how to specify the\
 piece you wish to move and the direction and attack method. If you have made a\n\ 
 wrong move at any point, you can type u to revert back to the previous state.\n\
-";*/
+";
 
 
 STRING   kHelpOnYourTurn =
@@ -161,6 +161,7 @@ void InitHash() {
   myPieces_array[9]=-1;
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
+  printf("%d\n", gNumberOfPositions);
 }
 
 void DefaultPieces(BlankOX* board) {
@@ -237,8 +238,9 @@ void InitializeGame()
   POSITION initialPos =  BlankOXToPosition(initialBoard, turn);
 
   // set the function to handle GoAgain? decisions
-  gGoAgain = GoAgain;
-  
+  //  gGoAgain = GoAgain;
+  //  gSolver = lgas_DetermineValue;
+
   movingAgain = FALSE;
   
   gInitialPosition = initialPos;
@@ -1115,7 +1117,7 @@ BOOLEAN ValidTextInput(input)
   char c,d;
 
   while(*input == ' ') input++;
-  //if(!input) return FALSE;
+  if(!input) return FALSE;
 
   if(!isalpha(*input))
     return FALSE;
@@ -1139,7 +1141,7 @@ BOOLEAN ValidTextInput(input)
   row = atoi(temp);
 
   while(*input == ' ') input++;
-  //if(!input) return FALSE;
+  if(!input) return FALSE;
 
   c = toupper(*input); input++;
   d = toupper(*input); input++;
