@@ -268,6 +268,9 @@ proc InitWindow {} {
     set gBorderX [winfo rootx .]
     set gBorderY [winfo rooty .]
 
+    global gDestroyingBoard
+    set gDestroyingBoard 0
+
     ### Set the Title and geometry of the window
     
     wm title    . "GAMESMAN $kGameName v2.0 (1999-05-01)"
@@ -1475,6 +1478,7 @@ proc DoValueMovesExplanation {} {
     ### Create a new window, name it, and place it to the right of the board.
 
     toplevel .winValueMoves
+    
     wm title .winValueMoves "Values"
     wm geometry .winValueMoves [GeometryRightOf .winBoard]
     
@@ -1544,6 +1548,7 @@ proc DoBoard {} {
     ### The control window - create it, name it and place it.
 
     toplevel .winBoardControl
+    bind .winBoardControl <Destroy> DestroyBoard
     wm title .winBoardControl "GAMESMAN $kGameName control"
     wm geometry .winBoardControl [GeometryRightOf .]
     
@@ -1726,18 +1731,8 @@ proc DoBoard {} {
 	    -text "Abort" \
 	    -font $kLabelFont \
 	    -command { 
-	EnablePlayButtons
-	
-	#added by AP
-	EnableEditButtons 
-
-	destroy .winBoardControl
-	destroy .winBoard
-	if { [winfo exists .winValueMoves] } {
-	    destroy .winValueMoves
-	}
-	.f0.mesStatus config -text "Choose a Play Option\n"
-    }
+		DestroyBoard
+	    }
     
     button .winBoardControl.f2.newGame \
 	    -text "New Game" \
@@ -1871,6 +1866,7 @@ proc DoBoard {} {
     ### The board window
 
     toplevel .winBoard
+    bind .winBoard <Destroy> DestroyBoard
     wm title .winBoard "GAMESMAN $kGameName board"
     wm geometry .winBoard [GeometryBelow .winBoardControl]
 
@@ -3167,6 +3163,43 @@ proc HandlePredictions {} {
 
 #############################################################################
 ##
+## DestroyBoard
+##
+## Destroy the board and the control window
+##
+#############################################################################
+
+proc DestroyBoard {} { 
+    global gDestroyingBoard
+
+    if { $gDestroyingBoard == 1 } {
+	return
+    }
+
+    set gDestroyingBoard 1
+
+    EnablePlayButtons
+    
+    #added by AP
+    EnableEditButtons 
+    
+    if { [winfo exists .winBoardControl] } {
+	destroy .winBoardControl
+    }
+    if { [winfo exists .winBoard] } {
+	destroy .winBoard
+    }
+    if { [winfo exists .winValueMoves] } {
+	destroy .winValueMoves
+    }
+    .f0.mesStatus config -text "Choose a Play Option\n"
+    
+    set gDestroyingBoard 0
+}
+
+
+#############################################################################
+##
 ## PastTenseValue
 ##
 ## Change the wording to the past tense (Lose->lost to, etc.)
@@ -3198,7 +3231,7 @@ proc BadElse { theFunction } {
     puts "Error: $theFunction\{\} just reached an else clause it shouldn't have!"
 }
 
-## Initializeation script
+## Initialization script
 
 #############################################################################
 ##
