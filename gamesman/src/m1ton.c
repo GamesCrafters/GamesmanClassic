@@ -31,6 +31,7 @@
 #include "gamesman.h"
 
 unsigned int N = 10;
+unsigned int gTurn = 2;
 
 extern STRING gValueString[];
 
@@ -132,6 +133,10 @@ void changeBoard()
 
 void changeMove()
 {
+  unsigned int turnSize;
+  printf("Enter the new turn size:  ");
+  (void) scanf("%u", &turnSize);
+  gTurn = turnSize;
 }
 
 /************************************************************************
@@ -307,16 +312,13 @@ void PrintPosition(position, playerName, usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
+  unsigned int count = 1;
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
-  
-  head = CreateMovelistNode(1,head);
-  
-  /* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
-  
-  if (position != N - 1) 
-    head = CreateMovelistNode(2,head);
-  
+  while((count <= gTurn) && (count + position <= N)) {
+    head = CreateMovelistNode(count, head);
+    count++;
+  }
   return(head);
 }
 
@@ -381,7 +383,8 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  return(input[0] <= '2' && input[0] >= '1');
+  unsigned int theInput = atof(input);
+  return(theInput <= gTurn && theInput >= 1);
 }
 
 /************************************************************************
