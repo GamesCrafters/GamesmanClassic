@@ -24,6 +24,7 @@
 **                          with changing the graph file.
 **                          Added error-catching to the parser and put in
 **                          kHelpExample.
+**              19 Apr, 04: Fixed more bugs, changed the output format.
 **
 ** 
 **
@@ -241,7 +242,8 @@ static int nodes_lookup[MAX_NODES][MAX_NODES];
 
 /* Function prototypes here. */
 
-BOOLEAN checkNodeAndClass(struct GraphNode* to_node, int player);
+BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode *from_node,
+			  int player);
 
 int moveHash(int to, int from);
 void moveUnHash(int move, int* to, int* from);
@@ -266,7 +268,7 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
 
 int handleGraph(char* token, int* pos);
 int handleNodeClass(char* token, int* pos,
-		     nodes board, classes node_classes);
+		     nodes board, classes node_classes, BOOLEAN reset);
 int handlePieceClass(char* token, int* pos, nodes board,
 		      pieces black_pieces, pieces white_pieces);
 int handleNodeDef(char* token, int* pos, nodes board);
@@ -491,29 +493,27 @@ POSITION GetInitialPosition()
 {
   POSITION initialPosition;
   int current_node, i, player;
-  char node_name;
+  char* node_name;
   char* string_board = (char*)SafeMalloc(sizeof(char)*MAX_NODES);
 
   for(i = 0; i < num_nodes; i++)
     string_board[i] = '_';
 
   printBoard(global_board, FALSE);
-  printf("Enter the nodes of the black pieces, ending with '~':\n");
+  printf("Enter the nodes of the black pieces, ending with -1:\n");
 
-  scanf("%1s", &node_name);
-  while(node_name != '~') {
-    current_node = atoi(&node_name)-1;
-    string_board[current_node] = global_black[0].pic;
-    scanf("%1s", &node_name);
+  scanf("%d", &current_node);
+  while(current_node != -1) {
+    string_board[current_node-1] = global_black[0].pic;
+    scanf("%d", &current_node);
   }
 
-  printf("Enter the nodes of the white pieces, ending with '~':\n");
+  printf("Enter the nodes of the white pieces, ending with -1:\n");
 
-  scanf("%1s", &node_name);
-  while(node_name != '~') {
-    current_node = atoi(&node_name)-1;
-    string_board[current_node] = global_white[0].pic;
-    scanf("%1s", &node_name);
+  scanf("%d", &current_node);
+  while(current_node != -1) {
+    string_board[current_node-1] = global_white[0].pic;
+    scanf("%d", &current_node);
   }
 
   printf("Enter the number of the player:\n");
@@ -583,8 +583,10 @@ VALUE Primitive (pos)
   char string_board[MAX_NODES];
   int player = whoseMove(pos);
   struct Piece* pieces_ptr;
+  struct Piece* opp_pieces_ptr;
   struct GraphNode* current_node;
-  int num, i, j;
+  int num, opp_num, i, j;
+  BOOLEAN trapped_opponent = TRUE;
 
   generic_unhash(pos, string_board);
   string_board[num_nodes] = '\0';
@@ -592,17 +594,37 @@ VALUE Primitive (pos)
 
   if(player == BLACK_PLAYER) { 
     pieces_ptr = global_black;
+    opp_pieces_ptr = global_white;
     num = num_black;
+    opp_num = num_white;
   } else {
     pieces_ptr = global_white;
+    opp_pieces_ptr = global_black;
     num = num_white;
+    opp_num = num_black;
   }
+
+  for(i = 0; i < opp_num; i++) {
+    current_node = global_board[opp_pieces_ptr[i].node].adjacent[0];
+    j = 0;
+    while(current_node && (j < (num_nodes-1))) {
+      if(checkNodeAndClass(current_node, &global_board[opp_pieces_ptr[i].node],
+			   (player % 2)+1))
+	trapped_opponent = FALSE;
+      j++;
+      current_node = global_board[opp_pieces_ptr[i].node].adjacent[j];
+    }
+  }
+
+  if(trapped_opponent)
+    return (gStandardGame ? win : lose);
 
   for(i = 0; i < num; i++) {
     current_node = global_board[pieces_ptr[i].node].adjacent[0];
     j = 0;
     while(current_node && (j < (num_nodes-1))) {
-      if(!(current_node->game_piece))
+      if(checkNodeAndClass(current_node, &global_board[pieces_ptr[i].node],
+			   player))
 	return undecided;
       j++;
       current_node = global_board[pieces_ptr[i].node].adjacent[j];
@@ -701,7 +723,9 @@ MOVELIST *GenerateMoves (position)
     for(i = 0; i < max_pieces; i++) {
       for(j = 0; j < (num_nodes-1); j++) {
 	current_node = global_board[(*user_pieces)[i].node].adjacent[j];
-	if(checkNodeAndClass(current_node, player))
+	if(checkNodeAndClass(current_node, 
+			     &global_board[(*user_pieces)[i].node],
+			     player))
 	  head = CreateMovelistNode(
 		   moveHash(
 		     hashLookup(&current_node->name, NULL, global_board), 
@@ -716,10 +740,12 @@ MOVELIST *GenerateMoves (position)
   }
 }
 
-BOOLEAN checkNodeAndClass(struct GraphNode* to_node, int player)
+BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node,
+			  int player)
 {
   struct GraphClass* current_class;
   int i;
+  BOOLEAN valid_move = FALSE;
 
   if(!to_node)
     return FALSE;
@@ -727,21 +753,24 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, int player)
   if(to_node->game_piece)
     return FALSE;
 
-  
   if((global_classes[to_node->class].player != BOTH_PLAYERS) &&
      (global_classes[to_node->class].player != player))
     return FALSE;
-  
+
   i = 0;
-  while((current_class = global_classes[to_node->class].moveto[i])
-	&& (i < (MAX_CLASSES-1))) {
-    if((current_class->player == player) || 
-       (current_class->player == BOTH_PLAYERS))
+  current_class = global_classes[from_node->class].moveto[i];
+  while(current_class &&
+	(current_class->player != INVALID) && (i < (MAX_CLASSES-1))) {
+    if((!strcmp(global_classes[to_node->class].name, current_class->name)) 
+       &&
+       ((current_class->player == global_classes[to_node->class].player) || 
+	(current_class->player == BOTH_PLAYERS)))
       return TRUE;
     i++;
+    current_class = global_classes[from_node->class].moveto[i];
   }
 
-  return TRUE;
+  return valid_move;
 }
 
  
@@ -988,8 +1017,8 @@ void stringToBoard(char* s, nodes board, pieces black_pieces,
 void printBoard(nodes board, BOOLEAN reset) {
   static char board_numbers[20][35];
   static BOOLEAN initialized = FALSE;
-  char temp[3];
-  int i;
+  char temp;
+  int i, num_written;
 
   if(reset) {
     initialized = FALSE;
@@ -1000,14 +1029,17 @@ void printBoard(nodes board, BOOLEAN reset) {
     for(i = 0; i < 20; i++)
       strcpy(board_numbers[i], image[i]);
     for(i = 0; i < num_nodes; i++) {
-      sprintf(temp, "%d", i+1);
-      board_numbers[board[i].str_line][board[i].str_index]
-	= *temp;
+      temp = board_numbers[board[i].str_line][board[i].str_index+1];
+      num_written = 
+	sprintf(&board_numbers[board[i].str_line][board[i].str_index],
+	      "%d", i+1);
+      board_numbers[board[i].str_line][board[i].str_index+num_written] =
+	temp;
     }
     initialized = TRUE;
   }
 
-  printf("\nBOARD\t\tLEGEND\n");
+  printf("\nBOARD\t\t\t\t\t\tLEGEND\n");
 
   for(i = 0; i < num_nodes; i++) {
     if(board[i].game_piece)
@@ -1019,7 +1051,7 @@ void printBoard(nodes board, BOOLEAN reset) {
 
   i = 0;
   while((image[i][0] != EOF) && (i < 20)) {
-    printf("%s\t\t%s\n", image[i], board_numbers[i]);
+    printf("%s%s\n", image[i], board_numbers[i]);
     i++;
   }
 
@@ -1062,6 +1094,16 @@ void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
 
   printBoard(NULL, TRUE);
 
+  for(i = 0; i < MAX_CLASSES; i++)
+    for(j = 0; j < MAX_CLASSES; j++)
+      classes_lookup[i][j] = 0;
+
+  for(i = 0; i < MAX_NODES; i++)
+    for(j = 0; j < MAX_NODES; j++)
+      nodes_lookup[i][j] = 0;
+
+  handleNodeClass(NULL, NULL, NULL, NULL, TRUE);
+
   num_nodes = 0;
   num_black = 0;
   num_white = 0;
@@ -1081,7 +1123,8 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
     if(!strcmp(arg1, "graph") || !strcmp(arg1, "g"))
       ret &= handleGraph(token, &token_pos);
     else if(!strcmp(arg1, "node-class") || !strcmp(arg1, "nc"))
-      ret &= handleNodeClass(token, &token_pos, board, node_classes);
+      ret &= handleNodeClass(token, &token_pos, board, node_classes,
+			     FALSE);
     else if(!strcmp(arg1, "piece-class") || !strcmp(arg1, "pc"))
       ret &= handlePieceClass(token, &token_pos, board, black_pieces, 
 			     white_pieces);
@@ -1118,11 +1161,17 @@ int handleGraph(char* token, int* pos) {
 }
 
 int handleNodeClass(char* token, int* pos,
-		     nodes board, classes node_classes) {
+		     nodes board, classes node_classes,
+		    BOOLEAN reset) {
   static int class_num = 0;
   char* players, * list, * list_token, * name_temp;
-  int i, list_pos, ret, class_count;
+  int i, list_pos, ret, class_count, lookup;
   ret = 1;
+
+  if(reset) {
+    class_num = 0;
+    return 1;
+  }
 
   name_temp = stringGetToken(token, pos);
   if(!name_temp) {
@@ -1132,7 +1181,7 @@ int handleNodeClass(char* token, int* pos,
 
   strcpy(node_classes[class_num].name, name_temp);
 
-  addToHash(nameHash(node_classes[class_num].name, MAX_CLASSES), 
+  addToHash(nameHash(name_temp, MAX_CLASSES), 
 	    class_num, CLASS_TABLE);
   
   players = stringGetToken(token, pos);
@@ -1165,9 +1214,15 @@ int handleNodeClass(char* token, int* pos,
   list_pos = 0;
   i = 0;
   while((list_token = stringGetToken(list, &list_pos))) {
-    node_classes[class_num].moveto[i] = 
-      &node_classes[hashLookup(list_token, node_classes, NULL)];
-    i++;
+    lookup = hashLookup(list_token, node_classes, NULL);
+    if(lookup != -1) {
+      node_classes[class_num].moveto[i] = &node_classes[lookup];
+      i++;
+    } else {
+      printf("handleNodeClass error: unknown class in moveto list: %s\n",
+	     list_token);
+      ret = 0;
+    }
   }
 
   /* Process the node declarations. */
@@ -1194,6 +1249,8 @@ int handleNodeClass(char* token, int* pos,
 	   node_classes[class_num].name);
     return 0;
   }
+
+  class_num++;
 
   return ret;
 }
@@ -1348,14 +1405,18 @@ int handleNodeDef(char* token, int* pos, nodes board) {
 int handleImage(char* token, int* pos, nodes board) {
   char* c_line;
   char name[2];
-  int i, j, hash_lookup;
+  int i, j, hash_lookup, order_counter;
 
   if(isspace(token[*pos]))
     (*pos)++;
 
+  if(token[(*pos)-1] == ' ')
+    (*pos)--;
+
   i = 0;
   c_line = stringGetLine(token + *pos);
 
+  order_counter = 0;
   name[1] = '\0';
   while(c_line) {
     sprintf(image[i], "%.35s", c_line);
@@ -1370,6 +1431,9 @@ int handleImage(char* token, int* pos, nodes board) {
       }
       j++;
     }
+    while(j < 35)
+      image[i][j++] = ' ';
+    image[i][34] = '\0';
     c_line = stringGetLine(NULL);
     i++;
   }
@@ -1560,12 +1624,16 @@ int hashLookup(char* token, classes node_classes, nodes board) {
 
   if(node_classes) {
     hash_val = nameHash(token, MAX_CLASSES);
+    
     while(CLASS_LOOKUP &&
 	  strcmp(node_classes[CLASS_LOOKUP-1].name, token) &&
 	  (collision_index < MAX_CLASSES))
       collision_index++;
+   
     if(collision_index >= MAX_CLASSES)
       return -1;
+    if(collision_index)
+      collision_index--;
     return CLASS_LOOKUP-1;
   } else if(board) {
     hash_val = nameHash(token, MAX_NODES);
