@@ -1711,7 +1711,7 @@ void PrettyPrintDir (const char* dir, const char* extension)
       if (sz > max_sz)
         max_sz = sz;
       
-      *ptr = (struct string_list*) malloc(sizeof(struct string_list));
+      *ptr = (struct string_list*) SafeMalloc(sizeof(struct string_list));
       (*ptr) -> str = cpy;
       (*ptr) -> next = NULL;
       ptr = &(*ptr) -> next;
@@ -1721,7 +1721,7 @@ void PrettyPrintDir (const char* dir, const char* extension)
   closedir(d);
   
   max_sz += 4;  // How many spaces do you want?
-  tmp = (char*) malloc(max_sz + 1);
+  tmp = (char*) SafeMalloc(max_sz + 1);
   tmp[max_sz] = 0;
   
   i = 0;
@@ -1744,5 +1744,5 @@ void PrettyPrintDir (const char* dir, const char* extension)
   if (i)
     printf("\n");
   
-  free(tmp);
+  SafeFree(tmp);
 }
