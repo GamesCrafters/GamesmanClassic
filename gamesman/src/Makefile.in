@@ -277,10 +277,13 @@ all: 		text_all @COMPILEGRAPHICS@ gameline
 dist:		clean
 		rm -rf Makefile
 
-clean:
-		rm -rf $(CGAMES) $(CTCL) $(CCGAMES) $(CCTCL) $(SPECIALGAMES) \
-		$(SPECIALTCL) $(GAMELINE_EXE) $(LIBDIR)/*~ $(BINDIR)/solve \
-		$(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) $(DEP_GWISH_OBJ) *~
+clean:		clean-bins
+		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
+		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
+		$(DEP_GWISH_OBJ) *~
+
+clean-bins:
+		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 
 text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
