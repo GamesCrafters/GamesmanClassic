@@ -131,6 +131,8 @@ void debugBoard(blankox *bboard, char *cboard);
 void debugPosition(POSITION h);
 void debugBBoard(blankox *bboard);
 void debugCBoard(char *cboard);
+void debugMiniCBoard(char *cboard);
+void debugMiniBBoard(blankox *bboard);
 
 // External
 GENERIC_PTR	SafeMalloc (size_t size);
@@ -267,7 +269,7 @@ POSITION DoMove(thePosition, theMove)
   
   //debug
   if (debug) {
-    printf("The move doMove get is: %d\n", theMove);
+    printf("The move doMove got is: %d\n", theMove);
     printf("In doMove, the from, to, remove are: %d %d %d\n", from_slot, to_slot, remove_slot);
   }
  
@@ -1030,7 +1032,7 @@ BOOLEAN check_mill(blankox *board, int slot)
   //debug
   if (debug) {
     printf("check_mill checking:\n");
-    debugBBoard(board);
+    debugMiniBBoard(board);
   }
 
   return three_in_a_row(board, 0, 1,  2, slot) || // horizontals
@@ -1084,6 +1086,29 @@ void debugCBoard(char *cboard)
   
 }
 
+//Given bboard, print a mini-cboard
+void debugMiniBBoard(blankox *bboard)
+{
+  char cboard[BOARDSIZE];
+
+  unparse_board(bboard, cboard);
+
+  debugMiniCBoard(cboard);
+}
+
+//Given cboard, print a mini-board
+void debugMiniCBoard(char *cboard)
+{
+  printf("%c   %c   %c\t00       01       02\n", cboard[0], cboard[1], cboard[2]);
+  printf("  %c %c %c  \t   03    04    05   \n", cboard[3], cboard[4], cboard[5]);
+  printf("   %c%c%c   \t      06 07 08       \n", cboard[6], cboard[7], cboard[8]);
+  printf("%c%c%c   %c%c%c\t09 10 11    12 13 14\n", cboard[9], cboard[10], cboard[11], cboard[12], cboard[13], cboard[14]);
+  printf("   %c%c%c   \t      15 16 17      \n", cboard[15], cboard[16], cboard[17]);
+  printf("  %c %c %c  \t   18    19    20   \n", cboard[18], cboard[19], cboard[20]);
+  printf("%c   %c   %c\t21       22      23\n", cboard[21], cboard[22], cboard[23]);
+}
+
+
 //Given the b_board and c_board, print them
 void debugBoard(blankox *bboard, char *cboard)
 {
@@ -1116,6 +1141,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.38  2004/04/14 20:00:42  ogren
+//minor debugging and spacing changes, maybe print mini-boards for debugging in future -Elmer
+//
 //Revision 1.37  2004/04/13 18:18:08  evedar
 //Input and output of moves now works... Changed move handling functions.  Moves are now from<single space>to<single space>remove .  The remove is optional --Erwin
 //
