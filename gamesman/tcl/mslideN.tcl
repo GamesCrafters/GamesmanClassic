@@ -586,9 +586,9 @@ proc GS_GetGameSpecificOptions { } {
 # you could use this function to draw the line striking out the winning row in tic tac toe for instance
 # or you could congratulate the winner or do nothing if you want.
 
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     GS_DrawPosition $c $position
-    puts $nameOfWinningPiece
+    puts $nameOfWinner
 }
 
 

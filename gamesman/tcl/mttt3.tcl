@@ -169,7 +169,7 @@ proc GS_HideMoves { c moveType position moveList} {
     $c lower moveindicators base
 }
 
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     
     UnHashBoard $position a
     

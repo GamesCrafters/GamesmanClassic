@@ -196,7 +196,7 @@ proc InitWindow { kRootDir } {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <Any-Enter> \
-	    ".cToolbar raise {iOTB$file}" 
+	    ".cToolbar raise {iOTB$file}; update idletasks" 
     }
     
     # bind the action of the mouse-Over images
@@ -205,10 +205,10 @@ proc InitWindow { kRootDir } {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <ButtonRelease-1> \
-	    ".cStatus raise base; \
+	    ".cStatus raise base; update idletasks; \
              TBaction$file"
 	.cToolbar bind $name <Any-Leave> \
-	    ".cToolbar raise iATB$file"
+	    ".cToolbar raise iATB$file; update idletasks"
     }
 
     # Deal with exit button separately

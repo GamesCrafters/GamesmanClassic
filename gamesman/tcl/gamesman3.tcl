@@ -218,7 +218,7 @@ proc DriverLoop { } {
     ## Game's over if the position is primitive
     if { $primitive != "Undecided" } {
 
-        GameOver $gPosition $primitive
+        GameOver $gPosition $primitive [peek $gMovesSoFar]
 
     } else {
 
@@ -432,7 +432,7 @@ proc ReturnFromHumanMoveHelper { theMove } {
 ##
 #############################################################################
 
-proc GameOver { position gameValue } {
+proc GameOver { position gameValue lastMove } {
 
     global gPosition gGameSoFar gWhoseTurn gLeftName gRightName 
     global gLeftPiece gRightPiece
@@ -488,9 +488,9 @@ proc GameOver { position gameValue } {
 
     .middle.f3.cMRight itemconfigure Predictions \
 	-text [format "%s" $message] 
-    update
+    update idletasks
 
-    GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon
+    GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove
 
     DisableMoves
 }
