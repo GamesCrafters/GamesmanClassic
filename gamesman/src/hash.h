@@ -4,38 +4,7 @@
 /************************************************************************
 ***********************************************************************/
 
-/* debugging flag */
-int DEBUG;
-int DEBUG2;
-int DEBUG3;
-int DEBUG4;
-
-/*globals*/
-int TERM;
-int cTERM;
-int MAX_PIECES;
-int MAX_MAXES;
-int *gHashOffset;
-int *gOffsetIndices;
-int *gNCR;
-int *gFACTORIAL;
-int *gpd_store;
-int *newcount;
-int *thiscount;
-int *local_mins;
-int *miniOffset;
-int *miniIndices;
-int *gPieceIndices;
-char *pieces;
-int *mins;
-int *maxs;
-int *nums;
-int num_pieces;
-int num_cfgs;
-int useful_space;
-int gHashOffsetSize;
-int gHashBoardSize;
-int gHashNumberOfPos;
+int (*gfn)(int *);
 
 void freeAll();
 int dartboard_condition(int *t);

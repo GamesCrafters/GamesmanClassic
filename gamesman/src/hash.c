@@ -9,15 +9,39 @@
 ***   and implemented by Attila Gyulassy
 *********************************************************************************/
 
+/* debugging flag */
 int DEBUG = 0;
 int DEBUG2 = 0;
 int DEBUG3 = 1;
 int DEBUG4 = 1;
+
+/*globals*/
 int TERM = -1;
 int cTERM = 0;
 int MAX_PIECES = 50;
 int MAX_MAXES = 50;
-int (*gfn)(int *);
+int *gHashOffset;
+int *gOffsetIndices;
+int *gNCR;
+int *gFACTORIAL;
+int *gpd_store;
+int *newcount;
+int *thiscount;
+int *local_mins;
+int *miniOffset;
+int *miniIndices;
+int *gPieceIndices;
+char *pieces;
+int *mins;
+int *maxs;
+int *nums;
+int num_pieces;
+int num_cfgs;
+int useful_space;
+int gHashOffsetSize;
+int gHashBoardSize;
+int gHashNumberOfPos;
+
 
 /* frees up memory when hash/unhash is no longer needed */
 void freeAll()
