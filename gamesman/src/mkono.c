@@ -115,7 +115,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-int WIDTH = 4, HEIGHT = 4, currentWidth = 4, currentHeight = 4;
+int WIDTH = 4, HEIGHT = 4;
 int BOARDSIZE;
 
 BOOLEAN DEFAULT = TRUE;
@@ -528,7 +528,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     
     for (;;) {
-	printf("%8s's move [1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
+	printf("%8s's move [(u)ndo/1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -571,14 +571,17 @@ BOOLEAN ValidTextInput (STRING input)
   /* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
    *              "xxx yyy" is board has 100 to 999 squares */
 
-  int length = strlen(input);
+  int i, spaceCount = 0;
 
-  if (length >= 3 && length <= 7 && BOARDSIZE <= 100) {
+  for (i = 0; i < strlen(input); i++) {
+    if (input[i] == ' ')
+      spaceCount++;
+  }
+
+  if (spaceCount == 1)
     return TRUE;
-  } else if (length >= 7 && length <= BOARDSIZE <= 1000) {
-    return TRUE;
-  } else
-    return TRUE;
+  else
+    return FALSE;
 }
 
 
@@ -658,26 +661,25 @@ void GameSpecificMenu ()
         HelpMenus();
         break;
     case 'D': case 'd':
-      printf("\nBoard Width (%d): ", WIDTH);
+      printf("\nPlease enter a new width (between 1 and 6, inclusive): ");
       scanf("%d", &WIDTH);
-      if (WIDTH <= 0) {
-	printf("%d is an invalid width. Next time please choose a width greater than zero\n", WIDTH);
-	WIDTH = currentWidth;
+      while (WIDTH < 1 || WIDTH > 6) {
+	printf("Please enter a new width (between 1 and 6, inclusive): ");
+	scanf("%d", &WIDTH);
       }
 
-      printf("\nBoard Height (%d): ", HEIGHT);
+      printf("Please enter a new height (between 1 and 6, inclusive): ");
       scanf("%d", &HEIGHT);
-      if (HEIGHT <= 0) {
-	printf("%d is an invalid height. Next time please choose a height greater than 0\n", HEIGHT);
-	HEIGHT = currentHeight;
-      }
+      while (HEIGHT < 1 || HEIGHT > 6) {
+	printf("Please enter a new height (between 1 and 6, inclusive): ");
+	scanf("%d", &HEIGHT);
+      }	
 
-      currentWidth = WIDTH;
-      currentHeight = HEIGHT;
       BOARDSIZE = WIDTH*HEIGHT;
       break;
     case 'W': case 'w':
       gWinType = !gWinType;
+      break;
     case 'V': case 'v':
       gAllowVWrap = !gAllowVWrap;
       break;
@@ -767,7 +769,12 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+  return WIDTH 
+    + (6 + HEIGHT)
+    + (12 + (gWinType ? 2 : 1))
+    + (14 + (gAllowVWrap ? 2 : 1))
+    + (16 + (gAllowHWrap ? 2 : 1))
+    + (18 + (gMustCapture ? 2 : 1));
 }
 
 
@@ -784,7 +791,22 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+  gMustCapture = (option % 18 == 2);
+  option -= 2;
+
+  gAllowHWrap = (option % 16 == 2);
+  option -= 2;
+
+  gAllowVWrap = (option % 14 == 2);
+  option -= 2;
+
+  gWinType = (option % 12 == 2);
+  option -= 2;
+
+  HEIGHT = option % 5;
+  option -= 6;
+
+  WIDTH = option;
 }
 
 
