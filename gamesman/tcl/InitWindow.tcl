@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.48 2004-12-25 10:35:43 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.49 2004-12-26 22:26:48 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -24,7 +24,7 @@ proc TBaction1 {} {
 	.middle.f3.cMRight raise play
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
-	.cToolbar raise iITB
+	.cToolbar raise iDTB
 	SetupPlayOptions
 
 	global gLeftName gRightName
@@ -37,20 +37,20 @@ proc TBaction1 {} {
 	set gGamePlayable false
 	.middle.f3.cMRight lower play
 	.middle.f1.cMLeft lower detVal
-	.cToolbar raise iATB
+	.cToolbar raise iITB
 	.cStatus lower base
 	update idletasks
 	set gGamePlayable true
 	NewGame
 	
 	.cToolbar bind iOTB1 <Any-Leave> \
-		".cToolbar raise iATB1"
+		".cToolbar raise iITB1"
     }
 }
 
 # Rules button
 proc TBaction2 {} {
-    .cToolbar raise iITB
+    .cToolbar raise iDTB
     global gWaitingForHuman
     set gWaitingForHuman true
     pack forget .middle.f2.cMain
@@ -61,7 +61,7 @@ proc TBaction2 {} {
 
 # About button
 proc TBaction3 {} {
-    .cToolbar raise iITB
+    .cToolbar raise iDTB
     global gWaitingForHuman
     set gWaitingForHuman true
     pack forget .middle.f2.cMain
@@ -70,7 +70,7 @@ proc TBaction3 {} {
 
 # Skins
 proc TBaction4 {} {
-	.cToolbar raise iITB
+	.cToolbar raise iDTB
 	global gWaitingForHuman
 	set gWaitingForHuman true
 	pack forget .middle.f2.cMain   
@@ -88,11 +88,14 @@ proc TBaction6 {} {
 
 # Help button
 proc TBaction7 {} {
-    .cToolbar raise iITB
+    .cToolbar raise iDTB
     global gWaitingForHuman
     set gWaitingForHuman true
     pack forget .middle.f2.cMain   
     pack .middle.f2.fHelp -side bottom
+}
+proc TBaction8 {} {
+    exit
 }
 
 proc SetupPlayOptions {} {
@@ -219,10 +222,10 @@ proc InitWindow { kRootDir kDir kExt } {
     button .middle.f2.fPlayOptions.fBot.bCancel -text "Cancel" \
 	-command {
             .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iATB2"
+		    ".cToolbar raise iITB2"
 	    pack forget .middle.f2.fPlayOptions   
 	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
             .cStatus lower base
 	    update
 	}
@@ -230,11 +233,11 @@ proc InitWindow { kRootDir kDir kExt } {
     button .middle.f2.fPlayOptions.fBot.bOk -text "OK" \
 	-command {
             .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iATB2"
+		    ".cToolbar raise iITB2"
 	    pack forget .middle.f2.fPlayOptions   
 	    pack .middle.f2.cMain
             .cStatus lower base
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
 	    global gSmartness gSmartnessScale
 	    C_SetSmarterComputer $gSmartness $gSmartnessScale
             global gLeftName gRightName
@@ -559,7 +562,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-command {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
             RaiseStatusBarIfGameStarted
 	    update
 	    global gOldRules
@@ -572,7 +575,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    # Hide rules frame
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
 
 	    # Delete old board
 	    GS_Deinitialize .middle.f2.cMain
@@ -622,7 +625,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    pack .middle.f2.cMain
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
 	    DriverLoop
@@ -687,7 +690,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    pack .middle.f2.cMain
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
 	    DriverLoop
@@ -726,7 +729,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    pack .middle.f2.cMain
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
-	    .cToolbar raise iATB
+	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
 	    DriverLoop
@@ -817,9 +820,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     # this is the left panel item "click to play"
     .middle.f1.cMLeft bind startupPic <1> {
-	if {!$gWaitingForHuman} {
-	    TBaction1
-	}
+	TBaction1
     }
 
     # this is the play button
@@ -850,11 +851,11 @@ proc InitWindow { kRootDir kDir kExt } {
 	.cStatus raise winA
 	.cStatus raise moveA
 
-	.cToolbar raise iATB
+	.cToolbar raise iITB
 	
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.cToolbar bind iOTB1 <Any-Leave> \
-		".cToolbar raise iATB1"
+		".cToolbar raise iITB1"
 	
 	.cStatus lower base
 	global gGamePlayable
@@ -1230,7 +1231,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsDir $skinsDir
     set gSkinsRootDir $skinsRootDir
 
-    foreach mode {A I O} {
+    foreach mode {A I O D} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
 	    image create photo [subst $name]p -file [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
@@ -1268,8 +1269,8 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     # Now Bind all the buttons
     #
     
-    # set the active action of each button
-    set mode A
+    # set the inactive action of each button (mouse not over)
+    set mode I
     foreach file {1 2 3 4 7 8} {#5 6 removed because not used
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
@@ -1277,28 +1278,22 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    ".cToolbar raise {iOTB$file}; update idletasks" 
     }
     
-    # bind the action of the mouse-Over images
+    # bind the action of the mouse-Over images (mouse over)
     set mode O
-    foreach file {1 2 3 4 7} {#5 6 removed because not used
+    foreach file {1 2 3 4 7 8} {#5 6 removed because not used
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <ButtonRelease-1> \
 	    ".cStatus raise base; \
              update idletasks; \
-             TBaction$file"
+             TBaction$file; \
+             .cToolbar raise iDTB"
 	.cToolbar bind $name <Any-Leave> \
+	    ".cToolbar raise iITB$file; update idletasks"
+	.cToolbar bind $name <ButtonPress-1> \
 	    ".cToolbar raise iATB$file; update idletasks"
     }
-
-    # Deal with exit button separately
-    .cToolbar dtag iITB8 iITB
-    .cToolbar bind iOTB8 <ButtonRelease-1> {
-	exit
-    }
-    .cToolbar bind iOTB8  <Any-Leave> {
-	.cToolbar raise iATB8
-    }
-
-    # Set up starting display with the active images on top
-    .cToolbar raise iATB
+    .cToolbar dtag iDTB8 iDTB
+    # Set up starting display with the inactive images on top
+    .cToolbar raise iITB
 }
