@@ -64,7 +64,9 @@
 
 **************************************************************************/
 
-/* gift from dan of character for space -> · */
+#define EMPTYSPACE '·' 
+#define PLAYER1 'X'
+#define PLAYER2 'O'
 
 /*************************************************************************
 **
@@ -221,7 +223,7 @@ void InitializeGame ()
 {
 	/* need to change this to reflect the board size */
         maxsize=5+4*boardsize;
-	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
+	int piecesarray[]={PLAYER1,0,maxsize-1,PLAYER2,0,maxsize-1,'O',0,maxsize,-1};
 
 	/* manually setting options right now */
 	gNumberOfPositions=hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
@@ -544,7 +546,7 @@ char * emptyboard(char *board) {
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
-	for(i=0;i<maxsize;i++) board[i]='O';
+	for(i=0;i<maxsize;i++) board[i]=EMPTYSPACE;
 
 	return board;
 }
@@ -577,9 +579,9 @@ MOVELIST *GenerateMoves (POSITION position)
 	player=getplayer(position);
 
 	if(player==1) {
-		piece='X';
+		piece=PLAYER1;
 	} else if (player==2) {
-		piece='*';
+		piece=PLAYER2;
 	} else {
 		fprintf(stderr,"Bad else: GenerateMovse (Piece selection)\n");
 		exit(1);
@@ -600,11 +602,11 @@ MOVELIST *GenerateMoves (POSITION position)
 
 /* Generate Moves helper function isValidMove */
 BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
-  if(board[mv] != 'O')
+  if(board[mv] != EMPTYSPACE)
     return FALSE;
 
   int i, scount=0, ocount=0;
-  char oPiece = ((p == 'X') ? '*' : 'X');
+  char oPiece = ((p == PLAYER1) ? PLAYER2 : PLAYER1);
 
   for(i = 0; i < adjacent[mv].numAdjacent; i++)
     if(board[adjacent[mv].adj[i]] == p)
@@ -616,12 +618,12 @@ BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
     board[mv] = p;
 
     if(isSurrounded(board, mv, p, checked)) {
-      board[mv] = 'O';
+      board[mv] = EMPTYSPACE;
       zeroChecked();
       return FALSE;
     }
 
-      board[mv] = 'O';
+      board[mv] = EMPTYSPACE;
       zeroChecked();
   }
   else if(ocount == adjacent[mv].numAdjacent) {
@@ -633,7 +635,7 @@ BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
       zeroChecked();
     }
 
-    board[mv] = 'O';
+    board[mv] = EMPTYSPACE;
 
     return canCapture;
   }
@@ -666,11 +668,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	player=getplayer(position);
 	turn=getturnnumber(position);
 	if(player==1) {
-		piece='X';
-		oPiece = '*';
+		piece=PLAYER1;
+		oPiece = PLAYER2;
 	} else if (player==2) {
-		piece='*';
-		oPiece = 'X';
+		piece=PLAYER2;
+		oPiece = PLAYER1;
 		turn++; /* sneak incrementing the turn, because next it will be player 1's turn */
 	} else {
 		fprintf(stderr,"Bad else: Do Move (Piece selection)\n");
@@ -707,7 +709,7 @@ void zeroChecked() {
 
 BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check) {
   if(board[move] != p)
-    return (board[move] == 'O') ? FALSE : TRUE;
+    return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
   else {
     int i;
     BOOLEAN ret = TRUE;
@@ -726,7 +728,7 @@ void removeStones(char *board, MOVE move, char p, BOOLEAN *check) {
 	int i;
   if(board[move] == p) {
     check[move] = TRUE;
-    board[move] = 'O';
+    board[move] = EMPTYSPACE;
 	
 
     for(i = 0; i < adjacent[move].numAdjacent; i++)
@@ -773,9 +775,9 @@ VALUE Primitive (POSITION position)
 	board=unhashboard(position,board);
 
 	if(player == 1)
-	  piece = 'X';
+	  piece = PLAYER1;
 	else if(player == 2)
-	  piece = '*';
+	  piece = PLAYER2;
 	else {
 	  fprintf(stderr,"Bad else: GenerateMovse (Piece selection)\n");
 	  exit(1);
@@ -787,18 +789,18 @@ VALUE Primitive (POSITION position)
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
 	if(turn==maxsize-1 || noValidMoves) {
-		p1c=countboard(board,'X');
-		p2c=countboard(board,'*');
+		p1c=countboard(board,PLAYER1);
+		p2c=countboard(board,PLAYER2);
 
 		for(i = 0; i < maxsize; i++) {
-		  if(board[i] == 'O') {
+		  if(board[i] == EMPTYSPACE) {
 		    checked[i] = TRUE;
 
-		    if(isTerritory(board, (MOVE) i, 'X', checked))
+		    if(isTerritory(board, (MOVE) i, PLAYER1, checked))
 		      p1c++;
 		    else {
 		      zeroChecked();
-		      if(isTerritory(board, (MOVE) i, '*', checked))
+		      if(isTerritory(board, (MOVE) i, PLAYER2, checked))
 			 p2c++;
 		    }
 		  }
@@ -830,7 +832,7 @@ VALUE Primitive (POSITION position)
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
 BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check) {
-  if(board[move] != 'O')
+  if(board[move] != EMPTYSPACE)
     return (board[move] == p);
   else {
     int i;
@@ -871,32 +873,32 @@ void display5board(char *pos, char *prediction) {
 	printf(" Prediction (%s)\n\n",prediction);
 }
 void display9board(char *pos,char *prediction) {
-	printf("Legend:   1......2        Current:      %c......%c\n",pos[0],pos[1]);
-	printf("         /|\\..../|        Player1: X   /|\\..../|\n");
+	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
+	printf("         /|\\    /|        Player1: X   /|\\    /|\n");
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
-	printf("         \\|/....\\|                     \\|/....\\|\n");
-	printf("          8......9                      %c......%c\n",pos[7],pos[8]);
+	printf("         \\|/    \\|                     \\|/    \\|\n");
+	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
 	printf(" Prediction (%s)\n\n",prediction);
 }
 void display13board(char *pos,char *prediction) {
-	printf("Legend:   1......2......3   Current:    %c......%c......%c\n",pos[0],pos[1],pos[2]);
-	printf("          |\\..../|\\..../|   Player1: X  |\\..../|\\..../|\n");
+	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
+	printf("          |\\    /|\\    /|   Player1: X  |\\    /|\\    /|\n");
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
-	printf("          |/....\\|/....\\|               |/....\\|/....\\|\n");
-	printf("          D......E......F               %c......%c......%c\n",pos[10],pos[11],pos[12]);
+	printf("          |/    \\|/    \\|               |/    \\|/    \\|\n");
+	printf("          D      E      F               %c      %c      %c\n",pos[10],pos[11],pos[12]);
 	printf(" Prediction (%s)\n\n",prediction);
 }
 
 void display17board(char *pos,char *prediction) {
         printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
-        printf("          /..\\|/..\\    Player1: X     /..\\|/..\\\n");
-        printf("         /....4....\\   Player2: *    /....%c....\\\n",pos[3]);
-        printf("        /.....|.....\\               /.....|.....\\\n");
-        printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
-        printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
+        printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
+        printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
+        printf("        /     |     \\               /     |     \\\n");
+        printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
+        printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
         printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
-        printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
-        printf("       I......J......K             %c......%c......%c\n",pos[14],pos[15],pos[16]);
+        printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
+        printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
 	printf(" Prediction (%s)\n\n",prediction);
 }
 
@@ -904,17 +906,17 @@ void display21board(char *positionvalues, char *prediction) {
 	/* dirty but should work */
 	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
         printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
-        printf("          /..\\|/..\\    Player1: X     /..\\|/..\\\n");
-        printf("         /....4....\\   Player2: *    /....%c....\\\n",pos[3]);
-        printf("        /.....|.....\\               /.....|.....\\\n");
-        printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
-        printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
+        printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
+        printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
+        printf("        /     |     \\               /     |     \\\n");
+        printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
+        printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
         printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
-        printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
-        printf("       I......J......K             %c......%c......%c\n",pos[14],pos[15],pos[16]);
-        printf("        \\.....|...../               \\.....|...../\n");
-        printf("         \\....L..../                 \\....%c..../\n",pos[17]);
-        printf("          \\../|\\../   Prediction:     \\../|\\../\n");
+        printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
+        printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
+        printf("        \\     |     /               \\     |     /\n");
+        printf("         \\    L    /                 \\    %c    /\n",pos[17]);
+        printf("          \\  /|\\  /   Prediction:     \\  /|\\  /\n");
         printf("           \\M-N-P/  (%s)  \\%c-%c-%c/\n",prediction,pos[18],pos[19],pos[20]);
 
 }
@@ -1307,18 +1309,17 @@ void GameSpecificMenu ()
 
 	fflush(stdin);
 	choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
-	printf("OPTION MENU\n");
-	printf("------------------------------------------\n");
-	printf("b - Change Board Size\n");
-	printf("r - Change Rule Type (Normal/Reverse)\n");
-	printf("h - Handicapping (ON/OFF)\n");
-	printf("w - Win Style (Territory/Captures/Both)\n");
-	printf("------------------------------------------\n");
+	printf("\t----- mxigua Option Menu -----\n\n");
+	printf("\td)\tChange Boar(d) Size (Currently: %d)\n",boardsize*4+5);
+	/* printf("\tr)\tChange (R)ule Type (Currently: )\n"); */
+	/* printf("h - Handicapping (ON/OFF)\n"); */
+	/* printf("w - Win Style (Territory/Captures/Both)\n"); */
+	
 	printf("Please enter a selection: "); 
 	choice=getc(stdin);
 	choice=toupper(choice);
 	switch(choice) {
-		case 'B':
+		case 'D':
 			fflush(stdin);
 			choice=getc(stdin);
 			printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
@@ -1385,27 +1386,22 @@ POSITION GetInitialPosition ()
 	switch(boardsize) {
 		case 0:
 			display5board(board,prediction);
-			moves=(char *)SafeMalloc(sizeof(char)*11);
 			moves="1 2 3 4 5";
 			break;
 		case 1:
 			display9board(board,prediction);
-			moves=(char *)SafeMalloc(sizeof(char)*19);
 			moves="1 2 3 4 5 6 7 8 9";
 			break;
 		case 2:
 			display13board(board,prediction);
-			moves=(char *)SafeMalloc(sizeof(char)*27);
 			moves="1 2 3 4 5 6 7 8 9 B D E F";
 			break;
 		case 3:
 			display17board(board,prediction);
-			moves=(char *)SafeMalloc(sizeof(char)*35);
 			moves="1 2 3 4 5 6 7 8 9 B D E F G I J K";
 			break;
 		case 4:
 			display21board(board,prediction);
-			moves=(char *)SafeMalloc(sizeof(char)*43);
 			moves="1 2 3 4 5 6 7 8 9 B D E F G I J K L M N P";
 			break;
 		default:
@@ -1419,14 +1415,14 @@ POSITION GetInitialPosition ()
 	while(in!='\n') {
 		if(count < maxsize) {
 			switch(toupper(in)) {
-				case 'X':	
-					board[count]='X';
+				case PLAYER1:	
+					board[count]=PLAYER1;
 					break;
-				case '*':
-					board[count]='*';
+				case PLAYER2:
+					board[count]=PLAYER2;
 					break;
 				default:
-					board[count]='O';
+					board[count]=EMPTYSPACE;
 					break;
 			}
 			in=getc(stdin);
@@ -1441,7 +1437,6 @@ POSITION GetInitialPosition ()
 	if(pnum<1 || pnum>2) pnum=1;
 	if(turn<0||turn>(maxsize-1)) turn=maxsize-1;
 				
-	SafeFree(moves);
     return hash(board,pnum,turn);
 }
 
