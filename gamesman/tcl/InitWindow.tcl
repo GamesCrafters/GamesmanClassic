@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.43 2004-11-17 23:48:27 ogren Exp $
+# $Id: InitWindow.tcl,v 1.44 2004-11-17 23:51:10 ogren Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -1047,7 +1047,6 @@ proc SetupHelpFrame { f width } {
 	
 	pack $f.summary -side top
 
-
 	## Create scrollpane, scrollbar
 	set sp $f.scrollpane
 	
@@ -1063,32 +1062,32 @@ proc SetupHelpFrame { f width } {
 	global kRootDir gSkinsExt gSkinsDir gSkinsRootDir
 
 	image create photo Screenshot -file [format %s%s%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
-    canvas $f.screenshot -height 360 -width 480
-    $f.screenshot create image 240 180 -image Screenshot
+    canvas $sp.screenshot -height 360 -width 480
+    $sp.screenshot create image 240 180 -image Screenshot
 	
 
 	## Help messages
-	message $f.newgame -width $width -font $kDocumentFont -text "To start a New Game, click the NEW GAME button on the Toolbar." 
+	message $sp.newgame -width $width -font $kDocumentFont -text "To start a New Game, click the NEW GAME button on the Toolbar." 
 	
-	message $f.rules -width $width -font $kDocumentFont -text "To change the rules of this game, click the RULES button on the Toolbar."
+	message $sp.rules -width $width -font $kDocumentFont -text "To change the rules of this game, click the RULES button on the Toolbar."
 
-	message $f.about -width $width -font $kDocumentFont -text "Clicking the ABOUT button on the Toolbar displays a brief introduction about GamesCrafters."
+	message $sp.about -width $width -font $kDocumentFont -text "Clicking the ABOUT button on the Toolbar displays a brief introduction about GamesCrafters."
 
-	message $f.skins -width $width -font $kDocumentFont -text "To change the skin for GAMESMAN, click the SKINS button on the Toolbar."
+	message $sp.skins -width $width -font $kDocumentFont -text "To change the skin for GAMESMAN, click the SKINS button on the Toolbar."
 
-	message $f.help -width $width -font $kDocumentFont -text "Clicking the Help button brings you to this window."
+	message $sp.help -width $width -font $kDocumentFont -text "Clicking the Help button brings you to this window."
 
-	message $f.quit -width $width -font $kDocumentFont -text "To Quit the game and Exit GAMESMAN, click the QUIT button on the Toolbar."
+	message $sp.quit -width $width -font $kDocumentFont -text "To Quit the game and Exit GAMESMAN, click the QUIT button on the Toolbar."
 
 
 	## Pack everything else
-	pack $f.screenshot -side top
-	pack $f.newgame -side top -anchor w
-	pack $f.rules -side top -anchor w
-	pack $f.about -side top -anchor w
-	pack $f.skins -side top -anchor w
-	pack $f.help -side top -anchor w
-	pack $f.quit -side top -anchor w
+	pack $sp.screenshot -side top
+	pack $sp.newgame -side top -anchor w
+	pack $sp.rules -side top -anchor w
+	pack $sp.about -side top -anchor w
+	pack $sp.skins -side top -anchor w
+	pack $sp.help -side top -anchor w
+	pack $sp.quit -side top -anchor w
 
 }
 
