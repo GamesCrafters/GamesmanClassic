@@ -21,7 +21,7 @@ fi
 
 for i in $MODULES
 do
-	$i $options
+	$i $options 1>/dev/null
 done
 
 echo "Finished solving.. Thanks for your patience!"
