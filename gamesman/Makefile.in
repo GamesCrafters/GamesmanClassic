@@ -23,7 +23,7 @@
 # @configure_input@
 
 all: Makefile
-	cd src && $(MAKE) all
+	@$(MAKE) -w -C src all
 
 clean:
 	cd src && $(MAKE) clean
