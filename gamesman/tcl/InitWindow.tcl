@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.59 2005-02-20 04:52:12 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.60 2005-03-31 08:13:16 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -659,18 +659,9 @@ proc InitWindow { kRootDir kDir kExt } {
 
     pack propagate $skinsFrame 0
 
-#    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.ppm"
-    image create photo lily_screenshot -file "$gSkinsRootDir\LilySkin/screenshot.ppm"
-    image create photo oxy_screenshot -file "$gSkinsRootDir\OxySkin/screenshot.ppm"
+    image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
+    image create photo oxy_screenshot -file "$gSkinsRootDir/OxySkin/screenshot.ppm"
 
-#    button $skinsFrame.content.left.mandel\
-#	    -compound top\
-#	    -image mandel_screenshot\
-#	    -text "Mandel Fractal"\
-#	    -command {
-#		InitButtons $gSkinsRootDir MandelSkin/ ppm
-#		TBaction4
-#	    }
     button $skinsFrame.content.right.lily\
 	    -compound top\
 	    -image lily_screenshot\
@@ -705,7 +696,6 @@ proc InitWindow { kRootDir kDir kExt } {
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     pack $skinsFrame.content.left.oxy -ipadx 4 -ipady 4 -anchor n
-#    pack $skinsFrame.content.left.mandel -ipadx 4 -ipady 4 -anchor n
     pack $skinsFrame.content.right.lily -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
