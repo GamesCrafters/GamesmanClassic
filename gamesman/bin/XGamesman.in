@@ -101,9 +101,11 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
 	        -bg $theColor \
 	        -borderwidth $borderWidth \
 		-command "exec @WISHLOC@ -f $theProgram &"
+
 	#set upperLeftx [expr {$pad+(100+$pad)*($i%$cols)-5}] 
 	#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
 	#$c create rectangle $upperLeftx $upperLefty [expr $upperLeftx + 110] [expr $upperLefty + 110] -fill $theColor
+
 	$c create window [expr {$pad+(100+$pad)*($i%$cols)}] [expr {$under/2+($under+100)*($i/$cols)}] -window $c.butBitmap$i -anchor nw
 	$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font $kLabelFont
 
@@ -170,20 +172,31 @@ proc getRows { numGames numCols } {
 proc main {} {
 
     set theBitmapDir "../bitmaps"
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 ttt tactix 3dot con cmass dnb foxes sim }
-    #set thePrograms {  1210 ttt tactix dodgem  cmass sim 3dot Lgame lite3 con win4 nim dnb ctoi foxes achi qx}
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "TicTacToe GOLD" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3"\
-			  "Tic Tac Toe" "Tac Tix" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Sim" }
-    #set theStrings  { "1,2,...,10" "TicTacToe" "Tac Tix" "Dodgem" "Critical Mass" "Sim" "3-Dot" "L Game" "Lite 3" "Connections!" "Connect 4" "Nim" "Dots and Boxes" "Chung-Toi" "Foxes and Geese" "Achi" "QuickCross"}
-    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown }
+
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 ttt tactix 3dot con cmass dnb foxes stt sim }
+
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "TicTacToe GOLD" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3" "Tic Tac Toe" "Tac Tix" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" "Sim" }
+
+    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown brown }
+
+
+
+
+
+	 #set thePrograms {  1210 ttt tactix dodgem  cmass sim 3dot Lgame lite3 con win4 nim dnb ctoi foxes achi qx}
+
+ 	 #set theStrings  { "1,2,...,10" "TicTacToe" "Tac Tix" "Dodgem" "Critical Mass" "Sim" "3-Dot" "L Game" "Lite 3" "Connections!" "Connect 4" "Nim" "Dots and Boxes" "Chung-Toi" "Foxes and Geese" "Achi" "QuickCross"}
 
     #set theGuiTypes { grey gold grey grey brown brown brown grey grey brown grey gold brown grey brown gold gold} 
-
 
     ### Give it a Nostalgic, tcl7.3 look
     ### tk_setPalette bisque1
 
+
+
     CreateButtonLauncher $theBitmapDir $thePrograms $theStrings $theGuiTypes
+
+
 
     #bind .fall <Configure> "puts [. cget -width]; .fall.c configure -width [. cget -width]"
 }
@@ -191,3 +204,7 @@ proc main {} {
 ### Call the main procedure.
 
 main
+
+
+##### Revision Logs #####
+##$Log: not supported by cvs2svn $
