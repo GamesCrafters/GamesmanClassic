@@ -88,6 +88,7 @@
 **                     Also added some function points to accomodate multiple implementations.
 ** 22 Mar 2005 Mario:  Switched to marioInitialize to showcase (seemingly) hashing/unhashing error
 **                     Yanpei, please review: compile and run, and watch error output.
+**                     Reverted to yanpeiInitialize
 **
 **************************************************************************/
 
@@ -255,7 +256,7 @@ POSITION                factorialNoMem(int n);
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
 POSITION		(*hash)( QTBPtr ) = &hashUnsymQuarto;
 QTBPtr			(*unhash)( POSITION ) = &unhashUnsymQuarto;
-void                    (*initGame)( ) = &marioInitializeGame;
+void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
 POSITION                (*factorial)(int n) = &factorialMem;
 
