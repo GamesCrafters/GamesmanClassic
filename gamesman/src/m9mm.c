@@ -62,11 +62,10 @@ STRING kHelpGraphicInterface =
 STRING   kHelpTextInterface    =
 "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
 
-STRING kHelpOnYourTurn = 
-"Help!";
+STRING kHelpOnYourTurn;
 
 // default kHelpOnYourTurn
-STRING   kHelpOnYourTurn0 = 
+STRING kHelpOnYourTurn0 = 
 "If you still have pieces not on the board, place them in any open position.\nWhen all of your pieces have been placed on the board, you can choose any one of\nyour pieces and move it to an adjacent, open position.  If any of your moves\nresults in a 3-in-a-row, you can remove one of your opponent's pieces that is\nnot in a mill.  If your opponent only has 3 pieces remaining which happen to be\nin a mill, you can choose to remove any 1 of those 3 pieces.";
 
 // kHelpWithFlying appears only if gFlying is TRUE
@@ -239,8 +238,8 @@ void GameSpecificMenu()
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
 	 printf("\n");
-    printf("\tI)\tChoose the (I)nitial position\n");
-	 printf("\tF)\tToggle (F)lying from %s to %s\n", 
+    printf("\ti)\tChoose the (I)nitial position\n");
+	 printf("\tf)\tToggle (F)lying from %s to %s\n", 
 			  gFlying ? "ON" : "OFF",
 			  !gFlying ? "ON" : "OFF"); 
     	    
@@ -275,8 +274,15 @@ void GameSpecificMenu()
 void setFlyingText()
 {
   int newHelpSize = strlen(kHelpOnYourTurn0) + strlen(kHelpWithFlying) + 1;
-  char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
-  
+  char* newHelp = NULL;
+
+  if (kHelpOnYourTurn != NULL) {
+   free(kHelpOnYourTurn);
+  }
+ 
+  newHelp = (char*)malloc(newHelpSize*sizeof(char));
+
+  // debug 
   if (debug) {
 	 printf("gFlying = %d\n", gFlying);
 	 printf("The newHelpSize is %d\n", newHelpSize);
@@ -285,29 +291,32 @@ void setFlyingText()
   // change kHelpOnYourTurn if gFlying is TRUE
   if (gFlying && (newHelp != NULL)) {
     strcpy(newHelp, kHelpOnYourTurn0);
-
-	 if (debug) {
-		printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
-	 }
-
+    
+    // debug
+    if (debug) {
+      printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
+    }
+    
     strcat(newHelp, kHelpWithFlying);
-
-	 if (debug) {
-		printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
-	 }
-
+    
+    //debug
+    if (debug) {
+      printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
+    }
+    
     kHelpOnYourTurn = newHelp;
   } else {
-	 kHelpOnYourTurn = kHelpOnYourTurn0;
+    kHelpOnYourTurn = newHelp;
+    strcpy(newHelp, kHelpOnYourTurn0);
   }
-  free(newHelp);
 
-  if (debug) {
-	 printf("gFlying = %d\n", gFlying);
-	 printf("kHelpOnYourTurn(%d):%s\n",strlen(kHelpOnYourTurn),kHelpOnYourTurn);
+  // debug
+  if (TRUE) {
+    printf("gFlying = %d\n", gFlying);
+    printf("kHelpOnYourTurn(%d):%s\n",strlen(kHelpOnYourTurn),kHelpOnYourTurn);
   }
 }
-  
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
@@ -1744,6 +1753,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.63  2004/05/05 22:14:14  bryonr
+//Fixed GenerateParents and solver
+//
 //Revision 1.62  2004/05/05 10:45:36  bryonr
 //Added loopy bottom-up solver for use with Nine Men's Morris.
 //
