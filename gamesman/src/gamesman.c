@@ -412,13 +412,15 @@ void MenusBeforeEvaluation()
 void MenusEvaluated()
 {
     VALUE gameValue;
-    gameValue = GetValueOfPosition(gInitialPosition);
+    if(!gUnsolved)
+        gameValue = GetValueOfPosition(gInitialPosition);
     
     printf("\n\tPlayer Name Options:\n\n");
     
     printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
     printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
-    printf("\t3)\tSwap %s (plays FIRST) with %s (plays SECOND)\n", gPlayerName[1], gPlayerName[0]);
+    if(!gAgainstComputer)
+        printf("\t3)\tSwap %s (plays FIRST) with %s (plays SECOND)\n", gPlayerName[1], gPlayerName[0]);
     
     if(!gUnsolved) {
 	printf("\n\tGeneric Options:\n\n");
@@ -547,7 +549,11 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 's': case 'S':
 	InitializeGame();
 	SetSolver();
-	
+	gUnsolved = FALSE;
+	gAgainstComputer = TRUE;
+	gPrintPredictions = TRUE;
+	sprintf(gPlayerName[kPlayerOneTurn],"Player");
+	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
 	if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
 	printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
@@ -573,7 +579,8 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	break;
     case 'w': case 'W':
 	InitializeGame();
-	InitializeDatabases();
+	gTwoBits = TRUE;
+	InitializeVisitedArray();
 	gUnsolved = TRUE;
 	gAgainstComputer = FALSE;
 	gPrintPredictions = FALSE;
