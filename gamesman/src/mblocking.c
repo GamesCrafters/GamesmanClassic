@@ -233,7 +233,7 @@ static int num_black;
 static int num_white;
 static char g_name[100];
 static FILE* g_file;
-static char default_file[100] = "../grf/default.blk";
+static char default_file[100] = "../meta/default.blk";
 static BOOLEAN use_default = TRUE;
 static char image[20][35];
 
@@ -406,12 +406,12 @@ void GameSpecificMenu ()
   use_default = TRUE;
 
   while(use_default) {
-    printf("\nSpecify one of the .blk files in the ../grf directory");
+    printf("\nSpecify one of the .blk files in the ../meta directory");
     printf("\n(But don't add the .blk at the end)\n\n");
-    system("ls ../grf");
+    system("ls -C ../meta");
     printf("\nLoad Graph from : ");
     scanf("%s", tmp);
-    (void) sprintf((char *)file_name, "../grf/%s.blk", tmp);
+    (void) sprintf((char *)file_name, "../meta/%s.blk", tmp);
 
     g_file = fopen(file_name, "r");
 
