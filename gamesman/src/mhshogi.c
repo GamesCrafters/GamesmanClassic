@@ -92,7 +92,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define NUM_OF_ROWS 5
+#define NUM_OF_ROWS 3
 #define NUM_OF_COLS 3
 #define BOARDSIZE NUM_OF_ROWS * NUM_OF_COLS
 #define ROWS_OF_PIECES 1
@@ -500,6 +500,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
   printf("%s's move: ", computersName);
   PrintMove(computersMove);
+  printf("\n");
 }
 
 
@@ -519,7 +520,7 @@ void PrintMove (MOVE move)
   x = unhashMove(move);
   
    printf("%c", x.fromX+'a');
-  printf("%d-", x.fromY+1);
+  printf("%d", x.fromY+1);
   printf("%c", x.toX+'a');
   printf("%d", x.toY+1);
 }
@@ -616,13 +617,13 @@ BOOLEAN ValidTextInput (STRING input)
     return FALSE;
     //printf("bad 1");
   }
-  //dont know what middle char of mv must be 
-  if(input[3] < 'a' || input[3] >= 'a' + NUM_OF_COLS){
+   
+  if(input[2] < 'a' || input[3] >= 'a' + NUM_OF_COLS){
     return FALSE;
     //printf("bad 3");
 
   }
-  if(input[4] < '1' || input[4] >= '1' + NUM_OF_ROWS){
+  if(input[3] < '1' || input[4] >= '1' + NUM_OF_ROWS){
     return FALSE;
     //printf("bad 4");
   }
@@ -657,8 +658,8 @@ MOVE ConvertTextInputToMove (STRING input)
   //printf("in convert!\n");
   int fromX = input[0] - 'a';
  int fromY = input[1] - '1';
- int toX = input[3] - 'a';
- int toY = input[4] - '1';
+ int toX = input[2] - 'a';
+ int toY = input[3] - '1';
  //printf("input is %d %d %d %d\n", fromX, fromY, toX, toY);
 
  return hashMove(fromX,fromY,toX, toY);
@@ -719,7 +720,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-  printf("hehehhehhe\n");
+ 
     return gInitialPosition;
 }
 
