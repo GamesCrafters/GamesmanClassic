@@ -1,3 +1,4 @@
+
 ####################################################
 # this is a template for tcl module creation
 #
@@ -59,7 +60,8 @@ proc GS_InitGameSpecific {} {
     } else {
 	SetToWinString "To Win: The Person with one piece left or the person with no moves left wins."
     }
-    SetToMoveString "To Move: click on the arrow of the piece that you want to move in the direction that you want to move."
+    SetToMoveString "To Move: click on the arrow of the piece that you want 
+to move in the direction that you want to move."
 
     # Authors Info. Change if desired
     global kRootDir
@@ -192,8 +194,8 @@ proc GS_GetOption { } {
     # TODO: Needs to change with more variants
     global gMisereGame gDiagonalsOption gBoardSizeOp
     set option 1
-    set option [expr $option + (2*$gDiagonalsOption)]
-    set option [expr $option + (4*($gBoardSizeOp))]
+    set option [expr $option + ($gDiagonalsOption << 1)]
+    set option [expr $option + ($gBoardSizeOp << 2)]
 
     return $option
 }
@@ -216,7 +218,7 @@ proc GS_SetOption { option } {
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option/4%2)]
     set diagonals gDiagonalsOption
-    set gBoardSize [expr ($option/4) + 3]
+    set gBoardSize [($options >> 2) + 3]
 }
 
 
@@ -246,7 +248,7 @@ proc GS_Initialize { c } {
     # creates a base which to hide the arrows
     $c create rectangle [expr 0  + $offset] [expr 0 + $offset] [expr $boardwidth + $offset] \
 	[expr $boardwidth + $offset] -fill white -tags base
-    # the board
+    # the board - can use for loop for variable board (currently 3 by 3)
     for {set i 0} {$i < [expr $gBoardSize - 1]} {set i [expr $i + 1]} {
 	for {set j 0} {$j < [expr $gBoardSize -1]} {set j [expr $j + 1]} {
 	    $c create rectangle [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
@@ -354,7 +356,7 @@ proc GS_DrawPosition { c position } {
 #############################################################################
 proc GS_NewGame { c position } {
 
-    # TODO: The default behavior of this funciton is just to draw the position
+    # TODO: The default behavior of this funciton is just to draw the xposition
     # but if you want you can add a special behaivior here like an animation
 
     global gGameover
@@ -743,3 +745,6 @@ proc movePiece { c pieceToMove dir incr } {
     }
     update idletasks
 }
+
+
+
