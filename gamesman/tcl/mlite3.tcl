@@ -18,6 +18,19 @@
 ##
 ## GOLD UPDATE:  Jeffrey Chiang (2004-09-12)
 #############################################################################
+#############################################################################
+# Some Notes:
+#   o This tcl code is hardcoded for the 3x3 game.  To make it expandable
+#     (If you choose to do so) requres you to change how the order of moves
+#     is stored
+#   o In fact, there is some not so nice abstraction going on in this code.
+#     Essentially, the moves are 1-9 whereas the slots (squares) that 
+#     correspond to them are designed as if the moves were 0-8.  This code 
+#     accounts for this, but in a not so nice way.
+#   o GS_WhoseMove is not implemented.  It may be nice in the future to
+#     change all the references of gplayeroneTurn to use GS_WhoseMove instead
+#
+#############################################################################
 
 
 #############################################################################
@@ -82,13 +95,12 @@ proc GS_InitGameSpecific {} {
     set x3 6
 
 
-    ### Color of the numbers (to show order) Note to Jeff: Maybe remove
+    ### Color of the numbers (to show order)
     global numberColor
     set numberColor grey
 
 
-    ### These (I think) are to keep track of most recently played pieces
-    ### Note to Jeff: Maybe remove "I think"
+    ### These are to keep track of most recently played pieces
     global varXone varXtwo varXthree varOone varOtwo varOthree
     set varXone -1
     set varXtwo -1
@@ -100,14 +112,13 @@ proc GS_InitGameSpecific {} {
     ### Set the color and font of the labels
 
     global kLabelFont
-    set kLabelFont { Helvetica 12 bold }
-#note to jeff" do i need this?
     global kLabelColor
+
+    set kLabelFont { Helvetica 12 bold }
     set kLabelColor grey40
 
     ### These are used in the routine that draws the pieces - we want a small
     ### piece used as a label but a larger piece used in the playing board.
-    ### Jeff: suuuuuuuuuuuuuuuuuuure
     global kBigPiece
     set kBigPiece 1
 
@@ -128,12 +139,24 @@ proc GS_InitGameSpecific {} {
     
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
-
+    global gObjNum
     global gMisereGame
     if {!$gMisereGame} {
-        SetToWinString "To Win: Get 3 in a row"
+	if {$gObjNum == 0} {
+	    SetToWinString "To Win: Get 3 in a row"
+	} elseif {$gObjNum == 1} {
+	    SetToWinString "To Win: Trap an opponent's piece with three of your pieces"       
+	} else {
+	    SetToWinString "To Win: Either get 3 in a row or trap an opponent's piece with three of your pieces"
+	}
     } else {
-        SetToWinString "To Win: Force your opponent to get 3 in a row"
+	if {$gObjNum == 0} {
+	    SetToWinString "To Win: Force your opponent to get 3 in a row"
+	} elseif {$gObjNum == 1} {
+	    SetToWinString "To Win: Force your opponent to surround one of your pieces"
+	} else {
+	    SetToWinString "To Win: Either force your opponent to get 3 in a row or force your opponent to surround one of your pieces"
+	}
     }
     SetToMoveString "To Move: Place your piece on an empty space.  If you already have three pieces on the board, the most least recently used piece will be removed when you make your next move."
 
@@ -210,17 +233,17 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set objectiveRule \
 	[list \
 	     "What would you like the game objective to be:" \
-	     "Three In A Row (Standard)" \
-	     "Surround" \
-	     "Either" \
+	     "3 in a row" \
+	     "Trap your opponent" \
+	     "Both" \
 	     ]
 
     # List of all rules, in some order
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $objectiveRule]
 
     # Declare and initialize rule globals
     global gMisereGame 
-
+    
     # 0 - Three In A Row
     # 1 - Surround
     # 2 - Both
@@ -230,7 +253,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set gObjNum 0
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gObjNum"]
 
     global kLabelFont
     set ruleNum 0
@@ -261,10 +284,24 @@ proc GS_SetupRulesFrame { rulesFrame } {
 #############################################################################
 proc GS_GetOption { } {
     # TODO: Needs to change with more variants
-    global gMisereGame
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
-    return $option
+    global gMisereGame gObjNum
+
+    if {$gObjNum == 0} {
+	set objRet 1
+    } elseif {$gObjNum == 1} {
+	set objRet 2
+    } else {
+	set objRet 3
+    }
+    if { $gMisereGame} {
+	set gameRet 1 
+    } else {
+	set gameRet 0
+    }
+    
+    set ret [expr $objRet + [expr 3 * $gameRet]]
+    
+    return $ret
 }
 
 
@@ -281,9 +318,24 @@ proc GS_GetOption { } {
 #############################################################################
 proc GS_SetOption { option } {
     # TODO: Needs to change with more variants
-    global gMisereGame
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    global gMisereGame gObjNum
+    
+    set standardGame [expr $option < 4]
+    if {$standardGame} {
+	set $gMisereGame 0 
+    } else {
+	set $gMisereGame 1
+    }
+
+    set option [expr $option % 3]
+
+    if {$option == 0} {
+	set gObjNum 2
+    } elseif {$option == 1} {
+	set gObjNum 0 
+    } else {
+	set gObjNum 1
+    }
 }
 
 
@@ -308,6 +360,15 @@ proc GS_Initialize { c } {
         }
     }
 } 
+
+
+#############################################################################
+# GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
+# is here, so whoever put this here should update this.  -Jeff
+#############################################################################
+proc GS_Deinitialize { c } {
+    #$c delete all
+}
 
 
 #############################################################################
@@ -351,15 +412,6 @@ proc CreateSlot {w slotX slotY} {
 #############################################################################
 
 proc GS_EmbellishSlot { w slotX slotY slot } {
-
-    global gSlotSize
-    ###  kLabelFont (Let's see if we need this...)
-
-    ### for mLite3, we enable all initial slots
-
-#    EnableSlot $w $slot
-
-    ### And all the slots should be active upon "New Game"
 
     $w addtag tagInitial withtag $slot
 }
@@ -678,7 +730,6 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-     set whoseTurn = (thePos & 1);
     return ""    
 }
 
@@ -713,9 +764,6 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     DrawPiece $slotX $slotY $thePiece $c
 
     if { $gPlayerOneTurn == 1} { set gPlayerOneTurn 0 } { set gPlayerOneTurn 1}
-#    set gPlayerOneTurn [not $gPlayerOneTurn]
-#Jeff: hmmm
-
 }
 
 
@@ -734,7 +782,7 @@ proc GS_HandleEnablesDisables { w theSlot theMove } {
     
     DisableSlot $w $theSlot
     set theBoardMove [expr $theMove - 1]
-#JEFF    set theBoardMove [GS_ConvertMoveToInteraction $theMove]
+
     set moveSlotX   [expr $theBoardMove % $gSlotsX]
     set moveSlotY   [expr $theBoardMove / $gSlotsX]
     set textNum "1"
@@ -850,8 +898,6 @@ proc GS_HandleEnablesDisables { w theSlot theMove } {
 			 -tag tagText]
 
         $w addtag tagTextNumX$textNum withtag $theText
-
-	#    $w itemconfig tagTextNumX3 -fill white NOTE to jeff: maybe remove
     }
 }
 
@@ -897,16 +943,10 @@ proc GS_ConvertInteractionToMove { theMove } {
 proc DrawPiece { slotX slotY thePiece c} {
     global kBigPiece kLeftDrawProc kRightDrawProc 
 
-#kBothDrawProc
-#Note to jeff: Check later
     if     { $thePiece == "X" } {
         return [$kLeftDrawProc  $c $slotX $slotY tagPiece blue $kBigPiece]
     } elseif { $thePiece == "O" } {
         return [$kRightDrawProc $c $slotX $slotY tagPiece red $kBigPiece]
-#    } elseif { $thePiece == "+" } {
-#        return [$kBothDrawProc .winBoard.c $slotX $slotY tagPiece magenta $kBigPiece]
-#    } elseif { $thePiece == "-" } {
-#        return [DrawLastMove .winBoard.c $slotX $slotY tagPiece magenta $kBigPiece]
     } else {
         BadElse DrawPiece
     }
@@ -1028,14 +1068,6 @@ proc DisableSlot { w theSlot } {
 }
 
 
-#drawcircle
-
-
-
-#Possibly change gplayeroneTurn to whosemove
-## JEFF  , GS_WhoseMove
-
-
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
 # player clicks to make the move)  It is also the function that handles coloring
@@ -1071,9 +1103,9 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    DrawMoveSinglePieceRemoval $c $theMove $color $kBigPiece
 	}
 
-    } else {
-	$c itemconfig tagText -fill white
-    }
+    } 
+    $c itemconfig tagText -fill white
+    
     update idletasks
 }
 
