@@ -35,7 +35,6 @@
 #include "solveloopy.h"
 #include "solvezero.h"
 #include "solvestd.h"
-#include "solvegps.h"
 #include "hash.h"
 
 /*
@@ -45,11 +44,7 @@
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
-POSITION (*gGPSDoMove)(MOVE move) = NULL;
-MOVELIST *(*gGPSGenerateMoves)() = NULL;
-BOOLEAN (*gGPSGoAgain)(MOVE move) = NULL;
-VALUE (*gGPSPrimitive)() = NULL;
-void (*gGPSUndoMove)(MOVE move) = NULL;
+void (*gUndoMove)(MOVE move) = NULL;
 
 VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
@@ -69,6 +64,7 @@ BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gGlobalPositionSolver = FALSE;
+BOOLEAN gUseGPS = FALSE;
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
 				   * solved, default: FALSE */
@@ -123,32 +119,27 @@ void Initialize()
     SetSolver();
 }
 
-void SetSolver() 
+void SetSolver()
 {
-    
     /* if solver set externally, leave alone */
     if (gSolver != NULL)
         return;
-
-    if (gGlobalPositionSolver)
-	gSolver = GPS_DetermineValue;
-
     else if(kZeroMemSolver)
         gSolver = DetermineZeroValue;
-    
     else if(kLoopy) {
         if (gGoAgain == DefaultGoAgain)
             gSolver = DetermineLoopyValue;
         else
             gSolver = lgas_DetermineValue;
     }
-
     else
         gSolver = DetermineValue1;
 }
 
 VALUE DetermineValue(POSITION position)
 {
+    gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
+
     if(gReadDatabase && loadDatabase()) {
         if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
 	
@@ -166,7 +157,8 @@ VALUE DetermineValue(POSITION position)
         if(gWriteDatabase)
             writeDatabase();
     }
-    
+
+    gUseGPS = FALSE;
     gValue = GetValueOfPosition(position);
     return gValue;
 }

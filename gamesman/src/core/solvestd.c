@@ -102,6 +102,10 @@ VALUE DetermineValue1(position)
             }
             else
                 BadElse("DetermineValue[1]");
+
+            if (gUseGPS)
+              gUndoMove(move);
+
             ptr = ptr->next;
         }
         FreeMoveList(head);

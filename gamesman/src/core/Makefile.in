@@ -54,7 +54,6 @@ SOLVER_LOOPY	= solveloopy$(OBJSUFFIX)
 SOLVER_LOOPYGA	= solveloopyga$(OBJSUFFIX)
 SOLVER_ZERO	= solvezero$(OBJSUFFIX)
 SOLVER_LOOPYUP	= solveloopyup$(OBJSUFFIX)
-SOLVER_GPS	= solvegps$(OBJSUFFIX)
 
 
 ##############################################################################
@@ -65,14 +64,14 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(DEBUG_OBJ) $(FILEDB_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(TWOBITDB_OBJ) $(COLLDB_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
-	$(SOLVER_LOOPYUP) $(SOLVER_GPS)
+	$(SOLVER_LOOPYUP)
 
 MODULES=$(CORE) $(SOLVERS) hash.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h twobitdb.h db.h \
-	 solvezero.h solveloopyup.h solvegps.h textui.h setup.h
+	 solvezero.h solveloopyup.h textui.h setup.h
 
 
 ##############################################################################

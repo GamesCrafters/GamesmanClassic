@@ -187,19 +187,16 @@ struct {
   BlankOX board[BOARDSIZE];
   BlankOX nextPiece;
   int piecesPlaced;
-} gGPS;
+} gPosition;
 
 /** Function Prototypes **/
-POSITION GPS_DoMove(MOVE move);
-MOVELIST *GPS_GenerateMoves();
-VALUE GPS_Primitive();
-void GPS_UndoMove(MOVE move);
-
+BOOLEAN AllFilledIn(BlankOX theBlankOX[]);
 POSITION BlankOXToPosition(BlankOX *theBlankOX);
-void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
-
-BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 POSITION GetCanonicalPosition(POSITION position);
+void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+BOOLEAN ThreeInARow(BlankOX[], int, int, int);
+void UndoMove(MOVE move);
+BlankOX WhoseTurn(BlankOX *theBlankOX);
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -266,13 +263,10 @@ void InitializeGame()
   /**************** SYMMETRY FUN END ****************/
   /**************************************************/
 
-  PositionToBlankOX(gInitialPosition, gGPS.board);
-  gGPS.nextPiece = x;
-  gGPS.piecesPlaced = 0;
-  gGPSDoMove = GPS_DoMove;
-  gGPSGenerateMoves = GPS_GenerateMoves;
-  gGPSPrimitive = GPS_Primitive;
-  gGPSUndoMove = GPS_UndoMove;
+  PositionToBlankOX(gInitialPosition, gPosition.board);
+  gPosition.nextPiece = x;
+  gPosition.piecesPlaced = 0;
+  gUndoMove = UndoMove;
 }
 
 void FreeGame()
@@ -364,8 +358,8 @@ int theOptions[];
 **
 ** DESCRIPTION: Apply the move to the position.
 ** 
-** INPUTS:      POSITION thePosition : The old position
-**              MOVE     theMove     : The move to apply.
+** INPUTS:      POSITION position : The old position
+**              MOVE     move     : The move to apply.
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
@@ -374,31 +368,29 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION DoMove(POSITION position, MOVE move)
 {
-  BlankOX theBlankOX[BOARDSIZE], WhoseTurn();
+  if (gUseGPS) {
+    gPosition.board[move] = gPosition.nextPiece;
+    gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+    ++gPosition.piecesPlaced;
 
-  PositionToBlankOX(thePosition,theBlankOX);
+    return BlankOXToPosition(gPosition.board);
+  }
+  else {
+    BlankOX board[BOARDSIZE];
 
-  return(thePosition + (g3Array[theMove] * (int)WhoseTurn(theBlankOX)));
+    PositionToBlankOX(position, board);
+
+    return position + g3Array[move] * (int) WhoseTurn(board);
+  }
 }
 
-POSITION GPS_DoMove(MOVE move)
+void UndoMove(MOVE move)
 {
-  gGPS.board[move] = gGPS.nextPiece;
-  gGPS.nextPiece = gGPS.nextPiece == x ? o : x;
-  ++gGPS.piecesPlaced;
-
-  return BlankOXToPosition(gGPS.board);
-}
-
-void GPS_UndoMove(MOVE move)
-{
-  gGPS.board[move] = Blank;
-  gGPS.nextPiece = gGPS.nextPiece == x ? o : x;
-  --gGPS.piecesPlaced;
+  gPosition.board[move] = Blank;
+  gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+  --gPosition.piecesPlaced;
 }
 
 /************************************************************************
@@ -491,41 +483,22 @@ void PrintComputersMove(computersMove,computersName)
 **
 ************************************************************************/
 
-VALUE Primitive(position) 
-     POSITION position;
+VALUE Primitive(POSITION position)
 {
-  BOOLEAN ThreeInARow(), AllFilledIn();
-  BlankOX theBlankOX[BOARDSIZE];
+  if (!gUseGPS)
+    PositionToBlankOX(position, gPosition.board); // Temporary storage.
 
-  PositionToBlankOX(position,theBlankOX);
-
-  if( ThreeInARow(theBlankOX,0,1,2) || 
-      ThreeInARow(theBlankOX,3,4,5) || 
-      ThreeInARow(theBlankOX,6,7,8) || 
-      ThreeInARow(theBlankOX,0,3,6) || 
-      ThreeInARow(theBlankOX,1,4,7) || 
-      ThreeInARow(theBlankOX,2,5,8) || 
-      ThreeInARow(theBlankOX,0,4,8) || 
-      ThreeInARow(theBlankOX,2,4,6) )
-    return(gStandardGame ? lose : win);
-  else if(AllFilledIn(theBlankOX))
-    return(tie);
-  else
-    return(undecided);
-}
-
-VALUE GPS_Primitive()
-{
-  if (ThreeInARow(gGPS.board, 0, 1, 2) ||
-      ThreeInARow(gGPS.board, 3, 4, 5) ||
-      ThreeInARow(gGPS.board, 6, 7, 8) ||
-      ThreeInARow(gGPS.board, 0, 3, 6) ||
-      ThreeInARow(gGPS.board, 1, 4, 7) ||
-      ThreeInARow(gGPS.board, 2, 5, 8) ||
-      ThreeInARow(gGPS.board, 0, 4, 8) ||
-      ThreeInARow(gGPS.board, 2, 4, 6))
+  if (ThreeInARow(gPosition.board, 0, 1, 2) ||
+      ThreeInARow(gPosition.board, 3, 4, 5) ||
+      ThreeInARow(gPosition.board, 6, 7, 8) ||
+      ThreeInARow(gPosition.board, 0, 3, 6) ||
+      ThreeInARow(gPosition.board, 1, 4, 7) ||
+      ThreeInARow(gPosition.board, 2, 5, 8) ||
+      ThreeInARow(gPosition.board, 0, 4, 8) ||
+      ThreeInARow(gPosition.board, 2, 4, 6))
     return gStandardGame ? lose : win;
-  else if (gGPS.piecesPlaced == BOARDSIZE)
+  else if (gUseGPS && gPosition.piecesPlaced == BOARDSIZE ||
+           !gUseGPS && AllFilledIn(gPosition.board))
     return tie;
   else
     return undecided;
@@ -591,28 +564,16 @@ void PrintPosition(position,playerName,usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-     POSITION position;
-{
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  BlankOX theBlankOX[BOARDSIZE];
-  int i;
-
-  PositionToBlankOX(position,theBlankOX);
-  for(i = 0 ; i < BOARDSIZE ; i++) {
-    if(theBlankOX[i] == Blank)
-      head = CreateMovelistNode(i,head);
-  }
-  return(head);
-}
-
-MOVELIST *GPS_GenerateMoves()
+MOVELIST *GenerateMoves(POSITION position)
 {
   int index;
   MOVELIST *moves = NULL;
 
+  if (!gUseGPS)
+    PositionToBlankOX(position, gPosition.board); // Temporary storage.
+
   for (index = 0; index < BOARDSIZE; ++index)
-    if (gGPS.board[index] == Blank)
+    if (gPosition.board[index] == Blank)
       moves = CreateMovelistNode(index, moves);
 
   return moves;
