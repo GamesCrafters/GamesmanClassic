@@ -1001,11 +1001,11 @@ void ChangeBoardSize() {
     int newWidth, newHeight;
     char c;
     while(TRUE) {
-	printf("\n\nEnter a new width for the board: ");
-	while (!isalnum(c = getc(stdin))) ;
+	printf("\n\nEnter a new width for the board (between %d and %d): ", MIN_WIDTH, MAX_WIDTH);
+	while (isspace(c = getc(stdin))) ;
 	newWidth = c - '0';
-	printf("Enter a new height for the board: ");
-	while (!isalnum(c = getc(stdin))) ;
+	printf("Enter a new height for the board (between %d and %d): ", MIN_HEIGHT, MAX_HEIGHT);
+	while (isspace(c = getc(stdin))) ;
 	newHeight = c - '0';;
 	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH & newHeight >= MIN_HEIGHT) {
 	    height = newHeight;
@@ -1026,8 +1026,8 @@ void ChangeNumPieces() {
     int newAmount;
     char c;
     while(TRUE) {
-	printf("\n\nEnter the number of pieces each team starts with: ");
-	while (!isalnum(c = getc(stdin))) ;
+	printf("\n\nEnter the number of pieces each team starts with (between %d and %d): ", 1, width);
+	while (isspace(c = getc(stdin))) ;
 	newAmount = c - '0';
 	if (newAmount <= width && newAmount >= 1) {
 	    numpieces = newAmount;
