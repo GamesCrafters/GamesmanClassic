@@ -158,7 +158,6 @@ GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of
 GOBBLET_OBJ		= mgobblet$(OBJSUFFIX)
 GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
 
-
 9MM_EXE			= $(BINDIR)/m9mm$(EXESUFFIX) # The ultimate game of Nine Men's Morris
 9MM_OBJ			= m9mm$(OBJSUFFIX)
 9MM_SO			= $(LIBDIR)/libm9mm$(LIBSUFFIX)
@@ -182,6 +181,10 @@ ABALONE_SO		= $(LIBDIR)/libmabalone$(LIBSUFFIX)
 TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
 TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
+
+WINKERS_EXE		= $(BINDIR)/mwinkers$(EXESUFFIX) #The mysterious game of winkers
+WINKERS_OBJ		= mwinkers$(OBJSUFFIX)
+WINKERS_SO		= $(LIBDIR)/libmwinkers$(LIBSUFFIX)
 
 JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
 JOUST_OBJ		= mjoust$(OBJSUFFIX)
