@@ -1,0 +1,25 @@
+; A demonstration of classes. The D and I nodes may only be reached by
+; black and white pieces, respectively.
+(graph 1 classes)
+(node-class ne black (ne) (D))
+(node-class sw white (sw) (I))
+(node-class center both (ne sw center) 
+	(B C E F G H J K))
+(node B () (C F))
+(node C () (D G))
+(node D () (H))
+(node E () (F I))
+(node F () (G J))
+(node G () (H K))
+(node I () (J))
+(node J () (K))
+(piece-class black B (B H))
+(piece-class white W (E K))
+(image
+   B--C--D
+   |  |  |
+   |  |  |
+E--F--G--H
+|  |  |
+|  |  | 
+I--J--K)
