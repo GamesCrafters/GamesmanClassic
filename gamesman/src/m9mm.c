@@ -9,35 +9,6 @@
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
 **
-
-
-** UPDATE HIST: 2004.02.22: Begin coding module, implemented functions: 
-**                          int hash
-**                          POSITION unhash
-**                          void parse_board
-**                          void unparse_board
-**                          blankox whose_turn
-**                          MOVE hash_move
-**                          int from
-**                          int to
-**                          int remove_piece
-**                          blankox opponent
-**                          BOOLEAN can_be_taken
-**                          BOOLEAN closes_mill
-**                          BOOLEAN check_mill
-**                          BOOLEAN three_in_a_row
-**                          void InitializeGame
-**                          POSITION DoMove
-**                          VALUE Primitive
-**                          MOVELIST *GenerateMoves(POSITION position)
-**
-**              2004.03.07: DoMove, GenerateMoves  now compiles
-
-** 
-**
-**
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -211,7 +182,38 @@ void DebugMenu()
 
 void GameSpecificMenu() 
 {
+	char GetMyChar();
+  POSITION GetInitialPosition();
   
+  do {
+    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    
+    printf("\tCurrent Initial Position:\n");
+    PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
+    
+    printf("\tI)\tChoose the (I)nitial position\n");
+    	    
+    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+    printf("\n\nSelect an option: ");
+    
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+    case 'H': case 'h':
+      HelpMenus();
+      break;
+    case 'I': case 'i':
+      gInitialPosition = GetInitialPosition();
+      break;
+    case 'b': case 'B':
+      return;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
+	  
 }
   
 /************************************************************************
@@ -626,11 +628,15 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
+  // we could bulletproof this a lot more
+  // currently checks for a number, a space followed by a number, 
+  //and an optional comma with a number
+  
   int i;
   int index;
   BOOLEAN hasSpace, hasComma;
-  int spaceIndex;
-  int commaIndex;
+  STRING afterSpace;
+  STRING afterComma;
   
   i = atoi(input);
 
@@ -638,36 +644,32 @@ BOOLEAN ValidTextInput(input)
   hasComma = (index(input, ',')) == NULL;
   
   if (hasSpace)
-    spaceIndex = index(input, ' ');
+    afterSpace = index(input, ' ');
   else {
     return FALSE;
   }
     
   if (hasComma)
-    commaIndex = index(input, ',');
+    afterComma = index(input, ',');
   else
-    commaIndex = -1;
+    afterComma = -1;
 
+  i = atoi(input);
+  if (!(i < BOARDSIZE) && (i > = 0))
+  	return FALSE;
   
+  i = atoi(afterSpace);
+  if (!(i < BOARDSIZE) && (i > = 0))
+  	return FALSE;
   
+  if (hasComma)
+  i = atoi(afterComma);
+  if (!(i < BOARDSIZE) && (i > = 0))
+  	return FALSE;
+  else 
+  	return TRUE
   
-  if(index(input, ' ') == NULL)
-    return FALSE;
-  
-  i = atoi(index(input, ' '));
-
-  if (!( i < BOARDSIZE - 1  && i >= 0 ))
-    return FALSE;
-
-  if(index(input, ',') == NULL)
-    return TRUE;
-
-  i = atoi(index(input, ','));
-  if (!( i < BOARDSIZE - 1  && i >= 0 ))
-    return FALSE;
-
-  return FALSE;
-
+  return FALSE; // should never be reached
   
 }
 
@@ -688,7 +690,29 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
+  int from, to, remove;
+  STRING afterSpace;
+  STRING afterComma;
+
+  hasSpace = (index(input, ' ')) == NULL;
+  hasComma = (index(input, ',')) == NULL;
   
+  from = atoi(input);
+  
+  if (hasSpace)
+    afterSpace = index(input, ' ');
+    to = atoi(afterSpace)
+  else {
+    return 0; // Should be a bad else
+  }
+    
+  if (hasComma)
+    afterComma = index(input, ',');
+    remove = atoi(afterComma);
+  else
+    remove = from;
+    
+  return hash_move(from, to, remove);
 }
 
 /************************************************************************
@@ -704,7 +728,10 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  
+      printf("\"%d %d", from(theMove), to(theMove));
+	  if (closes_mill_move(theMove))
+	  	printf(" %d", remove_piece(theMove);
+	  printf("\"");
 }
 
 /************************************************************************
@@ -720,7 +747,7 @@ void PrintMove(theMove)
 
 int NumberOfOptions()
 {
-  return 0;
+  return 1;
 }
 
 /************************************************************************
@@ -737,7 +764,10 @@ int NumberOfOptions()
 
 int getOption()
 {
-  return 0;
+  int ret;
+  ret = gStandardGame;
+  
+  return ++ret;
 }
 
 /************************************************************************
@@ -753,7 +783,10 @@ int getOption()
 ************************************************************************/
 void setOption(int option)
 {
-
+  option--;
+  gStandardGame = option %2;
+  
+  return option;
 }
 
 /************************************************************************
@@ -852,6 +885,7 @@ blankox whose_turn(int hash_val)
   return (hash_val > gHashNumberOfPos ? x : o);
 }
 
+// if there is no removal, then from == remove
 MOVE hash_move(int from, int to, int remove)
 {
   return ((from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove);
@@ -925,6 +959,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.15  2004/03/10 23:47:07  evedar
+//Filled in almost all user i/o functions.  Need to fix: int/MOVE abstraction, badElse's.  Had to hard code in get initial position.  Should add a position hash/unhash sanity check to that function.  Commented 9mm out of Makefile while getting this stuff to compile.
+//
 //Revision 1.14  2004/03/07 20:49:09  evedar
 //Added printposition, changed internal rep of board locations
 //
