@@ -3034,7 +3034,7 @@ void SolveAndStoreRaw(int option)
 	for(i = 0 ; i < gNumberOfPositions ; i++)
 		gDatabase[i] = undecided ;
 
-	sprintf(outfilename, "../bin/data/m%s_%d_raw.dat", kDBName, option) ;
+	sprintf(outfilename, "./data/m%s_%d_raw.dat", kDBName, option) ;
 	if((filep = fopen(outfilename, "w")) == NULL)
 		printf("Unable to open file to write. Quitting.\n"), exit(1) ;
 
@@ -3071,11 +3071,11 @@ int writeDatabase()
 
 	mkdir("data", 0755) ;
 
-	sprintf(outfilename, "../bin/data/m%s_%d.dat", kDBName, getOption()) ;
+	sprintf(outfilename, "./data/m%s_%d.dat", kDBName, getOption()) ;
 
 	if((filep = fopen(tempfilename, "w")) == NULL) // ... if we are  unable to create a temporary file
 	{
-		printf("Unable to create temporary file") ;
+		printf("Unable to create temporary file %s", outfilename) ;
 		return 0;
 	}
 
@@ -3116,7 +3116,7 @@ int loadDatabase()
 	FILE * filep ;
 	STRING tempfilename = "/tmp/gamesman/gamesman.dump" ;
 	char outfilename[256] ;
-	sprintf(outfilename, "../bin/data/m%s_%d.dat", kDBName, getOption()) ;
+	sprintf(outfilename, "./data/m%s_%d.dat", kDBName, getOption()) ;
 	if((filep = fopen(outfilename, "r")) == NULL) return 0 ;
 	fclose(filep) ;
 
@@ -3599,7 +3599,7 @@ int main(int argc, char ** argv)
 		int value ;
 		sscanf(argv[2], "%d", &gameoption) ;
 		sscanf(argv[3], POSITION_FORMAT, &position) ;
-		sprintf(outfilename, "../bin/data/m%s_%d_raw.dat", kDBName, gameoption) ;
+		sprintf(outfilename, "./data/m%s_%d_raw.dat", kDBName, gameoption) ;
 		if((filep = fopen(outfilename, "r")) == NULL)
 			printf("Unable to open file to read. Quitting.\n"), exit(1) ;
 		fseek(filep, position*sizeof(int), SEEK_SET) ;
