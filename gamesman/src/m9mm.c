@@ -27,7 +27,7 @@
 POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 11137;
-POSITION gMinimalPosition    = 0;
+POSITION gMinimalPosition    = 11137;
 POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "Nine Men's Morris";
@@ -160,6 +160,7 @@ void InitializeGame()
   
   int b_size = BOARDSIZE;
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
+  //set mino, mninx to be 0
 
   generic_hash_init(b_size, pminmax, NULL);
 
@@ -596,7 +597,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	      {
 		for (k = 0; k < opponent_count; k++)
 		  if (can_be_taken(position, opponent_pieces[k]))
-		    head = CreateMovelistNode(raw_move += (opponent_pieces[k]-player_pieces[i]) , head);
+		    head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
 	      }
 	    else
 	      head = CreateMovelistNode(raw_move, head);
@@ -1022,6 +1023,7 @@ int count_mills(POSITION position, blankox player)
   blankox board[BOARDSIZE];
   int i, mills;
   unhash(position, board);
+  mills = 0;
 
   for (i = 0; i < BOARDSIZE; i++) {
     if (board[i] == player) {
@@ -1167,6 +1169,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.41  2004/04/15 00:13:06  ogren
+//Added count_mills for the future, currently incorrectly implemented.... -Elmer
+//
 //Revision 1.40  2004/04/15 00:11:40  ogren
 //Added count_mills for the future, currently incorrectly implemented.... -Elmer
 //
