@@ -7,6 +7,7 @@ To compile, use
 gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include -fPIC -lz -lnsl -lsocket -lm -shared -static-libgcc -L/usr/sww/pkg/tcltk-8.4.4/lib -ltk8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 mseega.c 
 */
 
+//Peter: I checked out the file but made no changes
 /* 
  * Above is will include the name and the log of the last
  * person to commit this file to gamesman.
@@ -30,7 +31,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 **              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
 **	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
 **	        TO BE DONE: DoMoves, Primitive
-**              Might not compile =(
+**              **PLEASE PUT UODATES HERE**
 **
 **************************************************************************/
 
