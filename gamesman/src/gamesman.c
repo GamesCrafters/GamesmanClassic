@@ -34,7 +34,6 @@ typedef struct
 }HuffTree;
 
 /* gameplay-related internal function prototypes */
-BOOLEAN  DefaultGoAgain(POSITION pos, MOVE move);
 void     Menus();
 void     MenusBeforeEvaluation();
 void     MenusEvaluated();
@@ -290,36 +289,13 @@ char *gValueString[] =
 **
 **************************************************************************/
 
-extern STRING   kHelpGraphicInterface; /* The Graphical Interface Help string. */
-extern STRING   kHelpTextInterface;    /* The Help for Text Interface string. */
-extern STRING   kHelpOnYourTurn;       /* The Help for Your turn string. */
-extern STRING   kHelpStandardObjective;/* The Help for Objective string. */
-extern STRING   kHelpReverseObjective; /* The Help for reverse Objective string. */
-extern STRING   kHelpTieOccursWhen;    /* The Help for Tie occuring string. */
-extern STRING   kHelpExample;          /* The Help for Exmaples string. */
-extern STRING   kAuthorName;	       /* Name of the Author ... */
 
-extern POSITION gInitialPosition;      /* The initial position of the game */
-extern POSITION gMinimalPosition;
-extern BOOLEAN  kPartizan;             /* TRUE <==> module is a Partizan game */
-extern BOOLEAN  kGameSpecificMenu;     /* TRUE <==> module supports GameSpecificMenu() */
-extern BOOLEAN  kTieIsPossible;        /* TRUE <==> A Tie is possible */
-extern BOOLEAN  kLoopy;                /* TRUE <==> Game graph has cycles */
-extern POSITION gNumberOfPositions;    /* The number of positions in the game */
-extern BOOLEAN  gPrintHints ;
-extern STRING   kGameName ;
-extern STRING   kAuthorName ;
-extern BOOLEAN  kDebugMenu ;
-extern STRING   kDBName ;
-extern BOOLEAN  kDebugDetermineValue ;
 
 
 BOOLEAN DefaultGoAgain(POSITION pos,MOVE move)
 {
   return FALSE; /* Always toggle turn by default */
 }
-
-BOOLEAN (*gGoAgain)(POSITION,MOVE)=DefaultGoAgain;
 
 char GetMyChar()
 {
@@ -352,6 +328,15 @@ void Initialize()
   gStandardGame     = TRUE;
   gPrintPredictions   = TRUE;
   gPrintHints = TRUE;
+
+  /* set default solver */
+  if(kLoopy)
+    gSolver = DetermineLoopyValue;
+  else
+    gSolver = DetermineValue1;
+
+  /* set default go again */
+  gGoAgain=DefaultGoAgain;
 
   sprintf(gPlayerName[kPlayerOneTurn],"Player");
   sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
@@ -528,10 +513,7 @@ void ParseBeforeEvaluationMenuChoice(c)
 
       printf("\nEvaluating the value of %s...", kGameName);
 
-      if (kLoopy)
-	gValue = DetermineLoopyValue(gInitialPosition);
-      else
-	gValue = DetermineValue(gInitialPosition);
+      gValue = DetermineValue(gInitialPosition);
 
       printf("done in %d seconds!", Stopwatch());
 
@@ -1212,11 +1194,11 @@ VALUE DetermineValue(POSITION position)
 {
 	if(!loadDatabase())
 	{
-		gValue = DetermineValue1(gMinimalPosition) ;
+		gValue = gSolver(gMinimalPosition);
 		writeDatabase() ;
-		return gDatabase[position] % 4;
+		return GetValueOfPosition(position);
         }
-	return gDatabase[position] % 4 ;
+	return GetValueOfPosition(position);
 }
 
 MEXCALC MexAdd(theMexCalc,theMex)
@@ -2103,12 +2085,23 @@ VALUE_MOVES* SortMoves (thePosition, move, valueMoves)
      VALUE_MOVES *valueMoves;
 {
   POSITION child;
+  VALUE childValue;
 
-  if (GetValueOfPosition(child = DoMove(thePosition, move)) == lose) {  //winning moves
+  child = DoMove(thePosition, move);
+  childValue = GetValueOfPosition(child);
+  if (gGoAgain(thePosition, move)) {
+    switch(childValue) {
+    case win: childValue = lose; break;
+    case lose: childValue = win; break;
+    default: childValue = childValue;
+    }
+  }
+
+  if (childValue == lose) {  //winning moves
     valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
-  } else if (GetValueOfPosition(child = DoMove(thePosition, move)) == tie) {  //tie moves
+  } else if (childValue == tie) {  //tie moves
     valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
-  } else if (GetValueOfPosition(child = DoMove(thePosition, move)) == win) {  //lose moves
+  } else if (childValue == win) {  //lose moves
     valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
   }
   return valueMoves;
@@ -2646,6 +2639,25 @@ void MyPrintParents()
     }
 }
 
+VALUE DetermineLoopyValue(POSITION position) 
+{
+  VALUE value;
+
+  /* initialize */
+  InitializeFR();
+  ParentInitialize();
+  NumberChildrenInitialize();
+
+  value = DetermineLoopyValue1(gMinimalPosition);
+
+  /* free */
+  NumberChildrenFree();
+  ParentFree();
+  writeDatabase();
+
+  return value;
+}
+
 VALUE DetermineLoopyValue1(position)
 POSITION position;
 {				
@@ -2685,10 +2697,6 @@ POSITION position;
       printf("Grabbing " POSITION_FORMAT " (%s) remoteness = %d off of FR\n",
 	     child,gValueString[childValue],remotenessChild);
 
-    /* Remove the child from the FRontier, we're working with it now */
-    //RemoveFR(child);
-    //@@don't need this anymore, frontiers are now queues.
-    
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
     if (childValue == lose) {
@@ -2821,22 +2829,6 @@ POSITION position;
   return(GetValueOfPosition(position));
 }
 
-VALUE DetermineLoopyValue(position)
-POSITION position;
-{
-  if(!loadDatabase())
-    {
-      InitializeFR();
-      ParentInitialize();
-      NumberChildrenInitialize();
-      gValue = DetermineLoopyValue1(gMinimalPosition) ;
-      NumberChildrenFree();
-      ParentFree();
-      writeDatabase() ;
-      return gDatabase[position] % 4;
-    }
-  return gDatabase[position] % 4 ;
-}
 
 /*
 ** Requires: the root has not been visited yet
@@ -3042,10 +3034,8 @@ void SolveAndStoreRaw(int option)
 
 	setOption(option) ;
 
-	if(kLoopy)
-		gValue = DetermineLoopyValue(gMinimalPosition) ;
-	else
-		gValue = DetermineValue(gMinimalPosition) ;
+
+	gValue = DetermineValue(gMinimalPosition);
 
 	fwrite(gDatabase, sizeof(int), gNumberOfPositions, filep) ;
 }
@@ -3059,10 +3049,8 @@ void SolveAndStore(int option)
 		gDatabase[i] = undecided ;
 
 	setOption(option) ;
-	if(kLoopy)
-		gValue = DetermineLoopyValue(gInitialPosition) ;
-	else
-		gValue = DetermineValue(gInitialPosition) ;
+
+	gValue = DetermineValue(gInitialPosition) ;
 
 	writeDatabase() ;
 }

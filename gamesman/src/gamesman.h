@@ -138,6 +138,7 @@ VALUE_MOVES;
 typedef signed char MEX;           /* The max mex value is 31 */
 typedef unsigned long int MEXCALC; /* ...since we use a long int here */
 
+/* gamesman.c globals */
 extern VALUE   gValue;                  /* The value of the game */
 extern MENU    gMenuMode;               /* The state of the main menu */
 extern BOOLEAN gAgainstComputer;        /* TRUE iff the user is playing the computer */
@@ -146,14 +147,39 @@ extern BOOLEAN gStandardGame;           /* TRUE iff game is STANDARD (not REVERS
 extern BOOLEAN gPrintPredictions;            /* TRUE iff the predictions should be printed */
 extern BOOLEAN gPrintPossibleMoves;          /* TRUE iff possible moves should be printed */
 extern char    gPlayerName[2][MAXNAME]; /* The names of the players user/user or comp/user */
+extern char*   gValueString[];
 
-// Start for loopy games
-extern FRnode *gHeadWinFR;               /* The FRontier Win Queue */
-extern FRnode *gTailWinFR;
-extern FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
-extern FRnode *gTailLoseFR;
-extern POSITIONLIST **gParents;         /* The Parent of each node in a list */
-// End for loopy games
+/* module globals */
+extern STRING   kHelpGraphicInterface; /* The Graphical Interface Help string. */
+extern STRING   kHelpTextInterface;    /* The Help for Text Interface string. */
+extern STRING   kHelpOnYourTurn;       /* The Help for Your turn string. */
+extern STRING   kHelpStandardObjective;/* The Help for Objective string. */
+extern STRING   kHelpReverseObjective; /* The Help for reverse Objective string. */
+extern STRING   kHelpTieOccursWhen;    /* The Help for Tie occuring string. */
+extern STRING   kHelpExample;          /* The Help for Exmaples string. */
+extern STRING   kAuthorName;	       /* Name of the Author ... */
+
+extern POSITION gInitialPosition;      /* The initial position of the game */
+extern POSITION gMinimalPosition;
+extern POSITION kBadPosition;
+extern BOOLEAN  kPartizan;             /* TRUE <==> module is a Partizan game */
+extern BOOLEAN  kGameSpecificMenu;     /* TRUE <==> module supports GameSpecificMenu() */
+extern BOOLEAN  kTieIsPossible;        /* TRUE <==> A Tie is possible */
+extern BOOLEAN  kLoopy;                /* TRUE <==> Game graph has cycles */
+extern POSITION gNumberOfPositions;    /* The number of positions in the game */
+extern BOOLEAN  gPrintHints ;
+extern STRING   kGameName ;
+extern STRING   kAuthorName ;
+extern BOOLEAN  kDebugMenu ;
+extern STRING   kDBName ;
+extern BOOLEAN  kDebugDetermineValue ;
+
+/* solver function pointer */
+VALUE (*gSolver)(POSITION);
+
+/* go again function pointer */
+BOOLEAN (*gGoAgain)(POSITION,MOVE);
+
 
 /* memory-related function prototypes for games */
 GENERIC_PTR SafeMalloc(size_t amount);
@@ -178,6 +204,7 @@ void          GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN pu
 POSITIONLIST* StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList);
 POSITIONLIST* CopyPositionlist(POSITIONLIST* thePositionlist);
 STRING        GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn);
+BOOLEAN       DefaultGoAgain(POSITION pos, MOVE move);
 
 /* function prototypes for tcl */
 void        InitializeDatabases();
