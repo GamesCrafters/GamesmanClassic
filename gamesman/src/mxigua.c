@@ -8,15 +8,16 @@
 
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        xigua.c 
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: XiGua 
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHOR:      Joshua Kocher, Daniel Honegger, Gerardo Snyder
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        1.27.05 - ???? 
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** 		-- 1.27.05 -- Created file and started adding in game info.
 **
 **************************************************************************/
 
@@ -39,9 +40,9 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = ""; /* The name of your game */
-STRING   kAuthorName          = ""; /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kGameName            = "XiGua"; /* The name of your game */
+STRING   kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder"; /* Your name(s) */
+STRING   kDBName              = "xigua.db"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -106,6 +107,8 @@ STRING   kHelpExample =
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+/* Internal */
+void displayasciiboard(char *);
 
 /*************************************************************************
 **
@@ -228,10 +231,44 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
+void displayasciiboard(char *positionvalues) {
+	/* dirty but should work */
+	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
+	printf("    /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
+	printf("   /..\\|/..\\n");
+	printf("  /....%c....\\\n",pos[3]);
+	printf(" /.....|.....\\\n");
+	printf("%c......%c......%c\n",pos[4],pos[5],pos[6]);
+	printf("|\\..../|\\..../|\n");
+	printf("%c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+	printf("|/....\\|/....\\|\n");
+	printf("%c......%c......%c\n",pos[14],pos[15],pos[16]);
+	printf("\\.....|...../\n");
+	printf(" \\....%c..../\n",pos[17]);
+	printf("  \\../|\\../\n");
+	printf("   \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+}
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-    
-}
+	/* just a doodle of the gameboard
+	 * - Josh
+	 * 		/0-0-0\
+         *             /..\|/..\  
+	 *	      /....0....\
+	 *           /.....|.....\
+         *          0......0......0
+         *          |\..../|\..../|
+         *          0-0--0-0-0--0-0
+         *          |/....\|/....\|
+         *          0......0......0
+         *           \.....|...../
+         *            \....0..../
+         *             \../|\../
+         *              \0-0-0/
+	 *
+	 * all thanks to boring lectures =)
+	 */ 
+} 
 
 
 /************************************************************************
