@@ -272,37 +272,8 @@ proc InitWindow { kRootDir } {
 	-width [expr $gWindowWidth * 10 / 16] \
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background white
-    
-    # set up the rule frame
-    frame .middle.f2.fRules \
-	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 2 / 30]
-   
-    pack propagate .middle.f2.fRules 0
 
-    set rulesFrame .middle.f2.fRules
-    frame $rulesFrame.buttons
 
-    button $rulesFrame.buttons.bCancel -text "Cancel" \
-	-command {
-	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
-            RaiseStatusBarIfGameStarted
-	    update
-	}
-    button $rulesFrame.buttons.bOk -text "Start new game with above rule settings" \
-        -command {
-	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
-	    update
-	}
-
-    pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
-    pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
-    pack $rulesFrame.buttons -side bottom -fill x -expand 1
-	
     # 
     # PLAY OPTIONS FRAME
     #
@@ -412,6 +383,42 @@ proc InitWindow { kRootDir } {
     pack .middle.f2.fPlayOptions.fTop.fRight.lName -side bottom  -expand 1
     pack .middle.f2.fPlayOptions.fBot.bOk -side right -fill both -expand 1
 
+
+    ##########
+    ##
+    ## Rules Frame 
+    ##            
+    ##########
+
+    frame .middle.f2.fRules \
+	-width [expr $gWindowWidth * 10 / 16] \
+	-height [expr $gWindowHeight * 2 / 30]
+   
+    pack propagate .middle.f2.fRules 0
+
+    set rulesFrame .middle.f2.fRules
+    frame $rulesFrame.buttons
+
+    button $rulesFrame.buttons.bCancel -text "Cancel" \
+	-command {
+	    pack forget .middle.f2.fRules
+	    pack .middle.f2.cMain
+	    .cToolbar raise iATB
+            RaiseStatusBarIfGameStarted
+	    update
+	}
+    button $rulesFrame.buttons.bOk -text "Start new game with above rule settings" \
+        -command {
+	    pack forget .middle.f2.fRules
+	    pack .middle.f2.cMain
+	    .cToolbar raise iATB
+	    update
+	}
+
+    pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
+    pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
+    pack $rulesFrame.buttons -side bottom -fill x -expand 1
+	
 
     #
     # Help Frame
