@@ -270,12 +270,9 @@ proc DriverLoop { } {
 	    update idletasks
        	    
 	    if { [PlayerIsComputer] } {
-		global gComputerMovesShown
-		set gComputerMovesShown true
 		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
 		after [expr int($gMoveDelay * 1000)]
 		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
-		set gComputerMovesShown false
 		DoComputerMove
 		set gWaitingForHuman false
 		update
@@ -398,8 +395,7 @@ proc DoHumanMove { } {
 
 proc ReturnFromHumanMove { theMove } {
     global gamestarted
-    global gComputerMovesShown
-    if {$gamestarted && !$gComputerMovesShown} {
+    if {$gamestarted && ![PlayerIsComputer]} {
         ReturnFromHumanMoveHelper $theMove
     }
 }
