@@ -114,6 +114,10 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
+/* Basic error codes */
+#define ERROR	1
+#define SUCCESS	0
+
 #define GAMEDIMENSION 2
 #define BOARDSIZE 4
 #define NUMPIECES 4
@@ -180,7 +184,7 @@ QTBPtr			(*unhash)( POSITION ) = &packunhash;
 
 BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
 void			print_board( QTBPtr );
-void			TestHash( QTBPtr, int );
+QTBPtr			TestHash( QTBPtr, int );
 
 
 /*************************************************************************
@@ -205,8 +209,25 @@ void InitializeGame ()
 {
 	
 	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
+	QTBPtr error_board;
+	
+	/* Initialize board to empty */
+	memset( board, 0, sizeof( QTBOARD ) );
 
-	TestHash( board, 0 );
+	/* Test hasher on board, should print error if mismatch */
+	error_board = TestHash( board, 0 );
+	
+	if ( error_board ) {
+
+		POSITION p = hash( board );;
+
+		fprintf( stderr, "Hashing error:\nboard\t\t" );
+		print_board( board );
+		fprintf( stderr, "\nhashes to\t%lu\nunhashes to\t", p );
+		print_board( unhash( p ) );
+		fprintf( stderr, "\n" );
+	
+	}
 
 
 }
@@ -620,18 +641,18 @@ void print_board( QTBPtr board ) {
 
 	int slot;
 	
-	printf( "[" );
+	fprintf( stderr, "[" );
 	for ( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
 		
-		printf( " %d ", board->slots[slot] );
+		fprintf( stderr, " %d ", board->slots[slot] );
 
 	}
-	printf( "] pieces = %d; squares = %d; turn = %d\n", board->piecesInPlay, board->squaresOccupied, board->usersTurn );
+	fprintf( stderr, "] pieces = %d; squares = %d; turn = %d ", board->piecesInPlay, board->squaresOccupied, board->usersTurn );
 
 }
 
 /*Mario: Hash Tester, should work with any hash implementation */
-void TestHash( QTBPtr board, int slot ) {
+QTBPtr TestHash( QTBPtr board, int slot ) {
 	
 	int i;
 
@@ -670,13 +691,15 @@ void TestHash( QTBPtr board, int slot ) {
 			board->slots[slot] = i;
 			if ( slot < BOARDSIZE ) {
 
-				TestHash( board, slot + 1 );
+				QTBPtr error_board = TestHash( board, slot + 1 );
+
+				if ( error_board ) {
+
+					return error_board;
+
+				}
 
 			} else {
-
-				POSITION p;
-				BOOLEAN match;
-				QTBPtr newboard;
 
 				if ( i != 0 ) {
 
@@ -692,17 +715,14 @@ void TestHash( QTBPtr board, int slot ) {
 				board->piecesInPlay = pieces;
 				board->squaresOccupied = squares;
 				board->usersTurn = FALSE;
-				
-				p = hash( board );
-				newboard = unhash( p );
-				match = boards_equal( board, newboard );
 
-				if ( !match ) {
+				if ( !boards_equal( board, unhash( hash ( board ) ) ) ) {
 
-					printf( "Original: ");
-					print_board( board );
-					printf( "New: " );
-					print_board( newboard );
+					return board;
+
+				} else {
+
+					return NULL;
 
 				}
 				
@@ -712,6 +732,8 @@ void TestHash( QTBPtr board, int slot ) {
 		}
 			
 	}
+
+	return NULL;
 
 }
 
