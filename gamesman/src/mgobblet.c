@@ -182,10 +182,6 @@ struct GPosition {
 #define	TURN_O			0x0
 #define	TURN_X			0x1
 
-typedef enum piece_sizes {
-    *, x, X, ., o, O
-} PIECES;
-
 //Creates the bitwise representation of the piece p of size s.
 #define PIECE_VALUE(p,s)	( (p) << (2 * (s)) ) 
 
@@ -353,7 +349,7 @@ POSITION DoMove(thePosition, theMove)
       pieceSize = srcPos - TABLE_BITS;
    }else{
       pieceSize = getTopPieceSize( newPos.board[ srcPos])
-      newPos.board[ srcPos] |= PIECE_VALUE(PIECE_NONE,srcPos));
+      newPos.board[ srcPos] ^= PIECE_VALUE(PIECE_NONE,srcPos));
    }
    newPos.board[ destPos] |= PIECE_VALUE(pieceType,pieceSize));
    
@@ -397,15 +393,22 @@ POSITION GetInitialPosition()
     j = 0;
     do {
       if((c == 'X') || (c == 'x') || (c == '*'))
-        Gposition.board[i] = (Gposition.board[i] << 2) + PIECE_X;
+        myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_X;
       else if((c == 'O') || (c == 'o') || (c == '.'))
-        Gposition.board[i] = (Gposition.board[i] << 2) + PIECE_O;
+        myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_O;
       j++;
     } while((j < PIECE_SIZES) && (c = getchar()) != EOF);
     i++;
   }
   myPosition.turn = TURN_X;
-  return(hash(myPosition));
+  if(unhash(hash(myPosition)) != myPosition)
+  {
+    printf("\n Illegal Board Position Please Re-Enter\n");
+    return GetIntialPosition();
+  }
+  else{
+    return(hash(myPosition));
+  }
 }
 
 /************************************************************************
@@ -493,7 +496,7 @@ void PrintComputersMove(computersMove, computersName)
 **
 ************************************************************************/
 
-VALUE primitive ( hash_t h ) //Need to add the 3 in a row is a loss.
+VALUE Primitive ( hash_t h ) //Need to add the 3 in a row is a loss.
 {
 	struct GPosition pos = unhash( h );
 	int i, t, x_wins, o_wins;
@@ -565,17 +568,17 @@ VALUE primitive ( hash_t h ) //Need to add the 3 in a row is a loss.
 	}
 	
 	if (x_wins && o_wins)
-		return(tie);
+	  return (win);
 	else if (x_wins && pos.turn == TURN_X)
-		return(win);
+	  return(win);
+	else if(o_wins && pos.turn == TURN_X)
+	  return(lose);
+	else if (o_wins && pos.turn == TURN_O)
+	  return(win);
+	else if(x_wins && pos.turn == TURN_O)
+	  return (lose);
 	else 
-        return(lose);
-	if (o_wins && pos.turn == TURN_O)
-		return(win);
-	else
-	    return(lose);
-	
-	return(undecided);
+	  return(undecided);
 }
 
 /************************************************************************
@@ -608,7 +611,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("\n");
   for(int rows = 0; rows < BOARD_SIZE;rows++)
   {
-    printf((BOARDS_SIZE/2 == rows ? "LEGEND:  ( " : "         ( "));
+    printf((BOARD_SIZE/2 == rows ? "LEGEND:  ( " : "         ( "));
     for(int cols = 0; cols < BOARD_SIZE;cols++)
     {
         printf("%s ",i);
@@ -665,7 +668,7 @@ MOVELIST *GenerateMoves(position)
       if(myPosition.stash[i] > 0) {
         for(int j = 0; j < TABLE_BITS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if((topPieceTo > 0) && (topPieceTo < (i / 2)) {
+          if((topPieceTo > 0) && (topPieceTo < (i / 2))) {
             head = CreateMovelistNode(CONS_MOVE(TABLE_BITS + (i / 2), j), head);
           }
         }
@@ -815,7 +818,7 @@ MOVE ConvertTextInputToMove(input)
   {
     srcPos = ((int) first) - 1;
   }else{
-    srcPos = SRC_STASH( (PIECES (input[i])) ); //  is that the right way to access the enum?
+    srcPos = SRC_STASH( (charToInt(first[0])) ); //  is that the right way to access the enum?
   }
   i++;
   while(i < input.length)
@@ -843,7 +846,10 @@ void PrintMove(theMove)
   SLOT srcPos, destPos;
   srcPos = GET_SRC(computersMove);
   destPos = GET_DEST(computersMove);
-  printf("%d %d\n", srcPos+1,destPos+1); // add if it is from stock.
+  // if(srcPos <= TABLE_BITS)
+    printf("%d %d\n", srcPos+1,destPos+1);
+    // else
+    // printf("%d %d\n",  write this later..
 }
 
 /************************************************************************
@@ -1063,6 +1069,36 @@ inline int getTopPieceColor ( layer_t slot )
 /*
 ** Util functions
 */
+
+
+/************************************************************************
+**
+** NAME:        charToInt
+**
+** INPUTS:      char: character representation of piece
+**
+** DESCRIPTION: returns the corresponding stock location.
+**
+************************************************************************/
+int charToInt(char pieceRep)
+{
+  if(pieceRep == '*')
+    return PIECE_SIZES*2 - 6;
+  if(pieceRep == '.')
+    return PIECE_SIZES*2 - 5;
+  if(pieceRep == 'x')
+    return PIECE_SIZES*2 - 4 ;
+  if(pieceRep == 'o')
+    return PIECE_SIZES*2 - 3;
+  if(pieceRep == 'X')
+    return PIECE_SIZES*2 - 2;
+  if(pieceRep == 'O')
+    return PIECE_SIZES*2 - 1;
+  else
+    return -1;
+}
+
+
 
 /************************************************************************
 **
