@@ -34,7 +34,7 @@ node-class (nc)
 	arguments give restrictions on the movement of pieces (both must
 	be satisfied in order for a move to be valid).  Lastly, the list
 	of nodes declares nodes, so that they may later be linked with the
-	node command.  The numbering of nodes in gameplay is determined 
+	node command.  The numbering of nodes in game-play is determined 
 	here from left to right and top down.
 
 node (n)
@@ -50,13 +50,22 @@ piece-class (pc)
 				<nodes starting with this class>)
 
 	Currently, only black or white classes are supported.  The
-	character used appears in gameplay wherever pieces with the class
+	character used appears in game-play wherever pieces with the class
 	reside (it will appear in place of the node names).
 
 image (i)
 	Format: (image
 			<picture>)
 
-	The picture should be in ASCII text and is not enclosed in parentheses.
+	The picture should be in ASCII text and is not enclosed in 
+	parentheses.  Any character in the picture which is also a node name
+	will be replaced by whatever is in that node during game-play 
+	(ex, if the picture is A-B-C, and A has a black piece (with character 
+	'B'), B is blank, and C has a white piece ('W'), then the board will 
+	look like B-_-W).
 	Everything on the same line as "image" is ignored (start the picture
-	on the next line, as above).
+	on the next line, as above).  There is a limit of 20 lines and 34
+	characters per line.
+
+For a detailed example, see default.blk.
+
