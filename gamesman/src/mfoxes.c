@@ -1005,11 +1005,17 @@ POSITION BlankFGToPosition(theBlankFG,whosTurn)
 
   
   for( i=0; i<BOARDSIZE; i++ )
-    if( theBlankFG[i]==Blank )
-      allpiecesposition += C[(BOARDSIZE-i)-1][piecesLeft-1];
+    if( theBlankFG[i]==Blank ) {
+      if (piecesLeft>0) {
+	allpiecesposition += C[(BOARDSIZE-i)-1][piecesLeft-1];
+      }
+    }
     else {
-      if( theBlankFG[i]==g )
-	insidepiecesposition += C[piecesLeft-1][foxesLeft-1];
+      if( theBlankFG[i]==g ) {
+	if (piecesLeft>0 && foxesLeft>0) {
+	  insidepiecesposition += C[piecesLeft-1][foxesLeft-1];
+	}
+      }
       else
 	foxesLeft--;
       piecesLeft--;
