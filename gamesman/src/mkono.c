@@ -365,21 +365,11 @@ VALUE Primitive (POSITION position)
 {
   int player = whoseMove(position);
 
-  if (numberOfPieces(position, player) == 1) {
-    if (gWinType) 
-      return lose;
-    return win;  
-  }
-  else if (numberOfPieces(position, oppositePlayer(player)) == 1) {
-    if (gWinType)
-      return win;
-    return lose;
-    }
-  else if (GenerateMoves(position) == NULL) {
-    if (gWinType)
-      return lose;
-    return win;
-  }
+  if ((numberOfPieces(position, player) == 1) || 
+      (numberOfPieces(position, oppositePlayer(player)) == 1) || 
+      GenerateMoves(position) == NULL)
+    return (gWinType ? lose : win);
+  
   else
     return undecided;
 }
