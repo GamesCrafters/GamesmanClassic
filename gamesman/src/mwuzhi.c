@@ -25,7 +25,9 @@
 **              2004-11-2  Set kPartizan to TRUE, modified help strings so they are not all on one line. Moves are now formatted as [1 d]
 **                         rather than [1 down] Added a sample game to the help string. 
 **              2004-11-26 Added diagonal variation in generatemoves
-**              2004-12-5  Finished implementation of diagonals and game specific menu  
+**              2004-12-5  Finished implementation of diagonals and game specific menu 
+**              2004 12-19 Added in primitive that you lose if no moves left. Also tells the player what color they 
+**                         when printing the board. 
 **************************************************************************/
 
 /*************************************************************************
@@ -697,6 +699,9 @@ VALUE Primitive (POSITION position)
   }
   if (numplayerpiece <= 1) 
     return lose;
+  else if (GenerateMoves(position) == NULL) {
+    return lose;
+  }
   else
     return undecided;
 }
@@ -722,7 +727,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   char* board;
   board = (char*)generic_unhash(position, gBoard);
-  printf("Player %s's turn\n", playersName);
+  int player = whoseMove(position);
+  STRING playercolor;
+  if (player == 1)
+    playercolor = "WHITE";
+  else 
+    playercolor = "BLACK";
+  printf("Player %s's turn (%s)\n", playersName,playercolor );
   /* counters */
   int h, i, j, k, c, c1;
   /* for diagonals */
