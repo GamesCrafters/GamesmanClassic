@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.6 2004-02-29 04:41:02 evedar Exp $
+//$Id: m9mm.c,v 1.7 2004-03-07 18:12:12 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -10,8 +10,8 @@
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
 **
-** UPDATE HIST: 2004.2.22: Begin coding module, wrote:
-**
+** UPDATE HIST: 2004.02.22: Begin coding module, wrote: almost everything
+**              2004.03.07: DoMove compiles, change piece b to blank
 ** 
 **
 **
@@ -98,7 +98,7 @@ STRING   kHelpExample =
 
 
 typedef enum Pieces {
-  b, x, o
+  blank, x, o
 } blankox;
 char *gblankoxString[] = { " ", "x", "o"};
 
@@ -233,8 +233,8 @@ POSITION DoMove(thePosition, theMove)
   unhash(thePosition, board);
 
   board[to_slot] = board[from_slot];
-  board[from] = blank;
-  board[remove] = blank; // if no piece is removed, remove = from
+  board[from_slot] = blank;
+  board[remove_slot] = blank; // if no piece is removed, remove = from
 
   return hash(board, whose_turn(thePosition) == x ? o : x);
 }
@@ -723,6 +723,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.6  2004/02/29 04:41:02  evedar
+//Fixed some compile bugs.  Apparently boolean should be BOOLEAN.  Seems to be some problem with #define's
+//
 //Revision 1.5  2004/02/26 02:34:36  ogren
 //Added CVS Id, Log tags to code
 //
