@@ -99,6 +99,8 @@ STRING   kHelpExample =
 **************************************************************************/
 
 #define PASSMOVE 0
+#define MAXHEIGHT 3
+#define MAXWIDTH 5
 
 int BOARDWIDTH = 3;
 int BOARDHEIGHT = 1;
@@ -150,6 +152,7 @@ int ConvertToNumber(char*);
 char MoveToCharacter(MOVE);
 void PrintSpaces(int n);
 int Legend (int n);
+BOOLEAN passMoveOnly (POSITION, MOVE);
 
 MOVE moveHash (int, int, BlankORB);
 
@@ -164,7 +167,7 @@ extern void		SafeFree ();
 **************************************************************************/
 
 extern VALUE     *gDatabase;
-
+extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 /************************************************************************
 **
@@ -177,7 +180,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  gGoAgain = TRUE;
+  gGoAgain = passMoveOnly;
 
   int i;
   BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
@@ -305,9 +308,11 @@ void GetDimensions() {
     if ((c = GetMyChar()) == 'h' || c == 'H') {
       printf("\nThe horizontal dimension is the number of pieces on the first row.  For example,");
       printf("\nthe current board has a horizontal dimension of %d: \n", BOARDWIDTH);
+      printf("The maximum horizontal dimension is %d\n", MAXWIDTH);
       printBoard(NULL);
     } else {
-      if (c >= '1' && c <= '9') {
+      char maximumWChar = MAXWIDTH + '0' + 1;
+      if (c >= '1' && c <= maximumWChar) {
 	width = c - '0';
 	break;
       } else {
@@ -322,9 +327,11 @@ void GetDimensions() {
     if ((c = GetMyChar()) == 'h' || c == 'H') {
       printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
       printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT+1);
+      printf("The maximum vertical dimension is %d\n", MAXHEIGHT + 1);
       printBoard(NULL);
     } else {
-      if (c > '0' && c <= '9') {
+      char maximumHChar = MAXHEIGHT + '0' + 1;
+      if (c > '0' && c <= maximumHChar) {
 	height = c - '0' - 1;
 	break;
       } else {
@@ -411,7 +418,12 @@ POSITION DoMove (thePosition, theMove)
       gBoard[theMove-1] = 'B';
   } 
 
-  return (generic_hash(gBoard,(player==1)?2:1));
+  POSITION next = generic_hash(gBoard,(player==1)?2:1);
+
+  if (GenerateMoves(next) == NULL)
+    return generic_hash(gBoard, player);
+  else
+    return next;
 }
 
 /************************************************************************
@@ -596,6 +608,18 @@ void PrintPosition (position, playerName, usersTurn)
   int numWinks = 0;
   int numOpWinks = 0;
 
+  /*  printf("NumOfOptions: %d\n", NumberOfOptions());
+  for (j = 1; j <= NumberOfOptions(); j++) {
+    setOption(j);
+    printf("Option: %d - W: %d, H: %d, ", j, BOARDWIDTH, BOARDHEIGHT);
+    if (gStandardGame)
+      printf("Standard\n");
+    else
+      printf("Misere\n");
+      } */
+  
+
+
   //  if (Primitive(position)) {
     generic_unhash(position, gBoard);
 
@@ -721,8 +745,10 @@ MOVELIST *GenerateMoves (position)
 	head = CreateMovelistNode(i+1, head);
     }
 
+    /* Commented out to support goAgain
     if (head == NULL && AllFilledIn(gBoard) == FALSE)
       head = CreateMovelistNode(PASSMOVE, head);
+    */
 
     return head;
     // }
@@ -861,7 +887,7 @@ void PrintMove (move)
 
 int NumberOfOptions()
 {    
-  return 2;
+  return (2 * (MAXWIDTH * (MAXHEIGHT + 1)));
 } 
 
 /************************************************************************
@@ -878,8 +904,19 @@ int NumberOfOptions()
 
 int getOption()
 {
-  if(gStandardGame) return 1 ;
-  return 2 ;
+  int opt = 0;
+
+  int i;
+  for (i = 2; i <= BOARDWIDTH; i++) {
+    opt += (2 * (MAXHEIGHT+1));
+  }
+
+  opt += (2 * BOARDHEIGHT);
+
+  if (!gStandardGame)
+    opt += 1;
+
+  return opt+1;
 } 
 
 /************************************************************************
@@ -896,10 +933,25 @@ int getOption()
 
 void setOption(int option)
 {
-  if(option == 1)
-    gStandardGame = TRUE ;
+  option -= 1;
+
+  BOARDWIDTH = 1;
+  for (; option >= (2 * (MAXHEIGHT+1));) {
+    BOARDWIDTH++;
+    option -= (2 * (MAXHEIGHT+1));
+  }
+
+  BOARDHEIGHT = 0;
+  for (; option >= 2;) {
+    BOARDHEIGHT++;
+    option -= 2;
+  }
+
+  if (option == 1)
+    gStandardGame = FALSE;
   else
-    gStandardGame = FALSE ;
+    gStandardGame = TRUE;
+
 }
 
 
@@ -1098,3 +1150,11 @@ int ColPosition(i)
   return 0;
 }
   
+BOOLEAN passMoveOnly (POSITION pos, MOVE move) {
+  
+  int player1 = whoseMove(pos);
+  
+  POSITION next = DoMove(pos, move);
+
+  return (whoseMove(next) == player1);
+}
