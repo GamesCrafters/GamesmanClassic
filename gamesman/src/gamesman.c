@@ -2222,7 +2222,7 @@ POSITION position;
 	  StoreValueOfPosition(parent,lose);
 	  /* We always need to change the remoteness because we examine winning node with
 	  ** less remoteness first. */
-	  assert(remotenessChild + 1 > Remoteness(parent));
+	  assert(remotenessChild + 1 >= Remoteness(parent));
 	  SetRemoteness(parent, remotenessChild + 1);
 	} else {
 	  /* Still children, not ready for FR, just set remoteness and continue */
@@ -2231,7 +2231,7 @@ POSITION position;
 	  if ((parentValue = GetValueOfPosition(parent)) == undecided) {
 	    /* We always need to change the remoteness because we examine winning nodes with
 	    ** less remoteness first. */
-	    assert((remotenessChild + 1) > Remoteness(parent));
+	    assert((remotenessChild + 1) >= Remoteness(parent));
 	    SetRemoteness(parent, remotenessChild + 1);
 	    if(kDebugDetermineValue) printf("Found way to extend lose for %d to %d\n",parent,remotenessChild+1);
 	    /* if remoteness change */
