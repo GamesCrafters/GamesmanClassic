@@ -62,10 +62,10 @@ static int		GetValueMovesCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		RandomCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
- #ifdef COMPUTEC
+/* #ifdef COMPUTEC */
 static int		ComputeCCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
- #endif
+/* #endif */
 static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
