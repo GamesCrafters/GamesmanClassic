@@ -1,9 +1,11 @@
-; ### The Horseshoe graph.
-(graph 1 Horseshoe)
+; ### The Horseshoe graph. 1 is the version number.
+(graph 1 horseshoe)
 
 ; ### Node class declarations.
+; Node numbers in the game are assigned based on the order nodes are
+; listed here.
 
-;           <name of the class>  <who can move here»
+;           <name of the class>  <who can move here>
 (node-class basic                both                 
 ;           <what classes pieces can move to from here>
 	    (basic)              
@@ -31,7 +33,7 @@
 
 ; ### The picture.
 ; The program ignores everything before the first endline.
-(image 
+(image
 A   B
 |\ /|
 | C |
