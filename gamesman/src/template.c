@@ -35,7 +35,7 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
 POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 POSITION gMinimalPosition    = 0; /* */

@@ -29,7 +29,7 @@
 #include <string.h>
 
 extern STRING gValueString[];
-int      gNumberOfPositions  = 139675536;
+POSITION gNumberOfPositions  = 139675536;
 
 POSITION gInitialPosition    = 8985892;
 POSITION gMinimalPosition    = 0;
@@ -445,7 +445,7 @@ MOVELIST *GenerateMoves(position)
 	      if (dest2 != NULLSLOT) {
 		dest3 = destination(dest2,direction);
 		if (gBoard[dest2] != whosTurn && (gBoard[dest3]== '-' || gBoard[dest3] == NULLSLOT)) {
-		  head = CreateMovelistNode(move_hash(slot, dest1, direction));
+		  head = CreateMovelistNode(move_hash(slot, dest1, direction), head);
 		}
 	      }
 	    } while (direction < 0);
@@ -456,7 +456,7 @@ MOVELIST *GenerateMoves(position)
 		dest2 = destination(slot,ssdir);
 		dest3 = destination(dest1,ssdir);
 		if ((dest2 != NULLSLOT && dest3 != NULLSLOT) && (gBoard[dest2] == gBoard[dest3] == '-')) {
-		  head = CreateMovelistNode(move_hash(slot,dest1,ssdir));
+		  head = CreateMovelistNode(move_hash(slot,dest1,ssdir), head);
 		}
 	      }
 	    }
