@@ -450,6 +450,7 @@ POSITION GetInitialPosition()
 {
   POSITION hash(); 
   struct GPosition myPosition;
+  struct GPosition comparePosition;
   signed char c;
   int i;
   int j;
@@ -478,14 +479,17 @@ POSITION GetInitialPosition()
     i++;
   }
   myPosition.turn = TURN_X;
-/*  if(unhash(hash(myPosition)) != myPosition)
+  comparePosition = unhash(hash(myPosition));
+  if((myPosition.board != comparePosition.board) ||
+     (myPosition.stash != comparePosition.stash) ||
+     (myPosition.turn != comparePosition.stock))
   {
     printf("\n Illegal Board Position Please Re-Enter\n");
     return GetIntialPosition();
   }
-  else{ */
+  else{
     return(hash(myPosition));
-//  }
+  }
 }
 
 
