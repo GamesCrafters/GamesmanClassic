@@ -130,10 +130,15 @@ PrintComputersMove(MOVE computersMove, STRING computersName)
 }
 
 // SUNIL: DONE
+// JJ:	  CORRECTED
 VALUE Primitive(POSITION position)
 {
-	if(position == 0 || position == 1) return (gStandardGame?lose:win) ;
-	return undecided ;
+	if (position == 0)
+		return (gStandardGame ? lose : win);
+	else if (position == 1)
+		return (gStandardGame ? win : lose);
+	
+	return undecided;
 }
 
 PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
