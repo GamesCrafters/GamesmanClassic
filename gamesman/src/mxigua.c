@@ -25,6 +25,9 @@
 ** 			     - NumberOfOptions()
 **			     - getOption()
 **                           - setOption()
+**              -- 2.23.05 -- Fixed Initialize game (set gNumberOfPositions and gInitialPosition)
+**                            Filled in DoMove and GenerateMoves();
+**                            Actually allocated space for the board in PrintPosition
 **************************************************************************/
 
 /*************************************************************************
@@ -110,6 +113,8 @@ int rulesvariant; /* 0/1 normal rules / inverted rules */
 int handicapping; /* 0/1 Handicapped or not */
 int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
 
+/* max board size */
+int maxsize;
 /*************************************************************************
 **
 ** Function Prototypes
@@ -125,6 +130,7 @@ void displayasciiboard(char *, char *);
 int NumberOfOptions();
 int getOption();
 void setOption(int);
+char *emptyboard();
 
 /*************************************************************************
 **
@@ -148,10 +154,23 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
 	/* need to change this to reflect the board size */
-	int piecesarray[]={'X',0,20,'*',0,20,'O',0,21,-1};
-	generic_hash_init(21, piecesarray, NULL);    /* initialize the hash */
+	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
+	char *eboard;
+	int i;
+
+	maxsize=5+4*boardsize;	
+	gNumberOfPositions=generic_hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
+	eboard=emptyboard();
+	gInitialPosition=generic_hash(eboard);
+	free(eboard);		
 }
 
+char *emptyboard() {
+	char *ret;
+	ret=(char *)malloc(sizeof(char)*maxsize);
+	for(i=0;i<maxsize;i++) ret[i]='O';
+	return ret;
+}
 
 /************************************************************************
 **
@@ -173,10 +192,21 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
-    
+    MOVELIST *moves = NULL; /* has fields move and next */
+	char *board;
+	int i;
+   
+	board=emptyboard();	 
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    
+	/* wow, talk about making something foolproof for having students coding games */
+	board=generic_unhash(position,board);
+	for(i=0;i<maxsize;i++) {
+		if(board[i]=='O') {
+			moves = CreateMovelistNode((MOVE)i,moves);
+		}
+	}   	
+
+	free(board); 
     return moves;
 }
 
@@ -199,7 +229,28 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    return 0;
+	char *board,piece;
+	int maxsize=5+4*boardsize;	
+	POSITION hashed;
+	
+	board=(char *)malloc(sizeof(char)*maxsize);
+	board=emptyboard();
+	board=generic_unhash(position,board);
+
+	if(whoseMove==1) {
+		piece='X';
+	} else if (whoseMove==2) {
+		piece='*';
+	} else {
+		fprintf(stderr,"Bad else: Do Move (Piece selection)\n");
+		exit(1);
+	}
+	
+	board[move]=piece;
+	
+    	hashed = generic_hash(board,(piece==X)?2:1); 
+	free(board);
+	return hashed;
 }
 
 
@@ -312,10 +363,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 * all thanks to boring lectures =)
 	 */
 	char *toprint, *prediction;
+	toprint=(char *)malloc(sizeof(char)*(5+4*boardsize));
 	/* need to get prediction, till then... */
 	getprediction(prediction);
 	toprint = generic_unhash(position,toprint);
 	displayasciiboard(toprint,prediction); 
+	free(toprint);
+	free(prediciton);
 } 
 
 
