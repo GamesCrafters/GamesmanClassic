@@ -12,6 +12,7 @@
 ** UPDATE HIST: 24 Feb 2004 - Initial Setup
 **              31 Mar 2004 - More Stuff Added. Almost Done.
 **              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
+**              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
 **
 ** 
 **
@@ -41,7 +42,7 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kGameName           = "Asalto"; /* The name of your game */
 STRING   kDBName             = "Asalto"; /* The name to store the database under */
 BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
+BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
@@ -81,9 +82,9 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDSIZE 33    /* 7x7 Crosscross Board */
-#define GEESE_MAX 4 
-#define GEESE_MIN 1
+#define BOARDSIZE 21    /* 7x7 Crosscross Board */
+#define GEESE_MAX 9
+#define GEESE_MIN 3
 #define FOX_MAX 2
 #define FOX_MIN 2
 #define GEESE_PLAYER 1
@@ -109,19 +110,18 @@ STRING   kHelpExample =
 
 #define GENERATESHIFTMOVES_DEBUG 0
 
-#define GENERATEKILLMOVES_DEBUG 1
+#define GENERATEKILLMOVES_DEBUG 0
 
-#define CONVERTEXTINPUTTOMOVE_DEBUG 1
+#define CONVERTEXTINPUTTOMOVE_DEBUG 0
 
 #define HASH_TEST 0
 
-char start_standard_board[33]={      	     'G','G','G',
-	                                     ' ','G',' ',
-			             ' ',' ',' ',' ',' ',' ',' ',
-				     ' ',' ',' ',' ',' ',' ',' ',
-				     ' ',' ',' ',' ',' ',' ',' ',
-				             ' ',' ',' ',
-					     'F',' ','F'};
+char start_standard_board[BOARDSIZE]={       'G','G','G',
+			                 'G','G',' ','G','G',    
+				         'G',' ',' ',' ','G',    
+				         ' ',' ',' ',' ',' ',    
+				             'F',' ','F',};
+					                     
 
 /*************************************************************************
 **
@@ -143,6 +143,8 @@ int freeGeeseLocations[24];
 */
 
 void PrintBoard(char board[]);
+
+int diagonalConnect(int location);
 
 MOVELIST *FoxGenerateMoves(const char board[33], MOVELIST *moves, int location);
 MOVELIST *GeeseGenerateMoves(const char board[33], MOVELIST *moves, int location);
@@ -232,9 +234,10 @@ void InitializeGame ()
 		generic_unhash(init, test_board);
 		PrintBoard(test_board);
 	}
-		
-	gInitialPosition = init;
+	
+	gInitialPosition = init;		
 	gNumberOfPositions = max;
+	
 	
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
@@ -249,9 +252,7 @@ void InitializeGame ()
 
 void DebugMenu ()
 {
-	/* char GetMyChar(); */
- 
-	printf("The Debug menu is not done. Good day now! \n");
+	
 }
 
 
@@ -380,6 +381,15 @@ POSITION DoMove (thePosition, theMove)
 	{
 		printf("MOVE FOR NEXT BOARD: "); PrintMove(theMove);
 		printf("\n");
+		printf("NEXT PLAYER: ");
+		if (next_player == FOX_PLAYER)
+		{
+			printf("%d Fox\n");
+		}
+		else if (next_player == GEESE_PLAYER)
+		{
+			printf("%d Geese\n");
+		} 
 		PrintBoard(board);
 	}
 	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Done\n"); }
@@ -825,7 +835,7 @@ int validMove(const char board[33], int move[3],int player)
 	int destination_coord[2];
 	int delta_row = 0;
 	int delta_col = 0;
-	int diagonal = !(move[0] % 2);
+	int diagonal = diagonalConnect(move[0]);
 	
 	locationToCoord(move[0],origin_coord);
 	locationToCoord(move[1],destination_coord);
@@ -839,6 +849,10 @@ int validMove(const char board[33], int move[3],int player)
 	}
 	if (player == FOX_PLAYER)
 	{
+		if (!validCoord(destination_coord))
+		{
+			return 0;
+		}
 		if (diagonal)
 		{
 			return (board[move[1]] == ' ' && validCoord(destination_coord)) ? 1 : 0;
@@ -963,15 +977,38 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
-	if (VALIDTEXT_DEBUG) {printf("mASALTO - ValidTextInput() Start\n"); }
-	return (
-		(('A' <= input[0] && input[0] <= 'G') || ('a' <= input[0] && input[0] <= 'g'))
-		&&
-		('1' <= input[1] && input[1] <= '7')
-		&&
-		(('A' <= input[3] && input[3] <= 'G') || ('a' <= input[3] && input[3] <= 'g'))
-		&&
-		('1' <= input[4] && input[4] <= '7'));
+	if (VALIDTEXT_DEBUG) {printf("mASALTO - ValidTextInput() Start\n"); 
+			      printf("mASALTO - ValidTextInput() <-- %s\n",input);}
+	
+	if(strlen(input) == 5)
+	{
+		input[0] = toupper(input[0]);
+		input[3] = toupper(input[3]);
+		if (VALIDTEXT_DEBUG)
+		{
+			printf("String Length 5\n");
+			printf("Result: %d\n",('A' <= input[0] && input[0] <= 'E')
+			&&
+			('1' <= input[1] && input[1] <= '5')
+			&&
+			('A' <= input[3] && input[3] <= 'E')
+			&&
+			('1' <= input[4] && input[4] <= '5'));
+		}
+		
+		return  ('A' <= input[0] && input[0] <= 'E')
+			&&
+			('1' <= input[1] && input[1] <= '5')
+			&&
+			('A' <= input[3] && input[3] <= 'E')
+			&&
+			('1' <= input[4] && input[4] <= '5');
+	}
+	else
+	{
+		return FALSE;
+	}
+	return FALSE;
 }
 
 
@@ -999,13 +1036,30 @@ MOVE ConvertTextInputToMove (input)
 	int move[3];
 
 	if (CONVERTEXTINPUTTOMOVE_DEBUG) {printf("mASALTO - ConvertTextInputToMove () Start\n"); }
-		
+	
+	origin_grid[0] = input[0];
+	origin_grid[1] = input[1];
+	
+	destination_grid[0] = input[3];
+	destination_grid[1] = input[4];
+	
 	gridCoordinatetoCoord(origin_grid,origin_coord);
 	gridCoordinatetoCoord(destination_grid,destination_coord);
 	
 	move[0] = coordToLocation(origin_coord);
 	move[1] = coordToLocation(destination_coord);
 	move[2] = 0;
+	
+	if (CONVERTEXTINPUTTOMOVE_DEBUG)
+	{
+		printf("mASALTO - ConvertTextInputToMove() <-- String: %s\n",input);
+		printf("mASALTO - ConvertTextInputToMove() <-- Origin Grid: %c%c\n",origin_grid[0],origin_grid[1]);
+		printf("mASALTO - ConvertTextInputToMove() <-- Origin Coord: %d %d\n",origin_coord[0],origin_coord[0]);
+		printf("mASALTO - ConvertTextInputToMove() <-- Origin Location %d\n",coordToLocation(origin_coord));
+		printf("mASALTO - ConvertTextInputToMove() <-- Destination Grid: %c%c\n",destination_grid[0],destination_grid[1]);
+		printf("mASALTO - ConvertTextInputToMove() <-- Destination Coord: %d %d\n",destination_coord[0],destination_coord[1]);
+		printf("mASALTO - ConvertTextInputToMove() <-- Destination Location %d\n",coordToLocation(destination_coord));
+	}
 	
 	return hashMove(move);
 }
@@ -1109,21 +1163,26 @@ void setOption(int option)
 
 void PrintBoard (char board[])
 {
-	char *boardPointer = board;
-	printf("  A   B   C   D   E   F   G\n");
-	printf("1         %c - %c - %c            \n",*(boardPointer +  0), *(boardPointer +  1), *(boardPointer +  2) );
-	printf("          | \\   / |              \n");
-	printf("2         %c - %c - %c            \n",*(boardPointer +  3), *(boardPointer +  4), *(boardPointer +  5) );
-	printf("          | /   \\ |              \n");
-	printf("3 %c - %c - %c - %c - %c - %c - %c    F = Fox \n",*(boardPointer +  6), *(boardPointer +  7), *(boardPointer +  8), *(boardPointer +  9), *(boardPointer + 10), *(boardPointer + 11), *(boardPointer + 12) );
-	printf("  | \\   / | \\   / | \\   / | \n");
-	printf("4 %c - %c - %c - %c - %c - %c - %c    G = Geese\n",*(boardPointer + 13), *(boardPointer + 14), *(boardPointer + 15), *(boardPointer + 16), *(boardPointer + 17), *(boardPointer + 18), *(boardPointer + 19) );
-	printf("  | /   \\ | /   \\ | /   \\ | \n");
-	printf("5 %c - %c - %c - %c - %c - %c - %c\n",*(boardPointer + 20), *(boardPointer + 21), *(boardPointer + 22), *(boardPointer + 23), *(boardPointer + 24), *(boardPointer + 25), *(boardPointer + 26) );
-	printf("          | \\   / |              \n");
-	printf("6         %c - %c - %c            \n",*(boardPointer + 27), *(boardPointer + 28), *(boardPointer + 29));
-	printf("          | /   \\ |              \n");
-	printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));	
+	printf("  A   B   C   D   E \n");
+	printf("1     %c - %c - %c     \n",board[0],board[1],board[2]);
+	printf("      | / | \\ |     \n");
+	printf("2 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
+	printf("  | / | \\ | / | \\ | \n");
+	printf("3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
+	printf("  | \\ | / | \\ | / |\n");
+	printf("4 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
+	printf("      | \\ | / |    \n");
+	printf("5     %c - %c - %c    \n",board[18],board[19],board[20]);
+}
+
+int diagonalConnect(int location)
+{
+	return
+	(location == 1)
+	||
+	( (4 <= location && location <= 17) && location%2 == 0)
+	||
+	(location == 19);
 }
 
 void AddRemoveFoxes(char board[])
@@ -1311,8 +1370,8 @@ void boardPieceStats(char board[33], int stats[2])
 		else if (board[i]== 'G')
 		{
 			stats[1]++;
-			/* 22-24 and 27-32 Winning Zones */
-			if( (22 <= i && i <= 24) || (27 <= i && i <= 32))
+			/* 18-20 Winning Zones */
+			if(18 <= i && i <= 20)
 			{
 				stats[2]++;
 			}
@@ -1337,17 +1396,20 @@ int coordToLocation(int coordinates[2])
 {
 	int row = coordinates[0];
 	int col = coordinates[1];
-	if (0 <= row && row <= 1)
+	if (0 <= row && row <= 4 && 0 <= col && col <=4)
 	{
-		return 3 * row + (col - 2);
-	}
-	else if (2 <= row && row <= 4)
-	{
-		return 6 + (7 * (row - 2)) + col;
-	}
-	else if (5 <= row && row <= 6)
-	{
-		return 27 + 3 * (row - 5) + (col - 2);
+		if (0 == row)
+		{
+			return col - 1;
+		}
+		else if (1 <= row && row <= 3)
+		{
+			return 3 + (5 * (row - 1)) + col;
+		}
+		else if (4 == row)
+		{
+			return 18 + (col - 1);
+		}
 	}
 	else
 	{
@@ -1357,52 +1419,31 @@ int coordToLocation(int coordinates[2])
 
 void locationToCoord(int location, int coordinates[2])
 {
-	if (0 <= location && location <= 5)
+	if (0 <= location && location <= 2)
 	{
-		coordinates[1] = 2 + location % 3;
-		coordinates[0] = (location - location % 3) / 3;
+		coordinates[1] = location + 1;
+		coordinates[0] = 0;
 	}
-	else if (6 <= location && location <= 26)
+	else if (3 <= location && location <= 17)
 	{
-	/* Translate Two Down */
-		location -= 6;
-		coordinates[1] = location % 7;
-		coordinates[0] = 2 + (location - coordinates[1]) / 7;
+		/* Translate 1 Row */
+		location -= 3;
+		coordinates[1] = location % 5;
+		coordinates[0] = 1 + (location - coordinates[1]) / 5;
 	}
-	else if (27 <= location && location <= 32)
+	else if (18 <= location && location <= 20)
 	{
 	/* Translate 5 Down */
-		location -= 27;
-		coordinates[1] = 2 + location % 3;
-		coordinates[0] = 5 + (location - location % 3) / 3;
+		location -= 18;
+		coordinates[1] = location + 1;
+		coordinates[0] = 4;
 	}
 }
 
 /* 1 for valid, 0 for invalid */
 int validCoord(int coord[2])
 {
-	int row = coord[0];
-	int col = coord[1];
-	if (row < 0 || 6 < row)
-	{
-		return 0;
-	}
-	else if (0 <= row && row <= 1)
-	{
-		return (2 <= col && col <= 4) ? 1 : 0;
-	}
-	else if (2 <= row && row <= 4)
-	{
-		return (0 <= col && col <= 6) ? 1 : 0;
-	}
-	else if (5 <= row && row <= 6)
-	{
-		return (2 <= col && col <= 4) ? 1 : 0;
-	}
-	else
-	{
-		return 0;
-	}
+	return (coordToLocation(coord) != -1);
 }
 
 void UserInput(char input[])
@@ -1440,29 +1481,12 @@ void coordToGridCoordinate(int coordinate[2], char human[2])
 }
 void gridCoordinatetoCoord(char human[2], int coord[2])
 {
+	human[0] = toupper(human[0]);
 	coord[1] = (int) (human[0] - 'A'); // Column Switch
 	coord[0] = (int) (human[1] - '0') - 1; // Row Switch
 }
 
-int ProcessCoordinate(char input[],int coordinate[2])
-{
-	int coord[2];
-	
-	input[0]=toupper(input[0]);
-	coord[1] = (int) (input[0] - 'A'); // Col
-	coord[0] = (int) (input[1] - '0') - 1; // Row
-	if(validCoord(coord))
-	{
-		coordinate[0] = coord[0];
-		coordinate[1] = coord[1];
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
-	
-}
+
 void initFreeGoose()
 {
 	int i=0;
