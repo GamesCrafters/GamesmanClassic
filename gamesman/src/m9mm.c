@@ -1,0 +1,614 @@
+/************************************************************************
+**
+** NAME:        NAME OF FILE
+**
+** DESCRIPTION: GAME NAME
+**
+** AUTHOR:      YOUR NAMES HERE
+**
+** DATE:        WHEN YOU START/FINISH
+**
+** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+**
+** 
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Everything below here must be in every game file
+**
+**************************************************************************/
+
+#include <stdio.h>
+#include "gamesman.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <limits.h>
+
+extern STRING gValueString[];
+
+int      gNumberOfPositions  = 0;
+
+POSITION gInitialPosition    = 0;
+POSITION gMinimalPosition    = 0;
+POSITION kBadPosition        = -1;
+
+STRING   kGameName           = "Nine Men's Morris";
+STRING   kDBName             = "9mm";
+BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kSupportsHeuristic  = FALSE;
+BOOLEAN  kSupportsSymmetries = FALSE;
+BOOLEAN  kSupportsGraphics   = FALSE;
+BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kGameSpecificMenu   = FALSE;
+BOOLEAN  kTieIsPossible      = TRUE;
+BOOLEAN  kLoopy               = TRUE;
+BOOLEAN  kDebugDetermineValue = FALSE;
+
+STRING kHelpGraphicInterface =
+"Not written yet";
+
+STRING   kHelpTextInterface    =
+""; 
+
+STRING   kHelpOnYourTurn =
+"";
+
+STRING   kHelpStandardObjective =
+"";
+
+STRING   kHelpReverseObjective =
+"";
+
+STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"";
+
+STRING   kHelpExample =
+"";
+
+/*************************************************************************
+**
+** Everything above here must be in every game file
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Every variable declared here is only used in this file (game-specific)
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Below is where you put your #define's and your global variables, structs
+**
+*************************************************************************/
+
+#define BOARDSIZE = 24;
+#define minx = 2;
+#define maxx = 3;
+#define mino = 2;
+#define maxo = 3;
+
+typedef enum Pieces {
+  b, x, o
+} blankox;
+
+char *gblankoxString[] = { "", "x", "o"};
+
+/*************************************************************************
+**
+** Above is where you put your #define's and your global variables, structs
+**
+*************************************************************************/
+
+/*
+** Function Prototypes:
+*/
+int hash(blankox *, blankox);
+POSITION unhash(int hash_val, blankox *dest);
+void parse_board(char *c_board, blankox *b_board);
+void unparse_board(blankox *b_board, char *b_board)
+BlankBW whose_turn(int hash_val);
+MOVE hash_move(int from, int to, int remove);
+int from(MOVE move);
+int to(MOVE move);
+int remove(MOVE move);
+
+
+// External
+extern GENERIC_PTR	SafeMalloc ();
+extern void		SafeFree ();
+
+/*************************************************************************
+**
+** Here we declare the global database variables
+**
+**************************************************************************/
+
+extern VALUE     *gDatabase;
+
+/************************************************************************
+**
+** NAME:        InitializeGame
+**
+** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
+**              local variables.
+** 
+************************************************************************/
+
+void InitializeGame()
+{
+  generic_hash_init(BOARDSIZE, mino, maxo, minx, maxx);
+}
+
+/************************************************************************
+**
+** NAME:        DebugMenu
+**
+** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+**              kDebugMenu == FALSE
+** 
+************************************************************************/
+
+void DebugMenu()
+{
+}
+
+/************************************************************************
+**
+** NAME:        GameSpecificMenu
+**
+** DESCRIPTION: Menu used to change game-specific parmeters, such as
+**              the side of the board in an nxn Nim board, etc. Does
+**              nothing if kGameSpecificMenu == FALSE
+** 
+************************************************************************/
+
+void GameSpecificMenu() 
+{
+  
+}
+  
+/************************************************************************
+**
+** NAME:        SetTclCGameSpecificOptions
+**
+** DESCRIPTION: Set the C game-specific options (called from Tcl)
+**              Ignore if you don't care about Tcl for now.
+** 
+************************************************************************/
+
+void SetTclCGameSpecificOptions(theOptions)
+     int theOptions[];
+{
+	
+}
+
+/************************************************************************
+**
+** NAME:        DoMove
+**
+** DESCRIPTION: Apply the move to the position.
+** 
+** INPUTS:      POSITION thePosition : The old position
+**              MOVE     theMove     : The move to apply.
+**
+** OUTPUTS:     (POSITION) : The position that results after the move.
+**
+** CALLS:       Hash ()
+**              Unhash ()
+**	            LIST OTHER CALLS HERE
+*************************************************************************/
+POSITION DoMove(thePosition, theMove)
+     POSITION thePosition;
+     MOVE theMove;
+{
+  from_slot = from(theMove);
+  to_slot = to(theMove);
+  remove_slot = remove(theMove);
+  blankox[BOARDSIZE] board;
+  
+  unhash(thePosition, board);
+
+  board[to] = board[from];
+  board[from] = blank;
+  board[remove] = blank; // if no piece is removed, remove = from
+
+  return hash(board, whose_turn(thePosition) == x ? o : x);
+}
+
+/************************************************************************
+**
+** NAME:        GetInitialPosition
+**
+** DESCRIPTION: Ask the user for an initial position for testing. Store
+**              it in the space pointed to by initialPosition;
+** 
+** OUTPUTS:     POSITION initialPosition : The position to fill.
+**
+************************************************************************/
+
+POSITION GetInitialPosition()
+{
+  
+}
+
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+** 
+** INPUTS:      MOVE    computersMove : The computer's move. 
+**              STRING  computersName : The computer's name. 
+**
+************************************************************************/
+
+void PrintComputersMove(computersMove, computersName)
+     MOVE computersMove;
+     STRING computersName;
+{
+  
+}
+
+
+/************************************************************************
+**
+** NAME:        Primitive
+**
+** DESCRIPTION: Return the value of a position if it fulfills certain
+**              'primitive' constraints. Some examples of this is having
+**              three-in-a-row with Gobblet. Three in a row for the player
+**              whose turn it is a win, otherwise its a loss.
+**              Otherwise undecided.
+** 
+** INPUTS:      POSITION position : The position to inspect.
+**
+** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
+**
+** CALLS:       LIST FUNCTION CALLS
+**              
+**
+************************************************************************/
+
+VALUE Primitive ( POSITION h )
+{
+  blankox[BOARDSIZE] dest;
+  int numXs = 0;
+  int numOs = 0;
+  int i;
+  blankox turn = whose_turn(h);
+  
+  unhash(h, dest);
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (dest[i] == x)
+      numXs++;
+    else if (dest[i] == o)
+      numOs++;
+    
+  }
+
+
+  // doesn't check getting stuck
+  if (turn == o && numOs == mino)
+    return (gStandardGame ? lose : win );
+  else if (turn == x && numXs == minx)
+    return (gStandardGame ? lose : win );
+  else
+    return undecided;	
+  
+}
+
+
+/************************************************************************
+**
+** NAME:        PrintPosition
+**
+** DESCRIPTION: Print the position in a pretty format, including the
+**              prediction of the game's outcome.
+** 
+** INPUTS:      POSITION position   : The position to pretty print.
+**              STRING   playerName : The name of the player.
+**              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
+**
+** CALLS:       Unhash()
+**              GetPrediction()
+**              LIST OTHER CALLS HERE
+**
+************************************************************************/
+
+void PrintPosition(position, playerName, usersTurn)
+     POSITION position;
+     STRING playerName;
+     BOOLEAN usersTurn;
+{
+  
+}
+
+/************************************************************************
+**
+** NAME:        GenerateMoves
+**
+** DESCRIPTION: Create a linked list of every move that can be reached
+**              from this position. Return a pointer to the head of the
+**              linked list.
+** 
+** INPUTS:      POSITION position : The position to branch off of.
+**
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+**              in the linked list of moves that can be generated.
+**
+** CALLS:       GENERIC_PTR SafeMalloc(int)
+**              LIST OTHER CALLS HERE
+**
+************************************************************************/
+
+MOVELIST *GenerateMoves(position)
+         POSITION position;
+{
+  int i, x_count, o_count, blank_count;
+  MOVELIST *CreateMovelistNode(), *head = NULL;
+  blankox[BOARDSIZE] dest;
+  blankox[maxx] x_pieces;
+  blankox[maxo] o_pieces;
+  blankox[BOARDSIZE] blanks;
+  blankox turn = whose_turn(position);
+  x_count = o_count = blank_count = 0;
+    
+  unhash(position, dest);
+
+  for (i = 0; i < BOARDSIZE; i++)
+    {
+      if (dest[i] == x)
+	x_pieces[x_count++] = i;
+      else if (dest[i] == o)
+	o_pieces[o_count++] = i;
+      else
+	blanks[blank_count++] = i;
+    }
+
+  
+  
+}
+ 
+/************************************************************************
+**
+** NAME:        GetAndPrintPlayersMove
+**
+** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+**              If so, return Undo or Abort and don't change theMove.
+**              Otherwise get the new theMove and fill the pointer up.
+** 
+** INPUTS:      POSITION *thePosition : The position the user is at. 
+**              MOVE *theMove         : The move to fill with user's move. 
+**              STRING playerName     : The name of the player whose turn it is
+**
+** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
+**
+** CALLS:       ValidMove(MOVE, POSITION)
+**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
+     POSITION thePosition;
+     MOVE *theMove;
+     STRING playerName;
+{
+  
+}
+
+/************************************************************************
+**
+** NAME:        ValidTextInput
+**
+** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
+**              For example, if the user is allowed to select one slot
+**              from the numbers 1-9, and the user chooses 0, it's not
+**              valid, but anything from 1-9 IS, regardless if the slot
+**              is filled or not. Whether the slot is filled is left up
+**              to another routine.
+** 
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
+**
+************************************************************************/
+
+BOOLEAN ValidTextInput(input)
+     STRING input;
+{
+  
+}
+
+/************************************************************************
+**
+** NAME:        ConvertTextInputToMove
+**
+** DESCRIPTION: Convert the string input to the internal move representation.
+**              No checking if the input is valid is needed as it has
+**              already been checked!
+** 
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     MOVE : The move corresponding to the user's input.
+**
+************************************************************************/
+
+MOVE ConvertTextInputToMove(input)
+     STRING input;
+{
+  
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+** 
+** INPUTS:      MOVE *theMove         : The move to print. 
+**
+************************************************************************/
+
+void PrintMove(theMove)
+     MOVE theMove;
+{
+  
+}
+
+/************************************************************************
+**
+** NAME:        NumberOfOptions
+**
+** DESCRIPTION: Calculates and returns the number of option combinations
+**				there are with all the game variations you program.
+**
+** OUTPUTS:     int : the number of option combination there are.
+**
+************************************************************************/
+
+int NumberOfOptions()
+{
+  return 0;
+}
+
+/************************************************************************
+**
+** NAME:        getOption
+**
+** DESCRIPTION: A hash function to keep track of all the game variants.
+**				Should return a different number for each set of
+**				variants.
+**
+** OUTPUTS:     int : the number representation of the options.
+**
+************************************************************************/
+
+int getOption()
+{
+  return 0;
+}
+
+/************************************************************************
+**
+** NAME:        setOption
+**
+** DESCRIPTION: The corresponding unhash for the game variants.
+**				Should take the input and set all the appropriate
+**				variants.
+**
+** INPUT:     int : the number representation of the options.
+**
+************************************************************************/
+void setOption(int option)
+{
+
+}
+
+/************************************************************************
+**
+** NAME:        GameSpecificTclInit
+**
+** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
+**
+************************************************************************/
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
+{
+
+}
+
+/************************************************************************
+*************************************************************************
+**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
+*************************************************************************
+************************************************************************/
+
+
+/************************************************************************
+** This is where you can put any helper functions, including your
+** hash and unhash functions if you are not using one of the existing
+** ones.
+************************************************************************/
+
+int hash(blankox *b_board, blankox turn)
+{
+
+  int raw_hash;
+  char[BOARDSIZE] c_board; 
+  unparse_board(b_board, c_board);
+  raw_hash = generic_hash(c_board);
+  return (turn == B ? raw_hash : raw_hash + gHashNumberOfPos);
+}
+
+blankox *unhash(int hash_val, blankox *b_board)
+{
+  char[BOARDSIZE] c_board;
+  
+  
+  (hash_val > gHashNumberOfPos ? generic_unhash(hash_val - gHashNumberOfPos, c_board)
+						       : generic_unhash(hash_val, c_board));
+
+  parse_board(c_board, b_board);
+
+  return b_board;
+  
+}
+
+void parse_board(char *c_board, blankox *b_board)
+{
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) 
+    { 
+      if (c_board[i] == 'o')
+	b_board[i] = o;
+      else if (c_board[i] == 'x')
+	b_board[i] = x;
+      else if (c_board[i] == 'b')
+	b_board[i] = blank;
+    }
+}
+
+void unparse_board(blankox *b_board, char *b_board)
+{
+  int i;
+  for (i = 0; i < BOARDSIZE; i++)
+    {
+      if (b_board[i] == o)
+	c_board[i] = 'o';
+      else if (b_board[i] == x)
+	c_board[i] = 'x';
+      else if (b_board[i] == blank)
+	c_board[i] = 'b';
+    }
+}
+
+
+blankox whose_turn(int hash_val)
+{
+  return (hash_val > gHashNumerOfPos ? x : o);
+}
+
+MOVE hash_move(int from, int to, int remove)
+{
+  return ((from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove);
+}
+
+int from(MOVE move)
+{
+  return (move / (BOARDSIZE * BOARDSIZE));
+}
+
+int to(MOVE move)
+{
+  return ((move % (BOARDSIZE * BOARDSIZE)) / (BOARDSIZE));
+}
+
+int remove(MOVE move)
+{
+  return (move % BOARDSIZE);
+}
