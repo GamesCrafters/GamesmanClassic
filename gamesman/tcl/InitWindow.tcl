@@ -19,10 +19,7 @@ proc TBaction1 {} {
 
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
-	. config -cursor watch
-	set theValue [C_DetermineValue $gPosition]
-	set gGameSolved true
-	. config -cursor {}
+	##############where it was#############
 	.middle.f1.cMLeft raise iIMB
 	.middle.f3.cMRight raise play
 	.cStatus lower base
@@ -120,10 +117,12 @@ proc InitWindow { kRootDir } {
     global gLeftColor gRightColor
     # jesse: move delay and game delay added fall '03
     global gMoveDelay gGameDelay
+    global gReallyUnsolved
 
     #
     # Initialize the constants
     #
+    set gReallyUnsolved false
     set gMoveDelay 1
     set gGameDelay 1
     set gWhoseTurn "Jesse"
@@ -313,6 +312,15 @@ proc InitWindow { kRootDir } {
             .middle.f3.cMRight itemconfigure RightName \
 		    -text [format "Right:\n%s" $gRightName]
 	    update
+	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+		if { $gReallyUnsolved == true } {
+		    . config -cursor watch
+		    set theValue [C_DetermineValue $gPosition]
+		    set gGameSolved true
+		    . config -cursor {}
+		    set gReallyUnsolved = false
+		}
+	    }
 	    DriverLoop
         }
     frame .middle.f2.fPlayOptions.fMid \
@@ -500,9 +508,47 @@ proc InitWindow { kRootDir } {
 	-variable gSmartnessScale \
 	-orient horizontal
 
+    ############################SOLVING OPTIONS############################
+    label .middle.f2.fPlayOptions.fMid.fRight.cSolvingOptions \
+	    -text "Solving Options:" \
+	    -font $kLabelFont
+    radiobutton .middle.f2.fPlayOptions.fMid.fRight.cFrontierSolver \
+	-text "Frontier Solver" \
+	-font $kLabelFont \
+	-variable gLowMem \
+	-value false \
+	-command {
+	    SetSolver
+	}
+    radiobutton .middle.f2.fPlayOptions.fMid.fRight.cLowMemSolver \
+	-text "Low Memory Solver" \
+	-font $kLabelFont \
+	-variable gLowMem \
+	-value true \
+	-command {
+	    SetSolver
+	}
+    radiobutton .middle.f2.fPlayOptions.fMid.fRight.cTwoBits \
+	-text "Two Bit Solving" \
+	-font $kLabelFont \
+	-variable gTwoBits \
+	-value true \
+	-command {
+	    SetSolver
+	}
+    button .middle.f2.fPlayOptions.fMid.fRight.cSolve \
+	-text "Solve" \
+	-font $kLabelFont \
+	-command {
+
+	}
+
     global gLeftHumanOrComputer gRightHumanOrComputer
     global gPlaysFirst
+    global gLowMem gTwoBits
     set gPlaysFirst 0
+    set gLowMem false
+    set gTwoBits false
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	EnableSmarterComputerInterface
     } else {
@@ -522,7 +568,12 @@ proc InitWindow { kRootDir } {
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly -expand 1 -fill both -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly -side top -expand 1 -fill both
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely -side top -expand 1 -fill both
-    pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x
+    pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x    
+#    pack .middle.f2.fPlayOptions.fMid.fRight.cSolve -side bottom -fill both
+#    pack .middle.f2.fPlayOptions.fMid.fRight.cTwoBits -side bottom -fill both
+#    pack .middle.f2.fPlayOptions.fMid.fRight.cLowMemSolver -side bottom -fill both
+#    pack .middle.f2.fPlayOptions.fMid.fRight.cFrontierSolver -side bottom -fill both
+#    pack .middle.f2.fPlayOptions.fMid.fRight.cSolvingOptions -side bottom -fill both
     ## moveDelay scale bar
     pack .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fLeft.rHuman -side bottom -fill both -expand 1
@@ -590,7 +641,9 @@ proc InitWindow { kRootDir } {
 	    GS_Initialize .middle.f2.cMain
 
 	    # Solve this option
-	    set theValue [C_DetermineValue $gPosition]
+	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+		set theValue [C_DetermineValue $gPosition]
+	    }
 
 	    # New game
 	    TBaction1
@@ -734,7 +787,18 @@ proc InitWindow { kRootDir } {
 	-tags [list WhoseTurn textitem]
 
     # this is the play button
-    .middle.f3.cMRight bind play <1> {	
+    .middle.f3.cMRight bind play <1> {
+	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+	    . config -cursor watch
+	    set theValue [C_DetermineValue $gPosition]
+	    set gGameSolved true
+	    . config -cursor {}
+	} else {
+	    set gReallyUnsolved true
+	    set gGameSolved true
+	    NewGame
+	    DriverLoop
+	}
 	pack forget .middle.f2.fPlayOptions
 	global gSmartness gSmartnessScale
 	C_SetSmarterComputer $gSmartness $gSmartnessScale
