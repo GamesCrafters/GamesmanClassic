@@ -395,6 +395,8 @@ void Menus()
 
 void MenusBeforeEvaluation()
 {
+    if(gUnsolved)
+	gTwoBits = FALSE;
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
@@ -623,12 +625,24 @@ void ParseEvaluatedMenuChoice(char c)
 	(void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
 	break;
     case '4':
+	if(gUnsolved) {
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	}
 	gPrintPredictions = !gPrintPredictions;
 	break;
     case '5':
+	if(gUnsolved) {
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	}
 	gHints = !gHints;
 	break;
     case '6':
+	if(gUnsolved) {
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	}
 	gAgainstComputer = !gAgainstComputer;
 	break;
     case '7':

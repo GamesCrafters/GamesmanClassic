@@ -74,12 +74,12 @@ of the board). N-in-a-row can be made vertically, horizontally, or \n\
 diagonally. N-in-a-row WINS.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting N of his pieces in a row \n\
-(where N is the length of one side of the board). \n\
-N-in-a-row can be made vertically, horizontally, or diagonally. \n\
-N-in-a-row LOSES.";
+"To force your opponent into getting N of his pieces in a row \n"
+"(where N is the length of one side of the board). \n"
+"N-in-a-row can be made vertically, horizontally, or diagonally. \n"
+"N-in-a-row LOSES.";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+STRING   kHelpTieOccursWhen = 
 "both players get N in a row at the same time";
 
 STRING   kHelpExample = 
