@@ -22,11 +22,11 @@ proc GS_InitGameSpecific {} {
 	set toWin1 "To Win: "
     }
 
-    set toWin2 "Connect 3 in a row in any direction to win" 
+    set toWin2 "Connect 3 in a row either vertically, diagonally, or horizontally." 
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click near one of the dots in an empty square. This will place a piece for you"
+    SetToMoveString  "To Move: The first player puts an X in any of the nine boxes. The second player then  places his O piece in any open spot. Alternate turns until one player gets three in a row or the board is filled.  Click one of the dots in an empty square to place your  piece."
     
 }
 
