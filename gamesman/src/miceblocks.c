@@ -7,9 +7,9 @@
 
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        miceblocks.c
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: Ice Blocks
 **
 ** AUTHOR:      YOUR NAMES HERE
 **
@@ -29,26 +29,25 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-
-POSITION gInitialPosition    = 0; /* The initial position (starting board) */
-POSITION gMinimalPosition    = 0; /* */
-POSITION kBadPosition        = -1; /* A position that will never be used */
-
-STRING   kGameName           = ""; /* The name of your game */
-STRING   kDBName             = ""; /* The name to store the database under */
-BOOLEAN  kPartizan           = ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = ; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
-BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy               = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
+POSITION gNumberOfPositions  = 0;
+POSITION gInitialPosition    = 0;
+POSITION gMinimalPosition    = 0;
+POSITION kBadPosition        = -1;
+STRING   kGameName           = "Ice Blocks";
+STRING   kDBName             = "iceblocks";
+BOOLEAN  kPartizan           = FALSE;
+BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kGameSpecificMenu   = FALSE;
+BOOLEAN  kTieIsPossible      = TRUE;
+BOOLEAN  kLoopy               = FALSE;
+BOOLEAN  kDebugDetermineValue = TRUE;
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -88,38 +87,23 @@ STRING   kHelpExample =
 **************************************************************************/
 
 #define X   99999
-
 #define O   9999
 
+int base = 3;
+
 typedef int TURN;
-typedef *struct boardRep BOARD;
+typedef struct boardRep *BOARD;
 
 struct boardRep{
   int **spaces;
-  TURN whoseMove;
-}
+  TURN turn;
+};
 
-/*************************************************************************
-**
-** Below is where you put your #define's and your global variables, structs
-**
-*************************************************************************/
-
-/*************************************************************************
-**
-** Above is where you put your #define's and your global variables, structs
-**
-*************************************************************************/
-
-/*
-** Function Prototypes:
-*/
-
-/* Function prototypes here. */
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+
 
 /*************************************************************************
 **
@@ -129,6 +113,14 @@ extern void		SafeFree ();
 
 extern VALUE     *gDatabase;
 
+int sumto (int i) {
+  int ans = 0;
+  while(i > 0) {
+    ans += i;
+    i--;
+  }
+  return ans;
+}
 
 /************************************************************************
 **
@@ -141,8 +133,59 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  int sum = sumto(base), theBoard[10] = {'x', 0, ((sum / 2) + (sum % 2)), 'o', 0, (sum / 2), '-', 0, sum, -1};
+  gNumberOfPositions = generic_hash_init(sum, theBoard, NULL);
 }
 
+BOARD arraytoboard (POSITION position) {
+  char theBoard[sumto(base)];
+  int i, j, k;
+  BOARD board = (BOARD) SafeMalloc(sizeof(struct boardRep));
+  board->spaces = (int **) SafeMalloc(base * sizeof(int *));
+  for(i = 0; i < base; i++)
+    board->spaces[i] = (int *) SafeMalloc((base - i) * sizeof(int));
+  generic_unhash(position, theBoard);
+  for(i = 0, k = 0; i < base; i++, k++) {
+    for(j = 0; j < base - i; j++, k++) {
+      if(theBoard[k] == '-')
+	board->spaces[i][j] = i * base - sumto(i - 1) + j + 1;
+      else if(theBoard[k] == 'x')
+	board->spaces[i][j] = X;
+      else if(theBoard[k] == 'o')
+	board->spaces[i][j] = O;
+    }
+  }
+  if(whoseMove(position) - 1)
+    board->turn = O;
+  else
+    board->turn = X;
+  return board;
+}
+
+POSITION boardtoarray (BOARD board) {
+  char theBoard[sumto(base)];
+  int i, j, k;
+  TURN whoseTurn;
+  for(i = 0, k = 0; i < base; i++, k++) {
+    for(j = 0; j < base - i; j++, k++) {
+      if(board->spaces[i][j] < 999)
+	theBoard[k] = '-';
+      else if(board->spaces[i][j] == X)
+	theBoard[k] = 'x';
+      else if(board->spaces[i][j] == O)
+	theBoard[k] = 'o';
+    }
+  }
+  for(i = 0; i < base; i++)
+    SafeFree(board->spaces[i]);
+  SafeFree(board->spaces);
+  SafeFree(board);
+  if(board->turn == X)
+    whoseTurn = 1;
+  else
+    whoseTurn = 2;
+  return generic_hash(theBoard, whoseTurn);
+}
 
 /************************************************************************
 **
@@ -211,11 +254,11 @@ POSITION DoMove (thePosition, theMove)
   BOARD board = arraytoboard(thePosition);
   int i; 
   for (i=0; theMove - (base - i) > 0; ++i, theMove -= (base - i));
-  board->spaces[i][theMove - 1] = board->whoseMove;
-  if(board->whoseMove == X)
-    whoseMove = O;
+  board->spaces[i][theMove - 1] = board->turn;
+  if(board->turn == X)
+    board->turn = O;
   else
-    whoseMove = X;
+    board->turn = X;
   return boardtoarray(board);
 }
 
@@ -255,6 +298,7 @@ void PrintComputersMove(computersMove, computersName)
 	MOVE computersMove;
 	STRING computersName;
 {
+  printf("%8s's move              : %d\n", computersName, computersMove);
 }
 
 
@@ -281,15 +325,21 @@ VALUE Primitive (pos)
 	POSITION pos;
 {
   BOARD board = arraytoboard(pos);
-  int i, j, maxX = 0, maxO = 0, color, k, m, count=0;
-  int dlivisited[base][base] = {}, drvisited[base][base] = {};
+  int i, j, countX = 0, countO = 0, color, k, m, count=0;
+  int dlvisited[base][base], drvisited[base][base];
+  for(i = 0; i < base; i++) {
+    for(j = 0; j < base; j++) {
+      dlvisited[i][j] = 0;
+      drvisited[i][j] = 0;
+    }
+  }
   color = board->spaces[i][j];
   for (i=0; i < base; ++i) {
-    for (j=0; j < base-i; ++J) {
+    for (j=0; j < base - i; ++j) {
       if(board->spaces[i][j] < 999)
 	return undecided;
       for(k = 1, m = j, count = 0; !dlvisited[k][m] && 
-	    k < board && m > = 0 && board->spaces[k][m]; k++,m--) {
+	    k < base && m >= 0 && board->spaces[k][m]; k++, m--) {
 	count++; 
 	dlvisited[k][m] = 1; 
       }
@@ -297,8 +347,9 @@ VALUE Primitive (pos)
 	countX += count;
       else if (count > 1)
 	countO += count;
-      for (k = i, m = j, count = 0; !drvidited[k][m] && k < board && 
-	     m< (board - k) && board->spaces[k][m] == color; k++, m++) {
+      for (k = i, m = j, count = 0; !drvisited[k][m] && 
+	     k < base && m < (base - k) && 
+	     board->spaces[k][m] == color; k++, m++) {
 	count++;
 	drvisited[k][m] = 1;
       }
@@ -306,7 +357,7 @@ VALUE Primitive (pos)
 	countX += count;
       else if (count > 1)
 	countO += count;
-      for (k = i, m = j, count = 0; (m < board - k) && 
+      for (k = i, m = j, count = 0; (m < base - k) && 
 	     board->spaces[k][m] == color; m++) 
 	count++;
       if((count > 1) && (color == X))
@@ -317,9 +368,9 @@ VALUE Primitive (pos)
     }
   }
   if(countX > countO)
-    return ((whoseMove == X) ? lose : win);
-  else if(countX != countY)
-    return ((whoseMove == X) ? win : lose);
+    return ((board->turn == X) ? lose : win);
+  else if(countX != countO)
+    return ((board->turn == X) ? win : lose);
   else
     return tie;
 }
@@ -349,15 +400,15 @@ void PrintPosition (position, playerName, usersTurn)
 {
   BOARD board = arraytoboard(position);
   int i, j;
-  for(i = n-1; i >= 0; i--) {
+  for(i = base-1; i >= 0; i--) {
     for(j = 0; j < i; j++)
       printf("    ");
     for(j = 0; j < base - i; j++) {
       printf("[");
       if(board->spaces[i][j] = X)
-	printf"XX";
+	printf("XX");
       else if(board->spaces[i][j] = O)
-	printf"OO";
+	printf("OO");
       else {
 	if(board->spaces[i][j] < 10)
 	  printf(" ");
@@ -368,15 +419,6 @@ void PrintPosition (position, playerName, usersTurn)
   }
 }
 
-
-int sumto (int i) {
-  int ans = 0;
-  while(i > 0) {
-    ans += i;
-    i--;
-  }
-  return ans;
-}
 
 /************************************************************************
 **
@@ -443,6 +485,19 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 	MOVE *theMove;
 	STRING playerName;
 {
+  BOOLEAN ValidMove();
+  USERINPUT ret, HandleDefaultTextInput();
+  
+  do {
+    printf("%8s's move [(u)ndo/(1-%d)] :  ", playerName, sumto(base));
+    
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if(ret != Continue)
+      return(ret);
+    
+  }
+  while (TRUE);
+  return(Continue); /* this is never reached, but lint is now happy */
 }
 
 
@@ -466,6 +521,9 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
+  int i;
+  i = atoi(input);
+  return ((i > 0) && (i <= sumto(base)));
 }
 
 
@@ -486,6 +544,7 @@ BOOLEAN ValidTextInput (input)
 MOVE ConvertTextInputToMove (input)
 	STRING input;
 {
+  return ((MOVE) atoi(input));
 }
 
 
@@ -502,6 +561,7 @@ MOVE ConvertTextInputToMove (input)
 void PrintMove (move)
 	MOVE move;
 {
+  printf("%d", move);
 }
 
 

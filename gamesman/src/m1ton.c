@@ -386,7 +386,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  unsigned int theInput = atof(input);
+  unsigned int theInput = atoi(input);
   return(theInput <= gTurn && theInput >= 1);
 }
 
