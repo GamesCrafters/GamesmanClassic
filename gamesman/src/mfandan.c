@@ -36,13 +36,12 @@ POSITION gMinimalPosition    =  0;
 STRING   kGameName           = "Fandango";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = FALSE;
+BOOLEAN  kGameSpecificMenu   = TRUE ;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
-STRING   kHelpGraphicInterface =
-"";
+STRING   kHelpGraphicInterface ="";
 
 STRING   kHelpTextInterface    =
 "";
@@ -87,28 +86,27 @@ typedef struct _coord { int x,y; } Coordinates;
 
 char gBlankOXString[3];
 int myPieces_array[10];
-BlankOX turn = 'X';
 
-//---- Shing ----------------------------------------------
-char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
+char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; 
 //               0   1   2    3   4   5   6   7   8   9   10  11
-//---------------------------------------------------------
 
 /////////////////////////////////////////// F U N C T I O N   P R O T O T Y P E S ///////////////////////////////////////////////////////
 void space(int n);
-POSITION BlankOXToPosition(BlankOX* board);
+POSITION BlankOXToPosition(BlankOX* board, char turn);
 int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece);
 Coordinates IndexToCoordinates(int index);
 Coordinates Neighbor(Coordinates pos, Direction dir);
 Direction OtherDirection(Direction);
 BlankOX WhoseTurn(int);
+void ChangeBoardSize();
+int CanStillCap(BlankOX*, Coordinates, Direction);
+Direction NextDirection(Coordinates, Direction);
 
 void dbg(char *);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void dbg(char* msg) {
   if(printMethods) puts(msg);
-
 };
 
 /************************************************************************
@@ -144,7 +142,7 @@ void InitializeGame()
   myPieces_array[8]=MAX_X;
   myPieces_array[9]=-1;
 
-  turn = X;   // start out with X's turn
+  char turn = X;   // start out with X's turn
 
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
@@ -164,7 +162,7 @@ void InitializeGame()
   };
 
   // encode as 32 bits
-  POSITION initialPos =  BlankOXToPosition(initialBoard);
+  POSITION initialPos =  BlankOXToPosition(initialBoard, turn);
 
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
@@ -197,7 +195,37 @@ void DebugMenu()
 ** 
 ************************************************************************/
 
-void GameSpecificMenu() { }
+void GameSpecificMenu() {
+  char GetMyChar();
+  int done = 0;
+  do {
+    printf("\t\t\t Game specific options for %s\n",kGameName);
+    puts("\tCurrent Initial Position:");
+    PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
+    
+    printf("\n\t1) Change board dimensions.\n");
+    printf("\n\tb) Return to previous activity.\n");
+    printf("\nSelect an option: ");
+
+    switch(toupper(GetMyChar())) {
+    case 'Q':
+      ExitStageRight();
+    case 'H':
+      HelpMenus();
+      break;
+    case '1':
+      ChangeBoardSize();
+      break;
+    case 'B':
+      done = 1;
+      break;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  }while(!done);
+}
 
 /************************************************************************
 **
@@ -241,6 +269,8 @@ POSITION DoMove(thePosition, theMove)
   Coordinates coord;
   POSITION newPosition;
 
+  char turn;
+
   // extract the information from theMove
   cap = 3 & theMove;
   intdir = (28 & theMove) >> 2;
@@ -267,7 +297,7 @@ POSITION DoMove(thePosition, theMove)
   board[CoordinatesToIndex(Neighbor(coord,dir))] = movingPiece;
 
   Coordinates attacking;
-  // check for capture
+  // check for capture, railgun style
   if(cap == 1) {  // if by approach todo
     attacking = Neighbor(Neighbor(coord,dir),dir);
     while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
@@ -282,20 +312,45 @@ POSITION DoMove(thePosition, theMove)
     }
   }
 
-  // change to next guy's turn
-  // printf("That was %c's turn. Next it's %c's turn.\n",turn,(turn = (turn == X ? O : X)));
-  if(turn == X)
-    turn = O;
-  else if(turn == O)
-    turn = X;
-  else
-    printf("Bad else during domove\n");
+  // todo how to let player keep moving
+  //if(CanStillCap(board, Neighbor(coord,dir), dir)) {
+    // don't change the turn
+  //} else {
+    // change to next guy's turn
+    // printf("That was %c's turn. Next it's %c's turn.\n",turn,(turn = (turn == X ? O : X)));
+    if(turn == X)
+      turn = O;
+    else if(turn == O)
+      turn = X;
+    else
+      printf("Bad else during domove\n");
+    //}
 
   // return new state in hashed form
-  newPosition = BlankOXToPosition(board);
+  newPosition = BlankOXToPosition(board, turn);
   return newPosition;
 }
 
+int CanStillCap(BlankOX* board, Coordinates pos, Direction prevdir) {
+  Direction dir;
+  Coordinates attack;
+  char movingPiece = board[CoordinatesToIndex(pos)];
+  char enemy = (movingPiece == X ? O : X);
+
+  for(dir=left;dir!=0; dir=NextDirection(pos, dir)) {
+    attack = Neighbor(pos,dir);
+    if( InBounds(attack) &&
+	( (dir != prevdir) || (dir != OtherDirection(prevdir)) ) &&  // if not on same line
+	(board[CoordinatesToIndex(Neighbor(attack, dir))] == enemy) )  { // have enemy to cap
+      return 1;
+    }
+  }
+  return 0;
+}
+
+Direction IntToDirection(int x) {
+
+}
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -430,11 +485,16 @@ void PrintPosition(position,playerName,usersTurn)
 
   // get the maximum width
   maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
+
+  maxY = displayBoardHeight;
+
+  // hrs to shing: commented below because bug when #rows is 2
+
   // get the maximum height
-  if (displayBoardHeight>5)
-    maxY = displayBoardHeight;
-  else
-    maxY = 5;
+  //if (displayBoardHeight>5)
+  //  maxY = displayBoardHeight;
+  //else
+  //  maxY = 5;
 
   commentx = maxX + 1 + COMMENTSPACE;
 
@@ -615,7 +675,7 @@ void space(int n) {
 ** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
 **              WhoseTurn(...),InBounds(...),CoordinatesToIndex(...),
 **              IndexToCoordinates(...),Primitive(...),
-**              Neighbor(...),OtherDirection(...),EachDirection(...),OtherPlayer
+**              Neighbor(...),OtherDirection(...),NextDirection(...),OtherPlayer
 **
 ************************************************************************/
 
@@ -629,12 +689,12 @@ MOVELIST *GenerateMoves(position)
   int CoordinatesToIndex(Coordinates);
   int InBounds(Coordinates);
   Coordinates Neighbor(Coordinates,Direction);
-  Direction EachDirection(Coordinates);
+  Direction NextDirection(Coordinates, Direction);
   Direction OtherDirection(Direction);
-  BlankOX OtherPlayer();
+  BlankOX OtherPlayer(char current);
   BlankOX WhoseTurn(int);
 
-  char thisPlayer = turn = WhoseTurn(position);
+  char thisPlayer = WhoseTurn(position);
   char otherPlayer = thisPlayer==X ? O : X;
 
 
@@ -654,7 +714,7 @@ MOVELIST *GenerateMoves(position)
       if(board[i] == thisPlayer) {      // if current player's piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
 	if(debug>2) printf("Found side's piece at %d,%d\n",pos.x,pos.y);
-	for(;dir = EachDirection(pos);) {
+	for(dir = left; dir!=0; dir = NextDirection(pos, dir)) {
 	  intdir = (int)dir;
 	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
 	    intdir--;    // 5 is not a direction, don't need that
@@ -708,8 +768,7 @@ MOVELIST *GenerateMoves(position)
  *              in the end, will return nodir = 0
  * Calls:
  ***********************************************************************/
-Direction EachDirection(Coordinates pos) {
-  static Direction dir = left;
+Direction NextDirection(Coordinates pos, Direction dir) {
   if( (pos.x & 1) == (pos.y & 1) ) {
     switch(dir) {
     case left: return dir=upleft;
@@ -732,8 +791,8 @@ Direction EachDirection(Coordinates pos) {
     }
   }
 }
-  
-  /************************************************************************
+
+/************************************************************************
  * Inputs: Direction
  * Description: returns opposite direction
  * Calls:
@@ -984,7 +1043,7 @@ PositionToBlankOX(POSITION position, BlankOX *board) {
  *
  * Calls: generic_hash(...)
  ***********************************************************************/
-POSITION BlankOXToPosition(BlankOX *board) {
+POSITION BlankOXToPosition(BlankOX *board, char turn) {
   dbg("->BlankOXToPosition");
   return generic_hash((char *)board, turn==X?2:1 ); 
 }
@@ -1022,8 +1081,8 @@ BlankOX WhoseTurn(int pos) {
   return (whoseMove(pos) == 2 ? X : O);
 }
 
-BlankOX OtherPlayer() {
-  return turn==X ? O : X;
+BlankOX OtherPlayer(char current) {
+  return current==X ? O : X;
 }
 
 STRING kDBName = "fandan" ;
@@ -1047,6 +1106,16 @@ void setOption(int option)
                 gStandardGame = FALSE ;
 }
 
+void ChangeBoardSize() {
+  char GetMyChar();
+  int width, height;
+  printf("\nEnter the dimensions of the board (width then height): ");
+  scanf("%d %d", &width, &height);
+  BOARDWIDTH = width;
+  BOARDHEIGHT = height;
+
+  InitializeGame();
+}
 
 /* ----- Shing ----------------------------------------
 
