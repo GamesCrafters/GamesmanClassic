@@ -271,7 +271,6 @@ POSITION DoMove (POSITION position, MOVE move)
   oldc = gBoard[from];
   gBoard[from] = '_';
   gBoard[to] = oldc;
-  //printf("DoMove from %d to %d\n", from, to);
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
@@ -310,9 +309,9 @@ VALUE Primitive (POSITION position)
     return undecided;
   } else {
     if(gStandardGame)
-      return lose;
-    else
       return win;
+    else
+      return lose;
   }
 }
 
@@ -340,6 +339,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   generic_unhash(position, gBoard);
+  printf("   Board         Key\n");
   printf("     %c            3\n",gBoard[3]);
   printf("  %c  |  %c      2  |  4\n", gBoard[2], gBoard[4]);
   printf("   \\ | /        \\ | /\n");
@@ -347,7 +347,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("   / | \\        / | \\\n");
   printf("  %c  |  %c      8  |  6\n", gBoard[8], gBoard[6]);
   printf("     %c            7\n", gBoard[7]);
-  printf("\n%s's Turn\n", playersName);
+  printf("\n%s's Turn(%c)\n", playersName, (whoseMove (position)) == 1 ? 'x' : 'o');
   
 }
 
@@ -365,7 +365,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  printf("%8s's move               : [%d%d]\n", computersName, move_from(computersMove),move_to(computersMove));
+  printf("%8s's move: [%d%d]\n", computersName, move_from(computersMove),move_to(computersMove));
 
 }
 
@@ -459,7 +459,6 @@ BOOLEAN ValidTextInput (STRING input)
   unsigned int theInput = atoi(input);
   int from = theInput/10;
   int to = theInput%10;
-  //printf("%d, %d", from, to);
   return ((from <= 8) && (to <= 8) && (from != to) && (from>= 0) && (to >= 0));
    
 }
@@ -483,8 +482,7 @@ MOVE ConvertTextInputToMove (STRING input)
   int theInput = atoi(input);
   int from = theInput/10;
   int to = theInput%10;
-  //printf("convert; from: %d, to: %d\n",from,to);
-    return ((MOVE) move_make(from, to));
+  return ((MOVE) move_make(from, to));
 }
 
 
