@@ -956,11 +956,13 @@ proc DoPlay {} {
     #disable edit buttons
     DisableEditButtons
 
+    GS_NewGame .winBoard.c
+
     ### Make the computers move if nec., update 
     ### the predictions and the turn.
 
-    while { $gLeftPlayerType && $gRightPlayerType } { 
-	DoComputersMove 
+    while { [winfo exists .winBoard.c] && [C_Primitive $gPosition] == "Undecided" && (($gPlayerOneTurn && $gLeftPlayerType) || (!$gPlayerOneTurn && $gRightPlayerType)) } {
+	DoComputersMove
 	update
 	after [expr int($gMoveDelay * 1000)]
     }
@@ -1753,15 +1755,19 @@ proc DoBoard {} {
 	set gPlayerOneTurn 1
 	
 	### Call the Game-specific New Game command
-
 	DeleteMoves
 	GS_NewGame $w
+
+	.winBoardControl.f1.validMoves config -state normal
+	.winBoardControl.f1.valueMoves config -state normal
 
 	global varMoves
 	if { $varMoves == "validMoves" } {
 	    ShowMoves
 	} elseif { $varMoves == "valueMoves" } {
 	    ShowValueMoves
+	} else {
+	    DeleteMoves
 	}
 	
 	### Remove all Dead and Alive tags and reset them to what they were
@@ -1945,6 +1951,13 @@ proc ShrinkDeleteTag { w theTag } {
 
 proc DeleteMoves {} {
     .winBoard.c delete tagMoves
+
+    global varMoves
+
+    if { $varMoves == "noMoves" && [winfo exists .winValueMoves] } {
+	destroy .winValueMoves
+    }
+	
 }
 
 #############################################################################
@@ -1965,6 +1978,10 @@ proc ShowMoves {} {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove cyan $kBigPiece
     } 
+    
+    if { [winfo exists .winValueMoves] } {
+	destroy .winValueMoves
+    }
 }
 
 #############################################################################
@@ -2124,8 +2141,10 @@ proc DrawMove { w theMoveArg color drawBig } {
 	DrawMoveMultiplePieceRemoval $w $theMoveArg $color $drawBig
     } elseif { $kInteractionType == "Rearranger" } {
 	DrawMoveRearranger $w $theMoveArg $color $drawBig
+    } elseif { $kInteractionType == "Custom" } {
+	DrawMoveCustom $w $theMoveArg $color $drawBig
     } else {
-	BadElse "DrawMove (kInteractionType)"
+	BadElse "DrawMove ($kInteractionType)"
     }
 }
 
@@ -2634,7 +2653,6 @@ proc EnableSlot { w theSlot } {
 	$w bind tagDead  <1>     { }
 	$w bind tagDead  <Enter> { }
 	$w bind tagDead  <Leave> { }
-
     }
 
     GS_EnableSlotEmbellishments $w $theSlot
@@ -2703,6 +2721,8 @@ proc DoComputersMove {} {
     } elseif { $kInteractionType == "MultiplePieceRemoval" } {
 	set theSlot dummyArgNeverSeen
     } elseif { $kInteractionType == "Rearranger" } {
+	set theSlot dummyArgNeverSeen
+    } elseif { $kInteractionType == "Custom" } {
 	set theSlot dummyArgNeverSeen
     } else {
 	BadElse "DoComputersMove (kInteractionType)"
@@ -2782,6 +2802,10 @@ proc HandleMove { theMove } {
 
 	#$w itemconfig tagPiece -fill magenta
 
+    } elseif { $kInteractionType == "Custom" } {
+	### Get the slot's id
+	set theSlot dummyArgNeverSeen
+	#$w itemconfig tagPiece -fill magenta
     } else {
 	BadElse "HandleMove (kInteractionType)"
     }
@@ -2806,6 +2830,8 @@ proc HandleMove { theMove } {
 
 	### Don't need to do anything here.
 
+    } elseif { $kInteractionType == "Custom" } {
+	### Don't need to do anything here.
     } else {
 
 	BadElse "HandleMove (kInteractionType)"
