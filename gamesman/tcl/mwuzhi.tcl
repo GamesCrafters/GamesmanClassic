@@ -28,7 +28,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition [C_InitialPosition]
+    set gInitialPosition 19
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -198,7 +198,7 @@ puts "GS_Initialize"
    # $c configure -width 300 -height 300
 global boardsize 
 
-set boardsize 4
+set boardsize 3
 set dist 100 
 set boardwidth [expr $boardsize * $dist] 
 set numofBlue 0
@@ -271,7 +271,7 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
     puts "GS_DrawPosition"
 
-    global boardsize boardstring
+    global boardsize pieceString
     set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
     
     # resets board
@@ -354,7 +354,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
- 
+ puts "GS_ShowMoves"
     global boardsize boardstring
     #set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
     
@@ -373,10 +373,10 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 
-	set arrayNum [getArraynum [GetXCoord move] [GetYCoord move]]
-	set dir [GetDirection move]
+	set arrayNum [getArraynum [GetXCoord $move] [GetYCoord $move]]
+	set dir [GetDirection $move]
 
-	switch dir {
+	switch $dir {
 	    0 {
 		$c raise arrowUPblue$arrayNum base
 		$c itemconfig arrowUPblue$arrayNum -fill $color
@@ -491,22 +491,22 @@ set arrowLen 75
     $c create line $x $y $x [expr $y - $arrowLen] \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowUP$piece arrow$piece $piece arrow]
-    $c bind arrowUP$piece <Enter> "$c itemconfig arrowUP$piece -fill black"
+#    $c bind arrowUP$piece <Enter> "$c itemconfig arrowUP$piece -fill black"
     #down
     $c create line $x $y $x [expr $y + $arrowLen] \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowDOWN$piece arrow$piece $piece arrow]
-    $c bind arrowDOWN$piece <Enter> "$c itemconfig arrowDOWN$piece -fill black"
+ #   $c bind arrowDOWN$piece <Enter> "$c itemconfig arrowDOWN$piece -fill black"
     #left
     $c create line $x $y [expr $x - $arrowLen] $y \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowLEFT$piece arrow$piece $piece arrow]
-    $c bind arrowLEFT$piece <Enter> "$c itemconfig arrowLEFT$piece -fill black"
+  #  $c bind arrowLEFT$piece <Enter> "$c itemconfig arrowLEFT$piece -fill black"
     #right
     $c create line $x $y [expr $x + $arrowLen] $y \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowRIGHT$piece arrow$piece $piece arrow]
-    $c bind arrowRIGHT$piece <Enter> "$c itemconfig arrowRIGHT$piece -fill black"
+   # $c bind arrowRIGHT$piece <Enter> "$c itemconfig arrowRIGHT$piece -fill black"
 }
 
 
@@ -525,5 +525,6 @@ proc GetYCoord {theMove} {
 
 
 proc getArraynum {xcoord ycoord} {
+global boardsize
     return [expr ($boardsize *($boardsize - $ycoord)) - ($boardsize - $xcoord)]
 }
