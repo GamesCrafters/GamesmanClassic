@@ -694,6 +694,7 @@ proc GetPredictions {} {
 	### Get the value, the player and set the prediction
 	set theValue      [C_GetValueOfPosition $gPosition]
 	set theRemoteness [C_Remoteness $gPosition]
+	set theMex        [C_Mex $gPosition]
 	
 	if { $gWhoseTurn == "Left" } {
 	    set playersName $gLeftName
@@ -701,11 +702,15 @@ proc GetPredictions {} {
 	    set playersName $gRightName
 	}
 	
+	set prediction [format "%s should " $playersName]
+	
 	if { $theValue == "Tie" && $theRemoteness == 255 } {
-	    set prediction [format "%s should Draw" $playersName]
+	    set prediction [concat $prediction "Draw"]
 	} else {
-	    set prediction [format "%s should %s in %s" $playersName $theValue $theRemoteness]
+	    set prediction [concat $prediction [format "%s in %s" $theValue $theRemoteness]]
 	}
+
+	set prediction [concat $prediction " " $theMex]
 
 	### And place it in the field if the button is on.
 	set gPredString $prediction
