@@ -75,13 +75,13 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-BOOLEAN debug = TRUE;
-
 /*************************************************************************
 **
 ** Below is where you put your #define's and your global variables, structs
 **
 *************************************************************************/
+
+BOOLEAN debug = TRUE;
 
 #define BOARDSIZE 24
 #define minx  2
@@ -1034,6 +1034,9 @@ void debugBoard(blankox *bboard, char *cboard)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.26  2004/04/07 19:39:04  ogren
+//added debug variable and debugBoard(bboard,cboard) -Elmer
+//
 //Revision 1.25  2004/04/05 01:58:40  weitu
 //m9mm fixed no segfaults, need to take care of input
 //
