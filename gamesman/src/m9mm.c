@@ -237,12 +237,12 @@ void GameSpecificMenu()
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
-	 printf("\n");
+    printf("\n");
     printf("\ti)\tChoose the (I)nitial position\n");
-	 printf("\tf)\tToggle (F)lying from %s to %s\n", 
-			  gFlying ? "ON" : "OFF",
-			  !gFlying ? "ON" : "OFF"); 
-    	    
+    printf("\tf)\tToggle (F)lying from %s to %s\n", 
+	   gFlying ? "ON" : "OFF",
+	   !gFlying ? "ON" : "OFF"); 
+    
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
@@ -447,7 +447,9 @@ POSITION GetInitialPosition()
 
   // hard coded sanity check for maxx vs maxo
   // should add a hash/unhash sanity check
-  if (xOnBoard != maxx || oOnBoard != maxo || bOnBoard != minb) {
+  if (xOnBoard < minx || xOnBoard > maxx ||
+      oOnBoard < mino || oOnBoard > maxo ||
+      bOnBoard > maxb) {
     printf("\n Illegal Board Position Please Re-Enter\n");
     return GetInitialPosition();
   }
@@ -1753,6 +1755,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.65  2004/05/05 22:40:16  ogren
+//turned off debugging -Elmer
+//
 //Revision 1.64  2004/05/05 22:38:55  ogren
 //fixed mutating help text, with expertise of Bryon -Elmer
 //
