@@ -4,17 +4,19 @@
 
 /************************************************************************
 ***********************************************************************/
-POSITION *hash_hashOffset;
-POSITION *hash_NCR;
-POSITION *hash_miniOffset;
-char *hash_pieces;
-int *hash_localMins;
-int *hash_thisCount;
-int *hash_miniIndices;
-int hash_numPieces;
-int hash_boardSize;
-int hash_usefulSpace;
-int hash_maxPos;
+/* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
+/* 2004-10-20 */
+extern POSITION *hash_hashOffset;
+extern POSITION *hash_NCR;
+extern POSITION *hash_miniOffset;
+extern char *hash_pieces;
+extern int *hash_localMins;
+extern int *hash_thisCount;
+extern int *hash_miniIndices;
+extern int hash_numPieces;
+extern int hash_boardSize;
+extern int hash_usefulSpace;
+extern int hash_maxPos;
 
 struct hashContext {
 

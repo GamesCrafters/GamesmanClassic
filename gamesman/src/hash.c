@@ -35,6 +35,22 @@
 struct hashContext *contextList = NULL;
 int hash_tot_context = 0;
 
+
+/* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
+/* 2004-10-20 */
+POSITION *hash_hashOffset;
+POSITION *hash_NCR;
+POSITION *hash_miniOffset;
+char *hash_pieces;
+int *hash_localMins;
+int *hash_thisCount;
+int *hash_miniIndices;
+int hash_numPieces;
+int hash_boardSize;
+int hash_usefulSpace;
+int hash_maxPos;
+
+
 /* frees up memory for current context */
 void freeHashContext(){
   if(NULL == cCon)
