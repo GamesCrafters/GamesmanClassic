@@ -152,7 +152,7 @@ proc SetupGamePieces {} {
     set gRightPiece [lindex $alist 1]
     set gLeftHumanOrComputer Human
     set gRightHumanOrComputer Human
-    set gLeftName Dan
+    set gLeftName Player
     set gRightName Hal9000
     
     set gPiecesPlayersName($gLeftPiece) $gLeftName
@@ -218,66 +218,45 @@ proc NewGame { } {
 proc DriverLoop { } {
    
     ## retrieve global variables
-    global gGameSoFar gMovesSoFar gPosition
+    global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
 
-    set primitive [C_Primitive $gPosition]
+    set gWaitingForHuman false
 
-    ## Game's over if the position is primitive
-    if { $primitive != "Undecided" } {
+    while { [expr !$gWaitingForHuman] } {
 
-        GameOver $gPosition $primitive [peek $gMovesSoFar]
+	set primitive [C_Primitive $gPosition]
 
-    } else {
+	## Game's over if the position is primitive
+	if { $primitive != "Undecided" } {
+	
+	    set gWaitingForHuman true
+	    GameOver $gPosition $primitive [peek $gMovesSoFar]
+	    
+	} else {
 
-        ## Handle Predictions if they're turned on
-        
-        global gPredictions
-        
-        if { $gPredictions } {
-	    global gPredString
-            GetPredictions
+	    ## Handle Predictions if they're turned on
+	    
+	    global gPredictions
+	    
+	    if { $gPredictions } {
+		global gPredString
+		GetPredictions
 	    .middle.f3.cMRight itemconfigure Predictions \
 		    -text [format "Predictions: %s" $gPredString] 
-	    update idletasks
-        }
-        
-        ## Figure out whose turn it is
-        global gWhoseTurn gLeftHumanOrComputer gRightHumanOrComputer
-	
-	if { $gWhoseTurn == "Left" } {
-	    DriverLoopContinue $gLeftHumanOrComputer
-	} else {
-	    DriverLoopContinue $gRightHumanOrComputer
+		update idletasks
+	    }
+	    
+	    if { [PlayerIsComputer] } {
+		DoComputerMove
+		set gWaitingForHuman false
+		after 800
+		update
+	    } else {
+		DoHumanMove
+		set gWaitingForHuman true
+	    }
 	}
     }
-}
-
-
-#############################################################################
-##
-## DriverLoopContinue
-##
-## This function figures out whether a player is human or computer and calls
-## the appropriate functions
-## 
-## Args: a string of Human/Computer
-##
-## Requires: Nothing
-##
-#############################################################################
-
-proc DriverLoopContinue { humanOrComputer } {
-
-    if { $humanOrComputer == "Human" } {
-
-        DoHumanMove
-
-    } else {
-
-        DoComputerMove
-
-    }
-
 }
 
 #############################################################################
@@ -332,8 +311,6 @@ proc DoComputerMove { } {
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
     SwitchWhoseTurn
-
-    DriverLoop
 
 }
 
@@ -567,9 +544,13 @@ proc ToggleMoves { moveType } {
 
 proc ChangeMoveType { fromMoveType toMoveType position moveList } {
 
+    global gWaitingForHuman
+
     GS_HideMoves .middle.f2.cMain $fromMoveType $position $moveList
 
-    GS_ShowMoves .middle.f2.cMain $toMoveType $position $moveList
+    if { $gWaitingForHuman } {
+	GS_ShowMoves .middle.f2.cMain $toMoveType $position $moveList
+    }
 
 }
 

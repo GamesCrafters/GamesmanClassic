@@ -46,27 +46,36 @@ proc TBaction1 {} {
     }
 }
 
+# Rules button
 proc TBaction2 {} {
+    .cToolbar raise iITB
     pack forget .middle.f2.cMain   
     pack .middle.f2.fRules -side bottom
 }
 
+# Help button
 proc TBaction3 {} {
+    .cToolbar raise iITB
     pack forget .middle.f2.cMain   
     pack .middle.f2.fHelp -side bottom
 }
 
+# About button
 proc TBaction4 {} {
-    pack forget .middle.f2.cMain   
+    .cToolbar raise iITB
+    pack forget .middle.f2.cMain
     pack .middle.f2.fAbout -side bottom
 }
 
+# Unmapped
 proc TBaction5 {} {
 }
 
+# Unmapped
 proc TBaction6 {} {
 }
 
+# Unmapped
 proc TBaction7 {} {
 }
 
@@ -82,6 +91,13 @@ proc SetupPlayOptions {} {
 
     global kMovesOnAllTheTime
 
+    global gWaitingForHuman
+    set gWaitingForHuman true
+
+    global gMoveType gPosition
+
+    GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+
     pack forget .middle.f2.cMain   
     pack .middle.f2.fPlayOptions -side bottom
     .cStatus raise base
@@ -89,11 +105,6 @@ proc SetupPlayOptions {} {
     global gamestarted
 
     set gamestarted true
-
-    global gMoveType
-    set gMoveType all
-
-    global gLeftHumanOrComputer gRightHumanOrComputer
 
 }
 
@@ -205,7 +216,8 @@ proc InitWindow { kRootDir } {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <ButtonRelease-1> \
-	    ".cStatus raise base; update idletasks; \
+	    ".cStatus raise base; \
+             update idletasks; \
              TBaction$file"
 	.cToolbar bind $name <Any-Leave> \
 	    ".cToolbar raise iATB$file; update idletasks"
@@ -261,32 +273,35 @@ proc InitWindow { kRootDir } {
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background white
     
+    # set up the rule frame
     frame .middle.f2.fRules \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 2 / 30] 
+	-height [expr $gWindowHeight * 2 / 30]
+   
     pack propagate .middle.f2.fRules 0
-    button .middle.f2.fRules.bCancel -text "Cancel" \
+
+    set rulesFrame .middle.f2.fRules
+    frame $rulesFrame.buttons
+
+    button $rulesFrame.buttons.bCancel -text "Cancel" \
 	-command {
-            .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iATB2"
-	    pack forget .middle.f2.fRules   
+	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
-            .cStatus lower base
+            RaiseStatusBarIfGameStarted
 	    update
 	}
-    button .middle.f2.fRules.bOk -text "OK" \
-	-command {
-            .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iATB2"
-	    pack forget .middle.f2.fRules   
+    button $rulesFrame.buttons.bOk -text "Start new game with above rule settings" \
+        -command {
+	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
-            .cStatus lower base
 	    update
 	}
-    pack .middle.f2.fRules.bCancel -side left -fill both -expand 1
-    pack .middle.f2.fRules.bOk -side right -fill both -expand 1
+
+    pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
+    pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
+    pack $rulesFrame.buttons -side bottom -fill x -expand 1
 	
     # 
     # PLAY OPTIONS FRAME
@@ -327,6 +342,7 @@ proc InitWindow { kRootDir } {
             .middle.f3.cMRight itemconfigure RightName \
 		    -text [format "Player2:\n%s" $gRightName]
 	    update
+	    DriverLoop
         }
     frame .middle.f2.fPlayOptions.fTop \
 	-width [expr $gWindowWidth * 10 / 16] \
@@ -418,21 +434,19 @@ proc InitWindow { kRootDir } {
     # Help Button and about buttons
     button .middle.f2.fHelp.bReturn -text "Return" \
 	-command {
-            .cToolbar bind iOTB3 <Any-Leave> \
-		    ".cToolbar raise iATB3"
 	    pack forget .middle.f2.fHelp   
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
+	    RaiseStatusBarIfGameStarted
 	    update
 	}
     
     button .middle.f2.fAbout.bReturn -text "Return" \
 	-command {
-            .cToolbar bind iOTB4 <Any-Leave> \
-		    ".cToolbar raise iATB4"
 	    pack forget .middle.f2.fAbout   
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
+	    RaiseStatusBarIfGameStarted
 	    update
 	}
     pack .middle.f2.fHelp.bReturn -side right -fill both -expand 1
@@ -670,3 +684,9 @@ proc InitWindow { kRootDir } {
 
 }
 
+proc RaiseStatusBarIfGameStarted {} {
+    global gGameSolved
+    if { $gGameSolved == "true" } {
+	.cStatus lower base
+    }
+}
