@@ -71,7 +71,7 @@ STRING kHelpGraphicInterface =
 "Not written yet";
   
 STRING   kHelpTextInterface =
-"Type in from what position you want to move from to the position you want to move to.  For example, if you want to move from 2 to 3, type in '23'.  When moving into the middle, the zero can be neglected.  For example, from 4 to 0 is just 4.  "; 
+"Type in from what position you want to move.  For example, if you want to move to 3, type in '3'."; 
 
 STRING   kHelpOnYourTurn =
 "Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
@@ -85,7 +85,8 @@ STRING   kHelpReverseObjective =
 STRING   kHelpTieOccursWhen =
 "A tie will never occur";
 
-STRING   kHelpExample = 
+
+STRING   kHelpExample =
 "   Board         Key \n\
   o  |  o      2  |  4\n\
    \\ | /        \\ | /\n\
@@ -98,7 +99,7 @@ Player's Turn(x)\n\
 (Player should draw)\n\
   Player's move [(undo)/(## FromTo)] : s\n\
 \n\
-Here are the values of all possible moves:\
+Here are the values of all possible moves:\n\
                 Move    Remoteness\n\
 Winning Moves:  \n\
 Tieing Moves:   \n\
@@ -124,10 +125,10 @@ Here are the values of all possible moves:\n\
                 Move    Remoteness\n\
 Winning Moves:  \n\
 Tieing Moves:   \n\
-                18      Draw\n\
+                1      Draw\n\
 Losing Moves:   \n\
 \n\
-Computer's move [(undo)/(## FromTo)] : 18\n\
+Computer's move [(undo)/(## FromTo)] : 1\n\
    Board         Key\n\
      o            3\n\
   o  |  o      2  |  4\n\
@@ -148,7 +149,7 @@ Tieing Moves:   \n\
                 1       Draw\n\
 Losing Moves:   \n\
 \n\
-  Player's move [(undo)/(## FromTo)] : \n\
+  Player's move [(undo)/(## FromTo)] : 1 \n\
    Board         Key\n\
      o            3\n\
   o  |  o      2  |  4\n\
@@ -188,12 +189,12 @@ Player's Turn(x)\n\
 Here are the values of all possible moves: \n\
                 Move    Remoteness\n\
 Winning Moves:  \n\
-                78      4\n\
+                7      4\n\
 Tieing Moves:   \n\
 Losing Moves:   \n\
-                18      1\n\
+                1      1\n\
 \n\
-  Player's move [(undo)/(## FromTo)] : 78\n\
+  Player's move [(undo)/(## FromTo)] : 7\n\
    Board         Key\n\
      o            3\n\
   o  |  o      2  |  4\n\
@@ -278,6 +279,7 @@ Computer's Turn(o)\n\
 (Computer should Lose in 0)\n\
 \n\
 Player (player one) Wins!\n";
+
 
 
 /*************************************************************************
@@ -390,34 +392,34 @@ MOVELIST *GenerateMoves (POSITION position)
       if (i == 0){
 	for (x = 1; x < 9; x++){
 	  if (gBoard[x] == '_'){
-	    moves = CreateMovelistNode(move_make(i, x), moves);
+	    moves = CreateMovelistNode(i, moves);
 	    }
 	}
       } else if (i == 1){
 	  if (gBoard[8] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 8), moves);
+	    moves = CreateMovelistNode(i, moves);
 	  } else if (gBoard[8] == opp && gBoard[0] == '_'){
 	    moves = CreateMovelistNode(i, moves);
 	  } else if (gBoard[i+1] == '_'){
-	    moves = CreateMovelistNode(move_make(i, i+1), moves);
+	    moves = CreateMovelistNode(i, moves);
 	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
 	    moves = CreateMovelistNode(i, moves);
 	  }
       } else if (i == 8){
 	if (gBoard[1] == '_'){
-	  moves = CreateMovelistNode(move_make(i, 1), moves);
+	  moves = CreateMovelistNode(i, moves);
 	} else if (gBoard[1] == opp && gBoard[0] == '_'){
 	  moves = CreateMovelistNode(i, moves);
 	} else if (gBoard[i-1] == '_'){
-	  moves = CreateMovelistNode(move_make(i, i-1), moves);
+	  moves = CreateMovelistNode(i, moves);
 	} else if (gBoard[i-1] == opp && gBoard[0] == '_'){
 	  moves = CreateMovelistNode(i, moves);
 	}
       } else {
 	    if (gBoard[i-1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i-1), moves);
+	      moves = CreateMovelistNode(i, moves);
 	    } else if (gBoard[i+1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i+1), moves);
+	      moves = CreateMovelistNode(i, moves);
 	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
 	      moves = CreateMovelistNode(i, moves);
 	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
@@ -454,26 +456,21 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 { 
-  int from, to;
+  int i, from, to;
   char oldc, turn;
   generic_unhash(position,gBoard);
-  from = move_from(move);
-  to = move_to(move);
+  for (i = 0; i < 9; i++){
+    if (gBoard[i] == '_'){
+      to = i;}}
+  from = move;
   oldc = gBoard[from];
     if (whoseMove(position) == 1){
     turn = 'x';
   } else {
     turn = 'o';
   }
-    if (move < 9){
-  if (gBoard[0] == '_'){
-    gBoard[0] = turn;
-    gBoard[move] = '_';}
-  else {gBoard[0] = '_';
-  gBoard[move] = turn;}}
-    else {
       gBoard[to] = oldc;
-      gBoard[from] = '_';}
+      gBoard[from] = '_';
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
@@ -569,7 +566,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  printf("%8s's move: %d\n", computersName, move_from(computersMove));
+  printf("%8s's move: %d\n", computersName, computersMove);
+
+
 }
 
 
@@ -584,8 +583,10 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void PrintMove (MOVE move)
+
 { 
-  printf("%d", move_from(move));
+  printf("%d", move);    
+
 }
 
 
@@ -658,11 +659,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  unsigned int theInput = atoi(input);
-  int from = theInput/10;
-  int to = theInput%10;
-  return ((from <= 8) && (to <= 8) && (from != to) && (from>= 0) && (to >= 0));
-   
+  return ((input[0] <= '8' ) && (input[0] >= '0')); 
 }
 
 /************************************************************************
