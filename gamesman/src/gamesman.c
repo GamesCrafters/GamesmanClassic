@@ -2090,6 +2090,14 @@ BOOLEAN CorruptedValuesP()
 	while (ptr != NULL) {
 	  child = DoMove(position,ptr->move);  /* Create the child */
 	  childValue = GetValueOfPosition(child); /* Get its value */
+
+	  if (gGoAgain(position, ptr->move)) {
+	    switch(childValue) {
+	    case win: childValue = lose; break;
+	    case lose: childValue = win; break;
+	    }
+	  }
+
 	  if(parentValue == lose) {
 	    if(childValue != win) {
 	      corrupted = TRUE;
