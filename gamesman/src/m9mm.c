@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include "hash.h"
-#include "loopyupsolver.h"
+//#include "loopyupsolver.h"
 
 POSITION gNumberOfPositions  = 0;
 
@@ -235,7 +235,7 @@ void InitializeGame()
   
   setFlyingText();
 
-  gSolver = loopyup_DetermineValue;
+  //gSolver = loopyup_DetermineValue;
 }
 
 /************************************************************************
@@ -1788,6 +1788,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.67  2004/05/05 23:26:04  ogren
+//started kHelpExample -Elmer.
+//
 //Revision 1.66  2004/05/05 22:58:46  ogren
 //GetInitialPosition now restricts piece placement to be between min and max, inclusive. -Elmer
 //

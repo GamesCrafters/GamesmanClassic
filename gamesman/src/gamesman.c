@@ -478,7 +478,7 @@ BOOLEAN ParseConstantMenuChoice(c)
 void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
-  BOOLEAN tempPredictions ;
+  BOOLEAN tempPredictions, needSolve ;
   int timer;
   VALUE gameValue;
 
@@ -521,10 +521,25 @@ void ParseBeforeEvaluationMenuChoice(c)
       InitializeGame();
       InitializeDatabases();
       printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
+	  int StopWatch();
+	  needSolve = TRUE;
+	  if(gReadDatabase) {
+		if(loadDatabase()){
+			printf("\nLoading %s from Database...",kGameName);
+			if (GetValueOfPosition(gInitialPosition) == undecided) {
+				printf(" failed.");
+			}else{
+				needSolve = FALSE;
+			}
+		}
+	  }
+	  if(needSolve){
+		printf("\nEvaluating the value of %s...", kGameName);
+		gameValue = DetermineValue(gInitialPosition);
+		if(gWriteDatabase)
+			writeDatabase();
+	  }
 
-      printf("\nEvaluating the value of %s...", kGameName);
-
-      gameValue = DetermineValue(gInitialPosition);
 
       printf("done in %d seconds!", Stopwatch());
 
@@ -1222,18 +1237,7 @@ POSITION position;
 
 VALUE DetermineValue(POSITION position)
 {
-  if(gReadDatabase && loadDatabase()) {
-    if (GetValueOfPosition(position) == undecided) {
-      gSolver(position);
-      if(gWriteDatabase)
-	writeDatabase();
-    }
-  }
-  else {
-    gSolver(position);
-    if(gWriteDatabase)
-      writeDatabase();
-  }
+  gSolver(position);
   gValue = GetValueOfPosition(position);
   return gValue;
 }
@@ -1544,6 +1548,8 @@ int Stopwatch()
   if(first) {
     first = 0;
     newT = time(NULL);
+  }else{
+    first = 1;
   }
   oldT = newT;
   newT = time(NULL);
