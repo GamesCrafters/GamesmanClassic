@@ -120,11 +120,11 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
   cCon->hashOffset[k] = -1;
   temp = 0;
   sofar = 0;
-  printf("\n");
+  //printf("\n");
   for (i = 1; i <= cCon->usefulSpace; i++)
     {
-      printf("block: %llu Tot:%llu\n",cCon->hashOffset[i],sofar);
-      fflush(NULL);
+      //printf("block: %llu Tot:%llu\n",cCon->hashOffset[i],sofar);
+      //fflush(NULL);
       sofar += cCon->hashOffset[i];
       if(sofar<temp){
 	ExitStageRightErrorString("To many positions to represent in current position format");
