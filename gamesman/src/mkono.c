@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "hash.h"
 
 /*************************************************************************
 **
@@ -240,7 +241,7 @@ MOVELIST *GenerateMoves (POSITION position)
     oppPlayer = 'x';
   }
   
-  for (i = 0; i < WIDTH; i ++) {
+  for (i = 0; i < WIDTH; i++) {
     for (j = 0; j < HEIGHT; j++) {
       
       pos = j*WIDTH+i;
@@ -248,8 +249,8 @@ MOVELIST *GenerateMoves (POSITION position)
       if (gBoard[pos] == currentPlayer) {
 	
 	/* check up one */
-	if (pos >= WIDTH || gAllowVWrap)
-	  if (gBoard[upOne(i, j)] == ' ')
+	if (pos >= WIDTH || gAllowVWrap)  // if pos is not first row OR if vertical wrap is on
+	  if (gBoard[upOne(i, j)] == ' ') // if up one is empty
 	    moves = CreateMovelistNode(makeMove(pos, upOne(i, j)), moves);
 	
 	/* check up two */
