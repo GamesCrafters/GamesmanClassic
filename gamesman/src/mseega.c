@@ -123,7 +123,8 @@ STRING   kHelpExample =
 #define DEFAULTROWS 3
 #define DEFAULTCOLS 3
 
-int width=3,height=3;
+int width=DEFAULTROWS, height=DEFAULTROWS; //changed
+
 int BOARDSIZE = 11; 
 /* width*height, plus one for whose move it is and whether we are in
    placing mode.*/
@@ -244,7 +245,6 @@ void GameSpecificMenu()
 	changeBoard();
 	break;
 
-	
     case 'b': case 'B':
 	return;
     default:
@@ -257,16 +257,17 @@ void GameSpecificMenu()
 
 void changeBoard() 
 {
-  int n_rows, n_cols, valid_cols;
+  int n_rows, n_cols, valid_cols, valid_rows;
   valid_cols = 0;
+  valid_rows = 0;
   printf("Enter the new number of rows (3-%d):  ", MAXROWS);
   (void) scanf("%u", &n_rows);
   if ((n_rows < 3) || (n_rows > MAXROWS)) {
     printf("Number of rows must be between to 3 and %d\n", MAXROWS);
-    changeBoard();
+    changeBoard(); //optional - change to better style
   } else {
     printf("Changing number of rows to %d ...\n", n_rows);
-    Nrows = n_rows;
+    height = n_rows;
   }
   printf("Enter the new number of columns (3-%d):  ", MAXCOLS);
   while (valid_cols == 0){
@@ -275,7 +276,7 @@ void changeBoard()
       printf("Number of rows must be between to 3 and %d\n", MAXCOLS);
     } else {
       printf("Changing number of columns to %d ...\n", n_cols);
-      Ncols = n_cols;
+      width = n_cols;
       valid_cols = 1;
     }
   }
@@ -445,24 +446,24 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
 
   printf("\n");
   printf("          LEGEND:");
-  for (currCol = 0; currCol < Ncols; currCol++) {
+  for (currCol = 0; currCol < width; currCol++) {
     printf("  ");
   }
   printf("             TOTAL:\n");
-  for (currRow = Nrows; currRow>0; currRow--) {
+  for (currRow = height; currRow>0; currRow--) {
     //printf("    %d ( a%d b%d c%d )          : - - -\n", currRow, currRow, currRow, currRow);
     printf("    %d ( ", currRow);
-    for (currCol = 0; currCol < Ncols; currCol++) {
+    for (currCol = 0; currCol < width; currCol++) {
       printf("%c%d ", alphabet[currCol], currRow);
     }
     printf(")          :");
-    for (currCol = 0; currCol < Ncols; currCol++) {
+    for (currCol = 0; currCol < width; currCol++) {
       printf("%c ", '-'); //TODO GET VALUES FROM BOARD
     }
     printf("\n");
   }
   printf("        ");  //a  b  c          PLAYERS TURN\n\n");
-  for (currCol = 0; currCol < Ncols; currCol++) {
+  for (currCol = 0; currCol < width; currCol++) {
     printf("%c  ", alphabet[currCol]);  //"          PLAYERS TURN\n\n");
   }
   printf("\n\n");
