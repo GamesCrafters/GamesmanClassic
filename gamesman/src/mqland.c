@@ -113,12 +113,12 @@ STRING   kHelpExample =
  * The next 10 bits encode the destination of the player's SLIDE move.
  * The rightmost 10 bits encode the player's PLACE move.
  */
-#define get_move_source(move) (move) & 0x3FF00000
-#define get_move_dest(move) (move) & 0x000FFC00
-#define get_move_place(move) (move) & 0x000003FF
-#define set_move_source(move, source) (move) &= 0xC00FFFFF; (move) |= ((source) << 20)
-#define set_move_dest(move, dest) (move) &= 0xFFF003FF; (move) |= ((dest) << 10)
-#define set_move_place(move, place) (move) &= 0xFFFFFC00; (move) |= (place)
+#define get_move_source(move) ((move) & 0x3FF00000)
+#define get_move_dest(move) ((move) & 0x000FFC00)
+#define get_move_place(move) ((move) & 0x000003FF)
+#define set_move_source(move, source) ((move) &= 0xC00FFFFF); ((move) |= ((source) << 20))
+#define set_move_dest(move, dest) ((move) &= 0xFFF003FF); ((move) |= ((dest) << 10))
+#define set_move_place(move, place) ((move) &= 0xFFFFFC00); ((move) |= (place))
 
 /*************************************************************************
 **
@@ -505,13 +505,18 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 {
     if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
-	printf("[N %d]", get_move_place(move));
+	printf("[%c%d]", 
+		get_x_coord(get_move_place(move)) + 'a', 
+		get_y_coord(get_move_place(move)));
     }
     else {
-	printf("[%d %d %d]",
-	   get_move_source(move),
-	   get_move_dest(move),
-	   get_move_place(move));
+	printf("[%c%d %c%d %c%d]",
+		get_x_coord(get_move_source(move)) + 'a', 
+		get_y_coord(get_move_source(move)),
+		get_x_coord(get_move_dest(move)) + 'a', 
+		get_y_coord(get_move_dest(move)),
+		get_x_coord(get_move_place(move)) + 'a', 
+		get_y_coord(get_move_place(move)));
     }
 }
 
@@ -608,28 +613,45 @@ BOOLEAN ValidTextInput (STRING input) {
 
 MOVE ConvertTextInputToMove (STRING input) {
 	
-	/* If player enters 'N' as either the SOURCE or the DEST, the player's SLIDE move is ignored. */
-	
+	int first, second, third;	
 	char* curr = input;
 	MOVE move = 0;
 	
+	/* Eat leading whitespace */
 	while (isspace((int)*curr)) curr++;
 	
-	if (*curr == 'N') {
+	/* Turn the next two chars into an position
+	 * on the board */
+	first = XYToNumber(curr);
+	curr +=2;
+	
+	/* Eat more whitespace */
+	while (isspace((int)*curr)) curr++;
+	
+	/* Check if we are at the end of the string. If
+	 * so then this is a place only.*/
+	if (!(*curr)) {
 		set_move_source(move, 0);
 		set_move_dest(move, 0);
-		curr++;
-	}
-	else {
-		set_move_source(move, atoi(curr));
-		while (!isspace((int)*curr)) curr++;
+		set_move_place(move, first);
+	} else {
+		/* Turn the next two chars into an position
+		 * on the board */
+		second = XYToNumber(curr);
+		curr +=2;
+	
+		/* Eat more whitespace */
 		while (isspace((int)*curr)) curr++;
-		set_move_dest(move, atoi(curr));
-		while (!isspace((int)*curr)) curr++;
+	
+		/* Turn the next two chars into an position
+		 * on the board */
+		third = XYToNumber(curr);
+		curr +=2;
+	
+		set_move_source(move, first);
+		set_move_dest(move, second);
+		set_move_place(move, third);
 	}
-	
-	set_move_place(move, atoi(curr));
-	
 	return move;
 }
 
@@ -660,6 +682,7 @@ void GameSpecificMenu () {
 	printf("\tc)\tchange the s(C)oring system of the game\n");
 	printf("\tb)\t(B)ack to the main menu\n");
 	printf("\nSelect an option:  ");
+	getc(stdin);
 	c = tolower(getc(stdin));
 	switch (c) {
 	case 's':
@@ -923,6 +946,7 @@ void ChangeScoringSystem() {
 	printf("\td)\tcount only (D)iagonal lines\n");
 	printf("\tb)\tcount (B)oth straight and diagonal lines\n");
 	printf("Select an option ");
+	getc(stdin);
 	c = tolower(getc(stdin));
 	switch(c) {
 	case 's':
@@ -941,4 +965,13 @@ void ChangeScoringSystem() {
 	    printf("Invalid option. Please try again");
 	}
     }
+}
+
+/* Converts a string of two characters to a board position */
+int XYToNumber(char* xy) {
+	int x, y;
+	
+	x = tolower(xy[0]) - 'a';
+	y = xy[1] - '0';
+	return get_location(x, y);
 }
