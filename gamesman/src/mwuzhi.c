@@ -21,7 +21,9 @@
 **                         Started Initialize Game (What else do we need there?)
 **              2004-10-18 Added Print Position, Print Move, Print Computer's Move, Primitive,
 **                         Added another helper to Moves: GetArrayNum given xycoords.  
-**              2004-10-19 Added DoMove to this template  
+**              2004-10-19 Added DoMove to this template
+**              2004-11-2  Set kPartizan to TRUE, modified help strings so they are not all on one line. Moves are now formatted as [1 d]
+**                         rather than [1 down] Added a sample game to the help string.   
 **************************************************************************/
 
 /*************************************************************************
@@ -44,10 +46,10 @@
 **************************************************************************/
 
 STRING   kGameName            = "Wu Zhi"; /* The name of your game */
-STRING   kAuthorName          = ""; /* Your name(s) */
+STRING   kAuthorName          = "Dan Yan, Diana Fang"; /* Your name(s) */
 STRING   kDBName              = "mwuzhi"; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
@@ -68,13 +70,75 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"On your turn, pick a piece that you want to move and then move it.  You can only move up, down, left, or right.  Diagonals are only allowed if you set up that option."; 
+"On your turn, pick a piece that you want to move and then move it.  You \n\
+can only move up, down, left, or right.  Diagonals are only allowed if \n\
+you set up that option."; 
 
 STRING   kHelpOnYourTurn =
-"On your turn, pick a piece that you want to move. Look at the key to the right of the board to determine the number of the position of the piece you want to move.  Then choose the direction you want to move your piece(up, down, left, right...you can also refer to the compass, shown above the board). A sample move would be '1 up' ";
+"On your turn, pick a piece that you want to move. Look at the key to the \n\
+right of the board to determine the number of the position of the piece you \n\
+want to move.  Then choose the direction you want to move your piece (up, \n\
+down, left, right...you can also refer to the compass, shown above the board).\n\
+A sample move would be '1 u'(which means 1 up). ";
 
 STRING   kHelpStandardObjective =
-"Capture all but one of your opponent's pieces to win.  Capturing takes place when you move your piece into a specific configuration.  The configuration is as follows: If two of your pieces are next to each other and if on that same line that your pieces are one, one of those pieces is adjacent to an opponent's piece, then that results in a capture.  However, no other pieces must be along that same line where your capture is taking place in order for it to be a legal capture.  Also, a capture only occurs if you move into a capture position.  A capture does not occur if your opponent moves into your capture position.";
+"Capture all but one of your opponent's pieces to win.  Capturing takes \n\
+place when you move your piece into a specific configuration.  The \n\
+configuration is as follows: If two of your pieces are next to each other \n\
+and if on that same line that your pieces are one, one of those pieces is \n\
+adjacent to an opponent's piece, then that results in a capture.  However, \n\
+no other pieces must be along that same line where your capture is taking \n\
+place in order for it to be a legal capture.  Also, a capture only occurs \n\
+if you move into a capture position.  A capture does not occur if your \n\
+opponent moves into your capture position.\n\
+Here are some examples of capture positions: \n\
+\n\
+Here white captures a black piece:\n\
+( )--( )--( )--( )--( )\n\          
+ |    |    |    |    |   \n\
+( )--(b)--(w)--(w)--( ) \n\         
+ |    |    |    |    |  \n\ 
+( )--( )--( )--( )--( ) \n\
+ |    |    |    |    | \n\
+( )--( )--( )--( )--( ) \n\
+ |    |    |    |    | \n\
+( )--( )--( )--( )--( ) \n\
+\n\
+Here black captures a white piece: \n\
+( )--( )--( )--( )--( )\n\          
+ |    |    |    |    |  \n\ 
+( )--(b)--( )--( )--( ) \n\         
+ |    |    |    |    |   \n\
+( )--(b)--( )--( )--( )\n\
+ |    |    |    |    |\n\
+( )--(w)--( )--( )--( )\n\
+ |    |    |    |    |\n\
+( )--( )--( )--( )--( ) \n\
+\n\
+Here white fails to capture a black piece because\n\
+of the other black piece which interferes with the \n\
+capturing position:\n\
+( )--( )--( )--( )--( )          \n\
+ |    |    |    |    |   \n\
+( )--(b)--(w)--(w)--(b)  \n\        
+ |    |    |    |    |  \n\ 
+( )--( )--( )--( )--( ) \n\
+ |    |    |    |    |\n\
+( )--( )--( )--( )--( )\n\
+ |    |    |    |    |\n\
+( )--( )--( )--( )--( )\n\
+\n\
+Here white fails to capture a black piece because \n\
+the white piece is not adjacent to the black piece:\n\
+( )--( )--( )--( )--( )          \n\
+ |    |    |    |    |   \n\
+(b)--( )--(w)--(w)--( ) \n\         
+ |    |    |    |    |  \n\ 
+( )--( )--( )--( )--( )\n\
+ |    |    |    |    |\n\
+( )--( )--( )--( )--( )\n\
+ |    |    |    |    |\n\
+( )--( )--( )--( )--( )";
 
 STRING   kHelpReverseObjective =
 "";
@@ -83,7 +147,102 @@ STRING   kHelpTieOccursWhen =
 "A tie occurs when ...";
 
 STRING   kHelpExample =
-"";
+"Player Player 1's turn \n\
+        (u)p            \n\
+          |             \n\
+(l)eft --( )-- (r)ight   \n\  
+          |             \n\
+       (d)own           \n\
+                     \n\
+Board:          Key: \n\
+(b)--(b)--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |  \n\
+( )--( )--( )           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |   \n\
+(w)--(w)--(w)           ( 7)--( 8)--( 9) \n\
+\n\
+\n\
+Player 1's move [(undo)/(key dir [1 d])] : 8 u\n\
+Player Player 2's turn\n\
+        (u)p           \n\ 
+          |             \n\
+(l)eft --( )-- (r)ight   \n\  
+          |             \n\
+       (d)own           \n\
+                     \n\
+\n\
+Board:          Key: \n\
+(b)--(b)--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |\n\
+( )--(w)--( )           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--(w)           ( 7)--( 8)--( 9)\n\
+\n\
+ \n\
+Player 2's move [(undo)/(key dir [1 d])] : 1 d\n\
+Player Player 1's turn\n\
+        (u)p           \n\
+          |             \n\
+(l)eft --( )-- (r)ight   \n\  
+          |             \n\
+       (d)own           \n\
+                     \n\
+Board:          Key: \n\
+( )--(b)--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |\n\
+(b)--(w)--( )           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--(w)           ( 7)--( 8)--( 9)\n\
+\n\
+\n\
+Player 1's move [(undo)/(key dir [1 d])] : 9 u\n\
+Player Player 2's turn\n\
+        (u)p            \n\
+          |             \n\
+(l)eft --( )-- (r)ight   \n\ 
+          |             \n\
+       (d)own           \n\
+                     \n\
+Board:          Key: \n\
+( )--(b)--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |\n\
+( )--(w)--(w)           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--( )           ( 7)--( 8)--( 9)\n\
+\n\
+ \n\
+Player 2's move [(undo)/(key dir [1 d])] : 2 l\n\
+Player Player 1's turn\n\
+        (u)p           \n\
+          |             \n\
+(l)eft --( )-- (r)ight   \n\  
+          |             \n\
+       (d)own           \n\
+\n\
+Board:          Key:\n\ 
+(b)--( )--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |\n\
+( )--(w)--(w)           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--( )           ( 7)--( 8)--( 9)\n\
+\n\
+ \n\
+Player 1's move [(undo)/(key dir [1 d])] : 5 l \n\
+Player Player 2's turn\n\
+        (u)p           \n\ 
+          |             \n\
+(l)eft --( )-- (r)ight   \n\  
+          |             \n\
+       (d)own           \n\
+                     \n\
+Board:          Key: \n\
+( )--( )--(b)           ( 1)--( 2)--( 3)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--(w)           ( 4)--( 5)--( 6)\n\
+ |    |    |             |     |     |\n\
+(w)--( )--( )           ( 7)--( 8)--( 9)\n\
+\n\
+Player 1 (player one) Wins!";
 
 
 /*************************************************************************
@@ -111,7 +270,7 @@ STRING   kHelpExample =
 
 /* default values */
 
-int gBoardwidth = 5;
+int gBoardwidth = 3;
 int gBoardlength;
 char* gBoard;
 
@@ -537,11 +696,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /* counters */
   int h, i, j, k, c, c1;
   c = 1;
-  printf("        up            \n");
-  printf("        |             \n");
-  printf("left --( )-- right     \n");
-  printf("        |             \n");
-  printf("       down           \n");
+  printf("        (u)p            \n");
+  printf("          |             \n");
+  printf("(l)eft --( )-- (r)ight     \n");
+  printf("          |             \n");
+  printf("       (d)own           \n");
   printf("                     \n");
   printf("Board: ");
   for (h = 0; h < gBoardwidth-1; h++) {
@@ -635,13 +794,13 @@ void PrintMove (MOVE move)
   Arraynum = getArraynum(xcoord, ycoord);
   //printf("arraynum: %d\n\n", Arraynum);
   if (dir == 0) 
-    direction = "up";
+    direction = "u";
   else if (dir == 1) 
-    direction = "right";
+    direction = "r";
   else if (dir == 2)
-    direction = "down";
+    direction = "d";
   else if (dir == 3) 
-    direction = "left";
+    direction = "l";
   printf("[%d %s]", Arraynum + 1, direction);
 }
 
@@ -675,7 +834,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(key dir [1 down])] : ", playersName);
+	printf("%8s's move [(undo)/(key dir [1 d])] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -728,8 +887,8 @@ BOOLEAN ValidTextInput (STRING input)
     *spcptr = '\0';
     char *direction = ++spcptr;
 
-    if (strcmp(direction,"up") && strcmp(direction,"right") &&
-	strcmp(direction,"down") && strcmp(direction,"left")) {
+    if (strcmp(direction,"u") && strcmp(direction,"r") &&
+	strcmp(direction,"d") && strcmp(direction,"l")) {
       printf("badelse");
       return FALSE;
     }
@@ -762,19 +921,19 @@ MOVE ConvertTextInputToMove (STRING input)
     location--;
 
     int dir;
-    if (0 == strcmp(direction,"up")) {
+    if (0 == strcmp(direction,"u")) {
       dir = 0;
-    } else if (0 == strcmp(direction,"right")) {
+    } else if (0 == strcmp(direction,"r")) {
       dir = 1;
-    } else if (0 == strcmp(direction,"down")) {
+    } else if (0 == strcmp(direction,"d")) {
       dir = 2;
-    } else if (0 == strcmp(direction,"left")) {
+    } else if (0 == strcmp(direction,"l")) {
       dir = 3;
     } else {
       printf("bad else in ConvertTextInputToMove");
     }
     
-    printf("dir: %s,location: %d\n",direction,location);
+    //    printf("dir: %s,location: %d\n",direction,location);
 
     int x, y;
     x = getColumn(location, gBoardwidth);
