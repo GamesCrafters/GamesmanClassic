@@ -147,11 +147,8 @@ void InitializeGame()
 {
 
   int b_size = BOARDSIZE;
-  int pminmax[4];
-  pminmax[0] = mino;
-  pminmax[1] = maxo;
-  pminmax[2] = minx;
-  pminmax[3] = maxx;
+  int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', b_size-maxo-maxx, b_size-minx-mino, -1};
+
   gHashNumberOfPos = generic_hash_init(b_size, pminmax, NULL);
 }
 
@@ -958,6 +955,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.20  2004/03/16 01:46:18  ogren
+//set kdebugmenu  TRUE - Elmer
+//
 //Revision 1.19  2004/03/15 23:36:18  bryonr
 //Changed some return types to match function prototypes in gamesman.h. Made minor fixes where necessary.
 //
