@@ -103,6 +103,12 @@ typedef enum user_input_enum
 }
 USERINPUT;
 
+typedef enum static_func_msg_enum
+{
+	Init, Clean, Save, Update
+}
+STATICMESSAGE;
+
 typedef struct positionlist_item
 {
 	POSITION position;
@@ -276,8 +282,6 @@ void      setOption(int option);
 /* deprecated function prototypes for functions included in modules */
 void SetTclCGameSpecificOptions(int theOptions[]);
 
-/* Status Meter */
-void showStatus(int done);
 
 /* analysis functions */
 void analyze();
@@ -294,8 +298,8 @@ void writeGameHTML();
 //void createAnalysisLink();
 
 /* Status Meter */
-void showStatus(int done);
-float percentDone(int done);
+void showStatus(STATICMESSAGE msg);
+float percentDone(STATICMESSAGE msg);
 
 /*** Other GamesCrafter .h Inclusion ***/
 #include "hash.h"

@@ -1195,20 +1195,16 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
 }
 
 /* Percent Done */
-/* Messages     */
-/* 0 - Increment Counter */
-/* 1 - Reset Counter     */
-/* Anything else - Output percent */
-float percentDone(int done)
+float percentDone(STATICMESSAGE msg)
 {
     static POSITION num_pos_seen = 0;
     float percent = 0;
-    switch (done)
+    switch (msg)
     {
-        case 0:
+        case Update:
             num_pos_seen++;
             break;
-        case 1:
+        case Clean:
             num_pos_seen = 0;
     }
     percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
@@ -1219,23 +1215,23 @@ float percentDone(int done)
 }
 
 /* Status Meter */
-void showStatus(int done)
+void showStatus(STATICMESSAGE msg)
 {
     
     static float timeDelayTicks = CLOCKS_PER_SEC / 10;
     static clock_t updateTime = (clock_t) NULL;
     int print_length=0;
     
-    percentDone(done);
+    percentDone(msg);
     
     if (updateTime == (clock_t) NULL)
     {
         updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
     }
     
-    switch (done)
+    switch (msg)
     {
-        case 1:
+        case Clean:
             if(gWriteDatabase) 
             {
                 print_length = fprintf(stderr,"Writing Database...\e[K");
@@ -1365,7 +1361,7 @@ VALUE DetermineValue(POSITION position)
     else {
         if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
         gSolver(position);
-        showStatus(1);
+        showStatus(Clean);
         if(gWriteDatabase)
             writeDatabase();
     }
@@ -1819,7 +1815,7 @@ void MarkAsVisited (POSITION position)
 {
     VALUE *ptr;
     
-    showStatus(0);
+    showStatus(Update);
     
     if (gTwoBits) {
         if (gVisited)
@@ -3855,7 +3851,7 @@ void writeVarXML()
     mkdir("analysis/xml",0755);
     xmlFile = fopen(xmlPath,"w");
     fprintf(xmlFile,"<?xml version=\"1.0\"?>\n",kDBName,getOption());
-	fprintf(xmlFile,"    <game name=\"%s\" variant=\"%d\">\n",kDBName,getOption());
+	fprintf(xmlFile,"    <game name=\"%s\" variant=\"%d\">\n",kGameName,getOption());
 	fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
 	fprintf(xmlFile,"        <count>\n");
 	fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.WinCount);
