@@ -13,6 +13,7 @@
 ** UPDATE HIST:
 ** 9/12/03 - Some Work on Text Interface, and file maintnence. -SL
 ** 10/7/03 - Imported Our functions from other files. -SL
+** 10/14/03 - Finished other functions. Don't know if it works. - SL
 **
 ** 
 **
@@ -89,25 +90,30 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 
 //might need to change this.
 STRING   kHelpExample =
-"         ( 1 2 3 )       L:2          : - - -\n\
-LEGEND:  ( 4 5 6 )  Stock M:2 Board:   : - - - \n\
-         ( 7 8 9 )        S:2          : - - - \n\n\
+"         ( 1 2 3 )            : -- -- --\n\
+LEGEND:  ( 4 5 6 )   Board:   : -- -- -- \n\
+         ( 7 8 9 )            : -- -- -- \n\
+         Stock: X:2 x:2 \n\n\
 Computer's move              :  L5    \n\n\
-         ( 1 2 3 )        L:2          : - - -\n\
-LEGEND:  ( 4 5 6 )  Stock M:2 Board:   : - D - \n\
-         ( 7 8 9 )        S:2          : - - - \n\n\
+         ( 1 2 3 )             : -- -- --\n\
+LEGEND:  ( 4 5 6 )    Board:   : -- O  -- \n\
+         ( 7 8 9 )             : -- -- -- \n\
+         Stock: X:2 x:2 \n\n\
      Dan's move [(u)ndo/1-9] : { M3 } \n\n\
-         ( 1 2 3 )        L:2          : - - M \n\
-LEGEND:  ( 4 5 6 )  Stock M:1 Board:   : - D - \n\
-         ( 7 8 9 )        S:2          : - - - \n\n\
+         ( 1 2 3 )            : -- -- -x \n\
+LEGEND:  ( 4 5 6 )   Board:   : --  O -- \n\
+         ( 7 8 9 )            : -- -- -- \n\
+         Stock: X:2 x:1 \n\n\
 Computer's move              :  L3    \n\n\
-         ( 1 2 3 )        L:2          : - - D \n\
-LEGEND:  ( 4 5 6 )  Stock M:1 Board:   : - D - \n\
-         ( 7 8 9 )        S:2          : - - - \n\n\
+         ( 1 2 3 )            : -- -- Ox \n\
+LEGEND:  ( 4 5 6 )   Board:   : -- O  -- \n\
+         ( 7 8 9 )            : -- -- -- \n\
+         Stock: X:2 x:1 \n\n\
      Dan's move [(u)ndo/1-9] : { L7 } \n\n\
-         ( 1 2 3 )        L:1          : - - D \n\
-LEGEND:  ( 4 5 6 )  Stock M:1 Board:   : - D - \n\
-         ( 7 8 9 )        S:2          : L - - \n\n\
+         ( 1 2 3 )            : -- -- O  \n\
+LEGEND:  ( 4 5 6 )   Board:   : -- O  -- \n\
+         ( 7 8 9 )            : X  -- -- \n\
+         Stock: X:1 x:1 \n\n\
 ect..."
 
 /*************************************************************************
@@ -126,7 +132,6 @@ ect..."
 #define	PIECE_SIZES	2
 #define	PIECES_PER_SIZE	2
 
-typedef unsigned long hash_t;
 typedef unsigned short layer_t;
 
 layer_t *pos2hash = NULL;
@@ -177,12 +182,19 @@ struct GPosition {
 #define	TURN_O			0x0
 #define	TURN_X			0x1
 
+typedef enum piece_sizes {
+    *, x, X, ., o, O
+} PIECES;
+
 //Creates the bitwise representation of the piece p of size s.
 #define PIECE_VALUE(p,s)	( (p) << (2 * (s)) ) 
 
 #define	POS_NUMBER(r,c)		( (c) + (BOARD_SIZE * (r)) )
 #define	POS_GETROW(p)		(int)( (p) / BOARD_SIZE )
 #define POS_GETCOL(p)		(int)( (p) % BOARD_SIZE )
+
+
+BOOLEAN gThreeInARowWins = true;
 
 
 /*************************************************************************
@@ -238,7 +250,59 @@ void DebugMenu()
 
 void GameSpecificMenu() 
 {
+  char GetMyChar();
+  BOOLEAN tempPredictions = gPredictions;
+  POSITION GetInitialPosition();
+  gPredictions = FALSE;
   
+  do {
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    
+    printf("\tCurrent Initial Position:\n");
+    PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
+    
+    printf("\tI)\tChoose the (I)nitial position\n");
+    printf("\tT)\t(T)hree in a row %s\n", 
+	   gThreeInARowWins ? "GOOD (WINNING)" : "BAD (LOSING)",);
+	   
+    printf("\tI)\tChoose the board (S)ize (2 through 9)\n");
+    printf("\tI)\tChoose the number of (P)iece sizes (*Note: 3 or more\
+        may be unsolvable on a 32 bit machine at 3x3 board.)\n");
+    printf("\tI)\tChoose the (N)umber of each piece size\n");
+    
+    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+    printf("\n\nSelect an option: ");
+    
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+    case 'H': case 'h':
+      HelpMenus();
+      break;
+    case 'S': case 's':
+      SetBoardSize();
+      break;
+    case 'P': case 'p':
+      SetPieceSizes();
+      break;
+    case 'N': case 'N':
+      SetNumPieces();
+      break;
+    case 'I': case 'i':
+      gInitialPosition = GetInitialPosition();
+      break;
+    case 'T': case 't':
+      gThreeInARowWins = !gThreeInARowWins;
+      break;
+    case 'b': case 'B':
+      gPredictions = tempPredictions;
+      return;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
 
 }
   
@@ -401,7 +465,11 @@ void PrintComputersMove(computersMove, computersName)
      MOVE computersMove;
      STRING computersName;
 {
-
+  SLOT srcPos, destPos;
+  srcPos = GET_SRC(computersMove);
+  destPos = GET_DEST(computersMove);
+  printf("%8s's move              : %d %d\n", computersName, 
+	 srcPos+1,destPos+1);// add if it is from stock.
 }
 
 
@@ -425,7 +493,7 @@ void PrintComputersMove(computersMove, computersName)
 **
 ************************************************************************/
 
-VALUE primitive ( hash_t h )
+VALUE primitive ( hash_t h ) //Need to add the 3 in a row is a loss.
 {
 	struct GPosition pos = unhash( h );
 	int i, t, x_wins, o_wins;
@@ -532,7 +600,33 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
- 
+  STRING GetPrediction();
+  STRING PrintSpace();
+  VALUE GetValueOfPosition();
+  struct GPosition myPos = unhash(thePosition);
+  int i = 1;
+  printf("\n");
+  for(int rows = 0; rows < BOARD_SIZE;rows++)
+  {
+    printf((BOARDS_SIZE/2 == rows ? "LEGEND:  ( " : "         ( "));
+    for(int cols = 0; cols < BOARD_SIZE;cols++)
+    {
+        printf("%s ",i);
+        i++;
+    }
+    printf((BOARDS_SIZE/2 == rows ? ")   Board:   : " : ")            : "));
+    for(int cols = 0; cols < BOARD_SIZE;cols++)
+    {
+        printf("%s ", PrintSpace(myPos.board[cols]));
+    }
+    printf("\n");
+  }
+  printf("         Stock: ");
+  for(int pSizes=0; pSizes < PIECE_SIZES;pSizes++)
+  {
+   //figure out what were going to do with representing sizes...
+  }
+  printf("\nGame Prediction: %s \n\n",GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -621,6 +715,19 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
+  BOOLEAN ValidMove();
+  USERINPUT ret, HandleDefaultTextInput();
+  
+  do {
+    printf("%8s's move [(u)ndo/1-%s] :  ", playerName, TABLE_BITS);
+    
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if(ret != Continue)
+      return(ret);
+    
+  }
+  while (TRUE);
+  return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -694,7 +801,30 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
+  SLOT srcPos, destPos;
+  STRING first;
+  STRING end;
   
+  int i = 0;
+  while(input[i] != ' ')
+  {
+    first += input[i];
+    i++;
+  }
+  if(( (int) first <= TABLE_BITS) && ( (int) first >= TABLE_BITS))
+  {
+    srcPos = ((int) first) - 1;
+  }else{
+    srcPos = SRC_STASH( (PIECES (input[i])) ); //  is that the right way to access the enum?
+  }
+  i++;
+  while(i < input.length)
+  {
+    end += input[i];
+    i++
+  }
+  destPos = ((int) end) - 1;
+  return ((MOVE) CONS_MOVE(srcPos,destPos));
 }
 
 /************************************************************************
@@ -710,7 +840,10 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  
+  SLOT srcPos, destPos;
+  srcPos = GET_SRC(computersMove);
+  destPos = GET_DEST(computersMove);
+  printf("%d %d\n", srcPos+1,destPos+1); // add if it is from stock.
 }
 
 /************************************************************************
@@ -935,13 +1068,13 @@ inline int getTopPieceColor ( layer_t slot )
 **
 ** NAME:        countBits
 **
-** INPUTS:      hash_t: represents a complete hash.
+** INPUTS:      POSITION: represents a complete hash.
 **
 ** DESCRIPTION: not sure.
 **
 ************************************************************************/
 
-int countBits ( hash_t n )
+int countBits ( POSITION n )
 {
 	int bitCount = 0;
 	
@@ -957,7 +1090,7 @@ int countBits ( hash_t n )
 **
 ** DESCRIPTION: not sure.
 **
-** CALLS:       int countBits ( hash_t n )
+** CALLS:       int countBits ( POSITION n )
 **              calloc();
 **
 ************************************************************************/
@@ -1023,10 +1156,10 @@ void computeTables ()
 **
 ** CALLS:       void computeTables ()
 **
-** OUTPUTS:     (hash_t): The equivelent hash_t of the inputed GPosition.
+** OUTPUTS:     (POSITION): The equivelent POSITION of the inputed GPosition.
 **
 ************************************************************************/
-hash_t hash ( struct GPosition pos )
+POSITION hash ( struct GPosition pos )
 {
 	unsigned long lpos[ PIECE_SIZES], ret = 0;
 	int i, t, pieceNo;
@@ -1063,13 +1196,13 @@ hash_t hash ( struct GPosition pos )
 **
 ** DESCRIPTION: convert an internal position to that of a GPosition.
 ** 
-** INPUTS:      hash_t h: the internal hash representation.
+** INPUTS:      POSITION h: the internal hash representation.
 **
 ** OUTPUTS:     (GPosition): The equivelent GPosition of the inputed hash.
 **
 ************************************************************************/
 
-struct GPosition unhash ( hash_t h )
+struct GPosition unhash ( POSITION h )
 {
 	struct GPosition ret;
 	unsigned long lpos[ PIECE_SIZES];
@@ -1122,4 +1255,3 @@ struct GPosition unhash ( hash_t h )
 	
 	return ret;
 }
-
