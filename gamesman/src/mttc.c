@@ -229,14 +229,14 @@ void SetTclCGameSpecificOptions (options)
 
 POSITION DoMove (POSITION thePosition, MOVE theMove) {
   int get_source(MOVE,POSITION), get_dest(MOVE);
-  BOARD board;
+  BOARD board, get_board(POSITION);
   PLAYER new_player;
   board = get_board(thePosition);
   new_player = opponent(get_player(thePosition));
   if (get_source(theMove,thePosition) != OFF) 
     board[get_source(theMove,thePosition)] = BLNK;
   board[get_dest(theMove)] = get_piece(theMove);
-  return ttc_hash(board, player);
+  return ttc_hash(board, new_player);
 }
 
 /************************************************************************
