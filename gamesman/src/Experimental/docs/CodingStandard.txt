@@ -1,0 +1,271 @@
+
+Gamesman Architecture Coding Standard
+Version 0.1 - John Jordan
+
+
+PREFACE
+=======
+
+Every programmer has his or her own favorite style.  This is the style we
+use for every piece of code we write, and it is the style that we live by. 
+When working with a team of people on a large piece of code, however, one
+style should be adopted and used consistently throughout.  Otherwise, the
+resulting code is practically unreadable.  The only thing worse than ugly
+style is inconsistent style.  Gamesman, in the past, had this problem, and
+this document is an attempt to address it.  To prevent this from happening
+in the future, all gamesman architects should try their best to adhere to
+this standard.
+
+
+I.	Introduction and Philosophy.
+	
+	Gamesman is software that is written in C, and as such, we will be
+	following stylistic conventions that have been well-established in
+	the C community over the last twenty years or so.  This coding
+	standard is based loosely on the coding standards used in K&R and the
+	Linux kernel, both of which are widely accepted.
+
+
+II.	Spacing and Indentation.
+	
+	The indentation used throughout the code should be standard eight-
+	space tabs.  Either the tab character ('\t') or actual spaces may be
+	used, so long as the tabstops are eight-spaces apart.  Two and four
+	space indents are right out.  Difference in opinion about tab-stops
+	is the number one cause of clashing styles.  K&R use eight-space
+	indents as does the Linux kernel.
+	
+	There should be logical breaks in the code in the form of blank
+	lines.  Think of these as sentence or paragraph breaks.  Using them
+	improves readability greatly.
+	
+	Good places to put them include:
+	
+		- Between variable declarations and the rest of the block they
+		  go in
+		- Between control blocks, eg:
+		
+		  while (1) {
+		  	  /* Some code.. */
+		  }
+		  
+		  while (1) {
+		  	  /* A different loop */
+		  }
+		
+		- At least two lines should be left between function
+		  declarations:
+		  
+		  int some_function ( void )
+		  {
+		  }
+		  
+		  
+		  /**
+		   *  Comments...
+		   */
+		  
+		  int some_other_function ( void )
+		  {
+		  }
+	
+	Lists with commas should have a single space after every comma, just
+	as in the English language.
+	
+	Function calls should be in the following format:
+		
+		func(arg1, arg2, arg3);
+	
+	Note:
+		- No space between the name of the function and the
+		  parentheses.
+		- No space between the list of arguments and the parentheses.
+	
+	Control structures should look similar to function calls, except
+	there should be a space between the keyword and the opening
+	parenthesis.  If braces are used with the control structure, then
+	there should be a space between the closing parenthesis and the
+	opening brace.  Examples:
+	
+		while (1)
+			/* A single statement here */
+		
+		if (something == something_else) {
+			/* Some code */
+		}
+	
+	The braces in a function definition should occur on the line after
+	the definition.  Everywhere else they are used, they should occur on
+	the same line as the respective control structure.
+	
+		int main ( int argc, char** argv )
+		{
+			if (argc == 2) {
+				/* ... */
+			} else {
+				/* ... */
+			}
+			
+			return 0;
+		}
+	
+	
+III.	More spacing
+	
+	Beyond the rules outlined above, it is up to the programmer. 
+	However, the suggested style follows.
+	
+	Binary operators should have spaces on either side, between the
+	operator and its arguments.  Examples:
+	
+		a = b;
+		a = b + c;
+		if (1 == 2) ...
+		if (1 == 2 || 3 == 3) ...
+		a_struct . b = b_struct -> c;	/* . and -> are considered
+						   binary operators */
+	
+	There should be no space between a unary operator and its argument:
+	
+		if (!a) ...
+		if (~a == b) ...
+	
+	There should be one space between a cast and its argument:
+	
+		long x = (long) y;
+	
+	Function definitions should have spaces between the parentheses and
+	any other text.  Examples:
+	
+		/* prototype */
+		int main ( int, char** );
+		
+		/* function definition */
+		int main ( int argc, char** argv )
+		{
+			/* ... */
+		}
+	
+	When referring to a pointer, the asterisk should be placed on the
+	side of the type, not the variable.  The fact that a variable is a
+	pointer has more to do with the type of the variable.  Variable and
+	function definitions that occur on consecutive lines should have
+	their names line up by use of tabs, and be limited to one variable
+	per line.  This is hard to get used to, but is easier to read.
+	Example:
+	
+		int	i;
+		int	n;
+		char*	s;
+		
+		/* More code.. */
+	
+	Any additional whitespace not mentioned in the preceding section
+	should not be used.
+	
+
+IV.	Naming Conventions.
+	
+	In general, symbols (variables/names) that can be seen by more than
+	one function should be composed of multiple words separated by
+	underscores (_) and should be entirely in one case.  Global
+	variables, macros, and global constants should be in all capitals. 
+	Functions, goto labels (god forbid), and function arguments should
+	be in lower-case letters.
+	
+	Symbols should be short but descriptive.
+	
+	When naming variables, do not include the variable's type or scope
+	in the name (such a convention is known as Hungarian naming,
+	examples can be found in old gamesman code: gInitialPosition,
+	kDebugMenu, etc).
+	
+	Functions that mutate data structures or are of type void should be
+	named with a verb.  Functions that access data from a specific type
+	should begin with "get_".
+	
+	Local variables should be kept in lower case, and preferably, short.
+	Loop indices should have names like: i, t, j, n, q, ...  As far as
+	other variables go, it is up to the programmer.  The programmer
+	should strive to keep his/her code uniform with surrounding or
+	related code.
+
+
+V.	Functions.
+
+	If a function deals with one datatype specifically (ie, it is a
+	function that you would include in that datatype's class if you were
+	writing it in an object-oriented language), then the function should
+	be prefixed with the name of that type (shortened, if possible). For
+	example:
+	
+		db_load()
+		table_get()
+		positionlist_free()
+		movelist_free()
+	
+	Such functions should take in an 'object' of that type as their first
+	argument (what would be referred to as "this" in object-oriented
+	languages), unless there is a very good reason not to.  Keeping with
+	this convention will help you remember the order of arguments.
+	
+	Functions should be explicitly prototyped.  If a function is used 
+	only inside of the file in which it appears, it should be declared
+	"static", and have a prototype near the top of its file.  If a
+	function is used by other files, then it should have a prototype in
+	the source file's corresponding header.
+	
+	Function prototypes should never appear inside of functions.  They
+	should always appear in file scope.
+	
+	Functions should not have implicit return values or implicit
+	argument lists.  Prototypes and declarations must always be
+	explicit.
+	
+	The types of function parameters should go on the same line as as
+	the function definition, unless the function takes in an ungodly
+	number of arguments.  Example:
+	
+		int main ( int argc, char** argv )
+		{ /* ... */ }
+	
+	and NOT:
+	
+		int main ( argc, argv )
+		    int    argc;
+		    char** argv;
+		{ /* ... */ }
+	
+	Functions that return values based on the success of the operation
+	performed should return 0 on success and any other result on error.
+	Functions that return some sort of result or an error should either
+	return positive numbers normally, and negative numbers on error, or
+	should use the above method, and return results through a pointer in
+	an argument.  Functions that return pointers should return NULL on
+	error.
+	
+	If functions has multiple possible result codes, they should be
+	documented in comments.
+
+
+VI.	Commenting.
+	
+	Comments should be kept to a minimum.  This is because the function
+	names and argument names should be clear enough that the reader
+	should not need to resort to comments.  Only things that are not
+	immediately clear should go in comments (such as the meanings of
+	return values or side-effects).
+	
+	Commenting is left to the programmer's disgression.  If you think
+	that commenting is necessary, comment, but don't clutter the code up
+	too much with comments.  If many comments are needed, separate them
+	from the code.  Less is more.
+
+
+VI.	Miscellaneous
+	
+	The best way to get used to a standard is to read code that's
+	already there.  Get used to its feel, and try to imitate it.  Even
+	if you don't like the style itself, by using it you will contribute
+	to the appearance of the code, and if you stray from the standard,
+	you can only detract from its appearance and readability.

@@ -1,0 +1,40 @@
+
+GAME Class property table:
+
+"Name"			STRING		Name of the game
+"Authors"		STRING		Names of the authors
+
+
+GAME Instance property table:
+
+"Class"			STRING		Classname (that matches the parent class)
+"CurrentOption"		int		The current option we're working with
+"InvalidPosition"	POSITION	An invalid POSITION
+"InitialPosition"	POSITION	The initial position of the game
+"InitialRotation"	int		The initial rotation
+
+
+DATABASE Class property table:
+
+"Name"			STRING		Descriptive name of the database
+"Authors"		STRING		Names of the authors
+
+
+DATABASE Instance property table:
+
+"Class"			STRING		Classname of the database
+"Resource"		STRING		The file or resource that this database is using (eg, "file:///whatever", "soap://wherever...")
+"RecordCount"		POSITION	The number of records contained in this database
+"RecordSize"		int		The number of bytes per record
+
+
+SOLVER Class property table:
+
+"Name"			STRING		Descriptive name of the solver
+"Authors"		STRING		The names of the authors of this solver
+
+
+SOLVER Instance property table:
+
+"Class"			STRING		Classname of this solver
+

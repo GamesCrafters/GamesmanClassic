@@ -1,0 +1,65 @@
+
+New Gamesman Core Specification
+===============================
+		    John Jordan
+
+
+Umm.. I'll fill in a more detailed explanation later, but for now I just
+wanted to get it up on cvs.  Here's a hand-wavy not-detailed explanation of
+the system:
+
+Design Goals:
+	- Modularity so as to allow easy expansion of the system
+	- Backwards compatibility with old gamesman games
+		- Wrapper classes will allow this to happen
+	- Multiple interfaces to the system: Text, Tcl/Tk, GTK (?), etc...
+
+Everything is layed out into 'classes'.
+
+Classes that exist in the system:
+	- Game class:
+		- Defines a game.
+		- Classic Primitive, GenerateMoves, DoMove functions
+		- Stores information about the current options set -- the
+		  configuration of the game.
+		- Get/Set functions (Query)
+	- Database class:
+		- This class stores and retrieves information regarding the
+		  gametree.  Does nothing else.
+		- Record length set by the Solver
+		- Number of records set by the game
+		- Gateway to access information regarding the gametree.
+		- Functions to store and retrieve data from the gametree
+		- Functions to set record size and number of records.
+		- Can transfer information from one Gametree to another
+(like from a file to memory -- from memory to a file -- net database to
+wherever..)
+	- Solver class:
+		- Solves the game
+		- Functions:
+			- solve()
+			- getRemoteness( POSITION )
+			- getValueOfPosition( POSITION )
+			- getValueMoves ( POSITION )
+		- Does lots of interfacing to Database class.
+		- Does a lot of stuff that you would expect in Database --
+can't go there since the Database has no idea how its records are structured
+		- getValueMoves should (can) rank moves better than just
+Win, Lose, Tie.  Should return more detailed separation of the moves, for
+example: all moves that win by x, or win in x moves..
+
+
+Different Database types:
+	- Memdb		Stores the gametree in flat memory
+	- Filedb	Stores the gametree in a flat file
+	- Netdb		Stores (mostly retrieves) the gametree on a remote
+host -- should also cache what we know
+
+Solver overrides:
+	- FlatSolver		Tic-Tac-Toe, etc
+	- LoopySolver		Achi, Gobblet, etc
+	- FuzzySolver		Dots-n-boxes, Domineering, etc
+	- BottomUpSolver	Nine mens' morris, etc
+	- etc
+
+- Game chooses the solver to use .. User chooses the gametree.
