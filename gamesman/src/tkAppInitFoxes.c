@@ -195,7 +195,7 @@ GetComputersMoveCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
     sprintf(interp->result,"%d",(int)GetComputersMove(position));
