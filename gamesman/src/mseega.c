@@ -30,7 +30,6 @@
  **               know that checking-in a file would lead to a vi interface
  **              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
  **	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
- **	        TO BE DONE: DoMoves, Primitive
  **              **PLEASE PUT UPDATES HERE**
  **
  **************************************************************************/
@@ -57,7 +56,7 @@ POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
+STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu";
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -82,7 +81,6 @@ void*    gGameSpecificTclInit = NULL;
 STRING kHelpGraphicInterface =
 "Not written yet";
 
-//TODO fix this up?
 STRING   kHelpTextInterface    =
 "There are two types of turns in Seega: place moves, and slide moves.\n\
 ***Part 1: PLACE MOVES:***\n\
@@ -123,12 +121,12 @@ x-ox   =======>     -x-x\n\
 x's turn to move    x moves right and captures two o pieces.";
 
 STRING   kHelpStandardObjective =
-"To capture the opponent's counters until the opponent only has one\n\
-counter left.";
+"To capture the opponent's counters until the opponent only has one\n"
+"counter left.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent to make moves that will eat of your pieces until\n\
-you are left with one piece.";
+"To force your opponent to make moves that will eat of your pieces until\n"
+"you are left with one piece.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "NOT possible in this game.";
@@ -169,7 +167,7 @@ int BOARDSIZE = DEFAULTBOARDSIZE;
 int BOARDARRAYSIZE;
 char P1='x';
 char P2='o';
-char blank='-';
+char blank='-'; //TODO changed Peter: I think blank should be '-'
 //int BOARDSIZE = 11;
 /* width*height, plus one for whose move it is and whether we are in
    placing mode.*/
@@ -323,6 +321,7 @@ void GameSpecificMenu()
     break;
   case '1':
     changeBoard();
+    GameSpecificMenu();
     break;
 
   case 'b': case 'B':
@@ -474,20 +473,6 @@ POSITION DoMove (POSITION position, MOVE m) {
   return hash(b);
 }
 
-
-/* Stolen from mttc.c and mothello.c */
-/*
-char* getBoard(POSITION pos) {
-  int boardsize, i;
-  char * generic_unhash(int,char *); // ??????
-  char* newBoard;
-  boardsize = width * height;
-  newBoard = SafeMalloc(boardsize*sizeof(char));
-  newBoard = generic_unhash(pos,newBoard);
-  return newBoard;
-}
-*/
-
 /************************************************************************
  **
  ** NAME:        GetInitialPosition
@@ -535,6 +520,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 }
 
 
+
 /************************************************************************
  **
  ** NAME:        Primitive
@@ -556,28 +542,40 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 
 //TODO not tested
 VALUE Primitive (POSITION position) {
-  int r, c;
+  int r, c,flag=0;
   // TODO: find a one-line way to say the following:
   char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   unhash(b,position);
   c=whoseBoard(b);
+  //c=whoseMove();
+  //c==P1?d=P2:d=P1;
   MOVELIST* moves = GenerateMoves(position);
+  FreeMoveList(moves);  
   if (moves==NULL) {
-    FreeMoveList(moves);
-    return tie;
+    for (r=0;r<width*height;r++){
+      if(getpce(b,r)==c) {
+	flag=1;
+	break;
+      }
+    }
+      if (flag != 1)
+	
+	//FreeMoveList(moves);
+	return lose;
+      return tie;
   }
-  else FreeMoveList(moves);
-  // A board is primitive if there are no more things to move.
-  for (r=0;r<width*height; r++)
-    if (getpce(b,r)!=c)
-      return undecided;
-  return lose;
-}
+    //else FreeMoveList(moves);
+    // A board is primitive if there are no more things to move.
+    //for (r=0;r<width*height; r++)
+    //if (getpce(b,r)!=c)
+    return undecided;
+    //return lose;
+  }
 
 
-/************************************************************************
- **
+  /************************************************************************
+   **
  ** NAME:        PrintPosition
  **
  ** DESCRIPTION: Print the position in a pretty format, including the
@@ -800,10 +798,20 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
     
+  BOOLEAN ValidMove();
+  
+    do {
+	printf("%8s's move [(undo)/<number> <number>] : ", playersName);
+    
+	input = HandleDefaultTextInput(position, move, playersName);
+	if(input != Continue)
+	    return(input);
+    
+    }
+    while (TRUE);
+  
+  /*
   for (;;) {
-    /***********************************************************
-     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-     ***********************************************************/
     printf("%8s's move [(undo)/<number> <number>] : ", playersName);
 	
     input = HandleDefaultTextInput(position, move, playersName);
@@ -811,6 +819,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     if (input != Continue)
       return input;
   }
+  */
 
   /* NOTREACHED */
   return Continue;
@@ -835,6 +844,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
  **
  ************************************************************************/
 
+
 BOOLEAN ValidTextInput (STRING input) {
   return TRUE;
 }
@@ -854,7 +864,7 @@ BOOLEAN ValidTextInput (STRING input) {
  **
  ************************************************************************/
 
-
+// some parts from mabalone.c
 MOVE ConvertTextInputToMove (STRING input) {
   if (DEBUGGING)
     printf("Starting conversion\n");
@@ -872,6 +882,8 @@ MOVE ConvertTextInputToMove (STRING input) {
   if (DEBUGGING) {printf("Conversion finds ");PrintMove(m);printf(".\n");}
   return m;
   //get first piece
+  //formula: result = letter + number
+  //letters: a = 100, b = 200, c = 300, etc.
   /* 
      if ((input[n] >= 'a') && (input[n] <= 'z')) {
      //calculate offset!
@@ -946,7 +958,7 @@ MOVE ConvertTextInputToMove (STRING input) {
   }
 */
 void PrintMove(MOVE move) {
-  printf("%d %d", fromWhere(&move),toWhere(&move));
+  printf("[%d %d]", fromWhere(&move),toWhere(&move));
 }
 
 
@@ -1012,20 +1024,6 @@ void setOption (int option) {
 *************************************************************************
 ************************************************************************/
 
-/************************************************************************
- **
- ** NAME:        PositionToBlankOX
- **
- ** DESCRIPTION: convert an internal position to that of a BlankOX.
- ** 
- ** INPUTS:      POSITION thePos     : The position input. 
- **              BlankOX *theBlankOx : The converted BlankOX output array. 
- **
- ** CALLS:       BadElse()
- **
- ************************************************************************/
-
-
 inline char whoseBoard(Board b) {return b[width*height+1];}
 inline char getpce(Board b, int r) {return b[r];}
 inline char getPiece(Board b, int x, int y) {return getpce(b,x*width+y);}
@@ -1081,41 +1079,6 @@ BOOLEAN fullBoard(Board b) {
       return FALSE;
   return TRUE;
 }
-
-/*
-  PositionToBlankOX(thePos,theBlankOX,whosTurn)
-  POSITION thePos;
-  BlankOX *theBlankOX, *whosTurn;
-  {
-  int i;
-  int POSITION_OFFSET; // NOT SURE WHAT THIS IS -YR
-  int g3Array[111]; // NOT SURE WHAT THIS IS -YR
-  if(thePos >= POSITION_OFFSET) {
-  *whosTurn = x;
-  thePos -= POSITION_OFFSET;
-  }
-  else
-  *whosTurn = o;
-  for(i = 8; i >= 0; i--) {
-  if(thePos >= ((int)x * g3Array[i])) {
-  theBlankOX[i] = x;
-  thePos -= (int)x * g3Array[i];
-  }
-  else if(thePos >= ((int)o * g3Array[i])) {
-  theBlankOX[i] = o;
-  thePos -= (int)o * g3Array[i];
-  }
-  else if(thePos >= ((int)Blank * g3Array[i])) {
-  theBlankOX[i] = Blank;
-  thePos -= (int)Blank * g3Array[i];
-  }
-  else
-  BadElse("PositionToBlankOX");
-  }
-  }
-*/
-
-
 
 /* YR: These are the functions I made before. They don't work yet
    probably.  */
