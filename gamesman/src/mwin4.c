@@ -136,10 +136,17 @@ typedef enum possibleBoardPieces {
 
 char *gBlankOXString[] = { "X", "O", "-" };
 
-
+/* Global position solver variables.*/
+struct {
+  XOBlank board[MAXW][MAXH];
+  int heights[MAXW];
+  XOBlank nextPiece;
+  int piecesPlaced;
+} gPosition;
 
 /** Function Prototypes **/
-void PositionToBoard(POSITION pos, XOBlank board[WIN4_WIDTH][WIN4_HEIGHT]);
+void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
+void UndoMove(MOVE move);
 
 /*************************************************************************
 **
@@ -164,6 +171,23 @@ void InitializeGame()
 //	 gNumberOfPositions, gNumberOfPositions, gDatabase);
 //  for(i = 0; i < gNumberOfPositions; i++)
   //  gDatabase[i] = undecided;
+
+  PositionToBoard(gInitialPosition, gPosition.board);
+
+  for (i = 0; i < WIN4_WIDTH; ++i) {
+    gPosition.heights[i] = 0;
+
+    for (j = 0; j < WIN4_HEIGHT; ++j) {
+      if (gPosition.board[i][j] == Blank)
+        break;
+
+      ++gPosition.heights[i];
+    }
+  }
+
+  gPosition.nextPiece = x;
+  gPosition.piecesPlaced = 0;
+  gUndoMove = UndoMove;
 }
 
 
@@ -250,8 +274,8 @@ int theOptions[];
 **
 ** DESCRIPTION: Apply the move to the position.
 ** 
-** INPUTS:      POSITION thePosition : The old position
-**              MOVE     theMove     : The move to apply.
+** INPUTS:      POSITION position : The old position
+**              MOVE     move     : The move to apply.
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
@@ -259,19 +283,31 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION DoMove(POSITION position, MOVE move)
 {
   XOBlank turn,WhoseTurn();
   int i,free=0;
-  for (i=theMove*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-       (thePosition & (1 << i)) == 0; --i)
+  for (i=move*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
+       (position & (1 << i)) == 0; --i)
     free++;
   if (free == 0) return kBadPosition;
-  turn=WhoseTurn(thePosition);
-  thePosition &= ~(1 << i);
-  return (thePosition | ((2+(int)turn)<<i));
+  turn = gUseGPS ? gPosition.nextPiece : WhoseTurn(position);
+  position &= ~(1 << i);
+
+  if (gUseGPS) {
+    gPosition.board[move][gPosition.heights[move]++] = gPosition.nextPiece;
+    gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+    ++gPosition.piecesPlaced;
+  }
+
+  return (position | ((2+(int)turn)<<i));
+}
+
+void UndoMove(MOVE move)
+{
+  gPosition.board[move][--gPosition.heights[move]] = Blank;
+  gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+  --gPosition.piecesPlaced;
 }
 
 /************************************************************************
@@ -323,14 +359,16 @@ VALUE Primitive(pos)
   int ll[WIN4_WIDTH][WIN4_HEIGHT];//lower left
   int u[WIN4_WIDTH][WIN4_HEIGHT];//up
   XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
-  XOBlank realboard[WIN4_WIDTH][WIN4_HEIGHT];
   int col,row;
-  PositionToBoard(pos,realboard);
+
+  if (!gUseGPS)
+    PositionToBoard(pos, gPosition.board); // Temporary storage.
+
   for (col=0;col<WIN4_WIDTH;col++)
     board[col][WIN4_HEIGHT]=2;
   for (col=0;col<WIN4_WIDTH;col++)
     for (row=0;row<WIN4_HEIGHT;row++)
-      board[col][row]=realboard[col][row];
+      board[col][row] = gPosition.board[col][row];
   // Check for four in a row
   // First do column 0:
   col=0;
@@ -414,11 +452,15 @@ VALUE Primitive(pos)
     }
   }
   //Now check if the board is full:
+  if (gUseGPS)
+    return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie :
+           undecided;
+
   for (col=0;col<WIN4_WIDTH;col++)
     for (row=0;row<WIN4_HEIGHT;row++)
       if (board[col][row]==2) return(undecided);
-  return(tie);
-}
+
+  return(tie);}
 
 
 /************************************************************************
@@ -447,7 +489,7 @@ void PrintPosition(position,playerName,usersTurn)
 {
   int i,row;
   VALUE GetValueOfPosition();
-  XOBlank board[WIN4_WIDTH][WIN4_HEIGHT], WhoseTurn();
+  XOBlank board[MAXW][MAXH], WhoseTurn();
 
   PositionToBoard(position,board);
 
@@ -491,19 +533,17 @@ MOVELIST *GenerateMoves(position)
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
-  XOBlank board[WIN4_WIDTH][WIN4_HEIGHT];
   int i;
-  
-  if (Primitive(position) == undecided) {
-    PositionToBoard(position,board);
-    for(i = 0 ; i < WIN4_WIDTH ; i++) {
-      if(board[i][WIN4_HEIGHT-1] == Blank)
-	head = CreateMovelistNode(i,head);
-    }
-    return(head);
-  } else {
-    return(NULL);
+
+  if (!gUseGPS)
+    PositionToBoard(position, gPosition.board); // Temporary storage.
+
+  for(i = 0 ; i < WIN4_WIDTH ; i++) {
+    if(gPosition.board[i][WIN4_HEIGHT-1] == Blank)
+      head = CreateMovelistNode(i,head);
   }
+
+  return(head);
 }
 
 /************************************************************************
@@ -621,7 +661,7 @@ void PrintMove(theMove)
 
 void PositionToBoard(pos,board)
      POSITION pos;
-     XOBlank board[WIN4_WIDTH][WIN4_HEIGHT];
+     XOBlank board[MAXW][MAXH];
      // board is a two-dimensional array of size 
      // WIN4_WIDTH x WIN4_HEIGHT
 {
