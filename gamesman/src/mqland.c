@@ -1,4 +1,4 @@
-// Steven Kusalo
+// Alex Wallisch
 // $log$
 
 /*
@@ -16,7 +16,8 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-25 	Fixed the last bug in GameSpecificMenu
+** UPDATE HIST: 2004-10-26	Finished helpstrings, finalized PrintPosition
+		2004-10-25 	Fixed the last bug in GameSpecificMenu
 **				Wrote ValidTextInput
 ** 		2004-10-08      Partially wrote GameSpecificMenu
 **		2004-10-03      Wrote Primitive
@@ -92,8 +93,124 @@ STRING   kHelpTieOccursWhen =
 "A tie occurs when each player has played all their pieces and have the same number of points.";
 
 STRING   kHelpExample =
-"";
-
+"   Queensland!\n\
+/===============\\\n\
+|   XXXX OOOO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . . | 0|\n\
+| 3| . . . . |  |\n\
+| 2| . . . . |  |\n\
+| 1| . . . . | 0|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 1's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : a1\n\
+   Queensland!\n\
+/===============\\\n\
+|   XXX. OOOO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . . | 0|\n\
+| 3| . . . . |  |\n\
+| 2| . . . . |  |\n\
+| 1| X . . . | 0|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 2's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : d3\n\
+   Queensland!\n\
+/===============\\\n\
+|   XXX. .OOO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . . | 0|\n\
+| 3| . . . O |  |\n\
+| 2| . . . . |  |\n\
+| 1| X . . . | 0|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 1's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : d4\n\
+   Queensland!\n\
+/===============\\\n\
+|   XX.. .OOO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . X | 2|\n\
+| 3| . . . O |  |\n\
+| 2| . . . . |  |\n\
+| 1| X . . . | 0|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 2's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : d3 c3 c1\n\
+   Queensland!\n\
+/===============\\\n\
+|   XX.. ..OO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . X | 0|\n\
+| 3| . . O . |  |\n\
+| 2| . . . . |  |\n\
+| 1| X . O . | 1|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 1's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : a1 a2 d2\n\
+   Queensland!\n\
+/===============\\\n\
+|   X... ..OO   |\n\
+|  /---------\\ X|\n\
+| 4| . . . X | 3|\n\
+| 3| . . O . |  |\n\
+| 2| X . . X |  |\n\
+| 1| . . O . | 1|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 2's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : c3 b2 b4\n\
+   Queensland!\n\
+/===============\\\n\
+|   X... ...O   |\n\
+|  /---------\\ X|\n\
+| 4| . O . X | 1|\n\
+| 3| . . . . |  |\n\
+| 2| X O . X |  |\n\
+| 1| . . O . | 1|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 1's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : d2 d1 a4\n\
+   Queensland!\n\
+/===============\\\n\
+|   .... ...O   |\n\
+|  /---------\\ X|\n\
+| 4| X O . X | 5|\n\
+| 3| . . . . |  |\n\
+| 2| X O . . |  |\n\
+| 1| . . O X | 1|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+Player 2's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : c1 d2 c2\n\
+   Queensland!\n\
+/===============\\\n\
+|   .... ....   |\n\
+|  /---------\\ X|\n\
+| 4| X O . X | 1|\n\
+| 3| . . . . |  |\n\
+| 2| X O O O |  |\n\
+| 1| . . . X | 2|\n\
+|  \\---------/ O|\n\
+|    a b c d    |\n\
+\\===============/\n\
+\n\
+\n\
+Player 2 (player two) Wins!\n";
 
 /*************************************************************************
 **
@@ -117,6 +234,8 @@ STRING   kHelpExample =
 #define MIN_HEIGHT 3
 #define MAX_WIDTH 9
 #define MIN_WIDTH 3
+#define MIN_PIECES 2
+#define MAX_PIECES width
 
 #define pieceat(B, x, y) ((B)[(y) * width + (x)])
 #define get_location(x, y) ((y) * width + (x))
@@ -416,20 +535,22 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 			printf("%c", BLANK);
 		}
 	}
+	for (i = 0; i < width - numpieces; i++) {
+		printf(" ");
+	}
 	printf("   |\n");
 								/* Third row */
-	printf("|  /");						/* |  /---------\  | */
+	printf("|  /");						/* |  /---------\ X| */
     	for (i = 0; i < (2*width+1); i++) {
    		printf("-");
 	}
-	printf("\\  |\n");
+	printf("\\ %c|\n", WHITE);
 		
 	
 	for (j = 0; j < height; j++) {				/* Body of board */	
 		
 		printf("| %d", height-j);
 		
-		/* Right now, we do not print stock of remaining pieces. If we did, O's would go here. */
 		printf("| ");
 		for (i = 0; i < width; i++) {
 			switch(pieceat(board, i, j)) {
@@ -446,16 +567,20 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 				    BadElse("PrintPosition");
 			}
 		}
-		printf("|  ");
-		/* Right now, we do not print stock of remaining pieces.  If we did, X's would go here. */
+		printf("|");
+		if (j == 0) {
+			printf("%2d", scoreBoard(board, WHITE));
+		} else if (j == height - 1) {
+			printf("%2d", scoreBoard(board, BLACK));
+		} else printf("  ");
 		printf("|\n");
 	}
 	
 	printf("|  \\");					/* Third-from-bottom row */
-    	for (i = 0; i < (2*width+1); i++) {			/* |  \---------/  | */
+    	for (i = 0; i < (2*width+1); i++) {			/* |  \---------/ O| */
    		printf("-");
 	}
-	printf("/  |\n");
+	printf("/ %c|\n", BLACK);
 	
 	printf("|    ");						
 	for (i = 'a'; i < width + 'a'; i++) {			/* |    a b c d    | */
@@ -1026,15 +1151,15 @@ void ChangeNumPieces() {
     int newAmount;
     char c;
     while(TRUE) {
-	printf("\n\nEnter the number of pieces each team starts with (between %d and %d): ", 1, width);
+	printf("\n\nEnter the number of pieces each team starts with (between %d and %d): ", MIN_PIECES, MAX_PIECES);
 	while (isspace(c = getc(stdin))) ;
 	newAmount = c - '0';
-	if (newAmount <= width && newAmount >= 1) {
+	if (newAmount <= MAX_PIECES && newAmount >= MIN_PIECES) {
 	    numpieces = newAmount;
 	    printf("\nNumber of pieces changed to %d\n", numpieces);
 	    return;
 	}
-	printf("Number must be between 1 and %d.  Please try again.\n", width);
+	printf("Number must be between %d and %d.  Please try again.\n", MIN_PIECES, MAX_PIECES);
     }
 }
 
