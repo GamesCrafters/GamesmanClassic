@@ -90,7 +90,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDWIDTH     4
+#define BOARDWIDTH     3
 #define BOARDHEIGHT    1
 #define PASSMOVE 0
 int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
