@@ -11,7 +11,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
  * Above is will include the name and the log of the last
  * person to commit this file to gamesman.
  */
-// YR: I don't know how to format that. (updated)
+// YR: I don't know how to format that. (me neither)
 
 /************************************************************************
 **
@@ -29,8 +29,8 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 **              2004-10-11 Peter: I wrote this earlier, but I didn't know
 **               know that checking-in a file would lead to a vi interface
 **              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
-**		    2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
-**		    TO BE DONE: DoMoves, Primitive
+**	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
+**	        TO BE DONE: DoMoves, Primitive
 **
 **************************************************************************/
 
@@ -50,8 +50,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 
 extern STRING gValueString[];
 
-
-POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions  = 27962; /* # total possible positions -> given by the hash_init() function*/
 POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
@@ -210,6 +209,9 @@ void InitializeGame () {
 		     blank, 1, BOARDSIZE,
 		     -1};
   int maxpos = generic_hash_init(BOARDSIZE, boardspec, NULL);
+  gNumberOfPositions  = maxpos;
+  BOARDSIZE = width * height; //global variables
+
 }
 
 
@@ -237,7 +239,6 @@ void DebugMenu () {
 ** 
 ************************************************************************/
 
-//TODO not quite right..
 void GameSpecificMenu()
 {
     char GetMyChar();
@@ -253,6 +254,7 @@ void GameSpecificMenu()
     
     switch(GetMyChar()) {
     case 'Q': case 'q':
+	printf("\n");
 	ExitStageRight();
 	break;
     case '1':
@@ -272,8 +274,8 @@ void GameSpecificMenu()
 void changeBoard() 
 {
   int n_rows, n_cols, valid_cols, valid_rows;
-  valid_cols = 0;
-  valid_rows = 0;
+  valid_cols = 0; //a flag
+  valid_rows = 0; //another flag - not used
   printf("Enter the new number of rows (3-%d):  ", MAXROWS);
   (void) scanf("%u", &n_rows);
   if ((n_rows < 3) || (n_rows > MAXROWS)) {
@@ -331,49 +333,10 @@ void SetTclCGameSpecificOptions (int options[]) {
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-//REMOVE THIS
 POSITION DoMove (POSITION position, MOVE move) {
-    
-    BlankOX theBlankOX[BOARDSIZE];
-    int from, to;
-    BlankOX whosTurn;
-    BOOLEAN phase1();
-
-    
-    PositionToBlankOX(position,theBlankOX, &whosTurn);
-    from = 0;
-    to = 0;
-   
-    if(phase1(theBlankOX)) {
-	theBlankOX[move-1] = whosTurn;
-    }
-    else {
-	
-	from = move/10;
-	to = move%10;
-	theBlankOX[to-1] = theBlankOX[from-1];
-	theBlankOX[from-1] = (int)Blank;
-    }
-    if(whosTurn == o)
-	whosTurn = x;
-    else
-	whosTurn = o;
-    
-    return BlankOXToPosition(theBlankOX,whosTurn);
-}
-
-BOOLEAN phase1(BlankOX *theBlankOX) {
-    int count = 0;
-    int i = 0;
-    while(i < BOARDSIZE) {
-	    if(theBlankOX[i] != Blank)
-		count++;
-	//TODO WARNING: HARDCODED NUMBER for 3x3 board - start at 5th move or 9th move
-	    if(count >= 5)
-		return FALSE;
-	    i++;
-	}
-    return TRUE;
+  if (DEBUGGING) 
+    printf("Starting Do Move with input: %d\n", theMove);
+	return NULL;
 }
 
 /************************************************************************
@@ -387,8 +350,15 @@ BOOLEAN phase1(BlankOX *theBlankOX) {
 **
 ************************************************************************/
 
-POSITION GetInitialPosition () {
-  return 0;
+//TODO change - default for now
+POSITION GetInitialPosition ()
+{
+  gBoard[4]=gBoard[0]= gBoard[8]=gBoard[6]='x';
+  gBoard[2]=gBoard[3]= gBoard[7]=gBoard[1]='0';
+  gBoard[5]=' ';
+
+
+  return generic_hash(gBoard,1);
 }
 
 
@@ -571,9 +541,33 @@ return head;
 **
 ************************************************************************/
 
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+{
+    USERINPUT input;
+    USERINPUT HandleDefaultTextInput();
+    
+    for (;;) {
+        /***********************************************************
+         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+         ***********************************************************/
+	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	
+	input = HandleDefaultTextInput(position, move, playersName);
+	
+	if (input != Continue)
+		return input;
+    }
+
+    /* NOTREACHED */
+    return Continue;
+}
+
+
+/*
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE* move, STRING playerName) {
   return Abort;
 }
+*/
 
 
 /************************************************************************
@@ -707,6 +701,7 @@ void setOption (int option) {
  **
  ************************************************************************/
 
+/*
 inline char whoseBoard(Board b) {return b[width*height];}
 //inline char whoseMove(SMove m) {return m[2];}
 inline char getpce(Board b, int r) {return b[r];}
@@ -726,10 +721,10 @@ inline void setMove(SMove m, char who, int rfrom, int rto) {
 }
 inline void setPlacingBoard(Board b, BOOLEAN t) {b[width*height+1]=t;}
 inline void setPlacingMove(SMove m, BOOLEAN t) {m[3]=t;}
+*/
 
 
-
-
+/*
 PositionToBlankOX(thePos,theBlankOX,whosTurn)
      POSITION thePos;
      BlankOX *theBlankOX, *whosTurn;
@@ -738,7 +733,7 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
     int POSITION_OFFSET; // NOT SURE WHAT THIS IS -YR
     int g3Array[111]; // NOT SURE WHAT THIS IS -YR
     if(thePos >= POSITION_OFFSET) {
-	*whosTurn = x;  /* if the last character in the array is an x */
+	*whosTurn = x;
 	thePos -= POSITION_OFFSET;
     }
     else
@@ -760,7 +755,7 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
 	    BadElse("PositionToBlankOX");
     }
 }
-
+*/
 
 
 
@@ -770,6 +765,8 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
 
 /* YR: These are the functions I made before. They don't work yet
    probably.  */
+//Peter & Emad - we'll comment these out for now
+/*
 int nextOpenSpot(Board b, int lowerBound) {
   for (; lowerBound<width*height; lowerBound++)
     if (!getpce(b, lowerBound))
@@ -807,7 +804,7 @@ MOVELIST *GenerateMovingMoves(POSITION position) {
       head = CreateMovelistNode(i | j<<5, head);
   return head;
 }
-
+*/
 
 
 
