@@ -2817,6 +2817,16 @@ void SetParents (POSITION parent, POSITION root)
       
       for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
 	child = DoMove(pos, moveptr -> move);
+	if (child < 0 || child >= gNumberOfPositions) {
+	  fprintf(stderr, "*** ERROR: Invalid position (" POSITION_FORMAT ") encountered\n", child);
+	  fprintf(stderr, "*** ERROR: Parent=" POSITION_FORMAT ", Move=%d\n", moveptr -> move);
+	  fprintf(stderr, "*** ERROR: Representation of parent position:\n\n");
+	  fflush(stderr);
+	  /* TODO: Redirect stdout to stderr? (dup2).  Not sure if this is portable. -JJ */
+	  PrintPosition(pos, "debug", 0);
+	  fflush(stdout);
+	  ExitStageRight();
+	}
 	++gNumberChildren[(int)pos];
 	gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);
 	
