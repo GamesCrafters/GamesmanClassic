@@ -208,10 +208,8 @@ static int UnhashCmd(ClientData dummy, Tcl_Interp *interp,
 		   int argc, char **argv);
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
-  Tcl_CreateCommand(interp, "C_Hash", HashCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-  Tcl_CreateCommand(interp, "C_Unhash", UnhashCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
+  Tcl_CreateCommand(interp, "C_Hash", (Tcl_CmdProc*) HashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+  Tcl_CreateCommand(interp, "C_Unhash", (Tcl_CmdProc*) UnhashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
   return 0;
 }
 

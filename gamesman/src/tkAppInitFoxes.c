@@ -90,38 +90,24 @@ Gamesman_Init(interp)
     Tk_Window mainWindow;
 
     mainWindow = Tk_MainWindow(interp);
-    Tcl_CreateCommand(interp, "foo", FooCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_Initialize", InitializeCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_InitializeDatabases", InitializeDatabasesCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_GetComputersMove", GetComputersMoveCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", SetGameSpecificOptionsCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_DetermineValue", DetermineValueCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_GetValueOfPosition", GetValueOfPositionCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_Remoteness", RemotenessCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_Mex", MexCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_DoMove", DoMoveCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_Primitive", PrimitiveCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_GetValueMoves", GetValueMovesCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
-    Tcl_CreateCommand(interp, "C_Random", RandomCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
+    Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_Initialize", (Tcl_CmdProc*) InitializeCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_InitializeDatabases", (Tcl_CmdProc*) InitializeDatabasesCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetComputersMove", (Tcl_CmdProc*) GetComputersMoveCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", (Tcl_CmdProc*) SetGameSpecificOptionsCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_DetermineValue", (Tcl_CmdProc*) DetermineValueCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetValueOfPosition", (Tcl_CmdProc*) GetValueOfPositionCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_Remoteness", (Tcl_CmdProc*) RemotenessCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_Mex", (Tcl_CmdProc*) MexCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_DoMove", (Tcl_CmdProc*) DoMoveCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_Primitive", (Tcl_CmdProc*) PrimitiveCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetValueMoves", (Tcl_CmdProc*) GetValueMovesCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_Random", (Tcl_CmdProc*) RandomCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
   #ifdef COMPUTEC
-    Tcl_CreateCommand(interp, "C_ComputeC", ComputeCCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
+    Tcl_CreateCommand(interp, "C_ComputeC", (Tcl_CmdProc*) ComputeCCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
  #endif
-    Tcl_CreateCommand(interp, "C_GoAgain", GoAgainCmd, (ClientData) mainWindow,
-	    (void (*)()) NULL);
+    Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
 
     {
 #pragma weak GameSpecificTclInit
