@@ -219,7 +219,7 @@ void PrintGameValueSummary()
     printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
     printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
     printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
-    printf("\tProbability of maintaining a %-5s= %2f\n", initialPositionValue,gAnalysis.InitialPositionProbability);
+    printf("\tProbability of maintaining a %-5s= %.2f%%\n", initialPositionValue,gAnalysis.InitialPositionProbability);
     
     return;
 }
@@ -284,7 +284,11 @@ void analyzer()
     averageFanout = (float)((float)gAnalysis.TotalMoves/(float)(reachablePositions - primitiveWins - primitiveLoses - primitiveTies));
     
     gAnalysis.InitialPositionValue = GetValueOfPosition(gInitialPosition);
+    
     UnMarkAllAsVisited();
+    
+    gAnalysis.InitialPositionProbability = DetermineProbability(gInitialPosition,gAnalysis.InitialPositionValue);
+    
     
     
     gAnalysis.HashEfficiency    = hashEfficiency;
@@ -304,28 +308,62 @@ void analyzer()
  * randomly select a move given a position.                     */
 float DetermineProbability(POSITION position, VALUE value)
 {
-    POSITION numChildrenVisited = 0;
-    POSITION child = 0;
     MOVELIST *ptr, *head;
+    VALUE opposite_value=lose;
+    VALUE primitive = Primitive(position);
+    POSITION child;
+    POSITION numChildren = 0;
+    float probabilitySum = 0.0;
     
-    MarkAsVisited(position);
-    
-    head = ptr = GenerateMoves(position);
-    while(ptr != NULL) {
-        MOVE move = ptr->move;
-        child = DoMove(position, ptr->move);
-        if(!Visited(child))
-        {
-            if(GetValueOfPosition(child))
-            {
-                
-            }
-            numChildrenVisited++;
-        }
-        
+    switch(value)
+    {
+        case win:
+            opposite_value = lose;
+            break;
+        case lose:
+            opposite_value = win;
+            break;
+        case tie:
+            opposite_value = tie;
+            break;
+        default:
+            BadElse("DetermineProbability [next_level_value]");
     }
+    
+    
+    if(primitive == value)
+    {
+        return 100.0;
+    }
+    else if (primitive == opposite_value)
+    {
+        return 0.0;
+    }
+    else if(Visited(position))
+    {
+        return 0.0;
+    }
+    else
+    {
+        MarkAsVisited(position);
         
-    return 0.0;
+        head = ptr = GenerateMoves(position);
+        
+        while(ptr != NULL)
+        {
+            child = DoMove(position, ptr->move);
+           
+            probabilitySum += DetermineProbability(position, opposite_value);
+            
+            numChildren++;
+            ptr = ptr->next;
+        }
+        FreeMoveList(head);
+        
+        printf("%f/%u = %f\n",probabilitySum,numChildren,(float)((float) probabilitySum / (float)numChildren)* 100.0);
+        return (float)((float) probabilitySum / (float)numChildren)* 100.0;
+    }
+    
 }
 
 
