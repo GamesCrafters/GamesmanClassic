@@ -34,6 +34,7 @@
 #include <zlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <netinet/in.h>
 
 #include "gamesman.h"
 
@@ -93,6 +94,7 @@
 ***********/
 int writeDatabase()
 {
+    
     short dbVer[1];
     POSITION numPos[1];
     unsigned long i;
