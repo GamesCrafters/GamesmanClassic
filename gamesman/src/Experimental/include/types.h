@@ -78,16 +78,23 @@ typedef	TABLE			table_iter;
 ** Classes
 */
 
+typedef struct {
+	struct GAME_struct*	game;
+	struct DB_struct*	db;
+	struct SOLVER_struct*	solver;
+} TRIAD;
+
 typedef struct GAME_struct {
+	TRIAD*			triad;
 	void*			internal;
 	TABLE			properties;
 	
-	int			(*initialize_game)(struct GAME_struct*);
+	int			(*init)(struct GAME_struct*);
 	int			(*free)(struct GAME_struct*);
 	
 	POSITION		(*do_move)(struct GAME_struct*, POSITION, MOVE, int*);
 	VALUE			(*primitive)(struct GAME_struct*, POSITION);
-	MOVELIST		(*generate_moves)(struct GAME_struct*, POSITION, int*);
+	MOVELIST*		(*generate_moves)(struct GAME_struct*, POSITION, int*);
 	POSITIONLIST*		(*generate_parents)(struct GAME_struct*, POSITION);
 	int			(*whose_turn)(struct GAME_struct*, POSITION);
 	
@@ -112,6 +119,7 @@ struct TCLGAME {
 };
 
 typedef struct DB_struct {
+	TRIAD*			triad;
 	void*			internal;
 	TABLE			properties;
 	TABLE			content_properties;
@@ -126,11 +134,9 @@ typedef struct DB_struct {
 } DATABASE;
 
 typedef struct SOLVER_struct {
+	TRIAD*			triad;
 	void*			internal;
 	TABLE			properties;
-	
-	GAME*			game;
-	DATABASE*		db;
 	
 	int			(*solve)(struct SOLVER_struct*);
 	int			(*free)(struct SOLVER_struct*);
@@ -141,27 +147,22 @@ typedef struct SOLVER_struct {
 
 typedef struct {
 	STRING			class_name;
-	
 	TABLE			properties;
+	
 	SOLVER*			(*create)(GAME*, DATABASE*);
 } SOLVER_CLASS;
 
 typedef struct {
 	STRING			class_name;
-	STRING			prefix;
-	
 	TABLE			properties;
+	
 	DATABASE*		(*create)(STRING);
 } DATABASE_CLASS;
 
 typedef struct {
 	STRING			class_name;
-	int			option_count;
-	
-	TABLE			custom_solvers;
-	TABLE			custom_databases;
-	
 	TABLE			properties;
+	
 	GAME*			(*create)(int);
 } GAME_CLASS;
 

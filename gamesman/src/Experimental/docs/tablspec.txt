@@ -18,6 +18,10 @@ GAME Instance property table:
 "HasGoAgains"		int		non-zero if the game has Go-Agains
 "PreferredSolver"	STRING		Classname of the preferred solver to use
 "PreferredDatabase"	STRING		Classname of the preferred db to use
+"MaxRemoteness"		int		Upper-bound on the remoteness that can be used
+"MaxValue"		int		Upper-bound on the value that a primitive can have (0 for most games)
+"CustomSolvers"		TABLE		Table of solvers that the game module provides
+"CustomDatabases"	TABLE		Table of databases that the game module provides
 
 
 DATABASE Class property table:
@@ -38,6 +42,7 @@ DATABASE Instance property table:
 "Game"			STRING		The name of the game that this database stores
 "GameOption"		int		The option number of the game
 "Solver"		STRING		The classname of the solver that this game uses
+"SolverOption"		???		The option data having to do with the solver
 
 
 SOLVER Class property table:
