@@ -31,6 +31,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 **              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
 **	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
 **	        TO BE DONE: DoMoves, Primitive
+**              Might not compile =(
 **
 **************************************************************************/
 
@@ -158,8 +159,10 @@ inline int fromWhere(SMove m); // applies only if !placingMove(m)
 inline int toWhere(SMove m);
 inline int toWhere2(SMove m); // applies only if placingMove(m)
 
+// Are we in the opening phase of the game?
 inline BOOLEAN placingBoard(Board b);
 inline BOOLEAN placingMove(SMove m);
+BOOLEAN fullBoard(Board b);
 
 inline void setpce(Board b, int r, char c);
 inline void setWhoseMove(Board b, char c);
@@ -170,6 +173,13 @@ inline void setPlacingMove(SMove m, BOOLEAN t);
 /* tells whether r is a forbidden spot for placing pieces (i.e. the
    center) */
 inline int forbiddenSpot(int r) {return height/2 == r/width && width/2 == r%width;}
+
+/* A few helper functions for GenerateMoves. */
+int nextOpenSpot(Board b, int lowerBound);
+int nextOpenInitSpot(Board b, int lowerBound);
+int nextSpotOfType(Board b, int lowerBound, int whoseTurn);
+MOVELIST *GeneratePlacingMoves(Board b);
+MOVELIST *GenerateMovingMoves(Board b);
 
 
 /*************************************************************************
@@ -211,8 +221,7 @@ void InitializeGame () {
 		     P2, 0, floor(BOARDSIZE/2),
 		     blank, 1, BOARDSIZE,
 		     -1};
-  int maxpos = generic_hash_init(BOARDSIZE, boardspec, NULL);
-  gNumberOfPositions  = maxpos;
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, boardspec, NULL);
   BOARDSIZE = width * height; //global variables
 
   //TODO start initializing the board!!
@@ -366,6 +375,47 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 	return generic_hash(board, nextPlayer);
 }
 
+//this will do the actual moves
+/*
+POSITION DoMove (POSITION position, MOVE m) {
+  // TODO: find a one-line way to say the following:
+  char tempname[BOARDSIZE];
+  Board b = tempname;
+  generic_unhash(position, b);
+  char c = whoseMove(&m), d=otherPlayer(c);
+  if (placingBoard(b)) {
+    setpce(b, toWhere(m), c);
+    setpce(b, toWhere2(m), c);
+    setWhoseMove(b, d);
+    if (fullBoard(b)) setPlacingBoard(b,FALSE);
+  }
+  else {
+    int r = toWhere(m);
+    setpce(b, r, c);
+    setpce(b, fromWhere(m), '-');
+    if (r-2*width>=0 && 
+        getpce(b, r-2*width)==c &&
+        getpce(b, r-width)==d)
+      setpce(b, r-width, '-');
+    if (r+2*width<width*height && 
+        getpce(b, r+2*width)==c &&
+        getpce(b, r+width)==d)
+      setpce(b, r+width, '-');
+    if (r%width+2<width &&
+        getpce(b, r+2)==c &&
+        getpce(b, r+1)==d)
+      setpce(b, r+1, '-');
+    if (r%width-2>=0 &&
+        getpce(b, r-2)==c &&
+        getpce(b, r-1)==d)
+      setpce(b, r-1, '-');
+    setWhoseMove(b, d);
+  }
+  return generic_hash(b,whoseMove(b));
+}
+
+*/
+
 /* Stolen from mttc.c and mothello.c */
 //TODO Peter: are we using this?
 char* getBoard(POSITION pos) {
@@ -436,8 +486,31 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 **
 ************************************************************************/
 
+/*
 VALUE Primitive (POSITION position) {
   return undecided;
+}
+*/
+
+//TODO not tested
+VALUE Primitive (POSITION position) {
+  int r, c=whoseMove(b);
+  // TODO: find a one-line way to say the following:
+  char tempname[BOARDSIZE];
+  Board b = tempname;
+  generic_unhash(position, b);
+  MOVELIST* moves = GenerateMoves(position);
+  if (moves==NULL) {
+    FreeMoveList(moves);
+    return tie;
+  }
+  else FreeMoveList(moves);
+  // A board is primitive if there are no more things to move.
+  if MOVELIST *GenerateMoves (POSITION position) {
+  for (r=0;r<width*height; r++)
+    if (getpce(b,r)!=c)
+      return undecided;
+  return lose;
 }
 
 
@@ -560,6 +633,19 @@ MOVELIST *GenerateMoves (POSITION position) {
 return head;
 
 }
+
+/*
+MOVELIST *GenerateMoves (POSITION position) {
+  // TODO: say this in one line instead of 2:
+  char tempname[BOARDSIZE];
+  Board b = tempname;
+  generic_unhash(position, b);
+  if (placingBoard(b))
+    return GeneratePlacingMoves(b);
+  else
+    return GenerateMovingMoves(b);
+}
+*/
  
 /************************************************************************
 **
@@ -780,7 +866,7 @@ void setOption (int option) {
  **
  ************************************************************************/
 
-/*
+
 inline char whoseBoard(Board b) {return b[width*height];}
 //inline char whoseMove(SMove m) {return m[2];}
 inline char getpce(Board b, int r) {return b[r];}
@@ -800,8 +886,16 @@ inline void setMove(SMove m, char who, int rfrom, int rto) {
 }
 inline void setPlacingBoard(Board b, BOOLEAN t) {b[width*height+1]=t;}
 inline void setPlacingMove(SMove m, BOOLEAN t) {m[3]=t;}
-*/
 
+
+
+BOOLEAN fullBoard(Board b) {
+  int r;
+  for (r=0;r<width*height;r++)
+    if (!forbiddenSpot(r) && getpce(b,r)=='-')
+      return FALSE;
+  return TRUE;
+}
 
 /*
 PositionToBlankOX(thePos,theBlankOX,whosTurn)
@@ -838,14 +932,8 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
 
 
 
-
-
-
-
 /* YR: These are the functions I made before. They don't work yet
    probably.  */
-//Peter & Emad - we'll comment these out for now
-/*
 int nextOpenSpot(Board b, int lowerBound) {
   for (; lowerBound<width*height; lowerBound++)
     if (!getpce(b, lowerBound))
@@ -864,27 +952,38 @@ int nextSpotOfType(Board b, int lowerBound, int whoseTurn) {
       return lowerBound;
   return -1;
 }
-MOVELIST *GeneratePlacingMoves(POSITION position) {
+MOVELIST *GeneratePlacingMoves(Board b) {
   MOVELIST *CreateMovelistNode(), *head = NULL;
-  int i,j;
-  for (i=nextOpenInitSpot((Board)position, 0);i!=-1;i=nextOpenInitSpot((Board)position, i+1))
-    for (j=nextOpenInitSpot((Board)position, i+1);j!=-1;j=nextOpenInitSpot((Board)position, j+1))
-      // WARNING: HARD-CODED CONSTANT
-      head = CreateMovelistNode(i | j<<5, head);
-  //  head = head | 1<<sizeof(MOVE)*4-1; // to distinguish it from moving move
+  char c = whoseMove(b);
+  int i,j,move=0;
+  for (i=nextOpenInitSpot(b,0);
+       i!=-1;
+       i=nextOpenInitSpot((b, i+1))
+    for (j=nextOpenInitSpot(b,i+1);
+         j!=-1;
+         j=nextOpenInitSpot(b, j+1)) {
+      setMove(&move, c, i, j);
+      setPlacingMove(&move, TRUE);
+      head = CreateMovelistNode(move, head);
+    }
   return head;
 }
-MOVELIST *GenerateMovingMoves(POSITION position) {
+MOVELIST *GenerateMovingMoves(Board b) {
   MOVELIST *CreateMovelistNode(), *head = NULL;
-  int i,j,w = whoseTurn((Board)position);
-  for (i=nextSpotOfType((Board)position, 0,w);i!=-1;i=nextSpotOfType((Board)position, i+1,w))
-    for (j=nextOpenSpot((Board)position, 0);j!=-1;j=nextOpenSpot((Board)position, j+1))
-      // WARNING: HARD-CODED CONSTANT
-      head = CreateMovelistNode(i | j<<5, head);
+  char c = whoseMove(b);
+  int i,j,move=0;
+  for (i=nextSpotOfType(b,0,c);
+       i!=-1;
+       i=nextSpotOfType(b, i+1,c))
+    for (j=nextOpenSpot(b, 0);
+         j!=-1;
+         j=nextOpenSpot(b, j+1)) {
+      setMove(&move, c, i, j);
+      setPlacingMove(&move, FALSE);
+      head = CreateMovelistNode(move, head);
+    }
   return head;
 }
-*/
-
 
 
 /************************************************************************
