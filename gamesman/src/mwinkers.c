@@ -17,8 +17,8 @@
 ** DATE:        02/26/2004
 **
 ** UPDATE HIST: 
-**
-** 
+**      Highest height 1 game solved: width 4
+**      Highest height 2 game solved: width 1
 **
 **************************************************************************/
 
@@ -61,19 +61,27 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"On your turn, use the LEGEND to determine which number you want to make\n\
+a move on. You can choose any number that doesn't have a winker on it. A\n\
+blank position will mean you place a checker, and a checker position will\n\
+mean you place your color winker."; 
 
 STRING   kHelpOnYourTurn =
-"";
+"You place either a checker onto an empty position, or a winker onto\n\
+a checker as long as you have a piece of that type. If you can't make a\n\
+move with the pieces you have, you will pass.";
 
 STRING   kHelpStandardObjective =
-"";
+"To get three of your winkers in a row, horizontally or diagonally.\n\
+Three-in-a-row WINS.";
 
 STRING   kHelpReverseObjective =
-"";
+"To force your opponent into getting three winker in a row of their color\n\
+horizontally or diagonally. Three-in-a-row LOSES.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+"the entire board has been filled with winkers without either player\n\
+getting three-in-a-row.";
 
 STRING   kHelpExample =
 "";
@@ -90,7 +98,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDWIDTH     4
+#define BOARDWIDTH     3
 #define BOARDHEIGHT    1
 #define PASSMOVE 0
 int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
@@ -440,6 +448,31 @@ void PrintPosition (position, playerName, usersTurn)
   int i, j, m = 0, n = 0;
   generic_unhash(position, gBoard);
 
+  char wink, opWink;
+  int numCheckers = 0;
+  int numWinks = 0;
+  int numOpWinks = 0;
+
+  //  if (Primitive(position)) {
+    generic_unhash(position, gBoard);
+
+    if (whoseMove(position) == 1) {
+      wink = 'R';
+      opWink = 'B';
+    } else {
+      wink = 'B';
+      opWink = 'R';
+    }
+    
+    //Count pieces on board
+    for (i = 0; i < BOARDSIZE; i++)
+      if (gBoard[i] == opWink)
+	numOpWinks++;
+      else if (gBoard[i] == wink)
+	numWinks++;
+      else if (gBoard[i] == 'O')
+	numCheckers++;
+
   printf("\n");
 
   for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
@@ -463,7 +496,10 @@ void PrintPosition (position, playerName, usersTurn)
     printf("\n");
   }
   
-  printf("\n");
+  int half = (BOARDSIZE+1)/2;
+ 
+  printf("\n%s pieces left (O: %d, %c: %d)", playerName, half - numOpWinks - (numCheckers/2), wink, half - numWinks);
+  printf("\n\n%s\n\n", GetPrediction(position,playerName,usersTurn));
 
 }
 
