@@ -59,7 +59,7 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu";
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
-//TODO check this
+//TODO Peter: check this - this could be a partisan game
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 //BOOLEAN  kSupportsHeuristic  = ;
 //BOOLEAN  kSupportsSymmetries = ;
@@ -846,12 +846,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
  **
  ************************************************************************/
 
-
 BOOLEAN ValidTextInput (STRING input) {
-  if (strlen(input) < 3) {
-    return FALSE;
-  }
-  return TRUE;
+	
+  return(input[0] <= '9' && input[0] >= '0');
+//return TRUE;
 }
 
 
