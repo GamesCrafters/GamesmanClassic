@@ -838,7 +838,7 @@ MOVE ConvertTextInputToMove (STRING input) {
   if (strlen(input) == 3)
     return makeMove(piece,OFF,strToCell(input+1));
   // else if moving
-  return makeMove(OFF,strToCell(input+1),strToCell(input+3));
+  return makeMove(OFF,strToCell(input),strToCell(input+2));
 }
 
 /************************************************************************
