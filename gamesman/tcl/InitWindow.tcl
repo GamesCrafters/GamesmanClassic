@@ -77,7 +77,7 @@ proc TBaction4 {} {
     global gWaitingForHuman
     set gWaitingForHuman true
     pack forget .middle.f2.cMain
-    pack .middle.f2.fAbout -side bottom
+    pack .middle.f2.fAbout -side bottom -fill both -expand 1
 }
 
 # Unmapped
@@ -577,12 +577,36 @@ proc InitWindow { kRootDir } {
     # About Frame
     #
 
-    frame .middle.f2.fAbout \
+    set aboutFrame .middle.f2.fAbout
+    frame $aboutFrame \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 2 / 30] 
-    pack propagate .middle.f2.fAbout 0   
+	-height [expr $gWindowHeight * 2 / 30]
 
-    # Help Button and about buttons
+    set width  [expr $gWindowWidth * 10 / 16]
+
+    frame $aboutFrame.buttons
+    frame $aboutFrame.content
+
+    pack propagate $aboutFrame 0
+
+    button $aboutFrame.buttons.bReturn -text "Return" \
+	-command {
+	    pack forget .middle.f2.fAbout   
+	    pack .middle.f2.cMain
+	    .cToolbar raise iATB
+	    RaiseStatusBarIfGameStarted
+	    update
+	    DriverLoop
+	}
+
+    pack $aboutFrame.buttons.bReturn -fill both -expand 1
+
+    SetupAboutFrame $aboutFrame.content $width
+
+    pack $aboutFrame.buttons -side bottom -fill x
+    pack $aboutFrame.content -side top -fill both -expand 1
+
+    # Help Button
     button .middle.f2.fHelp.bReturn -text "Return" \
 	-command {
 	    pack forget .middle.f2.fHelp   
@@ -593,17 +617,7 @@ proc InitWindow { kRootDir } {
 	    DriverLoop
 	}
     
-    button .middle.f2.fAbout.bReturn -text "Return" \
-	-command {
-	    pack forget .middle.f2.fAbout   
-	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
-	    RaiseStatusBarIfGameStarted
-	    update
-	    DriverLoop
-	}
-    pack .middle.f2.fHelp.bReturn -side right -fill both -expand 1
-    pack .middle.f2.fAbout.bReturn -side right -fill both -expand 1
+    pack .middle.f2.fHelp.bReturn -side bottom -fill both -expand 1
 
     # create the right hand frame
     canvas .middle.f3.cMRight -highlightthickness 0 \
@@ -895,4 +909,79 @@ proc SetToWinString { string } {
 
 proc SetToMoveString { string } {
     .middle.f1.cMLeft itemconfigure ToMove -text $string
+}
+
+proc SetupAboutFrame { f width } {
+
+    set width [expr $width - 40]
+    canvas $f.scrollpane -yscrollcommand "HandleScrollFeedback $f.bar aboutOffset"
+    scrollbar $f.bar -command "HandleScrolling $f aboutOffset"
+    pack $f.bar -side right -fill y
+    
+    set sp $f.scrollpane
+    
+    global kLabelFont kDocumentFont
+    message $sp.title -text "About GamesCrafters" -font $kLabelFont -width $width
+    message $sp.web -text "http://gamescrafters.sourceforge.net" -font $kLabelFont -width $width
+    message $sp.summary -width $width -font $kDocumentFont -text "The GamesCrafters research group at UC Berkeley is dedicated to exploring multiple areas of game-theory and programming. At the core of the project lies GAMESMAN, a program developed to perfectly play finite, two-person board games. Every semester, we add new games to the system by coding a game's basic rules in C along with several possbile game variants. We also design custom graphical interfaces for each game using Tcl/Tk."
+
+    message $sp.gamesman -width $width -font $kLabelFont \
+	-text "GAMESMAN Development Team"
+
+    message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia\nArchitecture: Albert Cheng, Attila Gyulassy, Damian Hites, JJ Jordan, Elmer Lee, Scott Lindeneau, Alex Perelman, Sunil Ramesh, Bryon Ross, Wei Tu, Peterson Tretheway, Jonathan Tsai, Tom Wang\nGraphics: Alice Chang, Eleen Chiang, Melinda Franco, Cassie Guy, Keith Ho, Kevin Ip, Heather Kwong\nMathematical Analysis: Michel D'sa, Farzad Eskafi, Erwin Vedar\nDocumenation: Cynthia Okita, Judy Tuan"
+
+    global kGameName
+    message $sp.moduleName -width $width -font $kLabelFont \
+	-text "$kGameName Development Team"
+
+    global kCAuthors kTclAuthors
+    message $sp.moduleAuthors -width $width -font $kDocumentFont \
+	-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
+    
+    global kRootDir
+    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2003Fa.gif"
+    canvas $sp.photo -height 360 -width 480
+    $sp.photo create image 240 180 -image GamesCraftersImage
+
+    pack $sp.title -side top
+    pack $sp.web -side top
+    pack $sp.photo -side top
+    pack $sp.summary -side top
+    pack $sp.moduleName -side top
+    pack $sp.moduleAuthors -side top
+    pack $sp.gamesman -side top
+    pack $sp.coreAuthors -side top
+    
+    global aboutOffset aboutOffsetMax
+    set aboutOffset 0
+    # This is just an estimate
+    set aboutOffsetMax -500
+    place $f.scrollpane -in $f -y $aboutOffset
+
+}
+
+# Bryon: I couldn't get built-in scrollbars to work, so I "invented" my own
+proc HandleScrolling { f whichOffset args } {
+    global $whichOffset [subst $whichOffset]Max
+
+    set first [lindex $args 0]
+    if { $first == "moveto" } {
+	set frac [lindex $args 1]
+	set $whichOffset [expr $frac * [subst $[subst $whichOffset]Max]]
+	place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
+    } else {
+	set direction [lindex $args 1]
+	set newOffset [expr [subst $[subst $whichOffset]] - 10*$direction]
+	if { $newOffset >=  [subst $[subst $whichOffset]Max] && $newOffset <= 0 } {
+	    set $whichOffset $newOffset
+	    place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
+	}
+    }
+}
+
+proc HandleScrollFeedback { bar whichOffset args } {
+    global $whichOffset  [subst $whichOffset]Max
+    
+    set fraction [expr 1.0 * [subst $[subst $whichOffset]] / [subst $[subst $whichOffset]Max]]
+    $bar set $fraction 0
 }
