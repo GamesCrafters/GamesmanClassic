@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.40 2004-11-16 07:47:37 nizebulous Exp $
+# $Id: InitWindow.tcl,v 1.41 2004-11-17 02:25:34 nizebulous Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -245,6 +245,9 @@ proc InitWindow { kRootDir kDir kExt } {
 		    set gGameSolved true
 		    . config -cursor {}
 		    set gReallyUnsolved false
+		    .cStatus raise valueI
+		    .cStatus raise allA
+		    .cStatus raise predI
 		}
 	    }
 	    DriverLoop
@@ -790,8 +793,6 @@ proc InitWindow { kRootDir kDir kExt } {
 	} else {
 	    set gReallyUnsolved true
 	    set gGameSolved true
-	    #NewGame
-	    #DriverLoop
 	}
 	pack forget .middle.f2.fPlayOptions
 	global gSmartness gSmartnessScale
@@ -811,7 +812,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	.cStatus raise moveA
 
 	.cToolbar raise iATB
-
+	
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.cToolbar bind iOTB1 <Any-Leave> \
 		".cToolbar raise iATB1"
@@ -820,6 +821,15 @@ proc InitWindow { kRootDir kDir kExt } {
 	global gGamePlayable
 	set gGamePlayable true
 	NewGame
+	if {$gReallyUnsolved} {
+	    .cStatus raise allD
+	    .cStatus raise valueD
+	    .cStatus raise predD
+	} else {
+	    .cStatus raise valueI
+	    .cStatus raise allA
+	    .cStatus raise predI
+	}
 	.middle.f3.cMRight raise WhoseTurn
     }	
     .middle.f1.cMLeft lower detVal
@@ -830,7 +840,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack .middle.f3.cMRight -expand 1
 
     pack .middle.f1 -side left -expand 1
-    pack .middle.f2 -side left -expand 1
+    pack .middle.f2 -side left -expand 1    
     pack .middle.f3 -expand 1
 
     #
@@ -865,15 +875,19 @@ proc InitWindow { kRootDir kDir kExt } {
     #create none moves unfilled
     #.cStatus create image 530 22.5 -image iIBB5p -tags [list sbb iIBB iIBB5 noneI def]
    
-    
+    #create the cover for the moves image
+    .cStatus create image 425 25 -image iDBB6p -tags [list sbb iDBB iDBB6 allD]
     #create all moves filled, old coords 470,22.5
     .cStatus create image 425 25 -image iABB6p -tags [list sbb iABB iABB6 allA def]
     #create all moves unfilled
     .cStatus create image 425 25 -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
+    #create the cover for the values image
+    .cStatus create image 515 25 -image iDBB7p -tags [list sbb iDBB iDBB7 valueD]
     #create value moves filled, old coords 530, 22.5
     .cStatus create image 515 25 -image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
     .cStatus create image 515 25 -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    .cStatus create image 470 52 -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
     .cStatus create image 470 52 -image iABB8p -tags [list sbb iABB iABB8 predA]
     .cStatus create image 470 52 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
     .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA def]
@@ -1163,7 +1177,8 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
-    } 
+    }
+    #DOMSEARCH
     image create photo iDMB1p -file [format %s%sD_2_1.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iDMB2p -file [format %s%sD_2_2.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iDMB3p -file [format %s%sD_2_3.%s $skinsRootDir $skinsDir $skinsExt]
@@ -1190,15 +1205,17 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     image create photo iIBB4p -file [format %s%sI_3_4.%s $skinsRootDir $skinsDir $skinsExt]
     ##image create photo iABB5p -file [format %s%sA_3_5.%s $skinsRootDir $skinsDir $skinsExt] 
     ##image create photo iIBB5p -file [format %s%sI_3_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB6p -file [format %s%sD_3_6.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iABB6p -file [format %s%sA_3_6.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iIBB6p -file [format %s%sI_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB7p -file [format %s%sD_3_7.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iIBB7p -file [format %s%sI_3_7.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iABB7p -file [format %s%sA_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB8p -file [format %s%sD_3_8.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iIBB8p -file [format %s%sI_3_8.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iABB8p -file [format %s%sA_3_8.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iIBB9p -file [format %s%sI_3_9.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iABB9p -file [format %s%sA_3_9.%s $skinsRootDir $skinsDir $skinsExt]
-
 
     #
     # Deal with everything in the top toolbar
