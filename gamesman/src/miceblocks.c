@@ -21,7 +21,7 @@
 
 #define X               99999
 #define O               9999
-#define MAX_BOARD_SIZE  5
+#define MAX_BOARD_SIZE  6
 #define MIN_BOARD_SIZE  2
 #define NUM_OPTIONS     3
 
@@ -370,9 +370,9 @@ VALUE Primitive (POSITION pos) {
     }
     else if(threesO > threesX) {
       if(board->turn == O) 
-	(gStandardGame ? win : lose);
+	return (gStandardGame ? win : lose);
       else
-	(gStandardGame ? lose : win);
+	return (gStandardGame ? lose : win);
     }
     else
       return tie;
