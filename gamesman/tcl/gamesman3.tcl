@@ -117,8 +117,7 @@ proc InitConstants {} {
 	set gRule$i 0
     }
 
-    set settings [GetGameSpecificOptions]
-    eval [concat C_SetGameSpecificOptions [GetGameSpecificOptions]]
+    eval [concat C_SetGameSpecificOptions [GetAllGameOptions]]
 }
 
 #############################################################################
@@ -331,7 +330,9 @@ proc DoComputerMove { } {
 
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
-    SwitchWhoseTurn
+    if { [expr ![C_GoAgain $oldPosition $theMove]] } {
+	SwitchWhoseTurn
+    }
 
 }
 
@@ -417,7 +418,9 @@ proc ReturnFromHumanMoveHelper { theMove } {
                 
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
-	SwitchWhoseTurn
+	if { [expr ![C_GoAgain $oldPosition $theMove]] } {
+	    SwitchWhoseTurn
+	}
 
         DriverLoop
 
@@ -625,9 +628,12 @@ proc UndoHelper { } {
         
         set gPosition [peek $gGameSoFar]
         
+	set undoneMove [peek $gMovesSoFar]
         set gMovesSoFar [pop $gMovesSoFar]
 
-	SwitchWhoseTurn
+	if { [expr ![C_GoAgain $gPosition $undoneMove]] } {
+	    SwitchWhoseTurn
+	}
         
         if { [PlayerIsComputer] } {
             
@@ -725,6 +731,24 @@ proc GetPredictions {} {
 	### And place it in the field if the button is on.
 	set gPredString $prediction
     }
+}
+
+proc GetAllGameOptions {} {
+    global gRule0
+    set settings [GetGameSpecificOptions]
+    set settings [linsert $settings 0 [expr !$gRule0]]
+    return $settings
+}
+
+proc GetGameSpecificOptions {} {
+    global gNumberOfRules
+    set settings ""
+
+    for { set i 1 } { $i < $gNumberOfRules } { incr i } {
+	global gRule$i
+	set settings [concat $settings [subst $[subst gRule$i]]]
+    }
+    return $settings
 }
 
 # argv etc

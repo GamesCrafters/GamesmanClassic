@@ -104,18 +104,6 @@ proc SetupPlayOptions {} {
     set gamestarted true
 
 }
-
-proc GetGameSpecificOptions {} {
-    global gRule0
-    set settings [expr !$gRule0]
-    global gNumberOfRules
-    
-    for { set i 1 } { $i < $gNumberOfRules } { incr i } {
-	global gRule$i
-	set settings [concat $settings [subst $[subst gRule$i]]]
-    }
-    return $settings
-}
     
 proc InitWindow { kRootDir } {
 
@@ -419,7 +407,7 @@ proc InitWindow { kRootDir } {
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
 	    update
-	    eval [concat C_SetGameSpecificOptions [GetGameSpecificOptions]]
+	    eval [concat C_SetGameSpecificOptions [GetAllGameOptions]]
 	    C_InitializeGame
 	    C_InitializeDatabases
 	    set theValue [C_DetermineValue $gPosition]
