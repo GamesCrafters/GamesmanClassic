@@ -52,7 +52,7 @@ BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = FALSE;
+BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
@@ -64,10 +64,14 @@ STRING kHelpGraphicInterface =
 STRING   kHelpTextInterface    =
 "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
 
-STRING   kHelpOnYourTurn = 
+STRING kHelpOnYourTurn = 
+"Help!";
+
+// default kHelpOnYourTurn
+STRING   kHelpOnYourTurn0 = 
 "If you still have pieces not on the board, place them in any open position.\nWhen all of your pieces have been placed on the board, you can choose any one of\nyour pieces and move it to an adjacent, open position.  If any of your moves\nresults in a 3-in-a-row, you can remove one of your opponent's pieces that is\nnot in a mill.  If your opponent only has 3 pieces remaining which happen to be\nin a mill, you can choose to remove any 1 of those 3 pieces.";
 
-// kHelpWithFlying appears only if gflying is TRUE
+// kHelpWithFlying appears only if gFlying is TRUE
 STRING kHelpWithFlying = 
 "\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece.";
 
@@ -117,7 +121,7 @@ typedef enum Pieces {
 char gblankoxChar[] = { '_', 'x', 'o'};
 
 // Game Options
-BOOLEAN gflying = TRUE; // Flying for 3rd Phase
+BOOLEAN gFlying = TRUE; // Flying for 3rd Phase
 
 /*************************************************************************
 **
@@ -149,6 +153,9 @@ char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 int find_pieces(blankox *board, blankox piece, int *pieces);
+
+// GameSpecificMenu
+void setFlyingText();
 
 // Solving
 POSITIONLIST *GenerateParents (POSITION position);
@@ -189,25 +196,10 @@ void InitializeGame()
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
-  // variables to help with mutating Help text
-  int newHelpSize = strlen(kHelpOnYourTurn) + strlen(kHelpWithFlying) + 1;
-  char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
-  
-  // debug
-  if (debug) {
-	 printf("The newHelpSize is %d", newHelpSize);
-  }
 
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
 
-
-  // change kHelpOnYourTurn if gflying is TRUE
-  if (gflying && (newHelp != NULL)) {
-    strcpy(newHelp, kHelpOnYourTurn);
-    strcat(newHelp, kHelpWithFlying);
-    kHelpOnYourTurn = newHelp;
-  }
-  free(newHelp);
+  setFlyingText();
 
 }
 
@@ -245,12 +237,20 @@ void GameSpecificMenu()
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
+	 printf("\n");
     printf("\tI)\tChoose the (I)nitial position\n");
+	 printf("\tF)\tToggle (F)lying from %s to %s\n", 
+			  gFlying ? "ON" : "OFF",
+			  !gFlying ? "ON" : "OFF"); 
     	    
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
+	 case 'F': case 'f':
+		gFlying = !gFlying;
+		setFlyingText();
+		break;
     case 'Q': case 'q':
       ExitStageRight();
     case 'H': case 'h':
@@ -268,6 +268,40 @@ void GameSpecificMenu()
     }
   } while(TRUE);
 	  
+}
+
+// Changes kHelpOnYourTurn depending on gFlying
+void setFlyingText()
+{
+  int newHelpSize = strlen(kHelpOnYourTurn0) + strlen(kHelpWithFlying) + 1;
+  char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
+  
+  // debug
+  if (debug) {
+	 printf("gFlying = %d\n", gFlying);
+	 printf("The newHelpSize is %d\n", newHelpSize);
+  }
+
+  // change kHelpOnYourTurn if gFlying is TRUE
+  if (gFlying && (newHelp != NULL)) {
+    strcpy(newHelp, kHelpOnYourTurn0);
+
+	 if (debug) printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
+
+    strcat(newHelp, kHelpWithFlying);
+
+	 if (debug) printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
+
+    kHelpOnYourTurn = newHelp;
+  } else {
+	 kHelpOnYourTurn = kHelpOnYourTurn0;
+  }
+  free(newHelp);
+
+  if (debug) {
+	 printf("gFlying = %d\n", gFlying);
+	 printf("kHelpOnYourTurn(%d):%s\n",strlen(kHelpOnYourTurn),kHelpOnYourTurn);
+  }
 }
   
 /************************************************************************
@@ -1194,7 +1228,7 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
   int blanks[BOARDSIZE];
   int numBlanks, i;
 
-  if (gflying) {
+  if (gFlying) {
     numBlanks = find_pieces(board, blank, blanks);
     for (i = 0; i < numBlanks; i++) {
       tempMove = hash_move(slot, blanks[i], slot);
@@ -1296,6 +1330,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.51  2004/04/29 08:45:52  ogren
+//no longer seg faults on cygwin due to using sizeof instead of strlen.  HelpOnYourTurn is still printing a mystery x after the normal strings, though. -Elmer
+//
 //Revision 1.50  2004/04/29 08:12:51  ogren
 //A little more work on GenerateParents.  NOTE: can't use GenerateMoves since an undo into a mill does not remove pieces. -Elmer
 //
@@ -1303,7 +1340,7 @@ void debugPosition(POSITION h)
 //Started writing functinos for GenerateParents to support Bryon's 9mm reverse solver. -Elmer
 //
 //Revision 1.48  2004/04/28 21:57:35  ogren
-//kHelpOnYourTurn now changes depending on whether the gflying option is set to TRUE or FALSE -Elmer
+//kHelpOnYourTurn now changes depending on whether the gFlying option is set to TRUE or FALSE -Elmer
 //
 //Revision 1.47  2004/04/28 19:57:15  ogren
 //Started help txt, currently ugly and unclear.  Also, put the text for flying in a seperate STRING, but have yet to figure out how to concat it when the option is turned on.  -Elmer
