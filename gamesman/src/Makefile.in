@@ -185,7 +185,6 @@ TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
 
 FANDAN_EXE		= $ (BINDIR)/mfandan$(EXESUFFIX) 
 FANDAN_OBJ		= mfandan$(OBJSUFFIX)
-FANDAN_SO		= $(LIBDIR)/libmfandan$(LIBSUFFIX)
 
 SOLVE_EXE		= $(BINDIR)/solve$(EXESUFFIX)
 SOLVE_OBJ		= solve$(OBJSUFFIX)
