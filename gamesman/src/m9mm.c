@@ -121,6 +121,7 @@ BOOLEAN closes_mill(POSITION position, int raw_move);
 BOOLEAN check_mill(blankox *board, int slot);
 BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
 blankox parse_char(char c);
+char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 
 // Debugging
@@ -428,6 +429,14 @@ VALUE Primitive ( POSITION h )
     }
   }
 
+  //debug
+  if (debug) {
+    printf("Primitive is checking: \n");
+    debugPosition(h);
+    printf("And has found %dXs, %dOs.\n", numXs, numOs);
+  }
+
+
   // doesn't check getting stuck
   if (turn == o && numOs == mino)
     return (gStandardGame ? lose : win );
@@ -487,7 +496,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("        |           |           |       |           |           |\n");
   printf("        21----------22----------23      %c-----------%c-----------%c\n", c_board[21], c_board[22], c_board[23] );
   GetPrediction(position,playerName,usersTurn);
-    /*
+  /*
   0-----------1-----------2
   |           |           |
   |           |           |
@@ -539,7 +548,7 @@ MOVELIST *GenerateMoves(POSITION position)
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
     
-  if(Primitive(position) == undecided) {
+  if (Primitive(position) == undecided) {
     unhash(position, dest);
     
     
@@ -815,8 +824,8 @@ int getOption()
 ** NAME:        setOption
 **
 ** DESCRIPTION: The corresponding unhash for the game variants.
-**				Should take the input and set all the appropriate
-**				variants.
+**		Should take the input and set all the appropriate
+**		variants.
 **
 ** INPUT:     int : the number representation of the options.
 **
@@ -846,7 +855,6 @@ int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 **         Everything BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
 ************************************************************************/
-
 
 /************************************************************************
 ** This is where you can put any helper functions, including your
@@ -911,6 +919,7 @@ void parse_board(char *c_board, blankox *b_board)
     }
 }
 
+//char to blankox
 blankox parse_char(char c) {
   if (c == 'x' || c == 'X')
     return x;
@@ -923,6 +932,13 @@ blankox parse_char(char c) {
   
 }
 
+
+//blankox to char, eventually
+char unparse_blankox(blankox b)
+{
+  
+}
+
 //blankox to char conversion
 void unparse_board(blankox *b_board, char *c_board)
 {
@@ -932,9 +948,6 @@ void unparse_board(blankox *b_board, char *c_board)
       c_board[i] = gblankoxChar[b_board[i]];
     }
 }
-
-
-
 
 blankox whose_turn(int hash_val)
 {
@@ -984,7 +997,7 @@ BOOLEAN closes_mill(POSITION position, int raw_move)
 {
   blankox board[BOARDSIZE];
   unhash(DoMove(position, raw_move), board);
-  return check_mill (board, to(raw_move));
+  return check_mill(board, to(raw_move));
 }
 
 BOOLEAN check_mill(blankox *board, int slot)
@@ -1016,13 +1029,14 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 }
 
 /************************************************************************
- ** Some Debugging Functions
+** Some Debugging Functions
 ************************************************************************/
 
 //Given the b_board and c_board, print them
 void debugBoard(blankox *bboard, char *cboard)
 {
   int i;
+
   if (debug) {
     for (i = 0; i < BOARDSIZE; i++)
       printf("%d", bboard[i]);
@@ -1038,16 +1052,22 @@ void debugPosition(POSITION h)
 {
   blankox bboard[BOARDSIZE];
   char cboard[BOARDSIZE];
-  
-  unhash(h, bboard);
-  unparse_board(bboard, cboard);
-  
-  debugBoard(bboard, cboard);
+
+  if (debug) {
+    unhash(h, bboard);
+    unparse_board(bboard, cboard);
+    printf("Current position %d: /n", h);
+    printf("Current turn: %d/n", whose_turn(h));
+    debugBoard(bboard, cboard);
+  }
 }
 
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.28  2004/04/07 22:57:37  ogren
+//added debug function void debugPosition to print the c/b boards given position h, all debug functions untested =D -Elmer
+//
 //Revision 1.27  2004/04/07 21:40:31  ogren
 //kTieIsPossible = FALSE, repositioned BOOLEAN debug variable -Elmer
 //
