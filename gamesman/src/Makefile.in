@@ -245,6 +245,9 @@ KONO_EXE		= $(BINDIR)/mkono$(EXESUFFIX)
 KONO_OBJ		= mkono$(OBJSUFFIX)
 KONO_SO			= $(LIBDIR)/libmkono$(LIBSUFFIX)
 
+QLAND_EXE		= $(BINDIR)/mqland$(EXESUFFIX)
+QLAND_OBJ		= mqland$(OBJSUFFIX)
+
 
 ##############################################################################
 ### Game categories
@@ -258,7 +261,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(ACHI_OBJ) $(QX_OBJ) $(GOBBLET_OBJ) $(SLIDEN_OBJ) $(SLIDE_OBJ) $(1TON_OBJ) \
 	    $(ABALONE_OBJ) $(TTC_OBJ) $(JOUST_OBJ) $(ICEBLOCKS_OBJ) \
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
-	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ)
+	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -268,7 +271,7 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) $(SNAKE_EXE)  $(1TON_EXE) \
 	  $(ABALONE_EXE) $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
-	  $(KONO_EXE)
+	  $(KONO_EXE) $(QLAND_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
