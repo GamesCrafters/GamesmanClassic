@@ -58,8 +58,6 @@ VALUE lgas_DetermineValue(POSITION position)
   NumberChildrenInitialize();
 
   value = lgas_DetermineLoopyValue1(position);
-
-  showStatus(1); /* We're done */
   
   /* free */
   NumberChildrenFree();
