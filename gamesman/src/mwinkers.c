@@ -103,6 +103,7 @@ STRING   kHelpExample =
 int BOARDWIDTH = 3;
 int BOARDHEIGHT = 1;
 int BOARDSIZE = 11;
+BOOLEAN DEFAULT = TRUE;
 
 typedef enum possibleBoardPieces {
   Blank, O, R, B
@@ -176,6 +177,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  int i;
   BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
@@ -199,11 +201,13 @@ void InitializeGame ()
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
   
-  int i;
-  for (i=0; i<BOARDSIZE; i++)
-    gBoard[i] = '·';
+  if (DEFAULT == TRUE) {
+    for (i=0; i<BOARDSIZE; i++)
+      gBoard[i] = '·';
 
-  gInitialPosition = generic_hash(gBoard, 1);
+    gInitialPosition = generic_hash(gBoard, 1);
+  }
+
   gMinimalPosition = gInitialPosition;
 
   //  printf("Number of Boards: %d", gNumberOfPositions);
@@ -329,6 +333,7 @@ void GetDimensions() {
 
   BOARDHEIGHT = height;
   BOARDWIDTH = width;
+  DEFAULT = TRUE;
   InitializeGame();
 
   printf("\n The current board is now: \n");
@@ -460,6 +465,7 @@ POSITION GetInitialPosition()
     else
       ;   /* do nothing */
   }
+  DEFAULT = FALSE;
   return(generic_hash(gBoard, 1));
 }
 
