@@ -649,6 +649,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -text "Mandel Fractal"\
 	    -command {
 		set gSkinsDir "MandelSkin/"
+		set gSkinsExt "ppm"
 		InitButtons $gSkinsRootDir $gSkinsDir ppm
 		TBaction5
 	    }
@@ -658,6 +659,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -text "Burst From Dark"\
 	    -command {
 		set gSkinsDir "BurstSkin/"
+		set gSkinsExt "gif"
 		InitButtons $gSkinsRootDir $gSkinsDir gif
 		TBaction5
 	    }
@@ -667,6 +669,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -text "Bubbles"\
 	    -command {
 		set gSkinsDir "BubbleSkin/"
+		set gSkinsExt "gif"
 		InitButtons $gSkinsRootDir $gSkinsDir gif
 		TBaction5
 	    }
@@ -900,8 +903,6 @@ proc InitWindow { kRootDir kDir kExt } {
     }
 
     .cStatus bind playI <ButtonRelease-1> {
-	InitWindow $kRootDir BurstSkin gif
-
 	.cStatus raise iABB2
     }
 
