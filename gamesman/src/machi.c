@@ -57,8 +57,7 @@ STRING   kHelpTextInterface    =
 PLACE MOVES:\n\
 First, you place your 3 pieces on the board: use the LEGEND to determine\n\
 which number to choose (between 1 and 9, with 1 at the upper left and 9\n\
-at the lower right) to correspond to the empty board position you
-desire\n\
+at the lower right) to correspond to the empty board position you desire\n\
 and hit return.\n\
 SLIDE MOVES:\n\
 Next, once all 3 of your pieces are on the board, you make\n\
