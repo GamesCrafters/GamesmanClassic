@@ -11,6 +11,8 @@
 **
 ** UPDATE HIST:
 **
+**
+** Last Updated: $Id: mtttppm.c,v 1.3 2004-12-01 22:31:29 ogren Exp $
 **************************************************************************/
 
 /*************************************************************************
@@ -44,9 +46,23 @@ int gS[] = {  1, 5, 17, 53, 161, 485, 1457, 4373, 13121, 39365 };
 int gX[] = {  -1, 0, 1, -1, 0, 1, -1, 0, 1 };
 int gY[] = {  -1, -1, -1, 0, 0, 0, 1, 1, 1 };
 
+/***** Prototypes *****/
 PIXELBUFFER *CreatePixelBuffer();
 PIXELBUFFER *CreatePixelBufferAtDepth();
 COLOR GetBuffer();
+
+//void tttppm(int,int);
+//void WritePreamblePS(FILE *,int,int);
+//void tttppmrecur(FILE *,PIXELBUFFER *,int,int,POSITION,int,int,int);
+//void DrawColor(FILE *,PIXELBUFFER *,int,int,int,int,POSITION,int); 
+COLOR SwapWinLoseColor(COLOR,int);
+int GetOffset(int,int);
+//void PrintPPMBufferbinary(FILE *,PIXELBUFFER *);
+//void PrintPPMBufferAscii(FILE *,PIXELBUFFER *);
+//void PrintBuffer(PIXELBUFFER *);
+//void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
+/***** End Prototypes *****/
+
 
 /************************************************************************
 **
@@ -531,3 +547,7 @@ int i,j;
 
   return((COLOR) *(pixbuf->bufptr + j*pixbuf->x + i));
 }
+
+/* Changelog:
+$Log: not supported by cvs2svn $
+*/
