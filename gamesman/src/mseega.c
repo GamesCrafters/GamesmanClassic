@@ -848,6 +848,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 
 BOOLEAN ValidTextInput (STRING input) {
+  if (strlen(input) < 3) {
+    return FALSE;
+  }
   return TRUE;
 }
 
