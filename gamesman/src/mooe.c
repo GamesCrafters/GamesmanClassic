@@ -224,9 +224,9 @@ POSITION DoMove (POSITION position, MOVE move)
 	if(whoseTurn == FIRST_TURN) {
 		addition = matches * MULTIPLE;
 		matches = matches * power(MULTIPLE, 2);
-		if(matchesLeft - matches <= 0)
+		/*if(matchesLeft - matches <= 0)
 			currentTurn = FIRST_TURN;
-		else
+		else*/
 			currentTurn = SECOND_TURN;
 		return (position + power(MULTIPLE, 3) - matches + addition);
 		/* Add 1000000 to get second player turn*/
@@ -240,7 +240,8 @@ POSITION DoMove (POSITION position, MOVE move)
 		currentTurn = FIRST_TURN; /* What about undo? */
 		return (position - power(MULTIPLE, 3) - matches + addition);
 		/* Subtract 1000000 to get first player turn*/
-	}		
+	}
+	printf("Current Turn: " , currentTurn);
 }
 
 
