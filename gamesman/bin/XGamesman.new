@@ -1,0 +1,87 @@
+#!@WISHLOC@ -f
+
+# @WARNGC@ XGamesman.in
+
+proc main {} {
+    wm title . "GAMESMAN"
+    wm geometry . =800x600
+
+
+    set theBitmapDir "../bitmaps"
+    set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
+		win4 dodgem Lgame sim 3dot con cmass dnb foxes stt }
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" \
+		"QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" \
+		"Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" \
+		"Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theGuiTypes { gold gold gold gold gold gold gold gold gold \
+			grey grey grey grey grey \
+			brown brown brown brown brown brown }
+    set theNumberOfPrograms [llength $thePrograms]
+
+
+    set menu .leftSide.menu
+    set leftScroll .leftSide.leftScroll
+    set leftBottom .leftSide.leftBottom
+
+    set home .rightSide.home
+    set rightScroll .rightSide.rightScroll
+    set rightBottom .rightSide.rightBottom
+
+    frame .leftSide -height 800 -width 180
+    frame .rightSide -height 800
+
+    frame $menu -height [expr $theNumberOfPrograms * 50]
+    frame $leftScroll -width 10 -background red
+    frame $leftBottom -height 100 -background green
+
+    frame $home -background pink
+    frame $rightScroll -width 10 -background red
+    frame $rightBottom -height 100 -background blue
+
+    pack .leftSide -fill y -side left
+    pack .rightSide -fill both -side left -expand 1
+
+    pack $leftBottom -fill x -side bottom
+    pack $leftScroll -fill y -side left
+    pack $menu -fill y -side left
+
+    pack $rightBottom -fill x -side bottom
+    pack $rightScroll -fill y -side right
+    pack $home -fill both -side right -expand 1
+
+    CreateMenuButtons $theBitmapDir $thePrograms $theStrings $theGuiTypes $menu
+}
+
+proc CreateMenuButtons { theBitmapDir thePrograms theStrings theGuiTypes frame } {
+    set theNumberOfPrograms [llength $thePrograms]
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+		set theProgram "./Xm[lindex $thePrograms $i]"
+		set theString [lindex $theStrings $i]
+		set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+		set theColor [lindex $theGuiTypes $i]
+		catch { image delete image$i }
+		catch { image delete small$i }
+		image create photo image$i -file $theGif
+		image create photo small$i
+		small$i copy image$i -subsample 2
+		set borderWidth 0
+		button $frame.gameBut$i \
+			-compound right \
+			-image small$i \
+			-text $theString \
+	        	-bg $theColor \
+	        	-borderwidth $borderWidth \
+			-width 120 \
+			-height 50 \
+			-anchor e \
+			-command "exec @WISHLOC@ -f $theProgram &"
+		pack $frame.gameBut$i -side top -anchor ne
+    }
+}
+
+
+
+### Call the main procedure.
+main
+
