@@ -118,13 +118,20 @@ STRING   kHelpExample =
  * The next 10 bits encode the destination of the player's SLIDE move.
  * The rightmost 10 bits encode the player's PLACE move.
  */
+/*
 #define get_move_source(move) ((move) & 0x3FF00000)
 #define get_move_dest(move) ((move) & 0x000FFC00)
 #define get_move_place(move) ((move) & 0x000003FF)
 #define set_move_source(move, source) ((move) &= 0xC00FFFFF); ((move) |= ((source) << 20))
 #define set_move_dest(move, dest) ((move) &= 0xFFF003FF); ((move) |= ((dest) << 10))
 #define set_move_place(move, place) ((move) &= 0xFFFFFC00); ((move) |= (place))
-
+*/
+#define get_move_source(move) ((move) / (width*width*height*height))
+#define get_move_dest(move) (((move) % (width*width*height*height)) / (width*height))
+#define get_move_place(move) ((move) % (width*height))
+#define set_move_source(move, source) ((move) += ((source)*width*width*height*height)) 
+#define set_move_dest(move, dest) ((move)+= ((dest)*width*height))
+#define set_move_place(move, place) ((move) += (place))
 /*************************************************************************
 **
 ** Global Variables
@@ -322,17 +329,23 @@ POSITION DoMove (POSITION position, MOVE move) {
 	char players_piece = player == 1 ? WHITE : BLACK;
 	POSITION new;
 	char* board = (char*) SafeMalloc(sizeof(char) * width * height);
+	int source = get_move_source(move);
+	int dest = get_move_dest(move);
+	int place = get_move_place(move);
 	
 	board = generic_unhash(position, board);
-	/* Place a new piece at the destination of the SLIDE move */
-	pieceat(board, get_x_coord(get_move_dest(move)), get_y_coord(get_move_dest(move))) = players_piece;
+
+	if (source != dest) {
+	    /* Place a new piece at the destination of the SLIDE move */
+	    pieceat(board, get_x_coord(dest), get_y_coord(dest)) = players_piece;
 	
-	/* Erace the piece from the source of the SLIDE move */
-	pieceat(board, get_x_coord(get_move_source(move)), get_y_coord(get_move_source(move))) = BLANK;
+	    /* Erase the piece from the source of the SLIDE move */
+	    pieceat(board, get_x_coord(source), get_y_coord(source)) = BLANK;
+	}
 	
 	/* Place a new piece at the location of the PLACE move */
-	pieceat(board, get_x_coord(get_move_place(move)), get_y_coord(get_move_place(move))) = players_piece;
-	
+	pieceat(board, get_x_coord(place), get_y_coord(place)) = players_piece;
+
 	new = generic_hash(board, player);
 
 	SafeFree(board);
@@ -652,13 +665,12 @@ MOVE ConvertTextInputToMove (STRING input) {
 		 * on the board */
 		third = XYToNumber(curr);
 		curr +=2;
-		printf("moopp %d %d %d\n", first, second, third);
+     
 		set_move_source(move, first);
 		set_move_dest(move, second);
 		set_move_place(move, third);
 	}
-	printf("mmooove");
-	PrintMove(move);
+
 	return move;
 }
 
