@@ -118,6 +118,17 @@ void UnMarkAsVisited (POSITION position)
     db_functions->unmark_visited(position);
 }
 
+void UnMarkAllAsVisited()
+{
+    POSITION i = 0;
+    
+    for(i = 0; i < gNumberOfPositions; i++)
+    {
+        db_functions->unmark_visited(i);
+    }
+
+}
+
 
 void MexStore(POSITION position, MEX theMex)
 {

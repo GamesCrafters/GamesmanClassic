@@ -36,9 +36,10 @@ REMOTENESS	Remoteness		(POSITION pos);
 void		SetRemoteness		(POSITION pos, REMOTENESS val);
 
 /* Visited */
-BOOLEAN		Visited			(POSITION pos);
+BOOLEAN		Visited			    (POSITION pos);
 void		MarkAsVisited		(POSITION pos);
 void		UnMarkAsVisited		(POSITION pos);
+void        UnMarkAllAsVisited  ();
 
 /* Mex */
 void		MexStore		(POSITION pos, MEX mex);
