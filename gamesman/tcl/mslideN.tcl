@@ -86,11 +86,30 @@ proc GS_InitGameSpecific  {} {
 # if the game is tic tac toe, this might be a single line: return [list x o]
 # This function is called FIRST, ONCE, only when the player
 # starts playing the game, and before he hits "New Game"
+# The left player's piece should be the first item in the list.
+# The right player's piece should be second.
 
 proc GS_NameOfPieces {} {
     return [list x o]
 }
 
+# GS_ColorOfPlayers should return a list of two strings, 
+# each representing the color of a player.
+# If a specific color appears uniquely on one player's pieces,
+# it might be a good choice for that player's color.
+# In impartial games, both players may share the same color.
+# If the game is tic tac toe, this might be the line 
+# return [list blue red]
+# If the game is nim, this might be the line
+# return [list green green]
+# This function is called FIRST, ONCE, only when the player
+# starts playing the game, and before he clicks "New Game"
+# The left player's color should be the first item in the list.
+# The right player's color should be second.
+
+proc GS_ColorOfPlayers {} {
+    return [list red blue]
+}
 
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -508,8 +527,8 @@ proc Animate_Pieces_Squeezed_Helper { c theMove myMove oldPositionUnhashed bound
 # moveList = a list of available moves to the player.  These moves are represented as numbers (same as in C)
 
 # The code snippet herein may be helpful but is not necessary to do it that way.
-# We provide a procedure called MoveTypeToColor that takes in moveType and
-# returns the correct color.
+# We provide a procedure called MoveValueToColor that takes in moveType and a moveValue and returns the correct color.
+# For example [MoveValueToColor "value" "Tie"] would return yellow and [MoveValueToColor "all" "anything"] would return cyan.
 
 proc GS_ShowMoves { c moveType position moveList } {
     # Seems like we have to call this ourselves

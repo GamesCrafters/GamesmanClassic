@@ -19,6 +19,10 @@ proc GS_NameOfPieces {} {
     return [list x o]
 }
 
+proc GS_ColorOfPlayers {} {
+    return [list blue red]
+}
+
 proc GS_Initialize { c } {
     #puts [format "GS_Initialize called on canvas %s" $c]
     set counter 0

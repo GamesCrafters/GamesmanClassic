@@ -25,7 +25,6 @@ proc TBaction1 {} {
 	.middle.f3.cMRight raise play
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
-	SetupGamePieces
 	SetupPlayOptions
 
 	global gLeftName gRightName
@@ -111,7 +110,7 @@ proc InitWindow { kRootDir } {
     global tcl_platform
     global kToMove kToWin gPredString
     global gLeftName gRightName
-
+    global gLeftColor gRightColor
 
 
 
@@ -129,6 +128,7 @@ proc InitWindow { kRootDir } {
          $tcl_platform(platform) == "windows" } {
         console hide
     }
+    SetupGamePieces
 
     #
     # create the Toolbar - this is out of order so that we can automatically create a lot of images
@@ -480,7 +480,7 @@ proc InitWindow { kRootDir } {
 	    -font { Helvetica 18 bold } \
 	    -anchor center \
 	-tags [list LeftName Names textitem] \
-	-fill blue
+	-fill $gLeftColor
 
     .middle.f3.cMRight create text 75 450 \
 	    -text [format "Player2:\n%s" $gRightName] \
@@ -489,7 +489,7 @@ proc InitWindow { kRootDir } {
 	    -font { Helvetica 18 bold } \
 	    -anchor center \
 	    -tags [list RightName Names textitem] \
-	-fill red
+	-fill $gRightColor
 
     .middle.f3.cMRight create text 75 100 \
 	    -text [format "Predictions: %s" $gPredString] \

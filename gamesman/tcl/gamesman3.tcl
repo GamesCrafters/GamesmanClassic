@@ -35,18 +35,18 @@ proc containskey {a l} {
 
 ##### other utility function
 
-proc MoveTypeToColor {moveType} {
+proc MoveValueToColor { moveType value } {
     set color cyan
     if {$moveType == "value"} {
-        if {$value == "Tie"} {
-            set color yellow
-        } elseif {$value == "Lose"} {
-            set color
-
- green
-        } else {
-            set color red
-        }
+	if {$value == "Tie"} {
+	    set color yellow
+	} elseif {$value == "Lose"} {
+	    set color green
+	} else {
+	    set color red4
+	}
+    } elseif {$moveType == "all"} {
+	set color cyan
     }
     return $color
 }
@@ -157,8 +157,15 @@ proc SetupGamePieces {} {
     
     set gPiecesPlayersName($gLeftPiece) $gLeftName
     set gPiecesPlayersName($gRightPiece) $gRightName
-    
+
+    global gLeftColor gRightColor
+    set alist [GS_ColorOfPlayers]
+    set gLeftColor [lindex $alist 0]
+    set gRightColor [lindex $alist 1]
+
 }
+
+
 
 #############################################################################
 ##
