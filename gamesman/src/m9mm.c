@@ -69,7 +69,7 @@ STRING   kHelpOnYourTurn =
 
 // kHelpWithFlying appears only if gflying is TRUE
 STRING kHelpWithFlying = 
-"\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece. ";
+"\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece.";
 
 STRING   kHelpStandardObjective =
 "A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two.";
@@ -190,10 +190,13 @@ void InitializeGame()
   //set mino, mninx to be 0
 
   // variables to help with mutating Help text
-  int newHelpSize = sizeof(kHelpOnYourTurn) + sizeof(kHelpWithFlying);
+  int newHelpSize = strlen(kHelpOnYourTurn) + strlen(kHelpWithFlying) + 1;
   char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
-
-
+  
+  // debug
+  if (debug) {
+	 printf("The newHelpSize is %d", newHelpSize);
+  }
 
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
 
@@ -1293,6 +1296,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.50  2004/04/29 08:12:51  ogren
+//A little more work on GenerateParents.  NOTE: can't use GenerateMoves since an undo into a mill does not remove pieces. -Elmer
+//
 //Revision 1.49  2004/04/29 00:01:09  ogren
 //Started writing functinos for GenerateParents to support Bryon's 9mm reverse solver. -Elmer
 //
