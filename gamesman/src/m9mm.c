@@ -67,8 +67,9 @@ STRING   kHelpTextInterface    =
 STRING   kHelpOnYourTurn = 
 "If you still have pieces not on the board, place them in any open position.\nWhen all of your pieces have been placed on the board, you can choose any one of\nyour pieces and move it to an adjacent, open position.  If any of your moves\nresults in a 3-in-a-row, you can remove one of your opponent's pieces that is\nnot in a mill.  If your opponent only has 3 pieces remaining which happen to be\nin a mill, you can choose to remove any 1 of those 3 pieces.";
 
+// kHelpWithFlying appears only if gflying is TRUE
 STRING kHelpWithFlying = 
-"If you only have 3 pieces remaining, you may choose to\nmove your pieces to\nany open position in addition to the open positions adjacent to your piece. ";
+"\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece. ";
 
 STRING   kHelpStandardObjective =
 "A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two.";
@@ -116,7 +117,7 @@ typedef enum Pieces {
 char gblankoxChar[] = { '_', 'x', 'o'};
 
 // Game Options
-BOOLEAN flying = TRUE; // Flying for 3rd Phase
+BOOLEAN gflying = TRUE; // Flying for 3rd Phase
 
 /*************************************************************************
 **
@@ -182,11 +183,22 @@ void InitializeGame()
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
+  // variables to help with mutating Help text
+  int newHelpSize = sizeof(kHelpOnYourTurn) + sizeof(kHelpWithFlying);
+  char* newHelp = malloc(newHelpSize*sizeof(char));
+
+
+
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
 
-/*   if (flying) { */
-/*     strcat(kHelpOnYourTurn, kHelpWithFlying); */
-/*   } */
+
+  // change kHelpOnYourTurn if gflying is TRUE
+  if (gflying) {
+    strcpy(newHelp, kHelpOnYourTurn);
+    strcat(newHelp, kHelpWithFlying);
+    kHelpOnYourTurn = newHelp;
+  }
+  free(newHelp);
 
 }
 
@@ -1194,6 +1206,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.47  2004/04/28 19:57:15  ogren
+//Started help txt, currently ugly and unclear.  Also, put the text for flying in a seperate STRING, but have yet to figure out how to concat it when the option is turned on.  -Elmer
+//
 //Revision 1.46  2004/04/25 10:00:04  ogren
 //added boolean flying for future use.  Initial Position is also now a little more interesting. -Elmer
 //
