@@ -844,7 +844,7 @@ BOOLEAN ValidTextInput(input)
      (input[i] != 'O') &&
      (input[i] != 'o') &&
      (input[i] != '.')) {
-    while((input[i] <= '9') && (input[i] >= '1')) {
+    while((input[i] <= '9') && (input[i] >= '0')) {
       start += ((int) input[i]) + (10 * i);
       i++;
     }
@@ -857,7 +857,7 @@ BOOLEAN ValidTextInput(input)
     return FALSE;
   i++;
   while(input[i] != '\0') {
-    if((input[i] > '9') || (input[i] < '1'))
+    if((input[i] > '9') || (input[i] < '0'))
       return FALSE;
     end += ((int) input[i]) + (10 * j);
     i++;
