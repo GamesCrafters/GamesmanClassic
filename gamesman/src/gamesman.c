@@ -551,6 +551,7 @@ void ParseBeforeEvaluationMenuChoice(c)
       printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
+      Stopwatch();
       InitializeDatabases();
       printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
 
