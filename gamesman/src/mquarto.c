@@ -34,6 +34,7 @@
 **                     before code can be tested independent of core. 
 ** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
 ** 28 Feb 2005 Amy: added gGameSpecificTclInit, as suggested in email
+** 05 Feb 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
 **
 **************************************************************************/
 
@@ -60,7 +61,6 @@ STRING   kGameName            = "QUARTO"; /* The name of your game */
 STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
-void* gGameSpecificTclInit = NULL;  /* newly added to tempalte */
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
@@ -108,19 +108,19 @@ STRING   kHelpExample =
 
 #define GAMEDIMENSION 4
 
-#define BOARDSIZE GAMEDIMENSION^2
-#define PIECESTATES BOARDSIZE+1
-#define NUMPIECES 2^GAMEDIMENSION
+#define BOARDSIZE (GAMEDIMENSION^2)
+#define PIECESTATES (BOARDSIZE+1)
+#define NUMPIECES (2^GAMEDIMENSION)
 
 #if BOARDSIZE<NUMPIECES
-    #define FACTORIALMAX NUMPIECES+1
+    #define FACTORIALMAX (NUMPIECES+1)
 #else 
-    #define FACTORIALMAX BOARDSIZE+1
+    #define FACTORIALMAX (BOARDSIZE+1)
 #endif
 
 typedef struct board_item {
 
-  int[BOARDSIZE+1] slots; // to record the 0 to NUMPIECES-1 pieces contained in each slot
+  int slots[BOARDSIZE+1]; // to record the 0 to NUMPIECES-1 pieces contained in each slot
                           // slots[1-16] = board squares, slots[0] = next piece
                           // 0 to NUMPIECES-1 encode the pieces, NUMPIECES encodes an empty slot
   int squaresOccupied;    // number of squares occupied
@@ -129,7 +129,7 @@ typedef struct board_item {
 
 } QTBOARD;
 
-typedef QTBOARD* QTBPtr
+typedef QTBOARD* QTBPtr;
 
 /*************************************************************************
 **
@@ -138,9 +138,9 @@ typedef QTBOARD* QTBPtr
 *************************************************************************/
 
 static BOOLEAN factorialTableSet =  FALSE;
-static POSITION[FACTORIALMAX] factorialTable;
+static POSITION factorialTable[FACTORIALMAX];
 static BOOLEAN offsetTableSet = FALSE;
-static POSITION[NUMPIECES+1] offsetTable;
+static POSITION offsetTable[NUMPIECES+1];
 
 /*************************************************************************
 **
@@ -151,6 +151,14 @@ static POSITION[NUMPIECES+1] offsetTable;
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+void* 			gGameSpecificTclInit = NULL;  /* newly added to tempalte */
+
+/* External */
+void			setOffsetTable();
+POSITION		combination(int n, int r);
+POSITION		permutation(int n, int r);
+POSITION		hashUnsymQuartoHelper(QTBPtr b, int baseSlot);
+void			unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn);
 
 
 /*************************************************************************
@@ -570,7 +578,7 @@ POSITION hashUnsymQuarto(QTBPtr b) {
   if (b->squaresOccupied==0 && b->piecesInPlay==0) {
     toReturn = 0;
   } else if (b->squaresOccupied==0 && b->piecesInPlay==1) {
-    toReturn = b->slots[0] + offsetTable[squaresOccupied];
+    toReturn = b->slots[0] + offsetTable[b->squaresOccupied];
   } else {
     toReturn = b->slots[0]*permutation(NUMPIECES,b->squaresOccupied)
                           *combination(BOARDSIZE,b->squaresOccupied)
@@ -595,15 +603,15 @@ POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
   int numSlotSubset = BOARDSIZE - baseSlot;
                         // # of total slots starting from baseSlot
   POSITION toReturn;
-  int[b->squaresOccupied] pieces;  // Array to store the pieces occupying each square
+  int pieces[b->squaresOccupied];  // Array to store the pieces occupying each square
                                // accending order indexed by slots starting from baseSlot
-  int[b->squaresOccupied] squares; // indices of non-empty squares
+  int squares[b->squaresOccupied]; // indices of non-empty squares
                                // accending order indexed by slots starting from baseSlot
 
   // setting up local vars
   localB->squaresOccupied = b->squaresOccupied;
   localB->piecesInPlay = b->piecesInPlay;
-  localB->userTurn = b->userTurn;
+  localB->usersTurn = b->usersTurn;
   for (i=0; i<BOARDSIZE+1; i++) {
     localB->slots[i] = b->slots[i];
     if ((i >= baseSlot) && (b->slots[i] != NUMPIECES)) {
@@ -623,6 +631,7 @@ POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
   } else if (numOccSubset == 1) {
     toReturn = (pieces[0]*(numSlotSubset) + squares[0] - 1);
   } else {
+    int j;
     for (j=0; j<numOccSubset; j++) {
       if (localB->slots[squares[j]] > pieces[0]) {
 	localB->slots[squares[j]]--;
@@ -660,13 +669,15 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
     toReturn->piecesInPlay = 0;
   } else if (p < offsetTable[NUMPIECES]) {
     for (i=1; i<NUMPIECES; i++) {
-      if (p>=offsetTable[i-1] && p<offseTable[i]) {
+      if (p>=offsetTable[i-1] && p<offsetTable[i]) {
 	toReturn->squaresOccupied = i-1;
 	toReturn->piecesInPlay = i;
 	toReturn->slots[0] = (p - offsetTable[i-1]) / 
 	                       (permutation(NUMPIECES,toReturn->squaresOccupied)
                                 *combination(BOARDSIZE,toReturn->squaresOccupied));
-	unhashUnsymQuartoHelper(p-offsetTable -
+	/* Mario: I am not sure what this code does, but I had to modify this to get it compile */
+	/* Please diff for details */
+	unhashUnsymQuartoHelper(p-offsetTable[i-1] -
 				  toReturn->slots[0]
 				  *permutation(NUMPIECES,toReturn->squaresOccupied)
 				  *combination(BOARDSIZE,toReturn->squaresOccupied),
@@ -675,7 +686,7 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
       }
     }
   } else {
-    printf("unhashUnsymQuarto() -- p out of range: %d\n",p);
+    printf("unhashUnsymQuarto() -- p out of range: %ld\n",p);
     toReturn = NULL;
   }
 
@@ -683,7 +694,7 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
 
 }
 
-void unhasUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn) {
+void unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn) {
 
   int i;
   int numUnhashed = 0;
@@ -706,6 +717,7 @@ void unhasUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn) {
     toReturn->slots[nextSquare] = nextPiece;
   } else {
 
+  }
 }
 
 // set factorialTable
