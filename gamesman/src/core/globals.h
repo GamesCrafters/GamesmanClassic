@@ -12,7 +12,7 @@ extern BOOLEAN	gAgainstComputer, gHumanGoesFirst, gPrintPredictions, gHints,
 
 extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-		gTwoBits, kZeroMemSolver, gAnalyzing;
+		gTwoBits, gGlobalPositionSolver, kZeroMemSolver, gAnalyzing;
 
 extern char	gPlayerName[2][MAXNAME];
 extern VALUE*	gDatabase;
@@ -96,6 +96,14 @@ extern VALUE	(*gSolver)(POSITION);
 
 /* go again function pointer */
 extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
+
+/* Global position solver function pointers. */
+extern void (*gGPSDoMove)(MOVE move);
+extern MOVELIST *(*gGPSGenerateMoves)();
+extern BOOLEAN (*gGPSGoAgain)(MOVE move);
+extern POSITION (*gGPSHashPosition)();
+extern VALUE (*gGPSPrimitive)();
+extern void (*gGPSUndoMove)(MOVE move);
 
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*	gGameSpecificTclInit;

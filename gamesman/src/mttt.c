@@ -182,8 +182,19 @@ char *gBlankOXString[] = { "-", "O", "X" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
+/* Global position solver variables.*/
+BlankOX gBoard[BOARDSIZE];
+BlankOX gNextPiece = x;
+int gPiecesPlaced = 0;
+
 /** Function Prototypes **/
+void GPS_DoMove(MOVE move);
+MOVELIST *GPS_GenerateMoves();
+POSITION GPS_HashPosition();
+VALUE GPS_Primitive();
+void GPS_UndoMove(MOVE move);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -247,6 +258,13 @@ void InitializeGame()
   /**************************************************/
   /**************** SYMMETRY FUN END ****************/
   /**************************************************/
+
+  PositionToBlankOX(gInitialPosition, gBoard);
+  gGPSDoMove = GPS_DoMove;
+  gGPSGenerateMoves = GPS_GenerateMoves;
+  gGPSHashPosition = GPS_HashPosition;
+  gGPSPrimitive = GPS_Primitive;
+  gGPSUndoMove = GPS_UndoMove;
 }
 
 void FreeGame()
@@ -357,6 +375,20 @@ POSITION DoMove(thePosition, theMove)
   PositionToBlankOX(thePosition,theBlankOX);
 
   return(thePosition + (g3Array[theMove] * (int)WhoseTurn(theBlankOX)));
+}
+
+void GPS_DoMove(MOVE move)
+{
+  gBoard[move] = gNextPiece;
+  gNextPiece = gNextPiece == x ? o : x;
+  ++gPiecesPlaced;
+}
+
+void GPS_UndoMove(MOVE move)
+{
+  gBoard[move] = Blank;
+  gNextPiece = gNextPiece == x ? o : x;
+  --gPiecesPlaced;
 }
 
 /************************************************************************
@@ -473,6 +505,23 @@ VALUE Primitive(position)
     return(undecided);
 }
 
+VALUE GPS_Primitive()
+{
+  if (ThreeInARow(gBoard, 0, 1, 2) ||
+      ThreeInARow(gBoard, 3, 4, 5) ||
+      ThreeInARow(gBoard, 6, 7, 8) ||
+      ThreeInARow(gBoard, 0, 3, 6) ||
+      ThreeInARow(gBoard, 1, 4, 7) ||
+      ThreeInARow(gBoard, 2, 5, 8) ||
+      ThreeInARow(gBoard, 0, 4, 8) ||
+      ThreeInARow(gBoard, 2, 4, 6))
+    return gStandardGame ? lose : win;
+  else if (gPiecesPlaced == BOARDSIZE)
+    return tie;
+  else
+    return undecided;
+}
+
 /************************************************************************
 **
 ** NAME:        PrintPosition
@@ -546,6 +595,18 @@ MOVELIST *GenerateMoves(position)
       head = CreateMovelistNode(i,head);
   }
   return(head);
+}
+
+MOVELIST *GPS_GenerateMoves()
+{
+  int index;
+  MOVELIST *moves = NULL;
+
+  for (index = 0; index < BOARDSIZE; ++index)
+    if (gBoard[index] == Blank)
+      moves = CreateMovelistNode(index, moves);
+
+  return moves;
 }
 
 /**************************************************/
@@ -793,6 +854,11 @@ POSITION BlankOXToPosition(theBlankOX)
     position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
 
     return(position);
+}
+
+POSITION GPS_HashPosition()
+{
+    return BlankOXToPosition(gBoard);
 }
 
 /************************************************************************

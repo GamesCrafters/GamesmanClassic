@@ -110,6 +110,7 @@ void MenusBeforeEvaluation()
     if(kGameSpecificMenu)
         printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
     printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
+    printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolver ? "ON" : "OFF");
 }
 
@@ -239,6 +240,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case '2':
 	gTwoBits = !gTwoBits;
 	break;
+    case 'p': case 'P':
+        gGlobalPositionSolver = !gGlobalPositionSolver;
+        break;
     case 'l': case 'L':
 	kZeroMemSolver = !kZeroMemSolver;
 	break;

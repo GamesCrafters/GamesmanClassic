@@ -34,6 +34,7 @@
 #include "solveloopy.h"
 #include "solvezero.h"
 #include "solvestd.h"
+#include "solvegps.h"
 #include "hash.h"
 
 /*
@@ -42,6 +43,12 @@
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
+void (*gGPSDoMove)(MOVE move) = NULL;
+MOVELIST *(*gGPSGenerateMoves)() = NULL;
+BOOLEAN (*gGPSGoAgain)(MOVE move) = NULL;
+POSITION (*gGPSHashPosition)() = NULL;
+VALUE (*gGPSPrimitive)() = NULL;
+void (*gGPSUndoMove)(MOVE move) = NULL;
 
 VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
@@ -58,6 +65,7 @@ BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
+BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
 				   * solved, default: FALSE */
@@ -131,8 +139,11 @@ void SetSolver()
     /* if solver set externally, leave alone */
     if (gSolver != NULL)
         return;
-    
-    if(kZeroMemSolver)
+
+    if (gGlobalPositionSolver)
+	gSolver = GPS_DetermineValue;
+
+    else if(kZeroMemSolver)
         gSolver = DetermineZeroValue;
     
     else if(kLoopy) {
@@ -234,6 +245,9 @@ void HandleArguments (int argc, char *argv[])
         else if(!strcasecmp(argv[i], "--2bit")) {
             gTwoBits = TRUE;
         }
+        else if(!strcasecmp(argv[i], "--gps")) {
+            gGlobalPositionSolver = TRUE;
+        }
         else if(!strcasecmp(argv[i], "--lowmem")) {
             kZeroMemSolver = TRUE;
         }
@@ -303,6 +317,7 @@ void HandleArguments (int argc, char *argv[])
 		   "--option <n>\t\tStarts game with the n option configuration.\n"
 		   "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 		   "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
+		   "--gps\t\t\tStarts game with global position solver enabled.\n"
 		   "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
 		   "\t\t\tTo solve all option configurations of game, use <all>.\n"
 		   "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
