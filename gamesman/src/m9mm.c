@@ -535,8 +535,8 @@ VALUE Primitive ( POSITION h )
     return (gStandardGame ? lose : win );
   else if (turn == x && numXs == minx)
     return (gStandardGame ? lose : win );
-  else if (GenerateMoves(h) == NULL)
-	 return (gStandardGame ? lose : win);
+ /*  else if (GenerateMoves(h) == NULL) */
+/* 	 return (gStandardGame ? lose : win); */
   else
     return undecided;	
  
@@ -1657,6 +1657,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.59  2004/05/05 04:27:33  ogren
+//added all_mills(board, piece) to return true if piece only has mills on board.  Used for can_be_taken -Elmer
+//
 //Revision 1.58  2004/05/05 04:02:28  ogren
 //primitive now also checks for getting stuck -Elmer
 //
