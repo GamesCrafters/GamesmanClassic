@@ -19,8 +19,7 @@
 
 #include <stdio.h>
 #include "gamesman.h"
-
-extern STRING gValueString[];
+#include "hash.h"
 
 /* With 0-4 dragons and 0-12 swans, we get the incredible 
  * 14593151 * 64 => 933,961,664 positions!!! (too many) */
@@ -29,17 +28,13 @@ extern STRING gValueString[];
  * times 64 ways of changing the extra information (turn, phase, swans-left)
  * = 33,430,528 */
 
-int      gNumberOfPositions  = 33430528;
+POSITION gNumberOfPositions  = 33430528;
 /* position shifted over by 6 bits: 1 for whosTurn, 1 for phase, 4 for numSwans */
-/* POSITION gInitialPosition    = (2285 << 6) + 12;  
-   POSITION gMinimalPosition    = (2285 << 6) + 12; */  /* for full 4-dragon bd */
-POSITION gInitialPosition    = (  31 << 6) + 12;  
-POSITION gMinimalPosition    = (  31 << 6) + 12;
+/* POSITION gInitialPosition    = (2285 << 6) + 12;  */  /* for full 4-dragon bd */
+POSITION gInitialPosition;
+POSITION kBadPosition        = -1;
 STRING   kGameName           = "Dragons & Swans";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
@@ -66,137 +61,137 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
 
 STRING   kHelpExample =
-"         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : X - - X\n\n
-You have 12 swans left.\n
-     Dan's move [(u)ndo/1-16] : 6\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : X - - X\n\n
-Computer's move              : 13 14\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : - X - X\n\n
-You have 11 swans left.\n
-     Dan's move [(u)ndo/1-16] : 13\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : O X - X\n\n 
-Computer's move              : 16 15\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : O X X -\n\n
-You have 10 swans left.\n
-     Dan's move [(u)ndo/1-16] : 16\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - -\n
-         (13 14 15 16 )           : O X X O\n\n 
-Computer's move              : 15 11\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - X -\n
-         (13 14 15 16 )           : O X - O\n\n
-You have 9 swans left.\n
-     Dan's move [(u)ndo/1-16] : 15\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - X -\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 11 12\n
-         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - - - X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 8 swans left.\n
-     Dan's move [(u)ndo/1-16] : 10\n\n
-         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n 
-Computer's move              : 1 5\n\n
-         ( 1  2  3  4 )           : - - - X     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O - -\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 7 swans left.\n
-     Dan's move [(u)ndo/1-16] : 7\n\n
-         ( 1  2  3  4 )           : - - - X     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O -\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 4 8\n\n
-         ( 1  2  3  4 )           : - - - -     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 6 swans left.\n
-     Dan's move [(u)ndo/1-16] : 4\n\n
-         ( 1  2  3  4 )           : - - - O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 5 1\n\n
-         ( 1  2  3  4 )           : X - - O     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n
-         ( 9 10 11 12 )           : - O - X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 5 swans left.\n
-     Dan's move [(u)ndo/1-16] : 11\n\n
-         ( 1  2  3  4 )           : X - - O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n
-         ( 9 10 11 12 )           : - O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 1 5\n\n
-         ( 1  2  3  4 )           : - - - O     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n
-         ( 9 10 11 12 )           : - O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 4 swans left.\n
-     Dan's move [(u)ndo/1-16] : 9\n\n
-         ( 1  2  3  4 )           : - - - O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 5 1\n\n
-         ( 1  2  3  4 )           : X - - O     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 3 swans left.\n
-     Dan's move [(u)ndo/1-16] : 5\n\n
-         ( 1  2  3  4 )           : X - - O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 1 2\n\n
-         ( 1  2  3  4 )           : - X - O     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 2 swans left.\n
-     Dan's move [(u)ndo/1-16] : 1\n\n
-         ( 1  2  3  4 )           : O X - O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-Computer's move              : 2 3\n\n
-         ( 1  2  3  4 )           : O - X O     PLAYER O's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n
-You have 1 swans left.\n
-     Dan's move [(u)ndo/1-16] : 2\n\n
-         ( 1  2  3  4 )           : O O X O     PLAYER X's turn\n
-LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n
-         ( 9 10 11 12 )           : O O O X\n
-         (13 14 15 16 )           : O X O O\n\n\n
+"         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : X - - X\n\n\
+You have 12 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 6\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : X - - X\n\n\
+Computer's move              : 13 14\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : - X - X\n\n\
+You have 11 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 13\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : O X - X\n\n\
+Computer's move              : 16 15\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : O X X -\n\n\
+You have 10 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 16\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - -\n\
+         (13 14 15 16 )           : O X X O\n\n\
+Computer's move              : 15 11\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - X -\n\
+         (13 14 15 16 )           : O X - O\n\n\
+You have 9 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 15\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - X -\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 11 12\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - - - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 8 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 10\n\n\
+         ( 1  2  3  4 )           : X - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O - -\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 1 5\n\n\
+         ( 1  2  3  4 )           : - - - X     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O - -\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 7 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 7\n\n\
+         ( 1  2  3  4 )           : - - - X     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O -\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 4 8\n\n\
+         ( 1  2  3  4 )           : - - - -     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 6 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 4\n\n\
+         ( 1  2  3  4 )           : - - - O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 5 1\n\n\
+         ( 1  2  3  4 )           : X - - O     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n\
+         ( 9 10 11 12 )           : - O - X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 5 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 11\n\n\
+         ( 1  2  3  4 )           : X - - O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n\
+         ( 9 10 11 12 )           : - O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 1 5\n\n\
+         ( 1  2  3  4 )           : - - - O     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n\
+         ( 9 10 11 12 )           : - O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 4 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 9\n\n\
+         ( 1  2  3  4 )           : - - - O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : X O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 5 1\n\n\
+         ( 1  2  3  4 )           : X - - O     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : - O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 3 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 5\n\n\
+         ( 1  2  3  4 )           : X - - O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 1 2\n\n\
+         ( 1  2  3  4 )           : - X - O     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 2 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 1\n\n\
+         ( 1  2  3  4 )           : O X - O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+Computer's move              : 2 3\n\n\
+         ( 1  2  3  4 )           : O - X O     PLAYER O's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\
+You have 1 swans left.\n\
+     Dan's move [(u)ndo/1-16] : 2\n\n\
+         ( 1  2  3  4 )           : O O X O     PLAYER X's turn\n\
+LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
+         ( 9 10 11 12 )           : O O O X\n\
+         (13 14 15 16 )           : O X O O\n\n\n\
 Excellent! You won!";
 
 
@@ -221,37 +216,34 @@ char gBoard[] = { 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b
 
 BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck is when you can't move. */
 
-InitializeGame()
+#define MIN_DRAGONS 1
+#define MAX_DRAGONS 4
+
+int gNumDragons = MIN_DRAGONS;
+
+/* local prototypes */
+void generic_unhash2(int, char*, char*, int*, int*);
+int generic_hash2(char*, char, int, int);
+
+void InitializeGame()
 {
-    void TestAttila();
-    int maxpos;
-    maxpos = generic_hash_init(16, 0, 12, 1, 1); /* (boardsize, minswans, maxswans, mindragons, maxdragons) */
-    TestAttila(maxpos);
+    int numSwans = 12;
+    int numDragons = gNumDragons;
+
+    int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
+    gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL)<<1<<4;
+    char initialBoard[] = {'x', 'b', 'b', 'b',
+			   'b', 'b', 'b', 'b',
+			   'b', 'b', 'b', 'b',
+			   'b', 'b', 'b', 'b'};
+    if (numDragons>1) initialBoard[15] = 'x';
+    if (numDragons>2) initialBoard[3] = 'x';
+    if (numDragons>3) initialBoard[12] = 'x';
+
+    gInitialPosition = generic_hash2(initialBoard, 'o', 1, numSwans);
 }
 
-void TestAttila(int maxpos) {
-    int n, nHashed, i;
-    char board []= {'-','-','-','-','-','-','-','-','-','-','-','-','-','-','-','-'};
-    
-    printf("Testing Attila's Hash/Unhash!!\n");
-    printf("...on %d positions\n", maxpos);
-
-    for (n = 0; n < maxpos ; n++) {
-	generic_unhash(n, board);
-	nHashed = generic_hash(board);
-	/* 	if (n != nHashed) { */
-	if (1) {
-	    printf("%d [", n);
-	    for(i = 0; i< 16; i++) printf("%c", board[i]);
-	    printf("] %d %s\n", nHashed, (n == nHashed)?"true":"FALSE!!!");
-	}
-    }
-    printf("Done testing Attila's Hash/Unhash!\n");
-}
-
-
-
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -264,7 +256,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -278,14 +270,10 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
-  char GetMyChar();
-  BOOLEAN tempPredictions = gPrintPredictions;
-  POSITION GetInitialPosition();
-  gPrintPredictions = FALSE;
   do {
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
@@ -294,6 +282,8 @@ GameSpecificMenu()
     printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
+    printf("\tD)\tChange the number of (D)ragons (Currently %d)\n",
+	   gNumDragons);
     
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
@@ -310,8 +300,17 @@ GameSpecificMenu()
     case 'T': case 't':
       gToTrapIsToWin = !gToTrapIsToWin;
       break;
+    case 'D': case 'd':
+      printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS); 
+      scanf("%d", &gNumDragons);
+      while (gNumDragons > MAX_DRAGONS || gNumDragons < MIN_DRAGONS) {
+	printf("Invalid entry. Please try again\n");
+	printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS); 
+	scanf("%d", &gNumDragons);
+      }
+      InitializeGame();
+      break;
     case 'b': case 'B':
-      gPrintPredictions = tempPredictions;
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -330,7 +329,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   gToTrapIsToWin = (BOOLEAN) theOptions[0];
@@ -357,7 +356,7 @@ POSITION DoMove(thePosition, theMove)
 {
   SLOT fromSlot, toSlot;
   char whosTurn;
-  int phase, numSwans, generic_hash2();
+  int phase, numSwans;
 
   generic_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
   theMove = theMove >> 1;  /* shift phase bit off of theMove */
@@ -398,11 +397,12 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition() /* UNWRITTEN */
+POSITION GetInitialPosition()
 {
   char whosTurn;
   signed char c;
-  int i, goodInputs = 0, phase, numSwans, generic_hash2();
+  int numX, numO;
+  int i, goodInputs = 0, phase, numSwans;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -410,29 +410,40 @@ POSITION GetInitialPosition() /* UNWRITTEN */
   printf("\tNote that it should be in the following format:\n\n");
   printf("o - - - \no - - -            <----- EXAMPLE \n- - x x\n- - x x\n\n");
 
-  i = 0;
   getchar();
-  while(i < BOARDSIZE && (c = getchar()) != EOF) {
+  do {
+    numX = numO = 0;
+    i = 0;
+    while(i < BOARDSIZE && (c = getchar()) != EOF) {
+      if(c == 'x' || c == 'X') {
+	numX++;
+	gBoard[i++] = 'x';
+      }
+      else if(c == 'o' || c == 'O' || c == '0') {
+	numO++;
+	gBoard[i++] = 'o';
+      }
+      else if(c == '-')
+	gBoard[i++] = 'b';
+      else
+	;   /* do nothing */
+    }
+    
+    getchar();
+    printf("\nNow, whose turn is it? [O/X] : ");
+    scanf("%c",&c);
     if(c == 'x' || c == 'X')
-      gBoard[i++] = 'x';
-    else if(c == 'o' || c == 'O' || c == '0')
-      gBoard[i++] = 'o';
-    else if(c == '-')
-      gBoard[i++] = 'b';
+      whosTurn = 'x';
     else
-      ;   /* do nothing */
-  }
+      whosTurn = 'o';
+    getchar();
+    printf("\nHow many swans do you want to start with? [0-%d] : ", 12-numO);
+    scanf("%d", &numSwans);
 
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = 'x';
-  else
-    whosTurn = 'o';
-  getchar();
-  printf("\nHow many swans do you want to start with? [0-12] : ");
-  scanf("%d", &numSwans);
+    if (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS)
+      printf("\n\nInvalid board. Please try again\n\n");
+  } while (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS);
+  
   if(numSwans != 0)
       phase = 1;
   else
@@ -451,7 +462,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -565,14 +576,12 @@ char OnlyPlayerLeft(theBoard)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
   char whosTurn;
   int phase, numSwans;
   char theBoard[16];
@@ -756,26 +765,28 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  USERINPUT ret, HandleDefaultTextInput();
+  USERINPUT ret;
   int xpos, ypos, phase, numSwans;
-  char input = '0', fromSlotChar, toSlotChar, HandleTextualInput();
-  BOOLEAN done = FALSE, ValidMove();
+  char input = '0', fromSlotChar, toSlotChar;
+  BOOLEAN done = FALSE;
   SLOT fromSlot = BADSLOT, toSlot;
   char whosTurn;
   generic_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
-  if((whosTurn == 'o') && (numSwans != 0)) {
+
+  do {
+    if((whosTurn == 'o') && (numSwans != 0)) {
       printf("%8s's move [(u)ndo/1-16] : ", playerName);
       ret = HandleDefaultTextInput(thePosition, theMove, playerName);
       if(ret != Continue)
 	  return(ret);
-  }
-  else if((whosTurn == 'x') || (numSwans == 0)) {
+    }
+    else if((whosTurn == 'x') || (numSwans == 0)) {
       printf("%8s's move [(u)ndo/1-16 1-16] : ", playerName);
       ret = HandleDefaultTextInput(thePosition, theMove, playerName);
       if(ret != Continue)
 	  return(ret);
-  }
-  while (TRUE);
+    }
+  } while (TRUE);
   return(Continue); /* this is never reached, but lint is now happy */
 }
 
@@ -858,7 +869,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT fromSlot, toSlot;
@@ -893,24 +904,30 @@ PrintMove(theMove)
 **
 ************************************************************************/
 
-BOOLEAN generic_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* numSwans)
+void generic_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* numSwans)
 {
-    int whosTurnTemp, phaseTemp;
+    int whoseTurnTemp, phaseTemp;
+
+    // isolate numswans
     *numSwans = (hashed & 0xF);
     hashed = hashed >> 4;
+
+    // isolate phase
     phaseTemp = (hashed & 1);
     if(phaseTemp == 0)
 	*phase = 1;
     else
 	*phase = 2;
     hashed = hashed >> 1;
-    whosTurnTemp = (hashed & 1);
-    if(whosTurnTemp == 1)
-	*whosTurn = 'x';
-    else
+
+    // isolate whoseMove
+    whoseTurnTemp = whoseMove(hashed);
+    if(whoseTurnTemp == 1)
 	*whosTurn = 'o';
-    hashed = hashed >> 1;
-    return(generic_unhash(hashed, dest));
+    else
+	*whosTurn = 'x';
+
+    generic_unhash(hashed, dest);
 }
 
 /************************************************************************
@@ -966,16 +983,24 @@ MOVE SlotsToMove (fromSlot, toSlot)
 
 int generic_hash2(char* board, char whosTurn, int phase, int numSwans)
 {
-  int temp;
-  temp = generic_hash(board);
-  temp = temp << 1;
-  if(whosTurn == 'x')
-      temp++;
+  int temp, whoseTurnTemp;
+
+  if (whosTurn == 'o') 
+    whoseTurnTemp = 1;
+  else 
+    whoseTurnTemp = 2;
+
+  temp = generic_hash(board, whoseTurnTemp);
+
+  // encode phase
   temp = temp << 1;
   if(phase == 2)
       temp++;
+
+  // encode numswans
   temp = temp << 4;
   temp += numSwans;
+
   return temp;
 }
 /************************************************************************
@@ -1006,39 +1031,22 @@ STRING kDBName = "swans";
 
 int NumberOfOptions()
 {
-    return 4;
+    return 4*(MAX_DRAGONS-MIN_DRAGONS+1);
 }
 
 int getOption()
 {
-    if(gStandardGame)
-	{
-	    if(gToTrapIsToWin) return 1;
-	    else	return 2;
-	}
-    else
-	{
-	    if(gToTrapIsToWin) return 3;
-	    else return 4;
-	}
+  int option = 1;
+  option += (gStandardGame ? 0 : 1);
+  option += 2*(gToTrapIsToWin ? 0 : 1);
+  option += 4*(gNumDragons-MIN_DRAGONS);
+  return option;
 }
 
 void setOption(int option)
 {
-    if(option == 1) {
-	gStandardGame = TRUE;
-	gToTrapIsToWin = TRUE;
-    }
-    else if(option == 2) {
-	gStandardGame = TRUE;
-	gToTrapIsToWin = FALSE;
-    }
-    else if(option == 3) {
-	gStandardGame = FALSE;
-	gToTrapIsToWin = TRUE;
-    }
-    else {
-	gStandardGame = FALSE;
-	gToTrapIsToWin = FALSE;
-    }
+  option--;
+  gStandardGame = (option%2==0);
+  gToTrapIsToWin = (option/2%2==0);
+  gNumDragons = (option/4)+MIN_DRAGONS;
 }
