@@ -2108,11 +2108,12 @@ VALUE_MOVES* GetValueMoves(thePosition)
     return(valueMoves);                           /* undecided positions are invalid */
  
   else {                                    /* we are guaranteed it's win | tie now */
-    ptr = GenerateMoves(thePosition);
+    head = ptr = GenerateMoves(thePosition);
     while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
       valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
       ptr = ptr->next;
     }
+    FreeMoveList(head);
   }
   return(valueMoves);
 }
