@@ -173,7 +173,7 @@ static int nodes_lookup[MAX_NODES][MAX_NODES];
 /* Function prototypes here. */
 
 int moveHash(int to, int from);
-void moveUnhash(int move, int* to, int* from);
+void moveUnHash(int move, int* to, int* from);
 
 char* boardToString(char* s, nodes board, pieces black_pieces,
 		    pieces white_pieces);
@@ -381,7 +381,7 @@ POSITION DoMove (thePosition, theMove)
   char string_board[MAX_NODES];
 
   generic_unhash(thePosition, string_board);
-  moveUnhash(theMove, &to, &from);
+  moveUnHash(theMove, &to, &from);
   string_board[to] = string_board[from];
   string_board[from] = '-';
 
@@ -463,7 +463,7 @@ void PrintComputersMove(computersMove, computersName)
 {
   int to, from;
 
-  moveUnhash(computersMove, &to, &from);
+  moveUnHash(computersMove, &to, &from);
 
   printf("%s's move\t: %d to %d\n", computersName, to, from);
 
@@ -739,7 +739,7 @@ MOVE ConvertTextInputToMove (input)
 void PrintMove (move)
 	MOVE move;
 {
-  int moveUnHash();
+  void moveUnHash();
 
   int to, from;
   moveUnHash(move, &to, &from);
@@ -839,7 +839,7 @@ int moveHash(int to, int from) {
   return (to << 16) & from;
 }
 
-void moveUnhash(int move, int* to, int* from) {
+void moveUnHash(int move, int* to, int* from) {
   *to = (move >> 16) & 0xFFFF;
   *from = move & 0xFFFF;
   return;

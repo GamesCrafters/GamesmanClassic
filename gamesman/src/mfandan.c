@@ -81,7 +81,10 @@ STRING   kHelpExample =
 ** Everything above here must be in every game file
 **
 **************************************************************************/
+void PositionToBlankOX (POSITION temp , char* temp2){
 
+
+    };
 /*************************************************************************
 **
 ** Every variable declared here is only used in this file (game-specific)
