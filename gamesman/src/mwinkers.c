@@ -37,15 +37,15 @@
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 525801136; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
-POSITION gInitialPosition    = 262900567; /* The initial position (starting board) */
-POSITION gMinimalPosition    = 0; /* */
+POSITION gInitialPosition; /* The initial position (starting board) */
+POSITION gMinimalPosition; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = "Winkers"; /* The name of your game */
 STRING   kDBName             = "Winkers"; /* The name to store the database under */
-BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
@@ -90,9 +90,9 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDWIDTH     2 
-#define BOARDHEIGHT    2
-#define DUMMY -1
+#define BOARDWIDTH     4
+#define BOARDHEIGHT    1
+#define PASSMOVE 0
 int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
 
 typedef enum possibleBoardPieces {
@@ -174,25 +174,6 @@ void InitializeGame ()
 
   int half = (BOARDSIZE + 1) / 2;
 
-  /*
-  int piece_array[13];
-  piece_array[0]=(int)(gBlankORBString[0]);
-  piece_array[3]=(int)(gBlankORBString[1]);
-  piece_array[6]=(int)(gBlankORBString[2]);
-  piece_array[9]=(int)(gBlankORBString[3]);
-  piece_array[1]=0;
-  piece_array[2]=BOARDSIZE;
-  piece_array[4]=0;
-  piece_array[5]=BOARDSIZE;
-  piece_array[7]=0;
-  piece_array[8]=half;
-  piece_array[10]=0;
-  piece_array[11]=half;
-  piece_array[12]=-1;
-
-  redefined piece_array (below)
-  */
-  
   int piece_array[] = {'B', 0, half, 
 		       'R' , 0, half, 
 		       'O', 0, BOARDSIZE, 
@@ -201,6 +182,13 @@ void InitializeGame ()
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
   
+  int i;
+  for (i=0; i<BOARDSIZE; i++)
+    gBoard[i] = '·';
+
+  gInitialPosition = generic_hash(gBoard, 1);
+  gMinimalPosition = gInitialPosition;
+
   printf("Number of Boards: %d", gNumberOfPositions);
 }
 
@@ -264,61 +252,24 @@ void SetTclCGameSpecificOptions (options)
 **              Unhash ()
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
-/* typedef enum whoseTurn {
- *  R, B
- * } Turn; */
-
 POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  int turn = whoseMove(thePosition);
+  int player = whoseMove(thePosition);
 
   generic_unhash(thePosition, gBoard);
 
-  if (theMove != DUMMY) {
-    if (gBoard[theMove] == '·')
-      gBoard[theMove] = 'O';
-    else if (turn == 1)
-      gBoard[theMove] = 'R';
+  if (theMove != PASSMOVE) {
+    if (gBoard[theMove-1] == '·')
+      gBoard[theMove-1] = 'O';
+    else if (player == 1)
+      gBoard[theMove-1] = 'R';
     else
-      gBoard[theMove] = 'B';
-  }
+      gBoard[theMove-1] = 'B';
+  } 
 
-  return (generic_hash(gBoard,(turn==1)?2:1));
-}
-
-int moveUnhash_dummy (theMove)
-     MOVE theMove;
-{
-  if (theMove == -1)
-    return 1;
-  else
-    return 0;
-}
-
-int moveUnhash_index (theMove)
-     MOVE theMove;
-{
-  return ((BlankORB) theMove>>2);
-}
-
-BlankORB moveUnhash_piece (theMove)
-     MOVE theMove;
-{
-  return ((BlankORB) (theMove & 0x3));
-}
-
-MOVE moveHash(dummy, index, piece)
-     int dummy;
-     int index;
-     BlankORB piece;
-{
-  if (dummy == 1)
-    return -1;
-  
-  //assume piece is represented in two bits
-  return (piece | (index<<2));
+  return (generic_hash(gBoard,(player==1)?2:1));
 }
 
 /************************************************************************
@@ -376,15 +327,11 @@ void PrintComputersMove(computersMove, computersName)
 	MOVE computersMove;
 	STRING computersName;
 {
-  int dummy = moveUnhash_dummy (computersMove);
-  int index = moveUnhash_index (computersMove);
-  BlankORB piece = moveUnhash_dummy (computersMove);
-
   printf("%8s's move : ", computersName);
-  if (!dummy)
-    printf("Skip");
+  if (computersMove == PASSMOVE)
+    printf("pass");
   else 
-    printf("%1s at position %d\n", gBlankORBString[piece], index);
+    printf("%c", LegendKey[computersMove-1]);
 }
 
 
@@ -463,6 +410,376 @@ VALUE Primitive (pos)
       return tie;
     else 
       return undecided;
+}
+
+/************************************************************************
+**
+** NAME:        PrintPosition
+**
+** DESCRIPTION: Print the position in a pretty format, including the
+**              prediction of the game's outcome.
+** 
+** INPUTS:      POSITION position   : The position to pretty print.
+**              STRING   playerName : The name of the player.
+**              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
+**
+** CALLS:       Unhash()
+**              GetPrediction()
+**              LIST OTHER CALLS HERE
+**
+************************************************************************/
+
+void PrintPosition (position, playerName, usersTurn)
+	POSITION position;
+	STRING playerName;
+	BOOLEAN usersTurn;
+{
+  int i, j, m = 0, n = 0;
+  generic_unhash(position, gBoard);
+
+  printf("\n");
+
+  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
+    if (i == BOARDHEIGHT)
+      printf (" LEGEND: ");
+    else
+      printf ("         ");
+
+    PrintSpaces (abs(BOARDHEIGHT - i));
+
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+      printf("%c ", LegendKey[n++]);
+    
+    PrintSpaces (abs(BOARDHEIGHT - i));
+    printf(": ");
+    PrintSpaces (abs(BOARDHEIGHT - i));
+    
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+      printf("%c ", gBoard[m++]);
+
+    printf("\n");
+  }
+  
+  printf("\n");
+
+}
+
+
+/************************************************************************
+**
+** NAME:        GenerateMoves
+**
+** DESCRIPTION: Create a linked list of every move that can be reached
+**              from this position. Return a pointer to the head of the
+**              linked list.
+** 
+** INPUTS:      POSITION position : The position to branch off of.
+**
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+**              in the linked list of moves that can be generated.
+**
+** CALLS:       GENERIC_PTR SafeMalloc(int)
+**              LIST OTHER CALLS HERE
+**
+************************************************************************/
+MOVELIST *GenerateMoves (position)
+         POSITION position;
+{
+  MOVELIST *CreateMovelistNode(), *head = NULL;
+  BOOLEAN AllFilledIn(char*);
+  VALUE Primitive();
+  int player = whoseMove (position);
+  char wink, opWink;
+  int numCheckers = 0;
+  int numWinks = 0;
+  int numOpWinks = 0;
+  int i;
+
+  //  if (Primitive(position)) {
+    generic_unhash(position, gBoard);
+
+    if (player == 1) {
+      wink = 'R';
+      opWink = 'B';
+    } else {
+      wink = 'B';
+      opWink = 'R';
+    }
+    
+    //Count pieces on board
+    for (i = 0; i < BOARDSIZE; i++)
+      if (gBoard[i] == opWink)
+	numOpWinks++;
+      else if (gBoard[i] == wink)
+	numWinks++;
+      else if (gBoard[i] == 'O')
+	numCheckers++;
+    
+    /*    //Generate checker moves 
+    if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+      for (i = 0; i < BOARDSIZE; i--)
+	if (gBoard[i] == '·')
+	  head = CreateMovelistNode(moveHash(0, i , O), head);
+    
+    //Generate winker moves
+    if (numWinks > 0)
+      for (i = 0; i < BOARDSIZE; i--)
+	if (gBoard[i] == O)
+	  head = CreateMovelistNode(moveHash(0, i , wink), head);
+    */
+
+    for (i = BOARDSIZE - 1; i >= 0; i--) {
+      if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
+	head = CreateMovelistNode(i+1, head);
+      else if (gBoard[i] == '·' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+	head = CreateMovelistNode(i+1, head);
+    }
+
+    if (head == NULL && AllFilledIn(gBoard) == FALSE)
+      head = CreateMovelistNode(PASSMOVE, head);
+
+    return head;
+    // }
+}
+ 
+/************************************************************************
+**
+** NAME:        GetAndPrintPlayersMove
+**
+** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+**              If so, return Undo or Abort and don't change theMove.
+**              Otherwise get the new theMove and fill the pointer up.
+** 
+** INPUTS:      POSITION *thePosition : The position the user is at. 
+**              MOVE *theMove         : The move to fill with user's move. 
+**              STRING playerName     : The name of the player whose turn it is
+**
+** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
+**
+** CALLS:       ValidMove(MOVE, POSITION)
+**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
+	POSITION thePosition;
+	MOVE *theMove;
+	STRING playerName;
+{
+  USERINPUT ret, HandleDefaultTextInput();
+  do {
+    printf("%8s's move [(p)ass,", playerName);
+    if (BOARDSIZE == 0)
+      printf("0] : ");
+    else if (BOARDSIZE < 10)
+      printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
+    else if (BOARDSIZE == 10)
+      printf("1-9/A] : ");
+    else if (BOARDSIZE < 36)
+      printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
+    else if (BOARDSIZE == 36)
+      printf("1-9/A-Z/a] : ");
+    else 
+      printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
+
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if (ret != Continue)
+      return(ret);
+
+  } while(TRUE);
+
+  return (Continue);
+}
+
+
+/************************************************************************
+**
+** NAME:        ValidTextInput
+**
+** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
+**              For example, if the user is allowed to select one slot
+**              from the numbers 1-9, and the user chooses 0, it's not
+**              valid, but anything from 1-9 IS, regardless if the slot
+**              is filled or not. Whether the slot is filled is left up
+**              to another routine.
+** 
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
+**
+************************************************************************/
+
+BOOLEAN ValidTextInput (input)
+	STRING input;
+{
+  if (strlen(input) != 1)
+    return FALSE;
+  int a;
+  if (a = ConvertToNumber(input) < 0)
+    return FALSE;
+  return TRUE;
+}
+
+
+/************************************************************************
+**
+** NAME:        ConvertTextInputToMove
+**
+** DESCRIPTION: Convert the string input to the internal move representation.
+**              No checking if the input is valid is needed as it has
+**              already been checked!
+** 
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     MOVE : The move corresponding to the user's input.
+**
+************************************************************************/
+
+MOVE ConvertTextInputToMove (input)
+	STRING input;
+{
+  return ConvertToNumber(input);
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+** 
+** INPUTS:      MOVE *theMove         : The move to print. 
+**
+************************************************************************/
+
+void PrintMove (move)
+	MOVE move;
+{
+  if (move == PASSMOVE)
+    printf("pass");
+  else
+    printf("%c", LegendKey[move-1]);
+}
+
+/************************************************************************
+**
+** NAME:        NumberOfOptions
+**
+** DESCRIPTION: Calculates and returns the number of option combinations
+**				there are with all the game variations you program.
+**
+** OUTPUTS:     int : the number of option combination there are.
+**
+************************************************************************/
+
+int NumberOfOptions()
+{    
+  return 2;
+} 
+
+/************************************************************************
+**
+** NAME:        getOption
+**
+** DESCRIPTION: A hash function to keep track of all the game variants.
+**				Should return a different number for each set of
+**				variants.
+**
+** OUTPUTS:     int : the number representation of the options.
+**
+************************************************************************/
+
+int getOption()
+{
+  if(gStandardGame) return 1 ;
+  return 2 ;
+} 
+
+/************************************************************************
+**
+** NAME:        setOption
+**
+** DESCRIPTION: The corresponding unhash for the game variants.
+**				Should take the input and set all the appropriate
+**				variants.
+**
+** INPUT:     int : the number representation of the options.
+**
+************************************************************************/
+
+void setOption(int option)
+{
+  if(option == 1)
+    gStandardGame = TRUE ;
+  else
+    gStandardGame = FALSE ;
+}
+
+
+/************************************************************************
+*************************************************************************
+**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
+*************************************************************************
+************************************************************************/
+
+
+/************************************************************************
+** This is where you can put any helper functions, including your
+** hash and unhash functions if you are not using one of the existing
+** ones.
+************************************************************************/
+
+int ConvertToNumber(input)
+     STRING input;
+{
+  char a = input[0];
+  int i;
+  for (i=0; i< BOARDSIZE; i++)
+    if (a == LegendKey[i])
+      return i+1;
+  
+  if (a == 'p' || a == 'P')
+    return 0;
+
+  return -1;
+}
+
+char MoveToCharacter(move)
+     MOVE move;
+{
+  if (move < 10)
+    return (move + '0');
+  else if (move < 36)
+    return (move + 'a' - 10);
+  else 
+    return (move + 'A' - 36);
+}
+
+/* PrintSpaces(n) outputs n spaces
+ */
+void PrintSpaces (n)
+     int n;
+{
+  int i;
+  for (i = 0; i < n; i++)
+    printf(" ");
+}
+
+/* Legend will calculate the correct symbol to display on board.
+ *
+ * n - the position in numberical form
+ * 
+ * returns 0-9,a-z,A-Z
+ */
+int Legend (n)
+     int n;
+{
+  if (n > 35)
+    n += ('a' - 36);
+  else if (n > 9)
+    n += ('A' - 10);
+  else
+    n += '0';
+  return n;
 }
 
 VALUE EndGame(char x, int player) {
@@ -576,368 +893,3 @@ int ColPosition(i)
   return 0;
 }
   
-/************************************************************************
-**
-** NAME:        PrintPosition
-**
-** DESCRIPTION: Print the position in a pretty format, including the
-**              prediction of the game's outcome.
-** 
-** INPUTS:      POSITION position   : The position to pretty print.
-**              STRING   playerName : The name of the player.
-**              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
-**
-** CALLS:       Unhash()
-**              GetPrediction()
-**              LIST OTHER CALLS HERE
-**
-************************************************************************/
-
-void PrintPosition (position, playerName, usersTurn)
-	POSITION position;
-	STRING playerName;
-	BOOLEAN usersTurn;
-{
-  int i, j, m = 0, n = 0;
-  //  BlankORB theBlankORB[(2*BOARDWIDTH+BOARDHEIGHT) * BOARDHEIGHT + BOARDWIDTH];
-  generic_unhash(position, gBoard);
-
-  printf("\n");
-
-  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
-    if (i == BOARDHEIGHT)
-      printf (" LEGEND: ");
-    else
-      printf ("         ");
-
-    PrintSpaces (abs(BOARDHEIGHT - i));
-
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%c ", LegendKey[n++]);
-    
-    PrintSpaces (abs(BOARDHEIGHT - i));
-    printf(": ");
-    PrintSpaces (abs(BOARDHEIGHT - i));
-    
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%c ", gBoard[m++]);
-
-    printf("\n");
-  }
-
-  /*  for (i = 0; i < BOARDSIZE; i++) {
-    printf("%d, RW: %d, RN: %d, CP: %d\n", i, RowWidth(i), RowNumber(i), ColPosition(i));
-    }*/
-}
-
-
-/************************************************************************
-**
-** NAME:        GenerateMoves
-**
-** DESCRIPTION: Create a linked list of every move that can be reached
-**              from this position. Return a pointer to the head of the
-**              linked list.
-** 
-** INPUTS:      POSITION position : The position to branch off of.
-**
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
-**              in the linked list of moves that can be generated.
-**
-** CALLS:       GENERIC_PTR SafeMalloc(int)
-**              LIST OTHER CALLS HERE
-**
-************************************************************************/
-MOVELIST *GenerateMoves (position)
-         POSITION position;
-{
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE Primitive();
-  int player = whoseMove (position);
-  char wink, opWink;
-  int numCheckers = 0;
-  int numWinks = 0;
-  int numOpWinks = 0;
-  int i;
-
-  if (Primitive(position)) {
-    generic_unhash(position, gBoard);
-
-    if (player == 1) {
-      wink = 'R';
-      opWink = 'B';
-    } else {
-      wink = 'B';
-      opWink = 'R';
-    }
-    
-    //Count pieces on board
-    for (i = 0; i < BOARDSIZE; i++)
-      if (gBoard[i] == opWink)
-	numOpWinks++;
-      else if (gBoard[i] == wink)
-	numWinks++;
-      else if (gBoard[i] == 'O')
-	numCheckers++;
-    
-    /*    //Generate checker moves 
-    if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
-      for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == '·')
-	  head = CreateMovelistNode(moveHash(0, i , O), head);
-    
-    //Generate winker moves
-    if (numWinks > 0)
-      for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == O)
-	  head = CreateMovelistNode(moveHash(0, i , wink), head);
-    */
-
-    for (i = BOARDSIZE - 1; i >= 0; i--) {
-      if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
-	head = CreateMovelistNode(i+1, head);
-      else if (gBoard[i] == '·' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
-	head = CreateMovelistNode(i+1, head);
-    }
-
-    //Do not return dummy head
-    return (head);
-  }
-}
- 
-/************************************************************************
-**
-** NAME:        GetAndPrintPlayersMove
-**
-** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
-**              If so, return Undo or Abort and don't change theMove.
-**              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
-**              STRING playerName     : The name of the player whose turn it is
-**
-** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
-**
-** CALLS:       ValidMove(MOVE, POSITION)
-**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
-**
-************************************************************************/
-
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-	POSITION thePosition;
-	MOVE *theMove;
-	STRING playerName;
-{
-  USERINPUT ret, HandleDefaultTextInput();
-  do {
-    printf("%8s's move [", playerName);
-    if (BOARDSIZE == 0)
-      printf("0] : ");
-    else if (BOARDSIZE < 10)
-      printf("0-%c] : ", MoveToCharacter(BOARDSIZE));
-    else if (BOARDSIZE == 10)
-      printf("0-9/a] : ");
-    else if (BOARDSIZE < 36)
-      printf("0-9/a-%c] : ", MoveToCharacter(BOARDSIZE));
-    else if (BOARDSIZE == 36)
-      printf("0-9/a-z/A] : ");
-    else 
-      printf("0-9/a-z/A-%c] : ", MoveToCharacter(BOARDSIZE));
-
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
-
-  } while(TRUE);
-  return (Continue);
-}
-
-
-/************************************************************************
-**
-** NAME:        ValidTextInput
-**
-** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
-**              For example, if the user is allowed to select one slot
-**              from the numbers 1-9, and the user chooses 0, it's not
-**              valid, but anything from 1-9 IS, regardless if the slot
-**              is filled or not. Whether the slot is filled is left up
-**              to another routine.
-** 
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
-**
-************************************************************************/
-
-BOOLEAN ValidTextInput (input)
-	STRING input;
-{
-  if (strlen(input) != 1)
-    return FALSE;
-  int a;
-  if (a = ConvertToNumber(input) < 0)
-    return FALSE;
-  if (a >= BOARDSIZE)
-    return FALSE;
-  return TRUE;
-}
-
-
-/************************************************************************
-**
-** NAME:        ConvertTextInputToMove
-**
-** DESCRIPTION: Convert the string input to the internal move representation.
-**              No checking if the input is valid is needed as it has
-**              already been checked!
-** 
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     MOVE : The move corresponding to the user's input.
-**
-************************************************************************/
-
-MOVE ConvertTextInputToMove (input)
-	STRING input;
-{
-  return ConvertToNumber(input);
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
-**
-************************************************************************/
-
-void PrintMove (move)
-	MOVE move;
-{
-  printf("%c", MoveToCharacter(move));
-}
-
-/************************************************************************
-**
-** NAME:        NumberOfOptions
-**
-** DESCRIPTION: Calculates and returns the number of option combinations
-**				there are with all the game variations you program.
-**
-** OUTPUTS:     int : the number of option combination there are.
-**
-************************************************************************/
-
-int NumberOfOptions()
-{    
-        return 2 ;
-} 
-
-/************************************************************************
-**
-** NAME:        getOption
-**
-** DESCRIPTION: A hash function to keep track of all the game variants.
-**				Should return a different number for each set of
-**				variants.
-**
-** OUTPUTS:     int : the number representation of the options.
-**
-************************************************************************/
-
-int getOption()
-{
-        if(gStandardGame) return 1 ;
-        return 2 ;
-} 
-
-/************************************************************************
-**
-** NAME:        setOption
-**
-** DESCRIPTION: The corresponding unhash for the game variants.
-**				Should take the input and set all the appropriate
-**				variants.
-**
-** INPUT:     int : the number representation of the options.
-**
-************************************************************************/
-
-void setOption(int option)
-{
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
-}
-
-
-/************************************************************************
-*************************************************************************
-**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
-*************************************************************************
-************************************************************************/
-
-
-/************************************************************************
-** This is where you can put any helper functions, including your
-** hash and unhash functions if you are not using one of the existing
-** ones.
-************************************************************************/
-
-int ConvertToNumber(input)
-     STRING input;
-{
-  char a = input[0];
-  if (a >= '0' && a <= '9')
-    a -= '0';
-  else if (a >= 'A' && a <= 'Z')
-    a = a - 'A' + 10;
-  else if (a >= 'a' && a <= 'z')
-    a = a - 'a' + 36;
-  else return -1;
-  return a;
-}
-
-char MoveToCharacter(move)
-     MOVE move;
-{
-  if (move < 10)
-    return (move + '0');
-  else if (move < 36)
-    return (move + 'a' - 10);
-  else 
-    return (move + 'A' - 36);
-}
-
-/* PrintSpaces(n) outputs n spaces
- */
-void PrintSpaces (n)
-     int n;
-{
-  int i;
-  for (i = 0; i < n; i++)
-    printf(" ");
-}
-
-/* Legend will calculate the correct symbol to display on board.
- *
- * n - the position in numberical form
- * 
- * returns 0-9,a-z,A-Z
- */
-int Legend (n)
-     int n;
-{
-  if (n > 35)
-    n += ('a' - 36);
-  else if (n > 9)
-    n += ('A' - 10);
-  else
-    n += '0';
-  return n;
-}
