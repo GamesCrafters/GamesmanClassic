@@ -229,6 +229,7 @@ STRING  kHandleDefaultTextInputHelp =
 "-------------------\n"
 "?           : Brings up this list of Text Input Commands available\n"
 "s (or S)    : (S)how the values of all possible moves\n"
+"p (or P)    : Toggle (P)rint predictions\n"
 "u (or U)    : (U)ndo last move (not possible at beginning position)\n"
 "r (or R)    : (R)eprint the position\n"
 "h (or H)    : (H)elp\n"
@@ -585,7 +586,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'w': case 'W':
 	InitializeGame();
 	gTwoBits = TRUE;
-	InitializeVisitedArray();
 	gUnsolved = TRUE;
 	gAgainstComputer = FALSE;
 	gPrintPredictions = FALSE;
@@ -1021,7 +1021,8 @@ void ResetUndoList(UNDO* undo)
     gAgainstComputer = FALSE;
     while(undo->next != NULL)
         undo = HandleUndoRequest(&position, undo, &error);
-    UnMarkAsVisited(undo->position);
+    if(!gUnsolved)
+	UnMarkAsVisited(undo->position);
     SafeFree((GENERIC_PTR)undo);
     gAgainstComputer = oldAgainstComputer;
 }
@@ -1038,8 +1039,8 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     }
     
     /* undo the first move */
-    
-    UnMarkAsVisited(undo->position);
+    if(!gUnsolved)
+	UnMarkAsVisited(undo->position);
     if (undo->givebackUsed) {
 	remainingGivebacks++;
     }
@@ -1051,7 +1052,8 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     /* If playing against the computer, undo the users move here */
     
     if(gAgainstComputer) {
-	UnMarkAsVisited(undo->position);
+	if(!gUnsolved)
+	    UnMarkAsVisited(undo->position);
 	tmp = undo;
 	undo = undo->next;
 	SafeFree((GENERIC_PTR)tmp);
@@ -1063,12 +1065,21 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
 
 UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
 {
-    UNDO *tmp;
-    
-    if(Visited(thePosition)) 
+    UNDO *tmp, *index = undo;
+    BOOLEAN inList = FALSE;
+
+    if(!gUnsolved && Visited(thePosition)) 
         undo = Stalemate(undo,thePosition,abort);
+    else if(gUnsolved) {
+	while(index != NULL) {
+	    if(undo->position == thePosition)
+		undo = Stalemate(undo,thePosition,abort);
+	    index = undo->next;
+	}
+    }
     else {
-        MarkAsVisited(thePosition);
+	if(!gUnsolved)
+	    MarkAsVisited(thePosition);
         tmp = undo; 
         undo = (UNDO *) SafeMalloc (sizeof(UNDO));
         undo->position = thePosition;
@@ -1163,13 +1174,15 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
     }
     else {
         while(undo->next != NULL && undo->position != stalematePosition) {
-            UnMarkAsVisited(undo->position);
+	    if(!gUnsolved)
+		UnMarkAsVisited(undo->position);
             /* don't return givebacks to user when rolling back stalemates */
             tmp = undo;
             undo = undo->next;
             SafeFree((GENERIC_PTR)tmp);
         } 
-        MarkAsVisited(undo->position);
+	if(!gUnsolved)
+	    MarkAsVisited(undo->position);
         *abort = FALSE;
     }
     return(undo);

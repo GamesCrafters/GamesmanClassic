@@ -148,7 +148,8 @@ void ResetUndoList(UNDO* undo)
     gAgainstComputer = FALSE;
     while(undo->next != NULL)
         undo = HandleUndoRequest(&position, undo, &error);
-    UnMarkAsVisited(undo->position);
+    if(!gUsolved)
+	UnMarkAsVisited(undo->position);
     SafeFree((GENERIC_PTR)undo);
     gAgainstComputer = oldAgainstComputer;
 }
@@ -166,7 +167,8 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     
     /* undo the first move */
     
-    UnMarkAsVisited(undo->position);
+    if(!gUsolved)
+	UnMarkAsVisited(undo->position);
     if (undo->givebackUsed) {
 	remainingGivebacks++;
     }
@@ -178,7 +180,8 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     /* If playing against the computer, undo the users move here */
     
     if(gAgainstComputer) {
-	UnMarkAsVisited(undo->position);
+	if(!gUnsolved)
+	    UnMarkAsVisited(undo->position);
 	tmp = undo;
 	undo = undo->next;
 	SafeFree((GENERIC_PTR)tmp);
@@ -192,11 +195,19 @@ UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
 {
     UNDO *tmp;
     
-    if(Visited(thePosition)) 
+    if(!gUnsolved && Visited(thePosition)) 
         undo = Stalemate(undo,thePosition,abort);
+    else if(gUnsolved) {
+	while(index != NULL) {
+	    if(undo->position == thePosition)
+		undo = Stalemate(undo,thePosition,abort);
+	    index = undo->next;
+	}
+    }
     else {
-        MarkAsVisited(thePosition);
-        tmp = undo; 
+	if(!gUnsolved)
+	    MarkAsVisited(thePosition);
+        tmp = undo;
         undo = (UNDO *) SafeMalloc (sizeof(UNDO));
         undo->position = thePosition;
         undo->givebackUsed = FALSE; /* set this in PlayAgainstComputer */
@@ -290,13 +301,15 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
     }
     else {
         while(undo->next != NULL && undo->position != stalematePosition) {
-            UnMarkAsVisited(undo->position);
+	    if(!gUnsolved)
+		UnMarkAsVisited(undo->position);
             /* don't return givebacks to user when rolling back stalemates */
             tmp = undo;
             undo = undo->next;
             SafeFree((GENERIC_PTR)tmp);
         } 
-        MarkAsVisited(undo->position);
+	if(!gUnsolved)
+	    MarkAsVisited(undo->position);
         *abort = FALSE;
     }
     return(undo);

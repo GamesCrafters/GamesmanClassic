@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -44,7 +45,7 @@ STRING   kAuthorName          = "Damian Hites"; /* Your name(s) */
 STRING   kDBName              = "mbaghchal"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -89,6 +90,8 @@ STRING   kHelpExample =
 **************************************************************************/
 #define WIDTH_MAX   5
 #define LENGTH_MAX  5
+#define WIDTH_MIN   1
+#define LENGTH_MIN  1
 #define GOAT        'G'
 #define TIGER       '*'
 #define SPACE       'O'
@@ -126,6 +129,8 @@ int get_y (int index);
 POSITION hash (char* board, int player);
 char* unhash (POSITION position);
 int whoseTurn (POSITION position);
+void ChangeBoardSize ();
+void SetNumGoats ();
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -159,7 +164,7 @@ void InitializeGame ()
 {
     int i;
     int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, 1, width*length - 4, -1};
-    char initial[width * length];
+    char* initial = SafeMalloc(width * length * sizeof(char));
     boardSize = width*length;
     if(goats >= boardSize-tigers)
 	goats = boardSize - tigers - 1;
@@ -197,14 +202,10 @@ MOVELIST *GenerateMoves (POSITION position)
 {
     char* board = unhash(position);
     int turn = whoseTurn(position);
-    int numSpaces = 0;
     char animal;
     MOVELIST *moves = NULL;
     int i, j;
     if(NumGoats != 0 && turn == PLAYER_ONE) {
-	for(i = 0; i < boardSize; i++)
-	    if(board[i] == SPACE)
-		numSpaces++;
 	for(i = 1; i <= length; i++) {
 	    for(j = 1; j <= width; j++) {
 		if(board[translate(i, j)] == SPACE)
@@ -294,6 +295,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	    }
 	}
     }
+    SafeFree(board);
     return moves;
 }
 
@@ -430,10 +432,12 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-    char* board = unhash(position);
     MOVELIST* moves = GenerateMoves(position);
-    if(NULL == moves)
+    if(NULL == moves) {
+	FreeMoveList(moves);
 	return lose;
+    }
+    FreeMoveList(moves);
     return undecided;
 }
 
@@ -542,7 +546,7 @@ void PrintMove (MOVE move)
 	move /= 8;
 	i = get_x(move);
 	j = get_y(move);
-	printf("%c%d %d", i-1+'a', j, direction+1);
+	printf("[%c%d %d]", i-1+'a', j, direction+1);
     }
 }
 
@@ -727,7 +731,32 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    
+    char c;
+    BOOLEAN cont = TRUE;
+    c = getc(stdin);
+    while(cont) {
+	printf("\n\nCurrent %dx%d board with %d goats:  \n", width, length, goats);
+	PrintPosition(gInitialPosition, "Fred", 0);
+	printf("\tGame Options:\n\n"
+	       "\tc)\t(C)hange the board size (nxn), currently: %d\n"
+	       "\ts)\t(S)et the number of goats on the board, currently: %d\n"
+	       "\tb)\t(B)ack to the main menu\n"
+	       "\nSelect an option:  ", width, goats);
+	scanf("%c", &c);
+	switch(c) {
+	case 'c': case 'C':
+	    ChangeBoardSize();
+	    break;
+	case 's': case 'S':
+	    SetNumGoats();
+	    break;
+	case 'b': case 'B':
+	    cont = FALSE;
+	    break;
+	default:
+	    printf("Invalid option!\n");
+	}
+    }
 }
 
 
@@ -761,7 +790,40 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+    int i, j;
+    char line[width];
+    for(i = 0; i < width; i++)
+	line[i] = SPACE;
+    char* board = SafeMalloc(boardSize * sizeof(char));
+    BOOLEAN valid = FALSE;
+    while(!valid) {
+	valid = TRUE;
+	printf("\nCurrent Position: \n");
+	PrintPosition(gInitialPosition, "Fred", 0);
+	printf("Enter a character string to represent the position you want\n"
+	       "%c for tiger, %c for goat, %c for a space.  Example:\n"
+	       "For the initial position of a 5X5 board, the string is:\n"
+	       "%c%c%c%c%c\n"
+	       "%c%c%c%c%c\n"
+	       "%c%c%c%c%c\n"
+	       "%c%c%c%c%c\n"
+	       "%c%c%c%c%c\n\n"
+	       "Enter the character string: \n",TIGER,GOAT,SPACE,TIGER,GOAT,GOAT,GOAT,TIGER,
+	       GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,GOAT,
+	       TIGER,GOAT,GOAT,GOAT,TIGER);
+	for(i = 1; i <= length; i++) {
+	    printf(">");
+	    scanf("%s", &line);
+	    for(j = 1; j <= width; j++) {
+		if(line[j-1] != SPACE && line[j-1] != GOAT && line[j-1] != TIGER)
+		    valid = FALSE;
+		board[translate(i,j)] = line[j-1];
+	    }
+	}
+	if(!valid)
+	    printf("\n\nInvalid board!!!\n\n");
+    }
+    return hash(board, 1);
 }
 
 
@@ -865,6 +927,8 @@ int get_y (int index)
 POSITION hash (char* board, int player)
 {
     POSITION position = generic_hash(board, player);
+    if(board != NULL)
+	SafeFree(board);
     position *= (goats+1);
     position += NumGoats;
     return position;
@@ -872,14 +936,55 @@ POSITION hash (char* board, int player)
 
 char* unhash (POSITION position)
 {
-    char* board = (char *) malloc(length * width * sizeof(char));
+    char* board = (char *) SafeMalloc(length * width * sizeof(char));
     NumGoats = position % (goats+1);
     position /= (goats+1);
-    return generic_unhash(position, board);
+    return (char *) generic_unhash(position, board);
 }
 
 int whoseTurn (POSITION position)
 {
     position /= (goats+1);
     return whoseMove(position);
+}
+
+void ChangeBoardSize ()
+{
+    int change;
+    BOOLEAN cont = TRUE;
+    while (cont) {
+	cont = FALSE;
+	printf("\n\nCurrent board of size %d:\n\n", width);
+	PrintPosition(gInitialPosition, "Fred", 0);
+	printf("\n\nEnter the new board size (%d - %d):  ", WIDTH_MIN, WIDTH_MAX);
+	scanf("%d", &change);
+	if(change > WIDTH_MAX || change < WIDTH_MIN) {
+	    printf("\nInvalid base length!\n");
+	    cont = TRUE;
+	}
+	else {
+	    width = length = change;
+	    InitializeGame();
+	}
+    }
+}
+
+void SetNumGoats ()
+{
+    int change;
+    BOOLEAN cont = TRUE;
+    while (cont) {
+	cont = FALSE;
+	printf("\n\nCurrent number of goats %d:\n\n", goats);
+	printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers-1);
+	scanf("%d", &change);
+	if(change > boardSize-tigers-1 || change < 1) {
+	    printf("\nInvalid base length!\n");
+	    cont = TRUE;
+	}
+	else {
+	    goats = change;
+	    InitializeGame();
+	}
+    }
 }

@@ -226,7 +226,6 @@ printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)g
     case 'w': case 'W':
 	InitializeGame();
 	gTwoBits = TRUE;
-	InitializeVisitedArray();
 	gUnsolved = TRUE;
 	gAgainstComputer = FALSE;
 	gPrintPredictions = FALSE;

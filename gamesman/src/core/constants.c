@@ -101,6 +101,7 @@ STRING  kHandleDefaultTextInputHelp =
 "-------------------\n"
 "?           : Brings up this list of Text Input Commands available\n"
 "s (or S)    : (S)how the values of all possible moves\n"
+"p (or P)    : Toggle (P)rint predictions\n"
 "u (or U)    : (U)ndo last move (not possible at beginning position)\n"
 "r (or R)    : (R)eprint the position\n"
 "h (or H)    : (H)elp\n"
