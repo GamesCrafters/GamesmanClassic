@@ -14,6 +14,7 @@
 
 #include "tk.h"
 #include "gamesman.h"
+#include "hash.h"
 
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
@@ -35,6 +36,12 @@ int *tclDummyMathPtr = (int *) matherr;
 ** Begin prototype for commands invoked from tcl command requests
 **
 **************************************************************************/
+
+
+static int		InitialPositionCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
 
 static int		FooCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
@@ -104,6 +111,12 @@ Gamesman_Init(interp)
     Tk_Window mainWindow;
 
     mainWindow = Tk_MainWindow(interp);
+
+    Tcl_CreateCommand(interp, "C_InitialPosition", (Tcl_CmdProc*) InitialPositionCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GenericUnhash", (Tcl_CmdProc*) GenericUnhashCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+
     Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_Initialize", (Tcl_CmdProc*) InitializeCmd, (ClientData) mainWindow,
@@ -166,6 +179,42 @@ Gamesman_Init(interp)
 ** Begin commands invoked from the tcl command requests coming in
 **
 **************************************************************************/
+
+static int 
+InitialPositionCmd(dummy, interp, argc, argv)
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
+     char **argv;
+{
+  if (argc != 1) {
+    interp->result ="wrong # args: shouldn't be any";
+    return TCL_ERROR;
+  }
+  sprintf(interp->result,"%d",gInitialPosition);
+  return TCL_OK;  
+}
+
+static int
+GenericUnhashCmd(dummy, interp, argc, argv)
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
+     char **argv;
+{
+  /*argv[1] is position, argv[2] is boardsize*/
+  if (argc != 3) {
+    interp->result = "wrong # args: should be 2";
+    return TCL_ERROR;
+  }
+  char *board;
+  int n;
+  board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
+  generic_unhash(atoi(argv[1]),board);
+  sprintf(interp->result, "%s",board);
+  return TCL_OK;
+}
+
 
 static int
 FooCmd(dummy, interp, argc, argv)
