@@ -1,0 +1,41 @@
+  _____    _____
+ /  ___|  /  ___|  
+|  |  _  |  /         <- I tried to copy Dan's README...didn't work...
+|  |_| | |  \___      <- Anybody want to "beautify" it?
+ \_____|o \_____|o
+
+ http://inst.eecs.berkeley.edu/~gamesmen/
+ http://sourceforge.net/projects/gamescrafters/
+
+|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+CONTACT INFORMATION
+===================
+This is our little CVS tutorial.
+Everybody should use CVS to access this file, add his contact information,
+and then commit this file to CVS.
+Detailed information by Bryon found here: 
+	http://gamescrafters.sourceforge.net/developers/cvs-general.html
+
+In summary (also from Bryon's instructions):
+	cvs co gamesman    	<- to check out the whole gamesman directory
+	cvs update [file] ...	<- to update all of your gamesman files
+	cvs commit [file] ...	<- submit your changes to CVS
+	cvs add [file]		<- add a file to CVS
+	cvs remove [file]	<- remove a file from CVS
+	cvs diff [file]		<- show differences between your [file]
+				   and the [file] on CVS
+	cvs --help		<- help...
+
+*Note, omitting the [file] arguments will apply the command to all relevant
+ files and subdirectories.
+
+===================
+Name: 	Elmer Lee
+Group:	Architecture
+Joined:	Fall 2003
+Major:	EECS
+E-Mail:	ogren@berkeley.edu
+AIM: 	EGGHEAD E
+Likes:	Robert A. Heinlein, Utada Hikaru, Blizzard Entertainment, Snowboarding,
+	Savage Garden, Azumanga Daioh, Paintballing
