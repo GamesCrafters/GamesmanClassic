@@ -363,6 +363,7 @@ DetermineValueCmd(dummy, interp, argc, argv)
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
+    gMenuMode = BeforeEvaluation; /* Some solvers use this for optimization */
     interp->result = gValueString[(int)DetermineValue(position)];
     gMenuMode = Evaluated;
 
