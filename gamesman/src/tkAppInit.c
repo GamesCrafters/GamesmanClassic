@@ -477,7 +477,6 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
-      printf("%d\n",ptr->move);
       value = GetValueOfPosition(DoMove(position,ptr->move));
 
       if (gGoAgain(position,ptr->move)) {
