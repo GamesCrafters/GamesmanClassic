@@ -1173,6 +1173,14 @@ void showStatus(int done)
 		}
 		num_pos_seen = 0;
 	}
+	else if (num_pos_seen > gNumberOfPositions && num_pos_seen % 1000 == 0)
+	{
+		size = fprintf(stderr,"%d Positions Visited                                                                        ",num_pos_seen);
+		for (i = 0; i < size; i++)
+		{
+			fprintf(stderr,"\b");
+		}
+	}
 	else if (num_pos_seen % 1000 == 0)
 	{
 		size = fprintf(stderr,"%d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
