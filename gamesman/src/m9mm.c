@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.10 2004-03-07 18:56:29 ogren Exp $
+//$Id: m9mm.c,v 1.11 2004-03-07 18:59:04 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -12,15 +12,15 @@
 **
 ** UPDATE HIST: 2004.02.22: Begin coding module, implemented functions: 
 **                          int hash
-**                          POSITION unhash;
+**                          POSITION unhash
 **                          void parse_board
-**                          void unparse_board;
+**                          void unparse_board
 **                          blankox whose_turn
 **                          MOVE hash_move
 **                          int from
 **                          int to
 **                          int remove_piece
-**                          blankox opponent;
+**                          blankox opponent
 **                          BOOLEAN can_be_taken
 **                          BOOLEAN closes_mill
 **                          BOOLEAN check_mill
@@ -740,6 +740,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.10  2004/03/07 18:56:29  ogren
+//misc. helper changes -Elmer
+//
 //Revision 1.9  2004/03/07 18:54:06  ogren
 //Fixed some small syntax errors -Elmer
 //
