@@ -46,7 +46,7 @@ STRING   kHelpGraphicInterface ="";
 
 STRING   kHelpTextInterface    =
 "On your turn use the file letter and row number to determine how to specify the\n\
-piece you wish to move and the direction and attack method. If you have made a\n\ 
+piece you wish to move and the direction and attack method. If you have made a\n\
 wrong move at any point, you can type u to revert back to the previous state.\n\
 ";
 
