@@ -42,7 +42,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 
 #include <stdio.h>
 #include "gamesman.h"
-//#include "hash.c"
+#include "hash.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -147,6 +147,8 @@ Board gBoard;
 
 typedef enum blank_o_x {Blank, x, o} BlankOX;
 
+
+//Peter: I don't know about these inline functions yet
 inline char whoseBoard(Board b);
 //inline char whoseMove(SMove m);
 inline char getpce(Board b, int r);
@@ -211,6 +213,9 @@ void InitializeGame () {
 		     -1};
   int maxpos = generic_hash_init(BOARDSIZE, boardspec, NULL);
   gNumberOfPositions  = maxpos;
+  if (DEBUGGING) {
+	printf("max number of posns is %d\n", maxpos);
+  }
   BOARDSIZE = width * height; //global variables
 
 }
@@ -248,7 +253,7 @@ void GameSpecificMenu()
     
     printf("\n");
     printf("Seega Game Specific Menu\n\n");
-    printf("1) Change the board size (default = %d x %d) \n", DEFAULTROWS, DEFAULTCOLS);
+    printf("1) Change the board size (currently at = %d x %d) \n", height, width); //rows x cols ?
     printf("2) To be inserted.. \n");
     printf("b) Back to previous menu\n\n");
     
@@ -274,6 +279,7 @@ void GameSpecificMenu()
     }
 }
 
+//cheesy error: floating point input doesn't work
 void changeBoard() 
 {
   int n_rows, n_cols, valid_cols, valid_rows;
@@ -434,11 +440,11 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
 
   printf("\n");
-  printf("          LEGEND:");
+  printf("         LEGEND:");
   for (currCol = 0; currCol < width; currCol++) {
-    printf("  ");
+    printf("   ");
   }
-  printf("             TOTAL:\n");
+  printf("       TOTAL:\n");
   for (currRow = height; currRow>0; currRow--) {
     printf("    %d ( ", currRow);
     for (currCol = 0; currCol < width; currCol++) {
