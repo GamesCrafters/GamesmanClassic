@@ -108,20 +108,20 @@ char *gblankoxString[] = { "", "x", "o"};
 /*
 ** Function Prototypes:
 */
-int hash(blankox *, blankox);
+int hash(blankox *board, blankox turn);
 POSITION unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
-void unparse_board(blankox *b_board, char *b_board)
+void unparse_board(blankox *b_board, char *c_board);
 blankox whose_turn(int hash_val);
 MOVE hash_move(int from, int to, int remove);
-int from(MOVE move);
-int to(MOVE move);
-int remove(MOVE move);
-blankox opponent (blankox player);
+int from(MOVE the_move);
+int to(MOVE the_move);
+int remove_piece(MOVE the_move);
+blankox opponent(blankox player);
 boolean can_be_taken(POSITION position, int slot);
 boolean closes_mill(POSITION position, int raw_move);
 boolean check_mill(blankox *board, int slot);
-boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
+boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -213,7 +213,7 @@ POSITION DoMove(thePosition, theMove)
 {
   from_slot = from(theMove);
   to_slot = to(theMove);
-  remove_slot = remove(theMove);
+  remove_slot = remove_piece(theMove);
   blankox[BOARDSIZE] board;
   
   unhash(thePosition, board);
@@ -655,7 +655,7 @@ int to(MOVE move)
   return ((move % (BOARDSIZE * BOARDSIZE)) / (BOARDSIZE));
 }
 
-int remove(MOVE move)
+int remove_piece(MOVE the_move)
 {
   return (move % BOARDSIZE);
 }
