@@ -1630,7 +1630,7 @@ void ExitStageRight()
 void ExitStageRightErrorString(char errorMsg[])
 {
     printf("\nError: %s\n",errorMsg);
-    exit(0);
+    exit(1);
 }
 
 GENERIC_PTR SafeMalloc(size_t amount)
@@ -1650,7 +1650,10 @@ GENERIC_PTR SafeMalloc(size_t amount)
 
 void SafeFree(GENERIC_PTR ptr)
 {
-    free(ptr);
+    if(NULL == ptr)
+      ExitStageRightErrorString("Error: SafeFree was handed a NULL ptr!\n");
+    else
+      free(ptr);
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
