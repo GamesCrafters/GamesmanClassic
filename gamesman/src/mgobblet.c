@@ -693,7 +693,7 @@ void PrintPosition(position, playerName, usersTurn)
     for(cols2 = 0; cols2 < BOARD_SIZE;cols2++)
     {
         printf(" ");
-	gobbletPrintSpace(myPos.board[rows+cols2]);
+	gobbletPrintSpace(myPos.board[POS_NUMBER(rows, cols2)]);
     }
     printf("\n");
   }
@@ -735,12 +735,14 @@ MOVELIST *GenerateMoves(position)
   struct GPosition myPosition;
   int topPieceFrom;
   int pieceColorFrom;
+  int currentColor;
   int topPieceTo;
   int stockValue;
   int i, j;
   
   if(Primitive(position) == undecided) {
     myPosition = unhash(position);
+    currentColor = (myPosition.turn == TURN_O ? PIECE_O : PIECE_X);
     /* For pieces in the stock */
     for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
       stockValue = i / 2;
@@ -758,7 +760,7 @@ MOVELIST *GenerateMoves(position)
     for(i = 0; i < TABLE_SLOTS; i++) {
       topPieceFrom = getTopPieceSize(myPosition.board[i]);
       pieceColorFrom = getTopPieceColor(myPosition.board[i]);
-      if((pieceColorFrom == myPosition.turn) && (topPieceFrom > 0)) {
+      if((pieceColorFrom == currentColor) && (topPieceFrom > 0)) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if(((topPieceTo > 0) && (topPieceTo < topPieceFrom)) ||
