@@ -3480,6 +3480,7 @@ void SolveAndStore()
         analyze(); // sets global variables
         createAnalysisVarDir();
         writeVarHTML();
+	writeVarXML();
     }
 }
 
@@ -3841,6 +3842,79 @@ void createVarTable ()
  fprintf(tablep,"</table>\n");
     fclose (tablep);
     
+}
+
+void writeVarXML()
+{
+	FILE * xmlFile;
+
+    char xmlPath[256];
+    sprintf(xmlPath, "analysis/xml/%s_%d.xml", kDBName, getOption());
+    /* xmlFile = prepareXMLFile(); */
+    
+    mkdir("analysis/xml",0755);
+    xmlFile = fopen(xmlPath,"w");
+    fprintf(xmlFile,"<?xml version=\"1.0\"?>\n",kDBName,getOption());
+	fprintf(xmlFile,"    <game name=\"%s\" variant=\"%d\">\n",kDBName,getOption());
+	fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
+	fprintf(xmlFile,"        <count>\n");
+	fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.WinCount);
+	fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.LoseCount);
+	fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.TieCount);
+	fprintf(xmlFile,"        </count>\n");
+	fprintf(xmlFile,"        <primitive>\n");
+	fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.PrimitiveWins);
+	fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.PrimitiveLoses);
+	fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.PrimitiveTies);
+	fprintf(xmlFile,"        </primitive>\n");
+	fprintf(xmlFile,"        <positionstats>\n");
+	fprintf(xmlFile,"            <total>%d</total>\n",gAnalysis.TotalPositions);
+	fprintf(xmlFile,"            <hashtotal>%d</hashtotal>\n",gNumberOfPositions);
+	fprintf(xmlFile,"            <hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
+	fprintf(xmlFile,"            <fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
+	fprintf(xmlFile,"        </positionstats>\n");
+	fprintf(xmlFile,"        <time>%d</time>\n",gAnalysis.TimeToSolve);
+    fprintf(xmlFile,"    </game>\n");
+	
+    fclose(xmlFile);
+	/* closeXMLFile(xmlFile); */
+}
+
+FILE * prepareXMLFile()
+{
+    FILE * xmlFile;
+    
+    xmlFile = fopen("analysis/globalAnalysis.xml","r");
+    
+    if(xmlFile == 0)
+    {
+        xmlFile = fopen("analysis/globalAnalysis.xml","w");
+        fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
+        fprintf(xmlFile,"<analysis>\n");
+        return xmlFile;
+    }
+    else
+    {
+        fpos_t loc;
+        fclose(xmlFile);
+        xmlFile = fopen("analysis/globalAnalysis.xml","a");
+        fseek(xmlFile,0,SEEK_END);
+fgetpos(xmlFile,&loc);
+printf("LOC 1: %d\n",loc);
+        fseek(xmlFile,-100,SEEK_CUR);
+        fgetpos(xmlFile,&loc);
+printf("LOC 2: %d\n",loc);
+fflush(stdout);
+        fflush(xmlFile);
+        return xmlFile;
+    }
+}
+
+
+void closeXMLFile(FILE * xmlFile)
+{
+    fprintf(xmlFile,"</analysis>\n");
+    fclose(xmlFile);
 }
 
 void writeVarHTML ()
