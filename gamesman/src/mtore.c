@@ -8,15 +8,15 @@
 
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        mtore.c
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: Mu Torere
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHOR:      Joe Jing, Jeff Chou
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** UPDATE HIST: 2004-9-28 Started Module. Print Position, Do Move, Hash Stuff.
 **
 **************************************************************************/
 
@@ -40,7 +40,7 @@
 **************************************************************************/
 
 STRING   kGameName            = ""; /* The name of your game */
-STRING   kAuthorName          = ""; /* Your name(s) */
+//STRING   kAuthorName          = ""; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -131,7 +131,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  int[] init_array[10];
+  int init_array[10];
   init_array[0] = '_';
   init_array[1] = 1;
   init_array[2] = 1;
@@ -210,7 +210,7 @@ POSITION DoMove (POSITION position, MOVE move)
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
-    return generic_has(gBoard, 1);	
+    return generic_hash(gBoard, 1);	
 }
 
 
@@ -240,6 +240,7 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+  
     return undecided;
 }
 
@@ -263,13 +264,13 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   generic_unhash(position, gBoard);
-  printf("    %c\n",gBoard[1]);
-  printf("  %c | %c\n", gBoard[0], gBoard[2]);
-  printf("  %\|/\n");
-  printf("%c--%c--%c\n", gBoard[3], gBoard[4], gBoard[5]);
-  printf("  /|%\\n");
-  printf("  %c | %c\n", gBoard[6], gBoard[8]);
-  printf("    %c\n", gBoard[7]);
+  printf("     %c\n",gBoard[1]);
+  printf("  %c  |  %c\n", gBoard[0], gBoard[2]);
+  printf("   \\ | /\n");
+  printf(" %c-- %c --%c\n", gBoard[3], gBoard[4], gBoard[5]);
+  printf("   / | \\\n");
+  printf("  %c  |  %c\n", gBoard[6], gBoard[8]);
+  printf("     %c\n", gBoard[7]);
   printf("\n%s's Turn\n", playersName);
   
 }
