@@ -170,7 +170,7 @@ extern VALUE     *gDatabase;
 void InitializeGame () {
 	int i, j;
 	int pieces_array[10] = {BLANK, 0, width * height, WHITE, 0, numpieces, BLACK, 0, numpieces, -1 };
-	char board[width * height];
+	char* board = (char*)malloc(sizeof(char) * width * height);
 	
 	gNumberOfPositions = generic_hash_init(width * height, pieces_array, vcfg);
 	for (j = 0; j < height; j++) {
@@ -225,7 +225,7 @@ MOVELIST *GenerateMoves (POSITION position)
 				/*set_move_source(move, 0);
 				set_move_dest(move, 0);*/
 				set_move_place(move, get_location(px, py));
-				CreateMovelistNode(move, moves);
+				moves = CreateMovelistNode(move, moves);
 			}
 		}
 	}
@@ -264,7 +264,7 @@ MOVELIST *GenerateMoves (POSITION position)
 								}
 							}
 						}
-						else validDestination = false;
+						else validDestination = FALSE;
 						if (validDestination) {
 							for (px = 0; px < width; px++) {
 								for (py = 0; py < height; py++) {
@@ -273,7 +273,7 @@ MOVELIST *GenerateMoves (POSITION position)
 										set_move_source(move, get_location(sx, sy));
 										set_move_dest(move, get_location(dx, dy));
 										set_move_place(move, get_location(px, py));
-										CreateMovelistNode(move, moves);
+										moves = CreateMovelistNode(move, moves);
 									}
 								}
 							}
@@ -459,6 +459,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	/* If we had a status display at the bottom of the board, it would go here. */
 		printf(" ");
 	}
+	printf("|\n");
 	
 	printf("\\");						/* Bottom row */
 	for (i = 0; i < (2 * width + 7); i++) {			/* \===============/ */
@@ -500,10 +501,15 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    printf("move from %d to %d, place at %d",
+    if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
+	printf("[N %d]", get_move_place(move));
+    }
+    else {
+	printf("[%d %d %d]",
 	   get_move_source(move),
 	   get_move_dest(move),
-	   get_move_place(move)); 
+	   get_move_place(move));
+    }
 }
 
 
@@ -575,8 +581,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input) {
-    int i = 0;
-    BOOLEAN nomove = false;
+   
 
     /* FILL IN */
     
@@ -605,7 +610,7 @@ MOVE ConvertTextInputToMove (STRING input) {
 	char* curr = input;
 	MOVE move = 0;
 	
-	while (isspace(*curr)) curr++;
+	while (isspace((int)*curr)) curr++;
 	
 	if (*curr == 'N') {
 		set_move_source(move, 0);
@@ -614,10 +619,10 @@ MOVE ConvertTextInputToMove (STRING input) {
 	}
 	else {
 		set_move_source(move, atoi(curr));
-		while (!isspace(*curr)) curr++;
-		while (isspace(*curr)) curr++;
+		while (!isspace((int)*curr)) curr++;
+		while (isspace((int)*curr)) curr++;
 		set_move_dest(move, atoi(curr));
-		while (!isspace(*curr)) curr++;
+		while (!isspace((int)*curr)) curr++;
 	}
 	
 	set_move_place(move, atoi(curr));
@@ -793,7 +798,7 @@ int next_player(POSITION position) {
   
      for (x = 0; x < width; x++) {
 	 for (y = 0; y < height; y++) { 
-	     if(pieceat(board, x y) == player) {
+	     if(pieceat(board, x, y) == player) {
 		 int i; /* used when x varies */
 		 int j;	/* used when y varies */ 
 
