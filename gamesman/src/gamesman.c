@@ -242,11 +242,10 @@ char GetMyChar()
 InitializeDatabases()
 {
   GENERIC_PTR SafeMalloc();
-  int i;
+  POSITION i;
   if (gDatabase!=NULL) {
     SafeFree((GENERIC_PTR) gDatabase);
     gDatabase = NULL;
-    //    gBytesInUse -= gNumberOfPositions * sizeof(VALUE);
   }
 
   gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
@@ -1483,7 +1482,7 @@ char errorMsg[];
 }
 
 GENERIC_PTR SafeMalloc(amount)
-     int amount;
+     size_t amount;
 {
   GENERIC_PTR ptr;
 
@@ -2374,8 +2373,8 @@ PrintGameValueSummary()
 {
   POSITION thePosition, GetNextPosition();
   VALUE GetValueOfPosition(), theValue;
-  int winCount, loseCount, tieCount, unknownCount;
-  int totalPositions;
+  POSITION winCount, loseCount, tieCount, unknownCount;
+  POSITION totalPositions;
 
   totalPositions = winCount = loseCount = tieCount = unknownCount = 0;
   for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
@@ -2393,13 +2392,13 @@ PrintGameValueSummary()
   
   printf("\tValue       Number       Total\n");
   printf("\t------------------------------\n");
-  printf("\tLose      = %5d out of %d\n",loseCount,totalPositions);	
-  printf("\tWin       = %5d out of %d\n",winCount,totalPositions);	
-  printf("\tTie       = %5d out of %d\n",tieCount,totalPositions);	
-  printf("\tUnknown   = %5d out of %d\n",unknownCount,totalPositions);	
-  printf("\tTOTAL     = %5d out of %d\n",
+  printf("\tLose      = %5lu out of %lu\n",loseCount,totalPositions);	
+  printf("\tWin       = %5lu out of %lu\n",winCount,totalPositions);	
+  printf("\tTie       = %5lu out of %lu\n",tieCount,totalPositions);	
+  printf("\tUnknown   = %5lu out of %lu\n",unknownCount,totalPositions);	
+  printf("\tTOTAL     = %5lu out of %lu\n",
 	 loseCount+winCount+tieCount+unknownCount,
-	 totalPositions);	
+	 gNumberOfPositions);
 }
 
 PrintMexValues(mexValue,maxPositions)
@@ -2882,18 +2881,19 @@ InitializeFR()
 
 POSITION DeQueueWinFR()
 {
-  /* printf("DeQueueWinFR...\n"); */
+  POSITION DeQueueFR();
   return DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
 POSITION DeQueueLoseFR()
 {
-  /* printf("DeQueueLoseFR...\n"); */
+  POSITION DeQueueFR();
   return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
 POSITION DeQueueTieFR()
 {
+  POSITION DeQueueFR();
   return DeQueueFR(&gHeadTieFR, &gTailTieFR);
 }
 
