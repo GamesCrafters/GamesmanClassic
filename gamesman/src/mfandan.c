@@ -17,11 +17,16 @@
 **              03/02/04 Debugged PrintPosition(...)
 **              03/02/04 Wrote ValidTextInput(...)
 **              03/03/04 Wrote Primitive(...)
+**              03/05/04 Wrote ConvertTextToInput(...)
+**              03/06/04 Wrote IndexToCoordinates(...)
+**              03/06/04 Wrote CoordinatesToIndex(...)
+**              03/06/04 Wrote Neighbor(...)
+**              03/06/04 Wrote Inbounds(...)
+**              03/06/04 Wrote OtherDirection(...)
+**              03/06/04 Wrote GenerateMoves(...)
 ** TODO LIST:
 **              03/02/04 PrintPosition() needs to print info about how to make moves
-**              03/02/04 copy from ValidTextInput(...) to do first parts of ConvertTextInputToMove(...)
 **              03/02/04 Write DoMove(...)
-**              03/02/04 add a call to generic_hash_init(...)
 **
 **************************************************************************/
 
@@ -93,10 +98,15 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
+typedef enum _direction { nodir=0,lowleft=1,down=2,lowright=3,left=4,right=6,upleft=7,up=8,upright=9 } Direction;
+typedef struct _coord { int x,y; } Coordinates;
+
 char *gBlankOXString[] = { '.', 'O', 'X' };
-int myPieces_array[6] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
+int myPieces_array[9] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
                           'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
                           'X', 0, MAX_X };        /* used to pass into generic_hash_init(...) */
+
+BlankOX turn = x;                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
 
 //---- Shing ----------------------------------------------
 char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
@@ -112,6 +122,7 @@ char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array inste
 
 InitializeGame()
 {
+  generic_hash_init(BOARDSIZE, myPieces_array);
 }
 
 FreeGame()
@@ -348,6 +359,9 @@ PrintPosition(position,playerName,usersTurn)
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
+**              WhoseTurn(...),InBounds(...),CoordinatesToIndex(...),
+**              IndexToCoordinates(...),Primitive(...),
+**              Neighbor(...),OtherDirection(...),EachDirection(...),OtherPlayer
 **
 ************************************************************************/
 
@@ -356,20 +370,145 @@ MOVELIST *GenerateMoves(position)
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
-  BlankOX theBlankOX[BOARDSIZE];
+  Coordinates IndexToCoordinates(int);
+  int CoordinatesToIndex(Coordinates);
+  int InBounds(Coordinates);
+  Coordinates Neighbor(Coordinates,Direction);
+  Direction EachDirection();
+  Direction OtherDirection(Direction);
+  BlankOX OtherPlayer();
+  BlankOX WhoseTurn();
+
+  BlankOX board[BOARDSIZE];
   int i;
-  
+  Direction dir;
+  int intdir;
+  Coordinates pos,attackingpos;
+  int cap=0;   // capture mode
+  int numofcaps; //number of captures possible for one direction of move
+
   if (Primitive(position) == undecided) {
-    PositionToBlankOX(position,theBlankOX);
+    PositionToBoard(position,board);
     for(i = 0 ; i < BOARDSIZE ; i++) {
-      if(theBlankOX[i] == Blank)
-	head = CreateMovelistNode(i,head);
-    }
+      if(board[i] == WhoseTurn()) {      // if current player's piece then we consider where we can move this
+	pos = IndexToCoordinates(i);
+	for(;dir = EachDirection();) {
+	  intdir = (int)dir;
+	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
+	    intdir--;    // 5 is not a direction, don't need that
+	  intdir--;      // start at 0
+
+	  if(InBounds(Neighbor(pos,dir)) && board[i]==Blank) {      // vacant neighboring cell exists
+	    numofcaps=0;
+	    
+	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
+	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) {  // have enemy, can attack by approach
+	      numofcaps++;
+	      cap = 1;  // attack by approach mode
+	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	    } // end if can attack by approach
+	    
+	    attackingpos = Neighbor(pos,OtherDirection(dir));
+	    if(Inbounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
+	      numofcaps++;
+	      cap = 2; // attack by withdraw mode
+	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	    } // end if can attack by withdraw
+	    
+	    if(numofcaps==0) { // no captures possible for this move
+	      cap = 0;
+	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	    } //end if no possible captures
+	  } // end if vacant target cell (i.e. can move)
+	} // end for this direction
+      } // end if this piece is current players piece
+    } // end for this cell of board
     return(head);
-  } else {
+  } else { // end if undecided (not win or lose)
     return(NULL);
   }
 }
+
+/************************************************************************
+ * Inputs:
+ * Description: enumerates all possible directions. ie. one direction per call
+ *              in the end, will return nodir = 0
+ * Calls:
+ ***********************************************************************/
+Direction EachDirection() {
+  static int dir = 0;
+  return (Direction)( ((++dir)%10==5) ? dir=6 : dir );
+}
+
+/************************************************************************
+ * Inputs: Direction
+ * Description: returns opposite direction
+ * Calls:
+ ***********************************************************************/
+Direction OtherDirection(Direction dir) {
+  switch(dir) {
+  case up: return down;
+  case down: return up;
+  case left: return right;
+  case right: return left;
+  case upleft: return lowright;
+  case upright: return lowleft;
+  case lowleft: return upright;
+  case lowright: return upleft;
+  default: return nodir;
+  }
+  return nodir;  // never reached
+}
+
+/************************************************************************
+ * Inputs:      Coordinates pos, Direction dir
+ * Description: returns the Coordinates for the neighboring space of pos
+ * Calls: 
+ ***********************************************************************/
+Coordinates Neighbor(Coordinates pos, Direction dir) {
+  if (dir == up || dir == upleft || dir == upright)
+    pos.y--;
+  else if (dir == down || dir == lowleft || dir == lowright)
+    pos.y++;
+
+  if (dir == left || dir == upleft || dir == lowleft)
+    pos.x--;
+  else if (dir == right || dir == upright || dir == lowright)
+    pos.x++;
+
+  return pos;
+}
+
+/************************************************************************
+ * Inputs:      Coordinates
+ * Description: true if within board boundary, false otherwise
+ * Calls: IndexToCoordinates(...)
+ ***********************************************************************/
+int InBounds(Coordinates pos) {
+  return (pos.x>=0) && (pos.x<BOARDWIDTH) && (pos.y>=0) && (pos.y<BOARDHEIGHT);
+}
+
+/************************************************************************
+ * Inputs:      integer - array index of board
+ * Description: returns Coordinates - position on board corresponding to the index
+ *              x,y both start at 0
+ * Calls:
+ ***********************************************************************/
+Coordinates IndexToCoordinates(int index) {
+  Coordinates pos;
+  pos.y = index / BOARDWIDTH;
+  pos.x = index % BOARDWIDTH;
+  return pos;
+}
+
+/************************************************************************
+ * Inputs:      Coordinates
+ * Description: returns array index corresponding to position given by input
+ * Calls:
+ ***********************************************************************/
+ int CoordinatesToIndex(Coordinates pos) {
+   return pos.x + pos.y*BOARDWIDTH;
+ }
 
 /************************************************************************
 **
@@ -428,8 +567,10 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  char col;                           /* column */                                                              
-  int row,dir,cap;                    /* row,direction,capture mode ('a','w','n')*/
+  char col;                           /* column: a, b, c, etc. */                                                              
+  int row,dir,cap;                    /* row: 1,2,3,etc.,
+					 direction: 1,2,3,4,6,7,8,9 (based on numpad),
+					 ,capture mode: a, w, n*/
   int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
 
   col = tolower(col);     /* to make case insensitive */
@@ -457,7 +598,32 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
+  char col;                           /* column */                                                              
+  int row,dir,cap;                    /* row,direction,capture mode ('a','w','n')*/
+  int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
+  col = tolower(col);     /* to make case insensitive */
+  cap = tolower(cap);     /* "          "         "   */
+
+  /* we want:
+     ___________________________________________
+     |1:unused| 13:col | 13:row | 3:dir | 2:cap |
+     -------------------------------------------*/
+  if(cap == 'a')          /* encode 'a' as 01, 'w' as 10 and n as 00 */
+    cap = 1;
+  else if(cap == 'w')
+    cap = 2;
+  else // cap == 'n'
+    cap = 0;
+
+  row -= 1;    // we start at 0, user starts at 1
+  col = col - 'a';   // make col start at 0 and count up each alpha. i.e. 'b' = 1, 'c' = 2
+
+  if(dir >= 5)
+    dir--;    // 5 is not a dir
+  dir--;      // make dir start at 0
+
+  // mask everything into the MOVE to return
+  return (col<<18) | (row<<5) | (dir<<2) | cap;
 }
 
 /************************************************************************
@@ -542,16 +708,12 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
  *
  * Calls:
  ***********************************************************************/
-BlankOX WhoseTurn()
-{
-  static BlankOX turn = x;
-  if (turn == x) {
-    turn = o;
-    return x;
-  }else {
-    turn = x;
-    return o;
-  }
+BlankOX WhoseTurn() {
+  return turn;   /* turn is a global variable that keeps track of this */
+}
+
+BlankOX OtherPlayer() {
+  return turn==x ? o : x;
 }
 
 STRING kDBName = "ttt" ;
