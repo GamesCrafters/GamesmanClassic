@@ -47,7 +47,9 @@
 #include <unistd.h>
 #include <limits.h>
 #include <math.h>
-#define DEBUGGING 1
+#define DEBUGGING 0
+#define DEBUGGING2 0
+#define DEBUGGING3 1 //Peter's debugging flag
 
 extern STRING gValueString[];
 
@@ -161,9 +163,8 @@ STRING   kHelpExample =
 #define DEFAULTCOLS 3
 #define DEFAULTBOARDSIZE 9
 
-
 //Peter: we should add a 'g' in front of global variables for good coding style
-int width=DEFAULTROWS, height=DEFAULTROWS; //changed
+int width=DEFAULTROWS, height=DEFAULTCOLS;
 int BOARDSIZE = DEFAULTBOARDSIZE;
 int BOARDARRAYSIZE;
 char P1='x';
@@ -175,13 +176,15 @@ char blank='-'; //TODO changed Peter: I think blank should be '-'
 
 typedef char* Board;
 typedef int* SMove;
+//array for keeping the forbidden spots - not used yet
+int forbiddenSpots[30]; //MAX 30 forbidden spots - arbitrary num
+int defaultForbidden = TRUE;
 
+//FIXME remove line
+//typedef enum blank_o_x {Blank, x, o} BlankOX;
 
+int forbiddenSpot(int r);
 
-typedef enum blank_o_x {Blank, x, o} BlankOX;
-
-
-//Peter: I don't know about these inline functions yet
 inline char whoseBoard(Board b);
 inline char getpce(Board b, int r);
 inline char getPiece(Board b, int x, int y);
@@ -207,10 +210,23 @@ void makeRandomBoard(Board b);
 inline POSITION hash(Board b);
 inline void unhash(Board b, POSITION p);
 
-
+//FORBIDDEN SPOTS
 /* tells whether r is a forbidden spot for placing pieces (i.e. the
    center) */
-inline int forbiddenSpot(int r) {return height/2 == r/width && width/2 == r%width;}
+int forbiddenSpot(int r) {
+	int i;
+	//printf("FORBIDDEN spot check r[%u] height[%u] width[%u]\n", r, height, width);
+	if (defaultForbidden) {
+	  return height/2 == r/width && width/2 == r%width;
+	} else {
+	  for (i = 0;  forbiddenSpots[i] != 0; i++) {
+            if(r == forbiddenSpots[i]) {
+              return TRUE;
+	    }
+	  }
+	  return FALSE;
+	}
+}
 
 /* A few helper functions for GenerateMoves. */
 int nextOpenSpot(Board b, int lowerBound);
@@ -301,6 +317,7 @@ void DebugMenu () {
  ************************************************************************/
 
 void changeBoard();
+void changeForbiddenSpots();
 
 void GameSpecificMenu()
 {
@@ -309,7 +326,7 @@ void GameSpecificMenu()
   printf("\n");
   printf("Seega Game Specific Menu\n\n");
   printf("1) Change the board size (currently at = %d x %d) \n", height, width); //rows x cols ?
-  printf("2) To be inserted.. \n");
+  //printf("2) Change the forbidden spots (NOT QUITE DONE YET) \n");
   printf("b) Back to previous menu\n\n");
     
   //printf("Current option:   %s\n", allDiag ? "All diagonal moves": noDiag ? "No diagonal moves" : "Standard diagonal moves");
@@ -322,6 +339,10 @@ void GameSpecificMenu()
     break;
   case '1':
     changeBoard();
+    GameSpecificMenu();
+    break;
+  case '2':
+    changeForbiddenSpots();
     GameSpecificMenu();
     break;
 
@@ -368,7 +389,37 @@ void changeBoard()
   //GetMyChar();
 }
 
-  
+void changeForbiddenSpots()
+{
+	/*
+  int n_rows, n_cols, valid_cols, valid_rows;
+  valid_cols = 0; //a flag
+  valid_rows = 0; //another flag - not used
+  printf("Enter the new number of rows (3-%d):  ", MAXROWS);
+  (void) scanf("%u", &n_rows);
+  if ((n_rows < 3) || (n_rows > MAXROWS)) {
+    printf("Number of rows must be between to 3 and %d\n", MAXROWS);
+    changeBoard(); //optional - change to better style
+  } else {
+    printf("Changing number of rows to %d ...\n", n_rows);
+    height = n_rows;
+  }
+  printf("Enter the new number of columns (3-%d):  ", MAXCOLS);
+  while (valid_cols == 0){
+    (void) scanf("%u", &n_cols);
+    if ((n_cols < 3) || (n_cols > MAXCOLS)) {
+      printf("Number of columns must be between to 3 and %d\n", MAXCOLS);
+    } else {
+      printf("Changing number of columns to %d ...\n", n_cols);
+      width = n_cols;
+      //BOARDSIZE=width*height;
+      valid_cols = 1;
+    }
+  }
+  InitializeGame();
+  */
+}
+
 /************************************************************************
  **
  ** NAME:        SetTclCGameSpecificOptions
@@ -543,7 +594,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 
 //TODO not tested
 VALUE Primitive (POSITION position) {
-  int r, c,flag=0;
+  int r, c, flag=0;
+  int num_pieces = 0;
   // TODO: find a one-line way to say the following:
   char tempname[BOARDARRAYSIZE];
   Board b = tempname;
@@ -552,19 +604,29 @@ VALUE Primitive (POSITION position) {
   //c=whoseMove();
   //c==P1?d=P2:d=P1;
   MOVELIST* moves = GenerateMoves(position);
-  FreeMoveList(moves);  
-  if (moves==NULL) {
+  FreeMoveList(moves);  //what does this do?
+  if (moves==NULL) { 
     for (r=0;r<width*height;r++){
       if(getpce(b,r)==c) {
 	flag=1;
 	break;
       }
     }
-      if (flag != 1)
-	
-	//FreeMoveList(moves);
-	return lose;
-      return tie;
+    if (flag != 1) { //THIS WILL NEVER BE REACHED
+      //FreeMoveList(moves);
+      return lose;
+    }
+    //printf("TODO: implement do again\n");
+    return tie;
+  } else {
+    for (r=0;r<width*height;r++){
+      if(getpce(b,r)==c) {
+	num_pieces++;
+      }
+    }
+    if ((num_pieces == 1) && (!placingBoard(b)))  {
+      return lose;
+    }
   }
     //else FreeMoveList(moves);
     // A board is primitive if there are no more things to move.
@@ -613,7 +675,11 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   for (currCol = 0; currCol < width; currCol++) {
     printf("   ");
   }
-  printf("     TOTAL:\n");
+  if (placingBoard(b)) {
+    printf("   TOTAL (forbidden spots don't show up):\n");
+  } else {
+    printf("   TOTAL:\n");
+  }
   for (currRow = height; currRow>0; currRow--) {
     //printf("    %d ( ", currRow);
     printf("  (");
@@ -626,9 +692,13 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
       }
       moveCounter++;
     }
-    printf(")          :");
+    printf(")        :");
     for (currCol = 0; currCol < width; currCol++) {
-      printf("%c ", getpce(b,index)); //get piece
+      if (forbiddenSpot(index) && placingBoard(b)) {
+         printf("  ");
+      } else {
+         printf("%c ", getpce(b,index)); //get piece
+      }
       index++;
     }
     printf("\n");
@@ -849,7 +919,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input) {
 	
   return(input[0] <= '9' && input[0] >= '0');
-//return TRUE;
 }
 
 
@@ -869,7 +938,7 @@ BOOLEAN ValidTextInput (STRING input) {
 
 // some parts from mabalone.c
 MOVE ConvertTextInputToMove (STRING input) {
-  if (DEBUGGING)
+  if (DEBUGGING2)
     printf("Starting conversion\n");
   int n=0, p1=0, p2=0;
   MOVE m;
@@ -882,7 +951,7 @@ MOVE ConvertTextInputToMove (STRING input) {
   for (; input[n]!='\0' && input[n] >= '0' && input[n] <= '9'; n++)
     p2 = p2*10 + input[n] - '0';
   setMove(&m, 'x', p1, p2);
-  if (DEBUGGING) {printf("Conversion finds ");PrintMove(m);printf(".\n");}
+  if (DEBUGGING2) {printf("Conversion finds ");PrintMove(m);printf(".\n");}
   return m;
   //get first piece
   //formula: result = letter + number
