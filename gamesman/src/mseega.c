@@ -137,7 +137,7 @@ int BOARDARRAYSIZE;
 char P1='x';
 char P2='o';
 char blank='-'; //TODO changed Peter: I think blank should be '-'
-//int BOARDSIZE = 11; //Peter & Emad: why 11?
+//int BOARDSIZE = 11;
 /* width*height, plus one for whose move it is and whether we are in
    placing mode.*/
 
@@ -474,7 +474,7 @@ POSITION GetInitialPosition ()
   printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
   printf("Example:\n");
   
-  printf("\nOn second thought let me just give you a random board.\n");
+  printf("\nTEMP: On second thought let me just give you a random board.\n");
   printf("TODO: allow you to enter something.\n");
   //setWhoseBoard(b, 'x');
   makeRandomBoard(b);
@@ -583,7 +583,11 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     printf("     ( ");
     for (currCol = 0; currCol < width; currCol++) {
       //printf("%c%d ", alphabet[currCol], currRow);
-      printf("%d ", moveCounter);
+      if (moveCounter >= 10) {
+	printf("%d ", moveCounter);
+      } else {
+	printf("%d  ", moveCounter);
+      }
       moveCounter++;
     }
     printf(")          :");
@@ -593,13 +597,13 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     }
     printf("\n");
   }
-  printf("        ");
   /*
+  printf("        ");
   for (currCol = 0; currCol < width; currCol++) {
     printf("%c  ", alphabet[currCol]);
   }
   */
-  printf("\n\n");
+  printf("         %s's turn to move\n\n", playerName);
 }
 
 /*
