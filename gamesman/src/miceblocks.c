@@ -55,11 +55,8 @@ STRING gStandard =
 "Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
 "5 in a row gets 7 points. Diagonals are valid.";
 STRING gTallyBlocks =
-"The objective of this game is to obtain more points than\n"
-"your opponent.  You get points for having more than one block\n"
-"in a row.  The player with the most blocks in a row wins (a\n"
-"block that is in multiple rows gets counted more than once).\n"
-"Diagonals are valid.";
+"The objective of this game is to get the most number of\n"
+"blocks in a single row.";
 STRING gTallyThrees =
 "The objective of this game is to get more threes in a row\n"
 "than your opponent.  If you have 4 in a row, it will be counted\n"
@@ -72,11 +69,8 @@ STRING gStandardR =
 "Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
 "5 in a row gets 7 points. Diagonals are valid.";
 STRING gTallyBlocksR =
-"The objective of this game is to obtain less points than\n"
-"your opponent.  You get points for having more than one block\n"
-"in a row.  The player with the least blocks in a row wins (a\n"
-"block that is in multiple rows gets counted more than once).\n"
-"Diagonals are valid.";
+"The objective of this game is to not get the most number of\n"
+"blocks in a single row.";
 STRING gTallyThreesR =
 "The objective of this game is to get less threes in a row\n"
 "than your opponent.  If you have 4 in a row, it will be counted\n"
@@ -92,8 +86,8 @@ STRING kHelpOnYourTurn =
 "Place a block somewhere in the pyramid by entering the\n"
 "corresponding number.  You may only place a block if it is\n"
 "on the bottom row, or on top of two adjacent pieces.";
-STRING kHelpStandardObjective;
-STRING kHelpReverseObjective;
+STRING kHelpStandardObjective = NULL;
+STRING kHelpReverseObjective = NULL;
 STRING kHelpTieOccursWhen =
 "each player has accumulated an equal\n"
 "number of points by the end of the game.";
@@ -226,8 +220,10 @@ void InitializeGame () {
   for(i = 0; i < sum; i++)
     board[i] = '-';
   gInitialPosition = generic_hash(board, 1);
-  kHelpStandardObjective = gStandard;
-  kHelpReverseObjective = gStandardR;
+  if(!kHelpStandardObjective) {
+    kHelpStandardObjective = gStandard;
+    kHelpReverseObjective = gStandardR;
+  }
 }
 
 /************************************************************************
@@ -338,10 +334,10 @@ VALUE Primitive (POSITION pos) {
 	count++; 
 	dlvisited[k][m] = 1; 
       }
-      if((count > 1) && (color == X))
-	countX += count;
-      else if ((count > 1) && (color == O))
-	countO += count;
+      if((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
       if((count > 2) && (color == X)) {
 	pointsX += 3 + (count - 3) * 2;
 	threesX++;
@@ -356,10 +352,10 @@ VALUE Primitive (POSITION pos) {
 	count++;
 	drvisited[k][m] = 1;
       }
-      if ((count > 1) && (color == X))
-	countX += count;
-      else if ((count > 1) && (color == O))
-	countO += count;
+      if ((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
       if((count > 2) && (color == X)) {
 	pointsX += 3 + (count - 3) * 2;
 	threesX++;
@@ -374,10 +370,10 @@ VALUE Primitive (POSITION pos) {
 	count++;
 	hvisited[k][m] = 1;
       }
-      if((count > 1) && (color == X))
-	countX += count;
-      else if ((count > 1) && (color == O))
-	countO += count;
+      if((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
       if((count > 2) && (color == X)) {
 	pointsX += 3 + (count - 3) * 2;
 	threesX++;
@@ -413,9 +409,9 @@ VALUE Primitive (POSITION pos) {
     }
     else if(countO > countX) {
       if(board->turn == O) 
-	(gStandardGame ? win : lose);
+	return (gStandardGame ? win : lose);
       else
-	(gStandardGame ? lose : win);
+	return (gStandardGame ? lose : win);
     }
     else
       return tie;
@@ -513,8 +509,12 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
     }
     printf("\n");
   }
+  if(board->turn == X)
+    printf("  Player X's turn.");
+  else
+    printf("  Player O's turn.");
   if(!gMenu)
-    printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
+    printf("          %s\n\n", GetPrediction(position, playerName, usersTurn));
 }
 
 /************************************************************************
@@ -875,7 +875,9 @@ void SetWinningCondition () {
   while(cont) {
     cont = FALSE;
     printf("\n\nWinning Condition Options:\n\n"
-	   "\ts)\t(S)tandard point tally\n"
+	   "\ts)\t(S)tandard game. Three points for every\n"
+	   "\t\tstring of three and two additional points\n"
+	   "\t\tfor every additional block.\n"
 	   "\tm)\t(M)ost number of blocks in a row\n"
 	   "\tn)\tMost (n)umber of three's in a row\n"
 	   "\nEnter your choice for the winning condition:  ");
