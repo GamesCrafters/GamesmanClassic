@@ -66,6 +66,7 @@ BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
+BOOLEAN gCollDB = FALSE;
 BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
@@ -232,6 +233,8 @@ void HandleArguments (int argc, char *argv[])
         }
         else if(!strcasecmp(argv[i], "--2bit")) {
             gTwoBits = TRUE;
+        }else if(!strcasecmp(argv[i], "--colldb")) {
+            gCollDB = TRUE;
         }
         else if(!strcasecmp(argv[i], "--gps")) {
             gGlobalPositionSolver = TRUE;
@@ -305,6 +308,7 @@ void HandleArguments (int argc, char *argv[])
 		   "--option <n>\t\tStarts game with the n option configuration.\n"
 		   "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 		   "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
+		   "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
 		   "--gps\t\t\tStarts game with global position solver enabled.\n"
 		   "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
 		   "\t\t\tTo solve all option configurations of game, use <all>.\n"

@@ -40,6 +40,7 @@
 #include "db.h"
 #include "memdb.h"
 #include "twobitdb.h"
+#include "colldb.h"
 #include "globals.h"
 
 DB_Table *db_functions;
@@ -53,8 +54,10 @@ void db_initialize(){
     if(db_functions){
         db_functions->free_db();
     }
-    if (gTwoBits) {	/* VALUE is always 32 bits */
+    if (gTwoBits) {
         db_functions = twobitdb_init();
+    } else if(gCollDB){
+      db_functions = colldb_init();
     } else {
         db_functions = memdb_init();
     }
