@@ -49,7 +49,7 @@
 #include <math.h>
 #define DEBUGGING 0
 #define DEBUGGING2 0
-#define DEBUGGING3 1 //Peter's debugging flag
+#define DEBUGGING3 0 //Peter's debugging flag
 
 extern STRING gValueString[];
 
@@ -263,34 +263,6 @@ void makeRandomBoard(Board b);
 inline POSITION hash(Board b);
 inline void unhash(Board b, POSITION p);
 
-//FORBIDDEN SPOTS
-/* tells whether r is a forbidden spot for placing pieces (i.e. the
-   center) */
-int forbiddenSpot(int r) {
-
-
-
-
-
-	int i;
-	//printf("FORBIDDEN spot check r[%u] height[%u] width[%u]\n", r, height, width);
-	if (defaultForbidden) {
-	  return height/2 == r/width && width/2 == r%width;
-	} else {
-	/*
-	  for (i = 0;  forbiddenSpots[i] != 0; i++) {
-            if(r == forbiddenSpots[i]) {
-              return TRUE;
-	    }
-	  }
-	  */
-	  if (r==changedForbidden) {
-		  return TRUE;
-	  } else {
-	    return FALSE;
-	  }
-   }
-}
 
 /* A few helper functions for GenerateMoves. */
 int nextOpenSpot(Board b, int lowerBound);
@@ -455,23 +427,23 @@ void changeBoard()
 
 void changeForbiddenSpots()
 {
-	int MAXNUM = 8; //TEMP
-	printf("Enter the new forbidden spot (between -1 and %u),\n", MAXNUM);
-	printf("-1 indicates that there are no forbidden spots:   ");
-  	(void) scanf("%u", &changedForbidden);
-	if ((changedForbidden < -1) || (changedForbidden > MAXNUM)) {
-		printf("not a valid forbidden spot\n");
-		changedForbidden = -1;
-		InitializeGame();
-		return;
-	}
-	defaultForbidden = FALSE;
-	if (changedForbidden == -1) {
-	  printf("removing the forbidden spot\n");
-	} else {
-	  printf("Changed the new forbidden spot to %d ...\n", changedForbidden);
-	}
-	InitializeGame();
+  int MAXNUM = 8; //TEMP
+  printf("Enter the new forbidden spot (between -1 and %u),\n", MAXNUM);
+  printf("-1 indicates that there are no forbidden spots:   ");
+  (void) scanf("%u", &changedForbidden);
+  if ((changedForbidden < -1) || (changedForbidden > MAXNUM)) {
+    printf("not a valid forbidden spot\n");
+    changedForbidden = -1;
+    InitializeGame();
+    return;
+  }
+  defaultForbidden = FALSE;
+  if (changedForbidden == -1) {
+    printf("removing the forbidden spot\n");
+  } else {
+    printf("Changed the new forbidden spot to %d ...\n", changedForbidden);
+  }
+  InitializeGame();
 }
 
 /************************************************************************
@@ -681,7 +653,7 @@ VALUE Primitive (POSITION position) {
     }
     //printf("TODO: implement do again\n");
     //printf("the current player is trapped, with numPieces %d\n", num_pieces);
-    return tie;
+    return win;
   } else {
     for (r=0;r<width*height;r++){
       if(getpce(b,r)==c) {
@@ -844,6 +816,7 @@ MOVELIST *GenerateMoves (POSITION position)
   int player,i,j;
   // void boardcopy();
   int legalMove();
+  int isoddbrd;
   MOVE m;
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
@@ -856,12 +829,16 @@ MOVELIST *GenerateMoves (POSITION position)
       mover=P2;
  
   if (placingBoard(gBoard)){
+    isoddbrd=BOARDSIZE%2;
     for (i=0;i<BOARDSIZE;i++){
-      if(i==floor(BOARDSIZE/2))
-	continue;
- 
+      //   if (!isoddbrd && i<4)
+      //continue;
+      //else
+	if(i==BOARDSIZE/2)
+	  continue;
+      
       for (j=i+1;j<BOARDSIZE;j++){
-	if (j==floor(BOARDSIZE/2))
+	if (j==BOARDSIZE/2)
 	  continue;
 	if(gBoard[i]==blank && gBoard[j]==blank){
 	  setMove(&m,mover,i,j);
@@ -1334,3 +1311,26 @@ void boardcopy(char *from,char*to){
   }
 }
     
+//FORBIDDEN SPOTS
+/* tells whether r is a forbidden spot for placing pieces (i.e. the
+   center) */
+int forbiddenSpot(int r) {
+  int i;
+  //printf("FORBIDDEN spot check r[%u] height[%u] width[%u]\n", r, height, width);
+  if (defaultForbidden) {
+    return height/2 == r/width && width/2 == r%width;
+  } else {
+    /*
+      for (i = 0;  forbiddenSpots[i] != 0; i++) {
+      if(r == forbiddenSpots[i]) {
+      return TRUE;
+      }
+      }
+    */
+    if (r==changedForbidden) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  }
+}
