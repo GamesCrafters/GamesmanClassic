@@ -108,8 +108,8 @@ STRING   kHelpExample =
 
 int BOARDSIZE = 21;    /* 5X5 Crosscross Board */
 int GEESE_MAX = 9;
-int GEESE_MIN = 1;
-int GEESE_HASH_MIN = 0; /* MUST BE ONE LESS THAN GEESE_MIN */
+int GEESE_MIN = 3;
+int GEESE_HASH_MIN = 2; /* MUST BE ONE LESS THAN GEESE_MIN */
 int FOX_MAX = 2;
 int FOX_MIN = 2;
 int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with whitespace */
@@ -181,7 +181,7 @@ void PrintBoard(char board[]);
 
 int diagonalConnect(int location);
 
-MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location);
+MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves);
 MOVELIST *GeeseGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location);
 MOVELIST *GenerateShiftMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player);
 MOVELIST *GenerateKillMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player);
@@ -441,7 +441,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 		next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
 	}
 	
-	if (theMove == 0)
+	if (theMove == -1)
 	{
 		positionGoAgain = 0;
 		positionGoAgainPiece = -1;
@@ -602,7 +602,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName)
 	coordToGridCoordinate(origin_coord,origin_grid);
 	coordToGridCoordinate(destination_coord,destination_grid);
 	
-	printf("%s moved from %c%c to %c%c",computersName,origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
+	printf("%s moved from %c%c to %c%c\n",computersName,origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -637,7 +637,7 @@ VALUE Primitive (POSITION pos)
 	boardPieceStats(board, boardStats);
 	if (PRIMITIVE_DEBUG)
 	{
-		printf("mASALTO - Primitive() Returning...\n");
+		printf("mASALTO - Prbin/masimitive() Returning...\n");
 		if (player == GEESE_PLAYER)
 		{
 			printf("Goose Player    ");
@@ -808,7 +808,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	{
 		if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() --> GenerateKillMoves()\n"); }
 		moves = GenerateKillMoves(board,moves,positionGoAgainPiece,FOX_PLAYER);
-		moves = CreateMovelistNode(0,moves);
+		moves = CreateMovelistNode(-1,moves);
 	}
 	else if(player == FOX_PLAYER)
 	{
@@ -817,7 +817,7 @@ MOVELIST *GenerateMoves (POSITION position)
 		{
 			if(board[i] =='F')
 			{
-				moves = FoxGenerateMoves(board,moves,i);
+				moves = FoxGenerateMoves(board,moves);
 			}
 		}
 	}
@@ -836,16 +836,38 @@ MOVELIST *GenerateMoves (POSITION position)
 	return(moves);
 }
 
-MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location)
+MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves)
 {
-	MOVELIST *GenerateShiftMoves();
+	int location = 0;
+	int fox_kill_move = 0;
+	for(location = 0; location < BOARDSIZE; location++)
+	{
+		if(board[location] == 'F' && MoreKillMoves(board,location,FOX_PLAYER))
+		{
+			fox_kill_move++;
+		}
+	}
+	for(location = 0; location < BOARDSIZE; location++) /* Scan For Foxes */
+	{
+		if(board[location] == 'F')
+		{
+			if (FOXGENERATEMOVES_DEBUG) { printf("mASALTO - FoxGenerateMoves() Running.\n"); }
+			if (fox_kill_move > 0)
+			{
+				/* Killing Moves */
+				moves = GenerateKillMoves(board,moves,location,FOX_PLAYER);
+			}
+			else if (fox_kill_move == 0)
+			{
+				moves = GenerateShiftMoves(board,moves,location,FOX_PLAYER);
+			}
+			else
+			{
+				printf("FoxGenerateMoves Error\n");
+			}
+		}
+	}
 	
-	if (FOXGENERATEMOVES_DEBUG) { printf("mASALTO - FoxGenerateMoves() Running.\n"); }
-	/* Standard Shifting Moves for Foxes */
-	moves = GenerateShiftMoves(board,moves,location,FOX_PLAYER);
-	
-	/* Standard Killing Moves for Foxes*/
-	moves = GenerateKillMoves(board,moves,location,FOX_PLAYER);
 	if (FOXGENERATEMOVES_DEBUG) { printf("mASALTO - FoxGenerateMoves() Done.\n"); }
 	return(moves);
 }
@@ -1375,7 +1397,7 @@ void PrintMove (MOVE move)
 	coordToGridCoordinate(origin_coord, origin_grid);
 	coordToGridCoordinate(destination_coord, destination_grid);
 	
-	if (move == 0)
+	if (move == -1)
 	{
 		printf("[Pass]");
 	}
