@@ -22,6 +22,8 @@
 **                          node classes.
 **              11 Apr, 04: Changed handling of the image array to work
 **                          with changing the graph file.
+**                          Added error-catching to the parser and put in
+**                          kHelpExample.
 **
 ** 
 **
@@ -80,7 +82,69 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
 
 STRING   kHelpExample =
-"";
+"Player 1's turn:\n\n\
+BOARD		LEGEND\n\
+B   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| _ |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+W---W		4---5\n\n\
+(Player should draw)\n\
+Player's move [1-5 1-5/u(undo)]: {1 3}\n\n\
+Player 2's turn:\n\n\
+BOARD		LEGEND\n\
+_   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| B |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+W---W		4---5\n\n\
+(Computer should draw)\n\
+Computer's move	: 4 to 1\n\n\
+Player 1's turn:\n\n\
+BOARD		LEGEND\n\
+W   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| B |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+_---W		4---5\n\n\
+(Player should draw)\n\
+Player's move [1-5 1-5/u(undo)]: {3 4}\n\n\
+Player 2's turn:\n\n\
+BOARD		LEGEND\n\
+W   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| _ |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+B---W		4---5\n\n\
+(Computer should draw)\n\
+Computer's move	: 5 to 3\n\n\
+Player 1's turn:\n\n\
+BOARD		LEGEND\n\
+W   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| W |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+B---_		4---5\n\n\
+(Player should draw)\n\
+Player's move [1-5 1-5/u(undo)]: {4 5}\n\n\
+Player 2's turn:\n\n\
+BOARD		LEGEND\n\
+W   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| W |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+_---B		4---5\n\n\
+(Computer will Win in 1)\n\
+Computer's move	: 1 to 4\n\n\
+Player 1's turn:\n\n\
+BOARD		LEGEND\n\
+_   B		1   2\n\
+|\\ /|		|\\ /|\n\
+| W |		| 3 |\n\
+|/ \\|		|/ \\|\n\
+W---B		4---5\n\n\
+(Player will Lose in 0)\n\n\
+Computer wins. Nice try, Player.\n";
 
 /*************************************************************************
 **
@@ -199,13 +263,13 @@ void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
 int procFile(FILE* graph_file, nodes board, pieces black_pieces,
 	     pieces white_pieces, classes node_classes);
 
-void handleGraph(char* token, int* pos);
-void handleNodeClass(char* token, int* pos,
+int handleGraph(char* token, int* pos);
+int handleNodeClass(char* token, int* pos,
 		     nodes board, classes node_classes);
-void handlePieceClass(char* token, int* pos, nodes board,
+int handlePieceClass(char* token, int* pos, nodes board,
 		      pieces black_pieces, pieces white_pieces);
-void handleNodeDef(char* token, int* pos, nodes board);
-void handleImage(char* token, int* pos, nodes board);
+int handleNodeDef(char* token, int* pos, nodes board);
+int handleImage(char* token, int* pos, nodes board);
 
 /* Retrieves one token, of the form (...), a number, or 
    plain text (all other cases).
@@ -265,14 +329,12 @@ void InitializeGame ()
   int hash_array[10];
   char string_board[MAX_NODES];
 
-  nullInit(global_board, global_black, global_white, global_classes);
-
   if(use_default) {
     g_file = fopen(default_file, "r");
+    nullInit(global_board, global_black, global_white, global_classes);
+    procFile(g_file, global_board, global_black, global_white, 
+	     global_classes);
   }
-
-  procFile(g_file, global_board, global_black, global_white, 
-	   global_classes);
 
   boardToString(string_board, global_board, global_black, global_white);
 
@@ -288,7 +350,6 @@ void InitializeGame ()
     SafeFree(kDBName);
   kDBName = (STRING) SafeMalloc(sizeof(char)*100);
   sprintf(kDBName, "%.6s", g_name);
-  printf("Graph called %s\n", g_name);
 
   gNumberOfPositions = generic_hash_init(num_nodes, hash_array, NULL);
   gInitialPosition = generic_hash(string_board, 1);
@@ -325,6 +386,7 @@ void GameSpecificMenu ()
 {
   char file_name[100];
   char tmp[100];
+  BOOLEAN no_errors;
   
   use_default = TRUE;
 
@@ -338,10 +400,16 @@ void GameSpecificMenu ()
 
     g_file = fopen(file_name, "r");
 
-    if(!g_file)
+    if(!g_file) {
       printf("Invalid file name\n");
-    else
-      use_default = FALSE;
+    } else {
+      nullInit(global_board, global_black, global_white, global_classes);
+      no_errors = procFile(g_file, global_board, global_black, global_white,
+			   global_classes);
+      if(no_errors)
+	use_default = FALSE;
+    }
+
   }
 
   InitializeGame();
@@ -376,9 +444,9 @@ void SetTclCGameSpecificOptions (options)
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
-** CALLS:       Hash ()
-**              Unhash ()
-**	        whoseMove ()
+** CALLS:       POSITION generic_hash ()
+**              void generic_unhash ()
+**	        int whoseMove ()
 **
 *************************************************************************/
 
@@ -499,8 +567,8 @@ void PrintComputersMove(computersMove, computersName)
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       whoseMove ()
-**              generic_unhash ()
+** CALLS:       int whoseMove ()
+**              void generic_unhash ()
 **              stringToBoard ()
 **              
 **
@@ -555,9 +623,9 @@ VALUE Primitive (pos)
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
 **
-** CALLS:       Unhash()
-**              GetPrediction()
-**              stringToBoard()
+** CALLS:       void generic_unhash()
+**              STRING GetPrediction()
+**              void stringToBoard()
 **
 ************************************************************************/
 
@@ -579,6 +647,7 @@ void PrintPosition (position, playerName, usersTurn)
     printf("\nPlayer 2's turn:\n");
 
   printBoard(global_board, FALSE);
+  printf("%s\n", GetPrediction(position, playerName, usersTurn));
 
   return;
 }
@@ -598,7 +667,8 @@ void PrintPosition (position, playerName, usersTurn)
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
-**              LIST OTHER CALLS HERE
+**              MOVELIST* CreateMovelistNode()
+**              BOOLEAN checkNodeAndClass()
 **
 ************************************************************************/
 
@@ -1018,57 +1088,95 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
   char token[2000];
   char* arg1;
   int token_pos = 0;
+  int ret = 1;
 
   while(fileGetToken(graph_file, token)) {
     token_pos = 0;
     arg1 = stringGetToken(token, &token_pos);
     if(!strcmp(arg1, "graph") || !strcmp(arg1, "g"))
-      handleGraph(token, &token_pos);
+      ret &= handleGraph(token, &token_pos);
     else if(!strcmp(arg1, "node-class") || !strcmp(arg1, "nc"))
-      handleNodeClass(token, &token_pos, board, node_classes);
+      ret &= handleNodeClass(token, &token_pos, board, node_classes);
     else if(!strcmp(arg1, "piece-class") || !strcmp(arg1, "pc"))
-      handlePieceClass(token, &token_pos, board, black_pieces, 
-		       white_pieces);
+      ret &= handlePieceClass(token, &token_pos, board, black_pieces, 
+			     white_pieces);
     else if(!strcmp(arg1, "node") || !strcmp(arg1, "n"))
-      handleNodeDef(token, &token_pos, board);
+      ret &= handleNodeDef(token, &token_pos, board);
     else if(!strcmp(arg1, "image") || !strcmp(arg1, "i"))
-      handleImage(token, &token_pos, board);
-    else
-      return 0;
+      ret &= handleImage(token, &token_pos, board);
+    else {
+      printf("procFile error: unknown token: %s\n", arg1);
+      ret = 0;
+    }
+  }
+
+  if(!ret) {
+    printf("procFile encountered errors while interpreting the file.\n");
+    printf("See the above error notices, if any.\n");
+  }
+
+  return ret;
+}
+
+int handleGraph(char* token, int* pos) {
+  version = atoi(stringGetToken(token, pos));
+  char* graph_name = stringGetToken(token, pos);
+  
+  if(graph_name)
+    strcpy(g_name, graph_name);
+  else {
+    printf("handleGraph error: no graph name\n");
+    return 0;
   }
 
   return 1;
 }
 
-void handleGraph(char* token, int* pos) {
-  version = atoi(stringGetToken(token, pos));
-  char* graph_name = stringGetToken(token, pos);
-  strcpy(g_name, graph_name);
-
-  return;
-}
-
-void handleNodeClass(char* token, int* pos,
+int handleNodeClass(char* token, int* pos,
 		     nodes board, classes node_classes) {
   static int class_num = 0;
-  char* players, * list, * list_token;
-  int i, list_pos;
+  char* players, * list, * list_token, * name_temp;
+  int i, list_pos, ret, class_count;
+  ret = 1;
 
-  strcpy(node_classes[class_num].name, stringGetToken(token, pos));
+  name_temp = stringGetToken(token, pos);
+  if(!name_temp) {
+    printf("handleNodeClass error: no node class name specified\n");
+    return 0;
+  }
+
+  strcpy(node_classes[class_num].name, name_temp);
 
   addToHash(nameHash(node_classes[class_num].name, MAX_CLASSES), 
 	    class_num, CLASS_TABLE);
   
   players = stringGetToken(token, pos);
-  if(strcmp(players, "both")) {
-    if(!strcmp(players, "black"))
-      node_classes[class_num].player = BLACK_PLAYER;
-    else if(!strcmp(players, "white"))
-      node_classes[class_num].player = WHITE_PLAYER;
-  } else
+
+  if(!players) {
+    printf("handleNodeClass error: no players specified\n");
+    return 0;
+  }
+
+  if(!strcmp(players, "both"))
     node_classes[class_num].player = BOTH_PLAYERS;
-  
+  else if(!strcmp(players, "black"))
+    node_classes[class_num].player = BLACK_PLAYER;
+  else if(!strcmp(players, "white"))
+    node_classes[class_num].player = WHITE_PLAYER;
+  else {
+    printf("handleNodeClass error: invalid players: %s\n", players);
+    ret = 0;;
+  }
+
+  /* Process the moveto list. */
   list = stringGetToken(token, pos);
+
+  if(!list) {
+    printf("handleNodeClass error: no moveto list for class %s\n",
+	   node_classes[class_num].name);
+    return 0;
+  }
+
   list_pos = 0;
   i = 0;
   while((list_token = stringGetToken(list, &list_pos))) {
@@ -1077,7 +1185,16 @@ void handleNodeClass(char* token, int* pos,
     i++;
   }
 
+  /* Process the node declarations. */
   list = stringGetToken(token, pos);
+
+  if(!list) {
+    printf("handleNodeClass error: no nodelist in class %s\n",
+	   node_classes[class_num].name);
+    return 0;
+  }
+
+  class_count = num_nodes;
   list_pos = 0;
   while((list_token = stringGetToken(list, &list_pos))) {
     list_token[1] = '\0';
@@ -1087,83 +1204,163 @@ void handleNodeClass(char* token, int* pos,
     num_nodes++;
   }
 
-  return;
+  if(class_count == num_nodes) {
+    printf("handleNodeClass error: no nodes in class %s\n",
+	   node_classes[class_num].name);
+    return 0;
+  }
+
+  return ret;
 }
 
-void handlePieceClass(char* token, int* pos, nodes board,
-		      pieces black_pieces, pieces white_pieces) {
+int handlePieceClass(char* token, int* pos, nodes board,
+		     pieces black_pieces, pieces white_pieces) {
   char* name, * pic_str, * list, * list_token;
   struct Piece** current_class;
   int* counter;
-  int list_pos, current_node;
+  int list_pos, current_node, ret;
+  ret = 1;
 
   name = stringGetToken(token, pos);
+
+  if(!name) {
+    printf("handlePieceClass error: no piece class name specified\n");
+    return 0;
+  }
+
   if(!strcmp(name, "black")) {
     current_class = &black_pieces;
     counter = &num_black;
-  } else {
+  } else if(!strcmp(name, "white")) {
     current_class = &white_pieces;
     counter = &num_white;
+  } else {
+    printf("handlePieceClass error: unsupported piece class name: %s\n",
+	   name);
+    return 0;
   }
 
   pic_str = stringGetToken(token, pos);
+
+  if(!pic_str) {
+    printf("handlePieceClass error: no picture or node list for pieces");
+    printf(" of type %s\n", name);
+    return 0;
+  }
+    
   (*current_class)[*counter].pic = pic_str[0];
 
+  /* Process the list of nodes with this piece. */
   list = stringGetToken(token, pos);
+
+  if(!list) {
+    printf("handlePieceClass error: no node list for pieces of type %s\n",
+	   name);
+    return 0;
+  }
+
   list_pos = 0;
   while((list_token = stringGetToken(list, &list_pos))) {
     current_node = hashLookup(list_token, NULL, board);
-    (*current_class)[*counter].pic = pic_str[0];
-    (*current_class)[*counter].node = current_node;
-    board[current_node].game_piece = &((*current_class)[*counter]);
-    (*counter)++;
+    if(current_node < 0) {
+      printf("handlePieceClass error: unknown node %c\n", list_token[0]);
+      ret = 0;
+    } else {
+      (*current_class)[*counter].pic = pic_str[0];
+      (*current_class)[*counter].node = current_node;
+      board[current_node].game_piece = &((*current_class)[*counter]);
+      (*counter)++;
+    }
   }
 
-  return;
+  if((*counter) < 1) {
+    printf("handlePieceClass error: no pieces of type %s declared\n",
+	   name);
+    return 0;
+  }
+
+  return ret;
 }
 
-void handleNodeDef(char* token, int* pos, nodes board) {
+int handleNodeDef(char* token, int* pos, nodes board) {
   char* node_name, * list, * list_token;
   int list_pos, node_num, current_neighbor;
-  int i, j;
+  int i, j, ret;
+  ret = 1;
 
   node_name = stringGetToken(token, pos);
+
+  if(!node_name) {
+    printf("handleNodeDef error: no node name\n");
+    return 0;
+  }
+
   node_num = hashLookup(node_name, NULL, board);
+
+  if(node_num < 0) {
+    printf("handleNodeDef error: unknown node %c\n",
+	   node_name[0]);
+    return 0;
+  }
 
   /* Process the directed list. */
   list = stringGetToken(token, pos);
   list_pos = 0;
   i = 0;
+
+  if(!list) {
+    printf("handleNodeDef: no directed or connected list present");
+    printf(" for node %c\n", node_name[0]);
+    return 0;
+  }
+
+  while(board[node_num].adjacent[i])
+    i++;
+
   while((list_token = stringGetToken(list, &list_pos))) {
     current_neighbor = hashLookup(list_token, NULL, board);
-    board[node_num].adjacent[i] = &board[current_neighbor];
-    i++;
+    if(current_neighbor < 0) {
+      printf("handleNodeDef error: unknown node %c in the directed list\n",
+	     list_token[0]);
+      ret = 0;
+    } else {
+      board[node_num].adjacent[i] = &board[current_neighbor];
+      i++;
+    }
   }
 
   /* Process the connected list. */
   list = stringGetToken(token, pos);
   list_pos = 0;
-  i = 0;
-  while((list_token = stringGetToken(list, &list_pos))) {
-    current_neighbor = hashLookup(list_token, NULL, board);
 
-    while(board[node_num].adjacent[i])
-      i++;
-
-    board[node_num].adjacent[i] = &board[current_neighbor];
-
-    j = 0;
-    while(board[current_neighbor].adjacent[j])
-      j++;
-    board[current_neighbor].adjacent[j] = &board[node_num];
-
-    i++;
+  if(!list) {
+    printf("handleNodeDef: no connected list present for node %c\n",
+	   node_name[0]);
+    return 0;
   }
 
-  return;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    current_neighbor = hashLookup(list_token, NULL, board);
+    if(current_neighbor < 0) {
+      printf("handleNodeDef error: unknown node %c in the connected list\n",
+	     list_token[0]);
+      ret = 0;
+    } else {
+      board[node_num].adjacent[i] = &board[current_neighbor];
+
+      j = 0;
+      while(board[current_neighbor].adjacent[j])
+	j++;
+      board[current_neighbor].adjacent[j] = &board[node_num];
+      
+      i++;
+    }
+  }
+
+  return ret;
 }
 
-void handleImage(char* token, int* pos, nodes board) {
+int handleImage(char* token, int* pos, nodes board) {
   char* c_line;
   char name[2];
   int i, j, hash_lookup;
@@ -1173,6 +1370,7 @@ void handleImage(char* token, int* pos, nodes board) {
 
   i = 0;
   c_line = stringGetLine(token + *pos);
+
   name[1] = '\0';
   while(c_line) {
     sprintf(image[i], "%.35s", c_line);
@@ -1194,7 +1392,7 @@ void handleImage(char* token, int* pos, nodes board) {
   if(i < 20)
     image[i][0] = -1;
 
-  return;
+  return 1;
 }
 
 int fileGetToken(FILE* graph_file, char* token) {
@@ -1241,6 +1439,11 @@ int fileGetToken(FILE* graph_file, char* token) {
     if(is_plain_text && !isgraph((int)current))
       break;
     if(!is_plain_text) {
+      if(!current || (current == EOF)) {
+	printf("fileGetToken error: unmatched parentheses\n");
+	return 0;
+      }
+
       if(current == '(')
 	unmatched_parens++;
       else if(current == ')')
