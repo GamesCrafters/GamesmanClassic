@@ -126,7 +126,6 @@ int WIDTH = 4, HEIGHT = 4;
 int BOARDSIZE;
 
 BOOLEAN DEFAULT = TRUE;
-BOOLEAN gWinType = TRUE;
 BOOLEAN gAllowVWrap = FALSE, gAllowHWrap = FALSE;
 BOOLEAN gMustCapture = TRUE;
 
