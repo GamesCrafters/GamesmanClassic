@@ -41,7 +41,9 @@ proc MoveTypeToColor {moveType} {
         if {$value == "Tie"} {
             set color yellow
         } elseif {$value == "Lose"} {
-            set color green
+            set color
+
+ green
         } else {
             set color red
         }
@@ -93,11 +95,6 @@ proc InitConstants {} {
     global gMoveRadioStation
     set gMoveRadioStation all
 
-    global gWhoseMove
-    set gWhoseMove human
-
-    global gSymmetric
-    set gSymmetric false
     global gGameSolved 
     set gGameSolved false
 
@@ -181,7 +178,7 @@ proc SetupGamePieces {} {
 proc NewGame { } {
 
     global gGameSoFar gPosition gInitialPosition gMovesSoFar
-    global gLeftName gRightName
+    global gLeftName gRightName gWhoseTurn
     .middle.f1.cMLeft itemconfigure LeftName \
 	-text [format "Player1:\n%s" $gLeftName]
     .middle.f3.cMRight itemconfigure RightName \
@@ -190,6 +187,7 @@ proc NewGame { } {
     .middle.f3.cMRight raise RightName
     update
     set gPosition $gInitialPosition
+    set gWhoseTurn "Left"
     set gGameSoFar [list $gInitialPosition]
     set gMovesSoFar [list]
     GS_NewGame .middle.f2.cMain $gPosition
@@ -236,22 +234,14 @@ proc DriverLoop { } {
 	    update
         }
         
-        ## Find out from the Game whose turn it is
-        global gSymmetric gWhoseMove
-
-        set whoseturn [GS_WhoseMove $gPosition]
-
-        global gLeftPiece gLeftHumanOrComputer gRightHumanOrComputer
-
-        if { $gLeftPiece == $whoseturn } {
-
-            DriverLoopContinue $gLeftHumanOrComputer
-
-        } else {
-
-            DriverLoopContinue $gRightHumanOrComputer
-
-        }
+        ## Figure out whose turn it is
+        global gWhoseTurn gLeftHumanOrComputer gRightHumanOrComputer
+	
+	if { $gWhoseTurn == "Left" } {
+	    DriverLoopContinue $gLeftHumanOrComputer
+	} else {
+	    DriverLoopContinue $gRightHumanOrComputer
+	}
     }
 }
 
@@ -285,6 +275,27 @@ proc DriverLoopContinue { humanOrComputer } {
 
 #############################################################################
 ##
+## SwitchWhoseTurn
+##
+## Switches from the left player's turn to the right player's and vice-versa
+## 
+## Args: none
+##
+## Requires: NewGame has been called
+##
+#############################################################################
+
+proc SwitchWhoseTurn {} {
+    global gWhoseTurn
+    if { $gWhoseTurn == "Left" } {
+	set gWhoseTurn "Right"
+    } else {
+	set gWhoseTurn "Left"
+    }
+}
+    
+#############################################################################
+##
 ## DoComputerMove
 ##
 ## This function gets the computer's move from the database and makes it
@@ -311,6 +322,8 @@ proc DoComputerMove { } {
     set gMovesSoFar [push $gMovesSoFar $theMove]
 
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
+
+    SwitchWhoseTurn
 
     DriverLoop
 
@@ -398,6 +411,8 @@ proc ReturnFromHumanMoveHelper { theMove } {
                 
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
+	SwitchWhoseTurn
+
         DriverLoop
 
     }
@@ -418,7 +433,8 @@ proc ReturnFromHumanMoveHelper { theMove } {
 
 proc GameOver { position gameValue } {
 
-    global gPosition gGameSoFar gLeftPiece gRightPiece gLeftName gRightName 
+    global gPosition gGameSoFar gWhoseTurn gLeftName gRightName 
+    global gLeftPiece gRightPiece
 
     set previousPos [peek [pop $gGameSoFar]]
 
@@ -428,15 +444,15 @@ proc GameOver { position gameValue } {
 
     set WhichPieceWon Nobody
 
-    if { $gLeftPiece == $whoseTurn } {
+    if { $gWhoseTurn == "Right" } {
 
-        if { $gameValue == "win" } {
+        if { $gameValue == "Win" } {
             
             set WhoWon $gRightName
 
             set WhichPieceWon $gRightPiece
 
-        } else {
+        } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gLeftName
 
@@ -446,13 +462,13 @@ proc GameOver { position gameValue } {
 
     } else {
         
-        if { $gameValue == "win" } {
+        if { $gameValue == "Win" } {
             
             set WhoWon $gLeftName
 
             set WhichPieceWon $gLeftPiece
 
-        } else {
+        } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gRightName
 
@@ -461,15 +477,17 @@ proc GameOver { position gameValue } {
         }
     }
 
-    if { $gameValue == "tie" } {
-        
-        SendMessage [concat GAME OVER: It's a TIE!]
-
+    if { $gameValue == "Tie" } {
+        set message [concat GAME OVER: It's a TIE!]
+        SendMessage $message
     } else {
-
-        SendMessage [concat GAME OVER: $WhoWon Wins!]
-
+        set message [concat GAME OVER: $WhoWon Wins!]
+	SendMessage $message
     }
+
+    .middle.f3.cMRight itemconfigure Predictions \
+	-text [format "%s" $message] 
+    update
 
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon
 
@@ -598,13 +616,14 @@ proc UndoHelper { } {
         set gPosition [peek $gGameSoFar]
         
         set gMovesSoFar [pop $gMovesSoFar]
+
+	SwitchWhoseTurn
         
-        
-        if { [PlayerIsComputer [peek $undoOnce]] } {
+        if { [PlayerIsComputer] } {
             
             UndoHelper
-            
-        }
+
+	}
         
     }
 
@@ -614,29 +633,23 @@ proc UndoHelper { } {
 ##
 ## PlayerIsComputer
 ##
-## Returns true or false if the player whose turn it is currently is  controlled 
+## Returns true or false if the player whose turn it is currently is controlled
 ## by a computer
 ## 
-## Args: position
+## Args: Nothing
 ##
 ## Requires: Nothing
 ##
 #############################################################################
 
-proc PlayerIsComputer { position } {
+proc PlayerIsComputer { } {
 
-    global gLeftPiece gRightHumanOrComputer gLeftHumanOrComputer
+    global gWhoseTurn gRightHumanOrComputer gLeftHumanOrComputer
 
-    set whoseTurn [GS_WhoseMove $position]
-
-    if { $whoseTurn == $gLeftPiece } {
-
+    if { $gWhoseTurn == "Left" } {
         return [expr { $gLeftHumanOrComputer == "Computer"}]
-
     } else {
-
         return [expr { $gRightHumanOrComputer == "Computer"}]
-
     }
 }
 
@@ -659,7 +672,7 @@ proc ReturnToGameSpecificOptions {} {
 #############################################################################
 
 proc SendMessage { arg } {
-
+    
 }
 
 # argv etc

@@ -501,7 +501,7 @@ proc InitWindow { kRootDir } {
 	    -font { Helvetica 18 bold } \
 	    -anchor center \
 	-tags [list LeftName Names textitem] \
-	-fill red
+	-fill blue
 
     .middle.f3.cMRight create text 75 450 \
 	    -text [format "Player2:\n%s" $gRightName] \
@@ -510,7 +510,7 @@ proc InitWindow { kRootDir } {
 	    -font { Helvetica 18 bold } \
 	    -anchor center \
 	    -tags [list RightName Names textitem] \
-	-fill blue
+	-fill red
 
     .middle.f3.cMRight create text 75 100 \
 	    -text [format "Predictions: %s" $gPredString] \
