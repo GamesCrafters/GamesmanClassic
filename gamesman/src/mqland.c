@@ -51,7 +51,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "Queensland"; /* The name of your game */
-/*STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch";*/ /* Your name(s) */
+STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch"; /* Your name(s) */
 STRING   kDBName              = "qland"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -102,7 +102,7 @@ STRING   kHelpExample =
 #define WHITE 'X'
 #define BLACK 'O'
 
-#define pieceat(B, x, y) ((B)[(y) * width + (x) + 1])
+#define pieceat(B, x, y) ((B)[(y) * width + (x)])
 #define get_location(x, y) ((y) * width + (x))
 #define get_x_coord(location) ((location) % width)
 #define get_y_coord(location) ((location) / width)
@@ -112,9 +112,9 @@ STRING   kHelpExample =
  * The next 10 bits encode the destination of the player's SLIDE move.
  * The rightmost 10 bits encode the player's PLACE move.
  */
-#define get_move_source(move) (move) ^ 0x3FF00000
-#define get_move_dest(move) (move) ^ 0x000FFC00
-#define get_move_place(move) (move) ^ 0x000003FF
+#define get_move_source(move) (move) & 0x3FF00000
+#define get_move_dest(move) (move) & 0x000FFC00
+#define get_move_place(move) (move) & 0x000003FF
 #define set_move_source(move, source) (move) &= 0xC00FFFFF; (move) |= ((source) << 20)
 #define set_move_dest(move, dest) (move) &= 0xFFF003FF; (move) |= ((dest) << 10)
 #define set_move_place(move, place) (move) &= 0xFFFFFC00; (move) |= (place)
@@ -173,9 +173,9 @@ void InitializeGame () {
 	char board[width * height];
 	
 	gNumberOfPositions = generic_hash_init(width * height, pieces_array, vcfg);
-	for (i = 0; i < height; i++) {
-		for (j = 0; j < width; j++) {
-			pieceat(board, j, i) = BLANK;
+	for (j = 0; j < height; j++) {
+		for (i = 0; i < width; i++) {
+			pieceat(board, i, j) = BLANK;
 		}
 	}
 	gInitialPosition = generic_hash(board, 1);
@@ -237,35 +237,38 @@ MOVELIST *GenerateMoves (POSITION position)
 					for (dy = 0; dy < height; dy++) {
 					        /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
 					        validDestination = TRUE; 
-						if (sx == dx && sy == dy){
+						if (pieceat(board, dx, dy) != BLANK) {
+							validDestination = FALSE;
+						}
+						else if (sx == dx && sy == dy){
 							validDestination = FALSE;
 						}
 						else if (sx == dx && sy != dy) {
-							for (i = sy; i != dy; (sy < dy ? i++ : i--)) {
+							for (i = (sy < dy ? sy + 1 : sy - 1); i != dy; (sy < dy ? i++ : i--)) {
 								if (pieceat(board, sx, i) != BLANK) {
 									validDestination = FALSE;
 								}
 							}
 						}
 						else if (sx != dx && sy == dy) {
-							for (i = sx; i != dx; (sx < dx ? i++ : i--)) {
+							for (i = (sx < dx ? sx + 1 : sx - 1); i != dx; (sx < dx ? i++ : i--)) {
 								if (pieceat(board, i, sy) != BLANK) {
 									validDestination = FALSE;
 								}
 							}
 						}
 						else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
-							for (i = sx, j = sy; i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
+							for (i = (sx < dx ? sx + 1 : sx - 1), j = (sy < dy ? sy + 1 : sy - 1); i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
 								if (pieceat(board, i, j) != BLANK) {
 									validDestination = FALSE;
 								}
 							}
 						}
-						else BadElse("GenerateMoves");
+						else validDestination = false;
 						if (validDestination) {
 							for (px = 0; px < width; px++) {
 								for (py = 0; py < height; py++) {
-									if (pieceat(board, px, py) == BLANK) {
+									if ((pieceat(board, px, py) == BLANK && !(px == dx && py == dy)) || (px == sx && py == sy)) {
 										move = 0;
 										set_move_source(move, get_location(sx, sy));
 										set_move_dest(move, get_location(dx, dy));
@@ -398,29 +401,31 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		printf(" Queensland! \n");
 	}
 	
-	printf("/");					/* Top row */
-	for (i = 0; i < (2 * width + 7); i++) {		/* /===============\ */
+	printf("/");						/* Top row */
+	for (i = 0; i < (2 * width + 7); i++) {			/* /===============\ */
 		printf("=");
 	}
 	printf("\\\n");
 	
-	printf("|  ");					/* Second row */
-		for (i = 0; i < (2 * width - 8); i++) {	/* |  Queensland!  | */
-		printf(" ");
+	printf("|  ");						/* Second row */
+	if (width >= 4) {
+		for (i = 0; i < (2 * width - 8); i++) {		/* |  Queensland!  | */
+			printf(" ");
+		}
+		printf("Queensland!");
+		for (i = 0; i < (2 * width - 8); i++) {
+			printf(" ");
+		}
 	}
-	printf("Queensland!");
-	for (i = 0; i < (2 * width - 8); i++) {
-		printf(" ");
-	}
-	printf("  |\n");				/* Third row */
-	printf("|  /");					/* |  /---------\  | */
+	printf("  |\n");					/* Third row */
+	printf("|  /");						/* |  /---------\  | */
     	for (i = 0; i < (2*width+1); i++) {
    		printf("-");
 	}
 	printf("\\  |\n");
 		
 	
-	for (j = 0; j < height; j++) {			/* Body of board */
+	for (j = 0; j < height; j++) {				/* Body of board */
 		printf("|  ");
 		/* Right now, we do not print stock of remaining pieces. If we did, O's would go here. */
 		printf("| ");
@@ -443,24 +448,24 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		/* Right now, we do not print stock of remaining pieces.  If we did, X's would go here. */
 		printf("|\n");
 	}
-	printf("|  \\");				/* Third-from-bottom row */
-    	for (i = 0; i < (2*width+1); i++) {		/* |  \---------/  | */
+	printf("|  \\");					/* Third-from-bottom row */
+    	for (i = 0; i < (2*width+1); i++) {			/* |  \---------/  | */
    		printf("-");
 	}
 	printf("/  |\n");
 	
-	printf("|");					/* Second-from-bottom row */
-	for (i = 0; i < (2 * width + 7); i++) {		/* |               | */
+	printf("|");						/* Second-from-bottom row */
+	for (i = 0; i < (2 * width + 7); i++) {			/* |               | */
 	/* If we had a status display at the bottom of the board, it would go here. */
 		printf(" ");
 	}
 	
-	printf("\\");					/* Bottom row */
-	for (i = 0; i < (2 * width + 7); i++) {		/* \===============/ */
-	printf("=");
+	printf("\\");						/* Bottom row */
+	for (i = 0; i < (2 * width + 7); i++) {			/* \===============/ */
+		printf("=");
+	}
 	printf("/\n");
 	SafeFree(board);
-	}
 }
 	
 
@@ -495,10 +500,10 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    printf("place at %d, move from %d to %d",
-	   get_move_place(move),
+    printf("move from %d to %d, place at %d",
 	   get_move_source(move),
-	   get_move_dest(move)); 
+	   get_move_dest(move),
+	   get_move_place(move)); 
 }
 
 
@@ -571,14 +576,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input) {
     int i = 0;
-    
-    while(isspace((int)input[i])) i++;
-    while(isdigit((int)input[i]) || input[i] == 'N') i++;	/* First characters should be integers (SOURCE) */
-    if (!isspace((int)input[i])) return FALSE;	        /* Space between SOURCE and DEST */
-    while(isdigit((int)input[i]) || input[i] == 'N') i++;	/* Next characters should be integers (DEST) */
-    if (!isspace((int)input[i])) return FALSE;		/* Space between DEST and PLACE */
-    while(isdigit((int)input[i])) i++;			/* Final characters should be integers (PLACE) */
-    if (input[i] != 0) return FALSE;			/* PLACE should be last characters in string */
+    BOOLEAN nomove = false;
+
+    /* FILL IN */
     
     return TRUE;
 }
@@ -605,25 +605,20 @@ MOVE ConvertTextInputToMove (STRING input) {
 	char* curr = input;
 	MOVE move = 0;
 	
-	if (*curr != 'N') {
-		set_move_source(move, atoi(curr));
-	}
-	else {
+	while (isspace(*curr)) curr++;
+	
+	if (*curr == 'N') {
 		set_move_source(move, 0);
 		set_move_dest(move, 0);
-		curr = strchr(curr, ' '); /* If SOURCE is 'N', then ignore DEST */
 		curr++;
 	}
-	curr = strchr(curr, ' ');
-	
-	if (*curr != 'N') {
-		set_move_dest(move, atoi(curr));
-	}
 	else {
-		set_move_source(move, 0);
-		set_move_dest(move, 0);
+		set_move_source(move, atoi(curr));
+		while (!isspace(*curr)) curr++;
+		while (isspace(*curr)) curr++;
+		set_move_dest(move, atoi(curr));
+		while (!isspace(*curr)) curr++;
 	}
-	curr = strchr(curr, ' ');
 	
 	set_move_place(move, atoi(curr));
 	
@@ -777,18 +772,11 @@ int vcfg(int *this_cfg) {
 
 int next_player(POSITION position) {
 	char* board = (char*)SafeMalloc(sizeof(char) * width * height);
-	int i, numWhite, numBlack;
+	int numWhite, numBlack;
 	
 	board = generic_unhash(position, board);
-	numBlack = numWhite = 0;
-	for (i = 0; i < width * height; i++) {
-		if (board[i] == WHITE) {
-			numWhite++;
-		}
-		else if (board[i] == BLACK) {
-			numBlack++;
-		}
-	}
+	numBlack = countPieces(board, BLACK);
+	numWhite = countPieces(board, WHITE);
 	SafeFree (board);
 	return (numWhite > numBlack ? 2 : 1);
 }
@@ -805,21 +793,21 @@ int next_player(POSITION position) {
   
      for (x = 0; x < width; x++) {
 	 for (y = 0; y < height; y++) { 
-	     if(board[get_location(x,y)] == player) {
+	     if(pieceat(board, x y) == player) {
 		 int i; /* used when x varies */
 		 int j;	/* used when y varies */ 
 
 		 if (scoreStraight) {
 
 		     /* count any horizontal lines going to the right */
-		     for (i = x+1; i < width && board[get_location(i,y)] == BLANK; i++) { }
-		     if (i < width && board[get_location(i,y)] == player) {
+		     for (i = x+1; i < width && pieceat(board, i, y) == BLANK; i++) { }
+		     if (i < width && pieceat(board, i, y) == player) {
 			 score += (i-x-1);
 		     }	
 
 		     /* count any vertical lines going down */
-		     for (j = y+1; j < height && board[get_location(x,j)] == BLANK; j++) { }
-		     if (j < height && board[get_location(x,j)] == player) {
+		     for (j = y+1; j < height && pieceat(board, x, j) == BLANK; j++) { }
+		     if (j < height && pieceat(board, x, j) == player) {
 			 score += (j-y-1);
 		     }
 		 }
@@ -827,14 +815,14 @@ int next_player(POSITION position) {
 		 if (scoreDiagonal) {
 		     
 		     /* count any diagonal lines going up and to the right */
-		     for (i = x+1, j = y-1; i < width && j >= 0 && board[get_location(i,j)] == BLANK; i++, j--) { }
-		     if (i < width && j >= 0 && board[get_location(i,j)] == player) {
+		     for (i = x+1, j = y-1; i < width && j >= 0 && pieceat(board, i, j) == BLANK; i++, j--) { }
+		     if (i < width && j >= 0 && pieceat(board, i, j) == player) {
 			 score += (i-x-1);
 		     }
 
 		     /* count any diagonal lines going down and to the right */
-		     for (i = x+1, j = y+1; i < width && j < height && board[get_location(i,j)] == BLANK; i++, j++) { }
-		     if (i < width && j < height && board[get_location(i,j)] == player) {
+		     for (i = x+1, j = y+1; i < width && j < height && pieceat(board, i, j) == BLANK; i++, j++) { }
+		     if (i < width && j < height && pieceat(board, i, j) == player) {
 			 score += (i-x-1); 
 		     }	
 		 }
