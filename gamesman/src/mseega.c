@@ -215,6 +215,8 @@ void InitializeGame () {
   gNumberOfPositions  = maxpos;
   BOARDSIZE = width * height; //global variables
 
+  //TODO start initializing the board!!
+  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
 }
 
 
@@ -347,6 +349,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 	char *board;
 	char ownpiece, opponentpiece;
 	whoseTurn = whoseMove(thePosition);
+	//currboard = gboard; 
 	if (DEBUGGING) {
 	    printf("Starting Do Move with input: %d\n", theMove);
 	}
@@ -359,11 +362,12 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 		ownpiece = P2;
 		opponentpiece = P1;
 	}
-	board = getBoard(thePosition);
+	board = getBoard(thePosition); //Peter: using gboard or getBoard, I'm confused?
 	return generic_hash(board, nextPlayer);
 }
 
 /* Stolen from mttc.c and mothello.c */
+//TODO Peter: are we using this?
 char* getBoard(POSITION pos) {
   int boardsize, i;
   char * generic_unhash(int,char *); /* ?????? */
@@ -641,8 +645,48 @@ BOOLEAN ValidTextInput (STRING input) {
 **
 ************************************************************************/
 
+// some parts from mabalone.c
 MOVE ConvertTextInputToMove (STRING input) {
-  return 0;
+	  if (DEBUGGING)
+	  printf("Starting conversion\n");
+	  int n, p1, p2;
+
+	  n = 0;
+
+	  //skip whitespace
+	  while ((input[n] == ' ') || (input[n] == '[')) {
+	    n++;
+	  }
+
+	  //get first piece
+	  //formula: result = letter + number
+	  //letters: a = 100, b = 200, c = 300, etc.
+	  if ((input[n] >= 'a') && (input[n] <= 'z')) {
+		  //calculate offset!
+	    p1 = input[n] - '0';
+	    n++;
+	    if ((input[n] >= '0') && (input[n] <= '9')) {
+	      p1 = p1 + (input[n] - '0'); //adds value
+	      n++;
+	    }
+	    p1--; //don't ask me what this is
+	  }
+
+
+	  /*
+	  if ((input[n] >= '0') && (input[n] <= '9')) {
+	    p1 = input[n] - '0';
+	    n++;
+	    if ((input[n] >= '0') && (input[n] <= '9')) {
+	      p1 = p1 * 10 + (input[n] - '0');
+	      n++;
+	    }
+	    p1--;
+	  }
+*/
+	  
+	
+	return 0;
 }
 
 
