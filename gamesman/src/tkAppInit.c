@@ -78,6 +78,9 @@ static int		GetOptionCmd _ANSI_ARGS_((ClientData clientData,
 static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
+static int      percentDoneCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+
 
 /************************************************************************
 **
@@ -143,6 +146,10 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_SetOption", (Tcl_CmdProc*) SetOptionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
+    Tcl_CreateCommand(interp, "C_PercentDone", (Tcl_CmdProc*) percentDoneCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+
+    
     {
     int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int(*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
 
@@ -643,6 +650,24 @@ GetOptionCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+
+static int
+percentDoneCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  if (argc != 1) {
+    interp->result = "wrong # args: percentDone";
+    return TCL_ERROR;
+  }
+  else {
+    sprintf(interp->result,"%d",percentDone(2));
+    return TCL_OK;
+  }
+}
+
 
  #ifdef COMPUTEC
 static int
