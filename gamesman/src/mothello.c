@@ -1011,7 +1011,7 @@ void PrintMove (MOVE move)
 	
 	ArrayNum = (int) move;
 	if(ArrayNum == PASSMOVE)
-		printf("[Pass] ");
+		printf("[No Available Moves. Please hit 'd' to pass.] ");
 	else
 	{
 	ArrayNumtoCoord(ArrayNum, mymove);
