@@ -37,20 +37,21 @@ extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
-POSITION gInitialPosition    = 0; /* The initial position (starting board) */
+POSITION gInitialPosition    = 0; /* The initial hashed position (starting board) */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = ""; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 BOOLEAN  kPartizan           = ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = ; /* TRUE while debugging */
+BOOLEAN  kDebugMenu          = ; /* TRUE only when debugging. Remove TRUE when you're done debugging */
 BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy              = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
 
 /* 
-   Help strings that are pretty self-explanatory 
+   Help strings that are pretty self-explanatory
+   Strings than span more than one line should have backslashes (\) at the end of the line.
 */
 
 STRING kHelpGraphicInterface =
@@ -121,8 +122,9 @@ extern VALUE     *gDatabase;
 **
 ** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
-**              local variables.
+** DESCRIPTION: Initialize the variables required for the game before
+**              the game runs. Sets up gDatabase (if necessary), global
+**              variables, and local variables.
 ** 
 ************************************************************************/
 
@@ -135,8 +137,9 @@ void InitializeGame () {
 **
 ** NAME:        DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
-**              kDebugMenu == FALSE
+** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
+**              debug menu). Menu used to debug internal problems. Does 
+**              nothing if kDebugMenu == FALSE
 ** 
 ************************************************************************/
 
@@ -149,7 +152,7 @@ void DebugMenu () {
 **
 ** NAME:        GameSpecificMenu
 **
-** DESCRIPTION: Menu used to change game-specific parmeters, such as
+** DESCRIPTION: Menu used to change game-specific parameters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
 ** 
@@ -199,10 +202,13 @@ POSITION DoMove (POSITION position, MOVE move) {
 **
 ** NAME:        GetInitialPosition
 **
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
+** DESCRIPTION: Called when the user wishes to change the initial
+**              position. Asks the user for an initial position, and then
+**              stores it in the space pointed to by initialPosition
+**              Also sets user defined gInitialPosition and resets
+**              gNumberOfPositions if necessary
 ** 
-** OUTPUTS:     POSITION initialPosition : The position to fill.
+** OUTPUTS:     POSITION initialPosition : New Initial Position
 **
 ************************************************************************/
 
