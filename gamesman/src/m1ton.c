@@ -30,8 +30,8 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-#define MAXN     300
-#define MAXM     50
+#define MAXN     30
+#define MAXM     3
 
 unsigned int N = 10;
 unsigned int gTurn = 2;
@@ -434,9 +434,9 @@ int NumberOfOptions()
 int getOption()
 {
   if(gStandardGame)
-    return ((N * (MAXM + 1) + gTurn) * 2);
+    return ((N * MAXM + gTurn - 1) * 2);
   else
-    return ((N * (MAXM + 1) + gTurn) * 2 + 1);
+    return ((N * MAXM + gTurn - 1) * 2 + 1);
 }
 
 void setOption(int option)
@@ -446,13 +446,13 @@ void setOption(int option)
   option /= 2;
   if(!set) {
     gStandardGame = TRUE;
-    gTurn = (option % (MAXM + 1));
-    N = (option / (MAXM + 1));
+    gTurn = ((option % MAXM) + 1);
+    N = (option / MAXM);
   }
   else {
     gStandardGame = FALSE;
-    gTurn = (option % (MAXM + 1));
-    N = (option / (MAXM + 1));
+    gTurn = ((option % MAXM) + 1);
+    N = (option / MAXM);
   }
 }
 

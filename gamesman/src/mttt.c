@@ -737,21 +737,22 @@ STRING kDBName = "ttt" ;
      
 int NumberOfOptions()
 {    
-        return 2 ;
+  return 2 ;
 } 
    
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  if(gStandardGame) 
+    return 1 ;
+  return 2 ;
 } 
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  if(option == 1)
+    gStandardGame = TRUE;
+  else
+    gStandardGame = FALSE;
 }
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

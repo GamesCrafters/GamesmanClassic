@@ -793,47 +793,44 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn)
 
 STRING kDBName = "dodgem" ;
      
-int NumberOfOptions()
-{    
-        return 4 ;
+int NumberOfOptions() { 
+  return 4;
 }
 
-int getOption()
-{
-        if(gStandardGame)
-	{
-		if(gToTrapIsToWin) return 1 ;
-		else return 2 ;
-	}
-	else
-	{
-		if(gToTrapIsToWin) return 3 ;
-		else return 4 ;
-	}
+int getOption() {
+  if(gStandardGame)
+    {
+      if(gToTrapIsToWin) 
+	return 1;
+      else 
+	return 2;
+    }
+  else
+    {
+      if(gToTrapIsToWin) 
+	return 3;
+      else 
+	return 4;
+    }
 } 
 
-void setOption(int option)
-{
-        if(option == 1)
-	{
-                gStandardGame = TRUE ;
-		gToTrapIsToWin = TRUE ;
-	}
-        else if(option == 2)
-	{
-                gStandardGame = TRUE ;
-		gToTrapIsToWin = FALSE ;
-	}
-	else if(option == 3)
-	{
-                gStandardGame = FALSE ;
-		gToTrapIsToWin = TRUE ;
-	}
-	else
-	{
-                gStandardGame = FALSE ;
-		gToTrapIsToWin = FALSE ;
-	}
+void setOption(int option) {
+  if(option == 1) {
+    gStandardGame = TRUE;
+    gToTrapIsToWin = TRUE;
+  }
+  else if(option == 2) {
+    gStandardGame = TRUE;
+    gToTrapIsToWin = FALSE;
+  }
+  else if(option == 3) {
+    gStandardGame = FALSE;
+    gToTrapIsToWin = TRUE;
+  }
+  else {
+    gStandardGame = FALSE;
+    gToTrapIsToWin = FALSE;
+  }
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

@@ -53,8 +53,6 @@ void     PrintHumanValueExplanation();
 
 
 /* database function prototypes */
-void SolveAndStoreRaw(int option);
-void SolveAndStore(int option);
 int  writeDatabase();
 int  loadDatabase();
 VALUE   *GetRawValueFromDatabase(POSITION position);
@@ -245,6 +243,9 @@ static BOOLEAN gHints;          	 /* TRUE iff possible moves should be printed *
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
+BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
+BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
+
 
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;
@@ -317,7 +318,7 @@ void Initialize()
   gMenuMode         = BeforeEvaluation;
   gAgainstComputer  = TRUE;
   gStandardGame     = TRUE;
-  gPrintPredictions   = TRUE;
+  gPrintPredictions = TRUE;
   gPrintHints = TRUE;
 
   /* set default solver */
@@ -1185,13 +1186,14 @@ POSITION position;
 
 VALUE DetermineValue(POSITION position)
 {
-	if(!loadDatabase())
-	{
-		gValue = gSolver(gMinimalPosition);
-		writeDatabase() ;
-		return GetValueOfPosition(position);
-	}
-	return GetValueOfPosition(position);
+  if(gReadDatabase && loadDatabase())
+    return GetValueOfPosition(position);
+  else {
+    gValue = gSolver(gMinimalPosition);
+    if(gWriteDatabase)
+      writeDatabase();
+    return GetValueOfPosition(position);
+  }
 }
 
 MEXCALC MexAdd(theMexCalc,theMex)
@@ -2974,43 +2976,6 @@ void InsertFR(POSITION position, FRnode **firstnode,
 
 // End Loopy
 
-///// DATABASE STUFF
-
-void SolveAndStoreRaw(int option)
-{
-	POSITION i ;
-	char outfilename[256] ;
-	FILE * filep ;
-
-	for(i = 0 ; i < gNumberOfPositions ; i++)
-		gDatabase[i] = undecided ;
-
-	sprintf(outfilename, "./data/m%s_%d_raw.dat", kDBName, option) ;
-	if((filep = fopen(outfilename, "w")) == NULL)
-		printf("Unable to open file to write. Quitting.\n"), exit(1) ;
-
-	setOption(option) ;
-
-
-	gValue = DetermineValue(gMinimalPosition);
-
-	fwrite(gDatabase, sizeof(int), gNumberOfPositions, filep) ;
-}
-
-
-void SolveAndStore(int option)
-{
-	POSITION i;
-
-	for(i = 0 ; i < gNumberOfPositions ; i++)
-		gDatabase[i] = undecided ;
-
-	setOption(option) ;
-
-	gValue = DetermineValue(gInitialPosition) ;
-
-}
-
 /***********
 ************
 **	Database functions.
@@ -3138,14 +3103,70 @@ int loadDatabase()
 **************
 *************/
 
-int main(int argc, char ** argv)
-{
-  int option;
+/* Starts a normal textbased game. */
+void StartGame() {
   Initialize();
-  if(argc == 1) {
-      gPrintPredictions = TRUE ;
-      Menus();
+  Menus();
+}
+
+/* Solves the game and stores it, without anybody actually playing it */
+void SolveAndStore(int option) {
+  gReadDatabase = FALSE;
+  Initialize();
+  setOption(option);
+  InitializeGame();
+  InitializeDatabases();
+  gValue = DetermineValue(gInitialPosition);
+}
+
+/* Handles the command line arguments */
+void HandleArguments (int argc, char *argv[]) {
+  if(!strcmp(argv[1], "-nodb")) {
+    gWriteDatabase = FALSE;
+    gReadDatabase = FALSE;
+    StartGame();
+  }
+  else if(!strcmp(argv[1], "-newdb")) {
+    gReadDatabase = FALSE;
+    StartGame();
+  }
+  else if(!strcmp(argv[1], "-option")) {
+    if(argc != 3)
+      printf("Usage: %s -option <hashed option configuration>\n", argv[0]);
+    else {
+      int option = atoi(argv[2]);
+      if(!option || option > NumberOfOptions())
+	printf("Invalid option configuration!\n");
+      else {
+	setOption(option);
+	StartGame();
+      }
     }
+  }
+  else if(!strcmp(argv[1], "-solve")) {
+    if(argc != 3)
+      printf("Usage: %s -solve <hash option configuration>\n", argv[0]);
+    else {
+      int option = atoi(argv[2]);
+      if(!strcmp(argv[2], "all")) {
+	int i, numOptions = NumberOfOptions();
+	for(i = 1; i <= numOptions; i++) {
+	  SolveAndStore(i);
+	}
+      }
+      else if(!option || option > NumberOfOptions())
+	printf("Invalid option configuration!\n");
+      else {
+	SolveAndStore(option);
+      }
+    }
+  }
+}
+
+int main(int argc, char *argv[]) {
+  if(argc == 1)
+    StartGame();
   else
-    return 0;
+    HandleArguments(argc, argv);
+  return 0;
 }
