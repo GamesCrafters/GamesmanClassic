@@ -2383,13 +2383,13 @@ InitializeFR()
 
 POSITION DeQueueWinFR()
 {
-  printf("DeQueueWinFR...\n");
+  /* printf("DeQueueWinFR...\n"); */
   DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
 POSITION DeQueueLoseFR()
 {
-  printf("DeQueueLoseFR...\n");
+  /* printf("DeQueueLoseFR...\n"); */
   DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
@@ -2414,14 +2414,14 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
 
 InsertWinFR(POSITION position)
 {
-  printf("Inserting WinFR...\n");
+  /* printf("Inserting WinFR...\n"); */
   InsertFR(position, &gHeadWinFR, &gTailWinFR);
 }
 
 
 InsertLoseFR(POSITION position)
 {
-  printf("Inserting LoseFR...\n");
+  /* printf("Inserting LoseFR...\n"); */
   InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
 }
 
