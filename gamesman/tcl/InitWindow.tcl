@@ -626,8 +626,42 @@ proc InitWindow { kRootDir kDir kExt } {
 
     pack propagate $skinsFrame 0
 
+    image create photo burst_screenshot -file "$gSkinsRootDir\BurstSkin/screenshot.gif"
+    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.gif"
+
+#radiobutton options for skins
+#    radiobutton $skinsFrame.content.burst\
+#	    -text "Light Burst" \
+#	    -font $kLabelFont \
+#	    -variable gSkinsDir \
+#	    -value BurstSkin/ \
+#   	    -image burst_screenshot
+#    radiobutton $skinsFrame.content.mandel\
+#	    -text "Mandel (Fractal)" \
+#	    -font $kLabelFont \
+#	    -variable gSkinsDir \
+#	    -value MandelSkin/ \
+#   	    -image mandel_screenshot
+    button $skinsFrame.content.mandel\
+	    -compound top\
+	    -image mandel_screenshot\
+	    -text "Mandel Fractal"\
+	    -command {
+		set gSkinsDir "MandelSkin/"
+		InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+	    }
+    button $skinsFrame.content.burst\
+	    -compound top\
+	    -image burst_screenshot\
+	    -text "Burst From Dark"\
+	    -command {
+		set gSkinsDir "BurstSkin/"
+		InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+	    }
+
     button $skinsFrame.buttons.bReturn -text "Return" \
 	-command {
+	    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 	    pack forget .middle.f2.fSkins  
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
@@ -638,9 +672,13 @@ proc InitWindow { kRootDir kDir kExt } {
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
+    pack $skinsFrame.content.burst
+    pack $skinsFrame.content.mandel
+
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
-    
+
+
     
     #    
     # About Frame
@@ -995,17 +1033,11 @@ proc SetupHelpFrame { f width } {
 
 proc SetupSkinsFrame { f width } {
     global kDocumentFont
-    message $f.summary -width $width -font $kDocumentFont -text "Click one of the following images to select a skin."
-    pack $f.summary -side top
+#    message $f.summary -width $width -font $kDocumentFont -text "Click one of the following images to select a skin."
+#    pack $f.summary -side top
 
     global kLabelFont gSkinsRootDir gSkinsDir gSkinsExt
-    radiobutton .middle.f2.fSkins.title\
-	    -text "BurstSkin" \
-	    -font $kLabelFont \
-	    -value Human \
-	-command { 
-	    InitButtons gSkinsRootDir gSkinsDir gSkinsExt
-	}
+
 }
 
 proc SetupAboutFrame { f width } {
