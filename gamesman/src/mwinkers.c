@@ -37,9 +37,9 @@
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions  = 525801136; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
-POSITION gInitialPosition    = 0; /* The initial position (starting board) */
+POSITION gInitialPosition    = 262900567; /* The initial position (starting board) */
 POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
@@ -100,6 +100,8 @@ typedef enum possibleBoardPieces {
 } BlankORB;
 
 char *gBlankORBString[] = { "·", "O", "R", "B" };
+
+char *gBoard;
 
 /*typedef struct moveValuesStruct {
  *  BlankORB piece;
@@ -162,6 +164,8 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+
   int half = (BOARDSIZE + 1) / 2;
 
   /*
@@ -189,9 +193,9 @@ void InitializeGame ()
 		       '·', 0, BOARDSIZE, 
 		       -1};
 
-  int BoardPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
-
-  printf("Number of Boards: %d", BoardPositions);
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
+  
+  printf("Number of Boards: %d", gNumberOfPositions);
 }
 
 
@@ -262,21 +266,20 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  char unhashedPosition[BOARDSIZE];
   int turn = whoseMove(thePosition);
 
-  generic_unhash(thePosition, unhashedPosition);
+  generic_unhash(thePosition, gBoard);
 
   if (theMove != DUMMY) {
-    if (unhashedPosition[theMove] == '·')
-      unhashedPosition[theMove] = 'O';
+    if (gBoard[theMove] == '·')
+      gBoard[theMove] = 'O';
     else if (turn == 1)
-      unhashedPosition[theMove] = 'R';
+      gBoard[theMove] = 'R';
     else
-      unhashedPosition[theMove] = 'B';
+      gBoard[theMove] = 'B';
   }
 
-  return (generic_hash(unhashedPosition,(turn==1)?2:1));
+  return (generic_hash(gBoard,(turn==1)?2:1));
 }
 
 int moveUnhash_dummy (theMove)
@@ -338,17 +341,17 @@ POSITION GetInitialPosition()
   getchar();
   while(i < BOARDSIZE && (c = getchar()) != EOF) {
     if(c == 'r' || c == 'R')
-      theBlankORB[i++] = R;
+      gBoard[i++] = 'R';
     else if(c == 'o' || c == 'O' || c == '0')
-      theBlankORB[i++] = O;
+      gBoard[i++] = 'O';
     else if(c == 'b' || c == 'B')
-      theBlankORB[i++] = B;
+      gBoard[i++] = 'B';
     else if(c == '-')
-      theBlankORB[i++] = Blank;
+      gBoard[i++] = '·';
     else
       ;   /* do nothing */
   }
-  return(generic_hash((char*)theBlankORB, 0));
+  return(generic_hash(gBoard, 1));
 }
 
 
@@ -402,78 +405,95 @@ VALUE Primitive (pos)
 	POSITION pos;
 {
   BOOLEAN AllFilledIn();
-  BlankORB ThreeInARow(), theBlankORB[BOARDSIZE], current;
-  VALUE EndGame(BlankORB);
-
-  generic_unhash(pos, (char*)theBlankORB);
+  BlankORB ThreeInARow(), theBlankORB[BOARDSIZE];
+  VALUE EndGame(char, int);
+  int RN[BOARDSIZE], CP[BOARDSIZE], RW[BOARDSIZE];
+  generic_unhash(pos, gBoard);
+  char current;
 
   int i;
   for (i = 0; i < BOARDSIZE; i++) {
-    if (ColPosition(i) <= RowWidth(i) - 2) {
-      current = ThreeInARow(theBlankORB, i, i+1, i+2);
-      if (current != Blank) 
-	return EndGame(current);
+    RN[i] = RowNumber(i);
+    CP[i] = ColPosition(i);
+    RW[i] = RowWidth(i);
+  }
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (CP[i] < RW[i] - 2) {
+      current = ThreeInARow(gBoard, i, i+1, i+2);
+      if (current != '·') 
+	return EndGame(current, whoseMove(pos));
     }
 
-    if (RowNumber(i) <= BOARDHEIGHT - 1) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i), i + 2*RowWidth(i) + 1);
-      if (current != Blank)
-	return EndGame(current);
-    } else if (RowNumber(i) == BOARDHEIGHT && ColPosition(i) != 0) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i), i + 2*RowWidth(i));
-      if (current != Blank)
-	return EndGame(current);
-    } else if (RowNumber(i) > BOARDHEIGHT && RowNumber(i) <= 2*BOARDHEIGHT-1 && ColPosition(i) >=3) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i)-1, i + 2*RowWidth(i) - 3);
-      if (current != Blank)
-	return EndGame(current);
+    if (RN[i] <= BOARDHEIGHT - 1) {
+      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
+    } else if (RN[i] == BOARDHEIGHT && CP[i] != 0) {
+      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
+    } else if (RN[i] > BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT-1 && CP[i] >=3) {
+      current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
     }
 
-    if (RowNumber(i) <= BOARDHEIGHT - 1) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i) + 1, i + 2*RowWidth(i) + 3);
-      if (current != Blank)
-	return EndGame(current);
-    } else if (RowNumber(i) == BOARDHEIGHT && ColPosition(i) != RowWidth(i)) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i)+1, i + 2*RowWidth(i) + 2);
-      if (current != Blank)
-	return EndGame(current);
-    } else if (RowNumber(i) > BOARDHEIGHT && RowNumber(i) <= 2*BOARDHEIGHT - 1 && ColPosition(i) <= RowWidth(i) -2) {
-      current = ThreeInARow(theBlankORB, i, i + RowWidth(i), i + 2*RowWidth(i) - 1);
-      if (current != Blank)
-	return EndGame(current);
+    if (RN[i] <= BOARDHEIGHT - 1) {
+      current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
+    } else if (RN[i] == BOARDHEIGHT && CP[i] != RW[i]) {
+      current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
+    } else if (RN[i] > BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 1 && CP[i] <= RW[i] -2) {
+      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
+      if (current != '·')
+	return EndGame(current, whoseMove(pos));
     }
-
-    if (AllFilledIn(theBlankORB))
+  }
+    if (AllFilledIn(gBoard))
       return tie;
     else 
       return undecided;
-  }
 }
 
-VALUE EndGame(BlankORB x) {
-  return win;
+VALUE EndGame(char x, int player) {
+  if (x == 'R') {
+    if (player == 1)
+      return win;
+    else
+      return lose;
+  } else if (x == 'B') {
+    if (player == 1)
+      return lose;
+    else
+      return win;
+  } else
+    return undecided;
 }
 
 
-BlankORB ThreeInARow(theBlankORB, a, b, c)
-     BlankORB theBlankORB[];
+char ThreeInARow(theBlankORB, a, b, c)
+     char theBlankORB[];
      int a, b, c;
 {
   if (theBlankORB[a] == theBlankORB[b] && 
       theBlankORB[b] == theBlankORB[c] &&
-      (theBlankORB[c] != Blank || theBlankORB[c] != O))
+      (theBlankORB[c] != '·' || theBlankORB[c] != 'O'))
     return theBlankORB[a];
   else 
-    return Blank;
+    return '·';
 }
 
 BOOLEAN AllFilledIn(theBlankORB)
-     BlankORB theBlankORB[];
+     char theBlankORB[];
 {
   int i;
 
   for (i = 0; i < BOARDSIZE; i++) {
-    if (theBlankORB[i]==Blank || theBlankORB[i]==O)
+    if (theBlankORB[i]=='·' || theBlankORB[i]=='O')
       return FALSE;
   }
   return TRUE;
@@ -481,20 +501,20 @@ BOOLEAN AllFilledIn(theBlankORB)
 
 /*** RowNumber() returns the row number of the ith piece.
  * 
- * Rows are numbered starting with 1.
+ * Rows are numbered starting with 0.
  *
  */
 
 int RowNumber(i)
      int i;
 {
-  int CurrentRow = 1, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)
       return CurrentRow;
     i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT + 1)
+    if (CurrentRow < BOARDHEIGHT)
       CurrentWidth += 1;
     else
       CurrentWidth -= 1;
@@ -510,13 +530,13 @@ int RowNumber(i)
 int RowWidth(i)
      int i;
 {
-  int CurrentRow = 1, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)
       return CurrentWidth;
     i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT + 1)
+    if (CurrentRow < BOARDHEIGHT)
       CurrentWidth += 1;
     else
       CurrentWidth -= 1;
@@ -528,20 +548,20 @@ int RowWidth(i)
 /*** ColPosition() determines where in the Row a piece is.
  *
  * The first piece in the row is 0.
- * The last piece is width - 1.
+ * The last piece is (width - 1).
  *
  */
 
 int ColPosition(i)
      int i;
 {
-  int CurrentRow = 1, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)
-      return CurrentWidth - i;
+      return i;
     i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT + 1)
+    if (CurrentRow < BOARDHEIGHT)
       CurrentWidth += 1;
     else
       CurrentWidth -= 1;
@@ -573,8 +593,8 @@ void PrintPosition (position, playerName, usersTurn)
 	BOOLEAN usersTurn;
 {
   int i, j, m = 0, n = 0;
-  BlankORB theBlankORB[(2*BOARDWIDTH+BOARDHEIGHT) * BOARDHEIGHT + BOARDWIDTH];
-  generic_unhash(position, (char*)theBlankORB);
+  //  BlankORB theBlankORB[(2*BOARDWIDTH+BOARDHEIGHT) * BOARDHEIGHT + BOARDWIDTH];
+  generic_unhash(position, gBoard);
 
   printf("\n");
 
@@ -590,14 +610,18 @@ void PrintPosition (position, playerName, usersTurn)
       printf("%c ", Legend(n++));
     
     PrintSpaces (abs(BOARDHEIGHT - i));
-    printf(":");
+    printf(": ");
     PrintSpaces (abs(BOARDHEIGHT - i));
     
     for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%s ", gBlankORBString[(int)theBlankORB[m++]]);
+      printf("%c ", gBoard[m++]);
 
     printf("\n");
   }
+
+  /*  for (i = 0; i < BOARDSIZE; i++) {
+    printf("%d, RW: %d, RN: %d, CP: %d\n", i, RowWidth(i), RowNumber(i), ColPosition(i));
+    }*/
 }
 
 
