@@ -95,8 +95,10 @@ static void compute_memo ( int bits )
 		
 		new_table = (bits_data**) safe_malloc(sizeof(bits_data*) * bits);
 		memset(new_table, 0, sizeof(bits_data*) * bits);
-		memcpy(new_table, memo_table, sizeof(bits_data*) * memo_count);
-		free(memo_table);
+		if (memo_table) {
+			memcpy(new_table, memo_table, sizeof(bits_data*) * memo_count);
+			free(memo_table);
+		}
 		memo_table = new_table;
 		memo_count = bits;
 	}
@@ -128,7 +130,7 @@ inline bits_data* get_memo ( int bits, int idx )
 	}
 	
 	if (memo_count < bits || !memo_table[bits - 1])
-		compute_memo(idx);
+		compute_memo(bits);
 	
 	return &memo_table[bits - 1][idx];
 }

@@ -9,7 +9,7 @@ int main ( int argc, char** argv )
 	DATABASE*	db2;
 	int		i;
 	unsigned short	n;
-	unsigned char	p[2];
+	unsigned char	p[5];
 	
 	db_init();
 	solver_init();
