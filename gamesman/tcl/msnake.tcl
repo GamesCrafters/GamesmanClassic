@@ -9,7 +9,7 @@
 #
 # DESCRIPTION: Snake
 #
-# AUTHORS:     Judy Chen, Eleen Chiang, Peter Foo
+# AUTHORS:     Judy Chen, Eleen Chiang, Peter Foo, Rach Liu
 #              University of California at Berkeley
 #              Copyright (C) 2003. All rights reserved.
 # 
@@ -26,7 +26,7 @@
 # and gInitialPosition in this function.
 
 proc GS_InitGameSpecific {} {
-    puts "** GS_InitGameSpecific"
+    puts ">> GS_InitGameSpecific"
     
     ### Set the name of the game
     
@@ -37,7 +37,7 @@ proc GS_InitGameSpecific {} {
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Alice Chang, Judy Chen, Eleen Chiang, Peter Foo"
-    set kTclAuthors "Judy Chen, Eleen Chiang, Peter Foo"
+    set kTclAuthors "Judy Chen, Eleen Chiang, Peter Foo, Rach Liu"
     #set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
     
     ### Set the initial position of the board
@@ -59,6 +59,24 @@ proc GS_InitGameSpecific {} {
 
     global BOARDWIDTH
     set BOARDWIDTH 4
+
+    # HEAD and TAIL tracker variables -- they hold the tile that the head or tail is currently in
+    # default is whatever is default in the C code version
+    global HEADinTILE
+    global TAILinTILE
+    set HEADinTILE 5
+    set TAILinTILE 10
+
+    # game-specific options flags, the defaults will match the c code defaults
+    
+    # headonly==1 ->  player can only move head, computer can only move tail
+    # headonly==0 ->  either player can move either the head or the tail
+
+    # not implemented yet, but to implement in the future, just put in an if statement in GS_ShowMoves that filters out tail moves if its the players turn, or filters out head moves when its the computer's turn. Use above head and tail tracker variables (HEADinTILE and TAILinTILE to determine which moves to filter, easiest if first convert moves to external rep format
+    global HEADONLY
+    set HEADONLY 1
+
+    puts "<< exit GS_InitGameSpecific"
 }
 
 # Setup the rules frame
@@ -190,7 +208,8 @@ proc GS_GetDefaultRules {} {
 # starts playing the game, and before he hits "New Game"
 
 proc GS_NameOfPieces {} {
-    puts "GS_NameOfPieces"
+    puts ">> GS_NameOfPieces"
+    puts "<< exit GS_NameOfPieces"
     return [list head tail]    
 }
 
@@ -204,7 +223,7 @@ proc GS_NameOfPieces {} {
 
 proc GS_Initialize { c } {
 
-    puts "** GS_Initialize"
+    puts ">> GS_Initialize"
     
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width 500 -height 500
@@ -238,11 +257,13 @@ proc GS_Initialize { c } {
     for {set i 0} {$i < $counter} {incr i} {
 	$c bind base$i <Enter> "TileEnter $c $i"
 	$c bind base$i <Leave> "TileLeave $c $i"
-	$c bind base$i <ButtonRelease-1> "$c itemconfig base$i -fill black; SendMove $i"
+	$c bind base$i <ButtonRelease-1> "SendMove $i"
     }
    
     $c raise base
     #update idletasks
+    
+    puts "<< exit GS_Initialize"
 } 
 
 proc SendMove { square } {
@@ -253,8 +274,83 @@ proc SendMove { square } {
 }
 
 proc TileEnter { c tileNum } {
+    global BOARDWIDTH
+    global HEADinTILE
+    global TAILinTILE
+    
     $c raise base$tileNum base
     $c itemconfig base$tileNum -outline cyan -width 4
+
+    # NOTE: in future, implement option flag so can skip this if not selected
+    # move pupils appropriately
+    # mod head tile by BOARDWIDTH, mod current tile (tileNum) by BOARDWIDTH, then compare
+    set headTile [expr $HEADinTILE % $BOARDWIDTH]
+    set curTile [expr $tileNum % $BOARDWIDTH]
+    # handle left-right pupil displacement
+    if {$curTile > $headTile} {
+	# case where curTile is RIGHT of the headTile
+	movePupils $c right
+    } elseif {$curTile < $headTile} {
+	# case where curTile IS left of the headTile
+	movePupils $c left
+    } else {
+	# case where curTile IS the headTile
+	movePupils $c resetHoriz
+    }
+    # handle up-down pupil displacement
+    # get the leftest tile number of the row the HEAD is on:
+    set leftestTile [expr $HEADinTILE - ($HEADinTILE % $BOARDWIDTH)]
+    if {$tileNum < $leftestTile} {
+	# tileNum is vertically above head
+	movePupils $c up
+    } elseif { $tileNum >= [expr $leftestTile + $BOARDWIDTH] } {
+	# tileNum is vertically below head
+	movePupils $c down
+    } else {
+	# tileNum (current tile the mouse is in) is in the same row as head
+	movePupils $c resetVert
+    }
+}
+
+proc movePupils { c command } {
+    puts "---- $command"
+
+    # get coords of eyes
+    set confine_coords [$c coords confinement]
+    set x_confinecenter [lindex $confine_coords 0]
+    set y_confinecenter [lindex $confine_coords 1]
+
+    # get current coords of pupils
+    set pupils_center_coords [$c coords pupils]
+    set xcenter [lindex $pupils_center_coords 0]
+    set ycenter [lindex $pupils_center_coords 1]
+
+    # amount to move by each time, radius of horizontal movement
+    set X 1 
+    # same as above, for vertical
+    set Y 2
+
+    # SCRATCH THIS COMMENTreset commands will raise back the original pupils, and delete the copies, all others hides the originals and makes copies
+    if {$command == "right" && ($xcenter <= [expr $x_confinecenter + $X]) } {
+	$c move pupils $X 0
+	
+    }
+    if {$command == "left" && ($xcenter >= [expr $x_confinecenter - $X]) } {
+	$c move pupils [expr -1 * $X] 0
+    }
+    if {$command == "up" && ($ycenter >= [expr $y_confinecenter - $Y]) } {
+	$c move pupils 0 [expr -1 * $Y]
+    }
+    if { $command == "down" && ($ycenter <= [expr $y_confinecenter + $Y]) } {
+	$c move pupils 0 $Y
+    }
+    if { $command == "resetHoriz" } {
+
+    }
+    if { $command == "resetVert" } {
+	
+    }     
+    
 }
 
 proc TileLeave {c tileNum } {
@@ -400,7 +496,7 @@ proc MakeHorizontalConnectors { c from to } {
 	#puts $from
 	#puts $to
     }
-    puts "**** hcon$from$to"
+    puts "---- hcon$from$to"
 }
 
 # Makes vertical connecting pieces
@@ -433,8 +529,79 @@ proc MakeHead { c slot } {
     $c create oval [expr $x+68] [expr $y+35] [expr $x+82] [expr $y+65] -fill red -tag [list head eyes]
     $c create oval [expr $x+40] [expr $y+45] [expr $x+50] [expr $y+55] -fill black -tag [list head eyes pupils]
     $c create oval [expr $x+70] [expr $y+45] [expr $x+80] [expr $y+55] -fill black -tag [list head eyes pupils]
-     $c create line [expr $x+40] [expr $y+85] [expr $x+80] [expr $y+85] -fill black -width 2 -tag [list head mouth] 
+
+    # create the confinement circles for moving the eyes, make it the same colour as eyes so as to hide it (unless there is a "hide" option, this is OK)
+    set X 1
+    set Y 2
+    $c create oval [expr $x+40-$X] [expr $y+45-$Y] [expr $x+50+$X] [expr $y+55+$Y+1] -fill red -width 0 -tag [list head eyes confinement confineL]
+    $c create oval [expr $x+70-$X] [expr $y+45-$Y] [expr $x+80+$X] [expr $y+55+$Y+1] -fill red -width 0 -tag [list head eyes confinement confineR]
+
+    $c create line [expr $x+40] [expr $y+85] [expr $x+80] [expr $y+85] -fill black -width 2 -tag [list head mouth] 
     #$c raise pupils eyes
+
+    #MakeTongue $c
+
+    $c lower confinement all
+
+    $c bind head <Enter> "EnterHead $c $slot"
+}
+
+proc MakeTongue { c tongueLen} {
+
+    #create the tongue
+    #set tongueLen 30
+    set tongueWidth 3
+    set tongueColour red3
+
+    set mouthCoords [$c coords mouth]
+    # the mouth coords are the very left coords of the mouth, ie  => ______
+    set x1 [lindex $mouthCoords 0]
+    set y1 [lindex $mouthCoords 1]
+    set x2 [lindex $mouthCoords 2]
+    set y2 [lindex $mouthCoords 3]
+    set xCenter [expr $x1+($x2-$x1)/2]
+    $c create line $xCenter $y1 $xCenter [expr $y1 + $tongueLen] -fill $tongueColour -width $tongueWidth -tag [list head tongue]
+
+    # create the forks on the tongue
+    # horiz displacement of fork from tongue center
+    set forkX 4
+    set forkY 3
+    set forkWidth 2
+    set yEnd [expr $y1 + $tongueLen]
+    $c create line [expr $xCenter-$forkX] [expr $yEnd+$forkY] $xCenter $yEnd -fill $tongueColour -width $forkWidth -tag [list head tongue fork forkL]
+    $c create line [expr $xCenter+$forkX] [expr $yEnd+$forkY] $xCenter $yEnd -fill $tongueColour -width $forkWidth -tag [list head tongue fork forkR]
+
+}
+
+proc EnterHead { c slot } {
+
+    puts " ---- [$c coords mouth]"
+
+    set MaxTongueLen 30
+
+    for {set i 0} {$i < 3} {set i [expr $i+1]} {
+
+	set temp [clock seconds]
+	set temp [expr $temp % $MaxTongueLen]
+
+	TongueShoot $c $temp
+    }
+}
+
+proc TongueShoot { c maxlengthExtend} {
+    
+    #extend the tongue
+    for {set i 0} {$i < $maxlengthExtend} {set i [expr $i+1]} {
+	MakeTongue $c $i
+	update idletasks
+	$c delete tongue
+    }
+    #retract the tongue
+    for {} {$i >= 0} {set i [expr $i-1]} {
+	MakeTongue $c $i
+	update idletasks
+	$c delete tongue
+    }
 }
 
 # Makes the tail in SLOT
@@ -444,6 +611,105 @@ proc MakeTail {c slot } {
     $c create oval [expr $x+15] [expr $y+15] [expr $x+110] [expr $y+110] -fill blanchedalmond -tag tail
     $c create oval [expr $x+30] [expr $y+30] [expr $x+95] [expr $y+95] -fill burlywood -tag [list tail ring1]
     $c create oval [expr $x+45] [expr $y+45] [expr $x+80] [expr $y+80] -fill brown4 -tag [list tail ring1 ring2]
+    
+    # create a ring for moving around to simulate rattle
+    $c create oval [expr $x+45] [expr $y+45] [expr $x+80] [expr $y+80] -fill black -tag [list tail ringAnim]
+
+    # create a confinement oval for rattle ring
+    set X 5
+    set Y 5
+    $c create oval [expr $x+45-$X] [expr $y+45-$Y] [expr $x+80+$X] [expr $y+80+$Y] -fill brown4 -width 0 -tag [list tail ring1 ring2]
+
+    #hide the extra ring and confinement ring
+    $c lower ringAnim all
+    $c lower confineRing all
+
+    $c bind tail <Enter> "EnterTail $c $slot"
+}
+
+proc EnterTail { c slot } {
+    
+    # rattle the tail x times, where x is random
+    set MaxNum 20
+    set temp [clock seconds]
+    set temp [expr $temp % $MaxNum]
+    rattleTail $c $temp
+
+}
+
+proc spinwait {k} {
+    for {set j 0} {$j < $k} {set j [expr $j+1]} {
+    }
+}
+
+proc rattleTail { c numRattles} {
+    # get coords of confine ring
+    set confine_coords [$c coords confineRing]
+    set x_confinecenter [lindex $confine_coords 0]
+    set y_confinecenter [lindex $confine_coords 1]
+
+    # constants taken from MakeTail
+    set X 5
+    set Y 5
+
+    # get current coords of ringAnim
+    set ringAnim_center_coords [$c coords ringAnim]
+    set xcenter [lindex $ringAnim_center_coords 0]
+    set ycenter [lindex $ringAnim_center_coords 1]
+
+    $c raise ringAnim
+
+    set Yspeed 3
+    set Xspeed 3
+
+    set curWidth [$c itemcget ringAnim -width]
+
+    for {set i 0} {$i < $numRattles} {set i [expr $i + 1]} {
+
+	set temp [clock seconds]
+	set temp [expr $temp % 3]
+
+	$c itemconfig ringAnim -width [expr $curWidth +$i*$temp]
+	
+# 	$c move tail $temp $temp
+# 	spinwait 1000
+# 	$c move tail 0 [expr -1*$temp]
+# 	spinwait 1000
+# 	$c move tail 0 [expr -1*$temp]
+# 	spinwait 1000
+# 	$c move tail [expr -1*$temp] 0
+# 	$c move tail [expr -1*$temp] 0
+# 	spinwait 1000
+# 	$c move tail 0 $temp
+# 	$c move tail 0 $temp
+# 	spinwait 1000
+# 	$c move tail $temp 0
+# 	spinwait 1000
+# 	$c move tail 0 [expr -1*$temp]
+
+	# random rattling around in confinement ring not working
+# 	set temp [clock seconds]
+# 	set temp [expr $temp % 4]
+# 	if {$temp == 0 && ($ycenter >= [expr $y_confinecenter - $Y]) } {
+# 	    #move Up
+# 	    $c move ringAnim 0 [expr -1 * $Yspeed]
+# 	} elseif {$temp == 1 && ($ycenter <= [expr $y_confinecenter + $Y]) } {
+# 	    # move Down
+# 	    $c move ringAnim 0 $Yspeed
+# 	} elseif {$temp == 2 && ($xcenter <= [expr $x_confinecenter + $X]) } {
+# 	    # move Right
+# 	    $c move ringAnim $Xspeed 0
+# 	} elseif {$temp == 3 && ($xcenter >= [expr $x_confinecenter - $X]) } {
+# 	    # move Left
+# 	    $c move ringAnim [expr -1*$Xspeed] 0
+# 	}
+
+	update idletasks
+    }
+
+    # reset back to orig size, hide the ringAnim
+    $c itemconfig ringAnim -width $curWidth
+    $c lower ringAnim
 }
 
 # GS_DrawPosition this draws the board in an arbitrary position.
@@ -459,7 +725,7 @@ proc MakeTail {c slot } {
 # Don't bother writing tcl that hashes, that's never necessary.
 
 proc GS_DrawPosition { c position } {
-    puts "** GS_DrawPosition"
+    puts ">> GS_DrawPosition"
     # BTW too: don't make any assumptions about the state of the board.
     # Clears the board
     $c raise base 
@@ -490,6 +756,8 @@ proc GS_DrawPosition { c position } {
 	#incr x 
 	#incr y 
     #} 
+
+    puts "<< exit GS_DrawPosition"
 }
 
 proc unhash { position } {
@@ -552,16 +820,37 @@ proc unhash { position } {
 # and before any moves are made.
 
 proc GS_NewGame { c position } {
-    puts "** GS_NewGame"
+    # NOTE: REPLACE ALL CONSTANTS (5, 10) WITH APPROPRIATE GLOBAL VARS, ie 5, 10 replace with constants that store the beginning positions of head and tail
+    puts ">> GS_NewGame"
+
+    global HEADinTILE
+    global TAILinTILE
+
+    # delete previous head and tail and just make a new one, since don't want to move the old ones
+    $c delete head
+    $c delete tail
+
+    MakeHead $c 5
+    MakeTail $c 10
+
+
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
 
-    # Assume initial position is 8357 (for now). Draw the body connectors.
-    MakeHorizontalConnectors $c 5 6
-    MakeVerticalConnectors $c 6 10
-    $c raise head
+    # Assume initial position is 8357 (for now). Raise the already drawn body connectors.
+    $c raise hcon56 all
+    $c raise vcon610 all
+
+
+    # reset the HEAD and TAIL tracker vars; NOTE: REPLACE CONSTANTS with global variables that store the starting position for head and tail
+    set HEADinTILE 5
+    set TAILinTILE 10
+
+    $c raise head 
     $c raise tail   
+    
+    puts "<< exit GS_NewGame"
 }
 
 
@@ -572,7 +861,7 @@ proc GS_NewGame { c position } {
 
 proc GS_WhoseMove { position } {
     global BOARDSIZE
-    puts "** GS_WhoseMove"
+    puts ">> GS_WhoseMove"
     set board [unhash $position]
     set count 0  
     for {set i 0} {$i<$BOARDSIZE} {incr i} {
@@ -586,6 +875,9 @@ proc GS_WhoseMove { position } {
     } else {
         set who head
     }
+
+    puts "<< exit GS_WhoseMove"
+
     return $who
 }
 
@@ -600,7 +892,9 @@ proc GS_WhoseMove { position } {
 
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     global BOARDSIZE
-    puts "** GS_HandleMove"
+    global HEADinTILE
+    global TAILinTILE
+    puts ">> GS_HandleMove"
 
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
@@ -611,15 +905,28 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set to [expr $theMove / ($BOARDSIZE+1)]
     set piece head
 
-    puts "theMove: $theMove"
-    puts "from: $from"
-    puts "to: $to"
 
-    puts [GS_WhoseMove $oldPosition]
+    puts " ---- theMove: $theMove"
+    puts " ---- from: $from"
+    puts " ---- to: $to"
 
-    if { [GS_WhoseMove $oldPosition] == "tail"} {
+    puts " ---- [GS_WhoseMove $oldPosition]"
+    
+
+   # determine if the head was moved, or if the tail was moved
+    if {$from == $HEADinTILE} {
+	set piece head
+    }
+    if {$from == $TAILinTILE} {
 	set piece tail
     }
+
+
+    # major bug-- assumes that player and comp alternate between heads and tails, and that player only picks heads, comp only picks tails; when the HEADONLY is false (ie player and comp can choose heads OR tails for ANY move), must determine if the head or the tail is picked in some OTHER way, rather than using [GS_WhoseMove $oldPosition], since [GS_WhoseMove $oldPosition] becomes an indicator of whether the player (inappropriately in this case called "head"), or the comp (inappropriately in this case called "tail") moved last
+#     if { [GS_WhoseMove $oldPosition] == "tail"} {
+# 	set piece tail
+#     }
+
     if {$to == [expr $from + 1]} {
 	set direction  right
     }
@@ -632,6 +939,31 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     if {$to == [expr $from - 4]} {
 	set direction  up
     }
+
+    # update head or tail tracker variables accordingly
+    if {$piece == "head"} {
+	if {$direction == "right"} {
+	    set HEADinTILE [expr $HEADinTILE + 1]
+	} elseif {$direction == "left"} {
+	    set HEADinTILE [expr $HEADinTILE - 1]
+	} elseif {$direction == "down"} {
+	    set HEADinTILE [expr $HEADinTILE + 4]
+	} elseif {$direction == "up"} {
+	    set HEADinTILE [expr $HEADinTILE - 4]
+	}
+    } elseif {$piece == "tail"} {
+	if {$direction == "right"} {
+	    set TAILinTILE [expr $TAILinTILE + 1]
+	} elseif {$direction == "left"} {
+	    set TAILinTILE [expr $TAILinTILE - 1]
+	} elseif {$direction == "down"} {
+	    set TAILinTILE [expr $TAILinTILE + 4]
+	} elseif {$direction == "up"} {
+	    set TAILinTILE [expr $TAILinTILE - 4]
+	}
+    }
+
+
     #temp, cause my temp random "positions" seem to cause none of above direction if's to be hit
     #set direction right
     puts "---- direction: $direction"
@@ -651,6 +983,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	#MakeHorizontalConnectors $c $from $to
     }
     $c raise head
+
+    puts "<< exit GS_HandleMove"
 }
 
 # Moves the PIECE, which is either head or tail
@@ -732,16 +1066,16 @@ proc drawLeftArrow { c from to color} {
 proc GS_ShowMoves { c moveType position moveList } {
     global BOARDSIZE
 
-    puts "** GS_ShowMoves"
+    puts ">> GS_ShowMoves"
 
-    puts "entered"
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]  
     puts $from
-    puts "say what"
+
+    puts "---- moveList: $moveList"
     foreach item $moveList {
 	#	set color [MoveTypeToColor $moveType]
-	puts "in GS_ShowMoves: $item"
+	puts "---- item: $item"
 
 	# this theMove is in internal rep format
 	set theMove [lindex $item 0]
@@ -751,6 +1085,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 	set value [lindex $item 1]
 	set color cyan
+
+	puts "---- <$fromSlot , $toSlot> $value"
 
  	if {$moveType == "value"} {
  	    if {$value == "Tie"} {
@@ -762,7 +1098,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 		#switched colors (green/red)
  	    }
 	}
-	puts "Got past color picker"
+	puts "---- Got past color picker"
 
 	$c itemconfig arrow$fromSlot$toSlot -fill $color
 	$c raise arrow$fromSlot$toSlot all
@@ -787,6 +1123,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 # 	}
 	update idletasks
     }
+
+    puts "<< exit GS_ShowMoves"
 }
 
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the same as GS_ShowMoves.
@@ -795,7 +1133,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 proc GS_HideMoves { c moveType position moveList} {
     global BOARDSIZE
 
-    puts "GS_HideMoves"
+    puts ">> GS_HideMoves"
 
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]
@@ -831,6 +1169,7 @@ proc GS_HideMoves { c moveType position moveList} {
 # 	}
 	update idletasks
     }	    
+    puts "<< exit GS_HideMoves"
 }
 
 
@@ -846,8 +1185,10 @@ proc GS_HideMoves { c moveType position moveList} {
 # By default this function just calls GS_DrawPosition, but you certainly don't need to keep that.
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-    puts "** GS_HandleUndo"
+    puts ">> GS_HandleUndo"
     GS_DrawPosition $c positionAfterUndo
+
+    puts "<< exit GS_HandleUndo"
 }
 
 
@@ -873,7 +1214,9 @@ proc GS_GetGameSpecificOptions { } {
 # The right player's color should be second.
 
 proc GS_ColorOfPlayers {} {
-    puts "** GS_ColorOfPlayers"
+    puts ">> GS_ColorOfPlayers"
+
+    puts "<< exit GS_ColorOfPlayers"
 
     return [list black green]
 }
@@ -884,7 +1227,8 @@ proc GS_ColorOfPlayers {} {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    puts "** GS_GameOver"
+    puts ">> GS_GameOver"
+    puts "<< GS_GameOver"
 }
 
 
