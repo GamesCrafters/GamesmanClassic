@@ -24,9 +24,7 @@
 #include <limits.h>
 #include "hash.h"
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  = 0;
+POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
@@ -955,6 +953,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.21  2004/03/16 01:58:39  weitu
+//Fixed to fit hash.c, now runs but wrong init position.
+//
 //Revision 1.20  2004/03/16 01:46:18  ogren
 //set kdebugmenu  TRUE - Elmer
 //

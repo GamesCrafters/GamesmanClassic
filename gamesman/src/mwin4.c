@@ -43,8 +43,8 @@
 
 extern STRING gValueString[];
 POSITION MyInitialPosition();
-unsigned long int MyNumberOfPos();
-unsigned long int gNumberOfPositions = 0; // Initialized to MyNumberOfPos()
+POSITION MyNumberOfPos();
+POSITION gNumberOfPositions = 0; // Initialized to MyNumberOfPos()
 POSITION gInitialPosition    = 0;     // Initialized to MyInitialPosition()
 POSITION kBadPosition        = 0;     // This can never be the rep.
                                       // of a position
@@ -644,9 +644,9 @@ POSITION MyInitialPosition() {
 ** OUTPUTS:     unsigned long int (number)
 **
 ************************************************************************/
-unsigned long int MyNumberOfPos() {
+POSITION MyNumberOfPos() {
   int i;
-  unsigned long int size=1;
+  POSITION size=1;
   for (i=0;i<(WIN4_HEIGHT+1)*WIN4_WIDTH;i++)
     size *= 2;
   return size;

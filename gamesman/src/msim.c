@@ -28,7 +28,7 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 14348907;  /* 3^15 */
+POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0 ;

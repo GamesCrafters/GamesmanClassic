@@ -32,9 +32,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
-int gNumberOfPositions = 0;  /* variable size loopy game */
+POSITION gNumberOfPositions = 0;  /* variable size loopy game */
 
 POSITION gInitialPosition    =  0; /* hashed value */
 POSITION gMinimalPosition    =  0;

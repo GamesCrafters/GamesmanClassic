@@ -25,8 +25,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 /* The beginning position is:
 **
 **   -   -   -   -      
@@ -59,7 +57,7 @@ extern STRING gValueString[];
 ** is made.
 */
 
-int      gNumberOfPositions  = 4194304;  /* 2^14 times 256 */
+POSITION gNumberOfPositions  = 4194304;  /* 2^14 times 256 */
 
 POSITION gInitialPosition    = 8357;
 POSITION gMinimalPosition    = 8357; /* This may not be the minimal position. Use the upward solver when it's invented */

@@ -21,9 +21,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  = 43046721;  // changed later if board size changes 
+POSITION gNumberOfPositions  = 43046721;  // changed later if board size changes 
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;

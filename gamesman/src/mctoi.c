@@ -364,9 +364,6 @@ void replaceXS(char *board, int bSize, char *full, int fSize, char *sub, int sSi
 **********************************************************************************************************/
 
 
-
-extern STRING gValueString[];
-
 # define BOARDSIZE  9           /* 3x3 board */ 
 # define NUMPIECES  6
 # define OFFSETSIZE 7
@@ -374,7 +371,7 @@ extern STRING gValueString[];
 /*
  * Global variables 
  */
-int      gNumberOfPositions  = 269779;/* the last valid number is 269778, 
+POSITION gNumberOfPositions  = 269779;/* the last valid number is 269778, 
 				         including zero, it's 269779*/
 POSITION gInitialPosition    =  0;           /* empty board                    */
 POSITION kBadPosition        = -1;           /* This can never be the rep. of a 

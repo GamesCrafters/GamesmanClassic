@@ -42,8 +42,6 @@
 
 #pragma weak Tcl_CreateCommand
 
-extern STRING gValueString[];
-
 POSITION gNumberOfPositions  = 0;
 POSITION gMinimalPosition    = 0;
 

@@ -57,12 +57,10 @@ Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos );
 long GetTotalCombinations( Node* theBoard, int NodeCount );
 
 
-extern STRING gValueString[];
-
 /*for a 3x3 board, it's 5 possible in the corners, 7 in the edges and 9 in the middle * 2 possible WhoseTurn's*/
 /*5*5*5*5*7*7*7*7*9*2 = 27,011,250*/
 
-int gNumberOfPositions  = 27011250;
+POSITION gNumberOfPositions  = 27011250;
 //This is changed later in the actual code, here it's set nice and high for robustness sake
 
 POSITION gInitialPosition    =  0;

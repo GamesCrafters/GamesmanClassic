@@ -32,9 +32,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  = 0;
+POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;

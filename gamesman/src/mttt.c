@@ -68,10 +68,8 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  = 19683;  /* 3^9 */
-int	 kBadPosition		= -1;
+POSITION gNumberOfPositions  = 19683;  /* 3^9 */
+POSITION kBadPosition	     = -1;
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;

@@ -2,14 +2,12 @@
 #include<ctype.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 #define MIN_ROWS 1
 #define MAX_ROWS 9
 
 int rows = 5 ;
 
-int      gNumberOfPositions = 0 ;
+POSITION gNumberOfPositions = 0 ;
 POSITION gInitialPosition = 0 ;
 POSITION gMinimalPosition = 0 ;
 //POSITION gMinimalPosition = (1<<(ROWS*3)) - 1 ;

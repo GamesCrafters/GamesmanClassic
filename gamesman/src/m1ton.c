@@ -34,8 +34,8 @@ unsigned int N = 10;
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions = 11;       /* Initized to 11 */
-int	 kBadPosition = -1;
+POSITION gNumberOfPositions = 11;       /* Initized to 11 */
+POSITION kBadPosition = -1;
 
 POSITION gInitialPosition    = 0;
 
@@ -253,9 +253,6 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
-  
   printf("\nTOTAL                        : %2d %s \n\n",position,
 	 GetPrediction(position,playerName,usersTurn));
 }

@@ -57,8 +57,6 @@
 #include <math.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 POSITION gInitialPosition  = 65535;
 POSITION gMinimalPosition  = 65535 ;
 
@@ -171,7 +169,7 @@ int kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 *
 int gBoardColumns      = 4;     /* 3 columns on the board */
 int gBoardRows         = 4;     /* 3 rows on the board */
 int gBoardSize         = 16;    /* gBoardColumns x gBoardRows sized board */
-int gNumberOfPositions = 65536; /* 2^gBoardSize */
+POSITION gNumberOfPositions = 65536; /* 2^gBoardSize */
 
 typedef enum possibleSquarePieces {
 	Blank, o

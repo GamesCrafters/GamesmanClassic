@@ -28,9 +28,7 @@ EXTERNC
 #pragma weak Tcl_CreateCommand
 }
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  =  0;
+POSITION gNumberOfPositions  =  0;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
