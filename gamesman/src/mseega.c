@@ -213,9 +213,6 @@ void InitializeGame () {
 		     -1};
   int maxpos = generic_hash_init(BOARDSIZE, boardspec, NULL);
   gNumberOfPositions  = maxpos;
-  if (DEBUGGING) {
-	printf("max number of posns is %d\n", maxpos);
-  }
   BOARDSIZE = width * height; //global variables
 
 }
@@ -342,11 +339,39 @@ void SetTclCGameSpecificOptions (int options[]) {
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
+char* getBoard(POSITION pos);
+
+//TODO doesn't actually do any moves yet =(.. just switches players
 POSITION DoMove (POSITION thePosition, MOVE theMove) {
-  if (DEBUGGING) {
-    printf("Starting Do Move with input: %d\n", theMove);
-  }
-  return 0;
+	int whoseTurn, nextPlayer;
+	char *board;
+	char ownpiece, opponentpiece;
+	whoseTurn = whoseMove(thePosition);
+	if (DEBUGGING) {
+	    printf("Starting Do Move with input: %d\n", theMove);
+	}
+	if(whoseTurn == 1) {
+		nextPlayer = 2;
+		ownpiece = P1;
+		opponentpiece = P2;
+	} else {
+		nextPlayer = 1;
+		ownpiece = P2;
+		opponentpiece = P1;
+	}
+	board = getBoard(thePosition);
+	return generic_hash(board, nextPlayer);
+}
+
+/* Stolen from mttc.c and mothello.c */
+char* getBoard(POSITION pos) {
+  int boardsize, i;
+  char * generic_unhash(int,char *); /* ?????? */
+  char* newBoard;
+  boardsize = width * height;
+  newBoard = SafeMalloc(boardsize*sizeof(char));
+  newBoard = generic_unhash(pos,newBoard);
+  return newBoard;
 }
 
 /************************************************************************
