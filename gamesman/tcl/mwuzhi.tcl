@@ -18,6 +18,8 @@
 ############################################################################
 proc GS_InitGameSpecific {} {
     
+    puts "GS_InitGameSpecific"
+
     ### Set the name of the game
     
     global kGameName
@@ -26,7 +28,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -190,10 +192,12 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width 300 -height 300
+puts "GS_Initialize"
 
-################# Drawing a dummy board for practice #######################
+    # you may want to start by setting the size of the canvas; this line isn't cecessary
+   # $c configure -width 300 -height 300
+global boardsize 
+
 set boardsize 4
 set dist 100 
 set boardwidth [expr $boardsize * $dist] 
@@ -238,10 +242,6 @@ for {set r [expr $boardsize*$boardsize - $boardsize]} {$r < [expr $boardsize*$bo
 }
 
 
-##########################################################################
-
-    
-    ### TODO: fill this in
 
 } 
 
@@ -269,6 +269,8 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
+    puts "GS_DrawPosition"
+
     global boardsize boardstring
     set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
     
@@ -276,7 +278,7 @@ proc GS_DrawPosition { c position } {
     $c raise base
 
     # raises appropriate pieces
-    for {set i 0} {$i < [expr $boardsize * $boardsize]} {incr $i} {
+    for {set i 0} {$i < [expr $boardsize * $boardsize]} {set i [expr $i + 1]} {
 	if {[string compare [string index $pieceString $i] "w"] == 0} {
 	    $c raise red$i 
 	    $c lower arrowred$i
@@ -300,6 +302,7 @@ proc GS_DrawPosition { c position } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
+    puts "GS_NewGame"
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
@@ -377,18 +380,27 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    0 {
 		$c raise arrowUPblue$arrayNum base
 		$c itemconfig arrowUPblue$arrayNum -fill $color
+		$c bind arrowUPblue$arrayNum <Enter> "$c itemconfig arrowUPblue$arrayNum -fill black"
+		$c bind arrowUPblue$arrayNum <Leave> "$c itemconfig arrowUPblue$arrayNum -fill $color"
+
 	    }
 	    1 {
 		$c raise arrowRIGHTblue$arrayNum base
 		$c itemconfig arrowRIGHTblue$arrayNum -fill $color
+		$c bind arrowRIGHTblue$arrayNum <Enter> "$c itemconfig arrowRIGHTblue$arrayNum -fill black"
+		$c bind arrowRIGHTblue$arrayNum <Leave> "$c itemconfig arrowRIGHTblue$arrayNum -fill $color"
 	    }
 	    2 {
 		$c raise arrowDOWNblue$arrayNum base
 		$c itemconfig arrowDOWNblue$arrayNum -fill $color
+		$c bind arrowDOWNblue$arrayNum <Enter> "$c itemconfig arrowDOWNblue$arrayNum -fill black"
+		$c bind arrowDOWNblue$arrayNum <Leave> "$c itemconfig arrowDOWNblue$arrayNum -fill $color"
 	    }
 	    3 {
 		$c raise arrowLEFTblue$arrayNum base
 		$c itemconfig arrowLEFTblue$arrayNum -fill $color
+		$c bind arrowLEFTblue$arrayNum <Enter> "$c itemconfig arrowLEFTblue$arrayNum -fill black"
+		$c bind arrowLEFTblue$arrayNum <Leave> "$c itemconfig arrowLEFTblue$arrayNum -fill $color"
 	    }
 	    default {}
 	}
@@ -479,22 +491,22 @@ set arrowLen 75
     $c create line $x $y $x [expr $y - $arrowLen] \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowUP$piece arrow$piece $piece arrow]
-    $c bind arrowUP$piece <Enter> {$c itemconfig arrowUP$piece -fill black}
+    $c bind arrowUP$piece <Enter> "$c itemconfig arrowUP$piece -fill black"
     #down
     $c create line $x $y $x [expr $y + $arrowLen] \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowDOWN$piece arrow$piece $piece arrow]
-    $c bind arrowDOWN$piece <Enter> {$c itemconfig arrowDOWN$piece -fill black}
+    $c bind arrowDOWN$piece <Enter> "$c itemconfig arrowDOWN$piece -fill black"
     #left
     $c create line $x $y [expr $x - $arrowLen] $y \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowLEFT$piece arrow$piece $piece arrow]
-    $c bind arrowLEFT$piece <Enter> {$c itemconfig arrowLEFT$piece -fill black}
+    $c bind arrowLEFT$piece <Enter> "$c itemconfig arrowLEFT$piece -fill black"
     #right
     $c create line $x $y [expr $x + $arrowLen] $y \
     -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
     -tags [list arrowRIGHT$piece arrow$piece $piece arrow]
-    $c bind arrowRIGHT$piece <Enter> {$c itemconfig arrowRIGHT$piece -fill black}
+    $c bind arrowRIGHT$piece <Enter> "$c itemconfig arrowRIGHT$piece -fill black"
 }
 
 
