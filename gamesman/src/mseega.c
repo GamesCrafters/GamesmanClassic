@@ -498,12 +498,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 **
 ************************************************************************/
 
-/*
-VALUE Primitive (POSITION position) {
-  return undecided;
-}
-*/
-
 //TODO not tested
 VALUE Primitive (POSITION position) {
   int r, c;
@@ -700,12 +694,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 }
 
 
-/*
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE* move, STRING playerName) {
-  return Abort;
-}
-*/
-
 
 /************************************************************************
 **
@@ -798,8 +786,34 @@ MOVE ConvertTextInputToMove (STRING input) {
 **
 ************************************************************************/
 
+/* Converts the number to the specified base and puts this into the
+   array. Returns the number of digits that it used. */
+void numberInBase(char* out, unsigned int n, int b, char* lookuptable) {
+  int i,j;
+  char swap;
+  for (i=0; n!=0; i++) {
+    out[i]=lookuptable[n%b];
+    n = n/b;
+  }
+  out[i]='\0';
+  for (j=0;i>j;i--,j++) {
+    swap=out[i];
+    out[i]=out[j];
+    out[j]=swap;
+  }
+}
 void PrintMove (MOVE move) {
-  
+  char alphabet[]="abcdefghijklmnopqrstuvwxyz";
+  char digits[]="0123456789";
+  /* TODO: change this to log(maxnum)/log(base), so that we are
+     not restricted to boards of size 10^4 * 10^4.*/
+  char row1[5],col1[5]; // numbers from 0 to base
+  char row2[5],col2[5];
+  numberInBase(row1, fromWhere(&move)/width, 26, digits);
+  numberInBase(col1, fromWhere(&move)%width, 10, digits);
+  numberInBase(row2, toWhere(&move)/width, 26, alphabet);
+  numberInBase(col2, toWhere(&move)%width, 10, alphabet);
+  printf("Move with coordinates %s%s and %s%s."row1,col1,row2,col2);
 }
 
 
@@ -900,8 +914,9 @@ inline int whoToInt(char c) {
   return c=='x'? 1 : 2;
 }
 
-inline BOOLEAN placingBoard(Board b) {return b[width*height+1];}
+inline BOOLEAN placingBoard(Board b) {return b[width*height];}
 
+inline void setWhoseBoard(Board b, char t) {b[width*height+1]=t}
 inline void setpce(Board b, int r, char c) {b[r]=c;}
 inline void setMove(SMove m, char who, int rfrom, int rto) {
 /* TODO: figure out how we're supposed to encode invariants.
@@ -911,7 +926,7 @@ inline void setMove(SMove m, char who, int rfrom, int rto) {
 */
   *m = rfrom<<sizeof(MOVE)/2 | rto;
 }
-inline void setPlacingBoard(Board b, BOOLEAN t) {b[width*height+1]=t;}
+inline void setPlacingBoard(Board b, BOOLEAN t) {b[width*height]=t;}
 
 
 
