@@ -59,7 +59,7 @@ BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -349,6 +349,11 @@ void InitializeGame ()
 
   if(use_default) {
     g_file = fopen(default_file, "r");
+    if(!g_file) {
+      printf("InitializeGame error: default file %s does not exist.\n",
+	     default_file);
+      ExitStageRight();
+    }
     nullInit(global_board, global_black, global_white, global_classes);
     procFile(g_file, global_board, global_black, global_white, 
 	     global_classes);
@@ -1117,6 +1122,8 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
   while(fileGetToken(graph_file, token)) {
     token_pos = 0;
     arg1 = stringGetToken(token, &token_pos);
+    if(!arg1)
+      break;
     if(!strcmp(arg1, "graph") || !strcmp(arg1, "g"))
       ret &= handleGraph(token, &token_pos);
     else if(!strcmp(arg1, "node-class") || !strcmp(arg1, "nc"))
