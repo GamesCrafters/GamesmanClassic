@@ -376,7 +376,7 @@ void MenusBeforeEvaluation()
   if(kGameSpecificMenu)
     printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
   printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
-  printf("\t2)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolver ? "ON" : "OFF");
+  printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolver ? "ON" : "OFF");
 }
 
 void MenusEvaluated()
