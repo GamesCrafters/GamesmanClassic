@@ -48,7 +48,7 @@
 
 STRING   kGameName            = "Mu Torere"; /* The name of your game */
 STRING   kAuthorName          = "Joe Jing and Jeff Chou"; /* Your name(s) */
-STRING   kDBName              = "mtore"; /* The name to store the database under */
+STRING   kDBName              = "tore"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
