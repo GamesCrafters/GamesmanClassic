@@ -466,8 +466,8 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     char **argv;			/* Argument strings. */
 {
   POSITION position;
-  VALUE GetValueOfPosition();
-  MOVELIST *ptr, *head, *GenerateMoves();
+  MOVELIST *ptr, *head;
+  VALUE value;
   char theAnswer[10000], tmp[1000];
 
   if (argc != 2) {
@@ -481,9 +481,19 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
+      value = GetValueOfPosition(DoMove(position,ptr->move));
+
+      if (gGoAgain(position,ptr->move)) {
+	switch(value) {
+	case win: value = lose; break;
+	case lose: value = win; break;
+	default: value = value;
+	}
+      }
+
       sprintf(tmp,"{ %d %s } ",
 	      (ptr->move), 
-	      gValueString[GetValueOfPosition(DoMove(position,ptr->move))]);
+	      gValueString[value]);
       /* If this barfs, change 'char' to 'const char' */
       strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
       ptr = ptr->next;
