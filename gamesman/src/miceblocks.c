@@ -48,20 +48,76 @@ void*	 gGameSpecificTclInit = NULL;
 /* Globals setup for use by outside functions */
 
 /* Help strings for this game */
+STRING gStandard =
+"The objective of this game is to obtain more points than\n"
+"your opponent.  You get 3 points for getting 3 blocks in\n"
+"a row and two additional points for every following block.\n"
+"Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
+"5 in a row gets 7 points. Diagonals are valid.";
+STRING gTallyBlocks =
+"The objective of this game is to obtain more points than\n"
+"your opponent.  You get points for having more than one block\n"
+"in a row.  The player with the most blocks in a row wins (a\n"
+"block that is in multiple rows gets counted more than once).\n"
+"Diagonals are valid.";
+STRING gTallyThrees =
+"The objective of this game is to get more threes in a row\n"
+"than your opponent.  If you have 4 in a row, it will be counted\n"
+"as two threes in a row.  Same goes for any sequence of blocks\n"
+"greater than 4.  Diagonals are valid.";
+STRING gStandardR = 
+"The objective of this game is to obtain less points than\n"
+"your opponent.  You get 3 points for getting 3 blocks in\n"
+"a row and two additional points for every following block.\n"
+"Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
+"5 in a row gets 7 points. Diagonals are valid.";
+STRING gTallyBlocksR =
+"The objective of this game is to obtain less points than\n"
+"your opponent.  You get points for having more than one block\n"
+"in a row.  The player with the least blocks in a row wins (a\n"
+"block that is in multiple rows gets counted more than once).\n"
+"Diagonals are valid.";
+STRING gTallyThreesR =
+"The objective of this game is to get less threes in a row\n"
+"than your opponent.  If you have 4 in a row, it will be counted\n"
+"as two threes in a row.  Same goes for any sequence of blocks\n"
+"greater than 4.  Diagonals are valid.";
 STRING kHelpGraphicInterface =
 "Not written yet";
 STRING kHelpTextInterface =
-""; 
+"On your turn, determine where you wish to move your piece.\n"
+"Simply type in the numeric representation of that position\n"
+"as it is presented on the board.";
 STRING kHelpOnYourTurn =
-"";
-STRING kHelpStandardObjective =
-"";
-STRING kHelpReverseObjective =
-"";
+"Place a block somewhere in the pyramid by entering the\n"
+"corresponding number.  You may only place a block if it is\n"
+"on the bottom row, or on top of two adjacent pieces.";
+STRING kHelpStandardObjective;
+STRING kHelpReverseObjective;
 STRING kHelpTieOccursWhen =
-"";
-STRING kHelpExample =
-"";
+"each player has accumulated an equal\n"
+"number of points by the end of the game.";
+STRING kHelpExample = 
+"      [10]\n"
+"    [08][09]\n"
+"  [05][06][07]\n"
+"[01][02][03][04]\n\n"
+"Dan's Move: 2\n\n"
+"      [10]\n"
+"    [08][09]\n"
+"  [05][06][07]\n"
+"[01][XX][03][04]\n\n"
+"Computer's Move: 3\n\n"
+"      [10]\n"
+"    [08][09]\n"
+"  [05][06][07]\n"
+"[01][XX][OO][04]\n\n"
+"Dan's Move: 6\n\n"
+"      [10]\n"
+"    [08][09]\n"
+"  [05][XX][07]\n"
+"[01][XX][OO][04]\n\n"
+"etc...";
 /* Help strings for this game */
 
 /* Board representation for this game */
@@ -74,7 +130,7 @@ struct boardRep{
   int **spaces;
   TURN turn;
 };
-int base = 4;
+int base = 5;
 CONDITION WinningCondition = standard;
 /* Board representation for this game */
 
@@ -170,6 +226,8 @@ void InitializeGame () {
   for(i = 0; i < sum; i++)
     board[i] = '-';
   gInitialPosition = generic_hash(board, 1);
+  kHelpStandardObjective = gStandard;
+  kHelpReverseObjective = gStandardR;
 }
 
 /************************************************************************
@@ -826,12 +884,18 @@ void SetWinningCondition () {
     switch (c) {
     case 's':
       WinningCondition = standard;
+      kHelpStandardObjective = gStandard;
+      kHelpReverseObjective = gStandardR;
       break;
     case 'm':
       WinningCondition = tallyblocks;
+      kHelpStandardObjective = gTallyBlocks;
+      kHelpReverseObjective = gTallyBlocksR;
       break;
     case 'n':
       WinningCondition = tallythrees;
+      kHelpStandardObjective = gTallyThrees;
+      kHelpReverseObjective = gTallyThreesR;
       break;
     default:
       cont = TRUE;
