@@ -747,7 +747,8 @@ MOVELIST *GenerateMoves(position)
       if(myPosition.stash[i] > 0) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if((topPieceTo > 0) && (topPieceTo < (i / 2))) {
+          if(((topPieceTo > 0) && (topPieceTo < (i / 2))) || 
+	     (topPieceTo == -1)) {
             head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
           }
         }
@@ -760,7 +761,8 @@ MOVELIST *GenerateMoves(position)
       if((pieceColorFrom == myPosition.turn) && (topPieceFrom > 0)) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if((topPieceTo > 0) && (topPieceTo < topPieceFrom)) {
+          if(((topPieceTo > 0) && (topPieceTo < topPieceFrom)) ||
+	     (topPieceTo == -1)) {
             head = CreateMovelistNode(CONS_MOVE(i, j), head);
           }
         }
