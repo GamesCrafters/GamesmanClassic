@@ -202,8 +202,9 @@ dist:		clean
 		rm -rf Makefile
 
 clean:
-		rm -rf $(CGAMES) $(CTCL) $(CCGAMES) $(CCTCL) $(SPECIALGAMES) $(SPECIALTCL) \
-		$(GAMELINE_EXE) $(SOLVE_EXE) $(LIBDIR)/*~ $(BINDIR)/*~ @RMOBJS@ *~
+		rm -rf $(CGAMES) $(CTCL) $(CCGAMES) $(CCTCL) $(SPECIALGAMES) \
+		$(SPECIALTCL) $(GAMELINE_EXE) $(SOLVE_EXE) $(LIBDIR)/*~ \
+		$(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) $(DEP_GWISH_OBJ) *~
 
 text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
