@@ -14,16 +14,18 @@
 **              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
 **              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
 **
-** CHECKLIST: Make EVERYTHING Pretty. Mimic Gamesman
+** CHECKLIST: 
 **            Fix Bugs
-**            Make more Friendly
-**            DOUBLE CHECK DEFAULT MOVE
-**            Add Sample Game Help
+**            DOUBLE CHECK DEFAULT POSITION!
 ** 
 ** DONE       Reverse Board
 **            Make User Lowercase
 **            'D' DONE instead of Pass
 **            Hash Go Again
+**            Make more Friendly
+**            Make EVERYTHING Pretty. Mimic Gamesman
+**            Add Sample Game Help
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -103,8 +105,121 @@ Try to let the fox kill you as much as possible.";
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A tie can never occur in Asalto.";
 
-STRING   kHelpExample =
-"Help Example On The Way!";
+STRING   kHelpExample = "Type '?' if you need assistance... \n \
+\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G - G - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   - F         |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn.                       |\n \
+        | (Geese should Win in 8)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Geese's move [(u)ndo/([A-E][1-5])] :  c5 c4\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   - G -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   - F         |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Foxes's turn.                       |\n \
+        | (Foxes should Lose in 7)                  |\n \
+        +-------------------------------------------+\n \
+\n \
+\n \
+   Foxes's move [(u)ndo/([A-E][1-5])] :  D1 D2\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   - G -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   - F -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn.                       |\n \
+        | (Geese should Win in 6)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Geese's move [(u)ndo/([A-E][1-5])] :  c4 c3\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   - G -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   - F -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Foxes's turn.                       |\n \
+        | (Foxes should Win in 1)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Foxes's move [(u)ndo/([A-E][1-5])] :  D2 B4\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    - F -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn.                       |\n \
+        | (Geese should Lose in 0)                  |\n \
+        +-------------------------------------------+\n \
+\n \
+\n \
+Foxes (player two) Wins!\n";
+
 
 /*************************************************************************
 **
@@ -119,7 +234,7 @@ STRING   kHelpExample =
 **************************************************************************/
 
 int BOARDSIZE = 21;    /* 5X5 Crosscross Board */
-int GEESE_MAX = 9;
+int GEESE_MAX = 3;
 int GEESE_MIN = 3;
 int GEESE_HASH_MIN = 2; /* MUST BE ONE LESS THAN GEESE_MIN */
 int FOX_MAX = 2;
@@ -234,6 +349,9 @@ int intpow(int base, int exp);
 int getFoxNumber(const char board[BOARDSIZE], int loc);
 int getFoxPos(const char board[BOARDSIZE], int foxnum);
 
+void PrintSpaces(int spaces);
+
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
@@ -347,6 +465,8 @@ void GameSpecificMenu ()
 	do
 	{
 		printf("\n\t----- Game Specific Options for Asalto ----- \n\n");
+		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\n\n");
 		printf("\tm)\t(M)odify Board\n");
 		printf("\tg)\tToggle (G)o Again from ");
 		if(variant_goAgain)
@@ -399,14 +519,33 @@ void GameSpecificMenu ()
 				selection = 'Z';
 				break;
 			case 'N':
-				do
 				{
-					char input[80];
-					printf("How many geese are needed to win? "); scanf("%s",input);
-					GEESE_MIN = input[0] - '0';
-				}while (GEESE_MIN < 0 || 6 <= GEESE_MIN);
-				init_board_hash();
-				selection = 'Z';
+				int OLD_GEESE_MIN = GEESE_MIN;
+					do
+					{
+						char input[80];
+						
+						printf("How many geese are needed to win [(C)ancel]? "); scanf("%s",input);
+						input[0] = toupper(input[0]);
+						if (input[0] == 'C')
+						{
+							GEESE_MIN = OLD_GEESE_MIN;
+						}
+						else
+						{
+							GEESE_MIN = input[0] - '0';
+							if ((GEESE_MIN < 0 || 6 < GEESE_MIN))
+							{
+								printf("At least 1 goose and at most 6 geese can be set as a winning condition for Asalto.\n\n");
+							}
+							else if (GEESE_MIN > GEESE_MAX)
+							{
+								printf("You can only require at most %d geese because you only have %d geese on the board!\n\n",GEESE_MAX,GEESE_MAX);
+							}
+						}
+					}while (GEESE_MIN < 0 || 6 < GEESE_MIN || GEESE_MIN > GEESE_MAX);
+					selection = 'Z';
+				}
 				break;
 			case 'R':
 				return;
@@ -415,6 +554,7 @@ void GameSpecificMenu ()
 				break;
 		}
 		selection = '0';
+		init_board_hash();
 	} while (1);
 }
 
@@ -581,7 +721,8 @@ POSITION GetInitialPosition()
 	{
 		boardPieceStats(start_standard_board, boardStats);
 		printf("\n\t----- Asalto Initial Position Setup -----\n\n");
-		
+		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
 		PrintBoard(start_standard_board);
@@ -616,14 +757,13 @@ POSITION GetInitialPosition()
 				printf("Invalid option. Try again\n");
 				selection = -1;
 		}
+		boardPieceStats(start_standard_board, boardStats);
+		GEESE_MAX = numGeese(boardStats);
+		FOX_MAX = numFoxes(boardStats);
 		
+		init_board_hash();
 	} while (selection != 'E');
 	
-	boardPieceStats(start_standard_board, boardStats);
-	GEESE_MAX = numGeese(boardStats);
-	FOX_MAX = numFoxes(boardStats);
-	
-	init_board_hash();
 	
 	return mergePositionGoAgain(generic_hash(start_standard_board, GEESE_PLAYER),0);
 }
@@ -810,14 +950,35 @@ VALUE Primitive (POSITION pos)
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
 	char currentBoard[BOARDSIZE];
+	char turnString[80];
+	char prediction[80];
+	int width = strlen("+-------------------------------------------+");
+	
 	generic_unhash(getPosition(position), currentBoard);
-	 
-	printf("\tIt is %s's turn.\n", playerName);
-	printf("\t%s\n",GetPrediction(position,playerName,usersTurn));
 	
 	if (PRINTPOSITION_DEBUG) { printf("Position Hash %d\n",position);}
 	
+	printf("\n");
+	
 	PrintBoard(currentBoard);
+	
+	sprintf(turnString,"| It is %s's turn.", playerName);
+	printf("\t%s",turnString); PrintSpaces(width - strlen(turnString) - 1); printf("|\n");
+	
+	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
+	if (prediction[2] == '(')
+	{
+		printf("\t%s",prediction); PrintSpaces(width - strlen(prediction) - 1); printf("|\n");
+	}
+	printf("\t+-------------------------------------------+\n\n");
+}
+
+void PrintSpaces(int spaces)
+{
+	for ( ; spaces > 0; spaces--)
+	{
+		printf(" ");
+	}
 }
 
 
@@ -1240,7 +1401,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 	
 	do
 	{
-		printf("%8s's move [(u)ndo/([A-G][1-7])] :  ", playerName);
+		printf("%8s's move [(u)ndo/([A-E][1-5])] :  ", playerName);
 		
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Returning\n"); }
@@ -1515,29 +1676,41 @@ void PrintBoard (char board[])
 	if (variant_diagonals)
 	{
 
-		printf("\t5     %c - %c - %c     \n",board[0],board[1],board[2]);
-		printf("\t      | / | \\ |     \n");
-		printf("\t4 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
-		printf("\t  | / | \\ | / | \\ | \n");
-		printf("\t3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
-		printf("\t  | \\ | / | \\ | / |\n");
-		printf("\t2 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
-		printf("\t      | \\ | / |    \n");
-		printf("\t1     %c - %c - %c    \n",board[18],board[19],board[20]);
-		printf("\t  a   b   c   d   e \n");
+		printf("\t+-------------------------------------------+\n");
+		printf("\t| GAMESMAN Asalto                           |\n");
+		printf("\t+---------------------------+---------------+\n");
+		printf("\t|                           |               |\n");
+		printf("\t|  5      %c - %c - %c         |               |\n",board[0],board[1],board[2]);
+		printf("\t|         | / | \\ |         |               |\n");
+		printf("\t|  4  %c - %c - %c - %c - %c     |               |\n",board[3],board[4],board[5],board[6],board[7]);
+		printf("\t|     | / | \\ | / | \\ |     |   F = Foxes   |\n");
+		printf("\t|  3  %c - %c - %c - %c - %c     |   G = Geese   |\n",board[8],board[9],board[10],board[11],board[12]);
+		printf("\t|     | \\ | / | \\ | / |     |               |\n");
+		printf("\t|  2  %c - %c - %c - %c - %c     |   %d Geese     |\n",board[13],board[14],board[15],board[16],board[17],GEESE_MIN);
+		printf("\t|         | \\ | / |         |     Needed    |\n");
+		printf("\t|  1      %c - %c - %c         |     To Win    |\n",board[18],board[19],board[20]);
+		printf("\t|     a   b   c   d   e     |               |\n");
+		printf("\t|                           |               |\n");
+		printf("\t+---------------------------+---------------+\n");
 	}
 	else
 	{
-		printf("\t1     %c - %c - %c     \n",board[0],board[1],board[2]);
-		printf("\t      |   |   |     \n");
-		printf("\t2 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
-		printf("\t  |   |   |   |   | \n");
-		printf("\t3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
-		printf("\t  |   |   |   |   |\n");
-		printf("\t4 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
-		printf("\t      |   |   |    \n");
-		printf("\t5     %c - %c - %c    \n",board[18],board[19],board[20]);
-		printf("\t  a   b   c   d   e \n");
+		printf("\t+-------------------------------------------+\n");
+		printf("\t| GAMESMAN Asalto                           |\n");
+		printf("\t+---------------------------+---------------+\n");
+		printf("\t|                           |               |\n");
+		printf("\t|  5      %c - %c - %c         |               |\n",board[0],board[1],board[2]);
+		printf("\t|         |   |   |         |               |\n");
+		printf("\t|  4  %c - %c - %c - %c - %c     |               |\n",board[3],board[4],board[5],board[6],board[7]);
+		printf("\t|     |   |   |   |   |     |   F = Foxes   |\n");
+		printf("\t|  3  %c - %c - %c - %c - %c     |   G = Geese   |\n",board[8],board[9],board[10],board[11],board[12]);
+		printf("\t|     |   |   |   |   |     |               |\n");
+		printf("\t|  2  %c - %c - %c - %c - %c     |   %d Geese     |\n",board[13],board[14],board[15],board[16],board[17],GEESE_MIN);
+		printf("\t|         |   |   |         |     Needed    |\n");
+		printf("\t|  1      %c - %c - %c         |     To Win    |\n",board[18],board[19],board[20]);
+		printf("\t|     a   b   c   d   e     |               |\n");
+		printf("\t|                           |               |\n");
+		printf("\t+---------------------------+---------------+\n");
 	}
 }
 
@@ -1565,6 +1738,8 @@ void AddRemoveFoxes(char board[])
 	{
 		boardPieceStats(board, boardStats);
 		printf("\n\t----- Asalto Fox Placement -----\n\n");
+		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
 		PrintBoard(start_standard_board);
@@ -1644,7 +1819,11 @@ void AddRemoveFoxes(char board[])
 				printf("Invalid option. Try again\n");
 				selection = 'Z';
 		}
+		boardPieceStats(start_standard_board, boardStats);
+		GEESE_MAX = numGeese(boardStats);
+		FOX_MAX = numFoxes(boardStats);
 		
+		init_board_hash();
 	} while (selection != 'E');
 }
 
@@ -1661,7 +1840,8 @@ void AddRemoveGeese(char board[])
 	{
 		boardPieceStats(board, boardStats);
 		printf("\n\t----- Asalto Geese Placement-----\n\n");
-		
+		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
 		PrintBoard(start_standard_board);
@@ -1727,7 +1907,11 @@ void AddRemoveGeese(char board[])
 				printf("Invalid option. Try again\n");
 				selection = 'Z';
 		}
+		boardPieceStats(start_standard_board, boardStats);
+		GEESE_MAX = numGeese(boardStats);
+		FOX_MAX = numFoxes(boardStats);
 		
+		init_board_hash();
 	} while (selection != 'E');
 }
 
