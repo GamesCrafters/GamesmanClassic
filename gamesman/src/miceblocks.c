@@ -22,6 +22,8 @@
 #define X               99999
 #define O               9999
 #define MAX_BOARD_SIZE  5
+#define MIN_BOARD_SIZE  2
+#define NUM_OPTIONS     3
 
 /* External Globals */
 extern GENERIC_PTR SafeMalloc ();
@@ -389,10 +391,30 @@ VALUE Primitive (POSITION pos) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-  char input[sumto(base)];
-  printf("type in a %d character string of X's, O's and -'s\nNote that X always goes first: ", sumto(base));
-  scanf("%s", input);
-  return generic_hash(input, 1);
+  int i, numX, numO, turn;
+  char input[sumto(base)], c;
+  BOOLEAN cont = TRUE;
+  while(cont) {
+    cont = FALSE;
+    printf("type in a %d character string of X's, O's and -'s (- denotes empty):  ", sumto(base));
+    scanf("%s", input);
+    for(i = 0; i < sumto(base); i++) {
+      c = tolower(input[i]);
+      if(c == 'x')
+	numX++;
+      else if(c == 'o')
+	numO++;
+    }
+    if((numX - numO) != 0 || (numX - numO) != 1) {
+      printf("\nInvalid Board!\n\n");
+      cont = TRUE;
+    }
+    else if(numX > numO)
+      turn = 0;
+    else
+      turn = 1;
+  }
+  return generic_hash(input, turn);
 }
 
 /************************************************************************
@@ -551,7 +573,7 @@ MOVE ConvertTextInputToMove (STRING input) {
 ************************************************************************/
 
 int NumberOfOptions () {
-  return 1;
+  return (MAX_BOARD_SIZE - MIN_BOARD_SIZE + 1) * NUM_OPTIONS * 2;
 }
 
 
@@ -567,8 +589,26 @@ int NumberOfOptions () {
 **
 ************************************************************************/
 
-int getOption() {
-  return 1;
+int getOption () {
+  int option;
+  option = base - MIN_BOARD_SIZE;
+  option *= NUM_OPTIONS;
+  switch(WinningCondition) {
+  case standard:
+    option += 0;
+    break;
+  case tallyblocks:
+    option += 1;
+    break;
+  case tallythrees:
+    option += 2;
+    break;
+  }
+  option *= 2;
+  if(!gStandardGame)
+    option += 1;
+  option++;
+  return option;
 }
 
 
@@ -585,6 +625,25 @@ int getOption() {
 ************************************************************************/
 
 void setOption(int option) {
+  option--;
+  if(option % 2)
+    gStandardGame = FALSE;
+  else
+    gStandardGame = TRUE;
+  option /= 2;
+  switch(option % NUM_OPTIONS) {
+  case 0:
+    WinningCondition = standard;
+    break;
+  case 1:
+    WinningCondition = tallyblocks;
+    break;
+  case 2:
+    WinningCondition = tallythrees;
+    break;
+  }
+  option /= NUM_OPTIONS;
+  base = option + MIN_BOARD_SIZE;
 }
 
 /************************************************************************
@@ -731,7 +790,7 @@ void ChangeBoardSize () {
     gMenu = TRUE;
     PrintPosition(gInitialPosition, "Fred", 0);
     gMenu = FALSE;
-    printf("\n\nEnter the new base length (2 - %d):  ", MAX_BOARD_SIZE);
+    printf("\n\nEnter the new base length (%d - %d):  ", MIN_BOARD_SIZE, MAX_BOARD_SIZE);
     scanf("%d", &change);
     if(change > MAX_BOARD_SIZE || change < 2) {
       printf("\nInvalid base length!\n");
