@@ -150,6 +150,8 @@ BOOLEAN can_be_taken(POSITION the_position, int slot);
 BOOLEAN closes_mill(POSITION position, int raw_move);
 BOOLEAN check_mill(blankox *board, int slot);
 BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
+blankox parse_char(char c);
+BOOLEAN closes_mill_move(MOVE the_move);
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -274,6 +276,68 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
+  int xOnBoard, oOnBoard, bOnBoard, i;
+  signed char c;
+  blankox board[BOARDSIZE];
+  blankox turn;
+  
+  i = xOnBoard = oOnBoard = bOnBoard = 0;
+  
+  
+  printf("\n\n\t----- Get Initial Position -----\n");
+  printf("\n\tPlease input the position to begin with.\n");
+  printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
+  printf("Example:\n");
+  printf("        _-----------o-----------_\n");
+  printf("        |           |           |\n");
+  printf("        |           |           |\n");
+  printf("        |   x-------_-------o   |\n");
+  printf("        |   |       |       |   |\n");
+  printf("        |   |   _---x---_   |   |\n");
+  printf("        |   |   |       |   |   |\n");
+  printf("        _---_---_       _---_---_\n");
+  printf("        |   |   |       |   |   |\n");
+  printf("        |   |   _---x---_   |   |\n");
+  printf("        |   |       |       |   |\n");
+  printf("        |   _-------_-------o   |\n");
+  printf("        |           |           |\n");
+  printf("        |           |           |\n");
+  printf("        _-----------_-----------_\n");
+  printf("Is input as \n\t_ o _\n\tx _ o\n _ x _ \n\t_ _ _ _ _ _\n\t_ x _ \n\t_ _ o\n\t_ _ _");
+
+  getchar(); // dump a char
+
+  while (i < BOARDSIZE && (c = getchar()) != EOF) {
+    board[i++] = parse_char(c);
+    if (c == 'x' || c == 'X')
+      xOnBoard++;
+    else if (c == 'o' || c == 'O' || c == '0')
+      oOnBoard++;
+    else if (c == '-' || c == '_')
+      bOnBoard++;
+    else {
+      printf("\n Illegal Board Position Please Re-Enter\n");
+      return GetInitialPosition();
+    }
+  }
+
+  // hard coded sanity check for 3 vs 3
+  // should add a hash/unhash sanity check
+  if (xOnBoard != 3 || oOnBoard != 3 || bOnBoard != 18) {
+    printf("\n Illegal Board Position Please Re-Enter\n");
+    return GetInitialPosition();
+  }
+
+  // now get the turn
+  getchar(); // dump another character
+  printf("\nWhose turn is it? [x/o]");
+  scanf("%c",&c);
+
+  turn = parse_char(c);
+  
+  return hash(board, turn);
+
+  
   
 }
 
@@ -293,7 +357,9 @@ void PrintComputersMove(computersMove, computersName)
      MOVE computersMove;
      STRING computersName;
 {
-  
+  printf("%8s's move              : from %d  to %d\n", computersName, from(computersMove), to(computersMove));
+  if (closes_mill_move(computersMove)
+      prinf("\tand removes %d", remove_piece(computersMove));
 }
 
 
@@ -529,7 +595,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
-    printf("%8s's move [(u)ndo/(0-23 0-23) :  ", playerName, TABLE_SLOTS + PIECE_SIZES, TABLE_SLOTS);
+    printf("%8s's move [(u)ndo/[0-23 0-23](,[0-23])?] :  ", playerName);
 
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -560,6 +626,48 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
+  int i;
+  int index;
+  BOOLEAN hasSpace, hasComma;
+  int spaceIndex;
+  int commaIndex;
+  
+  i = atoi(input);
+
+  hasSpace = (index(input, ' ')) == NULL;
+  hasComma = (index(input, ',')) == NULL;
+  
+  if (hasSpace)
+    spaceIndex = index(input, ' ');
+  else {
+    return FALSE;
+  }
+    
+  if (hasComma)
+    commaIndex = index(input, ',');
+  else
+    commaIndex = -1;
+
+  
+  
+  
+  if(index(input, ' ') == NULL)
+    return FALSE;
+  
+  i = atoi(index(input, ' '));
+
+  if (!( i < BOARDSIZE - 1  && i >= 0 ))
+    return FALSE;
+
+  if(index(input, ',') == NULL)
+    return TRUE;
+
+  i = atoi(index(input, ','));
+  if (!( i < BOARDSIZE - 1  && i >= 0 ))
+    return FALSE;
+
+  return FALSE;
+
   
 }
 
@@ -673,7 +781,7 @@ int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 ** ones.
 ************************************************************************/
 
-int hash(blankox *b_board, blankox turn)
+POSITION hash(blankox *b_board, blankox turn)
 {
 
   char c_board[BOARDSIZE];
@@ -699,6 +807,7 @@ blankox *unhash(int hash_val, blankox *b_board)
   
 }
 
+// char to blankox conversion
 void parse_board(char *c_board, blankox *b_board)
 {
   int i;
@@ -713,6 +822,19 @@ void parse_board(char *c_board, blankox *b_board)
     }
 }
 
+blankox parse_char(char c) {
+  if (c == 'x' || c == 'X')
+    return x;
+  else if (c == 'o' || c == '0' || c == 'O')
+    return o;
+  else if (c == '_' || c == '-')
+    return blank;
+  else
+    return x; // fix this so that it's a badelse
+  
+}
+
+//blankox to char conversion
 void unparse_board(blankox *b_board, char *c_board)
 {
   int i;
@@ -721,6 +843,8 @@ void unparse_board(blankox *b_board, char *c_board)
       c_board[i] = gblankoxString[b_board[i]];
     }
 }
+
+
 
 
 blankox whose_turn(int hash_val)
@@ -760,6 +884,10 @@ BOOLEAN can_be_taken(POSITION position, int slot)
   return !check_mill(board, slot);
 }
 
+BOOLEAN closes_mill_move(MOVE the_move) {
+  return from(the_move) == remove_piece(the_move);
+}
+
 BOOLEAN closes_mill(POSITION position, int raw_move)
 {
   blankox board[BOARDSIZE];
@@ -797,6 +925,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.14  2004/03/07 20:49:09  evedar
+//Added printposition, changed internal rep of board locations
+//
 //Revision 1.13  2004/03/07 19:28:31  evedar
 //Parse errors fixed
 //
