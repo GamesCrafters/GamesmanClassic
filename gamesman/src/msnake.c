@@ -300,6 +300,9 @@ POSITION DoMove(thePosition, theMove)
     
   return newPosition;
   }
+
+  /* added 03/27/04 */
+  //return newPosition;
 }
 
 /* whoseTurn takes in theBlankBHT and returns H or T in a length 1 
