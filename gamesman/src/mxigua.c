@@ -36,6 +36,7 @@
 **			     Also cannot represent more than 6 empty spaces...maybe something to do with
 **		             my new hash functions. Need the symmetries.
 **              -- 3.01.05 -- Switched to SafeMalloc and SafeFree
+**                            Made #define NUM_HASHED_WRAPPER_BITS to hold '5' for use in hash wrapper
 **                            Filled in GenerateMoves to be more selective (use isValidMove()) (incomplete)
 **                             - uses adjacency information implemented for DoMove
 **                             - uses isSurrounded
@@ -123,6 +124,8 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+#define NUM_HASH_WRAPPER_BITS 5
+
 /* Game options */
 int boardsize; /* 0-4 Board size is 5 + 4 * boardsize */
 int rulesvariant; /* 0/1 normal rules / inverted rules */
@@ -160,8 +163,9 @@ int NumberOfOptions();
 int getOption();
 void setOption(int);
 char *emptyboard(char *);
-POSITION hash(char *,int,int);
+POSITION hash(char *,int, int);
 char *unhashboard(POSITION,char *);
+int hash_init(int, int*, int (*vcfg_function_ptr)(int* cfg));
 int getplayer(POSITION);
 int getturnnumber(POSITION);
 int countboard(char *,char);
@@ -197,7 +201,7 @@ void InitializeGame ()
 	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
 
 	/* manually setting options right now */
-	gNumberOfPositions=generic_hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
+	gNumberOfPositions=hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	board = emptyboard(board);
 	gInitialPosition=hash(board,1,0);
 
@@ -925,7 +929,7 @@ POSITION hash(char *board, int player, int turn) {
 	/* do the generic hash */
 	ret=generic_hash(board,player);
 
-	ret=ret<<5;
+	ret=ret<<NUM_HASH_WRAPPER_BITS;
 	ret|=turn;
 	
 	return ret;	
@@ -939,10 +943,22 @@ POSITION hash(char *board, int player, int turn) {
 ***************************************************************************/
 
 char *unhashboard(POSITION hashed, char *board){
-	hashed=hashed>>5; /* get rid of the turn encoding */
+	hashed=hashed>>NUM_HASH_WRAPPER_BITS; /* get rid of the turn encoding */
 	/* better have a non null board */
 	return generic_unhash(hashed, board);
 }
+
+/*************************************************************************
+**
+** char *unhashboard(int hashed)
+** returns a board from a hashed board
+** 
+***************************************************************************/
+
+int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
+        return (generic_hash_init(boardsize, piecesarray, NULL) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+}
+
 /***************************************************************************
 ** 
 ** int getplayer(int hashed)
@@ -950,16 +966,19 @@ char *unhashboard(POSITION hashed, char *board){
 ** takes in a hashed board
 **
 *****************************************************************************/
+
 int getplayer(POSITION hashed) {
-	hashed = hashed>>5;
+	hashed = hashed>>NUM_HASH_WRAPPER_BITS;
 	return whoseMove(hashed);
 }
+
 /****************************************************************************
 **
 ** int getturnnumber(int hashed)
 ** returns the turn number of the current player
 **
 *****************************************************************************/
+
 int getturnnumber(POSITION hashed) {
 	return hashed&31;
 }
@@ -970,6 +989,7 @@ int getturnnumber(POSITION hashed) {
 ** returns the number of occurances of a character in a board
 **
 ***********/
+
 int countboard(char *board,char tocount) {
 	int counter=0,i=0;
 	for(;i<maxsize;i++) 
