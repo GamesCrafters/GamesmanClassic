@@ -700,7 +700,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("       X Stock: ");
   for(pSizes=0; pSizes < PIECE_SIZES*2; pSizes+=2)
   {
-    printf("%d(%d): %d ",pSizes+1,pSizes+TABLES_SLOTS,myPos.stash[ pSizes]);
+    printf("%d(%d): %d ",pSizes+1,pSizes+TABLE_SLOTS,myPos.stash[ pSizes]);
   }
   printf("\n       Y Stock: ");
  for(pSizes=1; pSizes < PIECE_SIZES*2; pSizes+=2)
