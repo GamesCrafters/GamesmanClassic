@@ -578,7 +578,8 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  if (DEBUGGING) printf("Starting Do Move with input: %d\n", theMove);
+  if (DEBUGGING) 
+    printf("Starting Do Move with input: %d\n", theMove);
   int destination(int,int);
   int whoseTurn;
   generic_unhash(thePosition, gBoard);
@@ -623,13 +624,11 @@ POSITION DoMove(thePosition, theMove)
   dest2 = destination(slot2, direction);
   dest3 = destination(slot3, direction);
   pushee1 = dest3;
-  doubpushdest = dest3;
+  doubpushdest = destination(dest2, direction);
   pushee2 = destination(pushee1, direction);
   pushdest1 = pushee2;
   pushdest2 = destination(pushee2, direction);
-
-  /*printf("dest1 = %d, direction = %d, gBoard[dest1] = %c\n", dest1, direction, gBoard[dest1]);*/
-
+  
   /* one piece move */
   if ((twopieces == FALSE) && (threepieces == FALSE)) {
     gBoard[dest1] = gBoard[slot1];
@@ -638,10 +637,11 @@ POSITION DoMove(thePosition, theMove)
 
   /* double piece move */
   if (twopieces) {
-    /*printf("slot1 = %d, slot2 = %d, in direction %d\n", slot1, slot2, direction);*/
+    /*printf("slot1 = %d, slot2 = %d, in direction %d, dest1 is %d, dest2 is %d, doubpushdest is %d\n", slot1, slot2, direction, dest1, dest2, doubpushdest);*/
     if (gBoard[dest2] != '*') {
       /*push a piece*/
       if (doubpushdest != NULLSLOT) {
+	printf("two pushing one");
 	gBoard[doubpushdest] = gBoard[dest2];
       }
     }
@@ -705,10 +705,28 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  int count, player, xs = 0, os = 0, spaces = 0; 
+  int count, player, xs = 0, os = 0, option = -1;
   char selection;
-  int maxspaces = BOARDSIZE - 2 * PIECES;
   
+  while ((option < 0) || (option > maxPieces(N))){
+    printf("Enter the maximum pieces per side: ");
+    fflush(stdin);
+    (void) scanf("%d", &option);
+    if ((option < 0) || (option > maxPieces(N)))
+      printf("Please enter a valid number\n\n");
+  }
+  PIECES = option;
+  option = -1;
+
+  while ((option < 1) || (option > PIECES)) {
+    printf("Enter the number of pieces to capture for victory: ");
+    fflush(stdin);
+    (void) scanf("%d", &option);
+    if ((option < 1) || (option > PIECES))
+      printf("The number of eliminated pieces must be at least 1\nand no more than the total number of pieces\n\n");
+  }
+  XHITKILLS = option;
+
   printf("Enter the board as you would like it (enter a 'b' for blanks)\n\n");
 
   for (count = 0; count < BOARDSIZE; count++) {
@@ -740,14 +758,7 @@ POSITION GetInitialPosition()
       }
     }
     else {
-      if (spaces < maxspaces) {
-	gBoard[count] = '*';
-	spaces++;
-      }
-      else {
-	printf("\n\nThis board already has the maximum number of spaces allowed\n\n");
-	count--;
-      }
+      gBoard[count] = '*';
     }
   }  
 
