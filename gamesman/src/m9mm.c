@@ -164,6 +164,7 @@ void setFlyingText();
 POSITIONLIST *GenerateParents (POSITION position);
 POSITIONLIST *AppendFormedMill(blankox *board, int slot, POSITIONLIST *plist) ;
 POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist);
+POSITIONLIST *AppendAllMoves(POSITION position, MOVELIST *ml, POSITIONLIST *pl);
 
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
@@ -1318,9 +1319,32 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
       tempMove = hash_move(slot, blanks[i], slot);
       mlist = CreateMovelistNode(tempMove, mlist);
     }
+  } else {
+	 numBlanks = find_adj_pieces(board, blank, blanks);
+	 for (i = 0; i < numBlanks; i++) {
+      tempMove = hash_move(slot, blanks[i], slot);
+      mlist = CreateMovelistNode(tempMove, mlist);
+	 }
   }
 
+  plist = AppendAllMoves(hash(board, board[slot]), mlist, plist);
+  
   return plist;
+}
+
+// Given POSITION, MOVELIST, POSITIONLIST
+// Return the POSITIONLIST with the resoution of moves in MOVELIST appended
+POSITIONLIST *AppendAllMoves(POSITION position, MOVELIST *ml, POSITIONLIST *pl)
+{
+  POSITION tempPosition;
+
+  while (ml != NULL) {
+	 tempPosition = DoMove(position, ml->move);
+	 pl = StorePositionInList(tempPosition, pl);
+	 ml = ml->next;
+  }
+
+  return pl;
 }
 
 /* typedef struct positionlist_item */
@@ -1414,6 +1438,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.54  2004/04/29 16:24:06  ogren
+//Not much work on find_adj_pieces, cant figure out an algorithm... -Elmer
+//
 //Revision 1.53  2004/04/29 15:52:07  ogren
 //wrote count_pieces, full_board, skeleton for find_adj_pieces, all of which are untested. -Elmer
 //
