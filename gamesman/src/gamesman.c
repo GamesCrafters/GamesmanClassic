@@ -1174,19 +1174,25 @@ void showStatus(int done)
 	int onepercent = (int)((float)gNumberOfPositions * .001);
     	int size=0;
 	int i = 0;
-	num_pos_seen++;
-	if (done)
+	
+	switch (done)
 	{
-		size = fprintf(stderr,"Solving Done. Writing Database...                                                           ");
-		for (i = 0; i < size; i++)
-		{
-			fprintf(stderr,"\b");
-		}
-		num_pos_seen = 0;
-		percent = 0;
-		updateThreshold = 0;
+		case 0:
+			num_pos_seen++;
+			break;
+		case 1:
+			size = fprintf(stderr,"Solving Done. Writing Database...                                                           ");
+			for (i = 0; i < size; i++)
+			{
+				fprintf(stderr,"\b");
+			}
+			num_pos_seen = 0;
+			percent = 0;
+			updateThreshold = 0;
+			return;
 	}
-	else if ( (num_pos_seen > gNumberOfPositions && num_pos_seen % onepercent == 0) || (percent > 100.0 && num_pos_seen % 1000 == 5))
+	
+	if ( (num_pos_seen > gNumberOfPositions && num_pos_seen % onepercent == 0) || (percent > 100.0 && num_pos_seen % 1000 == 5))
 	{
 		size = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
 		for (i = 0; i < size; i++)
@@ -1216,23 +1222,21 @@ POSITION position;
   REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
   REMOTENESS minTieRemoteness = MAXINT2, remoteness;
   MEXCALC theMexCalc = 0; /* default to satisfy compiler */
-
-  showStatus(0);
   
   if(Visited(position)) { /* Cycle! */
     return(win);
   }
   /* It's been seen before and value has been determined */
-  else if((value = GetValueOfPosition(position)) != undecided) {
+  else if((value = GetValueOfPosition(position)) != undecided) { 
     return(value);
-  } else if((value = Primitive(position)) != undecided) { 
+  } else if((value = Primitive(position)) != undecided) {  
     /* first time, end */
     SetRemoteness(position,0); /* terminal positions have 0 remoteness */
     if(!kPartizan)
       MexStore(position,MexPrimitive(value)); /* lose=0, win=* */
     return(StoreValueOfPosition(position,value));
   /* first time, need to recursively determine value */
-  } else {
+  } else { 
     MarkAsVisited(position);
     if(!kPartizan)
       theMexCalc = MexCalcInit();
@@ -1796,6 +1800,8 @@ void MarkAsVisited (position)
      POSITION position;
 {
   VALUE *ptr;
+  
+  showStatus(0);
   
   if (gTwoBits) {
     if (gVisited)
@@ -2970,7 +2976,7 @@ POSITION position;
   //@@ separate lose/win frontiers
   while ((gHeadLoseFR != NULL) ||
 	 (gHeadWinFR != NULL)) {
-
+	 
     if ((child = DeQueueLoseFR()) == kBadPosition)
       child = DeQueueWinFR();
     
@@ -2988,7 +2994,7 @@ POSITION position;
     if (childValue == lose) {
       ptr = gParents[child];
       while (ptr != NULL) {
-        showStatus(0); /* Update Counter */
+	
 	/* Make code easier to read */
 	parent = ptr->position;
 	
@@ -3021,6 +3027,7 @@ POSITION position;
     } else if (childValue == win) {
       ptr = gParents[child];
       while (ptr != NULL) {
+      	
 	/* Make code easier to read */
 	parent = ptr->position;
 
@@ -3128,9 +3135,7 @@ void SetParents (POSITION parent, POSITION root)
   POSITIONLIST* posptr, * thisLevel, * nextLevel;
   POSITION pos, child;
   VALUE value;
-  
-  showStatus(0);
-  
+   
   posptr = thisLevel = nextLevel = NULL;
   moveptr = movehead = NULL;
   
