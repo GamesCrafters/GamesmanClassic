@@ -38,7 +38,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 source "$kRootDir/../tcl/mnim.tcl"
 
-main
+main $kRootDir
 
 
 

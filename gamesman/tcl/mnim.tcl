@@ -19,6 +19,11 @@ proc GS_InitGameSpecific {} {
     global gInitialPosition gPosition
     set gInitialPosition 65534
     set gPosition $gInitialPosition
+
+    ### tomove and towin (write these)
+    global kToMove kToWin
+    set kToMove ""
+    set kToWin "" 
 }
 
 

@@ -57,65 +57,65 @@ BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n
-button does nothing, and the RIGHT button is the same as UNDO, in that\n
+"The LEFT button puts an X or O (depending on whether you went first\n\
+or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
+button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position.";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n
-to the empty board position you desire and hit return. If at any point\n
-you have made a mistake, you can type u and hit return and the system will\n
+"On your turn, use the LEGEND to determine which number to choose (between\n\
+1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
+to the empty board position you desire and hit return. If at any point\n\
+you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position.";
 
 STRING   kHelpOnYourTurn =
 "You place one of your pieces on one of the empty board positions.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n
+"To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n
+"To force your opponent into getting three of his markers (either X or\n\
+O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "the board fills up without either player getting three-in-a-row.";
 
 STRING   kHelpExample =
-"         ( 1 2 3 )           : - - -\n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n
-         ( 7 8 9 )           : - - - \n\n
-Computer's move              :  3    \n\n
-         ( 1 2 3 )           : - - X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n
-         ( 7 8 9 )           : - - - \n\n
-     Dan's move [(u)ndo/1-9] : { 2 } \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n
-         ( 7 8 9 )           : - - - \n\n
-Computer's move              :  6    \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n
-         ( 7 8 9 )           : - - - \n\n
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n
-         ( 7 8 9 )           : - - O \n\n
-Computer's move              :  5    \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n
-         ( 7 8 9 )           : - - O \n\n
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n
-         ( 7 8 9 )           : O - O \n\n
-Computer's move              :  4    \n\n
-         ( 1 2 3 )           : - O X \n
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n
-         ( 7 8 9 )           : O - O \n\n
+"         ( 1 2 3 )           : - - -\n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+Computer's move              :  3    \n\n\
+         ( 1 2 3 )           : - - X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+Computer's move              :  6    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
+         ( 7 8 9 )           : - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
+         ( 7 8 9 )           : - - O \n\n\
+Computer's move              :  5    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
+         ( 7 8 9 )           : - - O \n\n\
+     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
+         ( 7 8 9 )           : O - O \n\n\
+Computer's move              :  4    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
+         ( 7 8 9 )           : O - O \n\n\
 Computer wins. Nice try, Dan.";
 
 /*************************************************************************
@@ -161,16 +161,16 @@ char *gBlankOOOXXXString[] = { "-", "O", "O", "O", "X", "X", "X"};
 char *gBlankOOOXXXStringWithShow[] = { "-", "a", "b", "c", "1", "2", "3"};
 
 STRING  kHandleTextInputHelp = 
-"\n
-Text Input Commands:\n
--------------------\n
-?           : Brings up this list of Text Input Commands available\n
-s (or S)    : The computer will list all (S)afe (Value-Equivalent) moves\n
-u (or U)    : (U)ndo last move (not possible at beginning position)\n
-r (or R)    : (R)eprint the position\n
-m (or M)    : Toggle Show (M)ove Succession\n
-h (or H)    : (H)elp\n
-a (or A)    : (A)bort the game\n
+"\n\
+Text Input Commands:\n\
+-------------------\n\
+?           : Brings up this list of Text Input Commands available\n\
+s (or S)    : The computer will list all (S)afe (Value-Equivalent) moves\n\
+u (or U)    : (U)ndo last move (not possible at beginning position)\n\
+r (or R)    : (R)eprint the position\n\
+m (or M)    : Toggle Show (M)ove Succession\n\
+h (or H)    : (H)elp\n\
+a (or A)    : (A)bort the game\n\
 q (or Q)    : (Q)uit";
 
 int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];

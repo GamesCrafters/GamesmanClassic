@@ -409,7 +409,7 @@ SetTargetScoresMenu() {
 \t\tplayer A WINS if player A has >= score1 and\n\
 \t\tplayer B has < score2\n\n\
 \tCurrent Score1 : %d\n\
-\tCurrent Score2 : %d\n\n
+\tCurrent Score2 : %d\n\n\
 \tinput new Score1 (1-15) : ", winScore1, winScore2);
     scanf("%d", &new1);
     printf("\n\tinput new Score2 (1-15) : ");
@@ -436,7 +436,7 @@ SetDotPositionMenu() {
 \t\t+-+-+-+\t+-+-+-+\n\
 \t\t|4|5|6|\t|%c|%c|%c|\n\
 \t\t+-+-+-+\t+-+-+-+\n\
-\t\t|7|8|9|\t|%c|%c|%c|\n
+\t\t|7|8|9|\t|%c|%c|%c|\n\
 \t\t+-+-+-+\t+-+-+-+\n\n\
 \tPlease Input New Positions for (any number of) dots(ex: \"1,2,3,4\"): ",
 	 theInitialBoard[0],
