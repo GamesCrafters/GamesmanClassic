@@ -54,7 +54,7 @@ proc GS_InitGameSpecific {} {
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click on a piece to remove that piece and all the pieces above it in that row"
+    SetToMoveString  "To Move: Players take turns removing any number of counters from a single row. Click on a piece to remove that piece and all the pieces above it in that row"
     
     ### Set the initial position of the board
     global gInitialPosition gPosition
