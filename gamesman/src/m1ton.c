@@ -30,6 +30,9 @@
 #include <stdio.h>
 #include "gamesman.h"
 
+#define MAXN     300
+#define MAXM     50
+
 unsigned int N = 10;
 unsigned int gTurn = 2;
 
@@ -425,21 +428,32 @@ STRING kDBName = "1TON" ;
 
 int NumberOfOptions()
 {
-	return 2 ;
+  return (MAXN * MAXM);
 }
 
 int getOption()
 {
-	if(gStandardGame) return 1 ;
-	return 2 ;
+  if(gStandardGame)
+    return ((N * (MAXM + 1) + gTurn) * 2);
+  else
+    return ((N * (MAXM + 1) + gTurn) * 2 + 1);
 }
 
 void setOption(int option)
 {
-	if(option == 1)
-		gStandardGame = TRUE ;
-	else
-		gStandardGame = FALSE ;
+  int set;
+  set = option % 2;
+  option /= 2;
+  if(!set) {
+    gStandardGame = TRUE;
+    gTurn = (option % (MAXM + 1));
+    N = (option / (MAXM + 1));
+  }
+  else {
+    gStandardGame = FALSE;
+    gTurn = (option % (MAXM + 1));
+    N = (option / (MAXM + 1));
+  }
 }
 
 int GameSpecificTclInit(interp, mainWindow) {}
