@@ -228,7 +228,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	players_piece = (player == 1 ? WHITE : BLACK);
 	board = generic_unhash(position, board);
 	/* Check moves that don't slide a piece from SOURCE to DEST */
-	if (slide_rules != MUST_SLIDE) {
+	if ((slide_rules != MUST_SLIDE) || (countPieces(board, players_piece) == 0)) {
 		moves = add_all_place_moves(0, 0, board, moves);
 	}
 	
