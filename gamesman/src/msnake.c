@@ -202,9 +202,9 @@ void GameSpecificMenu()
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
     
-    printf("\tM)\tSwitch (M)ovable parts from %s to $s\n",
+    printf("\tM)\tSwitch (M)ovable parts from %s to %s\n",
 	   !moveHandT ? "HEAD ONLY" : "EITHER HEAD OR TAIL",
-	   moveHandT ? "EITHER HEAD OR TAIL" : "HEAD ONLY");
+	   moveHandT ? "HEAD ONLY" : "EITHER HEAD OR TAIL");
     
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
@@ -225,7 +225,7 @@ void GameSpecificMenu()
       return;
     case 'M': case 'm':
       moveHandT = !moveHandT;      
-      return;
+      break;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
       HitAnyKeyToContinue();
