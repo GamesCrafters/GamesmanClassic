@@ -180,7 +180,6 @@ POSITIONLIST **gParents = NULL;         /* The Parent of each node in a list */
 char *gNumberChildren = NULL;           /* The Number of children (used for Loopy games) */
 /* End Loopy */
 
-
 char *gValueString[] =
 {
 	"Win", "Lose", "Tie", "Undecided",
@@ -1783,22 +1782,27 @@ MOVE GetComputersMove(thePosition)
      POSITION thePosition;
 {
   MOVE DecodeMove(), theMove;
+  MOVE RandomLargestRemotenessMove(), RandomSmallestRemotenessMove();
   int i, randomMove, numberMoves = 0;
   MOVELIST *ptr, *head, *prev;
   VALUE_MOVES *moves, *GetValueMoves();
   REMOTENESSLIST *rptr, *rhead;
   BOOLEAN setBackSmartness = FALSE;
   BOOLEAN moveFound;
+  int moveType;
   int oldsmartness = smartness;
   ptr = head = prev = NULL;
   i = 0;
   
   moves = GetValueMoves(thePosition);
 
+  // Play Imperfectly
   if (GetRandomNumber(MAXSCALE+1) > scalelvl && smartness == SMART) {
     smartness = RANDOM;
     setBackSmartness = TRUE;
   }
+
+  // Use givebacks
   if (remainingGivebacks>0 && GetValueOfPosition(thePosition) < oldValueOfPosition) {
     if(gHints) {
       printf("Using giveback: %d givebacks left\n", remainingGivebacks-1);
@@ -1816,8 +1820,9 @@ MOVE GetComputersMove(thePosition)
     }
     oldValueOfPosition++;
     remainingGivebacks--;
+    theMove = ptr->move;
     FreeValueMoves(moves);
-    return (ptr->move);
+    return (theMove);
   }
 
   oldValueOfPosition = GetValueOfPosition(thePosition);
@@ -1827,86 +1832,44 @@ MOVE GetComputersMove(thePosition)
       printf("Smart move: \n");
       printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
     }
+
+    //Find best game outcome
+    ptr = NULL;
     while (ptr == NULL && i <= LOSEMOVE) {
       head = ptr = moves->moveList[i];
       rhead = rptr = moves->remotenessList[i];
+      moveType = i;
       i++;
     }
+
     if (ptr == NULL || rptr == NULL) {
       printf("Error in GetComputersMove: Either no available moves or corrupted database");
       exit(0);
     }
-    while(ptr != NULL) {
-      numberMoves++;
-      if(gHints) {
+
+    if(gHints) {
+      while(ptr != NULL) {
         PrintMove(ptr->move);
 	printf(" ");
+	ptr = ptr->next;
       }
-      ptr = ptr->next;
-    }
-    if(gHints)
       printf("]\n\n");
-    if (i == TIEMOVE) {
-      theMove = head->move;
-      FreeValueMoves(moves);
-      return (theMove);
-    } else if (i == WINMOVE) {
-      // WINMOVE: Win as quickly as possible (smallest remoteness best)
-      REMOTENESS bestRemoteness;
-      int moveCount = 1, q;
-      
-      ptr = head;
-      rptr = rhead;
-      bestRemoteness = rptr -> remoteness;
-      
-      while (ptr -> next != NULL) {
-        ptr = ptr -> next;
-        rptr = rptr -> next;
-        if (rptr -> remoteness > bestRemoteness) break;
-        ++moveCount;
-      }
-      
-      q = GetRandomNumber(moveCount);
-      ptr = head;
-      for (; q > 1; --q)
-        ptr = ptr -> next;
-      
-      theMove = ptr -> move;
-      FreeValueMoves(moves);
-      return theMove;
-    } else {
-      // LOSEMOVE: Prolong the game as much as possible
-      // (highest remoteness is best).
-      MOVELIST* bestMoveHead;	 // First move with best remoteness.
-      REMOTENESS bestRemoteness;
-      int moveCount = 1, q;
-      
-      ptr = head;
-      rptr = rhead;
-      bestMoveHead = ptr;
-      bestRemoteness = rptr -> remoteness;
-      
-      while (ptr->next != NULL) {
-	ptr = ptr -> next;
-	rptr = rptr -> next;
-	if (rptr -> remoteness > bestRemoteness) {
-	  moveCount = 1;
-	  bestMoveHead = ptr;
-	} else {
-	  ++moveCount;
-	}
-      }
-      
-      q = GetRandomNumber(moveCount);
-      ptr = bestMoveHead;
-      for (; q > 1; --q)
-        ptr = ptr -> next;
-      
-      theMove = ptr->move;
-      FreeValueMoves(moves);
-      return(theMove);
     }
+
+    if (moveType == WINMOVE) {
+      // WINMOVE: Win as quickly as possible (smallest remoteness best)
+      theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+    } else if (moveType == TIEMOVE) {
+      // TIEMOVE: Tie as quickly as possible when smart???
+      theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+    } else {
+      // LOSEMOVE: Prolong the game as much as possible (largest remoteness is best).
+      theMove = RandomLargestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+    }
+    FreeValueMoves(moves);
+    return (theMove);
   }
+
   else if (smartness == RANDOM) {
     if (setBackSmartness == TRUE) {
       smartness = oldsmartness;
@@ -1934,7 +1897,7 @@ MOVE GetComputersMove(thePosition)
       printf("]\n\n");
     
     randomMove = GetRandomNumber(numberMoves);
-    for (ptr = head; randomMove > 1; --randomMove)
+    for (ptr = head; randomMove > 0; --randomMove)
       ptr = ptr -> next;
     
     theMove = ptr -> move;
@@ -1942,50 +1905,100 @@ MOVE GetComputersMove(thePosition)
     FreeMoveList(head);
     FreeValueMoves(moves);
     return(theMove);
-  } 
+  }
+
   else if (smartness == DUMB) {
     if(gHints) {
       printf("Dumb move: \n");
       printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
     }
-    i=LOSEMOVE;
-    head = ptr = moves->moveList[i];
-    i--;
-
-    while (i > -1 && ptr == NULL) {
-      head = ptr = moves->moveList[i];
-      i--;
+    
+    for (i=LOSEMOVE, ptr=NULL; i >= WINMOVE && ptr == NULL; i--) {
+      ptr = moves->moveList[i];
+      moveType = i;
     }
     if (ptr == NULL) {
       printf("Error in GetComputersMove: Either no available move or corrupted database");
       exit(0);
     }
-    while(ptr != NULL) {
-      numberMoves++;
-      if(gHints) {
+
+    if (gHints) {
+      while(ptr != NULL) {
         PrintMove(ptr->move);
 	printf(" ");
       }
-      ptr = ptr->next;
-    }
-    if(gHints)
       printf("]\n\n");
-    if (i > 0) {
-      theMove = head->move;
-      FreeValueMoves(moves);
-      return (theMove);
-    } else {
-      ptr=head;
-      while(ptr->next != NULL) 
-	ptr = ptr->next;
-      theMove = ptr->move;
-      FreeValueMoves(moves);
-      return (theMove);
     }
+
+    if (moveType == LOSEMOVE) {
+      theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+    }
+    else if (moveType == WINMOVE || moveType == TIEMOVE) {
+      theMove = RandomLargestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+    }
+    FreeValueMoves(moves);
+    return (theMove);
+
   } else {
     printf("Error in GetComputerMove: no such intelligence level!\n");
   }
 }
+
+MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList) {
+  MOVELIST *maxRemotenessMoveList;
+  REMOTENESS maxRemoteness;
+  MOVE theMove;
+  int numMoves, random;
+
+  numMoves = 0;
+  maxRemoteness = -1;
+  while(remotenessList != NULL) {
+    if (remotenessList->remoteness > maxRemoteness) {
+      numMoves = 1;
+      maxRemoteness = remotenessList->remoteness;
+      maxRemotenessMoveList = moveList;
+    }
+    else if (remotenessList->remoteness == maxRemoteness) {
+      numMoves++;
+    }
+    moveList = moveList->next;
+    remotenessList = remotenessList->next;
+  }
+
+  if (numMoves<=0) {
+    return -1;
+  }
+
+  random = GetRandomNumber(numMoves);
+  for (; random>0; random--) {
+    maxRemotenessMoveList = maxRemotenessMoveList->next;
+  }
+  return (maxRemotenessMoveList->move);
+}
+
+MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenessList) {
+  int numMoves, random;
+  MOVE theMove;
+  REMOTENESS minRemoteness;
+
+  numMoves = 0;
+  minRemoteness = REMOTENESS_MAX;
+  while(remotenessList!=NULL && remotenessList->remoteness <= minRemoteness) {
+    numMoves++;
+    minRemoteness = remotenessList->remoteness;
+    remotenessList = remotenessList->next;
+  }
+
+  if (numMoves<=0) {
+    return -1;
+  }
+
+  random = GetRandomNumber(numMoves);
+  for (; random>0; random--) {
+    moveList = moveList->next;
+  }
+  return (moveList->move);
+}     
 
 POSITION GetNextPosition()
 {
