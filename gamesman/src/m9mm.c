@@ -1,11 +1,11 @@
-//$Id: m9mm.c,v 1.7 2004-03-07 18:12:12 ogren Exp $
+//$Id: m9mm.c,v 1.8 2004-03-07 18:41:41 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
 **
 ** DESCRIPTION: Nine Men's Morris
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHOR:      Erwin A. Vedar, Wei Tu, Elmer Lee
 **
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
@@ -30,12 +30,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-
-#define BOARDSIZE 24;
-#define minx  2;
-#define maxx  3;
-#define mino  2;
-#define maxo  3;
 
 extern STRING gValueString[];
 
@@ -90,19 +84,23 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
+
 /*************************************************************************
 **
 ** Below is where you put your #define's and your global variables, structs
 **
 *************************************************************************/
 
+#define BOARDSIZE 24
+#define minx  2
+#define maxx  3
+#define mino  2
+#define maxo  3
 
 typedef enum Pieces {
   blank, x, o
 } blankox;
 char *gblankoxString[] = { " ", "x", "o"};
-
-
 
 
 /*************************************************************************
@@ -367,18 +365,18 @@ void PrintPosition(position, playerName, usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-         POSITION position;
+MOVELIST *GenerateMoves(POSITION position)         
 {
-  int i, j, k, x_count, o_count, blank_count, player_count, opponent_count, raw_move;
+  int i, j, k, x_count, o_count, blank_count;
+  int player_count, opponent_count, raw_move;
   MOVELIST *CreateMovelistNode(), *head = NULL;
   MOVELIST *temp_head = NULL;
-  blankox[BOARDSIZE] dest;
-  blankox[maxx] x_pieces;
-  blankox[maxo] o_pieces;
+  blankox dest[BOARDSIZE];
+  blankox x_pieces[maxx];
+  blankox o_pieces[maxo];
   blankox *player_pieces;
   blankox *opponent_pieces;
-  blankox[BOARDSIZE] blanks;
+  blankox blanks[BOARDSIZE];
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
     
@@ -723,6 +721,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.7  2004/03/07 18:12:12  ogren
+//DoMove compiles, changed piece enumeration from "b,o,x" to "blank,o,x" - Elmer
+//
 //Revision 1.6  2004/02/29 04:41:02  evedar
 //Fixed some compile bugs.  Apparently boolean should be BOOLEAN.  Seems to be some problem with #define's
 //
