@@ -698,14 +698,14 @@ void PrintPosition(position, playerName, usersTurn)
     printf("\n");
   }
   printf("       X Stock: ");
-  for(pSizes=0; pSizes < PIECE_SIZES; pSizes+=2)
+  for(pSizes=0; pSizes < PIECE_SIZES*2; pSizes+=2)
   {
-    printf("%s: %d ",pSizes+1,myPos.stash[ pSizes]);
+    printf("%d: %d ",pSizes+1,myPos.stash[ pSizes]);
   }
   printf("\n       Y Stock: ");
- for(pSizes=0; pSizes < PIECE_SIZES; pSizes+=2)
+ for(pSizes=1; pSizes < PIECE_SIZES*2; pSizes+=2)
   {
-    printf("%s: %d ",pSizes,myPos.stash[ pSizes]);
+    printf("%d: %d ",pSizes,myPos.stash[ pSizes]);
   }
   printf("\nGame Prediction: %s \n\n",GetPrediction(position,playerName,usersTurn));
 }
