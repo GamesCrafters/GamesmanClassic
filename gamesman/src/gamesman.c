@@ -73,6 +73,9 @@ UNDO*   UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort);
 UNDO*   InitializeUndo();
 UNDO*   Stalemate(UNDO* undo,POSITION stalematePosition, BOOLEAN* abort);
 
+/* game debugging function */
+void	FoundBadPosition(POSITION, POSITION, MOVE);
+
 /* non-loopy solver internal function prototypes */
 VALUE   DetermineValue1(POSITION position);
 
@@ -1082,6 +1085,22 @@ UNDO *Stalemate(undo,stalematePosition, abort)
   return(undo);
 }
 
+void FoundBadPosition (pos, parent, move)
+POSITION pos, parent;
+MOVE move;
+{
+#ifdef dup2	/* Redirect stdout to stderr */
+  close(1);
+  dup2(2, 1);
+#endif
+  printf("\n*** ERROR: Invalid position (" POSITION_FORMAT ") encountered.", pos);
+  printf("\n*** ERROR: Parent=" POSITION_FORMAT ", move=%d", parent, move);
+  printf("\n*** ERROR: Representation of parent position:\n\n");
+  PrintPosition(pos, "debug", 0);
+  fflush(stdout);
+  ExitStageRight();
+}
+
 VALUE DetermineValue1(position)
 POSITION position;
 {
@@ -1115,6 +1134,8 @@ POSITION position;
       MOVE move = ptr->move ;
       gTotalMoves++;
       child = DoMove(position,ptr->move);  /* Create the child */
+      if (child < 0 || child >= gNumberOfPositions)
+        FoundBadPosition(child, position, move);
       value = DetermineValue1(child);       /* DFS call */
 
       if (gGoAgain(position,move))
@@ -2817,16 +2838,8 @@ void SetParents (POSITION parent, POSITION root)
       
       for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
 	child = DoMove(pos, moveptr -> move);
-	if (child < 0 || child >= gNumberOfPositions) {
-	  fprintf(stderr, "*** ERROR: Invalid position (" POSITION_FORMAT ") encountered\n", child);
-	  fprintf(stderr, "*** ERROR: Parent=" POSITION_FORMAT ", Move=%d\n", moveptr -> move);
-	  fprintf(stderr, "*** ERROR: Representation of parent position:\n\n");
-	  fflush(stderr);
-	  /* TODO: Redirect stdout to stderr? (dup2).  Not sure if this is portable. -JJ */
-	  PrintPosition(pos, "debug", 0);
-	  fflush(stdout);
-	  ExitStageRight();
-	}
+	if (child < 0 || child >= gNumberOfPositions)
+	  FoundBadPosition(child, pos, moveptr -> move);
 	++gNumberChildren[(int)pos];
 	gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);
 	
