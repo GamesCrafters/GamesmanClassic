@@ -25,6 +25,8 @@
 **                          Added error-catching to the parser and put in
 **                          kHelpExample.
 **              19 Apr, 04: Fixed more bugs, changed the output format.
+**              23 Apr, 04: Minor changes in primitive and output,
+**                          a little more error checking.
 **
 ** 
 **
@@ -67,12 +69,14 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"Type in first the number of the node your piece is moving from and\
-second the number of the node your piece is moving to.\n";
+"Type in first the number of the node your piece is moving from and\n\
+second the number of the node your piece is moving to.\n\
+Ex: 1 2 to move a piece in node 1 to node 2.\n";
 
 STRING   kHelpOnYourTurn =
 "Move one of your pieces to an empty spot on the board.\n\
-Attempt to prevent your opponent from moving.\n";
+Some graphs may have restrictions on what nodes your piece may visit,\n\
+see the graph file for more details (the default has no such restrictions).\n";
 
 STRING   kHelpStandardObjective =
 "Move your pieces such that your opponent is trapped (ie, cannot move).\n";
@@ -83,70 +87,78 @@ STRING   kHelpReverseObjective =
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
 
-STRING   kHelpExample =
-"Player 1's turn:\n\n\
-BOARD		LEGEND\n\
-B   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| _ |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-W---W		4---5\n\n\
+STRING   kHelpExample = 
+"Black (B)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+B   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| _ |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+W---W                                   4---5\n\n\
 (Player should draw)\n\
 Player's move [1-5 1-5/u(undo)]: {1 3}\n\n\
-Player 2's turn:\n\n\
-BOARD		LEGEND\n\
-_   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| B |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-W---W		4---5\n\n\
+White (W)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+_   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| B |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+W---W                                   4---5\n\n\
 (Computer should draw)\n\
-Computer's move	: 4 to 1\n\n\
-Player 1's turn:\n\n\
-BOARD		LEGEND\n\
-W   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| B |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-_---W		4---5\n\n\
+Computer's move : 4 to 1\n\n\
+Black (B)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+W   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| B |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+_---W                                   4---5\n\n\
 (Player should draw)\n\
 Player's move [1-5 1-5/u(undo)]: {3 4}\n\n\
-Player 2's turn:\n\n\
-BOARD		LEGEND\n\
-W   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| _ |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-B---W		4---5\n\n\
+White (W)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+W   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| _ |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+B---W                                   4---5\n\n\
 (Computer should draw)\n\
-Computer's move	: 5 to 3\n\n\
-Player 1's turn:\n\n\
-BOARD		LEGEND\n\
-W   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| W |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-B---_		4---5\n\n\
+Computer's move : 5 to 3\n\n\
+Black (B)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+W   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| W |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+B---_                                   4---5\n\n\
+Black (B)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+W   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| W |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+B---_                                   4---5\n\n\
 (Player should draw)\n\
 Player's move [1-5 1-5/u(undo)]: {4 5}\n\n\
-Player 2's turn:\n\n\
-BOARD		LEGEND\n\
-W   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| W |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-_---B		4---5\n\n\
+White (W)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+W   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| W |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+_---B                                   4---5\n\n\
 (Computer will Win in 1)\n\
-Computer's move	: 1 to 4\n\n\
-Player 1's turn:\n\n\
-BOARD		LEGEND\n\
-_   B		1   2\n\
-|\\ /|		|\\ /|\n\
-| W |		| 3 |\n\
-|/ \\|		|/ \\|\n\
-W---B		4---5\n\n\
+Computer's move : 1 to 4\n\n\
+Black (B)'s turn:\n\n\
+BOARD                                   LEGEND\n\
+_   B                                   1   2\n\
+|\\ /|                                   |\\ /|\n\
+| W |                                   | 3 |\n\
+|/ \\|                                   |/ \\|\n\
+W---B                                   4---5\n\n\
 (Player will Lose in 0)\n\n\
 Computer wins. Nice try, Player.\n";
+
 
 /*************************************************************************
 **
@@ -186,7 +198,7 @@ Computer wins. Nice try, Player.\n";
 struct GraphClass {
   char name[10];
   int player;
-  struct GraphClass* moveto[MAX_CLASSES-1];
+  struct GraphClass* moveto[MAX_CLASSES];
 };
 
 struct GraphNode {
@@ -583,10 +595,8 @@ VALUE Primitive (pos)
   char string_board[MAX_NODES];
   int player = whoseMove(pos);
   struct Piece* pieces_ptr;
-  struct Piece* opp_pieces_ptr;
   struct GraphNode* current_node;
-  int num, opp_num, i, j;
-  BOOLEAN trapped_opponent = TRUE;
+  int num, i, j;
 
   generic_unhash(pos, string_board);
   string_board[num_nodes] = '\0';
@@ -594,30 +604,11 @@ VALUE Primitive (pos)
 
   if(player == BLACK_PLAYER) { 
     pieces_ptr = global_black;
-    opp_pieces_ptr = global_white;
     num = num_black;
-    opp_num = num_white;
   } else {
     pieces_ptr = global_white;
-    opp_pieces_ptr = global_black;
     num = num_white;
-    opp_num = num_black;
   }
-
-  for(i = 0; i < opp_num; i++) {
-    current_node = global_board[opp_pieces_ptr[i].node].adjacent[0];
-    j = 0;
-    while(current_node && (j < (num_nodes-1))) {
-      if(checkNodeAndClass(current_node, &global_board[opp_pieces_ptr[i].node],
-			   (player % 2)+1))
-	trapped_opponent = FALSE;
-      j++;
-      current_node = global_board[opp_pieces_ptr[i].node].adjacent[j];
-    }
-  }
-
-  if(trapped_opponent)
-    return (gStandardGame ? win : lose);
 
   for(i = 0; i < num; i++) {
     current_node = global_board[pieces_ptr[i].node].adjacent[0];
@@ -665,9 +656,9 @@ void PrintPosition (position, playerName, usersTurn)
 		global_white);
 
   if(whoseMove(position) == BLACK_PLAYER)
-    printf("\nPlayer 1's turn:\n");
+    printf("\nBlack (%c)'s turn:\n", global_black[0].pic);
   else
-    printf("\nPlayer 2's turn:\n");
+    printf("\nWhite (%c)'s turn:\n", global_white[0].pic);
 
   printBoard(global_board, FALSE);
   printf("%s\n", GetPrediction(position, playerName, usersTurn));
@@ -760,7 +751,7 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
   i = 0;
   current_class = global_classes[from_node->class].moveto[i];
   while(current_class &&
-	(current_class->player != INVALID) && (i < (MAX_CLASSES-1))) {
+	(current_class->player != INVALID) && (i < MAX_CLASSES)) {
     if((!strcmp(global_classes[to_node->class].name, current_class->name)) 
        &&
        ((current_class->player == global_classes[to_node->class].player) || 
@@ -1068,7 +1059,7 @@ void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
 
   for(i = 0; i < MAX_CLASSES; i++) {
     node_classes[i].player = INVALID;
-    for(j = 0; j < MAX_CLASSES-1; j++) {
+    for(j = 0; j < MAX_CLASSES; j++) {
       node_classes[i].moveto[j] = NULL;
     }
   }
@@ -1138,6 +1129,16 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
     }
   }
 
+  if(num_black == 0) {
+    printf("procFile error: no black pieces declared.\n");
+    ret = 0;
+  }
+
+  if(num_white == 0) {
+    printf("procFile error: no white pieces declared.\n");
+    ret = 0;
+  }
+
   if(!ret) {
     printf("procFile encountered errors while interpreting the file.\n");
     printf("See the above error notices, if any.\n");
@@ -1177,6 +1178,13 @@ int handleNodeClass(char* token, int* pos,
   if(!name_temp) {
     printf("handleNodeClass error: no node class name specified\n");
     return 0;
+  }
+
+  if(class_num >= MAX_CLASSES) {
+    printf("handleNodeClass warning: found more classes than the max (%d)",
+	   MAX_CLASSES);
+    printf(", class %s has been ignored.\n", name_temp);
+    return 1;
   }
 
   strcpy(node_classes[class_num].name, name_temp);
@@ -1236,12 +1244,19 @@ int handleNodeClass(char* token, int* pos,
 
   class_count = num_nodes;
   list_pos = 0;
-  while((list_token = stringGetToken(list, &list_pos))) {
+  while((list_token = stringGetToken(list, &list_pos))
+	&& (num_nodes < MAX_NODES)) {
     list_token[1] = '\0';
     addToHash(nameHash(list_token, MAX_NODES), num_nodes, NODES_TABLE);
     board[num_nodes].name = list_token[0];
     board[num_nodes].class = class_num;
     num_nodes++;
+  }
+
+  if(num_nodes >= MAX_NODES) {
+    printf("handleNodeClass warning: found more nodes than the max (%d)",
+	   MAX_NODES);
+    printf(", extra nodes have been ignored.\n");
   }
 
   if(class_count == num_nodes) {
