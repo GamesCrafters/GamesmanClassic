@@ -40,7 +40,8 @@ typedef int ClientData;
 #define  VISITED_MASK     4          /* ... 100 */
 #define  VALUE_MASK       3          /* ... 011 */
 #define  REMOTENESS_SHIFT 8          /* 1111111100000000 */
-#define  REMOTENESS_MAX   255
+#define  REMOTENESS_MAX     255      /* We encode draws as this */
+#define  REMOTENESS_TWOBITS 254      /* we encode TwoBits as this */
 #define  REMOTENESS_MASK  (REMOTENESS_MAX << REMOTENESS_SHIFT)
 
 #define  kPlayerOneTurn 1 /* used for human/human games */
@@ -93,7 +94,7 @@ VALUE;
 
 typedef enum menu_enum
 {
-	BeforeEvaluation, Evaluated
+  BeforeEvaluation, Evaluated, AnalysisNoSymmetries, AnalysisSymmetries
 }
 MENU;
 
@@ -156,19 +157,19 @@ VALUE_MOVES;
 
 typedef struct analysis_info
 {
-	int HashEfficiency;
-	float AverageFanout;
-	POSITION NumberOfPositions;
-	POSITION TotalPositions;
-	unsigned int TotalMoves;
-	unsigned long WinCount;
-	unsigned long LoseCount;
-	unsigned long TieCount;
-	unsigned long UnknownCount;
-	unsigned long PrimitiveWins;
-	unsigned long PrimitiveLoses;
-	unsigned long PrimitiveTies;
-	unsigned int TimeToSolve;
+  int HashEfficiency;
+  float AverageFanout;
+  POSITION NumberOfPositions;
+  POSITION TotalPositions;
+  unsigned int TotalMoves;
+  unsigned long WinCount;
+  unsigned long LoseCount;
+  unsigned long TieCount;
+  unsigned long UnknownCount;
+  unsigned long PrimitiveWins;
+  unsigned long PrimitiveLoses;
+  unsigned long PrimitiveTies;
+  unsigned int  TimeToSolve;
 } ANALYSIS;
 
 typedef signed char MEX;           /* The max mex value is 31 */
