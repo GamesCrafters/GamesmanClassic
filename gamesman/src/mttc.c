@@ -74,6 +74,9 @@
 **
 ** 2004.5.11    Fixed another bug in inputting text - hopefully that's it.
 **
+** 2005.3.3     Added missing generic hasher prototypes and include time.h
+**              To suppress GCC 3.4 warnings
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -87,6 +90,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <time.h>
 
 extern STRING gValueString[];
 
@@ -486,6 +490,10 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+extern int              generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern int              generic_hash(char *board, int player);
+extern char            *generic_unhash(int hash_number, char *empty_board);
+extern int              whoseMove (int hashed);
 BOOLEAN offBoard(MOVE);
 BOOLEAN isPlayer(PIECE,PLAYER);
 
