@@ -20,6 +20,7 @@ extern BOOLEAN gStandardGame;
 extern BOOLEAN kPartizan;
 extern int smartness;
 extern int scalelvl;
+extern MENU gMenuMode;
 
 /*
  * The following variable is a special hack that is needed in order for
@@ -314,6 +315,7 @@ DetermineValueCmd(dummy, interp, argc, argv)
       return TCL_ERROR;
 
     interp->result = gValueString[(int)DetermineValue(position)];
+    gMenuMode = Evaluated;
 
     return TCL_OK;
   }
@@ -374,6 +376,7 @@ MexCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   REMOTENESS Remoteness();
+  void MexFormat();
 
   if (argc != 2) {
     interp->result = "wrong # args: Mex (POSITION)Position";
