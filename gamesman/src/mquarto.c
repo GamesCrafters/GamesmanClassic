@@ -14,13 +14,16 @@
 **
 ** AUTHORS:      Yanpei CHEN  <ychen@berkeley.edu>
 **               Amy HSUEH    <amyhsueh@berkeley.edu>
+**               Cindy SONG   <xsong@berkeley.edu>
 **               Mario TANEV  <mtanev@berkeley.edu>
 **
 ** DATE:        Began Jan 2005; 
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**              30 Jan 2005 Yanpei: PrintPosition() coded
-**              08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE.
+**
+** 30 Jan 2005 Yanpei: PrintPosition() coded
+** 01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
+** 08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE.
 **
 **************************************************************************/
 
@@ -95,16 +98,20 @@ STRING   kHelpExample =
 #define GAMEDIMENSION 4
 
 #define BOARDSIZE GAMEDIMENSION^2
-#define PIECESTATES BOARDSIZE+2
+#define PIECESTATES BOARDSIZE+1
 #define NUMPIECES 2^GAMEDIMENSION
 
 typedef struct board_item {
 
-  int[BOARDSIZE] squares;
-  BOOLEAN usersTurn;
+  int[BOARDSIZE+1] slots; // to record the 0-15 pieces contained in each slot
+                          // slots[0-15] = board squares, slots[16] = next piece
+                          // 0-15 encode the pieces, 16 encodes an empty slot
+  int numOccupied;        // number of squares occupied
+  BOOLEAN usersTurn;      // whose turn it is
 
 } QTBOARD;
 
+typedef QTBOARD* QTBPtr
 
 /*************************************************************************
 **
@@ -112,6 +119,10 @@ typedef struct board_item {
 **
 *************************************************************************/
 
+static BOOLEAN factorialTableSet =  FALSE;
+static int[BOARDSIZE+2] factorialTable;
+static BOOLEAN offsetTableSet = FALSE;
+static int[NUMPIECES] offsetTable;
 
 /*************************************************************************
 **
@@ -242,44 +253,6 @@ VALUE Primitive (POSITION position)
 **
 ** CALLS:       Unhash()
 **              GetPrediction()      : Returns the prediction of the game
-**
-************************************************************************/
-
-/************************************************************************
-**
-**  Position encoding: 
-**
-**  Encode each piece as having one of 18 states, 0-15 represent one of 16
-**  squares on the board, 16 represent awaiting placement as next piece, 17 
-**  represent piece unused. 
-**
-**              BOARD          NEXT PIECE
-**
-**  Piece    xxx0xxx1xxxx3xxx  5    
-**           ----------------
-**  Square   0123456789abcdef
-**
-**  For the above position, the pieces' states are: 
-**
-**    Piece   State
-**    0       3     (on square 3)
-**    1       7     (on square 7)
-**    2       17    (unused)
-**    3       c     (on square c)
-**    4       17    (unused)
-**    5       16    (awaiting placement)
-**    6       17    (unused)
-**    7       17    (unused)
-**    8       17    (unused)
-**    ...     ...   ...
-**    f       17    (unused)
-**
-**  Each position is converted to an int by
-**
-**    position = sum(ith piece * number of states + ith state),
-**
-**  leading to total of 16*18 = 288 positions for game dimension of 4. 
-**
 **
 ************************************************************************/
 
@@ -578,10 +551,11 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+// printing an unsigned int as a GAMEDIMENSION digits binary characters
 STRING binStr(unsigned int x) {
 
   int i;
-  char* toReturn = SafeMalloc(GAMEDIMENSION*sizeof(char));
+  STRING toReturn = (STRING) SafeMalloc(GAMEDIMENSION*sizeof(char));
 
   for (i=0; i<GAMEDIMENSION; i++) {
     toReturn[GAMEDIMENSION-1-i] = (x % 2) + '0';
@@ -590,4 +564,103 @@ STRING binStr(unsigned int x) {
 
   return toReturn;
    
+}
+
+// hashing an internally represented QTBOARD into a POSITION
+POSITION hashQuarto(QTBPtr b) {
+  if (!offsetTableSet) setOffsetTable();
+  return (hashQuartoHelper(b, 0) + offsetTable[b->numOccupied]);
+}
+
+POSITION hashQuartoHelper(QTBPtr b, int baseSlot) {
+
+  QTBOARD localB = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  int i;
+  int numOccSubset = 0; // # of occupied slots starting from baseSlot
+  int numNotOccSubset;  // # of empty slots starting from baseSlot
+  int numSlotSubset = BOARDSIZE - baseSlot;
+                        // # of total slots starting from baseSlot
+  POSITION toReturn;
+  int[b->numOccupied] pieces;  // Array to store the pieces occupying each square
+                               // accending order indexed by slots starting from baseSlot
+  int[b->numOccupied] squares; // indices of non-empty squares
+                               // accending order indexed by slots starting from baseSlot
+
+  // setting up local vars
+  localB->numOccupied = b->numOccupied;
+  localB->userTurn = b->userTurn;
+  for (i=0; i<BOARDSIZE+1; i++) {
+    localB->slots[i] = b->slots[i];
+    if ((i >= s) && (b->slots[i] != 16)) {
+      pieces[numOccSubset] = slots[i];
+      squares[numOccSubset] = i;
+      numOccSubset++;
+    }
+  }
+
+  if (numOccSubset == 0) {
+    toReturn = 0;
+  } else if (numOccSubset == 1) {
+    toReturn (pieces[0]*(numSlotSubset) + squares[0]);
+  } else {
+    for (j=0; j<numOccSubset; j++) {
+      if (localB->slots[squares[j]] > pieces[0]) {
+	localB->slots[squares[j]]--;
+      }
+    }
+    numNotOccSubset = numSlotSubset - numOccSubset;
+    toReturn (pieces[0]*permutation(numOccSubset)*combination(numNotOccSubset) + 
+	      hashQuartoHelper(localB,baseSlot+1));
+  }
+  free(localB);
+  return toReturn;
+}
+
+// set factorialTable
+void setFactorialTable() {
+
+  int i;
+
+  if (!factorialTableSet) {
+    factorialTable[0] = 1;
+    for (i=1; i<BOARDSIZE+2; i++) {
+      factorialTable[i] = factorialTable[i-1] * i;
+    }
+    factorialTableSet = TRUE;
+  }
+}
+
+// returns n P r, the number of ordered arrangements of 
+// r items selected from a set of n items
+POSITION permutation(int n, int r) {
+  if (!factorialTableSet) setFactorialTable();
+  if (0<n || BOARDSIZE+1<n || 0<r || r<BOARDSIZE+1) {
+    printf("permutation(): Args out of range -- n=%d, r=%d",n,r);
+    return 0;
+  } else {
+    return factorialTable[n] / factorialTable[n-r];
+  }
+}
+
+// returns n C r, the number of unordered arrangements of 
+// r items selected from a set of n items
+POSITION combination(int n, int r) {
+  if (!factorialTableSet) setFactorialTable();
+  if (0<n || BOARDSIZE+1<n || 0<r || r<BOARDSIZE+1) {
+    printf("combination(): Args out of range -- n=%d, r=%d",n,r);
+    return 0;
+  } else {
+    return factorialTable[n] / factorialTable[n-r] / factorialTable[r];
+  }
+}
+
+// sets the offsetTable
+void setOffsetTable() {
+
+  int i;
+
+  for (i=0; i<NUMPIECES && i<BOARDSIZE; i++) {
+    offsetTable[i] = permutation(NUMPIECES,i)*combination(BOARDSIZE,BOARDSIZE-i);
+  }
+  offsetTableSet = TRUE;
 }
