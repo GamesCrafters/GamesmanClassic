@@ -456,7 +456,7 @@ fi
 if test "$OS" = "WIN32"
 then
   OUTCFLAGS="-g -O"
-  OUTLDFLAGS="-lm -lc"
+  OUTLDFLAGS="-lm -lc -lz"
   OUTLIBSUFFIX=".dll"
 fi
 

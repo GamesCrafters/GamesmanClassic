@@ -447,7 +447,7 @@ void SetTclCGameSpecificOptions(theOptions)
 ** CALLS:       SnakeHash ()
 **              SnakeUnhash ()
 **              whoseTurn ()
-**	      MoveToSlots()
+**				MoveToSlots()
 *************************************************************************/
 POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
