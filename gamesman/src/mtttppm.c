@@ -107,8 +107,8 @@ int toPS, toFile;
 
   if(!toPS) {
     if(toFile)
-      /* PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]); */
-      PrintPPMBufferBinary(fp,pixbuf,gS[depth],gS[depth]);
+      PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]);
+      /* PrintPPMBufferBinary(fp,pixbuf,gS[depth],gS[depth]); */
     else
       PrintBuffer(pixbuf);
   } else
