@@ -26,7 +26,7 @@
 
 POSITION gNumberOfPositions  = 0;
 
-POSITION gInitialPosition    = 0;
+POSITION gInitialPosition    = 23;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
@@ -88,6 +88,7 @@ STRING   kHelpExample =
 #define mino  2
 #define maxo  3
 
+
 typedef enum Pieces {
   blank, x, o
 } blankox;
@@ -143,11 +144,15 @@ void		SafeFree ();
 
 void InitializeGame()
 {
-
+  
+  
   int b_size = BOARDSIZE;
   int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', b_size-maxo-maxx, b_size-minx-mino, -1};
 
   gHashNumberOfPos = generic_hash_init(b_size, pminmax, NULL);
+
+  
+  
 }
 
 /************************************************************************
@@ -198,7 +203,7 @@ void GameSpecificMenu()
     case 'I': case 'i':
       gInitialPosition = GetInitialPosition();
       break;
-    case 'b': case 'B':
+    case 'B': case 'b':
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -814,19 +819,24 @@ POSITION hash(blankox *b_board, blankox turn)
   char c_board[BOARDSIZE];
   int raw_hash;
   int generic_hash();
-  
+  int player;
+
+  if (turn == x) 
+    player = 1;
+  else 
+    player = 2;
   unparse_board(b_board, c_board);
-  raw_hash = generic_hash(c_board);
-  return (turn == o ? raw_hash : raw_hash + gHashNumberOfPos);
+  
+  return generic_hash(c_board, player);
+
+  
 }
 
 blankox *unhash(int hash_val, blankox *b_board)
 {
   char c_board [BOARDSIZE];
   
-  
-  (hash_val > gHashNumberOfPos ? generic_unhash(hash_val - gHashNumberOfPos, c_board)
-						       : generic_unhash(hash_val, c_board));
+  generic_unhash(hash_val, c_board);
 
   parse_board(c_board, b_board);
 
@@ -844,7 +854,7 @@ void parse_board(char *c_board, blankox *b_board)
 	b_board[i] = o;
       else if (c_board[i] == 'x')
 	b_board[i] = x;
-      else if (c_board[i] == 'b')
+      else if (c_board[i] == '_')
 	b_board[i] = blank;
     }
 }
@@ -876,7 +886,9 @@ void unparse_board(blankox *b_board, char *c_board)
 
 blankox whose_turn(int hash_val)
 {
-  return (hash_val > gHashNumberOfPos ? x : o);
+  if (whoseMove (hash_val) == 1) 
+    return x;
+  else return o;
 }
 
 // if there is no removal, then from == remove
@@ -953,6 +965,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.22  2004/03/17 11:39:04  bryonr
+//Changed type of gNumberOfPositions from int to POSITION. -Bryon
+//
 //Revision 1.21  2004/03/16 01:58:39  weitu
 //Fixed to fit hash.c, now runs but wrong init position.
 //
