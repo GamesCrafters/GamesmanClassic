@@ -491,10 +491,11 @@ void PrintPosition(position,playerName,usersTurn)
   // hrs to shing: commented below because bug when #rows is 2
 
   // get the maximum height
-  //if (displayBoardHeight>5)
-  //  maxY = displayBoardHeight;
-  //else
-  //  maxY = 5;
+  printf("-- %d\n", displayBoardHeight);
+  if (displayBoardHeight>5)
+    maxY = displayBoardHeight;
+  else
+    maxY = 5;
 
   commentx = maxX + 1 + COMMENTSPACE;
 
@@ -538,7 +539,7 @@ void PrintPosition(position,playerName,usersTurn)
 	slashFlag = !slashFlag;
 
 	// display board
-	if (y < displayBoardWidth)	
+	if (y < displayBoardHeight)	
 	  for ( x = 0; x < displayBoardWidth; x++) {
 	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
 	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
@@ -555,14 +556,14 @@ void PrintPosition(position,playerName,usersTurn)
 	    }
 	  } // end display board
 	else
-	  space(displayBoardWidth);
+	  space(displayBoardWidth+1);
 
 	space(8);
 	//slashFlag = 0;
 	slashFlag = !slashFlag;
 
 	//display legend
-	if (y < displayBoardWidth)
+	if (y < displayBoardHeight)
 	  for ( x = 0; x < displayBoardWidth+1; x++) {
 	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
 	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
