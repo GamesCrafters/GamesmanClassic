@@ -82,7 +82,7 @@ BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if i
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
