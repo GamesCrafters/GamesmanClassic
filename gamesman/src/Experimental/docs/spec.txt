@@ -1,76 +1,86 @@
 
-New Gamesman Core Specification
-===============================
-		    John Jordan
+Gamesman Core Specification
 
 
-Umm.. I'll fill in a more detailed explanation later, but for now I just
-wanted to get it up on cvs.  Here's a hand-wavy not-detailed explanation of
-the system:
+Table of Contents:
 
-Design Goals:
-	- Modularity so as to allow easy expansion of the system
-	- Backwards compatibility with old gamesman games
-		- Wrapper classes will allow this to happen
-	- Multiple interfaces to the system: Text, Tcl/Tk, GTK (?), etc...
-
-Everything is layed out into 'classes'.
-
-Classes that exist in the system:
-	- Game class:
-		- Defines a game.
-		- Classic Primitive, GenerateMoves, DoMove functions
-		- Stores information about the current options set -- the
-		  configuration of the game.
-		- Property table (Name, Authors, GetOption, ...)
-	- Database class:
-		- This class stores and retrieves information regarding the
-		  gametree.  Does nothing else.
-		- Uses 'resources'.  Just a description for a database
-		  somewhere.  Ex "file:data/mgobblet_0.dat", "memory:", ...
-		- Record length set by the Solver
-		- Number of records set by the Game
-		- Gateway to access information regarding the gametree.
-		- Functions to store and retrieve data from the gametree
-		- Functions to set record size and number of records.
-		- Can transfer information from one Gametree to another
-		  (like from a file to memory -- from memory to a file -- net
-		  database to wherever..)
-	- Solver class:
-		- Solves the game
-		- Functions:
-			- solve()
-			- getRemoteness( POSITION )
-			- getValueOfPosition( POSITION )
-			- getValueMoves ( POSITION )
-		- Does lots of interfacing to Database class.
-		- Does a lot of stuff that you would expect in Database --
-		  can't go there since the Database has no idea how its
-		  records are structured
-		- getValueMoves should (can) rank moves better than just
-		  Win, Lose, Tie.  Should return more detailed separation of
-		  the moves, for example: all moves that win by x, or win in x
-		  moves..
+	I.	Design goals
+	II.	Design overview
+	III.	Possibilities
+	IV.	Repositories
+	V.	Databases
+	VI.	Games
+	VII.	Solvers
+	VIII.	Implementing cool stuff
 
 
-Different Database types:
-	- memdb		Stores the gametree in flat memory
-	- filedb	Stores the gametree in a flat file
-	- netdb		Stores (mostly retrieves) the gametree to/from a remote
-			host -- should also cache what we know
+I.	Design Goals
 
-Solver classes:
-	- FlatSolver		Tic-Tac-Toe, etc
-	- LoopySolver		Achi, Gobblet, etc
-	- FuzzySolver		Dots-n-boxes, Domineering, etc
-	- BottomUpSolver	Nine mens' morris, etc
-	- etc
-
-Game chooses the solver to use; user chooses the gametree.
+	This system is designed with the following goals in mind.
+	
+	A.	Modularity.  A modular system is far easier to extend and
+		maintain than one that is not.
+	B.	Backwards compatibility for older games.  With this
+		specification, a module can be placed inbetween old game
+		modules and the architecture to run the game.
 
 
-Spec
-====
+II.	Design Overview
+
+	The architecture is designed in an object-oriented manner, despite
+	the fact that it is programmed in a language with no native support
+	for such a paradigm.  Nevertheless, the system can be broken down
+	into three main "classes" (which are basically structs that have
+	data and function pointers).  Here is an overview of them.
+	
+	A.	GAME
+		
+		Contains all of the data and functions that make up a game
+		module in gamesman.  This includes information regarding the
+		gametree, rule and board options, and functions that
+		determine the rules of the game.
+	
+	B.	DATABASE
+		
+		Stores and retrieves records.  Does nothing more.  Databases
+		are used to manipulate and save game information.  The
+		information can be stored on many different media and using
+		many different methods, which is why this layer of
+		abstraction is provided.  Examples include memory, file,
+		compressed file, and remote server.
+	
+	C.	SOLVER
+	
+		Solves a game and stores the related game information into a
+		DATABASE.  After a game has been solved, the class is still
+		used to retrieve information about the gametree, since the
+		DATABASE knows nothing about how the data it contains is
+		stored (it only knows to store the data).  The solver
+		determines what is stored and how.
+
+
+III.	Possibilities
+
+	Because of the simplicity of the system, and the abstractions made,
+	there are many possibilities for future extensions.  Some of the
+	possibilities are listed here, and more detailed information about
+	-how- to implement these ideas are listed at the end of the
+	document.
+
+	A.	Gametree stored remotely
+	
+		Not all computers are capable of solving very large games,
+		and some of them aren't even capable of storing the
+		information for these games.  Having a well-equipped
+		computer solve a game once, and then another that can serve
+		the data generated by that solver would allow users to play
+		games without solving them.
+	
+	...
+
+And now the part that I haven't gotten to... -JJ
+
+---- snip ----
 
 The main() function of the program should initialize two repositories, one
 for solver classes and the other for database classes.  These 'repositories'
