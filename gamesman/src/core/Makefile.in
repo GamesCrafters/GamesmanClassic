@@ -21,7 +21,7 @@
 # @configure_input@
 
 CC		= @CC@
-CFLAGS		= @CFLAGS@
+CFLAGS		= -Wall @CFLAGS@
 AR		= @AR@ cr
 RANLIB		= @RANLIB@
 
