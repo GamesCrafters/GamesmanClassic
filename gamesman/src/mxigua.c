@@ -45,6 +45,10 @@
 **                             - removeStones
 **                             - adjacency information initialized in InitializeGame
 **                            Note: solving algorithm does not account for "pass" ability - plays out all outcomes to unquestionable end (unlike game of Go between humans) to enable this, use Chinese rules for Go territory counting
+**		 -- 3.06.05 -- Fixed compile time errors.
+**			    	Created a game specific menu, (currently only changes boardsize)
+**				Created smaller board sizes (5 board, have functions for 9, 13, 17)
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -73,7 +77,7 @@ STRING   kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder"
 STRING   kDBName              = "xigua.db"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -129,7 +133,7 @@ STRING   kHelpExample =
 /* Game options */
 int boardsize; /* 0-4 Board size is 5 + 4 * boardsize */
 int rulesvariant; /* 0/1 normal rules / inverted rules */
-int handicapping; /* 0/1 Handicapped or not */
+int handicapping; /* 0/1 Handicapped or not */ 
 int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
 
 /* max board size */
@@ -198,6 +202,7 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
 	int i;
+	
 	/* need to change this to reflect the board size */
         maxsize=5+4*boardsize;
 	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
@@ -560,7 +565,27 @@ VALUE Primitive (POSITION position)
 ** 
 *************************************************************************/
 
-void displayasciiboard(char *positionvalues, char *prediction) {
+void display5board(char *positionvalues, char *prediction) {
+	char *pos=positionvalues;
+	printf("Legend:    1         Current    %c\n",pos[0]);
+	printf("          /|\\                  /|\\\n");
+	printf("         2-3-4                %c-%c-%c\n",pos[1],pos[2],pos[3]);
+	printf("          \\|/                  \\|/\n");
+	printf("           5                     %c\n",pos[4]);
+	printf(" Prediction (%s)\n",prediction);
+}
+void display9board(char *pos,char *prediction) {
+
+}
+void display13board(char *pos,char *prediction) {
+
+}
+
+void display17board(char *pos,char *prediction) {
+
+}
+
+void display21board(char *positionvalues, char *prediction) {
 	/* dirty but should work */
 	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
         printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
@@ -628,7 +653,27 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/* need to get prediction, till then... */
 	prediction=getprediction(prediction);
 	toprint = unhashboard(position,toprint);
-	displayasciiboard(toprint,prediction); 
+	switch(boardsize) {
+		case 0:
+			display5board(toprint,prediction);
+			break;
+		case 1:
+			display9board(toprint,prediction);
+			break;
+		case 2:
+			display13board(toprint,prediction);
+			break;
+		case 3:
+			display17board(toprint,prediction);
+			break;
+		case 4:
+			display21board(toprint,prediction);
+			break;
+		default:
+			printf("Invalid boardsize in printPosition\n");
+			exit(1);
+			break;
+	}
 	free(toprint);
 	free(prediction);
 } 
@@ -779,7 +824,48 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    
+   	char choice;
+
+	fflush(stdin);
+	choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
+	printf("OPTION MENU\n");
+	printf("------------------------------------------\n");
+	printf("b - Change Board Size\n");
+	printf("r - Change Rule Type (Normal/Reverse)\n");
+	printf("h - Handicapping (ON/OFF)\n");
+	printf("w - Win Style (Territory/Captures/Both)\n");
+	printf("------------------------------------------\n");
+	printf("Please enter a selection: "); 
+	choice=getc(stdin);
+	choice=toupper(choice);
+	switch(choice) {
+		case 'B':
+			fflush(stdin);
+			choice=getc(stdin);
+			printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
+			scanf("%d",(int *)&choice);
+			if(choice==5||choice==9||choice==13||choice==17||choice==21) {
+				boardsize=(choice-5)/4;
+				printf("The new boardsize is set at %d",boardsize*4+5);
+				InitializeGame();
+			} else {
+				printf("Incorrect size.\n");
+			}
+			break;
+		case 'R':
+			printf("Not this time, sorry.\n");
+			break;
+		case 'H':
+			printf("Not this time, sorry.\n");
+			break;
+		case 'W':
+			printf("Not this time, sorry.\n");
+			break;
+		default:
+			printf("You did not select a valid option.\n");
+			break;
+	}	
+				
 }
 
 
