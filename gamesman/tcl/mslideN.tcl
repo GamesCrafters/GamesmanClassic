@@ -330,7 +330,7 @@ proc DrawBoard { c } {
 	
 	$c create line $x1 $y1 $x2 $y2 \
 	    -arrow first -width [expr $Gap / 4] -fill black \
-	    -arrowshape [list [expr $Gap / 4] [expr $Gap / 2] [expr $Gap / 4]] \
+	    -arrowshape [list [expr $Gap / 2] [expr $Gap / 2] [expr $Gap / 4]] \
 	    -tag [list ARROWS ARROW[expr $Dimension + $i]] \
 	    -fill cyan
 	
@@ -355,7 +355,7 @@ proc DrawBoard { c } {
 	
 	$c create line $x1 $y1 $x2 $y2 \
 	    -arrow first -width [expr $Gap / 4] -fill black \
-	    -arrowshape [list [expr $Gap / 4] [expr $Gap / 2] [expr $Gap / 4]] \
+	    -arrowshape [list [expr $Gap / 2] [expr $Gap / 2] [expr $Gap / 4]] \
 	    -tag [list ARROWS ARROW[expr $Dimension - $i + 1]] \
 	    -fill cyan
 
