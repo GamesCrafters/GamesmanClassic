@@ -361,7 +361,7 @@ void SetSolver() {
     if (gGoAgain == DefaultGoAgain)
       gSolver = DetermineLoopyValue;
     else
-      gSolver = DetermineLoopyValue;//lgas_DetermineValue;
+      gSolver = lgas_DetermineValue;
   }
     
   else
