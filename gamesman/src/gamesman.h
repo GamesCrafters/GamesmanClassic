@@ -266,5 +266,5 @@ void writeVarStat(char * statName, char * text, FILE *rowp);
 void createAnalysisGameDir();
 void createAnalysisVarDir();
 void writeGameHTML();
-void createAnalysisLink();
+//void createAnalysisLink();
 #endif

@@ -256,7 +256,7 @@ BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
                                    * solved, default: FALSE */
-STRING gAnalysisDir = "../analysis/"; /* Default analysis directory */
+
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;
 int   remainingGivebacks = 0;
@@ -3568,14 +3568,10 @@ void HandleArguments (int argc, char *argv[]) {
     else if(!strcasecmp(argv[i], "--analyze")) {
       gJustSolving = TRUE;
       gAnalyzing = TRUE;
+      gSolvingAll = TRUE;
       createAnalysisGameDir();
       writeGameHTML();
       createVarTable();
-      if ((i + 1) < argc) {
-	gAnalysisDir = argv[++i];
-	createAnalysisLink();
-      }
-      
     }
     else if(!strcasecmp(argv[i], "--DoMove")) {
       InitializeGame();
@@ -3631,9 +3627,7 @@ void HandleArguments (int argc, char *argv[]) {
 	     "\t\t\t%s --solve\n"
 	     "\t\t\t%s --solve 2\n"
 	     "\t\t\t%s --solve all\n"
-	     "--analyze [ <linkname> ]\t creates the analysis directory\n"
-	     "\t\t\t if <linkname> is provided, a hard link is made to the file\n"
-	     "\t\t\t specified by <linkname>"
+	     "--analyze\t\tCreates the analysis directory with info on all variants\n"
 	     "--DoMove <args>\n"
 	     "--Primitive <args>\n"
 	     "--PrintPosition <args>\n"
@@ -3743,9 +3737,9 @@ void writeVarStat(char * statName, char * text, FILE *rowp) {
   //FILE * rawfilep ;
   char outFileName[256];
   
-  sprintf(outFileName, "%s/var%d/%s", kDBName,getOption(),statName) ;
+  sprintf(outFileName, "../analysis/%s/var%d/%s", kDBName,getOption(),statName) ;
   
-  filep = fopen(strcat(gAnalysisDir, outFileName), "w");
+  filep = fopen(outFileName, "w");
 
 
   fprintf(filep,"<!-- AUTO CREATED, do //not modify-->\n");
@@ -3762,16 +3756,16 @@ void writeVarStat(char * statName, char * text, FILE *rowp) {
 }
 void createAnalysisGameDir() {
   char gameDirName[256];
+  sprintf(gameDirName, "../analysis/%s", kDBName);
 
-
-  mkdir(gAnalysisDir, 0755);
-  mkdir( strcat(gAnalysisDir, kDBName), 0755);
+  mkdir("../analysis", 0755);
+  mkdir(gameDirName, 0755);
   
 }
 void createAnalysisVarDir() {
   char varDirName[256];
-  sprintf(varDirName, "%s/var%d", kDBName,getOption());
-  mkdir(strcat(gAnalysisDir, varDirName), 0755) ;
+  sprintf(varDirName, "../analysis/%s/var%d", kDBName,getOption());
+  mkdir(varDirName, 0755) ;
 }
 
 
@@ -3785,8 +3779,8 @@ void writeGameHTML() {
   STRING fontColor = "#FFFFFF";
   STRING fontFace = "verdana";
   
-  sprintf(gameFileName, "%s/%s.shtml", kDBName,kDBName);
-  gamep = fopen(strcat(gAnalysisDir, gameFileName), "w");
+  sprintf(gameFileName, "../analysis/%s/%s.shtml", kDBName,kDBName);
+  gamep = fopen(gameFileName, "w");
 
   fprintf(gamep, "<html><head>\n");
   fprintf(gamep, "<style>a:link, a:visited {color: %s\ntext-decoration: none;}\n\n", bgColor);
@@ -3826,8 +3820,8 @@ void createVarTable () {
   FILE * tablep;
   int i;
   
-  sprintf(tableFileName, strcat(gAnalysisDir,"%s/%s_table.shtml"), kDBName, kDBName);
-  tablep = fopen(strcat(gAnalysisDir, tableFileName), "w");
+  sprintf(tableFileName, "../analysis/%s/%s_table.shtml", kDBName, kDBName);
+  tablep = fopen(tableFileName, "w");
   
   fprintf(tablep,"<!-- AUTO CREATED, do not modify-->\n");
   fprintf(tablep,"<table align=""ABSCENTER"" BORDER =""1"" CELLSPACING=""0"" CELLPADDING=""5"">\n");
@@ -3867,9 +3861,9 @@ void writeVarHTML () {
   FILE * rowp;
   char rowFileName[256];
 
-  sprintf(rowFileName, "%s/var%d/row.shtml", kDBName,getOption()) ;
+  sprintf(rowFileName, "../analysis/%s/var%d/row.shtml", kDBName,getOption()) ;
 
-  rowp = fopen(strcat(gAnalysisDir, rowFileName), "w");
+  rowp = fopen(rowFileName, "w");
 
   /***********************************
        Variant Specific
@@ -3923,10 +3917,11 @@ void writeVarHTML () {
   fclose(rowp);
   
 }
-
+  /* Left here for anyone interested in linking
 void createAnalysisLink() {
   //printf(filename);
   
   symlink ( gAnalysisDir, "../analysis");
   // if linkname == gAnalysis dir, the above is a nop
 }
+  */
