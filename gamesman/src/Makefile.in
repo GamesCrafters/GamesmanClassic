@@ -197,12 +197,13 @@ PYLOS_SO		= $(LIBDIR)/libmpylos$(LIBSUFFIX)
 
 QLAND_EXE		= $(BINDIR)/mqland$(EXESUFFIX)
 QLAND_OBJ		= mqland$(OBJSUFFIX)
+QLAND_SO		= $(LIBDIR)/libmqland$(LIBSUFFIX)
 
 QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
 QX_OBJ			= mqx$(OBJSUFFIX)
 QX_SO			= $(LIBDIR)/libmqx$(LIBSUFFIX)
 
-RINFIN_EXE    	 	= $(BINDIR)/mrInfin2$(EXESUFFIX)
+RINFIN_EXE    	= $(BINDIR)/mrInfin2$(EXESUFFIX)
 RINFIN_OBJ		= mrInfin2$(OBJSUFFIX)
 RINFIN_SO		= $(LIBDIR)/libmrInfin2$(LIBSUFFIX)
 
@@ -210,8 +211,9 @@ RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
 RUBIX_OBJ		= mrubix$(OBJSUFFIX)
 RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
 
-SEEGA_EXE    	 	= $(BINDIR)/mseega$(EXESUFFIX)
+SEEGA_EXE    	= $(BINDIR)/mseega$(EXESUFFIX)
 SEEGA_OBJ		= mseega$(OBJSUFFIX)
+SEEGA_SO		= $(LIBDIR)/libmseega$(LIBSUFFIX)
 
 SIM_EXE			= $(BINDIR)/msim$(EXESUFFIX)	# The simple game of sim
 SIM_OBJ			= msim$(OBJSUFFIX)
@@ -259,7 +261,7 @@ WINKERS_SO		= $(LIBDIR)/libmwinkers$(LIBSUFFIX)
 
 WUZHI_EXE		= $(BINDIR)/mwuzhi$(EXESUFFIX)	# Kono
 WUZHI_OBJ		= mwuzhi$(OBJSUFFIX)
-
+WUZHI_SO		= $(LIBDIR)/libmwuzhi$(LIBSUFFIX)
 
 ##############################################################################
 ### Game categories
@@ -292,7 +294,8 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) $(3SPOT_SO) $(BLOCKING_SO) \
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
-	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO)
+	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
+	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
