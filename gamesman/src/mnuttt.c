@@ -26,6 +26,9 @@
 **              2/6/05: [+] fixed some hardcoded constants, Position(), Row(), Column()
 **                          now operates on an arbitrarily sized board.
 **                          Easy job for getAndPrintUserInput().
+**              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
+**                      [*] Game should be playable by now. Added rules to Makefile.
+**                          GenerateMoves () is next.
 **
 **************************************************************************/
 
@@ -125,16 +128,19 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define PLAYER1_PIECE 'X';
-#define PLAYER2_PIECE 'O';
-#define EMPTY_PIECE ' ';
+#define PLAYER1_PIECE 'X'
+#define PLAYER2_PIECE 'O'
+#define EMPTY_PIECE ' '
 /*this means that it is a BOARD_ROWS by BOARD_COLS gameboard.*/
-#define BOARD_ROWS 5;
-#define BOARD_COLS BOARD_ROWS-1;
-#define PLAYER_PIECES BOARD_ROWS-1;
-#define BOARD_SIZE BOARD_ROWS*BOARD_COLS;
-#define EMPTY_PIECES BOARD_SIZE-PLAYER_PIECES;
-#define INIT_PIECE_ARRAY {PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES, PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES, EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES}
+#define BOARD_ROWS 5
+#define BOARD_COLS BOARD_ROWS-1
+#define PLAYER_PIECES BOARD_ROWS-1
+#define BOARD_SIZE BOARD_ROWS*BOARD_COLS
+#define EMPTY_PIECES BOARD_SIZE-PLAYER_PIECES
+#define INPUT_FORMAT "%d %d %s"
+#define INPUT_PARAM_COUNT 3
+#define PLAYER1_TURN 1
+#define PLAYER2_TURN 2
 
 /*************************************************************************
 **
@@ -142,22 +148,17 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 /*the user input that corresponds to the direction in DIR_INCREMENTS*/
-STRING directions[] {
-  "up", "right", "down", "left"
-}
+const STRING directions[] = {"up", "right", "down", "left"};
 
 /*the increments to the row and column numbers of the piece *
 **0 = up, 1 = right, 2 = down, 3 = left*/
-int dir_increments[][] {
-  { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 }
-}
+const int dir_increments[][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
 
-char initial_board[BOARD_SIZE];
-
-/*POSITION current_position;*/
-
-/* what's the intialization value here? -- Evan*/
-int current_player = PLAYER1_TURN;
+const int init_pieces[] = {
+  PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+  PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+  EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES, -1
+};
 
 /*************************************************************************
 **
@@ -192,16 +193,17 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
     int i,j;
-    gNumberOfPositions = generic_hash_init (BOARDSIZE, INIT_PIECE_ARRAY, NULL);
+    char initial_board[BOARD_SIZE];
+    gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
     /*initialize initial position*/
     for ( j = 0 ; j < BOARD_COLS ; j++)
       initial_board [Position (0, j)] = j%2 ? PLAYER1_PIECE : PLAYER2_PIECE;
-    for ( i = 1 ; i < ( BOARD_ROWS - 1 ), i++ )
+    for ( i = 1 ; i < (BOARD_ROWS - 1);  i++ )
       for (j = 0; j < BOARD_COLS ; j++ )
 	initial_board [Position (i,j)] = EMPTY_PIECE;
     for ( j = 0 ; j < BOARD_COLS ; j++ )
       initial_board [Position (BOARD_ROWS-1 ,j)] = j%2 ? PLAYER2_PIECE : PLAYER1_PIECE;
-    gInitialPosition = generic_hash(initial_board, current_player);
+    gInitialPosition = generic_hash(initial_board, PLAYER1_TURN);
 }
 
 
@@ -251,15 +253,17 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-       char* board = generic_unhash (position);
+       char board[BOARD_SIZE];
+       int current_player = whoseMove (position);
        int move_position = Unhasher_Position (move);
        int row = Row (move_position);
        int col = Column (move_position);
        int direction = Unhasher_Direction (move);
-       int new_position = Postition (row + directions[direction], col + directions[direction]);
+       int new_position = Position (row + directions[direction], col + directions[direction]);
+       generic_unhash (position, board);
        board[new_position] = board[position];
        board[position] = EMPTY_PIECE;
-       return generic_hash(board, current_player);
+       return generic_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
 }
 
 
@@ -289,8 +293,9 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position) /*pretty stupid but works*/
 {
-    char *board = generic_unhash (position);
+    char board[BOARD_SIZE];
     int i,j;
+    generic_unhash (position, board);
     /*check for horizontal ones*/
     for (i = 0; i < BOARD_ROWS; i++)
       for (j = 0; j < (BOARD_COLS-2); j++)
@@ -335,8 +340,9 @@ VALUE Primitive (POSITION position) /*pretty stupid but works*/
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-    char *board = generic_unhash (position);
+    char board[BOARD_SIZE]; 
     int i,j;
+    generic_unhash (position, board);
     printf (" The game board as %s sees it:\n", playersName);
     printf ("   0 1 2 3\n");
     printf ("  +-+-+-+-+\n");
@@ -365,7 +371,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
     int position = Unhasher_Position (computersMove);
     int direction = Unhasher_Direction (computersMove);
-    printf ("The computer picks up the piece in (%d,%d) and moves it %s\n", Row (position), Column (position), directions[direction]);
+    printf ("%s picks up the piece in (%d,%d) and moves it %s\n", computersName, Row (position), Column (position), directions[direction]);
 }
 
 
@@ -378,10 +384,12 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** INPUTS:      MOVE move         : The move to print. 
 **
 ************************************************************************/
-/*is this the users move?????*/
+
 void PrintMove (MOVE move)
 {
-
+    int position = Unhasher_Position (move);
+    int direction = Unhasher_Direction (move);
+    printf ("The piece in (%d,%d) moved %s\n", Row (position), Column (position), directions[direction]);
 }
 
 
@@ -452,8 +460,17 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
+/* still has some breakage in abstraction layer*/
 BOOLEAN ValidTextInput (STRING input)
 {
+    int result, i, j;
+    STRING dir;
+    result = sscanf (input, INPUT_FORMAT, i, j, dir);
+    if (result != INPUT_PARAM_COUNT)
+      return FALSE;
+    for ( i = 0; i < 4; i++ )
+      if (strcmp (dir, directions[i]) == 0)
+	return TRUE;
     return FALSE;
 }
 
@@ -472,9 +489,16 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
+/*same breakage of abstraction as ValidUserInput()*/
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return 0;
+  int row, col, dir_num, i;
+  STRING dir;
+  sscanf (input, INPUT_FORMAT, row, col, dir);
+  for (i = 0; i < 4; i++)
+    if (strcmp (dir, directions[i]) == 0)
+      dir_num = i;
+  return Hasher (row, col, dir_num);
 }
 
 
