@@ -56,7 +56,7 @@ POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-//STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
+STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -172,6 +172,10 @@ inline void setPlacingBoard(Board b, BOOLEAN t);
 
 void makeRandomBoard(Board b);
 
+inline POSITION hash(Board b);
+inline void unhash(Board b, POSITION p);
+
+
 /* tells whether r is a forbidden spot for placing pieces (i.e. the
    center) */
 inline int forbiddenSpot(int r) {return height/2 == r/width && width/2 == r%width;}
@@ -221,21 +225,22 @@ extern VALUE     *gDatabase;
 void InitializeGame () {
   BOARDSIZE = width * height; //global variables
   BOARDARRAYSIZE = width*height + 2;
-  int boardspec[] = {P1, 0, floor(BOARDSIZE/2), 
+  int boardspec[] = {P1, 0, floor(BOARDSIZE/2+1), 
 		     P2, 0, floor(BOARDSIZE/2),
-		     blank, 1, BOARDSIZE,
+		     blank, 1, BOARDSIZE+1,
 		     -1};
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, boardspec, NULL);
+  gNumberOfPositions = generic_hash_init(BOARDSIZE+1, boardspec, NULL);
 
   do { // I have this block to create new stack frame
     // TODO: find a one-line way to say the following:
-    char tempname[BOARDSIZE];
+    char tempname[BOARDARRAYSIZE];
     Board b = tempname;
     int r;
     for (r=0; r<width*height; r++) setpce(b,r,'-');
-    //setWhoseBoard(b, 'x');
-    gInitialPosition = generic_hash(b,1);
-    } while (FALSE);
+    setWhoseBoard(b, 'x');
+    setPlacingBoard(b,TRUE);
+    gInitialPosition = hash(b);
+  } while (FALSE);
 }
 
 
@@ -323,7 +328,7 @@ void changeBoard()
       valid_cols = 1;
     }
   }
-  //InitializeGame();
+  InitializeGame();
   //displayBoard(); //this is temporary!!
   //printf("done! \n");
   //GetMyChar();
@@ -390,8 +395,17 @@ POSITION DoMove (POSITION position, MOVE m) {
   // TODO: find a one-line way to say the following:
   char tempname[BOARDARRAYSIZE];
   Board b = tempname;
-  generic_unhash(position, b);
+  unhash(b,position);
   char c = whoseBoard(b), d=otherPlayer(c);
+  if (DEBUGGING) {
+    int i;
+    printf("Starting DoMove...\n");
+    printf("Board is a %s; %c's turn (next: %c's turn). ",
+	   placingBoard(b)?"placing board":"moving board",
+	   c,d);
+    for (i=0;i<BOARDSIZE;i++)printf("%c",getpce(b,i));
+    printf("\n");
+  }
   if (placingBoard(b)) {
     setpce(b, toWhere(&m), c);
     setpce(b, toWhere2(&m), c);
@@ -420,7 +434,8 @@ POSITION DoMove (POSITION position, MOVE m) {
       setpce(b, r-1, '-');
     setWhoseBoard(b, d);
   }
-  return generic_hash(b,whoToInt(whoseBoard(b)));
+  if (DEBUGGING) for (c=0;c<BOARDSIZE;c++)printf("%c",getpce(b,c));
+  return hash(b);
 }
 
 
@@ -451,7 +466,7 @@ char* getBoard(POSITION pos) {
 POSITION GetInitialPosition ()
 {
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDSIZE];
+  char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -463,7 +478,7 @@ POSITION GetInitialPosition ()
   printf("TODO: allow you to enter something.\n");
   //setWhoseBoard(b, 'x');
   makeRandomBoard(b);
-  return generic_hash(b,1);
+  return hash(b);
 }
 
 
@@ -508,7 +523,7 @@ VALUE Primitive (POSITION position) {
   // TODO: find a one-line way to say the following:
   char tempname[BOARDARRAYSIZE];
   Board b = tempname;
-  generic_unhash(position, b);
+  unhash(b,position);
   c=whoseBoard(b);
   MOVELIST* moves = GenerateMoves(position);
   if (moves==NULL) {
@@ -551,9 +566,54 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   int currRow;
   char currCol;
   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
-  char temp[BOARDSIZE];
+  char temp[BOARDARRAYSIZE];
   Board b=temp;
-  b=generic_unhash(position,b);
+  int moveCounter;
+  moveCounter = 0;
+  unhash(b,position);
+  generic_unhash(position,b);
+  printf("\n");
+  printf("         LEGEND:");
+  for (currCol = 0; currCol < width; currCol++) {
+    printf("   ");
+  }
+  printf("       TOTAL:\n");
+  for (currRow = height; currRow>0; currRow--) {
+    //printf("    %d ( ", currRow);
+    printf("     ( ");
+    for (currCol = 0; currCol < width; currCol++) {
+      //printf("%c%d ", alphabet[currCol], currRow);
+      printf("%d ", moveCounter);
+      moveCounter++;
+    }
+    printf(")          :");
+    for (currCol = 0; currCol < width; currCol++) {
+      printf("%c ", getpce(b,index)); //get piece
+      index++;
+    }
+    printf("\n");
+  }
+  printf("        ");
+  /*
+  for (currCol = 0; currCol < width; currCol++) {
+    printf("%c  ", alphabet[currCol]);
+  }
+  */
+  printf("\n\n");
+}
+
+/*
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
+{
+  int index=0;
+  int currRow;
+  char currCol;
+  char alphabet[]="abcdefghijklmnopqrstuvwxyz";
+  char temp[BOARDARRAYSIZE];
+  Board b=temp;
+  int moveCounter;
+  moveCounter = 0;
+  unhash(b,p);
   printf("\n");
   printf("         LEGEND:");
   for (currCol = 0; currCol < width; currCol++) {
@@ -567,7 +627,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     }
     printf(")          :");
     for (currCol = 0; currCol < width; currCol++) {
-      printf("%c ", b[index]); //TODO GET VALUES FROM BOARD - right now everything's blank
+      printf("%c ", getpce(b,index));
       index++;
     }
     printf("\n");
@@ -578,7 +638,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   }
   printf("\n\n");
 }
-
+*/
 
 
 /************************************************************************
@@ -600,20 +660,18 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 ************************************************************************/
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
-    char gBoard[BOARDSIZE];
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-   char mover;
+  MOVELIST *moves = NULL;
+  char gBoard[BOARDARRAYSIZE];
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  char mover;
   int player,i;
   // void boardcopy();
   int legalMove();
   MOVE m;
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
-  //Board newboard=(Board) malloc(BOARDSIZE);
-  //char newboard[BOARDSIZE];  
-generic_unhash(position,gBoard);
- player=whoseMove(position);
+  unhash(gBoard,position);
+  player=whoseMove(position);
   if(player == 1)
     mover=P1;
   else
@@ -700,7 +758,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/<number> <number>] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -732,7 +790,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input) {
-  return FALSE;
+  return TRUE;
 }
 
 
@@ -752,46 +810,50 @@ BOOLEAN ValidTextInput (STRING input) {
 
 // some parts from mabalone.c
 MOVE ConvertTextInputToMove (STRING input) {
-	  if (DEBUGGING)
-	  printf("Starting conversion\n");
-	  int n, p1, p2;
-
-	  n = 0;
-
-	  //skip whitespace
-	  while ((input[n] == ' ') || (input[n] == '[')) {
-	    n++;
-	  }
-
-	  //get first piece
-	  //formula: result = letter + number
-	  //letters: a = 100, b = 200, c = 300, etc.
-	  if ((input[n] >= 'a') && (input[n] <= 'z')) {
-		  //calculate offset!
-	    p1 = input[n] - '0';
-	    n++;
-	    if ((input[n] >= '0') && (input[n] <= '9')) {
-	      p1 = p1 + (input[n] - '0'); //adds value
-	      n++;
-	    }
-	    p1--; //don't ask me what this is
-	  }
-
-
-	  /*
-	  if ((input[n] >= '0') && (input[n] <= '9')) {
-	    p1 = input[n] - '0';
-	    n++;
-	    if ((input[n] >= '0') && (input[n] <= '9')) {
-	      p1 = p1 * 10 + (input[n] - '0');
-	      n++;
-	    }
-	    p1--;
-	  }
+  if (DEBUGGING)
+    printf("Starting conversion\n");
+  int n=0, p1=0, p2=0;
+  MOVE m;
+  
+  // skip whitespace etc.
+  for (; input[n]!='\0' && (input[n]<'0' || input[n]>'9'); n++) ;
+  for (; input[n]!='\0' && input[n] >= '0' && input[n] <= '9'; n++)
+    p1 = p1*10 + input[n] - '0';
+  for (; input[n]!='\0' && (input[n]<'0' || input[n]>'9'); n++) ;
+  for (; input[n]!='\0' && input[n] >= '0' && input[n] <= '9'; n++)
+    p2 = p2*10 + input[n] - '0';
+  setMove(&m, 'x', p1, p2);
+  if (DEBUGGING) {printf("Conversion finds ");PrintMove(m);printf(".\n");}
+  return m;
+  //get first piece
+  //formula: result = letter + number
+  //letters: a = 100, b = 200, c = 300, etc.
+  /* 
+  if ((input[n] >= 'a') && (input[n] <= 'z')) {
+    //calculate offset!
+    p1 = input[n] - '0';
+    n++;
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+      p1 = p1 + (input[n] - '0'); //adds value
+      n++;
+    }
+    p1--; //don't ask me what this is
+  }
+  */  
+  
+  /*
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+    p1 = input[n] - '0';
+    n++;
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+    p1 = p1 * 10 + (input[n] - '0');
+    n++;
+    }
+    p1--;
+    }
 */
-	  
-	
-	return 0;
+  
+  
 }
 
 
@@ -807,14 +869,17 @@ MOVE ConvertTextInputToMove (STRING input) {
 
 /* Converts the number to the specified base and puts this into the
    array. Returns the number of digits that it used. */
+/*
 void numberInBase(char* out, unsigned int n, int b, char* lookuptable) {
   int i,j;
   char swap;
-  for (i=0; n!=0; i++) {
+  out[0]='\0';
+  for (i=1; n!=0; i++) {
     out[i]=lookuptable[n%b];
     n = n/b;
   }
-  out[i]='\0';
+  if (i==1) out[i++]=lookuptable[0]; // if the number was 0, print 0.
+  i--;
   for (j=0;i>j;i--,j++) {
     swap=out[i];
     out[i]=out[j];
@@ -824,16 +889,20 @@ void numberInBase(char* out, unsigned int n, int b, char* lookuptable) {
 void PrintMove (MOVE move) {
   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
   char digits[]="0123456789";
-  /* TODO: change this to log(maxnum)/log(base), so that we are
-     not restricted to boards of size 10^4 * 10^4.*/
+  // TODO: change this to log(maxnum)/log(base), so that we are
+  //   not restricted to boards of size 10^4 * 10^4
   char row1[5],col1[5]; // numbers from 0 to base
   char row2[5],col2[5];
-  numberInBase(row1, fromWhere(&move)/width, 26, digits);
+  numberInBase(row1, fromWhere(&move)/width, 26, alphabet);
   numberInBase(col1, fromWhere(&move)%width, 10, digits);
   numberInBase(row2, toWhere(&move)/width, 26, alphabet);
-  numberInBase(col2, toWhere(&move)%width, 10, alphabet);
+  numberInBase(col2, toWhere(&move)%width, 10, digits);
   printf("Move with coordinates %s%s and %s%s.",row1,col1,row2,col2);
   printf("%d",move);
+}
+*/
+void PrintMove(MOVE move) {
+  printf("%d %d", fromWhere(&move),toWhere(&move));
 }
 
 
@@ -918,14 +987,22 @@ inline char getpce(Board b, int r) {return b[r];}
 inline char getPiece(Board b, int x, int y) {return getpce(b,x*width+y);}
 inline char otherPlayer(char c) {return c=='x'?'o':'x';}
 
+inline POSITION hash(Board b) {
+  return generic_hash(b,whoToInt(whoseBoard(b)));
+}
+inline void unhash(Board b, POSITION p) {
+  generic_unhash(p, b);
+  setWhoseBoard(b, whoseMove(p)==1?'x':'o');
+}
+
 inline int fromWhere(SMove m) { // applies only if !placingBoard(b)
-  return *m>>sizeof(MOVE)/2 & 1<<sizeof(MOVE)/2-1;
+  return *m>>(8*sizeof(MOVE)/2) & (1<<8*sizeof(MOVE)/2)-1;
 }
 inline int toWhere(SMove m) {
-  return *m & 1<<sizeof(MOVE)/2-1;
+  return *m & (1<<8*sizeof(MOVE)/2)-1;
 }
 inline int toWhere2(SMove m) { // applies only if placingBoard(b)
-  return *m>>sizeof(MOVE)/2 & 1<<sizeof(MOVE)/2-1;
+  return *m>>8*sizeof(MOVE)/2 & (1<<8*sizeof(MOVE)/2)-1;
 }
 
 inline int whoToInt(char c) {
@@ -935,19 +1012,21 @@ inline int whoToInt(char c) {
   return c=='x'? 1 : 2;
 }
 
-inline BOOLEAN placingBoard(Board b) {return b[width*height];}
+inline BOOLEAN placingBoard(Board b) {return b[width*height]==P1;}
 
 inline void setWhoseBoard(Board b, char t) {b[width*height+1]=t;}
 inline void setpce(Board b, int r, char c) {b[r]=c;}
 inline void setMove(SMove m, char who, int rfrom, int rto) {
 /* TODO: figure out how we're supposed to encode invariants.
-  if ((unsigned int)rfrom >= 1<<sizeof(MOVE)/2 ||
-      (unsigned int)rto >= 1<<sizeof(MOVE)/2)
+  if ((unsigned int)rfrom >= 1<<8*sizeof(MOVE)/2 ||
+      (unsigned int)rto >= 1<<8*sizeof(MOVE)/2)
     error("Moves are too big to store.");
 */
-  *m = rfrom<<sizeof(MOVE)/2 | rto;
+  *m = rfrom<<8*sizeof(MOVE)/2 | rto;
 }
-inline void setPlacingBoard(Board b, BOOLEAN t) {b[width*height]=t;}
+inline void setPlacingBoard(Board b, BOOLEAN t) {
+  b[width*height]=t?P1:blank;
+}
 
 
 
@@ -1062,7 +1141,7 @@ MOVELIST *GenerateMovingMoves(Board b) {
 
 void makeRandomBoard(Board b) {
   int r, r2;
-  char c;
+  char c = 'x';
   for (r=0; r<width*height; r++)
     if (!forbiddenSpot(r)) {
       setpce(b,r,c);
@@ -1070,17 +1149,20 @@ void makeRandomBoard(Board b) {
     }
     else setpce(b,r,'-');
   for (r=0; r<width*height; r++) {
-    r2= r + (int)((double)rand()/(RAND_MAX+1.0)*(width*height-r));
-    /*TODO: find out how to do error checking.
-    if (r2<0 || r2>=width*height)
-      error("I didn't set up my random generation right.");
-    */
-    if (!forbiddenSpot(r) && !forbiddenSpot(r2)) {
-      c=getpce(b,r);
-      setpce(b,r,getpce(b,r2));
-      setpce(b,r2,c);
-    }
+    if (forbiddenSpot(r)) continue;
+    do { // find a random nonforbidden spot to swap with
+      r2= r + (int)((double)rand()/(RAND_MAX+1.0)*(width*height-r));
+      /*TODO: find out how to do error checking.
+	if (r2<0 || r2>=width*height)
+	error("I didn't set up my random generation right.");
+      */
+    } while (forbiddenSpot(r2));
+    c=getpce(b,r);
+    setpce(b,r,getpce(b,r2));
+    setpce(b,r2,c);
   }
+  setPlacingBoard(b,FALSE);
+  setWhoseBoard(b,'x');
 }
 
 
