@@ -25,6 +25,8 @@
 **
 ** Decided to check out how much space was wasted with the array:
 **
+** A Dartboard 9-slot hash has 6046 positions (all symmetries included)
+**
 ** Without checking for symmetries
 **
 ** Undecided = 14205 out of 19683
