@@ -88,10 +88,32 @@ STRING   kHelpExample =
 #define FOX_MIN 2
 #define GEESE_PLAYER 1
 #define FOX_PLAYER 2
+#define WHITESPACE BOARDSIZE - GEESE_MIN - FOX_MIN
 
-#define DEBUG 0
+#define INIT_DEBUG 1
+
+#define DOMOVE_DEBUG 0
 #define DOMOVE_TEST 0
-#define HASH_TEST 1
+
+#define PRIMITIVE_DEBUG 0
+
+#define GENERATEMOVES_DEBUG 0
+
+#define GETANDPRINT_DEBUG 0
+
+#define VALIDTEXT_DEBUG 0
+
+#define FOXGENERATEMOVES_DEBUG 0
+
+#define GEESEGENERATEMOVES_DEBUG 0
+
+#define GENERATESHIFTMOVES_DEBUG 0
+
+#define GENERATEKILLMOVES_DEBUG 1
+
+#define CONVERTEXTINPUTTOMOVE_DEBUG 1
+
+#define HASH_TEST 0
 
 char start_standard_board[33]={      	     'G','G','G',
 	                                     ' ','G',' ',
@@ -180,28 +202,28 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-	int hash_data[] =  {' ', 0, BOARDSIZE,
+	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
 		  	    'F', FOX_MIN, FOX_MAX,
 		            'G', GEESE_MIN, GEESE_MAX, -1};
 	int max;
 	int init;
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() Running...\n"); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n"); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n"); }
 	
 	max = generic_hash_init(BOARDSIZE, hash_data, NULL);
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash_init: %d\n",max); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash_init: %d\n",max); }
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash\n"); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash\n"); }
 	
 	if (HASH_TEST) {printf("INIT CURRENT BOARD\n"); PrintBoard(start_standard_board);}
 	
 	init = generic_hash(start_standard_board,GEESE_PLAYER);
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash: %d\n",init); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash: %d\n",init); }
 
 	if (HASH_TEST)
 	{
@@ -214,7 +236,7 @@ void InitializeGame ()
 	gInitialPosition = init;
 	gNumberOfPositions = max;
 	
-	if (DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
 /************************************************************************
 **
@@ -319,9 +341,9 @@ POSITION DoMove (thePosition, theMove)
 	int goAgain = 0;
 	int next_player = 0;
 	
-	if (DEBUG) { printf("mASALTO - DoMove() Running...\n"); }
+	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Running...\n"); }
 	generic_unhash(thePosition, board);
-	if (DOMOVE_TEST) { printf("CURRENT BOARD: \n"); PrintBoard(board);}
+	if (DOMOVE_TEST) { printf("CURRENT BOARD: %d\n",theMove); PrintBoard(board);}
 	
 	unHashMove(theMove, move);
 	
@@ -360,7 +382,7 @@ POSITION DoMove (thePosition, theMove)
 		printf("\n");
 		PrintBoard(board);
 	}
-	if (DEBUG) { printf("mASALTO - DoMove() Done\n"); }
+	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Done\n"); }
 	return generic_hash(board,next_player);
 }
 
@@ -494,10 +516,10 @@ VALUE Primitive (pos)
 	int player = whoseMove(pos);
 	
 	
-	if (DEBUG) { printf("mASALTO - Primitive() Running...\n"); }
+	if (PRIMITIVE_DEBUG) { printf("mASALTO - Primitive() Running...\n"); }
 	generic_unhash(pos, board);
 	boardPieceStats(board, boardStats);
-	if (DEBUG) { printf("mASALTO - Primitive() Returning...\n"); }
+	if (PRIMITIVE_DEBUG) { printf("mASALTO - Primitive() Returning...\n"); }
 	if ( numGeese(boardStats) < GEESE_MIN && player == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
 	{
 		return (gStandardGame ? lose : win);
@@ -576,7 +598,7 @@ MOVELIST *GenerateMoves (position)
 	int i=0;
 	int player = whoseMove(position);
 	
-	if (DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); }
+	if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); }
 	generic_unhash(position, board);
 	
 	if(player = FOX_PLAYER)
@@ -599,7 +621,7 @@ MOVELIST *GenerateMoves (position)
 			}
 		}
 	}
-	if (DEBUG) { printf("mASALTO - GenerateMoves() Done.\n"); }
+	if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() Done.\n"); }
 	return(moves);
 }
 
@@ -609,11 +631,14 @@ MOVELIST *FoxGenerateMoves(board, moves, location)
 	int location;
 {
 	MOVELIST *GenerateShiftMoves();
+	
+	if (FOXGENERATEMOVES_DEBUG) { printf("mASALTO - FoxGenerateMoves() Running.\n"); }
 	/* Standard Shifting Moves for Foxes */
 	moves = GenerateShiftMoves(board,moves,location,FOX_PLAYER);
 	
 	/* Standard Killing Moves for Foxes*/
 	moves = GenerateKillMoves(board,moves,location,FOX_PLAYER);
+	if (FOXGENERATEMOVES_DEBUG) { printf("mASALTO - FoxGenerateMoves() Done.\n"); }
 	return(moves);
 }
 
@@ -623,7 +648,10 @@ MOVELIST *GeeseGenerateMoves(board, moves, location)
 	int location;
 {
 	/* Standard Shifting Moves for Geese*/
+	if (GEESEGENERATEMOVES_DEBUG) { printf("mASALTO - GeeseGenerateMoves() Running.\n"); }
 	GenerateShiftMoves(board,moves,location,GEESE_PLAYER);
+	if (GEESEGENERATEMOVES_DEBUG) { printf("mASALTO - GeeseGenerateMoves() Done.\n"); }
+	
 	return(moves);
 }
 
@@ -640,6 +668,8 @@ MOVELIST *GenerateShiftMoves(board, moves, location, player)
 	int destination_coord[2];
 	int candidate_move[3] = {location, -1, 0};
 	
+	if (GENERATESHIFTMOVES_DEBUG) { printf("mASALTO - GenerateShiftMoves() Running.\n"); }
+	
 	locationToCoord(location,origin_coord);
 		
 	for(delta_row = -1; delta_row <= 1; delta_row++)
@@ -655,6 +685,7 @@ MOVELIST *GenerateShiftMoves(board, moves, location, player)
 			}
 		}	
 	}
+	if (GENERATESHIFTMOVES_DEBUG) { printf("mASALTO - GenerateShiftMoves() Done.\n"); }
 	return(moves);
 }
 
@@ -677,6 +708,8 @@ MOVELIST *GenerateKillMoves(board, moves, location, player)
 	
 	int candidate_move[3] = {location, -1, 0};
 	
+	if (GENERATEKILLMOVES_DEBUG) { printf("mASALTO - GenerateKillMoves() Running.\n"); }
+	
 	locationToCoord(location,origin_coord);
 	
 	if (player == FOX_PLAYER)
@@ -698,11 +731,13 @@ MOVELIST *GenerateKillMoves(board, moves, location, player)
 				if(validCoord(neighbor_coord) && validCoord(neighbor_coord_one_beyond) && board[neighbor_location] == 'G' && validMove(board, candidate_move, player))
 				{
 					candidate_move[2] = MoreKillMoves(board, candidate_move[1], player);
+					if (GENERATEKILLMOVES_DEBUG) { printf("mASALTO - GenerateKillMoves() Move Found!\n"); }
 					moves = CreateMovelistNode((hashMove(candidate_move)),moves);
 				}
 			}	
 		}
 	}
+	if (GENERATEKILLMOVES_DEBUG) { printf("mASALTO - GenerateKillMoves() Done.\n"); }
 	return(moves);
 }
 
@@ -892,11 +927,14 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 	BOOLEAN ValidMove();
 	USERINPUT ret, HandleDefaultTextInput();
 	
+	if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Start\n"); }
+	
 	do
 	{
 		printf("%8s's move [(u)ndo/([A-G][1-7])] :  ", playerName);
 		
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Returning\n"); }
 		if(ret != Continue)
 		return(ret);
 	}
@@ -925,6 +963,7 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
+	if (VALIDTEXT_DEBUG) {printf("mASALTO - ValidTextInput() Start\n"); }
 	return (
 		(('A' <= input[0] && input[0] <= 'G') || ('a' <= input[0] && input[0] <= 'g'))
 		&&
@@ -958,7 +997,9 @@ MOVE ConvertTextInputToMove (input)
 	int origin_coord[2];
 	int destination_coord[2];
 	int move[3];
-	
+
+	if (CONVERTEXTINPUTTOMOVE_DEBUG) {printf("mASALTO - ConvertTextInputToMove () Start\n"); }
+		
 	gridCoordinatetoCoord(origin_grid,origin_coord);
 	gridCoordinatetoCoord(destination_grid,destination_coord);
 	
