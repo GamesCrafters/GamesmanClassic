@@ -175,11 +175,9 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "gsolve.h"
+#include "gamesman.h"
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  = 7425000; // REDUCT: 11*10*10*15^3*2
+POSITION gNumberOfPositions  = 7425000; // REDUCT: 11*10*10*15^3*2
                                         //43302600<--old num (11*100*3^9*2)
 
 POSITION gInitialPosition    = 3375000; // REDUCT: score = 5, everythign else 0
@@ -187,15 +185,14 @@ POSITION gInitialPosition    = 3375000; // REDUCT: score = 5, everythign else 0
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position  */
 
 STRING   kGameName           = "Rubik's Infinity";
+STRING   kDBName             = "rinfin2";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kSupportsHeuristic  = TRUE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts an X or O (depending on whether you went first\n\
@@ -204,24 +201,20 @@ button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position.";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose 
-(between\n\
+"On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 6, with 1 - 3 as inputting the normal pieces into columns 1-3 and\n\
-humbers 4-6 as the optional pieces into columns 1-3 (Basically, subtract 
-3\n\
-from your option 4-6.) Then hit return. If at any point you have made a 
-mistake,\n\
+humbers 4-6 as the optional pieces into columns 1-3 (Basically, subtract 3\n\
+from your option 4-6.) Then hit return. If at any point you have made a mistake,\n\
 you can type u and hit return and the system will\n\
 revert back to your most recent position.";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces into any of the columns (1-3). For putting in 
-\n\
+"You place one of your pieces into any of the columns (1-3). For putting in\n\
 special pieces use move Numbers (4-6).";
 
 STRING   kHelpStandardObjective =
 "To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. Two 3-in-a-row WINS the game 
+horizontally, vertically, or diagonally. Two 3-in-a-row WINS the game\n\
 automatically.";
 
 STRING   kHelpReverseObjective =
@@ -232,103 +225,103 @@ LOSES.";
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "you just can't beat the computer.";
 
-STRING   kHelpExample =
-"         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - - - |
-LEGEND:  | _ _ _ |                    | - - - |
-         | _ _ _ |                    | - - - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Dan should Tie in 0)
-
-It is yellow's turn.     Dan's move [(u)ndo/1-6] :  2
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - - - |
-LEGEND:  | _ _ _ |                    | - - - |
-         | _ _ _ |                    | - o - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Computer should Tie in 0)
-
-It is blue's turn.Computer's move              :  1
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - - - |
-LEGEND:  | _ _ _ |                    | - - - |
-         | _ _ _ |                    | x o - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Dan should Tie in 26)
-
-It is yellow's turn.     Dan's move [(u)ndo/1-6] :  5
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - - - |
-LEGEND:  | _ _ _ |                    | - o - |
-         | _ _ _ |                    | x O - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Computer will Win in 25)
-
-It is blue's turn.Computer's move              :  2
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - o - |
-LEGEND:  | _ _ _ |                    | - O - |
-         | _ _ _ |                    | x x - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Dan will Lose in 24)
-
-It is yellow's turn.     Dan's move [(u)ndo/1-6] :  1
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - o - |
-LEGEND:  | _ _ _ |                    | x O - |
-         | _ _ _ |                    | o x - |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
-(Computer will Win in 23)
-
-It is blue's turn.
-Computer's move              :  6
-Computer placed a SPECIAL PIECE. Watch out! :)
-
-         |:Rubik:|                    |:Infin:|
-         | _ _ _ |                    | - o - |
-LEGEND:  | _ _ _ |                    | x O - |
-         | _ _ _ |                    | o x X |
-           ^ ^ ^                        ^ ^ ^
-           1 2 3  <-- Normal pieces
-           4 5 6  <-- Special pieces
-
-Current Score: 0
-Game is currently even.
+STRING   kHelpExample = 
+"         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - - - |\n\
+LEGEND:  | _ _ _ |                    | - - - |\n\
+         | _ _ _ |                    | - - - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Dan should Tie in 0)\n\
+\n\
+It is yellow's turn.     Dan's move [(u)ndo/1-6] :  {2}\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - - - |\n\
+LEGEND:  | _ _ _ |                    | - - - |\n\
+         | _ _ _ |                    | - o - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Computer should Tie in 0)\n\
+\n\
+It is blue's turn.Computer's move              :  1\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - - - |\n\
+LEGEND:  | _ _ _ |                    | - - - |\n\
+         | _ _ _ |                    | x o - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Dan should Tie in 26)\n\
+\n\
+It is yellow's turn.     Dan's move [(u)ndo/1-6] :  {5}\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - - - |\n\
+LEGEND:  | _ _ _ |                    | - o - |\n\
+         | _ _ _ |                    | x O - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Computer will Win in 25)\n\
+\n\
+It is blue's turn.Computer's move              :  2\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - o - |\n\
+LEGEND:  | _ _ _ |                    | - O - |\n\
+         | _ _ _ |                    | x x - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Dan will Lose in 24)\n\
+\n\
+It is yellow's turn.     Dan's move [(u)ndo/1-6] :  {1}\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - o - |\n\
+LEGEND:  | _ _ _ |                    | x O - |\n\
+         | _ _ _ |                    | o x - |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
+(Computer will Win in 23)\n\
+\n\
+It is blue's turn.\n\
+Computer's move              :  6\n\
+Computer placed a SPECIAL PIECE. Watch out! :)\n\
+\n\
+         |:Rubik:|                    |:Infin:|\n\
+         | _ _ _ |                    | - o - |\n\
+LEGEND:  | _ _ _ |                    | x O - |\n\
+         | _ _ _ |                    | o x X |\n\
+           ^ ^ ^                        ^ ^ ^\n\
+           1 2 3  <-- Normal pieces\n\
+           4 5 6  <-- Special pieces\n\
+\n\
+Current Score: 0\n\
+Game is currently even.\n\
 (Dan will Lose in 22)  ";
 
 
@@ -377,44 +370,27 @@ char gBlankOXPosition[15][4] = { "---", // 0
 }; // 15 possible positions
 
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-VALUE     *gDatabase;
-
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize the game.
 **
 ************************************************************************/
 
-InitializeDatabases()
-{
-  GENERIC_PTR SafeMalloc();
-  int i, j, temp;
-
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
-
+void InitializeGame() {
 }
 
 /************************************************************************
 **
 ** NAME:        DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
 **
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 
 }
@@ -429,7 +405,7 @@ DebugMenu()
 **
 ************************************************************************/
 
-GameSpecificMenu() { }
+void GameSpecificMenu() { }
 
 /************************************************************************
 **
@@ -440,7 +416,7 @@ GameSpecificMenu() { }
 **
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -1094,7 +1070,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[REDUCTBOARDSIZE], whosTurn, temp;
@@ -1217,74 +1193,6 @@ GetInitialPosition()
 
 /************************************************************************
 **
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-**
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
-**
-************************************************************************/
-
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  POSITION GetCanonicalPosition(), canPosition;
-  MOVE DecodeMove(), theMove;
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-
-  if (gSymmetries) {
-    canPosition = GetCanonicalPosition(thePosition);
-    if(gPossibleMoves)
-      printf("%s could equivalently choose [ ", 
-gPlayerName[kComputersTurn]);
-    head = ptr = GetValueEquivalentMoves(thePosition);
-    while(ptr != NULL) {
-      numberMoves++;
-      if(gPossibleMoves)
-	printf("%d ",ptr->move+1);
-      ptr = ptr->next;
-    }
-    if(gPossibleMoves)
-      printf("]\n\n");
-    randomMove = GetRandomNumber(numberMoves);
-    ptr = head;
-    for(i = 0; i < randomMove ; i++)
-      ptr = ptr->next;
-    theMove = ptr->move;
-    FreeMoveList(head);
-    return(DecodeMove(thePosition, canPosition, theMove));
-  }
-  else {
-    if(gPossibleMoves)
-      printf("%s could equivalently choose [ ", 
-gPlayerName[kComputersTurn]);
-    head = ptr = GetValueEquivalentMoves(thePosition);
-    while(ptr != NULL) {
-      numberMoves++;
-      if(gPossibleMoves)
-	printf("%d ",ptr->move+1);
-      ptr = ptr->next;
-    }
-    if(gPossibleMoves)
-      printf("]\n\n");
-    randomMove = GetRandomNumber(numberMoves);
-    ptr = head;
-    for(i = 0; i < randomMove ; i++)
-      ptr = ptr->next;
-    theMove = ptr->move;
-    FreeMoveList(head);
-    return(theMove);
-  }
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -1294,7 +1202,7 @@ gPlayerName[kComputersTurn]);
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -1302,8 +1210,7 @@ PrintComputersMove(computersMove,computersName)
     printf("%8s's move              : %2d\n", computersName, computersMove);
   }
   else {
-    printf("\n%8s's move              : %2d\n\n Computer placed a SPECIAL 
-PIECE. Watch out! :)\n", computersName, computersMove );
+    printf("\n%8s's move              : %2d\n\n Computer placed a SPECIAL PIECE. Watch out! :)\n", computersName, computersMove );
   }
 
     // THIS METHOD IS STILL IN QUESTION.
@@ -1404,15 +1311,13 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   /* All our variables before functions */
   int i;
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
   BlankOX theBlankOX[REDUCTBOARDSIZE];
   char elt[REALBOARDSIZE];
   char *meters[] = { "----------@",
@@ -1701,7 +1606,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   // Our theMove is from 1-6, because of special pieces
@@ -1709,266 +1614,23 @@ PrintMove(theMove)
 
 }
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-**
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-  BlankOX theBlankOX[REDUCTBOARDSIZE], WhoseTurn(), whoseTurn;
-  FUZZY FuzzifyValue(), FuzzyComplement(), FuzzySnorm(), goodness;
-  FUZZY GoodMiddleX(), GoodOppositeX();
-
-  PositionToBlankOX(thePosition,theBlankOX);
-  whoseTurn = WhoseTurn(theBlankOX);
-
-  if(gStandardGame)
-    return(FuzzifyValue(lose));  /* we don't know - random */
-  else {
-
-    /** we evaluate the GOODNESS of the position for player 1
-     ** and then take the complement if we find out that it's
-     ** really player 2's turn.
-     **/
-
-    goodness = 
-FuzzySnorm(GoodMiddleX(theBlankOX),GoodOppositeX(theBlankOX));
-
-    if(whoseTurn == x)
-      return(goodness);
-    else
-      return(FuzzyComplement(goodness));
-  }
+/*** Database Functions ***/
+int NumberOfOptions() {
+  return 2;
 }
 
-/************************************************************************
-**
-** NAME:        GoodMiddleX
-**
-** DESCRIPTION: Returns the GOODNESS value of having X in the middle
-**
-** INPUTS:      BlankOX theBlankOX : the description of the position
-**
-** OUTPUTS:     (FUZZY) : returns FUZZY [0,1] based on Goodness for x
-**
-************************************************************************/
-
-FUZZY GoodMiddleX(theBlankOX)
-     BlankOX theBlankOX[];
-{
-  //return 0;
-  //BlankOX middlePiece;
-  char middlePiece;
+int getOption() {
+  int option = 1;
   
-  middlePiece = gBlankOXString[theBlankOX[4]][1];  //the middle piece
-  if(middlePiece = 'x')
-    return(MAX_FUZZY_VALUE);
-  else if(middlePiece = 'o')
-    return(MIN_FUZZY_VALUE);
-  else
-    return(TIE_FUZZY_VALUE);
-   
+  option += (gStandardGame ? 0 : 1);
 }
 
-/************************************************************************
-**
-** NAME:        GoodOppositeX
-**
-** DESCRIPTION: Returns the GOODNESS value for X of having a piece
-**              on the opposite side as the other person's piece
-**
-** INPUTS:      BlankOX theBlankOX : the description of the position
-**
-** OUTPUTS:     (FUZZY) : returns FUZZY [0,1] based on Goodness for x
-**
-************************************************************************/
-
-FUZZY GoodOppositeX(theBlankOX)
-     BlankOX theBlankOX[];
-{
-
+void setOption(int option) {
+  option--;
   
-  FUZZY returnValue = MAX_FUZZY_VALUE, costForNotMatching;
-  int i;
-
-  costForNotMatching = 0.2;   // THIS BETTER NOT DROP BELOW 0.25!! 
-
-  // Hardcode this
-  // check 0,8
-  if ( (gBlankOXString[theBlankOX[3]][0] != gBlankOXString[theBlankOX[5]][2]) &&
-       (gBlankOXString[theBlankOX[3]][0] == '_' || gBlankOXString[theBlankOX[5]][2] == '_' ) ) {
-    returnValue -= costForNotMatching;
-  }
-  
-  // check 1,7
-  if ( (gBlankOXString[theBlankOX[4]][0] != gBlankOXString[theBlankOX[4]][2]) &&
-       (gBlankOXString[theBlankOX[4]][0] == '_' || gBlankOXString[theBlankOX[4]][2] == '_' ) ) {
-    returnValue -= costForNotMatching;
-  }
-  // check 2, 6
-  if ( (gBlankOXString[theBlankOX[5]][0] != gBlankOXString[theBlankOX[3]][2]) &&
-       (gBlankOXString[theBlankOX[5]][0] == '_' || gBlankOXString[theBlankOX[3]][2] == '_' ) ) {
-    returnValue -= costForNotMatching;
-  }
-
-  // check 3, 5
-  if ( (gBlankOXString[theBlankOX[3]][1] != gBlankOXString[theBlankOX[5]][1]) &&
-       (gBlankOXString[theBlankOX[3]][1] == '_' || gBlankOXString[theBlankOX[5]][1] == '_' ) ) {
-    returnValue -= costForNotMatching;
-  }
-  
-  
-  /*for(i = 0; i < 4; i++)
-
-     if((theBlankOX[i] != theBlankOX[9-i]) &&
-      ((theBlankOX[i] == Blank) || theBlankOX[9-i] == Blank))
-       returnValue -= costForNotMatching;
-  */
-  
-  return(returnValue);
+  gStandardGame = (option%2==0);
 }
 
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-**
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-** CALLS:       PositionToBlankOX(POSITION,*BlankOX)
-**              BlankOX WhosTurn(*BlankOX)
-**
-************************************************************************/
-
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-  BlankOX WhoseTurn(),theBlankOX[REDUCTBOARDSIZE];
-  PositionToBlankOX(thePosition,theBlankOX);
-  return(WhoseTurn(theBlankOX) == x ? maximizing : minimizing);
-}
-
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-**
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**
-************************************************************************/
-
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  POSITION GetCanonicalPosition();
-
-  if(gSymmetries)
-    return(&gDatabase[GetCanonicalPosition(position)]);
-  else
-    return(&gDatabase[position]);
-}
-
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-**
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
-
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
-}
-
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
 
 /************************************************************************
 *************************************************************************
@@ -2054,88 +1716,6 @@ POSITION BlankOXToPosition(theBlankOX)
   return(position);
 }
 
-/************************************************************************
-**
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. 
-of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-** CALLS:       POSITION DoSymmetry(POSITION, int)
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(position)
-     POSITION position;
-{
-  POSITION newPosition, theCanonicalPosition, DoSymmetry();
-  int i;
-
-  theCanonicalPosition = position;
-
-  /*  for(i = 0 ; i < NUMSYMMETRIES ; i++) { */
-
-/*      newPosition = DoSymmetry(position, i);    /* get new */
-/*      if(newPosition < theCanonicalPosition)    /* THIS is the one */
-/*        theCanonicalPosition = newPosition;   /* set it to the ans */
-/*    } */
-
-  return(theCanonicalPosition);
-}
-
-/************************************************************************
-**
-** NAME:        DecodeMove
-**
-** DESCRIPTION: If this is the move the canonical position would
-**              have done, and this is the position we HAVE, how does
-**              the move change for our position? We return that new
-**              move that's relevant to our position.
-**
-** INPUTS:      POSITION thePosition : The new position
-**              POSITION canPosition : The canonical position
-**              MOVE     move        : The move to convert
-**
-** OUTPUTS:     MOVE                 : The equivalent move for thePosition.
-**
-** CALLS:       POSITION DoSymmetry(POSITION, int)
-**
-************************************************************************/
-
-
-MOVE DecodeMove(thePosition, canPosition, move)
-     POSITION thePosition, canPosition;
-     MOVE move;
-{
-  return move;
-}
-
-
-/************************************************************************
-**
-** NAME:        DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-**              on the position specified by the input and return the
-**              new position, even if it's the same as the input.
-**
-** INPUTS:      POSITION position : The position to branch the symmetry 
-from.
-**              int      symmetry : The number of the symmetry operation.
-**
-** OUTPUTS:     POSITION, The position after the symmetry operation.
-**
-** CALLS:       GENERIC_PTR SafeMalloc(int)
-**
-************************************************************************/
-
-// Deleted method onNov 5, 2001
 
 /************************************************************************
 **
