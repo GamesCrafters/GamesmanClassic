@@ -1,4 +1,4 @@
-SP#ifndef __GAMESMAN_H__
+#ifndef __GAMESMAN_H__
 #define __GAMESMAN_H__
 
 #ifndef NO_GRAPHICS
@@ -269,5 +269,9 @@ void createAnalysisVarDir();
 void writeGameHTML();
 //void createAnalysisLink();
 
+
+
+/*** Other GamesCrafter .h Inclusion ***/
+#include "hash.h"
 
 #endif

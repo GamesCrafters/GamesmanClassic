@@ -343,8 +343,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  int generic_hash_init();
-
+  
   int hash_array[10];
   char string_board[MAX_NODES];
 
@@ -481,8 +480,7 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  int generic_hash(), generic_unhash(), whoseMove();
-
+  
   int to, from;
   int player;
   char string_board[MAX_NODES];
