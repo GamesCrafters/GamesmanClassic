@@ -24,7 +24,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -36,13 +36,13 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
-#     global gMisereGame
-#     if {!$gMisereGame} {
-# 	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
-#     } else {
-# 	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
-#     }
-#     SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
+    global gMisereGame
+     if {!$gMisereGame} {
+ 	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
+     } else {
+ 	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
+#    }
+     SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
 
 
 
@@ -196,7 +196,7 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't necessary
-    $c configure -width 750 -height 750
+    $c configure -width 500 -height 500
 
     global xCenter yCenter
     global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
@@ -547,6 +547,7 @@ proc GS_DrawPosition { c position } {
 
 
     set mask 1
+    set shiftingPosition position
 
     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
