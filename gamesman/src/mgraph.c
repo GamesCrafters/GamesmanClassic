@@ -23,9 +23,6 @@
 #include "gamesman.h"
 #include "loopygasolver.h"
 
-/* external variables */
-extern   STRING gValueString[];
-
 /* variables */
 POSITION gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
 
@@ -140,7 +137,7 @@ void InitializeGame()
   gGraphNeighborList = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
 
   if (!gGraphFilenameSet) {
-    (void) sprintf((char *)gGraphFilename, "../grf/default.grf");
+    (void) sprintf((char *)gGraphFilename, "../meta/default.grf");
     if (kDBName != NULL) SafeFree(kDBName);
     kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
     sprintf(kDBName, "graph-default");
@@ -396,12 +393,12 @@ void GameSpecificMenu() {
   gGraphFilenameSet = FALSE;
 
   while (!gGraphFilenameSet) {
-    printf("\nSpecify one of the files in the ../grf directory");
+    printf("\nSpecify one of the files in the ../meta directory");
     printf("\n(But don't add the .grf at the end)\n\n");
-    system("ls ../grf");
+    system("ls ../meta");
     printf("\nLoad Graph from : ");
     scanf("%s", tmp);
-    (void) sprintf((char *)gGraphFilename, "../grf/%s.grf", tmp);
+    (void) sprintf((char *)gGraphFilename, "../meta/%s.grf", tmp);
 
     if((fp = fopen(gGraphFilename, "r")) != NULL) {
       gGraphFilenameSet = TRUE;
