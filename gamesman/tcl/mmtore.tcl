@@ -43,7 +43,9 @@ proc GS_InitGameSpecific {} {
 	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
     }
     SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
-	    
+
+
+
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
@@ -191,70 +193,103 @@ proc GS_Initialize { c } {
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width 500 -height 500
 
+    global xCenter yCenter
+    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
 
-    ########## background circles
-    $c create oval 75 75 425 425 -fill black -tag path
-    ##background circle
-
-    $c create oval 210 35 290 115 -fill white -tag hole1
-    ##top circle
-
-    $c create oval 210 385 290 465 -fill white -tag hole1
-    ##bottom circle
-
-    $c create oval 35 210 115 290 -fill white -tag hole1
-    ##left circle
-
-    $c create oval 385 210 465 290 -fill white -tag hole1
-    ##right circle
-
-    $c create oval 86.25 86.25 166.25 166.25 -fill white -tag hole2
-    ##upper left circle
-
-    $c create oval 86.25 333.75 166.25 413.75 -fill white -tag hole2
-    ##lower left circle
-
-    $c create oval 333.75 86.25 413.75 166.25 -fill white -tag hole2
-    ##upper right circle
-
-    $c create oval 333.75 333.75 413.75 413.75 -fill white  -tag hole2
-    ##lower right circle
-
-    $c create oval 210 210 290 290 -fill white -tag hole0
-    ##middle circle
+    set cWidth [$c cget -width]
+    set cHeight [$c cget -height]
+    
+    if {$cWidth < $cHeight} {
+	set cSmallerDim $cWidth
+    } else {
+	set cSmallerDim $cHeight
+    }
 
 
+    set xCenter [expr $cWidth / 2]
+    set yCenter [expr $cHeight / 2]
 
-    ########## lines
-    $c create line 250 115 250 210 -fill white -tag l1
-    ##line from top to middle
+    set smallCircleDiam [expr $cSmallerDim * 0.16]
+    set largeCircleDiam [expr $cSmallerDim * 0.7]
+    set pieceCircleDiam [expr $cSmallerDim * 0.12]
+    set largeCircleRadius [expr $largeCircleDiam / 2]
 
-    $c create line 250 290 250 385 -fill white -tag l1
-    ##line from middle to bottom
-
-    $c create line 115 250 210 250 -fill white -tag l1
-    ##line from left to middle
-
-    $c create line 290 250 385 250 -fill white -tag l1
-    ##line from middle to right
+    set pi [expr {atan(1)} * 4]
+    set cornerOffset [expr {cos([expr $pi / 4])} * $largeCircleRadius]
 
 
-    $c create line 155 155 221 221 -fill white -tag l2
-    ##line from middle to upperleft
+    ##### background circles
+    
+    ## large background circle
+    drawOval $c $xCenter $yCenter $largeCircleDiam "black" "black" "bgCircle"
 
-    $c create line 279 279 345 345 -fill white -tag l2
-    ##line from middle to lowerright
-
-    $c create line 279 221 345 155 -fill white -tag l2
-    ##line from middle to upperright
-
-    $c create line 221 279 155 345 -fill white -tag l2
-    ##create line from middle to lowerleft
+    ## center circle
+    drawOval $c $xCenter $yCenter $smallCircleDiam "white" "white" "bgMiniCircle"
 
 
 
+    ## top circle
+    drawOval $c $xCenter [expr $yCenter - $largeCircleRadius] $smallCircleDiam "white" "black" "bgMiniCircle"
 
-    ###### pieces
+    ## bottom circle
+    drawOval $c $xCenter [expr $yCenter + $largeCircleRadius] $smallCircleDiam "white" "black" "bgMiniCircle"
+
+    ## left circle
+    drawOval $c [expr $xCenter - $largeCircleRadius] $yCenter $smallCircleDiam "white" "black" "bgMiniCircle"
+
+    ## right circle
+    drawOval $c [expr $xCenter + $largeCircleRadius] $yCenter $smallCircleDiam "white" "black" "bgMiniCircle"
+
+
+
+    ## upper left circle
+    drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] $smallCircleDiam "white" "black" "bgMiniCircle"
+
+    ## lower left circle
+    drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] $smallCircleDiam "white" "black" "bgMiniCircle"
+
+    ## upper right circle
+    drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] $smallCircleDiam "white" "black" "bgMiniCircle"
+
+    ## lower right circle
+    drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] $smallCircleDiam "white" "black" "bgMiniCircle"
+
+
+
+
+
+
+    ##### lines
+    
+    ## line from middle to top
+    $c create line $xCenter $yCenter [expr $xCenter + $largeCircleRadius] $yCenter -fill white -tag line
+
+    ## line from middle to bottom
+    $c create line $xCenter $yCenter [expr $xCenter - $largeCircleRadius] $yCenter -fill white -tag line
+
+    ## line from middle to left
+    $c create line $xCenter $yCenter $xCenter [expr $yCenter - $largeCircleRadius] -fill white -tag line
+
+    ## line from middle to right
+    $c create line $xCenter $yCenter $xCenter [expr $yCenter + $largeCircleRadius] -fill white -tag line
+
+
+    ## line from middle to upper left
+    $c create line $xCenter $yCenter [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] -fill white -tag line
+
+    ## line from middle to lower left
+    $c create line $xCenter $yCenter [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] -fill white -tag line
+
+    ## line from middle to upper right
+    $c create line $xCenter $yCenter [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] -fill white -tag line
+
+    ## line from middle to lower right
+    $c create line $xCenter $yCenter [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] -fill white -tag line
+
+
+
+    ##### board locations
+
     #    3
     # 2  |  4
     #  \   /
@@ -263,34 +298,58 @@ proc GS_Initialize { c } {
     # 8  |  6
     #    7
 
-    # coordinates
-    # 0 = 220 220 280 280
-    # 1 = 45 220 105 280
-    # 2 = 98.25 98.25 156.25 156.25
-    # 3 = 220 45 280 105
-    # 4 = 343.75 98.25 403.75 156.25
-    # 5 = 395 220 455 280
-    # 6 = 343.75 343.75 403.75 403.75
-    # 7 = 220 395 280 455
-    # 8 = 96.25 343.75 156.25 403.75
 
-    $c create oval 45 220 105 280 -fill blue -outline blue -tag blue
-    $c create oval 98.25 98.25 156.25 156.25 -fill blue -outline blue -tag blue 
-    $c create oval 220 45 280 105 -fill blue -outline blue -tag blue
-    $c create oval 343.75 98.25 403.75 156.25 -fill blue -outline blue -tag blue 
 
-    $c create oval 96.25 343.75 156.25 403.75 -fill red -outline red -tag red
-    $c create oval 220 395 280 455 -fill red -outline red -tag red
-    $c create oval 343.75 343.75 403.75 403.75 -fill red -outline red -tag red
-    $c create oval 395 220 455 280 -fill red -outline red -tag red
+    ##### pieces
+
+    ## left circle blue piece
+    drawPiece $c 1 "blue"
+
+    ## upper left circle blue piece
+    drawPiece $c 2 "blue"
+
+    ## top circle blue piece
+    drawPiece $c 3 "blue"
+
+    ## upper right circle blue piece
+    drawPiece $c 4 "blue"
+
+
+
+    ## lower left circle red piece
+    drawPiece $c 5 "red"
+
+    ## bottom circle red piece
+    drawPiece $c 6 "red"
+
+    ## lower right circle red piece
+    drawPiece $c 7 "red"
+
+    ## right circle red piece
+    drawPiece $c 8 "red"
+
+
+
+    $c raise bgCircle
+    $c raise line
+    $c raise bgMiniCircle
+    $c raise piece
+
 
 
     ##### arrow
     #$c create line 291 250 365 250 -width 15 -arrow last -arrowshape {30 30 15} -fill turquoise -tag arrow
 
 
-
 } 
+
+
+## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
+proc drawOval { c x y size fill outline tag } {
+    set radius [expr $size / 2]
+    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
+}
+
 
 
 #############################################################################
@@ -317,9 +376,102 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
     
-    ### TODO: Fill this in
+
+    $c raise bgCircle
+    $c raise line
+    $c raise bgMiniCircle
+
+    ##### board locations
+
+    #    3
+    # 2  |  4
+    #  \   /
+    #1-- 0 --5
+    #  / | \
+    # 8  |  6
+    #    7
+
+    # hash on 13 digit binary
+    # right most 9 digits specify board location and color
+    # for the right most 9 digits 0 is blue, 1 is red
+    # left most 4 digits specify blank spot (must equal a value 0-8)
+
+    # example
+    # 0011011001011
+    # right most 9 = 011001011
+    # from right to left location 0 is red
+    #                             1 is red
+    #                             2 is blue
+    #                             3 is red
+    #                             4 is blue
+    #                             5 is blue
+    #                             6 is red
+    #                             7 is red
+    #                             8 is blue
+    # notice there are 5 red pieces which is incorrect so we must overwrite one
+    # of those 5 pieces to be blank
+    #
+    # left most 4 digits = 0011 = 3 in base 10
+    # so the blank space is 3 and should overwrite the red piece from above
+
+
+    set mask 1
+
+    for {set x 0} {$x < 9} {set x [expr $x + 1]} {
+	
+	if {[expr $mask & $position] == 0} {
+	    drawPiece $c $x "blue"
+	} else {
+	    drawPiece $c $x "red"
+	}
+	set mask [expr $mask * 2]
+    }
+
+    set blankSpot [expr $position >> 9]
+    set blankSpot [expr $blankSpot & 15]
+    drawPiece $c $blankSpot "white"
 
 }
+
+
+    ##### board locations
+
+    #    3
+    # 2  |  4
+    #  \   /
+    #1-- 0 --5
+    #  / | \
+    # 8  |  6
+    #    7
+
+## drawPiece draws an piece on the canvas at the board location
+proc drawPiece { c boardLocation color } {
+    global xCenter yCenter
+    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
+
+    if {$boardLocation == 0} {
+	drawOval $c $xCenter $yCenter $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 1} {
+	drawOval $c [expr $xCenter - $largeCircleRadius] $yCenter $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 2} {
+	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 3} {
+	drawOval $c $xCenter [expr $yCenter - $largeCircleRadius] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 4} {
+	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 5} {
+	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 6} {
+	drawOval $c $xCenter [expr $yCenter + $largeCircleRadius] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 7} {
+	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color "piece"
+    } elseif {$boardLocation == 8} {
+	drawOval $c [expr $xCenter + $largeCircleRadius] $yCenter $pieceCircleDiam $color $color "piece"
+    } else {
+	#ERROR
+    }
+}
+
 
 
 #############################################################################
