@@ -489,6 +489,19 @@ extern void		SafeFree ();
 BOOLEAN offBoard(MOVE);
 BOOLEAN isPlayer(PIECE,PLAYER);
 
+
+/* Local */
+PIECE getPiece(MOVE move, BOARD board);
+CELL getSource(MOVE move);
+CELL getDest(MOVE move);
+int getBoardSize();
+int getRow(CELL cell);
+int getCol(CELL cell);
+PLAYER getPlayer(POSITION pos);
+int numOnBoard(PIECE piece, BOARD board);
+int sizeOfPieceType(struct pieceType *pt);
+MOVE makeMove(PIECE piece, CELL source, CELL dest);
+
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -1206,6 +1219,7 @@ int getRow(CELL cell) {
 }
 
 /* Gets the col from a cell number */
+
 int getCol(CELL cell) {
   return cell % numCols;
 }
@@ -1792,6 +1806,7 @@ int *getPieceArray(struct pieceType *types, int size) {
 // whose next 8 bits represent the source number, and whose next 4
 // bits represent the piece being moved
 // NOTE: 0xff for the source represents OFF the board
+
 MOVE makeMove(PIECE piece, CELL source, CELL dest) {
   int move = dest;
   move += source << CELL_LENGTH;
