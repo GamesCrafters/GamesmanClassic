@@ -21,13 +21,10 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "loopygasolver.h"
 
 /* external variables */
 extern   STRING gValueString[];
-
-/* function prototypes */
-VALUE TextToValue(char c);
-void LoadGraphFromFile(STRING graphFilename);
 
 /* variables */
 POSITION gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
@@ -92,8 +89,25 @@ Computer wins. Nice try, Dan.";
 **
 **************************************************************************/
 
+typedef enum {
+  NEVER, ALWAYS, IF, UNLESS
+} GO_AGAIN;
+
+typedef struct go_again_tuple {
+  POSITION from;
+  POSITION to;
+  struct go_again_tuple* next;
+} GO_AGAIN_TUPLE_LIST;
+
+/* function prototypes */
+VALUE TextToValue(char c);
+void LoadGraphFromFile(STRING graphFilename);
+BOOLEAN GraphGoAgain(POSITION position, MOVE move);
+
 /*** These are so that we can bootstrap and load the graphs on the fly ***/
 
+GO_AGAIN gGoAgainType = NEVER;
+POSITIONLIST** gGraphGoAgainExceptions = NULL;
 char gGraphFilename[MAXINPUTLENGTH];
 BOOLEAN gGraphFilenameSet = FALSE;
 
@@ -136,16 +150,36 @@ void InitializeGame()
     gGraphNeighborList[i]  = NULL;
   }
 
+  if (gGraphGoAgainExceptions != NULL) {
+    for (i=0; i<gNumberOfPositions; i++) {
+      FreePositionList(gGraphGoAgainExceptions[i]);
+    }
+    SafeFree(gGraphGoAgainExceptions);
+  }
+
   LoadGraphFromFile(gGraphFilename);
+
+  gGoAgain = GraphGoAgain;
+  gSolver = lgas_DetermineValue;
+  printf("Loaded solver\n");
 }
 
 void FreeGame()
 {
+  POSITION i; 
+
   if (gGraphPrimitiveList==NULL) {
     SafeFree(gGraphPrimitiveList);
   }
   if (gGraphNeighborList==NULL) {
     SafeFree(gGraphNeighborList);
+  }
+
+  if (gGraphGoAgainExceptions != NULL) {
+    for (i=0; i<gNumberOfPositions; i++) {
+      FreePositionList(gGraphGoAgainExceptions[i]);
+    }
+    SafeFree(gGraphGoAgainExceptions);
   }
 }
 
@@ -156,8 +190,11 @@ STRING graphFilename;
   VALUE nodeValue;
   FILE *fp;
   POSITION nodeNumber, nodeChild;
+  POSITION from, to;
   int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
   char theValueChar;
+  char input;
+  GO_AGAIN_TUPLE_LIST* tuples;
   
   /*** See if the file can even be read ***/
 
@@ -220,8 +257,91 @@ STRING graphFilename;
 
   gLargestNodeNumber = largestNodeSoFar;
 
+  /*** Go again ***/
+
+  /* not defined, default to never */
+  if (fscanf(fp, "%*s %*s %c", &input) != 1) {
+    gGoAgainType = NEVER;
+  }
+  else {
+    if (input == 'a') {
+      fscanf(fp, "%*s");
+      gGoAgainType = ALWAYS;
+    }
+    else if (input == 'n') {
+      fscanf(fp, "%*s");
+      gGoAgainType = NEVER;
+    }
+    else if (input == 'i') {
+      fscanf(fp, "%*s");
+      gGoAgainType = IF;
+    }
+    else if (input == 'u') {
+      fscanf(fp, "%*s");
+      gGoAgainType = UNLESS;
+    }
+    else {
+      printf("Invalid keyword after GoAgain\n");
+      ExitStageRight();
+      exit(0);
+    }
+  
+
+    /* clean up on gGraphGoAgainExceptions is done is in initialize game and fre game */
+
+    gGraphGoAgainExceptions = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST*));
+    for (i=0; i<=gNumberOfPositions; i++) {
+      gGraphGoAgainExceptions[i] = NULL;
+    }
+      
+    if (gGoAgainType==IF || gGoAgainType==UNLESS) {
+      while(fscanf(fp, POSITION_FORMAT " " POSITION_FORMAT, &from, &to) != EOF) {
+	 gGraphGoAgainExceptions[from] = StorePositionInList(to, gGraphGoAgainExceptions[from]);
+      }
+    }
+    
+  }
+  
   fclose(fp);
 }
+
+BOOLEAN GraphGoAgain(POSITION position, MOVE move) {
+  BOOLEAN defaultsTo = FALSE;
+  POSITIONLIST* exceptions;
+
+  if (gGoAgainType == NEVER) {
+    return FALSE;
+  }
+  else if (gGoAgainType == ALWAYS) {
+    return TRUE;
+  }
+  else if (gGoAgainType == IF) {
+    defaultsTo = FALSE;
+  }
+  else if (gGoAgainType == UNLESS) {
+    defaultsTo = TRUE;
+  }
+  else {
+    BadElse("GraphGoAgain");
+    exit(0);
+  }
+
+  if (gGoAgainType == IF || gGoAgainType==UNLESS) {
+    exceptions = gGraphGoAgainExceptions[position];
+    while (exceptions != NULL) {
+      if (exceptions->position==(POSITION)move) {
+	return !defaultsTo;
+      }
+      exceptions = exceptions->next;
+    }
+    return defaultsTo;
+  }
+  else {
+    BadElse("GraphGoAgain");
+    exit(0);
+  }
+}
+
 
 VALUE TextToValue(c)
 char c;
@@ -270,20 +390,33 @@ void DebugMenu()
 
 void GameSpecificMenu() {
   char tmp[MAXINPUTLENGTH];
-  gGraphFilenameSet = TRUE;
-  printf("\nSpecify one of the files in the ../grf directory");
-  printf("\n(But don't add the .grf at the end)\n\n");
-  system("ls ../grf");
-  printf("\nLoad Graph from : ");
-  scanf("%s", tmp);
-  if (kDBName != NULL) SafeFree(kDBName);
-  kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
-  sprintf(kDBName, "graph-%s", tmp);
-  (void) sprintf((char *)gGraphFilename, "../grf/%s.grf", tmp);
+  FILE* fp;
+
+  gGraphFilenameSet = FALSE;
+
+  while (!gGraphFilenameSet) {
+    printf("\nSpecify one of the files in the ../grf directory");
+    printf("\n(But don't add the .grf at the end)\n\n");
+    system("ls ../grf");
+    printf("\nLoad Graph from : ");
+    scanf("%s", tmp);
+    (void) sprintf((char *)gGraphFilename, "../grf/%s.grf", tmp);
+
+    if((fp = fopen(gGraphFilename, "r")) != NULL) {
+      gGraphFilenameSet = TRUE;
+      if (kDBName != NULL) SafeFree(kDBName);
+      kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+      sprintf(kDBName, "graph-%s", tmp);
+    }
+    else {
+      printf("Invalid file name\n");
+    }
+  }
+
   FreeGame();
   InitializeGame();
 }
-
+  
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
