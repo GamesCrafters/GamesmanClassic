@@ -202,7 +202,7 @@ void InitializeGame()
   arrayBoard[turn] = 0;
 
   /* this is the max number the rearrangerHash can generate
-     given the limitations of the 32-bit cpu 2 * (31 nCr 15) */
+     given the limitations of the 32-bit cpu 2 * (31 my_nCr 15) */
   //gNumberOfPositions = 601080390;
   gInitialPosition = array_unhash(arrayBoard);
   
@@ -1069,5 +1069,133 @@ POSITION array_unhash (int *hashed) {
   free (dest);
   return result;
 }
+
+// for atilla's hash code ...
+int *gHashOffset = NULL ;
+int *gNCR = NULL ;
+static int gHashOffsetSize;
+static int gHashBoardSize;
+static int gHashMinMax[4];
+static int gHashNumberOfPos;
+// end for atilla's hash code
+
+void hash_free()
+{
+	if(gHashOffset)
+	{
+		SafeFree(gHashOffset) ;
+		gHashOffset = NULL ;
+	}
+	if(gNCR)
+	{
+		SafeFree(gNCR) ;
+		gHashOffset = NULL ;
+	}
+}
+
+int rearranger_hash_init(int boardsize, int numOs, int numXs)
+{
+  gHashMinMax[0] = numOs;
+  gHashMinMax[1] = numOs;
+  gHashMinMax[2] = numXs;
+  gHashMinMax[3] = numXs;
+  gHashBoardSize = boardsize;
+  my_nCr_init(boardsize);
+  gHashNumberOfPos = my_nCr(numXs+numOs, numXs) * my_nCr(boardsize, numXs+numOs);   
+  return gHashNumberOfPos ;
+}
+
+int rearranger_hash(char* board)
+{
+	int temp, i, numxs,  numos, numXs;
+	int boardsize;
+	numxs = gHashMinMax[3];
+	numos = gHashMinMax[1];
+	boardsize = gHashBoardSize;
+	temp = 0;
+	for (i = 0; i < gHashBoardSize; i++)
+	{
+	  if (board[i] == 'b')
+	    {
+	      boardsize--;
+	    } 
+
+	  else if (board[i] == 'o')
+	    {
+	      temp += my_nCr(numxs + numos, numos) * my_nCr(boardsize - 1, numxs + numos);
+	      boardsize--;
+	      numos--;
+	    }
+	  else
+	    {
+	      temp += my_nCr(numxs + numos, numos) * 
+		my_nCr(boardsize - 1, numxs + numos) +
+		my_nCr (numxs + numos - 1, numxs) *
+		my_nCr(boardsize - 1,  numxs + numos - 1);
+	      boardsize--;
+	      numxs--;
+	    }
+	}
+	return temp;
+}
+
+BOOLEAN rearranger_unhash(int hashed, char* dest)
+{
+	int i, j, offst, numxs, numos, temp, boardsize;
+	j = 0;
+	boardsize = gHashBoardSize;
+	numxs = gHashMinMax[3];
+	numos = gHashMinMax[1];
+	for (i = 0; i < gHashBoardSize; i++)
+	{
+	  temp = my_nCr(numxs + numos, numos) * 
+	    my_nCr(boardsize - 1, numxs + numos);
+	  if (numxs + numos <= 0){
+	    dest[i] = 'b';
+	  } else if (temp + my_nCr (numxs + numos - 1, numxs) * my_nCr(boardsize - 1, numxs + numos - 1) <= hashed)
+	    {
+	      hashed -= (temp + my_nCr (numxs + numos - 1, numxs) * my_nCr(boardsize - 1,  numxs + numos - 1));
+	      dest[i] = 'x';
+	      numxs--;
+	    }
+	  else if (temp <= hashed)
+	    {
+	      hashed -= temp;
+	      dest[i] = 'o';
+	      numos--;  
+	    }
+	  else
+	    {
+	      dest[i] = 'b';
+	    }
+	  boardsize--;
+	}
+	return TRUE;
+}
+
+void my_nCr_init(boardsize)
+{
+	int i, j;
+	gNCR = (int*) SafeMalloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
+	for(i = 0; i<= boardsize; i++)
+	{
+		gNCR[i*(boardsize+1)] = 1;
+		gNCR[i*(boardsize+1) + i] = 1;
+	}
+	for(i = 1; i<= boardsize; i++)
+	{
+		for(j = 1; j < i ; j++)
+		{
+			gNCR[i*(boardsize+1) + j] = gNCR[(i-1)*(boardsize+1) + j-1] + gNCR[(i-1)*(boardsize+1) + j];
+		}
+	}
+}
+
+int my_nCr(int n, int r)
+{
+  return gNCR[n*(gHashBoardSize+1) + r];
+}
+
+
 
 void* gGameSpecificTclInit = NULL;
