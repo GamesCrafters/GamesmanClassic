@@ -1,8 +1,8 @@
-  _____    _____
- /  ___|  /  ___|  
-|  |  _  |  /         <- I tried to copy Dan's README...didn't work...
-|  |_| | |  \___      <- Anybody want to "beautify" it?
- \_____|o \_____|o
+      ____                            ____            __ _
+     / ___| __ _ _ __ ___   ___  ___ / ___|_ __ __ _ / _| |_ ___ _ __ ___
+    | |  _ / _` | '_ ` _ \ / _ \/ __| |   | '__/ _` | |_| __/ _ \ '__/ __|
+    | |_| | (_| | | | | | |  __/\__ \ |___| | | (_| |  _| ||  __/ |  \__ \
+     \____|\__,_|_| |_| |_|\___||___/\____|_|  \__,_|_|  \__\___|_|  |___/
 
  http://inst.eecs.berkeley.edu/~gamesmen/
  http://sourceforge.net/projects/gamescrafters/
@@ -14,7 +14,7 @@ CONTACT INFORMATION
 This is our little CVS tutorial.
 Everybody should use CVS to access this file, add his contact information,
 and then commit this file to CVS.
-Detailed information by Bryon found here: 
+Detailed information by Bryon found here:
 	http://gamescrafters.sourceforge.net/developers/cvs-general.html
 
 In summary (also from Bryon's instructions):
@@ -30,23 +30,6 @@ In summary (also from Bryon's instructions):
 *Note, omitting the [file] arguments will apply the command to all relevant
  files and subdirectories.
 
-===================
-Name: 	Elmer Lee
-Group:	Architecture
-Joined:	Fall 2003
-Major:	EECS
-E-Mail:	ogren@berkeley.edu
-AIM: 	EGGHEAD E
-Likes:	Robert A. Heinlein, Utada Hikaru, Blizzard Entertainment, Snowboarding,
-	Savage Garden, Azumanga Daioh, Paintballing
-====================
-Name:	Tse-Wen Tom Wang
-Group:	Architecture
-Joined:	Spring 2003
-Major:	CS and Philosophy
-E-mail:	tsewen@berkeley.edu
-AIM:	TomWang5
-Likes:	C. S. Lewis, J. R. R. Tolkien, ABSK.
 ====================
 Name:	John Jordan
 Group:	Architecture
@@ -56,6 +39,22 @@ E-Mail:	jjjordan _AAT_ berkeley
 AIM:	jjcal06
 Likes:	60s music, Radiohead, Pearl Jam, Monty Python, Football, C, Python, Ada,
 	and 8-space indents <g>.
+===================
+Name:	Elmer Lee
+Group:	Architecture
+Joined:	Fall 2003
+Major:	EECS
+E-Mail:	ogren@berkeley.edu
+AIM:	EGGHEAD E
+Likes:	Robert A. Heinlein, Utada Hikaru, Blizzard Entertainment, Snowboarding,
+	Savage Garden, Azumanga Daioh, Paintballing
+====================
+Name:	Eric Siroker
+Group:	New Games
+Joined:	Spring 2004
+Major:	Computer Science
+E-Mail:	esiroker@berkeley.edu
+Likes:	Programming (specifically Python), Sports (specifically Football)
 ====================
 Name:	Hobart Sze
 Group:	New Games
@@ -64,3 +63,11 @@ Major:	EECS
 E-Mail:	hobarts@berkeley.edu
 Likes:	X-Com:EU,Colonization, and most other popular PC games
 	game programming
+====================
+Name:	Tse-Wen Tom Wang
+Group:	Architecture
+Joined:	Spring 2003
+Major:	CS and Philosophy
+E-mail:	tsewen@berkeley.edu
+AIM:	TomWang5
+Likes:	C. S. Lewis, J. R. R. Tolkien, ABSK.
