@@ -5,9 +5,9 @@
 
 if test "$1" = "all"
 then
-	options="-solve all"
+	options="--solve all"
 else
-	options="-solve"
+	options="--solve"
 fi
 
 CWD=`dirname $0`
