@@ -37,9 +37,9 @@
 ** Globals
 */
 
-long  gTotalMoves = 0;
+long		gTotalMoves = 0;
+static ANALYSIS	gAnalysis;
 
-ANALYSIS gAnalysis;
 
 /*
 ** Code
