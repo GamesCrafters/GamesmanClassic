@@ -19,7 +19,10 @@
 # 2004.11.02  added isThreeInRow function to clean up if-clauses in GS_GameOver
 #             removed old code that was in comments, they don't make any sense
 #             change everything to 0-indexing... pretty much had to decrement every single digit in this file
-#             
+# 2004.12.01  added allDiag, noDiag variations
+#             removed the erroneous drawing of strikeouts for a misere game
+#             still broken: GS_HandleUndo
+#
 # Future changes:
 # a lot of hardcoding done in Spring 2003, hard to undo
 # be able to retrieve coordinates for arrows and positions dynamically, instead of hardcoded
@@ -54,8 +57,8 @@ set firstYCoord $dotmid
 ## pieces
 set pieceSize [expr $dotmid - ($dotmid / 4)]
 set pieceOutline [expr $pieceSize / 14]
-set xColor blue
-set oColor red
+set xColor red
+set oColor blue
 set pieceOffset $dotgap
 ## dots
 set dotSize [expr $pieceSize.0 / 2.6]
@@ -425,6 +428,17 @@ proc GS_InitGameSpecific {} {
     set gInitialPosition 0
     set gPosition $gInitialPosition
 
+    ### Set diagonals
+    global gDiagonalsOption allDiag noDiag
+    set allDiag 0
+    set noDiag 0
+    if {$gDiagonalsOption == 1} {
+        set allDiag 1
+    }
+    if {$gDiagonalsOption == 2} {
+        set noDiag 1
+    }
+
     ### Set toWin and toMove
 
     global gMisereGame
@@ -513,10 +527,11 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gMisereGame
     set gMisereGame 0
 
-#    global
+    global gDiagonalsOption
+    set gDiagonalsOption 0
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gDiagonalsOption"]
 
     global kLabelFont
     set ruleNum 0
@@ -546,9 +561,11 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 
 proc GS_GetOption { } {
-    global gMisereGame
+    global gMisereGame gDiagonalsOption
     set option 1
     set option [expr $option + (1-$gMisereGame)]
+    set option [expr $option + (2*$gDiagonalsOption)]
+
     return $option
 }
 
@@ -563,9 +580,20 @@ proc GS_GetOption { } {
 # Returns: nothing
 
 proc GS_SetOption { option } {
-    global gMisereGame
+    global gMisereGame gDiagonalsOption allDiag noDiag
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option%2)]
+
+    if {$gDiagonalsOption == 1} {
+        set allDiag 1
+    } else {
+        set allDiag 0
+    }
+    if {$gDiagonalsOption == 2} {
+        set noDiag 1
+    } else {
+        set noDiag 0
+    }
 }
 
 
@@ -662,17 +690,22 @@ proc makeBoard { c } {
 
     # Diagonal Lines - display these conditionally
     # traditional diagonals
-    set topLeftLDL  [$c create line $x0 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-04 line-40]];
-    set topRightRDL [$c create line $x2 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-24 line-42]];
-    set botLeftRDL  [$c create line $x1 $y3 $x0 $y6 -fill $lineColor -tags [list base line line-46 line-64]];
-    set botRightLDL [$c create line $x1 $y3 $x2 $y6 -fill $lineColor -tags [list base line line-48 line-84]];
-
+    global noDiag
+    if {$noDiag == 0} {
+        set topLeftLDL  [$c create line $x0 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-04 line-40]];
+        set topRightRDL [$c create line $x2 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-24 line-42]];
+        set botLeftRDL  [$c create line $x1 $y3 $x0 $y6 -fill $lineColor -tags [list base line line-46 line-64]];
+        set botRightLDL [$c create line $x1 $y3 $x2 $y6 -fill $lineColor -tags [list base line line-48 line-84]];
+    }
 
     # full diagonals
-#     set topLeftRDL  [$c create line $x1 $y0 $x0 $y3 -fill $lineColor -tags [list base line line-13 line-31]];
-#     set topRightLDL [$c create line $x1 $y0 $x2 $y3 -fill $lineColor -tags [list base line line-15 line-51]];
-#     set botLeftLDL  [$c create line $x0 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-37 line-73]];
-#     set botRightRDL [$c create line $x2 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-57 line-75]];
+    global allDiag
+    if {$allDiag == 1} {
+        set topLeftRDL  [$c create line $x1 $y0 $x0 $y3 -fill $lineColor -tags [list base line line-13 line-31]];
+        set topRightLDL [$c create line $x1 $y0 $x2 $y3 -fill $lineColor -tags [list base line line-15 line-51]];
+        set botLeftLDL  [$c create line $x0 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-37 line-73]];
+        set botRightRDL [$c create line $x2 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-57 line-75]];
+    }
 
     # diagonal arrows - forward slashes
     set arrow4 [$c create line $x0 $y0 [expr $x0 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-4 arrow]];
