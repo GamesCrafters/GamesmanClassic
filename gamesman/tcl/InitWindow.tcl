@@ -44,7 +44,7 @@ proc TBaction1 {} {
 	.cStatus lower base
 	update idletasks
 	NewGame
-	set gGamePlayable true 
+	set gGamePlayable true
 	
 	.cToolbar bind iOTB1 <Any-Leave> \
 		".cToolbar raise iATB1"
@@ -695,10 +695,9 @@ proc InitWindow { kRootDir } {
 		".cToolbar raise iATB1"
 
 	.cStatus lower base
-	NewGame
 	global gGamePlayable
 	set gGamePlayable true
- 
+	NewGame
     }	
     .middle.f1.cMLeft lower detVal
     .middle.f3.cMRight lower play
