@@ -3923,6 +3923,7 @@ void writeXMLData(FILE* xmlFile)
     fprintf(xmlFile,"        </positionstats>\n");
     fprintf(xmlFile,"        <time>%d</time>\n",gAnalysis.TimeToSolve);
     fprintf(xmlFile,"    </variant>\n");
+    fflush(xmlFile);
 }
 
 void writeVarHTML ()
