@@ -70,6 +70,9 @@
 **              Changed moves to 'a2a4' as opposed to 'qa2a4' format
 **              
 **              Need to add in options, i.e. misere and diagonals off
+**                                                                --rc
+**
+** 2004.5.11    Fixed another bug in inputting text - hopefully that's it.
 **
 **************************************************************************/
 
@@ -198,10 +201,10 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 
 /** #defines **************************************************************/
 
-#define INIT_NUMROWS 4
-#define INIT_NUMCOLS 4
+#define INIT_NUMROWS 3
+#define INIT_NUMCOLS 3
 #define INIT_NUMPTYPES 3
-#define INIT_WINCONDITION 4
+#define INIT_WINCONDITION 3
 #define NUM_PIECES 13
 #define CELL_LENGTH 8
 #define MOVE_LENGTH 5
@@ -256,13 +259,28 @@ void InitializeGame () {
     winCondition = INIT_WINCONDITION;
   if (initPieces == NULL) {
     initPieces = (struct pieceType *)SafeMalloc(MAX_PIECES*sizeof(struct pieceType));
-    /* define initial pieces for board - two bishops for each side; */
-    initPieces[0].id = B_QN;
-    initPieces[0].freq = 2;
-    initPieces[1].id = W_QN;
-    initPieces[1].freq = 2;
-    initPieces[2].id = BLNK; // end condition
-    initPieces[2].freq = getBoardSize();
+    /* define initial pieces for board - bishop, queen, knight for each side; */
+
+    initPieces[0].id = B_RK;
+    initPieces[0].freq = 1;
+    initPieces[1].id = B_KN;
+    initPieces[1].freq = 1;
+    initPieces[2].id = B_BP;
+    initPieces[2].freq = 1;
+    initPieces[3].id = W_RK;
+    initPieces[3].freq = 1;
+    initPieces[4].id = W_KN;
+    initPieces[4].freq = 1;
+    initPieces[5].id = W_BP;
+    initPieces[5].freq = 1;
+
+
+    //initPieces[0].id = B_QN;
+    //initPieces[0].freq = 2;
+    //initPieces[1].id = W_QN;
+    //initPieces[1].freq = 2;
+    initPieces[6].id = BLNK; // end condition
+    initPieces[6].freq = getBoardSize();
   }
   if (gNumberOfPositions == 0) {
     pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
@@ -338,13 +356,13 @@ void GameSpecificMenu () {
     printf("\tg)\t (G)ame win condition  -     [%d] in a row\n",winCondition);
     printf("\n");
     printf("\ti)\t (I)nitial board\n");
-    printf("\tw)\t (W)hite pieceset\n");
-    printf("\tb)\t (B)lack pieceset\n");
+    printf("\th)\t W(h)ite pieceset\n");
+    printf("\tb)\t B(l)ack pieceset\n");
     printf("\n");
-    printf("\tq)\t (Q)uit\n\n");
+    printf("\tb)\t (B)ack\n\n");
     printf("  Select an option: ");
     scanf("%s",option);
-    if (!strcmp(option,"q")) {
+    if (!strcmp(option,"b")) {
       SafeFree(input);
       return;
     }
@@ -373,8 +391,8 @@ void GameSpecificMenu () {
 	  PrintPosition(gInitialPosition,"Game Menu",FALSE);
 	}
       }
-    } else if (!strcmp(option,"w")) {
-      printf("  Input a line of WHITE pieces (q,b,n,k,p,r)\n");
+    } else if (!strcmp(option,"h")) {
+      printf("  Input a line of WHITE pieces (q,b,n,k,r)\n");
       printf("  i.e. '> q b q' would correspond to starting with two queens and a bishop\n\n");
       printf("  > ");
       i = 0;
@@ -389,8 +407,8 @@ void GameSpecificMenu () {
 	}
 	resetBoard();
       }
-    } else if (!strcmp(option,"b")) {
-      printf("  Input a line of BLACK pieces (q,b,n,k,p,r)\n");
+    } else if (!strcmp(option,"l")) {
+      printf("  Input a line of BLACK pieces (Q,B,N,K,R))\n");
       printf("  i.e. '> Q B Q' would correspond to starting with two queens and a bishop\n\n");
       printf("  > ");
       i = 0;
@@ -450,18 +468,6 @@ POSITION DoMove (POSITION pos, MOVE move) {
   POSITION makePosition(BOARD, PLAYER),newPos;
   newPlayer = (getPlayer(pos) == WHITE)? BLACK : WHITE;
   newBoard = getBoard(pos);
- 
-
-  //  int i, getBoardSize();
-  //  printf("\nBOARD: ");
-  //  for (i = 0; i < getBoardSize(); i++) {
-  //    printf("%u ",newBoard[i]);
-  //  }
-  //printf("\nPIECE: %d \n",getPiece(move, newBoard));
-
-
-
-
   newBoard[getDest(move)] = getPiece(move, newBoard);
   if (!offBoard(move)) 
     newBoard[getSource(move)] = BLNK;
