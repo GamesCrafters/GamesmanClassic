@@ -37,9 +37,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-#define  WIN4_WIDTH          4
-#define  WIN4_HEIGHT         4
-// Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
+
 
 extern STRING gValueString[];
 POSITION MyInitialPosition();
@@ -57,7 +55,7 @@ BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = FALSE; //What for??
-BOOLEAN  kGameSpecificMenu   = FALSE;
+BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
@@ -95,6 +93,22 @@ STRING   kHelpExample =
 ** Everything above here must be in every game file
 **
 **************************************************************************/
+
+
+
+/************************************************************************
+**
+**  Game Specific Global Variables
+**
+************************************************************************/
+int  WIN4_WIDTH = 4;
+int  WIN4_HEIGHT = 4;
+#define MAXW 9
+#define MAXH 9
+#define MINW 1
+#define MINH 1
+// Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
+
 
 /************************************************************************
 **
@@ -159,7 +173,56 @@ void InitializeGame()
 ** 
 ************************************************************************/
 
-void GameSpecificMenu() { }
+void GameSpecificMenu() { 
+char GetMyChar();
+  POSITION GetInitialPosition();
+  int temp;
+  char tChar;
+  
+  do {
+    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);  
+	printf("\tW)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
+	printf("\tH)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
+    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+    printf("\n\nSelect an option: ");
+    
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+	  break;
+	case 'W' : case 'w':
+		printf("Enter a width (%d through %d): ",MINW,MAXW);
+		tChar = GetMyChar();
+		temp = atoi(&tChar);
+		while(temp > MAXW || temp < MINW){
+			printf("Out of range\n");
+			printf("Enter a width (%d through %d): ",MINW,MAXW);
+			tChar = GetMyChar();
+			temp = atoi(&tChar);
+		}
+		WIN4_WIDTH = temp;
+		break;
+    case 'H': case 'h':
+      printf("Enter a height (%d through %d): ",MINH,MAXH);
+		tChar = GetMyChar();
+		temp = atoi(&tChar);
+		while(temp > MAXH || temp < MINH){
+			printf("Out of range\n");
+			printf("Enter a height (%d through %d): ",MINH,MAXH);
+			tChar = GetMyChar();
+			temp = atoi(&tChar);
+		}
+		WIN4_HEIGHT = temp;
+		break;
+    case 'b': case 'B':
+      return;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
+}
 
 /************************************************************************
 **
