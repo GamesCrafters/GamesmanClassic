@@ -33,16 +33,15 @@ extern STRING gValueString[];
 /* Globals setup for use by outside functions */
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
-POSITION gMinimalPosition     = 0;
 POSITION kBadPosition         = -1;
 STRING   kGameName            = "Ice Blocks";
 STRING   kDBName              = "iceblocks";
 BOOLEAN  kPartizan            = TRUE;
-BOOLEAN  kDebugMenu           = TRUE;
+BOOLEAN  kDebugMenu           = FALSE;
 BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = TRUE;
 BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = TRUE;
+BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 /* Globals setup for use by outside functions */
 
@@ -118,10 +117,17 @@ void GameSpecificMenu () {
   char c;
   BOOLEAN cont = TRUE;
   while (cont) {
-    fflush(stdin);
-    printf("\tc)\t(C)hange the size of the board (change the base length)\n"
+    printf("\n\nGame Options:\n\n"
+	   "\tc)\t(C)hange the size of the board (change the base length)\n"
 	   "\tm)\t(M)odify the winning conditions of the game\n"
-	   "\tb)\t(B)ack to the main menu\n");
+	   "\tt)\t(T)oggle from ");
+    if(gStandardGame)
+      printf("STANDARD to MISERE\n");
+    else
+      printf("MISERE to STANDARD\n");
+    printf("\tb)\t(B)ack to the main menu\n"
+	   "\nSelect an option:  ");
+    getc(stdin);
     c = tolower(getc(stdin));
     switch (c) {
     case 'c':
@@ -129,6 +135,13 @@ void GameSpecificMenu () {
       break;
     case 'm':
       SetWinningCondition();
+      break;
+    case 't':
+      gStandardGame = !gStandardGame;
+      if(gStandardGame)
+	printf("STANDARD\n");
+      else
+	printf("MISERE\n");
       break;
     case 'b':
       cont = FALSE;
@@ -155,7 +168,6 @@ void InitializeGame () {
   for(i = 0; i < sum; i++)
     board[i] = '-';
   gInitialPosition = generic_hash(board, 1);
-  gMinimalPosition = gInitialPosition;
 }
 
 /************************************************************************
@@ -422,7 +434,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("\n");
   }
   if(!gMenu)
-    printf("\n  %s\n\n", GetPrediction(position, playerName, usersTurn));
+    printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
 }
 
 /************************************************************************
@@ -714,20 +726,21 @@ void ChangeBoardSize () {
   int change;
   BOOLEAN cont = TRUE;
   while (cont) {
-    fflush(stdin);
     cont = FALSE;
-    printf("Current board with base %d:\n", base);
+    printf("\n\nCurrent board with base %d:\n\n", base);
     gMenu = TRUE;
     PrintPosition(gInitialPosition, "Fred", 0);
     gMenu = FALSE;
-    printf("Enter the new base length (2 - %d):  ", MAX_BOARD_SIZE);
+    printf("\n\nEnter the new base length (2 - %d):  ", MAX_BOARD_SIZE);
     scanf("%d", &change);
     if(change > MAX_BOARD_SIZE || change < 2) {
-      printf("Invalid base length!\n");
+      printf("\nInvalid base length!\n");
       cont = TRUE;
     }
-    else
+    else {
       base = change;
+      InitializeGame();
+    }
   }
 }
 
@@ -743,13 +756,13 @@ void SetWinningCondition () {
   char c;
   BOOLEAN cont = TRUE;
   while(cont) {
-    fflush(stdin);
     cont = FALSE;
-    printf("Options for the winning condition:\n"
+    printf("\n\nWinning Condition Options:\n\n"
 	   "\ts)\t(S)tandard point tally\n"
 	   "\tm)\t(M)ost number of blocks in a row\n"
 	   "\tn)\tMost (n)umber of three's in a row\n"
-	   "Enter your choice for the winning condition:  ");
+	   "\nEnter your choice for the winning condition:  ");
+    getc(stdin);
     c = tolower(getc(stdin));
     switch (c) {
     case 's':
