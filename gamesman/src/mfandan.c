@@ -225,15 +225,12 @@ void InitializeGame()
 
   char turn = X;   // start out with X's turn
   
-  //  dispVitals();
-  //  printBoard(initialBoard);
-
   POSITION initialPos =  BlankOXToPosition(initialBoard, turn);
 
   // set the function to handle GoAgain? decisions
   gGoAgain = GoAgain;
   
-  //  movingAgain = FALSE;
+  movingAgain = FALSE;
   
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
@@ -360,7 +357,7 @@ POSITION DoMove(thePosition, theMove)
   CarryOutMove(board, turn, theMove, &captured);
 
   if(GoAgain(thePosition, theMove)) {
-    //movingAgain = TRUE;
+    movingAgain = TRUE;
   }else {
     if(turn == X)
       turn = O;
@@ -468,14 +465,8 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
   Coordinates moved = CarryOutMove(board, WhoseTurn(position), theMove, &captured);
   if(captured) {  // if the move had captures
     BOOLEAN temp = CanStillCap(board, moved, dir);  // and can still cap with that piece
-    if(temp)
-      puts("goagain = true");
-    else
-      puts("goagain = false");
-
     return temp;
   } else {   // no chance to move again without any capture
-    puts("goagain = false");
     return FALSE;
   }
 }
@@ -840,7 +831,7 @@ MOVELIST *GenerateMoves(position)
   if (Primitive(position) == undecided) {
     PositionToBlankOX(position,board);
     for(i = 0 ; i < BOARDSIZE ; i++) {
-      if((board[i] == thisPlayer) /*&& (movingAgain? CoordinatesToIndex(lastMovedAt)==i: TRUE)*/) {
+      if((board[i] == thisPlayer) && (movingAgain? CoordinatesToIndex(lastMovedAt)==i: TRUE)) {
 	// if current player's piece and if movingAgain must be same piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
 	for(dir = left; dir!=0; dir = NextDirection(pos, dir)) {
