@@ -16,7 +16,8 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-26	Finished helpstrings, finalized PrintPosition
+** UPDATE HIST: 2004-10-30	Finished GetInitialPosition
+		2004-10-26	Finished helpstrings, finalized PrintPosition
 		2004-10-25 	Fixed the last bug in GameSpecificMenu
 **				Wrote ValidTextInput
 ** 		2004-10-08      Partially wrote GameSpecificMenu
@@ -950,18 +951,32 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition () {
 	int i;
+	char c;
 	char* board = (char*)malloc(width * height * sizeof(char));
+	
+	/** WARNING: This results of this function are undefined if the user specifies a board
+	 ** that should never be reached through normal play.
+	 **/
 	
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
 	printf("\tNote that it should be in the following format:\n\n");
-	printf("%c %c %c %c\n%c %c %c %c            <----- EXAMPLE \n%c %c %c %c\n%c %c %c %c\n\n", WHITE, BLANK, BLANK, BLANK, BLANK BLACK, BLANK, WHITE, BLANK, BLANK, BLANK, BLANK, BLANK, BLACK, BLANK, WHITE);
+	printf("%c %c %c %c\n%c %c %c %c            <----- EXAMPLE \n%c %c %c %c\n%c %c %c %c\n\n", WHITE, BLANK, BLANK, BLANK, BLANK, BLACK, BLANK, WHITE, BLANK, BLANK, BLANK, BLANK, BLANK, BLACK, BLANK, WHITE);
 	
 	i = 0;
 	getchar();
 	while (i < width * height && (c = getchar()) != EOF) {
 		if (c == BLANK || c == WHITE || c == BLACK) {
 			board[i++] = c;
+		}
+		/** Currently, BLACK is the capital letter 'O'.  It is NOT the number zero.
+		 ** On some terminals, however, 'O' and '0' are indistinguishable, or at least not
+		 ** easily distinguishable.  To make things easier on the player, this function will
+		 ** accept either the letter 'O' or the number zero to represent BLACK.  Delete this
+		 ** next statement if BLACK changes to something other than the letter 'O'.
+		 **/
+		if (c == '0') {
+			board[i++] = BLACK;
 		}
 	}
 	return generic_hash(board, countPieces(board, BLACK) < countPieces(board, WHITE) ? 2 : 1);
