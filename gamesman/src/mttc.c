@@ -760,7 +760,8 @@ int get_piece(MOVE theMove) {
 }
 
 int get_source(MOVE theMove, POSITION pos) {
-  int piece, loc = OFF, i, *board, get_piece(MOVE);
+  int piece, loc = OFF, i, get_piece(MOVE);
+  BOARD board, get_board(POSITION);
   piece = get_piece(theMove);
   board = get_board(pos);
   for(i = 0; i < BOARD_LENGTH; i++) {
