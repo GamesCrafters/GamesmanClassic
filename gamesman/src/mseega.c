@@ -56,7 +56,7 @@ POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
+//STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -135,7 +135,7 @@ int width=DEFAULTROWS, height=DEFAULTROWS; //changed
 int BOARDSIZE = DEFAULTBOARDSIZE;
 int BOARDARRAYSIZE;
 char P1='x';
-char P2='O';
+char P2='o';
 char blank='-'; //TODO changed Peter: I think blank should be '-'
 //int BOARDSIZE = 11; //Peter & Emad: why 11?
 /* width*height, plus one for whose move it is and whether we are in
@@ -233,9 +233,9 @@ void InitializeGame () {
     Board b = tempname;
     int r;
     for (r=0; r<width*height; r++) setpce(b,r,'-');
-    setWhoseBoard(b, 'x');
-    gInitialPosition = generic_hash(b,whoToInt(whoseBoard(b)));
-  } while (FALSE);
+    //setWhoseBoard(b, 'x');
+    gInitialPosition = generic_hash(b,1);
+    } while (FALSE);
 }
 
 
@@ -451,7 +451,7 @@ char* getBoard(POSITION pos) {
 POSITION GetInitialPosition ()
 {
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDARRAYSIZE];
+  char tempname[BOARDSIZE];
   Board b = tempname;
   
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -461,9 +461,9 @@ POSITION GetInitialPosition ()
   
   printf("\nOn second thought let me just give you a random board.\n");
   printf("TODO: allow you to enter something.\n");
-  setWhoseBoard(b, 'x');
+  //setWhoseBoard(b, 'x');
   makeRandomBoard(b);
-  return generic_hash(b,whoToInt(whoseBoard(b)));
+  return generic_hash(b,1);
 }
 
 
@@ -547,10 +547,13 @@ VALUE Primitive (POSITION position) {
 //TODO: get predicition here
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  int index=0;
   int currRow;
   char currCol;
   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
-
+  char temp[BOARDSIZE];
+  Board b=temp;
+  b=generic_unhash(position,b);
   printf("\n");
   printf("         LEGEND:");
   for (currCol = 0; currCol < width; currCol++) {
@@ -564,7 +567,8 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     }
     printf(")          :");
     for (currCol = 0; currCol < width; currCol++) {
-      printf("%c ", '-'); //TODO GET VALUES FROM BOARD - right now everything's blank
+      printf("%c ", b[index]); //TODO GET VALUES FROM BOARD - right now everything's blank
+      index++;
     }
     printf("\n");
   }
@@ -594,58 +598,69 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
-/*
-MOVELIST *GenerateMoves (POSITION position) {
-  char mover;
+MOVELIST *GenerateMoves (POSITION position)
+{
+    MOVELIST *moves = NULL;
+    char gBoard[BOARDSIZE];
+    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+   char mover;
   int player,i;
-  void boardcopy();
+  // void boardcopy();
   int legalMove();
+  MOVE m;
   MOVELIST *head = NULL;
-  MOVELIST *CreateMoveListNode();
-  Board newboard;
-  generic_unhash(position,gBoard);
-
-  if(player= whoseMove(position) == 1)
+  MOVELIST *CreateMovelistNode();
+  //Board newboard=(Board) malloc(BOARDSIZE);
+  //char newboard[BOARDSIZE];  
+generic_unhash(position,gBoard);
+ player=whoseMove(position);
+  if(player == 1)
     mover=P1;
   else
     if(player == 2)
       mover=P2;
-    else
-      BadElse("shouldn't be here - generate moves\n");
-  for (i=0;i<width*height;i++){
+  //else
+      // badelse();
+  for (i=0;i<BOARDSIZE;i++){
     if(gBoard[i]==mover){
       if (legalMove(i+1) && gBoard[i+1]== blank){
-	boardcopy(gBoard,newboard);
+	/*boardcopy(gBoard,newboard);
 	newboard[i]=blank;
-	newboard[i+1]=mover;
-	head=CreateMovelistNode(generic_hash(newboard,player),head);
+	newboard[i+1]=mover;*/
+	setMove(&m,mover,i,i+1);
+	head=CreateMovelistNode(m,head);
       }
       if (legalMove(i-1) && gBoard[i-1]== blank){
-	boardcopy(gBoard,newboard);
+	/*boardcopy(gBoard,newboard);
 	newboard[i]=blank;
-	newboard[i-1]=mover;
-	head=CreateMovelistNode(generic_hash(newboard,player),head);
+	newboard[i-1]=mover;*/
+	setMove(&m,mover,i,i-1);
+	head=CreateMovelistNode(m,head);
       }
-      if (legalMove(i+BOARDSIZE/2) && gBoard[i+BOARDSIZE/2]== blank){
-	boardcopy(gBoard,newboard);
+      if (legalMove(i+width) && gBoard[i+width]== blank){
+	/*boardcopy(gBoard,newboard);
 	newboard[i]=blank;
-	newboard[i+BOARDSIZE/2]=mover;
-	head=CreateMovelistNode(generic_hash(newboard,player),head);
+	newboard[i+width]=mover;*/
+	setMove(&m,mover,i,i+width);
+	head=CreateMovelistNode(m,head);
       }
-      if (legalMove(i-BOARDSIZE/2) && gBoard[i-BOARDSIZE/2]== blank){
-	boardcopy(gBoard,newboard);
+      if (legalMove(i-width) && gBoard[i-width]== blank){
+	/*boardcopy(gBoard,newboard);
 	newboard[i]=blank;
-	newboard[i-BOARDSIZE/2]=mover;	
-	head=CreateMovelistNode(generic_hash(newboard,player),head);
+	newboard[i-width]=mover;*/
+	setMove(&m,mover,i,i-width);
+	head=CreateMovelistNode(m,head);
     }
   }
-  }
-return head;
-
+  }  
+    return head;
 }
-*/
 
-MOVELIST *GenerateMoves (POSITION position) {
+
+
+
+
+/*MOVELIST *GenerateMoves (POSITION position) {
   // TODO: say this in one line instead of 2:
   char tempname[BOARDARRAYSIZE];
   Board b = tempname;
@@ -654,7 +669,7 @@ MOVELIST *GenerateMoves (POSITION position) {
     return GeneratePlacingMoves(b);
   else
     return GenerateMovingMoves(b);
-}
+    }*/
 
  
 /************************************************************************
@@ -818,6 +833,7 @@ void PrintMove (MOVE move) {
   numberInBase(row2, toWhere(&move)/width, 26, alphabet);
   numberInBase(col2, toWhere(&move)%width, 10, alphabet);
   printf("Move with coordinates %s%s and %s%s.",row1,col1,row2,col2);
+  printf("%d",move);
 }
 
 
