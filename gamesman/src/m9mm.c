@@ -535,8 +535,8 @@ VALUE Primitive ( POSITION h )
     return (gStandardGame ? lose : win );
   else if (turn == x && numXs == minx)
     return (gStandardGame ? lose : win );
- /*  else if (GenerateMoves(h) == NULL) */
-/* 	 return (gStandardGame ? lose : win); */
+  else if (GenerateMoves(h) == NULL)
+	 return (gStandardGame ? lose : win);
   else
     return undecided;	
  
@@ -643,64 +643,58 @@ MOVELIST *GenerateMoves(POSITION position)
   blankox blanks[BOARDSIZE];
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
-    
-  if (Primitive(position) == undecided) {
-
-    unhash(position, dest);
-    
-    for (i = 0; i < BOARDSIZE; i++)
-      {
-	if (dest[i] == x)
-	  x_pieces[x_count++] = i;
-	else if (dest[i] == o)
-	  o_pieces[o_count++] = i;
-	else
-	  blanks[blank_count++] = i;
-      }
-
-    if (turn == x)
-      {
-	player_pieces = x_pieces;
-	player_count = x_count;
-	opponent_count = o_count;
-	opponent_pieces = o_pieces;
-      }
-    else
-      {
-	player_pieces = o_pieces;
-	player_count = o_count;
-	opponent_count = x_count;
-	opponent_pieces = x_pieces;
-      }
-    
-    for (i = 0; i < player_count; i++)
-      {
-		  for (j = 0; j < blank_count; j++)
-			 {
-				raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
-				  (blanks[j] * BOARDSIZE) + player_pieces[i];
-
-				//debug
-				if (debug) {
-				  printf ("the raw_move is: %d\n", raw_move);
-				}
-
-				if (closes_mill(position, raw_move))
-				  {
-					 for (k = 0; k < opponent_count; k++)
-						if (can_be_taken(position, opponent_pieces[k]))
-						  head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
-				  }
-				else
-				  head = CreateMovelistNode(raw_move, head); 
-			 }
-      }
-
-    return head;
-  }
-  else
-    return NULL;
   
+  unhash(position, dest);
+  
+  for (i = 0; i < BOARDSIZE; i++)
+	 {
+		if (dest[i] == x)
+		  x_pieces[x_count++] = i;
+		else if (dest[i] == o)
+		  o_pieces[o_count++] = i;
+		else
+		  blanks[blank_count++] = i;
+	 }
+  
+  if (turn == x)
+	 {
+		player_pieces = x_pieces;
+		player_count = x_count;
+		opponent_count = o_count;
+		opponent_pieces = o_pieces;
+	 }
+  else
+	 {
+		player_pieces = o_pieces;
+		player_count = o_count;
+		opponent_count = x_count;
+		opponent_pieces = x_pieces;
+	 }
+  
+  for (i = 0; i < player_count; i++)
+	 {
+		for (j = 0; j < blank_count; j++)
+		  {
+			 raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+				(blanks[j] * BOARDSIZE) + player_pieces[i];
+			 
+			 //debug
+			 if (debug) {
+				printf ("the raw_move is: %d\n", raw_move);
+			 }
+			 
+			 if (closes_mill(position, raw_move))
+				{
+				  for (k = 0; k < opponent_count; k++)
+					 if (can_be_taken(position, opponent_pieces[k]))
+						head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
+				}
+			 else
+				head = CreateMovelistNode(raw_move, head); 
+		  }
+	 }
+  
+  return head;
 }
  
 /************************************************************************
@@ -1356,8 +1350,15 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 
   /* According to the rules, a piece can be taken if it is not in a mill
 	  or if the opponent only has mills */
+
   if (board[slot] == blank) {
 	 return FALSE;
+  }
+
+  // debug
+  if (debug) {
+	 printf("can_be_taken checking slot %d of this position:\n", slot);
+	 debugPosition(position);
   }
 
   allMills = all_mills(board, slot);
@@ -1456,6 +1457,13 @@ BOOLEAN all_mills(blankox *board, int slot)
 	 if (!check_mill(board, pieces[i])) {
 		allMills = FALSE;
 	 }
+  }
+
+  // debug
+  if (debug) {
+	 printf("all_mills checked this board:\n");
+	 debugMiniBBoard(board);
+	 printf("and is returning %b", allMills);
   }
 
   return allMills;
@@ -1636,6 +1644,7 @@ void debugBoard(blankox *bboard, char *cboard)
   for (i = 0; i < BOARDSIZE; i++)
     printf("%c", cboard[i]);
   printf("\n");
+  debugMiniBBoard(bboard);
 
 }
 
@@ -1657,6 +1666,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.60  2004/05/05 04:31:32  ogren
+//m9mm now doest die during Primitive, but hacked, not fixed. -Elmer
+//
 //Revision 1.59  2004/05/05 04:27:33  ogren
 //added all_mills(board, piece) to return true if piece only has mills on board.  Used for can_be_taken -Elmer
 //
