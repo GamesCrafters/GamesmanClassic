@@ -40,6 +40,8 @@ main(int argc, char ** argv)
 	char userinput[256] ;
 	char buffer[256] ;
 	int a ;
+	
+	int InitClient();
 
 	sscanf(argv[2], "%hd", &port) ;
 	InitClient(argv[1], port) ;

@@ -262,7 +262,7 @@ void ActUponClientInput(char * inputstart, int row, int sockfd)
 
 	input += 2;
 
-	for(i = 0 ; *input != ' ' && *input != NULL; i++, input++)
+	for(i = 0 ; *input != ' ' && *input; i++, input++)
 		commandName[i] = *input ;
 	commandName[i] = (char)NULL ;
 	while(*input == ' ') input++ ;
@@ -283,7 +283,7 @@ void ActUponClientInput(char * inputstart, int row, int sockfd)
 	else if(!strcmp(commandName, "NumberOfOptions"))
 	{
 		char syscommand[256] ;
-		for(i = 0 ; input[i] != ' ' && input[i] != NULL ; i++)
+		for(i = 0 ; input[i] != ' ' && input[i]; i++)
 			gameName[i] = input[i] ;
 		gameName[i] = (char)NULL ;
 		sprintf(syscommand, "./%s -%s", gameName, "numberOfOptions") ;
