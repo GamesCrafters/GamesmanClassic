@@ -28,6 +28,7 @@ int      gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0 ;
+POSITION kBadPosition		= -1;
 
 extern POSITION * gDatabase ;
 

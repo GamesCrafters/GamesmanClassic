@@ -71,6 +71,7 @@
 extern STRING gValueString[];
 
 int      gNumberOfPositions  = 19683;  /* 3^9 */
+int	 kBadPosition		= -1;
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;

@@ -158,13 +158,13 @@ q (or Q)    : (Q)uit";
 int gameline = 0 ;
 int sockfd = -1 ;
 
-VALUE   gValue;                  /* The value of the game */
-BOOLEAN gAgainstComputer;        /* TRUE iff the user is playing the computer */
-BOOLEAN gHumanGoesFirst;         /* TRUE iff the user goes first vs. computer */
-BOOLEAN gStandardGame;           /* TRUE iff game is STANDARD (not REVERSE) */
-BOOLEAN gPrintPredictions = FALSE ;       /* TRUE iff the predictions should be printed */
-BOOLEAN gHints;          	 /* TRUE iff possible moves should be printed */
-char    gPlayerName[2][MAXNAME]; /* The names of the players user/user or comp/user */
+static VALUE   gValue;                  /* The value of the game */
+static BOOLEAN gAgainstComputer;        /* TRUE iff the user is playing the computer */
+static BOOLEAN gHumanGoesFirst;         /* TRUE iff the user goes first vs. computer */
+BOOLEAN gStandardGame = TRUE;           /* TRUE iff game is STANDARD (not REVERSE) */
+static BOOLEAN gPrintPredictions ;       /* TRUE iff the predictions should be printed */
+static BOOLEAN gHints;          	 /* TRUE iff possible moves should be printed */
+char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
 
@@ -174,25 +174,25 @@ int remainingGivebacks = 0;
 int initialGivebacks = 0;
 int oldValueOfPosition = tie;
 
-MENU gMenuMode ;
-BOOLEAN gPrintHints ;
+static MENU gMenuMode ;
+BOOLEAN gPrintHints = FALSE ;
 STRING kAuthorName = "Dan Garcia" ;
-POSITION kBadPosition;          /* A POSITION that will never be used */
+extern POSITION kBadPosition;          /* A POSITION that will never be used */
 
 /* Start Loopy */
-FRnode *gHeadWinFR;               /* The FRontier Win Queue */
-FRnode *gTailWinFR;
-FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
-FRnode *gTailLoseFR;
-FRnode *gHeadTieFR;               /* The FRontier Tie Queue */
-FRnode *gTailTieFR;
-POSITIONLIST **gParents;         /* The Parent of each node in a list */
-char *gNumberChildren;           /* The Number of children (used for Loopy games) */
+FRnode *gHeadWinFR = NULL;               /* The FRontier Win Queue */
+FRnode *gTailWinFR = NULL;
+FRnode *gHeadLoseFR = NULL;              /* The FRontier Lose Queue */
+FRnode *gTailLoseFR = NULL;
+FRnode *gHeadTieFR = NULL;               /* The FRontier Tie Queue */
+FRnode *gTailTieFR = NULL;
+POSITIONLIST **gParents = NULL;         /* The Parent of each node in a list */
+char *gNumberChildren = NULL;           /* The Number of children (used for Loopy games) */
 /* End Loopy */
 
-int gBytesMalloced;
-int gMaxBytesUsed;
-int gBytesInUse;
+int gBytesMalloced = 0;
+int gMaxBytesUsed = 0;
+int gBytesInUse = 0;
 BOOLEAN kDebugLoopyMem = TRUE;
 // End Loopy
 
@@ -234,10 +234,10 @@ extern BOOLEAN  kDebugDetermineValue ;
 // for atilla's hash code ...
 int *gHashOffset = NULL ;
 int *gNCR = NULL ;
-int gHashOffsetSize;
-int gHashBoardSize;
-int gHashMinMax[4];
-int gHashNumberOfPos;
+static int gHashOffsetSize;
+static int gHashBoardSize;
+static int gHashMinMax[4];
+static int gHashNumberOfPos;
 // end for atilla's hash code
 
 BOOLEAN DefaultGoAgain(POSITION pos,MOVE move)

@@ -33,6 +33,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+POSITION kBadPosition		= -1;
 
 
 STRING   kHelpGraphicInterface =
@@ -289,7 +290,7 @@ char *gBlankOXString[] = { "-", "O", "X" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
-int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
 
 /* Proofs of correctness for the below arrays:
 **

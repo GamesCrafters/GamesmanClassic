@@ -39,6 +39,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+POSITION kBadPosition		= -1;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts a small circle over your piece. This selects\n\

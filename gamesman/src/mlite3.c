@@ -47,6 +47,7 @@ int      gNumberOfPositions  = 2097152;  /* 2^21 */
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
+POSITION kBadPosition		= -1;
 
 STRING   kGameName           = "Lite-3";
 BOOLEAN  kPartizan           = TRUE;
@@ -173,7 +174,7 @@ h (or H)    : (H)elp\n\
 a (or A)    : (A)bort the game\n\
 q (or Q)    : (Q)uit";
 
-int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
 
 /* Proofs of correctness for the below arrays:
 **

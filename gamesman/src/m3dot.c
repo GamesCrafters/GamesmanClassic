@@ -95,6 +95,7 @@ int      gNumberOfPositions  = 2097152;  /* 2^21 */
 
 POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD ;
+POSITION kBadPosition = -1;
 
 STRING   kGameName           = "3Dot";
 

@@ -33,6 +33,7 @@
 extern STRING gValueString[];
 
 int      gNumberOfPositions  = 12;       /* Every board from 0 to 11 */
+int	 kBadPosition = -1;
 
 POSITION gInitialPosition    = 0;
 

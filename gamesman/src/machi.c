@@ -160,7 +160,7 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 BOOLEAN allDiag = FALSE;
 BOOLEAN noDiag = FALSE;
 
-int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
 
 /* Proofs of correctness for the below arrays:
 **
@@ -183,7 +183,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
  **
  **************************************************************************/
 
-VALUE     *gDatabase;
+extern VALUE     *gDatabase;
 
 /************************************************************************
  **

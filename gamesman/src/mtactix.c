@@ -69,6 +69,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+POSITION kBadPosition		= -1;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button toggles the pieces under the cursor on and off for\n\

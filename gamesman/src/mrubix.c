@@ -281,10 +281,10 @@ static int UnhashCmd(dummy, interp, argc, argv)
 **
 **************************************************************************/
 
-VALUE     *gDatabase;
-POSITION **CArray;
-POSITION *hashSizes;
-POSITION *hashBasePosition;
+extern VALUE     *gDatabase;
+static POSITION **CArray;
+static POSITION *hashSizes;
+static POSITION *hashBasePosition;
 
 void CombinationInit(int boardsize)
 {

@@ -381,7 +381,7 @@ POSITION kBadPosition        = -1;           /* This can never be the rep. of a
 						position                       */
 POSITION gMinimalPosition    = 0;
 
-char board[BOARDSIZE];
+static char board[BOARDSIZE];
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
  
 STRING   kGameName            = "Chung-Toi";
@@ -513,7 +513,7 @@ BOOLEAN gRotateOnHop   = TRUE  ;
 **
 **************************************************************************/
 
-VALUE     *gDatabase;
+extern VALUE     *gDatabase;
 
 /************************************************************************** 
 **                        prototypes 

@@ -127,7 +127,7 @@ char *gBlankOXString[] = { "X", "O", "-" };
 **
 **************************************************************************/
 
-VALUE     *gDatabase;
+extern VALUE     *gDatabase;
 
 InitializeGame()
 {

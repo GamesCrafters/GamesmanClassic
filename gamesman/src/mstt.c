@@ -34,6 +34,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+POSITION kBadPosition		= -1;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts an X or O (depending on whetherxinn you went first\n\

@@ -6,9 +6,9 @@ extern STRING gValueString[];
 
 int rows = 5 ;
 
-int      gNumberOfPositions ;
-POSITION gInitialPosition ;
-POSITION gMinimalPosition ;
+int      gNumberOfPositions = 0 ;
+POSITION gInitialPosition = 0 ;
+POSITION gMinimalPosition = 0 ;
 //POSITION gMinimalPosition = (1<<(ROWS*3)) - 1 ;
 
 BOOLEAN  kPartizan           = FALSE ;
@@ -18,6 +18,7 @@ BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kGameName           = "2-D Nim";
+POSITION kBadPosition        = -1;
 
 STRING   kHelpGraphicInterface = "Help Graphic Interface: Fill in later" ;
 STRING   kHelpTextInterface    = "Help Text Interface: Fill in later" ;

@@ -46,6 +46,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+POSITION kBadPosition		= -1;
 
 STRING   kHelpGraphicInterface =
 "There is no graphical interface.";
@@ -164,8 +165,8 @@ O's Turn        (Computer will Win in 5) Computer's move :  5   \n\n\
 **************************************************************************/
 
 int DefaultN = 3;
-int N;
-int BoardSize;
+static int N;
+static int BoardSize;
 
 typedef enum possibleBoardPieces {
 	Blank, x, o
@@ -178,7 +179,7 @@ BOOLEAN gDoubleGravity = FALSE;
 BOOLEAN gDiagonalLeftGravity = FALSE;
 BOOLEAN gDiagonalRightGravity = FALSE;
 
-int* g3Array;
+static int* g3Array;
 
 /*************************************************************************
 **
@@ -186,7 +187,7 @@ int* g3Array;
 **
 **************************************************************************/
 
-VALUE     *gDatabase;
+extern VALUE     *gDatabase;
 
 /************************************************************************
 **
