@@ -25,6 +25,7 @@
 # and gInitialPosition in this function.
 
 proc GS_InitGameSpecific {} {
+    puts "** GS_InitGameSpecific"
     
     ### Set the name of the game
     
@@ -32,16 +33,24 @@ proc GS_InitGameSpecific {} {
     set kGameName "Snake"
 
     # Authors Info
+    global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Alice Chang, Judy Chen, Eleen Chiang, Peter Foo"
     set kTclAuthors "Judy Chen, Eleen Chiang, Peter Foo"
-    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+    #set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
     
     ### Set the initial position of the board
 
     global gInitialPosition gPosition
     set gInitialPosition 8357
     set gPosition $gInitialPosition
+
+
+    global kToMove kToWin
+
+    set kToMove "\n- Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa.\n"
+
+    set kToWin "\nFirst player to get any 3 vertical or horizontal pieces in a row WINS!"
 }
 
 
@@ -54,6 +63,7 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 
 proc GS_NameOfPieces {} {
+    puts "GS_NameOfPieces"
     return [list head tail]    
 }
 
@@ -66,6 +76,8 @@ proc GS_NameOfPieces {} {
 # player hits "New Game"
 
 proc GS_Initialize { c } {
+
+    puts "** GS_Initialize"
     
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width 500 -height 500
@@ -197,6 +209,7 @@ proc MakeTail {c slot } {
 # Don't bother writing tcl that hashes, that's never necessary.
 
 proc GS_DrawPosition { c position } {
+    puts "** GS_DrawPosition"
     # BTW too: don't make any assumptions about the state of the board.
     # Clears the board
     $c raise base 
@@ -260,13 +273,14 @@ proc unhash { position } {
 # and before any moves are made.
 
 proc GS_NewGame { c position } {
+    puts "** GS_NewGame"
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
     
     # Assume initial position is 8357 (for now). Draw the body connectors.
-    MakeHorizontalConnectors .c 5 6
-    MakeVerticalConnectors .c 6 10
+    MakeHorizontalConnectors $c 5 6
+    MakeVerticalConnectors $c 6 10
     $c raise head
     $c raise tail   
 }
@@ -278,6 +292,7 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 
 proc GS_WhoseMove { position } {
+    puts "** GS_WhoseMove"
     set board [unhash $position]
     set count 0  
     for {set i 0} {$i<16} {incr i} {
@@ -304,6 +319,7 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    puts "** GS_HandleMove"
 
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
@@ -330,13 +346,13 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     $c raise body$from 
     MovePiece $c $piece $direction
     if {$direction == "up"} {
-	MakeVerticalConnectors .c $from $to
+	MakeVerticalConnectors $c $from $to
     } elseif {$direction == "down"} {
-	MakeVerticalConnectors .c $from $to
+	MakeVerticalConnectors $c $from $to
     } elseif {$direction == "left"} {
-	MakeHorizontalConnectors .c $from $to
+	MakeHorizontalConnectors $c $from $to
     } elseif {$direction == "right"} {
-	MakeHorizontalConnectors .c $from $to
+	MakeHorizontalConnectors $c $from $to
     }
     $c raise head
 }
@@ -416,6 +432,8 @@ proc drawLeftArrow { c from to color} {
 }
 
 proc GS_ShowMoves { c moveType position moveList } {
+    puts "** GS_ShowMoves"
+
     puts "entered"
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]  
@@ -455,6 +473,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 # You might not use all the arguments, and that's okay.
 # Or I could have created all of the arrows in GS_Initialize and just raise/lower them in showing moves (just don't forget to change colors in GS_ShowMoves).
 proc GS_HideMoves { c moveType position moveList} {
+    puts "GS_HideMoves"
+
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]
     foreach item $moveList {
@@ -490,6 +510,7 @@ proc GS_HideMoves { c moveType position moveList} {
 # By default this function just calls GS_DrawPosition, but you certainly don't need to keep that.
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+    puts "** GS_HandleUndo"
     GS_DrawPosition c positionAfterUndo
 }
 
@@ -501,14 +522,33 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 proc GS_GetGameSpecificOptions { } {
 }
 
+# GS_ColorOfPlayers should return a list of two strings, 
+# each representing the color of a player.
+# If a specific color appears uniquely on one player's pieces,
+# it might be a good choice for that player's color.
+# In impartial games, both players may share the same color.
+# If the game is tic tac toe, this might be the line 
+# return [list blue red]
+# If the game is nim, this might be the line
+# return [list green green]
+# This function is called FIRST, ONCE, only when the player
+# starts playing the game, and before he clicks "New Game"
+# The left player's color should be the first item in the list.
+# The right player's color should be second.
 
+proc GS_ColorOfPlayers {} {
+    puts "** GS_ColorOfPlayers"
+
+    return [list black green]
+}
 
 
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
 # you could use this function to draw the line striking out the winning row in tic tac toe for instance
 # or you could congratulate the winner or do nothing if you want.
 
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
+    puts "** GS_GameOver"
 }
 
 

@@ -246,6 +246,10 @@ proc GS_Deinitialize { c } {
     $c delete all
 }
 
+proc SetColour { c obj colour } {
+    $c itemconfig $obj -fill $colour
+}
+
 proc DrawBoard { c } {
     $c delete all
 
@@ -332,6 +336,10 @@ proc DrawBoard { c } {
 	
 	$c bind ARROW[expr $Dimension + $i] <ButtonRelease-1> \
 	    "myReturnFromHumanMove [expr $Dimension + $i]"
+	$c bind ARROW[expr $Dimension + $i] <Enter> \
+	    "SetColour $c ARROW[expr $Dimension + $i] black"
+	$c bind ARROW[expr $Dimension + $i] <Leave> \
+	    "SetColour $c ARROW[expr $Dimension + $i] cyan"
     }
         
     # Draw the arrows on the top left
@@ -353,6 +361,10 @@ proc DrawBoard { c } {
 
 	$c bind ARROW[expr $Dimension - $i + 1] <ButtonRelease-1> \
 	    "myReturnFromHumanMove [expr $Dimension - $i + 1]" 
+	$c bind ARROW[expr $Dimension - $i + 1] <Enter> \
+	    "SetColour $c ARROW[expr $Dimension - $i + 1] black"
+	$c bind ARROW[expr $Dimension - $i + 1] <Leave> \
+	    "SetColour $c ARROW[expr $Dimension - $i + 1] cyan"
    }
 
     $c lower ARROWS all
@@ -732,6 +744,8 @@ proc GS_GetGameSpecificOptions { } {
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     GS_DrawPosition $c $position
     puts $nameOfWinner
+
+    
 }
 
 

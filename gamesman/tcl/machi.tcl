@@ -108,6 +108,10 @@ set py3 [expr $y7 - [expr $pieceSize / 2]];
 ############## HELPER FUNCTIONS ######################
 
 
+proc SetColour { c obj colour } {
+    $c itemconfig $obj -fill $colour
+}
+
 #######################################################
 #MouseOverExpand
 #arg1: the dot which indicates the move
@@ -774,16 +778,22 @@ proc makeBoard { c } {
     ## bind the horizontal arrows
     foreach item $horizArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
+	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ## bind the vertical arrows
     foreach item $vertArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
+	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ## bind the diagonal arrows
     foreach item $diagArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
+	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ###  raise the base over the pieces
