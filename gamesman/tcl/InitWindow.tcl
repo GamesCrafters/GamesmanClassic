@@ -123,6 +123,8 @@ proc InitWindow { kRootDir } {
     #
     # Initialize the constants
     #
+    set gMoveDelay 1
+    set gGameDelay 1
     set gWhoseTurn "Jesse"
     set gPredString ""
     set gWindowHeight 600
@@ -382,8 +384,9 @@ proc InitWindow { kRootDir } {
 
     ## JESSE: adding scale bars for the speed of computer to computer play
     scale .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -label "Move Delay" \
-	-from -50 \
-	-to 50 \
+	-from 0.0 \
+	-to 2.0 \
+	-resolution 0.1 \
 	-length 8c \
 	-state disabled \
 	-orient horizontal \
@@ -391,8 +394,9 @@ proc InitWindow { kRootDir } {
 	-foreground gray \
 	-variable gMoveDelay
     scale .middle.f2.fPlayOptions.fTop.fRight.gameDelay -label "Game Delay" \
-	-from -50 \
-	-to 50 \
+	-from 0.0 \
+	-to 2.0 \
+	-resolution 0.1 \
 	-length 8c \
 	-state disabled \
 	-orient horizontal \
