@@ -107,7 +107,7 @@ char *gblankoxString[] = { "_", "x", "o"};
 */
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn); // not sure why..
-int hash(blankox *board, blankox turn);
+POSITION hash(blankox *board, blankox turn);
 blankox *unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
 void unparse_board(blankox *b_board, char *c_board);
@@ -960,6 +960,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.17  2004/03/11 02:25:27  evedar
+//9mm compiles (2 warnings), still need to fix things mentioned in last entry.  9mm now included in makefile
+//
 //Revision 1.16  2004/03/11 01:42:48  evedar
 //Finished m9mm functions.  Still needs: fixes from last checkin, help strings, etc.  Need to compile this latest version.  Specifically: filled in get option, set option, game-specific menu.
 //
