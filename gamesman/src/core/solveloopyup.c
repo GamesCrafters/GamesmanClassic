@@ -285,7 +285,7 @@ void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTE
   REMOTENESS winRemoteness, tieRemoteness, loseRemoteness;
   MOVELIST *mhead, *moveList;
   POSITION child;
-  VALUE oldValue, newValue = UNDECIDED, childValue;
+  VALUE oldValue, newValue = undecided, childValue;
   REMOTENESS childRemoteness;
   REMOTENESS oldRemoteness, newRemoteness = kBadPosition;
 
