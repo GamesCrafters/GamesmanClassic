@@ -248,6 +248,8 @@ STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
+BOOLEAN gMessage = FALSE;         /* Default is no message */
+BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 
 
 int   smartness = SMART;
@@ -3135,124 +3137,128 @@ void StartGame() {
 }
 
 /* Solves the game and stores it, without anybody actually playing it */
-void SolveAndStore(int option) {
-  gReadDatabase = FALSE;
-  setOption(option);
+void SolveAndStore() {
   Initialize();
   InitializeDatabases();
   gValue = DetermineValue(gInitialPosition);
 }
 
-/* Handles the command line arguments */
+/* Handles the command line arguments by setting flags and options */
 void HandleArguments (int argc, char *argv[]) {
-  if(!strcmp(argv[1], "-nodb")) {
-    gWriteDatabase = FALSE;
-    gReadDatabase = FALSE;
-    StartGame();
-  }
-  else if(!strcmp(argv[1], "-newdb")) {
-    gReadDatabase = FALSE;
-    StartGame();
-  }
-  else if(!strcmp(argv[1], "-option")) {
-    if(argc != 3)
-      printf("\nUsage: %s -option <n>\n\n", argv[0]);
-    else {
-      int option = atoi(argv[2]);
-      if(!option || option > NumberOfOptions())
-	printf("\nInvalid option configuration!\n\n");
-      else {
-	setOption(option);
-	StartGame();
+  int i, option;
+  for(i = 1; i < argc; i++) {
+    if(!strcasecmp(argv[i], "--nodb")) {
+      gWriteDatabase = FALSE;
+      gReadDatabase = FALSE;
+    }
+    else if(!strcasecmp(argv[i], "--newdb"))
+      gReadDatabase = FALSE;
+    else if(!strcasecmp(argv[i], "--option")) {
+      if(argc < (i + 2)) {
+	fprintf(stderr, "\nUsage: %s --option <n>\n\n", argv[0]);
+	gMessage = TRUE;
       }
-    }
-  }
-  else if(!strcmp(argv[1], "-solve")) {
-    gJustSolving = TRUE;
-    if(argc > 3)
-      fprintf(stderr, "Usage: %s -solve [<n> | <all>]\n\n", argv[0]);
-    else if(argc == 2) {
-      fprintf(stderr, "Solving \"%s\" for the default options... ", kGameName);
-      fflush(NULL);
-      SolveAndStore(getOption());
-      fprintf(stderr, "done.\n");
-    }
-    else {
-      int option = atoi(argv[2]);
-      if(!strcmp(argv[2], "all")) {
-	int i;
-	fprintf(stderr, "Solving %s option ", argv[0]);
-	for(i = 1; i <= NumberOfOptions(); i++) {
-	  fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
-	  fflush(stderr);
-	  SolveAndStore(i);
-	  fprintf(stderr, "%c[u", 27);
+      else {
+	option = atoi(argv[++i]);
+	if(!option || option > NumberOfOptions()) {
+	  fprintf(stderr, "\nInvalid option configuration!\n\n");
+	  gMessage = TRUE;
 	}
-	fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
+	else
+	  setOption(option);
       }
-      else if(!option || option > NumberOfOptions())
+    }
+    else if(!strcasecmp(argv[i], "--solve")) {
+      gJustSolving = TRUE;
+      if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
+	gSolvingAll = TRUE;
+      option = atoi(argv[i]);
+      if(option > NumberOfOptions()) {
 	fprintf(stderr, "Invalid option configuration!\n\n");
-      else {
-	fprintf(stderr, "Solving \"%s\" option %u....", kGameName, option);
-	fflush(stderr);
-	SolveAndStore(option);
-	fprintf(stderr, "done.\n");
+	gMessage = TRUE;
       }
+      else if(option)
+	setOption(option);
     }
-  }
-  else if(!strcmp(argv[1], "-DoMove")) {
-    if(argc != 4)
-      printf("\nInvalid arguments!\n\n");
-    else
-      printf("\nDoMove returns: %u\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
-  }
-  else if(!strcmp(argv[1], "-Primitive")) {
-    if(argc != 3)
-      printf("\nInvalid arguments!\n\n");
+    else if(!strcasecmp(argv[i], "--DoMove")) {
+      if(argc != 4)
+	fprintf(stderr, "\nInvalid arguments!\n\n");
+      else
+	printf("\nDoMove returns: %u\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
+      gMessage = TRUE;
+    }
+    else if(!strcasecmp(argv[i], "--Primitive")) {
+      if(argc != 3)
+	fprintf(stderr, "\nInvalid arguments!\n\n");
+      else 
+	printf("\nPrimitive returns: %u\n\n", Primitive(atoi(argv[2])));
+      gMessage = TRUE;
+    }
+    else if(!strcasecmp(argv[i], "--PrintPosition")) {
+      if(argc != 5)
+	fprintf(stderr, "\nInvalid arguments!\n\n");
+      else {
+	printf("\nPrintPosition:\n\n");
+	PrintPosition(atoi(argv[2]), argv[3], atoi(argv[4]));
+      }
+      gMessage = TRUE;
+    }
+    else if(!strcasecmp(argv[i], "--GenerateMoves")) {
+      
+      gMessage = TRUE;
+    }
+    else if(!strcasecmp(argv[i], "--help")) {
+      printf("\nSyntax:\n"
+	     "%s {--nodb | --newdb | --option <n> | --solve [<n> | <all>] |\n"
+	     "\t\t--DoMove <args> <move> | --Primitive <args> | \n"
+	     "\t\t--PrintPosition <args> --GenerateMoves <args>} | --help}\n\n"
+	     "--nodb\t\t\tStarts game without loading or saving to the database.\n"
+	     "--newdb\t\t\tStarts game and clobbers the old database.\n"
+	     "--option <n>\t\tStarts game with the n option configuration.\n"
+	     "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
+	     "\t\t\tTo solve all option configurations of game, use <all>.\n"
+	     "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
+	     "\t\t\tconfiguration.\n"
+	     "\t\t\tExamples:\n"
+	     "\t\t\t%s --solve\n"
+	     "\t\t\t%s --solve 2\n"
+	     "\t\t\t%s --solve all\n"
+	     "--DoMove <args>\n"
+	     "--Primitive <args>\n"
+	     "--PrintPosition <args>\n"
+	     "--GenerateMoves <args>\n\n", argv[0], argv[0], argv[0], argv[0]);
+      gMessage = TRUE;
+    }
     else {
-      printf("\nPrimitive returns: %u\n\n", Primitive(atoi(argv[2])));
+      fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
+      gMessage = TRUE;
     }
   }
-  else if(!strcmp(argv[1], "-PrintPosition")) {
-    if(argc != 5)
-      printf("\nInvalid arguments!\n\n");
-    else {
-      printf("\nPrintPosition:\n\n");
-      PrintPosition(atoi(argv[2]), argv[3], atoi(argv[4]));
-    }
-  }
-  else if(!strcmp(argv[1], "-GenerateMoves")) {
-    
-  }
-  else if(!strcmp(argv[1], "-help")) {
-    printf("\nSyntax:\n"
-"%s {-nodb | newdb | -option <n> | -solve [<n> | <all>] |\n"
-"\t\t-DoMove <args> <move> | -Primitive <args> | \n"
-"\t\t-PrintPosition <args> -GenerateMoves <args>} | -help}\n\n"
-"-nodb\t\t\tStarts game without loading or saving to the database.\n"
-"-newdb\t\t\tStarts game and clobbers the old database.\n"
-"-option <n>\t\tStarts game with the n option configuration.\n"
-"-solve [<n> | <all>]\tSolves game with the n option configuration.\n"
-"\t\t\tTo solve all option configurations of game, use <all>.\n"
-"\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
-"\t\t\tconfiguration.\n"
-"\t\t\tExamples:\n"
-"\t\t\t%s -solve\n"
-"\t\t\t%s -solve 2\n"
-"\t\t\t%s -solve all\n"
-"-DoMove <args>\n"
-"-Primitive <args>\n"
-"-PrintPosition <args>\n"
-"-GenerateMoves <args>\n\n", argv[0], argv[0], argv[0], argv[0]);
-  }
-  else
-    printf("\nInvalid option or missing parameter, use %s -help for help\n\n", argv[0]);
 }
 
 int main(int argc, char *argv[]) {
-  if(argc == 1)
-    StartGame();
-  else
-    HandleArguments(argc, argv);
+  HandleArguments(argc, argv);
+  if(!gMessage) {
+    if(!gJustSolving)
+      StartGame();
+    else if(!gSolvingAll) {
+      fprintf(stderr, "Solving \"%s\" option %u....", kGameName, getOption());
+      fflush(stderr);
+      SolveAndStore();
+      fprintf(stderr, "done.\n");
+    }
+    else {
+      int i;
+      fprintf(stderr, "Solving %s option ", argv[0]);
+      for(i = 1; i <= NumberOfOptions(); i++) {
+	fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
+	fflush(stderr);
+	setOption(i);
+	SolveAndStore();
+	fprintf(stderr, "%c[u", 27);
+      }
+      fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
+    }
+  }
   return 0;
 }
