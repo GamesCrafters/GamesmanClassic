@@ -1,5 +1,5 @@
-// $ id $
-// $ log $
+// $id$
+// $log$
 
 /************************************************************************
 **
@@ -17,6 +17,7 @@
 **                          PrintPosition (depends on parser),
 **                          GetAndPrintPlayersMove, ConvertTextInputToMove,
 **                          and several auxillary functions.
+**              19 Mar, 04: Added parsing and printing code.
 **
 ** 
 **
@@ -36,7 +37,7 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 0;
+POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
@@ -44,14 +45,14 @@ POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "";
 STRING   kDBName             = "";
-BOOLEAN  kPartizan           = ; 
-BOOLEAN  kSupportsHeuristic  = ;
-BOOLEAN  kSupportsSymmetries = ;
-BOOLEAN  kSupportsGraphics   = ;
+BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kSupportsHeuristic  = FALSE;
+BOOLEAN  kSupportsSymmetries = FALSE;
+BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = ;
 BOOLEAN  kGameSpecificMenu   = ;
-BOOLEAN  kTieIsPossible      = ;
-BOOLEAN  kLoopy               = ;
+BOOLEAN  kTieIsPossible      = FALSE;
+BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = ;
 
 STRING kHelpGraphicInterface =
@@ -64,10 +65,10 @@ STRING   kHelpOnYourTurn =
 "";
 
 STRING   kHelpStandardObjective =
-"";
+"Move your pieces such that your opponent is trapped (ie, cannot move).";
 
 STRING   kHelpReverseObjective =
-"";
+"Move your pieces such that your opponent is forced to trap you.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
@@ -110,6 +111,10 @@ STRING   kHelpExample =
 #define CLASS_TABLE 0
 #define NODES_TABLE 1
 
+/* Each node has a class, and pieces in that node may
+   only be restricted by type and may only move to
+   nodes which both allow their type and are in the
+   moveto list of the current node's class. */
 struct GraphClass {
   char name[10];
   int player;
@@ -128,8 +133,12 @@ struct GraphNode {
   struct GraphNode* adjacent[MAX_NODES-1];
 };
 
+/* Generic piece, but the current game limits pieces to black
+   and white. Having more pieces complicates the 
+   stringToBoard procedure and would require expansion
+   of the parser grammar to provide additional rules for
+   these pieces. */
 struct Piece {
-  int color;
   char pic;
   int node;
 };
@@ -170,6 +179,11 @@ char* boardToString(char* s, nodes board, pieces black_pieces,
 void stringToBoard(char*s, nodes board, pieces black_pieces,
 		   pieces white_pieces);
 
+void printBoard(nodes board, pieces black_pieces, 
+		pieces white_pieces);
+/* Prints just the structure, listing which node names
+   correspond to which node numbers. */
+void printEmptyBoard(nodes board);
 
 /* Starting here are the function prototypes for the parser: */
 
@@ -215,10 +229,6 @@ int nameHash(char* name, int hashsize);
    0 for classes, 1 for nodes. */
 void addToHash(int val, int num_val, int table);
 int hashLookup(char* token, classes node_classes, nodes board);
-
-void printBoard(nodes board, pieces black_pieces, 
-		pieces white_pieces);
-
 /* Parser prototypes end here. */
 
 /* External */
@@ -320,7 +330,7 @@ POSITION DoMove (thePosition, theMove)
   string_board[to] = string_board[from];
   string_board[from] = '-';
 
-  return generic_hash(thePosition);
+  return generic_hash(string_board);
 }
 
 
@@ -537,7 +547,7 @@ MOVE ConvertTextInputToMove (input)
   to_string = strtok(input, " ");
   to = atoi(to_string);
 
-  from_string = strtok(input, " ");
+  from_string = strtok(NULL);
   from = atoi(from_string);
 
   return moveHash(to, from);
@@ -616,7 +626,7 @@ void setOption(int option)
 **
 ** NAME:        GameSpecificTclInit
 **
-** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
+** DESCRIPTION: 
 **
 ************************************************************************/
 
@@ -681,6 +691,7 @@ void stringToBoard(char* s, nodes board, pieces black_pieces,
     case white_pieces[0].pic:
       white_pieces[white_counter].node = i;
       board[i].game_piece = &white_pieces[white_counter];
+      white_counter++;
       break;
     default:
       break;
@@ -689,3 +700,459 @@ void stringToBoard(char* s, nodes board, pieces black_pieces,
 
   return;
 }
+
+void printBoard(nodes board, pieces black_pieces, 
+		pieces white_pieces) {
+  int i;
+
+  printf("\n");
+
+  for(i = 0; i < num_nodes; i++) {
+    if(board[i].game_piece)
+      image[board[i].str_line][board[i].str_index] =
+	board[i].game_piece->pic;
+    else
+      image[board[i].str_line][board[i].str_index] = 
+	i;
+  }
+
+  i = 0;
+  while((image[i][0] != EOF) && (i < 20))
+    printf("%s\n", image[i++]);
+
+  printf("\n");
+
+  return;
+}
+
+void printEmptyBoard(nodes board) {
+  int i;
+
+  printf("\n");
+
+  printf("Node names and corresponding numbers:\t");
+
+  for(i = 0; i < num_nodes; i++) {
+    printf("%c - %d ", board[i].name, i);
+    image[board[i].str_line][board[i].str_index] =
+      board[i].name;
+  }
+
+  printf("\n");
+
+  i = 0;
+  while((image[i][0] != EOF) && (i < 20))
+    printf("%s\n", image[i++]);
+
+  printf("\n");
+
+  return;
+}
+
+/* Parser code: */
+
+void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
+	      classes node_classes) {
+  int i, j;
+
+  for(i = 0; i < MAX_CLASSES; i++) {
+    node_classes[i].player = INVALID;
+  }
+
+  for(i = 0; i < MAX_NODES; i++) {
+    board[i].name = 0;
+    board[i].game_piece = NULL;
+    board[i].str_line = -1;
+    board[i].str_index = -1;
+    for(j = 0; j < MAX_NODES-1; j++) {
+      board[i].adjacent[j] = NULL;
+    }
+  }
+
+  for(i = 0; i < MAX_PIECES; i++) {
+    black_pieces[i].node = white_pieces[i].node = -1;
+    black_pieces[i].pic = white_pieces[i].pic = '*';
+  }
+
+  num_nodes = 0;
+  num_black = 0;
+  num_white = 0;
+  version = 0;
+}
+
+int procFile(FILE* graph_file, nodes board, pieces black_pieces,
+	      pieces white_pieces, classes node_classes) {
+  char token[2000];
+  char* arg1;
+  int token_pos = 0;
+
+  while(fileGetToken(graph_file, token)) {
+    token_pos = 0;
+    arg1 = stringGetToken(token, &token_pos);
+    if(!strcmp(arg1, "graph") || !strcmp(arg1, "g"))
+      handleGraph(token, &token_pos);
+    else if(!strcmp(arg1, "node-class") || !strcmp(arg1, "nc"))
+      handleNodeClass(token, &token_pos, board, node_classes);
+    else if(!strcmp(arg1, "piece-class") || !strcmp(arg1, "pc"))
+      handlePieceClass(token, &token_pos, board, black_pieces, 
+		       white_pieces);
+    else if(!strcmp(arg1, "node") || !strcmp(arg1, "n"))
+      handleNodeDef(token, &token_pos, board);
+    else if(!strcmp(arg1, "image") || !strcmp(arg1, "i"))
+      handleImage(token, &token_pos, board);
+    else
+      return 0;
+  }
+
+  return 1;
+}
+
+void handleGraph(char* token, int* pos) {
+  char* graph_name = stringGetToken(token, pos);
+  version = atoi(stringGetToken(token, pos));
+  strcpy(g_name, graph_name);
+
+  return;
+}
+
+void handleNodeClass(char* token, int* pos,
+		     nodes board, classes node_classes) {
+  static int class_num = 0;
+  char* players, * list, * list_token;
+  int i, list_pos;
+
+  strcpy(node_classes[class_num].name, stringGetToken(token, pos));
+
+  addToHash(nameHash(node_classes[class_num].name, MAX_CLASSES), 
+	    class_num, CLASS_TABLE);
+  
+  players = stringGetToken(token, pos);
+  if(strcmp(players, "both")) {
+    if(!strcmp(players, "black"))
+      node_classes[class_num].player = BLACK_PLAYER;
+    else if(!strcmp(players, "white"))
+      node_classes[class_num].player = WHITE_PLAYER;
+  } else
+    node_classes[class_num].player = BOTH_PLAYERS;
+  
+  list = stringGetToken(token, pos);
+  list_pos = 0;
+  i = 0;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    node_classes[class_num].moveto[i] = 
+      &node_classes[hashLookup(list_token, node_classes, NULL)];
+    i++;
+  }
+
+  list = stringGetToken(token, pos);
+  list_pos = 0;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    list_token[1] = '\0';
+    addToHash(nameHash(list_token, MAX_NODES), num_nodes, NODES_TABLE);
+    board[num_nodes].name = list_token[0];
+    board[num_nodes].class = class_num;
+    num_nodes++;
+  }
+
+  return;
+}
+
+void handlePieceClass(char* token, int* pos, nodes board,
+		      pieces black_pieces, pieces white_pieces) {
+  char* name, * pic_str, * list, * list_token;
+  struct Piece** current_class;
+  int* counter;
+  int list_pos, current_node;
+
+  name = stringGetToken(token, pos);
+  if(strcmp(name, "black")) {
+    current_class = &black_pieces;
+    counter = &num_black;
+  } else {
+    current_class = &white_pieces;
+    counter = &num_white;
+  }
+
+  pic_str = stringGetToken(token, pos);
+  (*current_class)[*counter].pic = pic_str[0];
+
+  list = stringGetToken(token, pos);
+  list_pos = 0;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    current_node = hashLookup(list_token, NULL, board);
+    (*current_class)[*counter].pic = pic_str[0];
+    (*current_class)[*counter].node = current_node;
+    board[current_node].game_piece = &((*current_class)[*counter]);
+    (*counter)++;
+  }
+
+  return;
+}
+
+void handleNodeDef(char* token, int* pos, nodes board) {
+  char* name, * list, * list_token;
+  int list_pos, node_num, current_neighbor;
+  int i, j;
+
+  name = stringGetToken(token, pos);
+  node_num = hashLookup(name, NULL, board);
+
+  /* Process the directed list. */
+  list = stringGetToken(token, pos);
+  list_pos = 0;
+  i = 0;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    current_neighbor = hashLookup(list_token, NULL, board);
+    board[node_num].adjacent[i] = &board[current_neighbor];
+    i++;
+  }
+
+  /* Process the connected list. */
+  list = stringGetToken(token, pos);
+  list_pos = 0;
+  i = 0;
+  while((list_token = stringGetToken(list, &list_pos))) {
+    current_neighbor = hashLookup(list_token, NULL, board);
+    board[node_num].adjacent[i] = &board[current_neighbor];
+
+    j = 0;
+    while(board[current_neighbor].adjacent[j])
+      j++;
+    board[current_neighbor].adjacent[j] = &board[node_num];
+
+    i++;
+  }
+
+  return;
+}
+
+void handleImage(char* token, int* pos, nodes board) {
+  char* c_line;
+  char name[2];
+  int i, j, hash_lookup;
+
+  if(isspace(token[*pos]))
+    (*pos)++;
+
+  i = 0;
+  c_line = stringGetLine(token + *pos);
+  name[1] = '\0';
+  while(c_line) {
+    strcpy(image[i], c_line);
+    j = 0;
+    while(image[i][j] && (image[i][j] != '\n') 
+	  && (image[i][j] != EOF)) {
+      name[0] = image[i][j];
+      hash_lookup = hashLookup(name, NULL, board);
+      if(hash_lookup != -1) {
+	board[hash_lookup].str_line = i;
+	board[hash_lookup].str_index = j;
+      }
+      j++;
+    }
+    c_line = stringGetLine(NULL);
+    i++;
+  }
+
+  if(i < 20)
+    image[i][0] = -1;
+
+  return;
+}
+
+int fileGetToken(FILE* graph_file, char* token) {
+  char current;
+  int i = 0;
+  int unmatched_parens = 0;
+  int is_plain_text = 0;
+
+  /* Skip whitespace and any unprintable junk. */
+  do 
+    current = fgetc(graph_file);
+  while(current && (current != EOF) && (current != '(') 
+	&& !isgraph((int)current));
+
+  if(feof(graph_file) || ferror(graph_file))
+    return 0;
+
+  /* Determine the type of token. 
+     The plain text type is not currently used. */
+  if(current == '(')
+    unmatched_parens = 1;
+  else if(current == ';') {
+    while(current && (current != EOF) && (current != '\n'))
+      current = fgetc(graph_file);
+    return fileGetToken(graph_file, token);
+  } else {
+    token[0] = current;
+    i++;
+    is_plain_text = 1;
+  }
+ 
+  /* Increment through the file. */
+  while(unmatched_parens || is_plain_text) {
+    current = fgetc(graph_file);
+
+    /* Skip any mid-token comments. */
+    if(current == ';') {
+      while(current == ';') {
+	while(current && (current != EOF) && (current != '\n'))
+	  current = fgetc(graph_file);
+      }
+    }
+
+    if(is_plain_text && !isgraph((int)current))
+      break;
+    if(!is_plain_text) {
+      if(current == '(')
+	unmatched_parens++;
+      else if(current == ')')
+	unmatched_parens--;
+      if(!unmatched_parens)
+	break;
+    }
+    token[i] = current;
+    i++;
+  }
+
+  token[i] = '\0';
+
+  return 1;
+}
+
+char* stringGetToken(char* s, int* position) {
+  char* start;
+  int unmatched_parens = 0; 
+  int is_plain_text = 0;
+
+  
+  /* Place the position at the first open parentheses or
+     alphanumeric character. */
+  while(s[*position] && (s[*position] != '(') && 
+	!isalnum((int)s[*position]))
+    (*position)++;
+
+  if(!s[*position])
+    return NULL;
+
+  /* Determine the type of the current token. */
+  start = s + *position;
+  if(s[*position] == '(') {
+    (*position)++;
+    start++;
+    unmatched_parens++;
+  } else
+    is_plain_text = 1;
+
+  /* Increment through the string until the end of the token is
+     reached (when either there are no more alphanumeric characters
+     or '-', when a closed parentheses is found, or EOF). */
+  if(is_plain_text) {
+    do
+      (*position)++;
+    while(isalnum((int)s[*position]) || (s[*position] == '-'));
+    if(s[(*position)]) {
+      s[(*position)] = '\0';
+      (*position)++;
+    }
+  } else { 
+    while(unmatched_parens && s[*position]) {
+      if(s[*position] == ')')
+	  unmatched_parens--;
+      else if(s[*position] == '(')
+	  unmatched_parens++;      
+      (*position)++;
+    }
+    if(s[*position - 1] == ')')
+      s[*position - 1] = '\0';
+  }
+
+  return start;
+}
+
+char* stringGetLine(char* s) {
+  static int position;
+  static char* str;
+  char* start;
+ 
+  if(s) {
+    position = 0;
+    str = s;
+  }
+  
+  start = str + position;
+
+  if(!str[position] || (str[position] == EOF))
+    return NULL;
+
+  while(str[position] && (str[position] != '\n'))
+    position++;
+  
+  if(str[position]) {
+    str[position] = '\0';
+    position++;
+  }
+
+  return start;
+}
+
+int nameHash(char* name, int hashsize) {
+  int i;
+  int hashed = 0;
+
+  for(i = 0; i < 5; i++) {
+    if(!name[i])
+      break;
+    hashed += name[i];
+  }
+
+  return hashed % hashsize;
+}
+
+#define CLASS_LOOKUP classes_lookup[hash_val][collision_index]
+#define NODE_LOOKUP nodes_lookup[hash_val][collision_index]
+
+void addToHash(int hash_val, int num_val, int table) {
+  int collision_index = 0;
+
+  if(table == CLASS_TABLE) {
+    while(CLASS_LOOKUP && (collision_index < MAX_CLASSES))
+      collision_index++;
+    classes_lookup[hash_val][collision_index] = num_val + 1;
+  }
+  else {
+    while(NODE_LOOKUP)
+      collision_index++;
+    nodes_lookup[hash_val][collision_index] = num_val + 1;
+  }
+
+  return;
+}
+
+int hashLookup(char* token, classes node_classes, nodes board) {
+  int collision_index = 0;
+  int hash_val;
+
+  if(node_classes) {
+    hash_val = nameHash(token, MAX_CLASSES);
+    while(CLASS_LOOKUP &&
+	  strcmp(node_classes[CLASS_LOOKUP-1].name, token) &&
+	  (collision_index < MAX_CLASSES))
+      collision_index++;
+    if(collision_index >= MAX_CLASSES)
+      return -1;
+    return CLASS_LOOKUP-1;
+  } else if(board) {
+    hash_val = nameHash(token, MAX_NODES);
+    while(NODE_LOOKUP && 
+	  (board[NODE_LOOKUP-1].name != token[0]) &&
+	  (collision_index < MAX_NODES))
+      collision_index++;
+    if(collision_index >= MAX_NODES)
+      return -1;
+    return NODE_LOOKUP-1;
+  } else
+    return -1;
+}
+
+/* End parser code. */
