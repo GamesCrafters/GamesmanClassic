@@ -83,7 +83,8 @@ OTHELLO_OBJ		= mothello$(OBJSUFFIX)
 OTHELLO_SO		= $(LIBDIR)/libmothello$(LIBSUFFIX)
 
 TTT_EXE			= $(BINDIR)/mttt$(EXESUFFIX)	# The awesome game of Tic-Tac-Toe
-TTT_OBJ			= mttt$(OBJSUFFIX) mtttppm$(OBJSUFFIX)
+TTT_OBJ			= mttt$(OBJSUFFIX)
+TTTPPM_OBJ		= mtttppm$(OBJSUFFIX)
 TTT_SO			= $(LIBDIR)/libmttt$(LIBSUFFIX)
 
 BLOCKING_EXE		= $(BINDIR)/mblocking$(EXESUFFIX)	# The awesome game of blocking
@@ -166,7 +167,7 @@ GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
 GRAPH_OBJ		= mgraph$(OBJSUFFIX)
 
 ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
-ACHI_OBJ		= machi$(OBJSUFFIX) mtttppm$(OBJSUFFIX)
+ACHI_OBJ		= machi$(OBJSUFFIX)
 ACHI_SO			= $(LIBDIR)/libmachi$(LIBSUFFIX)
 
 QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
@@ -257,7 +258,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) $(
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_EXE) \
 	  $(DODGEM_EXE) $(BLOCKING_EXE) $(PYLOS_EXE) $(FANDAN_EXE) $(GRAPH_EXE) \
 	  $(TACTIX_EXE) $(LGAME_EXE) $(3SPOT_EXE) $(CMASS_EXE) $(LITE3_EXE) $(CTOI_EXE) \
-	  $(WIN4_EXE) $(RUBIX_EXE) $(ACHI_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) \
+	  $(WIN4_EXE) $(RUBIX_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) \
           $(SNAKE_EXE)  $(1TON_EXE) $(ABALONE_EXE) $(TTC_EXE) \
 	  $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) $(HORSE_EXE) \
 	  $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE)
@@ -280,7 +281,7 @@ CCGAMES = $(CON_EXE) $(DNB_EXE)
 CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
-SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE)
+SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE)
 SPECIALTCL = $(FOXES_SO) $(TTT_SO)
 
 
@@ -336,7 +337,7 @@ $(LOOPYUPSOLVER_OBJ): %$(OBJSUFFIX): %.c $(LOOPYUPSOLVER_INCLUDE)
 ##############################################################################
 ### Generic rules for games:
 
-$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(HASH_INCLUDE)
+$(CGAMEOBJS) $(TTTPPM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(HASH_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
 $(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ)
@@ -364,11 +365,11 @@ $(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
 
-$(ACHI_EXE): $(ACHI_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
-	$(CC) -o $@ $(ACHI_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
+	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(TTT_EXE): $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
-	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(TTT_SO): $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LOOPYGASOLVER_OBJ)
 	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
