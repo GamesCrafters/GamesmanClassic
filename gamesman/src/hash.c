@@ -1,4 +1,8 @@
+
+#define HASH_LOCAL
+
 #include "hash.h"
+#include "gamesman.h"
 #include <stdlib.h>
 
 
