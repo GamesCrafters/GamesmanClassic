@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.52 2005-02-09 20:44:49 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.53 2005-02-09 21:08:11 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -816,40 +816,44 @@ proc InitWindow { kRootDir kDir kExt } {
 	-tags [list WhoseTurn textitem]
 
     # this is the left panel item "click to play"
-    .middle.f1.cMLeft bind startupPic <ButtonPress-1> {
+    set gameStarted false
+    .middle.f1.cMLeft bind startupPic <Enter> {
+	set gameStarted false
+	.middle.f1.cMLeft raise startupPicOver
+	update idletasks
+    }
+    .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
 	TBaction1
+	set gameStarted true
 	.middle.f1.cMLeft raise iDMB
-    } 
-#    set gameStarted false
-#    .middle.f1.cMLeft bind startupPic <Enter> {
-#	set gameStarted false
-#	.middle.f1.cMLeft raise startupPicOver; update idletasks;
-#    }
-#    .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
-#	TBaction1
-#	set gameStarted true
-#	.middle.f1.cMLeft raise iDMB
-#    }
-#    if { $gameStarted == "false" } {
-#	.middle.f1.cMLeft bind startupPicOver <Any-Leave> {
-#	    .middle.f1.cMLeft raise startupPic; update idletasks;
-#	}
-#    } else {
-#	.middle.f1.cMLeft bind startupPic <Any-Leave> {
-#		.middle.f1.cMLeft raise iDMB
-#	}
-#    }
+	update idletasks
+    }
+    .middle.f1.cMLeft bind startupPicOver <Leave> {
+	if { $gameStarted == "false" } {
+	    .middle.f1.cMLeft raise startupPic
+	} else {
+	    .middle.f1.cMLeft raise iDMB
+	}
+	update idletasks
+    }
 
 
     # this is the play button
-#    .middle.f3.cMRight bind play <Any-Enter> {
-#	.middle.f3.cMRight raise playOver; update idletasks;
-#    }
-#    .middle.f3.cMRight bind playOver <Any-Leave> {
-#	.middle.f3.cMRight raise play; update idletasks;
-#    }
-#    .middle.f3.cMRight bind playOver <ButtonPress-1> { }
-    .middle.f3.cMRight bind play <ButtonPress-1> {
+    .middle.f3.cMRight bind play <Enter> {
+	set gameStarted false
+	.middle.f3.cMRight raise playOver
+	update idletasks
+    }
+    .middle.f3.cMRight bind playOver <Leave> {
+	if { $gameStarted == "false" } {
+	    .middle.f3.cMRight raise play
+	} else {
+	    .middle.f3.cMRight raise iDMB
+	}
+	update idletasks
+    }
+    .middle.f3.cMRight bind playOver <ButtonPress-1> {
+	set gameStarted true
 	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	    . config -cursor watch
 	    set theValue [C_DetermineValue $gPosition]
@@ -894,7 +898,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cStatus raise predI
 	}
 	.middle.f3.cMRight raise WhoseTurn
-    }	
+    }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
 
