@@ -283,7 +283,7 @@ SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(TTT_SO)
 ##############################################################################
 ### Global build rules
 
-all: 		text_all @COMPILEGRAPHICS@ gameline
+all: 		text_all @COMPILEGRAPHICS@
 
 dist:		clean
 		rm -rf Makefile
