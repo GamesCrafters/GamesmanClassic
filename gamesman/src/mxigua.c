@@ -17,8 +17,10 @@
 ** DATE:        1.27.05 - ???? 
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-** 		-- 1.27.05 -- Created file and started adding in game info.
-**
+** 		-- 1.27.05 -- Created file and started adding in game info. -JK
+**		-- 1.30.05 -- Added to displayasciitable.
+** 			      Filled in most of PrintPosition.
+**                            Still need code to unhash.  -JK
 **************************************************************************/
 
 /*************************************************************************
@@ -231,23 +233,38 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void displayasciiboard(char *positionvalues) {
+/**
+ * displayasciiboard() -- displays the board in a nice to view manner
+ * 
+ * Takes in a char array that represents each of the positions and a character
+ * array with the prediction.
+ *
+ * Returns nothing.
+ *
+ * Still need to add the prediction into the drawing. -JK
+ * 
+ */
+void displayasciiboard(char *positionvalues, char *prediction) {
 	/* dirty but should work */
 	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
-	printf("    /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
-	printf("   /..\\|/..\\n");
-	printf("  /....%c....\\\n",pos[3]);
-	printf(" /.....|.....\\\n");
-	printf("%c......%c......%c\n",pos[4],pos[5],pos[6]);
-	printf("|\\..../|\\..../|\n");
-	printf("%c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
-	printf("|/....\\|/....\\|\n");
-	printf("%c......%c......%c\n",pos[14],pos[15],pos[16]);
-	printf("\\.....|...../\n");
-	printf(" \\....%c..../\n",pos[17]);
-	printf("  \\../|\\../\n");
-	printf("   \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+        printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
+        printf("          /..\\|/..\\    Player1: *     /..\\|/..\\\n");
+        printf("         /....4....\\   Player2: X    /....%c....\\\n",pos[3]);
+        printf("        /.....|.....\\               /.....|.....\\\n");
+        printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
+        printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
+        printf("       8-9--A-B-C--D-E             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+        printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
+        printf("       F......G......H             %c......%c......%c\n",pos[14],pos[15],pos[16]);
+        printf("        \\.....|...../               \\.....|...../\n");
+        printf("         \\....I..../                 \\....%c..../\n",pos[17]);
+        printf("          \\../|\\../                   \\../|\\../\n");
+        printf("           \\J-K-L/                     \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+
 }
+/* Whoops, forgot to move the comment describing PrintPosition 
+ will do it later, till then, scroll up directly above the previous function */
+
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	/* just a doodle of the gameboard
@@ -267,7 +284,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
          *              \0-0-0/
 	 *
 	 * all thanks to boring lectures =)
-	 */ 
+	 */
+	char *toprint;
+	GetPrintablePosition(position,toprint);
+	displayasciiboard(toprint); 
 } 
 
 
