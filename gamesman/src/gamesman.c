@@ -1834,6 +1834,7 @@ MOVE GetComputersMove(thePosition)
   int i, randomMove, numberMoves = 0;
   MOVELIST *ptr, *head, *prev;
   VALUE_MOVES *moves, *GetValueMoves();
+  REMOTENESSLIST *rptr, *rhead;
   BOOLEAN setBackSmartness = FALSE;
   int oldsmartness = smartness;
   ptr = head = prev = NULL;
@@ -1868,16 +1869,17 @@ MOVE GetComputersMove(thePosition)
 
   oldValueOfPosition = GetValueOfPosition(thePosition);
 
-  if (smartness == SMART) {    
+  if (smartness == SMART) {
     if(gHints) {
       printf("Smart move: \n");
       printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
     }
-    while (ptr == NULL && i <= LOSEMOVE) {    
+    while (ptr == NULL && i <= LOSEMOVE) {
       head = ptr = moves->moveList[i];
+      rhead = rptr = moves->remotenessList[i];
       i++;
     }
-    if (ptr == NULL) {
+    if (ptr == NULL || rptr == NULL) {
       printf("Error in GetComputersMove: no Move at all");
       exit(0);
     }
@@ -1891,15 +1893,62 @@ MOVE GetComputersMove(thePosition)
     }
     if(gHints)
       printf("]\n\n");
-    if (i == 1) {
+    if (i == TIEMOVE) {
       theMove = head->move;
       FreeValueMoves(moves);
       return (theMove);
-    }
-    else {
-      ptr=head;
-      while(ptr->next != NULL) 
-	ptr = ptr->next;
+    } else if (i == WINMOVE) {
+      // WINMOVE: Win as quickly as possible (smallest remoteness best)
+      REMOTENESS bestRemoteness;
+      int moveCount = 1, q;
+      
+      ptr = head;
+      rptr = rhead;
+      bestRemoteness = rptr -> remoteness;
+      
+      while (ptr -> next != NULL) {
+        ptr = ptr -> next;
+        rptr = rptr -> next;
+        if (rptr -> remoteness > bestRemoteness) break;
+        ++moveCount;
+      }
+      
+      q = GetRandomNumber(moveCount);
+      ptr = head;
+      for (; q > 1; --q)
+        ptr = ptr -> next;
+      
+      theMove = ptr -> move;
+      FreeValueMoves(moves);
+      return theMove;
+    } else {
+      // LOSEMOVE: Prolong the game as much as possible
+      // (highest remoteness is best).
+      MOVELIST* bestMoveHead;	 // First move with best remoteness.
+      REMOTENESS bestRemoteness;
+      int moveCount = 1, q;
+      
+      ptr = head;
+      rptr = rhead;
+      bestMoveHead = ptr;
+      bestRemoteness = rptr -> remoteness;
+      
+      while (ptr->next != NULL) {
+	ptr = ptr -> next;
+	rptr = rptr -> next;
+	if (rptr -> remoteness > bestRemoteness) {
+	  moveCount = 1;
+	  bestMoveHead = ptr;
+	} else {
+	  ++moveCount;
+	}
+      }
+      
+      q = GetRandomNumber(moveCount);
+      ptr = bestMoveHead;
+      for (; q > 1; --q)
+        ptr = ptr -> next;
+      
       theMove = ptr->move;
       FreeValueMoves(moves);
       return(theMove);
@@ -2770,7 +2819,12 @@ POSITION position;
   return gDatabase[position] % 4 ;
 }
 
-void SetParents ( POSITION bad, POSITION root )
+/*
+** Requires: the root has not been visited yet
+** (We do not check to see if its been visited)
+*/
+
+void SetParents (POSITION parent, POSITION root)
 {
   // Prototypes
   BOOLEAN Visited();
@@ -2786,16 +2840,16 @@ void SetParents ( POSITION bad, POSITION root )
   posptr = thisLevel = nextLevel = NULL;
   moveptr = movehead = NULL;
   
-  // Humor me.
+  // Check if the top is primitive.
   MarkAsVisited(root);
-  gParents[root] = StorePositionInList(bad, gParents[root]);
+  gParents[root] = StorePositionInList(parent, gParents[root]);
   if ((value = Primitive(root)) != undecided) {
     SetRemoteness(root, 0);
     switch (value) {
-    case lose: InsertLoseFR(root); break;
-    case win:  InsertWinFR(root); break;
-    case tie:  InsertTieFR(root); break;
-    default:   BadElse("SetParents found primitive with value other than win/lose/tie");
+      case lose: InsertLoseFR(root); break;
+      case win:  InsertWinFR(root); break;
+      case tie:  InsertTieFR(root); break;
+      default:   BadElse("SetParents found primitive with value other than win/lose/tie");
     }
     
     StoreValueOfPosition(root, value);
@@ -2820,14 +2874,15 @@ void SetParents ( POSITION bad, POSITION root )
 	if ((value = Primitive(child)) != undecided) {
 	  SetRemoteness(child, 0);
 	  switch (value) {
-	  case lose: InsertLoseFR(child); break;
-	  case win : InsertWinFR(child);  break;
-	  case tie : InsertTieFR(child);  break;
-	  default  : BadElse("SetParents found bad primitive value");
+	    case lose: InsertLoseFR(child); break;
+	    case win : InsertWinFR(child);  break;
+	    case tie : InsertTieFR(child);  break;
+	    default  : BadElse("SetParents found bad primitive value");
 	  }
 	  StoreValueOfPosition(child, value);
-	} else
+	} else {
 	  nextLevel = StorePositionInList(child, nextLevel);
+	}
       }
       
       FreeMoveList(movehead);
