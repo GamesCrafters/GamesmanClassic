@@ -84,7 +84,110 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 getting three-in-a-row.";
 
 STRING   kHelpExample =
-"";
+"            1   2   3     :  · · · \n\
+ LEGEND:  4   5   6   7   : · · · · \n\
+            8   9  10     :  · · · \n\
+\n\
+Player pieces left (O: 5, R: 5)\n\
+\n\
+\n\
+  Player's move [1-10] : \n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : · · · · \n\
+            8   9  10     :  · · · \n\
+\n\
+Computer pieces left (O: 5, B: 5)\n\
+\n\
+\n\
+Computer's move : 10\n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : · · · · \n\
+            8   9  10     :  · · O \n\
+\n\
+Player pieces left (O: 4, R: 5)\n\
+\n\
+\n\
+  Player's move [1-10] : \n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : O · · · \n\
+            8   9  10     :  · · O \n\
+\n\
+Computer pieces left (O: 4, B: 5)\n\
+\n\
+\n\
+Computer's move : 6\n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : O · O · \n\
+            8   9  10     :  · · O \n\
+\n\
+Player pieces left (O: 3, R: 5)\n\
+\n\
+\n\
+  Player's move [1-10] : \n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : O · O · \n\
+            8   9  10     :  O · O \n\
+\n\
+Computer pieces left (O: 3, B: 5)\n\
+\n\
+\n\
+Computer's move : 5\n\
+            1   2   3     :  O · · \n\
+ LEGEND:  4   5   6   7   : O O O · \n\
+            8   9  10     :  O · O \n\
+\n\
+Player pieces left (O: 2, R: 5)\n\
+\n\
+\n\
+  Player's move [1-10] : \n\
+            1   2   3     :  R · · \n\
+ LEGEND:  4   5   6   7   : O O O · \n\
+            8   9  10     :  O · O \n\
+\n\
+Computer pieces left (O: 2, B: 5)\n\
+\n\
+\n\
+Computer's move : 6\n\
+            1   2   3     :  R · · \n\
+ LEGEND:  4   5   6   7   : O O B · \n\
+            8   9  10     :  O · O \n\
+\n\
+Player pieces left (O: 2, R: 4)\n\
+\n\
+\n\
+  Player's move [1-10] : \n\
+            1   2   3     :  R · · \n\
+ LEGEND:  4   5   6   7   : O O B · \n\
+            8   9  10     :  O O O \n\
+\n\
+Computer pieces left (O: 2, B: 4)\n\
+\n\
+\n\
+Computer's move : 5\n\
+            1   2   3     :  R · · \n\
+ LEGEND:  4   5   6   7   : O B B · \n\
+            8   9  10     :  O O O \n\
+\n\
+Player pieces left (O: 1, R: 4)\n\
+\n\
+\n\
+  Player's move [1-10] : 2\n\
+            1   2   3     :  R O · \n\
+ LEGEND:  4   5   6   7   : O B B · \n\
+            8   9  10     :  O O O \n\
+\n\
+Computer pieces left (O: 2, B: 3)\n\
+\n\
+\n\
+Computer's move : 4\n\
+            1   2   3     :  R O · \n\
+ LEGEND:  4   5   6   7   : B B B · \n\
+            8   9  10     :  O O O \n\
+\n\
+Player pieces left (O: 0, R: 4)\n\
+\n\
+\n\
+Computer wins.  Nice try player.\n";
 
 /*************************************************************************
 **
