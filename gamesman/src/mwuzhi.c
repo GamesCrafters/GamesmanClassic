@@ -53,7 +53,7 @@ BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if i
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -110,8 +110,9 @@ STRING   kHelpExample =
 *************************************************************************/
 
 /* default values */
-int gBoardlength = 25;
+
 int gBoardwidth = 5;
+int gBoardlength;
 char* gBoard;
 
 
@@ -160,6 +161,7 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
   int i, j, k;
+  gBoardlength = gBoardwidth * gBoardwidth;
   int pieces_array[] = {WHITE, 1, gBoardwidth, BLACK, 1, gBoardwidth, BLANK, gBoardlength - (gBoardwidth * 2), gBoardlength - 2, -1 };
   gNumberOfPositions = generic_hash_init(gBoardlength, pieces_array, NULL);
   gBoard = (char*)malloc(sizeof(char) * (gBoardlength + 1));
@@ -216,19 +218,19 @@ MOVELIST *GenerateMoves (POSITION position)
 
 	/*	printf("row: %d\n", r); */
 	if (canmoveup(i, position, gBoardwidth)) {
-	  printf("calling canmoveup with: %d, %d\n", c, r);
+	  //printf("calling canmoveup with: %d, %d\n", c, r);
 	    moves = CreateMovelistNode(EncodeMove(0,c,r), moves);
 	}
 	if (canmovedown(i, position, gBoardwidth)) {
-	  printf("calling canmovedown with: %d, %d\n", c, r);
+	  //printf("calling canmovedown with: %d, %d\n", c, r);
 	  moves = CreateMovelistNode(EncodeMove(2,c,r), moves);
 	}
 	if (canmoveleft(i, position, gBoardwidth)) {
-	  printf("calling canmoveleft with: %d, %d\n", c, r);
+	  //printf("calling canmoveleft with: %d, %d\n", c, r);
 	  moves = CreateMovelistNode(EncodeMove(3,c,r), moves);
 	}
 	if (canmoveright(i, position, gBoardwidth)) {
-	  printf("calling canmoveright with: %d, %d\n", c, r);
+	  //printf("calling canmoveright with: %d, %d\n", c, r);
 	  moves = CreateMovelistNode(EncodeMove(1,c,r), moves);
 	}
       }
@@ -255,7 +257,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    
+  
   int dir = GetDirection(move);
   int x0 = GetXCoord(move);
   int y0 = GetYCoord(move);
@@ -276,7 +278,7 @@ POSITION DoMove (POSITION position, MOVE move)
   switch(dir) {
   case UP:
     x1 = x0;
-    y1 = y1 + 1;
+    y1 = y0 + 1;
     break;
   case RIGHT:
     x1 = x0 + 1;
@@ -302,6 +304,7 @@ POSITION DoMove (POSITION position, MOVE move)
   int pIndex0 = getArraynum(x0, y0);
   char pType = board[pIndex0];
   
+ 
   /* doing basic movement */
   board[pIndex0] = BLANK;
   board[pIndex1] = pType;
@@ -311,6 +314,7 @@ POSITION DoMove (POSITION position, MOVE move)
      check 3 piece row/column
      check for adjacent friend piece
      check for adjacent enemy piece */
+  
   
   /* checking row and column for 3 pieces */
   int tmpRow;
@@ -346,7 +350,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	a1exist = 1;
       }
     }
-    if (x1 != gBoardwidth) {
+    if (x1 < gBoardwidth-1) {
       ax2 = x1 + 1;
       ay2 = y1;
       pIndex = getArraynum(ax2, ay2);
@@ -368,7 +372,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	board[pIndex] = BLANK; /* removes enemy piece */
       }
     }
-    if (x1 != gBoardwidth) {
+    if (x1 < gBoardwidth-1) {
       ex = x1 + 1;
       ey = y1;
       pIndex = getArraynum(ex, ey);
@@ -387,7 +391,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	board[pIndex] = BLANK; /* removes enemy piece */
       }
     }
-    if (ax2 != gBoardwidth) {
+    if (ax2 < gBoardwidth-1) {
       ex = ax2 + 1;
       ey = ay2;
       pIndex = getArraynum(ex, ey);
@@ -411,7 +415,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	a1exist = 1;
       }
     }
-    if (y1 != gBoardwidth) {
+    if (y1 < gBoardwidth-1) {
       ax2 = x1;
       ay2 = y1 + 1;
       pIndex = getArraynum(ax2, ay2);
@@ -431,7 +435,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	board[pIndex] = BLANK; /* removes enemy piece */
       }
     }
-    if (y1 != gBoardwidth) {
+    if (y1 < gBoardwidth-1) {
       ex = x1;
       ey = y1 + 1;
       pIndex = getArraynum(ex, ey);
@@ -450,7 +454,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	board[pIndex] = BLANK; /* removes enemy piece */
       }
     }
-    if (ay2 != gBoardwidth) {
+    if (ay2 < gBoardwidth-1) {
       ex = ax2;
       ey = ay2 + 1;
       pIndex = getArraynum(ex, ey);
@@ -496,9 +500,10 @@ VALUE Primitive (POSITION position)
   char* board = (char*)generic_unhash (position, gBoard);
   char playerpiece = (player == 1 ? WHITE : BLACK);
   int numplayerpiece = 0;
+  int numOppPieces = 0;
   int i;
   for (i = 0; i < gBoardlength; i++) {
-    if (board[i] = playerpiece)
+    if (board[i] == playerpiece)
       numplayerpiece++;
   }
   if (numplayerpiece <= 1) 
@@ -583,7 +588,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     }
     printf("\n");
   }
-  printf("\n%s", GetPrediction(position, playersName, usersTurn));
+  printf("\n%s\n", GetPrediction(position, playersName, usersTurn));
    
 }
 
@@ -621,14 +626,14 @@ void PrintMove (MOVE move)
 {
   int xcoord, ycoord, dir, Arraynum;
   STRING direction;
-  printf("move: %d\n", move);
+  //printf("move: %d\n", move);
   xcoord = GetXCoord(move);
-  printf("xcoord: %d\n", xcoord);
+  //printf("xcoord: %d\n", xcoord);
   ycoord = GetYCoord(move);
-  printf("ycoord: %d\n", ycoord);
+  //printf("ycoord: %d\n", ycoord);
   dir = GetDirection(move);
   Arraynum = getArraynum(xcoord, ycoord);
-  printf("arraynum: %d\n\n", Arraynum);
+  //printf("arraynum: %d\n\n", Arraynum);
   if (dir == 0) 
     direction = "up";
   else if (dir == 1) 
@@ -670,7 +675,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/(key dir [1 down])] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -710,22 +715,25 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
- if (input[0] < 48 || input[0] > 57) {
+ if (input[0] < '0' || input[0] > '9') {
+   printf("badinput[0]");
 	return FALSE;
     }
     char *spcptr = strchr(input, ' ');
     if (spcptr == NULL) {
+      printf("badspcptr");
 	return FALSE;
     }
 
     *spcptr = '\0';
     char *direction = ++spcptr;
 
-    if (direction != "up" || direction != "right" ||
-	direction != "down" || direction != "left") {
+    if (strcmp(direction,"up") && strcmp(direction,"right") &&
+	strcmp(direction,"down") && strcmp(direction,"left")) {
+      printf("badelse");
       return FALSE;
     }
-    
+    *(spcptr-1) = ' ';
     return TRUE;
     
 }
@@ -747,25 +755,26 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-        char *spcptr = strchr(input, ' ');
+  char *spcptr = strchr(input, ' ');
     *spcptr = '\0';
     char *direction = ++spcptr;
     int location = atoi(input);
     location--;
 
     int dir;
-    if (direction == "up") {
+    if (0 == strcmp(direction,"up")) {
       dir = 0;
-    } else if (direction == "right") {
+    } else if (0 == strcmp(direction,"right")) {
       dir = 1;
-    } else if (direction == "down") {
+    } else if (0 == strcmp(direction,"down")) {
       dir = 2;
-    } else if (direction == "left") {
+    } else if (0 == strcmp(direction,"left")) {
       dir = 3;
     } else {
       printf("bad else in ConvertTextInputToMove");
     }
-
+    
+    printf("dir: %s,location: %d\n",direction,location);
 
     int x, y;
     x = getColumn(location, gBoardwidth);
@@ -917,8 +926,9 @@ void DebugMenu ()
 MOVES are hashed where first three bits is the dir, second three is x, last three is y */
 MOVE EncodeMove(int dir, int x, int y) 
 {
-  dir << 6;
-  x << 3;
+  
+  dir = dir << 6;
+  x = x << 3;
   return (dir | x | y);
 }
 
@@ -958,27 +968,27 @@ int getRow(int arraynum, int width)
 
 BOOLEAN canmoveup(int arraynum, POSITION position, int width) 
 {
-  char* board = (char*)generic_unhash(position, gBoard);
-  return ((arraynum - width >= 0) && (board[arraynum - width] == BLANK));
+  //char* board = (char*)generic_unhash(position, gBoard);
+  return ((arraynum - width >= 0) && (gBoard[arraynum - width] == BLANK));
 }
 
 BOOLEAN canmovedown(int arraynum, POSITION position, int width) 
 {
-  char* board = (char*)generic_unhash(position, gBoard);
-  return ((arraynum + width < gBoardlength) && (board[arraynum + width] == BLANK));
+  //char* board = (char*)generic_unhash(position, gBoard);
+  return ((arraynum + width < gBoardlength) && (gBoard[arraynum + width] == BLANK));
 }
 
 BOOLEAN canmoveleft(int arraynum, POSITION position, int width) 
 {
-  char* board = (char*)generic_unhash(position, gBoard);
+  //char* board = (char*)generic_unhash(position, gBoard);
   return (arraynum != 0 && arraynum%width != 0) && 
-    (board[arraynum  - 1] == BLANK);
+    (gBoard[arraynum  - 1] == BLANK);
 }
 
 BOOLEAN canmoveright(int arraynum, POSITION position, int width) 
 {
-  char* board = (char*)generic_unhash(position, gBoard);
-  return ((arraynum + 1)% width != 0 && (board[arraynum + 1] == BLANK));
+  //char* board = (char*)generic_unhash(position, gBoard);
+  return ((arraynum + 1)% width != 0 && (gBoard[arraynum + 1] == BLANK));
 }
 
 
