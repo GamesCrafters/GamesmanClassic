@@ -20,7 +20,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **              30 Jan 2005 Yanpei: PrintPosition() coded
-**              08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE
+**              08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE.
 **
 **************************************************************************/
 
