@@ -16,7 +16,8 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2004-10-26   Changed PrintPosition to include layout of board
+** UPDATE HIST: 2005-3-3     Added missing prototypes
+**              2004-10-26   Changed PrintPosition to include layout of board
 **                           Wrote GetinitialPosition
 **              2004-10-22   Error still in ValidTextInput
 **              2004-10-21   Fixed GenerateMoves, Primitive
@@ -308,7 +309,10 @@ char gBoard[9];
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern POSITION         generic_hash(char *board, int player);
+extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern int              whoseMove (POSITION hashed);
 
 /*************************************************************************
 **

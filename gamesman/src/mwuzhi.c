@@ -26,8 +26,9 @@
 **                         rather than [1 down] Added a sample game to the help string. 
 **              2004-11-26 Added diagonal variation in generatemoves
 **              2004-12-5  Finished implementation of diagonals and game specific menu 
-**              2004 12-19 Added in primitive that you lose if no moves left. Also tells the player what color they 
+**              2004-12-19 Added in primitive that you lose if no moves left. Also tells the player what color they 
 **                         when printing the board. 
+**              2005-3-3   Added missing prototypes
 **************************************************************************/
 
 /*************************************************************************
@@ -294,6 +295,10 @@ BOOLEAN diagonals = FALSE;
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern POSITION         generic_hash(char *board, int player);
+extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern int              whoseMove (POSITION hashed);
 
 /* not external */
 MOVE EncodeMove(int dir, int x, int y);
