@@ -28,20 +28,19 @@
 #include "hash.h"
 #include <string.h>
 
-extern STRING gValueString[];
 POSITION gNumberOfPositions  = 139675536;
 
 POSITION gInitialPosition    = 8985892;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kGameName           = "";
-STRING   kDBName             = "";
+STRING   kGameName           = "Abalone";
+STRING   kDBName             = "abalone";
 BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -88,7 +87,7 @@ STRING   kHelpExample =
 
 #define BOARDSIZE 19
 #define NULLSLOT 99
-char gBoard[19];
+char gBoard[BOARDSIZE];
 
 char whosTurn='x';
 
@@ -105,21 +104,9 @@ char whosTurn='x';
 
 //Function prototypes here.
 
-// External
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
-
 // Internal
 int destination (int, int);
 int move_hash (int, int, int);
-
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 
 /************************************************************************
 **
@@ -154,14 +141,16 @@ void InitializeGame()
   gBoard[17]='-';
   gBoard[18]='o';
   
-  char boardcopy[19];
+  char boardcopy[BOARDSIZE];
 
   int init_array[] = {'o', 5, 6, 'x', 5, 6, '-', 7, 9, -1};
   int count;
+  int tmp;
 
-  max = generic_hash_init(19,init_array,NULL);
+  max = generic_hash_init(BOARDSIZE,init_array,NULL);
+
   printf("%d  # of hash positions!\n",max);
-  
+
   printf("1\n");
   init = generic_hash(gBoard);
   printf("1.5\n");
@@ -169,13 +158,11 @@ void InitializeGame()
   printf("2\n");
   printf("%d  is the initial position\n",init);
 
-  for (count = 0; count < 19; count++) {
+  for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, boardcopy[count]);
   }
   
   printf("%d is result of primitive on inital board", game_over(boardcopy));
-  
-  gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));
 }
 
 /************************************************************************
@@ -342,7 +329,7 @@ VALUE Primitive ( POSITION h )
 
   generic_unhash(h,gBoard);
   if (game_over(gBoard))
-    return (lose);
+    return (gStandardGame ? lose : win);
   return (undecided);
 }
 
