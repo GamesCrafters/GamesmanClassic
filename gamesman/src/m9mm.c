@@ -81,7 +81,9 @@ STRING kHelpReverseObjective =
 STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A Tie will never occur in a standard game of Nine Men's Morris.";
 
-STRING kHelpExample =
+STRING kHelpExample;
+
+STRING kHelpExample0 =
 "\
         0-----------1-----------2\t_-----------x-----------_\n\
         |           |           |\t|           |           |\n\
@@ -246,7 +248,7 @@ LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\tTurn: x\n\
 Computer wins.  Nice try, Player.\n\
 ";
 
-STRING kHelpExample0 = 
+STRING kHelpExample1 = 
 "\
         0-----------1-----------2\tx-----------_-----------o\n\
         |           |           |\t|           |           |\n\
@@ -358,7 +360,7 @@ Computer's move                         : 16 17\n\
 \n\n\
 ";
 
-STRING kHelpExample1 = 
+STRING kHelpExample2 = 
 "\
         0-----------1-----------2\t_-----------x-----------_\n\
         |           |           |\t|           |           |\n\
@@ -585,7 +587,7 @@ BOOLEAN full_board(POSITION position);
 void copy_bboard(blankox *from, blankox *to);
 void copy_cboard(char *from, char *to);
 
-BOOLEAN trapped(blankox[], blankox, int);
+BOOLEAN trapped(blankox[], blankox, int); // by Bryon Ross
 
 // GameSpecificMenu
 void setFlyingText();
@@ -715,7 +717,8 @@ void setFlyingText()
   }
 
   // change kHelpOnYourTurn if gFlying is TRUE
-  if (gFlying && (newHelp != NULL)) {
+  if (gFlying) {
+	 kHelpExample = kHelpExampleWithFlying;
     strcpy(newHelp, kHelpOnYourTurn0);
     
     // debug
@@ -732,6 +735,7 @@ void setFlyingText()
     
     kHelpOnYourTurn = newHelp;
   } else {
+	 kHelpExample = kHelpExample0;
     kHelpOnYourTurn = newHelp;
     strcpy(newHelp, kHelpOnYourTurn0);
   }
@@ -2179,6 +2183,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.69  2004/05/06 00:08:00  ogren
+//Added kHelpExample text. -Elmer
+//
 //Revision 1.68  2004/05/05 23:59:26  boundsyco
 //added text to tell from whence the data is comming from. changed m9mm to use a working solver. -SL
 //
