@@ -767,11 +767,11 @@ void PrintPosition(position, playerName, usersTurn)
       printrow(r, 1);
       
       if (r == N - 2)
-	printf("     NW   NE       To move one piece:");
+	printf("     NW   NE");
       else if (r == N - 1)
-	printf("     W -*- E      To move two pieces:");
+	printf("     W -*- E");
       else if (r == N)
-	printf("     SW   SE          (order of pieces doesn't matter)");
+	printf("     SW   SE");
       else
 	printf("               ");
       if (r != 2 * N - 2) {
@@ -782,11 +782,9 @@ void PrintPosition(position, playerName, usersTurn)
 	printf("  ");
 	
 	if (r == N - 1)
-	  printf("     / \\            direction, piece1, piece2");
+	  printf("     / \\");
 	else if (r == N - 2)
-	  printf("     \\ /            direction, piece1");
-	else
-	  printf("                 ");
+	  printf("     \\ /");
       }
       printf("\n");
     }
@@ -801,7 +799,6 @@ void PrintPosition(position, playerName, usersTurn)
       }
     }
   }
-
     
 /* edge of hex board */
   /*spacer*/
@@ -869,6 +866,9 @@ printf("\\-------------------------------");
       printf("---------");
   }
   printf("/\n");*/
+
+
+  printf("To move one piece:     piece direction\nTo move two pieces:    piece1 piece2 direction\n\t(order of pieces doesn't matter)\n\n");
 }
 
 /************************************************************************
@@ -1273,16 +1273,16 @@ void PrintMove(theMove)
  
 
   if (slot1 == NULLSLOT) {
-    printf("[%d,%s]",slot2, dir);
+    printf("[%d %s]",slot2, dir);
   }
   else if (slot2 == NULLSLOT) {  
-    printf("[%d,%s]",slot1, dir);
+    printf("[%d %s]",slot1, dir);
   }
   else if ((slot1 - 1) == destination((slot2 - 1), direction)) { 
-     printf("[%d,%s]",slot2, dir);
+     printf("[%d %s]",slot2, dir);
   }
   else {
-    printf("[%d,%d,%s]",slot1,slot2, dir);
+    printf("[%d %d %s]",slot1,slot2, dir);
   }
   if (DEBUGGING) printf("finished printmove\n");
 }
