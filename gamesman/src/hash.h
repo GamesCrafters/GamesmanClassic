@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 
 /************************************************************************
@@ -17,8 +18,9 @@ int hash_cruncher (char* board, int boardsize, int* thiscount, int* local_mins);
 void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int* local_mins);
 
 int generic_hash_init(int boardsize, int*, int (*fn)(int *));
-int generic_hash(char* board);
+int generic_hash(char* board, int player);
 char* generic_unhash(int hashed, char* dest);
+int whoseMove (int hashed);
 
 void dartboard_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxXs);
 int dartboard_hash(char* board);

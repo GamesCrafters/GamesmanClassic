@@ -1,5 +1,4 @@
 #include "hash.h"
-#include <stdlib.h>
 
 
 /*********************************************************************************
@@ -20,6 +19,7 @@ int TERM = -1;
 int cTERM = 0;
 int MAX_PIECES = 50;
 int MAX_MAXES = 50;
+int gMaxPos = 0;
 int *gHashOffset;
 int *gOffsetIndices;
 int *gNCR;
@@ -358,11 +358,12 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 
 	if (DEBUG) printStats();
     if (DEBUG) printf("generic_hash_init 0\n");
-	return sofar;
+    gMaxPos = sofar;
+	return sofar*2;
 }
 
 /* hashes *board to an int */
-int generic_hash(char* board)
+int generic_hash(char* board, int player) //accomodates whoseMove
 {
 	int temp, i, j, sum;
 	int boardsize;
@@ -398,14 +399,21 @@ int generic_hash(char* board)
     if (DEBUG) printf("generic_hash 1\n");
 	temp += hash_cruncher(board, gHashBoardSize, thiscount, local_mins);
     if (DEBUG) printf("generic_hash 2\n");
-	return temp;
+	return temp + (player-1)*gMaxPos; //accomodates whoseMove
 }
+
+/* tells whose move it is, given a board's hash number */
+int whoseMove (int hashed)
+{
+ return hashed >= gMaxPos ? 2 : 1;
+ }
 
 /* unhashes hashed to a board */
 char* generic_unhash(int hashed, char* dest)
 {
 	int i, j, offst, boardsize, sum;
     if (DEBUG) printf("generic_unhash 0\n");
+    hashed %= gMaxPos; //accomodates whoseMove
 	for (i = 0; i < num_pieces;i++)
 	{
 		thiscount[i] = TERM;
