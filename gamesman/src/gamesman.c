@@ -3424,6 +3424,8 @@ int UncompressFile(char inFileName[], char outFileName[])
 
 int main(int argc, char ** argv)
 {
+        int option;
+
 	Initialize();
 
 	if(argc == 1)
@@ -3431,6 +3433,24 @@ int main(int argc, char ** argv)
 		gPrintPredictions = TRUE ;
 		Menus();
 	}
+	else if(!strcmp(argv[1], "-option")) 
+	{
+		option = -1;
+		if (argc != 3) {
+		        printf("Usage: %s -option <optionNumber>\n", argv[0]);
+		}
+		else {
+		        sscanf(argv[2], "%d", &option);
+			if (option <= 0 || option > NumberOfOptions()) {
+			        printf("Invalid option number: Must be between 1 and %d (inclusive)\n", NumberOfOptions());
+			}
+			else {
+			        setOption(option);
+				InitializeGame();
+				Menus();
+			}
+		}
+	} 
 	else if(!strcmp(argv[1], "-s"))
 	{
 		if(argc != 3)
