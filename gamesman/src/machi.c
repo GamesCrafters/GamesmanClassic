@@ -357,7 +357,7 @@ POSITION DoMove(thePosition, theMove)
     to = 0;
    
     if(phase1(theBlankOX)) {
-	theBlankOX[theMove-1] = whosTurn;
+	  theBlankOX[theMove] = whosTurn; // phase1 moves are 0-8
     }
     else {
 	
@@ -439,7 +439,7 @@ POSITION GetInitialPosition()
  **              MOVE     DecodeMove (POSITION,POSITION,MOVE)
  **
  ************************************************************************/
-/**
+/*****
 MOVE GetComputersMove(thePosition)
      POSITION thePosition;
 {
@@ -466,7 +466,7 @@ MOVE GetComputersMove(thePosition)
     FreeMoveList(head);
     return(theMove);
 }
-***/
+*****/
 
 /************************************************************************
  **
@@ -484,8 +484,10 @@ void PrintComputersMove(computersMove,computersName)
      STRING computersName;
 {
     BOOLEAN phase1;
-    if(computersMove < 9)
-	phase1 = TRUE;
+    if(computersMove < 9) {
+	  computersMove++; // internally moves are 0-8
+	  phase1 = TRUE;
+	}
     else
 	phase1 = FALSE;
     printf("%8s's move              : %2d\n", computersName, phase1 ? computersMove: computersMove );
@@ -657,7 +659,7 @@ MOVELIST *GenerateMoves(position)
 	if(phase1(theBlankOX)) {
 	    for(i = 0 ; i < BOARDSIZE ; i++) {
 		if(theBlankOX[i] == Blank)
-		    head = CreateMovelistNode(i+1,head);
+		  head = CreateMovelistNode(i,head); // moves are 0-index (0-8)
 	    }
 	}
 	else {
@@ -837,7 +839,7 @@ MOVE ConvertTextInputToMove(input)
 {
     MOVE theMove = 0;
     if (!input[1])
-	return((MOVE) input[0] - '0'); /* user input is 1-9, our rep. is 0-8 */
+	return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
     else {
 	theMove = ((MOVE) input[0] - '0') * 10;
 	theMove = theMove + ((MOVE) input[1] - '0');
@@ -859,11 +861,13 @@ void PrintMove(theMove)
      MOVE theMove;
 {
     /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-    /*   if(theMove < 9)
-	 printf("%d", theMove + 1);
-	 else
+  if(theMove < 9) {
+	printf("%d", theMove + 1);
+  } else {
+	/* else
 	 printf("%d", theMove + 11); */
-    printf("%d", theMove);
+	printf("%d", theMove);
+  }
 }
 
 /************************************************************************
