@@ -556,6 +556,7 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
 
     if (strcmp(smartnessString, "Perfectly") == 0) {
       smartness = SMART;
+      scalelvl = 100;
     }
     else if (strcmp(smartnessString, "Imperfectly") == 0) {
       smartness = SMART;
