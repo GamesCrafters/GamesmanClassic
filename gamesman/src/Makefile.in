@@ -220,7 +220,7 @@ $(GAMELINE_OBJ): %$(OBJSUFFIX): %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(GAMELINE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
-	$(CC) $(LDFLAGS) -o $@ $<
+	$(CC) -o $@ $< $(LDFLAGS)
 
 $(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -232,7 +232,7 @@ $(SOLVE_OBJ): %$(OBJSUFFIX): %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 $(SOLVE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
-	$(CC) $(LDFLAGS) -o $@ $<
+	$(CC) -o $@ $< $(LDFLAGS)
 
 
 ##############################################################################
@@ -242,50 +242,50 @@ $(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
 $(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ)
-	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(GAMESMAN_OBJ)
+	$(CC) -o $@ $< $(GAMESMAN_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(GWISH_OBJ)
-	$(CC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CC) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
 $(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ)
-	$(CCC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(GAMESMAN_OBJ)
+	$(CCC) -o $@ $< $(GAMESMAN_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(GWISH_OBJ)
-	$(CCC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CCC) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
 
 $(TTT_EXE): $(TTT_OBJ) $(GAMESMAN_OBJ)
-	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ)
+	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(TTT_SO): $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
-	$(CC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(DNB_OBJ): %$(OBJSUFFIX): %.cc $(DEP_INCLUDE)
-	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
+	$(CCC) $(CCFLAGS) -c -o $@ $< $(TCLCFLAGS)
 
 $(DNB_EXE): $(DNB_OBJ) $(DEP_OBJS)
-	$(CCC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(DEP_OBJS)
+	$(CCC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(DNB_SO): $(DNB_OBJ) $(DEP_OBJS) $(DEP_GWISH_OBJ)
-	$(CCC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(DEP_OBJS) $(DEP_GWISH_OBJ)
+	$(CCC) -o $@ $< $(DEP_OBJS) $(DEP_GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
 $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
-	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(DEP_OBJS)
+	$(CC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
-	$(CC) $(LDFLAGS) $(TCLSOFLAGS) $(DEP_OBJS) $(DEP_GWISH_OBJ) -o $@ $<
+	$(CC) $(DEP_OBJS) $(DEP_GWISH_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
 $(RUBIX_SO): $(RUBIX_TCL_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
-	$(CC) $(LDFLAGS) $(TCLSOFLAGS) $(GAMESMAN_OBJ) $(GWISH_OBJ) -o $@ $<
+	$(CC) $(GAMESMAN_OBJ) $(GWISH_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
 $(RUBIX_TCL_OBJ): $(RUBIX_SRC)
 	$(CC) -DTCL $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<

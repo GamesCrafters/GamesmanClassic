@@ -98,7 +98,7 @@ case $os in
           case $machine in
             9000/7*) machine=9000s700;;
           esac;;
-  CYGWIN32*)
+  CYGWIN*)
       machine=win32 ;;
   Darwin*)
       machine=ppc ;;
@@ -117,7 +117,7 @@ case $MACHINE in
   FreeBSD*)  OS=FREEBSD;;
   IRIX-5*)   OS=IRIX5;;
   IRIX*-6*)  OS=IRIX5;;
-  CYGWIN32*) OS=WIN32; OUTCFLAGS="$OUTCFLAGS -DCYGWIN32";;
+  CYGWIN*)   OS=WIN32; OUTCFLAGS="$OUTCFLAGS -DCYGWIN32";;
   Darwin*)   OS=MACOSX; OUTLIBSUFFIX=".dylib";;
   *)         AC_MSG_ERROR(this operating system is not supported) ;;
 esac
@@ -185,7 +185,7 @@ AC_FUNC_MALLOC
 
 if test "$EXEEXT" != ""
 then
-  OUTEXESUFFIX=".$EXEEXT"
+  OUTEXESUFFIX="$EXEEXT"
 else
   OUTEXESUFFIX=""
 fi
@@ -427,11 +427,32 @@ then
   
   AC_MSG_RESULT($OUTWISHLOC)
   
-  OUTTCLSOFLAGS="$OUTTCLSOFLAGS $TCL_LIBS $TK_LIBS $TK_LIB_SPEC $TCL_LIB_SPEC"
-  OUTTCLCFLAGS="$OUTTCLCFLAGS $TCL_INCLUDE_SPEC $TK_XINCLUDES $TCL_EXTRA_CFLAGS $TCL_SHLIB_CFLAGS"
-  OUTTCLEXEFLAGS="$OUTTCLEXEFLAGS $TCL_LIBS $TCL_LIB_SPEC"
-  OUTLIBSUFFIX="$TCL_SHLIB_SUFFIX"
+  # Cygwin is pretty screwed up.. but this seems to get it to work
+  if test "$OS" = "WIN32"
+  then
+    OUTTCLSOFLAGS="$OUTTCLSOFLAGS -ltcl -ltk"
+    OUTTCLEXEFLAGS="$OUTTCLEXEFLAGS -ltcl -ltk"
+    OUTTCLCFLAGS="$OUTTCLCFLAGS $TCL_EXTRA_CFLAGS"
+  else
+    OUTTCLSOFLAGS="$OUTTCLSOFLAGS $TCL_LIBS $TK_LIBS $TK_LIB_SPEC $TCL_LIB_SPEC"
+    OUTTCLCFLAGS="$OUTTCLCFLAGS $TCL_INCLUDE_SPEC $TK_XINCLUDES $TCL_EXTRA_CFLAGS $TCL_SHLIB_CFLAGS"
+    OUTTCLEXEFLAGS="$OUTTCLEXEFLAGS $TCL_LIBS $TCL_LIB_SPEC"
+    OUTLIBSUFFIX="$TCL_SHLIB_SUFFIX"
+  fi
+  
   COMPILEGRAPHICS="so_all"
+fi
+
+
+###
+### More crazy cygwin stuff
+###
+
+if test "$OS" = "WIN32"
+then
+  OUTCFLAGS="-g -O"
+  OUTLDFLAGS="-lm -lc"
+  OUTLIBSUFFIX=".dll"
 fi
 
 
