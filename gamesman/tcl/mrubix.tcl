@@ -184,12 +184,12 @@ proc GS_ImplementOption { option } {
     set boardsizeOption [expr $option/(2*2)%2]
     
     if { $standardOption == "1" } {
-	set toWin1 "To Win: "
-    } elseif { $standardOption == "0" } {
 	set toWin1 "To Lose: "
+    } elseif { $standardOption == "0" } {
+	set toWin1 "To Win: "
     }
 
-    set toWin2 "Complete a vertical, horizontal, or diagonal line of "
+    set toWin2 "Allow "
     
     if { $twoInARowOption == "1" } {
 	set toWin3 "two"
@@ -197,11 +197,11 @@ proc GS_ImplementOption { option } {
 	set toWin3 "three"
     }
 
-    set toWin4 " of your pieces with the same background color that cannot be broken by your opponent on the next turn."
+    set toWin4 " of your opponent's same-color pieces to be in a row at the end of your turn or the game."
 
     SetToWinString [concat $toWin1 $toWin2 $toWin3 $toWin4]
 
-    SetToMoveString "To Move: 1) If possible, flip an opponent's piece to an adjacent space by clicking an arrow.\n2) Place a black or white piece in any empty space by clicking one of the small boxes within the space."
+    SetToMoveString "To Move: If possible, flip an opponent's piece to an adjacent space by clicking an arrow. Then place a black or white piece by clicking a small piece in any empty space."
 
     global WIDTH BOARDSIZE
     if { $boardsizeOption == "0"} {

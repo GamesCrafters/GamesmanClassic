@@ -35,7 +35,12 @@
 
 proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     
-    set kLabelFont "-*-helvetica-*-r-*-*-18-*-*-*-*-*-*-*"
+    global tcl_platform
+    if { $tcl_platform(platform) == "windows" } {
+        set kLabelFont { Helvetica 10 bold }
+    } else {
+        set kLabelFont { Helvetica 14 bold }
+    }
     set kLabelColor grey40
     set theMaxButtonSize 0
     set theNumberOfPrograms [llength $thePrograms]
@@ -100,7 +105,7 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
 	#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
 	#$c create rectangle $upperLeftx $upperLefty [expr $upperLeftx + 110] [expr $upperLefty + 110] -fill $theColor
 	$c create window [expr {$pad+(100+$pad)*($i%$cols)}] [expr {$under/2+($under+100)*($i/$cols)}] -window $c.butBitmap$i -anchor nw
-	$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font {Helvetica 14 bold}
+	$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font $kLabelFont
 
     }
 

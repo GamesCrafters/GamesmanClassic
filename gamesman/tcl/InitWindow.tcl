@@ -113,7 +113,7 @@ proc InitWindow { kRootDir } {
     global gSkinsLibName
     global gGamePlayable
     global kGameName
-    global kLabelFont
+    global kLabelFont kPlayerLabelFont kToMoveToWinFont
     global tcl_platform
     global gPredString gWhoseTurn
     global gLeftName gRightName
@@ -628,7 +628,7 @@ proc InitWindow { kRootDir } {
 	    -text "To Win:" \
 	    -width 140 \
 	    -justify center \
-	    -font $kLabelFont \
+	    -font $kToMoveToWinFont \
 	    -anchor center \
 	    -tags [list ToWin textitem]
 
@@ -636,7 +636,7 @@ proc InitWindow { kRootDir } {
 	    -text "To Move:" \
 	    -width 140 \
 	    -justify center \
-	    -font $kLabelFont \
+	    -font $kToMoveToWinFont \
 	    -anchor center \
 	    -tags [list ToMove textitem]
 
@@ -644,7 +644,7 @@ proc InitWindow { kRootDir } {
 	    -text [format "Player1:\n%s" $gLeftName] \
 	    -width 140 \
 	    -justify center \
-	    -font { Helvetica 18 bold } \
+	    -font $kPlayerLabelFont \
 	    -anchor center \
 	-tags [list LeftName Names textitem] \
 	-fill $gLeftColor
@@ -653,7 +653,7 @@ proc InitWindow { kRootDir } {
 	    -text [format "Player2:\n%s" $gRightName] \
 	    -width 140 \
 	    -justify center \
-	    -font { Helvetica 18 bold } \
+	    -font $kPlayerLabelFont \
 	    -anchor center \
 	    -tags [list RightName Names textitem] \
 	-fill $gRightColor

@@ -76,8 +76,17 @@ proc InitGlobals {} {
 
     ### Set the color and font of the labels
 
-    global kLabelFont
-    set kLabelFont { Helvetica 12 bold }
+    global kLabelFont kPlayerLabelFont kToMoveToWinFont
+    global tcl_platform
+    if { $tcl_platform(platform) == "windows" } {
+        set kLabelFont { Helvetica 10 bold }
+	set kToMoveToWinFont { Helvetica 9 bold }
+	set kPlayerLabelFont { Helvetica 15 bold }
+    } else {
+        set kLabelFont { Helvetica 12 bold }
+	set kToMoveToWinFont {Helvetica 11 bold }
+	set kPlayerLabelFont { Helvetica 18 bold }
+    }
 
     global kLabelColor
     set kLabelColor grey40
