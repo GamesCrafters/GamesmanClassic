@@ -1,0 +1,90 @@
+How to make a gamesman game:
+
+Step 1: Choose Game.
+Choose what game you want to code and get really familiar with
+how to play the game.  Think of the variances that you might want
+to add to the game to make it more interesting (misere in tic tac
+toe).
+Gamesman games are:
+2 person
+perfect information (no chance and no hidden information)  
+
+Step 2: Board Representation.
+Think of a way you might represent your board.  Most common
+representation is an array.  Also think how you might represent
+it in bits (fun project, helps with the hash function).  You must
+also think of some way to encode whose turn it is in the way you
+represent the board and various board positions.  At the same time,
+you should think about how you can represent a move.
+
+Step 3: Hash Function.
+Gamesman has some built in hash functions that could be used for
+the game you have chosen.  If you are confident in your abilities
+feel free to take a look at the hash function code in gamesman.c,
+but in general, you should talk to Dan or some other more experienced
+gamecrafter to find out if your game can use the built in hash.
+If you need to write your own, you need to make a very tight hash
+function.
+A hash function in the gamesman sense is a function that we use to
+turn a board position (any board configuration that could occur in
+a game) into a unique number.  For more information about hash
+functions, either talk to Dan, or a more experienced gamecrafter.
+
+Step 4: Coding.
+
+NOTE: Try to make all games as generally as possible. In other words
+      do not make the board size and the number of variables fixed.
+
+There are 5 main functions in gamesman, plus some other lesser
+functions.  The main functions are:
+GenerateMoves()    - takes in a board position and outputs a linked
+		     list of all the possible moves that can be made
+		     from this board position.
+DoMove()	   - takes in a board position and a move and then
+		     returns the board that results from doing the
+		     move to the given board.
+Primitive()	   - takes in a board position and returns the value
+		     of the board position.  The value is one of:
+		     {win : loss : tie : undecided}.  Keep in mind
+		     that a tic tac toe board with 3 x's in a row 
+		     and more x's than o's is a loss.
+GetInitialPosition - takes input from the user of the game and 
+		     generates a board position from which to start
+		     the game.  It is very useful for debugging.
+		     It is critical that you are very clear about
+		     the format of the input and the resulting 
+		     board.
+PrintPosition	   - takes in a board position and prints it in a
+		     readable format so that the user can easily
+		     make sense of the board and the possible moves.
+		     This function is really critical becase it
+		     forms the interface between the user and the
+		     game.  It needs to be very clear.
+
+There are various other functions that need to be written, but these
+are the main five functions.  The other functions are:
+ValidtextInput     - checks that user input is valid
+ConvertTextInputToMove - turns user input into a MOVE
+option functions   - they setup the number of configurations that
+		     your options can make and deals with setting
+		     them and making gamesman aware of them.
+Assisting print functions - Various functions used for printing
+			    computer and human moves.
+GameSpecificMenu   - Creates the game specific menu, which includes
+		     information about your specific game.
+DebugMenu	   - Creates the debugging menu meant to help with
+		     the debugging process
+InitializeGame	   - initializes the database and various variables
+		     and functions that need to be initialized at
+		     the beginning of the game.  This will be 
+		     different for every game.
+
+That pretty much covers all the coding.
+
+Step 5: Debugging.
+
+Step 6: Polishing/Variants.
+
+Step 7: Add it to GAMESMAN.
+
+Step 8: GUI.
