@@ -199,11 +199,14 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 ttt tactix 3dot con cmass dnb foxes stt sim }
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 tactix 3dot con cmass dnb foxes stt sim }
+    ### Removed ttt (silver version) ddg 2004-04-18
 
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "TicTacToe GOLD" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3" "Tic Tac Toe" "Tac Tix" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" "Sim" }
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3" "Tac Tix" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" "Sim" }
+    ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
-    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown brown }
+    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey brown brown brown brown brown brown brown }
+    ### Removed grey (for Tic-Tac-Toe)
 
 
     ### Give it a Nostalgic, tcl7.3 look
@@ -223,6 +226,9 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.5  2004/04/17 09:14:49  ogren
+##Generalized the getColumns function a little more.  It now takes the largest integer smaller than or equal to the square root of the number of games that divides the number of games evenly (i need writing lessons, no?).  The game buttons are still scrolling above the top border, however.  -Elmer
+##
 ##Revision 1.4  2004/04/17 08:45:09  ogren
 ##Increased the under offset to under+151 when calculating height.  It's a kludgy hack, but works until I figure out how to properly create the window height.  Also, columns are now the smallest integer greater than 1 that divides the number of games evenly, which is probably just as bad as my hard-coding the number 3 but,yeah, temporary =P.  -Elmer
 ##
