@@ -89,9 +89,10 @@ STRING   kHelpExample =
 #define FOX_MIN 2
 #define GEESE_PLAYER 1
 #define FOX_PLAYER 2
-#define WHITESPACE BOARDSIZE - GEESE_MIN - FOX_MIN
+#define WHITESPACE 0 /* There is a bug in the generic hash function dealing with whitespace */
 
 #define INIT_DEBUG 1
+#define HASH_TEST 1
 
 #define DOMOVE_DEBUG 0
 #define DOMOVE_TEST 0
@@ -104,6 +105,8 @@ STRING   kHelpExample =
 
 #define VALIDTEXT_DEBUG 0
 
+#define PRINTPOSITION_DEBUG 1
+
 #define FOXGENERATEMOVES_DEBUG 0
 
 #define GEESEGENERATEMOVES_DEBUG 0
@@ -113,8 +116,6 @@ STRING   kHelpExample =
 #define GENERATEKILLMOVES_DEBUG 0
 
 #define CONVERTEXTINPUTTOMOVE_DEBUG 0
-
-#define HASH_TEST 0
 
 char start_standard_board[BOARDSIZE]={       'G','G','G',
 			                 'G','G',' ','G','G',    
@@ -573,8 +574,11 @@ void PrintPosition (position, playerName, usersTurn)
 {
 	char currentBoard[33];
 	generic_unhash(position, currentBoard);
-	
+	 
 	printf("It is %s's turn.\n", playerName);
+	
+	if (PRINTPOSITION_DEBUG) { printf("Position Hash %d\n",position);}
+	
 	PrintBoard(currentBoard);
 }
 
