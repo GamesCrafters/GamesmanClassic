@@ -181,6 +181,10 @@ GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
 9MM_OBJ			= m9mm$(OBJSUFFIX)
 9MM_SO			= $(LIBDIR)/libm9mm$(LIBSUFFIX)
 
+SWANS_EXE		= $(BINDIR)/mswans$(EXESUFFIX)
+SWANS_OBJ		= mswans$(OBJSUFFIX)
+SWANS_SO		= $(LIBDIR)/libmswans$(LIBSUFFIX)
+
 SNAKE_EXE		= $(BINDIR)/msnake$(EXESUFFIX) # The slippery game of Snake
 SNAKE_OBJ		= msnake$(OBJSUFFIX)
 SNAKE_SO		= $(LIBDIR)/libmsnake$(LIBSUFFIX)
@@ -252,14 +256,14 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_E
 	  $(WIN4_EXE) $(RUBIX_EXE) $(ACHI_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) \
           $(SNAKE_EXE)  $(1TON_EXE) $(ABALONE_EXE) $(TTC_EXE) \
 	  $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) $(HORSE_EXE) \
-	  $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE)
+	  $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
 	$(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) $(3SPOT_SO) $(BLOCKING_SO) \
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) $(ACHI_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
-	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO)
+	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
