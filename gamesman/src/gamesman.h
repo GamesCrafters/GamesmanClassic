@@ -4,7 +4,7 @@
 #include<math.h>
 
 #define  MAXINT2          1073741823 /* 2^30 - 1 */
-#define  MAXNAME          9          /* formats nice */
+#define  MAXNAME          15         /* arbitrary */
 #define  MAXINPUTLENGTH   80         /* arbitrary */
 #define  VISITED_MASK     4          /* ... 100 */
 #define  VALUE_MASK       3          /* ... 011 */

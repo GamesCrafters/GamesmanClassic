@@ -20,7 +20,7 @@ proc GS_NameOfPieces {} {
 }
 
 proc GS_Initialize { c } {
-    puts [format "GS_Initialize called on canvas %s" $c]
+    #puts [format "GS_Initialize called on canvas %s" $c]
     set counter 0
     for {set j 0} {$j < 3} {set j [expr $j + 1]} {
         
@@ -64,15 +64,15 @@ proc MakePieces { c num } {
 proc MakeX { c x y tag } {
     set x [expr $x * 166]
     set y [expr $y * 166]
-    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill red -tag x-$tag
-    $c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill red -tag x-$tag
+    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill blue -tag x-$tag
+    $c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill blue -tag x-$tag
     $c lower x-$tag base 
 }
 
 proc MakeO { c x y tag } {
     set x [expr $x * 166]
     set y [expr $y * 166]
-    $c create oval [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -outline blue -tag o-$tag
+    $c create oval [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -outline red -tag o-$tag
     $c lower x-$tag base
 }
 
