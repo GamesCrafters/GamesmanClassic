@@ -597,40 +597,40 @@ MOVELIST *GenerateMoves (POSITION position)
 
 /* Generate Moves helper function isValidMove */
 BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
-  if(board[move] != 'O')
+  if(board[mv] != 'O')
     return FALSE;
 
   int i, scount, ocount;
   char oPiece = ((p == 'X') ? '*' : 'X');
 
-  for(i = 0; i < adjacent[move].numAdjacent; i++)
-    if(board[adjacent[move].adj[i]] == p)
+  for(i = 0; i < adjacent[mv].numAdjacent; i++)
+    if(board[adjacent[mv].adj[i]] == p)
       scount++;
-    else if(board[adjacent[move].adj[i]] == oPiece)
+    else if(board[adjacent[mv].adj[i]] == oPiece)
       ocount++;
 
-  if(scount == adjacent[move].numAdjacent) {
-    board[move] = p;
+  if(scount == adjacent[mv].numAdjacent) {
+    board[mv] = p;
 
-    if(isSurrounded(board, move, p, checked)) {
-      board[move] = 'O';
+    if(isSurrounded(board, mv, p, checked)) {
+      board[mv] = 'O';
       zeroChecked();
       return FALSE;
     }
 
-      board[move] = 'O';
+      board[mv] = 'O';
       zeroChecked();
   }
-  else if(ocount == adjacent[move].numAdjacent) {
-    board[move] = p;
+  else if(ocount == adjacent[mv].numAdjacent) {
+    board[mv] = p;
     BOOLEAN canCapture = FALSE;
 
-    for(i = 0; i < adjacent[move].numAdjacent && !canCapture; i++) {
-      canCapture = (canCapture || isSurrounded(board, adjacent[move].adj[i], oPiece));
+    for(i = 0; i < adjacent[mv].numAdjacent && !canCapture; i++) {
+      canCapture = (canCapture || isSurrounded(board, adjacent[mv].adj[i], oPiece, checked));
       zeroChecked();
     }
 
-    board[move] = 'O';
+    board[mv] = 'O';
 
     return canCapture;
   }
