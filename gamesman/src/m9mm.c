@@ -1,4 +1,3 @@
-//$Id: m9mm.c,v 1.11 2004-03-07 18:59:04 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -10,6 +9,10 @@
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
 **
+<<<<<<< m9mm.c
+** UPDATE HIST: 2004.02.22: Begin coding module, wrote: almost everything
+**              2004.03.07: DoMove compiles, change piece b to blank
+=======
 ** UPDATE HIST: 2004.02.22: Begin coding module, implemented functions: 
 **                          int hash
 **                          POSITION unhash
@@ -31,6 +34,7 @@
 **                          MOVELIST *GenerateMoves(POSITION position)
 **
 **              2004.03.07: DoMove, GenerateMoves  now compiles
+>>>>>>> 1.11
 ** 
 **
 **
@@ -49,6 +53,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "hash.h"
 
 extern STRING gValueString[];
 
@@ -132,8 +137,9 @@ char *gblankoxString[] = { " ", "x", "o"};
 ** Function Prototypes:
 */
 
+
 int hash(blankox *board, blankox turn);
-blankox* unhash(int hash_val, blankox *dest);
+POSITION unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
 void unparse_board(blankox *b_board, char *c_board);
 blankox whose_turn(int hash_val);
@@ -172,11 +178,12 @@ void InitializeGame()
 {
   //generic_hash_init(BOARDSIZE, mino, maxo, minx, maxx);
   int b_size = BOARDSIZE;
-  int right_min = mino;
-  int right_max = maxo;
-  int left_min = minx;
-  int left_max = maxx;
-  generic_hash_init(b_size, right_min, right_max, left_min, left_max);
+  int pminmax[4];
+  pminmax[1] = mino;
+  pminmax[2] = maxo;
+  pminmax[3] = minx;
+  pminmax[4] = maxx;
+  generic_hash_init(b_size, pminmax, NULL);
 }
 
 /************************************************************************
@@ -313,7 +320,8 @@ void PrintComputersMove(computersMove, computersName)
 
 VALUE Primitive ( POSITION h )
 {
-  blankox[BOARDSIZE] dest;
+  blankox dest[BOARDSIZE];
+  //blankox *dest = (blankox *) malloc (BOARDSIZE * sizeof (blankox));
   int numXs = 0;
   int numOs = 0;
   int i;
@@ -322,13 +330,13 @@ VALUE Primitive ( POSITION h )
   unhash(h, dest);
 
   for (i = 0; i < BOARDSIZE; i++) {
-    if (dest[i] == x)
+    if (dest[i] == x) {
       numXs++;
-    else if (dest[i] == o)
+    }
+    else if (dest[i] == o) {
       numOs++;
-    
+    }
   }
-
 
   // doesn't check getting stuck
   if (turn == o && numOs == mino)
@@ -617,10 +625,10 @@ int hash(blankox *b_board, blankox turn)
 {
 
   int raw_hash;
-  char[BOARDSIZE] c_board; 
+  char c_board[BOARDSIZE]; 
   unparse_board(b_board, c_board);
   raw_hash = generic_hash(c_board);
-  return (turn == B ? raw_hash : raw_hash + gHashNumberOfPos);
+  return (turn == o ? raw_hash : raw_hash + gHashNumberOfPos);
 }
 
 blankox *unhash(int hash_val, blankox *b_board)
@@ -651,7 +659,7 @@ void parse_board(char *c_board, blankox *b_board)
     }
 }
 
-void unparse_board(blankox *b_board, char *c_board)
+void unparse_board(blankox *b_board, char *b_board)
 {
   int i;
   for (i = 0; i < BOARDSIZE; i++)
@@ -705,9 +713,9 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 
 BOOLEAN closes_mill(POSITION position, int raw_move)
 {
-  blankox board[BOARDSIZE];
+  blankox[BOARDSIZE] board;
   unhash(do_move(position, raw_move), board);
-  return check_mill(board, to(raw_move));
+  return (check_mill board, to(raw_move));
 }
 
 BOOLEAN check_mill(blankox *board, int slot)
@@ -740,6 +748,10 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+
+//Revision 1.11  2004/03/07 18:59:04  ogren
+//commet changes -Elmer
+//
 //Revision 1.10  2004/03/07 18:56:29  ogren
 //misc. helper changes -Elmer
 //
