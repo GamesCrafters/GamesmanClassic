@@ -241,6 +241,7 @@ static BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the 
 static BOOLEAN gHumanGoesFirst;             /* TRUE iff the user goes first vs. computer */
 static BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
 static BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
+static BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
@@ -394,6 +395,7 @@ void Menus()
 void MenusBeforeEvaluation()
 {
     printf("\n\ts)\t(S)TART THE GAME\n");
+    printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
     printf("\n\tEvaluation Options:\n\n");
     printf("\to)\t(O)bjective toggle from %s to %s\n",
@@ -411,65 +413,69 @@ void MenusEvaluated()
 {
     VALUE gameValue;
     gameValue = GetValueOfPosition(gInitialPosition);
-
+    
     printf("\n\tPlayer Name Options:\n\n");
-
+    
     printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
     printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
-    printf("\t3)\tSwap player 1 (plays FIRST) with player 2 (plays SECOND)\n");
-
-    printf("\n\tGeneric Options:\n\n");
-
-    printf("\t4)\tToggle from %sPREDICTIONS to %sPREDICTIONS\n",
-        gPrintPredictions ? "   " : "NO ",
-        !gPrintPredictions ? "   " : "NO ");
-    printf("\t5)\tToggle from %sHINTS       to %sHINTS\n",
-        gHints ? "   " : "NO ",
-        !gHints ? "   " : "NO ");
-
+    printf("\t3)\tSwap %s (plays FIRST) with %s (plays SECOND)\n", gPlayerName[1], gPlayerName[0]);
+    
+    if(!gUnsolved) {
+	printf("\n\tGeneric Options:\n\n");
+	
+	printf("\t4)\tToggle from %sPREDICTIONS to %sPREDICTIONS\n",
+	       gPrintPredictions ? "   " : "NO ",
+	       !gPrintPredictions ? "   " : "NO ");
+	printf("\t5)\tToggle from %sHINTS       to %sHINTS\n",
+	       gHints ? "   " : "NO ",
+	       !gHints ? "   " : "NO ");
+    }
+    
     printf("\n\tPlaying Options:\n\n");
-    printf("\t6)\tToggle opponent from a %s to a %s\n",
-        gAgainstComputer ? "COMPUTER" : "HUMAN",
-        gAgainstComputer ? "HUMAN" : "COMPUTER");
-    if(gAgainstComputer )
-    {
-        if(gameValue == tie)
-            printf("\t7)\tToggle from going %s (can tie/lose) to %s (can tie/lose)\n",
-            gHumanGoesFirst ? "FIRST" : "SECOND",
-            gHumanGoesFirst ? "SECOND" : "FIRST");
-        else if (gameValue == lose)
-            printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
-            gHumanGoesFirst ? "FIRST" : "SECOND",
-            gHumanGoesFirst ? "only lose" : "win/lose",
-            gHumanGoesFirst ? "SECOND" : "FIRST",
-            gHumanGoesFirst ? "win/lose" : "only lose");
-        else if (gameValue == win)
-            printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
-            gHumanGoesFirst ? "FIRST" : "SECOND",
-            gHumanGoesFirst ? "win/lose" : "only lose",
-            gHumanGoesFirst ? "SECOND" : "FIRST",
-            gHumanGoesFirst ? "only lose" : "win/lose");
-        else
-            BadElse("Menus");
-
-        printf("\n\ta)\t(A)nalyze the game\n");
+    if(!gUnsolved) {
+	printf("\t6)\tToggle opponent from a %s to a %s\n",
+	       gAgainstComputer ? "COMPUTER" : "HUMAN",
+	       gAgainstComputer ? "HUMAN" : "COMPUTER");
     }
-    printf("\tc)\tAdjust (C)omputer's brain (currently ");
-    if (smartness==SMART) {
-        printf("%d%% perfect", scalelvl);
-    }
-    else if (smartness==DUMB) {
-        printf("misere-ly");
-    }
-    else if (smartness==RANDOM) {
-        printf("randomly");
-    }
-    printf (" w/%d givebacks)\n", initialGivebacks);
-
+    if(gAgainstComputer)
+	{
+	    if(gameValue == tie)
+		printf("\t7)\tToggle from going %s (can tie/lose) to %s (can tie/lose)\n",
+		       gHumanGoesFirst ? "FIRST" : "SECOND",
+		       gHumanGoesFirst ? "SECOND" : "FIRST");
+	    else if (gameValue == lose)
+		printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
+		       gHumanGoesFirst ? "FIRST" : "SECOND",
+		       gHumanGoesFirst ? "only lose" : "win/lose",
+		       gHumanGoesFirst ? "SECOND" : "FIRST",
+		       gHumanGoesFirst ? "win/lose" : "only lose");
+	    else if (gameValue == win)
+		printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
+		       gHumanGoesFirst ? "FIRST" : "SECOND",
+		       gHumanGoesFirst ? "win/lose" : "only lose",
+		       gHumanGoesFirst ? "SECOND" : "FIRST",
+		       gHumanGoesFirst ? "only lose" : "win/lose");
+	    else
+		BadElse("Menus");
+	    
+	    printf("\n\ta)\t(A)nalyze the game\n");
+	    printf("\tc)\tAdjust (C)omputer's brain (currently ");
+	    if (smartness==SMART) {
+		printf("%d%% perfect", scalelvl);
+	    }
+	    else if (smartness==DUMB) {
+		printf("misere-ly");
+	    }
+	    else if (smartness==RANDOM) {
+	    printf("randomly");
+	    }
+	    printf (" w/%d givebacks)\n", initialGivebacks);
+	}
+    
     if(kDebugMenu)
         printf("\td)\t(D)ebug Game AFTER Evaluation\n");
     printf("\n\tp)\t(P)LAY GAME.\n");
-
+    
     printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position.\n");
 }
 
@@ -557,14 +563,26 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gameValue = DetermineValue(gInitialPosition);
 	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	
-      printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gameValue]);
-      gMenuMode = Evaluated;
-      if(gameValue == lose)
-          gHumanGoesFirst = FALSE;
-      else
-          gHumanGoesFirst = TRUE ;
-      HitAnyKeyToContinue();
-      break;
+	printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gameValue]);
+	gMenuMode = Evaluated;
+	if(gameValue == lose)
+	    gHumanGoesFirst = FALSE;
+	else
+	    gHumanGoesFirst = TRUE ;
+	HitAnyKeyToContinue();
+	break;
+    case 'w': case 'W':
+	InitializeGame();
+	InitializeDatabases();
+	gUnsolved = TRUE;
+	gAgainstComputer = FALSE;
+	gPrintPredictions = FALSE;
+	sprintf(gPlayerName[kPlayerOneTurn],"Player 1");
+	sprintf(gPlayerName[kPlayerTwoTurn],"Player 2");
+	printf("\n\nYou have chosen to play the game without solving.  Have fun!\n\n");
+	gMenuMode = Evaluated;
+	HitAnyKeyToContinue();
+	break;
     default:
 	BadMenuChoice();
 	HitAnyKeyToContinue();
