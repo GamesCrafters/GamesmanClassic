@@ -22,6 +22,8 @@
 **              10/07/04 - Fixed up everything. Game runs!
 **                         To-do: ValidTextInput and game specific options.
 **
+**              10/08/04 - Changed it so the user input is 1-16 instead of 0-15.
+**                         Added help strings. Added LEGEND and BOARD to printPosition.
 **
 **************************************************************************/
 
@@ -69,19 +71,27 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"On your turn, use the LEGEND to determine which number to choose to move your\n\
+piece from, a space character, and a second number to where you want the piece\n\
+to move to, and hit return. If at any point you have made a mistake, you can\n\
+ type u and hit return and the system will revert back to your most recent position.";
 
 STRING   kHelpOnYourTurn =
-"";
+"If a capture is available, you must make a capture move by moving one of your\n\
+pieces (up/down/left/right) over another one of your pieces and capturing the\n\
+opponent piece two spaces away. If a capture move is not available, you move\n\
+one of your pieces to an adjacent space.";
 
 STRING   kHelpStandardObjective =
-"";
+"To capture all of your opponent's pieces, or to put them into a position where\n\
+they cannot move.";
 
 STRING   kHelpReverseObjective =
-"";
+"To have all your pieces captured first, or to be put in a position where\n\
+you cannot move.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"(impossible)";
 
 STRING   kHelpExample =
 "";
@@ -103,7 +113,9 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-int WIDTH = 2, HEIGHT = 5;
+int WIDTH = 4, HEIGHT = 4;
+int BOARDSIZE;
+BOOLEAN DEFAULT = TRUE;
 char *gBoard;
 
 /*************************************************************************
@@ -114,7 +126,7 @@ char *gBoard;
 
 /* Internal */
 int exponent(int base, int exponent);
-void printRowOfStars();
+void printRowOfBars();
 int numberOfPieces(POSITION board, int player);
 int oppositePlayer(int player);
 int getSourceFromMove(MOVE move);
@@ -149,7 +161,7 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
   int i;
-  int BOARDSIZE = WIDTH*HEIGHT;
+  BOARDSIZE = WIDTH*HEIGHT;
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
   
@@ -197,7 +209,6 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  /*  MOVELIST *CreateMovelistNode(); */
   MOVELIST *moves = NULL, *captures = NULL;
   int player = whoseMove (position);
   int i;
@@ -215,7 +226,7 @@ MOVELIST *GenerateMoves (POSITION position)
   
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   
-  for (i = WIDTH*HEIGHT; i >= 0; i--) {
+  for (i = BOARDSIZE; i >= 0; i--) {
     if (gBoard[i] == currentPlayer) {
 
       /* check up one */
@@ -358,26 +369,32 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   generic_unhash(position, gBoard);
 
   /* top row */
-  printRowOfStars();
+  printf("\n\t ");
+  for (k = 0; k < WIDTH/2; k++) printf(" ");
+  printf("LEGEND");
+  for (k = 2; k < WIDTH; k++) printf("   ");
+  for (k = 0; k < WIDTH*1.5; k++) printf(" ");
+  printf("\tBOARD\n");
+  printRowOfBars();
 
-  /* other rows */
+  
   for (i = 0; i < HEIGHT; i++) {
+  /* print the legend */
     printf("\t");
-    /* print the legend */
-    for (k = 0; k < WIDTH; k++) {
+
+    for (k = 1; k < WIDTH+1; k++) {
       if (WIDTH*i+k < 10) printf(" ");
       printf("%d ", WIDTH*i+k);
     }
 
     printf("\t| ");
 
+    /* print a piece and a -- */
     for (j = 0; j < WIDTH-1; j++)
-      printf(" %c --", gBoard[i*WIDTH+j]);
+      printf(" %c --", gBoard[i*WIDTH + j]);
 
-    /* print last piece in each row and a | and a tab */
-    printf(" %c  |\t", gBoard[i*WIDTH +j]);
-
-    printf("\n");
+    /* print last piece in the  row and a | and a newline */
+    printf(" %c  |\n", gBoard[i*WIDTH + j]);
 
     /* print the | rows in between */
     if (i != HEIGHT-1) {
@@ -389,19 +406,18 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     }
   }
 
+  /* last two rows */
   printf("\t");
   for (k = 0; k < WIDTH; k++) printf("   ");
   printf("\t|");
   for (k = 0; k < WIDTH; k++) printf("     ");
   printf("|\n");
-
-  /* bottom row */
-  printRowOfStars();
+  printRowOfBars();
 
   printf("\n\t\tIt is %s turn.\n\n", (whoseMove(position) == BLACK_PLAYER) ? "x's" : "o's");
 }
 
-void printRowOfStars() {
+void printRowOfBars() {
   int i;
 
   printf("\t");
@@ -444,7 +460,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf("[%d %d]", getSourceFromMove(move), getDestFromMove(move));
+  printf("[%d %d]", getSourceFromMove(move)+1, getDestFromMove(move)+1);
 }
 
 
@@ -477,7 +493,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -557,7 +573,7 @@ MOVE ConvertTextInputToMove (STRING input)
   for (j = i-1; j >= stringPos; j--)
     dest += ((input[j]-'0') * exponent(10, k++));
 
-  return makeMove(source, dest);
+  return makeMove(source-1, dest-1);
 }
 
 
@@ -717,7 +733,7 @@ int numberOfPieces(POSITION position, int player) {
     currentPlayer = 'o';
   }
 
-  for (i = 0; i < WIDTH*HEIGHT; i++)
+  for (i = 0; i < BOARDSIZE; i++)
     if (gBoard[i] = currentPlayer) pieceCount++;
 
   return pieceCount;
