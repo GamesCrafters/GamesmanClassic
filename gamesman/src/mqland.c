@@ -227,10 +227,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	player = next_player(position);
 	players_piece = (player == 1 ? WHITE : BLACK);
 	board = generic_unhash(position, board);
-	/* Check moves that don't slide a piece from SOURCE to DEST */
-	if ((slide_rules != MUST_SLIDE) || (countPieces(board, players_piece) == 0)) {
-		moves = add_all_place_moves(0, 0, board, moves);
-	}
+	
 	
 	if (slide_rules != NO_SLIDE) {
 		for (s = width * height - 1; s >= 0; s--) {
@@ -242,6 +239,15 @@ MOVELIST *GenerateMoves (POSITION position)
 				}
 			}
 		}
+	}
+	
+	/** 
+	** Check moves that don't slide a piece from SOURCE to DEST
+	** This is checked after moves that have a slide component are generated.  If no slide moves
+	** are available, this section will ignore the MUST_SLIDE rule.
+	*/
+	if ((slide_rules != MUST_SLIDE) || moves == NULL) {
+		moves = add_all_place_moves(0, 0, board, moves);
 	}
 		
 	SafeFree(board);
