@@ -100,6 +100,15 @@
 ** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
 **                     not enough memory. 
 ** 29 Mar 2005 Yanpei: One line fix to logical error in Primitive().
+** 03 Apr 2005 Mario:  Modified DoMove, GenerateMoves to perform 2-moves
+**                     Switched to non-memoizing factorial as memoizing produces arithmetic exceptions
+**                     I still however have hashing errors
+**                     Example: 
+**                     [| 3 | X  X  X  X ] pieces = 1; squares = 0; turn = 1
+**                     hashes to
+**                     [| X | 0  2  3  1 ] pieces = 4; squares = 4; turn = 0
+**                     Input handling is not modified yet, but in theory it should work as is
+**                     I did update : to . to remind us of the change
 **
 **************************************************************************/
 
@@ -267,7 +276,7 @@ POSITION		(*hash)( QTBPtr ) = &hashUnsymQuarto;
 QTBPtr			(*unhash)( POSITION ) = &unhashUnsymQuarto;
 void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
-POSITION                (*factorial)(int n) = &factorialMem;
+POSITION                (*factorial)(int n) = &factorialNoMem;
 POSITION                (*getCannonical)(POSITION p) = &yanpeiGetCannonical;
 
 /* support functions */
@@ -435,39 +444,34 @@ void yanpeiInitializeGame() {
 ** CALLS:       MOVELIST *CreateMovelistNode();
 **
 ************************************************************************/
-
 MOVELIST *GenerateMoves (POSITION position)
 {
     
 	QTBPtr board;
 	MOVELIST *moves	= NULL;
 	MOVE slot;
+	MOVE piece;
     
 	/* Unhash board */
 	board	= unhash( position );
-	
-	/* If there's piece in hand, the only valid moves are the ones placing the piece in board slot */
-	if( GetHandPiece( board ) != EMPTYSLOT ) {
+
+	/* If there's no piece in hand, the only valid moves are the ones placing a piece into the hand */
+	/* These are special moves, as their board position indicates HAND, and are only valid for a first move */
+	if( GetHandPiece( board ) == EMPTYSLOT ) {
 		
-		/* For each slot on board */
-		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
+		/* For every piece possible (since board is initial, every piece is allowed into the game */
+		for( piece = 0; piece < NUMPIECES; piece++ ) {
 			
-			/* If slot is empty */
-			if ( board->slots[slot] == EMPTYSLOT ) {
-				
-				/* Add move which moves piece from hand into empty slot */
-			   moves	= CreateMovelistNode( CreateMove( slot, GetHandPiece( board ) ), moves );
-				
-			}
+			/* Generate a move that places the piece into the hand. The slot = HAND is indicative of initial move */
+			moves	= CreateMovelistNode( CreateMove( HAND, piece ), moves );
 			
 		}
-	
-	/* If there's no piece in hand, the valid moves are the ones placing an available piece into hand */
+		
 	} else {
 		
 		BOOLEAN available_pieces[NUMPIECES];
 		MOVE piece;
-		
+				
 		/* Initialize array of available pieces */
 		memset( available_pieces, TRUE, sizeof( *available_pieces ) * NUMPIECES );
 		
@@ -484,21 +488,28 @@ MOVELIST *GenerateMoves (POSITION position)
 			
 		}
 		
-		/* For each piece */
-		for( piece = 0; piece < NUMPIECES; piece++ ) {
+		/* For each slot on board */
+		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
 			
-			/* If piece is available */
-			if( available_pieces[piece] != FALSE ) {
-		
-				/* Add move which moves piece into hand */
-				moves	= CreateMovelistNode( CreateMove( HAND, piece ), moves );
+			/* If slot is empty */
+			if ( board->slots[slot] == EMPTYSLOT ) {
 				
-			}
+				/* For each piece */
+				for( piece = 0; piece < NUMPIECES; piece++ ) {
 			
-		}
+					/* If piece is available */
+					if( available_pieces[piece] != FALSE ) {
 		
+						/* Add move which moves item from hand into slot, and piece into hand */
+						moves	= CreateMovelistNode( CreateMove( slot, piece ), moves );
+				
+					}
+			
+				}
+			}
+		}
 	}
-	
+
 	/* Return list of valid moves */
 	return moves;
 	
@@ -525,32 +536,36 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	QTBPtr board;
 	int piece, slot;
-		
-	/* Determine slot on board piece is to go into */
-	slot					= GetMoveSlot( move );
-	
-	/* Determine which piece is to go into board slot */
-	piece					= GetMovePiece( move );
 	
 	/* Unhash board */
-	board					= unhash( position );
+	board = unhash( position );
 	
-	/* Place piece into slot */
-	board->slots[slot]		= piece;
+	/* Determine slot on board piece from hand is to go into */
+	slot = GetMoveSlot( move );
 	
-	/* If move places piece into hand */
-	if ( slot == HAND ) {
-		
-		/* Change player */
-		board->usersTurn	= !board->usersTurn;
+	/* Determine which piece is to go into hand */
+	piece = GetMovePiece( move );
+	
+	/* Place hand piece into indicated slot */
+	board->slots[slot] = GetHandPiece( board );
+	
+	/* Place indicated piece into hand */
+	SetHandPiece( board, piece );
+	
+	/* Change the turn */
+	board->usersTurn	= !board->usersTurn;
+	
+	/* Increment number of pieces */
+	board->piecesInPlay++;
+	
+	/* If indicated slot is not hand, also increment number of squares */
+	board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
 
-	/* Otherwise, if there's piece in hand */
-	} else if ( GetHandPiece( board ) != EMPTYSLOT ) {
+	print_board( board );
 		
-		/* Take piece out of hand */
-	   SetHandPiece( board, EMPTYSLOT );
-		
-	}
+	printf("\nbefore\n");
+	
+	print_board( unhash( hash( board ) ) );
 	
 	/* Return hashed board */
 	return hash( board );
@@ -808,7 +823,7 @@ void PrintMove (MOVE move)
 	}
 	
 	/* Print character describing position on board/hand */
-	printf( ":%c", hex_ascii[slot] );
+	printf( ".%c", hex_ascii[slot] );
 	
 }
 
@@ -887,7 +902,7 @@ BOOLEAN ValidTextInput( STRING input )
 	
 	BOOLEAN valid = FALSE;
 	
-	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == ':' ) {
+	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == '.' ) {
 		
 		int i;
 		int valid_traits[GAMEDIMENSION];
@@ -936,8 +951,6 @@ BOOLEAN ValidTextInput( STRING input )
 				}
 			
 			}
-			
-			
 		}
 		
 	} 
@@ -1667,7 +1680,7 @@ POSITION combination(int n, int r) {
   } else if (n <= 0) {
     return 0;
   } else {
-    return factorial(n) / factorial(n-r) / factorial(r);
+		return factorial(n) / factorial(n-r) / factorial(r);
   }
 }
 
