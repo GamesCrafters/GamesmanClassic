@@ -31,6 +31,7 @@
 
 #include "gamesman.h"
 #include "analysis.h"
+#include "db.h"
 
 
 /*
@@ -187,6 +188,21 @@ void PrintValuePositions(char c, int maxPositions)
 
 void PrintGameValueSummary()
 {
+    char *initialPositionValue = "";
+    switch(gAnalysis.InitialPositionValue)
+    {
+        case win:
+            initialPositionValue = "Win";
+            break;
+        case lose:
+            initialPositionValue = "Lose";
+            break;
+        case tie:
+            initialPositionValue = "Tie";
+            break;
+        default:
+            BadElse("PrintGameValueSummary [InitialPositionValue]");
+    }
     printf("\n\n\t----- Summary of Game values -----\n\n");
     
     printf("\tValue       Number       Total\n");
@@ -203,6 +219,8 @@ void PrintGameValueSummary()
     printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
     printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
     printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
+    printf("\tProbability of maintaining a %-5s= %2f\n", initialPositionValue,gAnalysis.InitialPositionProbability);
+    
     return;
 }
 
@@ -244,40 +262,71 @@ void analyzer()
     {
         theValue = GetValueOfPosition(thePosition);
         if (theValue != undecided) {
-        totalPositions++;
-        if(theValue == win)  {
-            winCount++;
-            reachablePositions++;
-            if (Remoteness(thePosition) == 0) primitiveWins++;
-        } else if(theValue == lose) {
-            loseCount++;
-            reachablePositions++;
-            if (Remoteness(thePosition) == 0) primitiveLoses++;
-        } else if(theValue == tie) {
-            tieCount++;
-            reachablePositions++;
-            if (Remoteness(thePosition) == 0) primitiveTies++;
-        } else {
-            unknownCount++;
-        }
+            totalPositions++;
+            if(theValue == win)  {
+                winCount++;
+                reachablePositions++;
+                if (Remoteness(thePosition) == 0) primitiveWins++;
+            } else if(theValue == lose) {
+                loseCount++;
+                reachablePositions++;
+                if (Remoteness(thePosition) == 0) primitiveLoses++;
+            } else if(theValue == tie) {
+                tieCount++;
+                reachablePositions++;
+                if (Remoteness(thePosition) == 0) primitiveTies++;
+            } else {
+                unknownCount++;
+            }
         }
     }
     hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
     averageFanout = (float)((float)gAnalysis.TotalMoves/(float)(reachablePositions - primitiveWins - primitiveLoses - primitiveTies));
     
-    gAnalysis.HashEfficiency = hashEfficiency;
-    gAnalysis.AverageFanout = averageFanout;
-    gAnalysis.TotalPositions = totalPositions;
-    gAnalysis.WinCount = winCount;
-    gAnalysis.LoseCount = loseCount;
-    gAnalysis.TieCount = tieCount;
-    gAnalysis.UnknownCount = unknownCount;
-    gAnalysis.PrimitiveWins = primitiveWins;
-    gAnalysis.PrimitiveLoses = primitiveLoses;
-    gAnalysis.PrimitiveTies = primitiveTies;
+    gAnalysis.InitialPositionValue = GetValueOfPosition(gInitialPosition);
+    UnMarkAllAsVisited();
+    
+    
+    gAnalysis.HashEfficiency    = hashEfficiency;
+    gAnalysis.AverageFanout     = averageFanout;
+    gAnalysis.TotalPositions    = totalPositions;
+    gAnalysis.WinCount          = winCount;
+    gAnalysis.LoseCount         = loseCount;
+    gAnalysis.TieCount          = tieCount;
+    gAnalysis.UnknownCount      = unknownCount;
+    gAnalysis.PrimitiveWins     = primitiveWins;
+    gAnalysis.PrimitiveLoses    = primitiveLoses;
+    gAnalysis.PrimitiveTies     = primitiveTies;
     gAnalysis.NumberOfPositions = gNumberOfPositions;
 }
 
+/* Determines the chance that you'll maintain your value if you *
+ * randomly select a move given a position.                     */
+float DetermineProbability(POSITION position, VALUE value)
+{
+    POSITION numChildrenVisited = 0;
+    POSITION child = 0;
+    MOVELIST *ptr, *head;
+    
+    MarkAsVisited(position);
+    
+    head = ptr = GenerateMoves(position);
+    while(ptr != NULL) {
+        MOVE move = ptr->move;
+        child = DoMove(position, ptr->move);
+        if(!Visited(child))
+        {
+            if(GetValueOfPosition(child))
+            {
+                
+            }
+            numChildrenVisited++;
+        }
+        
+    }
+        
+    return 0.0;
+}
 
 
 // Write variant statistic

@@ -14,7 +14,8 @@ void	PrintGameValueSummary		();
 /* Analysis output */
 
 void	analyze				();
-void	analyzer			();
+void	analyzer            ();
+float   DetermineProbability    (POSITION position, VALUE value);
 void	writeVarStat			(STRING statName, STRING text, FILE* out);
 void	DatabaseCombVisualization	();
 
@@ -53,6 +54,9 @@ typedef struct analysis_info
   unsigned long PrimitiveLoses;
   unsigned long PrimitiveTies;
   unsigned int  TimeToSolve;
+  
+  VALUE InitialPositionValue;
+  float InitialPositionProbability;
 } ANALYSIS;
 
 extern ANALYSIS gAnalysis;
