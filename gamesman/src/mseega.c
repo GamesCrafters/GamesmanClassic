@@ -1,3 +1,4 @@
+
 // $id$
 // $log$
 
@@ -24,10 +25,12 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 **
 ** DATE:        Began 2004-09-29; Finished 2004-10-...
 **
-** UPDATE HIST: 2004-10-04 Put it into CVS.
-**              2004-10-12 Peter: I wrote this earlier, but I didn't know
+** UPDATE HIST: 2004-10-04 YR: Put it into CVS.
+**              2004-10-11 Peter: I wrote this earlier, but I didn't know
 **               know that checking-in a file would lead to a vi interface
-**              2004-10-12 Added more defines, GamesSpecificMenu, PrintPosition
+**              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
+**		    2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
+**		    TO BE DONE: DoMoves, Primitive
 **
 **************************************************************************/
 
@@ -39,6 +42,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.c"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -117,25 +121,34 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-//note: having more than 9 rows would mess up the printf, unless we want to swap the letter and column convention
+//Peter's note: having more than 9 rows would mess up the printf, unless we want to swap the letter and column convention
 #define MAXROWS 9
 #define MAXCOLS 9 
 #define DEFAULTROWS 3
 #define DEFAULTCOLS 3
+#define DEFAULTBOARDSIZE 9
 
+
+//Peter: we should add a 'g' in front of global variables for good coding style
 int width=DEFAULTROWS, height=DEFAULTROWS; //changed
-
-int BOARDSIZE = 11; 
+int BOARDSIZE = DEFAULTBOARDSIZE;
+char P1='x';
+char P2='O';
+char blank='-'; //TODO changed Peter: I think blank should be '-'
+//int BOARDSIZE = 11; //Peter & Emad: why 11?
 /* width*height, plus one for whose move it is and whether we are in
    placing mode.*/
 
 typedef char* Board;
 typedef int* SMove;
 
+Board gBoard;
+
+
 typedef enum blank_o_x {Blank, x, o} BlankOX;
 
 inline char whoseBoard(Board b);
-inline char whoseMove(SMove m);
+//inline char whoseMove(SMove m);
 inline char getpce(Board b, int r);
 inline char getPiece(Board b, int x, int y);
 
@@ -192,9 +205,9 @@ extern VALUE     *gDatabase;
 ************************************************************************/
 
 void InitializeGame () {
-  int boardspec[] = {'x', 0, floor(BOARDSIZE/2), 
-		     'o', 0, floor(BOARDSIZE/2),
-		     '-', 0, BOARDSIZE-3,
+  int boardspec[] = {P1, 0, floor(BOARDSIZE/2), 
+		     P2, 0, floor(BOARDSIZE/2),
+		     blank, 1, BOARDSIZE,
 		     -1};
   int maxpos = generic_hash_init(BOARDSIZE, boardspec, NULL);
 }
@@ -224,6 +237,7 @@ void DebugMenu () {
 ** 
 ************************************************************************/
 
+//TODO not quite right..
 void GameSpecificMenu()
 {
     char GetMyChar();
@@ -285,6 +299,7 @@ void changeBoard()
   //printf("done! \n");
   //GetMyChar();
 }
+
   
 /************************************************************************
 **
@@ -302,7 +317,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 
 /************************************************************************
 **
-** NAME:        DoMove //TEMPORARY!!
+** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
 ** 
@@ -316,7 +331,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-//TODO CHANGE THIS
+//REMOVE THIS
 POSITION DoMove (POSITION position, MOVE move) {
     
     BlankOX theBlankOX[BOARDSIZE];
@@ -434,10 +449,10 @@ VALUE Primitive (POSITION position) {
 **
 ************************************************************************/
 
-
 //this will be our print position function - prints for a general sized board
 //now we only have to grab the current values of the board!
 //TODO: take into account the arguments
+//TODO: get predicition here
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
 {
   int currRow;
@@ -451,23 +466,23 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
   }
   printf("             TOTAL:\n");
   for (currRow = height; currRow>0; currRow--) {
-    //printf("    %d ( a%d b%d c%d )          : - - -\n", currRow, currRow, currRow, currRow);
     printf("    %d ( ", currRow);
     for (currCol = 0; currCol < width; currCol++) {
       printf("%c%d ", alphabet[currCol], currRow);
     }
     printf(")          :");
     for (currCol = 0; currCol < width; currCol++) {
-      printf("%c ", '-'); //TODO GET VALUES FROM BOARD
+      printf("%c ", '-'); //TODO GET VALUES FROM BOARD - right now everything's blank
     }
     printf("\n");
   }
-  printf("        ");  //a  b  c          PLAYERS TURN\n\n");
+  printf("        ");
   for (currCol = 0; currCol < width; currCol++) {
-    printf("%c  ", alphabet[currCol]);  //"          PLAYERS TURN\n\n");
+    printf("%c  ", alphabet[currCol]);
   }
   printf("\n\n");
 }
+
 
 
 /************************************************************************
@@ -489,9 +504,53 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
 ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position) {
-  return NULL;
-}
+  char mover;
+  int player,i;
+  void boardcopy();
+  int legalMove();
+  MOVELIST *head = NULL;
+  MOVELIST *CreateMoveListNode();
+  Board newboard;
+  generic_unhash(position,gBoard);
 
+  if(player= whoseMove(position) == 1)
+    mover=P1;
+  else
+    if(player == 2)
+      mover=P2;
+    else
+      badelse();
+  for (i=0;i<BOARDSIZE;i++){
+    if(gBoard[i]==mover){
+      if (legalMove(gBoard[i+1]) && gBoard[i+1]== blank){
+	boardcopy(gBoard,newboard);
+	newboard[i]=blank;
+	newboard[i+1]=mover;
+	head=CreateMovelistNode(generic_hash(newboard,player),head);
+      }
+      if (legalMove(gBoard[i-1]) && gBoard[i-1]== blank){
+	boardcopy(gBoard,newboard);
+	newboard[i]=blank;
+	newboard[i-1]=mover;
+	head=CreateMovelistNode(generic_hash(newboard,player),head);
+      }
+      if (legalMove(gBoard[i+BOARDSIZE/2]) && gBoard[i+BOARDSIZE/2]== blank){
+	boardcopy(gBoard,newboard);
+	newboard[i]=blank;
+	newboard[i+BOARDSIZE/2]=mover;
+	head=CreateMovelistNode(generic_hash(newboard,player),head);
+      }
+      if (legalMove(gBoard[i-BOARDSIZE/2]) && gBoard[i-BOARDSIZE/2]== blank){
+	boardcopy(gBoard,newboard);
+	newboard[i]=blank;
+	newboard[i-BOARDSIZE/2]=mover;	
+	head=CreateMovelistNode(generic_hash(newboard,player),head);
+    }
+  }
+  }
+return head;
+
+}
  
 /************************************************************************
 **
@@ -649,7 +708,7 @@ void setOption (int option) {
  ************************************************************************/
 
 inline char whoseBoard(Board b) {return b[width*height];}
-inline char whoseMove(SMove m) {return m[2];}
+//inline char whoseMove(SMove m) {return m[2];}
 inline char getpce(Board b, int r) {return b[r];}
 inline char getPiece(Board b, int x, int y) {return getpce(b,x*width+y);}
 
@@ -757,3 +816,17 @@ MOVELIST *GenerateMovingMoves(POSITION position) {
 ** hash and unhash functions if you are not using one of the existing
 ** ones.
 ************************************************************************/
+int legalMove(int possibleMove)
+{
+  if (possibleMove>=0 && possibleMove<BOARDSIZE)
+    return 1;
+  else
+    return 0;
+}
+
+void boardcopy(char *from,char*to){
+  int i;
+  for (i=0;i<BOARDSIZE;i++)
+    to[i]=from[i];
+}
+    
