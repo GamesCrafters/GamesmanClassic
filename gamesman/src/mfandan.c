@@ -360,8 +360,7 @@ POSITION DoMove(thePosition, theMove)
   CarryOutMove(board, turn, theMove, &captured);
 
   if(GoAgain(thePosition, theMove)) {
-    movingAgain = TRUE;
-    // don't swap turns
+    //movingAgain = TRUE;
   }else {
     if(turn == X)
       turn = O;
@@ -410,7 +409,7 @@ Coordinates CarryOutMove(BlankOX* board, char turn, MOVE theMove, BOOLEAN* captu
 
   Coordinates attacking;
   // check for capture, railgun style
-  if(cap == 1) {  // if by approach todo
+  if(cap == 1) {  // if by approach 
     attacking = Neighbor(Neighbor(coord,dir),dir);
     while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
       board[CoordinatesToIndex(attacking)] = B;
@@ -454,7 +453,6 @@ BOOLEAN CanStillCap(BlankOX* board, Coordinates pos, Direction prevdir) {
 }
 
 BOOLEAN GoAgain(POSITION position, MOVE theMove) {
-  return FALSE;  // todo
   BlankOX board[BOARDSIZE];
   int intdir;
   BOOLEAN captured;
@@ -466,20 +464,18 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
     intdir++;
   Direction dir = (Direction)intdir;
 
-  printf("numpad dir %d", dir);
-
   PositionToBlankOX(position, board);
   Coordinates moved = CarryOutMove(board, WhoseTurn(position), theMove, &captured);
-  printf("GoAgain board:");
-  printBoard(board);
-  if(captured) {
-    BOOLEAN temp = CanStillCap(board, moved, dir);
+  if(captured) {  // if the move had captures
+    BOOLEAN temp = CanStillCap(board, moved, dir);  // and can still cap with that piece
     if(temp)
       puts("goagain = true");
     else
       puts("goagain = false");
+
     return temp;
   } else {   // no chance to move again without any capture
+    puts("goagain = false");
     return FALSE;
   }
 }
@@ -817,7 +813,6 @@ void space(int n) {
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
-  dbg("->GenerateMoves");
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
   Coordinates IndexToCoordinates(int);
@@ -844,10 +839,8 @@ MOVELIST *GenerateMoves(position)
 
   if (Primitive(position) == undecided) {
     PositionToBlankOX(position,board);
-    if(debug>2) printf("Primitive undecided\n");
     for(i = 0 ; i < BOARDSIZE ; i++) {
-      if((board[i] == thisPlayer) && (movingAgain? CoordinatesToIndex(lastMovedAt)==i: TRUE)) {
-	printf("MOVABLE PIECE @ "); PrintPos(i);printBoard(board);
+      if((board[i] == thisPlayer) /*&& (movingAgain? CoordinatesToIndex(lastMovedAt)==i: TRUE)*/) {
 	// if current player's piece and if movingAgain must be same piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
 	for(dir = left; dir!=0; dir = NextDirection(pos, dir)) {
@@ -859,57 +852,51 @@ MOVELIST *GenerateMoves(position)
 	  numofcaps=0;
 	  if(InBounds(Neighbor(pos,dir)) && board[CoordinatesToIndex(Neighbor(pos,dir))]==B) {      // vacant neighboring cell exists
 	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
+
+	    // by approach
 	    if( InBounds(attackingpos) &&                                // position is within board
 		board[CoordinatesToIndex(attackingpos)]==otherPlayer) {  // have enemy, can attack by approach
 	      cap = 1;  // attack by approach mode
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(!movingAgain) {                             // if moving again, then we need to move the same piece as b4
-		numofcaps++;
-		head = CreateMovelistNode(move, head);
-		if(!forcedCapture) {  // not forced to capture, then can move beside enemy with no killing
-		  move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		  PrintMove(move);
+	      if(movingAgain) {                             // if moving again, then we need to move the same piece as b4
+		if(CoordinatesToIndex(lastMovedAt)==i) {
+		  numofcaps++;
 		  head = CreateMovelistNode(move, head);
 		}
-	      } else if(CoordinatesToIndex(lastMovedAt)==i) {
+	      } else {
 		numofcaps++;
 		head = CreateMovelistNode(move, head);
-		if(!forcedCapture) {
-		  move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		  PrintMove(move);
-		  head = CreateMovelistNode(move, head);
-		}
+	      }
+	      if(!forcedCapture) {  // not forced to capture, then can move beside enemy with no killing
+		move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
+		head = CreateMovelistNode(move, head);
 	      }
 	    } // end if can attack by approach
+
+	    // by withdraw
 	    attackingpos = Neighbor(pos,OtherDirection(dir));
 	    if(InBounds(attackingpos) &&                               // position is within board
 		board[CoordinatesToIndex(attackingpos)]==otherPlayer) { // have enemy, can attack by withdraw
 	      cap = 2; // attack by withdraw mode
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(!movingAgain) {                           // if moving again, we need to move same piece as before
-		numofcaps++;
-		PrintMove(move);
-		head = CreateMovelistNode(move, head);
-		if(!forcedCapture) {
-		  move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		  PrintMove(move);
+	      if(movingAgain) {                                    // if moving again, we need to move same piece as before
+		if(CoordinatesToIndex(lastMovedAt)==i) {
+		  numofcaps++;
 		  head = CreateMovelistNode(move, head);
 		}
-	      } else if(CoordinatesToIndex(lastMovedAt)==i) {
+	      }else {
 		numofcaps++;
 		head = CreateMovelistNode(move, head);
-		if(!forcedCapture) {
-		  move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		  PrintMove(move);
-		  head = CreateMovelistNode(move, head);
-		}
+	      }
+	      if(!forcedCapture) {
+		move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
+		head = CreateMovelistNode(move, head);
 	      }
 	    } // end if can attack by withdraw
 	    
-	    if(numofcaps==0 && !movingAgain) { // no captures possible for this move
+	    if(numofcaps==0) { // no captures possible for this move direction
 	      cap = 0;
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      PrintMove(move);
 	      head = CreateMovelistNode( move, head);
 	    } //end if no possible captures
 	  } // end if vacant target cell (i.e. can move)
@@ -1098,7 +1085,6 @@ BOOLEAN ValidTextInput(input)
     file = toupper(*input);
     input++;
   }
-  printf("file: %c\n",file);
 
   i = 0;
   while(!isalpha(input[i])) {
@@ -1113,8 +1099,6 @@ BOOLEAN ValidTextInput(input)
   temp[i] = (char)0;
 
   row = atoi(temp);
-
-  printf("row %d\n",row);
 
   while(*input == ' ') input++;
 
@@ -1149,12 +1133,9 @@ BOOLEAN ValidTextInput(input)
     return FALSE;
   }
 
-  printf("dir %d\n", dir);
-
   while(*input == ' ') input++;
   
   c = toupper(*input);
-  printf("capchar is %c\n",c);
 
   cap = -1;
   if(c == 'A') {
@@ -1167,12 +1148,7 @@ BOOLEAN ValidTextInput(input)
     return FALSE;
   }
   
-  printf("cap %d\n",cap);
-
-  dispVitals();
   int pos = (row-1)*BOARDWIDTH + (file - 'A');
-
-  printf("pos %d\n",pos);
 
   if(pos<0 || pos>=BOARDSIZE)
     return FALSE;
@@ -1478,14 +1454,14 @@ void ClearBoardPieces() {
     board[i] = B;
   }
   board[0] = O;
-  board[2] = O; //todo
+  board[2] = O;
   board[BOARDSIZE-1] = X;
 
   MAX_X = 1;
   MAX_O = 2;
   InitHash();
   placedPieces = TRUE;  // to signal initializer not to stomp our new board placement
-  gInitialPosition = BlankOXToPosition(board, X);  //todo
+  gInitialPosition = BlankOXToPosition(board, X); 
   gMinimalPosition = gInitialPosition;
 }
 
@@ -1571,7 +1547,7 @@ void PlacePieces() {
 
   placedPieces = TRUE;
   InitHash();
-  gInitialPosition = BlankOXToPosition(board, X); //todo
+  gInitialPosition = BlankOXToPosition(board, X); 
   gMinimalPosition = gInitialPosition;
 }
 
