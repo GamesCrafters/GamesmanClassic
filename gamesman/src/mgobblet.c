@@ -638,11 +638,11 @@ void gobbletPrintSpace(SLOT mySpace)
   int i;
   for(i = 0; i < PIECE_SIZES; i++)
     {
-      if(PIECE_VALUE(PIECE_X,i) & mySpace != 0)
+      if(PIECE_VALUE(PIECE_X,i) & mySpace)
 	{
 	  printf("X");
 	}
-      else if(PIECE_VALUE(PIECE_O,i) & mySpace != 0)
+      else if(PIECE_VALUE(PIECE_O,i) & mySpace)
 	{
 	  printf("O");
 	}
