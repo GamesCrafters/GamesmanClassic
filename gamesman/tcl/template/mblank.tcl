@@ -44,6 +44,20 @@ proc GS_NameOfPieces {} {
 }
 
 
+# GS_ColorOfPlayers should return a list of two strings, each representing 
+# the color of a player. If a specific color appears uniquely on one player's 
+# pieces, it might be a good choice for that player's color. In impartial 
+# games, both players may share the same color.
+# This function is called FIRST, ONCE, only when the player starts playing the 
+# game, and before he clicks "New Game". The left player's color should be the 
+# first item in the list. The right player's color should be second.
+
+proc GS_ColorOfPlayers {} {
+
+}
+
+
+
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
 # You could put an opening animation in this function that introduces the game
