@@ -34,13 +34,13 @@ extern STRING gValueString[];
 
 int      gNumberOfPositions  = 0;
 
-POSITION gInitialPosition    = 0;  //Fairly sure this is right.
+POSITION gInitialPosition    = 0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Gobble It Jr";
 BOOLEAN  kPartizan           = FALSE; /* Unknown For sure.
                                        * but fairly sure this
-                                       * this is right. More then
+                                       * this is right. More than
                                        * one type of piece.*/
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
@@ -122,35 +122,39 @@ ect...";
 **
 **************************************************************************/
 
-typedef int SLOT;
-typedef unsigned short layer_t;
+typedef unsigned short SLOT;
+typedef unsigned long layer_t;
 
-#define	BOARD_SIZE	3
-#define	PIECE_SIZES	2
-#define	PIECES_PER_SIZE	2
+// These should actually be smaller.
 
+#define MAX_BOARD_SIZE		5
+#define MAX_PIECE_SIZES		4
+#define	MAX_PIECES_PER_SIZE	3
 
 layer_t *pos2hash = NULL;
 layer_t *hash2pos = NULL;
 
 int tableSize = 0;
+int BOARD_SIZE = 3,
+    PIECE_SIZES = 2,
+    PIECES_PER_SIZE = 2,
+    COLOR_BITS = -1,
+    TABLE_BITS = -1,
+    COLOR_MASK = -1,
+    TABLE_MASK = -1,
+    TABLE_SLOTS = -1,
+    SLOT_PERMS = -1;
 
-#define	COLOR_BITS	(2 * PIECES_PER_SIZE)
-#define	TABLE_BITS	(BOARD_SIZE * BOARD_SIZE)
-
-#define	COLOR_MASK	((1 << COLOR_BITS) - 1)
-#define	TABLE_MASK	(((1 << TABLE_BITS) - 1) << COLOR_BITS)
-
-#define CONS_MOVE(s,d)	(((d) * TABLE_BITS) + (s)) //Takes the source and dest
+#define CONS_MOVE(s,d)	(((d) * TABLE_SLOTS) + (s)) //Takes the source and dest
                                                    //parts of a move and turns
                                                    //it into a short(or MOVE)
-#define	GET_SRC(m)	((m) % TABLE_BITS)             //Gets the source location
+#define	GET_SRC(m)	((m) % TABLE_SLOTS)             //Gets the source location
                                                    //from MOVE m                                      
-#define	GET_DEST(m)	((m) / TABLE_BITS)             //Gets the dest location
+#define	GET_DEST(m)	((m) / TABLE_SLOTS)             //Gets the dest location
                                                    //from MOVE m 
 
-#define	SRC_STASH(s)	(TABLE_BITS + (s))
-#define	GET_SRC_SZ(s)	((s) >= TABLE_BITS ? ((s) - TABLE_BITS) : -1)
+#define	SRC_STASH(s)	(TABLE_SLOTS + (s))
+#define	GET_SRC_SZ(s)	((s) >= TABLE_SLOTS ? ((s) - TABLE_SLOTS) : -1)
 
 
 /*
@@ -165,8 +169,8 @@ int tableSize = 0;
 */
 
 struct GPosition {
-	short	board[ TABLE_BITS]; //Stores the pieces in the board
-	short   stash[ PIECE_SIZES * PIECES_PER_SIZE]; //Stores the pieces in the stash
+	SLOT	board[ MAX_BOARD_SIZE * MAX_BOARD_SIZE]; //Stores the pieces in the board
+	short   stash[ MAX_PIECE_SIZES * 2]; //Stores the pieces in the stash
 	short	turn; //Stores whos turn it is.
 };
 
@@ -222,6 +226,20 @@ void InitializeDatabases()
 {
   GENERIC_PTR SafeMalloc();
   int i;
+  
+  if (BOARD_SIZE      >= MAX_BOARD_SIZE
+   || PIECE_SIZES     >= MAX_PIECE_SIZES
+   || PIECES_PER_SIZE >= MAX_PIECES_PER_SIZE) {
+  	printf( "Illegal board dynamic.\n\n" );
+  	exit( 1 );
+  }
+  
+  // Calculate values associated with BOARD_SIZE and friends
+  COLOR_BITS = 2 * PIECES_PER_SIZE;
+  TABLE_BITS = TABLE_SLOTS = BOARD_SIZE * BOARD_SIZE;
+  COLOR_MASK = (1 << COLOR_BITS) - 1;
+  TABLE_MASK = ((1 << TABLE_BITS) - 1) << COLOR_BITS;
+  SLOT_PERMS = 1 << (PIECE_SIZES * 2);
   
   computeTables();
   
@@ -373,9 +391,9 @@ POSITION DoMove(thePosition, theMove)
    int pieceType = (newPos.turn == TURN_O ? PIECE_O : PIECE_X);
    int pieceSize;
    
-   if(srcPos >= TABLE_BITS)
+   if(srcPos >= TABLE_SLOTS)
    {
-      pieceSize = srcPos - TABLE_BITS;
+      pieceSize = srcPos - TABLE_SLOTS;
    }else{
       pieceSize = getTopPieceSize( newPos.board[ srcPos]);
       newPos.board[ srcPos] ^= PIECE_VALUE(getTopPieceColor( newPos.board[ srcPos] ),srcPos);
@@ -418,7 +436,7 @@ POSITION GetInitialPosition()
   
   i = 0;
   getchar();
-  while(i < TABLE_BITS && (c = getchar()) != EOF) {
+  while(i < TABLE_SLOTS && (c = getchar()) != EOF) {
     j = 0;
     do {
       if((c == 'X') || (c == 'x') || (c == '*'))
@@ -613,7 +631,7 @@ void PrintPosition(position, playerName, usersTurn)
     printf("\n");
   }
   printf("         Stock: ");
-  for(pSizes=0; pSizes < PIECE_SIZES;pSizes++)
+  for(pSizes=0; pSizes < PIECE_SIZES; pSizes++)
   {
    //figure out what were going to do with representing sizes...
   }
@@ -655,20 +673,20 @@ MOVELIST *GenerateMoves(position)
     for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
       stockValue = i / 2;
       if(myPosition.stash[i] > 0) {
-        for(j = 0; j < TABLE_BITS; j++) {
+        for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if((topPieceTo > 0) && (topPieceTo < (i / 2))) {
-            head = CreateMovelistNode(CONS_MOVE(TABLE_BITS + (i / 2), j), head);
+            head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
           }
         }
       }
     }
     /* For pieces already on the board */
-    for(i = 0; i < TABLE_BITS; i++) {
+    for(i = 0; i < TABLE_SLOTS; i++) {
       topPieceFrom = getTopPieceSize(myPosition.board[i]);
       pieceColorFrom = getTopPieceColor(myPosition.board[i]);
       if((pieceColorFrom == myPosition.turn) && (topPieceFrom > 0)) {
-        for(j = 0; j < TABLE_BITS; j++) {
+        for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if((topPieceTo > 0) && (topPieceTo < topPieceFrom)) {
             head = CreateMovelistNode(CONS_MOVE(i, j), head);
@@ -711,7 +729,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
-    printf("%8s's move [(u)ndo/1-%d] :  ", playerName, TABLE_BITS);
+    printf("%8s's move [(u)ndo/1-%d] :  ", playerName, TABLE_SLOTS);
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -759,7 +777,7 @@ BOOLEAN ValidTextInput(input)
   }
   if(i == 0)
     return FALSE;
-  if(start > TABLE_BITS)
+  if(start > TABLE_SLOTS)
     return FALSE;
   if(input[i] != ' ')
     return FALSE;
@@ -771,7 +789,7 @@ BOOLEAN ValidTextInput(input)
     i++;
     j++;
   }
-  if(end > TABLE_BITS)
+  if(end > TABLE_SLOTS)
     return FALSE;
   return TRUE;
     }
@@ -803,7 +821,7 @@ MOVE ConvertTextInputToMove(input)
     first += input[i];
     i++;
   }
-  if(( (int) first <= TABLE_BITS) && ( (int) first >= TABLE_BITS))
+  if(( (int) first <= TABLE_SLOTS) && ( (int) first >= TABLE_SLOTS))
   {
     srcPos = ((int) first) - 1;
   }else{
@@ -835,7 +853,7 @@ void PrintMove(theMove)
   SLOT srcPos, destPos;
   srcPos = GET_SRC(theMove);
   destPos = GET_DEST(theMove);
-  // if(srcPos <= TABLE_BITS)
+  // if(srcPos <= TABLE_SLOTS)
     printf("%d %d\n", srcPos+1,destPos+1);
     // else
     // printf("%d %d\n",  write this later..
@@ -932,25 +950,25 @@ POSITION GetNextPosition()
 **
 ************************************************************************/
 
-#define SLOT_PERMS	(1 << (PIECE_SIZES * 2))
-
 int getTopPieceSize ( SLOT slot )
 {
-	static int memoized[ SLOT_PERMS];
-	static int memoizedInit = 0;
+	static int* memoized = NULL;
 	
 	int i;
-	layer_t n;
+	SLOT n;
 	
 	if (slot > SLOT_PERMS)
 		return -1;
 	
-	if (memoizedInit == 0) {
+	if (!memoized) {
+		memoized = calloc( SLOT_PERMS, sizeof( int ) );
+		
+		if ( !memoized )
+			perror( "calloc" );
+		
 		for (i = 0; i < SLOT_PERMS; i++) {
 			memoized[ i] = -2;
 		}
-		
-		memoizedInit = 1;
 	} else if (memoized[ slot] != -2) {
 		return memoized[ slot];
 	}
@@ -1059,7 +1077,7 @@ int countBits ( POSITION n )
 void computeTables ()
 {
 	int i, n, bc, cbc, sz;
-	layer_t *tmp;
+	layer_t* tmp;
 	
 	sz = 1 << (TABLE_BITS + COLOR_BITS);
 	pos2hash = calloc( sz, sizeof( layer_t ) );
@@ -1131,7 +1149,7 @@ POSITION hash ( struct GPosition pos )
 	for (i = 0; i < PIECE_SIZES; i++) {
 		lpos[ i] = 0;
 		
-		for (pieceNo = t = 0; t < TABLE_BITS; t++) {
+		for (pieceNo = t = 0; t < TABLE_SLOTS; t++) {
 			if (pos.board[ t] & (0x1 << (2 * i))) {		// O
 				lpos[ i] |= 1 << (COLOR_BITS + t);
 				pieceNo++;
@@ -1176,12 +1194,12 @@ struct GPosition unhash ( POSITION h )
 	h >>= 1;
 	
 	// Initialize board
-	for (i = 0; i < TABLE_BITS; i++) {
+	for (i = 0; i < TABLE_SLOTS; i++) {
 		ret.board[ i] = 0;
 	}
 	
 	// Initialize Stash
-	for (i = 0; i < PIECE_SIZES * PIECES_PER_SIZE; i++) {
+	for (i = 0; i < (PIECE_SIZES * PIECES_PER_SIZE * 2); i++) {
 		ret.stash[ i] = PIECES_PER_SIZE;
 	}
 	
@@ -1191,7 +1209,7 @@ struct GPosition unhash ( POSITION h )
 		h /= tableSize;
 		
 		// And each space
-		for (t = pieceNo = 0; t < TABLE_BITS; t++) {
+		for (t = pieceNo = 0; t < TABLE_SLOTS; t++) {
 			if (lpos[ i] & (1 << (COLOR_BITS + t))) {
 				if (lpos[ i] & (1 << pieceNo))
 					ret.board[ t] |= (2 << (2 * i));
@@ -1203,14 +1221,15 @@ struct GPosition unhash ( POSITION h )
 		}
 	}
 	
-	for(i = 0; i < TABLE_BITS;i++) { //Iters over every board position.
-	   for(t = 0; t < PIECE_SIZES; t++) { //Iters over all possible piece sizes
-	       if(ret.board[ i] & PIECE_VALUE(PIECE_O, t))
-                ret.stash[t*2]--;
-	       if(ret.board[ i] & PIECE_VALUE(PIECE_X, t))
-                ret.stash[t*2+1]--;
-       }
-    }
+	for(i = 0; i < TABLE_SLOTS; i++) {
+		for(t = 0; t < PIECE_SIZES; t++) {
+			if(ret.board[ i] & PIECE_VALUE(PIECE_O, t))
+				--ret.stash[ t * 2];
+			
+			if(ret.board[ i] & PIECE_VALUE(PIECE_X, t))
+				--ret.stash[ t * 2 + 1];
+		}
+	}
  
 	
 	
