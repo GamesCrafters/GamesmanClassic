@@ -25,6 +25,7 @@
 
 /*********************************************************************************
 *** A *PERFECT* hash function -
+*** - Efficency, Readability, and Multiple Context by Scott Lindeneay
 *** - User-specified variables version designed and implemented by Michel D'Sa
 *** - Original (3-variable only) version designed by Dan Garcia
 ***   and implemented by Attila Gyulassy
@@ -73,15 +74,15 @@ POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int 
   cCon->numPieces = hash_countPieces(pieces_array);
   cCon->gfn = fn;
 
-  cCon->pieces = (char*) malloc (sizeof(char) * cCon->numPieces);
-  cCon->mins = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->maxs = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->nums = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->thisCount = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->localMins = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->gpdStore = (int*) malloc (sizeof(int) * cCon->numPieces);
-  cCon->miniOffset = (POSITION*) SafeMalloc (sizeof(POSITION) * (cCon->numPieces + 2));
-  cCon->miniIndices = (int*) SafeMalloc (sizeof(int) * (cCon->numPieces + 2));
+  cCon->pieces = (char*) SafeMalloc (sizeof(char) * cCon->numPieces);
+  cCon->mins = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->maxs = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->nums = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->thisCount = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->localMins = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->gpdStore = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  cCon->miniOffset = (POSITION*) SafeMalloc (sizeof(POSITION) * (cCon->numPieces+2));
+  cCon->miniIndices = (int*) SafeMalloc (sizeof(int) * (cCon->numPieces+2));
   
   getPieceParams(pieces_array, cCon->pieces, cCon->mins,cCon->maxs);
   for (i = 0; i < cCon->numPieces;i++){
@@ -108,21 +109,23 @@ POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int 
     }
   cCon->hashOffset[0] = 0;
   cCon->offsetIndices[0] = 0;
-  for (k = 1;k < (cCon->usefulSpace + 1);k++)
+  for (k = 1;k <= cCon->usefulSpace;k++)
     {
       cCon->hashOffset[k] = combiCount(gPieceDist(k-1));
       cCon->offsetIndices[k] = gpi(k-1);
     }
   cCon->hashOffset[k] = -1;
-  
   temp = 0;
   sofar = 0;
-  for (i = 1; i < (cCon->usefulSpace+1); i++)
+  for (i = 1; i <= cCon->usefulSpace; i++)
     {
-      temp = cCon->hashOffset[i];
-      sofar += temp;
+      sofar += cCon->hashOffset[i];
+      if(sofar<temp){
+	ExitStageRightErrorString("To many positions to represent in current position format");
+      }
       cCon->hashOffset[i] = sofar;
       cCon->offsetIndices[i]++;
+      temp = sofar;
     }	
   cCon->hashOffset[cCon->usefulSpace + 1] = -1;
   cCon->maxPos = sofar;
@@ -131,13 +134,12 @@ POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int 
 }
 
 
-
 /* initializes pascal's triangle and piece configuration tables */
 void nCr_init(int boardsize)
 {
   int i, j, k, sum, ctr;
-  int *temp = (int*) malloc (sizeof(int) * cCon->numPieces);
-  hash_NCR = cCon->NCR = (POSITION*) malloc(sizeof(POSITION) * (boardsize + 1) * (boardsize + 1));
+  int *temp = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
+  hash_NCR = cCon->NCR = (POSITION*) SafeMalloc(sizeof(POSITION) * (boardsize + 1) * (boardsize + 1));
   hash_boardSize = cCon->boardSize = boardsize;
   
   /*store the left and right wings of pascal's triangle*/
@@ -157,7 +159,10 @@ void nCr_init(int boardsize)
      evaluating a polynomial p using only deg(p) multiplications
   */
   ctr = 0;
-  clearAr(cCon->pieceIndices, cCon->numCfgs);
+  for(i=0;i<cCon->numCfgs;i++){
+    cCon->pieceIndices[i] = -1;
+  }
+
   for (i = 0;i < cCon->numCfgs;i++){
     sum = 0;
     k = i;
@@ -172,8 +177,7 @@ void nCr_init(int boardsize)
     }
   }
   cCon->usefulSpace = ctr;
-  cCon->pieceIndices[cCon->usefulSpace] = -1;
-  free(temp);
+  SafeFree(temp);
 }
 
 
@@ -182,10 +186,6 @@ void hash_combiCalc(){
   int i,j,sums;
   int *thPieces = (int *) SafeMalloc(sizeof(int) * cCon->numPieces);
   
-  //printf("%d\n",cCon->numPieces);  
-  // printAr(cCon->mins);
-  //printf("\n");
-
   for(i=0;i<cCon->numPieces;i++)
     thPieces[i] = cCon->mins[i];
   sums = 1;
@@ -196,7 +196,6 @@ void hash_combiCalc(){
   cCon->combiArray = (POSITION *) SafeMalloc(sizeof(POSITION) * sums);
   while(thPieces[cCon->numPieces-1] <= cCon->maxs[cCon->numPieces-1]){
     
-    //printAr(thPieces);
     sums = 0;
     for(i=0;i<cCon->numPieces;i++){
       sums = combiHash(sums,cCon->nums[i],thPieces[i]);
@@ -496,72 +495,16 @@ int searchOffset(int h)
    the members of *tc */
 POSITION combiCount(int* tc)
 {
-  POSITION sum = 0, prod = 1, ind = 0;
+  POSITION sum = 0, prod = 1, ind = 0,old=0;
   for (ind = 0;ind < cCon->numPieces - 1;ind++){
-    //printf("tc[ind]: %d tc[ind+1]: %d\n",tc[ind],tc[ind+1] );
     sum += tc[ind];
     prod *= nCr(sum+tc[ind+1], sum);
+    if(prod < old)
+      ExitStageRightErrorString("Hash Number for current board unrepresentable");
+    old = prod;
   }
   return prod;
 }
-
-/* debugging procedure to list critical variable values*/
-/*
-void printStats ()
-{
-	int i = 0;
-	printf("\n=======STATUS=======");
-	printf("\n char Array pieces = "); printcAr(pieces);
-	printf("\n int Array mins = "); printAr(mins);
-	printf("\n int Array maxs = "); printAr(maxs);
-	printf("\n int Array nums = "); printAr(nums);
-	printf("\n int num_pieces = %d", num_pieces);
-	printf("\n int num_cfgs = %d", num_cfgs);
-	printf("\n int useful_space = %d", useful_space);
-	printf("\n int Array gHashOffset = "); printAr(gHashOffset);
-	printf("\n int Array gOffsetIndices = "); printAr(gOffsetIndices);
-	printf("\n int Array gPieceIndices = "); printAr(gPieceIndices);
-	for (i = 0;i < useful_space;i++)
-	{
-		printf("\n");
-		printAr(gpd(gpi(i)));
-	}
-	printf("\n=======E-STAT=======\n");
-}
-*/
-/* shorthand for printing an int array */
-void printAr(int* a)
-{
-	int j = 0;
-	printf("{ ");
-	for (j=0;a[j] != -1 && j<4;j++)
-	{
-		printf(POSITION_FORMAT" ", a[j]);
-	}
-	printf("}\n");
-	fflush(NULL);
-}
-
-/* shorthand for printing a char array */
-void printcAr(char* a)
-{
-	int i = 0, j = 0;
-	while (a[i] != 0) i++;
-	printf("{ ");
-	for (j = 0;j < i;j++)
-	{
-		printf("%c ", a[j]);
-	}
-	printf("}");
-}
-
-/* clears up an int array, also don't have to worry about placing array-terminating TERMs */
-void clearAr (int* a, int n)
-{
- int i;
- for (i = 0;i < n;i++) a[i] = -1;
- }
-
 
 
 
@@ -579,7 +522,7 @@ int getPieceParams (int *pa, char *pi, int *mi, int *ma)
   }
   return i;
 }
-hash_countPieces(int *pA){
+int hash_countPieces(int *pA){
   int i = 0;
   
   while(pA[i*3] != -1) i++;
