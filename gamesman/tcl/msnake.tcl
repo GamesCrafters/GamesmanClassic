@@ -257,7 +257,8 @@ proc GS_Initialize { c } {
     for {set i 0} {$i < $counter} {incr i} {
 	$c bind base$i <Enter> "TileEnter $c $i"
 	$c bind base$i <Leave> "TileLeave $c $i"
-	$c bind base$i <ButtonRelease-1> "SendMove $i"
+	$c bind base$i <ButtonRelease-1> "TileClick $c $i"
+#	$c bind base$i <ButtonRelease-1> "SendMove $i"
     }
    
     $c raise base
@@ -273,6 +274,31 @@ proc SendMove { square } {
     puts $theMove
 }
 
+proc makeMouse { c tileNum } {
+
+    set x [expr 125 * [expr $tileNum % 4]]
+    set y [expr 125 * [expr $tileNum / 4]]
+    $c create oval [expr $x+45] [expr $y+45] [expr $x+85] [expr $y+85] -fill gray55 -tag [list mousey mousehead]
+    $c create oval [expr $x+55] [expr $y+55] [expr $x+60] [expr $y+65] -fill white -tag [list mousey mousehead eye eyeL]
+    $c create oval [expr $x+70] [expr $y+55] [expr $x+75] [expr $y+65] -fill white -tag [list mousey mousehead eye eyeR]
+    $c create oval [expr $x+45] [expr $y+35] [expr $x+55] [expr $y+53] -fill gray65 -tag [list mousey mousehead ear earL]
+    $c create oval [expr $x+75] [expr $y+35] [expr $x+85] [expr $y+53] -fill gray65 -tag [list mousey mousehead ear earR]
+    $c create oval [expr $x+48] [expr $y+38] [expr $x+52] [expr $y+47] -fill pink3 -tag [list mousey mousehead earInner earInnerL]
+    $c create oval [expr $x+78] [expr $y+38] [expr $x+82] [expr $y+47] -fill pink3 -tag [list mousey mousehead earInner earInnerR]
+    $c create line [expr $x+58] [expr $y+75] [expr $x+72] [expr $y+75] -fill black -width 2 -tag [list mousey mousehead mousemouth]
+    
+    # put the Mouse lower than the head and tail so that the tail and head cover it when they move onto the tile
+    $c lower mousey head
+    $c lower mousey tail
+    $c raise mousey base
+}
+
+proc TileClick { c tileNum } {
+
+    makeMouse $c $tileNum
+
+}
+
 proc TileEnter { c tileNum } {
     global BOARDWIDTH
     global HEADinTILE
@@ -281,6 +307,8 @@ proc TileEnter { c tileNum } {
     $c raise base$tileNum base
     $c itemconfig base$tileNum -outline cyan -width 4
 
+
+#---------- THIS SECTION HANDLES PUPILS (FUNCTIONIZE THIS SECTION?) ----------
     # NOTE: in future, implement option flag so can skip this if not selected
     # move pupils appropriately
     # mod head tile by BOARDWIDTH, mod current tile (tileNum) by BOARDWIDTH, then compare
@@ -578,11 +606,12 @@ proc EnterHead { c slot } {
     puts " ---- [$c coords mouth]"
 
     set MaxTongueLen 30
+    set MinTongueLen 6
 
     for {set i 0} {$i < 3} {set i [expr $i+1]} {
 
 	set temp [clock seconds]
-	set temp [expr $temp % $MaxTongueLen]
+	set temp [expr $temp % $MaxTongueLen + $MinTongueLen]
 
 	TongueShoot $c $temp
     }
@@ -613,7 +642,7 @@ proc MakeTail {c slot } {
     $c create oval [expr $x+45] [expr $y+45] [expr $x+80] [expr $y+80] -fill brown4 -tag [list tail ring1 ring2]
     
     # create a ring for moving around to simulate rattle
-    $c create oval [expr $x+45] [expr $y+45] [expr $x+80] [expr $y+80] -fill black -tag [list tail ringAnim]
+    $c create oval [expr $x+45] [expr $y+45] [expr $x+80] [expr $y+80] -fill brown2 -tag [list tail ringAnim]
 
     # create a confinement oval for rattle ring
     set X 5
@@ -630,11 +659,16 @@ proc MakeTail {c slot } {
 proc EnterTail { c slot } {
     
     # rattle the tail x times, where x is random
-    set MaxNum 20
+    set MaxNum 35
+
+    # store current position of tail
+    set tail_coords [$c coords tail]
+
     set temp [clock seconds]
     set temp [expr $temp % $MaxNum]
     rattleTail $c $temp
 
+    $c coords tail $tail_coords
 }
 
 proc spinwait {k} {
@@ -649,8 +683,8 @@ proc rattleTail { c numRattles} {
     set y_confinecenter [lindex $confine_coords 1]
 
     # constants taken from MakeTail
-    set X 5
-    set Y 5
+    set X 20
+    set Y 20
 
     # get current coords of ringAnim
     set ringAnim_center_coords [$c coords ringAnim]
@@ -666,10 +700,10 @@ proc rattleTail { c numRattles} {
 
     for {set i 0} {$i < $numRattles} {set i [expr $i + 1]} {
 
-	set temp [clock seconds]
-	set temp [expr $temp % 3]
+ 	set temp [clock seconds]
+ 	set temp [expr $temp % 3]
 
-	$c itemconfig ringAnim -width [expr $curWidth +$i*$temp]
+ 	$c itemconfig ringAnim -width [expr $curWidth +$i*$temp]
 	
 # 	$c move tail $temp $temp
 # 	spinwait 1000
@@ -687,22 +721,22 @@ proc rattleTail { c numRattles} {
 # 	spinwait 1000
 # 	$c move tail 0 [expr -1*$temp]
 
-	# random rattling around in confinement ring not working
-# 	set temp [clock seconds]
-# 	set temp [expr $temp % 4]
-# 	if {$temp == 0 && ($ycenter >= [expr $y_confinecenter - $Y]) } {
-# 	    #move Up
-# 	    $c move ringAnim 0 [expr -1 * $Yspeed]
-# 	} elseif {$temp == 1 && ($ycenter <= [expr $y_confinecenter + $Y]) } {
-# 	    # move Down
-# 	    $c move ringAnim 0 $Yspeed
-# 	} elseif {$temp == 2 && ($xcenter <= [expr $x_confinecenter + $X]) } {
-# 	    # move Right
-# 	    $c move ringAnim $Xspeed 0
-# 	} elseif {$temp == 3 && ($xcenter >= [expr $x_confinecenter - $X]) } {
-# 	    # move Left
-# 	    $c move ringAnim [expr -1*$Xspeed] 0
-# 	}
+# 	# random rattling around in confinement ring not working
+#  	set temp [clock seconds]
+#  	set temp [expr $temp % 4]
+#  	if {$temp == 0 && ($ycenter >= [expr $y_confinecenter - $Y]) } {
+#  	    #move Up
+#  	    $c move ringAnim 0 [expr -1 * $Yspeed]
+#  	} elseif {$temp == 1 && ($ycenter <= [expr $y_confinecenter + $Y]) } {
+#  	    # move Down
+#  	    $c move ringAnim 0 $Yspeed
+#  	} elseif {$temp == 2 && ($xcenter <= [expr $x_confinecenter + $X]) } {
+#  	    # move Right
+#  	    $c move ringAnim $Xspeed 0
+#  	} elseif {$temp == 3 && ($xcenter >= [expr $x_confinecenter - $X]) } {
+#  	    # move Left
+#  	    $c move ringAnim [expr -1*$Xspeed] 0
+#  	}
 
 	update idletasks
     }
