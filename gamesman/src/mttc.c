@@ -2,13 +2,11 @@
 **
 ** NAME:        mttc.c
 **
-** DESCRIPTION: Tic-Tac-Chec
+** DESCRIPTION: Tic Tac Chek
 **
-** AUTHOR:      Reman Child, Jonathan Tsai
+** AUTHOR:      Reman Child, Johnathon Tsai
 **              University of California at Berkeley
 **              Copyright (C) 2004. All rights reserved.
-**
-** FILE HISTORY:
 **
 ** 2004.3.30    First compilation of subroutines into mttc.c; this update
 **              basically includes all functions below except for 
@@ -25,6 +23,13 @@
 **
 ** 2004.4.18    Fixed some stuff, found lots more to fix, etc. etc.
 **                                                                -- rc
+** 2004.4.25    Complete rewrite! This version makes all board options
+**              configurable, notably: board width, board height, number
+**              of pieces for each side, types of pieces for each side,
+**              and number of pieces necessary to get in a row to win!
+**              Still need to rewrite GenerateMoves() and
+**              GameSpecificMenu().
+**                                                                --rc,jt
 **
 **************************************************************************/
 
@@ -39,24 +44,22 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0;
-
+POSITION gNumberOfPositions  = 0; 
 POSITION gInitialPosition    = 0; 
 POSITION gMinimalPosition    = 0; 
-POSITION kBadPosition        = -1; 
+POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
-STRING   kGameName           = "Tic-Tac-Chec"; 
-STRING   kDBName             = "ttc";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
+STRING   kGameName           = "Tic-Tac-Chek"; 
+STRING   kDBName             = "ttc"; 
+BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kDebugMenu          = TRUE; 
 BOOLEAN  kGameSpecificMenu   = FALSE;
-BOOLEAN  kTieIsPossible      = FALSE;
+BOOLEAN  kTieIsPossible      = FALSE; 
 BOOLEAN  kLoopy              = TRUE; 
-BOOLEAN  kDebugDetermineValue = FALSE ;
+BOOLEAN  kDebugDetermineValue = TRUE;
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -66,22 +69,22 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"Not written yet";
+""; 
 
 STRING   kHelpOnYourTurn =
-"Not written yet";
+"";
 
 STRING   kHelpStandardObjective =
-"Not written yet";
+"";
 
 STRING   kHelpReverseObjective =
-"Not written yet";
+"";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"Not written yet";
+"";
 
 STRING   kHelpExample =
-"Not written yet";
+"";
 
 /*************************************************************************
 **
@@ -91,79 +94,68 @@ STRING   kHelpExample =
 
 /*************************************************************************
 **
-** Game-specific DEFINES
+** Every variable declared here is only used in this file (game-specific)
 **
-*************************************************************************/
+**************************************************************************/
 
-#define BOARD_LENGTH  16
-#define BOARD_WIDTH   4
-#define BOARD_HEIGHT  4
-#define NUM_PIECES    12
-#define MOVE_LENGTH   3
-#define WIN_CONDITION 4
-
-#define MOVE_PIECE    0
-#define MOVE_ROW      1
-#define MOVE_COL      2
-
-#define N_LONG_LEG    2
-#define N_SHORT_LEG   1
-
-#define OFF           31
-
-/* The max number of types that can be hashed */
-#define NUM_TYPES     4 
-
-#define max(a,b) ((a > b)? a : b)
-#define min(a,b) ((a > b)? b : a)
- 
 /*************************************************************************
 **
-** Type Definitions 
+** Below is where you put your #define's and your global variables, structs
 **
 *************************************************************************/
+
+/** Structs *************************************************************/
+
+/* Used mainly for setting up/changing the board */
+struct pieceType {
+  int id;   // Piece ID 
+  int freq; // Number of occurrences
+};
+
+
+/** Type Definitions ******************************************************/
 
 typedef char* BOARD;
 typedef int PIECE;
 typedef int PLAYER;
 typedef int CELL;
 
-/*************************************************************************
-**
-** Enumerations
-**
-*************************************************************************/
+/** Global Variables *****************************************************/
 
-enum piece_id { B_QN, B_RK, B_KN, B_PN, B_KG, B_BI,
-		W_QN, W_RK, W_KN, W_PN, W_KG, W_BI, BLNK };
+int numRows;
+int numCols;
+int winCondition;
+/* defines how many of a piece are available; ends in a BLNK */
+struct pieceType *initPieces;
+
+enum pieceID { B_KG,B_QN,B_RK,B_BP,B_KN,B_PN,
+	       W_KG,W_QN,W_RK,W_BP,W_KN,W_PN,BLNK };
+
 enum players {BLACK, WHITE};
 
-/*************************************************************************
-**
-** Global Arrays
-**
-*************************************************************************/
+char piece_strings[13] = {'K','Q','R','B','N','P',
+			  'k','q','r','b','n','p','-'};
 
-/* Indexed by piece_id */
-char piece_names[] = {'Q','R','N','P','K','q','r','n','p','k','-'};
-char row_names[] = {'a','b','c','d','e','f','g','h'};
+/** #defines **************************************************************/
 
-/* Indexed by piece_id; specifies the number of occurrences on board */
-int piece_bank[NUM_PIECES];
+#define INIT_NUMROWS 4
+#define INIT_NUMCOLS 4
+#define INIT_NUMPTYPES 3
+#define INIT_WINCONDITION 4
+#define NUM_PIECES 13
+#define CELL_LENGTH 8
+#define MOVE_LENGTH 5
 
-/* Board positions are the same; need to map which pieces are which  */
-int hash_map[NUM_TYPES];
+#define min(a,b) ((a < b)? a : b)
+#define max(a,b) ((a > b)? a : b)
 
-/*************************************************************************
-**
-** Function Prototypes:
-**
-**************************************************************************/
+/*************************************************************************/
+
+/* Function prototypes here. */
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
 
 /*************************************************************************
 **
@@ -172,6 +164,7 @@ extern void		SafeFree ();
 **************************************************************************/
 
 extern VALUE     *gDatabase;
+
 
 /************************************************************************
 **
@@ -183,33 +176,28 @@ extern VALUE     *gDatabase;
 ************************************************************************/
 
 void InitializeGame () {
-  int i;
-  POSITION make_position(BOARD board, PLAYER player);
-  /* Shouldn't hardcode */
-  int pieces_array[] = {0,0,2,1,0,2,2,0,2,3,0,2,BLNK,8,16,-1};
-    BOARD board;
-  void map(PIECE,int);
-  gNumberOfPositions = generic_hash_init(BOARD_LENGTH, pieces_array,NULL);
-
-  /* Default is two queens, two knights each */
-  for(i = 0; i < NUM_PIECES; i++)
-    piece_bank[i] = 0;
-  piece_bank[B_KN] = 2;
-  piece_bank[B_QN] = 2;
-  piece_bank[W_KN] = 2;
-  piece_bank[W_QN] = 2;
-
-  /* Initialize the hash_map to reflect this */
-  map(B_KN, 0);
-  map(B_QN, 1);
-  map(W_KN, 2);
-  map(W_QN, 3);
-
-  board = (BOARD) malloc(BOARD_LENGTH*sizeof(int));
-  for (i = 0; i < BOARD_LENGTH; i++) 
+  int *getPieceArray(struct pieceType *, int), getBoardSize(),i;
+  BOARD board;
+  /* Initialize Global Variables */
+  numRows = INIT_NUMROWS;
+  numCols = INIT_NUMCOLS;
+  winCondition = INIT_WINCONDITION;
+  initPieces = (struct pieceType *)SafeMalloc(INIT_NUMPTYPES*sizeof(struct pieceType));
+  /* define initial pieces for board - two bishops for each side; */
+  initPieces[0].id = B_BP;
+  initPieces[0].freq = 2;
+  initPieces[1].id = W_BP;
+  initPieces[1].freq = 2;
+  initPieces[2].id = BLNK; // end condition
+  initPieces[2].freq = getBoardSize();
+  gNumberOfPositions = generic_hash_init(getBoardSize(),
+					 getPieceArray(initPieces,INIT_NUMPTYPES),
+					 NULL);
+  /* define initial board as being all blank */
+  board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char)); //how do i abstract this???
+  for (i = 0; i < getBoardSize(); i++)
     board[i] = BLNK;
-  gInitialPosition = make_position(board,WHITE);
-
+  gInitialPosition = generic_hash(board,WHITE); // white goes first
   return;
 }
 
@@ -223,8 +211,8 @@ void InitializeGame () {
 ** 
 ************************************************************************/
 
-void DebugMenu ()
-{
+void DebugMenu () {
+  return;
 }
 
 
@@ -238,8 +226,8 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
-void GameSpecificMenu ()
-{
+void GameSpecificMenu () {
+  return;
 }
 
   
@@ -252,10 +240,10 @@ void GameSpecificMenu ()
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-	int options[];
-{
+void SetTclCGameSpecificOptions (int options[]) {
+  return;
 }
+
 
 /************************************************************************
 **
@@ -268,22 +256,23 @@ void SetTclCGameSpecificOptions (options)
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
-** CALLS:       get_board();
-**	           
+** CALLS:       Hash ()
+**              Unhash ()
+**	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-POSITION DoMove (POSITION thePosition, MOVE theMove) {
-  int get_source(MOVE,POSITION), get_dest(MOVE);
-  POSITION make_position(BOARD,PLAYER);
-  BOARD board, get_board(POSITION);
-  PLAYER new_player;
-  board = get_board(thePosition);
-  new_player = opponent(get_player(thePosition));
-  if (get_source(theMove,thePosition) != OFF) 
-    board[get_source(theMove,thePosition)] = BLNK;
-  board[get_dest(theMove)] = get_piece(theMove);
-  return make_position(board, new_player);
+POSITION DoMove (POSITION pos, MOVE move) {
+  BOARD getBoard(POSITION), newBoard;
+  PLAYER getPlayer(POSITION), newPlayer;
+  POSITION makePosition(BOARD, PLAYER);
+  newPlayer = (getPlayer(pos) == WHITE)? BLACK : WHITE;
+  newBoard = getBoard(pos);
+  newBoard[getDest(move)] = getPiece(move);
+  if (!offBoard(move)) 
+    newBoard[getSource(move)] = BLNK;
+  return makePosition(newBoard,newPlayer);
 }
+
 
 /************************************************************************
 **
@@ -296,34 +285,37 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 **
 ************************************************************************/
 
-/* CHANGE: Need to add support for modified ruleset */
-
-POSITION GetInitialPosition() {
-  char in_string[MOVE_LENGTH];
-  POSITION pos = 0;
+POSITION GetInitialPosition () {
+  char inString[MOVE_LENGTH+1];
+  POSITION pos = gInitialPosition;
   while(TRUE) {
-    PrintPosition(pos,"",0);
+    PrintPosition(pos,"Debugger",FALSE);
     printf("Input a valid move (? for help): ");
-    scanf("%s",in_string);
-    if (in_string[0] == 'e')
+    scanf("%s",inString);
+    if (inString[0] == 'e')
       break;
-    if (in_string[0] == '?') {
+    if (inString[0] == '?') {
       printf("\n\n\n\n");
       printf("##################################################\n");
-      printf("- Move format: [Piece][Destination]\n");
-      printf("   i.e. Qa3 to move the Black queen to a3\n");
+      printf("- Move format: [Piece][Source][Destination]\n");
+      printf("   i.e. Qa3a5 to move the Black queen from a3 to a5\n");
+      printf("   Note: When placing a piece, the move format instead changes\n");
+      printf("   to simply [Piece][Destination] (3 chars), i.e. Qa3\n");
       printf("\n - Special Moves: 'end' to finish, '?' for help\n");
       printf("##################################################\n");
       continue;
     }
-    if (ValidTextInput(in_string)) {
-      pos = DoMove(pos,ConvertTextInputToMove(in_string));
+    if (ValidTextInput(inString)) {
+      if (kDebugMenu)
+	printf("DEBUG> Valid Move? TRUE\n");
+      pos = DoMove(pos,ConvertTextInputToMove(inString));
     } else {
-      printf("Invalid move\n");
+      printf("\nINVALID MOVE\n");
     }
   }
   return pos;
 }
+
 
 /************************************************************************
 **
@@ -336,12 +328,11 @@ POSITION GetInitialPosition() {
 **
 ************************************************************************/
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  char piece = piece_names[get_piece(computersMove)];
-  char row = row_names[get_dest(computersMove) % BOARD_WIDTH];
-  int col = get_dest(computersMove) / BOARD_WIDTH;
-  printf("%s's move: %c%c%d\n", computersName, piece, row, col);
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+  printf("Implement later");
+  return;
 }
+
 
 /************************************************************************
 **
@@ -362,13 +353,12 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 **
 ************************************************************************/
 
-/* CHANGE: Account for whosemove */
-VALUE Primitive (POSITION pos) {
-  BOARD board, get_board(POSITION);
-  int i, num_in_row(int,BOARD);
-  board = get_board(pos);
-  for (i = 0; i < BOARD_LENGTH; i++) {
-    if (num_in_row(i,board) >= WIN_CONDITION)
+VALUE Primitive (POSITION position) {
+  BOARD board, getBoard(POSITION);
+  int i, numInRow(CELL,BOARD);
+  board = getBoard(position);
+  for (i = 0; i < getBoardSize(); i++) {
+    if (numInRow(i,board) >= winCondition)
       return lose;
   }
   return undecided;
@@ -386,35 +376,82 @@ VALUE Primitive (POSITION pos) {
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
 **
-** CALLS:       get_board()
+** CALLS:       Unhash()
 **              GetPrediction()
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  BOARD board, getBoard(POSITION);
+  struct pieceType *piecesOffBoard(struct pieceType *, BOARD),*pt;
+  board = getBoard(position);
+  int row,col,i;
+  BOOLEAN isWhite(PIECE), isBlack(PIECE);
 
-/* CHANGE: Account for variable board width, modified ruleset */
+  // Ascertains the pieces off the board
+  for (i = 0; i < sizeOfPieceType(initPieces); i++) {
+    pt = piecesOffBoard(initPieces,board);
+  }
 
-/* Very minimal at the moment; need to make prettier */
-void PrintPosition (position, playerName, usersTurn)
-	POSITION position;
-	STRING playerName;
-	BOOLEAN usersTurn;
-{
-  BOARD board, get_board(POSITION);
-  board = get_board(position);
-  int i;
-  /* print the rows */
-  for(i = 0; i < BOARD_LENGTH; i++) {
-    if(i % BOARD_WIDTH == 0)
-      printf("\n%c ", i + 'a');
-    printf("%c | ", piece_names[board[i]]);
+  printf("\n  tic-tac-chek");
+  for (i = 0; i < (numCols*5); i++) 
+    printf(" ");
+  printf("Win Condition: %d\n ",winCondition);
+  for (i = 0; i < (numCols * 5) + 30;i++) {
+    printf("-");
   }
-  printf("\n  ");
-  /* print the row letter */
-  for(i = 0; i < BOARD_WIDTH; i++) {
-      printf("%c ", i + 'a');
+  printf("\n\n     ");
+  for (col = 0; col < numCols; col++)
+    printf("--- ");
+  printf("\n");
+  for(row = 0; row < numRows; row++) {
+    //printf("  %c",'a'+(numRows-1)-row);
+    printf("  %d",numRows-row);
+    for (col = 0; col < numCols; col++)
+      printf(" | %c" ,piece_strings[board[row*numCols+col]]);
+    printf(" |      ");
+    switch(row) {
+    case 0: printf("WHITE's offboard pieces:"); break;
+    case 2: printf("BLACK's offboard pieces:");
+    }
+    printf("\n     ");
+    for (col = 0; col < numCols; col++)
+      printf("--- ");
+    switch(row) {
+    case 0: 
+      printf("        [ ");
+      for (i = 0; i < sizeOfPieceType(pt); i++) {
+	if (pt[i].freq == 1 && isWhite(pt[i].id))
+	  printf("%c ",piece_strings[pt[i].id]);
+	if  (pt[i].freq > 1 && isWhite(pt[i].id))
+	  printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
+      }
+      printf("]");
+      break;
+    case 2: 
+      printf("        [ ");
+      for (i = 0; i < sizeOfPieceType(pt); i++) {
+	if (pt[i].freq == 1 && isBlack(pt[i].id))
+	  printf("%c ",piece_strings[pt[i].id]);
+	if  (pt[i].freq > 1 && isBlack(pt[i].id))
+	  printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
+      }
+      printf("]");
+      break;
+    }
+    printf("\n");
   }
-  printf("\n\n {r,p,q,k} => white pieces  {R,P,Q,K} => black pieces \n\n");
+  printf("     ");
+  for(i = 0; i < numCols; i++) {
+    //printf(" %d  ",i);
+    printf(" %c  ",'a'+i);
+  }
+  printf("\n\n ");
+  for (i = 0; i < (numCols * 5) + 30;i++) {
+    printf("-");
+  }
+  printf("\n\n  Game Prediction:  \n\n");
+
   return;
 }
 
@@ -431,116 +468,16 @@ void PrintPosition (position, playerName, usersTurn)
 ** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
 **              in the linked list of moves that can be generated.
 **
-** CALLS:       GENERIC_PTR SafeMalloc(int)
+** CALLS:       GENERIC_PTR SafeSafeMalloc(int)
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
 
-/* CHANGE: account for modified ruleset */
-/* Also, didn't account for player !!!! */
-
-MOVELIST *GenerateMoves(POSITION pos) {
-  BOARD get_board(POSITION), board;
-  MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec);
-  MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *head = NULL;
-
-  int available[NUM_PIECES],player,i,j;
-  player = get_player(pos);
-  board = get_board(pos);
-
-  /** first, create a list of the pieces that are off the board, and then
-      loop through teh board and place pieces accordingly (blnk all available
-      pieces, piece then switch through **/
-  
-  /* make a local version of piece_bank w/ opp's pieces zeroed out */
-  for (i = 0; i < NUM_PIECES; i++) {
-    available[i] = piece_bank[i];
-    if (player == BLACK && is_white(i))
-      available[i] = 0;
-    else if (player == WHITE && is_black(i))
-      available[i] = 0;
-  }
-  /* subtract on-board pieces */
-  for (i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] != BLNK &&
-	(player == WHITE)? is_white(board[i]) : is_black(board[i]))
-      available[board[i]]--;
-  }
-  /* Make off-board moves */
-  for (i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] == BLNK) {
-      for (j = 0; j < NUM_PIECES; j++)
-	if (available[j] > 0)
-	  head = CreateMovelistNode(make_move(j,i), head);
-    } else if ((player == WHITE)?is_white(board[i]):is_black(board[i])) {
-      switch(piece_names[board[i]]) {
-      case 'N': case 'n':
-	head = concat_ml(gen_knight_moves(i,board, player),head);
-	break;
-      case 'Q': case 'q':
-	head = concat_ml(gen_queen_moves(i,board, player), head);
-	break;
-      case 'P': case 'p':
-	head = concat_ml(gen_pawn_moves(i, board, player),head);
-	break;
-      case 'B': case 'b':
-	head = concat_ml(gen_bishop_moves(i,board,player), head);
-	break;
-      }	
-    }
-  }
+MOVELIST *GenerateMoves (POSITION position) {
+  return NULL;
 }
-/*
-MOVELIST *GenerateMoves(POSITION pos) {
-  BOARD get_board(POSITION), board;
-  MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec);
-  MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player);
-  MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player);
-  int player, piece_flags[NUM_PIECES], i, j;
-  MOVELIST *head = NULL;
-  player = get_player(pos);
-  board = get_board(pos);
-  for(i = 0; i < NUM_PIECES; i++)
-    piece_flags[i] = OFF;
-  for(i = 0; i < BOARD_LENGTH; i++)
-    if (board[i] != BLNK)
-      piece_flags[board[i]] = i;
 
-  for(i = 0; i < NUM_PIECES; i++) {
-    if (piece_flags[i] == OFF)
-      for(j = 0; j < BOARD_LENGTH; j++) {
-	if (board[j] == BLNK)
-	  head = CreateMovelistNode(make_move(i,j), head);
-      }
-    else {
-      switch(piece_names[i]) {
-      case 'N': case 'n':
-	head = concat_ml(gen_knight_moves(piece_flags[i],board, player),head);
-	break;
-      case 'Q': case 'q':
-	head = concat_ml(gen_queen_moves(piece_flags[i],board, player), head);
-	break;
-      case 'P': case 'p':
-	head = concat_ml(gen_pawn_moves(piece_flags[i], board, player),head);
-	break;
-      case 'B': case 'b':
-	head = concat_ml(gen_bishop_moves(piece_flags[i],board,player), head);
-	break;
-      }
-    }
-}
-return head;
-}
-*/
-
+ 
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -560,12 +497,10 @@ return head;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-	POSITION thePosition;
-	MOVE *theMove;
-	STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE* move, STRING playerName) {
+  return Abort;
 }
+
 
 /************************************************************************
 **
@@ -584,26 +519,18 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 **
 ************************************************************************/
 
-/* CHANGE: Optimize */
-
 BOOLEAN ValidTextInput (STRING input) {
-  BOOLEAN first = FALSE, second = FALSE, third = FALSE, end = FALSE;
-  int i;
-  for(i = 0; i < NUM_PIECES; i++) {
-    if (input[MOVE_PIECE] != piece_names[i])
-      continue;
-    first = TRUE;
-    break;
-  }
-  for(i = 0; i < BOARD_HEIGHT; i++) {
-    if (input[MOVE_ROW] != row_names[i])
-      continue;
-    second = TRUE;
-    break;
-  }
-  third = (input[MOVE_COL] - '0') > 0 && (input[2] - '0') <= BOARD_WIDTH;
-  end = input[3] == '\0';
-  return first && second && third && end;
+  BOOLEAN isPiece(char),isRow(char),isCol(char);
+  // Can be either length 3 (placing piece) or 5 (moving piece)
+  BOOLEAN valid = TRUE;
+  valid &= isPiece(input[0]);
+  valid &= isRow(input[1]);
+  valid &= isCol(input[2]);
+  if (input[3] == '\0') 
+    return valid;
+  valid &= isRow(input[3]);
+  valid &= isCol(input[4]);
+  return valid;
 }
 
 /************************************************************************
@@ -615,20 +542,29 @@ BOOLEAN ValidTextInput (STRING input) {
 **              already been checked!
 ** 
 ** INPUTS:      STRING input : The string input the user typed.
-**              i.e. 'Qa3'
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
-**              i.e. piece << 4 + cell == 4 * 2^4 + 3
 **
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (STRING input) {
-  /* lowest 4 bits is the cell, next 3 bits is the piece */
-  int cell = 0, i;
-  for(i = 0; i < BOARD_HEIGHT; i++)
-    if (row_names[i] == input[MOVE_ROW])
-      cell = i * BOARD_WIDTH + input[MOVE_COL];
-  return input[MOVE_PIECE] << 4 + cell;
+  /* Move is represented by: lowest CELL_LENGTH bits is the dest, 
+     next CELL_LENGTH bits is the source, then the rest corresponds 
+     to the piece itself */
+  CELL strToCell(STRING);
+  int i;
+  PIECE piece;
+  for (i = 0; i < BLNK; i++)
+    if (input[0] == piece_strings[i])
+      piece = i;
+  if (!(strlen(input) == MOVE_LENGTH)) {
+    if (kDebugMenu) {
+      printf("DEBUG> Destination str: %s\n",input+1);
+      printf("DEBUG> Type: placing, Piece: %c, Dest: %d",piece_strings[piece],strToCell(input+1));
+    }
+    return makeMove(piece,0xFF,strToCell(input+1));
+  }
+  return makeMove(piece,strToCell(input+1),strToCell(input+3));
 }
 
 /************************************************************************
@@ -642,26 +578,32 @@ MOVE ConvertTextInputToMove (STRING input) {
 ************************************************************************/
 
 void PrintMove (MOVE move) {
-  char piece = piece_names[get_piece(move)];
-  char row = row_names[get_dest(move) % BOARD_WIDTH];
-  int col = get_dest(move) / BOARD_WIDTH;
-  printf("%c%c%d", piece, row, col);
+  printf("%c",piece_strings[getPiece(move)]);
+  if (!offBoard(move)) {
+    printf("%c%d",getCol(getSource(move))+'a',
+	   getRow(getSource)+1);
+  }
+  printf("%c%d",getCol(getDest(move))+'a',
+	 getRow(getDest(move))+1);
+  return;
 }
+
 
 /************************************************************************
 **
 ** NAME:        NumberOfOptions
 **
 ** DESCRIPTION: Calculates and returns the number of option combinations
-**		there are with all the game variations you program.
+**				there are with all the game variations you program.
 **
 ** OUTPUTS:     int : the number of option combination there are.
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
-	return 0;
+/** HOW DOES THIS WORK IN OURS? INFINITE? **/
+
+int NumberOfOptions () {
+  return 0;
 }
 
 
@@ -670,16 +612,15 @@ int NumberOfOptions ()
 ** NAME:        getOption
 **
 ** DESCRIPTION: A hash function to keep track of all the game variants.
-**		Should return a different number for each set of
-**		variants.
+**				Should return a different number for each set of
+**				variants.
 **
 ** OUTPUTS:     int : the number representation of the options.
 **
 ************************************************************************/
 
-int getOption()
-{
-	return 0;
+int getOption () {
+  return 0;
 }
 
 
@@ -688,32 +629,15 @@ int getOption()
 ** NAME:        setOption
 **
 ** DESCRIPTION: The corresponding unhash for the game variants.
-**		Should take the input and set all the appropriate
-**		variants.
+**				Should take the input and set all the appropriate
+**				variants.
 **
 ** INPUT:     int : the number representation of the options.
 **
 ************************************************************************/
 
-void setOption(int option)
-{
+void setOption (int option) {
   return;
-}
-
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: 
-**
-************************************************************************/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
-{
-  return 0;
 }
 
 
@@ -723,367 +647,281 @@ int GameSpecificTclInit (interp, mainWindow)
 *************************************************************************
 ************************************************************************/
 
-/** Utility functions ****************************************************/
+/** Utility Functions **************************************************/
 
-/* Relies on piece_names being accurate */
-MOVE make_move(PIECE piece, CELL cell) {
-  return piece << 4 + cell;
+/* Gets the board length */
+int getBoardSize() {
+  return numRows * numCols;
 }
 
-/* Concatenates two movelists into one larger movelist */
-MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec) {
-  if (first == NULL)
-    return sec;
-  if (sec == NULL) 
-    return first;
-  MOVELIST *temp;
-  while(!(temp = first->next))
-    ;
-  temp->next = sec;
-  return first;
+/* Gets the row from a cell number */
+int getRow(CELL cell) {
+  return cell / numRows;
 }
 
-BOOLEAN is_occupied(CELL cell, BOARD board) {
-  return board[cell] != BLNK;
+/* Gets the col from a cell number */
+int getCol(CELL cell) {
+  return cell % numCols;
 }
 
-BOOLEAN ally_occupies(PLAYER player, CELL cell, BOARD board) {
-  return board[cell] != BLNK && player == which_player(cell,board);
+/** Primitive Helper Functions *****************************************/
+BOOLEAN isBlack(PIECE piece) {
+  return piece < B_PN + 1;
 }
 
-BOOLEAN enemy_occupies(PLAYER player, CELL cell, BOARD board) {
-  return board[cell] != BLNK && player != which_player(cell,board);
+BOOLEAN isWhite(PIECE piece) {
+  return piece > B_PN && piece < BLNK;
 }
 
-/** Position Manipulation functions *************************************/
-
-BOARD get_board(POSITION pos) {
-  BOARD board;
-  int i;
-  board = (BOARD) SafeMalloc(BOARD_LENGTH * sizeof(char));
-  generic_unhash(pos, board);
-  for (i = 0; i < BOARD_LENGTH; i++)
-    if (board[i] != BLNK)
-      board[i] = hash_map[board[i]];
-  return board;
+/* Identifies whether the pieces on the two cells are of the same color */
+BOOLEAN sameColor(CELL first, CELL second, BOARD board) {
+  return (isWhite(board[first]) && isWhite(board[second])) ||
+    (isBlack(board[first]) && isBlack(board[second]));
 }
 
-PLAYER get_player(POSITION pos) {
-  PLAYER player;
-  return (whoseMove(pos) == 1)? BLACK : WHITE;
-}
-
-POSITION make_position(BOARD board, PLAYER player) {
-  int i,j;
-  for (i = 0; i < BOARD_LENGTH; i++) 
-    if (board[i] != BLNK)
-      for(j = 0; j < NUM_TYPES; j++) 
-	if (board[i] == hash_map[j])
-	  board[i] == j;
-  return (POSITION) generic_hash(board,(player == BLACK)? 1 : 2);
-}
-
-/* Maps piece to hash map (to specify which pieces are in play */
-void map(PIECE piece, int num) {
-  hash_map[num] = piece;
-  return;
-}
-
-/** Identity Functions **************************************************/
-
-/** requires first half of pieces are black, second half white  **/
-BOOLEAN is_white(PIECE piece) {
-  return piece >= NUM_PIECES/2 && piece < NUM_PIECES;
-}
-
-/** requires first half of pieces are black, second half white  **/
-BOOLEAN is_black(PIECE piece) {
-  return piece < NUM_PIECES/2;
-}
-
-/** Given two board locations and a board, tells if the two on are the 
-    same color **/
-BOOLEAN same_color(int first, int second, BOARD board) {
-  return (is_white(board[first]) && is_white(board[second])) ||
-    (is_black(board[first]) && is_black(board[second]));
-}
-
-/** Returns the opponent **/
-PLAYER opponent(PLAYER player) {
-  return (is_white(player))? BLACK : WHITE;
-}
-
-/* Given a board and cell, determines the player that occuppies the cell */
-PLAYER which_player(CELL cell, BOARD board) {
-  /* Assumes BLACK has first half of pieces, WHITE second half */
-  return (board[cell] < NUM_PIECES/2)? BLACK : WHITE;
-}
-
-/** PRIMITIVE helper functions ******************************************/
-
-/** Returns max of num in row/column from the starting cell **/
-int num_in_row(int start, BOARD board) {
-  int num_up = 0, num_down = 0, num_left = 0, num_right = 0;
-  int row = start / BOARD_WIDTH, col = start % BOARD_WIDTH;
-  int i;
-  BOOLEAN same_color(int, int, BOARD);
+/** return the number of pieces consecutively adjacent including current piece
+ *  vertically, horizonally, or diagonally
+ */
+int numInRow(CELL start, BOARD board) {
+  int numUp=0, numDown=0, numLeft=0, numRight=0, numUL=0, numDR=0, numUR=0, numDL=0;
+  int i=0, j=0;
+  int row = (start / numCols) + 1; // rows start from 1
+  int col = (start % numCols) + 1; // cols start from 1
+  BOOLEAN sameColor(CELL,CELL,BOARD);
   if (board[start] == BLNK)
     return 0;
-  for(i = 1; col + i < BOARD_WIDTH; i++) {
-    if (!same_color(start, start+i, board))
-      break;
-    num_right++;
-  }
-  for(i = 1; col - i >= 0; i++) {
-    if (!same_color(start, start-i, board))
-      break;
-    num_left++;
-  }
-  for(i = 1; row + i < BOARD_HEIGHT; i++) {
-    if (!same_color(start, start + BOARD_WIDTH*i, board))
-      break;
-    num_up++;
-  }
-  for(i = 1; row - i >= 0; i++) {
-    if (!same_color(start, start - BOARD_WIDTH*i, board))
-      break;
-    num_down++;
-  }
-  return 1+max(num_right+num_left,num_down+num_up);
-}
-
-/** DOMOVE helper functions *********************************************/
-
-/** These assume move is represented by 4 lower bits->cell, 3 upper->piece **/
-
-int get_piece(MOVE theMove) {
-  return theMove >> 4;
-}
-
-int get_source(MOVE theMove, POSITION pos) {
-  int piece, loc = OFF, i, get_piece(MOVE);
-  BOARD board, get_board(POSITION);
-  piece = get_piece(theMove);
-  board = get_board(pos);
-  for(i = 0; i < BOARD_LENGTH; i++) {
-    if(board[i] == piece) {
-      loc = i;
+  else {
+    for(i = 1; col + i <= numCols; i++) {
+      if (sameColor(start, start+i, board))
+	numRight++;
+      else
+	break;
     }
+    for(i = 1; col - i > 0; i++) {
+      if (sameColor(start, start-i, board))
+	numLeft++;
+      else
+	break;
+    }
+
+    for(i = 1; row + i <= numRows; i++) {
+      if (sameColor(start, start + numCols*i, board))
+	numDown++;
+      else
+	break;
+    }
+    for(i = 1; row - i > 0; i++) {
+      if (sameColor(start, start - numCols*i, board))
+	numUp++;
+      else
+	break;
+    }
+
+    for (i=1; row+i <= numRows && col+i <= numCols; i++) {
+      if (sameColor(start, start+numCols*i+1, board))
+	numDR++;
+      else
+	break;
+    }
+    for (i=1; row-i > 0 && col-i > 0; i++) {
+      if (sameColor(start, start-numCols*i-1, board))
+	numUL++;
+      else
+	break;
+    }
+
+    for (i=1; row+i <= numRows && col-i > 0; i++) {
+      if (sameColor(start, start+numCols*i-1, board))
+	numDL++;
+      else
+	break;
+    }
+    for (i=1; row-i > 0 && col+i <= numCols; i++) {
+      if (sameColor(start, start-numCols*i+i, board))
+	numUR++;
+      else
+	break;
+    }
+
+    i = max (numRight+numLeft, numDown+numUp);
+    j = max (numDR+numUL, numDL+numUR);
+
+    //printf("\nnumUP %d numDown %d\nnumLeft %d numRight%d\nnumUL %d numDR %d\nnumUR %d numDL %d\n\n", numUp, numDown, numLeft, numRight, numUL, numDR, numUR, numDL);
+
+    return 1+max(i, j);
   }
-  return loc;
+  return 0;
 }
 
-int get_dest(MOVE theMove) {
-  return theMove & 0xF;
+/** PRINT POSITION helper functions ************************************/
+
+struct pieceType *piecesOffBoard(struct pieceType *pieces, BOARD board) {
+  int getBoardSize(), sizeOfPieceType(struct pieceType *),i;
+  struct pieceType *newPT;
+  newPT = (struct pieceType *)SafeMalloc(sizeOfPieceType(pieces) * sizeof(struct pieceType));
+  for (i = 0; i < sizeOfPieceType(pieces)+1; i++) {
+    newPT[i].id = pieces[i].id;
+    newPT[i].freq = pieces[i].freq - numOnBoard(pieces[i].id,board);
+  }
+  return newPT;
 }
 
-/** GENERATEMOVES helper functions ***************************************/
-
-/** Some optimization might be in order **/
-
-/* Three available moves (dependant on location of enemy pieces */
-MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player) {
-  MOVELIST *head = NULL;
-  if (cell >= BOARD_LENGTH-BOARD_WIDTH) /* if on last row */
-    return NULL;
-  if (!is_occupied(cell + BOARD_WIDTH, board), board)
-    head = CreateMovelistNode(make_move(board[cell],cell+BOARD_WIDTH), head);
-  if (cell % BOARD_WIDTH != (BOARD_WIDTH-1) &&
-      enemy_occupies(player, cell+BOARD_WIDTH+1, board))
-    head = CreateMovelistNode(make_move(board[cell],cell+BOARD_WIDTH+1), head);
-  if (cell % BOARD_WIDTH != 0 && 
-      enemy_occupies(player, cell+BOARD_WIDTH-1, board))
-    head = CreateMovelistNode(make_move(board[cell],cell+BOARD_WIDTH-1), head);
-  return head;
+/* Counts the number of occurrences of specified piece on the board */
+int numOnBoard(PIECE piece, BOARD board) {
+  int i, count=0;
+  for (i = 0; i < getBoardSize(); i++)
+    if (board[i] == piece)
+      count++;
+  return count;
 }
 
-/* There are eight moves that a knight can make */
-MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player) {
-  MOVELIST *head = NULL;
-  int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
-  int space_down = cell/BOARD_WIDTH;
-  int space_right = BOARD_WIDTH - cell % BOARD_WIDTH - 1;
-  int space_left = cell % BOARD_WIDTH;
-  int dest_cell = cell + N_LONG_LEG*BOARD_WIDTH + N_SHORT_LEG;
-  if (space_up >= N_LONG_LEG && space_right >= N_SHORT_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell + N_LONG_LEG*BOARD_WIDTH - N_SHORT_LEG;
-  if (space_up >= N_LONG_LEG && space_left >= N_SHORT_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell + N_SHORT_LEG*BOARD_WIDTH + N_LONG_LEG;
-  if (space_up >= N_SHORT_LEG && space_right >= N_LONG_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell + N_SHORT_LEG*BOARD_WIDTH - N_LONG_LEG;
-  if (space_up >= N_SHORT_LEG && space_left >= N_LONG_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell - N_SHORT_LEG*BOARD_WIDTH + N_LONG_LEG;
-  if (space_down >= N_SHORT_LEG && space_right >= N_LONG_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell - N_SHORT_LEG*BOARD_WIDTH - N_LONG_LEG;
-  if (space_down >= N_SHORT_LEG && space_left >= N_LONG_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell - N_LONG_LEG*BOARD_WIDTH + N_SHORT_LEG;
-  if (space_down >= N_LONG_LEG && space_right >= N_SHORT_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  dest_cell = cell - N_LONG_LEG*BOARD_WIDTH - N_SHORT_LEG;
-  if (space_down >= N_LONG_LEG && space_left >= N_SHORT_LEG &&
-      !ally_occupies(player, dest_cell, board))
-    head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-  return head;
+/* Returns the size of a struct pieceType array (assumes ends with a BLNK)*/
+int sizeOfPieceType(struct pieceType *pt) {
+  int i = 0;
+  while(pt[i].id != BLNK) {
+    i++;
+  }
+  return i;
 }
 
-/* Four general directions in which the rook can move */
-MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player) {
-  MOVELIST *head = NULL;
-  int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
-  int space_down = cell/BOARD_WIDTH;
-  int space_right = BOARD_WIDTH - cell % BOARD_WIDTH - 1;
-  int space_left = cell % BOARD_WIDTH;
-  int dest_cell = cell + N_LONG_LEG*BOARD_WIDTH + N_SHORT_LEG;
-  int start_row = cell / BOARD_WIDTH, start_col = cell % BOARD_WIDTH;
+/** Valid Text Input Helpers *******************************************/
+BOOLEAN isPiece(char c) {
   int i;
-  for(i = 1; i <= space_up; i++) {
-    dest_cell = cell + i*BOARD_WIDTH;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= space_right; i++) {
-    dest_cell = cell + i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= space_left; i++) {
-    dest_cell = cell - i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= space_down; i++) {
-    dest_cell = cell - i*BOARD_WIDTH;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  return head;
+  BOOLEAN valid = FALSE;
+  for (i = 0; i < sizeOfPieceType(initPieces); i++)
+    if (c == piece_strings[initPieces[i].id])
+      valid = TRUE;
+  return valid;
 }
 
-/* Like rook (four directions), but in diagonals */
-MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player) {
-  MOVELIST *head = NULL;
-  int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
-  int space_down = cell/BOARD_WIDTH;
-  int space_right = BOARD_WIDTH - cell % BOARD_WIDTH - 1;
-  int space_left = cell % BOARD_WIDTH;
-  int dest_cell = cell + N_LONG_LEG*BOARD_WIDTH + N_SHORT_LEG;
-  int start_row = cell / BOARD_WIDTH, start_col = cell % BOARD_WIDTH;
-  int i;
-  for(i = 1; i <= min(space_up, space_right); i++) {
-    dest_cell = cell + BOARD_WIDTH*i + i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= min(space_up, space_left); i++) {
-    dest_cell = cell + BOARD_WIDTH*i - i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= min(space_down, space_right); i++) {
-    dest_cell = cell - BOARD_WIDTH*i + i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  for(i = 1; i <= min(space_down, space_left); i++) {
-    dest_cell = cell - BOARD_WIDTH*i - i;
-    if (ally_occupies(player, dest_cell, board)) {
-      break;
-    } else if (enemy_occupies(player, dest_cell, board)) {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-      break;
-    } else {
-      head = CreateMovelistNode(make_move(board[cell],dest_cell), head);
-    }
-  }
-  return head;
+BOOLEAN isRow(char c) {
+  return (c >= 'a' && c < 'a' + numRows);
 }
 
-MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player) {
-  return concat_ml(gen_rook_moves(cell,board,player),
-		   gen_bishop_moves(cell,board,player));
+BOOLEAN isCol(char c) {
+  return (c >= '0' && c <= '9'); //places upper bound on numRows
 }
 
+/** ConvertTextInputToMove Helper Functions ****************************/
 
-/************************************************************************
-*************************************************************************
-**
-**  TESTING FUNCTIONS
-**
-*************************************************************************
-************************************************************************/
+/* Converts a string of the form 'a5', 'b6',etc to cell on board */
+CELL strToCell(STRING str) {
+  return (str[0] - 'a') + numCols*(numRows-(str[1]-'0'));
+}
 
-/** Generates a random board **/
-BOARD generate_board() {
-  int pieces_used[] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
-  int i = 0, j;
-  BOARD board;
-  board = (char *) SafeMalloc(BOARD_LENGTH*sizeof(char));
+/** Hash Interaction Functions *****************************************/
+
+/* Gets the Board from the hash position */
+BOARD getBoard(POSITION pos) {
+  int getBoardSize();
+  char * generic_unhash(int,char *); // ?????? 
+  BOARD newBoard;
+  newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
+  newBoard = generic_unhash(pos,newBoard);
+  return newBoard;
+}
+
+/* Gets the Player from the hash position */
+
+PLAYER getPlayer(POSITION pos) { // Note: WHITE is player 1
+  return (whoseMove(pos) == 1)? WHITE : BLACK;
+}
+
+POSITION makePosition(BOARD board, PLAYER player) {
+  return generic_hash(board,(player == WHITE)? 1 : 2);
+}
+
+/* Converts the pieceType array into one more palatable to the hash function 
+ * Inputs are the pieceType array itself and the size of the pieceType Array 
+ * REQUIRES: BLNK is the last piece in the pieceType array
+ */
+int *getPieceArray(struct pieceType *types, int size) {
+  int *pieceArray, i, numPieces = 0, minblanks, getBoardSize();
+  pieceArray = (int *) SafeMalloc ((3*size+1) * sizeof(int));
+  for (i = 0; i < size; i++) {
+    pieceArray[3*i] = types[i].id;
+    if (types[i].id == BLNK) {
+      minblanks = getBoardSize() - numPieces;
+      pieceArray[3*i+1] = (minblanks > 0)? minblanks : 0;
+    } else {
+      pieceArray[3*i+1] = 0;
+    }
+    pieceArray[3*i+2] = types[i].freq;
+    numPieces += types[i].freq;
+  }
+  pieceArray[3*size] = -1;
+  return pieceArray;
+}
+
+/** Move representation helper functions *********************************/
+
+// A MOVE is an int whose lowest 8 bits represent the dest number,
+// whose next 8 bits represent the source number, and whose next 4
+// bits represent the piece being moved
+// NOTE: 0xff for the source represents OFF the board
+MOVE makeMove(PIECE piece, CELL source, CELL dest) {
+  int move = dest;
+  move += source << CELL_LENGTH;
+  move += piece << 2*CELL_LENGTH;
+  return move;
+}
+
+PIECE getPiece(MOVE move) {
+  return move >> 2*CELL_LENGTH;
+}
+
+CELL getSource(MOVE move) {
+  return (move >> CELL_LENGTH) & 0xFF;
+}
+
+CELL getDest(MOVE move) {
+  return move & 0xFF;
+}
+
+/* Returns TRUE if we're placing a piece from off the board, else FALSE */
+BOOLEAN offBoard(MOVE move) {
+  return (getSource(move) == 0xFF);
+}
+
+/*************************************************************************/
+
+/** TESTING FUNCTIONS ***************************************************/
+
+/* Generates a random board */
+
+#define NULLPIECE 15 // we know that 15 doesn't correspond to a real piece
+#define MAX 50
+BOARD generateBoard(struct pieceType *pieces) {
+  int i, j, k,pieceCount = 0, getBoardSize();
+  char *pieceBank;
+  BOARD newBoard;
   srand(time(NULL));
-
-  for(i = 0; i < BOARD_LENGTH; i++) {
-    j = rand() % (2*NUM_PIECES);
-    if (j < NUM_PIECES && pieces_used[j] != TRUE) {
-      board[i] = j;
-      pieces_used[j] = TRUE;
+  for (i = 0; ; i++) {
+    if (pieces[i].id == BLNK) {
+      break;
     } else {
-      board[i] = BLNK;
+      printf("id: %d, %d ",pieces[i].id,i);
     }
   }
-  return board;
+  pieceBank = (char *) SafeMalloc(MAX*sizeof(char));
+  for (i = 0,k=0;;i++) {
+    if (pieces[i].id == BLNK) // loop terminates on BLNK
+      break;
+    pieceCount += pieces[i].freq;
+    for (j = 0; j < pieces[i].freq; j++) {
+      pieceBank[k++] =  pieces[i].id;
+    }
+  }
+  printf("Number of pieces to possibly place: %d\n",pieceCount);
+  newBoard = (BOARD) SafeMalloc (getBoardSize() * sizeof(char));
+  for(i = 0; i < getBoardSize(); i++) {
+    j = rand() % (2*pieceCount); // the probability of getting a blank is < 50%
+    if (j < pieceCount && pieceBank[j] != NULLPIECE) {
+      newBoard[i] = pieceBank[j];
+      pieceBank[j] = NULLPIECE;
+    } else {
+      newBoard[i] = BLNK;
+    }
+  }
+  return newBoard;
 }
-
