@@ -17,9 +17,13 @@ proc GS_InitGameSpecific {} {
     # Authors Info
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
+    global backgroundImage
+    global playareaImage
     set kCAuthors "Gamesman Spring 2003 Whole Team!"
     set kTclAuthors "Gamesman Spring 2003 Whole Team!"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+    set backgroundImage "$kRootDir/../bitmaps/mnim-background.gif"
+    set playareaImage "$kRootDir/../bitmaps/mnim-table.gif"
 
     global kMinRows kMaxRows
     set kMinRows 1
@@ -182,12 +186,18 @@ proc GS_SetOption { option } {
 # This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
+    global backgroundImage
+    global playareaImage
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width 400 -height 400
-    
-    $c create rect 0 0 400 400 -fill white -outline white -tag base
-    $c create rect 0 300 400 400 -fill brown -outline black -tag base
+    # $c configure -width 400 -height 400
+    # $c create rect 0 0 400 400 -fill black -outline white -tag base
+    # $c create rect 0 300 400 400 -fill darkgrey -outline black -tag base
+    # background image here
+    image create photo mnim-background -file $backgroundImage
+    $c create image 200 200 -image mnim-background
+    image create photo mnim-table -file $playareaImage
+    $c create image 200 200 -image mnim-table
     
     global gRows
 
