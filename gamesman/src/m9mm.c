@@ -153,6 +153,9 @@ char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 int find_pieces(blankox *board, blankox piece, int *pieces);
+int find_adj_pieces(blankox *board, int slot, int *pieces);
+int count_pieces(blankox *board, blankox piece);
+BOOLEAN full_board(POSITION position);
 
 // GameSpecificMenu
 void setFlyingText();
@@ -276,7 +279,6 @@ void setFlyingText()
   int newHelpSize = strlen(kHelpOnYourTurn0) + strlen(kHelpWithFlying) + 1;
   char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
   
-  // debug
   if (debug) {
 	 printf("gFlying = %d\n", gFlying);
 	 printf("The newHelpSize is %d\n", newHelpSize);
@@ -286,11 +288,15 @@ void setFlyingText()
   if (gFlying && (newHelp != NULL)) {
     strcpy(newHelp, kHelpOnYourTurn0);
 
-	 if (debug) printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
+	 if (debug) {
+		printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
+	 }
 
     strcat(newHelp, kHelpWithFlying);
 
-	 if (debug) printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
+	 if (debug) {
+		printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
+	 }
 
     kHelpOnYourTurn = newHelp;
   } else {
@@ -1067,7 +1073,7 @@ blankox opponent (blankox player)
 }
 
 // Given bboard, int array
-// Return number of pieces and array of each slot containing that piece
+// Return number of pieces and array of each slot containing those pieces
 int find_pieces(blankox *board, blankox piece, int *pieces)
 {
   int i;
@@ -1079,6 +1085,45 @@ int find_pieces(blankox *board, blankox piece, int *pieces)
   }
 
   return num;
+}
+
+// Given bboard, slot, int array
+// Return number of adjacent pieces and array of slots containing those pieces
+int find_adj_pieces(blankox *board, int slot, int *pieces)
+{
+  blankox piece = board[slot];
+  int i;
+  int num = 0;
+
+  return num;
+}
+
+// Given bboard, piece
+// Return the number of instances of piece on the board
+int count_pieces(blankox *board, blankox piece)
+{
+  int i;
+  int num = 0;
+
+  for (i = 0; i < BOARDSIZE; i++) {
+	 if (board[i] == piece) {
+		num++;
+	 }
+  }
+
+  return num;
+}
+
+// Given position
+// Return true if this position is a full board, false otherwise
+BOOLEAN full_board(POSITION position)
+{
+  blankox board[BOARDSIZE];
+
+  unhash(position, board);
+
+  return (count_pieces(board, x) == maxx) && (count_pieces(board, o) == maxo)
+	 && (count_pieces(board, blank) == maxb);
 }
 
 /******************** MOVE abstractions ********************/
@@ -1225,7 +1270,7 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
 {
   MOVELIST *mlist = NULL;
   MOVE tempMove;
-  int blanks[BOARDSIZE];
+  int blanks[maxb];
   int numBlanks, i;
 
   if (gFlying) {
@@ -1330,6 +1375,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.52  2004/04/29 15:31:53  ogren
+//started implementing gamespecific menu.  Mutating kHelpOnYourTurn is very, very wrong, however.  -Elmer
+//
 //Revision 1.51  2004/04/29 08:45:52  ogren
 //no longer seg faults on cygwin due to using sizeof instead of strlen.  HelpOnYourTurn is still printing a mystery x after the normal strings, though. -Elmer
 //
