@@ -335,6 +335,9 @@ $(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 $(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+$(ABALONE_TCL_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 $(HASH_OBJ): %$(OBJSUFFIX): %.c $(HASH_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
