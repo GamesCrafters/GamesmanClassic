@@ -641,7 +641,6 @@ POSITION DoMove(thePosition, theMove)
     if (gBoard[dest2] != '*') {
       /*push a piece*/
       if (doubpushdest != NULLSLOT) {
-	printf("two pushing one");
 	gBoard[doubpushdest] = gBoard[dest2];
       }
     }
