@@ -96,6 +96,8 @@ STRING   kHelpExample =
 #define BOARDSIZE NUM_OF_ROWS * NUM_OF_COLS
 #define ROWS_OF_PIECES 1
 #define NUM_OF_PIECES 2
+#define X_ORIGINAL_POS (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS
+#define O_ORIGINAL_POS ROWS_OF_PIECES * NUM_OF_COLS
 #define Blank ' '
 typedef char BlankOX;
 /* Represents a complete shogi move */
@@ -129,6 +131,7 @@ BlankOX oneOrNoPieces();
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, int turn);
 BOOLEAN inARow(BlankOX theBlankOX[]);
+BOOLEAN adjacent(BlankOX theBlankOX[], int current, int next);
 BlankOX oneOrNoPieces(BlankOX theBlankOX[]);
 int BoardPosToArrayPos(int x, int y);
 MOVE hashMove(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY);
@@ -213,7 +216,7 @@ MOVELIST *GenerateMoves(position)
   MOVELIST *head = NULL;
   
   char turn;  
-  int x,y,moveToX,moveToY,i;
+  int x,y,moveToX,moveToY;
 
   generic_unhash(position,sBlankOX);
   //printf("in gernateMoves\n");
@@ -319,27 +322,55 @@ POSITION DoMove (POSITION position, MOVE move)
   generic_unhash(position, sBlankOX);
   sMove theMove = unhashMove(move);
   int i;
-int turn = whoseMove(position);
-//printf("start do move\n"); 
-//PrintMove(move);
-//printf("\n");
-piece = sBlankOX[(theMove.fromY) * NUM_OF_COLS + theMove.fromX];
-//printf("current piece is %c\n", piece);  
-//printf("turn is %d\n", turn);
+  int fromLoc = (theMove.fromY) * NUM_OF_COLS + theMove.fromX;
+  int leftLoc = fromLoc - 1;
+  int rightLoc = fromLoc + 1;
+  int upLoc = (theMove.fromY - 1) * NUM_OF_COLS + theMove.fromX;
+  int downLoc = (theMove.fromY + 1) * NUM_OF_COLS + theMove.fromX;
+  int turn = whoseMove(position);
+  //printf("start do move\n"); 
+  //PrintMove(move);
+  //printf("\n");
+  piece = sBlankOX[(theMove.fromY) * NUM_OF_COLS + theMove.fromX];
+  //printf("current piece is %c\n", piece);  
+  //printf("turn is %d\n", turn);
 
-
-if (turn == 1)
+  if (turn == 1)
     turn = 2;
   else
     turn = 1;
- 
-  sBlankOX[(theMove.fromY) * NUM_OF_COLS + theMove.fromX] = Blank;
+
+  if (theMove.fromX - theMove.toX == 2 &&
+      theMove.fromY == theMove.toY &&
+      sBlankOX[leftLoc] != Blank &&
+      sBlankOX[leftLoc] != sBlankOX[fromLoc]) {
+    sBlankOX[leftLoc] = Blank;
+  }
+  else if (theMove.toX - theMove.fromX == 2 &&
+	   theMove.toY == theMove.fromY &&
+	   sBlankOX[rightLoc] != Blank &&
+	   sBlankOX[rightLoc] != sBlankOX[fromLoc]) {
+    sBlankOX[rightLoc] = Blank;
+  }
+  else if (theMove.fromY - theMove.toY == 2 &&
+	   theMove.fromX == theMove.toX &&
+	   sBlankOX[upLoc] != Blank &&
+	   sBlankOX[upLoc] != sBlankOX[fromLoc]) {
+    sBlankOX[rightLoc] = Blank;
+  }
+  else if (theMove.toY - theMove.fromY == 2 &&
+	   theMove.toX ==  theMove.fromX &&
+	   sBlankOX[downLoc] != Blank &&
+	   sBlankOX[downLoc] != sBlankOX[fromLoc]) {
+    sBlankOX[downLoc] = Blank;
+  }
+  sBlankOX[fromLoc] = Blank;
   sBlankOX[(theMove.toY) * NUM_OF_COLS + theMove.toX] = piece;
 
-for (i = 0; i < BOARDSIZE; i++) {
-  //printf("%c", sBlankOX[i]);
+  for (i = 0; i < BOARDSIZE; i++) {
+    //printf("%c", sBlankOX[i]);
   }
-//printf("\n");
+  //printf("\n");
  
   //printf("ok!\n");
   position = generic_hash(sBlankOX, turn);
@@ -409,28 +440,27 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int row, col, i;
-  BlankOX  newOX[BOARDSIZE];
+  int row, col, i;/*
   generic_unhash(position, sBlankOX);
   for (i = 0; i < BOARDSIZE; i++) {
     printf("%c", sBlankOX[i]);
   }
-  printf("\n");
+  printf("\n");*/
  
 
 
-  /*  printf("%s's turn\n  ", playersName);
+  printf("%s's turn\n  ", playersName);
   for (col = 0; col < NUM_OF_COLS; col++) {
-    printf("_____");
+    printf("-----");
   }
   for (row = 0; row < NUM_OF_ROWS; row++) {
     printf("\n  |");
     for (col = 0; col < NUM_OF_COLS; col++) {
       printf("   |");
     }
-    printf("\n%d |", NUM_OF_ROWS - row);
+    printf("\n%d |", row);
     for (col = 0; col < NUM_OF_COLS; col++) {
-      printf(" %c |", theBlankOX[row * NUM_OF_COLS + col]);
+      printf(" %c |", sBlankOX[row * NUM_OF_COLS + col]);
     }
     printf("\n  |");
     for (col = 0; col < NUM_OF_COLS; col++) {
@@ -438,14 +468,14 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     }
     printf("\n  ");
     for (col = 0; col < NUM_OF_COLS; col++) {
-      printf("_____");
+      printf("-----");
     }
   }
   printf("\n\n ");
   for (col = 0; col < NUM_OF_COLS; col++) {
-    printf("   %c", 'a' + col);
+    printf("   %d", col);
   }
-  printf("\n\n");*/
+  printf("\n\n");
 }
 
 
@@ -522,9 +552,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(u)ndo/a-%c 1-%d a-%c 1-%d] :  ",
-	       playersName, 'a'+NUM_OF_COLS-1, NUM_OF_ROWS,
-	       'a'+NUM_OF_COLS-1, NUM_OF_ROWS);
+	printf("%8s's move [(u)ndo/0-%d 0-%d 0-%d 0-%d] :  ",
+	       playersName, NUM_OF_COLS-1, NUM_OF_ROWS-1,
+	       NUM_OF_COLS-1, NUM_OF_ROWS-1);
 	input = HandleDefaultTextInput(position, move, playersName);
 	// input[0] = tolower(input[0]);
 	// input[2] = tolower(input[2]);
@@ -806,17 +836,17 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, int turn)
 
 BOOLEAN inARow(BlankOX theBlankOX[])
 {
-  int i, j, samePieces = 1;
+  int i, j, samePieces = 1, current, next;
 
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (theBlankOX[i] == theBlankOX[i+1] &&
-	((theBlankOX[i] == 'o' && i >= ROWS_OF_PIECES * NUM_OF_COLS) ||
-	 (theBlankOX[i] == 'x' && i < (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS))) {
-      if (i == 2)
-	printf("zzzzzzzzzzzzz\n");
-      samePieces++;
-      if (samePieces == NUM_OF_PIECES)
-	return TRUE;
+  for (i = 0; i < NUM_OF_ROWS; i++) {
+    for (j = 0; j < NUM_OF_COLS - 1; j++) {
+      current = i*NUM_OF_COLS+j;
+      next = current + 1;
+      if (adjacent(theBlankOX, current, next)) {
+	samePieces++;
+	if (samePieces == NUM_OF_PIECES)
+	  return TRUE;
+      }
       else
 	samePieces = 0;
     }
@@ -825,15 +855,15 @@ BOOLEAN inARow(BlankOX theBlankOX[])
   samePieces = 0;
   for (i = 0; i < NUM_OF_COLS; i++) {
     for (j = 0; j < NUM_OF_ROWS; j++) {
-      if (theBlankOX[j*NUM_OF_COLS+i] == theBlankOX[(j+1)*NUM_OF_COLS+i] &&
-	  ((theBlankOX[i] == 'o' && i >= ROWS_OF_PIECES * NUM_OF_COLS) ||
-	   (theBlankOX[i] == 'x' && i < (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS))) {
+      current = j*NUM_OF_COLS+i;
+      next = (j+1)*NUM_OF_COLS+i;
+      if (adjacent(theBlankOX, current, next)) {
 	samePieces++;
 	if (samePieces == NUM_OF_PIECES)
 	  return TRUE;
-	else
-	  samePieces = 0;
       }
+      else
+	samePieces = 0;
     }
   }
 
@@ -842,15 +872,15 @@ BOOLEAN inARow(BlankOX theBlankOX[])
   for (i = 0; i < NUM_OF_COLS; i++) {
     if (j >= NUM_OF_ROWS)
       break;
-    if (theBlankOX[i*NUM_OF_ROWS+j] == theBlankOX[(i+1)*NUM_OF_ROWS+j+1] &&
-	((theBlankOX[i] == 'o' && i >= ROWS_OF_PIECES * NUM_OF_COLS) ||
-	 (theBlankOX[i] == 'x' && i < (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS))) {
+    current = i*NUM_OF_ROWS+j;
+    next = (i+1)*NUM_OF_ROWS+j+1;
+    if (adjacent(theBlankOX, current, next)) {
       samePieces++;
       if (samePieces == NUM_OF_PIECES)
 	return TRUE;
-      else
-	samePieces = 0;
     }
+    else
+      samePieces = 0;
     j++;
   }
 
@@ -859,19 +889,27 @@ BOOLEAN inARow(BlankOX theBlankOX[])
   for (i = 0; i < NUM_OF_COLS; i++) {
     if (j < 0)
       break;
-    if (theBlankOX[i*NUM_OF_ROWS+j] == theBlankOX[(i+1)*NUM_OF_ROWS+j-1] &&
-	((theBlankOX[i] == 'o' && i >= ROWS_OF_PIECES * NUM_OF_COLS) ||
-	 (theBlankOX[i] == 'x' && i < (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS))) {
+    current = i*NUM_OF_ROWS+j;
+    next = (i+1)*NUM_OF_ROWS+j-1;
+    if (adjacent(theBlankOX, current, next)) {
       samePieces++;
       if (samePieces == NUM_OF_PIECES)
 	return TRUE;
-      else
-	samePieces = 0;
     }
+    else
+      samePieces = 0;
     j--;
   }
 
   return FALSE;
+}
+
+BOOLEAN adjacent(BlankOX theBlankOX[], int current, int next) {
+  return(theBlankOX[current] == theBlankOX[next] &&
+	 ((theBlankOX[current] == 'o' && current >= O_ORIGINAL_POS) ||
+	  (theBlankOX[current] == 'x' && current < X_ORIGINAL_POS)) &&
+	 ((theBlankOX[next] == 'o' && current >= O_ORIGINAL_POS) ||
+	  (theBlankOX[next] == 'x' && current < X_ORIGINAL_POS)));
 }
 
 /************************************************************************
