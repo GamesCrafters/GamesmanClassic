@@ -45,7 +45,7 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kHelpGraphicInterface ="";
 
 STRING   kHelpTextInterface    =
-"On your turn use the file letter and row number to determine how to specify the\
+"On your turn use the file letter and row number to determine how to specify the\n\
 piece you wish to move and the direction and attack method. If you have made a\n\ 
 wrong move at any point, you can type u to revert back to the previous state.\n\
 ";
@@ -1064,6 +1064,8 @@ MOVELIST *GenerateMoves(position)
 	      }
 	      if(!forcedCapture) {
 		move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
+		printf("Adding move:\n");
+		PrintMove(move);
 		head = CreateMovelistNode(move, head);
 	      }
 	    } // end if can attack by withdraw
@@ -1252,7 +1254,7 @@ BOOLEAN ValidTextInput(input)
   char c,d;
 
   while(*input == ' ') input++;
-  if(!input) return FALSE;
+  if(!(*input)) return FALSE;
 
   if(!isalpha(*input))
     return FALSE;
@@ -1276,7 +1278,7 @@ BOOLEAN ValidTextInput(input)
   row = atoi(temp);
 
   while(*input == ' ') input++;
-  if(!input) return FALSE;
+  if(!(*input)) return FALSE;
 
   c = toupper(*input); input++;
   d = toupper(*input); input++;
@@ -1310,9 +1312,10 @@ BOOLEAN ValidTextInput(input)
   }
 
   while(*input == ' ') input++;
+  if(!(*input)) return FALSE;
   
   c = toupper(*input);
-
+  
   cap = -1;
   if(c == 'A') {
     cap = 1;
@@ -1332,7 +1335,7 @@ BOOLEAN ValidTextInput(input)
   if(dir==5 || dir<0 || dir>9)
     return FALSE;  
 
-  if(cap<0 || cap>2)
+  if(cap<0 || cap>3)
     return FALSE;
 
   return TRUE;
@@ -1420,20 +1423,23 @@ MOVE ConvertTextInputToMove(input)
     return FALSE;
   }
 
+
   while(*input == ' ') input++;
+  if(!(*input)) return FALSE;
   
   c = toupper(*input);
-
+  
   cap = -1;
-  if(c == 'A')
+  if(c == 'A') {
     cap = 1;
-  else if(c == 'W')
+  } else if(c == 'W')
     cap = 2;
   else if(c == 'N')
     cap = 0;
-  else
+  else {
     return FALSE;
-
+  }
+  
   /* we want:
      ___________________________________________
      |              27: pos     | 3:dir | 2:cap |
