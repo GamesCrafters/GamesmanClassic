@@ -1513,7 +1513,7 @@ GENERIC_PTR SafeMalloc(amount)
 
   /* Mando's Fix is to put a ckalloc here */
   if((ptr = malloc(amount)) == NULL) {
-    printf("Error: SafeMalloc could not allocate the requested %d bytes\n",amount);
+    printf("Error: SafeMalloc could not allocate the requested %lu bytes\n",amount);
     ExitStageRight();
     exit(0);
   }
@@ -3056,9 +3056,9 @@ int writeDatabase()
 	    printf("File Successfully compressed\n");
 	  }
 	  return 1;
-	}else{
+	} else {
 		if(kDebugDetermineValue){
-			printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
+		  fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
 		}
 		remove(outfilename);
 		return 0;
@@ -3171,33 +3171,33 @@ void HandleArguments (int argc, char *argv[]) {
   else if(!strcmp(argv[1], "-solve")) {
     gJustSolving = TRUE;
     if(argc > 3)
-      printf("\nUsage: %s -solve [<n> | <all>]\n\n", argv[0]);
+      fprintf(stderr, "Usage: %s -solve [<n> | <all>]\n\n", argv[0]);
     else if(argc == 2) {
-      printf("\nSolving %s with default options....", argv[0]);
+      fprintf(stderr, "Solving \"%s\" for the default options... ", kGameName);
       fflush(NULL);
       SolveAndStore(getOption());
-      printf("done.\n\n");
+      fprintf(stderr, "done.\n");
     }
     else {
       int option = atoi(argv[2]);
       if(!strcmp(argv[2], "all")) {
 	int i;
-	printf("\nSolving %s option ", argv[0]);
+	fprintf(stderr, "Solving %s option ", argv[0]);
 	for(i = 1; i <= NumberOfOptions(); i++) {
-	  printf("%c[s%u of %u....", 27, i, NumberOfOptions());
-	  fflush(NULL);
+	  fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
+	  fflush(stderr);
 	  SolveAndStore(i);
-	  printf("%c[u", 27);
+	  fprintf(stderr, "%c[u", 27);
 	}
-	printf("%u of %u....done.\n\n", i - 1, NumberOfOptions());
+	fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
       }
       else if(!option || option > NumberOfOptions())
-	printf("\nInvalid option configuration!\n\n");
+	fprintf(stderr, "Invalid option configuration!\n\n");
       else {
-	printf("\nSolving %s option %u....", argv[0], option);
-	fflush(NULL);
+	fprintf(stderr, "Solving \"%s\" option %u....", kGameName, option);
+	fflush(stderr);
 	SolveAndStore(option);
-	printf("done.\n\n");
+	fprintf(stderr, "done.\n");
       }
     }
   }
