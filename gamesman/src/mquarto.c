@@ -96,6 +96,9 @@
 **                     Combined Mario's and Prof Garcia's ideas.
 ** 26 Mar 2005 Yanpei: Some data of interest: 
 **                     GAMEDIMENSION = 2: 317 positions, 17 cannonicals
+**                     GAMEDIMENSION = 3: 8419329 positions, 
+** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
+**                     not enough memory. 
 **
 **************************************************************************/
 
@@ -398,10 +401,10 @@ void yanpeiInitializeGame() {
   }
 
   /* calls to test functions */
-  yanpeiTestOffset();
-  yanpeiTestHash();
-  yanpeiTestCannonicalSupport();
-  yanpeiTestCannonical();
+  //yanpeiTestOffset();
+  //yanpeiTestHash();
+  //yanpeiTestCannonicalSupport();
+  //yanpeiTestCannonical();
 
   /* Set initial position to empty board */
   gInitialPosition = hash(board);
@@ -2153,6 +2156,7 @@ void yanpeiTestCannonical() {
     c = getCannonical(i);
     printf("Cannonical = %3d\t",c);
     PrintPosition(c,"",TRUE);
+    /*
     if (!SearchPosList(cannonicals,c)) {
       cannonicalCount++;
       newNode = SafeMalloc(sizeof(POSITIONLIST));
@@ -2165,6 +2169,7 @@ void yanpeiTestCannonical() {
 	cannonicals = newNode;
       }
     }
+    */
   }
 
   printf("\n ... %d cannonical positions in total.\n",cannonicalCount);
