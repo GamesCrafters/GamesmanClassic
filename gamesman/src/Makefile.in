@@ -334,7 +334,7 @@ clean:		clean-bins
 		@$(MAKE) -w -C core clean
 		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
-		$(DEP_GWISH_OBJ) *~
+		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A)
 
 clean-bins:
 		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
