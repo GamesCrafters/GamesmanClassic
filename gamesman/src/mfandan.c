@@ -11,52 +11,6 @@
 **
 ** UPDATE HIST:
 **
-**  8-30-91 1.0a1 : Fixed the bug in reading the input - now 'q' doesn't barf.
-**  9-06-91 1.0a2 : Added the two extra arguments to PrintPosition
-**                  Recoded the way to do "visited" - bitmask
-**  9-06-91 1.0a3 : Added Symmetry code - whew was that a lot of code!
-**  9-06-91 1.0a4 : Added ability to have random linked list in gNextMove.
-**  9-06-91 1.0a5 : Removed redundant code - replaced w/GetRawValueFromDatabase
-**  9-17-91 1.0a7 : Added graphics code.
-**  5-12-92 1.0a8 : Added Static Evaluation - it's far from perfect, but 
-**                  it works!
-** 05-15-95 1.0   : Final release code for M.S.
-** 97-05-12 1.1   : Removed gNextMove and any storage of computer's move
-**
-** Decided to check out how much space was wasted with the array:
-**
-** Without checking for symmetries
-**
-** Evaluating the value of Tic-Tac-Toe...done in 1.434998 seconds!
-** Undecided = 14878 out of 19682
-** Lose      =  1304 out of 19682
-** Win       =  2495 out of 19682
-** Tie       =  1005 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =  4804 out of 19682
-**
-** Using the new evaluation method:
-**
-** Undecided = 14205 out of 19683
-** Lose      =  1574 out of 19683
-** Win       =  2836 out of 19683
-** Tie       =  1068 out of 19683
-** Unk       =     0 out of 19683
-** TOTAL     =  5478 out of 19683
-**
-** While checking for symmetries and storing a canonical elt from them.
-**
-** Evaluating the value of Tic-Tac-Toe...done in 5.343184 seconds!
-** Undecided = 18917 out of 19682
-** Lose      =   224 out of 19682
-** Win       =   390 out of 19682
-** Tie       =   151 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =   765 out of 19682
-**
-**     Time Loss : 3.723
-** Space Savings : 6.279
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -787,20 +741,15 @@ BOOLEAN AllFilledIn(theBlankOX)
 BlankOX WhoseTurn(theBlankOX)
      BlankOX *theBlankOX;
 {
-  int i, xcount = 0, ocount = 0;
-
-  for(i = 0 ; i < BOARDSIZE ; i++)
-    if(theBlankOX[i] == x)
-      xcount++;
-    else if(theBlankOX[i] == o)
-      ocount++;
-    else;                 /* don't count blanks */
-  
-    if(xcount == ocount)
-      return(x);            /* in our TicTacToe, x always goes first */
-    else
-      return(o);
-}
+  static BlankOx turn = x;          /* HRS */
+  if (turn == x) {
+    turn = o;
+    return x;
+  }else {
+    turn = x;
+    return o;
+  }
+  }
 
 STRING kDBName = "ttt" ;
      
