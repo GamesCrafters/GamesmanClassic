@@ -7,6 +7,7 @@
 ** AUTHOR:      Michael Mottmann & Melinda Franco
 **
 ** DATE:        4/6/04 - Working and all nice and pretty and stuff
+**              5/3/04 - Even better than before!
 **
 ** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
 **
@@ -53,22 +54,102 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"ON YOUR TURN, use the legend to determine which pieces to move.\n\
+In a move, multiple pieces can be moved, but any one piece\n\
+can only shift one space away from where it started.\n\
+There are two types of moves, pushes and side-steps.\n\n\
+ONE PIECE can be pushed in any direction, as long as the connecting\n\
+space is vacant.  TO PUSH TWO OR THREE PIECES, the direction of movement\n\
+must be along the axis on which the pieces lie.  Multiple piece pushes\n\
+can move into a vacant space, or into a space with an opponent's piece\n\
+provided your pieces outnumber your opponent's (3 pieces in a row can\n\
+push 1 or 2 pieces, 2 pieces can only push 1 piece).  Only through a push\n\
+off the edge can you eliminate your opponent's pieces.\n\n\
+IN A SIDE-STEP, two or three pieces that are in a line can all move\n\
+in any direction in unison, as long as their desination spaces are empty.\n\n\
+TO PERFORM A PUSH, enter the first piece that pushes all the rest, followed\n\
+by the direction of the push.  TO PERFORM A SIDE-STEP, enter all the pieces to\n\
+be moved, followed by the direction of the side-step.\n";
 
 STRING   kHelpOnYourTurn =
-"";
+"Choose which piece(s) of yours to move, and in what direction.";
 
 STRING   kHelpStandardObjective =
-"";
+"To push as many of your opponent's pieces off the board as it takes to win";
 
 STRING   kHelpReverseObjective =
-"";
+"To force your opponent to push as many of your pieces off the board as it takes to win.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+"There is no tie, only do";
 
 STRING   kHelpExample =
-"";
+"          BOARD                 LEGEND        DIRECTIONS\n\
+\n\
+       -----------        \n\
+      / --------- \\       |\n\
+     / /         \\ \\      |\n\
+    / /  (x)-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
+   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+  | |  ( )-( )-( )  | |   |   (3)-(4)-(5)      W -*- E\n\
+   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+    \\ \\  (o)-(o)  / /     |     (6)-(7)        SW   SE\n\
+     \\ \\         / /      |\n\
+      \\ --------- /       |\n\
+       -----------\n\
+\n\
+\n\
+  Player's move :  6 7 ne\n\
+\n\
+          BOARD                 LEGEND        DIRECTIONS\n\
+\n\
+       -----------        \n\
+      / --------- \\       |\n\
+     / /         \\ \\      |\n\
+    / /  (x)-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
+   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+  | |  ( )-(o)-(o)  | |   |   (3)-(4)-(5)      W -*- E\n\
+   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+    \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
+     \\ \\         / /      |\n\
+      \\ --------- /       |\n\
+       -----------\n\
+\n\
+\n\
+Computer's move   : [1 SW]\n\
+\n\
+          BOARD                 LEGEND        DIRECTIONS\n\
+\n\
+       -----------        \n\
+      / --------- \\       |\n\
+     / /         \\ \\      |\n\
+    / /  ( )-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
+   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+  | |  (x)-(o)-(o)  | |   |   (3)-(4)-(5)      W -*- E\n\
+   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+    \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
+     \\ \\         / /      |\n\
+      \\ --------- /       |\n\
+       -----------\n\
+\n\
+\n\
+Player's move :  5 w\n\
+\n\
+          BOARD                 LEGEND        DIRECTIONS\n\
+\n\
+       -----------        \n\
+      / --------- \\       |\n\
+     / /         \\ \\      |\n\
+    / /  ( )-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
+   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+  | |  (o)-(o)-( )  | |   |   (3)-(4)-(5)      W -*- E\n\
+   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+    \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
+     \\ \\         / /      |\n\
+      \\ --------- /       |\n\
+       -----------\n\
+\n\
+Excellent! You won!";
 
 /*************************************************************************
 **
@@ -624,7 +705,66 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
+  int count, player, xs = 0, os = 0, spaces = 0; 
+  char selection;
+  int maxspaces = BOARDSIZE - 2 * PIECES;
   
+  printf("Enter the board as you would like it (enter a 'b' for blanks)\n\n");
+
+  for (count = 0; count < BOARDSIZE; count++) {
+    printf("Enter the piece at position %d: ", count + 1);
+    fflush(stdin);
+    (void) scanf("%c", &selection);
+    if ((selection != 'x') && (selection != 'o') && (selection != 'b') && (selection != 'X') && (selection != 'O') && (selection != 'B')) {
+      printf("\n\nPlease enter a valid piece\n\n");
+      count--;
+    }
+    else if (selection == 'x') {
+      if (xs < PIECES) {
+	gBoard[count] = selection;
+	xs++;
+      }
+      else {
+	printf("\n\nThis board already has the maximum number of x pieces allowed\n\n");
+	count--;
+      }
+    }
+    else if (selection == 'o') {
+      if (os < PIECES) {
+	gBoard[count] = selection;
+	os++;
+      }
+      else {
+	printf("\n\nThis board already has the maximum number of o pieces allowed\n\n");
+	count--;
+      }
+    }
+    else {
+      if (spaces < maxspaces) {
+	gBoard[count] = '*';
+	spaces++;
+      }
+      else {
+	printf("\n\nThis board already has the maximum number of spaces allowed\n\n");
+	count--;
+      }
+    }
+  }  
+
+  player = 0;
+  while (player == 0) {
+    printf("\n\n Whose Turn is it?  ");
+    fflush(stdin);
+    (void) scanf("%c", &selection);
+    if ((selection == 'x') || (selection == 'X'))
+      player = 2;
+    else if ((selection == 'o') || (selection == 'O'))
+      player = 1;
+    else
+      printf ("\n\n Please enter x or o\n\n");
+  }
+
+  return generic_hash(gBoard,player);  
 }
 
 
@@ -937,7 +1077,7 @@ printf("\\-------------------------------");
   printf("/\n");*/
 
 
-  printf("To move one piece:     piece direction\nTo move two pieces:    piece1 piece2 direction\n\t(order of pieces doesn't matter)\n\n");
+  /*printf("To move one piece:     piece direction\nTo move two pieces:    piece1 piece2 direction\n\t(order of pieces doesn't matter)\n\n");*/
 }
 
 /************************************************************************
@@ -1359,7 +1499,6 @@ MOVE ConvertTextInputToMove(input)
 
   /*get direction*/
   if ((input[n] == 'N') || (input[n] == 'n')) {
-    printf("N1\n");
     n++;
     if ((input [n] == 'W') || (input[n] == 'w')) {
       dir = -2;
@@ -1367,7 +1506,6 @@ MOVE ConvertTextInputToMove(input)
     else if ((input[n] == 'E') ||(input [n] == 'e')) {
       dir = -3;
     }
-    printf("N2\n");
   }
   else if ((input[n] == 'S') || (input[n] == 's')) {
     n++;
@@ -1397,7 +1535,7 @@ MOVE ConvertTextInputToMove(input)
     }
   }   
 
-  printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);
+  /*printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);*/
   int move = move_hash (p1, p2, p3, dir);
   if (DEBUGGING) printf("finished conversion: move is %d\n", move);
   return move;
