@@ -49,9 +49,6 @@ POSITION kBadPosition        = -1;
 STRING   kGameName           = "Nine Men's Morris";
 STRING   kDBName             = "9mm";
 BOOLEAN  kPartizan           = TRUE; 
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
@@ -123,7 +120,7 @@ typedef enum Pieces {
 char gblankoxChar[] = { '_', 'x', 'o'};
 
 // Game Options
-BOOLEAN gFlying = TRUE; // Flying for 3rd Phase
+BOOLEAN gFlying = FALSE; // Flying for 3rd Phase
 
 /*************************************************************************
 **
@@ -156,7 +153,7 @@ BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 BOOLEAN all_mills(blankox *board, int slot);
 int find_pieces(blankox *board, blankox piece, int *pieces);
-int find_adj_pieces(blankox *board, int slot, int *pieces);
+int find_adj_pieces(blankox *board, int slot, blankox piece, int *pieces);
 int find_adjacent(int slot, int *slots);
 int count_pieces(blankox *board, blankox piece);
 BOOLEAN full_board(POSITION position);
@@ -194,14 +191,13 @@ void debugMiniBBoard(blankox *bboard);
 
 void InitializeGame()
 {
-  POSITIONLIST* parents, *head;
-
   int b_size = BOARDSIZE;
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
 
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
+  //printf("numPos: %d\n", gNumberOfPositions);
   
   setFlyingText();
 
@@ -1126,20 +1122,20 @@ int find_pieces(blankox *board, blankox piece, int *pieces)
 
 // Given bboard, slot, int array
 // Return number of adjacent pieces and array of slots containing those pieces
-int find_adj_pieces(blankox *board, int slot, int *pieces)
+int find_adj_pieces(blankox *board, int slot, blankox piece, int *pieces)
 {
-  blankox piece = board[slot];
   int i;
-  int num = find_adjacent(slot, pieces);
+  int adjs[4];
+  int num = find_adjacent(slot, adjs);
+  int pieceCount = 0;
 
   for (i = 0; i < num; i++) {
-	 if (board[pieces[i]] != piece) {
-		pieces[i] = -1;
-		num--;
+	 if (board[adjs[i]] == piece) {
+	   pieces[pieceCount++] = adjs[i];
 	 }
   }
 
-  return num;
+  return pieceCount;
 }
 
 // Given slot, int array
@@ -1553,7 +1549,7 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
   if (gFlying) {
 	 numBlanks = find_pieces(board, blank, blanks);
   } else {
-	 numBlanks = find_adj_pieces(board, slot, blanks);
+	 numBlanks = find_adj_pieces(board, slot, blank, blanks);
   }
 
   for (i = 0; i < numBlanks; i++) {
@@ -1598,7 +1594,7 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
   if (gFlying) {
     numBlanks = find_pieces(board, blank, blanks);
   } else {
-    numBlanks = find_adj_pieces(board, slot, blanks);
+    numBlanks = find_adj_pieces(board, slot, blank, blanks);
   }
   for (i = 0; i < numBlanks; i++) {
     /* transform position */
@@ -1748,6 +1744,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.62  2004/05/05 10:45:36  bryonr
+//Added loopy bottom-up solver for use with Nine Men's Morris.
+//
 //Revision 1.61  2004/05/05 04:56:45  ogren
 //Primitive checks for sticky again, removed GenerateMove's dependance on primitive, since if there's only 2 pieces, primitive will catch it anyways. -Elmer
 //

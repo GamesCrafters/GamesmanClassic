@@ -27,6 +27,7 @@
  */
 
 #define BadChildrenCount -1
+#define loopyup_debug FALSE
 
 /* local only to this solver */
 POSITION* loopyup_childrenCount;
@@ -74,7 +75,8 @@ void loopyup_DeterminePrimitives() {
   POSITION pos;
   VALUE primitiveValue;
 
-  printf("\nPhase 1 of 2: Determine primitives\n");
+  if (loopyup_debug)
+    printf("\nPhase 1 of 2: Determine primitives\n");
 
   for (pos=0; pos<gNumberOfPositions; pos++) {
     primitiveValue = Primitive(pos);
@@ -89,9 +91,11 @@ void loopyup_DeterminePrimitives() {
       if (!loopyup_goAgain)
 	loopyup_childrenCount[pos] = BadChildrenCount;
     }
-    if(pos%50000==0) printf("%f%% complete\n", 100.0*pos/gNumberOfPositions);
+    if (loopyup_debug)
+      if(pos%50000==0) printf("%f%% complete\n", 100.0*pos/gNumberOfPositions);
   }
-  printf("Phase 1 Complete\n");
+  if (loopyup_debug)
+    printf("Phase 1 Complete\n");
 }
 
 void loopyup_CountChildren(POSITION pos) {
@@ -114,7 +118,8 @@ void loopyup_DetermineValueFromPrimitives() {
   POSITIONLIST *phead, *parents;
   VALUE primitiveValue;
   
-  printf("Phase 2 of 2: Determine values from primitives\n");
+  if (loopyup_debug)
+    printf("Phase 2 of 2: Determine values from primitives\n");
 
   for (pos=0; pos<gNumberOfPositions; pos++) {
     /* if primitive */
@@ -123,15 +128,18 @@ void loopyup_DetermineValueFromPrimitives() {
       phead = parents = GenerateParents(pos);
       while (parents != NULL) {
 	parent = parents->position;
+	assert(parent <= gNumberOfPositions);
 	loopyup_DetermineLocalValue(parent, primitiveValue, 0, FALSE);
 	parents = parents->next;
       }
       FreePositionList(phead);
     }
-    if(pos%10000==0) printf("%f%% complete\n", 100.0*pos/gNumberOfPositions);
+    if (loopyup_debug)
+      if(pos%10000==0) printf("%f%% complete\n", 100.0*pos/gNumberOfPositions);
   }
 
-  printf("Phase 1 Complete\n");
+  if (loopyup_debug)
+    printf("Phase 2 Complete\n");
 }
 
 void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMOTENESS callersRemoteness, BOOLEAN updateRemotenessOnly) {
@@ -142,6 +150,8 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
   VALUE myValue, childValue;
   REMOTENESS childRemoteness;
   REMOTENESS myRemoteness;
+
+  assert(pos <= gNumberOfPositions);
 
   myValue = GetValueOfPosition(pos);
 
