@@ -1,3 +1,10 @@
+// $ id $
+// $ log $
+
+/* Above is will include the name and the log of the last
+ * person to commit this file to gamesman.
+ */
+
 /************************************************************************
 **
 ** NAME:        NAME OF FILE
