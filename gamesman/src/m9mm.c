@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.5 2004-02-26 02:34:36 ogren Exp $
+//$Id: m9mm.c,v 1.6 2004-02-29 04:41:02 evedar Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -30,6 +30,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+
+#define BOARDSIZE 24;
+#define minx  2;
+#define maxx  3;
+#define mino  2;
+#define maxo  3;
 
 extern STRING gValueString[];
 
@@ -90,17 +96,12 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-#define BOARDSIZE = 24;
-#define minx = 2;
-#define maxx = 3;
-#define mino = 2;
-#define maxo = 3;
 
 typedef enum Pieces {
   b, x, o
 } blankox;
+char *gblankoxString[] = { " ", "x", "o"};
 
-char *gblankoxString[] = { "", "x", "o"};
 
 
 
@@ -113,6 +114,7 @@ char *gblankoxString[] = { "", "x", "o"};
 /*
 ** Function Prototypes:
 */
+
 int hash(blankox *board, blankox turn);
 POSITION unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
@@ -123,10 +125,10 @@ int from(MOVE the_move);
 int to(MOVE the_move);
 int remove_piece(MOVE the_move);
 blankox opponent(blankox player);
-boolean can_be_taken(POSITION position, int slot);
-boolean closes_mill(POSITION position, int raw_move);
-boolean check_mill(blankox *board, int slot);
-boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
+BOOLEAN can_be_taken(POSITION the_position, int slot);
+BOOLEAN closes_mill(POSITION position, int raw_move);
+BOOLEAN check_mill(blankox *board, int slot);
+BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -151,7 +153,13 @@ extern VALUE     *gDatabase;
 
 void InitializeGame()
 {
-  generic_hash_init(BOARDSIZE, mino, maxo, minx, maxx);
+  //generic_hash_init(BOARDSIZE, mino, maxo, minx, maxx);
+  int b_size = BOARDSIZE;
+  int right_min = mino;
+  int right_max = maxo;
+  int left_min = minx;
+  int left_max = maxx;
+  generic_hash_init(b_size, right_min, right_max, left_min, left_max);
 }
 
 /************************************************************************
@@ -216,14 +224,15 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  from_slot = from(theMove);
-  to_slot = to(theMove);
-  remove_slot = remove_piece(theMove);
-  blankox[BOARDSIZE] board;
+  blankox board [24];  
+  int from_slot = from(theMove);
+  int to_slot = to(theMove);
+  int remove_slot = remove_piece(theMove);
+
   
   unhash(thePosition, board);
 
-  board[to] = board[from];
+  board[to_slot] = board[from_slot];
   board[from] = blank;
   board[remove] = blank; // if no piece is removed, remove = from
 
@@ -670,21 +679,21 @@ blankox opponent (blankox player)
   return (player == o ? x : o);
 }
 
-boolean can_be_taken(POSITION position, int slot)
+BOOLEAN can_be_taken(POSITION position, int slot)
 {
   blankox[BOARDSIZE] board;
   unhash(position, slot);
   return !check_mill(board, slot);
 }
 
-boolean closes_mill(POSITION position, int raw_move)
+BOOLEAN closes_mill(POSITION position, int raw_move)
 {
   blankox[BOARDSIZE] board;
   unhash(do_move(position, raw_move), board);
   return (check_mill board, to(raw_move));
 }
 
-boolean check_mill(blankox *board, int slot)
+BOOLEAN check_mill(blankox *board, int slot)
 {
   return three_in_a_row(board, 0, 1,  2, slot) ||
     three_in_a_row(board, 0, 6,  7, slot) ||
@@ -704,7 +713,7 @@ boolean check_mill(blankox *board, int slot)
     three_in_a_row(board, 20, 21,22,slot);
 }
 
-boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
+BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
 {
   return board[slot] == board[slot1] &&
     board[slot] == board[slot2] &&
@@ -714,3 +723,6 @@ boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.5  2004/02/26 02:34:36  ogren
+//Added CVS Id, Log tags to code
+//
