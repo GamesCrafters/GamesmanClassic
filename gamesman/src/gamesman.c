@@ -1160,7 +1160,10 @@ MOVE move;
 /* Status Meter */
 void showStatus(int done)
 {
-	static int num_pos_seen = 0;	 
+	static int num_pos_seen = 0;
+	static float percent = 0.0;
+	static int updateThreshold = 0;
+	int onepercent = (int)((float)gNumberOfPositions * .001);
     	int size=0;
 	int i = 0;
 	num_pos_seen++;
@@ -1172,18 +1175,22 @@ void showStatus(int done)
 			fprintf(stderr,"\b");
 		}
 		num_pos_seen = 0;
+		percent = 0;
+		updateThreshold = 0;
 	}
-	else if (num_pos_seen > gNumberOfPositions && num_pos_seen % 1000 == 0)
+	else if ( (num_pos_seen > gNumberOfPositions && num_pos_seen % onepercent == 0) || (percent > 100.0 && num_pos_seen % 1000 == 5))
 	{
-		size = fprintf(stderr,"%d Positions Visited                                                                        ",num_pos_seen);
+		size = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
 		for (i = 0; i < size; i++)
 		{
 			fprintf(stderr,"\b");
 		}
 	}
-	else if (num_pos_seen % 1000 == 0)
+	else if (num_pos_seen > updateThreshold)
 	{
-		size = fprintf(stderr,"%d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
+		updateThreshold += onepercent;
+		percent += .1;
+		size = fprintf(stderr,"Solving... %2.1f\% Done",percent);
 		for (i = 0; i < size; i++)
 		{
 			fprintf(stderr,"\b");
