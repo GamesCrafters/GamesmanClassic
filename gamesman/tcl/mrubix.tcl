@@ -40,6 +40,18 @@ proc GS_InitGameSpecific {} {
 
     set kToMove "1) If possible, flip an opponent's piece to an adjacent space by clicking an arrow.\n2) Place a black or white piece in any empty space by clicking one of the small boxes within the space."
 
+    global kRuleSet
+    
+    set diagonalRule {
+	Two in a row
+	is NOT equivalent to three in a row
+	is equivalent to three in a row
+    }
+	
+    set kRuleSet {
+	diagonalRule
+    }
+	
 }
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -461,8 +473,6 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     }
 
     GS_DrawPosition $c $newPosition
-
-    after 800
 }
 
 proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
@@ -548,6 +558,10 @@ proc GS_ShowMoves { c moveType position moveList } {
 
     if { $position == $gInitialPosition } {
 	set firstHalfAlreadyAnimated 0
+    }
+    
+    if { [llength $moveList] <= 0 } {
+	return
     }
 
     set aMove [lindex [lindex $moveList 0] 0]
@@ -660,7 +674,7 @@ proc ShowMovesPart2 { c moveType direction movedFrom position secondMoves } {
 	$c raise $background base
 	$c raise $foreground $background
 	if { $orientation == "o" || $orientation == "O" } {
-	    $c itemconfigure $background -outline $color
+	    $c itemconfigure $background -fill $color
 	} else {
 	    $c itemconfigure $background -fill $color
 	}
