@@ -720,8 +720,64 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
- 
-    return gInitialPosition;
+  BlankOX theBlankOX[BOARDSIZE];
+  signed char c;
+  int i, j, boardPosX, boardPosY;
+  int whoseturn = 1; //what should this be?
+  
+  printf("\n\n\t----- Get Initial Position -----\n");
+  printf("\n\tPlease input the position to begin with.\n");
+  printf("\tNote that it should be in the following format:\n\n");
+  printf("\n EXAMPLE INPUT\n");
+  
+  for (i = 0; i < NUM_OF_ROWS -1; i++){
+    printf("O");
+    for (j = 0; j < NUM_OF_COLS - 1; j++){
+      printf(" -");
+    }
+    printf("\n");
+  }
+  for (i = 0; i < NUM_OF_COLS; i++){
+    printf("X "); 
+  }
+  printf("\n\n");
+  i = 0;
+  boardPosX = 0;
+  boardPosY = NUM_OF_ROWS-1;
+  getchar();
+  while(i < BOARDSIZE && (c = getchar()) != EOF) {
+    if(c == 'x' || c == 'X'){
+      theBlankOX[boardPosY*NUM_OF_COLS + boardPosX] = 'x';
+      boardPosX++;
+      if (boardPosX == NUM_OF_ROWS){
+	boardPosX = 0;
+	boardPosY--;
+      }
+      i++;
+    }
+    else if(c == 'o' || c == 'O' ){
+      theBlankOX[boardPosY*NUM_OF_COLS + boardPosX] = 'o';
+      boardPosX++;
+      if (boardPosX == NUM_OF_ROWS){
+	boardPosX = 0;
+	boardPosY--;
+      }
+      i++;
+    }
+    else if(c == '-'){
+      theBlankOX[boardPosY*NUM_OF_COLS + boardPosX] = Blank;
+      boardPosX++;
+      if (boardPosX == NUM_OF_ROWS){
+	boardPosX = 0;
+	boardPosY--;
+      }
+      i++;
+    }
+    else
+      ;   /* do nothing */
+  }
+  
+  return generic_hash(theBlankOX, whoseturn);
 }
 
 
