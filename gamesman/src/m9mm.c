@@ -92,7 +92,7 @@ STRING   kHelpExample =
 typedef enum Pieces {
   blank, x, o
 } blankox;
-char gblankoxChar[] = { '_', 'x', 'o'};
+char gblankoxChar[] = { 'b', 'x', 'o'};
 //POSITION gHashNumberOfPos = 0;
 
 /*************************************************************************
@@ -250,6 +250,7 @@ POSITION DoMove(thePosition, theMove)
 {
   //debug
   int i;
+  char cboard[BOARDSIZE];
 
   blankox board [BOARDSIZE];  
   int from_slot = from(theMove);
@@ -271,9 +272,13 @@ POSITION DoMove(thePosition, theMove)
   board[remove_slot] = blank; // if no piece is removed, remove = from
 
   //debug 
+  unparse_board(board, cboard);
   printf("The board after the move is: ");
   for (i = 0; i < BOARDSIZE; i++)
     printf("%d", board[i]);
+  printf("\n");
+  for (i = 0; i < BOARDSIZE; i++)
+    printf("%c", cboard[i]);
   printf("\n");
 
   return hash(board, whose_turn(thePosition) == x ? o : x);
@@ -329,7 +334,7 @@ POSITION GetInitialPosition()
       xOnBoard++;
     else if (c == 'o' || c == 'O' || c == '0')
       oOnBoard++;
-    else if (c == '-' || c == '_')
+    else if (c == 'b' || c == 'B')
       bOnBoard++;
     else {
       printf("\n Illegal Board Position Please Re-Enter\n");
@@ -906,7 +911,7 @@ blankox parse_char(char c) {
     return x;
   else if (c == 'o' || c == '0' || c == 'O')
     return o;
-  else if (c == '_' || c == '-')
+  else if (c == 'b' || c == 'B')
     return blank;
   else
     return x; // fix this so that it's a badelse
@@ -1007,6 +1012,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.24  2004/04/04 19:08:11  weitu
+//hash doesn't work? see debug messages
+//
 //Revision 1.22  2004/03/17 11:39:04  bryonr
 //Changed type of gNumberOfPositions from int to POSITION. -Bryon
 //
