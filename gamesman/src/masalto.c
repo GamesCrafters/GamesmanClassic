@@ -11,6 +11,7 @@
 **
 ** UPDATE HIST: 24 Feb 2004 - Initial Setup
 **              31 Mar 2004 - More Stuff Added. Almost Done.
+**              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
 **
 ** 
 **
@@ -46,7 +47,6 @@ BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
 void*	 gGameSpecificTclInit = NULL;
-
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -149,6 +149,9 @@ void addFreeGoose(int geeseLocation);
 void updateFreeGoose(int geeseOrigin, int geeseDestination);
 int freeGoose(int geeseLocation);
 
+void coordToGridCoordinate(int coordinate[2], char human[2]);
+void gridCoordinatetoCoord(char human[2], int coord[2]);
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
@@ -177,7 +180,7 @@ void InitializeGame ()
 		  	        'F', FOX_MIN, FOX_MAX,
 				'G', GEESE_MIN, GEESE_MAX, -1};
 	/* Initialize Hash Function */
-	generic_hash_init(BOARDSIZE, hash_data, 0);
+	generic_hash_init(BOARDSIZE, hash_data, NULL);
 }
 
 /************************************************************************
@@ -318,6 +321,16 @@ POSITION DoMove (thePosition, theMove)
 	return generic_hash(board,next_player);
 }
 
+/*BOOLEAN GoAgain(pos, move)
+	POSITION pos;
+	MOVE move;
+{
+	int unHashedMove[3];
+	unHashMove(move, unHashedMove);
+	return unHashedMove[2]==1;
+}
+
+BOOLEAN *gGoAgain = (BOOLEAN) GoAgain;*/
 
 /************************************************************************
 **
@@ -394,6 +407,20 @@ void PrintComputersMove(computersMove, computersName)
 	MOVE computersMove;
 	STRING computersName;
 {
+	int origin_coord[2];
+	int destination_coord[2];
+	int move[3];
+	char origin_grid[2];
+	char destination_grid[2];
+	
+	unHashMove(computersMove,move);
+	locationToCoord(move[0],origin_coord);
+	locationToCoord(move[1],destination_coord);
+	
+	coordToGridCoordinate(origin_coord,origin_grid);
+	coordToGridCoordinate(destination_coord,destination_grid);
+	
+	printf("%s moved from %c%c to %c%c",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -795,6 +822,19 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 	MOVE *theMove;
 	STRING playerName;
 {
+	BOOLEAN ValidMove();
+	USERINPUT ret, HandleDefaultTextInput();
+	
+	do
+	{
+		printf("%8s's move [(u)ndo/([A-G][1-7])] :  ", playerName);
+		
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+		return(ret);
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 
@@ -818,6 +858,14 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
+	return (
+		(('A' <= input[0] && input[0] <= 'G') || ('a' <= input[0] && input[0] <= 'g'))
+		&&
+		('1' <= input[1] && input[1] <= '7')
+		&&
+		(('A' <= input[3] && input[3] <= 'G') || ('a' <= input[3] && input[3] <= 'g'))
+		&&
+		('1' <= input[4] && input[4] <= '7'));
 }
 
 
@@ -838,6 +886,20 @@ BOOLEAN ValidTextInput (input)
 MOVE ConvertTextInputToMove (input)
 	STRING input;
 {
+	char origin_grid[2];
+	char destination_grid[2];
+	int origin_coord[2];
+	int destination_coord[2];
+	int move[3];
+	
+	gridCoordinatetoCoord(origin_grid,origin_coord);
+	gridCoordinatetoCoord(destination_grid,destination_coord);
+	
+	move[0] = coordToLocation(origin_coord);
+	move[1] = coordToLocation(destination_coord);
+	move[2] = 0;
+	
+	return hashMove(move);
 }
 
 
@@ -854,6 +916,21 @@ MOVE ConvertTextInputToMove (input)
 void PrintMove (move)
 	MOVE move;
 {
+	int moveArray[3];
+	char origin_grid[2];
+	char destination_grid[2];
+	int origin_coord[2];
+	int destination_coord[2];
+	
+	unHashMove(move,moveArray);
+	
+	locationToCoord(moveArray[0], origin_coord);
+	locationToCoord(moveArray[1], destination_coord);
+	
+	coordToGridCoordinate(origin_coord, origin_grid);
+	coordToGridCoordinate(destination_coord, destination_grid);
+	
+	printf("[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -1248,6 +1325,17 @@ void UserInputCoordinate(int coordinate[2])
 		
 	}while(validCoord(coord) != 1);
 }
+void coordToGridCoordinate(int coordinate[2], char human[2])
+{
+	human[0] = (char) (coordinate[1] + '0' + 1);
+	human[1] = (char) (coordinate[0] + 'A');
+}
+void gridCoordinatetoCoord(char human[2], int coord[2])
+{
+	coord[1] = (int) (human[0] - 'A'); // Column Switch
+	coord[0] = (int) (human[1] - '0') - 1; // Row Switch
+}
+
 int ProcessCoordinate(char input[],int coordinate[2])
 {
 	int coord[2];
