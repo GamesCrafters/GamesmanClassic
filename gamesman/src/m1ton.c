@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:        m12n.c
+** NAME:        m1ton.c
 **
 ** DESCRIPTION: The 1,2,...N game
 **
@@ -44,7 +44,7 @@ POSITION gMinimalPosition = 0 ;
 STRING   kGameName            = "1 TO N";
 BOOLEAN  kPartizan            = FALSE;
 BOOLEAN  kDebugMenu           = FALSE;
-BOOLEAN  kGameSpecificMenu    = FALSE;
+BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
@@ -95,6 +95,8 @@ Computer wins. Nice try, Dan.";
 **
 **************************************************************************/
 
+STRING gGameSpecificMenu = "1.\tSet the value of N\n  \t(the target ending sum.\n\n2.\tSet the highest number you can add\n  \tto the running sum.\n\n3.\tReturn to previous menu.\n\nSelect option: ";
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -119,6 +121,19 @@ void InitializeGame()
 
 void DebugMenu() { }
 
+void changeBoard()
+{
+  unsigned int boardSize;
+  printf("Enter the new N:  ");
+  (void) scanf("%u", &boardSize);
+  N = boardSize;
+  gNumberOfPositions = N + 1;
+}
+
+void changeMove()
+{
+}
+
 /************************************************************************
 **
 ** NAME:        GameSpecificMenu
@@ -129,7 +144,22 @@ void DebugMenu() { }
 ** 
 ************************************************************************/
 
-void GameSpecificMenu() { }
+void GameSpecificMenu() 
+{
+  int selection;
+  printf("%s", gGameSpecificMenu);
+  (void) scanf("%d", &selection);
+  if(selection == 1)
+    changeBoard();
+  else if(selection == 2)
+    changeMove();
+  else if(selection == 3)
+    return;
+  else {
+    printf("\n\n\nInvalid Entry, please try again...");
+    GameSpecificMenu();
+  }
+}
 
 /************************************************************************
 **
