@@ -89,6 +89,9 @@
 ** 22 Mar 2005 Mario:  Switched to marioInitialize to showcase (seemingly) hashing/unhashing error
 **                     Yanpei, please review: compile and run, and watch error output.
 **                     Reverted to yanpeiInitialize
+** 26 Mar 2005 Yanpei: Some structural changes to allow for variable GAMEDIMENSION. Effect on
+**                     existing code should be minimal. Use MallocBoard() and FreeBoard() now
+**                     for memory management with boards. 
 **
 **************************************************************************/
 
@@ -117,7 +120,7 @@ STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your n
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -171,27 +174,23 @@ STRING   kHelpExample =
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
-#define GAMEDIMENSION 2
-#define BOARDSIZE square(GAMEDIMENSION)
-#define NUMPIECES (1 << GAMEDIMENSION)
+int GAMEDIMENSION = 2;
 
-#define PIECESTATES (BOARDSIZE+1)
-#define EMPTYSLOT NUMPIECES
+int BOARDSIZE;
+int NUMPIECES;
 
-#define FIRSTSLOT 1
-#define LASTSLOT BOARDSIZE
+int EMPTYSLOT;
 
-#if BOARDSIZE<NUMPIECES
-    #define FACTORIALMAX (NUMPIECES+1)
-#else 
-    #define FACTORIALMAX (BOARDSIZE+1)
-#endif
+int FIRSTSLOT;
+int LASTSLOT;
 
-#define HAND			0
+int FACTORIALMAX;
+
+int HAND = 0;
 
 typedef struct board_item {
 
-  short slots[BOARDSIZE+1]; // to record the 0 to NUMPIECES-1 pieces contained in each slot
+  short *slots;             // to record the 0 to NUMPIECES-1 pieces contained in each slot
                             // slots[1-16] = board squares, slots[0] = next piece
                             // 0 to NUMPIECES-1 encode the pieces, EMPTYSLOT encodes an empty slot
   short squaresOccupied;    // number of squares occupied
@@ -215,10 +214,10 @@ char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
 **
 *************************************************************************/
 
-static BOOLEAN factorialTableSet =  FALSE;
-static POSITION factorialTable[FACTORIALMAX];
-static BOOLEAN offsetTableSet = FALSE;
-static POSITION offsetTable[NUMPIECES+2];
+BOOLEAN factorialTableSet =  FALSE;
+POSITION *factorialTable;
+BOOLEAN offsetTableSet = FALSE;
+POSITION *offsetTable;
 
 /*************************************************************************
 **
@@ -263,6 +262,12 @@ POSITION                (*factorial)(int n) = &factorialMem;
 BOOLEAN			searchPrimitive(short *);
 
 /* support functions */
+QTBPtr                  MallocBoard();
+void                    FreeBoard(QTBPtr b);
+
+void                    yanpeiTestOffset();
+void                    yanpeiTestHash();
+
 BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
 void			print_board( QTBPtr );
 QTBPtr			TestHash( QTBPtr, int );
@@ -301,7 +306,6 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
 
-  if(!offsetTableSet) setOffsetTable();
   initGame();
   
 }
@@ -310,7 +314,7 @@ void InitializeGame ()
 // earliest implementation
 void marioInitializeGame() {
 
-	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
+	QTBPtr board = MallocBoard();
 	QTBPtr error_board;
 	int slot;
 	
@@ -348,14 +352,29 @@ void marioInitializeGame() {
 // Rips off some code from Mario's implementation
 void yanpeiInitializeGame() {
 
-  QTBPtr board = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  QTBPtr board;
   short slot;
-  POSITION i;
-  POSITION h;
-  BOOLEAN allPassed = TRUE;
+
+  /* initializing globals */
+  BOARDSIZE = square(GAMEDIMENSION);
+  NUMPIECES = (1 << GAMEDIMENSION);
+  EMPTYSLOT = NUMPIECES;
+  FIRSTSLOT = 1;
+  LASTSLOT = BOARDSIZE;
+  if (BOARDSIZE<NUMPIECES)
+    FACTORIALMAX = (NUMPIECES+1);
+  else
+    FACTORIALMAX = (BOARDSIZE+1);
+  factorialTable = (POSITION *) SafeMalloc(FACTORIALMAX*(sizeof(POSITION)));
+  offsetTable = (POSITION *) SafeMalloc((NUMPIECES+2)*(sizeof(POSITION)));
+
+  if(!offsetTableSet) setOffsetTable();
+  board = MallocBoard();
 
   /* Initialize all fields to 0 */
-  memset(board,0,sizeof(QTBOARD));
+  board->squaresOccupied = 0;
+  board->piecesInPlay = 0;
+  board->usersTurn = FALSE;
 
   /* Initialize all slots to EMPTYSLOT */
   for(slot=0; slot<BOARDSIZE+1; slot++) {
@@ -363,37 +382,15 @@ void yanpeiInitializeGame() {
   }
 
   /* test the hash/unhash functions */
-  if(!offsetTableSet) setOffsetTable();
-
-  
-  printf("\nInitializeGame: Testing offsetTable ... \n");
-  for (i=0; i<NUMPIECES+2; i++) {
-    printf("offsetTable[%d] = %d\n",i,offsetTable[i]);
-  }
-  printf("\n");
-  
-
-  printf("\nInitializeGame: Testing full blown hash/unhash ... \n");
-  
-  i=0;
-  while (i<offsetTable[NUMPIECES+1] && allPassed) {
-    //printf("%8d\n",i);
-    if (i != (h=hash(unhash(i)))) {
-      allPassed = FALSE;
-      printf("hash/unhash error:\n");
-      printf("position: %d, hashed: %d\n",i,h);
-      printf("\n");
-    }
-    //PrintPosition(i,"",TRUE);
-    i++;
-  }
-  if (allPassed) printf("\n ... passed.\n"); 
-  else printf("\n ... failed.\n");
+  yanpeiTestOffset();
+  yanpeiTestHash();
 
   /* Set initial position to empty board */
   gInitialPosition = hash(board);
+  gNumberOfPositions = offsetTable[NUMPIECES+1];
 
   //printf("%d\n",gInitialPosition);
+  //printf("%d\n",gNumberOfPositions);
 
 }
 
@@ -637,12 +634,11 @@ VALUE Primitive (POSITION position)
     emptyFound = FALSE;
 
     SafeFree(rowColDiag);
+    FreeBoard(b);
 
     // returning stuff
-    if (primitiveFound && b->usersTurn) {
+    if (primitiveFound) {
       return lose;
-    } else if (primitiveFound && !b->usersTurn) {
-      return win;
     } else {
       return undecided;
     }
@@ -1001,7 +997,28 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+  char choice;
+  BOOLEAN validInput = FALSE;
+
+  //while (!validInput) {
+    printf("\t---- mquarto Option Menu ---- \n\n");
+    printf("\ti)\tChange Game D(i)mension: Currently %d-Dimensional\n",GAMEDIMENSION);
     
+    printf("Select an option: ");
+    fflush(stdin);
+    choice = getc(stdin);
+    choice = toupper(choice);
+    switch(choice) {
+      case 'I':
+	printf("Please enter the new GAMEDIMENSION (must be less than 4): ");
+	scanf("%d",&GAMEDIMENSION);
+	validInput = TRUE;
+	break;
+      default:
+	printf("Not a valid option.\n");
+	break;
+    }
+    //}
 }
 
 
@@ -1134,6 +1151,17 @@ STRING binStr(unsigned int x) {
 
   return toReturn;
    
+}
+
+QTBPtr MallocBoard() {
+  QTBPtr toReturn = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  toReturn->slots = (short *) SafeMalloc((BOARDSIZE+1)*sizeof(short));
+  return toReturn;
+}
+
+void FreeBoard(QTBPtr b) {
+  SafeFree(b->slots);
+  SafeFree(b);
 }
 
 /* Mario: returns true if board contents match exactly */
@@ -1273,7 +1301,7 @@ POSITION packhash( QTBPtr board ) {
 
 QTBPtr packunhash( POSITION hash ) {
 
-	QTBPtr board = (QTBPtr) SafeMalloc( sizeof( QTBOARD ) );
+	QTBPtr board = MallocBoard;
 	int slot, shift, mask = maskseq( GAMEDIMENSION + 1 );
 
 	for( slot = 0, shift = 0; slot < BOARDSIZE + 1; slot++, shift += GAMEDIMENSION + 1 ) {
@@ -1295,7 +1323,7 @@ QTBPtr packunhash( POSITION hash ) {
 POSITION hashUnsymQuarto(QTBPtr b) {
 
   POSITION toReturn;
-  QTBPtr helperBoard = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  QTBPtr helperBoard = MallocBoard();
   POSITION squaresOccupiedOffset, firstSlotOffset;
   short i;
 
@@ -1349,7 +1377,7 @@ POSITION hashUnsymQuarto(QTBPtr b) {
   */
 
   // giving space back to the malloc Godfather
-  SafeFree(helperBoard);
+  FreeBoard(helperBoard);
   return toReturn;
 
 }
@@ -1415,7 +1443,7 @@ POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
 // unhashing a POSITION into an internally represented QTBOARD
 QTBPtr unhashUnsymQuarto(POSITION p) {
 
-  QTBPtr toReturn = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  QTBPtr toReturn = MallocBoard();
   short i;
   POSITION firstSlotOffset, squaresOccupiedOffset;
   POSITION pHelper;
@@ -1818,4 +1846,44 @@ unsigned short GetBoardPiece( QTBPtr board, unsigned short slot ) {
    
    return board->slots[slot + FIRSTSLOT];
    
+}
+
+void yanpeiTestOffset() {
+
+  int i;
+
+  printf("\nTesting offsetTable ... \n");
+  for (i=0; i<NUMPIECES+2; i++) {
+    printf("offsetTable[%d] = %d\n",i,offsetTable[i]);
+  }
+  printf("\n");
+ 
+}
+
+void yanpeiTestHash() {
+
+  POSITION i,h;
+  BOOLEAN allPassed = TRUE;
+  void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
+
+  printf("\nTesting full blown hash/unhash ... \n");
+
+  printPos = &yanpeiPrintSlots;
+  
+  i=0;
+  while (i<offsetTable[NUMPIECES+1] && allPassed) {
+    //printf("%8d\n",i);
+    if (i != (h=hash(unhash(i)))) {
+      allPassed = FALSE;
+      printf("hash/unhash error:\n");
+      printf("position: %d, hashed: %d\n",i,h);
+      printf("\n");
+    }
+    PrintPosition(i,"",TRUE);
+    i++;
+  }
+  if (allPassed) printf("\n ... passed.\n"); 
+  else printf("\n ... failed.\n");
+
+  printPos = oldPrintPos;
 }
