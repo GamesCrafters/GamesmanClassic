@@ -2,9 +2,9 @@
 // $log$
 
 /*
-  * The above lines will include the name and log of the last person
-  * to commit this file to CVS
-  */
+ * The above lines will include the name and log of the last person
+ * to commit this file to CVS
+ */
 
 /************************************************************************
 **
@@ -40,29 +40,25 @@
 **************************************************************************/
 
 STRING   kGameName            = ""; /* The name of your game */
-//STRING   kAuthorName          = ""; /* Your name(s) */
+STRING   kAuthorName          = ""; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has 
-different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there 
-is not one. */
+BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger 
-style game). FALSE if it does not.*/
+BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using 
-our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
-/*
-  * Help strings that are pretty self-explanatory
-  * Strings than span more than one line should have backslashes (\) at the end of the line.
-  */
+/* 
+ * Help strings that are pretty self-explanatory
+ * Strings than span more than one line should have backslashes (\) at the end of the line.
+ */
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -130,31 +126,32 @@ extern VALUE     *gDatabase;
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-**
+** 
 ************************************************************************/
 
 void InitializeGame ()
 {
-   int init_array[10];
-   init_array[0] = '_';
-   init_array[1] = 1;
-   init_array[2] = 1;
-   init_array[3] = 'x';
-   init_array[4] = 4;
-   init_array[5] = 4;
-   init_array[6] = 'o';
-   init_array[7] = 4;
-   init_array[8] = 4;
-   init_array[9] = -1;
+  int init_array[10];
+  init_array[0] = '_';
+  init_array[1] = 1;
+  init_array[2] = 1;
+  init_array[3] = 'x';
+  init_array[4] = 4;
+  init_array[5] = 4;
+  init_array[6] = 'o';
+  init_array[7] = 4;
+  init_array[8] = 4;
+  init_array[9] = -1;
 
 
-   gNumberOfPositions = generic_hash_init(9, init_array, NULL);
+  gNumberOfPositions = generic_hash_init(9, init_array, NULL);
 
-   gBoard[1] = gBoard[2] = gBoard[3] = gBoard[4] = 'o';
-   gBoard[5] = gBoard[6] = gBoard[7] = gBoard[8] = 'x';
-   gBoard[0] = '_';
+  gBoard[1] = gBoard[2] = gBoard[3] = gBoard[4] = 'o';
+  gBoard[5] = gBoard[6] = gBoard[7] = gBoard[8] = 'x';
+  gBoard[0] = '_';
 
-   gInitialPosition = generic_hash(gBoard, 1); }
+  gInitialPosition = generic_hash(gBoard, 1);
+}
 
 
 /************************************************************************
@@ -175,58 +172,72 @@ void InitializeGame ()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (POSITION position) {String turn;
-  String opp;
-  if (whoseMove(position) == 1){
-    turn = 'x';
-    opp = 'o';}
-  else {
-    turn = 'o';
-    opp = 'x';}
-     MOVELIST *moves = NULL;
-     MOVELIST *CreameMoveListNode();
-     for (int i = 0; i < 9; i++){
-       if (gBoard[i] == turn){
+MOVELIST *GenerateMoves (POSITION position)
+{char turn;
+ char opp; 
+ int i;
+ int x;
+ generic_unhash(position, gBoard);
+ if (whoseMove(position) == 1){
+   turn = 'x';
+   opp = 'o';}
+ else {
+   turn = 'o';
+   opp = 'x';}
+    MOVELIST *moves = NULL;
+    for (i = 0; i < 9; i++){
+      if (gBoard[i] == turn){
 	if (i == 0){
-	  for (int x = 1; x < 9; x++){
+	  for (x = 1; x < 9; x++){
 	    if (gBoard[x] == '_'){
-	      moves = CreateMovelistNode(move_make(i, x), moves);}}}
+	      moves = CreateMovelistNode(move_make(i, x), moves);
+	    }
+	  }
+	}
 	else 
 	  if (i == 1){
 	    if (gBoard[8] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 8), moves);}
-	    else if (gBoard[8] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);}
-	    else if (gBoard[i+1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i+1), moves);}
-	    else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);}}
+	      moves = CreateMovelistNode(move_make(i, 8), moves);
+	    } else if (gBoard[8] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    } else if (gBoard[i+1] == '_'){
+	      moves = CreateMovelistNode(move_make(i, i+1), moves);
+	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    }
+	  }
 	else 
 	  if (i == 8){
 	     if (gBoard[1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 1), moves);}
-	    else if (gBoard[1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);}
-	    else if (gBoard[i-1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i-1), moves);}
-	    else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);}}
+	      moves = CreateMovelistNode(move_make(i, 1), moves);
+	     } else if (gBoard[1] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    } else if (gBoard[i-1] == '_'){
+	      moves = CreateMovelistNode(move_make(i, i-1), moves);
+	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    }
+	  }
 	else {
 	  if (gBoard[i-1] == '_'){
-	    moves = CreateMovelistNode(move_make(i, i-1), moves);}
-	  else if (gBoard[i+1] == '_'){
-	    moves = CreateMovelistNode(move_make(i, i+1), moves);}
-	  else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);}
-	  else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);}}}}
+	    moves = CreateMovelistNode(move_make(i, i-1), moves);
+	  } else if (gBoard[i+1] == '_'){
+	    moves = CreateMovelistNode(move_make(i, i+1), moves);
+	  } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
+	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
+	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	  }
+	}
+      }
+    }
 	    
 	      
-	
-     
-     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-     
-     return moves;
+       
+    
+    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+    
+    return moves;
 }
 
 
@@ -246,18 +257,20 @@ MOVELIST *GenerateMoves (POSITION position) {String turn;
 **
 *************************************************************************/
 
-POSITION DoMove (POSITION position, MOVE move) { int from, to;
+POSITION DoMove (POSITION position, MOVE move)
+{ 
+  int from, to;
   char oldc; 
-   generic_unhash(position,gBoard);
-   from = move_from(move);
-   to = move_to(move);
-   oldc = gBoard[from];
-   gBoard[from] = '_';
-   gBoard[to] = oldc;
-   if (whoseMove(position) == 1) 
-     return generic_hash(gBoard,2);
-   else
-     return generic_hash(gBoard, 1);	
+  generic_unhash(position,gBoard);
+  from = move_from(move);
+  to = move_to(move);
+  oldc = gBoard[from];
+  gBoard[from] = '_';
+  gBoard[to] = oldc;
+  if (whoseMove(position) == 1) 
+    return generic_hash(gBoard,2);
+  else
+    return generic_hash(gBoard, 1);	
 }
 
 
@@ -287,13 +300,13 @@ POSITION DoMove (POSITION position, MOVE move) { int from, to;
 	***************************/
 
 VALUE Primitive (POSITION position)
-{if (*GenerateMoves(position) != NULL){
-   return (undecided);}
-  else{ 
-   if (*GenerateMoves(position) == NULL){ 
-   return (lose);}
-  else 
-    {return (win);}}}
+{if (GenerateMoves(position) != NULL){
+  return (undecided);}
+ else{ 
+  if (GenerateMoves(position) == NULL){ 
+  return (lose);}
+ else 
+   {return (win);}}}
 
 
 
@@ -315,17 +328,18 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
-   generic_unhash(position, gBoard);
-   printf("     %c\n",gBoard[2]);
-   printf("  %c  |  %c\n", gBoard[1], gBoard[3]);
-   printf("   \\ | /\n");
-   printf(" %c-- %c --%c\n", gBoard[4], gBoard[0], gBoard[5]);
-   printf("   / | \\\n");
-   printf("  %c  |  %c\n", gBoard[6], gBoard[8]);
-   printf("     %c\n", gBoard[7]);
-   printf("\n%s's Turn\n", playersName);
-   
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+{
+  generic_unhash(position, gBoard);
+  printf("     %c\n",gBoard[3]);
+  printf("  %c  |  %c\n", gBoard[2], gBoard[4]);
+  printf("   \\ | /\n");
+  printf(" %c-- %c --%c\n", gBoard[1], gBoard[0], gBoard[5]);
+  printf("   / | \\\n");
+  printf("  %c  |  %c\n", gBoard[8], gBoard[6]);
+  printf("     %c\n", gBoard[7]);
+  printf("\n%s's Turn\n", playersName);
+  
 }
 
 
@@ -340,8 +354,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName) {
-   printf("%8s's move               : %2d\n", computersName, move_to(computersMove));
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+  printf("%8s's move               : %2d\n", computersName, move_to(computersMove));
 
 }
 
@@ -358,7 +373,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 
 void PrintMove (MOVE move)
 {
-   printf("moved to %d from %d", move_to(move), move_froom(move));    
+  printf("moved to %d from %d", move_to(move), move_from(move));    
 }
 
 
@@ -382,24 +397,25 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName) {
-     USERINPUT input;
-     USERINPUT HandleDefaultTextInput();
-     
-     for (;;) {
-         /***********************************************************
-          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-          ***********************************************************/
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+{
+    USERINPUT input;
+    USERINPUT HandleDefaultTextInput();
+    
+    for (;;) {
+        /***********************************************************
+         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+         ***********************************************************/
 	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
 	if (input != Continue)
 		return input;
-     }
+    }
 
-     /* NOTREACHED */
-     return Continue;
+    /* NOTREACHED */
+    return Continue;
 }
 
 
@@ -429,9 +445,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input)
-{unsigned int theInput = atoi(input);
-  return (theInput <= 87 && theInput >= 01);} 
-
+{
+  unsigned int theInput = atoi(input);
+  int from = theInput/10;
+  int to = theInput%10;
+  printf("%d, %d", from, to);
+  return (from <= 8 && to <= 8 && from != to && from>= 0 && to >= 0);
+   
+}
 
 /************************************************************************
 **
@@ -447,8 +468,10 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (STRING input) {
-     return ((MOVE) make_move(input[0], input[1])); }
+MOVE ConvertTextInputToMove (STRING input)
+{
+    return ((MOVE) move_make(input[0]-'0', input[1]-'0'));
+}
 
 
 /************************************************************************
@@ -470,7 +493,7 @@ MOVE ConvertTextInputToMove (STRING input) {
 
 void GameSpecificMenu ()
 {
-     
+    
 }
 
 
@@ -480,14 +503,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-**
+** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[]) {
-     
+void SetTclCGameSpecificOptions (int options[])
+{
+    
 }
-   
-   
+  
+  
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -503,7 +527,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 
 POSITION GetInitialPosition ()
 {
-     return 0;
+    return 0;
 }
 
 
@@ -520,7 +544,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-     return 0;
+    return 0;
 }
 
 
@@ -538,7 +562,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-     return 0;
+    return 0;
 }
 
 
@@ -555,7 +579,7 @@ int getOption ()
 
 void setOption (int option)
 {
-     
+    
 }
 
 
@@ -569,12 +593,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-**
+** 
 ************************************************************************/
 
 void DebugMenu ()
 {
-     
+    
 }
 
 
@@ -586,7 +610,6 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-**
+** 
 ************************************************************************/
-
 
