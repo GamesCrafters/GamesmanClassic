@@ -125,19 +125,7 @@ inline bits_data* get_memo ( int bits, int idx )
 		
 		for (i = 32; i > 0; i--)
 			compute_memo(i);
-		
-/*		for (i = 0; i < 32; i++) {
-			int		idx;
-			
-			for (idx = 0; idx < 8; idx++) {
-				bits_data*	tab;
-				
-				tab = &memo_table[i][idx];
-				printf("bits=%2d, offset=%2d, bytes=%2d, bit_offset=%2d, first_byte=%2d, mask=%08x, imask=%08x, pmask=%08x\n",
-				   i + 1, idx, tab -> bytes, tab -> bit_offset, tab -> first_byte, tab -> mask, tab -> imask, tab -> pmask);
-			}
-		}
-*/	}
+	}
 	
 	if (memo_count < bits || !memo_table[bits - 1])
 		compute_memo(idx);

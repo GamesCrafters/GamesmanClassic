@@ -337,3 +337,29 @@ MOVELIST* movelist_copy ( MOVELIST* ptr )
 	return ret;
 }
 
+
+/*
+** STRINGLIST data type
+*/
+
+STRINGLIST* stringlist_new_node ( STRINGLIST* next, STRING str )
+{
+	STRINGLIST*	ret;
+	
+	ret = (STRINGLIST*) safe_malloc(strlen(str) + 1 + sizeof(STRINGLIST));
+	strcpy(ret -> string, str);
+	ret -> next = next;
+	
+	return ret;
+}
+
+void stringlist_free ( STRINGLIST* ptr )
+{
+	STRINGLIST*	next;
+	
+	while (ptr) {
+		next = ptr -> next;
+		free(ptr);
+		ptr = next;
+	}
+}

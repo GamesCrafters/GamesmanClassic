@@ -32,5 +32,8 @@ void		movelist_free		( MOVELIST* );
 MOVELIST*	movelist_new_node	( MOVELIST*, MOVE );
 MOVELIST*	movelist_copy		( MOVELIST* );
 
+void		stringlist_free		( STRINGLIST* );
+STRINGLIST*	stringlist_new_node	( STRINGLIST*, STRING );
+
 #endif
 

@@ -42,6 +42,11 @@ typedef struct MoveList_struct {
 	struct MoveList_struct*	next;
 } MOVELIST;
 
+typedef struct StringList_struct {
+	struct StrlingList_struct*	next;
+	char				string[0];
+} STRINGLIST;
+
 typedef struct {
 	int			tier_count;
 	POSITIONLIST**		tiers;
