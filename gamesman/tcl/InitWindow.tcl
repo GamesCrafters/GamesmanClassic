@@ -344,6 +344,8 @@ proc InitWindow { kRootDir } {
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
 	    if { $gRightHumanOrComputer == "Computer" } {
 		EnableSmarterComputerInterface
+		set gMoveDelay 0
+		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    } else {
 		DisableSmarterComputerInterface
 	    }
@@ -355,9 +357,12 @@ proc InitWindow { kRootDir } {
 	    -value Computer \
 	-command {
 	    if { $gRightHumanOrComputer == "Computer" } {
-		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+		set gMoveDelay 1
 		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
+	    } else {
+		set gMoveDelay 0
 	    }
+	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fLeft.lName \
@@ -378,6 +383,8 @@ proc InitWindow { kRootDir } {
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
 	    if { $gLeftHumanOrComputer == "Computer" } {
 		EnableSmarterComputerInterface
+		set gMoveDelay 0
+		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    } else {
 		DisableSmarterComputerInterface
 	    }
@@ -389,9 +396,12 @@ proc InitWindow { kRootDir } {
 	    -value Computer \
 	-command {
 	    if { $gLeftHumanOrComputer == "Computer" } {
-		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+		set gMoveDelay 1
 		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
+	    } else {
+		set gMoveDelay 0
 	    }
+	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fRight.lName \
