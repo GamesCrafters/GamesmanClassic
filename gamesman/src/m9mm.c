@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include "hash.h"
+#include "loopyupsolver.h"
 
 POSITION gNumberOfPositions  = 0;
 
@@ -114,6 +115,7 @@ BOOLEAN debug = FALSE;
 #define maxo  3
 #define minb  BOARDSIZE - maxo - maxx
 #define maxb  BOARDSIZE - mino - minx
+#define toFly 3
 
 typedef enum Pieces {
   blank, x, o
@@ -161,6 +163,8 @@ BOOLEAN full_board(POSITION position);
 void copy_bboard(blankox *from, blankox *to);
 void copy_cboard(char *from, char *to);
 
+BOOLEAN trapped(blankox[], blankox, int);
+
 // GameSpecificMenu
 void setFlyingText();
 
@@ -178,15 +182,6 @@ void debugCBoard(char *cboard);
 void debugMiniCBoard(char *cboard);
 void debugMiniBBoard(blankox *bboard);
 
-// External
-GENERIC_PTR	SafeMalloc (size_t size);
-void		SafeFree ();
-
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
 
 /************************************************************************
 **
@@ -199,16 +194,18 @@ void		SafeFree ();
 
 void InitializeGame()
 {
-    
+  POSITIONLIST* parents, *head;
+
   int b_size = BOARDSIZE;
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
 
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
-
+  
   setFlyingText();
 
+  gSolver = loopyup_DetermineValue;
 }
 
 /************************************************************************
@@ -510,6 +507,7 @@ VALUE Primitive ( POSITION h )
   blankox dest[BOARDSIZE];
   int numXs = 0;
   int numOs = 0;
+  int numPlayer, minPlayer;
   int i;
   blankox turn = whose_turn(h);
   
@@ -531,14 +529,22 @@ VALUE Primitive ( POSITION h )
     printf("And has found %dXs, %dOs.\n", numXs, numOs);
   }
 
-  if (turn == o && numOs == mino)
+  if (turn == o) {
+    numPlayer = numOs;
+    minPlayer = mino;
+  }
+  else {
+    numPlayer = numXs;
+    minPlayer = minx;
+  }
+
+  if (numPlayer == minPlayer)
     return (gStandardGame ? lose : win );
-  else if (turn == x && numXs == minx)
-    return (gStandardGame ? lose : win );
-  else if (GenerateMoves(h) == NULL)
-	 return (gStandardGame ? lose : win);
-  else
-    return undecided;	
+  else if (trapped(dest, turn, numPlayer))
+    return (gStandardGame ? lose : win);
+  else {
+    return undecided;
+  }
  
 }
 
@@ -636,11 +642,18 @@ MOVELIST *GenerateMoves(POSITION position)
   MOVELIST *CreateMovelistNode(), *head = NULL;
   MOVELIST *temp_head = NULL;
   blankox dest[BOARDSIZE];
-  blankox x_pieces[maxx];
-  blankox o_pieces[maxo];
-  blankox *player_pieces;
-  blankox *opponent_pieces;
-  blankox blanks[BOARDSIZE];
+  int x_pieces[maxx];
+  int o_pieces[maxo];
+  int x_adjBlanks[maxx];
+  int o_adjBlanks[maxo];
+  int player_adj[maxx>maxo ? maxx : maxo][4];
+  int *player_adjBlanks;
+  int *player_pieces;
+  int *opponent_pieces;
+  int blanks[BOARDSIZE];
+  int adj[4];
+  int adjs;
+  int counter;
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
   
@@ -652,14 +665,13 @@ MOVELIST *GenerateMoves(POSITION position)
 		  x_pieces[x_count++] = i;
 		else if (dest[i] == o)
 		  o_pieces[o_count++] = i;
-		else
-		  blanks[blank_count++] = i;
 	 }
   
   if (turn == x)
 	 {
 		player_pieces = x_pieces;
 		player_count = x_count;
+		player_adjBlanks = x_adjBlanks;
 		opponent_count = o_count;
 		opponent_pieces = o_pieces;
 	 }
@@ -667,17 +679,45 @@ MOVELIST *GenerateMoves(POSITION position)
 	 {
 		player_pieces = o_pieces;
 		player_count = o_count;
+		player_adjBlanks = o_adjBlanks;
 		opponent_count = x_count;
 		opponent_pieces = x_pieces;
 	 }
+
+  if (gFlying && player_count<=toFly) {
+    blank_count = find_pieces(dest, blank, blanks);
+  }
+  else {
+    for (i=0; i<player_count; i++) {
+      player_adjBlanks[i] = 0;
+      adjs = find_adjacent(player_pieces[i], adj);
+      for (j=0; j<adjs; j++) {
+	if (dest[adj[j]] == blank) {
+	  player_adj[i][player_adjBlanks[i]++] = adj[j];
+	}
+      }
+    }
+  }
   
   for (i = 0; i < player_count; i++)
 	 {
-		for (j = 0; j < blank_count; j++)
+	   if(gFlying && player_count<=toFly) {
+	     counter = blank_count;
+	   }
+	   else {
+	     counter = player_adjBlanks[i];
+	   }
+		for (j = 0; j < counter; j++)
 		  {
+		    if (gFlying && player_count<=toFly) {
 			 raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
 				(blanks[j] * BOARDSIZE) + player_pieces[i];
-			 
+		    }
+		    else {
+		      raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+			(player_adj[i][j] * BOARDSIZE) + player_pieces[i];
+		    }
+
 			 //debug
 			 if (debug) {
 				printf ("the raw_move is: %d\n", raw_move);
@@ -696,6 +736,7 @@ MOVELIST *GenerateMoves(POSITION position)
   
   return head;
 }
+
  
 /************************************************************************
 **
@@ -915,7 +956,7 @@ void PrintMove(theMove)
 
 int NumberOfOptions()
 {
-  return 1;
+  return 2*2;
 }
 
 /************************************************************************
@@ -932,10 +973,11 @@ int NumberOfOptions()
 
 int getOption()
 {
-  int ret;
-  ret = gStandardGame;
+  int option = 1;
+  option += (gStandardGame ? 0 : 1);
+  option += 2* (gFlying ? 0 : 1);
   
-  return ++ret;
+  return option;
 }
 
 /************************************************************************
@@ -952,9 +994,9 @@ int getOption()
 void setOption(int option)
 {
   option--;
-  gStandardGame = option %2;
-  
 
+  gStandardGame = (option%2==0);
+  gFlying = (option/2%2==0);
 }
 
 /************************************************************************
@@ -1476,7 +1518,7 @@ BOOLEAN all_mills(blankox *board, int slot)
 POSITIONLIST *GenerateParents (POSITION position) 
 {
   POSITIONLIST *head = NULL;
-  blankox turn = whose_turn(position);
+  blankox turn = opponent(whose_turn(position));
   blankox board[BOARDSIZE];
   int i;
 
@@ -1501,31 +1543,44 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
 {
   blankox thisTurn = board[slot];
   blankox prevTurn = opponent(thisTurn);
-  blankox *prevBoard;
-  int i, j;
+  int i, j, k;
   int numBlanks, prevSlot, prevBlank;
   int blanks[maxb];
   int allBlanks[maxb];
   int numAllBlanks = find_pieces(board, blank, allBlanks);
+  int countO, countX;
 
   if (gFlying) {
 	 numBlanks = find_pieces(board, blank, blanks);
   } else {
-	 numBlanks = find_adj_pieces(board, blank, blanks);
+	 numBlanks = find_adj_pieces(board, slot, blanks);
   }
 
   for (i = 0; i < numBlanks; i++) {
-	 copy_bboard(board, prevBoard); // reset prevBoard
+	 board[slot] = blank;  // remove most recent piece
 	 prevSlot = blanks[i];
-	 prevBoard[slot] = blank; // remove most recent piece
-	 prevBoard[prevSlot] = thisTurn; // replace most recent piece
+	 board[prevSlot] = thisTurn; // replace most recent piece
 	 for (j = 0; j < numAllBlanks; j++) {
 		prevBlank = allBlanks[j];
 		if (prevBlank != slot && prevBlank != prevSlot) {
-		  prevBoard[prevBlank] = prevTurn; // place opponent's piece
-		  plist = StorePositionInList(hash(prevBoard, thisTurn), plist);
+		  board[prevBlank] = prevTurn;
+		  
+		  /* count pieces */
+		  countX = countO = 0;
+		  for (k=0; k<BOARDSIZE; k++) {
+		    if (board[k]==x) countX++;
+		    else if (board[k]==o) countO++;
+		  }
+		  if (countX<=3 && countO<=3) {
+		    plist = StorePositionInList(hash(board, thisTurn), plist);
+		  }
+		  /* revert removed piece */
+		  board[prevBlank] = blank;
 		}
 	 }
+	 /* revert moved piece */
+	 board[prevSlot] = blank;
+	 board[slot] = thisTurn;
   }
   
   return plist;
@@ -1535,24 +1590,30 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
 // Append POSITIONLIST of Parents involving slot (without milling)
 POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist) 
 {
-  MOVELIST *mlist = NULL;
-  MOVE tempMove;
+  blankox thisTurn = board[slot];
   int blanks[maxb];
   int numBlanks, i;
+  int blankSlot;
 
   if (gFlying) {
     numBlanks = find_pieces(board, blank, blanks);
   } else {
-	 numBlanks = find_adj_pieces(board, blank, blanks);
+    numBlanks = find_adj_pieces(board, slot, blanks);
   }
-
   for (i = 0; i < numBlanks; i++) {
-	 tempMove = hash_move(slot, blanks[i], slot);
-	 mlist = CreateMovelistNode(tempMove, mlist);
+    /* transform position */
+    int blankSlot = blanks[i];
+    board[blankSlot] = board[slot];
+    board[slot] = blank; 
+
+    /* store position */
+    plist = StorePositionInList(hash(board, thisTurn), plist); 
+
+    /* revert position */
+    board[slot] = board[blankSlot];
+    board[blankSlot] = blank;
   }
 
-  plist = AppendAllMoves(hash(board, board[slot]), mlist, plist);
-  
   return plist;
 }
 
@@ -1573,6 +1634,27 @@ POSITIONLIST *AppendAllMoves(POSITION position, MOVELIST *ml, POSITIONLIST *pl)
 
   return pl;
 }
+
+BOOLEAN trapped(blankox board[], blankox turn, int playerCount) {
+  int i, j;
+  int adj[4];
+  int adjs;
+
+  if (gFlying && playerCount<=toFly) return FALSE;
+
+  for (i=0; i<BOARDSIZE; i++) {
+    if (board[i] == turn) {
+      adjs = find_adjacent(i, adj);
+      for (j=0; j<adjs; j++) {
+	if (board[adj[j]] == blank)
+	  return FALSE;
+      }
+    }
+  }
+  return TRUE;
+}
+  
+  
 
 /* typedef struct positionlist_item */
 /* { */
@@ -1666,6 +1748,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.61  2004/05/05 04:56:45  ogren
+//Primitive checks for sticky again, removed GenerateMove's dependance on primitive, since if there's only 2 pieces, primitive will catch it anyways. -Elmer
+//
 //Revision 1.60  2004/05/05 04:31:32  ogren
 //m9mm now doest die during Primitive, but hacked, not fixed. -Elmer
 //
