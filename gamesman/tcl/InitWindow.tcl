@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.46 2004-12-02 23:41:46 jontsai Exp $
+# $Id: InitWindow.tcl,v 1.47 2004-12-25 10:22:19 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -126,6 +126,7 @@ proc InitWindow { kRootDir kDir kExt } {
     # jesse: move delay and game delay added fall '03
     global gMoveDelay gGameDelay
     global gReallyUnsolved
+    global gWaitingForHuman
 
     #
     # Initialize the constants
@@ -146,6 +147,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
     set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
+    set gWaitingForHuman false
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
         console hide
@@ -618,6 +620,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	-command {
 	    pack forget .middle.f2.fHelp   
 	    pack .middle.f2.cMain
+	    global gWaitingForHuman
+	    set gWaitingForHuman false
 	    .cToolbar raise iATB
 	    RaiseStatusBarIfGameStarted
 	    update
@@ -641,13 +645,16 @@ proc InitWindow { kRootDir kDir kExt } {
 
     frame $skinsFrame.buttons
     frame $skinsFrame.content
+    frame $skinsFrame.content.left
+    frame $skinsFrame.content.right
 
     pack propagate $skinsFrame 0
 
     image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.ppm"
     image create photo lily_screenshot -file "$gSkinsRootDir\LilySkin/screenshot.ppm"
+    image create photo oxy_screenshot -file "$gSkinsRootDir\OxySkin/screenshot.ppm"
 
-    button $skinsFrame.content.mandel\
+    button $skinsFrame.content.left.mandel\
 	    -compound top\
 	    -image mandel_screenshot\
 	    -text "Mandel Fractal"\
@@ -655,7 +662,7 @@ proc InitWindow { kRootDir kDir kExt } {
 		InitButtons $gSkinsRootDir MandelSkin/ ppm
 		TBaction4
 	    }
-    button $skinsFrame.content.lily\
+    button $skinsFrame.content.right.lily\
 	    -compound top\
 	    -image lily_screenshot\
 	    -text "Water Lily"\
@@ -664,11 +671,22 @@ proc InitWindow { kRootDir kDir kExt } {
 		TBaction4
 	    }
 
+    button $skinsFrame.content.left.oxy\
+	    -compound top\
+	    -image oxy_screenshot\
+	    -text "Official Skin"\
+	    -command {
+		InitButtons $gSkinsRootDir OxySkin/ ppm
+		TBaction4
+	    }
+
     button $skinsFrame.buttons.bReturn -text "Return" \
 	-command {
 	    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 	    pack forget .middle.f2.fSkins  
 	    pack .middle.f2.cMain
+	    global gWaitingForHuman
+	    set gWaitingForHuman false
 	    .cToolbar raise iATB
 	    RaiseStatusBarIfGameStarted
 	    update
@@ -677,11 +695,14 @@ proc InitWindow { kRootDir kDir kExt } {
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
-    pack $skinsFrame.content.mandel -ipadx 4 -ipady 4 -side left -anchor nw
-    pack $skinsFrame.content.lily -ipadx 4 -ipady 4 -side top -anchor ne
+    pack $skinsFrame.content.left.oxy -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.left.mandel -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.right.lily -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
+    pack $skinsFrame.content.left -side left -fill y
+    pack $skinsFrame.content.right -side right -fill y
 
 
     
@@ -703,6 +724,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	-command {
 	    pack forget .middle.f2.fAbout   
 	    pack .middle.f2.cMain
+	    global gWaitingForHuman
+	    set gWaitingForHuman false
 	    .cToolbar raise iATB
 	    RaiseStatusBarIfGameStarted
 	    update
@@ -794,7 +817,9 @@ proc InitWindow { kRootDir kDir kExt } {
 
     # this is the left panel item "click to play"
     .middle.f1.cMLeft bind startupPic <1> {
-	TBaction1
+	if {!$gWaitingForHuman} {
+	    TBaction1
+	}
     }
 
     # this is the play button
