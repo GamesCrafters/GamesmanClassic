@@ -1,0 +1,34 @@
+##############################################################################
+#
+#  Top-level Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  Dan Garcia, 05-15-95
+#  ddgarcia@cs.berkeley.edu
+#
+##############################################################################
+
+
+### @WARNGC@ Makefile.in
+
+# @configure_input@
+
+all: Makefile
+	cd src && $(MAKE) all
+
+clean:
+	cd src && $(MAKE) clean
+	rm -rf *~
+
+dist:
+	cd src && $(MAKE) dist
+	rm -rf Makefile config.h config.status config.log bin/XGamesman *~

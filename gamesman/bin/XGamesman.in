@@ -1,0 +1,188 @@
+#!@WISHLOC@ -f
+
+# @WARNGC@ XGamesman.in
+
+#############################################################################
+##
+## NAME:         Xgamesman
+##
+## DESCRIPTION:  An application to launch the GAMESMAN programs. It brings
+##               up a window with a bitmap button of each game, and when
+##               the user clicks on the button, it runs the program for that
+##               game. There is also a quit button
+##
+## AUTHOR:       Dan Garcia  -  University of California at Berkeley
+##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##
+## DATE:         05-24-95
+##
+## UPDATE HIST:
+##
+## 05-24-95 1.0    : Final release code for M.S.
+## 03-02-96 1.1    : Updated it for tcl 7.5 and color icons
+##
+## TODO: Make the frame scroll!
+##
+#############################################################################
+
+#############################################################################
+##
+## CreateButtonLauncher
+##
+## Create a front-end to launch the various GAMESMAN modules.
+##
+#############################################################################
+
+proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
+    
+    set kLabelFont "-*-helvetica-*-r-*-*-18-*-*-*-*-*-*-*"
+    set kLabelColor grey40
+    set theMaxButtonSize 0
+    set theNumberOfPrograms [llength $thePrograms]
+    
+    wm title . "GAMESMAN - Click on a button to start the program"
+    
+    button .butQuit -text "Quit" -font $kLabelFont -command exit
+    pack append . .butQuit { bottom fill }
+    
+    ## the number of columns of buttons
+    ## the padding between buttons
+    ## and the extra space between the rows of buttons
+    set cols [getColumns $theNumberOfPrograms]
+    set rows [getRows $theNumberOfPrograms $cols]
+    set pad 40
+    set under 50
+    
+    set c .fall.c
+    set w .fall
+    
+    frame $w
+
+    scrollbar $w.hscroll -orient horiz -command "$c xview"
+    scrollbar $w.vscroll -orient vertical -command "$c yview"
+    
+    set width  [expr {($pad+100)*$cols+$pad}]
+    set height [expr {(($under+100)*$rows)+$under}]
+    set littleheight [expr {$under/2+($under+100)*$rows}]
+    set la [concat 0 0 $width $height]
+    
+    canvas $c -width $width -height $littleheight -relief sunken -borderwidth 2 -scrollregion $la\
+	    -xscrollcommand "$w.hscroll set"\
+	    -yscrollcommand "$w.vscroll set"
+    pack $w -expand yes -fill both -padx 1 -pady 1
+    grid rowconfig    $w 0 -weight 1 -minsize 0
+    grid columnconfig $w 0 -weight 1 -minsize 0
+    
+    grid $c -padx 1 -in $w -pady 1 \
+	    -row 0 -column 0 -rowspan 1 -columnspan 1 -sticky news
+    grid $w.vscroll -in $w -padx 1 -pady 1 \
+	    -row 0 -column 1 -rowspan 1 -columnspan 1 -sticky news
+    grid $w.hscroll -in $w -padx 1 -pady 1 \
+	    -row 1 -column 0 -rowspan 1 -columnspan 1 -sticky news
+        
+    pack .fall -fill both
+
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set theProgram "./Xm[lindex $thePrograms $i]"
+	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+	set theColor [lindex $theGuiTypes $i]
+	catch { image delete image$i }
+	image create photo image$i -file $theGif
+	set theString [lindex $theStrings $i]
+	set borderWidth 5
+	
+	button $c.butBitmap$i \
+		-image image$i \
+	        -bg $theColor \
+	        -borderwidth $borderWidth \
+		-command "exec @WISHLOC@ -f $theProgram &"
+	#set upperLeftx [expr {$pad+(100+$pad)*($i%$cols)-5}] 
+	#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
+	#$c create rectangle $upperLeftx $upperLefty [expr $upperLeftx + 110] [expr $upperLefty + 110] -fill $theColor
+	$c create window [expr {$pad+(100+$pad)*($i%$cols)}] [expr {$under/2+($under+100)*($i/$cols)}] -window $c.butBitmap$i -anchor nw
+	$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font {Helvetica 14 bold}
+
+    }
+
+}
+
+#############################################################################
+##
+## getColumns
+##
+##  given the number of games, returns the number of columns this window should have
+##  basically it tries to choose the number of columns so that the window will be
+##   a square, so it uses the square root.
+##
+#############################################################################
+proc getColumns { numGames } {
+    set result [expr int( sqrt($numGames)) + 1 ]
+
+## NOTE: for the below code, I assumed
+## * more than 7 columns will be too big for the screen, so if it's > 7
+##    just return 7.  If this is bad, just comment it out.
+## signed: Jesse PHillips fall 2003
+    if {$result > 7} {
+	set result 7
+    }
+    return $result
+}
+
+
+#############################################################################
+##
+## getRows
+##
+## given the number of programs, returns the number of rows there should be
+##
+#############################################################################
+
+proc getRows { numGames numCols } {
+    set result 0
+    if { [expr $numGames % $numCols] == 0 } {
+	set result [expr $numGames / $numCols]
+    } else {
+	set result [expr $numGames / $numCols + 1]
+    }
+
+## NOTE: for this code, I assumed that more than 5 rows would be too big
+##       for the screen.  If this is bad, just comment it out.
+## signed: jesse Phillips fall 2003
+    if { $result > 5 } {
+	set result 5
+    }
+    return $result
+}
+
+#############################################################################
+##
+## main
+##
+## Make it so that it's similar to C a wee bit.
+##
+#############################################################################
+
+proc main {} {
+
+    set theBitmapDir "../bitmaps"
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 ttt tactix 3dot con cmass dnb foxes sim }
+    #set thePrograms {  1210 ttt tactix dodgem  cmass sim 3dot Lgame lite3 con win4 nim dnb ctoi foxes achi qx}
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "TicTacToe GOLD" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3"\
+			  "Tic Tac Toe" "Tac Tix" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Sim" }
+    #set theStrings  { "1,2,...,10" "TicTacToe" "Tac Tix" "Dodgem" "Critical Mass" "Sim" "3-Dot" "L Game" "Lite 3" "Connections!" "Connect 4" "Nim" "Dots and Boxes" "Chung-Toi" "Foxes and Geese" "Achi" "QuickCross"}
+    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown }
+
+    #set theGuiTypes { grey gold grey grey brown brown brown grey grey brown grey gold brown grey brown gold gold} 
+
+
+    ### Give it a Nostalgic, tcl7.3 look
+    ### tk_setPalette bisque1
+
+    CreateButtonLauncher $theBitmapDir $thePrograms $theStrings $theGuiTypes
+
+    #bind .fall <Configure> "puts [. cget -width]; .fall.c configure -width [. cget -width]"
+}
+
+### Call the main procedure.
+
+main

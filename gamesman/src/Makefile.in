@@ -1,0 +1,290 @@
+##############################################################################
+#
+#  Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  Dan Garcia, 05-15-95
+#  ddgarcia@cs.berkeley.edu
+#
+##############################################################################
+
+# @WARNGC@ Makefile.in
+# @configure_input@
+
+CC		= @CC@
+CCC		= @CXX@
+
+TOPDIR		= ..
+BINDIR		= $(TOPDIR)/bin
+LIBDIR		= $(TOPDIR)/lib
+
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@
+CCFLAGS		= $(CFLAGS)
+CXXFLAGS	= @CCFLAGS@
+LDFLAGS		= @LDFLAGS@
+TCLSOFLAGS	= @TCLSOFLAGS@
+TCLEXEFLAGS	= @TCLEXEFLAGS@
+TCLDBGX		= @TCLDBGX@
+
+LIBSUFFIX	= @LIBSUFFIX@
+OBJSUFFIX	= @OBJEXT@
+EXESUFFIX	= @EXEEXT@
+
+
+##############################################################################
+### Support for deprecated gamesman API
+### For use with games that do not support gamesman 3 features
+
+DEP_INCLUDE		= deprecated/gsolve.h deprecated/gstrings.h
+DEP_OBJS		= deprecated/gmain$(OBJSUFFIX) deprecated/gsolve$(OBJSUFFIX) \
+			  deprecated/gfuzzy$(OBJSUFFIX) deprecated/gloopy$(OBJSUFFIX)
+DEP_GWISH_OBJ		= deprecated/tkAppInit$(OBJSUFFIX)
+
+
+##############################################################################
+### Games
+
+GAMELINE_OBJ		= server$(OBJSUFFIX) client$(OBJSUFFIX)
+GAMELINE_EXE		= $(BINDIR)/server$(EXESUFFIX) $(BINDIR)/client$(EXESUFFIX)
+
+GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
+
+GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
+GAMESMAN_INCLUDE	= gamesman.h
+
+1210_EXE		= $(BINDIR)/m1210$(EXESUFFIX)	# The wonderful game of 1,2,...,10
+1210_OBJ		= m1210$(OBJSUFFIX)
+1210_SO			= $(LIBDIR)/libm1210$(LIBSUFFIX)
+
+TTT_EXE			= $(BINDIR)/mttt$(EXESUFFIX)	# The awesome game of Tic-Tac-Toe
+TTT_OBJ			= mttt$(OBJSUFFIX) mtttppm$(OBJSUFFIX)
+TTT_SO			= $(LIBDIR)/libmttt$(LIBSUFFIX)
+
+SIM_EXE			= $(BINDIR)/msim$(EXESUFFIX)	# The simple game of sim
+SIM_OBJ			= msim$(OBJSUFFIX)
+SIM_SO			= $(LIBDIR)/libmsim$(LIBSUFFIX)
+
+STT_EXE			= $(BINDIR)/mstt$(EXESUFFIX)	# The shifty game of shift-tac-toe
+STT_OBJ			= mstt$(OBJSUFFIX)
+STT_SO			= $(LIBDIR)/libmstt$(LIBSUFFIX)
+
+DODGEM_EXE		= $(BINDIR)/mdodgem$(EXESUFFIX)	# The genius game of Dodgem
+DODGEM_OBJ		= mdodgem$(OBJSUFFIX)
+DODGEM_SO		= $(LIBDIR)/libmdodgem$(LIBSUFFIX)
+
+TACTIX_EXE		= $(BINDIR)/mtactix$(EXESUFFIX)	# The great game of Tac Tix
+TACTIX_OBJ		= mtactix$(OBJSUFFIX)
+TACTIX_SO		= $(LIBDIR)/libmtactix$(LIBSUFFIX)
+
+LGAME_EXE		= $(BINDIR)/mLgame$(EXESUFFIX)	# The lovely game of L
+LGAME_OBJ		= mLgame$(OBJSUFFIX)
+LGAME_SO		= $(LIBDIR)/libmLgame$(LIBSUFFIX)
+
+3DOT_EXE		= $(BINDIR)/m3dot$(EXESUFFIX)	# The fantastically difficult game of 3 dot
+3DOT_OBJ		= m3dot$(OBJSUFFIX)
+3DOT_SO			= $(LIBDIR)/libm3dot$(LIBSUFFIX)
+
+CMASS_EXE		= $(BINDIR)/mcmass$(EXESUFFIX)	# The explosive game of critical mass
+CMASS_OBJ		= mcmass$(OBJSUFFIX)
+CMASS_SO		= $(LIBDIR)/libmcmass$(LIBSUFFIX)
+
+LITE3_EXE		= $(BINDIR)/mlite3$(EXESUFFIX)	# The illuminating game of lite3
+LITE3_OBJ		= mlite3$(OBJSUFFIX) 
+LITE3_SO		= $(LIBDIR)/libmlite3$(LIBSUFFIX)
+
+CON_EXE			= $(BINDIR)/mcon$(EXESUFFIX)	# The cool game of Connections!
+CON_OBJ			= mcon$(OBJSUFFIX)
+CON_SO			= $(LIBDIR)/libmcon$(LIBSUFFIX)
+
+CTOI_EXE		= $(BINDIR)/mctoi$(EXESUFFIX)	# The Amazing game of Chung-Toi
+CTOI_OBJ		= mctoi$(OBJSUFFIX)
+CTOI_SO			= $(LIBDIR)/libmctoi$(LIBSUFFIX)
+
+WIN4_EXE		= $(BINDIR)/mwin4$(EXESUFFIX)	# The cool game of Connect-4
+WIN4_OBJ		= mwin4$(OBJSUFFIX)
+WIN4_SO			= $(LIBDIR)/libmwin4$(LIBSUFFIX)
+
+NIM_EXE			= $(BINDIR)/mnim$(EXESUFFIX)	# The interesting game of NIM!
+NIM_OBJ			= mnim$(OBJSUFFIX)
+NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
+
+## Warning: uses computec, and therefore a different tkAppInit.c
+## Warning: Foxes uses Deprecated API
+FOXES_EXE		= $(BINDIR)/mfoxes$(EXESUFFIX)	# The unreasonably witty game of foxes & geese
+FOXES_OBJ		= mfoxes$(OBJSUFFIX)
+FOXES_TCL_OBJ		= tkAppInitFoxes$(OBJSUFFIX)
+FOXES_SO		= $(LIBDIR)/libmfoxes$(LIBSUFFIX)
+
+## Warning: DNB uses Deprecated API
+DNB_EXE			= $(BINDIR)/mdnb$(EXESUFFIX)	# The awesome game of Dots-and-Boxes
+DNB_OBJ			= mdnb$(OBJSUFFIX)
+DNB_SO			= $(LIBDIR)/libmdnb$(LIBSUFFIX)
+
+RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
+RUBIX_SRC		= mrubix.c
+RUBIX_OBJ		= mrubix$(OBJSUFFIX)
+RUBIX_TCL_OBJ		= mrubixtcl$(OBJSUFFIX)
+RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
+
+GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
+GRAPH_OBJ		= mgraph$(OBJSUFFIX)
+
+ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
+ACHI_OBJ		= machi$(OBJSUFFIX)
+ACHI_SO			= $(LIBDIR)/libmachi$(LIBSUFFIX)
+
+QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
+QX_OBJ			= mqx$(OBJSUFFIX)
+QX_SO			= $(LIBDIR)/libmqx$(LIBSUFFIX)
+
+SLIDEN_EXE		= $(BINDIR)/mslideN$(EXESUFFIX)	# The mysterious game of slide-N
+SLIDEN_OBJ		= mslideN$(OBJSUFFIX)
+SLIDEN_SO		= $(LIBDIR)/libmslideN$(LIBSUFFIX)
+
+GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of Gobblet
+GOBBLET_OBJ		= mgobblet$(OBJSUFFIX)
+GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
+
+SOLVE_EXE		= $(BINDIR)/solve$(EXESUFFIX)
+SOLVE_OBJ		= solve$(OBJSUFFIX)
+
+
+##############################################################################
+### Game categories
+
+### Games written in C that work with the current gamesman core:
+# Object files
+CGAMEOBJS = $(1210_OBJ) $(NIM_OBJ) $(TTT_OBJ) $(SIM_OBJ) $(STT_OBJ) $(DODGEM_OBJ) $(GRAPH_OBJ) \
+	    $(TACTIX_OBJ) $(LGAME_OBJ) $(3DOT_OBJ) $(CMASS_OBJ) $(LITE3_OBJ) \
+	    $(CTOI_OBJ) $(WIN4_OBJ) $(RUBIX_OBJ) $(ACHI_OBJ) $(QX_OBJ) $(GOBBLET_OBJ) \
+	    $(SLIDEN_OBJ)
+
+# Binary files
+CGAMES = $(1210_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_EXE) $(DODGEM_EXE) $(GRAPH_EXE) \
+	 $(TACTIX_EXE) $(LGAME_EXE) $(3DOT_EXE) $(CMASS_EXE) $(LITE3_EXE) $(CTOI_EXE) \
+	 $(WIN4_EXE) $(RUBIX_EXE) $(ACHI_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE)
+
+# Tcl/Tk libraries
+CTCL =  $(1210_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) $(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) \
+	$(3DOT_SO) $(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(ACHI_SO) $(QX_SO) \
+	$(SLIDEN_SO)
+
+### Games written in C++ that work with the current gamesman core:
+# Object files
+CCGAMEOBJS = $(CON_OBJ)
+
+# Binary files
+CCGAMES = $(CON_EXE)
+
+# Tcl/Tk libraries
+CCTCL = $(CON_SO)
+
+### Games that need special attention
+SPECIALGAMES = $(DNB_EXE) $(FOXES_EXE) $(TTT_EXE)
+SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(RUBIX_SO) $(TTT_SO)
+
+
+##############################################################################
+### Global build rules
+
+all: 		text_all @COMPILEGRAPHICS@ gameline $(SOLVE_EXE)
+
+dist:		clean
+		rm -rf Makefile
+
+clean:
+		rm -rf $(CGAMES) $(CTCL) $(CCGAMES) $(CCTCL) $(SPECIALGAMES) $(SPECIALTCL) $(LIBDIR)/*~ $(BINDIR)/*~ @RMOBJS@ *~
+
+text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
+so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
+gameline:	$(GAMELINE_EXE)
+
+
+##############################################################################
+### Special files (non-games):
+
+$(DEP_OBJS): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(GAMELINE_OBJ): %$(OBJSUFFIX): %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(GAMELINE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
+	$(CC) $(LDFLAGS) -o $@ $<
+
+$(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(SOLVE_OBJ): %$(OBJSUFFIX): %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(SOLVE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
+	$(CC) $(LDFLAGS) -o $@ $<
+
+
+##############################################################################
+### Generic rules for games:
+
+$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ)
+	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(GAMESMAN_OBJ)
+
+$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ)
+
+$(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE)
+	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ)
+	$(CCC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(GAMESMAN_OBJ)
+
+$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CCC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(GAMESMAN_OBJ) $(GWISH_OBJ)
+
+
+##############################################################################
+### Special rules for deprecated games and others that need special attention
+
+$(TTT_EXE): $(TTT_OBJ) $(GAMESMAN_OBJ)
+	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ)
+
+$(TTT_SO): $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+
+$(DNB_OBJ): %$(OBJSUFFIX): %.cc $(DEP_INCLUDE)
+	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(DNB_EXE): $(DNB_OBJ) $(DEP_OBJS)
+	$(CCC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(DEP_OBJS)
+
+$(DNB_SO): $(DNB_OBJ) $(DEP_OBJS) $(DEP_GWISH_OBJ)
+	$(CCC) $(LDFLAGS) $(TCLSOFLAGS) -o $@ $< $(DEP_OBJS) $(DEP_GWISH_OBJ)
+
+$(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
+	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
+	$(CC) $(LDFLAGS) $(TCLEXEFLAGS) -o $@ $< $(DEP_OBJS)
+
+$(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
+	$(CC) $(LDFLAGS) $(TCLSOFLAGS) $(DEP_OBJS) $(DEP_GWISH_OBJ) -o $@ $<
+
+$(RUBIX_SO): $(RUBIX_TCL_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
+	$(CC) $(LDFLAGS) $(TCLSOFLAGS) $(GAMESMAN_OBJ) $(GWISH_OBJ) -o $@ $<
+
+$(RUBIX_TCL_OBJ): $(RUBIX_SRC)
+	$(CC) -DTCL $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
