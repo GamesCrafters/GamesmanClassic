@@ -58,6 +58,11 @@ proc GS_InitGameSpecific {} {
     set kTclAuthors "Greg Bonin, Nathan Spindel"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
+    set gInitialPosition [C_InitialPosition]
+    puts $gInitialPosition
+    set pieceString [C_GenericUnhash 62300342 16]
+
+
 }
 
 
@@ -209,39 +214,118 @@ proc GS_Initialize { c } {
 
     set margin 75
     set boardHeight 4
-    set boardWidth 3
+    set boardWidth 4
 
-    set cellSize [expr [expr $canvasWidth - [expr $margin * 2]] / [expr [max $boardHeight $boardWidth] - 1]]
+    set boardMax [max $boardHeight $boardWidth]
+    set cellSize [expr [expr $canvasWidth - [expr $margin * 2]] / [expr $boardMax - 1]]
 
     set horizontalStart [expr [expr $canvasWidth - [expr $cellSize * [expr $boardWidth - 1]]] / 2]
     set verticalStart [expr [expr $canvasHeight - [expr $cellSize * [expr $boardHeight - 1]]] / 2]
 
     for {set i 0} {$i < $boardHeight} {incr i} {
 	set verticalOffset [expr $verticalStart + [expr $i * $cellSize]]
-	$c create line $horizontalStart $verticalOffset [expr $canvasWidth - $horizontalStart] $verticalOffset
+	$c create line $horizontalStart $verticalOffset [expr $canvasWidth - $horizontalStart] $verticalOffset -tag base
     }
 
     for {set i 0} {$i < $boardWidth} {incr i} {
 	set horizontalOffset [expr $horizontalStart + [expr $i * $cellSize]]
-	$c create line $horizontalOffset $verticalStart $horizontalOffset [expr $canvasHeight - $verticalStart]
+	$c create line $horizontalOffset $verticalStart $horizontalOffset [expr $canvasHeight - $verticalStart] -tag base
     }
 
     set pieceSize [expr $cellSize / 4]
+    set arrowLength [expr $cellSize - $pieceSize]
+    set longArrowLength [expr [expr $cellSize * 2] - $pieceSize]
+    set arrowVar1 [expr 32 / $boardMax ]
+    set arrowVar2 [expr 64 / $boardMax ]
 
     for {set x 0} {$x < $boardWidth} {incr x} {
 	set horizontalOffset [expr $horizontalStart + [expr $x * $cellSize]]
 	for {set y 0} {$y < $boardHeight} {incr y} {
+	    set pos [expr [expr $y * $boardWidth] + $x]
 	    set verticalOffset [expr $verticalStart + [expr $y * $cellSize]]
 	    $c create oval [expr $horizontalOffset - $pieceSize] [expr $verticalOffset - $pieceSize] \
 		[expr $horizontalOffset + $pieceSize] [expr $verticalOffset + $pieceSize] -fill blue -tag piece$x$y
+	    if {$pos >= $boardWidth} {
+		set temp [expr $y -  1]
+		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset - $arrowLength] \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+	    }
+
+	    if {$pos >= [expr $boardWidth * 2]} {
+		set temp [expr $y -  2]
+		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset - $longArrowLength] \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+	    }
+	    
+	    if {$pos < [expr $boardWidth * [expr $boardHeight - 1]]} {
+		set temp [expr $y + 1]
+		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset + $arrowLength] \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+	    }
+	    
+	    if {$pos < [expr $boardWidth * [expr $boardHeight - 2]]} {
+		set temp [expr $y +  2]
+		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset + $longArrowLength] \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+	    }
+	    
+	    if {[expr $pos % $boardWidth] != 0} {
+		set temp [expr $x -  1]
+		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset - $arrowLength] $verticalOffset \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+	    }
+	    
+	    if {[expr $pos % $boardWidth] > 1} {
+		set temp [expr $x -  2]
+		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset - $longArrowLength] $verticalOffset \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+	    }
+	    
+	    if {[expr $pos % $boardWidth] < [expr $boardWidth - 1]} {
+		set temp [expr $x +  1]
+		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset + $arrowLength] $verticalOffset \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+	    }
+	    
+	    if {[expr $pos % $boardWidth] < [expr $boardWidth - 2]} {
+		set temp [expr $x +  2]
+		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset + $longArrowLength] $verticalOffset \
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
+		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+	    }
+	       
 	    $c bind piece$x$y <Enter> "MouseOverExpand piece$x$y $c"
 	    $c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
-
 
 	}
     }
 
+    $c raise base all    
+#    $c raise arrow1121
+
+#    set gInitialPosition [C_InitialPosition]
+#    set gInitialPosition [C_Primitive]
+#    puts $gInitialPosition
+
+#    set gPosition $gInitialPosition
+
+ #   set pieceString [string range [C_GenericUnhash 62300324 16] 0 15]
+#    puts $pieceString
+
 }    
+
+proc MovePiece { x1 y1 x2 y2 c} {
+    $c lower piece$x1$y1
+    $c itemconfig piece$x2$y2 -fill [$c itemcget piece$x1$y1 -fill]
+    $c raise piece$x2$y2
+}
 
 proc MouseOverExpand { dot c } {
     global dotExpandAmount
@@ -251,6 +335,7 @@ proc MouseOverExpand { dot c } {
 proc MouseOutContract { dot c } {
     $c itemconfig $dot -fill blue
 }
+
 
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this

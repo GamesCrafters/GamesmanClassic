@@ -14,7 +14,9 @@
 
 #include "tk.h"
 #include "gamesman.h"
+#include "hash.h"
 #include<string.h>
+
 
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
@@ -177,7 +179,7 @@ InitialPositionCmd(dummy, interp, argc, argv)
     interp->result ="wrong # args: shouldn't be any";
     return TCL_ERROR;
   }
-  //sprintf(interp->result,"%d",(int)getInitialPosition());
+  sprintf(interp->result,"%d",(int)GetInitialPosition());
   return TCL_OK;  
 }
 
@@ -194,13 +196,15 @@ GenericUnhashCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   char *board;
-  int n;
-  board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
-  generic_unhash(atoi(argv[1]),board);
+  // int n;
+  //  board = (char *) SafeMalloc (sizeof(char)*16);
+  board = (char *) SafeMalloc (16 * sizeof(char));
+  //  generic_unhash(atoi(argv[1]),board);
+  //  generic_unhash(62300342,board);
+  generic_unhash(0,board);
   sprintf(interp->result, "%s",board);
   return TCL_OK;
 }
-
 
 static int
 FooCmd(dummy, interp, argc, argv)
