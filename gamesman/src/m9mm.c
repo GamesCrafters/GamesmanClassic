@@ -1,4 +1,4 @@
-// $id$
+//$Id: m9mm.c,v 1.74 2004-10-22 17:53:15 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -2183,6 +2183,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.73  2004/10/22 17:47:46  ogren
+//Added $ back to the top of the file. -Elmer
+//
 //Revision 1.72  2004/10/21 00:53:05  ddgarcia
 //Removed silly int prototype for generic_hash_init
 //
