@@ -17,6 +17,7 @@
 **
 ** CHECKLIST: 
 **            Fix Bugs (GoAgain)
+**            Unflag GoAgain
 **            PROOFREAD
 **            DOUBLE CHECK DEFAULT POSITION!
 ** 
@@ -255,6 +256,8 @@ int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with 
 
 #define DOMOVE_DEBUG 0
 #define DOMOVE_TEST 0
+
+#define GAMESMAN_GOAGAIN_DEBUG 0
 
 #define PRIMITIVE_DEBUG 0
 
@@ -629,7 +632,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	locationToCoord(origin,coord_origin);
 	locationToCoord(destination,coord_destination);
 	/* Now check if we need to remove pieces */
-	if(origPiece = 'F' && 
+	if(origPiece == 'F' && 
 	  (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
 	{
 		int del_coord[2];
@@ -675,29 +678,43 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 
 BOOLEAN GoAgain(POSITION pos, MOVE move)
 {
-	int moveArray[2];
 	int player = whoseMove(getPosition(pos));
-	
+	if(GAMESMAN_GOAGAIN_DEBUG)
+	{
+		printf("Move: "); PrintMove(move); printf("    ");
+		printf("player == %d ",player);
+	}
 	if (variant_goAgain && player == FOX_PLAYER)
 	{
+		int moveArray[2];
 		int coord_origin[2];
 		int coord_destination[2];
+		unHashMove(move,moveArray);
 		locationToCoord(moveArray[0],coord_origin);
 		locationToCoord(moveArray[1],coord_destination);
+		if(GAMESMAN_GOAGAIN_DEBUG)
+		{
+			printf(" FOX PLAYER DETECT ");
+			printf(" init = %d   dest = %d  ", moveArray[0],moveArray[1]);
+			printf(" deltax = %d   deltay = %d ",abs(coord_origin[0] - coord_destination[0]),abs(coord_origin[1] - coord_destination[1]));
+		}
 		if (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2)
 		{
 			char board[BOARDSIZE];
 			generic_unhash(getPosition(pos), board);
 			unHashMove(move,moveArray);
+			if(GAMESMAN_GOAGAIN_DEBUG) {printf("GO AGAIN %d \n", MoreKillMoves(board, moveArray[1], FOX_PLAYER));}
 			return MoreKillMoves(board, moveArray[1], FOX_PLAYER);
 		}
 		else
-		{
+		{	
+			if(GAMESMAN_GOAGAIN_DEBUG){ printf("NO GO AGAIN\n");}
 			return 0;
 		}
 	}
 	else
 	{
+		if(GAMESMAN_GOAGAIN_DEBUG) {printf("NO GO AGAIN\n");}
 		return 0;
 	}
 	return 0;
@@ -843,7 +860,7 @@ VALUE Primitive (POSITION pos)
 		{
 			printf("Fox Player      ");
 		}
-		printf("NumGeese = %d    NumWinGeese %d  ",numGeese(boardStats), numWinGeese(boardStats));
+		printf("NumGeese = %d    NumWinGeese = %d  ",numGeese(boardStats), numWinGeese(boardStats));
 	}
 	if (numGeese(boardStats) < GEESE_MIN)
 	{
