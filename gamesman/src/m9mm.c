@@ -106,7 +106,7 @@ char *gblankoxString[] = { "_", "x", "o"};
 ** Function Prototypes:
 */
 
-
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn); // not sure why..
 int hash(blankox *board, blankox turn);
 blankox *unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
@@ -360,8 +360,8 @@ void PrintComputersMove(computersMove, computersName)
      STRING computersName;
 {
   printf("%8s's move              : from %d  to %d\n", computersName, from(computersMove), to(computersMove));
-  if (closes_mill_move(computersMove)
-      prinf("\tand removes %d", remove_piece(computersMove));
+  if (closes_mill_move(computersMove))
+      printf("\tand removes %d", remove_piece(computersMove));
 }
 
 
@@ -462,7 +462,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("        |           |           |       |           |           |\n");
   printf("        |           |           |       |           |           |\n");
   printf("        21----------22----------23      %c-----------%c-----------%c\n", c_board[21], c_board[22], c_board[23] );
-  GetPrediction(position,playerName,usersTurn));
+  GetPrediction(position,playerName,usersTurn);
     /*
   0-----------1-----------2
   |           |           |
@@ -633,15 +633,15 @@ BOOLEAN ValidTextInput(input)
   //and an optional comma with a number
   
   int i;
-  int index;
+
   BOOLEAN hasSpace, hasComma;
   STRING afterSpace;
   STRING afterComma;
   
   i = atoi(input);
 
-  hasSpace = (index(input, ' ')) == NULL;
-  hasComma = (index(input, ',')) == NULL;
+  hasSpace = index(input, ' ') == NULL;
+  hasComma = index(input, ',') == NULL;
   
   if (hasSpace)
     afterSpace = index(input, ' ');
@@ -652,22 +652,22 @@ BOOLEAN ValidTextInput(input)
   if (hasComma)
     afterComma = index(input, ',');
   else
-    afterComma = -1;
+    afterComma = -1;  // should be a bad else
 
   i = atoi(input);
-  if (!(i < BOARDSIZE) && (i > = 0))
+  if (!(i < BOARDSIZE) && (i >= 0))
   	return FALSE;
   
   i = atoi(afterSpace);
-  if (!(i < BOARDSIZE) && (i > = 0))
+  if (!(i < BOARDSIZE) && (i >= 0))
   	return FALSE;
   
   if (hasComma)
   i = atoi(afterComma);
-  if (!(i < BOARDSIZE) && (i > = 0))
+  if (!(i < BOARDSIZE) && (i >= 0))
   	return FALSE;
   else 
-  	return TRUE
+    return TRUE;
   
   return FALSE; // should never be reached
   
@@ -693,23 +693,24 @@ MOVE ConvertTextInputToMove(input)
   int from, to, remove;
   STRING afterSpace;
   STRING afterComma;
+  BOOLEAN hasSpace, hasComma;
 
   hasSpace = (index(input, ' ')) == NULL;
   hasComma = (index(input, ',')) == NULL;
   
   from = atoi(input);
   
-  if (hasSpace)
+  if (hasSpace) {
     afterSpace = index(input, ' ');
-    to = atoi(afterSpace)
-  else {
+  to = atoi(afterSpace);
+  } else {
     return 0; // Should be a bad else
   }
     
-  if (hasComma)
+  if (hasComma) {
     afterComma = index(input, ',');
     remove = atoi(afterComma);
-  else
+  } else
     remove = from;
     
   return hash_move(from, to, remove);
@@ -729,9 +730,9 @@ void PrintMove(theMove)
      MOVE theMove;
 {
       printf("\"%d %d", from(theMove), to(theMove));
-	  if (closes_mill_move(theMove))
-	  	printf(" %d", remove_piece(theMove);
-	  printf("\"");
+      if (closes_mill_move(theMove))
+	printf(" %d", remove_piece(theMove));
+      printf("\"");
 }
 
 /************************************************************************
@@ -786,7 +787,7 @@ void setOption(int option)
   option--;
   gStandardGame = option %2;
   
-  return option;
+
 }
 
 /************************************************************************
@@ -959,6 +960,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.16  2004/03/11 01:42:48  evedar
+//Finished m9mm functions.  Still needs: fixes from last checkin, help strings, etc.  Need to compile this latest version.  Specifically: filled in get option, set option, game-specific menu.
+//
 //Revision 1.15  2004/03/10 23:47:07  evedar
 //Filled in almost all user i/o functions.  Need to fix: int/MOVE abstraction, badElse's.  Had to hard code in get initial position.  Should add a position hash/unhash sanity check to that function.  Commented 9mm out of Makefile while getting this stuff to compile.
 //
