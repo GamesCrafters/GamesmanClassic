@@ -448,11 +448,11 @@ proc GS_InitGameSpecific {} {
 	set toWin1 "To Win: "
     }
 
-    set toWin2 "Connect 3 pieces in a row in any direction"
+    set toWin2 "To get three pieces in a row either diagonally, horizontally or vertically."
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click on a dot to place a piece, click on an arrow to slide a piece"
+    SetToMoveString  "To Move: Players alternate turns placing each of their three pieces on one of 9 intersections. During this phase, players can attempt to connect three of their pieces in a row. If no one succeeds, then the first player slides any of his pieces along the line to an empty adjacent spot. Click on a dot to place a piece and  click on an arrow to slide a piece."
 
 }
 
