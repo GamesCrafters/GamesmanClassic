@@ -1403,7 +1403,7 @@ void PrintMove (MOVE move)
 
 int NumberOfOptions ()
 {
-	return 0;
+	return 2*2*2*6;
 }
 
 
@@ -1443,8 +1443,8 @@ int getOption()
 void setOption(int option)
 {
 	           variant_goAgain = option & 0x1; /* 0b001 */
-	         variant_diagonals = option & 0x2; /* 0b010 */
-	variant_geeseMoveBackwards = option & 0x4; /* 0b100 */
+	         variant_diagonals = option >> 1 & 0x1;             
+	variant_geeseMoveBackwards = option >> 2 & 0x1;             
 	                 GEESE_MIN = option >> 3;
 		    GEESE_HASH_MIN = GEESE_MIN - 1;
 		    init_board_hash();
