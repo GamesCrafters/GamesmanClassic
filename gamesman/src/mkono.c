@@ -25,6 +25,9 @@
 **              10/08/04 - Changed it so the user input is 1-16 instead of 0-15.
 **                         Added help strings. Added LEGEND and BOARD to printPosition.
 **
+**              10/11/04 - Fixed i/o formatting a bit, added predictions to PrintPosition.
+**
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -55,8 +58,8 @@ BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -414,7 +417,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("|\n");
   printRowOfBars();
 
-  printf("\n\t\tIt is %s turn.\n\n", (whoseMove(position) == BLACK_PLAYER) ? "x's" : "o's");
+  printf("\n\tIt is %s's (%s) turn.\n", playersName, (whoseMove(position) == BLACK_PLAYER) ? "x" : "o");
+  printf("\t%s\n\n", GetPrediction(position,playersName,usersTurn));
 }
 
 void printRowOfBars() {
@@ -442,9 +446,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
   if (neighbors(getSourceFromMove(computersMove), getDestFromMove(computersMove)))
     printf("%s moved the piece at %d to %d.\n\n", computersName,
-	   getSourceFromMove(computersMove), getDestFromMove(computersMove));
+	   getSourceFromMove(computersMove)+1, getDestFromMove(computersMove)+1);
   else printf("%s captured the piece at %d with the piece from %d.\n\n",
-	      computersName, getDestFromMove(computersMove), getSourceFromMove(computersMove));
+	      computersName, getDestFromMove(computersMove)+1, getSourceFromMove(computersMove)+1);
 }
 
 
