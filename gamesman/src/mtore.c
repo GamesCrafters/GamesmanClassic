@@ -70,20 +70,20 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 STRING kHelpGraphicInterface =
 "Not written yet";
 
-STRING   kHelpTextInterface    =
-""; 
+STRING   kHelpTextInterface =
+"Type in from what position you want to move from to the position you want to move to.  For example, if you want to move from 2 to 3, type in '23'."; 
 
 STRING   kHelpOnYourTurn =
-"";
+"Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
 
 STRING   kHelpStandardObjective =
-"";
+"The objective is to trap your opponent so he has no possible moves left.";
 
 STRING   kHelpReverseObjective =
-"";
+"Objective is to obtain a position in which you have no more moves";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie will never occur";
 
 STRING   kHelpExample =
 "";
