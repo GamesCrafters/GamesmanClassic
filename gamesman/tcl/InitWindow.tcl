@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.39 2004-11-03 23:49:06 ogren Exp $
+# $Id: InitWindow.tcl,v 1.40 2004-11-16 07:47:37 nizebulous Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -790,13 +790,12 @@ proc InitWindow { kRootDir kDir kExt } {
 	} else {
 	    set gReallyUnsolved true
 	    set gGameSolved true
-	    NewGame
-	    DriverLoop
+	    #NewGame
+	    #DriverLoop
 	}
 	pack forget .middle.f2.fPlayOptions
 	global gSmartness gSmartnessScale
 	C_SetSmarterComputer $gSmartness $gSmartnessScale
-	.middle.f3.cMRight raise WhoseTurn
 	pack .middle.f2.cMain -expand 1
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.middle.f3.cMRight lower play
@@ -821,6 +820,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	global gGamePlayable
 	set gGamePlayable true
 	NewGame
+	.middle.f3.cMRight raise WhoseTurn
     }	
     .middle.f1.cMLeft lower detVal
     .middle.f3.cMRight lower play

@@ -66,9 +66,9 @@ set lineColor CadetBlue4
 ## base
 set baseColor white
 ## arrow lists
-set diagArrows  {list 04 40 15 51 37 73 48 84 13 31 24 42 46 64 57 75}
-set horizArrows {list 01 10 12 21 34 43 45 54 67 76 78 87}
-set vertArrows  {list 03 30 14 41 25 52 36 63 47 74 58 85}
+set diagArrows  { 4 40 15 51 37 73 48 84 13 31 24 42 46 64 57 75}
+set horizArrows { 1 10 12 21 34 43 45 54 67 76 78 87}
+set vertArrows  { 3 30 14 41 25 52 36 63 47 74 58 85}
 
 ## animation delay
 set slideDelay 20000
@@ -609,7 +609,7 @@ proc makeBoard { c } {
 
     # horizontal arrows
     # top row
-    set arrow01 [$c create line $x0 $y0 [expr $x0 + 1.3 * $dotmid] $y0 -tags [list arrow-01 arrow]];
+    set arrow1 [$c create line $x0 $y0 [expr $x0 + 1.3 * $dotmid] $y0 -tags [list arrow-1 arrow]];
     set arrow10 [$c create line $x1 $y0 [expr $x1 - 1.3 * $dotmid] $y0 -tags [list arrow-10 arrow]];
     set arrow12 [$c create line $x1 $y0 [expr $x1 + 1.3 * $dotmid] $y0 -tags [list arrow-12 arrow]];
     set arrow21 [$c create line $x2 $y0 [expr $x2 - 1.3 * $dotmid] $y0 -tags [list arrow-21 arrow]];
@@ -635,7 +635,7 @@ proc makeBoard { c } {
 
     # vertical arrows
     # left column
-    set arrow03 [$c create line $x0 $y0 $x0 [expr $y0 + 1.3 * $dotmid] -tags [list arrow-03 arrow]];
+    set arrow3 [$c create line $x0 $y0 $x0 [expr $y0 + 1.3 * $dotmid] -tags [list arrow-3 arrow]];
     set arrow30 [$c create line $x0 $y3 $x0 [expr $y3 - 1.3 * $dotmid] -tags [list arrow-30 arrow]];
     set arrow36 [$c create line $x0 $y3 $x0 [expr $y3 + 1.3 * $dotmid] -tags [list arrow-36 arrow]];
     set arrow63 [$c create line $x0 $y6 $x0 [expr $y6 - 1.3 * $dotmid] -tags [list arrow-63 arrow]];    
@@ -665,7 +665,7 @@ proc makeBoard { c } {
 #     set botRightRDL [$c create line $x2 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-57 line-75]];
 
     # diagonal arrows - forward slashes
-    set arrow04 [$c create line $x0 $y0 [expr $x0 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-04 arrow]];
+    set arrow4 [$c create line $x0 $y0 [expr $x0 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-4 arrow]];
     set arrow40 [$c create line $x1 $y3 [expr $x1 - $dotmid] [expr $y3 - $dotmid] -tags [list arrow-40 arrow]];
     set arrow15 [$c create line $x1 $y0 [expr $x1 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-15 arrow]];
     set arrow51 [$c create line $x2 $y3 [expr $x2 - $dotmid] [expr $y3 - $dotmid] -tags [list arrow-51 arrow]];
@@ -764,19 +764,22 @@ proc makeBoard { c } {
 
     ## bind the horizontal arrows
     foreach item $horizArrows {
-	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	set movebind [expr $item + 11]
+	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $movebind"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
     }
 
     ## bind the vertical arrows
     foreach item $vertArrows {
-	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	set movebind [expr $item + 11]
+	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $movebind"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
     }
 
     ## bind the diagonal arrows
     foreach item $diagArrows {
-	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
+	set movebind [expr $item + 11]
+	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $movebind"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
     }
 
@@ -898,7 +901,6 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set whoseTurn [lindex $boardList 0]
     set from 0
     set to 0
-
     if { [expr $theMove < 10 ] } {
 	$c itemconfig $whoseTurn-$theMove -width [expr $pieceSize * 5]
 	$c raise $whoseTurn-$theMove base
@@ -927,7 +929,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	$c itemconfig $whoseTurn-$theMove -width $pieceOutline
 	update idletasks
 
-    } elseif { [expr $theMove > 9 && $theMove < 100] } {
+    } elseif { [expr $theMove > 11 && $theMove < 100] } {
 	#puts {do a rearranger move}
         set theMove [expr $theMove - 11]
 	set from [expr $theMove / 10]
@@ -977,7 +979,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } else {
 		set color red4
 	    }
-	}	
+	}
 
 	if {$move < 10} {
 	    $c itemconfig place-$move -fill $color -outline $color
