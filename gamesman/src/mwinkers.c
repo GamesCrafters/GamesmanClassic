@@ -101,7 +101,7 @@ STRING   kHelpExample =
 #define BOARDWIDTH     3
 #define BOARDHEIGHT    1
 #define PASSMOVE 0
-int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
+int BOARDSIZE;
 
 typedef enum possibleBoardPieces {
   Blank, O, R, B
@@ -109,7 +109,9 @@ typedef enum possibleBoardPieces {
 
 char *gBlankORBString[] = { "·", "O", "R", "B" };
 
-char *gBoard, *LegendKey;
+char *gBoard;
+// char *LegendKey;
+
 int *CP, *RW, *RN;
 
 /*typedef struct moveValuesStruct {
@@ -173,16 +175,18 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
+
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
-  LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+  //  LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
   RN = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
   RW = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
   CP = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
 
-  int x;
-  for (x = 0; x < BOARDSIZE; x++) {
-    LegendKey[x] = Legend(x+1);
-  } 
+  //  int x;
+  //  for (x = 0; x < BOARDSIZE; x++) {
+  //   LegendKey[x] = Legend(x+1);
+  // } 
 
   int half = (BOARDSIZE + 1) / 2;
 
@@ -349,7 +353,8 @@ void PrintComputersMove(computersMove, computersName)
   if (computersMove == PASSMOVE)
     printf("pass");
   else 
-    printf("%c", LegendKey[computersMove-1]);
+    printf("%d", computersMove);
+    //    printf("%c", LegendKey[computersMove-1]);
 }
 
 
@@ -475,19 +480,23 @@ void PrintPosition (position, playerName, usersTurn)
 
   printf("\n");
 
+  int z = 1;
   for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
     if (i == BOARDHEIGHT)
       printf (" LEGEND: ");
     else
       printf ("         ");
 
-    PrintSpaces (abs(BOARDHEIGHT - i));
+    PrintSpaces (2*abs(BOARDHEIGHT - i));
 
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%c ", LegendKey[n++]);
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++) {
+      printf("%2d  ", z);
+      z++;
+    }
+      //      printf("%c ", LegendKey[n++]);
     
-    PrintSpaces (abs(BOARDHEIGHT - i));
-    printf(": ");
+    PrintSpaces (2*abs(BOARDHEIGHT - i));
+    printf(" : ");
     PrintSpaces (abs(BOARDHEIGHT - i));
     
     for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
@@ -607,19 +616,20 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 {
   USERINPUT ret, HandleDefaultTextInput();
   do {
-    printf("%8s's move [(p)ass,", playerName);
-    if (BOARDSIZE == 0)
-      printf("0] : ");
-    else if (BOARDSIZE < 10)
-      printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
-    else if (BOARDSIZE == 10)
-      printf("1-9/A] : ");
-    else if (BOARDSIZE < 36)
-      printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
-    else if (BOARDSIZE == 36)
-      printf("1-9/A-Z/a] : ");
-    else 
-      printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
+    printf("%8s's move [(p)ass,1-%d] : ", playerName, BOARDSIZE);
+    /*    if (BOARDSIZE == 0)
+	  printf("0] : ");
+	  else if (BOARDSIZE < 10)
+	  printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
+	  else if (BOARDSIZE == 10)
+	  printf("1-9/A] : ");
+	  else if (BOARDSIZE < 36)
+	  printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
+	  else if (BOARDSIZE == 36)
+	  printf("1-9/A-Z/a] : ");
+	  else 
+	  printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
+    */
 
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if (ret != Continue)
@@ -651,7 +661,7 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
-  if (strlen(input) != 1)
+  if (strlen(input) != 1 && strlen(input)!= 2)
     return FALSE;
   int a;
   if (a = ConvertToNumber(input) < 0)
@@ -696,7 +706,8 @@ void PrintMove (move)
   if (move == PASSMOVE)
     printf("pass");
   else
-    printf("%c", LegendKey[move-1]);
+    printf("%d", move);
+    //    printf("%c", LegendKey[move-1]);
 }
 
 /************************************************************************
@@ -770,16 +781,32 @@ void setOption(int option)
 int ConvertToNumber(input)
      STRING input;
 {
-  char a = input[0];
-  int i;
-  for (i=0; i< BOARDSIZE; i++)
-    if (a == LegendKey[i])
-      return i+1;
-  
-  if (a == 'p' || a == 'P')
-    return 0;
+  int x;
 
-  return -1;
+  if (strlen(input) == 1) {
+    char a = input[0];
+    if (a == 'p' || a == 'P')
+      return 0;
+
+    x = a - '0';
+  } else if (strlen(input) == 2) {
+    int a = input[0] - '0';
+    int b = input[1] - '0';
+  
+    if (a < 1 || b < 0 || a > 9 || b > 9)
+      return -1;
+    
+    x = 10*a + b;    
+  }
+
+  if (x < 0 || x > BOARDSIZE)
+    return -1;
+    /*  int i;
+	for (i=0; i< BOARDSIZE; i++)
+	if (a == LegendKey[i])
+	return i+1;
+    */
+  return x;
 }
 
 char MoveToCharacter(move)
@@ -822,20 +849,21 @@ int Legend (n)
 }
 
 VALUE EndGame(char x, int player) {
+  VALUE EndGame2(VALUE);
+
   if (x == 'R') {
     if (player == 1)
-      return win;
+      return (gStandardGame ? win : lose);
     else
-      return lose;
+      return (gStandardGame ? lose : win);
   } else if (x == 'B') {
     if (player == 1)
-      return lose;
+      return (gStandardGame ? lose : win);
     else
-      return win;
+      return (gStandardGame ? win : lose);
   } else
     return undecided;
 }
-
 
 char ThreeInARow(theBlankORB, a, b, c)
      char theBlankORB[];
