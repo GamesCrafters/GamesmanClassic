@@ -311,7 +311,7 @@ void setFlyingText()
   }
 
   // debug
-  if (TRUE) {
+  if (debug) {
     printf("gFlying = %d\n", gFlying);
     printf("kHelpOnYourTurn(%d):%s\n",strlen(kHelpOnYourTurn),kHelpOnYourTurn);
   }
@@ -1753,6 +1753,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.64  2004/05/05 22:38:55  ogren
+//fixed mutating help text, with expertise of Bryon -Elmer
+//
 //Revision 1.63  2004/05/05 22:14:14  bryonr
 //Fixed GenerateParents and solver
 //
