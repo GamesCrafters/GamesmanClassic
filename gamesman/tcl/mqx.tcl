@@ -30,7 +30,7 @@
 # and so on...
 
 proc GS_InitGameSpecific {} {
-    puts "begin initgamespecific"
+    # puts "begin initgamespecific"
     ### Set the name of the game
     
     global kGameName
@@ -155,7 +155,11 @@ proc GS_InitGameSpecific {} {
     for {set q 0} {$q < $NUM_SQUARES} {incr q} {
 	lappend SHADOW_ARRAY 0
     }
-    puts $SHADOW_ARRAY
+    # puts $SHADOW_ARRAY
+
+    #whoseturn variable
+    global WHOSETURN
+    set WHOSETURN 1
 }
 
 
@@ -168,7 +172,7 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 
 proc GS_NameOfPieces {} {
-    puts "begin name of pieces"
+    # puts "begin name of pieces"
     return [list x o]
 }
 
@@ -186,7 +190,7 @@ proc GS_NameOfPieces {} {
 proc GS_Initialize { c } {
     global CANVAS_WIDTH CANVAS_HEIGHT
 
-    puts "begin of initialize"
+    # puts "begin of initialize"
     # you may want to start by setting the size of the canvas; this line isn't necessary
     $c configure -width $CANVAS_WIDTH -height $CANVAS_HEIGHT
 
@@ -220,7 +224,7 @@ proc MakeBoard { c } {
     # board width vars
     global BOARD_WIDTH
 
-    puts "begin MakeBoard"
+    # puts "begin MakeBoard"
 
     $c delete all
 
@@ -285,7 +289,7 @@ proc MakeBoard { c } {
     global HORIZ_SHADOW_SPACE_OFFSET
 
     for { set i 0} { $i < $NUM_TILES_VERT } {incr i} {
-	puts "verts "
+	# puts "verts "
 	#Draw all the vertical bar pieces "|"
 	set y1 [expr $TOP_PADDING + $i * $TILE_HEIGHT]
 	set y2 [expr $y1 + $TILE_HEIGHT]
@@ -308,7 +312,7 @@ proc MakeBoard { c } {
 	set y1 [expr $TOP_PADDING + $i * $TILE_HEIGHT + $TILE_HEIGHT/2]
 	set y2 $y1
 	for {set j 0} {$j < $NUM_TILES_HORIZ} {incr j} {
-	    puts "horiz"
+	    # puts "horiz"
 	    set x1 [expr $LEFT_PADDING + $j * $TILE_WIDTH]
 	    set x2 [expr $x1 + $TILE_WIDTH]
 	    # now, "shorten" x1 x2 so that the piece length is less than tile-width
@@ -322,40 +326,39 @@ proc MakeBoard { c } {
 	    $c create line [expr $x1+$HORIZ_SHADOW_SPACE_OFFSET] $y1 [expr $x2-$HORIZ_SHADOW_SPACE_OFFSET] $y2 -tag [list ALL_PIECES SHADOWS SHADOW$piece_num SHADOW_HORIZ$piece_num] -width $HORIZ_SHADOW_THICKNESS -fill $HORIZ_SHADOW_COLOUR -capstyle round
 	}
 
-	puts "test 0"
+	# puts "test 0"
 	set tileNum 0
 	set vertTiles 0
 	set horizTiles 0
-	puts "test 1"
-	puts "nume verts"
-	puts $vertTiles
+	# puts "test 1"
+	# puts "nume verts"
+	# puts $vertTiles
 	for {set j $TOP_PADDING} {$vertTiles < $NUM_TILES_VERT} {set j [expr $j + $TILE_HEIGHT]} {
-	puts "nume verts"
-	puts $vertTiles
-	    puts "test 3"
+	# puts "nume verts"
+	# puts $vertTiles
+	    # puts "test 3"
 	    for {set k $LEFT_PADDING} {$horizTiles < $NUM_TILES_HORIZ} {set k [expr $k + $TILE_WIDTH]} {
 		$c create rectangle $k $j [expr $k + $TILE_WIDTH] [expr $j + $TILE_HEIGHT] -fill $BOARD_COLOUR -tag [list TILES TILE$tileNum]
 		set tileNum [expr $tileNum + 1]
-		puts "test 4"
+		# puts "test 4"
 		incr horizTiles
-		puts "test 5"
+		# puts "test 5"
 	    }
 	    set horizTiles 0
 	    incr vertTiles
 	}
 	
-	puts "test 2"
+	# puts "test 2"
     }
     global SHADOW_ARRAY
     # put bindings on tiles
     for {set i 0} {$i < $NUM_SQUARES} {incr i} {
-	$c bind TILE$i <Enter> "RaiseShadows $c $i"
-	$c bind TILE$i <Leave> "$c lower SHADOW$i"
-	$c bind SHADOW$i <Enter> "$c raise SHADOW$i"
-	$c bind SHADOW_HORIZ$i <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; $c raise PIECE_HORIZ$i; $c lower SHADOW$i"
-	$c bind SHADOW_VERT$i  <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; $c raise PIECE_VERT$i; $c lower SHADOW$i"
-	$c bind PIECE_HORIZ$i  <ButtonRelease-1> "$c raise PIECE_VERT$i; $c lower PIECE_HORIZ$i"
-	$c bind PIECE_VERT$i   <ButtonRelease-1> "$c raise PIECE_HORIZ$i; $c lower PIECE_VERT$i"
+#	$c bind TILE$i <Enter> "RaiseShadows $c $i"
+#	$c bind TILE$i <Leave> "$c lower SHADOW$i"
+	$c bind SHADOW_HORIZ$i <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; $c raise PIECE_HORIZ$i; $c lower SHADOW$i;  SendMove - $i;"
+	$c bind SHADOW_VERT$i  <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; $c raise PIECE_VERT$i; $c lower SHADOW$i; SendMove | $i;"
+	$c bind PIECE_HORIZ$i  <ButtonRelease-1> "$c lower PIECE_HORIZ$i TILES; $c raise PIECE_VERT$i; update idletasks; SendMove x $i;"
+	$c bind PIECE_VERT$i   <ButtonRelease-1> "$c lower PIECE_VERT$i TILES; $c raise PIECE_HORIZ$i; update idletasks; SendMove x $i;"
     }
 
     $c lower BACK all
@@ -365,9 +368,23 @@ proc MakeBoard { c } {
     
 } 
 
+proc wait {} {
+    for {set j 0} {$j < 5000} {incr j} {
+	update idletasks
+    }
+}
+
+proc spinwait { n } {
+    
+    for {set j 0} {$j < $n} {incr j} {
+	update idletasks
+    }
+
+}
+
 proc RaiseShadows { c pieceNum } {
     global SHADOW_ARRAY
-    puts "begin raise shadows"
+    # puts "begin raise shadows"
     if { [lindex $SHADOW_ARRAY $pieceNum] == 0 } {
 	$c raise SHADOW$pieceNum
     }
@@ -389,7 +406,7 @@ proc RaiseShadows { c pieceNum } {
 #unhash:
 
 proc expt { num power} {
-    puts "begin expt: with:num $num, power: $power"
+    #puts "begin expt: with:num $num, power: $power"
     if {$power == 0} {
 	return 1
     }
@@ -398,43 +415,51 @@ proc expt { num power} {
 
 proc unhash { position } {
     set board {}
-    puts "begin unhash"
-    if { $position < 0 } {
-	set position [expr $position * -1] }
+    #puts "begin unhash"
+     if { $position >= 43046721 } {
+	lappend board H
+ 	set position [expr {$position - 43046721}]
+     } else {
+	 lappend board V
+     }
+
+    # puts "-->unhash--> $board"
 
     for {set i 11} {$i >= 0} {set i [expr $i - 1]} {
 	set ifV [expr {2 * [expt 3 $i]}]
 	set ifH [expr {1 * [expt 3 $i]}]
-	if [expr {$position >= $ifV}] {
+	if {$position >= $ifV} {
 	    lappend board 2
 	    set position [expr {$position - $ifV}]
-	} elseif [expr {$position >= $ifH}] {
+	} elseif {$position >= $ifH} {
 	    lappend board 1
 	    set position [expr {$position - $ifH}]
 	} else {
 	    lappend board 0
 	}
+	# puts "-->unhash--> $board"
     }  
 
     #arrange board
-    set orderedBoard [lindex $board 0]
-    for {set i 11} {$i >= 0} {set i [expr $i - 1]} {
+    set orderedBoard {}
+    for {set i 12} {$i >= 0} {set i [expr $i - 1]} {
         lappend orderedBoard [lindex $board $i] 
     }    
+    
+    # puts "---> UNHASH PRODUCES --> $orderedBoard"
 
-    puts "--end unhash--"
     return $orderedBoard
 }
 
 proc GS_DrawPosition { c position } {
     $c raise BOARD all
 
-    puts "begin draw position"
+    #puts "begin draw position"
 
     # BTW too: don't make any assumptions about the state of the board.
     set boardList [unhash $position]
 
-    for {set i 1} {$i <= 12} {set i [expr $i + 1]} {
+    for {set i 0} {$i <= 11} {set i [expr $i + 1]} {
 	set posi [lindex $boardList $i]
 	if { $posi == 2 } {
 	    $c itemconfig PIECE_VERT$i -fill black
@@ -459,10 +484,10 @@ proc GS_NewGame { c position } {
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     
-    puts "begin NEWGAME"
+    # puts "begin NEWGAME"
 
     GS_DrawPosition $c $position
-    puts "--end NEWGAME--"
+    # puts "--end NEWGAME--"
 }
 
 
@@ -490,37 +515,58 @@ proc GS_NewGame { c position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     global NUM_SQUARES
 
-    puts "begin HandleMove"
+    puts "*****  begin HandleMove  WITH MOVE $theMove"
+    set oldBoard [unhash $oldPosition]
+    set newBoard [unhash $newPosition]
+    puts "** OLD BOARD: $oldBoard"
+    puts "** NEW BOARD: $newBoard"
 
-    if { $theMove <= $NUM_SQUARES } {
+
+    if { $theMove < $NUM_SQUARES } {
 	# thus, place a - at theMove
 	$c lower SHADOW$theMove
 
 	# raise the right piece
 	$c raise PIECE_HORIZ$theMove
-    } elseif { $theMove <= [expr 2*$NUM_SQUARES] } {
+	puts "******** placed a - at square $theMove (handlemove)"
+	update idletasks
+    } elseif { $theMove < [expr 2*$NUM_SQUARES] } {
 	# thus, place a | at the square.
 	set square [expr $theMove - $NUM_SQUARES]
 	# lower the shadows at square
 	$c lower SHADOW$square
 	# raise the |
 	$c raise PIECE_VERT$square
+	puts "****** placed a | piece at square $square (handlemove)"
+	update idletasks
     } elseif { $theMove <= [expr 3*$NUM_SQUARES] } {
 	# thus, flip the piece at the square
 	set square [expr $theMove - [expr 2 * $NUM_SQUARES]]
 	# figure out which piece is currently on top, and flip it with the other
 	# NOTE: WE NEED TO MAKE SURE THAT oldPosition Holds the right stuff, and what it holds, THEN MAKE SURE what the value
 	#       at that square is.
-	set currentPiece [lindex $oldPosition $square]
+	set boardlist [unhash $oldPosition]
+	puts "** HANDLEMOVE BOARDLIST: $boardlist"
+	set currentPiece [lindex $boardlist $square]
 	# should add animation here.
-	if { $currentPiece == "-"} {
+	if { $currentPiece == 1} {
 	    # thus flip to a |
-	    $c lower PIECE_HORIZ$square
+	    puts "**** FLIPPED A - TO A | (HandleMove)"
+	    
+	    $c lower PIECE_HORIZ$square TILES
+	    
 	    $c raise PIECE_VERT$square
+	    
+	    update idletasks
 	} else {
+	    puts "******** FLIPPED A | TO A - (HandleMove)"
 	    # thus flip to a -
-	    $c lower PIECE_VERT$square
+	    
+	    $c lower PIECE_VERT$square TILES
+	    
 	    $c raise PIECE_HORIZ$square
+	    
+	    update idletasks
 	}
     } else {
 	puts "BAD ELSE: HandleMove, theMove > 3*NUM_SQUARES, this should never happen, code is broken somewhere"
@@ -531,7 +577,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 proc move { c type square } {
     global NUM_SQUARES
 
-    puts "begin move"
+    # puts "begin move"
 
     if { $type == "-" } {
 	GS_HandleMove $c 0 $square 0
@@ -564,28 +610,28 @@ proc move { c type square } {
 proc GS_ShowMoves { c moveType position moveList } {
     set boardlist [unhash $position]
 
-    puts "begin ShowMoves"
+    # puts "begin ShowMoves"
   
     foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
-	set color gray75
+	set color cyan
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } else {
-		set color red
+		set color red4
 	    }
 	}
 	set theSquareNumber [expr $move % 12]
 	if {$move < 12} {
-	    $c itemconfig SHADOW_VERT$theSquareNumber -fill $color 
-	    $c raise SHADOW_VERT$theSquareNumber all
-	} elseif {$move < 24} {
 	    $c itemconfig SHADOW_HORIZ$theSquareNumber -fill $color 
-	    $c raise SHADOW_HORIZ$theSquareNumber all    
+	    $c raise SHADOW_HORIZ$theSquareNumber all
+	} elseif {$move < 24} {
+	    $c itemconfig SHADOW_VERT$theSquareNumber -fill $color 
+	    $c raise SHADOW_VERT$theSquareNumber all    
 	} else {
 	    set thePlacedPieceNum [lindex $boardlist $theSquareNumber]
 	    if {$thePlacedPieceNum == 2} {
@@ -608,7 +654,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 # You might not use all the arguments, and that's okay.
 
 proc GS_HideMoves { c moveType position moveList} {
-    puts "begin HIDEMOVES"
+    # puts "begin HIDEMOVES"
     set color gray75
     set boardlist [unhash $position]
     foreach item $moveList {
@@ -649,7 +695,7 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     #GS_DrawPosition $c $positionAfterUndo
    
-    puts "begin HandleUndo"
+    # puts "begin HandleUndo"
 
     update idletasks
 
@@ -691,79 +737,84 @@ proc GS_GetGameSpecificOptions { } {
 #internal position is represented as a negative or positive number according to the function PositionToBlankHV in
 #the c code.  i am unclear of who the -/+ representations correspond to and how whose turn is represented.
 proc GS_WhoseMove { position } {
-    puts "begin whoseMOve given: $position"
-    if { [expr $position < 0] } {
-	set whoseTurn x} {
-	    set whoseTurn o}
-
-    puts "--end whoseMove-- returns: $whoseTurn"
-    return $whoseTurn    
-}
-
-# GS_GameOver is called the moment the game is finished ( won, lost or tied)
-# you could use this function to draw the line striking out the winning row in tic tac toe for instance
-# or you could congratulate the winner or do nothing if you want.
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
-    global LENTOWIN NUM_TILES_HORIZ
-    set winner 0
-
-    puts "begin gameOver"
-
-    set board [unhash $position]
-    if { $nameOfWinningPiece == "-" } {
-	set winner 1
-    } elseif { $nameOfWinningPiece == "|" } {
-	set winner 2
-    } else {
-	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != - or |"
-    }
+     global WHOSETURN
+     # puts "begin whoseMOve given: $position"
+     if { $WHOSETURN != "o" } {
+ 	set $WHOSETURN "x"
+ 	# puts "-- whoseMove returns o"
+ 	return o
+     } else {
+ 	set $WHOSETURN "o"
+ 	# puts "--whoseMove returns x"
+ 	return x
+     }
     
-    #win on rows
-    for {set i 1} {$i < [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {set i [expr $i + $NUM_TILES_HORIZ]} {
-	for {set j $i} {$j <= [expr $i + $NUM_TILES_HORIZ - 3]} {incr j} {
-	    if {[lindex $board $j] == $winner && [lindex $board [expr $j + 1]] == $winner && [lindex $board [expr $j + 2]] == $winner} {set p {$j [expr $j + 3]}}}}
+ }
 
-    #win on columns
-    for {set i 1} {$i <= $NUM_TILES_HORIZ]} {incr i} {
-	for {set j $i} {$j <= [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {set j [expr $j + 4]} {
-	    if {[expr $j + [expr 2 * $NUM_TILES_HORIZ]] <= [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {
-		if {[lindex $board $j] == $winner && [lindex $board [expr $j + $NUM_TILES_HORIZ]] == $winner && [lindex $board [expr $j + [expr 2 * $NUM_TILES_HORIZ]]] == $winner} {set p {$j [expr $j + [expr 2 * $NUM_TILES_HORIZ]]}}}}}
+ # GS_GameOver is called the moment the game is finished ( won, lost or tied)
+ # you could use this function to draw the line striking out the winning row in tic tac toe for instance
+ # or you could congratulate the winner or do nothing if you want.
+ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+ }
+#     global LENTOWIN NUM_TILES_HORIZ
+#     set winner 0
 
-    # win on diags L 2 R
-    for {set i 0} {$i <= [expr $NUM_TILES_VERT - $LENTOWIN]}{incr i} {
-	set startSqr [expr $i * $NUM_TILES_HORIZ]
-	for {set j 0}{$j <= [expr $NUM_TILES_HORIZ - $LENTOWIN]}{incr j} {
-	    set diagStrt [expr $startSqr + $j]
-	    set diagResult [DiagWin $board $diagStrt $LENTOWIN "L2R" $winner]
-	    if {[lindex $diagResult 0] == "WIN"} {
-		set p {[lindex $diagResult 1] [lindex $diagResult 2]}
-	    }
-	}
-    }
+#     puts "begin gameOver"
 
-    #win on diags R2L
-    for {set i [expr $LENTOWIN - 1]}{$i < $NUM_TILES_HORIZ}{incr i}{
-	for {set j 0}{$j <= [expr $NUM_TILES_VERT - $LENTOWIN]}{incr j}{
-	    set startSqr [expr $i + [expr $j * $NUM_TILES_HORIZ]]
-	    set diagResult [DiagWin $board $startSqr $LENTOWIN "R2L" $winner]
-	    if {[lindex $diagResult 0] == "WIN"} {
-		set p {[lindex $diagReslt 1] [lindex $diagResult 2]}
-	    }
-	}
-    }
+#     set board [unhash $position]
+#     if { $nameOfWinningPiece == "-" } {
+# 	set winner 1
+#     } elseif { $nameOfWinningPiece == "|" } {
+# 	set winner 2
+#     } else {
+# 	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != - or |"
+#     }
+    
+#     #win on rows
+#     for {set i 1} {$i < [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {set i [expr $i + $NUM_TILES_HORIZ]} {
+# 	for {set j $i} {$j <= [expr $i + $NUM_TILES_HORIZ - 3]} {incr j} {
+# 	    if {[lindex $board $j] == $winner && [lindex $board [expr $j + 1]] == $winner && [lindex $board [expr $j + 2]] == $winner} {set p {$j [expr $j + 3]}}}}
 
-    for {set i 0} {$i < $LENTOWIN} {incr i} {
-	set t [lindex $p $i]
-	$c itemconfig TILE$t -fill yellow
-	if { $nameOfWinningPiece == "-" } {
-	    $c raise PIECE_HORIZ$i
-	} elseif { $nameOfWinningPiece == "|" } {
-	    $c raise PIECE_VERT$i
-	}
-    }
-    $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
-}
+#     #win on columns
+#     for {set i 1} {$i <= $NUM_TILES_HORIZ} {incr i} {
+# 	for {set j $i} {$j <= [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {set j [expr $j + 4]} {
+# 	    if {[expr $j + [expr 2 * $NUM_TILES_HORIZ]] <= [expr $NUM_TILES_VERT * $NUM_TILES_HORIZ]} {
+# 		if {[lindex $board $j] == $winner && [lindex $board [expr $j + $NUM_TILES_HORIZ]] == $winner && [lindex $board [expr $j + [expr 2 * $NUM_TILES_HORIZ]]] == $winner} {set p {$j [expr $j + [expr 2 * $NUM_TILES_HORIZ]]}}}}}
+
+#     # win on diags L 2 R
+#     for {set i 0} {$i <= [expr $NUM_TILES_VERT - $LENTOWIN]}{incr i} {
+# 	set startSqr [expr $i * $NUM_TILES_HORIZ]
+# 	for {set j 0}{$j <= [expr $NUM_TILES_HORIZ - $LENTOWIN]}{incr j} {
+# 	    set diagStrt [expr $startSqr + $j]
+# 	    set diagResult [DiagWin $board $diagStrt $LENTOWIN "L2R" $winner]
+# 	    if {[lindex $diagResult 0] == "WIN"} {
+# 		set p {[lindex $diagResult 1] [lindex $diagResult 2]}
+# 	    }
+# 	}
+#     }
+
+#     #win on diags R2L
+#     for {set i [expr $LENTOWIN - 1]}{$i < $NUM_TILES_HORIZ}{incr i}{
+# 	for {set j 0}{$j <= [expr $NUM_TILES_VERT - $LENTOWIN]}{incr j}{
+# 	    set startSqr [expr $i + [expr $j * $NUM_TILES_HORIZ]]
+# 	    set diagResult [DiagWin $board $startSqr $LENTOWIN "R2L" $winner]
+# 	    if {[lindex $diagResult 0] == "WIN"} {
+# 		set p {[lindex $diagReslt 1] [lindex $diagResult 2]}
+# 	    }
+# 	}
+#     }
+
+#     for {set i 0} {$i < $LENTOWIN} {incr i} {
+# 	set t [lindex $p $i]
+# 	$c itemconfig TILE$t -fill yellow
+# 	if { $nameOfWinningPiece == "-" } {
+# 	    $c raise PIECE_HORIZ$i
+# 	} elseif { $nameOfWinningPiece == "|" } {
+# 	    $c raise PIECE_VERT$i
+# 	}
+#     }
+#     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
+#     $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
 
 proc DiagWin { board square length direction winner} {
     global NUM_TILES_HORIZ
@@ -864,7 +915,7 @@ proc Fly { c label_list xDistance yDistance xSpeed ySpeed optionals} {
 proc random_colour {c object} {
     set rand [expr ([clock seconds]*43-[clock seconds]*37+[clock seconds]*61)%10]
 
-    puts "begin random color"
+    # puts "begin random color"
 
     switch $rand {
 	1 {set colour black}
@@ -885,9 +936,26 @@ proc random_colour {c object} {
 
 proc start_animation { c } {
 
-    puts "begin start_animation"
+    # puts "begin start_animation"
 
     .c create text -200 20 -text "QUICKCROSS" -font {Helvetica 40} -fill black -tags {word quickcross}
 
     Fly $c quickcross 450 30 15 3 {{random_colour $c quickcross}}
+}
+
+proc SendMove { moveType square } {
+    global NUM_SQUARES
+    # puts "$moveType $square"
+    set theMove 0
+    if { $moveType == "-" } {
+	set theMove $square
+    } elseif { $moveType == "|" } {
+	set theMove [expr $square + $NUM_SQUARES] 
+    } else {
+	set theMove [expr $square + 2 * $NUM_SQUARES]
+    }
+    
+    # puts "the move is $theMove"
+
+    ReturnFromHumanMove $theMove
 }
