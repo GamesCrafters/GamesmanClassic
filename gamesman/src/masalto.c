@@ -716,12 +716,16 @@ MOVELIST *GenerateMoves (position)
 	int i=0;
 	int player = whoseMove(position);
 	
-	if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); 
-				   printf("mASALTO - GenerateMoves() --> pos: %d  player: %d",position,player);}
+	if (GENERATEMOVES_DEBUG)
+	{
+		printf("mASALTO - GenerateMoves() Running...\n"); 
+		printf("mASALTO - GenerateMoves() --> pos: %d  player: %d\n",position,player);
+	}
 	generic_unhash(position, board);
 	
 	if(player == FOX_PLAYER)
 	{
+		if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() --> FoxGenerateMoves()\n"); }
 		for(i = 0; i < BOARDSIZE; i++) /* Scan For Foxes */
 		{
 			if(board[i] =='F')
@@ -732,6 +736,7 @@ MOVELIST *GenerateMoves (position)
 	}
 	else if (player == GEESE_PLAYER)
 	{
+		if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() --> GeeseGenerateMoves()\n"); }
 		for(i = 0; i < BOARDSIZE; i++) /* Scan For Geese */
 		{
 			if(board[i] =='G')
@@ -768,7 +773,7 @@ MOVELIST *GeeseGenerateMoves(board, moves, location)
 {
 	/* Standard Shifting Moves for Geese*/
 	if (GEESEGENERATEMOVES_DEBUG) { printf("mASALTO - GeeseGenerateMoves() Running.\n"); }
-	GenerateShiftMoves(board,moves,location,GEESE_PLAYER);
+	moves = GenerateShiftMoves(board,moves,location,GEESE_PLAYER);
 	if (GEESEGENERATEMOVES_DEBUG) { printf("mASALTO - GeeseGenerateMoves() Done.\n"); }
 	
 	return(moves);
@@ -980,8 +985,7 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 		}
 		switch(origin_coord[0])
 		{
-			case 0:
-			case 1:
+			case 0:	
 				if (diagonal)
 				{
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
@@ -991,9 +995,9 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
 				break;
+			case 1:
 			case 2:
 			case 3:
-			case 4:
 				if (diagonal)
 				{
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
@@ -1003,8 +1007,7 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
 				break;
-			case 5:
-			case 6:
+			case 4:
 				if (diagonal)
 				{
 					return (board[move[1]] && delta_row >= 0 && delta_col <= 0) ? 1 : 0;
