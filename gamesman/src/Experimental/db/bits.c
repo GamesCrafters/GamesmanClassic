@@ -58,29 +58,112 @@
 ** Note that these functions do _no_ error checking whatsoever.
 */
 
+#include <stdlib.h>
+#include <string.h>
+
+#include "gamesman.h"
+
+
+/*
+** Local types / variables
+*/
+
+typedef struct {
+	int	first_byte;		// last_byte - bytes;
+	int	bytes;			// bytes
+	int	bit_offset;		// bit_offset
+	int	obit_offset;		// ~bit_offset & 7
+	int	mask;			// mask
+	int	imask;			// ~mask
+	int	pmask;			// ((1 << (bits & 7)) - 1) << bit_offset
+} bits_data;
+
+static bits_data**	memo_table = NULL;
+static int		memo_count = 0;
+
+
+/*
+** Code
+*/
+
+static void compute_memo ( int bits )
+{
+	int	i;
+	
+	if (memo_count < bits) {
+		bits_data**	new_table;
+		
+		new_table = (bits_data**) safe_malloc(sizeof(bits_data*) * bits);
+		memset(new_table, 0, sizeof(bits_data*) * bits);
+		memcpy(new_table, memo_table, sizeof(bits_data*) * memo_count);
+		free(memo_table);
+		memo_table = new_table;
+		memo_count = bits;
+	}
+	
+	memo_table[bits - 1] = (bits_data*) safe_malloc(sizeof(bits_data) * 8);
+	
+	for (i = 0; i < 8; i++) {
+		bits_data*	entry = &memo_table[bits - 1][i];
+		int		last_bit;
+		
+		last_bit = bits * (i + 1) - 1;
+		entry -> bytes = (bits >> 3) + (bits & 7 ? 1 : 0);
+		entry -> bit_offset = ~last_bit & 7;
+		entry -> obit_offset = 8 - (entry -> bit_offset);
+		entry -> first_byte = (last_bit >> 3) - (entry -> bytes);
+		entry -> mask = (1 << (entry -> bit_offset)) - 1;
+		entry -> imask = (~(entry -> mask) & 0xff);
+		entry -> pmask = ((1 << (bits & 7)) - 1) << (entry -> bit_offset);
+	}
+}
+
+inline bits_data* get_memo ( int bits, int idx )
+{
+	if (!memo_table) {
+		int	i;
+		
+		for (i = 32; i > 0; i--)
+			compute_memo(i);
+		
+/*		for (i = 0; i < 32; i++) {
+			int		idx;
+			
+			for (idx = 0; idx < 8; idx++) {
+				bits_data*	tab;
+				
+				tab = &memo_table[i][idx];
+				printf("bits=%2d, offset=%2d, bytes=%2d, bit_offset=%2d, first_byte=%2d, mask=%08x, imask=%08x, pmask=%08x\n",
+				   i + 1, idx, tab -> bytes, tab -> bit_offset, tab -> first_byte, tab -> mask, tab -> imask, tab -> pmask);
+			}
+		}
+*/	}
+	
+	if (memo_count < bits || !memo_table[bits - 1])
+		compute_memo(idx);
+	
+	return &memo_table[bits - 1][idx];
+}
 
 void get_from_octet ( int bits, int idx, char* octet, char* dest )
 {
-	int	last_bit;
-	int	bit_offset;
-	int	last_byte;
-	int	mask;
-	int	bytes;
-	int	byte;
-	int	i;
+	bits_data*	tab;
+	int		i;
+	int		byte;
+	int		mask;
+	int		imask;
+	int		bit_offset;
+	int		obit_offset;
 	
-	bytes = (bits >> 3) + (bits & 7 ? 1 : 0);
-	last_bit = bits * (idx + 1) - 1;
-	bit_offset = ~last_bit & 7;
-	last_byte = last_bit >> 3;
-	mask = (1 << bit_offset) - 1;
+	tab = get_memo(bits, idx);
+	mask = tab -> mask;
+	imask = tab -> imask;
+	bit_offset = tab -> bit_offset;
+	obit_offset = (8 - bit_offset);
 	
-	for (i = bytes; i > 0; i--) {
-		byte = i + last_byte - bytes;
-		
-		dest[i - 1] = (((~mask & octet[byte]) & 0xff) >> bit_offset)
-			    | (byte > 0 ? ((mask & octet[byte - 1]) << (8 - bit_offset)) : 0);
-	}
+	for (i = tab -> bytes, byte = tab -> bytes + tab -> first_byte; i > 0; i--, byte--)
+		dest[i - 1] = ((imask & octet[byte]) >> bit_offset)
+			      | (byte > 0 ? ((mask & octet[byte - 1]) << obit_offset) : 0);
 	
 	if (bits & 7)
 		dest[0] &= (1 << (bits & 7)) - 1;
@@ -89,41 +172,37 @@ void get_from_octet ( int bits, int idx, char* octet, char* dest )
 
 void put_to_octet ( int bits, int idx, char* octet, char* src )
 {
-	int	last_bit;
-	int	bit_offset;
-	int	last_byte;
-	int	mask;
-	int	bytes;
-	int	byte;
-	int	b1;
-	int	b2;
-	int	i;
+	bits_data*	tab;
+	int		i;
+	int		byte;
+	int		bit_offset;
+	int		obit_offset;
+	int		mask;
+	int		imask;
 	
-	bytes = (bits >> 3) + (bits & 7 ? 1 : 0);
-	last_bit = bits * (idx + 1) - 1;
-	bit_offset = ~last_bit & 7;
-	last_byte = last_bit >> 3;
-	mask = (1 << bit_offset) - 1;
+	tab = get_memo(bits, idx);
+	bit_offset = tab -> bit_offset;
+	obit_offset = tab -> obit_offset;
+	mask = tab -> mask;
+	imask = tab -> imask;
 	
-	for (i = bytes; i > 1; i--) {
-		byte = i + last_byte - bytes;
-		
-		octet[byte] = (mask & octet[byte]) | (~mask & (src[i - 1] << bit_offset));
+	for (i = tab -> bytes, byte = tab -> bytes + tab -> first_byte; i > 1; i--, byte--) {
+		octet[byte] = (mask & octet[byte]) | (imask & (src[i - 1] << bit_offset));
 		if (byte > 0)
-			octet[byte - 1] = (~mask & octet[byte - 1]) | ((src[i - 1] >> (8 - bit_offset)) & mask);
+			octet[byte - 1] = (imask & octet[byte - 1]) | ((src[i - 1] >> obit_offset) & mask);
 	}
 	
-	byte = 1 + last_byte - bytes;
-	
 	if (bits & 7) {
-		mask = ((1 << (bits & 7)) - 1) << bit_offset;
-		b1 = mask & 0xff;
-		b2 = (mask & 0xff00) >> 8;
+		unsigned char	b1;
+		unsigned char	b2;
+		
+		b1 = (tab -> pmask & 0xff);
+		b2 = (tab -> pmask & 0xff00) >> 8;
 		
 		octet[byte] = (octet[byte] & ~b1) | ((src[0] << bit_offset) & b1);
 		if (b2)
-			octet[byte - 1] = (octet[byte - 1] & ~b2) | ((src[0] >> (8 - bit_offset)) & b2);
-	} else {
+			octet[byte - 1] = (octet[byte - 1] & ~b2) | ((src[0] >> obit_offset) & b2);
+	} else
 		octet[byte] = src[0];
-	}
 }
+

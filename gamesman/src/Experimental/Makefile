@@ -8,7 +8,7 @@ clean:
 	rm -rf $(MODULES) test *.o *~ */*.o */*~
 
 test: $(MODULES)
-	gcc -O3 -o $@ $(MODULES) -Wall
+	gcc -O3 -g -o $@ $(MODULES) -Wall
 
 %.o: %.c
-	gcc -O3 -c -o $@ $< -Wall -Iinclude
+	gcc -O3 -g -c -o $@ $< -Wall -Iinclude

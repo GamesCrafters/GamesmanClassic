@@ -8,7 +8,8 @@ int main ( int argc, char** argv )
 	DATABASE*	db;
 	DATABASE*	db2;
 	int		i;
-	short		n;
+	unsigned short	n;
+	unsigned char	p[2];
 	
 	db_init();
 	solver_init();
@@ -20,12 +21,17 @@ int main ( int argc, char** argv )
 	
 	for (i = 0; i < 10; i++) {
 		n = 100 * (10 - i);
-		(*db -> put)(db, i, &n);
+		p[0] = (n & 0xff00) >> 8;
+		p[1] = (n & 0xff);
+//		p[0] = i;
+		(*db -> put)(db, i, &p[0]);
 	}
 	
 	for (i = 0; i < 10; i++) {
-		n = 0;
-		(*db -> get)(db, i, &n);
+		p[0] = p[1] = 0;
+		(*db -> get)(db, i, &p[0]);
+		n = (p[0] << 8) | p[1];
+//		n = p[0];
 		printf("%d\n", n);
 	}
 	
@@ -36,8 +42,10 @@ int main ( int argc, char** argv )
 	(*db -> free)(db);
 	
 	for (i = 0; i < 10; i++) {
-		n = 0;
-		(*db2 -> get)(db2, i, &n);
+//		n = 0;
+		p[0] = p[1] = 0;
+		(*db2 -> get)(db2, i, &p[0]);
+		n = (p[0] << 8) | p[1];
 		printf("%d\n", n);
 	}
 	
