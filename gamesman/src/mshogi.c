@@ -52,8 +52,8 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -173,8 +173,13 @@ Computer wins. Nice try, Player.";
 #define Blank ' '
 #define X 'x'
 #define O 'o'
-#define VERSION_REGULAR 0
-#define VERSION_WAR 1
+//#define VERSION_REGULAR 0
+//#define VERSION_WAR 1
+#define VERSION_LINE 0
+#define VERSION_CAPTURE 1
+#define VERSION_BOTH 2
+#define VERSION_NO_CORNER 0
+#define VERSION_CORNER 1
 
 typedef char BlankOX;
 /* Represents a complete shogi move */
@@ -193,12 +198,13 @@ typedef struct cleanMove {
 *************************************************************************/
 
 int numOfRows = 3;
-int numOfCols = 2;
+int numOfCols = 3;
 int rowsOfPieces = 1;
-int numInRow = 2;
-int version = VERSION_WAR;
+int numInRow = 3;
+int winVersion = VERSION_LINE;
+int captureVersion = VERSION_NO_CORNER;
 
-int boardSize = 6;
+int boardSize = 9;
 
 /*************************************************************************
 **
@@ -250,7 +256,6 @@ void InitializeGame ()
 		  X, 0, rowsOfPieces*numOfCols,
 		  O, 0, rowsOfPieces*numOfCols, -1};
 
-  printf("boardSize: %d\n", boardSize);
   for (i = 0; i < rowsOfPieces * numOfCols; i++) {
     theBlankOX[i] = X;
   }
@@ -407,7 +412,7 @@ POSITION DoMove (POSITION position, MOVE move)
   theBlankOX[toLoc] = piece;
 
   captureLine(theMove.toX, theMove.toY, piece, theBlankOX);
-  if(version == VERSION_WAR)
+  if(captureVersion == VERSION_CORNER)
   captureCorner(theMove.toX, theMove.toY, piece, theBlankOX);
 
   position = generic_hash(theBlankOX, turn);
@@ -449,7 +454,7 @@ VALUE Primitive (POSITION position)
 
   if(inARow(theBlankOX))
     return(gStandardGame ? lose : win);
-  else if((version == VERSION_WAR) &&
+  else if((winVersion == VERSION_CAPTURE || winVersion == VERSION_BOTH) &&
 	  ((oneOrNoPieces(theBlankOX) == X && turn == 1) ||
 	  (oneOrNoPieces(theBlankOX) == O && turn == 2)))
     return lose;
@@ -573,7 +578,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%s's move [(u)ndo/a-%c 0-%d a-%c 0-%d] :  ",
+	printf("%s's move [(u)ndo/a-%c0-%da-%c0-%d] :  ",
 	       playersName, numOfCols-1+'a', numOfRows,
 	       numOfCols-1+'a', numOfRows);
 	input = HandleDefaultTextInput(position, move, playersName);
@@ -695,13 +700,22 @@ void GameSpecificMenu ()
   input = (int *) malloc(1*sizeof(int));
 
   while(TRUE) {
-    versionName = (version == VERSION_REGULAR? "regular" : "war");
-    printf("  Game Specific Options:\n");
-    printf("\tr)\t (R)ows in the board       -     [%d] rows\n",numOfRows);
-    printf("\tc)\t (C)olumns in the board    -     [%d] cols\n",numOfCols);
-    printf("\tp)\t (P)layer's rows of pieces -     [%d] rows\n",rowsOfPieces);
-    printf("\tw)\t (W)inning condition       -     [%d] in a row\n",numInRow);
-    printf("\tv)\t (V)ersion                 -     [%s] version\n",versionName);
+    versionName = (captureVersion == VERSION_NO_CORNER?
+		      "corner" : "no corner");
+    printf("\n  Game Specific Options:\n\n");
+    printf("\tr)\t (R)ows in the board         -   [%d] rows\n",numOfRows);
+    printf("\tc)\t (C)olumns in the board      -   [%d] cols\n",numOfCols);
+    printf("\tp)\t (P)layer's rows of pieces   -   [%d] rows\n",rowsOfPieces);
+    printf("\n");
+    printf("\tv)\t Capturing (V)ersion         -   [%s] captures allowed\n",versionName);
+    if (winVersion == VERSION_LINE)
+      printf("\tw)\t (W)inning condition         -   [%d] in a row\n",numInRow);
+    else if (winVersion == VERSION_CAPTURE)
+      printf("\tw)\t (W)inning condition         -   reduce enemy to 1 or no pieces\n");
+    else {
+      printf("\tw)\t (W)inning conditions        -   [%d] in a row, or\n",numInRow);
+      printf("\t  \t                                 reduce enemy to 1 or no pieces\n");
+    }
     printf("\n");
     printf("\tb)\t (B)ack\n\n");
     printf("  Select an option: ");
@@ -727,14 +741,31 @@ void GameSpecificMenu ()
       scanf("%d",input);
       rowsOfPieces = input[0];
       InitializeGame();
-    } else if (!strcmp(option,"w")) {
-      printf("Input the number of pieces in a row to win: ");
-      scanf("%d",input);
-      numInRow = input[0];
     } else if (!strcmp(option,"v")) {
-      printf("Input the version as a 0 or 1 (Regular: 0; War: 1): ");
-      scanf("%d",input);
-      version = input[0];
+      captureVersion = (captureVersion == VERSION_NO_CORNER?
+			VERSION_CAPTURE : VERSION_NO_CORNER);
+    } else if (!strcmp(option,"w")) {
+      printf("\n  Winning conditions:\n");
+      printf("\tl)\t (L)ine up your pieces - [%d] in a row\n", numInRow);
+      printf("\tr)\t (R)educe enemy to 1 or no pieces\n");
+      printf("\tb)\t (B)oth\n\n");
+      printf("  Select the winning conditions: ");
+      scanf("%s",option);
+      if (!strcmp(option,"l")) {
+	winVersion = VERSION_LINE;
+	printf("Input the number of pieces in a row to win: ");
+	scanf("%d", input);
+	numInRow = input[0];
+      } else if (!strcmp(option,"r")) {
+	winVersion = VERSION_CAPTURE;
+      } else if (!strcmp(option,"b")) {
+	winVersion = VERSION_BOTH;
+	printf("Input the number of pieces in a row to win: ");
+	scanf("%d", input);
+	numInRow = input[0];
+      } else {
+	printf("\nSorry, I don't know that option.\n");
+      }
     } else {
       printf("\nSorry, I don't know that option. Try another.\n");
     }
