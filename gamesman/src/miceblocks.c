@@ -43,11 +43,11 @@ POSITION kBadPosition        = -1;
 STRING   kGameName           = "Ice Blocks";
 STRING   kDBName             = "iceblocks";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = FALSE;
+BOOLEAN  kDebugDetermineValue = TRUE;
 void*	 gGameSpecificTclInit = NULL;
 
 /* 
@@ -90,7 +90,7 @@ STRING   kHelpExample =
 #define X   99999
 #define O   9999
 
-int base = 3;
+int base = 4;
 
 typedef int TURN;
 typedef struct boardRep *BOARD;
@@ -336,51 +336,53 @@ VALUE Primitive (pos)
 	POSITION pos;
 {
   BOARD board = arraytoboard(pos);
-  int i, j, countX = 0, countO = 0, color, k, m, count=0;
-  int dlvisited[base][base], drvisited[base][base];
+  int i, j, countX = 0, countO = 0, color, k, m, count;
+  int dlvisited[base][base], drvisited[base][base], hvisited[base][base];
   for(i = 0; i < base; i++) {
     for(j = 0; j < base; j++) {
       dlvisited[i][j] = 0;
       drvisited[i][j] = 0;
+      hvisited[i][j] = 0;
     }
   }
   for (i = 0; i < base; i++) {
     for (j = 0; j < (base - i); j++) {
-      color = board->spaces[i][j];
       if(board->spaces[i][j] < 999)
 	return undecided;
+      color = board->spaces[i][j];
       for(k = i, m = j, count = 0; k < base && m >= 0 && !dlvisited[k][m] &&
-	    board->spaces[k][m]; k++, m--) {
+	    board->spaces[k][m] == color; k++, m--) {
 	count++; 
 	dlvisited[k][m] = 1; 
       }
       if ((count > 1) && (color == X))
 	countX += count;
-      else if (count > 1)
+      else if ((count > 1) && (color == O))
 	countO += count;
-      for (k = i, m = j, count = 0; k < base && m < (base - k) && 
-	     !drvisited[k][m] && board->spaces[k][m] == color; k++, m++) {
+      for (k = i, m = j, count = 0; k < base && m < (base - k) &&
+	     !drvisited[k][m] && board->spaces[k][m] == color; k++) {
 	count++;
 	drvisited[k][m] = 1;
       }
       if ((count > 1) && (color == X))
 	countX += count;
-      else if (count > 1)
+      else if ((count > 1) && (color == O))
 	countO += count;
-      for (k = i, m = j, count = 0; m < (base - k) && 
-	     board->spaces[k][m] == color; m++) 
+      for (k = i, m = j, count = 0; m < (base - k) && !hvisited[k][m] && 
+	     board->spaces[k][m] == color; m++) { 
 	count++;
+	hvisited[k][m] = 1;
+      }
       if((count > 1) && (color == X))
 	countX += count;
-      else if (count > 1)
+      else if ((count > 1) && (color == O))
 	countO += count;
-      j += (count - 1);
     }
   }
   if(countX > countO)
     return ((board->turn == X) ? win : lose);
-  else if(countX != countO)
-    return ((board->turn == X) ? lose : win);
+  else if(countO > countX)
+    return ((board->turn == O) ? win : lose);
   else
     return tie;
 }
@@ -411,6 +413,7 @@ void PrintPosition (position, playerName, usersTurn)
   BOARD board = arraytoboard(position);
   int i, j;
   for(i = base - 1; i >= 0; i--) {
+    printf("  ");
     for(j = 0; j < i; j++)
       printf("  ");
     for(j = 0; j < (base - i); j++) {
@@ -427,7 +430,7 @@ void PrintPosition (position, playerName, usersTurn)
     }
     printf("\n");
   }
-  printf("%s\n", GetPrediction(position, playerName, usersTurn));
+  printf("\n  %s\n\n", GetPrediction(position, playerName, usersTurn));
 }
 
 
