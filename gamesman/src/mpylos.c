@@ -183,7 +183,7 @@ take back one of your pieces. You may not take back a piece that is being\n\
 used to support another piece. If a two-by-two square already exists and you\n\
 have any pieces of equal or lower height to the square, you must take one of\n\
 those pieces and stack it on top of the square if you intend to put any piece\n\
-on top of the square at all.";
+on top of the square.";
 STRING   kHelpReverseObjective  = "\
 To either use all of your pieces before your opponent does or to complete the\n\
 pyramid.";
@@ -228,7 +228,7 @@ struct Options {
   BOOLEAN doNotAllowSquaring : 1;
   BOOLEAN doNotAllowStacking : 1;
   BOOLEAN isNotStandardGame : 1;
-  int boardDimension;
+  int boardDimension : WORD_BIT - 3;
 };
 
 enum Piece {
@@ -490,7 +490,7 @@ int getOption() {
   options.isNotStandardGame = !gStandardGame;
   options.boardDimension = BOARD_DIMENSION - gBoardDimension;
 
-  return *(int*)&options;
+  return *(int*)&options + 1;
 }
 
 /************************************************************ InitializeGame */
@@ -608,6 +608,8 @@ void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
 
 /***************************************************************** setOption */
 void setOption(int option) {
+  option--;
+
   Options options = *(Options*)&option;
 
   gAllowSquaring = !options.doNotAllowSquaring;
