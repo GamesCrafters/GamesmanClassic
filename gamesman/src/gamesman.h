@@ -288,13 +288,16 @@ void analyze();
 void analyzer();
 void createVarTable();
 void writeVarHTML();
-void writeVarXML();
-FILE * prepareXMLFile();
-void closeXMLFile(FILE * xmlFile);
 void writeVarStat(char * statName, char * text, FILE *rowp);
 void createAnalysisGameDir();
 void createAnalysisVarDir();
 void writeGameHTML();
+
+void writeXML(STATICMESSAGE msg);
+FILE* prepareXMLFile();
+void closeXMLFile(FILE* xmlFile);
+void writeXMLData(FILE* xmlFile);
+
 //void createAnalysisLink();
 
 /* Status Meter */
