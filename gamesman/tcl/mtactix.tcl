@@ -900,11 +900,35 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     global gPlayerOneTurn
+    global gSlotsX
+    global gMovesSoFar
+    global gInitialPosition
 
     ### TODO if needed
     GS_DrawPosition $c $positionAfterUndo
+    
+    if {$positionAfterUndo == $gInitialPosition} {
+	set thePreviousPreviousMove {} 
+    } else {
+	set thePreviousPreviousMove [GS_ConvertInteractionToMove [TacTix_peek2 $gMovesSoFar]] }
+
+    foreach i $thePreviousPreviousMove {
+	set slotX [expr $i % $gSlotsX]
+	set slotY [expr $i / $gSlotsX]
+	set theGoner [DrawCircle $c $slotX $slotY tagDummy magenta 1]
+	$c dtag $theGoner tagPieceCoord$slotX$slotY 
+	$c lower tagPieceCoord$slotX$slotY all
+
+	$c delete $theGoner
+
+	DrawPiece $slotX $slotY "-" $c
+    }
 
     if { $gPlayerOneTurn == 1} { set gPlayerOneTurn 0 } { set gPlayerOneTurn 1}
+}
+
+proc TacTix_peek2 {l} {
+    return [lindex $l 1]
 }
 
 
