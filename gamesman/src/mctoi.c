@@ -558,16 +558,18 @@ void FixOrientations         (BlankoxOX *, int         );
 int HashChungToi             (BlankoxOX *, BlankoxOX   );
 void UnHashChungToi          (BlankoxOX *, int         );
 
+void PositionToBlankoxOX     (POSITION, BlankoxOX*     );
+POSITION BlankoxOXToPosition (BlankoxOX*, BlankoxOX    );
 
 
 
 /**********************************************/
 
-InitializeGame(){
+void InitializeGame(){
 
 }
 
-FreeGame() {
+void FreeGame() {
 
 }
 
@@ -581,7 +583,7 @@ FreeGame() {
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
   char GetMyChar();
 
@@ -615,7 +617,7 @@ DebugMenu()
 **              nothing if kGameSpecificMenu == FALSE
 ** 
 ************************************************************************/
-GameSpecificMenu() {
+void GameSpecificMenu() {
   char GetMyChar();
   
   do {
@@ -684,7 +686,7 @@ GameSpecificMenu() {
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* This part has been added for the eight different options we have*/
@@ -793,9 +795,8 @@ POSITION DoMove(thePosition, theMove)
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
-  POSITION BlankoxOXToPosition();
   static BlankoxOX theBlankoxOX[BOARDSIZE]; 
   BlankoxOX whosTurn;
   signed char c;
@@ -859,7 +860,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -955,14 +956,13 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   /* local variables */
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   static BlankoxOX theBlankoxOX[BOARDSIZE];
 
@@ -1263,7 +1263,7 @@ MOVE ConvertTextInputToMove(input)
 ** INPUTS:      MOVE *theMove         : The move to print. 
 **
 ************************************************************************/
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   if (MoveFrom(theMove) == 9) {    /* if placing pieces into the board     */
@@ -1298,7 +1298,7 @@ PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankoxOX(thePos,theBlankoxOX)
+void PositionToBlankoxOX(thePos,theBlankoxOX)
      POSITION thePos;
      BlankoxOX *theBlankoxOX;
 {

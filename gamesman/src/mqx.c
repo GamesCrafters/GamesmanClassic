@@ -135,11 +135,11 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
 **
 **************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -152,7 +152,7 @@ FreeGame()
 **
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -166,7 +166,7 @@ DebugMenu()
 **
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 { 
   char inp;
   while (TRUE) {
@@ -226,7 +226,7 @@ GameSpecificMenu()
 **
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -292,7 +292,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION BlankHVToPosition();
   BlankHV theBlankHV[BOARDSIZE], whosTurn;
@@ -338,49 +338,6 @@ GetInitialPosition()
   return(BlankHVToPosition(theBlankHV,whosTurn));
 }
 
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-**
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
-**
-************************************************************************/
-
-/* MOVE GetComputersMove(thePosition) */
-/*      POSITION thePosition; */
-/* { */
-/*   POSITION GetCanonicalPosition(), canPosition; */
-/*   MOVE DecodeMove(), theMove; */
-/*   int i, randomMove, numberMoves = 0; */
-/*   MOVELIST *ptr, *head, *GetValueEquivalentMoves(); */
-
-/*   if(gPossibleMoves) */
-/*     printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]); */
-/*   head = ptr = GetValueEquivalentMoves(thePosition); */
-/*   while(ptr != NULL) { */
-/*     numberMoves++; */
-/*     if(gPossibleMoves) */
-/*       printf("%d ",ptr->move+1); */
-/*     ptr = ptr->next; */
-/*   } */
-/*   if(gPossibleMoves) */
-/*     printf("]\n\n"); */
-/*   randomMove = GetRandomNumber(numberMoves); */
-/*   ptr = head; */
-/*   for(i = 0; i < randomMove ; i++) */
-/*     ptr = ptr->next; */
-/*   theMove = ptr->move; */
-/*   FreeMoveList(head); */
-/*   return(theMove); */
-
-/* } */
 
 /************************************************************************
 **
@@ -393,7 +350,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -551,13 +508,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankHV theBlankHV[BOARDSIZE], whosTurn;
 
@@ -800,7 +756,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   int squareNum;

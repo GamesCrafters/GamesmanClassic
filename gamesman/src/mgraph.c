@@ -22,17 +22,22 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
+/* external variables */
+extern   STRING gValueString[];
 
-int      gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
+/* function prototypes */
+VALUE TextToValue(char c);
+void LoadGraphFromFile(STRING graphFilename);
+
+/* variables */
+POSITION gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition		= -1;
 
-extern POSITION * gDatabase ;
-
 STRING   kGameName            = "Graph";
+STRING   kDBName              = NULL;
 BOOLEAN  kPartizan            = TRUE;
 BOOLEAN  kDebugMenu           = TRUE;
 BOOLEAN  kGameSpecificMenu    = TRUE;
@@ -89,37 +94,41 @@ Computer wins. Nice try, Dan.";
 
 /*** These are so that we can bootstrap and load the graphs on the fly ***/
 
-STRING gGraphFilename[MAXINPUTLENGTH];
+char gGraphFilename[MAXINPUTLENGTH];
 BOOLEAN gGraphFilenameSet = FALSE;
-/*
-VALUE gGraphPrimitiveList[NUMPOSITIONS];
-MOVELIST *gGraphNeighborList[NUMPOSITIONS];
-*/
-VALUE *gGraphPrimitiveList;
-MOVELIST **gGraphNeighborList;
-int gLargestNodeNumber;
+
+VALUE *gGraphPrimitiveList = NULL;
+POSITIONLIST **gGraphNeighborList = NULL;
+POSITION gLargestNodeNumber;
 
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize the game's global variables
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
-  GENERIC_PTR SafeMalloc();
-  MOVELIST *CreateMovelistNode(), *head = NULL;
+  MOVELIST *head = NULL;
   int i;
 
+  if (gGraphPrimitiveList != NULL) {
+    SafeFree(gGraphPrimitiveList);
+  }
   gGraphPrimitiveList = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-  gGraphNeighborList = (MOVELIST **) SafeMalloc (gNumberOfPositions * sizeof(MOVELIST *));
 
-  /* here */
+  if (gGraphNeighborList != NULL) {
+    SafeFree(gGraphNeighborList);
+  }
+  gGraphNeighborList = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
 
   if (!gGraphFilenameSet) {
     (void) sprintf((char *)gGraphFilename, "../grf/default.grf");
+    if (kDBName != NULL) SafeFree(kDBName);
+    kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+    sprintf(kDBName, "graph-default");
   }
 
   for(i = 0; i < gNumberOfPositions; i++) {
@@ -130,17 +139,21 @@ InitializeGame()
   LoadGraphFromFile(gGraphFilename);
 }
 
-FreeGame()
+void FreeGame()
 {
-	free(gGraphPrimitiveList) ;
-	free(gGraphNeighborList) ;
+  if (gGraphPrimitiveList==NULL) {
+    SafeFree(gGraphPrimitiveList);
+  }
+  if (gGraphNeighborList==NULL) {
+    SafeFree(gGraphNeighborList);
+  }
 }
 
-LoadGraphFromFile(graphFilename)
+void LoadGraphFromFile(graphFilename)
 STRING graphFilename;
 {
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE nodeValue, TextToValue();
+  POSITIONLIST *head = NULL;
+  VALUE nodeValue;
   FILE *fp;
   POSITION nodeNumber, nodeChild;
   int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
@@ -155,7 +168,11 @@ STRING graphFilename;
   
   /*** See if we haven't requested too many nodes ***/
 
-  fscanf(fp, "%d", &numberNodes);
+  if (fscanf(fp, "%d", &numberNodes) == EOF) {
+    printf("LoadGraphFromFile Error: couldn't read number of nodes from %s\n", graphFilename);
+    ExitStageRight();
+  }
+
   if (numberNodes > gNumberOfPositions) {
     printf("LoadGraphFromFile Error: %s had more graph nodes than I've allocated!\n", graphFilename);
     ExitStageRight();
@@ -164,12 +181,16 @@ STRING graphFilename;
   /*** for every node in the file ***/
 
   for (i = 0; i < numberNodes; i++) {
-    fscanf(fp, "%d %c %d", &nodeNumber, &theValueChar, &numChildren);
+    if (fscanf(fp, POSITION_FORMAT " %c %d", &nodeNumber, &theValueChar, &numChildren) == EOF) {
+      printf("LoadGraphFromFile Error: couldn't read node %d from %s\n", i, graphFilename);
+      ExitStageRight();
+    }
+
 
     /*** See if the node number will be outside allocated array bounds  ***/
 
     if (nodeNumber >= gNumberOfPositions) {
-      printf("LoadGraphFromFile Error: %s had a node with index %d which was larger than your reserved array of size %d\n", graphFilename, nodeNumber, gNumberOfPositions);
+      printf("LoadGraphFromFile Error: %s had a node with index " POSITION_FORMAT " which was larger than your reserved array of size " POSITION_FORMAT "\n", graphFilename, nodeNumber, gNumberOfPositions);
       ExitStageRight();
     }
 
@@ -186,8 +207,11 @@ STRING graphFilename;
 
     head = NULL;
     for(j = 0; j < numChildren; j++) {
-      fscanf(fp, "%d", &nodeChild);
-      head = CreateMovelistNode(nodeChild, head);
+      if (fscanf(fp, POSITION_FORMAT, &nodeChild) == EOF) {
+	printf("LoadGraphFromFile Error: couldn't read child %d from node %d in %s\n", j, i, graphFilename);
+	ExitStageRight();
+      }
+      head = StorePositionInList(nodeChild, head);
     }
     gGraphNeighborList[nodeNumber] = head;
   }
@@ -223,15 +247,14 @@ char c;
 ** 
 ************************************************************************/
 
-DebugMenu() 
+void DebugMenu() 
 {
-  int i;
-  REMOTENESS Remoteness();
+  POSITION i;
 
   for (i = 0; i <= gLargestNodeNumber; i++) {
-    if((gDatabase[i]&VALUE_MASK) != undecided)
-      printf("position[%2d] = R(%2d) = %s\n", i, 
-	     (int)Remoteness((REMOTENESS)i), gValueString[VALUE_MASK&gDatabase[i]]);
+    if(GetValueOfPosition(i) != undecided)
+      printf("position[" POSITION_FORMAT "] = R(%2d) = %s\n", i, 
+	     (int)Remoteness((REMOTENESS)i), gValueString[GetValueOfPosition(i)]);
   }
 }
 
@@ -245,15 +268,20 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() {
-  STRING tmp[MAXINPUTLENGTH];
+void GameSpecificMenu() {
+  char tmp[MAXINPUTLENGTH];
   gGraphFilenameSet = TRUE;
   printf("\nSpecify one of the files in the ../grf directory");
   printf("\n(But don't add the .grf at the end)\n\n");
   system("ls ../grf");
   printf("\nLoad Graph from : ");
   scanf("%s", tmp);
+  if (kDBName != NULL) SafeFree(kDBName);
+  kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+  sprintf(kDBName, "graph-%s", tmp);
   (void) sprintf((char *)gGraphFilename, "../grf/%s.grf", tmp);
+  FreeGame();
+  InitializeGame();
 }
 
 /************************************************************************
@@ -265,7 +293,7 @@ GameSpecificMenu() {
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -303,11 +331,12 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition(initialPosition)
-     POSITION *initialPosition;
+POSITION GetInitialPosition()
 {
+  POSITION initialPosition;
   printf("Please input the starting node number   : ");
-  (void) scanf("%d",initialPosition);
+  scanf(POSITION_FORMAT, &initialPosition);
+  return initialPosition;
 }
 
 /************************************************************************
@@ -321,7 +350,7 @@ GetInitialPosition(initialPosition)
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -381,16 +410,13 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
-
-  printf("\nTOTAL                        : %2d %s \n\n",position,
-	 GetPrediction(position,playerName,usersTurn));
+  printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
+	 position, GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -412,10 +438,21 @@ PrintPosition(position,playerName,usersTurn)
 
 MOVELIST *GenerateMoves(position)
      POSITION position;
-{
-  MOVELIST *CopyMovelist();
+{ 
+  MOVE move;
+  POSITION i;
+  POSITIONLIST* temp;
+  MOVELIST* result;
+
+  result = NULL;
+  temp = gGraphNeighborList[position];
   
-  return(CopyMovelist(gGraphNeighborList[position]));
+  while(temp!=NULL) {
+    /* this is potentially dangerous if gNumberOfPositions exceeds the maximum value for type MOVE */
+    result = CreateMovelistNode((MOVE) temp->position, result);
+    temp = temp->next;
+  }
+  return(result);
 }
 
 /************************************************************************
@@ -511,13 +548,11 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   printf("%d", theMove);
 }
-
-STRING kDBName = "graph" ;
      
 int NumberOfOptions()
 {    

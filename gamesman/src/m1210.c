@@ -102,11 +102,11 @@ Computer wins. Nice try, Dan.";
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -119,7 +119,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu() { }
+void DebugMenu() { }
 
 /************************************************************************
 **
@@ -131,7 +131,7 @@ DebugMenu() { }
 ** 
 ************************************************************************/
 
-GameSpecificMenu() { }
+void GameSpecificMenu() { }
 
 /************************************************************************
 **
@@ -142,7 +142,7 @@ GameSpecificMenu() { }
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -179,11 +179,12 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition(initialPosition)
-     POSITION *initialPosition;
+POSITION GetInitialPosition()
 {
+  POSITION initialPosition;
   printf("Please input the starting value [1 - 10] : ");
-  (void) scanf("%d",initialPosition);
+  scanf(POSITION_FORMAT,&initialPosition);
+  return initialPosition;
 }
 
 /************************************************************************
@@ -197,7 +198,7 @@ GetInitialPosition(initialPosition)
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -251,16 +252,15 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   
-  printf("\nTOTAL                        : %2d %s \n\n",position,
-	 GetPrediction(position,playerName,usersTurn));
+  printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
+         position, GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -388,7 +388,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   printf("%d", theMove);
@@ -416,5 +416,7 @@ void setOption(int option)
 		gStandardGame = FALSE ;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
+  return TCL_OK;
+}
 

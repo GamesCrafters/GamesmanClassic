@@ -120,12 +120,12 @@ char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array inste
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
   generic_hash_init(BOARDSIZE, myPieces_array);
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -137,7 +137,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
   // fill me? If need, can get from mttt.c
 }
@@ -152,7 +152,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() { }
+void GameSpecificMenu() { }
 
 /************************************************************************
 **
@@ -163,7 +163,7 @@ GameSpecificMenu() { }
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -203,9 +203,10 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   // fill me? if need, can get from mttt.c
+  return gInitialPosition;
 }
 
 /************************************************************************
@@ -219,7 +220,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -279,7 +280,7 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
@@ -636,7 +637,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */

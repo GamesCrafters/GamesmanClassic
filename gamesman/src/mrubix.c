@@ -40,7 +40,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-#pragma weak Tcl_GetInt
 #pragma weak Tcl_CreateCommand
 
 extern STRING gValueString[];
@@ -213,7 +212,7 @@ static int UnhashCmd(ClientData dummy, Tcl_Interp *interp,
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
   Tcl_CreateCommand(interp, "C_Hash", (Tcl_CmdProc*) HashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
   Tcl_CreateCommand(interp, "C_Unhash", (Tcl_CmdProc*) UnhashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
-  return 0;
+  return TCL_OK;
 }
 
 static int HashCmd(dummy, interp, argc, argv)
@@ -241,7 +240,7 @@ static int HashCmd(dummy, interp, argc, argv)
       }
     }
     position = BlankOXToPosition(board);
-    sprintf(interp->result,"%d",position);
+    sprintf(interp->result, POSITION_FORMAT, position);
     return TCL_OK;
   }
 }
@@ -263,7 +262,7 @@ static int UnhashCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
     PositionToBlankOX(position, board);
     for (i=0; i<BOARDSIZE; i++) {
@@ -420,6 +419,27 @@ void InitializeGame()
   */
 }
 
+void FreeGame() 
+{
+  PrimitiveSequence* temp;
+
+  if (CArray != NULL) {
+    SafeFree((GENERIC_PTR) CArray);
+  }
+  if (hashSizes != NULL) {
+    SafeFree(hashSizes);
+  }
+  if (hashBasePosition != NULL) {
+    SafeFree(hashBasePosition);
+  }
+  while (primitiveSequence != NULL) {
+    temp = primitiveSequence;
+    primitiveSequence = primitiveSequence->next;
+    free(temp);
+  }
+}
+
+
 /************************************************************************
 **
 ** NAME:        DebugMenu
@@ -491,7 +511,6 @@ void GameSpecificMenu() {
   int length;
 
   POSITION GetInitialPosition();
-  void PrintPosition();
   void ExitStageRight();
   void HitAnyKeyToContinue();
   
@@ -843,7 +862,6 @@ VALUE Primitive(position)
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
   int i, j;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   void PositionToBlankOX();
   BlankOX theBlankOX[BOARDSIZE], WhoseTurn();

@@ -98,6 +98,8 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
+/* function prototypes */
+POSITION BlankOXToPosition(BlankOX* theBlankOX);
 
 /* The position contains a last digit that records the turn, 1 - o's, 2 - x's*/ 
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
@@ -141,11 +143,11 @@ BOOLEAN gExtraSlider = FALSE; /*only the horizontal sliders by default*/
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -157,7 +159,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu() { }
+void DebugMenu() { }
 /************************************************************************
 **
 ** NAME:        GameSpecificMenu
@@ -168,7 +170,7 @@ DebugMenu() { }
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
   char GetMyChar();
   POSITION GetInitialPosition();
@@ -271,7 +273,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -293,7 +295,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-int DoMove(int thePosition, int theMove)
+POSITION DoMove(POSITION thePosition, MOVE theMove)
 {
 
   BlankOX theBoard[BOARDSIZE], WhoseTurn();
@@ -390,9 +392,8 @@ int DoMove(int thePosition, int theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
   int i, goodInputs = 0;
@@ -422,18 +423,8 @@ GetInitialPosition()
       ;   /* do nothing */
   }
 
-  /*
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = x;
-  else
-    whosTurn = o;
-    */
-
   printf("Get Initial Move Called");
-  return(BlankOXToPosition(theBlankOX,whosTurn) + x);
+  return(BlankOXToPosition(theBlankOX) + x);
 }
 
 /************************************************************************
@@ -447,7 +438,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -532,13 +523,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE];
 
@@ -881,7 +871,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
 	printf("%d", theMove+1); 

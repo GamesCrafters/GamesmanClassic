@@ -2,7 +2,6 @@
 #define HASH_LOCAL
 
 #include "hash.h"
-#include "gamesman.h"
 #include <stdlib.h>
 
 
@@ -13,10 +12,19 @@
 ***   and implemented by Attila Gyulassy
 *********************************************************************************/
 
-int DEBUG = 0;
-int DEBUG2 = 0;
-int DEBUG3 = 1;
-int DEBUG4 = 0;
+BOOLEAN DEBUG = FALSE;
+BOOLEAN DEBUG2 = FALSE;
+BOOLEAN DEBUG3 = TRUE;
+BOOLEAN DEBUG4 = FALSE;
+
+int* gNCR        = NULL;
+int* gHashOffset = NULL;
+
+static int gHashOffsetSize;
+static int gHashBoardSize;
+static int gHashMinMax[4];
+static int gHashNumberOfPos;
+
 int TERM = -1;
 int cTERM = 0;
 int MAX_PIECES = 50;

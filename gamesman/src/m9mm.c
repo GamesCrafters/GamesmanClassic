@@ -94,7 +94,7 @@ typedef enum Pieces {
   blank, x, o
 } blankox;
 char *gblankoxString[] = { "_", "x", "o"};
-
+POSITION gHashNumberOfPos = 0;
 
 /*************************************************************************
 **
@@ -125,16 +125,14 @@ blankox parse_char(char c);
 BOOLEAN closes_mill_move(MOVE the_move);
 
 // External
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+GENERIC_PTR	SafeMalloc (size_t size);
+void		SafeFree ();
 
 /*************************************************************************
 **
 ** Here we declare the global database variables
 **
 **************************************************************************/
-
-extern VALUE     *gDatabase;
 
 /************************************************************************
 **
@@ -154,7 +152,7 @@ void InitializeGame()
   pminmax[1] = maxo;
   pminmax[2] = minx;
   pminmax[3] = maxx;
-  generic_hash_init(b_size, pminmax, NULL);
+  gHashNumberOfPos = generic_hash_init(b_size, pminmax, NULL);
 }
 
 /************************************************************************
@@ -652,7 +650,7 @@ BOOLEAN ValidTextInput(input)
   if (hasComma)
     afterComma = index(input, ',');
   else
-    afterComma = -1;  // should be a bad else
+    return FALSE;
 
   i = atoi(input);
   if (!(i < BOARDSIZE) && (i >= 0))
@@ -874,7 +872,7 @@ void unparse_board(blankox *b_board, char *c_board)
   int i;
   for (i = 0; i < BOARDSIZE; i++)
     {
-      c_board[i] = gblankoxString[b_board[i]];
+      c_board[i] = gblankoxString[b_board[i]][0];
     }
 }
 
@@ -960,6 +958,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.18  2004/03/14 22:28:13  jjjordan
+//Prototype fix. -JJ
+//
 //Revision 1.17  2004/03/11 02:25:27  evedar
 //9mm compiles (2 warnings), still need to fix things mentioned in last entry.  9mm now included in makefile
 //

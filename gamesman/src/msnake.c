@@ -159,6 +159,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
 void PrintMove(MOVE theMove);
 void SnakeUnhash(POSITION thePos, BlankBHT *theBlankBHT);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
+POSITION SnakeHash(BlankBHT* theBlankBHT);
 
 void InitializeGame() {
 }
@@ -338,7 +339,6 @@ BlankBHT whoseTurn(theBlankBHT)
 
 POSITION GetInitialPosition()
 {
-  POSITION SnakeHash(); 
   BlankBHT theBlankBHT[BOARDSIZE];
   signed char c;
   int i;
@@ -499,7 +499,6 @@ void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {	
     
     int i; 
-    STRING GetPrediction();
     VALUE GetValueOfPosition();
     BlankBHT theBlankBHT[BOARDSIZE];
 

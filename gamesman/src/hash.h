@@ -2,7 +2,7 @@
 #ifndef GM_HASH_H
 #define GM_HASH_H
 
-#include <stdio.h>
+#include "gamesman.h"
 
 #ifdef	HASH_LOCAL
 #define	H_EXTERN
@@ -14,22 +14,12 @@
 /************************************************************************
 ***********************************************************************/
 
-/* debugging flag */
-H_EXTERN int DEBUG, DEBUG2, DEBUG3, DEBUG4;
-
-/*globals*/
-
-
-extern int* gNCR;		/* These two are already in gamesman.c */
-extern int* gHashOffset;
-
 H_EXTERN int TERM, cTERM, MAX_PIECES, MAX_MAXES, *gOffsetIndices;
 H_EXTERN int *gFACTORIAL, *gpd_store, *newcount, *thiscount, *local_mins;
 H_EXTERN int *miniOffset, *miniIndices, *gPieceIndices;
 /* H_EXTERN int **gPieceDist; */
 H_EXTERN char *pieces;
-H_EXTERN int *mins, *maxs, *nums, num_pieces, num_cfgs, useful_space, gHashOffsetSize;
-H_EXTERN int gHashBoardSize, gHashNumberOfPos;
+H_EXTERN int *mins, *maxs, *nums, num_pieces, num_cfgs, useful_space;
 
 void	freeAll();
 int	dartboard_condition(int *t);

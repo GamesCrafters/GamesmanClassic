@@ -715,7 +715,6 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
-  STRING GetPrediction();
   STRING PrintSpace();
   VALUE GetValueOfPosition();
   struct GPosition myPos = unhash(position);

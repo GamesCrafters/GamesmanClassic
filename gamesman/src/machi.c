@@ -157,6 +157,9 @@ char *gBlankOXString[] = { "·", "#", "$" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 
+/* function prototypes */
+POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
+
 BOOLEAN allDiag = FALSE;
 BOOLEAN noDiag = FALSE;
 
@@ -193,17 +196,12 @@ extern VALUE     *gDatabase;
  ** 
  ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
-    GENERIC_PTR SafeMalloc();
-    int i, j, temp;
+}
 
-/**
-    gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
-    for(i = 0; i < gNumberOfPositions; i++)
-	gDatabase[i] = undecided;
-**/
+void FreeGame()
+{
 }
 
 /************************************************************************
@@ -215,7 +213,7 @@ InitializeGame()
  ** 
  ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -229,7 +227,7 @@ DebugMenu()
  ** 
  ************************************************************************/
 
-GameSpecificMenu()
+void GameSpecificMenu()
 {
     char GetMyChar();
     
@@ -280,7 +278,7 @@ GameSpecificMenu()
  ** 
  ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
      int theOptions[];
 {
     /* No need to have anything here, we have no extra options */
@@ -348,9 +346,8 @@ POSITION DoMove(thePosition, theMove)
 
 /*  we haven't changed this, but we probably should */
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
-    POSITION BlankOXToPosition();
     BlankOX theBlankOX[BOARDSIZE], whosTurn;
     signed char c;
     int i, goodInputs = 0;
@@ -441,7 +438,7 @@ MOVE GetComputersMove(thePosition)
  **
  ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -517,13 +514,12 @@ VALUE Primitive(position)
  **
  ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
     int i;
-    STRING GetPrediction();
     VALUE GetValueOfPosition();
     BlankOX theBlankOx[BOARDSIZE];
     BlankOX whosTurn;
@@ -818,7 +814,7 @@ MOVE ConvertTextInputToMove(input)
  **
  ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
     /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */

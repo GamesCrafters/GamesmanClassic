@@ -31,7 +31,7 @@ STRING   kHelpReverseObjective = "reverse objective" ;
 STRING   kHelpTieOccursWhen = "A tie is not possible in this game" ;
 STRING   kHelpExample = "some really long thing<-Actually play a game,then copy/paste" ;
 
-InitializeGame()
+void InitializeGame()
 {
 	// HERE, YOU SHOULD ASSIGN gNumberOfPositions and gInitialPosition
 	gNumberOfPositions =(1<<(rows*3)) * 2 ;
@@ -40,17 +40,17 @@ InitializeGame()
 }
 
 // SUNIL: NOT WRITING
-FreeGame()
+void FreeGame()
 {
 }
 
 // SUNIL: NOT WRITING
-DebugMenu()
+void DebugMenu()
 {
 }
 
 // SUNIL: NOT WRITING
-GameSpecificMenu()
+void GameSpecificMenu()
 {
 	char option ;
 	int newrows ;
@@ -80,7 +80,7 @@ GameSpecificMenu()
 }
 
 // SUNIL: NOT WRITING
-SetTclCGameSpecificOptions(int theOptions [])
+void SetTclCGameSpecificOptions(int theOptions [])
 {
 }
 
@@ -122,12 +122,13 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 	return thePosition*2+(1-turnbit) ;
 }
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
+  return gInitialPosition;
 }
 
 // SUNIL: DONE
-PrintComputersMove(MOVE computersMove, STRING computersName)
+void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
 	printf("%s's move: %d\n", computersName, computersMove) ;
 }
@@ -141,7 +142,7 @@ VALUE Primitive(POSITION position)
 	return undecided;
 }
 
-PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
 	int i, j ;
 	int positionBak = position ;
@@ -209,7 +210,7 @@ MOVE ConvertTextInputToMove(STRING input)
 	return ret ;
 }
 
-PrintMove(MOVE theMove)
+void PrintMove(MOVE theMove)
 {
 	printf("%d", theMove) ;
 }

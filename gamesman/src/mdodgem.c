@@ -161,11 +161,11 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -178,7 +178,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -192,7 +192,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
   char GetMyChar();
   POSITION GetInitialPosition();
@@ -242,7 +242,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   gToTrapIsToWin = (BOOLEAN) theOptions[0];
@@ -343,7 +343,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -444,13 +444,12 @@ BlankOX OnlyPlayerLeft(theBlankOX)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
   
@@ -669,7 +668,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT fromSlot, toSlot;

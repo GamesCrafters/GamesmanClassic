@@ -24,16 +24,7 @@ EXTERNC
 #include "gamesman.h"
 #include "tcl.h"
 #include "tk.h"
-GENERIC_PTR SafeMalloc(int);
-void PrintMove(MOVE theMove);
-int GetRandomNumber(int);
-MOVELIST* CreateMovelistNode(MOVE,MOVELIST*); 
-void FreeMoveList(MOVELIST*);
-MOVELIST* GetValueEquivalentMoves(POSITION);
-USERINPUT HandleDefaultTextInput(POSITION,MOVE*,STRING);
-VALUE GetValueOfPosition(POSITION);
 
-#pragma weak Tcl_GetInt
 #pragma weak Tcl_CreateCommand
 }
 
@@ -203,16 +194,16 @@ XYtoPos(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   int x,y;
 
   if (argc != 3) {
-    interp->result = "wrong # args: Scored (int)Position (int)x (int)y";
+    interp->result = "wrong # args: Scored (int)x (int)y";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &x) != TCL_OK)
+    if (sscanf(argv[1], "%d", &x) == EOF)
       return TCL_ERROR;
-    if(Tcl_GetInt(interp, argv[2], &y) != TCL_OK)
+    if (sscanf(argv[2], "%d", &y) == EOF)
       return TCL_ERROR;
     
-    sprintf(interp->result,"%d",(int)Con::Pos(x,y));
+    sprintf(interp->result,POSITION_FORMAT,(int)Con::Pos(x,y));
     return TCL_OK;
   }
 }
@@ -223,11 +214,11 @@ GetTurn(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   POSITION pos;
 
   if (argc != 2) {
-    interp->result = "wrong # args: Scored (int)Position (int)x (int)y";
+    interp->result = "wrong # args: Scored (int)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &pos) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &pos) == EOF)
       return TCL_ERROR;
     
     Con board(pos);
@@ -239,21 +230,21 @@ GetTurn(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 static int
 MoveToInter(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 {
-  POSITION move;
+  POSITION pos;
 
   if (argc != 2) {
-    interp->result = "wrong # args: Scored (int)Position (int)x (int)y";
+    interp->result = "wrong # args: Scored (int)Position";
     return TCL_ERROR;
   }
   else {
-    if(Tcl_GetInt(interp, argv[1], &move) != TCL_OK)
+    if (sscanf(argv[1], POSITION_FORMAT, &pos) == EOF)
       return TCL_ERROR;
     
     int xypos=0;
     // do this really cheesily, since it's only needed by the GUI
     for (int i = 0; i <= BoardSize; i++)
       for (int j = 0; j <= BoardSize; j++) {
-	if (Con::Pos(i,j)==move)
+	if (Con::Pos(i,j)==pos)
 	  xypos=i+j*(BoardSize+1);
       }
 	

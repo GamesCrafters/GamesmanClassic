@@ -297,11 +297,11 @@ char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -313,7 +313,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 #ifdef funcname
   printf("Func call: DebugMenu\n");
@@ -331,7 +331,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() {
+void GameSpecificMenu() {
 #ifdef funcname
   printf("Func call: GameSpecificMenu\n");
 #endif
@@ -514,7 +514,7 @@ SetDotPositionMenu() {
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
 }
@@ -621,7 +621,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
 #ifdef funcname
   printf("Func call: GetInitialPosition()\n");
@@ -640,7 +640,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -815,7 +815,7 @@ char GetInitChar(int i, int j){
   }
 }
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
@@ -1336,7 +1336,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   char st[] = {' ',' ',' ',' ',' ',' ',' ', 0};

@@ -177,11 +177,11 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -193,7 +193,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
   char GetMyChar();
 
@@ -246,7 +246,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() { }
+void GameSpecificMenu() { }
 
 /************************************************************************
 **
@@ -257,7 +257,7 @@ GameSpecificMenu() { }
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -301,7 +301,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
@@ -351,7 +351,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -421,13 +421,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE];
 
@@ -578,7 +577,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */

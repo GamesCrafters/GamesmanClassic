@@ -315,11 +315,11 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -332,7 +332,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
   char GetMyChar();
 
@@ -368,7 +368,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
   char GetMyChar();
   STRING oneLSt;
@@ -468,7 +468,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -561,7 +561,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 **
 ************************************************************************/
 
-GetInitialPosition() {
+POSITION GetInitialPosition() {
   int Lo, Lc, L1, L2, S1, S2, whosMove, i, temp2 = 0;
   char temp[2];
   printInit(0, 0, 0, 0, 0);
@@ -710,7 +710,7 @@ GetInitialPosition() {
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -786,7 +786,7 @@ VALUE Primitive(POSITION position) {
 **
 ************************************************************************/
 
-PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   int L1 = unhashL1(position);
   int L2 = unhashL2(position);
   int S1 = unhashS1(position);
@@ -1130,7 +1130,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-PrintMove(MOVE theMove) {
+void PrintMove(MOVE theMove) {
   int L = unhashMoveL(theMove);
   if (unhashMoveSPiece(theMove) == 0)
     printf("[%d %d] ", transPairs[L][0], transPairs[L][1]);

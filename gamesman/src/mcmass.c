@@ -163,9 +163,8 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
  ************************************************************************/
 
 
-InitializeGame()
+void InitializeGame()
 {
-  GENERIC_PTR SafeMalloc(int);
   int i, j, temp;
   Node* theBoard;
   
@@ -185,7 +184,7 @@ InitializeGame()
   free( theBoard );
 }
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -198,7 +197,7 @@ FreeGame()
  ** 
  ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 #if 0
   
@@ -256,7 +255,7 @@ DebugMenu()
  ** 
  ************************************************************************/
 
-GameSpecificMenu() {
+void GameSpecificMenu() {
   
   do {
     printf("\n\t----- Game Specific options for %s -----\n\n", kGameName);
@@ -310,7 +309,7 @@ GameSpecificMenu() {
  ** 
  ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
      int theOptions[];
 { 
   if( theOptions[0] ) //2x2
@@ -420,7 +419,7 @@ POSITION DoMove(thePosition, theMove)
  **
  ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   return((POSITION)0);
 }
@@ -436,7 +435,7 @@ GetInitialPosition()
  **
  ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -546,7 +545,7 @@ VALUE Primitive(position)
  **
  ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
@@ -766,7 +765,7 @@ MOVE ConvertTextInputToMove(input)
  **
  ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */

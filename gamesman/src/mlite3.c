@@ -199,11 +199,11 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -215,7 +215,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 { 
 }
 
@@ -229,7 +229,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu()
+void GameSpecificMenu()
 {
   char GetMyChar();
   signed char c;
@@ -294,7 +294,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   //gGameObjective = ((BOOLEAN) theOptions[0] == TRUE) ? THREE_IN_A_ROW : SURROUND ;
@@ -443,7 +443,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION BlankOOOXXXToPosition();
   BlankOOOXXX theBlankOOOXXX[BOARDSIZE], whosTurn;
@@ -483,7 +483,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -566,13 +566,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 
@@ -746,14 +745,14 @@ USERINPUT HandleTextInput(thePosition, theMove, playerName)
     case 'H': case 'h':
       HelpMenus();
       printf("");
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, TRUE);
       break;
     case 'r': case 'R':
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, TRUE);
       break;
     case 'm': case 'M':
       gShowMoveSuccession = (gShowMoveSuccession == TRUE) ? FALSE : TRUE;
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, TRUE);
       break;
     case 's': case 'S':
       PrintValueMoves(thePosition);
@@ -823,7 +822,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */

@@ -216,11 +216,11 @@ int FourInRow[k4InARow][4] = {	{0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15},
 **
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 /************************************************************************
@@ -232,7 +232,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu() { }
+void DebugMenu() { }
 
 /************************************************************************
 **
@@ -244,7 +244,7 @@ DebugMenu() { }
 ** 
 ************************************************************************/
 
-GameSpecificMenu()
+void GameSpecificMenu()
 {
   char GetMyChar();
   signed char c;
@@ -339,7 +339,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -382,12 +382,14 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
+  int initialPosition;
   printf("Keeping in mind that X always goes first...\n");
   printf("Please input a 9-element string of either 0,1, or 2.\n");
   printf("Where blank = 0, O = 1, X = 2. Example: 100010001\n");
-  scanf("%d",&gInitialPosition);
+  scanf("%d",&initialPosition);
+  return initialPosition;
 }
 
 /************************************************************************
@@ -401,7 +403,7 @@ GetInitialPosition()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -463,13 +465,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankO *theBlankO;
   GENERIC_PTR SafeMalloc();
@@ -679,17 +680,16 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  int i, charsPrinted = 0;
-  charsPrinted += printf("[ ");
+  int i;
+  printf("[ ");
   for(i = 0 ; i < gBoardSize ; i++)
     if(theMove & g2Array[i])
-      charsPrinted += printf("%d ", i+1);
-  charsPrinted += printf("] ");
-  return(charsPrinted);
+      printf("%d ", i+1);
+  printf("] ");
 }
 
 /************************************************************************

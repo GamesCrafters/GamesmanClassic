@@ -182,14 +182,14 @@ BOOLEAN gDiagonalRightGravity = FALSE;
 static int* g3Array;
 
 
-InitializeGame()
+void InitializeGame()
 {
   void InitializeGameVariables();
   
   InitializeGameVariables(DefaultN);
 }
 
-FreeGame()
+void FreeGame()
 {}
 
 
@@ -251,7 +251,6 @@ void GameSpecificMenu() {
   POSITION GetInitialPosition();
   void SetInitialBoardSize();
   BlankOX Primitive();
-  void PrintPosition();
 
    do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -294,7 +293,7 @@ void GameSpecificMenu() {
 	printf("Set the initial position before determining primitive values.");
 	break;
       }
-      PrintPosition(gInitialPosition);
+      PrintPosition(gInitialPosition, "Nobody", TRUE);
       printf("Primitive: %d (0=WIN, 1=LOSE, 3=UNDECIDED)\n",Primitive(gInitialPosition));
       break;
     case 'L': case 'l':
@@ -679,7 +678,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   BlankOX PositionToBlankOX();
   int i,j;
   BlankOX theBlankOX[BoardSize];
-  STRING GetPrediction();
   BlankOX whoseTurn;
 
   whoseTurn = PositionToBlankOX(position,theBlankOX);

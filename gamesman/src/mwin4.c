@@ -129,7 +129,7 @@ char *gBlankOXString[] = { "X", "O", "-" };
 
 extern VALUE     *gDatabase;
 
-InitializeGame()
+void InitializeGame()
 {
   GENERIC_PTR SafeMalloc();
   unsigned int i, j, temp;
@@ -158,7 +158,7 @@ InitializeGame()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() { }
+void GameSpecificMenu() { }
 
 /************************************************************************
 **
@@ -169,7 +169,7 @@ GameSpecificMenu() { }
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -216,7 +216,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -371,13 +371,12 @@ VALUE Primitive(pos)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i,row;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   XOBlank board[WIN4_WIDTH][WIN4_HEIGHT], WhoseTurn();
 
@@ -532,7 +531,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
@@ -663,7 +662,7 @@ unsigned long int MyNumberOfPos() {
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
   char GetMyChar();
 
