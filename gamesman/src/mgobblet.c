@@ -425,10 +425,10 @@ POSITION DoMove(thePosition, theMove)
    
    if(srcPos >= TABLE_SLOTS)
    {
-      pieceSize = srcPos - TABLE_SLOTS;
+      pieceSize = (srcPos - TABLE_SLOTS)/2;
    }else{
       pieceSize = getTopPieceSize( newPos.board[ srcPos]);
-      newPos.board[ srcPos] ^= PIECE_VALUE(getTopPieceColor( newPos.board[ srcPos] ),srcPos);
+      newPos.board[ srcPos] ^= PIECE_VALUE(getTopPieceColor( newPos.board[ srcPos] ),pieceSize);
    }
    newPos.board[ destPos] |= PIECE_VALUE(pieceType,pieceSize);
    
@@ -620,7 +620,7 @@ VALUE Primitive ( POSITION h ) //Need to add the 3 in a row is a loss.
 	else if(x_wins && pos.turn == TURN_O)
 	  return (lose);
 	else 
-	  return(undecided);
+	  return (undecided);
 }
 
 /************************************************************************
@@ -803,7 +803,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
-    printf("%8s's move [(u)ndo/1-%d] :  ", playerName, TABLE_SLOTS);
+    printf("%8s's move [(u)ndo/(1-%d 1-%d)] :  ", playerName, TABLE_SLOTS + PIECE_SIZES, TABLE_SLOTS);
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -869,6 +869,7 @@ MOVE ConvertTextInputToMove(input)
   SLOT srcPos, destPos;
 
   srcPos = atoi(input) - 1;
+
   destPos = atoi(index(input, ' ')) - 1;
   
  
