@@ -28,23 +28,24 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 0;
+int      gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
-POSITION gInitialPosition    = 0;
-POSITION gMinimalPosition    = 0;
-POSITION kBadPosition        = -1;
+POSITION gInitialPosition    = 0; /* The initial position (starting board) */
+POSITION gMinimalPosition    = 0; /* */
+POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kGameName           = "";
-STRING   kDBName             = "";
-BOOLEAN  kPartizan           = ; 
-BOOLEAN  kSupportsHeuristic  = ;
-BOOLEAN  kSupportsSymmetries = ;
-BOOLEAN  kSupportsGraphics   = ;
-BOOLEAN  kDebugMenu          = ;
-BOOLEAN  kGameSpecificMenu   = ;
-BOOLEAN  kTieIsPossible      = ;
-BOOLEAN  kLoopy               = ;
-BOOLEAN  kDebugDetermineValue = ;
+STRING   kGameName           = ""; /* The name of your game */
+STRING   kDBName             = ""; /* The name to store the database under */
+BOOLEAN  kPartizan           = ; /* A partizan game is a game */
+BOOLEAN  kDebugMenu          = ; /* TRUE while debugging */
+BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
+BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
+BOOLEAN  kLoopy               = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
+BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
+
+/* 
+   Help strings that are pretty self-explanatory 
+*/
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -441,7 +442,7 @@ void setOption(int option)
 **
 ** NAME:        GameSpecificTclInit
 **
-** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
+** DESCRIPTION: 
 **
 ************************************************************************/
 
