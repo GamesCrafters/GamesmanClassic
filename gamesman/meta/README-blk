@@ -1,0 +1,62 @@
+The game mblocking uses .blk formats to describe the game boards and
+initial positions of blocking-type games (rearrange the pieces to
+prevent the opponent from moving).  
+
+Several restrictions apply to the files, in general.  Files are read top-down
+-- this includes any names or declarations (any names must be declared before
+being used).  The format is sensitive to capitalization.  Semi-colons denote 
+comments; the remainder of a line with a semi-colon in it will be ignored.  
+All commands are in parentheses, and all lists are in parentheses.  The main 
+commands, with abbreviations in parentheses, are given below:
+
+	graph (g)
+	node-class (nc)
+	node (n)
+	piece-class (pc)
+	image (i)
+
+graph (g)
+	Format: (graph <version> <graph name>)
+
+	The version should currently only be 1.  The graph name is
+	used for the database file name (so a solved game
+	can be retrieved later on), although anything past the first
+	six letters is ignored.  This is not a concern unless two games
+	start with the first six letters.
+
+node-class (nc)
+	Format: (node-class <name of the class> <who can move here>
+			<what classes pieces can move to from here>
+			<a list of nodes with this class>)
+
+	The name of the class serves as a marker for later class
+	declarations (it has no relevance to the game).  The two following
+	arguments give restrictions on the movement of pieces (both must
+	be satisfied in order for a move to be valid).  Lastly, the list
+	of nodes declares nodes, so that they may later be linked with the
+	node command.  The numbering of nodes in gameplay is determined 
+	here from left to right and top down.
+
+node (n)
+	Format: (node <name of the node> <directed list> <connected list>)
+
+	All nodes must be named with one character (otherwise, names with
+	matching first characters may override each other).  The directed
+	list defines a connection only from this node -- there may or may
+	not be a way back.  The connected list creates a two-way path.
+
+piece-class (pc)
+	Format: (piece-class <name of the class> <character to use>
+				<nodes starting with this class>)
+
+	Currently, only black or white classes are supported.  The
+	character used appears in gameplay wherever pieces with the class
+	reside (it will appear in place of the node names).
+
+image (i)
+	Format: (image
+			<picture>)
+
+	The picture should be in ASCII text and is not enclosed in parentheses.
+	Everything on the same line as "image" is ignored (start the picture
+	on the next line, as above).
