@@ -165,7 +165,7 @@ BOOLEAN gStandardGame;           /* TRUE iff game is STANDARD (not REVERSE) */
 BOOLEAN gPrintPredictions = FALSE ;       /* TRUE iff the predictions should be printed */
 BOOLEAN gHints;          	 /* TRUE iff possible moves should be printed */
 char    gPlayerName[2][MAXNAME]; /* The names of the players user/user or comp/user */
-VALUE * gDatabase ;
+VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
 
 int smartness = SMART;
@@ -258,6 +258,11 @@ InitializeDatabases()
 {
   GENERIC_PTR SafeMalloc();
   int i;
+  if (gDatabase!=NULL) {
+    SafeFree((GENERIC_PTR) gDatabase);
+    gBytesInUse -= gNumberOfPositions * sizeof(VALUE);
+  }
+
   gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
   for(i = 0; i < gNumberOfPositions; i++)
     gDatabase[i] = undecided;
