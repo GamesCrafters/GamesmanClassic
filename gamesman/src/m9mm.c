@@ -95,7 +95,6 @@ typedef enum Pieces {
   blank, x, o
 } blankox;
 char gblankoxChar[] = { '_', 'x', 'o'};
-//POSITION gHashNumberOfPos = 0;
 
 /*************************************************************************
 **
@@ -339,7 +338,7 @@ POSITION GetInitialPosition()
       xOnBoard++;
     else if (c == 'o' || c == 'O' || c == '0')
       oOnBoard++;
-    else if (c == '_' || c == '-')
+    else if (c == '_' || c == '-' || c == 'b' || c == 'B')
       bOnBoard++;
     else {
       continue; // don't recognize the char, continue to the next
@@ -916,7 +915,8 @@ void parse_board(char *c_board, blankox *b_board)
 	b_board[i] = o;
       else if (c_board[i] == 'x' || c_board[i] == 'X')
 	b_board[i] = x;
-      else if (c_board[i] == '_' || c_board[i] == '-')
+      else if (c_board[i] == '_' || c_board[i] == '-' ||
+	       c_board[i] == 'b' || c_board[i] == 'B')
 	b_board[i] = blank;
     }
 }
@@ -927,7 +927,7 @@ blankox parse_char(char c) {
     return x;
   else if (c == 'o' || c == '0' || c == 'O')
     return o;
-  else if (c == '-' || c == '_')
+  else if (c == '-' || c == '_' || c == 'b' || c == 'B')
     return blank;
   else
     return blank; // fix this so that it's a badelse
@@ -1068,6 +1068,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.33  2004/04/12 16:13:12  evedar
+//Fixed internal representation so that b's are now _'s.  The i/o of positions is now consistent, and turn prints in print position
+//
 //Revision 1.32  2004/04/12 00:11:31  ogren
 //Added minb, made minb and maxb dependent upon BOARDSIZE, maxo, maxb, mino, minb, instead of just constants.  GetInitialPosition looks a little nicer. -Elmer
 //
