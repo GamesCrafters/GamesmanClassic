@@ -984,7 +984,60 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+    /* The options which make a variant of our game are (copied from above):
+     * int height = 4;
+     * int width = 4;
+     * int numpieces = 4;
+     * enum rules_for_sliding {MUST_SLIDE, MAY_SLIDE, NO_SLIDE} slide_rules = MAY_SLIDE;
+     * BOOLEAN scoreDiagonal = TRUE;
+     * BOOLEAN scoreStraight = TRUE;
+     * BOOLEAN moveDiagonal = TRUE;
+     * BOOLEAN moveStraight = TRUE;
+     */
+    
+    int moveStyleVal;
+    int boardSizeVal;
+    int scoreVal;
+    
+    /* determine moveStyleVal ( to ) */
+    if (slide_rules == NO_SLIDE) {
+	moveStyleVal = 0;
+    } else if (slide_rules == MAY_SLIDE) {
+	moveStyleVal = 1;
+    } else if (slide_rules == MUST_SLIDE) {
+	moveStyleVal = 2;
+    } else {
+	BadElse("getOption");
+    }
+    if (slide_rules != NO_SLIDE) {
+	if (moveDiagonal && moveStraight) {	
+	    moveStyleVal += (2 * 0);
+	} else if (moveDiagonal) {
+	    moveStyleVal += (2 * 1);
+	} else if (moveStraight) {
+	    moveStyleVal += (2 * 2);
+	} else {
+	    BadElse("getOption");
+	}
+    }	
+    
+    
+    /* determine boardSizeVal ( to ) */
+    boardSizeVal = 0;
+    boardSizeVal += height;
+    
+    
+    /* determine scoreVal (0 to 2) */
+    if (scoreDiagonal && scoreStraight) {
+	scoreVal = 0;
+    } else if (scoreDiagonal) {
+	scoreVal = 1;
+    } else if (scoreStraight) {
+	scoreVal = 2;
+    } else {
+	BadElse("getOption");
+    }
+    
 }
 
 
