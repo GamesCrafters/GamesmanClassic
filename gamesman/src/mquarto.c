@@ -42,6 +42,8 @@
 **                     added function pointers hash and unhash, to be set to the default implementations
 **                     coded inefficient bitpacking hasher and testing function so we can proceed with further coding
 **                     added print_board and boards_equal to print and compare board contents (for internal use)
+**                     coded PrintPosition and auxilliary functions
+**                     buggy implementation of ValidTextInput
 **
 **************************************************************************/
 
@@ -143,6 +145,12 @@ typedef struct board_item {
 
 typedef QTBOARD* QTBPtr;
 
+/* Letter codes for the different piece states */
+char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
+
+/* ASCII Hex */
+char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
 /*************************************************************************
 **
 ** Global Variables
@@ -210,6 +218,8 @@ void InitializeGame ()
 	
 	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
 	QTBPtr error_board;
+	
+	printf("size of void=%d, char=%d, short=%d", sizeof(void), sizeof(char), sizeof(short));
 	
 	/* Initialize board to empty */
 	memset( board, 0, sizeof( QTBOARD ) );
@@ -311,7 +321,6 @@ VALUE Primitive (POSITION position)
     return undecided;
 }
 
-
 /************************************************************************
 **
 ** NAME:        PrintPosition
@@ -328,10 +337,156 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark ) {
+	
+	int position;
+	
+	printf( "%s%c", startmark, border );
+	
+	for( position = 1; position < (GAMEDIMENSION + 1) * GAMEDIMENSION; position++ ) {
+		
+		if( position % ( GAMEDIMENSION + 1) ) {
+			
+			printf( "%c", fill );
+			
+		} else {
+			
+			printf( "%c", border );
+			
+		}
+		
+	}
+	
+	printf( "%c%s", border, endmark );
+
+}
+
+char PieceTrait( short trait, void *p_piece ) {
+	
+	short piece = *((short *) p_piece);
+	
+	return ( piece == 0 ) ? ' ' : states[trait][( ( piece - 1 ) >> trait ) & 1];
+	
+}
+
+char LegendCoordinate( short pad, void *p_coordinate ) {
+	
+	char coordinate = *((char *) p_coordinate);
+	
+	return ( pad < GAMEDIMENSION - 1 ) ? ' ' : coordinate;
+	
+}
+
+void PrintCell( void *cell, char (*CellContent)( short, void * ) ) {
+	
+	short trait;
+	
+	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
+	
+		printf( "%c", CellContent( trait, cell ) );	
+		
+	}
+	
+	printf( "|" );
+	
+}
+
+void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) ) {
+	
+	const int header_length = 20;
+	int i, cell, heading_length, hand_label_length;
+	char *pad = "\n       ";
+	char *hand_label = " Hand ";
+	
+	heading_length		= strlen( heading );
+	hand_label_length	= strlen( hand_label );
+	
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|" );
+	for ( i = 0; i < hand_label_length; i++ ) {
+		
+		printf( "^" );
+		
+	}
+	printf( "|" );
+	for ( i = 0; i < GAMEDIMENSION*GAMEDIMENSION - 2; i++ ) {
+		
+		printf( "^" );
+		
+	}
+	printf( "|" );
+	
+	printf( "\n%s", heading );
+	for ( i = 0; i < header_length - heading_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|%s|", hand_label );
+	PrintCell( cells, CellContent );
+	printf( "\n" );
+	
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|" );
+	for ( i = 0; i < hand_label_length; i++ ) {
+		
+		printf( "_" );
+		
+	}
+	printf( "|" );
+	for ( i = 0; i < GAMEDIMENSION*GAMEDIMENSION - 2; i++ ) {
+		
+		printf( "_" );
+		
+	}
+	printf( "|" );
+
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	for( cell = 1; cell <= BOARDSIZE; cell++ ) {
+		
+		if ( !( ( cell - 1 ) % GAMEDIMENSION ) ) {
+			PrintHorizontalBorder( '-', ' ', pad, "" );
+			printf( "%s|", pad );
+			
+		}
+		
+		PrintCell( cells + cell*content_size, CellContent );
+		
+	}
+	
+	PrintHorizontalBorder( '-', ' ', pad, "\n" );
+
+}
+	
+void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
 {
 
-
+	QTBPtr board;
+	
+	/* Unhash position into internal board representation */
+	board = unhash( position );
+	
+	board->slots[1]=3;
+	
+	PrintBoard( hex_ascii, sizeof( *hex_ascii ), "LEGEND:", &LegendCoordinate );
+	PrintBoard( board->slots, sizeof( *board->slots ), "BOARD: ", &PieceTrait );
+	
 
 }
 
@@ -436,9 +591,68 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
+BOOLEAN ValidTextInput( STRING input )
 {
-    return FALSE;
+	
+	BOOLEAN valid = FALSE;
+	
+	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[1] == ' ' ) {
+		
+		int i;
+		int valid_traits[GAMEDIMENSION];
+		
+		memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );
+		
+		
+		// Checking if position indicated is valid
+		for( i = 0; i < BOARDSIZE + 1; i++ ) {
+			
+			if( input[0] == hex_ascii[i] ) {
+				
+				valid = TRUE;
+				break;
+				
+			}
+			
+		}
+		
+		if ( valid ) {
+		   
+			int trait;
+			
+			for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
+				for( i = 0; i < GAMEDIMENSION; i++ ) {
+					if ( input[trait + 2] == states[i][0] || input[trait + 2] == states[i][1] ) {
+						BOOLEAN repeat = FALSE;
+						int j;
+						
+						for( j = 0; j < trait; j++ ) {
+							if ( valid_traits[j] == i + 1 ) {
+								repeat = TRUE;
+							}
+						}
+						if ( !repeat ) {
+							valid_traits[trait] = i + 1;
+							break;
+						}
+					}
+				}
+				
+				if ( valid_traits[trait] == 0 ) {
+					
+					valid = FALSE;
+					break;
+					
+				}
+			
+			}
+			
+			
+		}
+		
+	} 
+	
+	return valid;
 }
 
 
@@ -458,6 +672,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
+	printf("got input: %s\n", input );
     return 0;
 }
 
