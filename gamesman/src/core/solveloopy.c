@@ -287,7 +287,7 @@ void DFS_SetParents (POSITION parent, POSITION position)
   POSITION child;
   POSITIONLIST *posptr, *poshead, *StorePositionInList();
   
-  if(kDebugDetermineValue) printf("DV (%d,%d)\n", parent, position);
+  if(kDebugDetermineValue) printf("DV (" POSITION_FORMAT "," POSITION_FORMAT ")\n", parent, position);
   if(Visited(position)) { /* We've been down this path before, don't DFS */
     if(kDebugDetermineValue) printf("Seen\n");
     /* PARENT me */
@@ -353,10 +353,14 @@ void DFS_SetParents (POSITION parent, POSITION position)
 
 void SetParents (POSITION parent, POSITION root)
 {
-    MOVELIST* moveptr, * movehead;
-    POSITIONLIST* posptr, * thisLevel, * nextLevel;
-    POSITION pos, child;
-    VALUE value;
+    MOVELIST*       moveptr;
+    MOVELIST*       movehead;
+    POSITIONLIST*   posptr;
+    POSITIONLIST*   thisLevel;
+    POSITIONLIST*   nextLevel;
+    POSITION        pos;
+    POSITION        child;
+    VALUE           value;
     
     posptr = thisLevel = nextLevel = NULL;
     moveptr = movehead = NULL;
@@ -367,10 +371,10 @@ void SetParents (POSITION parent, POSITION root)
     if ((value = Primitive(root)) != undecided) {
         SetRemoteness(root, 0);
         switch (value) {
-	case lose: InsertLoseFR(root); break;
-	case win:  InsertWinFR(root); break;
-	case tie:  InsertTieFR(root); break;
-	default:   BadElse("SetParents found primitive with value other than win/lose/tie");
+            case lose: InsertLoseFR(root); break;
+            case win:  InsertWinFR(root); break;
+            case tie:  InsertTieFR(root); break;
+            default:   BadElse("SetParents found primitive with value other than win/lose/tie");
         }
 	
         StoreValueOfPosition(root, value);
@@ -380,11 +384,14 @@ void SetParents (POSITION parent, POSITION root)
     thisLevel = StorePositionInList(root, thisLevel);
     
     while (thisLevel != NULL) {
-        for (posptr = thisLevel; posptr != NULL; posptr = posptr -> next) {
+        POSITIONLIST* next;
+        
+        for (posptr = thisLevel; posptr != NULL; posptr = next) {
+            next = posptr -> next;
             pos = posptr -> position;
-	    
+            
             movehead = GenerateMoves(pos);
-	    
+            
             for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
                 child = DoMove(pos, moveptr -> move);
                 if (child < 0 || child >= gNumberOfPositions)
@@ -398,10 +405,10 @@ void SetParents (POSITION parent, POSITION root)
                 if ((value = Primitive(child)) != undecided) {
                     SetRemoteness(child, 0);
                     switch (value) {
-		    case lose: InsertLoseFR(child); break;
-		    case win : InsertWinFR(child);  break;
-		    case tie : InsertTieFR(child);  break;
-		    default  : BadElse("SetParents found bad primitive value");
+                        case lose: InsertLoseFR(child); break;
+                        case win : InsertWinFR(child);  break;
+                        case tie : InsertTieFR(child);  break;
+                        default  : BadElse("SetParents found bad primitive value");
                     }
                     StoreValueOfPosition(child, value);
                 } else {
@@ -411,9 +418,10 @@ void SetParents (POSITION parent, POSITION root)
             }
 	    
             FreeMoveList(movehead);
+            
+            /* Free as we go */
+            free(posptr);
         }
-	
-        FreePositionList(thisLevel);
 	
         thisLevel = nextLevel;
         nextLevel = NULL;
