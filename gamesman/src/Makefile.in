@@ -239,8 +239,7 @@ CGAMES =  $(1210_EXE) $(ASALTO_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_EXE) \
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(ASALTO_SO) $(NIM_SO) $(WINKERS_SO) $(SIM_SO) $(STT_SO) $(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) \
 	$(3DOT_SO) $(BLOCKING_SO) $(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) $(ACHI_SO) \
-	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(1TON_SO) $(ABALONE_SO) $(TTC_SO) $(PYLOS_SO) $(FANDAN_SO)\
-	$(JOUST_SO) $(ICEBLOCKS_SO) #$(MANCALA_SO)
+	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) #$(MANCALA_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
