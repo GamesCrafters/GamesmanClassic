@@ -6,9 +6,9 @@
 **
 ** AUTHOR:      Michael Mottmann & Melinda Franco
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        4/6/04 - Working and all nice and pretty and stuff
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
 **
 ** 
 **
@@ -87,10 +87,10 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-STRING gGameSpecificMenu = "1.\t Change the value of N, the edge size of the hexagon board\n2.\t Return to the previous menu\n\nSelect Option:  ";
-
 #define NULLSLOT 99
 int N = 2;
+int MISERE = 0;
+int SS = 0;
 
 int BOARDSIZE;
 char *gBoard;
@@ -166,7 +166,7 @@ void InitializeGame()
     rowsize--;
   }
   
-  printf("BOARDSIZE is %d\n", BOARDSIZE);
+  /*printf("BOARDSIZE is %d\n", BOARDSIZE);*/
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
 
@@ -198,7 +198,7 @@ void InitializeGame()
     gBoard[16]='o';
     gBoard[17]='*';
     gBoard[18]='o';
-  } else {
+  } else{
     for (count = 0; count < BOARDSIZE; count++) {
       if (count < 9)
 	gBoard[count] = 'x';
@@ -207,7 +207,14 @@ void InitializeGame()
       else gBoard[count] = '*';
     }
   }
+    
 
+
+  /*  printf("testing...\n");
+  for (count = 0; count < BOARDSIZE; count++) {
+    printf("%d: %c\n", count, gBoard[count]);
+    }*/
+  
   int init_array[10];
   init_array[0] = 'o';
   init_array[3] = 'x';
@@ -237,17 +244,21 @@ void InitializeGame()
     init_array[8] = BOARDSIZE - 16;
   }
 
+  /* printf("init array:\n");
+  for (count = 0; count < 10; count++) {
+    printf("%d: %d\n", count, init_array[count]);
+    }*/
 
   max = generic_hash_init(BOARDSIZE,init_array,NULL);
-  printf("%d  # of hash positions!\n",max);
+  /*  printf("%d  # of hash positions!\n",max);*/
   
   init = generic_hash(gBoard, 1);
-  printf("%d  is the initial position\n",init);
+  /*  printf("%d  is the initial position\n",init);*/
   
   generic_unhash(init,gBoard);
   /*printf("testing...\n");
     for (count = 0; count < BOARDSIZE; count++) {
-    printf("%c\n", gBoard[count]);
+    printf("%d: %c\n", count, gBoard[count]);
   }*/
   
   /*gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));*/
@@ -285,11 +296,42 @@ void DebugMenu()
 void GameSpecificMenu() 
 {
   int selection;
-  printf("%s", gGameSpecificMenu);
+  printf("1.\t Change the value of N, the edge size of the hexagon board\n");
+  if (MISERE == 0)
+    printf("2.\t Toggle from Standard to Misere\n");
+  else
+    printf("2.\t Toggle from Misere to Standard\n");
+  if (SS == 0)
+    printf("3.\t Toggle from Cheap Moves Allowed to No Cheap Moves\n");
+  else
+    printf("3.\t Toggle from No Cheap Moves to Cheap Moves Allowed\n");
+  printf("4.\t Return to the previous menu\n\nSelect Option:  ");
   (void) scanf("%d", &selection);
-  if (selection == 1)
+  
+  if (selection == 1) {
     changeBoard();
-  else if (selection == 2)
+  } else if (selection == 2) {
+    if (MISERE == 0)
+      MISERE = 1;
+    else
+      MISERE = 0;
+    
+    SafeFree(rows);
+    SafeFree(gBoard);
+    InitializeGame();
+    GameSpecificMenu();
+  } else if (selection == 3) {
+    if (SS == 0)
+      SS = 1;
+    else
+      SS = 0;
+    
+    SafeFree(rows);
+    SafeFree(gBoard);
+    InitializeGame();
+    GameSpecificMenu();
+
+  } else if (selection == 4)
     return;
   else {
     printf("\n\n\n Please select a valid option...\n");
@@ -444,7 +486,7 @@ void PrintComputersMove(computersMove, computersName)
      MOVE computersMove;
      STRING computersName;
 {
-  printf("%8s's move              : ", computersName);
+  printf("%8s's move   : ", computersName);
   PrintMove(computersMove);
   printf("\n");
 }
@@ -477,10 +519,11 @@ VALUE Primitive ( POSITION h )
   generic_unhash(h,gBoard);
   
   if (game_over(gBoard)) {
-    /*printf("endprim\n");*/
-    return (lose);
+    if (MISERE == 1)
+      return (win);
+    else
+      return (lose);
   }
-  /*printf("endprim\n");*/
   return (undecided);
 }
 
@@ -535,31 +578,32 @@ void PrintPosition(position, playerName, usersTurn)
 
   /* messy centering spacing issues for sizeable first line*/
   printf("\n");
-  spacing = (4 * (*rows[N - 1]).size) + 2;
+  spacing = (4 * (*rows[N - 1]).size) + 8;
   for (r = 0; r < spacing/2; r++)
     printf (" ");
-  printf("Board");
+  printf("BOARD");
   for (r = 0; r < spacing/2; r++)
     printf (" ");
   if (spacing % 2 == 1)
     printf (" ");
 
+
   if (N == 2)
-    spacing = (4 * (*rows[N - 1]).size) + 1;
+    spacing = (4 * (*rows[N - 1]).size) + 2;
   else
-    spacing = (5 * (*rows[N - 1]).size) + 1;
+    spacing = (5 * (*rows[N - 1]).size) + 2;
   
   for (r = 0; r < spacing/2; r++)
     printf (" "); 
-  printf("Legend");
+  printf("LEGEND");
   for (r = 0; r < spacing/2; r++)
     printf (" ");
   if (spacing % 2 == 1)
     printf (" ");
       
-  printf("   Direction Key\n");
+  printf(" DIRECTIONS\n\n");
   
-
+  /*
   printf("/-------------------------------");
   for (r = 0; r < (*rows[N - 1]).size; r++) {
     if (N == 2)
@@ -568,41 +612,135 @@ void PrintPosition(position, playerName, usersTurn)
       printf("---------");
   }
   printf("\\\n");
+  */
+
+  /* edge of hex board */
+  /*top edge*/
+  printf("       ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("---");
+  for (r = 0; r < N; r++){
+    printf("----");
+  }
+  printf("        ");
+  printf("\n");
+
+  /*second edge*/
+  printf("      ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("/ ");
+  for (r = 0; r < N; r++){
+    printf("----");
+  }
+  printf("- \\");
+  printf("      ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf(" |\n");
+
+  
+  /*spacer*/
+  printf("     ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("/ /");
+  for (r = 0; r < N; r++) {
+    printf("    ");
+  }
+  printf(" \\ \\");
+  printf("     ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf(" |\n");
+
     
   /*main board printing here*/
   for (r = (2 * N) - 2; r >= 0; r--) {
-    printf("|   ");
+    printf("  ");
     printrow(r, 0);
     printf("   |   ");
     printrow(r, 1);
-    printf("   |");
 
     if (r == N)
-	printf("      3   2      |  To move one piece:");
+	printf("      3   2       To move one piece:");
     else if (r == N - 1)
-      printf("    -1 -*- 1     |  To move two pieces:");
+      printf("    -1 -*- 1      To move two pieces:");
     else if (r == N - 2)
-      printf("     -2  -3      |     (order of pieces doesn't matter)");
+      printf("     -2  -3          (order of pieces doesn't matter)");
     else
-      printf("                 |");
+      printf("               ");
     if (r != 0) {
-      printf("\n|   ");
+      printf("\n ");
       printlines(r, 0);
       printf("   |   ");
       printlines(r, 1);
-      printf("   |");
+      printf("  ");
 
       if (r == N - 1)
-	printf("       / \\       |      direction, piece1, piece2");
+	printf("     / \\            direction, piece1, piece2");
       else if (r == N)
-	printf("       \\ /       |      direction, piece1");
+	printf("     \\ /            direction, piece1");
       else
-	printf("                 |");
+	printf("                 ");
     }
     printf("\n");
   }
 
+/* edge of hex board */
+  /*spacer*/
+  printf("     ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("\\ \\");
+  for (r = 0; r < N; r++) {
+    printf("    ");
+  }
+  printf(" / /");
+  printf("     ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf(" |\n");
 
+  /*first edge*/
+  printf("      ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("\\ ");
+  for (r = 0; r < N; r++){
+    printf("----");
+  }
+  printf("- /");
+  printf("      ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf(" |\n");
+
+  /*bottom edge*/
+  printf("       ");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
+  }
+  printf("---");
+  for (r = 0; r < N; r++){
+    printf("----");
+  }
+  printf("\n\n\n");
+
+    
+  
+
+  /*
 printf("\\-------------------------------");
   for (r = 0; r < (*rows[N - 1]).size; r++) {
     if (N == 2)
@@ -610,7 +748,7 @@ printf("\\-------------------------------");
     else
       printf("---------");
   }
-  printf("/\n");
+  printf("/\n");*/
 }
 
 /************************************************************************
@@ -656,7 +794,7 @@ MOVELIST *GenerateMoves(position)
 	for (direction = 1; direction <= 3; direction++) {
 	  
 	  slot2 = destination(slot, direction);
-
+	  
 	  /*Single Piece Moves*/
 	  dest0 = destination(slot, (0 - direction));
 	  if (gBoard[slot2] == '*') {
@@ -670,44 +808,44 @@ MOVELIST *GenerateMoves(position)
 	  if (gBoard[slot2] == whoseTurn) {
 	    /*Test for pushes in both directions*/
 	    /*the oppositve direction is represented by the negative of that direction*/
-	      
-	      dest1 = destination(slot2,direction);
-	      
-	      if (dest1 != NULLSLOT) {
-		dest2 = destination(dest1,direction);
-		if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') ||(dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
-		  head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
-		}
-	      }
-	      direction = 0 - direction; 
-	      dest1 = destination(slot,direction);
-	      
-	      if (dest1 != NULLSLOT) {
-		dest2 = destination(dest1,direction);
-		if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') || (dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
-		  head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
-		}
-	      }
-	      direction = 0 - direction;
-
-
 	    
-	    /*Test for possible side steps*/
-	    for (ssdir = -3; ssdir <= 3; ssdir++) {
-	      if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {/*skip over nonexistant zero direction as well as push direction*/
-		dest1 = destination(slot,ssdir);
-		dest2 = destination(slot2,ssdir);
-
-		if ((dest1 != NULLSLOT) && (dest2 != NULLSLOT) && (gBoard[dest1] == '*') && (gBoard[dest2] == '*')) {
-		  head = CreateMovelistNode(move_hash(slot,slot2,ssdir), head);
+	    dest1 = destination(slot2,direction);
+	    
+	    if (dest1 != NULLSLOT) {
+	      dest2 = destination(dest1,direction);
+	      if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') ||(dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
+		head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
+	      }
+	    }
+	    direction = 0 - direction; 
+	    dest1 = destination(slot,direction);
+	    
+	    if (dest1 != NULLSLOT) {
+	      dest2 = destination(dest1,direction);
+	      if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') || (dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
+		head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
+	      }
+	    }
+	    direction = 0 - direction;
+	      
+	    
+	    if (SS == 0) { 
+	      /*Test for possible side steps*/
+	      for (ssdir = -3; ssdir <= 3; ssdir++) {
+		if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {/*skip over nonexistant zero direction as well as push direction*/
+		  dest1 = destination(slot,ssdir);
+		  dest2 = destination(slot2,ssdir);
+		  
+		  if ((dest1 != NULLSLOT) && (dest2 != NULLSLOT) && (gBoard[dest1] == '*') && (gBoard[dest2] == '*')) {
+		    head = CreateMovelistNode(move_hash(slot,slot2,ssdir), head);
+		  }
+		  
+		  
+		  if (slot == 0) {
+		    /*printf("slot is 0, slot2 is %d, dest1 is %d, gBoard[dest1] is %c, dest2 is %d, gBoard[dest2] is %c, in direction %d\n", slot2, dest1, gBoard[dest1], dest2, gBoard[dest2], ssdir);*/
+		    
+		  }
 		}
-
-
-		if (slot == 0) {
-		  /*printf("slot is 0, slot2 is %d, dest1 is %d, gBoard[dest1] is %c, dest2 is %d, gBoard[dest2] is %c, in direction %d\n", slot2, dest1, gBoard[dest1], dest2, gBoard[dest2], ssdir);*/
-	  
-		}
-
 	      }
 	    }
 	  }
@@ -719,7 +857,7 @@ MOVELIST *GenerateMoves(position)
   }
   /*printf("end gen\n");*/
   return(NULL);
- }
+}
 
  
 /************************************************************************
@@ -812,7 +950,7 @@ MOVE ConvertTextInputToMove(input)
   }
   
   /*get direction*/
-  if (input[n] == '*') {
+  if (input[n] == '-') {
     dir = 0 - (input[n+1] - '0');
     n = n + 3;
   }
@@ -1101,6 +1239,14 @@ void printrow (int line, int flag) {
   for (s = 0; s < abs((N - 1) - line); s++) {
     printf ("  ");
   }
+  if (flag == 0) {
+    if (line > N -1) 
+      printf("/ /  ");
+    else if (line == N - 1)
+      printf("| |  ");
+    else
+      printf("\\ \\  ");
+  }
 
   for (s = 0; s < size; s++) {
     printf ("(");
@@ -1126,7 +1272,16 @@ void printrow (int line, int flag) {
     else
       printf(") ");
   }
+  if (flag == 0) {
+    if (line > N -1) 
+      printf(" \\ \\");
+    else if (line == N - 1)
+      printf(" | |");
+    else
+      printf(" / /");
+  }
 
+  
   for (s = 0; s < abs((N - 1) - line); s++) {
     if (flag == 0)
       printf ("  ");
@@ -1138,13 +1293,20 @@ void printrow (int line, int flag) {
   }
 }
     
+
+
 void printlines (int line, int flag) {
-  int s;
+  int s, max;
  
   for (s = 0; s < abs((N - 1) - line); s++) {
     printf ("  ");
   }
-  
+  if (flag == 0) {
+    if (line > N -1) 
+      printf("/ /   ");
+    else
+      printf("  \\ \\ ");
+  }
  
   if (line > N - 1) {
     s = 0;
@@ -1174,20 +1336,37 @@ void printlines (int line, int flag) {
     }
   }
 
+  if (flag == 0) {
+    if (line > N -1) 
+      printf("  \\ \\");
+    else
+      printf("  / /");
+  }
+
   if (line > N - 1)
     s = 0;
   else
     s = -1;
 
-  for (; s < abs((N - 1) - line); s++) {
+  if (flag == 0) {
+    if (line > N - 1) {
+      max = 2 * abs((N - 1) - line) - 1;
+    }
+    else {
+      max = 2 * (abs(N - line)) - 2;
+    }
+  }
+  else
+    max = abs((N - 1) - line);
+ 
+  for (; s < max; s++) {
     if (flag == 0)
-      printf ("  ");
+      printf (" ");
     if (flag == 1)
       if (N == 2)
 	printf ("  ");
     else
       printf ("   ");
   }
-
 }
 
