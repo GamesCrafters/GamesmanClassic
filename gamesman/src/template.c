@@ -1,8 +1,9 @@
 // $id$
 // $log$
 
-/* Above is will include the name and the log of the last
- * person to commit this file to gamesman.
+/*
+ * The above lines will include the name and log of the last person
+ * to commit this file to CVS
  */
 
 /************************************************************************
@@ -16,8 +17,6 @@
 ** DATE:        WHEN YOU START/FINISH
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-** 
 **
 **************************************************************************/
 
@@ -35,24 +34,26 @@
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+STRING   kGameName            = ""; /* The name of your game */
+STRING   kAuthorName          = ""; /* Your name(s) */
+STRING   kDBName              = ""; /* The name to store the database under */
 
-POSITION gInitialPosition    = 0; /* The initial hashed position (starting board) */
-POSITION kBadPosition        = -1; /* A position that will never be used */
+BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-STRING   kGameName           = ""; /* The name of your game */
-STRING   kDBName             = ""; /* The name to store the database under */
-BOOLEAN  kPartizan           = ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = ; /* TRUE only when debugging. Remove TRUE when you're done debugging */
-BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
-BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy              = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
+BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+
+POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
+POSITION kBadPosition         = -1; /* A position that will never be used */
 
 /* 
-   Help strings that are pretty self-explanatory
-   Strings than span more than one line should have backslashes (\) at the end of the line.
-*/
+ * Help strings that are pretty self-explanatory
+ * Strings than span more than one line should have backslashes (\) at the end of the line.
+ */
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -69,41 +70,30 @@ STRING   kHelpStandardObjective =
 STRING   kHelpReverseObjective =
 "";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+STRING   kHelpTieOccursWhen =
+"A tie occurs when ...";
 
 STRING   kHelpExample =
 "";
 
 /*************************************************************************
 **
-** Everything above here must be in every game file
+** #defines and structs
 **
 **************************************************************************/
 
-/*************************************************************************
-**
-** Every variable declared here is only used in this file (game-specific)
-**
-**************************************************************************/
 
 /*************************************************************************
 **
-** Below is where you put your #define's and your global variables, structs
+** Global Variables
 **
 *************************************************************************/
 
 /*************************************************************************
 **
-** Above is where you put your #define's and your global variables, structs
+** Function Prototypes
 **
 *************************************************************************/
-
-/*
-** Function Prototypes:
-*/
-
-/* Function prototypes here. */
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -111,58 +101,266 @@ extern void		SafeFree ();
 
 /*************************************************************************
 **
-** Here we declare the global database variables
+** Global Database Declaration
 **
 **************************************************************************/
 
 extern VALUE     *gDatabase;
 
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the variables required for the game before
-**              the game runs. Sets up gDatabase (if necessary), global
-**              variables, and local variables.
+** DESCRIPTION: Prepares the game for execution.
+**              Initializes required variables.
+**              Sets up gDatabase (if necessary).
 ** 
 ************************************************************************/
 
-void InitializeGame () {
+void InitializeGame ()
+{
   
 }
-
 
 /************************************************************************
 **
-** NAME:        DebugMenu
+** NAME:        GenerateMoves
 **
-** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems. Does 
-**              nothing if kDebugMenu == FALSE
+** DESCRIPTION: Creates a linked list of every move that can be reached
+**              from this position. Returns a pointer to the head of the
+**              linked list.
 ** 
+** INPUTS:      POSITION position : Current position for move
+**                                  generation.
+**
+** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
+**                                  the linked list of generated moves
+**
+** CALLS:       MOVELIST *CreateMovelistNode();
+**
 ************************************************************************/
 
-void DebugMenu () {
+MOVELIST *GenerateMoves (POSITION position)
+{
+	MOVELIST *CreateMovelistNode();
+	MOVELIST *moves = NULL;
+	return moves;
+}
+
+/************************************************************************
+**
+** NAME:        DoMove
+**
+** DESCRIPTION: Applies the move to the position.
+** 
+** INPUTS:      POSITION position : The old position
+**              MOVE     move     : The move to apply to the position
+**
+** OUTPUTS:     (POSITION)        : The position that results from move
+**
+** CALLS:       Some Board Hash Function
+**              Some Board Unhash Function
+**
+*************************************************************************/
+
+POSITION DoMove (POSITION position, MOVE move)
+{
+	return 0;
+}
+
+/************************************************************************
+**
+** NAME:        Primitive
+**
+** DESCRIPTION: Returns the value of a position if it fulfills certain
+**              'primitive' constraints.
+**
+**              Example: Tic-tac-toe - Last piece already placed
+**
+**              Case                                  Return Value
+**              *********************************************************
+**              Current player sees three in a row    lose
+**              Entire board filled                   tie
+**              All other cases                       undecided
+** 
+** INPUTS:      POSITION position : The position to inspect.
+**
+** OUTPUTS:     (VALUE)           : one of
+**                                  (win, lose, tie, undecided)
+**
+** CALLS:       None              
+**
+************************************************************************/
+
+VALUE Primitive (POSITION position)
+{
+ 	return undecided;
+}
+
+/************************************************************************
+**
+** NAME:        PrintPosition
+**
+** DESCRIPTION: Prints the position in a pretty format, including the
+**              prediction of the game's outcome.
+** 
+** INPUTS:      POSITION position    : The position to pretty print.
+**              STRING   playersName : The name of the player.
+**              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
+**
+** CALLS:       Unhash()
+**              GetPrediction()      : Returns the prediction of the game
+**
+************************************************************************/
+
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+{
+	
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+** 
+** INPUTS:      MOVE    computersMove : The computer's move. 
+**              STRING  computersName : The computer's name. 
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+** 
+** INPUTS:      MOVE move         : The move to print. 
+**
+************************************************************************/
+
+void PrintMove (MOVE move)
+{
   
 }
 
+/************************************************************************
+**
+** NAME:        GetAndPrintPlayersMove
+**
+** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
+**              some other gamesman option. The gamesman core does
+**              most of the work here. 
+**
+** INPUTS:      POSITION position    : Current position
+**              MOVE     *move       : The move to fill with user's move. 
+**              STRING   playersName : Current Player's Name
+**
+** OUTPUTS:     USERINPUT          : One of
+**                                   (Undo, Abort, Continue)
+**
+** CALLS:       USERINPUT HandleDefaultTextInput(POSITION, MOVE*, STRING)
+**                                 : Gamesman Core Input Handling
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+{
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
+
+	while(TRUE)
+	{
+		/***********************************************************
+                 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+                 ***********************************************************/
+		printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+
+		input = HandleDefaultTextInput(position, move, playersName);
+
+		if (input != Continue)
+			return input;
+	}
+
+	return Continue; /* This keeps the compiler happy */
+}
+
+/************************************************************************
+**
+** NAME:        ValidTextInput
+**
+** DESCRIPTION: Rudimentary check to check if input is in the move form
+**              you are expecting. Does not check if it is a valid move.
+**              Only checks if it fits the move form.
+**
+**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
+**                                          COMMANDS IN YOUR GAME
+**              ?, s, u, r, h, a, c, q
+**                                          However, something like a3
+**                                          is okay.
+** 
+**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
+**                       Only integers between 1 to 9 are accepted
+**                       regardless of board position.
+**                       Moves will be checked by the core.
+**
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
+**
+************************************************************************/
+
+BOOLEAN ValidTextInput (STRING input)
+{
+	return FALSE;
+}
+
+/************************************************************************
+**
+** NAME:        ConvertTextInputToMove
+**
+** DESCRIPTION: Converts the string input your internal move representation.
+**              Gamesman already checked the move with ValidTextInput
+**              and ValidMove.
+** 
+** INPUTS:      STRING input : The VALID string input from the user.
+**
+** OUTPUTS:     MOVE         : Move converted from user input.
+**
+************************************************************************/
+
+MOVE ConvertTextInputToMove (STRING input)
+{
+	return 0;
+}
 
 /************************************************************************
 **
 ** NAME:        GameSpecificMenu
 **
-** DESCRIPTION: Menu used to change game-specific parameters, such as
-**              the side of the board in an nxn Nim board, etc. Does
-**              nothing if kGameSpecificMenu == FALSE
+** DESCRIPTION: Prints, receives, and sets game-specific parameters.
+**
+**              Examples
+**              Board Size, Board Type
+**
+**              If kGameSpecificMenu == FALSE
+**                   Gamesman will not enable GameSpecificMenu
+**                   Gamesman will not call this function
 ** 
+**              Resets gNumberOfPositions if necessary
+**
 ************************************************************************/
 
-void GameSpecificMenu () {
+void GameSpecificMenu ()
+{
   
 }
 
-  
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
@@ -172,213 +370,27 @@ void GameSpecificMenu () {
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[]) {
+void SetTclCGameSpecificOptions (int options[])
+{
   
 }
-
-
-/************************************************************************
-**
-** NAME:        DoMove
-**
-** DESCRIPTION: Apply the move to the position.
-** 
-** INPUTS:      POSITION thePosition : The old position
-**              MOVE     theMove     : The move to apply.
-**
-** OUTPUTS:     (POSITION) : The position that results after the move.
-**
-** CALLS:       Hash ()
-**              Unhash ()
-**	            LIST OTHER CALLS HERE
-*************************************************************************/
-
-POSITION DoMove (POSITION position, MOVE move) {
-  return 0;
-}
-
-
+  
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
 **
 ** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position, and then
-**              stores it in the space pointed to by initialPosition
-**              Also sets user defined gInitialPosition and resets
+**              position. Asks the user for an initial position.
+**              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
 ** 
-** OUTPUTS:     POSITION initialPosition : New Initial Position
+** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
 
-POSITION GetInitialPosition () {
-  return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName) {
-
-}
-
-
-/************************************************************************
-**
-** NAME:        Primitive
-**
-** DESCRIPTION: Return the value of a position if it fulfills certain
-**              'primitive' constraints. Some examples of this is having
-**              three-in-a-row with Gobblet. Three in a row for the player
-**              whose turn it is a win, otherwise its a loss.
-**              Otherwise undecided.
-** 
-** INPUTS:      POSITION position : The position to inspect.
-**
-** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
-**
-** CALLS:       LIST FUNCTION CALLS
-**              
-**
-************************************************************************/
-
-VALUE Primitive (POSITION position) {
-  return undecided;
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintPosition
-**
-** DESCRIPTION: Print the position in a pretty format, including the
-**              prediction of the game's outcome.
-** 
-** INPUTS:      POSITION position   : The position to pretty print.
-**              STRING   playerName : The name of the player.
-**              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
-**
-** CALLS:       Unhash()
-**              GetPrediction()
-**              LIST OTHER CALLS HERE
-**
-************************************************************************/
-
-void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  
-}
-
-
-/************************************************************************
-**
-** NAME:        GenerateMoves
-**
-** DESCRIPTION: Create a linked list of every move that can be reached
-**              from this position. Return a pointer to the head of the
-**              linked list.
-** 
-** INPUTS:      POSITION position : The position to branch off of.
-**
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
-**              in the linked list of moves that can be generated.
-**
-** CALLS:       GENERIC_PTR SafeMalloc(int)
-**              LIST OTHER CALLS HERE
-**
-************************************************************************/
-
-MOVELIST *GenerateMoves (POSITION position) {
-  return NULL;
-}
-
- 
-/************************************************************************
-**
-** NAME:        GetAndPrintPlayersMove
-**
-** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
-**              If so, return Undo or Abort and don't change theMove.
-**              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
-**              STRING playerName     : The name of the player whose turn it is
-**
-** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
-**
-** CALLS:       ValidMove(MOVE, POSITION)
-**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
-**
-************************************************************************/
-
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE move, STRING playerName) {
-  return Abort;
-}
-
-
-/************************************************************************
-**
-** NAME:        ValidTextInput
-**
-** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
-**              For example, if the user is allowed to select one slot
-**              from the numbers 1-9, and the user chooses 0, it's not
-**              valid, but anything from 1-9 IS, regardless if the slot
-**              is filled or not. Whether the slot is filled is left up
-**              to another routine.
-** 
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
-**
-************************************************************************/
-
-BOOLEAN ValidTextInput (STRING input) {
-  return FALSE;
-}
-
-
-/************************************************************************
-**
-** NAME:        ConvertTextInputToMove
-**
-** DESCRIPTION: Convert the string input to the internal move representation.
-**              No checking if the input is valid is needed as it has
-**              already been checked!
-** 
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     MOVE : The move corresponding to the user's input.
-**
-************************************************************************/
-
-MOVE ConvertTextInputToMove (STRING input) {
-  return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-  
+POSITION GetInitialPosition ()
+{
+	return 0;
 }
 
 
@@ -386,15 +398,16 @@ void PrintMove (MOVE move) {
 **
 ** NAME:        NumberOfOptions
 **
-** DESCRIPTION: Calculates and returns the number of option combinations
-**				there are with all the game variations you program.
+** DESCRIPTION: Calculates and returns the number of variants
+**              your game supports.
 **
-** OUTPUTS:     int : the number of option combination there are.
+** OUTPUTS:     int : Number of Game Variants
 **
 ************************************************************************/
 
-int NumberOfOptions () {
-  return 0;
+int NumberOfOptions ()
+{
+	return 0;
 }
 
 
@@ -402,45 +415,62 @@ int NumberOfOptions () {
 **
 ** NAME:        getOption
 **
-** DESCRIPTION: A hash function to keep track of all the game variants.
-**				Should return a different number for each set of
-**				variants.
+** DESCRIPTION: A hash function that returns a number corresponding
+**              to the current variant of the game.
+**              Each set of variants needs to have a different number.
 **
 ** OUTPUTS:     int : the number representation of the options.
 **
 ************************************************************************/
 
-int getOption () {
-  return 0;
+int getOption ()
+{
+	return 0;
 }
-
 
 /************************************************************************
 **
 ** NAME:        setOption
 **
-** DESCRIPTION: The corresponding unhash for the game variants.
-**				Should take the input and set all the appropriate
-**				variants.
+** DESCRIPTION: The corresponding unhash function for game variants.
+**              Unhashes option and sets the necessary variants.
 **
-** INPUT:     int : the number representation of the options.
+** INPUT:       int option : the number representation of the options.
 **
 ************************************************************************/
 
-void setOption (int option) {
-  
+void setOption (int option)
+{
+
 }
 
+/************************************************************************
+**
+** NAME:        DebugMenu
+**
+** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
+**              debug menu). Menu used to debug internal problems.
+**
+**              If kDebugMenu == FALSE
+**                   Gamesman will not display a debug menu option
+**                   Gamesman will not call this function
+** 
+************************************************************************/
+
+void DebugMenu ()
+{
+
+}
 
 /************************************************************************
-*************************************************************************
-**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
-*************************************************************************
+**
+** Everything specific to this module goes below these lines.
+**
+** Things you want down here:
+** Move Hasher
+** Move Unhasher
+** Any other function you deem necessary to help the ones above.
+** 
 ************************************************************************/
 
 
-/************************************************************************
-** This is where you can put any helper functions, including your
-** hash and unhash functions if you are not using one of the existing
-** ones.
-************************************************************************/
