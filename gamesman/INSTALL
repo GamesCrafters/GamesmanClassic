@@ -1,0 +1,94 @@
+  ____  Copyright (C) Dan Garcia, 1999. All rights rsvd : A finite, two-person,
+ / ___| __ _ _ __ ___   ___  ___ _ __ ___   __ _ _ __   : perfect-information
+| |  _ / _` | '_ ` _ \ / _ \/ __| '_ ` _ \ / _` | '_ \  : game generator.
+| |_| | (_| | | | | | |  __/\__ \ | | | | | (_| | | | | : 
+ \____|\__,_|_| |_| |_|\___||___/_| |_| |_|\__,_|_| |_| : by Dan Garcia
+                                                        : ddgarcia@cs \
+http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/ : .berkeley.edu
+...............................................................................
+
+This file describes how to compile and install the 'gamesman' package.  For
+more information on what gamesman is, how to use it, or how it works, see the
+README file included in this package.
+
+
+COMPILING INSTRUCTIONS
+======================
+
+In order to compile gamesman, simply go to the gamesman root directory and
+type:
+
+% ./configure
+% make
+
+This will setup and compile gamesman with the standard set of options.  Note
+that if 'make' fails immediately with a message such as:
+
+make: Fatal error in reader: Makefile, line 216: Extra :', ::', or :=' on
+dependency line
+
+then you may need to use 'gmake'.  If the problem recurs, then install the
+latest version of GNU Make (see http://www.gnu.org/) and try again.
+
+
+CONFIGURATION OPTIONS
+=====================
+
+If the above method of installation does not work due to the idiosyncrasies
+of your system, or if you want to change an option such as whether or not to
+build with graphics, then you may need to change the configuration options.
+For a full list of options, type:
+
+% ./configure --help
+
+And a list of options available to you will be displayed.  To set any of the
+options listed, type them after './configure' on the command line.  This is
+shown:
+
+% ./configure [option1 [option2 ...]]
+eg:
+% ./configure --with-aqua --with-tcl=/usr/lib/tclConfig.sh
+
+
+Here are ones you may need to know about:
+
+  --disable-graphics
+    If you do not have Tcl/Tk (see http://www.tcl.tk), and you do not want
+    to build gamesman with graphics, then use this option.
+  --with-aqua
+    If you have a Mac with Mac OS X as well as the macos distribution of
+    Tcl/Tk, and you want the Aqua wish shell instead of X11, use this.
+    Note: Currently, Aqua wish is plagued with bugs that cause certain
+    graphics to not be properly displayed.  The use of Aqua wish is not
+    recommended.
+  --with-tcl
+    If the configure script fails to find the proper tclConfig.sh file, and
+    you have tcl installed on your system, then you can tell it explicitly
+    the file to find using this option.
+  --with-tk
+    Same as above, except regards the tkConfig.sh
+  --with-wish
+    Same as above, except regards the wish shell (usually /usr/bin/wish or
+    /usr/local/bin/wish).
+
+If changing the options does not fix the problem, then you should e-mail
+someone involved with gamescrafters and describe your situation.
+
+
+RUNNING GAMESMAN
+================
+
+Once gamesman is configured and compiled, you can run it by cd'ing to the
+bin/ directory inside of the package and running a file that starts with an
+m (such as machi, or mttt), and play the game from the console.  If you are
+in an X-Windows environment, you may go to the bin/ directory and type:
+
+% ./XGamesman
+
+to start up the graphical gamesman interface, where you will be presented
+with a list of games currently in gamesman, and simply click to play.
+
+
+
+Happy gaming!
+
