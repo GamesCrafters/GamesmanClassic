@@ -149,9 +149,8 @@ GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of
 GOBBLET_OBJ		= mgobblet$(OBJSUFFIX)
 GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
 
-KONO_EXE		= $(BINDIR)/mkono$(EXESUFFIX)
-KONO_OBJ		= mkono$(OBJSUFFIX)
-KONO_SO			= $(LIBDIR)/libmkono$(LIBSUFFIX)
+GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
+GRAPH_OBJ		= mgraph$(OBJSUFFIX)
 
 HORSE_EXE		= $(BINDIR)/mhorse$(EXESUFFIX) # The game of Horseshoe
 HORSE_OBJ		= mhorse$(OBJSUFFIX)
@@ -165,16 +164,9 @@ JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
 JOUST_OBJ		= mjoust$(OBJSUFFIX)
 JOUST_SO		= $(LIBDIR)/libmjoust$(LIBSUFFIX)
 
-MANCALA_EXE		= $(BINDIR)/mmancala$(EXESUFFIX) # The manic game of Mancala
-MANCALA_OBJ		= mmancala$(OBJSUFFIX)
-MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
-
-RINFIN_EXE    	 	= $(BINDIR)/mrInfin2$(EXESUFFIX)
-RINFIN_OBJ		= mrInfin2$(OBJSUFFIX)
-RINFIN_SO		= $(LIBDIR)/libmrInfin2$(LIBSUFFIX)
-
-GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
-GRAPH_OBJ		= mgraph$(OBJSUFFIX)
+KONO_EXE		= $(BINDIR)/mkono$(EXESUFFIX)
+KONO_OBJ		= mkono$(OBJSUFFIX)
+KONO_SO			= $(LIBDIR)/libmkono$(LIBSUFFIX)
 
 LGAME_EXE		= $(BINDIR)/mLgame$(EXESUFFIX)	# The lovely game of L
 LGAME_OBJ		= mLgame$(OBJSUFFIX)
@@ -183,10 +175,17 @@ LGAME_SO		= $(LIBDIR)/libmLgame$(LIBSUFFIX)
 LITE3_EXE		= $(BINDIR)/mlite3$(EXESUFFIX)	# The illuminating game of lite3
 LITE3_OBJ		= mlite3$(OBJSUFFIX) 
 LITE3_SO		= $(LIBDIR)/libmlite3$(LIBSUFFIX)
+ 
+MANCALA_EXE		= $(BINDIR)/mmancala$(EXESUFFIX) # The manic game of Mancala
+MANCALA_OBJ		= mmancala$(OBJSUFFIX)
+MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
 
 NIM_EXE			= $(BINDIR)/mnim$(EXESUFFIX)	# The interesting game of NIM!
 NIM_OBJ			= mnim$(OBJSUFFIX)
 NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
+ 
+OOE_EXE			= $(BINDIR)/mooe$(EXESUFFIX) # ooe
+OOE_OBJ			= mooe$(OBJSUFFIX)
 
 OTHELLO_EXE		= $(BINDIR)/mothello$(EXESUFFIX)	# The Out-Of-The-Blue game of Othello
 OTHELLO_OBJ		= mothello$(OBJSUFFIX)
@@ -202,6 +201,10 @@ QLAND_OBJ		= mqland$(OBJSUFFIX)
 QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
 QX_OBJ			= mqx$(OBJSUFFIX)
 QX_SO			= $(LIBDIR)/libmqx$(LIBSUFFIX)
+
+RINFIN_EXE    	 	= $(BINDIR)/mrInfin2$(EXESUFFIX)
+RINFIN_OBJ		= mrInfin2$(OBJSUFFIX)
+RINFIN_SO		= $(LIBDIR)/libmrInfin2$(LIBSUFFIX)
 
 RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
 RUBIX_OBJ		= mrubix$(OBJSUFFIX)
@@ -268,7 +271,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(TTC_OBJ) $(JOUST_OBJ) $(ICEBLOCKS_OBJ) $(BAGHCHAL_OBJ)\
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
 	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ) $(ABALONE_OBJ) \
-	    $(WUZHI_OBJ) $(SEEGA_OBJ)
+	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -278,7 +281,8 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) $(SNAKE_EXE)  $(1TON_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
-	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE)
+	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
+	  $(OOE_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
