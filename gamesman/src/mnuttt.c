@@ -187,7 +187,7 @@ STRING directions[NUM_OF_DIRS] = {
   "NW", "N",   "NE"
 };
 
-/*char* alpha = "abcdefghij"; /* used to print row letter */
+/*char* alpha = "abcdefghij";  used to print row letter */
 
 /*the increments to the row and column numbers of the piece *
 * THESE ARE ACCORIDNG TO THE KEYPAD ARRANGEMENTS
@@ -243,6 +243,7 @@ int                     Unhasher_Direction(MOVE move);
 void                    setGameParameters(int row, int col, int num_of_dirs, BOOLEAN diag, BOOLEAN misere);
 void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
+POSITION                getCanonicalPosition(POSITION p);
 
 /*************************************************************************
 **
@@ -635,7 +636,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  int row, col, dir;
+  int row, col, dir = -1;
   char dir1 = '\0';
   char dir2 = '\0';
   sscanf (input, MOVE_FORMAT, &row, &col, &dir1, &dir2);
@@ -947,11 +948,11 @@ void initializeBoard (char board[]) {
 }
 
 POSITION getCanonicalPosition (POSITION p) {
-  int boards[4][BOARD_SIZE];
+  char boards[4][BOARD_SIZE];
   int x,y,player;
   char c;
 
-  player = whoseMove(position);
+  player = whoseMove(p);
   generic_unhash(p, boards[0]);
 
   for (y = 0; y < BOARD_ROWS; y++) {
