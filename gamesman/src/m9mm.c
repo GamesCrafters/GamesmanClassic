@@ -1,8 +1,8 @@
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        m9mm.c
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: Nine Men's Morris
 **
 ** AUTHOR:      YOUR NAMES HERE
 **
@@ -97,6 +97,8 @@ typedef enum Pieces {
 
 char *gblankoxString[] = { "", "x", "o"};
 
+
+
 /*************************************************************************
 **
 ** Above is where you put your #define's and your global variables, structs
@@ -110,12 +112,16 @@ int hash(blankox *, blankox);
 POSITION unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
 void unparse_board(blankox *b_board, char *b_board)
-BlankBW whose_turn(int hash_val);
+blankox whose_turn(int hash_val);
 MOVE hash_move(int from, int to, int remove);
 int from(MOVE move);
 int to(MOVE move);
 int remove(MOVE move);
-
+blankox opponent (blankox player);
+boolean can_be_taken(POSITION position, int slot);
+boolean closes_mill(POSITION position, int raw_move);
+boolean check_mill(blankox *board, int slot);
+boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -350,29 +356,70 @@ void PrintPosition(position, playerName, usersTurn)
 MOVELIST *GenerateMoves(position)
          POSITION position;
 {
-  int i, x_count, o_count, blank_count;
+  int i, j, k, x_count, o_count, blank_count, player_count, opponent_count, raw_move;
   MOVELIST *CreateMovelistNode(), *head = NULL;
+  MOVELIST *temp_head = NULL;
   blankox[BOARDSIZE] dest;
   blankox[maxx] x_pieces;
   blankox[maxo] o_pieces;
+  blankox *player_pieces;
+  blankox *opponent_pieces;
   blankox[BOARDSIZE] blanks;
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
     
-  unhash(position, dest);
+  if(Primitive(position) == undecided) {
+    unhash(position, dest);
+    
+    
+    for (i = 0; i < BOARDSIZE; i++)
+      {
+	if (dest[i] == x)
+	  x_pieces[x_count++] = i;
+	else if (dest[i] == o)
+	  o_pieces[o_count++] = i;
+	else
+	  blanks[blank_count++] = i;
+      }
 
-  for (i = 0; i < BOARDSIZE; i++)
-    {
-      if (dest[i] == x)
-	x_pieces[x_count++] = i;
-      else if (dest[i] == o)
-	o_pieces[o_count++] = i;
-      else
-	blanks[blank_count++] = i;
-    }
-
+    if (turn == x)
+      {
+	player_pieces = x_pieces;
+	player_count = x_count;
+	opponent_count = o_count;
+	opponent_pieces = o_pieces;
+      }
+    else
+      {
+	player_pieces = o_pieces;
+	player_count = o_count;
+	opponent_count = x_count;
+	opponent_pieces = x_pieces;
+      }
+    
+    for (i = 0; i < player_count; i++)
+      {
+	for (j = 0; j < blank_count; j++)
+	  {
+	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+	      (blanks[j] * BOARDSIZE);
+	    if (closes_Mill(position, raw_move))
+	      {
+		for (k = 0; k < opponent_count; k++)
+		  if (can_be_taken(position, opponent_pieces[k]))
+		    head = CreateMovelistNode(raw_move += opponent_pieces[k], head);
+	      }
+	    else
+	      head = CreateMovelistNode(raw_move += player_pieces[i], head);
+	    
+	  }
+      }
+    return head;
+  }
+  else
+    return NULL;
   
-  
+    
 }
  
 /************************************************************************
@@ -611,4 +658,51 @@ int to(MOVE move)
 int remove(MOVE move)
 {
   return (move % BOARDSIZE);
+}
+
+blankox opponent (blankox player)
+{
+  return (player == o ? x : o);
+}
+
+boolean can_be_taken(POSITION position, int slot)
+{
+  blankox[BOARDSIZE] board;
+  unhash(position, slot);
+  return !check_mill(board, slot);
+}
+
+boolean closes_mill(POSITION position, int raw_move)
+{
+  blankox[BOARDSIZE] board;
+  unhash(do_move(position, raw_move), board);
+  return (check_mill board, to(raw_move));
+}
+
+boolean check_mill(blankox *board, int slot)
+{
+  return three_in_a_row(board, 0, 1,  2, slot) ||
+    three_in_a_row(board, 0, 6,  7, slot) ||
+    three_in_a_row(board, 1, 7,  8, slot) ||
+    three_in_a_row(board, 2, 3,  4, slot) ||
+    three_in_a_row(board, 3, 11, 19,slot) ||
+    three_in_a_row(board, 4, 5,  6, slot) ||
+    three_in_a_row(board, 5, 13, 21,slot) ||
+    three_in_a_row(board, 7, 15, 23,slot) ||
+    three_in_a_row(board, 8, 9,  10,slot) ||
+    three_in_a_row(board, 8, 13, 14,slot) ||
+    three_in_a_row(board, 10,11, 12,slot) ||
+    three_in_a_row(board, 12, 13,14,slot) ||
+    three_in_a_row(board, 16, 17,18,slot) ||
+    three_in_a_row(board, 16, 22,23,slot) ||
+    three_in_a_row(board, 18, 19,20,slot) ||
+    three_in_a_row(board, 20, 21,22,slot);
+}
+
+boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
+{
+  return board[slot] == board[slot1] &&
+    board[slot] == board[slot2] &&
+    board[slot] == board[slot3] &&
+    (slot == slot1 || slot == slot2 || slot == slot3);
 }
