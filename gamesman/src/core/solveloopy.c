@@ -256,17 +256,19 @@ VALUE DetermineLoopyValue1(POSITION position)
     for (i = 0; i < gNumberOfPositions; i++)
 	if(Visited(i)) {
 	    if(kDebugDetermineValue)
-		printf(POSITION_FORMAT " was visited...",i);
+		    printf(POSITION_FORMAT " was visited...",i);
 	    if(GetValueOfPosition((POSITION)i) == undecided) {
-		StoreValueOfPosition((POSITION)i,tie);
-		SetRemoteness((POSITION)i,REMOTENESS_MAX);
-		//we are done with this position and no longer need to keep around its list of parents
-		if (gParents[child]) FreePositionList(gParents[child]);
-		if(kDebugDetermineValue)
-		    printf("and was undecided, setting to tie\n");
-	    } else
-		if(kDebugDetermineValue)
-		    printf("but was decided, ignoring\n");
+		    StoreValueOfPosition((POSITION)i,tie);
+		    SetRemoteness((POSITION)i,REMOTENESS_MAX);
+		    //we are done with this position and no longer need to keep around its list of parents
+	    	if (gParents[child]) 
+                FreePositionList(gParents[child]);
+	    	if(kDebugDetermineValue)
+		        printf("and was undecided, setting to tie\n");
+        } else {
+		    if(kDebugDetermineValue)
+		       printf("but was decided, ignoring\n");
+        }
 	    UnMarkAsVisited((POSITION)i);
 	}
     

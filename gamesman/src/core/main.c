@@ -100,21 +100,7 @@ static void	SetSolver ();
 
 void InitializeDatabases()
 {
-    POSITION i;
-    if (gDatabase) {
-        SafeFree((GENERIC_PTR) gDatabase);
-        gDatabase = NULL;
-    }
-    
-    if (gTwoBits) {	/* VALUE is always 32 bits */
-        size_t dbSize = sizeof(VALUE) * (1 + gNumberOfPositions / (sizeof(VALUE) * 4));
-        gDatabase = (VALUE *) SafeMalloc (dbSize);
-        memset(gDatabase, 0xff, dbSize);	/* This _ASSUMES_ undecided = 3 */
-    } else {
-        gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-        for(i = 0; i < gNumberOfPositions; i++)
-            gDatabase[i] = undecided;
-    }
+    db_initialize();
 }
 
 void Initialize()

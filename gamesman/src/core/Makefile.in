@@ -39,9 +39,12 @@ DEBUG_OBJ	= debug$(OBJSUFFIX)
 FILEDB_OBJ	= filedb$(OBJSUFFIX)
 GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
 MAIN_OBJ	= main$(OBJSUFFIX)
-MEMDB_OBJ	= memdb$(OBJSUFFIX)
 MISC_OBJ	= misc$(OBJSUFFIX)
 TEXTUI_OBJ	= textui$(OBJSUFFIX)
+
+DB_OBJ		= db$(OBJSUFFIX)
+MEMDB_OBJ	= memdb$(OBJSUFFIX)
+TWOBITDB_OBJ	= twobitdb$(OBJSUFFIX)
 
 HASH_OBJ	= hash$(OBJSUFFIX)
 
@@ -57,7 +60,8 @@ SOLVER_GPS	= solvegps$(OBJSUFFIX)
 ### Files
 
 CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(DEBUG_OBJ) $(FILEDB_OBJ) \
-     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MEMDB_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ)
+     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ) \
+     $(DB_OBJ) $(MEMDB_OBJ) $(TWOBITDB_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_GPS)
@@ -65,7 +69,8 @@ SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 MODULES=$(CORE) $(SOLVERS) hash.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
-	 globals.h memdb.h misc.h solveloopyga.h solveloopy.h solvestd.h \
+	 globals.h misc.h solveloopyga.h solveloopy.h solvestd.h \
+	 memdb.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solvegps.h textui.h setup.h
 
 

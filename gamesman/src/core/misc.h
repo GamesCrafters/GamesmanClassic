@@ -28,7 +28,7 @@ POSITIONLIST*	CopyPositionList		(POSITIONLIST* list);
 
 void		FoundBadPosition		(POSITION pos, POSITION parent, MOVE move);
 
-VALUE*		GetRawValueFromDatabase		(POSITION pos);	// TODO: Move to misc
+
 BOOLEAN		DefaultGoAgain			(POSITION pos, MOVE move);
 POSITION	GetNextPosition			();		// TODO: Move to solve
 

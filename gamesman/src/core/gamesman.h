@@ -31,6 +31,9 @@ typedef int ClientData;
 #include <sys/time.h> 
 #include <limits.h>
 
+
+
+
 #define  MAXINT2          1073741823 /* 2^30 - 1 */
 #define  MAXNAME          15         /* arbitrary */
 #define  MAXINPUTLENGTH   80         /* arbitrary */
@@ -164,7 +167,7 @@ typedef unsigned long int	MEXCALC; /* ...since we use a long int here */
 #include "debug.h"
 #include "gameplay.h"
 #include "misc.h"
-#include "memdb.h"	// Should be temporary
+#include "db.h"	// Should be temporary
 #include "textui.h"
 #include "filedb.h"
 #include "main.h"

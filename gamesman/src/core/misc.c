@@ -166,7 +166,7 @@ void ExitStageRight()
 {
     printf("\nThanks for playing %s!\n",kGameName); /* quit */
     // This is good practice
-    if (gDatabase != NULL) SafeFree(gDatabase);
+    db_free();
     exit(0);
 }
 
@@ -269,11 +269,6 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
     PrintPosition(pos, "debug", 0);
     fflush(stdout);
     ExitStageRight();
-}
-
-VALUE *GetRawValueFromDatabase(POSITION position)
-{
-    return(&gDatabase[position]);
 }
 
 

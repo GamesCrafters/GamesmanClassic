@@ -30,27 +30,55 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include "memdb.h"
+#include "db.h"
 
-
+VALUE* memdb_database;
 /*
 ** Code
 */
 
-VALUE StoreValueOfPosition(POSITION position, VALUE value)
+
+DB_Table* memdb_init(){
+  int i;
+  //Make db_table
+  DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+  //setup internal memory table
+  memdb_database = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
+  
+  for(i = 0; i< gNumberOfPositions;i++)
+    memdb_database[i] = undecided;
+  
+  //set function pointers
+  new_db->get_value = memdb_get_value;
+  new_db->put_value = memdb_set_value;
+  new_db->get_remoteness = memdb_get_remoteness;
+  new_db->put_remoteness = memdb_set_remoteness;
+  new_db->check_visited = memdb_check_visited;
+  new_db->mark_visited = memdb_mark_visited;
+  new_db->unmark_visited = memdb_unmark_visited;
+  
+  new_db->free_db = memdb_free;
+  
+  return new_db;
+}
+
+void memdb_free(){
+    if(memdb_database)
+        SafeFree(memdb_database);
+
+}
+
+
+VALUE* memdb_get_raw_ptr(POSITION pos){
+    return (&memdb_database[pos]);
+}
+
+VALUE memdb_set_value(POSITION position, VALUE value)
 {
     VALUE *ptr;
     
-    if (gTwoBits) {
-        int shamt;
-	
-        ptr = GetRawValueFromDatabase(position >> 4);
-        shamt = (position & 0xf) * 2;
-	
-        *ptr = (*ptr & ~(0x3 << shamt)) | ((0x3 & value) << shamt);
-        return value;
-    }
-    
-    ptr = GetRawValueFromDatabase(position);
+    ptr = memdb_get_raw_ptr(position);
     
     /* put it in the right position, but we have to blank field and then
     ** add new value to right slot, keeping old slots */
@@ -58,61 +86,28 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
 }
 
 // This is it
-VALUE GetValueOfPosition(POSITION position)
+VALUE memdb_get_value(POSITION position)
+{
+    //Gameline code removed
+    VALUE *ptr;
+    ptr = memdb_get_raw_ptr(position);
+    return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
+}
+
+REMOTENESS memdb_get_remoteness(POSITION position)
 {
     //Gameline code removed
     VALUE *ptr;
 
-#ifdef SYMMETRY_REVISITED
-    /* Efficiency gain when solving -- 
-    ** this saves us from rotating to canonical TWICE,
-    ** once in DetermineValue and once here.
-    */
-    if(gMenuMode == Evaluated || gMenuMode == AnalysisSymmetries)
-      position = gCanonicalPosition(position); /* Rotate board to canonical */
-#endif
-
-    if(gMenuMode == Evaluated && gSymmetries)
-	position = gCanonicalPosition(position);
-    
-    if (gTwoBits) {
-        /* values are always 32 bits */
-        ptr = GetRawValueFromDatabase(position >> 4);
-        return (VALUE)(3 & ((int)*ptr >> ((position & 0xf) * 2)));
-    } else {
-        ptr = GetRawValueFromDatabase(position);
-        return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
-    }
+    ptr = memdb_get_raw_ptr(position);
+    return((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
 }
 
-REMOTENESS Remoteness(POSITION position)
-{
-    //Gameline code removed
-    VALUE *GetRawValueFromDatabase(), *ptr;
-
-#ifdef SYMMETRY_REVISITED
-    position = gCanonicalPosition(position); /* Rotate board to canonical */
-#endif
-
-    if(gMenuMode == Evaluated && gSymmetries)
-	position = gCanonicalPosition(position);
-
-    if (gTwoBits) {
-        return REMOTENESS_TWOBITS;
-    } else {
-        ptr = GetRawValueFromDatabase(position);
-        return((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
-    }
-}
-
-void SetRemoteness (POSITION position, REMOTENESS remoteness)
+void memdb_set_remoteness (POSITION position, REMOTENESS remoteness)
 {
     VALUE *ptr;
     
-    if (gTwoBits)
-        return;
-    
-    ptr = GetRawValueFromDatabase(position);
+    ptr = memdb_get_raw_ptr(position);
     
     if(remoteness > REMOTENESS_MAX) {
         printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",remoteness,position,REMOTENESS_MAX);
@@ -125,55 +120,34 @@ void SetRemoteness (POSITION position, REMOTENESS remoteness)
 		   (remoteness << REMOTENESS_SHIFT));       
 }
 
-BOOLEAN Visited(POSITION position)
+BOOLEAN memdb_check_visited(POSITION position)
 {
-    VALUE *ptr;
-    
-    if (gVisited)
-        return (gVisited[position >> 3] >> (position & 7)) & 1;
-    
-    if (gTwoBits)
-        return FALSE;
-    
-    ptr = GetRawValueFromDatabase(position);
-    
+    VALUE *ptr;  
+    ptr = memdb_get_raw_ptr(position);
     return((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
 }
 
-void MarkAsVisited (POSITION position)
+void memdb_mark_visited (POSITION position)
 {
     VALUE *ptr;
     
     showStatus(0);
     
-    if (gTwoBits) {
-        if (gVisited)
-            gVisited[position >> 3] |= 1 << (position & 7);
-	
-        return;
-    }
-    
-    ptr = GetRawValueFromDatabase(position);
+    ptr = memdb_get_raw_ptr(position);
     
     *ptr = (VALUE)((int)*ptr | VISITED_MASK);       /* Turn bit on */
 }
 
-void UnMarkAsVisited (POSITION position)
+void memdb_unmark_visited (POSITION position)
 {
     VALUE *ptr;
     
-    if (gTwoBits) {
-        if (gVisited)
-            gVisited[position >> 3] &= ~(1 << (position & 7));
-	
-        return;
-    }
-    
-    ptr = GetRawValueFromDatabase(position);
+    ptr = memdb_get_raw_ptr(position);
     
     *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
 
+/* Not implemented yet. Will implement once actually using real db classes
 void MexStore(POSITION position, MEX theMex)
 {
     if (!gTwoBits)
@@ -183,13 +157,10 @@ void MexStore(POSITION position, MEX theMex)
 MEX MexLoad(POSITION position)
 {
 #ifdef SYMMETRY_REVISITED
-    position = gCanonicalPosition(position);
+    position = GetCanonicalPosition(position);
 #endif
     //Gameline code removed
-
-    if(gMenuMode == Evaluated && gSymmetries)
-	position = gCanonicalPosition(position);
-    
     return (gTwoBits ? -1 : (gDatabase[position]/8) % 32);
 }
+*/
 

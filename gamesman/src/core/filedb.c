@@ -104,6 +104,8 @@ int writeDatabase()
     
     if (gTwoBits)	/* TODO: Make db's compatible with 2-bits */
         return 0;	/* for some reason, 0 is error. -JJ */
+    if(!gDatabase)
+      return 0;
     
     mkdir("data", 0755) ;
     sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption());
@@ -156,7 +158,9 @@ int loadDatabase()
     
     if (gTwoBits)	/* TODO: Same here */
         return 0;
-    
+    if(!gDatabase)
+      return 0;
+
     sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
     if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
     
