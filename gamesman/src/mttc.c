@@ -20,7 +20,7 @@
 **                                                                -- jt
 **
 ** 2004.4.6     Added in support for generic_hash; still have to add in
-**              modified ruleset as per discussion with Dom.
+v**              modified ruleset as per discussion with Dom.  
 **                                                                -- rc
 **
 **************************************************************************/
@@ -47,14 +47,13 @@ POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1; 
 
 STRING   kGameName           = "Tic-Tac-Chec"; 
-STRING   kDBName             = "mttc";
+STRING   kDBName             = "ttc";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy              = TRUE; 
 BOOLEAN  kDebugDetermineValue = FALSE ;
-void*	 gGameSpecificTclInit = NULL;
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -96,7 +95,7 @@ STRING   kHelpExample =
 #define BOARD_LENGTH  16
 #define BOARD_WIDTH   4
 #define BOARD_HEIGHT  4
-#define NUM_PIECES    8
+#define NUM_PIECES    12
 #define MOVE_LENGTH   3
 #define WIN_CONDITION 4
 
@@ -107,7 +106,10 @@ STRING   kHelpExample =
 #define N_LONG_LEG    2
 #define N_SHORT_LEG   1
 
-#define OFF           31 
+#define OFF           31
+
+/* The max number of types that can be hashed */
+#define NUM_TYPES     4 
 
 #define max(a,b) ((a > b)? a : b)
 #define min(a,b) ((a > b)? b : a)
@@ -129,7 +131,8 @@ typedef int CELL;
 **
 *************************************************************************/
 
-enum pieces { B_QN, B_RK, B_KN, B_PN, W_QN, W_RK, W_KN, W_PN, BLNK };
+enum piece_id { B_QN, B_RK, B_KN, B_PN, B_KG, B_BI,
+		W_QN, W_RK, W_KN, W_PN, W_KG, W_BI, BLNK };
 enum players {BLACK, WHITE};
 
 /*************************************************************************
@@ -138,8 +141,15 @@ enum players {BLACK, WHITE};
 **
 *************************************************************************/
 
-char piece_names[] = {'Q','R','N','P','q','r','n','p','-'};
+/* Indexed by piece_id */
+char piece_names[] = {'Q','R','N','P','K','q','r','n','p','k','-'};
 char row_names[] = {'a','b','c','d','e','f','g','h'};
+
+/* Indexed by piece_id; specifies the number of occurrences on board */
+int piece_bank[NUM_PIECES];
+
+/* Board positions are the same; need to map which pieces are which  */
+int hash_map[NUM_TYPES];
 
 /*************************************************************************
 **
@@ -170,8 +180,26 @@ extern VALUE     *gDatabase;
 ************************************************************************/
 
 void InitializeGame () {
-  int pieces_array[] = {'A',0,2,'B',0,2,'a',0,2,'b',0,2,'-',8,16,-1}; 
+  int i;
+  /* Shouldn't hardcode */
+  int pieces_array[] = {0,0,2,1,0,2,2,0,2,3,0,2,BLNK,8,16,-1}; 
+  void map(PIECE,int);
   gNumberOfPositions = generic_hash_init(BOARD_LENGTH, pieces_array,NULL);
+
+  /* Default is two queens, two knights each */
+  for(i = 0; i < NUM_PIECES; i++)
+    piece_bank[i] = 0;
+  piece_bank[B_KN] = 2;
+  piece_bank[B_QN] = 2;
+  piece_bank[W_KN] = 2;
+  piece_bank[W_QN] = 2;
+
+  /* Initialize the hash_map to reflect this */
+  map(B_KN, 0);
+  map(B_QN, 1);
+  map(W_KN, 2);
+  map(W_QN, 3);
+
   return;
 }
 
@@ -258,6 +286,8 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 **
 ************************************************************************/
 
+/* CHANGE: Need to add support for modified ruleset */
+
 POSITION GetInitialPosition() {
   char in_string[MOVE_LENGTH];
   POSITION pos = 0;
@@ -322,7 +352,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 **
 ************************************************************************/
 
-/** Do I need to code in whosemove to this function? **/
+/* CHANGE: Account for whosemove */
 VALUE Primitive (POSITION pos) {
   BOARD board, get_board(POSITION);
   int i, num_in_row(int,BOARD);
@@ -351,6 +381,8 @@ VALUE Primitive (POSITION pos) {
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
+
+/* CHANGE: Account for variable board width, modified ruleset */
 
 /* Very minimal at the moment; need to make prettier */
 void PrintPosition (position, playerName, usersTurn)
@@ -394,11 +426,69 @@ void PrintPosition (position, playerName, usersTurn)
 **
 ************************************************************************/
 
+/* CHANGE: account for modified ruleset */
+/* Also, didn't account for player !!!! */
+
 MOVELIST *GenerateMoves(POSITION pos) {
   BOARD get_board(POSITION), board;
   MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec);
-  BOOLEAN is_knight(PIECE), is_queen(PIECE), is_rook(PIECE);
-  BOOLEAN is_bishop(PIECE), is_pawn(PIECE);
+  MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *head = NULL;
+
+  int available[NUM_PIECES],player,i,j;
+  player = get_player(pos);
+  board = get_board(pos);
+
+  /** first, create a list of the pieces that are off the board, and then
+      loop through teh board and place pieces accordingly (blnk all available
+      pieces, piece then switch through **/
+  
+  /* make a local version of piece_bank w/ opp's pieces zeroed out */
+  for (i = 0; i < NUM_PIECES; i++) {
+    available[i] = piece_bank[i];
+    if (player == BLACK && is_white(i))
+      available[i] = 0;
+    else if (player == WHITE && is_black(i))
+      available[i] = 0;
+  }
+  /* subtract on-board pieces */
+  for (i = 0; i < BOARD_LENGTH; i++) {
+    if (board[i] != BLNK &&
+	(player == WHITE)? is_white(board[i]) : is_black(board[i]))
+      available[board[i]]--;
+  }
+  /* Make off-board moves */
+  for (i = 0; i < BOARD_LENGTH; i++) {
+    if (board[i] == BLNK) {
+      for (j = 0; j < NUM_PIECES; j++)
+	if (available[j] > 0)
+	  head = CreateMovelistNode(make_move(j,i), head);
+    } else if ((player == WHITE)?is_white(board[i]):is_black(board[i])) {
+      switch(piece_names[board[i]]) {
+      case 'N': case 'n':
+	head = concat_ml(gen_knight_moves(i,board, player),head);
+	break;
+      case 'Q': case 'q':
+	head = concat_ml(gen_queen_moves(i,board, player), head);
+	break;
+      case 'P': case 'p':
+	head = concat_ml(gen_pawn_moves(i, board, player),head);
+	break;
+      case 'B': case 'b':
+	head = concat_ml(gen_bishop_moves(i,board,player), head);
+	break;
+      }	
+    }
+  }
+}
+/*
+MOVELIST *GenerateMoves(POSITION pos) {
+  BOARD get_board(POSITION), board;
+  MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec);
   MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player);
   MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player);
   MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player);
@@ -415,29 +505,32 @@ MOVELIST *GenerateMoves(POSITION pos) {
       piece_flags[board[i]] = i;
 
   for(i = 0; i < NUM_PIECES; i++) {
-    /* Moves to place pieces on the board */
     if (piece_flags[i] == OFF)
       for(j = 0; j < BOARD_LENGTH; j++) {
 	if (board[j] == BLNK)
 	  head = CreateMovelistNode(make_move(i,j), head);
       }
-    /* Moves by pieces already on the board*/
     else {
-      if (is_knight(i))
+      switch(piece_names[i]) {
+      case 'N': case 'n':
 	head = concat_ml(gen_knight_moves(piece_flags[i],board, player),head);
-      if (is_queen(i))
-	head = concat_ml(gen_queen_moves(piece_flags[i], board, player), head);
-      if (is_rook(i))
-	head = concat_ml(gen_rook_moves(piece_flags[i], board, player), head);
-      if (is_pawn(i))
-	head = concat_ml(gen_pawn_moves(piece_flags[i], board, player), head);
-      if (is_bishop(i))
-	head = concat_ml(gen_bishop_moves(piece_flags[i],board, player), head);
+	break;
+      case 'Q': case 'q':
+	head = concat_ml(gen_queen_moves(piece_flags[i],board, player), head);
+	break;
+      case 'P': case 'p':
+	head = concat_ml(gen_pawn_moves(piece_flags[i], board, player),head);
+	break;
+      case 'B': case 'b':
+	head = concat_ml(gen_bishop_moves(piece_flags[i],board,player), head);
+	break;
+      }
     }
-  }
-  return head;
 }
- 
+return head;
+}
+*/
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -480,6 +573,8 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
 **
 ************************************************************************/
+
+/* CHANGE: Optimize */
 
 BOOLEAN ValidTextInput (STRING input) {
   BOOLEAN first = FALSE, second = FALSE, third = FALSE, end = FALSE;
@@ -597,6 +692,22 @@ void setOption(int option)
 
 
 /************************************************************************
+**
+** NAME:        GameSpecificTclInit
+**
+** DESCRIPTION: 
+**
+************************************************************************/
+
+int GameSpecificTclInit (interp, mainWindow) 
+	Tcl_Interp* interp;
+	Tk_Window mainWindow;
+{
+  return 0;
+}
+
+
+/************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
@@ -638,8 +749,12 @@ BOOLEAN enemy_occupies(PLAYER player, CELL cell, BOARD board) {
 
 BOARD get_board(POSITION pos) {
   BOARD board;
+  int i;
   board = (BOARD) SafeMalloc(BOARD_LENGTH * sizeof(char));
   generic_unhash(pos, board);
+  for (i = 0; i < BOARD_LENGTH; i++)
+    if (board[i] != BLNK)
+      board[i] = hash_map[board[i]];
   return board;
 }
 
@@ -649,7 +764,19 @@ PLAYER get_player(POSITION pos) {
 }
 
 POSITION make_position(BOARD board, PLAYER player) {
+  int i,j;
+  for (i = 0; i < BOARD_LENGTH; i++) 
+    if (board[i] != BLNK)
+      for(j = 0; j < NUM_TYPES; j++) 
+	if (board[i] == hash_map[j])
+	  board[i] == j;
   return (POSITION) generic_hash(board,(player == BLACK)? 1 : 2);
+}
+
+/* Maps piece to hash map (to specify which pieces are in play */
+void map(PIECE piece, int num) {
+  hash_map[num] = piece;
+  return;
 }
 
 /** Identity Functions **************************************************/
@@ -681,27 +808,6 @@ PLAYER which_player(CELL cell, BOARD board) {
   /* Assumes BLACK has first half of pieces, WHITE second half */
   return (board[cell] < NUM_PIECES/2)? BLACK : WHITE;
 }
-
-BOOLEAN is_knight(PIECE piece) {
-  return (piece_names[piece] == 'N' || piece_names[piece] == 'n');
-}
-
-BOOLEAN is_queen(PIECE piece) {
-  return (piece_names[piece] == 'Q' || piece_names[piece] == 'q');
-}
-
-BOOLEAN is_rook(PIECE piece) {
-  return (piece_names[piece] == 'R' || piece_names[piece] == 'r');
-}
-
-BOOLEAN is_pawn(PIECE piece) {
-  return (piece_names[piece] == 'P' || piece_names[piece] == 'p');
-}
-
-BOOLEAN is_bishop(PIECE piece) {
-  return (piece_names[piece] == 'B' || piece_names[piece] == 'b');
-}
-
 
 /** PRIMITIVE helper functions ******************************************/
 
