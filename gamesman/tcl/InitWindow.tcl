@@ -1,25 +1,4 @@
 
-proc GetPredictions {} {
-
-    global gPosition gLeftPiece gPredString
-    global gPiecesPlayersName
-
-    set whoseTurn [GS_WhoseMove $gPosition]
-
-    if { [C_Primitive $gPosition] != "Undecided" } {
-	set gPredString ""
-    } else {
-
-	### Get the value, the player and set the prediction
-	set theValue      [C_GetValueOfPosition $gPosition]
-	set theRemoteness [C_Remoteness $gPosition]
-
-	### And spooge it to the field if the button is on.
-	set gPredString [format "%s should %s in %s"  $gPiecesPlayersName($whoseTurn) $theValue $theRemoteness]
-    }
-}
-
-
 # 
 #  the actions to be performed when the toolbar buttons are pressed
 #

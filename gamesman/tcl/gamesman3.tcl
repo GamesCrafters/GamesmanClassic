@@ -231,7 +231,7 @@ proc DriverLoop { } {
             GetPredictions
 	    .middle.f3.cMRight itemconfigure Predictions \
 		    -text [format "Predictions: %s" $gPredString] 
-	    update
+	    update idletasks
         }
         
         ## Figure out whose turn it is
@@ -287,6 +287,7 @@ proc DriverLoopContinue { humanOrComputer } {
 
 proc SwitchWhoseTurn {} {
     global gWhoseTurn
+
     if { $gWhoseTurn == "Left" } {
 	set gWhoseTurn "Right"
     } else {
@@ -584,7 +585,7 @@ proc Undo { } {
     global gPredString
     .middle.f3.cMRight itemconfigure Predictions \
 	    -text [format "Predictions: %s" $gPredString] 
-    update
+    update idletasks
     
     DriverLoop
 }
@@ -673,6 +674,48 @@ proc ReturnToGameSpecificOptions {} {
 
 proc SendMessage { arg } {
     
+}
+
+#############################################################################
+##
+## GetPredictions
+##
+## Get predictions from the C code
+## 
+## Args: Nothing
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc GetPredictions {} {
+
+    global gPosition gPredString gWhoseTurn
+    global gLeftName gRightName
+
+    if { [C_Primitive $gPosition] != "Undecided" } {
+	set gPredString ""
+    } else {
+
+	### Get the value, the player and set the prediction
+	set theValue      [C_GetValueOfPosition $gPosition]
+	set theRemoteness [C_Remoteness $gPosition]
+	
+	if { $gWhoseTurn == "Left" } {
+	    set playersName $gLeftName
+	} else {
+	    set playersName $gRightName
+	}
+	
+	if { $theValue == "Tie" && $theRemoteness == 255 } {
+	    set prediction [format "%s should Draw" $playersName]
+	} else {
+	    set prediction [format "%s should %s in %s" $playersName $theValue $theRemoteness]
+	}
+
+	### And place it in the field if the button is on.
+	set gPredString $prediction
+    }
 }
 
 # argv etc
