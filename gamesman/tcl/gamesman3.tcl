@@ -165,16 +165,20 @@ proc SetupGamePieces {} {
 proc NewGame { } {
 
     global gGameSoFar gPosition gInitialPosition gMovesSoFar
-    global gLeftName gRightName gWhoseTurn
+    global gLeftName gRightName gWhoseTurn gPlaysFirst
     .middle.f1.cMLeft itemconfigure LeftName \
-	-text [format "Player1:\n%s" $gLeftName]
+	-text [format "Left:\n%s" $gLeftName]
     .middle.f3.cMRight itemconfigure RightName \
-	-text [format "Player2:\n%s" $gRightName]	
+	-text [format "Right:\n%s" $gRightName]	
     .middle.f1.cMLeft raise LeftName
     .middle.f3.cMRight raise RightName
     update
     set gPosition $gInitialPosition
-    set gWhoseTurn "Left"
+    if { $gPlaysFirst == 0 } {
+        set gWhoseTurn "Left"
+    } else {
+	set gWhoseTurn "Right"
+    }
     set gGameSoFar [list $gInitialPosition]
     set gMovesSoFar [list]
     GS_NewGame .middle.f2.cMain $gPosition

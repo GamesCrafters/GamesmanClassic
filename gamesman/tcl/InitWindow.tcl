@@ -32,9 +32,9 @@ proc TBaction1 {} {
 
 	global gLeftName gRightName
 	.middle.f1.cMLeft itemconfig LeftName \
-	    -text [format "Player1:\n%s" $gLeftName]
+	    -text [format "Left:\n%s" $gLeftName]
 	.middle.f3.cMRight itemconfig RightName \
-	    -text [format "Player2:\n%s" $gRightName]
+	    -text [format "Right:\n%s" $gRightName]
 	update
     } else {
 	set gGamePlayable false
@@ -309,9 +309,9 @@ proc InitWindow { kRootDir } {
 	    C_SetSmarterComputer $gSmartness $gSmartnessScale
             global gLeftName gRightName
             .middle.f1.cMLeft itemconfigure LeftName \
-		    -text [format "Player1:\n%s" $gLeftName]
+		    -text [format "Left:\n%s" $gLeftName]
             .middle.f3.cMRight itemconfigure RightName \
-		    -text [format "Player2:\n%s" $gRightName]
+		    -text [format "Right:\n%s" $gRightName]
 	    update
 	    DriverLoop
         }
@@ -333,9 +333,25 @@ proc InitWindow { kRootDir } {
 	-width [expr $gFrameWidth / 2] \
 	-height [expr $gWindowHeight * 20 / 30] \
 	-bd 2
-    # the contents of the play options frame	    
+    # the contents of the play options frame
+    radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rPlaysFirst \
+	    -text "Left Plays First" \
+	    -font $kLabelFont \
+	    -variable gPlaysFirst\
+	    -value 0 \
+            -command {
+	         set gWhoseTurn "Left"
+            }
+    radiobutton .middle.f2.fPlayOptions.fTop.fRight.rPlaysFirst \
+	    -text "Right Plays First" \
+	    -font $kLabelFont \
+	    -variable gPlaysFirst \
+	    -value 1 \
+            -command {
+	         set gWhoseTurn "Right"
+            }
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rHuman \
-	    -text "Player1 Human" \
+	    -text "Human" \
 	    -font $kLabelFont \
 	    -variable gLeftHumanOrComputer \
 	    -value Human \
@@ -351,7 +367,7 @@ proc InitWindow { kRootDir } {
 	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rComputer \
-	    -text "Player1 Computer" \
+	    -text "Computer" \
 	    -font $kLabelFont \
 	    -variable gLeftHumanOrComputer \
 	    -value Computer \
@@ -366,15 +382,15 @@ proc InitWindow { kRootDir } {
 	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fLeft.lName \
-	    -text "Player1 Name:" \
+	    -text "Left Name:" \
 	    -font $kLabelFont
     entry .middle.f2.fPlayOptions.fTop.fLeft.eName \
-	    -text "Player1 Name" \
+	    -text "Left Name" \
 	    -font $kLabelFont \
 	    -textvariable gLeftName \
 	    -width 20
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rHuman \
-	    -text "Player2 Human" \
+	    -text "Human" \
 	    -font $kLabelFont \
 	    -variable gRightHumanOrComputer \
 	    -value Human \
@@ -390,7 +406,7 @@ proc InitWindow { kRootDir } {
 	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rComputer \
-	    -text "Player2 Computer" \
+	    -text "Computer" \
 	    -font $kLabelFont \
 	    -variable gRightHumanOrComputer \
 	    -value Computer \
@@ -405,10 +421,10 @@ proc InitWindow { kRootDir } {
 	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fRight.lName \
-	    -text "Player2 Name:" \
+	    -text "Right Name:" \
 	    -font $kLabelFont
     entry .middle.f2.fPlayOptions.fTop.fRight.eName \
-	    -text "Player2 Name" \
+	    -text "Right Name" \
 	    -font $kLabelFont \
 	    -textvariable gRightName \
 	    -width 20
@@ -485,6 +501,8 @@ proc InitWindow { kRootDir } {
 	-orient horizontal
 
     global gLeftHumanOrComputer gRightHumanOrComputer
+    global gPlaysFirst
+    set gPlaysFirst 0
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	EnableSmarterComputerInterface
     } else {
@@ -509,12 +527,14 @@ proc InitWindow { kRootDir } {
     pack .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fLeft.rHuman -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.rComputer -side bottom -fill both -expand 1
+    pack .middle.f2.fPlayOptions.fTop.fLeft.rPlaysFirst -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.eName -side bottom -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.lName -side bottom  -expand 1
     ## gameDelay scale bar
     pack .middle.f2.fPlayOptions.fTop.fRight.gameDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fRight.rHuman -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fRight.rComputer -side bottom -fill both -expand 1
+    pack .middle.f2.fPlayOptions.fTop.fRight.rPlaysFirst -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fRight.eName -side bottom -expand 1
     pack .middle.f2.fPlayOptions.fTop.fRight.lName -side bottom  -expand 1
     pack .middle.f2.fPlayOptions.fBot.bOk -side right -fill both -expand 1
@@ -680,22 +700,22 @@ proc InitWindow { kRootDir } {
 	    -tags [list ToMove textitem]
 
     .middle.f1.cMLeft create text 75 450 \
-	    -text [format "Player1:\n%s" $gLeftName] \
+	    -text [format "Left:\n%s" $gLeftName] \
 	    -width 140 \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
-	-tags [list LeftName Names textitem] \
-	-fill $gLeftColor
+	    -tags [list LeftName Names textitem] \
+	    -fill $gLeftColor
 
     .middle.f3.cMRight create text 75 450 \
-	    -text [format "Player2:\n%s" $gRightName] \
+	    -text [format "Right:\n%s" $gRightName] \
 	    -width 140 \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
 	    -tags [list RightName Names textitem] \
-	-fill $gRightColor
+	    -fill $gRightColor
 
     .middle.f3.cMRight create text 75 150 \
 	    -text [format "Predictions: %s" $gPredString] \
@@ -734,7 +754,7 @@ proc InitWindow { kRootDir } {
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.cToolbar bind iOTB1 <Any-Leave> \
 		".cToolbar raise iATB1"
-
+	
 	.cStatus lower base
 	global gGamePlayable
 	set gGamePlayable true
@@ -872,12 +892,15 @@ proc InitWindow { kRootDir } {
     .cStatus bind iABB8 <ButtonRelease-1> {
 	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight lower Predictions
+	.middle.f3.cMRight raise WhoseTurn
 	.cStatus raise iIBB8
     }
 
     .cStatus bind iIBB8 <ButtonRelease-1> {
 	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight raise Predictions
+	.middle.f3.cMRight raise WhoseTurn
+	#.cStatus
 	.cStatus raise iABB8
     }
 
