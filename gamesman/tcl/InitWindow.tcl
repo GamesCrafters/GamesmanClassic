@@ -768,6 +768,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	.middle.f1.cMLeft lower detVal
 	.middle.f1.cMLeft raise ToWin
 	.middle.f1.cMLeft raise ToMove
+	.cStatus raise winA
+	.cStatus raise moveA
 
 	.cToolbar raise iATB
 
@@ -804,14 +806,16 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 400 40 -image iBBB1p -tags [list iABB iABB1 base]
     .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA def]
     .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI]
-   #create toWin checked
+    #create toWin checked
     .cStatus create image 290 27 -image iABB3p -tags [list sbb iABB iABB3 winA]
+    #create toWin unchecked
     .cStatus create image 290 27 -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
     #create toMove checked
     .cStatus create image 290 52 -image iABB4p -tags [list sbb iABB iABB4 moveA]
     #create toMove unchecked
     .cStatus create image 290 52 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
     
+
     ######
     ### create the shoow "none" moves toggle
     ### default value for creating the "none" moves is "no"
@@ -835,6 +839,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA def]
     .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]    
     .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
+
 
     .cStatus bind playA <ButtonRelease-1> {
 	.cToolbar raise iITB
