@@ -6,34 +6,9 @@
 **
 ** AUTHOR:      
 **              
+** TODO: Add rules of capture again, and can't capture on same line (or direction??)
 **
 ** DATE:        02/28/04
-**
-** UPDATE HIST:
-**              02/28/04 Wrote WhoseTurn(...)
-**              03/02/04 Wrote AnyPiecesLeft(...)
-**              03/02/04 Wrote BlankOXToPosition(...)
-**              03/02/04 Wrote PositionToBoard(...)
-**              03/02/04 Debugged PrintPosition(...)
-**              03/02/04 Wrote ValidTextInput(...)
-**              03/03/04 Wrote Primitive(...)
-**              03/05/04 Wrote ConvertTextToInput(...)
-**              03/06/04 Wrote IndexToCoordinates(...)
-**              03/06/04 Wrote CoordinatesToIndex(...)
-**              03/06/04 Wrote Neighbor(...)
-**              03/06/04 Wrote InBounds(...)
-**              03/06/04 Wrote OtherDirection(...)
-**              03/06/04 Wrote GenerateMoves(...)
-**              04/11/04 Changed the erronous naming of PositionToBoard(...) -> PositionToBlankOX(...)
-**              04/17/04 debugged PrintPosition(..)
-**              04/23/04 debugged EachDirection(...)
-**              04/23/04 debugged ConvertTextToInput(...)
-**              04/24/04 wrote PrintMove(...)
-**              04/24/04 debugged generateMoves(...) still needs work
-**              04/24/04 debugged EachDirection(...)
-** TODO LIST:
-**              03/02/04 PrintPosition() needs to print info about how to make moves
-**              03/02/04 Write DoMove(...)
 **
 **************************************************************************/
 
@@ -94,20 +69,14 @@ STRING   kHelpExample =
 **************************************************************************/
 
 
-#define BOARDSIZE      9           /* 4x3 board, must agree with the 2 definitions below */
-#define BOARDHEIGHT    3           /* dimensions of the board */
-#define BOARDWIDTH     3           /*  "               "      */
-#define MAX_X          3           /* maximum number of pieces of X that is possible in a game */
-#define MAX_O          3           /*  "            "            "O                  "         */
+int BOARDHEIGHT=3;                                /* dimensions of the board */
+int BOARDWIDTH=3;                                 /*  "               "      */
+int BOARDSIZE;                                /* 4x3 board, must agree with the 2 definitions below */
+int MAX_X;                                      /* maximum number of pieces of X that is possible in a game */
+int MAX_O;                                      /*  "            "            "O                  "         */
 
-#define COMMENTSPACE   5           /* number of spaces to the right of board before comment starts */
+#define COMMENTSPACE 5                               /* number of spaces to the right of board before comment starts */
 
-/*
-typedef enum possibleBoardPieces {
-	Blank, o, x
-} BlankOX;
-*/
-// this will have to do
 typedef char BlankOX;
 BlankOX X = 'X';
 BlankOX O = 'O';
@@ -116,12 +85,9 @@ BlankOX B = '.';
 typedef enum _direction { nodir=0,lowleft=1,down=2,lowright=3,left=4,right=6,upleft=7,up=8,upright=9 } Direction;
 typedef struct _coord { int x,y; } Coordinates;
 
-char gBlankOXString[] = { '.', 'O', 'X' };
-int myPieces_array[10] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
-                          'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
-                          'X', 0, MAX_X,          /* used to pass into generic_hash_init(...) */
-			  -1 };                   // mark the end of array
-BlankOX turn = 'X';                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
+char gBlankOXString[3];
+int myPieces_array[10];
+BlankOX turn = 'X';
 
 //---- Shing ----------------------------------------------
 char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
@@ -135,6 +101,7 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece);
 Coordinates IndexToCoordinates(int index);
 Coordinates Neighbor(Coordinates pos, Direction dir);
 Direction OtherDirection(Direction);
+BlankOX WhoseTurn(int);
 
 void dbg(char *);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,9 +122,50 @@ void dbg(char* msg) {
 void InitializeGame()
 {
   dbg("->InitializeGame");
+
+  // set attributes of board
+  BOARDSIZE = BOARDWIDTH * BOARDHEIGHT;
+  MAX_O = BOARDWIDTH;
+  MAX_X = BOARDWIDTH;
+
+  // init globals
+  gBlankOXString[0]=B;
+  gBlankOXString[1]=O;
+  gBlankOXString[2]=X;
+
+  myPieces_array[0]=B;
+  myPieces_array[1]=BOARDSIZE-MAX_O-MAX_X;
+  myPieces_array[2]=BOARDSIZE-1;
+  myPieces_array[3]=O;
+  myPieces_array[4]=0;
+  myPieces_array[5]=MAX_O;
+  myPieces_array[6]=X;
+  myPieces_array[7]=0;
+  myPieces_array[8]=MAX_X;
+  myPieces_array[9]=-1;
+
+  turn = X;   // start out with X's turn
+
+
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
-  char initialBoard[BOARDSIZE] = { O,O,O,B,B,B,X,X,X };
+  int topRow = 0;
+  int bottomRow = BOARDHEIGHT - 1;
+  BlankOX initialBoard[BOARDSIZE];
+  int i;
+
+  // clear board
+  for(i = 0; i < BOARDSIZE; i ++)
+    initialBoard[i] = B;
+
+  // fill a row with a player's pieces for each side
+  for(i = 0; i < BOARDWIDTH; i++) {
+    initialBoard[topRow*BOARDWIDTH + i] = O;
+    initialBoard[bottomRow*BOARDWIDTH + i] = X;
+  };
+
+  // encode as 32 bits
   POSITION initialPos =  BlankOXToPosition(initialBoard);
+
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
 }
@@ -250,6 +258,8 @@ POSITION DoMove(thePosition, theMove)
   coord = IndexToCoordinates(index);
 
   PositionToBlankOX(thePosition, board);
+  turn = WhoseTurn(thePosition);
+
   // do the actual move
   movingPiece = board[index];
   char otherPlayer = (movingPiece == X ? O : X);
@@ -279,7 +289,7 @@ POSITION DoMove(thePosition, theMove)
   else if(turn == O)
     turn = X;
   else
-    printf("BAD ERROR!\n");
+    printf("Bad else during domove\n");
 
   // return new state in hashed form
   newPosition = BlankOXToPosition(board);
@@ -624,7 +634,7 @@ MOVELIST *GenerateMoves(position)
   BlankOX OtherPlayer();
   BlankOX WhoseTurn(int);
 
-  char thisPlayer = WhoseTurn(position);
+  char thisPlayer = turn = WhoseTurn(position);
   char otherPlayer = thisPlayer==X ? O : X;
 
 
