@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.53 2005-02-09 21:08:11 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.54 2005-02-10 00:37:43 nizebulous Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -92,6 +92,11 @@ proc TBaction7 {} {
     pack .middle.f2.fHelp -side bottom
 }
 proc TBaction8 {} {
+    global gLeftName gRightName
+    set fileptr [open playername.txt w+]
+    puts $fileptr $gLeftName
+    puts $fileptr $gRightName
+    close $fileptr
     exit
 }
 

@@ -133,8 +133,15 @@ proc SetupGamePieces {} {
     set gRightPiece [lindex $alist 1]
     set gLeftHumanOrComputer Human
     set gRightHumanOrComputer Computer
-    set gLeftName Player
-    set gRightName Hal9000
+
+    if {[catch {set fileptr [open playername.txt r]}]} {
+	set gLeftName Player
+	set gRightName Hal9000
+    } else {
+	gets $fileptr gLeftName
+	gets $fileptr gRightName
+	close $fileptr
+    }
     
     set gPiecesPlayersName($gLeftPiece) $gLeftName
     set gPiecesPlayersName($gRightPiece) $gRightName
