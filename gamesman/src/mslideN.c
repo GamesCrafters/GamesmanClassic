@@ -223,6 +223,8 @@ extern VALUE     *gDatabase;
 /* } */
 InitializeGame()
 {
+  void InitializeGameVariables();
+  
   InitializeGameVariables(DefaultN);
 }
 
@@ -390,7 +392,8 @@ POSITION DoMove(thePosition, theMove)
   int i;
   int myMove;
   BOOLEAN isSqueezed;
-
+  
+  void LeftGravity(), RightGravity();
   POSITION BlankOXToPosition();
   BlankOX PositionToBlankOX();
   BlankOX theBlankOX[BoardSize];

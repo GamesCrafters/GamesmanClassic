@@ -180,11 +180,6 @@ POSITIONLIST **gParents = NULL;         /* The Parent of each node in a list */
 char *gNumberChildren = NULL;           /* The Number of children (used for Loopy games) */
 /* End Loopy */
 
-int gBytesMalloced = 0;
-int gMaxBytesUsed = 0;
-int gBytesInUse = 0;
-BOOLEAN kDebugLoopyMem = TRUE;
-// End Loopy
 
 char *gValueString[] =
 {
@@ -251,6 +246,7 @@ InitializeDatabases()
   int i;
   if (gDatabase!=NULL) {
     SafeFree((GENERIC_PTR) gDatabase);
+    gDatabase = NULL;
     //    gBytesInUse -= gNumberOfPositions * sizeof(VALUE);
   }
 
@@ -1257,16 +1253,12 @@ VALUE value;
 FreeMoveList(ptr)
      MOVELIST *ptr;
 {
-  //  DebugLoopyProgress("Entered FreeMoveList");
-
   MOVELIST *last;
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
-    SafeLoopyFree((GENERIC_PTR)last, sizeof(MOVELIST));
+    SafeFree((GENERIC_PTR)last);
   }
-
-  //  DebugLoopyProgress("Exiting FreeMoveList");
 }
 
 FreeRemotenessList(REMOTENESSLIST* ptr) 
@@ -1283,16 +1275,12 @@ FreeRemotenessList(REMOTENESSLIST* ptr)
 FreePositionList(ptr)
      POSITIONLIST *ptr;
 {
-  //  DebugLoopyProgress("Entered FreePositionList");
-
   POSITIONLIST *last;
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
-    SafeLoopyFree((GENERIC_PTR)last, sizeof(POSITIONLIST));
+    SafeFree((GENERIC_PTR)last);
   }
-
-  //  DebugLoopyProgress("Exiting FreePositionList");
 }
 
 void FreeValueMoves(VALUE_MOVES *ptr) {
@@ -1480,6 +1468,8 @@ Stopwatch()
 ExitStageRight()
 {
   printf("\nThanks for playing %s!\n",kGameName); /* quit */
+  // This is good practice
+  if (gDatabase != NULL) SafeFree(gDatabase);
   exit(0);
 }
 
@@ -1506,40 +1496,10 @@ GENERIC_PTR SafeMalloc(amount)
   }
 }
 
-/* Additionally calculates bytes used for loopy */
-GENERIC_PTR SafeLoopyMalloc(amount)
-     int amount;
-{
-  GENERIC_PTR ptr;
-
-  /* This will not return if malloc fails to allocate memory */
-  ptr = SafeMalloc(amount);
-
-  gBytesMalloced += amount;
-  gBytesInUse += amount;
-  if (gBytesInUse > gMaxBytesUsed)
-    gMaxBytesUsed = gBytesInUse;
-  return(ptr);
-}
-
 SafeFree(ptr)
      GENERIC_PTR ptr;
 {
   free(ptr);
-}
-
-SafeLoopyFree(ptr, amount)
-     GENERIC_PTR ptr;
-     int amount;
-{
-  if (ptr != NULL) {
-    gBytesInUse -= amount;
-    SafeFree(ptr);
-  }
-  else {
-    if (kDebugLoopyMem)
-      printf("Warning: NULL pointer passed to SafeLoopyFree!\n");
-  }
 }
 
 VALUE StoreValueOfPosition(position, value)
@@ -1596,15 +1556,11 @@ MOVELIST *CreateMovelistNode(theMove, theNextMove)
      MOVELIST *theNextMove;
 {
   MOVELIST *theHead;
-  GENERIC_PTR SafeLoopyMalloc();
+  GENERIC_PTR SafeMalloc();
 
-  //  DebugLoopyProgress("Entered CreateMovelistNode");
-
-  theHead = (MOVELIST *) SafeLoopyMalloc (sizeof(MOVELIST));
+  theHead = (MOVELIST *) SafeMalloc (sizeof(MOVELIST));
   theHead->move = theMove;
   theHead->next = theNextMove;
-
-  //  DebugLoopyProgress("Exiting CreateMovelistNode");
 
   return(theHead);
 }
@@ -2519,16 +2475,12 @@ POSITIONLIST *StorePositionInList(thePosition,thePositionList)
      POSITIONLIST *thePositionList;
 {
   POSITIONLIST *next, *tmp;
-  GENERIC_PTR SafeLoopyMalloc();
+  GENERIC_PTR SafeMalloc();
   
-  //  DebugLoopyProgress("Entered StorePositionInList");
-
   next = thePositionList;
-  tmp = (POSITIONLIST *) SafeLoopyMalloc (sizeof(POSITIONLIST));
+  tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
   tmp->position = thePosition;
   tmp->next     = next;
-
-  //  DebugLoopyProgress("Exiting StorePositionInList");
 
   return(tmp);
 }
@@ -2627,7 +2579,7 @@ POSITION position;
   /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
   SetParents(kBadPosition,position);
-  if(kDebugDetermineValue || kDebugLoopyMem) {
+  if(kDebugDetermineValue) {
     printf("---------------------------------------------------------------\n");
     printf("Number of Positions = [%d]\n",gNumberOfPositions);
     printf("---------------------------------------------------------------\n");
@@ -2789,9 +2741,6 @@ POSITION position;
 {
   if(!loadDatabase())
     {
-      gBytesMalloced = 0;
-      gBytesInUse = 0;
-      gMaxBytesUsed = 0;
       InitializeFR();
       ParentInitialize();
       NumberChildrenInitialize();
@@ -2799,11 +2748,6 @@ POSITION position;
       NumberChildrenFree();
       ParentFree();
       writeDatabase() ;
-      if (kDebugLoopyMem) {
-	printf("\n\nTotal bytes malloced by DetermineLoopyValue: %d\n", gBytesMalloced);
-	printf("Max memory used by DetermineLoopyValue at any time: %d\n", gMaxBytesUsed);
-	printf("Bytes malloced but left un-freed: %d\n\n", gBytesInUse);
-      }
       return gDatabase[position] % 4;
     }
   return gDatabase[position] % 4 ;
@@ -2887,10 +2831,10 @@ void SetParents (POSITION parent, POSITION root)
 
 ParentInitialize()
 {
-  GENERIC_PTR SafeLoopyMalloc();
+  GENERIC_PTR SafeMalloc();
   int i;
 
-  gParents = (POSITIONLIST **) SafeLoopyMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
+  gParents = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
   for(i = 0; i < gNumberOfPositions; i++)
     gParents[i] = NULL;
 }
@@ -2903,22 +2847,22 @@ ParentFree()
     FreePositionList(gParents[i]);
   }
 
-  SafeLoopyFree(gParents, gNumberOfPositions * sizeof(POSITIONLIST *));
+  SafeFree(gParents);
 }
 
 NumberChildrenInitialize()
 {
-  GENERIC_PTR SafeLoopyMalloc();
+  GENERIC_PTR SafeMalloc();
   int i;
 
-  gNumberChildren = (signed char *) SafeLoopyMalloc (gNumberOfPositions * sizeof(signed char));
+  gNumberChildren = (signed char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
   for(i = 0; i < gNumberOfPositions; i++)
     gNumberChildren[i] = 0;
 }
 
 NumberChildrenFree()
 {
-  SafeLoopyFree(gNumberChildren, gNumberOfPositions * sizeof(signed char));
+  SafeFree(gNumberChildren);
 }
 
 InitializeFR()
@@ -2959,7 +2903,7 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
     position = (*gHeadFR)->position;
     tmp = *gHeadFR;
     (*gHeadFR) = (*gHeadFR)->next;
-    SafeLoopyFree(tmp, sizeof(FRnode));
+    SafeFree(tmp);
 
     if (*gHeadFR == NULL)
       *gTailFR = NULL;
@@ -2988,7 +2932,7 @@ InsertTieFR(POSITION position)
 InsertFR(POSITION position, FRnode **firstnode,
 			FRnode **lastnode)
 {
-  FRnode *tmp = (FRnode *) SafeLoopyMalloc(sizeof(FRnode));
+  FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
   tmp->position = position;
   tmp->next = NULL;
 
@@ -3001,12 +2945,6 @@ InsertFR(POSITION position, FRnode **firstnode,
     (*lastnode)->next = tmp;
     *lastnode = tmp;
   }
-}
-
-void DebugLoopyProgress(STRING progress)
-{
-  if (kDebugLoopyMem)
-    printf("%s\n", progress);
 }
 
 // End Loopy
@@ -3152,7 +3090,9 @@ int BuildFreqTable(char fileName[], unsigned int freqTable[FREQTABLESIZE])
 		freqTable[fgetc(fileHandle)]++;
 		++byteCount;
 	}
-
+	
+	fclose(fileHandle);
+	
 	return byteCount-1;
 }
 
@@ -3970,12 +3910,12 @@ int nCr(int n, int r)
 
 #define max(a,b) (((a)>(b))?(a):(b))
 
-short getLength(void * line)
+int getLength(void * line)
 {
 	short ret ;
 	memcpy(&ret, line, 2) ;
 	ret = ntohs(ret) ;
-	return ret ;
+	return (int)ret ;
 }
 
 void setLength(void * line, short length)

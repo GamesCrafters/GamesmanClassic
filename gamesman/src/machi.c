@@ -778,7 +778,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-    if(input[1] == NULL)
+    if (!input[1])
 	return(input[0] <= '9' && input[0] >= '1');
     return(input[0] <= '9' && input[0] >= '1' && input[1] <= '9' && input[1] >= '1');
 }
@@ -799,7 +799,7 @@ MOVE ConvertTextInputToMove(input)
      STRING input;
 {
     MOVE theMove = 0;
-    if(input[1] == NULL)
+    if (!input[1])
 	return((MOVE) input[0] - '0'); /* user input is 1-9, our rep. is 0-8 */
     else {
 	theMove = ((MOVE) input[0] - '0') * 10;
