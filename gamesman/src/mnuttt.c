@@ -847,7 +847,7 @@ void setOption (int option)
   misere = (option % 2) ? TRUE : FALSE; /* never, never break abstraction */
   diag = (option & 0x2) ? TRUE : FALSE;
   option >>= 2;
-  num_to_win = option % NUM_TO_WIN_CAP;
+  num_to_win = option % NUM_TO_WIN_MAX;
   option /= NUM_TO_WIN_MAX;
   col = option % BOARD_DIM_MAX;
   option /= BOARD_DIM_MAX;
