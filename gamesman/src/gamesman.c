@@ -268,7 +268,6 @@ VALUE oldValueOfPosition = tie;
 
 static MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
-STRING kAuthorName = "Dan Garcia & The Elite GamesCrafters" ;
 
 
 /* Start Loopy */
