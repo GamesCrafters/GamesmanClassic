@@ -2750,7 +2750,7 @@ VALUE DetermineZeroValue(POSITION position){
 					moveptr = headMove = GenerateMoves(i);							// generate move list
 					numTot = numWin = numTie = 0;									//initalize counters for non auto update values
 					tieRemoteness = winRemoteness = REMOTENESS_MAX;
-					while(moveptr != NULL && (GetValueOfPosition(i) == undecided)){ //iter through children, so long as we dont have a value
+					while(moveptr != NULL){											//iter through children
 						child = DoMove(i,moveptr->move);							//get child position
 						numTot++;													//increase number of children.
 						if(Visited(child))											// if the child has been visited
@@ -2769,7 +2769,8 @@ VALUE DetermineZeroValue(POSITION position){
 
 						if(childValue == lose){										// if child is a lose
 							StoreValueOfPosition(i,win);							// auto update parent to a win
-							SetRemoteness(i,Remoteness(child)+1);					//update parent remotness
+							if(Remoteness(i) > Remoteness(child)+1)					// determine if this childs lose remoteness is less than others.
+								SetRemoteness(i,Remoteness(child)+1);				// update parent remotness
 						}
 	
 						if(childValue == win){										//if child is a win
