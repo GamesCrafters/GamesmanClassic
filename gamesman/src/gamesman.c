@@ -53,6 +53,7 @@ void     PrintHumanValueExplanation();
 
 
 /* database function prototypes */
+#define DBVER 1 //Will be stored as a short, thus only integers.
 int  writeDatabase();
 int  loadDatabase();
 VALUE   *GetRawValueFromDatabase(POSITION position);
@@ -2986,7 +2987,7 @@ void InsertFR(POSITION position, FRnode **firstnode,
 **			htonl
 **			ntohl
 **
-**	Requierments:	gDatabase contains a valid database of moves
+**	Requierments:	gDatabase contains a valid database of positions
 **					gNumberOfPositions stores the correct number of positions in gDatabase
 **					kDBName is set correctly.
 **					getOption() returns the correct option number
@@ -3018,19 +3019,25 @@ void InsertFR(POSITION position, FRnode **firstnode,
 ***********/
 int writeDatabase()
 {
-	unsigned long i ;
-	gzFile * filep ;
+	short dbVer[1];
+	POSITION numPos[1];
+	unsigned long i;
+	gzFile * filep;
 	char outfilename[256] ;
 	int goodCompression = 1;
 	int goodClose = 0;
 	unsigned long tot = 0,sTot = gNumberOfPositions;
 	mkdir("data", 0755) ;
-	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
+	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption());
 	if((filep = gzopen(outfilename, "wb")) == NULL) {
 	      printf("Unable to create compressed data file\n");
 	      return 0;
 	}
-	
+
+	dbVer[0] = htons(DBVER);
+	numPos[0] = htonl(gNumberOfPositions);
+	goodCompression = gzwrite(filep, dbVer, sizeof(short));
+	goodCompression = gzwrite(filep, numPos, sizeof(POSITION));
 	for(i=0;i<gNumberOfPositions && goodCompression;i++){ //convert to network byteorder for platform independence.
 		gDatabase[i] = htonl(gDatabase[i]);
 		goodCompression = gzwrite(filep, gDatabase+i,sizeof(VALUE));
@@ -3054,22 +3061,40 @@ int writeDatabase()
 
 int loadDatabase()
 {
+	short dbVer[1];
+	POSITION numPos[1];
     POSITION i;
 	gzFile * filep ;
 	char outfilename[256] ;
 	int goodDecompression = 1;
-	int goodClose = 0;
+	int goodClose = 1;
 	unsigned long sTot = gNumberOfPositions;
 	
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
 	if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
 	
-	for(i = 0; i < gNumberOfPositions && goodDecompression; i++){
+	goodDecompression = gzread(filep,dbVer,sizeof(short));
+	goodDecompression = gzread(filep,numPos,sizeof(POSITION));
+	*dbVer = ntohs(*dbVer);
+	*numPos = ntohl(*numPos);
+	if(*numPos != gNumberOfPositions){
+		printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
+		return 0;
+	}
+	/***
+	** Database Ver. 1 Decompress
+	***/
+	for(i = 0; i < gNumberOfPositions && goodDecompression && (*dbVer == 1); i++){
 		goodDecompression = gzread(filep, gDatabase+i, sizeof(VALUE));
 		gDatabase[i] = ntohl(gDatabase[i]);
 	}
-	goodClose = gzclose(filep);	
+	/***
+	** End Ver. 1
+	***/
 
+
+	goodClose = gzclose(filep);	
+	
 
 	if(goodDecompression && (goodClose == 0))
 	{
