@@ -348,6 +348,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("  %c  |  %c      8  |  6\n", gBoard[8], gBoard[6]);
   printf("     %c            7\n", gBoard[7]);
   printf("\n%s's Turn(%c)\n", playersName, (whoseMove (position)) == 1 ? 'x' : 'o');
+  printf("%s\n", GetPrediction(position,playersName,usersTurn));
   
 }
 
