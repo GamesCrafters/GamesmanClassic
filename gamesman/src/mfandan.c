@@ -366,7 +366,7 @@ POSITION DoMove(thePosition, theMove)
   if(GoAgain(thePosition, theMove)) {
     movingAgain = TRUE;
   } else {
-    turn = turn==X? O : X;
+    turn = (turn==X? O : X);
     movingAgain = FALSE;
   }
 
@@ -495,7 +495,6 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
 
 POSITION GetInitialPosition()
 {
-  // fill me? if need, can get from mttt.c
   return gInitialPosition;
 }
 
