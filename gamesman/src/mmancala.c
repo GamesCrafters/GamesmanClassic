@@ -33,17 +33,14 @@
 #include <stdlib.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 int *array_hash (POSITION position);
 POSITION array_unhash (int *hashed);
 
 /* DEBUGGING = 0/1 = NO/YES debug statements printed onscreen */
 int DEBUGGING = 0;
 
-int      gNumberOfPositions ;
+POSITION gNumberOfPositions ;
 POSITION gInitialPosition ;
-POSITION gMinimalPosition ;
 
 BOOLEAN  kPartizan            = TRUE;
 BOOLEAN  kDebugMenu           = FALSE;
@@ -53,7 +50,7 @@ BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kGameName            = "Mancala";
 STRING   kDBName              = "mancala";
-STRING   kBadPosition         = -1;
+POSITION kBadPosition         = -1;
 
 STRING   kHelpGraphicInterface = "" ;
 
@@ -83,7 +80,7 @@ more moves are possible. The player whose mancala contains fewer stones wins.";
 STRING   kHelpTieOccursWhen =
 "both mancalas contain an equal number of stones at the end of the game." ;
 
-STRING   kHelpExample = "
+STRING   kHelpExample = "\
 P2 Bin #         1       2       3		\n\
                 [4]     [4]     [4]		\n\
         [0]                             [0]	\n\
@@ -152,7 +149,7 @@ int turnOffset;
 
 BOOLEAN OPT_STANDARD = 0;    /* What is the game type? 
 			        0: Standard
-			        1: Mezeire */  
+			        1: Misere */  
 BOOLEAN OPT_NOCAPTURE = 0;   /* Landing on your own empty bin does what?
 		                0: Capture YOUR and OPPONENT's stones
 			        1: YOUR turn ends. */
@@ -183,13 +180,13 @@ BOOLEAN OPT_WINEMPTY = 0;    /* Emptying your side of the board does what?
 ** NAME:        InitializeGame
 **
 ** DESCRIPTION: Initialize mancala-specific globals as well as
-**              gNumberOfPositions, gInitialPosition, and gMinimalPosition.
+**              gNumberOfPositions, gInitialPosition.
 **              Also initializes the rearranger_hash methods necessary
 **              for this game's hash routines.
 ** 
 ************************************************************************/
 
-InitializeGame()
+void InitializeGame()
 {
   int i, piecesPerBin, *arrayBoard;
   arrayBoard = (int *) SafeMalloc ((boardSize+1) * sizeof (int));
@@ -208,7 +205,6 @@ InitializeGame()
      given the limitations of the 32-bit cpu 2 * (31 nCr 15) */
   //gNumberOfPositions = 601080390;
   gInitialPosition = array_unhash(arrayBoard);
-  gMinimalPosition = gInitialPosition;
   
   free (arrayBoard);
 }
@@ -281,9 +277,9 @@ UpdateGameSpecs()
 
   gNumberOfPositions = turnOffset*2;
 
-  if(DEBUGGING)printf("\nGAME INFO\nboardSize: %d\nnumOfPieces: %d\nturnOffset: %d
-					   \ngNumberOfPositions: %d\n", boardSize, numOfPieces,
-													 turnOffset, gNumberOfPositions);
+  if(DEBUGGING)printf("\nGAME INFO\nboardSize: %d\nnumOfPieces: %d\nturnOffset: %d\n"
+		      "gNumberOfPositions: %d\n", boardSize, numOfPieces,
+		      turnOffset, gNumberOfPositions);
 }
 
 /************************************************************************
@@ -294,7 +290,7 @@ UpdateGameSpecs()
 ** 
 ************************************************************************/
 
-FreeGame()
+void FreeGame()
 {
 }
 
@@ -307,7 +303,7 @@ FreeGame()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -320,7 +316,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu()
+void GameSpecificMenu()
 {
     int temp = 0, temp2 = 0;
     do {
@@ -462,7 +458,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(int theOptions [])
+void SetTclCGameSpecificOptions(int theOptions [])
 {
 }
 
@@ -598,7 +594,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 ** 
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION initPosition;
   int totalStones = numOfPieces;
@@ -653,7 +649,7 @@ GetInitialPosition()
 ** 
 ************************************************************************/
 
-PrintComputersMove(MOVE computersMove, STRING computersName)
+void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
   if(computersMove > mancalaR) {
     computersMove = boardSize - computersMove + mancalaR;
@@ -707,11 +703,9 @@ VALUE Primitive(POSITION position) {
 ** 
 ************************************************************************/
 
-PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
   int *arrayHashedBoard, i;
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
   
   arrayHashedBoard = array_hash(position);
   
@@ -925,7 +919,7 @@ MOVE ConvertTextInputToMove(STRING input)
 ** 
 ************************************************************************/
 
-PrintMove(MOVE theMove)
+void PrintMove(MOVE theMove)
 {
   if(theMove > mancalaR) {
     theMove = boardSize - theMove + mancalaR;
@@ -1076,68 +1070,4 @@ POSITION array_unhash (int *hashed) {
   return result;
 }
 
-STRING kDBName = "mancala" ;
-
-/* Database info */
-
-int NumberOfOptions()
-{
-  return 2*2*2;
-}
-
-int getOption()
-{
-  int option = 1;
-  option += gStandardGame ? 0 : 1;
-  option += 2 * (gToTrapIsToWin ? 0 : 1);
-  option += 2*2 * (moveHandT ? 1 : 0);
-  return option;
-}
-
-void setOption(int option)
-{
-  option -= 1;
-  
-  if (option >= 2*2) {
-    option -= 2*2;
-    moveHandT = TRUE;
-  }
-  else 
-    moveHandT = FALSE;
-  
-  if (option >= 2) {
-    option -= 2;
-    gToTrapIsToWin = FALSE;
-  }
-  else
-    gToTrapIsToWin = TRUE;
-
-  if (option >= 1) {
-    option -= 1;
-    gStandardGame = FALSE;
-  }
-  else
-    gStandardGame = TRUE;
-
-}
-
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-}
-/*
-int NumberOfOptions()
-{
-}
-   
-int getOption()
-{
-}
-
-void setOption(int option)
-{
-}
-
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-}
-*/
+void* gGameSpecificTclInit = NULL;
