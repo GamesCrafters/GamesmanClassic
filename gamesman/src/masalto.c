@@ -1966,7 +1966,7 @@ void AddRemoveGeese(char board[])
 		
 		printf("\ta)\t(A)dd a Goose\n");
 		printf("\tr)\t(R)emove a Goose\n");
-		printf("\tb)\t(B)xit Geese Placement\n\n");
+		printf("\tb)\t(B)ack To Previous Menu\n\n");
 		printf("Select an option: "); scanf("%s",selection_command);
 		selection = toupper(selection_command[0]);
 		switch (selection)
