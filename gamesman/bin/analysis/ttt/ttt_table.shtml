@@ -1,0 +1,24 @@
+<!-- AUTO CREATED, do not modify-->
+<table align=ABSCENTER BORDER =1 CELLSPACING=0 CELLPADDING=5>
+<tr>
+<td><b>Variant</b></td>
+<td><b>Value</b></td>
+<td><b>Wins</b></td>
+<td><b>Loses</b></td>
+<td><b>Ties</b></td>
+<td><b>Primitive Wins</b></td>
+<td><b>Primitive Loses</b></td>
+<td><b>Primitive Ties</b></td>
+<td><b>Reachable Positions</b></td>
+<td><b>Total Positions</b></td>
+<td><b>Hash Efficiency (%)</b></td>
+<td><b>Avg. Fanout</b></td>
+<td><b>Timer(s)</b></td>
+</tr>
+<tr>
+<!--#include virtual="var1/row.shtml"-->
+</tr>
+<tr>
+<!--#include virtual="var2/row.shtml"-->
+</tr>
+</table>
