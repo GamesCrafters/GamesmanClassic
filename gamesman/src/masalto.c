@@ -53,19 +53,19 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"Help Text"; 
+"Your move consists of the location of the piece you wantto move\n and the location of where you want to move the piece to.\n\nFor example, the move\n       [c4 c5]  (brackets are not necessary)\nwill move the piece located at c4 and move it to c5.\n\nNote: You can only move your own pieces.\n\nIf you're the fox and need to jump, do the exact same thing.\nThe removal of the geese is factored in automatically.\nIf you're the fox and have already previously jumped, you can\nenter 'p' to pass.";
 
 STRING   kHelpOnYourTurn =
-"On Your Turn";
+"Both the fox and the geese can move to any adjacent empty square that\nis connected to a piece by a line. Note that you can only move to a\nfew spots using a diagonol route"; 
 
 STRING   kHelpStandardObjective =
-"Standard Objective";
+"If you're the fox...\n\nKill all the geese before they occupy the entire 'castle' area.\nIn general, this means kill as many as you can.\n\nIf you're the geese...\n\nCompletely occupy the 'castle' area before you lose all your geese.\nAlternately, the geese can win if they trap the foxes so they\ncannot move.";
 
 STRING   kHelpReverseObjective =
-"Reverse Objective";
+"If you're the fox...\n\nTry to let the geese take over the entire 'castle' area, or let\nthem trap you.\n\nIf you're the geese...\n\nTry to let the fox kill you as much as possible.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"Tie Occurs when";
+"A tie can never occur in Asalto.";
 
 STRING   kHelpExample =
 "Help";
