@@ -150,7 +150,7 @@ proc SetupGamePieces {} {
 
 #############################################################################
 ##
-## New Game
+## NewGame
 ##
 ## This is what we do when the user clicks the 'New Game' button.
 ##
@@ -721,6 +721,22 @@ proc GetPredictions {} {
 	set gPredString $prediction
     }
 }
+
+#############################################################################
+##
+## BadElse
+##
+## This is for if-then-elseif-then-else statements to guarantee correctness.
+##
+#############################################################################
+
+proc BadElse { theFunction theMsg } {
+    puts "Error: $theFunction\{\} just reached an else clause it shouldn't have: $theMsg"
+}
+
+
+
+
 
 # argv etc
 proc main {kRootDir} {
