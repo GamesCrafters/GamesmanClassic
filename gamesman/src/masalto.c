@@ -146,8 +146,8 @@ int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with 
 char start_standard_board[]={                'G','G','G',
 			                 ' ',' ',' ',' ',' ',    
 				         ' ',' ',' ',' ',' ',    
-				         ' ',' ',' ',' ',' ',    
-				             'F',' ','F'};
+				         ' ',' ','G',' ',' ',    
+				             'F','F','F'};
 					                     
 
 /*************************************************************************
@@ -436,6 +436,14 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	goAgain = move[2];
 	origPiece = board[origin];
 	
+	if (theMove == -1)
+	{
+		next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
+		positionGoAgain = 0;
+		positionGoAgainPiece = -1;
+		return generic_hash(board,next_player);
+	}
+	
 	if (goAgain)
 	{
 		next_player = whoseMove(thePosition);
@@ -447,12 +455,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 		next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
 	}
 	
-	if (theMove == -1)
-	{
-		positionGoAgain = 0;
-		positionGoAgainPiece = -1;
-		return generic_hash(board,next_player);
-	}
 	/* Barebones move */
 	board[origin] = ' ';
 	board[destination] = origPiece;
@@ -822,13 +824,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	else if(player == FOX_PLAYER)
 	{
 		if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() --> FoxGenerateMoves()\n"); }
-		for(i = 0; i < BOARDSIZE; i++) /* Scan For Foxes */
-		{
-			if(board[i] =='F')
-			{
-				moves = FoxGenerateMoves(board,moves);
-			}
-		}
+		moves = FoxGenerateMoves(board,moves);
 	}
 	else if (player == GEESE_PLAYER)
 	{
@@ -957,12 +953,15 @@ MOVELIST *GenerateKillMoves(const char board[BOARDSIZE], MOVELIST *moves, int lo
 				
 				if(validCoord(neighbor_coord) && validCoord(neighbor_coord_one_beyond) && board[neighbor_location] == 'G' && validMove(board, candidate_move, player))
 				{
-					candidate_move[2] = 0;
-					moves = CreateMovelistNode((hashMove(candidate_move)),moves); /* No Go Again */
 					if (variant_goAgain && MoreKillMoves(board, candidate_move[1], player)) /* Go Again */
 					{
 						candidate_move[2] = 1;
 					        moves = CreateMovelistNode((hashMove(candidate_move)),moves);
+					}
+					else
+					{
+						candidate_move[2] = 0;
+						moves = CreateMovelistNode((hashMove(candidate_move)),moves); /* No Go Again */
 					}
 					if (GENERATEKILLMOVES_DEBUG) { printf("mASALTO - GenerateKillMoves() Move Found!\n"); }
 					
@@ -1373,7 +1372,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	}
 	else if (strlen(input) == 4)
 	{
-		return 0;
+		return -1;
 	}
 	
 	return hashMove(move);
