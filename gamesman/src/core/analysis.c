@@ -38,8 +38,6 @@
 */
 
 long		gTotalMoves = 0;
-static ANALYSIS	gAnalysis;
-
 
 /*
 ** Code

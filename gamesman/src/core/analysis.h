@@ -54,5 +54,7 @@ typedef struct analysis_info
   unsigned int  TimeToSolve;
 } ANALYSIS;
 
+static ANALYSIS gAnalysis;
+
 #endif /* GMCORE_ANALYSIS_H */
 
