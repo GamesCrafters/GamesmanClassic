@@ -273,6 +273,10 @@ WUZHI_EXE		= $(BINDIR)/mwuzhi$(EXESUFFIX)	# Kono
 WUZHI_OBJ		= mwuzhi$(OBJSUFFIX)
 WUZHI_SO		= $(LIBDIR)/libmwuzhi$(LIBSUFFIX)
 
+NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # another version of tic-tac-toe
+NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
+NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
+
 ##############################################################################
 ### Game categories
 
@@ -286,7 +290,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(TTC_OBJ) $(JOUST_OBJ) $(ICEBLOCKS_OBJ) $(BAGHCHAL_OBJ)\
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
 	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ) $(ABALONE_OBJ) \
-	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ)
+	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -297,7 +301,7 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
 	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
-	  $(OOE_EXE) $(TORE_EXE)
+	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
