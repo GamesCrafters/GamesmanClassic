@@ -203,7 +203,14 @@ VALUE     *gDatabase;
 
 void InitializeDatabases()
 {
+  GENERIC_PTR SafeMalloc();
+  int i;
 
+  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
+
+  for(i = 0; i < gNumberOfPositions; i++)
+    gDatabase[i] = undecided;
+}
 }
 
 /************************************************************************
@@ -304,7 +311,37 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
- 
+  POSITION hash(); 
+  struct Gposition myPosition;
+  signed char c;
+  int i;
+  int j;
+  
+  printf("\n\n\t----- Get Initial Position -----\n");
+  printf("\n\tPlease input the position to begin with.\n");
+  printf("\n\tNote that X will always go first\n");
+  printf("\tNote that it should be in the following format:\n\n");
+  printf("-- X  -x\n");
+  printf("O  X  --         <----- EXAMPLE\n");
+  printf("-o O  --\n");
+  printf("For example, to get the position printed above, type:\n");
+  printf("--X--x \nO-X--- \n-oO--- \n");
+  
+  i = 0;
+  getchar();
+  while(i < TABLE_BITS && (c = getchar()) != EOF) {
+    j = 0;
+    do {
+      if((c == 'X') || (c == 'x') || (c == '*'))
+        Gposition.board[i] = (Gposition.board[i] << 2) + PIECE_X;
+      else if((c == 'O') || (c == 'o') || (c == '.'))
+        Gposition.board[i] = (Gposition.board[i] << 2) + PIECE_O;
+      j++;
+    } while((j < PIECE_SIZES) && (c = getchar()) != EOF);
+    i++;
+  }
+  myPosition.turn = TURN_X;
+  return(hash(myPosition));
 }
 
 /************************************************************************
@@ -324,6 +361,29 @@ POSITION GetInitialPosition()
 MOVE GetComputersMove(thePosition)
      POSITION thePosition;
 {
+  int i, randomMove, numberMoves = 0;
+  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
+  MOVE theMove;
+  
+  if(gPossibleMoves) 
+    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
+  head = ptr = GetValueEquivalentMoves(thePosition);
+  while(tr != NULL) {
+    numberMoves++;
+    if(gPossibleMoves) 
+      PrintMove(ptr->move);
+    ptr = ptr->next;
+  }
+  if(gPossibleMoves) 
+    printf("]\n\n");
+  randomMove = GetRandomNumber(numberMoves);
+  ptr = head;
+  for(i = 0; i < randomMove ; i++)
+    ptr = ptr->next;
+
+  theMove = ptr->move;
+  FreeMoveList(head);
+  return(theMove);
 }
 
 /************************************************************************
@@ -583,6 +643,38 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
+  int i = 0;
+  int j = 0;
+  int start;
+  int end;
+  if((intput[i] != 'X') &&
+     (input[i] != 'x') &&
+     (input[i] != '*') &&
+     (input[i] != 'O') &&
+     (input[i] != 'o') &&
+     (input[i] != '.')) {
+    while((input[i] <= '9') && (input[i] >= '1')) {
+      start += ((int) input[i]) + (10 * i);
+      i++;
+    }
+  }
+  if(i == 0)
+    return false;
+  if(start > TABLE_BITS)
+    return false;
+  if(input[i] != ' ')
+    return false;
+  i++;
+  while(i < input.length) {
+    if((input[i] > '9') || (input[i] < '1'))
+      return false;
+    end += ((int) input[i]) + (10 * j);
+    i++;
+    j++;
+  }
+  if(end > TABLE_BITS)
+    return false;
+  return true;
 }
 
 /************************************************************************
