@@ -194,7 +194,10 @@ POSITION GPS_DoMove(MOVE move);
 MOVELIST *GPS_GenerateMoves();
 VALUE GPS_Primitive();
 void GPS_UndoMove(MOVE move);
+
+POSITION BlankOXToPosition(BlankOX *theBlankOX);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+
 BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 POSITION GetCanonicalPosition(POSITION position);
 
@@ -411,7 +414,6 @@ void GPS_UndoMove(MOVE move)
 
 POSITION GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
   int i, goodInputs = 0;
@@ -445,7 +447,7 @@ POSITION GetInitialPosition()
     whosTurn = o;
     */
 
-  return(BlankOXToPosition(theBlankOX,whosTurn));
+  return(BlankOXToPosition(theBlankOX));
 }
 
 /************************************************************************
