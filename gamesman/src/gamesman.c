@@ -706,7 +706,7 @@ PlayAgainstHuman()
   MOVE theMove;
   VALUE Primitive();
   UNDO *undo, *InitializeUndo(), *HandleUndoRequest(), *UpdateUndo();
-  BOOLEAN playerOneTurn = TRUE, error, abort;
+  BOOLEAN playerOneTurn = TRUE, error, player_draw;
   USERINPUT userInput, GetAndPrintPlayersMove();
 
   currentPosition = gInitialPosition;
@@ -737,8 +737,8 @@ PlayAgainstHuman()
     PrintPosition(currentPosition = DoMove(currentPosition,theMove),
 		  gPlayerName[playerOneTurn], kHumansTurn);
 
-    undo = UpdateUndo(currentPosition, undo, &abort);
-    if(abort)
+    undo = UpdateUndo(currentPosition, undo, &player_draw);
+    if(player_draw)
       break;
 
   }
@@ -751,8 +751,12 @@ PlayAgainstHuman()
   else if(Primitive(currentPosition) == win)
     printf("\n%s (player %s) Wins!\n\n", gPlayerName[playerOneTurn], 
 	   playerOneTurn ? "one" : "two");
-  else if(userInput == Abort || abort)
+  else if(userInput == Abort)
     printf("Your abort command has been received and successfully processed!\n");
+  else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
+    printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",
+	   gPlayerName[0], gPlayerName[1]);
+  }
   else
     BadElse("PlayAgainstHuman"); 
 
