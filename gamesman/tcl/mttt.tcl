@@ -31,6 +31,11 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "TicTacToe"
 
+    global kCAuthors kTclAuthors kGifAuthors kRootDir
+    set kCAuthors "Dan Garcia"
+    set kTclAuthors "GamesCrafters"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     ### Set the size of the slot in the window
     ### This should be a multiple of 80, but 100 is ok
     
