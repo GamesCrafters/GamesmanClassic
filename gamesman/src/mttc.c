@@ -20,7 +20,10 @@
 **                                                                -- jt
 **
 ** 2004.4.6     Added in support for generic_hash; still have to add in
-v**              modified ruleset as per discussion with Dom.  
+**              modified ruleset as per discussion with Dom.  
+**                                                                -- rc
+**
+** 2004.4.18    Fixed some stuff, found lots more to fix, etc. etc.
 **                                                                -- rc
 **
 **************************************************************************/
@@ -181,8 +184,10 @@ extern VALUE     *gDatabase;
 
 void InitializeGame () {
   int i;
+  POSITION make_position(BOARD board, PLAYER player);
   /* Shouldn't hardcode */
-  int pieces_array[] = {0,0,2,1,0,2,2,0,2,3,0,2,BLNK,8,16,-1}; 
+  int pieces_array[] = {0,0,2,1,0,2,2,0,2,3,0,2,BLNK,8,16,-1};
+    BOARD board;
   void map(PIECE,int);
   gNumberOfPositions = generic_hash_init(BOARD_LENGTH, pieces_array,NULL);
 
@@ -199,6 +204,11 @@ void InitializeGame () {
   map(B_QN, 1);
   map(W_KN, 2);
   map(W_QN, 3);
+
+  board = (BOARD) malloc(BOARD_LENGTH*sizeof(int));
+  for (i = 0; i < BOARD_LENGTH; i++) 
+    board[i] = BLNK;
+  gInitialPosition = make_position(board,WHITE);
 
   return;
 }
