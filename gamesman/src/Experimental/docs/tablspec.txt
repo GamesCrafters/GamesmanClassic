@@ -3,6 +3,7 @@ GAME Class property table:
 
 "Name"			STRING		Name of the game
 "Authors"		STRING		Names of the authors
+"OptionCount"		int		Number of options available in the game (0 to n - 1)
 
 
 GAME Instance property table:
@@ -12,6 +13,11 @@ GAME Instance property table:
 "InvalidPosition"	POSITION	An invalid POSITION
 "InitialPosition"	POSITION	The initial position of the game
 "InitialRotation"	int		The initial rotation
+"Partial"		int		non-zero if the game is Partial
+"Partizan"		int		non-zero if the game is Partizan
+"HasGoAgains"		int		non-zero if the game has Go-Agains
+"PreferredSolver"	STRING		Classname of the preferred solver to use
+"PreferredDatabase"	STRING		Classname of the preferred db to use
 
 
 DATABASE Class property table:
@@ -22,16 +28,23 @@ DATABASE Class property table:
 
 DATABASE Instance property table:
 
+	-- data that have to do with the object --
 "Class"			STRING		Classname of the database
 "Resource"		STRING		The file or resource that this database is using (eg, "file:///whatever", "soap://wherever...")
+
+	-- data that have to do with the contents -- the table that must be passed to init()
 "RecordCount"		POSITION	The number of records contained in this database
 "RecordSize"		int		The number of bytes per record
+"Game"			STRING		The name of the game that this database stores
+"GameOption"		int		The option number of the game
+"Solver"		STRING		The classname of the solver that this game uses
 
 
 SOLVER Class property table:
 
 "Name"			STRING		Descriptive name of the solver
 "Authors"		STRING		The names of the authors of this solver
+"Compatibilities"	STRING_LIST	The list of solvers with which this solver is compatible (void*)
 
 
 SOLVER Instance property table:

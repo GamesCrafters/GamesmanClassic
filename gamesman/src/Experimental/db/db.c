@@ -56,6 +56,7 @@ DATABASE_CLASS* db_find_handler ( STRING resource )
 	table_value*	ptr;
 	char*		r;
 	size_t		h_len;
+	int		n;
 	
 	if (!(r = index(resource, ':')))
 		return db_get("default");
@@ -64,13 +65,13 @@ DATABASE_CLASS* db_find_handler ( STRING resource )
 	
 	table_iter_new(&i, DB_LIST);
 	
-	do {
+	for (n = table_iter_new(&i, DB_LIST); !n; n = table_iter_next(&i)) {
 		if (!(ptr = table_iter_value(&i)))
 			return NULL;
 		
 		if (!strncasecmp(table_iter_key(&i), resource, h_len))
 			return ptr -> value . ptr;
-	} while (!table_iter_next(&i));
+	}
 	
 	return NULL;
 }

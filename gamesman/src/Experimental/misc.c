@@ -207,6 +207,23 @@ int table_put_position ( TABLE* tab, STRING key, POSITION p )
 	return table_put(tab, key, &v);
 }
 
+TABLE table_copy ( TABLE tab )
+{
+	TABLE	ret = NULL;
+	TABLE	ptr;
+	TABLE*	ret_ptr;
+	
+	ret_ptr = &ret;
+	
+	for (ptr = tab; ptr; ptr = ptr -> next, ret_ptr = &(*ret_ptr) -> next) {
+		*ret_ptr = (TABLE) safe_malloc(sizeof(struct table_entry));
+		(*ret_ptr) -> key = safe_strdup(ptr -> key);
+		memcpy(&(*ret_ptr) -> value, &ptr -> value, sizeof(table_value));
+	}
+	
+	return ret;
+}
+
 void table_free ( TABLE* tab )
 {
 	TABLE	ptr;
@@ -228,9 +245,10 @@ void table_free ( TABLE* tab )
 ** table_iter data type
 */
 
-void table_iter_new ( table_iter* obj, TABLE tab )
+int table_iter_new ( table_iter* obj, TABLE tab )
 {
 	*obj = tab;
+	return 0;
 }
 
 STRING table_iter_key ( table_iter* obj )
@@ -247,7 +265,7 @@ int table_iter_next ( table_iter* obj )
 {
 	*obj = (*obj) -> next;
 	
-	return !!(*obj);
+	return !(*obj);
 }
 
 

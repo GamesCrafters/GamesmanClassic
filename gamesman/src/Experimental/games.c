@@ -40,12 +40,12 @@ GAME_CLASS* game_get ( STRING class_name )
 	return (GAME_CLASS*) ret;
 }
 
-GAME* game_new ( STRING class_name )
+GAME* game_new ( STRING class_name, int option )
 {
 	GAME_CLASS*	c;
 	
 	if (!(c = game_get(class_name)))
 		return NULL;
 	
-	return (*c -> create)();
+	return (*c -> create)(option);
 }

@@ -17,7 +17,7 @@ int main ( int argc, char** argv )
 	if (!(db = db_open("")))
 		die("Can't open the db.\n");
 	
-	(*db -> init)(db, 10, (argc < 2 ? 16 : atoi(argv[1])));
+	(*db -> init)(db, 10, (argc < 2 ? 16 : atoi(argv[1])), NULL);
 	
 	for (i = 0; i < 10; i++) {
 		n = 100 * (10 - i);

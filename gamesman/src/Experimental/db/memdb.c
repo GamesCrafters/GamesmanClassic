@@ -30,7 +30,7 @@ static DATABASE_CLASS	MemoryDB;
 ** Local function prototypes
 */
 
-static int		memdb_initf		( DATABASE*, POSITION, int );
+static int		memdb_initf		( DATABASE*, POSITION, int, TABLE );
 static int		memdb_free		( DATABASE* );
 static int		memdb_get_byte		( DATABASE*, POSITION, void* );
 static int		memdb_put_byte		( DATABASE*, POSITION, void* );
@@ -52,7 +52,7 @@ static DATABASE*	memdb_new		( STRING );
  *  record_size.  Returns 0 on success.
  */
 
-static int memdb_initf ( DATABASE* db, POSITION record_count, int record_size )
+static int memdb_initf ( DATABASE* db, POSITION record_count, int record_size, TABLE tbl )
 {
 	struct memdb_internal*	ptr;
 	
@@ -71,6 +71,11 @@ static int memdb_initf ( DATABASE* db, POSITION record_count, int record_size )
 	
 	table_put_position(&db -> properties, "RecordCount", record_count);
 	table_put_int(&db -> properties, "RecordSize", record_size);
+	
+	/* Copy table values */
+	
+	db -> content_properties = table_copy(tbl);
+	
 	
 	/* Optimize if we're dealing with whole bytes */
 	
@@ -282,7 +287,7 @@ static int memdb_transfer ( DATABASE* db, DATABASE* dest )
 	cnt = internal -> record_count;
 	ptr = internal -> data_ptr;
 	
-	(*dest -> init)(dest, cnt, sz);
+	(*dest -> init)(dest, cnt, sz, db -> content_properties);
 	return (*dest -> putn)(dest, 0, ptr, cnt);
 }
 

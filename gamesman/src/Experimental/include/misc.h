@@ -18,8 +18,9 @@ int		table_put_voidp		( TABLE*, STRING, void*, void (*)(void*) );
 int		table_put_int		( TABLE*, STRING, int );
 int		table_put_position	( TABLE*, STRING, POSITION );
 void		table_free		( TABLE* );
+TABLE		table_copy		( TABLE );
 
-void		table_iter_new		( table_iter*, TABLE );
+int		table_iter_new		( table_iter*, TABLE );
 STRING		table_iter_key		( table_iter* );
 table_value*	table_iter_value	( table_iter* );
 int		table_iter_next		( table_iter* );

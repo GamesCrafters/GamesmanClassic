@@ -42,9 +42,9 @@ typedef struct MoveList_struct {
 	struct MoveList_struct*	next;
 } MOVELIST;
 
-typedef struct StringList_struct {
-	struct StrlingList_struct*	next;
-	char				string[0];
+typedef struct SL_struct {
+	struct SL_struct*	next;
+	char			string[0];
 } STRINGLIST;
 
 typedef struct {
@@ -82,14 +82,13 @@ typedef struct GAME_struct {
 	void*			internal;
 	TABLE			properties;
 	
-	void			(*initialize_game)(struct GAME_struct*);
+	int			(*initialize_game)(struct GAME_struct*);
 	int			(*free)(struct GAME_struct*);
-	void			(*set_option)(struct GAME_struct*, int);
 	
 	POSITION		(*do_move)(struct GAME_struct*, POSITION, MOVE, int*);
 	VALUE			(*primitive)(struct GAME_struct*, POSITION);
 	MOVELIST		(*generate_moves)(struct GAME_struct*, POSITION, int*);
-	POSITIONLIST*		(*generate_undo_moves)(struct GAME_struct*, POSITION);
+	POSITIONLIST*		(*generate_parents)(struct GAME_struct*, POSITION);
 	int			(*whose_turn)(struct GAME_struct*, POSITION);
 	
 	struct TEXTGAME*	text_functions;
@@ -115,12 +114,14 @@ struct TCLGAME {
 typedef struct DB_struct {
 	void*			internal;
 	TABLE			properties;
+	TABLE			content_properties;
 	
-	int			(*init)(struct DB_struct*, POSITION, int);
+	int			(*init)(struct DB_struct*, POSITION, int, TABLE);
 	int			(*free)(struct DB_struct*);
 	int			(*get)(struct DB_struct*, POSITION, void*);
 	int			(*put)(struct DB_struct*, POSITION, void*);
 	int			(*putn)(struct DB_struct*, POSITION, void*, int);
+//	int			(*dumpn)(struct DB_struct*, POSITION*, int);
 	int			(*transfer)(struct DB_struct*, struct DB_struct*);
 } DATABASE;
 
@@ -131,7 +132,7 @@ typedef struct SOLVER_struct {
 	GAME*			game;
 	DATABASE*		db;
 	
-	void			(*solve)(struct SOLVER_struct*);
+	int			(*solve)(struct SOLVER_struct*);
 	int			(*free)(struct SOLVER_struct*);
 	REMOTENESS		(*get_remoteness)(struct SOLVER_struct*, POSITION);
 	VALUE			(*get_value)(struct SOLVER_struct*, POSITION);
@@ -157,11 +158,11 @@ typedef struct {
 	STRING			class_name;
 	int			option_count;
 	
-	SOLVER_CLASS*		custom_solver;
-	DATABASE_CLASS*		custom_database;
+	TABLE			custom_solvers;
+	TABLE			custom_databases;
 	
 	TABLE			properties;
-	GAME*			(*create)(void);
+	GAME*			(*create)(int);
 } GAME_CLASS;
 
 
@@ -175,7 +176,6 @@ typedef struct {
 #ifndef	FALSE
 #define	FALSE			0
 #endif
-
 
 
 #endif /* GM_TYPES_H */
