@@ -1025,9 +1025,17 @@ proc SetToMoveString { string } {
 }
 
 proc SetupHelpFrame { f width } {
-    global kDocumentFont
-    message $f.summary -width $width -font $kDocumentFont -text "Help is not available in this version of GAMESMAN."
+    global kDocumentFont kLabelFont
+
+    message $f.summary -width $width -font $kLabelFont -text "Welcome to GAMESMAN 3.0 (Gold)\n"
+
+	message $f.newgame -width $width -font $kDocumentFont -text "\tTo start a New Game, click the NEW GAME button.  It is the first button (from the left) on the Toolbar."
+
+	global kRootDir
+ 
     pack $f.summary -side top
+	pack $f.newgame -side top
+ 
 }
 
 proc SetupSkinsFrame { f width } {
@@ -1056,7 +1064,12 @@ proc SetupAboutFrame { f width } {
     message $sp.gamesman -width $width -font $kLabelFont \
 	-text "GAMESMAN Development Team"
 
-    message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia\nArchitecture: Albert Cheng, Attila Gyulassy, Damian Hites, JJ Jordan, Elmer Lee, Scott Lindeneau, Alex Perelman, Sunil Ramesh, Bryon Ross, Wei Tu, Peterson Tretheway, Jonathan Tsai, Tom Wang\nGraphics: Alice Chang, Eleen Chiang, Melinda Franco, Cassie Guy, Keith Ho, Kevin Ip, Heather Kwong\nMathematical Analysis: Michel D'sa, Farzad Eskafi, Erwin Vedar\nDocumenation: Cynthia Okita, Judy Tuan\nModule Retrofit: Jeffrey Chiang, Jennifer Lee, Rach Liu, Jesse Phillips"
+	message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia"
+
+##### Old Development Team #####
+#    message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia\nArchitecture: Albert Cheng, Attila Gyulassy, Damian Hites, JJ Jordan, Elmer Lee, Scott Lindeneau, Alex Perelman, Sunil Ramesh, Bryon Ross, Wei Tu, Peterson Tretheway, Jonathan Tsai, Tom Wang\nGraphics: Alice Chang, Eleen Chiang, Melinda Franco, Cassie Guy, Keith Ho, Kevin Ip, Heather Kwong\nMathematical Analysis: Michel D'sa, Farzad Eskafi, Erwin Vedar\nDocumenation: Cynthia Okita, Judy Tuan\nModule Retrofit: Jeffrey Chiang, Jennifer Lee, Rach Liu, Jesse Phillips"
+##### ~~//~~ #####
+
 
     global kGameName
     message $sp.moduleName -width $width -font $kLabelFont \
@@ -1067,7 +1080,7 @@ proc SetupAboutFrame { f width } {
 	-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
     
     global kRootDir
-    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2003Fa.gif"
+    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2004FaNamesSmall.pnm"
     canvas $sp.photo -height 360 -width 480
     $sp.photo create image 240 180 -image GamesCraftersImage
 
