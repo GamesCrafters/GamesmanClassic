@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.58 2005-02-11 18:55:01 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.59 2005-02-20 04:52:12 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -132,6 +132,7 @@ proc InitWindow { kRootDir kDir kExt } {
     global gMoveDelay gGameDelay
     global gReallyUnsolved
     global gWaitingForHuman
+    global gNewGame
 
     #
     # Initialize the constants
@@ -153,6 +154,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
     set gWaitingForHuman false
+    set gNewGame false
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
         console hide
@@ -823,22 +825,21 @@ proc InitWindow { kRootDir kDir kExt } {
 	-tags [list WhoseTurn textitem]
 
     # this is the left panel item "click to play"
-    set gameStarted false
+    global gNewGame
     .middle.f1.cMLeft bind startupPic <Enter> {
-	set gameStarted false
 	.middle.f1.cMLeft raise startupPicOver
 	.cToolbar raise iOTB1
 	update idletasks
     }
     .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
 	TBaction1
-	set gameStarted true
+	set gNewGame true
 	.middle.f1.cMLeft raise iDMB
 	.cToolbar lower iOTB1
 	update idletasks
     }
     .middle.f1.cMLeft bind startupPicOver <Leave> {
-	if { $gameStarted == "false" } {
+	if { $gNewGame == "false" } {
 	    .cToolbar lower iOTB1
 	    .middle.f1.cMLeft raise startupPic
 	} else {
@@ -851,12 +852,11 @@ proc InitWindow { kRootDir kDir kExt } {
 
     # this is the play button
     .middle.f3.cMRight bind play <Enter> {
-	set gameStarted false
 	.middle.f3.cMRight raise playOver
 	update idletasks
     }
     .middle.f3.cMRight bind playOver <Leave> {
-	if { $gameStarted == "false" } {
+	if { $gGameSolved == "false" } {
 	    .middle.f3.cMRight raise play
 	} else {
 	    .middle.f3.cMRight raise iDMB
@@ -864,7 +864,6 @@ proc InitWindow { kRootDir kDir kExt } {
 	update idletasks
     }
     .middle.f3.cMRight bind playOver <ButtonPress-1> {
-	set gameStarted true
 	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	    . config -cursor watch
 	    set theValue [C_DetermineValue $gPosition]
@@ -1347,6 +1346,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     #
     # Now Bind all the buttons
     #
+    global gNewGame
 
     #
     # Deal with everything in the top toolbar
@@ -1376,14 +1376,21 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     #overwrite button bindings for new game button so it reacts with "click to play"
     .cToolbar bind iITB1 <Enter> {
 	.cToolbar raise iOTB1
-	.middle.f1.cMLeft raise startupPicOver
-	set gameStarted false
+	if { $gNewGame == "false" } {
+	    .middle.f1.cMLeft raise startupPicOver
+	}
 	update idletasks
     }
     .cToolbar bind iOTB1 <Leave> {
 	.cToolbar raise iITB1
 	.middle.f1.cMLeft lower startupPicOver
 	update idletasks
+    }
+    .cToolbar bind iOTB1 <ButtonRelease-1> {
+	.cStatus raise base
+	set gNewGame true
+	update idletasks
+	TBaction1
     }
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
