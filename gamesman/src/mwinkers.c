@@ -7,15 +7,16 @@
 
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        mwinkers.c
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: Winkers
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHORS:     Newton Le, Edward Li - University of California Berkeley
+
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        02/26/2004
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** UPDATE HIST: 
 **
 ** 
 **
@@ -32,6 +33,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "hash.h"
 
 extern STRING gValueString[];
 
@@ -129,6 +131,8 @@ int moveUnhash_dummy(MOVE);
 BlankORB moveUnhash_piece(MOVE);
 int ConvertToNumber(char*);
 char MoveToCharacter(MOVE);
+void PrintSpaces(int n);
+int Legend (int n);
 
 MOVE moveHash (int, int, BlankORB);
 
@@ -227,14 +231,15 @@ POSITION DoMove (thePosition, theMove)
 	MOVE theMove;
 {
   BlankORB theBlankORB[BOARDSIZE];
+  int turn = whoseMove(thePosition);
 
-  generic_unhash(thePosition, theBlankORB);
+  generic_unhash(thePosition, (char*)theBlankORB);
   int dummy = moveUnhash_dummy(theMove);
   int moveIndex = moveUnhash_index(theMove);
   BlankORB piece = moveUnhash_piece(theMove);
   if (!dummy)
     theBlankORB[moveIndex] = piece;
-  return (generic_hash(theBlankORB));
+  return (generic_hash((char*)theBlankORB,(turn==1)?2:1));
 }
 
 int moveUnhash_dummy (theMove)
@@ -287,7 +292,6 @@ POSITION GetInitialPosition()
   signed char c;
   int i;
 
-
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");
   printf("\tNote that it should be in the following format:\n\n");
@@ -307,7 +311,7 @@ POSITION GetInitialPosition()
     else
       ;   /* do nothing */
   }
-  return(generic_hash(theBlankORB));
+  return(generic_hash((char*)theBlankORB, 0));
 }
 
 
@@ -364,7 +368,7 @@ VALUE Primitive (pos)
   BlankORB ThreeInARow(), theBlankORB[BOARDSIZE], current;
   VALUE EndGame(BlankORB);
 
-  generic_unhash(pos, theBlankORB);
+  generic_unhash(pos, (char*)theBlankORB);
 
   int i;
   for (i = 0; i < BOARDSIZE; i++) {
@@ -514,6 +518,31 @@ void PrintPosition (position, playerName, usersTurn)
 	STRING playerName;
 	BOOLEAN usersTurn;
 {
+  int i, j, m = 0, n = 0;
+  BlankORB theBlankORB[(2*BOARDWIDTH+BOARDHEIGHT) * BOARDHEIGHT + BOARDWIDTH];
+
+  printf("\n");
+
+  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
+    if (i == BOARDHEIGHT)
+      printf (" LEGEND: ");
+    else
+      printf ("         ");
+
+    PrintSpaces (abs(BOARDHEIGHT - i));
+
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+      printf("%c ", Legend(n++));
+    
+    PrintSpaces (abs(BOARDHEIGHT - i));
+    printf(":");
+    PrintSpaces (abs(BOARDHEIGHT - i));
+    
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+      printf("%s ", gBlankORBString[(int)theBlankORB[m++]]);
+
+    printf("\n");
+  }
 }
 
 
@@ -563,7 +592,7 @@ MOVELIST *GenerateMoves (position)
   int i;
 
   if (Primitive(position)) {
-    generic_unhash(position, theBlankORB);
+    generic_unhash(position, (char*)theBlankORB);
 
     if (player == 1) {
       wink = R;
@@ -820,4 +849,32 @@ char MoveToCharacter(move)
     return (move + 'a' - 10);
   else 
     return (move + 'A' - 36);
+}
+
+/* PrintSpaces(n) outputs n spaces
+ */
+void PrintSpaces (n)
+     int n;
+{
+  int i;
+  for (i = 0; i < n; i++)
+    printf(" ");
+}
+
+/* Legend will calculate the correct symbol to display on board.
+ *
+ * n - the position in numberical form
+ * 
+ * returns 0-9,a-z,A-Z
+ */
+int Legend (n)
+     int n;
+{
+  if (n > 35)
+    n += ('a' - 36);
+  else if (n > 9)
+    n += ('A' - 10);
+  else
+    n += '0';
+  return n;
 }
