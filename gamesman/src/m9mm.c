@@ -1,3 +1,4 @@
+// $id$
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -2182,6 +2183,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.72  2004/10/21 00:53:05  ddgarcia
+//Removed silly int prototype for generic_hash_init
+//
 //Revision 1.71  2004/10/03 21:50:13  nizebulous
 //
 //Changed everything to work with kAuthorName.  Was not working before.
