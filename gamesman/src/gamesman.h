@@ -1,4 +1,4 @@
-#ifndef __GAMESMAN_H__
+SP#ifndef __GAMESMAN_H__
 #define __GAMESMAN_H__
 
 #ifndef NO_GRAPHICS
@@ -58,7 +58,7 @@ typedef int ClientData;
 #define  TRUE           1
 #endif
 
-typedef unsigned long long POSITION;      /* This used to be determined by mTempTypedef.h */
+typedef unsigned long POSITION;      /* This used to be determined by mTempTypedef.h */
 typedef int MOVE;           /* but I decided to hardcode it for now, so as  */
 typedef int MOVES;          /* to make it a leeeetle bit easier and cleaner */
 #define POSITION_FORMAT "%lld"
