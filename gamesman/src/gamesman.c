@@ -1169,9 +1169,15 @@ MOVE move;
 void showStatus(int done)
 {
 	static POSITION num_pos_seen = 0;
-	static float percent = 0.0;
 	static POSITION updateThreshold = 0;
-	POSITION updateInterval = gNumberOfPositions / 1000;
+	static float timeDelayTicks = CLOCKS_PER_SEC / 10;
+	static clock_t updateTime = (clock_t) NULL;
+	int print_length=0;
+	
+	if (updateTime == (clock_t) NULL)
+	{
+		updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
+	}
 	
 	switch (done)
 	{
@@ -1179,22 +1185,24 @@ void showStatus(int done)
 			num_pos_seen++;
 			break;
 		case 1:
-			fprintf(stderr,"\e[sSolving Done. Writing Database...\e[K\e[u");
+			print_length = fprintf(stderr,"Solving Done. Writing Database...\e[K");
+			fprintf(stderr,"\e[%dD",print_length);
 			num_pos_seen = 0;
-			percent = 0;
-			updateThreshold = 0;
+			updateTime = (clock_t) NULL;
 			return;
 	}
 	
-	if (num_pos_seen > gNumberOfPositions && num_pos_seen % updateInterval == 0)
+	if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
 	{
-		fprintf(stderr,"\e[sSolving... %d Positions Visited - Reported Total Number of Positions: %d\e[K\e[u",num_pos_seen,gNumberOfPositions);
+		print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
+		fprintf(stderr,"\e[%dD",print_length);
+		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
-	else if (num_pos_seen > updateThreshold)
+	else if (clock() > updateTime)
 	{
-		updateThreshold += updateInterval;
-		percent += .1;
-		fprintf(stderr,"\e[sSolving... %2.1f%% Done\e[K\e[u",percent);
+		print_length = fprintf(stderr,"%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
+		fprintf(stderr,"\e[%dD",print_length);
+		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 }
 
