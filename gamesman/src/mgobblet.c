@@ -36,9 +36,11 @@ extern STRING gValueString[];
 int      gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
+POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING   kGameName           = "Gobble It Jr";
+STRING   kGameName           = "Gobblet Jr";
+STRING   kDBName             = "gobblet";
 BOOLEAN  kPartizan           = FALSE; /* Unknown For sure.
                                        * but fairly sure this
                                        * this is right. More than
@@ -485,7 +487,7 @@ POSITION GetInitialPosition()
      (myPosition.turn != comparePosition.turn))
   {
     printf("\n Illegal Board Position Please Re-Enter\n");
-    return GetIntialPosition();
+    return GetInitialPosition();
   }
   else{
     return(hash(myPosition));
@@ -1194,4 +1196,23 @@ struct GPosition unhash ( POSITION h )
 	
 	
 	return ret;
+}
+
+
+int NumberOfOptions()
+{
+  return 0;
+}
+
+int getOption()
+{
+  return 0;
+}
+
+void setOption(int option)
+{
+}
+
+void PrintSpace(SLOT mySpace)
+{
 }
