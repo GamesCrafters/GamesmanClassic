@@ -175,8 +175,7 @@ void InitializeGame() {
   piecesArray[8] = side-1;
   piecesArray[9] = -1;
 
-  if (initialized) 
-    freeAll();
+  
 
   gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
   initialized = TRUE;

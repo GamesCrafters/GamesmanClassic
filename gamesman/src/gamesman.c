@@ -7,7 +7,7 @@
 
 #include "gamesman.h"
 #include "loopygasolver.h"
-
+#include "hash.h"
 
 
 /* analysis and documentation bookkeeping */
@@ -345,6 +345,8 @@ void Initialize()
     
     sprintf(gPlayerName[kPlayerOneTurn],"Player");
     sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
+    
+    generic_hash_context_init();
     InitializeGame();
     SetSolver();
 }
@@ -1206,8 +1208,10 @@ void showStatus(int done)
 	    num_pos_seen++;
 	    break;
 	case 1:
+	  if(gWriteDatabase){
 	    print_length = printf("Writing Database...\e[K");
 	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+	  }
 	    num_pos_seen = 0;
 	    updateTime = (clock_t) NULL;
 	    return;

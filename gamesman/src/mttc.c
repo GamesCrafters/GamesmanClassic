@@ -1313,7 +1313,6 @@ void resetBoard() {
   for (i=0; i < getBoardSize(); i++) 
     board[i] = BLNK;
   pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
-  freeAll(); // Frees up the previous hash
   gNumberOfPositions = generic_hash_init(getBoardSize(),pieceArray,NULL);
 
   gInitialPosition = generic_hash(board,WHITE);

@@ -1091,7 +1091,7 @@ void setOption(int option)
 /*Stolen from mttc.c*/
 char* getBoard(POSITION pos) {
   int boardsize, i;
-  char * generic_unhash(int,char *); /* ?????? */
+  char * generic_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
   newBoard = SafeMalloc(boardsize*sizeof(char));
@@ -1101,7 +1101,7 @@ char* getBoard(POSITION pos) {
 
 char* getBlankBoard() {
   int boardsize, i;
-  char * generic_unhash(int,char *); /* ?????? */
+  char * generic_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
   newBoard = SafeMalloc(boardsize*sizeof(char));

@@ -498,7 +498,7 @@ void InitializeGame() {
                        gPieceLabels[LIGHT_PIECE], 0, gBoardPieces,
                        gPieceLabels[DARK_PIECE], 0, gBoardPieces, -1};
 
-  freeAll();
+ 
   gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL);
 }
 
