@@ -23,14 +23,11 @@
 **                          global variables for directions,
 **                          IntitializeGame(), PrintPosition(), DoMove(), primitive(),
 **                          printComputersMove (), Hash/unhash for moves, and other helpers.
-**                      [*] we may need to consult Garcia to see of our board is too big.
-**                          see the note in gNumberOfPositions
+**              2/6/05: [+] fixed some hardcoded constants, Position(), Row(), Column()
+**                          now operates on an arbitrarily sized board.
+**                          Easy job for getAndPrintUserInput().
 **
 **************************************************************************/
-
-
-
-
 
 
 /* Some notes to Guy regarding how we are going to do this.
@@ -49,7 +46,6 @@
 **       implement the rest of the functions.
 **       some more stuff to put here....
 */
-
 
 
 /*************************************************************************
@@ -86,16 +82,11 @@ BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
-
-
-/*Evan's thinking:
-** each position consists choosing 8 boxes out of 20. that is 20*19*18*17...*13=5079110400
+/* each position consists choosing 8 boxes out of 20. that is 20*19*18*17...*13/8!=5079110400
 ** each choice has "8 choose 4" = 70 possible placements of X and O's.
-** this might be too big for generic hash. WHAT DO YOU THINK GUY?
+** a combined 8817900 boards. This is not considering symmetry so the end result by init() may be less
 */
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-
-
+POSITION gNumberOfPositions   =  8817900; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
 
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -123,7 +114,7 @@ STRING   kHelpReverseObjective =
 "Prevent your opponent from lining up his/her pieces in a straight line, not even in the diagonal direction.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie occurs when the sun happens to rise from the west.";
 
 STRING   kHelpExample =
 "";
@@ -137,10 +128,13 @@ STRING   kHelpExample =
 #define PLAYER1_PIECE 'X';
 #define PLAYER2_PIECE 'O';
 #define EMPTY_PIECE ' ';
-/*this means that it is a BOARD_SIZE by BOARD_SIZE gameboard.*/
+/*this means that it is a BOARD_ROWS by BOARD_COLS gameboard.*/
 #define BOARD_ROWS 5;
-#define BOARD_COLS 4;
-#define PLAYER_PIECES 4;
+#define BOARD_COLS BOARD_ROWS-1;
+#define PLAYER_PIECES BOARD_ROWS-1;
+#define BOARD_SIZE BOARD_ROWS*BOARD_COLS;
+#define EMPTY_PIECES BOARD_SIZE-PLAYER_PIECES;
+#define INIT_PIECE_ARRAY {PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES, PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES, EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES}
 
 /*************************************************************************
 **
@@ -158,19 +152,12 @@ int dir_increments[][] {
   { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 }
 }
 
-STRING initial_board = {
-  PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE
-};
+char initial_board[BOARD_SIZE];
 
-POSITION current_position;
+/*POSITION current_position;*/
 
 /* what's the intialization value here? -- Evan*/
-int current_player;
+int current_player = PLAYER1_TURN;
 
 /*************************************************************************
 **
@@ -204,7 +191,17 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  gInitialPosition = generic_hash(initial_board, PLAYER1_TURN);
+    int i,j;
+    gNumberOfPositions = generic_hash_init (BOARDSIZE, INIT_PIECE_ARRAY, NULL);
+    /*initialize initial position*/
+    for ( j = 0 ; j < BOARD_COLS ; j++)
+      initial_board [Position (0, j)] = j%2 ? PLAYER1_PIECE : PLAYER2_PIECE;
+    for ( i = 1 ; i < ( BOARD_ROWS - 1 ), i++ )
+      for (j = 0; j < BOARD_COLS ; j++ )
+	initial_board [Position (i,j)] = EMPTY_PIECE;
+    for ( j = 0 ; j < BOARD_COLS ; j++ )
+      initial_board [Position (BOARD_ROWS-1 ,j)] = j%2 ? PLAYER2_PIECE : PLAYER1_PIECE;
+    gInitialPosition = generic_hash(initial_board, current_player);
 }
 
 
@@ -255,9 +252,9 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
        char* board = generic_unhash (position);
-       int position = Unhasher_Position (move);
-       int row = Row (position);
-       int col = Column (position);
+       int move_position = Unhasher_Position (move);
+       int row = Row (move_position);
+       int col = Column (move_position);
        int direction = Unhasher_Direction (move);
        int new_position = Postition (row + directions[direction], col + directions[direction]);
        board[new_position] = board[position];
@@ -417,7 +414,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/<row> <col> <dir>] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -621,15 +618,15 @@ void DebugMenu ()
 ************************************************************************/
 
 int Position (int row, int col) {
-  return  (row*4+col);
+  return  (row*BOARD_COLS+col);
 }
 
 int Row (int Pos) {
-  return (Pos/5);
+  return (Pos/BOARD_ROWS);
 }
 
 int Column (int Pos) {
-  return (Pos%4);
+  return (Pos%BOARD_COLS);
 }
 
 MOVE Hasher (int row, int col, int dir) {
