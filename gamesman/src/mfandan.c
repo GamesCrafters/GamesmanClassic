@@ -97,6 +97,9 @@ STRING   kHelpExample =
 #define BOARDSIZE     12           /* 4x3 board, must agree with the 2 definitions below */
 #define BOARDHEIGHT    3           /* dimensions of the board */
 #define BOARDWIDTH     4           /*  "               "      */
+
+
+
 #define MAX_X          5           /* maximum number of pieces of X that is possible in a game */
 #define MAX_O          5           /*  "            "            "O                  "         */
 
@@ -125,6 +128,7 @@ BlankOX turn = 'X';                                 /* keep track of whose turn 
 
 //---- Shing ----------------------------------------------
 char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
+//               0   1   2    3   4   5   6   7   8   9   10  11
 //---------------------------------------------------------
 
 /////////////////////////////////////////// F U N C T I O N   P R O T O T Y P E S ///////////////////////////////////////////////////////
@@ -342,6 +346,7 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
+//shing
 void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
@@ -349,11 +354,25 @@ void PrintPosition(position,playerName,usersTurn)
 {
   dbg("->PrintPos");
   int x, y;
-  int maxx = (BOARDWIDTH - 1 ) * 6;
-  int maxy = (BOARDHEIGHT - 1) * 2;
-
-  int slashFlag = 0;
-  int commentx = maxx + 1 + COMMENTSPACE;
+  int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
+  int displayBoardHeight = (BOARDHEIGHT - 1) * 2 + 1;
+  int numOfDigit = 0;
+  int temp;
+  int maxX;
+  int maxY;
+  int slashFlag = 1;
+  int commentx;
+  char* myBoard = "BOARD";
+  char* myLegend = "LEGEND";
+  char* myDirection = "DIRECTION";
+  char* myAction = "ACTION";
+  int myBoardStartAt;
+  int myLegendStartAt;
+  int myDirectionStartAt;
+  int myActionStartAt;
+  int boardIndex;
+  int legendNum = 0;
+  int directionNum = 7;
 
   STRING  GetPrediction();
   VALUE   GetValueOfPosition();
@@ -362,28 +381,182 @@ void PrintPosition(position,playerName,usersTurn)
 
   PositionToBlankOX(position,theBoard);
 
-  for (y = 0; y <= maxy; y++) {
-    for ( x = 0; x <= maxx; x++) {
-      if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
-	putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
-	slashFlag = !slashFlag;
-      }
-      else {                                                     // rows with cells
-	if ((x % 6) == 0) {                                      // if it's time to print a cell
-	  int boardIndex = (y/2) * BOARDWIDTH + (x/6);
-	  putchar(theBoard[boardIndex]);
-	} else if ( (x % 6) == 1 || (x % 6) == 5 )
-	  putchar(' ');
-	else
-	  putchar('-');
-      }
-    }
-    puts("");
-  }
+  // get the maximum num of digit of the position
+  temp = BOARDWIDTH*BOARDHEIGHT;
+  numOfDigit = getNumOfDigit(temp) - 1;
 
+  // the word "BOARD" starts at location:
+  myBoardStartAt = ceil((displayBoardWidth - 5)/2.0) + 8;
+  // the word "LEGEND" starts at location:
+  myLegendStartAt = ceil((displayBoardWidth -6)/2.0) + 8 + 8 + displayBoardWidth;
+  // the word "DIREDTION" starts at location:
+  myDirectionStartAt = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 2;
+  // the word "ACTION" starts at location:
+  myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
+
+  // get the maximum width
+  maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
+  // get the maximum height
+  if (displayBoardHeight>5)
+    maxY = displayBoardHeight;
+  else
+    maxY = 5;
+
+  commentx = maxX + 1 + COMMENTSPACE;
+
+
+
+  // Display title
+  for (x=0; x<maxX; x++)
+    {
+      // display "BOARD"
+      if ((x >= myBoardStartAt) && ( x <= myBoardStartAt +5))
+	{
+	  printf("%c",myBoard[x - myBoardStartAt]);
+	}
+      // display "LEGEND"
+      else if ((x >= myLegendStartAt) && ( x <= myLegendStartAt +6))
+	{
+	  printf("%c",myLegend[x - myLegendStartAt]);
+	}
+      // display "DIRECTION"
+      else if ((x >= myDirectionStartAt) && ( x <= myDirectionStartAt +9))
+	{
+	  printf("%c",myDirection[x - myDirectionStartAt]);
+	}
+      // display "ACTION"
+      else if ((x >= myActionStartAt) && ( x <= myActionStartAt +6))
+	{
+	  printf("%c",myAction[x - myActionStartAt]);
+	}
+      else
+	space(1);
+
+    }
+  puts("");
+  puts("");
+
+  
+      // for board
+      for (y = 0; y < maxY; y++) {
+	
+	space(8);
+	slashFlag = !slashFlag;
+
+	// display board
+	if (y < displayBoardWidth)	
+	  for ( x = 0; x < displayBoardWidth; x++) {
+	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
+	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
+	      slashFlag = !slashFlag;
+	    }
+	    else {                                                     // rows with cells
+	      if ((x % 6) == 0) {                                      // if it's time to print a cell
+		boardIndex = (y/2) * BOARDWIDTH + (x/6);
+		putchar(theBoard[boardIndex]);
+	      } else if ( (x % 6) == 1 || (x % 6) == 5 )
+		putchar(' ');
+	      else
+		putchar('-');
+	    }
+	  } // end display board
+	else
+	  space(displayBoardWidth);
+
+	space(8);
+	//slashFlag = 0;
+	slashFlag = !slashFlag;
+
+	//display legend
+	if (y < displayBoardWidth)
+	  for ( x = 0; x < displayBoardWidth+1; x++) {
+	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
+	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
+	      slashFlag = !slashFlag;
+	    }
+	    else  if ((x % 6) == 0) {                                      // if it's time to print a cell
+	      //boardIndex = (y/2) * BOARDWIDTH + (x/6);
+	      //putchar(theBoard[boardIndex]);
+	      legendNum++;
+	      printf("%d",legendNum);
+	      x = x + getNumOfDigit(legendNum) -1;
+
+	    }
+	    else
+	      {
+
+		temp = getNumOfDigit(legendNum);
+		// (temp == 1 )
+		temp --;
+		if (  (x % 6 == (1+temp)) || (x % 6 ==  5      ) )
+		  putchar(' ');
+		else
+		  putchar('-');
+	      }
+	    
+	  } // end display board
+	else
+	  space(displayBoardWidth);
+
+
+	//display direction
+	//	if (y < 5)
+	//space(8-getNumOfDigit(legendNum)-1);
+	space(8);
+	switch(y)
+	  {
+	  case 0:
+	    printf("7   8   9        0 = no action");
+	    break;
+	  case 1:
+	    printf("  \\ | / ");
+	    break;
+	  case 2:
+	    printf("4 - * - 6        1 = capture by approach");
+	    break;
+	  case 3:
+	    printf("  / | \\");
+	    break;
+	  case 4:
+	    printf("1   2   3        2 = capture by withdraw");
+	    break;
+	  }
+
+
+
+   
+	
+	puts("");
+	
+      } // end loop y
+
+
+
+
+  
   puts("");
   puts(GetPrediction(position,playerName,usersTurn));
   dbg("<-PrintPos");
+}
+
+// if it's one digit, return 0
+// if it's two digit, return 1
+//             .
+//             .
+//             .
+// if it's n digit, return n-1
+int getNumOfDigit(int n)
+{
+  int numOfDigit = 0;
+  
+  while (n != 0)
+    {
+      n = n /10;
+      numOfDigit++;
+    }
+  return numOfDigit;
+
+  return numOfDigit;
 }
 
 void space(int n) {
@@ -830,13 +1003,33 @@ void setOption(int option)
 }
 
 
-  // ----- Shing ----------------------------------------
+/* ----- Shing ----------------------------------------
 
-  //  o --- o --- o --- o --- o
-  //  |  \  |  /  |  \  |  /  |
-  //  o --- x --- . --- o --- x
-  //  |  /  |  \  |  /  |  \  |
-  //  x --- x --- x --- x --- x
+
+
+          BOARD                             LEGEND                       DIRECTION          ACTION
+
+o --- o --- o --- o --- o         1 --- 2 --- 3 --- 4 --- 5              7   8   9          0 = no action
+|  \  |  /  |  \  |  /  |         |  \  |  /  |  \  |  /  |                \ | / 
+o --- x --- . --- o --- x         6 --- 7 --- 8 --- 9 --- 10             4 - * - 6          1 = capture by approach
+|  /  |  \  |  /  |  \  |         |  /  |  \  |  /  |  \  |                / | \
+x --- x --- x --- x --- x         11 -- 12 -- 13 -- 14 -- 15             1   2   3          2 = capture by withdraw
+                        2 5 
+                                  111 - 112 - 113 - 114 - 115
+                        4,6,10,12,16
+
+
+                                                      
+        o --- o --- o --- o         1 --- 2 --- 3 --- 4            7   8   9          0 = no action
+        |  \  |  /  |  \  |         |  \  |  /  |  \  |              \ | / 
+        o --- x --- . --- o         6 --- 7 --- 8 --- 9           4 - * - 6          1 = capture by approach
+        |  /  |  \  |  /  |         |  /  |  \  |  /  |              / | \
+        x --- x --- x --- x         11 -- 12 -- 13 -- 14            1   2   3          2 = capture by withdraw
+
+
+space(8)  board space(8) legend space(8) direction space(8) action
+
+
 
   //  (o)-(o)-(o)-(o)-(o)
   //   | \ | / | \ | / |
@@ -851,3 +1044,4 @@ void setOption(int option)
   //  (x)-(x)-(x)-(x)-(x)
 
   // ----------------------------------------------------
+  */
