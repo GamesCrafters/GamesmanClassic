@@ -113,6 +113,7 @@ void    PrintMexValues(MEX mexValue, int maxPositions);
 
 /* Status Meter */
 void showStatus(int done);
+float percentDone(int done);
 
 /* solver function pointer */
 VALUE (*gSolver)(POSITION);
@@ -1197,50 +1198,73 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
     ExitStageRight();
 }
 
+/* Percent Done */
+/* Messages     */
+/* 0 - Increment Counter */
+/* 1 - Reset Counter     */
+/* Anything else - Output percent */
+float percentDone(int done)
+{
+    static POSITION num_pos_seen = 0;
+    float percent = 0;
+    switch (done)
+    {
+        case 0:
+            num_pos_seen++;
+            break;
+        case 1:
+            num_pos_seen = 0;
+    }
+    percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
+    if (percent > 100)
+        return num_pos_seen;
+    else
+        return percent;
+}
+
 /* Status Meter */
 void showStatus(int done)
 {
-    static POSITION num_pos_seen = 0;
+    
     static float timeDelayTicks = CLOCKS_PER_SEC / 10;
     static clock_t updateTime = (clock_t) NULL;
     int print_length=0;
     
+    percentDone(done);
+    
     if (updateTime == (clock_t) NULL)
-	{
-	    updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
-	}
+    {
+        updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
+    }
     
     switch (done)
-	{
-	case 0:
-	    num_pos_seen++;
-	    break;
-	case 1:
-	  if(gWriteDatabase){
-	    print_length = fprintf(stderr,"Writing Database...\e[K");
-	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	  }
-	    num_pos_seen = 0;
-	    updateTime = (clock_t) NULL;
-	    return;
-	}	
+    {
+        case 1:
+            if(gWriteDatabase) 
+            {
+                print_length = fprintf(stderr,"Writing Database...\e[K");
+                fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+            }
+            updateTime = (clock_t) NULL;
+            return;
+    }	
     
-    if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
-	{
-	    fflush(stdout);
-	    fflush(stderr);
-	    print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
-	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
-	}
+    if (percentDone(2) > gNumberOfPositions && clock() > updateTime)
+    {
+        fflush(stdout);
+        fflush(stderr);
+        print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",percentDone(2),gNumberOfPositions);
+        fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+        updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
+    }
     else if (clock() > updateTime)
-	{
-	    fflush(stdout);
-	    fflush(stderr);
-	    print_length = fprintf(stderr,"%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
-	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
-	}
+    {
+        fflush(stdout);
+        fflush(stderr);
+        print_length = fprintf(stderr,"%2.1f%% Done \e[K",percentDone(2));
+        fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+        updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
+    }
 }
 
 VALUE DetermineValue1(position)
