@@ -52,7 +52,7 @@
 **                     seemingly complete () coded, whoever is to code the other MOVE related functions
 **                     should look at the implementation of PrintMove
 **                     started using define constants for things like index of hand in slot array (HAND)
-**                     and first and last board indices in slot array (BOARD_FIRST, BOARD_LAST)
+**                     and first and last board indices in slot array (FIRSTSLOT, LASTSLOT)
 **                     GenerateMoves() and DoMove() fully coded.
 **                     YOU CAN NOW MOVE AROUND BOARD. Try with ws:H then ws:0 and so on.
 **                     There's a bug in that players are switched by gamesman, even though a player may get 2 moves
@@ -68,6 +68,7 @@
 ** 08 Mar 2005 Yanpei: EMPTYSLOT changed to 0 to accomodate for present hash()/unhash();
 **                     QTBOARD invariants temporarily violated to make things work;
 **                     Primitive() changed to reflect this; must change back later. 
+** 08 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
 **
 **************************************************************************/
 
@@ -155,7 +156,10 @@ STRING   kHelpExample =
 #define NUMPIECES (1 << GAMEDIMENSION)
 
 #define PIECESTATES (BOARDSIZE+1)
-#define EMPTYSLOT 0
+#define EMPTYSLOT NUMPIECES
+
+#define FIRSTSLOT 1
+#define LASTSLOT BOARDSIZE
 
 #if BOARDSIZE<NUMPIECES
     #define FACTORIALMAX (NUMPIECES+1)
@@ -164,9 +168,6 @@ STRING   kHelpExample =
 #endif
 
 #define HAND			0
-#define EMPTY 			0
-#define BOARD_FIRST		1
-#define BOARD_LAST		BOARDSIZE+1
 
 typedef struct board_item {
 
@@ -226,10 +227,11 @@ QTBPtr			packunhash( POSITION );
 POSITION		(*hash)( QTBPtr ) = &packhash;
 QTBPtr			(*unhash)( POSITION ) = &packunhash;
 
+BOOLEAN			searchPrimitive(short *);
+
 BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
 void			print_board( QTBPtr );
 QTBPtr			TestHash( QTBPtr, int );
-
 
 MOVE CreateMove( MOVE slot, MOVE piece );
 MOVE GetMovePiece( MOVE move );
@@ -264,9 +266,17 @@ void InitializeGame ()
 	
 	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
 	QTBPtr error_board;
+	int slot;
 	
 	/* Initialize board to empty */
 	memset( board, 0, sizeof( QTBOARD ) );
+	
+	/* Initialize all slots to EMPTYSLOT */
+	for( slot = 0; slot < NUMPIECES + 1; slot++ ) {
+		
+		board->slots[slot] = EMPTYSLOT;
+		
+	}
 
 	/* Set initial position to empty board */
 	gInitialPosition = hash( board );
@@ -317,13 +327,13 @@ MOVELIST *GenerateMoves (POSITION position)
 	board	= unhash( position );
 	
 	/* If there's piece in hand, the only valid moves are the ones placing the piece in board slot */
-	if( board->slots[HAND] != EMPTY ) {
+	if( board->slots[HAND] != EMPTYSLOT ) {
 		
 		/* For each slot on board */
-		for( slot = BOARD_FIRST; slot < BOARD_LAST; slot++ ) {
+		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
 			
 			/* If slot is empty */
-			if ( board->slots[slot] == EMPTY ) {
+			if ( board->slots[slot] == EMPTYSLOT ) {
 				
 				/* Add move which moves piece from hand into empty slot */
 				moves	= CreateMovelistNode( CreateMove( slot, board->slots[HAND] ), moves );
@@ -342,13 +352,13 @@ MOVELIST *GenerateMoves (POSITION position)
 		memset( available_pieces, TRUE, sizeof( *available_pieces ) * NUMPIECES );
 		
 		/* For each slot on board */
-		for( slot = BOARD_FIRST; slot < BOARD_LAST; slot++ ) {
+		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
 			
 			/* If slot is not empty */
-			if( board->slots[slot] != EMPTY ) {
+			if( board->slots[slot] != EMPTYSLOT ) {
 				
 				/* Remove piece from array of available pieces */
-				available_pieces[board->slots[slot] - BOARD_FIRST] = FALSE;
+				available_pieces[board->slots[slot] - FIRSTSLOT] = FALSE;
 				
 			}
 			
@@ -361,7 +371,7 @@ MOVELIST *GenerateMoves (POSITION position)
 			if( available_pieces[piece] != FALSE ) {
 		
 				/* Add move which moves piece into hand */
-				moves	= CreateMovelistNode( CreateMove( HAND, piece + BOARD_FIRST ), moves );
+				moves	= CreateMovelistNode( CreateMove( HAND, piece ), moves );
 				
 			}
 			
@@ -415,10 +425,10 @@ POSITION DoMove (POSITION position, MOVE move)
 		board->usersTurn	= !board->usersTurn;
 
 	/* Otherwise, if there's piece in hand */
-	} else if ( board->slots[HAND] != EMPTY ) {
+	} else if ( board->slots[HAND] != EMPTYSLOT ) {
 		
 		/* Take piece out of hand */
-		board->slots[HAND]	= EMPTY;
+		board->slots[HAND]	= EMPTYSLOT;
 		
 	}
 	
@@ -628,11 +638,12 @@ void PrintMove (MOVE move)
 	int slot, piece, trait;
 	
 	/* Determine piece information */
-	piece	= GetMovePiece( move ) - 1;
+	piece	= GetMovePiece( move );
 	
 	/* Determine slot information */
 	slot	= GetMoveSlot( move );
 	
+	printf("%d_",move);
 	/* For each piece trait */
 	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
 		
@@ -833,7 +844,8 @@ MOVE ConvertTextInputToMove (STRING input)
 		
 	}
 
-	return CreateMove( slot, piece + BOARD_FIRST );
+	printf("created move %d\n", CreateMove(slot,piece));
+	return CreateMove( slot, piece );
 
 }
 
@@ -1039,7 +1051,7 @@ QTBPtr TestHash( QTBPtr board, int slot ) {
 		/* For every slot preceeding this one */
 		for( j = 0; j < slot; j++ ) {
 
-			if( board->slots[j] != 0 ) {
+			if( board->slots[j] != EMPTYSLOT ) {
 
 				/* Invalid board */
 				if( i == board->slots[j] ) {
@@ -1049,7 +1061,7 @@ QTBPtr TestHash( QTBPtr board, int slot ) {
 
 				} else {
 
-					if( j != 0 ) {
+					if( j != HAND ) {
 
 						squares++;
 
@@ -1077,10 +1089,10 @@ QTBPtr TestHash( QTBPtr board, int slot ) {
 
 			} else {
 
-				if ( i != 0 ) {
+				if ( i != HAND ) {
 
 					pieces++;
-					if ( slot != 0 ) {
+					if ( slot != EMPTYSLOT ) {
 
 						squares++;
 
@@ -1474,7 +1486,7 @@ char PieceTrait( short trait, void *p_piece ) {
 	
 	short piece = *((short *) p_piece);
 	
-	return ( piece == 0 ) ? ' ' : states[trait][( ( piece - 1 ) >> trait ) & 1];
+	return ( piece == EMPTYSLOT ) ? ' ' : states[trait][( piece >> trait ) & 1];
 	
 }
 
