@@ -10,6 +10,7 @@
 ** DATE:        24 Feb 2004 - Added Initial Code
 **
 ** UPDATE HIST: 24 Feb 2004 - Initial Setup
+**              31 Mar 2004 - More Stuff Added. Almost Done.
 **
 ** 
 **
@@ -79,15 +80,10 @@ STRING   kHelpExample =
 **************************************************************************/
 
 #define BOARDSIZE 33    /* 7x7 Crosscross Board */
-#define FOX_MAX 24
-#define FOX_MIN 9
-#define GEESE_MAX 2
-#define GEESE_MIN 2
-
-typedef enum possibleBoardPieces
-  {Blank,Fox,Geese} BoardPieces;
-
-char *gBoardPiecesString[] = { "*", "F", "G");
+#define GEESE_MAX 24
+#define GEESE_MIN 9
+#define FOX_MAX 2
+#define FOX_MIN 2
 
 /*************************************************************************
 **
@@ -140,8 +136,9 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
   /* Initialize Hash Function */
-  generic_hash_init(BOARDSIZE, FOX_MIN, FOX_MAX, GEESE_MIN, GEESE_MAX);
-  /* CHANGE ABOVE LINE. Args are now an array. */
+  generic_hash_init(BOARDSIZE, {' ', 0, BOARDSIZE,
+				  'F', FOX_MIN, FOX_MAX,
+				  'G', GEESE_MIN, GEESE_MAX}, null);
 }
 
 
@@ -375,7 +372,57 @@ void PrintPosition (position, playerName, usersTurn)
 MOVELIST *GenerateMoves (position)
          POSITION position;
 {
-  
+  MOVELIST *CreateMovelistNode();
+  MOVELIST *head = NULL;
+  char boardString[33];
+  int i=0;
+  int scratch_coord[2];
+  int candidate_destination_coord[2]={-1, -1};
+  int candidate_move[2]={-1, -1};
+  char piece_at_loc='*';
+  int d_row=-5;  
+  int d_col=-5;
+  generic_unhash(pos, boardString);
+
+  /* Check Move */
+
+  for(i=0; i < 33; i++) // Look through all fox pieces
+    {
+      piece_at_loc = boardString[i];
+      if (piece_at_loc = 'F')
+	{
+	  locationToCoord(i, scratch_coord);
+	  for (d_row=-1; d_row <= 1; d_row++)
+	    {
+	      for (d_col=-1; d_col <= 1; d_col++)
+		{
+		  candidate_destination_coord[0] = scratch_coord[0] + d_row;
+		  candidate_destination_coord[1] = scratch_coord[1] + d_col;
+		  candidate_move[0] = i;
+		  candidate_move[1] = coordToLocation(candidate_destination_coord);
+		  if (d_row != 0 && d_col != 0)
+		    {
+		      /* Pieces at Even Locations can move diagonally */
+		      if(validCoord(candidate_destination_coord) == 1) /* Remember to check if piece is there */
+			{
+			  if (piece_at_loc % 2 == 0)
+			    {	      
+			      head = CreateMovelistNode(hashMove(candidate_move),head);
+			    }
+			  else /* Then it's not even */
+			    {
+			      if (abs(d_row) != abs(d_col))
+				{
+				  head = CreateMovelistNode(hashMove(candidate_move),head);
+				}
+			    }
+			}
+		    } 
+		} 
+	    }
+	}
+    }
+  return head;
 }
 
  
@@ -722,5 +769,32 @@ void locationToCoord(int location, int coordinates[2])
       location -= 27;
       coordinates[1] = 2 + location % 3;
       coordinates[0] = 5 + (location - location % 3) / 3;
+    }
+}
+
+/* 1 for valid, 0 for invalid */
+int validCoord(int coord[2])
+{
+  int row = coord[0];
+  int col = coord[1];
+  if (row < 0 || 6 < row)
+    {
+      return 0;
+    }
+  else if (0 <= row && row <= 1)
+    {
+      return (2 <= col && col <= 4) ? 1 : 0;
+    }
+  else if (2 <= row && row <= 4)
+    {
+      return (0 <= col && col <= 6) ? 1 : 0;
+    }
+  else if (5 <= row && row <= 6)
+    {
+      return (2 <= col && col <= 4) ? 1 : 0;
+    }
+  else
+    {
+      return 0;
     }
 }
