@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.44 2004-11-17 23:51:10 ogren Exp $
+# $Id: InitWindow.tcl,v 1.45 2004-12-02 01:05:18 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -135,13 +135,16 @@ proc InitWindow { kRootDir kDir kExt } {
     set gGameDelay 1
     set gWhoseTurn "Jesse"
     set gPredString ""
-    set gWindowHeight 600
-    set gWindowWidth 800
+    wm geometry . =800x600
+    update
+    set gWindowWidth [winfo width .]
+    set gWindowHeight [winfo height .]
+    set gWindowRatio [expr $gWindowWidth/800.0]
     set gFrameWidth [expr $gWindowWidth * 10 / 16]
     wm aspect . 800 600 1600 1200
     set gGamePlayable false
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
-    set gSkinsDir "$kDir/"
+    set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
@@ -1061,7 +1064,7 @@ proc SetupHelpFrame { f width } {
 	## Image of Skin
 	global kRootDir gSkinsExt gSkinsDir gSkinsRootDir
 
-	image create photo Screenshot -file [format %s%s%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
+	image create photo Screenshot -file [format %s%s/%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
     canvas $sp.screenshot -height 360 -width 480
     $sp.screenshot create image 240 180 -image Screenshot
 	
@@ -1194,50 +1197,50 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     foreach mode {A I O} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
-	    image create photo [subst $name]p -file [format %s%s%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
+	    image create photo [subst $name]p -file [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
 	    set type [format i%sTB $mode]
 	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
     }
     #DOMSEARCH
-    image create photo iDMB1p -file [format %s%sD_2_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB2p -file [format %s%sD_2_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB3p -file [format %s%sD_2_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB4p -file [format %s%sD_2_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB5p -file [format %s%sD_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB6p -file [format %s%sD_2_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB1p -file [format %s%sI_2_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB2p -file [format %s%sI_2_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB3p -file [format %s%sI_2_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB4p -file [format %s%sI_2_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB5p -file [format %s%sI_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB6p -file [format %s%sI_2_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iAMB5p -file [format %s%sA_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iSMB7p -file [format %s%sA_2_7.%s $skinsRootDir $skinsDir $skinsExt]
-    #image create photo iAMB7p -file [format %s%sA_7_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iAMB8p -file [format %s%sA_8_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iAMM1p -file [format %s%sA_4_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iBBB1p -file [format %s%sA_3_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB2p -file [format %s%sA_3_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB2p -file [format %s%sI_3_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB3p -file [format %s%sA_3_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB3p -file [format %s%sI_3_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB4p -file [format %s%sA_3_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB4p -file [format %s%sI_3_4.%s $skinsRootDir $skinsDir $skinsExt]
-    ##image create photo iABB5p -file [format %s%sA_3_5.%s $skinsRootDir $skinsDir $skinsExt] 
-    ##image create photo iIBB5p -file [format %s%sI_3_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDBB6p -file [format %s%sD_3_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB6p -file [format %s%sA_3_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB6p -file [format %s%sI_3_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDBB7p -file [format %s%sD_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB7p -file [format %s%sI_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB7p -file [format %s%sA_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDBB8p -file [format %s%sD_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB8p -file [format %s%sI_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB8p -file [format %s%sA_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB9p -file [format %s%sI_3_9.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB9p -file [format %s%sA_3_9.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB1p -file [format %s%s/D_2_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB2p -file [format %s%s/D_2_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB3p -file [format %s%s/D_2_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB4p -file [format %s%s/D_2_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB5p -file [format %s%s/D_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB6p -file [format %s%s/D_2_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB1p -file [format %s%s/I_2_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB2p -file [format %s%s/I_2_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB3p -file [format %s%s/I_2_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB4p -file [format %s%s/I_2_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB5p -file [format %s%s/I_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB6p -file [format %s%s/I_2_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMB5p -file [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iSMB7p -file [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt]
+    #image create photo iAMB7p -file [format %s%s/A_7_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMB8p -file [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMM1p -file [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iBBB1p -file [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB2p -file [format %s%s/A_3_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB2p -file [format %s%s/I_3_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB3p -file [format %s%s/A_3_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB3p -file [format %s%s/I_3_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB4p -file [format %s%s/A_3_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB4p -file [format %s%s/I_3_4.%s $skinsRootDir $skinsDir $skinsExt]
+    ##image create photo iABB5p -file [format %s%s/A_3_5.%s $skinsRootDir $skinsDir $skinsExt] 
+    ##image create photo iIBB5p -file [format %s%s/I_3_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB6p -file [format %s%s/D_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB6p -file [format %s%s/A_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB6p -file [format %s%s/I_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB7p -file [format %s%s/D_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB7p -file [format %s%s/I_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB7p -file [format %s%s/A_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDBB8p -file [format %s%s/D_3_8.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB8p -file [format %s%s/I_3_8.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB8p -file [format %s%s/A_3_8.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB9p -file [format %s%s/I_3_9.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB9p -file [format %s%s/A_3_9.%s $skinsRootDir $skinsDir $skinsExt]
 
     #
     # Deal with everything in the top toolbar
