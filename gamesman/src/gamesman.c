@@ -547,7 +547,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
 	if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
-	printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
+	printf("\nSolving with ZeroSolver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
