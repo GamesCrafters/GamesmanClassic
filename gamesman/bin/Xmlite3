@@ -1,0 +1,46 @@
+#!/usr/sww/bin/wish -f
+#
+#############################################################################
+##
+## NAME:         Xmlite3
+##
+## DESCRIPTION:  The source code for the Tcl component of Lite-3
+##
+## AUTHOR:       Dan Garcia  -  University of California at Berkeley
+##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##               Modified by Alex Perelman for Lite-3
+##
+## DATE:         09/07/02
+##
+## UPDATE HIST:
+##
+## 05-15-95 1.0    : Final release code for M.S.
+##
+#############################################################################
+
+#############################################################################
+##
+## Now we source all the files for this particular module
+## 
+#############################################################################
+
+### Remember where our executable is.
+
+global kRootDir
+if { $tcl_platform(platform) == "unix" } {
+    set kRootDir [file dirname [info script]]
+} else {
+    set kRootDir "."
+}
+
+### Load the Gamesman solver
+
+load "$kRootDir/../lib/libmlite3[info sharedlibextension]" Gamesman
+
+### Now source our Game-specific code.
+
+source "$kRootDir/../tcl/mlite3.tcl"
+
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman.tcl"

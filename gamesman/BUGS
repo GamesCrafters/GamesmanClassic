@@ -1,0 +1,85 @@
+1. When you change the rules in XDodgem, the text doesnt change
+
+Connections:
+-----------
+1. When you click on it, from the Gamesman console, it doesn't start-up.  The
+Error is:
+intrepid% Error in startup script: couldn't load file "./../lib/libmcon.so": ld.so.1: /usr/sww/bin/wish: fatal: relocation error: file ./../lib/libmcon.so: symbol __gxx_personality_v0: referenced symbol not found
+    while executing
+"load "$kRootDir/../lib/libmcon[info sharedlibextension]" Gamesman"
+    (file "./Xmcon" line 26)
+
+
+Connect4:
+---------
+1. When you click new game, the dots to show you the moves don't show up, but
+after you make the first move (the boxes are still highlighted in black, even
+though the colored dot doesn't appear) then the dots appear again.
+
+2. If you click new-game in the middle of a game, then the colored dots from
+the previous game are still on the board, and the boxes still highlight in
+black, but you can't move there of course.  But it goes away after after
+you've played a bit.  Probably some simple binding error.
+
+3.  If you click to wildly or fast, then some weird things happen, but I
+haven't been able to reproduce the bugs I've seen by this method.
+
+4. sometimes I get this error, but I can't figure out why, it seems to happen
+	randomly:
+
+can't read "gSlotList(0,4)": no such element in array
+can't read "gSlotList(0,4)": no such element in array
+    while executing
+"set theSlot $gSlotList($slotX,$slotY)"
+    (procedure "HandleMove" line 13)
+    invoked from within
+"HandleMove [SinglePieceRemovalCoupleMove [expr 45/$gSlotSize] [expr 240/$gSlotSize]] "
+    (command bound to event)
+
+Nim:
+----
+1.  It's unclear what is a win and what isn't a win.
+2.  No problems, works good.
+
+Dots and Boxes:
+---------------
+1. When you are about to win, the value moves tell you that your remaining
+moves are losing moves, however, they are not losing, they should be green.
+2. Sometimes, when you make boxes right away, some of the bars show up, but 
+noone has moved there.  Er, what I mean is, some of the lines show up that
+haven't actaully been placed, and this happens when value moves are selected.
+
+3.  The computer plays very poorly, it doesn't make boxes when it should.
+4.  It won't solve for 3x3, it basically freezes up the computer, and never
+gets anywhere, even after waiting forlike 5 minutes.
+
+
+Chung Toi:
+---------
+0. I can never figure these games out, we NEED a better rules section that
+describes how to play.
+1, hitting "new Game" in Chung Toi doesn't bring up moves that you can do.
+Also, when you hit "new game" in the middle of a game, it only shows the moves
+that were avaiable at the time you hit "new game" (I guess these are the same
+thing).
+
+2. Board is too big.  It makes playing new games difficult, becase I need to 
+move the window everytime to abort the game and play a new one.
+
+3. When you change the options, it ends the game in correctly.  I had no
+rotation in place and no rotation on landing, and the game was ending even 
+though the computer had some moves.
+
+4. When you set rotation on landing to no, it still allows you to do rotation
+on landing.
+
+5. For some moves, the color of my piece changes from blue to red, and my
+moves are incorrect.
+
+  
+Foxes and Geese:
+---------------
+1. Errors occur when you change the initial position and you try to solve.
+It infinite loops and tons of errors print on the terminal.
+
+---------------

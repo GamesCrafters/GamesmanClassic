@@ -1,0 +1,673 @@
+############################################################################
+##
+## Source The Utility Functions
+##
+##
+##
+#############################################################################
+
+proc stack {} {
+    return [list]
+}
+
+proc push {l a} {
+    return [linsert $l 0 $a]
+}
+
+proc pop {l} {
+    return [lreplace $l 0 0]
+}
+
+proc peek {l} {
+    return [lindex $l 0]
+}
+
+## returns whether or not the list l contains the key a
+proc containskey {a l} {
+    set retval false
+    foreach item $l {
+        if {[lindex $item 0] == $a} {  
+            set retval true
+        } 
+    }
+    return $retval
+}
+
+##### other utility function
+
+proc MoveTypeToColor {moveType} {
+    set color cyan
+    if {$moveType == "value"} {
+        if {$value == "Tie"} {
+            set color yellow
+        } elseif {$value == "Lose"} {
+            set color green
+        } else {
+            set color red
+        }
+    }
+    return $color
+}
+
+
+#############################################################################
+##
+## InitConstants
+##
+## This procedure is used to reserve some keywords (which always begin with
+## 'k' to remember they're constants to make the code easier to read. 
+## Constants never change. Nice to know somethings don't change around here.
+##
+#############################################################################
+
+proc InitConstants {} {
+
+    ### These are used in the routine that draws the pieces - we want a small
+    ### piece used as a label but a larger piece used in the playing board.
+
+    global kBigPiece
+    set kBigPiece 1
+    
+    global kSmallPiece
+    set kSmallPiece 0
+
+    ### Set the color and font of the labels
+
+    global kLabelFont
+    set kLabelFont { Helvetica 12 bold }
+
+    global kLabelColor
+    set kLabelColor grey40
+
+    ### Set the animation speed
+
+    global gAnimationSpeed
+    set gAnimationSpeed 8
+    
+    global gPredictions
+    set gPredictions true
+    
+    global gMoveType
+    set gMoveType all
+    
+    global gMoveRadioStation
+    set gMoveRadioStation all
+
+    global gWhoseMove
+    set gWhoseMove human
+
+    global gSymmetric
+    set gSymmetric false
+    global gGameSolved 
+    set gGameSolved false
+
+}
+
+#############################################################################
+##
+## InitWindow
+##
+## Here we initialize the window. Set up fonts, colors, widgets, helps, etc.
+##
+#############################################################################
+
+proc InitWindow {} {
+ 
+    global kGameName
+    global kLabelFont
+    
+    wm title    . "GAMESMAN $kGameName v2.0 (1999-05-01)"
+    wm geometry . "+10+10"
+    global tcl_platform
+    if { $tcl_platform(platform) == "macintosh" || \
+         $tcl_platform(platform) == "windows" } {
+        console hide
+    }
+    
+    
+    ### f1 = The Setup frame (Setup: About,Start,Rules,Help,Quit)
+    
+    frame .f1
+    button .f1.butStart \
+        -text "Start" \
+        -font $kLabelFont \
+        -command DoStart
+
+    ### Pack everything in
+    
+    pack append .f1 \
+        .f1.butStart   {left pady 10 expand fill }
+    
+    pack append . \
+        .f1 {top expand fill}
+}
+
+
+proc SetupGamePieces {} {
+
+    global gLeftPiece gRightPiece gLeftHumanOrComputer gRightHumanOrComputer
+    
+    global gLeftName gRightName
+    global gPiecesPlayersName
+    set alist [GS_NameOfPieces]
+    
+    set gLeftPiece [lindex $alist 0]
+    set gRightPiece [lindex $alist 1]
+    set gLeftHumanOrComputer Human
+    set gRightHumanOrComputer Human
+    set gLeftName Dan
+    set gRightName Hal9000
+    
+    set gPiecesPlayersName($gLeftPiece) $gLeftName
+    set gPiecesPlayersName($gRightPiece) $gRightName
+    
+}
+
+#############################################################################
+##
+## New Game
+##
+## This is what we do when the user clicks the 'New Game' button.
+##
+## Here we set up the globals for the new game and call the game-specific 
+## function GS_NewGame to draw the initial screen
+##
+## Args: None
+## 
+## Requires: GS_Initialize has been called
+##
+#############################################################################
+
+proc NewGame { } {
+
+    global gGameSoFar gPosition gInitialPosition gMovesSoFar
+    global gLeftName gRightName
+    .middle.f1.cMLeft itemconfigure LeftName \
+	-text [format "Player1:\n%s" $gLeftName]
+    .middle.f3.cMRight itemconfigure RightName \
+	-text [format "Player2:\n%s" $gRightName]	
+    .middle.f1.cMLeft raise LeftName
+    .middle.f3.cMRight raise RightName
+    update
+    set gPosition $gInitialPosition
+    set gGameSoFar [list $gInitialPosition]
+    set gMovesSoFar [list]
+    GS_NewGame .middle.f2.cMain $gPosition
+    EnableMoves
+    DriverLoop
+}
+
+#############################################################################
+##
+## DriverLoop
+##
+## Here is where we decide whether to get a move from the database or give
+## up control to the user and allow for a human move.  
+##
+## Args: None
+##
+## Requires: New Game has been called 
+##
+#############################################################################
+
+proc DriverLoop { } {
+   
+    ## retrieve global variables
+    global gGameSoFar gMovesSoFar gPosition
+
+    set primitive [C_Primitive $gPosition]
+
+    ## Game's over if the position is primitive
+    if { $primitive != "Undecided" } {
+
+        GameOver $gPosition $primitive
+
+    } else {
+
+        ## Handle Predictions if they're turned on
+        
+        global gPredictions
+        
+        if { $gPredictions } {
+	    global gPredString
+            GetPredictions
+	    .middle.f3.cMRight itemconfigure Predictions \
+		    -text [format "Predictions: %s" $gPredString] 
+	    update
+        }
+        
+        ## Find out from the Game whose turn it is
+        global gSymmetric gWhoseMove
+
+        set whoseturn [GS_WhoseMove $gPosition]
+
+        global gLeftPiece gLeftHumanOrComputer gRightHumanOrComputer
+
+        if { $gLeftPiece == $whoseturn } {
+
+            DriverLoopContinue $gLeftHumanOrComputer
+
+        } else {
+
+            DriverLoopContinue $gRightHumanOrComputer
+
+        }
+    }
+}
+
+
+#############################################################################
+##
+## DriverLoopContinue
+##
+## This function figures out whether a player is human or computer and calls
+## the appropriate functions
+## 
+## Args: a string of Human/Computer
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc DriverLoopContinue { humanOrComputer } {
+
+    if { $humanOrComputer == "Human" } {
+
+        DoHumanMove
+
+    } else {
+
+        DoComputerMove
+
+    }
+
+}
+
+#############################################################################
+##
+## DoComputerMove
+##
+## This function gets the computer's move from the database and makes it
+## 
+## Args: none
+##
+## Requires: The state of the board is such that there are no moves being
+##           shown at this time
+##
+#############################################################################
+
+proc DoComputerMove { } {
+
+    global gPosition gGameSoFar gMovesSoFar
+
+    set theMove [C_GetComputersMove $gPosition]    
+
+    set oldPosition $gPosition
+
+    set gPosition [C_DoMove $gPosition $theMove]
+
+    set gGameSoFar [push $gGameSoFar $gPosition]
+
+    set gMovesSoFar [push $gMovesSoFar $theMove]
+
+    HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
+
+    DriverLoop
+
+}
+
+#############################################################################
+##
+## HandleComputersMove
+##
+## This function handles the  move for a computer player
+## This should be overwritten for modules which support n-phase moves,
+## with n > 1
+##
+#############################################################################
+
+proc HandleComputersMove { c oldPos theMove Position } {
+
+  GS_HandleMove $c $oldPos $theMove $Position
+
+}
+
+
+#############################################################################
+##
+## DoHumanMove
+##
+## This function shows all the moves and relinquishes control so that the
+## user can input the move
+## 
+## Args: none
+##
+## Requires: The state of the board is such that there are no moves being
+##           shown at this time
+##
+#############################################################################
+
+proc DoHumanMove { } {
+
+    global gPosition gMoveType
+
+    GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+
+}
+
+#############################################################################
+##
+## ReturnFromHumanMove
+##
+## This function is called from the Game Specific Functions and gives
+## control back to gamesman
+## 
+## Args: the Move
+##
+## Requires: The Moves on the Game Board are still being shown
+##
+#############################################################################
+
+proc ReturnFromHumanMove { theMove } {
+    global gamestarted
+    if {$gamestarted} {
+        ReturnFromHumanMoveHelper $theMove
+    }
+}
+
+proc ReturnFromHumanMoveHelper { theMove } {
+        
+    global gPosition gGameSoFar gMovesSoFar gMoveType
+
+    set primitive [C_Primitive $gPosition]
+
+    set PositionValueList [C_GetValueMoves $gPosition]
+        
+    if { $primitive == "Undecided" &&
+         [containskey $theMove $PositionValueList] } {
+        
+        GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+        
+        set oldPosition $gPosition
+                
+        set gPosition [C_DoMove $gPosition $theMove]
+                
+        set gGameSoFar [push $gGameSoFar $gPosition]
+        
+        set gMovesSoFar [push $gMovesSoFar $theMove]
+                
+        GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
+
+        DriverLoop
+
+    }
+}
+
+
+#############################################################################
+##
+## GameOver
+##
+## This function is called from the driver loop to signify a game is over.
+## 
+## Args: the position, the Game Value (win, lose or tie)
+##
+## Requires: The Moves on the Game Board are not shown
+##
+#############################################################################
+
+proc GameOver { position gameValue } {
+
+    global gPosition gGameSoFar gLeftPiece gRightPiece gLeftName gRightName 
+
+    set previousPos [peek [pop $gGameSoFar]]
+
+    set whoseTurn [GS_WhoseMove $previousPos]
+
+    set WhoWon Nobody
+
+    set WhichPieceWon Nobody
+
+    if { $gLeftPiece == $whoseTurn } {
+
+        if { $gameValue == "win" } {
+            
+            set WhoWon $gRightName
+
+            set WhichPieceWon $gRightPiece
+
+        } else {
+
+            set WhoWon $gLeftName
+
+            set WhichPieceWon $gLeftPiece
+
+        }
+
+    } else {
+        
+        if { $gameValue == "win" } {
+            
+            set WhoWon $gLeftName
+
+            set WhichPieceWon $gLeftPiece
+
+        } else {
+
+            set WhoWon $gRightName
+
+            set WhichPieceWon $gRightPiece
+
+        }
+    }
+
+    if { $gameValue == "tie" } {
+        
+        SendMessage [concat GAME OVER: It's a TIE!]
+
+    } else {
+
+        SendMessage [concat GAME OVER: $WhoWon Wins!]
+
+    }
+
+    GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon
+
+    DisableMoves
+}
+
+
+#############################################################################
+##
+## DisableMoves/EnableMoves
+##
+## Disables or Enables the radiobuttons which show All/Value/Best Moves
+## 
+## Args: None
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc DisableMoves {} {
+
+#   .winPlayOptions.fRadio.butAllMoves configure -state disabled
+#   .winPlayOptions.fRadio.butValueMoves configure -state disabled
+#   .winPlayOptions.fRadio.butBestMoves configure -state disabled
+
+}
+
+proc EnableMoves {} {
+
+#    .winPlayOptions.fRadio.butAllMoves configure -state normal
+#    .winPlayOptions.fRadio.butValueMoves configure -state normal
+#    .winPlayOptions.fRadio.butBestMoves configure -state normal
+
+}
+
+#############################################################################
+##
+## ToggleMoves
+##
+## Called When Changing Between All/Value/Best Moves
+##
+## Args:  A string corresponding to all, value, or best
+##
+## Requires: Moves are currently shown and Game is not over
+##
+#############################################################################
+
+proc ToggleMoves { moveType } {
+
+    global gMoveType gPosition
+
+    ChangeMoveType $gMoveType $moveType $gPosition [C_GetValueMoves $gPosition]
+
+    set gMoveType $moveType
+
+}
+
+#############################################################################
+##
+## ChangeMoveType
+##
+## Called when Changing Between All/Value/Best Moves
+## 
+## Args: 
+##
+## Requires: Moves are currently shown
+##
+#############################################################################
+
+proc ChangeMoveType { fromMoveType toMoveType position moveList } {
+
+    GS_HideMoves .middle.f2.cMain $fromMoveType $position $moveList
+
+    GS_ShowMoves .middle.f2.cMain $toMoveType $position $moveList
+
+}
+
+#############################################################################
+##
+## Undo
+##
+## Calls Game Specific Undo to undo the last move
+## 
+## Args: none
+##
+## Requires: Moves are currently shown
+##
+#############################################################################
+
+proc Undo { } {
+    
+    UndoHelper
+    GetPredictions
+    global gPredString
+    .middle.f3.cMRight itemconfigure Predictions \
+	    -text [format "Predictions: %s" $gPredString] 
+    update
+    
+    DriverLoop
+}
+
+proc UndoHelper { } {
+    
+    global gPosition gMovesSoFar gGameSoFar gMoveType
+    
+    if { [llength $gGameSoFar] != 1 } {
+        
+        set primitive [C_Primitive $gPosition]
+        
+        if { $primitive == "Undecided" } {
+            
+            GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+            
+        } else {
+
+            GS_UndoGameOver .middle.f2.cMain $gPosition
+
+        }
+        
+        set undoOnce [pop $gGameSoFar]
+        
+        GS_HandleUndo .middle.f2.cMain [peek $gGameSoFar] [peek $gMovesSoFar] [peek $undoOnce]
+        
+        set gGameSoFar $undoOnce
+        
+        set gPosition [peek $gGameSoFar]
+        
+        set gMovesSoFar [pop $gMovesSoFar]
+        
+        
+        if { [PlayerIsComputer [peek $undoOnce]] } {
+            
+            UndoHelper
+            
+        }
+        
+    }
+
+}
+
+#############################################################################
+##
+## PlayerIsComputer
+##
+## Returns true or false if the player whose turn it is currently is  controlled 
+## by a computer
+## 
+## Args: position
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc PlayerIsComputer { position } {
+
+    global gLeftPiece gRightHumanOrComputer gLeftHumanOrComputer
+
+    set whoseTurn [GS_WhoseMove $position]
+
+    if { $whoseTurn == $gLeftPiece } {
+
+        return [expr { $gLeftHumanOrComputer == "Computer"}]
+
+    } else {
+
+        return [expr { $gRightHumanOrComputer == "Computer"}]
+
+    }
+}
+
+proc ReturnToGameSpecificOptions {} {
+    GS_Deinitialize .middle.f2.cMain
+    global gGameSolved
+    set gGameSolved false
+}
+
+#############################################################################
+##
+## SendMessage
+##
+## Displays whose turn it is or who's won
+## 
+## Args: string
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc SendMessage { arg } {
+
+}
+
+# argv etc
+proc main {kRootDir} {
+    source "$kRootDir/../tcl/InitWindow.tcl"
+    InitConstants
+    C_Initialize
+    C_InitializeDatabases
+    GS_InitGameSpecific
+    InitWindow $kRootDir
+}

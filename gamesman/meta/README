@@ -1,0 +1,43 @@
+  ____  Copyright (C) Dan Garcia, 1999. All rights rsvd : A finite, two-person,
+ / ___| __ _ _ __ ___   ___  ___ _ __ ___   __ _ _ __   : perfect-information
+| |  _ / _` | '_ ` _ \ / _ \/ __| '_ ` _ \ / _` | '_ \  : game generator.
+| |_| | (_| | | | | | |  __/\__ \ | | | | | (_| | | | | : 
+ \____|\__,_|_| |_| |_|\___||___/_| |_| |_|\__,_|_| |_| : by Dan Garcia
+                                                        : ddgarcia@cs \
+http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/ : .berkeley.edu
+...............................................................................
+
+This is a list of graphs which can be loaded through the text-based graph
+module to test your code. The format of the file is this:
+
+--- begin graph file definition ---
+<total # of positions>
+<my position #> <value (u if not leaf, w,l,t otherwise)> <# child>
+<list of children's #s>
+<my position #> <value (u if not leaf, w,l,t otherwise)> <# child>
+<list of children's #s>
+<my position #> <value (u if not leaf, w,l,t otherwise)> <# child>
+<list of children's #s>
+etc.
+--- end graph file definition ---
+
+Example: default.grf has:
+
+7
+0 u 2
+1 2
+1 u 2
+3 4
+2 u 2
+5 6
+3 w 0
+4 l 0
+5 t 0
+6 w 0
+
+and looks like this:
+
+0 - 1 - 3 (win)
+  |   \ 4 (lose)
+  \ 2 - 5 (tie)
+      \ 6 (win)
