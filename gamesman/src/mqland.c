@@ -37,6 +37,7 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -50,7 +51,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "Queensland"; /* The name of your game */
-STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch"; /* Your name(s) */
+/*STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch";*/ /* Your name(s) */
 STRING   kDBName              = "qland"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -101,15 +102,6 @@ STRING   kHelpExample =
 #define WHITE 'X'
 #define BLACK 'O'
 
-/*typedef enum board_position { BLANK, WHITE, BLACK } BWB;
-/*typedef int TURN;
-struct Board_Rep {
-	BWB* spaces;
-	TURN turn;
-};
-#define getpiece(B, x, y) ((B)->spaces[(y)*width + (x) + 1])
-/* Do we need getpiece and Board_Rep?? */
-
 #define pieceat(B, x, y) ((B)[(y) * width + (x) + 1])
 #define get_location(x, y) ((y) * width + (x))
 #define get_x_coord(location) ((location) % width)
@@ -124,8 +116,8 @@ struct Board_Rep {
 #define get_move_dest(move) (move) ^ 0x000FFC00
 #define get_move_place(move) (move) ^ 0x000003FF
 #define set_move_source(move, source) (move) &= 0xC00FFFFF; (move) |= ((source) << 20)
-#define set_move_dest(move, dest) (move) &= 0xFFF003FF; (move) |= ((source) << 10)
-#define set_move_place(move, place) (move) &= 0xFFFFFC00; (move) |= (source)
+#define set_move_dest(move, dest) (move) &= 0xFFF003FF; (move) |= ((dest) << 10)
+#define set_move_place(move, place) (move) &= 0xFFFFFC00; (move) |= (place)
 
 /*************************************************************************
 **
@@ -152,8 +144,9 @@ extern void		SafeFree ();
 
 int vcfg(int* this_cfg);
 int next_player(POSITION position);
-void BadElse(char* message);
 
+int countPieces(char *board, char piece);
+int scoreBoard(char *board, char player);
 
 /*************************************************************************
 **
@@ -216,10 +209,10 @@ MOVELIST *GenerateMoves (POSITION position)
 	int sx, sy, dx, dy, px, py; /* Source x-coord, source y-coord, dest x-coord... etc. */
 	BOOLEAN validDestination;
 	int i, j;
-	char board[wi	/* errorcheck(position, move); */dth * height];
+	char* board = (char*) SafeMalloc(sizeof(char) * width * height);
 	char players_piece;
 	MOVE move;
-    
+   
 	player = next_player(position);
 	players_piece = (player == 1 ? WHITE : BLACK);
 	board = generic_unhash(position, board);
@@ -227,7 +220,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* Check moves that don't slide a piece from SOURCE to DEST */
 	for (px = 0; px < width; px++) {
 		for (py = 0; py < height; py++) {
-			if (pieceat(B, px, py) == BLANK) {
+			if (pieceat(board, px, py) == BLANK) {
 				move = 0;
 				/*set_move_source(move, 0);
 				set_move_dest(move, 0);*/
@@ -239,10 +232,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	for (sx = 0; sx < width; sx++) {
 		for (sy = 0; sy < height; sy++) {
-			if (pieceat(sx, sy, board) == players_piece) {
+			if (pieceat(board, sx, sy) == players_piece) {
 				for (dx = 0; dx < width; dx++) {
 					for (dy = 0; dy < height; dy++) {
-						validDestination = TRUE; /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
+					        /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
+					        validDestination = TRUE; 
 						if (sx == dx && sy == dy){
 							validDestination = FALSE;
 						}
@@ -263,19 +257,19 @@ MOVELIST *GenerateMoves (POSITION position)
 						else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
 							for (i = sx, j = sy; i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
 								if (pieceat(board, i, j) != BLANK) {
-									valid Destination = FALSE;
+									validDestination = FALSE;
 								}
 							}
 						}
-						else BadElse("Bad Else in GenerateMoves\n");
+						else BadElse("GenerateMoves");
 						if (validDestination) {
 							for (px = 0; px < width; px++) {
-								(py = 0; py < height; py++) {
-									if (pieceat(px, py, board) == BLANK) {
+								for (py = 0; py < height; py++) {
+									if (pieceat(board, px, py) == BLANK) {
 										move = 0;
 										set_move_source(move, get_location(sx, sy));
-										set_move_dest(move, get_location(dx, dy);
-										set_move_place(move, get_location(px, py);
+										set_move_dest(move, get_location(dx, dy));
+										set_move_place(move, get_location(px, py));
 										CreateMovelistNode(move, moves);
 									}
 								}
@@ -286,10 +280,12 @@ MOVELIST *GenerateMoves (POSITION position)
 			}
 		}
 	}
-}
-	
+	SafeFree(board);
 	return moves;
 }
+	
+
+
 
 
 /************************************************************************
@@ -314,7 +310,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 	int player = next_player(position);
 	char players_piece = player == 1 ? WHITE : BLACK;
 	POSITION new;
-	char* board[width * height];
+	char* board = (char*) SafeMalloc(sizeof(char) * width * height);
 	
 	board = generic_unhash(position, board);
 	/* Place a new piece at the destination of the SLIDE move */
@@ -327,6 +323,8 @@ POSITION DoMove (POSITION position, MOVE move) {
 	pieceat(board, get_x_coord(get_move_place(move)), get_y_coord(get_move_place(move))) = players_piece;
 	
 	new = generic_hash(board, player);
+
+	SafeFree(board);
 	return new;
 }
 
@@ -356,16 +354,18 @@ POSITION DoMove (POSITION position, MOVE move) {
 ************************************************************************/
 
 VALUE Primitive (POSITION position) {
-    char board[width*height];
+    char* board = (char*) SafeMalloc(sizeof(char) * width * height);
     board = generic_unhash(position, board);
     if (countPieces(board,WHITE) != numpieces || countPieces(board, BLACK) != numpieces) {
+	SafeFree(board);
 	return undecided;
     } else {
 	int blackscore = scoreBoard(board, BLACK);
-	int whitesocre = scoreBoard(board, WHITE);
+	int whitescore = scoreBoard(board, WHITE);
+	SafeFree(board);
 	if (whitescore == blackscore) {
 	    return tie;
-	} else if (whitesocre > blackscore) {
+	} else if (whitescore > blackscore) {
 	    return gStandardGame ? win : lose;
 	} else {
 	    return gStandardGame ? lose : win;
@@ -390,7 +390,8 @@ VALUE Primitive (POSITION position) {
 ************************************************************************/
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
-    	char *board[width * height] = generic_unhash(position, board);
+    char *board = (char*) SafeMalloc(sizeof(char) * width * height);
+    board= generic_unhash(position, board);
     	int i, j;
     	
 	if (width < 4) {
@@ -434,7 +435,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 				case BLACK:
 					printf("O ");
 					break;
-				default: printf("wtf mate?");
+				default:
+				    BadElse("PrintPosition");
 			}
 		}
 		printf("|  ");
@@ -457,6 +459,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	for (i = 0; i < (2 * width + 7); i++) {		/* \===============/ */
 	printf("=");
 	printf("/\n");
+	SafeFree(board);
+	}
+}
 	
 
 /************************************************************************
@@ -567,14 +572,15 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input) {
     int i = 0;
     
-    while(isdigit(input[i]) || input[i] == 'N') i++;	/* First characters should be integers (SOURCE) */
-    if (input[i] != ' ') return FALSE;			/* Space between SOURCE and DEST */
-    while(isdigit(input[i]) || input[i] == 'N') i++;	/* Next characters should be integers (DEST) */
-    if (input[i] != ' ') return FALSE;			/* Space between DEST and PLACE */
-    while(isdigit(input[i])) i++;			/* Final characters should be integers (PLACE) */
+    while(isspace((int)input[i])) i++;
+    while(isdigit((int)input[i]) || input[i] == 'N') i++;	/* First characters should be integers (SOURCE) */
+    if (!isspace((int)input[i])) return FALSE;	        /* Space between SOURCE and DEST */
+    while(isdigit((int)input[i]) || input[i] == 'N') i++;	/* Next characters should be integers (DEST) */
+    if (!isspace((int)input[i])) return FALSE;		/* Space between DEST and PLACE */
+    while(isdigit((int)input[i])) i++;			/* Final characters should be integers (PLACE) */
     if (input[i] != 0) return FALSE;			/* PLACE should be last characters in string */
     
-    return true;
+    return TRUE;
 }
 
 
@@ -597,7 +603,7 @@ MOVE ConvertTextInputToMove (STRING input) {
 	/* If player enters 'N' as either the SOURCE or the DEST, the player's SLIDE move is ignored. */
 	
 	char* curr = input;
-	MOVE new = 0;
+	MOVE move = 0;
 	
 	if (*curr != 'N') {
 		set_move_source(move, atoi(curr));
@@ -770,10 +776,11 @@ int vcfg(int *this_cfg) {
 }
 
 int next_player(POSITION position) {
-	char board[width * height] = generic_unhash(position, board);
+	char* board = (char*)SafeMalloc(sizeof(char) * width * height);
 	int i, numWhite, numBlack;
 	
-	numX = numO = 0;
+	board = generic_unhash(position, board);
+	numBlack = numWhite = 0;
 	for (i = 0; i < width * height; i++) {
 		if (board[i] == WHITE) {
 			numWhite++;
@@ -782,6 +789,7 @@ int next_player(POSITION position) {
 			numBlack++;
 		}
 	}
+	SafeFree (board);
 	return (numWhite > numBlack ? 2 : 1);
 }
 
@@ -797,7 +805,7 @@ int next_player(POSITION position) {
   
      for (x = 0; x < width; x++) {
 	 for (y = 0; y < height; y++) { 
-	     if(board[get_location(x,y)] == playerpiece) {
+	     if(board[get_location(x,y)] == player) {
 		 int i; /* used when x varies */
 		 int j;	/* used when y varies */ 
 
@@ -819,7 +827,7 @@ int next_player(POSITION position) {
 		 if (scoreDiagonal) {
 		     
 		     /* count any diagonal lines going up and to the right */
-		     for (i = x+1; j = y-1; i < width && j >= 0 && board[get_location(i,j)] == BLANK; i++, j--) { }
+		     for (i = x+1, j = y-1; i < width && j >= 0 && board[get_location(i,j)] == BLANK; i++, j--) { }
 		     if (i < width && j >= 0 && board[get_location(i,j)] == player) {
 			 score += (i-x-1);
 		     }
@@ -848,9 +856,4 @@ int countPieces(char *board, char piece) {
 	}
     }
     return count;
-}
-
-void BadElse(char* message) {
-	printf("%s\n", message);
-	exit(1);
 }
