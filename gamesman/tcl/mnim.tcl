@@ -198,6 +198,7 @@ proc GS_Initialize { c } {
     $c create image 200 200 -image mnim-background
     image create photo mnim-table -file $playareaImage
     $c create image 200 200 -image mnim-table
+    font create Winner -family arial -size 80
     
     global gRows
 
@@ -218,6 +219,7 @@ proc GS_Initialize { c } {
 
 proc GS_Deinitialize { c } {
     $c delete all
+    font delete Winner
 }
 
 proc MyReturnFromHumanMove {w h} {
@@ -404,6 +406,8 @@ proc GS_GetGameSpecificOptions { } {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
+    $c create text 210 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
+    $c create text 210 340 -text "WINS!"         -font Winner -fill orange -tags winner
 }
 
 
@@ -415,4 +419,5 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # GS_GameOver, you needn't do anything here either.
 
 proc GS_UndoGameOver { c position } {
+    $c delete winner
 }
