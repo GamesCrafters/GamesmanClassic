@@ -212,7 +212,7 @@ extern BOOLEAN  gPrintHints ;
 extern STRING   kGameName ;
 extern STRING   kAuthorName ;
 extern BOOLEAN  kDebugMenu ;
-extern BOOLEAN  kDBName ;
+extern STRING   kDBName ;
 extern BOOLEAN  kDebugDetermineValue ;
 
 // for atilla's hash code ...
@@ -2618,22 +2618,25 @@ POSITION position;
 	/* Make code easier to read */
 	parent = ptr->position;
 	
-	if (GetValueOfPosition(parent) == undecided) {
-	  /* This is the first time we know the parent is a win */
-	  InsertWinFR(parent);
-	  if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
-	  StoreValueOfPosition(parent,win); 
-	  SetRemoteness(parent, remotenessChild + 1);
-	} 
-	else {
-	  /* We already know the parent is a winning position. */
-
-	  if (GetValueOfPosition(parent) != win)
-	    BadElse("&d should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
-
-	  /* This should always hold because the frontier is a queue.
-	  ** We always examine losing nodes with less remoteness first */
-	  assert((remotenessChild + 1) >= Remoteness(parent));
+	/* Skip if this is the initial position (parent is kBadPosition) */
+	if (parent != kBadPosition) {	
+	  if (GetValueOfPosition(parent) == undecided) {
+	    /* This is the first time we know the parent is a win */
+	    InsertWinFR(parent);
+	    if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
+	    StoreValueOfPosition(parent,win); 
+	    SetRemoteness(parent, remotenessChild + 1);
+	  } 
+	  else {
+	    /* We already know the parent is a winning position. */
+	    
+	    if (GetValueOfPosition(parent) != win)
+	      BadElse("&d should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
+	    
+	    /* This should always hold because the frontier is a queue.
+	    ** We always examine losing nodes with less remoteness first */
+	    assert((remotenessChild + 1) >= Remoteness(parent));
+	  }
 	}
 	ptr = ptr->next;
       } /* while there are still parents */
@@ -2645,9 +2648,11 @@ POSITION position;
 	/* Make code easier to read */
 	parent = ptr->position;
 
+	/* Skip if this is the initial position (parent is kBadPosition) */
 	/* If this is the last unknown child and they were all wins, parent is lose */
-	if(--gNumberChildren[parent] == 0) {
+	if(parent != kBadPosition && --gNumberChildren[parent] == 0) {
 	    /* no more kids, it's not been seen before, assign it as losing, put at head */
+	  /* Bryon */ printf("%d\n",parent);
 	  assert(GetValueOfPosition(parent) == undecided);
 
 	  InsertLoseFR(parent);
@@ -2795,6 +2800,7 @@ void SetParents (POSITION parent, POSITION root)
   while (thisLevel != NULL) {
     for (posptr = thisLevel; posptr != NULL; posptr = posptr -> next) {
       pos = posptr -> position;
+
       movehead = GenerateMoves(pos);
       
       for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
@@ -2855,7 +2861,7 @@ NumberChildrenInitialize()
   GENERIC_PTR SafeMalloc();
   int i;
 
-  gNumberChildren = (signed char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
+  gNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
   for(i = 0; i < gNumberOfPositions; i++)
     gNumberChildren[i] = 0;
 }
