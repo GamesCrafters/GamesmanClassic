@@ -90,7 +90,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDWIDTH     3
+#define BOARDWIDTH     4
 #define BOARDHEIGHT    1
 #define PASSMOVE 0
 int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
@@ -102,6 +102,7 @@ typedef enum possibleBoardPieces {
 char *gBlankORBString[] = { "·", "O", "R", "B" };
 
 char *gBoard, *LegendKey;
+int *CP, *RW, *RN;
 
 /*typedef struct moveValuesStruct {
  *  BlankORB piece;
@@ -166,6 +167,9 @@ void InitializeGame ()
 {
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
   LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+  RN = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
+  RW = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
+  CP = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
 
   int x;
   for (x = 0; x < BOARDSIZE; x++) {
@@ -189,7 +193,13 @@ void InitializeGame ()
   gInitialPosition = generic_hash(gBoard, 1);
   gMinimalPosition = gInitialPosition;
 
-  printf("Number of Boards: %d", gNumberOfPositions);
+  //  printf("Number of Boards: %d", gNumberOfPositions);
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    RN[i] = RowNumber(i);
+    CP[i] = ColPosition(i);
+    RW[i] = RowWidth(i);
+  }
 }
 
 
@@ -360,17 +370,10 @@ VALUE Primitive (pos)
   BOOLEAN AllFilledIn();
   BlankORB ThreeInARow(), theBlankORB[BOARDSIZE];
   VALUE EndGame(char, int);
-  int RN[BOARDSIZE], CP[BOARDSIZE], RW[BOARDSIZE];
   generic_unhash(pos, gBoard);
   char current;
 
   int i;
-  for (i = 0; i < BOARDSIZE; i++) {
-    RN[i] = RowNumber(i);
-    CP[i] = ColPosition(i);
-    RW[i] = RowWidth(i);
-  }
-
   for (i = 0; i < BOARDSIZE; i++) {
     if (CP[i] < RW[i] - 2) {
       current = ThreeInARow(gBoard, i, i+1, i+2);
