@@ -222,7 +222,7 @@ proc GS_EmbellishSlot { w slotX slotY slot } {
 	    ## $base addtag tagIndicator-$i withtag $item
 	    ## $base addtag tagIndicator withtag $item
 	    
-	    set item [$base create line [expr {$c+$r*cos($x*$pi/3)}] [expr {$c+$r*sin($x*$pi/3)}] [expr {$c+$r*cos($y*$pi/3)}] [expr {$c+$r*sin($y*$pi/3)}]	-width 15 -fill $volColor]
+	    set item [$base create line [expr {$c+$r*cos($x*$pi/3)}] [expr {$c+$r*sin($x*$pi/3)}] [expr {$c+$r*cos($y*$pi/3)}] [expr {$c+$r*sin($y*$pi/3)}]	-width 15 -fill $volColor -capstyle round]
 	    
 	    $base addtag tagClickable-$i withtag $item
 	    $base addtag tagWasMove-$i withtag $item
