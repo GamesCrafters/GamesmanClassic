@@ -13,9 +13,11 @@
 **              31 Mar 2004 - More Stuff Added. Almost Done.
 **              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
 **              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
+**              Dates After - Refer to CVS Logs
 **
 ** CHECKLIST: 
-**            Fix Bugs
+**            Fix Bugs (GoAgain)
+**            PROOFREAD
 **            DOUBLE CHECK DEFAULT POSITION!
 ** 
 ** DONE       Reverse Board
@@ -25,6 +27,9 @@
 **            Make more Friendly
 **            Make EVERYTHING Pretty. Mimic Gamesman
 **            Add Sample Game Help
+**            Fix Menus. B) Categorically Go Back
+**            Add Piece on PrintPosition
+**            Redo Example Game
 **
 **************************************************************************/
 
@@ -71,10 +76,10 @@ will move the piece located at c4 and move it to c5.\n\n\
 Note: You can only move your own pieces.\n\n\
 JUMPING\n\
 If you're the fox and need to jump, do the exact same thing,\n\
-Entering in the coordinates of the piece you want to move and\n\
+entering in the coordinates of the piece you want to move and\n\
 the coordinates you want to jump to.\n\
 The removal of the geese is factored in automatically.\n\
-If you're the fox and have the option of jumping multiple times,\n\
+Sometimes the fox has the option of jumping multiple times,\n\
 Enter in the move of your first jump. You will then be given the\n\
 chance to enter the moves of your second jump. When you don't want\n\
 to jump any longer, enter a 'd' (Done) to end your turn.";
@@ -82,8 +87,8 @@ to jump any longer, enter a 'd' (Done) to end your turn.";
 STRING   kHelpOnYourTurn =
 "Both the fox and the geese can move to any adjacent empty square that\n\
 is connected to a piece by a line. Note that you can only move to a\n\
-few spots using a diagonol route. If you have the 'Geese Can Move\n\
-Backwards option off, the geese must cannot move away from the\n\
+few spots using a diagonal route. If you have the 'Geese Can Move\n\
+Backwards' option off, the geese cannot move away from the\n\
 'castle' area."; 
 
 STRING   kHelpStandardObjective =
@@ -124,7 +129,7 @@ STRING   kHelpExample = "Type '?' if you need assistance... \n \
         |     a   b   c   d   e     |               |\n \
         |                           |               |\n \
         +---------------------------+---------------+\n \
-        | It is Geese's turn.                       |\n \
+        | It is Geese's turn (G Piece).             |\n \
         | (Geese should Win in 8)                   |\n \
         +-------------------------------------------+\n \
 \n \
@@ -146,7 +151,7 @@ STRING   kHelpExample = "Type '?' if you need assistance... \n \
         |     a   b   c   d   e     |               |\n \
         |                           |               |\n \
         +---------------------------+---------------+\n \
-        | It is Foxes's turn.                       |\n \
+        | It is Foxes's turn (F Piece).             |\n \
         | (Foxes should Lose in 7)                  |\n \
         +-------------------------------------------+\n \
 \n \
@@ -169,7 +174,7 @@ STRING   kHelpExample = "Type '?' if you need assistance... \n \
         |     a   b   c   d   e     |               |\n \
         |                           |               |\n \
         +---------------------------+---------------+\n \
-        | It is Geese's turn.                       |\n \
+        | It is Geese's turn (G Piece).             |\n \
         | (Geese should Win in 6)                   |\n \
         +-------------------------------------------+\n \
 \n \
@@ -191,7 +196,7 @@ STRING   kHelpExample = "Type '?' if you need assistance... \n \
         |     a   b   c   d   e     |               |\n \
         |                           |               |\n \
         +---------------------------+---------------+\n \
-        | It is Foxes's turn.                       |\n \
+        | It is Foxes's turn (F Piece).             |\n \
         | (Foxes should Win in 1)                   |\n \
         +-------------------------------------------+\n \
 \n \
@@ -213,7 +218,7 @@ STRING   kHelpExample = "Type '?' if you need assistance... \n \
         |     a   b   c   d   e     |               |\n \
         |                           |               |\n \
         +---------------------------+---------------+\n \
-        | It is Geese's turn.                       |\n \
+        | It is Geese's turn (G Piece).             |\n \
         | (Geese should Lose in 0)                  |\n \
         +-------------------------------------------+\n \
 \n \
@@ -486,7 +491,7 @@ void GameSpecificMenu ()
 		{
 			printf("DISABLED to ENABLED.\n");
 		}
-		printf("\tb)\tToggle Allow Geese To Move (B)ackwards ");
+		printf("\ta)\tToggle (A)llow Geese To Move Backwards ");
 		if(variant_geeseMoveBackwards)
 		{
 			printf("ENABLED to DISABLED.\n");
@@ -497,7 +502,7 @@ void GameSpecificMenu ()
 		}if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n");  }
 		printf("\tn)\tChange (N)umber of Geese in Castle To Win (Currently %d)\n",GEESE_MIN);
 		
-		printf("\tr)\t(R)eturn to previous menu\n\n");
+		printf("\tb)\t(B)ack to previous menu\n\n");
 		printf("Select an option: "); scanf("%s", selection_command);
 		selection = selection_command[0];
 		selection = toupper(selection);
@@ -514,7 +519,7 @@ void GameSpecificMenu ()
 				variant_diagonals = (variant_diagonals) ? 0 : 1;
 				selection = 'Z';
 				break;
-			case 'B':
+			case 'A':
 				variant_geeseMoveBackwards = (variant_geeseMoveBackwards) ? 0 : 1;
 				selection = 'Z';
 				break;
@@ -547,7 +552,7 @@ void GameSpecificMenu ()
 					selection = 'Z';
 				}
 				break;
-			case 'R':
+			case 'B':
 				return;
 			default:
 				printf("Invalid Option.\n");
@@ -737,7 +742,7 @@ POSITION GetInitialPosition()
 		else
 		{
 			printf("\tf)\tAdd/Remove (F)oxes\n");
-			printf("\te)\t(E)xit Initial Setup\n\n");
+			printf("\tb)\t(B)ack to previous menu\n\n");
 		}
 		printf("Select an option: "); scanf("%s", selection_command);
 		selection = toupper(selection_command[0]);
@@ -751,7 +756,7 @@ POSITION GetInitialPosition()
 				AddRemoveFoxes(start_standard_board);
 				selection= 'Z';
 				break;
-			case 'E':
+			case 'B':
 				break;
 			default:
 				printf("Invalid option. Try again\n");
@@ -762,7 +767,7 @@ POSITION GetInitialPosition()
 		FOX_MAX = numFoxes(boardStats);
 		
 		init_board_hash();
-	} while (selection != 'E');
+	} while (selection != 'B');
 	
 	
 	return mergePositionGoAgain(generic_hash(start_standard_board, GEESE_PLAYER),0);
@@ -952,9 +957,23 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char currentBoard[BOARDSIZE];
 	char turnString[80];
 	char prediction[80];
+	char piece;
 	int width = strlen("+-------------------------------------------+");
 	
 	generic_unhash(getPosition(position), currentBoard);
+	
+	if (whoseMove(getPosition(position)) ==  FOX_PLAYER)
+	{
+		piece = 'F';
+	}
+	else if (whoseMove(getPosition(position)) ==  GEESE_PLAYER)
+	{
+		piece = 'G';
+	}
+	else
+	{
+		piece = 'Z';
+	}
 	
 	if (PRINTPOSITION_DEBUG) { printf("Position Hash %d\n",position);}
 	
@@ -962,7 +981,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	
 	PrintBoard(currentBoard);
 	
-	sprintf(turnString,"| It is %s's turn.", playerName);
+	sprintf(turnString,"| It is %s's turn (%c Piece).", playerName,piece);
 	printf("\t%s",turnString); PrintSpaces(width - strlen(turnString) - 1); printf("|\n");
 	
 	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
@@ -1751,7 +1770,7 @@ void AddRemoveFoxes(char board[])
 		}
 		else
 		{
-			printf("\te)\t(E)xit Fox Placement\n\n");
+			printf("\tB)\t(B)ack to Previous Menu\n\n");
 		}
 		printf("Select an option: "); scanf("%s", selection_command);
 		selection = toupper(selection_command[0]);
@@ -1805,7 +1824,7 @@ void AddRemoveFoxes(char board[])
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case 'E':
+			case 'B':
 				if (numFoxes(boardStats) < 2)
 				{
 					printf("You must have two foxes on the board.\n");
@@ -1824,7 +1843,7 @@ void AddRemoveFoxes(char board[])
 		FOX_MAX = numFoxes(boardStats);
 		
 		init_board_hash();
-	} while (selection != 'E');
+	} while (selection != 'B');
 }
 
 void AddRemoveGeese(char board[])
@@ -1848,7 +1867,7 @@ void AddRemoveGeese(char board[])
 		
 		printf("\ta)\t(A)dd a Goose\n");
 		printf("\tr)\t(R)emove a Goose\n");
-		printf("\te)\t(E)xit Geese Placement\n\n");
+		printf("\tb)\t(B)xit Geese Placement\n\n");
 		printf("Select an option: "); scanf("%s",selection_command);
 		selection = toupper(selection_command[0]);
 		switch (selection)
@@ -1901,7 +1920,7 @@ void AddRemoveGeese(char board[])
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case 'E':
+			case 'B':
 				return;
 			default:
 				printf("Invalid option. Try again\n");
@@ -1912,7 +1931,7 @@ void AddRemoveGeese(char board[])
 		FOX_MAX = numFoxes(boardStats);
 		
 		init_board_hash();
-	} while (selection != 'E');
+	} while (selection != 'B');
 }
 
 int hashMove(int move[2]) /* Revamped Bitshiftting Hash Function */
