@@ -14,6 +14,7 @@ int combiCount(int* tc);
 void printStats ();
 void printAr(int* a);
 void printcAr(char* a);
+void clearAr (int* a, int n);
 int hash_cruncher (char* board, int boardsize, int* thiscount, int* local_mins);
 void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int* local_mins);
 

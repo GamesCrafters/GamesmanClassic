@@ -11,8 +11,8 @@
 /* debugging flag */
 int DEBUG = 0;
 int DEBUG2 = 0;
-int DEBUG3 = 1;
-int DEBUG4 = 1;
+int DEBUG3 = 0;
+int DEBUG4 = 0;
 
 /*globals*/
 int TERM = -1;
@@ -140,10 +140,9 @@ void printStats ()
 /* shorthand for printing an int array */
 void printAr(int* a)
 {
-	int i = 0, j = 0;
-	while (a[i] != TERM) i++;
+	int j = 0;
 	printf("{ ");
-	for (j = 0;j < i;j++)
+	for (;a[j] != TERM;j++)
 	{
 		printf("%d ", a[j]);
 	}
@@ -162,6 +161,13 @@ void printcAr(char* a)
 	}
 	printf("}");
 }
+
+/* clears up an int array, also don't have to worry about placing array-terminating TERMs */
+void clearAr (int* a, int n)
+{
+ int i;
+ for (i = 0;i < n;i++) a[i] = TERM;
+ }
 
 /* helper func from generic_unhash() computes lexicographic rank of *board
    among boards with the same configuration argument *thiscount */
@@ -300,11 +306,12 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
     local_mins = (int*) malloc (sizeof(int) * (num_pieces + 1));
     miniOffset = (int*) malloc (sizeof(int) * (num_pieces + 2));
 	miniIndices = (int*) malloc (sizeof(int) * (num_pieces + 2));
-	gPieceIndices = (int*) malloc (sizeof(int) * (num_cfgs + 2));
+
 
 	gpd_store = (int*) malloc (sizeof(int) * (num_pieces + 1));
 	gpd_store[num_pieces] = TERM;
-	
+
+
  if (DEBUG) printf("generic_hash_init -0.9\n");
 	for (i = 0; i < num_pieces;i++)
 	{
@@ -317,12 +324,15 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 	{
 		num_cfgs *= nums[i];
 	}
+ gPieceIndices = (int*) malloc (sizeof(int) * (num_cfgs + 1));
 		
 	gHashOffsetSize = num_cfgs;
 
 	nCr_init(boardsize);
+ if (DEBUG) printAr(gPieceIndices);
     gHashOffset = (int*) malloc(sizeof(int) * (useful_space + 2));
 	gOffsetIndices = (int*) malloc(sizeof(int) * (useful_space + 2));
+ if (DEBUG) printAr(gPieceIndices);
              if (DEBUG) printf("generic_hash_init -0.8\n");
 	for(i = 0; i < useful_space; i++)
 	{
@@ -341,9 +351,8 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 		}
 	gHashOffset[k] = TERM;
 	gOffsetIndices[k] = TERM;
-	
 	if (DEBUG) printStats();
-     if (DEBUG) printf("generic_hash_init -0.6\n");
+    if (DEBUG) printf("generic_hash_init -0.6\n");
 	temp = 0;
 	sofar = 0;
 	for (i = 1; i < useful_space + 1; i++)
@@ -447,9 +456,9 @@ void nCr_init(int boardsize)
 {
 	int i, j, k, sum, ctr;
 	int *temp = (int*) malloc (sizeof(int) * num_pieces);
-
+    gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 	gHashBoardSize = boardsize;
-	gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
+
 
 	/*store the left and right wings of pascal's triangle*/
 	for(i = 0; i<= boardsize; i++)
@@ -471,6 +480,7 @@ void nCr_init(int boardsize)
 	evaluating a polynomial p using only deg(p) multiplications
 	*/
 	ctr = 0;
+    clearAr(gPieceIndices, num_cfgs + 1);
 	for (i = 0;i < num_cfgs;i++)
 	{
 		sum = 0;
@@ -483,12 +493,16 @@ void nCr_init(int boardsize)
 		}
 		if (sum == boardsize && validConfig(temp))
 		{
+            if (DEBUG) printf("(%d:%d)", ctr, i);
 			gPieceIndices[ctr] = i;
+            if (DEBUG) printAr(gPieceIndices);
+            if (DEBUG) printf("<%d>", gPieceIndices[ctr]);
 			ctr++;
 		}
 	}
 	useful_space = ctr;
 	gPieceIndices[useful_space] = TERM;
+    if (DEBUG) printAr(gPieceIndices);
 	free(temp);
 }
 
