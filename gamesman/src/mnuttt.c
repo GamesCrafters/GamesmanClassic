@@ -121,6 +121,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  */
 
 STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
+void*  gGameSpecificTclInit = NULL;
 STRING   kHelpTextInterface =
   "On your turn, enter the x and y coordinates of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
@@ -162,7 +163,8 @@ STRING   kHelpExample = "coming soon!";
 #define PLAYER_PIECES       BOARD_COLS
 #define EMPTY_PIECES        ((BOARD_ROWS-2)*BOARD_COLS)
 #define NUM_OF_DIRS         9
-#define BOARD_DIM_CAP       10
+#define BOARD_DIM_MAX       10
+#define BOARD_DIM_MIN       3
 #define NUM_TO_WIN_CAP      8
 #define ROW_START        'a'
 
@@ -262,14 +264,14 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-    char board[BOARD_SIZE];
-    int init_pieces[10];
+  char board[BOARD_SIZE];
+  int init_pieces[10];
 
-    setGameParameters (5, 4, 3, FALSE, FALSE);  /*default values*/
-    initializePiecesArray(init_pieces);
-    initializeBoard(board);
-    gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
-    gInitialPosition = generic_hash(board, PLAYER1_TURN);
+  setGameParameters (5, 4, 3, FALSE, FALSE);  /*default values*/
+  initializePiecesArray(init_pieces);
+  initializeBoard(board);
+  gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
+  gInitialPosition = generic_hash(board, PLAYER1_TURN);
 }
 
 
@@ -307,7 +309,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	  ((player==2) && (board[Index(i,j)] == PLAYER2_PIECE)))
       {
 	for (k = 0; k < NUM_OF_DIRS; k++) {
-	  // for every possible movement as specified in dir_increments, except 5, and the diagonals when !CAN_MOVE_DIAGONALLY
+	  // for every possible movement as specified in dir_increments
+	  // except 5 and the diagonals when !CAN_MOVE_DIAGONALLY
 	  if (k == 4)
 	    canProcessDir = FALSE;
 	  else if ((k == 0) || (k == 2) || (k == 6) || (k == 8))
@@ -349,18 +352,19 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-       char board[BOARD_SIZE];
-       int current_player = whoseMove(position);
-       int move_position = Unhasher_Index(move);
-       int row = Row (move_position);
-       int col = Column (move_position);
-       int direction = Unhasher_Direction(move);
-       int new_position = Index(row + dir_increments[direction][0], col + dir_increments[direction][1]);
+  char board[BOARD_SIZE];
+  int current_player = whoseMove(position);
+  int move_position = Unhasher_Index(move);
+  int row = Row (move_position);
+  int col = Column (move_position);
+  int direction = Unhasher_Direction(move);
+  int new_position = Index(row + dir_increments[direction][0], \
+			   col + dir_increments[direction][1]);
 
-       generic_unhash (position, board);
-       board[new_position] = board[move_position];
-       board[move_position] = (char) EMPTY_PIECE;
-       return generic_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
+  generic_unhash (position, board);
+  board[new_position] = board[move_position];
+  board[move_position] = (char) EMPTY_PIECE;
+  return generic_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
 }
 
 
@@ -394,48 +398,48 @@ VALUE Primitive (POSITION position)
    * can think about it this way because players are only allowed to move their
    * own pieces.
    */
-    char board[BOARD_SIZE];
-    int x,y,d;
+  char board[BOARD_SIZE];
+  int x,y,d;
     
-    generic_unhash(position, board);
+  generic_unhash(position, board);
     
-    for (y = 0; y < BOARD_ROWS; y++) /*horizontal*/
-	for (x = 0; x < BOARD_COLS+1-NUM_TO_WIN; x++)
-	    if (board[Index(y,x)] != EMPTY_PIECE) {
-		for (d = 1; d < NUM_TO_WIN; d++)
-		    if (board[Index(y,x+d-1)] != board[Index(y,x+d)])
-			break;
-		if (d == NUM_TO_WIN) return (MISERE ? win : lose);
-	    }
+  for (y = 0; y < BOARD_ROWS; y++) /*horizontal*/
+    for (x = 0; x < BOARD_COLS+1-NUM_TO_WIN; x++)
+      if (board[Index(y,x)] != EMPTY_PIECE) {
+	for (d = 1; d < NUM_TO_WIN; d++)
+	  if (board[Index(y,x+d-1)] != board[Index(y,x+d)])
+	    break;
+	if (d == NUM_TO_WIN) return (MISERE ? win : lose);
+      }
     
-    for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) /*vertical*/
-	for (x = 0; x < BOARD_COLS; x++)
-	    if (board[Index(y,x)] != EMPTY_PIECE) {
-		for (d = 1; d < NUM_TO_WIN; d++)
-		    if (board[Index(y+d-1,x)] != board[Index(y+d,x)])
-			break;
-		if (d == NUM_TO_WIN) return (MISERE ? win : lose);
-	    }
+  for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) /*vertical*/
+    for (x = 0; x < BOARD_COLS; x++)
+      if (board[Index(y,x)] != EMPTY_PIECE) {
+	for (d = 1; d < NUM_TO_WIN; d++)
+	  if (board[Index(y+d-1,x)] != board[Index(y+d,x)])
+	    break;
+	if (d == NUM_TO_WIN) return (MISERE ? win : lose);
+      }
     
-    for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) { /*diagonal*/
-	for (x = 0; x < BOARD_COLS+1-NUM_TO_WIN; x++) {
-	    if (board[Index(y,x)] != EMPTY_PIECE) {
-		for (d = 1; d < NUM_TO_WIN; d++)
-		    if (board[Index(y+d-1,x+d-1)] != board[Index(y+d,x+d)])
-			break;
-		if (d == NUM_TO_WIN) return (MISERE ? win : lose);
-	    }
+  for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) { /*diagonal*/
+    for (x = 0; x < BOARD_COLS+1-NUM_TO_WIN; x++) {
+      if (board[Index(y,x)] != EMPTY_PIECE) {
+	for (d = 1; d < NUM_TO_WIN; d++)
+	  if (board[Index(y+d-1,x+d-1)] != board[Index(y+d,x+d)])
+	    break;
+	if (d == NUM_TO_WIN) return (MISERE ? win : lose);
+      }
 	    
-	    if (board[Index(y+NUM_TO_WIN-1,x)] != EMPTY_PIECE) {
-		for (d = 1; d < NUM_TO_WIN; d++)
-		    if (board[Index(y+NUM_TO_WIN-d,x+d-1)] != board[Index(y+NUM_TO_WIN-d-1,x+d)])
-			break;
-		if (d == NUM_TO_WIN) return (MISERE ? win : lose);
-	    }
-	}
+      if (board[Index(y+NUM_TO_WIN-1,x)] != EMPTY_PIECE) {
+	for (d = 1; d < NUM_TO_WIN; d++)
+	  if (board[Index(y+NUM_TO_WIN-d,x+d-1)] != board[Index(y+NUM_TO_WIN-d-1,x+d)])
+	    break;
+	if (d == NUM_TO_WIN) return (MISERE ? win : lose);
+      }
     }
+  }
     
-    return undecided;
+  return undecided;
 }
 
 
@@ -457,34 +461,34 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-    char board[BOARD_SIZE];
+  char board[BOARD_SIZE];
     
-    generic_unhash (position, board);
-    printf (" The game board as %s sees it:\n", playersName);
-    printBoard (board);
+  generic_unhash (position, board);
+  printf (" The game board as %s sees it:\n", playersName);
+  printBoard (board);
 }
 
 void printBoard (char *board) {
-    int i,j;
+  int i,j;
 
-    for (i = 0; i < BOARD_ROWS; i++) {
-	printf ("  +");
-	for (j = 0; j < BOARD_COLS; j++)
-	    printf ("-+");
-	printf ( "\n%c " , i+ROW_START );
-	for (j = 0; j < BOARD_COLS; j++) 
-	    printf ("|%c", board[Index(i,j)]);
-	printf("|\n");
-    }
-    printf("  +");
+  for (i = 0; i < BOARD_ROWS; i++) {
+    printf ("  +");
+    for (j = 0; j < BOARD_COLS; j++)
+      printf ("-+");
+    printf ( "\n%c " , i+ROW_START );
+    for (j = 0; j < BOARD_COLS; j++) 
+      printf ("|%c", board[Index(i,j)]);
+    printf("|\n");
+  }
+  printf("  +");
+  for (j = 0; j < BOARD_COLS; j++) {
+    printf("-+");
+    printf("\n   ");
     for (j = 0; j < BOARD_COLS; j++) {
-	printf("-+");
-	printf("\n   ");
-	for (j = 0; j < BOARD_COLS; j++) {
-	    printf("%d ", j);
-	}
-	printf("\n");
+      printf("%d ", j);
     }
+    printf("\n");
+  }
 }
 
 
@@ -501,31 +505,31 @@ void printBoard (char *board) {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    int position = Unhasher_Index(computersMove);
-    int direction = Unhasher_Direction(computersMove);
+  int position = Unhasher_Index(computersMove);
+  int direction = Unhasher_Direction(computersMove);
 
-    printf ("%s moves the piece %c%d %s\n", computersName, \
-	    Row(position)+ROW_START, Column (position), directions[direction]);
+  printf ("%s moves the piece %c%d %s\n", computersName, \
+	  Row(position)+ROW_START, Column (position), directions[direction]);
 }
 
 
 /************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
-**
-************************************************************************/
+ **
+ ** NAME:        PrintMove
+ **
+ ** DESCRIPTION: Prints the move in a nice format.
+ ** 
+ ** INPUTS:      MOVE move         : The move to print. 
+ **
+ ************************************************************************/
 
 void PrintMove (MOVE move)
 {
-    int position = Unhasher_Index(move);
-    int direction = Unhasher_Direction(move);
+  int position = Unhasher_Index(move);
+  int direction = Unhasher_Direction(move);
 
-    printf ("%c%d %s\n", Row (position)+ROW_START, Column (position), \
-	    directions[direction]);
+  printf ("%c%d %s\n", Row (position)+ROW_START, Column (position), \
+	  directions[direction]);
 }
 
 
@@ -551,23 +555,23 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+  USERINPUT input;
+  USERINPUT HandleDefaultTextInput();
     
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/<row> <col> <dir>] : ", playersName);
+  for (;;) {
+    /***********************************************************
+     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+     ***********************************************************/
+    printf("%8s's move [(undo)/<row> <col> <dir>] : ", playersName);
 	
-	input = HandleDefaultTextInput(position, move, playersName);
+    input = HandleDefaultTextInput(position, move, playersName);
 	
-	if (input != Continue)
-	    return input;
-    }
+    if (input != Continue)
+      return input;
+  }
     
-    /* NOTREACHED */
-    return Continue;
+  /* NOTREACHED */
+  return Continue;
 }
 
 
@@ -598,19 +602,19 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-    int result, i, j;
-    char dir1 = '\0';
-    char dir2 = '\0';
-    result = sscanf (input, MOVE_FORMAT, &i, &j, &dir1, &dir2);
-    if ((result != INPUT_PARAM_COUNT1) && (result != INPUT_PARAM_COUNT2))
-	return FALSE;
-    if ((i >= 0) && (j >= 0) && (i < BOARD_ROWS) && (j < BOARD_COLS) &&
-	( ((dir1=='E') || (dir1=='W')) || ( ((dir1=='N')||(dir1=='S')) &&
-					    ((dir2=='E')||(dir2=='W')) ))) {
-	return TRUE;
-    } else {
-	return FALSE;
-    }
+  int result, i, j;
+  char dir1 = '\0';
+  char dir2 = '\0';
+  result = sscanf (input, MOVE_FORMAT, &i, &j, &dir1, &dir2);
+  if ((result != INPUT_PARAM_COUNT1) && (result != INPUT_PARAM_COUNT2))
+    return FALSE;
+  if ((i >= 0) && (j >= 0) && (i < BOARD_ROWS) && (j < BOARD_COLS) &&
+      ( ((dir1=='E') || (dir1=='W')) || ( ((dir1=='N')||(dir1=='S')) &&
+					  ((dir2=='E')||(dir2=='W')) ))) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 
@@ -630,34 +634,34 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    int row, col, dir;
-    char dir1 = '\0';
-    char dir2 = '\0';
-    sscanf (input, MOVE_FORMAT, &row, &col, &dir1, &dir2);
-    if (dir1 == 'E') {
-	dir = 5;
-    } else if (dir1 == 'W') {
-	dir = 3;
-    } else if (dir1 == 'N') {
-	if (dir2 == 'E') {
-	    dir = 8;
-	} else if (dir2 == 'W') {
-	    dir = 6;
-	} else {
-	    dir = 7;
-	}
-    } else if (dir1 == 'S') {
-	if (dir2 == 'E') {
-	    dir = 2;
-	} else if (dir2 == 'W') {
-	    dir = 0;
-	} else {
-	    dir = 1;
-	}
+  int row, col, dir;
+  char dir1 = '\0';
+  char dir2 = '\0';
+  sscanf (input, MOVE_FORMAT, &row, &col, &dir1, &dir2);
+  if (dir1 == 'E') {
+    dir = 5;
+  } else if (dir1 == 'W') {
+    dir = 3;
+  } else if (dir1 == 'N') {
+    if (dir2 == 'E') {
+      dir = 8;
+    } else if (dir2 == 'W') {
+      dir = 6;
     } else {
-	printf("ERROR - mnuttt.c line 654 - got a bad dir1: %c", dir1);
+      dir = 7;
     }
-    return Hasher (row, col, dir);
+  } else if (dir1 == 'S') {
+    if (dir2 == 'E') {
+      dir = 2;
+    } else if (dir2 == 'W') {
+      dir = 0;
+    } else {
+      dir = 1;
+    }
+  } else {
+    printf("ERROR - mnuttt.c line 654 - got a bad dir1: %c", dir1);
+  }
+  return Hasher (row, col, dir);
 }
 
 
@@ -714,68 +718,68 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    char board[BOARD_SIZE];
-    int i;
-    const int player = 1;
-    char input[80];
-    BOOLEAN setboard = TRUE;
-    BOOLEAN tryagain = TRUE;
+  char board[BOARD_SIZE];
+  int i;
+  const int player = 1;
+  char input[80];
+  BOOLEAN setboard = TRUE;
+  BOOLEAN tryagain = TRUE;
     
-    while (tryagain) {
-	for (i = 0; i < BOARD_SIZE; i++) {
-	    board[i] = (char) EMPTY_PIECE;
-	}
-	printf("please enter board locations for the pieces in 'x y' format.\n");
-	printf("for example, to place a piece at (0,1) you'd enter '0 1'.\n");
-	printf("enter 'quit' or 'exit' to leave this function and return to\n");
-	printf("the default initial board.\n");
-	if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER1_PIECE))) break;
-	if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER2_PIECE))) break;
-	while (TRUE) {
-	    printf("is this the board you want? (y/n)");
-	    printBoard(board);
-	    gets(input);
-	    if ((strcmp(input,"y") == 0) || (strcmp(input,"yes") == 0)) {
-		setboard = TRUE;
-		tryagain = FALSE;
-		break;
-	    } else if ((strcmp(input,"n") == 0) || (strcmp(input,"no") == 0)) {
-		setboard = FALSE;
-		tryagain = TRUE;
-		break;
-	    } else {
-		printf("error. enter 'y', 'yes', 'n', or 'no'.\n");
-	    }
-	}
+  while (tryagain) {
+    for (i = 0; i < BOARD_SIZE; i++) {
+      board[i] = (char) EMPTY_PIECE;
     }
-    if (setboard) gInitialPosition = generic_hash(board, player);
-    return gInitialPosition;
+    printf("please enter board locations for the pieces in 'x y' format.\n");
+    printf("for example, to place a piece at (0,1) you'd enter '0 1'.\n");
+    printf("enter 'quit' or 'exit' to leave this function and return to\n");
+    printf("the default initial board.\n");
+    if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER1_PIECE))) break;
+    if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER2_PIECE))) break;
+    while (TRUE) {
+      printf("is this the board you want? (y/n)");
+      printBoard(board);
+      gets(input);
+      if ((strcmp(input,"y") == 0) || (strcmp(input,"yes") == 0)) {
+	setboard = TRUE;
+	tryagain = FALSE;
+	break;
+      } else if ((strcmp(input,"n") == 0) || (strcmp(input,"no") == 0)) {
+	setboard = FALSE;
+	tryagain = TRUE;
+	break;
+      } else {
+	printf("error. enter 'y', 'yes', 'n', or 'no'.\n");
+      }
+    }
+  }
+  if (setboard) gInitialPosition = generic_hash(board, player);
+  return gInitialPosition;
 }
 
 BOOLEAN GetInitPosHelper (char *board, char playerchar) {
-    int i,x,y;
-    char input[80];
-    for (i = 0; i < PLAYER_PIECES; i++) {
-	printf("enter the location of %c piece %d: ",playerchar,i+1);
-	gets(input);
-	if ((strcmp(input,"quit") == 0) || (strcmp(input,"exit") == 0)) {
-	    return FALSE;
-	} else {
-	    sscanf(input, "%d %d", &x, &y);
-	    if ((x < 0) || (y < 0) || (x >= BOARD_COLS) || (y >= BOARD_ROWS)) {
-		printf("error - off board.");
-		i--;
-		continue;
-	    } else if (board[Index(y,x)] != EMPTY_PIECE) {
-		printf("error - already occupied.");
-		i--;
-		continue;
-	    } else {
-		board[Index(y,x)] = playerchar;
-	    }
-	}
+  int i,x,y;
+  char input[80];
+  for (i = 0; i < PLAYER_PIECES; i++) {
+    printf("enter the location of %c piece %d: ",playerchar,i+1);
+    gets(input);
+    if ((strcmp(input,"quit") == 0) || (strcmp(input,"exit") == 0)) {
+      return FALSE;
+    } else {
+      sscanf(input, "%d %d", &x, &y);
+      if ((x < 0) || (y < 0) || (x >= BOARD_COLS) || (y >= BOARD_ROWS)) {
+	printf("error - off board.");
+	i--;
+	continue;
+      } else if (board[Index(y,x)] != EMPTY_PIECE) {
+	printf("error - already occupied.");
+	i--;
+	continue;
+      } else {
+	board[Index(y,x)] = playerchar;
+      }
     }
-    return TRUE;
+  }
+  return TRUE;
 }
 
 
@@ -790,9 +794,12 @@ BOOLEAN GetInitPosHelper (char *board, char playerchar) {
 **
 ************************************************************************/
 
+/* this is correct as long as any of the numerical parameters are not included
+ * in the options
+ */
 int NumberOfOptions ()
 {
-    return 4;
+  return 4;
 }
 
 
@@ -810,13 +817,13 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    int result = BOARD_ROWS;
-    result = (result * BOARD_DIM_CAP) + BOARD_COLS;
-    result = (result * NUM_TO_WIN_CAP) + NUM_TO_WIN;
-    result = result << 2;
-    if (CAN_MOVE_DIAGONALLY) result += 2;
-    if (MISERE) result += 1;
-    return result;
+  int result = BOARD_ROWS;
+  result = (result * BOARD_DIM_MAX) + BOARD_COLS;
+  result = (result * NUM_TO_WIN_MAX) + NUM_TO_WIN;
+  result <<= 2;
+  if (CAN_MOVE_DIAGONALLY) result &= 0x2;
+  if (MISERE) result &= 0x1;
+  return result;
 }
 
 
@@ -833,19 +840,19 @@ int getOption ()
 
 void setOption (int option)
 {
-    int row, col, num_to_win;
-    BOOLEAN diag, misere;
-    
-    misere = option % 2;
-    diag = option / 2 % 2;
-    option /= 4;
-    num_to_win = option % NUM_TO_WIN_CAP;
-    option /= NUM_TO_WIN_CAP;
-    col = option % BOARD_DIM_CAP;
-    option /= BOARD_DIM_CAP;
-    row = option;
-    setGameParameters (row, col, num_to_win, diag, misere);
-    InitializeGame();
+  int row, col, num_to_win;
+  BOOLEAN diag, misere;
+
+  misere = (option % 2) ? TRUE : FALSE; /* never, never break abstraction */
+  diag = (option & 0x2) ? TRUE : FALSE;
+  option >>= 2;
+  num_to_win = option % NUM_TO_WIN_CAP;
+  option /= NUM_TO_WIN_CAP;
+  col = option % BOARD_DIM_MAX;
+  option /= BOARD_DIM_MAX;
+  row = option;
+  setGameParameters (row, col, num_to_win, diag, misere);
+  /* InitializeGame(); needed if and only if the size changes */
 }
 
 
@@ -880,60 +887,60 @@ void DebugMenu ()
 ************************************************************************/
 
 int Index(int row, int col) {
-    return  (row*BOARD_COLS+col);
+  return  (row*BOARD_COLS+col);
 }
 
 int Row(int Pos) {
-    return (Pos/BOARD_COLS);
+  return (Pos/BOARD_COLS);
 }
 
 int Column(int Pos) {
-    return (Pos%BOARD_COLS);
+  return (Pos%BOARD_COLS);
 }
 
 MOVE Hasher(int row, int col, int dir) {
-    return (MOVE) ( ( Index(row, col) )* NUM_OF_DIRS + dir);
+  return (MOVE) ( ( Index(row, col) )* NUM_OF_DIRS + dir);
 }
 
 int Unhasher_Index(MOVE hashed_move) {
-    return (hashed_move / NUM_OF_DIRS);
+  return (hashed_move / NUM_OF_DIRS);
 }
 
 int Unhasher_Direction(MOVE hashed_move) {
-    return (hashed_move % NUM_OF_DIRS);
+  return (hashed_move % NUM_OF_DIRS);
 }
 
 void setGameParameters (int row, int col, int num_to_win, BOOLEAN diag, BOOLEAN misere) {
-    BOARD_ROWS = row;
-    BOARD_COLS = col;
-    NUM_TO_WIN = num_to_win;
-    CAN_MOVE_DIAGONALLY = diag;
-    MISERE = misere;
+  BOARD_ROWS = row;
+  BOARD_COLS = col;
+  NUM_TO_WIN = num_to_win;
+  CAN_MOVE_DIAGONALLY = diag;
+  MISERE = misere;
 }
 
 void initializePiecesArray(int p_a[]) {
-    p_a[0] = PLAYER1_PIECE;
-    p_a[3] = PLAYER2_PIECE;
-    p_a[6] = EMPTY_PIECE;
-    p_a[9] = -1;
-    p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
-    p_a[7] = p_a[8] = EMPTY_PIECES;
+  p_a[0] = PLAYER1_PIECE;
+  p_a[3] = PLAYER2_PIECE;
+  p_a[6] = EMPTY_PIECE;
+  p_a[9] = -1;
+  p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
+  p_a[7] = p_a[8] = EMPTY_PIECES;
 }
 
 void initializeBoard (char board[]) {
-    int x,y;
-    char piece;
+  int x,y;
+  char piece;
     
-    for (x = 0; x < BOARD_COLS; x++) {
-	for (y = 0; y < BOARD_ROWS; y++) {
-	    if (y == 0) {
-		piece = (x % 2) ? PLAYER2_PIECE : PLAYER1_PIECE;
-	    } else if (y == BOARD_ROWS-1) {
-		piece = (x % 2) ? PLAYER1_PIECE : PLAYER2_PIECE;
-	    } else {
-		piece = EMPTY_PIECE;
-	    }
-	    board[Index(y, x)] = (char) piece;
-	}
+  for (x = 0; x < BOARD_COLS; x++) {
+    for (y = 0; y < BOARD_ROWS; y++) {
+      if (y == 0) {
+	piece = (x % 2) ? PLAYER2_PIECE : PLAYER1_PIECE;
+      } else if (y == BOARD_ROWS-1) {
+	piece = (x % 2) ? PLAYER1_PIECE : PLAYER2_PIECE;
+      } else {
+	piece = EMPTY_PIECE;
+      }
+      board[Index(y, x)] = (char) piece;
     }
+  }
 }
