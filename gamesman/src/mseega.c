@@ -10,7 +10,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
  * Above is will include the name and the log of the last
  * person to commit this file to gamesman.
  */
-// YR: I don't know how to format that.
+// YR: I don't know how to format that. (updated)
 
 /************************************************************************
 **
