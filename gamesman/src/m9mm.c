@@ -149,6 +149,11 @@ char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 
+// Solving
+POSITIONLIST *GenerateParents (POSITION position);
+POSITIONLIST *AppendFlyingParents (blankox *bboard, int slot, POSITIONLIST *plist) ;
+POSITIONLIST *AppendParents (blankox *bboard, int slot, POSITIONLIST *plist);
+
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
 void debugPosition(POSITION h);
@@ -1127,6 +1132,62 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
     (slot == slot1 || slot == slot2 || slot == slot3);
 }
 
+
+/************ GenerateParents for Bryon's 9mm reverse solver ************/
+POSITIONLIST *GenerateParents (POSITION position) 
+{
+  POSITIONLIST *head = NULL;
+  blankox thisTurn = whose_turn(position);
+  blankox bboard[BOARDSIZE];
+  int i;
+
+  unhash(position, bboard);
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (bboard[i] == thisTurn) {
+      if (gflying) {
+	head = AppendFlyingParents(bboard, i, head);
+      } else {
+	head = AppendParents(bboard, i, head);
+      }
+    }
+  }
+
+  return head;
+}
+
+// Given the current board, slot of interest, POSITIONLIST
+// Append POSITIONLIST of Parents involving slot (with flying)
+POSITIONLIST *AppendFlyingParents (blankox *bboard, int slot, POSITIONLIST *plist) 
+{
+  blankox thisTurn = bboard[slot];
+  blankox prevTurn = opponent(thisTurn);
+
+  return plist;
+}
+
+// Given the current board, slot of interest, POSITIONLIST
+// Append POSITIONLIST of Parents involving slot (without flying)
+POSITIONLIST *AppendParents (blankox *bboard, int slot, POSITIONLIST *plist) 
+{
+  blankox thisTurn = bboard[slot];
+  blankox prevTurn = opponent(thisTurn);
+
+  return plist;
+}
+
+/* typedef struct positionlist_item */
+/* { */
+/* 	POSITION position; */
+/* 	struct positionlist_item *next; */
+/* } */
+/* POSITIONLIST, FRnode; */
+
+/* POSITIONLIST* StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList); */
+/* POSITIONLIST* CopyPositionlist(POSITIONLIST* thePositionlist); */
+
+
+
 /******************** Some Debugging Functions ********************/
 
 //Given b_board, print b_board and c_board
@@ -1206,6 +1267,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.48  2004/04/28 21:57:35  ogren
+//kHelpOnYourTurn now changes depending on whether the gflying option is set to TRUE or FALSE -Elmer
+//
 //Revision 1.47  2004/04/28 19:57:15  ogren
 //Started help txt, currently ugly and unclear.  Also, put the text for flying in a seperate STRING, but have yet to figure out how to concat it when the option is turned on.  -Elmer
 //
