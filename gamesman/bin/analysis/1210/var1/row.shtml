@@ -1,0 +1,14 @@
+<!-- AUTO CREATED, do not modify-->
+<td ALIGN = center><!--#include virtual="option"--></td>
+<td ALIGN = center><!--#include virtual="value"--></td>
+<td ALIGN = center><!--#include virtual="WinCount"--></td>
+<td ALIGN = center><!--#include virtual="LoseCount"--></td>
+<td ALIGN = center><!--#include virtual="TieCount"--></td>
+<td ALIGN = center><!--#include virtual="Prim.WinCount"--></td>
+<td ALIGN = center><!--#include virtual="Prim.LoseCount"--></td>
+<td ALIGN = center><!--#include virtual="Prim.TieCount"--></td>
+<td ALIGN = center><!--#include virtual="totalPositions"--></td>
+<td ALIGN = center><!--#include virtual="NumberOfPositions"--></td>
+<td ALIGN = center><!--#include virtual="hashEfficiency"--></td>
+<td ALIGN = center><!--#include virtual="AverageFanout"--></td>
+<td ALIGN = center><!--#include virtual="TimeToSolve"--></td>
