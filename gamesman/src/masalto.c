@@ -181,6 +181,8 @@ void PrintBoard(char board[]);
 
 int diagonalConnect(int location);
 
+BOOLEAN GoAgain (POSITION, MOVE);
+
 MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves);
 MOVELIST *GeeseGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location);
 MOVELIST *GenerateShiftMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player);
@@ -226,6 +228,7 @@ extern void		SafeFree ();
 **************************************************************************/
 
 extern VALUE     *gDatabase;
+extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 
 /************************************************************************
@@ -271,6 +274,9 @@ void InitializeGame ()
 	}
 	
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
+	
+	/* GoAgain assignment moved here. -JJ */
+	gGoAgain = GoAgain;
 }
 /************************************************************************
 **
@@ -489,7 +495,10 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 	unHashMove(move, unHashedMove);
 	return unHashedMove[2]==1;
 }
-BOOLEAN (*gGoAgain)(POSITION,MOVE) = GoAgain;
+/*
+** Line moved up to InitializeGame. -JJ
+** BOOLEAN (*gGoAgain)(POSITION,MOVE) = GoAgain;
+**/
 
 /************************************************************************
 **
