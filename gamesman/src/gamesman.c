@@ -2220,17 +2220,21 @@ POSITION position;
 	  InsertLoseFR(parent);
 	  if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
 	  StoreValueOfPosition(parent,lose);
-	  if (remotenessChild + 1 > Remoteness(parent))
-	    SetRemoteness(parent, remotenessChild + 1);
+	  /* We always need to change the remoteness because we examine winning node with
+	  ** less remoteness first. */
+	  assert(remotenessChild + 1 > Remoteness(parent));
+	  SetRemoteness(parent, remotenessChild + 1);
 	} else {
 	  /* Still children, not ready for FR, just set remoteness and continue */
 	  /* If piece is undecided, that means it might be a lose, have to remember this */
 	  /* Set remoteness if I can delay mate longer */
 	  if ((parentValue = GetValueOfPosition(parent)) == undecided) {
-	    if((remotenessChild + 1) > Remoteness(parent)) {
-	      SetRemoteness(parent, remotenessChild + 1);
-	      if(kDebugDetermineValue) printf("Found way to extend lose for %d to %d\n",parent,remotenessChild+1);
-	    } /* if remoteness change */
+	    /* We always need to change the remoteness because we examine winning nodes with
+	    ** less remoteness first. */
+	    assert((remotenessChild + 1) > Remoteness(parent));
+	    SetRemoteness(parent, remotenessChild + 1);
+	    if(kDebugDetermineValue) printf("Found way to extend lose for %d to %d\n",parent,remotenessChild+1);
+	    /* if remoteness change */
 	  } /* if parent is undecided, so need to store remoteness */
 	} /* else still have children */
 	ptr = ptr->next;
@@ -2264,6 +2268,7 @@ POSITION position;
 	printf("%d was visited...",i);
       if(GetValueOfPosition((POSITION)i) == undecided) {
 	StoreValueOfPosition((POSITION)i,tie);
+	SetRemoteness((POSITION)i,0);
 	//we are done with this position and no longer need to keep around its list of parents
 	FreePositionList(gParents[child]);
 	if(kDebugDetermineValue)
@@ -2322,8 +2327,8 @@ POSITION parent,position;
     else if(value == win)
       InsertWinFR(position);
     else
-      BadElse("DFS_SetParents value");
-        /* Set the value */
+      assert(value == tie);
+    /* Set the value */
     StoreValueOfPosition(position,value);
     return;
   } else { /* first time, need to recursively determine value */
