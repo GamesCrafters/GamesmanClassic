@@ -331,7 +331,8 @@ then
         AC_CHECK_FILE([$fcheck/tkConfig.sh], tkconf="$fcheck/tkConfig.sh")
       fi
     done
-    OUTTCLSOFLAGS="$OUTTCLSOFLAGS -shared"
+    # Added -static-
+    OUTTCLSOFLAGS="$OUTTCLSOFLAGS -shared -static-libgcc"
   fi
   
   ### Final tcl/tk checks
