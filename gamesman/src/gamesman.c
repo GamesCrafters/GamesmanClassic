@@ -235,12 +235,12 @@ q (or Q)    : (Q)uit";
 
 
 
-static VALUE   gValue;                  /* The value of the game */
-static BOOLEAN gAgainstComputer;        /* TRUE iff the user is playing the computer */
+static VALUE   gValue = undecided;                  /* The value of the game */
+static BOOLEAN gAgainstComputer = TRUE;        /* TRUE iff the user is playing the computer */
 static BOOLEAN gHumanGoesFirst;         /* TRUE iff the user goes first vs. computer */
 BOOLEAN gStandardGame = TRUE;           /* TRUE iff game is STANDARD (not REVERSE) */
-static BOOLEAN gPrintPredictions ;       /* TRUE iff the predictions should be printed */
-static BOOLEAN gHints;          	 /* TRUE iff possible moves should be printed */
+static BOOLEAN gPrintPredictions = TRUE;       /* TRUE iff the predictions should be printed */
+static BOOLEAN gHints = TRUE;          	 /* TRUE iff possible moves should be printed */
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
@@ -254,8 +254,8 @@ int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
 VALUE oldValueOfPosition = tie;
 
-static MENU gMenuMode ;
-BOOLEAN gPrintHints = FALSE ;
+static MENU gMenuMode = BeforeEvaluation;
+BOOLEAN gPrintHints = TRUE;
 STRING kAuthorName = "Dan Garcia" ;
 extern POSITION kBadPosition;          /* A POSITION that will never be used */
 
@@ -314,26 +314,15 @@ void InitializeDatabases()
 void Initialize()
 {
   srand(time(NULL));
-
-  gValue            = undecided;
-  gMenuMode         = BeforeEvaluation;
-  gAgainstComputer  = TRUE;
-  gStandardGame     = TRUE;
-  gPrintPredictions = TRUE;
-  gPrintHints = TRUE;
-
   /* set default solver */
   if(kLoopy)
     gSolver = DetermineLoopyValue;
   else
     gSolver = DetermineValue1;
-
   /* set default go again */
   gGoAgain=DefaultGoAgain;
-
   sprintf(gPlayerName[kPlayerOneTurn],"Player");
   sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
-
   InitializeGame() ;
 }
 
@@ -501,7 +490,7 @@ void ParseBeforeEvaluationMenuChoice(c)
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
       int Stopwatch();
-      
+      InitializeGame();
       InitializeDatabases();
       printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
 
@@ -3113,9 +3102,8 @@ void StartGame() {
 /* Solves the game and stores it, without anybody actually playing it */
 void SolveAndStore(int option) {
   gReadDatabase = FALSE;
-  Initialize();
   setOption(option);
-  InitializeGame();
+  Initialize();
   InitializeDatabases();
   gValue = DetermineValue(gInitialPosition);
 }
@@ -3145,8 +3133,10 @@ void HandleArguments (int argc, char *argv[]) {
     }
   }
   else if(!strcmp(argv[1], "-solve")) {
-    if(argc != 3)
+    if(argc > 3)
       printf("Usage: %s -solve <hash option configuration>\n", argv[0]);
+    else if(argc == 2)
+      SolveAndStore(getOption());
     else {
       int option = atoi(argv[2]);
       if(!strcmp(argv[2], "all")) {
