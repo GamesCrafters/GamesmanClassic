@@ -29,6 +29,7 @@
 #include "gamesman.h"
 #include <stdlib.h>
 #include <unistd.h>
+#include <limits.h>
 
 extern STRING gValueString[];
 
@@ -125,7 +126,7 @@ ect...";
 typedef unsigned short SLOT;
 typedef unsigned long layer_t;
 
-// These should actually be smaller.
+// These should actually be smaller. -JJ
 
 #define MAX_BOARD_SIZE		5
 #define MAX_PIECE_SIZES		4
@@ -205,6 +206,9 @@ int			charToInt (char);
 void			computeTables (void);
 void			PrintPosition (POSITION, STRING, BOOLEAN);
 
+// External
+extern GENERIC_PTR	SafeMalloc ();
+extern void		SafeFree ();
 
 /*************************************************************************
 **
@@ -222,9 +226,8 @@ VALUE     *gDatabase;
 ** 
 ************************************************************************/
 
-void InitializeDatabases()
+void InitializeGame()
 {
-  GENERIC_PTR SafeMalloc();
   int i;
   
   if (BOARD_SIZE      >= MAX_BOARD_SIZE
@@ -241,12 +244,39 @@ void InitializeDatabases()
   TABLE_MASK = ((1 << TABLE_BITS) - 1) << COLOR_BITS;
   SLOT_PERMS = 1 << (PIECE_SIZES * 2);
   
+  if (pos2hash) {
+    SafeFree( pos2hash );
+    pos2hash = NULL;
+  }
+  
+  if (hash2pos) {
+    SafeFree( hash2pos );
+    hash2pos = NULL;
+  }
+    
   computeTables();
   
   gNumberOfPositions = 1;
-  for (i = 0; i < PIECE_SIZES; i++)
+  for (i = 0; i < PIECE_SIZES; i++) {
+    if ((UINT_MAX / tableSize) < gNumberOfPositions) {
+      printf( "Game too large.\n" );
+      gDatabase = NULL;
+      return;
+    }
     gNumberOfPositions *= tableSize;
+  }
+  
+  if ((UINT_MAX / 2) < gNumberOfPositions) {
+    printf( "Game too large.\n" );
+    gDatabase = NULL;
+    return;
+  }
   gNumberOfPositions <<= 1;
+  
+  if (gDatabase) {
+    SafeFree( gDatabase );
+    gDatabase = NULL;
+  }
   
   gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
 
@@ -862,75 +892,6 @@ void PrintMove(theMove)
 
 /************************************************************************
 *************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** 
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-************************************************************************/
-
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  return(&gDatabase[position]);
-}
-
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** 
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
-
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-  
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-  
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
-}
-
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
 ************************************************************************/
@@ -961,10 +922,7 @@ int getTopPieceSize ( SLOT slot )
 		return -1;
 	
 	if (!memoized) {
-		memoized = calloc( SLOT_PERMS, sizeof( int ) );
-		
-		if ( !memoized )
-			perror( "calloc" );
+		memoized = (int*) SafeMalloc( SLOT_PERMS * sizeof( int ) );
 		
 		for (i = 0; i < SLOT_PERMS; i++) {
 			memoized[ i] = -2;
@@ -1025,20 +983,16 @@ int getTopPieceColor ( SLOT slot )
 ************************************************************************/
 int charToInt(char pieceRep)
 {
-  if(pieceRep == '*')
-    return PIECE_SIZES*2 - 6;
-  if(pieceRep == '.')
-    return PIECE_SIZES*2 - 5;
-  if(pieceRep == 'x')
-    return PIECE_SIZES*2 - 4 ;
-  if(pieceRep == 'o')
-    return PIECE_SIZES*2 - 3;
-  if(pieceRep == 'X')
-    return PIECE_SIZES*2 - 2;
-  if(pieceRep == 'O')
-    return PIECE_SIZES*2 - 1;
-  else
-    return -1;
+  switch (pieceRep) {
+    case '*':	return PIECE_SIZES*2 - 6;
+    case '.':	return PIECE_SIZES*2 - 5;
+    case 'x':	return PIECE_SIZES*2 - 4;
+    case 'o':	return PIECE_SIZES*2 - 3;
+    case 'X':	return PIECE_SIZES*2 - 2;
+    case 'O':	return PIECE_SIZES*2 - 1;
+  }
+  
+  return -1;
 }
 
 
@@ -1053,14 +1007,21 @@ int charToInt(char pieceRep)
 **
 ************************************************************************/
 
+// This will have to be changed if POSITION gets bigger than 32 bits.
+
 int countBits ( POSITION n )
 {
-	int bitCount = 0;
+	unsigned long w = (unsigned long) n;
 	
-	for (; n; n = (n & 0xfffffffe) >> 1)
-		bitCount += (n & 1);
+	// Non-obvious method, but very fast.
 	
-	return bitCount;
+	w = (0x55555555 & w) + (0x55555555 & (w>> 1));
+	w = (0x33333333 & w) + (0x33333333 & (w>> 2));
+	w = (0x0f0f0f0f & w) + (0x0f0f0f0f & (w>> 4));
+	w = (0x00ff00ff & w) + (0x00ff00ff & (w>> 8));
+	w = (0x0000ffff & w) + (0x0000ffff & (w>>16));
+	
+	return w;
 }
 
 /************************************************************************
@@ -1080,11 +1041,8 @@ void computeTables ()
 	layer_t* tmp;
 	
 	sz = 1 << (TABLE_BITS + COLOR_BITS);
-	pos2hash = calloc( sz, sizeof( layer_t ) );
-	hash2pos = calloc( sz, sizeof( layer_t ) );
-	
-	if ( !pos2hash || !hash2pos )
-		perror( "calloc" );
+	pos2hash = (layer_t*) SafeMalloc( sz * sizeof( layer_t ) );
+	hash2pos = (layer_t*) SafeMalloc( sz * sizeof( layer_t ) );
 	
 	for (i = n = 0; i < sz; i++) {
 		bc = countBits( i & TABLE_MASK );
@@ -1109,12 +1067,10 @@ void computeTables ()
 		n++;
 	}
 	
-	tmp = calloc( n, sizeof( layer_t ) );
-	if ( !tmp )
-		perror( "calloc" );
+	tmp = (layer_t*) SafeMalloc( n * sizeof( layer_t ) );
 	
 	memcpy( tmp, hash2pos, n * sizeof( layer_t ) );
-	free( hash2pos );
+	SafeFree( hash2pos );
 	hash2pos = tmp;
 	
 	tableSize = n;
