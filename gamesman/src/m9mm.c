@@ -88,6 +88,7 @@ BOOLEAN debug = TRUE;
 #define maxx  3
 #define mino  2
 #define maxo  3
+#define maxb  18
 
 typedef enum Pieces {
   blank, x, o
@@ -309,7 +310,7 @@ POSITION GetInitialPosition()
   blankox turn;
   
   i = xOnBoard = oOnBoard = bOnBoard = 0;
-  
+  turn = blank; 
   
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");
@@ -330,12 +331,11 @@ POSITION GetInitialPosition()
   printf("        |           |           |\n");
   printf("        |           |           |\n");
   printf("        _-----------_-----------_\n");
-  printf("Is input as \n\t_ o _\n\tx _ o\n _ x _ \n\t_ _ _ _ _ _\n\t_ x _ \n\t_ _ o\n\t_ _ _");
+  printf("Is input as \n\tb o b\n\tx b o\n\tb x b \n\tb b b b b b\n\tb x b \n\tb b o\n\tb b b\n\nYour board:\n");
 
-  getchar(); // dump a char
+  getchar(); // dump a char 
 
   while (i < BOARDSIZE && (c = getchar()) != EOF) {
-    board[i++] = parse_char(c);
     if (c == 'x' || c == 'X')
       xOnBoard++;
     else if (c == 'o' || c == 'O' || c == '0')
@@ -343,29 +343,30 @@ POSITION GetInitialPosition()
     else if (c == 'b' || c == 'B')
       bOnBoard++;
     else {
-      printf("\n Illegal Board Position Please Re-Enter\n");
-      return GetInitialPosition();
+      continue; // don't recognize the char, continue to the next
     }
+    board[i++] = parse_char(c); // we recognize the char, add it to board
   }
 
-  // hard coded sanity check for 3 vs 3
+  // hard coded sanity check for maxx vs maxo
   // should add a hash/unhash sanity check
-  if (xOnBoard != 3 || oOnBoard != 3 || bOnBoard != 18) {
+  if (xOnBoard != maxx || oOnBoard != maxo || bOnBoard != maxb) {
     printf("\n Illegal Board Position Please Re-Enter\n");
     return GetInitialPosition();
   }
 
   // now get the turn
   getchar(); // dump another character
-  printf("\nWhose turn is it? [x/o]");
-  scanf("%c",&c);
 
-  turn = parse_char(c);
+
+  while (turn == blank) {
+    printf("\nWhose turn is it? [x/o] ");
+    scanf("%c",&c);
+    turn = parse_char(c);
+  }
   
   return hash(board, turn);
-
-  
-  
+ 
 }
 
 
@@ -670,7 +671,7 @@ BOOLEAN ValidTextInput(input)
 {
   // we could bulletproof this a lot more
   // currently checks for a number, a space followed by a number, 
-  //and an optional comma with a number
+  // and an optional comma with a number
   
   int i;
 
@@ -678,6 +679,11 @@ BOOLEAN ValidTextInput(input)
   STRING afterSpace;
   STRING afterComma;
   
+  //debug
+  if (debug) {
+    printf("ValidTextInput evaluating: %s \n", input);
+  }
+
   i = atoi(input);
 
   hasSpace = index(input, ' ') != NULL;
@@ -926,7 +932,7 @@ blankox parse_char(char c) {
   else if (c == 'b' || c == 'B')
     return blank;
   else
-    return x; // fix this so that it's a badelse
+    return blank; // fix this so that it's a badelse
   
 }
 
@@ -1064,6 +1070,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.30  2004/04/10 19:50:09  ogren
+//debugging is a little prettier, but maybe too much printing -Elmer
+//
 //Revision 1.29  2004/04/07 23:45:23  ogren
 //expanded debugPosition (still untested) and added a place for future char unparse_blankox (just for balance)
 //
