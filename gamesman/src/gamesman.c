@@ -818,10 +818,14 @@ PlayAgainstComputer()
 	  (Primitive(thePosition) == win && usersTurn))
     printf("\nExcellent! You won!\n\n");
   else if(Primitive(thePosition) == tie)
-    printf("The match ends in a draw. Excellent strategy, %s.\n\n", 
+    printf("The match ends in a tie. Excellent strategy, %s.\n\n", 
 	   gPlayerName[kHumansTurn]);
   else if(userInput == Abort)
     printf("Your abort command has been received and successfully processed!\n");
+  else if (abort == TRUE) { /* Player chooses to end the game in a draw */
+    printf("The match ends in a draw.  Excellent strategy, %s. \n\n",
+	   gPlayerName[kHumansTurn]);
+  }
   else
     BadElse("PlayAgainstHuman"); 
 
@@ -2219,7 +2223,7 @@ POSITION position;
 	/* If this is the last unknown child and they were all wins, parent is lose */
 	if(--gNumberChildren[parent] == 0) {
 	    /* no more kids, it's not been seen before, assign it as losing, put at head */
-	  assert(GetValueOfPosition(position) == undecided);
+	  assert(GetValueOfPosition(parent) == undecided);
 
 	  InsertLoseFR(parent);
 	  if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
