@@ -32,6 +32,8 @@ typedef int ClientData;
 #include <sys/time.h> 
 #include <limits.h>
 
+
+
 #define  MAXINT2          1073741823 /* 2^30 - 1 */
 #define  MAXNAME          15         /* arbitrary */
 #define  MAXINPUTLENGTH   80         /* arbitrary */
@@ -256,4 +258,13 @@ void SetTclCGameSpecificOptions(int theOptions[]);
 /* Status Meter */
 void showStatus(int done);
 
+/* analysis functions */
+void analyze();
+void createVarTable();
+void writeVarHTML();
+void writeVarStat(char * statName, char * text, FILE *rowp);
+void createAnalysisGameDir();
+void createAnalysisVarDir();
+void writeGameHTML();
+void createAnalysisLink();
 #endif

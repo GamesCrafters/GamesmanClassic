@@ -11,14 +11,17 @@
 
 
 /* analysis and documentation bookkeeping */
+// may make this into a struct later
 
-                    
-int gTotalWins =0;
-int gTotalLoses = 0;
-int gTotalTies = 0;
-int gTotalMoves = 0;
-extern STRING  kGamesmanName;     // Dan the man
-extern STRING  kModuleAuthorName; // module writers
+
+//extern STRING  kGUIAuthorName;    // graphics writers
+int gHashEfficiency;
+float gAverageFanout;
+long gTotalPositions;
+long gTotalMoves;
+long gWinCount, gLoseCount, gTieCount, gUnknownCount;
+long gPrimitiveWins, gPrimitiveLoses, gPrimitiveTies;
+int gTimer;
 
 
 /* gameplay-related internal function prototypes */
@@ -251,8 +254,9 @@ BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
-
-
+BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
+                                   * solved, default: FALSE */
+STRING gAnalysisDir = "../analysis/"; /* Default analysis directory */
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;
 int   remainingGivebacks = 0;
@@ -357,7 +361,7 @@ void SetSolver() {
     if (gGoAgain == DefaultGoAgain)
       gSolver = DetermineLoopyValue;
     else
-      gSolver = lgas_DetermineValue;
+      gSolver = DetermineLoopyValue;//lgas_DetermineValue;
   }
     
   else
@@ -502,9 +506,11 @@ BOOLEAN ParseConstantMenuChoice(c)
 void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
+
   BOOLEAN tempPredictions;
   int timer;
   VALUE gameValue;
+
 
   switch(c) {
   case 'G': case 'g':
@@ -546,11 +552,13 @@ void ParseBeforeEvaluationMenuChoice(c)
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
       InitializeDatabases();
-      printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
+      printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
 
       gPrintDatabaseInfo = TRUE;
       gameValue = DetermineValue(gInitialPosition);
-      printf("done in %d seconds!", Stopwatch());
+
+      printf("done in %d seconds!", gTimer = Stopwatch());
+
 
       
       
@@ -2540,65 +2548,28 @@ void PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLoseP
 
 void PrintGameValueSummary()
 {
-  POSITION thePosition;
-  VALUE theValue;
-  long winCount, loseCount, tieCount, unknownCount;
-  long primitiveWins, primitiveLoses, primitiveTies;
-  long reachablePositions;
-  long totalPositions;
-  int  hashEfficiency;
-  float averageFanout;
-
-  totalPositions = winCount = loseCount = tieCount = unknownCount = 0;
-  primitiveWins = primitiveLoses = primitiveTies = 0;
-  reachablePositions = 0;
-  hashEfficiency = 0;
-  averageFanout = 0;
-  for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
-  {
-    theValue = GetValueOfPosition(thePosition);
-    if (theValue != undecided) {
-      totalPositions++;
-      if(theValue == win)  {
-	winCount++;
-	reachablePositions++;
-	if (Remoteness(thePosition) == 0) primitiveWins++;
-      } else if(theValue == lose) {
-	loseCount++;
-	reachablePositions++;
-	if (Remoteness(thePosition) == 0) primitiveLoses++;
-      } else if(theValue == tie) {
-	tieCount++;
-	reachablePositions++;
-	if (Remoteness(thePosition) == 0) primitiveTies++;
-      } else {
-	unknownCount++;
-      }
-    }
-  }
-  hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
-  averageFanout = ((float)((int)gTotalMoves - (int)primitiveLoses -(int)primitiveWins - (int)primitiveTies)/reachablePositions);
+  
     
   printf("\n\n\t----- Summmary of Game values -----\n\n");
   
   printf("\tValue       Number       Total\n");
   printf("\t------------------------------\n");
-  printf("\tLose      = %5lu out of %lu\n",loseCount,totalPositions);	
-  printf("\tWin       = %5lu out of %lu\n",winCount,totalPositions);	
-  printf("\tTie       = %5lu out of %lu\n",tieCount,totalPositions);	
-  printf("\tUnknown   = %5lu out of %lu\n",unknownCount,totalPositions);	
-  printf("\tTOTAL     = %5lu out of %lu\n",
-	 totalPositions,
+  printf("\tLose      = %5lu out of %lu\n",gLoseCount,gTotalPositions);	
+  printf("\tWin       = %5lu out of %lu\n",gWinCount,gTotalPositions);	
+  printf("\tTie       = %5lu out of %lu\n",gTieCount,gTotalPositions);	
+  printf("\tUnknown   = %5lu out of %lu\n",gUnknownCount,gTotalPositions);	
+  printf("\tTOTAL     = %5lu out of %lu allocated\n",
+	 gTotalPositions,
 	 gNumberOfPositions);
 
-  printf("\tHash Efficiency                   = %6d\%%        \n",hashEfficiency);
-  printf("\tAvg. number of moves per position = %2f           \n", averageFanout);
-  printf("\tTotal Primitive Wins              = %5lu\n", primitiveWins);
-  printf("\tTotal Primitive Loses             = %5lu\n", primitiveLoses);
-  printf("\tTotal Primitive Ties              = %5lu\n", primitiveTies);
+  printf("\tHash Efficiency                   = %6d\%%        \n",gHashEfficiency);
+  printf("\tTotal Moves                       = %5lu\n",gTotalMoves);
+  printf("\tAvg. number of moves per position = %2f           \n", gAverageFanout);
+  printf("\tTotal Primitive Wins              = %5lu\n", gPrimitiveWins);
+  printf("\tTotal Primitive Loses             = %5lu\n", gPrimitiveLoses);
+  printf("\tTotal Primitive Ties              = %5lu\n", gPrimitiveTies);
 
-  //createAndPrintRemotenessArray();
-
+  
   return;
 
 }
@@ -3528,6 +3499,9 @@ int loadDatabase()
 void StartGame() {
   Initialize();
   Menus();
+  
+  
+  
 }
 
 /* Solves the game and stores it, without anybody actually playing it */
@@ -3535,6 +3509,12 @@ void SolveAndStore() {
   Initialize();
   InitializeDatabases();
   DetermineValue(gInitialPosition);
+  // analysis
+  if (gAnalyzing) {
+    analyze(); // sets global variables
+    createAnalysisVarDir();
+    writeVarHTML();
+  }
 }
 
 /* Handles the command line arguments by setting flags and options */
@@ -3547,6 +3527,14 @@ void HandleArguments (int argc, char *argv[]) {
     }
     else if(!strcasecmp(argv[i], "--newdb"))
       gReadDatabase = FALSE;
+    else if(!strcasecmp(argv[i], "--numoptions")) {
+      fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
+      gMessage = TRUE;
+    }
+    else if(!strcasecmp(argv[i], "--curroption")) {
+       fprintf(stderr, "\nCurrent Option: %d\n", getOption());
+      gMessage = TRUE;
+    }
     else if(!strcasecmp(argv[i], "--option")) {
       if(argc < (i + 2)) {
 	fprintf(stderr, "\nUsage: %s --option <n>\n\n", argv[0]);
@@ -3579,6 +3567,18 @@ void HandleArguments (int argc, char *argv[]) {
       }
       else if(option)
 	setOption(option);
+    }
+    else if(!strcasecmp(argv[i], "--analyze")) {
+      gJustSolving = TRUE;
+      gAnalyzing = TRUE;
+      createAnalysisGameDir();
+      writeGameHTML();
+      createVarTable();
+      if ((i + 1) < argc) {
+	gAnalysisDir = argv[++i];
+	createAnalysisLink();
+      }
+      
     }
     else if(!strcasecmp(argv[i], "--DoMove")) {
       InitializeGame();
@@ -3615,11 +3615,14 @@ void HandleArguments (int argc, char *argv[]) {
     }
     else if(!strcasecmp(argv[i], "--help")) {
       printf("\nSyntax:\n"
-	     "%s {--nodb | --newdb | --option <n> | --solve [<n> | <all>] |\n"
+	     "%s {--nodb | --newdb | --curroption | --numoptions |"
+	     "\t\t --option <n> | --solve [<n> | <all>] | --analyze [ <linkname> ]|\n"
 	     "\t\t--DoMove <args> <move> | --Primitive <args> | \n"
 	     "\t\t--PrintPosition <args> --GenerateMoves <args>} | --help}\n\n"
 	     "--nodb\t\t\tStarts game without loading or saving to the database.\n"
 	     "--newdb\t\t\tStarts game and clobbers the old database.\n"
+	     "--numoptions\t\tPrints the number of options.\n"
+	     "--curroption\t\tPrints the current option.\n"
 	     "--option <n>\t\tStarts game with the n option configuration.\n"
 	     "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 	     "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
@@ -3631,6 +3634,9 @@ void HandleArguments (int argc, char *argv[]) {
 	     "\t\t\t%s --solve\n"
 	     "\t\t\t%s --solve 2\n"
 	     "\t\t\t%s --solve all\n"
+	     "--analyze [ <linkname> ]\t creates the analysis directory\n"
+	     "\t\t\t if <linkname> is provided, a hard link is made to the file\n"
+	     "\t\t\t specified by <linkname>"
 	     "--DoMove <args>\n"
 	     "--Primitive <args>\n"
 	     "--PrintPosition <args>\n"
@@ -3648,6 +3654,8 @@ void HandleArguments (int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
   HandleArguments(argc, argv);
+  
+  
   if(!gMessage) {
     if(!gJustSolving)
       StartGame();
@@ -3671,4 +3679,257 @@ int main(int argc, char *argv[]) {
     }
   }
   return 0;
+}
+
+/** Analysis **/
+
+void analyze() {
+
+  POSITION thePosition;
+  VALUE theValue;
+  long winCount, loseCount, tieCount, unknownCount;
+  long primitiveWins, primitiveLoses, primitiveTies;
+  long reachablePositions;
+  long totalPositions;
+  int  hashEfficiency;
+  float averageFanout;
+  
+  totalPositions = winCount = loseCount = tieCount = unknownCount = 0;
+  primitiveWins = primitiveLoses = primitiveTies = 0;
+  reachablePositions = 0;
+  hashEfficiency = 0;
+  averageFanout = 0;
+  for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
+  {
+    theValue = GetValueOfPosition(thePosition);
+    if (theValue != undecided) {
+      totalPositions++;
+      if(theValue == win)  {
+	winCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveWins++;
+      } else if(theValue == lose) {
+	loseCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveLoses++;
+      } else if(theValue == tie) {
+	tieCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveTies++;
+      } else {
+	unknownCount++;
+      }
+    }
+  }
+  hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
+  averageFanout = (float)((float)gTotalMoves/(float)reachablePositions);
+  
+  gHashEfficiency = hashEfficiency;
+  gAverageFanout = averageFanout;
+  gTotalPositions = totalPositions;
+  gWinCount = winCount;
+  gLoseCount = loseCount;
+  gTieCount = tieCount;
+  gUnknownCount = unknownCount;
+  gPrimitiveWins = primitiveWins;
+  gPrimitiveLoses = primitiveLoses;
+  gPrimitiveTies = primitiveTies;
+  
+}
+
+
+
+// Write variant statistic
+void writeVarStat(char * statName, char * text, FILE *rowp) {
+
+  FILE * filep;
+  //FILE * rawfilep ;
+  char outFileName[256];
+  
+  sprintf(outFileName, "%s/var%d/%s", kDBName,getOption(),statName) ;
+  
+  filep = fopen(strcat(gAnalysisDir, outFileName), "w");
+
+
+  fprintf(filep,"<!-- AUTO CREATED, do //not modify-->\n");
+  fprintf(filep,text);
+  fprintf(filep,"\n");
+  
+
+  fprintf(rowp,"<td ALIGN = ""center""><!--#include virtual=\"%s\"--></td>\n",statName);
+ 
+
+  fclose(filep);
+  
+  
+}
+void createAnalysisGameDir() {
+  char gameDirName[256];
+
+
+  mkdir(gAnalysisDir, 0755);
+  mkdir( strcat(gAnalysisDir, kDBName), 0755);
+  
+}
+void createAnalysisVarDir() {
+  char varDirName[256];
+  sprintf(varDirName, "%s/var%d", kDBName,getOption());
+  mkdir(strcat(gAnalysisDir, varDirName), 0755) ;
+}
+
+
+
+void writeGameHTML() {
+  char gameFileName[256];
+  FILE *gamep;
+
+  
+  STRING bgColor = "#000066";
+  STRING fontColor = "#FFFFFF";
+  STRING fontFace = "verdana";
+  
+  sprintf(gameFileName, "%s/%s.shtml", kDBName,kDBName);
+  gamep = fopen(strcat(gAnalysisDir, gameFileName), "w");
+
+  fprintf(gamep, "<html><head>\n");
+  fprintf(gamep, "<style>a:link, a:visited {color: %s\ntext-decoration: none;}\n\n", bgColor);
+  fprintf(gamep, "a:hover, a:active {color: %s; text-decoration: none;}\ntd {color: %s}\n</style>\n", bgColor, fontColor);
+
+  fprintf(gamep, "</head>\n");
+  fprintf(gamep, "<body bgcolor=\"%s\">\n",bgColor);
+  fprintf(gamep, "<font color = \"%s\" face = %s size = 2>", fontColor, fontFace);
+
+  // a picture of the game
+  fprintf(gamep, "<center>\n");
+  fprintf(gamep, "<img src=\"../images/%s.gif\" width = 100 height = 100>", kDBName);
+  fprintf(gamep, "</br></br>\n");
+  fprintf(gamep, "</center>\n");
+  
+  // Game name, gamescrafter
+  fprintf(gamep, "<center>");
+  fprintf(gamep, "<h1><b>\n");
+  fprintf(gamep, "%s\n", kGameName);
+  fprintf(gamep, "</h1></b>\n");
+  fprintf(gamep, "<h2><b>\n");
+  fprintf(gamep, "Crafted by: %s", kAuthorName);
+  fprintf(gamep, "</h2></b>\n");
+  fprintf(gamep, "</center>");
+  
+  fprintf(gamep, "<!--#include virtual=\"%s_table.shtml\"-->\n", kDBName);
+
+  fprintf(gamep, "</body>");
+  fprintf(gamep, "</html>\n");
+  
+  fclose(gamep);
+}
+
+
+void createVarTable () {
+  char tableFileName[256];
+  FILE * tablep;
+  int i;
+  
+  sprintf(tableFileName, strcat(gAnalysisDir,"%s/%s_table.shtml"), kDBName, kDBName);
+  tablep = fopen(strcat(gAnalysisDir, tableFileName), "w");
+  
+  fprintf(tablep,"<!-- AUTO CREATED, do not modify-->\n");
+  fprintf(tablep,"<table align=""ABSCENTER"" BORDER =""1"" CELLSPACING=""0"" CELLPADDING=""5"">\n");
+  fprintf(tablep,"<tr>\n");
+
+  fprintf(tablep,"<td><b>Variant</b></td>\n");
+  fprintf(tablep,"<td><b>Value</b></td>\n");
+  fprintf(tablep,"<td><b>Wins</b></td>\n");
+  fprintf(tablep,"<td><b>Loses</b></td>\n");
+  fprintf(tablep,"<td><b>Ties</b></td>\n");
+  fprintf(tablep,"<td><b>Primitive Wins</b></td>\n");
+  fprintf(tablep,"<td><b>Primitive Loses</b></td>\n");
+  fprintf(tablep,"<td><b>Primitive Ties</b></td>\n");
+  fprintf(tablep,"<td><b>Reachable Positions</b></td>\n");
+  fprintf(tablep,"<td><b>Total Positions</b></td>\n");
+  fprintf(tablep,"<td><b>Hash Efficiency (%%)</b></td>\n");
+  fprintf(tablep,"<td><b>Avg. Fanout</b></td>\n");
+  fprintf(tablep,"<td><b>Timer(s)</b></td>\n");
+  
+
+  fprintf(tablep,"</tr>\n");
+  
+  for (i = 1; i <= NumberOfOptions(); i++) {
+    fprintf(tablep,"<tr>\n");
+    fprintf(tablep,"<!--#include virtual=\"var%d/row.shtml\"-->\n", i);
+    fprintf(tablep,"</tr>\n");
+  }
+  
+  fprintf(tablep,"</table>\n");
+  fclose (tablep);
+  
+}
+
+void writeVarHTML () {
+  
+  char text[256];
+  FILE * rowp;
+  char rowFileName[256];
+
+  sprintf(rowFileName, "%s/var%d/row.shtml", kDBName,getOption()) ;
+
+  rowp = fopen(strcat(gAnalysisDir, rowFileName), "w");
+
+  /***********************************
+       Variant Specific
+  ************************************/
+
+
+  fprintf(rowp,"<!-- AUTO CREATED, do not modify-->\n");
+
+  sprintf(text, "%d",getOption());
+  writeVarStat("option",text,rowp);
+
+  writeVarStat("value", gValueString[(int)gValue], rowp);
+
+  sprintf(text, "%5lu", gWinCount);
+  writeVarStat("WinCount", text, rowp);
+
+  sprintf(text, "%5lu", gLoseCount);
+  writeVarStat("LoseCount", text, rowp);
+
+  sprintf(text, "%5lu", gTieCount);
+  writeVarStat("TieCount", text, rowp);
+
+  sprintf(text, "%5lu", gPrimitiveWins);
+  writeVarStat("Prim.WinCount", text, rowp);
+    
+  sprintf(text, "%5lu", gPrimitiveLoses);
+  writeVarStat("Prim.LoseCount", text, rowp);
+
+  sprintf(text, "%5lu", gPrimitiveTies);
+  writeVarStat("Prim.TieCount", text, rowp);
+
+  
+  sprintf(text, "%5lu", gTotalPositions);
+  writeVarStat("totalPositions", text , rowp);
+  
+  sprintf(text, "%5lu", gNumberOfPositions);
+  writeVarStat("NumberOfPositions", text, rowp);
+  
+  sprintf(text, "%d", gHashEfficiency);
+  writeVarStat("hashEfficiency", text, rowp);
+  
+
+  sprintf(text, "%2f", gAverageFanout);
+  writeVarStat("AverageFanout", text, rowp);
+  
+  sprintf(text, "%d", gTimer);
+  writeVarStat("TimeToSolve", text, rowp);
+  
+  
+  
+  fclose(rowp);
+  
+}
+
+void createAnalysisLink() {
+  //printf(filename);
+  
+  symlink ( gAnalysisDir, "../analysis");
+  // if linkname == gAnalysis dir, the above is a nop
 }
