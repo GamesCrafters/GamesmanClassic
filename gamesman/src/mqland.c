@@ -1,4 +1,4 @@
-// Steven Kusalo
+// Alex Wallisch
 // $log$
 
 /*
@@ -119,13 +119,17 @@ STRING   kHelpExample =
  * The rightmost 10 bits encode the player's PLACE move.
  */
 /*
-#define get_move_source(move) ((move) & 0x3FF00000)
-#define get_move_dest(move) ((move) & 0x000FFC00)
+#define get_move_source(move) (((move) & 0x3FF00000) >> 20)
+#define get_move_dest(move) (((move) & 0x000FFC00)) >> 10)
 #define get_move_place(move) ((move) & 0x000003FF)
 #define set_move_source(move, source) ((move) &= 0xC00FFFFF); ((move) |= ((source) << 20))
 #define set_move_dest(move, dest) ((move) &= 0xFFF003FF); ((move) |= ((dest) << 10))
 #define set_move_place(move, place) ((move) &= 0xFFFFFC00); ((move) |= (place))
 */
+
+/* This represents a move as being source*b^2 + dest*b +place 
+ * where b is the size of the board, i.e. width*height.
+ */
 #define get_move_source(move) ((move) / (width*width*height*height))
 #define get_move_dest(move) (((move) % (width*width*height*height)) / (width*height))
 #define get_move_place(move) ((move) % (width*height))
@@ -142,8 +146,11 @@ STRING   kHelpExample =
 int height = 4;
 int width = 4;
 int numpieces = 4;
+enum rules_for_sliding {MUST_SLIDE, MAY_SLIDE, NO_SLIDE} slide_rules = MAY_SLIDE;
 BOOLEAN scoreDiagonal = TRUE;
 BOOLEAN scoreStraight = TRUE;
+BOOLEAN moveDiagonal = TRUE;
+BOOLEAN moveStraight = TRUE;
 
 /*************************************************************************
 **
@@ -163,6 +170,9 @@ int scoreBoard(char *board, char player);
 void ChangeBoardSize();
 void ChangeNumPieces();
 void ChangeScoringSystem();
+MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
+BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -221,7 +231,7 @@ MOVELIST *GenerateMoves (POSITION position)
     
 	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	int player;
-	int sx, sy, dx, dy, px, py; /* Source x-coord, source y-coord, dest x-coord... etc. */
+	int s, d; /* source, dest */
 	BOOLEAN validDestination;
 	int i, j;
 	char* board = (char*) SafeMalloc(sizeof(char) * width * height);
@@ -231,73 +241,23 @@ MOVELIST *GenerateMoves (POSITION position)
 	player = next_player(position);
 	players_piece = (player == 1 ? WHITE : BLACK);
 	board = generic_unhash(position, board);
-	
 	/* Check moves that don't slide a piece from SOURCE to DEST */
-	for (px = 0; px < width; px++) {
-		for (py = 0; py < height; py++) {
-			if (pieceat(board, px, py) == BLANK) {
-				move = 0;
-				/*set_move_source(move, 0);
-				set_move_dest(move, 0);*/
-				set_move_place(move, get_location(px, py));
-				moves = CreateMovelistNode(move, moves);
-			}
-		}
+	if (slide_rules != MUST_SLIDE) {
+		moves = add_all_place_moves(0, 0, board, moves);
 	}
 	
-	for (sx = 0; sx < width; sx++) {
-		for (sy = 0; sy < height; sy++) {
-			if (pieceat(board, sx, sy) == players_piece) {
-				for (dx = 0; dx < width; dx++) {
-					for (dy = 0; dy < height; dy++) {
-					        /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
-					        validDestination = TRUE; 
-						if (pieceat(board, dx, dy) != BLANK) {
-							validDestination = FALSE;
-						}
-						else if (sx == dx && sy == dy){
-							validDestination = FALSE;
-						}
-						else if (sx == dx && sy != dy) {
-							for (i = (sy < dy ? sy + 1 : sy - 1); i != dy; (sy < dy ? i++ : i--)) {
-								if (pieceat(board, sx, i) != BLANK) {
-									validDestination = FALSE;
-								}
-							}
-						}
-						else if (sx != dx && sy == dy) {
-							for (i = (sx < dx ? sx + 1 : sx - 1); i != dx; (sx < dx ? i++ : i--)) {
-								if (pieceat(board, i, sy) != BLANK) {
-									validDestination = FALSE;
-								}
-							}
-						}
-						else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
-							for (i = (sx < dx ? sx + 1 : sx - 1), j = (sy < dy ? sy + 1 : sy - 1); i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
-								if (pieceat(board, i, j) != BLANK) {
-									validDestination = FALSE;
-								}
-							}
-						}
-						else validDestination = FALSE;
-						if (validDestination) {
-							for (px = 0; px < width; px++) {
-								for (py = 0; py < height; py++) {
-									if ((pieceat(board, px, py) == BLANK && !(px == dx && py == dy)) || (px == sx && py == sy)) {
-										move = 0;
-										set_move_source(move, get_location(sx, sy));
-										set_move_dest(move, get_location(dx, dy));
-										set_move_place(move, get_location(px, py));
-										moves = CreateMovelistNode(move, moves);
-									}
-								}
-							}
-						}
+	if (slide_rules != NO_SLIDE) {
+		for (s = width * height - 1; s >= 0; s--) {
+			if (pieceat(board, get_x_coord(s), get_y_coord(s)) == players_piece) {
+				for (d = width * height - 1; d >= 0; d--) {
+					if (valid_move(s,d, board)) {
+						moves = add_all_place_moves(s, d, board, moves);
 					}
 				}
 			}
 		}
 	}
+		
 	SafeFree(board);
 	return moves;
 }
@@ -489,6 +449,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		printf("=");
 	}
 	printf("/\n");
+	printf("%s\n", GetPrediction(position, playersName, usersTurn));
 	SafeFree(board);
 }
 	
@@ -951,12 +912,12 @@ void ChangeNumPieces() {
     while(TRUE) {
 	printf("\n\nEnter the number of pieces each team starts with: ");
 	scanf("%d", &newAmount);
-	if (newAmount <= (width*height)/2 && newAmount >= 1) {
+	if (newAmount <= width && newAmount >= 1) {
 	    numpieces = newAmount;
 	    printf("Number of pieces changed to %d\n", numpieces);
 	    return;
 	}
-	printf("Number must be between 1 and %d.  Please try again.\n", ((width*height)/2) - 1);
+	printf("Number must be between 1 and %d.  Please try again.\n", width);
     }
 }
 
@@ -1002,4 +963,66 @@ int XYToNumber(char* xy) {
 	x = tolower(xy[0]) - 'a';
 	y = xy[1] - '0';
 	return get_location(x, y);
+}
+
+
+MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves) {
+	int px, py;
+	MOVE move;
+	for (px = width - 1; px >= 0; px--) {
+		for (py = height - 1; py >= 0; py--) {
+			if (pieceat(board, px, py) == BLANK) {
+				move = 0;
+				set_move_source(move, source_pos);
+				set_move_dest(move, dest_pos);
+				set_move_place(move, get_location(px, py));
+				moves = CreateMovelistNode(move, moves);
+			}
+		}
+	}
+	return moves;
+}
+
+BOOLEAN valid_move(int source_pos, int dest_pos, char* board) {
+	int sx = get_x_coord(source_pos); 
+	int sy = get_y_coord(source_pos);
+	int dx = get_x_coord(dest_pos);
+	int dy = get_y_coord(dest_pos);
+	int i, j;
+	
+	if (pieceat(board, dx, dy) != BLANK) {
+		return FALSE;
+	}
+	else if (sx == dx && sy == dy){
+		return FALSE;
+	}
+	else if ((sx == dx || sy == dy) && !moveStraight) {
+		return FALSE;
+	}
+	else if (sx == dx) {
+		for (i = (sy < dy ? sy + 1 : sy - 1); i != dy; (sy < dy ? i++ : i--)) {
+			if (pieceat(board, sx, i) != BLANK) {
+				return FALSE;
+			}
+		}
+	}
+	else if (sy == dy) {
+		for (i = (sx < dx ? sx + 1 : sx - 1); i != dx; (sx < dx ? i++ : i--)) {
+			if (pieceat(board, i, sy) != BLANK) {
+				return FALSE;
+			}
+		}
+	}
+	else if ((abs(sx - dx) == abs (sy - dy)) && !moveDiagonal) {
+		return FALSE;
+	}
+	else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
+		for (i = (sx < dx ? sx + 1 : sx - 1), j = (sy < dy ? sy + 1 : sy - 1); i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
+			if (pieceat(board, i, j) != BLANK) {
+				return FALSE;
+			}
+		}
+	}
+	else return FALSE;
+	return TRUE;
 }
