@@ -175,10 +175,11 @@ STRING   kHelpExample = "coming soon! buy viagra in the meantime!";
 #define PLAYER1_PIECE 'X';
 #define PLAYER2_PIECE 'O';
 #define EMPTY_PIECE ' ';
-#define BOARD_ROWS 5;
-#define BOARD_COLS 4;
-#define PLAYER_PIECES 4;
-#define NUM_TO_WIN 3; /* how many pieces must be in the line */
+int BOARD_ROWS = 5;
+int BOARD_COLS = 4;
+int PLAYER_PIECES = BOARD_COLS;
+int NUM_TO_WIN = 3; /* how many pieces must be in the line */
+int BOARD_SIZE = BOARD_ROWS*BOARD_COLS;
 
 /*************************************************************************
 **
@@ -241,6 +242,8 @@ STRING initial_board = {
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+/* Internal */
+void InitializeGame();
 
 
 /*************************************************************************
@@ -264,15 +267,14 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  int num_squares = BOARD_ROWS*BOARD_COLS;
   int x,y;
   char piece;
-  char board[num_squares];
+  char board[BOARD_SIZE];
   int player = 1;
   int[] pieces_array = {PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
 			PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
-			EMPTY_PIECE,num_squares-2*PLAYER_PIECES,
-			num_squares-2*PLAYER_PIECES,-1};
+			EMPTY_PIECE,   BOARD_SIZE-2*PLAYER_PIECES,
+			BOARD_SIZE-2*PLAYER_PIECES, -1};
   /* board = SafeMalloc(sizeof(char)*num_squares); */
   /* memory leak - how do i free the board? */
   for (x = 0; x < BOARD_COLS; x++) {
@@ -295,7 +297,7 @@ void InitializeGame ()
       board[CoordsToIndex(x,y)] = piece;
     }
   }
-  gNumberOfPositions = generic_hash_init(num_squares, pieces_array, NULL);
+  gNumberOfPositions = generic_hash_init(BOARD_SIZE, pieces_array, NULL);
   gInitialPosition = generic_hash(board, player);
 }
 
@@ -327,7 +329,7 @@ MOVELIST *GenerateMoves (POSITION position)
 {
   MOVELIST *moves = NULL;
   int x, y, i, dx, dy;
-  char board[BOARD_ROWS*BOARD_COLS];
+  char board[BOARD_SIZE];
   int player = whoseMove(position);
   board = generic_unhash (position, board);
 
@@ -381,7 +383,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  char board[BOARD_ROWS*BOARD_COLS];
+  char board[BOARD_SIZE];
   board = generic_unhash (position, board);
   int coords[4];
   int player = whoseMove(position);
@@ -426,7 +428,7 @@ VALUE Primitive (POSITION position)
    * can think about it this way because players are only allowed to move their
    * own pieces.
    */
-  char board[BOARD_ROWS*BOARD_COLS];
+  char board[BOARD_SIZE];
   board = generic_unhash (position, board);
   int x,y,d;
   for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) {
@@ -485,7 +487,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  char board[BOARD_ROWS*BOARD_COLS];
+  char board[BOARD_SIZE];
   board = generic_unhash (position);
   int x,y;
   printf (" The game board as %s sees it:\n  +", playersName);
@@ -522,7 +524,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
     int position = Unhasher_Position (computersMove);
     int direction = Unhasher_Direction (computersMove);
-    int[] coords;
+    int coords[4];
     coords = DecodeMove(computersMove, coords);
     printf("%8s moved (%2d,%2d) to (%2d,%2d)\n\n ",computersName, coords[0], \
 	   coords[1], coords[2], coords[3]);
@@ -817,10 +819,28 @@ MOVE EncodeMove (int from_x, int from_y, int to_x, int to_y) {
 		  *BOARD_ROWS + to_y);
 }
 
+/* why do i use board rows and columns directly?  why don't i use
+ * CoordsToIndex and board size?
+ */
 int[] DecodeMove(MOVE hashed_move, int[] coords) {
   coords[0] = hashed_move/(BOARD_ROWS*BOARD_COLS*BOARD_ROWS); /* fromx */
   coords[1] = (hashed_move/(BOARD_ROWS*BOARD_COLS))%BOARD_ROWS; /* fromy */
   coords[2] = (hashed_move/BOARD_ROWS)%BOARD_COLS; /* tox */
   coords[3] = hashed_move % BOARD_ROWS; /* toy */
   return coords;
+}
+
+/* based on how i'm using it, it looks like it'd be more useful and less buggy
+ * to have functions that transfer from coords to indices and back.  as in,
+ * don't have Encode and Decode Move.
+ */
+
+int[] MoveToIndex(MOVE move, int[] index) {
+  index[0] = move/BOARD_SIZE;
+  index[1] = move%BOARD_SIZE;
+  return index;
+}
+
+MOVE IndexToMove(int[] index) {
+  return index[0]*BOARD_SIZE+index[1];
 }
