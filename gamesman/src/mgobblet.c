@@ -700,7 +700,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("       X Stock: ");
   for(pSizes=0; pSizes < PIECE_SIZES*2; pSizes+=2)
   {
-    printf("%d: %d ",pSizes+1,myPos.stash[ pSizes]);
+    printf("%d(%d): %d ",pSizes+1,pSizes+TABLES_SLOTS,myPos.stash[ pSizes]);
   }
   printf("\n       Y Stock: ");
  for(pSizes=1; pSizes < PIECE_SIZES*2; pSizes+=2)
@@ -834,39 +834,20 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  int i = 0;
-  int j = 0;
-  int start;
-  int end;
-  if((input[i] != 'X') &&
-     (input[i] != 'x') &&
-     (input[i] != '*') &&
-     (input[i] != 'O') &&
-     (input[i] != 'o') &&
-     (input[i] != '.')) {
-    while((input[i] <= '9') && (input[i] >= '0')) {
-      start += ((int) input[i]) + (10 * i);
-      i++;
-    }
-  }
-  if(i == 0)
+  int i;
+  i = atoi(input);
+  if((i == 0) || (i < 1 || i > TABLE_SLOTS + PIECE_SIZES) )
     return FALSE;
-  if(start > TABLE_SLOTS)
+
+  if(index(input, ' ') == NULL)
     return FALSE;
-  if(input[i] != ' ')
+
+  i = atoi(index(input, ' '));
+  if(i == 0 || (i < 1 || i > TABLE_SLOTS) )
     return FALSE;
-  i++;
-  while(input[i] != '\0') {
-    if((input[i] > '9') || (input[i] < '0'))
-      return FALSE;
-    end += ((int) input[i]) + (10 * j);
-    i++;
-    j++;
-  }
-  if(end > TABLE_SLOTS)
-    return FALSE;
+
   return TRUE;
-    }
+}
 
 /************************************************************************
 **
@@ -886,28 +867,11 @@ MOVE ConvertTextInputToMove(input)
      STRING input;
 {
   SLOT srcPos, destPos;
-  STRING first;
-  STRING end;
+
+  srcPos = atoi(input) - 1;
+  destPos = atoi(index(input, ' ')) - 1;
   
-  int i = 0;
-  while(input[i] != ' ')
-  {
-    first += input[i];
-    i++;
-  }
-  if(( (int) first <= TABLE_SLOTS) && ( (int) first >= TABLE_SLOTS))
-  {
-    srcPos = ((int) first) - 1;
-  }else{
-    srcPos = SRC_STASH( (charToInt(first[0])) ); //  is that the right way to access the enum?
-  }
-  i++;
-  while(input[i] != '\0')
-  {
-    end += input[i];
-    i++;
-  }
-  destPos = ((int) end) - 1;
+ 
   return ((MOVE) CONS_MOVE(srcPos,destPos));
 }
 
