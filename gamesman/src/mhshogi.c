@@ -92,14 +92,19 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define NUM_OF_ROWS 3
-#define NUM_OF_COLS 2
+#define NUM_OF_ROWS 5
+#define NUM_OF_COLS 3
 #define BOARDSIZE NUM_OF_ROWS * NUM_OF_COLS
 #define ROWS_OF_PIECES 1
 #define NUM_OF_PIECES 2
 #define X_ORIGINAL_POS (NUM_OF_ROWS - ROWS_OF_PIECES) * NUM_OF_COLS
 #define O_ORIGINAL_POS ROWS_OF_PIECES * NUM_OF_COLS
 #define Blank ' '
+#define VERSION_REGULAR 0
+#define VERSION_WAR 1
+//the number that need to be in a row
+#define NUM_IN_ROW 3
+
 typedef char BlankOX;
 /* Represents a complete shogi move */
 
@@ -121,23 +126,28 @@ char *blankOXString[] = {" ", "o", "x"};
 
 char sBlankOX[BOARDSIZE];
 
+//hard code version for now
+int version = VERSION_REGULAR;
+
 /*************************************************************************
 **
 ** Function Prototypes
 **
 *************************************************************************/
 
-BOOLEAN inARow();
+//BOOLEAN inARow();
 BlankOX oneOrNoPieces();
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, int turn);
-BOOLEAN inARow(BlankOX theBlankOX[]);
+BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece);
 BOOLEAN adjacent(BlankOX theBlankOX[], int current, int next);
 BlankOX oneOrNoPieces(BlankOX theBlankOX[]);
 int BoardPosToArrayPos(int x, int y);
 MOVE hashMove(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY);
 sMove unhashMove(MOVE move);
-
+void clearRow(int x1, int y1, int x2, int y2,  BlankOX theBlankOX[]);
+void clearColumn(int x1, int y1, int x2, int y2, BlankOX theBlankOX[] );
+void captureLine(int x, int y, BlankOX piece, BlankOX theBlankOX[]);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -169,28 +179,23 @@ void InitializeGame ()
   /*int pieces[] = {' ', BOARDSIZE - 2*ROWS_OF_PIECES*NUM_OF_COLS, BOARDSIZE,
 		   'x', 0, ROWS_OF_PIECES*NUM_OF_COLS,
 		   'o', 0, ROWS_OF_PIECES*NUM_OF_COLS, -1};*/
-  int pieces[] = {' ', 2, 6, 'x', 0, 2, 'o', 0, 2, -1};
-  BlankOX  newBlankOX[BOARDSIZE];
-  for (i = 0; i < NUM_OF_COLS; i++) {
-    sBlankOX[i] = 'o';
-  }
+  int pieces[] = {' ', 2, BOARDSIZE, 'x', 0, NUM_OF_COLS, 'o', 0, NUM_OF_COLS, -1};
+ 
+  printf("Initializing game\n");
+   for (i = 0; i < NUM_OF_COLS; i++) {
+    sBlankOX[i] = 'x';
+    }
+  
   for (; i < NUM_OF_COLS*(NUM_OF_ROWS - 1); i++) {
     sBlankOX[i] = ' ';
   }
   for (; i < BOARDSIZE; i++) {
-    sBlankOX[i] = 'x';
-  }
-  for (i = 0; i < BOARDSIZE; i++) {
-    printf("%c", sBlankOX[i]);
-  }
-  printf("\n");
+    sBlankOX[i] = 'o';
+    }
+ 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL);
   gInitialPosition = generic_hash(sBlankOX, 1);
-  generic_unhash(gInitialPosition, newBlankOX);
-  for (i = 0; i < BOARDSIZE; i++) {
-    printf("%c", sBlankOX[i]);
-  }
-  printf("\n");
+  
 }
 
 /************************************************************************
@@ -320,62 +325,78 @@ MOVELIST *GenerateMoves(position)
 POSITION DoMove (POSITION position, MOVE move)
 {
   BlankOX piece;
-  generic_unhash(position, sBlankOX);
-  sMove theMove = unhashMove(move);
-  int i;
-  int fromLoc = (theMove.fromY) * NUM_OF_COLS + theMove.fromX;
-  int leftLoc = fromLoc - 1;
-  int rightLoc = fromLoc + 1;
-  int upLoc = (theMove.fromY - 1) * NUM_OF_COLS + theMove.fromX;
-  int downLoc = (theMove.fromY + 1) * NUM_OF_COLS + theMove.fromX;
-  int turn = whoseMove(position);
-  //printf("start do move\n"); 
-  //PrintMove(move);
-  //printf("\n");
-  piece = sBlankOX[(theMove.fromY) * NUM_OF_COLS + theMove.fromX];
-  //printf("current piece is %c\n", piece);  
-  //printf("turn is %d\n", turn);
+  int  
+    fromLoc,
+    toLoc,
+    leftLoc,
+    rightLoc,
+    upLoc,
+    downLoc,
+    turn;
+  //printf("in doMove!\n");
 
+ generic_unhash(position, sBlankOX);
+  sMove theMove = unhashMove(move);
+  
+  fromLoc = (theMove.fromY) * NUM_OF_COLS + theMove.fromX;
+  toLoc =  (theMove.toY) * NUM_OF_COLS + theMove.toX;
+  leftLoc = (theMove.fromY) * NUM_OF_COLS + theMove.fromX -1;
+  rightLoc = (theMove.fromY) * NUM_OF_COLS + theMove.fromX +1;
+  upLoc = (theMove.fromY + 1) * NUM_OF_COLS + theMove.fromX;
+  downLoc = (theMove.fromY - 1) * NUM_OF_COLS + theMove.fromX;
+  turn = whoseMove(position);
+  
+  //printf("fromLoc: %d, toLoc: %d, leftLoc: %d, rightLoc: %d, upLoc: %d, downLoc: %d\n", fromLoc, toLoc, leftLoc, rightLoc, upLoc, downLoc);
+
+  piece = sBlankOX[(theMove.fromY) * NUM_OF_COLS + theMove.fromX];
+ 
+  
   if (turn == 1)
     turn = 2;
   else
     turn = 1;
 
-  if (theMove.fromX - theMove.toX == 2 &&
-      theMove.fromY == theMove.toY &&
-      sBlankOX[leftLoc] != Blank &&
-      sBlankOX[leftLoc] != sBlankOX[fromLoc]) {
-    sBlankOX[leftLoc] = Blank;
-  }
-  else if (theMove.toX - theMove.fromX == 2 &&
-	   theMove.toY == theMove.fromY &&
-	   sBlankOX[rightLoc] != Blank &&
-	   sBlankOX[rightLoc] != sBlankOX[fromLoc]) {
-    sBlankOX[rightLoc] = Blank;
-  }
-  else if (theMove.fromY - theMove.toY == 2 &&
-	   theMove.fromX == theMove.toX &&
-	   sBlankOX[upLoc] != Blank &&
-	   sBlankOX[upLoc] != sBlankOX[fromLoc]) {
-    sBlankOX[rightLoc] = Blank;
-  }
-  else if (theMove.toY - theMove.fromY == 2 &&
-	   theMove.toX ==  theMove.fromX &&
-	   sBlankOX[downLoc] != Blank &&
-	   sBlankOX[downLoc] != sBlankOX[fromLoc]) {
-    sBlankOX[downLoc] = Blank;
-  }
-  sBlankOX[fromLoc] = Blank;
-  sBlankOX[(theMove.toY) * NUM_OF_COLS + theMove.toX] = piece;
+  //if jumping captures, test to see if it was a vertical jump
+  if (version == VERSION_WAR){
+    
+    //up jump
+    if ((fromLoc + (2* NUM_OF_COLS)) == toLoc){
+      if (sBlankOX[fromLoc + NUM_OF_COLS] != piece)
+	sBlankOX[fromLoc + NUM_OF_COLS] = Blank;
+    }
+    //down jump
+    if ((fromLoc - (2* NUM_OF_COLS)) == toLoc){
+     
+      if (sBlankOX[fromLoc - NUM_OF_COLS] != piece)
+	sBlankOX[fromLoc - NUM_OF_COLS] = Blank;
+    }
+    //left jump
+    if ((fromLoc - 2) == toLoc){
+      if (sBlankOX[fromLoc - 1] != piece)
+	sBlankOX[fromLoc - 1] = Blank;
+    }
+    
 
-  for (i = 0; i < BOARDSIZE; i++) {
-    //printf("%c", sBlankOX[i]);
+    //right jump
+    if ((fromLoc + 2) == toLoc){
+      if (sBlankOX[fromLoc + 1] != piece)
+	sBlankOX[fromLoc + 1] = Blank;
+    }
+
   }
-  //printf("\n");
- 
-  //printf("ok!\n");
+
+  
+
+  sBlankOX[fromLoc] = Blank;
+  sBlankOX[toLoc] = piece;
+  
+
+  //perform any line capture that has been made
+  captureLine(theMove.toX, theMove.toY, piece, sBlankOX);
+  
+
   position = generic_hash(sBlankOX, turn);
-  // printf("leave do move\n"); 
+   
   return position;
 }
 
@@ -410,16 +431,21 @@ VALUE Primitive (POSITION position)
 {
   
   int turn = whoseMove(position);
+  BlankOX piece = (turn == 1 ? 'x' : 'o');
+  BlankOX oppositePiece  = (turn == 1 ? 'o' : 'x');
 
   generic_unhash(position, sBlankOX);
-
-  if(inARow(sBlankOX))
+ 
+  if(inARow(sBlankOX, oppositePiece))
     return(gStandardGame ? lose : win);
-  else if((oneOrNoPieces(sBlankOX) == 1 && turn == 'x') ||
-	  (oneOrNoPieces(sBlankOX) == 2 && turn == 'o'))
+
+  if (version == VERSION_WAR){
+    if((oneOrNoPieces(sBlankOX) == 'x' && piece == 'x') ||
+	  (oneOrNoPieces(sBlankOX) == 'o' && piece == 'o'))
     return lose;
-  else
-    return undecided;
+    
+  }
+  return undecided;
 }
 
 
@@ -441,40 +467,19 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int row, col;/*
+  int row,col;
   generic_unhash(position, sBlankOX);
-  for (i = 0; i < BOARDSIZE; i++) {
-    printf("%c", sBlankOX[i]);
-  }
-  printf("\n");*/
- 
-
 
   printf("%s's turn\n  ", playersName);
-  for (col = 0; col < NUM_OF_COLS; col++) {
-    printf("-----");
-  }
-  for (row = 0; row < NUM_OF_ROWS; row++) {
-    printf("\n  |");
+  for (row = NUM_OF_ROWS-1; row >= 0; row--) {
+    printf("\n%d |", row+1);
     for (col = 0; col < NUM_OF_COLS; col++) {
-      printf("   |");
-    }
-    printf("\n%d |", row);
-    for (col = 0; col < NUM_OF_COLS; col++) {
-      printf(" %c |", sBlankOX[row * NUM_OF_COLS + col]);
-    }
-    printf("\n  |");
-    for (col = 0; col < NUM_OF_COLS; col++) {
-      printf("   |");
-    }
-    printf("\n  ");
-    for (col = 0; col < NUM_OF_COLS; col++) {
-      printf("-----");
+      printf("%c|", sBlankOX[row*NUM_OF_COLS + col]);
     }
   }
-  printf("\n\n ");
+  printf("\n  ");
   for (col = 0; col < NUM_OF_COLS; col++) {
-    printf("   %d", col);
+    printf(" %c", col+'a');
   }
   printf("\n\n");
 }
@@ -512,15 +517,11 @@ void PrintMove (MOVE move)
 {
   struct cleanMove x;
   x = unhashMove(move);
-  /** printf("[(%d, ", 'a' + x.fromX);
-  printf("%d) ", x.fromY);
-  printf("(%d, ", 'a' + x.toX);
-  printf("%d)]", x.toY);
-  **/
-   printf("[(%d, ", x.fromX);
-  printf("%d) ", x.fromY);
-  printf("(%d, ", x.toX);
-  printf("%d)]", x.toY);
+  
+   printf("%c", x.fromX+'a');
+  printf("%d-", x.fromY+1);
+  printf("%c", x.toX+'a');
+  printf("%d", x.toY+1);
 }
 
 
@@ -553,13 +554,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(u)ndo/0-%d 0-%d 0-%d 0-%d] :  ",
-	       playersName, NUM_OF_COLS-1, NUM_OF_ROWS-1,
-	       NUM_OF_COLS-1, NUM_OF_ROWS-1);
+	printf("%8s's move [(u)ndo/0-%c 0-%d 0-%c 0-%d] :  ",
+	       playersName, 'a'+NUM_OF_COLS-1, NUM_OF_ROWS,
+	       'a'+NUM_OF_COLS-1, NUM_OF_ROWS);
 	input = HandleDefaultTextInput(position, move, playersName);
-	// input[0] = tolower(input[0]);
-	// input[2] = tolower(input[2]);
-
 	if (input != Continue)
 	  return input;
     }
@@ -596,28 +594,41 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  /** if (input[0] < 'a' || input[0] >= 'a'+NUM_OF_COLS)
-    return FALSE;
-  if (input[1] < '1' || input[1] > '1'+NUM_OF_ROWS-1)
-    return FALSE;
-  if (input[2] < 'a' || input[2] >= 'a'+NUM_OF_COLS)
-    return FALSE;
-  if (input[3] < '1' || input[3] > '1'+NUM_OF_ROWS -1)
-    return FALSE;
-  return TRUE;
-  **/
+ 
+  /******
+   * Check for valid input based upon chess notation
+   * example a1-b2 
+   */
+  int strlen;
+  for (strlen = 0; input[strlen] != -1; strlen++){
+  }
 
-  printf("!!!!! %s\n", input);
-   if (input[0] < '0' || input[0] >= '0'+NUM_OF_COLS)
+  //check to see if input is long enough
+  if (strlen < 5){
+
     return FALSE;
-  if (input[1] < '0' || input[1] > '0'+NUM_OF_ROWS-1)
+  }
+  if(input[0] < 'a' || input[0] >= 'a' + NUM_OF_COLS){
     return FALSE;
-  if (input[2] < '0' || input[2] >= '0'+NUM_OF_COLS)
+    //printf("bad 0");
+  }
+  if(input[1] < '1' || input[1] >= '1' + NUM_OF_ROWS){
     return FALSE;
-  if (input[3] < '0' || input[3] > '0'+NUM_OF_ROWS -1)
+    //printf("bad 1");
+  }
+  //dont know what middle char of mv must be 
+  if(input[3] < 'a' || input[3] >= 'a' + NUM_OF_COLS){
     return FALSE;
-  printf("FFFFFFFFFF\n");
+    //printf("bad 3");
+
+  }
+  if(input[4] < '1' || input[4] >= '1' + NUM_OF_ROWS){
+    return FALSE;
+    //printf("bad 4");
+  }
+  //printf("good input!!\n");
   return TRUE;
+  
 }
 
 
@@ -638,8 +649,19 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
  
-  printf("in convert!\n");
- return hashMove(input[0]-'0',input[1]-'0',input[2]-'0', input[3]-'0');
+  /*****
+   * example conversions
+   * a1-c3 = 00-22
+   * b3-a5 = 12-04
+   */
+  //printf("in convert!\n");
+  int fromX = input[0] - 'a';
+ int fromY = input[1] - '1';
+ int toX = input[3] - 'a';
+ int toY = input[4] - '1';
+ //printf("input is %d %d %d %d\n", fromX, fromY, toX, toY);
+
+ return hashMove(fromX,fromY,toX, toY);
   
 }
 
@@ -828,6 +850,7 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, int turn)
 **              starting row(s).
 ** 
 ** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
+**              BlankOX piece: the piece we are determining if is in a row
 **
 ** OUTPUTS:     (BOOLEAN) TRUE iff there a given number of pieces in
 **              a row. None of the pieces may be in the player's original
@@ -835,10 +858,75 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, int turn)
 **
 ************************************************************************/
 
-BOOLEAN inARow(BlankOX theBlankOX[])
+BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 {
-  int i, j, samePieces = 1, current, next;
+  int x, y, loc, xN, yN;
+  int bad_row; //row that the pieces cannot be in
 
+  
+  if (piece == 'x'){
+    bad_row = 0;
+  } else {
+    bad_row = NUM_OF_ROWS-1;
+  }
+  
+
+  for (y = 0; y < NUM_OF_ROWS; y++){
+    if (y != bad_row){
+      for (x = 0; x < NUM_OF_COLS; x++){
+	loc = y*NUM_OF_COLS + x;
+	if(theBlankOX[loc] == piece){
+	  
+	  //check lateral row 
+	  //only need to check to the right because we are coming from the left
+	  for (xN = 0; x+xN < NUM_OF_COLS; xN++){
+	  
+	    if(theBlankOX[loc+xN] != piece)
+	      break;
+	  }
+	  if (xN == NUM_IN_ROW)
+	    return TRUE;
+	  
+	  //check vertical
+	  //we are checking upwards
+	  for (yN = 0; (y+yN < NUM_OF_ROWS) && (y+yN != bad_row); yN++){
+	  
+	    if(theBlankOX[loc+yN*NUM_OF_COLS] != piece)
+	      break;
+	  }
+	  if (yN == NUM_IN_ROW)
+	    return TRUE;
+
+	  //check diagonal left
+	  for (yN = 0, xN = 0; (y+yN < NUM_OF_ROWS) && (x-xN > 0) && ( y+yN != bad_row); yN++, xN++){
+	  
+	    if(theBlankOX[(y+yN)*NUM_OF_COLS + x-xN] != piece)
+	      break;
+	  }
+	  if (yN == NUM_IN_ROW)
+	    return TRUE;
+
+	  //check diagonal right
+	  for (yN = 0, xN = 0; (y+yN < NUM_OF_ROWS) && (x+xN < NUM_OF_COLS) && (y+yN != bad_row); yN++, xN++){
+	  
+	    if(theBlankOX[(y+yN)*NUM_OF_COLS + x+xN] != piece)
+	      break;
+	  }
+	  if (yN == NUM_IN_ROW)
+	    return TRUE;
+
+
+
+
+	}
+      }
+    }
+  }
+
+  return FALSE;
+  
+
+  /**
   for (i = 0; i < NUM_OF_ROWS; i++) {
     for (j = 0; j < NUM_OF_COLS - 1; j++) {
       current = i*NUM_OF_COLS+j;
@@ -903,6 +991,7 @@ BOOLEAN inARow(BlankOX theBlankOX[])
   }
 
   return FALSE;
+  **/
 }
 
 BOOLEAN adjacent(BlankOX theBlankOX[], int current, int next) {
@@ -931,33 +1020,139 @@ BOOLEAN adjacent(BlankOX theBlankOX[], int current, int next) {
 BlankOX oneOrNoPieces(BlankOX theBlankOX[])
 {
   int i, numOfx = 0, numOfo = 0;
-	
+  printf("in oneOrNoPieces\n");
   for(i = 0; i < BOARDSIZE; i++) {
     if (theBlankOX[i] == 'x') {
       numOfx++;
-      if (numOfx > 1 && numOfo > 1)
-	return Blank;
     }
     else if(theBlankOX[i] == 'o') {
       numOfo++;
-      if (numOfx > 1 && numOfo > 1)
-	return Blank;
     }
   }
 
   if(numOfx <= 1)
     return 'x';
-  else
+  if (numOfo <= 1)
     return 'o';
+  else
+    return Blank;
 }
 
+
+/*
+ * Given an x and y return corresponding array position
+ * -1 is bad x and y
+ */
+
 int BoardPosToArrayPos(int x, int y){
-	if (x < 0 || x >= NUM_OF_COLS)
+  /**
+   * The first spot in the array is really the top
+   * left corner, the last spot is bottom right corner  
+  */
+  
+  if (x < 0 || x >= NUM_OF_COLS)
 		return -1;
-	if (y < 0 || y >= NUM_OF_ROWS)
-		return -1;
-	return NUM_OF_COLS*y+x;
+  if (y < 0 || y >= NUM_OF_ROWS)
+    return -1;
+  return (y*NUM_OF_COLS)+x;
 }
+
+
+/**
+ *
+ * Checks to see if the move of this piece to this location has caused a capture
+ * if so clear out the captured pieces
+ **/
+void captureLine(int x, int y, BlankOX piece, BlankOX theBlankOX[]){
+ 
+  int xN, yN;
+  //printf("check piece is: %c\n", piece);
+  //check capture up
+  for (yN = 1; y+yN < NUM_OF_ROWS; yN++){
+    if (theBlankOX[(y+yN)*NUM_OF_COLS + x] == Blank)
+      break;
+    if (theBlankOX[(y+yN)*NUM_OF_COLS + x] == piece && yN > 1){
+      clearColumn(x, y+1, x, y+yN -1, theBlankOX);
+      //printf("clear a\n");
+      break;
+    }
+    if (theBlankOX[(y+yN)*NUM_OF_COLS + x] == piece)
+      break;
+  }
+  //check capture down
+  for (yN = 1; y-yN >= 0; yN++){
+    if (theBlankOX[(y-yN)*NUM_OF_COLS + x] == Blank)
+      break;
+    if (theBlankOX[(y-yN)*NUM_OF_COLS + x] == piece && yN > 1){
+      clearColumn(x, y-1, x, y-yN +1, theBlankOX);
+      //printf("clear b\n");
+      break;
+    }
+    if (theBlankOX[(y-yN)*NUM_OF_COLS + x] == piece)
+      break;
+  }
+  //check capture left
+  for (xN = 1; x-xN >= 0; xN++){
+    if (theBlankOX[y*NUM_OF_COLS + (x-xN)] == Blank)
+      break;
+    if (theBlankOX[y*NUM_OF_COLS + (x-xN)] == piece && xN > 1){
+      clearRow(x-1, y, x-xN +1, y, theBlankOX);
+      //printf("clear c\n");
+      break;
+    }
+    if (theBlankOX[y*NUM_OF_COLS + (x-xN)] == piece)
+      break;
+  }
+  //check capture right
+   for (xN = 1; x+xN < NUM_OF_COLS; xN++){
+    if (theBlankOX[y*NUM_OF_COLS + (x+xN)] == Blank)
+      break;
+    if (theBlankOX[y*NUM_OF_COLS + (x+xN)] == piece && xN > 1){
+      clearRow(x+1, y, x+xN -1, y, theBlankOX);
+      //printf("clear d\n");
+      break;
+    }
+    if (theBlankOX[y*NUM_OF_COLS + (x+xN)] == piece)
+      break;
+  }
+}
+
+
+//clear a given row
+
+void clearRow(int x1, int y1, int x2, int y2, BlankOX theBlankOX[]){
+  //printf("CLEARING!\n");
+  if (x1 <= x2){
+    while(!(x1 > x2)){
+      theBlankOX[y1*NUM_OF_COLS + x1] = Blank;
+      x1++;
+    }
+  } else {
+    
+    while(!(x2 > x1)){
+      theBlankOX[y1*NUM_OF_COLS + x2] = Blank;
+      x2++;
+    }
+  }
+
+}
+
+//clear a given column
+void clearColumn(int x1, int y1, int x2, int y2, BlankOX theBlankOX[]){
+  if (y1 <= y2){
+    while(!(y1 > y2)){
+      theBlankOX[y1*NUM_OF_COLS + x1] = Blank;
+      y1++;
+    }
+  } else {
+    while(!(y2 > y1)){
+      theBlankOX[y2*NUM_OF_COLS + x1] = Blank;
+      y2++;
+    } 
+    
+  }
+}
+
 
 /******
  * Unhash a shogi move
@@ -990,7 +1185,12 @@ MOVE hashMove(unsigned int fromX,
 	unsigned int toX, 
 	unsigned int toY){
 	
+  //printf("in hash move!\n");
+  /*
+   * 0 is at bottom left cornor for both axes
+   */
 	MOVE move = 0;
+	//printf("x = %d, y=%d x=%d y=%d\n", fromX, fromY, toX, toY);
 	move |= (fromX << 24);
 	move |= (fromY << 16);
 	move |= (toX << 8);
