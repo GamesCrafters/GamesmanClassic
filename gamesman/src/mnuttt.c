@@ -17,9 +17,19 @@
 ** DATE:        Initial editing started on 2/5/05.
 **              Ending date: unknown yet
 **
-** UPDATE HIST: legend: [+]: feature/new stuff, [-]: old stuff removed/deprecated, [*]comments
+** UPDATE HIST: legend: [+]: feature/new stuff,
+**                      [-]: old stuff removed/deprecated,
+**                      [*]comments
 **
 **              2/5/05: [+] initial commit, some game-specific consts,
+<<<<<<< mnuttt.c
+**                          global variables for directions, IntitializeGame(),
+**                          PrintPosition(), DoMove(), primitive(),
+**                          printComputersMove (), Hash/unhash for moves,
+**                          and other helpers.
+**                      [*] we may need to consult Garcia to see of our board
+**                          is too big.  see the note in gNumberOfPositions
+=======
 **                          global variables for directions,
 **                          IntitializeGame(), PrintPosition(), DoMove(), primitive(),
 **                          printComputersMove (), Hash/unhash for moves, and other helpers.
@@ -29,21 +39,31 @@
 **              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
 **                      [*] Game should be playable by now. Added rules to Makefile.
 **                          GenerateMoves () is next.
+<<<<<<< mnuttt.c
+>>>>>>> 1.3
+=======
 **              2/8/05: [+] GenerateMove () complete, borrowing Guys's code.
+>>>>>>> 1.4
+**              2/11/05:[*] Guy: added function prototypes so it compiles on
+**                          my backwards compiler, and revised getOptions so it
+**                          returns stuff that makes sense.  hope i didn't
+**                          break it!
 **
 **************************************************************************/
 
 
 /* Some notes to Guy regarding how we are going to do this.
-** It seems like the generic has function converts between POSITION (unsigned long)
-** and a char array (char *). Why don't we use that and represent our board as a one dimentional
-** array of chars (relevant defines are given already, see that section for details), and we will
-** hash it into POSITION or vice versa when necessary.
-** we will make helper functions to convert the piece's position in the board string to its row
-** and column numbers using row() and column() functions. ALL INDICES START FROM 0.
-** as for moves, I have written a hash function that takes in the row, column, and direction,
-** and gives back a MOVE (int). The unhash function is more complicated. We have two of them
-** for the originating position and the direction of the move. see the end of this file for details.
+** It seems like the generic has function converts between POSITION (unsigned
+** long) and a char array (char *). Why don't we use that and represent our
+** board as a one dimensional array of chars (relevant defines are given
+** already, see that section for details), and we will hash it into POSITION or
+** vice versa when necessary.  we will make helper functions to convert the
+** piece's position in the board string to its row and column numbers using
+** row() and column() functions. ALL INDICES START FROM 0.  as for moves, I
+** have written a hash function that takes in the row, column, and direction,
+** and gives back a MOVE (int). The unhash function is more complicated. We
+** have two of them for the originating position and the direction of the move.
+** see the end of this file for details.
 */
 
 /* TODO: find out how to keep track of current_player.
@@ -72,39 +92,58 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Nu Tic-Tac-Toe"; /* The name of your game */
-STRING   kAuthorName          = "Guy Boo and Ming (Evan) Huang"; /* Your name(s) */
-STRING   kDBName              = "nuttt"; /* The name to store the database under */
+STRING   kGameName            = "Nu Tic-Tac-Toe";
+STRING   kAuthorName          = "Guy Boo and Ming (Evan) Huang";
+STRING   kDBName              = "nuttt"; /* The name of the stored database */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-
-/*is there a tie in this?? I don't think so*/
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-
-BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
-
+BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kGameSpecificMenu    = FALSE ;
+BOOLEAN  kTieIsPossible       = FALSE ;
+BOOLEAN  kLoopy               = TRUE ;
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
+<<<<<<< mnuttt.c
+/*Evan's thinking:
+** each position consists choosing 8 boxes out of 20. that is 20*19*18*17...*13=5079110400
+=======
 /* each position consists choosing 8 boxes out of 20. that is 20*19*18*17...*13/8!=5079110400
+>>>>>>> 1.3
 ** each choice has "8 choose 4" = 70 possible placements of X and O's.
 ** a combined 8817900 boards. This is not considering symmetry so the end result by init() may be less
 */
+<<<<<<< mnuttt.c
+/* as we discussed, the total number of positions is 20!/(12!*4!*4!), which
+ * equals 8,817,900.  this will be fine for generic hash.
+ */
+POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+
+
+=======
 POSITION gNumberOfPositions   =  8817900; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
 
+>>>>>>> 1.3
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 /* 
  * Help strings that are pretty self-explanatory
- * Strings than span more than one line should have backslashes (\) at the end of the line.
+ * Strings that span more than one line should have backslashes (\) at the end of the line.
  */
 
 STRING kHelpGraphicInterface =
 "Not written yet";
 
+/* if it's ok with you , i'd really like to redefine this interface to
+ * something like,
+ * "On your turn, enter the xy coordinates of the piece you'd like to move and
+ * the direction you wish to move it.  Enter your move in the format <column>
+ * <row><direction> where the direction is any one of 'u', 'd', 'l', or 'r'
+ * for up, down, left, and right, respectively."
+ * because of ui issues with the interpretation of the graph.  of course, even
+ * from an implementation standpoint this is merely a cosmetic detail.
+ */
 STRING   kHelpTextInterface    =
 "On your turn, please enter three things: <row number> <column number> <direction>\n\
 direction can be one of these things: up, down, left, right."; 
@@ -156,8 +195,47 @@ const STRING directions[NUM_OF_DIRS] = {"up", "right", "down", "left"};
 
 /*the increments to the row and column numbers of the piece *
 **0 = up, 1 = right, 2 = down, 3 = left*/
-int dir_increments[NUM_OF_DIRS][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
+<<<<<<< mnuttt.c
+const int dir_increments[][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
 
+<<<<<<< mnuttt.c
+/* this implementation is interesting, but i strongly believe that it will
+ * cause more processing difficulty than necessary (especially for
+ * GenerateMoves()) and i feel it breaks the abstraction implied above that
+ * modifying BOARD_ROWS or BOARD_COLS will affect the game in a consistent
+ * and stable manner.  i normally work alone, so i'm sort of afraid of stepping
+ * on your toes here... would you mind if i went through and made some rather
+ * sweeping changes to this implementation?
+ */
+STRING initial_board = {
+  PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE ,
+  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
+  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
+  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
+  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
+  PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE
+=======
+const int init_pieces[] = {
+  PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+  PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+  EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES, -1
+>>>>>>> 1.3
+};
+=======
+int dir_increments[NUM_OF_DIRS][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
+>>>>>>> 1.5
+
+<<<<<<< mnuttt.c
+POSITION current_position;
+
+/* what's the intialization value here? -- Evan*/
+/* arbitrary. this game resembles tic-tac-toe, so if we wish to remain
+ * consistent with that lineage we should start with X.
+ */
+int current_player;
+
+=======
+>>>>>>> 1.3
 /*************************************************************************
 **
 ** Function Prototypes
@@ -167,6 +245,30 @@ int dir_increments[NUM_OF_DIRS][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 ,
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+  void InitializeGame();
+  MOVELIST *GenerateMoves();
+  POSITION DoMove();
+  VALUE Primitive();
+  void PrintPosition();
+  void PrintComputersMove();
+  void PrintMove();
+  USERINPUT GetAndPrintPlayersMove();
+  BOOLEAN ValidTextInput();
+  MOVE ConvertTextInputToMove();
+  void GameSpecificMenu();
+  void SetTclCGameSpecificOptions();
+  POSITION GetInitialPosition();
+  int NumberOfOptions();
+  int getOption();
+  void setOption();
+  void DebugMenu();
+  int Position();
+  int Row();
+  int Column();
+  MOVE Hasher();
+  int Unhasher_Position();
+  int Unhasher_Direction();
+
 
 
 /*************************************************************************
@@ -602,7 +704,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 1;
 }
 
 
@@ -620,7 +722,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+    return 1;
 }
 
 
