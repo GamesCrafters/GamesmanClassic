@@ -55,6 +55,8 @@ POSITION gNumberOfPositions   =  0; /* The number of total possible positions | 
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
+void*	 gGameSpecificTclInit = NULL;
+
 /* 
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
