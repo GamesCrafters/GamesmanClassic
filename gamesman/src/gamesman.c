@@ -125,17 +125,6 @@ STRING   kOpeningCredits =
 	(N)avigation\n\n\
 This program will determine the value of %s, and allow you to play\n\
 the computer or another human. Have fun!\n";
-/* "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n\ */
-/* 	(G)ame-independent\n\ */
-/* 	(A)utomatic\n\ */
-/* 	(M)ove-tree\n\ */
-/* 	(E)xhaustive\n\ */
-/* 	(S)earch,\n\ */
-/* 	(M)anipulation\n\ */
-/* 	(A)nd\n\ */
-/* 	(N)avigation\n\n\ */
-/* This program will determine the value of %s, and allow you to play\n\ */
-/* the computer or another human. Have fun!\n"; */
   
 STRING   kHelpValueBeforeEvaluation =
 "At this point, the computer does not know the value of the game\n\
@@ -604,7 +593,7 @@ void HelpMenus()
     printf("\t%s Help:\n\n",kGameName);
 
     printf("\t1)\tWhat do I do on MY TURN?\n");
-    printf("\t2)\tHow do tell the computer WHICH MOVE I want?\n");
+    printf("\t2)\tHow to tell the computer WHICH MOVE I want?\n");
     printf("\t3)\tWhat is the %s OBJECTIVE of %s?\n", 
 	   gStandardGame ? "STANDARD" : "REVERSE", kGameName);
     printf("\t4)\tIs a TIE possible?\n");
@@ -666,7 +655,7 @@ void ParseHelpMenuChoice(c)
 	PrintHumanValueExplanation();
     }
     else {
-      printf("%s\n",kHelpValueBeforeEvaluation);
+      printf("%s\n", kHelpValueBeforeEvaluation);
     }
     break;
   case '6':
