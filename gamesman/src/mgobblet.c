@@ -148,12 +148,12 @@ int BOARD_SIZE = 3,
     TABLE_SLOTS = -1,
     SLOT_PERMS = -1;
 
-#define CONS_MOVE(s,d)	(((d) * TABLE_SLOTS) + (s)) //Takes the source and dest
+#define CONS_MOVE(s,d)	(((s) * TABLE_SLOTS) + (d)) //Takes the source and dest
                                                    //parts of a move and turns
                                                    //it into a short(or MOVE)
-#define	GET_SRC(m)	((m) % TABLE_SLOTS)             //Gets the source location
+#define	GET_SRC(m)	((m) / TABLE_SLOTS)             //Gets the source location
                                                    //from MOVE m                                      
-#define	GET_DEST(m)	((m) / TABLE_SLOTS)             //Gets the dest location
+#define	GET_DEST(m)	((m) % TABLE_SLOTS)             //Gets the dest location
                                                    //from MOVE m 
 
 #define	SRC_STASH(s)	(TABLE_SLOTS + (s))
