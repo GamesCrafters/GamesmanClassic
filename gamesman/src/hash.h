@@ -1,3 +1,7 @@
+#ifndef __HASH_H__
+#define __HASH_H__
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "gamesman.h"
@@ -69,10 +73,11 @@ POSITION combiCount(int* tc);
 int hash_countPieces(int *pA);
 POSITION hash_cruncher (char* board);
 void hash_uncruncher (POSITION hashed, char *dest);
-POSITION generic_hash_init(POSITION boardsize, int*, int (*fn)(int *));
+POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *));
 POSITION generic_hash(char* board, int player);
 char* generic_unhash(POSITION hashed, char* dest);
 int whoseMove (POSITION hashed);
+int getPieceParams(int *pa,char *pi,int *mi,int *ma);
 
 int nCr(int n, int r);
 void nCr_init(int a);
@@ -80,5 +85,5 @@ int* gpd (int n);
 int gpi (int n);
 int* gPieceDist (int i);
 
-
+#endif
 

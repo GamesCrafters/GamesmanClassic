@@ -60,10 +60,10 @@ int hash_maxPos;
 *******************************/
 
 /* initializes hash tables and critical values */
-POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int *))
+POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 {
-  int i = -1, prod = 1, temp, sofar, k;
-  
+  int i = -1, k;
+  POSITION sofar,temp;
   if(NULL == cCon)
     ExitStageRightErrorString("Attempting to Initialize invalid hash context");
 
@@ -89,13 +89,16 @@ POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int 
     cCon->nums[i] = cCon->maxs[i] - cCon->mins[i] + 1;
   }
   
-  
+  temp = 0;
   cCon->numCfgs = 1;
   for (i = 0; i < cCon->numPieces;i++)
     {
+      if(cCon->numCfgs < temp)
+	ExitStageRightErrorString("Generic Hash: Number of Cfg's wrap on current POSITION type");
       cCon->numCfgs *= cCon->nums[i];
+      temp = cCon->numCfgs;
     }
-  cCon->pieceIndices = (int*) malloc (sizeof(int) * cCon->numCfgs);
+  cCon->pieceIndices = (int*) SafeMalloc (sizeof(int) * cCon->numCfgs);
   
  
   nCr_init(boardsize);
@@ -117,8 +120,11 @@ POSITION generic_hash_init(POSITION boardsize, int *pieces_array, int (*fn)(int 
   cCon->hashOffset[k] = -1;
   temp = 0;
   sofar = 0;
+  printf("\n");
   for (i = 1; i <= cCon->usefulSpace; i++)
     {
+      printf("block: %llu Tot:%llu\n",cCon->hashOffset[i],sofar);
+      fflush(NULL);
       sofar += cCon->hashOffset[i];
       if(sofar<temp){
 	ExitStageRightErrorString("To many positions to represent in current position format");
@@ -183,7 +189,7 @@ void nCr_init(int boardsize)
 
 /* memoizes combinations not used right now */
 void hash_combiCalc(){
-  int i,j,sums;
+  int i,sums;
   int *thPieces = (int *) SafeMalloc(sizeof(int) * cCon->numPieces);
   
   for(i=0;i<cCon->numPieces;i++)
@@ -256,7 +262,7 @@ POSITION hash_cruncher (char* board)
   int i = 0, k = 0, max1 = 0;
   int boardSize = hash_boardSize;
    
-  for(boardSize;boardSize>1;boardSize--){
+  for(;boardSize>1;boardSize--){
     i = 0;
     
     while (board[boardSize - 1] != hash_pieces[i]) i++;
@@ -295,7 +301,7 @@ int whoseMove (POSITION hashed)
 /* unhashes hashed to a board */
 char* generic_unhash(POSITION hashed, char* dest)
 {
-  POSITION offst,sum;
+  POSITION offst;
   int i, j, boardSize;
   hashed %= hash_maxPos; //accomodates whoseMove
   
@@ -315,12 +321,11 @@ char* generic_unhash(POSITION hashed, char* dest)
    among boards with the same configuration argument *thiscount*/
 void hash_uncruncher (POSITION hashed, char *dest)
 {
-  int i = 0, j = 0,c,chash;
+  int i = 0, j = 0;
   int max1 = 0;
-  int miniOpt = 0;
   int boardSize = hash_boardSize;
 
-  for(boardSize;boardSize>0;boardSize--){
+  for(;boardSize>0;boardSize--){
     if (boardSize == 1){
       i = 0;
       while (hash_thisCount[i] == 0) i++;

@@ -61,7 +61,7 @@ typedef int ClientData;
 typedef unsigned long long POSITION;      /* This used to be determined by mTempTypedef.h */
 typedef int MOVE;           /* but I decided to hardcode it for now, so as  */
 typedef int MOVES;          /* to make it a leeeetle bit easier and cleaner */
-#define POSITION_FORMAT "%ld"
+#define POSITION_FORMAT "%lld"
 
 typedef int   REMOTENESS;
 typedef char* STRING;
@@ -268,4 +268,6 @@ void createAnalysisGameDir();
 void createAnalysisVarDir();
 void writeGameHTML();
 //void createAnalysisLink();
+
+
 #endif
