@@ -316,12 +316,12 @@ proc InitWindow { kRootDir } {
         }
     frame .middle.f2.fPlayOptions.fMid \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 6  / 30] \
+	-height [expr $gWindowHeight * 8 / 30] \
 	-bd 2
     pack propagate .middle.f2.fPlayOptions.fMid 0
     frame .middle.f2.fPlayOptions.fTop \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 17 / 30] \
+	-height [expr $gWindowHeight * 15 / 30] \
 	-bd 2
 	pack propagate .middle.f2.fPlayOptions.fTop 0
     frame .middle.f2.fPlayOptions.fTop.fLeft \
@@ -722,19 +722,36 @@ proc InitWindow { kRootDir } {
 	-height [expr $gWindowHeight * 4 / 30] \
 	-background yellow
 
+    #create bar border
     .cStatus create image 400 40 -image iBBB1 -tags [list iABB iABB1 base]
     .cStatus create image 120 40 -image iABB2 -tags [list sbb iABB iABB2 playA def]
     .cStatus create image 120 40 -image iIBB2 -tags [list sbb iIBB iIBB2 playI]
+   #create toWin checked
     .cStatus create image 290 22.5 -image iABB3 -tags [list sbb iABB iABB3 winA]
     .cStatus create image 290 22.5 -image iIBB3 -tags [list sbb iIBB iIBB3 winI def]
+    #create toMove checked
     .cStatus create image 290 57.5 -image iABB4 -tags [list sbb iABB iABB4 moveA]
+    #create toMove unchecked
     .cStatus create image 290 57.5 -image iIBB4 -tags [list sbb iIBB iIBB4 moveI def]
-    .cStatus create image 410 22.5 -image iABB5 -tags [list sbb iABB iABB5 noneA]
-    .cStatus create image 410 22.5 -image iIBB5 -tags [list sbb iIBB iIBB5 noneI def]
-    .cStatus create image 470 22.5 -image iABB6 -tags [list sbb iABB iABB6 allA def]
-    .cStatus create image 470 22.5 -image iIBB6 -tags [list sbb iIBB iIBB6 allI]
-    .cStatus create image 530 22.5 -image iABB7 -tags [list sbb iABB iABB7 valueA]
-    .cStatus create image 530 22.5 -image iIBB7 -tags [list sbb iIBB iIBB7 valueI def]
+    
+    ######
+    ### create the shoow "none" moves toggle
+    ### default value for creating the "none" moves is "no"
+    #####
+    #create none moves filled, old coords 410,22.5
+    #.cStatus create image 530 22.5 -image iABB5 -tags [list sbb iABB iABB5 noneA]
+    #create none moves unfilled
+    #.cStatus create image 530 22.5 -image iIBB5 -tags [list sbb iIBB iIBB5 noneI def]
+   
+    
+    #create all moves filled, old coords 470,22.5
+    .cStatus create image 400 22.5 -image iABB6 -tags [list sbb iABB iABB6 allA def]
+    #create all moves unfilled
+    .cStatus create image 400 22.5 -image iIBB6 -tags [list sbb iIBB iIBB6 allI]
+    #create value moves filled, old coords 530, 22.5
+    .cStatus create image 460 22.5 -image iABB7 -tags [list sbb iABB iABB7 valueA]
+    #create value moves unfilled
+    .cStatus create image 460 22.5 -image iIBB7 -tags [list sbb iIBB iIBB7 valueI def]
     .cStatus create image 470 57.5 -image iABB8 -tags [list sbb iABB iABB8 predA]
     .cStatus create image 470 57.5 -image iIBB8 -tags [list sbb iIBB iIBB8 predI def]
     .cStatus create image 680 40 -image iABB9 -tags [list sbb iABB iABB9 undoA def]
@@ -781,9 +798,10 @@ proc InitWindow { kRootDir } {
     .cStatus bind noneA <ButtonRelease-1> {
     }
 
+    # iTMB5 is the right frame picture that covers Value Moves Legend
     .cStatus bind noneI <ButtonRelease-1> {
-	.middle.f3.cMRight raise iIMB5
-	.cStatus raise noneA
+	.middle.f3.cMRight raise iIMB5 
+	.cStatus raise noneA 
 	.cStatus raise allI
 	.cStatus raise valueI
     }
