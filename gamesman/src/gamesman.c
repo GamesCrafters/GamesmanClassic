@@ -3254,7 +3254,7 @@ int main(int argc, char *argv[]) {
     }
     else {
       int i;
-      fprintf(stderr, "Solving %s option ", argv[0]);
+      fprintf(stderr, "Solving \"%s\" option ", kGameName);
       for(i = 1; i <= NumberOfOptions(); i++) {
 	fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
 	fflush(stderr);
