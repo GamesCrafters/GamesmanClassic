@@ -55,6 +55,7 @@ POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
+STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu"; /* Your name(s) */
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -239,6 +240,8 @@ void DebugMenu () {
 ** 
 ************************************************************************/
 
+void changeBoard();
+
 void GameSpecificMenu()
 {
     char GetMyChar();
@@ -296,7 +299,7 @@ void changeBoard()
       valid_cols = 1;
     }
   }
-  InitializeGame();
+  //InitializeGame();
   //displayBoard(); //this is temporary!!
   //printf("done! \n");
   //GetMyChar();
@@ -333,10 +336,11 @@ void SetTclCGameSpecificOptions (int options[]) {
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-POSITION DoMove (POSITION position, MOVE move) {
-  if (DEBUGGING) 
+POSITION DoMove (POSITION thePosition, MOVE theMove) {
+  if (DEBUGGING) {
     printf("Starting Do Move with input: %d\n", theMove);
-	return NULL;
+  }
+  return 0;
 }
 
 /************************************************************************
@@ -423,7 +427,7 @@ VALUE Primitive (POSITION position) {
 //now we only have to grab the current values of the board!
 //TODO: take into account the arguments
 //TODO: get predicition here
-void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
   int currRow;
   char currCol;
@@ -823,7 +827,8 @@ int legalMove(int possibleMove)
 
 void boardcopy(char *from,char*to){
   int i;
-  for (i=0;i<BOARDSIZE;i++)
+  for (i=0;i<BOARDSIZE;i++) {
     to[i]=from[i];
+  }
 }
     
