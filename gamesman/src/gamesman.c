@@ -557,7 +557,7 @@ void ParseBeforeEvaluationMenuChoice(c)
       gPrintDatabaseInfo = TRUE;
       gameValue = DetermineValue(gInitialPosition);
 
-      printf("done in %d seconds!                          ", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+      printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 
 
       
@@ -1168,12 +1168,10 @@ MOVE move;
 /* Status Meter */
 void showStatus(int done)
 {
-	static int num_pos_seen = 0;
+	static POSITION num_pos_seen = 0;
 	static float percent = 0.0;
-	static int updateThreshold = 0;
-	int onepercent = (int)((float)gNumberOfPositions * .001);
-    	int size=0;
-	int i = 0;
+	static POSITION updateThreshold = 0;
+	POSITION updateInterval = gNumberOfPositions / 1000;
 	
 	switch (done)
 	{
@@ -1181,34 +1179,22 @@ void showStatus(int done)
 			num_pos_seen++;
 			break;
 		case 1:
-			size = fprintf(stderr,"Solving Done. Writing Database...                                                           ");
-			for (i = 0; i < size; i++)
-			{
-				fprintf(stderr,"\b");
-			}
+			fprintf(stderr,"\e[sSolving Done. Writing Database...\e[K\e[u");
 			num_pos_seen = 0;
 			percent = 0;
 			updateThreshold = 0;
 			return;
 	}
 	
-	if ( (num_pos_seen > gNumberOfPositions && num_pos_seen % onepercent == 0) || (percent > 100.0 && num_pos_seen % 1000 == 5))
+	if (num_pos_seen > gNumberOfPositions && num_pos_seen % updateInterval == 0)
 	{
-		size = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
-		for (i = 0; i < size; i++)
-		{
-			fprintf(stderr,"\b");
-		}
+		fprintf(stderr,"\e[sSolving... %d Positions Visited - Reported Total Number of Positions: %d\e[K\e[u",num_pos_seen,gNumberOfPositions);
 	}
 	else if (num_pos_seen > updateThreshold)
 	{
-		updateThreshold += onepercent;
+		updateThreshold += updateInterval;
 		percent += .1;
-		size = fprintf(stderr,"Solving... %2.1f%% Done",percent);
-		for (i = 0; i < size; i++)
-		{
-			fprintf(stderr,"\b");
-		}
+		fprintf(stderr,"\e[sSolving... %2.1f%% Done\e[K\e[u",percent);
 	}
 }
 
@@ -2940,8 +2926,6 @@ VALUE DetermineLoopyValue(POSITION position)
   
   value = DetermineLoopyValue1(gInitialPosition);
 
-  showStatus(1);
-  
   /* free */
   NumberChildrenFree();
   ParentFree();
