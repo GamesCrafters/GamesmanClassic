@@ -43,8 +43,7 @@ VALUE GPS_DetermineValue(POSITION position) {
     VALUE value;
 
     if (gGPSDoMove == NULL || gGPSGenerateMoves == NULL ||
-        gGPSHashPosition == NULL || gGPSPrimitive == NULL ||
-        gGPSUndoMove == NULL)
+        gGPSPrimitive == NULL || gGPSUndoMove == NULL)
         ExitStageRightErrorString("GPS functions not implemented.");
 
     if (Visited(position))
@@ -70,8 +69,7 @@ VALUE GPS_DetermineValue(POSITION position) {
         while (moveNode != NULL) {
             gAnalysis.TotalMoves++;
             move = moveNode->move;
-            gGPSDoMove(move);
-            child = gGPSHashPosition();
+            child = gGPSDoMove(move);
 
 #ifdef SYMMETRY_REVISITED
             child = GetCanonicalPosition(child);
@@ -88,7 +86,7 @@ VALUE GPS_DetermineValue(POSITION position) {
                 else if (value == win)
                     value = lose;
             }
-	    
+
             remoteness = Remoteness(child);
 
             if (!kPartizan)

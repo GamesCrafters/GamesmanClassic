@@ -45,10 +45,9 @@
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
-void (*gGPSDoMove)(MOVE move) = NULL;
+POSITION (*gGPSDoMove)(MOVE move) = NULL;
 MOVELIST *(*gGPSGenerateMoves)() = NULL;
 BOOLEAN (*gGPSGoAgain)(MOVE move) = NULL;
-POSITION (*gGPSHashPosition)() = NULL;
 VALUE (*gGPSPrimitive)() = NULL;
 void (*gGPSUndoMove)(MOVE move) = NULL;
 

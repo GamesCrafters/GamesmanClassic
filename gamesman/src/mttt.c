@@ -190,9 +190,8 @@ struct {
 } gGPS;
 
 /** Function Prototypes **/
-void GPS_DoMove(MOVE move);
+POSITION GPS_DoMove(MOVE move);
 MOVELIST *GPS_GenerateMoves();
-POSITION GPS_HashPosition();
 VALUE GPS_Primitive();
 void GPS_UndoMove(MOVE move);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
@@ -269,7 +268,6 @@ void InitializeGame()
   gGPS.piecesPlaced = 0;
   gGPSDoMove = GPS_DoMove;
   gGPSGenerateMoves = GPS_GenerateMoves;
-  gGPSHashPosition = GPS_HashPosition;
   gGPSPrimitive = GPS_Primitive;
   gGPSUndoMove = GPS_UndoMove;
 }
@@ -384,11 +382,13 @@ POSITION DoMove(thePosition, theMove)
   return(thePosition + (g3Array[theMove] * (int)WhoseTurn(theBlankOX)));
 }
 
-void GPS_DoMove(MOVE move)
+POSITION GPS_DoMove(MOVE move)
 {
   gGPS.board[move] = gGPS.nextPiece;
   gGPS.nextPiece = gGPS.nextPiece == x ? o : x;
   ++gGPS.piecesPlaced;
+
+  return BlankOXToPosition(gGPS.board);
 }
 
 void GPS_UndoMove(MOVE move)
@@ -861,11 +861,6 @@ POSITION BlankOXToPosition(theBlankOX)
     position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
 
     return(position);
-}
-
-POSITION GPS_HashPosition()
-{
-  return BlankOXToPosition(gGPS.board);
 }
 
 /************************************************************************

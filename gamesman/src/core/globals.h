@@ -98,10 +98,9 @@ extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 extern POSITION (*gCanonicalPosition)(POSITION);
 
 /* Global position solver function pointers. */
-extern void (*gGPSDoMove)(MOVE move);
+extern POSITION (*gGPSDoMove)(MOVE move);
 extern MOVELIST *(*gGPSGenerateMoves)();
 extern BOOLEAN (*gGPSGoAgain)(MOVE move);
-extern POSITION (*gGPSHashPosition)();
 extern VALUE (*gGPSPrimitive)();
 extern void (*gGPSUndoMove)(MOVE move);
 
