@@ -15,7 +15,7 @@
 #include "tk.h"
 #include "gamesman.h"
 #include "hash.h"
-#include<string.h>
+#include <string.h>
 
 
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
@@ -196,13 +196,10 @@ GenericUnhashCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   char *board;
-  // int n;
-  //  board = (char *) SafeMalloc (sizeof(char)*16);
-  board = (char *) SafeMalloc (16 * sizeof(char));
-  //  generic_unhash(atoi(argv[1]),board);
-  //  generic_unhash(62300342,board);
-  generic_unhash(0,board);
+  POSITION pos = atoi(argv[1]);
+  board = generic_unhash_tcl(pos);
   sprintf(interp->result, "%s",board);
+  SafeFree(board);
   return TCL_OK;
 }
 

@@ -330,6 +330,14 @@ int whoseMove (POSITION hashed)
 **
 *************************************/
 
+
+char* generic_unhash_tcl(POSITION pos){
+  char* ret = (char*) SafeMalloc (sizeof(char) * hash_boardSize+1);
+  generic_unhash(pos,ret);
+  ret[hash_boardSize] = '\0';
+  return ret;
+}
+
 /* unhashes hashed to a board */
 char* generic_unhash(POSITION hashed, char* dest)
 {

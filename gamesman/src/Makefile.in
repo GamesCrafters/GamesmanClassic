@@ -252,7 +252,7 @@ TACTIX_SO		= $(LIBDIR)/libmtactix$(LIBSUFFIX)
 
 TORE_EXE		= $(BINDIR)/mtore$(EXESUFFIX)	# The great game of Tac Tix
 TORE_OBJ		= mtore$(OBJSUFFIX)
-
+TORE_SO			= $(LIBDIR)/libmtore$(LIBSUFFIX)
 TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
 TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
@@ -310,7 +310,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
-	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO)
+	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files

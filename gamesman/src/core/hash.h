@@ -76,6 +76,7 @@ POSITION hash_cruncher (char* board);
 void hash_uncruncher (POSITION hashed, char *dest);
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *));
 POSITION generic_hash(char* board, int player);
+char* generic_unhash_tcl(POSITION pos);
 char* generic_unhash(POSITION hashed, char* dest);
 int whoseMove (POSITION hashed);
 int getPieceParams(int *pa,char *pi,int *mi,int *ma);
