@@ -253,7 +253,7 @@ POSITION DoMove (thePosition, theMove)
 {
   BOARD board = arraytoboard(thePosition);
   int i; 
-  for (i=0; theMove - (base - i) > 0; ++i, theMove -= (base - i));
+  for (i = 0; theMove - (base - i) > 0; ++i, theMove -= (base - i));
   board->spaces[i][theMove - 1] = board->turn;
   if(board->turn == X)
     board->turn = O;
@@ -333,13 +333,13 @@ VALUE Primitive (pos)
       drvisited[i][j] = 0;
     }
   }
-  color = board->spaces[i][j];
-  for (i=0; i < base; ++i) {
-    for (j=0; j < base - i; ++j) {
+  for (i = 0; i < base; i++) {
+    for (j = 0; j < base - i; j++) {
+      color = board->spaces[i][j];
       if(board->spaces[i][j] < 999)
 	return undecided;
-      for(k = 1, m = j, count = 0; !dlvisited[k][m] && 
-	    k < base && m >= 0 && board->spaces[k][m]; k++, m--) {
+      for(k = i, m = j, count = 0; k < base && m >= 0 && !dlvisited[k][m] &&
+	    board->spaces[k][m]; k++, m--) {
 	count++; 
 	dlvisited[k][m] = 1; 
       }
@@ -347,9 +347,8 @@ VALUE Primitive (pos)
 	countX += count;
       else if (count > 1)
 	countO += count;
-      for (k = i, m = j, count = 0; !drvisited[k][m] && 
-	     k < base && m < (base - k) && 
-	     board->spaces[k][m] == color; k++, m++) {
+      for (k = i, m = j, count = 0; k < base && m < (base - k) && 
+	     !drvisited[k][m] && board->spaces[k][m] == color; k++, m++) {
 	count++;
 	drvisited[k][m] = 1;
       }
@@ -357,14 +356,14 @@ VALUE Primitive (pos)
 	countX += count;
       else if (count > 1)
 	countO += count;
-      for (k = i, m = j, count = 0; (m < base - k) && 
+      for (k = i, m = j, count = 0; m < (base - k) && 
 	     board->spaces[k][m] == color; m++) 
 	count++;
       if((count > 1) && (color == X))
 	countX += count;
       else if (count > 1)
 	countO += count;
-      j += count - 1;
+      j += (count - 1);
     }
   }
   if(countX > countO)
