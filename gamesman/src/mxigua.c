@@ -48,7 +48,7 @@
 **		 -- 3.06.05 -- Fixed compile time errors.
 **			    	Created a game specific menu, (currently only changes boardsize)
 **				Created smaller board sizes (5 board, have functions for 9, 13, 17)
-**
+**		 -- 3.7.05 -- Created more boards (9, 13, and 17)
 **************************************************************************/
 
 /*************************************************************************
@@ -565,24 +565,42 @@ VALUE Primitive (POSITION position)
 ** 
 *************************************************************************/
 
-void display5board(char *positionvalues, char *prediction) {
-	char *pos=positionvalues;
-	printf("Legend:    1         Current    %c\n",pos[0]);
-	printf("          /|\\                  /|\\\n");
-	printf("         2-3-4                %c-%c-%c\n",pos[1],pos[2],pos[3]);
-	printf("          \\|/                  \\|/\n");
-	printf("           5                     %c\n",pos[4]);
-	printf(" Prediction (%s)\n",prediction);
+void display5board(char *pos, char *prediction) {
+	printf("Legend:    1         Current:      %c\n",pos[0]);
+	printf("          /|\\        Player1: *   /|\\\n");
+	printf("         2-3-4       Player2: X  %c-%c-%c\n",pos[1],pos[2],pos[3]);
+	printf("          \\|/                     \\|/\n");
+	printf("           5                       %c\n",pos[4]);
+	printf(" Prediction (%s)\n\n",prediction);
 }
 void display9board(char *pos,char *prediction) {
-
+	printf("Legend:   1......2        Current:      %c......%c\n",pos[0],pos[1]);
+	printf("         /|\\..../|        Player1: *   /|\\..../|\n");
+	printf("        3-4-5--6-7        Player2: X  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
+	printf("         \\|/....\\|                     \\|/....\\|\n");
+	printf("          8......9                      %c......%c\n",pos[7],pos[8]);
+	printf(" Prediction (%s)\n\n",prediction);
 }
 void display13board(char *pos,char *prediction) {
-
+	printf("Legend:   1......2......3   Current:    %c......%c......%c\n",pos[0],pos[1],pos[2]);
+	printf("          |\\..../|\\..../|   Player1: *  |\\..../|\\..../|\n");
+	printf("          4-5--6-7-8--9-Z   Player2: X  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
+	printf("          |/....\\|/....\\|               |/....\\|/....\\|\n");
+	printf("          Y......X......W               %c......%c......%c\n",pos[10],pos[11],pos[12]);
+	printf(" Prediction (%s)\n\n",prediction);
 }
 
 void display17board(char *pos,char *prediction) {
-
+        printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
+        printf("          /..\\|/..\\    Player1: *     /..\\|/..\\\n");
+        printf("         /....4....\\   Player2: X    /....%c....\\\n",pos[3]);
+        printf("        /.....|.....\\               /.....|.....\\\n");
+        printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
+        printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
+        printf("       8-9--Z-Y-X--W-V             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+        printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
+        printf("       U......T......S             %c......%c......%c\n",pos[14],pos[15],pos[16]);
+	printf(" Prediction (%s)\n\n",prediction);
 }
 
 void display21board(char *positionvalues, char *prediction) {
