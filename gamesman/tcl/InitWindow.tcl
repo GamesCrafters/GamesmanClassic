@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.56 2005-02-11 05:26:33 nizebulous Exp $
+# $Id: InitWindow.tcl,v 1.57 2005-02-11 18:26:58 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -115,7 +115,6 @@ proc SetupPlayOptions {} {
 
 proc InitWindow { kRootDir kDir kExt } {
 
-
     global gWindowWidth gWindowHeight
     global gFrameWidth
     global gSkinsRootDir
@@ -136,7 +135,7 @@ proc InitWindow { kRootDir kDir kExt } {
     # Initialize the constants
     #
     set gReallyUnsolved false
-    set gMoveDelay 1
+    set gMoveDelay 0
     set gGameDelay 1
     set gWhoseTurn "Jesse"
     set gPredString ""
@@ -515,6 +514,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly -expand 1 -fill both -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly -side top -expand 1 -fill both
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely -side top -expand 1 -fill both
+    .middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray
     pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x
     pack .middle.f2.fPlayOptions.fMid.fRight.animationDelay -side top -expand 1 -fill x
 
@@ -524,6 +524,7 @@ proc InitWindow { kRootDir kDir kExt } {
 #    pack .middle.f2.fPlayOptions.fMid.fRight.cFrontierSolver -side bottom -fill both
 #    pack .middle.f2.fPlayOptions.fMid.fRight.cSolvingOptions -side bottom -fill both
     ## moveDelay scale bar
+    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
     pack .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fLeft.rHuman -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.rComputer -side bottom -fill both -expand 1
