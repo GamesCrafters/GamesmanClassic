@@ -17,7 +17,7 @@
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
-    
+
     global kGameName 
     set kGameName "Mu Torere"
     
@@ -36,22 +36,22 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
-    global gMisereGame
+     global gMisereGame
      if {!$gMisereGame} {
- 	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
+   	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
      } else {
- 	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
-#    }
+   	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
+     }
      SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
 
 
 
-#     # Authors Info. Change if desired
-#     global kRootDir
-#     global kCAuthors kTclAuthors kGifAuthors
-#     set kCAuthors "Jeffrey Chou"
-#     set kTclAuthors "Jeffrey Chou, Geoffrey Kwan"
-#     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+     # Authors Info. Change if desired
+     global kRootDir
+     global kCAuthors kTclAuthors kGifAuthors
+     set kCAuthors "Jeffrey Chou"
+     set kTclAuthors "Jeffrey Chou, Geoffrey Kwan"
+     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
 
@@ -200,6 +200,7 @@ proc GS_Initialize { c } {
 
     global xCenter yCenter
     global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
+    global gInitialPosition gPosition
 
     set cWidth [$c cget -width]
     set cHeight [$c cget -height]
@@ -379,8 +380,8 @@ proc GS_Initialize { c } {
     # red6
     # red7
     # red8
-    GS_DrawPosition $c 480
 
+    GS_DrawPosition $c $gInitialPosition
 }
 
 
@@ -546,12 +547,15 @@ proc GS_DrawPosition { c position } {
     # so the blank space is 3 and should overwrite the red piece from above
 
 
+
+
     set mask 1
-    set shiftingPosition position
+
+    set binaryPosition [Unhash $position]
 
     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
-	if {[expr $mask & $position] == 0} {
+	if {[expr $mask & $binaryPosition] == 0} {
 	    $c raise "blue$x"
 	} else {
 	    $c raise "red$x"
@@ -560,26 +564,39 @@ proc GS_DrawPosition { c position } {
     }
 
 
-    set blankSpot [getBlankSpot $position]
+    set blankSpot [getBlankSpot $binaryPosition]
     $c raise "white$blankSpot"
 
 }
 
-#unhashes the position from the C code with C_genericUnhash.  Returns the unhashed position.
+#unhashes the position from the C code with C_GenericUnhash. Returns the unhashed position.
 proc Unhash { position } {
-    set hashPosition [C_GenericUnhash $position]
-    set unhashPosition 0
+
+    set stringPosition [C_GenericUnhash $position 9]
+    #set pieceString [string range [C_GenericUnhash $position 9] 0 8]
+    #set stringPosition "_ooooxxxx"
+
+    set binaryPosition 0
+    set positionMultiplier 1
+
     for {set n 0} {$n < 9} {set n [expr $n + 1]} {
-	if {[string compare [string index $hashPosition n] "x"] == 0} {
+	if {[string compare [string index $stringPosition $n] "x"] == 0} {
 	    #The thing in the string is "x", which is red in our game. Do something in binary.
-	} elseif {[string compare [string index $hashPosition n] "o"] == 0} {
+	    set binaryPosition [expr $binaryPosition + $positionMultiplier]
+	} elseif {[string compare [string index $stringPosition $n] "o"] == 0} {
 	    #The thing in the string is "o", which is blue in our game. Do something in binary.
-	} elseif {[string compare [string index $hashPosition n] "_"] == 0} {
+	    #set binaryPosition [expr $binaryPosition + $positionMultiplier]
+	} elseif {[string compare [string index $stringPosition $n] "_"] == 0} {
 	    #the thing in the string is "_", which is the empty slot.  Do something in binary.
+	    set binaryPosition [expr $binaryPosition + { 1024 * $n }]
 	}
+
+	set positionMultiplier [expr $positionMultiplier * 2]
     }
-    return unhashPosition
+
+    return $binaryPosition
 }
+
 
 
 # Gets the blank location of a position
@@ -602,6 +619,7 @@ proc getBlankSpot { position } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+
     GS_DrawPosition $c $position
 }
 
@@ -614,7 +632,7 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+    return ""
 }
 
 
@@ -652,14 +670,17 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    set oldBlankSpot [getBlankSpot $position]
+
+    #set binaryPosition [Unhash $position]
+    #set oldBlankSpot [getBlankSpot $position]
 
     foreach item $moveList {
 	set move [lindex $item 0]
 	set value [lindex $item 1]
 	set color cyan
 
-	set newBlankSpot [getBlankSpot $move]
+	set oldBlankSpot [expr $move % 10]
+	set newBlankSpot [expr $move / 10]
 
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
@@ -696,10 +717,10 @@ proc drawArrow {c startLoc endLoc color} {
 
 
 # raises an arrow and binds it to a button release that handles that move
-proc raiseArrow {c startLoc endLoc oldPosition newPosition color} {
+proc raiseArrow {c startLoc endLoc oldPosition move color} {
     $c raise "arrow$color$startLoc$endLoc"
 
-    $c bind "bigArrow$color$startLoc$endLoc" <ButtonRelease> "GS_HandleMove $c $oldPosition $newPosition $newPosition"
+    $c bind "bigArrow$color$startLoc$endLoc" <ButtonRelease> "ReturnFromHumanMove $move"
 }
 
 
