@@ -1,20 +1,13 @@
-#!/usr/sww/bin/wish -f
+#!/bin/wish -f
 #
 #############################################################################
 ##
-## NAME:         Xm1210
+## NAME:
 ##
-## DESCRIPTION:  The source code for the Tcl component of the game 1,2,...,10
-##               for the Master's project GAMESMAN
-##
-## AUTHOR:       Dan Garcia  -  University of California at Berkeley
-##               Copyright (C) Dan Garcia, 1995. All rights reserved.
-##
-## DATE:         05-12-95
-##
-## UPDATE HIST:
-##
-## 05-15-95 1.0    : Final release code for M.S.
+## DESCRIPTION:  
+## AUTHOR:       
+## DATE:         
+## UPDATE HISTORY:
 ##
 #############################################################################
 
@@ -37,10 +30,16 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libm1210[info sharedlibextension]" Gamesman
 
-### Now source our Game-specific code.
-
-source "$kRootDir/../tcl/m1210.tcl"
-
 ### Now source the rest of the game-playing interface code.
 
-source "$kRootDir/../tcl/gamesman.tcl"
+source "$kRootDir/../tcl/gamesman3.tcl"
+
+### Now source our Game-specific code.
+
+source "$kRootDir/../tcl/m12102.tcl"
+
+main $kRootDir
+
+
+
+

@@ -254,7 +254,7 @@ proc main {} {
     set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3" "Tac Tix" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
-    set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown }
+    set theGuiTypes { gold gold gold gold gold gold gold grey grey grey grey grey grey grey brown brown brown brown brown brown }
     ### Removed grey (for Tic-Tac-Toe)
 
 
@@ -275,6 +275,10 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.10  2004/05/19 16:33:57  jontsai
+##functions, shouldScrollH and shouldScrollV to true or false
+##Jonathan Tsai jontsai@berkeley.edu
+##
 ##Revision 1.9  2004/04/25 07:17:36  bryonr
 ##Updated Sim to use the silver GUI
 ##
