@@ -59,6 +59,8 @@ VALUE lgas_DetermineValue(POSITION position)
 
   value = lgas_DetermineLoopyValue1(position);
 
+  showStatus(1); /* We're done */
+  
   /* free */
   NumberChildrenFree();
   lgas_ParentFree();
@@ -80,6 +82,8 @@ POSITION position;
 
   /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
+
+  
   lgas_SetParents(kBadPosition,position);
   if(kDebugDetermineValue) {
     printf("---------------------------------------------------------------\n");
@@ -95,7 +99,6 @@ POSITION position;
   //@@ separate lose/win frontiers
   while ((gHeadLoseFR != NULL) ||
 	 (gHeadWinFR != NULL)) {
-
     if ((child = DeQueueLoseFR()) == kBadPosition)
       child = DeQueueWinFR();
     
@@ -113,6 +116,9 @@ POSITION position;
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
     while (ptr != NULL) {
+    
+    showStatus(0); /* Update Counter */
+      
       parent = ptr->position;
       move = ptr->move;
       
@@ -258,10 +264,13 @@ void lgas_SetParents (POSITION parent, POSITION root)
   VALUE value;
   MOVE move = -1; /* initialized to dummy value */
   
+  showStatus(0);  /* Update Counter */
+  
   posptr = thisLevel = nextLevel = NULL;
   moveptr = movehead = NULL;
   
   // Check if the top is primitive.
+  
   MarkAsVisited(root);
   lgas_gParents[root] = CreatePositionMoveNode(parent, move, lgas_gParents[root]);
   if ((value = Primitive(root)) != undecided) {

@@ -115,6 +115,8 @@ void    MexFormat(POSITION position, STRING string);
 MEX     MexPrimitive(VALUE value);
 void    PrintMexValues(MEX mexValue, int maxPositions);
 
+/* Status Meter */
+void showStatus(int done);
 
 /* solver function pointer */
 VALUE (*gSolver)(POSITION);
@@ -1155,6 +1157,32 @@ MOVE move;
   ExitStageRight();
 }
 
+/* Status Meter */
+void showStatus(int done)
+{
+	static int num_pos_seen = 0;	 
+    	int size=0;
+	int i = 0;
+	num_pos_seen++;
+	if (done)
+	{
+		size = fprintf(stderr,"Solving Done. Writing Database...                                                           ");
+		for (i = 0; i < size; i++)
+		{
+			fprintf(stderr,"\b");
+		}
+		num_pos_seen = 0;
+	}
+	else if (num_pos_seen % 1000 == 0)
+	{
+		size = fprintf(stderr,"%d Positions Visited - Reported Total Number of Positions: %d",num_pos_seen,gNumberOfPositions);
+		for (i = 0; i < size; i++)
+		{
+			fprintf(stderr,"\b");
+		}
+	}
+}
+
 VALUE DetermineValue1(position)
 POSITION position;
 {
@@ -1166,6 +1194,8 @@ POSITION position;
   REMOTENESS minTieRemoteness = MAXINT2, remoteness;
   MEXCALC theMexCalc = 0; /* default to satisfy compiler */
 
+  showStatus(0);
+  
   if(Visited(position)) { /* Cycle! */
     return(win);
   }
@@ -1257,6 +1287,7 @@ VALUE DetermineValue(POSITION position)
   else {
     if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
     gSolver(position);
+    showStatus(1);
     if(gWriteDatabase)
       writeDatabase();
   }
@@ -2917,6 +2948,8 @@ VALUE DetermineLoopyValue(POSITION position)
   
   value = DetermineLoopyValue1(gInitialPosition);
 
+  showStatus(1);
+  
   /* free */
   NumberChildrenFree();
   ParentFree();
@@ -2969,6 +3002,7 @@ POSITION position;
     if (childValue == lose) {
       ptr = gParents[child];
       while (ptr != NULL) {
+        showStatus(0); /* Update Counter */
 	/* Make code easier to read */
 	parent = ptr->position;
 	
@@ -3108,6 +3142,8 @@ void SetParents (POSITION parent, POSITION root)
   POSITIONLIST* posptr, * thisLevel, * nextLevel;
   POSITION pos, child;
   VALUE value;
+  
+  showStatus(0);
   
   posptr = thisLevel = nextLevel = NULL;
   moveptr = movehead = NULL;

@@ -253,5 +253,7 @@ void      setOption(int option);
 /* deprecated function prototypes for functions included in modules */
 void SetTclCGameSpecificOptions(int theOptions[]);
 
+/* Status Meter */
+void showStatus(int done);
 
 #endif
