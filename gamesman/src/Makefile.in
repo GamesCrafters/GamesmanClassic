@@ -113,7 +113,7 @@ LGAME_SO		= $(LIBDIR)/libmLgame$(LIBSUFFIX)
 
 3SPOT_EXE		= $(BINDIR)/m3spot$(EXESUFFIX)	# The fantastically difficult game of 3 dot
 3SPOT_OBJ		= m3spot$(OBJSUFFIX)
-3SPOT_SO		= $(LIBDIR)/libm3SPOT$(LIBSUFFIX)
+3SPOT_SO		= $(LIBDIR)/libm3spot$(LIBSUFFIX)
 
 CMASS_EXE		= $(BINDIR)/mcmass$(EXESUFFIX)	# The explosive game of critical mass
 CMASS_OBJ		= mcmass$(OBJSUFFIX)
