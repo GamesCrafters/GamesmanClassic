@@ -47,7 +47,7 @@ BOOLEAN  kPartizan           = ; /* A partizan game is a game where each player 
 BOOLEAN  kDebugMenu          = ; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy               = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
+BOOLEAN  kLoopy              = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
 
 /* 
@@ -127,8 +127,8 @@ extern VALUE     *gDatabase;
 ** 
 ************************************************************************/
 
-void InitializeGame ()
-{
+void InitializeGame () {
+  
 }
 
 
@@ -141,8 +141,8 @@ void InitializeGame ()
 ** 
 ************************************************************************/
 
-void DebugMenu ()
-{
+void DebugMenu () {
+  
 }
 
 
@@ -156,8 +156,8 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
-void GameSpecificMenu ()
-{
+void GameSpecificMenu () {
+  
 }
 
   
@@ -170,9 +170,8 @@ void GameSpecificMenu ()
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-	int options[];
-{
+void SetTclCGameSpecificOptions (int options[]) {
+  
 }
 
 
@@ -192,10 +191,8 @@ void SetTclCGameSpecificOptions (options)
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-POSITION DoMove (thePosition, theMove)
-	POSITION thePosition;
-	MOVE theMove;
-{
+POSITION DoMove (POSITION position, MOVE move) {
+  return 0;
 }
 
 
@@ -210,8 +207,8 @@ POSITION DoMove (thePosition, theMove)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition () {
+  return 0;
 }
 
 
@@ -226,10 +223,8 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-	MOVE computersMove;
-	STRING computersName;
-{
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+
 }
 
 
@@ -252,9 +247,8 @@ void PrintComputersMove(computersMove, computersName)
 **
 ************************************************************************/
 
-VALUE Primitive (pos)
-	POSITION pos;
-{
+VALUE Primitive (POSITION position) {
+  return undecided;
 }
 
 
@@ -275,11 +269,8 @@ VALUE Primitive (pos)
 **
 ************************************************************************/
 
-void PrintPosition (position, playerName, usersTurn)
-	POSITION position;
-	STRING playerName;
-	BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  
 }
 
 
@@ -301,9 +292,8 @@ void PrintPosition (position, playerName, usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (position)
-         POSITION position;
-{
+MOVELIST *GenerateMoves (POSITION position) {
+  return NULL;
 }
 
  
@@ -326,11 +316,8 @@ MOVELIST *GenerateMoves (position)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-	POSITION thePosition;
-	MOVE *theMove;
-	STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE move, STRING playerName) {
+  return Abort;
 }
 
 
@@ -351,9 +338,8 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-	STRING input;
-{
+BOOLEAN ValidTextInput (STRING input) {
+  return FALSE;
 }
 
 
@@ -371,9 +357,8 @@ BOOLEAN ValidTextInput (input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-	STRING input;
-{
+MOVE ConvertTextInputToMove (STRING input) {
+  return 0;
 }
 
 
@@ -387,9 +372,8 @@ MOVE ConvertTextInputToMove (input)
 **
 ************************************************************************/
 
-void PrintMove (move)
-	MOVE move;
-{
+void PrintMove (MOVE move) {
+  
 }
 
 
@@ -404,9 +388,8 @@ void PrintMove (move)
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
-	return 0;
+int NumberOfOptions () {
+  return 0;
 }
 
 
@@ -422,9 +405,8 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption()
-{
-	return 0;
+int getOption () {
+  return 0;
 }
 
 
@@ -440,8 +422,8 @@ int getOption()
 **
 ************************************************************************/
 
-void setOption(int option)
-{
+void setOption (int option) {
+  
 }
 
 
