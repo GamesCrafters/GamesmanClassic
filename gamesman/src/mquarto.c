@@ -33,6 +33,7 @@
 **                     implementation. unhash() in the works. need printPosition()
 **                     before code can be tested independent of core. 
 ** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
+** 28 Feb 2005 Amy: added gGameSpecificTclInit, as suggested in email
 **
 **************************************************************************/
 
@@ -59,6 +60,7 @@ STRING   kGameName            = "QUARTO"; /* The name of your game */
 STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
+void* gGameSpecificTclInit = NULL;  /* newly added to tempalte */
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
