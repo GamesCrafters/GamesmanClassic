@@ -36,6 +36,13 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "Foxes and Geese"
 
+    # Authors Info
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Sergey Kirshner, James Chung"
+    set kTclAuthors "Sergey Kirshner, James Chung"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     ### Set the size of the slot in the window
     ### This should be a multiple of 80, but 100 is ok
     

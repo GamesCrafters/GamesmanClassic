@@ -30,6 +30,12 @@ proc GS_InitGameSpecific {} {
     
     global kGameName
     set kGameName "Snake"
+
+    # Authors Info
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Alice Chang, Judy Chen, Eleen Chiang, Peter Foo"
+    set kTclAuthors "Judy Chen, Eleen Chiang, Peter Foo"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
     
     ### Set the initial position of the board
 

@@ -65,6 +65,12 @@ proc GS_InitGameSpecific {} {
     set macLeft  arrow
     set macRight arrow
 
+    # Authors Info
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Chi Huynh, Edwin Mach"
+    set kTclAuthors "Chi Huynh, Edwin Mach"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     ### Set the procedures that will draw the pieces
 
     global kLeftDrawProc kRightDrawProc kBothDrawProc

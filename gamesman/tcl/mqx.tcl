@@ -7,7 +7,7 @@
 # Jesse Phillips
 # Jennifer Lee
 # Rach Liu
-# Jeff Chang
+# Jeff Chiang
 ####################################################
 
 
@@ -37,6 +37,14 @@ proc GS_InitGameSpecific {} {
     
     global kGameName
     set kGameName "QuickCross"
+
+    # Authors Info
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Thomas Yiu"
+    set kTclAuthors "Jesse Phillips, Jennifer Lee, Rach Liu, Jeff Chiang"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     
     ### Set the initial position of the board
 
@@ -423,10 +431,10 @@ proc MakeBoard { c } {
     for {set i 0} {$i < $NUM_SQUARES} {incr i} {
 #	$c bind TILE$i <Enter> "RaiseShadows $c $i"
 #	$c bind TILE$i <Leave> "$c lower SHADOW$i"
-	$c bind SHADOW_HORIZ$i <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; shrinkAndFade $c SHADOW$i 50 0; $c raise PIECE_HORIZ$i; $c lower SHADOW$i; SendMove - $i;"
-	$c bind SHADOW_VERT$i  <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; shrinkAndFade $c SHADOW$i 50 0; $c raise PIECE_VERT$i; $c lower SHADOW$i; SendMove | $i;"
-	$c bind PIECE_HORIZ$i  <ButtonRelease-1> "anim_piece $c PIECE_HORIZ$i 90 20; $c lower PIECE_HORIZ$i TILES; $c raise PIECE_VERT$i; update idletasks; SendMove x $i;"
-	$c bind PIECE_VERT$i   <ButtonRelease-1> "anim_piece $c PIECE_VERT$i 90 20; $c lower PIECE_VERT$i TILES; $c raise PIECE_HORIZ$i; update idletasks; SendMove x $i;"
+	$c bind SHADOW_HORIZ$i <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; shrinkAnim $c SHADOW$i; $c raise PIECE_HORIZ$i; $c lower SHADOW$i; SendMove - $i;"
+	$c bind SHADOW_VERT$i  <ButtonRelease-1> "lset SHADOW_ARRAY $i 1; shrinkAnim $c SHADOW$i; $c raise PIECE_VERT$i; $c lower SHADOW$i; SendMove | $i;"
+	$c bind PIECE_HORIZ$i  <ButtonRelease-1> " $c lower PIECE_HORIZ$i TILES; anim_piece $c PIECE_HORIZ$i 90 20; $c raise PIECE_VERT$i; update idletasks; SendMove x $i;"
+	$c bind PIECE_VERT$i   <ButtonRelease-1> " $c lower PIECE_VERT$i TILES; anim_piece $c PIECE_VERT$i 90 20; $c raise PIECE_HORIZ$i; update idletasks; SendMove x $i;"
     }
 
     $c lower BACK all
@@ -1166,12 +1174,244 @@ proc Fly { c label_list xDistance yDistance xSpeed ySpeed optionals} {
     }
 }
 
-proc random_colour {c object} {
-    set rand [expr ([clock seconds]*43-[clock seconds]*37+[clock seconds]*61)%10]
 
+#using end-coordinates instead of moving abs distances
+# NOTES: expr expressions used for varible coordinates MUST have no spaces after [expr, otherwise
+#   will not be parsed correctly
+# Give absolute values for xSpeed and ySpeed!
+proc FlyGroupCoord { c group optionals globals_list} {
+
+    # initiliaze all globals in globals_list
+ #   puts globals_list:$globals_list
+    set glength [llength $globals_list]
+    set i 0
+    while {$i < $glength} {
+	set gVar [lindex $globals_list $i]
+#	puts gVar:$gVar
+	global $gVar
+	set i [expr $i+1]
+    }
+
+    set xIncr 1
+    set yIncr 1
+
+    set num_to_go [llength $group]
+    set group_size [llength $group]
+
+    set i 0
+    while { $i < $group_size } {
+
+	set item [lindex $group $i]
+	set name [lindex $item 0]
+
+	# get numbers, code for handling expressions correctly when parsing
+
+	set xFinal [lindex $item 1]
+	if {[string equal $xFinal "\[expr"]} {
+	    # this is an expression, not just a number of a straight $varname, so parse it
+	    set part2 [lindex $item 2]
+	    # concatenate, use concat b/c it puts a space inbetween automatically for us
+	    set theExpr [concat $xFinal $part2]
+	    # this looks something like: [expr [expr var]]
+	    set xFinal [expr $theExpr]
+	    lset item 1 $xFinal
+	    # now move the elements down one index, killing element 2
+	    # note: don't care that theres an "extra" undeleted element at the end now
+	    set end [expr [llength $item]-1]
+	    set k 2
+	    while {$k < $end} {
+		lset item [expr $k] [lindex $item [expr $k+1]]
+		#puts "k:$k, item: $item"
+		set k [expr $k+1]
+	    }
+	    #puts item:$item
+	}
+
+	set yFinal [lindex $item 2]
+	if {[string equal $yFinal "\[expr"]} {
+	    set part2 [lindex $item 3]
+	    set theExpr [concat $yFinal $part2]
+	    set yFinal [expr $theExpr]
+	    lset item 2 $yFinal
+	    set end [expr [llength $item]-1]
+	    set k 3
+	    while {$k < $end} {
+		lset item [expr $k] [lindex $item [expr $k+1]]
+		#puts "k:$k, item: $item"
+		set k [expr $k+1]
+	    }
+	    #puts item:$item
+	}
+
+	set xSpeed [lindex $item 3]
+	if {[string equal $yFinal "\[expr"]} {
+	    set part2 [lindex $item 4]
+	    set theExpr [concat $xSpeed $part2]
+	    set xSpeed [expr $theExpr]
+	    lset item 3 $xSpeed
+	    set end [expr [llength $item]-1]
+	    set k 4
+	    while {$k < $end} {
+		lset item [expr $k] [lindex $item [expr $k+1]]
+		#puts "k:$k, item: $item"
+		set k [expr $k+1]
+	    }
+	    #puts item:$item
+	}
+
+	set ySpeed [lindex $item 4]
+	if {[string equal $yFinal "\[expr"]} {
+	    set part2 [lindex $item 5]
+	    set theExpr [concat $ySpeed $part2]
+	    set ySpeed [expr $theExpr]
+	    lset item 4 $ySpeed
+	    set end [expr [llength $item]-1]
+	    set k 5
+	    while {$k < $end} {
+		lset item [expr $k] [lindex $item [expr $k+1]]
+		#puts "k:$k, item: $item"
+		set k [expr $k+1]
+	    }
+	    #puts item:$item
+	}
+
+	set inner_optionals [lindex $item 5]
+
+	set theCoords [$c coords $name]
+	set xNow [lindex $theCoords 0]
+	set yNow [lindex $theCoords 1]
+
+	#----debug--------
+	#puts theCoord:$theCoords
+	#puts xNow:$xNow
+	#puts yNow:$yNow
+	#puts xFinal:$xFinal
+	#puts yFinal:$yFinal
+	#puts xFinal:[expr $xFinal]
+	#puts yFinal:[expr $yFinal]
+	#puts xSpeed:$xSpeed
+	#puts ySpeed:$ySpeed
+	#------------------
+
+	set xDistance [expr $xFinal - $xNow]
+	set yDistance [expr $yFinal - $yNow]
+
+	puts xDistance:$xDistance
+	puts yDistance:$yDistance
+
+	if {$xDistance != 0} {
+	    set signX [expr $xDistance/abs($xDistance)]
+	    set xSpeed [expr $signX*$xSpeed]
+	}
+
+	if {$yDistance != 0} {
+	    set signY [expr $yDistance/abs($yDistance)]
+	    set ySpeed [expr $signY*$ySpeed]
+	}
+
+	set xDistance [expr abs($xDistance)]
+	set yDistance [expr abs($yDistance)]
+
+	# more debug
+	#puts abs(xDistance):$xDistance
+	#puts abs(yDistance):$yDistance
+
+	lset group $i [list $name $xDistance $yDistance $xSpeed $ySpeed $inner_optionals]
+
+	set i [expr $i+1]
+    }
+
+    while { $num_to_go > 0 } {
+
+	set i 0
+
+	while { $i < $group_size } {
+	    set item [lindex $group $i]	 
+	    
+	    set name [lindex $item 0]
+
+	    #puts "-------CURRENTLY ON: $name --------"
+
+	    set xDistance [lindex $item 1]
+	    set yDistance [lindex $item 2]
+
+	    if {$xDistance == "DONE"} {
+		set i [expr $i+1]
+		foreach inner $inner_optionals {
+		    eval $inner
+		}
+#		eval $inner_optional
+		continue
+	    }
+
+	    set xSpeed [lindex $item 3]
+	    set ySpeed [lindex $item 4]
+
+	    set inner_optionals [lindex $item 5]
+
+	    $c move $name [expr $xIncr*$xSpeed] [expr $yIncr*$ySpeed]
+	    
+	    foreach inner $inner_optionals {
+		eval $inner
+	    }
+#	    eval $inner_optionals
+	    
+	    set xDistance [expr $xDistance - abs($xSpeed)]
+	    set yDistance [expr $yDistance - abs($ySpeed)]
+
+	    # debug
+	    #puts $xDistance
+	    #puts $yDistance
+
+	    if {$xDistance <= 0} {
+		# correct overshoot!
+		if {$xDistance < 0 && $xSpeed != 0} {
+	            $c move $name [expr (-1*$xSpeed/abs($xSpeed))*abs($xDistance) ] 0
+		}
+		set xSpeed 0
+	    }
+	    if {$yDistance <= 0} {
+		# correct overshoot!
+		if {$yDistance < 0 && $ySpeed != 0} {
+	            $c move $name 0 [expr (-1*$ySpeed/abs($ySpeed))*abs($yDistance) ]
+		}
+		set ySpeed 0
+	    }
+	    if {$xDistance <= 0 && $yDistance <= 0} {
+		#debug
+		#puts "deleting 1 from num_to_go"
+		#puts "--- yDistance: $yDistance"
+		#puts "--- xDistance: $xDistance"
+		set num_to_go [expr $num_to_go - 1]
+		set xDistance "DONE"
+	    }
+
+	    lset group $i [list $name $xDistance $yDistance $xSpeed $ySpeed]
+
+	    set i [expr $i+1]
+	}
+
+	foreach item $optionals {
+	    eval $item
+	}
+
+	update idletasks
+    }
+
+    #puts $group
+    #puts $num_to_go
+}
+
+proc random_colour {c object_list} {
     # #puts "begin random color"
 
-    switch $rand {
+    set i [expr rand()]
+    while {$i < 1} {
+	set i [expr $i*10]
+    }
+    set i [expr round($i)%10]
+
+    switch $i {
 	1 {set colour black}
 	2 {set colour red}
 	3 {set colour blue}
@@ -1181,11 +1421,14 @@ proc random_colour {c object} {
 	7 {set colour pink}
 	8 {set colour purple}
 	9 {set colour orange}
-	10 {set colour honeydew}
+	10 {set colour cyan}
 	default {set colour black}
     }
 
-    $c itemconfig $object -fill $colour
+
+   foreach object $object_list {
+	$c itemconfig $object -fill $colour
+    }
 }
 
 proc start_animation { c } {
@@ -1195,6 +1438,170 @@ proc start_animation { c } {
     .c create text -200 20 -text "QUICKCROSS" -font {Helvetica 40} -fill black -tags {word quickcross}
 
     Fly $c quickcross 450 30 15 3 {{random_colour $c quickcross}}
+}
+
+
+# the following start animation is too slow to run over ssh, excellent speed
+# on unix though
+proc start_animation_complex { c } {
+    global CANVAS_WIDTH CANVAS_HEIGHT
+    global BOARD_LENGTH
+    global BOARD_HEIGHT
+    global LEFT_PADDING   
+    global RIGHT_PADDING
+    global TOP_PADDING   
+    global BOTTOM_PADDING
+    global NUM_TILES_HORIZ
+    global NUM_TILES_VERT
+    global TILE_WIDTH
+    global TILE_HEIGHT
+
+    # note: these globals have to go into fly procs
+    #   is there a way around this? 
+    #   The problem is that these vars aren't passed to fly procs as args,
+    #   the fly procs eval the parsed group arg, so it seems like
+    #   making these global is the only way to go.
+    #  these globals are put into a list, and passed to FlyGroupCoord, then FlyGroupCoord can individually declare each global in the list as global
+    global SPACEOUT
+    global LETTERWIDTH
+    global TitleX
+    global TitleY
+
+    set SPACEOUT 100
+    set LETTERWIDTH 40
+    set TitleX [expr $CANVAS_WIDTH/5]
+    set TitleY [expr $CANVAS_HEIGHT/8]
+
+    global TitleFont
+    global TitleSize
+    set TitleFont Helvetica
+    set TitleSize 40
+
+    set TitleFontList [list $TitleFont $TitleSize]
+
+    .c create text [expr -1*$SPACEOUT] [expr -1.0*$CANVAS_HEIGHT/3] -text "Q" -font $TitleFontList -fill black -tags {words quickcross qinline q q1}
+    .c create text [expr $TitleX+$LETTERWIDTH] [expr $CANVAS_HEIGHT+$SPACEOUT] -text "U" -font $TitleFontList -fill black -tags {words quickcross qinline u u1}
+    .c create text [expr 0.8*$CANVAS_WIDTH] [expr -1.0*$SPACEOUT] -text "I" -font $TitleFontList -fill black -tags {words quickcross qinline i i1}
+    .c create text [expr 0.2*$CANVAS_WIDTH] [expr $CANVAS_HEIGHT+2*$SPACEOUT] -text "CK" -font $TitleFontList -fill black -tags {words quickcross qinline ck ck1}
+    .c create text [expr -3*$SPACEOUT] $TitleY -text "CR" -font $TitleFontList -fill black -tags {words quickcross qinline cr cr1}
+    .c create text [expr $TitleX+7*$LETTERWIDTH] [expr -4*$SPACEOUT] -text "O" -font $TitleFontList -fill black -tags {words quickcross qinline o o1}
+    .c create text [expr $TitleX+8*$LETTERWIDTH] [expr $CANVAS_HEIGHT+2*$SPACEOUT] -text "S" -font $TitleFontList -fill black -tags {words quickcross qinline s1 s1_1}
+    .c create text [expr $CANVAS_WIDTH+3*$SPACEOUT] $TitleY -text "S" -font $TitleFontList -fill black -tags {words quickcross qinline s2 s2_1}
+
+    global line1xB
+    global line1xF
+    global line1y
+    global line1length
+    global line1width
+    set line1xB [expr -4*$SPACEOUT]
+    set line1xF [expr $CANVAS_WIDTH+4*$SPACEOUT]
+    set line1y [expr $CANVAS_HEIGHT/9]
+    set line1length 300
+    set line1width 12
+    .c create line $line1xB $line1y [expr $line1xB+$line1length] $line1y -fill blue2 -tag {lines line1} -width $line1width
+
+    global line2xB
+    global line2xF
+    global line2y
+    global line2length
+    global line2width
+    set line2xB [expr -3.5*$SPACEOUT]
+    set line2xF [expr $CANVAS_WIDTH+3.5*$SPACEOUT]
+    set line2y [expr $CANVAS_HEIGHT*0.3]
+    set line2length 250
+    set line2width 6
+    .c create line $line2xB $line2y [expr $line2xB+$line2length] $line2y -fill green2 -tag {lines line2} -width $line2width
+
+    global line3xB
+    global line3xF
+    global line3y
+    global line3length
+    global line3width
+    set line3xF [expr -4*$CANVAS_WIDTH]
+    set line3xB [expr $CANVAS_WIDTH+4*$SPACEOUT]
+    set line3y [expr $CANVAS_HEIGHT*0.7]
+    set line3length 300
+    set line3width 8
+    .c create line $line3xB $line3y [expr $line3xB+$line3length] $line3y -fill blue2 -tag {lines line3} -width $line3width
+
+    global line4x
+    global line4yB
+    global line4yF
+    global line4length
+    global line4width
+    set line4x [expr $CANVAS_WIDTH*0.4]
+    set line4yB [expr -4*$SPACEOUT]
+    set line4yF [expr $CANVAS_WIDTH+$SPACEOUT]
+    set line4length 200
+    set line4width 15
+    .c create line $line4x $line4yB $line4x [expr $line4yB+$line4length] -fill red -tag {lines line4} -width $line4width
+
+    global line5x
+    global line5yB
+    global line5yF
+    global line5length
+    global line5width
+    set line5x [expr $CANVAS_WIDTH*0.7]
+    set line5yF [expr -2*$SPACEOUT]
+    set line5yB [expr $CANVAS_WIDTH+2*$SPACEOUT]
+    set line5length 100
+    set line5width 20
+    .c create line $line5x $line5yB $line5x [expr $line5yB-$line5length] -fill gold -tag {lines line5} -width $line5width
+
+    global line6x
+    global line6yB
+    global line6yF
+    global line6length
+    global line6width
+    set line6x [expr $CANVAS_WIDTH*0.2]
+    set line6yF [expr -2*$SPACEOUT]
+    set line6yB [expr $CANVAS_WIDTH+2*$SPACEOUT]
+    set line6length 150
+    set line6width 15
+    .c create line $line6x $line6yB $line6x [expr $line6yB-$line6length] -fill gold -tag {lines line6} -width $line6width    
+
+    global line7xB
+    global line7xF
+    global line7y
+    global line7length
+    global line7width
+    set line7xB [expr -3.5*$SPACEOUT]
+    set line7xF [expr $CANVAS_WIDTH+3.5*$SPACEOUT]
+    set line7y [expr $CANVAS_HEIGHT*0.4]
+    set line7length 250
+    set line7width 8
+    .c create line $line7xB $line7y [expr $line7xB+$line7length] $line7y -fill green2 -tag {lines line7} -width $line7width
+
+    global line8x
+    global line8yB
+    global line8yF
+    global line8length
+    global line8width
+    set line8x [expr $CANVAS_WIDTH*0.8]
+    set line8yF [expr -2*$SPACEOUT]
+    set line8yB [expr $CANVAS_WIDTH+2*$SPACEOUT]
+    set line8length 150
+    set line8width 10
+    .c create line $line8x $line8yB $line8x [expr $line8yB-$line8length] -fill gold -tag {lines line8} -width $line8width    
+
+    set lineglobals {line1xB line1xF line1y line1length line2xB line2xF line2y line2length line3xB line3xF line3y line3length line4x line4yB line4yF line4length line5x line5yB line5yF line5length line1width line2width line3width line4width line5width line6x line6yB line6yF line6length line6width line7xB line7xF line7y line7length line7width line8x line8yB line8yF line8length line8width} 
+    set titleglobals {SPACEOUT LETTERWIDTH TitleX TitleY}
+
+    set globs [concat $lineglobals $titleglobals]
+
+    # animate the lines and words simulataneously
+    #FlyGroupCoord $c { {line1 $line1xF $line1y 5 5 {} } {line2 $line2xF $line2y 3 3 {} } {line3 $line3xF $line3y 7 7 {} } {line4 $line4x $line4yF 4 4 {} } {line5 $line5x $line5yF 5 5 {{dimW $c line5 0.5}} } {line6 $line6x $line6yF 5 5 {} } {line7 $line7xF $line7y 2 2 {} } {line8 $line8x $line8yF 4 4 {} } {q $TitleX $TitleY 15 3 {{random_colour $c {q1} }} } {u $TitleX+$LETTERWIDTH $TitleY 5 10 {{random_colour $c {u1}}} } {i [expr $TitleX+1.7*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {i1}}} } {ck [expr $TitleX+2.8*$LETTERWIDTH] $TitleY 3 3 {{random_colour $c {ck1}}} } {cr [expr $TitleX+4.5*$LETTERWIDTH] $TitleY 4 4 {{random_colour $c {cr1}}} } {o [expr $TitleX+5.8*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {o1}}} } {s1 [expr $TitleX+6.6*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {s1_1}}} } {s2 [expr $TitleX+7.4*$LETTERWIDTH] $TitleY 4 4 {{random_colour $c {s2_1}}} }   } {{random_colour $c {line6 line7 line8}}} $globs
+
+    # animate just the lines
+    #FlyGroupCoord $c { {line1 $line1xF $line1y 5 5 {} } {line2 $line2xF $line2y 3 3 {} } {line3 $line3xF $line3y 7 7 {} } {line4 $line4x $line4yF 4 4 {} } {line5 $line5x $line5yF 5 5 {} } }  {} $lineglobals
+
+    # animate just the words
+    
+    # this one animations words, each letter has seperate random colour
+   #  FlyGroupCoord $c { {q $TitleX $TitleY 15 3 {{random_colour $c {q1} }} } {u $TitleX+$LETTERWIDTH $TitleY 5 10 {{random_colour $c {u1}}} } {i [expr $TitleX+1.7*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {i1}}} } {ck [expr $TitleX+2.8*$LETTERWIDTH] $TitleY 3 3 {{random_colour $c {ck1}}} } {cr [expr $TitleX+4.5*$LETTERWIDTH] $TitleY 4 4 {{random_colour $c {cr1}}} } {o [expr $TitleX+5.8*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {o1}}} } {s1 [expr $TitleX+6.6*$LETTERWIDTH] $TitleY 5 5 {{random_colour $c {s1_1}}} } {s2 [expr $TitleX+7.4*$LETTERWIDTH] $TitleY 4 4 {{random_colour $c {s2_1}}} }   } {} {SPACEOUT LETTERWIDTH TitleX TitleY}
+    # this one animates words, all letters have simultaneous random colour
+    FlyGroupCoord $c { {q $TitleX $TitleY 30 25 {} } {u $TitleX+$LETTERWIDTH $TitleY 25 20 {} } {i [expr $TitleX+1.7*$LETTERWIDTH] $TitleY 30 30 {} } {ck [expr $TitleX+2.8*$LETTERWIDTH] $TitleY 30 30 {} } {cr [expr $TitleX+4.5*$LETTERWIDTH] $TitleY 28 24 {} } {o [expr $TitleX+5.8*$LETTERWIDTH] $TitleY 15 15 {} } {s1 [expr $TitleX+6.6*$LETTERWIDTH] $TitleY 25 25 {} } {s2 [expr $TitleX+7.4*$LETTERWIDTH] $TitleY 15 15 {} } } {{random_colour $c {quickcross}}} {SPACEOUT LETTERWIDTH TitleX TitleY}
+	
 }
 
 proc SendMove { moveType square } {
@@ -1221,11 +1628,11 @@ proc SendMove { moveType square } {
 
 ####################################################################
 
-# objects in list objs MUST have a width property defined
-# objs is a list of objects (or tags). percentage is the percent of the 
-# current line width that the lines' width will become; assigns widths
-# based on each line seperately, if more than one line
-# NOTE: Caller is responsible for updating idletasks
+# objects in list objs MUST have a width property defined
+# objs is a list of objects (or tags). percentage is the percent of the 
+# current line width that the lines' width will become; assigns widths
+# based on each line seperately, if more than one line
+# NOTE: Caller is responsible for updating idletasks
 proc shrink { c objs percentage } {
 
     foreach item $objs {
@@ -1236,8 +1643,8 @@ proc shrink { c objs percentage } {
     update idletasks
 }
 
-# set colour of objects in objs to given colour
-# NOTE: Caller is responsible for updating idletasks
+# set colour of objects in objs to given colour
+# NOTE: Caller is responsible for updating idletasks
 proc fade { c objs colour } {
 
     foreach item $objs {
@@ -1248,10 +1655,49 @@ proc fade { c objs colour } {
 }
 
 
-# takes in a tag tagging only lines, shrinks the lines down to nothing
-# while fading them out.
-# does NOT alter the tagged lines at all, creates new temp lines to achieve
-# the desired effects
+# takes in a tag tagging only lines, shrinks the lines down to nothing
+# Modifies: nothing; tagged lines are temporarily changed, but are restored to original state after proc finishes
+# NOTE: This is used instead of shrinkAndFade because shrink does not fade using gray (fading using non-gray colours is difficult, because many other colours do not have full sets of 100 shades in Tcl/Tk; they usually have 4-5 shades, which is not accurate enough to do fade effects)
+proc shrinkAnim { c objs } {
+    # go through and back-up the original widths
+    set orig_widths {}
+    foreach item $objs {
+	lappend orig_widths  [$c itemcget $item -width]
+    }
+    set num_to_go [llength $objs]
+
+    while {$num_to_go > 0} {
+       foreach item $objs {
+	   
+	   set curWidth [$c itemcget $item -width]
+	   if { $curWidth >= 0.5 } {
+	       shrink $c $item 0.75
+	   } else {
+	       set num_to_go [expr $num_to_go - 1]
+	       shrink $c $item 0
+	   }
+
+	   update idletasks
+       }
+   }
+
+    # restore original width, but first hide the item(s)!
+    foreach item $objs {
+	$c lower $item all
+	
+	set curWidth  [lindex $orig_widths  0]
+	set orig_widths  [lrange $orig_widths  1 end]
+
+	$c itemconfig $item -width $curWidth
+	
+    }    
+}
+
+# takes in a tag tagging only lines, shrinks the lines down to nothing
+# while fading them out.
+# does NOT alter the tagged lines at all, creates new temp lines to achieve
+# the desired effects
+# NOTE: this has a gray colour while being shrinked.
 proc shrinkAndFade { c objs frames bool_mutate} {
     # go through and back-up the original colours
     if { $bool_mutate == 0 } {
@@ -1266,7 +1712,7 @@ proc shrinkAndFade { c objs frames bool_mutate} {
     # there are 100 shades of gray/grey in Tk
     set SHADES_GRAY 100
 
-    set digits [list 1 2 3 4 5 6 7 8 9 0]
+    set digits [list 1 2 3 4 5 6 7 8 9 0]
     set alphabet [list a b c d e f g h i j k l m n o p q r s t u v w x y z]
 
     set default_gray 50
@@ -1274,7 +1720,7 @@ proc shrinkAndFade { c objs frames bool_mutate} {
     for {set i 0 } {$i <= $frames} {incr i} {
 	foreach item $objs {
 	    
-	    # obtain current colour of item, if gray, use current colour, otherwise
+	    # obtain current colour of item, if gray, use current colour, otherwise
 	    # discard current colour and use default_gray_incr
 	    set curColour [$c itemcget $item -fill]
 	    set curColourDigTrim [string trim $curColour $digits]
@@ -1308,8 +1754,8 @@ proc shrinkAndFade { c objs frames bool_mutate} {
 	    ##puts "curWidth: $curWidth"
 	    ##puts "nextColourNum: $nextColourNum"
 	    ##puts "Reached busy-wait"
-	    for {set j 0} {$j < 50000} {incr j} {
-	    }
+	    #for {set j 0} {$j < 50000} {incr j} {
+	    #}
 
 	    ##puts "cur  colour: $curColour"
 	    ##puts "next colour: $nextColourNum"
@@ -1387,12 +1833,14 @@ proc rotate_line { endpoints pheta } {
 
 
 # animates the piece by rotating it, pheta in DEGREES
+# NOTE: TIME_DELAY sets number of "line trails"
+#       NOGRAY setting allows toggling of whether "line trails" are gray colour or not
 proc anim_piece { c piece_tag pheta num_frames } {
 
 #    set FRAMES 15
 #    set ROT_ANG 1.570796
 
-    #convert pheta from degress to radians
+    #convert pheta from degress to radians
     set PI 3.141592654
     set pheta [expr $pheta * ($PI/180.0)]
 
@@ -1404,7 +1852,14 @@ proc anim_piece { c piece_tag pheta num_frames } {
     # how many other lines are on-screen during anim?
     # a time delay of 0 has no "cursor trail"
     set TIME_DELAY 5
-    set FADE_COLOUR_STEP [expr round((100-50)/$TIME_DELAY)]
+    set FADE_COLOUR_STEP 0
+    if { $TIME_DELAY > 0 } {
+	set FADE_COLOUR_STEP [expr round((100-50)/$TIME_DELAY)]
+    }
+
+    # set equal to 1 if do not want a gray shadow as piece rotates
+    # instead, shadow is same colour
+    set NOGRAY 0
 
     set theWidth  [$c itemcget $piece_tag -width]
     set theColour [$c itemcget $piece_tag -fill]
@@ -1420,7 +1875,9 @@ proc anim_piece { c piece_tag pheta num_frames } {
 	
 	for {set j $TIME_DELAY} {$i > $TIME_DELAY && $j >=0} {set j [expr $j-1]} {
 	    set d [expr $i-$j]
-	    $c itemconfig animTemp[expr $i-$j] -fill gray[expr $FADE_COLOUR_STEP*$j+50]
+	    if {$NOGRAY == 0} {
+		$c itemconfig animTemp[expr $i-$j] -fill gray[expr $FADE_COLOUR_STEP*$j+50]
+	    }
 	}
 
 	$c create line $curCoords -width $theWidth -fill $theColour -tag animTemp$i

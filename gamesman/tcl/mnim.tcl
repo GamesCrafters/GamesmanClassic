@@ -13,6 +13,14 @@ proc GS_InitGameSpecific {} {
     
     global kGameName
     set kGameName "The FABULOUS game of Nim"
+
+    # Authors Info
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Gamesman Spring 2003 Whole Team!"
+    set kTclAuthors "Gamesman Spring 2003 Whole Team!"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     
     ### Set the initial position of the board
 

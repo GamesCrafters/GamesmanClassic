@@ -23,6 +23,13 @@ proc GS_InitGameSpecific {} {
     
     global kGameName
     set kGameName "Rubik's Magic"
+
+    # Authors Info
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Bryon Ross, Jeff Chiang"
+    set kTclAuthors "Bryon Ross, Jeff Chiang"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
     
     ### Set the initial position of the board
     global gInitialPosition gPosition

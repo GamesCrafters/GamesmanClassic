@@ -28,7 +28,12 @@ global px1 px2 px3 py1 py2 py3
 global diagArrows horizArrows vertArrows slideDelay goDelay animQuality
 global canvasWidth canvasHeight
 
-
+# Authors Info
+global kRootDir
+global kCAuthors kTclAuthors kGifAuthors
+set kCAuthors "Jesse Phillips, Jennifer Lee"
+set kTclAuthors "Jesse Phillips, Jennifer Lee"
+set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
 ## IMPORTANT: These are variables used to change the board.
 # board size

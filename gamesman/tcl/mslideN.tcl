@@ -19,6 +19,14 @@
 
 ### FILL THIS IN
 proc GS_InitGameSpecific  {} {
+
+    # Authors Info
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Rach Liu, Bryon Ross, Jiong Shen, Tom Wang"
+    set kTclAuthors "Rach Liu, Tom Wang"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     global CANVAS_WIDTH CANVAS_HEIGHT MIN_CANVAS_LENGTH NUM_EXTRA_GAPS
 
     # Copied from outside

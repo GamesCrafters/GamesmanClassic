@@ -72,6 +72,12 @@ proc GS_InitGameSpecific {} {
     set macLeft  X_cursor
     set macRight circle
 
+    # Authors Info
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Farzad Eskafi, Erwin Vedar"
+    set kTclAuthors "Farzad Eskafi, Erwin Vedar"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
     ### Set the procedures that will draw the pieces
 
     global kLeftDrawProc kRightDrawProc kBothDrawProc
