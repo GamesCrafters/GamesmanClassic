@@ -132,7 +132,7 @@ proc SetupGamePieces {} {
     set gLeftPiece [lindex $alist 0]
     set gRightPiece [lindex $alist 1]
     set gLeftHumanOrComputer Human
-    set gRightHumanOrComputer Human
+    set gRightHumanOrComputer Computer
     set gLeftName Player
     set gRightName Hal9000
     
