@@ -193,7 +193,8 @@ char *gNumberChildren;           /* The Number of children (used for Loopy games
 int gBytesMalloced;
 int gMaxBytesUsed;
 int gBytesInUse;
-BOOLEAN kDebugLoopyMem = FALSE;
+BOOLEAN kDebugLoopyMem = TRUE;
+// End Loopy
 
 char *gValueString[] =
 {
@@ -260,7 +261,7 @@ InitializeDatabases()
   int i;
   if (gDatabase!=NULL) {
     SafeFree((GENERIC_PTR) gDatabase);
-    gBytesInUse -= gNumberOfPositions * sizeof(VALUE);
+    //    gBytesInUse -= gNumberOfPositions * sizeof(VALUE);
   }
 
   gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
@@ -1266,13 +1267,16 @@ VALUE value;
 FreeMoveList(ptr)
      MOVELIST *ptr;
 {
+  //  DebugLoopyProgress("Entered FreeMoveList");
+
   MOVELIST *last;
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
-    gBytesInUse -= sizeof(MOVELIST);
-    SafeFree((GENERIC_PTR)last);
+    SafeLoopyFree((GENERIC_PTR)last, sizeof(MOVELIST));
   }
+
+  //  DebugLoopyProgress("Exiting FreeMoveList");
 }
 
 FreeRemotenessList(REMOTENESSLIST* ptr) 
@@ -1281,7 +1285,7 @@ FreeRemotenessList(REMOTENESSLIST* ptr)
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
-    gBytesInUse -= sizeof(REMOTENESSLIST);
+    //    gBytesInUse -= sizeof(REMOTENESSLIST);
     SafeFree((GENERIC_PTR)last);
   }
 }
@@ -1289,13 +1293,16 @@ FreeRemotenessList(REMOTENESSLIST* ptr)
 FreePositionList(ptr)
      POSITIONLIST *ptr;
 {
+  //  DebugLoopyProgress("Entered FreePositionList");
+
   POSITIONLIST *last;
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
-    gBytesInUse -= sizeof(POSITIONLIST);
-    SafeFree((GENERIC_PTR)last);
+    SafeLoopyFree((GENERIC_PTR)last, sizeof(POSITIONLIST));
   }
+
+  //  DebugLoopyProgress("Exiting FreePositionList");
 }
 
 void FreeValueMoves(VALUE_MOVES *ptr) {
@@ -1304,7 +1311,7 @@ void FreeValueMoves(VALUE_MOVES *ptr) {
     FreeMoveList(ptr->moveList[i]);
     FreeRemotenessList(ptr->remotenessList[i]);
   }
-  gBytesInUse -= sizeof(VALUE_MOVES);
+  //  gBytesInUse -= sizeof(VALUE_MOVES);
   SafeFree((GENERIC_PTR)ptr);
 }
 
@@ -1437,8 +1444,9 @@ STRING GetPrediction(position,playerName,usersTurn)
   if(gPrintPredictions && (gMenuMode == Evaluated)) {
     MexFormat(position,mexString);
     value = GetValueOfPosition(position);
-    if (value == tie && Remoteness(position) == 255) {
-      (void) sprintf(prediction, "(%s %s Draw) %s",
+
+    if (value == tie && Remoteness(position) == REMOTENESS_MAX) {
+      (void) sprintf(prediction, "(%s %s draw) %s",
 		   playerName,
 		   ((value == lose && usersTurn && gAgainstComputer) ||
 		    (value == win && !usersTurn && gAgainstComputer)) ?
@@ -1501,18 +1509,44 @@ GENERIC_PTR SafeMalloc(amount)
     return(ptr); /* never reached - added to make lint happy */
   }
   else {
-    gBytesMalloced += amount;
-    gBytesInUse += amount;
-    if (gBytesInUse > gMaxBytesUsed)
-      gMaxBytesUsed = gBytesInUse;
     return(ptr);
   }
+}
+
+/* Additionally calculates bytes used for loopy */
+GENERIC_PTR SafeLoopyMalloc(amount)
+     int amount;
+{
+  GENERIC_PTR ptr;
+
+  /* This will not return if malloc fails to allocate memory */
+  ptr = SafeMalloc(amount);
+
+  gBytesMalloced += amount;
+  gBytesInUse += amount;
+  if (gBytesInUse > gMaxBytesUsed)
+    gMaxBytesUsed = gBytesInUse;
+  return(ptr);
 }
 
 SafeFree(ptr)
      GENERIC_PTR ptr;
 {
   free(ptr);
+}
+
+SafeLoopyFree(ptr, amount)
+     GENERIC_PTR ptr;
+     int amount;
+{
+  if (ptr != NULL) {
+    gBytesInUse -= amount;
+    SafeFree(ptr);
+  }
+  else {
+    if (kDebugLoopyMem)
+      printf("Warning: NULL pointer passed to SafeLoopyFree!\n");
+  }
 }
 
 VALUE StoreValueOfPosition(position, value)
@@ -1569,11 +1603,16 @@ MOVELIST *CreateMovelistNode(theMove, theNextMove)
      MOVELIST *theNextMove;
 {
   MOVELIST *theHead;
-  GENERIC_PTR SafeMalloc();
+  GENERIC_PTR SafeLoopyMalloc();
 
-  theHead = (MOVELIST *) SafeMalloc (sizeof(MOVELIST));
+  //  DebugLoopyProgress("Entered CreateMovelistNode");
+
+  theHead = (MOVELIST *) SafeLoopyMalloc (sizeof(MOVELIST));
   theHead->move = theMove;
   theHead->next = theNextMove;
+
+  //  DebugLoopyProgress("Exiting CreateMovelistNode");
+
   return(theHead);
 }
 
@@ -2443,12 +2482,17 @@ POSITIONLIST *StorePositionInList(thePosition,thePositionList)
      POSITIONLIST *thePositionList;
 {
   POSITIONLIST *next, *tmp;
-  GENERIC_PTR SafeMalloc();
-   
+  GENERIC_PTR SafeLoopyMalloc();
+  
+  //  DebugLoopyProgress("Entered StorePositionInList");
+
   next = thePositionList;
-  tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
+  tmp = (POSITIONLIST *) SafeLoopyMalloc (sizeof(POSITIONLIST));
   tmp->position = thePosition;
   tmp->next     = next;
+
+  //  DebugLoopyProgress("Exiting StorePositionInList");
+
   return(tmp);
 }
 
@@ -2545,13 +2589,12 @@ POSITION position;
 
   /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
-  if(kDebugDetermineValue) printf("\n");
   SetParents(kBadPosition,position);
-  if(kDebugDetermineValue) {
+  if(kDebugDetermineValue || kDebugLoopyMem) {
     printf("---------------------------------------------------------------\n");
     printf("Number of Positions = [%d]\n",gNumberOfPositions);
     printf("---------------------------------------------------------------\n");
-    MyPrintParents();
+    // MyPrintParents();
     printf("---------------------------------------------------------------\n");
     //MyPrintFR();
     printf("---------------------------------------------------------------\n");
@@ -2570,13 +2613,13 @@ POSITION position;
     remotenessChild = Remoteness(child);
 
     /* If debugging, print who's in list */
-    if(kDebugDetermineValue) printf("Grabbing %d (%s) remoteness = %d off of FR\n",
-				    child,gValueString[childValue],remotenessChild);
+    if(kDebugDetermineValue)
+      printf("Grabbing %d (%s) remoteness = %d off of FR\n",
+	     child,gValueString[childValue],remotenessChild);
 
     /* Remove the child from the FRontier, we're working with it now */
     //RemoveFR(child);
-    //@@don't need this anymore, frontiers are now stacks
-
+    //@@don't need this anymore, frontiers are now queues.
     
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
@@ -2626,7 +2669,7 @@ POSITION position;
 	  SetRemoteness(parent, remotenessChild + 1);
 	}
 	ptr = ptr->next;  
-       } /* while there are still parents */
+      } /* while there are still parents */
 
     /* With children set to other than win/lose. So stop */
     } else {
@@ -2729,104 +2772,108 @@ POSITION position;
 
 void SetParents ( POSITION bad, POSITION root )
 {
-	// Prototypes
-	BOOLEAN Visited();
-	MOVELIST* GenerateMoves();
-	VALUE Primitive();
-	POSITIONLIST* StorePositionInList();
+  // Prototypes
+  BOOLEAN Visited();
+  MOVELIST* GenerateMoves();
+  VALUE Primitive();
+  POSITIONLIST* StorePositionInList();
+  
+  MOVELIST* moveptr, * movehead;
+  POSITIONLIST* posptr, * thisLevel, * nextLevel;
+  POSITION pos, child;
+  VALUE value;
+  
+  posptr = thisLevel = nextLevel = NULL;
+  moveptr = movehead = NULL;
+  
+  // Humor me.
+  MarkAsVisited(root);
+  gParents[root] = StorePositionInList(bad, gParents[root]);
+  if ((value = Primitive(root)) != undecided) {
+    SetRemoteness(root, 0);
+    switch (value) {
+    case lose: InsertLoseFR(root); break;
+    case win:  InsertWinFR(root); break;
+    case tie:  InsertTieFR(root); break;
+    default:   BadElse("SetParents found primitive with value other than win/lose/tie");
+    }
+    
+    StoreValueOfPosition(root, value);
+    return;
+  }
+  
+  thisLevel = StorePositionInList(root, thisLevel);
+  
+  while (thisLevel != NULL) {
+    for (posptr = thisLevel; posptr != NULL; posptr = posptr -> next) {
+      pos = posptr -> position;
+      movehead = GenerateMoves(pos);
+      
+      for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
+	child = DoMove(pos, moveptr -> move);
+	++gNumberChildren[(int)pos];
+	gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);
 	
-	MOVELIST* moveptr, * movehead;
-	POSITIONLIST* posptr, * thisLevel, * nextLevel;
-	POSITION pos, child;
-	VALUE value;
+	if (Visited(child)) continue;
+	MarkAsVisited(child);
 	
-	posptr = thisLevel = nextLevel = NULL;
-	moveptr = movehead = NULL;
-	
-	// Humor me.
-	MarkAsVisited(root);
-	gParents[root] = StorePositionInList(bad, gParents[root]);
-	if ((value = Primitive(root)) != undecided) {
-		SetRemoteness(root, 0);
-		switch (value) {
-			case lose: InsertLoseFR(root); break;
-			case win:  InsertWinFR(root); break;
-			case tie:  InsertTieFR(root); break;
-			default:   BadElse("SetParents found primitive with value other than win/lose/tie");
-		}
-		
-		StoreValueOfPosition(root, value);
-		return;
-	}
-	
-	thisLevel = StorePositionInList(root, thisLevel);
-	
-	while (thisLevel != NULL) {
-		for (posptr = thisLevel; posptr != NULL; posptr = posptr -> next) {
-			pos = posptr -> position;
-			movehead = GenerateMoves(pos);
-			
-			for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
-				child = DoMove(pos, moveptr -> move);
-				++gNumberChildren[(int)pos];
-				gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);
-				
-				if (Visited(child)) continue;
-				MarkAsVisited(child);
-				
-				if ((value = Primitive(child)) != undecided) {
-					SetRemoteness(child, 0);
-					switch (value) {
-						case lose: InsertLoseFR(child); break;
-						case win : InsertWinFR(child);  break;
-						case tie : InsertTieFR(child);  break;
-						default  : BadElse("SetParents found bad primitive value");
-					}
-					StoreValueOfPosition(child, value);
-				} else
-					nextLevel = StorePositionInList(child, nextLevel);
-			}
-			
-			FreeMoveList(movehead);
-		}
-		
-		FreePositionList(thisLevel);
-		
-		thisLevel = nextLevel;
-		nextLevel = NULL;
-	}
+	if ((value = Primitive(child)) != undecided) {
+	  SetRemoteness(child, 0);
+	  switch (value) {
+	  case lose: InsertLoseFR(child); break;
+	  case win : InsertWinFR(child);  break;
+	  case tie : InsertTieFR(child);  break;
+	  default  : BadElse("SetParents found bad primitive value");
+	  }
+	  StoreValueOfPosition(child, value);
+	} else
+	  nextLevel = StorePositionInList(child, nextLevel);
+      }
+      
+      FreeMoveList(movehead);
+    }
+    
+    FreePositionList(thisLevel);
+    
+    thisLevel = nextLevel;
+    nextLevel = NULL;
+  }
 }
 
 ParentInitialize()
 {
-  GENERIC_PTR SafeMalloc();
+  GENERIC_PTR SafeLoopyMalloc();
   int i;
 
-  gParents = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
+  gParents = (POSITIONLIST **) SafeLoopyMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
   for(i = 0; i < gNumberOfPositions; i++)
     gParents[i] = NULL;
 }
 
 ParentFree()
 {
-  gBytesInUse -= (gNumberOfPositions * sizeof(POSITIONLIST *));
-  free(gParents) ;
+  int i;
+
+  for (i = 0; i < gNumberOfPositions; i++) {
+    FreePositionList(gParents[i]);
+  }
+
+  SafeLoopyFree(gParents, gNumberOfPositions * sizeof(POSITIONLIST *));
 }
 
 NumberChildrenInitialize()
 {
-  GENERIC_PTR SafeMalloc();
+  GENERIC_PTR SafeLoopyMalloc();
   int i;
 
-  gNumberChildren = (signed char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
+  gNumberChildren = (signed char *) SafeLoopyMalloc (gNumberOfPositions * sizeof(signed char));
   for(i = 0; i < gNumberOfPositions; i++)
     gNumberChildren[i] = 0;
 }
 
 NumberChildrenFree()
 {
-  gBytesInUse -= (gNumberOfPositions * sizeof(signed char));
-  free(gNumberChildren) ;
+  SafeLoopyFree(gNumberChildren, gNumberOfPositions * sizeof(signed char));
 }
 
 InitializeFR()
@@ -2867,8 +2914,7 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
     position = (*gHeadFR)->position;
     tmp = *gHeadFR;
     (*gHeadFR) = (*gHeadFR)->next;
-    gBytesInUse -= sizeof(FRnode);
-    free(tmp);
+    SafeLoopyFree(tmp, sizeof(FRnode));
 
     if (*gHeadFR == NULL)
       *gTailFR = NULL;
@@ -2897,7 +2943,7 @@ InsertTieFR(POSITION position)
 InsertFR(POSITION position, FRnode **firstnode,
 			FRnode **lastnode)
 {
-  FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
+  FRnode *tmp = (FRnode *) SafeLoopyMalloc(sizeof(FRnode));
   tmp->position = position;
   tmp->next = NULL;
 
@@ -2912,6 +2958,12 @@ InsertFR(POSITION position, FRnode **firstnode,
   }
 }
 
+void DebugLoopyProgress(STRING progress)
+{
+  if (kDebugLoopyMem)
+    printf("%s\n", progress);
+}
+
 // End Loopy
 
 ///// SUNIL DATABASE STUFF
@@ -2923,7 +2975,6 @@ void SolveAndStoreRaw(int option)
 	char outfilename[256] ;
 	FILE * filep ;
 
-	gDatabase = (VALUE *)malloc(gNumberOfPositions * sizeof(VALUE)) ;
 	for(i = 0 ; i < gNumberOfPositions ; i++)
 		gDatabase[i] = undecided ;
 
@@ -2946,8 +2997,6 @@ void SolveAndStore(int option)
 {
 	int i, j ;
 	int n = NumberOfOptions() ;
-
-	gDatabase = (VALUE *)malloc(gNumberOfPositions * sizeof(VALUE)) ;
 
 	for(i = 0 ; i < gNumberOfPositions ; i++)
 		gDatabase[i] = undecided ;
@@ -3500,12 +3549,12 @@ void hash_free()
 {
 	if(gHashOffset)
 	{
-		free(gHashOffset) ;
+		SafeFree(gHashOffset) ;
 		gHashOffset = NULL ;
 	}
 	if(gNCR)
 	{
-		free(gNCR) ;
+		SafeFree(gNCR) ;
 		gHashOffset = NULL ;
 	}
 }
@@ -3516,7 +3565,7 @@ int generic_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxXs)
 	numOs = maxOs-minOs;
 	numXs = maxXs-minXs;
 	gHashBoardSize = boardsize;
-	gHashOffset = (int*) malloc(sizeof(int) * ((numOs+1) * (numXs+1) + 1));
+	gHashOffset = (int*) SafeMalloc(sizeof(int) * ((numOs+1) * (numXs+1) + 1));
 	for(i = 0; i < numOs * numXs; i++){
 	  gHashOffset[i] = 0;
 	}
@@ -3646,7 +3695,7 @@ int dartboard_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxX
 	numOs = maxOs-minOs;
 	numXs = maxXs-minXs;
 	gHashBoardSize = boardsize;
-	gHashOffset = (int*) malloc(sizeof(int) * (numOs +  numXs + 1));
+	gHashOffset = (int*) SafeMalloc(sizeof(int) * (numOs +  numXs + 1));
 	for(i = 0; i < numOs + numXs + 1; i++){
 	  gHashOffset[i] = 0;
 	}
@@ -3848,7 +3897,7 @@ BOOLEAN rearranger_unhash(int hashed, char* dest)
 void nCr_init(boardsize)
 {
 	int i, j;
-	gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
+	gNCR = (int*) SafeMalloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 	for(i = 0; i<= boardsize; i++)
 	{
 		gNCR[i*(boardsize+1)] = 1;
