@@ -42,12 +42,12 @@ POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 STRING   kGameName           = "Ice Blocks";
 STRING   kDBName             = "iceblocks";
-BOOLEAN  kPartizan           = FALSE;
-BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kPartizan           = TRUE;
+BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = TRUE;
+BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 
 /* 
@@ -145,7 +145,7 @@ void InitializeGame ()
   for(i = 0; i < sum; i++)
     board[i] = '-';
   gInitialPosition = generic_hash(board, 1);
-  /*gMinimalPosition = gInitialPosition;*/
+  gMinimalPosition = gInitialPosition;
 }
 
 BOARD arraytoboard (POSITION position) {
@@ -309,7 +309,7 @@ void PrintComputersMove(computersMove, computersName)
 	MOVE computersMove;
 	STRING computersName;
 {
-  printf("%8s's move              : %d\n", computersName, computersMove);
+  printf("%8s's move              : %d\n\n", computersName, computersMove);
 }
 
 
@@ -378,9 +378,9 @@ VALUE Primitive (pos)
     }
   }
   if(countX > countO)
-    return ((board->turn == X) ? lose : win);
-  else if(countX != countO)
     return ((board->turn == X) ? win : lose);
+  else if(countX != countO)
+    return ((board->turn == X) ? lose : win);
   else
     return tie;
 }
@@ -427,6 +427,7 @@ void PrintPosition (position, playerName, usersTurn)
     }
     printf("\n");
   }
+  printf("%s\n", GetPrediction(position, playerName, usersTurn));
 }
 
 
