@@ -26,7 +26,7 @@
 **************************************************************************/
 
 #include <stdio.h>
-#include "gsolve.h"
+#include "gamesman.h"
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -128,11 +128,13 @@ ect..."
 **
 **************************************************************************/
 
+typedef int SLOT;
+typedef unsigned short layer_t;
+
 #define	BOARD_SIZE	3
 #define	PIECE_SIZES	2
 #define	PIECES_PER_SIZE	2
 
-typedef unsigned short layer_t;
 
 layer_t *pos2hash = NULL;
 layer_t *hash2pos = NULL;
@@ -190,7 +192,7 @@ struct GPosition {
 #define POS_GETCOL(p)		(int)( (p) % BOARD_SIZE )
 
 
-BOOLEAN gThreeInARowWins = true;
+BOOLEAN gThreeInARowWins = TRUE;
 
 
 /*************************************************************************
@@ -219,7 +221,6 @@ void InitializeDatabases()
   for(i = 0; i < gNumberOfPositions; i++)
     gDatabase[i] = undecided;
 }
-}
 
 /************************************************************************
 **
@@ -247,9 +248,7 @@ void DebugMenu()
 void GameSpecificMenu() 
 {
   char GetMyChar();
-  BOOLEAN tempPredictions = gPredictions;
   POSITION GetInitialPosition();
-  gPredictions = FALSE;
   
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -259,7 +258,7 @@ void GameSpecificMenu()
     
     printf("\tI)\tChoose the (I)nitial position\n");
     printf("\tT)\t(T)hree in a row %s\n", 
-	   gThreeInARowWins ? "GOOD (WINNING)" : "BAD (LOSING)",);
+	   gThreeInARowWins ? "GOOD (WINNING)" : "BAD (LOSING)");
 	   
     printf("\tI)\tChoose the board (S)ize (2 through 9)\n");
     printf("\tI)\tChoose the number of (P)iece sizes (*Note: 3 or more\
@@ -281,7 +280,7 @@ void GameSpecificMenu()
     case 'P': case 'p':
       SetPieceSizes();
       break;
-    case 'N': case 'N':
+    case 'N': case 'n':
       SetNumPieces();
       break;
     case 'I': case 'i':
@@ -291,7 +290,6 @@ void GameSpecificMenu()
       gThreeInARowWins = !gThreeInARowWins;
       break;
     case 'b': case 'B':
-      gPredictions = tempPredictions;
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -351,7 +349,7 @@ POSITION DoMove(thePosition, theMove)
       pieceSize = getTopPieceSize( newPos.board[ srcPos])
       newPos.board[ srcPos] ^= PIECE_VALUE(PIECE_NONE,srcPos));
    }
-   newPos.board[ destPos] |= PIECE_VALUE(pieceType,pieceSize));
+   newPos.board[ destPos] |= PIECE_VALUE(pieceType,pieceSize);
    
    newPos.turn =(newPos.turn == TURN_O ? TURN_X : TURN_O);
    
@@ -411,47 +409,6 @@ POSITION GetInitialPosition()
   }
 }
 
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       int GetRandomNumber()
-**
-************************************************************************/
-
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-  MOVE theMove;
-  
-  if(gPossibleMoves) 
-    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  while(tr != NULL) {
-    numberMoves++;
-    if(gPossibleMoves) 
-      PrintMove(ptr->move);
-    ptr = ptr->next;
-  }
-  if(gPossibleMoves) 
-    printf("]\n\n");
-  randomMove = GetRandomNumber(numberMoves);
-  ptr = head;
-  for(i = 0; i < randomMove ; i++)
-    ptr = ptr->next;
-
-  theMove = ptr->move;
-  FreeMoveList(head);
-  return(theMove);
-}
 
 /************************************************************************
 **
@@ -598,7 +555,7 @@ VALUE Primitive ( hash_t h ) //Need to add the 3 in a row is a loss.
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
+PrintPosition(position, playerName, usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN usersTurn;
@@ -606,7 +563,7 @@ void PrintPosition(position, playerName, usersTurn)
   STRING GetPrediction();
   STRING PrintSpace();
   VALUE GetValueOfPosition();
-  struct GPosition myPos = unhash(thePosition);
+  struct GPosition myPos = unhash(position);
   int i = 1;
   printf("\n");
   for(int rows = 0; rows < BOARD_SIZE;rows++)
@@ -617,10 +574,10 @@ void PrintPosition(position, playerName, usersTurn)
         printf("%s ",i);
         i++;
     }
-    printf((BOARDS_SIZE/2 == rows ? ")   Board:   : " : ")            : "));
-    for(int cols = 0; cols < BOARD_SIZE;cols++)
+    printf((BOARD_SIZE/2 == rows ? ")   Board:   : " : ")            : "));
+    for(int cols2 = 0; cols2 < BOARD_SIZE;cols2++)
     {
-        printf("%s ", PrintSpace(myPos.board[cols]));
+        printf("%s ", PrintSpace(myPos.board[cols2]));
     }
     printf("\n");
   }
@@ -690,7 +647,7 @@ MOVELIST *GenerateMoves(position)
     return head;
   }
   else {
-    return null;
+    return NULL;
     }
 }
  
@@ -757,7 +714,7 @@ BOOLEAN ValidTextInput(input)
   int j = 0;
   int start;
   int end;
-  if((intput[i] != 'X') &&
+  if((input[i] != 'X') &&
      (input[i] != 'x') &&
      (input[i] != '*') &&
      (input[i] != 'O') &&
@@ -769,23 +726,23 @@ BOOLEAN ValidTextInput(input)
     }
   }
   if(i == 0)
-    return false;
+    return FALSE;
   if(start > TABLE_BITS)
-    return false;
+    return FALSE;
   if(input[i] != ' ')
-    return false;
+    return FALSE;
   i++;
-  while(i < input.length) {
+  while(input[i] != '\0') {
     if((input[i] > '9') || (input[i] < '1'))
-      return false;
+      return FALSE;
     end += ((int) input[i]) + (10 * j);
     i++;
     j++;
   }
   if(end > TABLE_BITS)
-    return false;
-  return true;
-}
+    return FALSE;
+  return TRUE;
+    }
 
 /************************************************************************
 **
@@ -821,10 +778,10 @@ MOVE ConvertTextInputToMove(input)
     srcPos = SRC_STASH( (charToInt(first[0])) ); //  is that the right way to access the enum?
   }
   i++;
-  while(i < input.length)
+  while(input[i] != '\0')
   {
     end += input[i];
-    i++
+    i++;
   }
   destPos = ((int) end) - 1;
   return ((MOVE) CONS_MOVE(srcPos,destPos));
@@ -852,73 +809,6 @@ void PrintMove(theMove)
     // printf("%d %d\n",  write this later..
 }
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-************************************************************************/
-
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
 
 /************************************************************************
 *************************************************************************
