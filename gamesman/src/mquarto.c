@@ -45,6 +45,8 @@
 **                     coded PrintPosition and auxilliary functions
 **                     buggy implementation of ValidTextInput
 **                     made PrintPosition work correctly with >2 dimension boards, try setting GAMEDIMENSION to 3 or 4
+** 07 Feb 2005 Mario:  added DoMove, but it doesn't work yet (maybe I am missing a step here, what is ValidMove? )
+**                     feel free to modify
 **
 **************************************************************************/
 
@@ -121,8 +123,14 @@ STRING   kHelpExample =
 #define ERROR	1
 #define SUCCESS	0
 
+/* Squares x */
+#define square(x) ((x)*(x))
+
+/* Creates sequence n least significant 1 bits, preceeded by 0 bits */
+#define maskseq(n) ~(~0<<(n))
+
 #define GAMEDIMENSION 2
-#define BOARDSIZE (GAMEDIMENSION*GAMEDIMENSION)
+#define BOARDSIZE square(GAMEDIMENSION)
 #define NUMPIECES (1 << GAMEDIMENSION)
 
 #define PIECESTATES (BOARDSIZE+1)
@@ -287,7 +295,17 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    return 0;
+	
+	QTBPtr board;
+	int piece, slot;
+	
+	board				= unhash( position );
+	slot				= move & maskseq( GAMEDIMENSION + 1 );
+	piece				= 1 + ( ( move >> ( GAMEDIMENSION + 1 ) ) & maskseq( GAMEDIMENSION ) );
+	board->slots[slot]	= piece;
+	
+	return hash( board );
+	
 }
 
 
@@ -595,7 +613,7 @@ BOOLEAN ValidTextInput( STRING input )
 	
 	BOOLEAN valid = FALSE;
 	
-	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == ' ' ) {
+	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == ':' ) {
 		
 		int i;
 		int valid_traits[GAMEDIMENSION];
@@ -670,8 +688,54 @@ BOOLEAN ValidTextInput( STRING input )
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	printf("got input: %s\n", input );
-    return 0;
+	
+	MOVE move = 0;
+	int i, j, k;
+	
+	/* Lower GAMEDIMENSION + 1 bits for position */
+	for( i = 0; i < square( GAMEDIMENSION ); i++ ) {
+		
+		if( hex_ascii[i] == input[GAMEDIMENSION + 1] ) {
+			
+			move = i;
+			break;
+			
+		}
+			
+		
+	}
+	
+	/* Adjacent GAMEDIMENSION bits for piece */
+	for( i = 0; i < GAMEDIMENSION; i++ ) {
+		
+		BOOLEAN ready = FALSE;
+		
+		for( j = 0; j < GAMEDIMENSION; j++ ) {
+			
+			for( k = 0; k < 2; k++ ) {
+				
+				if( states[j][k] == input[i] ) {
+				
+					move += k << ( j + GAMEDIMENSION + 1 );
+					ready = TRUE;
+					break;
+					
+				}
+				
+			}
+			
+			if ( ready ) {
+				
+				break;
+				
+			}
+			
+		}
+		
+	}
+	
+	return move;
+
 }
 
 
@@ -972,9 +1036,6 @@ POSITION packhash( QTBPtr board ) {
 	return hash;
 
 }
-
-/* Creates sequence n least significant 1 bits, preceeded by 0 bits */
-#define maskseq( n ) ~( ~0 << (n))
 
 QTBPtr packunhash( POSITION hash ) {
 
