@@ -163,10 +163,10 @@ STRING kAuthorName = "Dan Garcia" ;
 POSITION kBadPosition;          /* A POSITION that will never be used */
 
 // Start Loopy
-POSITION  gHeadFR;               /* The FRontier Head position */
-POSITION  gTailFR;               /* The FRontier Tail position */
-POSITION *gPrevFR;               /* The FRontier Prev array */
-POSITION *gNextFR;               /* The FRontier Next array */
+FRnode *gHeadWinFR;               /* The FRontier Win Queue */
+FRnode *gTailWinFR;
+FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
+FRnode *gTailLoseFR;
 POSITIONLIST **gParents;         /* The Parent of each node in a list */
 char *gNumberChildren;           /* The Number of children (used for Loopy games) */
 // End Loopy
@@ -2135,27 +2135,12 @@ MyPrintParents()
     }
 }
 
-void MyPrintFR()
-{
-  BOOLEAN Visited();
-  int i;
-
-  printf("HEAD = [%2d]\n",gHeadFR);
-  for (i = 0; i < gNumberOfPositions; i++)
-    if(Visited(i)) {
-      printf("%2d : [%2d] [%2d] [%d]=Member?\n",i,gPrevFR[i],gNextFR[i],MemberFR(i));
-    }
-  printf("TAIL = [%2d]\n",gTailFR);
-}
-
-
 VALUE DetermineLoopyValue1(position)
 POSITION position;
 {				
-  POSITION GetHeadFR(), child, parent;
+  POSITION DeQueueWinFR(), DeQueueLoseFR(), InsertWinFR(), InsertLoseFR(), child, parent;
   POSITIONLIST *head, *ptr;
   VALUE GetValueOfPosition(), childValue, parentValue;
-  BOOLEAN MemberFR();
   REMOTENESS remotenessChild, Remoteness();
   int i;
 
@@ -2169,14 +2154,18 @@ POSITION position;
     printf("---------------------------------------------------------------\n");
     MyPrintParents();
     printf("---------------------------------------------------------------\n");
-    MyPrintFR();
+    //MyPrintFR();
     printf("---------------------------------------------------------------\n");
   }
 
   /* Now, the fun part. Starting from the children, work your way back up. */
+  //@@ separate lose/win frontiers
+  while ((gHeadLoseFR != NULL) ||
+	 (gHeadWinFR != NULL)) {
 
-  while ((child = GetHeadFR()) != kBadPosition) {
-
+    if ((child = DeQueueLoseFR()) == kBadPosition)
+      child = DeQueueWinFR();
+    
     /* Might as well grab these now, they'll be used later */
     childValue = GetValueOfPosition(child);
     remotenessChild = Remoteness(child);
@@ -2186,8 +2175,10 @@ POSITION position;
 				    child,gValueString[childValue],remotenessChild);
 
     /* Remove the child from the FRontier, we're working with it now */
-    RemoveFR(child);
+    //RemoveFR(child);
+    //@@don't need this anymore, frontiers are now stacks
 
+    
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
     if (childValue == lose) {
@@ -2195,30 +2186,24 @@ POSITION position;
       while (ptr != NULL) {
 	/* Make code easier to read */
 	parent = ptr->position;
-	/* It's already been visited in this loop before */
-	if (MemberFR(parent)) { 
-	  /* Set remoteness if you've found a faster mate than I had already */
-	  if((remotenessChild + 1) < Remoteness(parent)) {
-	    SetRemoteness(parent, remotenessChild + 1);
-	    if(kDebugDetermineValue) printf("Found faster mate for %d to %d\n",parent,remotenessChild+1);
-	  }
-	} else { 
-	  /* It's not in the frontier now */
-	  if ((parentValue = GetValueOfPosition(parent)) == undecided) {
-	    /* Nor has it been seen before, assign it as winning, put it at the end */
-	    InsertTailFR(parent);
-	    if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into FR tail\n",parent,"win",remotenessChild+1);
-	    StoreValueOfPosition(parent,win); 
-	    SetRemoteness(parent, remotenessChild + 1);
-	  } else {
-	    /* It has been seen before, it's just not on the list anymore */
-	    /* Set remoteness if you've found a faster mate than I had already */
-	    if((remotenessChild + 1) < Remoteness(parent)) {
-	      SetRemoteness(parent, remotenessChild + 1);
-	      if(kDebugDetermineValue) printf("Found faster mate for %d to %d\n",parent,remotenessChild+1);
-	    }
-	  } /* else not undecided */
-	} /* else not member */
+	
+	if ((parentValue = GetValueOfPosition(parent)) == undecided) {
+	  /* This is the first time we know the parent is a win */
+	  InsertWinFR(parent);
+	  if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
+	  StoreValueOfPosition(parent,win); 
+	  SetRemoteness(parent, remotenessChild + 1);
+	} 
+	else {
+	  /* We already know the parent is a winning position. */
+
+	  if (GetValueOfPosition(parent) != win)
+	    BadElse("&d should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
+
+	  /* This should always hold because the frontier is a queue.
+	  ** We always examine losing nodes with less remoteness first */
+	  assert((remotenessChild + 1) >= Remoteness(parent));
+	}
 	ptr = ptr->next;
       } /* while there are still parents */
 
@@ -2231,15 +2216,12 @@ POSITION position;
 
 	/* If this is the last unknown child and they were all wins, parent is lose */
 	if(--gNumberChildren[parent] == 0) {
-	  if(MemberFR(parent))
-	    printf("Error in DetermineLoopyValue : parent shouldn't be in FR already\n");
-	  else {
 	    /* no more kids, it's not been seen before, assign it as losing, put at head */
-	    InsertHeadFR(parent);
-	    if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
-	    StoreValueOfPosition(parent,lose);
+	  InsertLoseFR(parent);
+	  if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
+	  StoreValueOfPosition(parent,lose);
+	  if (remotenessChild + 1 > Remoteness(parent))
 	    SetRemoteness(parent, remotenessChild + 1);
-	  } /* Not a member of FR, outside */
 	} else {
 	  /* Still children, not ready for FR, just set remoteness and continue */
 	  /* If piece is undecided, that means it might be a lose, have to remember this */
@@ -2258,25 +2240,32 @@ POSITION position;
     } else {
       BadElse("DetermineLoopyValue found FR member with other than win/lose value");
     } /* else */
-  } /* while GetHeadFR != kBadPosition (while still positions in FR) */
+
+    //we are done with this position and no longer need to keep around its list of parents
+    FreePositionList(gParents[child]);
+
+    
+  } /* while still positions in FR */
 
   /* Now set all remaining positions to tie */
 
   if(kDebugDetermineValue) {
     printf("---------------------------------------------------------------\n");
-    MyPrintFR();
+    //MyPrintFR();
     printf("---------------------------------------------------------------\n");
     MyPrintParents();
     printf("---------------------------------------------------------------\n");
     printf("TIE cleanup\n");
   }
-
+  
   for (i = 0; i < gNumberOfPositions; i++)
     if(Visited(i)) {
       if(kDebugDetermineValue)
 	printf("%d was visited...",i);
       if(GetValueOfPosition((POSITION)i) == undecided) {
 	StoreValueOfPosition((POSITION)i,tie);
+	//we are done with this position and no longer need to keep around its list of parents
+	FreePositionList(gParents[child]);
 	if(kDebugDetermineValue)
 	  printf("and was undecided, setting to tie\n",i);
       } else
@@ -2285,6 +2274,8 @@ POSITION position;
       UnMarkAsVisited((POSITION)i);
     }
 
+  free(gParents);
+  
   return(GetValueOfPosition(position));
 }
 
@@ -2311,7 +2302,7 @@ POSITION parent,position;
   VALUE Primitive(), value;
   POSITION child;
   POSITIONLIST *StorePositionInList();
-
+  
   if(kDebugDetermineValue) printf("DV (%d,%d)\n", parent,position);
   if(Visited(position)) { /* We've been down this path before, don't DFS */
     if(kDebugDetermineValue) printf("Seen\n");
@@ -2324,17 +2315,16 @@ POSITION parent,position;
     MarkAsVisited(position);
     /* PARENT me */
     gParents[position] = StorePositionInList(parent, gParents[position]);
-    /* Set the value */
-    StoreValueOfPosition(position,Primitive(position));
-    /* Add me to FR, if not already */
-    if (! MemberFR(position)) {
-      if(value == lose)
-	InsertHeadFR(position);
-      else if(value == win)
-	InsertTailFR(position);
-      else
-	BadElse("DFS_SetParents value");
-    }
+    /* Add me to FR. (I know i'm not already in the frontier because 
+     * this is the first time i've been visited) */
+    if(value == lose)
+      InsertLoseFR(position);
+    else if(value == win)
+      InsertWinFR(position);
+    else
+      BadElse("DFS_SetParents value");
+        /* Set the value */
+    StoreValueOfPosition(position,value);
     return;
   } else { /* first time, need to recursively determine value */
     /* PARENT me */
@@ -2349,7 +2339,6 @@ POSITION parent,position;
       ptr = ptr->next;                     /* Go to the next child */
     }
     FreeMoveList(head);
-    /* UnMarkAsVisited(position); */ /* Not unmarking it so we don't loop */
   }
   return;          /* But has been added to satisty lint */
 }
@@ -2386,137 +2375,75 @@ NumberChildrenFree()
 
 InitializeFR()
 {
-  int i;
-  gHeadFR = kBadPosition;
-  gTailFR = kBadPosition;
-  gPrevFR = (POSITION *) malloc (sizeof(POSITION) * gNumberOfPositions);
-  gNextFR = (POSITION *) malloc (sizeof(POSITION) * gNumberOfPositions);
-  for (i = 0; i < gNumberOfPositions; i++) {
-    gPrevFR[i] = kBadPosition;
-    gNextFR[i] = kBadPosition;
-  }
+  gHeadWinFR = NULL;
+  gTailWinFR = NULL;
+  gHeadLoseFR = NULL;
+  gTailLoseFR = NULL;
 }
 
-FreeFR()
+POSITION DeQueueWinFR()
 {
-	free(gPrevFR) ;
-	free(gNextFR) ;
+  printf("DeQueueWinFR...\n");
+  DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
-POSITION GetHeadFR()
+POSITION DeQueueLoseFR()
 {
-  return(gHeadFR);
+  printf("DeQueueLoseFR...\n");
+  DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
-POSITION GetTailFR()
+POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
 {
-  return(gTailFR);
-}
-
-InsertHeadFR(pos)
-POSITION pos;
-{
-  /* Check to make sure it's not a member already! */
-  if(MemberFR(pos)) {
-    printf("Error: Inserting a position (%d) into FR list that already exists!\n", pos);
-    ExitStageRight();
-  }		
-  /* Otherwise, if the list is empty, insert me */
-  else if(gHeadFR == kBadPosition) {
-    gHeadFR = pos;
-    gTailFR = pos;
-  }
-  /* Otherwise, set the old first guy's prev to point to me,
-  ** set my next pointer to be the old first guy,
-  ** and tell the head that I'm the first guy */
-  else {
-    gPrevFR[gHeadFR] = pos;
-    gNextFR[pos]     = gHeadFR;
-    gHeadFR          = pos;
-  }
-}
-
-InsertTailFR(pos)
-POSITION pos;
-{
-  /* Check to make sure it's not a member already! */
-  if(MemberFR(pos)) {
-    printf("Error: Inserting a position (%d) into FR list that already exists!\n", pos);
-    ExitStageRight();
-  }		
-  /* Otherwise, if the list is empty, insert me */
-  else if(gTailFR == kBadPosition) {
-    gHeadFR = pos;
-    gTailFR = pos;
-  }
-  /* Otherwise, set the old last guy's next to point to me,
-  ** set my previous pointer to be the old last guy,
-  ** and tell the tail that I'm the last guy */
-  else {
-    gNextFR[gTailFR] = pos;
-    gPrevFR[pos]     = gTailFR;
-    gTailFR          = pos;
-  }
-}
-
-BOOLEAN MemberFR(pos)
-POSITION pos;
-{
-  /* If you're in the list, either your prev pointer is non-null,
-  ** or you're the head, in which case the head is you */
-  return(gPrevFR[pos] != kBadPosition || gHeadFR == pos);
-}
-
-RemoveFR(pos)
-POSITION pos;
-{
-  POSITION newHead, newTail, thePrev, theNext;
+  POSITION position;
+  FRnode *tmp;
   
-  /* Check to make sure it's in there! */
-  if(! MemberFR(pos)) {
-    printf("Error: You want to remove a position (%d) that isn't in FR!\n", pos);
-    ExitStageRight();
-  }		
-  /* Otherwise, if it's the only one, make the list empty */
-  else if (gHeadFR == pos && gTailFR == pos) {
-    gHeadFR = gTailFR = kBadPosition;
-  } 
-  /* Otherwise, if it's the first, remove it.
-  ** First, set the new head to be the second guy,
-  ** Then, set this head's next to null,
-  ** Then, set the second guy's prev to null,
-  ** Then set the official Head to be the second guy */
-  else if (gHeadFR == pos) {
-    newHead = gNextFR[gHeadFR];
-    gNextFR[pos] = kBadPosition;
-    gPrevFR[newHead] = kBadPosition;
-    gHeadFR = newHead;
+  if (*gHeadFR == NULL)
+    return kBadPosition;
+  else {
+    position = (*gHeadFR)->position;
+    tmp = *gHeadFR;
+    (*gHeadFR) = (*gHeadFR)->next;
+    free(tmp);
+
+    if (*gHeadFR == NULL)
+      *gTailFR = NULL;
   }
-  /* Otherwise, if it's the last, remove it.
-  ** First, set the new tail to be the second guy,
-  ** Then, set this tail's prev to null,
-  ** Then, set the second guy's next to null,
-  ** Then set the official Tail to be the second guy */
-  else if (gTailFR == pos) {
-    newTail = gPrevFR[gTailFR];
-    gPrevFR[pos] = kBadPosition;
-    gNextFR[newTail] = kBadPosition;
-    gTailFR = newTail;
-  }
-  /* Otherwise, it's in the middle.
-  ** First, set find the prev and next positions,
-  ** Then, set them to each other,
-  ** Finally, set both prev and next pointers pos to NULL */
-  else
-  {
-    thePrev          = gPrevFR[pos];
-    theNext          = gNextFR[pos];
-    gNextFR[thePrev] = theNext;
-    gPrevFR[theNext] = thePrev;
-    gPrevFR[pos]     = kBadPosition;
-    gNextFR[pos]     = kBadPosition;
+  return position;
+}
+
+InsertWinFR(POSITION position)
+{
+  printf("Inserting WinFR...\n");
+  InsertFR(position, &gHeadWinFR, &gTailWinFR);
+}
+
+
+InsertLoseFR(POSITION position)
+{
+  printf("Inserting LoseFR...\n");
+  InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
+}
+
+FRnode* InsertFR(POSITION position, FRnode **firstnode,
+			FRnode **lastnode)
+{
+  FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
+  tmp->position = position;
+  tmp->next = NULL;
+
+  if (*lastnode == NULL) {
+    assert(*firstnode == NULL);
+    *firstnode = tmp;
+    *lastnode = tmp;
+  } else {
+    assert((*lastnode)->next == NULL);
+    (*lastnode)->next = tmp;
+    *lastnode = tmp;
   }
 }
+
+// End Loopy
 
 ///// SUNIL DATABASE STUFF
 

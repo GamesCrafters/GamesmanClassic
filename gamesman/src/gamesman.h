@@ -66,7 +66,7 @@ typedef struct positionlist_item
 	POSITION position;
 	struct positionlist_item *next;
 }
-UNDO, POSITIONLIST;
+UNDO, POSITIONLIST, FRnode;
 
 typedef struct movelist_item
 {
@@ -88,10 +88,10 @@ extern BOOLEAN gPrintPossibleMoves;          /* TRUE iff possible moves should b
 extern char    gPlayerName[2][MAXNAME]; /* The names of the players user/user or comp/user */
 
 // Start for loopy games
-extern POSITION  gHeadFR;               /* The FRontier Head position */
-extern POSITION  gTailFR;               /* The FRontier Tail position */
-extern POSITION *gPrevFR;               /* The FRontier Prev array */
-extern POSITION *gNextFR;               /* The FRontier Next array */
+extern FRnode *gHeadWinFR;               /* The FRontier Win Queue */
+extern FRnode *gTailWinFR;
+extern FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
+extern FRnode *gTailLoseFR;
 extern POSITIONLIST **gParents;         /* The Parent of each node in a list */
 // End for loopy games
 
