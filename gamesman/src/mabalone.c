@@ -89,15 +89,15 @@ STRING   kHelpExample =
 *************************************************************************/
 
 #define NULLSLOT 99 
+#define MAXN 3 /*the maximum n that the solver will solve for*/
 int N = 2;
 int MISERE = 0;
-int SS = 0;
+int NSS = 0;
 int XHITKILLS = 1;
-int PIECEMOD = 0;
+int PIECES = 2;
 
 BOOLEAN DEBUGGING = FALSE;
 
-int maxPieces;
 int BOARDSIZE;
 char *gBoard;
 
@@ -135,8 +135,10 @@ void printlines (int, int);
 void changeBoard ();
 int b_size (int);
 int def_start_pieces (int);
-void changeMod();
+void changePieces();
 void changeKills();
+int maxPieces(int);
+int sum(int, int);
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -181,8 +183,7 @@ void InitializeGame()
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
 
-  maxPieces = def_start_pieces(N) + PIECEMOD;
-  int count, x_pieces_left = maxPieces, o_pieces_left = maxPieces, start, size, stop;
+  int count, x_pieces_left = PIECES, o_pieces_left = PIECES, start, size, stop;
   double space;
 
   for (rownum = 0; rownum < 2 * N - 1; rownum++) {
@@ -250,10 +251,10 @@ void InitializeGame()
   init_array[6] = '*';
   init_array[9] = -1;
 
-  init_array[1] = maxPieces - XHITKILLS;
-  init_array[2] = maxPieces;
-  init_array[4] = maxPieces - XHITKILLS;
-  init_array[5] = maxPieces;
+  init_array[1] = PIECES - XHITKILLS;
+  init_array[2] = PIECES;
+  init_array[4] = PIECES - XHITKILLS;
+  init_array[5] = PIECES;
   init_array[7] = BOARDSIZE - 2 * init_array[2];
   init_array[8] = BOARDSIZE - 2 * init_array[1];
 
@@ -281,6 +282,17 @@ void InitializeGame()
   gInitialPosition    = init;
   gMinimalPosition    = init;
  
+ 
+  /*int hash;
+  for (hash = 1; hash <= 32; hash++) {
+    setOption(hash);
+    printf("hash = %d:  N = %d, PIECES = %d, KILLS = %d, NSS = %d, MISERE = %d\n", hash, N, PIECES, XHITKILLS, NSS, MISERE);
+    }
+ 
+  printf("the number of options is %d\n", NumberOfOptions());
+  printf("current option is %d\n", getOption()); */
+
+
   if (DEBUGGING) printf("end initializegame\n");
 }
 
@@ -309,24 +321,30 @@ void DebugMenu()
 
 void GameSpecificMenu() 
 {
-  int selection;
-  printf("1.\t Change the value of N, the edge size of the hexagon board\n");
+  fflush(stdin);
+  char selection;
+  printf("\tn)\t Change the value of (N), the edge size of the hexagon board -- currently %d\n", N);
   if (MISERE == 0)
-    printf("2.\t Toggle from Standard to Misere\n");
+    printf("\tm)\t Toggle from Standard to (M)isere\n");
   else
-    printf("2.\t Toggle from Misere to Standard\n");
-  if (SS == 0)
-    printf("3.\t Toggle from Side Steps Allowed to No Side Steps\n");
+    printf("\tm)\t Toggle from (M)isere to Standard\n");
+  if (NSS == 0)
+    printf("\ts)\t Toggle from (S)ide Steps Allowed to No Side Steps\n");
   else
-    printf("3.\t Toggle from No Side Steps to Side Steps Allowed\n");
-  printf("4.\t Change initial piece number modifier (currently %d)\n", PIECEMOD);
-  printf("5.\t Change the number of pieces that must be captured to win (currently %d)\n", XHITKILLS);
-printf("6.\t Return to the previous menu\n\nSelect Option:  ");
-  (void) scanf("%d", &selection);
+    printf("\ts)\t Toggle from No (S)ide Steps to Side Steps Allowed\n");
+  printf("\tp)\t Change initial number of (p)ieces -- there are currently %d, max allowed is %d\n", PIECES, maxPieces(N));
+  printf("\tc)\t Change the number of pieces that must be (c)aptured to win -- currently %d\n\n", XHITKILLS);
+  printf("\tr)\t (R)eturn to the previous menu\n\nSelect Option:  ");
+
+
+  fflush(stdin);
+  (void) scanf("%c", &selection);
   
-  if (selection == 1) {
+  if (selection == 'n' || selection == 'N') {
     changeBoard();
-  } else if (selection == 2) {
+    printf("\n");
+    GameSpecificMenu();
+  } else if (selection == 'm' || selection == 'M') {
     if (MISERE == 0)
       MISERE = 1;
     else
@@ -334,32 +352,35 @@ printf("6.\t Return to the previous menu\n\nSelect Option:  ");
     
     SafeFree(rows);
     SafeFree(gBoard);
-    XHITKILLS = 1;
-    PIECEMOD = 0;
     InitializeGame();
+    printf("\n");
     GameSpecificMenu();
-  } else if (selection == 3) {
-    if (SS == 0)
-      SS = 1;
+  } else if (selection == 's' || selection == 'S') {
+    if (NSS == 0)
+      NSS = 1;
     else
-      SS = 0;
+      NSS = 0;
     
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
+    printf("\n");
     GameSpecificMenu();
-
   } 
-  else if (selection == 4) {
-    changeMod();
+  else if (selection == 'p' || selection == 'P') {
+    changePieces();
+    printf("\n");
+    GameSpecificMenu();
   } 
-  else if (selection == 5) {
+  else if (selection == 'c' || selection == 'C') {
     changeKills();
+    printf("\n");
+    GameSpecificMenu();
   }
-  else if (selection == 6)
+  else if ((selection == 'r') || (selection == 'R'))
     return;
   else {
-    printf("\n\n\n Please select a valid option...\n");
+    printf("\n\n\n Please select a valid option...\n\n");
     GameSpecificMenu();
   }
 }
@@ -376,6 +397,8 @@ void changeBoard()
   else {
     printf("Changing N to %d ...\n", size);
     N = size;
+    XHITKILLS = 1;
+    PIECES = def_start_pieces(N);
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
@@ -387,7 +410,7 @@ void changeKills()
   int kills;
   printf("Enter the new number of pieces to capture:   ");
   (void) scanf("%u", &kills);
-  if (maxPieces + PIECEMOD - kills < 0) {
+  if (PIECES - kills < 0) {
     printf("A player can only lose as many pieces as the game starts with\n");
     changeKills();
   }
@@ -403,21 +426,22 @@ void changeKills()
   }
 }
 
-void changeMod()
+void changePieces()
 {
-  int mod;
-  printf("Enter the new piece modifier:  ");
-  (void) scanf("%u", &mod);
-  if ((2 * (def_start_pieces(N) + mod) + (*rows[N-1]).size) > BOARDSIZE) {
+  int num;
+  printf("Enter the new number of pieces:  ");
+  (void) scanf("%u", &num);
+  if ((2 * num + (*rows[N-1]).size) > BOARDSIZE) {
     printf("Too many pieces for board\n");
-    changeMod();
+    changePieces();
   }
-  else if ((maxPieces + mod) < 2) {
+  else if (num < 2) {
     printf("There must be at least two pieces\n");
-    changeMod();
+    changePieces();
   }
   else {
-    PIECEMOD = mod;
+    PIECES = num;
+    XHITKILLS = 1;
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
@@ -604,7 +628,7 @@ VALUE Primitive ( POSITION h )
 BOOLEAN game_over(char theBoard[]){
   int count, x = 0, o = 0, lose;
   
-  lose = maxPieces - XHITKILLS;
+  lose = PIECES - XHITKILLS;
 
   for (count = 0; count < BOARDSIZE; count++) {
     if (theBoard[count] == 'x') {
@@ -925,7 +949,7 @@ MOVELIST *GenerateMoves(position)
 	    direction = 0 - direction;
 	      
 	    
-	    if (SS == 0) { 
+	    if (NSS == 0) { 
 	      /*Test for possible side steps*/
 	      for (ssdir = -3; ssdir <= 3; ssdir++) {
 		if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {/*skip over nonexistant zero direction as well as push direction*/
@@ -1276,7 +1300,13 @@ void PrintMove(theMove)
 
 int NumberOfOptions()
 {
-  return 1;
+  int options = 0, n, p;
+  for (n = 2; n <= MAXN; n++) {
+    for (p = 2; p <= maxPieces(n); p++) {
+      options += 4 * p;
+    }
+  }
+  return options;
 }
 
 /************************************************************************
@@ -1293,11 +1323,20 @@ int NumberOfOptions()
 
 int getOption()
 {
-  int option = N * 1000;
-  option += MISERE;
-  option += 10 * SS;
-  option += XHITKILLS * 100000;
-  option += PIECEMOD * 10000000;
+  int option = 1, n, p;
+  for (n = 2; n < N; n++) {
+    for (p = 2; p <= maxPieces(n); p++) {
+      option += 4 * p;
+    }
+  }
+  for (p = 2; p < PIECES; p++) {
+    option += 4 * p;
+  }
+
+  if (NSS == 1)
+    option += 2;
+  if (MISERE == 1)
+    option += 1;
 
   return option;
 }
@@ -1315,24 +1354,47 @@ int getOption()
 ************************************************************************/
 void setOption(int option)
 {
-  int m, n, ss, kills, mod;
-  m = option % 10;
-  option = option /10;
-  ss = option % 10;
-  option = option / 10;
-  n = option % 100;
-  option = option / 100;
-  kills = option % 100;
-  option = option / 100;
-  mod = option % 100;
+  option--;
+  int n = 2, pieces = 2, kills = 0, hash, mod;
+  
+  for (hash = 0; hash <= option; hash += 4) {
+    if ((pieces == maxPieces(n)) && (pieces == kills)) {
+      pieces = 2;
+      kills = 1;
+      n++;
+    }
+    else if (kills == pieces) {
+      pieces++;
+      kills = 1;
+    }
+    else
+      kills++;
+  }
 
 
   N = n;
-  SS = ss;
-  MISERE = m;
+  PIECES = pieces;
   XHITKILLS = kills;
-  PIECEMOD = mod;
-  
+
+  mod = fmod(hash - option, 4);
+
+  switch (mod) {
+  case 0:
+    NSS = 0;
+    MISERE = 0;
+    break;
+  case 3:
+    NSS = 0;
+    MISERE = 1;
+    break;
+  case 2:
+    NSS = 1;
+    MISERE = 0;
+    break;
+  case 1:
+    NSS = 1;
+    MISERE = 1;
+  }
 }
 
 /************************************************************************
@@ -1625,6 +1687,12 @@ int b_size (int n) {
   return ((n - 1) * 6) + b_size (n - 1);
 }
 
+int maxPieces (int n) {
+  if (n == 2)
+    return 2;
+  return n + 2 * (n - 2) + maxPieces(n - 1);
+}
+
 int def_start_pieces (int n) {
   if (n == 2)
     return 2;
@@ -1634,3 +1702,8 @@ int def_start_pieces (int n) {
     return 5 + ((n - 2)*(n - 2));
 }
 
+int sum(int start, int stop) {
+  if (stop == start)
+    return start;
+  return stop + sum(start, stop - 1);
+}
