@@ -88,7 +88,8 @@ down, left, right...you can also refer to the compass, shown above the board).\n
 A sample move would be '1 u'(which means 1 up). ";
 
 STRING   kHelpStandardObjective =
-"Capture all but one of your opponent's pieces to win.  Capturing takes \n\
+"Capture all but one of your opponent's pieces to win. You can also win \n\
+if your opponent does not have any more moves possible. Capturing takes \n\
 place when you move your piece into a specific configuration.  The \n\
 configuration is as follows: If two of your pieces are next to each other \n\
 and if on that same line that your pieces are one, one of those pieces is \n\
