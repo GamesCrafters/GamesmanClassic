@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.42 2004-11-17 23:20:38 ogren Exp $
+# $Id: InitWindow.tcl,v 1.43 2004-11-17 23:48:27 ogren Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -1047,12 +1047,16 @@ proc SetupHelpFrame { f width } {
 	
 	pack $f.summary -side top
 
+
 	## Create scrollpane, scrollbar
-	canvas $f.scrollpane
-	
-	scrollbar $f.scrollbar
-	
 	set sp $f.scrollpane
+	
+	canvas $sp ;#-yscrollcommand "$f.scrollbar set"
+
+	scrollbar $sp.scrollbar -orient vertical -command "$sp yview"
+
+	pack $sp -side top
+	pack $sp.scrollbar -side right -fill y
 
 
 	## Image of Skin
@@ -1062,6 +1066,7 @@ proc SetupHelpFrame { f width } {
     canvas $f.screenshot -height 360 -width 480
     $f.screenshot create image 240 180 -image Screenshot
 	
+
 	## Help messages
 	message $f.newgame -width $width -font $kDocumentFont -text "To start a New Game, click the NEW GAME button on the Toolbar." 
 	
@@ -1074,6 +1079,7 @@ proc SetupHelpFrame { f width } {
 	message $f.help -width $width -font $kDocumentFont -text "Clicking the Help button brings you to this window."
 
 	message $f.quit -width $width -font $kDocumentFont -text "To Quit the game and Exit GAMESMAN, click the QUIT button on the Toolbar."
+
 
 	## Pack everything else
 	pack $f.screenshot -side top
