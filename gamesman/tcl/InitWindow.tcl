@@ -249,6 +249,7 @@ proc InitWindow { kRootDir } {
     # Deal with exit button separately
     .cToolbar dtag iITB8 iITB
     .cToolbar bind iOTB8 <ButtonRelease-1> {
+	puts "exiting"
 	exit
     }
     .cToolbar bind iOTB8  <Any-Leave> {
