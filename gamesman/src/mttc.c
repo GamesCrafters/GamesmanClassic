@@ -292,17 +292,20 @@ POSITION GetInitialPosition () {
     PrintPosition(pos,"Debugger",FALSE);
     printf("Input a valid move (? for help): ");
     scanf("%s",inString);
-    if (inString[0] == 'e')
+    if (!strcmp(inString,"q"))
       break;
     if (inString[0] == '?') {
       printf("\n\n\n\n");
-      printf("##################################################\n");
-      printf("- Move format: [Piece][Source][Destination]\n");
-      printf("   i.e. Qa3a5 to move the Black queen from a3 to a5\n");
-      printf("   Note: When placing a piece, the move format instead changes\n");
-      printf("   to simply [Piece][Destination] (3 chars), i.e. Qa3\n");
-      printf("\n - Special Moves: 'end' to finish, '?' for help\n");
-      printf("##################################################\n");
+      printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+      printf("|\n");
+      printf("|  Move Format: Piece [Source] Destination\n|\n");
+      printf("|  *Note* if placing a piece on the board, no source is necessary\n");
+      printf("|\n");
+      printf("|  Examples:\n");
+      printf("|    Qa1b2 , Rd3d1, pb2, Ba3\n");
+      printf("|\n");
+      printf("|  'q' to exit, '?' for help\n|\n");
+      printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
       continue;
     }
     if (ValidTextInput(inString)) {
