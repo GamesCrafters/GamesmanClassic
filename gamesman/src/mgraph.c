@@ -24,7 +24,7 @@
 #include "loopygasolver.h"
 
 /* variables */
-POSITION gNumberOfPositions  = 20; /* Arbitrary upper-limit on graph nodes */
+POSITION gNumberOfPositions  = 50; /* Arbitrary upper-limit on graph nodes */
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0 ;
@@ -87,16 +87,6 @@ Computer wins. Nice try, Dan.";
 **
 **************************************************************************/
 
-typedef enum {
-  NEVER, ALWAYS, IF, UNLESS
-} GO_AGAIN;
-
-typedef struct go_again_tuple {
-  POSITION from;
-  POSITION to;
-  struct go_again_tuple* next;
-} GO_AGAIN_TUPLE_LIST;
-
 /* function prototypes */
 VALUE TextToValue(char c);
 void LoadGraphFromFile(STRING graphFilename);
@@ -104,8 +94,6 @@ BOOLEAN GraphGoAgain(POSITION position, MOVE move);
 
 /*** These are so that we can bootstrap and load the graphs on the fly ***/
 
-GO_AGAIN gGoAgainType = NEVER;
-POSITIONLIST** gGraphGoAgainExceptions = NULL;
 char gGraphFilename[MAXINPUTLENGTH];
 BOOLEAN gGraphFilenameSet = FALSE;
 
@@ -148,18 +136,10 @@ void InitializeGame()
     gGraphNeighborList[i]  = NULL;
   }
 
-  if (gGraphGoAgainExceptions != NULL) {
-    for (i=0; i<gNumberOfPositions; i++) {
-      FreePositionList(gGraphGoAgainExceptions[i]);
-    }
-    SafeFree(gGraphGoAgainExceptions);
-  }
-
   LoadGraphFromFile(gGraphFilename);
 
   gGoAgain = GraphGoAgain;
   gSolver = lgas_DetermineValue;
-  printf("Loaded solver\n");
 }
 
 void FreeGame()
@@ -173,12 +153,6 @@ void FreeGame()
     SafeFree(gGraphNeighborList);
   }
 
-  if (gGraphGoAgainExceptions != NULL) {
-    for (i=0; i<gNumberOfPositions; i++) {
-      FreePositionList(gGraphGoAgainExceptions[i]);
-    }
-    SafeFree(gGraphGoAgainExceptions);
-  }
 }
 
 void LoadGraphFromFile(graphFilename)
@@ -192,7 +166,7 @@ STRING graphFilename;
   int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
   char theValueChar;
   char input;
-  GO_AGAIN_TUPLE_LIST* tuples;
+  char goAgainChar;
   
   /*** See if the file can even be read ***/
 
@@ -246,6 +220,15 @@ STRING graphFilename;
 	printf("LoadGraphFromFile Error: couldn't read child %d from node %d in %s\n", j, i, graphFilename);
 	ExitStageRight();
       }
+
+      goAgainChar = getc(fp);
+      if (goAgainChar == 'g' || goAgainChar == 'G') {
+	nodeChild += gNumberOfPositions;
+      }
+      else {
+	ungetc(goAgainChar, fp);
+      }
+
       head = StorePositionInList(nodeChild, head);
     }
     gGraphNeighborList[nodeNumber] = head;
@@ -255,89 +238,11 @@ STRING graphFilename;
 
   gLargestNodeNumber = largestNodeSoFar;
 
-  /*** Go again ***/
-
-  /* not defined, default to never */
-  if (fscanf(fp, "%*s %*s %c", &input) != 1) {
-    gGoAgainType = NEVER;
-  }
-  else {
-    if (input == 'a') {
-      fscanf(fp, "%*s");
-      gGoAgainType = ALWAYS;
-    }
-    else if (input == 'n') {
-      fscanf(fp, "%*s");
-      gGoAgainType = NEVER;
-    }
-    else if (input == 'i') {
-      fscanf(fp, "%*s");
-      gGoAgainType = IF;
-    }
-    else if (input == 'u') {
-      fscanf(fp, "%*s");
-      gGoAgainType = UNLESS;
-    }
-    else {
-      printf("Invalid keyword after GoAgain\n");
-      ExitStageRight();
-      exit(0);
-    }
-  
-
-    /* clean up on gGraphGoAgainExceptions is done is in initialize game and fre game */
-
-    gGraphGoAgainExceptions = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST*));
-    for (i=0; i<=gNumberOfPositions; i++) {
-      gGraphGoAgainExceptions[i] = NULL;
-    }
-      
-    if (gGoAgainType==IF || gGoAgainType==UNLESS) {
-      while(fscanf(fp, POSITION_FORMAT " " POSITION_FORMAT, &from, &to) != EOF) {
-	 gGraphGoAgainExceptions[from] = StorePositionInList(to, gGraphGoAgainExceptions[from]);
-      }
-    }
-    
-  }
-  
   fclose(fp);
 }
 
 BOOLEAN GraphGoAgain(POSITION position, MOVE move) {
-  BOOLEAN defaultsTo = FALSE;
-  POSITIONLIST* exceptions;
-
-  if (gGoAgainType == NEVER) {
-    return FALSE;
-  }
-  else if (gGoAgainType == ALWAYS) {
-    return TRUE;
-  }
-  else if (gGoAgainType == IF) {
-    defaultsTo = FALSE;
-  }
-  else if (gGoAgainType == UNLESS) {
-    defaultsTo = TRUE;
-  }
-  else {
-    BadElse("GraphGoAgain");
-    exit(0);
-  }
-
-  if (gGoAgainType == IF || gGoAgainType==UNLESS) {
-    exceptions = gGraphGoAgainExceptions[position];
-    while (exceptions != NULL) {
-      if (exceptions->position==(POSITION)move) {
-	return !defaultsTo;
-      }
-      exceptions = exceptions->next;
-    }
-    return defaultsTo;
-  }
-  else {
-    BadElse("GraphGoAgain");
-    exit(0);
-  }
+  return move>=gNumberOfPositions;
 }
 
 
@@ -448,7 +353,7 @@ POSITION DoMove(thePosition, theMove)
      MOVE theMove;
 {
   /* the move IS the position */
-  return(theMove);
+  return(theMove%gNumberOfPositions);
 }
 
 /************************************************************************
@@ -665,7 +570,16 @@ MOVE ConvertTextInputToMove(input)
      STRING input;
 {
   int ans;
-  sscanf(input, "%d", &ans);
+  char goAgainChar;
+
+  if (sscanf(input, "%d%c", &ans, &goAgainChar) != EOF) {
+    if (goAgainChar=='g' || goAgainChar=='G') {
+      ans += gNumberOfPositions;
+    }
+  } else {
+    sscanf(input, "%d", &ans);
+  }
+
   return(ans);
 }
 
@@ -682,7 +596,11 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf("%d", theMove);
+  if (theMove>=gNumberOfPositions) {
+    printf("%dg", theMove%gNumberOfPositions);
+  } else {
+    printf("%d", theMove);
+  }
 }
      
 int NumberOfOptions()
