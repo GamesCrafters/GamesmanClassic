@@ -76,16 +76,16 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to choose the starting position and ending position of a piece that you want to move (or 0 if you don't want to move). Then enter an empty position where you want to place your piece."; 
+"On your turn, enter the coordinates of a piece you want to move and then the coordinates of where you want to move it to.  Then type the coordinates of an empty position on the board where you'd like to place a piece.  If you don't want to move a piece, you may just type the coordinates of where you want to place a new piece and ignore the first part.  For example, these are both legal moves: [a1 a3 b2] [b2]"; 
 
 STRING   kHelpOnYourTurn =
-"If you want to move a piece, type the position of the piece and the position you want to move it to (e.g. \"3 1\").  Type 0 if you don't want to move.  Then, type the number of an empty position where you want to place a new piece (e.g. \"4\").  A complete move will look something like this: \"3 1 4\"";
+"If you want to move a piece, type the position of the piece and the position you want to move it to (e.g. \"a1 a3\").  Ignore this if you don't want to move.  Then, type the number of an empty position where you want to place a new piece (e.g. \"b2\").  A complete move will look something like this: \"a1 a3 b2\", or alternatively, if you don't want to move the piece from a1 to a3, you can just type \"b2\"";
 
 STRING   kHelpStandardObjective =
-"When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical, or diagonal), unbroken line score one point for each empty space they cover.  You win if you score MORE points than your opponent.";
+"When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical or diagonal), unbroken line score one point for each empty space they cover.  You win if you score MORE points than your opponent.";
 
 STRING   kHelpReverseObjective =
-"When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical, or diagonal), unbroken line score one point for each empty space they cover.  You win if you score MORE points than your opponent.";
+"When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical, or diagonal), unbroken line score one point for each empty space they cover.  You win if you score FEWER points than your opponent.";
 
 STRING   kHelpTieOccursWhen =
 "A tie occurs when each player has played all their pieces and have the same number of points.";
@@ -380,10 +380,25 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		printf("=");
 	}
 	printf("\\\n");
-	
-	printf("|    ");					/* Second row */
-	for (i = 0; i < 2 * width; i++) {			/* |              | */
-		printf(" ");
+
+	printf("|   ");
+	for (i = 0; i < width - numpieces; i++) {		/* Second row */
+		printf(" ");					/* |   XX-- -OOO   | */
+	}
+	for (i = 0; i < numpieces; i++) {
+		if (numpieces - countPieces(board, WHITE) > i) {
+			printf("%c", WHITE);
+		} else {
+			printf("%c", BLANK);
+		}
+	}
+	printf(" ");
+	for (i = 0; i < numpieces; i++) {
+		if (countPieces(board, BLACK) <= i) {
+			printf("%c", BLACK);
+		} else {
+			printf("%c", BLANK);
+		}
 	}
 	printf("   |\n");
 								/* Third row */
@@ -559,10 +574,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input) {
    
-
-    /* FILL IN */
-    
-    return TRUE;
+	BOOLEAN valid = TRUE;
+	
+	valid = input[0] != 'q' ? valid : FALSE;
+	return valid;
 }
 
 
