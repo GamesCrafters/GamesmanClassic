@@ -54,7 +54,7 @@ STRING   kAuthorName          = "Greg Bonin, Nathan Spindel";   /* Your name(s) 
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -116,9 +116,10 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-int WIDTH = 4, HEIGHT = 4;
+int WIDTH = 4, HEIGHT = 4, currentWidth = 4, currentHeight = 4;
 int BOARDSIZE;
-BOOLEAN DEFAULT = TRUE;
+BOOLEAN DEFAULT = TRUE, gWinType = TRUE;
+BOOLEAN gAllowVWrap = FALSE, gAllowHWrap = FALSE;
 char *gBoard;
 
 /*************************************************************************
@@ -232,43 +233,44 @@ MOVELIST *GenerateMoves (POSITION position)
   for (i = BOARDSIZE; i >= 0; i--) {
     if (gBoard[i] == currentPlayer) {
 
+
       /* check up one */
-      if (i > WIDTH)
+      if (i > WIDTH || gAllowVWrap)
 	if (gBoard[i-WIDTH] == ' ')
 	  moves = CreateMovelistNode(makeMove(i, i-WIDTH), moves);
 
       /* check up two */
-      if (i > WIDTH*2)
+      if (i > WIDTH*2 || gAllowVWrap)
 	if (gBoard[i-WIDTH] == currentPlayer && gBoard[i-WIDTH*2] == oppPlayer)
 	  captures = CreateMovelistNode(makeMove(i, i-WIDTH*2), captures);
 
       /* check down one */
-      if (i < WIDTH*(HEIGHT-1))
+      if (i < WIDTH*(HEIGHT-1) || gAllowVWrap)
 	if (gBoard[i+WIDTH] == ' ')
 	  moves = CreateMovelistNode(makeMove(i, i+WIDTH), moves);
 
       /* check down two */
-      if (i < WIDTH*(HEIGHT-2))
+      if (i < WIDTH*(HEIGHT-2) || gAllowVWrap)
 	if (gBoard[i+WIDTH] == currentPlayer && gBoard[i+WIDTH*2] == oppPlayer)
 	  captures = CreateMovelistNode(makeMove(i, i+WIDTH*2), captures);
 
       /* check left one */
-      if (i % WIDTH != 0)
+      if (i % WIDTH != 0 || gAllowHWrap)
 	if (gBoard[i-1] == ' ')
 	  moves = CreateMovelistNode(makeMove(i, i-1), moves);
 
       /* check left two */
-      if (i % WIDTH > 1)
+      if (i % WIDTH > 1 || gAllowHWrap)
 	if (gBoard[i-1] == currentPlayer && gBoard[i-2] == oppPlayer)
 	  captures = CreateMovelistNode(makeMove(i, i-2), captures);
 
       /* check right one */
-      if (i % WIDTH < WIDTH-1)
+      if (i % WIDTH < WIDTH-1 || gAllowHWrap)
 	if (gBoard[i+1] == ' ')
 	  moves = CreateMovelistNode(makeMove(i, i+1), moves);
 
       /* check right two */
-      if (i % WIDTH < WIDTH-2)
+      if (i % WIDTH < WIDTH-2 || gAllowHWrap)
 	if (gBoard[i+1] == currentPlayer && gBoard[i+2] == oppPlayer)
 	  captures = CreateMovelistNode(makeMove(i, i+2), captures);
     }
@@ -339,12 +341,21 @@ VALUE Primitive (POSITION position)
 {
   int player = whoseMove(position);
 
-  if (numberOfPieces(position, player) == 1)
+  if (numberOfPieces(position, player) == 1) {
+    if (gWinType) 
+      return lose;
+    return win;  
+  }
+  else if (numberOfPieces(position, oppositePlayer(player)) == 1) {
+    if (gWinType)
+      return win;
     return lose;
-  else if (numberOfPieces(position, oppositePlayer(player)) == 1)
+    }
+  else if (GenerateMoves(position) == NULL) {
+    if (gWinType)
+      return lose;
     return win;
-  else if (GenerateMoves(position) == NULL)
-    return lose;
+  }
   else
     return undecided;
 }
@@ -600,7 +611,58 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+  
+  while (TRUE) {
+    printf("\n\t----- Game-specific options for %s -----\n", kGameName);
+    printf("\n\tBoard Options:\n\n");
+    printf("\td)\tChange board (D)imension (%d,%d)\n", WIDTH, HEIGHT);
+    printf("\n\tRule Options:\n\n");
+    printf("\tw)\tTo (W)in: %s\n", gWinType ? "Standard" : "Misere");
+    printf("\tv)\t(V)ertical Wrapping: %s\n", gAllowVWrap ? "On" : "Off");
+    printf("\to)\tH(o)rizontal Wrapping: %s\n", gAllowHWrap ? "On" : "Off");
+    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+    printf("\n\nSelect an option: ");
     
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+      case 'H': case 'h':
+        HelpMenus();
+        break;
+    case 'D': case 'd':
+      printf("\nBoard Width (%d): ", WIDTH);
+      scanf("%d", &WIDTH);
+      if (WIDTH <= 0) {
+	printf("%d is an invalid width. Next time please choose a width greater than zero\n", WIDTH);
+	WIDTH = currentWidth;
+      }
+
+      printf("\nBoard Height (%d): ", HEIGHT);
+      scanf("%d", &HEIGHT);
+      if (HEIGHT <= 0) {
+	printf("%d is an invalid height. Next time please choose a height greater than 0\n", HEIGHT);
+	HEIGHT = currentHeight;
+      }
+
+      currentWidth = WIDTH;
+      currentHeight = HEIGHT;
+      BOARDSIZE = WIDTH*HEIGHT;
+      break;
+    case 'W': case 'w':
+      gWinType = !gWinType;
+    case 'V': case 'v':
+      gAllowVWrap = !gAllowVWrap;
+      break;
+    case 'O': case 'o':
+      gAllowHWrap = !gAllowHWrap;
+      break;
+    case 'B': case 'b':
+      return;
+    default:
+      BadMenuChoice();
+      HitAnyKeyToContinue();
+    }
+  }
 }
 
 
