@@ -60,7 +60,7 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
 STRING   kGameName           = "Seega"; /* The name of your game */
-STRING   kDBName             = ""; /* The name to store the database under */
+STRING   kDBName             = "seega"; /* The name to store the database under */
 //TODO Peter: check this - this could be a partisan game
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 //BOOLEAN  kSupportsHeuristic  = ;
