@@ -23,14 +23,15 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 43046721;  // changed later if board size changes 
+int      gNumberOfPositions  = 531441;  // changed later if board size changes 
 
 POSITION gInitialPosition    =  0;
-POSITION gMinimalPosition    =  0; // 
+POSITION gMinimalPosition    =  0;
+POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "Quick Cross";
 BOOLEAN  kPartizan           = FALSE;
-BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -152,45 +153,6 @@ FreeGame()
 
 DebugMenu()
 {
-/*   char GetMyChar(); */
-
-/*   do { */
-/*     printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName); */
-
-/*     printf("\tc)\tWrite PPM to s(C)reen\n"); */
-/*     printf("\ti)\tWrite PPM to f(I)le\n"); */
-/*     printf("\ts)\tWrite Postscript to (S)creen\n"); */
-/*     printf("\tf)\tWrite Postscript to (F)ile\n"); */
-/*     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n"); */
-/*     printf("\n\nSelect an option: "); */
-
-/*     switch(GetMyChar()) { */
-/*     case 'Q': case 'q': */
-/*       ExitStageRight(); */
-/*     case 'H': case 'h': */
-/*       HelpMenus(); */
-/*       break; */
-/*     case 'C': case 'c': /\* Write PPM to s(C)reen *\/ */
-/*       tttppm(0,0); */
-/*       break; */
-/*     case 'I': case 'i': /\* Write PPM to f(I)le *\/ */
-/*       tttppm(0,1); */
-/*       break; */
-/*     case 'S': case 's': /\* Write Postscript to (S)creen *\/ */
-/*       tttppm(1,0); */
-/*       break; */
-/*     case 'F': case 'f': /\* Write Postscript to (F)ile *\/ */
-/*       tttppm(1,1); */
-/*       break; */
-/*     case 'B': case 'b': */
-/*       return; */
-/*     default: */
-/*       BadMenuChoice(); */
-/*       HitAnyKeyToContinue(); */
-/*       break; */
-/*     } */
-/*   } while(TRUE); */
-
 }
 
 /************************************************************************
@@ -995,8 +957,6 @@ int NumberOfOptions()
 
 int getOption()
 {
-  printf("****  GETOPTION CALLED and returned 0!");
-
         if(gStandardGame)
 	{
 	  /* Board configurations */
@@ -1007,13 +967,11 @@ int getOption()
 	}
 	
 
-  return 0;
+  return 1;
 } 
 
 void setOption(int option)
 {
-
-  printf("****  SETOPTION CALLED with option: %d",option);
   /*        if(option == 1)
 	{
                 gStandardGame = TRUE ;
