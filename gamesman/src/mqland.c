@@ -419,7 +419,14 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
     	int i, j;
     	
 	if (width < 4) {
-		printf(" Queensland! \n");
+		printf("  Queensland!\n");
+	}
+	else {
+		for (i = 0; i < 2 * width; i++)
+		{
+			printf("=");
+		}
+		printf("Queensland!\n");
 	}
 	
 	printf("/");						/* Top row */
@@ -428,17 +435,12 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	}
 	printf("\\\n");
 	
-	printf("|  ");						/* Second row */
-	if (width >= 4) {
-		for (i = 0; i < (2 * width - 8); i++) {		/* |  Queensland!  | */
-			printf(" ");
-		}
-		printf("Queensland!");
-		for (i = 0; i < (2 * width - 8); i++) {
-			printf(" ");
-		}
+	printf("|    ");					/* Second row */
+	for (i = 'a'; i < width + 'a'; i++) {			/* |    a b c d    | */
+		printf("%c ", i);
 	}
-	printf("  |\n");					/* Third row */
+	printf("   |\n");
+								/* Third row */
 	printf("|  /");						/* |  /---------\  | */
     	for (i = 0; i < (2*width+1); i++) {
    		printf("-");
@@ -447,7 +449,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		
 	
 	for (j = 0; j < height; j++) {				/* Body of board */
-		printf("|  ");
+		printf("| %d", j);
 		/* Right now, we do not print stock of remaining pieces. If we did, O's would go here. */
 		printf("| ");
 		for (i = 0; i < width; i++) {
