@@ -531,25 +531,25 @@ MOVELIST *GenerateMoves (POSITION position) {
       BadElse("shouldn't be here - generate moves\n");
   for (i=0;i<BOARDSIZE;i++){
     if(gBoard[i]==mover){
-      if (legalMove(gBoard[i+1]) && gBoard[i+1]== blank){
+      if (legalMove(i+1) && gBoard[i+1]== blank){
 	boardcopy(gBoard,newboard);
 	newboard[i]=blank;
 	newboard[i+1]=mover;
 	head=CreateMovelistNode(generic_hash(newboard,player),head);
       }
-      if (legalMove(gBoard[i-1]) && gBoard[i-1]== blank){
+      if (legalMove(i-1) && gBoard[i-1]== blank){
 	boardcopy(gBoard,newboard);
 	newboard[i]=blank;
 	newboard[i-1]=mover;
 	head=CreateMovelistNode(generic_hash(newboard,player),head);
       }
-      if (legalMove(gBoard[i+BOARDSIZE/2]) && gBoard[i+BOARDSIZE/2]== blank){
+      if (legalMove(i+BOARDSIZE/2) && gBoard[i+BOARDSIZE/2]== blank){
 	boardcopy(gBoard,newboard);
 	newboard[i]=blank;
 	newboard[i+BOARDSIZE/2]=mover;
 	head=CreateMovelistNode(generic_hash(newboard,player),head);
       }
-      if (legalMove(gBoard[i-BOARDSIZE/2]) && gBoard[i-BOARDSIZE/2]== blank){
+      if (legalMove(i-BOARDSIZE/2) && gBoard[i-BOARDSIZE/2]== blank){
 	boardcopy(gBoard,newboard);
 	newboard[i]=blank;
 	newboard[i-BOARDSIZE/2]=mover;	
