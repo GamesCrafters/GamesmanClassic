@@ -16,7 +16,7 @@ proc push {l a} {
 }
 
 proc pop {l} {
-    return [lreplace $l 0 0]
+    return [lrange $l 1 [expr [llength $l] - 1]]
 }
 
 proc peek {l} {
@@ -190,6 +190,7 @@ proc NewGame { } {
     set gGameSoFar [list $gInitialPosition]
     set gMovesSoFar [list]
     GS_NewGame .middle.f2.cMain $gPosition
+    .cStatus raise undoD
     EnableMoves
     DriverLoop
 }
@@ -309,6 +310,8 @@ proc DoComputerMove { } {
 
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
+    .cStatus raise undoI
+
     if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	SwitchWhoseTurn
     }
@@ -394,7 +397,9 @@ proc ReturnFromHumanMoveHelper { theMove } {
         set gGameSoFar [push $gGameSoFar $gPosition]
         
         set gMovesSoFar [push $gMovesSoFar $theMove]
-                
+        
+	.cStatus raise undoI
+        
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
 	if { [expr ![C_GoAgain $oldPosition $theMove]] } {
@@ -621,6 +626,10 @@ proc UndoHelper { } {
         
 	set undoneMove [peek $gMovesSoFar]
         set gMovesSoFar [pop $gMovesSoFar]
+
+	if { 0 == [llength $gMovesSoFar]} {
+	    .cStatus raise undoD
+	}
 
 	if { [expr ![C_GoAgain $gPosition $undoneMove]] } {
 	    SwitchWhoseTurn

@@ -1,6 +1,5 @@
-# $Id: InitWindow.tcl,v 1.55 2005-02-10 00:45:56 scarr2508 Exp $
-
-# 
+# $Id: InitWindow.tcl,v 1.56 2005-02-11 05:26:33 nizebulous Exp $
+#
 #  the actions to be performed when the toolbar buttons are pressed
 #
 
@@ -903,6 +902,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cStatus raise predI
 	}
 	.middle.f3.cMRight raise WhoseTurn
+	.cStatus raise undoD
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
@@ -965,9 +965,10 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 470 52 -image iABB8p -tags [list sbb iABB iABB8 predA]
     .cStatus create image 470 52 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
     .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA]
-    .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI def]
+    .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
     .cStatus create image 700 40 -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
-    .cStatus create image 700 40 -image iDBB9p -tags [list sbb iDBB iDBB9 undoD]
+    .cStatus create image 700 40 -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+
     .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
 
     #play options
@@ -1073,7 +1074,11 @@ proc InitWindow { kRootDir kDir kExt } {
 	Undo
     }
     .cStatus bind undoO <Any-Leave> {
-	.cStatus raise undoI; update idletasks;
+	global gMovesSoFar
+	if { 0 == [llength $gMovesSoFar]} {
+	} else {
+	    .cStatus raise undoI; update idletasks;
+	}
     }
     .cStatus bind undoO <ButtonPress-1> {
 	if (1) {#moves made > 0
