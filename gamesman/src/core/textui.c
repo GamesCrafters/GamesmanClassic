@@ -33,8 +33,10 @@ void Menus()
 
 void MenusBeforeEvaluation()
 {
-    if(gUnsolved)
+    if(gUnsolved) {
 	gTwoBits = FALSE;
+	gUnsolved = FALSE;
+    }
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
@@ -188,9 +190,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	    BadMenuChoice();
 	break;
     case 's': case 'S':
-	InitializeGame();
-	SetSolver();
-	gUnsolved = FALSE;
+	Initialize();
 	gAgainstComputer = TRUE;
 	gPrintPredictions = TRUE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
@@ -200,11 +200,12 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
+	fflush(stdout);
 	/*      Stopwatch(&sec,&usec);*/
 	Stopwatch();
 	InitializeDatabases();
 	printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
-	
+	fflush(stdout);
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);

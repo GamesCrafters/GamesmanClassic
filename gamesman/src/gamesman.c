@@ -339,7 +339,6 @@ void Initialize()
     
     /* set default solver */
     gSolver = NULL;
-    
     /* set default go again */
     gGoAgain=DefaultGoAgain;
     
@@ -357,17 +356,14 @@ void SetSolver()
     /* if solver set externally, leave alone */
     if (gSolver != NULL)
         return;
-    
     if(kZeroMemSolver)
         gSolver = DetermineZeroValue;
-    
     else if(kLoopy) {
         if (gGoAgain == DefaultGoAgain)
             gSolver = DetermineLoopyValue;
         else
             gSolver = lgas_DetermineValue;
     }
-
     else
         gSolver = DetermineValue1;
 }
@@ -397,8 +393,10 @@ void Menus()
 
 void MenusBeforeEvaluation()
 {
-    if(gUnsolved)
+    if(gUnsolved){
 	gTwoBits = FALSE;
+	gUnsolved = FALSE;
+    }
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
@@ -502,14 +500,14 @@ void ParseMenuChoice(char c)
 BOOLEAN ParseConstantMenuChoice(char c)
 {
     switch(c) {
-  case 'Q': case 'q':
-      ExitStageRight();
+    case 'Q': case 'q':
+	ExitStageRight();
       exit(0);
-  case 'h': case 'H':
-      HelpMenus();
-      break;
-  default:
-      return(FALSE);  /* It was not parsed here */
+    case 'h': case 'H':
+	HelpMenus();
+	break;
+    default:
+	return(FALSE);  /* It was not parsed here */
     }
     return(TRUE);       /* Yep, it was parsed here! */
 }
@@ -552,9 +550,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	    BadMenuChoice();
 	break;
     case 's': case 'S':
-	InitializeGame();
-	SetSolver();
-	gUnsolved = FALSE;
+	Initialize();
 	gAgainstComputer = TRUE;
 	gPrintPredictions = TRUE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
@@ -564,19 +560,20 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
+	fflush(stdout);
 	/*      Stopwatch(&sec,&usec);*/
 	Stopwatch();
 	InitializeDatabases();
 	printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
-	
+	fflush(stdout);
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
 	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
-	  printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
+	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
 	} else {
-printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
+	    printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
 	}
 	gMenuMode = Evaluated;
 	if(gameValue == lose)
@@ -1657,7 +1654,6 @@ void ExitStageRightErrorString(char errorMsg[])
 GENERIC_PTR SafeMalloc(size_t amount)
 {
     GENERIC_PTR ptr;
-    
     /* Mando's Fix is to put a ckalloc here */
     if((ptr = malloc(amount)) == NULL) {
         printf("Error: SafeMalloc could not allocate the requested %lu bytes\n",amount);
@@ -3157,7 +3153,6 @@ void FreeVisitedArray()
 void ParentInitialize()
 {
     POSITION i;
-    
     gParents = (POSITIONLIST **) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST *));
     for(i = 0; i < gNumberOfPositions; i++)
         gParents[i] = NULL;
@@ -3177,7 +3172,6 @@ void ParentFree()
 void NumberChildrenInitialize()
 {
     POSITION i;
-    
     gNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
     for(i = 0; i < gNumberOfPositions; i++)
         gNumberChildren[i] = 0;
