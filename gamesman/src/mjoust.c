@@ -7,55 +7,9 @@
 ** AUTHOR:      Dave and Isaac  -  University of California at Berkeley
 **              Copyright (C) D & I productions, 1995. All rights reserved.
 **
-** DATE:        08/28/91
+** DATE:        1995
 **
 ** UPDATE HIST:
-**
-**  8-30-91 1.0a1 : Fixed the bug in reading the input - now 'q' doesn't barf.
-**  9-06-91 1.0a2 : Added the two extra arguments to PrintPosition
-**                  Recoded the way to do "visited" - bitmask
-**  9-06-91 1.0a3 : Added Symmetry code - whew was that a lot of code!
-**  9-06-91 1.0a4 : Added ability to have random linked list in gNextMove.
-**  9-06-91 1.0a5 : Removed redundant code - replaced w/GetRawValueFromDatabase
-**  9-17-91 1.0a7 : Added graphics code.
-**  5-12-92 1.0a8 : Added Static Evaluation - it's far from perfect, but 
-**                  it works!
-** 05-15-95 1.0   : Final release code for M.S.
-** 97-05-12 1.1   : Removed gNextMove and any storage of computer's move
-**
-** Decided to check out how much space was wasted with the array:
-**
-** Without checking for symmetries
-**
-** Evaluating the value of Tic-Tac-Toe...done in 1.434998 seconds!
-** Undecided = 14878 out of 19682
-** Lose      =  1304 out of 19682
-** Win       =  2495 out of 19682
-** Tie       =  1005 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =  4804 out of 19682
-**
-** Using the new evaluation method:
-**
-** Undecided = 14205 out of 19683
-** Lose      =  1574 out of 19683
-** Win       =  2836 out of 19683
-** Tie       =  1068 out of 19683
-** Unk       =     0 out of 19683
-** TOTAL     =  5478 out of 19683
-**
-** While checking for symmetries and storing a canonical elt from them.
-**
-** Evaluating the value of Tic-Tac-Toe...done in 5.343184 seconds!
-** Undecided = 18917 out of 19682
-** Lose      =   224 out of 19682
-** Win       =   390 out of 19682
-** Tie       =   151 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =   765 out of 19682
-**
-**     Time Loss : 3.723
-** Space Savings : 6.279
 **
 **************************************************************************/
 
@@ -65,7 +19,7 @@
 **
 **************************************************************************/
 #include <stdio.h>
-#include "gsolve.h"
+#include "gamesman.h"
 /* 10/12 Isaac: this is new */
 #include <math.h>
 #include <ctype.h>
@@ -73,14 +27,14 @@
 #include <string.h>
 /* end new include */
 
-extern STRING gValueString[];
-
-int gNumberOfPositions = 3932160; //99614720;  /* (20 * 19 * 2^18) */
+POSITION gNumberOfPositions  = 3932160; //99614720;  /* (20 * 19 * 2^18) */ //203954088 from InitDatabases
 
 POSITION gInitialPosition    = 16778208; //Blank with pieces in the corners for 4x4
+POSITION gMinimalPosition    = 16778208;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Joust";
+STRING   kDBName             = "joust";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = TRUE;
 BOOLEAN  kSupportsSymmetries = FALSE;
@@ -165,6 +119,7 @@ Computer wins. Nice try, Dan.";
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
+#define MAXBOARDSIZE 20
 unsigned int BOARDSIZE  =   16;          /* ROWSIZE x COLUMNSIZE board. */
 unsigned int ROWSIZE    =   4;           /* Rows on the board. */
 unsigned int COLUMNSIZE =   4;           /* Columns on the board. */          
@@ -203,30 +158,45 @@ unsigned int GetPFromPosition(POSITION);
 unsigned int GetXFromPosition(POSITION);
 unsigned int GetOFromPosition(POSITION); 
 
+/* hash */
+POSITION BlankBurntOXToPosition(BlankBurntOX[], BlankBurntOX);
+void PositionToBlankBurntOX(POSITION, BlankBurntOX[]);
+BlankBurntOX WhoseTurn(POSITION);
+
 /* For game specific options */
 void PieceMessage(POSITION, BOOLEAN);
 void ChangeBoardSize();
 void ChangePieces();
 void ChangePiece(POSITION);
 void ChangeBurn();
-void ChangeBoardDimensions();
 int GenerateNewInitial();
 void ChangeOrder();
 
+/* Possible move and helpers */
+BOOLEAN PossibleMove(int, POSITION, BlankBurntOX[]);
+BOOLEAN PossibleRook(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKnight(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleBishop(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKing(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleQueen(int, int, int, int, int, BlankBurntOX[]);
+
+/* Possible burn and helpers */
+BOOLEAN PieceBurn(int, POSITION, BlankBurntOX[]);
+
 char *gBlankBurntOXString[] = { "-", "*", "O", "X" };
 STRING kBBExplanation =
-"\nIn Burned Bridges, the spots you touch
-are burned after you leave them.
+"\nIn Burned Bridges, the spots you touch \
+are burned after you leave them. \
 There's no turning back!\n";
 STRING kUGExplanation =
-"\nIn Ultimate Grenade, you have the ability 
-to burn ANY spot on the board. Pretty good
+"\nIn Ultimate Grenade, you have the ability \
+to burn ANY spot on the board. Pretty good \
 arm you've got there!\n";
 STRING kBMExplanation =
-"\nWith Piece-specific burning, you can
-only lob grenades to places your piece
-could move. Don't discount the knight
-too quickly: he can lob grenades OVER
+"\nWith Piece-specific burning, you can \
+only lob grenades to places your piece \
+could move. Don't discount the knight \
+too quickly: he can lob grenades OVER \
 other burns...\n";
 
 /*************************************************************************
@@ -235,87 +205,42 @@ other burns...\n";
 **
 **************************************************************************/
 
-VALUE     *gDatabase;
 typedef enum Pieces {knight, bishop, rook, queen, king} Piecetype;
 Piecetype Xtype = knight;
 Piecetype Otype = knight;
 Piecetype XBurn = knight;
 Piecetype OBurn = knight;
-Piecetype thePiece;
-Piecetype theBurn;
 
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize all internal variables necessary to solve and 
+**              play the game, given the current game option
 ** 
 ************************************************************************/
 
-InitializeDatabases()
-{
-  GENERIC_PTR SafeMalloc();
-  int i;
+void InitializeGame() {
+  POSITION i, res;
+  BlankBurntOX ox[BOARDSIZE], wt;
 
-  //gDatabase = (VALUE *) SafeMalloc (20 * 19 * pow(2, 18) * sizeof(VALUE));
-  gDatabase = (VALUE *) SafeMalloc (203954088 * sizeof(VALUE));
-  
-  for(i = 0; i < 203954088; i++)
-    gDatabase[i] = undecided;
+  gInitialPosition = GenerateNewInitial();
+  gMinimalPosition = gInitialPosition;
+  gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
 }
 
 /************************************************************************
 **
 ** NAME:        DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
-  char GetMyChar();
-
-  do {
-    printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-    
-    printf("\tc)\tWrite PPM to s(C)reen\n");
-    printf("\ti)\tWrite PPM to f(I)le\n");
-    printf("\ts)\tWrite Postscript to (S)creen\n");
-    printf("\tf)\tWrite Postscript to (F)ile\n");
-    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-    printf("\n\nSelect an option: ");
-    
-
-    switch(GetMyChar()) {
-    case 'Q': case 'q':
-      ExitStageRight();
-    case 'H': case 'h':
-      HelpMenus();
-      break; 
-    case 'C': case 'c': /* Write PPM to s(C)reen */
-      tttppm(0,0);
-      break;
-    case 'I': case 'i': /* Write PPM to f(I)le */
-      tttppm(0,1);
-      break;
-    case 'S': case 's': /* Write Postscript to (S)creen */
-      tttppm(1,0);
-      break;
-    case 'F': case 'f': /* Write Postscript to (F)ile */
-      tttppm(1,1);
-      break;
-    case 'B': case 'b':
-      return;
-    default:
-      BadMenuChoice();
-      HitAnyKeyToContinue();
-      break;
-    }
-  } while(TRUE);
-  
-  }
+}
 
 
 
@@ -329,7 +254,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() {
+void GameSpecificMenu() {
   printf("Welcome to Dave and Isaac's user-friendly variant chooser!\n");
   printf("type B to set up the board or,\n");
   printf("type O to change the order of moving/burning,\n");
@@ -378,7 +303,7 @@ GameSpecificMenu() {
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   /* No need to have anything here, we have no extra options */
@@ -386,8 +311,8 @@ int theOptions[];
 
 /* 11/4 Isaac: Mask off the position's turn bit that has been preserved
    * up till now, then put in the opposite of the current turn bit */
-POSITION ChangeTurn(POSITION theNewPos, POSITION thePos){
-  return ((theNewPos & ~1) | ((thePos + 1) & 1));
+POSITION ChangeTurn(POSITION thePos){
+  return thePos ^ 1; /* xor */
 }
 
 /************************************************************************
@@ -413,70 +338,38 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  BlankBurntOX  WhoseTurn();
-
-  /*Dave's Note: the number 1f base 16 == 11111 base 2, for masking all but 5 bits */
-
   /*Dave: Assumes piece move is in the last 5 bits of theMove,
    * and the burnt spot is in the first 5 bits. */
   MOVE extractedMove = ExtractMove(theMove);           //Mask off all but 5 move bits
   MOVE extractedBurnt = ExtractBurn(theMove);          //Mask off all but 5 burn bits.
   MOVE oldSpot;                                        //Remembers the piece's old spot.
-  POSITION newPosition = 0;                            //11/4 Isaac: initialized to 0.
+  BlankBurntOX whoseTurn;
+  BlankBurntOX theBlankBurntOX[BOARDSIZE];
+  POSITION newPos;
+  int i;
 
-  if (kPrintDebug && kDoMoveDebug)
-	printf("\nOld 0x%8x\n", thePosition >> (BITSIZE*2+1));
-  /* We're taking it easy; masking all but the bits we're actually replacing at 
-   * any given point*/
-  
+  PositionToBlankBurntOX(thePosition, theBlankBurntOX);
+
+  whoseTurn = WhoseTurn(thePosition);
+
   // Set X/O's new position.
-  if(WhoseTurn(thePosition) == x){        //Set x, move past the turn and o bits
-    oldSpot = GetXFromPosition(thePosition);
-      // the old way (thePosition & (BITSIZEMASK << (BITSIZE+1)) >> (BITSIZE+1));
-    newPosition = ((thePosition & ~(BITSIZEMASK << (BITSIZE+1))) |
-		   (extractedMove << (BITSIZE+1)));
-                  //NOTE: this saves the original pos turn bit
-    newPosition = newPosition | 1 << ((BITSIZE*2+1) + extractedMove);
-  }
-  else if(WhoseTurn(thePosition) == o){   //Set o, just move past the turn bit
-    oldSpot = GetOFromPosition(thePosition);
-      // the old way (thePosition & (BITSIZEMASK << 1) >> 1);
-    newPosition = ((thePosition & ~(BITSIZEMASK << 1)) | (extractedMove << 1));
-                  //NOTE: this saves the original pos turn bit
-    newPosition = newPosition | 1 << ((BITSIZE*2+1) + extractedMove);
-  }
-  else
-    BadElse("Must be either x or o's turn.");
+  oldSpot = GetPFromPosition(thePosition);
 
-  if (kPrintDebug && kDoMoveDebug)
-    printf("Move0x%8x\n", newPosition >> (BITSIZE*2+1));
-  /* Set the new mapping of burned/occupied spots on the board, set 
-   * the new spot and the grenaded spot(s) as specified by the variant.*/
-  if (!doubleTrouble)
-    {
-      newPosition = newPosition & ~(1 << ((BITSIZE*2+1) + oldSpot));
-      // clear old spot if not burning it
-      if (kPrintDebug && kDoMoveDebug)
-	printf("Mask0x%8x\nOff 0x%8x\n",  ~(1 << oldSpot) >> (BITSIZE*2+1),
-	       newPosition >> (BITSIZE*2+1));
-    }
-  /* burn the given spot (without making any judgements;
-   * DoMove simply trusts the data given */
-  // burns the same "oldspot" in Burnt Bridges
-      newPosition = newPosition | (1 << ((BITSIZE*2+1) + extractedBurnt));
-      if (kPrintDebug && kDoMoveDebug)
-	printf("Burn0x%8x\n", newPosition >> (BITSIZE*2+1));
-  
-  
-  //newPosition = ChangeTurn(newPosition, thePosition); 
-  newPosition = (newPosition & ~1) | ((thePosition + 1) & 1);
-  
-  if (kPrintDebug && kDoMoveDebug)
-    {
-      printf("New 0x%8x\n", newPosition >> (BITSIZE*2+1)); 
-      printf("\nDoMove called\n"); // for debugging
-    }
-  return(newPosition);
+  if (burnType==0) {
+    extractedBurnt = oldSpot;
+  }
+
+  if (doubleTrouble) {
+    theBlankBurntOX[oldSpot] = Burnt;
+  } else {
+    theBlankBurntOX[oldSpot] = Blank;
+  }
+  theBlankBurntOX[extractedBurnt] = Burnt;
+  theBlankBurntOX[extractedMove] = whoseTurn;
+
+  newPos = BlankBurntOXToPosition(theBlankBurntOX, whoseTurn==x?o:x);
+
+  return(newPos);
 }
 
 /************************************************************************
@@ -490,10 +383,10 @@ POSITION DoMove(thePosition, theMove)
 **
 ************************************************************************/
 
-GetInitialPosition()
+POSITION GetInitialPosition()
 {
   POSITION BlankBurntOXToPosition();
-  BlankBurntOX theBlankBurntOX[BOARDSIZE]; // whosTurn
+  BlankBurntOX theBlankBurntOX[BOARDSIZE], whosTurn;
   signed char c;
   int i, goodInputs = 0, xCount = 0, oCount = 0;
 
@@ -525,7 +418,6 @@ GetInitialPosition()
       ;   /* do nothing */
   }
 
-  /*
   getchar();
   printf("\nNow, whose turn is it? [O/X] : ");
   scanf("%c",&c);
@@ -533,57 +425,11 @@ GetInitialPosition()
     whosTurn = x;
   else
     whosTurn = o;
-    */
 
-  gInitialPosition = BlankBurntOXToPosition(theBlankBurntOX);
+  gInitialPosition = BlankBurntOXToPosition(theBlankBurntOX, whosTurn);
   return(gInitialPosition);
 }
 
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
-**
-************************************************************************/
-
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  POSITION canPosition;
-  MOVE theMove;
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-  
-  if(gPossibleMoves) 
-    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  if(kPrintDebug)
-    printf("Generate moves done"); //for debugging
-
-  while(ptr != NULL) {
-    numberMoves++;
-    if(gPossibleMoves) 
-      printf("%d ",ptr->move+1);
-    ptr = ptr->next;
-  }
-  if(gPossibleMoves) 
-    printf("]\n\n");
-  randomMove = GetRandomNumber(numberMoves);
-  ptr = head;
-  for(i = 0; i < randomMove ; i++)
-    ptr = ptr->next;
-  theMove = ptr->move;
-  FreeMoveList(head);
-  return(theMove);
-}
 
 /************************************************************************
 **
@@ -644,7 +490,7 @@ MOVE EncodeTheMove(theMove, theBurn)
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove, computersName)
+void PrintComputersMove(computersMove, computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -678,20 +524,11 @@ PrintComputersMove(computersMove, computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
-  BOOLEAN CanMove();
-  BOOLEAN CanBurn();
-  /* if(CanMove(position))
-    {
-      return(undecided);
-    }
-  else
-    {
-    return(gStandardGame ? lose : win);
-    }*/
+
   if (kPrintDebug)
-  printf("\nPrimitive called"); // for debugging
+    printf("\nPrimitive called"); // for debugging
   
-  if(!(CanMove(position) && CanBurn(position)))
+  if(!CanMove(position))
    return(gStandardGame ? lose : win);
   //Isaac 11/30 need to check if you can burn as well as move
  else
@@ -727,13 +564,12 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int i, j, spot;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankBurntOX theBlankBurntOX[BOARDSIZE];
   BlankBurntOX WhoseTurn();
@@ -818,6 +654,7 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
   int cd;
   int i;
   int j;
+  Piecetype thePiece;
   
   BlankBurntOX  WhoseTurn();
   
@@ -1322,8 +1159,12 @@ BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, PO
     
 /* burn anywhere */
   case 1:
-    return (theBlankBurntOX[bPos] == Blank); // || pPos == bPos);
-    break;
+    if (doubleTrouble) {
+      return (theBlankBurntOX[bPos] == Blank);
+    }
+    else {
+      return (theBlankBurntOX[bPos] == Blank || pPos == bPos);  /* burn old spot*/
+    }
     
 /* burn based on how your piece moves (you can't throw over other 
  * burns) */
@@ -1335,7 +1176,7 @@ BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, PO
       {
 	aMove = EncodeTheMove(mPos, mPos);
 	Pos = DoMove(Pos, aMove);
-	Pos = ChangeTurn(Pos, Pos);
+	Pos = ChangeTurn(Pos); /* revert turn */
 	PositionToBlankBurntOX(Pos, theBlankBurntOX);
       }
     return (PieceBurn(bPos, Pos, theBlankBurntOX));
@@ -1360,6 +1201,7 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
   int cd;
   int i;
   int j;
+  Piecetype theBurn;
   
   BlankBurntOX  WhoseTurn();
   
@@ -1446,10 +1288,7 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
 MOVELIST *GenerateMoves(position)
   POSITION position;
 {
-  MOVELIST *CreateMovelistNode();
   MOVELIST *head = NULL;
-  VALUE Primitive();
-  BlankBurntOX WhoseTurn();
 
   int i;
   int j;
@@ -1468,35 +1307,35 @@ MOVELIST *GenerateMoves(position)
     }
   
   
-  if (Primitive(position) == undecided)
+  for(i = 0; i < BOARDSIZE; i++)
     {
-      for(i = 0; i < BOARDSIZE; i++)
+      if(PossibleMove(i, position, theBlankBurntOX))
 	{
-	  if(PossibleMove(i, position, theBlankBurntOX))
-	    {
-              /*IF it's a possible move, find the burn variations.*/
-	      for(j = 0 ; j < BOARDSIZE ; j++)
-		{ 
-		  if(PossibleBurn(piecePos, i, j, position, theBlankBurntOX)
-		     && (i != j))
-		    {
-		      /* IF it's a possible burn, and the burn isn't 
-                       * the same as the move, add the encoded move
-		       * to the movelist.*/
-		      aMove = EncodeTheMove(i, j);
-		      head = CreateMovelistNode(aMove, head);
-		      if (kPrintDebug)
-			{
-			  printf("Move: %d, burn: %d, together %d\n", i, j, aMove); //for debugging
-			}
-		    }
-		}
-	    }
+	  if (burnType == 0) {
+	    aMove = EncodeTheMove(i,0);
+	    head = CreateMovelistNode(aMove, head);
+	  }
+	  else {
+	    /*IF it's a possible move, find the burn variations.*/
+	    for(j = 0 ; j < BOARDSIZE ; j++)
+	      { 
+		if(PossibleBurn(piecePos, i, j, position, theBlankBurntOX))
+		  {
+		    /* IF it's a possible burn, and the burn isn't 
+		     * the same as the move, add the encoded move
+		     * to the movelist.*/
+		    aMove = EncodeTheMove(i, j);
+		    head = CreateMovelistNode(aMove, head);
+		    if (kPrintDebug)
+		      {
+			printf("Move: %d, burn: %d, together %d\n", i, j, aMove); //for debugging
+		      }
+		  }
+	      }
+	  }
 	}
-      return (head);
     }
-  else
-    return (NULL);
+   return (head);
 }
 
 
@@ -1535,8 +1374,12 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   
 
   do {
-    printf("Input must be in format: ## ## :where each # is a digit.\n");
-    printf("%8s's move [(u)ndo/ 1-20] %8s burnt[1-20]:", playerName, playerName);
+    if (burnType==0) {
+      printf("%8s's move [(u)ndo/ 1-%d]: ", playerName, BOARDSIZE);
+    }
+    else {
+      printf("%8s's move [(u)ndo/ 1-%d 1-%d]: ", playerName, BOARDSIZE, BOARDSIZE);
+    }
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     
@@ -1569,69 +1412,16 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {     
-  int i = 0;
-  int currentnum=0;
-  int move = 0;
-  int burn = 0;
+  int move=-1, burn=-1;
 
-  if (strlen(input) != 5)
-    {
-      return FALSE;
-    }
-  else
-    {
-      if (kPrintDebug)
-      printf("ValidTextInput\n"); /*for debugging */
-
-      while(input[i] != '\0')
-	{
-	  if(isalpha(input[i]) || (isspace(input[i]) && i != 2))
-	    {
-	      return FALSE;
-	    }
-	  else
-	    {
-	      currentnum = input[i] - '0';
-	      switch(i){
-	      case 0:
-		  move = currentnum * 10;
-		  break;
-	      case 1:
-		  move = move + currentnum;
-		  break;
-	      case 2:
-		if(!(isspace(input[i])))
-		  {
-		    return FALSE;
-		  }
-		break;
-	      case 3:
-		  burn = currentnum * 10;
-		  break;
-	      case 4:
-		  burn = burn + currentnum;
-		  break;
-	      default:
-		/* do nothing */
-		break;
-	      };
-	    }
-	  i++;
-	}
-      if(kPrintDebug)
-      printf("m: %d, b: %d\n", move, burn); /* for debugging */
-
-      if((move <= BOARDSIZE && move >= 1) && (burn <= BOARDSIZE && burn >= 1))
-	{
-	  return TRUE;
-	}
-      else
-	{
-	  if(kPrintDebug)
-	  printf("final If fails"); /* for debugging*/
-	  return FALSE;
-	}
-    }
+  if (burnType==0) {
+    sscanf(input, "%d", &move);
+    return (move>0 && move<=BOARDSIZE);
+  }
+  else {
+    sscanf(input, "%d %d", &move, &burn);
+    return (move>0 && move<=BOARDSIZE && burn>0 && burn<=BOARDSIZE);
+  }
 }
 
 /************************************************************************
@@ -1649,46 +1439,18 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
   STRING input;
 {
-  int j = 0;
-  int currentnum = 0;
-  int move = 0;
-  int burn = 0;
-  if (kPrintDebug)
-  printf("ConvertText called\n");       /*for debugging */
+  int move, burn;
   
-  while(j < 5)
-    {
-      currentnum = input[j] - '0';
-      switch(j){
-      case 0:
-	move = currentnum * 10;
-	break;
-      case 1:
-	move = move + currentnum;
-	break;
-      case 3:
-	burn = currentnum * 10;
-	break;
-      case 4:
-	burn = burn + currentnum;
-	break;
-      default:
-	/* do nothing */
-	break;
-      };
-      j++;
-    }
-
-  /*adjust for the program to use */
-
-  move = move - 1; 
-  burn = burn - 1;
-
-  if(kPrintDebug)
-  printf("m: %d, b: %d\n", move, burn); /* for debugging */
+  if (burnType==0) {
+    sscanf(input, "%d", &move);
+    burn = 1;
+  }
+  else {
+    sscanf(input, "%d %d", &move, &burn);
+  }
   
 /* This version has the first move input as the first 5 bits. */
-  return (EncodeTheMove(move, burn)); 
+  return (EncodeTheMove(move-1, burn-1)); 
 }
 /************************************************************************
 **
@@ -1700,237 +1462,155 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   int burn;
   int move;
   burn = ExtractBurn(theMove);
   move = ExtractMove(theMove);
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("m:%d, b:%d", move + 1, burn + 1); 
-}
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-  BlankBurntOX theBlankBurntOX[BOARDSIZE], WhoseTurn(), whoseTurn;
-  FUZZY FuzzifyValue(), FuzzyComplement(), FuzzySnorm(), goodness;
-  FUZZY GoodMiddleX(), GoodOppositeX();
-
-  PositionToBlankBurntOX(thePosition,theBlankBurntOX);
-  whoseTurn = WhoseTurn(thePosition);
-
-  if(gStandardGame)
-    return(FuzzifyValue(lose));  /* we don't know - random */
-  else {
-
-    /** we evaluate the GOODNESS of the position for player 1
-     ** and then take the complement if we find out that it's
-     ** really player 2's turn.
-     **/
-
-    goodness = FuzzySnorm(GoodMiddleX(theBlankBurntOX),GoodOppositeX(theBlankBurntOX));
-    
-    if(whoseTurn == x)
-      return(goodness);
-    else
-      return(FuzzyComplement(goodness));
-  }
-}
-
-/************************************************************************
-**
-** NAME:        GoodMiddleX
-**
-** DESCRIPTION: Returns the GOODNESS value of having X in the middle
-** 
-** INPUTS:      BlankOX theBlankOX : the description of the position
-**
-** OUTPUTS:     (FUZZY) : returns FUZZY [0,1] based on Goodness for x
-**
-************************************************************************/
-
-FUZZY GoodMiddleX(theBlankBurntOX)
-     BlankBurntOX theBlankBurntOX[];
-{
-  BlankBurntOX middlePiece;
-  middlePiece = theBlankBurntOX[4];  /* the middle piece */
-  if(middlePiece = x)
-    return(MAX_FUZZY_VALUE);
-  else if(middlePiece = o)
-    return(MIN_FUZZY_VALUE);
-  else
-    return(TIE_FUZZY_VALUE);
-}
-  
-/************************************************************************
-**
-** NAME:        GoodOppositeX
-**
-** DESCRIPTION: Returns the GOODNESS value for X of having a piece
-**              on the opposite side as the other person's piece
-** 
-** INPUTS:      BlankOX theBlankOX : the description of the position
-**
-** OUTPUTS:     (FUZZY) : returns FUZZY [0,1] based on Goodness for x
-**
-************************************************************************/
-
-FUZZY GoodOppositeX(theBlankBurntOX)
-     BlankBurntOX theBlankBurntOX[];
-{
-  FUZZY returnValue = MAX_FUZZY_VALUE, costForNotMatching;
-  int i;
-
-  costForNotMatching = 0.2;   /* THIS BETTER NOT DROP BELOW 0.25!! */  
-  
-  for(i = 0; i < 4; i++)
-    if((theBlankBurntOX[i] != theBlankBurntOX[BOARDSIZE-i]) &&
-       ((theBlankBurntOX[i] == Blank) || theBlankBurntOX[BOARDSIZE-i] == Blank))
-      returnValue -= costForNotMatching;
-
-  return(returnValue);
-}
-
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-** CALLS:       PositionToBlankOX(POSITION,*BlankOX)
-**              BlankOX WhosTurn(*BlankOX)
-**
-************************************************************************/
-
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-  BlankBurntOX WhoseTurn();
-  return(WhoseTurn(thePosition) == x ? maximizing : minimizing);
-}
-
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** 
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**
-************************************************************************/
-
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-    return(&gDatabase[position]);
-}
-
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** 
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
-
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  if (burnType==0) {
+    printf("[%d]", move + 1); 
   }
   else {
-    returnPosition = thePosition++;
-    return(returnPosition);
+    printf("[%d %d]", move + 1, burn + 1); 
   }
 }
 
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
+int NumberOfOptions() {
+  int fixedOptions = 2 * 5 * 5 * 5 * 5 * 7;
+  int boardOptions = 0;
+  int i,j;
+  
+  for (i=1; i<=MAXBOARDSIZE; i++) {
+    for (j=1; j<=MAXBOARDSIZE; j++) {
+      if (i*j<=MAXBOARDSIZE && i<=j)
+	boardOptions++;
+    }
+  }
+  
+  return fixedOptions * boardOptions;
+}
+
+int getOption() {
+  int option = 0;
+  int burnOption;
+  int boardOption = 0;
+  BOOLEAN done = FALSE;
+  int i,j;
+
+  for (i=1; i<=MAXBOARDSIZE && !done; i++) {
+    for (j=1; j<=MAXBOARDSIZE && !done; j++) {
+      if (i==ROWSIZE && j==COLUMNSIZE)
+	done = TRUE;
+      else if (i*j<=MAXBOARDSIZE && i<=j)
+	boardOption++;
+    }
+  }
+  
+  option += boardOption;
+  option *= 7;
+
+  if (burnType==0) {
+    burnOption = 0;
+  }
+  else if (burnType==1) {
+    burnOption = 1;
+    if (doubleTrouble) 
+      burnOption++;
+  }
+  else if (burnType==2) {
+    burnOption = 3;
+    if (doubleTrouble) 
+      burnOption++;
+    if (gBurnMove)
+      burnOption += 2;
+  }
+  else {
+    BadElse("NumberOfOptions");
+  }
+
+  option += burnOption;
+  option *= 5;
+
+  option += OBurn;
+  option *= 5;
+
+  option += Otype;
+  option *= 5;
+  
+  option += XBurn;
+  option *= 5;
+
+  option += Xtype;
+  option *= 2;
+
+  if (!gStandardGame) { option++; }
+  
+  option++;
+
+  return option;
+}
+
+void setOption(int option) {
+  int burnOption;
+  int i,j;
+  BOOLEAN done = FALSE;
+
+  option--;
+  gStandardGame = option%2==0;
+  option /= 2;
+
+  Xtype = option%5;
+  option /= 5;
+  
+  XBurn = option%5;
+  option /= 5;
+
+  Otype = option%5;
+  option /= 5;
+
+  OBurn = option%5;
+  option /= 5;
+
+  burnOption = option%7;
+
+  if (burnOption == 0) burnType = 0;
+  else if (burnOption <= 2) {
+    burnType = 1;
+    doubleTrouble = (burnOption-1 == 1);
+  }
+  else if (burnOption <= 6) {
+    burnType = 2;
+    doubleTrouble = ((burnOption-3)%2 == 1);
+    gBurnMove = ((burnOption-3)/2 == 1);
+  }
+  else 
+    BadElse("setOption");
+
+  option /= 7;
+
+  for (i=1; i<=MAXBOARDSIZE && !done; i++) {
+    for (j=1; j<=MAXBOARDSIZE && !done; j++) {
+      if (i*j<=MAXBOARDSIZE && i<=j) {
+	if (option==0) {
+	  ROWSIZE = i;
+	  COLUMNSIZE = j;
+	  done = TRUE;
+	}
+	else {
+	  option--;
+	}
+      }
+    }
+  }
+}
+
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
+  return TCL_OK;
+}
 
 /************************************************************************
 *************************************************************************
@@ -1951,7 +1631,7 @@ POSITION GetNextPosition()
 unsigned int GetXFromPosition(thePos)
      POSITION thePos;
 {
-  return ((thePos & (BITSIZEMASK << (BITSIZE+1))) >> (BITSIZE+1));
+  return (thePos >> (BOARDSIZE-2+1)) % BOARDSIZE; 
 }
 
 /************************************************************************
@@ -1966,7 +1646,15 @@ unsigned int GetXFromPosition(thePos)
 unsigned int GetOFromPosition(thePos)
      POSITION thePos;
 {
-  return ((thePos & (BITSIZEMASK << 1)) >> 1);
+  POSITION xPos, rawPos, rawOPos;
+  rawPos = (thePos >> (BOARDSIZE-2+1));
+  xPos = (rawPos % BOARDSIZE);
+  rawOPos = (rawPos / BOARDSIZE);
+  if (rawOPos >= xPos) {
+    return rawOPos+1;
+  } else {
+    return rawOPos;
+  }
 }
 
 
@@ -2014,46 +1702,30 @@ unsigned int GetPFromPosition (POSITION position){
  * square is occupied or not
  * (0-1). */
 
-PositionToBlankBurntOX(thePos,theBlankBurntOX)
+void PositionToBlankBurntOX(thePos,theBlankBurntOX)
      POSITION thePos;
      BlankBurntOX *theBlankBurntOX;
 {
   int i;
-  int TheXSpot = GetXFromPosition(thePos);
-  int TheOSpot = GetOFromPosition(thePos);
-  for(i = BOARDSIZE-1; i >= 0; i--) {
-    int SquareStatus = ((thePos & (1 << (BITSIZE*2+1) + i)) >> (BITSIZE*2+1) + i);
-    if(SquareStatus == 0)
-      {
-      theBlankBurntOX[i] = Blank;
-      }
-    else if(i == TheXSpot)
-      {
-	theBlankBurntOX[i] = x;
-      }
-    else if(i == TheOSpot)
-      {
-	theBlankBurntOX[i] = o;
-      }
-    else if(SquareStatus == 1)
-      {
-      theBlankBurntOX[i] = Burnt;
-      }
-    else
-      {
-      BadElse("Square can only be 1 or 0.");
-      }
+  int emptyCount = 0;
+
+  int TheXSpot = (thePos >> (BOARDSIZE-2+1)) % (BOARDSIZE); 
+  int TheOSpot; 
+
+  TheOSpot = (thePos >> (BOARDSIZE-2+1)) / (BOARDSIZE);
+  if (TheOSpot>=TheXSpot) {
+    TheOSpot++;
   }
-  
-  if(TheXSpot == TheOSpot)
-    {
-      BadElse("X and O can't share the same spot.");
+
+  theBlankBurntOX[TheXSpot] = x;
+  theBlankBurntOX[TheOSpot] = o;
+
+  for(i = 0; i < BOARDSIZE; i++) {
+    if (i != TheXSpot && i != TheOSpot) {
+      theBlankBurntOX[i] = (((thePos >> (1+emptyCount))&1)==1?Burnt:Blank);
+      emptyCount++;
     }
-  /* else
-    {
-      theBlankBurntOX[TheXSpot] = x;
-      theBlankBurntOX[TheOSpot] = o;
-      } */
+  }
 }  
 
 /************************************************************************
@@ -2074,42 +1746,47 @@ PositionToBlankBurntOX(thePos,theBlankBurntOX)
  * what is in each square.  From this, return a hashed number
  * unique to the board configuration stored in an int data type. */
 
-POSITION BlankBurntOXToPosition(theBlankBurntOX)
-     BlankBurntOX *theBlankBurntOX;
+POSITION BlankBurntOXToPosition(theBlankBurntOX, whoseTurn)
+     BlankBurntOX *theBlankBurntOX, whoseTurn;
 {
   POSITION position = 0;
   unsigned int i;
-  int burntcount = 0;
+  int emptycount = 0;
+  BOOLEAN foundX = FALSE;
   // Set occupied spots, and x,o locations.
   for(i = 0; i < BOARDSIZE; i++)
     {
       if((int)theBlankBurntOX[i] == x)
 	{	
-	  position = position | (i << (BITSIZE+1));
-	  position = position | (1 << i + (BITSIZE*2+1));
+	  position += (i << (BOARDSIZE-2+1));
+	  foundX = TRUE;
 	}
       else if((int)theBlankBurntOX[i] == o)
 	{
-	  position = position | (i << 1);
-	  position = position | (1 << i + (BITSIZE*2+1));
+	  if (foundX) {
+	    position += (((i-1)*BOARDSIZE) << (BOARDSIZE-2+1));
+	  } else {
+	    position += ((i*BOARDSIZE) << (BOARDSIZE-2+1));
+	  }
 	}
       else if((int)theBlankBurntOX[i] == Burnt)
 	{
-	  burntcount++; // Used for determining turn later.
-	  position = position | (1 << (BITSIZE*2+1) + i);
+	  position |= (1 << (emptycount+1));
+	  emptycount++;
 	}
       else if((int)theBlankBurntOX[i] == Blank)
-	{  //Do nothing because the bit is already 0
+	{  
+	  emptycount++;
 	}
       else
 	BadElse("Not possible board piece.");
     }
-  // Determine Turn and set turn bit.
-  if(burntcount % 2 != 0){  //Odd burncount means its o's turn.
-    position = position | 1;}
-  
-  else //Even burntcount means its x's turn.
-   {} //Do nothing (its already set to 0)
+  /* set turn bit.*/
+  if (whoseTurn == o) {
+    position |= 1;
+  }
+  else
+    {} /* Do nothing (its already set to 0) */
   return(position);
 }
 
@@ -2139,79 +1816,6 @@ BlankBurntOX WhoseTurn(thePosition)
      }
 }
 
-/**************************************************
- * Function: CanBurn
- *   Takes in a Position and determines if the 
- *   player who goes next has any valid Burns for
- *   for their piecetype after having moved.
- *   Note that we are essentially looking for two
- *   spots to occupy: a yet-to-be-made move
- *   and a burn.
- *   For use with Primitive.
- **************************************************/
-BOOLEAN CanBurn(POSITION thePos){
-  int i, j, piecePos;
-  MOVE aMove;
-  POSITION movedPos;
-  BlankBurntOX theBlankBurntOX[BOARDSIZE];
-  BlankBurntOX movedBlankBurntOX[BOARDSIZE];
-  PositionToBlankBurntOX(thePos, theBlankBurntOX);
-
-  piecePos = GetPFromPosition(thePos);
-  
-  /* the Ugly part; I must find a possible move, do it, and 
-   * search the resulting position for a possible burn */
-  if(burnType == 0)
-    { return (CanMove(thePos));}
-  else
-    {
-      for(i = 0; i < BOARDSIZE; i++)
-	{
-	  if(PossibleMove(i, thePos, theBlankBurntOX))
-	    {
-/* Burn the spot to which you'd be moving
- * and move to where you already are:
- * (you have to preserve your current position
- * while simulaneously eliminating the move spot
- * as an option), must change the turn bit back so
- * PossibleBurn checks based on the right piece.*/
-	      if(gBurnMove)
-		{
-		  aMove = EncodeTheMove(piecePos, i);
-		  movedPos = DoMove(thePos, aMove);
-		  movedPos = ChangeTurn(movedPos, movedPos);
-		  PositionToBlankBurntOX(movedPos, movedBlankBurntOX);
-		  if (kPrintDebug)
-		    printf("CanBurn1");
-		}
-/* Do the actual move, and burn the spot TO WHICH you 
- * move, must change the turn bit back so
- * PossibleBurn checks based on the right piece.*/
-	      else
-		{
-		  aMove = EncodeTheMove(i, i);
-		  movedPos = DoMove(thePos, aMove);
-		  movedPos = ChangeTurn(movedPos, movedPos);
-		  PositionToBlankBurntOX(movedPos, movedBlankBurntOX);
-		  if (kPrintDebug)
-		    printf("CanBurn2");
-		}
-	      if (kPrintDebug)
-		printf("movedPos0x%8x, aMove %0x\n", movedPos >> (BITSIZE*2+1), aMove>>BITSIZE);
-           /* search the new board for a burn */
-	      for(j = 0; j < BOARDSIZE; j++)
-		{
-		  if(PossibleBurn(piecePos, i, j, movedPos, movedBlankBurntOX))
-		    {return TRUE;}
-		}
-	    }   
-	}
-/* if the loops finish without doing returning true there is 
- * no valid burn */
-  return FALSE;
-    }
-}
-    
 
 /**************************************************
  * Function: CanMove
@@ -2220,71 +1824,42 @@ BOOLEAN CanBurn(POSITION thePos){
  *   for their piecetype.
  *   For use with Primitive.
  **************************************************/
-BOOLEAN CanMove(thePos)
-     POSITION thePos;
-{
-  int r;
-  int c;
+
+BOOLEAN CanMove(POSITION position) {
+    MOVELIST *head = NULL;
+
   int i;
   int j;
-  int playerPos;
-  Piecetype piece;
-
-  BlankBurntOX theBoard[BOARDSIZE];     /* Our board in 1D form. */
-  PositionToBlankBurntOX(thePos, theBoard);
-
-    /* Set the PieceType we'll be working
-     with */
-  if (WhoseTurn(thePos) == x)
+  int piecePos;
+  MOVE aMove;
+  BlankBurntOX theBlankBurntOX[BOARDSIZE];
+  PositionToBlankBurntOX(position, theBlankBurntOX);
+  
+  piecePos = GetPFromPosition(position);
+   
+  for(i = 0; i < BOARDSIZE; i++)
     {
-      piece = Xtype; /* We're checking the OPPOSING player's 
-			      * piece */
-      playerPos = GetXFromPosition(thePos);
+      if(PossibleMove(i, position, theBlankBurntOX))
+	{
+	  if (burnType == 0) {
+	    return TRUE;
+	  }
+	  else {
+	    /*IF it's a possible move, find the burn variations.*/
+	    for(j = 0 ; j < BOARDSIZE ; j++)
+	      { 
+		if(PossibleBurn(piecePos, i, j, position, theBlankBurntOX))
+		  {
+		    /* IF it's a possible burn, and the burn isn't 
+		     * the same as the move, add the encoded move
+		     * to the movelist.*/
+		    return TRUE;
+		  }
+	      }
+	  }
+	}
     }
-  else
-    {
-      piece = Otype; /* We're checking the OPPOSING player's 
-			      * piece */
-      playerPos = GetOFromPosition(thePos);
-    }
-/* Get the player's position in 2d */
-  for(i=0; i < ROWSIZE; i++){    
-    for(j=0; j < COLUMNSIZE; j++){
-      if((i*COLUMNSIZE) + j == playerPos){
-	r = i;
-	c = j;
-      }
-    }
-  }
-
-/* Now check if the possible move spots immediately next to the piece are off the board
- * or non-blank. If any are not, then a move is possible.*/
-   switch(piece){
-   case king:  case queen:
-    /* note that the combination of CanBishop and CanRook checks all  
-     * the spots immediately surrounding the piece */
-    return(CanRookMove(theBoard, r, c) 
-	   ||
-	   CanBishopMove(theBoard, r, c));
-    break;
-  case rook:
-    if (kPrintDebug)
-      printf("\nCanRook\n");
-    return(CanRookMove(theBoard, r, c));
-    break;
-  case bishop:
-    if (kPrintDebug)
-      printf("\nCanBishop\n");
-    return(CanBishopMove(theBoard, r, c));
-    break;
-  case knight:
-    if (kPrintDebug)
-      printf("\nCanKnight\n");
-    return(CanKnightMove(theBoard, r, c));
-    break;
-  default:   
-    break;
-  };
+   return FALSE;
 }
 
 /**************************************************/
@@ -2409,6 +1984,8 @@ BOOLEAN CanBishopMove(BlankBurntOX theBlankBurntOX[], int r, int c){
 ************************************************************************/
 void PieceMessage(POSITION thePos, BOOLEAN DisplayPieceType){
 
+  Piecetype thePiece;
+
   if(WhoseTurn(thePos) == x)
     {
       if(DisplayPieceType)
@@ -2450,6 +2027,8 @@ void PieceMessage(POSITION thePos, BOOLEAN DisplayPieceType){
  * this takes either case of K, Q, R, B, or N
  * and changes thePiece to match the choice.*/
 void ChangeThePiece(char input){
+  Piecetype thePiece;
+
   switch(input) {
   case 'k': case 'K':
     thePiece = king;
@@ -2487,6 +2066,9 @@ void ChangeThePiece(char input){
 ************************************************************************/
 
 void ChangePiece(POSITION thePos){ 
+
+  Piecetype thePiece, theBurn;
+
   if(WhoseTurn(thePos) == x)
     {
       printf("X ");
@@ -2539,7 +2121,7 @@ void ChangePiece(POSITION thePos){
 
 void ChangePieces(){
   ChangePiece(gInitialPosition);
-  ChangePiece(ChangeTurn(gInitialPosition, gInitialPosition));
+  ChangePiece(ChangeTurn(gInitialPosition));
 }
 
 void ChangeBurn()
@@ -2562,7 +2144,7 @@ void ChangeBurn()
       break;
     }
     printf("This last option is not for the faint of heart.\n");
-    printf("\nWould you like to burn your previous spots\nAS WELL AS a spot of your choosing? (Y,N)");
+    printf("\nWould you like to burn your previous spots\nAS WELL AS a spot of your choosing? (Y,N) ");
     doubleYes = GetMyChar();
 
     if(doubleYes == 'y' || doubleYes == 'Y')
@@ -2576,19 +2158,6 @@ void ChangeBurn()
       }
 }
 
-/*Isaac 11/29: untested functions to change the board dimensions
- * this stuff should work, but I don't know how it's going to screw
- * with the rest of the code */
-void ChangeBoard(){
-  printf("How many rows would you like?");
-  COLUMNSIZE = GetMyChar();
-  printf("How many columns would you like?");
-  ROWSIZE = GetMyChar();
-  gInitialPosition = GenerateNewInitial();
-  printf("Your new board is\n");
-  PrintPosition(gInitialPosition);
-}
-  
 /* for changing the Board size--> this creates and returns
  * a new initial position that is correct for the new size*/
 int GenerateNewInitial(){
@@ -2602,21 +2171,21 @@ int GenerateNewInitial(){
 	}
     }
 
-  NewInitial[i*ROWSIZE + j] = x;
-  NewInitial[i*ROWSIZE + j] = o;
-  return (BlankBurntOXToPosition(NewInitial));
+  NewInitial[BOARDSIZE-1] = x;
+  NewInitial[0] = o;
+  return (BlankBurntOXToPosition(NewInitial, x));
 }
 
 /* Change the Order of Burning and Moving */
 void ChangeOrder(){
   gBurnMove = !gBurnMove;
-  if(gBurnMove && (burnType == 3))
-    printf("New Order: Burn based on current position, then move");
-  else if(!gBurnMove && burnType == 3)
-    printf("New Order: Move, then burn based on the new position");
+  if(gBurnMove && (burnType == 2))
+    printf("Order: Burn based on current position, then move");
+  else if(!gBurnMove && burnType == 2)
+    printf("Order: Move, then burn based on the new position");
   else if(burnType == 0)
     printf("Order: Move, then burn the old position");
-  else if(burnType == 2)
+  else if(burnType == 1)
     printf("Order: Move, then burn anywhere you can.");
 }
 
@@ -2643,11 +2212,17 @@ void PrintExample(){
 	 
 void ChangeBoardSize(){
   int i, j;
-  printf("You may not play with more than 20 spaces\non the board!");
-  printf("# of Rows?");
-  i = GetMyChar() - '0';
-  printf("# of Columns?");
-  j = GetMyChar() - '0';
+
+  do {
+    printf("You may not play with more than 20 spaces\non the board!\n");
+    printf("# of Rows? ");
+    i = GetMyChar() - '0';
+    printf("# of Columns? ");
+    j = GetMyChar() - '0';
+    if (i*j<1 || i*j>20)
+      printf("Invalid board size!\n");
+    printf("\n");
+  } while (i*j<1 || i*j>20);
 
   COLUMNSIZE = j;
   ROWSIZE = i;
@@ -2663,4 +2238,6 @@ void ChangeBoardSize(){
     printf("ROWSIZE %d, COLUMNSIZE %d BITSIZE %d",
 	   ROWSIZE, COLUMNSIZE, BITSIZE);
   printf("Your New Board has %d spaces", BOARDSIZE);
+  
+  InitializeGame();
 }
