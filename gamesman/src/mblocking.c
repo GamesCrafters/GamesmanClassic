@@ -1039,7 +1039,7 @@ void printBoard(nodes board, BOOLEAN reset) {
     initialized = TRUE;
   }
 
-  printf("\nBOARD\t\t\t\t\t\tLEGEND\n");
+  printf("\nBOARD\t\t\t\t\tLEGEND\n");
 
   for(i = 0; i < num_nodes; i++) {
     if(board[i].game_piece)
@@ -1051,7 +1051,7 @@ void printBoard(nodes board, BOOLEAN reset) {
 
   i = 0;
   while((image[i][0] != EOF) && (i < 20)) {
-    printf("%s%s\n", image[i], board_numbers[i]);
+    printf("%s\t%s\n", image[i], board_numbers[i]);
     i++;
   }
 
