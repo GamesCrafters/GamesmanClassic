@@ -300,40 +300,32 @@ proc GS_Initialize { c } {
 
 
 
+
     ##### pieces
 
-    ## left circle blue piece
-    drawPiece $c 1 "blue"
 
-    ## upper left circle blue piece
-    drawPiece $c 2 "blue"
-
-    ## top circle blue piece
-    drawPiece $c 3 "blue"
-
-    ## upper right circle blue piece
-    drawPiece $c 4 "blue"
-
-
-
-    ## lower left circle red piece
-    drawPiece $c 5 "red"
-
-    ## bottom circle red piece
-    drawPiece $c 6 "red"
-
-    ## lower right circle red piece
-    drawPiece $c 7 "red"
-
-    ## right circle red piece
-    drawPiece $c 8 "red"
-
+    for {set x 0} {$x < 9} {set x [expr $x + 1]} {
+	drawPiece $c $x "blue" b$x
+	drawPiece $c $x "red" r$x
+    }
 
 
     $c raise bgCircle
     $c raise line
     $c raise bgMiniCircle
-    $c raise piece
+
+
+    # draws the 4 initial startup blue pieces
+    $c raise b1
+    $c raise b2
+    $c raise b3
+    $c raise b4
+
+    # draws the 4 initial startup red pieces
+    $c raise r5
+    $c raise r6
+    $c raise r7
+    $c raise r8
 
 
 
@@ -343,12 +335,6 @@ proc GS_Initialize { c } {
 
 } 
 
-
-## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
-proc drawOval { c x y size fill outline tag } {
-    set radius [expr $size / 2]
-    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
-}
 
 
 
@@ -375,11 +361,6 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    
-
-    $c raise bgCircle
-    $c raise line
-    $c raise bgMiniCircle
 
     ##### board locations
 
@@ -390,6 +371,8 @@ proc GS_DrawPosition { c position } {
     #  / | \
     # 8  |  6
     #    7
+
+    # I think i was doin the wrong thing here so I commented all this out
 
     # hash on 13 digit binary
     # right most 9 digits specify board location and color
@@ -415,21 +398,36 @@ proc GS_DrawPosition { c position } {
     # so the blank space is 3 and should overwrite the red piece from above
 
 
-    set mask 1
+#     set mask 1
 
-    for {set x 0} {$x < 9} {set x [expr $x + 1]} {
+#     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
-	if {[expr $mask & $position] == 0} {
-	    drawPiece $c $x "blue"
-	} else {
-	    drawPiece $c $x "red"
-	}
-	set mask [expr $mask * 2]
-    }
+# 	if {[expr $mask & $position] == 0} {
+# 	    drawPiece $c $x "blue"
+# 	} else {
+# 	    drawPiece $c $x "red"
+# 	}
+# 	set mask [expr $mask * 2]
+#     }
 
-    set blankSpot [expr $position >> 9]
-    set blankSpot [expr $blankSpot & 15]
-    drawPiece $c $blankSpot "white"
+#     set blankSpot [expr $position >> 9]
+#     set blankSpot [expr $blankSpot & 15]
+#     drawPiece $c $blankSpot "white"
+
+
+    global gWhoseTurn
+
+    $c raise bgCircle
+    $c raise line
+    $c raise bgMiniCircle
+
+    
+    
+    if {$gWhoseTurn == "blue"} {
+	$c raise b$position
+    } else {
+	$c raise r$position
+    }
 
 }
 
@@ -445,31 +443,39 @@ proc GS_DrawPosition { c position } {
     #    7
 
 ## drawPiece draws an piece on the canvas at the board location
-proc drawPiece { c boardLocation color } {
+proc drawPiece { c boardLocation color tag} {
     global xCenter yCenter
     global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
 
     if {$boardLocation == 0} {
-	drawOval $c $xCenter $yCenter $pieceCircleDiam $color $color "piece"
+	drawOval $c $xCenter $yCenter $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 1} {
-	drawOval $c [expr $xCenter - $largeCircleRadius] $yCenter $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter - $largeCircleRadius] $yCenter $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 2} {
-	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 3} {
-	drawOval $c $xCenter [expr $yCenter - $largeCircleRadius] $pieceCircleDiam $color $color "piece"
+	drawOval $c $xCenter [expr $yCenter - $largeCircleRadius] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 4} {
-	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 5} {
-	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 6} {
-	drawOval $c $xCenter [expr $yCenter + $largeCircleRadius] $pieceCircleDiam $color $color "piece"
+	drawOval $c $xCenter [expr $yCenter + $largeCircleRadius] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 7} {
-	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color $tag
     } elseif {$boardLocation == 8} {
-	drawOval $c [expr $xCenter + $largeCircleRadius] $yCenter $pieceCircleDiam $color $color "piece"
+	drawOval $c [expr $xCenter + $largeCircleRadius] $yCenter $pieceCircleDiam $color $color $tag
     } else {
 	#ERROR
     }
+}
+
+
+
+## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
+proc drawOval { c x y size fill outline tag } {
+    set radius [expr $size / 2]
+    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
 }
 
 
