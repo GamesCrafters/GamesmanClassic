@@ -44,6 +44,7 @@
 **                     added print_board and boards_equal to print and compare board contents (for internal use)
 **                     coded PrintPosition and auxilliary functions
 **                     buggy implementation of ValidTextInput
+**                     made PrintPosition work correctly with >2 dimension boards, try setting GAMEDIMENSION to 3 or 4
 **
 **************************************************************************/
 
@@ -218,8 +219,6 @@ void InitializeGame ()
 	
 	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
 	QTBPtr error_board;
-	
-	printf("size of void=%d, char=%d, short=%d", sizeof(void), sizeof(char), sizeof(short));
 	
 	/* Initialize board to empty */
 	memset( board, 0, sizeof( QTBOARD ) );
@@ -414,7 +413,7 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 		
 	}
 	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION*GAMEDIMENSION - 2; i++ ) {
+	for ( i = 0; i < GAMEDIMENSION; i++ ) {
 		
 		printf( "^" );
 		
@@ -445,7 +444,7 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 		
 	}
 	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION*GAMEDIMENSION - 2; i++ ) {
+	for ( i = 0; i < GAMEDIMENSION; i++ ) {
 		
 		printf( "_" );
 		
@@ -596,18 +595,17 @@ BOOLEAN ValidTextInput( STRING input )
 	
 	BOOLEAN valid = FALSE;
 	
-	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[1] == ' ' ) {
+	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == ' ' ) {
 		
 		int i;
 		int valid_traits[GAMEDIMENSION];
 		
-		memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );
-		
+		memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );		
 		
 		// Checking if position indicated is valid
 		for( i = 0; i < BOARDSIZE + 1; i++ ) {
 			
-			if( input[0] == hex_ascii[i] ) {
+			if( input[GAMEDIMENSION+1] == hex_ascii[i] ) {
 				
 				valid = TRUE;
 				break;
@@ -622,7 +620,7 @@ BOOLEAN ValidTextInput( STRING input )
 			
 			for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
 				for( i = 0; i < GAMEDIMENSION; i++ ) {
-					if ( input[trait + 2] == states[i][0] || input[trait + 2] == states[i][1] ) {
+					if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
 						BOOLEAN repeat = FALSE;
 						int j;
 						
