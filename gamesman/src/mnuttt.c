@@ -29,6 +29,7 @@
 **              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
 **                      [*] Game should be playable by now. Added rules to Makefile.
 **                          GenerateMoves () is next.
+**              2/8/05: [+] GenerateMove () complete, borrowing Guys's code.
 **
 **************************************************************************/
 
@@ -48,6 +49,7 @@
 /* TODO: find out how to keep track of current_player.
 **       implement the rest of the functions.
 **       some more stuff to put here....
+**       FIX TERMINATING \0 for boards!!!!!!!!!!!!!!!!!!!!!!
 */
 
 
@@ -227,11 +229,35 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
+  MOVELIST *moves = NULL;
     
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    
-    return moves;
+ 
+  int i, j, k, di, dj;
+  char board[BOARD_ROWS*BOARD_COLS];
+  int player = whoseMove(position);
+  board = generic_unhash (position, board);
+
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  for (i = 0; i < BOARD_ROWS; i++) {
+    for (j = 0; j < BOARD_COLS; j++) {
+      if (((player==1) && (board[Position(i,j)] == PLAYER1_PIECE)) ||
+	  ((player==2) && (board[Position(i,j)] == PLAYER2_PIECE)))
+      {
+	for (k = 0; k < 4; k++) {
+	  // for every possible movement as specified in dir_increments
+	  di = i + dir_increments[k][0];
+	  dj = j + dir_increments[k][1];
+	  if ((di >= 0) && (dj >= 0) &&	(di < BOARD_ROWS) && \
+	      (dj < BOARD_COLS) && \
+	      (board[Position(di,dj)] == EMPTY_PIECE)) {
+	    moves = CreateMovelistNode(EncodeMove(i,j,di,dj),moves);
+	  }
+	}
+      }
+    }
+  }    
+  return moves;
 }
 
 
@@ -338,6 +364,7 @@ VALUE Primitive (POSITION position) /*pretty stupid but works*/
 **
 ************************************************************************/
 
+/* FIXME: hardcoded row width*/
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
     char board[BOARD_SIZE]; 
