@@ -64,6 +64,7 @@ BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
+void*    gGameSpecificTclInit = NULL;
 
 /* 
  * Help strings that are pretty self-explanatory
