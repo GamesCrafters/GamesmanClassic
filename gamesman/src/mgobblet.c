@@ -560,9 +560,9 @@ VALUE Primitive ( POSITION h ) //Need to add the 3 in a row is a loss.
 	else if (piece == PIECE_O)
 		o_wins++;
 	
-	piece = getTopPieceColor( pos . board[ POS_NUMBER( BOARD_SIZE, 0 )] );
+	piece = getTopPieceColor( pos . board[ POS_NUMBER( 0, BOARD_SIZE - 1 )] );
 	for (i = 1; i < BOARD_SIZE; i++) {
-		if (getTopPieceColor( pos . board[ POS_NUMBER( BOARD_SIZE - i, i )] ) != piece) {
+		if (getTopPieceColor( pos . board[ POS_NUMBER( i, (BOARD_SIZE - i) - 1 )] ) != piece) {
 			piece = PIECE_NONE;
 			break;
 		}
@@ -636,7 +636,7 @@ VALUE Primitive ( POSITION h ) //Need to add the 3 in a row is a loss.
 void gobbletPrintSpace(SLOT mySpace)
 {
   int i;
-  for(i = 0; i < PIECE_SIZES; i++)
+  for(i = PIECE_SIZES - 1; i >= 0; i--)
     {
       if(PIECE_VALUE(PIECE_X,i) & mySpace)
 	{
@@ -697,15 +697,19 @@ void PrintPosition(position, playerName, usersTurn)
     }
     printf("\n");
   }
-  printf("       X Stock: ");
-  for(pSizes=0; pSizes < PIECE_SIZES*2; pSizes+=2)
-  {
-    printf("%d(%d): %d ",pSizes+1,pSizes+TABLE_SLOTS,myPos.stash[ pSizes]);
+  printf("\n       X Stock: ");
+  for (pSizes = 0; pSizes < PIECE_SIZES; pSizes++) {
+    if (myPos.turn == TURN_X)
+      printf("size %d (%d): %d   ", pSizes + 1, pSizes + TABLE_SLOTS + 1, myPos.stash[ 1 + (pSizes * 2)]);
+    else
+      printf("size %d     : %d   ", pSizes + 1, myPos.stash[ 1 + (pSizes * 2)]);
   }
-  printf("\n       Y Stock: ");
- for(pSizes=1; pSizes < PIECE_SIZES*2; pSizes+=2)
-  {
-    printf("%d: %d ",pSizes,myPos.stash[ pSizes]);
+  printf("\n       O Stock: ");
+  for (pSizes = 0; pSizes < PIECE_SIZES; pSizes++) {
+    if (myPos.turn == TURN_O)
+      printf("size %d (%d): %d   ", pSizes + 1, pSizes + TABLE_SLOTS + 1, myPos.stash[ pSizes * 2]);
+    else
+      printf("size %d     : %d   ", pSizes + 1, myPos.stash[ pSizes * 2]);
   }
   printf("\nGame Prediction: %s \n\n",GetPrediction(position,playerName,usersTurn));
 }
@@ -749,8 +753,7 @@ MOVELIST *GenerateMoves(position)
       if(myPosition.stash[i] > 0) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if(((topPieceTo > 0) && (topPieceTo < (i / 2))) || 
-	     (topPieceTo == -1)) {
+          if(topPieceTo < (i / 2)) {
             head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
           }
         }
@@ -763,8 +766,7 @@ MOVELIST *GenerateMoves(position)
       if((pieceColorFrom == currentColor) && (topPieceFrom > 0)) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if(((topPieceTo > 0) && (topPieceTo < topPieceFrom)) ||
-	     (topPieceTo == -1)) {
+          if(topPieceTo < topPieceFrom) {
             head = CreateMovelistNode(CONS_MOVE(i, j), head);
           }
         }
