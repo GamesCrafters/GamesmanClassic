@@ -575,12 +575,13 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   printf("\n");
   printf("         LEGEND:");
   for (currCol = 0; currCol < width; currCol++) {
-    printf("   ");
+    //printf("   ");
+    printf("  ");
   }
-  printf("       TOTAL:\n");
+  printf("      TOTAL:\n");
   for (currRow = height; currRow>0; currRow--) {
     //printf("    %d ( ", currRow);
-    printf("     ( ");
+    printf("      ( ");
     for (currCol = 0; currCol < width; currCol++) {
       //printf("%c%d ", alphabet[currCol], currRow);
       printf("%d ", moveCounter);
@@ -599,7 +600,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     printf("%c  ", alphabet[currCol]);
   }
   */
-  printf("\n\n");
+  printf("%s's turn to move \n\n", playerName);
 }
 
 /*
