@@ -3016,29 +3016,21 @@ int writeDatabase()
 	      return 0;
 	}
 	
-	for(i=0;i<gNumberOfPositions;i++){ //convert to network byteorder for platform independence.
+	for(i=0;i<gNumberOfPositions && goodCompression;i++){ //convert to network byteorder for platform independence.
 		gDatabase[i] = htonl(gDatabase[i]);
-	}
-
-	for(i = 0; i < sizeof(VALUE) && goodCompression; i++){
-		goodCompression = gzwrite(filep, gDatabase+((i* sTot)/sizeof(VALUE)), gNumberOfPositions);
+		goodCompression = gzwrite(filep, gDatabase+i,sizeof(VALUE));
 		tot += goodCompression;
+		gDatabase[i] = ntohl(gDatabase[i]);
 		//gzflush(filep,Z_FULL_FLUSH);
 	}
 	goodClose = gzclose(filep);
-
-	for(i=0;i<gNumberOfPositions;i++){ //convert back to host
-		gDatabase[i] = ntohl(gDatabase[i]);
-	}
-
 
 	if(goodCompression && (goodClose == 0))
 	{
 		printf("File Successfully compressed\n");
 		return 1;
 	}else{
-	printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\n\
-			   Bytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
+	printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
 		remove(outfilename);
 		return 0;
 	}
@@ -3057,20 +3049,20 @@ int loadDatabase()
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
 	if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
 	
-	for(i = 0; i < sizeof(VALUE) && goodDecompression; i++){
-		goodDecompression = gzread(filep, gDatabase+((i* sTot)/sizeof(VALUE)), gNumberOfPositions);
+	for(i = 0; i < gNumberOfPositions && goodDecompression; i++){
+		goodDecompression = gzread(filep, gDatabase+i, sizeof(VALUE));
+		gDatabase[i] = ntohl(gDatabase[i]);
 	}
 	goodClose = gzclose(filep);	
 
 
 	if(goodDecompression && (goodClose == 0))
 	{
-		for(i=0;i<gNumberOfPositions;i++){
-			gDatabase[i] = ntohl(gDatabase[i]);
-		}
 		printf("File Successfully Decompressed\n");
 		return 1;
 	}else{
+		for(i = 0 ; i < gNumberOfPositions ; i++)
+			gDatabase[i] = undecided ;
 		printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\n",goodDecompression,goodClose);
 		return 0;
 	}
