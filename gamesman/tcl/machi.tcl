@@ -1078,11 +1078,11 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     set undoText $c 
     if { [expr $theMoveToUndo < 10] } {
 	$c lower $whoseTurn-$theMoveToUndo base
-    } elseif { [expr $theMoveToUndo > 9 && $theMoveToUndo < 100] } {
+    } elseif { [expr $theMoveToUndo > 11 && $theMoveToUndo < 100] } {
         set $theMoveToUndo [expr $theMoveToUndo - 11]
 	#puts {do a rearranger move}
-	set to [expr $theMoveToUndo / 10]
-	set from   [expr $theMoveToUndo % 10]
+	set to [expr $theMoveToUndo / 10 - 1]
+	set from   [expr $theMoveToUndo % 10 - 1]
 	# animate the old piece to the new position, after this is called
 	# the pieces will be back in the correct spots, with the appropriatte
 	# piece raised (That is, pieces will not be moved permanently).

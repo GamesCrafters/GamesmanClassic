@@ -125,7 +125,6 @@ void PlayAgainstHuman()
 		switch(c) {
 		case 'u': case 'U':
 		    undo = HandleUndoRequest(&currentPosition,undo,&error);
-		    PrintPosition(currentPosition,gPlayerName[kHumansTurn],kHumansTurn);
 		    playing = TRUE;
 		    menu = FALSE;
 		    break;
@@ -241,7 +240,6 @@ void PlayAgainstComputer()
 		switch(c) {
 		case 'u': case 'U':
 		    undo = HandleUndoRequest(&thePosition,undo,&error);
-		    PrintPosition(thePosition,gPlayerName[kHumansTurn],kHumansTurn);
 		    playing = TRUE;
 		    menu = FALSE;
 		    break;
