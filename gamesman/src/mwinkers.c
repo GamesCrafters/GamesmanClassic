@@ -767,13 +767,16 @@ void PrintPosition (position, playerName, usersTurn)
     for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
       printf("%c ", gBoard[m++]);
 
+    if (i == BOARDHEIGHT)
+      printf("%s", GetPrediction(position,playerName,usersTurn));
+    
     printf("\n");
   }
   
   int half = (BOARDSIZE+1)/2;
  
   printf("\n%s pieces left (O: %d, %c: %d)", playerName, half - numOpWinks - (numCheckers/2), wink, half - numWinks);
-  printf("\n\n%s\n\n", GetPrediction(position,playerName,usersTurn));
+  printf("\n\n");
 
 }
 
@@ -1078,8 +1081,6 @@ int ConvertToNumber(input)
 
   if (strlen(input) == 1) {
     char a = input[0];
-    if (a == 'p' || a == 'P')
-      return 0;
 
     x = a - '0';
   } else if (strlen(input) == 2) {
