@@ -17,16 +17,18 @@
 proc GS_InitGameSpecific {} {
     
     ### We added this
-    global witdh height boardWidth boardHeight
-    set boardWidth 300 
-    set boardHeight 300
+    global width height boardWidth boardHeight
+    set boardWidth 500 
+    set boardHeight 500
     set width 4
     set height 4
 
-    global cellPadding slotSize
+    global slotSize cellPadding megaCellPadding arrowWidth
     set slotSize(w) [expr $boardWidth / $width]
     set slotSize(h) [expr $boardHeight / $height]
     set cellPadding 10
+    set megaCellPadding [expr 3 * $cellPadding]
+    set arrowWidth [expr $slotSize(w) / 8]
 
     global xColor oColor
     set xColor blue
@@ -69,6 +71,20 @@ proc GS_InitGameSpecific {} {
     set kCAuthors "Gamescrafters Team!"
     set kTclAuthors "(Fill this in)"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+}
+
+proc UnhashPosition {postition} {
+
+
+}
+
+
+proc orderArrows {c i j} {
+    global width height 
+    set maxtag [expr ($width-1)*($width-1)+($height-1)*($height-1)]
+    for {set p $maxtag} {$p >= 1} {set p [expr $p - 1]} {
+	$c raise "i $i j $j p $p"
+    }
 }
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -195,22 +211,27 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
 
+    #global constants
     global witdh height boardWidth boardHeight
-    set boardWidth 300 
-    set boardHeight 300
+    set boardWidth 500 
+    set boardHeight 500
     set width 4
     set height 4
 
-    global cellPadding slotSize
+    global slotSize cellPadding megaCellPadding arrowWidth
     set slotSize(w) [expr $boardWidth / $width]
     set slotSize(h) [expr $boardHeight / $height]
     set cellPadding 10
+    set megaCellPadding [expr 3 * $cellPadding]
+    set arrowWidth [expr $slotSize(w) / 8]
 
     global xColor oColor
     set xColor blue
     set oColor red
   
     global xPieces oPeices
+    global placeMoves
+    global slideStartLocs arrows
     global background
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
@@ -233,7 +254,53 @@ proc GS_Initialize { c } {
 				    -fill $oColor -tags [list oPieces]]
 	}
     }
-    
+
+    #draw small circles for place moves
+    for {set i 0} {$i < $width} {incr i} {
+	for {set j 0} {$j < $height} {incr j} {
+	    set placeMoves($i,$j) [$c create oval \
+				       [expr $i * $slotSize(w) + $megaCellPadding] \
+				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
+				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
+				       [expr $j * $slotSize(h) + $megaCellPadding] \
+				       -fill pink]
+	}
+    } 
+   
+    #draw small circles for slide start locations and 
+    #arrows for slide direction on slide moves
+    for {set i 0} {$i < $width} {incr i} {
+	for {set j 0} {$j < $height} {incr j} {
+	    set slideStartLocs($i,$j) [$c create oval \
+				       [expr $i * $slotSize(w) + $megaCellPadding] \
+				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
+				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
+				       [expr $j * $slotSize(h) + $megaCellPadding] \
+				       -fill pink]
+	}
+    } 
+    for {set i 0} {$i < $width} {incr i} {
+	for {set j 0} {$j < $height} {incr j} {
+	    for {set k 0} {$k < $width} {incr k} {
+		for {set l 0} {$l < $height} {incr l} {
+		    if {([expr $k - $i] == 0 && [expr $l - $j] != 0) || \
+			    ([expr $k - $i] != 0 && [expr $l - $j] == 0) || \
+			    ([expr abs ([expr $k - $i])] == [expr abs ([expr $l - $j])] && [expr $k - $i] != 0)} {
+			set arrows($i,$j,$k,$l) [$c create line \
+						     [expr $i * $slotSize(w) + $slotSize(w) / 2] \
+						     [expr $j * $slotSize(h) + $slotSize(h) / 2] \
+						     [expr $k * $slotSize(w) + $slotSize(w) / 2] \
+						     [expr $l * $slotSize(h) + $slotSize(h) / 2] \
+						     -width $arrowWidth -arrow last \
+						     -arrowshape [list [expr 2 * $arrowWidth] [expr 2 * $arrowWidth] $arrowWidth] \
+						     -fill green -tags [list "i $i j $j p [expr ($i-$k)*($i-$k) + ($j-$l)*($j-$l)]"]]
+		    }
+		}
+	    }
+	    orderArrows $c $i $j
+	}
+    }
+
     #draw the background board and lines
     set background [$c create rectangle 0 0 $boardWidth $boardHeight -fill gray]
     for {set i 1} {$i < $width} {incr i} {
@@ -249,6 +316,7 @@ proc GS_Initialize { c } {
 	    -tags [list lines]
     }
     
+    #raise the backround so that the pieces and moves aren't visible
     $c raise $background
     $c raise lines
 }
@@ -272,7 +340,7 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
     
     ### TODO: Fill this in
-
+    
 }
 
 
@@ -385,3 +453,4 @@ proc GS_UndoGameOver { c position } {
 	### TODO if needed
 
 }
+
