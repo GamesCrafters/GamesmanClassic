@@ -133,6 +133,7 @@ STRING   kHelpExample =
 //Peter: we should add a 'g' in front of global variables for good coding style
 int width=DEFAULTROWS, height=DEFAULTROWS; //changed
 int BOARDSIZE = DEFAULTBOARDSIZE;
+int BOARDARRAYSIZE;
 char P1='x';
 char P2='O';
 char blank='-'; //TODO changed Peter: I think blank should be '-'
@@ -152,6 +153,7 @@ typedef enum blank_o_x {Blank, x, o} BlankOX;
 inline char whoseBoard(Board b);
 inline char getpce(Board b, int r);
 inline char getPiece(Board b, int x, int y);
+inline char otherPlayer(char c);
 
 inline int fromWhere(SMove m); // applies only if !placingBoard(b)
 inline int toWhere(SMove m);
@@ -163,6 +165,7 @@ inline int whoToInt(char c); // converts 'x' or 'o' to 1 or 2 for generic_hash.
 inline BOOLEAN placingBoard(Board b);
 BOOLEAN fullBoard(Board b);
 
+inline void setWhoseBoard(Board b, char t);
 inline void setpce(Board b, int r, char c);
 inline void setMove(SMove m, char who, int rfrom, int rto);
 inline void setPlacingBoard(Board b, BOOLEAN t);
@@ -217,6 +220,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame () {
   BOARDSIZE = width * height; //global variables
+  BOARDARRAYSIZE = width*height + 2;
   int boardspec[] = {P1, 0, floor(BOARDSIZE/2), 
 		     P2, 0, floor(BOARDSIZE/2),
 		     blank, 1, BOARDSIZE,
@@ -384,14 +388,14 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 //this will do the actual moves
 POSITION DoMove (POSITION position, MOVE m) {
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDSIZE];
+  char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   generic_unhash(position, b);
   char c = whoseBoard(b), d=otherPlayer(c);
   if (placingBoard(b)) {
     setpce(b, toWhere(&m), c);
     setpce(b, toWhere2(&m), c);
-    setWhoseMove(b, d);
+    setWhoseBoard(b, d);
     if (fullBoard(b)) setPlacingBoard(b,FALSE);
   }
   else {
@@ -414,7 +418,7 @@ POSITION DoMove (POSITION position, MOVE m) {
         getpce(b, r-2)==c &&
         getpce(b, r-1)==d)
       setpce(b, r-1, '-');
-    setWhoseMove(b, d);
+    setWhoseBoard(b, d);
   }
   return generic_hash(b,whoToInt(whoseBoard(b)));
 }
@@ -447,7 +451,7 @@ char* getBoard(POSITION pos) {
 POSITION GetInitialPosition ()
 {
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDSIZE];
+  char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -502,7 +506,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 VALUE Primitive (POSITION position) {
   int r, c;
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDSIZE];
+  char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   generic_unhash(position, b);
   c=whoseBoard(b);
@@ -608,7 +612,7 @@ MOVELIST *GenerateMoves (POSITION position) {
       mover=P2;
     else
       BadElse("shouldn't be here - generate moves\n");
-  for (i=0;i<BOARDSIZE;i++){
+  for (i=0;i<width*height;i++){
     if(gBoard[i]==mover){
       if (legalMove(i+1) && gBoard[i+1]== blank){
 	boardcopy(gBoard,newboard);
@@ -643,7 +647,7 @@ return head;
 
 MOVELIST *GenerateMoves (POSITION position) {
   // TODO: say this in one line instead of 2:
-  char tempname[BOARDSIZE];
+  char tempname[BOARDARRAYSIZE];
   Board b = tempname;
   generic_unhash(position, b);
   if (placingBoard(b))
@@ -813,7 +817,7 @@ void PrintMove (MOVE move) {
   numberInBase(col1, fromWhere(&move)%width, 10, digits);
   numberInBase(row2, toWhere(&move)/width, 26, alphabet);
   numberInBase(col2, toWhere(&move)%width, 10, alphabet);
-  printf("Move with coordinates %s%s and %s%s."row1,col1,row2,col2);
+  printf("Move with coordinates %s%s and %s%s.",row1,col1,row2,col2);
 }
 
 
@@ -896,6 +900,7 @@ void setOption (int option) {
 inline char whoseBoard(Board b) {return b[width*height+1];}
 inline char getpce(Board b, int r) {return b[r];}
 inline char getPiece(Board b, int x, int y) {return getpce(b,x*width+y);}
+inline char otherPlayer(char c) {return c=='x'?'o':'x';}
 
 inline int fromWhere(SMove m) { // applies only if !placingBoard(b)
   return *m>>sizeof(MOVE)/2 & 1<<sizeof(MOVE)/2-1;
@@ -916,7 +921,7 @@ inline int whoToInt(char c) {
 
 inline BOOLEAN placingBoard(Board b) {return b[width*height];}
 
-inline void setWhoseBoard(Board b, char t) {b[width*height+1]=t}
+inline void setWhoseBoard(Board b, char t) {b[width*height+1]=t;}
 inline void setpce(Board b, int r, char c) {b[r]=c;}
 inline void setMove(SMove m, char who, int rfrom, int rto) {
 /* TODO: figure out how we're supposed to encode invariants.
