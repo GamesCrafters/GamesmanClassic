@@ -966,9 +966,9 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 
     set board [unhash $position]
     if { $nameOfWinningPiece == "x" } {
-	set winner 1
-    } elseif { $nameOfWinningPiece == "o" } {
 	set winner 2
+    } elseif { $nameOfWinningPiece == "o" } {
+	set winner 1
     } else {
 	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != x or o"
     }
