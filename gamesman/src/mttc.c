@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Tic-Tac-Chec
 **
-** AUTHOR:      Reman Child, Johnathon Tsai (is he still working on this????)
+** AUTHOR:      Reman Child, Jonathan Tsai
 **              University of California at Berkeley
 **              Copyright (C) 2004. All rights reserved.
 **
@@ -14,6 +14,10 @@
 **              basically includes all functions below except for 
 **              ttc_hash and ttc_unhash, which still needs to be written
 **                                                                -- rc
+** 2004.3.31    Added row nums and letters to print position. Shall we
+**              consider changing the Queen to Bishop? That's what the
+**              original game has. I'll add some variants later.
+**                                                                -- jt
 **
 **************************************************************************/
 
@@ -353,12 +357,17 @@ void PrintPosition (position, playerName, usersTurn)
   BOARD board, get_board(POSITION);
   board = get_board(position);
   int i;
+  /* print the rows */
   for(i = 0; i < BOARD_LENGTH; i++) {
     if(i % BOARD_WIDTH == 0)
-      printf("\n");
+      printf("\n%c ", i + 'a');
     printf("%c | ", piece_names[board[i]]);
   }
-  printf("\n");
+  printf("\n  ");
+  /* print the row letter */
+  for(i = 0; i < BOARD_WIDTH; i++) {
+      printf("%c ", i + 'a');
+  }
   printf("\n\n {r,p,q,k} => white pieces  {R,P,Q,K} => black pieces \n\n");
   return;
 }
