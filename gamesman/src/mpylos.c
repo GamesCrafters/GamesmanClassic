@@ -7,16 +7,8 @@
 #include "gamesman.h"
 #include "hash.h"
 
-#ifndef WORD_BIT
-# if INT_MAX > 32767
-#  define WORD_BIT 32
-# else
-#  if INT_MAX > 2147483647
-#   define WORD_BIT 64
-#  endif
-# endif
-#endif
-
+#define ALLOW_SQUARING    TRUE
+#define ALLOW_STACKING    TRUE
 #define BLANK_PIECE_LABEL '-'
 #define BOARD_DIMENSION   3
 #define BOARD_SPACE       " )          : "
@@ -26,9 +18,12 @@
 #define LEGEND_TITLE      "LEGEND:  ( "
 #define LIGHT_PIECE_LABEL 'X'
 #define MOVE_PROMPT       "%s's move : "
-#define MOVES_IN_GROUP    WORD_BIT / CHAR_BIT
+#define MOVES_IN_GROUP    sizeof(int)
+#define NUMBER_OF_OPTIONS CalculatePower(2, 3)
 #define PIECES_LEFT_TITLE "PIECES LEFT: "
+#define WORD_BIT          CHAR_BIT * sizeof(int)
 
+/********************************************* Global variables for Gamesman */
 POSITION gInitialPosition       = 0;
 POSITION gMinimalPosition       = 0;
 POSITION gNumberOfPositions     = 0;
@@ -43,111 +38,139 @@ STRING   kHelpExample           = "\
          (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : - - -\n\
          (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - - - (Player will Lose in 14)\n\n\
+         ( 11  12  13 )          : - - - (Player should Win in 17)\n\n\
 PIECES LEFT: XXXXXXX (7)\n\n\
-                   Player's move : { 1 }\n\n\
-         (  1   2   3 )          : X - -\n\
+                   Player's move : { 7 }\n\n\
+         (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : - - -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : - X -\n\
          (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - - - (Computer will Win in 13)\n\n\
+         ( 11  12  13 )          : - - - (Computer should Lose in 16)\n\n\
 PIECES LEFT: OOOOOOO (7)\n\n\
                  Computer's move : 8\n\n\
-         (  1   2   3 )          : X - -\n\
+         (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : - - O\n\
+LEGEND:  (  6   7   8 )  BOARD:  : - X O\n\
          (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - - - (Player will Lose in 12)\n\n\
+         ( 11  12  13 )          : - - - (Player should Win in 15)\n\n\
 PIECES LEFT: XXXXXX (6)\n\n\
-                   Player's move : { 2 }\n\n\
-         (  1   2   3 )          : X X -\n\
-         (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : - - O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - - - (Computer will Win in 11)\n\n\
-PIECES LEFT: OOOOOO (6)\n\n\
-                 Computer's move : 12\n\n\
-         (  1   2   3 )          : X X -\n\
-         (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : - - O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Player should Win in 11)\n\n\
-PIECES LEFT: XXXXX (5)\n\n\
                    Player's move : { 6 }\n\n\
-         (  1   2   3 )          : X X -\n\
-         (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Computer will Win in 9)\n\n\
-PIECES LEFT: OOOOO (5)\n\n\
-                 Computer's move : 3\n\n\
-         (  1   2   3 )          : X X O\n\
-         (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Player should Win in 9)\n\n\
-PIECES LEFT: XXXX (4)\n\n\
-                   Player's move : { 7 1 }\n\n\
-         (  1   2   3 )          : - X O\n\
+         (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
          (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Computer should Lose in 8)\n\n\
-PIECES LEFT: OOOO (4)\n\n\
-                 Computer's move : 1\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  - -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Player should Win in 7)\n\n\
-PIECES LEFT: XXXX (4)\n\n\
-                   Player's move : { 4 }\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X -\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O - (Computer should Lose in 6)\n\n\
-PIECES LEFT: OOO (3)\n\n\
+         ( 11  12  13 )          : - - - (Computer should Lose in 14)\n\n\
+PIECES LEFT: OOOOOO (6)\n\n\
                  Computer's move : 13\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X -\n\
+         (  1   2   3 )          : - - -\n\
+         (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
          (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O O (Player should Win in 5)\n\n\
-PIECES LEFT: XXX (3)\n\n\
-                   Player's move : { 5 }\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X X\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  - -\n\
-         ( 11  12  13 )          : - O O (Computer should Lose in 4)\n\n\
-PIECES LEFT: OO (2)\n\n\
-                 Computer's move : 10\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X X\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  - O\n\
-         ( 11  12  13 )          : - O O (Player should Win in 3)\n\n\
-PIECES LEFT: XX (2)\n\n\
+         ( 11  12  13 )          : - - O (Player should Win in 13)\n\n\
+PIECES LEFT: XXXXX (5)\n\n\
                    Player's move : { 11 }\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X X\n\
+         (  1   2   3 )          : - - -\n\
+         (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  - O\n\
-         ( 11  12  13 )          : X O O (Computer should Lose in 2)\n\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Computer should Lose in 12)\n\n\
+PIECES LEFT: OOOOO (5)\n\n\
+                 Computer's move : 1\n\n\
+         (  1   2   3 )          : O - -\n\
+         (    4   5   )          :  - -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Player should Win in 11)\n\n\
+PIECES LEFT: XXXX (4)\n\n\
+                   Player's move : { 12 12 }\n\n\
+         (  1   2   3 )          : O - -\n\
+         (    4   5   )          :  - -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Computer should Lose in 10)\n\n\
+PIECES LEFT: OOOO (4)\n\n\
+                 Computer's move : 2\n\n\
+         (  1   2   3 )          : O O -\n\
+         (    4   5   )          :  - -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Player should Win in 9)\n\n\
+PIECES LEFT: XXXX (4)\n\n\
+                   Player's move : { 12 12 }\n\n\
+         (  1   2   3 )          : O O -\n\
+         (    4   5   )          :  - -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Computer should Lose in 10)\n\n\
+PIECES LEFT: OOO (3)\n\n\
+                 Computer's move : 4 8\n\n\
+         (  1   2   3 )          : O O -\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Player should Win in 9)\n\n\
+PIECES LEFT: XXXX (4)\n\n\
+                   Player's move : { 12 12 }\n\n\
+         (  1   2   3 )          : O O -\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X - O (Computer should Lose in 8)\n\n\
+PIECES LEFT: OOO (3)\n\n\
+                 Computer's move : 12\n\n\
+         (  1   2   3 )          : O O -\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X O O (Player should Win in 7)\n\n\
+PIECES LEFT: XXXX (4)\n\n\
+                   Player's move : { 3 }\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  - -\n\
+         ( 11  12  13 )          : X O O (Computer should Lose in 6)\n\n\
+PIECES LEFT: OO (2)\n\n\
+                 Computer's move : 9 13\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  O -\n\
+         ( 11  12  13 )          : X O - (Player should Win in 5)\n\n\
+PIECES LEFT: XXX (3)\n\n\
+                   Player's move : { 13 }\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X -\n\
+         (    9  10   )          :  O -\n\
+         ( 11  12  13 )          : X O X (Computer should Lose in 4)\n\n\
+PIECES LEFT: OO (2)\n\n\
+                 Computer's move : 8\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O -\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  O -\n\
+         ( 11  12  13 )          : X O X (Player should Win in 3)\n\n\
+PIECES LEFT: XX (2)\n\n\
+                   Player's move : { 5 13 }\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O X\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
+         (    9  10   )          :  O -\n\
+         ( 11  12  13 )          : X O - (Computer should Lose in 2)\n\n\
 PIECES LEFT: O (1)\n\n\
-                 Computer's move : 9\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X X\n\
-LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
-         (    9  10   )          :  O O\n\
-         ( 11  12  13 )          : X O O (Player should Win in 1)\n\n\
-PIECES LEFT: X (1)\n\n\
-                   Player's move : { 7 }\n\n\
-         (  1   2   3 )          : O X O\n\
-         (    4   5   )          :  X X\n\
+                 Computer's move : 13\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O X\n\
 LEGEND:  (  6   7   8 )  BOARD:  : X X O\n\
-         (    9  10   )          :  O O\n\
+         (    9  10   )          :  O -\n\
+         ( 11  12  13 )          : X O O (Player should Win in 1)\n\n\
+PIECES LEFT: XX (2)\n\n\
+                   Player's move : { 10 }\n\n\
+         (  1   2   3 )          : O O X\n\
+         (    4   5   )          :  O X\n\
+LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
+         (    9  10   )          :  O X\n\
          ( 11  12  13 )          : X O O (Computer should Lose in 0)\n\n\
 PIECES LEFT: (0)\n\n\n\
 Excellent! You won!";
@@ -155,23 +178,31 @@ STRING   kHelpGraphicInterface  = "";
 STRING   kHelpOnYourTurn        = "\
 Place a piece on a blank spot. If a two-by-two square is formed, you must\n\
 take back one of your pieces. You may not take back a piece that is being\n\
-used to support another piece.";
+used to support another piece. If a two-by-two square already exists and you\n\
+have any pieces of equal or lower height to the square, you must take one of\n\
+those pieces and stack it on top of the square if you intend to put any piece\n\
+on top of the square at all.";
 STRING   kHelpReverseObjective  = "\
-To use all of your pieces before your opponent does.";
+To either use all of your pieces before your opponent does or to complete the\n\
+pyramid.";
 STRING   kHelpStandardObjective = "\
-To make your opponent use all of his or her pieces before you do.";
+To make your opponent either use all of his or her pieces before you do or\n\
+make your opponent complete the pyramid.";
 STRING   kHelpTextInterface     = "\
 The board represents a bird's eye view of a pyramid. Pieces are placed\n\
 building this pyramid. A piece can only be placed on a higher level of the\n\
-pyramid if all four of its bases have piece on them. The legend indicates\n\
+pyramid if all four of its bases have a piece on them. The legend indicates\n\
 which vertical column action will be taken on. Typically the action will be\n\
 adding a piece, but, if a two-by-two square is formed, a move can consist of\n\
-two actions: an addition and a removal.";
+two actions: an addition and a removal. An addition and removal can also\n\
+occur when a two-by-two square already exists and a piece already on the\n\
+board is moved on top of the square.";
 STRING   kHelpTieOccursWhen     = "";
 BOOLEAN  kLoopy                 = TRUE;
 BOOLEAN  kPartizan              = TRUE;
 BOOLEAN  kTieIsPossible         = FALSE;
 
+/************************************************ Global variables for Pylos */
 typedef enum Direction Direction;
 typedef struct MoveGroup MoveGroup;
 typedef struct Options Options;
@@ -192,8 +223,10 @@ struct MoveGroup {
 };
 
 struct Options {
-  BOOLEAN isStandardGame : 1;
-  int boardDimension : WORD_BIT - 1;
+  BOOLEAN doNotAllowSquaring : 1;
+  BOOLEAN doNotAllowStacking : 1;
+  BOOLEAN isNotStandardGame : 1;
+  int boardDimension;
 };
 
 enum Piece {
@@ -207,6 +240,8 @@ struct Pyramid {
   Pyramid *bases[NUMBER_OF_DIRECTIONS], *parents[NUMBER_OF_DIRECTIONS];
 };
 
+BOOLEAN gAllowSquaring = ALLOW_SQUARING;
+BOOLEAN gAllowStacking = ALLOW_STACKING;
 int gBoardAddresses;
 int gBoardDimension = BOARD_DIMENSION;
 int gBoardPieces;
@@ -218,8 +253,10 @@ char gPieceLabels[] = {
   DARK_PIECE_LABEL
 };
 
+/********************************************* Function prototypes for Pylos */
 int CalculateDigits(int integer);
 int CalculatePower(int base, int exponent);
+int CalculatePyramidHeight(Pyramid *pyramid);
 int ConvertAddressToIndex(int address);
 int ConvertPyramidIndex(int index, Direction direction);
 int CountPieces(char board[], Piece piece);
@@ -228,14 +265,16 @@ Pyramid *CreatePyramid(Pyramid pyramids[], int dimension, int baseIndex,
 void CreatePyramidHashTable(Pyramid pyramids[], char board[]);
 Direction FlipDirection(Direction direction);
 BOOLEAN FormsSquare(Pyramid *pyramid, Piece piece);
+BOOLEAN IsBasePyramid(Pyramid *pyramid, Pyramid *parentPyramid);
 BOOLEAN IsBlankPyramid(Pyramid *pyramid);
 BOOLEAN IsSupportedPyramid(Pyramid *pyramid);
 BOOLEAN IsSupportingPyramid(Pyramid *pyramid);
 void MakeAddressable(char board[]);
-void PrintBinary(unsigned int integer);
+void PrintBinary(int integer);
 void PrintMoveGroup(MOVE move);
 void PrintMovePrompt(char *name);
 
+/**************************************************** ConvertTextInputToMove */
 MOVE ConvertTextInputToMove(STRING input) {
   int index;
   char *move;
@@ -251,8 +290,10 @@ MOVE ConvertTextInputToMove(STRING input) {
   return *(MOVE*)&moveGroup;
 }
 
+/***************************************************************** DebugMenu */
 void DebugMenu() {}
 
+/******************************************************************** DoMove */
 POSITION DoMove(POSITION position, MOVE move) {
   char board[gBoardSize];
   MoveGroup moveGroup = *(MoveGroup*)&move;
@@ -281,12 +322,20 @@ POSITION DoMove(POSITION position, MOVE move) {
   return generic_hash(board, piece);
 }
 
+/********************************************************** GameSpecificMenu */
 void GameSpecificMenu() {
-  int dimension;
+  char *input;
 
   while (TRUE) {
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n", kGameName);
+    printf("\n\tBoard Options:\n\n");
     printf("\td)\tChange board (D)imension (%d)\n", gBoardDimension);
+    printf("\te)\tChange (E)mpty piece (%c)\n", gPieceLabels[BLANK_PIECE]);
+    printf("\t1)\tChange player (1)'s piece (%c)\n", gPieceLabels[LIGHT_PIECE]);
+    printf("\t2)\tChange player (2)'s piece (%c)\n", gPieceLabels[DARK_PIECE]);
+    printf("\n\tRule Options:\n\n");
+    printf("\ts)\t%sllow (S)quaring\n", gAllowSquaring ? "Disa" : "A");
+    printf("\tt)\t%sllow s(T)acking\n", gAllowStacking ? "Disa" : "A");
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
 
@@ -298,11 +347,41 @@ void GameSpecificMenu() {
         break;
       case 'D': case 'd':
         printf("\nBoard dimension (%d): ", gBoardDimension);
-        scanf("%d", &dimension);
+        scanf("%s", input);
 
-        if (dimension > 0)
-          gBoardDimension = dimension;
+        if (atoi(input) > 0)
+          gBoardDimension = atoi(input);
 
+        break;
+      case 'E': case 'e':
+        printf("\nEmpty piece (%c): ", gPieceLabels[BLANK_PIECE]);
+        scanf("%s", input);
+
+        if (strlen(input) == 1)
+          gPieceLabels[BLANK_PIECE] = input[0];
+
+        break;
+      case '1':
+        printf("\nPlayer 1's piece (%c): ", gPieceLabels[LIGHT_PIECE]);
+        scanf("%s", input);
+
+        if (strlen(input) == 1)
+          gPieceLabels[LIGHT_PIECE] = input[0];
+
+        break;
+      case '2':
+        printf("\nPlayer 2's piece (%c): ", gPieceLabels[DARK_PIECE]);
+        scanf("%s", input);
+
+        if (strlen(input) == 1)
+          gPieceLabels[DARK_PIECE] = input[0];
+
+        break;
+      case 'S': case 's':
+        gAllowSquaring = !gAllowSquaring;
+        break;
+      case 'T': case 't':
+        gAllowStacking = !gAllowStacking;
         break;
       case 'B': case 'b':
         return;
@@ -313,14 +392,16 @@ void GameSpecificMenu() {
   }
 }
 
+/************************************************************* GenerateMoves */
 MOVELIST *GenerateMoves(POSITION position) {
   char board[gBoardSize];
   char center; /* Used for hardcoding */
-  int index;
+  int height, index;
   MOVE move;
   MOVELIST* moveList = NULL;
   MoveGroup moveGroup;
   Pyramid *pyramid, pyramids[gBoardAddresses];
+  BOOLEAN stacked = FALSE;
 
   generic_unhash(position, board);
 
@@ -340,8 +421,8 @@ MOVELIST *GenerateMoves(POSITION position) {
     if (IsBlankPyramid(pyramid) && IsSupportedPyramid(pyramid) ||
         gBoardDimension == 3 && moveGroup.moves[0] == 7 && /* Hardcoded */
         board[4] == gPieceLabels[BLANK_PIECE]) {
-      if (!(gBoardDimension == 3 && moveGroup.moves[0] == 7 && /* Hardcoded */
-            center != gPieceLabels[BLANK_PIECE]) &&
+      if (gAllowSquaring && !(gBoardDimension == 3 && /* Hardcoded */
+          moveGroup.moves[0] == 7 && center != gPieceLabels[BLANK_PIECE]) &&
           FormsSquare(pyramid, whoseMove(position))) {
         for (moveGroup.moves[1] = gBoardAddresses; moveGroup.moves[1] > 0;
              moveGroup.moves[1]--) {
@@ -353,6 +434,26 @@ MOVELIST *GenerateMoves(POSITION position) {
             moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
         }
       }
+      else if (gAllowStacking && !(gBoardDimension == 3 && /* Hardcoded */
+               moveGroup.moves[0] == 7 &&
+               center == gPieceLabels[BLANK_PIECE]) &&
+               (height = CalculatePyramidHeight(pyramid)) > 0) {
+        for (moveGroup.moves[1] = gBoardAddresses; moveGroup.moves[1] > 0;
+             moveGroup.moves[1]--) {
+          pyramid = &pyramids[moveGroup.moves[1] - 1];
+
+          if (pyramid->pieceLabel == gPieceLabels[whoseMove(position)] &&
+              CalculatePyramidHeight(pyramid) < height &&
+              !IsBasePyramid(pyramid, &pyramids[moveGroup.moves[0] - 1]) &&
+              !IsSupportingPyramid(pyramid)) {
+            moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
+            stacked = TRUE;
+          }
+        }
+
+        if (!stacked)
+          moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
+      }
       else
         moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
     }
@@ -361,6 +462,7 @@ MOVELIST *GenerateMoves(POSITION position) {
   return moveList;
 }
 
+/**************************************************** GetAndPrintPlayersMove */
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING name) {
   USERINPUT userInput = Continue;
 
@@ -372,19 +474,24 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING name) {
   return userInput;
 }
 
+/******************************************************** GetInitialPosition */
 POSITION GetInitialPosition() {
   return gInitialPosition;
 }
 
+/***************************************************************** getOption */
 int getOption() {
   Options options;
 
-  options.boardDimension = gBoardDimension;
-  options.isStandardGame = gStandardGame;
+  options.doNotAllowSquaring = !gAllowSquaring;
+  options.doNotAllowStacking = !gAllowStacking;
+  options.isNotStandardGame = !gStandardGame;
+  options.boardDimension = BOARD_DIMENSION - gBoardDimension;
 
   return *(int*)&options;
 }
 
+/************************************************************ InitializeGame */
 void InitializeGame() {
   int dimension;
 
@@ -396,18 +503,20 @@ void InitializeGame() {
 
   gBoardPieces = gBoardSize / 2 + (gBoardSize % 2 == 1);
 
-  freeAll();
   int piecesArray[] = {gPieceLabels[BLANK_PIECE], 0, gBoardSize,
                        gPieceLabels[LIGHT_PIECE], 0, gBoardPieces,
                        gPieceLabels[DARK_PIECE], 0, gBoardPieces, -1};
 
+  freeAll();
   gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL);
 }
 
+/*********************************************************** NumberOfOptions */
 int NumberOfOptions() {
-  return INT_MAX;
+  return NUMBER_OF_OPTIONS;
 }
 
+/***************************************************************** Primitive */
 VALUE Primitive(POSITION position) {
   char board[gBoardSize];
   Piece piece = whoseMove(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
@@ -421,18 +530,25 @@ VALUE Primitive(POSITION position) {
     return undecided;
 }
 
+/******************************************************** PrintComputersMove */
 void PrintComputersMove(MOVE move, STRING name) {
   PrintMovePrompt(name);
   PrintMoveGroup(move);
   putchar('\n');
 }
 
+/***************************************************************** PrintMove */
 void PrintMove(MOVE move) {
-  putchar('(');
+  if (move > UCHAR_MAX) /* Multi-step move */
+    putchar('[');
+
   PrintMoveGroup(move);
-  putchar(')');
+
+  if (move > UCHAR_MAX) /* Multi-step move */
+    putchar(']');
 }
 
+/************************************************************* PrintPosition */
 void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
   int address, column, count, digits = CalculateDigits(gBoardSize), offset;
   int pieces, row, rows = gBoardDimension * 2 - 1;
@@ -488,13 +604,17 @@ void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
   printf("(%d)\n\n", pieces);
 }
 
+/***************************************************************** setOption */
 void setOption(int option) {
   Options options = *(Options*)&option;
 
-  gBoardDimension = options.boardDimension;
-  gStandardGame = options.isStandardGame;
+  gAllowSquaring = !options.doNotAllowSquaring;
+  gAllowStacking = !options.doNotAllowStacking;
+  gStandardGame = !options.isNotStandardGame;
+  gBoardDimension = BOARD_DIMENSION - options.boardDimension;
 }
 
+/************************************************************ ValidTextInput */
 BOOLEAN ValidTextInput(STRING input) {
   int index;
   char *move, inputBackup[strlen(input)];
@@ -512,6 +632,7 @@ BOOLEAN ValidTextInput(STRING input) {
   return TRUE;
 }
 
+/*********************************************************** CalculateDigits */
 int CalculateDigits(int integer) {
   int digits;
 
@@ -520,6 +641,7 @@ int CalculateDigits(int integer) {
   return digits;
 }
 
+/************************************************************ CalculatePower */
 int CalculatePower(int base, int exponent) {
   int power;
 
@@ -529,6 +651,14 @@ int CalculatePower(int base, int exponent) {
   return power;
 }
 
+/**************************************************** CalculatePyramidHeight */
+int CalculatePyramidHeight(Pyramid *pyramid) {
+  Pyramid *basePyramid = pyramid->bases[UPPER_LEFT_DIRECTION];
+
+  return basePyramid == NULL ? 0 : CalculatePyramidHeight(basePyramid) + 1;
+}
+
+/***************************************************** ConvertAddressToIndex */
 int ConvertAddressToIndex(int address) {
   int column, dimension, row;
 
@@ -542,6 +672,7 @@ int ConvertAddressToIndex(int address) {
          column - gBoardDimension;
 }
 
+/******************************************************* ConvertPyramidIndex */
 int ConvertPyramidIndex(int index, Direction direction) {
   switch (direction) {
     case LOWER_LEFT_DIRECTION:
@@ -557,6 +688,7 @@ int ConvertPyramidIndex(int index, Direction direction) {
   }
 }
 
+/*************************************************************** CountPieces */
 int CountPieces(char board[], Piece piece) {
   char pieceLabel = gPieceLabels[piece];
   int index, pieces;
@@ -568,6 +700,7 @@ int CountPieces(char board[], Piece piece) {
   return pieces;
 }
 
+/************************************************************* CreatePyramid */
 Pyramid *CreatePyramid(Pyramid pyramids[], int dimension, int baseIndex,
                        Direction parentDirection, int parentIndex) {
   Direction direction;
@@ -590,6 +723,7 @@ Pyramid *CreatePyramid(Pyramid pyramids[], int dimension, int baseIndex,
   return pyramid;
 }
 
+/**************************************************** CreatePyramidHashTable */
 void CreatePyramidHashTable(Pyramid pyramids[], char board[]) {
   Direction direction;
   int index;
@@ -608,6 +742,7 @@ void CreatePyramidHashTable(Pyramid pyramids[], char board[]) {
     pyramids[index].pieceLabel = board[ConvertAddressToIndex(index + 1)];
 }
 
+/************************************************************* FlipDirection */
 Direction FlipDirection(Direction direction) {
   switch (direction) {
     case LOWER_LEFT_DIRECTION:
@@ -623,6 +758,7 @@ Direction FlipDirection(Direction direction) {
   }
 }
 
+/*************************************************************** FormsSquare */
 BOOLEAN FormsSquare(Pyramid *pyramid, Piece piece) {
   Direction baseDirection, parentDirection;
   Pyramid *basePyramid, *parentPyramid;
@@ -649,10 +785,23 @@ BOOLEAN FormsSquare(Pyramid *pyramid, Piece piece) {
   return FALSE;
 }
 
+/************************************************************* IsBasePyramid */
+BOOLEAN IsBasePyramid(Pyramid *pyramid, Pyramid *parentPyramid) {
+  Direction direction;
+
+  for (direction = 0; direction < NUMBER_OF_DIRECTIONS; direction++)
+    if (pyramid == parentPyramid->bases[direction])
+      return TRUE;
+
+  return FALSE;
+}
+
+/************************************************************ IsBlankPyramid */
 BOOLEAN IsBlankPyramid(Pyramid *pyramid) {
   return pyramid != NULL && pyramid->pieceLabel == gPieceLabels[BLANK_PIECE];
 }
 
+/******************************************************** IsSupportedPyramid */
 BOOLEAN IsSupportedPyramid(Pyramid *pyramid) {
   Direction direction;
 
@@ -663,6 +812,7 @@ BOOLEAN IsSupportedPyramid(Pyramid *pyramid) {
   return TRUE;
 }
 
+/******************************************************** IsSupportingPyramid */
 BOOLEAN IsSupportingPyramid(Pyramid *pyramid) {
   Direction direction;
 
@@ -674,6 +824,7 @@ BOOLEAN IsSupportingPyramid(Pyramid *pyramid) {
   return FALSE;
 }
 
+/*********************************************************** MakeAddressable */
 void MakeAddressable(char board[]) {
   /* Hardcoded */
   if (gBoardDimension == 3 &&
@@ -684,7 +835,8 @@ void MakeAddressable(char board[]) {
     board[4] = board[13];
 }
 
-void PrintBinary(unsigned int integer) {
+/*************************************************************** PrintBinary */
+void PrintBinary(int integer) {
   int power;
 
   for (power = WORD_BIT - 1; power >= 0; power--) {
@@ -697,6 +849,7 @@ void PrintBinary(unsigned int integer) {
   putchar('\n');
 }
 
+/************************************************************ PrintMoveGroup */
 void PrintMoveGroup(MOVE move) {
   int index;
   MoveGroup moveGroup = *(MoveGroup*)&move;
@@ -711,6 +864,7 @@ void PrintMoveGroup(MOVE move) {
   }
 }
 
+/*********************************************************** PrintMovePrompt */
 void PrintMovePrompt(char *name) {
   int promptLength = strlen(LEGEND_SPACE) + (gBoardDimension * 2 - 1) *
                      CalculateDigits(gBoardSize) + strlen(BOARD_SPACE);
