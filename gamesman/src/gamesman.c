@@ -1908,15 +1908,33 @@ void HitAnyKeyToContinue()
 
 USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING playerName)
 {
-    MOVE tmpMove;
-    char tmpAns[2], input[MAXINPUTLENGTH];
-    
-    GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
-    
-    if(input[0] == '\0')
-        PrintPossibleMoves(thePosition);
-    
-    else if (ValidTextInput(input))
+  BOOLEAN onlyOneMove;
+  MOVELIST *head;
+  MOVE tmpMove;
+  char tmpAns[2], input[MAXINPUTLENGTH];
+  
+  GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
+  
+  if(input[0] == '\0') {
+
+    /* [DDG 2005-01-09] Check if there is only one move to be made.
+     * If so, this can be a shortcut for moving, just hitting enter! */
+    head = GenerateMoves(thePosition); /* What are all moves available? */
+    /* There's exactly one */
+    if ( onlyOneMove = (head != NULL && head->next == NULL) ) {
+      *theMove = head->move;
+      printf("----- AUTO-MOVE-SELECTED ------------> ");
+      PrintMove(*theMove);
+      printf("\n");
+    }
+    FreeMoveList(head);
+
+    if ( onlyOneMove ) 
+      return(Move);
+    else
+      PrintPossibleMoves(thePosition);
+
+  } else if (ValidTextInput(input))
         if(ValidMove(thePosition,tmpMove = ConvertTextInputToMove(input))) {
             *theMove = tmpMove;
             return(Move);
