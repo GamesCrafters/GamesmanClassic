@@ -10,7 +10,9 @@ else
 	options="-solve"
 fi
 
-CWD=irname $0MODULES=s -1 $CWD/m* 2>/dev/null
+CWD=`dirname $0`
+MODULES=`ls -1 $CWD/m* 2>/dev/null`
+
 if test "$MODULES" = ""
 then
 	echo "Build gamesman first!"
