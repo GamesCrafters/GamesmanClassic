@@ -1,8 +1,10 @@
 Report Created by / Person to blame:  Jonathan Tsai
 
-updated as of: 2004.10.27
+updated 2004.10.27
 -----------------------------------------------------------------
 Current module files in /src
+
+updated 2004.10.27
 
 m1210.c        mchange.c      mhorse.c       mqland.c       mtactix.c
 m1ton.c        mcmass.c       miceblocks.c   mqx.c          mtore.c
@@ -16,6 +18,8 @@ masalto.c      mgobblet.c     mothello.c     mstt.c
 mblocking.c    mgraph.c       mpylos.c       mswans.c
 -----------------------------------------------------------------
 have restrictions because of solvability (supports n-based):
+
+updated 2004.10.27
 
 mwinkers.c
 mwin4.c
@@ -36,35 +40,49 @@ mdinododgem.c (n > 4 causes errors)
 -----------------------------------------------------------------
 supports n-based, limits are relatively large
 
+updated 2004.10.27
+
 m1ton.c
 
 -----------------------------------------------------------------
-not written for n-based
-(either not implemented or game just doesn't have it)
+can be n-based ?, but not implemented
 
-m1210.c
-mttt.c
+updated 2004.10.27
+
+
 mrInfin2.c
 mtactix.c
 m3spot.c
 mctoi.c
 mkono.c
 m9mm.c
-mdodgem.c
+
 mlite3.c
-machi.c
 msnake.c
 mstt.c
 mswans.c
-
 -----------------------------------------------------------------
-cannot be n-based
+has an n-based relative
 
+updated 2004.10.27
+
+m1210.c (m1ton)
+mdodgem.c (mdinododgem)
+-----------------------------------------------------------------
+fixed-size games
+
+updated 2004.10.27
+
+machi.c
 mLgame.c
+mttt.c
+
 -----------------------------------------------------------------
 pseudo n-based (k1 <= n <= k2)
 find the n!
 (limitations possibly because of solvability or board printing)
+
+updated 2004.10.27
 
 mjoust.c
 mhorse.c
@@ -95,6 +113,6 @@ mtttppm.c
 mtore.c
 mqland.c
 m3dot.c (remove requested) email scott or jj about this
-mdodgemhash.c (very bad name)
+mdodgemhash.c (very bad name) ? not used?
 mseega.c
 module.c (bad name!)
