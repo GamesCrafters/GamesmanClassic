@@ -84,7 +84,7 @@ proc InitGlobals {} {
 	set kPlayerLabelFont { Helvetica 15 bold }
     } else {
         set kLabelFont { Helvetica 12 bold }
-	set kToMoveToWinFont {Helvetica 11 bold }
+	set kToMoveToWinFont {Helvetica 12 bold }
 	set kPlayerLabelFont { Helvetica 18 bold }
     }
 
