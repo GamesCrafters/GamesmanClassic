@@ -65,6 +65,9 @@
 **                     please look at GetAndPrintPlayersMove and remove the noted comment and run. YIKES!
 ** 08 Mar 2005 Yanpei: added Primitive(), introduced global constant EMPTYSLOT 
 **                     to replace NUMPIECES to encode empty slots in QTBOARD->slots[];
+** 08 Mar 2005 Yanpei: EMPTYSLOT changed to 0 to accomodate for present hash()/unhash();
+**                     QTBOARD invariants temporarily violated to make things work;
+**                     Primitive() changed to reflect this; must change back later. 
 **
 **************************************************************************/
 
@@ -152,7 +155,7 @@ STRING   kHelpExample =
 #define NUMPIECES (1 << GAMEDIMENSION)
 
 #define PIECESTATES (BOARDSIZE+1)
-#define EMPTYSLOT NUMPIECES
+#define EMPTYSLOT 0
 
 #if BOARDSIZE<NUMPIECES
     #define FACTORIALMAX (NUMPIECES+1)
@@ -451,8 +454,9 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
     QTBPtr b = unhash(position);
-    short rowColDiag[GAMEDIMENSION];
+    short *rowColDiag = (short *) SafeMalloc(GAMEDIMENSION*sizeof(short));
     BOOLEAN primitiveFound = FALSE;
+    BOOLEAN emptyFound = FALSE;
     int i,j;
 
     printf("**** Primitive() ****\n");
@@ -466,45 +470,59 @@ VALUE Primitive (POSITION position)
     i=0;
     while (!primitiveFound && i<GAMEDIMENSION) {
       j=0;
-      while (b->slots[i*GAMEDIMENSION+j+1]!=EMPTYSLOT && j<GAMEDIMENSION) {
-	rowColDiag[j] = b->slots[i*GAMEDIMENSION+j+1];
+      while (!emptyFound && j<GAMEDIMENSION) {
+	if (b->slots[i*GAMEDIMENSION+j+1] == EMPTYSLOT) {
+	  emptyFound = TRUE;
+	}
+	rowColDiag[j] = b->slots[i*GAMEDIMENSION+j+1] - 1;
 	j++;
       }
-      primitiveFound = searchPrimitive(rowColDiag);
+      if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
       i++;
+      emptyFound = FALSE;
     }
 
     // checking the ranks/files in the other direction
     i=0;
     while (!primitiveFound && i<GAMEDIMENSION) {
       j=0;
-      while (b->slots[j*GAMEDIMENSION+i+1]!=EMPTYSLOT && j<GAMEDIMENSION) {
-	rowColDiag[j] = b->slots[j*GAMEDIMENSION+i+1];
+      while (!emptyFound && j<GAMEDIMENSION) {
+	if (b->slots[j*GAMEDIMENSION+i+1] == EMPTYSLOT) {
+	  emptyFound = TRUE;
+	}
+	rowColDiag[j] = b->slots[j*GAMEDIMENSION+i+1] - 1;
 	j++;
       }
-      primitiveFound = searchPrimitive(rowColDiag);
+      if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
       i++;
+      emptyFound = FALSE;
     }
 
     // checking one of the diagonals
     i=0;
-    while (!primitiveFound &&
-	   b->slots[i*GAMEDIMENSION+i+1] != EMPTYSLOT &&
-	   i<GAMEDIMENSION) {
-      rowColDiag[i] = b->slots[i*GAMEDIMENSION+i+1];
-      j++;
+    while (!primitiveFound && !emptyFound && i<GAMEDIMENSION) {
+      if (b->slots[i*GAMEDIMENSION+i+1] == EMPTYSLOT) {
+	emptyFound = TRUE;
+      }
+      rowColDiag[i] = b->slots[i*GAMEDIMENSION+i+1] - 1;
+      i++;
     }
-    primitiveFound = searchPrimitive(rowColDiag);
+    if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
+    emptyFound = FALSE;
 
     // checking the other diagonal
     i=0;
-    while (!primitiveFound &&
-	   b->slots[(i+1)*GAMEDIMENSION-i] != EMPTYSLOT &&
-	   i<GAMEDIMENSION) {
-      rowColDiag[i] = b->slots[(i+1)*GAMEDIMENSION-i];
-      j++;
+    while (!primitiveFound && !emptyFound && i<GAMEDIMENSION) {
+      if (b->slots[(i+1)*GAMEDIMENSION-i] == EMPTYSLOT) {
+	emptyFound = TRUE;
+      }
+      rowColDiag[i] = b->slots[(i+1)*GAMEDIMENSION-i] - 1;
+      i++;
     }
-    primitiveFound = searchPrimitive(rowColDiag);
+    if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
+    emptyFound = FALSE;
+
+    SafeFree(rowColDiag);
 
     // returning stuff
     if (primitiveFound && b->usersTurn) {
@@ -525,6 +543,13 @@ BOOLEAN searchPrimitive(short *rowColDiag) {
   short noninvertedResult = rowColDiag[0];
   short invertedResult = inverterMask ^ rowColDiag[0];
   short i;
+
+  printf("**** searchPrimitive() examines ");
+  for (i=0; i<GAMEDIMENSION; i++) {
+    printf("%d,",rowColDiag[i]);
+  }
+  printf(" ****\n");
+
 
   for (i=0; i<GAMEDIMENSION; i++) {
     noninvertedResult &= rowColDiag[i];
