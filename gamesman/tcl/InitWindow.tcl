@@ -19,7 +19,7 @@ proc TBaction1 {} {
 
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
-	.middle.f1.cMLeft raise iIMB
+	.middle.f1.cMLeft raise iDMB
 	.middle.f3.cMRight raise play
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
@@ -58,17 +58,8 @@ proc TBaction2 {} {
     pack .middle.f2.fRules -side bottom -fill both -expand 1
 }
 
-# Help button
-proc TBaction3 {} {
-    .cToolbar raise iITB
-    global gWaitingForHuman
-    set gWaitingForHuman true
-    pack forget .middle.f2.cMain   
-    pack .middle.f2.fHelp -side bottom
-}
-
 # About button
-proc TBaction4 {} {
+proc TBaction3 {} {
     .cToolbar raise iITB
     global gWaitingForHuman
     set gWaitingForHuman true
@@ -77,7 +68,7 @@ proc TBaction4 {} {
 }
 
 # Skins
-proc TBaction5 {} {
+proc TBaction4 {} {
 	.cToolbar raise iITB
 	global gWaitingForHuman
 	set gWaitingForHuman true
@@ -86,12 +77,21 @@ proc TBaction5 {} {
 }
 
 # Unmapped
+proc TBaction5 {} {
+
+}
+# Unmapped
 proc TBaction6 {} {
 
 }
 
-# Unmapped
+# Help button
 proc TBaction7 {} {
+    .cToolbar raise iITB
+    global gWaitingForHuman
+    set gWaitingForHuman true
+    pack forget .middle.f2.cMain   
+    pack .middle.f2.fHelp -side bottom
 }
 
 proc SetupPlayOptions {} {
@@ -626,52 +626,24 @@ proc InitWindow { kRootDir kDir kExt } {
 
     pack propagate $skinsFrame 0
 
-    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.gif"
-    image create photo burst_screenshot -file "$gSkinsRootDir\BurstSkin/screenshot.gif"
-    image create photo bubble_screenshot -file "$gSkinsRootDir\BubbleSkin/screenshot.gif"
+    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.ppm"
+    image create photo lily_screenshot -file "$gSkinsRootDir\LilySkin/screenshot.ppm"
 
-#radiobutton options for skins
-#    radiobutton $skinsFrame.content.burst\
-#	    -text "Light Burst" \
-#	    -font $kLabelFont \
-#	    -variable gSkinsDir \
-#	    -value BurstSkin/ \
-#   	    -image burst_screenshot
-#    radiobutton $skinsFrame.content.mandel\
-#	    -text "Mandel (Fractal)" \
-#	    -font $kLabelFont \
-#	    -variable gSkinsDir \
-#	    -value MandelSkin/ \
-#   	    -image mandel_screenshot
     button $skinsFrame.content.mandel\
 	    -compound top\
 	    -image mandel_screenshot\
 	    -text "Mandel Fractal"\
 	    -command {
-		set gSkinsDir "MandelSkin/"
-		set gSkinsExt "ppm"
-		InitButtons $gSkinsRootDir $gSkinsDir ppm
-		TBaction5
+		InitButtons $gSkinsRootDir MandelSkin/ ppm
+		TBaction4
 	    }
-    button $skinsFrame.content.burst\
+    button $skinsFrame.content.lily\
 	    -compound top\
-	    -image burst_screenshot\
-	    -text "Burst From Dark"\
+	    -image lily_screenshot\
+	    -text "Water Lily"\
 	    -command {
-		set gSkinsDir "BurstSkin/"
-		set gSkinsExt "gif"
-		InitButtons $gSkinsRootDir $gSkinsDir gif
-		TBaction5
-	    }
-    button $skinsFrame.content.bubble\
-	    -compound top\
-	    -image bubble_screenshot\
-	    -text "Bubbles"\
-	    -command {
-		set gSkinsDir "BubbleSkin/"
-		set gSkinsExt "gif"
-		InitButtons $gSkinsRootDir $gSkinsDir gif
-		TBaction5
+		InitButtons $gSkinsRootDir LilySkin/ ppm
+		TBaction4
 	    }
 
     button $skinsFrame.buttons.bReturn -text "Return" \
@@ -688,8 +660,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     pack $skinsFrame.content.mandel -ipadx 4 -ipady 4 -side left -anchor nw
-    pack $skinsFrame.content.burst -ipadx 4 -ipady 4 -side top -anchor ne
-    pack $skinsFrame.content.bubble -ipadx 4 -ipady 4 -side right
+    pack $skinsFrame.content.lily -ipadx 4 -ipady 4 -side top -anchor ne
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
@@ -737,6 +708,9 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iIMB1p -tags [list  iIMB iIMB1]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iIMB2p -tags [list  iIMB iIMB2]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iIMB3p -tags [list  iIMB iIMB3]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iDMB1p -tags [list  iDMB iDMB1]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iDMB2p -tags [list  iDMB iDMB2]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iDMB3p -tags [list  iDMB iDMB3]
     #.middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7p -tags [list detVal]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iSMB7p -tags [list startupPic]
 	    	
@@ -744,6 +718,9 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iIMB4p -tags [list  iIMB iIMB4]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iIMB5p -tags [list  iIMB iIMB5]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iIMB6p -tags [list  iIMB iIMB6]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iDMB4p -tags [list  iDMB iDMB4]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iDMB5p -tags [list  iDMB iDMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iDMB6p -tags [list  iDMB iDMB6]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iAMB8p -tags [list play]
 
     .middle.f1.cMLeft create text 75 100 \
@@ -796,6 +773,12 @@ proc InitWindow { kRootDir kDir kExt } {
 	-anchor center \
 	-tags [list WhoseTurn textitem]
 
+
+    # this is the left panel item "click to play"
+    .middle.f1.cMLeft bind startupPic <1> {
+	TBaction1
+    }
+
     # this is the play button
     .middle.f3.cMRight bind play <1> {
 	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
@@ -818,6 +801,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	.middle.f3.cMRight lower play
 	.middle.f1.cMLeft lower detVal
 	.middle.f1.cMLeft lower startupPic
+	.middle.f1.cMLeft raise iIMB
+	.middle.f3.cMRight raise iIMB
 	.middle.f2.cMain lower base
 	.middle.f1.cMLeft lower detVal
 	.middle.f1.cMLeft raise ToWin
@@ -1129,51 +1114,61 @@ proc HandleScrollFeedback { bar whichOffset args } {
     $bar set $fraction 0
 }
 
-proc InitButtons { gSkinsRootDir gSkinsDir gSkinsExt } {
+proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
-    global gWindowWidth gWindowHeight
+    global gWindowWidth gWindowHeight gSkinsExt gSkinsDir gSkinsRootDir
 	
     #
     # Load all the button images
     #
 
+    set gSkinsExt $skinsExt
+    set gSkinsDir $skinsDir
+    set gSkinsRootDir $skinsRootDir
+
     foreach mode {A I O} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
-	    image create photo [subst $name]p -file [format %s%s%s_1_%s.%s $gSkinsRootDir $gSkinsDir $mode $file $gSkinsExt]
+	    image create photo [subst $name]p -file [format %s%s%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
 	    set type [format i%sTB $mode]
 	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
     } 
-    image create photo iIMB1p -file [format %s%sI_2_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIMB2p -file [format %s%sI_2_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIMB3p -file [format %s%sI_2_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIMB4p -file [format %s%sI_2_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIMB5p -file [format %s%sI_2_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIMB6p -file [format %s%sI_2_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iAMB5p -file [format %s%sA_2_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iSMB7p -file [format %s%sA_2_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    #image create photo iAMB7p -file [format %s%sA_7_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iAMB8p -file [format %s%sA_8_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iAMM1p -file [format %s%sA_4_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iBBB1p -file [format %s%sA_3_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB2p -file [format %s%sA_3_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB2p -file [format %s%sI_3_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB3p -file [format %s%sA_3_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB3p -file [format %s%sI_3_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB4p -file [format %s%sA_3_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB4p -file [format %s%sI_3_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    ##image create photo iABB5p -file [format %s%sA_3_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt] 
-    ##image create photo iIBB5p -file [format %s%sI_3_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB6p -file [format %s%sA_3_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB6p -file [format %s%sI_3_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB7p -file [format %s%sI_3_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB7p -file [format %s%sA_3_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB8p -file [format %s%sI_3_8.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB8p -file [format %s%sA_3_8.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iIBB9p -file [format %s%sI_3_9.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
-    image create photo iABB9p -file [format %s%sA_3_9.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iDMB1p -file [format %s%sD_2_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB2p -file [format %s%sD_2_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB3p -file [format %s%sD_2_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB4p -file [format %s%sD_2_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB5p -file [format %s%sD_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iDMB6p -file [format %s%sD_2_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB1p -file [format %s%sI_2_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB2p -file [format %s%sI_2_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB3p -file [format %s%sI_2_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB4p -file [format %s%sI_2_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB5p -file [format %s%sI_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIMB6p -file [format %s%sI_2_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMB5p -file [format %s%sA_2_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iSMB7p -file [format %s%sA_2_7.%s $skinsRootDir $skinsDir $skinsExt]
+    #image create photo iAMB7p -file [format %s%sA_7_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMB8p -file [format %s%sA_8_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMM1p -file [format %s%sA_4_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iBBB1p -file [format %s%sA_3_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB2p -file [format %s%sA_3_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB2p -file [format %s%sI_3_2.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB3p -file [format %s%sA_3_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB3p -file [format %s%sI_3_3.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB4p -file [format %s%sA_3_4.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB4p -file [format %s%sI_3_4.%s $skinsRootDir $skinsDir $skinsExt]
+    ##image create photo iABB5p -file [format %s%sA_3_5.%s $skinsRootDir $skinsDir $skinsExt] 
+    ##image create photo iIBB5p -file [format %s%sI_3_5.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB6p -file [format %s%sA_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB6p -file [format %s%sI_3_6.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB7p -file [format %s%sI_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB7p -file [format %s%sA_3_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB8p -file [format %s%sI_3_8.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB8p -file [format %s%sA_3_8.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iIBB9p -file [format %s%sI_3_9.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iABB9p -file [format %s%sA_3_9.%s $skinsRootDir $skinsDir $skinsExt]
 
 
     #
@@ -1186,7 +1181,7 @@ proc InitButtons { gSkinsRootDir gSkinsDir gSkinsExt } {
     
     # set the active action of each button
     set mode A
-    foreach file {1 2 3 4 5 8} {#6 7 removed because not used
+    foreach file {1 2 3 4 7 8} {#5 6 removed because not used
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <Any-Enter> \
@@ -1195,7 +1190,7 @@ proc InitButtons { gSkinsRootDir gSkinsDir gSkinsExt } {
     
     # bind the action of the mouse-Over images
     set mode O
-    foreach file {1 2 3 4 5} {#6 7 removed because not used
+    foreach file {1 2 3 4 7} {#5 6 removed because not used
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <ButtonRelease-1> \
