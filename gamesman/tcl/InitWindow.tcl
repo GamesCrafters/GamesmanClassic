@@ -165,7 +165,7 @@ proc InitWindow { kRootDir } {
     # Load all the button images
     #
 
-    foreach mode {A I O D} {
+    foreach mode {A I O} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
 	    image create photo $name -file [format %s_%s_1_%s.GIF $gSkinsLibName $mode $file]
@@ -174,18 +174,13 @@ proc InitWindow { kRootDir } {
 		-image $name -tags [list tbb $type $name]
 	}
     } 
-    image create photo iAMB1 -file [format %s_A_2_1.GIF $gSkinsLibName]
-    image create photo iAMB2 -file [format %s_A_2_2.GIF $gSkinsLibName]
-    image create photo iAMB3 -file [format %s_A_2_3.GIF $gSkinsLibName]
-    image create photo iAMB4 -file [format %s_A_2_4.GIF $gSkinsLibName]
-    image create photo iAMB5 -file [format %s_A_2_5.GIF $gSkinsLibName]
-    image create photo iAMB6 -file [format %s_A_2_6.GIF $gSkinsLibName]
     image create photo iIMB1 -file [format %s_I_2_1.GIF $gSkinsLibName]
     image create photo iIMB2 -file [format %s_I_2_2.GIF $gSkinsLibName]
     image create photo iIMB3 -file [format %s_I_2_3.GIF $gSkinsLibName]
     image create photo iIMB4 -file [format %s_I_2_4.GIF $gSkinsLibName]
     image create photo iIMB5 -file [format %s_I_2_5.GIF $gSkinsLibName]
     image create photo iIMB6 -file [format %s_I_2_6.GIF $gSkinsLibName]
+    image create photo iAMB5 -file [format %s_A_2_5.GIF $gSkinsLibName]
     image create photo iSMB7 -file [format %s_A_2_7.GIF $gSkinsLibName]
     image create photo iAMB7 -file [format %s_A_7_1.GIF $gSkinsLibName]
     image create photo iAMB8 -file [format %s_A_8_1.GIF $gSkinsLibName]
@@ -207,10 +202,6 @@ proc InitWindow { kRootDir } {
     image create photo iABB8 -file [format %s_A_3_8.GIF $gSkinsLibName]
     image create photo iIBB9 -file [format %s_I_3_9.GIF $gSkinsLibName]
     image create photo iABB9 -file [format %s_A_3_9.GIF $gSkinsLibName]
-    image create photo iHB1 -file [format %s_H_4_1.GIF $gSkinsLibName]
-    image create photo iRB1 -file [format %s_N_4_1.GIF $gSkinsLibName]
-    image create photo iTB1 -file [format %s_T_4_1.GIF $gSkinsLibName]
-
 
     #
     # Deal with everything in the top toolbar
@@ -235,13 +226,8 @@ proc InitWindow { kRootDir } {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <ButtonRelease-1> \
-	    ".cToolbar bind $name <Any-Leave> ; \
-	     .cToolbar lower current; \
-             .cToolbar raise iITB; \
-	     .cToolbar raise iDTB$file; \
-	     .cStatus raise base
-             TBaction$file; \
-             update;"
+	    ".cStatus raise base; \
+             TBaction$file"
 	.cToolbar bind $name <Any-Leave> \
 	    ".cToolbar raise iATB$file"
     }
@@ -480,21 +466,13 @@ proc InitWindow { kRootDir } {
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background red
 
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeight * 5 / 30] \
-	    -image iAMB1 -tags [list  iAMB iAMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeight * 15 / 30] \
-	    -image iAMB2 -tags [list  iAMB iAMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeight*(25/30)*(9/10)] \
-	    -image iAMB3 -tags [list  iAMB iAMB3]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iIMB1 -tags [list  iIMB iIMB1]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iIMB2 -tags [list  iIMB iIMB2]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iIMB3 -tags [list  iIMB iIMB3]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7 -tags [list detVal]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iSMB7 -tags [list startupPic]
 	    	
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iAMB4 -tags [list  iAMB iAMB4]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iAMB5 -tags [list  iAMB iAMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iAMB6 -tags [list  iAMB iAMB6]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iIMB4 -tags [list  iIMB iIMB4]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iIMB5 -tags [list  iIMB iIMB5]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iIMB6 -tags [list  iIMB iIMB6]
@@ -713,5 +691,3 @@ proc InitWindow { kRootDir } {
 
 }
 
-
-## for alex : enabler and disabler for predictions, show moves, undo (don't change appearance)
