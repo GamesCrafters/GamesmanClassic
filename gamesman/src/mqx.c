@@ -23,7 +23,7 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 531441;  // changed later if board size changes 
+int      gNumberOfPositions  = 43046721;  // changed later if board size changes 
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
@@ -109,6 +109,7 @@ Computer wins. Nice try, Dan.";
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
+#define POSITION_OFFSET 43046721 /* 3^16 used like in machi.c */
 
 typedef enum possibleBoards {
   b4x4, b3x4, b3x3, b15_3, b15_4
@@ -126,7 +127,7 @@ char *gBlankHVString[] = { "o", "-", "|" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
                             59049, 177147, 531441, 1594323, 4782969,
-                                              14348907 };
+                                              14348907, 43046721};
 
 /*************************************************************************
 **
@@ -251,24 +252,32 @@ POSITION DoMove(thePosition, theMove)
      MOVE theMove;
 {
   BlankHV theBlankHV[BOARDSIZE];
-  PositionToBlankHV(thePosition,theBlankHV);
+  BlankHV whosTurn;
+  int turnModifier = 0, moveModifier = 0;
+
+  PositionToBlankHV(thePosition,theBlankHV, &whosTurn);
 
   if(0 <= theMove && theMove < BOARDSIZE)
-    return(thePosition + (g3Array[theMove] * (int)H));
+    moveModifier = g3Array[theMove] * (int)H;
 
   else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
-    return(thePosition + (g3Array[theMove - BOARDSIZE] * (int)V));
+    moveModifier = g3Array[theMove - BOARDSIZE] * (int)V;
 
   else if(theBlankHV[theMove - 2 * BOARDSIZE] == H)
-    return(thePosition + (g3Array[theMove - 2 * BOARDSIZE] * ((int)V - (int)H)));
+    moveModifier = g3Array[theMove - 2 * BOARDSIZE] * ((int)V - (int)H);
 
   else if(theBlankHV[theMove - 2 * BOARDSIZE] == V)
-    return(thePosition + (g3Array[theMove - 2 * BOARDSIZE] * ((int)H - (int)V)));
+    moveModifier = g3Array[theMove - 2 * BOARDSIZE] * ((int)H - (int)V);
 
   else {
     BadElse("DoMove");
     return(thePosition);
   }
+
+  if(whosTurn == H)
+    turnModifier = POSITION_OFFSET;
+
+  return(thePosition + moveModifier + turnModifier);
 }
 
 
@@ -432,9 +441,9 @@ VALUE Primitive(position)
      POSITION position;
 {
   BOOLEAN FourInARow(), ThreeInARow(), AllFilledIn();
-  BlankHV theBlankHV[BOARDSIZE];
+  BlankHV theBlankHV[BOARDSIZE], whosTurn;
 
-  PositionToBlankHV(position,theBlankHV);
+  PositionToBlankHV(position,theBlankHV, &whosTurn);
  
   /*printf(" & & & & & & &  PRIMITIVE CALLED WITH position = %d",position);*/
  
@@ -550,9 +559,9 @@ PrintPosition(position,playerName,usersTurn)
   int i;
   STRING GetPrediction();
   VALUE GetValueOfPosition();
-  BlankHV theBlankHV[BOARDSIZE];
+  BlankHV theBlankHV[BOARDSIZE], whosTurn;
 
-  PositionToBlankHV(position,theBlankHV);
+  PositionToBlankHV(position,theBlankHV, &whosTurn);
   
   if (BOARD == b3x4) {
     printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
@@ -656,11 +665,11 @@ MOVELIST *GenerateMoves(position)
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
-  BlankHV theBlankHV[BOARDSIZE];
+  BlankHV theBlankHV[BOARDSIZE], whosTurn;
   int i;
 
   if (Primitive(position) == undecided) {
-    PositionToBlankHV(position,theBlankHV);
+    PositionToBlankHV(position,theBlankHV, &whosTurn);
     for(i = 0 ; i < BOARDSIZE ; i++) {
       if(theBlankHV[i] == Blank) {
       head = CreateMovelistNode(i,head);
@@ -828,10 +837,16 @@ PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankHV(thePos,theBlankHV)
+PositionToBlankHV(thePos,theBlankHV, whosTurn)
      POSITION thePos;
-     BlankHV *theBlankHV;
+     BlankHV *theBlankHV, *whosTurn;
 {
+  if(thePos >= POSITION_OFFSET) {
+    *whosTurn = H;
+    thePos -= POSITION_OFFSET;
+  } else
+    *whosTurn = V;
+
   int i;
   for(i = BOARDSIZE - 1; i >= 0; i--) {
     if(thePos >= ((int)V * g3Array[i])) {
@@ -863,14 +878,17 @@ PositionToBlankHV(thePos,theBlankHV)
 **
 ************************************************************************/
 
-POSITION BlankHVToPosition(theBlankHV)
-     BlankHV *theBlankHV;
+POSITION BlankHVToPosition(theBlankHV, whosTurn)
+     BlankHV *theBlankHV, whosTurn;
 {
   int i;
   POSITION position = 0;
 
   for(i = 0 ; i < BOARDSIZE; i++)
     position += g3Array[i] * (int)theBlankHV[i]; /* was (int)position... */ 
+
+  if(whosTurn == H)
+    position += POSITION_OFFSET; /* account for whos turn it is */
 
     return(position);
 }
