@@ -49,7 +49,7 @@
 /* TODO: find out how to keep track of current_player.
 **       implement the rest of the functions.
 **       some more stuff to put here....
-**       FIX TERMINATING \0 for boards!!!!!!!!!!!!!!!!!!!!!!
+**       FIX TERMINATING \0 for boards!!!!!!!!!!!!!!!!!!!!!! --not necessary
 */
 
 
@@ -130,37 +130,33 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define PLAYER1_PIECE 'X'
-#define PLAYER2_PIECE 'O'
-#define EMPTY_PIECE ' '
-/*this means that it is a BOARD_ROWS by BOARD_COLS gameboard.*/
-#define BOARD_ROWS 5
-#define BOARD_COLS BOARD_ROWS-1
-#define PLAYER_PIECES BOARD_ROWS-1
-#define BOARD_SIZE BOARD_ROWS*BOARD_COLS
-#define EMPTY_PIECES BOARD_SIZE-PLAYER_PIECES
-#define INPUT_FORMAT "%d %d %s"
-#define INPUT_PARAM_COUNT 3
-#define PLAYER1_TURN 1
-#define PLAYER2_TURN 2
+#define PLAYER1_PIECE       'X'
+#define PLAYER2_PIECE       'O'
+#define EMPTY_PIECE         ' '
+#define INPUT_FORMAT        "%d %d %s"
+#define PLAYER1_TURN        1
+#define PLAYER2_TURN        2
+#define NUM_OF_DIRS         4
+#define INPUT_PARAM_COUNT   3
 
 /*************************************************************************
 **
 ** Global Variables
 **
 *************************************************************************/
+unsigned int BOARD_ROWS      = 5;
+unsigned int BOARD_COLS      = 4;
+unsigned int BOARD_SIZE      = 20; /*BOARD_ROWS*BOARD_COLS*/
+unsigned int PLAYER_PIECES   = 4;  /*BOARD_COLS*/
+unsigned int PIECES_IN_A_ROW = 3;
+unsigned int EMPTY_PIECES    = 12; /*BOARD_SIZE-PLAYER_PIECES*/
+
 /*the user input that corresponds to the direction in DIR_INCREMENTS*/
-const STRING directions[] = {"up", "right", "down", "left"};
+const STRING directions[NUM_OF_DIRS] = {"up", "right", "down", "left"};
 
 /*the increments to the row and column numbers of the piece *
 **0 = up, 1 = right, 2 = down, 3 = left*/
-const int dir_increments[][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
-
-const int init_pieces[] = {
-  PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
-  PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
-  EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES, -1
-};
+int dir_increments[NUM_OF_DIRS][2] = { { -1, 0 } , { 0 , 1 } , { 1 , 0 } , { 0 , -1 } };
 
 /*************************************************************************
 **
@@ -196,6 +192,11 @@ void InitializeGame ()
 {
     int i,j;
     char initial_board[BOARD_SIZE];
+    int init_pieces[] = {
+      PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+      PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+      EMPTY_PIECE, EMPTY_PIECES, EMPTY_PIECES, -1
+    };
     gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
     /*initialize initial position*/
     for ( j = 0 ; j < BOARD_COLS ; j++)
@@ -234,9 +235,9 @@ MOVELIST *GenerateMoves (POSITION position)
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
  
   int i, j, k, di, dj;
-  char board[BOARD_ROWS*BOARD_COLS];
+  char board[BOARD_SIZE];
   int player = whoseMove(position);
-  board = generic_unhash (position, board);
+  generic_unhash (position, board);
 
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   for (i = 0; i < BOARD_ROWS; i++) {
@@ -248,10 +249,10 @@ MOVELIST *GenerateMoves (POSITION position)
 	  // for every possible movement as specified in dir_increments
 	  di = i + dir_increments[k][0];
 	  dj = j + dir_increments[k][1];
-	  if ((di >= 0) && (dj >= 0) &&	(di < BOARD_ROWS) && \
-	      (dj < BOARD_COLS) && \
+	  if ((di >= 0) && (dj >= 0) &&	(di < BOARD_ROWS) &&
+	      (dj < BOARD_COLS) &&
 	      (board[Position(di,dj)] == EMPTY_PIECE)) {
-	    moves = CreateMovelistNode(EncodeMove(i,j,di,dj),moves);
+	    moves = CreateMovelistNode(Hasher(i,j,k),moves);
 	  }
 	}
       }
@@ -325,24 +326,26 @@ VALUE Primitive (POSITION position) /*pretty stupid but works*/
     /*check for horizontal ones*/
     for (i = 0; i < BOARD_ROWS; i++)
       for (j = 0; j < (BOARD_COLS-2); j++)
-	if ((board[Position (i,j)] == board[Position (i,j+1)]) &&
+	if ((board[Position (i,j)] != EMPTY_PIECE) &&
+	    (board[Position (i,j)] == board[Position (i,j+1)]) &&
 	    (board[Position (i,j+1)] == board[Position (i,j+2)]))
 	  return lose;
     /*check for vertical ones*/
     for (i = 0; i < (BOARD_ROWS-2); i++)
       for (j = 0; j < BOARD_COLS; j++)
-	if ((board[Position (i,j)] == board[Position (i+1,j)]) &&
+	if ((board[Position (i,j)] != EMPTY_PIECE) &&
+	    (board[Position (i,j)] == board[Position (i+1,j)]) &&
 	    (board[Position (i+1,j)] == board[Position (i+2,j)]))
 	  return lose;
     /*check for diagonal ones*/
     for (i = 0; i < (BOARD_ROWS-2); i++)
       for (j = 0; j < (BOARD_COLS-2); j++)
-	if (
-	    ((board[Position (i,j)] == board[Position (i+1,j+1)]) &&
+	if ((board[Position (i,j)] != EMPTY_PIECE) &&
+	   (((board[Position (i,j)] == board[Position (i+1,j+1)]) &&
 	     (board[Position (i+1,j+1)] == board[Position (i+2,j+2)])) ||
 	    ((board[Position (i, j+2)] == board[Position (i+1,j+1)]) &&
 	     (board[Position (i+1, j+1)] == board[Position (i+2, j)]))
-	   )
+	    ))
 	  return lose;
     return undecided;
 }
@@ -373,9 +376,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf (" The game board as %s sees it:\n", playersName);
     printf ("   0 1 2 3\n");
     printf ("  +-+-+-+-+\n");
-    for (i = 0; i <= BOARD_ROWS; i++) {
+    for (i = 0; i < BOARD_ROWS; i++) {
       printf ( "%d " , i );
-      for (j = 0; j <= BOARD_COLS; j++) 
+      for (j = 0; j < BOARD_COLS; j++) 
 	printf ("|%c", board[Position(i,j)]);
       printf("|\n");
       printf ("  +-+-+-+-+\n");
