@@ -425,7 +425,7 @@ VALUE Primitive (pos)
 	return EndGame(current, whoseMove(pos));
     }
 
-    if (RN[i] <= BOARDHEIGHT - 1) {
+    if (RN[i] <= BOARDHEIGHT) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
