@@ -175,10 +175,10 @@ extern STRING   kDBName ;
 extern BOOLEAN  kDebugDetermineValue ;
 
 /* solver function pointer */
-VALUE (*gSolver)(POSITION);
+extern VALUE (*gSolver)(POSITION);
 
 /* go again function pointer */
-BOOLEAN (*gGoAgain)(POSITION,MOVE);
+extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
 
 /* memory-related function prototypes for games */

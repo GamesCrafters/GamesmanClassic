@@ -132,6 +132,12 @@ int     InitClient();
 ssize_t writen(int fd, const void *vptr, size_t n);
 ssize_t readn(int fd, void *vptr, size_t n);
 
+/* solver function pointer */
+VALUE (*gSolver)(POSITION);
+
+/* go again function pointer */
+BOOLEAN (*gGoAgain)(POSITION,MOVE);
+
 STRING   kOpeningCredits =
 "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n\
 	(G)ame-independent\n\
