@@ -482,7 +482,7 @@ POSITION GetInitialPosition()
   comparePosition = unhash(hash(myPosition));
   if((myPosition.board != comparePosition.board) ||
      (myPosition.stash != comparePosition.stash) ||
-     (myPosition.turn != comparePosition.stock))
+     (myPosition.turn != comparePosition.turn))
   {
     printf("\n Illegal Board Position Please Re-Enter\n");
     return GetIntialPosition();
