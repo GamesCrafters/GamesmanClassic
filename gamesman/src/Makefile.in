@@ -61,6 +61,9 @@ GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
 GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
 GAMESMAN_INCLUDE	= gamesman.h
 
+HASH_OBJ		= hash$(OBJSUFFIX)
+HASH_INCLUDE		= hash.h
+
 1210_EXE		= $(BINDIR)/m1210$(EXESUFFIX)	# The wonderful game of 1,2,...,10
 1210_OBJ		= m1210$(OBJSUFFIX)
 1210_SO			= $(LIBDIR)/libm1210$(LIBSUFFIX)
@@ -130,9 +133,7 @@ DNB_OBJ			= mdnb$(OBJSUFFIX)
 DNB_SO			= $(LIBDIR)/libmdnb$(LIBSUFFIX)
 
 RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
-RUBIX_SRC		= mrubix.c
 RUBIX_OBJ		= mrubix$(OBJSUFFIX)
-RUBIX_TCL_OBJ		= mrubixtcl$(OBJSUFFIX)
 RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
 
 GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph gamGRAPH_OBJ		= mgraph$(OBJSUFFIX)
@@ -163,8 +164,8 @@ SNAKE_OBJ		= msnake$(OBJSUFFIX)
 SNAKE_SO		= $(LIBDIR)/libmsnake$(LIBSUFFIX)
 
 MANCALA_EXE		= $(BINDIR)/mmancala$(EXESUFFIX) # The manic game of Mancala
-SNAKE_OBJ		= mmancala$(OBJSUFFIX)
-SNAKE_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
+MANCALA_OBJ		= mmancala$(OBJSUFFIX)
+MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
 
 SOLVE_EXE		= $(BINDIR)/solve$(EXESUFFIX)
 SOLVE_OBJ		= solve$(OBJSUFFIX)
@@ -178,18 +179,18 @@ SOLVE_OBJ		= solve$(OBJSUFFIX)
 CGAMEOBJS = $(1210_OBJ) $(NIM_OBJ) $(TTT_OBJ) $(SIM_OBJ) $(STT_OBJ) $(DODGEM_OBJ) $(GRAPH_OBJ) \
 	    $(TACTIX_OBJ) $(LGAME_OBJ) $(3DOT_OBJ) $(CMASS_OBJ) $(LITE3_OBJ) \
 	    $(CTOI_OBJ) $(WIN4_OBJ) $(RUBIX_OBJ) $(ACHI_OBJ) $(QX_OBJ) $(GOBBLET_OBJ) \
-	    $(SLIDEN_OBJ) $(SLIDE_OBJ) $(MANCALA_OBJ) #$(9MM_OBJ)
+	    $(SLIDEN_OBJ) $(SLIDE_OBJ) #$(MANCALA_OBJ) #$(9MM_OBJ)
 
 # Binary files
 CGAMES = $(1210_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_EXE) $(DODGEM_EXE) $(GRAPH_EXE) \
 	 $(TACTIX_EXE) $(LGAME_EXE) $(3DOT_EXE) $(CMASS_EXE) $(LITE3_EXE) $(CTOI_EXE) \
 	 $(WIN4_EXE) $(RUBIX_EXE) $(ACHI_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) \
-         $(SNAKE_EXE) $(MANCALA_EXE) #$(9MM_EXE)
+         $(SNAKE_EXE) #$(MANCALA_EXE) #$(9MM_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) $(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) \
-	$(3DOT_SO) $(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(ACHI_SO) $(QX_SO) \
-	$(SLIDEN_SO) $(SNAKE_SO) $(MANCALA_SO)
+	$(3DOT_SO) $(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) $(ACHI_SO) \
+	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) #$(MANCALA_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
@@ -203,7 +204,7 @@ CCTCL = $(CON_SO)
 
 ### Games that need special attention
 SPECIALGAMES = $(DNB_EXE) $(FOXES_EXE) $(TTT_EXE)
-SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(RUBIX_SO) $(TTT_SO)
+SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(TTT_SO)
 
 
 ##############################################################################
@@ -247,6 +248,9 @@ $(SOLVE_OBJ): %$(OBJSUFFIX): %.c
 
 $(SOLVE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
 	$(CC) -o $@ $< $(LDFLAGS)
+
+$(HASH_OBJ): %$(OBJSUFFIX): %.c $(HASH_INCLUDE)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 
 ##############################################################################
@@ -297,9 +301,3 @@ $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
 
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 	$(CC) $(DEP_OBJS) tkAppInitFoxes$(OBJSUFFIX) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
-
-$(RUBIX_SO): $(RUBIX_TCL_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ)
-	$(CC) $(GAMESMAN_OBJ) $(GWISH_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
-
-$(RUBIX_TCL_OBJ): $(RUBIX_SRC)
-	$(CC) -DTCL $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<

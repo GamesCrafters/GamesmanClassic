@@ -40,6 +40,9 @@
 #include <stdio.h>
 #include "gamesman.h"
 
+#pragma weak Tcl_GetInt
+#pragma weak Tcl_CreateCommand
+
 extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 0;
@@ -202,8 +205,6 @@ int g5Array[] = { 1, 5, 25, 125, 625, 3125, 15625, 78125, 390625};
 
 /***************************************************************************/
 
-#ifdef TCL
-
 static int HashCmd(ClientData dummy, Tcl_Interp *interp,
 		   int argc, char **argv);
 static int UnhashCmd(ClientData dummy, Tcl_Interp *interp,
@@ -275,7 +276,6 @@ static int UnhashCmd(dummy, interp, argc, argv)
   }
 }
 
-#endif
 
 /*************************************************************************
 **
