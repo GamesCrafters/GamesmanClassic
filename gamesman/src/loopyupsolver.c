@@ -9,7 +9,7 @@
  *             Generates valid remoteness (ties considered better than draws)
  *             All positions are decided. The value of an invalid position
  *              is meaningless
- *             Works with Go Again
+ *             Works with Go Again, but very slowly
  *
  * Requires:   GAMESMAN standard functions
  *             POSITIONLIST* GenerateParents(POSITION) is defined and
@@ -143,17 +143,21 @@ void loopyup_DetermineValueFromPrimitives() {
 }
 
 void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMOTENESS callersRemoteness, BOOLEAN updateRemotenessOnly) {
-  BOOLEAN foundTie, foundWin;
-  REMOTENESS winRemoteness, tieRemoteness;
+  REMOTENESS winRemoteness;
   MOVELIST *mhead, *moveList;
   POSITION child;
-  VALUE myValue, childValue;
+  VALUE myValue;
   REMOTENESS childRemoteness;
   REMOTENESS myRemoteness;
 
-  assert(pos <= gNumberOfPositions);
+  if (pos >= gNumberOfPositions) {
+    printf("Illegal position from GenerateParents: " POSITION_FORMAT "\n", pos);
+    printf("gNumberOfPositions: " POSITION_FORMAT "\n", gNumberOfPositions);
+    assert(pos < gNumberOfPositions);
+  }
 
   myValue = GetValueOfPosition(pos);
+  myRemoteness = Remoteness(pos);
 
   /* ignore primitives */
   if (Visited(pos)) {
@@ -163,16 +167,15 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
   /* instant win */
   if (callersValue == lose) {
     if (myValue == win) {
-      myRemoteness = Remoteness(pos);
       if (myRemoteness > callersRemoteness) {
 	/* don't have to check for max remoteness b/c 
-	 * callersRemoteness < myRemoteness <= REMOTENESS_MAX */
+	 * callersRemoteness < myRemoteness <= REMOTENESS_MAX-1 */
 	myRemoteness = callersRemoteness+1;
       }
       loopyup_UpdateRemotenessAndPropagate(pos, win, myRemoteness);
     }
     else {
-      if (callersRemoteness < REMOTENESS_MAX)
+      if (callersRemoteness < REMOTENESS_MAX-1)
 	myRemoteness = callersRemoteness + 1;
       else
 	myRemoteness = callersRemoteness;
@@ -182,9 +185,29 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
     return;
   }
 
-  /* only loses and ties from now on */
-  /* already know value, so return */
-  if (myValue != undecided) {
+  if (callersValue == tie && callersRemoteness<REMOTENESS_MAX && myValue != win) {
+    if (myValue == tie) {
+      if (myRemoteness > callersRemoteness) {
+	/* don't have to check for max remoteness b/c 
+	 * callersRemoteness < myRemoteness <= REMOTENESS_MAX-1 */
+	myRemoteness = callersRemoteness+1;
+      }
+      loopyup_UpdateRemotenessAndPropagate(pos, tie, myRemoteness);
+    }
+    else {
+      if (callersRemoteness < REMOTENESS_MAX-1)
+	myRemoteness = callersRemoteness + 1;
+      else
+	myRemoteness = callersRemoteness;
+      
+      loopyup_StoreValueAndPropagate(pos, tie, myRemoteness);
+    }
+    return;
+  }
+
+  /* only loses and draws from now on */
+  /* already know value or draw, so return */
+  if (myValue != undecided || myValue == tie) {
     return;
   }
 
@@ -195,76 +218,53 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
   if (!updateRemotenessOnly)
     loopyup_childrenCount[pos]--;
 
+  /* only winning children left */
   if (loopyup_childrenCount[pos]==0) {
-    foundTie = foundWin = FALSE;
     winRemoteness = -1;
-    tieRemoteness = REMOTENESS_MAX;
 
     mhead = moveList = GenerateMoves(pos);
 
     while(moveList != NULL) {
       child = DoMove(pos, moveList->move);
-      childValue = GetValueOfPosition(child);
       childRemoteness = Remoteness(child);
 
-      if (childValue == tie) {
-	foundTie = TRUE;
-	if (childRemoteness<tieRemoteness) {
-	  tieRemoteness = childRemoteness;
-	}
+      if (childRemoteness>winRemoteness) {
+	winRemoteness = childRemoteness;
       }
-      else if (childValue == win) {
-	foundWin = TRUE;
-	if (childRemoteness>winRemoteness) {
-	  winRemoteness = childRemoteness;
-	}
-      }
-      else {
-	BadElse("loopyup_DetermineLocalValue");
-      }
-      
+            
       moveList = moveList->next;
     }
     FreeMoveList(mhead);
 
-    if (foundTie) {
-      myValue = tie;
-      if (myRemoteness < REMOTENESS_MAX-1)
-	myRemoteness = tieRemoteness + 1;
-      else
-	myRemoteness = tieRemoteness;
-    }
-    else if (foundWin) {
-      myValue = lose;
-      if (myRemoteness < REMOTENESS_MAX)
-	myRemoteness = winRemoteness + 1;
-      else 
-	myRemoteness = winRemoteness;
-    }
-    else {
-      BadElse("loopyup_DetermineLocalValue2");
-    }
+    myValue = lose;
+    if (myRemoteness < REMOTENESS_MAX-1)
+      myRemoteness = winRemoteness + 1;
+    else 
+      myRemoteness = winRemoteness;
 
     loopyup_StoreValueAndPropagate(pos, myValue, myRemoteness);
   }
 }
 
 void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTENESS callersRemoteness, BOOLEAN updateRemotenessOnly) {
-  BOOLEAN foundTie, foundWin, foundLose;
+  BOOLEAN foundTie, foundWin, foundLose, foundUndecided;
   REMOTENESS winRemoteness, tieRemoteness, loseRemoteness;
   MOVELIST *mhead, *moveList;
   POSITION child;
-  VALUE myValue, childValue;
+  VALUE oldValue, newValue, childValue;
   REMOTENESS childRemoteness;
-  REMOTENESS myRemoteness;
+  REMOTENESS oldRemoteness, newRemoteness;
 
   /* if primitive, skip */
   if (Visited(pos)) {
     return;
   }
 
-  foundTie = foundWin = foundLose = FALSE;
-  winRemoteness = -1;
+  oldValue = GetValueOfPosition(pos);
+  oldRemoteness = Remoteness(pos);
+
+  foundTie = foundWin = foundLose = foundUndecided = FALSE;
+  winRemoteness = 0;
   tieRemoteness = loseRemoteness = REMOTENESS_MAX;
   
   mhead = moveList = GenerateMoves(pos);
@@ -278,6 +278,7 @@ void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTE
       switch (childValue) {
       case lose: childValue = win; break;
       case win: childValue = lose; break;
+      default: /* do nothing */ break;
       }
     }
     
@@ -287,7 +288,8 @@ void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTE
 	loseRemoteness = childRemoteness;
       }
     }
-    else if (childValue == tie) {
+    /* tie (not draw) */
+    else if (childValue == tie && childRemoteness<REMOTENESS_MAX) {
       foundTie = TRUE;
       if (childRemoteness<tieRemoteness) {
 	tieRemoteness = childRemoteness;
@@ -300,7 +302,8 @@ void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTE
       }
     }
     else {
-      /* undecided */
+      /* draw or undecided */
+      foundUndecided = TRUE;
     }
     
     moveList = moveList->next;
@@ -308,31 +311,32 @@ void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTE
   FreeMoveList(mhead);
   
   if (foundLose) {
-    myValue = win;
-    if (myRemoteness < REMOTENESS_MAX-1)
-      myRemoteness = loseRemoteness + 1;
-    else
-      myRemoteness = loseRemoteness;
+    newValue = win;
+    newRemoteness = loseRemoteness;
   }
   else if (foundTie) {
-    myValue = tie;
-    if (myRemoteness < REMOTENESS_MAX-1)
-      myRemoteness = tieRemoteness + 1;
-    else
-      myRemoteness = tieRemoteness;
+    newValue = tie;
+    newRemoteness = tieRemoteness;
+  }
+  else if (foundUndecided) {
+    /* draw or undecided, no update */
+    return;
   }
   else if (foundWin) {
-    myValue = lose;
-    if (myRemoteness < REMOTENESS_MAX)
-      myRemoteness = winRemoteness + 1;
-    else 
-      myRemoteness = winRemoteness;
+    newValue = lose;
+    newRemoteness = winRemoteness;
   }
-  else {
-    BadElse("loopyup_DetermineLocalValue2");
+
+  if (newRemoteness < REMOTENESS_MAX-1) {
+    newRemoteness++;
   }
-  
-  loopyup_StoreValueAndPropagate(pos, myValue, myRemoteness);
+
+  if (newValue != oldValue) {
+    loopyup_StoreValueAndPropagate(pos, newValue, newRemoteness);
+  }
+  else if (newRemoteness != oldRemoteness) {
+    loopyup_UpdateRemotenessAndPropagate(pos, newValue, newRemoteness);
+  }
 }
 
 void loopyup_StoreValueAndPropagate(POSITION pos, VALUE value, REMOTENESS remoteness) {
