@@ -55,6 +55,7 @@ void die ( const char* fmt, ... )
 	
 	fprintf(stderr, "FATAL: ");
 	vfprintf(stderr, fmt, args);
+	fflush(stderr);
 	
 	exit(1);
 }
