@@ -166,7 +166,7 @@ GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
 GRAPH_OBJ		= mgraph$(OBJSUFFIX)
 
 ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
-ACHI_OBJ		= machi$(OBJSUFFIX)
+ACHI_OBJ		= machi$(OBJSUFFIX) mtttppm$(OBJSUFFIX)
 ACHI_SO			= $(LIBDIR)/libmachi$(LIBSUFFIX)
 
 QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
@@ -363,6 +363,9 @@ $(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) 
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
+
+$(ACHI_EXE): $(ACHI_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
+	$(CC) -o $@ $(ACHI_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(TTT_EXE): $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
 	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
