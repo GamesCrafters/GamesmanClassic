@@ -1402,7 +1402,10 @@ PrintMoves(ptr, remoteptr)
     printf("\n\t\t");
     PrintMove(ptr->move);
     printf(" \t");
-    printf("%d", (int) remoteptr->remoteness);
+    if(((int) remoteptr->remoteness) == REMOTENESS_MAX)
+      printf("Draw");
+    else
+      printf("%d", (int) remoteptr->remoteness);
     ptr = ptr->next;
     remoteptr = remoteptr->next;
   }
@@ -1838,8 +1841,8 @@ MOVE GetComputersMove(thePosition)
   BOOLEAN setBackSmartness = FALSE;
   int oldsmartness = smartness;
   ptr = head = prev = NULL;
-  i = 0; 
-
+  i = 0;
+  
   moves = GetValueMoves(thePosition);
 
   if (GetRandomNumber(MAXSCALE+1) > scalelvl && smartness == SMART) {
@@ -1880,7 +1883,7 @@ MOVE GetComputersMove(thePosition)
       i++;
     }
     if (ptr == NULL || rptr == NULL) {
-      printf("Error in GetComputersMove: no Move at all");
+      printf("Error in GetComputersMove: Either no available moves or corrupted database");
       exit(0);
     }
     while(ptr != NULL) {
@@ -2012,7 +2015,7 @@ MOVE GetComputersMove(thePosition)
       i--;
     }
     if (ptr == NULL) {
-      printf("Error in GetComputersMove: no Move at all");
+      printf("Error in GetComputersMove: Either no available move or corrupted database");
       exit(0);
     }
     while(ptr != NULL) {
@@ -2089,37 +2092,22 @@ VALUE_MOVES* GetValueMoves(thePosition)
      POSITION thePosition;
 {
   MOVELIST *ptr, *head, *GenerateMoves();
-  VALUE_MOVES *StoreMoveInList(), *SortMoves(), *valueMoves;
+  VALUE_MOVES *SortMoves(), *valueMoves;
   VALUE GetValueOfPosition(), theValue, Primitive();
   POSITION child;
   GENERIC_PTR SafeMalloc();
 
+  valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
+  valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
+  valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
+
   if(Primitive(thePosition) != undecided)   /* Primitive positions have no moves */
-    return(NULL);
+    return(valueMoves);
 
   else if((theValue = GetValueOfPosition(thePosition)) == undecided)
-    return(NULL);                           /* undecided positions are invalid */
-
-  else if(theValue == lose) {
-    valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
-    valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
-    valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
-
-    ptr = GenerateMoves(thePosition);
-    while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
-      valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
-      ptr = ptr->next;
-    }
-  }
-
-  else if(theValue != win && theValue != tie) 
-    BadElse("GetValueMoves");     /* This makes sure the value is win | tie */
+    return(valueMoves);                           /* undecided positions are invalid */
  
   else {                                    /* we are guaranteed it's win | tie now */
-    valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
-    valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
-    valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
-
     ptr = GenerateMoves(thePosition);
     while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
       valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
