@@ -171,6 +171,10 @@ FRnode *gHeadTieFR;               /* The FRontier Tie Queue */
 FRnode *gTailTieFR;
 POSITIONLIST **gParents;         /* The Parent of each node in a list */
 char *gNumberChildren;           /* The Number of children (used for Loopy games) */
+int gBytesMalloced;
+int gMaxBytesUsed;
+int gBytesInUse;
+BOOLEAN kDebugLoopyMem = FALSE;
 // End Loopy
 
 char *gValueString[] =
@@ -426,6 +430,9 @@ ParseBeforeEvaluationMenuChoice(c)
 	gValue = DetermineValue(gInitialPosition);
 
       printf("done in %d seconds!", Stopwatch());
+
+      
+      
       printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gValue]);
       gMenuMode = Evaluated;
 	if(gValue == lose)
@@ -1216,6 +1223,7 @@ FreeMoveList(ptr)
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
+    gBytesInUse -= sizeof(MOVELIST);
     SafeFree((GENERIC_PTR)last);
   }
 }
@@ -1227,6 +1235,7 @@ FreePositionList(ptr)
   while (ptr != NULL) {
     last = ptr;
     ptr = ptr->next;
+    gBytesInUse -= sizeof(POSITIONLIST);
     SafeFree((GENERIC_PTR)last);
   }
 }
@@ -1384,7 +1393,7 @@ GENERIC_PTR SafeMalloc(amount)
      int amount;
 {
   GENERIC_PTR ptr;
-	
+
   /* Mando's Fix is to put a ckalloc here */
   if((ptr = malloc(amount)) == NULL) {
     printf("Error: SafeMalloc could not allocate the requested %d bytes\n",amount);
@@ -1392,6 +1401,10 @@ GENERIC_PTR SafeMalloc(amount)
     return(ptr); /* never reached - added to make lint happy */
   }
   else {
+    gBytesMalloced += amount;
+    gBytesInUse += amount;
+    if (gBytesInUse > gMaxBytesUsed)
+      gMaxBytesUsed = gBytesInUse;
     return(ptr);
   }
 }
@@ -2148,7 +2161,7 @@ MyPrintParents()
 VALUE DetermineLoopyValue1(position)
 POSITION position;
 {				
-  POSITION DeQueueWinFR(), DeQueueLoseFR(), DeQueueTieFR(), InsertWinFR(), InsertLoseFR(), InsertTieFR(), child, parent;
+  POSITION DeQueueWinFR(), DeQueueLoseFR(), DeQueueTieFR(), child, parent;
   POSITIONLIST *ptr;
   VALUE GetValueOfPosition(), childValue;
   REMOTENESS remotenessChild, Remoteness();
@@ -2235,9 +2248,9 @@ POSITION position;
 	  /* We always need to change the remoteness because we examine winning node with
 	  ** less remoteness first. */
 	  SetRemoteness(parent, remotenessChild + 1);
-	} 
-	ptr = ptr->next;
-      } /* while there are still parents */
+	}
+	ptr = ptr->next;  
+       } /* while there are still parents */
 
     /* With children set to other than win/lose. So stop */
     } else {
@@ -2248,7 +2261,6 @@ POSITION position;
     ** The tie frontier will not need this, either, because this child's value has already
     ** been determined.  It cannot be a tie. */
     FreePositionList(gParents[child]);
-
     
   } /* while still positions in FR */
 
@@ -2262,17 +2274,25 @@ POSITION position;
 
     while (ptr != NULL) {
       parent = ptr->position;
-      
-      if (--gNumberChildren[parent] == 0) {
-	assert(GetValueOfPosition(parent) == undecided);
 
+      if(GetValueOfPosition(parent) == undecided) {
+	/* this position has no losing children but has a tieing position so it must be a 
+         * tie. Assign its value and set its remoteness.  Note that 
+         * we give ties with lowest remoteness priority (i.e. if a 
+         * position has no losing children, a tieing child of 
+         * remoteness 2, and a tieing child of remoteness 10, the 
+         * position will be a tie of remoteness 3, not 11.  This 
+         * decision is pretty arbitrary.  We did it this way to be 
+         * consistent with DetermineValue for non-loopy games. */
+	
 	InsertTieFR(parent);
 	if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
 	StoreValueOfPosition(parent,tie); 
 	SetRemoteness(parent, remotenessChild + 1);
       }
-
-    }      
+      ptr = ptr->next;
+    }
+    FreePositionList(gParents[child]);
   }
 
   /* Now set all remaining positions to tie with remoteness of REMOTENESS_MAX */
@@ -2303,24 +2323,32 @@ POSITION position;
       UnMarkAsVisited((POSITION)i);
     }
 
-  free(gParents);
-  
   return(GetValueOfPosition(position));
 }
 
 VALUE DetermineLoopyValue(position)
 POSITION position;
 {
-        if(!loadDatabase())
-        {
-		InitializeFR();
-		ParentInitialize();
-		NumberChildrenInitialize();
-		gValue = DetermineLoopyValue1(gMinimalPosition) ;
-                writeDatabase() ;
-                return gDatabase[position] % 4;
-        }
-        return gDatabase[position] % 4 ;
+  if(!loadDatabase())
+    {
+      gBytesMalloced = 0;
+      gBytesInUse = 0;
+      gMaxBytesUsed = 0;
+      InitializeFR();
+      ParentInitialize();
+      NumberChildrenInitialize();
+      gValue = DetermineLoopyValue1(gMinimalPosition) ;
+      NumberChildrenFree();
+      ParentFree();
+      writeDatabase() ;
+      if (kDebugLoopyMem) {
+	printf("\n\nTotal bytes malloced by DetermineLoopyValue: %d\n", gBytesMalloced);
+	printf("Max memory used by DetermineLoopyValue at any time: %d\n", gMaxBytesUsed);
+	printf("Bytes malloced but left un-freed: %d\n\n", gBytesInUse);
+      }
+      return gDatabase[position] % 4;
+    }
+  return gDatabase[position] % 4 ;
 }
 
 DFS_SetParents(parent,position)
@@ -2350,8 +2378,10 @@ POSITION parent,position;
       InsertLoseFR(position);
     else if(value == win)
       InsertWinFR(position);
+    else if(value == tie)
+      InsertTieFR(position);
     else
-      assert(value == tie);
+      BadElse("DetermineLoopyValue1 found primitive with value other than win/lose/tie");
     /* Set the value */
     StoreValueOfPosition(position,value);
     return;
@@ -2384,7 +2414,8 @@ ParentInitialize()
 
 ParentFree()
 {
-	free(gParents) ;
+  gBytesInUse -= (gNumberOfPositions * sizeof(POSITIONLIST *));
+  free(gParents) ;
 }
 
 NumberChildrenInitialize()
@@ -2399,7 +2430,8 @@ NumberChildrenInitialize()
 
 NumberChildrenFree()
 {
-	free(gNumberChildren) ;
+  gBytesInUse -= (gNumberOfPositions * sizeof(signed char));
+  free(gNumberChildren) ;
 }
 
 InitializeFR()
@@ -2440,6 +2472,7 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
     position = (*gHeadFR)->position;
     tmp = *gHeadFR;
     (*gHeadFR) = (*gHeadFR)->next;
+    gBytesInUse -= sizeof(FRnode);
     free(tmp);
 
     if (*gHeadFR == NULL)
@@ -2448,25 +2481,25 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
   return position;
 }
 
-void InsertWinFR(POSITION position)
+InsertWinFR(POSITION position)
 {
   /* printf("Inserting WinFR...\n"); */
   InsertFR(position, &gHeadWinFR, &gTailWinFR);
 }
 
 
-void InsertLoseFR(POSITION position)
+InsertLoseFR(POSITION position)
 {
   /* printf("Inserting LoseFR...\n"); */
   InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
 }
 
-void InsertTieFR(POSITION position)
+InsertTieFR(POSITION position)
 {
   InsertFR(position, &gHeadTieFR, &gTailTieFR);
 }
 
-void InsertFR(POSITION position, FRnode **firstnode,
+InsertFR(POSITION position, FRnode **firstnode,
 			FRnode **lastnode)
 {
   FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
