@@ -25,6 +25,15 @@ proc GS_InitGameSpecific {} {
     set backgroundImage "$kRootDir/../bitmaps/mnim-background.gif"
     set playareaImage "$kRootDir/../bitmaps/mnim-table.gif"
 
+    global valueMoveColorLose
+    global valueMoveColorWin
+    global valueMoveColorOff
+
+    set valueMoveColorLose red4
+    set valueMoveColorWin green
+    set valueMoveColorOff cyan
+
+
     global kMinRows kMaxRows
     set kMinRows 1
     set kMaxRows 5
@@ -345,19 +354,23 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # For example [MoveValueToColor "value" "Tie"] would return yellow and [MoveValueToColor "all" "anything"] would return cyan.
 
 proc GS_ShowMoves { c moveType position moveList } {
+    global valueMoveColorLose
+    global valueMoveColorWin
+    global valueMoveColorOff
+
     set l [unhash $position]
     foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
-	set color cyan
+	set color $valueMoveColorOff
 	
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
 	    } elseif {$value == "Lose"} {
-		set color green
+		set color $valueMoveColorWin
 	    } else {
-		set color red
+		set color $valueMoveColorLose
 	    }
 	}
 	set i [expr $move/10]
