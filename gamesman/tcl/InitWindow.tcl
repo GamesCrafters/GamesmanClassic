@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.45 2004-12-02 01:05:18 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.46 2004-12-02 23:41:46 jontsai Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -440,6 +440,15 @@ proc InitWindow { kRootDir kDir kExt } {
 	-variable gSmartnessScale \
 	-orient horizontal
 
+    global gAnimationDelay
+
+    scale .middle.f2.fPlayOptions.fMid.fRight.animationDelay \
+        -label "Animation delay:" \
+        -from 0 \
+        -to 10 \
+        -variable gAnimationDelay \
+        -orient horizontal
+
     ############################SOLVING OPTIONS############################
     label .middle.f2.fPlayOptions.fMid.fRight.cSolvingOptions \
 	    -text "Solving Options:" \
@@ -500,7 +509,9 @@ proc InitWindow { kRootDir kDir kExt } {
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly -expand 1 -fill both -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly -side top -expand 1 -fill both
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely -side top -expand 1 -fill both
-    pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x    
+    pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x
+    pack .middle.f2.fPlayOptions.fMid.fRight.animationDelay -side top -expand 1 -fill x
+
 #    pack .middle.f2.fPlayOptions.fMid.fRight.cSolve -side bottom -fill both
 #    pack .middle.f2.fPlayOptions.fMid.fRight.cTwoBits -side bottom -fill both
 #    pack .middle.f2.fPlayOptions.fMid.fRight.cLowMemSolver -side bottom -fill both
