@@ -125,6 +125,7 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 blankox parse_char(char c);
 char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
+int count_mills(POSITION position, blankox player);
 
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
@@ -551,8 +552,8 @@ MOVELIST *GenerateMoves(POSITION position)
   x_count = o_count = blank_count = 0;
     
   if (Primitive(position) == undecided) {
+
     unhash(position, dest);
-    
     
     for (i = 0; i < BOARDSIZE; i++)
       {
@@ -896,6 +897,7 @@ POSITION hash(blankox *b_board, blankox turn)
     player = 1;
   else 
     player = 2;
+
   unparse_board(b_board, c_board);
   
   return generic_hash(c_board, player);
@@ -910,13 +912,14 @@ blankox *unhash(int hash_val, blankox *b_board)
   
   //debug
   if (debug) {
-    printf("The hash value is: %d\n", hash_val);
+    printf("The hash value being unhashed is: %d\n", hash_val);
   }
   
   parse_board(c_board, b_board);
 
   //debug
   if (debug) {
+    printf("unhash found: \n");
     debugBoard(b_board,c_board);
   }
 
@@ -1010,8 +1013,31 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 {
   blankox board[BOARDSIZE];
   unhash(position, board);
-  return !check_mill(board, slot);
+  return (count_mills(position, board[slot]) < 2) || !check_mill(board, slot);
 }
+
+// Given position, player, count # of mills for player on board
+int count_mills(POSITION position, blankox player)
+{
+  blankox board[BOARDSIZE];
+  int i, mills;
+  unhash(position, board);
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == player) {
+      if (check_mill(board, i)) {
+	mills++;
+      }
+    }
+  }
+
+  if (debug) {
+    printf("At position %ld, count_mills found %d mill(s) for player %c.\n", position, mills, unparse_blankox(player));
+  }
+
+  return mills;
+}
+  
 
 BOOLEAN closes_mill_move(MOVE the_move) {
   return from(the_move) != remove_piece(the_move);
@@ -1025,7 +1051,7 @@ BOOLEAN closes_mill(POSITION position, int raw_move)
   return check_mill(board, to(raw_move)); 
 }
 
-// given new board, slot that was moved to
+// given new board, slot that was moved to, true if slot is member of mill
 BOOLEAN check_mill(blankox *board, int slot)
 {
   
@@ -1141,6 +1167,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.39  2004/04/14 23:46:52  ogren
+//debug can print a mini board with actual board on left, legend on right (kinda ugly).  No major changes, generate moves is still funny -Elmer
+//
 //Revision 1.38  2004/04/14 20:00:42  ogren
 //minor debugging and spacing changes, maybe print mini-boards for debugging in future -Elmer
 //
