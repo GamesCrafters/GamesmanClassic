@@ -91,7 +91,11 @@
 **                     Reverted to yanpeiInitialize
 ** 26 Mar 2005 Yanpei: Some structural changes to allow for variable GAMEDIMENSION. Effect on
 **                     existing code should be minimal. Use MallocBoard() and FreeBoard() now
-**                     for memory management with boards. 
+**                     for memory management with boards. Use yanpeiInitializaGame(). 
+** 26 Mar 2005 Yanpei: getCannonical() coded and tested. Very straight forward in fact. 
+**                     Combined Mario's and Prof Garcia's ideas.
+** 26 Mar 2005 Yanpei: Some data of interest: 
+**                     GAMEDIMENSION = 2: 317 positions, 17 cannonicals
 **
 **************************************************************************/
 
@@ -231,26 +235,28 @@ extern void		SafeFree ();
 void* 			gGameSpecificTclInit = NULL;  /* newly added to tempalte */
 
 /* External */
+QTBPtr                  MallocBoard();
+void                    FreeBoard(QTBPtr b);
 void			setOffsetTable();
 POSITION		combination(int n, int r);
 POSITION		permutation(int n, int r);
-POSITION		hashUnsymQuartoHelper(QTBPtr b, int baseSlot);
-void			unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn);
 
-/* Implementation of the set of hash functions using a simple and wasteful bitpacking algorithm */
-POSITION		packhash( QTBPtr );
-QTBPtr			packunhash( POSITION );
+/* Implementations of hash/unhash */
+POSITION		packhash( QTBPtr );      // made redundant by hashUnsymQuarto()
+QTBPtr			packunhash( POSITION );  // made redundant by unhashUnsymQuarto()
 POSITION                hashUnsymQuarto(QTBPtr b);
 QTBPtr                  unhashUnsymQuarto(POSITION p);
 /* Implementations of InitializeGame */
 void                    yanpeiInitializeGame();
-void                    marioInitializeGame();
+void                    marioInitializeGame(); // not modified to fit updated datastructures
 /* Implementations of PrintPosition */
 void                    marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn );
 void                    yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn );
 /* Implementations of factorial */
 POSITION		factorialMem(int n);
 POSITION                factorialNoMem(int n);
+/* Implementations of getCannonical */
+POSITION                yanpeiGetCannonical(POSITION p);
 
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
 POSITION		(*hash)( QTBPtr ) = &hashUnsymQuarto;
@@ -258,15 +264,25 @@ QTBPtr			(*unhash)( POSITION ) = &unhashUnsymQuarto;
 void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
 POSITION                (*factorial)(int n) = &factorialMem;
+POSITION                (*getCannonical)(POSITION p) = &yanpeiGetCannonical;
+
+/* support functions */
+POSITION		hashUnsymQuartoHelper(QTBPtr b, int baseSlot);
+void			unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn);
 
 BOOLEAN			searchPrimitive(short *);
 
-/* support functions */
-QTBPtr                  MallocBoard();
-void                    FreeBoard(QTBPtr b);
+POSITION                rotateBoard90(POSITION p);
+POSITION                reflectBoard(POSITION p);
+POSITION                maskBoard(POSITION p, short mask);
 
 void                    yanpeiTestOffset();
 void                    yanpeiTestHash();
+void                    yanpeiTestCannonicalSupport();
+void                    yanpeiTestCannonical();
+
+void                    FreePosList(POSITIONLIST *l);
+BOOLEAN                 SearchPosList(POSITIONLIST *l, POSITION p);
 
 BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
 void			print_board( QTBPtr );
@@ -381,16 +397,19 @@ void yanpeiInitializeGame() {
     board->slots[slot] = EMPTYSLOT;  
   }
 
-  /* test the hash/unhash functions */
+  /* calls to test functions */
   yanpeiTestOffset();
   yanpeiTestHash();
+  yanpeiTestCannonicalSupport();
+  yanpeiTestCannonical();
 
   /* Set initial position to empty board */
   gInitialPosition = hash(board);
   gNumberOfPositions = offsetTable[NUMPIECES+1];
 
-  //printf("%d\n",gInitialPosition);
-  //printf("%d\n",gNumberOfPositions);
+  printf("\n");
+  printf("gInitialPosition = %d\n",gInitialPosition);
+  printf("gNumberOfPositions = %d\n",gNumberOfPositions);
 
 }
 
@@ -1448,8 +1467,6 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
   POSITION firstSlotOffset, squaresOccupiedOffset;
   POSITION pHelper;
 
-  if (!offsetTableSet) setOffsetTable;
-
   // set all empty square to EMPTYSLOT at first, to be filled up w/ pieces
   for (i=0; i<BOARDSIZE+1; i++) {
     toReturn->slots[i] = EMPTYSLOT;
@@ -1594,6 +1611,7 @@ void setFactorialTable() {
 }
 
 POSITION factorialMem(int n) {
+  if (!factorialTableSet) setFactorialTable();
   if (n<=0) {
     return 1;
   } else if (FACTORIALMAX<=n) {
@@ -1621,7 +1639,6 @@ POSITION factorialNoMem( int n ) {
 // returns n P r, the number of ordered arrangements of 
 // r items selected from a set of n items
 POSITION permutation(int n, int r) {
-  if (!factorialTableSet) setFactorialTable();
   /* Mario: updating base cases, should return 1 when r <= 0, 0 when otherwise n <= 0
             Used to return 1 if either n or r are greater than 0, which is virtually always */
   if (r <= 0) {
@@ -1636,7 +1653,6 @@ POSITION permutation(int n, int r) {
 // returns n C r, the number of unordered arrangements of 
 // r items selected from a set of n items
 POSITION combination(int n, int r) {
-  if (!factorialTableSet) setFactorialTable();
   /* Mario: updating base cases, should return 1 when r <= 0, 0 when otherwise n <= 0
             Used to return 1 if either n or r are greater than 0, which is virtually always */
   if (r <= 0) {
@@ -1882,8 +1898,294 @@ void yanpeiTestHash() {
     PrintPosition(i,"",TRUE);
     i++;
   }
-  if (allPassed) printf("\n ... passed.\n"); 
-  else printf("\n ... failed.\n");
+  if (allPassed) printf("\n ... testHash() passed.\n"); 
+  else printf("\n ... testHash() failed.\n");
 
   printPos = oldPrintPos;
+}
+
+POSITION yanpeiGetCannonical(POSITION p) {
+
+  POSITION geometricSym[8];
+  POSITION toReturn = offsetTable[NUMPIECES+1];
+  POSITION temp;
+  short i,j;
+
+  geometricSym[0] = p;
+  geometricSym[1] = rotateBoard90(geometricSym[0]);
+  geometricSym[2] = rotateBoard90(geometricSym[1]);
+  geometricSym[3] = rotateBoard90(geometricSym[2]);
+  geometricSym[4] = reflectBoard(geometricSym[0]);
+  geometricSym[5] = reflectBoard(geometricSym[1]);
+  geometricSym[6] = reflectBoard(geometricSym[2]);
+  geometricSym[7] = reflectBoard(geometricSym[3]);
+
+  for (i=0; i<NUMPIECES; i++) {
+    for (j=0; j<8; j++) {
+      if ((temp=maskBoard(geometricSym[j],i)) < toReturn) toReturn = temp;
+    }
+  }
+
+  return toReturn;
+
+}
+
+POSITION rotateBoard90(POSITION p) {
+
+  QTBPtr b = unhash(p);
+  QTBPtr c = MallocBoard();
+  short i,j;
+  POSITION toReturn;
+
+  c->squaresOccupied = b->squaresOccupied;
+  c->piecesInPlay = b->piecesInPlay;
+  c->usersTurn = b->usersTurn;
+
+  for (i=0; i<GAMEDIMENSION; i++) {
+    for (j=0; j<GAMEDIMENSION; j++) {
+      c->slots[GAMEDIMENSION*i + j + 1] 
+	= b->slots[GAMEDIMENSION*j + (GAMEDIMENSION-i-1) + 1];
+    }
+  }
+  c->slots[0] = b->slots[0];
+
+  toReturn = hash(c);
+  FreeBoard(b);
+  FreeBoard(c);
+
+  return toReturn;
+}
+
+POSITION reflectBoard(POSITION p) {
+
+  QTBPtr b = unhash(p);
+  QTBPtr c = MallocBoard();
+  short i,j;
+  POSITION toReturn;
+
+  c->squaresOccupied = b->squaresOccupied;
+  c->piecesInPlay = b->piecesInPlay;
+  c->usersTurn = b->usersTurn;
+
+  for (i=0; i<GAMEDIMENSION; i++) {
+    for(j=0; j<GAMEDIMENSION; j++) {
+      c->slots[GAMEDIMENSION*i + j + 1] 
+	= b->slots[GAMEDIMENSION*i + (GAMEDIMENSION-j-1) + 1];
+    }
+  }
+  c->slots[0] = b->slots[0];
+
+  toReturn = hash(c);
+  FreeBoard(b);
+  FreeBoard(c);
+
+  return toReturn;
+}
+
+
+POSITION maskBoard(POSITION p, short mask) {
+
+  QTBPtr b = unhash(p);
+  short i;
+  short pad;
+  POSITION toReturn;
+
+  pad = maskseq(GAMEDIMENSION);
+  for (i=0; i<BOARDSIZE+1; i++) {
+    if (b->slots[i] != EMPTYSLOT) {
+      b->slots[i] ^= mask;
+      b->slots[i] &= pad;
+    }
+  }
+
+  toReturn = hash(b);
+  FreeBoard(b);
+
+  return toReturn;
+}
+
+void yanpeiTestRotate();
+void yanpeiTestReflect();
+void yanpeiTestMask();
+
+void yanpeiTestCannonicalSupport() {
+  printf("\nTesting support functions for GetCannonicalPosition()\n");
+  yanpeiTestRotate();
+  yanpeiTestReflect();
+  yanpeiTestMask();
+}
+
+void yanpeiTestRotate() {
+
+  short i;
+  QTBPtr b = MallocBoard();
+  POSITION p,q;
+  void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
+
+  printf("\nTesting rotateBoard()\n");
+
+  printPos = &yanpeiPrintSlots;
+
+  b->usersTurn = FALSE;
+  b->squaresOccupied = (NUMPIECES<BOARDSIZE) ? NUMPIECES : BOARDSIZE-1;
+  b->piecesInPlay = (NUMPIECES<BOARDSIZE) ? NUMPIECES : BOARDSIZE-2;
+  for (i=0; i<BOARDSIZE; i++) {
+    b->slots[i] = (i<NUMPIECES) ? i : EMPTYSLOT;
+  }
+  b->slots[BOARDSIZE] = EMPTYSLOT;
+
+  p = hash(b);
+  q = p;
+  PrintPosition(q,"",TRUE);
+  printf("Rotating board ...\n");
+  q = rotateBoard90(q);
+  PrintPosition(q,"",TRUE);
+  printf("Rotating board ...\n");
+  q = rotateBoard90(q);
+  PrintPosition(q,"",TRUE);
+  printf("Rotating board ...\n");
+  q = rotateBoard90(q);
+  PrintPosition(q,"",TRUE);
+  printf("Rotating board ...\n");
+  q = rotateBoard90(q);
+  PrintPosition(q,"",TRUE);
+
+  if (p == q) printf("\n ... testRotate() passed.\n"); 
+  else printf("\n ... testRotate() failed.\n");
+
+  printPos = oldPrintPos;
+  FreeBoard(b);
+
+}
+
+
+void yanpeiTestReflect() {
+
+  short i;
+  QTBPtr b = MallocBoard();
+  POSITION p,q;
+  void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
+
+  printf("\nTesting reflectBoard()\n");
+
+  printPos = &yanpeiPrintSlots;
+
+  b->usersTurn = FALSE;
+  b->squaresOccupied = (NUMPIECES<BOARDSIZE) ? NUMPIECES-1 : BOARDSIZE-1;
+  b->piecesInPlay = (NUMPIECES<BOARDSIZE) ? NUMPIECES : BOARDSIZE-1;
+  for (i=0; i<BOARDSIZE; i++) {
+    b->slots[i] = (i<NUMPIECES) ? i : EMPTYSLOT;
+  }
+  b->slots[BOARDSIZE] = EMPTYSLOT;
+
+  p = hash(b);
+  q = p;
+  PrintPosition(q,"",TRUE);
+  printf("Reflecting board ...\n");
+  q = reflectBoard(q);
+  PrintPosition(q,"",TRUE);
+  printf("Reflecting board ...\n");
+  q = reflectBoard(q);
+  PrintPosition(q,"",TRUE);
+
+  if (p == q) printf("\n ... testReflect() passed.\n"); 
+  else printf("\n ... testReflect() failed.\n");
+
+  printPos = oldPrintPos;
+  FreeBoard(b);
+
+}
+
+void yanpeiTestMask() {
+
+  short i;
+  short mask = 1;
+  QTBPtr b = MallocBoard();
+  POSITION p,q;
+  void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
+
+  printf("\nTesting maskBoard()\n");
+
+  printPos = &yanpeiPrintSlots;
+
+  b->usersTurn = FALSE;
+  b->squaresOccupied = (NUMPIECES<BOARDSIZE) ? NUMPIECES-1 : BOARDSIZE-1;
+  b->piecesInPlay = (NUMPIECES<BOARDSIZE) ? NUMPIECES : BOARDSIZE-1;
+  for (i=0; i<BOARDSIZE; i++) {
+    b->slots[i] = (i<NUMPIECES) ? i : EMPTYSLOT;
+  }
+  b->slots[BOARDSIZE] = EMPTYSLOT;
+
+  p = hash(b);
+  q = p;
+  PrintPosition(q,"",TRUE);
+  printf("Masking board with %d ...\n",mask);
+  q = maskBoard(q,mask);
+  PrintPosition(q,"",TRUE);
+  printf("Masking board with %d ...\n",mask);
+  q = maskBoard(q,mask);
+  PrintPosition(q,"",TRUE);
+
+  if (p == q) printf("\n ... testMask() passed.\n"); 
+  else printf("\n ... testMask() failed.\n");
+
+  printPos = oldPrintPos;
+  FreeBoard(b);
+
+}
+
+void yanpeiTestCannonical() {
+
+  POSITION i,c;
+  POSITION cannonicalCount = 0;
+  POSITIONLIST *cannonicals = NULL;
+  POSITIONLIST *newNode;
+
+  void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
+
+  printf("\nTesting getCannonicalPosition() ... \n");
+
+  printPos = &yanpeiPrintSlots;
+  
+  for (i=0; i<offsetTable[NUMPIECES+1]; i++) {
+    printf("Position = %3d\t\t",i);
+    PrintPosition(i,"",TRUE);
+    c = getCannonical(i);
+    printf("Cannonical = %3d\t",c);
+    PrintPosition(c,"",TRUE);
+    if (!SearchPosList(cannonicals,c)) {
+      cannonicalCount++;
+      newNode = SafeMalloc(sizeof(POSITIONLIST));
+      newNode->position = c;
+      if (cannonicals!=NULL) {
+	newNode->next = cannonicals->next;
+	cannonicals->next = newNode;
+      } else {
+	newNode->next = NULL;
+	cannonicals = newNode;
+      }
+    }
+  }
+
+  printf("\n ... %d cannonical positions in total.\n",cannonicalCount);
+
+  FreePosList(cannonicals);
+  printPos = oldPrintPos;
+}
+
+BOOLEAN SearchPosList(POSITIONLIST *l, POSITION p) {
+  if (l==NULL) {
+    return FALSE;
+  } else {
+    return ((l->position==p) || SearchPosList(l->next,p));
+  }
+}
+
+void FreePosList(POSITIONLIST *l) {
+  if (l!=NULL) {
+    if (l->next!=NULL) {
+      FreePosList(l->next);
+    }
+    SafeFree(l);
+  }
 }
