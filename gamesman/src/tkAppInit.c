@@ -260,7 +260,7 @@ SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  int i, theOptions[argc-2];
+  int i, theOptions[100];
   int standardGame = 0;
   
   if (argc < 2) {
@@ -268,15 +268,20 @@ SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
 
+  if (argc > 102) {
+    interp->result = "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*";
+    return TCL_ERROR;
+  }
+
   if(Tcl_GetInt(interp, argv[1], &standardGame) != TCL_OK)
     return TCL_ERROR;
-  gStandardGame = standardGame;
 
   if (argc > 2)
     for(i=2;i<argc;i++)
       if(Tcl_GetInt(interp, argv[i], &theOptions[i-2]) != TCL_OK)
 	return TCL_ERROR;
 
+  gStandardGame = standardGame;
   SetTclCGameSpecificOptions(theOptions);
 
   return TCL_OK;
