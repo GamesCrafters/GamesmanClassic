@@ -18,6 +18,10 @@
 **
 **************************************************************************/
 
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+
 
 /************************************************************************
 **
@@ -30,9 +34,15 @@
 **
 ************************************************************************/
 
-main()
+int main(int argc, char** argv)
 {
-	Initialize();
+        /* Deprecated code does not support the -solve argument. */
+        if (argc > 1 && !strcasecmp(argv[1], "-solve")) {
+                fprintf(stderr, "Deprecated API does not support -solve.\n\n");
+                exit(1);
+        }
+        
+        Initialize();
 	Menus();
 	return(1); /* this satisfies lint's complaint... */
 }
