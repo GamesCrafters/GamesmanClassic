@@ -16,9 +16,10 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-5  Added GenerateMoves with all its helpers
-**              2004-10-12 Added Help Strings, Defines, Global Variables(i think there are more...but we need to talk about these)
-**                         Started Initialize Game (What else do we need there?)
+** UPDATE HIST:
+**              2004-10-5  Added GenerateMoves with all its helpers
+**              2004-10-12 Added Help Strings, Defines, Global Variables
+**                         Started Initialize Game 
 **              2004-10-18 Added Print Position, Print Move, Print Computer's Move, Primitive,
 **                         Added another helper to Moves: GetArrayNum given xycoords.  
 **              2004-10-19 Added DoMove to this template
@@ -29,6 +30,7 @@
 **              2004-12-19 Added in primitive that you lose if no moves left. Also tells the player what color they 
 **                         when printing the board. 
 **              2005-3-3   Added missing prototypes
+**              2005-3-25  Added SetOptions and GetOptions to work with Diagonals
 **************************************************************************/
 
 /*************************************************************************
@@ -354,6 +356,7 @@ void InitializeGame ()
   }
   gBoard[gBoardlength] = '\0'; 
   gInitialPosition = generic_hash(gBoard, 1);
+  //printf("This is the initialPosition:%d", gInitialPosition);//
     
 
 }
@@ -1170,7 +1173,27 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return gInitialPosition;
+  //int i, j, k;
+  // gBoardlength = gBoardwidth * gBoardwidth;
+  //int pieces_array[] = {WHITE, 1, gBoardwidth, BLACK, 1, gBoardwidth, BLANK, gBoardlength - (gBoardwidth * 2), gBoardlength - 2, -1 };
+  // gNumberOfPositions = generic_hash_init(gBoardlength, pieces_array, NULL);
+  // gBoard = (char*)malloc(sizeof(char) * (gBoardlength + 1));
+  // for(i = 0; i < gBoardwidth; i++) {
+  //  gBoard[i] = BLACK;
+  // }
+  // for (j = gBoardlength - 1; j > gBoardlength - gBoardwidth - 1; j--) {
+  //  gBoard[j] = WHITE;
+  // }
+  // for (k = gBoardwidth; k < gBoardlength - gBoardwidth; k++) {
+  //gBoard[k] = BLANK;
+  // }
+  // gBoard[gBoardlength] = '\0'; 
+  //gInitialPosition = generic_hash(gBoard,1);
+  // free(gBoard);
+   return gInitialPosition;
+
+
+  // return gInitialPosition;
 }
 
 
@@ -1187,7 +1210,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2*2*3;
 }
 
 
@@ -1205,7 +1228,10 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+  int option = 1;
+  if(diagonals) option += 1*2;
+  option += 4*(gBoardwidth - 3);
+  return option;
 }
 
 
@@ -1222,7 +1248,8 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+  diagonals = option/4%2;
+  gBoardwidth = option/4 + 3;  
 }
 
 
