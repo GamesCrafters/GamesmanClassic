@@ -513,8 +513,8 @@ int generic_hash_context_init() {
   cCon->localMins = NULL;
   cCon->gfn = NULL;
   cCon->init = FALSE;
-  cCon->contextNumber = hash_tot_context;
-  return hash_tot_context;
+  cCon->contextNumber = hash_tot_context-1;
+  return hash_tot_context-1;
 }
 
 void generic_hash_context_switch(int context){
