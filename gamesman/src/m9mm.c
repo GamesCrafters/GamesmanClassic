@@ -1,3 +1,4 @@
+//$Id: m9mm.c,v 1.5 2004-02-26 02:34:36 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -12,6 +13,9 @@
 ** UPDATE HIST: 2004.2.22: Begin coding module, wrote:
 **
 ** 
+**
+**
+**
 **
 **************************************************************************/
 
@@ -707,3 +711,6 @@ boolean three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
     board[slot] == board[slot3] &&
     (slot == slot1 || slot == slot2 || slot == slot3);
 }
+
+
+//$Log: not supported by cvs2svn $
