@@ -46,7 +46,7 @@ BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
+BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
 void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
@@ -85,6 +85,7 @@ STRING   kHelpExample =
 int BOARDSIZE = 21;    /* 7x7 Crosscross Board */
 int GEESE_MAX = 9;
 int GEESE_MIN = 3;
+int GEESE_HASH_MIN = 2; /* MUST BE ONE LESS THAN GEESE_MIN */
 int FOX_MAX = 2;
 int FOX_MIN = 2;
 int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with whitespace */
@@ -92,15 +93,15 @@ int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with 
 #define FOX_PLAYER 2
 
 
-#define INIT_DEBUG 1
-#define HASH_TEST 1
+#define INIT_DEBUG 0
+#define HASH_TEST 0
 
 #define DOMOVE_DEBUG 0
 #define DOMOVE_TEST 0
 
 #define PRIMITIVE_DEBUG 0
 
-#define GENERATEMOVES_DEBUG 1
+#define GENERATEMOVES_DEBUG 0
 
 #define GETANDPRINT_DEBUG 0
 
@@ -210,7 +211,7 @@ void InitializeGame ()
 {
 	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
 		  	    'F', FOX_MIN, FOX_MAX,
-		            'G', GEESE_MIN, GEESE_MAX, -1};
+		            'G', GEESE_HASH_MIN, GEESE_MAX, -1};
 	int max;
 	int init;
 	
@@ -478,7 +479,7 @@ void init_board_hash()
 {
 	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
 		  	    'F', FOX_MIN, FOX_MAX,
-		            'G', GEESE_MIN, GEESE_MAX, -1};
+		            'G', GEESE_HASH_MIN, GEESE_MAX, -1};
 	int max;
 	int init;
 	max = generic_hash_init(BOARDSIZE, hash_data, NULL);
@@ -962,6 +963,10 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 	{
 		return 0;
 	}
+	if (board[move[1]] != ' ')
+	{
+		return 0;
+	}
 	if (player == FOX_PLAYER)
 	{
 		if (!validCoord(destination_coord))
@@ -983,15 +988,17 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 		{
 			return 0;
 		}
-		switch(origin_coord[0])
+		switch(origin_coord[1])
 		{
-			case 0:	
+			case 0:
 				if (diagonal)
 				{
+					printf("Diag: %d\n",(board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0);
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
 				}
 				else
 				{
+					printf("No Diag: %d\n",(board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0);
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
 				break;
@@ -1000,11 +1007,11 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 			case 3:
 				if (diagonal)
 				{
-					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
+					return (board[move[1]] && delta_row >= 0) ? 1 : 0;
 				}
 				else
 				{
-					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+					return (board[move[1]] && delta_row >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
 				break;
 			case 4:
@@ -1016,7 +1023,6 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 				{
 					return (board[move[1]] && delta_row >= 0 && delta_col <= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
-				
 				break;
 		}
 	}
@@ -1511,7 +1517,7 @@ int coordToLocation(int coordinates[2])
 	int col = coordinates[1];
 	if (0 <= row && row <= 4 && 0 <= col && col <=4)
 	{
-		if (0 == row)
+		if (0 == row && 1 <= col && col <= 3)
 		{
 			return col - 1;
 		}
@@ -1519,9 +1525,13 @@ int coordToLocation(int coordinates[2])
 		{
 			return 3 + (5 * (row - 1)) + col;
 		}
-		else if (4 == row)
+		else if (4 == row && 1 <= col && col <= 3)
 		{
 			return 18 + (col - 1);
+		}
+		else
+		{
+			return -1;
 		}
 	}
 	else
