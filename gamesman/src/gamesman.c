@@ -2717,6 +2717,7 @@ POSITION position;
     ** The tie frontier will not need this, either, because this child's value has already
     ** been determined.  It cannot be a tie. */
     FreePositionList(gParents[child]);
+    gParents[child] = NULL;
     
   } /* while still positions in FR */
 
@@ -2749,6 +2750,7 @@ POSITION position;
       ptr = ptr->next;
     }
     FreePositionList(gParents[child]);
+    gParents[child] = NULL;
   }
 
   /* Now set all remaining positions to tie with remoteness of REMOTENESS_MAX */
@@ -2770,7 +2772,7 @@ POSITION position;
 	StoreValueOfPosition((POSITION)i,tie);
 	SetRemoteness((POSITION)i,REMOTENESS_MAX);
 	//we are done with this position and no longer need to keep around its list of parents
-	FreePositionList(gParents[child]);
+	if (gParents[child]) FreePositionList(gParents[child]);
 	if(kDebugDetermineValue)
 	  printf("and was undecided, setting to tie\n",i);
       } else
