@@ -21,6 +21,10 @@
 **		-- 1.30.05 -- Added to displayasciitable.
 ** 			      Filled in most of PrintPosition.
 **                            Still need code to unhash.  -JK
+**		-- 2.9.05 -- Filled in code for the following functions:
+** 			     - NumberOfOptions()
+**			     - getOption()
+**                           - setOption()
 **************************************************************************/
 
 /*************************************************************************
@@ -100,6 +104,11 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+/* Game options */
+int boardsize; /* 0-4 Board size is 5 + 4 * boardsize */
+int rulesvariant; /* 0/1 normal rules / inverted rules */
+int handicapping; /* 0/1 Handicapped or not */
+int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
 
 /*************************************************************************
 **
@@ -113,6 +122,9 @@ extern void		SafeFree ();
 
 /* Internal */
 void displayasciiboard(char *, char *);
+int NumberOfOptions();
+int getOption();
+void setOption(int);
 
 /*************************************************************************
 **
@@ -135,7 +147,8 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-	int piecesarray[]={'X',0,21,'*',0,21,'O',0,21,-1};
+	/* need to change this to reflect the board size */
+	int piecesarray[]={'X',0,20,'*',0,20,'O',0,21,-1};
 	generic_hash_init(21, piecesarray, NULL);    /* initialize the hash */
 }
 
@@ -300,9 +313,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 */
 	char *toprint, *prediction;
 	/* need to get prediction, till then... */
-	getprediciton(prediction);
+	getprediction(prediction);
 	toprint = generic_unhash(position,toprint);
-	displayasciiboard(toprint); 
+	displayasciiboard(toprint,prediction); 
 } 
 
 
@@ -502,7 +515,17 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+	int curoptions=getOption();
+	int numberOfOptions;
+	/* set all the options at max */
+	boardsize=4;
+	rulesvariant=1;
+	handicapping=1;
+	towin=2;
+	numberOfOptions=getOption();
+	/* return the options to their previous values */
+	setOption(curoptions);		
+    return numberOfOptions;
 }
 
 
@@ -515,12 +538,19 @@ int NumberOfOptions ()
 **              Each set of variants needs to have a different number.
 **
 ** OUTPUTS:     int : the number representation of the options.
-**
+ **
 ************************************************************************/
 
 int getOption ()
 {
-    return 0;
+	/**
+	 ** Options:
+	 ** 1/0 Inverse/Normal Rules
+ 	 ** 1/0 Handicapped/Not
+         ** 0-2 Counting Territory, captures, or both
+	 ** 0-4 Boardsize
+         **/
+	return 30*rulesvariant+15*handicapping+5*towin+boardsize;	
 }
 
 
@@ -537,7 +567,13 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+   	rulesvariant=option/30;
+	option-=(rulesvariant*30);
+	handicapping=option/15;
+	option-=(handicapping*15); 
+	towin=option/5;
+	option-=(towin*5);
+	boardsize=option;
 }
 
 
