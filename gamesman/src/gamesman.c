@@ -84,9 +84,6 @@ void	FoundBadPosition(POSITION, POSITION, MOVE);
 /* low memory solver internal fucntion prototypes */
 VALUE DetermineZeroValue(POSITION position);
 
-/* mid memory solver */
-VALUE DetermineMidValue(POSITION position);
-
 /* non-loopy solver internal function prototypes */
 VALUE   DetermineValue1(POSITION position);
 
@@ -2853,27 +2850,6 @@ VALUE DetermineZeroValue(POSITION position)
  **
  *************/
 
-VALUE DetermineMidValue(POSITION position){
-  POSITION parent, child;
-  MOVELIST *moves,*movesHead;
-  POSITIONLIST *knownPositions,*knownHead,*weirdPositions,*weirdHead;
-  POSITIONLIST *iter;
-
-  knownPositions = knownHead = StorePositionInList(position,knownPositions);
-  while(knownPositions != NULL){
-    parent = knownPositions->position;
-    if(Primative(parent) == undecided){
-      moves = movesHead = GenerateMoves(parent);
-      while(moves != NULL){
-	child = DoMove(parent,moves->move);
-	knownHead = StorePositionInList(child,headKnown);
-	moves = moves->next;
-      }
-      FreeMoveList(movesHead);
-      
-
-
-}
 
 //// START LOOPY
 
@@ -3855,7 +3831,7 @@ void writeVarHTML ()
     FILE * rowp;
     char rowFileName[256];
     
-    sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption()) ;
+    sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption());
     
     rowp = fopen(rowFileName, "w");
     
