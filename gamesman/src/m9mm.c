@@ -88,7 +88,8 @@ BOOLEAN debug = TRUE;
 #define maxx  3
 #define mino  2
 #define maxo  3
-#define maxb  18
+#define minb  BOARDSIZE - maxo - maxx
+#define maxb  BOARDSIZE - minx - mino
 
 typedef enum Pieces {
   blank, x, o
@@ -153,12 +154,10 @@ void InitializeGame()
   
   
   int b_size = BOARDSIZE;
-  int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', b_size-maxo-maxx, b_size-minx-mino, -1};
+  int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', minb, maxb, -1};
 
   generic_hash_init(b_size, pminmax, NULL);
 
-  
-  
 }
 
 /************************************************************************
@@ -273,7 +272,7 @@ POSITION DoMove(thePosition, theMove)
   unhash(thePosition, board);
   //debug
   if (debug) {
-    printf("thePosition is: %d\n", thePosition);
+    printf("thePosition is: %ld\n", thePosition);
     printf("It is this person's turn: %d\n", whoseMove(thePosition));
   }
 
@@ -350,17 +349,16 @@ POSITION GetInitialPosition()
 
   // hard coded sanity check for maxx vs maxo
   // should add a hash/unhash sanity check
-  if (xOnBoard != maxx || oOnBoard != maxo || bOnBoard != maxb) {
+  if (xOnBoard != maxx || oOnBoard != maxo || bOnBoard != minb) {
     printf("\n Illegal Board Position Please Re-Enter\n");
     return GetInitialPosition();
   }
 
   // now get the turn
   getchar(); // dump another character
-
-
+ 
+  printf("\nWhose turn is it? (x/o) ");
   while (turn == blank) {
-    printf("\nWhose turn is it? [x/o] ");
     scanf("%c",&c);
     turn = parse_char(c);
   }
@@ -640,7 +638,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   do {
     printf("%8s's move [(u)ndo/[0-23 0-23](,[0-23])?] :  ", playerName);
 
-    
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return(ret);
@@ -1060,7 +1057,7 @@ void debugPosition(POSITION h)
   if (debug) {
     unhash(h, bboard);
     unparse_board(bboard, cboard);
-    printf("Current position = %d, ", h);
+    printf("Current position = %ld, ", h);
     printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
     printf("Current board = \n");
     debugBoard(bboard, cboard);
@@ -1070,6 +1067,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.31  2004/04/11 23:17:13  ogren
+//added constant maxb, GetInitialPosition almost works, but it prompts which player to choose twice for some reason... -Elmer
+//
 //Revision 1.30  2004/04/10 19:50:09  ogren
 //debugging is a little prettier, but maybe too much printing -Elmer
 //
