@@ -63,10 +63,11 @@ GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
 
 GAMESMAN_A		= gamesman.a
 #GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
-GAMESMAN_INCLUDE	= gamesman.h core/gamesman.h core/analysis.h \
+GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h \
 			  core/constants.h core/globals.h core/debug.h \
 			  core/gameplay.h core/misc.h core/memdb.h \
-			  core/textui.h core/filedb.h core/main.h
+			  core/textui.h core/filedb.h core/main.h \
+			  core/solveloopyup.h
 
 GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
 
@@ -434,8 +435,8 @@ $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 	$(CC) $(DEP_OBJS) tkAppInitFoxes$(OBJSUFFIX) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
-$(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(LOOPYUPSOLVER_INCLUDE)
+$(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ) $(LOOPYUPSOLVER_OBJ)
-	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(LOOPYUPSOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ)
+	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
