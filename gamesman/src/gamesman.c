@@ -125,11 +125,11 @@ STRING   kHelpWhatArePredictions =
 "Predictions are the words in parenthesis you see when you are playing\n\
 the game that 'predict' who will win and who will lose. Since the\n\
 computer is a perfect opponent, if, while playing, it discovers it has\n\
-a WIN position, there's nothing you can do, so the prediction is: 'Dan\n\
+a WIN position, there's nothing you can do, so the prediction is: 'Player\n\
 will Lose' and 'Computer will Win'. However, if you have the WIN\n\
 position, it's always possible for you to make a really silly move and\n\
-give the COMPUTER the WIN position, so the prediction says: 'Dan should\n\
-Win' and 'Computer should Lose'.";
+give the COMPUTER the WIN position, so the prediction says: 'Player\n\
+should Win' and 'Computer should Lose'.";
 
 STRING   kHelpWhatAreHints =
 "Hints are a list of moves that are VALUE-wise equivalent. For example,\n\
@@ -267,8 +267,6 @@ Initialize()
 {
   srand(time(NULL));
 
-  kAuthorName = "Dan Garcia" ;
-
   gValue            = undecided;
   gMenuMode         = BeforeEvaluation;
   gAgainstComputer  = TRUE;
@@ -276,7 +274,7 @@ Initialize()
   gPrintPredictions   = TRUE;
   gPrintHints = TRUE;
 
-  sprintf(gPlayerName[kPlayerOneTurn],kAuthorName);
+  sprintf(gPlayerName[kPlayerOneTurn],"Player");
   sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 
   InitializeGame() ;
@@ -773,7 +771,7 @@ PlayAgainstHuman()
     if (!gGoAgain(currentPosition,theMove))
       playerOneTurn = !playerOneTurn;           /* the other's turn */
 
-    /* It's !playerOneTurn because the text (Dan will lose) is for the other */
+    /* It's !playerOneTurn because the text (Player will lose) is for the other */
     PrintPosition(currentPosition = DoMove(currentPosition,theMove),
 		  gPlayerName[playerOneTurn], kHumansTurn);
 
