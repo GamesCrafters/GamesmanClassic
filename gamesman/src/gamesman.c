@@ -109,11 +109,22 @@ STRING   kOpeningCredits =
 	(M)ove-tree\n\
 	(E)xhaustive\n\
 	(S)earch,\n\
-	(M)aniuplation\n\
+	(M)anipulation\n\
 	(A)nd\n\
 	(N)avigation\n\n\
 This program will determine the value of %s, and allow you to play\n\
 the computer or another human. Have fun!\n";
+/* "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n\ */
+/* 	(G)ame-independent\n\ */
+/* 	(A)utomatic\n\ */
+/* 	(M)ove-tree\n\ */
+/* 	(E)xhaustive\n\ */
+/* 	(S)earch,\n\ */
+/* 	(M)aniuplation\n\ */
+/* 	(A)nd\n\ */
+/* 	(N)avigation\n\n\ */
+/* This program will determine the value of %s, and allow you to play\n\ */
+/* the computer or another human. Have fun!\n"; */
   
 STRING   kHelpValueBeforeEvaluation =
 "At this point, the computer does not know the value of the game\n\
