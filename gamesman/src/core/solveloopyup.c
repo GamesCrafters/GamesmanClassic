@@ -30,7 +30,8 @@
 **
 **************************************************************************/
 
-#include "loopyupsolver.h"
+#include "gamesman.h"
+#include "solveloopyup.h"
 
 
 /*
