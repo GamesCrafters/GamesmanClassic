@@ -1,3 +1,4 @@
+
 /************************************************************************
 **
 ** NAME:        mchange.c
@@ -53,6 +54,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts an X or O (depending on whether you went first\n\
