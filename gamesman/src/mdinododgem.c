@@ -542,8 +542,7 @@ void PrintPosition(position,playerName,usersTurn)
            ^       ** It is player X's turn to move\n\
            |       ** and this is the move you can\n\
         <- X ->    ** perform on one of your pieces.\n\n");
-  printf("   **Enter your input in the following format:\n\
-         <from slot #> < space > <to slot #>\n\n");
+  printf("  Move format: [from to] \n\n");
   
   
 //  PositionToBlankOX(position,theBlankOx,&whosTurn);
