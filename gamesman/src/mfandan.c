@@ -6,8 +6,7 @@
 **
 ** AUTHOR:      
 **              
-** TODO: Add rules of capture again, and can't capture on same line (or direction??)
-** goagain is messed up
+** TODO: 
 **
 ** DATE:        02/28/04
 **
@@ -28,7 +27,7 @@ int printMethods = 0;
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0;     /* don't initialize yet, let generic_hash_init(...) decide */
+POSITION gNumberOfPositions  = 0;     /* don't initialize to anything interesting yet, let generic_hash_init(...) decide */
 POSITION kBadPosition        = -1;
 
 POSITION gInitialPosition    =  0;
@@ -37,30 +36,39 @@ POSITION gMinimalPosition    =  0;
 STRING   kGameName           = "Fandango";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = TRUE ;
-BOOLEAN  kTieIsPossible      = TRUE;
+BOOLEAN  kGameSpecificMenu   = TRUE;
+BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING   kHelpGraphicInterface ="";
 
-STRING   kHelpTextInterface    =
-"";
+STRING   kHelpTextInterface    ="";
+/*
+"On your turn use the file letter and row number to determine how to specify the\
+piece you wish to move and the direction and attack method. If you have made a\n\ 
+wrong move at any point, you can type u to revert back to the previous state.\n\
+";*/
+
 
 STRING   kHelpOnYourTurn =
-"";
+"You move one of your pieces on the board in one of the eight directions by one edge.\n\
+";
+
 
 STRING   kHelpStandardObjective =
-"";
+"To capture all of your opponents pieces.\n\
+";
+
 
 STRING   kHelpReverseObjective =
-"";
+"To get all of your pieces captured.\n\
+";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
 
-STRING   kHelpExample =
-"";
+STRING   kHelpTieOccursWhen ="";
+
+STRING   kHelpExample ="";
 
 /*************************************************************************
 **
@@ -70,7 +78,7 @@ STRING   kHelpExample =
 extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
 int BOARDHEIGHT=3;                                /* dimensions of the board */
-int BOARDWIDTH=3;                                 /*  "               "      */
+int BOARDWIDTH=3;                                 /*  "             "           */
 int BOARDSIZE=9;                                /* 4x3 board, must agree with the 2 definitions below */
 int MAX_X;                                      /* maximum number of pieces of X that is possible in a game */
 int MAX_O;                                      /*  "            "            "O                  "         */
@@ -98,6 +106,7 @@ BOOLEAN firstTimeInit = TRUE;
 BOOLEAN changedBoardSize = FALSE;
 
 BOOLEAN forcedCapture = TRUE;
+
 /////////////////////////////////////////// F U N C T I O N   P R O T O T Y P E S ///////////////////////////////////////////////////////
 void space(int n);
 POSITION BlankOXToPosition(BlankOX* board, char turn);
@@ -249,9 +258,7 @@ void FreeGame()
 ************************************************************************/
 
 void DebugMenu()
-{
-  // fill me? If need, can get from mttt.c
-}
+{}
 
 /************************************************************************
 **
@@ -358,11 +365,8 @@ POSITION DoMove(thePosition, theMove)
 
   if(GoAgain(thePosition, theMove)) {
     movingAgain = TRUE;
-  }else {
-    if(turn == X)
-      turn = O;
-    else
-      turn = X;
+  } else {
+    turn = turn==X? O : X;
     movingAgain = FALSE;
   }
 
@@ -450,9 +454,11 @@ BOOLEAN CanStillCap(BlankOX* board, Coordinates pos, Direction prevdir) {
 }
 
 BOOLEAN GoAgain(POSITION position, MOVE theMove) {
+  return FALSE;
   BlankOX board[BOARDSIZE];
   int intdir;
   BOOLEAN captured;
+  char turn = WhoseTurn(position);
 
   intdir = (28 & theMove) >> 2;
   // unpack the direction to more than 3 bits
@@ -462,11 +468,15 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
   Direction dir = (Direction)intdir;
 
   PositionToBlankOX(position, board);
+  //Coordinates moved = CarryOutMove(board, wturn, theMove, &captured);
   Coordinates moved = CarryOutMove(board, WhoseTurn(position), theMove, &captured);
+  putchar(turn);
   if(captured) {  // if the move had captures
     BOOLEAN temp = CanStillCap(board, moved, dir);  // and can still cap with that piece
+    temp?puts("GA:TRUE"):puts("GA:FALSE");
     return temp;
   } else {   // no chance to move again without any capture
+    puts("GA:FALSE");
     return FALSE;
   }
 }
@@ -1048,7 +1058,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ** NAME:        ValidTextInput
 **
 ** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
-**              ** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
@@ -1069,6 +1079,7 @@ BOOLEAN ValidTextInput(input)
   char c,d;
 
   while(*input == ' ') input++;
+  //if(!input) return FALSE;
 
   if(!isalpha(*input))
     return FALSE;
@@ -1092,6 +1103,7 @@ BOOLEAN ValidTextInput(input)
   row = atoi(temp);
 
   while(*input == ' ') input++;
+  //if(!input) return FALSE;
 
   c = toupper(*input); input++;
   d = toupper(*input); input++;
@@ -1365,7 +1377,7 @@ PositionToBlankOX(POSITION position, BlankOX *board) {
  ***********************************************************************/
 POSITION BlankOXToPosition(BlankOX *board, char turn) {
   dbg("->BlankOXToPosition");
-  return generic_hash((char *)board, turn==X?2:1 ); 
+  return generic_hash((char *)board, turn==X?1:2 ); 
 }
 
 /***********************************************************************
@@ -1398,7 +1410,8 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
  * Calls:
  ***********************************************************************/
 BlankOX WhoseTurn(int pos) {
-  return (whoseMove(pos) == 2 ? X : O);
+  //printf("WhoseMove: %d\n", whoseMove(pos));
+  return (whoseMove(pos) == 1 ? X : O);
 }
 
 BlankOX OtherPlayer(char current) {
@@ -1445,11 +1458,10 @@ void ClearBoardPieces() {
     board[i] = B;
   }
   board[0] = O;
-  board[2] = O;
   board[BOARDSIZE-1] = X;
 
   MAX_X = 1;
-  MAX_O = 2;
+  MAX_O = 1;
   InitHash();
   placedPieces = TRUE;  // to signal initializer not to stomp our new board placement
   gInitialPosition = BlankOXToPosition(board, X); 
