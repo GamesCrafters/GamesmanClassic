@@ -193,10 +193,12 @@ GENERIC_PTR SafeMalloc(size_t amount)
 
 void SafeFree(GENERIC_PTR ptr)
 {
-    if(NULL == ptr)
+    if(ptr == NULL)
       ExitStageRightErrorString("Error: SafeFree was handed a NULL ptr!\n");
-    else
+    else {
       free(ptr);
+      ptr = NULL;
+    }
 }
 
 void BadElse(STRING function)

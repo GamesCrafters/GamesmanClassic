@@ -106,6 +106,7 @@ void PlayAgainstHuman()
 	else if(userInput == Abort) {
 	    printf("Your abort command has been received and successfully processed!\n");
 	    aborted = TRUE;
+	    playing = FALSE;         /*get out of the game-playing loop*/
 	}
 	else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
 	    printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",
@@ -221,6 +222,7 @@ void PlayAgainstComputer()
 	else if(userInput == Abort) {
 	    printf("Your abort command has been received and successfully processed!\n");
 	    aborted = TRUE;
+	    playing = FALSE;            /*get out of the game-playing loop*/
 	}
 	else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
 	    printf("The match ends in a draw.  Excellent strategy, %s. \n\n",

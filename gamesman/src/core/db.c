@@ -64,8 +64,10 @@ void db_initialize(){
 }
 
 void db_free(){
-  db_functions->free_db();
-  SafeFree(db_functions);
+    if(db_functions) {
+	db_functions->free_db();
+	SafeFree(db_functions);
+    }
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
