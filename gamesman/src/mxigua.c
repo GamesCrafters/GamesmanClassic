@@ -45,10 +45,10 @@
 **                             - removeStones
 **                             - adjacency information initialized in InitializeGame
 **                            Note: solving algorithm does not account for "pass" ability - plays out all outcomes to unquestionable end (unlike game of Go between humans) to enable this, use Chinese rules for Go territory counting
-**		 -- 3.06.05 -- Fixed compile time errors.
-**			    	Created a game specific menu, (currently only changes boardsize)
-**				Created smaller board sizes (5 board, have functions for 9, 13, 17)
-**		 -- 3.7.05 -- Created more boards (9, 13, and 17)
+**	        -- 3.06.05 -- Fixed compile time errors.
+**	                      Created a game specific menu, (currently only changes boardsize)
+**			      Created smaller board sizes (5 board, have functions for 9, 13, 17)
+**              -- 3.07.05 -- Created more boards (9, 13, and 17)
 **			      Wrote ValidTextInput() and ConvertTextInputToMove()
 **			            PrintComputersMove(), PrintMove(), getmovechar(),
 **				    GetAndPrintPlayersMove()
@@ -57,8 +57,10 @@
 **                            Fixed Primitive() to 1) comply with win condition
 **                                                 2) count "territory" not actually filled with stones
 **                            Filled in isValidMove() (still incomplete)
-**		 -- 3.8.05 -- Fixed compile time errors. *sigh*
-			      Wrote GetInitialPosition()
+**	        -- 3.08.05 -- Fixed compile time errors. *sigh*
+**			      Wrote GetInitialPosition()
+**              -- 3.09.05 -- Finally completed isValidMove()
+
 **************************************************************************/
 
 /*************************************************************************
@@ -585,7 +587,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
 	for(i=0;i<maxsize;i++) {
-		if(board[i]=='O' && isValidMove(board, (MOVE) i, piece)) {
+		if(isValidMove(board, (MOVE) i, piece)) {
 			moves = CreateMovelistNode((MOVE)i,moves);
 		}
 	}   	
@@ -595,7 +597,45 @@ MOVELIST *GenerateMoves (POSITION position)
 
 /* Generate Moves helper function isValidMove */
 BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
-	return TRUE;
+  if(board[move] != 'O')
+    return FALSE;
+
+  int i, scount, ocount;
+  char oPiece = ((p == 'X') ? '*' : 'X');
+
+  for(i = 0; i < adjacent[move].numAdjacent; i++)
+    if(board[adjacent[move].adj[i]] == p)
+      scount++;
+    else if(board[adjacent[move].adj[i]] == oPiece)
+      ocount++;
+
+  if(scount == adjacent[move].numAdjacent) {
+    board[move] = p;
+
+    if(isSurrounded(board, move, p, checked)) {
+      board[move] = 'O';
+      zeroChecked();
+      return FALSE;
+    }
+
+      board[move] = 'O';
+      zeroChecked();
+  }
+  else if(ocount == adjacent[move].numAdjacent) {
+    board[move] = p;
+    BOOLEAN canCapture = FALSE;
+
+    for(i = 0; i < adjacent[move].numAdjacent && !canCapture; i++) {
+      canCapture = (canCapture || isSurrounded(board, adjacent[move].adj[i], oPiece));
+      zeroChecked();
+    }
+
+    board[move] = 'O';
+
+    return canCapture;
+  }
+
+  return TRUE;
 }
 
 /************************************************************************
@@ -645,8 +685,8 @@ POSITION DoMove (POSITION position, MOVE move)
 	    if(isSurrounded(board, adjacent[move].adj[i], oPiece, checked)) {
 	      zeroChecked();
 	      removeStones(board, adjacent[move].adj[i], oPiece, checked);
-	      zeroChecked();
 	    }
+	    zeroChecked();
 	  }
 	}
 
@@ -753,9 +793,11 @@ VALUE Primitive (POSITION position)
 
 		    if(isTerritory(board, (MOVE) i, 'X', checked))
 		      p1c++;
-		    else
+		    else {
+		      zeroChecked();
 		      if(isTerritory(board, (MOVE) i, '*', checked))
 			 p2c++;
+		    }
 		  }
 
 		  zeroChecked();
