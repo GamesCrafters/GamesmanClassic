@@ -10,6 +10,19 @@
 
 
 
+/* analysis and documentation bookkeeping */
+
+                    
+int gTotalWins =0;
+int gTotalLoses = 0;
+int gTotalTies = 0;
+int gTotalMoves = 0;
+extern STRING  kGamesmanName;     // Dan the man
+extern STRING  kModuleAuthorName; // module writers
+extern STRING  kGUIAuthorName;    // graphics writers
+
+
+
 /* gameplay-related internal function prototypes */
 void     Menus();
 void     MenusBeforeEvaluation();
@@ -456,7 +469,7 @@ void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
   BOOLEAN tempPredictions ;
-
+  int timer;
   switch(c) {
   case 'G': case 'g':
     if(kGameSpecificMenu)
@@ -485,9 +498,10 @@ void ParseBeforeEvaluationMenuChoice(c)
       printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
-      (void) Stopwatch();
+      int Stopwatch();
+      
       InitializeDatabases();
-      printf("done in %d seconds!", Stopwatch());
+      printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
 
       printf("\nEvaluating the value of %s...", kGameName);
 
@@ -1115,6 +1129,7 @@ POSITION position;
     head = ptr = GenerateMoves(position);
     while (ptr != NULL) {
       MOVE move = ptr->move ;
+      gTotalMoves++;
       child = DoMove(position,ptr->move);  /* Create the child */
       value = DetermineValue1(child);       /* DFS call */
 
@@ -2347,21 +2362,43 @@ void PrintGameValueSummary()
 {
   POSITION thePosition;
   VALUE theValue;
-  POSITION winCount, loseCount, tieCount, unknownCount;
-  POSITION totalPositions;
+  long winCount, loseCount, tieCount, unknownCount;
+  long primitiveWins, primitiveLoses, primitiveTies;
+  long reachablePositions;
+  long totalPositions;
+  int  hashEfficiency;
+  float averageFanout;
 
   totalPositions = winCount = loseCount = tieCount = unknownCount = 0;
+  primitiveWins = primitiveLoses = primitiveTies = 0;
+  reachablePositions = 0;
+  hashEfficiency = 0;
+  averageFanout = 0;
   for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
   {
     theValue = GetValueOfPosition(thePosition);
     if (theValue != undecided) {
       totalPositions++;
-      if(theValue == win)            winCount++;
-      else if(theValue == lose)      loseCount++;
-      else if(theValue == tie)       tieCount++;
-      else                           unknownCount++;
+      if(theValue == win)  {
+	winCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveWins++;
+      } else if(theValue == lose) {
+	loseCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveLoses++;
+      } else if(theValue == tie) {
+	tieCount++;
+	reachablePositions++;
+	if (Remoteness(thePosition) == 0) primitiveTies++;
+      } else {
+	unknownCount++;
+      }
     }
   }
+  hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
+  averageFanout = ((float)((int)gTotalMoves - (int)primitiveLoses -(int)primitiveWins - (int)primitiveTies)/reachablePositions);
+    
   printf("\n\n\t----- Summmary of Game values -----\n\n");
   
   printf("\tValue       Number       Total\n");
@@ -2371,8 +2408,19 @@ void PrintGameValueSummary()
   printf("\tTie       = %5lu out of %lu\n",tieCount,totalPositions);	
   printf("\tUnknown   = %5lu out of %lu\n",unknownCount,totalPositions);	
   printf("\tTOTAL     = %5lu out of %lu\n",
-	 loseCount+winCount+tieCount+unknownCount,
+	 totalPositions,
 	 gNumberOfPositions);
+
+  printf("\tHash Efficiency                   = %6d\%%        \n",hashEfficiency);
+  printf("\tAvg. number of moves per position = %2f           \n", averageFanout);
+  printf("\tTotal Primitive Wins              = %5lu\n", primitiveWins);
+  printf("\tTotal Primitive Loses             = %5lu\n", primitiveLoses);
+  printf("\tTotal Primitive Ties              = %5lu\n", primitiveTies);
+
+  //createAndPrintRemotenessArray();
+
+  return;
+
 }
 
 void PrintMexValues(mexValue,maxPositions)
@@ -2797,6 +2845,7 @@ void SetParents (POSITION parent, POSITION root)
 	} else {
 	  nextLevel = StorePositionInList(child, nextLevel);
 	}
+	gTotalMoves++;
       }
       
       FreeMoveList(movehead);

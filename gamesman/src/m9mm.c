@@ -94,7 +94,7 @@ BOOLEAN debug = TRUE;
 typedef enum Pieces {
   blank, x, o
 } blankox;
-char gblankoxChar[] = { 'b', 'x', 'o'};
+char gblankoxChar[] = { '_', 'x', 'o'};
 //POSITION gHashNumberOfPos = 0;
 
 /*************************************************************************
@@ -154,7 +154,7 @@ void InitializeGame()
   
   
   int b_size = BOARDSIZE;
-  int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', minb, maxb, -1};
+  int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
 
   generic_hash_init(b_size, pminmax, NULL);
 
@@ -330,7 +330,7 @@ POSITION GetInitialPosition()
   printf("        |           |           |\n");
   printf("        |           |           |\n");
   printf("        _-----------_-----------_\n");
-  printf("Is input as \n\tb o b\n\tx b o\n\tb x b \n\tb b b b b b\n\tb x b \n\tb b o\n\tb b b\n\nYour board:\n");
+  printf("Is input as \n\t_ o _\n\tx _ o\n\t_ x _ \n\t_ _ _ _ _ _\n\t_ x _ \n\t_ _ o\n\t_ _ _\n\nYour board:\n");
 
   getchar(); // dump a char 
 
@@ -339,7 +339,7 @@ POSITION GetInitialPosition()
       xOnBoard++;
     else if (c == 'o' || c == 'O' || c == '0')
       oOnBoard++;
-    else if (c == 'b' || c == 'B')
+    else if (c == '_' || c == '-')
       bOnBoard++;
     else {
       continue; // don't recognize the char, continue to the next
@@ -473,6 +473,7 @@ void PrintPosition(position, playerName, usersTurn)
   char c_board[BOARDSIZE];
   
   unhash(position, board);
+
   unparse_board(board, c_board);
   turn = whose_turn(position);
   
@@ -485,7 +486,7 @@ void PrintPosition(position, playerName, usersTurn)
   printf("        |   |       |       |   |       |   |       |       |   |\n");
   printf("        |   |   6---7---8   |   |       |   |   %c---%c---%c   |   |\n", c_board[6], c_board[7], c_board[8] );
   printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-  printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn:%c\n", c_board[9], c_board[10], c_board[11], c_board[12], c_board[13], c_board[14], turn );
+  printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn: %c\n", c_board[9], c_board[10], c_board[11], c_board[12], c_board[13], c_board[14], unparse_blankox(turn) );
   printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
   printf("        |   |   15--16--17  |   |       |   |   %c---%c---%c   |   |\n", c_board[15], c_board[16], c_board[17] );
   printf("        |   |       |       |   |       |   |       |       |   |\n");
@@ -895,7 +896,7 @@ blankox *unhash(int hash_val, blankox *b_board)
   }
   
   parse_board(c_board, b_board);
-  
+
   //debug
   if (debug) {
     debugBoard(b_board,c_board);
@@ -915,7 +916,7 @@ void parse_board(char *c_board, blankox *b_board)
 	b_board[i] = o;
       else if (c_board[i] == 'x' || c_board[i] == 'X')
 	b_board[i] = x;
-      else if (c_board[i] == 'b' || c_board[i] == 'B')
+      else if (c_board[i] == '_' || c_board[i] == '-')
 	b_board[i] = blank;
     }
 }
@@ -926,7 +927,7 @@ blankox parse_char(char c) {
     return x;
   else if (c == 'o' || c == '0' || c == 'O')
     return o;
-  else if (c == 'b' || c == 'B')
+  else if (c == '-' || c == '_')
     return blank;
   else
     return blank; // fix this so that it's a badelse
@@ -946,7 +947,7 @@ void unparse_board(blankox *b_board, char *c_board)
   int i;
   for (i = 0; i < BOARDSIZE; i++)
     {
-      c_board[i] = gblankoxChar[b_board[i]];
+      c_board[i] = unparse_blankox(b_board[i]);
     }
 }
 
@@ -1067,6 +1068,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.32  2004/04/12 00:11:31  ogren
+//Added minb, made minb and maxb dependent upon BOARDSIZE, maxo, maxb, mino, minb, instead of just constants.  GetInitialPosition looks a little nicer. -Elmer
+//
 //Revision 1.31  2004/04/11 23:17:13  ogren
 //added constant maxb, GetInitialPosition almost works, but it prompts which player to choose twice for some reason... -Elmer
 //
