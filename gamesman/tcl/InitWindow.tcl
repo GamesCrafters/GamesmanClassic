@@ -114,16 +114,16 @@ proc InitWindow { kRootDir } {
     global kGameName
     global kLabelFont
     global tcl_platform
-    global kToMove kToWin gPredString
+    global kToMove kToWin gPredString gWhoseTurn
     global gLeftName gRightName
     global gLeftColor gRightColor
-
-
+    # jesse: move delay and game delay added fall '03
+    global gMoveDelay gGameDelay
 
     #
     # Initialize the constants
     #
-
+    set gWhoseTurn "Jesse"
     set gPredString ""
     set gWindowHeight 600
     set gWindowWidth 800
@@ -327,12 +327,22 @@ proc InitWindow { kRootDir } {
 	    -text "Player1 Human" \
 	    -font $kLabelFont \
 	    -variable gLeftHumanOrComputer \
-	    -value Human
+	    -value Human \
+	-command { 
+	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
+	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
+	}
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rComputer \
 	    -text "Player1 Computer" \
 	    -font $kLabelFont \
 	    -variable gLeftHumanOrComputer \
-	    -value Computer
+	    -value Computer \
+	-command {
+	    if { $gRightHumanOrComputer == "Computer" } {
+		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
+	    }
+	}
     label .middle.f2.fPlayOptions.fTop.fLeft.lName \
 	    -text "Player1 Name:" \
 	    -font $kLabelFont
@@ -345,12 +355,22 @@ proc InitWindow { kRootDir } {
 	    -text "Player2 Human" \
 	    -font $kLabelFont \
 	    -variable gRightHumanOrComputer \
-	    -value Human
+	    -value Human \
+	-command { 
+	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
+	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
+	}
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rComputer \
 	    -text "Player2 Computer" \
 	    -font $kLabelFont \
 	    -variable gRightHumanOrComputer \
-	    -value Computer
+	    -value Computer \
+	-command {
+	    if { $gLeftHumanOrComputer == "Computer" } {
+		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
+	    }
+	}
     label .middle.f2.fPlayOptions.fTop.fRight.lName \
 	    -text "Player2 Name:" \
 	    -font $kLabelFont
@@ -360,17 +380,45 @@ proc InitWindow { kRootDir } {
 	    -textvariable gRightName \
 	    -width 20
 
+    ## JESSE: adding scale bars for the speed of computer to computer play
+    scale .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -label "Move Delay" \
+	-from -50 \
+	-to 50 \
+	-length 8c \
+	-state disabled \
+	-orient horizontal \
+	-activebackground blue \
+	-foreground gray \
+	-variable gMoveDelay
+    scale .middle.f2.fPlayOptions.fTop.fRight.gameDelay -label "Game Delay" \
+	-from -50 \
+	-to 50 \
+	-length 8c \
+	-state disabled \
+	-orient horizontal \
+	-activebackground blue \
+	-foreground gray \
+	-variable gGameDelay
+
     # pack in the contents in the correct order
     pack propagate .middle.f2.fPlayOptions.fTop.fLeft 0	
-    pack propagate .middle.f2.fPlayOptions.fTop.fRight 0	
+    pack propagate .middle.f2.fPlayOptions.fTop.fRight 0
+    ## JESSE: packing scale bars
+    #pack .moveDelay 
+    #pack .gameDelay
+    ## end Jesse
     pack .middle.f2.fPlayOptions.fTop -side top
     pack .middle.f2.fPlayOptions.fBot -side bottom   
     pack .middle.f2.fPlayOptions.fTop.fLeft -side left
     pack .middle.f2.fPlayOptions.fTop.fRight -side right
+    ## moveDelay scale bar
+    pack .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fLeft.rHuman -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.rComputer -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.eName -side bottom -expand 1
     pack .middle.f2.fPlayOptions.fTop.fLeft.lName -side bottom  -expand 1
+    ## gameDelay scale bar
+    pack .middle.f2.fPlayOptions.fTop.fRight.gameDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fRight.rHuman -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fRight.rComputer -side bottom -fill both -expand 1
     pack .middle.f2.fPlayOptions.fTop.fRight.eName -side bottom -expand 1
@@ -535,6 +583,14 @@ proc InitWindow { kRootDir } {
 	    -font $kLabelFont \
 	    -anchor center \
 	    -tags [list Predictions textitem]
+
+    .middle.f3.cMRight create text 75 90 \
+	-text [format "It's %s's Turn" $gWhoseTurn] \
+	-width 50 \
+	-justify center \
+	-font $kLabelFont \
+	-anchor center \
+	-tags [list WhoseTurn textitem]
 
     # this is the play button
     .middle.f3.cMRight bind play <1> {	
