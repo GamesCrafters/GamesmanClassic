@@ -29,14 +29,15 @@
 **                      [*] we may need to consult Garcia to see of our board
 **                          is too big.  see the note in gNumberOfPositions
 **                          global variables for directions,
-**                          IntitializeGame(), PrintPosition(), DoMove(), primitive(),
-**                          printComputersMove (), Hash/unhash for moves, and other helpers.
-**              2/6/05: [+] fixed some hardcoded constants, Position(), Row(), Column()
-**                          now operates on an arbitrarily sized board.
-**                          Easy job for getAndPrintUserInput().
+**                          IntitializeGame(), PrintPosition(), DoMove(),
+**                          primitive(), printComputersMove (), Hash/unhash for
+**                          moves, and other helpers.
+**              2/6/05: [+] fixed some hardcoded constants, Position(), Row(),
+**                          Column() now operates on an arbitrarily sized
+**                          board.  Easy job for getAndPrintUserInput().
 **              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
-**                      [*] Game should be playable by now. Added rules to Makefile.
-**                          GenerateMoves () is next.
+**                      [*] Game should be playable by now. Added rules to
+**                          Makefile.  GenerateMoves () is next.
 **              2/8/05: [+] GenerateMove () complete, borrowing Guys's code.
 **              2/9/05: [*] Corrected some indexing and pointer problems.
 **                      [+] Implemented GetAndPrintPlayersMove correctly and
@@ -46,11 +47,13 @@
 **                          returns stuff that makes sense.  hope i didn't
 **                          break it!
 **              2/14/05 [+] Merged changes from Guy's code, as instructed.
-**                          Various abstraction fixes, more prototypes, new func setGameParameters()
-**              2/15/05 [+] Added diagonal movement and redefined input formats for it
-**                          GenerateMoves() takes care of it.
-**                          variants of the game now include variable board, variable number
-**                          of pieces in a line for victory, misere play, and diagonal moves.
+**                          Various abstraction fixes, more prototypes, new
+**                          func setGameParameters()
+**              2/15/05 [+] Added diagonal movement and redefined input formats
+**                          for it.  GenerateMoves() takes care of it.
+**                          variants of the game now include variable board,
+**                          variable number of pieces in a line for victory,
+**                          misere play, and diagonal moves.
 **
 **************************************************************************/
 
@@ -98,17 +101,15 @@ BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each 
 BOOLEAN  kGameSpecificMenu    = FALSE ;
 BOOLEAN  kTieIsPossible       = FALSE ;
 BOOLEAN  kLoopy               = TRUE ;
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+/* the following two vars should be TRUE only during debugging. */
+BOOLEAN  kDebugMenu           = TRUE ;
+BOOLEAN  kDebugDetermineValue = TRUE ;
 
-/* each position consists choosing 8 boxes out of 20. that is 20*19*18*17...*13=5079110400
-** each choice has "8 choose 4" = 70 possible placements of X and O's.
-** a combined 8817900 boards. This is not considering symmetry so the end result by init() may be less
-*/
 /* as we discussed, the total number of positions is 20!/(12!*4!*4!), which
  * equals 8,817,900.  this will be fine for generic hash.
  */
-POSITION gNumberOfPositions   =  8817900; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+/* we cannot reliably calculate this parameter, so we rely on hash_init() */
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
@@ -118,9 +119,6 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  */
 
 STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
-/* should probably be changed to north/south interface if ever generalize
- * move types
- */
 STRING   kHelpTextInterface =
   "On your turn, enter the x and y coordinates of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
@@ -153,10 +151,11 @@ STRING   kHelpExample = "coming soon!";
 #define PLAYER1_PIECE       'X'
 #define PLAYER2_PIECE       'O'
 #define EMPTY_PIECE         ' '
-#define MOVE_FORMAT        "%d %d %d\n"
+#define MOVE_FORMAT        "%d%d %c%c\n"
 #define PLAYER1_TURN        1
 #define PLAYER2_TURN        2
-#define INPUT_PARAM_COUNT   3
+#define INPUT_PARAM_COUNT1  3
+#define INPUT_PARAM_COUNT2  4
 #define BOARD_SIZE          (BOARD_ROWS*BOARD_COLS)
 #define PLAYER_PIECES       BOARD_COLS
 #define EMPTY_PIECES        ((BOARD_ROWS-2)*BOARD_COLS)
@@ -177,10 +176,12 @@ BOOLEAN MISERE              = FALSE;
 
 /*the corresponding direction for output*/
 STRING directions[NUM_OF_DIRS] = {
-  "lower left", "down", "lower right",
-  "left",       "",     "right",
-  "upper left", "up",   "upper right"
+  "SW", "S", "SE",
+  "W",  "",  "E",
+  "NW", "N",   "NE"
 };
+
+char* alpha = "abcdefghij"; /* used to print row letter */
 
 /*the increments to the row and column numbers of the piece *
 * THESE ARE ACCORIDNG TO THE KEYPAD ARRANGEMENTS
@@ -304,13 +305,12 @@ MOVELIST *GenerateMoves (POSITION position)
       {
 	for (k = 0; k < NUM_OF_DIRS; k++) {
 	  // for every possible movement as specified in dir_increments, except 5, and the diagonals when !CAN_MOVE_DIAGONALLY
-	  if (k != 4)
-	    if ((k == 0) || (k == 2) || (k == 6) || (k == 8))
-	      canProcessDir = CAN_MOVE_DIAGONALLY;
-	    else
-	      canProcessDir = TRUE;
-	  else
+	  if (k == 4)
 	    canProcessDir = FALSE;
+	  else if ((k == 0) || (k == 2) || (k == 6) || (k == 8))
+	      canProcessDir = CAN_MOVE_DIAGONALLY;
+	  else
+	    canProcessDir = TRUE;
 	  if (canProcessDir) {
 	    di = i + dir_increments[k][0];
 	    dj = j + dir_increments[k][1];
@@ -464,20 +464,23 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 void printBoard (char *board) {
     int i,j;
 
-    printf ("  +");
-    for (j = 0; j < BOARD_COLS; j++)
-      printf ("-+");
-    printf ("\n");
     for (i = 0; i < BOARD_ROWS; i++) {
-      printf ( "%d " , i );
-      for (j = 0; j < BOARD_COLS; j++) 
-	printf ("|%c", board[Index(i,j)]);
-      printf("|\n");
       printf ("  +");
       for (j = 0; j < BOARD_COLS; j++)
 	printf ("-+");
-      printf ("\n");
+      printf ( "\n%c " , alpha[i] );
+      for (j = 0; j < BOARD_COLS; j++) 
+	printf ("|%c", board[Index(i,j)]);
+      printf("|\n");
     }
+    printf("  +");
+    for (j = 0; j < BOARD_COLS; j++) {
+      printf("-+");
+    printf("\n   ");
+    for (j = 0; j < BOARD_COLS; j++) {
+      printf("%d ", j);
+    }
+    printf("\n");
 }
 
 
@@ -497,7 +500,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
     int position = Unhasher_Index(computersMove);
     int direction = Unhasher_Direction(computersMove);
 
-    printf ("%s picks up the piece in (%d,%d) and moves it %s\n", computersName, Row (position), Column (position), directions[direction]);
+    printf ("%s moves the piece %c%d %s\n", computersName, \
+	    alpha[Row(position)], Column (position), directions[direction]);
 }
 
 
@@ -516,9 +520,8 @@ void PrintMove (MOVE move)
     int position = Unhasher_Index(move);
     int direction = Unhasher_Direction(move);
 
-    printf ("The piece in (%d,%d) can move %s (text input: %d %d %d)\n", Row (position), \
-	    Column (position), directions[direction], Row (position), Column (position),
-	    direction+1);
+    printf ("%c%d %s\n", alpha[Row (position)], Column (position), \
+	    directions[direction]);
 }
 
 
@@ -591,14 +594,19 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-    int result, i, j, dir;
-    result = sscanf (input, MOVE_FORMAT, &i, &j, &dir);
-    if (result != INPUT_PARAM_COUNT)
+    int result, i, j;
+    char dir1 = '\0';
+    char dir2 = '\0';
+    result = sscanf (input, MOVE_FORMAT, &i, &j, &dir1, &dir2);
+    if ((result != INPUT_PARAM_COUNT1) && (result != INPUT_PARAM_COUNT2))
       return FALSE;
-    /*    for ( i = 0; i < NUM_OF_DIRS; i++ )
-      if (strcmp(dir, directions[i]) == 0)
-      *	return TRUE;*/
-    return TRUE;
+    if ((i >= 0) && (j >= 0) && (i < BOARD_ROWS) && (j < BOARD_COLS) &&
+	( ((dir1=='E') || (dir1=='W')) || ( ((dir1=='N')||(dir1=='S')) &&
+					    ((dir2=='E')||(dir2=='W')) ))) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
 }
 
 
@@ -619,11 +627,33 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
   int row, col, dir;
-  sscanf (input, MOVE_FORMAT, &row, &col, &dir);
-  /*  for (i = 0; i < NUM_OF_DIRS; i++)
-   * if (strcmp(dir, directions[i]) == 0)
-   *   dir_num = i;*/
-  return Hasher (row, col, dir-1);
+  char dir1 = '\0';
+  char dir2 = '\0';
+  sscanf (input, MOVE_FORMAT, &row, &col, &dir1, &dir2);
+  if (dir1 == 'E') {
+    dir = 5;
+  } else if (dir1 == 'W') {
+    dir = 3;
+  } else if (dir1 == 'N') {
+    if (dir2 == 'E') {
+      dir = 8;
+    } else if (dir2 == 'W') {
+      dir = 6;
+    } else {
+      dir = 7;
+    }
+  } else if (dir1 == 'S') {
+    if (dir2 == 'E') {
+      dir = 2;
+    } else if (dir2 == 'W') {
+      dir = 0;
+    } else {
+      dir = 1;
+    }
+  } else {
+    printf("ERROR - mnuttt.c line 654 - got a bad dir1: %c", dir1);
+  }
+  return Hasher (row, col, dir);
 }
 
 
@@ -774,20 +804,16 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption () /*format: (higher order) BOARD_ROW, BOARD_COL, NUM_TO_WIN, CAN_MOVE_DIAGONALLY, MISERE (lower order)*/
+int getOption ()
 {
-  int result = 0;
-  int temp = 0;
-
-  result += CAN_MOVE_DIAGONALLY*2+MISERE; /* a little breakge in abstraction but ok.*/
-  temp = 4;
-  result += NUM_TO_WIN*temp;
-  temp *= NUM_TO_WIN_CAP;
-  result += BOARD_COLS*temp;
-  temp *= BOARD_DIM_CAP;
-  result += BOARD_ROWS*temp;
+  int result = BOARD_ROWS;
+  result = (result * BOARD_DIM_CAP) + BOARD_COLS;
+  result = (result * NUM_TO_WIN_CAP) + NUM_TO_WIN;
+  result = result << 2;
+  if (CAN_MOVE_DIAGONALLY) result += 2;
+  if (MISERE) result += 1;
   return result;
-}
+ }
 
 
 /************************************************************************
@@ -805,7 +831,6 @@ void setOption (int option)
 {
   int row, col, num_to_win;
   BOOLEAN diag, misere;
-  BOOLEAN needsReinit = FALSE; /*not used yet*/
 
   misere = option % 2;
   diag = option / 2 % 2;
@@ -814,10 +839,9 @@ void setOption (int option)
   option /= NUM_TO_WIN_CAP;
   col = option % BOARD_DIM_CAP;
   option /= BOARD_DIM_CAP;
-  row = option % BOARD_DIM_CAP;
+  row = option;
   setGameParameters (row, col, num_to_win, diag, misere);
-
-  if (needsReinit) InitializeGame(); /*gamesman prolly does this right after, so not our business*/
+  InitializeGame();
 }
 
 
@@ -899,9 +923,9 @@ void initializeBoard (char board[]) {
   for (x = 0; x < BOARD_COLS; x++) {
     for (y = 0; y < BOARD_ROWS; y++) {
       if (y == 0) {
-	piece = x % 2 ? PLAYER2_PIECE : PLAYER1_PIECE;
+	piece = (x % 2) ? PLAYER2_PIECE : PLAYER1_PIECE;
       } else if (y == BOARD_ROWS-1) {
-	piece = x % 2 ? PLAYER1_PIECE : PLAYER2_PIECE;
+	piece = (x % 2) ? PLAYER1_PIECE : PLAYER2_PIECE;
       } else {
 	piece = EMPTY_PIECE;
       }
