@@ -59,6 +59,7 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu";
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
+//TODO check this
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 //BOOLEAN  kSupportsHeuristic  = ;
 //BOOLEAN  kSupportsSymmetries = ;
@@ -608,20 +609,20 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   unhash(b,position);
   //generic_unhash(position,b);
   printf("\n");
-  printf("         LEGEND:");
+  printf("  LEGEND:");
   for (currCol = 0; currCol < width; currCol++) {
     printf("   ");
   }
-  printf("       TOTAL:\n");
+  printf("     TOTAL:\n");
   for (currRow = height; currRow>0; currRow--) {
     //printf("    %d ( ", currRow);
-    printf("     ( ");
+    printf("  (");
     for (currCol = 0; currCol < width; currCol++) {
       //printf("%c%d ", alphabet[currCol], currRow);
       if (moveCounter >= 10) {
-	printf("%d ", moveCounter);
+	printf(" %d", moveCounter);
       } else {
-	printf("%d  ", moveCounter);
+	printf(" %d ", moveCounter);
       }
       moveCounter++;
     }
@@ -638,7 +639,8 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
     printf("%c  ", alphabet[currCol]);
     }
   */
-  printf("         %s's turn to move\n\n", playerName);
+  printf("  %s's turn to move\n\n", playerName);
+  //TODO notify square as unplacable
 }
 
 /*
