@@ -165,7 +165,8 @@ STRING   kHelpExample = "coming soon!";
 #define NUM_OF_DIRS         9
 #define BOARD_DIM_MAX       10
 #define BOARD_DIM_MIN       3
-#define NUM_TO_WIN_CAP      8
+#define NUM_TO_WIN_MAX      8
+#define NUM_TO_WIN_MIN      3
 #define ROW_START        'a'
 
 /*************************************************************************
@@ -847,7 +848,7 @@ void setOption (int option)
   diag = (option & 0x2) ? TRUE : FALSE;
   option >>= 2;
   num_to_win = option % NUM_TO_WIN_CAP;
-  option /= NUM_TO_WIN_CAP;
+  option /= NUM_TO_WIN_MAX;
   col = option % BOARD_DIM_MAX;
   option /= BOARD_DIM_MAX;
   row = option;
