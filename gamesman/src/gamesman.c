@@ -1512,13 +1512,12 @@ STRING GetPrediction(position,playerName,usersTurn)
 		   mexString);
     } else {
       if (gTwoBits) {
-        sprintf(prediction, "(%s %s %s) %s",
+        sprintf(prediction, "(%s %s %s)",
         	playerName,
 		((value == lose && usersTurn && gAgainstComputer) ||
 		(value == win && !usersTurn && gAgainstComputer)) ?
 		"will" : "should",
-		gValueString[(int)value],
-		mexString);
+		gValueString[(int)value]);
       } else {
         sprintf(prediction, "(%s %s %s in %d) %s",
 		playerName,
@@ -2830,7 +2829,7 @@ VALUE DetermineZeroValue(POSITION position){
 		** -lowSeen is the smallest hash value seen thus far. the smallest valid position. helps bound the for loop
 		** -highSeen is the greatest hash value seen thus far. the largest valid position. helps bound the for loop
 	    ****/
-		printf("\nnumUndecided: %d, diff: %d, numNew: %d, lowSeen: %d, highSeen: %d\n",numUndecided,numUndecided - oldNumUndecided,numNew,lowSeen,highSeen);
+		printf("\nnumUndecided: %d, diff: %d, numNew: %d, lowSeen: %d, highSeen: %d",numUndecided,numUndecided - oldNumUndecided,numNew,lowSeen,highSeen);
 
 	}//End while(numUndecided != oldNumUndecided)
 
