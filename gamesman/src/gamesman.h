@@ -260,6 +260,7 @@ void showStatus(int done);
 
 /* analysis functions */
 void analyze();
+void analyzer();
 void createVarTable();
 void writeVarHTML();
 void writeVarStat(char * statName, char * text, FILE *rowp);

@@ -625,6 +625,7 @@ void ParseEvaluatedMenuChoice(char c)
 	SmarterComputerMenu();
 	break;
     case 'A': case 'a':
+      analyze();
 	AnalysisMenu();
 	break;
     case 'p': case 'P':
@@ -2481,7 +2482,7 @@ void PrintGameValueSummary()
 {
     
     
-    printf("\n\n\t----- Summmary of Game values -----\n\n");
+    printf("\n\n\t----- Summary of Game values -----\n\n");
     
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
@@ -3575,6 +3576,19 @@ int main(int argc, char *argv[])
 /** Analysis **/
 
 void analyze()
+{
+  static int analyzed = 0;
+  static int previousOption = 0;
+  
+  if (analyzed == 0 || previousOption != getOption())
+    {
+      analyzer();
+      analyzed = 1;
+    }
+  
+}
+
+void analyzer()
 {    
     POSITION thePosition;
     VALUE theValue;
@@ -3754,7 +3768,7 @@ void createVarTable ()
         fprintf(tablep,"</tr>\n");
     }
     
-    fprintf(tablep,"</table>\n");
+ fprintf(tablep,"</table>\n");
     fclose (tablep);
     
 }
