@@ -96,6 +96,8 @@ int NSS = 0;
 int XHITKILLS = 1;
 int PIECES = 2;
 
+int primcount = 1;
+
 BOOLEAN DEBUGGING = FALSE;
 
 int BOARDSIZE;
@@ -126,7 +128,7 @@ extern void		SafeFree ();
 
 // Internal
 int destination (int, int);
-int move_hash (int, int, int);
+int move_hash (int, int, int, int);
 struct row * makerow (int, int);
 int m_generic_hash(char *);
 void m_generic_unhash(int, char *);
@@ -160,6 +162,8 @@ int init;
 
 void InitializeGame()
 {
+  primcount = 1;
+
   if (DEBUGGING) printf("start initialize game\n");
 
   rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
@@ -240,7 +244,7 @@ void InitializeGame()
   }
      
   
-  /* printf("testing...\n");
+  /*printf("testing...\n");
   for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, gBoard[count]);
     }*/
@@ -258,30 +262,38 @@ void InitializeGame()
   init_array[7] = BOARDSIZE - 2 * init_array[2];
   init_array[8] = BOARDSIZE - 2 * init_array[1];
 
-  /* printf("init array:\n");
+  /*
+  printf("init array:\n");
   for (count = 0; count < 10; count++) {
     printf("%d: %d\n", count, init_array[count]);
     }*/
 
   max = generic_hash_init(BOARDSIZE,init_array,NULL);
-  /*  printf("%d  # of hash positions!\n",max);*/
+  /*printf("%d  # of hash positions!\n",max);*/
   
+  
+  /*printf("The Board before unhashing is:\n");
+  for (count = 0; count < BOARDSIZE; count++) {
+    printf("%d: %c\n", count, gBoard[count]);
+    }*/
+
   init = generic_hash(gBoard, 1);
-  /*  printf("%d  is the initial position\n",init);*/
+  /*printf("%d  is the initial position\n",init);*/
   
   /*
   generic_unhash(init,gBoard);
-  printf("testing...\n");
+  printf("The Board after unhashing is:\n");
     for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, gBoard[count]);
-  }*/
-  
-  /*gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));*/
+    }*/
   
   gNumberOfPositions  = max;
   gInitialPosition    = init;
   gMinimalPosition    = init;
- 
+
+  /*
+  printf("mallocing %d positions\n", gNumberOfPositions);
+  gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));*/
  
   /*int hash;
   for (hash = 1; hash <= 32; hash++) {
@@ -397,6 +409,8 @@ void changeBoard()
   else {
     printf("Changing N to %d ...\n", size);
     N = size;
+    MISERE = 0;
+    NSS = 0;
     XHITKILLS = 1;
     PIECES = def_start_pieces(N);
     SafeFree(rows);
@@ -488,12 +502,8 @@ POSITION DoMove(thePosition, theMove)
   int whoseTurn;
   generic_unhash(thePosition, gBoard);
   int direction;
-  int slot1;
-  int slot2;
-  int dest1;
-  int dest2;
-  int pushee_dest;
-  BOOLEAN twopieces = TRUE;
+  int slot1, slot2, slot3, dest1, dest2, dest3, pushee1, pushee2, pushdest1, pushdest2, doubpushdest;
+  BOOLEAN twopieces = FALSE, threepieces = FALSE;
   int dir_shift = 10;
   int piece_shift = 100;
 
@@ -505,38 +515,91 @@ POSITION DoMove(thePosition, theMove)
   }
 
   slot1 = theMove % piece_shift;
-  slot2 = theMove/piece_shift;
+  theMove = theMove/piece_shift;
+  slot2 = theMove % piece_shift;
+  slot3 = theMove/piece_shift;
   
-  if (slot2 == NULLSLOT) {
-    twopieces = FALSE;
+  /*one piece scenarios*/
+  if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
+    slot1 = slot3;
   }
-  
-  if (slot1 == NULLSLOT) {
-    twopieces = FALSE;
+  else if ((slot2 == NULLSLOT) && (slot3 == NULLSLOT)) {
+    /*do nothing*/
+  }
+  else if (slot1 == NULLSLOT) {
+    twopieces = TRUE;
     slot1 = slot2;
+    slot2 = slot3;
+  }
+  else if (slot3 == NULLSLOT) {
+    twopieces = TRUE;
+  }
+  else {
+    threepieces = TRUE;
   }
   
-
   dest1 = destination(slot1, direction);
-  if (twopieces) dest2 = destination(slot2, direction);
+  dest2 = destination(slot2, direction);
+  dest3 = destination(slot3, direction);
+  pushee1 = dest3;
+  doubpushdest = dest3;
+  pushee2 = destination(pushee1, direction);
+  pushdest1 = pushee2;
+  pushdest2 = destination(pushee2, direction);
 
   /*printf("dest1 = %d, direction = %d, gBoard[dest1] = %c\n", dest1, direction, gBoard[dest1]);*/
 
-  if (gBoard[dest1] != '*') {
-    pushee_dest = destination(dest1,direction);
-    if (pushee_dest != NULLSLOT) 
-      gBoard[pushee_dest] = gBoard[dest1];
+  /* one piece move */
+  if ((twopieces == FALSE) && (threepieces == FALSE)) {
+    gBoard[dest1] = gBoard[slot1];
+    gBoard[slot1] = '*';
   }
 
- 
-  gBoard[dest1] = gBoard[slot1];
-  gBoard[slot1] = '*';
-
+  /* double piece move */
   if (twopieces) {
+    /*printf("slot1 = %d, slot2 = %d, in direction %d\n", slot1, slot2, direction);*/
+    if (gBoard[dest2] != '*') {
+      /*push a piece*/
+      if (doubpushdest != NULLSLOT) {
+	gBoard[doubpushdest] = gBoard[dest2];
+      }
+    }
+
+    /*printf("dest1 is %d:%c, dest2 is %d:%c\n", dest1, gBoard[dest1], dest2, gBoard[dest2]);*/
+    
     gBoard[dest2] = gBoard[slot2];
     gBoard[slot2] = '*';
+    gBoard[dest1] = gBoard[slot1];
+    gBoard[slot1] = '*';
+  
+    /*printf("dest1 is %d:%c, dest2 is %d:%c\n", dest1, gBoard[dest1], dest2, gBoard[dest2]);*/
   }
 
+  /* triple piece move */
+  if (threepieces) {
+    /*three push two*/
+    if ((pushee2 != NULLSLOT) && (gBoard[pushee1] != '*') && (gBoard[pushee2] != '*')) {
+      if (pushdest2 != NULLSLOT) {
+	gBoard[pushdest2] = gBoard[pushee2];
+      }
+      gBoard[pushdest1] = gBoard[pushee1];
+    }
+    else if (gBoard[pushee1] != '*') {
+      /*three push one*/
+      if (pushdest1 != NULLSLOT) {
+	gBoard[pushdest1] = gBoard[pushee1];
+      }
+    }
+
+    /*main move*/
+    gBoard[dest3] = gBoard[slot3];
+    gBoard[slot3] = '*';
+    gBoard[dest2] = gBoard[slot2];
+    gBoard[slot2] = '*';
+    gBoard[dest1] = gBoard[slot1];
+    gBoard[slot1] = '*';
+  }
+  
   if (whoseMove(thePosition) == 1) {
     whoseTurn = 2;
   }
@@ -610,7 +673,10 @@ VALUE Primitive ( POSITION h )
   BOOLEAN game_over(char[]);
 
   generic_unhash(h,gBoard);
-  
+
+  /*  printf("analyzing position %d\n", primcount);*/
+  primcount++;
+
   if (game_over(gBoard)) {
     if (MISERE == 1) {
       if (DEBUGGING) printf("end prim\n");
@@ -671,6 +737,9 @@ void PrintPosition(position, playerName, usersTurn)
   }
   int r, spacing;
 
+ /*printf("the position is : %d\n", position);
+  printf("gInitialPosition is: %d\n", gInitialPosition);
+  printf("gMinimalPosition is: %d\n", gMinimalPosition); */
 
   if (N < 4) {
     /* messy centering spacing issues for sizeable first line*/
@@ -892,90 +961,152 @@ printf("\\-------------------------------");
 MOVELIST *GenerateMoves(position)
          POSITION position;
 {
-  if (DEBUGGING) printf("generate\n");
+  if (DEBUGGING)
+    printf("generate\n");
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode(); /* In gamesman.c */
   VALUE Primitive();
-  int slot, slot2, dest0, dest1, dest2, direction, ssdir;
-  char whoseTurn;
-
+  int slot, direction, ssdir;
+  int pusher2, pusher3, pushee1, pushee2, pushee3;
+  char whoseTurn, opponent;
+  
   if (whoseMove(position) == 2) {
     whoseTurn = 'x';
+    opponent = 'o';
   }
   else {
     whoseTurn = 'o';
+    opponent = 'x';
   }
-
   generic_unhash(position,gBoard);
-  
+
+  /*printf("the hash is %d\n", position);
+    for (slot = 0; slot < BOARDSIZE; slot++)
+    printf("%d :%c\n", slot, gBoard[slot]);*/
+
   if (Primitive(position) == undecided) {
     for (slot = 0; slot < BOARDSIZE ; slot++) {
       if (gBoard[slot] == whoseTurn) {
 	for (direction = 1; direction <= 3; direction++) {
-	  
-	  slot2 = destination(slot, direction);
-	  
-	  /*Single Piece Moves*/
-	  dest0 = destination(slot, (0 - direction));
-	  if (gBoard[slot2] == '*') {
-	    head = CreateMovelistNode(move_hash(slot,NULLSLOT,direction), head);
+
+	  /*Single Piece Moves in all directions*/
+	  pushee1 = destination(slot, direction);
+	  pushee2 = destination(slot, (0 - direction));
+
+	  if (gBoard[pushee1] == '*') {
+	    head = CreateMovelistNode(move_hash(slot,NULLSLOT, NULLSLOT, direction), head);
 	  }
-	  if (gBoard[dest0] == '*') {
-	    head = CreateMovelistNode(move_hash(slot,NULLSLOT,(0 - direction)), head);
+	  if (gBoard[pushee2] == '*') {
+	    head = CreateMovelistNode(move_hash(slot,NULLSLOT, NULLSLOT, (0 - direction)), head);
 	  }
 	  
-	  /*Double Piece Moves*/
-	  if (gBoard[slot2] == whoseTurn) {
-	    /*Test for pushes in both directions*/
-	    /*the oppositve direction is represented by the negative of that direction*/
+	  /*Multiple Piece Moves in positive directions*/
+	  pusher2 = destination(slot, direction);
+	  if ((pusher2 != NULLSLOT) && (gBoard[pusher2] == whoseTurn)) {
 	    
-	    dest1 = destination(slot2,direction);
-	    
-	    if (dest1 != NULLSLOT) {
-	      dest2 = destination(dest1,direction);
-	      if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') ||(dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
-		head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
-	      }
+	    /*Double Piece Moves in positive directions*/
+	    pushee1 = destination(pusher2,direction);
+	    pushee2 = destination(pushee1,direction);
+	    if ((pushee1 != NULLSLOT) &&
+		((gBoard[pushee1] == '*') ||
+		 ((gBoard[pushee1] == opponent) && 
+		  ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*'))))) {
+	      head = CreateMovelistNode(move_hash(slot, pusher2, NULLSLOT, direction), head);
 	    }
-	    direction = 0 - direction; 
-	    dest1 = destination(slot,direction);
-	    
-	    if (dest1 != NULLSLOT) {
-	      dest2 = destination(dest1,direction);
-	      if ((gBoard[dest1] != whoseTurn) && ((gBoard[dest2]== '*') || (dest2 == NULLSLOT)||(gBoard[dest1] == '*'))) {
-		head = CreateMovelistNode(move_hash(slot, slot2, direction), head);
-	      }
+
+	    /*Triple Piece Push in positive direction*/
+	    pusher3 = destination(pusher2, direction);
+	    pushee1 = destination(pusher3, direction);
+	    pushee2 = destination(pushee1, direction);
+	    pushee3 = destination(pushee2, direction);
+
+	    if (((pusher3 != NULLSLOT) && (gBoard[pusher3] == whoseTurn)) &&
+		(/*no pieces pushed*/
+		 ((pushee1 != NULLSLOT) && (gBoard[pushee1] == '*')) ||
+		 /*pieces pushed*/
+		 (((pushee1 != NULLSLOT) && (gBoard[pushee1] == opponent)) &&
+		  (/*one piece pushed*/
+		   ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*')) ||
+		   /*two pieces pushed*/
+		   (((pushee2 != NULLSLOT) && (gBoard[pushee2] == opponent)) && ((pushee3 == NULLSLOT) || (gBoard[pushee3] == '*'))))))) {
+	      head = CreateMovelistNode(move_hash(slot, pusher2, pusher3, direction), head);
 	    }
-	    direction = 0 - direction;
+	  }
+
+	  direction = 0 - direction; 
+
+	  /*Multiple Piece Moves in negative directions*/
+	  pusher2 = destination(slot, direction);
+	  if ((pusher2 != NULLSLOT) && (gBoard[pusher2] == whoseTurn)) {
+	    
+	    /*Double Piece Moves in negative direction*/
+	    pushee1 = destination(pusher2,direction);
+	    pushee2 = destination(pushee1,direction);
+	    if ((pushee1 != NULLSLOT) &&
+		((gBoard[pushee1] == '*') ||
+		 ((gBoard[pushee1] == opponent) && ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*')))))
+	      head = CreateMovelistNode(move_hash(slot, pusher2, NULLSLOT, direction), head);
+	    
+
+	    /*Triple Piece Push in negative direction*/
+	    pusher3 = destination(pusher2, direction);
+	    pushee1 = destination(pusher3, direction);
+	    pushee2 = destination(pushee1, direction);
+	    pushee3 = destination(pushee2, direction);
+
+	    if (((pusher3 != NULLSLOT) && (gBoard[pusher3] == whoseTurn)) &&
+		(/*no pieces pushed*/
+		 ((pushee1 != NULLSLOT) && (gBoard[pushee1] == '*')) ||
+		 /*pieces pushed*/
+		 (((pushee1 != NULLSLOT) && (gBoard[pushee1] == opponent)) &&
+		  (/*one piece pushed*/
+		   ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*')) ||
+		   /*two pieces pushed*/
+		   (((pushee2 != NULLSLOT) && (gBoard[pushee2] == opponent)) && ((pushee3 == NULLSLOT) || (gBoard[pushee3] == '*'))))))) {
+	      head = CreateMovelistNode(move_hash(slot, pusher2, pusher3, direction), head);
+	    }
+	  }
+
+	  direction = 0 - direction;
 	      
-	    
-	    if (NSS == 0) { 
-	      /*Test for possible side steps*/
-	      for (ssdir = -3; ssdir <= 3; ssdir++) {
-		if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {/*skip over nonexistant zero direction as well as push direction*/
-		  dest1 = destination(slot,ssdir);
-		  dest2 = destination(slot2,ssdir);
+	  if (NSS == 0) { 
+	    /*Test for possible side steps*/
+	    for (ssdir = -3; ssdir <= 3; ssdir++) {
+	      if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {
+		/*skip over nonexistant zero direction as well as push direction*/
+		pusher2 = destination(slot,direction);
+		pusher3 = destination(pusher2, direction);
+		pushee1 = destination(slot,ssdir);
+		pushee2 = destination(pusher2, ssdir);
+		pushee3 = destination(pusher3, ssdir);
+		
+		
+		if ((pusher2 != NULLSLOT) && (pushee1 != NULLSLOT) && (pushee2 != NULLSLOT) && 
+		    (gBoard[pusher2] == whoseTurn) && (gBoard[pushee1] == '*') && (gBoard[pushee2] == '*')) {
 		  
-		  if ((dest1 != NULLSLOT) && (dest2 != NULLSLOT) && (gBoard[dest1] == '*') && (gBoard[dest2] == '*')) {
-		    head = CreateMovelistNode(move_hash(slot,slot2,ssdir), head);
-		  }
+		  /*two piece sidestep*/
+		  head = CreateMovelistNode(move_hash(slot,pusher2, NULLSLOT, ssdir), head);
 		  
-		  
-		  if (slot == 0) {
-		    /*printf("slot is 0, slot2 is %d, dest1 is %d, gBoard[dest1] is %c, dest2 is %d, gBoard[dest2] is %c, in direction %d\n", slot2, dest1, gBoard[dest1], dest2, gBoard[dest2], ssdir);*/
-		    
+		  /*three piece sidestep*/
+		  if ((pusher3 != NULLSLOT) && (pushee3 != NULLSLOT) &&
+		      (gBoard[pusher3] == whoseTurn) && (gBoard[pushee3] == '*')) {
+		    head = CreateMovelistNode(move_hash(slot,pusher2,pusher3,ssdir), head);
 		  }
 		}
 	      }
 	    }
+	    
+	    
 	  }
-	}   
+	} 
       }
     }
-    if (DEBUGGING) printf("end gen\n");
+    if (DEBUGGING)
+      printf("end gen\n");
     return(head);
   }
-  if (DEBUGGING) printf("end gen\n");
+  if (DEBUGGING)
+    printf("end gen - NULL\n");
   return(NULL);
 }
 
@@ -1041,7 +1172,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  int n=0, p1, p2;
+  int n=0, p1, p2, p3;
 
   /*skip whitespace*/
   while ((input[n] == ' ') || (input[n] == '[')) {
@@ -1058,7 +1189,6 @@ BOOLEAN ValidTextInput(input)
     }
     p1--;
     if (p1 >= BOARDSIZE || p1 < 0) {
-      printf("why am I here?\n");
       return FALSE;
     }
   }
@@ -1084,8 +1214,25 @@ BOOLEAN ValidTextInput(input)
       return FALSE;
     }
   }
-  
-  printf("or here?\n");
+
+  /*skip whitespace and commas*/
+  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
+    n++;
+  }
+
+  /*get third piece, if it exists*/
+  if ((input[n] >= '0') && (input[n] <= '9')) {
+    p3 = input[n] - '0';
+    n++;
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+      p3 = p3 * 10 + (input[n] - '0');
+    }
+    n++;
+    p3--;
+    if (p3 >= BOARDSIZE || p3 < 0) {
+      return FALSE;
+    }
+  }
 
   /*skip whitespace and commas*/
   while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
@@ -1123,8 +1270,9 @@ BOOLEAN ValidTextInput(input)
   else if (input[n] == 'E' || input[n] == 'e') {
     return TRUE;
   }
-  else
+  else {
     return FALSE;
+  }
 }
 
 
@@ -1145,8 +1293,9 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  if (DEBUGGING) printf("Starting conversion\n");
-  int n=0, dir, p1, p2;
+  if (DEBUGGING)
+  printf("Starting conversion\n");
+  int n=0, dir, p1, p2, p3, pushee;
 
   /*skip whitespace*/
   while ((input[n] == ' ') || (input[n] == '[')) {
@@ -1180,15 +1329,37 @@ MOVE ConvertTextInputToMove(input)
     p2--;
   } else {
     p2 = NULLSLOT;
+    p3 = NULLSLOT;
   }
     
+
   /*skip whitespace and commas*/
   while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
     n++;
   }
 
+  /*get third piece, if it exists*/
+  if ((input[n] >= '0') && (input[n] <= '9')) {
+    p3 = input[n] - '0';
+    n++;
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+      p3 = p3 * 10 + (input[n] - '0');
+    }
+    n++;
+    p3--;
+  } else {
+    p3 = NULLSLOT;
+  }
+
+  /*skip whitespace and commas*/
+  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
+    n++;
+  }
+
+
   /*get direction*/
   if ((input[n] == 'N') || (input[n] == 'n')) {
+    printf("N1\n");
     n++;
     if ((input [n] == 'W') || (input[n] == 'w')) {
       dir = -2;
@@ -1196,8 +1367,9 @@ MOVE ConvertTextInputToMove(input)
     else if ((input[n] == 'E') ||(input [n] == 'e')) {
       dir = -3;
     }
+    printf("N2\n");
   }
-  else if (input[n] == 'S' || input[n] == 's') {
+  else if ((input[n] == 'S') || (input[n] == 's')) {
     n++;
     if (input [n] == 'W' || input[n] == 'w') {
       dir = 3;
@@ -1213,12 +1385,20 @@ MOVE ConvertTextInputToMove(input)
     dir = -1;
   }
 
-  int pushee = destination(p1, dir);
+  /*fill in implicit push moves*/
+  if ((p2 == NULLSLOT) && (p3 == NULLSLOT)) {
+    pushee = destination (p1, dir);
+    if ((pushee != NULLSLOT) && (gBoard[pushee] == gBoard[p1])) {
+      p2 = pushee;
+      
+      pushee = destination (p2, dir);
+      if ((pushee != NULLSLOT) && (gBoard[pushee] == gBoard[p2]))
+	p3 = pushee;
+    }
+  }   
 
-  if (gBoard[pushee] == gBoard[p1])
-    p2 = pushee;
-
-  int move = move_hash (p1, p2, dir);
+  printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);
+  int move = move_hash (p1, p2, p3, dir);
   if (DEBUGGING) printf("finished conversion: move is %d\n", move);
   return move;
 }
@@ -1236,53 +1416,78 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  if (DEBUGGING) printf("starting print w/move = %d\n", theMove);
-  int direction, slot1, slot2;
+  if (DEBUGGING) 
+    printf("starting print w/move = %d\n", theMove);
+  int direction, slot1, slot2, slot3;
+  int dir_shift = 10;
+  int piece_shift = 100;
   STRING dir;
  
-  direction = theMove % 10;
-  theMove = theMove/10;
+  direction = theMove % dir_shift;
+  theMove = theMove/dir_shift;
 
 
   if (theMove < 0) {
     theMove = 0 - theMove;
   }
- 
 
-  slot1 = theMove % 100;
-  slot2 = theMove/100;
+  slot1 = theMove % piece_shift;
+  theMove = theMove/piece_shift;
+  slot2 = theMove % piece_shift;
+  slot3 = theMove/piece_shift;
 
-
+  /*match up internal numbers (starting at 0) w/external (starting at 1) */
   if (slot1 != NULLSLOT)
     slot1++;
   if (slot2 != NULLSLOT)
     slot2++;
+  if (slot3 != NULLSLOT)
+    slot3++;
 
-  if (direction == 1)
-    dir = "E"; 
-  else if (direction == -1)
+  if (direction == 1) {
+    dir = "E";
+  }
+  else if (direction == -1) {
     dir = "W"; 
-  else if (direction == -3) 
+  }
+  else if (direction == -3){
     dir = "NE";
-  else if (direction == -2) 
+  }
+  else if (direction == -2) {
     dir = "NW"; 
-  else if (direction == 3) 
+  }
+  else if (direction == 3) {
     dir = "SW";
-  else
-    dir = "SE";
- 
-
-  if (slot1 == NULLSLOT) {
-    printf("[%d %s]",slot2, dir);
-  }
-  else if (slot2 == NULLSLOT) {  
-    printf("[%d %s]",slot1, dir);
-  }
-  else if ((slot1 - 1) == destination((slot2 - 1), direction)) { 
-     printf("[%d %s]",slot2, dir);
   }
   else {
-    printf("[%d %d %s]",slot1,slot2, dir);
+    dir = "SE";
+  }
+
+  /*printf("slot1 = %d, slot2 = %d, slot3 = %d, direction = %d\n", slot1, slot2, slot3, direction);*/
+
+  if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
+    printf("[%d %s]", slot3, dir);
+  }
+  else if ((slot3 == NULLSLOT) && (slot2 == NULLSLOT)) {
+    printf("[%d %s]", slot1, dir);
+  }
+  else if (slot1 == NULLSLOT) {
+    if ((slot3 - 1 ) == destination ((slot2 - 1), direction))
+      printf("[%d %s]", slot2, dir);
+    else
+      printf("[%d %d %s]",slot2, slot3, dir);
+  }
+  else if (slot3 == NULLSLOT) {
+    if ((slot2 - 1) == destination ((slot1 - 1), direction))
+      printf("[%d %s]", slot1, dir);
+    else
+      printf("[%d %d %s]",slot1, slot2, dir);
+  }
+  else if ((slot2 - 1) == destination((slot1 - 1), direction)) { 
+     printf("[%d %s]",slot1, dir);
+  }
+  else {
+    printf("[%d %d %d %s]",slot1,slot2,slot3, dir);
   }
   if (DEBUGGING) printf("finished printmove\n");
 }
@@ -1410,6 +1615,12 @@ void setOption(int option)
 ** ones.
 ************************************************************************/
 int destination(int slot, int direction) {
+  if (DEBUGGING)
+    printf("starting destination\n");
+  /*garbage in, garbage out*/
+  if (slot == NULLSLOT)
+    return NULLSLOT;
+
   /*find the row*/
   int r, start, size;
   for (r = 0; r <= 2*N - 2; r++) {
@@ -1430,7 +1641,7 @@ int destination(int slot, int direction) {
       (direction == -3 && ((r == 0) || ((slot == start + size -1) && (*rows[r-1]).size < size)))) {
     return NULLSLOT;
   }
-
+  
   if (direction == 1 || direction == -1) {
     return (slot + direction);
   }
@@ -1478,25 +1689,55 @@ BOOLEAN member(int slot, int places[]) {
   return FALSE;
 }
   
-int move_hash(int slot1, int slot2, int direction) {
-  int bigger, smaller;
+int move_hash(int slot1, int slot2, int slot3, int direction) {
+  int bigger, smaller, middle;
   int small_shift = 10;
-  int big_shift = 1000;
+  int mid_shift = 1000;
+  int big_shift = 100000;
 
-  if (slot2 > slot1) {
-    bigger = slot2;
-    smaller = slot1;
+  if (slot2 > slot1) {/* 2 > 1*/
+    if (slot3 > slot1) { /* 3 > 1*/
+      smaller = slot1;
+      if (slot3 > slot2) { /* 3 > 2*/
+	bigger = slot3;
+	middle = slot2;
+      }
+      else {                /* 2 > 3*/
+	bigger = slot2;
+	middle = slot3;
+      }
+    }
+    else {               /* 1 > 3*/
+      smaller = slot3;
+      middle = slot1;
+      bigger = slot2;
+    }
   }
-  else {
-    bigger = slot1;
-    smaller = slot2;
+  else {              /* 1 > 2*/
+    if (slot3 > slot2) { /* 3 > 2*/
+      smaller = slot2;
+      if (slot1 > slot3) {  /* 1 > 3*/
+	bigger = slot1;
+	middle = slot3;
+      }
+      else {                /* 3 > 1*/
+	bigger = slot3;
+	middle = slot1;
+      }
+    }
+    else {               /* 2 > 3*/
+      smaller = slot3;
+      middle = slot2;
+      bigger = slot1;
+    }
   }
 
+  /* so do move can simply shift the pieces over in the order it gets them*/
   if (direction > 0) {
-    return (direction + (small_shift * bigger) + (big_shift * smaller));
+    return (direction + (small_shift * smaller) + (mid_shift * middle) + (big_shift * bigger));
   }
   else {
-    return (-1 * ((-1 * direction) + (small_shift * smaller) + (big_shift * bigger)));
+    return (-1 * ((-1 * direction) + (small_shift * bigger) + (mid_shift * middle) +  (big_shift * smaller)));
   }
 }
 
