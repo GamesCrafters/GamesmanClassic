@@ -26,7 +26,7 @@
 # kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
 proc GS_InitGameSpecific {} {
-    puts ">> GS_InitGameSpecific"
+    #puts ">> GS_InitGameSpecific"
     
     ### Set the name of the game
     
@@ -76,7 +76,7 @@ proc GS_InitGameSpecific {} {
     global HEADONLY
     set HEADONLY 1
 
-    puts "<< exit GS_InitGameSpecific"
+    #puts "<< exit GS_InitGameSpecific"
 
     # Set toMove and toWin
     global gMisereGame
@@ -205,8 +205,8 @@ proc GS_SetOption { option } {
 # starts playing the game, and before he hits "New Game"
 
 proc GS_NameOfPieces {} {
-    puts ">> GS_NameOfPieces"
-    puts "<< exit GS_NameOfPieces"
+    #puts ">> GS_NameOfPieces"
+    #puts "<< exit GS_NameOfPieces"
     return [list head tail]    
 }
 
@@ -217,7 +217,7 @@ proc GS_NameOfPieces {} {
 
 proc GS_Initialize { c } {
 
-    puts ">> GS_Initialize"
+    #puts ">> GS_Initialize"
     
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width 500 -height 500
@@ -258,7 +258,7 @@ proc GS_Initialize { c } {
     $c raise base
     #update idletasks
     
-    puts "<< exit GS_Initialize"
+    #puts "<< exit GS_Initialize"
 } 
 
 proc GS_Deinitialize { c } {   
@@ -269,7 +269,7 @@ proc SendMove { square } {
     set theMove $square
 
     ReturnFromHumanMove $theMove
-    puts $theMove
+    #puts $theMove
 }
 
 proc makeMouse { c tileNum } {
@@ -339,7 +339,7 @@ proc TileEnter { c tileNum } {
 }
 
 proc movePupils { c command } {
-    puts "---- $command"
+    #puts "---- $command"
 
     # get coords of eyes
     set confine_coords [$c coords confinement]
@@ -427,13 +427,14 @@ proc MakeArrows { c } {
 	if {[expr $theTile % $BOARDWIDTH] != 0 } {
 	    #puts "in leftTo section"
 	    #puts "TILE: $theTile"
-	    puts [expr $i % $BOARDWIDTH]
+	    #puts [expr $i % $BOARDWIDTH]
 	    # drawLeftArrow appears to take internal move rep? dunno, didnt write that proc
 	    drawLeftArrow $c $theTile $leftTo cyan
 	    set internalMove [SlotsToMove $theTile $leftTo]
 	    $c bind arrow$theTile$leftTo <Enter> "ArrowEnter $c arrow$theTile$leftTo"
 	    $c bind arrow$theTile$leftTo <Leave> "ArrowLeave $c arrow$theTile$leftTo"    
-	    $c bind arrow$theTile$leftTo <ButtonRelease-1> "puts arrow$theTile$leftTo; $c itemconfig arrow$theTile$leftTo -fill black; SendMove $internalMove"
+#	    $c bind arrow$theTile$leftTo <ButtonRelease-1> "puts arrow$theTile$leftTo; $c itemconfig arrow$theTile$leftTo -fill black; SendMove $internalMove"
+	    $c bind arrow$theTile$leftTo <ButtonRelease-1> "$c itemconfig arrow$theTile$leftTo -fill black; SendMove $internalMove"
 	}
 	if {[expr ($theTile+1) % $BOARDWIDTH] != 0 } {
 	    #puts "in rightTo section"
@@ -522,7 +523,7 @@ proc MakeHorizontalConnectors { c from to } {
 	#puts $from
 	#puts $to
     }
-    puts "---- hcon$from$to"
+    #puts "---- hcon$from$to"
 }
 
 # Makes vertical connecting pieces
@@ -536,7 +537,7 @@ proc MakeVerticalConnectors { c from to} {
 	set x [expr [expr $from % 4] * 125]
 	set y [expr [expr $from / 4] * 125]
 	$c create rect [expr $x + 30] [expr $y + 95] [expr $x + 95] [expr $y + 155] -fill green3 -tag [list connectors vconnectors vcon$from$to]
-	puts "---- vcon$from$to"
+	#puts "---- vcon$from$to"
 	#puts $from
 	#puts $to
     }
@@ -601,7 +602,7 @@ proc MakeTongue { c tongueLen} {
 
 proc EnterHead { c slot } {
 
-    puts " ---- [$c coords mouth]"
+    #puts " ---- [$c coords mouth]"
 
     set MaxTongueLen 30
     set MinTongueLen 6
@@ -757,7 +758,7 @@ proc rattleTail { c numRattles} {
 # Don't bother writing tcl that hashes, that's never necessary.
 
 proc GS_DrawPosition { c position } {
-    puts ">> GS_DrawPosition"
+    #puts ">> GS_DrawPosition"
     # BTW too: don't make any assumptions about the state of the board.
     # Clears the board
     $c raise base 
@@ -789,7 +790,7 @@ proc GS_DrawPosition { c position } {
 	#incr y 
     #} 
 
-    puts "<< exit GS_DrawPosition"
+    #puts "<< exit GS_DrawPosition"
 }
 
 proc unhash { position } {
@@ -853,7 +854,7 @@ proc unhash { position } {
 
 proc GS_NewGame { c position } {
     # NOTE: REPLACE ALL CONSTANTS (5, 10) WITH APPROPRIATE GLOBAL VARS, ie 5, 10 replace with constants that store the beginning positions of head and tail
-    puts ">> GS_NewGame"
+    #puts ">> GS_NewGame"
 
     global HEADinTILE
     global TAILinTILE
@@ -882,7 +883,7 @@ proc GS_NewGame { c position } {
     $c raise head 
     $c raise tail   
     
-    puts "<< exit GS_NewGame"
+    #puts "<< exit GS_NewGame"
 }
 
 
@@ -893,7 +894,7 @@ proc GS_NewGame { c position } {
 
 proc GS_WhoseMove { position } {
     global BOARDSIZE
-    puts ">> GS_WhoseMove"
+    #puts ">> GS_WhoseMove"
     set board [unhash $position]
     set count 0  
     for {set i 0} {$i<$BOARDSIZE} {incr i} {
@@ -908,7 +909,7 @@ proc GS_WhoseMove { position } {
         set who head
     }
 
-    puts "<< exit GS_WhoseMove"
+    #puts "<< exit GS_WhoseMove"
 
     return $who
 }
@@ -926,7 +927,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     global BOARDSIZE
     global HEADinTILE
     global TAILinTILE
-    puts ">> GS_HandleMove"
+    #puts ">> GS_HandleMove"
 
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
@@ -938,11 +939,11 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set piece head
 
 
-    puts " ---- theMove: $theMove"
-    puts " ---- from: $from"
-    puts " ---- to: $to"
+    #puts " ---- theMove: $theMove"
+    #puts " ---- from: $from"
+    #puts " ---- to: $to"
 
-    puts " ---- [GS_WhoseMove $oldPosition]"
+    #puts " ---- [GS_WhoseMove $oldPosition]"
     
 
    # determine if the head was moved, or if the tail was moved
@@ -998,8 +999,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
     #temp, cause my temp random "positions" seem to cause none of above direction if's to be hit
     #set direction right
-    puts "---- direction: $direction"
-    puts "---- piece: $piece"
+    #puts "---- direction: $direction"
+    #puts "---- piece: $piece"
     $c raise body$from 
     MovePiece $c $piece $direction
     if {$direction == "up"} {
@@ -1016,7 +1017,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     }
     $c raise head
 
-    puts "<< exit GS_HandleMove"
+    #puts "<< exit GS_HandleMove"
 }
 
 # Moves the PIECE, which is either head or tail
@@ -1098,16 +1099,16 @@ proc drawLeftArrow { c from to color} {
 proc GS_ShowMoves { c moveType position moveList } {
     global BOARDSIZE
 
-    puts ">> GS_ShowMoves"
+    #puts ">> GS_ShowMoves"
 
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]  
-    puts $from
+    #puts $from
 
-    puts "---- moveList: $moveList"
+    #puts "---- moveList: $moveList"
     foreach item $moveList {
 	#	set color [MoveTypeToColor $moveType]
-	puts "---- item: $item"
+	#puts "---- item: $item"
 
 	# this theMove is in internal rep format
 	set theMove [lindex $item 0]
@@ -1117,11 +1118,11 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 	set value [lindex $item 1]
 
-	puts "---- <$fromSlot , $toSlot> $value"
+	#puts "---- <$fromSlot , $toSlot> $value"
 
         set color [MoveValueToColor $moveType $value]
 
-	puts "---- Got past color picker"
+	#puts "---- Got past color picker"
 
 	$c itemconfig arrow$fromSlot$toSlot -fill $color
 	$c raise arrow$fromSlot$toSlot all
@@ -1147,7 +1148,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	update idletasks
     }
 
-    puts "<< exit GS_ShowMoves"
+    #puts "<< exit GS_ShowMoves"
 }
 
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the same as GS_ShowMoves.
@@ -1156,11 +1157,11 @@ proc GS_ShowMoves { c moveType position moveList } {
 proc GS_HideMoves { c moveType position moveList} {
     global BOARDSIZE
 
-    puts ">> GS_HideMoves"
+    #puts ">> GS_HideMoves"
 
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]
-    puts $moveList
+    #puts $moveList
     foreach item $moveList {
 	set item [lindex $item 0]
 
@@ -1192,7 +1193,7 @@ proc GS_HideMoves { c moveType position moveList} {
 # 	}
 	update idletasks
     }	    
-    puts "<< exit GS_HideMoves"
+    # puts "<< exit GS_HideMoves"
 }
 
 
@@ -1208,10 +1209,10 @@ proc GS_HideMoves { c moveType position moveList} {
 # By default this function just calls GS_DrawPosition, but you certainly don't need to keep that.
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-    puts ">> GS_HandleUndo"
+    #puts ">> GS_HandleUndo"
     GS_DrawPosition $c $positionAfterUndo
 
-    puts "<< exit GS_HandleUndo"
+    #puts "<< exit GS_HandleUndo"
 }
 
 
@@ -1237,9 +1238,9 @@ proc GS_GetGameSpecificOptions { } {
 # The right player's color should be second.
 
 proc GS_ColorOfPlayers {} {
-    puts ">> GS_ColorOfPlayers"
+    #puts ">> GS_ColorOfPlayers"
 
-    puts "<< exit GS_ColorOfPlayers"
+    #puts "<< exit GS_ColorOfPlayers"
 
     return [list black green]
 }
@@ -1250,8 +1251,8 @@ proc GS_ColorOfPlayers {} {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    puts ">> GS_GameOver"
-    puts "<< GS_GameOver"
+    #puts ">> GS_GameOver"
+    #puts "<< GS_GameOver"
 }
 
 
