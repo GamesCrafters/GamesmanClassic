@@ -381,7 +381,20 @@ proc GS_Initialize { c } {
     # red7
     # red8
 
-    GS_DrawPosition $c $gInitialPosition
+    #GS_DrawPosition $c $gInitialPosition
+#     $c raise blue1
+#     $c raise blue2
+#     $c raise blue3
+#     $c raise blue4
+
+#     $c raise red5
+#     $c raise red6
+#     $c raise red7
+#     $c raise red8
+
+
+    $c create text 250 480 -text $gInitialPosition
+
 }
 
 
@@ -553,6 +566,8 @@ proc GS_DrawPosition { c position } {
 
     set binaryPosition [Unhash $position]
 
+    $c create text 20 20 -text $binaryPosition
+
     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
 	if {[expr $mask & $binaryPosition] == 0} {
@@ -572,9 +587,17 @@ proc GS_DrawPosition { c position } {
 #unhashes the position from the C code with C_GenericUnhash. Returns the unhashed position.
 proc Unhash { position } {
 
-    set stringPosition [C_GenericUnhash $position 9]
+    set stringPosition ""
+    set stringPositionR [C_GenericUnhash $position 9]
     #set pieceString [string range [C_GenericUnhash $position 9] 0 8]
     #set stringPosition "_ooooxxxx"
+
+
+     for {set x 9} {$x >= 0} {set x [expr $x - 1]} {
+ 	append stringPosition [string index $stringPositionR $x]
+     }
+
+
 
     set binaryPosition 0
     set positionMultiplier 1
@@ -593,6 +616,8 @@ proc Unhash { position } {
 
 	set positionMultiplier [expr $positionMultiplier * 2]
     }
+
+
 
     return $binaryPosition
 }
@@ -620,6 +645,8 @@ proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
 
+    #GS_DrawPosition $c $position
+    $c create text 250 5 -text $position
     GS_DrawPosition $c $position
 }
 
@@ -671,16 +698,25 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 proc GS_ShowMoves { c moveType position moveList } {
 
 
-    #set binaryPosition [Unhash $position]
+    #$c create text 20 480 -text [C_GenerateMoves position]
+
+
+    #$c create text 480 20 -text $position
+
+    set binaryPosition [Unhash $position]
+    set oldBlankSpot [getBlankSpot $binaryPosition]
     #set oldBlankSpot [getBlankSpot $position]
+
+    $c create text 250 250 -text $moveList
+    $c create text 250 20 -text [C_GenericUnhash $position 9]
 
     foreach item $moveList {
 	set move [lindex $item 0]
 	set value [lindex $item 1]
 	set color cyan
 
-	set oldBlankSpot [expr $move % 10]
-	set newBlankSpot [expr $move / 10]
+	
+	set newBlankSpot $move
 
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
