@@ -1437,7 +1437,16 @@ STRING GetPrediction(position,playerName,usersTurn)
   if(gPrintPredictions && (gMenuMode == Evaluated)) {
     MexFormat(position,mexString);
     value = GetValueOfPosition(position);
-    (void) sprintf(prediction, "(%s %s %s in %d) %s",
+    if (value == tie && Remoteness(position) == 255) {
+      (void) sprintf(prediction, "(%s %s Draw) %s",
+		   playerName,
+		   ((value == lose && usersTurn && gAgainstComputer) ||
+		    (value == win && !usersTurn && gAgainstComputer)) ?
+		   "will" : "should",
+		   mexString);
+    }
+    else {
+      (void) sprintf(prediction, "(%s %s %s in %d) %s",
 		   playerName,
 		   ((value == lose && usersTurn && gAgainstComputer) ||
 		    (value == win && !usersTurn && gAgainstComputer)) ?
@@ -1445,6 +1454,7 @@ STRING GetPrediction(position,playerName,usersTurn)
 		   gValueString[(int)value],
 		   Remoteness(position),
 		   mexString);
+    }
   }
   else
     (void) sprintf(prediction,"");
@@ -1881,8 +1891,11 @@ MOVE GetComputersMove(thePosition)
 	  PrintMove(ptr->move);
 	  printf(" ");
 	}
-	prev = ptr;
-	ptr = ptr->next;
+	if(ptr != NULL)
+	  {
+	    prev = ptr;
+	    ptr = ptr->next;
+	  }
       }
       i++;
     }

@@ -447,8 +447,6 @@ proc GameOver { position gameValue lastMove } {
 
     set previousPos [peek [pop $gGameSoFar]]
 
-    set whoseTurn [GS_WhoseMove $previousPos]
-
     set WhoWon Nobody
 
     set WhichPieceWon Nobody
