@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.47 2004-12-25 10:22:19 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.48 2004-12-25 10:35:43 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -1239,44 +1239,26 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
     }
-    #DOMSEARCH
-    image create photo iDMB1p -file [format %s%s/D_2_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB2p -file [format %s%s/D_2_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB3p -file [format %s%s/D_2_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB4p -file [format %s%s/D_2_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB5p -file [format %s%s/D_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iDMB6p -file [format %s%s/D_2_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB1p -file [format %s%s/I_2_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB2p -file [format %s%s/I_2_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB3p -file [format %s%s/I_2_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB4p -file [format %s%s/I_2_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB5p -file [format %s%s/I_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIMB6p -file [format %s%s/I_2_6.%s $skinsRootDir $skinsDir $skinsExt]
+    foreach mode {D I} {
+	foreach file {1 2 3 4 5 6} {
+	    set name [format i%sMB%s $mode $file]
+	    image create photo [subst $name]p -file [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
+	}
+    }
     image create photo iAMB5p -file [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iSMB7p -file [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt]
-    #image create photo iAMB7p -file [format %s%s/A_7_1.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iAMB8p -file [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iAMM1p -file [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iBBB1p -file [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB2p -file [format %s%s/A_3_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB2p -file [format %s%s/I_3_2.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB3p -file [format %s%s/A_3_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB3p -file [format %s%s/I_3_3.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB4p -file [format %s%s/A_3_4.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB4p -file [format %s%s/I_3_4.%s $skinsRootDir $skinsDir $skinsExt]
-    ##image create photo iABB5p -file [format %s%s/A_3_5.%s $skinsRootDir $skinsDir $skinsExt] 
-    ##image create photo iIBB5p -file [format %s%s/I_3_5.%s $skinsRootDir $skinsDir $skinsExt]
+    foreach mode {A I} {
+	foreach file {2 3 4 6 7 8 9} {
+	    set name [format i%sBB%s $mode $file]
+	    image create photo [subst $name]p -file [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
+	}
+    }
     image create photo iDBB6p -file [format %s%s/D_3_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB6p -file [format %s%s/A_3_6.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB6p -file [format %s%s/I_3_6.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iDBB7p -file [format %s%s/D_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB7p -file [format %s%s/I_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB7p -file [format %s%s/A_3_7.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iDBB8p -file [format %s%s/D_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB8p -file [format %s%s/I_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB8p -file [format %s%s/A_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iIBB9p -file [format %s%s/I_3_9.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iABB9p -file [format %s%s/A_3_9.%s $skinsRootDir $skinsDir $skinsExt]
 
     #
     # Deal with everything in the top toolbar
