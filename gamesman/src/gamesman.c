@@ -15,14 +15,7 @@
 
 
 //extern STRING  kGUIAuthorName;    // graphics writers
-int   gHashEfficiency;
-float gAverageFanout;
-long  gTotalPositions;
-long  gTotalMoves;
-long  gWinCount, gLoseCount, gTieCount, gUnknownCount;
-long  gPrimitiveWins, gPrimitiveLoses, gPrimitiveTies;
-int   gTimer;
-
+ANALYSIS gAnalysis;
 
 /* gameplay-related internal function prototypes */
 void     Initialize();
@@ -569,7 +562,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
-	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+	printf("done in %d seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
 	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
 	} else {
@@ -1224,8 +1217,8 @@ void showStatus(int done)
 	    break;
 	case 1:
 	  if(gWriteDatabase){
-	    print_length = printf("Writing Database...\e[K");
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+	    print_length = fprintf(stderr,"Writing Database...\e[K");
+	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 	  }
 	    num_pos_seen = 0;
 	    updateTime = (clock_t) NULL;
@@ -1235,15 +1228,17 @@ void showStatus(int done)
     if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
 	{
 	    fflush(stdout);
-	    print_length = printf("Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+	    fflush(stderr);
+	    print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
+	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
     else if (clock() > updateTime)
 	{
 	    fflush(stdout);
-	    print_length = printf("%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+	    fflush(stderr);
+	    print_length = fprintf(stderr,"%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
+	    fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 }
@@ -1279,7 +1274,7 @@ VALUE DetermineValue1(position)
         head = ptr = GenerateMoves(position);
         while (ptr != NULL) {
             MOVE move = ptr->move ;
-            gTotalMoves++;
+            gAnalysis.TotalMoves++;
             child = DoMove(position,ptr->move);  /* Create the child */
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
@@ -2541,30 +2536,25 @@ void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, P
 
 void PrintGameValueSummary()
 {
-    
-    
     printf("\n\n\t----- Summary of Game values -----\n\n");
     
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
-    printf("\tLose      = %5lu out of %lu\n",gLoseCount,gTotalPositions);	
-    printf("\tWin       = %5lu out of %lu\n",gWinCount,gTotalPositions);	
-    printf("\tTie       = %5lu out of %lu\n",gTieCount,gTotalPositions);	
-    printf("\tUnknown   = %5lu out of %lu\n",gUnknownCount,gTotalPositions);	
+    printf("\tLose      = %5lu out of %lu\n",gAnalysis.LoseCount,gAnalysis.TotalPositions);	
+    printf("\tWin       = %5lu out of %lu\n",gAnalysis.WinCount,gAnalysis.TotalPositions);	
+    printf("\tTie       = %5lu out of %lu\n",gAnalysis.TieCount,gAnalysis.TotalPositions);	
+    printf("\tUnknown   = %5lu out of %lu\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);	
     printf("\tTOTAL     = %5lu out of %lu allocated\n",
-	   gTotalPositions,
+	   gAnalysis.TotalPositions,
 	   gNumberOfPositions);
     
-    printf("\tHash Efficiency                   = %6d\%%        \n",gHashEfficiency);
-    printf("\tTotal Moves                       = %5lu\n",gTotalMoves);
-    printf("\tAvg. number of moves per position = %2f           \n", gAverageFanout);
-    printf("\tTotal Primitive Wins              = %5lu\n", gPrimitiveWins);
-    printf("\tTotal Primitive Loses             = %5lu\n", gPrimitiveLoses);
-    printf("\tTotal Primitive Ties              = %5lu\n", gPrimitiveTies);
-    
-    
+    printf("\tHash Efficiency                   = %6d\%%        \n",gAnalysis.HashEfficiency);
+    printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
+    printf("\tAvg. number of moves per position = %2f           \n", gAnalysis.AverageFanout);
+    printf("\tTotal Primitive Wins              = %5lu\n", gAnalysis.PrimitiveWins);
+    printf("\tTotal Primitive Loses             = %5lu\n", gAnalysis.PrimitiveLoses);
+    printf("\tTotal Primitive Ties              = %5lu\n", gAnalysis.PrimitiveTies);
     return;
-    
 }
 
 void PrintMexValues(MEX mexValue, int maxPositions)
@@ -3139,7 +3129,7 @@ void SetParents (POSITION parent, POSITION root)
                 } else {
                     nextLevel = StorePositionInList(child, nextLevel);
                 }
-                gTotalMoves++;
+                gAnalysis.TotalMoves++;
             }
 	    
             FreeMoveList(movehead);
@@ -3687,19 +3677,19 @@ void analyzer()
 	    }
 	}
     hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
-    averageFanout = (float)((float)gTotalMoves/(float)reachablePositions);
+    averageFanout = (float)((float)gAnalysis.TotalMoves/(float)reachablePositions);
     
-    gHashEfficiency = hashEfficiency;
-    gAverageFanout = averageFanout;
-    gTotalPositions = totalPositions;
-    gWinCount = winCount;
-    gLoseCount = loseCount;
-    gTieCount = tieCount;
-    gUnknownCount = unknownCount;
-    gPrimitiveWins = primitiveWins;
-    gPrimitiveLoses = primitiveLoses;
-    gPrimitiveTies = primitiveTies;
-    
+    gAnalysis.HashEfficiency = hashEfficiency;
+    gAnalysis.AverageFanout = averageFanout;
+    gAnalysis.TotalPositions = totalPositions;
+    gAnalysis.WinCount = winCount;
+    gAnalysis.LoseCount = loseCount;
+    gAnalysis.TieCount = tieCount;
+    gAnalysis.UnknownCount = unknownCount;
+    gAnalysis.PrimitiveWins = primitiveWins;
+    gAnalysis.PrimitiveLoses = primitiveLoses;
+    gAnalysis.PrimitiveTies = primitiveTies;
+    gAnalysis.NumberOfPositions = gNumberOfPositions;
 }
 
 
@@ -3856,39 +3846,39 @@ void writeVarHTML ()
     
     writeVarStat("value", gValueString[(int)gValue], rowp);
     
-    sprintf(text, "%5lu", gWinCount);
+    sprintf(text, "%5lu", gAnalysis.WinCount);
     writeVarStat("WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gLoseCount);
+    sprintf(text, "%5lu", gAnalysis.LoseCount);
     writeVarStat("LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gTieCount);
+    sprintf(text, "%5lu", gAnalysis.TieCount);
     writeVarStat("TieCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveWins);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveWins);
     writeVarStat("Prim.WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveLoses);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveLoses);
     writeVarStat("Prim.LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveTies);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveTies);
     writeVarStat("Prim.TieCount", text, rowp);
     
     
-    sprintf(text, "%5lu", gTotalPositions);
+    sprintf(text, "%5lu", gAnalysis.TotalPositions);
     writeVarStat("totalPositions", text , rowp);
     
     sprintf(text, "%5lu", gNumberOfPositions);
     writeVarStat("NumberOfPositions", text, rowp);
     
-    sprintf(text, "%d", gHashEfficiency);
+    sprintf(text, "%d", gAnalysis.HashEfficiency);
     writeVarStat("hashEfficiency", text, rowp);
     
     
-    sprintf(text, "%2f", gAverageFanout);
+    sprintf(text, "%2f", gAnalysis.AverageFanout);
     writeVarStat("AverageFanout", text, rowp);
     
-    sprintf(text, "%d", gTimer);
+    sprintf(text, "%d", gAnalysis.TimeToSolve);
     writeVarStat("TimeToSolve", text, rowp);
     
     
