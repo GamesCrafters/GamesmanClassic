@@ -1,3 +1,4 @@
+# $Id: InitWindow.tcl,v 1.39 2004-11-03 23:49:06 ogren Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -1029,13 +1030,28 @@ proc SetupHelpFrame { f width } {
 
     message $f.summary -width $width -font $kLabelFont -text "Welcome to GAMESMAN 3.0 (Gold)\n"
 
-	message $f.newgame -width $width -font $kDocumentFont -text "\tTo start a New Game, click the NEW GAME button.  It is the first button (from the left) on the Toolbar."
+	message $f.newgame -width $width -font $kDocumentFont -text "To start a New Game, click the NEW GAME button on the Toolbar." 
+	
+	message $f.rules -width $width -font $kDocumentFont -text "To change the rules of this game, click the RULES button on the Toolbar."
+
+	message $f.about -width $width -font $kDocumentFont -text "Clicking the ABOUT button on the Toolbar displays a brief introduction about GamesCrafters."
+
+	message $f.skins -width $width -font $kDocumentFont -text "To change the skin for GAMESMAN, click the SKINS button on the Toolbar."
+
+	message $f.help -width $width -font $kDocumentFont -text "Clicking the Help button brings you to this window."
+
+	message $f.quit -width $width -font $kDocumentFont -text "To Quit the game and Exit GAMESMAN, click the QUIT button on the Toolbar."
 
 	global kRootDir
- 
+	
     pack $f.summary -side top
-	pack $f.newgame -side top
- 
+	pack $f.newgame -side top -anchor w
+	pack $f.rules -side top -anchor w
+	pack $f.about -side top -anchor w
+	pack $f.skins -side top -anchor w
+	pack $f.help -side top -anchor w
+	pack $f.quit -side top -anchor w
+
 }
 
 proc SetupSkinsFrame { f width } {
