@@ -24,6 +24,10 @@
 ** 30 Jan 2005 Yanpei: PrintPosition() coded
 ** 01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
 ** 08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE.
+** 11 Feb 2005 Yanpei: added Cindy's name to author's list
+**                     added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
+**                     permutation(), combination(), setOffsetTable();
+**                     killed incorrect comments and code for PrintPosition(). 
 **
 **************************************************************************/
 
@@ -258,30 +262,6 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int currentPiece, currentSquare;
-
-  QTBOARD newBoard = SafeMalloc(sizeof(QTBOARD));
-
-  for (currentSquare=0; currentSquare<BOARDSIZE; currentSquare++) {
-    newBoard->squares[currentSquare] = 0;
-  }
-  newBoard->usersTurn = usersTurn;
-
-  for (currentPiece=0; currentPiece<NUMPIECES; currentPiece++) {
-    currentSquare = position - PIECESTATES * currentPiece;
-    if (1<=currentSquare && currentSquare<=BOARDSIZE) {
-      newBoard->squares[currentSquare] = currentPiece;
-    }
-  }
-
-  for (currentSquare=0; currentSquare<BOARDSIZE; currentSquare++) {
-    printf("%s    ", binStr((unsigned int) newBoard->squares[currentSquare]));
-    if (currentSquare % GAMEDIMENSION == 0) {
-      printf("\n\n");
-    }
-  }
-
-  printf("\n");
 
 }
 
