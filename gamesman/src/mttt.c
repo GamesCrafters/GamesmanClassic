@@ -27,22 +27,20 @@
 **
 ** Without checking for symmetries
 **
-** Evaluating the value of Tic-Tac-Toe...done in 1.434998 seconds!
-** Undecided = 14878 out of 19682
-** Lose      =  1304 out of 19682
-** Win       =  2495 out of 19682
-** Tie       =  1005 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =  4804 out of 19682
-**
-** Using the new evaluation method:
-**
 ** Undecided = 14205 out of 19683
 ** Lose      =  1574 out of 19683
 ** Win       =  2836 out of 19683
 ** Tie       =  1068 out of 19683
 ** Unk       =     0 out of 19683
 ** TOTAL     =  5478 out of 19683
+**
+** With SLIM = Symmetry-limiting Initial Move
+**
+** Lose      =  1274 out of 4163
+** Win       =  2083 out of 4163
+** Tie       =   806 out of 4163
+** Unknown   =     0 out of 4163
+** TOTAL     =  4163 out of 19683 allocated
 **
 ** While checking for symmetries and storing a canonical elt from them.
 **
@@ -172,6 +170,7 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 /** Function Prototypes **/
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 
+BOOLEAN gSlim = FALSE; /* Whether we use SLIM position reduction */
 
 /************************************************************************
 **
@@ -199,6 +198,7 @@ void FreeGame()
 
 void DebugMenu()
 {
+  int tttppm();
   char GetMyChar();
 
   do {
@@ -476,15 +476,21 @@ MOVELIST *GenerateMoves(position)
   BlankOX theBlankOX[BOARDSIZE];
   int i;
   
-  if (Primitive(position) == undecided) {
-    PositionToBlankOX(position,theBlankOX);
-    for(i = 0 ; i < BOARDSIZE ; i++) {
-      if(theBlankOX[i] == Blank)
-	head = CreateMovelistNode(i,head);
+  if (Primitive(position) != undecided) { 
+    return(NULL);                        /* I.e., if game over, no moves! */
+  } else {
+    if (gSlim && position == gInitialPosition) {  /* SLIM=Symmetry-Limiting Initial Move*/
+      head = CreateMovelistNode(1,head); /* top center  (1903 pos) */
+      head = CreateMovelistNode(2,head); /* upper right (1871 pos) */
+      head = CreateMovelistNode(4,head); /* center      (1838 pos) */
+    } else {
+      PositionToBlankOX(position,theBlankOX);
+      for(i = 0 ; i < BOARDSIZE ; i++) {
+	if(theBlankOX[i] == Blank)
+	  head = CreateMovelistNode(i,head);
+      }
     }
     return(head);
-  } else {
-    return(NULL);
   }
 }
 
