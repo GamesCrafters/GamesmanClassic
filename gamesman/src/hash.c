@@ -23,7 +23,6 @@ int MAX_MAXES = 50;
 int *gHashOffset;
 int *gOffsetIndices;
 int *gNCR;
-int *gFACTORIAL;
 int *gpd_store;
 int *newcount;
 int *thiscount;
@@ -42,6 +41,8 @@ int gHashOffsetSize;
 int gHashBoardSize;
 int gHashNumberOfPos;
 
+/* valid config function pointer */
+int (*gfn)(int *);
 
 /* frees up memory when hash/unhash is no longer needed */
 void freeAll()
@@ -55,7 +56,6 @@ void freeAll()
 	free(gHashOffset); if (DEBUG2) printf("1");
 	free(gOffsetIndices);  if (DEBUG2) printf("2");
 	free(gNCR);    if (DEBUG2) printf("3");
-	free(gFACTORIAL);  if (DEBUG2) printf("4");
     free(gpd_store); if (DEBUG2) printf("5");
 	free(gPieceIndices);   if (DEBUG2) printf("6");
 	free(pieces);    if (DEBUG2) printf("7");
@@ -94,24 +94,24 @@ int searchOffset(int h)
    the members of *tc */
 int combiCount(int* tc)
 {
-	int i = 0, sum = 0, prod = 1, ctr = 1, ind = 0;
-     int* cumul_count;
-     for (ctr = 0;tc[ctr] != TERM;ctr++);
-     cumul_count = (int*) malloc ((ctr+1) * sizeof(int));
-     ctr = 0;
+	int sum = 0, prod = 1, ctr = 1, ind = 0;
+	int* cumul_count;
+	for (ctr = 0;tc[ctr] != TERM;ctr++);
+	cumul_count = (int*) malloc ((ctr+1) * sizeof(int));
+	ctr = 0;
 	while (tc[ctr] != TERM)
-        {
-        sum += tc[ctr];
-        cumul_count[ctr] = sum;
-        ctr++;
-        }
+	  {
+	    sum += tc[ctr];
+	    cumul_count[ctr] = sum;
+	    ctr++;
+	  }
         cumul_count[ctr] = TERM;
-    for (ind = 0;ind < ctr - 1;ind++)
-    {
-      prod *= nCr(cumul_count[ind + 1], cumul_count[ind]);
-      }
-      return prod;
-
+	for (ind = 0;ind < ctr - 1;ind++)
+	  {
+	    prod *= nCr(cumul_count[ind + 1], cumul_count[ind]);
+	  }
+	free(cumul_count);
+	return prod;
 }
 
 /* debugging procedure to list critical variable values*/
@@ -208,8 +208,7 @@ int hash_cruncher (char* board, int boardsize, int* thiscount, int* local_mins)
    among boards with the same configuration argument *thiscount*/
 void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int* local_mins)
 {
-	int bigfac = fac(boardsize - 1);
-	int sum = 0, i = 0, prod = 1, j = 0;
+	int i = 0, j = 0;
 	int max1 = 0;
  if (DEBUG) printf("hash_uncruncher 0\n");
 
@@ -232,16 +231,11 @@ void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int
 	{
 		miniIndices[i] = TERM;
 	}
-	/*for (i = 0;i < num_pieces;i++)
-	{
-		sum += thiscount[i];
-		prod *= fac(thiscount[i]);
-	}        */
 	for (i = 0; i < num_pieces;i++)
 	{
 		newcount[i] = thiscount[i];
 	}
-    newcount[num_pieces] = TERM;
+	newcount[num_pieces] = TERM;
 	miniOffset[0] = 0;
 	miniIndices[0] = 0;
 	j = 1;
@@ -252,7 +246,7 @@ void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int
 		if (newcount[i] >= max1)
 		{
             newcount[i]--;
-			miniOffset[j] = miniOffset[j-1] + combiCount(newcount);  // (bigfac*newcount[i])/prod;
+			miniOffset[j] = miniOffset[j-1] + combiCount(newcount);
             newcount[i]++;
 			miniIndices[j] = i;
 			j++;
@@ -289,7 +283,7 @@ int getPieceParams (int *pa, char *pi, int *mi, int *ma)
 /* initializes hash tables and critical values */
 int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 {
-	int i = -1, j, prod = 1, temp, sofar, k;
+	int i = -1, prod = 1, temp, sofar, k;
      gfn = fn;
 
          if (DEBUG) printf("generic_hash_init -1\n");
@@ -306,9 +300,7 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
     local_mins = (int*) malloc (sizeof(int) * (num_pieces + 1));
     miniOffset = (int*) malloc (sizeof(int) * (num_pieces + 2));
 	miniIndices = (int*) malloc (sizeof(int) * (num_pieces + 2));
- 	gFACTORIAL = (int*) malloc(sizeof(int) * (boardsize + 2));
 	gPieceIndices = (int*) malloc (sizeof(int) * (num_cfgs + 2));
-    gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 
 	gpd_store = (int*) malloc (sizeof(int) * (num_pieces + 1));
 	gpd_store[num_pieces] = TERM;
@@ -326,7 +318,6 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 		num_cfgs *= nums[i];
 	}
 		
-	gHashBoardSize = boardsize;
 	gHashOffsetSize = num_cfgs;
 
 	nCr_init(boardsize);
@@ -345,11 +336,7 @@ int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 	for (k = 1;k < useful_space + 1;k++)
 		{
 			prod = 1;
-			/*for (j = 0;j < num_pieces;j++)
-			{
-				prod *= fac(gPieceDist(k-1)[j]);
-			}*/
-			gHashOffset[k] = combiCount(gPieceDist(k-1)); //fac(boardsize)/prod;
+			gHashOffset[k] = combiCount(gPieceDist(k-1));
 			gOffsetIndices[k] = gpi(k-1);
 		}
 	gHashOffset[k] = TERM;
@@ -447,11 +434,14 @@ char* generic_unhash(int hashed, char* dest)
 	return dest;
 }
 
-/* initializes pascal's triangle, factorial table, and piece configuration tables */
+/* initializes pascal's triangle and piece configuration tables */
 void nCr_init(int boardsize)
 {
 	int i, j, k, sum, ctr;
 	int *temp = (int*) malloc (sizeof(int) * num_pieces);
+
+	gHashBoardSize = boardsize;
+	gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 
 	/*store the left and right wings of pascal's triangle*/
 	for(i = 0; i<= boardsize; i++)
@@ -469,14 +459,6 @@ void nCr_init(int boardsize)
 		}
 	}
 
-	/*compute and store factorials up to the maximum used, which is boardsize*/
-	gFACTORIAL[0] = 1;
-	for(i = 1; i <= boardsize;i++)
-	{
-		gFACTORIAL[i] = i*gFACTORIAL[i-1];
-	}
-    gFACTORIAL[boardsize+1] = TERM;
-	
 	/* compute the gPieceDist[i][j]'s with a method similar to Horner's method of
 	evaluating a polynomial p using only deg(p) multiplications
 	*/
@@ -531,12 +513,3 @@ int nCr(int n, int r)
 {
 	return gNCR[n*(gHashBoardSize+1) + r];
 }
-
-/* shorthand for n factorial */
-int fac(int n)
-{
-	return gFACTORIAL[n];
-}
-
-
-
