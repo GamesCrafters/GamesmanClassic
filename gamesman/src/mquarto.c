@@ -35,6 +35,13 @@
 ** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
 ** 28 Feb 2005 Amy: added gGameSpecificTclInit, as suggested in email
 ** 05 Feb 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
+** 06 Feb 2005 Mario:  corrected incorrect behavior of combination() and permutation()
+**                     added non-memoizing factorial for debugging purposes (#define DEBUG to enable), currently enabled
+**                     corrected defines as ^ is not a power operator in C, but XOR
+**                     changed QTBOard field sizes to short as it should be sufficient
+**                     added function pointers hash and unhash, to be set to the default implementations
+**                     coded inefficient bitpacking hasher and testing function so we can proceed with further coding
+**                     added print_board and boards_equal to print and compare board contents (for internal use)
 **
 **************************************************************************/
 
@@ -50,6 +57,7 @@
 #include <unistd.h>
 #include <limits.h>
 
+#define	DEBUG
 
 /*************************************************************************
 **
@@ -106,11 +114,11 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define GAMEDIMENSION 4
+#define GAMEDIMENSION 2
+#define BOARDSIZE 4
+#define NUMPIECES 4
 
-#define BOARDSIZE (GAMEDIMENSION^2)
 #define PIECESTATES (BOARDSIZE+1)
-#define NUMPIECES (2^GAMEDIMENSION)
 
 #if BOARDSIZE<NUMPIECES
     #define FACTORIALMAX (NUMPIECES+1)
@@ -120,11 +128,11 @@ STRING   kHelpExample =
 
 typedef struct board_item {
 
-  int slots[BOARDSIZE+1]; // to record the 0 to NUMPIECES-1 pieces contained in each slot
+  short slots[BOARDSIZE+1]; // to record the 0 to NUMPIECES-1 pieces contained in each slot
                           // slots[1-16] = board squares, slots[0] = next piece
                           // 0 to NUMPIECES-1 encode the pieces, NUMPIECES encodes an empty slot
-  int squaresOccupied;    // number of squares occupied
-  int piecesInPlay;       // number of pieces in play
+  short squaresOccupied;    // number of squares occupied
+  short piecesInPlay;       // number of pieces in play
   BOOLEAN usersTurn;      // whose turn it is
 
 } QTBOARD;
@@ -155,10 +163,24 @@ void* 			gGameSpecificTclInit = NULL;  /* newly added to tempalte */
 
 /* External */
 void			setOffsetTable();
+POSITION		factorial( int n );
 POSITION		combination(int n, int r);
 POSITION		permutation(int n, int r);
 POSITION		hashUnsymQuartoHelper(QTBPtr b, int baseSlot);
 void			unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn);
+POSITION		qhash( QTBPtr );	// Incomplete hash, if someone is done with the real hash, remove this
+
+/* Implementation of the set of hash functions using a simple and wasteful bitpacking algorithm */
+POSITION		packhash( QTBPtr );
+QTBPtr			packunhash( POSITION );
+
+/* Since we may switch hash implementations, here are function pointers to be set in choosing implementation */
+POSITION		(*hash)( QTBPtr ) = &packhash;
+QTBPtr			(*unhash)( POSITION ) = &packunhash;
+
+BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
+void			print_board( QTBPtr );
+void			TestHash( QTBPtr, int );
 
 
 /*************************************************************************
@@ -168,7 +190,6 @@ void			unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn);
 **************************************************************************/
 
 extern VALUE     *gDatabase;
-
 
 /************************************************************************
 **
@@ -182,9 +203,13 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-    
-}
+	
+	QTBPtr board = (QTBPtr) SafeMalloc( sizeof ( QTBOARD ) );
 
+	TestHash( board, 0 );
+
+
+}
 
 /************************************************************************
 **
@@ -284,6 +309,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+
+
 
 }
 
@@ -568,6 +595,193 @@ STRING binStr(unsigned int x) {
    
 }
 
+/* Mario: returns true if board contents match exactly */
+BOOLEAN boards_equal ( QTBPtr b1, QTBPtr b2 ) {
+
+	BOOLEAN equal = TRUE;
+	int slot;
+
+	equal &= ( b1->piecesInPlay == b2->piecesInPlay );
+	equal &= ( b1->squaresOccupied == b2->squaresOccupied );
+	equal &= ( b1->usersTurn == b2->usersTurn );
+
+	for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
+
+		equal &= ( b1->slots[slot] == b2->slots[slot] );
+
+	}
+
+	return equal;
+
+}
+
+/* Mario: prints board (for internal use)*/
+void print_board( QTBPtr board ) {
+
+	int slot;
+	
+	printf( "[" );
+	for ( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
+		
+		printf( " %d ", board->slots[slot] );
+
+	}
+	printf( "] pieces = %d; squares = %d; turn = %d\n", board->piecesInPlay, board->squaresOccupied, board->usersTurn );
+
+}
+
+/*Mario: Hash Tester, should work with any hash implementation */
+void TestHash( QTBPtr board, int slot ) {
+	
+	int i;
+
+	for( i = 0; i < NUMPIECES + 1; i++ ) {
+
+		int j, repeat = FALSE, pieces = 0, squares = 0;;
+		
+		/* For every slot preceeding this one */
+		for( j = 0; j < slot; j++ ) {
+
+			if( board->slots[j] != 0 ) {
+
+				/* Invalid board */
+				if( i == board->slots[j] ) {
+
+					repeat = TRUE;
+					break;
+
+				} else {
+
+					if( j != 0 ) {
+
+						squares++;
+
+					}
+
+					pieces++;
+
+				}
+			}
+
+		}
+
+		if ( !repeat ) {
+
+			board->slots[slot] = i;
+			if ( slot < BOARDSIZE ) {
+
+				TestHash( board, slot + 1 );
+
+			} else {
+
+				POSITION p;
+				BOOLEAN match;
+				QTBPtr newboard;
+
+				if ( i != 0 ) {
+
+					pieces++;
+					if ( slot != 0 ) {
+
+						squares++;
+
+					}
+
+				}
+
+				board->piecesInPlay = pieces;
+				board->squaresOccupied = squares;
+				board->usersTurn = FALSE;
+				
+				p = hash( board );
+				newboard = unhash( p );
+				match = boards_equal( board, newboard );
+
+				if ( !match ) {
+
+					printf( "Original: ");
+					print_board( board );
+					printf( "New: " );
+					print_board( newboard );
+
+				}
+				
+
+			}
+
+		}
+			
+	}
+
+}
+
+/* Mario: This hash algorithm is wasteful. We just bitpack the board into an integer.
+          GAMEDIMENSION+1 bits for each square and hand, squaresOccupied
+          and piecesInPlay and 1 bit for usersTurn.
+          This will fail to pack for large game dimensions as POSITION is just a long. */
+POSITION packhash( QTBPtr board ) {
+
+	POSITION hash = 0;
+	int slot, shift;
+
+	for( slot = 0, shift = 0; slot < BOARDSIZE + 1; slot++, shift += GAMEDIMENSION + 1 ) {
+
+		hash += board->slots[slot] << shift;
+
+	}
+
+	hash += board->piecesInPlay << shift;
+	hash += board->squaresOccupied << ( shift += GAMEDIMENSION + 1 );
+	hash += board->usersTurn << ( shift += GAMEDIMENSION + 1 );
+
+	return hash;
+
+}
+
+/* Creates sequence n least significant 1 bits, preceeded by 0 bits */
+#define maskseq( n ) ~( ~0 << (n))
+
+QTBPtr packunhash( POSITION hash ) {
+
+	QTBPtr board = (QTBPtr) SafeMalloc( sizeof( QTBOARD ) );
+	int slot, shift, mask = maskseq( GAMEDIMENSION + 1 );
+
+	for( slot = 0, shift = 0; slot < BOARDSIZE + 1; slot++, shift += GAMEDIMENSION + 1 ) {
+
+		board->slots[slot] = ( hash >> shift ) & mask;
+
+	}
+
+	board->piecesInPlay = ( hash >> shift ) & mask;
+	board->squaresOccupied = ( hash >> ( shift += GAMEDIMENSION + 1 ) ) & mask;
+	board->usersTurn = ( hash >> ( shift += GAMEDIMENSION + 1 ) ) & 1;
+
+	return board;
+
+}
+
+/* Mario: non-gap hash function, INCOMPLETE!!! */
+POSITION qhash( QTBPtr board ) {
+
+	int pieces, stage;
+        POSITION base = 0;
+
+	/* stage is the number of pieces in play, with an added 1 if the number of pieces in play
+	   is the same as the number of pieces on the board (i.e. full board) */
+	stage	= board->piecesInPlay + ( board->piecesInPlay == board->squaresOccupied );
+
+	for ( pieces = stage - 1; pieces >= 0; pieces-- ) {
+
+		/* the base offset contains (NUMPIECES order pieces) * (BOARDSIZE order pieces - 1)
+		   for each pieces less than stage */
+		base += permutation( NUMPIECES, pieces ) * combination( BOARDSIZE, pieces - 1 );
+
+	}
+
+	return base;
+
+}
+
 // hashing an internally represented QTBOARD into a POSITION
 POSITION hashUnsymQuarto(QTBPtr b) {
 
@@ -686,7 +900,7 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
       }
     }
   } else {
-    printf("unhashUnsymQuarto() -- p out of range: %ld\n",p);
+    printf("unhashUnsymQuarto() -- p out of range: %lu\n",p);
     toReturn = NULL;
   }
 
@@ -734,23 +948,45 @@ void setFactorialTable() {
   }
 }
 
+#ifndef DEBUG
 
 POSITION factorial(int n) {
-  if (n<0) {
+  if (n<=0) {
     return 1;
   } else if (FACTORIALMAX<=n) {
     return factorialTable[FACTORIALMAX-1];
   } else {
     return factorialTable[n];
   }
+}*/
+
+#else
+/* Non-memoizing factorial */
+POSITION factorial( int n ) {
+
+	POSITION result = 1;
+
+	while ( n > 0 ) {
+
+		result*=n--;
+
+	}
+
+	return result;
+
 }
+#endif
 
 // returns n P r, the number of ordered arrangements of 
 // r items selected from a set of n items
 POSITION permutation(int n, int r) {
   if (!factorialTableSet) setFactorialTable();
-  if (0<n || 0<r) {
+  /* Mario: updating base cases, should return 1 when r <= 0, 0 when otherwise n <= 0
+            Used to return 1 if either n or r are greater than 0, which is virtually always */
+  if (r <= 0) {
     return 1;
+  } else if (n <= 0) {
+    return 0;
   } else {
     return factorial(n) / factorial(n-r);
   }
@@ -760,8 +996,12 @@ POSITION permutation(int n, int r) {
 // r items selected from a set of n items
 POSITION combination(int n, int r) {
   if (!factorialTableSet) setFactorialTable();
-  if (0<n || 0<r) {
+  /* Mario: updating base cases, should return 1 when r <= 0, 0 when otherwise n <= 0
+            Used to return 1 if either n or r are greater than 0, which is virtually always */
+  if (r <= 0) {
     return 1;
+  } else if (n <= 0) {
+    return 0;
   } else {
     return factorial(n) / factorial(n-r) / factorial(r);
   }
