@@ -2682,125 +2682,167 @@ VALUE_MOVES* StoreMoveInList(theMove, remoteness, valueMoves, typeofMove)
 
 /**************
 **  Start ZeroSolver 
+**		Written by: Scott Lindeneau
 **  Requierments: gDatabase intialized w/ all positions set to undecided
 **  Benifits: Almost no memory overhead for the solver. 
 **			  9 POSITION's, 2 int's, 1 VALUE, 2 MOVELIST pointers
 **				32bit machines: around 60 bytes
 **				64bit machines: around 96 bytes
 **					(this depends on the size of VALUE)
+**			  plus whatever the movelist adds, varies per parent (possibly big)
 **
 **  Calls: StoreValueOfPosition, GetValueOfPosition
 **		   MarkAsVisited, Visited
 **         GenerateMoves, DoMove, FreeMoveList
 **		   Remoteness, SetRemoteness
 **
+**	Logic:
+**			Go through all possible nodes finding the visited undecided positions
+**			See if you can find a value for these positions, if you cannot, it means
+**				one of two things. Either
+**					a) the node you are at loops back up the tree to create a draw
+**					b) more undecided nodes beneath current node need values
+**			In the event of (a) you can mark those nodes off as draws, however we
+**				dont know if (a) is true unless we can be sure that (b) is false
+**			We can say (b) is false when the number of undecided positions stops changing
+**				Why is this true?
+**					Suppose (b) holds for some node J. This means that there is some
+**					node beneath node J that is undecided and can be assigned a value. We
+**					can call this node W. Once node W is assigned a value, 
+**					the total number of undecided nodes in the tree decreases(thus differs).
+**				But what happens if you add the same number of undecided nodes to the tree
+**				as you find values for?
+**					Simple, if you have added new nodes, iter again, eventually you will
+**					have to stop adding new nodes, and the number of undecided positions
+**					can only decrease(if they change at all)
+**			Eventually, the number of undecided nodes will stop changing, either through
+**				solving all of the nodes, or the proof for (b).
+**			Then all remaining nodes that are visited and undecided are set to draws
 **************/
 
 VALUE DetermineZeroValue(POSITION position){
-	POSITION i,lowSeen,highSeen; //Used to iter through gDatabase.
-	POSITION numUndecided, oldNumUndecided, numNew; //keps track of how many undecided positions we have, determines if solved
-	MOVELIST *moveptr, *headMove; //move list for the current parent to find children
-	POSITION child; // current child.
-	VALUE childValue; // current child value
-	POSITION numTot, numWin, numTie; //used to determine value of position where there is no lose child
+	POSITION i,lowSeen,highSeen;													//Used to iter through gDatabase.
+	POSITION numUndecided, oldNumUndecided, numNew;									//keps track of how many undecided positions there are
+	MOVELIST *moveptr, *headMove;													//move list for the current parent to find children
+	POSITION child;																	// current child.
+	VALUE childValue;																// current child value
+	POSITION numTot, numWin, numTie;												//used to determine value of position when there is no lose child
 	int tieRemoteness, winRemoteness;
 
 	if (gTwoBits)
 		InitializeVisitedArray();
 
-	StoreValueOfPosition(position,Primitive(position));
-	MarkAsVisited(position); // only visited node to start
-	oldNumUndecided = 0;
-	numUndecided = 1;
-	numNew = 1;
+	StoreValueOfPosition(position,Primitive(position));								// could be a one position game
+	MarkAsVisited(position);														// only visited node to start
+	oldNumUndecided = 0;															// there are no undecided nodes before this one
+	numUndecided = 1;																// now there is one
+	numNew = 1;																		// up one new node
 
-	lowSeen = position; // used as an optimization to recduce range of positions needed to be checked
-	highSeen = lowSeen+1;
-	while((numUndecided != oldNumUndecided) || (numNew != 0)){ // so long as the number of undecided positions changes continue calculating
+	lowSeen = position;																// very small optmization to reduce number of nodes checked.
+	highSeen = lowSeen+1;															// only looks at positions that are known to have good values.
+	while((numUndecided != oldNumUndecided) || (numNew != 0)){						// chug if there are new nodes or changing # of undecideds
 		oldNumUndecided = numUndecided;
-		numUndecided = 0;
+		numUndecided = 0;															// Update progress counters
 		numNew = 0;
-		for(i = lowSeen; i <= highSeen;i++){
-			if(Visited(i)){
-				if(GetValueOfPosition(i) == undecided){
-					moveptr = headMove = GenerateMoves(i);
-					numTot = numWin = numTie = 0;
+		for(i = lowSeen; i <= highSeen;i++){										//check all nodes between the smallest seen and largest seen
+			if(Visited(i)){															// we dont care about unvisted nodes
+				if(GetValueOfPosition(i) == undecided){								//if we have a value we dont want to computer on it
+					moveptr = headMove = GenerateMoves(i);							// generate move list
+					numTot = numWin = numTie = 0;									//initalize counters for non auto update values
 					tieRemoteness = winRemoteness = REMOTENESS_MAX;
-					while(moveptr != NULL && (GetValueOfPosition(i) == undecided)){
-						child = DoMove(i,moveptr->move);
-						numTot++;
-						if(Visited(child))
-							childValue = GetValueOfPosition(child);
-						else{
-							childValue = Primitive(child);
-							numNew++;
-							MarkAsVisited(child);
-							StoreValueOfPosition(child,childValue);
-							if(childValue != undecided){
-								SetRemoteness(child,0);
-							} //End  if(childValue != undecided)
-							if(child < lowSeen) lowSeen = child;
-							if(child > highSeen) highSeen = child + 1;
+					while(moveptr != NULL && (GetValueOfPosition(i) == undecided)){ //iter through children, so long as we dont have a value
+						child = DoMove(i,moveptr->move);							//get child position
+						numTot++;													//increase number of children.
+						if(Visited(child))											// if the child has been visited
+							childValue = GetValueOfPosition(child);					// we grab the value that we have already determined
+						else{														//otherwise
+							childValue = Primitive(child);							//figure out if its primative
+							numNew++;												//increase number of new nodes
+							MarkAsVisited(child);									//mark child as visited
+							StoreValueOfPosition(child,childValue);					//store child value
+							if(childValue != undecided){							// if the child is primative
+								SetRemoteness(child,0);								// give it a primative remoteness
+							}														//End  if(childValue != undecided)
+							if(child < lowSeen) lowSeen = child;					//if the child is outside of the previously seen range
+							if(child > highSeen) highSeen = child + 1;				//expand range
 						} //End  if(!Visited(child)
 
-						if(childValue == lose){
-							StoreValueOfPosition(i,win);
-							SetRemoteness(i,Remoteness(child)+1);
+						if(childValue == lose){										// if child is a lose
+							StoreValueOfPosition(i,win);							// auto update parent to a win
+							SetRemoteness(i,Remoteness(child)+1);					//update parent remotness
 						}
 	
-						if(childValue == win){
-							numWin++;
-							if(Remoteness(child) < winRemoteness){
-								winRemoteness = Remoteness(child);
+						if(childValue == win){										//if child is a win
+							numWin++;												//increase number of childWins for current parent
+							if(Remoteness(child) < winRemoteness){					//discover if childs remoteness is smallest
+								winRemoteness = Remoteness(child);					//remember smallest child remoteness
 							}
 						}
-						if(childValue == tie){
-							numTie++;
-							if(Remoteness(child) < tieRemoteness){
-								tieRemoteness = Remoteness(child);
+						if(childValue == tie){										//if child is a tie
+							numTie++;												//increase number of childTies for current parent
+							if(Remoteness(child) < tieRemoteness){					//discover is childs remotenss is smallest
+								tieRemoteness = Remoteness(child);					//remember smallest child remoteness
 							}
 						}
 
 
-						moveptr = moveptr -> next;
+						moveptr = moveptr -> next;									//get next child
 					} //End  while(moveptr != NULL)
-					FreeMoveList(headMove);
-					if((numTot != 0) && (numTot == numWin + numTie)){
-						//printf("\nnumTot: %d, numWin: %d, numTie: %d\n",numTot,numWin,numTie);
-						if(numTie == 0){
-						//	printf("-lose\n");
-							StoreValueOfPosition(i,lose);
-							SetRemoteness(i, winRemoteness+1);
-						}else{
-						//	printf("-tie\n");
-							StoreValueOfPosition(i,tie);
-							SetRemoteness(i, tieRemoteness+1);
+					FreeMoveList(headMove);											//free memory used by movelist
+					if((numTot != 0) && (numTot == numWin + numTie)){				//if number of children is greater than zero
+																					//and they all have values (wins or ties)
+																					//then we can assign current node a value
+						if(numTie == 0){											// -- if there are no tieing children(all winning childs)
+							StoreValueOfPosition(i,lose);							// -- current node is a loss
+							SetRemoteness(i, winRemoteness+1);						// -- update parents remoteness from smallest child remoteness
+						}else{														// -- else there is atleast one tie
+							StoreValueOfPosition(i,tie);							// -- current node is a tie
+							SetRemoteness(i, tieRemoteness+1);						// -- update parents remoteness from smallest child remoteness
 						} //End if(numTie==0) ... else ...
 					} //End if((numTot != ...
 
-					if(GetValueOfPosition(i) == undecided) //this should be working.
-						numUndecided++; //if there is a problem switch to the commented for loop to do testing
+					if(GetValueOfPosition(i) == undecided)							//this should be working.
+						numUndecided++;												//if there is a problem switch to the commented for loop to do testing
 
 				}//End if(GetValueOfPosition(i) == undecided)
 			}//End if(Visited(i))
 		}//End for(i = lowSeen; i < highSeen;i++)  
 
-		//for(i=0;i<gNumberOfPositions;i++){//this works but is slow.
-		//	if(GetValueOfPosition(i) == undecided && Visited(i))
+		//for(i=0;i<gNumberOfPositions;i++){										//this works but is slow.
+		//	if(GetValueOfPosition(i) == undecided && Visited(i))					//if problems switch to this one (shouldnt be problems)
 		//		numUndecided++;
 		//}
-		//printf("\nnumUndecided: %d, numUndecided: %d, numNew: %d, lowSeen: %d, highSeen: %d\n",numUndecided,oldNumUndecided,numNew,lowSeen,highSeen);
+
+		/****
+		** a little progress print out, uncomment if you want to see(some) the progress of larger games
+		** this will print out for every iteration of the while loop, which happens at most longest depth of tree times.
+		** games that have large fan out (such as Abalone N:3 and 9mm will still take a long time between printouts
+		** if you want printouts more often add some print statements inside the for loop.
+		** -numUndecided is the current number(roughly) of undecided nodes in the tree 
+		**	   (it might be more or less for loopy games depending on several factors, but it will never be zero unless it has finished solving)
+		** -diff is the difference in the number of undecided nodes in the tree,
+		**     pos values means undecided nodes are added to the tree
+		**     neg values means undecided nodes are being assigned values
+		**     when this value reaches zero the game is solved
+		**	   usually it will go positive as it adds nodes, then negative as it discovers values, then zero to finish.
+		** -numNew is the number of new nodes added to the tree (as long as this is going up you have a long while to solve)
+		** -lowSeen is the smallest hash value seen thus far. the smallest valid position. helps bound the for loop
+		** -highSeen is the greatest hash value seen thus far. the largest valid position. helps bound the for loop
+	    ****/
+		printf("\nnumUndecided: %d, diff: %d, numNew: %d, lowSeen: %d, highSeen: %d\n",numUndecided,numUndecided - oldNumUndecided,numNew,lowSeen,highSeen);
+
 	}//End while(numUndecided != oldNumUndecided)
 
-	for(i = 0; i < gNumberOfPositions;i++){
-		if(Visited(i) && (GetValueOfPosition(i) == undecided)){
-			StoreValueOfPosition(i, tie);
-			SetRemoteness(i,REMOTENESS_MAX);
+
+	for(i = 0; i < gNumberOfPositions;i++){											//all remaining nodes
+		if(Visited(i) && (GetValueOfPosition(i) == undecided)){						// that are visited and undecided
+			StoreValueOfPosition(i, tie);											// are loops and can be considered draws
+			SetRemoteness(i,REMOTENESS_MAX);										// draws are currently stored as max remoteness
 		}
-		UnMarkAsVisited(i);
+		UnMarkAsVisited(i);															//unmark nodes otherwise it will say stalemate during play
 	}
 
-	return GetValueOfPosition(position);
+	return GetValueOfPosition(position);											//gDatabase[position] now holds correct value
 }//End DetermeineZeroValue
 
 
