@@ -161,6 +161,13 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 
+/** Function Prototypes */
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn);
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
+MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
+SLOT GetToSlot(SLOT fromSlot, int direction,BlankOX whosTurn);
+
+
 void InitializeGame()
 {
 }
@@ -521,9 +528,7 @@ BOOLEAN OkMove(theBlankOX,whosTurn,fromSlot,direction)
 	 (theBlankOX[toSlot] == Blank || toSlot == OFFTHEBOARD));
 }
 
-SLOT GetToSlot(fromSlot,direction,whosTurn)
-     SLOT fromSlot;
-     int direction;
+SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
 {
   if((fromSlot < 3 && whosTurn == x && direction == 1) ||
      (((fromSlot % 3) == 2) && whosTurn == o && direction == 1))
@@ -696,7 +701,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX,whosTurn)
+void PositionToBlankOX(thePos,theBlankOX,whosTurn)
      POSITION thePos;
      BlankOX *theBlankOX, *whosTurn;
 {
@@ -739,7 +744,7 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
 **
 ************************************************************************/
 
-MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot)
      MOVE theMove;
      SLOT *fromSlot, *toSlot;
 {

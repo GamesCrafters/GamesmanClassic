@@ -102,6 +102,7 @@ typedef enum possibleBoardPieces {
 
 /* function prototypes */
 POSITION BlankOXToPosition(BlankOX* theBlankOX);
+void PositionToBlankOX(POSITION thePos,BlankOX  *theBlankOX);
 
 /* The position contains a last digit that records the turn, 1 - o's, 2 - x's*/ 
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
@@ -898,7 +899,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX)
+void PositionToBlankOX(thePos,theBlankOX)
      POSITION thePos;
      BlankOX *theBlankOX;
 {

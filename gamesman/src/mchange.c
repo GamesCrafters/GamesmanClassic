@@ -153,6 +153,7 @@ BOOLEAN FullSlots(BlankOX[]);
 BOOLEAN Trapped(POSITION);
 void MoveToSlots(MOVE, SLOT*, SLOT*);
 SLOT GetToSlot(BlankOX, SLOT, int, int);
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 
 
 /************************************************************************

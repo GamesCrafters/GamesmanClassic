@@ -155,6 +155,8 @@ BOOLEAN CanKnightMove(BlankBurntOX*, int, int);
 BOOLEAN CanRookMove(BlankBurntOX*, int, int);
 BOOLEAN CanBishopMove(BlankBurntOX*, int, int);
 
+
+
 /* pulls the current piece location from the position */
 unsigned int GetPFromPosition(POSITION);
 unsigned int GetXFromPosition(POSITION);
@@ -164,6 +166,8 @@ unsigned int GetOFromPosition(POSITION);
 POSITION BlankBurntOXToPosition(BlankBurntOX[], BlankBurntOX);
 void PositionToBlankBurntOX(POSITION, BlankBurntOX[]);
 BlankBurntOX WhoseTurn(POSITION);
+int ExtractMove(MOVE theMove);
+int ExtractBurn(MOVE theMove);
 
 /* For game specific options */
 void PieceMessage(POSITION, BOOLEAN);

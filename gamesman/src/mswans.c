@@ -227,6 +227,10 @@ void generic_unhash2(int, char*, char*, int*, int*);
 int generic_hash2(char*, char, int, int);
 BOOLEAN OkMove(char[], char, SLOT, int);
 BOOLEAN CantMove(POSITION);
+void MoveToSlots(MOVE theMove,SLOT *fromSlot, SLOT *toSlot);
+MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
+SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
+
 
 void InitializeGame()
 {
@@ -945,7 +949,7 @@ void generic_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* nu
 **
 ************************************************************************/
 
-MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot)
      MOVE theMove;
      SLOT *fromSlot, *toSlot;
 {

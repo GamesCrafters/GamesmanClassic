@@ -12,7 +12,7 @@
 ** DESCRIPTION: Winkers
 **
 ** AUTHORS:     Newton Le, Edward Li - University of California Berkeley
-
+**
 **
 ** DATE:        02/26/2004
 **
@@ -259,6 +259,10 @@ int Legend (int n);
 BOOLEAN passMoveOnly (POSITION, MOVE);
 
 MOVE moveHash (int, int, BlankORB);
+int RowNumber(int i);
+int ColPosition(int i);
+int RowWidth(int i);
+
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();

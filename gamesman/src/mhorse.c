@@ -121,6 +121,10 @@ BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 /* local function prototypes */
 BOOLEAN CantMove(POSITION);
 BOOLEAN OkMove(BlankOX*, BlankOX, SLOT, int);
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn);
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
+MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
+SLOT GetToSlot(SLOT fromSlot,int neighbor,BlankOX whosturn);
 
 /************************************************************************
 **
@@ -155,7 +159,7 @@ void DebugMenu()
 **
 ************************************************************************/
 
-gCreateCustomBoard()
+void gCreateCustomBoard()
 {
     int i, j, k;
     int c;
@@ -579,9 +583,10 @@ BOOLEAN OkMove(theBlankOX,whosTurn,fromSlot,neighbor)
 	 (theBlankOX[toSlot] == Blank));
 }
 
-SLOT GetToSlot(fromSlot,neighbor,whosTurn)
+SLOT GetToSlot(fromSlot,neighbor,whosturn)
      SLOT fromSlot;
      int neighbor;
+     BlankOX whosturn;
 {
     SLOT toSlot;
 	if (!kUseCustomBoard) {
@@ -754,7 +759,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX,whosTurn)
+void PositionToBlankOX(thePos,theBlankOX,whosTurn)
      POSITION thePos;
      BlankOX *theBlankOX, *whosTurn;
 {
@@ -797,7 +802,7 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn)
 **
 ************************************************************************/
 
-MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot)
      MOVE theMove;
      SLOT *fromSlot, *toSlot;
 {

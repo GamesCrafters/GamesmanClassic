@@ -785,8 +785,8 @@ void PrintMove(theMove)
  ** CALLS:       BadElse()
  **
  ************************************************************************/
-
-PositionToBlankOX(thePos,theBlankOX)
+/* Not really used in this game. (thankfully)
+void PositionToBlankOX(thePos,theBlankOX)
      POSITION thePos;
      BlankOX *theBlankOX;
 {
@@ -808,7 +808,7 @@ PositionToBlankOX(thePos,theBlankOX)
       BadElse("PositionToBlankOX");
   }
 }
-
+*/
 /************************************************************************
  **
  ** NAME:        BlankOXToPosition

@@ -370,6 +370,9 @@ char gBlankOXPosition[15][4] = { "---", // 0
 				 "xxx"  //14
 }; // 15 possible positions
 
+/** Function Prototypes **/
+void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 
 /************************************************************************
 **
@@ -1652,7 +1655,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX)
+void PositionToBlankOX(thePos,theBlankOX)
      POSITION thePos;
      BlankOX *theBlankOX;
 {

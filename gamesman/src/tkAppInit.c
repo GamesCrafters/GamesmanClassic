@@ -78,6 +78,7 @@ static int		GetOptionCmd _ANSI_ARGS_((ClientData clientData,
 static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
+
 /************************************************************************
 **
 ** NAME:        Gamesman_Init

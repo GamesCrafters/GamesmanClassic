@@ -179,8 +179,14 @@ int boardToPosition[] = {6,12,0,4,10,0,2,8,0};
 
 char theBoard[] = {' ',' ',' ',' ',' ',' ','o','o','o'};
 char theInitialBoard[] =   {' ',' ',' ',' ',' ',' ','o','o','o'};
+
+/** Function Prototypes **/
 int boardToPos(int pos, char orientation);
 int ctoi (char c);
+void SetTargetScoresMenu();
+void SetDotPositionMenu();
+void ClearTheBoard();
+int pieceToBoard(int pos, int piecePart);
 
 /*********************************************
 ** get the red piece's position on the board *
@@ -400,7 +406,7 @@ void GameSpecificMenu() {
 
 
 /// 2nd menu ///
-SetTargetScoresMenu() {
+void SetTargetScoresMenu() {
   int new1;
   int new2;
 #ifdef funcname
@@ -429,7 +435,7 @@ SetTargetScoresMenu() {
 
 }
 
-SetDotPositionMenu() {
+void SetDotPositionMenu() {
   
   //int dots[] = {0,0,0,0,0,0,0,0,0};
   int i = 0;
@@ -864,7 +870,7 @@ void PrintPosition(position,playerName,usersTurn)
   return;
 }
 
-ClearTheBoard(){
+void ClearTheBoard(){
   int i;
   for (i = 0; i < 9; i++){
     theBoard[i] = theInitialBoard[i];

@@ -265,6 +265,11 @@ void PrintPos(int);
 void PrintCap(int);
 void ClearBoardPieces();
 
+void PositionToBlankOX(POSITION position, BlankOX *board);
+int CoordinatesToIndex(Coordinates pos);
+int InBounds(Coordinates pos);
+int getNumOfDigit(int n);
+
 void dbg(char *);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1542,7 +1547,7 @@ void PrintPos(int pos) {
  *
  * Calls: generic_unhash(...)
  **********************************************************************/
-PositionToBlankOX(POSITION position, BlankOX *board) {
+void PositionToBlankOX(POSITION position, BlankOX *board) {
   dbg("->PositionToBlankOX");
   generic_unhash(position,(char *)board);
 }

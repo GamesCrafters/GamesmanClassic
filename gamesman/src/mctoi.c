@@ -68,7 +68,7 @@
 #include <math.h>
 
 #define BOARDSIZE 9
-
+/** Function Prototypes **/
 int  fact(int ); 
 int  nCr1(int , int );
 int  hashC(char *, int );
@@ -79,7 +79,7 @@ int  hashC2(char *);
 void replace(char , char , char *);
 void unhashC2(char *, int , int , int , int );
 void replaceXS(char *, int , char *, int , char *, int );
-
+int countOX(char *board);
 
 static int nCrTable[BOARDSIZE+1][BOARDSIZE+1] = { 
   { 1, 0,  0,  0,   0,   0,  0,  0, 0, 0 },      

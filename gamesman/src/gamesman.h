@@ -58,7 +58,7 @@ typedef int ClientData;
 #define  TRUE           1
 #endif
 
-typedef unsigned long POSITION;      /* This used to be determined by mTempTypedef.h */
+typedef unsigned long long POSITION;      /* This used to be determined by mTempTypedef.h */
 typedef int MOVE;           /* but I decided to hardcode it for now, so as  */
 typedef int MOVES;          /* to make it a leeeetle bit easier and cleaner */
 #define POSITION_FORMAT "%lld"
@@ -237,6 +237,8 @@ void      InitializeGame();
 void      FreeGame();
 void      DebugMenu();
 void      GameSpecificMenu();
+void      HelpMenus();
+void      BadMenuChoice();
 POSITION  DoMove(POSITION thePosition, MOVE theMove);
 POSITION  GetInitialPosition();
 void      PrintComputersMove(MOVE computersMove, STRING computersName);

@@ -169,6 +169,10 @@ char *gBlankOXString[] = { "-", "O", "X" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
+/** Function Prototypes **/
+void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -610,7 +614,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX)
+void PositionToBlankOX(thePos,theBlankOX)
      POSITION thePos;
      BlankOX *theBlankOX;
 {

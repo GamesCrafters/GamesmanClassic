@@ -110,7 +110,6 @@ int  WIN4_HEIGHT = 4;
 #define MINH 1
 // Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
 
-
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -136,6 +135,11 @@ typedef enum possibleBoardPieces {
 } XOBlank;
 
 char *gBlankOXString[] = { "X", "O", "-" };
+
+
+
+/** Function Prototypes **/
+void PositionToBoard(POSITION pos, XOBlank board[WIN4_WIDTH][WIN4_HEIGHT]);
 
 /*************************************************************************
 **
@@ -615,7 +619,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBoard(pos,board)
+void PositionToBoard(pos,board)
      POSITION pos;
      XOBlank board[WIN4_WIDTH][WIN4_HEIGHT];
      // board is a two-dimensional array of size 

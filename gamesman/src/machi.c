@@ -161,6 +161,8 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 
 /* function prototypes */
 POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
+void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
+
 
 BOOLEAN allDiag = FALSE;
 BOOLEAN noDiag = FALSE;
@@ -1036,7 +1038,7 @@ POSITION GetNextPosition()
  **
  ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX,whosTurn)
+void PositionToBlankOX(thePos,theBlankOX,whosTurn)
      POSITION thePos;
      BlankOX *theBlankOX, *whosTurn;
 {

@@ -159,6 +159,7 @@ void PrintMove(MOVE theMove);
 void SnakeUnhash(POSITION thePos, BlankBHT *theBlankBHT);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
 POSITION SnakeHash(BlankBHT* theBlankBHT);
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 
 void InitializeGame() {
 }

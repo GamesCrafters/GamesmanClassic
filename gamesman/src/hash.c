@@ -25,7 +25,7 @@
 
 /*********************************************************************************
 *** A *PERFECT* hash function -
-*** - Efficency, Readability, and Multiple Context by Scott Lindeneay
+*** - Efficency, Readability, and Multiple Contexts by Scott Lindeneau
 *** - User-specified variables version designed and implemented by Michel D'Sa
 *** - Original (3-variable only) version designed by Dan Garcia
 ***   and implemented by Attila Gyulassy
@@ -500,12 +500,13 @@ int searchOffset(int h)
    the members of *tc */
 POSITION combiCount(int* tc)
 {
-  POSITION sum = 0, prod = 1, ind = 0,old=0;
+  POSITION sum = 0, prod = 1, ind = 0,old=1,hold=0;
   for (ind = 0;ind < cCon->numPieces - 1;ind++){
     sum += tc[ind];
-    prod *= nCr(sum+tc[ind+1], sum);
-    if(prod < old)
-      ExitStageRightErrorString("Hash Number for current board unrepresentable");
+    hold = nCr(sum+tc[ind+1], sum);
+    prod *= hold;
+    if(prod/hold !=  old)
+      ExitStageRightErrorString("Combination Calculation Wraps");
     old = prod;
   }
   return prod;

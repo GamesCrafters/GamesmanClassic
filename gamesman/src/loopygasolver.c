@@ -20,6 +20,8 @@ void     InsertWinFR(POSITION position);
 void     InsertLoseFR(POSITION position);
 void     InsertTieFR(POSITION position);
 void     InsertFR(POSITION position, FRnode **firstnode, FRnode **lastnode);
+int      writeDatabase();
+
 
 /* Start Loopy */
 extern FRnode *gHeadWinFR;               /* The FRontier Win Queue */

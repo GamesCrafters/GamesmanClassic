@@ -191,6 +191,10 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
+
+/** Function Prototypes **/
+void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX);
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -848,7 +852,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX)
+void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX)
 {
   int i;
   int pieces = thePos >> 1;

@@ -129,6 +129,10 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
                             59049, 177147, 531441, 1594323, 4782969,
                                               14348907, 43046721};
 
+/** Function Prototypes **/
+void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV, BlankHV *whosTurn);
+
+
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -793,7 +797,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankHV(thePos,theBlankHV, whosTurn)
+void PositionToBlankHV(thePos,theBlankHV, whosTurn)
      POSITION thePos;
      BlankHV *theBlankHV, *whosTurn;
 {
