@@ -3737,7 +3737,7 @@ void writeVarStat(char * statName, char * text, FILE *rowp) {
   //FILE * rawfilep ;
   char outFileName[256];
   
-  sprintf(outFileName, "../analysis/%s/var%d/%s", kDBName,getOption(),statName) ;
+  sprintf(outFileName, "analysis/%s/var%d/%s", kDBName,getOption(),statName) ;
   
   filep = fopen(outFileName, "w");
 
@@ -3756,15 +3756,15 @@ void writeVarStat(char * statName, char * text, FILE *rowp) {
 }
 void createAnalysisGameDir() {
   char gameDirName[256];
-  sprintf(gameDirName, "../analysis/%s", kDBName);
+  sprintf(gameDirName, "analysis/%s", kDBName);
 
-  mkdir("../analysis", 0755);
+  mkdir("analysis", 0755);
   mkdir(gameDirName, 0755);
   
 }
 void createAnalysisVarDir() {
   char varDirName[256];
-  sprintf(varDirName, "../analysis/%s/var%d", kDBName,getOption());
+  sprintf(varDirName, "analysis/%s/var%d", kDBName,getOption());
   mkdir(varDirName, 0755) ;
 }
 
@@ -3779,7 +3779,7 @@ void writeGameHTML() {
   STRING fontColor = "#FFFFFF";
   STRING fontFace = "verdana";
   
-  sprintf(gameFileName, "../analysis/%s/%s.shtml", kDBName,kDBName);
+  sprintf(gameFileName, "analysis/%s/%s.shtml", kDBName,kDBName);
   gamep = fopen(gameFileName, "w");
 
   fprintf(gamep, "<html><head>\n");
@@ -3820,7 +3820,7 @@ void createVarTable () {
   FILE * tablep;
   int i;
   
-  sprintf(tableFileName, "../analysis/%s/%s_table.shtml", kDBName, kDBName);
+  sprintf(tableFileName, "analysis/%s/%s_table.shtml", kDBName, kDBName);
   tablep = fopen(tableFileName, "w");
   
   fprintf(tablep,"<!-- AUTO CREATED, do not modify-->\n");
@@ -3861,7 +3861,7 @@ void writeVarHTML () {
   FILE * rowp;
   char rowFileName[256];
 
-  sprintf(rowFileName, "../analysis/%s/var%d/row.shtml", kDBName,getOption()) ;
+  sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption()) ;
 
   rowp = fopen(rowFileName, "w");
 
@@ -3921,7 +3921,7 @@ void writeVarHTML () {
 void createAnalysisLink() {
   //printf(filename);
   
-  symlink ( gAnalysisDir, "../analysis");
+  symlink ( gAnalysisDir, "analysis");
   // if linkname == gAnalysis dir, the above is a nop
 }
   */
