@@ -38,7 +38,6 @@ extern STRING gValueString[];
 POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
 POSITION gInitialPosition    = 0; /* The initial position (starting board) */
-POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = ""; /* The name of your game */
