@@ -385,9 +385,9 @@ POSITION DoMove (thePosition, theMove)
 		printf("NEXT PLAYER: ");
 		if (next_player == FOX_PLAYER)
 		{
-			printf("%d Fox\n");
+			printf("%d Fox\n",next_player);
 		}
-		else if (next_player == GEESE_PLAYER)
+		else if (next_player == GEESE_PLAYER,next_player)
 		{
 			printf("%d Geese\n");
 		} 
@@ -993,12 +993,10 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 			case 0:
 				if (diagonal)
 				{
-					printf("Diag: %d\n",(board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0);
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
 				}
 				else
 				{
-					printf("No Diag: %d\n",(board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0);
 					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
 				break;
