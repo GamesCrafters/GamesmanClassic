@@ -422,9 +422,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		printf("  Queensland!\n");
 	}
 	else {
-		for (i = 0; i < 2 * width; i++)
+		for (i = 0; i < width - 1; i++)
 		{
-			printf("=");
+			printf(" ");
 		}
 		printf("Queensland!\n");
 	}
@@ -455,13 +455,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		for (i = 0; i < width; i++) {
 			switch(pieceat(board, i, j)) {
 				case BLANK:
-					printf(". ");
+					printf("%c ", BLANK);
 					break;
 				case WHITE:
-					printf("X ");
+					printf("%c ", WHITE);
 					break;
 				case BLACK:
-					printf("O ");
+					printf("%c ", BLACK);
 					break;
 				default:
 				    BadElse("PrintPosition");
