@@ -36,9 +36,9 @@
 
 int main(int argc, char** argv)
 {
-        /* Deprecated code does not support the -solve argument. */
-        if (argc > 1 && !strcasecmp(argv[1], "-solve")) {
-                fprintf(stderr, "Deprecated API does not support -solve.\n\n");
+        /* Deprecated code does not support command line stuff */
+        if (argc > 1) {
+                fprintf(stderr, "Deprecated API does not support command line options.\n\n");
                 exit(1);
         }
         
