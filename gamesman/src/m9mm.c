@@ -38,7 +38,7 @@ BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
-BOOLEAN  kTieIsPossible      = TRUE;
+BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
@@ -75,6 +75,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
+BOOLEAN debug = TRUE;
 
 /*************************************************************************
 **
@@ -87,7 +88,6 @@ STRING   kHelpExample =
 #define maxx  3
 #define mino  2
 #define maxo  3
-
 
 typedef enum Pieces {
   blank, x, o
@@ -122,6 +122,9 @@ BOOLEAN check_mill(blankox *board, int slot);
 BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot);
 blankox parse_char(char c);
 BOOLEAN closes_mill_move(MOVE the_move);
+
+// Debugging
+void debugBoard(blankox *bboard, char *cboard);
 
 // External
 GENERIC_PTR	SafeMalloc (size_t size);
@@ -248,8 +251,8 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
+ 
   //debug
-  int i;
   char cboard[BOARDSIZE];
 
   blankox board [BOARDSIZE];  
@@ -259,28 +262,29 @@ POSITION DoMove(thePosition, theMove)
 
   
   //debug
-  printf("The move doMove get is: %d\n", theMove);
-  printf("In doMove, the from, to, remove are: %d %d %d\n", from_slot, to_slot, remove_slot);
+  if (debug) {
+    printf("The move doMove get is: %d\n", theMove);
+    printf("In doMove, the from, to, remove are: %d %d %d\n", from_slot, to_slot, remove_slot);
+  }
  
   unhash(thePosition, board);
-  //debug 
-  printf("thePosition is: %d\n", thePosition);
-  printf("It is this person's turn: %d\n", whoseMove(thePosition));
+  //debug
+  if (debug) {
+    printf("thePosition is: %d\n", thePosition);
+    printf("It is this person's turn: %d\n", whoseMove(thePosition));
+  }
 
   board[to_slot] = board[from_slot];
   board[from_slot] = blank;
   board[remove_slot] = blank; // if no piece is removed, remove = from
 
-  //debug 
-  unparse_board(board, cboard);
-  printf("The board after the move is: ");
-  for (i = 0; i < BOARDSIZE; i++)
-    printf("%d", board[i]);
-  printf("\n");
-  for (i = 0; i < BOARDSIZE; i++)
-    printf("%c", cboard[i]);
-  printf("\n");
-
+  //debug
+  if (debug) {
+    unparse_board(board, cboard);
+    printf("The board after the move is: ");
+    debugBoard(board,cboard);
+  }
+  
   return hash(board, whose_turn(thePosition) == x ? o : x);
 }
 
@@ -570,8 +574,10 @@ MOVELIST *GenerateMoves(POSITION position)
 	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
 	      (blanks[j] * BOARDSIZE) + player_pieces[i];
 
-	    //debug:
-	    printf ("the raw_move is: %d\n", raw_move);
+	    //debug
+	    if (debug) {
+	      printf ("the raw_move is: %d\n", raw_move);
+	    }
 
 	    if (closes_mill(position, raw_move))
 	      {
@@ -740,7 +746,9 @@ MOVE ConvertTextInputToMove(input)
     remove = from;
   
   //debug
-  printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
+  if (debug) {
+    printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
+  }
 
   
   return hash_move(from, to, remove);
@@ -834,7 +842,7 @@ int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 
 /************************************************************************
 *************************************************************************
-**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
+**         Everything BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
 ************************************************************************/
 
@@ -866,26 +874,22 @@ POSITION hash(blankox *b_board, blankox turn)
 
 blankox *unhash(int hash_val, blankox *b_board)
 {
-  //debug
-  int i;
-
   char c_board [BOARDSIZE];
   
   generic_unhash(hash_val, c_board);
   
   //debug
-  printf("The hash value is: %d\n", hash_val);
-  for (i = 0; i < BOARDSIZE; i++) 
-    printf("%c", c_board[i]);
-  printf("\n");
+  if (debug) {
+    printf("The hash value is: %d\n", hash_val);
+    debugBoard(b_board, c_board);
+  }
   
   parse_board(c_board, b_board);
   
   //debug
-  for (i = 0; i < BOARDSIZE; i++)
-    printf("%d", b_board[i]);
-  printf("\n");
-
+  if (debug) {
+    debugBoard(b_board,c_board);
+  }
 
   return b_board;
   
@@ -1010,8 +1014,29 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
     (slot == slot1 || slot == slot2 || slot == slot3);
 }
 
+/************************************************************************
+ ** Some Debugging Functions
+************************************************************************/
+
+void debugBoard(blankox *bboard, char *cboard)
+{
+  int i;
+  if (debug) {
+    for (i = 0; i < BOARDSIZE; i++)
+      printf("%d", bboard[i]);
+    printf("\n");
+    for (i = 0; i < BOARDSIZE; i++)
+      printf("%c", cboard[i]);
+    printf("\n");
+  }
+}
+
+
 
 //$Log: not supported by cvs2svn $
+//Revision 1.25  2004/04/05 01:58:40  weitu
+//m9mm fixed no segfaults, need to take care of input
+//
 //Revision 1.24  2004/04/04 19:08:11  weitu
 //hash doesn't work? see debug messages
 //
