@@ -224,6 +224,8 @@ int gNumDragons = MIN_DRAGONS;
 /* local prototypes */
 void generic_unhash2(int, char*, char*, int*, int*);
 int generic_hash2(char*, char, int, int);
+BOOLEAN OkMove(char[], char, SLOT, int);
+BOOLEAN CantMove(POSITION);
 
 void InitializeGame()
 {
