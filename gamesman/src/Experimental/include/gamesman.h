@@ -13,5 +13,6 @@
 #include "misc.h"
 #include "db.h"
 #include "solver.h"
+#include "games.h"
 
 #endif /* GM_GAMESMAN_H */

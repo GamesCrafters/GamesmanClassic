@@ -22,18 +22,20 @@ Classes that exist in the system:
 		- Classic Primitive, GenerateMoves, DoMove functions
 		- Stores information about the current options set -- the
 		  configuration of the game.
-		- Get/Set functions (Query)
+		- Property table (Name, Authors, GetOption, ...)
 	- Database class:
 		- This class stores and retrieves information regarding the
 		  gametree.  Does nothing else.
+		- Uses 'resources'.  Just a description for a database
+		  somewhere.  Ex "file:data/mgobblet_0.dat", "memory:", ...
 		- Record length set by the Solver
-		- Number of records set by the game
+		- Number of records set by the Game
 		- Gateway to access information regarding the gametree.
 		- Functions to store and retrieve data from the gametree
 		- Functions to set record size and number of records.
 		- Can transfer information from one Gametree to another
-(like from a file to memory -- from memory to a file -- net database to
-wherever..)
+		  (like from a file to memory -- from memory to a file -- net
+		  database to wherever..)
 	- Solver class:
 		- Solves the game
 		- Functions:
@@ -43,23 +45,119 @@ wherever..)
 			- getValueMoves ( POSITION )
 		- Does lots of interfacing to Database class.
 		- Does a lot of stuff that you would expect in Database --
-can't go there since the Database has no idea how its records are structured
+		  can't go there since the Database has no idea how its
+		  records are structured
 		- getValueMoves should (can) rank moves better than just
-Win, Lose, Tie.  Should return more detailed separation of the moves, for
-example: all moves that win by x, or win in x moves..
+		  Win, Lose, Tie.  Should return more detailed separation of
+		  the moves, for example: all moves that win by x, or win in x
+		  moves..
 
 
 Different Database types:
-	- Memdb		Stores the gametree in flat memory
-	- Filedb	Stores the gametree in a flat file
-	- Netdb		Stores (mostly retrieves) the gametree on a remote
-host -- should also cache what we know
+	- memdb		Stores the gametree in flat memory
+	- filedb	Stores the gametree in a flat file
+	- netdb		Stores (mostly retrieves) the gametree to/from a remote
+			host -- should also cache what we know
 
-Solver overrides:
+Solver classes:
 	- FlatSolver		Tic-Tac-Toe, etc
 	- LoopySolver		Achi, Gobblet, etc
 	- FuzzySolver		Dots-n-boxes, Domineering, etc
 	- BottomUpSolver	Nine mens' morris, etc
 	- etc
 
-- Game chooses the solver to use .. User chooses the gametree.
+Game chooses the solver to use; user chooses the gametree.
+
+
+Spec
+====
+
+The main() function of the program should initialize two repositories, one
+for solver classes and the other for database classes.  These 'repositories'
+remember the list of classes that are available in the system, and can be
+called upon to look those classes up by name or prefix handler (see
+databases, later).  Here are the provisions to interact with these
+repositories:
+
+void db_init()
+	Contains calls to db_load() with the linked-in database information. 
+	If you want to link in a database to the system permanently, you should
+	make the db_load() call here.
+
+void db_load(DATABASE_CLASS*)
+	Loads the contents of the given class structure to the repository.
+	Each built-in class has one of these records, and a function that
+	returns one.
+
+DATABASE_CLASS* db_find_handler(STRING)
+	Locates the database class associated with the given resource (ie, a
+	string that describes a database "file:///something.db", "memory:",
+	"soap://somewhere.org:1080/gobblet", etc), and returns it.
+
+DATABASE* db_open(STRING)
+	Finds the class to handle the given resource, and opens the resource.
+	Returns the object (database instance) of the open database.
+
+
+The database class file should include a few functions as well:
+
+- An initialization function that builds a DATABASE_CLASS* object and
+returns it.  This is the first entry point for any database, and is usually
+called from db_init().  The name can be anything as long as it's unique. 
+Memdb's is memdb_init().  This should be the only function exported from the
+module (the rest should be static).  The definition for a DATABASE* object
+is in include/types.h.  The functions that go in it will be described
+further down.  First, here is what should go in a DATABASE_CLASS structure:
+
+class_name
+	The name of the class.  This can be anything, but should be one
+	word.  Such as "memdb".
+
+prefix
+	The string of the prefix that this db handles.  Memory db's handle
+	"memory".  File db's should handle "file".
+
+properties
+	A table of data.  See memdb.c and docs/tablspec.txt.
+
+create(STRING)
+	See the next entry.
+
+- A constructor that creates a database instance (ie, it returns type
+DATABASE*).  This function should take in a STRING argument, that specifies
+the resource to use.  For a file database, this should be of the format
+"file://./data/somegame_1.dat" or perhaps "file:./data/somegame_1.dat" or
+even "file:data/somegame_1.dat".  If the resource doesnt exist it should be
+created.  Memory databases dont have filenames, so you call
+db_open("memory:") to create a new one.
+
+- And of course, there must be the functions that drive the database.  Here
+is what it breaks down into:
+
+init(DATABASE*, POSITION, int)
+	Clears the database.  Sets the record count to the second argument
+	and the record size (in BITS -- see bits.c) in the third argument.
+
+free(DATABASE*)
+	Frees the database, and the pointer that was passed in (so it does
+	not need to be freed later)
+
+get(DATABASE*, POSITION, void*)
+	Retrieves the entry specified by the second argument, and places it
+	in the memory pointed to by the third argument.  See memdb.c for an
+	example.
+
+put(DATABASE*, POSITION, void*)
+	Stores the entry specified by the second argument from the data
+	pointed to by the third argument.  See memdb.c for an example.
+
+putn(DATABASE*, POSITION, void*, int)
+	Puts n (4th arg) entries, from the memory pointed to by the third
+	argument into the database starting at the index of the 2nd argument.
+
+transfer(DATABASE* src, DATABASE* dest)
+	Initializes the target database (by calling its init function) with
+	the correct record count and size, and transfers all entries from src to
+	dest through a series of dest's putn calls.  memdb.c isn't a good example
+	of this, because it should probably call lots of times, and be checking
+	the results of those calls (and returning an error if one of them fails).

@@ -84,7 +84,7 @@ typedef struct GAME_struct {
 	POSITION		(*do_move)(struct GAME_struct*, POSITION, MOVE, int*);
 	VALUE			(*primitive)(struct GAME_struct*, POSITION);
 	MOVELIST		(*generate_moves)(struct GAME_struct*, POSITION, int*);
-	POSITIONLIST*		(*undo_move)(struct GAME_struct*, POSITION);
+	POSITIONLIST*		(*generate_undo_moves)(struct GAME_struct*, POSITION);
 	int			(*whose_turn)(struct GAME_struct*, POSITION);
 	
 	struct TEXTGAME*	text_functions;
@@ -131,7 +131,6 @@ typedef struct SOLVER_struct {
 	REMOTENESS		(*get_remoteness)(struct SOLVER_struct*, POSITION);
 	VALUE			(*get_value)(struct SOLVER_struct*, POSITION);
 	VALUE_MOVES		(*get_value_moves)(struct SOLVER_struct*, POSITION);
-	
 } SOLVER;
 
 typedef struct {
