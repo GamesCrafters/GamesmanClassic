@@ -192,7 +192,7 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-puts "GS_Initialize"
+#puts "GS_Initialize"
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
    # $c configure -width 300 -height 300
@@ -269,7 +269,7 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    puts "GS_DrawPosition"
+  #  puts "GS_DrawPosition"
 
     global boardsize pieceString
     set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
@@ -302,7 +302,7 @@ proc GS_DrawPosition { c position } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
-    puts "GS_NewGame"
+ #   puts "GS_NewGame"
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
@@ -354,7 +354,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
- puts "GS_ShowMoves"
+# puts "GS_ShowMoves"
     global boardsize boardstring
     #set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
     
@@ -382,6 +382,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 		$c itemconfig arrowUPblue$arrayNum -fill $color
 		$c bind arrowUPblue$arrayNum <Enter> "$c itemconfig arrowUPblue$arrayNum -fill black"
 		$c bind arrowUPblue$arrayNum <Leave> "$c itemconfig arrowUPblue$arrayNum -fill $color"
+		$c bind arrowUPblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
 
 	    }
 	    1 {
@@ -389,18 +390,21 @@ proc GS_ShowMoves { c moveType position moveList } {
 		$c itemconfig arrowRIGHTblue$arrayNum -fill $color
 		$c bind arrowRIGHTblue$arrayNum <Enter> "$c itemconfig arrowRIGHTblue$arrayNum -fill black"
 		$c bind arrowRIGHTblue$arrayNum <Leave> "$c itemconfig arrowRIGHTblue$arrayNum -fill $color"
+		$c bind arrowRIGHTblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
 	    }
 	    2 {
 		$c raise arrowDOWNblue$arrayNum base
 		$c itemconfig arrowDOWNblue$arrayNum -fill $color
 		$c bind arrowDOWNblue$arrayNum <Enter> "$c itemconfig arrowDOWNblue$arrayNum -fill black"
 		$c bind arrowDOWNblue$arrayNum <Leave> "$c itemconfig arrowDOWNblue$arrayNum -fill $color"
+		$c bind arrowDOWNblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
 	    }
 	    3 {
 		$c raise arrowLEFTblue$arrayNum base
 		$c itemconfig arrowLEFTblue$arrayNum -fill $color
 		$c bind arrowLEFTblue$arrayNum <Enter> "$c itemconfig arrowLEFTblue$arrayNum -fill black"
 		$c bind arrowLEFTblue$arrayNum <Leave> "$c itemconfig arrowLEFTblue$arrayNum -fill $color"
+		$c bind arrowLEFTblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
 	    }
 	    default {}
 	}
