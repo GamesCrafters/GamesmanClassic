@@ -21,7 +21,7 @@
 **              03/06/04 Wrote IndexToCoordinates(...)
 **              03/06/04 Wrote CoordinatesToIndex(...)
 **              03/06/04 Wrote Neighbor(...)
-**              03/06/04 Wrote Inbounds(...)
+**              03/06/04 Wrote InBounds(...)
 **              03/06/04 Wrote OtherDirection(...)
 **              03/06/04 Wrote GenerateMoves(...)
 ** TODO LIST:
@@ -41,8 +41,8 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 0;     /* don't initialize yet, let generic_hash_init(...) decide */
-int	 kBadPosition		= -1;
+POSITION gNumberOfPositions  = 0;     /* don't initialize yet, let generic_hash_init(...) decide */
+POSITION kBadPosition        = -1;
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
@@ -92,7 +92,7 @@ STRING   kHelpExample =
 #define BOARDHEIGHT    3           /* dimensions of the board */
 #define BOARDWIDTH     4           /*  "               "      */
 #define MAX_X          5           /* maximum number of pieces of X that is possible in a game */
-#define MAX_O          5           /*  "            "            "                   "         */
+#define MAX_O          5           /*  "            "            "O                  "         */
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
@@ -101,7 +101,7 @@ typedef enum possibleBoardPieces {
 typedef enum _direction { nodir=0,lowleft=1,down=2,lowright=3,left=4,right=6,upleft=7,up=8,upright=9 } Direction;
 typedef struct _coord { int x,y; } Coordinates;
 
-char *gBlankOXString[] = { '.', 'O', 'X' };
+char gBlankOXString[] = { '.', 'O', 'X' };
 int myPieces_array[9] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
                           'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
                           'X', 0, MAX_X };        /* used to pass into generic_hash_init(...) */
@@ -122,7 +122,7 @@ char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array inste
 
 void InitializeGame()
 {
-  generic_hash_init(BOARDSIZE, myPieces_array);
+  generic_hash_init(BOARDSIZE, myPieces_array, 0);  // pass null for function pointer
 }
 
 void FreeGame()
@@ -190,6 +190,8 @@ POSITION DoMove(thePosition, theMove)
      MOVE theMove;
 {
   // fill me
+  int i = 1;
+  printf("%d\n",i);
 }
 
 /************************************************************************
@@ -334,7 +336,7 @@ void PrintPosition(position,playerName,usersTurn)
 	  else
 	  {
 	    if ((j-1) % 6 == 0)
-	      putchar(*gBlankOXString[(int)theBlankOx[j-1]]); /* HRS */
+	      putchar(gBlankOXString[(int)theBlankOx[j-1]]); /* HRS */
 	    else if ((j-1) % 6 == 1)
 	      putchar(' ');
 	    else
@@ -410,7 +412,7 @@ MOVELIST *GenerateMoves(position)
 	    } // end if can attack by approach
 	    
 	    attackingpos = Neighbor(pos,OtherDirection(dir));
-	    if(Inbounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
+	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
 	      numofcaps++;
 	      cap = 2; // attack by withdraw mode
 	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
