@@ -20,6 +20,8 @@
 **              10 Apr, 04: Many bugfixes throughout the code, changes in 
 **                          output functions, and (untested) support for 
 **                          node classes.
+**              11 Apr, 04: Changed handling of the image array to work
+**                          with changing the graph file.
 **
 ** 
 **
@@ -155,7 +157,7 @@ static char g_name[100];
 static FILE* g_file;
 static char default_file[100] = "../grf/default.blk";
 static BOOLEAN use_default = TRUE;
-static char image[20][500];
+static char image[20][35];
 
 static classes global_classes;
 static nodes global_board;
@@ -184,7 +186,7 @@ char* boardToString(char* s, nodes board, pieces black_pieces,
 void stringToBoard(char*s, nodes board, pieces black_pieces,
 		   pieces white_pieces);
 
-void printBoard(nodes board);
+void printBoard(nodes board, BOOLEAN reset);
 
 
 /* Starting here are the function prototypes for the parser: */
@@ -426,7 +428,7 @@ POSITION GetInitialPosition()
   for(i = 0; i < num_nodes; i++)
     string_board[i] = '_';
 
-  printBoard(global_board);
+  printBoard(global_board, FALSE);
   printf("Enter the nodes of the black pieces, ending with '~':\n");
 
   scanf("%1s", &node_name);
@@ -572,11 +574,11 @@ void PrintPosition (position, playerName, usersTurn)
 		global_white);
 
   if(whoseMove(position) == BLACK_PLAYER)
-    printf("Player 1's turn:\n");
+    printf("\nPlayer 1's turn:\n");
   else
-    printf("Player 2's turn:\n");
+    printf("\nPlayer 2's turn:\n");
 
-  printBoard(global_board);
+  printBoard(global_board, FALSE);
 
   return;
 }
@@ -928,11 +930,16 @@ void stringToBoard(char* s, nodes board, pieces black_pieces,
   return;
 }
 
-void printBoard(nodes board) {
-  static char board_numbers[20][500];
+void printBoard(nodes board, BOOLEAN reset) {
+  static char board_numbers[20][35];
   static BOOLEAN initialized = FALSE;
   char temp[3];
   int i;
+
+  if(reset) {
+    initialized = FALSE;
+    return;
+  }
 
   if(!initialized) {
     for(i = 0; i < 20; i++)
@@ -993,6 +1000,12 @@ void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
     black_pieces[i].node = white_pieces[i].node = -1;
     black_pieces[i].pic = white_pieces[i].pic = '*';
   }
+
+  for(i = 0; i < 20; i++) {
+    image[i][0] = '\0';
+  }
+
+  printBoard(NULL, TRUE);
 
   num_nodes = 0;
   num_black = 0;
@@ -1162,7 +1175,7 @@ void handleImage(char* token, int* pos, nodes board) {
   c_line = stringGetLine(token + *pos);
   name[1] = '\0';
   while(c_line) {
-    strcpy(image[i], c_line);
+    sprintf(image[i], "%.35s", c_line);
     j = 0;
     while(image[i][j] && (image[i][j] != '\n') 
 	  && (image[i][j] != EOF)) {
