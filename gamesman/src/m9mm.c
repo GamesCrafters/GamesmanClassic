@@ -26,7 +26,7 @@
 
 POSITION gNumberOfPositions  = 0;
 
-POSITION gInitialPosition    = 23;
+POSITION gInitialPosition    = 11137;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
@@ -92,8 +92,8 @@ STRING   kHelpExample =
 typedef enum Pieces {
   blank, x, o
 } blankox;
-char *gblankoxString[] = { "_", "x", "o"};
-POSITION gHashNumberOfPos = 0;
+char gblankoxChar[] = { '_', 'x', 'o'};
+//POSITION gHashNumberOfPos = 0;
 
 /*************************************************************************
 **
@@ -149,7 +149,7 @@ void InitializeGame()
   int b_size = BOARDSIZE;
   int pminmax[] = {'o', mino, maxo, 'x', minx, maxx, 'b', b_size-maxo-maxx, b_size-minx-mino, -1};
 
-  gHashNumberOfPos = generic_hash_init(b_size, pminmax, NULL);
+  generic_hash_init(b_size, pminmax, NULL);
 
   
   
@@ -248,17 +248,33 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
+  //debug
+  int i;
+
   blankox board [BOARDSIZE];  
   int from_slot = from(theMove);
   int to_slot = to(theMove);
   int remove_slot = remove_piece(theMove);
 
   
+  //debug
+  printf("The move doMove get is: %d\n", theMove);
+  printf("In doMove, the from, to, remove are: %d %d %d\n", from_slot, to_slot, remove_slot);
+ 
   unhash(thePosition, board);
+  //debug 
+  printf("thePosition is: %d\n", thePosition);
+  printf("It is this person's turn: %d\n", whoseMove(thePosition));
 
   board[to_slot] = board[from_slot];
   board[from_slot] = blank;
   board[remove_slot] = blank; // if no piece is removed, remove = from
+
+  //debug 
+  printf("The board after the move is: ");
+  for (i = 0; i < BOARDSIZE; i++)
+    printf("%d", board[i]);
+  printf("\n");
 
   return hash(board, whose_turn(thePosition) == x ? o : x);
 }
@@ -547,18 +563,24 @@ MOVELIST *GenerateMoves(POSITION position)
 	for (j = 0; j < blank_count; j++)
 	  {
 	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
-	      (blanks[j] * BOARDSIZE);
+	      (blanks[j] * BOARDSIZE) + player_pieces[i];
+
+	    //debug:
+	    printf ("the raw_move is: %d\n", raw_move);
+
 	    if (closes_mill(position, raw_move))
 	      {
 		for (k = 0; k < opponent_count; k++)
 		  if (can_be_taken(position, opponent_pieces[k]))
-		    head = CreateMovelistNode(raw_move += opponent_pieces[k], head);
+		    head = CreateMovelistNode(raw_move += (opponent_pieces[k]-player_pieces[i]) , head);
 	      }
 	    else
-	      head = CreateMovelistNode(raw_move += player_pieces[i], head);
+	      head = CreateMovelistNode(raw_move, head);
 	    
 	  }
       }
+
+ 
     return head;
   }
   else
@@ -638,8 +660,8 @@ BOOLEAN ValidTextInput(input)
   
   i = atoi(input);
 
-  hasSpace = index(input, ' ') == NULL;
-  hasComma = index(input, ',') == NULL;
+  hasSpace = index(input, ' ') != NULL;
+  hasComma = index(input, ',') != NULL;
   
   if (hasSpace)
     afterSpace = index(input, ' ');
@@ -693,10 +715,11 @@ MOVE ConvertTextInputToMove(input)
   STRING afterComma;
   BOOLEAN hasSpace, hasComma;
 
-  hasSpace = (index(input, ' ')) == NULL;
-  hasComma = (index(input, ',')) == NULL;
+  hasSpace = (index(input, ' ')) != NULL;
+  hasComma = (index(input, ',')) != NULL;
   
   from = atoi(input);
+
   
   if (hasSpace) {
     afterSpace = index(input, ' ');
@@ -710,7 +733,11 @@ MOVE ConvertTextInputToMove(input)
     remove = atoi(afterComma);
   } else
     remove = from;
-    
+  
+  //debug
+  printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
+
+  
   return hash_move(from, to, remove);
 }
 
@@ -834,11 +861,26 @@ POSITION hash(blankox *b_board, blankox turn)
 
 blankox *unhash(int hash_val, blankox *b_board)
 {
+  //debug
+  int i;
+
   char c_board [BOARDSIZE];
   
   generic_unhash(hash_val, c_board);
-
+  
+  //debug
+  printf("The hash value is: %d\n", hash_val);
+  for (i = 0; i < BOARDSIZE; i++) 
+    printf("%c", c_board[i]);
+  printf("\n");
+  
   parse_board(c_board, b_board);
+  
+  //debug
+  for (i = 0; i < BOARDSIZE; i++)
+    printf("%d", b_board[i]);
+  printf("\n");
+
 
   return b_board;
   
@@ -850,11 +892,11 @@ void parse_board(char *c_board, blankox *b_board)
   int i;
   for (i = 0; i < BOARDSIZE; i++) 
     { 
-      if (c_board[i] == 'o')
+      if (c_board[i] == 'o' || c_board[i] == 'O')
 	b_board[i] = o;
-      else if (c_board[i] == 'x')
+      else if (c_board[i] == 'x' || c_board[i] == 'X')
 	b_board[i] = x;
-      else if (c_board[i] == '_')
+      else if (c_board[i] == 'b' || c_board[i] == 'B')
 	b_board[i] = blank;
     }
 }
@@ -877,7 +919,7 @@ void unparse_board(blankox *b_board, char *c_board)
   int i;
   for (i = 0; i < BOARDSIZE; i++)
     {
-      c_board[i] = gblankoxString[b_board[i]][0];
+      c_board[i] = gblankoxChar[b_board[i]];
     }
 }
 
