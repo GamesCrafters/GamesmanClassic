@@ -33,7 +33,7 @@
 #include "gamesman.h"
 
 VALUE GPS_DetermineValue(POSITION position) {
-    BOOLEAN foundLose = FALSE, foundTie = FALSE, foundWin = TRUE;
+    BOOLEAN foundLose = FALSE, foundTie = FALSE, foundWin = FALSE;
     MEXCALC mexCalc = 0;
     MOVE move;
     MOVELIST *moveNode, *moves;
@@ -81,7 +81,6 @@ VALUE GPS_DetermineValue(POSITION position) {
                 FoundBadPosition(child, position, move);
 
             value = GPS_DetermineValue(child);
-            gGPSUndoMove(move);
 
             if (gGPSGoAgain != NULL && gGPSGoAgain(move)) {
                 if (value == lose)
@@ -118,6 +117,7 @@ VALUE GPS_DetermineValue(POSITION position) {
                     break;
             }
 
+            gGPSUndoMove(move);
             moveNode = moveNode->next;
         }
 
