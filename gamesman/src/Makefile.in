@@ -136,7 +136,8 @@ RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
 RUBIX_OBJ		= mrubix$(OBJSUFFIX)
 RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
 
-GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph gamGRAPH_OBJ		= mgraph$(OBJSUFFIX)
+GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
+GRAPH_OBJ		= mgraph$(OBJSUFFIX)
 
 ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
 ACHI_OBJ		= machi$(OBJSUFFIX)
