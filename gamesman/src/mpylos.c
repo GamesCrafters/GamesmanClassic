@@ -326,7 +326,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 
 /********************************************************** GameSpecificMenu */
 void GameSpecificMenu() {
-  char *input;
+  int boardDimension;
 
   while (TRUE) {
     printf("\n\t----- Game-specific options for %s -----\n", kGameName);
@@ -349,35 +349,23 @@ void GameSpecificMenu() {
         break;
       case 'D': case 'd':
         printf("\nBoard dimension (%d): ", gBoardDimension);
-        scanf("%s", input);
+        scanf("%d", &boardDimension);
 
-        if (atoi(input) > 0)
-          gBoardDimension = atoi(input);
+        if (boardDimension > 0)
+          gBoardDimension = boardDimension;
 
         break;
       case 'E': case 'e':
         printf("\nEmpty piece (%c): ", gPieceLabels[BLANK_PIECE]);
-        scanf("%s", input);
-
-        if (strlen(input) == 1)
-          gPieceLabels[BLANK_PIECE] = input[0];
-
+        gPieceLabels[BLANK_PIECE] = GetMyChar();
         break;
       case '1':
         printf("\nPlayer 1's piece (%c): ", gPieceLabels[LIGHT_PIECE]);
-        scanf("%s", input);
-
-        if (strlen(input) == 1)
-          gPieceLabels[LIGHT_PIECE] = input[0];
-
+        gPieceLabels[LIGHT_PIECE] = GetMyChar();
         break;
       case '2':
         printf("\nPlayer 2's piece (%c): ", gPieceLabels[DARK_PIECE]);
-        scanf("%s", input);
-
-        if (strlen(input) == 1)
-          gPieceLabels[DARK_PIECE] = input[0];
-
+        gPieceLabels[DARK_PIECE] = GetMyChar();
         break;
       case 'S': case 's':
         gAllowSquaring = !gAllowSquaring;
