@@ -66,6 +66,7 @@ POSITION gNumberOfPositions  = 27011250;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0 ;
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Critical Mass";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;

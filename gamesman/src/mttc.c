@@ -95,6 +95,7 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0; 
 POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Tic-Tac-Chec"; 
 STRING   kDBName             = "ttc"; 
 BOOLEAN  kPartizan           = TRUE; 

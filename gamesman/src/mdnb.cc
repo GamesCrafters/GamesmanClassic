@@ -37,6 +37,7 @@ POSITION gNumberOfPositions  =  0;
 POSITION gInitialPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Dots and Boxes";
 STRING   kDBName             = "dnb";
 BOOLEAN  kPartizan           = TRUE;

@@ -38,6 +38,7 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = "othello"; /* The name of your game */
 STRING   kDBName             = "othello"; /* The name to store the database under */
+STRING   kAuthorName         = "";
 BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/

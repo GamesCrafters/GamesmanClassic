@@ -37,6 +37,7 @@ POSITION gInitialPosition    = 0;
 
 POSITION gMinimalPosition = 0 ;
 
+STRING   kAuthorName          = "Dan Garcia and his GamesCrafters";
 STRING   kGameName            = "1,2,...,10";
 BOOLEAN  kPartizan            = FALSE;
 BOOLEAN  kDebugMenu           = FALSE;

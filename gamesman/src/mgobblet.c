@@ -38,6 +38,7 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Gobblet Jr";
 STRING   kDBName             = "gobblet";
 BOOLEAN  kPartizan           = TRUE; 

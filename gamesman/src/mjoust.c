@@ -33,6 +33,7 @@ POSITION gInitialPosition    = 16778208; //Blank with pieces in the corners for 
 POSITION gMinimalPosition    = 16778208;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Joust";
 STRING   kDBName             = "joust";
 BOOLEAN  kPartizan           = TRUE;

@@ -48,6 +48,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+STRING   kAuthorName          = "";
 STRING   kGameName            = "Mancala";
 STRING   kDBName              = "mancala";
 POSITION kBadPosition         = -1;

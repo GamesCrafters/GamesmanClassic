@@ -243,6 +243,8 @@ static BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should b
 static BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
 static BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 
+extern STRING kAuthorName;
+
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */

@@ -13,6 +13,7 @@
 #include "gamesman.h"
 #include <math.h>
 
+STRING   kAuthorName         = "";
 STRING   kDBName             = "dinododgem";
 STRING   kGameName           = "Dino Dodgem";
 BOOLEAN  kPartizan           = TRUE;

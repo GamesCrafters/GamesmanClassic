@@ -31,6 +31,7 @@ POSITION gInitialPosition       = 0;
 POSITION gNumberOfPositions     = 0;
 POSITION kBadPosition           = -1;
 STRING   kDBName                = "pylos";
+STRING   kAuthorName            = "";
 BOOLEAN  kDebugDetermineValue   = FALSE;
 BOOLEAN  kDebugMenu             = FALSE;
 STRING   kGameName              = "Pylos";

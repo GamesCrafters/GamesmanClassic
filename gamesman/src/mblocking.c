@@ -53,6 +53,7 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Blocking";
 STRING   kDBName             = NULL;
 BOOLEAN  kPartizan           = TRUE; 

@@ -45,7 +45,7 @@ POSITION kBadPosition        = -1;
  **   x to move             x to move 
  **************************************************************************/
 
-
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Nine Men's Morris";
 STRING   kDBName             = "9mm";
 BOOLEAN  kPartizan           = TRUE; 
@@ -2183,6 +2183,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.70  2004/05/06 04:33:55  ogren
+//kHelpExample written. -Elmer
+//
 //Revision 1.69  2004/05/06 00:08:00  ogren
 //Added kHelpExample text. -Elmer
 //

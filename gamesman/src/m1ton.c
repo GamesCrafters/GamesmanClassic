@@ -45,6 +45,7 @@ POSITION gInitialPosition    = 0;
 
 POSITION gMinimalPosition = 0 ;
 
+STRING   kAuthorName          = "";
 STRING   kGameName            = "1 TO N";
 BOOLEAN  kPartizan            = FALSE;
 BOOLEAN  kDebugMenu           = FALSE;

@@ -49,6 +49,7 @@ POSITION kBadPosition        = 0;     // This can never be the rep.
 
 POSITION gMinimalPosition    =  0;
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Connect-4";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;

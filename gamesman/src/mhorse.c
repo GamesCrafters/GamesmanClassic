@@ -28,6 +28,7 @@ POSITION gNumberOfPositions  = 39366;  /* 3^9*2  */
 POSITION gInitialPosition    = 116;  
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Horseshoe";
 STRING   kDBName             = "horse";
 BOOLEAN  kPartizan           = TRUE;

@@ -33,11 +33,12 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0 ;
 
-STRING   kGameName           = "SIM";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = FALSE;
-BOOLEAN  kTieIsPossible      = TRUE;
+STRING   kAuthorName          = "";
+STRING   kGameName            = "SIM";
+BOOLEAN  kPartizan            = TRUE;
+BOOLEAN  kDebugMenu           = TRUE;
+BOOLEAN  kGameSpecificMenu    = FALSE;
+BOOLEAN  kTieIsPossible       = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;

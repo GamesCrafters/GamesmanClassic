@@ -12,23 +12,24 @@ POSITION gInitialPosition = 0 ;
 POSITION gMinimalPosition = 0 ;
 //POSITION gMinimalPosition = (1<<(ROWS*3)) - 1 ;
 
-BOOLEAN  kPartizan           = FALSE ;
-BOOLEAN  kDebugMenu          = FALSE;
-BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE;
-BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = FALSE;
-STRING   kGameName           = "2-D Nim";
-POSITION kBadPosition        = -1;
-void*	 gGameSpecificTclInit = NULL;
+BOOLEAN  kPartizan              = FALSE ;
+BOOLEAN  kDebugMenu             = FALSE;
+BOOLEAN  kGameSpecificMenu      = TRUE;
+BOOLEAN  kTieIsPossible         = FALSE;
+BOOLEAN  kLoopy                 = FALSE;
+BOOLEAN  kDebugDetermineValue   = FALSE;
+STRING   kGameName              = "2-D Nim";
+POSITION kBadPosition           = -1;
+void*	 gGameSpecificTclInit   = NULL;
 
-STRING   kHelpGraphicInterface = "Help Graphic Interface: Fill in later" ;
-STRING   kHelpTextInterface    = "Help Text Interface: Fill in later" ;
-STRING   kHelpOnYourTurn = "Help on your turn" ;
+STRING   kHelpGraphicInterface  = "Help Graphic Interface: Fill in later" ;
+STRING   kHelpTextInterface     = "Help Text Interface: Fill in later" ;
+STRING   kHelpOnYourTurn        = "Help on your turn" ;
 STRING   kHelpStandardObjective = "help standard objective" ;
-STRING   kHelpReverseObjective = "reverse objective" ;
-STRING   kHelpTieOccursWhen = "A tie is not possible in this game" ;
-STRING   kHelpExample = "some really long thing<-Actually play a game,then copy/paste" ;
+STRING   kHelpReverseObjective  = "reverse objective" ;
+STRING   kHelpTieOccursWhen     = "A tie is not possible in this game" ;
+STRING   kHelpExample           = "some really long thing<-Actually play a game,then copy/paste" ;
+STRING   kAuthorName            = "";
 
 void InitializeGame()
 {

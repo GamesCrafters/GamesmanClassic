@@ -60,6 +60,7 @@
 POSITION gInitialPosition  = 65535;
 POSITION gMinimalPosition  = 65535 ;
 
+STRING   kAuthorName         = "";
 STRING   kGameName           = "Tac Tix";
 BOOLEAN  kPartizan           = FALSE;
 BOOLEAN  kDebugMenu          = FALSE;
