@@ -47,7 +47,7 @@ STRING   kGameName           = "Winkers"; /* The name of your game */
 STRING   kDBName             = "Winkers"; /* The name to store the database under */
 BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
+BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
@@ -98,10 +98,11 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDWIDTH     3
-#define BOARDHEIGHT    1
 #define PASSMOVE 0
-int BOARDSIZE;
+
+int BOARDWIDTH = 3;
+int BOARDHEIGHT = 1;
+int BOARDSIZE = 11;
 
 typedef enum possibleBoardPieces {
   Blank, O, R, B
@@ -241,6 +242,118 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
+  char GetMyChar();
+  void GetDimensions();
+
+  do {
+    fflush(stdin);
+    
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    
+    printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT);
+   
+    /* 
+    if (MISERE == 0)
+      printf("\tm)\t Toggle from Standard to (M)isere\n");
+    else
+      printf("\tm)\t Toggle from (M)isere to Standard\n");
+    */
+    printf("\ti)\t Change the (I)nitial Position.\n");
+    printf("\tr)\t (R)eturn to the previous menu\n\nSelect an option:  ");
+
+
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+    case 'H': case 'h':
+      HelpMenus();
+      break;
+    case 'I': case 'i':
+      gInitialPosition = GetInitialPosition();
+      break;
+    case 'R': case 'r':
+      return;
+    case 'D': case 'd':
+      GetDimensions();
+      break;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
+}
+
+
+void GetDimensions() {
+  
+  char c;
+  char GetMyChar();
+  void printBoard(char*);
+  int height, width;
+
+  do {
+    fflush(stdin);
+    printf("\nEnter the horizontal dimension or get (h)elp:  ");
+    
+    if ((c = GetMyChar()) == 'h' || c == 'H') {
+      printf("\nThe horizontal dimension is the number of pieces on the first row.  For example,");
+      printf("\nthe current board has a horizontal dimension of %d: \n", BOARDWIDTH);
+      printBoard(NULL);
+    } else {
+      if (c >= '1' && c <= '9') {
+	width = c - '0';
+	break;
+      } else {
+	printf("\nInvalid input.");
+      }
+    }
+  } while(TRUE);
+
+  do {
+    fflush(stdin);
+    printf("\nEnter the vertical dimension or get (h)elp:  ");
+    if ((c = GetMyChar()) == 'h' || c == 'H') {
+      printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
+      printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT);
+      printBoard(NULL);
+    } else {
+      if (c >= '0' && c <= '9') {
+	height = c - '0';
+	break;
+      } else {
+	printf("\nInvalid input.");
+      }
+    }
+  } while(TRUE);
+
+  BOARDHEIGHT = height;
+  BOARDWIDTH = width;
+  InitializeGame();
+
+  printf("\n The current board is now: \n");
+  printBoard(NULL);
+}
+
+      
+ // =======================80 CHARS=================================================
+
+void printBoard (char * board) {
+  int i, j, m = 0;
+
+  printf("\n");
+
+  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
+    PrintSpaces (abs(BOARDHEIGHT - i));
+  
+    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+      if (board == NULL)
+	printf("O ");
+      else
+	printf("%c ", board[m++]);
+
+    printf("\n");
+  }
 }
 
   
@@ -308,13 +421,30 @@ POSITION DoMove (thePosition, theMove)
 POSITION GetInitialPosition()
 {
   BlankORB theBlankORB[BOARDSIZE];
+  void printBoard();
   signed char c;
   int i;
 
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");
   printf("\tNote that it should be in the following format:\n\n");
-  printf("  - -\n O - -\n- R - -         <----- EXAMPLE \n - R O\n  - -\n\n");
+  printf("Example:\n");
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if ((i%4) == 0)
+      gBoard[i] = '-';
+    else if ((i%4) == 1)
+      gBoard[i] = 'O';
+    else if ((i%4) == 2)
+      gBoard[i] = 'R';
+    else
+      gBoard[i] = 'B';
+  }
+
+  printBoard(gBoard);
+  printf("\n");
+
+    // printf("  - -\n O - -\n- R - -         <----- EXAMPLE \n - R O\n  - -\n\n");
 
   i = 0;
   getchar();
