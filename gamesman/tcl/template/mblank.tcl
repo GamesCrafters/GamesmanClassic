@@ -278,7 +278,10 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # c = the canvas to draw in as usual
 # moveType = a string which is either value, moves or best according to which radio button is down
 # position = the current hashed position
-# moveList = a list of available moves to the player.  These moves are represented as numbers (same as in C)
+# moveList = a list of lists.  Each list contains a move and its value.
+# These moves are represented as numbers (same as in C)
+# The value will be either "Win" "Lose" or "Tie"
+# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #
 # The code snippet herein may be helpful but is not necessary to do it that way.
 # We provide a procedure called MoveTypeToColor that takes in moveType and
@@ -319,7 +322,7 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
     ### TODO if needed
-    GS_DrawPosition c positionAfterUndo
+    GS_DrawPosition $c $positionAfterUndo
 }
 
 
@@ -336,7 +339,7 @@ proc GS_GetGameSpecificOptions { } {
 # tic tac toe for instance.  Or, you could congratulate the winner.
 # Or, do nothing.
 #############################################################################
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
 
 	### TODO if needed
 	
