@@ -69,11 +69,17 @@
 **                     QTBOARD invariants temporarily violated to make things work;
 **                     Primitive() changed to reflect this; must change back later. 
 ** 09 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
-**
 ** 09 Mar 2005 Amy:    added move format in getandPrintPlayersMove(), printComputerMove() coded.
 ** 10 Mar 2005 Mario:  corrected problem after switch to EMPTYSLOT, made game kPartizan
 **                     For some reason the second move is always a win, maybe Primitive needs to be updated
 **                     introducing some indirection for manipulating the board, still deciding what
+** 11 Mar 2005 Yanpei: EMPTYSLOT issue seems to be over. Primitive() strange behavior caused by toggling
+**                     of board->usersTurn upon each move. To deal with this we must have place piece and
+**                     select next piece combined into one move as in [square]:[nextPiece]. 
+**                     Else we need to have [nextPiece]:H moves not toggle board->usersTurn. 
+**                     See new debugging printf's. 
+**                     Kind of got the full version of hash figured out. If no bugs, hopefully working tomorrow.
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -88,7 +94,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-#define	DEBUG
+#define	DEBUG 1
 
 /*************************************************************************
 **
@@ -477,12 +483,16 @@ VALUE Primitive (POSITION position)
     BOOLEAN emptyFound = FALSE;
     int i,j;
 
-    printf("**** Primitive() ****\n");
-    printf("**** The slots are: ****");
-    for (i=0; i<BOARDSIZE+1; i++) {
-      printf("%d,",b->slots[i]);
-    }
-    printf("\n**** Primitive() ****\n");
+    // print debugging stuff
+    if (DEBUG) {
+      printf("**** Primitive()\n");
+      printf("**** The slots are: ");
+      for (i=0; i<BOARDSIZE+1; i++) {
+	printf("%d,",b->slots[i]);
+      }
+      printf("\n**** usersTurn is %s\n", (b->usersTurn) ? "TRUE" : "FALSE");
+      printf("**** Primitive()\n");
+    }      
 
     // checking the ranks/files in one direction
     i=0;
@@ -492,7 +502,7 @@ VALUE Primitive (POSITION position)
 	if (b->slots[i*GAMEDIMENSION+j+1] == EMPTYSLOT) {
 	  emptyFound = TRUE;
 	}
-	rowColDiag[j] = b->slots[i*GAMEDIMENSION+j+1] - 1;
+	rowColDiag[j] = b->slots[i*GAMEDIMENSION+j+1];
 	j++;
       }
       if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
@@ -508,7 +518,7 @@ VALUE Primitive (POSITION position)
 	if (b->slots[j*GAMEDIMENSION+i+1] == EMPTYSLOT) {
 	  emptyFound = TRUE;
 	}
-	rowColDiag[j] = b->slots[j*GAMEDIMENSION+i+1] - 1;
+	rowColDiag[j] = b->slots[j*GAMEDIMENSION+i+1];
 	j++;
       }
       if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
@@ -522,7 +532,7 @@ VALUE Primitive (POSITION position)
       if (b->slots[i*GAMEDIMENSION+i+1] == EMPTYSLOT) {
 	emptyFound = TRUE;
       }
-      rowColDiag[i] = b->slots[i*GAMEDIMENSION+i+1] - 1;
+      rowColDiag[i] = b->slots[i*GAMEDIMENSION+i+1];
       i++;
     }
     if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
@@ -534,7 +544,7 @@ VALUE Primitive (POSITION position)
       if (b->slots[(i+1)*GAMEDIMENSION-i] == EMPTYSLOT) {
 	emptyFound = TRUE;
       }
-      rowColDiag[i] = b->slots[(i+1)*GAMEDIMENSION-i] - 1;
+      rowColDiag[i] = b->slots[(i+1)*GAMEDIMENSION-i];
       i++;
     }
     if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
@@ -555,6 +565,7 @@ VALUE Primitive (POSITION position)
 
 // helper function called by Primitive()
 // precondition: all elements of rowColDiag != EMPTYSLOT
+// returns true iff rowColDiag is a primitive
 BOOLEAN searchPrimitive(short *rowColDiag) {
 
   short inverterMask = NUMPIECES-1;
@@ -562,17 +573,18 @@ BOOLEAN searchPrimitive(short *rowColDiag) {
   short invertedResult = inverterMask ^ rowColDiag[0];
   short i;
 
+  // print debugging stuff
   printf("**** searchPrimitive() examines ");
   for (i=0; i<GAMEDIMENSION; i++) {
     printf("%d,",rowColDiag[i]);
   }
-  printf(" ****\n");
+  printf("\n");
 
-
+  // detects primitives through cumulative bitwise &
   for (i=0; i<GAMEDIMENSION; i++) {
     noninvertedResult &= rowColDiag[i];
     invertedResult &= inverterMask ^ rowColDiag[i];
-   }
+  }
 
   return (noninvertedResult>0 || invertedResult>0);
 
@@ -1210,10 +1222,10 @@ POSITION hashUnsymQuarto(QTBPtr b) {
   } else if (b->squaresOccupied==0 && b->piecesInPlay==1) {
     toReturn = b->slots[0] + offsetTable[b->squaresOccupied];
   } else {
-    toReturn = b->slots[0]*permutation(NUMPIECES,b->squaresOccupied)
-                          *combination(BOARDSIZE,b->squaresOccupied)
-               + hashUnsymQuartoHelper(b, 1) 
-               + offsetTable[b->squaresOccupied];
+    toReturn =   offsetTable[b->squaresOccupied]
+               + b->slots[0]*permutation(NUMPIECES-1,b->squaresOccupied)
+                            *combination(BOARDSIZE,  b->squaresOccupied)
+               + hashUnsymQuartoHelper(b, 1);
   }
 
   if (b->usersTurn) {
