@@ -21,11 +21,13 @@
 #define MOVES_IN_GROUP    sizeof(int)
 #define NUMBER_OF_OPTIONS CalculatePower(2, 3)
 #define PIECES_LEFT_TITLE "PIECES LEFT: "
+
+#ifndef WORD_BIT
 #define WORD_BIT          CHAR_BIT * sizeof(int)
+#endif
 
 /********************************************* Global variables for Gamesman */
 POSITION gInitialPosition       = 0;
-POSITION gMinimalPosition       = 0;
 POSITION gNumberOfPositions     = 0;
 POSITION kBadPosition           = -1;
 STRING   kDBName                = "pylos";
