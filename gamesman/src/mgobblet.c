@@ -625,6 +625,36 @@ VALUE Primitive ( POSITION h ) //Need to add the 3 in a row is a loss.
 
 /************************************************************************
 **
+** NAME:        PrintSpace
+**
+** DESCRIPTION: Creates the string representation of the board space
+** 
+** INPUTS:      SLOT the space to create the representation for.
+**
+************************************************************************/
+
+void gobbletPrintSpace(SLOT mySpace)
+{
+  int i;
+  for(i = 0; i < PIECE_SIZES; i++)
+    {
+      if(PIECE_VALUE(PIECE_X,i) & mySpace != 0)
+	{
+	  printf("X");
+	}
+      else if(PIECE_VALUE(PIECE_O,i) & mySpace != 0)
+	{
+	  printf("O");
+	}
+      else
+	{
+	  printf( "-");
+	}
+    }
+}
+
+/************************************************************************
+**
 ** NAME:        PrintPosition
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
@@ -662,14 +692,20 @@ void PrintPosition(position, playerName, usersTurn)
     printf((BOARD_SIZE/2 == rows ? ")   Board:   : " : ")            : "));
     for(cols2 = 0; cols2 < BOARD_SIZE;cols2++)
     {
-        printf("%s ", PrintSpace(myPos.board[cols2]));
+        printf(" ");
+	gobbletPrintSpace(myPos.board[cols2]);
     }
     printf("\n");
   }
-  printf("         Stock: ");
-  for(pSizes=0; pSizes < PIECE_SIZES; pSizes++)
+  printf("       X Stock: ");
+  for(pSizes=0; pSizes < PIECE_SIZES; pSizes+=2)
   {
-   //figure out what were going to do with representing sizes...
+    printf("%s: %d ",pSizes+1,myPos.stash[ pSizes]);
+  }
+  printf("\n       Y Stock: ");
+ for(pSizes=0; pSizes < PIECE_SIZES; pSizes+=2)
+  {
+    printf("%s: %d ",pSizes,myPos.stash[ pSizes]);
   }
   printf("\nGame Prediction: %s \n\n",GetPrediction(position,playerName,usersTurn));
 }
@@ -1213,6 +1249,4 @@ void setOption(int option)
 {
 }
 
-void PrintSpace(SLOT mySpace)
-{
-}
+
