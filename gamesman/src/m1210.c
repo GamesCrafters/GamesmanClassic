@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions  = 12;       /* Every board from 0 to 11 */
+POSITION gNumberOfPositions  = 11;       /* Every board from 0 to 10 */
 POSITION kBadPosition = -1;
 
 POSITION gInitialPosition    = 0;
@@ -202,7 +202,7 @@ void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
-  printf("%8s's move              : %2d\n", computersName, computersMove);
+  printf("%8s's move              : %1d\n", computersName, computersMove);
 }
 
 /************************************************************************
@@ -227,10 +227,8 @@ void PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
-  if(position == 10) /* used to be 10 */
-    return(gStandardGame ? lose : win); /* gStandardGame  lose win*/
-  else if(position == 11) /* used to be 11 */
-    return(gStandardGame ? win : win); /* gStandardGame win win */
+  if(position == 10) /* If it's your turn, and it's 10, THEY got there! */
+    return(gStandardGame ? lose : win); 
   else
     return(undecided);
 }
@@ -327,7 +325,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   input[0] = '3';
 
   do {
-    printf("%8s's move [(u)ndo/1/2] :  ", playerName);
+    printf("%8s's move [(u)ndo/1/2] : ", playerName);
 
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
