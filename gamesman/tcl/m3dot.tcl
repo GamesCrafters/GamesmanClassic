@@ -59,7 +59,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board in our representation
 
     global gInitialPosition gPosition
-    set gInitialPosition 0x001009BD
+    set gInitialPosition [expr 0x001009BD]
     set gPosition $gInitialPosition
 
     ### Set what the cursors will look like. These can be the same because
