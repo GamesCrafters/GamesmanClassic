@@ -3184,9 +3184,10 @@ void HandleArguments (int argc, char *argv[]) {
 	int i;
 	printf("\nSolving %s option ", argv[0]);
 	for(i = 1; i <= NumberOfOptions(); i++) {
-	  printf("%c[s%u of %u....%c[u", 27, i, NumberOfOptions(), 27);
+	  printf("%c[s%u of %u....", 27, i, NumberOfOptions());
 	  fflush(NULL);
 	  SolveAndStore(i);
+	  printf("%c[u", 27);
 	}
 	printf("%u of %u....done.\n\n", i - 1, NumberOfOptions());
       }
