@@ -1746,8 +1746,7 @@ MOVELIST *genPawnMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
 
 /* Gets the Board from the hash position */
 BOARD getBoard(POSITION pos) {
-  int getBoardSize(),i;
-  char * generic_unhash(int,char *); // ?????? 
+  int getBoardSize(),i; 
   BOARD newBoard;
   newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
   newBoard = generic_unhash(pos,newBoard);
