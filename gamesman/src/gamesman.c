@@ -2389,13 +2389,13 @@ InitializeFR()
 POSITION DeQueueWinFR()
 {
   /* printf("DeQueueWinFR...\n"); */
-  DeQueueFR(&gHeadWinFR, &gTailWinFR);
+  return DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
 POSITION DeQueueLoseFR()
 {
   /* printf("DeQueueLoseFR...\n"); */
-  DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
+  return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
 POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
@@ -2417,20 +2417,20 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
   return position;
 }
 
-InsertWinFR(POSITION position)
+void InsertWinFR(POSITION position)
 {
   /* printf("Inserting WinFR...\n"); */
   InsertFR(position, &gHeadWinFR, &gTailWinFR);
 }
 
 
-InsertLoseFR(POSITION position)
+void InsertLoseFR(POSITION position)
 {
   /* printf("Inserting LoseFR...\n"); */
   InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
 }
 
-FRnode* InsertFR(POSITION position, FRnode **firstnode,
+void InsertFR(POSITION position, FRnode **firstnode,
 			FRnode **lastnode)
 {
   FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
