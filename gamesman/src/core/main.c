@@ -29,6 +29,7 @@
 **
 **************************************************************************/
 
+#include <time.h>
 #include "gamesman.h"
 #include "solveloopyga.h"
 #include "solveloopy.h"
