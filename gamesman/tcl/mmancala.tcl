@@ -3,14 +3,13 @@
 # by Spencer Ray and Keith Ho
 ####################################################
 
-
-# GS_InitGameSpecific sets characteristics of the game that
-# are inherent to the game, unalterable.  You can use this fucntion
+# GS_InitGameSpecific initializes game-specific features
+# of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
-# It is called FIRST, ONCE, only when the player
-# starts playing your game, and before the player hits "New Game"
-# At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# It is called when the player first opens the game
+# and after every rule change.
+# You must set the global variables kGameName, gInitialPosition,
+# kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
 proc GS_InitGameSpecific {} {
 
@@ -56,6 +55,20 @@ proc GS_InitGameSpecific {} {
 
     rearranger_hash_init [expr $boardSize + $numOfPieces - 1] $numOfPieces [expr $boardSize - 1]
 
+    ### Set toMove and toWin
+    global gMisereGame
+    if { $gMisereGame } {
+	set toWin1 "To Lose: "
+    } else {
+	set toWin1 "To Win: "
+    }
+
+    set toWin2  "Play until all the stones are contained in the two mancalas and no more moves are possible. The player whose mancala contains more stones wins" 
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Choose one of your bins. Player 1 chooses from the bottom, Player 2 from the top. Your stones will disperse counterclockwise around the board from that bin."
+
 }
 
 
@@ -71,6 +84,7 @@ proc GS_InitGameSpecific {} {
 # should be added
 # Modifies: the rules frame and its global variables
 # Returns: nothing
+
 proc GS_SetupRulesFrame { rulesFrame } {
 
     set standardRule \
@@ -116,6 +130,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # Modifies: nothing
 # Returns: option (Integer) - the option of the game as specified by 
 # getOption and setOption in the module's C code
+
 proc GS_GetOption { } {
     global gMisereGame
     set option 1
@@ -134,39 +149,12 @@ proc GS_GetOption { } {
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
+
 proc GS_SetOption { option } {
     global gMisereGame
     set option [expr $option - 1]
     set gMisereGame [expr $option%2]
 }
-
-
-# Implement the given game option
-# Modifies the global variables used to initialize and play the game 
-# to match the given option. This can include the To Win and To Move 
-# strings if any option modifies them.
-# This procedure only needs to support options that can be selected 
-# using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
-# getOption and setOption in the module's C code
-# Modifies: the global variables used during initialization and game play
-# Returns: nothing
-proc GS_ImplementOption { option } {
-
-    global gMisereGame
-    if { $gMisereGame } {
-	set toWin1 "To Lose: "
-    } else {
-	set toWin1 "To Win: "
-    }
-
-    set toWin2  "Play until all the stones are contained in the two mancalas and no more moves are possible. The player whose mancala contains more stones wins" 
-
-    SetToWinString [concat $toWin1 $toWin2]
-
-    SetToMoveString  "To Move: Choose one of your bins. Player 1 chooses from the bottom, Player 2 from the top. Your stones will disperse counterclockwise around the board from that bin."
-}
-
 
 # GS_NameOfPieces should return a list of 2 strings that represent
 # your names for the "pieces".  If your game is some pathalogical game
@@ -181,13 +169,9 @@ proc GS_NameOfPieces {} {
 
 }
 
-
-# GS_Initialize is where you can start drawing graphics.  
-# Its argument, c, is a canvas.  Please draw only in this canvas.
-# You could put an opening animation in this function that introduces the game
-# or just draw an empty board.
-# This function is called ONCE after GS_InitGameSpecific, and before the
-# player hits "New Game"
+# GS_Initialize draws the graphics for the game on the canvas c
+# You could put an opening animation or just draw an empty board.
+# This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
 

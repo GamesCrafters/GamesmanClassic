@@ -1,18 +1,18 @@
 
-# GS_InitGameSpecific sets characteristics of the game that
-# are inherent to the game, unalterable.  You can use this fucntion
+# GS_InitGameSpecific initializes game-specific features
+# of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
-# It is called FIRST, ONCE, only when the player
-# starts playing your game, and before the player hits "New Game"
-# At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# It is called when the player first opens the game
+# and after every rule change.
+# You must set the global variables kGameName, gInitialPosition,
+# kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
     
     global kGameName
-    set kGameName "The FABULOUS game of Nim"
+    set kGameName "Nim"
 
     # Authors Info
     global kRootDir
@@ -24,6 +24,29 @@ proc GS_InitGameSpecific {} {
     global kMinRows kMaxRows
     set kMinRows 1
     set kMaxRows 5
+
+    # Set number of rows
+    global gRows gRowsOption
+    set gRows [expr $gRowsOption + $kMinRows]
+
+    # Set toMove toWin
+    global gMisereGame
+    if { $gMisereGame } {
+	set toWin1 "To Lose: "
+    } else {
+	set toWin1 "To Win: "
+    }
+
+    set toWin2 "Remove the last piece from the board"
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Click on a piece to remove that piece and all the pieces above it in that row"
+    
+    ### Set the initial position of the board
+    global gInitialPosition gPosition
+    set gInitialPosition [expr int((pow(2, $gRows*3) - 1)) * 2]
+    set gPosition $gInitialPosition
 }
 
 
@@ -64,9 +87,7 @@ proc GS_ColorOfPlayers {} {
 # Adds widgets to the rules frame that will allow the user to 
 # select the variant of this game to play. The options 
 # selected by the user should be stored in a set of global
-# variables. This procedure should not modify global variables
-# that affect initialization or game play. Such actions should
-# occur in GS_ImplementOption. 
+# variables.
 # This procedure must initialize the global variables to some
 # valid game variant.
 # The rules frame must include a standard/misere setting.
@@ -74,6 +95,7 @@ proc GS_ColorOfPlayers {} {
 # should be added
 # Modifies: the rules frame and its global variables
 # Returns: nothing
+
 proc GS_SetupRulesFrame { rulesFrame } {
 
     set standardRule \
@@ -89,14 +111,18 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "1" "2" "3" "4" "5"
 	 ]
 
-    global gMisereGame gRowsSetting
-    set gMisereGame 0
-    set gRowsSetting 4
+    # List of all rules, in some order
+    set ruleset [list $standardRule $rowsRule]
 
-    set ruleSettingGlobalNames [list "gMisereGame" "gRowsSetting"]
+    # Declare and initialize rule globals
+    global gMisereGame gRowsOption
+    set gMisereGame 0
+    set gRowsOption 4
+
+    # List of all rule globals, in same order as rule list
+    set ruleSettingGlobalNames [list "gMisereGame" "gRowsOption"]
 
     global kLabelFont
-    set ruleset [list $standardRule $rowsRule]
     set ruleNum 0
     foreach rule $ruleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
@@ -111,7 +137,6 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	}
 	incr ruleNum
     } 
-    
 }
 
 
@@ -122,78 +147,39 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # Modifies: nothing
 # Returns: option (Integer) - the option of the game as specified by 
 # getOption and setOption in the module's C code
+
 proc GS_GetOption { } {
-    global gMisereGame gRowsSetting
+    global gMisereGame gRowsOption
     global kMinRows kMaxRows
     set option 1
     set option [expr $option + (1-$gMisereGame)]
-    set option [expr $option + (2*$gRowsSetting)]
+    set option [expr $option + (2*$gRowsOption)]
     return $option
 }
 
 
 # Modify the rules frame to match the given options
 # Modifies the global variables used by the rules frame to match the 
-# given game option. This procedure should not modify any global 
-# variables that affect initialization or game play. Such actions 
-# should occur in GS_ImplementOption. 
+# given game option.
 # This procedure only needs to support options that can be selected 
 # using the rules frame.
 # Args: option (Integer) -  the option of the game as specified by 
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
+
 proc GS_SetOption { option } {
-    global gMisereGame gRowsSetting
+    global gMisereGame gRowsOption
     global kMaxRows kMinRows
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option%2)]
-    set gRowsSetting [expr $option/2%($kMaxRows - $kMinRows + 1)]
+    set gRowsOption [expr $option/2%($kMaxRows - $kMinRows + 1)]
 }
 
 
-# Implement the given game option
-# Modifies the global variables used to initialize and play the game 
-# to match the given option. This can include the To Win and To Move 
-# strings if any option modifies them. 
-# This procedure only needs to support options that can be selected 
-# using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
-# getOption and setOption in the module's C code
-# Modifies: the global variables used during initialization and game play
-# Returns: nothing
-proc GS_ImplementOption { option }  {
-    set option [expr $option - 1]
-    set standardOption [expr $option%2]
-    
-    if { $standardOption == "1" } {
-	set toWin1 "To Win: "
-    } elseif { $standardOption == "0" } {
-	set toWin1 "To Lose: "
-    }
-
-    set toWin2 ""
-
-    SetToWinString [concat $toWin1 $toWin2]
-
-    SetToMoveString  "To Move:"
-
-    global gRows kMaxRows kMinRows
-    set gRows [expr ($option/2%($kMaxRows - $kMinRows + 1))+$kMinRows]
-    
-    ### Set the initial position of the board
-    global gInitialPosition gPosition
-    set gInitialPosition [expr int((pow(2, $gRows*3) - 1)) * 2]
-    set gPosition $gInitialPosition
-}
-
-
-# GS_Initialize is where you can start drawing graphics.  
-# Its argument, c, is a canvas.  Please draw only in this canvas.
-# You could put an opening animation in this function that introduces the game
-# or just draw an empty board.
-# This function is called ONCE after GS_InitGameSpecific, and before the
-# player hits "New Game"
+# GS_Initialize draws the graphics for the game on the canvas c
+# You could put an opening animation or just draw an empty board.
+# This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
 

@@ -110,9 +110,9 @@ proc InitWindow { kRootDir } {
 
 
     global gWindowWidth gWindowHeight
+    global gFrameWidth
     global gSkinsLibName
     global gGamePlayable
-    global kGameName
     global kLabelFont kPlayerLabelFont kToMoveToWinFont
     global tcl_platform
     global gPredString gWhoseTurn
@@ -130,6 +130,7 @@ proc InitWindow { kRootDir } {
     set gPredString ""
     set gWindowHeight 600
     set gWindowWidth 800
+    set gFrameWidth [expr $gWindowWidth * 10 / 16]
     wm aspect . 800 600 1600 1200
     set gGamePlayable false
     set gSkinsLibName "$kRootDir/../tcl/skins/BasicSkin/BasicSkin"
@@ -248,7 +249,7 @@ proc InitWindow { kRootDir } {
 	-width [expr $gWindowWidth * 3 / 16] \
 	-height [expr $gWindowHeight * 25 / 30]
     frame .middle.f2 \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 25 / 30] 
     frame .middle.f3 \
 	-width [expr $gWindowWidth * 3 / 16] \
@@ -267,7 +268,7 @@ proc InitWindow { kRootDir } {
     
     canvas .middle.f2.cMain -highlightthickness 0 \
 	-bd 0 \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background white
     
@@ -276,11 +277,11 @@ proc InitWindow { kRootDir } {
     #
 	    
     frame .middle.f2.fPlayOptions \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 25 / 30]
     pack propagate .middle.f2.fPlayOptions 0
     frame .middle.f2.fPlayOptions.fBot \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 2 / 30]
     pack propagate .middle.f2.fPlayOptions.fBot 0
 
@@ -315,21 +316,21 @@ proc InitWindow { kRootDir } {
 	    DriverLoop
         }
     frame .middle.f2.fPlayOptions.fMid \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 8 / 30] \
 	-bd 2
     pack propagate .middle.f2.fPlayOptions.fMid 0
     frame .middle.f2.fPlayOptions.fTop \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 15 / 30] \
 	-bd 2
 	pack propagate .middle.f2.fPlayOptions.fTop 0
     frame .middle.f2.fPlayOptions.fTop.fLeft \
-	-width [expr $gWindowWidth * 5 / 16] \
+	-width [expr $gFrameWidth / 2] \
 	-height [expr $gWindowHeight * 20 / 30] \
 	-bd 2
     frame .middle.f2.fPlayOptions.fTop.fRight \
-	-width [expr $gWindowWidth * 5 / 16] \
+	-width [expr $gFrameWidth / 2] \
 	-height [expr $gWindowHeight * 20 / 30] \
 	-bd 2
     # the contents of the play options frame	    
@@ -434,9 +435,9 @@ proc InitWindow { kRootDir } {
 
     ## Smarter computer
     frame .middle.f2.fPlayOptions.fMid.fLeft \
-	-width [expr $gWindowWidth * 5 / 16]
+	-width [expr $gFrameWidth / 2]
     frame .middle.f2.fPlayOptions.fMid.fRight \
-	-width [expr $gWindowWidth * 5 / 16]
+	-width [expr $gFrameWidth / 2]
 
     global gSmartness gSmartnessScale
     
@@ -517,7 +518,7 @@ proc InitWindow { kRootDir } {
     set rulesFrame .middle.f2.fRules
     
     frame $rulesFrame \
-	-width [expr $gWindowWidth * 10 / 16] \
+	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 2 / 30]
 
     
@@ -542,17 +543,26 @@ proc InitWindow { kRootDir } {
     button $rulesFrame.buttons.bOk \
 	-text "Start new game with above rule settings" \
         -command {
+	    # Hide rules frame
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
+
+	    # Delete old board
 	    GS_Deinitialize .middle.f2.cMain
 	    update
-	    ImplementGameOption
+
+	    # Set C option and re-initialize 
+	    eval [concat C_SetOption [GS_GetOption]]
 	    C_InitializeGame
 	    C_InitializeDatabases
 	    GS_InitGameSpecific
 	    GS_Initialize .middle.f2.cMain
+
+	    # Solve this option
 	    set theValue [C_DetermineValue $gPosition]
+
+	    # New game
 	    TBaction1
 	}
 
@@ -568,10 +578,30 @@ proc InitWindow { kRootDir } {
     # Help Frame
     #
 
-    frame .middle.f2.fHelp \
-	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 2 / 30] 
-    pack propagate .middle.f2.fHelp 0
+    set helpFrame .middle.f2.fHelp
+    frame $helpFrame \
+	-width $gFrameWidth \
+	-height [expr $gWindowHeight * 25 / 30] 
+
+    frame $helpFrame.buttons
+    frame $helpFrame.content
+
+    pack propagate $helpFrame 0
+
+    button $helpFrame.buttons.bReturn -text "Return" \
+	-command {
+	    pack forget .middle.f2.fHelp   
+	    pack .middle.f2.cMain
+	    .cToolbar raise iATB
+	    RaiseStatusBarIfGameStarted
+	    update
+	    DriverLoop
+	}
+    
+    pack $helpFrame.buttons.bReturn -fill both -expand 1
+
+    pack $helpFrame.buttons -side bottom -fill x
+    pack $helpFrame.content -side top -fill both -expand 1
     
     #    
     # About Frame
@@ -579,10 +609,8 @@ proc InitWindow { kRootDir } {
 
     set aboutFrame .middle.f2.fAbout
     frame $aboutFrame \
-	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 2 / 30]
-
-    set width  [expr $gWindowWidth * 10 / 16]
+	-width $gFrameWidth \
+	-height [expr $gWindowHeight * 25 / 30]
 
     frame $aboutFrame.buttons
     frame $aboutFrame.content
@@ -601,23 +629,10 @@ proc InitWindow { kRootDir } {
 
     pack $aboutFrame.buttons.bReturn -fill both -expand 1
 
-    SetupAboutFrame $aboutFrame.content $width
+    # About frame setup occurs after GS_InitGameSpecific
 
     pack $aboutFrame.buttons -side bottom -fill x
     pack $aboutFrame.content -side top -fill both -expand 1
-
-    # Help Button
-    button .middle.f2.fHelp.bReturn -text "Return" \
-	-command {
-	    pack forget .middle.f2.fHelp   
-	    pack .middle.f2.cMain
-	    .cToolbar raise iATB
-	    RaiseStatusBarIfGameStarted
-	    update
-	    DriverLoop
-	}
-    
-    pack .middle.f2.fHelp.bReturn -side bottom -fill both -expand 1
 
     # create the right hand frame
     canvas .middle.f3.cMRight -highlightthickness 0 \
@@ -911,6 +926,12 @@ proc SetToMoveString { string } {
     .middle.f1.cMLeft itemconfigure ToMove -text $string
 }
 
+proc SetupHelpFrame { f width } {
+    global kDocumentFont
+    message $f.summary -width $width -font $kDocumentFont -text "Help is not available in this version of GAMESMAN."
+    pack $f.summary -side top
+}
+
 proc SetupAboutFrame { f width } {
 
     set width [expr $width - 40]
@@ -922,7 +943,7 @@ proc SetupAboutFrame { f width } {
     
     global kLabelFont kDocumentFont
     message $sp.title -text "About GamesCrafters" -font $kLabelFont -width $width
-    message $sp.web -text "http://gamescrafters.sourceforge.net" -font $kLabelFont -width $width
+    message $sp.web -text "http://gamescrafters.berkeley.edu" -font $kLabelFont -width $width
     message $sp.summary -width $width -font $kDocumentFont -text "The GamesCrafters research group at UC Berkeley is dedicated to exploring multiple areas of game-theory and programming. At the core of the project lies GAMESMAN, a program developed to perfectly play finite, two-person board games. Every semester, we add new games to the system by coding a game's basic rules in C along with several possbile game variants. We also design custom graphical interfaces for each game using Tcl/Tk."
 
     message $sp.gamesman -width $width -font $kLabelFont \

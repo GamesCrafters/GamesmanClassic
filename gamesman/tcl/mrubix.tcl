@@ -7,14 +7,13 @@
 # created by Alex Kozlowski and Peterson Trethewey
 ####################################################
 
-
-# GS_InitGameSpecific sets characteristics of the game that
-# are inherent to the game, unalterable.  You can use this fucntion
+# GS_InitGameSpecific initializes game-specific features
+# of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
-# It is called FIRST, ONCE, only when the player
-# starts playing your game, and before the player hits "New Game"
-# At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# It is called when the player first opens the game
+# and after every rule change.
+# You must set the global variables kGameName, gInitialPosition,
+# kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
 proc GS_InitGameSpecific {} {
     
@@ -34,6 +33,37 @@ proc GS_InitGameSpecific {} {
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
+
+    ### Set toWin and toMove
+    global gMisereGame gTwoInARow gBoardsizeOption
+    if { $gMisereGame } {
+	set toWin1 "To Win: "
+    } else {
+	set toWin1 "To Lose: "
+    }
+
+    set toWin2 "Allow "
+    
+    if { $gTwoInARow } {
+	set toWin3 "two"
+    } else {
+	set toWin3 "three"
+    }
+
+    set toWin4 " of your opponent's same-color pieces to be in a row at the end of your turn or the game."
+
+    SetToWinString [concat $toWin1 $toWin2 $toWin3 $toWin4]
+
+    SetToMoveString "To Move: If possible, flip an opponent's piece to an adjacent space by clicking an arrow. Then place a black or white piece by clicking a small piece in any empty space."
+
+    global WIDTH BOARDSIZE
+    if { $gBoardsizeOption == "0" } {
+	set WIDTH 3
+	set BOARDSIZE 9
+    } elseif { $gBoardsizeOption == "1" } {
+	set WIDTH 4
+	set BOARDSIZE 12
+    }
 }
 
 
@@ -68,13 +98,12 @@ proc GS_ColorOfPlayers {} {
     return [list blue red]
 }
 
+
 # Setup the rules frame
 # Adds widgets to the rules frame that will allow the user to 
 # select the variant of this game to play. The options 
 # selected by the user should be stored in a set of global
-# variables. This procedure should not modify global variables
-# that affect initialization or game play. Such actions should
-# occur in GS_ImplementOption. 
+# variables.
 # This procedure must initialize the global variables to some
 # valid game variant.
 # The rules frame must include a standard/misere setting.
@@ -82,6 +111,7 @@ proc GS_ColorOfPlayers {} {
 # should be added
 # Modifies: the rules frame and its global variables
 # Returns: nothing
+
 proc GS_SetupRulesFrame { rulesFrame } {
 
     set standardRule \
@@ -105,16 +135,20 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "4x3" \
 	    ]
 
-    global gMisereGame gTwoInARow gBoardsizeSetting
+    # List of all rules, in some order
+    set ruleset [list $standardRule $twoInARowRule $boardsizeRule]
+
+    # Declare and initialize rule globals
+    global gMisereGame gTwoInARow gBoardsizeOption
     set gMisereGame 0
     set gTwoInARow 0
     # 0=3x3 1=4x3
-    set gBoardsizeSetting 0
+    set gBoardsizeOption 0
 
-    set ruleSettingGlobalNames [list "gMisereGame" "gTwoInARow" "gBoardsizeSetting"]
+    # List of all rule globals, in same order as rule list
+    set ruleSettingGlobalNames [list "gMisereGame" "gTwoInARow" "gBoardsizeOption"]
 
     global kLabelFont
-    set ruleset [list $standardRule $twoInARowRule $boardsizeRule]
     set ruleNum 0
     foreach rule $ruleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
@@ -139,87 +173,39 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # Modifies: nothing
 # Returns: option (Integer) - the option of the game as specified by 
 # getOption and setOption in the module's C code
+
 proc GS_GetOption { } {
-    global gMisereGame gTwoInARow gBoardsizeSetting
+    global gMisereGame gTwoInARow gBoardsizeOption
     set option 1
     set option [expr $option + (1-$gMisereGame)]
     set option [expr $option + $gTwoInARow*2]
-    set option [expr $option + $gBoardsizeSetting*2*2]
+    set option [expr $option + $gBoardsizeOption*2*2]
     return $option
 }
 
+
 # Modify the rules frame to match the given options
 # Modifies the global variables used by the rules frame to match the 
-# given game option. This procedure should not modify any global 
-# variables that affect initialization or game play. Such actions 
-# should occur in GS_ImplementOption. 
+# given game option.
 # This procedure only needs to support options that can be selected 
 # using the rules frame.
 # Args: option (Integer) -  the option of the game as specified by 
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
+
 proc GS_SetOption { option } {
-    global gMisereGame gTwoInARow gBoardsizeSetting
+    global gMisereGame gTwoInARow gBoardsizeOption
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option%2)]
     set gTwoInARow [expr $option/2%2]
-    set gBoardsizeSetting [expr $option/(2*2)%2]
-}
-
-# Implement the given game option
-# Modifies the global variables used to initialize and play the game 
-# to match the given option. This can include the To Win and To Move 
-# strings if any option modifies them. 
-# This procedure only needs to support options that can be selected 
-# using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
-# getOption and setOption in the module's C code
-# Modifies: the global variables used during initialization and game play
-# Returns: nothing
-proc GS_ImplementOption { option } {
-    set option [expr $option - 1]
-    set standardOption [expr $option%2]
-    set twoInARowOption [expr $option/2%2]
-    set boardsizeOption [expr $option/(2*2)%2]
-    
-    if { $standardOption == "1" } {
-	set toWin1 "To Lose: "
-    } elseif { $standardOption == "0" } {
-	set toWin1 "To Win: "
-    }
-
-    set toWin2 "Allow "
-    
-    if { $twoInARowOption == "1" } {
-	set toWin3 "two"
-    } elseif { $twoInARowOption == "0" } {
-	set toWin3 "three"
-    }
-
-    set toWin4 " of your opponent's same-color pieces to be in a row at the end of your turn or the game."
-
-    SetToWinString [concat $toWin1 $toWin2 $toWin3 $toWin4]
-
-    SetToMoveString "To Move: If possible, flip an opponent's piece to an adjacent space by clicking an arrow. Then place a black or white piece by clicking a small piece in any empty space."
-
-    global WIDTH BOARDSIZE
-    if { $boardsizeOption == "0"} {
-	set WIDTH 3
-	set BOARDSIZE 9
-    } elseif { $boardsizeOption == "1"} {
-	set WIDTH 4
-	set BOARDSIZE 12
-    }
+    set gBoardsizeOption [expr $option/(2*2)%2]
 }
 
 
-# GS_Initialize is where you can start drawing graphics.  
-# Its argument, c, is a canvas.  Please draw only in this canvas.
-# You could put an opening animation in this function that introduces the game
-# or just draw an empty board.
-# This function is called ONCE after GS_InitGameSpecific, and before the
-# player hits "New Game"
+# GS_Initialize draws the graphics for the game on the canvas c
+# You could put an opening animation or just draw an empty board.
+# This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
 

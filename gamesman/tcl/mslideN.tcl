@@ -1,23 +1,12 @@
-###################################################
-# this is a template for tcl module creation
-#
-# created by Alex Kozlowski and Peterson Trethewey
-####################################################
 
-
-# GS_InitGameSpecific sets characteristics of the game that
-# are inherent to the game, unalterable.  You can use this function
+# GS_InitGameSpecific initializes game-specific features
+# of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
-# It is called FIRST, ONCE, only when the player
-# starts playing your game, and before the player hits "New Game"
-# At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# It is called when the player first opens the game
+# and after every rule change.
+# You must set the global variables kGameName, gInitialPosition,
+# kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
-# set DIMENSION 4
-
-### These depend on the constants on top
-
-### FILL THIS IN
 proc GS_InitGameSpecific  {} {
 
     # Authors Info
@@ -57,13 +46,13 @@ proc GS_InitGameSpecific  {} {
     global kGameName
     set kGameName "The game of Slide-N"
 
-
     ### Set the initial position of the board
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
 
-        global Dimension
+    ### Set the board size
+    global Dimension
     set Dimension 3  
 
     global Board_Size
@@ -76,16 +65,26 @@ proc GS_InitGameSpecific  {} {
     set Board_Length [expr $MIN_CANVAS_LENGTH - 2 * $NUM_EXTRA_GAPS * $Gap]
     set Piece_Radius [expr $Gap / sqrt(2)]
 
+    ### Set toWin and toMove
+    global gMisereGame
+    if { $gMisereGame } {
+	set toWin1 "To Lose: "
+    } else {
+	set toWin1 "To Win: "
+    }
 
+    set toWin2  "Connect $Dimension in a row in any direction" 
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Click on an arrow to place a piece"
 }
 
 # Setup the rules frame
 # Adds widgets to the rules frame that will allow the user to 
 # select the variant of this game to play. The options 
 # selected by the user should be stored in a set of global
-# variables. This procedure should not modify global variables
-# that affect initialization or game play. Such actions should
-# occur in GS_ImplementOption. 
+# variables.
 # This procedure must initialize the global variables to some
 # valid game variant.
 # The rules frame must include a standard/misere setting.
@@ -93,6 +92,7 @@ proc GS_InitGameSpecific  {} {
 # should be added
 # Modifies: the rules frame and its global variables
 # Returns: nothing
+
 proc GS_SetupRulesFrame { rulesFrame } {
 
     set standardRule \
@@ -101,14 +101,18 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Standard" \
 	     "Misere" \
 	    ]
+    
+    # List of all rules, in some order
+    set ruleset [list $standardRule]
 
+    # Declare and initialize rule globals
     global gMisereGame
     set gMisereGame 0
 
+    # List of all rule globals, in same order as rule list
     set ruleSettingGlobalNames [list "gMisereGame"]
 
     global kLabelFont
-    set ruleset [list $standardRule]
     set ruleNum 0
     foreach rule $ruleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
@@ -134,6 +138,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # Modifies: nothing
 # Returns: option (Integer) - the option of the game as specified by 
 # getOption and setOption in the module's C code
+
 proc GS_GetOption { } {
     global gMisereGame
     set option 1
@@ -147,58 +152,20 @@ proc GS_GetOption { } {
 
 # Modify the rules frame to match the given options
 # Modifies the global variables used by the rules frame to match the 
-# given game option. This procedure should not modify any global 
-# variables that affect initialization or game play. Such actions 
-# should occur in GS_ImplementOption. 
+# given game option.
 # This procedure only needs to support options that can be selected 
 # using the rules frame.
 # Args: option (Integer) -  the option of the game as specified by 
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
+
 proc GS_SetOption { option } {
     global gMisereGame
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option%2)]
 }
 
-
-# Implement the given game option
-# Modifies the global variables used to initialize and play the game 
-# to match the given option. This can include the To Win and To Move 
-# strings if any option modifies them. 
-# This procedure only needs to support options that can be selected 
-# using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
-# getOption and setOption in the module's C code
-# Modifies: the global variables used during initialization and game play
-# Returns: nothing
-proc GS_ImplementOption { option } {
-    set option [expr $option - 1]
-    set standardOption [expr $option%2]
-    
-    if { $standardOption == "1" } {
-	set toWin1 "To Win: "
-    } elseif { $standardOption == "0" } {
-	set toWin1 "To Lose: "
-    }
-
-    global Dimension
-    set toWin2  "Connect $Dimension in a row in any direction" 
-
-    SetToWinString [concat $toWin1 $toWin2]
-
-    SetToMoveString  "To Move: Click on an arrow to place a piece"
-}
-
-
-proc GS_GetDefaultRules {} {
-    global Dimension
-    set kToMove
-    set kToWin
-
-    return [list]
-}
 
 # GS_NameOfPieces should return a list of 2 strings that represent
 # your names for the "pieces".  If your game is some pathalogical game
@@ -231,12 +198,10 @@ proc GS_ColorOfPlayers {} {
     return [list red blue]
 }
 
-# GS_Initialize is where you can start drawing graphics.  
-# Its argument, c, is a canvas.  Please draw only in this canvas.
-# You could put an opening animation in this function that introduces the game
-# or just draw an empty board.
-# This function is called ONCE after GS_InitGameSpecific, and before the
-# player hits "New Game"
+
+# GS_Initialize draws the graphics for the game on the canvas c
+# You could put an opening animation or just draw an empty board.
+# This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
     DrawBoard $c
@@ -338,8 +303,6 @@ proc DrawBoard { c } {
 	    "myReturnFromHumanMove [expr $Dimension + $i]"
 	$c bind ARROW[expr $Dimension + $i] <Enter> \
 	    "SetColour $c ARROW[expr $Dimension + $i] black"
-	$c bind ARROW[expr $Dimension + $i] <Leave> \
-	    "SetColour $c ARROW[expr $Dimension + $i] cyan"
     }
         
     # Draw the arrows on the top left
@@ -363,8 +326,6 @@ proc DrawBoard { c } {
 	    "myReturnFromHumanMove [expr $Dimension - $i + 1]" 
 	$c bind ARROW[expr $Dimension - $i + 1] <Enter> \
 	    "SetColour $c ARROW[expr $Dimension - $i + 1] black"
-	$c bind ARROW[expr $Dimension - $i + 1] <Leave> \
-	    "SetColour $c ARROW[expr $Dimension - $i + 1] cyan"
    }
 
     $c lower ARROWS all
@@ -696,6 +657,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 	}
 
 	$c itemconfig ARROW$i -fill $color
+	$c bind ARROW$i <Leave> \
+	    "SetColour $c ARROW$i $color"
     }
 
     $c raise ARROWS all
@@ -743,9 +706,6 @@ proc GS_GetGameSpecificOptions { } {
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     GS_DrawPosition $c $position
-    puts $nameOfWinner
-
-    
 }
 
 

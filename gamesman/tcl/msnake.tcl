@@ -17,13 +17,13 @@
 #              03/24/04 Added bindings, SendMove, Options code, changed GS_Initialize
 ######################################################
 
-# GS_InitGameSpecific sets characteristics of the game that
-# are inherent to the game, unalterable.  You can use this fucntion
+# GS_InitGameSpecific initializes game-specific features
+# of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
-# It is called FIRST, ONCE, only when the player
-# starts playing your game, and before the player hits "New Game"
-# At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# It is called when the player first opens the game
+# and after every rule change.
+# You must set the global variables kGameName, gInitialPosition,
+# kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
 proc GS_InitGameSpecific {} {
     puts ">> GS_InitGameSpecific"
@@ -77,15 +77,36 @@ proc GS_InitGameSpecific {} {
     set HEADONLY 1
 
     puts "<< exit GS_InitGameSpecific"
+
+    # Set toMove and toWin
+    global gMisereGame
+    global gMoveTail
+    if { $gMisereGame } {
+	set toWin1 "To Lose: "
+    } else {
+	set toWin1 "To Win: "
+    }
+
+    set toWin2  "To trap your opponent so that he/she is no longer able to make a valid move"
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    set toMove1 "To Move: Click on an arrow to move "
+    if { $gMoveTail } {
+	set toMove2 "the head or tail "
+    } else {
+	set toMove2 "the head (Player 1) or tail (Player 2) only "
+    }
+    set toMove3 "to an empty adjacent space"
+
+    SetToMoveString [concat $toMove1 $toMove2 $toMove3]
 }
 
 # Setup the rules frame
 # Adds widgets to the rules frame that will allow the user to 
 # select the variant of this game to play. The options 
 # selected by the user should be stored in a set of global
-# variables. This procedure should not modify global variables
-# that affect initialization or game play. Such actions should
-# occur in GS_ImplementOption. 
+# variables.
 # This procedure must initialize the global variables to some
 # valid game variant.
 # The rules frame must include a standard/misere setting.
@@ -93,6 +114,7 @@ proc GS_InitGameSpecific {} {
 # should be added
 # Modifies: the rules frame and its global variables
 # Returns: nothing
+
 proc GS_SetupRulesFrame { rulesFrame } {
 
     set standardRule \
@@ -105,19 +127,23 @@ proc GS_SetupRulesFrame { rulesFrame } {
      set tailRule \
 	[list \
 	     "Movable parts are:" \
-	     "Head Only" \
+	     "Head for P1, Tail for P2" \
 	     "Head and Tail" \
 	    ]
 
+    # List of all rules, in some order
+    set ruleset [list $standardRule $tailRule]
+    
+    # Declare and initialize rule globals
     global gMisereGame
     set gMisereGame 0
     global gMoveTail
     set gMoveTail 0
 
+    # List of all rule globals, in same order as rule list
     set ruleSettingGlobalNames [list "gMisereGame" "gMoveTail"]
 
     global kLabelFont
-    set ruleset [list $standardRule $tailRule]
     set ruleNum 0
     foreach rule $ruleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
@@ -155,15 +181,14 @@ proc GS_GetOption { } {
 
 # Modify the rules frame to match the given options
 # Modifies the global variables used by the rules frame to match the 
-# given game option. This procedure should not modify any global 
-# variables that affect initialization or game play. Such actions 
-# should occur in GS_ImplementOption. 
+# given game option.
 # This procedure only needs to support options that can be selected 
 # using the rules frame.
 # Args: option (Integer) -  the option of the game as specified by 
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
+
 proc GS_SetOption { option } {
     global gMisereGame gToTrapIsToLose gMoveTail
     set option [expr $option - 1]
@@ -171,51 +196,6 @@ proc GS_SetOption { option } {
     set gMoveTail [expr $option/2%2]
 }
 
-
-# Implement the given game option
-# Modifies the global variables used to initialize and play the game 
-# to match the given option. This can include the To Win and To Move 
-# strings if any option modifies them. 
-# This procedure only needs to support options that can be selected 
-# using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
-# getOption and setOption in the module's C code
-# Modifies: the global variables used during initialization and game play
-# Returns: nothing
-proc GS_ImplementOption { option } {
-    set option [expr $option - 1]
-    set misereGame [expr $option%2]
-    set moveTail [expr $option/2%2]
-
-    if { $misereGame == "1" } {
-	set toWin1 "To Lose: "
-    } else {
-	set toWin1 "To Win: "
-    }
-
-    set toWin2  "To trap your opponent so that he/she is no longer able to make a valid move"
-
-    SetToWinString [concat $toWin1 $toWin2]
-
-    set toMove1 "To Move: Click on an arrow to move "
-    if { $moveTail == "1" } {
-	set toMove2 "the head or tail "
-    } else {
-	set toMove2 "the head "
-    }
-    set toMove3 "to an empty adjacent space"
-
-    SetToMoveString [concat $toMove1 $toMove2 $toMove3]
-}
-
-
-proc GS_GetDefaultRules {} {
-    global Dimension
-    set kToMove
-    set kToWin
-
-    return [list]
-}
 
 # GS_NameOfPieces should return a list of 2 strings that represent
 # your names for the "pieces".  If your game is some pathalogical game
@@ -231,12 +211,9 @@ proc GS_NameOfPieces {} {
 }
 
 
-# GS_Initialize is where you can start drawing graphics.  
-# Its argument, c, is a canvas.  Please draw only in this canvas.
-# You could put an opening animation in this function that introduces the game
-# or just draw an empty board.
-# This function is called ONCE after GS_InitGameSpecific, and before the
-# player hits "New Game"
+# GS_Initialize draws the graphics for the game on the canvas c
+# You could put an opening animation or just draw an empty board.
+# This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
 
