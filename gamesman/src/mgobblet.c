@@ -38,7 +38,7 @@ int      gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
-POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
+POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "Gobblet Jr";
 STRING   kDBName             = "gobblet";
@@ -792,6 +792,18 @@ MOVELIST *GenerateMoves(position)
   if(Primitive(position) == undecided) {
     myPosition = unhash(position);
     currentColor = (myPosition.turn == TURN_O ? PIECE_O : PIECE_X);
+    /* For pieces in the stock */
+    for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
+      stockValue = i / 2;
+      if(myPosition.stash[i] > 0) {
+        for(j = 0; j < TABLE_SLOTS; j++) {
+          topPieceTo = getTopPieceSize(myPosition.board[j]);
+          if(topPieceTo < (i / 2)) {
+            head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
+          }
+        }
+      }
+    }
     /* For pieces already on the board */
     for(i = 0; i < TABLE_SLOTS; i++) {
       topPieceFrom = getTopPieceSize(myPosition.board[i]);
@@ -801,18 +813,6 @@ MOVELIST *GenerateMoves(position)
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if(topPieceTo < topPieceFrom) {
             head = CreateMovelistNode(CONS_MOVE(i, j), head);
-          }
-        }
-      }
-    }
-    /* For pieces in the stock */
-    for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
-      stockValue = i / 2;
-      if(myPosition.stash[i] > 0) {
-        for(j = 0; j < TABLE_SLOTS; j++) {
-          topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if(topPieceTo < (i / 2)) {
-            head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
           }
         }
       }
@@ -942,7 +942,7 @@ void PrintMove(theMove)
   srcPos = GET_SRC(theMove);
   destPos = GET_DEST(theMove);
   // if(srcPos <= TABLE_SLOTS)
-    printf("%d %d\n", srcPos+1,destPos+1);
+    printf("\"%d %d\" ", srcPos+1,destPos+1);
     // else
     // printf("%d %d\n",  write this later..
 }
