@@ -395,7 +395,6 @@ void Menus()
 void MenusBeforeEvaluation()
 {
     if(gUnsolved){
-	gTwoBits = FALSE;
 	gUnsolved = FALSE;
     }
     printf("\n\ts)\t(S)TART THE GAME\n");
@@ -585,7 +584,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	break;
     case 'w': case 'W':
 	InitializeGame();
-	gTwoBits = TRUE;
 	gUnsolved = TRUE;
 	gAgainstComputer = FALSE;
 	gPrintPredictions = FALSE;
@@ -925,7 +923,7 @@ void PlayAgainstHuman()
 	       playerOneTurn ? "one" : "two");
     else if(userInput == Abort)
         printf("Your abort command has been received and successfully processed!\n");
-    else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
+    else if(player_draw == TRUE) { /* Player chooses to end the game in a draw */
         printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",
 	       gPlayerName[0], gPlayerName[1]);
     }
@@ -1068,16 +1066,20 @@ UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
     UNDO *tmp, *index = undo;
     BOOLEAN inList = FALSE;
 
-    if(!gUnsolved && Visited(thePosition)) 
+    if(!gUnsolved && Visited(thePosition)) { 
         undo = Stalemate(undo,thePosition,abort);
+	inList = TRUE;
+    }
     else if(gUnsolved) {
 	while(index != NULL) {
-	    if(undo->position == thePosition)
+	    if(index->position == thePosition) {
 		undo = Stalemate(undo,thePosition,abort);
-	    index = undo->next;
+		inList = TRUE;
+	    }
+	    index = index->next;
 	}
     }
-    else {
+    if(!inList) {
 	if(!gUnsolved)
 	    MarkAsVisited(thePosition);
         tmp = undo; 

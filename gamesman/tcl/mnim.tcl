@@ -83,7 +83,7 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 
 proc GS_ColorOfPlayers {} {
-    return [list black black]
+    return [list green green]
 }
 
 
@@ -188,16 +188,15 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
     global backgroundImage
     global playareaImage
-
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    # $c configure -width 400 -height 400
-    # $c create rect 0 0 400 400 -fill black -outline white -tag base
-    # $c create rect 0 300 400 400 -fill darkgrey -outline black -tag base
-    # background image here
-    image create photo mnim-background -file $backgroundImage
-    $c create image 200 200 -image mnim-background
-    image create photo mnim-table -file $playareaImage
-    $c create image 200 200 -image mnim-table
+    #$c configure -width 500 -height 500
+    $c create rect 0 0 500 500 -fill black -tag base
+    $c create rect 0 300 499 499 -fill darkgrey -tag base
+    #background image here
+    #image create photo mnim-background -file $backgroundImage
+    #$c create image 200 200 -image mnim-background
+    #image create photo mnim-table -file $playareaImage
+    #$c create image 200 200 -image mnim-table
     font create Winner -family arial -size 80
     
     global gRows
@@ -205,7 +204,7 @@ proc GS_Initialize { c } {
     for {set j 0} {$j<7} {incr j} {
 	for {set i 0} {$i<$gRows} {incr i} {
 	    
-	    set x [expr 70*$i+60]
+	    set x [expr 70*$i+107]
 	    set y [expr 400-(30*$j+50)]
 	    set h [expr $j+1]
 	    set w [expr $i+1]
@@ -263,7 +262,7 @@ proc GS_DrawPosition { c position } {
     for {set j 0} {$j<7} {incr j} {
 	for {set i 0} {$i<$gRows} {incr i} {
 	    
-	    set x [expr 70*$i+60]
+	    set x [expr 70*$i+107]
 	    set y [expr 400-(30*$j+50)]
 	    set h [expr $j+1]
 	    set w [expr $i+1]
@@ -406,8 +405,8 @@ proc GS_GetGameSpecificOptions { } {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    $c create text 210 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text 210 340 -text "WINS!"         -font Winner -fill orange -tags winner
+    $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
+    $c create text 250 210 -text "WINS!"         -font Winner -fill orange -tags winner
 }
 
 

@@ -85,7 +85,7 @@ proc GS_InitGameSpecific {} {
     global BACK_COLOUR
     global BOARD_COLOUR
     set BACK_COLOUR honeydew
-    set BOARD_COLOUR white
+    set BOARD_COLOUR lightgrey
 
     # board width vars
     global BOARD_WIDTH
@@ -352,7 +352,7 @@ proc MakeBoard { c } {
     $c delete all
 
     # Create giant backboard to hide things
-    $c create rectangle 0 0 $CANVAS_WIDTH $CANVAS_HEIGHT -fill $BACK_COLOUR -width 0 -tag BACK
+    $c create rectangle 0 0 [expr $CANVAS_WIDTH - 1] [expr $CANVAS_HEIGHT - 1] -fill $BACK_COLOUR -width 0 -tag BACK
 
     # Create board rectangle
     $c create rectangle $LEFT_PADDING $TOP_PADDING [expr $LEFT_PADDING + $BOARD_LENGTH] [expr $TOP_PADDING + $BOARD_HEIGHT] -fill $BOARD_COLOUR -width $BOARD_WIDTH -tags {BOARD BOARD_BACK}

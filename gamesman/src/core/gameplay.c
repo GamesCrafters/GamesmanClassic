@@ -193,21 +193,26 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
 
 UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
 {
-    UNDO *tmp;
-    
-    if(!gUnsolved && Visited(thePosition)) 
+    UNDO *tmp, *index = undo;
+    BOOLEAN inList = FALSE;
+
+    if(!gUnsolved && Visited(thePosition)) { 
         undo = Stalemate(undo,thePosition,abort);
+	inList = TRUE;
+    }
     else if(gUnsolved) {
 	while(index != NULL) {
-	    if(undo->position == thePosition)
+	    if(index->position == thePosition) {
 		undo = Stalemate(undo,thePosition,abort);
-	    index = undo->next;
+		inList = TRUE;
+	    }
+	    index = index->next;
 	}
     }
-    else {
+    if(!inList) {
 	if(!gUnsolved)
 	    MarkAsVisited(thePosition);
-        tmp = undo;
+        tmp = undo; 
         undo = (UNDO *) SafeMalloc (sizeof(UNDO));
         undo->position = thePosition;
         undo->givebackUsed = FALSE; /* set this in PlayAgainstComputer */

@@ -34,7 +34,6 @@ void Menus()
 void MenusBeforeEvaluation()
 {
     if(gUnsolved) {
-	gTwoBits = FALSE;
 	gUnsolved = FALSE;
     }
     printf("\n\ts)\t(S)TART THE GAME\n");
@@ -225,7 +224,6 @@ printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)g
 	break;
     case 'w': case 'W':
 	InitializeGame();
-	gTwoBits = TRUE;
 	gUnsolved = TRUE;
 	gAgainstComputer = FALSE;
 	gPrintPredictions = FALSE;

@@ -50,7 +50,7 @@ BOOLEAN  kTieIsPossible       = FALSE; /* TRUE if a tie is possible. FALSE if it
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -65,22 +65,98 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"On your move, if you are placing a goat, you enter the\n"
+"coordinates of the space where you would like to place\n"
+"your goat (ex: a3).  If you are moving a goat or a tiger,\n"
+"you enter the coordinates of the piece you would like to\n"
+"move and the coordinates of the space you would like to\n"
+"move the piece to (ex: a3 b3)."; 
 
-STRING   kHelpOnYourTurn =
-"";
+STRING   kHelpOnYourTurnTiger =
+"Move one tiger one space in any of the directions\n"
+"indicated by the lines.  You may also jump one goat\n"
+"if it is in a space next to you and the space behind\n"
+"it is empty.  Jumping a goat removes it from the board.";
+
+STRING   kHelpOnYourTurnGoatPhaseOne =
+"Place a goat in a space anywhere on the board that is\n"
+"not already occupied.";
+
+char*    kHelpOnYourTurn;
+
+STRING   kHelpOnYourTurnGoatPhaseTwo =
+"Move one goat one space in any of the directions\n"
+"indicated by the lines.";
 
 STRING   kHelpStandardObjective =
-"";
+"The objective of the goats is to try and trap the tigers\n"
+"so that they are unable to move.  The tigers are trying to\n"
+"remove every goat from the board.";
 
 STRING   kHelpReverseObjective =
-"";
+"This is not implemented because it makes the game\n"
+"really really stupid.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie cannot occur.";
 
 STRING   kHelpExample =
-"";
+"  1 2 3 4 5\n"
+"a *-O-O-O-*\n"
+"  |\\|/|\\|/|\n"
+"b O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"c O-O-O-O-O\n"
+"  |\\|/|\\|/|\n"
+"d O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"e *-O-O-O-*\n"
+"Dan's Move: c3\n\n"
+"  1 2 3 4 5\n"
+"a *-O-O-O-*\n"
+"  |\\|/|\\|/|\\n"
+"b O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"c O-O-G-O-O\n"
+"  |\\|/|\\|/|\n"
+"d O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"e *-O-O-O-*\n"
+"Computer's Move: e1 d1\n\n"
+"  1 2 3 4 5\n"
+"a *-O-O-O-*\n"
+"  |\\|/|\\|/|\n"
+"b O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"c O-O-G-O-O\n"
+"  |\\|/|\\|/|\n"
+"d *-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"e O-O-O-O-*\n"
+"Dan's Move: c1\n\n"
+"  1 2 3 4 5\n"
+"a *-O-O-O-*\n"
+"  |\\|/|\\|/|\n"
+"b O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"c G-O-G-O-O\n"
+"  |\\|/|\\|/|\n"
+"d *-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"e O-O-O-O-*\n"
+"Computer's Move: d1 b1\n\n"
+"  1 2 3 4 5\n"
+"a *-O-O-O-*\n"
+"  |\\|/|\\|/|\n"
+"b *-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"c O-O-G-O-O\n"
+"  |\\|/|\\|/|\n"
+"d O-O-O-O-O\n"
+"  |/|\\|/|\\|\n"
+"e O-O-O-O-*\n"
+"Dan's Move: d3\n\n"
+"etc...";
 
 
 /*************************************************************************
@@ -92,6 +168,9 @@ STRING   kHelpExample =
 #define LENGTH_MAX  5
 #define WIDTH_MIN   1
 #define LENGTH_MIN  1
+#define GOATS_MAX   20
+#define TIGERS_MAX  10
+
 #define GOAT        'G'
 #define TIGER       '*'
 #define SPACE       'O'
@@ -111,12 +190,15 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int width      = 5;
-int length     = 5;
-int boardSize  = 25;
-int tigers     = 4;
-int goats      = 20;
+int width      = 0;
+int length     = 0;
+int boardSize  = 0;
+int tigers     = 0;
+int goats      = 0;
 int NumGoats   = 0;
+
+BOOLEAN phase1 = TRUE;
+BOOLEAN set    = FALSE;
 
 /*************************************************************************
 **
@@ -131,6 +213,11 @@ char* unhash (POSITION position);
 int whoseTurn (POSITION position);
 void ChangeBoardSize ();
 void SetNumGoats ();
+void SetNumTigers ();
+void Reset ();
+void SetupHash ();
+void SetInitialPosition ();
+void TestHash ();
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -162,21 +249,13 @@ int vcfg_board(int* configuration) {
 
 void InitializeGame ()
 {
-    int i;
-    int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, 1, width*length - 4, -1};
-    char* initial = SafeMalloc(width * length * sizeof(char));
-    boardSize = width*length;
-    if(goats >= boardSize-tigers)
-	goats = boardSize - tigers - 1;
-    NumGoats = goats;
-    for(i = 0; i < boardSize; i++)
-	initial[i] = SPACE;
-    gNumberOfPositions = (goats+1)*generic_hash_init(boardSize, game, vcfg_board);
-    initial[translate(1, 1)] = TIGER;
-    initial[translate(1, width)] = TIGER;
-    initial[translate(length, 1)] = TIGER;
-    initial[translate(length, width)] = TIGER;
-    gInitialPosition = hash(initial, 1);
+    if(!set)
+	Reset();
+    SetupHash();
+    if(!set) {
+	set = TRUE;
+	SetInitialPosition();
+    }
 }
 
 
@@ -464,6 +543,14 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     int i, j, goatCount = 0;
     int turn = whoseTurn(position);
     board = unhash(position);
+    if(turn == 1) {
+	if(NumGoats != 0)
+	    kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
+	else
+	    kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseTwo;
+    }
+    else
+	kHelpOnYourTurn = kHelpOnYourTurnTiger;
     printf("\n\t  ");
     for(j = 1; j <= width; j++)
 	printf("%d ", j);
@@ -472,8 +559,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("%c ", i-1+'a');
 	for(j = 1; j <= width; j++) {
 	    printf("%c", board[translate(i, j)]);
-	    if(board[translate(i, j)] == GOAT)
-		goatCount++;
+	    //if(board[translate(i, j)] == GOAT)
+	    //goatCount++;
 	    if(j < width)
 		printf("-");
 	}
@@ -494,8 +581,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 	printf("\n\t");
     }
+    //NumGoats = goats - goatCount;
+    printf("Goats to still be placed: %d\n\n", NumGoats);
     printf("          %s\n\n", GetPrediction(position, playersName, usersTurn));
-    NumGoats = goatCount;
     SafeFree(board);
 }
 
@@ -531,14 +619,13 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    int jump, direction, i, j;
+    int jump, direction, i, j, x, y;
     if(move < boardSize) {
 	i = get_x(move);
 	j = get_y(move);
 	printf("[%c%d]", i-1+'a', j);
     }
     else {
-	printf(" move: %d ",move);
 	move -= boardSize;
 	jump = move % 2;
 	move /= 2;
@@ -546,7 +633,87 @@ void PrintMove (MOVE move)
 	move /= 8;
 	i = get_x(move);
 	j = get_y(move);
-	printf("[%c%d %d]", i-1+'a', j, direction+1);
+	if(direction == UP) {
+	    if(jump) {
+		x = i + 2;
+		y = j;
+	    }
+	    else {
+		x = i + 1;
+		y = j;
+	    }
+	}
+	else if(direction == LEFT) {
+	    if(jump) {
+		y = j - 2;
+		x = i;
+	    }
+	    else {
+		y = j - 1;
+		x = i;
+	    }
+	}
+	else if(direction == RIGHT) {
+	    if(jump) {
+		y = j + 2;
+		x = i;
+	    }
+	    else {
+		y = j + 1;
+		x = i;
+	    }
+	}
+	else if(direction == DOWN) {
+	    if(jump) {
+		x = i - 2;
+		y = j;
+	    }
+	    else {
+		x = i - 1;
+		y = j;
+	    }
+	}
+	else if(direction == UP_LEFT) {
+	    if(jump) {
+		y = j - 2;
+		x = i + 2;
+	    }
+	    else {
+		y = j - 1;
+		x = i + 1;
+	    }
+	}
+	else if(direction == UP_RIGHT) {
+	    if(jump) {
+		y = j + 2;
+		x = i + 2;
+	    }
+	    else {
+		y = j + 1;
+		x = i + 1;
+	    }
+	}
+	else if(direction == DOWN_LEFT) {
+	    if(jump) {
+		y = j - 2;
+		x = i - 2;
+	    }
+	    else {
+		y = j - 1;
+		x = i - 1;
+	    }
+	}
+	else if(direction == DOWN_RIGHT) {
+	    if(jump) {
+		y = j + 2;
+		x = i - 2;
+	    }
+	    else {
+		y = j + 1;
+		x = i - 1;
+	    }
+	}
+	printf("[%c%d %c%d]", i-1+'a', j, x-1+'a', y);
     }
 }
 
@@ -740,6 +907,10 @@ void GameSpecificMenu ()
 	printf("\tGame Options:\n\n"
 	       "\tc)\t(C)hange the board size (nxn), currently: %d\n"
 	       "\ts)\t(S)et the number of goats on the board, currently: %d\n"
+	       "\tn)\tSet the (N)umber of tigers on the board, currently: %d\n"
+	       "\ti)\tSet the (I)nitial position (starting position)\n"
+	       "\tr)\t(R)eset to default settings\n"
+	       "\tt)\t(T)est the hash function\n"
 	       "\tb)\t(B)ack to the main menu\n"
 	       "\nSelect an option:  ", width, goats);
 	scanf("%c", &c);
@@ -747,8 +918,21 @@ void GameSpecificMenu ()
 	case 'c': case 'C':
 	    ChangeBoardSize();
 	    break;
+	case 'n': case 'N':
+	    SetNumTigers();
+	    break;
 	case 's': case 'S':
 	    SetNumGoats();
+	    break;
+	case 'i': case 'I':
+	    gInitialPosition = GetInitialPosition();
+	    break;
+	case 'r': case 'R':
+	    Reset();
+	    SetupHash();
+	    break;
+	case 't': case 'T':
+	    TestHash();
 	    break;
 	case 'b': case 'B':
 	    cont = FALSE;
@@ -790,7 +974,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    int i, j;
+    int i, j, turn, goatsLeft;
     char line[width];
     for(i = 0; i < width; i++)
 	line[i] = SPACE;
@@ -820,10 +1004,33 @@ POSITION GetInitialPosition ()
 		board[translate(i,j)] = line[j-1];
 	    }
 	}
+	printf("Enter how many goats are left to place: ");
+	scanf("%d", &goatsLeft);
+	printf("Enter who you would like to go first (goats or tigers): ");
+	scanf("%s", &line);
+	if(!strcmp(line, "goats"))
+	    turn = PLAYER_ONE;
+	else
+	    turn = PLAYER_TWO;
+	goats = 0;
+	tigers = 0;
+	for(i = 0; i < boardSize; i++) {
+	    if(board[i] == GOAT)
+		goats++;
+	    else if(board[i] == TIGER)
+		tigers++;
+	}
+	goats += goatsLeft;
+	NumGoats = goatsLeft;
+	if(NumGoats == 0)
+	    phase1 = FALSE;
+	else
+	    phase1 = TRUE;
 	if(!valid)
 	    printf("\n\nInvalid board!!!\n\n");
     }
-    return hash(board, 1);
+    SetupHash();
+    return hash(board, turn);
 }
 
 
@@ -840,6 +1047,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
+    
     return 0;
 }
 
@@ -929,22 +1137,27 @@ POSITION hash (char* board, int player)
     POSITION position = generic_hash(board, player);
     if(board != NULL)
 	SafeFree(board);
-    position *= (goats+1);
-    position += NumGoats;
+    if(phase1) {
+	position *= (goats+1);
+	position += NumGoats;
+    }
     return position;
 }
 
 char* unhash (POSITION position)
 {
     char* board = (char *) SafeMalloc(length * width * sizeof(char));
-    NumGoats = position % (goats+1);
-    position /= (goats+1);
+    if(phase1) {
+	NumGoats = position % (goats+1);
+	position /= (goats+1);
+    }
     return (char *) generic_unhash(position, board);
 }
 
 int whoseTurn (POSITION position)
 {
-    position /= (goats+1);
+    if(phase1)
+	position /= (goats+1);
     return whoseMove(position);
 }
 
@@ -964,7 +1177,9 @@ void ChangeBoardSize ()
 	}
 	else {
 	    width = length = change;
-	    InitializeGame();
+	    boardSize = width*length;
+	    SetupHash();
+	    SetInitialPosition();
 	}
     }
 }
@@ -979,12 +1194,82 @@ void SetNumGoats ()
 	printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers-1);
 	scanf("%d", &change);
 	if(change > boardSize-tigers-1 || change < 1) {
-	    printf("\nInvalid base length!\n");
+	    printf("\nInvalid number of goats for this board!\n");
 	    cont = TRUE;
 	}
 	else {
 	    goats = change;
-	    InitializeGame();
+	    SetupHash();
+	    SetInitialPosition();
 	}
     }
+}
+
+void SetNumTigers ()
+{
+    int change;
+    BOOLEAN cont = TRUE;
+    while (cont) {
+	cont = FALSE;
+	printf("\n\nCurrent number of tigers %d:\n\n", tigers);
+	printf("\n\nEnter the new number of tigers (%d - %d):  ", 1, boardSize-goats-1);
+	scanf("%d", &change);
+	if(change > boardSize-tigers-1 || change < 1) {
+	    printf("\nInvalid number of tigers for this board!\n");
+	    cont = TRUE;
+	}
+	else {
+	    tigers = change;
+	    SetupHash();
+	    SetInitialPosition();
+	}
+    }
+}
+
+void Reset ()
+{
+    width      = 3;
+    length     = 3;
+    boardSize  = width*length;
+    tigers     = 4;
+    goats      = 4;
+    NumGoats   = goats;
+    phase1     = TRUE;
+    kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
+}
+
+
+void SetupHash ()
+{
+    int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
+    gNumberOfPositions = generic_hash_init(boardSize, game, vcfg_board);
+    if(phase1)
+	gNumberOfPositions *= (goats + 1);
+    printf("Number of positions: %ld\n", gNumberOfPositions);
+}
+
+void SetInitialPosition ()
+{
+    int i;
+    char* initial = SafeMalloc(width * length * sizeof(char));
+    for(i = 0; i < boardSize; i++)
+	initial[i] = SPACE;
+    initial[translate(1, 1)] = TIGER;
+    initial[translate(1, width)] = TIGER;
+    initial[translate(length, 1)] = TIGER;
+    initial[translate(length, width)] = TIGER;
+    gInitialPosition = hash(initial, 1);
+}
+
+void TestHash ()
+{
+    POSITION i, turn;
+    BOOLEAN passed = TRUE;
+    for(i = 0; i < gNumberOfPositions; i++) {
+	turn = whoseTurn(i);
+	if(i != hash(unhash(i), turn))
+	    passed = FALSE;
+    }
+    if(!passed)
+	printf("\n\nThe hash had some problems!\n\n");
 }

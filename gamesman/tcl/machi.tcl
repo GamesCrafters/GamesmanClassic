@@ -54,8 +54,8 @@ set firstYCoord $dotmid
 ## pieces
 set pieceSize [expr $dotmid - ($dotmid / 4)]
 set pieceOutline [expr $pieceSize / 14]
-set xColor blue4
-set oColor red2
+set xColor blue
+set oColor red
 set pieceOffset $dotgap
 ## dots
 set dotSize [expr $pieceSize.0 / 2.6]
@@ -64,7 +64,7 @@ set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
 set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
 set lineColor CadetBlue4
 ## base
-set baseColor white
+set baseColor lightgrey
 ## arrow lists
 set diagArrows  { 4 40 15 51 37 73 48 84 13 31 24 42 46 64 57 75}
 set horizArrows { 1 10 12 21 34 43 45 54 67 76 78 87}
@@ -473,7 +473,7 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 
 proc GS_ColorOfPlayers {} {
-    return [list red2 blue4]
+    return [list blue red]
 }
 
 # Setup the rules frame
@@ -597,7 +597,7 @@ proc makeBoard { c } {
     $c create text 250 250 -text UNDO -font {Helvetica 80} -fill gray40 -tags undo
 
 
-    set base [$c create rectangle 0 0  $canvasWidth $canvasHeight -fill $baseColor -tag base];
+    set base [$c create rectangle 0 0  [expr $canvasWidth - 1] [expr $canvasHeight - 1] -fill $baseColor -tag base];
 
     # horizontal lines
     set topLeftHL  [$c create line $x0 $y0 $x1 $y0 -fill $lineColor -tags [list base line-01 line-10 line]];
