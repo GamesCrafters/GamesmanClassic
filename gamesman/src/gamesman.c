@@ -132,7 +132,7 @@ the computer or another human. Have fun!\n";
 /* 	(M)ove-tree\n\ */
 /* 	(E)xhaustive\n\ */
 /* 	(S)earch,\n\ */
-/* 	(M)aniuplation\n\ */
+/* 	(M)anipulation\n\ */
 /* 	(A)nd\n\ */
 /* 	(N)avigation\n\n\ */
 /* This program will determine the value of %s, and allow you to play\n\ */
@@ -3121,11 +3121,11 @@ void HandleArguments (int argc, char *argv[]) {
   }
   else if(!strcmp(argv[1], "-option")) {
     if(argc != 3)
-      printf("Usage: %s -option <hashed option configuration>\n", argv[0]);
+      printf("\nUsage: %s -option <n>\n\n", argv[0]);
     else {
       int option = atoi(argv[2]);
       if(!option || option > NumberOfOptions())
-	printf("Invalid option configuration!\n");
+	printf("\nInvalid option configuration!\n\n");
       else {
 	setOption(option);
 	StartGame();
@@ -3134,7 +3134,7 @@ void HandleArguments (int argc, char *argv[]) {
   }
   else if(!strcmp(argv[1], "-solve")) {
     if(argc > 3)
-      printf("Usage: %s -solve <hash option configuration>\n", argv[0]);
+      printf("\nUsage: %s -solve [<n> | <all>]\n\n", argv[0]);
     else if(argc == 2)
       SolveAndStore(getOption());
     else {
@@ -3146,12 +3146,59 @@ void HandleArguments (int argc, char *argv[]) {
 	}
       }
       else if(!option || option > NumberOfOptions())
-	printf("Invalid option configuration!\n");
+	printf("\nInvalid option configuration!\n\n");
       else {
 	SolveAndStore(option);
       }
     }
   }
+  else if(!strcmp(argv[1], "-DoMove")) {
+    if(argc != 4)
+      printf("\nInvalid arguments!\n\n");
+    else
+      printf("\nDoMove returns: %u\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
+  }
+  else if(!strcmp(argv[1], "-Primitive")) {
+    if(argc != 3)
+      printf("\nInvalid arguments!\n\n");
+    else {
+      printf("\nPrimitive returns: %u\n\n", Primitive(atoi(argv[2])));
+    }
+  }
+  else if(!strcmp(argv[1], "-PrintPosition")) {
+    if(argc != 5)
+      printf("\nInvalid arguments!\n\n");
+    else {
+      printf("\nPrintPosition:\n\n");
+      PrintPosition(atoi(argv[2]), argv[3], atoi(argv[4]));
+    }
+  }
+  else if(!strcmp(argv[1], "-GenerateMoves")) {
+    
+  }
+  else if(!strcmp(argv[1], "-help")) {
+    printf("\nSyntax:\n"
+"%s {-nodb | newdb | -option <n> | -solve [<n> | <all>] |\n"
+"\t\t-DoMove <args> <move> | -Primitive <args> | \n"
+"\t\t-PrintPosition <args> -GenerateMoves <args>} | -help}\n\n"
+"-nodb\t\t\tStarts game without loading or saving to the database.\n"
+"-newdb\t\t\tStarts game and clobbers the old database.\n"
+"-option <n>\t\tStarts game with the n option configuration.\n"
+"-solve [<n> | <all>]\tSolves game with the n option configuration.\n"
+"\t\t\tTo solve all option configurations of game, use <all>.\n"
+"\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
+"\t\t\tconfiguration.\n"
+"\t\t\tExamples:\n"
+"\t\t\t%s -solve\n"
+"\t\t\t%s -solve 2\n"
+"\t\t\t%s -solve all\n"
+"-DoMove <args>\n"
+"-Primitive <args>\n"
+"-PrintPosition <args>\n"
+"-GenerateMoves <args>\n\n", argv[0], argv[0], argv[0], argv[0]);
+  }
+  else
+    printf("\nInvalid option or missing parameter, use %s -help for help\n\n", argv[0]);
 }
 
 int main(int argc, char *argv[]) {
