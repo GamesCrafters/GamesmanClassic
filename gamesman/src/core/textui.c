@@ -598,6 +598,7 @@ void AnalysisMenu()
         printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
         printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
 	
+        printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
 	
         if(badWinPositions != NULL)
