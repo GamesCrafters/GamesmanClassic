@@ -68,7 +68,142 @@ STRING   kHelpReverseObjective =
 
 STRING   kHelpTieOccursWhen ="";
 
-STRING   kHelpExample ="";
+STRING   kHelpExample =
+"            BOARD \n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    O --- O --- O          NW  N  NE        N = no action \n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- . --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\ \n\
+   3    X --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
+(Player should Win in 11)  \n\
+  Player's move [(u)ndo/1-9] :   b3 n a\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    O --- . --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- X --- O          W - * - E        A = capture by approach \n\
+        |  /  |  \\  |            / | \\ \n\
+   3    X --- . --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
+(Computer should Lose in 12)  \n\
+Computer's move              : 17 \n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- O --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- X --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    X --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Player should Win in 11)  \n\
+  Player's move [(u)ndo/1-9] : c3 w n\n\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- O --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- X --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    X --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Computer should Lose in 14)  \n\
+Computer's move              : 45\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION \n\n\
+   1    O --- . --- O          NW  N  NE        N = no action \n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- X --- O          W - * - E        A = capture by approach \n\
+        |  /  |  \\  |            / | \\ \n\
+   3    X --- X --- .          SW  S  SE        W = capture by withdraw \n\n\n\n\
+(Player should Win in 13)  \n\
+  Player's move [(u)ndo/1-9] : b2 se w\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- . --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- . --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    X --- X --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Computer should draw)  \n\
+Computer's move              : 66 \n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- . --- .          NW  N  NE        N = no action \n\
+        |  \\  |  /  |            \\ | / \n\
+   2    X --- O --- O          W - * - E        A = capture by approach \n\
+        |  /  |  \\  |            / | \\ \n\
+   3    . --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
+(Player should draw)  \n\
+  Player's move [(u)ndo/1-9] : a2 n n\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    X --- . --- .          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- O --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
+(Computer will Win in 13)  \n\
+Computer's move              : 155 \n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION \n\n\
+   1    X --- O --- .          NW  N  NE        N = no action \n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- . --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Player will Lose in 12)  \n\
+  Player's move [(u)ndo/1-9] : a1 se n\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- O --- .          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- X --- O          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Computer will Win in 5)  \n\
+Computer's move              : 187\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- O --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- X --- .          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Player will Lose in 4)  \n\
+  Player's move [(u)ndo/1-9] :  b2 s w \n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION \n\n\
+   1    . --- . --- O          NW  N  NE        N = no action \n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- . --- .          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Computer will Win in 3)  \n\
+Computer's move              : 65 \n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- . --- .          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- O --- .          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Player will Lose in 2)  \n\
+  Player's move [(u)ndo/1-9] :  b3 w n \n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- . --- .          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- O --- .          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    X --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Computer will Win in 1)  \n\
+Computer's move              : 159\n\n\n\
+            BOARD\n\n\
+        A     B     C          DIRECTION        ACTION\n\n\
+   1    . --- . --- O          NW  N  NE        N = no action\n\
+        |  \\  |  /  |            \\ | / \n\
+   2    . --- . --- .          W - * - E        A = capture by approach\n\
+        |  /  |  \\  |            / | \\\n\
+   3    . --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
+(Player will Lose in 0)  \n\n\
+Computer wins. Nice try, Player.\n";
 
 /*************************************************************************
 **
