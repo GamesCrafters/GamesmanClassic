@@ -1,4 +1,4 @@
-// Alex Wallisch
+// Steven Kusalo
 // $log$
 
 /*
@@ -16,7 +16,8 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-03      Wrote Primitive
+** UPDATE HIST: 2004-10-08      Partially wrote GameSpecificMenu
+**		2004-10-03      Wrote Primitive
 **				Wrote ValidTextInput
 **				Wrote ConvertTextInputToMove
 **                              Wrote PrintComputersMove
@@ -55,7 +56,7 @@ STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch"; /* Your name(s) 
 STRING   kDBName              = "qland"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -147,7 +148,9 @@ int next_player(POSITION position);
 
 int countPieces(char *board, char piece);
 int scoreBoard(char *board, char player);
-
+void ChangeBoardSize();
+void ChangeNumPieces();
+void ChangeScoringSystem();
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -648,12 +651,34 @@ MOVE ConvertTextInputToMove (STRING input) {
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
-{
-    
+void GameSpecificMenu () {
+    char c;
+    while (TRUE) {
+	printf("\n\nGame Options:\n\n");
+	printf("\ts)\tchange the (S)ize of the board\n");
+	printf("\tp)\tchange the number of (P)ieces\n");
+	printf("\tc)\tchange the s(C)oring system of the game\n");
+	printf("\tb)\t(B)ack to the main menu\n");
+	printf("\nSelect an option:  ");
+	c = tolower(getc(stdin));
+	switch (c) {
+	case 's':
+	    ChangeBoardSize();
+	    break;
+	case 'p':
+	    ChangeNumPieces();
+	    break;
+	case 'c':
+	    ChangeScoringSystem();
+	    break;
+	case 'b':
+	    return;
+	default:
+	    printf("Invalid option. Please try again.\n");
+    }
+  }    
 }
-
-
+ 
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
@@ -837,6 +862,9 @@ int next_player(POSITION position) {
      return score;
  }
 
+/* Counts the number of pieces of the given type
+ * that are on the board.
+ */
 int countPieces(char *board, char piece) {
     int x;
     int y;
@@ -849,4 +877,68 @@ int countPieces(char *board, char piece) {
 	}
     }
     return count;
+}
+
+/* Allows the user to change the width and height
+ * of the board.
+ */
+void ChangeBoardSize() {
+    int newWidth, newHeight;
+    while(TRUE) {
+	printf("\n\nEnter a new size for the board\n");
+	printf("Should be of the form width x height\n");
+	scanf("%d x %d", &newWidth, &newHeight);
+	if (TRUE) {
+	    height = newHeight;
+	    width = newWidth;
+	}
+    }
+}
+
+/* Allows the user to change the number of pieces
+ * each player starts with.
+ */
+void ChangeNumPieces() {
+    int newAmount;
+    while(TRUE) {
+	printf("\n\nEnter the amount of pieces you\n");
+	printf("wish each team to start with. Must\n");
+	printf("be between 1 and %d", (width*height)/2);
+	scanf("%d", &newAmount);
+	if (newAmount <= (width*height)/2 || newAmount >= 1) {
+	    numpieces = newAmount;
+	    return;
+	}
+    }
+}
+
+/* Allows the user to change how the board
+ * is scored.
+ */
+void ChangeScoringSystem() {
+    char c;
+    while(TRUE) {
+	printf("\n\nScoring Options:\n\n");
+	printf("\ts)\tcount only (S)traight lines (horizonal and vertical)\n");
+	printf("\td)\tcount only (D)iagonal lines\n");
+	printf("\tb)\tcount (B)oth straight and diagonal lines\n");
+	printf("Select an option ");
+	c = tolower(getc(stdin));
+	switch(c) {
+	case 's':
+	    scoreStraight = TRUE;
+	    scoreDiagonal = FALSE;
+	    return;
+	case 'd':
+	    scoreStraight = FALSE;
+	    scoreDiagonal = TRUE;
+	    return;
+	case 'b':
+	    scoreStraight = TRUE;
+	    scoreDiagonal = TRUE;
+	    return;
+	default:
+	    printf("Invalid option. Please try again");
+	}
+    }
 }
