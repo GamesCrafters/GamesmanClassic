@@ -816,8 +816,7 @@ void showStatus(STATICMESSAGE msg)
     static float timeDelayTicks = CLOCKS_PER_SEC / 10;
     static clock_t updateTime = (clock_t) NULL;
     int print_length=0;
-    
-    percentDone(msg);
+    float percent = PercentDone(msg);
     
     if (updateTime == (clock_t) NULL)
     {
@@ -838,19 +837,11 @@ void showStatus(STATICMESSAGE msg)
          break;
     }	
     
-    if (percentDone(2) > gNumberOfPositions && clock() > updateTime)
+    if (clock() > updateTime)
     {
         fflush(stdout);
         fflush(stderr);
-        print_length = fprintf(stderr,"Solving... %g Positions Visited - Reported Total Number of Positions: " POSITION_FORMAT "\e[K",percentDone(2),gNumberOfPositions);
-        fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-        updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
-    }
-    else if (clock() > updateTime)
-    {
-        fflush(stdout);
-        fflush(stderr);
-        print_length = fprintf(stderr,"%2.1f%% Done \e[K",percentDone(2));
+        print_length = fprintf(stderr,"%2.1f%% Done \e[K",percent);
         fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
         updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
     }

@@ -27,7 +27,7 @@ void	createVarTable			();
 void	writeVarHTML			();
 BOOLEAN	CorruptedValuesP		();
 
-float	percentDone			(STATICMESSAGE msg);
+float	PercentDone			(STATICMESSAGE msg);
 
 /* Analysis XML Support */
 

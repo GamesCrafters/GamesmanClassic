@@ -617,13 +617,9 @@ void writeXMLData(FILE* xmlFile)
 
 /*
 ** Percentage
-**
-** TODO: I'll let you actually implement this one, Robert. -JJ
-** Also, please make it Pascal Case (PercentDone), like the rest of
-** gamesman's naming convention.
 */
 
-float percentDone (STATICMESSAGE msg)
+float PercentDone (STATICMESSAGE msg)
 {
     static POSITION num_pos_seen = 0;
     float percent = 0;
@@ -639,10 +635,8 @@ float percentDone (STATICMESSAGE msg)
             break;
     }
     percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
-    if (percent > 100)
-        return num_pos_seen;
-    else
-        return percent;
+
+    return percent;
 }
 
 

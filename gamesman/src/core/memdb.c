@@ -131,7 +131,7 @@ void memdb_mark_visited (POSITION position)
 {
     VALUE *ptr;
     
-    showStatus(0);
+    showStatus(Update);
     
     ptr = memdb_get_raw_ptr(position);
     
