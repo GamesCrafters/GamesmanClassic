@@ -1,30 +1,37 @@
 ####################################################
-# this is a template for tcl module creation
+# machi.tcl
 #
-# created by Alex Kozlowski and Peterson Trethewey
-####################################################
+# original TCL template created by Alex Kozlowski and Peterson Trethewey
 #
+# Spring 2003
 # Jesse Phillips
 # Jennifer Lee
 #
-# 4/11/03  changed GS_InitGamespecific, GS_NameOfPieces, GS_Initialize
-#          added functions Unhash and expt
-# 4/19/03  changed GS_DrawPosition, ShowMoves, HideMoves, HandleMoves,
-#          and unhash
-# 4/25/03  modified GS_UndoPosition
+# 2003.04.11  changed GS_InitGamespecific, GS_NameOfPieces, GS_Initialize
+#             added functions Unhash and expt
+# 2003.04.19  changed GS_DrawPosition, ShowMoves, HideMoves, HandleMoves,
+#             and unhash
+# 2003.04.25  modified GS_UndoPosition
 #
-#
+# Fall 2004
+# Jonathan Tsai
+# 
+# 2004.11.02  added isThreeInRow function to clean up if-clauses in GS_GameOver
+#             removed old code that was in comments, they don't make any sense
+#             change everything to 0-indexing... pretty much had to decrement every single digit in this file
+#             
+# Future changes:
+# a lot of hardcoding done in Spring 2003, hard to undo
+# be able to retrieve coordinates for arrows and positions dynamically, instead of hardcoded
 #
 ####################################################
 
-############   GLOBAL VARS #######################
-
 global dotgap dotmid
-global x1 x2 x3 y1 y2 y3
+global x0 x1 x2 y0 y1 y2
 global pieceSize pieceOutline xColor oColor pieceOffset
 global dotSize dotExpandAmount lineWidth lineColor baseColor base
-global dotx1 dotx2 dotx3 doty1 doty2 doty3
-global px1 px2 px3 py1 py2 py3
+global dotx0 dotx1 dotx2 doty0 doty1 doty2
+global px0 px1 px2 py0 py1 py2
 global diagArrows horizArrows vertArrows slideDelay goDelay animQuality
 global canvasWidth canvasHeight
 
@@ -32,8 +39,8 @@ global canvasWidth canvasHeight
 global kRootDir
 global kCAuthors kTclAuthors kGifAuthors
 set kCAuthors "Jesse Phillips, Jennifer Lee"
-set kTclAuthors "Jesse Phillips, Jennifer Lee"
-set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+set kTclAuthors "Jesse Phillips, Jennifer Lee, Jonathan Tsai"
+set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x132.gif"
 
 ## IMPORTANT: These are variables used to change the board.
 # board size
@@ -59,49 +66,48 @@ set lineColor CadetBlue4
 ## base
 set baseColor white
 ## arrow lists
-set diagArrows  {list 15 51 26 62 48 84 59 95 24 42 35 53 57 75 68 86}
-set horizArrows {list 12 21 23 32 45 54 56 65 78 87 89 98}
-set vertArrows  {list 14 41 25 52 36 63 47 74 58 85 69 96}
+set diagArrows  {list 04 40 15 51 37 73 48 84 13 31 24 42 46 64 57 75}
+set horizArrows {list 01 10 12 21 34 43 45 54 67 76 78 87}
+set vertArrows  {list 03 30 14 41 25 52 36 63 47 74 58 85}
+
 ## animation delay
 set slideDelay 20000
 set goDelay 3000000
 set animQuality "low"
 # x and y position numbers
-set x1 $firstXCoord
+set x0 $firstXCoord
+set x1 [expr $x0 + $dotgap]
 set x2 [expr $x1 + $dotgap]
-set x3 [expr $x2 + $dotgap]
+set x3 $x0
 set x4 $x1
 set x5 $x2
-set x6 $x3
+set x6 $x0
 set x7 $x1
 set x8 $x2
-set x9 $x3
 
-set y1 $firstYCoord
-set y2 $y1
-set y3 $y1
-set y4 [expr $y1 + $dotgap]
-set y5 $y4
-set y6 $y4
-set y7 [expr $y4 + $dotgap]
-set y8 $y7
-set y9 $y7
+set y0 $firstYCoord
+set y1 $y0
+set y2 $y0
+set y3 [expr $y0 + $dotgap]
+set y4 $y3
+set y5 $y3
+set y6 [expr $y3 + $dotgap]
+set y7 $y6
+set y8 $y6
 
-
-
+set dotx0 [expr $x0 - [expr $dotSize / 2]];
 set dotx1 [expr $x1 - [expr $dotSize / 2]];
 set dotx2 [expr $x2 - [expr $dotSize / 2]];
-set dotx3 [expr $x3 - [expr $dotSize / 2]];
-set doty1 [expr $y1 - [expr $dotSize / 2]];
-set doty2 [expr $y4 - [expr $dotSize / 2]];
-set doty3 [expr $y7 - [expr $dotSize / 2]];
+set doty0 [expr $y0 - [expr $dotSize / 2]];
+set doty1 [expr $y3 - [expr $dotSize / 2]];
+set doty2 [expr $y6 - [expr $dotSize / 2]];
 
+set px0 [expr $x0 - [expr $pieceSize / 2]];
 set px1 [expr $x1 - [expr $pieceSize / 2]];
 set px2 [expr $x2 - [expr $pieceSize / 2]];
-set px3 [expr $x3 - [expr $pieceSize / 2]];
-set py1 [expr $y1 - [expr $pieceSize / 2]];
-set py2 [expr $y4 - [expr $pieceSize / 2]];
-set py3 [expr $y7 - [expr $pieceSize / 2]];
+set py0 [expr $y0 - [expr $pieceSize / 2]];
+set py1 [expr $y3 - [expr $pieceSize / 2]];
+set py2 [expr $y6 - [expr $pieceSize / 2]];
 
 
 
@@ -144,17 +150,17 @@ proc animationQualityQuery { c } {
 			 -fill NavyBlue \
 			 -font {Helvetica -20} -tags {base anim_qual}]
     set high [$c create text 270 20 -text "HIGH" -font {Helvetica -24} \
-		  -fill gray40 -tags {high anim_qual base}]
+		  -fill gray30 -tags {high anim_qual base}]
     set dash [$c create text 325 20 -text " or"  -font {Helvetica -24} \
 		  -fill NavyBlue -tags {base anim_qual}]
     set low  [$c create text 370 20 -text "low"  -font {Helvetica -24} \
-		  -fill gray40 -tags {low anim_qual base}]
+		  -fill gray30 -tags {low anim_qual base}]
 
     $c bind high <Enter> "$c itemconfig high -fill black -font {Helvetica -30}"
-    $c bind high <Leave> "$c itemconfig high -fill gray40 -font {Helvetica -24}"
+    $c bind high <Leave> "$c itemconfig high -fill gray30 -font {Helvetica -24}"
 
     $c bind low <Enter>  "$c itemconfig low -fill black -font {Helvetica -30}"
-    $c bind low <Leave>  "$c itemconfig low -fill gray40 -font {Helvetica -24}"
+    $c bind low <Leave>  "$c itemconfig low -fill gray30 -font {Helvetica -24}"
 
     $c bind high <ButtonRelease-1> "set animQuality high"
     $c bind low  <ButtonRelease-1> "set animQuality low"
@@ -198,10 +204,10 @@ proc animateMove { whoseTurn pieceToMove from to c } {
 }
 
 #slideAnimation:
-# arg1: the tag of the piece to be moved
-# arg2: the board position number from which the piece is being moved (1-9)
-# arg3: the board position number to which to move the piece (1-9)
-# arg4: c the canvas
+# pieceToMove  the tag of the piece to be moved
+# from         the board position number from which the piece is being moved (1-9)
+# to           the board position number to which to move the piece (1-9)
+# c            c the canvas
 #
 # pieceToMove is on the board already, so we need to slide animate it, then put it 
 # back under the board in the correct spot, and finally raise the piece at position
@@ -260,23 +266,23 @@ proc slideAnimation { pieceToMove from to c} {
 	    set dist $yDist
 	    set yPlus $move_size
 	}
-    } elseif { $xDist == $yDist } {# then we are going 1-5, 5-1, 5-9,9-5
-	if {$xDist < 0} {# 9-5 or 5-1
+    } elseif { $xDist == $yDist } {# then we are going 0-4, 4-0, 4-8,8-4
+	if {$xDist < 0} {# 8-4 or 4-0
 	    set dist [expr 0 - $xDist]
 	    set xPlus [expr 0 - $move_size]
 	    set yPlus [expr 0 - $move_size]
-	} else {# 1-5 or 5-9
+	} else {# 0-4 or 4-8
 	    set dist $xDist
 	    set xPlus $move_size
 	    set yPlus $move_size
 	}
     } elseif { $xDist == [expr 0 - $yDist] } {# then -x == y, so
-	# we are going from 3-5,5-3, or 7-5, 5-7
-	if {$xDist < 0} {# 3-5, or 5-7 
+	# we are going from 2-4,4-2, or 6-4, 4-6
+	if {$xDist < 0} {# 2-4, or 4-6 
 	    set dist [expr 0 - $xDist]
 	    set xPlus [expr 0 - $move_size]
 	    set yPlus $move_size
-	} else { # 5-3, or 7-5
+	} else { # 4-2, or 6-4
 	    set dist $xDist
 	    set xPlus $move_size
 	    set yPlus [expr 0 - $move_size]
@@ -307,7 +313,7 @@ proc slideAnimation { pieceToMove from to c} {
 	
 	}
     } else {
-	for {set i 0} {$i < $dist} {set i [expr $i + 30]} {
+	for {set i 0} {$i < $dist} {incr i 30} {
 
 	    $c move $pieceToMove $xPlus $yPlus
 	    update idletasks
@@ -319,54 +325,32 @@ proc slideAnimation { pieceToMove from to c} {
 }
 
 proc getXCoord {num} {
-    global x1 x2 x3 x4 x5 x6 x7 x8 x9
-    if { $num == 1 } {
-	return $x1
-    } elseif { $num == 2 } {
-	return $x2
-    } elseif { $num == 3 } {
-	return $x3
-    } elseif { $num == 4 } {
-	return $x4
-    } elseif { $num == 5 } {
-	return $x5
-    } elseif { $num == 6 } {
-	return $x6
-    } elseif { $num == 7 } {
-	return $x7
-    } elseif { $num == 8 } {
-	return $x8
-    } elseif { $num == 9 } {
-	return $x9
-    } else {
-	#puts {bad else: getXCoord}
-    }
+    global x0 x1 x2 x3 x4 x5 x6 x7 x8
+    if { $num == 0 } { return $x0 }
+    if { $num == 1 } { return $x1 }
+    if { $num == 2 } { return $x2 }
+    if { $num == 3 } { return $x3 }
+    if { $num == 4 } { return $x4 }
+    if { $num == 5 } { return $x5 }
+    if { $num == 6 } { return $x6 }
+    if { $num == 7 } { return $x7 }
+    if { $num == 8 } { return $x8 }
+    return $x0
 }
 
 proc getYCoord {num} {
-    global y1 y2 y3 y4 y5 y6 y7 y8 y9
+    global y0 y1 y2 y3 y4 y5 y6 y7 y8
 
-    if { $num == 1 } {
-	return $y1
-    } elseif { $num == 2 } {
-	return $y2
-    } elseif { $num == 3 } {
-	return $y3
-    } elseif { $num == 4 } {
-	return $y4
-    } elseif { $num == 5 } {
-	return $y5
-    } elseif { $num == 6 } {
-	return $y6
-    } elseif { $num == 7 } {
-	return $y7
-    } elseif { $num == 8 } {
-	return $y8
-    } elseif { $num == 9 } {
-	return $y9
-    } else {
-	#puts {bad else: getYCoord}
-    }
+    if { $num == 0 } { return $y0 }
+    if { $num == 1 } { return $y1 }
+    if { $num == 2 } { return $y2 }
+    if { $num == 3 } { return $y3 }
+    if { $num == 4 } { return $y4 }
+    if { $num == 5 } { return $y5 }
+    if { $num == 6 } { return $y6 }
+    if { $num == 7 } { return $y7 }
+    if { $num == 8 } { return $y8 }
+    return $y0
 }
 
 
@@ -375,7 +359,7 @@ proc expt { num1 exp } {
     if {$num1 == 0} {
 	return 0
     }
-    for {set i 0} {$i < $exp} {set i [expr $i + 1]} {
+    for {set i 0} {$i < $exp} {incr i} {
 	set ans [expr $ans * $num1]
     }
     return $ans
@@ -384,14 +368,18 @@ proc expt { num1 exp } {
 
 proc unhash { position } {
     set board {}
-    if {$position >= 19683} {
+    set NUM_POSITIONS 19683
+    # why is 19683 hardcoded????
+
+
+    if {$position >= $NUM_POSITIONS} {
 	lappend board x
-	set position [expr {$position - 19683}]
+	set position [expr {$position - $NUM_POSITIONS}]
     } else {
 	lappend board o
     }
 
-    for {set i 8} {$i >= 0} {set i [expr $i - 1]} {
+    for {set i 8} {$i >= 0} {incr i -1} {
 	set ifX [expr {2 * [expt 3 $i]}]
 	set ifO [expr {1 * [expt 3 $i]}]
 	if [expr {$position >= $ifX}] {
@@ -407,7 +395,7 @@ proc unhash { position } {
 
     #arrange board
     set orderedBoard [lindex $board 0]
-    for {set i 9} {$i >= 1} {set i [expr $i - 1]} {
+    for {set i 9} {$i >= 1} {incr i -1} {
         lappend orderedBoard [lindex $board $i] 
     }    
 
@@ -597,127 +585,136 @@ proc GS_Initialize { c } {
 
 proc makeBoard { c } {
     global dotgap dotmid
-    global x1 x2 x3 y1 y4 y7
+    global x0 x1 x2 y0 y3 y6
     global pieceSize pieceOutline xColor oColor pieceOffset
     global dotSize lineWidth lineColor baseColor base
-    global dotx1 dotx2 dotx3 doty1 doty2 doty3
-    global px1 px2 px3 py1 py2 py3
+    global dotx0 dotx1 dotx2 doty0 doty1 doty2
+    global px0 px1 px2 py0 py1 py2
     global horizArrows diagArrows vertArrows
     global canvasWidth canvasHeight
 
     ### undo text
-    $c create text 250 250 -text UNDO -font {Helvetica 80} -fill gray50 -tags undo
+    $c create text 250 250 -text UNDO -font {Helvetica 80} -fill gray40 -tags undo
 
 
     set base [$c create rectangle 0 0  $canvasWidth $canvasHeight -fill $baseColor -tag base];
 
     # horizontal lines
-    set topLeftHL  [$c create line $x1 $y1 $x2 $y1 -fill $lineColor -tags [list base line-12 line-21 line]];
-    set topRightHL [$c create line $x2 $y1 $x3 $y1 -fill $lineColor -tags [list base line-23 line-32 line]];
-    set midLeftHL  [$c create line $x1 $y4 $x2 $y4 -fill $lineColor -tags [list base line-45 line-54 line]];
-    set midRightHL [$c create line $x2 $y4 $x3 $y4 -fill $lineColor -tags [list base line-56 line-65 line]];
-    set botLeftHL  [$c create line $x1 $y7 $x2 $y7 -fill $lineColor -tags [list base line-78 line-87 line]];
-    set botRightHL [$c create line $x2 $y7 $x3 $y7 -fill $lineColor -tags [list base line-89 line-98 line]];
+    set topLeftHL  [$c create line $x0 $y0 $x1 $y0 -fill $lineColor -tags [list base line-01 line-10 line]];
+    set topRightHL [$c create line $x1 $y0 $x2 $y0 -fill $lineColor -tags [list base line-12 line-21 line]];
+    set midLeftHL  [$c create line $x0 $y3 $x1 $y3 -fill $lineColor -tags [list base line-34 line-43 line]];
+    set midRightHL [$c create line $x1 $y3 $x2 $y3 -fill $lineColor -tags [list base line-45 line-54 line]];
+    set botLeftHL  [$c create line $x0 $y6 $x1 $y6 -fill $lineColor -tags [list base line-67 line-76 line]];
+    set botRightHL [$c create line $x1 $y6 $x2 $y6 -fill $lineColor -tags [list base line-78 line-87 line]];
 
     # horizontal arrows
-    set arrow12 [$c create line $x1 $y1 [expr $x1 + 1.3 * $dotmid] $y1 -tags [list arrow-12 arrow]];
-    set arrow21 [$c create line $x2 $y1 [expr $x2 - 1.3 * $dotmid] $y1 -tags [list arrow-21 arrow]];
-    set arrow23 [$c create line $x2 $y1 [expr $x2 + 1.3 * $dotmid] $y1 -tags [list arrow-23 arrow]];
-    set arrow32 [$c create line $x3 $y1 [expr $x3 - 1.3 * $dotmid] $y1 -tags [list arrow-32 arrow]];
-    set arrow45 [$c create line $x1 $y4 [expr $x1 + 1.3 * $dotmid] $y4 -tags [list arrow-45 arrow]];
-    set arrow54 [$c create line $x2 $y4 [expr $x2 - 1.3 * $dotmid] $y4 -tags [list arrow-54 arrow]];
-    set arrow56 [$c create line $x2 $y4 [expr $x2 + 1.3 * $dotmid] $y4 -tags [list arrow-56 arrow]];
-    set arrow65 [$c create line $x3 $y4 [expr $x3 - 1.3 * $dotmid] $y4 -tags [list arrow-65 arrow]];
-    set arrow78 [$c create line $x1 $y7 [expr $x1 + 1.3 * $dotmid] $y7 -tags [list arrow-78 arrow]];
-    set arrow87 [$c create line $x2 $y7 [expr $x2 - 1.3 * $dotmid] $y7 -tags [list arrow-87 arrow]];
-    set arrow89 [$c create line $x2 $y7 [expr $x2 + 1.3 * $dotmid] $y7 -tags [list arrow-89 arrow]];
-    set arrow98 [$c create line $x3 $y7 [expr $x3 - 1.3 * $dotmid] $y7 -tags [list arrow-98 arrow]];
+    # top row
+    set arrow01 [$c create line $x0 $y0 [expr $x0 + 1.3 * $dotmid] $y0 -tags [list arrow-01 arrow]];
+    set arrow10 [$c create line $x1 $y0 [expr $x1 - 1.3 * $dotmid] $y0 -tags [list arrow-10 arrow]];
+    set arrow12 [$c create line $x1 $y0 [expr $x1 + 1.3 * $dotmid] $y0 -tags [list arrow-12 arrow]];
+    set arrow21 [$c create line $x2 $y0 [expr $x2 - 1.3 * $dotmid] $y0 -tags [list arrow-21 arrow]];
+    # middle row
+    set arrow34 [$c create line $x0 $y3 [expr $x0 + 1.3 * $dotmid] $y3 -tags [list arrow-34 arrow]];
+    set arrow43 [$c create line $x1 $y3 [expr $x1 - 1.3 * $dotmid] $y3 -tags [list arrow-43 arrow]];
+    set arrow45 [$c create line $x1 $y3 [expr $x1 + 1.3 * $dotmid] $y3 -tags [list arrow-45 arrow]];
+    set arrow54 [$c create line $x2 $y3 [expr $x2 - 1.3 * $dotmid] $y3 -tags [list arrow-54 arrow]];
+    # bottom row
+    set arrow67 [$c create line $x0 $y6 [expr $x0 + 1.3 * $dotmid] $y6 -tags [list arrow-67 arrow]];
+    set arrow76 [$c create line $x1 $y6 [expr $x1 - 1.3 * $dotmid] $y6 -tags [list arrow-76 arrow]];
+    set arrow78 [$c create line $x1 $y6 [expr $x1 + 1.3 * $dotmid] $y6 -tags [list arrow-78 arrow]];
+    set arrow87 [$c create line $x2 $y6 [expr $x2 - 1.3 * $dotmid] $y6 -tags [list arrow-87 arrow]];
 
     # vertical lines
     
-    set topLeftVL  [$c create line $x1 $y1 $x1 $y4 -fill $lineColor -tags [list base line-14 line-41 line]];
-    set topMidVL   [$c create line $x2 $y1 $x2 $y4 -fill $lineColor -tags [list base line-25 line-52 line]];
-    set topRightVL [$c create line $x3 $y1 $x3 $y4 -fill $lineColor -tags [list base line-36 line-63 line]];
-    set botLeftVL  [$c create line $x1 $y4 $x1 $y7 -fill $lineColor -tags [list base line-47 line-74 line]];
-    set botMidVL   [$c create line $x2 $y4 $x2 $y7 -fill $lineColor -tags [list base line-58 line-85 line]];
-    set botRightVL [$c create line $x3 $y4 $x3 $y7 -fill $lineColor -tags [list base line-69 line-96 line]];
+    set topLeftVL  [$c create line $x0 $y0 $x0 $y3 -fill $lineColor -tags [list base line-03 line-30 line]];
+    set topMidVL   [$c create line $x1 $y0 $x1 $y3 -fill $lineColor -tags [list base line-14 line-41 line]];
+    set topRightVL [$c create line $x2 $y0 $x2 $y3 -fill $lineColor -tags [list base line-25 line-52 line]];
+    set botLeftVL  [$c create line $x0 $y3 $x0 $y6 -fill $lineColor -tags [list base line-36 line-63 line]];
+    set botMidVL   [$c create line $x1 $y3 $x1 $y6 -fill $lineColor -tags [list base line-47 line-74 line]];
+    set botRightVL [$c create line $x2 $y3 $x2 $y6 -fill $lineColor -tags [list base line-58 line-85 line]];
 
     # vertical arrows
+    # left column
+    set arrow03 [$c create line $x0 $y0 $x0 [expr $y0 + 1.3 * $dotmid] -tags [list arrow-03 arrow]];
+    set arrow30 [$c create line $x0 $y3 $x0 [expr $y3 - 1.3 * $dotmid] -tags [list arrow-30 arrow]];
+    set arrow36 [$c create line $x0 $y3 $x0 [expr $y3 + 1.3 * $dotmid] -tags [list arrow-36 arrow]];
+    set arrow63 [$c create line $x0 $y6 $x0 [expr $y6 - 1.3 * $dotmid] -tags [list arrow-63 arrow]];    
+    # middle column
+    set arrow14 [$c create line $x1 $y0 $x1 [expr $y0 + 1.3 * $dotmid] -tags [list arrow-14 arrow]];
+    set arrow41 [$c create line $x1 $y3 $x1 [expr $y3 - 1.3 * $dotmid] -tags [list arrow-41 arrow]];    
+    set arrow47 [$c create line $x1 $y3 $x1 [expr $y3 + 1.3 * $dotmid] -tags [list arrow-47 arrow]];
+    set arrow74 [$c create line $x1 $y6 $x1 [expr $y6 - 1.3 * $dotmid] -tags [list arrow-74 arrow]];
+    # right column
+    set arrow25 [$c create line $x2 $y0 $x2 [expr $y0 + 1.3 * $dotmid] -tags [list arrow-25 arrow]];
+    set arrow52 [$c create line $x2 $y3 $x2 [expr $y3 - 1.3 * $dotmid] -tags [list arrow-52 arrow]];
+    set arrow58 [$c create line $x2 $y3 $x2 [expr $y3 + 1.3 * $dotmid] -tags [list arrow-58 arrow]];
+    set arrow85 [$c create line $x2 $y6 $x2 [expr $y6 - 1.3 * $dotmid] -tags [list arrow-85 arrow]];
 
-    set arrow14 [$c create line $x1 $y1 $x1 [expr $y1 + 1.3 * $dotmid] -tags [list arrow-14 arrow]];
-    set arrow41 [$c create line $x1 $y4 $x1 [expr $y4 - 1.3 * $dotmid] -tags [list arrow-41 arrow]];
-    set arrow25 [$c create line $x2 $y1 $x2 [expr $y1 + 1.3 * $dotmid] -tags [list arrow-25 arrow]];
-    set arrow52 [$c create line $x2 $y4 $x2 [expr $y4 - 1.3 * $dotmid] -tags [list arrow-52 arrow]];    
-    set arrow36 [$c create line $x3 $y1 $x3 [expr $y1 + 1.3 * $dotmid] -tags [list arrow-36 arrow]];
-    set arrow63 [$c create line $x3 $y4 $x3 [expr $y4 - 1.3 * $dotmid] -tags [list arrow-63 arrow]];
-    set arrow47 [$c create line $x1 $y4 $x1 [expr $y4 + 1.3 * $dotmid] -tags [list arrow-47 arrow]];
-    set arrow74 [$c create line $x1 $y7 $x1 [expr $y7 - 1.3 * $dotmid] -tags [list arrow-74 arrow]];    
-    set arrow58 [$c create line $x2 $y4 $x2 [expr $y4 + 1.3 * $dotmid] -tags [list arrow-58 arrow]];
-    set arrow85 [$c create line $x2 $y7 $x2 [expr $y7 - 1.3 * $dotmid] -tags [list arrow-85 arrow]];
-    set arrow69 [$c create line $x3 $y4 $x3 [expr $y4 + 1.3 * $dotmid] -tags [list arrow-69 arrow]];
-    set arrow96 [$c create line $x3 $y7 $x3 [expr $y7 - 1.3 * $dotmid] -tags [list arrow-96 arrow]];
+    # Diagonal Lines - display these conditionally
+    # traditional diagonals
+    set topLeftLDL  [$c create line $x0 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-04 line-40]];
+    set topRightRDL [$c create line $x2 $y0 $x1 $y3 -fill $lineColor -tags [list base line line-24 line-42]];
+    set botLeftRDL  [$c create line $x1 $y3 $x0 $y6 -fill $lineColor -tags [list base line line-46 line-64]];
+    set botRightLDL [$c create line $x1 $y3 $x2 $y6 -fill $lineColor -tags [list base line line-48 line-84]];
 
-    # Diagonal Lines
-    set topLeftLDL  [$c create line $x1 $y1 $x2 $y4 -fill $lineColor -tags [list base line line-15 line-51]];
-#    set topLeftRDL  [$c create line $x2 $y1 $x1 $y4 -fill $lineColor -tags [list base line line-24 line-42]];
- #   set topRightLDL [$c create line $x2 $y1 $x3 $y4 -fill $lineColor -tags [list base line line-26 line-62]];
-    set topRightRDL [$c create line $x3 $y1 $x2 $y4 -fill $lineColor -tags [list base line line-35 line-53]];
-  #  set botLeftLDL  [$c create line $x1 $y4 $x2 $y7 -fill $lineColor -tags [list base line line-48 line-84]];
-    set botLeftRDL  [$c create line $x2 $y4 $x1 $y7 -fill $lineColor -tags [list base line line-57 line-75]];
-    set botRightLDL [$c create line $x2 $y4 $x3 $y7 -fill $lineColor -tags [list base line line-59 line-95]];
-   # set botRightRDL [$c create line $x3 $y4 $x2 $y7 -fill $lineColor -tags [list base line line-68 line-86]];
+
+    # full diagonals
+#     set topLeftRDL  [$c create line $x1 $y0 $x0 $y3 -fill $lineColor -tags [list base line line-13 line-31]];
+#     set topRightLDL [$c create line $x1 $y0 $x2 $y3 -fill $lineColor -tags [list base line line-15 line-51]];
+#     set botLeftLDL  [$c create line $x0 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-37 line-73]];
+#     set botRightRDL [$c create line $x2 $y3 $x1 $y6 -fill $lineColor -tags [list base line line-57 line-75]];
 
     # diagonal arrows - forward slashes
-    set arrow15 [$c create line $x1 $y1 [expr $x1 + $dotmid] [expr $y1 + $dotmid] -tags [list arrow-15 arrow]];
-    set arrow51 [$c create line $x2 $y4 [expr $x2 - $dotmid] [expr $y4 - $dotmid] -tags [list arrow-51 arrow]];
-    set arrow26 [$c create line $x2 $y1 [expr $x2 + $dotmid] [expr $y1 + $dotmid] -tags [list arrow-26 arrow]];
-    set arrow62 [$c create line $x3 $y4 [expr $x3 - $dotmid] [expr $y4 - $dotmid] -tags [list arrow-62 arrow]];
-    set arrow48 [$c create line $x1 $y4 [expr $x1 + $dotmid] [expr $y4 + $dotmid] -tags [list arrow-48 arrow]];
-    set arrow84 [$c create line $x2 $y7 [expr $x2 - $dotmid] [expr $y7 - $dotmid] -tags [list arrow-84 arrow]];
-    set arrow59 [$c create line $x2 $y4 [expr $x2 + $dotmid] [expr $y4 + $dotmid] -tags [list arrow-59 arrow]];
-    set arrow95 [$c create line $x3 $y7 [expr $x3 - $dotmid] [expr $y7 - $dotmid] -tags [list arrow-95 arrow]];
+    set arrow04 [$c create line $x0 $y0 [expr $x0 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-04 arrow]];
+    set arrow40 [$c create line $x1 $y3 [expr $x1 - $dotmid] [expr $y3 - $dotmid] -tags [list arrow-40 arrow]];
+    set arrow15 [$c create line $x1 $y0 [expr $x1 + $dotmid] [expr $y0 + $dotmid] -tags [list arrow-15 arrow]];
+    set arrow51 [$c create line $x2 $y3 [expr $x2 - $dotmid] [expr $y3 - $dotmid] -tags [list arrow-51 arrow]];
+    set arrow37 [$c create line $x0 $y3 [expr $x0 + $dotmid] [expr $y3 + $dotmid] -tags [list arrow-37 arrow]];
+    set arrow73 [$c create line $x1 $y6 [expr $x1 - $dotmid] [expr $y6 - $dotmid] -tags [list arrow-73 arrow]];
+    set arrow48 [$c create line $x1 $y3 [expr $x1 + $dotmid] [expr $y3 + $dotmid] -tags [list arrow-48 arrow]];
+    set arrow84 [$c create line $x2 $y6 [expr $x2 - $dotmid] [expr $y6 - $dotmid] -tags [list arrow-84 arrow]];
 
     # diagonal arrows - back slashes
-    set arrow24 [$c create line $x2 $y1 [expr $x2 - $dotmid] [expr $y1 + $dotmid] -tags [list arrow-24 arrow]];
-    set arrow42 [$c create line $x1 $y4 [expr $x1 + $dotmid] [expr $y4 - $dotmid] -tags [list arrow-42 arrow]];
-    set arrow35 [$c create line $x3 $y1 [expr $x3 - $dotmid] [expr $y1 + $dotmid] -tags [list arrow-35 arrow]];
-    set arrow53 [$c create line $x2 $y4 [expr $x2 + $dotmid] [expr $y4 - $dotmid] -tags [list arrow-53 arrow]];
-    set arrow57 [$c create line $x2 $y4 [expr $x2 - $dotmid] [expr $y4 + $dotmid] -tags [list arrow-57 arrow]];
-    set arrow75 [$c create line $x1 $y7 [expr $x1 + $dotmid] [expr $y7 - $dotmid] -tags [list arrow-75 arrow]];
-    set arrow68 [$c create line $x3 $y4 [expr $x3 - $dotmid] [expr $y4 + $dotmid] -tags [list arrow-68 arrow]];
-    set arrow86 [$c create line $x2 $y7 [expr $x2 + $dotmid] [expr $y7 - $dotmid] -tags [list arrow-86 arrow]];    
+    set arrow13 [$c create line $x1 $y0 [expr $x1 - $dotmid] [expr $y0 + $dotmid] -tags [list arrow-13 arrow]];
+    set arrow31 [$c create line $x0 $y3 [expr $x0 + $dotmid] [expr $y3 - $dotmid] -tags [list arrow-31 arrow]];
+    set arrow24 [$c create line $x2 $y0 [expr $x2 - $dotmid] [expr $y0 + $dotmid] -tags [list arrow-24 arrow]];
+    set arrow42 [$c create line $x1 $y3 [expr $x1 + $dotmid] [expr $y3 - $dotmid] -tags [list arrow-42 arrow]];
+    set arrow46 [$c create line $x1 $y3 [expr $x1 - $dotmid] [expr $y3 + $dotmid] -tags [list arrow-46 arrow]];
+    set arrow64 [$c create line $x0 $y6 [expr $x0 + $dotmid] [expr $y6 - $dotmid] -tags [list arrow-64 arrow]];
+    set arrow57 [$c create line $x2 $y3 [expr $x2 - $dotmid] [expr $y3 + $dotmid] -tags [list arrow-57 arrow]];
+    set arrow75 [$c create line $x1 $y6 [expr $x1 + $dotmid] [expr $y6 - $dotmid] -tags [list arrow-75 arrow]];    
     
 
     # Dots for place moves at intersections
-    set placeMove1 [$c create oval $dotx1 $doty1 [expr $dotx1 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-1]];
-    set placeMove2 [$c create oval $dotx2 $doty1 [expr $dotx2 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-2]];
-    set placeMove3 [$c create oval $dotx3 $doty1 [expr $dotx3 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-3]];
-    set placeMove4 [$c create oval $dotx1 $doty2 [expr $dotx1 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-4]];
-    set placeMove5 [$c create oval $dotx2 $doty2 [expr $dotx2 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-5]];
-    set placeMove6 [$c create oval $dotx3 $doty2 [expr $dotx3 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-6]];
-    set placeMove7 [$c create oval $dotx1 $doty3 [expr $dotx1 + $dotSize] [expr $doty3 + $dotSize]  -tags [list placeDots place-7]];
-    set placeMove8 [$c create oval $dotx2 $doty3 [expr $dotx2 + $dotSize] [expr $doty3 + $dotSize]  -tags [list placeDots place-8]];
-    set placeMove9 [$c create oval $dotx3 $doty3 [expr $dotx3 + $dotSize] [expr $doty3 + $dotSize]  -tags [list placeDots place-9]];
+    set placeMove0 [$c create oval $dotx0 $doty0 [expr $dotx0 + $dotSize] [expr $doty0 + $dotSize]  -tags [list placeDots place-0]];
+    set placeMove1 [$c create oval $dotx1 $doty0 [expr $dotx1 + $dotSize] [expr $doty0 + $dotSize]  -tags [list placeDots place-1]];
+    set placeMove2 [$c create oval $dotx2 $doty0 [expr $dotx2 + $dotSize] [expr $doty0 + $dotSize]  -tags [list placeDots place-2]];
+    set placeMove3 [$c create oval $dotx0 $doty1 [expr $dotx0 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-3]];
+    set placeMove4 [$c create oval $dotx1 $doty1 [expr $dotx1 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-4]];
+    set placeMove5 [$c create oval $dotx2 $doty1 [expr $dotx2 + $dotSize] [expr $doty1 + $dotSize]  -tags [list placeDots place-5]];
+    set placeMove6 [$c create oval $dotx0 $doty2 [expr $dotx0 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-6]];
+    set placeMove7 [$c create oval $dotx1 $doty2 [expr $dotx1 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-7]];
+    set placeMove8 [$c create oval $dotx2 $doty2 [expr $dotx2 + $dotSize] [expr $doty2 + $dotSize]  -tags [list placeDots place-8]];
 
     # Dots at intersections
-    set topLeftDot  [$c create oval $dotx1 $doty1 [expr $dotx1 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-1]];
-    set topMidDot   [$c create oval $dotx2 $doty1 [expr $dotx2 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-2]];
-    set topRightDot [$c create oval $dotx3 $doty1 [expr $dotx3 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-3]];
-    set midLeftDot  [$c create oval $dotx1 $doty2 [expr $dotx1 + $dotSize] [expr $doty2 + $dotSize]  -tags [list base dot-4]];
-    set midMidDot   [$c create oval $dotx2 $doty2 [expr $dotx2 + $dotSize] [expr $doty2 + $dotSize]  -tags [list base dot-5]];
-    set midRightDot [$c create oval $dotx3 $doty2 [expr $dotx3 + $dotSize] [expr $doty2 + $dotSize]  -tags [list base dot-6]];
-    set botLeftDot  [$c create oval $dotx1 $doty3 [expr $dotx1 + $dotSize] [expr $doty3 + $dotSize]  -tags [list base dot-7]];
-    set botMidDot   [$c create oval $dotx2 $doty3 [expr $dotx2 + $dotSize] [expr $doty3 + $dotSize]  -tags [list base dot-8]];
-    set botRightDot [$c create oval $dotx3 $doty3 [expr $dotx3 + $dotSize] [expr $doty3 + $dotSize] -tags [list base dot-9]];
+    set topLeftDot  [$c create oval $dotx0 $doty0 [expr $dotx0 + $dotSize] [expr $doty0 + $dotSize]  -tags [list base dot-0]];
+    set topMidDot   [$c create oval $dotx1 $doty0 [expr $dotx1 + $dotSize] [expr $doty0 + $dotSize]  -tags [list base dot-1]];
+    set topRightDot [$c create oval $dotx2 $doty0 [expr $dotx2 + $dotSize] [expr $doty0 + $dotSize]  -tags [list base dot-2]];
+    set midLeftDot  [$c create oval $dotx0 $doty1 [expr $dotx0 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-3]];
+    set midMidDot   [$c create oval $dotx1 $doty1 [expr $dotx1 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-4]];
+    set midRightDot [$c create oval $dotx2 $doty1 [expr $dotx2 + $dotSize] [expr $doty1 + $dotSize]  -tags [list base dot-5]];
+    set botLeftDot  [$c create oval $dotx0 $doty2 [expr $dotx0 + $dotSize] [expr $doty2 + $dotSize]  -tags [list base dot-6]];
+    set botMidDot   [$c create oval $dotx1 $doty2 [expr $dotx1 + $dotSize] [expr $doty2 + $dotSize]  -tags [list base dot-7]];
+    set botRightDot [$c create oval $dotx2 $doty2 [expr $dotx2 + $dotSize] [expr $doty2 + $dotSize] -tags [list base dot-8]];
     
     # create bindings for dots:
 
-    for {set i 1} {$i <= 9} {incr i} {
+    for {set i 0} {$i < 9} {incr i} {
 	$c itemconfig dot-$i -fill $lineColor
 	$c itemconfig dot-$i -outline $lineColor -width 0
     }
 
-    for {set i 1} {$i <= 9} {incr i} {
+    for {set i 0} {$i < 9} {incr i} {
 	$c itemconfig place-$i -fill $lineColor
 	$c itemconfig place-$i -outline $lineColor -width 0
 	$c bind place-$i <ButtonRelease-1> "ReturnFromHumanMove $i"
@@ -726,25 +723,25 @@ proc makeBoard { c } {
     }
 
     # Pieces at intersections
-    set piecex1 [$c create oval $px1 $py1 [expr $px1 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-1]];
-    set piecex2 [$c create oval $px2 $py1 [expr $px2 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-2]];
-    set piecex3 [$c create oval $px3 $py1 [expr $px3 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-3]];
-    set piecex4 [$c create oval $px1 $py2 [expr $px1 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-4]];
-    set piecex5 [$c create oval $px2 $py2 [expr $px2 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-5]];
-    set piecex6 [$c create oval $px3 $py2 [expr $px3 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-6]];
-    set piecex7 [$c create oval $px1 $py3 [expr $px1 + $pieceSize] [expr $py3 + $pieceSize] -fill $xColor -tags [list piece x-7]];
-    set piecex8 [$c create oval $px2 $py3 [expr $px2 + $pieceSize] [expr $py3 + $pieceSize] -fill $xColor -tags [list piece x-8]];
-    set piecex9 [$c create oval $px3 $py3 [expr $px3 + $pieceSize] [expr $py3 + $pieceSize] -fill $xColor -tags [list piece x-9]];
+    set piecex0 [$c create oval $px0 $py0 [expr $px0 + $pieceSize] [expr $py0 + $pieceSize] -fill $xColor -tags [list piece x-0]];
+    set piecex1 [$c create oval $px1 $py0 [expr $px1 + $pieceSize] [expr $py0 + $pieceSize] -fill $xColor -tags [list piece x-1]];
+    set piecex2 [$c create oval $px2 $py0 [expr $px2 + $pieceSize] [expr $py0 + $pieceSize] -fill $xColor -tags [list piece x-2]];
+    set piecex3 [$c create oval $px0 $py1 [expr $px0 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-3]];
+    set piecex4 [$c create oval $px1 $py1 [expr $px1 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-4]];
+    set piecex5 [$c create oval $px2 $py1 [expr $px2 + $pieceSize] [expr $py1 + $pieceSize] -fill $xColor -tags [list piece x-5]];
+    set piecex6 [$c create oval $px0 $py2 [expr $px0 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-6]];
+    set piecex7 [$c create oval $px1 $py2 [expr $px1 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-7]];
+    set piecex8 [$c create oval $px2 $py2 [expr $px2 + $pieceSize] [expr $py2 + $pieceSize] -fill $xColor -tags [list piece x-8]];
    
-    set pieceo1 [$c create oval $px1 $py1 [expr $px1 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-1]];
-    set pieceo2 [$c create oval $px2 $py1 [expr $px2 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-2]];
-    set pieceo3 [$c create oval $px3 $py1 [expr $px3 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-3]];
-    set pieceo4 [$c create oval $px1 $py2 [expr $px1 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-4]];
-    set pieceo5 [$c create oval $px2 $py2 [expr $px2 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-5]];
-    set pieceo6 [$c create oval $px3 $py2 [expr $px3 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-6]];
-    set pieceo7 [$c create oval $px1 $py3 [expr $px1 + $pieceSize] [expr $py3 + $pieceSize] -fill $oColor -tags [list piece o-7]];
-    set pieceo8 [$c create oval $px2 $py3 [expr $px2 + $pieceSize] [expr $py3 + $pieceSize] -fill $oColor -tags [list piece o-8]];
-    set pieceo9 [$c create oval $px3 $py3 [expr $px3 + $pieceSize] [expr $py3 + $pieceSize] -fill $oColor -tags [list piece o-9]];
+    set pieceo0 [$c create oval $px0 $py0 [expr $px0 + $pieceSize] [expr $py0 + $pieceSize] -fill $oColor -tags [list piece o-0]];
+    set pieceo1 [$c create oval $px1 $py0 [expr $px1 + $pieceSize] [expr $py0 + $pieceSize] -fill $oColor -tags [list piece o-1]];
+    set pieceo2 [$c create oval $px2 $py0 [expr $px2 + $pieceSize] [expr $py0 + $pieceSize] -fill $oColor -tags [list piece o-2]];
+    set pieceo3 [$c create oval $px0 $py1 [expr $px0 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-3]];
+    set pieceo4 [$c create oval $px1 $py1 [expr $px1 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-4]];
+    set pieceo5 [$c create oval $px2 $py1 [expr $px2 + $pieceSize] [expr $py1 + $pieceSize] -fill $oColor -tags [list piece o-5]];
+    set pieceo6 [$c create oval $px0 $py2 [expr $px0 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-6]];
+    set pieceo7 [$c create oval $px1 $py2 [expr $px1 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-7]];
+    set pieceo8 [$c create oval $px2 $py2 [expr $px2 + $pieceSize] [expr $py2 + $pieceSize] -fill $oColor -tags [list piece o-8]];
     
     ## change the widths of the lines to $lineWidth
     
@@ -819,8 +816,8 @@ proc GS_DrawPosition { c position } {
     set boardList [unhash $position]
 
     $c raise base all
-    for {set i 1} {$i <= 9} {set i [expr $i + 1]} {
-	set posi [lindex $boardList $i]
+    for {set i 0} {$i < 9} {incr i} {
+	set posi [lindex $boardList [expr $i + 1]] ;# pieces start at index 1 in position
 	if { $posi == 1 } {
 	    $c raise o-$i base
 	} elseif { $posi == 2 } {
@@ -828,9 +825,6 @@ proc GS_DrawPosition { c position } {
 	}
     }
 }
-
-
-
 
 # GS_NewGame should start playing the game. "let's play"  :)
 # It's arguments are a canvas, c, where you should draw and
@@ -935,6 +929,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
     } elseif { [expr $theMove > 9 && $theMove < 100] } {
 	#puts {do a rearranger move}
+        set theMove [expr $theMove - 11]
 	set from [expr $theMove / 10]
 	set to   [expr $theMove % 10]
 	# animate the old piece to the new position, after this is called
@@ -950,7 +945,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 
 
-# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
+# GS_ShowMoves
+# draws the move indicator (be it an arrow or a dot, whatever the
 # player clicks to make the move)  It is also the function that handles coloring
 # of the moves according to value. It is called by gamesman just before the player
 # is prompted for a move.
@@ -976,7 +972,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
-	    } elseif {$value == "Lose"} {
+	    } elseif {$value == "Lose"} { ;# lose for opponent, win for you
 		set color green
 	    } else {
 		set color red4
@@ -987,6 +983,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    $c itemconfig place-$move -fill $color -outline $color
 	    $c raise place-$move base
 	} else {
+            set move [expr $move - 11]
 	    $c itemconfig arrow-$move -fill $color
 	    $c bind arrow-$move <Leave> "SetColour $c arrow-$move $color"
 	    $c raise arrow-$move base
@@ -996,11 +993,9 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 }
 
-
-
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the same as GS_ShowMoves.
 # You might not use all the arguments, and that's okay.
-
+# c: the canvas
 proc GS_HideMoves { c moveType position moveList} {
     global lineWidth lineColor
 
@@ -1016,10 +1011,8 @@ proc GS_HideMoves { c moveType position moveList} {
     update idletasks
 }
 
-
-
-# GS_HandleUndo draws a move undoing itself sortof.
-# the names of the arguments explain themsleves but just to clarify...
+# GS_HandleUndo
+# draws a move undoing itself sortof.
 # The game was in position A, a player makes move M bringing the game to position B
 # then an undo is called
 # currentPosition is the B
@@ -1041,6 +1034,7 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     if { [expr $theMoveToUndo < 10] } {
 	$c lower $whoseTurn-$theMoveToUndo base
     } elseif { [expr $theMoveToUndo > 9 && $theMoveToUndo < 100] } {
+        set $theMoveToUndo [expr $theMoveToUndo - 11]
 	#puts {do a rearranger move}
 	set to [expr $theMoveToUndo / 10]
 	set from   [expr $theMoveToUndo % 10]
@@ -1073,79 +1067,61 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != x or o"
     }
 
-    set p {1 3}
-    # win on the top row
-    if {[lindex $board 1] == $winner && [lindex $board 2] == $winner && [lindex $board 3] == $winner} {
-	set p {1 3}
-    }
-    # win on the middle row
-    if {[lindex $board 4] == $winner && [lindex $board 5] == $winner && [lindex $board 6] == $winner} {
-	set p {4 6}
-    }
-    # win on the bottom row
-    if {[lindex $board 7] == $winner && [lindex $board 8] == $winner && [lindex $board 9] == $winner} {
-	set p {7 9}
-    }    
-    # win on the first column
-    if {[lindex $board 1] == $winner && [lindex $board 4] == $winner && [lindex $board 7] == $winner} {
-	set p {1 7}
-    }
-    # win on the middle column
-    if {[lindex $board 2] == $winner && [lindex $board 5] == $winner && [lindex $board 8] == $winner} {
-	set p {2 8}
-    }
-    # win on the right column
-    if {[lindex $board 3] == $winner && [lindex $board 6] == $winner && [lindex $board 9] == $winner} {
-	set p {3 9}
-    }
-    # win on the left diagonal
-    if {[lindex $board 1] == $winner && [lindex $board 5] == $winner && [lindex $board 9] == $winner} {
-	set p {1 9}
-    }
-    # win on the right diagonal 
-    if {[lindex $board 3] == $winner && [lindex $board 5] == $winner && [lindex $board 7] == $winner} {
-	set p {3 7}
-    }
+    set p {1 3} ;# default value, will be overwritten
+
+    # horizontal wins
+    # top row
+    if { [isThreeInRow $board $winner 0 1 2] } { set p {0 2}}
+    # middle row
+    if { [isThreeInRow $board $winner 3 4 5] } { set p {3 5}}
+    # bottom row
+    if { [isThreeInRow $board $winner 6 7 8] } { set p {6 8}}
+
+    # vertical wins
+    # left column
+    if { [isThreeInRow $board $winner 0 3 6] } { set p {0 6}}
+    # middle column
+    if { [isThreeInRow $board $winner 1 4 7] } { set p {1 7}}
+    # right column
+    if { [isThreeInRow $board $winner 2 5 8] } { set p {2 8}}
+
+    # diagonal win
+    # "\" 
+    if { [isThreeInRow $board $winner 0 4 8] } { set p {0 8}}
+    # "/"
+    if { [isThreeInRow $board $winner 2 4 6] } { set p {2 6}}
 
     set startx [getXCoord [lindex $p 0]]
     set starty [getYCoord [lindex $p 0]] 
     set endx [getXCoord [lindex $p 1]] 
     set endy [getYCoord [lindex $p 1]]     
 
-    $c create line $startx $starty $endx $endy -fill gray80 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
+    # setup is complete, now display the graphics
+    $c create line $startx $starty $endx $endy -fill gray70 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
 
     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
     $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
 
 }
 
-# proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+# isThreeInRow
+# called by GS_GameOver when winner wins the game
+# determines whether winner has a three-in-a-row on pos1, pos2, pos3
+proc isThreeInRow { board winner pos1 pos2 pos3 } {
+    if {[lindex $board [expr $pos1 + 1]] == $winner &&
+        [lindex $board [expr $pos2 + 1]] == $winner &&
+        [lindex $board [expr $pos3 + 1]] == $winner} {
+        return 1
+    } else {
+        return 0
+    }
+}
 
-#     $c create text 250 200 -text "$nameOfWinner" -font {Helvetica 90} -fill white -tags winner
-#     $c create text 250 320 -text "WINS!"         -font {Helvetica 90} -fill white -tags winner
-#     for {set i 0} {$i < 2} {incr i} {
-# 	$c raise winner
-# 	update idletasks
-# 	set next_time [expr [clock clicks] + 500000]
-# 	while {$next_time > [clock clicks]} {
-# 	    # spin wait
-# 	}
-# 	$c lower winner base
-# 	update idletasks
-# 	set next_time [expr [clock clicks] + 500000]
-# 	while {$next_time > [clock clicks]} {
-# 	    # spin wait
-# 	}
-#     } 
-
-#     $c raise winner
-# }
-
-
-# GS_UndoGameOver is called then the player hits undo after the game is finished.
-# this is provided so that you may undo the drawing you did in GS_GameOver if you drew something.
-# for instance, if you drew a line crossing out the winning row in tic tac toe, this is where you sould delete the line.
-
+# GS_UndoGameOver
+# called when the player hits undo after the game is finished.
+# undoes any drawing done GS_GameOver
+# eg. if a line was drawn crossing out the winning row in tic tac toe, delete it
+#
 # note: GS_HandleUndo is called regardless of whether the move undoes the end of the game, so IF you choose to do nothing in
 # GS_GameOver, you needn't do anything here either.
 
@@ -1220,3 +1196,24 @@ proc start_animation { c } {
 
 }
 
+# proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+
+#     $c create text 250 200 -text "$nameOfWinner" -font {Helvetica 90} -fill white -tags winner
+#     $c create text 250 320 -text "WINS!"         -font {Helvetica 90} -fill white -tags winner
+#     for {set i 0} {$i < 2} {incr i} {
+# 	$c raise winner
+# 	update idletasks
+# 	set next_time [expr [clock clicks] + 500000]
+# 	while {$next_time > [clock clicks]} {
+# 	    # spin wait
+# 	}
+# 	$c lower winner base
+# 	update idletasks
+# 	set next_time [expr [clock clicks] + 500000]
+# 	while {$next_time > [clock clicks]} {
+# 	    # spin wait
+# 	}
+#     } 
+
+#     $c raise winner
+# }
