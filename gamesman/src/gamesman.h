@@ -134,25 +134,6 @@ extern FRnode *gTailLoseFR;
 extern POSITIONLIST **gParents;         /* The Parent of each node in a list */
 // End for loopy games
 
-//// From here, Atilla's Game Code ...
-
-int generic_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxXs);
-int generic_hash(char* board);
-BOOLEAN generic_unhash(int hashed, char* dest);
-
-int dartboard_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxXs);
-int dartboard_hash(char* board);
-BOOLEAN dartboard_unhash(int hashed, char* dest);
-
-int rearranger_hash_init(int boardsize, int numOs, int numXs);
-int rearranger_hash(char* board);
-BOOLEAN rearranger_unhash(int hashed, char* dest);
-
-int nCr(int n, int r);
-void nCr_init();
-
-//// END ATILLA ..
-
 #include "tcl.h"
 #include "tk.h"
 
