@@ -1,0 +1,87 @@
+Generic Hash API
+====================================================================================
+Required Files:
+hash.h
+hash.c
+====================================================================================
+Functions in Required Files:
+
+####################################################################################
+int generic_hash_init(int boardsize, int pieces_array[], int *vcfg_function_ptr)
+####################################################################################
+boardsize is the length of the game board. Positive integer value only.
+
+In tic-tac-toe, for example, boardsize = 9.
+------------------------------------------------------------------------------------
+pieces_array[] is an array of the form {p_1, L_1, U_1, p_2, L_2, U_2, ... , p_n, L_n, U_n, -1} where:
+the p_i's are the characters associated with the pieces (including blanks)
+the L_i's are the minimum allowable number of occurrences of each piece type on the board.
+the U_i's are the maximum allowable number of occurrences of each piece type on the board.
+The -1 is used to mark the end of the array.
+
+In tic-tac-toe, this array is:
+{'o', 0, 4, 'x', 0, 5, '-', 0, 9, -1}
+provided that player 'x' moves first.
+There are at least 0 'o's on the board (this can occur on a totally empty board, or when 'x' has made 1 move).
+There are at least 0 'x's on the board (this occurs on a totally empty board).
+There are at most 4 'o's on the board (this can occur on a board that's full or that has one blank square).
+There are at most 5 'x's on the board (this occurs on a totally full board).
+Blank '-' occurrences range from 0 (full board) to 9 (empty board).
+------------------------------------------------------------------------------------
+*vcfg_function_ptr is a pointer to a function vcfg described in its own section below.
+Most users may set this argument to NULL.
+------------------------------------------------------------------------------------
+#RETURN# the number of different possible boards. (I'll refer to this as "maxpos")
+
+
+####################################################################################
+int generic_hash(char *board)
+####################################################################################
+board is any valid physical board, represented as an array.
+(No error-checking is done on the board, so if you enter a bad board, it messes up)
+------------------------------------------------------------------------------------
+#RETURN# the hash value of board
+
+
+####################################################################################
+# char *generic_unhash(int hash_number, char *empty_board)
+####################################################################################
+0 <= hash_number < maxpos.
+length of empty_board is boardsize
+The contents of the board whose index is hash_number are stored in empty_board.
+------------------------------------------------------------------------------------
+#RETURN# empty_board
+
+
+####################################################################################
+void freeAll()
+####################################################################################
+Frees all the (possibly enormous) memory used by the hash function.
+Call this at a point when you have no further use for the hash function.
+
+
+====================================================================================
+Functions That The User May Need To Write:
+
+
+####################################################################################
+int vcfg(int *this_cfg)
+####################################################################################
+this_cfg[i] counts number of occurrences of the i-th piece in this configuration.
+------------------------------------------------------------------------------------
+#RETURN# 1 if this configuration is "valid", 0 otherwise.
+------------------------------------------------------------------------------------
+Most users will not need to write this function, and instead set the third argument of generic_hash_init to NULL.
+This feature is necessary if the user needs extra optimizations like "dartboard hash".
+
+If, for example, the user needs a dartboard hash for tic-tac-toe, here is one way to write it:
+
+int vcfg(int *this_cfg)
+{
+/* if number of 'o's is equal to or one less than number of 'x's then this configuration is valid */
+if ((this_cfg[0] == thiscfg[1]) || ((this_cfg[0] + 1) == thiscfg[1])) return 1;
+return 0;
+}
+------------------------------------------------------------------------------------
+
+end of Generic Hash API

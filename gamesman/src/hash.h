@@ -8,6 +8,7 @@
 int DEBUG;
 int DEBUG2;
 int DEBUG3;
+int DEBUG4;
 
 /*globals*/
 int TERM;
@@ -46,17 +47,15 @@ int combiCount(int* tc);
 void printStats ();
 void printAr(int* a);
 void printcAr(char* a);
-int hash_cruncher (char* board, int boardsize, int* thiscount, int* 
-local_mins);
-void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, 
-int* local_mins);
+int hash_cruncher (char* board, int boardsize, int* thiscount, int* local_mins);
+void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int* local_mins);
+int getPieceParams (int pa[], char *pi, int *mi, int *ma);
 
-int generic_hash_init(int boardsize, int*);
+int generic_hash_init(int boardsize, int[], int (*fn)(int *));
 int generic_hash(char* board);
 char* generic_unhash(int hashed, char* dest);
 
-void dartboard_hash_init(int boardsize, int minOs, int maxOs, int minXs, int 
-maxXs);
+void dartboard_hash_init(int boardsize, int minOs, int maxOs, int minXs, int maxXs);
 int dartboard_hash(char* board);
 char* dartboard_unhash(int hashed, char* dest);
 
@@ -70,7 +69,6 @@ void nCr_init(int a);
 int* gpd (int n);
 int gpi (int n);
 int* gPieceDist (int i);
-
 
 
 

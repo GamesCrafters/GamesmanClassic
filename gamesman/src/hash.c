@@ -11,62 +11,42 @@
 
 int DEBUG = 0;
 int DEBUG2 = 0;
-int DEBUG3 = 0;
+int DEBUG3 = 1;
+int DEBUG4 = 0;
 int TERM = -1;
 int cTERM = 0;
 int MAX_PIECES = 50;
 int MAX_MAXES = 50;
+int (*gfn)(int *);
 
-
-
+/* frees up memory when hash/unhash is no longer needed */
 void freeAll()
 {
     if (DEBUG2) printf("-=0");
-    free(newcount); if (DEBUG2) printf("a"); //-
+    free(newcount); if (DEBUG2) printf("a");
     free(thiscount); if (DEBUG2) printf("b");
     free(local_mins); if (DEBUG2) printf("c");
     free(miniOffset); if (DEBUG2) printf("d");
     free(miniIndices); if (DEBUG2) printf("e");
-
 	free(gHashOffset); if (DEBUG2) printf("1");
 	free(gOffsetIndices);  if (DEBUG2) printf("2");
 	free(gNCR);    if (DEBUG2) printf("3");
-
 	free(gFACTORIAL);  if (DEBUG2) printf("4");
     free(gpd_store); if (DEBUG2) printf("5");
 	free(gPieceIndices);   if (DEBUG2) printf("6");
-
 	free(pieces);    if (DEBUG2) printf("7");
 	free(mins);    if (DEBUG2) printf("8");
 	free(maxs);   if (DEBUG2) printf("9");
 	free(nums);     if (DEBUG2) printf("f=-");
 }
 
-
-int dartboard_condition(int *t)
-{
-	int i, ans = 1, dif, ch = 0;
-	for (i = 0; i < num_pieces - 2;i++) /* last piece is a blank */
-	{
-		dif = t[i] - t[i+1];
-		ans &= (dif >= 0 && dif <= 1);
-		if (dif == 1) ch++;
-		if (ch > 1) return 0;
-	}
-	return ans;
-}
-
 /* determines if a piece distribution is valid or not.
-   t[i] denotes the number of occurrences of the ith piece in this 
-cofiguration
+   t[i] denotes the number of occurrences of the ith piece in this cofiguration
    */
 int validConfig(int *t)
 {
-	/*********************/
-	/* CHANGE IF DESIRED */
-	/*********************/
-	int user_defined_condition = 1;/*dartboard_condition(t);*/
-	return user_defined_condition;
+	int cond = (gfn == NULL)? 1 : gfn(t);
+	return cond;
 }
 
 
@@ -86,8 +66,7 @@ int searchOffset(int h)
 	return i;
 }
 
-/* helper function used to find n choose (t1,t2,t3,...,tn) where the ti's 
-are
+/* helper function used to find n choose (t1,t2,t3,...,tn) where the ti's are
    the members of *tc */
 int combiCount(int* tc)
 {
@@ -152,8 +131,7 @@ void printcAr(char* a)
 
 /* helper func from generic_unhash() computes lexicographic rank of *board
    among boards with the same configuration argument *thiscount */
-int hash_cruncher (char* board, int boardsize, int* thiscount, int* 
-local_mins)
+int hash_cruncher (char* board, int boardsize, int* thiscount, int* local_mins)
 {
 	int i = 0, sum = 0, k = 0, max1 = 0;
 
@@ -192,17 +170,14 @@ local_mins)
 	return sum + hash_cruncher(board, boardsize - 1, newcount, local_mins);
 }
 
-/* helper func from generic_hash() computes a board, given its lexicographic 
-rank hashed
+/* helper func from generic_hash() computes a board, given its lexicographic rank hashed
    among boards with the same configuration argument *thiscount*/
-void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, 
-int* local_mins)
+void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int* local_mins)
 {
 	int bigfac = fac(boardsize - 1);
-	//int *newcount = (int*) malloc (sizeof(int) * (num_pieces + 1));
 	int sum = 0, i = 0, prod = 1, j = 0;
 	int max1 = 0;
-if (DEBUG) printf("hash_uncruncher 0\n");
+ if (DEBUG) printf("hash_uncruncher 0\n");
 
 	if (boardsize == 1)
 	{
@@ -232,7 +207,6 @@ if (DEBUG) printf("hash_uncruncher 0\n");
 	{
 		newcount[i] = thiscount[i];
 	}
-	//newcount[num_pieces] = TERM;
 	miniOffset[0] = 0;
 	miniIndices[0] = 0;
 	j = 1;
@@ -247,34 +221,19 @@ if (DEBUG) printf("hash_uncruncher 0\n");
 			j++;
 		}
 	}
-	//printf("J=%d ", j);
 	i = j-1;
 	while (miniOffset[i-1] > hashed) i--;
 	if (miniOffset[j-1] <= hashed) i = j-1;
-	//printf("I=%d ", i);
 
 	newcount[miniIndices[i]]--;
 	local_mins[miniIndices[i]]--;
 	dest[boardsize-1] = pieces[miniIndices[i]];
-	hash_uncruncher(hashed - miniOffset[i-1], boardsize - 1, newcount, dest, 
-local_mins);
-
-	/*
-	printf("\nMI=");
-	printAr(miniIndices);
-	printf("\nMO=");
-	printAr(miniOffset);
-	printf("\n");
-*/
-	//free(miniIndices);
-	//free(miniOffset);
-	//free(newcount);
+	hash_uncruncher(hashed - miniOffset[i-1], boardsize - 1, newcount, dest, local_mins);
 }
 
-/* parses the char* input to generic_hash_init() and assigns corresponding 
-values to
+/* parses the char* input to generic_hash_init() and assigns corresponding values to
    the pieces, minima, and maxima arrays*/
-int getPieceParams (int *pa, char *pi, int *mi, int *ma)
+int getPieceParams (int pa[], char *pi, int *mi, int *ma)
 {
 	int i = 0;
 	while (pa[i*3] != TERM)
@@ -291,9 +250,10 @@ int getPieceParams (int *pa, char *pi, int *mi, int *ma)
 }
 /**************************************************************************************************/
 /* initializes hash tables and critical values */
-int generic_hash_init(int boardsize, int *pieces_array)
+int generic_hash_init(int boardsize, int pieces_array[], int (*fn)(int *))
 {
 	int i = -1, j, prod = 1, temp, sofar, k;
+     gfn = fn;
 
          if (DEBUG) printf("generic_hash_init -1\n");
 
@@ -309,14 +269,14 @@ int generic_hash_init(int boardsize, int *pieces_array)
     local_mins = (int*) malloc (sizeof(int) * (num_pieces + 1));
     miniOffset = (int*) malloc (sizeof(int) * (num_pieces + 2));
 	miniIndices = (int*) malloc (sizeof(int) * (num_pieces + 2));
-	gFACTORIAL = (int*) malloc(sizeof(int) * (boardsize + 2));
+ 	gFACTORIAL = (int*) malloc(sizeof(int) * (boardsize + 2));
 	gPieceIndices = (int*) malloc (sizeof(int) * (num_cfgs + 2));
     gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 
 	gpd_store = (int*) malloc (sizeof(int) * (num_pieces + 1));
 	gpd_store[num_pieces] = TERM;
-
-if (DEBUG) printf("generic_hash_init -0.9\n");
+	
+ if (DEBUG) printf("generic_hash_init -0.9\n");
 	for (i = 0; i < num_pieces;i++)
 	{
 		nums[i] = maxs[i] - mins[i] + 1;
@@ -328,7 +288,7 @@ if (DEBUG) printf("generic_hash_init -0.9\n");
 	{
 		num_cfgs *= nums[i];
 	}
-
+		
 	gHashBoardSize = boardsize;
 	gHashOffsetSize = num_cfgs;
 
@@ -344,7 +304,7 @@ if (DEBUG) printf("generic_hash_init -0.9\n");
 	gHashOffset[0] = 0;
 	gOffsetIndices[0] = 0;
 
-if (DEBUG) printf("generic_hash_init -0.7\n");
+ if (DEBUG) printf("generic_hash_init -0.7\n");
 	for (k = 1;k < useful_space + 1;k++)
 		{
 			prod = 1;
@@ -357,7 +317,7 @@ if (DEBUG) printf("generic_hash_init -0.7\n");
 		}
 	gHashOffset[k] = TERM;
 	gOffsetIndices[k] = TERM;
-
+	
 	if (DEBUG) printStats();
      if (DEBUG) printf("generic_hash_init -0.6\n");
 	temp = 0;
@@ -368,7 +328,7 @@ if (DEBUG) printf("generic_hash_init -0.7\n");
 		sofar += temp;
 		gHashOffset[i] = sofar;
 		gOffsetIndices[i]++;
-	}
+	}	
 	gHashOffset[useful_space + 1] = TERM;
 	gHashNumberOfPos = sofar;
 
@@ -401,7 +361,6 @@ int generic_hash(char* board)
 			}
 		}
 	}
-	/*thiscount[j] = TERM;*/
 	sum = 0;
 	for (i = num_pieces-1;i >= 0;i--)
 	{
@@ -415,9 +374,6 @@ int generic_hash(char* board)
     if (DEBUG) printf("generic_hash 1\n");
 	temp += hash_cruncher(board, gHashBoardSize, thiscount, local_mins);
     if (DEBUG) printf("generic_hash 2\n");
-	//free(thiscount);
-	//free(local_mins);
-    if (DEBUG) printf("generic_hash 3\n");
 	return temp;
 }
 
@@ -425,9 +381,7 @@ int generic_hash(char* board)
 char* generic_unhash(int hashed, char* dest)
 {
 	int i, j, offst, boardsize, sum;
-	//int *thiscount = (int*) malloc (sizeof(int) * num_pieces);
-	//int *local_mins = (int*) malloc (sizeof(int) * num_pieces);
-     if (DEBUG) printf("generic_unhash 0\n");
+    if (DEBUG) printf("generic_unhash 0\n");
 	for (i = 0; i < num_pieces;i++)
 	{
 		thiscount[i] = TERM;
@@ -436,7 +390,7 @@ char* generic_unhash(int hashed, char* dest)
 	boardsize = gHashBoardSize;
 	offst = 0;
 	j = 0;
-     if (DEBUG) printf("generic_unhash 1\n");
+    if (DEBUG) printf("generic_unhash 1\n");
 	for (i = 0;i < boardsize;i++)
 	{
 		dest[i] = cTERM;
@@ -444,32 +398,23 @@ char* generic_unhash(int hashed, char* dest)
 	j = searchOffset(hashed);
 	offst = gHashOffset[j];
 	hashed -= offst;
-     if (DEBUG) printf("generic_unhash 2\n");
+    if (DEBUG) printf("generic_unhash 2\n");
 	sum = 0;
 	for (i = 0;i < num_pieces;i++)
 	{
 		thiscount[i] = gpd(gOffsetIndices[j + 1] - 1)[i];
 		sum += thiscount[i];
 	}
-if (DEBUG) printf("generic_unhash 3\n");
-	/*thiscount[num_pieces] = TERM;*/
+    if (DEBUG) printf("generic_unhash 3\n");
 	hash_uncruncher(hashed, boardsize, thiscount, dest, local_mins);
-	/*dest[boardsize] = cTERM;*/
-	//free(thiscount);
-	//free(local_mins);
 	return dest;
 }
 
-/* initializes pascal's triangle, factorial table, and piece configuration 
-tables */
+/* initializes pascal's triangle, factorial table, and piece configuration tables */
 void nCr_init(int boardsize)
 {
 	int i, j, k, sum, ctr;
 	int *temp = (int*) malloc (sizeof(int) * num_pieces);
-	//gNCR = (int*) malloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
-	//gFACTORIAL = (int*) malloc(sizeof(int) * (boardsize + 2));
-	//gPieceDist = (int**) malloc (sizeof(int) * num_cfgs);
-	//gPieceIndices = (int*) malloc (sizeof(int) * (num_cfgs + 2));
 
 	/*store the left and right wings of pascal's triangle*/
 	for(i = 0; i<= boardsize; i++)
@@ -483,8 +428,7 @@ void nCr_init(int boardsize)
 	{
 		for(j = 1; j < i ; j++)
 		{
-			gNCR[i*(boardsize+1) + j] = gNCR[(i-1)*(boardsize+1) + j-1] + 
-gNCR[(i-1)*(boardsize+1) + j];
+			gNCR[i*(boardsize+1) + j] = gNCR[(i-1)*(boardsize+1) + j-1] + gNCR[(i-1)*(boardsize+1) + j];
 		}
 	}
 
@@ -495,16 +439,8 @@ gNCR[(i-1)*(boardsize+1) + j];
 		gFACTORIAL[i] = i*gFACTORIAL[i-1];
 	}
     gFACTORIAL[boardsize+1] = TERM;
-
-	/*gPieceDist[i] is the ith possible configuration of pieces
-	  as the # of occurrences of each jth piece ranges from mins[j] to maxs[j]
-	  */
-	for (i = 0; i < num_cfgs;i++)
-	{
-	    //	gPieceDist[i] = (int*) malloc (sizeof(int) * (num_pieces + 1));
-	}
-	/* compute the gPieceDist[i][j]'s with a method similar to Horner's method 
-of
+	
+	/* compute the gPieceDist[i][j]'s with a method similar to Horner's method of
 	evaluating a polynomial p using only deg(p) multiplications
 	*/
 	ctr = 0;
@@ -520,11 +456,6 @@ of
 		}
 		if (sum == boardsize && validConfig(temp))
 		{
-			for (j = 0;j < num_pieces;j++)
-			{
-			    //gPieceDist[ctr][j] = temp[j];
-			}
-			//gPieceDist[ctr][num_pieces] = TERM;
 			gPieceIndices[ctr] = i;
 			ctr++;
 		}
@@ -534,7 +465,7 @@ of
 	free(temp);
 }
 
-/* shorthand for gPieceDist */
+/* finds the piece distribution whose index is n */
 int* gpd (int n)
 {
     int k = n, j;
@@ -544,19 +475,15 @@ int* gpd (int n)
        		k = k/(nums[j]);
        	}
     return gpd_store;
-
-    /*
-	int i = useful_space;
-	while (gOffsetIndices[i] > n) i--;
-	return gPieceDist[i];
-    */
 }
 
+/* shorthand for gpd() */
 int *gPieceDist(int i)
 {
     return gpd(gpi(i));
 }
 
+/* shorthand for gPieceIndices */
 int gpi (int n)
 {
 	return gPieceIndices[n];
@@ -573,7 +500,6 @@ int fac(int n)
 {
 	return gFACTORIAL[n];
 }
-
 
 
 
