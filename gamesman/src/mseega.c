@@ -42,7 +42,7 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 
 #include <stdio.h>
 #include "gamesman.h"
-#include "hash.c"
+//#include "hash.c"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -493,7 +493,7 @@ MOVELIST *GenerateMoves (POSITION position) {
     if(player == 2)
       mover=P2;
     else
-      badelse();
+      BadElse("shouldn't be here - generate moves\n");
   for (i=0;i<BOARDSIZE;i++){
     if(gBoard[i]==mover){
       if (legalMove(gBoard[i+1]) && gBoard[i+1]== blank){
