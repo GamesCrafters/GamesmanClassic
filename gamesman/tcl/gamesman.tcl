@@ -3137,7 +3137,11 @@ proc HandlePredictions {} {
 	### And spooge it to the field if the button is on.
 	
 	if { $varPredictions == "butOn" } {
-	    SetPredictionField "$thePlayer $thePrediction $theValue in $theRemoteness $theMex"
+	    if { $theValue == "Tie" && $theRemoteness == 255 } {
+		SetPredictionField "$thePlayer $thePrediction Draw"
+	    } else {
+		SetPredictionField "$thePlayer $thePrediction $theValue in $theRemoteness $theMex"
+	    }
 	} else {
 	    SetPredictionField "Disabled"
 	}
