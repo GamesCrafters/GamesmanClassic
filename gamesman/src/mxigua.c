@@ -118,22 +118,22 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time)."; 
 
 STRING   kHelpOnYourTurn =
-"";
+"Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by '/,|,\\'.";
 
 STRING   kHelpStandardObjective =
-"";
+"The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
 
 STRING   kHelpReverseObjective =
-"";
+"The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
 STRING   kHelpExample =
-"";
+"Legend:    1         Current:      ·\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ·-·-·\n          \\|/                     \\|/\n           5                       ·\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      ·\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ·-·-·\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n"; 
 
 
 /*************************************************************************
