@@ -446,15 +446,15 @@ ParseEvaluatedMenuChoice(c)
   
   switch(c) {
   case '1':
-    printf("\nEnter the name of player 1 (max. 8 chars) [%s] : ",
-		gPlayerName[kPlayerOneTurn]);
+    printf("\nEnter the name of player 1 (max. %d chars) [%s] : ",
+		MAXNAME-1, gPlayerName[kPlayerOneTurn]);
     GetMyString(tmpName,MAXNAME,TRUE,FALSE);
 	if(strcmp(tmpName,""))
     	(void) sprintf(gPlayerName[kPlayerOneTurn],"%s",tmpName);
     break;
   case '2':
-    printf("\nEnter the name of player 2 (max. 8 chars) [%s] : ",
-		gPlayerName[kPlayerTwoTurn]);
+    printf("\nEnter the name of player 2 (max. %d chars) [%s] : ",
+	        MAXNAME-1, gPlayerName[kPlayerTwoTurn]);
     GetMyString(tmpName,MAXNAME,TRUE,FALSE);
 	if(strcmp(tmpName,""))
     	(void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
