@@ -19,16 +19,6 @@
 #define mMax(A,B) ((A) > (B) ? (A) : (B))
 #define mMin(A,B) ((A) > (B) ? (B) : (A))
 
-/* smarter computer */
-#define WINMOVE 0
-#define TIEMOVE 1
-#define LOSEMOVE 2
-#define SMART 0
-#define RANDOM 1
-#define DUMB 2
-#define MAXSCALE 100
-#define MAXGIVEBACKS 9
-
 typedef struct
 {
 	int nodeUsed;

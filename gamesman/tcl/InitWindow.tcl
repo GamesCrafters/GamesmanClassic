@@ -21,6 +21,7 @@ proc TBaction1 {} {
 	.middle.f3.cMRight raise play
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
+	.cToolbar raise iITB
 	SetupPlayOptions
 
 	global gLeftName gRightName
@@ -280,7 +281,7 @@ proc InitWindow { kRootDir } {
     pack propagate .middle.f2.fPlayOptions 0
     frame .middle.f2.fPlayOptions.fBot \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 5 / 30]
+	-height [expr $gWindowHeight * 2 / 30]
     pack propagate .middle.f2.fPlayOptions.fBot 0
 
     # this is not packed now <- you cannot cancel
@@ -303,6 +304,8 @@ proc InitWindow { kRootDir } {
 	    pack .middle.f2.cMain
             .cStatus lower base
 	    .cToolbar raise iATB
+	    global gSmartness gSmartnessScale
+	    C_SetSmarterComputer $gSmartness $gSmartnessScale
             global gLeftName gRightName
             .middle.f1.cMLeft itemconfigure LeftName \
 		    -text [format "Player1:\n%s" $gLeftName]
@@ -311,9 +314,14 @@ proc InitWindow { kRootDir } {
 	    update
 	    DriverLoop
         }
+    frame .middle.f2.fPlayOptions.fMid \
+	-width [expr $gWindowWidth * 10 / 16] \
+	-height [expr $gWindowHeight * 6  / 30] \
+	-bd 2
+    pack propagate .middle.f2.fPlayOptions.fMid 0
     frame .middle.f2.fPlayOptions.fTop \
 	-width [expr $gWindowWidth * 10 / 16] \
-	-height [expr $gWindowHeight * 20 / 30] \
+	-height [expr $gWindowHeight * 17 / 30] \
 	-bd 2
 	pack propagate .middle.f2.fPlayOptions.fTop 0
     frame .middle.f2.fPlayOptions.fTop.fLeft \
@@ -333,6 +341,11 @@ proc InitWindow { kRootDir } {
 	-command { 
 	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
+	    if { $gRightHumanOrComputer == "Computer" } {
+		EnableSmarterComputerInterface
+	    } else {
+		DisableSmarterComputerInterface
+	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rComputer \
 	    -text "Player1 Computer" \
@@ -344,6 +357,7 @@ proc InitWindow { kRootDir } {
 		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
 	    }
+	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fLeft.lName \
 	    -text "Player1 Name:" \
@@ -361,6 +375,11 @@ proc InitWindow { kRootDir } {
 	-command { 
 	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
+	    if { $gLeftHumanOrComputer == "Computer" } {
+		EnableSmarterComputerInterface
+	    } else {
+		DisableSmarterComputerInterface
+	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rComputer \
 	    -text "Player2 Computer" \
@@ -372,6 +391,7 @@ proc InitWindow { kRootDir } {
 		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
 	    }
+	    EnableSmarterComputerInterface
 	}
     label .middle.f2.fPlayOptions.fTop.fRight.lName \
 	    -text "Player2 Name:" \
@@ -411,10 +431,69 @@ proc InitWindow { kRootDir } {
     #pack .moveDelay 
     #pack .gameDelay
     ## end Jesse
+
+    ## Smarter computer
+    frame .middle.f2.fPlayOptions.fMid.fLeft \
+	-width [expr $gWindowWidth * 5 / 16]
+    frame .middle.f2.fPlayOptions.fMid.fRight \
+	-width [expr $gWindowWidth * 5 / 16]
+
+    global gSmartness gSmartnessScale
+    
+    label .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -text "How should the computer play:" -font $kLabelFont
+    radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly \
+	-text "Perfectly always" \
+	-font $kLabelFont \
+	-variable gSmartness \
+	-value Perfectly \
+	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+    radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly \
+	-text "Perfectly sometimes" \
+	-font $kLabelFont \
+	-variable gSmartness \
+	-value Imperfectly \
+	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state active -foreground black"
+    radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly \
+	-text "Randomly" \
+	-font $kLabelFont \
+	-variable gSmartness \
+	-value Randomly \
+	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+    radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely \
+	-text "Misere-ly" \
+	-font $kLabelFont \
+	-variable gSmartness \
+	-value Miserely \
+	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+    
+    scale .middle.f2.fPlayOptions.fMid.fRight.sPerfectness \
+	-label "Percent perfectly:" \
+	-from 0 \
+	-to 100 \
+	-variable gSmartnessScale \
+	-orient horizontal
+
+    global gLeftHumanOrComputer gRightHumanOrComputer
+    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+	EnableSmarterComputerInterface
+    } else {
+	DisableSmarterComputerInterface
+    }
+    
     pack .middle.f2.fPlayOptions.fTop -side top
+    pack .middle.f2.fPlayOptions.fMid -side top
     pack .middle.f2.fPlayOptions.fBot -side bottom   
     pack .middle.f2.fPlayOptions.fTop.fLeft -side left
     pack .middle.f2.fPlayOptions.fTop.fRight -side right
+    ## smarter computer widgets
+    pack .middle.f2.fPlayOptions.fMid.fLeft -side left -fill x -expand 1
+    pack .middle.f2.fPlayOptions.fMid.fRight -side right -fill x -expand 1
+    pack .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -side top
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly -expand 1 -fill both -side top
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly -expand 1 -fill both -side top
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly -side top -expand 1 -fill both
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely -side top -expand 1 -fill both
+    pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x
     ## moveDelay scale bar
     pack .middle.f2.fPlayOptions.fTop.fLeft.moveDelay -side bottom
     pack .middle.f2.fPlayOptions.fTop.fLeft.rHuman -side bottom -fill both -expand 1
@@ -445,7 +524,8 @@ proc InitWindow { kRootDir } {
     
     pack propagate $rulesFrame 0
     
-    button $rulesFrame.buttons.bCancel -text "Cancel" \
+    button $rulesFrame.buttons.bCancel \
+	-text "Cancel" \
 	-command {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
@@ -453,7 +533,8 @@ proc InitWindow { kRootDir } {
             RaiseStatusBarIfGameStarted
 	    update
 	}
-    button $rulesFrame.buttons.bOk -text "Start new game with above rule settings" \
+    button $rulesFrame.buttons.bOk \
+	-text "Start new game with above rule settings" \
         -command {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
@@ -475,13 +556,13 @@ proc InitWindow { kRootDir } {
     foreach rule $gRuleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
 	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
-	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0]
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
 	pack $rulesFrame.rule$ruleNum.label -side left
 	set rulePartNum 0
 	global gRule$ruleNum
 	set gRule$ruleNum 0
 	foreach rulePart [lrange $rule 1 end] {
-	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable gRule$ruleNum -value $rulePartNum -highlightthickness 0
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable gRule$ruleNum -value $rulePartNum -highlightthickness 0 -font $kLabelFont
 	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
 	    incr rulePartNum
 	}
@@ -580,7 +661,7 @@ proc InitWindow { kRootDir } {
 	    -tags [list RightName Names textitem] \
 	-fill $gRightColor
 
-    .middle.f3.cMRight create text 75 100 \
+    .middle.f3.cMRight create text 75 150 \
 	    -text [format "Predictions: %s" $gPredString] \
 	    -width 140 \
 	    -justify center \
@@ -588,9 +669,9 @@ proc InitWindow { kRootDir } {
 	    -anchor center \
 	    -tags [list Predictions textitem]
 
-    .middle.f3.cMRight create text 75 90 \
-	-text [format "It's %s's Turn" $gWhoseTurn] \
-	-width 50 \
+    .middle.f3.cMRight create text 75 80\
+	-text "" \
+	-width 140 \
 	-justify center \
 	-font $kLabelFont \
 	-anchor center \
@@ -599,6 +680,9 @@ proc InitWindow { kRootDir } {
     # this is the play button
     .middle.f3.cMRight bind play <1> {	
 	pack forget .middle.f2.fPlayOptions
+	global gSmartness gSmartnessScale
+	C_SetSmarterComputer $gSmartness $gSmartnessScale
+	.middle.f3.cMRight raise WhoseTurn
 	pack .middle.f2.cMain -expand 1
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.middle.f3.cMRight lower play
@@ -732,13 +816,13 @@ proc InitWindow { kRootDir } {
 
     .cStatus bind iABB8 <ButtonRelease-1> {
 	set gPredictions false
-	.middle.f3.cMRight raise iIMB4
+	#.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight lower Predictions
 	.cStatus raise iIBB8
     }
 
     .cStatus bind iIBB8 <ButtonRelease-1> {
-	.middle.f3.cMRight raise iIMB4
+	#.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight raise Predictions
 	.cStatus raise iABB8
     }
@@ -771,5 +855,26 @@ proc RaiseStatusBarIfGameStarted {} {
     global gGameSolved
     if { $gGameSolved == "true" } {
 	.cStatus lower base
+    }
+}
+
+proc DisableSmarterComputerInterface {} {
+    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure -foreground grey
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure -foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure -foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure -foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure -foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -foreground grey -state disabled
+}
+
+proc EnableSmarterComputerInterface {} {
+    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure -foreground black
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure -foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure -foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure -foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure -foreground black -state normal
+    global gSmartness
+    if { $gSmartness == "Imperfectly" } {
+	.middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -foreground black -state normal
     }
 }

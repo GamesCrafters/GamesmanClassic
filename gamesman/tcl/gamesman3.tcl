@@ -119,6 +119,10 @@ proc InitConstants {} {
     }
 
     eval [concat C_SetGameSpecificOptions [GetAllGameOptions]]
+
+    global gSmartness gSmartnessScale
+    set gSmartness Perfectly
+    set gSmartnessScale 100
 }
 
 #############################################################################
@@ -255,6 +259,11 @@ proc DriverLoop { } {
 	    GameOver $gPosition $primitive [peek $gMovesSoFar]
 	    
 	} else {
+
+	    global gWhoseTurn gLeftName gRightName
+	    .middle.f3.cMRight itemconfigure WhoseTurn \
+		-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
+		update idletasks
 
 	    ## Handle Predictions if they're turned on
 	    
@@ -460,13 +469,13 @@ proc GameOver { position gameValue lastMove } {
         if { $gameValue == "Win" } {
             
             set WhoWon $gRightName
-
+	    set WhoLost $gLeftName
             set WhichPieceWon $gRightPiece
 
         } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gLeftName
-
+	    set WhoLost $gRightName
             set WhichPieceWon $gLeftPiece
 
         }
@@ -476,13 +485,13 @@ proc GameOver { position gameValue lastMove } {
         if { $gameValue == "Win" } {
             
             set WhoWon $gLeftName
-
+	    set WhoLost $gRightName
             set WhichPieceWon $gLeftPiece
 
         } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gRightName
-
+	    set WhoLost $gLeftName
             set WhichPieceWon $gRightPiece
 
         }
@@ -491,13 +500,18 @@ proc GameOver { position gameValue lastMove } {
     if { $gameValue == "Tie" } {
         set message [concat GAME OVER: It's a TIE!]
         SendMessage $message
+	set loseMessage "Nobody wins!"
     } else {
-        set message [concat GAME OVER: $WhoWon Wins!]
+        set message [concat GAME OVER: $WhoWon wins!]
 	SendMessage $message
+	set loseMessage [format "%s loses!" $WhoLost]
     }
 
+    .middle.f3.cMRight itemconfigure WhoseTurn \
+	-text [format "%s" $message]
+    
     .middle.f3.cMRight itemconfigure Predictions \
-	-text [format "%s" $message] 
+	-text [format "%s" $loseMessage] 
     update idletasks
 
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove
@@ -601,6 +615,9 @@ proc ChangeMoveType { fromMoveType toMoveType position moveList } {
 proc Undo { } {
     
     UndoHelper
+    global gWhoseTurn gLeftName gRightName
+    .middle.f3.cMRight itemconfigure WhoseTurn \
+	-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
     GetPredictions
     global gPredString
     .middle.f3.cMRight itemconfigure Predictions \

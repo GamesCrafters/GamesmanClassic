@@ -19,6 +19,8 @@ extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
 extern BOOLEAN kPartizan;
 extern BOOLEAN kLoopy;
+extern int smartness;
+extern int scalelvl;
 
 /*
  * The following variable is a special hack that is needed in order for
@@ -69,6 +71,8 @@ static int		ComputeCCmd _ANSI_ARGS_((ClientData clientData,
 static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		GetPredictionCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int              SetSmarterComputerCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
 /************************************************************************
@@ -127,6 +131,8 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_GetPrediction", (Tcl_CmdProc*) GetPredictionCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_SetSmarterComputer", (Tcl_CmdProc*) SetSmarterComputerCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     {
@@ -525,6 +531,48 @@ GetPredictionCmd(dummy, interp, argc, argv)
 
     prediction =  GetPrediction(position, playerName, TRUE);
     sprintf(interp->result,"%s",prediction);
+    return TCL_OK;
+  }
+}
+
+static int
+SetSmarterComputerCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int smartnessScale;
+  STRING smartnessString;
+  
+  if (argc > 3 || argc < 2) {
+    interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
+    return TCL_ERROR;
+  }
+
+  else {
+    smartnessString = (STRING) argv[1];
+    sprintf(interp->result, "Setting smarter computer to %s\n", smartnessString);
+
+    if (strcmp(smartnessString, "Perfectly") == 0) {
+      smartness = SMART;
+    }
+    else if (strcmp(smartnessString, "Imperfectly") == 0) {
+      smartness = SMART;
+      if(Tcl_GetInt(interp, argv[2], &smartnessScale) != TCL_OK)
+	return TCL_ERROR;
+      scalelvl = smartnessScale;
+    }
+    else if (strcmp(smartnessString, "Randomly") == 0) {
+      smartness = RANDOM;
+    }
+    else if (strcmp(smartnessString, "Miserely") == 0) {
+      smartness = DUMB;
+    }
+    else {
+      return TCL_ERROR;
+    }
+      
     return TCL_OK;
   }
 }

@@ -43,6 +43,16 @@ typedef int  BOOLEAN;
 #endif /* WIN32 */
 #endif /* BOOLEAN */
 
+/* smarter computer */
+#define WINMOVE 0
+#define TIEMOVE 1
+#define LOSEMOVE 2
+#define SMART 0
+#define RANDOM 1
+#define DUMB 2
+#define MAXSCALE 100
+#define MAXGIVEBACKS 9
+
 typedef enum value_enum
 {
 	win, lose, tie, undecided, visited  /* visited = 4 */
