@@ -103,6 +103,11 @@ STRING   kHelpExample =
 #define WHITE 'X'
 #define BLACK 'O'
 
+#define MAX_HEIGHT 5
+#define MIN_HEIGHT 3
+#define MAX_WIDTH 5
+#define MIN_WIDTH 3
+
 #define pieceat(B, x, y) ((B)[(y) * width + (x)])
 #define get_location(x, y) ((y) * width + (x))
 #define get_x_coord(location) ((location) % width)
@@ -550,7 +555,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(SOURCE DESTINATION PLACE)] : ", playersName);
+	printf("%8s's move [(undo)/(SOURCE DESTINATION PLACE)/(PLACE)] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -647,11 +652,13 @@ MOVE ConvertTextInputToMove (STRING input) {
 		 * on the board */
 		third = XYToNumber(curr);
 		curr +=2;
-	
+		printf("moopp %d %d %d\n", first, second, third);
 		set_move_source(move, first);
 		set_move_dest(move, second);
 		set_move_place(move, third);
 	}
+	printf("mmooove");
+	PrintMove(move);
 	return move;
 }
 
@@ -682,8 +689,8 @@ void GameSpecificMenu () {
 	printf("\tc)\tchange the s(C)oring system of the game\n");
 	printf("\tb)\t(B)ack to the main menu\n");
 	printf("\nSelect an option:  ");
-	getc(stdin);
-	c = tolower(getc(stdin));
+	while (!isalpha(c = getc(stdin)));
+	c = tolower(c);
 	switch (c) {
 	case 's':
 	    ChangeBoardSize();
@@ -908,13 +915,17 @@ int countPieces(char *board, char piece) {
 void ChangeBoardSize() {
     int newWidth, newHeight;
     while(TRUE) {
-	printf("\n\nEnter a new size for the board\n");
-	printf("Should be of the form width x height\n");
-	scanf("%d x %d", &newWidth, &newHeight);
-	if (TRUE) {
+	printf("\n\nEnter a new size for the board (width height): ");
+	scanf("%d %d", &newWidth, &newHeight);
+	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH & newHeight >= MIN_HEIGHT) {
 	    height = newHeight;
 	    width = newWidth;
+	    printf("The board is now %d by %d.\n", width, height);
+	    return;
 	}
+	printf("Board must be between %d by %d and %d by %d.  Please try again.\n",
+	       MIN_WIDTH, MIN_HEIGHT,
+	       MAX_WIDTH, MAX_HEIGHT);
     }
 }
 
@@ -924,14 +935,14 @@ void ChangeBoardSize() {
 void ChangeNumPieces() {
     int newAmount;
     while(TRUE) {
-	printf("\n\nEnter the amount of pieces you\n");
-	printf("wish each team to start with. Must\n");
-	printf("be between 1 and %d", (width*height)/2);
+	printf("\n\nEnter the number of pieces each team starts with: ");
 	scanf("%d", &newAmount);
-	if (newAmount <= (width*height)/2 || newAmount >= 1) {
+	if (newAmount <= (width*height)/2 && newAmount >= 1) {
 	    numpieces = newAmount;
+	    printf("Number of pieces changed to %d\n", numpieces);
 	    return;
 	}
+	printf("Number must be between 1 and %d.  Please try again.\n", ((width*height)/2) - 1);
     }
 }
 
@@ -945,21 +956,24 @@ void ChangeScoringSystem() {
 	printf("\ts)\tcount only (S)traight lines (horizonal and vertical)\n");
 	printf("\td)\tcount only (D)iagonal lines\n");
 	printf("\tb)\tcount (B)oth straight and diagonal lines\n");
-	printf("Select an option ");
-	getc(stdin);
-	c = tolower(getc(stdin));
+	printf("Select an option: ");
+	while (!isalpha(c = getc(stdin)));
+	c = tolower(c);
 	switch(c) {
 	case 's':
 	    scoreStraight = TRUE;
 	    scoreDiagonal = FALSE;
+	    printf("Scoring changed to only count straight lines.\n");
 	    return;
 	case 'd':
 	    scoreStraight = FALSE;
 	    scoreDiagonal = TRUE;
+	    printf("Scoring changed to only count diagonal lines.\n");
 	    return;
 	case 'b':
 	    scoreStraight = TRUE;
 	    scoreDiagonal = TRUE;
+	    printf("Scoring changed to count straight and diagonal lines.\n");
 	    return;
 	default:
 	    printf("Invalid option. Please try again");
