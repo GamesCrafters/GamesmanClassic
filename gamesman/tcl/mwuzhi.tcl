@@ -260,6 +260,13 @@ proc GS_Initialize { c } {
 		[expr $i * $dist + 50 + $offset] [expr $j * $dist + 150 + $offset] -tags [list base diag] -width 3
 	}
     }
+    #The dots on the board
+    for {set i 0} {$i < $gBoardSize} {set i [expr $i + 1]} {
+	for {set j 0} {$j < $gBoardSize} {set j [expr $j + 1]} {	
+	    $c create oval  [expr $i * $dist + 40 + $offset] [expr $j * $dist + 40 + $offset] \
+		[expr $i * $dist + 60 + $offset] [expr $j * $dist + 60 + $offset] -fill black -tags base
+	}
+    } 
 
     # lower diagonals
     if ($gDiagonalsOption) {
