@@ -227,7 +227,7 @@ void gridCoordinatetoCoord(char human[2], int coord[2]);
 int mergePositionGoAgain(int position, int goAgainPos);
 void mergePositionSetRequiredBits(int numFoxes);
 int getPosition(int mergedPos);
-int getGoAgainLoc(int mergedPos);
+int getGoAgainFoxNum(int mergedPos);
 int GoAgainPos(int mergedPos);
 int intpow(int base, int exp);
 
@@ -346,7 +346,7 @@ void GameSpecificMenu ()
 	POSITION GetInitialPosition();
 	do
 	{
-		printf("\n\t----- Game Specific Options for Asalto ----- \n");
+		printf("\n\t----- Game Specific Options for Asalto ----- \n\n");
 		printf("\tm)\t(M)odify Board\n");
 		printf("\tg)\tToggle (G)o Again from ");
 		if(variant_goAgain)
@@ -377,8 +377,8 @@ void GameSpecificMenu ()
 		}if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n");  }
 		printf("\tn)\tChange (N)umber of Geese in Castle To Win (Currently %d)\n",GEESE_MIN);
 		
-		printf("\tr)\t(R)eturn to previous menu\n");
-		printf("Selection: "); scanf("%s", selection_command);
+		printf("\tr)\t(R)eturn to previous menu\n\n");
+		printf("Select an option: "); scanf("%s", selection_command);
 		selection = selection_command[0];
 		selection = toupper(selection);
 		switch (selection)
@@ -580,41 +580,44 @@ POSITION GetInitialPosition()
 	do
 	{
 		boardPieceStats(start_standard_board, boardStats);
-		printf("\n\n\n\n\n\nAsalto Initial Position Setup\n");
-		printf("=============================\n");
-		printf("Current Board\n");
+		printf("\n\t----- Asalto Initial Position Setup -----\n\n");
+		
+		printf("\tCurrent Board\n");
+		
 		PrintBoard(start_standard_board);
-		printf("(1) Add/Remove Geese\n");
+		
+		printf("\tg)\tAdd/Remove (G)eese\n");
+		
 		if (numFoxes(boardStats) < 2)
 		{
-			printf("(2) Add/Remove Foxes [REQUIRED]\n");
-			printf("You must place two foxes to play the game.\n");
+			printf("\tf)\tAdd/Remove (F)oxes [REQUIRED]\n");
+			printf("\t  \tYou must place two foxes to play the game.\n");
 		}
 		else
 		{
-			printf("(2) Add/Remove Foxes\n");
-			printf("(3) Exit Initial Setup\n");
+			printf("\tf)\tAdd/Remove (F)oxes\n");
+			printf("\te)\t(E)xit Initial Setup\n\n");
 		}
-		printf("Selection: "); scanf("%s", selection_command);
-		selection = selection_command[0];
+		printf("Select an option: "); scanf("%s", selection_command);
+		selection = toupper(selection_command[0]);
 		switch (selection)
 		{
-			case '1':
+			case 'G':
 				AddRemoveGeese(start_standard_board);
 				selection = 'Z';
 				break;
-			case '2':
+			case 'F':
 				AddRemoveFoxes(start_standard_board);
 				selection= 'Z';
 				break;
-			case '3':
+			case 'E':
 				break;
 			default:
 				printf("Invalid option. Try again\n");
 				selection = -1;
 		}
 		
-	} while (selection != '3');
+	} while (selection != 'E');
 	
 	boardPieceStats(start_standard_board, boardStats);
 	GEESE_MAX = numGeese(boardStats);
@@ -809,8 +812,8 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char currentBoard[BOARDSIZE];
 	generic_unhash(getPosition(position), currentBoard);
 	 
-	printf("It is %s's turn.\n", playerName);
-	printf("%s\n",GetPrediction(position,playerName,usersTurn));
+	printf("\tIt is %s's turn.\n", playerName);
+	printf("\t%s\n",GetPrediction(position,playerName,usersTurn));
 	
 	if (PRINTPOSITION_DEBUG) { printf("Position Hash %d\n",position);}
 	
@@ -845,7 +848,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	char board[BOARDSIZE];
 	int i=0;
 	int player = whoseMove(getPosition(position));
-	int positionGoAgain = GoAgainPos(position);
+	int positionGoAgainFoxNum = getGoAgainFoxNum(position);
 	
 	if (GENERATEMOVES_DEBUG)
 	{
@@ -855,10 +858,10 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	generic_unhash(getPosition(position), board);
 	
-	if (player == FOX_PLAYER && positionGoAgain)
+	if (player == FOX_PLAYER && positionGoAgainFoxNum)
 	{
 		if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() --> GenerateKillMoves()\n"); }
-		moves = GenerateKillMoves(board,moves,getFoxPos(board,getGoAgainLoc(positionGoAgain)),FOX_PLAYER);
+		moves = GenerateKillMoves(board,moves,getFoxPos(board,positionGoAgainFoxNum),FOX_PLAYER);
 		moves = CreateMovelistNode(-1,moves);
 	}
 	else if(player == FOX_PLAYER)
@@ -1402,7 +1405,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ** DESCRIPTION: Print the move in a nice format.
 ** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+** INPUTS:      MOVE *theMove         : Fixed m3spot case errorThe move to print. 
 **
 ************************************************************************/
 
@@ -1512,29 +1515,29 @@ void PrintBoard (char board[])
 	if (variant_diagonals)
 	{
 
-		printf("5     %c - %c - %c     \n",board[0],board[1],board[2]);
-		printf("      | / | \\ |     \n");
-		printf("4 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
-		printf("  | / | \\ | / | \\ | \n");
-		printf("3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
-		printf("  | \\ | / | \\ | / |\n");
-		printf("2 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
-		printf("      | \\ | / |    \n");
-		printf("1     %c - %c - %c    \n",board[18],board[19],board[20]);
-		printf("  a   b   c   d   e \n");
+		printf("\t5     %c - %c - %c     \n",board[0],board[1],board[2]);
+		printf("\t      | / | \\ |     \n");
+		printf("\t4 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
+		printf("\t  | / | \\ | / | \\ | \n");
+		printf("\t3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
+		printf("\t  | \\ | / | \\ | / |\n");
+		printf("\t2 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
+		printf("\t      | \\ | / |    \n");
+		printf("\t1     %c - %c - %c    \n",board[18],board[19],board[20]);
+		printf("\t  a   b   c   d   e \n");
 	}
 	else
 	{
-		printf("1     %c - %c - %c     \n",board[0],board[1],board[2]);
-		printf("      |   |   |     \n");
-		printf("2 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
-		printf("  |   |   |   |   | \n");
-		printf("3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
-		printf("  |   |   |   |   |\n");
-		printf("4 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
-		printf("      |   |   |    \n");
-		printf("5     %c - %c - %c    \n",board[18],board[19],board[20]);
-		printf("  a   b   c   d   e \n");
+		printf("\t1     %c - %c - %c     \n",board[0],board[1],board[2]);
+		printf("\t      |   |   |     \n");
+		printf("\t2 %c - %c - %c - %c - %c   F = Fox\n",board[3],board[4],board[5],board[6],board[7]);
+		printf("\t  |   |   |   |   | \n");
+		printf("\t3 %c - %c - %c - %c - %c   G = Geese\n",board[8],board[9],board[10],board[11],board[12]);
+		printf("\t  |   |   |   |   |\n");
+		printf("\t4 %c - %c - %c - %c - %c\n",board[13],board[14],board[15],board[16],board[17]);
+		printf("\t      |   |   |    \n");
+		printf("\t5     %c - %c - %c    \n",board[18],board[19],board[20]);
+		printf("\t  a   b   c   d   e \n");
 	}
 }
 
@@ -1561,29 +1564,34 @@ void AddRemoveFoxes(char board[])
 	do
 	{
 		boardPieceStats(board, boardStats);
-		printf("\n\n\n\n\n\nAsalto Fox Placement\n");
-		printf("====================\n");
-		printf("(1) Add a fox\n");
-		printf("(2) Remove a fox\n");
-		printf("(3) Show Board\n");
+		printf("\n\t----- Asalto Fox Placement -----\n\n");
+		printf("\tCurrent Board\n");
+		
+		PrintBoard(start_standard_board);
+		printf("\ta)\t(A)dd a fox\n");
+		printf("\tr)\t(R)emove a fox\n");
 		if (numFoxes(boardStats) < 2)
 		{
-			printf("You must place two foxes to play the game\n");
+			printf("\t  \tYou must place two foxes to play the game\n");
 		}
 		else
 		{
-			printf("(4) Exit Fox Placement\n");
+			printf("\te)\t(E)xit Fox Placement\n\n");
 		}
-		printf("Selection: "); scanf("%s", selection_command);
-		selection = selection_command[0];
+		printf("Select an option: "); scanf("%s", selection_command);
+		selection = toupper(selection_command[0]);
 		switch (selection)
 		{
-			case '1':
-				printf("Where do you wish to add a fox?\n");
+			case 'A':
+				printf("Where do you wish to add a fox [(S)top]?\n");
 				validCoord = 0;
 				do
 				{
 					UserInputCoordinate(coordinate);
+					if(coordinate[0] < 0)
+					{
+						break;
+					}
 					location = coordToLocation(coordinate);
 					if (board[location] == ' ')
 					{
@@ -1598,12 +1606,16 @@ void AddRemoveFoxes(char board[])
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case '2':
+			case 'R':
 				printf("Where do you wish to remove a fox?\n");
 				validCoord = 0;
 				do
 				{
 					UserInputCoordinate(coordinate);
+					if(coordinate[0] < 0)
+					{
+						break;
+					}
 					location = coordToLocation(coordinate);
 					if (board[location] == 'F')
 					{
@@ -1614,21 +1626,26 @@ void AddRemoveFoxes(char board[])
 					{
 						printf("That's not a fox.");
 						validCoord = 0;
-					}
+					}selection = 'Z';
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case '3':
-				PrintBoard(board);
-				break;
-			case '4':
-				return;
+			case 'E':
+				if (numFoxes(boardStats) < 2)
+				{
+					printf("You must have two foxes on the board.\n");
+					selection = 'Z';
+				}
+				else
+				{
+					break;
+				}
 			default:
 				printf("Invalid option. Try again\n");
 				selection = 'Z';
 		}
 		
-	} while (selection != '4');
+	} while (selection != 'E');
 }
 
 void AddRemoveGeese(char board[])
@@ -1643,22 +1660,29 @@ void AddRemoveGeese(char board[])
 	do
 	{
 		boardPieceStats(board, boardStats);
-		printf("\n\n\n\n\n\nAsalto Geese Placement\n");
-		printf("======================\n");
-		printf("(1) Add a Goose\n");
-		printf("(2) Remove a Goose\n");
-		printf("(3) Show Board\n");
-		printf("(4) Exit Geese Placement\n");
-		printf("Selection: "); scanf("%s",selection_command);
-		selection = selection_command[0];
+		printf("\n\t----- Asalto Geese Placement-----\n\n");
+		
+		printf("\tCurrent Board\n");
+		
+		PrintBoard(start_standard_board);
+		
+		printf("\ta)\t(A)dd a Goose\n");
+		printf("\tr)\t(R)emove a Goose\n");
+		printf("\te)\t(E)xit Geese Placement\n\n");
+		printf("Select an option: "); scanf("%s",selection_command);
+		selection = toupper(selection_command[0]);
 		switch (selection)
 		{
-			case '1':
-				printf("Where do you wish to add a goose?\n");
+			case 'A':
+				printf("Where do you wish to add a goose [(S)top]?\n");
 				validCoord = 0;
 				do
 				{
 					UserInputCoordinate(coordinate);
+					if(coordinate[0] < 0)
+					{
+						break;
+					}
 					location = coordToLocation(coordinate);
 					if (board[location] == ' ')
 					{
@@ -1673,12 +1697,16 @@ void AddRemoveGeese(char board[])
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case '2':
-				printf("Where do you wish to remove a goose?\n");
+			case 'R':
+				printf("Where do you wish to remove a goose [(S)top]?\n");
 				validCoord = 0;
 				do
 				{
 					UserInputCoordinate(coordinate);
+					if(coordinate[0] < 0)
+					{
+						break;
+					}
 					location = coordToLocation(coordinate);
 					if (board[location] == 'G')
 					{
@@ -1693,17 +1721,14 @@ void AddRemoveGeese(char board[])
 				}while(!validCoord);
 				selection = 'Z';
 				break;
-			case '3':
-				PrintBoard(board);
-				break;
-			case '4':
+			case 'E':
 				return;
 			default:
 				printf("Invalid option. Try again\n");
 				selection = 'Z';
 		}
 		
-	} while (selection != '4');
+	} while (selection != 'E');
 }
 
 int hashMove(int move[2]) /* Revamped Bitshiftting Hash Function */
@@ -1831,13 +1856,20 @@ void UserInputCoordinate(int coordinate[2])
 {
 	char input[80];
 	int coord[2]={-1, -1};
-	
+	char human[2];
 	do
 	{
 		printf("Enter a Coordinate: "); UserInput(input);
 		input[0] = toupper(input[0]);
-		coord[1] = (int) (input[0] - 'A'); // Column Switch
-		coord[0] = (int) (input[1] - '0') - 1; // Row Switch
+		if (input[0] == 'S')
+		{
+			coordinate[0]=-1;
+			coordinate[1]=-1;
+			return;
+		}
+		human[0] = input[0];
+		human[1] = input[1];
+		gridCoordinatetoCoord(human, coord);
 		if(validCoord(coord))
 		{
 			coordinate[0] = coord[0];
@@ -1884,14 +1916,14 @@ int getPosition(int mergedPos)
         return mergedPos >> NUM_GOAGAIN_BITS;
 }
 
-int getGoAgainLoc(int mergedPos)
+int getGoAgainFoxNum(int mergedPos)
 {
         return mergedPos & (intpow(2,NUM_GOAGAIN_BITS) - 1);
 }
 int GoAgainPos(int mergedPos)
 {
 	
-        return (variant_goAgain && (getGoAgainLoc(mergedPos) > 0));
+        return (variant_goAgain && (getGoAgainFoxNum(mergedPos) > 0));
 }
 
 int intpow (int base, int exp)
