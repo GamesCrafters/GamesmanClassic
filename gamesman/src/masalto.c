@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "hash.h"
 
 extern STRING gValueString[];
 
@@ -37,13 +38,13 @@ POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = "Asalto"; /* The name of your game */
-STRING   kDBName             = ""; /* The name to store the database under */
-BOOLEAN  kPartizan           = ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = ; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = ; /* TRUE if there is a game specific menu*/
-BOOLEAN  kTieIsPossible      = ; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy               = ; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = ; /* TRUE while debugging */
+STRING   kDBName             = "Asalto"; /* The name to store the database under */
+BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
+BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
+BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
+BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
+BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
 
 
 STRING kHelpGraphicInterface =
@@ -84,6 +85,8 @@ STRING   kHelpExample =
 #define GEESE_MIN 9
 #define FOX_MAX 2
 #define FOX_MIN 2
+#define GEESE_PLAYER 1
+#define FOX_PLAYER 2
 
 /*************************************************************************
 **
@@ -91,7 +94,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-#include "hash.h"
+
 
 /*************************************************************************
 **
@@ -106,10 +109,17 @@ STRING   kHelpExample =
 /* Function prototypes here. */
 void printAscii (char start, char end, int spacing);
 void printNumberBar(int start, int end, int spacing);
-char[][] stringToBoard(char[] board);
-char[] boardToString(char[][] board);
-int hashMove(char[] move);
-char unHashMove(int hashed_move);
+void stringToBoard(char board[], char returnBoard[7][7]);
+void boardToString(char board[7][7], char returnString[33]);
+int hashMove(int move[]);
+void unHashMove(int hashed_move, int move[2]);
+void boardPieceStats(char boardString[33], int stats[2]);
+int numFoxes(int stats[2]);
+int numGeese(int stats[2]);
+int numWinGeese(int stats[2]);
+int coordToLocation(int coordinates[2]);
+void locationToCoord(int location, int coordinates[2]);
+int validCoord(int coord[2]);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -135,12 +145,12 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  /* Initialize Hash Function */
-  generic_hash_init(BOARDSIZE, {' ', 0, BOARDSIZE,
-				  'F', FOX_MIN, FOX_MAX,
-				  'G', GEESE_MIN, GEESE_MAX}, null);
+	int hash_data[] =  {' ', 0, BOARDSIZE,
+		  	        'F', FOX_MIN, FOX_MAX,
+				'G', GEESE_MIN, GEESE_MAX, -1};
+	/* Initialize Hash Function */
+	generic_hash_init(BOARDSIZE, hash_data, 0);
 }
-
 
 /************************************************************************
 **
@@ -155,8 +165,7 @@ void DebugMenu ()
 {
   char GetMyChar();
  
-  do {
-    printf("The Debug menu is not done.");
+  printf("The Debug menu is not done.");
 }
 
 
@@ -216,7 +225,7 @@ POSITION DoMove (thePosition, theMove)
   int origin = -1;
   int destination = -1;
   
-  generic_unhash(pos, boardString);
+  generic_unhash(thePosition, boardString);
   unHashMove(theMove, move);
   
   origin = move[0];
@@ -382,7 +391,7 @@ MOVELIST *GenerateMoves (position)
   char piece_at_loc='*';
   int d_row=-5;  
   int d_col=-5;
-  generic_unhash(pos, boardString);
+  generic_unhash(position, boardString);
 
   /* Check Move */
 
@@ -418,7 +427,7 @@ MOVELIST *GenerateMoves (position)
 			    }
 			}
 		    } 
-		} 
+		}
 	    }
 	}
     }
@@ -622,7 +631,7 @@ void printNumberBar(int start, int end, int spacing)
     printf("\n");
 }
 
-/* Board Abstraction under test */
+/* Board Abstraction under test. Probably won't use*/
 void stringToBoard(char board[], char returnBoard[7][7])
 {
   int i = 0;
@@ -680,15 +689,16 @@ void boardToString(char board[7][7], char returnString[33])
     }
 }
 
-int hashMove(int move[])
+int hash_move(int move[2]) /* Revamped Bitshiftting Hash Function */
 {
-  return (move[0] * 32) + move[1];
+	int hashed=0;
+	hashed = move[0] | move[1] << 6;
+	return hashed;
 }
-
-void unHashMove(int hashed_move, int move[2])
+void unhash_move (int hashed_move, int move[2])
 {
-  move[1] = hashed_move % 32;
-  move[0] = (hashed_move - move[1]) / 32;
+	move[0] = hashed_move & 0x3F; /* 0b111111*/
+	move[1] = hashed_move >> 6;
 }
 
 void boardPieceStats(char boardString[33], int stats[2])
