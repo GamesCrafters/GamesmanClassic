@@ -82,7 +82,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-BOOLEAN debug = TRUE;
+BOOLEAN debug = FALSE;
 
 #define BOARDSIZE 24
 #define minx  2
@@ -162,7 +162,7 @@ void InitializeGame()
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
-  generic_hash_init(b_size, pminmax, NULL);
+  gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
 
 }
 
@@ -1169,6 +1169,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.42  2004/04/21 03:47:43  weitu
+//changed generate moves, still buggy tho
+//
 //Revision 1.41  2004/04/15 00:13:06  ogren
 //Added count_mills for the future, currently incorrectly implemented.... -Elmer
 //
