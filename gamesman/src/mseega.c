@@ -78,9 +78,6 @@ void*    gGameSpecificTclInit = NULL;
    Help strings that are pretty self-explanatory 
 */
 
-// TODO Look at help strings for Achi! We're going to change these when
-// we implement the 2-step process
-
 STRING kHelpGraphicInterface =
 "Not written yet";
 
@@ -90,7 +87,7 @@ STRING   kHelpTextInterface    =
 First, you and your opponent will take turns placing TWO moves at a time.\n\
 Use the BOARD to locate the empty slots where you can insert your 2 pieces,\n\
 and type the 2 numbers corresponding to the two empty slots (i.e. [1 2])\n\
-Note: Some spaces might be marked as not unplayable.\n\
+Note: Some spots, called forbidden spots, are marked as unplayable.\n\
 ***Part 2: SLIDE MOVES:***\n\
 Next, once the board is filled up with the 2 players' pieces, we'll go into\n\
 the slide moves phase. Once again, you'll type two numbers, but the first\n\
@@ -136,7 +133,62 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 
 //TODO
 STRING   kHelpExample =
-"TO BE FINISHED";
+"  LEGEND:            TOTAL (forbidden spots don't show up):\n\
+  ( 0  1  2 )        :- - -\n\
+  ( 3  4  5 )        :-   -\n\
+  ( 6  7  8 )        :- - -\n\
+  Player 1's turn to move\n\
+\n\
+Player 1's move [(undo)/<number> <number>] : 0 8\n\n\
+  LEGEND:            TOTAL (forbidden spots don't show up):\n\
+  ( 0  1  2 )        :x - -\n\
+  ( 3  4  5 )        :-   -\n\
+  ( 6  7  8 )        :- - x\n\
+  Player 2's turn to move\n\
+\n\
+Player 2's move [(undo)/<number> <number>] : 2 6\n\n\
+  LEGEND:            TOTAL (forbidden spots don't show up):\n\
+  ( 0  1  2 )        :x - o\n\
+  ( 3  4  5 )        :-   -\n\
+  ( 6  7  8 )        :o - x\n\
+  Player 1's turn to move\n\
+\n\
+Player 1's move [(undo)/<number> <number>] : 1 5\n\n\
+  LEGEND:            TOTAL (forbidden spots don't show up):\n\
+  ( 0  1  2 )        :x x o\n\
+  ( 3  4  5 )        :-   x\n\
+  ( 6  7  8 )        :o - x\n\
+  Player 2's turn to move\n\
+\n\
+Player 2's move [(undo)/<number> <number>] : 3 7\n\n\
+  LEGEND:            TOTAL:\n\
+  ( 0  1  2 )        :x x o\n\
+  ( 3  4  5 )        :o - x\n\
+  ( 6  7  8 )        :o o x\n\
+  Player 1's turn to move\n\
+\n\
+Player 1's move [(undo)/<number> <number>] : 5 4\n\n\
+  LEGEND:            TOTAL:\n\
+  ( 0  1  2 )        :x x o\n\
+  ( 3  4  5 )        :o x -\n\
+  ( 6  7  8 )        :o o x\n\
+  Player 2's turn to move\n\
+\n\
+Player 2's move [(undo)/<number> <number>] : 2 5\n\n\
+  LEGEND:            TOTAL:\n\
+  ( 0  1  2 )        :x x -\n\
+  ( 3  4  5 )        :o - o\n\
+  ( 6  7  8 )        :o o x\n\
+  Player 1's turn to move\n\
+\n\
+Player 1's move [(undo)/<number> <number>] : 1 2\n\n\
+  LEGEND:            TOTAL:\n\
+  ( 0  1  2 )        :x - x\n\
+  ( 3  4  5 )        :o - -\n\
+  ( 6  7  8 )        :o o x\n\
+  Player 2's turn to move\n\
+\n\
+Player 2's move [(undo)/<number> <number>] :";
 
 /*************************************************************************
  **
@@ -177,7 +229,8 @@ char blank='-'; //TODO changed Peter: I think blank should be '-'
 typedef char* Board;
 typedef int* SMove;
 //array for keeping the forbidden spots - not used yet
-int forbiddenSpots[30]; //MAX 30 forbidden spots - arbitrary num
+//int forbiddenSpots[30]; //MAX 30 forbidden spots - arbitrary num - not used
+int changedForbidden = -1;
 int defaultForbidden = TRUE;
 
 //FIXME remove line
@@ -214,18 +267,29 @@ inline void unhash(Board b, POSITION p);
 /* tells whether r is a forbidden spot for placing pieces (i.e. the
    center) */
 int forbiddenSpot(int r) {
+
+
+
+
+
 	int i;
 	//printf("FORBIDDEN spot check r[%u] height[%u] width[%u]\n", r, height, width);
 	if (defaultForbidden) {
 	  return height/2 == r/width && width/2 == r%width;
 	} else {
+	/*
 	  for (i = 0;  forbiddenSpots[i] != 0; i++) {
             if(r == forbiddenSpots[i]) {
               return TRUE;
 	    }
 	  }
-	  return FALSE;
-	}
+	  */
+	  if (r==changedForbidden) {
+		  return TRUE;
+	  } else {
+	    return FALSE;
+	  }
+   }
 }
 
 /* A few helper functions for GenerateMoves. */
@@ -326,10 +390,8 @@ void GameSpecificMenu()
   printf("\n");
   printf("Seega Game Specific Menu\n\n");
   printf("1) Change the board size (currently at = %d x %d) \n", height, width); //rows x cols ?
-  //printf("2) Change the forbidden spots (NOT QUITE DONE YET) \n");
+  //printf("2) Change or remove the forbidden spot \n");
   printf("b) Back to previous menu\n\n");
-    
-  //printf("Current option:   %s\n", allDiag ? "All diagonal moves": noDiag ? "No diagonal moves" : "Standard diagonal moves");
   printf("Select an option: ");
     
   switch(GetMyChar()) {
@@ -341,10 +403,12 @@ void GameSpecificMenu()
     changeBoard();
     GameSpecificMenu();
     break;
+    /*
   case '2':
     changeForbiddenSpots();
     GameSpecificMenu();
     break;
+    */
 
   case 'b': case 'B':
     return;
@@ -391,33 +455,23 @@ void changeBoard()
 
 void changeForbiddenSpots()
 {
-	/*
-  int n_rows, n_cols, valid_cols, valid_rows;
-  valid_cols = 0; //a flag
-  valid_rows = 0; //another flag - not used
-  printf("Enter the new number of rows (3-%d):  ", MAXROWS);
-  (void) scanf("%u", &n_rows);
-  if ((n_rows < 3) || (n_rows > MAXROWS)) {
-    printf("Number of rows must be between to 3 and %d\n", MAXROWS);
-    changeBoard(); //optional - change to better style
-  } else {
-    printf("Changing number of rows to %d ...\n", n_rows);
-    height = n_rows;
-  }
-  printf("Enter the new number of columns (3-%d):  ", MAXCOLS);
-  while (valid_cols == 0){
-    (void) scanf("%u", &n_cols);
-    if ((n_cols < 3) || (n_cols > MAXCOLS)) {
-      printf("Number of columns must be between to 3 and %d\n", MAXCOLS);
-    } else {
-      printf("Changing number of columns to %d ...\n", n_cols);
-      width = n_cols;
-      //BOARDSIZE=width*height;
-      valid_cols = 1;
-    }
-  }
-  InitializeGame();
-  */
+	int MAXNUM = 8; //TEMP
+	printf("Enter the new forbidden spot (between -1 and %u),\n", MAXNUM);
+	printf("-1 indicates that there are no forbidden spots:   ");
+  	(void) scanf("%u", &changedForbidden);
+	if ((changedForbidden < -1) || (changedForbidden > MAXNUM)) {
+		printf("not a valid forbidden spot\n");
+		changedForbidden = -1;
+		InitializeGame();
+		return;
+	}
+	defaultForbidden = FALSE;
+	if (changedForbidden == -1) {
+	  printf("removing the forbidden spot\n");
+	} else {
+	  printf("Changed the new forbidden spot to %d ...\n", changedForbidden);
+	}
+	InitializeGame();
 }
 
 /************************************************************************
