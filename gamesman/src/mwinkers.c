@@ -780,7 +780,7 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 {
   USERINPUT ret, HandleDefaultTextInput();
   do {
-    printf("%8s's move [(p)ass,1-%d] : ", playerName, BOARDSIZE);
+    printf("%8s's move [1-%d] : ", playerName, BOARDSIZE);
     /*    if (BOARDSIZE == 0)
 	  printf("0] : ");
 	  else if (BOARDSIZE < 10)
