@@ -30,6 +30,7 @@ typedef int ClientData;
 #include <errno.h>
 #include <sys/utsname.h>
 #include <sys/time.h> 
+#include <limits.h>
 
 #define  MAXINT2          1073741823 /* 2^30 - 1 */
 #define  MAXNAME          15         /* arbitrary */
