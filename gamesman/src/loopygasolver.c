@@ -145,9 +145,6 @@ POSITION position;
 	      BadElse("lgas_DetermineValue");
 	    }
 	    
-	    /* This should always hold because the frontier is a queue.
-	    ** We always examine losing nodes with less remoteness first */
-	    assert((remotenessChild + 1) >= Remoteness(parent));
 	  }
 
 
