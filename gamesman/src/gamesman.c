@@ -76,6 +76,9 @@ UNDO*   Stalemate(UNDO* undo,POSITION stalematePosition, BOOLEAN* abort);
 /* game debugging function */
 void	FoundBadPosition(POSITION, POSITION, MOVE);
 
+/* low memory solver internal fucntion prototypes */
+VALUE DetermineZeroValue(POSITION position);
+
 /* non-loopy solver internal function prototypes */
 VALUE   DetermineValue1(POSITION position);
 
@@ -241,7 +244,8 @@ BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exist
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
-BOOLEAN gTwoBits = FALSE;	  /* Two bit solver, default: FALSE */
+BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
+BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 
 
 int   smartness = SMART;
@@ -252,7 +256,12 @@ VALUE oldValueOfPosition = tie;
 
 static MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
-STRING kAuthorName = "Dan Garcia" ;
+STRING kAuthorName = "Dan Garcia & The Elite GamesCrafters" ;
+
+
+
+
+
 
 /* Start Loopy */
 FRnode *gHeadWinFR = NULL;               /* The FRontier Win Queue */
@@ -318,7 +327,9 @@ void Initialize()
 {
   srand(time(NULL));
   /* set default solver */
-  if(kLoopy)
+  if(kZeroMemSolver)
+    gSolver = DetermineZeroValue;
+  else if(kLoopy)
     gSolver = DetermineLoopyValue;
   else
     gSolver = DetermineValue1;
@@ -365,6 +376,7 @@ void MenusBeforeEvaluation()
   if(kGameSpecificMenu)
     printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
   printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
+  printf("\t2)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolve ? "ON" : "OFF");
 }
 
 void MenusEvaluated()
@@ -487,6 +499,9 @@ void ParseBeforeEvaluationMenuChoice(c)
   case '2':
     gTwoBits = !gTwoBits;
     break;
+  case 'l': case 'L':
+    kZeroMemSolve = !kZeroMemSolve;
+    break;
   case 'o': case 'O':
     gStandardGame = !gStandardGame;
     break;
@@ -498,6 +513,7 @@ void ParseBeforeEvaluationMenuChoice(c)
     break;
   case 's': case 'S':
       printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
+	  printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
       printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
@@ -2664,6 +2680,137 @@ VALUE_MOVES* StoreMoveInList(theMove, remoteness, valueMoves, typeofMove)
   return (valueMoves);
 }
 
+/**************
+**  Start ZeroSolver 
+**  Requierments: gDatabase intialized w/ all positions set to undecided
+**  Benifits: Almost no memory overhead for the solver. 
+**			  9 POSITION's, 2 int's, 1 VALUE, 2 MOVELIST pointers
+**				32bit machines: around 60 bytes
+**				64bit machines: around 96 bytes
+**					(this depends on the size of VALUE)
+**
+**  Calls: StoreValueOfPosition, GetValueOfPosition
+**		   MarkAsVisited, Visited
+**         GenerateMoves, DoMove, FreeMoveList
+**		   Remoteness, SetRemoteness
+**
+**************/
+
+VALUE DetermineZeroValue(POSITION position){
+	POSITION i,lowSeen,highSeen; //Used to iter through gDatabase.
+	POSITION numUndecided, oldNumUndecided, numNew; //keps track of how many undecided positions we have, determines if solved
+	MOVELIST *moveptr, *headMove; //move list for the current parent to find children
+	POSITION child; // current child.
+	VALUE childValue; // current child value
+	POSITION numTot, numWin, numTie; //used to determine value of position where there is no lose child
+	int tieRemoteness, winRemoteness;
+
+	if (gTwoBits)
+		InitializeVisitedArray();
+
+	StoreValueOfPosition(position,Primitive(position));
+	MarkAsVisited(position); // only visited node to start
+	oldNumUndecided = 0;
+	numUndecided = 1;
+	numNew = 1;
+
+	lowSeen = position; // used as an optimization to recduce range of positions needed to be checked
+	highSeen = lowSeen+1;
+	while((numUndecided != oldNumUndecided) || (numNew != 0)){ // so long as the number of undecided positions changes continue calculating
+		oldNumUndecided = numUndecided;
+		numUndecided = 0;
+		numNew = 0;
+		for(i = lowSeen; i <= highSeen;i++){
+			if(Visited(i)){
+				if(GetValueOfPosition(i) == undecided){
+					moveptr = headMove = GenerateMoves(i);
+					numTot = numWin = numTie = 0;
+					tieRemoteness = winRemoteness = REMOTENESS_MAX;
+					while(moveptr != NULL && (GetValueOfPosition(i) == undecided)){
+						child = DoMove(i,moveptr->move);
+						numTot++;
+						if(Visited(child))
+							childValue = GetValueOfPosition(child);
+						else{
+							childValue = Primitive(child);
+							numNew++;
+							MarkAsVisited(child);
+							StoreValueOfPosition(child,childValue);
+							if(childValue != undecided){
+								SetRemoteness(child,0);
+							} //End  if(childValue != undecided)
+							if(child < lowSeen) lowSeen = child;
+							if(child > highSeen) highSeen = child + 1;
+						} //End  if(!Visited(child)
+
+						if(childValue == lose){
+							StoreValueOfPosition(i,win);
+							SetRemoteness(i,Remoteness(child)+1);
+						}
+	
+						if(childValue == win){
+							numWin++;
+							if(Remoteness(child) < winRemoteness){
+								winRemoteness = Remoteness(child);
+							}
+						}
+						if(childValue == tie){
+							numTie++;
+							if(Remoteness(child) < tieRemoteness){
+								tieRemoteness = Remoteness(child);
+							}
+						}
+
+
+						moveptr = moveptr -> next;
+					} //End  while(moveptr != NULL)
+					FreeMoveList(headMove);
+					if((numTot != 0) && (numTot == numWin + numTie)){
+						//printf("\nnumTot: %d, numWin: %d, numTie: %d\n",numTot,numWin,numTie);
+						if(numTie == 0){
+						//	printf("-lose\n");
+							StoreValueOfPosition(i,lose);
+							SetRemoteness(i, winRemoteness+1);
+						}else{
+						//	printf("-tie\n");
+							StoreValueOfPosition(i,tie);
+							SetRemoteness(i, tieRemoteness+1);
+						} //End if(numTie==0) ... else ...
+					} //End if((numTot != ...
+
+					if(GetValueOfPosition(i) == undecided) //this should be working.
+						numUndecided++; //if there is a problem switch to the commented for loop to do testing
+
+				}//End if(GetValueOfPosition(i) == undecided)
+			}//End if(Visited(i))
+		}//End for(i = lowSeen; i < highSeen;i++)  
+
+		//for(i=0;i<gNumberOfPositions;i++){//this works but is slow.
+		//	if(GetValueOfPosition(i) == undecided && Visited(i))
+		//		numUndecided++;
+		//}
+		//printf("\nnumUndecided: %d, numUndecided: %d, numNew: %d, lowSeen: %d, highSeen: %d\n",numUndecided,oldNumUndecided,numNew,lowSeen,highSeen);
+	}//End while(numUndecided != oldNumUndecided)
+
+	for(i = 0; i < gNumberOfPositions;i++){
+		if(Visited(i) && (GetValueOfPosition(i) == undecided)){
+			StoreValueOfPosition(i, tie);
+			SetRemoteness(i,REMOTENESS_MAX);
+		}
+		UnMarkAsVisited(i);
+	}
+
+	return GetValueOfPosition(position);
+}//End DetermeineZeroValue
+
+
+
+/*************
+**  End ZeroSolver
+**
+**
+*************/
+
 //// START LOOPY
 
 void MyPrintParents()
@@ -3296,6 +3443,9 @@ void HandleArguments (int argc, char *argv[]) {
     else if(!strcasecmp(argv[i], "--2bit")) {
       gTwoBits = TRUE;
     }
+	else if(!strcasecmp(argv[i], "--lowmem")) {
+      kZeroMemSolver = TRUE;
+    }
     else if(!strcasecmp(argv[i], "--solve")) {
       gJustSolving = TRUE;
       if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
@@ -3348,6 +3498,7 @@ void HandleArguments (int argc, char *argv[]) {
 	     "--option <n>\t\tStarts game with the n option configuration.\n"
 	     "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 	     "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
+		 "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
 	     "\t\t\tTo solve all option configurations of game, use <all>.\n"
 	     "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
 	     "\t\t\tconfiguration.\n"
