@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.60 2005-03-31 08:13:16 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.61 2005-03-31 08:44:45 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -840,7 +840,7 @@ proc InitWindow { kRootDir kDir kExt } {
     }
 
 
-    # this is the play button
+    # this is the play now button
     .middle.f3.cMRight bind play <Enter> {
 	.middle.f3.cMRight raise playOver
 	update idletasks
@@ -849,7 +849,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	if { $gGameSolved == "false" } {
 	    .middle.f3.cMRight raise play
 	} else {
-	    .middle.f3.cMRight raise iDMB
+	    .middle.f3.cMRight raise iIMB
 	}
 	update idletasks
     }
@@ -904,6 +904,7 @@ proc InitWindow { kRootDir kDir kExt } {
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
+    .middle.f3.cMRight raise iDMB
 
     pack .middle.f1.cMLeft -expand 1
     pack .middle.f2.cMain  -expand 1
