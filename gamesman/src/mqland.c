@@ -103,29 +103,15 @@ STRING   kHelpExample =
 #define WHITE 'X'
 #define BLACK 'O'
 
-#define MAX_HEIGHT 5
+#define MAX_HEIGHT 15
 #define MIN_HEIGHT 3
-#define MAX_WIDTH 5
+#define MAX_WIDTH 15
 #define MIN_WIDTH 3
 
 #define pieceat(B, x, y) ((B)[(y) * width + (x)])
 #define get_location(x, y) ((y) * width + (x))
 #define get_x_coord(location) ((location) % width)
 #define get_y_coord(location) ((location) / width)
-
-/* The two leftmost bits of a MOVE are unused.
- * The next 10 bits encode the source of the player's SLIDE move.
- * The next 10 bits encode the destination of the player's SLIDE move.
- * The rightmost 10 bits encode the player's PLACE move.
- */
-/*
-#define get_move_source(move) (((move) & 0x3FF00000) >> 20)
-#define get_move_dest(move) (((move) & 0x000FFC00)) >> 10)
-#define get_move_place(move) ((move) & 0x000003FF)
-#define set_move_source(move, source) ((move) &= 0xC00FFFFF); ((move) |= ((source) << 20))
-#define set_move_dest(move, dest) ((move) &= 0xFFF003FF); ((move) |= ((dest) << 10))
-#define set_move_place(move, place) ((move) &= 0xFFFFFC00); ((move) |= (place))
-*/
 
 /* This represents a move as being source*b^2 + dest*b +place 
  * where b is the size of the board, i.e. width*height.
@@ -136,6 +122,7 @@ STRING   kHelpExample =
 #define set_move_source(move, source) ((move) += ((source)*width*width*height*height)) 
 #define set_move_dest(move, dest) ((move)+= ((dest)*width*height))
 #define set_move_place(move, place) ((move) += (place))
+
 /*************************************************************************
 **
 ** Global Variables
@@ -170,6 +157,7 @@ int scoreBoard(char *board, char player);
 void ChangeBoardSize();
 void ChangeNumPieces();
 void ChangeScoringSystem();
+void ChangeMovementRules();
 MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
 BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
 
@@ -662,6 +650,7 @@ void GameSpecificMenu () {
 	printf("\ts)\tchange the (S)ize of the board\n");
 	printf("\tp)\tchange the number of (P)ieces\n");
 	printf("\tc)\tchange the s(C)oring system of the game\n");
+	printf("\tm)\tchange the (M)ovement rules\n");
 	printf("\tb)\t(B)ack to the main menu\n");
 	printf("\nSelect an option:  ");
 	while (!isalpha(c = getc(stdin)));
@@ -675,6 +664,9 @@ void GameSpecificMenu () {
 	    break;
 	case 'c':
 	    ChangeScoringSystem();
+	    break;
+	case 'm':
+	    ChangeMovementRules();
 	    break;
 	case 'b':
 	    return;
@@ -895,7 +887,7 @@ void ChangeBoardSize() {
 	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH & newHeight >= MIN_HEIGHT) {
 	    height = newHeight;
 	    width = newWidth;
-	    printf("The board is now %d by %d.\n", width, height);
+	    printf("\nThe board is now %d by %d.\n", width, height);
 	    return;
 	}
 	printf("Board must be between %d by %d and %d by %d.  Please try again.\n",
@@ -914,7 +906,7 @@ void ChangeNumPieces() {
 	scanf("%d", &newAmount);
 	if (newAmount <= width && newAmount >= 1) {
 	    numpieces = newAmount;
-	    printf("Number of pieces changed to %d\n", numpieces);
+	    printf("\nNumber of pieces changed to %d\n", numpieces);
 	    return;
 	}
 	printf("Number must be between 1 and %d.  Please try again.\n", width);
@@ -927,28 +919,77 @@ void ChangeNumPieces() {
 void ChangeScoringSystem() {
     char c;
     while(TRUE) {
-	printf("\n\nScoring Options:\n\n");
+	printf("\n\nScoring Options (current is %s):\n\n",
+	       scoreStraight ? (scoreDiagonal ? "SCORE BOTH" : "SCORE STRAIT") : "SCORE DIAGONAL");
 	printf("\ts)\tcount only (S)traight lines (horizonal and vertical)\n");
 	printf("\td)\tcount only (D)iagonal lines\n");
-	printf("\tb)\tcount (B)oth straight and diagonal lines\n");
-	printf("Select an option: ");
+	printf("\to)\tcount b(O)th straight and diagonal lines\n");
+	printf("\tb)\t(B)ack to the previous menu\n");
+	printf("\nSelect an option: ");
 	while (!isalpha(c = getc(stdin)));
 	c = tolower(c);
 	switch(c) {
 	case 's':
 	    scoreStraight = TRUE;
 	    scoreDiagonal = FALSE;
-	    printf("Scoring changed to only count straight lines.\n");
+	    ChangeScoringSystem();
 	    return;
 	case 'd':
 	    scoreStraight = FALSE;
 	    scoreDiagonal = TRUE;
-	    printf("Scoring changed to only count diagonal lines.\n");
+	    ChangeScoringSystem();
 	    return;
-	case 'b':
+	case 'o':
 	    scoreStraight = TRUE;
 	    scoreDiagonal = TRUE;
-	    printf("Scoring changed to count straight and diagonal lines.\n");
+	    ChangeScoringSystem();
+	    return;
+	case 'b':
+	    return;
+	default:
+	    printf("Invalid option. Please try again");
+	}
+    }
+}
+
+/* Allows the user to change the movement rules */
+void ChangeMovementRules() {
+    char c;
+    while (TRUE) {
+	printf("\n\nMovement options:\n\n");
+	printf("\tm)\tToggle the way pieces can (M)ove (currently pieces move like %s)\n",
+	       moveDiagonal ? (moveStraight ? "QUEENS" : "BISHOPS") : "ROOKS");
+	printf("\ts)\tToggle the (S)tructure of a move (currently a player %s move a piece before placing a piece)\n",
+	       slide_rules == MAY_SLIDE ? "MAY" : (slide_rules == MUST_SLIDE ? "MUST" : "CANNOT"));
+	printf("\tb)\t(B)ack to the previous menu\n");
+	printf("\nSelect an option: ");
+	while (!isalpha(c = getc(stdin)));
+	c = tolower(c);
+	switch(c) {
+	case 'm':
+	    if (moveDiagonal && moveStraight) {
+		moveDiagonal = FALSE;
+		moveStraight = TRUE;
+	    } else if (moveStraight) {
+		moveDiagonal = TRUE;
+		moveStraight = FALSE;
+	    } else {
+		moveDiagonal = TRUE;
+		moveStraight = TRUE;
+	    }
+	    ChangeMovementRules();
+	    return;
+	case 's':
+	    if (slide_rules == MAY_SLIDE) {
+		slide_rules = MUST_SLIDE;
+	    } else if (slide_rules == MUST_SLIDE) {
+		slide_rules = NO_SLIDE;
+	    } else {
+		slide_rules = MAY_SLIDE;
+	    }
+	    ChangeMovementRules();
+	    return;
+	case 'b':
 	    return;
 	default:
 	    printf("Invalid option. Please try again");
