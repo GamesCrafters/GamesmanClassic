@@ -792,18 +792,6 @@ MOVELIST *GenerateMoves(position)
   if(Primitive(position) == undecided) {
     myPosition = unhash(position);
     currentColor = (myPosition.turn == TURN_O ? PIECE_O : PIECE_X);
-    /* For pieces in the stock */
-    for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
-      stockValue = i / 2;
-      if(myPosition.stash[i] > 0) {
-        for(j = 0; j < TABLE_SLOTS; j++) {
-          topPieceTo = getTopPieceSize(myPosition.board[j]);
-          if(topPieceTo < (i / 2)) {
-            head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
-          }
-        }
-      }
-    }
     /* For pieces already on the board */
     for(i = 0; i < TABLE_SLOTS; i++) {
       topPieceFrom = getTopPieceSize(myPosition.board[i]);
@@ -813,6 +801,18 @@ MOVELIST *GenerateMoves(position)
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if(topPieceTo < topPieceFrom) {
             head = CreateMovelistNode(CONS_MOVE(i, j), head);
+          }
+        }
+      }
+    }
+    /* For pieces in the stock */
+    for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
+      stockValue = i / 2;
+      if(myPosition.stash[i] > 0) {
+        for(j = 0; j < TABLE_SLOTS; j++) {
+          topPieceTo = getTopPieceSize(myPosition.board[j]);
+          if(topPieceTo < (i / 2)) {
+            head = CreateMovelistNode(CONS_MOVE(TABLE_SLOTS + (i / 2), j), head);
           }
         }
       }
@@ -1159,31 +1159,30 @@ void computeTables ()
 ** OUTPUTS:     (POSITION): The equivelent POSITION of the inputed GPosition.
 **
 ************************************************************************/
+
 POSITION hash ( struct GPosition pos )
 {
-	unsigned long lpos[ PIECE_SIZES], ret = 0;
+	unsigned long lpos, ret = 0;
 	int i, t, pieceNo;
 	
 	if (! tableSize)
 		computeTables();
 	
-	for (i = 0; i < PIECE_SIZES; i++) {
-		lpos[ i] = 0;
+	for (i = PIECE_SIZES - 1; i >= 0; i--) {
+		lpos = 0;
 		
 		for (pieceNo = t = 0; t < TABLE_SLOTS; t++) {
 			if (pos.board[ t] & (0x1 << (2 * i))) {		// O
-				lpos[ i] |= 1 << (COLOR_BITS + t);
+				lpos |= 1 << (COLOR_BITS + t);
 				pieceNo++;
 			} else if (pos.board[ t] & (0x2 << (2 * i))) {
-				lpos[ i] |= (1 << (COLOR_BITS + t)) | (COLOR_MASK & (1 << pieceNo));
+				lpos |= (1 << (COLOR_BITS + t)) | (COLOR_MASK & (1 << pieceNo));
 				pieceNo++;
 			}
 		}
-	}
-	
-	for (i = PIECE_SIZES - 1, ret = 0; i > -1; i--) {
+		
 		ret *= tableSize;
-		ret += pos2hash[ lpos[ i]];
+		ret += pos2hash[ lpos];
 	}
 	
 	return (ret << 1) | (0x1 & pos.turn);
@@ -1205,7 +1204,7 @@ POSITION hash ( struct GPosition pos )
 struct GPosition unhash ( POSITION h )
 {
 	struct GPosition ret;
-	unsigned long lpos[ PIECE_SIZES];
+	unsigned long lpos;
 	int i, t, pieceNo;
 	
 	if (! tableSize)
@@ -1226,33 +1225,24 @@ struct GPosition unhash ( POSITION h )
 	
 	// Check each layer
 	for (i = 0; i < PIECE_SIZES; i++) {
-		lpos[ i] = hash2pos[ h % tableSize];
+		lpos = hash2pos[ h % tableSize];
 		h /= tableSize;
 		
 		// And each space
 		for (t = pieceNo = 0; t < TABLE_SLOTS; t++) {
-			if (lpos[ i] & (1 << (COLOR_BITS + t))) {
-				if (lpos[ i] & (1 << pieceNo))
-					ret.board[ t] |= (2 << (2 * i));
-				else
-					ret.board[ t] |= (1 << (2 * i));
+			if (lpos & (1 << (COLOR_BITS + t))) {
+				if (lpos & (1 << pieceNo)) {
+					ret.board[ t] |= PIECE_VALUE( PIECE_X, i );
+					--ret.stash[ i * 2 + 1];
+				} else {
+					ret.board[ t] |= PIECE_VALUE( PIECE_O, i );
+					--ret.stash[ i * 2];
+				}
 				
 				pieceNo++;
 			}
 		}
 	}
-	
-	for(i = 0; i < TABLE_SLOTS; i++) {
-		for(t = 0; t < PIECE_SIZES; t++) {
-			if(ret.board[ i] & PIECE_VALUE(PIECE_O, t))
-				--ret.stash[ t * 2];
-			
-			if(ret.board[ i] & PIECE_VALUE(PIECE_X, t))
-				--ret.stash[ t * 2 + 1];
-		}
-	}
- 
-	
 	
 	return ret;
 }
