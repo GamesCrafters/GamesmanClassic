@@ -32,22 +32,21 @@
 #include <unistd.h>
 #include <limits.h>
 
-POSITION gNumberOfPositions  = 0;
+POSITION gNumberOfPositions   = 0;
+POSITION gInitialPosition     = 0;
+POSITION gMinimalPosition     = 0;
+POSITION kBadPosition         = -1;
 
-POSITION gInitialPosition    = 0;
-POSITION gMinimalPosition    = 0;
-POSITION kBadPosition        = -1;
-
-STRING   kAuthorName         = "";
-STRING   kGameName           = "Gobblet Jr";
-STRING   kDBName             = "gobblet";
-BOOLEAN  kPartizan           = TRUE; 
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = FALSE;
-BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE;
+STRING   kAuthorName          = "Damian Hites, Scott Lindeneau, John Jordan";
+STRING   kGameName            = "Gobblet Jr";
+STRING   kDBName              = "gobblet";
+BOOLEAN  kPartizan            = TRUE; 
+BOOLEAN  kSupportsHeuristic   = FALSE;
+BOOLEAN  kSupportsSymmetries  = FALSE;
+BOOLEAN  kSupportsGraphics    = FALSE;
+BOOLEAN  kDebugMenu           = FALSE;
+BOOLEAN  kGameSpecificMenu    = TRUE;
+BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
@@ -141,16 +140,16 @@ layer_t *pos2hash = NULL;
 layer_t *hash2pos = NULL;
 
 //The variables we use.
-int tableSize = 0; //- precomputation table size
-int BOARD_SIZE = 3,
-    PIECE_SIZES = 2,
-    PIECES_PER_SIZE = 2,
-    COLOR_BITS = -1, //Number of bits used internally to represent color
-    TABLE_BITS = -1, //Number of bits used internally to represent board position
-    COLOR_MASK = -1, //Internal bitmask representation for color.
-    TABLE_MASK = -1, //Internal bitmask representation for table.
-    TABLE_SLOTS = -1,
-    SLOT_PERMS = -1;
+int tableSize        = 0; //- precomputation table size
+int BOARD_SIZE       = 3;
+int PIECE_SIZES      = 2;
+int PIECES_PER_SIZE  = 2;
+int COLOR_BITS       = -1; //Number of bits used internally to represent color
+int TABLE_BITS       = -1; //Number of bits used internally to represent board position
+int COLOR_MASK       = -1; //Internal bitmask representation for color.
+int TABLE_MASK       = -1; //Internal bitmask representation for table.
+int TABLE_SLOTS      = -1;
+int SLOT_PERMS       = -1;
 
 /*
 CONS_MOVE
@@ -261,11 +260,11 @@ extern void		SafeFree ();
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+extern VALUE *gDatabase;
 
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
@@ -345,14 +344,38 @@ void DebugMenu()
 
 void SetBoardSize ()
 {
+    int boardSize;
+    do {
+	printf("\n\nSet the new board size (nxn):  ");
+	(void) scanf("%d", &boardSize);
+	if(boardSize < 1 || boardSize > MAX_BOARD_SIZE)
+	    printf("\n\nInvalid board size!");
+    } while(boardSize < 1 || boardSize > MAX_BOARD_SIZE);
+    BOARD_SIZE = boardSize;
 }
 
 void SetPieceSizes ()
 {
+    int pieceSizes;
+    do {
+	printf("\n\nSet the new number of piece sizes:  ");
+	(void) scanf("%d", &pieceSizes);
+	if(pieceSizes < 1 || pieceSizes > MAX_PIECE_SIZES)
+	    printf("\n\nInvalid number of piece sizes!");
+    } while(pieceSizes < 1 || pieceSizes > MAX_PIECE_SIZES);
+    PIECE_SIZES = pieceSizes;
 }
 
 void SetNumPieces ()
 {
+    int numPieces;
+    do {
+	printf("\n\nSet the new number of pieces of each size:  ");
+	(void) scanf("%d", &numPieces);
+	if(numPieces < 1 || numPieces > MAX_PIECES_PER_SIZE)
+	    printf("\n\nInvalid number of piece sizes!");
+    } while(numPieces < 1 || numPieces > MAX_PIECES_PER_SIZE);
+    PIECES_PER_SIZE = numPieces;
 }
 
 
@@ -372,22 +395,21 @@ void GameSpecificMenu()
   POSITION GetInitialPosition();
   
   do {
-    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
-    printf("\tI)\tChoose the (I)nitial position\n");
-    printf("\tT)\t(T)hree in a row %s\n", 
-	   gThreeInARowWins ? "GOOD (WINNING)" : "BAD (LOSING)");
+    printf("\ti)\tChoose the (I)nitial position\n");
+    printf("\tt)\tSwitch (T)hree in a row to %s\n", 
+	   gThreeInARowWins ? "LOSING (BAD)" : "WINNING (GOOD)");
 	   
-    printf("\tS)\tChoose the board (S)ize (2 through 9)\n");
-    printf("\tP)\tChoose the number of (P)iece sizes (*Note: 3 or more\
-        may be unsolvable on a 32 bit machine at 3x3 board.)\n");
-    printf("\tN)\tChoose the (N)umber of each piece size\n");
+    printf("\ts)\tChoose the board (S)ize nxn (1 to %d), currently: %d\n", MAX_BOARD_SIZE, BOARD_SIZE);
+    printf("\tp)\tChoose the number of (P)iece sizes (1 to %d), currently: %d\n", MAX_PIECE_SIZES, PIECE_SIZES);
+    printf("\tn)\tChoose the (N)umber of each piece size (1 to %d), currently: %d\n", MAX_PIECES_PER_SIZE, PIECES_PER_SIZE);
     
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-    printf("\n\nSelect an option: ");
+    printf("\n\nSelect an option:  ");
     
     switch(GetMyChar()) {
     case 'Q': case 'q':
@@ -501,11 +523,11 @@ POSITION GetInitialPosition()
   printf("\n\tPlease input the position to begin with.\n");
   printf("\n\tNote that X will always go first\n");
   printf("\tNote that it should be in the following format:\n\n");
-  printf("-- X  -x\n");
-  printf("O  X  --         <----- EXAMPLE\n");
-  printf("-o O  --\n");
-  printf("For example, to get the position printed above, type:\n");
-  printf("--X--x \nO-X--- \n-oO--- \n");
+  printf("\t-- X  -x\n");
+  printf("\tO  X  --         <----- EXAMPLE\n");
+  printf("\t-o O  --\n");
+  printf("\tFor example, to get the position printed above, type:\n");
+  printf("\t--X--x \nO-X--- \n-oO--- \n");
   
   i = 0;
   getchar();
@@ -650,15 +672,15 @@ VALUE Primitive ( POSITION h ) //Need to add the 3 in a row is a loss.
 	}
 	
 	if (x_wins && o_wins)
-	  return (win);
+	  return gThreeInARowWins ? win : lose;
 	else if (x_wins && pos.turn == TURN_X)
-	  return(win);
+	  return gThreeInARowWins ? win : lose;
 	else if(o_wins && pos.turn == TURN_X)
-	  return(lose);
+	  return gThreeInARowWins ? lose : win;
 	else if (o_wins && pos.turn == TURN_O)
-	  return(win);
+	  return gThreeInARowWins ? win : lose;
 	else if(x_wins && pos.turn == TURN_O)
-	  return (lose);
+	  return gThreeInARowWins ? lose : win;
 	else 
 	  return (undecided);
 }
