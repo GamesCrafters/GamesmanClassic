@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>	
 #include <limits.h>
 #include "hash.h"
 
@@ -94,6 +94,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+int freeGeeseLocations[24];
 
 
 /*************************************************************************
@@ -111,8 +112,8 @@ void printAscii (char start, char end, int spacing);
 void printNumberBar(int start, int end, int spacing);
 void stringToBoard(char board[], char returnBoard[7][7]);
 void boardToString(char board[7][7], char returnString[33]);
-int hashMove(int move[]);
-void unHashMove(int hashed_move, int move[2]);
+int hashMove(int move[3]);
+void unHashMove(int hashed_move, int move[3]);
 void boardPieceStats(char boardString[33], int stats[2]);
 int numFoxes(int stats[2]);
 int numGeese(int stats[2]);
@@ -120,6 +121,10 @@ int numWinGeese(int stats[2]);
 int coordToLocation(int coordinates[2]);
 void locationToCoord(int location, int coordinates[2]);
 int validCoord(int coord[2]);
+void UserInputCoordinate(int coordinate[2]);
+void addFreeGoose(int geeseLocation);
+void updateFreeGoose(int geeseOrigin, int geeseDestination);
+int freeGoose(int geeseLocation);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -163,9 +168,9 @@ void InitializeGame ()
 
 void DebugMenu ()
 {
-  char GetMyChar();
+	char GetMyChar();
  
-  printf("The Debug menu is not done.");
+	printf("The Debug menu is not done.");
 }
 
 
@@ -177,10 +182,11 @@ void DebugMenu ()
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
 ** 
-************************************************************************/
+*******************************origin*****************************************/
 
 void GameSpecificMenu ()
 {
+	printf("No Game Specific Menu Yet\n");
 }
 
   
@@ -219,25 +225,49 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  int move[] = {0,0};
+  int move[] = {0,0,0};
   char boardString[33];
   char origPiece = '*';
   int origin = -1;
   int destination = -1;
+  int coord_origin[2];
+  int coord_destination[2];
+  int goAgain = 0;
+  int next_player = 0;
   
   generic_unhash(thePosition, boardString);
   unHashMove(theMove, move);
   
   origin = move[0];
   destination = move[1];
+  goAgain = move[2];
   origPiece = boardString[origin];
   
   /* Barebones move */
   boardString[origin] = ' ';
   boardString[destination] = origPiece;
-
+  locationToCoord(origin,coord_origin);
+  locationToCoord(destination,coord_destination);
   /* Now check if we need to remove pieces */
-  
+  if(origPiece = 'F' && 
+     (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
+  {
+  	int del_coord[2];
+	int del_loc=-1;
+	del_coord[0] = (coord_origin[0] + coord_destination[0]) / 2;
+	del_coord[1] = (coord_origin[1] + coord_destination[1]) / 2;
+	del_loc = coordToLocation(del_coord);
+	boardString[del_loc] = ' ';
+  }
+  if (goAgain == 1)
+  {
+  	next_player = whoseMove(thePosition);
+  }
+  else
+  {
+  	next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
+  }
+  return generic_hash(boardString,next_player);
 }
 
 
@@ -254,7 +284,48 @@ POSITION DoMove (thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  /* Run Generic Hash Here */
+	char start_standard_board[]={      'G','G','G',
+	                                   'G','G','G',
+			           'G','G','G','G','G','G','G',
+				   'G','G','G','G','G','G','G',
+				   'G','G',' ',' ',' ','G','G',
+				           ' ',' ',' ',
+					   ' ',' ',' '};
+        char *boardPointer=start_standard_board;
+	int num_fox_placed=0;
+	int coordinate[2];
+	int location = -1;
+	printf("Fox Player: Please place two foxes in the blank positions\n");
+	do
+	{
+		printf("  A   B   C   D   E   F   G       \n");
+  		printf("1         %c - %c - %c            \n",*(boardPointer +  0), *(boardPointer +  1), *(boardPointer +  2) );
+		printf("          | \\   / |              \n");
+		printf("2         %c - %c - %c            \n",*(boardPointer +  3), *(boardPointer +  4), *(boardPointer +  5) );
+		printf("          | /   \\ |              \n");
+		printf("3 %c - %c - %c - %c - %c - %c - %c    F = Fox \n",*(boardPointer +  6), *(boardPointer +  7), *(boardPointer +  8), *(boardPointer +  9), *(boardPointer + 10), *(boardPointer + 11), *(boardPointer + 12) );
+		printf("  | \\   / | \\   / | \\   /    | \n");
+		printf("4 %c - %c - %c - %c - %c - %c - %c    G = Geese\n",*(boardPointer + 13), *(boardPointer + 14), *(boardPointer + 15), *(boardPointer + 16), *(boardPointer + 17), *(boardPointer + 18), *(boardPointer + 19) );
+		printf("  | /   \\ | /   \\ | /   \\    | \n");
+		printf("5 %c - %c - %c - %c - %c - %c - %c\n",*(boardPointer + 20), *(boardPointer + 21), *(boardPointer + 22), *(boardPointer + 23), *(boardPointer + 24), *(boardPointer + 25), *(boardPointer + 26) );
+		printf("          | \\   / |              \n");
+		printf("6         %c - %c - %c            \n",*(boardPointer + 27), *(boardPointer + 28), *(boardPointer + 29));
+		printf("          | /   \\ |              \n");
+		printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));
+		printf("\n\n Please Enter in A Coordinate [Example C4]: ");
+		UserInputCoordinate(coordinate);
+		location = coordtoLocation(coordinate);
+		if (start_standard_board[location] == ' ')
+		{
+			start_standard_board[location] = 'F';
+			num_fox_placed++;
+		}
+		else
+		{
+			printf("There is a goose there. Please try again. \n");
+		}
+	}while(num_fox_placed < 2);
+	return generic_hash(start_standard_board, GEESE_PLAYER);
 }
 
 
@@ -300,15 +371,25 @@ VALUE Primitive (pos)
 {
   int boardStats[]={0,0,0};
   char boardString[33];
+  int currentTurn = whoseTurn(pos);
   generic_unhash(pos, boardString);
   boardPieceStats(boardString, boardStats);
-  if ( numGeese(boardStats) < 9) // Only will happen if the fox kill geese. It will be the geese's turn.
+  if ( numGeese(boardStats) < 9 && currentTurn == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
     {
-      return (gStandardGame ? lose : win);
+        return (gStandardGame ? lose : win);
     }
-  else if( numWinGeese(boardStats) == 9) // Foxes View
+  else if(numWinGeese(boardStats) == 9 && currentTurn == FOX_PLAYER) // Foxes View
     {
-      return (gStandardGame ? lose : win);
+        return (gStandardGame ? lose : win);
+    }
+  else if(currentTurn == FOX_PLAYER)
+    {
+    	BOOLEAN CantMove();
+	return CantMove(pos) ? lose : undecided;
+    }
+   else
+    {
+    	return undecided;
     }
   // Need to add Geese No Move Win for Fox.
 }
@@ -387,54 +468,280 @@ MOVELIST *GenerateMoves (position)
   int i=0;
   int scratch_coord[2];
   int candidate_destination_coord[2]={-1, -1};
-  int candidate_move[2]={-1, -1};
-  char piece_at_loc='*';
-  int d_row=-5;  
-  int d_col=-5;
+  int candidate_destination_loc=-1;
+  int candidate_move[3]={-1, -1, -1};
+  int delta_row=-5;  
+  int delta_col=-5;
+  int currentTurn=whoseTurn(position);
   generic_unhash(position, boardString);
 
   /* Check Move */
-
-  for(i=0; i < 33; i++) // Look through all fox pieces
-    {
-      piece_at_loc = boardString[i];
-      if (piece_at_loc = 'F')
+	if(currentTurn = FOX_PLAYER)
 	{
-	  locationToCoord(i, scratch_coord);
-	  for (d_row=-1; d_row <= 1; d_row++)
-	    {
-	      for (d_col=-1; d_col <= 1; d_col++)
+		/* Scan through all pieces for foxes */
+		for (i=0; i < 33; i++)
 		{
-		  candidate_destination_coord[0] = scratch_coord[0] + d_row;
-		  candidate_destination_coord[1] = scratch_coord[1] + d_col;
-		  candidate_move[0] = i;
-		  candidate_move[1] = coordToLocation(candidate_destination_coord);
-		  if (d_row != 0 && d_col != 0)
-		    {
-		      /* Pieces at Even Locations can move diagonally */
-		      if(validCoord(candidate_destination_coord) == 1) /* Remember to check if piece is there */
+			/* Do we have a fox ?*/
+			if (boardString[i] == 'F') /* Yup */
 			{
-			  if (piece_at_loc % 2 == 0)
-			    {	      
-			      head = CreateMovelistNode(hashMove(candidate_move),head);
-			    }
-			  else /* Then it's not even */
-			    {
-			      if (abs(d_row) != abs(d_col))
+				locationToCoord(i, scratch_coord);
+				/* Scan all move directions */
+				for (delta_row = -1; delta_row <= 1; delta_row ++)
 				{
-				  head = CreateMovelistNode(hashMove(candidate_move),head);
+					for (delta_col = -1; delta_col <= 1; delta_col ++)
+					{
+						if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
+						{
+							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+							if (validCoord(candidate_destination_coord) == 1)
+							{
+								candidate_destination_loc = coordToLocation(candidate_destination_coord);
+								if (boardString[candidate_destination_loc] == ' ')
+								{
+									candidate_move[0] = i;
+									candidate_move[1] = candidate_destination_loc;
+									candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+									head = CreateMovelistNode(hashMove(candidate_move),head);
+								}
+								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
+								{
+									candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
+									candidate_destination_coord[1] = scratch_coord[0] + delta_col * 2; /* Next Space Blank */
+									candidate_destination_loc = coordToLocation(candidate_destination_coord);
+									if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
+									{
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}
+						}
+						else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
+						{
+							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+							if (validCoord(candidate_destination_coord) == 1)
+							{
+								candidate_destination_loc = coordToLocation(candidate_destination_coord);
+								if (boardString[candidate_destination_loc] == ' ')
+								{
+									candidate_move[0] = i;
+									candidate_move[1] = candidate_destination_loc;
+									candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+									head = CreateMovelistNode(hashMove(candidate_move),head);
+								}
+								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
+								{
+									candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
+									candidate_destination_coord[1] = scratch_coord[0] + delta_col * 2; /* Next Space Blank */
+									candidate_destination_loc = coordToLocation(candidate_destination_coord);
+									if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
+									{
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}
+						}
+					}					
 				}
-			    }
 			}
-		    } 
 		}
-	    }
 	}
-    }
+	else if (currentTurn = GEESE_PLAYER)
+	{
+		/* Scan through all pieces for geese */
+		for (i=0; i < 33; i++)
+		{
+			/* Do we have a goose?*/
+			if (boardString[i] == 'G') /* Yup */
+			{
+				locationToCoord(i, scratch_coord);
+				/* Free Goose? */
+				if (freeGoose(i))
+				{
+					for (delta_row = -1; delta_row <= 1; delta_row ++)/* Scan all move directions */
+					{
+						for (delta_col = -1; delta_col <= 1; delta_col ++)
+						{
+							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+							if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
+							{
+								if (validCoord(candidate_destination_coord) == 1)
+								{
+									if (boardString[candidate_destination_loc] == ' ')
+									{
+										candidate_destination_loc = coordToLocation(candidate_destination_coord);
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}
+							else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
+							{
+								if (validCoord(candidate_destination_coord) == 1)
+								{
+									if (boardString[candidate_destination_loc] == ' ')
+									{
+										candidate_destination_loc = coordToLocation(candidate_destination_coord);
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}							
+						}
+					}
+				}
+				else
+				{
+					for (delta_row = 0; delta_row <= 1; delta_row ++)/* Scan all move directions */
+					{
+						for (delta_col = 0; delta_col <= 1; delta_col ++)
+						{
+							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+							if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
+							{
+								if (validCoord(candidate_destination_coord) == 1)
+								{
+									if (boardString[candidate_destination_loc] == ' ')
+									{
+										candidate_destination_loc = coordToLocation(candidate_destination_coord);
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}
+							else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
+							{
+								if (validCoord(candidate_destination_coord) == 1)
+								{
+									if (boardString[candidate_destination_loc] == ' ')
+									{
+										candidate_destination_loc = coordToLocation(candidate_destination_coord);
+										candidate_move[0] = i;
+										candidate_move[1] = candidate_destination_loc;
+										candidate_move[2] = 0;
+										head = CreateMovelistNode(hashMove(candidate_move),head);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
   return head;
 }
 
- 
+BOOLEAN CantMove(position)
+     POSITION position;
+{
+  MOVELIST *ptr, *GenerateMoves();
+  BOOLEAN cantMove;
+
+  ptr = GenerateMoves(position);
+  cantMove = (ptr == NULL);
+  FreeMoveList(ptr);
+  return(cantMove);
+}
+
+BOOLEAN NoKillMoves(position)
+{
+	MOVELIST *ptr, *GenerateKillMoves();
+	BOOLEAN nokillMove;
+	
+	ptr = GenerateKillMoves(position);
+	nokillMove = (ptr == NULL);
+	FreeMoveList(ptr);
+	return (nokillMove);
+}
+
+MOVELIST *GenerateKillMoves (position,location)
+         POSITION position;
+{
+  MOVELIST *CreateMovelistNode();
+  MOVELIST *head = NULL;
+  char boardString[33];
+  int i=location;
+  int scratch_coord[2];
+  int candidate_destination_coord[2]={-1, -1};
+  int candidate_destination_loc=-1;
+  int candidate_move[3]={-1, -1, -1};
+  int delta_row=-5;  
+  int delta_col=-5;
+  int currentTurn=whoseTurn(position);
+  generic_unhash(position, boardString);
+
+  /* Check Move */
+	if(currentTurn = FOX_PLAYER && boardString[i] == 'F')
+	{
+		locationToCoord(i, scratch_coord);
+		/* Scan all move directions */
+		for (delta_row = -1; delta_row <= 1; delta_row ++)
+		{
+			for (delta_col = -1; delta_col <= 1; delta_col ++)
+			{
+				if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
+				{
+					candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+					candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+					candidate_destination_loc = coordToLocation(candidate_destination_coord);
+					if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == 'G')
+					{
+						candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
+						candidate_destination_coord[1] = scratch_coord[1] + delta_col * 2; /* Next Space Blank */
+						candidate_destination_loc = coordToLocation(candidate_destination_coord);
+						if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
+						{
+							candidate_move[0] = i;
+							candidate_move[1] = candidate_destination_loc;
+							candidate_move[2] = -1;
+							candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+							head = CreateMovelistNode(hashMove(candidate_move),head);
+						}
+					}
+				}
+				else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can Move Diagonally*/
+				{
+					candidate_destination_coord[0] = scratch_coord[0] + delta_row;
+					candidate_destination_coord[1] = scratch_coord[1] + delta_col;
+					candidate_destination_loc = coordToLocation(candidate_destination_coord);
+					if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == 'G')
+					{
+						candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
+						candidate_destination_coord[1] = scratch_coord[1] + delta_col * 2; /* Next Space Blank */
+						candidate_destination_loc = coordToLocation(candidate_destination_coord);
+						if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
+						{
+							candidate_move[0] = i;
+							candidate_move[1] = candidate_destination_loc;
+							candidate_move[2] = -1;
+							candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+							head = CreateMovelistNode(hashMove(candidate_move),head);
+						}
+					}
+				}
+			}
+		}
+		
+	}
+  return head;
+}
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -689,16 +996,17 @@ void boardToString(char board[7][7], char returnString[33])
     }
 }
 
-int hash_move(int move[2]) /* Revamped Bitshiftting Hash Function */
+int hash_move(int move[3]) /* Revamped Bitshiftting Hash Function */
 {
 	int hashed=0;
-	hashed = move[0] | move[1] << 6;
+	hashed = move[0] | move[1] << 6 | move[2] << 12;
 	return hashed;
 }
-void unhash_move (int hashed_move, int move[2])
+void unhash_move (int hashed_move, int move[3])
 {
 	move[0] = hashed_move & 0x3F; /* 0b111111*/
-	move[1] = hashed_move >> 6;
+	move[1] = hashed_move >> 6 & 0x3F; /* 0b111111 */
+	move[2] = hashed_move >> 12;
 }
 
 void boardPieceStats(char boardString[33], int stats[2])
@@ -807,4 +1115,74 @@ int validCoord(int coord[2])
     {
       return 0;
     }
+}
+
+void GetCoordinate(int coordinate[2])
+{
+	char inString[80];
+	int coord[2];
+	int valid = 0;
+	do{
+		printf("Enter a coordinate [Example: D3]: "); scanf("%s",inString);
+		inString[0]=toupper(inString[0]);
+		coord[1] = (int) (inString[0] - 'A'); // Col
+		coord[0] = (int) (inString[1] - '0') - 1; // Row
+		if(validCoord(coord) == 1)
+		{
+			valid = 1;
+		}
+		else
+		{
+			printf("Invalid Coordinate. Please try again: \n");
+		}
+	}while(valid != 1);
+	coordinate[0] = coord[0];
+	coordinate[1] = coord[1];
+}
+void initFreeGoose()
+{
+	int i=0;
+	for(i=0; i < 24; i++)
+	{
+		freeGeeseLocations[i] = -1;
+	}
+}
+void addFreeGoose(int geeseLocation)
+{
+	int i=0;
+	for(i=0; i < 24; i++)
+	{
+		if(freeGeeseLocations[i] == -1)
+		{
+			freeGeeseLocations[i]=geeseLocation;
+			geeseLocation = -1;
+			return;
+		}
+	}
+}
+void updateFreeGoose(int geeseOrigin, int geeseDestination)
+{
+	int i=0;
+	for(i=0; i < 24; i++)
+	{
+		if(freeGeeseLocations[i] == geeseOrigin)
+		{
+			freeGeeseLocations[i]=geeseDestination;
+			geeseOrigin = -1;
+			geeseDestination = -1;
+			return;
+		}
+	}
+}
+int freeGoose(int geeseLocation)
+{
+	int i=0;
+	for(i=0; i < 24; i++)
+	{
+		if(freeGeeseLocations[i] == geeseLocation)
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
