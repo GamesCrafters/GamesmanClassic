@@ -206,21 +206,21 @@ MOVELIST *GenerateMoves (POSITION position)
 	  if (gBoard[8] == '_'){
 	    moves = CreateMovelistNode(move_make(i, 8), moves);
 	  } else if (gBoard[8] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	    moves = CreateMovelistNode(i, moves);
 	  } else if (gBoard[i+1] == '_'){
 	    moves = CreateMovelistNode(move_make(i, i+1), moves);
 	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	    moves = CreateMovelistNode(i, moves);
 	  }
       } else if (i == 8){
 	if (gBoard[1] == '_'){
 	  moves = CreateMovelistNode(move_make(i, 1), moves);
 	} else if (gBoard[1] == opp && gBoard[0] == '_'){
-	  moves = CreateMovelistNode(move_make(i, 0), moves);
+	  moves = CreateMovelistNode(i, moves);
 	} else if (gBoard[i-1] == '_'){
 	  moves = CreateMovelistNode(move_make(i, i-1), moves);
 	} else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	  moves = CreateMovelistNode(move_make(i, 0), moves);
+	  moves = CreateMovelistNode(i, moves);
 	}
       } else {
 	    if (gBoard[i-1] == '_'){
@@ -228,9 +228,9 @@ MOVELIST *GenerateMoves (POSITION position)
 	    } else if (gBoard[i+1] == '_'){
 	      moves = CreateMovelistNode(move_make(i, i+1), moves);
 	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	      moves = CreateMovelistNode(i, moves);
 	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	      moves = CreateMovelistNode(i, moves);
 	    }
 	  }
     }
@@ -264,13 +264,25 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 { 
   int from, to;
-  char oldc; 
+  char oldc, turn;
   generic_unhash(position,gBoard);
   from = move_from(move);
   to = move_to(move);
   oldc = gBoard[from];
-  gBoard[from] = '_';
-  gBoard[to] = oldc;
+    if (whoseMove(position) == 1){
+    turn = 'x';
+  } else {
+    turn = 'o';
+  }
+    if (move < 9){
+  if (gBoard[0] == '_'){
+    gBoard[0] = turn;
+    gBoard[move] = '_';}
+  else {gBoard[0] = '_';
+  gBoard[move] = turn;}}
+    else {
+      gBoard[to] = oldc;
+      gBoard[from] = '_';}
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
@@ -382,7 +394,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void PrintMove (MOVE move)
-{
+{ if (move < 9)
+  printf("[%d]", move);
+else
   printf("[%d%d]", move_from(move), move_to(move));    
 }
 
