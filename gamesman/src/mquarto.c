@@ -70,6 +70,7 @@
 **                     Primitive() changed to reflect this; must change back later. 
 ** 08 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
 **
+** 09 Mar 2005 Amy:    added move format in getandPrintPlayersMove(), printComputerMove() coded.
 **************************************************************************/
 
 /*************************************************************************
@@ -564,7 +565,7 @@ BOOLEAN searchPrimitive(short *rowColDiag) {
   for (i=0; i<GAMEDIMENSION; i++) {
     noninvertedResult &= rowColDiag[i];
     invertedResult &= inverterMask ^ rowColDiag[i];
-  }
+   }
 
   return (noninvertedResult>0 || invertedResult>0);
 
@@ -618,7 +619,8 @@ void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+  printf( "%s's move was: ", computersName);
+  PrintMove(computersMove);
 }
 
 
@@ -687,8 +689,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
-	
+	/*printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);*/
+        printf("%8s's move [(undo)/ [(B,w)(T,s)]:[H,0-3]] : ", playersName);
 	input = HandleDefaultTextInput(position, move, playersName);
 	
 	if (input != Continue)
