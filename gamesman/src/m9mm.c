@@ -30,6 +30,21 @@ POSITION gInitialPosition    = 432840;
 POSITION gMinimalPosition    = 432840;
 POSITION kBadPosition        = -1;
 
+/**************************************************************************
+ ** POSITION 432840:      POSITION 1329:
+ **
+ **    x  _  o               x  x  x
+ **     _ _ _                 _ _ _
+ **      _x_                   ___
+ **    ___ ___               ___ ___
+ **      _o_                   ___
+ **     _ _ _                 _ _ _
+ **    o  _  x               o  o  o
+ **                                
+ **   x to move             x to move 
+ **************************************************************************/
+
+
 STRING   kGameName           = "Nine Men's Morris";
 STRING   kDBName             = "9mm";
 BOOLEAN  kPartizan           = TRUE; 
@@ -44,7 +59,7 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+"Nine Men's Morris does not currently support a Graphical User Interface (other than beloved ASCII).";
 
 STRING   kHelpTextInterface    =
 "No help for you!"; 
@@ -53,13 +68,13 @@ STRING   kHelpOnYourTurn =
 "Make a move";
 
 STRING   kHelpStandardObjective =
-"Win";
+"A victory in Nine Men's Morris is won by reducing the number of your opponent'ss pieces down to two.";
 
 STRING   kHelpReverseObjective =
-"Lose";
+"A misere victory in Nine Men's Morris is won by being the first player to have only two pieces on the board.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"A Tie occurs when....never!";
+"A Tie will never occur in a standard game of Nine Men's Morris.";
 
 STRING   kHelpExample =
 "See example.";
@@ -96,6 +111,9 @@ typedef enum Pieces {
   blank, x, o
 } blankox;
 char gblankoxChar[] = { '_', 'x', 'o'};
+
+// Game Options
+BOOLEAN flying = TRUE; // Flying for 3rd Phase
 
 /*************************************************************************
 **
@@ -1169,6 +1187,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.45  2004/04/25 09:29:08  ogren
+//changed move printing to [] to please Dan. -Elmer
+//
 //Revision 1.44  2004/04/23 05:59:46  ogren
 //position 245103 is current initial position.  It has a good mix for now, no 1-move wins, but i would eventually like to find a position with pieces in all 4 quadrants. -Elmer
 //
