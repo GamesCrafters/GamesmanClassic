@@ -64,6 +64,8 @@
 
 **************************************************************************/
 
+/* gift from dan of character for space -> · */
+
 /*************************************************************************
 **
 ** Everything below here must be in every game file
@@ -89,7 +91,7 @@ STRING   kGameName            = "XiGua"; /* The name of your game */
 STRING   kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder"; /* Your name(s) */
 STRING   kDBName              = "xigua.db"; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
@@ -812,9 +814,9 @@ VALUE Primitive (POSITION position)
 			ret=win;
 		/* if they are equal, this spots a tie */
 		} else if(p1c==p2c) {
-			/* ret=tie; */
+			ret=tie;
 			/* changed this so that it would solve for now */
-			ret=win;
+			// ret=win;
 		/* otherwise it must be a lose */
 		} else {
 			ret=lose;
@@ -1301,6 +1303,7 @@ MOVE ConvertTextInputToMove (STRING input)
 void GameSpecificMenu ()
 {
    	char choice;
+	int boardsizechoice;
 
 	fflush(stdin);
 	choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
@@ -1319,9 +1322,9 @@ void GameSpecificMenu ()
 			fflush(stdin);
 			choice=getc(stdin);
 			printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
-			scanf("%d",(int *)&choice);
-			if(choice==5||choice==9||choice==13||choice==17||choice==21) {
-				boardsize=(choice-5)/4;
+			scanf("%d",&boardsizechoice);
+			if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
+				boardsize=(boardsizechoice-5)/4;
 				printf("The new boardsize is set at %d",boardsize*4+5);
 				InitializeGame();
 			} else {
