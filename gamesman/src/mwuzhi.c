@@ -94,10 +94,10 @@ opponent moves into your capture position.\n\
 Here are some examples of capture positions: \n\
 \n\
 Here white captures a black piece:\n\
-( )--( )--( )--( )--( )\n\          
+( )--( )--( )--( )--( )\n\
  |    |    |    |    |   \n\
-( )--(b)--(w)--(w)--( ) \n\         
- |    |    |    |    |  \n\ 
+( )--(b)--(w)--(w)--( ) \n\
+ |    |    |    |    |  \n\
 ( )--( )--( )--( )--( ) \n\
  |    |    |    |    | \n\
 ( )--( )--( )--( )--( ) \n\
@@ -105,9 +105,9 @@ Here white captures a black piece:\n\
 ( )--( )--( )--( )--( ) \n\
 \n\
 Here black captures a white piece: \n\
-( )--( )--( )--( )--( )\n\          
- |    |    |    |    |  \n\ 
-( )--(b)--( )--( )--( ) \n\         
+( )--( )--( )--( )--( )\n\
+ |    |    |    |    |  \n\
+( )--(b)--( )--( )--( ) \n\
  |    |    |    |    |   \n\
 ( )--(b)--( )--( )--( )\n\
  |    |    |    |    |\n\
@@ -120,8 +120,8 @@ of the other black piece which interferes with the \n\
 capturing position:\n\
 ( )--( )--( )--( )--( )          \n\
  |    |    |    |    |   \n\
-( )--(b)--(w)--(w)--(b)  \n\        
- |    |    |    |    |  \n\ 
+( )--(b)--(w)--(w)--(b)  \n\
+ |    |    |    |    |  \n\
 ( )--( )--( )--( )--( ) \n\
  |    |    |    |    |\n\
 ( )--( )--( )--( )--( )\n\
@@ -132,8 +132,8 @@ Here white fails to capture a black piece because \n\
 the white piece is not adjacent to the black piece:\n\
 ( )--( )--( )--( )--( )          \n\
  |    |    |    |    |   \n\
-(b)--( )--(w)--(w)--( ) \n\         
- |    |    |    |    |  \n\ 
+(b)--( )--(w)--(w)--( ) \n\
+ |    |    |    |    |  \n\
 ( )--( )--( )--( )--( )\n\
  |    |    |    |    |\n\
 ( )--( )--( )--( )--( )\n\
@@ -150,7 +150,7 @@ STRING   kHelpExample =
 "Player Player 1's turn \n\
         (u)p            \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\  
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
                      \n\
@@ -164,9 +164,9 @@ Board:          Key: \n\
 \n\
 Player 1's move [(undo)/(key dir [1 d])] : 8 u\n\
 Player Player 2's turn\n\
-        (u)p           \n\ 
+        (u)p           \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\  
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
                      \n\
@@ -183,7 +183,7 @@ Player 2's move [(undo)/(key dir [1 d])] : 1 d\n\
 Player Player 1's turn\n\
         (u)p           \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\  
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
                      \n\
@@ -199,7 +199,7 @@ Player 1's move [(undo)/(key dir [1 d])] : 9 u\n\
 Player Player 2's turn\n\
         (u)p            \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\ 
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
                      \n\
@@ -215,11 +215,11 @@ Player 2's move [(undo)/(key dir [1 d])] : 2 l\n\
 Player Player 1's turn\n\
         (u)p           \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\  
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
 \n\
-Board:          Key:\n\ 
+Board:          Key:\n\
 (b)--( )--(b)           ( 1)--( 2)--( 3)\n\
  |    |    |             |     |     |\n\
 ( )--(w)--(w)           ( 4)--( 5)--( 6)\n\
@@ -229,9 +229,9 @@ Board:          Key:\n\
  \n\
 Player 1's move [(undo)/(key dir [1 d])] : 5 l \n\
 Player Player 2's turn\n\
-        (u)p           \n\ 
+        (u)p           \n\
           |             \n\
-(l)eft --( )-- (r)ight   \n\  
+(l)eft --( )-- (r)ight   \n\
           |             \n\
        (d)own           \n\
                      \n\
