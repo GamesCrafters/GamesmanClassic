@@ -4,12 +4,23 @@
 **
 ** DESCRIPTION: Fandango
 **
-** AUTHOR:      Dan Garcia  -  University of California at Berkeley
-**              Copyright (C) Dan Garcia, 1995. All rights reserved.
+** AUTHOR:      
+**              
 **
-** DATE:        08/28/91
+** DATE:        02/28/04
 **
 ** UPDATE HIST:
+**              02/28/04 Wrote WhoseTurn(...)
+**              03/02/04 Wrote AnyPiecesLeft(...)
+**              03/02/04 Wrote BoardToPosition(...)
+**              03/02/04 Wrote PositionToBoard(...)
+**              03/02/04 Debugged PrintPosition(...)
+**              03/02/04 Wrote ValidTextInput(...)
+** TODO LIST:
+**              03/02/04 PrintPosition() needs to print info about how to make moves
+**              03/02/04 copy from ValidTextInput(...) to do first parts of ConvertTextInputToMove(...)
+**              03/02/04 Write DoMove(...)
+**              03/02/04 add a call to generic_hash_init(...)
 **
 **************************************************************************/
 
@@ -112,21 +123,23 @@ Computer wins. Nice try, Dan.";
 **
 **************************************************************************/
 
-#define BOARDSIZE     9           /* 3x3 board */
+#define BOARDSIZE     12           /* 4x3 board, must agree with the 2 definitions below */
+#define BOARDHEIGHT    3           /* dimensions of the board */
+#define BOARDWIDTH     4           /*  "               "      */
+#define MAX_X          5           /* maximum number of pieces of X that is possible in a game */
+#define MAX_O          5           /*  "            "            "                   "         */
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
 char *gBlankOXString[] = { '.', 'O', 'X' };
+int myPieces_array[6] = { 'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
+                          'X', 0, MAX_X };        /* used to pass into generic_hash_init(...) */
 
 //---- Shing ----------------------------------------------
-char *slash[] = { '|' , '\' , '|' , '/' , '|' };
+char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
 //---------------------------------------------------------
-
-
-/* Powers of 3 - this is the way I encode the position, as an integer */
-int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
 /************************************************************************
 **
@@ -242,11 +255,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  BlankOX theBlankOX[BOARDSIZE], WhoseTurn();
-
-  PositionToBlankOX(thePosition,theBlankOX);
-
-  return(thePosition + (g3Array[theMove] * (int)WhoseTurn(theBlankOX)));
+  // fill me
 }
 
 /************************************************************************
@@ -388,7 +397,7 @@ PrintPosition(position,playerName,usersTurn)
 
 
   // ----- Shing ----------------------------------------
-  int i;
+  int i,j; /*HRS*/
 
   //  o --- o --- o --- o --- o
   //  |  \  |  /  |  \  |  /  |
@@ -401,16 +410,16 @@ PrintPosition(position,playerName,usersTurn)
 
   STRING GetPrediction();
   VALUE GetValueOfPosition();
-  BlankOX theBlankOx[BOARDSIZE];
+  BlankOX theBlankOx[BOARDSIZE]; /* HRS: boardSize -> BOARDSIZE */
 
   PositionToBlankOX(position,theBlankOx);
 
 
-  for (i=1; i<=boardHeight; i++)          // for row
+  for (i=1; i<=BOARDHEIGHT; i++)          // for row
     {
       putchar('\n');    
       putchar('(');
-      for ( j=1; j<=boardWidth; j++)
+      for ( j=1; j<=BOARDWIDTH; j++)
       {
 	putchar(' ');
 	putchar(j);
@@ -422,7 +431,7 @@ PrintPosition(position,playerName,usersTurn)
 
       
 
-      for ( j=1; j<=boardWidth; j++)   // for column
+      for ( j=1; j<=BOARDWIDTH; j++)   // for column
       {
 	  putchar(' ');
 	  if ( i % 2 == 0 )
@@ -434,7 +443,7 @@ PrintPosition(position,playerName,usersTurn)
 	  else
 	  {
 	    if ((j-1) % 6 == 0)
-	      putchar(gBlankOXString[(int)theBlankOx[j-1]]);
+	      putchar(*gBlankOXString[(int)theBlankOx[j-1]]); /* HRS */
 	    else if ((j-1) % 6 == 1)
 	      putchar(' ');
 	    else
@@ -444,7 +453,7 @@ PrintPosition(position,playerName,usersTurn)
     }
 
   
-  putchar(GetPrediction(position,playerName,usersTurn));
+  puts(GetPrediction(position,playerName,usersTurn)); /* HRS */
 
 	  
 	
@@ -552,12 +561,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ** NAME:        ValidTextInput
 **
 ** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
-**              For example, if the user is allowed to select one slot
-**              from the numbers 1-9, and the user chooses 0, it's not
-**              valid, but anything from 1-9 IS, regardless if the slot
-**              is filled or not. Whether the slot is filled is left up
-**              to another routine.
-** 
+**              ** 
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
@@ -567,7 +571,14 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  return(input[0] <= '9' && input[0] >= '1');
+  char col;                           /* column */                                                              
+  int row,dir,cap;                    /* row,direction,capture mode ('a','w','n')*/
+  int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
+
+  return
+    (scan_result == 4) &&                 /* did we manage to get suitable vals for col,row,dir,cap? */
+    isalpha(col) &&                       /* is the column a character? */
+    isalpha(cap);                         /* is capture mode a character? */    
 }
 
 /************************************************************************
@@ -618,130 +629,61 @@ PrintMove(theMove)
 *************************************************************************
 ************************************************************************/
 
-/************************************************************************
-**
-** NAME:        PositionToBlankOX
-**
-** DESCRIPTION: convert an internal position to that of a BlankOX.
-** 
-** INPUTS:      POSITION thePos     : The position input. 
-**              BlankOX *theBlankOx : The converted BlankOX output array. 
-**
-** CALLS:       BadElse()
-**
-************************************************************************/
+/***********************************************************************
+ *
+ * Input: A position (an integer), a board (an array)
+ *
+ * Desc: Changes the value of the given board based on the given position (int)
+ *
+ * Calls: generic_unhash(...)
+ **********************************************************************/
+PositionToBoard(POSITION position, BlankOX *board) {
+  generic_unhash(position,board);
+}
 
-PositionToBlankOX(thePos,theBlankOX)
-     POSITION thePos;
-     BlankOX *theBlankOX;
-{
+/************************************************************************
+ *
+ * Input: A board
+ *
+ * Desc: Returns a POSITION (which is an int) that is a board encoded as an int
+ *
+ * Calls: generic_hash(...)
+ ***********************************************************************/
+POSITION BoardToPosition(BlankOX *board) {
+  return generic_hash(board);
+}
+
+/***********************************************************************
+ *
+ * Inputs: A board, a piece type
+ *
+ * Desc: Returns true if the given board has at least one piece of given type
+ *       Otherwise, return false
+ * Calls:
+ **********************************************************************/
+int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
   int i;
-  for(i = 8; i >= 0; i--) {
-    if(thePos >= ((int)x * g3Array[i])) {
-      theBlankOX[i] = x;
-      thePos -= (int)x * g3Array[i];
-    }
-    else if(thePos >= ((int)o * g3Array[i])) {
-      theBlankOX[i] = o;
-      thePos -= (int)o * g3Array[i];
-    }
-    else if(thePos >= ((int)Blank * g3Array[i])) {
-      theBlankOX[i] = Blank;
-      thePos -= (int)Blank * g3Array[i];
-    }
-    else
-      BadElse("PositionToBlankOX");
-  }
+  int anyLeft = 0;    /* assume there are none left, then set true if we see one */
+  
+  for(i=0; i<BOARDSIZE; i++)
+    if(theBoard[i] == thePiece)
+      anyLeft = 1;    /* we saw one, so set to true */
+
+  return anyLeft;
 }
 
 /************************************************************************
-**
-** NAME:        BlankOXToPosition
-**
-** DESCRIPTION: convert a BlankOX to that of an internal position.
-** 
-** INPUTS:      BlankOX *theBlankOx : The converted BlankOX output array.
-**
-** OUTPUTS:     POSITION: The equivalent position given the BlankOX.
-**
-************************************************************************/
-
-POSITION BlankOXToPosition(theBlankOX)
-     BlankOX *theBlankOX;
+ *
+ * Inputs:
+ *
+ * Desc: Returns either o or x (which are from an enumeration) based on
+ *       whose turn it is. i.e. return x if it's x's turn.
+ *
+ * Calls:
+ ***********************************************************************/
+BlankOX WhoseTurn()
 {
-  int i;
-  POSITION position = 0;
-
-  for(i = 0 ; i < BOARDSIZE ; i++)
-    position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
-
-    return(position);
-}
-
-/************************************************************************
-**
-** NAME:        ThreeInARow
-**
-** DESCRIPTION: Return TRUE iff there are three-in-a-row.
-** 
-** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
-**              int a,b,c                     : The 3 positions to check.
-**
-** OUTPUTS:     (BOOLEAN) TRUE iff there are three-in-a-row.
-**
-************************************************************************/
-
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-     BlankOX theBlankOX[];
-     int a,b,c;
-{
-  return(	theBlankOX[a] == theBlankOX[b] && 
-		theBlankOX[b] == theBlankOX[c] &&
-		theBlankOX[c] != Blank );
-}
-
-/************************************************************************
-**
-** NAME:        AllFilledIn
-**
-** DESCRIPTION: Return TRUE iff all the blanks are filled in.
-** 
-** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
-**
-** OUTPUTS:     (BOOLEAN) TRUE iff all the blanks are filled in.
-**
-************************************************************************/
-
-BOOLEAN AllFilledIn(theBlankOX)
-     BlankOX theBlankOX[];
-{
-  BOOLEAN answer = TRUE;
-  int i;
-	
-  for(i = 0; i < BOARDSIZE; i++)
-    answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
-
-  return(answer);
-}
-
-/************************************************************************
-**
-** NAME:        WhoseTurn
-**
-** DESCRIPTION: Return whose turn it is - either x or o. Since x always
-**              goes first, we know that if the board has an equal number
-**              of x's and o's, that it's x's turn. Otherwise it's o's.
-** 
-** INPUTS:      BlankOX theBlankOX : The input board
-**
-** OUTPUTS:     (BlankOX) : Either x or o, depending on whose turn it is
-**
-************************************************************************/
-
-BlankOX WhoseTurn(theBlankOX)
-     BlankOX *theBlankOX;
-{
-  static BlankOx turn = x;          /* HRS */
+  static BlankOX turn = x;
   if (turn == x) {
     turn = o;
     return x;
@@ -749,7 +691,7 @@ BlankOX WhoseTurn(theBlankOX)
     turn = x;
     return o;
   }
-  }
+}
 
 STRING kDBName = "ttt" ;
      
