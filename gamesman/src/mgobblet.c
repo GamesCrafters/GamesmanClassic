@@ -324,11 +324,6 @@ void InitializeGame()
     SafeFree( gDatabase );
     gDatabase = NULL;
   }
-  
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
 }
 
 /************************************************************************
