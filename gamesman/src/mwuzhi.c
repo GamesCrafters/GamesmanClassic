@@ -23,7 +23,9 @@
 **                         Added another helper to Moves: GetArrayNum given xycoords.  
 **              2004-10-19 Added DoMove to this template
 **              2004-11-2  Set kPartizan to TRUE, modified help strings so they are not all on one line. Moves are now formatted as [1 d]
-**                         rather than [1 down] Added a sample game to the help string.   
+**                         rather than [1 down] Added a sample game to the help string. 
+**              2004-11-26 Added diagonal variation in generatemoves
+**              2004-12-5  Finished implementation of diagonals and game specific menu  
 **************************************************************************/
 
 /*************************************************************************
@@ -296,16 +298,16 @@ int GetDirection (MOVE theMove);
 int GetXCoord (MOVE theMove);
 int GetYCoord (MOVE theMove);
 int getArraynum(int xcoord, int ycoord);
-int getColumn(int arraynum, int width);
-int getRow(int arraynum, int width); 
-BOOLEAN canmoveup(int arraynum, POSITION position, int width); 
-BOOLEAN canmovedown(int arraynum, POSITION position, int width); 
-BOOLEAN canmoveleft(int arraynum, POSITION position, int width); 
-BOOLEAN canmoveright(int arraynum, POSITION position, int width); 
-BOOLEAN canmoveupleft(int arraynum, POSITION position, int width); 
-BOOLEAN canmovedownright(int arraynum, POSITION position, int width); 
-BOOLEAN canmovedownleft(int arraynum, POSITION position, int width); 
-BOOLEAN canmoveupright(int arraynum, POSITION position, int width); 
+int getColumn(int arraynum);
+int getRow(int arraynum); 
+BOOLEAN canmoveup(int arraynum); 
+BOOLEAN canmovedown(int arraynum); 
+BOOLEAN canmoveleft(int arraynum); 
+BOOLEAN canmoveright(int arraynum); 
+BOOLEAN canmoveupleft(int arraynum); 
+BOOLEAN canmovedownright(int arraynum); 
+BOOLEAN canmovedownleft(int arraynum); 
+BOOLEAN canmoveupright(int arraynum); 
 
 /*************************************************************************
 **
@@ -378,34 +380,30 @@ MOVELIST *GenerateMoves (POSITION position)
     int i,c,r;
     for (i = 0; i < gBoardlength; i++) {
       if (board[i] == playerpiece) {
-	c = getColumn (i, gBoardwidth);
-	r = getRow (i,gBoardwidth);
-	if (canmoveup(i, position, gBoardwidth)) {
-	  //printf("calling canmoveup with: %d, %d\n", c, r);
+	c = getColumn (i);
+	r = getRow (i);
+	if (canmoveup(i)) {
 	    moves = CreateMovelistNode(EncodeMove(UP,c,r), moves);
 	}
-	if (canmovedown(i, position, gBoardwidth)) {
-	  //printf("calling canmovedown with: %d, %d\n", c, r);
+	if (canmovedown(i)) {
 	  moves = CreateMovelistNode(EncodeMove(DOWN,c,r), moves);
 	}
-	if (canmoveleft(i, position, gBoardwidth)) {
-	  //printf("calling canmoveleft with: %d, %d\n", c, r);
+	if (canmoveleft(i)) {
 	  moves = CreateMovelistNode(EncodeMove(LEFT,c,r), moves);
 	}
-	if (canmoveright(i, position, gBoardwidth)) {
-	  //printf("calling canmoveright with: %d, %d\n", c, r);
+	if (canmoveright(i)) {
 	  moves = CreateMovelistNode(EncodeMove(RIGHT,c,r), moves);
 	}
 	/* If Diagonal moves are allowed */
 	if (diagonals) {
-	  if (canmoveupleft(i, position, gBoardwidth))
+	  if (canmoveupleft(i))
 	    moves = CreateMovelistNode(EncodeMove(UPLEFT, c, r), moves);
-	  if (canmoveupright(i, position, gBoardwidth)) { 
+	  if (canmoveupright(i)) { 
 	    moves = CreateMovelistNode(EncodeMove(UPRIGHT, c, r), moves);
 	  }
-	  if (canmovedownleft(i, position, gBoardwidth))
+	  if (canmovedownleft(i))
 	     moves = CreateMovelistNode(EncodeMove(DOWNLEFT, c, r), moves);
-	  if (canmovedownright(i, position, gBoardwidth))
+	  if (canmovedownright(i))
 	    moves = CreateMovelistNode(EncodeMove(DOWNRIGHT, c, r), moves);
 	}
       }
@@ -730,12 +728,12 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /* for diagonals */
   if (diagonals) {
   c = 1;
-  printf("   (ul)       (ur)             \n");
-  printf("     \\  (u)p /           \n");
-  printf("      \\  |  /           \n");
+  printf("    (ul)      (ur)             \n");
+  printf("       \\ (u)p/           \n");
+  printf("        \\ | /           \n");
   printf("(l)eft --( )-- (r)ight     \n");
-  printf("       /  | \\           \n");
-  printf("      / (d)own\\           \n");
+  printf("        / | \\           \n");
+  printf("       /(d)own\\           \n");
   printf("    (dl)       (dr) \n");
   printf("                     \n");
   printf("Board: ");
@@ -784,64 +782,63 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf("\n");
   }
   }
-else {
-
-  /* for regular game */
-  c = 1;
-  printf("        (u)p            \n");
-  printf("          |             \n");
-  printf("(l)eft --( )-- (r)ight     \n");
-  printf("          |             \n");
-  printf("       (d)own           \n");
-  printf("                     \n");
-  printf("Board: ");
-  for (h = 0; h < gBoardwidth-1; h++) {
-    printf("\t");
-  }
-  printf("Key: \n");
-  for (i = 0; i < gBoardlength;) {
-    for (j = 0 ; j < gBoardwidth; j ++) {
-      printf ("(%c)", board [i]);
-      i++;
-      if (j < gBoardwidth - 1) {
-	printf("--");
-      }
+ /* for regular game */
+  else {
+    c = 1;
+    printf("        (u)p            \n");
+    printf("          |             \n");
+    printf("(l)eft --( )-- (r)ight     \n");
+    printf("          |             \n");
+    printf("       (d)own           \n");
+    printf("                     \n");
+    printf("Board: ");
+    for (h = 0; h < gBoardwidth-1; h++) {
+      printf("\t");
     }
-    printf("\t\t");
-    for (c1 = 0; c1 < gBoardwidth; c1++) {
-      if (c < 10) {
-	printf ("( %d)", c);
-	c++;
-	if (c1 < gBoardwidth - 1) {
+    printf("Key: \n");
+    for (i = 0; i < gBoardlength;) {
+      for (j = 0 ; j < gBoardwidth; j ++) {
+	printf ("(%c)", board [i]);
+	i++;
+	if (j < gBoardwidth - 1) {
 	  printf("--");
 	}
       }
-      else {
-	printf ("(%d)", c);
-	c++;
-	if (c1 < gBoardwidth - 1) {
-	  printf("--");
+      printf("\t\t");
+      for (c1 = 0; c1 < gBoardwidth; c1++) {
+	if (c < 10) {
+	  printf ("( %d)", c);
+	  c++;
+	  if (c1 < gBoardwidth - 1) {
+	    printf("--");
+	  }
+	}
+	else {
+	  printf ("(%d)", c);
+	  c++;
+	  if (c1 < gBoardwidth - 1) {
+	    printf("--");
+	  }
 	}
       }
-    }
-    if (i < gBoardlength - gBoardwidth + 1) {
-      printf("\n"); 
-      for (k = 0; k < gBoardwidth - 1; k++) {
-	printf(" |   ");
+      if (i < gBoardlength - gBoardwidth + 1) {
+	printf("\n"); 
+	for (k = 0; k < gBoardwidth - 1; k++) {
+	  printf(" |   ");
+	}
+	printf(" |");
+	printf("\t\t");
+	for (k = 0; k < gBoardwidth - 1; k++) {
+	  printf(" |    ");
+	}
+	printf(" |");
+	printf("\t\t");
       }
-      printf(" |");
-      printf("\t\t");
-      for (k = 0; k < gBoardwidth - 1; k++) {
-	printf(" |    ");
-      }
-      printf(" |");
-      printf("\t\t");
+      printf("\n");
     }
-    printf("\n");
   }
-}
   printf("\n%s\n", GetPrediction(position, playersName, usersTurn));
-   
+  
 }
 
 
@@ -1048,8 +1045,8 @@ MOVE ConvertTextInputToMove (STRING input)
     
 
     int x, y;
-    x = getColumn(location, gBoardwidth);
-    y = getRow(location, gBoardwidth);
+    x = getColumn(location);
+    y = getRow(location);
     return EncodeMove(dir, x, y);
 }
 
@@ -1084,12 +1081,12 @@ void GameSpecificMenu ()
     D = "OFF";
 
   printf("\n");
-  printf("Wuzhi Game Specific Menu\n");
+  printf("Wuzhi Game Specific Menu:\n");
   printf("\tw) \tChange the Board (W)idth. Current Board Width: %d\n", gBoardwidth);
   printf("\td) \tToggle (D)IAGONAL movement. Currently Diagonals is: %s\n", D);
   printf("\tb) \t(B)ack to previous menu\n");
   printf("\n\n\tq) \t(Q)uit\n");
-  printf("Select and option: ");
+  printf("Select an option: ");
 
   switch(GetMyChar()) {
   case 'q': 
@@ -1102,7 +1099,7 @@ void GameSpecificMenu ()
     printf("Please input desired board width[3-5]: ");
     (void) scanf("%u", &intWidth);
     gBoardwidth = intWidth;
-    gBoardlength = gBoardwidth *gBoardwidth;
+    gBoardlength = gBoardwidth*gBoardwidth;
     InitializeGame();
     GameSpecificMenu();
     break;
@@ -1275,74 +1272,70 @@ int getArraynum(int xcoord, int ycoord) {
 }
 
 
-int getColumn(int arraynum, int width) 
+int getColumn(int arraynum) 
 {
-  return (arraynum%width);
+  return (arraynum%gBoardwidth);
 }
 
-int getRow(int arraynum, int width) 
+int getRow(int arraynum) 
 {
 
     return gBoardwidth - 1 - (arraynum/gBoardwidth);
 }
 
-BOOLEAN canmoveup(int arraynum, POSITION position, int width) 
+BOOLEAN canmoveup(int arraynum) 
 {
-  //char* board = (char*)generic_unhash(position, gBoard);
   if (arraynum >= gBoardlength || arraynum < 0) 
     return FALSE;
   else 
-    return ((arraynum - width >= 0) && (gBoard[arraynum - width] == BLANK));
+    return ((arraynum - gBoardwidth >= 0) && (gBoard[arraynum - gBoardwidth] == BLANK));
 }
 
-BOOLEAN canmovedown(int arraynum, POSITION position, int width) 
+BOOLEAN canmovedown(int arraynum) 
 {
-  //char* board = (char*)generic_unhash(position, gBoard);
-  if (arraynum >= gBoardlength || arraynum < 0) 
+  if (arraynum >= gBoardlength || arraynum < 0)
     return FALSE;
   else 
-    return ((arraynum + width < gBoardlength) && (gBoard[arraynum + width] == BLANK));
+    return ((arraynum + gBoardwidth < gBoardlength) && (gBoard[arraynum + gBoardwidth] == BLANK));
 }
 
-BOOLEAN canmoveleft(int arraynum, POSITION position, int width) 
+BOOLEAN canmoveleft(int arraynum) 
 {
-  //char* board = (char*)generic_unhash(position, gBoard);
   if (arraynum >= gBoardlength || arraynum < 0) 
     return FALSE;
   else 
-    return ((!(arraynum <= 0)) && arraynum%width != 0) && 
+    return ((!(arraynum <= 0)) && arraynum%gBoardwidth != 0) && 
       (gBoard[arraynum  - 1] == BLANK);
 }
 
-BOOLEAN canmoveright(int arraynum, POSITION position, int width) 
+BOOLEAN canmoveright(int arraynum) 
 {
-  //char* board = (char*)generic_unhash(position, gBoard);
   if (arraynum >= gBoardlength || arraynum < 0) 
     return FALSE;
   else 
-    return ((arraynum + 1)% width != 0 && (gBoard[arraynum + 1] == BLANK));
+    return ((arraynum + 1)% gBoardwidth != 0 && (gBoard[arraynum + 1] == BLANK));
 }
 
 //for diagonals
-BOOLEAN canmoveupleft(int arraynum, POSITION position, int width)
+BOOLEAN canmoveupleft(int arraynum)
 {
-  return (canmoveup(arraynum-1, position, width) && canmoveleft(arraynum-width, position, width));
+  return (canmoveup(arraynum-1) && canmoveleft(arraynum-gBoardwidth));
 }
 
-BOOLEAN canmoveupright(int arraynum, POSITION position, int width) 
+BOOLEAN canmoveupright(int arraynum) 
 {
 
-  return (canmoveup(arraynum + 1, position, width) && canmoveright(arraynum-width, position, width));
+  return (canmoveup(arraynum + 1) && canmoveright(arraynum-gBoardwidth));
 }
 
-BOOLEAN canmovedownleft(int arraynum, POSITION position, int width) 
+BOOLEAN canmovedownleft(int arraynum) 
 {
-  return (canmovedown(arraynum -1, position, width) && canmoveleft(arraynum+width, position, width));
+  return (canmovedown(arraynum -1) && canmoveleft(arraynum+gBoardwidth));
 }
 
-BOOLEAN canmovedownright(int arraynum, POSITION position, int width) 
+BOOLEAN canmovedownright(int arraynum) 
 {
-  return (canmovedown(arraynum+1, position, width) && canmoveright(arraynum+width, position, width));
+  return (canmovedown(arraynum+1) && canmoveright(arraynum+gBoardwidth));
 }
 
 
