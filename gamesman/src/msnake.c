@@ -1235,3 +1235,7 @@ void setOption(int option)
     gStandardGame = TRUE;
 
 }
+
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
+{
+}
