@@ -38,6 +38,8 @@
 */
 
 long		gTotalMoves = 0;
+ANALYSIS	gAnalysis = {};
+
 
 /*
 ** Code
@@ -58,22 +60,32 @@ void PrintRawGameValues(BOOLEAN toFile)
             ExitStageRightErrorString("Couldn't open file, sorry.");
             exit(0);
         }
+	printf("Writing to %s...", filename);
+	fflush(stdout);
     } else
         fp = stdout;
     
-    fprintf(fp,"Position/Value list for %s\n\n", kGameName);
-    fprintf(fp,"POS  | VISITED-FLAG VALUE in REMOTENESS\n");
+    if (!toFile) printf("\n");
+    fprintf(fp,"%s\n", kGameName);
+    fprintf(fp,"Position,Value,Remoteness%s\n",
+	    (!kPartizan && !gTwoBits) ? ",MexValue" : "");
     
     for(i=0 ; i<gNumberOfPositions ; i++)
-        if((value = GetValueOfPosition((POSITION)i)) != undecided)
-            fprintf(fp,POSITION_FORMAT " | %c %4s in %d\n",
+      if((value = GetValueOfPosition((POSITION)i)) != undecided) {
+            fprintf(fp,POSITION_FORMAT ",%c,%d",
 		    i,
-		    Visited((POSITION)i) ? 'V' : '-',
-		    gValueString[value],
+		    gValueLetter[value],
 		    Remoteness((POSITION)i));
+	    if(!kPartizan && !gTwoBits)
+	      fprintf(fp,",%d\n",MexLoad((POSITION)i));
+	    else
+	      fprintf(fp,"\n");
+      }
     
-    if(toFile)
-        fclose(fp);
+    if(toFile) {
+      fclose(fp);
+      printf("done\n");
+    }
 }
 
 void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions)
@@ -532,7 +544,6 @@ BOOLEAN CorruptedValuesP()
 
 void writeXML(STATICMESSAGE msg)
 {
-  int mkdir();
     static FILE *xmlFile = 0;
     switch(msg)
     {
@@ -557,7 +568,6 @@ void writeXML(STATICMESSAGE msg)
 
 FILE* prepareXMLFile()
 {
-  int mkdir();
   FILE * xmlFile;
   char xmlPath[256];
   
@@ -612,7 +622,7 @@ void writeXMLData(FILE* xmlFile)
 
 float percentDone (STATICMESSAGE msg)
 {
-	static POSITION num_pos_seen = 0;
+    static POSITION num_pos_seen = 0;
     float percent = 0;
     switch (msg)
     {
@@ -627,4 +637,66 @@ float percentDone (STATICMESSAGE msg)
         return num_pos_seen;
     else
         return percent;
+}
+
+
+/************************************************************************
+**
+** NAME:        DatabaseCombVisualization
+**
+** DESCRIPTION: Print to stdout the Comb Visualization (described below)
+**              which is essentially all the positions and holes of the DB,
+**              encoded as positive and negative numbers respectively.
+** 
+** INPUTS:      none
+**
+************************************************************************/
+
+void DatabaseCombVisualization()
+{
+  POSITION thePosition;
+  BOOLEAN lastUndecided, thisUndecided;
+  long streak = 0, longestUndecided = 0, longestDecided = 0, switches = 0;
+
+  printf("\nThis is called a \"Database Comb Visualization\"\n");
+  printf("because we go through the database and find the streaks of\n");
+  printf("visited (i.e., known) positions and those the hash reserved\n");
+  printf("space for but never used. Every known streak is represented as\n");
+  printf("a POSITIVE number and every unknown streak is represented as\n");
+  printf("a NEGATIVE number. Thus, a full database of size K will\n");
+  printf("simply be printed as the positive number K. Likewise, a half-full database\n");
+  printf("with every other position known and unknown will be a sequence of\n");
+  printf("positive and negative ones: -1, 1, -1, 1, etc.\n");
+  printf("---------------------------------------------------------------------------\n");
+
+  lastUndecided = (GetValueOfPosition(0) == undecided); /* Handles 1st case */
+  
+  /* Can you say DAV? We should write an enumerator someday... */
+  for(thePosition = 0; thePosition < gNumberOfPositions ; thePosition++) {
+
+    thisUndecided = (GetValueOfPosition(thePosition) == undecided);
+    if (lastUndecided == thisUndecided) {
+      streak++;
+      if ( thisUndecided && streak > longestUndecided) longestUndecided = streak;
+      if (!thisUndecided && streak > longestDecided  ) longestDecided   = streak;
+    }
+    else {
+      /* Streak of Undecideds prints as a negative # */
+      /* Streak of Knowns     prints as a positive # */
+      printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+      streak = 1; /* A new streak of 1 of a different parity */
+      switches++;
+    }
+    lastUndecided = thisUndecided;
+  }
+  
+  /* Must flush the last bookend one too */
+  printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+
+  /* Print some stats */
+  printf("\n\nLongest   Visited (positive #s) streak: %ld\n", longestDecided);
+  printf("Longest UnVisited (negative #s) streak: %ld\n", longestUndecided);
+  printf("Total switches we have (# of changes) : %ld\n", switches);
+
+  HitAnyKeyToContinue();
 }

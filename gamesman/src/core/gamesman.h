@@ -157,6 +157,7 @@ VALUE_MOVES;
 typedef signed char		MEX;     /* The max mex value is 31 */
 typedef unsigned long int	MEXCALC; /* ...since we use a long int here */
 
+#include "setup.h"
 #include "analysis.h"
 #include "constants.h"
 #include "globals.h"

@@ -32,6 +32,8 @@
 **************************************************************************/
 
 #include <zlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "gamesman.h"
 

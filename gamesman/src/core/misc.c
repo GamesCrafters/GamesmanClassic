@@ -146,16 +146,16 @@ int randSafe()
     return(ans);
 }
 
-int Stopwatch()
+unsigned int Stopwatch()
 {
-    static int first = 1;
+    static int first = TRUE;
     static time_t oldT, newT;
     
     if(first) {
-        first = 0;
+        first = FALSE;
         newT = time(NULL);
     }else{
-        first = 1;
+        first = TRUE;
     }
     oldT = newT;
     newT = time(NULL);
@@ -335,7 +335,7 @@ void MexFormat(POSITION position, STRING string)
     MEX theMex;
     char tmp[5];
     
-    if (!kPartizan) { /* Impartial, mex value available */
+    if (!kPartizan && !gTwoBits) { /* Impartial, mex value available */
         theMex = MexLoad(position);
         if(theMex == (MEX)0)
             (void) sprintf(tmp, "0");

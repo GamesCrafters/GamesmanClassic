@@ -272,8 +272,7 @@ void ResetUndoList(UNDO* undo)
     gAgainstComputer = FALSE;
     while(undo->next != NULL)
         undo = HandleUndoRequest(&position, undo, &error);
-    if(!gUnsolved)
-	UnMarkAsVisited(undo->position);
+    
     SafeFree((GENERIC_PTR)undo);
     gAgainstComputer = oldAgainstComputer;
 }
@@ -603,6 +602,8 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
         valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
     } else if (childValue == win) {  //lose moves
         valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
+    } else {
+        BadElse("SortMoves found a child with an unknown value and");
     }
     return valueMoves;
 }

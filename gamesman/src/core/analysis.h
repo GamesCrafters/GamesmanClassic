@@ -4,36 +4,37 @@
 
 /* Functions to output sets of data */
 
-void	PrintRawGameValues	(BOOLEAN toFile);
-void	PrintBadPositions	(char value, int maxPos, POSITIONLIST* badWinPos,
-				 POSITIONLIST* badTiePos, POSITIONLIST* badLosePos);
-void	PrintMexValues		(MEX value, int maxpos);
-void	PrintValuePositions	(char value, int maxPos);
-void	PrintGameValueSummary	();
+void	PrintRawGameValues		(BOOLEAN toFile);
+void	PrintBadPositions		(char value, int maxPos, POSITIONLIST* badWinPos,
+					 POSITIONLIST* badTiePos, POSITIONLIST* badLosePos);
+void	PrintMexValues			(MEX value, int maxpos);
+void	PrintValuePositions		(char value, int maxPos);
+void	PrintGameValueSummary		();
 
 /* Analysis output */
 
-void	analyze			();
-void	analyzer		();
-void	writeVarStat		(STRING statName, STRING text, FILE* out);
+void	analyze				();
+void	analyzer			();
+void	writeVarStat			(STRING statName, STRING text, FILE* out);
+void	DatabaseCombVisualizaotin	();
 
 /* Analysis misc */
 
-void	createAnalysisGameDir	();
-void	createAnalysisVarDir	();
-void	writeGameHTML		();
-void	createVarTable		();
-void	writeVarHTML		();
-BOOLEAN	CorruptedValuesP	();
+void	createAnalysisGameDir		();
+void	createAnalysisVarDir		();
+void	writeGameHTML			();
+void	createVarTable			();
+void	writeVarHTML			();
+BOOLEAN	CorruptedValuesP		();
 
-float	percentDone		(STATICMESSAGE msg);
+float	percentDone			(STATICMESSAGE msg);
 
 /* Analysis XML Support */
 
-void writeXML(STATICMESSAGE msg);
-FILE* prepareXMLFile();
-void closeXMLFile(FILE* xmlFile);
-void writeXMLData(FILE* xmlFile);
+void	writeXML			(STATICMESSAGE msg);
+FILE*	prepareXMLFile			();
+void	closeXMLFile			(FILE* xmlFile);
+void	writeXMLData			(FILE* xmlFile);
 
 /* Analysis Data Structure */
 
@@ -54,7 +55,7 @@ typedef struct analysis_info
   unsigned int  TimeToSolve;
 } ANALYSIS;
 
-static ANALYSIS gAnalysis;
+extern ANALYSIS gAnalysis;
 
 #endif /* GMCORE_ANALYSIS_H */
 

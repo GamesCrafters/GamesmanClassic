@@ -153,3 +153,5 @@ char *gValueString[] =
 	"Win-Visited", "Lose-Visited", 
 	"Tie-Visited", "Undecided-Visited"
     };
+
+char gValueLetter[] = { 'W', 'L', 'T', 'U' };

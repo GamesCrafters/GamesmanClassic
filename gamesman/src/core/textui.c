@@ -96,9 +96,8 @@ void Menus()
 
 void MenusBeforeEvaluation()
 {
-    if(gUnsolved) {
-	gUnsolved = FALSE;
-    }
+    gUnsolved = FALSE;
+    
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
@@ -177,7 +176,7 @@ void MenusEvaluated()
 	    else if (smartness==RANDOM) {
 	    printf("randomly");
 	    }
-	    printf (" w/%d givebacks)\n", initialGivebacks);
+	    printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
 	}
     
     if(kDebugMenu)
@@ -219,7 +218,10 @@ void ParseBeforeEvaluationMenuChoice(char c)
 {
 
     BOOLEAN tempPredictions;
+    int timer;
     VALUE gameValue;
+    char mexString[20]; /* Mex values read "[Val = *14]", easily in 20 chars */
+    char tmpString[80]; /* Just for saving the remoteness value in it */
 
     switch(c) {
     case 'G': case 'g':
@@ -258,25 +260,29 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
 	if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
-	printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
+	printf("\nSolving with ZeroSolver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
-	/*      Stopwatch(&sec,&usec);*/
 	Stopwatch();
 	InitializeDatabases();
-	printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
+	printf("done in %u seconds!", Stopwatch()); // for analysis bookkeeping
 	fflush(stdout);
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
-	printf("done in %d seconds!\e[K", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+	printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
-	printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
-	}else{
-printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
+	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
+	} else {
+	  MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
+	  sprintf(tmpString, "in %d", Remoteness(gInitialPosition));
+	  printf("\n\nThe Game %s has value: %s %s %s\n\n", 
+		 kGameName, 
+		 gValueString[(int)gameValue], 
+		 gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
+		 mexString);
 	}
-	
 	gMenuMode = Evaluated;
 	if(gameValue == lose)
 	    gHumanGoesFirst = FALSE;
@@ -367,7 +373,7 @@ void ParseEvaluatedMenuChoice(char c)
 	SmarterComputerMenu();
 	break;
     case 'A': case 'a':
-      analyze();
+        analyze();
 	AnalysisMenu();
 	break;
     case 'p': case 'P':
@@ -508,9 +514,13 @@ void SmarterComputerMenu()
         printf("\tg)\tChange the number of (G)ive-backs (currently %d)\n\n", initialGivebacks);
         printf("\th)\t(H)elp\n\n");
         printf("\tb)\t(B)ack = Return to previous activity\n\n");
+        printf("\tq)\t(Q)uit.\n");
         printf("\nSelect an option: ");
 	
         switch(c = GetMyChar()) {
+	case 'Q': case 'q':
+	    ExitStageRight();
+	    exit(0);
 	case 'P': case 'p':
 	    smartness = SMART;
 	    scalelvl = 100;
@@ -566,10 +576,15 @@ void AnalysisMenu()
     char c;
     
     gPrintPredictions = FALSE;
+    gMenuMode = AnalysisNoSymmetries; /* By default, no symmetries -- raw values */
     
     do {
         printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
 	
+#ifdef SYMMETRY_REVISITED
+        printf("\ts)\tToggle Use-(S)ymmetry-for-Values (currently %s)\n", 
+	       gMenuMode == AnalysisNoSymmetries ? "off" : "on");
+#endif
         printf("\ti)\tPrint the (I)nitial position\n");
         printf("\tn)\tChange the (N)umber of printed positions (currently %d)\n",maxPositions);
         if(!kPartizan) { /* Impartial */
@@ -598,11 +613,19 @@ void AnalysisMenu()
         printf("\n\nSelect an option: ");
 	
         switch(c = GetMyChar()) {
+#ifdef SYMMETRY_REVISITED
+	case 'S': case 's':
+	  gMenuMode = (gMenuMode == AnalysisSymmetries) ? AnalysisNoSymmetries : AnalysisSymmetries;
+	  break;
+#endif
 	case 'Q': case 'q':
 	    ExitStageRight();
 	    exit(0);
 	case 'H': case 'h':
 	    HelpMenus();
+	    break;
+	case 'D': case 'd':
+	    DatabaseCombVisualization();
 	    break;
 	case 'C': case 'c':
 	    if(CorruptedValuesP())
@@ -624,6 +647,7 @@ void AnalysisMenu()
 	    HitAnyKeyToContinue();
 	    break;
 	case 'p': case 'P':
+	    analyze();
 	    PrintGameValueSummary();
 	    HitAnyKeyToContinue();
 	    break;
@@ -660,6 +684,7 @@ void AnalysisMenu()
 	    FreePositionList(badTiePositions);
 	    FreePositionList(badLosePositions);
 	    gPrintPredictions = tempPredictions;
+	    gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
 	    return;
 	default:
 	    BadMenuChoice();
@@ -676,10 +701,26 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     
     GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
     
-    if(input[0] == '\0')
+    if(input[0] == '\0') {
+      MOVELIST* head;
+      int onlyOneMove;
+      /* [DDG 2005-01-09] Check if there is only one move to be made.
+       * If so, this can be a shortcut for moving, just hitting enter! */
+      head = GenerateMoves(thePosition); /* What are all moves available? */
+      /* There's exactly one */
+      if ((onlyOneMove = (head != NULL && head->next == NULL))) {
+        *theMove = head->move;
+        printf("----- AUTO-MOVE-SELECTED ------------> ");
+        PrintMove(*theMove);
+        printf("\n");
+      }
+      FreeMoveList(head);
+
+      if ( onlyOneMove ) 
+        return(Move);
+      else
         PrintPossibleMoves(thePosition);
-    
-    else if (ValidTextInput(input)) {
+    } else if (ValidTextInput(input)) {
         if(ValidMove(thePosition,tmpMove = ConvertTextInputToMove(input))) {
             *theMove = tmpMove;
             return(Move);
@@ -761,43 +802,46 @@ void GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN putCarraige
 }
 
 /* Status Meter */
-void showStatus(int done)
+void showStatus(STATICMESSAGE msg)
 {
-    static POSITION num_pos_seen = 0;
+    
     static float timeDelayTicks = CLOCKS_PER_SEC / 10;
     static clock_t updateTime = (clock_t) NULL;
     int print_length=0;
     
+    percentDone(msg);
+    
     if (updateTime == (clock_t) NULL)
-	{
-	    updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
-	}
+    {
+        updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
+    }
     
-    switch (done)
-	{
-	case 0:
-	    num_pos_seen++;
-	    break;
-	case 1:
-	    print_length = printf("Writing Database...\e[K");
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	    num_pos_seen = 0;
-	    updateTime = (clock_t) NULL;
-	    return;
-	}	
+    switch (msg)
+    {
+        case Clean:
+            if(gWriteDatabase) 
+            {
+                print_length = fprintf(stderr,"Writing Database...\e[K");
+                fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+            }
+            updateTime = (clock_t) NULL;
+            return;
+    }	
     
-    if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
-	{
-	    fflush(stdout);
-	    print_length = printf("Solving... " POSITION_FORMAT " Positions Visited - Reported Total Number of Positions: " POSITION_FORMAT "\e[K",num_pos_seen,gNumberOfPositions);
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
-	}
+    if (percentDone(2) > gNumberOfPositions && clock() > updateTime)
+    {
+        fflush(stdout);
+        fflush(stderr);
+        print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",percentDone(2),gNumberOfPositions);
+        fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+        updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
+    }
     else if (clock() > updateTime)
-	{
-	    fflush(stdout);
-	    print_length = printf("%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
-	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
-	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
-	}
+    {
+        fflush(stdout);
+        fflush(stderr);
+        print_length = fprintf(stderr,"%2.1f%% Done \e[K",percentDone(2));
+        fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+        updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
+    }
 }

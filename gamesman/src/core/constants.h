@@ -11,5 +11,6 @@ extern STRING	kOpeningCredits,
 		kHandleDefaultTextInputHelp;
 
 extern STRING	gValueString[];
+extern char	gValueLetter[];
 
 #endif /* GMCORE_CONSTANTS_H */

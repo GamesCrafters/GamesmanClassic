@@ -13,7 +13,7 @@ int		GetRandomNumber			(int max);
 int		GetSmallRandomNumber		(int n);
 int		randSafe			();
 
-int		Stopwatch			();
+unsigned int	Stopwatch			();
 void		ExitStageRight			();
 void		ExitStageRightErrorString	(STRING msg);
 

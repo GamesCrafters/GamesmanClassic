@@ -12,7 +12,7 @@ void		HelpMenus		();
 USERINPUT	HandleDefaultTextInput	(POSITION pos, MOVE* move, STRING name);
 void		GetMyString		(char* name, int size, BOOLEAN eatFirst, BOOLEAN preserveCR);
 
-void		showStatus		(int value);
+void		showStatus		(STATICMESSAGE msg);
 
 
 

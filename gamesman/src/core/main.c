@@ -161,7 +161,7 @@ VALUE DetermineValue(POSITION position)
     else {
         if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
         gSolver(position);
-        showStatus(1);
+        showStatus(Clean);
         if(gWriteDatabase)
             writeDatabase();
     }
@@ -182,12 +182,18 @@ void SolveAndStore()
 {
     Initialize();
     InitializeDatabases();
+    gAnalysis.TotalMoves = 0;
     DetermineValue(gInitialPosition);
+    gAnalysis.TimeToSolve = Stopwatch();
     // analysis
     if (gAnalyzing) {
         analyze(); // sets global variables
-        createAnalysisVarDir();
-        writeVarHTML();
+        
+        // Writing HTML Has Now Been Deprecated
+        // createAnalysisVarDir();
+        // writeVarHTML();
+	    
+        writeXML(Save);
     }
 }
 
@@ -337,6 +343,12 @@ int main(int argc, char *argv[])
         else {
             int i;
             fprintf(stderr, "Solving \"%s\" option ", kGameName);
+            
+            if (gAnalyzing)
+            {
+                writeXML(Init);
+            }
+            
             for(i = 1; i <= NumberOfOptions(); i++) {
                 fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
                 fflush(stderr);
@@ -344,6 +356,12 @@ int main(int argc, char *argv[])
                 SolveAndStore();
                 fprintf(stderr, "%c[u", 27);
             }
+            
+            if (gAnalyzing)
+            {
+                writeXML(Init);
+            }
+            
             fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
         }
     }

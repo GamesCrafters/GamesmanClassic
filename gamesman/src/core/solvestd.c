@@ -67,8 +67,11 @@ VALUE DetermineValue1(position)
         head = ptr = GenerateMoves(position);
         while (ptr != NULL) {
             MOVE move = ptr->move ;
-            gTotalMoves++;
+            gAnalysis.TotalMoves++;
             child = DoMove(position,ptr->move);  /* Create the child */
+#ifdef SYMMETRY_REVISITED
+	    child = GetCanonicalPosition(child);
+#endif
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
             value = DetermineValue1(child);       /* DFS call */
@@ -97,7 +100,7 @@ VALUE DetermineValue1(position)
                 if (remoteness > maxRemoteness) maxRemoteness = remoteness;
             }
             else
-                BadElse("DetermineValue (1) ");
+                BadElse("DetermineValue[1]");
             ptr = ptr->next;
         }
         FreeMoveList(head);
@@ -117,9 +120,9 @@ VALUE DetermineValue1(position)
             return(StoreValueOfPosition(position,lose));
         }
         else
-            BadElse("DetermineValue (2)");
+            BadElse("DetermineValue[2]");
     }
-    BadElse("DetermineValue (3)");  /* This should NEVER be reached */
+    BadElse("DetermineValue[3]");  /* This should NEVER be reached */
     return(undecided);          /* But has been added to satisty lint */
 }
 
