@@ -247,6 +247,7 @@ VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
+BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 
 
 int   smartness = SMART;
@@ -3051,10 +3052,10 @@ int writeDatabase()
 
 	if(goodCompression && (goodClose == 0))
 	{
-		if(kDebugDetermineValue){
-			printf("File Successfully compressed\n");
-		}
-		return 1;
+	  if(kDebugDetermineValue && ! gJustSolving){
+	    printf("File Successfully compressed\n");
+	  }
+	  return 1;
 	}else{
 		if(kDebugDetermineValue){
 			printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
@@ -3168,22 +3169,34 @@ void HandleArguments (int argc, char *argv[]) {
     }
   }
   else if(!strcmp(argv[1], "-solve")) {
+    gJustSolving = TRUE;
     if(argc > 3)
       printf("\nUsage: %s -solve [<n> | <all>]\n\n", argv[0]);
-    else if(argc == 2)
+    else if(argc == 2) {
+      printf("\nSolving %s with default options....", argv[0]);
+      fflush(NULL);
       SolveAndStore(getOption());
+      printf("done.\n\n");
+    }
     else {
       int option = atoi(argv[2]);
       if(!strcmp(argv[2], "all")) {
-	int i, numOptions = NumberOfOptions();
-	for(i = 1; i <= numOptions; i++) {
+	int i;
+	printf("\nSolving %s option ", argv[0]);
+	for(i = 1; i <= NumberOfOptions(); i++) {
+	  printf("%c[s%u of %u....%c[u", 27, i, NumberOfOptions(), 27);
+	  fflush(NULL);
 	  SolveAndStore(i);
 	}
+	printf("%u of %u....done.\n\n", i - 1, NumberOfOptions());
       }
       else if(!option || option > NumberOfOptions())
 	printf("\nInvalid option configuration!\n\n");
       else {
+	printf("\nSolving %s option %u....", argv[0], option);
+	fflush(NULL);
 	SolveAndStore(option);
+	printf("done.\n\n");
       }
     }
   }
