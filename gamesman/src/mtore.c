@@ -16,8 +16,15 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2004-9-28 Started Module. Print Position, Do Move, Hash Stuff.
-**
+** UPDATE HIST: 2004-10-26   Changed PrintPosition to include layout of board
+**                           Wrote GetinitialPosition
+**              2004-10-22   Error still in ValidTextInput
+**              2004-10-21   Fixed GenerateMoves, Primitive
+**              2004-10-10   Wrote ConvertTextInputToMove
+**                           Wrote PrintMove, and ValidTextInput
+**              2004-10-4    Wrote GenerateMoves, and Primative
+**              2004-9-28    Started Module. Print Position, Do Move, Hash Stuff.
+**              
 **************************************************************************/
 
 /*************************************************************************
@@ -39,8 +46,8 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = ""; /* The name of your game */
-STRING   kAuthorName          = ""; /* Your name(s) */
+STRING   kGameName            = "Mu Torere"; /* The name of your game */
+STRING   kAuthorName          = "Joe Jing and Jeff Chou"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -267,6 +274,7 @@ POSITION DoMove (POSITION position, MOVE move)
   oldc = gBoard[from];
   gBoard[from] = '_';
   gBoard[to] = oldc;
+  printf("DoMove from %d to %d\n", from, to);
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
@@ -300,13 +308,17 @@ POSITION DoMove (POSITION position, MOVE move)
 	***************************/
 
 VALUE Primitive (POSITION position)
-{if (GenerateMoves(position) != NULL){
-  return (undecided);}
- else{ 
-  if (GenerateMoves(position) == NULL){ 
-  return (lose);}
- else 
-   {return (win);}}}
+{
+  if (GenerateMoves(position) != NULL){
+    return undecided;
+  } else if (GenerateMoves(position) == NULL)
+    { 
+      return gStandardGame ? lose : win;
+    } else {
+      return gStandardGame ? win : lose;
+  }
+}
+
 
 
 
@@ -331,13 +343,13 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   generic_unhash(position, gBoard);
-  printf("     %c\n",gBoard[3]);
-  printf("  %c  |  %c\n", gBoard[2], gBoard[4]);
-  printf("   \\ | /\n");
-  printf(" %c-- %c --%c\n", gBoard[1], gBoard[0], gBoard[5]);
-  printf("   / | \\\n");
-  printf("  %c  |  %c\n", gBoard[8], gBoard[6]);
-  printf("     %c\n", gBoard[7]);
+  printf("     %c            3\n",gBoard[3]);
+  printf("  %c  |  %c      2  |  4\n", gBoard[2], gBoard[4]);
+  printf("   \\ | /        \\ | /\n");
+  printf(" %c-- %c --%c    1-- 0 --5\n", gBoard[1], gBoard[0], gBoard[5]);
+  printf("   / | \\        / | \\\n");
+  printf("  %c  |  %c      8  |  6\n", gBoard[8], gBoard[6]);
+  printf("     %c            7\n", gBoard[7]);
   printf("\n%s's Turn\n", playersName);
   
 }
@@ -373,7 +385,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf("moved to %d from %d", move_to(move), move_from(move));    
+  printf("move to %d from %d", move_to(move), move_from(move));    
 }
 
 
@@ -525,9 +537,46 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
+/*  Copied from mttt.c
+*/
 POSITION GetInitialPosition ()
 {
-    return 0;
+  // POSITION BlankOXToPosition();
+  //BlankOX theBlankOX[BOARDSIZE], whosTurn;
+  //signed char c;
+  //int i, goodInputs = 0;
+
+
+  //printf("\n\n\t----- Get Initial Position -----\n");
+  //printf("\n\tPlease input the position to begin with.\n");
+  //printf("\tNote that it should be in the following format:\n\n");
+  //printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
+
+  //i = 0;
+  //getchar();
+  //while(i < BOARDSIZE && (c = getchar()) != EOF) {
+  //if(c == 'x' || c == 'X')
+  //  theBlankOX[i++] = x;
+  //else if(c == 'o' || c == 'O' || c == '0')
+  //  theBlankOX[i++] = o;
+  //else if(c == '-')
+  //  theBlankOX[i++] = Blank;
+  //else
+  //  ;   /* do nothing */
+  //}
+
+  /*
+  getchar();
+  printf("\nNow, whose turn is it? [O/X] : ");
+  scanf("%c",&c);
+  if(c == 'x' || c == 'X')
+    whosTurn = x;
+  else
+    whosTurn = o;
+    */
+
+  //return(BlankOXToPosition(theBlankOX,whosTurn));
+  return 0;
 }
 
 
