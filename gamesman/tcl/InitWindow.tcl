@@ -76,12 +76,18 @@ proc TBaction4 {} {
     pack .middle.f2.fAbout -side bottom -fill both -expand 1
 }
 
-# Unmapped
+# Skins
 proc TBaction5 {} {
+	.cToolbar raise iITB
+	global gWaitingForHuman
+	set gWaitingForHuman true
+	pack forget .middle.f2.cMain   
+	pack .middle.f2.fSkins -side bottom
 }
 
 # Unmapped
 proc TBaction6 {} {
+
 }
 
 # Unmapped
@@ -101,13 +107,15 @@ proc SetupPlayOptions {} {
     pack .middle.f2.fPlayOptions -side bottom
     .cStatus raise base
 }
-    
-proc InitWindow { kRootDir } {
+
+proc InitWindow { kRootDir kDir kExt } {
 
 
     global gWindowWidth gWindowHeight
     global gFrameWidth
-    global gSkinsLibName
+    global gSkinsRootDir
+    global gSkinsDir
+    global gSkinsExt
     global gGamePlayable
     global kLabelFont kPlayerLabelFont kToMoveToWinFont
     global tcl_platform
@@ -131,7 +139,9 @@ proc InitWindow { kRootDir } {
     set gFrameWidth [expr $gWindowWidth * 10 / 16]
     wm aspect . 800 600 1600 1200
     set gGamePlayable false
-    set gSkinsLibName "$kRootDir/../tcl/skins/BurstSkin/"
+    set gSkinsRootDir "$kRootDir/../tcl/skins/"
+    set gSkinsDir "$kDir/"
+    set gSkinsExt "$kExt"
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
         console hide
@@ -148,91 +158,7 @@ proc InitWindow { kRootDir } {
 	-height [expr $gWindowHeight / 30] \
 	-background green
 
-    #
-    # Load all the button images
-    #
-
-    foreach mode {A I O} {
-	foreach file {1 2 3 4 5 6 7 8} {
-	    set name [format i%sTB%s $mode $file]
-	    image create photo [subst $name]p -file [format %s%s_1_%s.gif $gSkinsLibName $mode $file]
-	    set type [format i%sTB $mode]
-	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
-		-image [subst $name]p -tags [list tbb $type $name]
-	}
-    } 
-    image create photo iIMB1p -file [format %sI_2_1.gif $gSkinsLibName]
-    image create photo iIMB2p -file [format %sI_2_2.gif $gSkinsLibName]
-    image create photo iIMB3p -file [format %sI_2_3.gif $gSkinsLibName]
-    image create photo iIMB4p -file [format %sI_2_4.gif $gSkinsLibName]
-    image create photo iIMB5p -file [format %sI_2_5.gif $gSkinsLibName]
-    image create photo iIMB6p -file [format %sI_2_6.gif $gSkinsLibName]
-    image create photo iAMB5p -file [format %sA_2_5.gif $gSkinsLibName]
-    image create photo iSMB7p -file [format %sA_2_7.gif $gSkinsLibName]
-    #image create photo iAMB7p -file [format %sA_7_1.gif $gSkinsLibName]
-    image create photo iAMB8p -file [format %sA_8_1.gif $gSkinsLibName]
-    image create photo iAMM1p -file [format %sA_4_1.gif $gSkinsLibName]
-    image create photo iBBB1p -file [format %sA_3_1.gif $gSkinsLibName]
-    image create photo iABB2p -file [format %sA_3_2.gif $gSkinsLibName]
-    image create photo iIBB2p -file [format %sI_3_2.gif $gSkinsLibName]
-    image create photo iABB3p -file [format %sA_3_3.gif $gSkinsLibName]
-    image create photo iIBB3p -file [format %sI_3_3.gif $gSkinsLibName]
-    image create photo iABB4p -file [format %sA_3_4.gif $gSkinsLibName]
-    image create photo iIBB4p -file [format %sI_3_4.gif $gSkinsLibName]
-    ##image create photo iABB5p -file [format %sA_3_5.gif $gSkinsLibName]    
-    ##image create photo iIBB5p -file [format %sI_3_5.gif $gSkinsLibName]
-    image create photo iABB6p -file [format %sA_3_6.gif $gSkinsLibName]
-    image create photo iIBB6p -file [format %sI_3_6.gif $gSkinsLibName]
-    image create photo iIBB7p -file [format %sI_3_7.gif $gSkinsLibName]
-    image create photo iABB7p -file [format %sA_3_7.gif $gSkinsLibName]
-    image create photo iIBB8p -file [format %sI_3_8.gif $gSkinsLibName]
-    image create photo iABB8p -file [format %sA_3_8.gif $gSkinsLibName]
-    image create photo iIBB9p -file [format %sI_3_9.gif $gSkinsLibName]
-    image create photo iABB9p -file [format %sA_3_9.gif $gSkinsLibName]
-
-    #
-    # Deal with everything in the top toolbar
-    #
-
-    #
-    # Now Bind all the buttons
-    #
-    
-    # set the active action of each button
-    set mode A
-    foreach file {1 2 3 4 5 6 7 8} {
-	set name [format i%sTB%s $mode $file]
-	set type [format i%sTB $mode]
-	.cToolbar bind $name <Any-Enter> \
-	    ".cToolbar raise {iOTB$file}; update idletasks" 
-    }
-    
-    # bind the action of the mouse-Over images
-    set mode O
-    foreach file {1 2 3 4 5 6 7} {
-	set name [format i%sTB%s $mode $file]
-	set type [format i%sTB $mode]
-	.cToolbar bind $name <ButtonRelease-1> \
-	    ".cStatus raise base; \
-             update idletasks; \
-             TBaction$file"
-	.cToolbar bind $name <Any-Leave> \
-	    ".cToolbar raise iATB$file; update idletasks"
-    }
-
-    # Deal with exit button separately
-    .cToolbar dtag iITB8 iITB
-    .cToolbar bind iOTB8 <ButtonRelease-1> {
-	exit
-    }
-    .cToolbar bind iOTB8  <Any-Leave> {
-	.cToolbar raise iATB8
-    }
-
-    # Set up starting display with the active images on top
-    .cToolbar raise iATB
-
-
+	InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 
 
     #
@@ -684,6 +610,37 @@ proc InitWindow { kRootDir } {
 
     pack $helpFrame.buttons -side bottom -fill x
     pack $helpFrame.content -side top -fill both -expand 1
+
+
+    #
+    # Skins Frame
+    #
+
+    set skinsFrame .middle.f2.fSkins
+    frame $skinsFrame \
+	-width $gFrameWidth \
+	-height [expr $gWindowHeight * 25 / 30] 
+
+    frame $skinsFrame.buttons
+    frame $skinsFrame.content
+
+    pack propagate $skinsFrame 0
+
+    button $skinsFrame.buttons.bReturn -text "Return" \
+	-command {
+	    pack forget .middle.f2.fSkins  
+	    pack .middle.f2.cMain
+	    .cToolbar raise iATB
+	    RaiseStatusBarIfGameStarted
+	    update
+	    DriverLoop
+	}
+    
+    pack $skinsFrame.buttons.bReturn -fill both -expand 1
+
+    pack $skinsFrame.buttons -side bottom -fill x
+    pack $skinsFrame.content -side top -fill both -expand 1
+    
     
     #    
     # About Frame
@@ -848,12 +805,12 @@ proc InitWindow { kRootDir } {
     .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA def]
     .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI]
    #create toWin checked
-    .cStatus create image 290 25 -image iABB3p -tags [list sbb iABB iABB3 winA def]
-    .cStatus create image 290 25 -image iIBB3p -tags [list sbb iIBB iIBB3 winI]
+    .cStatus create image 290 27 -image iABB3p -tags [list sbb iABB iABB3 winA]
+    .cStatus create image 290 27 -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
     #create toMove checked
-    .cStatus create image 290 50 -image iABB4p -tags [list sbb iABB iABB4 moveA def]
+    .cStatus create image 290 52 -image iABB4p -tags [list sbb iABB iABB4 moveA]
     #create toMove unchecked
-    .cStatus create image 290 50 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI]
+    .cStatus create image 290 52 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
     
     ######
     ### create the shoow "none" moves toggle
@@ -866,15 +823,15 @@ proc InitWindow { kRootDir } {
    
     
     #create all moves filled, old coords 470,22.5
-    .cStatus create image 420 22.5 -image iABB6p -tags [list sbb iABB iABB6 allA def]
+    .cStatus create image 425 25 -image iABB6p -tags [list sbb iABB iABB6 allA def]
     #create all moves unfilled
-    .cStatus create image 420 22.5 -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
+    .cStatus create image 425 25 -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
     #create value moves filled, old coords 530, 22.5
-    .cStatus create image 510 22.5 -image iABB7p -tags [list sbb iABB iABB7 valueA]
+    .cStatus create image 515 25 -image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
-    .cStatus create image 510 22.5 -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
-    .cStatus create image 470 57.5 -image iABB8p -tags [list sbb iABB iABB8 predA]
-    .cStatus create image 470 57.5 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
+    .cStatus create image 515 25 -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    .cStatus create image 470 52 -image iABB8p -tags [list sbb iABB iABB8 predA]
+    .cStatus create image 470 52 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
     .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA def]
     .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]    
     .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
@@ -887,6 +844,7 @@ proc InitWindow { kRootDir } {
     }
 
     .cStatus bind playI <ButtonRelease-1> {
+	InitWindow $kRootDir BurstSkin gif
 
 	.cStatus raise iABB2
     }
@@ -1030,6 +988,21 @@ proc SetupHelpFrame { f width } {
     pack $f.summary -side top
 }
 
+proc SetupSkinsFrame { f width } {
+    global kDocumentFont
+    message $f.summary -width $width -font $kDocumentFont -text "Click one of the following images to select a skin."
+    pack $f.summary -side top
+
+    global kLabelFont gSkinsRootDir gSkinsDir gSkinsExt
+    radiobutton .middle.f2.fSkins.title\
+	    -text "BurstSkin" \
+	    -font $kLabelFont \
+	    -value Human \
+	-command { 
+	    InitButtons gSkinsRootDir gSkinsDir gSkinsExt
+	}
+}
+
 proc SetupAboutFrame { f width } {
 
     set width [expr $width - 40]
@@ -1103,4 +1076,94 @@ proc HandleScrollFeedback { bar whichOffset args } {
     
     set fraction [expr 1.0 * [subst $[subst $whichOffset]] / [subst $[subst $whichOffset]Max]]
     $bar set $fraction 0
+}
+
+proc InitButtons { gSkinsRootDir gSkinsDir gSkinsExt } {
+
+    global gWindowWidth gWindowHeight
+	
+    #
+    # Load all the button images
+    #
+
+    foreach mode {A I O} {
+	foreach file {1 2 3 4 5 6 7 8} {
+	    set name [format i%sTB%s $mode $file]
+	    image create photo [subst $name]p -file [format %s%s%s_1_%s.%s $gSkinsRootDir $gSkinsDir $mode $file $gSkinsExt]
+	    set type [format i%sTB $mode]
+	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
+		-image [subst $name]p -tags [list tbb $type $name]
+	}
+    } 
+    image create photo iIMB1p -file [format %s%sI_2_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIMB2p -file [format %s%sI_2_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIMB3p -file [format %s%sI_2_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIMB4p -file [format %s%sI_2_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIMB5p -file [format %s%sI_2_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIMB6p -file [format %s%sI_2_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iAMB5p -file [format %s%sA_2_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iSMB7p -file [format %s%sA_2_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    #image create photo iAMB7p -file [format %s%sA_7_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iAMB8p -file [format %s%sA_8_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iAMM1p -file [format %s%sA_4_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iBBB1p -file [format %s%sA_3_1.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB2p -file [format %s%sA_3_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB2p -file [format %s%sI_3_2.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB3p -file [format %s%sA_3_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB3p -file [format %s%sI_3_3.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB4p -file [format %s%sA_3_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB4p -file [format %s%sI_3_4.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    ##image create photo iABB5p -file [format %s%sA_3_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt] 
+    ##image create photo iIBB5p -file [format %s%sI_3_5.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB6p -file [format %s%sA_3_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB6p -file [format %s%sI_3_6.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB7p -file [format %s%sI_3_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB7p -file [format %s%sA_3_7.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB8p -file [format %s%sI_3_8.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB8p -file [format %s%sA_3_8.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iIBB9p -file [format %s%sI_3_9.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+    image create photo iABB9p -file [format %s%sA_3_9.%s $gSkinsRootDir $gSkinsDir $gSkinsExt]
+
+
+    #
+    # Deal with everything in the top toolbar
+    #
+
+    #
+    # Now Bind all the buttons
+    #
+    
+    # set the active action of each button
+    set mode A
+    foreach file {1 2 3 4 5 8} {#6 7 removed because not used
+	set name [format i%sTB%s $mode $file]
+	set type [format i%sTB $mode]
+	.cToolbar bind $name <Any-Enter> \
+	    ".cToolbar raise {iOTB$file}; update idletasks" 
+    }
+    
+    # bind the action of the mouse-Over images
+    set mode O
+    foreach file {1 2 3 4 5} {#6 7 removed because not used
+	set name [format i%sTB%s $mode $file]
+	set type [format i%sTB $mode]
+	.cToolbar bind $name <ButtonRelease-1> \
+	    ".cStatus raise base; \
+             update idletasks; \
+             TBaction$file"
+	.cToolbar bind $name <Any-Leave> \
+	    ".cToolbar raise iATB$file; update idletasks"
+    }
+
+    # Deal with exit button separately
+    .cToolbar dtag iITB8 iITB
+    .cToolbar bind iOTB8 <ButtonRelease-1> {
+	exit
+    }
+    .cToolbar bind iOTB8  <Any-Leave> {
+	.cToolbar raise iATB8
+    }
+
+    # Set up starting display with the active images on top
+    .cToolbar raise iATB
 }
