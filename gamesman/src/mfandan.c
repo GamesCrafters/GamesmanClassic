@@ -240,9 +240,10 @@ POSITION DoMove(thePosition, theMove)
   intdir = (28 & theMove) >> 2;
   index = (0xffffffe0 & theMove) >> 5;
 
+  intdir++;
   if(intdir>=5)
     intdir++;
-  intdir++;
+
   dir = (Direction)intdir;
 
   coord = IndexToCoordinates(index);
@@ -724,9 +725,9 @@ void PrintMove(theMove)
   dir = (28 & theMove) >> 2;
   pos = (0xffffffe0 & theMove) >> 5;
 
+  dir++;
   if(dir >= 5)
     dir++;
-  dir++;
 
   printf(" [%d %d %d]",pos+1,dir,cap);
 }
