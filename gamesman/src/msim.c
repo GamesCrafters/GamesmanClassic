@@ -44,66 +44,93 @@ POSITION kBadPosition		= -1;
 void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n\
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
-button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+"";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"Place one of your pieces by selecting two endpoints of a line segment\n\
+that does not yet have a piece on it.";
 
 STRING   kHelpOnYourTurn =
 "You place one of your pieces on one of the empty board positions.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"Force your opponent to form a triangle of three of your opponent's pieces.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+"Form a triangle of three of your pieces.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the board fills up without either player getting three-in-a-row.";
+"Neither player forms a triangle of three pieces of the same type.";
 
 STRING   kHelpExample =
-"         ( 1 2 3 )           : - - -\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  3    \n\n\
-         ( 1 2 3 )           : - - X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  6    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - O \n\n\
-Computer's move              :  5    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : - - O \n\n\
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer's move              :  4    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer wins. Nice try, Dan.";
+"\n\
+  (Computer should Lose in 15)  \n\
+Computer's move              : 36\n\
+                                                            \n\
+                                                            \n\
+                                                            \n\
+                5                         X6                \n\
+                                         XX                 \n\
+                                        XX                  \n\
+                                       XX                   \n\
+                                      XX                    \n\
+                                     XX                     \n\
+                                    X                       \n\
+                                  XX                        \n\
+                                 XX                         \n\
+                                XX                          \n\
+                               XX                           \n\
+                              XX                            \n\
+   4                         XX                          1  \n\
+                           XX                               \n\
+                          XX                                \n\
+                         XX                                 \n\
+                        XX                                  \n\
+                       XX                                   \n\
+                      XX                                    \n\
+                     X                                      \n\
+                   XX                                       \n\
+                  XX                                        \n\
+                 XX                                         \n\
+                3X                         2                \n\
+                                                            \n\
+                                                            \n\
+                                                            \n\
+  (Player should Win in 14)  \n\
+  Player's move [(u)ndo/[1-6][1-6]] :  {12} \n\
+                                                            \n\
+                                                            \n\
+                                                            \n\
+                5                         X6                \n\
+                                         XX                 \n\
+                                        XX                  \n\
+                                       XX                   \n\
+                                      XX                    \n\
+                                     XX                     \n\
+                                    X                       \n\
+                                  XX                        \n\
+                                 XX                         \n\
+                                XX                          \n\
+                               XX                           \n\
+                              XX                            \n\
+   4                         XX                        OO1  \n\
+                           XX                         OO    \n\
+                          XX                         OO     \n\
+                         XX                         OO      \n\
+                        XX                         OO       \n\
+                       XX                         OO        \n\
+                      XX                         OO         \n\
+                     X                         OO           \n\
+                   XX                         OO            \n\
+                  XX                         OO             \n\
+                 XX                         OO              \n\
+                3X                         2O               \n\
+                                                            \n\
+                                                            \n\
+                                                            \n\
+  (Computer should Lose in 13)  \n\
+Computer's move              : 46\n\
+...";
 
 /*************************************************************************
 **
@@ -476,6 +503,7 @@ void PrintPosition(position,playerName,usersTurn)
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE];
   char** disp;
+  POSITION originalPosition = position;
   
   disp = (char**) malloc( sizeof(char*)*caWidth );
   for(i=0;i<caWidth;i++)
@@ -502,7 +530,7 @@ void PrintPosition(position,playerName,usersTurn)
     free( disp[i] );
   free(disp);
   
-  printf("  %s\n", GetPrediction(position, playerName, usersTurn) ); // why doesn't this work, Dan?
+  printf("  %s\n", GetPrediction(originalPosition, playerName, usersTurn) );
 }
 
 /************************************************************************

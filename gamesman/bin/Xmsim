@@ -43,4 +43,9 @@ source "$kRootDir/../tcl/msim.tcl"
 
 ### Now source the rest of the game-playing interface code.
 
+source "$kRootDir/../tcl/gamesman.tcl"
+
+## an extra file, containing many gamesman.tcl functions and 
+## some functions rewritten specifically for mctoi.tcl
+
 source "$kRootDir/../tcl/gamesmanmsim.tcl"

@@ -22,14 +22,6 @@
 ##
 #############################################################################
 
-
-
-#values to massage...
-
-set grandwidth 500
-
-
-
 proc GS_InitGameSpecific {} {
     
     global grandwidth
@@ -37,6 +29,8 @@ proc GS_InitGameSpecific {} {
     global p1Color
     global p2Color
     global gHumanGoesFirst
+    
+    set grandwidth 500
     
     
     ### Set the name of the game
@@ -88,7 +82,7 @@ proc GS_InitGameSpecific {} {
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Dan Garcia, Sunil Ramesh, Peter Trethewey"
     set kTclAuthors "Peter Trethewey"
-    set kGifAuthors "$kRootDir/../bitmaps/lite3team.gif"
+    set kGifAuthors "$kRootDir/../bitmaps/sim100.gif"
     
     ### Set the procedures that will draw the pieces
     ### (I prefer to do this myself)
@@ -229,10 +223,10 @@ proc GS_EmbellishSlot { w slotX slotY slot } {
 	    $base addtag tagMove-$i withtag $item
 	    $base addtag tagMove withtag $item
 	    
-	    $base bind tagClickable-$i <Any-1> "takeClick $w %x %y $i"
-	    $base bind tagClickable-$i <Any-Enter> "enter $w %x %y $i"
-	    $base bind tagClickable-$i <ButtonRelease-1> "letUp $w %x %y $i"
-	    $base bind tagClickable-$i <Any-Leave> "Leave $w %x %y $i"
+ 	    $base bind tagClickable-$i <Any-1> "takeClick $w %x %y $i"
+ 	    $base bind tagClickable-$i <Any-Enter> "enter $w %x %y $i"
+ 	    $base bind tagClickable-$i <ButtonRelease-1> "letUp $w %x %y $i"
+ 	    $base bind tagClickable-$i <Any-Leave> "Leave $w %x %y $i"
 	    $base addtag tagIndicator-$i withtag $item
 	    $base addtag tagIndicator withtag $item
 	    
@@ -370,8 +364,6 @@ proc GS_PostProcessBoard { w } {
 proc GS_ConvertToAbsoluteMove { theMove } {
     global gPosition
 
-    ### Fortunately, TicTacToe's moves are already absolute.
-
     return $theMove
 }
 
@@ -456,9 +448,12 @@ proc GS_NewGame { w } {
 	$w addtag tagMove-$i withtag tagWasMove-$i
 	set available($i) true
     }
+
+     for { set x 0 } { $x<15 } { incr x} {	
+	$w addtag tagClickable-$x withtag tagUnclickable-$x
+    }
     
 }
-
 
 proc SetColorByTag { w tag color } {
     foreach item [$w find withtag $tag] {
