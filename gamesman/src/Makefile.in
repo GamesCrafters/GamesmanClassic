@@ -183,6 +183,10 @@ TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
 TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
 
+JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
+JOUST_OBJ		= mjoust$(OBJSUFFIX)
+JOUST_SO		= $(LIBDIR)/libmjoust$(LIBSUFFIX)
+
 FANDAN_EXE		= $ (BINDIR)/mfandan$(EXESUFFIX) 
 FANDAN_OBJ		= mfandan$(OBJSUFFIX)
 
@@ -199,19 +203,21 @@ CGAMEOBJS = $(1210_OBJ) $(NIM_OBJ) $(TTT_OBJ) $(SIM_OBJ) $(STT_OBJ) \
 	    $(DODGEM_OBJ) $(TACTIX_OBJ) $(LGAME_OBJ) $(3DOT_OBJ) \
 	    $(CMASS_OBJ) $(LITE3_OBJ) $(CTOI_OBJ) $(WIN4_OBJ) $(RUBIX_OBJ) \
 	    $(ACHI_OBJ) $(QX_OBJ) $(GOBBLET_OBJ) $(SLIDEN_OBJ) $(SLIDE_OBJ) $(1TON_OBJ)\
-	    $(9MM_OBJ) $(ABALONE_OBJ) $(TTC_OBJ) #$(MANCALA_OBJ)
+	    $(9MM_OBJ) $(ABALONE_OBJ) $(TTC_OBJ) $(JOUST_OBJ) #$(MANCALA_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(NIM_EXE) $(SIM_EXE) $(STT_EXE) \
 	  $(DODGEM_EXE) \
 	  $(TACTIX_EXE) $(LGAME_EXE) $(3DOT_EXE) $(CMASS_EXE) $(LITE3_EXE) $(CTOI_EXE) \
 	  $(WIN4_EXE) $(RUBIX_EXE) $(ACHI_EXE) $(QX_EXE) $(GOBBLET_EXE) $(SLIDEN_EXE) \
-          $(SNAKE_EXE)  $(1TON_EXE) $(9MM_EXE) $(ABALONE_EXE) $(TTC_EXE) #$(MANCALA_EXE)
+          $(SNAKE_EXE)  $(1TON_EXE) $(9MM_EXE) $(ABALONE_EXE) $(TTC_EXE) \
+	  $(JOUST_EXE) #$(MANCALA_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) $(DODGEM_SO) $(TACTIX_SO) $(LGAME_SO) \
 	$(3DOT_SO) $(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) $(ACHI_SO) \
-	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(1TON_SO) $(ABALONE_SO) $(TTC_SO) #$(MANCALA_SO)
+	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(1TON_SO) $(ABALONE_SO) $(TTC_SO) \
+	$(JOUST_SO) #$(MANCALA_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
