@@ -70,7 +70,7 @@ BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy              = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
+BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
 void*    gGameSpecificTclInit = NULL;
 
 
@@ -659,6 +659,15 @@ VALUE Primitive (POSITION position) {
   //c==P1?d=P2:d=P1;
   MOVELIST* moves = GenerateMoves(position);
   FreeMoveList(moves);  //what does this do?
+  for (r=0;r<width*height;r++){
+      if(getpce(b,r)==c) {
+	num_pieces++;
+    }
+  }
+  if ((num_pieces == 1) && (!placingBoard(b)))  {
+      return lose;
+  }
+  
   if (moves==NULL) { 
     for (r=0;r<width*height;r++){
       if(getpce(b,r)==c) {
@@ -671,6 +680,7 @@ VALUE Primitive (POSITION position) {
       return lose;
     }
     //printf("TODO: implement do again\n");
+    //printf("the current player is trapped, with numPieces %d\n", num_pieces);
     return tie;
   } else {
     for (r=0;r<width*height;r++){
@@ -678,9 +688,11 @@ VALUE Primitive (POSITION position) {
 	num_pieces++;
       }
     }
+    /*
     if ((num_pieces == 1) && (!placingBoard(b)))  {
       return lose;
     }
+    */
   }
     //else FreeMoveList(moves);
     // A board is primitive if there are no more things to move.
