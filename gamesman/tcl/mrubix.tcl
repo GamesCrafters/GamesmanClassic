@@ -54,7 +54,7 @@ proc GS_InitGameSpecific {} {
 
     SetToWinString [concat $toWin1 $toWin2 $toWin3 $toWin4]
 
-    SetToMoveString "To Move: If possible, flip an opponent's piece to an adjacent space by clicking an arrow. Then place a black or white piece by clicking a small piece in any empty space."
+    SetToMoveString "To Move: If possible, flip an opponent's piece to an open adjacent space by clicking an arrow. This will change the color of the piece and its position.  Then place your black or white piece on the board by selecting the desired piece in an  empty square."
 
     global WIDTH BOARDSIZE
     if { $gBoardsizeOption == "0" } {
