@@ -167,6 +167,8 @@ FRnode *gHeadWinFR;               /* The FRontier Win Queue */
 FRnode *gTailWinFR;
 FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
 FRnode *gTailLoseFR;
+FRnode *gHeadTieFR;               /* The FRontier Tie Queue */
+FRnode *gTailTieFR;
 POSITIONLIST **gParents;         /* The Parent of each node in a list */
 char *gNumberChildren;           /* The Number of children (used for Loopy games) */
 // End Loopy
@@ -2138,9 +2140,9 @@ MyPrintParents()
 VALUE DetermineLoopyValue1(position)
 POSITION position;
 {				
-  POSITION DeQueueWinFR(), DeQueueLoseFR(), InsertWinFR(), InsertLoseFR(), child, parent;
-  POSITIONLIST *head, *ptr;
-  VALUE GetValueOfPosition(), childValue, parentValue;
+  POSITION DeQueueWinFR(), DeQueueLoseFR(), DeQueueTieFR(), InsertWinFR(), InsertLoseFR(), InsertTieFR(), child, parent;
+  POSITIONLIST *ptr;
+  VALUE GetValueOfPosition(), childValue;
   REMOTENESS remotenessChild, Remoteness();
   int i;
 
@@ -2182,12 +2184,12 @@ POSITION position;
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
     if (childValue == lose) {
-      head = ptr = gParents[child];
+      ptr = gParents[child];
       while (ptr != NULL) {
 	/* Make code easier to read */
 	parent = ptr->position;
 	
-	if ((parentValue = GetValueOfPosition(parent)) == undecided) {
+	if (GetValueOfPosition(parent) == undecided) {
 	  /* This is the first time we know the parent is a win */
 	  InsertWinFR(parent);
 	  if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
@@ -2209,7 +2211,7 @@ POSITION position;
 
     /* With winning children */
     } else if (childValue == win) {
-      head = ptr = gParents[child];
+      ptr = gParents[child];
       while (ptr != NULL) {
 	/* Make code easier to read */
 	parent = ptr->position;
@@ -2217,26 +2219,15 @@ POSITION position;
 	/* If this is the last unknown child and they were all wins, parent is lose */
 	if(--gNumberChildren[parent] == 0) {
 	    /* no more kids, it's not been seen before, assign it as losing, put at head */
+	  assert(GetValueOfPosition(position) == undecided);
+
 	  InsertLoseFR(parent);
 	  if(kDebugDetermineValue) printf("Inserting %d (%s) into FR head\n",parent,"lose");
 	  StoreValueOfPosition(parent,lose);
 	  /* We always need to change the remoteness because we examine winning node with
 	  ** less remoteness first. */
-	  assert(remotenessChild + 1 >= Remoteness(parent));
 	  SetRemoteness(parent, remotenessChild + 1);
-	} else {
-	  /* Still children, not ready for FR, just set remoteness and continue */
-	  /* If piece is undecided, that means it might be a lose, have to remember this */
-	  /* Set remoteness if I can delay mate longer */
-	  if ((parentValue = GetValueOfPosition(parent)) == undecided) {
-	    /* We always need to change the remoteness because we examine winning nodes with
-	    ** less remoteness first. */
-	    assert((remotenessChild + 1) >= Remoteness(parent));
-	    SetRemoteness(parent, remotenessChild + 1);
-	    if(kDebugDetermineValue) printf("Found way to extend lose for %d to %d\n",parent,remotenessChild+1);
-	    /* if remoteness change */
-	  } /* if parent is undecided, so need to store remoteness */
-	} /* else still have children */
+	} 
 	ptr = ptr->next;
       } /* while there are still parents */
 
@@ -2245,13 +2236,38 @@ POSITION position;
       BadElse("DetermineLoopyValue found FR member with other than win/lose value");
     } /* else */
 
-    //we are done with this position and no longer need to keep around its list of parents
+    /* We are done with this position and no longer need to keep around its list of parents
+    ** The tie frontier will not need this, either, because this child's value has already
+    ** been determined.  It cannot be a tie. */
     FreePositionList(gParents[child]);
 
     
   } /* while still positions in FR */
 
-  /* Now set all remaining positions to tie */
+  /* Now process the tie frontier */
+
+  while(gHeadTieFR != NULL) {
+    child = DeQueueTieFR();
+    remotenessChild = Remoteness(child);
+
+    ptr = gParents[child];
+
+    while (ptr != NULL) {
+      parent = ptr->position;
+      
+      if (--gNumberChildren[parent] == 0) {
+	assert(GetValueOfPosition(parent) == undecided);
+
+	InsertTieFR(parent);
+	if(kDebugDetermineValue) printf("Inserting %d (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
+	StoreValueOfPosition(parent,tie); 
+	SetRemoteness(parent, remotenessChild + 1);
+      }
+
+    }      
+  }
+
+  /* Now set all remaining positions to tie with remoteness of REMOTENESS_MAX */
 
   if(kDebugDetermineValue) {
     printf("---------------------------------------------------------------\n");
@@ -2268,7 +2284,7 @@ POSITION position;
 	printf("%d was visited...",i);
       if(GetValueOfPosition((POSITION)i) == undecided) {
 	StoreValueOfPosition((POSITION)i,tie);
-	SetRemoteness((POSITION)i,0);
+	SetRemoteness((POSITION)i,REMOTENESS_MAX);
 	//we are done with this position and no longer need to keep around its list of parents
 	FreePositionList(gParents[child]);
 	if(kDebugDetermineValue)
@@ -2384,6 +2400,8 @@ InitializeFR()
   gTailWinFR = NULL;
   gHeadLoseFR = NULL;
   gTailLoseFR = NULL;
+  gHeadTieFR = NULL;
+  gTailTieFR = NULL;
 }
 
 POSITION DeQueueWinFR()
@@ -2396,6 +2414,11 @@ POSITION DeQueueLoseFR()
 {
   /* printf("DeQueueLoseFR...\n"); */
   return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
+}
+
+POSITION DeQueueTieFR()
+{
+  return DeQueueFR(&gHeadTieFR, &gTailTieFR);
 }
 
 POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
@@ -2428,6 +2451,11 @@ void InsertLoseFR(POSITION position)
 {
   /* printf("Inserting LoseFR...\n"); */
   InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
+}
+
+void InsertTieFR(POSITION position)
+{
+  InsertFR(position, &gHeadTieFR, &gTailTieFR);
 }
 
 void InsertFR(POSITION position, FRnode **firstnode,
