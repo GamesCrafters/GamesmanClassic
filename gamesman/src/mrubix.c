@@ -6,7 +6,7 @@
 **
 ** AUTHOR:      Jeffrey Chiang & Bryon Ross
 **
-** DATE:        2003-09-09
+** DATE:        2003-10-11
 **
 ** UPDATE HIST:
 **
@@ -27,6 +27,7 @@
 ** 0.2.2 (08-26) Fixed bugs relating to setting board size
 ** 0.2.3 (09-09) Updated hash function to use combinatorics
 ** 0.2.4 (10-03) Fixed an initialization bug in CombinationInit
+** 0.2.5 (10-11) Added sanity check in GetInitialPosition
 **
 **************************************************************************/
 
@@ -658,27 +659,47 @@ POSITION GetInitialPosition()
   BlankOX theBlankOX[BOARDSIZE];
   signed char c;
   int i;
+  BOOLEAN done = FALSE;
+  int xCount, oCount;
+  
+  while(!done) {
+    printf("\n\n\t----- Get Initial Position -----\n");
+    printf("\n\tPlease input the position to begin with.\n");
+    printf("\tNote that it should be in the following format:\n\n");
+    printf("O - -\nO x -            <----- EXAMPLE \no X X\n\n");
 
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("O - -\nO x -            <----- EXAMPLE \no X X\n\n");
-
-  i = 0;
-  getchar();
-  while(i < BOARDSIZE && (c = getchar()) != EOF) {
-    if(c == 'x')
-      theBlankOX[i++] = x;
-    else if(c == 'X')
-      theBlankOX[i++] = X;
-    else if(c == 'o')
-      theBlankOX[i++] = o;
-    else if(c == 'O')
-      theBlankOX[i++] = O;
-    else if(c == '-')
-      theBlankOX[i++] = Blank;
-  } 
-
+    xCount = oCount = 0;
+    i = 0;
+    getchar();
+    while(i < BOARDSIZE && (c = getchar()) != EOF) {
+      if(c == 'x') {
+	theBlankOX[i++] = x;
+	xCount++;
+      }
+      else if(c == 'X') {
+	theBlankOX[i++] = X;
+	xCount++;
+      }
+      else if(c == 'o') {
+	theBlankOX[i++] = o;
+	oCount++;
+      }
+      else if(c == 'O') {
+	theBlankOX[i++] = O;
+	oCount++;
+      }
+      else if(c == '-')
+	theBlankOX[i++] = Blank;
+    } 
+   
+    if (xCount==oCount || xCount==oCount+1) {
+      done = TRUE;
+    }
+    else {
+      printf("\nIllegal position. Please try again.");
+    }
+    
+  }
   return(BlankOXToPosition(theBlankOX));
 }
 
