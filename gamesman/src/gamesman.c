@@ -3185,6 +3185,7 @@ void HandleArguments (int argc, char *argv[]) {
 	fprintf(stderr, "\nInvalid arguments!\n\n");
       else
 	printf("\nDoMove returns: %u\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
+      i += argc;
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--Primitive")) {
@@ -3192,6 +3193,7 @@ void HandleArguments (int argc, char *argv[]) {
 	fprintf(stderr, "\nInvalid arguments!\n\n");
       else 
 	printf("\nPrimitive returns: %u\n\n", Primitive(atoi(argv[2])));
+      i += argc;
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--PrintPosition")) {
@@ -3201,10 +3203,11 @@ void HandleArguments (int argc, char *argv[]) {
 	printf("\nPrintPosition:\n\n");
 	PrintPosition(atoi(argv[2]), argv[3], atoi(argv[4]));
       }
+      i += argc;
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--GenerateMoves")) {
-      
+      i += argc;
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--help")) {
@@ -3228,10 +3231,12 @@ void HandleArguments (int argc, char *argv[]) {
 	     "--PrintPosition <args>\n"
 	     "--GenerateMoves <args>\n\n", argv[0], argv[0], argv[0], argv[0]);
       gMessage = TRUE;
+      i += argc;
     }
     else {
       fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
       gMessage = TRUE;
+      i += argc;
     }
   }
 }
