@@ -3501,6 +3501,7 @@ void HandleArguments (int argc, char *argv[]) {
 	setOption(option);
     }
     else if(!strcasecmp(argv[i], "--DoMove")) {
+      InitializeGame();
       if(argc != 4)
 	fprintf(stderr, "\nInvalid arguments!\n\n");
       else
@@ -3509,6 +3510,7 @@ void HandleArguments (int argc, char *argv[]) {
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--Primitive")) {
+      InitializeGame();
       if(argc != 3)
 	fprintf(stderr, "\nInvalid arguments!\n\n");
       else 
@@ -3517,6 +3519,7 @@ void HandleArguments (int argc, char *argv[]) {
       gMessage = TRUE;
     }
     else if(!strcasecmp(argv[i], "--PrintPosition")) {
+      InitializeGame();
       if(argc != 5)
 	fprintf(stderr, "\nInvalid arguments!\n\n");
       else {
