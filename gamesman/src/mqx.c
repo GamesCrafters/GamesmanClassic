@@ -1,0 +1,1041 @@
+/************************************************************************
+**
+** NAME:        mqx.c
+**
+** DESCRIPTION: Quick Cross
+**
+** AUTHOR:      Dan Garcia  -  University of California at Berkeley
+**              Copyright (C) Dan Garcia, 1995. All rights reserved.
+**              Thomas Yiu - mttt.c to mqx.c conversion
+**
+** DATE:        10/01
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Everything below here must be in every game file
+**
+**************************************************************************/
+
+#include <stdio.h>
+#include "gamesman.h"
+
+extern STRING gValueString[];
+
+int      gNumberOfPositions  = 43046721;  // changed later if board size changes 
+
+POSITION gInitialPosition    =  0;
+POSITION gMinimalPosition    =  0; // 
+
+STRING   kGameName           = "Quick Cross";
+BOOLEAN  kPartizan           = FALSE;
+BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kGameSpecificMenu   = TRUE;
+BOOLEAN  kTieIsPossible      = FALSE;
+BOOLEAN  kLoopy               = TRUE;
+BOOLEAN  kDebugDetermineValue = FALSE;
+
+STRING   kHelpGraphicInterface =
+"GUI not available at the moment.";
+
+STRING   kHelpTextInterface    =
+"On your turn, use the LEGEND to determine your desired action (place\n\
+horizonally (-), place vertically (|), or switch (x)) and board position\n\
+number. If at any point you have made a mistake, you can type u and hit\n\
+return and the system will revert back to your most recent position.";
+
+STRING   kHelpOnYourTurn =
+"You place one of the pieces on one of the empty board positions either\n\
+horizontally or vertically, or you switch its orientation.";
+
+STRING   kHelpStandardObjective =
+"To get three or four pieces in a row, depending on the game mode, either\n\
+horizontally, vertically, or diagonally. 3/4-in-a-row WINS.";
+
+STRING   kHelpReverseObjective =
+"To force your opponent into getting three or four pieces in a row,\n\
+depending on the game mode, either horizontally, vertically, or diagonally.\n\
+3/4-in-a-row LOSES.";
+
+STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"an infinite loop occurs and no player can be forced into a winning or\n\
+losing position.";
+
+STRING   kHelpExample =
+"         (  1  2  3  4 )           : o o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : o o o o\n\
+         (  9 10 11 12 )           : o o o o \n\n\
+Computer's move              : -10\n\n\
+         (  1  2  3  4 )           : o o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : o o o o\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+     Dan's move [(u)ndo/(-|x)(1-12)] :  |7\n\
+         (  1  2  3  4 )           : o o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : o o | o\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+Computer's move              : -1\n\n\
+         (  1  2  3  4 )           : - o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : o o | o\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+     Dan's move [(u)ndo/(-|x)(1-12)] :  x1\n\n\
+         (  1  2  3  4 )           : | o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : o o | o\n\
+         (  9 10 11 12 )           : o - o o \n\
+Computer's move              : -5\n\n\
+         (  1  2  3  4 )           : | o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : - o | o\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+     Dan's move [(u)ndo/(-|x)(1-12)] :  |6\n\n\
+         (  1  2  3  4 )           : | o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : - | | o\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+Computer's move              : |8\n\n\
+         (  1  2  3  4 )           : | o o o\n\
+LEGEND:  (  5  6  7  8 )  TOTAL:   : - | | |\n\
+         (  9 10 11 12 )           : o - o o\n\n\
+Computer wins. Nice try, Dan.";
+
+
+/*************************************************************************
+**
+** Everything above here must be in every game file
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Every variable declared here is only used in this file (game-specific)
+**
+**************************************************************************/
+
+typedef enum possibleBoards {
+  b4x4, b3x4, b3x3, b15_3, b15_4
+} Boards;
+
+Boards BOARD = b3x4;
+int BOARDSIZE = 12;
+
+typedef enum possibleBoardPieces {
+        Blank, H, V
+} BlankHV;
+
+char *gBlankHVString[] = { "o", "-", "|" };
+
+/* Powers of 3 - this is the way I encode the position, as an integer */
+int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
+                            59049, 177147, 531441, 1594323, 4782969,
+                                              14348907 };
+
+/*************************************************************************
+**
+** Here we declare the global database variables
+**
+**************************************************************************/
+
+InitializeGame()
+{
+}
+
+FreeGame()
+{
+}
+
+/************************************************************************
+**
+** NAME:        DebugMenu
+**
+** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+**              kDebugMenu == FALSE
+**
+************************************************************************/
+
+DebugMenu()
+{
+/*   char GetMyChar(); */
+
+/*   do { */
+/*     printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName); */
+
+/*     printf("\tc)\tWrite PPM to s(C)reen\n"); */
+/*     printf("\ti)\tWrite PPM to f(I)le\n"); */
+/*     printf("\ts)\tWrite Postscript to (S)creen\n"); */
+/*     printf("\tf)\tWrite Postscript to (F)ile\n"); */
+/*     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n"); */
+/*     printf("\n\nSelect an option: "); */
+
+/*     switch(GetMyChar()) { */
+/*     case 'Q': case 'q': */
+/*       ExitStageRight(); */
+/*     case 'H': case 'h': */
+/*       HelpMenus(); */
+/*       break; */
+/*     case 'C': case 'c': /\* Write PPM to s(C)reen *\/ */
+/*       tttppm(0,0); */
+/*       break; */
+/*     case 'I': case 'i': /\* Write PPM to f(I)le *\/ */
+/*       tttppm(0,1); */
+/*       break; */
+/*     case 'S': case 's': /\* Write Postscript to (S)creen *\/ */
+/*       tttppm(1,0); */
+/*       break; */
+/*     case 'F': case 'f': /\* Write Postscript to (F)ile *\/ */
+/*       tttppm(1,1); */
+/*       break; */
+/*     case 'B': case 'b': */
+/*       return; */
+/*     default: */
+/*       BadMenuChoice(); */
+/*       HitAnyKeyToContinue(); */
+/*       break; */
+/*     } */
+/*   } while(TRUE); */
+
+}
+
+/************************************************************************
+**
+** NAME:        GameSpecificMenu
+**
+** DESCRIPTION: Menu used to change game-specific parmeters, such as
+**              the side of the board in an nxn Nim board, etc. Does
+**              nothing if kGameSpecificMenu == FALSE
+**
+************************************************************************/
+
+GameSpecificMenu() 
+{ 
+  char inp;
+  while (TRUE) {
+    inp = getchar(); // get rid of the 'g' from previous menu  
+    printf("\n\n\n");
+    printf("        ----- Game-specific options for Quick Cross -----\n\n");
+    printf("        Select a game board:\n\n");
+    printf("        1)          3 X 3  Board\n");
+    printf("        2)          3 X 4  Board\n");
+    printf("        3)      15-square  Board  --  3 in a row\n");
+    printf("        4)      15-square  Board  --  4 in a row\n");
+    printf("        5)          4 X 4  Board\n\n");
+    printf("        b)      (B)ack = Return to previous activity.\n\n\n");
+    printf("Select an option: ");
+    inp = getchar();
+    if (inp == '1') {
+      BOARD = b3x3;
+      BOARDSIZE = 9;
+      gNumberOfPositions = 19683;  /*  3^9  */
+    }
+    else if (inp == '2') {
+      BOARD = b3x4;
+      BOARDSIZE = 12;
+      gNumberOfPositions = 531441;  /*  3^12  */
+    }
+    else if (inp == '3') {
+      BOARD = b15_3; // basically a 4 X 4 with a corner square removed
+      BOARDSIZE = 15;
+      gNumberOfPositions = 14348907;  /*  3^15  */
+    }
+    else if (inp == '4') {
+      BOARD = b15_4;
+      BOARDSIZE = 15;
+      gNumberOfPositions = 14348907;  /*  3^15  */
+    }
+    else if (inp == '5') {
+      BOARD = b4x4;
+      BOARDSIZE = 16;
+      gNumberOfPositions = 43046721;  /*  3^16  */
+    }
+    else if (inp == 'b' || inp == 'B')
+      ;
+    else {
+      printf("Invalid input.\n");
+      continue;
+    }
+    break;
+  }
+}
+
+/************************************************************************
+**
+** NAME:        SetTclCGameSpecificOptions
+**
+** DESCRIPTION: Set the C game-specific options (called from Tcl)
+**              Ignore if you don't care about Tcl for now.
+**
+************************************************************************/
+
+SetTclCGameSpecificOptions(theOptions)
+int theOptions[];
+{
+  /* No need to have anything here, we have no extra options */
+}
+
+/************************************************************************
+**
+** NAME:        DoMove
+**
+** DESCRIPTION: Apply the move to the position.
+**
+** INPUTS:      POSITION thePosition : The old position
+**              MOVE     theMove     : The move to apply.
+**
+** OUTPUTS:     (POSITION) : The position that results after the move.
+**
+** CALLS:       PositionToBlankHV(POSITION,*BlankHV)
+**
+************************************************************************/
+
+POSITION DoMove(thePosition, theMove)
+     POSITION thePosition;
+     MOVE theMove;
+{
+  BlankHV theBlankHV[BOARDSIZE];
+  PositionToBlankHV(thePosition,theBlankHV);
+
+  if(0 <= theMove && theMove < BOARDSIZE)
+    return(thePosition + (g3Array[theMove] * (int)H));
+
+  else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
+    return(thePosition + (g3Array[theMove - BOARDSIZE] * (int)V));
+
+  else if(theBlankHV[theMove - 2 * BOARDSIZE] == H)
+    return(thePosition + (g3Array[theMove - 2 * BOARDSIZE] * ((int)V - (int)H)));
+
+  else if(theBlankHV[theMove - 2 * BOARDSIZE] == V)
+    return(thePosition + (g3Array[theMove - 2 * BOARDSIZE] * ((int)H - (int)V)));
+
+  else {
+    BadElse("DoMove");
+    return(thePosition);
+  }
+}
+
+
+/************************************************************************
+**
+** NAME:        GetInitialPosition
+**
+** DESCRIPTION: Ask the user for an initial position for testing. Store
+**              it in the space pointed to by initialPosition;
+**
+** OUTPUTS:     POSITION initialPosition : The position to fill.
+**
+************************************************************************/
+
+GetInitialPosition()
+{
+  POSITION BlankHVToPosition();
+  BlankHV theBlankHV[BOARDSIZE], whosTurn;
+  signed char c;
+  int i, goodInputs = 0;
+
+
+  printf("\n\n\t----- Get Initial Position -----\n");
+  printf("\n\tPlease input the position to begin with.\n");
+  printf("\tNote that it should be in the following format:\n\n");
+  if (BOARD == b3x3)
+    printf("o - |\n| o o            <----- EXAMPLE \no o -\n\n");
+  else if (BOARD == b15_3 || BOARD == b15_4)
+    printf("o - - |\no - | |            <----- EXAMPLE \n- o o o\n| | o  \n\n");
+  else if (BOARD == b3x4)
+    printf("o - - |\no - | |            <----- EXAMPLE \n- o | o\n\n");
+  else if (BOARD == b4x4)
+    printf("o - - |\no - | |            <----- EXAMPLE \n- o o o\n| | o -\n\n");
+
+  i = 0;
+  getchar();
+  while(i < BOARDSIZE && (c = getchar()) != EOF) {
+    if(c == '-' || c == 'h' || c == 'H')
+      theBlankHV[i++] = H;
+    else if(c == '|' || c == 'v' || c == 'V' || c == '1' || c == 'l')
+      theBlankHV[i++] = V;
+    else if(c == 'o' || c == 'O' || c == '0')
+      theBlankHV[i++] = Blank;
+    else
+      ;   /* do nothing */
+  }
+
+  /*
+  getchar();
+  printf("\nNow, whose turn is it? [O/X] : ");
+  scanf("%c",&c);
+  if(c == 'x' || c == 'X')
+    whosTurn = x;
+  else
+    whosTurn = o;
+    */
+
+  return(BlankHVToPosition(theBlankHV,whosTurn));
+}
+
+/************************************************************************
+**
+** NAME:        GetComputersMove
+**
+** DESCRIPTION: Get the next move for the computer from the gDatabase
+**
+** INPUTS:      POSITION thePosition : The position in question.
+**
+** OUTPUTS:     (MOVE) : the next move that the computer will take
+**
+** CALLS:       POSITION GetCanonicalPosition (POSITION)
+**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
+**
+************************************************************************/
+
+/* MOVE GetComputersMove(thePosition) */
+/*      POSITION thePosition; */
+/* { */
+/*   POSITION GetCanonicalPosition(), canPosition; */
+/*   MOVE DecodeMove(), theMove; */
+/*   int i, randomMove, numberMoves = 0; */
+/*   MOVELIST *ptr, *head, *GetValueEquivalentMoves(); */
+
+/*   if(gPossibleMoves) */
+/*     printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]); */
+/*   head = ptr = GetValueEquivalentMoves(thePosition); */
+/*   while(ptr != NULL) { */
+/*     numberMoves++; */
+/*     if(gPossibleMoves) */
+/*       printf("%d ",ptr->move+1); */
+/*     ptr = ptr->next; */
+/*   } */
+/*   if(gPossibleMoves) */
+/*     printf("]\n\n"); */
+/*   randomMove = GetRandomNumber(numberMoves); */
+/*   ptr = head; */
+/*   for(i = 0; i < randomMove ; i++) */
+/*     ptr = ptr->next; */
+/*   theMove = ptr->move; */
+/*   FreeMoveList(head); */
+/*   return(theMove); */
+
+/* } */
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE   *computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+PrintComputersMove(computersMove,computersName)
+     MOVE computersMove;
+     STRING computersName;
+{
+  int squareNum;
+  char moveType;
+
+  squareNum = computersMove % BOARDSIZE + 1;
+
+  if(0 <= computersMove && computersMove < BOARDSIZE)
+    moveType = '-';
+  else if(BOARDSIZE <= computersMove && computersMove < 2 * BOARDSIZE)
+    moveType = '|';
+  else if(2 * BOARDSIZE <= computersMove && computersMove < 3 * BOARDSIZE)
+    moveType = 'x';
+
+  printf("%8s's move              : %c%d\n", computersName, moveType,
+    squareNum);
+}
+
+/************************************************************************
+**
+** NAME:        Primitive
+**
+** DESCRIPTION: Return the value of a position if it fulfills certain
+**              'primitive' constraints. Some examples of this is having
+**              three-in-a-row with TicTacToe. TicTacToe has two
+**              primitives it can immediately check for, when the board
+**              is filled but nobody has one = primitive tie. Three in
+**              a row is a primitive lose, because the player who faces
+**              this board has just lost. I.e. the player before him
+**              created the board and won. Otherwise undecided.
+** 
+** INPUTS:      POSITION position : The position to inspect.
+**
+** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
+**
+** CALLS:       BOOLEAN FourInARow()
+**              BOOLEAN ThreeInARow()
+**              BOOLEAN AllFilledIn()
+**              PositionToBlankHV()
+**
+************************************************************************/
+
+VALUE Primitive(position) 
+     POSITION position;
+{
+  BOOLEAN FourInARow(), ThreeInARow(), AllFilledIn();
+  BlankHV theBlankHV[BOARDSIZE];
+
+  PositionToBlankHV(position,theBlankHV);
+ 
+  /*printf(" & & & & & & &  PRIMITIVE CALLED WITH position = %d",position);*/
+ 
+  if (BOARD == b3x4) {    
+    if( ThreeInARow(theBlankHV,0,1,2) ||
+        ThreeInARow(theBlankHV,1,2,3) ||
+        ThreeInARow(theBlankHV,4,5,6) ||
+        ThreeInARow(theBlankHV,5,6,7) ||
+        ThreeInARow(theBlankHV,8,9,10) ||
+        ThreeInARow(theBlankHV,9,10,11) ||
+        ThreeInARow(theBlankHV,0,4,8) ||
+        ThreeInARow(theBlankHV,1,5,9) ||
+        ThreeInARow(theBlankHV,2,6,10) ||
+        ThreeInARow(theBlankHV,3,7,11) ||
+        ThreeInARow(theBlankHV,0,5,10) ||
+        ThreeInARow(theBlankHV,1,6,11) ||
+        ThreeInARow(theBlankHV,2,5,8) ||
+        ThreeInARow(theBlankHV,3,6,9) )
+      return(gStandardGame ? lose : win);
+    else
+      return(undecided);  
+  }
+  else if (BOARD == b4x4) {
+    if( FourInARow(theBlankHV,0,1,2,3) ||
+        FourInARow(theBlankHV,4,5,6,7) ||
+        FourInARow(theBlankHV,8,9,10,11) ||
+        FourInARow(theBlankHV,12,13,14,15) ||
+        FourInARow(theBlankHV,0,4,8,12) ||
+        FourInARow(theBlankHV,1,5,9,13) ||
+        FourInARow(theBlankHV,2,6,10,14) ||
+        FourInARow(theBlankHV,3,7,11,15) ||
+        FourInARow(theBlankHV,0,5,10,15) ||
+        FourInARow(theBlankHV,3,6,9,12) )
+      return(gStandardGame ? lose : win);
+    else
+      return(undecided);    
+  }
+  else if (BOARD == b3x3) {
+    if( ThreeInARow(theBlankHV,0,1,2) ||
+        ThreeInARow(theBlankHV,3,4,5) ||
+        ThreeInARow(theBlankHV,6,7,8) ||
+        ThreeInARow(theBlankHV,0,3,6) ||
+        ThreeInARow(theBlankHV,1,4,7) ||
+        ThreeInARow(theBlankHV,2,5,8) ||
+        ThreeInARow(theBlankHV,0,4,8) ||
+        ThreeInARow(theBlankHV,2,4,6) )
+      return(gStandardGame ? lose : win);
+    else
+      return(undecided);
+  }
+  else if (BOARD == b15_3) {
+    if( ThreeInARow(theBlankHV,0,1,2) ||
+        ThreeInARow(theBlankHV,1,2,3) ||
+        ThreeInARow(theBlankHV,4,5,6) ||
+        ThreeInARow(theBlankHV,5,6,7) ||
+        ThreeInARow(theBlankHV,8,9,10) ||
+        ThreeInARow(theBlankHV,9,10,11) ||
+        ThreeInARow(theBlankHV,12,13,14) ||
+        ThreeInARow(theBlankHV,0,4,8) ||
+        ThreeInARow(theBlankHV,4,8,12) ||
+        ThreeInARow(theBlankHV,1,5,9) ||
+        ThreeInARow(theBlankHV,5,9,13) ||
+        ThreeInARow(theBlankHV,2,6,10) ||
+        ThreeInARow(theBlankHV,6,10,14) ||
+        ThreeInARow(theBlankHV,3,7,11) ||
+        ThreeInARow(theBlankHV,2,5,8) ||
+        ThreeInARow(theBlankHV,3,6,9) ||
+        ThreeInARow(theBlankHV,6,9,12) ||
+        ThreeInARow(theBlankHV,7,10,13) ||
+        ThreeInARow(theBlankHV,4,9,14) ||
+        ThreeInARow(theBlankHV,0,5,10) ||
+        ThreeInARow(theBlankHV,1,6,11) )
+      return(gStandardGame ? lose : win);
+    else
+      return(undecided);
+  }
+  else if (BOARD == b15_4) {
+    if( FourInARow(theBlankHV,0,1,2,3) ||
+        FourInARow(theBlankHV,4,5,6,7) ||
+        FourInARow(theBlankHV,8,9,10,11) ||
+        FourInARow(theBlankHV,0,4,8,12) ||
+        FourInARow(theBlankHV,1,5,9,13) ||
+        FourInARow(theBlankHV,2,6,10,14) ||
+        FourInARow(theBlankHV,3,6,9,12) )
+      return(gStandardGame ? lose : win);
+    else
+      return(undecided);
+  }
+}
+
+/************************************************************************
+**
+** NAME:        PrintPosition
+**
+** DESCRIPTION: Print the position in a pretty format, including the
+**              prediction of the game's outcome.
+** 
+** INPUTS:      POSITION position   : The position to pretty print.
+**              STRING   playerName : The name of the player.
+**              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
+**
+** CALLS:       PositionToBlankHV()
+**              GetValueOfPosition()
+**              GetPrediction()
+**
+************************************************************************/
+
+PrintPosition(position,playerName,usersTurn)
+     POSITION position;
+     STRING playerName;
+     BOOLEAN  usersTurn;
+{
+  int i;
+  STRING GetPrediction();
+  VALUE GetValueOfPosition();
+  BlankHV theBlankHV[BOARDSIZE];
+
+  PositionToBlankHV(position,theBlankHV);
+  
+  if (BOARD == b3x4) {
+    printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[0]],
+           gBlankHVString[(int)theBlankHV[1]],
+           gBlankHVString[(int)theBlankHV[2]],
+           gBlankHVString[(int)theBlankHV[3]] );
+    printf("LEGEND:  (  5  6  7  8 )  TOTAL:   : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[4]],
+           gBlankHVString[(int)theBlankHV[5]],
+           gBlankHVString[(int)theBlankHV[6]],
+           gBlankHVString[(int)theBlankHV[7]] );
+    printf("         (  9 10 11 12 )           : %s %s %s %s %s\n\n",
+           gBlankHVString[(int)theBlankHV[8]],
+           gBlankHVString[(int)theBlankHV[9]],
+           gBlankHVString[(int)theBlankHV[10]],
+           gBlankHVString[(int)theBlankHV[11]],
+           GetPrediction(position,playerName,usersTurn));
+  }
+  else if (BOARD == b4x4) {
+    printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[0]],
+           gBlankHVString[(int)theBlankHV[1]],
+           gBlankHVString[(int)theBlankHV[2]],
+           gBlankHVString[(int)theBlankHV[3]] );
+    printf("LEGEND:  (  5  6  7  8 )  TOTAL:   : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[4]],
+           gBlankHVString[(int)theBlankHV[5]],
+           gBlankHVString[(int)theBlankHV[6]],
+           gBlankHVString[(int)theBlankHV[7]] );
+    printf("         (  9 10 11 12 )           : %s %s %s %s\n",
+         gBlankHVString[(int)theBlankHV[8]],
+         gBlankHVString[(int)theBlankHV[9]],
+         gBlankHVString[(int)theBlankHV[10]],
+         gBlankHVString[(int)theBlankHV[11]] );
+  printf("         ( 13 14 15 16 )           : %s %s %s %s %s\n\n",
+         gBlankHVString[(int)theBlankHV[12]],
+         gBlankHVString[(int)theBlankHV[13]],
+         gBlankHVString[(int)theBlankHV[14]],
+         gBlankHVString[(int)theBlankHV[15]],
+         GetPrediction(position,playerName,usersTurn));
+  }
+  else if (BOARD == b3x3) {
+    printf("\n         ( 1 2 3 )           : %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[0]],
+           gBlankHVString[(int)theBlankHV[1]],
+           gBlankHVString[(int)theBlankHV[2]] );
+    printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[3]],
+           gBlankHVString[(int)theBlankHV[4]],
+           gBlankHVString[(int)theBlankHV[5]] );
+    printf("         ( 7 8 9 )           : %s %s %s %s\n\n",
+           gBlankHVString[(int)theBlankHV[6]],
+           gBlankHVString[(int)theBlankHV[7]],
+           gBlankHVString[(int)theBlankHV[8]],
+           GetPrediction(position,playerName,usersTurn));
+  }
+  else if (BOARD == b15_3 || BOARD == b15_4) {
+    printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[0]],
+           gBlankHVString[(int)theBlankHV[1]],
+           gBlankHVString[(int)theBlankHV[2]],
+           gBlankHVString[(int)theBlankHV[3]] );
+    printf("LEGEND:  (  5  6  7  8 )  TOTAL:   : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[4]],
+           gBlankHVString[(int)theBlankHV[5]],
+           gBlankHVString[(int)theBlankHV[6]],
+           gBlankHVString[(int)theBlankHV[7]] );
+    printf("         (  9 10 11 12 )           : %s %s %s %s\n",
+           gBlankHVString[(int)theBlankHV[8]],
+           gBlankHVString[(int)theBlankHV[9]],
+           gBlankHVString[(int)theBlankHV[10]],
+           gBlankHVString[(int)theBlankHV[11]] );
+    printf("         ( 13 14 15    )           : %s %s %s   %s\n\n",
+           gBlankHVString[(int)theBlankHV[12]],
+           gBlankHVString[(int)theBlankHV[13]],
+           gBlankHVString[(int)theBlankHV[14]],
+           GetPrediction(position,playerName,usersTurn));
+  }
+}
+
+/************************************************************************
+**
+** NAME:        GenerateMoves
+**
+** DESCRIPTION: Create a linked list of every move that can be reached
+**              from this position. Return a pointer to the head of the
+**              linked list.
+**
+** INPUTS:      POSITION position : The position to branch off of.
+**
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
+**              in the linked list of moves that can be generated.
+**
+** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
+**
+************************************************************************/
+
+MOVELIST *GenerateMoves(position)
+     POSITION position;
+{
+  MOVELIST *CreateMovelistNode(), *head = NULL;
+  VALUE Primitive();
+  BlankHV theBlankHV[BOARDSIZE];
+  int i;
+
+  if (Primitive(position) == undecided) {
+    PositionToBlankHV(position,theBlankHV);
+    for(i = 0 ; i < BOARDSIZE ; i++) {
+      if(theBlankHV[i] == Blank) {
+      head = CreateMovelistNode(i,head);
+      head = CreateMovelistNode(i+BOARDSIZE,head);
+      } else
+      head = CreateMovelistNode(i+2*BOARDSIZE,head);
+    }
+    return(head);
+  } else {
+    return(NULL);
+  }
+}
+
+/************************************************************************
+**
+** NAME:        GetAndPrintPlayersMove
+**
+** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+**              If so, return Undo or Abort and don't change theMove.
+**              Otherwise get the new theMove and fill the pointer up.
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
+**              STRING playerName     : The name of the player whose turn it is
+**
+** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
+**
+** CALLS:       ValidMove(MOVE, POSITION)
+**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
+     POSITION thePosition;
+     MOVE *theMove;
+     STRING playerName;
+{
+  int xpos, ypos;
+  BOOLEAN ValidMove();
+  char input = '0';
+  BOOLEAN done = FALSE;
+  USERINPUT ret, HandleDefaultTextInput();
+
+  do {
+    printf("%8s's move [(u)ndo/(-|x)(1-%d)] :  ", playerName, BOARDSIZE);
+
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if(ret != Continue)
+      return(ret);
+
+  }
+  while (TRUE);
+  return(Continue); /* this is never reached, but lint is now happy */
+}
+
+/************************************************************************
+**
+** NAME:        ValidTextInput
+**
+** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
+**              For example, if the user is allowed to select one slot
+**              from the numbers 1-9, and the user chooses 0, it's not
+**              valid, but anything from 1-9 IS, regardless if the slot
+**              is filled or not. Whether the slot is filled is left up
+**              to another routine.
+**
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
+**
+************************************************************************/
+
+BOOLEAN ValidTextInput(input)
+     STRING input;
+{
+  BOOLEAN valid;
+
+  valid = ((input[0] == '-' || input[0] == '|' || input[0] == 'x' ||
+    input[0] == '1' || input[0] == 'l' || input[0] == 'X') &&
+    (input[1] >= '1' && input[1] <= '9' ));
+
+  if(strlen(input) == 3)
+    valid = input[1] == '1' && input[2] >= '0' && input[2] <= ('0'+BOARDSIZE-10);
+
+  return valid;
+}
+
+/************************************************************************
+**
+** NAME:        ConvertTextInputToMove
+**
+** DESCRIPTION: Convert the string input to the internal move representation.
+**
+** INPUTS:      STRING input : The string input the user typed.
+**
+** OUTPUTS:     MOVE : The move corresponding to the user's input.
+**
+************************************************************************/
+
+MOVE ConvertTextInputToMove(input)
+     STRING input;
+{
+  MOVE theMove;
+  int squareNum;
+
+  if (strlen(input) == 2)
+    squareNum = input[1] - '1';
+  else if (strlen(input) == 3)
+    squareNum = input[2] - '1' + 10;
+
+  if (input[0] == '-')
+    theMove = (MOVE)squareNum;
+  else if(input[0] == '|' || input[0] == '1' || input[0] == 'l')
+    theMove = (MOVE) squareNum + BOARDSIZE;
+  else if(input[0] == 'x' || input[0] == 'X')
+    theMove = (MOVE) squareNum + 2 * BOARDSIZE;
+
+  return theMove;
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+**
+** INPUTS:      MOVE *theMove         : The move to print.
+**
+************************************************************************/
+
+PrintMove(theMove)
+     MOVE theMove;
+{
+  int squareNum;
+  char moveType;
+
+  squareNum = theMove % BOARDSIZE + 1;
+
+  if(0 <= theMove && theMove < BOARDSIZE)
+    moveType = '-';
+  else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
+    moveType = '|';
+  else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE)
+    moveType = 'x';
+
+  printf("%c%d", moveType, squareNum);
+}
+
+/************************************************************************
+*************************************************************************
+**         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
+*************************************************************************
+************************************************************************/
+
+/************************************************************************
+**
+** NAME:        PositionToBlankHV
+**
+** DESCRIPTION: convert an internal position to that of a BlankHV.
+**
+** INPUTS:      POSITION thePos     : The position input.
+**              BlankHV *theBlankHV : The converted BlankHV output array.
+**
+** CALLS:       BadElse()
+**
+************************************************************************/
+
+PositionToBlankHV(thePos,theBlankHV)
+     POSITION thePos;
+     BlankHV *theBlankHV;
+{
+  int i;
+  for(i = BOARDSIZE - 1; i >= 0; i--) {
+    if(thePos >= ((int)V * g3Array[i])) {
+      theBlankHV[i] = V;
+      thePos -= (int)V * g3Array[i];
+    }
+    else if(thePos >= ((int)H * g3Array[i])) {
+      theBlankHV[i] = H;
+      thePos -= (int)H * g3Array[i];
+    }
+    else if(thePos >= ((int)Blank * g3Array[i])) {
+      theBlankHV[i] = Blank;
+      thePos -= (int)Blank * g3Array[i];
+    }
+    else
+      BadElse("PositionToBlankHV");
+  }
+}
+
+/************************************************************************
+**
+** NAME:        BlankHVToPosition
+**
+** DESCRIPTION: convert a BlankHV to that of an internal position.
+**
+** INPUTS:      BlankHV *theBlankHV : The converted BlankHV output array.
+**
+** OUTPUTS:     POSITION: The equivalent position given the BlankHV.
+**
+************************************************************************/
+
+POSITION BlankHVToPosition(theBlankHV)
+     BlankHV *theBlankHV;
+{
+  int i;
+  POSITION position = 0;
+
+  for(i = 0 ; i < BOARDSIZE; i++)
+    position += g3Array[i] * (int)theBlankHV[i]; /* was (int)position... */ 
+
+    return(position);
+}
+
+
+/************************************************************************
+**
+** NAME:        ThreeInARow
+**
+** DESCRIPTION: Return TRUE iff there are three-in-a-row.
+**
+** INPUTS:      BlankHV theBlankHV[BOARDSIZE] : The BlankHV array.
+**              int a,b,c                     : The 3 positions to check.
+**
+** OUTPUTS:     (BOOLEAN) TRUE iff there are three-in-a-row.
+**
+************************************************************************/
+
+BOOLEAN ThreeInARow(theBlankHV,a,b,c)
+     BlankHV theBlankHV[];
+     int a,b,c;
+{
+  return(theBlankHV[a] == theBlankHV[b] &&
+         theBlankHV[b] == theBlankHV[c] &&
+         theBlankHV[c] != Blank );
+}
+
+
+/************************************************************************
+ **
+ ** NAME:        FourInARow
+ **
+ ** DESCRIPTION: Return TRUE iff there are four-in-a-row.
+ **
+ ** INPUTS:      BlankHV theBlankHV[BOARDSIZE] : The BlankHV array.
+ **              int a,b,c,d                   : The 4 positions to check.
+ **
+ ** OUTPUTS:     (BOOLEAN) TRUE iff there are four-in-a-row.
+ **
+ ************************************************************************/
+
+BOOLEAN FourInARow(theBlankHV,a,b,c,d)
+     BlankHV theBlankHV[];
+     int a,b,c,d;
+{
+  return(theBlankHV[a] == theBlankHV[b] &&
+         theBlankHV[b] == theBlankHV[c] &&
+         theBlankHV[c] == theBlankHV[d] &&
+         theBlankHV[d] != Blank );
+}
+
+
+
+/************************************************************************
+**
+** NAME:        AllFilledIn
+**
+** DESCRIPTION: Return TRUE iff all the blanks are filled in.
+**
+** INPUTS:      BlankHV theBlankHV[BOARDSIZE] : The BlankHV array.
+**
+** OUTPUTS:     (BOOLEAN) TRUE iff all the blanks are filled in.
+**
+************************************************************************/
+
+BOOLEAN AllFilledIn(theBlankHV)
+     BlankHV theBlankHV[];
+{
+  BOOLEAN answer = TRUE;
+  int i;
+
+  for(i = 0; i < BOARDSIZE; i++)
+    answer &= (theBlankHV[i] == H || theBlankHV[i] == V);
+
+  return(answer);
+}
+
+STRING kDBName = "quickcross";
+
+int NumberOfOptions()
+{    
+        return 1;
+}
+
+int getOption()
+{
+  printf("****  GETOPTION CALLED and returned 0!");
+
+        if(gStandardGame)
+	{
+	  /* Board configurations */
+	}
+	else
+	{
+	  /* Board Configurations */
+	}
+	
+
+  return 0;
+} 
+
+void setOption(int option)
+{
+
+  printf("****  SETOPTION CALLED with option: %d",option);
+  /*        if(option == 1)
+	{
+                gStandardGame = TRUE ;
+		gToTrapIsToWin = TRUE ;
+	}
+        else if(option == 2)
+	{
+                gStandardGame = TRUE ;
+		gToTrapIsToWin = FALSE ;
+	}
+	else if(option == 3)
+	{
+                gStandardGame = FALSE ;
+		gToTrapIsToWin = TRUE ;
+	}
+	else
+	{
+                gStandardGame = FALSE ;
+		gToTrapIsToWin = FALSE ;
+		} 
+*/
+}
+
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
+
