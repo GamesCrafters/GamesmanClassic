@@ -146,7 +146,267 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
 
 STRING   kHelpExample =
-"Will get added once I find a nice game example.";
+"
+Ok, Player and Computer, let us begin.
+
+Type '?' if you need assistance...
+
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | - | - | - |      WHITE's offboard pieces: [ r n b ]
+     --- --- ---
+  2 | - | - | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ R N B ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 13)
+
+  Player's move > ra3
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n b ]
+     --- --- ---
+  2 | - | - | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ R N B ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 12)
+
+  > Computer's move : Bb2
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n b ]
+     --- --- ---
+  2 | - | B | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ R N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 11)
+
+  Player's move > bc3
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | b |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | - | B | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ R N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 10)
+
+  > Computer's move : Rb3
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | R | b |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | - | B | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 9)
+
+  Player's move > c3b2
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | R | - |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | - | b | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ N B ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 8)
+
+  > Computer's move : b3b2
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n b ]
+     --- --- ---
+  2 | - | R | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ N B ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 7)
+
+  Player's move > ba1
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | - | R | - |
+     --- --- ---
+  1 | b | - | - |      BLACK's offboard pieces: [ N B ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 6)
+
+  > Computer's move : Ba2
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | B | R | - |
+     --- --- ---
+  1 | b | - | - |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 5)
+
+
+  Player's move > a1b2
+
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | B | b | - |
+     --- --- ---
+  1 | - | - | - |      BLACK's offboard pieces: [ R N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 4)
+
+  > Computer's move : Rc1
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ n ]
+     --- --- ---
+  2 | B | b | - |
+     --- --- ---
+  1 | - | - | R |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 3)
+
+  Player's move > nc2
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | - | - |      WHITE's offboard pieces: [ ]
+     --- --- ---
+  2 | B | b | n |
+     --- --- ---
+  1 | - | - | R |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 2)
+
+  > Computer's move : a2b3
+
+  Player               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | r | B | - |      WHITE's offboard pieces: [ ]
+     --- --- ---
+  2 | - | b | n |
+     --- --- ---
+  1 | - | - | R |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Player should Win in 1)
+
+  Player's move > a3a2
+
+  Computer               Win Condition: 3
+ -------------------------------------------------------
+
+     --- --- ---
+  3 | - | B | - |      WHITE's offboard pieces: [ ]
+     --- --- ---
+  2 | r | b | n |
+     --- --- ---
+  1 | - | - | R |      BLACK's offboard pieces: [ N ]
+     --- --- ---
+      a   b   c
+
+ -------------------------------------------------------
+
+  Game Prediction:  (Computer should Lose in 0)
+
+
+Excellent! You won!
+";
 
 /*************************************************************************
 **
