@@ -52,7 +52,7 @@ struct hashContext {
   int contextNumber;
 };
 
-#define cCon (contextList)
+#define cCon (*contextList)
 #define combiHash(x,y,z) ((x*y)+z)
 #define combiUnM(x,y)  (x%y)
 #define combiUnD(x,y) (x/y)
