@@ -945,3 +945,27 @@ void initializeBoard (char board[]) {
     }
   }
 }
+
+POSITION getCanonicalPosition (POSITION p) {
+  int boards[4][BOARD_SIZE];
+  int x,y,player;
+  char c;
+
+  player = whoseMove(position);
+  generic_unhash(p, boards[0]);
+
+  for (y = 0; y < BOARD_ROWS; y++) {
+    for (x = 0; x < BOARD_COLS; x++) {
+      c = boards[0][Index(y,x)];
+      boards[1][Index(BOARD_ROWS-1-y,x)] = c;
+      boards[2][Index(y, BOARD_COLS-1-x)] = c;
+      boards[3][Index(BOARD_ROWS-1-y,BOARD_COLS-1-x)] = c;
+    }
+  }
+
+  for (x = 0; x < 4; x++) {
+    y = generic_hash(boards[x], player);
+    if (y < p) p = y;
+  }
+  return p;
+}
