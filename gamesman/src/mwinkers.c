@@ -46,11 +46,11 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kGameName           = "Winkers"; /* The name of your game */
 STRING   kDBName             = "Winkers"; /* The name to store the database under */
 BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
+BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
+BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -160,6 +160,26 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  int half = (BOARDSIZE + 1) / 2;
+
+  int piece_array[13];
+  piece_array[0]=(int)(gBlankORBString[0]);
+  piece_array[3]=(int)(gBlankORBString[1]);
+  piece_array[6]=(int)(gBlankORBString[2]);
+  piece_array[9]=(int)(gBlankORBString[3]);
+  piece_array[1]=0;
+  piece_array[2]=BOARDSIZE;
+  piece_array[4]=0;
+  piece_array[5]=BOARDSIZE;
+  piece_array[7]=0;
+  piece_array[8]=half;
+  piece_array[10]=0;
+  piece_array[11]=half;
+  piece_array[13]=-1;
+
+  int BoardPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
+
+  printf("Number of Boards: %d", BoardPositions);
 }
 
 
@@ -442,6 +462,12 @@ BOOLEAN AllFilledIn(theBlankORB)
   return TRUE;
 }
 
+/*** RowNumber() returns the row number of the ith piece.
+ * 
+ * Rows are numbered starting with 1.
+ *
+ */
+
 int RowNumber(i)
      int i;
 {
@@ -460,6 +486,10 @@ int RowNumber(i)
   return 0;
 }
 
+/*** RowWidth() determines the width of the row i is on.
+ *
+ */
+
 int RowWidth(i)
      int i;
 {
@@ -477,6 +507,13 @@ int RowWidth(i)
   }
   return 0;
 }
+
+/*** ColPosition() determines where in the Row a piece is.
+ *
+ * The first piece in the row is 0.
+ * The last piece is width - 1.
+ *
+ */
 
 int ColPosition(i)
      int i;
@@ -520,6 +557,7 @@ void PrintPosition (position, playerName, usersTurn)
 {
   int i, j, m = 0, n = 0;
   BlankORB theBlankORB[(2*BOARDWIDTH+BOARDHEIGHT) * BOARDHEIGHT + BOARDWIDTH];
+  generic_unhash(position, (char*)theBlankORB);
 
   printf("\n");
 
