@@ -129,6 +129,8 @@ BOOLEAN closes_mill_move(MOVE the_move);
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
 void debugPosition(POSITION h);
+void debugBBoard(blankox *bboard);
+void debugCBoard(char *cboard);
 
 // External
 GENERIC_PTR	SafeMalloc (size_t size);
@@ -1013,33 +1015,43 @@ BOOLEAN closes_mill_move(MOVE the_move) {
   return from(the_move) != remove_piece(the_move);
 }
 
+// given old position and the next move
 BOOLEAN closes_mill(POSITION position, int raw_move)
 {
   blankox board[BOARDSIZE];
-  unhash(DoMove(position, raw_move), board);
-  return check_mill(board, to(raw_move));
+  unhash(DoMove(position, raw_move), board); //do the move onto board
+  return check_mill(board, to(raw_move)); 
 }
 
+// given new board, slot that was moved to
 BOOLEAN check_mill(blankox *board, int slot)
 {
+  
+  //debug
+  if (debug) {
+    printf("check_mill checking:\n");
+    debugBBoard(board);
+  }
+
   return three_in_a_row(board, 0, 1,  2, slot) || // horizontals
-    three_in_a_row(board, 3, 4,  5, slot) ||
-    three_in_a_row(board, 6, 7,  8, slot) ||
-    three_in_a_row(board, 9, 10,  11, slot) ||
-    three_in_a_row(board, 12, 13, 14,slot) ||
-    three_in_a_row(board, 15, 16,  17, slot) ||
-    three_in_a_row(board, 18, 19, 20,slot) ||
-    three_in_a_row(board, 21, 22, 23,slot) ||
-    three_in_a_row(board, 0, 9,  21,slot) || // verticals
-    three_in_a_row(board, 3, 10, 18,slot) ||
-    three_in_a_row(board, 1, 4, 7,slot) ||
-    three_in_a_row(board, 16, 19,22,slot) ||
-    three_in_a_row(board, 8, 12,17,slot) ||
-    three_in_a_row(board, 6, 11,15,slot) ||
-    three_in_a_row(board, 5, 13,20,slot) ||
-    three_in_a_row(board, 2, 14,23,slot);
+    three_in_a_row(board, 3, 4, 5, slot) ||
+    three_in_a_row(board, 6, 7, 8, slot) ||
+    three_in_a_row(board, 9, 10, 11, slot) ||
+    three_in_a_row(board, 12, 13, 14, slot) ||
+    three_in_a_row(board, 15, 16, 17, slot) ||
+    three_in_a_row(board, 18, 19, 20, slot) ||
+    three_in_a_row(board, 21, 22, 23, slot) ||
+    three_in_a_row(board, 0, 9, 21, slot) || // verticals
+    three_in_a_row(board, 3, 10, 18, slot) ||
+    three_in_a_row(board, 6, 11, 15, slot) ||
+    three_in_a_row(board, 1, 4, 7, slot) ||
+    three_in_a_row(board, 16, 19, 22, slot) ||
+    three_in_a_row(board, 8, 12, 17, slot) ||
+    three_in_a_row(board, 5, 13, 20, slot) ||
+    three_in_a_row(board, 2, 14, 23, slot);
 }
 
+// given new board, slots to compare.  if slots all same, then it's a 3
 BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
 {
   return board[slot] == board[slot1] &&
@@ -1050,19 +1062,40 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 /******************** Some Debugging Functions ********************/
 
+//Given b_board, print b_board and c_board
+void debugBBoard(blankox *bboard)
+{
+  char cboard[BOARDSIZE];
+
+  unparse_board(bboard, cboard);
+    
+  debugBoard(bboard, cboard);
+  
+}
+ 
+//Given c_board, print b_board and c_board
+void debugCBoard(char *cboard)
+{
+  blankox bboard[BOARDSIZE];
+
+  parse_board(cboard, bboard);
+
+  debugBoard(bboard, cboard);
+  
+}
+
 //Given the b_board and c_board, print them
 void debugBoard(blankox *bboard, char *cboard)
 {
   int i;
 
-  if (debug) {
-    for (i = 0; i < BOARDSIZE; i++)
-      printf("%d", bboard[i]);
-    printf("\n");
-    for (i = 0; i < BOARDSIZE; i++)
-      printf("%c", cboard[i]);
-    printf("\n");
-  }
+  for (i = 0; i < BOARDSIZE; i++)
+    printf("%d", bboard[i]);
+  printf("\n");
+  for (i = 0; i < BOARDSIZE; i++)
+    printf("%c", cboard[i]);
+  printf("\n");
+
 }
 
 //Given the position, print it as a b_board and c_board
@@ -1071,19 +1104,21 @@ void debugPosition(POSITION h)
   blankox bboard[BOARDSIZE];
   char cboard[BOARDSIZE];
 
-  if (debug) {
-    unhash(h, bboard);
-    unparse_board(bboard, cboard);
-    printf("Current position = %ld, ", h);
-    printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
-    printf("Current board = \n");
-    debugBoard(bboard, cboard);
-  }
+  unhash(h, bboard);
+  unparse_board(bboard, cboard);
+  printf("Current position = %ld, ", h);
+  printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
+  printf("Current board = \n");
+  debugBoard(bboard, cboard);
+  
 }
 
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.37  2004/04/13 18:18:08  evedar
+//Input and output of moves now works... Changed move handling functions.  Moves are now from<single space>to<single space>remove .  The remove is optional --Erwin
+//
 //Revision 1.36  2004/04/13 05:23:23  jjjordan
 //You can now compile text games without having tcl. -JJ
 //
