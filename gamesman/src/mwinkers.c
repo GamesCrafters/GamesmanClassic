@@ -101,7 +101,7 @@ typedef enum possibleBoardPieces {
 
 char *gBlankORBString[] = { "·", "O", "R", "B" };
 
-char *gBoard;
+char *gBoard, *LegendKey;
 
 /*typedef struct moveValuesStruct {
  *  BlankORB piece;
@@ -165,6 +165,12 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+  LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+
+  int x;
+  for (x = 0; x < BOARDSIZE; x++) {
+    LegendKey[x] = Legend(x+1);
+  } 
 
   int half = (BOARDSIZE + 1) / 2;
 
@@ -425,29 +431,29 @@ VALUE Primitive (pos)
 	return EndGame(current, whoseMove(pos));
     }
 
-    if (RN[i] <= BOARDHEIGHT) {
+    if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
-    } else if (RN[i] == BOARDHEIGHT && CP[i] != 0) {
+    } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != 0) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
-    } else if (RN[i] > BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT-1 && CP[i] >=3) {
+    } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] >=2) {
       current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
     }
 
-    if (RN[i] <= BOARDHEIGHT - 1) {
+    if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
-    } else if (RN[i] == BOARDHEIGHT && CP[i] != RW[i]) {
+    } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != RW[i]-1) {
       current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
-    } else if (RN[i] > BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 1 && CP[i] <= RW[i] -2) {
+    } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] < RW[i] -2) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
       if (current != '·')
 	return EndGame(current, whoseMove(pos));
@@ -607,7 +613,7 @@ void PrintPosition (position, playerName, usersTurn)
     PrintSpaces (abs(BOARDHEIGHT - i));
 
     for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%c ", Legend(n++));
+      printf("%c ", LegendKey[n++]);
     
     PrintSpaces (abs(BOARDHEIGHT - i));
     printf(": ");
@@ -642,66 +648,58 @@ void PrintPosition (position, playerName, usersTurn)
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
-/* 
-AVAILABLE HASH FUNCTIONS
-
-generic_hash(char *board, int player)
-
-char *generic_unhash(int hash_number, char *empty_board)
-
-int whoseMove (int hashed)
-
-(Player are 1, red or 2, blue)
-
-void freeAll()
-*/
-
-
 MOVELIST *GenerateMoves (position)
          POSITION position;
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
-  BlankORB theBlankORB[BOARDSIZE];
   int player = whoseMove (position);
-  BlankORB wink, opWink;
+  char wink, opWink;
   int numCheckers = 0;
   int numWinks = 0;
   int numOpWinks = 0;
   int i;
 
   if (Primitive(position)) {
-    generic_unhash(position, (char*)theBlankORB);
+    generic_unhash(position, gBoard);
 
     if (player == 1) {
-      wink = R;
-      opWink = B;
+      wink = 'R';
+      opWink = 'B';
     } else {
-      wink = B;
-      opWink = R;
+      wink = 'B';
+      opWink = 'R';
     }
     
     //Count pieces on board
     for (i = 0; i < BOARDSIZE; i++)
-      if (theBlankORB[i] == opWink)
+      if (gBoard[i] == opWink)
 	numOpWinks++;
-      else if (theBlankORB[i] == wink)
+      else if (gBoard[i] == wink)
 	numWinks++;
-      else if (theBlankORB[i] == O)
+      else if (gBoard[i] == 'O')
 	numCheckers++;
     
-    //Generate checker moves 
+    /*    //Generate checker moves 
     if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
       for (i = 0; i < BOARDSIZE; i--)
-	if (theBlankORB[i] == Blank)
+	if (gBoard[i] == '·')
 	  head = CreateMovelistNode(moveHash(0, i , O), head);
     
     //Generate winker moves
     if (numWinks > 0)
       for (i = 0; i < BOARDSIZE; i--)
-	if (theBlankORB[i] == O)
+	if (gBoard[i] == O)
 	  head = CreateMovelistNode(moveHash(0, i , wink), head);
-    
+    */
+
+    for (i = BOARDSIZE - 1; i >= 0; i--) {
+      if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
+	head = CreateMovelistNode(i+1, head);
+      else if (gBoard[i] == '·' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+	head = CreateMovelistNode(i+1, head);
+    }
+
     //Do not return dummy head
     return (head);
   }
