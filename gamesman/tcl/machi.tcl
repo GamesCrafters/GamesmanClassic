@@ -498,12 +498,22 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Misere" \
 	    ]
 
+    set boardDiagonalsRule \
+        [ list \
+              "How do you want the board layout?" \
+              "Standard" \
+              "All Diagonals" \
+              "No Diagonals"
+          ]
+
     # List of all rules, in some order
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $boardDiagonalsRule]
 
     # Declare and initialize rule globals
     global gMisereGame
     set gMisereGame 0
+
+#    global
 
     # List of all rule globals, in same order as rule list
     set ruleSettingGlobalNames [list "gMisereGame"]
@@ -1069,7 +1079,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != x or o"
     }
 
-    set p {1 3} ;# default value, will be overwritten
+    set p {} ;# {1 3} ;# default value, will be overwritten
 
     # horizontal wins
     # top row
@@ -1099,8 +1109,9 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     set endy [getYCoord [lindex $p 1]]     
 
     # setup is complete, now display the graphics
-    $c create line $startx $starty $endx $endy -fill gray70 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
-
+    if { $p != {} } {
+        $c create line $startx $starty $endx $endy -fill gray70 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
+    }
     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
     $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
 
