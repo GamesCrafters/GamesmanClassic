@@ -1,8 +1,8 @@
 /************************************************************************
 **
-** NAME:        mttt.c
+** NAME:        mfandan.c
 **
-** DESCRIPTION: Tic-Tac-Toe
+** DESCRIPTION: Fandango
 **
 ** AUTHOR:      Dan Garcia  -  University of California at Berkeley
 **              Copyright (C) Dan Garcia, 1995. All rights reserved.
@@ -164,7 +164,12 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { "-", "O", "X" };
+char *gBlankOXString[] = { '.', 'O', 'X' };
+
+//---- Shing ----------------------------------------------
+char *slash[] = { '|' , '\' , '|' , '/' , '|' };
+//---------------------------------------------------------
+
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
@@ -426,13 +431,73 @@ PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
+
+
+  // ----- Shing ----------------------------------------
   int i;
+
+  //  o --- o --- o --- o --- o
+  //  |  \  |  /  |  \  |  /  |
+  //  o --- x --- . --- o --- x
+  //  |  /  |  \  |  /  |  \  |
+  //  x --- x --- x --- x --- x
+  
+
+  // ----------------------------------------------------
+
   STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE];
 
   PositionToBlankOX(position,theBlankOx);
 
+
+  for (i=1; i<=boardHeight; i++)          // for row
+    {
+      putchar('\n');    
+      putchar('(');
+      for ( j=1; j<=boardWidth; j++)
+      {
+	putchar(' ');
+	putchar(j);
+      }
+      putchar(' ');
+      putchar(')');
+      putchar('\n');
+      putchar(':');
+
+      
+
+      for ( j=1; j<=boardWidth; j++)   // for column
+      {
+	  putchar(' ');
+	  if ( i % 2 == 0 )
+	  {
+	    putchar(slash[ j % 5 ]);
+	    putchar(' ');
+	    putchar(' ');
+	  }
+	  else
+	  {
+	    if ((j-1) % 6 == 0)
+	      putchar(gBlankOXString[(int)theBlankOx[j-1]]);
+	    else if ((j-1) % 6 == 1)
+	      putchar(' ');
+	    else
+	      putchar('-');
+	  }
+      }
+    }
+
+  
+  putchar(GetPrediction(position,playerName,usersTurn));
+
+	  
+	
+      
+
+
+  /*
   printf("\n         ( 1 2 3 )           : %s %s %s\n",
 	 gBlankOXString[(int)theBlankOx[0]],
 	 gBlankOXString[(int)theBlankOx[1]],
@@ -446,6 +511,7 @@ PrintPosition(position,playerName,usersTurn)
 	 gBlankOXString[(int)theBlankOx[7]],
 	 gBlankOXString[(int)theBlankOx[8]],
 	 GetPrediction(position,playerName,usersTurn));
+  */
 }
 
 /************************************************************************
