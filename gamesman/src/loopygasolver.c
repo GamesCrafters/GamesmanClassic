@@ -37,7 +37,7 @@ typedef struct lgas_position_move_list {
   struct lgas_position_move_list* next;
 } POSITIONMOVELIST;
 
-POSITIONMOVELIST** lgas_gParents;
+POSITIONMOVELIST** lgas_gParents = NULL;
 
 /* function prototypes */
 VALUE lgas_DetermineValue(POSITION position);
