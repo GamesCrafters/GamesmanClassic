@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.57 2005-02-11 18:26:58 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.58 2005-02-11 18:55:01 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -39,8 +39,10 @@ proc TBaction1 {} {
 	set gGamePlayable true
 	NewGame
 	
-	.cToolbar bind iOTB1 <Any-Leave> \
-		".cToolbar raise iITB1"
+	.cToolbar bind iOTB1 <Any-Leave> {
+	    .cToolbar raise iITB1
+	    .middle.f1.cMLeft lower startupPicOver
+	}
     }
 }
 
@@ -825,19 +827,23 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f1.cMLeft bind startupPic <Enter> {
 	set gameStarted false
 	.middle.f1.cMLeft raise startupPicOver
+	.cToolbar raise iOTB1
 	update idletasks
     }
     .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
 	TBaction1
 	set gameStarted true
 	.middle.f1.cMLeft raise iDMB
+	.cToolbar lower iOTB1
 	update idletasks
     }
     .middle.f1.cMLeft bind startupPicOver <Leave> {
 	if { $gameStarted == "false" } {
+	    .cToolbar lower iOTB1
 	    .middle.f1.cMLeft raise startupPic
 	} else {
 	    .middle.f1.cMLeft raise iDMB
+	    .cToolbar lower iOTB1
 	}
 	update idletasks
     }
@@ -886,8 +892,10 @@ proc InitWindow { kRootDir kDir kExt } {
 	.cToolbar raise iITB
 	
 	pack .middle.f2.fPlayOptions.fBot -side bottom
-	.cToolbar bind iOTB1 <Any-Leave> \
-		".cToolbar raise iITB1"
+	.cToolbar bind iOTB1 <Any-Leave> {
+	    .cToolbar raise iITB1
+	    .middle.f1.cMLeft lower startupPicOver
+	}
 	
 	.cStatus lower base
 	global gGamePlayable
@@ -1348,8 +1356,8 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     foreach file {1 2 3 4 7 8} {#5 6 removed because not used
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
-	.cToolbar bind $name <Any-Enter> \
-	    ".cToolbar raise {iOTB$file}; update idletasks" 
+	.cToolbar bind $name <Enter> \
+	    ".cToolbar raise {iOTB$file}; update idletasks"
     }
     # bind the action of the mouse-Over images (mouse over)
     set mode O
@@ -1360,10 +1368,22 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    ".cStatus raise base; \
              update idletasks; \
              TBaction$file;"
-	.cToolbar bind $name <Any-Leave> \
+	.cToolbar bind $name <Leave> \
 	    ".cToolbar raise iITB$file; update idletasks"
 	.cToolbar bind $name <ButtonPress-1> \
 	    ".cToolbar raise iATB$file; update idletasks"
+    }
+    #overwrite button bindings for new game button so it reacts with "click to play"
+    .cToolbar bind iITB1 <Enter> {
+	.cToolbar raise iOTB1
+	.middle.f1.cMLeft raise startupPicOver
+	set gameStarted false
+	update idletasks
+    }
+    .cToolbar bind iOTB1 <Leave> {
+	.cToolbar raise iITB1
+	.middle.f1.cMLeft lower startupPicOver
+	update idletasks
     }
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
