@@ -308,7 +308,7 @@ clean:		clean-bins
 clean-bins:
 		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 
-text_all:	$(TTTPPM_OBJ) $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
+text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
 gameline:	$(GAMELINE_EXE)
 
