@@ -34,8 +34,8 @@
 **                     before code can be tested independent of core. 
 ** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
 ** 28 Feb 2005 Amy: added gGameSpecificTclInit, as suggested in email
-** 05 Feb 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
-** 06 Feb 2005 Mario:  corrected incorrect behavior of combination() and permutation()
+** 05 Mar 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
+** 06 Mar 2005 Mario:  corrected incorrect behavior of combination() and permutation()
 **                     added non-memoizing factorial for debugging purposes (#define DEBUG to enable), currently enabled
 **                     corrected defines as ^ is not a power operator in C, but XOR
 **                     changed QTBOard field sizes to short as it should be sufficient
@@ -45,8 +45,13 @@
 **                     coded PrintPosition and auxilliary functions
 **                     buggy implementation of ValidTextInput
 **                     made PrintPosition work correctly with >2 dimension boards, try setting GAMEDIMENSION to 3 or 4
-** 07 Feb 2005 Mario:  added DoMove, but it doesn't work yet (maybe I am missing a step here, what is ValidMove? )
+** 07 Mar 2005 Mario:  added DoMove, but it doesn't work yet (maybe I am missing a step here, what is ValidMove? )
 **                     feel free to modify
+** 08 Mar 2005 Mario:  added CreateMove(), GetMovePiece(), GetMoveSlot() abstractions as I realized I
+**                     after I realized I had repetitions of code
+**                     partial GenerateMoves coded
+**                     seemingly complete PrintMove() coded, whoever is to code the other MOVE related functions
+**                     should look at the implementation of PrintMove
 **
 **************************************************************************/
 
@@ -204,6 +209,16 @@ void			print_board( QTBPtr );
 QTBPtr			TestHash( QTBPtr, int );
 
 
+MOVE CreateMove( MOVE slot, MOVE piece );
+MOVE GetMovePiece( MOVE move );
+MOVE GetMoveSlot( MOVE move );
+
+void PrintCell( void *cell, char (*CellContent)( short, void * ) );
+void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) );
+char LegendCoordinate( short pad, void *p_coordinate );
+char PieceTrait( short trait, void *p_piece );
+void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark );
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -236,7 +251,7 @@ void InitializeGame ()
 	
 	if ( error_board ) {
 
-		POSITION p = hash( board );;
+		POSITION p = hash( board );
 
 		fprintf( stderr, "Hashing error:\nboard\t\t" );
 		print_board( board );
@@ -245,6 +260,11 @@ void InitializeGame ()
 		fprintf( stderr, "\n" );
 	
 	}
+	
+	memset( board, 0, sizeof( QTBOARD ) );
+	board->slots[0]=1;
+	board->piecesInPlay=1;
+	gInitialPosition = hash( board );
 
 
 }
@@ -269,11 +289,37 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
     
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	QTBPtr board;	
+	MOVELIST *moves = NULL;
     
+	/* Unhash board */
+	board				= unhash( position );
+	
+	/* If there's piece in hand, the only valid moves are the ones placing the piece in board slot */
+	if( board->slots[0] != 0 ) {
+		
+		int slot;
+		
+		/* For each slot on board */
+		for( slot = 1; slot < BOARDSIZE + 1; slot++ ) {
+			
+			/* If slot is empty */
+			if ( board->slots[slot] == 0 ) {
+				
+				/* Add move which moves piece from hand into empty slot */
+				moves = CreateMovelistNode( CreateMove( slot, board->slots[0] ), moves );
+				
+			}
+			
+		}
+		
+	} else {
+		
+	}
+	
     return moves;
+	
 }
 
 
@@ -296,14 +342,37 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
 	
-	QTBPtr board;
-	int piece, slot;
+	QTBPtr board = NULL;
+	int piece = 0, slot = 0;
+
+	printf( "Asked to do move\n" );
+		
+	/* Determine slot on board piece is to go into */
+	slot				= GetMoveSlot( move );
 	
+	/* Determine which piece is to go into board slot */
+	piece				= GetMovePiece( piece );
+	
+	/* Unhash board */
 	board				= unhash( position );
-	slot				= move & maskseq( GAMEDIMENSION + 1 );
-	piece				= 1 + ( ( move >> ( GAMEDIMENSION + 1 ) ) & maskseq( GAMEDIMENSION ) );
+	
+	/* Place piece into slot */
 	board->slots[slot]	= piece;
 	
+	/* If move places piece into hand */
+	if ( slot == 0 ) {
+		
+		/* Change player */
+		board->usersTurn = ~board->usersTurn;
+
+	/* Otherwise, if there's piece in hand, take it out */
+	} else if ( board->slots[0] != 0 ) {
+		
+		board->slots[0] = 0;
+		
+	}
+	
+	/* Return hashed board */
 	return hash( board );
 	
 }
@@ -354,142 +423,6 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark ) {
-	
-	int position;
-	
-	printf( "%s%c", startmark, border );
-	
-	for( position = 1; position < (GAMEDIMENSION + 1) * GAMEDIMENSION; position++ ) {
-		
-		if( position % ( GAMEDIMENSION + 1) ) {
-			
-			printf( "%c", fill );
-			
-		} else {
-			
-			printf( "%c", border );
-			
-		}
-		
-	}
-	
-	printf( "%c%s", border, endmark );
-
-}
-
-char PieceTrait( short trait, void *p_piece ) {
-	
-	short piece = *((short *) p_piece);
-	
-	return ( piece == 0 ) ? ' ' : states[trait][( ( piece - 1 ) >> trait ) & 1];
-	
-}
-
-char LegendCoordinate( short pad, void *p_coordinate ) {
-	
-	char coordinate = *((char *) p_coordinate);
-	
-	return ( pad < GAMEDIMENSION - 1 ) ? ' ' : coordinate;
-	
-}
-
-void PrintCell( void *cell, char (*CellContent)( short, void * ) ) {
-	
-	short trait;
-	
-	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
-	
-		printf( "%c", CellContent( trait, cell ) );	
-		
-	}
-	
-	printf( "|" );
-	
-}
-
-void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) ) {
-	
-	const int header_length = 20;
-	int i, cell, heading_length, hand_label_length;
-	char *pad = "\n       ";
-	char *hand_label = " Hand ";
-	
-	heading_length		= strlen( heading );
-	hand_label_length	= strlen( hand_label );
-	
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|" );
-	for ( i = 0; i < hand_label_length; i++ ) {
-		
-		printf( "^" );
-		
-	}
-	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION; i++ ) {
-		
-		printf( "^" );
-		
-	}
-	printf( "|" );
-	
-	printf( "\n%s", heading );
-	for ( i = 0; i < header_length - heading_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|%s|", hand_label );
-	PrintCell( cells, CellContent );
-	printf( "\n" );
-	
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|" );
-	for ( i = 0; i < hand_label_length; i++ ) {
-		
-		printf( "_" );
-		
-	}
-	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION; i++ ) {
-		
-		printf( "_" );
-		
-	}
-	printf( "|" );
-
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	for( cell = 1; cell <= BOARDSIZE; cell++ ) {
-		
-		if ( !( ( cell - 1 ) % GAMEDIMENSION ) ) {
-			PrintHorizontalBorder( '-', ' ', pad, "" );
-			printf( "%s|", pad );
-			
-		}
-		
-		PrintCell( cells + cell*content_size, CellContent );
-		
-	}
-	
-	PrintHorizontalBorder( '-', ' ', pad, "\n" );
-
-}
 	
 void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
 {
@@ -498,8 +431,6 @@ void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
 	
 	/* Unhash position into internal board representation */
 	board = unhash( position );
-	
-	board->slots[1]=3;
 	
 	PrintBoard( hex_ascii, sizeof( *hex_ascii ), "LEGEND:", &LegendCoordinate );
 	PrintBoard( board->slots, sizeof( *board->slots ), "BOARD: ", &PieceTrait );
@@ -537,7 +468,26 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    
+	
+	int slot, piece, trait;
+	
+	/* Determine piece information */
+	piece	= GetMovePiece( move ) - 1;
+	
+	/* Determine slot information */
+	slot	= GetMoveSlot( move );
+	
+	/* For each piece trait */
+	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
+		
+		/* Print the corresponding character describing its state */
+		printf( "%c", states[trait][(piece >> trait) & 1] );
+				
+	}
+	
+	/* Print character describing position on board/hand */
+	printf( ":%c", hex_ascii[slot] );
+	
 }
 
 
@@ -668,6 +618,7 @@ BOOLEAN ValidTextInput( STRING input )
 		
 	} 
 	
+	printf("Is Move valid?: %d\n", valid );
 	return valid;
 }
 
@@ -689,7 +640,7 @@ BOOLEAN ValidTextInput( STRING input )
 MOVE ConvertTextInputToMove (STRING input)
 {
 	
-	MOVE move = 0;
+	MOVE piece = 0, slot = 0;
 	int i, j, k;
 	
 	/* Lower GAMEDIMENSION + 1 bits for position */
@@ -697,7 +648,7 @@ MOVE ConvertTextInputToMove (STRING input)
 		
 		if( hex_ascii[i] == input[GAMEDIMENSION + 1] ) {
 			
-			move = i;
+			slot = i;
 			break;
 			
 		}
@@ -716,7 +667,7 @@ MOVE ConvertTextInputToMove (STRING input)
 				
 				if( states[j][k] == input[i] ) {
 				
-					move += k << ( j + GAMEDIMENSION + 1 );
+					piece += k;
 					ready = TRUE;
 					break;
 					
@@ -734,7 +685,7 @@ MOVE ConvertTextInputToMove (STRING input)
 		
 	}
 	
-	return move;
+	return CreateMove( slot, piece );
 
 }
 
@@ -1317,4 +1268,168 @@ void setOffsetTable() {
     offsetTable[NUMPIECES] = offsetTable[NUMPIECES-1] + factorial(NUMPIECES);
     offsetTableSet = TRUE;
   }
+}
+
+
+/* Creates move given slot and piece */
+MOVE CreateMove( MOVE slot, MOVE piece ) {
+	
+	return slot + ( piece << ( GAMEDIMENSION + 1 ) );
+	
+	
+}
+
+/* Returns piece given move */
+MOVE GetMovePiece( MOVE move ) {
+	
+	return move >> ( GAMEDIMENSION + 1 );
+	
+}
+
+/* Returns slot given move */
+MOVE GetMoveSlot( MOVE move ) {
+	
+	return move & maskseq( GAMEDIMENSION + 1 );
+	
+}
+
+/* Prints horizontal border for board */
+void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark ) {
+	
+	int position;
+	
+	printf( "%s%c", startmark, border );
+	
+	for( position = 1; position < (GAMEDIMENSION + 1) * GAMEDIMENSION; position++ ) {
+		
+		if( position % ( GAMEDIMENSION + 1) ) {
+			
+			printf( "%c", fill );
+			
+		} else {
+			
+			printf( "%c", border );
+			
+		}
+		
+	}
+	
+	printf( "%c%s", border, endmark );
+
+}
+
+/* Extracts character information about piece trait */
+char PieceTrait( short trait, void *p_piece ) {
+	
+	short piece = *((short *) p_piece);
+	
+	return ( piece == 0 ) ? ' ' : states[trait][( ( piece - 1 ) >> trait ) & 1];
+	
+}
+
+char LegendCoordinate( short pad, void *p_coordinate ) {
+	
+	char coordinate = *((char *) p_coordinate);
+	
+	return ( pad < GAMEDIMENSION - 1 ) ? ' ' : coordinate;
+	
+}
+
+/* Prints cell for board */
+void PrintCell( void *cell, char (*CellContent)( short, void * ) ) {
+	
+	short trait;
+	
+	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
+	
+		printf( "%c", CellContent( trait, cell ) );	
+		
+	}
+	
+	printf( "|" );
+	
+}
+
+/* Prints board */
+void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) ) {
+	
+	const int header_length = 20;
+	int i, cell, heading_length, hand_label_length;
+	char *pad = "\n       ";
+	char *hand_label = " Hand ";
+	
+	heading_length		= strlen( heading );
+	hand_label_length	= strlen( hand_label );
+	
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|" );
+	for ( i = 0; i < hand_label_length; i++ ) {
+		
+		printf( "^" );
+		
+	}
+	printf( "|" );
+	for ( i = 0; i < GAMEDIMENSION; i++ ) {
+		
+		printf( "^" );
+		
+	}
+	printf( "|" );
+	
+	printf( "\n%s", heading );
+	for ( i = 0; i < header_length - heading_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|%s|", hand_label );
+	PrintCell( cells, CellContent );
+	printf( "\n" );
+	
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	printf( "|" );
+	for ( i = 0; i < hand_label_length; i++ ) {
+		
+		printf( "_" );
+		
+	}
+	printf( "|" );
+	for ( i = 0; i < GAMEDIMENSION; i++ ) {
+		
+		printf( "_" );
+		
+	}
+	printf( "|" );
+
+	for ( i = 0; i < header_length; i++ ) {
+		
+		printf( " " );
+		
+	}
+	
+	for( cell = 1; cell <= BOARDSIZE; cell++ ) {
+		
+		if ( !( ( cell - 1 ) % GAMEDIMENSION ) ) {
+			PrintHorizontalBorder( '-', ' ', pad, "" );
+			printf( "%s|", pad );
+			
+		}
+		
+		PrintCell( cells + cell*content_size, CellContent );
+		
+	}
+	
+	PrintHorizontalBorder( '-', ' ', pad, "\n" );
+
 }
