@@ -19,6 +19,16 @@
 #define mMax(A,B) ((A) > (B) ? (A) : (B))
 #define mMin(A,B) ((A) > (B) ? (B) : (A))
 
+/* smarter computer */
+#define WINMOVE 0
+#define TIEMOVE 1
+#define LOSEMOVE 2
+#define SMART 0
+#define RANDOM 1
+#define DUMB 2
+#define MAXSCALE 100
+#define MAXGIVEBACKS 9
+
 typedef struct
 {
 	int nodeUsed;
@@ -135,11 +145,12 @@ STRING  kHandleDefaultTextInputHelp =
 Text Input Commands:\n\
 -------------------\n\
 ?           : Brings up this list of Text Input Commands available\n\
-s (or S)    : The computer will list all (S)afe (Value-Equivalent) moves\n\
+s (or S)    : (S)how the values of all possible moves\n\
 u (or U)    : (U)ndo last move (not possible at beginning position)\n\
 r (or R)    : (R)eprint the position\n\
 h (or H)    : (H)elp\n\
 a (or A)    : (A)bort the game\n\
+c (or C)    : Adjust (C)omputer's brain\n\
 q (or Q)    : (Q)uit";
 
 
@@ -157,12 +168,18 @@ char    gPlayerName[2][MAXNAME]; /* The names of the players user/user or comp/u
 VALUE * gDatabase ;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
 
+int smartness = SMART;
+int scalelvl = MAXSCALE;
+int remainingGivebacks = 0;
+int initialGivebacks = 0;
+int oldValueOfPosition = tie;
+
 MENU gMenuMode ;
 BOOLEAN gPrintHints ;
 STRING kAuthorName = "Dan Garcia" ;
 POSITION kBadPosition;          /* A POSITION that will never be used */
 
-// Start Loopy
+/* Start Loopy */
 FRnode *gHeadWinFR;               /* The FRontier Win Queue */
 FRnode *gTailWinFR;
 FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
@@ -171,11 +188,12 @@ FRnode *gHeadTieFR;               /* The FRontier Tie Queue */
 FRnode *gTailTieFR;
 POSITIONLIST **gParents;         /* The Parent of each node in a list */
 char *gNumberChildren;           /* The Number of children (used for Loopy games) */
+/* End Loopy */
+
 int gBytesMalloced;
 int gMaxBytesUsed;
 int gBytesInUse;
 BOOLEAN kDebugLoopyMem = FALSE;
-// End Loopy
 
 char *gValueString[] =
 {
@@ -346,6 +364,18 @@ MenusEvaluated()
     
     printf("\n\ta)\t(A)nalyze the game\n");
   }
+  printf("\tc)\tAdjust (C)omputer's brain (currently ");
+  if (smartness==SMART) {
+    printf("%d%% perfect", scalelvl);
+  }
+  else if (smartness==DUMB) {
+    printf("misere-ly");
+  }
+  else if (smartness==RANDOM) {
+    printf("randomly");
+  }
+  printf (" w%/%d givebacks)\n", initialGivebacks);
+  
   if(kDebugMenu)
     printf("\td)\t(D)ebug Game AFTER Evaluation\n");
   printf("\n\tp)\t(P)LAY GAME.\n");
@@ -497,6 +527,9 @@ ParseEvaluatedMenuChoice(c)
       BadMenuChoice();
       HitAnyKeyToContinue();
     }
+    break;
+  case 'C': case 'c':
+    SmarterComputerMenu();
     break;
   case 'A': case 'a':
     AnalysisMenu();
@@ -778,8 +811,10 @@ PlayAgainstComputer()
   UNDO *undo, *InitializeUndo(), *HandleUndoRequest(), *UpdateUndo();
   BOOLEAN usersTurn, error, player_draw;
   USERINPUT userInput, GetAndPrintPlayersMove();
+  int oldRemainingGivebacks;
 
   thePosition = gInitialPosition;
+  remainingGivebacks = initialGivebacks;
   undo = InitializeUndo();
   usersTurn = gHumanGoesFirst;
 
@@ -794,6 +829,8 @@ PlayAgainstComputer()
 
   while(Primitive(thePosition) == undecided) { /* Not dead yet! */
 
+    oldRemainingGivebacks = remainingGivebacks; /* keep track of giveback usage for undo */
+
     if(usersTurn) {		/* User's turn */
 
       while((userInput = GetAndPrintPlayersMove(thePosition,
@@ -804,7 +841,7 @@ PlayAgainstComputer()
       }
     }
     else {				/* Computer's turn */
-	theMove = GetComputersMove(thePosition);
+      theMove = GetComputersMove(thePosition);
       PrintComputersMove(theMove,gPlayerName[usersTurn]);
     }
     if(userInput == Abort)
@@ -817,6 +854,7 @@ PlayAgainstComputer()
 		  gPlayerName[usersTurn],usersTurn);
 
     undo = UpdateUndo(thePosition, undo, &player_draw);
+    undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
     if(player_draw)
       break;
 
@@ -876,7 +914,10 @@ UNDO *HandleUndoRequest(thePosition, undo, error)
   /* undo the first move */
 
   UnMarkAsVisited(undo->position);
-  tmp = undo;          
+  if (undo->givebackUsed) {
+    remainingGivebacks++;
+  }
+  tmp = undo;
   undo = undo->next;
   SafeFree((GENERIC_PTR)tmp);
   *thePosition = undo->position;
@@ -885,7 +926,7 @@ UNDO *HandleUndoRequest(thePosition, undo, error)
 
   if(gAgainstComputer) {
     UnMarkAsVisited(undo->position);
-    tmp = undo;          
+    tmp = undo;
     undo = undo->next;
     SafeFree((GENERIC_PTR)tmp);
     *thePosition = undo->position;
@@ -910,6 +951,7 @@ UNDO *UpdateUndo(thePosition, undo, abort)
     tmp = undo; 
     undo = (UNDO *) SafeMalloc (sizeof(UNDO));
     undo->position = thePosition;
+    undo->givebackUsed = FALSE; /* set this in PlayAgainstComputer */
     undo->next = tmp;
 
     *abort = FALSE;
@@ -924,6 +966,7 @@ UNDO *InitializeUndo()
 
   undo = (UNDO *) SafeMalloc (sizeof(UNDO));    /* Initialize the undo list */
   undo->position = gInitialPosition;
+  undo->givebackUsed = FALSE;
   undo->next = NULL;
   return(undo);
 }
@@ -1005,6 +1048,7 @@ UNDO *Stalemate(undo,stalematePosition, abort)
   else {
     while(undo->next != NULL && undo->position != stalematePosition) {
       UnMarkAsVisited(undo->position);
+      /* don't return givebacks to user when rolling back stalemates */
       tmp = undo;
       undo = undo->next;
       SafeFree((GENERIC_PTR)tmp);
@@ -1228,6 +1272,17 @@ FreeMoveList(ptr)
   }
 }
 
+FreeRemotenessList(REMOTENESSLIST* ptr) 
+{
+  REMOTENESSLIST* last;
+  while (ptr != NULL) {
+    last = ptr;
+    ptr = ptr->next;
+    gBytesInUse -= sizeof(REMOTENESSLIST);
+    SafeFree((GENERIC_PTR)last);
+  }
+}
+
 FreePositionList(ptr)
      POSITIONLIST *ptr;
 {
@@ -1238,6 +1293,16 @@ FreePositionList(ptr)
     gBytesInUse -= sizeof(POSITIONLIST);
     SafeFree((GENERIC_PTR)last);
   }
+}
+
+void FreeValueMoves(VALUE_MOVES *ptr) {
+  int i;
+  for (i=0; i<3; i++) {
+    FreeMoveList(ptr->moveList[i]);
+    FreeRemotenessList(ptr->remotenessList[i]);
+  }
+  gBytesInUse -= sizeof(VALUE_MOVES);
+  SafeFree((GENERIC_PTR)ptr);
 }
 
 int GetRandomNumber(n)
@@ -1318,20 +1383,42 @@ BOOLEAN PrintPossibleMoves(thePosition)
   return(TRUE); /* This should always return true for GetAndPrintPlayersMove */
 }
 
-PrintValueEquivalentMoves(thePosition)
+/* Jiong */
+PrintMoves(ptr, remoteptr)
+     MOVELIST *ptr;
+     REMOTENESSLIST *remoteptr;
+{
+  while (ptr != NULL) {
+    printf("\n\t\t");
+    PrintMove(ptr->move);
+    printf(" \t");
+    printf("%d", (int) remoteptr->remoteness);
+    ptr = ptr->next;
+    remoteptr = remoteptr->next;
+  }
+  printf("\n");
+}
+
+/* Jiong */
+PrintValueMoves(thePosition)
      POSITION thePosition;
 {
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
+  VALUE_MOVES *ptr, *GetValueMoves();
+  GENERIC_PTR SafeMalloc();
 
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  printf("\nHere are some 'safe' moves   : [ ");
-  while (ptr != NULL) {
-    PrintMove(ptr->move);
-    printf(" ");
-    ptr = ptr->next;
-  }
-  printf("]\n\n");
-  FreeMoveList(head);
+  ptr = GetValueMoves(thePosition);
+
+  printf("\nHere are the values of all possible moves: \n");
+  printf("\t\tMove \tRemoteness\n");
+  printf("Winning Moves: \t");
+  PrintMoves(ptr->moveList[WINMOVE], ptr->remotenessList[WINMOVE]);
+  printf("Tieing Moves: \t");
+  PrintMoves(ptr->moveList[TIEMOVE], ptr->remotenessList[TIEMOVE]);
+  printf("Losing Moves: \t");
+  PrintMoves(ptr->moveList[LOSEMOVE], ptr->remotenessList[LOSEMOVE]);
+  printf("\n");
+
+  FreeValueMoves(ptr);
 }
 
 STRING GetPrediction(position,playerName,usersTurn)
@@ -1631,11 +1718,14 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
       printf("");
       PrintPosition(thePosition, playerName);
       break;
+    case 'c': case 'C':
+      SmarterComputerMenu();
+      break;
     case 'r': case 'R':
       PrintPosition(thePosition, playerName);
       break;
     case 's': case 'S':
-      PrintValueEquivalentMoves(thePosition);
+      PrintValueMoves(thePosition);
       break;
     case '?':
       printf("%s",kHandleDefaultTextInputHelp);
@@ -1678,23 +1768,120 @@ GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
     ungetc('\n',stdin);  /* Put the \n back on the input */
 }
 
-// FROM HERE
+VALUE *GetRawValueFromDatabase(position)
+     POSITION position;
+{
+  return(&gDatabase[position]);
+}
 
+/* Jiong */
 MOVE GetComputersMove(thePosition)
      POSITION thePosition;
 {
   MOVE DecodeMove(), theMove;
   int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-    
-    if(gHints)
+  MOVELIST *ptr, *head, *prev;
+  VALUE_MOVES *moves, *GetValueMoves();
+  BOOLEAN setBackSmartness = FALSE;
+  int oldsmartness = smartness;
+  ptr = head = prev = NULL;
+  i = 0; 
+
+  moves = GetValueMoves(thePosition);
+
+  if (GetRandomNumber(MAXSCALE+1) > scalelvl && smartness == SMART) {
+    smartness = RANDOM;
+    setBackSmartness = TRUE;
+  }
+  if (remainingGivebacks>0 && GetValueOfPosition(thePosition) < oldValueOfPosition) {
+    if(gHints) {
+      printf("Using giveback: %d givebacks left\n", remainingGivebacks-1);
+      printf("%s choose [ ", gPlayerName[kComputersTurn]);
+    }
+    while (ptr == NULL) {  //try to restore the old status, if lose then get a lose move, if tie then get tie move
+      ptr = moves->moveList[oldValueOfPosition];
+      oldValueOfPosition--;
+    }
+    while(ptr->next != NULL) 
+      ptr = ptr->next;
+    if(gHints) {
+      PrintMove(ptr->move);
+      printf(" ]\n\n");
+    }
+    oldValueOfPosition++;
+    remainingGivebacks--;
+    FreeValueMoves(moves);
+    return (ptr->move);
+  }
+
+  oldValueOfPosition = GetValueOfPosition(thePosition);
+
+  if (smartness == SMART) {    
+    if(gHints) {
+      printf("Smart move: \n");
       printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-    head = ptr = GetValueEquivalentMoves(thePosition);
+    }
+    while (ptr == NULL && i <= LOSEMOVE) {    
+      head = ptr = moves->moveList[i];
+      i++;
+    }
+    if (ptr == NULL) {
+      printf("Error in GetComputersMove: no Move at all");
+      exit(0);
+    }
     while(ptr != NULL) {
       numberMoves++;
-      if(gHints)
-        printf("%d ",ptr->move+1);
+      if(gHints) {
+        PrintMove(ptr->move);
+	printf(" ");
+      }
       ptr = ptr->next;
+    }
+    if(gHints)
+      printf("]\n\n");
+    if (i == 1) {
+      theMove = head->move;
+      FreeValueMoves(moves);
+      return (theMove);
+    }
+    else {
+      ptr=head;
+      while(ptr->next != NULL) 
+	ptr = ptr->next;
+      theMove = ptr->move;
+      FreeValueMoves(moves);
+      return(theMove);
+    }
+  }
+  else if (smartness == RANDOM) {
+    if (setBackSmartness == TRUE) {
+      smartness = oldsmartness;
+      setBackSmartness = FALSE;
+    }
+    if(gHints) {
+      printf("Random move: \n");
+      printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
+    }
+
+    head = ptr = moves->moveList[i];
+    i++;
+
+    while (i < LOSEMOVE+1) {    
+      ptr = moves->moveList[i];
+      if (head == NULL && ptr != NULL) 
+	head = ptr;
+      if (prev != NULL)
+	prev->next = ptr;
+      while(ptr != NULL) {
+	numberMoves++;
+	if(gHints) {
+	  PrintMove(ptr->move);
+	  printf(" ");
+	}
+	prev = ptr;
+	ptr = ptr->next;
+      }
+      i++;
     }
     if(gHints)
       printf("]\n\n");
@@ -1703,14 +1890,52 @@ MOVE GetComputersMove(thePosition)
     for(i = 0; i < randomMove ; i++)
       ptr = ptr->next; 
     theMove = ptr->move;
-    FreeMoveList(head);
+    
+    FreeValueMoves(moves);
     return(theMove);
-}
+  } 
+  else if (smartness == DUMB) {
+    if(gHints) {
+      printf("Dumb move: \n");
+      printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
+    }
+    i=LOSEMOVE;
+    head = ptr = moves->moveList[i];
+    i--;
 
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  return(&gDatabase[position]);
+    while (i > -1 && ptr == NULL) {
+      head = ptr = moves->moveList[i];
+      i--;
+    }
+    if (ptr == NULL) {
+      printf("Error in GetComputersMove: no Move at all");
+      exit(0);
+    }
+    while(ptr != NULL) {
+      numberMoves++;
+      if(gHints) {
+        PrintMove(ptr->move);
+	printf(" ");
+      }
+      ptr = ptr->next;
+    }
+    if(gHints)
+      printf("]\n\n");
+    if (i > 0) {
+      theMove = head->move;
+      FreeValueMoves(moves);
+      return (theMove);
+    } else {
+      ptr=head;
+      while(ptr->next != NULL) 
+	ptr = ptr->next;
+      theMove = ptr->move;
+      FreeValueMoves(moves);
+      return (theMove);
+    }
+  } else {
+    printf("Error in GetComputerMove: no such intelligence level!\n");
+  }
 }
 
 POSITION GetNextPosition()
@@ -1733,14 +1958,37 @@ POSITION GetNextPosition()
   }
 }  
 
-MOVELIST *GetValueEquivalentMoves(thePosition)
+/* Jiong */
+VALUE_MOVES* SortMoves (thePosition, move, valueMoves) 
+     POSITION thePosition;
+     MOVE move;
+     VALUE_MOVES *valueMoves;
+{
+  MOVELIST *GenerateMoves();
+  POSITION child;
+  VALUE_MOVES* StoreMoveInList(); 
+  VALUE GetValueOfPosition(), Primitive();
+  REMOTENESS Remoteness();
+
+  if (GetValueOfPosition(child = DoMove(thePosition, move)) == lose) {  //winning moves
+    valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
+  } else if (GetValueOfPosition(child = DoMove(thePosition, move)) == tie) {  //tie moves
+    valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
+  } else if (GetValueOfPosition(child = DoMove(thePosition, move)) == win) {  //lose moves
+    valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
+  }
+  return valueMoves;
+}
+
+/* Jiong */
+VALUE_MOVES* GetValueMoves(thePosition)
      POSITION thePosition;
 {
-  MOVELIST *ptr, *head, *valueEquivalentList = NULL, *GenerateMoves();
-  MOVELIST *StoreMoveInList();
+  MOVELIST *ptr, *head, *GenerateMoves();
+  VALUE_MOVES *StoreMoveInList(), *SortMoves(), *valueMoves;
   VALUE GetValueOfPosition(), theValue, Primitive();
-  REMOTENESS parentRemoteness, Remoteness();
   POSITION child;
+  GENERIC_PTR SafeMalloc();
 
   if(Primitive(thePosition) != undecided)   /* Primitive positions have no moves */
     return(NULL);
@@ -1748,26 +1996,33 @@ MOVELIST *GetValueEquivalentMoves(thePosition)
   else if((theValue = GetValueOfPosition(thePosition)) == undecided)
     return(NULL);                           /* undecided positions are invalid */
 
-  else if(theValue == lose)
-    return(GenerateMoves(thePosition));     /* Losing positions have EVERY move equivalent */
+  else if(theValue == lose) {
+    valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
+    valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
+    valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
 
-  else if(theValue != win && theValue != tie) 
-    BadElse("GetValueEquivalentMoves");     /* This makes sure the value is win | tie */
- 
-  else {                                    /* we are guaranteed it's win | tie now */
-    parentRemoteness = Remoteness(thePosition);
-    ptr = head = GenerateMoves(thePosition);
+    ptr = GenerateMoves(thePosition);
     while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
-      if((theValue == win &&
-           (GetValueOfPosition(child = DoMove(thePosition,ptr->move)) == lose) &&
-           (parentRemoteness > Remoteness(child))) ||
-         (theValue == tie && (GetValueOfPosition(DoMove(thePosition,ptr->move)) == tie)))
-        valueEquivalentList = StoreMoveInList(ptr->move,valueEquivalentList);
+      valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
       ptr = ptr->next;
     }
-    FreeMoveList(head);
   }
-  return(valueEquivalentList);
+
+  else if(theValue != win && theValue != tie) 
+    BadElse("GetValueMoves");     /* This makes sure the value is win | tie */
+ 
+  else {                                    /* we are guaranteed it's win | tie now */
+    valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
+    valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
+    valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
+
+    ptr = GenerateMoves(thePosition);
+    while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
+      valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
+      ptr = ptr->next;
+    }
+  }
+  return(valueMoves);
 }
 
 BOOLEAN CorruptedValuesP()
@@ -1822,6 +2077,68 @@ BOOLEAN CorruptedValuesP()
     } /* if valid position */
   } /* for all positions */
   return(corrupted);
+}
+
+/* Jiong */
+SmarterComputerMenu()
+{
+  char c;
+  do {
+    printf("\n\t----- Adjust COMPUTER'S brain menu for %s -----\n\n", kGameName);
+    printf("\tp)\t(P)erfectly always\n");
+    printf("\ti)\t(I)mperfectly (Perfect some %% of time, Randomly others)\n");
+    printf("\tr)\t(R)andomly always\n");
+    printf("\tm)\t(M)isere-ly always (i.e., trying to lose!)\n\n");
+    printf("\tg)\tChange the number of (G)ive-backs (currently %d)\n\n", initialGivebacks);
+    printf("\th)\t(H)elp\n\n");
+    printf("\tb)\t(B)ack = Return to previous activity\n\n");
+    printf("\nSelect an option: ");
+    
+    switch(c = GetMyChar()) {
+    case 'P': case 'p':
+      smartness = SMART;
+      scalelvl = 100;
+      HitAnyKeyToContinue();
+      break;
+    case 'I': case 'i':
+      smartness = SMART;
+      printf("\nPlease enter the chance %% of time the computer plays perfectly (0-100): ");
+      scanf("%d", &scalelvl);
+      while (scalelvl < 0 || scalelvl > 100) {
+	printf("\nPlease enter the chance %% of time the computer plays perfectly (0-100): ");
+	scanf("%d", &scalelvl);
+      }
+      HitAnyKeyToContinue();
+      break;
+    case 'R': case 'r':
+      smartness = RANDOM;
+      HitAnyKeyToContinue();
+      break;
+    case 'M': case 'm':
+      smartness = DUMB;
+      HitAnyKeyToContinue();
+      break;
+    case 'G': case 'g':
+      printf("\nPlease enter the number of give-backs the computer will perform (0-%d): ", MAXGIVEBACKS);
+      scanf("%d", &initialGivebacks);
+      while (initialGivebacks > MAXGIVEBACKS || initialGivebacks < 0) {
+	printf("\nPlease enter the number of give-backs the computer will perform (0-%d): ", MAXGIVEBACKS);
+	scanf("%d", &initialGivebacks);
+      } 
+      remainingGivebacks = initialGivebacks;
+      HitAnyKeyToContinue();
+      break;
+    case 'H': case 'h':
+      HelpMenus();
+      break;
+    case 'B': case 'b':
+      return;
+    default:
+      BadMenuChoice();
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
 }
 
 AnalysisMenu()
@@ -2119,20 +2436,62 @@ POSITIONLIST *StorePositionInList(thePosition,thePositionList)
   return(tmp);
 }
 
-MOVELIST *StoreMoveInList(theMove,theMoveList)
+/* Jiong */
+VALUE_MOVES* StoreMoveInList(theMove, remoteness, valueMoves, typeofMove)
      MOVE     theMove;
-     MOVELIST *theMoveList;
+     int      remoteness, typeofMove;
+     VALUE_MOVES *valueMoves;
 {
-  MOVELIST *next, *tmp;
+  MOVELIST *moveList, *newMove, *prevMoveList;
+  REMOTENESSLIST *remotenessList, *newRemoteness, *prevRemotenessList;
   GENERIC_PTR SafeMalloc();
-   
-  next = theMoveList;
-  tmp = (MOVELIST *) SafeMalloc (sizeof(MOVELIST));
-  tmp->move = theMove;
-  tmp->next     = next;
-  return(tmp);
-}
+  
+  moveList = valueMoves->moveList[typeofMove];
+  remotenessList = valueMoves->remotenessList[typeofMove];
 
+  newMove = (MOVELIST *) SafeMalloc (sizeof(MOVELIST));
+  newRemoteness = (REMOTENESSLIST *) SafeMalloc (sizeof(REMOTENESSLIST));
+  newMove->move = theMove;
+  newMove->next = NULL;
+  newRemoteness->remoteness = remoteness;
+  newRemoteness->next = NULL;
+
+  prevMoveList = NULL;
+  prevRemotenessList = NULL;
+
+  if (moveList == NULL) {
+    valueMoves->moveList[typeofMove] = newMove;
+    valueMoves->remotenessList[typeofMove] = newRemoteness;
+    return valueMoves;
+  }
+
+  while(moveList != NULL) {
+    if (remotenessList->remoteness >= remoteness) {
+      newMove->next = moveList;
+      newRemoteness->next = remotenessList;
+
+      if (prevMoveList==NULL) {
+	valueMoves->moveList[typeofMove] = newMove;
+        valueMoves->remotenessList[typeofMove] = newRemoteness;
+      }
+      else {
+	prevMoveList->next = newMove;
+	prevRemotenessList->next = newRemoteness;
+      }
+      return (valueMoves);
+    }
+    else {
+      prevMoveList = moveList;
+      moveList = moveList->next;
+      prevRemotenessList = remotenessList;
+      remotenessList = remotenessList->next;
+    }
+  }
+
+  prevMoveList->next = newMove;
+  prevRemotenessList->next = newRemoteness;
+  return (valueMoves);
+}
 
 //// START LOOPY
 

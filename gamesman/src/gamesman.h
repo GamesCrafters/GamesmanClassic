@@ -66,7 +66,22 @@ typedef struct positionlist_item
 	POSITION position;
 	struct positionlist_item *next;
 }
-UNDO, POSITIONLIST, FRnode;
+POSITIONLIST, FRnode;
+
+typedef struct undolist_item
+{
+        POSITION position;
+        BOOLEAN givebackUsed;
+        struct undolist_item *next;
+}
+UNDO;
+
+typedef struct booleanlist_item
+{
+        BOOLEAN value;
+        struct booleanlist_item *next;
+}
+BOOLEANLIST;
 
 typedef struct movelist_item
 {
@@ -74,6 +89,20 @@ typedef struct movelist_item
 	struct movelist_item *next;
 }
 MOVELIST;
+
+typedef struct remotenesslist_item
+{
+        REMOTENESS remoteness;
+        struct remotenesslist_item *next;
+}
+REMOTENESSLIST;
+
+typedef struct valuemoves_item
+{
+        MOVELIST* moveList[3];
+        REMOTENESSLIST* remotenessList[3];
+}
+VALUE_MOVES;
 
 typedef signed char MEX;           /* The max mex value is 31 */
 typedef unsigned long int MEXCALC; /* ...since we use a long int here */

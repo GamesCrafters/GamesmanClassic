@@ -165,7 +165,7 @@ STRING  kHandleTextInputHelp =
 Text Input Commands:\n\
 -------------------\n\
 ?           : Brings up this list of Text Input Commands available\n\
-s (or S)    : The computer will list all (S)afe (Value-Equivalent) moves\n\
+s (or S)    : (S)how the values of all possible moves\n\
 u (or U)    : (U)ndo last move (not possible at beginning position)\n\
 r (or R)    : (R)eprint the position\n\
 m (or M)    : Toggle Show (M)ove Succession\n\
@@ -755,7 +755,7 @@ USERINPUT HandleTextInput(thePosition, theMove, playerName)
       PrintPosition(thePosition, playerName);
       break;
     case 's': case 'S':
-      PrintValueEquivalentMoves(thePosition);
+      PrintValueMoves(thePosition);
       break;
     case '?':
       printf("%s",kHandleTextInputHelp);
