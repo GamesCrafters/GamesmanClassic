@@ -259,7 +259,7 @@ proc drawPiece { c bin } {
 proc deletePiece { c bin } {
     global binPieces
     set binPieces [lreplace $binPieces $bin $bin [expr [lindex $binPieces $bin] - 1]]
-    $c delete piece$bin,[lindex $binPieces $bin]   
+    $c delete piece$bin,[lindex $binPieces $bin]
 }
 
 # Creates a list of offsets from the center of a bin with which to draw pieces.
@@ -403,6 +403,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	} 
 	deletePiece $c $theMove
 	drawPiece $c $i
+	
 	$c itemconfigure counter$theMove -text "[lindex $binPieces $theMove]"
 	$c itemconfigure counter$i -text "[lindex $binPieces $i]"
 	if {$colorMove == 1} { 	   
@@ -494,7 +495,29 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	set s 0
     } else { set s [expr $boardSize / 2] }
 
+    ### Redo Move
+    GS_DrawPosition $c $positionAfterUndo
+
+    for {set i [expr $theMoveToUndo - 1]} {$k > 0} {set i [expr $i - 1]} {
+	set k [expr $k - 1]
+	if {$i == $s} {
+	    set i [expr $i - 1]
+	} 
+	if {$i < 0} {
+	    set i [expr $boardSize - 1]
+	} 
+	deletePiece $c $theMoveToUndo
+	drawPiece $c $i
+
+	$c itemconfigure counter$theMoveToUndo -text "[lindex $binPieces $theMoveToUndo]"
+	$c itemconfigure counter$i -text "[lindex $binPieces $i]"
+    }
+    update idletasks
+    after 200
+
     # Figure out where the move ended
+    set k [lindex $newBoardList $theMoveToUndo]
+
     for {set i [expr $theMoveToUndo - 1]} {$k > 0} {set i [expr $i - 1]} {
 	set k [expr $k - 1]
 	if {$i == $s} {
@@ -515,8 +538,9 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	if {$i == $boardSize} {
 	    set i 0
 	} 
-	drawPiece $c $theMoveToUndo
 	deletePiece $c $i
+	drawPiece $c $theMoveToUndo
+	
 	$c itemconfigure counter$theMoveToUndo -text "[lindex $binPieces $theMoveToUndo]"
 	$c itemconfigure counter$i -text "[lindex $binPieces $i]"
 	if {$colorMove == 1} { 	   
