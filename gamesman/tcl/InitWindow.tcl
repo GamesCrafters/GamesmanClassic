@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.54 2005-02-10 00:37:43 nizebulous Exp $
+# $Id: InitWindow.tcl,v 1.55 2005-02-10 00:45:56 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -929,6 +929,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA]
     .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
     .cStatus create image 100 40 -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
+    .cStatus create image 100 40 -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
     #create toWin checked
     .cStatus create image 290 27 -image iABB3p -tags [list sbb iABB iABB3 winA]
     #create toWin unchecked
@@ -966,9 +967,10 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA]
     .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI def]
     .cStatus create image 700 40 -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
+    .cStatus create image 700 40 -image iDBB9p -tags [list sbb iDBB iDBB9 undoD]
     .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
 
-
+    #play options
     .cStatus bind playI <Any-Enter> {
 	.cStatus raise playO; update idletasks;
     }
@@ -983,6 +985,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus bind playO <ButtonPress-1> {
 	.cStatus raise playA; update idletasks;
     }
+
 
     .cStatus bind winA <ButtonRelease-1> {
 	.middle.f1.cMLeft raise iIMB1
@@ -1061,6 +1064,8 @@ proc InitWindow { kRootDir kDir kExt } {
     }
 
     # Undo Button
+    global gMovesSoFar
+    #still need to start with disabled and switch to inactive when first move is made
     .cStatus bind undoI <Any-Enter> {
 	.cStatus raise undoO; update idletasks;
     }
@@ -1071,7 +1076,11 @@ proc InitWindow { kRootDir kDir kExt } {
 	.cStatus raise undoI; update idletasks;
     }
     .cStatus bind undoO <ButtonPress-1> {
-	.cStatus raise undoA; update idletasks;
+	if (1) {#moves made > 0
+	    .cStatus raise undoA; update idletasks;
+	} else {#moves made = 0
+	    .cStatus raise undoD; update idletasks;
+	}
     }
 
     .cStatus raise sbb
