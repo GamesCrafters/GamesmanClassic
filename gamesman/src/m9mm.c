@@ -154,6 +154,7 @@ BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 int find_pieces(blankox *board, blankox piece, int *pieces);
 int find_adj_pieces(blankox *board, int slot, int *pieces);
+int find_adjacent(int slot, int* slots);
 int count_pieces(blankox *board, blankox piece);
 BOOLEAN full_board(POSITION position);
 
@@ -1094,27 +1095,163 @@ int find_adj_pieces(blankox *board, int slot, int *pieces)
 {
   blankox piece = board[slot];
   int i;
-  int num = 0;
+  int num = find_adjacent(slot, pieces);
 
+  for (i = 0; i < num; i++) {
+	 if (board[pieces[i]] != piece) {
+		pieces[i] = -1;
+		num--;
+	 }
+  }
+
+  return num;
+}
+
+// Given slot, int array
+// Return number of adjacent slots, array of those slot numbers
+int find_adjacent(int slot, int* slots)
+{
   // multiples of 3 (0, 3, 6, 9, 12, 15, 18, 21) are left-most edge
   // 0, 1, 2, 3, 5, 6, 8 are top-most
   // 7, 15, 16, 17, 18, 19, 20, 21, 22, 23 are bottom-most
   // 2, 5, 8, 11, 14, 17, 20, 23 are right-most (each differs by 3)
   // 4, 10, 13, 19 are centered (have adjacent pieces in all 4 directions)
 
+  int num = 0;
+
   switch (slot) {
-  case 0:
-    num = 2;
-    pieces[0] = 1;
-    pieces[1] = 9;
+  case 0: 
+	 // num = 2;
+    slots[num++] = slot + 1;
+    slots[num++] = slot + 9;
     break;
+  case 3:
+	 // num = 2;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot + 7;
+	 break;
+  case 6:
+	 // num = 2;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot + 5;
+	 break;
+  case 2:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 12;
+	 break;
+  case 5:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 8;
+	 break;
+  case 8:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 4;
+	 break;
+  case 21:
+	 // num = 2;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 12;
+	 break;
+  case 18:
+	 // num = 2;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 8;
+	 break;
+  case 15:
+	 // num = 2;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 4;
+	 break;
+  case 23:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot - 9;
+	 break;
+  case 20:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot - 7;
+	 break;
+  case 17:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot - 5;
+	 break;
   case 1:
-    num = 3;
-    pieces[0] = 0;
-    pieces[1] = 2;
-    pieces[2] = 4;
+	 // num = 2;
+    slots[num++] = slot - 1;
+    slots[num++] = slot + 1;
+    slots[num++] = slot + 3;
     break;
+  case 16:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot + 3;
+	 break;
+  case 7:
+	 // num = 2;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 3;
+	 break;
+  case 22:
+	 // num = 3;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 3;
+	 break;
+  case 9:
+	 // num = 3;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot + 12;
+	 slots[num++] = slot - 9;
+	 break;
+  case 12:
+	 // num = 3;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot + 5;
+	 slots[num++] = slot - 4;
+	 break;
+  case 11:
+	 // num = 3;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 4;
+	 slots[num++] = slot - 5;
+	 break;
+  case 14:
+	 // num = 3;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 9;
+	 slots[num++] = slot - 12;
+	 break;
+  case 4: case 19:
+	 // num = 4;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 3;
+	 slots[num++] = slot - 3;
+	 break;
+  case 10:
+	 // num = 4;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 8;
+	 slots[num++] = slot - 7;
+	 break;
+  case 13:
+	 // num = 4;
+	 slots[num++] = slot + 1;
+	 slots[num++] = slot - 1;
+	 slots[num++] = slot + 7;
+	 slots[num++] = slot - 8;
+	 break;
   default:
+	 num = 0;
+	 slots[0] = -1;
     break;
   }
 
@@ -1438,6 +1575,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.55  2004/05/01 04:04:20  ogren
+//Still need to write find_adj_pieces and AppendFormedMill to complete GenerateParents. -Elmer
+//
 //Revision 1.54  2004/04/29 16:24:06  ogren
 //Not much work on find_adj_pieces, cant figure out an algorithm... -Elmer
 //
