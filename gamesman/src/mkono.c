@@ -369,12 +369,14 @@ VALUE Primitive (POSITION position)
 {
   int player = whoseMove(position);
 
-  if ((numberOfPieces(position, player) == 1) ||
-      GenerateMoves(position) == NULL)
+  MOVELIST * head = GenerateMoves(position);
+  BOOLEAN noMoves = (head == NULL);
+  free(head);
+
+  if ((numberOfPieces(position, player) == 1) || noMoves)
     return (gStandardGame ? lose : win);
   else
     return undecided;
-
 }
 
 
