@@ -243,8 +243,6 @@ int init;
 
 void InitializeGame()
 {
-  primcount = 1;
-
   if (DEBUGGING) printf("start initialize game\n");
 
   rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
@@ -1718,6 +1716,7 @@ int getOption()
 ************************************************************************/
 void setOption(int option)
 {
+  printf("Set Option has been called!\n");
   option--;
   int n = 2, pieces = 2, kills = 0, hash, mod;
   
@@ -2106,4 +2105,8 @@ int sum(int start, int stop) {
   if (stop == start)
     return start;
   return stop + sum(start, stop - 1);
+}
+
+int getInitialPosition() {
+  return ((int)gInitialPosition);
 }
