@@ -32,6 +32,7 @@
 ** 27 Feb 2005 Yanpei: more changes to hash() etc to enable new non-redundant
 **                     implementation. unhash() in the works. need printPosition()
 **                     before code can be tested independent of core. 
+** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
 **
 **************************************************************************/
 
@@ -569,7 +570,10 @@ POSITION hashUnsymQuarto(QTBPtr b) {
   } else if (b->squaresOccupied==0 && b->piecesInPlay==1) {
     toReturn = b->slots[0] + offsetTable[squaresOccupied];
   } else {
-    toReturn = hashUnsymQuartoHelper(b, 1) + offsetTable[b->squaresOccupied];
+    toReturn = b->slots[0]*permutation(NUMPIECES,b->squaresOccupied)
+                          *combination(BOARDSIZE,b->squaresOccupied)
+               + hashUnsymQuartoHelper(b, 1) 
+               + offsetTable[b->squaresOccupied];
   }
 
   if (b->usersTurn == FALSE) {
@@ -600,13 +604,13 @@ POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
   localB->userTurn = b->userTurn;
   for (i=0; i<BOARDSIZE+1; i++) {
     localB->slots[i] = b->slots[i];
-    if ((i >= s) && (b->slots[i] != NUMPIECES)) {
+    if ((i >= baseSlot) && (b->slots[i] != NUMPIECES)) {
       if ((b->slots[i] > b->slots[0]) && (b->slots[i] != NUMPIECES)) {
 	pieces[numOccSubset] = b->slots[i] - 1;
       } else {
 	pieces[numOccSubset] = b->slots[i];
       }
-      squares[numOccSubset] = i;
+      squares[numOccSubset] = i-baseSlot;
       numOccSubset++;
     }
   }
@@ -615,15 +619,16 @@ POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
   if (numOccSubset == 0) {
     toReturn = 0;
   } else if (numOccSubset == 1) {
-    toReturn (pieces[0]*(numSlotSubset) + squares[0] - 1);
+    toReturn = (pieces[0]*(numSlotSubset) + squares[0] - 1);
   } else {
     for (j=0; j<numOccSubset; j++) {
       if (localB->slots[squares[j]] > pieces[0]) {
 	localB->slots[squares[j]]--;
       }
     }
-    toReturn = (pieces[0]*permutation(numOccSubset)*combination(numNotOccSubset) + 
-	       hashUnsymQuartoHelper(localB,baseSlot+1));
+    toReturn = (pieces[0]*permutation(NUMPIECES,numOccSubset-1)
+		         *combination(BOARDSIZE-baseSlot+1,numOccSubset-1)
+	        + hashUnsymQuartoHelper(localB,baseSlot+1));
   }
 
   free(localB);
@@ -651,15 +656,53 @@ QTBPtr unhashUnsymQuarto(POSITION p) {
   if (p == 0) {
     toReturn->squaresOccupied = 0;
     toReturn->piecesInPlay = 0;
-  } else if (p <= offsetTable[1]) {
-    toReturn->slots[0] = p - offsetTable[0];
-    toReturn->squaresOccupied = 0;
-    toReturn->piecesInPlay = 0;
+  } else if (p < offsetTable[NUMPIECES]) {
+    for (i=1; i<NUMPIECES; i++) {
+      if (p>=offsetTable[i-1] && p<offseTable[i]) {
+	toReturn->squaresOccupied = i-1;
+	toReturn->piecesInPlay = i;
+	toReturn->slots[0] = (p - offsetTable[i-1]) / 
+	                       (permutation(NUMPIECES,toReturn->squaresOccupied)
+                                *combination(BOARDSIZE,toReturn->squaresOccupied));
+	unhashUnsymQuartoHelper(p-offsetTable -
+				  toReturn->slots[0]
+				  *permutation(NUMPIECES,toReturn->squaresOccupied)
+				  *combination(BOARDSIZE,toReturn->squaresOccupied),
+				1,
+				toReturn);
+      }
+    }
   } else {
-    toReturn = unhashUnsymQuartoHelper(p, NUMPIECES);
+    printf("unhashUnsymQuarto() -- p out of range: %d\n",p);
+    toReturn = NULL;
   }
 
   return toReturn;
+
+}
+
+void unhasUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr toReturn) {
+
+  int i;
+  int numUnhashed = 0;
+  int numRemaining;
+  int numSlotSubset = BOARDSIZE - baseSlot;
+  int nextSquare,nextPiece;
+
+  for (i=0; i<baseSlot; i++) {
+    if (toReturn->slots[i] != NUMPIECES) {
+      numUnhashed++;
+    }
+  }
+  numRemaining = toReturn->piecesInPlay - numUnhashed + 1;
+
+  if (numRemaining == 0) {
+    // we're done!
+  } else if (numRemaining == 1) {
+    nextPiece = p / numSlotSubset;
+    nextSquare = p - nextPiece*numSlotSubset + 1;
+    toReturn->slots[nextSquare] = nextPiece;
+  } else {
 
 }
 
