@@ -238,6 +238,7 @@ BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exist
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
+BOOLEAN gTwoBits = FALSE;	  /* Two bit solver, default: FALSE */
 
 
 int   smartness = SMART;
@@ -266,6 +267,8 @@ char *gValueString[] =
 	"Win", "Lose", "Tie", "Undecided",
 	"Win-Visited", "Lose-Visited", "Tie-Visited", "Undecided-Visited"
 };
+
+
 
 /*************************************************************************
 **
@@ -296,10 +299,16 @@ void InitializeDatabases()
     SafeFree((GENERIC_PTR) gDatabase);
     gDatabase = NULL;
   }
-
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
+  
+  if (gTwoBits) {	/* VALUE is always 32 bits */
+    size_t dbSize = sizeof(VALUE) * (gNumberOfPositions / 16 + 1);
+    gDatabase = (VALUE *) SafeMalloc (dbSize);
+    memset(gDatabase, 0xff, dbSize);	/* This _ASSUMES_ undecided = 3 */
+  } else {
+    gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
+    for(i = 0; i < gNumberOfPositions; i++)
+      gDatabase[i] = undecided;
+  }
 }
 
 void Initialize()
@@ -1240,14 +1249,15 @@ void MexStore(position,theMex)
 POSITION position;
 MEX theMex;
 {
-  gDatabase[position] |= ((theMex % 32) * 8) ;
+  if (!gTwoBits)
+    gDatabase[position] |= ((theMex % 32) * 8) ;
 }
 
 MEX MexLoad(position)
 POSITION position;
 {
 	//Gameline code removed
-	return (gDatabase[position]/8) % 32 ;
+	return (gTwoBits ? 0 : (gDatabase[position]/8) % 32);
 }
 
 void MexFormat(position,string)
@@ -1551,12 +1561,18 @@ VALUE StoreValueOfPosition(position, value)
      VALUE value;
 {
   VALUE *ptr;
-  //VALUE oldValue;
-		
+  
+  if (gTwoBits) {
+    int shamt;
+    
+    ptr = GetRawValueFromDatabase(position >> 4);
+    shamt = (position & 0xf) * 2;
+    
+    *ptr = (*ptr & ~(0x3 << shamt)) | ((0x3 & value) << shamt);
+    return value;
+  }
+  
   ptr = GetRawValueFromDatabase(position);
-
-//  if((oldValue = GetValueOfPosition(position)) != undecided)
-  //  printf("Error: StoreValueOfPosition(" POSITION_FORMAT ",%s) found a slot already filled with %s.\n",position,gValueString[value],gValueString[oldValue]);
 
   /* put it in the right position, but we have to blank field and then
   ** add new value to right slot, keeping old slots */
@@ -1569,8 +1585,15 @@ VALUE GetValueOfPosition(position)
 {
 	//Gameline code removed
 	VALUE *ptr;
-	ptr = GetRawValueFromDatabase(position);
-	return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
+	
+	if (gTwoBits) {
+		/* values are always 32 bits */
+		ptr = GetRawValueFromDatabase(position >> 4);
+		return (VALUE)(3 & ((int)*ptr >> ((position & 0xf) * 2)));
+	} else {
+		ptr = GetRawValueFromDatabase(position);
+		return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
+	}
 }
 
 MOVELIST *CreateMovelistNode(theMove, theNextMove)
@@ -1609,8 +1632,12 @@ REMOTENESS Remoteness(position)
 {
 	//Gameline code removed
 	VALUE *GetRawValueFromDatabase(), *ptr;
-	ptr = GetRawValueFromDatabase(position);
-	return((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
+	if (gTwoBits) {
+		return 254;
+	} else {
+		ptr = GetRawValueFromDatabase(position);
+		return((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
+	}
 }
 
 void SetRemoteness (position, remoteness)
@@ -1618,7 +1645,10 @@ void SetRemoteness (position, remoteness)
      REMOTENESS remoteness;
 {
   VALUE *ptr;
-
+  
+  if (gTwoBits)
+    return;
+  
   ptr = GetRawValueFromDatabase(position);
 
   if(remoteness > REMOTENESS_MAX) {
@@ -1636,7 +1666,10 @@ BOOLEAN Visited(position)
      POSITION position;
 {
   VALUE *ptr;
-
+  
+  if (gTwoBits)
+    return FALSE;
+  
   ptr = GetRawValueFromDatabase(position);
 
   return((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
@@ -1646,7 +1679,10 @@ void MarkAsVisited (position)
      POSITION position;
 {
   VALUE *ptr;
-
+  
+  if (gTwoBits)
+    return;
+  
   ptr = GetRawValueFromDatabase(position);
 
   *ptr = (VALUE)((int)*ptr | VISITED_MASK);       /* Turn bit on */
@@ -1656,7 +1692,10 @@ void UnMarkAsVisited (position)
      POSITION position;
 {
   VALUE *ptr;
-
+  
+  if (gTwoBits)
+    return;
+  
   ptr = GetRawValueFromDatabase(position);
 
   *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
@@ -3055,6 +3094,10 @@ int writeDatabase()
 	int goodCompression = 1;
 	int goodClose = 0;
 	unsigned long tot = 0,sTot = gNumberOfPositions;
+	
+	if (gTwoBits)	/* TODO: Make db's compatible with 2-bits */
+	  return 0;	/* for some reason, 0 is error. -JJ */
+	
 	mkdir("data", 0755) ;
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption());
 	if((filep = gzopen(outfilename, "wb")) == NULL) {
@@ -3104,6 +3147,9 @@ int loadDatabase()
 	int goodClose = 1;
 	unsigned long sTot = gNumberOfPositions;
 	BOOLEAN correctDBVer;
+	
+	if (gTwoBits)	/* TODO: Same here */
+	  return 0;
 	
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
 	if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
