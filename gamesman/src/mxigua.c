@@ -136,6 +136,7 @@ int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
 int maxsize;
 
 char *board;
+BOOLEAN *checked;
 
 /*struct with adjacency information - built in Initialize Game */
 typedef struct adjacency_info {
@@ -173,7 +174,7 @@ char *getprediction(char *);
 BOOLEAN isValidMove(POSITION, MOVE);      /* helper for GenerateMoves */
 VALUE countWinner(POSITION);              /* helper for Primitive */
 BOOLEAN isSurrounded(char *, MOVE, char, BOOLEAN *);  /* helper for DoMove, isValidMove */
-void removeStones(char *, MOVE, char, BOOLEAN *) /* helper for DoMove */
+void removeStones(char *, MOVE, char, BOOLEAN *); /* helper for DoMove */
 
 /*************************************************************************
 **
@@ -196,6 +197,7 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+	int i;
 	/* need to change this to reflect the board size */
         maxsize=5+4*boardsize;
 	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
@@ -206,7 +208,9 @@ void InitializeGame ()
 	gInitialPosition=hash(board,1,0);
 
 	adjacent = (adjacency *) SafeMalloc(sizeof(adjacency) * maxsize);
-
+	
+	checked = (BOOLEAN *)SafeMalloc(sizeof(BOOLEAN)*maxsize);
+	for(i=0;i<maxsize;i++) checked[i]=FALSE;
 	switch(boardsize) {
 	case 0: adjacent[0].numAdjacent = adjacent[1].numAdjacent = adjacent[3].numAdjacent = adjacent[4].numAdjacent = 3;
 	  adjacent[2].numAdjacent = 4;
@@ -349,7 +353,7 @@ char * emptyboard(char *board) {
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
-	for(i=0;i<maxsize;i++) ret[i]='O';
+	for(i=0;i<maxsize;i++) board[i]='O';
 
 	return board;
 }
@@ -377,7 +381,7 @@ MOVELIST *GenerateMoves (POSITION position)
     MOVELIST *moves = NULL; /* has fields move and next */
 	int i;
    
-	board=emptyboard();	 
+	board=emptyboard(board);	 
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
@@ -392,7 +396,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 /* Generate Moves helper function isValidMove */
 BOOLEAN isValidMove(POSITION pos, MOVE mv) {
-
+	return TRUE;
 }
 
 /************************************************************************
@@ -414,9 +418,9 @@ BOOLEAN isValidMove(POSITION pos, MOVE mv) {
 POSITION DoMove (POSITION position, MOVE move)
 {
 	char piece;
-	int player, turn;
+	int player, turn, i, j;
 	
-	board=unhash(position,board);
+	board=unhashboard(position,board);
 	player=getplayer(position);
 	turn=getturnnumber(position);
 	if(player==1) {
@@ -431,16 +435,19 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	board[move]=piece;
 
+	
 	/* check for capture */
-	for(i = 0; i < adjacent[move].numAdjacent; i++)
-	  if(board[adjacent[move].adj[i]] == oPiece && !checked[adjacent[move].adj[i]]) {
+	
+	for(i = 0; i < adjacent[move].numAdjacent; i++) {
+	  if(board[adjacent[move].adj[i]] == piece && !checked[adjacent[move].adj[i]]) {
 	    checked[adjacent[move].adj[i]] = TRUE;
-	    if(isSurrounded(board, adjacent[move].adj[i], oPiece, checked)) {
+	    if(isSurrounded(board, adjacent[move].adj[i], piece, checked)) {
 	      for(j = 0; j < maxsize; j++)
 		checked[j] = FALSE;
-	      removeStones(board, adjacent[move].adj[i], oPiece, checked);
+	      removeStones(board, adjacent[move].adj[i], piece, checked);
 	    }
 	  }
+	}
 
 	player^=3; /* slickness, 1 becomes 2 becomes 1.... */	
     	position = hash(board,player,turn); 
@@ -466,9 +473,11 @@ BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check) {
 }
 
 void removeStones(char *board, MOVE move, char p, BOOLEAN *check) {
+	int i;
   if(board[move] == p) {
-    checked[move] = TRUE;
+    check[move] = TRUE;
     board[move] = 'O';
+	
 
     for(i = 0; i < adjacent[move].numAdjacent; i++)
       if(!check[adjacent[move].adj[i]])
@@ -956,7 +965,7 @@ char *unhashboard(POSITION hashed, char *board){
 ***************************************************************************/
 
 int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
-        return (generic_hash_init(boardsize, piecesarray, NULL) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+        return (generic_hash_init(boardsize, pieces_array, NULL) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
 }
 
 /***************************************************************************
