@@ -116,8 +116,6 @@ POSITION position;
     /* With losing children, every parent is winning, so we just go through
     ** all the parents and declare them winning */
     while (ptr != NULL) {
-    
-    showStatus(0); /* Update Counter */
       
       parent = ptr->position;
       move = ptr->move;
@@ -263,8 +261,6 @@ void lgas_SetParents (POSITION parent, POSITION root)
   POSITION pos, child;
   VALUE value;
   MOVE move = -1; /* initialized to dummy value */
-  
-  showStatus(0);  /* Update Counter */
   
   posptr = thisLevel = nextLevel = NULL;
   moveptr = movehead = NULL;
