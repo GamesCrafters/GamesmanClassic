@@ -183,7 +183,7 @@ GENERIC_PTR SafeMalloc(size_t amount)
     
     /* Mando's Fix is to put a ckalloc here */
     if((ptr = malloc(amount)) == NULL) {
-        printf("Error: SafeMalloc could not allocate the requested %lu bytes\n",amount);
+        printf("Error: SafeMalloc could not allocate the requested %lu bytes\n",(long) amount);
         ExitStageRight();
         exit(0);
     }
