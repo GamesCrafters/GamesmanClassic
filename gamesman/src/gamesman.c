@@ -1,3 +1,20 @@
+/************************************************************************
+**
+** NAME:        gamesman.c
+**
+** DESCRIPTION: The source code and heart of a Master's project
+**              entitled GAMESMAN, which is a polymorphic perfect-
+**              information game generator.
+**
+** AUTHOR:      Dan Garcia  -  University of California at Berkeley
+**              Copyright (C) Dan Garcia, 1995. All rights reserved.
+**
+** DATE:        1991-07-15
+**
+**************************************************************************/
+
+#define SYMMETRY_REVISITED_OFF /* SYMMETRY_REVISITED for on, OFF for off */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,10 +51,11 @@ void     PlayAgainstComputer();
 int      randSafe();
 BOOLEAN  ValidMove(POSITION thePosition, MOVE theMove);
 BOOLEAN  PrintPossibleMoves(POSITION thePosition);
-int      Stopwatch();
+unsigned int Stopwatch();
 POSITION GetNextPosition();
 BOOLEAN  CorruptedValuesP();
 void     AnalysisMenu();
+void     DatabaseCombVisualization();
 void     PrintRawGameValues(BOOLEAN toFile);
 void     PrintBadPositions(char c, int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions);
 void     PrintGameValueSummary();
@@ -249,7 +267,7 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 char *  gVisited = NULL;
-STRING  kSolveVersion = "2004.05.05" ;
+STRING  kSolveVersion = "2005-01-01" ;
 
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;
@@ -257,7 +275,7 @@ int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
 VALUE oldValueOfPosition = tie;
 
-static MENU gMenuMode = BeforeEvaluation;
+MENU gMenuMode = BeforeEvaluation; /* was static (ddg) */
 BOOLEAN gPrintHints = TRUE;
 
 
@@ -279,6 +297,7 @@ char *gValueString[] =
 	"Tie-Visited", "Undecided-Visited"
     };
 
+char gValueLetter[] = { 'W', 'L', 'T', 'U' };
 
 
 /*************************************************************************
@@ -462,7 +481,7 @@ void MenusEvaluated()
 	    else if (smartness==RANDOM) {
 	    printf("randomly");
 	    }
-	    printf (" w/%d givebacks)\n", initialGivebacks);
+	    printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
 	}
     
     if(kDebugMenu)
@@ -506,7 +525,8 @@ void ParseBeforeEvaluationMenuChoice(char c)
     BOOLEAN tempPredictions;
     int timer;
     VALUE gameValue;
-
+    char mexString[20]; /* Mex values read "[Val = *14]", easily in 20 chars */
+    char tmpString[80]; /* Just for saving the remoteness value in it */
 
     switch(c) {
     case 'G': case 'g':
@@ -549,19 +569,24 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
-	/*      Stopwatch(&sec,&usec);*/
 	Stopwatch();
 	InitializeDatabases();
-	printf("done in %d seconds!", Stopwatch()); // for analysis bookkeeping
+	printf("done in %u seconds!", Stopwatch()); // for analysis bookkeeping
 	fflush(stdout);
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
-	printf("done in %d seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+	printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
 	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
 	} else {
-	    printf("\n\nThe Game %s has value: %s in %d\n\n", kGameName, gValueString[(int)gameValue],Remoteness(gInitialPosition));
+	  MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
+	  sprintf(tmpString, "in %d", Remoteness(gInitialPosition));
+	  printf("\n\nThe Game %s has value: %s %s %s\n\n", 
+		 kGameName, 
+		 gValueString[(int)gameValue], 
+		 gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
+		 mexString);
 	}
 	gMenuMode = Evaluated;
 	if(gameValue == lose)
@@ -653,7 +678,6 @@ void ParseEvaluatedMenuChoice(char c)
 	SmarterComputerMenu();
 	break;
     case 'A': case 'a':
-      analyze();
 	AnalysisMenu();
 	break;
     case 'p': case 'P':
@@ -866,7 +890,6 @@ void PlayAgainstHuman()
     UNDO *undo;
     BOOLEAN playerOneTurn = TRUE, error, player_draw;
     USERINPUT userInput = Continue; /* default added to satify compiler */
-    
     currentPosition = gInitialPosition;
     undo = InitializeUndo();
     
@@ -929,7 +952,6 @@ void PlayAgainstComputer()
     BOOLEAN usersTurn, error, player_draw;
     USERINPUT userInput = Continue; /* default added to satisfy compiler */
     int oldRemainingGivebacks;
-    
     thePosition = gInitialPosition;
     remainingGivebacks = initialGivebacks;
     undo = InitializeUndo();
@@ -1267,6 +1289,10 @@ VALUE DetermineValue1(position)
     REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
     REMOTENESS minTieRemoteness = MAXINT2, remoteness;
     MEXCALC theMexCalc = 0; /* default to satisfy compiler */
+
+#ifdef SYMMETRY_REVISITED
+    POSITION GetCanonicalPosition();
+#endif
     
     if(Visited(position)) { /* Cycle! */
         return(win);
@@ -1290,6 +1316,11 @@ VALUE DetermineValue1(position)
             MOVE move = ptr->move ;
             gAnalysis.TotalMoves++;
             child = DoMove(position,ptr->move);  /* Create the child */
+
+#ifdef SYMMETRY_REVISITED
+	    child = GetCanonicalPosition(child); /* Rotate board to canonical */
+#endif
+
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
             value = DetermineValue1(child);       /* DFS call */
@@ -1318,7 +1349,7 @@ VALUE DetermineValue1(position)
                 if (remoteness > maxRemoteness) maxRemoteness = remoteness;
             }
             else
-                BadElse("DetermineValue (1) ");
+                BadElse("DetermineValue[1]");
             ptr = ptr->next;
         }
         FreeMoveList(head);
@@ -1338,9 +1369,9 @@ VALUE DetermineValue1(position)
             return(StoreValueOfPosition(position,lose));
         }
         else
-            BadElse("DetermineValue (2)");
+            BadElse("DetermineValue[2]");
     }
-    BadElse("DetermineValue (3)");  /* This should NEVER be reached */
+    BadElse("DetermineValue[3]");  /* This should NEVER be reached */
     return(undecided);          /* But has been added to satisty lint */
 }
 
@@ -1404,7 +1435,8 @@ void MexStore(POSITION position, MEX theMex)
 MEX MexLoad(POSITION position)
 {
     //Gameline code removed
-    return (gTwoBits ? 0 : (gDatabase[position]/8) % 32);
+  /* Changed twoBits return value to -1 (because 0 is a valid MEX value */
+    return (gTwoBits ? -1 : (gDatabase[position]/8) % 32); 
 }
 
 void MexFormat(POSITION position, STRING string)
@@ -1412,7 +1444,7 @@ void MexFormat(POSITION position, STRING string)
     MEX theMex;
     char tmp[5];
     
-    if (!kPartizan) { /* Impartial, mex value available */
+    if (!kPartizan && !gTwoBits) { /* Impartial and solved with mex ==> mex value available */
         theMex = MexLoad(position);
         if(theMex == (MEX)0)
             (void) sprintf(tmp, "0");
@@ -1645,16 +1677,16 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
     return(prediction);
 }
 
-int Stopwatch()
+unsigned int Stopwatch()
 {
-    static int first = 1;
+    static BOOLEAN first = TRUE;
     static time_t oldT, newT;
     
     if(first) {
-        first = 0;
+        first = FALSE;
         newT = time(NULL);
     }else{
-        first = 1;
+        first = TRUE;
     }
     oldT = newT;
     newT = time(NULL);
@@ -1723,6 +1755,17 @@ VALUE GetValueOfPosition(POSITION position)
 {
     //Gameline code removed
     VALUE *ptr;
+
+#ifdef SYMMETRY_REVISITED
+    POSITION GetCanonicalPosition();
+
+    /* Efficiency gain when solving -- 
+    ** this saves us from rotating to canonical TWICE,
+    ** once in DetermineValue and once here.
+    */
+    if(gMenuMode == Evaluated || gMenuMode == AnalysisSymmetries)
+      position = GetCanonicalPosition(position); /* Rotate board to canonical */
+#endif
     
     if (gTwoBits) {
         /* values are always 32 bits */
@@ -1766,8 +1809,14 @@ REMOTENESS Remoteness(POSITION position)
 {
     //Gameline code removed
     VALUE *GetRawValueFromDatabase(), *ptr;
+
+#ifdef SYMMETRY_REVISITED
+    POSITION GetCanonicalPosition();
+    position = GetCanonicalPosition(position); /* Rotate board to canonical */
+#endif
+
     if (gTwoBits) {
-        return 254;
+        return REMOTENESS_TWOBITS;
     } else {
         ptr = GetRawValueFromDatabase(position);
         return((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
@@ -1883,7 +1932,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	case 'u': case 'U':
 	    return(Undo);
 	case 'a': case 'A':
-	    printf("\nSure you want to Abort? [no] :  ");
+	    printf("\nSure you want to Abort? [no] : ");
 	    GetMyString(tmpAns,2,TRUE,TRUE);
 	    printf("\n");
 	    if(tmpAns[0] == 'y' || tmpAns[0] == 'Y')
@@ -2197,7 +2246,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 {
     POSITION child;
     VALUE childValue;
-    
+
     child = DoMove(thePosition, move);
     childValue = GetValueOfPosition(child);
     if (gGoAgain(thePosition, move)) {
@@ -2214,7 +2263,8 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
         valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
     } else if (childValue == win) {  //lose moves
         valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
-    }
+    } else
+      BadElse("SortMoves found a child with an unknown value and");
     return valueMoves;
 }
 
@@ -2269,7 +2319,7 @@ BOOLEAN CorruptedValuesP()
                     if (gGoAgain(position, ptr->move)) {
                         switch(childValue) {
 			case win: childValue = lose; break;
-			case lose: childValue = win; break;
+	 		case lose: childValue = win; break;
                         }
                     }
 		    
@@ -2321,9 +2371,13 @@ void SmarterComputerMenu()
         printf("\tg)\tChange the number of (G)ive-backs (currently %d)\n\n", initialGivebacks);
         printf("\th)\t(H)elp\n\n");
         printf("\tb)\t(B)ack = Return to previous activity\n\n");
+        printf("\tq)\t(Q)uit.\n");
         printf("\nSelect an option: ");
 	
         switch(c = GetMyChar()) {
+	case 'Q': case 'q':
+	    ExitStageRight();
+	    exit(0);
 	case 'P': case 'p':
 	    smartness = SMART;
 	    scalelvl = 100;
@@ -2377,12 +2431,17 @@ void AnalysisMenu()
     MEX mexValue = 0;
     int mexInt, maxPositions = 10;
     char c;
-    
+
     gPrintPredictions = FALSE;
+    gMenuMode = AnalysisNoSymmetries; /* By default, no symmetries -- raw values */
     
     do {
         printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
 	
+#ifdef SYMMETRY_REVISITED
+        printf("\ts)\tToggle Use-(S)ymmetry-for-Values (currently %s)\n", 
+	       gMenuMode == AnalysisNoSymmetries ? "off" : "on");
+#endif
         printf("\ti)\tPrint the (I)nitial position\n");
         printf("\tn)\tChange the (N)umber of printed positions (currently %d)\n",maxPositions);
         if(!kPartizan) { /* Impartial */
@@ -2395,7 +2454,8 @@ void AnalysisMenu()
         printf("\tt)\tPrint up to %d (T)ieing  positions\n",maxPositions);
         printf("\n\tp)\t(P)rint the overall summmary of game values\n");
         printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
-        printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
+        printf("\to)\tPrint to screen/std(O)ut the raw game values + remoteness\n");
+        printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
 	
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
 	
@@ -2411,12 +2471,20 @@ void AnalysisMenu()
         printf("\n\nSelect an option: ");
 	
         switch(c = GetMyChar()) {
+#ifdef SYMMETRY_REVISITED
+	case 'S': case 's':
+	  gMenuMode = (gMenuMode == AnalysisSymmetries) ? AnalysisNoSymmetries : AnalysisSymmetries;
+	  break;
+#endif
 	case 'Q': case 'q':
 	    ExitStageRight();
 	    exit(0);
 	case 'H': case 'h':
 	    HelpMenus();
 	    break;
+	case 'D': case 'd':
+	  DatabaseCombVisualization();
+	  break;
 	case 'C': case 'c':
 	    if(CorruptedValuesP())
 		printf("\nCorrupted values found and printed above. Sorry.\n");
@@ -2437,6 +2505,7 @@ void AnalysisMenu()
 	    HitAnyKeyToContinue();
 	    break;
 	case 'p': case 'P':
+	    analyze();
 	    PrintGameValueSummary();
 	    HitAnyKeyToContinue();
 	    break;
@@ -2473,6 +2542,7 @@ void AnalysisMenu()
 	    FreePositionList(badTiePositions);
 	    FreePositionList(badLosePositions);
 	    gPrintPredictions = tempPredictions;
+	    gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
 	    return;
 	default:
 	    BadMenuChoice();
@@ -2481,6 +2551,68 @@ void AnalysisMenu()
         }
     } while(TRUE);
 }
+
+/************************************************************************
+**
+** NAME:        DatabaseCombVisualization
+**
+** DESCRIPTION: Print to stdout the Comb Visualization (described below)
+**              which is essentially all the positions and holes of the DB,
+**              encoded as positive and negative numbers respectively.
+** 
+** INPUTS:      none
+**
+************************************************************************/
+
+void DatabaseCombVisualization()
+{
+  POSITION thePosition;
+  BOOLEAN lastUndecided, thisUndecided;
+  long streak = 0, longestUndecided = 0, longestDecided = 0, switches = 0;
+
+  printf("\nThis is called a \"Database Comb Visualization\"\n");
+  printf("because we go through the database and find the streaks of\n");
+  printf("visited (i.e., known) positions and those the hash reserved\n");
+  printf("space for but never used. Every known streak is represented as\n");
+  printf("a POSITIVE number and every unknown streak is represented as\n");
+  printf("a NEGATIVE number. Thus, a full database of size K will\n");
+  printf("simply be printed as the positive number K. Likewise, a half-full database\n");
+  printf("with every other position known and unknown will be a sequence of\n");
+  printf("positive and negative ones: -1, 1, -1, 1, etc.\n");
+  printf("---------------------------------------------------------------------------\n");
+
+  lastUndecided = (GetValueOfPosition(0) == undecided); /* Handles 1st case */
+  
+  /* Can you say DAV? We should write an enumerator someday... */
+  for(thePosition = 0; thePosition < gNumberOfPositions ; thePosition++) {
+
+    thisUndecided = (GetValueOfPosition(thePosition) == undecided);
+    if (lastUndecided == thisUndecided) {
+      streak++;
+      if ( thisUndecided && streak > longestUndecided) longestUndecided = streak;
+      if (!thisUndecided && streak > longestDecided  ) longestDecided   = streak;
+    }
+    else {
+      /* Streak of Undecideds prints as a negative # */
+      /* Streak of Knowns     prints as a positive # */
+      printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+      streak = 1; /* A new streak of 1 of a different parity */
+      switches++;
+    }
+    lastUndecided = thisUndecided;
+  }
+  
+  /* Must flush the last bookend one too */
+  printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+
+  /* Print some stats */
+  printf("\n\nLongest   Visited (positive #s) streak: %ld\n", longestDecided);
+  printf("Longest UnVisited (negative #s) streak: %ld\n", longestUndecided);
+  printf("Total switches we have (# of changes) : %ld\n", switches);
+
+  HitAnyKeyToContinue();
+}
+
 
 void PrintRawGameValues(BOOLEAN toFile)
 {
@@ -2497,22 +2629,32 @@ void PrintRawGameValues(BOOLEAN toFile)
             ExitStageRightErrorString("Couldn't open file, sorry.");
             exit(0);
         }
+	printf("Writing to %s...", filename);
+	fflush(stdout);
     } else
         fp = stdout;
     
-    fprintf(fp,"Position/Value list for %s\n\n", kGameName);
-    fprintf(fp,"POS  | VISITED-FLAG VALUE in REMOTENESS\n");
+    if (!toFile) printf("\n");
+    fprintf(fp,"%s\n", kGameName);
+    fprintf(fp,"Position,Value,Remoteness%s\n",
+	    (!kPartizan && !gTwoBits) ? ",MexValue" : "");
     
     for(i=0 ; i<gNumberOfPositions ; i++)
-        if((value = GetValueOfPosition((POSITION)i)) != undecided)
-            fprintf(fp,POSITION_FORMAT " | %c %4s in %d\n",
+      if((value = GetValueOfPosition((POSITION)i)) != undecided) {
+            fprintf(fp,POSITION_FORMAT ",%c,%d",
 		    i,
-		    Visited((POSITION)i) ? 'V' : '-',
-		    gValueString[value],
+		    gValueLetter[value],
 		    Remoteness((POSITION)i));
+	    if(!kPartizan && !gTwoBits)
+	      fprintf(fp,",%d\n",MexLoad((POSITION)i));
+	    else
+	      fprintf(fp,"\n");
+      }
     
-    if(toFile)
-        fclose(fp);
+    if(toFile) {
+      fclose(fp);
+      printf("done\n");
+    }
 }
 
 void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions)
@@ -2554,20 +2696,18 @@ void PrintGameValueSummary()
     
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
-    printf("\tLose      = %5lu out of %lu\n",gAnalysis.LoseCount,gAnalysis.TotalPositions);	
-    printf("\tWin       = %5lu out of %lu\n",gAnalysis.WinCount,gAnalysis.TotalPositions);	
-    printf("\tTie       = %5lu out of %lu\n",gAnalysis.TieCount,gAnalysis.TotalPositions);	
-    printf("\tUnknown   = %5lu out of %lu\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);	
-    printf("\tTOTAL     = %5lu out of %lu allocated\n",
+    printf("\tLose      = %5lu out of %lu (%5lu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
+    printf("\tWin       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.WinCount,gAnalysis.TotalPositions, gAnalysis.PrimitiveWins);
+    printf("\tTie       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.TieCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveTies);
+    printf("\tUnknown   = %5lu out of %lu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);	
+    printf("\tTOTAL     = %5lu out of %lu allocated (%5lu primitive)\n",
 	   gAnalysis.TotalPositions,
-	   gNumberOfPositions);
+	   gNumberOfPositions,
+	   gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies);
     
-    printf("\tHash Efficiency                   = %6d\%%        \n",gAnalysis.HashEfficiency);
+    printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
     printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
-    printf("\tAvg. number of moves per position = %2f           \n", gAnalysis.AverageFanout);
-    printf("\tTotal Primitive Wins              = %5lu\n", gAnalysis.PrimitiveWins);
-    printf("\tTotal Primitive Loses             = %5lu\n", gAnalysis.PrimitiveLoses);
-    printf("\tTotal Primitive Ties              = %5lu\n", gAnalysis.PrimitiveTies);
+    printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
     return;
 }
 
@@ -3343,7 +3483,8 @@ int writeDatabase()
     int goodCompression = 1;
     int goodClose = 0;
     unsigned long tot = 0,sTot = gNumberOfPositions;
-    
+    int mkdir();
+
     if (gTwoBits)	/* TODO: Make db's compatible with 2-bits */
         return 0;	/* for some reason, 0 is error. -JJ */
     
@@ -3687,6 +3828,7 @@ void analyzer()
     reachablePositions = 0;
     hashEfficiency = 0;
     averageFanout = 0;
+
     for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
 	{
 	    theValue = GetValueOfPosition(thePosition);
@@ -3710,7 +3852,7 @@ void analyzer()
 	    }
 	}
     hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
-    averageFanout = (float)((float)gAnalysis.TotalMoves/(float)reachablePositions);
+    averageFanout = (float)((float)gAnalysis.TotalMoves/(float)(reachablePositions - primitiveWins - primitiveLoses - primitiveTies));
     
     gAnalysis.HashEfficiency = hashEfficiency;
     gAnalysis.AverageFanout = averageFanout;
@@ -3753,17 +3895,20 @@ void writeVarStat(char * statName, char * text, FILE *rowp)
 }
 void createAnalysisGameDir()
 {
-    char gameDirName[256];
-    sprintf(gameDirName, "analysis/%s", kDBName);
-    
-    mkdir("analysis", 0755);
-    mkdir(gameDirName, 0755);
-    
+  char gameDirName[256];
+  int mkdir();
+  
+  sprintf(gameDirName, "analysis/%s", kDBName);
+  
+  mkdir("analysis", 0755);
+  mkdir(gameDirName, 0755);
 }
 
 void createAnalysisVarDir()
 {
     char varDirName[256];
+    int mkdir();
+
     sprintf(varDirName, "analysis/%s/var%d", kDBName,getOption());
     mkdir(varDirName, 0755) ;
 }
@@ -3858,6 +4003,7 @@ void createVarTable ()
 
 void writeXML(STATICMESSAGE msg)
 {
+  int mkdir();
     static FILE *xmlFile = 0;
     switch(msg)
     {
@@ -3882,17 +4028,18 @@ void writeXML(STATICMESSAGE msg)
 
 FILE* prepareXMLFile()
 {
-    FILE * xmlFile;
-    char xmlPath[256];
-    
-    sprintf(xmlPath, "analysis/xml/%s.xml", kDBName);
-    
-    mkdir("analysis/xml",0755);
-    
-    xmlFile = fopen(xmlPath,"w");
-    fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
-    fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
-    return xmlFile;
+  int mkdir();
+  FILE * xmlFile;
+  char xmlPath[256];
+  
+  sprintf(xmlPath, "analysis/xml/%s.xml", kDBName);
+  
+  mkdir("analysis/xml",0755);
+  
+  xmlFile = fopen(xmlPath,"w");
+  fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
+  fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
+  return xmlFile;
 }
 
 void closeXMLFile(FILE* xmlFile)
