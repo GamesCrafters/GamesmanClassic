@@ -26,8 +26,8 @@
 
 POSITION gNumberOfPositions  = 0;
 
-POSITION gInitialPosition    = 11137;
-POSITION gMinimalPosition    = 11137;
+POSITION gInitialPosition    = 245103;
+POSITION gMinimalPosition    = 245103;
 POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "Nine Men's Morris";
@@ -90,7 +90,7 @@ BOOLEAN debug = FALSE;
 #define mino  2
 #define maxo  3
 #define minb  BOARDSIZE - maxo - maxx
-#define maxb  BOARDSIZE - minx - mino
+#define maxb  BOARDSIZE - mino - minx
 
 typedef enum Pieces {
   blank, x, o
@@ -1169,6 +1169,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.43  2004/04/22 03:18:30  jjjordan
+//Fixed gNumberOfPositions (InitializeGame). -JJ
+//
 //Revision 1.42  2004/04/21 03:47:43  weitu
 //changed generate moves, still buggy tho
 //
