@@ -948,9 +948,23 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
-{
-    return 0;
+POSITION GetInitialPosition () {
+	int i;
+	char* board = (char*)malloc(width * height * sizeof(char));
+	
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("%c %c %c %c\n%c %c %c %c            <----- EXAMPLE \n%c %c %c %c\n%c %c %c %c\n\n", WHITE, BLANK, BLANK, BLANK, BLANK BLACK, BLANK, WHITE, BLANK, BLANK, BLANK, BLANK, BLANK, BLACK, BLANK, WHITE);
+	
+	i = 0;
+	getchar();
+	while (i < width * height && (c = getchar()) != EOF) {
+		if (c == BLANK || c == WHITE || c == BLACK) {
+			board[i++] = c;
+		}
+	}
+	return generic_hash(board, countPieces(board, BLACK) < countPieces(board, WHITE) ? 2 : 1);
 }
 
 
@@ -967,7 +981,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 5880;
+    return 5880; 
 }
 
 
