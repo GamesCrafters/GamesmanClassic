@@ -2,7 +2,7 @@ proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
     global kGameName
-    set kGameName "TicTacToe"
+    set kGameName "Tic-Tac-Toe"
 
 
     global kCAuthors kTclAuthors
@@ -190,8 +190,8 @@ proc MakePieces { c num } {
 proc MakeX { c x y tag } {
     set x [expr $x * 166]
     set y [expr $y * 166]
-    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill blue -tag x-$tag
-    $c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill blue -tag x-$tag
+    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill blue -capstyle round -tag x-$tag 
+    $c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill blue -capstyle round -tag x-$tag
     $c lower x-$tag base 
 }
 
@@ -315,7 +315,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
         set tox [expr ([lindex $p 1] % 3 + .5)*166]
         set toy [expr ([lindex $p 1] / 3 + .5)*166]
         
-        $c create line $fromx $fromy $tox $toy -width 15 -fill black -tag bigline
+        $c create line $fromx $fromy $tox $toy -width 15 -fill black -tag bigline -capstyle round
     }
 }
 
