@@ -1,4 +1,4 @@
-// Alex Wallisch
+// Steven Kusalo
 // $log$
 
 /*
@@ -16,9 +16,10 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-08      Partially wrote GameSpecificMenu
-**		2004-10-03      Wrote Primitive
+** UPDATE HIST: 2004-10-25 	Fixed the last bug in GameSpecificMenu
 **				Wrote ValidTextInput
+** 		2004-10-08      Partially wrote GameSpecificMenu
+**		2004-10-03      Wrote Primitive
 **				Wrote ConvertTextInputToMove
 **                              Wrote PrintComputersMove
 **                              Wrote PrintMove
@@ -103,6 +104,15 @@ STRING   kHelpExample =
 #define WHITE 'X'
 #define BLACK 'O'
 
+/* The min width and height are set to
+ * 3 since the game isn't any fun otherwise.
+ * The max is set to 9 so that we can
+ * assume a move is of the form letterdigit,
+ * e.g. a9. Also when allowing the
+ * user to change the board size we assume
+ * that the newwidth and height are one
+ * character.
+ */
 #define MAX_HEIGHT 9
 #define MIN_HEIGHT 3
 #define MAX_WIDTH 9
@@ -580,10 +590,62 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input) {
    
-	BOOLEAN valid = TRUE;
-	
-	valid = input[0] != 'q' ? valid : FALSE;
-	return valid;
+	int pos = 0;
+
+	/* Eat whitespace */
+	while (isspace(input[pos])) pos++;
+
+	/* Next 2 chars should be letterdigit, e.g. a9
+	 * and they must be within range */
+	if (input[pos] == '\0' || input[pos] < 'a' || input[pos] > 'a' + (width-1)) {
+	    return FALSE;
+	}
+	pos++;
+	if (input[pos] == '\0' || input[pos] < '1' || input[pos] > '1' + (height-1)) {
+	    return FALSE;
+	}
+	pos++;
+
+	/* Eat whitespace */
+	while (isspace(input[pos])) pos++;
+
+	/* The input was a valid move without a slide */
+	if (input[pos] == '\0') {
+	    return TRUE;
+	}
+
+	/* Next 2 chars should be letterdigit */
+	if (input[pos] < 'a' || input[pos] > 'a' + (width-1)) {
+	    return FALSE;
+	}
+	pos++;
+	if (input[pos] == '\0' || input[pos] < '1' || input[pos] > '1' + (height-1)) {
+	    return FALSE;
+	}
+	pos++;
+
+	/* Eat whitespace */
+	while (isspace(input[pos])) pos++;
+
+	/* Next 2 chars should be letterdigit */
+	if (input[pos] == '\0' || input[pos] < 'a' || input[pos] > 'a' + (width-1)) {
+	    return FALSE;
+	}
+	pos++;
+	if (input[pos] == '\0' || input[pos] < '1' || input[pos] > '1' + (height-1)) {
+	    return FALSE;
+	}
+	pos++;
+
+	/* Eat whitespace */
+	while (isspace(input[pos])) pos++;
+
+	/* The input was a valid move with a slide */
+	if (input[pos] == '\0') {
+	    return TRUE;
+	}
+
+	return FALSE;
 }
 
 
@@ -937,9 +999,14 @@ int countPieces(char *board, char piece) {
  */
 void ChangeBoardSize() {
     int newWidth, newHeight;
+    char c;
     while(TRUE) {
-	printf("\n\nEnter a new size for the board (width height): ");
-	scanf("%d %d", &newWidth, &newHeight);
+	printf("\n\nEnter a new width for the board: ");
+	while (!isalnum(c = getc(stdin))) ;
+	newWidth = c - '0';
+	printf("Enter a new height for the board: ");
+	while (!isalnum(c = getc(stdin))) ;
+	newHeight = c - '0';;
 	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH & newHeight >= MIN_HEIGHT) {
 	    height = newHeight;
 	    width = newWidth;
@@ -957,9 +1024,11 @@ void ChangeBoardSize() {
  */
 void ChangeNumPieces() {
     int newAmount;
+    char c;
     while(TRUE) {
 	printf("\n\nEnter the number of pieces each team starts with: ");
-	scanf("%d", &newAmount);
+	while (!isalnum(c = getc(stdin))) ;
+	newAmount = c - '0';
 	if (newAmount <= width && newAmount >= 1) {
 	    numpieces = newAmount;
 	    printf("\nNumber of pieces changed to %d\n", numpieces);
