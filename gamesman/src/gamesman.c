@@ -19,8 +19,6 @@ int gTotalTies = 0;
 int gTotalMoves = 0;
 extern STRING  kGamesmanName;     // Dan the man
 extern STRING  kModuleAuthorName; // module writers
-extern STRING  kGUIAuthorName;    // graphics writers
-
 
 
 /* gameplay-related internal function prototypes */
@@ -234,9 +232,7 @@ a (or A)    : (A)bort the game\n\
 c (or C)    : Adjust (C)omputer's brain\n\
 q (or Q)    : (Q)uit";
 
-
-
-static VALUE   gValue = undecided;                  /* The value of the game */
+static VALUE   gValue = undecided;      /* The value of the game */
 static BOOLEAN gAgainstComputer = TRUE;        /* TRUE iff the user is playing the computer */
 static BOOLEAN gHumanGoesFirst;         /* TRUE iff the user goes first vs. computer */
 BOOLEAN gStandardGame = TRUE;           /* TRUE iff game is STANDARD (not REVERSE) */
@@ -244,7 +240,7 @@ static BOOLEAN gPrintPredictions = TRUE;       /* TRUE iff the predictions shoul
 static BOOLEAN gHints = FALSE;          	 /* TRUE iff possible moves should be printed */
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
-STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
+STRING kSolveVersion = "2004.05.05" ;
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
@@ -261,7 +257,6 @@ VALUE oldValueOfPosition = tie;
 static MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
 STRING kAuthorName = "Dan Garcia" ;
-extern POSITION kBadPosition;          /* A POSITION that will never be used */
 
 /* Start Loopy */
 FRnode *gHeadWinFR = NULL;               /* The FRontier Win Queue */
@@ -369,6 +364,9 @@ void MenusBeforeEvaluation()
 
 void MenusEvaluated()
 {
+  VALUE gameValue;
+  gameValue = GetValueOfPosition(gInitialPosition);
+
   printf("\n\tPlayer Name Options:\n\n");
       
   printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
@@ -390,17 +388,17 @@ void MenusEvaluated()
 	 gAgainstComputer ? "HUMAN" : "COMPUTER");
   if(gAgainstComputer )
   {
-    if(gValue == tie)
+    if(gameValue == tie)
       printf("\t7)\tToggle from going %s (can tie/lose) to %s (can tie/lose)\n",
 	     gHumanGoesFirst ? "FIRST" : "SECOND",
 	     gHumanGoesFirst ? "SECOND" : "FIRST");
-    else if (gValue == lose)
+    else if (gameValue == lose)
       printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
 	     gHumanGoesFirst ? "FIRST" : "SECOND",
 	     gHumanGoesFirst ? "only lose" : "win/lose",
 	     gHumanGoesFirst ? "SECOND" : "FIRST",
 	     gHumanGoesFirst ? "win/lose" : "only lose");
-    else if (gValue == win)
+    else if (gameValue == win)
       printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
 	     gHumanGoesFirst ? "FIRST" : "SECOND",
 	     gHumanGoesFirst ? "win/lose" : "only lose",
@@ -465,6 +463,8 @@ void ParseBeforeEvaluationMenuChoice(c)
 {
   BOOLEAN tempPredictions ;
   int timer;
+  VALUE gameValue;
+
   switch(c) {
   case 'G': case 'g':
     if(kGameSpecificMenu)
@@ -500,15 +500,15 @@ void ParseBeforeEvaluationMenuChoice(c)
 
       printf("\nEvaluating the value of %s...", kGameName);
 
-      gValue = DetermineValue(gInitialPosition);
+      gameValue = DetermineValue(gInitialPosition);
 
       printf("done in %d seconds!", Stopwatch());
 
       
       
-      printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gValue]);
+      printf("\n\nThe Game %s has value: %s\n\n", kGameName, gValueString[(int)gameValue]);
       gMenuMode = Evaluated;
-	if(gValue == lose)
+	if(gameValue == lose)
 		gHumanGoesFirst = FALSE;
 	else
 		gHumanGoesFirst = TRUE ;
@@ -1180,14 +1180,20 @@ POSITION position;
 
 VALUE DetermineValue(POSITION position)
 {
-  if(gReadDatabase && loadDatabase())
-    return GetValueOfPosition(position);
+  if(gReadDatabase && loadDatabase()) {
+    if (GetValueOfPosition(position) == undecided) {
+      gSolver(position);
+      if(gWriteDatabase)
+	writeDatabase();
+    }
+  }
   else {
-    gValue = gSolver(gInitialPosition);
+    gSolver(position);
     if(gWriteDatabase)
       writeDatabase();
-    return GetValueOfPosition(position);
   }
+  gValue = GetValueOfPosition(position);
+  return gValue;
 }
 
 MEXCALC MexAdd(theMexCalc,theMex)
@@ -3071,12 +3077,13 @@ int loadDatabase()
 {
 	short dbVer[1];
 	POSITION numPos[1];
-    POSITION i;
+	POSITION i;
 	gzFile * filep ;
 	char outfilename[256] ;
 	int goodDecompression = 1;
 	int goodClose = 1;
 	unsigned long sTot = gNumberOfPositions;
+	BOOLEAN correctDBVer;
 	
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
 	if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
@@ -3092,9 +3099,13 @@ int loadDatabase()
 	/***
 	** Database Ver. 1 Decompress
 	***/
-	for(i = 0; i < gNumberOfPositions && goodDecompression && (*dbVer == 1); i++){
-		goodDecompression = gzread(filep, gDatabase+i, sizeof(VALUE));
-		gDatabase[i] = ntohl(gDatabase[i]);
+	correctDBVer = (*dbVer == DBVER);
+
+	if (correctDBVer) {
+	        for(i = 0; i < gNumberOfPositions && goodDecompression; i++){
+	                goodDecompression = gzread(filep, gDatabase+i, sizeof(VALUE));
+			gDatabase[i] = ntohl(gDatabase[i]);
+	        }
 	}
 	/***
 	** End Ver. 1
@@ -3104,7 +3115,7 @@ int loadDatabase()
 	goodClose = gzclose(filep);	
 	
 
-	if(goodDecompression && (goodClose == 0))
+	if(goodDecompression && (goodClose == 0) && correctDBVer)
 	{
 		if(kDebugDetermineValue){
 			printf("File Successfully Decompressed\n");
@@ -3114,7 +3125,7 @@ int loadDatabase()
 		for(i = 0 ; i < gNumberOfPositions ; i++)
 			gDatabase[i] = undecided ;
 		if(kDebugDetermineValue){
-			printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\n",goodDecompression,goodClose);
+			printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\ndb version: %d\n",goodDecompression,goodClose,*dbVer);
 		}
 		return 0;
 	}
@@ -3140,7 +3151,7 @@ void StartGame() {
 void SolveAndStore() {
   Initialize();
   InitializeDatabases();
-  gValue = DetermineValue(gInitialPosition);
+  DetermineValue(gInitialPosition);
 }
 
 /* Handles the command line arguments by setting flags and options */
