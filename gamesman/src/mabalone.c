@@ -152,7 +152,7 @@ int init;
 
 void InitializeGame()
 {
-  printf("start initialize game\n");
+  /*printf("start initialize game\n");*/
   rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
 
   int rowsize = N, rownum, slot = 0;
@@ -194,12 +194,12 @@ void InitializeGame()
   }
   */
   
-  printf("%d is result of primitive on inital board\n", game_over(gBoard));
+  /*printf("%d is result of primitive on inital board\n", game_over(gBoard));*/
   
   gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));
 
  
-  printf("end initializegame\n");
+  /*printf("end initializegame\n");*/
 }
 
 /************************************************************************
@@ -264,7 +264,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  printf("Starting Do Move with input: %d\n", theMove);
+  /*printf("Starting Do Move with input: %d\n", theMove);*/
   int destination(int,int);
 
   m_generic_unhash(thePosition, gBoard);
@@ -312,8 +312,6 @@ POSITION DoMove(thePosition, theMove)
   gBoard[dest1] = gBoard[slot1];
   gBoard[slot1] = '-';
 
-  printf("pushed a piece\n");
-
   if (twopieces) {
     gBoard[dest2] = gBoard[slot2];
     gBoard[slot2] = '-';
@@ -325,7 +323,7 @@ POSITION DoMove(thePosition, theMove)
   else {
     gBoard[7] = 'x';
   }
-  printf("finished do move\n");
+  /*printf("finished do move\n");*/
   return (m_generic_hash(gBoard));
 }
 
@@ -385,16 +383,16 @@ void PrintComputersMove(computersMove, computersName)
 
 VALUE Primitive ( POSITION h )
 {
-  printf("prim\n");
+  /*printf("prim\n");*/
   BOOLEAN game_over(char[]);
 
   m_generic_unhash(h,gBoard);
   
   if (game_over(gBoard)) {
-    printf("endprim\n");
+    /*printf("endprim\n");*/
     return (lose);
   }
-  printf("endprim\n");
+  /*printf("endprim\n");*/
   return (undecided);
 }
 
@@ -438,15 +436,13 @@ void PrintPosition(position, playerName, usersTurn)
      BOOLEAN usersTurn;
 {
   m_generic_unhash(position, gBoard);
-  printf("  (%c)(%c)\n",gBoard[5], gBoard[6]);
-  printf("(%c)(%c)(%c)\n",gBoard[2], gBoard[3],gBoard[4]);
-  printf("  (%c)(%c)\n", gBoard[0], gBoard[1]);
-  printf("direction key:\n");
-  printf("      3   2 \n");
-  printf("       \\ / \n");
-  printf("    -1 -*- 1 \n");
-  printf("       / \\ \n");
-  printf("     -2  -3 \n");
+  printf("\nCurrent board:   Legend:         Direction Key:           \n");
+  printf("                |               |      3   2      |  To move one piece: \n");
+  printf("    (%c)(%c)      |    (5) (6)    |       \\ /       |      direction, piece1 \n",gBoard[5], gBoard[6]);
+  printf("  (%c)(%c)(%c)     |  (2) (3) (4)  |    -1 -*- 1     |  To move two pieces: \n",gBoard[2], gBoard[3],gBoard[4]);
+  printf("    (%c)(%c)      |    (0) (1)    |       / \\       |      direction, piece1, piece2\n", gBoard[0], gBoard[1]);
+  printf("                |               |     -2  -3      |       (order of pieces doesn't matter)\n");
+
 }
 
 /************************************************************************
@@ -470,7 +466,7 @@ void PrintPosition(position, playerName, usersTurn)
 MOVELIST *GenerateMoves(position)
          POSITION position;
 {
-  printf("generate\n");
+  /*printf("generate\n");*/
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode(); /* In gamesman.c */
   VALUE Primitive();
@@ -544,10 +540,10 @@ MOVELIST *GenerateMoves(position)
 	}   
       }
     }
-    printf("end gen\n");
+    /*printf("end gen\n");*/
     return(head);
   }
-  printf("end gen\n");
+  /*printf("end gen\n");*/
   return(NULL);
  }
 
@@ -575,13 +571,20 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      POSITION thePosition;
      MOVE *theMove;
      STRING playerName;
+  
 {
+  USERINPUT ret;
+  do {
+    printf("for a list of valid moves, press ?\n\n");
+    printf("%8s's move :  ", playerName);
   
-  printf("%8s's move :  ", playerName);
-  printf("to move for one piece, type: direction, piece1\n");
-  printf("to move for two pieces, type: direction, piece1, piece2\n");
-  
-  return HandleDefaultTextInput(thePosition, theMove, playerName);
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if(ret != Continue) 
+      return(ret);
+   
+  }
+  while (TRUE);
+  return(Continue); /* this is never reached, but lint is now happy */
 }
 
 
@@ -626,7 +629,56 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  return(atoi(input));
+  /*printf("Starting conversion\n");*/
+  int n=0, dir, p1, p2;
+
+  /*skip whitespace*/
+  while ((input[n] == ' ') || (input[n] == '(')) {
+    n++;
+  }
+  
+  /*get direction*/
+  if (input[n] == '-') {
+    dir = 0 - (input[n+1] - '0');
+    n = n + 3;
+  }
+  else {
+    dir = input[n] - '0';
+    n = n + 2;
+  }
+
+  /*skip whitespace*/
+  while (input[n] == ' ') {
+    n++;
+  }
+
+  /*get first piece*/
+  p1 = input[n] - '0';
+  n++;
+  if ((input[n] >= '0') && (input[n] <= '9')) {
+    p1 = p1 * 10 + (input[n] - '0');
+    n++;
+  }
+
+  /*skip whitespace and commas*/
+  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ')')) {
+    n++;
+  }
+  
+  if (input[n] == 0) {
+    p2 = NULLSLOT;
+  }
+  else {
+    /*get 2nd piece*/
+    p2 = input[n] - '0';
+    n++;
+    if ((input[n] >= '0') && (input[n] <= '9')) {
+      p2 = p2 * 10 + (input[n] - '0');
+    }
+  }
+  
+  /*printf("ending conversion\n");*/
+  return move_hash(p1, p2, dir);
 }
 
 /************************************************************************
@@ -642,7 +694,27 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf("%d",theMove);
+  int direction, slot1, slot2;
+
+  direction = theMove % 10;
+  theMove = theMove/10;
+
+  if (theMove < 0) {
+    theMove = 0 - theMove;
+  }
+
+  slot1 = theMove % 100;
+  slot2 = theMove/100;
+
+  if (slot1 == NULLSLOT) {
+    printf("(%d,%d)",direction,slot2);
+  }
+  else if (slot2 == NULLSLOT) {
+    printf("(%d,%d)",direction,slot1);
+  }
+  else {
+    printf("(%d,%d,%d)",direction,slot1,slot2);
+  }
 }
 
 /************************************************************************
