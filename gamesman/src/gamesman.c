@@ -84,6 +84,8 @@ void     MyPrintParents();
 VALUE    DetermineLoopyValue1(POSITION position);
 VALUE    DetermineLoopyValue(POSITION position);
 void     SetParents (POSITION parent, POSITION root);
+void	 InitializeVisitedArray();
+void	 FreeVisitedArray();
 void     ParentInitialize();
 void     ParentFree();
 void     NumberChildrenInitialize();
@@ -232,6 +234,7 @@ static BOOLEAN gPrintPredictions = TRUE;       /* TRUE iff the predictions shoul
 static BOOLEAN gHints = FALSE;          	 /* TRUE iff possible moves should be printed */
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
+char *  gVisited = NULL;
 STRING kSolveVersion = "2004.05.05" ;
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
@@ -295,13 +298,13 @@ char GetMyChar()
 void InitializeDatabases()
 {
   POSITION i;
-  if (gDatabase!=NULL) {
+  if (gDatabase) {
     SafeFree((GENERIC_PTR) gDatabase);
     gDatabase = NULL;
   }
   
   if (gTwoBits) {	/* VALUE is always 32 bits */
-    size_t dbSize = sizeof(VALUE) * (gNumberOfPositions / 16 + 1);
+    size_t dbSize = sizeof(VALUE) * (1 + gNumberOfPositions / (sizeof(VALUE) * 4));
     gDatabase = (VALUE *) SafeMalloc (dbSize);
     memset(gDatabase, 0xff, dbSize);	/* This _ASSUMES_ undecided = 3 */
   } else {
@@ -361,6 +364,7 @@ void MenusBeforeEvaluation()
     printf("\td)\t(D)ebug Module BEFORE Evaluation\n");
   if(kGameSpecificMenu)
     printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
+  printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
 }
 
 void MenusEvaluated()
@@ -479,6 +483,9 @@ void ParseBeforeEvaluationMenuChoice(c)
       BadMenuChoice();
       HitAnyKeyToContinue();
     }
+    break;
+  case '2':
+    gTwoBits = !gTwoBits;
     break;
   case 'o': case 'O':
     gStandardGame = !gStandardGame;
@@ -1487,16 +1494,25 @@ STRING GetPrediction(position,playerName,usersTurn)
 		    (value == win && !usersTurn && gAgainstComputer)) ?
 		   "will" : "should",
 		   mexString);
-    }
-    else {
-      (void) sprintf(prediction, "(%s %s %s in %d) %s",
-		   playerName,
-		   ((value == lose && usersTurn && gAgainstComputer) ||
-		    (value == win && !usersTurn && gAgainstComputer)) ?
-		   "will" : "should",
-		   gValueString[(int)value],
-		   Remoteness(position),
-		   mexString);
+    } else {
+      if (gTwoBits) {
+        sprintf(prediction, "(%s %s %s) %s",
+        	playerName,
+		((value == lose && usersTurn && gAgainstComputer) ||
+		(value == win && !usersTurn && gAgainstComputer)) ?
+		"will" : "should",
+		gValueString[(int)value],
+		mexString);
+      } else {
+        sprintf(prediction, "(%s %s %s in %d) %s",
+		playerName,
+		((value == lose && usersTurn && gAgainstComputer) ||
+		(value == win && !usersTurn && gAgainstComputer)) ?
+		"will" : "should",
+		gValueString[(int)value],
+		Remoteness(position),
+		mexString);
+      }
     }
   }
   else
@@ -1667,6 +1683,9 @@ BOOLEAN Visited(position)
 {
   VALUE *ptr;
   
+  if (gVisited)
+    return (gVisited[position >> 3] >> (position & 7)) & 1;
+  
   if (gTwoBits)
     return FALSE;
   
@@ -1680,8 +1699,12 @@ void MarkAsVisited (position)
 {
   VALUE *ptr;
   
-  if (gTwoBits)
+  if (gTwoBits) {
+    if (gVisited)
+      gVisited[position >> 3] |= 1 << (position & 7);
+    
     return;
+  }
   
   ptr = GetRawValueFromDatabase(position);
 
@@ -1693,8 +1716,12 @@ void UnMarkAsVisited (position)
 {
   VALUE *ptr;
   
-  if (gTwoBits)
+  if (gTwoBits) {
+    if (gVisited)
+      gVisited[position >> 3] &= ~(1 << (position & 7));
+    
     return;
+  }
   
   ptr = GetRawValueFromDatabase(position);
 
@@ -2667,13 +2694,16 @@ VALUE DetermineLoopyValue(POSITION position)
   InitializeFR();
   ParentInitialize();
   NumberChildrenInitialize();
-
+  if (gTwoBits)
+    InitializeVisitedArray();
+  
   value = DetermineLoopyValue1(gInitialPosition);
 
   /* free */
   NumberChildrenFree();
   ParentFree();
-
+  FreeVisitedArray();
+  
   return value;
 }
 
@@ -2921,6 +2951,19 @@ void SetParents (POSITION parent, POSITION root)
     thisLevel = nextLevel;
     nextLevel = NULL;
   }
+}
+
+void InitializeVisitedArray()
+{
+  size_t sz = (gNumberOfPositions >> 3) + 1;
+  gVisited = (char*) SafeMalloc (sz);
+  memset(gVisited, 0, sz);
+}
+
+void FreeVisitedArray()
+{
+  if (gVisited) SafeFree(gVisited);
+  gVisited = NULL;
 }
 
 void ParentInitialize()
@@ -3250,6 +3293,9 @@ void HandleArguments (int argc, char *argv[]) {
 	  setOption(option);
       }
     }
+    else if(!strcasecmp(argv[i], "--2bit")) {
+      gTwoBits = TRUE;
+    }
     else if(!strcasecmp(argv[i], "--solve")) {
       gJustSolving = TRUE;
       if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
@@ -3301,6 +3347,7 @@ void HandleArguments (int argc, char *argv[]) {
 	     "--newdb\t\t\tStarts game and clobbers the old database.\n"
 	     "--option <n>\t\tStarts game with the n option configuration.\n"
 	     "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
+	     "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
 	     "\t\t\tTo solve all option configurations of game, use <all>.\n"
 	     "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
 	     "\t\t\tconfiguration.\n"
