@@ -154,9 +154,11 @@ BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
 int find_pieces(blankox *board, blankox piece, int *pieces);
 int find_adj_pieces(blankox *board, int slot, int *pieces);
-int find_adjacent(int slot, int* slots);
+int find_adjacent(int slot, int *slots);
 int count_pieces(blankox *board, blankox piece);
 BOOLEAN full_board(POSITION position);
+void copy_bboard(blankox *from, blankox *to);
+void copy_cboard(char *from, char *to);
 
 // GameSpecificMenu
 void setFlyingText();
@@ -1109,7 +1111,7 @@ int find_adj_pieces(blankox *board, int slot, int *pieces)
 
 // Given slot, int array
 // Return number of adjacent slots, array of those slot numbers
-int find_adjacent(int slot, int* slots)
+int find_adjacent(int slot, int *slots)
 {
   // multiples of 3 (0, 3, 6, 9, 12, 15, 18, 21) are left-most edge
   // 0, 1, 2, 3, 5, 6, 8 are top-most
@@ -1303,6 +1305,26 @@ BOOLEAN full_board(POSITION position)
 	 && (count_pieces(board, blank) == maxb);
 }
 
+// Given blankox *FROM, blankox *TO
+// Copy FROM to TO
+void copy_bboard(blankox *from, blankox *to)
+{
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+	 to[i] = from[i];
+  }
+}
+
+// Given char *FROM, char*TO
+// Copy FROM to TO
+void copy_cboard(char *from, char *to)
+{
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+	 to[i] = from[i];
+  }
+}
+
 /******************** MOVE abstractions ********************/
 
 // if there is no removal, then from == remove
@@ -1409,6 +1431,8 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 /************ GenerateParents for Bryon's 9mm reverse solver ************/
+// Given POSITION
+// Return POSITIONLIST of Parents of give POSITION
 POSITIONLIST *GenerateParents (POSITION position) 
 {
   POSITIONLIST *head = NULL;
@@ -1432,17 +1456,43 @@ POSITIONLIST *GenerateParents (POSITION position)
 }
 
 // Given the current board, slot of interest, POSITIONLIST
-// Append POSITIONLIST of Parents involving slot (with flying)
+// Append POSITIONLIST of Parents involving slot (with milling)
 POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist) 
 {
   blankox thisTurn = board[slot];
   blankox prevTurn = opponent(thisTurn);
+  blankox *prevBoard;
+  int i, j;
+  int numBlanks, prevSlot, prevBlank;
+  int blanks[maxb];
+  int allBlanks[maxb];
+  int numAllBlanks = find_pieces(board, blank, allBlanks);
 
+  if (gFlying) {
+	 numBlanks = find_pieces(board, blank, blanks);
+  } else {
+	 numBlanks = find_adj_pieces(board, blank, blanks);
+  }
+
+  for (i = 0; i < numBlanks; i++) {
+	 copy_bboard(board, prevBoard);
+	 prevSlot = blanks[i];
+	 prevBoard[slot] = blank;
+	 prevBoard[prevSlot] = thisTurn;
+	 for (j = 0; j < numAllBlanks; j++) {
+		prevBlank = allBlanks[j];
+		if (prevBlank != slot && prevBlank != prevSlot) {
+		  prevBoard[prevBlank] = prevTurn;
+		  plist = StorePositionInList(hash(prevBoard, thisTurn), plist);
+		}
+	 }
+  }
+  
   return plist;
 }
 
 // Given the current board, slot of interest, POSITIONLIST
-// Append POSITIONLIST of Parents involving slot (without flying)
+// Append POSITIONLIST of Parents involving slot (without milling)
 POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist) 
 {
   MOVELIST *mlist = NULL;
@@ -1575,6 +1625,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.56  2004/05/01 23:24:22  ogren
+//Hardcoded find_adj_pieces and find_adjacent nastily, yet to finish AppendFormedMill -Elmer
+//
 //Revision 1.55  2004/05/01 04:04:20  ogren
 //Still need to write find_adj_pieces and AppendFormedMill to complete GenerateParents. -Elmer
 //
