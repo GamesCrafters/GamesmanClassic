@@ -406,7 +406,7 @@ proc GS_GetGameSpecificOptions { } {
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text 250 210 -text "WINS!"         -font Winner -fill orange -tags winner
+    $c create text 250 270 -text "WINS!"         -font Winner -fill orange -tags winner
 }
 
 
