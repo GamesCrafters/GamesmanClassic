@@ -1190,16 +1190,18 @@ void showStatus(int done)
 			num_pos_seen = 0;
 			updateTime = (clock_t) NULL;
 			return;
-	}
-	
+	}	
+
 	if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
 	{
+		fflush(stdout);
 		print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
 		fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 	else if (clock() > updateTime)
 	{
+		fflush(stdout);
 		print_length = fprintf(stderr,"%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
 		fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
