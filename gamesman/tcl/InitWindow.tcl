@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.51 2005-01-15 21:25:17 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.52 2005-02-09 20:44:49 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -6,8 +6,6 @@
 
 proc TBaction1 {} {
 
-    .middle.f1.cMLeft raise detVal
-    
     # solve the game, 
     global kGameName varObjective gPosition gInitialPosition
     global gGameSolved gGamePlayable
@@ -36,7 +34,6 @@ proc TBaction1 {} {
     } else {
 	set gGamePlayable false
 	.middle.f3.cMRight lower play
-	.middle.f1.cMLeft lower detVal
 	.cToolbar raise iITB
 	.cStatus lower base
 	update idletasks
@@ -653,18 +650,18 @@ proc InitWindow { kRootDir kDir kExt } {
 
     pack propagate $skinsFrame 0
 
-    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.ppm"
+#    image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.ppm"
     image create photo lily_screenshot -file "$gSkinsRootDir\LilySkin/screenshot.ppm"
     image create photo oxy_screenshot -file "$gSkinsRootDir\OxySkin/screenshot.ppm"
 
-    button $skinsFrame.content.left.mandel\
-	    -compound top\
-	    -image mandel_screenshot\
-	    -text "Mandel Fractal"\
-	    -command {
-		InitButtons $gSkinsRootDir MandelSkin/ ppm
-		TBaction4
-	    }
+#    button $skinsFrame.content.left.mandel\
+#	    -compound top\
+#	    -image mandel_screenshot\
+#	    -text "Mandel Fractal"\
+#	    -command {
+#		InitButtons $gSkinsRootDir MandelSkin/ ppm
+#		TBaction4
+#	    }
     button $skinsFrame.content.right.lily\
 	    -compound top\
 	    -image lily_screenshot\
@@ -699,7 +696,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     pack $skinsFrame.content.left.oxy -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.left.mandel -ipadx 4 -ipady 4 -anchor n
+#    pack $skinsFrame.content.left.mandel -ipadx 4 -ipady 4 -anchor n
     pack $skinsFrame.content.right.lily -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
@@ -755,8 +752,8 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iDMB1p -tags [list  iDMB iDMB1]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iDMB2p -tags [list  iDMB iDMB2]
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iDMB3p -tags [list  iDMB iDMB3]
-    #.middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7p -tags [list detVal]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iSMB7p -tags [list startupPic]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7p -tags [list startupPic]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iOMB7p -tags [list startupPicOver]
 	    	
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iAMB5p -tags [list  iAMB iAMB5]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iIMB4p -tags [list  iIMB iIMB4]
@@ -766,6 +763,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iDMB5p -tags [list  iDMB iDMB5]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iDMB6p -tags [list  iDMB iDMB6]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iAMB8p -tags [list play]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iOMB8p -tags [list playOver]
 
     .middle.f1.cMLeft create text 75 100 \
 	    -text "To Win:" \
@@ -817,14 +815,41 @@ proc InitWindow { kRootDir kDir kExt } {
 	-anchor center \
 	-tags [list WhoseTurn textitem]
 
-
     # this is the left panel item "click to play"
-    .middle.f1.cMLeft bind startupPic <1> {
+    .middle.f1.cMLeft bind startupPic <ButtonPress-1> {
 	TBaction1
-    }
+	.middle.f1.cMLeft raise iDMB
+    } 
+#    set gameStarted false
+#    .middle.f1.cMLeft bind startupPic <Enter> {
+#	set gameStarted false
+#	.middle.f1.cMLeft raise startupPicOver; update idletasks;
+#    }
+#    .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
+#	TBaction1
+#	set gameStarted true
+#	.middle.f1.cMLeft raise iDMB
+#    }
+#    if { $gameStarted == "false" } {
+#	.middle.f1.cMLeft bind startupPicOver <Any-Leave> {
+#	    .middle.f1.cMLeft raise startupPic; update idletasks;
+#	}
+#    } else {
+#	.middle.f1.cMLeft bind startupPic <Any-Leave> {
+#		.middle.f1.cMLeft raise iDMB
+#	}
+#    }
+
 
     # this is the play button
-    .middle.f3.cMRight bind play <1> {
+#    .middle.f3.cMRight bind play <Any-Enter> {
+#	.middle.f3.cMRight raise playOver; update idletasks;
+#    }
+#    .middle.f3.cMRight bind playOver <Any-Leave> {
+#	.middle.f3.cMRight raise play; update idletasks;
+#    }
+#    .middle.f3.cMRight bind playOver <ButtonPress-1> { }
+    .middle.f3.cMRight bind play <ButtonPress-1> {
 	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	    . config -cursor watch
 	    set theValue [C_DetermineValue $gPosition]
@@ -840,12 +865,10 @@ proc InitWindow { kRootDir kDir kExt } {
 	pack .middle.f2.cMain -expand 1
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.middle.f3.cMRight lower play
-	.middle.f1.cMLeft lower detVal
 	.middle.f1.cMLeft lower startupPic
 	.middle.f1.cMLeft raise iIMB
 	.middle.f3.cMRight raise iIMB
 	.middle.f2.cMain lower base
-	.middle.f1.cMLeft lower detVal
 	.middle.f1.cMLeft raise ToWin
 	.middle.f1.cMLeft raise ToMove
 	.cStatus raise winA
@@ -872,8 +895,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	}
 	.middle.f3.cMRight raise WhoseTurn
     }	
-    .middle.f1.cMLeft lower detVal
     .middle.f3.cMRight lower play
+    .middle.f3.cMRight lower playOver
 
     pack .middle.f1.cMLeft -expand 1
     pack .middle.f2.cMain  -expand 1
@@ -894,8 +917,9 @@ proc InitWindow { kRootDir kDir kExt } {
 
     #create bar border
     .cStatus create image 400 40 -image iBBB1p -tags [list iABB iABB1 base]
-    .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA def]
-    .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI]
+    .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA]
+    .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
+    .cStatus create image 100 40 -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
     #create toWin checked
     .cStatus create image 290 27 -image iABB3p -tags [list sbb iABB iABB3 winA]
     #create toWin unchecked
@@ -930,20 +954,25 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 470 52 -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
     .cStatus create image 470 52 -image iABB8p -tags [list sbb iABB iABB8 predA]
     .cStatus create image 470 52 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
-    .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA def]
-    .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]    
+    .cStatus create image 700 40 -image iABB9p -tags [list sbb iABB iABB9 undoA]
+    .cStatus create image 700 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI def]
+    .cStatus create image 700 40 -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
     .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
 
 
-    .cStatus bind playA <ButtonRelease-1> {
-	.cToolbar raise iITB
+    .cStatus bind playI <Any-Enter> {
+	.cStatus raise playO; update idletasks;
+    }
+    .cStatus bind playO <ButtonRelease-1> {
+	.cToolbar raise iDTB
 	.cStatus raise base
 	SetupPlayOptions
-
     }
-
-    .cStatus bind playI <ButtonRelease-1> {
-	.cStatus raise iABB2
+    .cStatus bind playO <Any-Leave> {
+	.cStatus raise playI; update idletasks;
+    }
+    .cStatus bind playO <ButtonPress-1> {
+	.cStatus raise playA; update idletasks;
     }
 
     .cStatus bind winA <ButtonRelease-1> {
@@ -1023,9 +1052,19 @@ proc InitWindow { kRootDir kDir kExt } {
     }
 
     # Undo Button
-    .cStatus bind iABB9 <ButtonRelease-1> {
+    .cStatus bind undoI <Any-Enter> {
+	.cStatus raise undoO; update idletasks;
+    }
+    .cStatus bind undoO <ButtonRelease-1> {
 	Undo
     }
+    .cStatus bind undoO <Any-Leave> {
+	.cStatus raise undoI; update idletasks;
+    }
+    .cStatus bind undoO <ButtonPress-1> {
+	.cStatus raise undoA; update idletasks;
+    }
+
     .cStatus raise sbb
     .cStatus raise def
     .cStatus raise base
@@ -1231,6 +1270,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsDir $skinsDir
     set gSkinsRootDir $skinsRootDir
 
+    #Load top toolbar images
     foreach mode {A I O D} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
@@ -1240,6 +1280,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
     }
+    #Load images for middle section
     foreach mode {D I} {
 	foreach file {1 2 3 4 5 6} {
 	    set name [format i%sMB%s $mode $file]
@@ -1247,12 +1288,21 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	}
     }
     image create photo iAMB5p -file [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt]
-    image create photo iSMB7p -file [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iAMB7p -file [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iOMB7p -file [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iAMB8p -file [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt]
+    image create photo iOMB8p -file [format %s%s/O_8_1.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iAMM1p -file [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt]
+    #Load images for bottom bar
     image create photo iBBB1p -file [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt]
-    foreach mode {A I} {
-	foreach file {2 3 4 6 7 8 9} {
+    foreach mode {A I O D} {
+	foreach file {2 9} {
+	    set name [format i%sBB%s $mode $file]
+	    image create photo [subst $name]p -file [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
+	}
+    }
+    foreach mode {A I IO ID AO AD} {
+	foreach file {3 4 6 7 8} {
 	    set name [format i%sBB%s $mode $file]
 	    image create photo [subst $name]p -file [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
 	}
@@ -1261,14 +1311,14 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     image create photo iDBB7p -file [format %s%s/D_3_7.%s $skinsRootDir $skinsDir $skinsExt]
     image create photo iDBB8p -file [format %s%s/D_3_8.%s $skinsRootDir $skinsDir $skinsExt]
 
-    #
-    # Deal with everything in the top toolbar
-    #
 
     #
     # Now Bind all the buttons
     #
-    
+
+    #
+    # Deal with everything in the top toolbar
+    #
     # set the inactive action of each button (mouse not over)
     set mode I
     foreach file {1 2 3 4 7 8} {#5 6 removed because not used
@@ -1277,7 +1327,6 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	.cToolbar bind $name <Any-Enter> \
 	    ".cToolbar raise {iOTB$file}; update idletasks" 
     }
-    
     # bind the action of the mouse-Over images (mouse over)
     set mode O
     foreach file {1 2 3 4 7 8} {#5 6 removed because not used
@@ -1295,4 +1344,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
     .cToolbar raise iITB
+
+    #
+    # Deal with other mouse over images
+    #
+
 }
