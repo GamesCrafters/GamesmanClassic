@@ -21,6 +21,12 @@ extern POSITION kBadPosition;        /* This can never be the rep. of a pos */
 extern BOOLEAN kDebugDetermineValue; /* TRUE iff we should debug DV */
 extern char *gNumberChildren;        /* The Number of children (used for Loopy games) */
 
+/* Function prototypes */
+BOOLEAN MemberFR(POSITION pos);
+
+/* External function prototypes */
+extern BOOLEAN Visited(POSITION position);
+
 /************************************************************************
 **
 ** NAME:        DetermineLoopyValue
