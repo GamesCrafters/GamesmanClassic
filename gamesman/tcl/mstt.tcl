@@ -286,7 +286,7 @@ proc GS_ConvertToAbsoluteMove { theMove } {
 	    6 { return [list 26 25] }
 	    7 { return [list 35 34] }
 	    8 { return [list 44 43] }
-	    default{ return [list 0 0]}
+	    default { return [list 0 0]}
 	}
    
 }
