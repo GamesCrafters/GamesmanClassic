@@ -45,9 +45,6 @@ POSITION kBadPosition        = -1; /* This can never be the rep. of a position *
 STRING   kGameName           = "Change!";
 STRING   kDBName             = "change";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
@@ -130,8 +127,8 @@ Computer wins. Nice try, Dan.";
 **************************************************************************/
 
 #define BOARDSIZE     14          /* 2x3 staggered-diamonds-shaped board */
-#define POSITION_OFFSET 4782969           /* 3^14 */
-#define BADSLOT -2        /* slot does not exist */
+#define POSITION_OFFSET 4782969   /* 3^14 */
+#define BADSLOT -2                /* slot does not exist */
 
 typedef enum possibleBoardPieces {
   Blank, o, x
