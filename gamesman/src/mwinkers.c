@@ -46,11 +46,11 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kGameName           = "Winkers"; /* The name of your game */
 STRING   kDBName             = "Winkers"; /* The name to store the database under */
 BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
+BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
+BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
 void*	 gGameSpecificTclInit = NULL;
 
 /* 
@@ -177,6 +177,8 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  gGoAgain = TRUE;
+
   int i;
   BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
 
@@ -254,7 +256,7 @@ void GameSpecificMenu ()
     
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
-    printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT);
+    printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT+1);
    
     /* 
     if (MISERE == 0)
@@ -263,7 +265,7 @@ void GameSpecificMenu ()
       printf("\tm)\t Toggle from (M)isere to Standard\n");
     */
     printf("\ti)\t Change the (I)nitial Position.\n");
-    printf("\tr)\t (R)eturn to the previous menu\n\nSelect an option:  ");
+    printf("\tb)\t (B)ack to the previous menu\n\nSelect an option:  ");
 
 
     switch(GetMyChar()) {
@@ -275,13 +277,13 @@ void GameSpecificMenu ()
     case 'I': case 'i':
       gInitialPosition = GetInitialPosition();
       break;
-    case 'R': case 'r':
+    case 'B': case 'b':
       return;
     case 'D': case 'd':
       GetDimensions();
       break;
     default:
-      printf("\nSorry, I don't know that option. Try another.\n");
+      BadMenuChoice();
       HitAnyKeyToContinue();
       break;
     }
@@ -319,11 +321,11 @@ void GetDimensions() {
     printf("\nEnter the vertical dimension or get (h)elp:  ");
     if ((c = GetMyChar()) == 'h' || c == 'H') {
       printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
-      printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT);
+      printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT+1);
       printBoard(NULL);
     } else {
-      if (c >= '0' && c <= '9') {
-	height = c - '0';
+      if (c > '0' && c <= '9') {
+	height = c - '0' - 1;
 	break;
       } else {
 	printf("\nInvalid input.");
