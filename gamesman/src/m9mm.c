@@ -125,6 +125,7 @@ BOOLEAN closes_mill_move(MOVE the_move);
 
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
+void debugPosition(POSITION h);
 
 // External
 GENERIC_PTR	SafeMalloc (size_t size);
@@ -1018,6 +1019,7 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
  ** Some Debugging Functions
 ************************************************************************/
 
+//Given the b_board and c_board, print them
 void debugBoard(blankox *bboard, char *cboard)
 {
   int i;
@@ -1031,9 +1033,24 @@ void debugBoard(blankox *bboard, char *cboard)
   }
 }
 
+//Given the position, print it as a b_board and c_board
+void debugPosition(POSITION h)
+{
+  blankox bboard[BOARDSIZE];
+  char cboard[BOARDSIZE];
+  
+  unhash(h, bboard);
+  unparse_board(bboard, cboard);
+  
+  debugBoard(bboard, cboard);
+}
+
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.27  2004/04/07 21:40:31  ogren
+//kTieIsPossible = FALSE, repositioned BOOLEAN debug variable -Elmer
+//
 //Revision 1.26  2004/04/07 19:39:04  ogren
 //added debug variable and debugBoard(bboard,cboard) -Elmer
 //
