@@ -85,201 +85,199 @@ STRING   kHelpReverseObjective =
 STRING   kHelpTieOccursWhen =
 "A tie will never occur";
 
-STRING   kHelpExample =
-"   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- o-- _ --x    1-- 0 --5\
-   / | \        / | \\
-  x  |  x      8  |  6\
-     x            7\
-\
-Player's Turn(x)\
-(Player should draw)\  
-  Player's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves:\ 
-                Move    Remoteness\
-Winning Moves:  \
-Tieing Moves:   \
-                5       Draw\
-                8       Draw\
-Losing Moves:   \
-
-  Player's move [(undo)/(## FromTo)] : 8\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- o-- x --x    1-- 0 --5\
-   / | \        / | \\
-  _  |  x      8  |  6\
-     x            7\
-
-Computer's Turn(o)\
-(Computer should draw)\  
-Computer's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves:\ 
-                Move    Remoteness\
-Winning Moves:  \
-Tieing Moves:   \
-                18      Draw\
-Losing Moves:   \
-
-Computer's move [(undo)/(## FromTo)] : 18\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- _-- x --x    1-- 0 --5\
-   / | \        / | \\
-  o  |  x      8  |  6\
-     x            7\
-\
-Player's Turn(x)\
-(Player should draw)\  
-  Player's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves:\ 
-                Move    Remoteness\
-Winning Moves:  \
-Tieing Moves:   \
-                1       Draw\
-Losing Moves:   \
-\
-  Player's move [(undo)/(## FromTo)] : \
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- _ --x    1-- 0 --5\
-   / | \        / | \\
-  o  |  x      8  |  6\
-     x            7\
-\
-Computer's Turn(o)\
-(Computer should draw)\  
-Computer's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves: \
-                Move    Remoteness\
-Winning Moves:  \
-Tieing Moves:   \
-                2       Draw\
-                4       Draw\
-Losing Moves:   \
-                8       5\
-\
-Computer's move [(undo)/(## FromTo)] : 8\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- o --x    1-- 0 --5\
-   / | \        / | \\
-  _  |  x      8  |  6\
-     x            7\
-\
-Player's Turn(x)\
-(Player should Win in 5)\  
-  Player's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves: \
-                Move    Remoteness\
-Winning Moves:  \
-                78      4\
-Tieing Moves:   \
-Losing Moves:   \
-                18      1\
-\
-  Player's move [(undo)/(## FromTo)] : 78\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- o --x    1-- 0 --5\
-   / | \        / | \\
-  x  |  x      8  |  6\
-     _            7\
-\
-Computer's Turn(o)\
-(Computer should Lose in 4)\  
-Computer's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves: \
-                Move    Remoteness\
-Winning Moves:  \
-Tieing Moves:   \
-Losing Moves:   \
-                7       3\
-\
-Computer's move [(undo)/(## FromTo)] : 7\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- _ --x    1-- 0 --5\
-   / | \        / | \\
-  x  |  x      8  |  6\
-     o            7\
-\
-Player's Turn(x)\
-(Player should Win in 3)\  
-  Player's move [(undo)/(## FromTo)] : s\
-\
-Here are the values of all possible moves: \
-                Move    Remoteness\
-Winning Moves:  \
-                6       2\
-                8       2\
-Tieing Moves:   \
-                1       Draw\
-                5       Draw\
-Losing Moves:   \
-\
-  Player's move [(undo)/(## FromTo)] : 6\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- x --x    1-- 0 --5\
-   / | \        / | \\
-  x  |  _      8  |  6\
-     o            7\
-\
-Computer's Turn(o)\
-(Computer should Lose in 2)\  
-Computer's move [(undo)/(## FromTo)] : s\
-\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- x --x    1-- 0 --5\
-   / | \        / | \\
-  x  |  o      8  |  6\
-     _            7\
-\
-Player's Turn(x)\
-(Player should Win in 1)\  
-  Player's move [(undo)/(## FromTo)] : s\
-\
-   Board         Key\
-     o            3\
-  o  |  o      2  |  4\
-   \ | /        \ | /\
- x-- x --x    1-- 0 --5\
-   / | \        / | \\
-  _  |  o      8  |  6\
-     x            7\
-\
-Computer's Turn(o)\
-(Computer should Lose in 0)\  
-\
-Player (player one) Wins!\
-\";
+STRING   kHelpExample = 
+"   Board         Key \n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ o-- _ --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  x  |  x      8  |  6\n\
+     x            7\n\
+\n\
+Player's Turn(x)\n\
+(Player should draw)\n\
+  Player's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves:\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+Tieing Moves:   \n\
+                5       Draw\n\
+                8       Draw\n\
+Losing Moves:   \n\
+\n\
+  Player's move [(undo)/(## FromTo)] : 8\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ o-- x --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  _  |  x      8  |  6\n\
+     x            7\n\
+\n\
+Computer's Turn(o)\n\
+(Computer should draw)\n\
+Computer's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves:\n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+Tieing Moves:   \n\
+                18      Draw\n\
+Losing Moves:   \n\
+\n\
+Computer's move [(undo)/(## FromTo)] : 18\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ _-- x --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  o  |  x      8  |  6\n\
+     x            7\n\
+\n\
+Player's Turn(x)\n\
+(Player should draw)\n\
+  Player's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves:\n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+Tieing Moves:   \n\
+                1       Draw\n\
+Losing Moves:   \n\
+\n\
+  Player's move [(undo)/(## FromTo)] : \n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- _ --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  o  |  x      8  |  6\n\
+     x            7\n\
+\n\
+Computer's Turn(o)\n\
+(Computer should draw)\n\
+Computer's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves: \n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+Tieing Moves:   \n\
+                2       Draw\n\
+                4       Draw\n\
+Losing Moves:   \n\
+                8       5\n\
+\n\
+Computer's move [(undo)/(## FromTo)] : 8\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- o --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  _  |  x      8  |  6\n\
+     x            7\n\
+\n\
+Player's Turn(x)\n\
+(Player should Win in 5)\n\
+  Player's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves: \n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+                78      4\n\
+Tieing Moves:   \n\
+Losing Moves:   \n\
+                18      1\n\
+\n\
+  Player's move [(undo)/(## FromTo)] : 78\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- o --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  x  |  x      8  |  6\n\
+     _            7\n\
+\n\
+Computer's Turn(o)\n\
+(Computer should Lose in 4)\n\
+Computer's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves: \n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+Tieing Moves:   \n\
+Losing Moves:   \n\
+                7       3\n\
+\n\
+Computer's move [(undo)/(## FromTo)] : 7\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- _ --x    1-- 0 --5\n\
+   / | \\        / | \\\n\
+  x  |  x      8  |  6\n\
+     o            7\n\
+\n\
+Player's Turn(x)\n\
+(Player should Win in 3)\n\
+  Player's move [(undo)/(## FromTo)] : s\n\
+\n\
+Here are the values of all possible moves: \n\
+                Move    Remoteness\n\
+Winning Moves:  \n\
+                6       2\n\
+                8       2\n\
+Tieing Moves:   \n\
+                1       Draw\n\
+                5       Draw\n\
+Losing Moves:   \n\
+\n\
+  Player's move [(undo)/(## FromTo)] : 6\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- x --x    1-- 0 --5\n\
+   / | \\        / | \\ \n\
+  x  |  _      8  |  6\n\
+     o            7\n\
+\n\
+Computer's Turn(o)\n\
+(Computer should Lose in 2)\n\
+Computer's move [(undo)/(## FromTo)] : s\n\
+\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4 \n\
+   \\ | /        \\ | /  \n\
+ x-- x --x    1-- 0 --5 \n\
+   / | \\        / | \\ \n\
+  x  |  o      8  |  6  \n\
+     _            7     \n\
+\n\
+Player's Turn(x)\n\
+(Player should Win in 1)\n\
+  Player's move [(undo)/(## FromTo)] : s\n\
+\n\
+   Board         Key\n\
+     o            3\n\
+  o  |  o      2  |  4\n\
+   \\ | /        \\ | /\n\
+ x-- x --x    1-- 0 --5\n\
+   / | \\        / | \\ \n\
+  _  |  o      8  |  6\n\
+     x            7\n\
+\n\
+Computer's Turn(o)\n\
+(Computer should Lose in 0)\n\
+\n\
+Player (player one) Wins!\n";
 
 
 /*************************************************************************
@@ -571,11 +569,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  if (computersMove < 9){
-    printf("%8s's move: %d\n", computersName, computersMove);}
-  else
-  printf("%8s's move: %d%d\n", computersName, move_from(computersMove),move_to(computersMove));
-
+  printf("%8s's move: %d\n", computersName, move_from(computersMove));
 }
 
 
@@ -590,10 +584,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void PrintMove (MOVE move)
-{ if (move < 9)
-  printf("%d", move);
-else
-  printf("%d%d", move_from(move), move_to(move));    
+{ 
+  printf("%d", move_from(move));
 }
 
 
