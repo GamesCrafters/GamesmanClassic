@@ -27,6 +27,11 @@
 **
 **              10/11/04 - Fixed i/o formatting a bit, added predictions to PrintPosition.
 **
+**              12/09/04 - Fixed misere to use gStandard instead of our own bool.
+**                         Added [x, y] to PrintComputersMove.
+**                         Fixed little bug in GenerateMoves that was generating bogus moves.
+**                         Fixed bug in numberOfPieces so that it now works.
+**                         Tweaked the hash to be slightly more efficient.
 **
 **************************************************************************/
 
@@ -173,12 +178,12 @@ void InitializeGame ()
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
   
-  int piece_array[] = {'x', 0, BOARDSIZE/2,
-		       'o' , 0, BOARDSIZE/2,
-		       ' ', 0, BOARDSIZE-1, 
+  int piece_array[] = {'x', 1, BOARDSIZE/2,
+		       'o' , 1, BOARDSIZE/2,
+		       ' ', 0, BOARDSIZE-3, 
 		       -1};
   
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, NULL);
 
   for (i = 0; i < BOARDSIZE/2; i++)
     gBoard[i] = 'x';
@@ -215,15 +220,15 @@ void InitializeGame ()
 **
 ************************************************************************/
 
-#define upOne(x, y) (((y + HEIGHT - 1) % HEIGHT) * WIDTH + x)
-#define upTwo(x, y) (((y + HEIGHT - 2) % HEIGHT) * WIDTH + x)
-#define downOne(x, y) (((y + HEIGHT + 1) % HEIGHT) * WIDTH + x)
-#define downTwo(x, y) (((y + HEIGHT + 2) % HEIGHT) * WIDTH + x)
+#define upOne(x, y)    (((y + HEIGHT - 1) % HEIGHT) * WIDTH + x)
+#define upTwo(x, y)    (((y + HEIGHT - 2) % HEIGHT) * WIDTH + x)
+#define downOne(x, y)  (((y + HEIGHT + 1) % HEIGHT) * WIDTH + x)
+#define downTwo(x, y)  (((y + HEIGHT + 2) % HEIGHT) * WIDTH + x)
 
-#define leftOne(x, y) ((y * WIDTH) + (x + WIDTH - 1) % WIDTH)
-#define leftTwo(x, y) ((y * WIDTH) + (x + WIDTH - 2) % WIDTH)
-#define rightOne(x, y) ((y * WIDTH) + (x + WIDTH + 1) % WIDTH)
-#define rightTwo(x, y) ((y * WIDTH) + (x + WIDTH + 2) % WIDTH)
+#define leftOne(x, y)  ((y * WIDTH) + ((x + WIDTH - 1) % WIDTH))
+#define leftTwo(x, y)  ((y * WIDTH) + ((x + WIDTH - 2) % WIDTH))
+#define rightOne(x, y) ((y * WIDTH) + ((x + WIDTH + 1) % WIDTH))
+#define rightTwo(x, y) ((y * WIDTH) + ((x + WIDTH + 2) % WIDTH))
 
 MOVELIST *GenerateMoves (POSITION position)
 {
@@ -255,7 +260,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	    moves = CreateMovelistNode(makeMove(pos, upOne(i, j)), moves);
 	
 	/* check up two */
-	if (pos > WIDTH*2 || gAllowVWrap)
+	if (pos >= WIDTH*2 || gAllowVWrap)
 	  if (gBoard[upOne(i, j)] == currentPlayer && gBoard[upTwo(i, j)] == oppPlayer)
 	    if (gMustCapture)
 	      captures = CreateMovelistNode(makeMove(pos, upTwo(i, j)), captures);
@@ -264,7 +269,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* check down one */
 	if (pos < WIDTH*(HEIGHT-1) || gAllowVWrap)
 	  if (gBoard[downOne(i, j)] == ' ')
-	    moves = CreateMovelistNode(makeMove(i, downOne(i, j)), moves);
+	    moves = CreateMovelistNode(makeMove(pos, downOne(i, j)), moves);
 	
 	/* check down two */
 	if (pos < WIDTH*(HEIGHT-2) || gAllowVWrap)
@@ -286,7 +291,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	    else moves = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), moves);
 	
 	/* check right one */
-	if (pos % WIDTH < WIDTH-1 || gAllowHWrap)
+	if (pos % WIDTH != WIDTH-1 || gAllowHWrap)
 	  if (gBoard[rightOne(i, j)] == ' ')
 	    moves = CreateMovelistNode(makeMove(pos, rightOne(i, j)), moves);
 	
@@ -296,7 +301,6 @@ MOVELIST *GenerateMoves (POSITION position)
 	    if (gMustCapture) 
 	      captures = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), captures);
 	    else moves = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), moves);
-
       }
     }
   }
@@ -369,7 +373,7 @@ VALUE Primitive (POSITION position)
   if ((numberOfPieces(position, player) == 1) || 
       (numberOfPieces(position, oppositePlayer(player)) == 1) || 
       GenerateMoves(position) == NULL)
-    return (gWinType ? lose : win);
+    return (gStandardGame ? lose : win);
   
   else
     return undecided;
@@ -470,12 +474,15 @@ void printRowOfBars() {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  if (neighbors(getSourceFromMove(computersMove), getDestFromMove(computersMove)))
-    printf("%s moved the piece at %d to %d.\n\n", computersName,
-	   getSourceFromMove(computersMove)+1, getDestFromMove(computersMove)+1);
+  int dest = getDestFromMove(computersMove)+1;
+  int source = getSourceFromMove(computersMove)+1;
+
+  if (neighbors(source-1, dest-1))
+    printf("[%d %d] : %s moved the piece at %d to %d.\n\n", 
+	   source, dest, computersName, source, dest);
   else
-    printf("%s captured the piece at %d with the piece from %d.\n\n",
-	   computersName, getDestFromMove(computersMove)+1, getSourceFromMove(computersMove)+1);
+    printf("[%d %d] : %s captured the piece at %d with the piece from %d.\n\n",
+	   source, dest, computersName, dest, source);
 }
 
 
@@ -595,9 +602,8 @@ MOVE ConvertTextInputToMove (STRING input)
 
   for (i = 0; input[i] != ' '; i++) {} 
 
-  for (j = i-1; j >= 0; j--) {
+  for (j = i-1; j >= 0; j--)
     source += ((input[j]-'0') * exponent(10, k++));
-  }
 
   i++;
   k = 0;
@@ -637,7 +643,6 @@ void GameSpecificMenu ()
     printf("\n\tBoard Options:\n\n");
     printf("\td)\tChange board (D)imension (%d,%d)\n", WIDTH, HEIGHT);
     printf("\n\tRule Options:\n\n");
-    printf("\tw)\tTo (W)in: %s\n", gWinType ? "Standard" : "Misere");
     printf("\tc)\t%s (C)apture\n", gMustCapture ? "Forced" : "Optional");
     printf("\tv)\t(V)ertical Wrapping: %s\n", gAllowVWrap ? "On" : "Off");
     printf("\to)\tH(o)rizontal Wrapping: %s\n", gAllowHWrap ? "On" : "Off");
@@ -666,9 +671,6 @@ void GameSpecificMenu ()
       }	
 
       BOARDSIZE = WIDTH*HEIGHT;
-      break;
-    case 'W': case 'w':
-      gWinType = !gWinType;
       break;
     case 'V': case 'v':
       gAllowVWrap = !gAllowVWrap;
@@ -738,7 +740,7 @@ int NumberOfOptions ()
 {
   return 6 /* max width */
     * 6 /* max height */
-    * 2 /* gWinType */
+    * 2 /* gStandardGame */
     * 2 /* gAllowVWrap */
     * 2 /* gAllowHWrap */
     * 2; /* gMustCapture */
@@ -761,7 +763,7 @@ int getOption ()
 {
   return WIDTH 
     + (6 + HEIGHT)
-    + (12 + (gWinType ? 2 : 1))
+    + (12 + (gStandardGame ? 2 : 1))
     + (14 + (gAllowVWrap ? 2 : 1))
     + (16 + (gAllowHWrap ? 2 : 1))
     + (18 + (gMustCapture ? 2 : 1));
@@ -790,7 +792,7 @@ void setOption (int option)
   gAllowVWrap = (option % 14 == 2);
   option -= 2;
 
-  gWinType = (option % 12 == 2);
+  gStandardGame = (option % 12 == 2);
   option -= 2;
 
   HEIGHT = option % 5;
@@ -835,7 +837,7 @@ int oppositePlayer(int player) {
 }
 
 int numberOfPieces(POSITION position, int player) {
-  int pieceCount, i;
+  int pieceCount = 0, i;
   char currentPlayer;
 
   generic_unhash(position, gBoard);
@@ -843,7 +845,8 @@ int numberOfPieces(POSITION position, int player) {
   currentPlayer = (player == 1) ? 'x' : 'o';
 
   for (i = 0; i < BOARDSIZE; i++)
-    if (gBoard[i] = currentPlayer) pieceCount++;
+    if (gBoard[i] == currentPlayer)
+      pieceCount++;
 
   return pieceCount;
 }
