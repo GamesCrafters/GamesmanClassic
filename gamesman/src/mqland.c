@@ -129,8 +129,13 @@ struct Board_Rep {
 ** Global Variables
 **
 *************************************************************************/
-int height = 4, width = 4, numpieces = 4; /* Default values, can be changed in GameSpecific Menu */
-int whitePiecesRemaining = numpieces, blackPiecesRemaining = numpieces;
+
+/* Default values, can be changed in GameSpecific Menu */
+int height = 4;
+int width = 4;
+int numpieces = 4;
+BOOLEAN scoreDiagonal = TRUE;
+BOOLEAN scoreStraight = TRUE;
 
 /*************************************************************************
 **
@@ -335,8 +340,9 @@ POSITION DoMove (POSITION position, MOVE move) {
 ************************************************************************/
 
 VALUE Primitive (POSITION position) {
-    char *board = unhash(position);
-    if (countWhites(board) != numpieces || countBlacks(board) != numpieces) {
+    char board[width*height];
+    board = generic_unhash(position, board);
+    if (countPieces(board,WHITE) != numpieces || countPieces(board, BLACK) != numpieces) {
 	return undecided;
     } else {
 	int blackscore = scoreBoard(board, BLACK);
@@ -344,63 +350,12 @@ VALUE Primitive (POSITION position) {
 	if (whitescore == blackscore) {
 	    return tie;
 	} else if (whitesocre > blackscore) {
-	    return win;
+	    return gStandardGame ? win : lose;
 	} else {
-	    return lose;
+	    return gStandardGame ? lose : win;
 	}
     }
 }
-
-/*
- * This function tallys and returns how many points
- * the given player (the argument should either be
- * BLACK or WHITE) gets for this board.
- */
- int scoreBoard(char *board, int player) {
-     int x;
-     int y;
-     int score = 0;
-  
-     for (x = 0; x < width; x++) {
-	 for (y = 0; y < height; y++) { 
-	     if(board[get_location(x,y)] == playerpiece) {
-		 int i; /* used when x varies */
-		 int j;	/* used when y varies */ 
-
-		 if (scoreStraight) {
-
-		     /* count any horizontal lines going to the right */
-		     for (i = x+1; i < width && board[get_location(i,y)] == BLANK; i++) { }
-		     if (i < width && board[get_location(i,y)] == player) {
-			 score += (i-x-1);
-		     }	
-
-		     /* count any vertical lines going down */
-		     for (j = y+1; j < height && board[get_location(x,j)] == BLANK; j++) { }
-		     if (j < height && board[get_location(x,j)] == player) {
-			 score += (j-y-1);
-		     }
-		 }
-
-		 if (scoreDiagonal) {
-		     
-		     /* count any diagonal lines going up and to the right */
-		     for (i = x+1; j = y-1; i < width && j >= 0 && board[get_location(i,j)] == BLANK; i++, j--) { }
-		     if (i < width && j >= 0 && board[get_location(i,j)] == player) {
-			 score += (i-x-1);
-		     }
-
-		     /* count any diagonal lines going down and to the right */
-		     for (i = x+1, j = y+1; i < width && j < height && board[get_location(i,j)] == BLANK; i++, j++) { }
-		     if (i < width && j < height && board[get_location(i,j)] == player) {
-			 score += (i-x-1); 
-		     }	
-		 }
-	     }
-	 }
-     }
-     return score;
- }
 
 /************************************************************************
 **
@@ -777,6 +732,71 @@ int next_player(POSITION position) {
 		}
 	}
 	return (numWhite > numBlack ? 2 : 1);
+}
+
+/*
+ * This function tallys and returns how many points
+ * the given player (the argument should either be
+ * BLACK or WHITE) gets for this board.
+ */
+ int scoreBoard(char *board, char player) {
+     int x;
+     int y;
+     int score = 0;
+  
+     for (x = 0; x < width; x++) {
+	 for (y = 0; y < height; y++) { 
+	     if(board[get_location(x,y)] == playerpiece) {
+		 int i; /* used when x varies */
+		 int j;	/* used when y varies */ 
+
+		 if (scoreStraight) {
+
+		     /* count any horizontal lines going to the right */
+		     for (i = x+1; i < width && board[get_location(i,y)] == BLANK; i++) { }
+		     if (i < width && board[get_location(i,y)] == player) {
+			 score += (i-x-1);
+		     }	
+
+		     /* count any vertical lines going down */
+		     for (j = y+1; j < height && board[get_location(x,j)] == BLANK; j++) { }
+		     if (j < height && board[get_location(x,j)] == player) {
+			 score += (j-y-1);
+		     }
+		 }
+
+		 if (scoreDiagonal) {
+		     
+		     /* count any diagonal lines going up and to the right */
+		     for (i = x+1; j = y-1; i < width && j >= 0 && board[get_location(i,j)] == BLANK; i++, j--) { }
+		     if (i < width && j >= 0 && board[get_location(i,j)] == player) {
+			 score += (i-x-1);
+		     }
+
+		     /* count any diagonal lines going down and to the right */
+		     for (i = x+1, j = y+1; i < width && j < height && board[get_location(i,j)] == BLANK; i++, j++) { }
+		     if (i < width && j < height && board[get_location(i,j)] == player) {
+			 score += (i-x-1); 
+		     }	
+		 }
+	     }
+	 }
+     }
+     return score;
+ }
+
+int countPieces(char *board, char piece) {
+    int x;
+    int y;
+    int count = 0;
+    for (x = 0; x < width; x++) {
+	for (y = 0; y < height; y++) {
+	    if (board[get_location(x,y)] == piece) {
+		count++;
+	    }
+	}
+    }
+    return count;
 }
 
 void BadElse(char* message) {
