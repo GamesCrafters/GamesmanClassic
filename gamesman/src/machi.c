@@ -1124,22 +1124,25 @@ STRING kDBName = "achi" ;
 
 int NumberOfOptions()
 {
-        return 2 ;
+        return 2*3 ;
 }
 
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  int option = 1;
+  if(gStandardGame) option += 1 ;
+  if(allDiag) option += 1 *2;
+  if(noDiag) option += 2 *2;
+
+  return option;
 } 
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  option -= 1;
+  gStandardGame = option%2==1;
+  allDiag = option/2%3==1;
+  noDiag = option/2%3==2;
 }
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
-
 

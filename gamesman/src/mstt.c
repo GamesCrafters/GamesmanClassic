@@ -174,7 +174,7 @@ GameSpecificMenu()
   POSITION GetInitialPosition();
   
   do {
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
         printf("\tCurrent Initial Position:\n");
         PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
@@ -204,7 +204,7 @@ GameSpecificMenu()
     else {
       printf("\tP)\t(P)ieces can be queued at top toggles from %s to %s\n",
 	     gQueuePiece ? "TRUE" : "FALSE",
-	     !gQueuePiece ? "TRUE" : "FASLE");
+	     !gQueuePiece ? "TRUE" : "FALSE");
     }
 
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
@@ -1293,21 +1293,39 @@ STRING kDBName = "stt" ;
      
 int NumberOfOptions()
 {    
-        return 2 ;
+  return 2*2*2*4 ;
 } 
    
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  int option = 1;
+  if (gStandardGame) option += 1;
+  if (gSwivel) option += 1 *2;
+  if (gWrapAround) option += 1 *2*2;
+  if (gFlatMode) {
+    option += 2* 2*2*2;
+    if (gExtraSlider) option += 1* 2*2*2;
+  }
+  else {
+    if (gQueuePiece) option += 1* 2*2*2;
+  }
+
+  return option;
 } 
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  option--;
+  gStandardGame = option%2==1;
+  gSwivel = option/2%2==1;
+  gWrapAround = option/(2*2)%2==1;
+  gFlatMode = option/(2*2*2)%4>=2;
+  if (gFlatMode) {
+    gExtraSlider = option/(2*2*2)%4==3;
+  }
+  else {
+    gQueuePiece = option/(2*2*2)%4==1;
+  }
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

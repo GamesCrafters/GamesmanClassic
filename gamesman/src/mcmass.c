@@ -113,6 +113,10 @@ STRING   kHelpExample =
  **
  **************************************************************************/
 
+#define MIN_WIDTH 1
+#define MAX_WIDTH 4
+#define MIN_HEIGHT 1
+#define MAX_HEIGHT 4
 
 int gBoardWidth  = 3;
 int gBoardHeight = 3;
@@ -273,13 +277,13 @@ GameSpecificMenu() {
 	break;
 	
       case 'h':
-	printf( "Enter a board height (1..4) ->" );
+	printf( "Enter a board height (%d..%d) ->", MIN_HEIGHT, MAX_HEIGHT );
 	fflush(stdin);
 	scanf( "%d", &gBoardHeight );
 	break;
 	
       case 'w':
-	printf( "Enter a board width (1..4) ->" );
+	printf( "Enter a board width (%d..%d) ->", MIN_WIDTH, MAX_WIDTH);
 	fflush(stdin);
 	scanf( "%d", &gBoardWidth );
 	break;
@@ -1333,44 +1337,26 @@ STRING kDBName = "cmass" ;
      
 int NumberOfOptions()
 {    
-        return 4 ;
+        return 2*(MAX_WIDTH-MIN_WIDTH+1)*(MAX_HEIGHT-MIN_HEIGHT+1) ;
 } 
    
 int getOption()
 {
-  int option =0;
+  int option = 1;
   
-  if ( gStandardGame ) option =0; else option = 4;
-  if ( gBoardWidth == 2 && gBoardHeight == 2 ) option += 1;
-  else if ( gBoardWidth == 2 && gBoardHeight == 3 ) option += 2;
-  else if ( gBoardWidth == 2 && gBoardHeight == 4 ) option += 3;
-  else if ( gBoardWidth == 3 && gBoardHeight == 3 ) option += 4;
+  if ( gStandardGame ) option += 1;
+  option += gBoardWidth *2;
+  option += gBoardHeight *2*(MAX_WIDTH-MIN_WIDTH+1);
   
   return option;
 } 
 
 void setOption(int option)
 {
-  switch( option )
-    {
-    case 1:
-      gBoardWidth = 2; gBoardHeight = 2;
-      break;
-      
-    case 2:
-      gBoardWidth = 2; gBoardHeight = 3;
-      break;
-      
-    case 3:
-      gBoardWidth = 2; gBoardHeight = 4;
-      break;
-      
-    case 4:
-      gBoardWidth = 3; gBoardHeight = 3;
-      break;
-    }
-  
-  gStandardGame = ( option <= 4 );
+  option -= 1;
+  gStandardGame = option%2;
+  gBoardWidth = option/2%(MAX_WIDTH-MIN_WIDTH+1);
+  gBoardHeight = option/(2*(MAX_WIDTH-MIN_WIDTH+1))%(MAX_HEIGHT-MIN_HEIGHT+1);
 }
 
 

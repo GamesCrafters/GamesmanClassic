@@ -156,6 +156,9 @@ STRING   kHelpExample = "";
 #define BOARDSIZE     9           /* 3x3 board */
 //#define NUMSYMMETRIES 2           /* symmetry down middle but not implemented */
 
+#define MIN_SCORE 1     /* Lowest valid winning score */
+#define MAX_SCORE 15    /* Highest valid winning score */ 
+
 int winScore1 = 12;
 int winScore2 = 6;
 //normal game has win for player 1 when p1 >= win1 & p2>=win2
@@ -345,7 +348,8 @@ GameSpecificMenu() {
 	   ,winScore1 ,winScore2);
     printf("\tF)\tToggle (F)orcing to move the white piece (currently %s)\n",
 	   (noMoveWhite ? "disabled" : "enabled"));
-    printf("\tR)\tSet scoring mode to (R)everse \n");
+    printf("\tR)\tToggle scoring mode to (R)everse (currently %s)\n",
+	   invertedScoring ? "enabled" : "disabled");
     printf("\tS)\tSet the target (S)cores for player1 and 2\n");
     printf("\tI)\tChoose the (I)nitial position for the dots\n");
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
@@ -411,9 +415,9 @@ SetTargetScoresMenu() {
 \t\tplayer B has < score2\n\n\
 \tCurrent Score1 : %d\n\
 \tCurrent Score2 : %d\n\n\
-\tinput new Score1 (1-15) : ", winScore1, winScore2);
+\tinput new Score1 (%d-%d) : ", winScore1, winScore2, MIN_SCORE, MAX_SCORE);
     scanf("%d", &new1);
-    printf("\n\tinput new Score2 (1-15) : ");
+    printf("\n\tinput new Score2 (%d-%d) : ", MIN_SCORE, MAX_SCORE);
     scanf("%d", &new2);
     winScore1 = new1;
     winScore2 = new2;
@@ -1345,21 +1349,28 @@ STRING kDBName = "3dot" ;
      
 int NumberOfOptions()
 {    
-        return 2 ;
+  return 2*2*2*(MAX_SCORE-MIN_SCORE+1)*(MAX_SCORE-MIN_SCORE+1) ;
 } 
    
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  int option = 1;
+  if(gStandardGame) option += 1 ;
+  if(invertedScoring) option += 1*2;
+  if(noMoveWhite) option += 1*(2*2);
+  option += (winScore1-MIN_SCORE) * (2*2*2);
+  option += (winScore2-MIN_SCORE) * (2*2*2*MAX_SCORE);
+  return option;
 } 
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  option -= 1;
+  gStandardGame = option%2==1;
+  invertedScoring = option/2%2==1;
+  noMoveWhite = option/(2*2)%2==1;
+  winScore1 = option/(2*2*2)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
+  winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

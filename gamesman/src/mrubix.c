@@ -170,8 +170,10 @@ Computer wins. Nice try, Dan Garcia.";
 
 int BOARDSIZE =    9;
 int WIDTH =        3;
-int MAX_WIDTH =    4;
-int MAX_LENGTH =   3;
+#define MAX_BOARDSIZE 12
+#define MIN_LENGTH 3
+#define MIN_WIDTH MIN_LENGTH
+#define MAX_WIDTH (MAX_BOARDSIZE/MIN_LENGTH)
 #define DIRECTIONS    4 /* Up Down Left Right */
 #define ORIENTATIONS  5
 BOOLEAN twoInARow = FALSE;
@@ -517,7 +519,7 @@ void GameSpecificMenu() {
       break;
     case 'W': case 'w':
       BOARDSIZE /= WIDTH;
-      WIDTH = GetIntegerValue("board width", 1, 4);
+      WIDTH = GetIntegerValue("board width", MIN_WIDTH, MAX_WIDTH);
       if (BOARDSIZE > WIDTH)
 	BOARDSIZE = WIDTH;
       BOARDSIZE *= WIDTH;
@@ -525,7 +527,7 @@ void GameSpecificMenu() {
       InitializeGame();
       break;
     case 'L': case 'l':
-      length = GetIntegerValue("board length", 1, WIDTH<MAX_LENGTH ? WIDTH : MAX_LENGTH);
+      length = GetIntegerValue("board length", MIN_WIDTH, WIDTH<(MAX_BOARDSIZE/WIDTH) ? WIDTH : (MAX_BOARDSIZE/WIDTH));
       BOARDSIZE = length * WIDTH;
       gInitialPosition = 0;
       InitializeGame();
@@ -553,7 +555,20 @@ void GameSpecificMenu() {
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
-  twoInARow = theOptions[0];
+  //defaults
+  WIDTH = 3;
+  BOARDSIZE = 9;
+
+  twoInARow = !theOptions[0];
+
+  if (theOptions[1]==0) {
+    WIDTH=3;
+    BOARDSIZE=9;
+  }
+  else if (theOptions[1]==1) {
+    WIDTH=4;
+    BOARDSIZE=12;
+  }
 }
 
 /************************************************************************
@@ -1231,53 +1246,63 @@ STRING kDBName = "rubix" ;
      
 int NumberOfOptions()
 {    
-  int i, boardsizeOption=0;
-  for (i=1; i<MAX_WIDTH; i++) {
-    boardsizeOption += i;
-  }
-  boardsizeOption += MAX_LENGTH;
+  int standardGameOptions = 2;
+  int twoInARowOptions = 2;
+  int boardsizeOptions = 0;
+  int width, length;
 
-  return boardsizeOption << 2;
+  for (width=MIN_WIDTH; width<=MAX_WIDTH; width++) {
+    for (length=MIN_LENGTH; length<=width && length*width<=MAX_BOARDSIZE; length++) {
+      boardsizeOptions++;
+    }
+  }
+
+  return standardGameOptions * twoInARowOptions * boardsizeOptions;
 } 
    
 int getOption()
 {
-  int i;
-  int option = 0;
+  int option = 1;
   int boardsizeOption = 0;
+  int i, j;
+  BOOLEAN done = FALSE;
 
-  if (gStandardGame) option |= 1; 
-  if (twoInARow) option |= 2;
+  if (gStandardGame) option += 1; 
+  if (twoInARow) option += 1<<1;
   
-  /* BOARDSIZE=WIDTH*LENGTH where WIDTH>=LENGTH */
-  for (i=1; i<WIDTH; i++) {
-    boardsizeOption += i;
+  /* BOARDSIZE=WIDTH*LENGTH where WIDTH>=LENGTH and min LENGTH=3*/
+  for (i=MIN_WIDTH; i<WIDTH && !done; i++) {
+    for (j=MIN_LENGTH; j<=i; j++) {
+      boardsizeOption++;
+    }
   }
-  boardsizeOption += BOARDSIZE/WIDTH-1;
-  
-  option |= boardsizeOption << 2;
+  for (i=MIN_LENGTH; i<(BOARDSIZE/WIDTH); i++) {
+    boardsizeOption++;
+  }
+
+  option += boardsizeOption * 2*2;
   
   return option;
 } 
 
 void setOption(int option)
 {
+  int width=MIN_WIDTH, length=MIN_LENGTH;
   int boardsizeOption, i;
+  option -= 1;
 
   gStandardGame = option & 1;
   twoInARow = (option >> 1) & 1;
 
-  boardsizeOption = option >> 2;
-  for (i=1; i<MAX_WIDTH+1; i++) {
-    if (boardsizeOption>i) {
-      boardsizeOption -= i;
+  for(boardsizeOption=option>>2; boardsizeOption>0; boardsizeOption--) {
+    length++;
+    if(length>width) {
+      width++;
+      length = MIN_LENGTH;
     }
-    else {
-      WIDTH = i;
-      BOARDSIZE = WIDTH * (boardsizeOption+1);
-      break;
-    }
-  }  
+  }
+  WIDTH = width;
+  BOARDSIZE = width*length;
 }
 
 /************************************************************************

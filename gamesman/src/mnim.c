@@ -4,6 +4,9 @@
 
 extern STRING gValueString[];
 
+#define MIN_ROWS 1
+#define MAX_ROWS 9
+
 int rows = 5 ;
 
 int      gNumberOfPositions = 0 ;
@@ -54,7 +57,7 @@ GameSpecificMenu()
 
 	do
 	{
-		printf("Currently you have %d rows. Rows can range between 1 and 9\n", rows) ;
+		printf("Currently you have %d rows. Rows can range between %d and %d\n", rows, MIN_ROWS, MAX_ROWS) ;
 		printf("Would you like to change it? ") ;
 		fflush(stdin) ;
 		scanf("%c", &option) ;
@@ -64,9 +67,9 @@ GameSpecificMenu()
 		{
 			do
 			{
-				printf("Enter new number of rows [1-9] : ") ;
+				printf("Enter new number of rows [%d-%d] : ", MIN_ROWS, MAX_ROWS) ;
 				scanf("%d", &newrows) ;
-			}while(newrows > 9 || newrows < 1) ;
+			}while(newrows > MAX_ROWS || newrows < MIN_ROWS) ;
 			rows = newrows ;
 		}
 		else if(option != 'N')
@@ -130,13 +133,10 @@ PrintComputersMove(MOVE computersMove, STRING computersName)
 }
 
 // SUNIL: DONE
-// JJ:	  CORRECTED
 VALUE Primitive(POSITION position)
 {
-	if (position == 0)
-		return (gStandardGame ? lose : win);
-	else if (position == 1)
-		return (gStandardGame ? win : lose);
+	if (position == 0 || position == 1) 
+	  return (gStandardGame ? lose : win);
 	
 	return undecided;
 }
@@ -218,28 +218,22 @@ STRING kDBName = "nim" ;
 
 int NumberOfOptions()
 {    
-	return 2 ;
+	return 2*(MAX_ROWS-MIN_ROWS+1) ;
 } 
 
 int getOption()
 {
-	if(gStandardGame)
-	{
-		return 1 ;
-	}
-	return 2 ;
+  int option = 1;
+  if (gStandardGame) option += 1;
+  option += (rows-MIN_ROWS) * 2;
+  return option;
 } 
 
 void setOption(int option)
 {
-	if(option == 2)
-	{
-		gStandardGame = FALSE ;
-	}
-	else
-	{
-		gStandardGame = TRUE ;
-	}
+  option--;
+  gStandardGame = option%2==1;
+  rows = option/2%(MAX_ROWS-MIN_ROWS+1)+MIN_ROWS;
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

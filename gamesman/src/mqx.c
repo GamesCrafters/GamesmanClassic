@@ -970,47 +970,47 @@ STRING kDBName = "quickcross";
 
 int NumberOfOptions()
 {    
-        return 1;
+  int numBoardsizes = 5; /* b4x4, b3x4, b3x3, b15_3, b15_4 */
+  return 2*numBoardsizes;
 }
 
 int getOption()
 {
-        if(gStandardGame)
-	{
-	  /* Board configurations */
-	}
-	else
-	{
-	  /* Board Configurations */
-	}
-	
+  int boardsizeOption;
+  int option = 1;
+  if(!gStandardGame) option += 1;
 
-  return 1;
+  switch(BOARD) {
+  case b3x4: boardsizeOption=0; break;
+  case b3x3: boardsizeOption=1; break;
+  case b15_3: boardsizeOption=2; break;
+  case b15_4: boardsizeOption=3; break;
+  case b4x4: boardsizeOption=4; break;
+  }
+  option += 2*boardsizeOption;
+  
+  return option;
 } 
 
 void setOption(int option)
 {
-  /*        if(option == 1)
-	{
-                gStandardGame = TRUE ;
-		gToTrapIsToWin = TRUE ;
-	}
-        else if(option == 2)
-	{
-                gStandardGame = TRUE ;
-		gToTrapIsToWin = FALSE ;
-	}
-	else if(option == 3)
-	{
-                gStandardGame = FALSE ;
-		gToTrapIsToWin = TRUE ;
-	}
-	else
-	{
-                gStandardGame = FALSE ;
-		gToTrapIsToWin = FALSE ;
-		} 
-*/
+  int boardsizeOption;
+  option -= 1;
+
+  if (option%2==0) {
+    gStandardGame = TRUE;
+  } else {
+    gStandardGame = FALSE;
+  }
+  
+  boardsizeOption = option/2;
+  switch(boardsizeOption) {
+  case 0: BOARD=b3x4; BOARDSIZE=12; break;
+  case 1: BOARD=b3x3; BOARDSIZE=9; break;
+  case 2: BOARD=b15_3; BOARDSIZE=15; break;
+  case 3: BOARD=b15_4; BOARDSIZE=15; break;
+  case 4: BOARD=b4x4; BOARDSIZE=16; break;
+  }
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

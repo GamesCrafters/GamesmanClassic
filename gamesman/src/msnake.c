@@ -1203,9 +1203,9 @@ int NumberOfOptions()
 int getOption()
 {
   int option = 1;
-  option += 1 * gStandardGame ? 0 : 1;
-  option += 2 * gToTrapIsToWin ? 0 : 1;
-  option += 2*2 * moveHandT ? 1 : 0;
+  option += gStandardGame ? 0 : 1;
+  option += 2 * (gToTrapIsToWin ? 0 : 1);
+  option += 2*2 * (moveHandT ? 1 : 0);
   return option;
 }
 

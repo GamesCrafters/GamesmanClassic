@@ -386,10 +386,10 @@ void GameSpecificMenu()
     printf("\tT)\t(T)hree in a row %s\n", 
 	   gThreeInARowWins ? "GOOD (WINNING)" : "BAD (LOSING)");
 	   
-    printf("\tI)\tChoose the board (S)ize (2 through 9)\n");
-    printf("\tI)\tChoose the number of (P)iece sizes (*Note: 3 or more\
+    printf("\tS)\tChoose the board (S)ize (2 through 9)\n");
+    printf("\tP)\tChoose the number of (P)iece sizes (*Note: 3 or more\
         may be unsolvable on a 32 bit machine at 3x3 board.)\n");
-    printf("\tI)\tChoose the (N)umber of each piece size\n");
+    printf("\tN)\tChoose the (N)umber of each piece size\n");
     
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
@@ -1250,16 +1250,22 @@ struct GPosition unhash ( POSITION h )
 
 int NumberOfOptions()
 {
-  return 0;
+  return 2*2;
 }
 
 int getOption()
 {
-  return 0;
+  int option = 1;
+  if (gStandardGame) option += 1;
+  if (gThreeInARowWins) option += 1 *2;
+  return option;
 }
 
 void setOption(int option)
 {
+  option--;
+  gStandardGame = option%2==1;
+  gThreeInARowWins = option/2%2==1;
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 

@@ -918,25 +918,31 @@ POSITION BlankOXToPosition(theBlankOX, whosturn)
 }
 
 STRING kDBName = "slide-N" ;
-     
-/* Need Modification!*/
+
 int NumberOfOptions()
 {
-        return 2 ;
+  return 2*2*2*2*2 ;
 }
    
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  int option = 1;
+  if(gStandardGame) option += 1 ;
+  if(gTieLoses) option += 1 *2;
+  if(gDiagonalsWin) option += 1 *2*2;
+  if(gDiagonalLeftGravity) option += 1 *2*2*2;
+  if(gDiagonalRightGravity) option += 1 *2*2*2*2;
+  return option;
 }
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  option--;
+  gStandardGame = option%2==1;
+  gTieLoses = option/2%2==1;
+  gDiagonalsWin = option/(2*2)%2==1;
+  gDiagonalLeftGravity = option/(2*2*2)%2==1;
+  gDiagonalRightGravity = option/(2*2*2*2)%2==1;
 }
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

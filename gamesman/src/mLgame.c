@@ -393,7 +393,7 @@ GameSpecificMenu()
     mustMoveSt = "OFF";
 
   do {
-    printf("\n\t----- Game Options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game Options for %s -----\n\n", kGameName);
     
     printf("\ta)\tToggle from having (A)ccess to %s neutral\n\t  \t piece(s)to having access to %s neutral piece(s).\n", oneLSt, oneLSt2);
     if (oneL)
@@ -1854,21 +1854,31 @@ STRING kDBName = "Lgame" ;
      
 int NumberOfOptions()
 {    
-        return 2 ;
+  return 2*3*2 ;
 } 
    
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+  int option = 1;
+  if(gStandardGame) option += 1 ;
+  if(oneL) {
+    if (white1) option += 1 * 2;
+    else option += 2 * 2;
+  }
+  if (mustMove) option += 1 * (2*3);
+
+  return option;
 } 
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+  option -= 1;
+  gStandardGame = option%2==1;
+  oneL = option/2%3>0;
+  if (oneL) {
+    white1 = option/2%3==1;
+  }
+  mustMove = option/(2*3)%2==1;
 }
 
 int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
