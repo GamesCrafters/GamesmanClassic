@@ -248,20 +248,6 @@ VALUE Primitive ( POSITION h )
 	
 }
 
-/************************************************************************
-**
-** NAME:        PrintSpace
-**
-** DESCRIPTION: Creates the string representation of the board space
-** 
-** INPUTS:      SLOT the space to create the representation for.
-**
-************************************************************************/
-
-void gobbletPrintSpace(SLOT mySpace)
-{
-  
-}
 
 /************************************************************************
 **
