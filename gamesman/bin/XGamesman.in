@@ -67,27 +67,30 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     
     frame $w
 
-    scrollbar $w.hscroll -orient horiz -command "$c xview"
-    scrollbar $w.vscroll -orient vertical -command "$c yview"
+##### commented lines that makes scrollbar with #scroll#
+##### Jonathan Tsai 2004.04.19
+
+#scroll#    scrollbar $w.hscroll -orient horiz -command "$c xview"
+#scroll#    scrollbar $w.vscroll -orient vertical -command "$c yview"
     
     set width  [expr {($pad+100)*$cols+$pad}]
     set height [expr {(($under+151)*$rows)+$under}]
     set littleheight [expr {$under/2+($under+100)*$rows}]
     set la [concat 0 0 $width $height]
     
-    canvas $c -width $width -height $littleheight -relief sunken -borderwidth 2 -scrollregion $la\
-	    -xscrollcommand "$w.hscroll set"\
-	    -yscrollcommand "$w.vscroll set"
+    canvas $c -width $width -height $littleheight -relief sunken -borderwidth 2 -scrollregion $la
+#scroll#	    -xscrollcommand "$w.hscroll set"\
+#scroll#	    -yscrollcommand "$w.vscroll set"
     pack $w -expand yes -fill both -padx 1 -pady 1
     grid rowconfig    $w 0 -weight 1 -minsize 0
     grid columnconfig $w 0 -weight 1 -minsize 0
     
     grid $c -padx 1 -in $w -pady 1 \
 	    -row 0 -column 0 -rowspan 1 -columnspan 1 -sticky news
-    grid $w.vscroll -in $w -padx 1 -pady 1 \
-	    -row 0 -column 1 -rowspan 1 -columnspan 1 -sticky news
-    grid $w.hscroll -in $w -padx 1 -pady 1 \
-	    -row 1 -column 0 -rowspan 1 -columnspan 1 -sticky news
+#scroll#    grid $w.vscroll -in $w -padx 1 -pady 1 \
+#scroll#	    -row 0 -column 1 -rowspan 1 -columnspan 1 -sticky news
+#scroll#    grid $w.hscroll -in $w -padx 1 -pady 1 \
+#scroll#	    -row 1 -column 0 -rowspan 1 -columnspan 1 -sticky news
         
     pack .fall -fill both
 
@@ -230,6 +233,9 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.7  2004/04/19 09:48:41  jontsai
+##Jonathan Tsai jontsai@berkeley
+##
 ##Revision 1.6  2004/04/19 01:57:11  ddgarcia
 ##
 ##Removed ttt (silver) from the list, leaving 20 games (4x5, soon to be 5x4).
