@@ -86,6 +86,8 @@
 **                     Try to understand the full blown hash/unhash if you are looking for something to do. 
 **                     I barely understand it myself ... yes it is that ugly and complicated. 
 **                     Also added some function points to accomodate multiple implementations.
+** 22 Mar 2005 Mario:  Switched to marioInitialize to showcase (seemingly) hashing/unhashing error
+**                     Yanpei, please review: compile and run, and watch error output.
 **
 **************************************************************************/
 
@@ -253,7 +255,7 @@ POSITION                factorialNoMem(int n);
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
 POSITION		(*hash)( QTBPtr ) = &hashUnsymQuarto;
 QTBPtr			(*unhash)( POSITION ) = &unhashUnsymQuarto;
-void                    (*initGame)( ) = &yanpeiInitializeGame;
+void                    (*initGame)( ) = &marioInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
 POSITION                (*factorial)(int n) = &factorialMem;
 
@@ -329,10 +331,10 @@ void marioInitializeGame() {
 	
 	if ( error_board ) {
 
-		POSITION p = hash( board );
+		POSITION p = hash( error_board );
 
 		fprintf( stderr, "Hashing error:\nboard\t\t" );
-		print_board( board );
+		print_board( error_board );
 		fprintf( stderr, "\nhashes to\t%lu\nunhashes to\t", p );
 		print_board( unhash( p ) );
 		fprintf( stderr, "\n" );
@@ -1161,7 +1163,27 @@ void print_board( QTBPtr board ) {
 	fprintf( stderr, "[" );
 	for ( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
 		
-		fprintf( stderr, " %d ", board->slots[slot] );
+		if ( slot == HAND ) {
+			
+			fprintf( stderr, "|" );
+			
+		}
+		
+		if( board->slots[slot] == EMPTYSLOT ) {
+			
+			fprintf( stderr, " X " );
+			
+		} else {
+			
+			fprintf( stderr, " %d ", board->slots[slot] );
+			
+		}
+		
+		if ( slot == HAND ) {
+			
+			fprintf( stderr, "|" );
+			
+		}
 
 	}
 	fprintf( stderr, "] pieces = %d; squares = %d; turn = %d ", board->piecesInPlay, board->squaresOccupied, board->usersTurn );
@@ -1173,85 +1195,56 @@ QTBPtr TestHash( QTBPtr board, int slot ) {
 	
 	int i;
 
+	// For every possible piece
 	for( i = 0; i < NUMPIECES + 1; i++ ) {
-
 		int j, repeat = FALSE, pieces = 0, squares = 0;;
-		
 		/* For every slot preceeding this one */
 		for( j = 0; j < slot; j++ ) {
-
+			/* If slot is not empty */
 			if( board->slots[j] != EMPTYSLOT ) {
-
-				/* Invalid board */
+				/* Invalid board if this piece is same as piece in slot */
 				if( i == board->slots[j] ) {
-
 					repeat = TRUE;
 					break;
-
+				/* Valid board otherwise */
 				} else {
-
-					if( j != HAND ) {
-
-						squares++;
-
-					}
-
+					// Increment piece count
 					pieces++;
-
+					// If piece is not in hand, increment squares count
+					if( j != HAND ) {
+						squares++;
+					}
 				}
 			}
-
 		}
 
 		if ( !repeat ) {
-
+			/* Set slot to contain piece i */
 			board->slots[slot] = i;
 			if ( slot < BOARDSIZE ) {
-
 				QTBPtr error_board = TestHash( board, slot + 1 );
-
+				// If board is errant, propagate error board back to caller
 				if ( error_board ) {
-
 					return error_board;
-
 				}
-
 			} else {
-
-				if ( i != HAND ) {
-
+				// If slot is NOT empty
+				if ( i != EMPTYSLOT ) {
+					// Increment piece count
 					pieces++;
-					if ( slot != EMPTYSLOT ) {
-
+					// If not in hand, also increment square count
+					if ( slot != HAND ) {
 						squares++;
-
 					}
-
 				}
-
 				board->piecesInPlay = pieces;
 				board->squaresOccupied = squares;
 				board->usersTurn = FALSE;
-
-				if ( !boards_equal( board, unhash( hash ( board ) ) ) ) {
-
-					return board;
-
-				} else {
-
-					return NULL;
-
-				}
-				
-
+				return boards_equal( board, unhash( hash ( board ) ) ) ? NULL : board;
 			}
-
 		}
-			
 	}
-
 	return NULL;
-
 }
 
 /* Mario: This hash algorithm is wasteful. We just bitpack the board into an integer.
@@ -1795,7 +1788,7 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 	for( cell = 1; cell <= BOARDSIZE; cell++ ) {
 		
 		if ( !( ( cell - 1 ) % GAMEDIMENSION ) ) {
-			PrintHorizontalBorder( '-', ' ', pad, "" );
+			PrintHorizontalBorder( '-', '-', pad, "" );
 			printf( "%s|", pad );
 			
 		}
@@ -1804,7 +1797,7 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 		
 	}
 	
-	PrintHorizontalBorder( '-', ' ', pad, "\n" );
+	PrintHorizontalBorder( '-', '-', pad, "\n" );
 
 }
 
