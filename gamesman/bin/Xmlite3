@@ -2,19 +2,12 @@
 #
 #############################################################################
 ##
-## NAME:         Xmlite3
+## NAME:
 ##
-## DESCRIPTION:  The source code for the Tcl component of Lite-3
-##
-## AUTHOR:       Dan Garcia  -  University of California at Berkeley
-##               Copyright (C) Dan Garcia, 1995. All rights reserved.
-##               Modified by Alex Perelman for Lite-3
-##
-## DATE:         09/07/02
-##
-## UPDATE HIST:
-##
-## 05-15-95 1.0    : Final release code for M.S.
+## DESCRIPTION:  
+## AUTHOR:       
+## DATE:         
+## UPDATE HISTORY:
 ##
 #############################################################################
 
@@ -37,10 +30,16 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmlite3[info sharedlibextension]" Gamesman
 
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman3.tcl"
+
 ### Now source our Game-specific code.
 
 source "$kRootDir/../tcl/mlite3.tcl"
 
-### Now source the rest of the game-playing interface code.
+main $kRootDir
 
-source "$kRootDir/../tcl/gamesman.tcl"
+
+
+

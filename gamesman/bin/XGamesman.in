@@ -248,13 +248,13 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 ctoi win4 dodgem Lgame lite3 tactix sim 3dot con cmass dnb foxes stt }
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 ctoi win4 dodgem Lgame tactix sim 3dot con cmass dnb foxes stt }
     ### Removed ttt (silver version) ddg 2004-04-18
 
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Lite 3" "Tac Tix" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Tac Tix" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
-    set theGuiTypes { gold gold gold gold gold gold gold grey grey grey grey grey grey grey brown brown brown brown brown brown }
+    set theGuiTypes { gold gold gold gold gold gold gold gold grey grey grey grey grey grey brown brown brown brown brown brown }
     ### Removed grey (for Tic-Tac-Toe)
 
 
@@ -275,6 +275,103 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.11  2004/10/10 05:35:39  angell0rd
+##? gamesman/.project
+##? gamesman/Makefile
+##? gamesman/config.log
+##? gamesman/config.status
+##? gamesman/bin/XGamesman
+##? gamesman/bin/data
+##? gamesman/lib/libm1210.dll
+##? gamesman/lib/libm3spot.dll
+##? gamesman/lib/libmLgame.dll
+##? gamesman/lib/libmachi.dll
+##? gamesman/lib/libmasalto.dll
+##? gamesman/lib/libmblocking.dll
+##? gamesman/lib/libmchange.dll
+##? gamesman/lib/libmcmass.dll
+##? gamesman/lib/libmcon.dll
+##? gamesman/lib/libmctoi.dll
+##? gamesman/lib/libmdinododgem.dll
+##? gamesman/lib/libmdnb.dll
+##? gamesman/lib/libmdodgem.dll
+##? gamesman/lib/libmfoxes.dll
+##? gamesman/lib/libmhorse.dll
+##? gamesman/lib/libmlite3.dll
+##? gamesman/lib/libmmancala.dll
+##? gamesman/lib/libmnim.dll
+##? gamesman/lib/libmothello.dll
+##? gamesman/lib/libmqx.dll
+##? gamesman/lib/libmrInfin2.dll
+##? gamesman/lib/libmrubix.dll
+##? gamesman/lib/libmsim.dll
+##? gamesman/lib/libmslideN.dll
+##? gamesman/lib/libmsnake.dll
+##? gamesman/lib/libmstt.dll
+##? gamesman/lib/libmswans.dll
+##? gamesman/lib/libmtactix.dll
+##? gamesman/lib/libmttt.dll
+##? gamesman/lib/libmwin4.dll
+##? gamesman/lib/libmwinkers.dll
+##? gamesman/src/Makefile
+##? gamesman/tcl/m12102.tcl
+##Index: gamesman/bin/XGamesman.in
+##===================================================================
+##RCS file: /cvsroot/gamescrafters/gamesman/bin/XGamesman.in,v
+##retrieving revision 1.10
+##diff -r1.10 XGamesman.in
+##257c257
+##<     set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown }
+##---
+##>     set theGuiTypes { gold gold gold gold gold gold gold grey grey grey grey grey grey grey brown brown brown brown brown brown }
+##Index: gamesman/bin/Xm1210
+##===================================================================
+##RCS file: /cvsroot/gamescrafters/gamesman/bin/Xm1210,v
+##retrieving revision 1.1.1.1
+##diff -r1.1.1.1 Xm1210
+##1c1
+##< #!/usr/sww/bin/wish -f
+##---
+##> #!/bin/wish -f
+##5c5
+##< ## NAME:         Xm1210
+##---
+##> ## NAME:
+##7,17c7,10
+##< ## DESCRIPTION:  The source code for the Tcl component of the game 1,2,...,10
+##< ##               for the Master's project GAMESMAN
+##< ##
+##< ## AUTHOR:       Dan Garcia  -  University of California at Berkeley
+##< ##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##< ##
+##< ## DATE:         05-12-95
+##< ##
+##< ## UPDATE HIST:
+##< ##
+##< ## 05-15-95 1.0    : Final release code for M.S.
+##---
+##> ## DESCRIPTION:
+##> ## AUTHOR:
+##> ## DATE:
+##> ## UPDATE HISTORY:
+##39a33,36
+##> ### Now source the rest of the game-playing interface code.
+##>
+##> source "$kRootDir/../tcl/gamesman3.tcl"
+##>
+##42c39,43
+##< source "$kRootDir/../tcl/m1210.tcl"
+##---
+##> source "$kRootDir/../tcl/m12102.tcl"
+##>
+##> main $kRootDir
+##>
+##>
+##44d44
+##< ### Now source the rest of the game-playing interface code.
+##46d45
+##< source "$kRootDir/../tcl/gamesman.tcl"
+##
 ##Revision 1.10  2004/05/19 16:33:57  jontsai
 ##functions, shouldScrollH and shouldScrollV to true or false
 ##Jonathan Tsai jontsai@berkeley.edu
