@@ -32,7 +32,12 @@
 #include <unistd.h>
 #include <limits.h>
 
-extern STRING gValueString[];
+
+/*************************************************************************
+**
+** Game-specific constants
+**
+**************************************************************************/
 
 STRING   kGameName            = ""; /* The name of your game */
 STRING   kAuthorName          = ""; /* Your name(s) */
@@ -76,6 +81,7 @@ STRING   kHelpTieOccursWhen =
 STRING   kHelpExample =
 "";
 
+
 /*************************************************************************
 **
 ** #defines and structs
@@ -89,6 +95,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+
 /*************************************************************************
 **
 ** Function Prototypes
@@ -99,6 +106,7 @@ STRING   kHelpExample =
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -106,6 +114,7 @@ extern void		SafeFree ();
 **************************************************************************/
 
 extern VALUE     *gDatabase;
+
 
 /************************************************************************
 **
@@ -119,8 +128,9 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  
+    
 }
+
 
 /************************************************************************
 **
@@ -142,10 +152,13 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	MOVELIST *CreateMovelistNode();
-	MOVELIST *moves = NULL;
-	return moves;
+    MOVELIST *moves = NULL;
+    
+    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+    
+    return moves;
 }
+
 
 /************************************************************************
 **
@@ -165,8 +178,9 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-	return 0;
+    return 0;
 }
+
 
 /************************************************************************
 **
@@ -194,8 +208,9 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
- 	return undecided;
+    return undecided;
 }
+
 
 /************************************************************************
 **
@@ -215,8 +230,9 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-	
+    
 }
+
 
 /************************************************************************
 **
@@ -231,8 +247,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-
+    
 }
+
 
 /************************************************************************
 **
@@ -246,8 +263,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  
+    
 }
+
 
 /************************************************************************
 **
@@ -271,24 +289,25 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
+    USERINPUT input;
+    USERINPUT HandleDefaultTextInput();
+    
+    for (;;) {
+        /***********************************************************
+         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+         ***********************************************************/
+	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	
+	input = HandleDefaultTextInput(position, move, playersName);
+	
+	if (input != Continue)
+		return input;
+    }
 
-	while(TRUE)
-	{
-		/***********************************************************
-                 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-                 ***********************************************************/
-		printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
-
-		input = HandleDefaultTextInput(position, move, playersName);
-
-		if (input != Continue)
-			return input;
-	}
-
-	return Continue; /* This keeps the compiler happy */
+    /* NOTREACHED */
+    return Continue;
 }
+
 
 /************************************************************************
 **
@@ -317,8 +336,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	return FALSE;
+    return FALSE;
 }
+
 
 /************************************************************************
 **
@@ -336,8 +356,9 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	return 0;
+    return 0;
 }
+
 
 /************************************************************************
 **
@@ -358,8 +379,9 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-  
+    
 }
+
 
 /************************************************************************
 **
@@ -372,8 +394,9 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-  
+    
 }
+  
   
 /************************************************************************
 **
@@ -390,7 +413,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-	return 0;
+    return 0;
 }
 
 
@@ -407,7 +430,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-	return 0;
+    return 0;
 }
 
 
@@ -425,8 +448,9 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	return 0;
+    return 0;
 }
+
 
 /************************************************************************
 **
@@ -441,8 +465,9 @@ int getOption ()
 
 void setOption (int option)
 {
-
+    
 }
+
 
 /************************************************************************
 **
@@ -459,8 +484,9 @@ void setOption (int option)
 
 void DebugMenu ()
 {
-
+    
 }
+
 
 /************************************************************************
 **
