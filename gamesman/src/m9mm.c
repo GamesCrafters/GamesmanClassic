@@ -59,7 +59,7 @@ void*	 gGameSpecificTclInit = NULL;
 STRING kHelpGraphicInterface =
 "Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
-STRING   kHelpTextInterface    =
+STRING kHelpTextInterface =
 "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
 
 STRING kHelpOnYourTurn;
@@ -72,17 +72,52 @@ STRING kHelpOnYourTurn0 =
 STRING kHelpWithFlying = 
 "\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece.";
 
-STRING   kHelpStandardObjective =
+STRING kHelpStandardObjective =
 "A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two or by blocking all of your opponent's pieces so that\nthe opponent can no longer move.";
 
-STRING   kHelpReverseObjective =
+STRING kHelpReverseObjective =
 "A misere victory in Nine Men's Morris is won by being the first player to\nhave only two pieces on the board or the first player to be totally blocked\n(and have no more legal moves).";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A Tie will never occur in a standard game of Nine Men's Morris.";
 
-STRING   kHelpExample =
-"See example.";
+STRING kHelpExample =
+"\
+        0-----------1-----------2\tx-----------_-----------o\n\
+        |           |           |\t|           |           |\n\
+        |           |           |\t|           |           |\n\
+        |   3-------4-------5   |\t|   _-------_-------_   |\n\
+        |   |       |       |   |\t|   |       |       |   |\n\
+        |   |   6---7---8   |   |\t|   |   _---x---_   |   |\n\
+        |   |   |       |   |   |\t|   |   |       |   |   |\n\
+LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\n\
+        |   |   |       |   |   |\t|   |   |       |   |   |\n\
+        |   |   15--16--17  |   |\t|   |   _---o---_   |   |\n\
+        |   |       |       |   |\t|   |       |       |   |\n\
+        |   18------19------20  |\t|   _-------_-------_   |\n\
+        |           |           |\t|           |           |\n\
+        |           |           |\t|           |           |\n\
+        21----------22----------23\to-----------_-----------x\n\
+";
+
+STRING kHelpExampleWithFlying =
+"\
+        0-----------1-----------2\tx-----------_-----------o\n\
+        |           |           |\t|           |           |\n\
+        |           |           |\t|           |           |\n\
+        |   3-------4-------5   |\t|   _-------_-------_   |\n\
+        |   |       |       |   |\t|   |       |       |   |\n\
+        |   |   6---7---8   |   |\t|   |   _---x---_   |   |\n\
+        |   |   |       |   |   |\t|   |   |       |   |   |\n\
+LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\n\
+        |   |   |       |   |   |\t|   |   |       |   |   |\n\
+        |   |   15--16--17  |   |\t|   |   _---o---_   |   |\n\
+        |   |       |       |   |\t|   |       |       |   |\n\
+        |   18------19------20  |\t|   _-------_-------_   |\n\
+        |           |           |\t|           |           |\n\
+        |           |           |\t|           |           |\n\
+        21----------22----------23\to-----------_-----------x\n\
+";
 
 /*************************************************************************
 **
@@ -413,22 +448,22 @@ POSITION GetInitialPosition()
   printf("\n\tPlease input the position to begin with.\n");
   printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
   printf("Example:\n");
-  printf("        _-----------o-----------_\n");
+  printf("        x-----------_-----------o\n");
   printf("        |           |           |\n");
   printf("        |           |           |\n");
-  printf("        |   x-------_-------o   |\n");
+  printf("        |   _-------_-------_   |\n");
   printf("        |   |       |       |   |\n");
   printf("        |   |   _---x---_   |   |\n");
   printf("        |   |   |       |   |   |\n");
   printf("        _---_---_       _---_---_\n");
   printf("        |   |   |       |   |   |\n");
-  printf("        |   |   _---x---_   |   |\n");
+  printf("        |   |   _---o---_   |   |\n");
   printf("        |   |       |       |   |\n");
-  printf("        |   _-------_-------o   |\n");
+  printf("        |   _-------_-------_   |\n");
   printf("        |           |           |\n");
   printf("        |           |           |\n");
-  printf("        _-----------_-----------_\n");
-  printf("Is input as \n\t_ o _\n\tx _ o\n\t_ x _ \n\t_ _ _ _ _ _\n\t_ x _ \n\t_ _ o\n\t_ _ _\n\nYour board:\n");
+  printf("        o-----------_-----------x\n");
+  printf("Is input as \n\tx _ o\n\t_ _ _\n\t_ x _ \n\t_ _ _ _ _ _\n\t_ o _ \n\t_ _ _\n\to _ x\n\nYour board:\n");
 
   getchar(); // dump a char 
 
@@ -667,30 +702,30 @@ MOVELIST *GenerateMoves(POSITION position)
   unhash(position, dest);
   
   for (i = 0; i < BOARDSIZE; i++)
-	 {
-		if (dest[i] == x)
-		  x_pieces[x_count++] = i;
-		else if (dest[i] == o)
-		  o_pieces[o_count++] = i;
-	 }
+    {
+      if (dest[i] == x)
+	x_pieces[x_count++] = i;
+      else if (dest[i] == o)
+	o_pieces[o_count++] = i;
+    }
   
   if (turn == x)
-	 {
-		player_pieces = x_pieces;
-		player_count = x_count;
-		player_adjBlanks = x_adjBlanks;
-		opponent_count = o_count;
-		opponent_pieces = o_pieces;
-	 }
+    {
+      player_pieces = x_pieces;
+      player_count = x_count;
+      player_adjBlanks = x_adjBlanks;
+      opponent_count = o_count;
+      opponent_pieces = o_pieces;
+    }
   else
-	 {
-		player_pieces = o_pieces;
-		player_count = o_count;
-		player_adjBlanks = o_adjBlanks;
-		opponent_count = x_count;
-		opponent_pieces = x_pieces;
-	 }
-
+    {
+      player_pieces = o_pieces;
+      player_count = o_count;
+      player_adjBlanks = o_adjBlanks;
+      opponent_count = x_count;
+      opponent_pieces = x_pieces;
+    }
+  
   if (gFlying && player_count<=toFly) {
     blank_count = find_pieces(dest, blank, blanks);
   }
@@ -707,39 +742,39 @@ MOVELIST *GenerateMoves(POSITION position)
   }
   
   for (i = 0; i < player_count; i++)
-	 {
-	   if(gFlying && player_count<=toFly) {
-	     counter = blank_count;
-	   }
-	   else {
-	     counter = player_adjBlanks[i];
-	   }
-		for (j = 0; j < counter; j++)
-		  {
-		    if (gFlying && player_count<=toFly) {
-			 raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
-				(blanks[j] * BOARDSIZE) + player_pieces[i];
-		    }
-		    else {
-		      raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
-			(player_adj[i][j] * BOARDSIZE) + player_pieces[i];
-		    }
-
-			 //debug
-			 if (debug) {
-				printf ("the raw_move is: %d\n", raw_move);
-			 }
-			 
-			 if (closes_mill(position, raw_move))
-				{
-				  for (k = 0; k < opponent_count; k++)
-					 if (can_be_taken(position, opponent_pieces[k]))
-						head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
-				}
-			 else
-				head = CreateMovelistNode(raw_move, head); 
-		  }
-	 }
+    {
+      if(gFlying && player_count<=toFly) {
+	counter = blank_count;
+      }
+      else {
+	counter = player_adjBlanks[i];
+      }
+      for (j = 0; j < counter; j++)
+	{
+	  if (gFlying && player_count<=toFly) {
+	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+	      (blanks[j] * BOARDSIZE) + player_pieces[i];
+	  }
+	  else {
+	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+	      (player_adj[i][j] * BOARDSIZE) + player_pieces[i];
+	  }
+	  
+	  //debug
+	  if (debug) {
+	    printf ("the raw_move is: %d\n", raw_move);
+	  }
+	  
+	  if (closes_mill(position, raw_move))
+	    {
+	      for (k = 0; k < opponent_count; k++)
+		if (can_be_taken(position, opponent_pieces[k]))
+		  head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
+	    }
+	  else
+	    head = CreateMovelistNode(raw_move, head); 
+	}
+    }
   
   return head;
 }
@@ -805,8 +840,6 @@ BOOLEAN ValidTextInput(input)
      STRING input;
 {
   // we could bulletproof this a lot more
-
-
   
   int moveFrom, moveTo, moveRemove;
 
@@ -955,7 +988,7 @@ void PrintMove(theMove)
 ** NAME:        NumberOfOptions
 **
 ** DESCRIPTION: Calculates and returns the number of option combinations
-**				there are with all the game variations you program.
+**		there are with all the game variations you program.
 **
 ** OUTPUTS:     int : the number of option combination there are.
 **
@@ -971,7 +1004,7 @@ int NumberOfOptions()
 ** NAME:        getOption
 **
 ** DESCRIPTION: A hash function to keep track of all the game variants.
-**				Should return a different number for each set of
+**		Should return a different number for each set of
 **				variants.
 **
 ** OUTPUTS:     int : the number representation of the options.
@@ -1755,6 +1788,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.66  2004/05/05 22:58:46  ogren
+//GetInitialPosition now restricts piece placement to be between min and max, inclusive. -Elmer
+//
 //Revision 1.65  2004/05/05 22:40:16  ogren
 //turned off debugging -Elmer
 //
