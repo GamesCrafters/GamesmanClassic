@@ -122,7 +122,7 @@ STRING   kHelpExample =
 typedef enum Pieces {
   blank, x, o
 } blankox;
-char *gblankoxString[] = { " ", "x", "o"};
+char *gblankoxString[] = { "_", "x", "o"};
 
 
 /*************************************************************************
@@ -369,7 +369,49 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
+  blankox board[BOARDSIZE];
+  blankox turn;
+  char c_board[BOARDSIZE];
   
+  unhash(position, board);
+  unparse_board(board, c_board);
+  turn = whose_turn(position);
+  
+  
+  printf("\n");
+  printf("        0-----------1-----------2       %c-----------%c-----------%c\n", c_board[0], c_board[1], c_board[2] );
+  printf("        |           |           |       |           |           |\n");
+  printf("        |           |           |       |           |           |\n");
+  printf("        |   3-------4-------5   |       |   %c-------%c-------%c   |\n", c_board[3], c_board[4], c_board[5] );
+  printf("        |   |       |       |   |       |   |       |       |   |\n");
+  printf("        |   |   6---7---8   |   |       |   |   %c---%c---%c   |   |\n", c_board[6], c_board[7], c_board[8] );
+  printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
+  printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn:%c\n", c_board[9], c_board[10], c_board[11], c_board[12], c_board[13], c_board[14], turn );
+  printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
+  printf("        |   |   15--16--17  |   |       |   |   %c---%c---%c   |   |\n", c_board[15], c_board[16], c_board[17] );
+  printf("        |   |       |       |   |       |   |       |       |   |\n");
+  printf("        |   18------19------20  |       |   %c-------%c-------%c   |\n", c_board[18], c_board[19], c_board[20] );
+  printf("        |           |           |       |           |           |\n");
+  printf("        |           |           |       |           |           |\n");
+  printf("        21----------22----------23      %c-----------%c-----------%c\n", c_board[21], c_board[22], c_board[23] );
+  GetPrediction(position,playerName,usersTurn));
+    /*
+  0-----------1-----------2
+  |           |           |
+  |           |           |
+  |   3-------4-------5   |
+  |   |       |       |   |
+  |   |   6---7---8   |   |
+  |   |   |       |   |   |
+  9---10--11      12--13--14
+  |   |   |       |   |   |
+  |   |   15--16--17  |   |
+  |   |       |       |   |
+  |   18------19------20  |
+  |           |           |
+  |           |           |
+  21----------22----------23
+  */
 }
 
 /************************************************************************
@@ -483,7 +525,19 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
+  BOOLEAN ValidMove();
+  USERINPUT ret, HandleDefaultTextInput();
   
+  do {
+    printf("%8s's move [(u)ndo/(0-23 0-23) :  ", playerName, TABLE_SLOTS + PIECE_SIZES, TABLE_SLOTS);
+
+    
+    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+    if(ret != Continue)
+      return(ret);
+  }
+  while (TRUE);
+  return (Continue);
 }
 
 /************************************************************************
@@ -664,12 +718,7 @@ void unparse_board(blankox *b_board, char *c_board)
   int i;
   for (i = 0; i < BOARDSIZE; i++)
     {
-      if (b_board[i] == o)
-	c_board[i] = 'o';
-      else if (b_board[i] == x)
-	c_board[i] = 'x';
-      else if (b_board[i] == blank)
-	c_board[i] = 'b';
+      c_board[i] = gblankoxString[b_board[i]];
     }
 }
 
@@ -720,22 +769,22 @@ BOOLEAN closes_mill(POSITION position, int raw_move)
 
 BOOLEAN check_mill(blankox *board, int slot)
 {
-  return three_in_a_row(board, 0, 1,  2, slot) ||
-    three_in_a_row(board, 0, 6,  7, slot) ||
-    three_in_a_row(board, 1, 7,  8, slot) ||
-    three_in_a_row(board, 2, 3,  4, slot) ||
-    three_in_a_row(board, 3, 11, 19,slot) ||
-    three_in_a_row(board, 4, 5,  6, slot) ||
-    three_in_a_row(board, 5, 13, 21,slot) ||
-    three_in_a_row(board, 7, 15, 23,slot) ||
-    three_in_a_row(board, 8, 9,  10,slot) ||
-    three_in_a_row(board, 8, 13, 14,slot) ||
-    three_in_a_row(board, 10,11, 12,slot) ||
-    three_in_a_row(board, 12, 13,14,slot) ||
-    three_in_a_row(board, 16, 17,18,slot) ||
-    three_in_a_row(board, 16, 22,23,slot) ||
-    three_in_a_row(board, 18, 19,20,slot) ||
-    three_in_a_row(board, 20, 21,22,slot);
+  return three_in_a_row(board, 0, 1,  2, slot) || // horizontals
+    three_in_a_row(board, 3, 4,  5, slot) ||
+    three_in_a_row(board, 6, 7,  8, slot) ||
+    three_in_a_row(board, 9, 10,  11, slot) ||
+    three_in_a_row(board, 12, 13, 14,slot) ||
+    three_in_a_row(board, 15, 16,  17, slot) ||
+    three_in_a_row(board, 18, 19, 20,slot) ||
+    three_in_a_row(board, 21, 22, 23,slot) ||
+    three_in_a_row(board, 0, 9,  21,slot) || // verticals
+    three_in_a_row(board, 3, 10, 18,slot) ||
+    three_in_a_row(board, 1, 4, 7,slot) ||
+    three_in_a_row(board, 16, 19,22,slot) ||
+    three_in_a_row(board, 8, 12,17,slot) ||
+    three_in_a_row(board, 6, 11,15,slot) ||
+    three_in_a_row(board, 5, 13,20,slot) ||
+    three_in_a_row(board, 2, 14,23,slot);
 }
 
 BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot)
@@ -748,6 +797,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.13  2004/03/07 19:28:31  evedar
+//Parse errors fixed
+//
 //Revision 1.12  2004/03/07 19:05:03  weitu
 //1.12 added hash.h and changed to fit new hash function.
 //
