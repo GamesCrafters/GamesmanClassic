@@ -42,7 +42,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-
 /*************************************************************************
 **
 ** Game-specific constants
@@ -51,7 +50,7 @@
 
 STRING   kGameName            = "(Four Field) Kono"; /* The name of your game */
 STRING   kAuthorName          = "Greg Bonin, Nathan Spindel";   /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kDBName              = "kono"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -118,8 +117,12 @@ STRING   kHelpExample =
 
 int WIDTH = 4, HEIGHT = 4, currentWidth = 4, currentHeight = 4;
 int BOARDSIZE;
-BOOLEAN DEFAULT = TRUE, gWinType = TRUE;
+
+BOOLEAN DEFAULT = TRUE;
+BOOLEAN gWinType = TRUE;
 BOOLEAN gAllowVWrap = FALSE, gAllowHWrap = FALSE;
+BOOLEAN gMustCapture = TRUE;
+
 char *gBoard;
 
 /*************************************************************************
@@ -141,7 +144,6 @@ int neighbors(int x, int y);
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
 
 /*************************************************************************
 **
@@ -211,11 +213,21 @@ void InitializeGame ()
 **
 ************************************************************************/
 
+#define upOne(x, y) (((y + HEIGHT - 1) % HEIGHT) * WIDTH + x)
+#define upTwo(x, y) (((y + HEIGHT - 2) % HEIGHT) * WIDTH + x)
+#define downOne(x, y) (((y + HEIGHT + 1) % HEIGHT) * WIDTH + x)
+#define downTwo(x, y) (((y + HEIGHT + 2) % HEIGHT) * WIDTH + x)
+
+#define leftOne(x, y) ((y * WIDTH) + (x + WIDTH - 1) % WIDTH)
+#define leftTwo(x, y) ((y * WIDTH) + (x + WIDTH - 2) % WIDTH)
+#define rightOne(x, y) ((y * WIDTH) + (x + WIDTH + 1) % WIDTH)
+#define rightTwo(x, y) ((y * WIDTH) + (x + WIDTH + 2) % WIDTH)
+
 MOVELIST *GenerateMoves (POSITION position)
 {
   MOVELIST *moves = NULL, *captures = NULL;
   int player = whoseMove (position);
-  int i;
+  int i, j, pos;
   char currentPlayer, oppPlayer;
 
   generic_unhash(position, gBoard);
@@ -228,51 +240,62 @@ MOVELIST *GenerateMoves (POSITION position)
     oppPlayer = 'x';
   }
   
-  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-  
-  for (i = BOARDSIZE; i >= 0; i--) {
-    if (gBoard[i] == currentPlayer) {
+  for (i = 0; i < WIDTH; i ++) {
+    for (j = 0; j < HEIGHT; j++) {
+      
+      pos = j*WIDTH+i;
+      
+      if (gBoard[pos] == currentPlayer) {
+	
+	/* check up one */
+	if (pos >= WIDTH || gAllowVWrap)
+	  if (gBoard[upOne(i, j)] == ' ')
+	    moves = CreateMovelistNode(makeMove(pos, upOne(i, j)), moves);
+	
+	/* check up two */
+	if (pos > WIDTH*2 || gAllowVWrap)
+	  if (gBoard[upOne(i, j)] == currentPlayer && gBoard[upTwo(i, j)] == oppPlayer)
+	    if (gMustCapture)
+	      captures = CreateMovelistNode(makeMove(pos, upTwo(i, j)), captures);
+	    else moves = CreateMovelistNode(makeMove(pos, upTwo(i, j)), moves);
+	
+	/* check down one */
+	if (pos < WIDTH*(HEIGHT-1) || gAllowVWrap)
+	  if (gBoard[downOne(i, j)] == ' ')
+	    moves = CreateMovelistNode(makeMove(i, downOne(i, j)), moves);
+	
+	/* check down two */
+	if (pos < WIDTH*(HEIGHT-2) || gAllowVWrap)
+	  if (gBoard[downOne(i, j)] == currentPlayer && gBoard[downTwo(i, j)] == oppPlayer)
+	    if (gMustCapture) 
+	      captures = CreateMovelistNode(makeMove(pos, downTwo(i, j)), captures);
+	    else moves = CreateMovelistNode(makeMove(pos, downTwo(i, j)), moves);
+	
+	/* check left one */
+	if (pos % WIDTH != 0 || gAllowHWrap)
+	  if (gBoard[leftOne(i, j)] == ' ')
+	    moves = CreateMovelistNode(makeMove(pos, leftOne(i, j)), moves);
+	
+	/* check left two */
+	if (pos % WIDTH > 1 || gAllowHWrap)
+	  if (gBoard[leftOne(i, j)] == currentPlayer && gBoard[leftTwo(i, j)] == oppPlayer)
+	    if (gMustCapture) 
+	      captures = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), captures);
+	    else moves = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), moves);
+	
+	/* check right one */
+	if (pos % WIDTH < WIDTH-1 || gAllowHWrap)
+	  if (gBoard[rightOne(i, j)] == ' ')
+	    moves = CreateMovelistNode(makeMove(pos, rightOne(i, j)), moves);
+	
+	/* check right two */
+	if (pos % WIDTH < WIDTH-2 || gAllowHWrap)
+	  if (gBoard[rightOne(i, j)] == currentPlayer && gBoard[rightTwo(i, j)] == oppPlayer)
+	    if (gMustCapture) 
+	      captures = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), captures);
+	    else moves = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), moves);
 
-
-      /* check up one */
-      if (i > WIDTH || gAllowVWrap)
-	if (gBoard[i-WIDTH] == ' ')
-	  moves = CreateMovelistNode(makeMove(i, i-WIDTH), moves);
-
-      /* check up two */
-      if (i > WIDTH*2 || gAllowVWrap)
-	if (gBoard[i-WIDTH] == currentPlayer && gBoard[i-WIDTH*2] == oppPlayer)
-	  captures = CreateMovelistNode(makeMove(i, i-WIDTH*2), captures);
-
-      /* check down one */
-      if (i < WIDTH*(HEIGHT-1) || gAllowVWrap)
-	if (gBoard[i+WIDTH] == ' ')
-	  moves = CreateMovelistNode(makeMove(i, i+WIDTH), moves);
-
-      /* check down two */
-      if (i < WIDTH*(HEIGHT-2) || gAllowVWrap)
-	if (gBoard[i+WIDTH] == currentPlayer && gBoard[i+WIDTH*2] == oppPlayer)
-	  captures = CreateMovelistNode(makeMove(i, i+WIDTH*2), captures);
-
-      /* check left one */
-      if (i % WIDTH != 0 || gAllowHWrap)
-	if (gBoard[i-1] == ' ')
-	  moves = CreateMovelistNode(makeMove(i, i-1), moves);
-
-      /* check left two */
-      if (i % WIDTH > 1 || gAllowHWrap)
-	if (gBoard[i-1] == currentPlayer && gBoard[i-2] == oppPlayer)
-	  captures = CreateMovelistNode(makeMove(i, i-2), captures);
-
-      /* check right one */
-      if (i % WIDTH < WIDTH-1 || gAllowHWrap)
-	if (gBoard[i+1] == ' ')
-	  moves = CreateMovelistNode(makeMove(i, i+1), moves);
-
-      /* check right two */
-      if (i % WIDTH < WIDTH-2 || gAllowHWrap)
-	if (gBoard[i+1] == currentPlayer && gBoard[i+2] == oppPlayer)
-	  captures = CreateMovelistNode(makeMove(i, i+2), captures);
+      }
     }
   }
   
@@ -505,9 +528,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     
     for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
 	printf("%8s's move [1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
@@ -551,7 +571,14 @@ BOOLEAN ValidTextInput (STRING input)
   /* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
    *              "xxx yyy" is board has 100 to 999 squares */
 
-  return TRUE;
+  int length = strlen(input);
+
+  if (length >= 3 && length <= 7 && BOARDSIZE <= 100) {
+    return TRUE;
+  } else if (length >= 7 && length <= BOARDSIZE <= 1000) {
+    return TRUE;
+  } else
+    return TRUE;
 }
 
 
@@ -618,6 +645,7 @@ void GameSpecificMenu ()
     printf("\td)\tChange board (D)imension (%d,%d)\n", WIDTH, HEIGHT);
     printf("\n\tRule Options:\n\n");
     printf("\tw)\tTo (W)in: %s\n", gWinType ? "Standard" : "Misere");
+    printf("\tc)\t%s (C)apture\n", gMustCapture ? "Forced" : "Optional");
     printf("\tv)\t(V)ertical Wrapping: %s\n", gAllowVWrap ? "On" : "Off");
     printf("\to)\tH(o)rizontal Wrapping: %s\n", gAllowHWrap ? "On" : "Off");
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
@@ -655,6 +683,9 @@ void GameSpecificMenu ()
       break;
     case 'O': case 'o':
       gAllowHWrap = !gAllowHWrap;
+      break;
+    case 'C': case 'c':
+      gMustCapture = !gMustCapture;
       break;
     case 'B': case 'b':
       return;
@@ -713,7 +744,12 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+  return 6 /* max width */
+    * 6 /* max height */
+    * 2 /* gWinType */
+    * 2 /* gAllowVWrap */
+    * 2 /* gAllowHWrap */
+    * 2; /* gMustCapture */
 }
 
 
