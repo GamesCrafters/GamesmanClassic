@@ -82,14 +82,15 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDSIZE 21    /* 7x7 Crosscross Board */
-#define GEESE_MAX 9
-#define GEESE_MIN 3
-#define FOX_MAX 2
-#define FOX_MIN 2
+int BOARDSIZE = 21;    /* 7x7 Crosscross Board */
+int GEESE_MAX = 9;
+int GEESE_MIN = 3;
+int FOX_MAX = 2;
+int FOX_MIN = 2;
+int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with whitespace */
 #define GEESE_PLAYER 1
 #define FOX_PLAYER 2
-#define WHITESPACE 0 /* There is a bug in the generic hash function dealing with whitespace */
+
 
 #define INIT_DEBUG 1
 #define HASH_TEST 1
@@ -99,13 +100,13 @@ STRING   kHelpExample =
 
 #define PRIMITIVE_DEBUG 0
 
-#define GENERATEMOVES_DEBUG 0
+#define GENERATEMOVES_DEBUG 1
 
 #define GETANDPRINT_DEBUG 0
 
 #define VALIDTEXT_DEBUG 0
 
-#define PRINTPOSITION_DEBUG 1
+#define PRINTPOSITION_DEBUG 0
 
 #define FOXGENERATEMOVES_DEBUG 0
 
@@ -117,9 +118,9 @@ STRING   kHelpExample =
 
 #define CONVERTEXTINPUTTOMOVE_DEBUG 0
 
-char start_standard_board[BOARDSIZE]={       'G','G','G',
-			                 'G','G',' ','G','G',    
-				         'G',' ',' ',' ','G',    
+char start_standard_board[]={                'G','G','G',
+			                 ' ',' ',' ',' ',' ',    
+				         ' ',' ',' ',' ',' ',    
 				         ' ',' ',' ',' ',' ',    
 				             'F',' ','F',};
 					                     
@@ -143,22 +144,24 @@ int freeGeeseLocations[24];
 ** Function Prototypes:
 */
 
+void init_board_hash();
+
 void PrintBoard(char board[]);
 
 int diagonalConnect(int location);
 
-MOVELIST *FoxGenerateMoves(const char board[33], MOVELIST *moves, int location);
-MOVELIST *GeeseGenerateMoves(const char board[33], MOVELIST *moves, int location);
-MOVELIST *GenerateShiftMoves(const char board[33], MOVELIST *moves, int location, int player);
-MOVELIST *GenerateKillMoves(const char board[33], MOVELIST *moves, int location, int player);
-int MoreKillMoves(const char board[33], int location, int player);
-int validMove(const char board[33], int move[3],int player);
-int CantMove(const char board[33], int player);
+MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location);
+MOVELIST *GeeseGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location);
+MOVELIST *GenerateShiftMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player);
+MOVELIST *GenerateKillMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player);
+int MoreKillMoves(const char board[BOARDSIZE], int location, int player);
+int validMove(const char board[BOARDSIZE], int move[3],int player);
+int CantMove(const char board[BOARDSIZE], int player);
 
 int hashMove(int move[3]);
 void unHashMove(int hashed_move, int move[3]);
 
-void boardPieceStats(char board[33], int stats[2]);
+void boardPieceStats(char board[BOARDSIZE], int stats[2]);
 int numFoxes(int stats[2]);
 int numGeese(int stats[2]);
 int numWinGeese(int stats[2]);
@@ -214,31 +217,27 @@ void InitializeGame ()
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
 	
-	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n"); }
-	
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n"); 
 	max = generic_hash_init(BOARDSIZE, hash_data, NULL);
-	
+	}
+		
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash_init: %d\n",max); }
 	
-	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash\n"); }
+	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash\n"); init = generic_hash(start_standard_board,GEESE_PLAYER);}
 	
 	if (HASH_TEST) {printf("INIT CURRENT BOARD\n"); PrintBoard(start_standard_board);}
-	
-	init = generic_hash(start_standard_board,GEESE_PLAYER);
-	
+			
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() <-- generic_hash: %d\n",init); }
 
+	init_board_hash();
+	
 	if (HASH_TEST)
 	{
-		char test_board[33];
+		char test_board[BOARDSIZE];
 		printf("Hash Test. Unhashed Board. Hash Value %d\n", init);
 		generic_unhash(init, test_board);
 		PrintBoard(test_board);
 	}
-	
-	gInitialPosition = init;		
-	gNumberOfPositions = max;
-	
 	
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
@@ -274,7 +273,7 @@ void GameSpecificMenu ()
 	POSITION GetInitialPosition();
 	do
 	{
-		printf("\n\n\n\n\n\nAsalto Options\n");
+		printf("\n\nAsalto Options\n");
 		printf("==============\n");
 		printf("(1) Modify Board\n");
 		printf("(2) Exit Options\n");
@@ -334,7 +333,7 @@ POSITION DoMove (thePosition, theMove)
 	MOVE theMove;
 {
 	int move[] = {0,0,0};
-	char board[33];
+	char board[BOARDSIZE];
 	char origPiece = '*';
 	int origin = -1;
 	int destination = -1;
@@ -370,7 +369,7 @@ POSITION DoMove (thePosition, theMove)
 		del_loc = coordToLocation(del_coord);
 		board[del_loc] = ' ';
 	}
-	if (goAgain)
+	if (0) /* Go Again */
 	{
 		next_player = whoseMove(thePosition);
 	}
@@ -426,6 +425,7 @@ POSITION GetInitialPosition()
 	int location = -1;
 	char selection_command[80];
 	char selection = 'Z';
+	
 	do
 	{
 		boardPieceStats(start_standard_board, boardStats);
@@ -464,9 +464,28 @@ POSITION GetInitialPosition()
 		}
 		
 	} while (selection != '3');
+	
+	boardPieceStats(start_standard_board, boardStats);
+	GEESE_MAX = numGeese(boardStats);
+	FOX_MAX = numFoxes(boardStats);
+	
+	init_board_hash();
+	
 	return(generic_hash(start_standard_board, GEESE_PLAYER));
 }
 
+void init_board_hash()
+{
+	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
+		  	    'F', FOX_MIN, FOX_MAX,
+		            'G', GEESE_MIN, GEESE_MAX, -1};
+	int max;
+	int init;
+	max = generic_hash_init(BOARDSIZE, hash_data, NULL);
+	init = generic_hash(start_standard_board,GEESE_PLAYER);
+	gInitialPosition = init;		
+	gNumberOfPositions = max;
+}
 
 /************************************************************************
 **
@@ -523,28 +542,113 @@ VALUE Primitive (pos)
 	POSITION pos;
 {
 	int boardStats[]={0,0,0};
-	char board[33];
+	char board[BOARDSIZE];
 	int player = whoseMove(pos);
 	
 	
 	if (PRIMITIVE_DEBUG) { printf("mASALTO - Primitive() Running...\n"); }
 	generic_unhash(pos, board);
 	boardPieceStats(board, boardStats);
-	if (PRIMITIVE_DEBUG) { printf("mASALTO - Primitive() Returning...\n"); }
-	if ( numGeese(boardStats) < GEESE_MIN && player == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
+	if (PRIMITIVE_DEBUG)
 	{
-		return (gStandardGame ? lose : win);
+		printf("mASALTO - Primitive() Returning...\n");
+		if (player == GEESE_PLAYER)
+		{
+			printf("Goose Player    ");
+		}
+		else
+		{
+			printf("Fox Player      ");
+		}
+		printf("NumGeese = %d    NumWinGeese %d  ",numGeese(boardStats), numWinGeese(boardStats));
 	}
-	else if(numWinGeese(boardStats) == GEESE_MIN && player == FOX_PLAYER) // Foxes View
+	if ( numGeese(boardStats) < GEESE_MIN)
 	{
-		return (gStandardGame ? lose : win);
+		if (player == GEESE_PLAYER)
+		{
+			if (PRIMITIVE_DEBUG)
+			{
+				if (gStandardGame)
+				{
+					printf("Lose\n");
+				}
+				else
+				{
+					printf("Win\n");
+				}
+			}
+			return (gStandardGame ? lose : win);
+		}
+		else if (player == FOX_PLAYER)
+		{
+			if (PRIMITIVE_DEBUG)
+			{
+				if (gStandardGame)
+				{
+					printf("Win\n");
+				}
+				else
+				{
+					printf("Lose\n");
+				}
+			}
+			return (gStandardGame ? win : lose);
+		}
+		
 	}
-	else if(player == FOX_PLAYER)
+	else if(numWinGeese(boardStats) == GEESE_MIN)
 	{
-		return CantMove(board,player) ? lose : undecided;
+		
+		if (player == GEESE_PLAYER)
+		{
+			if (PRIMITIVE_DEBUG)
+			{
+				if (gStandardGame)
+				{
+					printf("Win\n");
+				}
+				else
+				{
+					printf("Lose\n");
+				}
+			}
+			return (gStandardGame ? win : lose);
+		}
+		else if (player == FOX_PLAYER)
+		{
+			if (PRIMITIVE_DEBUG)
+			{
+				if (gStandardGame)
+				{
+					printf("Lose\n");
+				}
+				else
+				{
+					printf("Win\n");
+				}
+			}
+			return (gStandardGame ? lose : win);
+		}
+		
+	}
+	else if(player == FOX_PLAYER && CantMove(board,player))
+	{
+		if (PRIMITIVE_DEBUG)
+		{
+			if (gStandardGame)
+			{
+				printf("Lose\n");
+			}
+			else
+			{
+				printf("Win\n");
+			}
+		}
+		return (gStandardGame ? lose : win);
 	}
 	else
 	{
+		if (PRIMITIVE_DEBUG) { printf("Undecided\n"); }
 		return undecided;
 	}
 }
@@ -572,7 +676,7 @@ void PrintPosition (position, playerName, usersTurn)
 	STRING playerName;
 	BOOLEAN usersTurn;
 {
-	char currentBoard[33];
+	char currentBoard[BOARDSIZE];
 	generic_unhash(position, currentBoard);
 	 
 	printf("It is %s's turn.\n", playerName);
@@ -608,16 +712,17 @@ MOVELIST *GenerateMoves (position)
 {
 	MOVELIST *CreateMovelistNode();
 	MOVELIST *moves = NULL;
-	char board[33];
+	char board[BOARDSIZE];
 	int i=0;
 	int player = whoseMove(position);
 	
-	if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); }
+	if (GENERATEMOVES_DEBUG) { printf("mASALTO - GenerateMoves() Running...\n"); 
+				   printf("mASALTO - GenerateMoves() --> pos: %d  player: %d",position,player);}
 	generic_unhash(position, board);
 	
-	if(player = FOX_PLAYER)
+	if(player == FOX_PLAYER)
 	{
-		for(i = 0; i < 33; i++) /* Scan For Foxes */
+		for(i = 0; i < BOARDSIZE; i++) /* Scan For Foxes */
 		{
 			if(board[i] =='F')
 			{
@@ -625,9 +730,9 @@ MOVELIST *GenerateMoves (position)
 			}
 		}
 	}
-	else if (player = GEESE_PLAYER)
+	else if (player == GEESE_PLAYER)
 	{
-		for(i = 0; i < 33; i++) /* Scan For Geese */
+		for(i = 0; i < BOARDSIZE; i++) /* Scan For Geese */
 		{
 			if(board[i] =='G')
 			{
@@ -640,7 +745,7 @@ MOVELIST *GenerateMoves (position)
 }
 
 MOVELIST *FoxGenerateMoves(board, moves, location)
-	const char board[33];
+	const char board[BOARDSIZE];
 	MOVELIST *moves;
 	int location;
 {
@@ -657,7 +762,7 @@ MOVELIST *FoxGenerateMoves(board, moves, location)
 }
 
 MOVELIST *GeeseGenerateMoves(board, moves, location)
-	const char board[33];
+	const char board[BOARDSIZE];
 	MOVELIST *moves;
 	int location;
 {
@@ -670,7 +775,7 @@ MOVELIST *GeeseGenerateMoves(board, moves, location)
 }
 
 MOVELIST *GenerateShiftMoves(board, moves, location, player)
-	const char board[33];
+	const char board[BOARDSIZE];
 	MOVELIST *moves;
 	int location;
 	int player;
@@ -704,7 +809,7 @@ MOVELIST *GenerateShiftMoves(board, moves, location, player)
 }
 
 MOVELIST *GenerateKillMoves(board, moves, location, player)
-	const char board[33];
+	const char board[BOARDSIZE];
 	MOVELIST *moves;
 	int location;
 	int player;
@@ -744,9 +849,10 @@ MOVELIST *GenerateKillMoves(board, moves, location, player)
 				
 				if(validCoord(neighbor_coord) && validCoord(neighbor_coord_one_beyond) && board[neighbor_location] == 'G' && validMove(board, candidate_move, player))
 				{
-					candidate_move[2] = MoreKillMoves(board, candidate_move[1], player);
+					moves = CreateMovelistNode((hashMove(candidate_move)),moves); /* No Go Again */
+					/* candidate_move[2] = MoreKillMoves(board, candidate_move[1], player); */
 					if (GENERATEKILLMOVES_DEBUG) { printf("mASALTO - GenerateKillMoves() Move Found!\n"); }
-					moves = CreateMovelistNode((hashMove(candidate_move)),moves);
+					/* moves = CreateMovelistNode((hashMove(candidate_move)),moves); */ /* Go Again */
 				}
 			}	
 		}
@@ -755,7 +861,7 @@ MOVELIST *GenerateKillMoves(board, moves, location, player)
 	return(moves);
 }
 
-int CantMove(const char board[33], int player)
+int CantMove(const char board[BOARDSIZE], int player)
 {
 	int delta_row = 0;
 	int delta_col = 0;
@@ -764,7 +870,7 @@ int CantMove(const char board[33], int player)
 	int candidate_move[3] = {-1, -1, 0};
 	int location = 0;
 	
-	for (location = 0; location <= 33; location ++)
+	for (location = 0; location <= BOARDSIZE; location++)
 	{
 		candidate_move[0] = location;
 		locationToCoord(location,origin_coord);
@@ -789,7 +895,7 @@ int CantMove(const char board[33], int player)
 	return 1;
 }
 
-int MoreKillMoves(const char board[33], int location, int player)
+int MoreKillMoves(const char board[BOARDSIZE], int location, int player)
 {
 	int neighbor_location = 0;
 	int neighbor_coord[2] = {-1, -1};
@@ -833,7 +939,7 @@ int MoreKillMoves(const char board[33], int location, int player)
 	return 0;
 }
 
-int validMove(const char board[33], int move[3],int player)
+int validMove(const char board[BOARDSIZE], int move[3],int player)
 {
 	int origin_coord[2];
 	int destination_coord[2];
@@ -1308,7 +1414,7 @@ void AddRemoveGeese(char board[])
 					}
 					else
 					{
-						printf("A piece is already there.");
+						printf("A piece is already there.\n");
 						validCoord = 0;
 					}
 				}while(!validCoord);
@@ -1360,12 +1466,12 @@ void unHashMove (int hashed_move, int move[3])
 	move[2] = hashed_move >> 12;
 }
 
-void boardPieceStats(char board[33], int stats[2])
+void boardPieceStats(char board[BOARDSIZE], int stats[2])
 {
 	/* stats[0] = Number of Foxes , stats[1] = Number of Geese, stats[2] = Number of Geese in Winning Box */
 	int i=0;
 	stats[0] = 0; stats[1] = 0; stats[2] - 0;
-	for (i=0; i < 33; i++)
+	for (i=0; i < BOARDSIZE; i++)
 	{
 		if(board[i]== 'F')
 		{
