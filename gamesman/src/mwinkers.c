@@ -175,7 +175,7 @@ void InitializeGame ()
   piece_array[8]=half;
   piece_array[10]=0;
   piece_array[11]=half;
-  piece_array[13]=-1;
+  piece_array[12]=-1;
 
   int BoardPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
 
