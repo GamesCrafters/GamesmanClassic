@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.49 2004-12-26 22:26:48 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.50 2005-01-15 21:19:33 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -24,7 +24,7 @@ proc TBaction1 {} {
 	.middle.f3.cMRight raise play
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
-	.cToolbar raise iDTB
+#	.cToolbar raise iDTB
 	SetupPlayOptions
 
 	global gLeftName gRightName
@@ -1286,8 +1286,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	.cToolbar bind $name <ButtonRelease-1> \
 	    ".cStatus raise base; \
              update idletasks; \
-             TBaction$file; \
-             .cToolbar raise iDTB"
+             TBaction$file;"
 	.cToolbar bind $name <Any-Leave> \
 	    ".cToolbar raise iITB$file; update idletasks"
 	.cToolbar bind $name <ButtonPress-1> \
