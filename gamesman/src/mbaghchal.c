@@ -912,7 +912,7 @@ void GameSpecificMenu ()
 	       "\tr)\t(R)eset to default settings\n"
 	       "\tt)\t(T)est the hash function\n"
 	       "\tb)\t(B)ack to the main menu\n"
-	       "\nSelect an option:  ", width, goats);
+	       "\nSelect an option:  ", width, goats, tigers);
 	scanf("%c", &c);
 	switch(c) {
 	case 'c': case 'C':
