@@ -3030,8 +3030,10 @@ int writeDatabase()
 	mkdir("data", 0755) ;
 	sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption());
 	if((filep = gzopen(outfilename, "wb")) == NULL) {
+		if(kDebugDetermineValue){
 	      printf("Unable to create compressed data file\n");
-	      return 0;
+		}
+	    return 0;
 	}
 
 	dbVer[0] = htons(DBVER);
@@ -3049,10 +3051,14 @@ int writeDatabase()
 
 	if(goodCompression && (goodClose == 0))
 	{
-		printf("File Successfully compressed\n");
+		if(kDebugDetermineValue){
+			printf("File Successfully compressed\n");
+		}
 		return 1;
 	}else{
-	printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
+		if(kDebugDetermineValue){
+			printf("\n\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
+		}
 		remove(outfilename);
 		return 0;
 	}
@@ -3077,7 +3083,7 @@ int loadDatabase()
 	goodDecompression = gzread(filep,numPos,sizeof(POSITION));
 	*dbVer = ntohs(*dbVer);
 	*numPos = ntohl(*numPos);
-	if(*numPos != gNumberOfPositions){
+	if(*numPos != gNumberOfPositions && kDebugDetermineValue){
 		printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
 		return 0;
 	}
@@ -3098,12 +3104,16 @@ int loadDatabase()
 
 	if(goodDecompression && (goodClose == 0))
 	{
-		printf("File Successfully Decompressed\n");
+		if(kDebugDetermineValue){
+			printf("File Successfully Decompressed\n");
+		}
 		return 1;
 	}else{
 		for(i = 0 ; i < gNumberOfPositions ; i++)
 			gDatabase[i] = undecided ;
-		printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\n",goodDecompression,goodClose);
+		if(kDebugDetermineValue){
+			printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\n",goodDecompression,goodClose);
+		}
 		return 0;
 	}
 
