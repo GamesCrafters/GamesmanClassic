@@ -122,6 +122,10 @@ int sumto (int i) {
   return ans;
 }
 
+int vcfg (int *this_cfg) {
+  return ((this_cfg[0] == this_cfg[1]) || (this_cfg[0] == (this_cfg[1] + 1))); 
+}
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -133,20 +137,26 @@ int sumto (int i) {
 
 void InitializeGame ()
 {
-  int sum = sumto(base), theBoard[10] = {'x', 0, ((sum / 2) + (sum % 2)), 'o', 0, (sum / 2), '-', 0, sum, -1};
-  gNumberOfPositions = generic_hash_init(sum, theBoard, NULL);
+  int i, sum = sumto(base);
+  char board[sum];
+  int theBoard[10] = {'x', 0, ((sum / 2) + (sum % 2)), 'o', 0, (sum / 2), '-', 0, sum, -1};
+  gNumberOfPositions = generic_hash_init(sum, theBoard, vcfg);
+  for(i = 0; i < sum; i++)
+    board[i] = '-';
+  gInitialPosition = generic_hash(board, 1);
+  /*gMinimalPosition = gInitialPosition;*/
 }
 
 BOARD arraytoboard (POSITION position) {
-  char theBoard[sumto(base)];
+  char *theBoard = (char *) malloc(sumto(base) * sizeof(char));
   int i, j, k;
   BOARD board = (BOARD) SafeMalloc(sizeof(struct boardRep));
   board->spaces = (int **) SafeMalloc(base * sizeof(int *));
   for(i = 0; i < base; i++)
     board->spaces[i] = (int *) SafeMalloc((base - i) * sizeof(int));
-  generic_unhash(position, theBoard);
-  for(i = 0, k = 0; i < base; i++, k++) {
-    for(j = 0; j < base - i; j++, k++) {
+  theBoard = generic_unhash(position, theBoard);
+  for(i = 0, k = 0; i < base; i++) {
+    for(j = 0; j < (base - i); j++, k++) {
       if(theBoard[k] == '-')
 	board->spaces[i][j] = i * base - sumto(i - 1) + j + 1;
       else if(theBoard[k] == 'x')
@@ -166,7 +176,7 @@ POSITION boardtoarray (BOARD board) {
   char theBoard[sumto(base)];
   int i, j, k;
   TURN whoseTurn;
-  for(i = 0, k = 0; i < base; i++, k++) {
+  for(i = 0, k = 0; i < base; i++) {
     for(j = 0; j < base - i; j++, k++) {
       if(board->spaces[i][j] < 999)
 	theBoard[k] = '-';
@@ -176,14 +186,14 @@ POSITION boardtoarray (BOARD board) {
 	theBoard[k] = 'o';
     }
   }
-  for(i = 0; i < base; i++)
-    SafeFree(board->spaces[i]);
-  SafeFree(board->spaces);
-  SafeFree(board);
   if(board->turn == X)
     whoseTurn = 1;
   else
     whoseTurn = 2;
+  for(i = 0; i < base; i++)
+    SafeFree(board->spaces[i]);
+  SafeFree(board->spaces);
+  SafeFree(board);
   return generic_hash(theBoard, whoseTurn);
 }
 
@@ -253,7 +263,7 @@ POSITION DoMove (thePosition, theMove)
 {
   BOARD board = arraytoboard(thePosition);
   int i; 
-  for (i = 0; theMove - (base - i) > 0; ++i, theMove -= (base - i));
+  for (i = 0; theMove - (base - i) > 0; theMove -= (base - i), i++);
   board->spaces[i][theMove - 1] = board->turn;
   if(board->turn == X)
     board->turn = O;
@@ -276,9 +286,9 @@ POSITION DoMove (thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  char *input;
-  printf("type in a %d character string of X's, O's and _'s\nNote that X always goes first: ", base * base - base - sumto(base - 2) + 1);
-  scanf(input);
+  char input[sumto(base)];
+  printf("type in a %d character string of X's, O's and -'s\nNote that X always goes first: ", sumto(base));
+  scanf("%s", input);
   return generic_hash(input, 1);
 }
 
@@ -334,7 +344,7 @@ VALUE Primitive (pos)
     }
   }
   for (i = 0; i < base; i++) {
-    for (j = 0; j < base - i; j++) {
+    for (j = 0; j < (base - i); j++) {
       color = board->spaces[i][j];
       if(board->spaces[i][j] < 999)
 	return undecided;
@@ -399,18 +409,18 @@ void PrintPosition (position, playerName, usersTurn)
 {
   BOARD board = arraytoboard(position);
   int i, j;
-  for(i = base-1; i >= 0; i--) {
+  for(i = base - 1; i >= 0; i--) {
     for(j = 0; j < i; j++)
-      printf("    ");
-    for(j = 0; j < base - i; j++) {
+      printf("  ");
+    for(j = 0; j < (base - i); j++) {
       printf("[");
-      if(board->spaces[i][j] = X)
-	printf("XX");
-      else if(board->spaces[i][j] = O)
-	printf("OO");
+      if(board->spaces[i][j] == X)
+	printf("XX]");
+      else if(board->spaces[i][j] == O)
+	printf("OO]");
       else {
 	if(board->spaces[i][j] < 10)
-	  printf(" ");
+	  printf("0");
 	printf("%d]", board->spaces[i][j]);
       }
     }
@@ -439,27 +449,27 @@ void PrintPosition (position, playerName, usersTurn)
 
 MOVELIST *GenerateMoves (position)
          POSITION position;
-
 {
   int i, j;
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
   BOARD board = arraytoboard(position);
-  for (i=0; i < (base - 1); ++i)
-    for (j=0; j < base - i; ++j)
-      if (i=0 && (board->spaces[i][j] < 999))
-	CreateMovelistNode(j, head);
-	else if(board->spaces[i][j] >= 999) {
-	  if (((j + 1) < (base - i)) && 
-	      (board->spaces[i][j+1]) && 
+  for (i = 0; i < (base - 1); i++) {
+    for (j = 0; j < (base - i); j++) {
+      if ((i == 0) && (board->spaces[i][j] < 999))
+	head = CreateMovelistNode(j + 1, head);
+      else if((board->spaces[i][j] >= 999) && 
+	      ((j + 1) < (base - i)) && 
+	      (board->spaces[i][j+1] >= 999) && 
 	      ((i+1) < base) && 
-	      (board->spaces[i+1][j] < 999))
-	    CreateMovelistNode((i * base - sumto(i - 1) + j + 1), head);
-	}
+	      (board->spaces[i + 1][j] < 999))
+	head = CreateMovelistNode(((i + 1) * base - sumto(i) + j + 1), head);
+    }
+  }
   return head;
 }
 
- 
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -485,15 +495,12 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 	STRING playerName;
 {
   BOOLEAN ValidMove();
-  USERINPUT ret, HandleDefaultTextInput();
-  
+  USERINPUT ret, HandleDefaultTextInput();  
   do {
     printf("%8s's move [(u)ndo/(1-%d)] :  ", playerName, sumto(base));
-    
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return(ret);
-    
   }
   while (TRUE);
   return(Continue); /* this is never reached, but lint is now happy */
@@ -577,7 +584,7 @@ void PrintMove (move)
 
 int NumberOfOptions ()
 {
-	return 0;
+	return 1;
 }
 
 
@@ -595,7 +602,7 @@ int NumberOfOptions ()
 
 int getOption()
 {
-	return 0;
+	return 1;
 }
 
 
