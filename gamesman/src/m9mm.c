@@ -152,6 +152,7 @@ blankox parse_char(char c);
 char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
+BOOLEAN all_mills(blankox *board, int slot);
 int find_pieces(blankox *board, blankox piece, int *pieces);
 int find_adj_pieces(blankox *board, int slot, int *pieces);
 int find_adjacent(int slot, int *slots);
@@ -530,7 +531,6 @@ VALUE Primitive ( POSITION h )
     printf("And has found %dXs, %dOs.\n", numXs, numOs);
   }
 
-  // doesn't check getting stuck, but shouldn't need to?
   if (turn == o && numOs == mino)
     return (gStandardGame ? lose : win );
   else if (turn == x && numXs == minx)
@@ -539,7 +539,7 @@ VALUE Primitive ( POSITION h )
 	 return (gStandardGame ? lose : win);
   else
     return undecided;	
-  
+ 
 }
 
 
@@ -1352,6 +1352,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
   blankox board[BOARDSIZE];
   unhash(position, board);
   blankox piece = board[slot];
+  BOOLEAN allMills;
 
   /* According to the rules, a piece can be taken if it is not in a mill
 	  or if the opponent only has mills */
@@ -1359,8 +1360,11 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 	 return FALSE;
   }
 
+  allMills = all_mills(board, slot);
+
   return (count_pieces(board, piece) < 4 ||
-			 !check_mill(board, slot));
+			 !check_mill(board, slot) ||
+			 allMills);
 } 
 
 
@@ -1399,7 +1403,8 @@ BOOLEAN closes_mill(POSITION position, int raw_move)
   return check_mill(board, to(raw_move)); 
 }
 
-// given new board, slot that was moved to, true if slot is member of mill
+// given new board, slot
+// return true if slot is member of mill
 BOOLEAN check_mill(blankox *board, int slot)
 {
   
@@ -1436,6 +1441,26 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
     (slot == slot1 || slot == slot2 || slot == slot3);
 }
 
+// Given POSITION, slot
+// Return true if at this position, the player at slot only has mills
+BOOLEAN all_mills(blankox *board, int slot)
+{
+  blankox turn = board[slot];
+  int pieces[turn == x ? maxx : maxo];
+  int num, i;
+  BOOLEAN allMills = TRUE;
+
+  num = find_pieces(board, turn, pieces);
+
+  for (i = 0; i < num; i++) {
+	 if (!check_mill(board, pieces[i])) {
+		allMills = FALSE;
+	 }
+  }
+
+  return allMills;
+}
+  
 
 /************ GenerateParents for Bryon's 9mm reverse solver ************/
 // Given POSITION
@@ -1632,6 +1657,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.58  2004/05/05 04:02:28  ogren
+//primitive now also checks for getting stuck -Elmer
+//
 //Revision 1.57  2004/05/02 03:40:19  ogren
 //GenerateParents fully written, fully untested. -Elmer
 //
