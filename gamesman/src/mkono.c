@@ -55,7 +55,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "(Four Field) Kono"; /* The name of your game */
-STRING   kAuthorName          = "Greg Bonin, Nathan Spindel";   /* Your name(s) */
+STRING   kAuthorName          = "Greg Bonin and Nathan Spindel";   /* Your name(s) */
 STRING   kDBName              = "kono"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */

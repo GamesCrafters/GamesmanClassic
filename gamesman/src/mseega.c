@@ -58,7 +58,7 @@ POSITION gInitialPosition    = 0; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, Peter Wu";
+STRING   kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
 STRING   kGameName           = "Seega"; /* The name of your game */
 STRING   kDBName             = ""; /* The name to store the database under */
 //TODO Peter: check this - this could be a partisan game

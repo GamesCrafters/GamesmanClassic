@@ -51,7 +51,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "Wu Zhi"; /* The name of your game */
-STRING   kAuthorName          = "Dan Yan, Diana Fang"; /* Your name(s) */
+STRING   kAuthorName          = "Dan Yan and Diana Fang"; /* Your name(s) */
 STRING   kDBName              = "mwuzhi"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */

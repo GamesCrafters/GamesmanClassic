@@ -33,7 +33,7 @@ POSITION gInitialPosition    = 16778208; //Blank with pieces in the corners for 
 POSITION gMinimalPosition    = 16778208;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING   kAuthorName         = "Dave Le, Isaac Greenbride, Mike Jurka";
+STRING   kAuthorName         = "Dave Le, Isaac Greenbride, and Mike Jurka";
 STRING   kGameName           = "Joust";
 STRING   kDBName             = "joust";
 BOOLEAN  kPartizan           = TRUE;

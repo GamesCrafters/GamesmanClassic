@@ -37,7 +37,7 @@ POSITION gInitialPosition    = 9;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kAuthorName         = "Michael Mottmann & Melinda Franco";
+STRING   kAuthorName         = "Michael Mottmann and Melinda Franco";
 STRING   kGameName           = "abalone";
 STRING   kDBName             = "Abalone";
 BOOLEAN  kPartizan           = TRUE; 

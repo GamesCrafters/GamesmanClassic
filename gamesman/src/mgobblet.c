@@ -37,7 +37,7 @@ POSITION gInitialPosition     = 0;
 POSITION gMinimalPosition     = 0;
 POSITION kBadPosition         = -1;
 
-STRING   kAuthorName          = "Damian Hites, Scott Lindeneau, John Jordan";
+STRING   kAuthorName          = "Damian Hites, Scott Lindeneau, and John Jordan";
 STRING   kGameName            = "Gobblet Jr";
 STRING   kDBName              = "gobblet";
 BOOLEAN  kPartizan            = TRUE; 

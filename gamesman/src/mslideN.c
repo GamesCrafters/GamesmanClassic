@@ -37,7 +37,7 @@ POSITION gNumberOfPositions = 0;  /* variable size loopy game */
 POSITION gInitialPosition    =  0; /* hashed value */
 POSITION gMinimalPosition    =  0;
 
-STRING   kAuthorName         = "Rach Liu, Bryon Ross, Jiong Shen & Tom Wang";
+STRING   kAuthorName         = "Rach Liu, Bryon Ross, Jiong Shen and Tom Wang";
 STRING   kGameName           = "SlideN";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;

@@ -55,7 +55,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "Queensland"; /* The name of your game */
-STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch"; /* Your name(s) */
+STRING   kAuthorName          = "Steven Kusalo and Alex Wallisch"; /* Your name(s) */
 STRING   kDBName              = "qland"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */

@@ -42,7 +42,7 @@ POSITION gNumberOfPositions  = 9565938;  /* 3^14 times 2 */
 POSITION gInitialPosition    = 9388804; /* x goes first. 4605835 + POSITION_OFFSET */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING   kAuthorName         = "Alice Chang & Judy Tuan";
+STRING   kAuthorName         = "Alice Chang and Judy Tuan";
 STRING   kGameName           = "Change!";
 STRING   kDBName             = "change";
 BOOLEAN  kPartizan           = TRUE;

@@ -27,7 +27,7 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  (59049 + 177147 + 531441) + 1;
 POSITION gMinimalPosition    =  (59049 + 177147 + 531441) + 1;
 
-STRING   kAuthorName         = "David Chen & Ling Xiao";
+STRING   kAuthorName         = "David Chen and Ling Xiao";
 STRING   kGameName           = "Shift-Tac-Toe";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;
