@@ -95,9 +95,9 @@ STRING   kHelpExample =
 ** Function Prototypes:
 */
 
-//Function prototypes here.
+/* Function prototypes here. */
 
-// External
+/* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
@@ -109,6 +109,7 @@ extern void		SafeFree ();
 
 extern VALUE     *gDatabase;
 
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -118,10 +119,10 @@ extern VALUE     *gDatabase;
 ** 
 ************************************************************************/
 
-void InitializeGame()
+void InitializeGame ()
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -132,9 +133,10 @@ void InitializeGame()
 ** 
 ************************************************************************/
 
-void DebugMenu()
+void DebugMenu ()
 {
 }
+
 
 /************************************************************************
 **
@@ -146,10 +148,10 @@ void DebugMenu()
 ** 
 ************************************************************************/
 
-void GameSpecificMenu() 
+void GameSpecificMenu ()
 {
-  
 }
+
   
 /************************************************************************
 **
@@ -160,11 +162,11 @@ void GameSpecificMenu()
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-     int theOptions[];
+void SetTclCGameSpecificOptions (options)
+	int options[];
 {
-	
 }
+
 
 /************************************************************************
 **
@@ -181,12 +183,13 @@ void SetTclCGameSpecificOptions(theOptions)
 **              Unhash ()
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
-POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+
+POSITION DoMove (thePosition, theMove)
+	POSITION thePosition;
+	MOVE theMove;
 {
-   
 }
+
 
 /************************************************************************
 **
@@ -201,7 +204,6 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  
 }
 
 
@@ -217,10 +219,9 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove, computersName)
-     MOVE computersMove;
-     STRING computersName;
+	MOVE computersMove;
+	STRING computersName;
 {
-  
 }
 
 
@@ -243,9 +244,9 @@ void PrintComputersMove(computersMove, computersName)
 **
 ************************************************************************/
 
-VALUE Primitive ( POSITION h )
+VALUE Primitive (pos)
+	POSITION pos;
 {
-	
 }
 
 
@@ -266,13 +267,13 @@ VALUE Primitive ( POSITION h )
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-     POSITION position;
-     STRING playerName;
-     BOOLEAN usersTurn;
+void PrintPosition (position, playerName, usersTurn)
+	POSITION position;
+	STRING playerName;
+	BOOLEAN usersTurn;
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -292,11 +293,11 @@ void PrintPosition(position, playerName, usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
+MOVELIST *GenerateMoves (position)
          POSITION position;
 {
-  
 }
+
  
 /************************************************************************
 **
@@ -317,13 +318,13 @@ MOVELIST *GenerateMoves(position)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-     POSITION thePosition;
-     MOVE *theMove;
-     STRING playerName;
+USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
+	POSITION thePosition;
+	MOVE *theMove;
+	STRING playerName;
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -342,11 +343,11 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-     STRING input;
+BOOLEAN ValidTextInput (input)
+	STRING input;
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -362,11 +363,11 @@ BOOLEAN ValidTextInput(input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-     STRING input;
+MOVE ConvertTextInputToMove (input)
+	STRING input;
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -378,11 +379,11 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-     MOVE theMove;
+void PrintMove (move)
+	MOVE move;
 {
-  
 }
+
 
 /************************************************************************
 **
@@ -395,10 +396,11 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-int NumberOfOptions()
+int NumberOfOptions ()
 {
-  return 0;
+	return 0;
 }
+
 
 /************************************************************************
 **
@@ -414,8 +416,9 @@ int NumberOfOptions()
 
 int getOption()
 {
-  return 0;
+	return 0;
 }
+
 
 /************************************************************************
 **
@@ -428,10 +431,11 @@ int getOption()
 ** INPUT:     int : the number representation of the options.
 **
 ************************************************************************/
+
 void setOption(int option)
 {
-
 }
+
 
 /************************************************************************
 **
@@ -440,10 +444,13 @@ void setOption(int option)
 ** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
 **
 ************************************************************************/
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
 
+int GameSpecificTclInit (interp, mainWindow) 
+	Tcl_Interp* interp;
+	Tk_Window mainWindow;
+{
 }
+
 
 /************************************************************************
 *************************************************************************
