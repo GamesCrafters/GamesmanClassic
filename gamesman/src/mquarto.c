@@ -28,6 +28,8 @@
 **                     added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
 **                     permutation(), combination(), setOffsetTable();
 **                     killed incorrect comments and code for PrintPosition(). 
+** 14 Feb 2005 Yanpei: one line fix to hashQuarto()
+**                     changed static declarations of factorialTable and offsetTable
 **
 **************************************************************************/
 
@@ -124,9 +126,9 @@ typedef QTBOARD* QTBPtr
 *************************************************************************/
 
 static BOOLEAN factorialTableSet =  FALSE;
-static int[BOARDSIZE+2] factorialTable;
+static POSITION[BOARDSIZE+2] factorialTable;
 static BOOLEAN offsetTableSet = FALSE;
-static int[NUMPIECES] offsetTable;
+static POSITION[NUMPIECES] offsetTable;
 
 /*************************************************************************
 **
@@ -592,6 +594,11 @@ POSITION hashQuartoHelper(QTBPtr b, int baseSlot) {
     toReturn (pieces[0]*permutation(numOccSubset)*combination(numNotOccSubset) + 
 	      hashQuartoHelper(localB,baseSlot+1));
   }
+
+  if (b->usersTurn == FALSE) {
+    toReturn = toReturn | 1 << 63;
+  }
+
   free(localB);
   return toReturn;
 }
