@@ -1,0 +1,39 @@
+; ### The Horseshoe graph.
+(graph 1 Horseshoe)
+
+; ### Node class declarations.
+
+;           <name of the class>  <who can move here»
+(node-class basic                both                 
+;           <what classes pieces can move to from here>
+	    (basic)              
+;           <nodes with this class>
+            (A B C D E))
+
+; ### Node definitions.
+
+;     <name of the node (must be one character)>
+(node A    
+;     <directed list>   <connected list>
+      ()                (C D))
+(node B () (C E))
+(node C () (D E))
+(node D () (E))
+
+; ### Declarations of the pieces.
+; Currently, only black and white are supported.
+
+;            <name of the class>  <character to use>
+(piece-class black                B 
+;  	     <nodes starting with this type of piece>
+             (A B))
+(piece-class white W (D E))
+
+; ### The picture.
+; The program ignores everything before the first endline.
+(image 
+A   B
+|\ /|
+| C |
+|/ \|
+D---E)
