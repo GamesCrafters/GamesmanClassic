@@ -1,8 +1,16 @@
 #ifndef __GAMESMAN_H__
 #define __GAMESMAN_H__
 
+#ifndef NO_GRAPHICS
 #include "tcl.h"
 #include "tk.h"
+#else	/* Dummy variables */
+typedef int Tcl_Interp;
+typedef int Tk_Window;
+typedef int ClientData;
+#define	TCL_OK		0
+#define TCL_ERROR	1
+#endif
 
 #include <assert.h>
 #include <stdio.h>
@@ -180,6 +188,8 @@ extern VALUE (*gSolver)(POSITION);
 /* go again function pointer */
 extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
+/* tcl initialization function pointer (needs to be void* so games don't need tcl) */
+extern void* gGameSpecificTclInit;
 
 /* memory-related function prototypes for games */
 GENERIC_PTR SafeMalloc(size_t amount);

@@ -742,5 +742,4 @@ void setOption(int option)
         else
                 gStandardGame = FALSE ;
 }
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

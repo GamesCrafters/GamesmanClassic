@@ -14,6 +14,7 @@ BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kGameName           = "";
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface = "" ;
 STRING   kHelpTextInterface    = "" ;
@@ -104,4 +105,3 @@ void setOption(int option)
 	else gStandardGame = FALSE ;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

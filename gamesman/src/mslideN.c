@@ -45,6 +45,7 @@ BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "There is no graphical interface.";
@@ -940,5 +941,3 @@ void setOption(int option)
   gDiagonalLeftGravity = option/(2*2*2)%2==1;
   gDiagonalRightGravity = option/(2*2*2*2)%2==1;
 }
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
-

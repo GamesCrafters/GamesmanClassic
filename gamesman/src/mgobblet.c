@@ -1260,6 +1260,3 @@ void setOption(int option)
   gThreeInARowWins = option/2%2==1;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-}

@@ -41,6 +41,7 @@ BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -840,18 +841,6 @@ void setOption(int option)
 }
 
 /************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
-**
-************************************************************************/
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-
-}
-
-/************************************************************************
 *************************************************************************
 **         Everything BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
@@ -1067,6 +1056,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.35  2004/04/12 19:34:11  ogren
+//Minor movements of comments -Elmer
+//
 //Revision 1.34  2004/04/12 19:21:11  ogren
 //parse_char and getinitialposition recognize 'b' and 'B' as blanks as well.  Does this conflict with anything?  -Elmer
 //

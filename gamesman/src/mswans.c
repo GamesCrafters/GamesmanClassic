@@ -45,6 +45,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "";

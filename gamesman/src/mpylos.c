@@ -10,6 +10,7 @@ int      gBoardWidth            = 3;
 POSITION gInitialPosition       = 0;
 POSITION gMinimalPosition       = 0;
 POSITION gNumberOfPositions     = 0;
+void*	 gGameSpecificTclInit   = NULL;
 POSITION kBadPosition           = -1;
 STRING   kDBName                = "pylos";
 BOOLEAN  kDebugDetermineValue   = FALSE;
@@ -84,13 +85,3 @@ BOOLEAN ValidTextInput(STRING input) {
   return 0;
 }
 
-
-/*
-** Unfortunately, this is needed for now. -JJ
-*/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
-{
-}

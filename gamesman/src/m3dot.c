@@ -110,6 +110,8 @@ BOOLEAN  kLoopy              = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kHelpGraphicInterface = "";
 
+void*	 gGameSpecificTclInit = NULL;
+
 STRING   kHelpTextInterface    =
 "Umm, i'm not sure what you want to hear here, so\n\
 i'm not going to tell you anything... =)\n";
@@ -1373,5 +1375,4 @@ void setOption(int option)
   winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

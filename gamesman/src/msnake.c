@@ -77,6 +77,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -1236,6 +1237,3 @@ void setOption(int option)
 
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-}

@@ -54,6 +54,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts an X or O (depending on whether you went first\n\
@@ -1059,4 +1060,3 @@ void setOption(int option)
 	else gGameObjective = SURROUND ;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

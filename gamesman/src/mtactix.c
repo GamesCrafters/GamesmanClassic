@@ -68,6 +68,7 @@ BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button toggles the pieces under the cursor on and off for\n\
@@ -846,5 +847,4 @@ void setOption(int option)
         else
                 gStandardGame = FALSE ;
 }
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

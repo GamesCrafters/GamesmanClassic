@@ -143,11 +143,10 @@ Gamesman_Init(interp)
 		      (Tcl_CmdDeleteProc*) NULL);
 
     {
-#pragma weak GameSpecificTclInit
-    int GameSpecificTclInit(Tcl_Interp *interp,Tk_Window);
+    int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int(*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
 
-    if (GameSpecificTclInit)
-      GameSpecificTclInit(interp,mainWindow);
+    if (fptr)
+      (fptr)(interp,mainWindow);
     }
 
     return TCL_OK;

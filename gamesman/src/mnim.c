@@ -20,6 +20,7 @@ BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kGameName           = "2-D Nim";
 POSITION kBadPosition        = -1;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface = "Help Graphic Interface: Fill in later" ;
 STRING   kHelpTextInterface    = "Help Text Interface: Fill in later" ;
@@ -235,4 +236,3 @@ void setOption(int option)
   rows = option/2%(MAX_ROWS-MIN_ROWS+1)+MIN_ROWS;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

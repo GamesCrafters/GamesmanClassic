@@ -45,6 +45,7 @@ BOOLEAN  kTieIsPossible      = FALSE; /* Isaac 10/24: changed to
                                        * FALSE */
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The Left button puts an X or O (depending on whether you went first\n\
@@ -1606,10 +1607,6 @@ void setOption(int option) {
       }
     }
   }
-}
-
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
-  return TCL_OK;
 }
 
 /************************************************************************

@@ -61,6 +61,7 @@ BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "Click on a highlighted sqare to make your move there.";
@@ -708,5 +709,4 @@ void setOption(int option)
                 gStandardGame = FALSE ;
 } 
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

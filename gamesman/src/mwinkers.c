@@ -51,6 +51,7 @@ BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
+void*	 gGameSpecificTclInit = NULL;
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -850,20 +851,6 @@ void setOption(int option)
                 gStandardGame = TRUE ;
         else
                 gStandardGame = FALSE ;
-}
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: 
-**
-************************************************************************/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
-{
 }
 
 

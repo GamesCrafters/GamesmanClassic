@@ -113,6 +113,7 @@ VALUE (*gSolver)(POSITION);
 /* go again function pointer */
 BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
+
 STRING   kOpeningCredits =
 "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n\
 	(G)ame-independent\n\

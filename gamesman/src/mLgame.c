@@ -34,6 +34,7 @@ BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;
+void*	 gGameSpecificTclInit = NULL;
 
 
 STRING   kHelpGraphicInterface =
@@ -1881,5 +1882,4 @@ void setOption(int option)
   mustMove = option/(2*3)%2==1;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

@@ -52,6 +52,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface = "";  /* empty since kSupportsGraphics == FALSE */
 
@@ -456,5 +457,4 @@ void setOption(int option)
   }
 }
 
-int GameSpecificTclInit(interp, mainWindow) {}
 

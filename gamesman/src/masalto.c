@@ -45,6 +45,7 @@ BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
+void*	 gGameSpecificTclInit = NULL;
 
 
 STRING kHelpGraphicInterface =
@@ -877,21 +878,6 @@ int getOption()
 ************************************************************************/
 
 void setOption(int option)
-{
-}
-
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
-**
-************************************************************************/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
 {
 }
 

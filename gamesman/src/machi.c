@@ -46,6 +46,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "There is currently no graphic interface\n";
@@ -1138,5 +1139,3 @@ void setOption(int option)
   allDiag = option/2%3==1;
   noDiag = option/2%3==2;
 }
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
-

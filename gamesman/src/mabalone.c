@@ -47,6 +47,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -1087,18 +1088,6 @@ void setOption(int option)
   SS = ss;
   MISERE = m;
   
-}
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: NO IDEA, BUT AS FAR AS I CAN TELL IS IN EVERY GAME
-**
-************************************************************************/
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
-{
-  return 0;
 }
 
 /************************************************************************

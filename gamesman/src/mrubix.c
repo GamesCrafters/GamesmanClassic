@@ -40,8 +40,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-#pragma weak Tcl_CreateCommand
-
 POSITION gNumberOfPositions  = 0;
 POSITION gMinimalPosition    = 0;
 
@@ -202,16 +200,23 @@ int g5Array[] = { 1, 5, 25, 125, 625, 3125, 15625, 78125, 390625};
 
 /***************************************************************************/
 
+
+#ifndef NO_GRAPHICS
+
+#pragma weak Tcl_CreateCommand
+
 static int HashCmd(ClientData dummy, Tcl_Interp *interp,
 		   int argc, char **argv);
 static int UnhashCmd(ClientData dummy, Tcl_Interp *interp,
 		   int argc, char **argv);
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
+int RubixTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
   Tcl_CreateCommand(interp, "C_Hash", (Tcl_CmdProc*) HashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
   Tcl_CreateCommand(interp, "C_Unhash", (Tcl_CmdProc*) UnhashCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
   return TCL_OK;
 }
+
+void* gGameSpecificTclInit = (void*) RubixTclInit;
 
 static int HashCmd(dummy, interp, argc, argv)
     ClientData dummy;			/* Not used. */
@@ -272,6 +277,9 @@ static int UnhashCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+#else
+void* gGameSpecificTclInit = NULL;
+#endif
 
 
 /*************************************************************************

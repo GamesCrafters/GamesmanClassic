@@ -25,8 +25,13 @@
 #include <stdio.h>
 #include "deprecated/gsolve.h"
 
+#ifndef NO_GRAPHICS
 #include "tcl.h"
 #include "tk.h"
+#else
+typedef int Tcl_Interp;
+typedef int Tk_Window;
+#endif
 
 
 #define FOXESGEESETRAP 0
@@ -63,6 +68,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "";
@@ -1347,4 +1353,3 @@ POSITION GetNextPosition()
 *************************************************************************
 ************************************************************************/
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}

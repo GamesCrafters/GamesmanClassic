@@ -44,6 +44,7 @@ BOOLEAN  kGameSpecificMenu    = FALSE;
 BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface = "";  /* empty since kSupportsGraphics == FALSE */
 
@@ -414,7 +415,4 @@ void setOption(int option)
 		gStandardGame = FALSE ;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
-  return TCL_OK;
-}
 

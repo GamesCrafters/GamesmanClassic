@@ -48,6 +48,7 @@ BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = TRUE;
+void*	 gGameSpecificTclInit = NULL;
 
 /* 
    Help strings that are pretty self-explanatory 
@@ -619,21 +620,6 @@ int getOption()
 ************************************************************************/
 
 void setOption(int option)
-{
-}
-
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: 
-**
-************************************************************************/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
 {
 }
 

@@ -60,6 +60,7 @@ BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -922,22 +923,6 @@ void setOption(int option)
     gStandardGame = TRUE;
   else
     gStandardGame = FALSE;
-}
-
-
-/************************************************************************
-**
-** NAME:        GameSpecificTclInit
-**
-** DESCRIPTION: Types changed to fix compilation...
-**
-************************************************************************/
-
-int GameSpecificTclInit (interp, mainWindow) 
-	void* interp;
-	void* mainWindow;
-{
-  return 0;
 }
 
 

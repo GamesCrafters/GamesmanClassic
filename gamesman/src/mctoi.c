@@ -393,6 +393,7 @@ BOOLEAN  kLoopy               = TRUE       ; /* Rotating in place
                                               * and jumping back and 
                                               * forth */
 BOOLEAN  kDebugDetermineValue = FALSE      ;
+void*	 gGameSpecificTclInit = NULL	   ;
 
 STRING   kHelpGraphicInterface =
 "Farzad and Erwin: Once there's a graphic interface, fill this in.";
@@ -2378,5 +2379,4 @@ void setOption(int option)
 	gRotateInPlace = option % 2 ;
 }
 
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
 

@@ -446,6 +446,8 @@ then
   fi
   
   COMPILEGRAPHICS="so_all"
+else
+  OUTCFLAGS="$OUTCFLAGS -DNO_GRAPHICS"
 fi
 
 

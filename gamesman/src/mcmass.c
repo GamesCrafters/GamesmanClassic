@@ -74,6 +74,7 @@ BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "Nothing yet";
@@ -1355,9 +1356,3 @@ void setOption(int option)
   gBoardWidth = option/2%(MAX_WIDTH-MIN_WIDTH+1);
   gBoardHeight = option/(2*(MAX_WIDTH-MIN_WIDTH+1))%(MAX_HEIGHT-MIN_HEIGHT+1);
 }
-
-
-
-
-int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {}
-

@@ -22,8 +22,6 @@
 EXTERNC
 {
 #include "gamesman.h"
-#include "tcl.h"
-#include "tk.h"
 
 #pragma weak Tcl_CreateCommand
 }
@@ -186,6 +184,8 @@ EXTERNC void FreeGame()
 {}
 
 
+#ifndef NO_GRAPHICS
+
 static int
 XYtoPos(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 {
@@ -262,6 +262,12 @@ EXTERNC int GameSpecificTclInit(Tcl_Interp* interp, Tk_Window mainWindow) {
 		    (Tcl_CmdDeleteProc*) NULL);
   return TCL_OK;
 }
+
+void* gGameSpecificTclInit = (void*) GameSpecificTclInit;
+
+#else
+void* gGameSpecificTclInit = NULL;
+#endif
 
 /************************************************************************
 **

@@ -17,8 +17,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <algorithm> // for max()
+
+#ifndef NO_GRAPHICS
 #include "tcl.h"
 #include "tk.h"
+#else
+typedef int Tcl_Interp;
+typedef int Tk_Window;
+#endif
 
 #define EXTERNC extern "C"
 
@@ -85,10 +91,12 @@ STRING   kHelpExample = "No help";
 **
 **************************************************************************/
 
+#ifndef NO_GRAPHICS
 static int		ScoredCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+#endif
 
 bool UnderTcl=false;
 int BoardSizeX = 2;
@@ -446,6 +454,8 @@ EXTERNC void InitializeDatabases() {
     InitializeDatabasesForReal();
 }
 
+#ifndef NO_GRAPHICS
+
 EXTERNC int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 {
   UnderTcl=true;
@@ -455,6 +465,14 @@ EXTERNC int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 		    (Tcl_CmdDeleteProc*) NULL);
   return TCL_OK;
 }
+
+void* gGameSpecificTclInit = (void*) GameSpecificTclInit;
+
+#else
+
+void* gGameSpecificTclInit = NULL;
+
+#endif
 
 /************************************************************************
 **
@@ -1018,6 +1036,8 @@ EXTERNC POSITION GetNextPosition()
 *************************************************************************
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
+
 static int
 ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 {
@@ -1064,3 +1084,4 @@ GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
   }
 }
 
+#endif
