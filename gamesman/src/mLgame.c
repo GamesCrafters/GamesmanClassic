@@ -309,6 +309,35 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
+
+/** Local Prototypes **/
+int hash(int L1, int L2, int S1, int S2, int whosMove);
+int unhashL1(int total);
+int unhashL2(int total);
+int unhashS1(int total);
+int unhashS2(int total);
+int unhashTurn(int total);
+int hashMove(int L, int SPiece, int SValue);
+int unhashMoveL(int total);
+int unhashMoveSPiece(int total);
+int unhashMoveSValue(int total);
+int transform(int orient, int origL);
+int untransformOrient(int L);
+int untransformOrig(int L, int orient);
+int printInit(int pieces, int L1, int L2, int S1, int S2);
+int Make24(int L1, int L2);
+int Make48(int L1, int L2);
+int Make16to8(int L1, int L2, int S1as16);
+int Make8to16(int L1, int L2, int S1as8);
+int Make16to7(int L1, int L2, int S1, int S2as16);
+int Make7to16(int L1, int L2, int S1, int S2as7);
+int Get6Empties(int L1, int L2, int S1, int S2, int j);
+int memberOf(int L, int square);
+int clearS1(int L1, int L2, int S1);
+int clearS2(int L1, int L2, int S1, int S2);
+int checkCor(int Lo, int Lc) ;
+int checkOrient(int Lo, int L1);
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -1292,7 +1321,7 @@ int hashMove(int L, int SPiece, int SValue) {
 ** OUTPUTS:     (no name) : The new position of the L-piece
 **
 ************************************************************************/
-
+ 
 int unhashMoveL(int total) {
   return total/1000;
 }
@@ -1649,7 +1678,7 @@ int Make16to7(int L1, int L2, int S1, int S2as16) {
 **                           piece.
 **
 ************************************************************************/
-
+ 
 int Make7to16(int L1, int L2, int S1, int S2as7) {
   int S2as16;
   int i;
@@ -1754,7 +1783,7 @@ int memberOf(int L, int square) {
 **
 ************************************************************************/
 
-clearS1(int L1, int L2, int S1) {
+int clearS1(int L1, int L2, int S1) {
   int i, clear = 1;
   for (i = 0; i<4; i++) {
     if ((S1 == FOURSQUARES[L1][i]) || (S1 == FOURSQUARES[L2][i])) {
@@ -1783,7 +1812,7 @@ clearS1(int L1, int L2, int S1) {
 **
 ************************************************************************/
 
-clearS2(int L1, int L2, int S1, int S2) {
+int clearS2(int L1, int L2, int S1, int S2) {
   int i, clear = 1;
   for (i = 0; i<4; i++) {
     if ((S2 == FOURSQUARES[L1][i]) || (S2 == FOURSQUARES[L2][i])) {
@@ -1810,7 +1839,7 @@ clearS2(int L1, int L2, int S1, int S2) {
 **
 ************************************************************************/
 
-checkCor(int Lo, int Lc) {
+int checkCor(int Lo, int Lc) {
   int i, b = 0;
   for (i = 0; i < 6; i++)
     if (valCor[Lo][i] == Lc)
@@ -1834,7 +1863,7 @@ checkCor(int Lo, int Lc) {
 **
 ************************************************************************/
 
-checkOrient(int Lo, int L1) {
+int checkOrient(int Lo, int L1) {
   int i, j, k, newL, b = 1;
   for (i = 0; i < 6; i++) {
     newL = transform(Lo, valCor[Lo][i]);
