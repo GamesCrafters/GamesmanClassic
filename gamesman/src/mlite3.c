@@ -47,7 +47,7 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition		= -1;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Alex Perelmen, Babak Hamadani";
 STRING   kGameName           = "Lite-3";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;

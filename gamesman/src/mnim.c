@@ -29,7 +29,7 @@ STRING   kHelpStandardObjective = "help standard objective" ;
 STRING   kHelpReverseObjective  = "reverse objective" ;
 STRING   kHelpTieOccursWhen     = "A tie is not possible in this game" ;
 STRING   kHelpExample           = "some really long thing<-Actually play a game,then copy/paste" ;
-STRING   kAuthorName            = "";
+STRING   kAuthorName            = "Gamescrafters";
 
 void InitializeGame()
 {

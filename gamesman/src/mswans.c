@@ -33,7 +33,7 @@ POSITION gNumberOfPositions  = 33430528;
 /* POSITION gInitialPosition    = (2285 << 6) + 12;  */  /* for full 4-dragon bd */
 POSITION gInitialPosition;
 POSITION kBadPosition        = -1;
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Anh Thai and Sandra Tang";
 STRING   kGameName           = "Dragons & Swans";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;

@@ -34,7 +34,7 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Gamescrafters";
 STRING   kGameName           = "Fandango";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;

@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.74 2004-10-22 17:53:15 ogren Exp $
+//$Id: m9mm.c,v 1.75 2005-01-06 07:02:57 liao_r Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -46,7 +46,7 @@ POSITION kBadPosition        = -1;
  **   x to move             x to move 
  **************************************************************************/
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Erwin A. Vedar, Wei Tu, and Elmer Lee";
 STRING   kGameName           = "Nine Men's Morris";
 STRING   kDBName             = "9mm";
 BOOLEAN  kPartizan           = TRUE; 
@@ -2183,6 +2183,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.74  2004/10/22 17:53:15  ogren
+//Typo change, Id instead of id. -Elmer
+//
 //Revision 1.73  2004/10/22 17:47:46  ogren
 //Added $ back to the top of the file. -Elmer
 //

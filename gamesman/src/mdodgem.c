@@ -30,7 +30,7 @@ POSITION gNumberOfPositions  = 39366;  /* 3^9 times 2 */
 POSITION gInitialPosition    = 17524;  
 POSITION gMinimalPosition    = 17524 ;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Dan Garcia";
 STRING   kGameName           = "Dodgem";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;

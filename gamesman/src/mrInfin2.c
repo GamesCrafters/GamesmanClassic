@@ -184,7 +184,7 @@ POSITION gInitialPosition    = 3375000; // REDUCT: score = 5, everythign else 0
                                 // 19683000<-- old num; //
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position  */
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Edwin Mach and Chi Huynh";
 STRING   kGameName           = "Rubik's Infinity";
 STRING   kDBName             = "rinfin2";
 BOOLEAN  kPartizan           = TRUE;

@@ -27,7 +27,7 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Dan Garcia";
 STRING   kGameName           = "Quick Cross";
 BOOLEAN  kPartizan           = FALSE;
 BOOLEAN  kDebugMenu          = TRUE;

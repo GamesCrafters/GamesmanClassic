@@ -11,8 +11,6 @@
 
 
 /* analysis and documentation bookkeeping */
-// may make this into a struct later
-
 
 //extern STRING  kGUIAuthorName;    // graphics writers
 ANALYSIS gAnalysis;
@@ -3470,7 +3468,10 @@ void SolveAndStore()
 {
     Initialize();
     InitializeDatabases();
+    gAnalysis.TotalMoves = 0;
+    Stopwatch();
     DetermineValue(gInitialPosition);
+    gAnalysis.TimeToSolve = Stopwatch();
     // analysis
     if (gAnalyzing) {
         analyze(); // sets global variables
@@ -3890,7 +3891,7 @@ FILE* prepareXMLFile()
     
     xmlFile = fopen(xmlPath,"w");
     fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
-    fprintf(xmlFile,"<game name=\"%s\">\n", kGameName);
+    fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
     return xmlFile;
 }
 

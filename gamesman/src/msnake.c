@@ -63,7 +63,7 @@ POSITION gInitialPosition    = 8357;
 POSITION gMinimalPosition    = 8357; /* This may not be the minimal position. Use the upward solver when it's invented */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Alice Chang, Judy Chen, Eleen Chiang, Peter Foo";
 STRING   kGameName           = "Snake";
 STRING   kDBName             = "snake";
 BOOLEAN  kPartizan           = TRUE; /* each player only has control 

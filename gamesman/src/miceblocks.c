@@ -36,7 +36,7 @@ extern STRING gValueString[];
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
 POSITION kBadPosition         = -1;
-STRING   kAuthorName          = "";
+STRING   kAuthorName          = "Kevin Duncan, Neil Trotter";
 STRING   kGameName            = "Ice Blocks";
 STRING   kDBName              = "iceblocks";
 BOOLEAN  kPartizan            = TRUE;

@@ -45,7 +45,7 @@ POSITION gInitialPosition    = 0;
 
 POSITION gMinimalPosition = 0 ;
 
-STRING   kAuthorName          = "";
+STRING   kAuthorName          = "Dan Garcia";
 STRING   kGameName            = "1 TO N";
 BOOLEAN  kPartizan            = FALSE;
 BOOLEAN  kDebugMenu           = FALSE;

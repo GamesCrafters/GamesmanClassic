@@ -53,7 +53,7 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Greg Bonin and Tanya Gordeeva";
 STRING   kGameName           = "Blocking";
 STRING   kDBName             = NULL;
 BOOLEAN  kPartizan           = TRUE; 

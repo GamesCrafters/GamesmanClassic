@@ -98,7 +98,7 @@ POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD ;
 POSITION kBadPosition = -1;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Attila Gyulassy";
 STRING   kGameName           = "3Spot";
 
 //?

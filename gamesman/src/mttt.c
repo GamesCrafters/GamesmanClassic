@@ -72,7 +72,7 @@ POSITION kBadPosition	     = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Dan Garcia";
 STRING   kGameName           = "Tic-Tac-Toe";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;

@@ -381,7 +381,7 @@ POSITION gMinimalPosition    = 0;
 static char board[BOARDSIZE];
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
 
-STRING   kAuthorName          = ""; 
+STRING   kAuthorName          = "Dan Garcia, Farzad H. Eskafi, and Erwin A. Vedar"; 
 STRING   kGameName            = "Chung-Toi";
 BOOLEAN  kPartizan            = TRUE       ;
 BOOLEAN  kSupportsHeuristic   = TRUE       ;

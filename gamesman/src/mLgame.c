@@ -26,7 +26,7 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388 ;
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Michael Savitzky & Alexander John Kozlowski";
 STRING   kGameName           = "L-game";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;

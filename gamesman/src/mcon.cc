@@ -31,7 +31,7 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Brian Carnes";
 STRING   kGameName           = "Connections";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
