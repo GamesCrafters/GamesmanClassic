@@ -149,7 +149,6 @@ char *gBlankBHTString[] = {"+", "B", "H", "T", "|", "-", " "};
 int g2Body[] = { 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072,
 		 262144, 524288, 1048576, 2097152 };
 /* Variants */
-BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck is when you can't move. */
 BlankBHT moveHandT = FALSE;  /* Giving the player the option to move 
 			      * either Head or Tail. */
 
@@ -198,9 +197,6 @@ void GameSpecificMenu()
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
     printf("\tI)\tChoose the (I)nitial position\n");
-    printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
-	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
-	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
     
     printf("\tM)\tSwitch (M)ovable parts from %s to %s\n",
 	   !moveHandT ? "HEAD ONLY" : "EITHER HEAD OR TAIL",
@@ -217,9 +213,6 @@ void GameSpecificMenu()
       break;
     case 'I': case 'i':
       gInitialPosition = GetInitialPosition();
-      break;
-    case 'T': case 't':
-      gToTrapIsToWin = !gToTrapIsToWin;
       break;
     case 'b': case 'B':
       return;
@@ -247,7 +240,6 @@ void GameSpecificMenu()
 void SetTclCGameSpecificOptions(theOptions)
      int theOptions[];
 {
-  gToTrapIsToWin = (BOOLEAN) theOptions[0];
   moveHandT = (BOOLEAN) theOptions[1];
 }
 
@@ -434,7 +426,7 @@ VALUE Primitive(position)
 
   
   if(trapped(theBlankBHT, who))   
-    return(gToTrapIsToWin ? lose : win);
+    return(gStandardGame ? lose : win);
   else
     return (undecided);
 }
@@ -1198,15 +1190,14 @@ POSITION SnakeHash(theBlankBHT)
 
 int NumberOfOptions()
 {
-  return 2*2*2;
+  return 2*2;
 }
 
 int getOption()
 {
   int option = 1;
   option += gStandardGame ? 0 : 1;
-  option += 2 * (gToTrapIsToWin ? 0 : 1);
-  option += 2*2 * (moveHandT ? 1 : 0);
+  option += 2 * (moveHandT ? 1 : 0);
   return option;
 }
 
@@ -1214,20 +1205,13 @@ void setOption(int option)
 {
   option -= 1;
   
-  if (option >= 2*2) {
-    option -= 2*2;
+  if (option >= 2) {
+    option -= 2;
     moveHandT = TRUE;
   }
   else 
     moveHandT = FALSE;
   
-  if (option >= 2) {
-    option -= 2;
-    gToTrapIsToWin = FALSE;
-  }
-  else
-    gToTrapIsToWin = TRUE;
-
   if (option >= 1) {
     option -= 1;
     gStandardGame = FALSE;

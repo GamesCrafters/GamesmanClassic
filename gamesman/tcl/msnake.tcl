@@ -102,13 +102,22 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Misere" \
 	    ]
 
+     set tailRule \
+	[list \
+	     "Movable parts are:" \
+	     "Head Only" \
+	     "Head and Tail" \
+	    ]
+
     global gMisereGame
     set gMisereGame 0
+    global gMoveTail
+    set gMoveTail 0
 
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gMoveTail"]
 
     global kLabelFont
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $tailRule]
     set ruleNum 0
     foreach rule $ruleset {
 	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
@@ -135,12 +144,11 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # Returns: option (Integer) - the option of the game as specified by 
 # getOption and setOption in the module's C code
 proc GS_GetOption { } {
-    global gMisereGame
+    global gMisereGame gMoveTail
     set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    set option [expr $option + $gMisereGame]
+    set option [expr $option + 2*$gMoveTail]
 
-    # diagonals and tie loses
-    set option [expr $option + 2*2 + 2] 
     return $option
 }
 
@@ -157,9 +165,10 @@ proc GS_GetOption { } {
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
 proc GS_SetOption { option } {
-    global gMisereGame
+    global gMisereGame gToTrapIsToLose gMoveTail
     set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    set gMisereGame [expr $option%2]
+    set gMoveTail [expr $option/2%2]
 }
 
 
@@ -175,20 +184,28 @@ proc GS_SetOption { option } {
 # Returns: nothing
 proc GS_ImplementOption { option } {
     set option [expr $option - 1]
-    set standardOption [expr $option%2]
-    
-    if { $standardOption == "1" } {
-	set toWin1 "To Win: "
-    } elseif { $standardOption == "0" } {
+    set misereGame [expr $option%2]
+    set moveTail [expr $option/2%2]
+
+    if { $misereGame == "1" } {
 	set toWin1 "To Lose: "
+    } else {
+	set toWin1 "To Win: "
     }
 
-    global Dimension
-    set toWin2  "Connect in a row in any direction" 
+    set toWin2  "To trap your opponent so that he/she is no longer able to make a valid move"
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click on an arrow to place a piece"
+    set toMove1 "To Move: Click on an arrow to move "
+    if { $moveTail == "1" } {
+	set toMove2 "the head or tail "
+    } else {
+	set toMove2 "the head "
+    }
+    set toMove3 "to an empty adjacent space"
+
+    SetToMoveString [concat $toMove1 $toMove2 $toMove3]
 }
 
 
@@ -266,6 +283,10 @@ proc GS_Initialize { c } {
     
     puts "<< exit GS_Initialize"
 } 
+
+proc GS_Deinitialize { c } {   
+    $c delete all
+}
 
 proc SendMove { square } {
     set theMove $square
@@ -1118,20 +1139,11 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set toSlot [expr $theMove / ($BOARDSIZE+1)]
 
 	set value [lindex $item 1]
-	set color cyan
 
 	puts "---- <$fromSlot , $toSlot> $value"
 
- 	if {$moveType == "value"} {
- 	    if {$value == "Tie"} {
- 		set color yellow
- 	    } elseif {$value == "Lose"} {
- 		set color red
- 	    } else {
- 		set color green  
-		#switched colors (green/red)
- 	    }
-	}
+        set color [MoveValueToColor $moveType $value]
+
 	puts "---- Got past color picker"
 
 	$c itemconfig arrow$fromSlot$toSlot -fill $color
@@ -1220,7 +1232,7 @@ proc GS_HideMoves { c moveType position moveList} {
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     puts ">> GS_HandleUndo"
-    GS_DrawPosition $c positionAfterUndo
+    GS_DrawPosition $c $positionAfterUndo
 
     puts "<< exit GS_HandleUndo"
 }
