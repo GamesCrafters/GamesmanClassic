@@ -639,7 +639,8 @@ VALUE Primitive (pos)
 	POSITION pos;
 {
   BOOLEAN AllFilledIn();
-  BlankORB ThreeInARow(), theBlankORB[BOARDSIZE];
+  char ThreeInARow();
+  BlankORB theBlankORB[BOARDSIZE];
   VALUE EndGame(char, int);
   generic_unhash(pos, gBoard);
   char current;

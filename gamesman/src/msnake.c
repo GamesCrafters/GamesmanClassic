@@ -669,7 +669,9 @@ struct node* farthestTail (struct node *tree, BlankBHT boardArray[36]) {
 }
 
 
-void path(struct node *tailNode, struct node* pathArray[tailNode->depth]) {
+// took tailNode->depth out of pathArray (we don't need to know its size to declare
+// the function) -JJ
+void path(struct node *tailNode, struct node* pathArray[]) {
     struct node* temp = tailNode;
     //struct node* pathArray[temp->depth];
     int i = (temp->depth)-1;

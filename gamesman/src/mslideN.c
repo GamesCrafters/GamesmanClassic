@@ -250,7 +250,7 @@ void GameSpecificMenu() {
   char GetMyChar();
   POSITION GetInitialPosition();
   void SetInitialBoardSize();
-  BlankOX Primitive();
+  VALUE Primitive();
 
    do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);

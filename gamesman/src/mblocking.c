@@ -44,6 +44,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <dirent.h>
+#include "hash.h"
 
 extern STRING gValueString[];
 
