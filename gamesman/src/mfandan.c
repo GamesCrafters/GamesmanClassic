@@ -16,6 +16,7 @@
 **              03/02/04 Wrote PositionToBoard(...)
 **              03/02/04 Debugged PrintPosition(...)
 **              03/02/04 Wrote ValidTextInput(...)
+**              03/03/04 Wrote Primitive(...)
 ** TODO LIST:
 **              03/02/04 PrintPosition() needs to print info about how to make moves
 **              03/02/04 copy from ValidTextInput(...) to do first parts of ConvertTextInputToMove(...)
@@ -35,7 +36,7 @@
 
 extern STRING gValueString[];
 
-int      gNumberOfPositions  = 19683;  /* 3^9 */
+int      gNumberOfPositions  = 0;     /* don't initialize yet, let generic_hash_init(...) decide */
 int	 kBadPosition		= -1;
 
 POSITION gInitialPosition    =  0;
@@ -50,66 +51,25 @@ BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n\
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
-button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+"";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions.";
+"";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+"";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the board fills up without either player getting three-in-a-row.";
+"";
 
 STRING   kHelpExample =
-"         ( 1 2 3 )           : - - -\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  3    \n\n\
-         ( 1 2 3 )           : - - X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  6    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - O \n\n\
-Computer's move              :  5    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : - - O \n\n\
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer's move              :  4    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer wins. Nice try, Dan.";
+"";
 
 /*************************************************************************
 **
@@ -134,7 +94,8 @@ typedef enum possibleBoardPieces {
 } BlankOX;
 
 char *gBlankOXString[] = { '.', 'O', 'X' };
-int myPieces_array[6] = { 'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
+int myPieces_array[6] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
+                          'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
                           'X', 0, MAX_X };        /* used to pass into generic_hash_init(...) */
 
 //---- Shing ----------------------------------------------
@@ -167,45 +128,7 @@ FreeGame()
 
 DebugMenu()
 {
-  char GetMyChar();
-
-  do {
-    printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-    
-    printf("\tc)\tWrite PPM to s(C)reen\n");
-    printf("\ti)\tWrite PPM to f(I)le\n");
-    printf("\ts)\tWrite Postscript to (S)creen\n");
-    printf("\tf)\tWrite Postscript to (F)ile\n");
-    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-    printf("\n\nSelect an option: ");
-    
-    switch(GetMyChar()) {
-    case 'Q': case 'q':
-      ExitStageRight();
-    case 'H': case 'h':
-      HelpMenus();
-      break;
-    case 'C': case 'c': /* Write PPM to s(C)reen */
-      tttppm(0,0);
-      break;
-    case 'I': case 'i': /* Write PPM to f(I)le */
-      tttppm(0,1);
-      break;
-    case 'S': case 's': /* Write Postscript to (S)creen */
-      tttppm(1,0);
-      break;
-    case 'F': case 'f': /* Write Postscript to (F)ile */
-      tttppm(1,1);
-      break;
-    case 'B': case 'b':
-      return;
-    default:
-      BadMenuChoice();
-      HitAnyKeyToContinue();
-      break;
-    }
-  } while(TRUE);
-  
+  // fill me? If need, can get from mttt.c
 }
 
 /************************************************************************
@@ -271,41 +194,7 @@ POSITION DoMove(thePosition, theMove)
 
 GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
-  BlankOX theBlankOX[BOARDSIZE], whosTurn;
-  signed char c;
-  int i, goodInputs = 0;
-
-
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-  i = 0;
-  getchar();
-  while(i < BOARDSIZE && (c = getchar()) != EOF) {
-    if(c == 'x' || c == 'X')
-      theBlankOX[i++] = x;
-    else if(c == 'o' || c == 'O' || c == '0')
-      theBlankOX[i++] = o;
-    else if(c == '-')
-      theBlankOX[i++] = Blank;
-    else
-      ;   /* do nothing */
-  }
-
-  /*
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = x;
-  else
-    whosTurn = o;
-    */
-
-  return(BlankOXToPosition(theBlankOX,whosTurn));
+  // fill me? if need, can get from mttt.c
 }
 
 /************************************************************************
@@ -352,22 +241,12 @@ PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
-  BOOLEAN ThreeInARow(), AllFilledIn();
-  BlankOX theBlankOX[BOARDSIZE];
+  BlankOX board[BOARDSIZE];
 
-  PositionToBlankOX(position,theBlankOX);
-
-  if( ThreeInARow(theBlankOX,0,1,2) || 
-      ThreeInARow(theBlankOX,3,4,5) || 
-      ThreeInARow(theBlankOX,6,7,8) || 
-      ThreeInARow(theBlankOX,0,3,6) || 
-      ThreeInARow(theBlankOX,1,4,7) || 
-      ThreeInARow(theBlankOX,2,5,8) || 
-      ThreeInARow(theBlankOX,0,4,8) || 
-      ThreeInARow(theBlankOX,2,4,6) )
-    return(gStandardGame ? lose : win);
-  else if(AllFilledIn(theBlankOX))
-    return(tie);
+  PositionToBoard(position,board);
+  
+  if (!AnyPiecesLeft(board,x) || !AnyPiecesLeft(board,o))   /* if either type of pieces is extinct */
+    return(gStandardGame ? lose : win);                     /* that means last player to go captured last piece of current player? */
   else
     return(undecided);
 }
@@ -452,29 +331,7 @@ PrintPosition(position,playerName,usersTurn)
       }
     }
 
-  
   puts(GetPrediction(position,playerName,usersTurn)); /* HRS */
-
-	  
-	
-      
-
-
-  /*
-  printf("\n         ( 1 2 3 )           : %s %s %s\n",
-	 gBlankOXString[(int)theBlankOx[0]],
-	 gBlankOXString[(int)theBlankOx[1]],
-	 gBlankOXString[(int)theBlankOx[2]] );
-  printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s\n",
-	 gBlankOXString[(int)theBlankOx[3]],
-	 gBlankOXString[(int)theBlankOx[4]],
-	 gBlankOXString[(int)theBlankOx[5]] );
-  printf("         ( 7 8 9 )           : %s %s %s %s\n\n",
-	 gBlankOXString[(int)theBlankOx[6]],
-	 gBlankOXString[(int)theBlankOx[7]],
-	 gBlankOXString[(int)theBlankOx[8]],
-	 GetPrediction(position,playerName,usersTurn));
-  */
 }
 
 /************************************************************************
@@ -575,10 +432,14 @@ BOOLEAN ValidTextInput(input)
   int row,dir,cap;                    /* row,direction,capture mode ('a','w','n')*/
   int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
 
+  col = tolower(col);     /* to make case insensitive */
+  cap = tolower(cap);     /* "          "         "   */
+
   return
-    (scan_result == 4) &&                 /* did we manage to get suitable vals for col,row,dir,cap? */
-    isalpha(col) &&                       /* is the column a character? */
-    isalpha(cap);                         /* is capture mode a character? */    
+    (scan_result == 4) &&                        /* did we manage to get suitable vals for col,row,dir,cap? */
+    ('a' <= col < ('a'+BOARDWIDTH)) &&           /* is the column a character and in range? */
+    (1 <= row <= BOARDHEIGHT) &&                 /* is the row in range? i.e. not out of board */
+    ((cap == 'a')||(cap == 'w')||(cap == 'n'));  /* is capture mode a valid character? */    
 }
 
 /************************************************************************
