@@ -1016,7 +1016,7 @@ void PrintMove (MOVE move)
 	else
 	{
 	ArrayNumtoCoord(ArrayNum, mymove);
-	printf("[ %c%d ] ", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
+	printf("%c%d", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
 	}
 }
 
