@@ -61,12 +61,12 @@
 **			      Wrote GetInitialPosition()
 **              -- 3.09.05 -- Finally completed isValidMove()
 **		-- 3.9.05 -- Fixed problem with ocount and scount not being initialized in isValidMove() 
-
+**		-- 4.5.05 -- fixed issues with the prediction not being displayed
+**			     made the debug menu look like the other menus
+**			     fixed a floating point exception bug in the hash piece array (introduced by me).
+**
 **************************************************************************/
 
-#define EMPTYSPACE '·' 
-#define PLAYER1 'X'
-#define PLAYER2 'O'
 
 /*************************************************************************
 **
@@ -88,6 +88,10 @@
 ** Game-specific constants
 **
 **************************************************************************/
+
+char EMPTYSPACE ='·';
+char PLAYER1 = 'X';
+char PLAYER2 = 'O';
 
 STRING   kGameName            = "XiGua"; /* The name of your game */
 STRING   kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder"; /* Your name(s) */
@@ -149,6 +153,7 @@ STRING   kHelpExample =
 
 /* Game options */
 int boardsize; /* 0-4 Board size is 5 + 4 * boardsize */
+int numpieces=-1; /* default is maxsize-1 */
 int rulesvariant; /* 0/1 normal rules / inverted rules */
 int handicapping; /* 0/1 Handicapped or not */ 
 int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
@@ -223,13 +228,14 @@ void InitializeGame ()
 {
 	/* need to change this to reflect the board size */
         maxsize=5+4*boardsize;
-	int piecesarray[]={PLAYER1,0,maxsize-1,PLAYER2,0,maxsize-1,'O',0,maxsize,-1};
-
+	//if(numpieces==-1) numpieces=maxsize-1;
+	numpieces=maxsize-1;
+	int piecesarray[]={PLAYER1,0,numpieces,PLAYER2,0,numpieces,EMPTYSPACE,0,maxsize,-1};
+	
 	/* manually setting options right now */
 	gNumberOfPositions=hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	board = emptyboard(board);
 	gInitialPosition=hash(board,1,0);
-
 	adjacent = (adjacency *) SafeMalloc(sizeof(adjacency) * maxsize);
 	
 	checked = (BOOLEAN *)SafeMalloc(sizeof(BOOLEAN)*maxsize);
@@ -788,7 +794,7 @@ VALUE Primitive (POSITION position)
 	    noValidMoves = FALSE;
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
-	if(turn==maxsize-1 || noValidMoves) {
+	if(turn==numpieces || noValidMoves) {
 		p1c=countboard(board,PLAYER1);
 		p2c=countboard(board,PLAYER2);
 
@@ -871,7 +877,7 @@ void display5board(char *pos, char *prediction) {
 	printf("         2-3-4       Player2: *  %c-%c-%c\n",pos[1],pos[2],pos[3]);
 	printf("          \\|/                     \\|/\n");
 	printf("           5                       %c\n",pos[4]);
-	printf(" Prediction (%s)\n\n",prediction);
+	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 void display9board(char *pos,char *prediction) {
 	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
@@ -879,7 +885,7 @@ void display9board(char *pos,char *prediction) {
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
 	printf("         \\|/    \\|                     \\|/    \\|\n");
 	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
-	printf(" Prediction (%s)\n\n",prediction);
+	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
 void display13board(char *pos,char *prediction) {
 	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
@@ -887,7 +893,7 @@ void display13board(char *pos,char *prediction) {
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
 	printf("          |/    \\|/    \\|               |/    \\|/    \\|\n");
 	printf("          D      E      F               %c      %c      %c\n",pos[10],pos[11],pos[12]);
-	printf(" Prediction (%s)\n\n",prediction);
+	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
 
 void display17board(char *pos,char *prediction) {
@@ -900,7 +906,7 @@ void display17board(char *pos,char *prediction) {
         printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
         printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
         printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
-	printf(" Prediction (%s)\n\n",prediction);
+	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
 
 void display21board(char *positionvalues, char *prediction) {
@@ -917,8 +923,9 @@ void display21board(char *positionvalues, char *prediction) {
         printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
         printf("        \\     |     /               \\     |     /\n");
         printf("         \\    L    /                 \\    %c    /\n",pos[17]);
-        printf("          \\  /|\\  /   Prediction:     \\  /|\\  /\n");
-        printf("           \\M-N-P/  (%s)  \\%c-%c-%c/\n",prediction,pos[18],pos[19],pos[20]);
+        printf("          \\  /|\\  /                   \\  /|\\  /\n");
+        printf("           \\M-N-P/        \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+	if(prediction) printf(" Prediction: %s\n\n",prediction);
 
 }
 
@@ -967,9 +974,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 */
 	char *toprint, *prediction;
 	toprint=(char *)malloc(sizeof(char)*(5+4*boardsize));
-	prediction=(char *)malloc(sizeof(char)*17); /* put my magic numbers by my magic markers */
+	/*prediction=(char *)malloc(sizeof(char)*17); */
+	
 	/* need to get prediction, till then... */
-	prediction=getprediction(prediction);
+	prediction=GetPrediction(position,playersName,usersTurn);
+	if(strcmp(prediction," ")==0) prediction=NULL;
 	toprint = unhashboard(position,toprint);
 	switch(boardsize) {
 		case 0:
@@ -1308,45 +1317,64 @@ void GameSpecificMenu ()
    	char choice;
 	int boardsizechoice;
 
-	fflush(stdin);
-	choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
-	printf("\t----- mxigua Option Menu -----\n\n");
-	printf("\td)\tChange Boar(d) Size (Currently: %d)\n",boardsize*4+5);
-	/* printf("\tr)\tChange (R)ule Type (Currently: )\n"); */
-	/* printf("h - Handicapping (ON/OFF)\n"); */
-	/* printf("w - Win Style (Territory/Captures/Both)\n"); */
+	while(1) {
+		fflush(stdin);
+		choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
+		printf("\n\t----- mxigua Option Menu -----\n\n");
+		printf("\td)\tChange Boar(d) Size (Currently: %d)\n",maxsize);
+		printf("\tn)\tChange (N)umber of Pieces (Currently: %d)\n",numpieces);
+		printf("\n\n");
+		printf("\tq)\t(Q)uit to main menu\n\n\n");
+		/* printf("\tr)\tChange (R)ule Type (Currently: )\n"); */
+		/* printf("h - Handicapping (ON/OFF)\n"); */
+		/* printf("w - Win Style (Territory/Captures/Both)\n"); */
 	
-	printf("Please enter a selection: "); 
-	choice=getc(stdin);
-	choice=toupper(choice);
-	switch(choice) {
-		case 'D':
-			fflush(stdin);
-			choice=getc(stdin);
-			printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
-			scanf("%d",&boardsizechoice);
-			if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
-				boardsize=(boardsizechoice-5)/4;
-				printf("The new boardsize is set at %d",boardsize*4+5);
-				InitializeGame();
-			} else {
-				printf("Incorrect size.\n");
-			}
-			break;
-		case 'R':
-			printf("Not this time, sorry.\n");
-			break;
-		case 'H':
-			printf("Not this time, sorry.\n");
-			break;
-		case 'W':
-			printf("Not this time, sorry.\n");
-			break;
-		default:
-			printf("You did not select a valid option.\n");
-			break;
-	}	
-				
+		printf("Please enter a selection: "); 
+		choice=getc(stdin);
+		choice=toupper(choice);
+		switch(choice) {
+			case 'D':
+				fflush(stdin);
+				choice=getc(stdin);
+				printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
+				scanf("%d",&boardsizechoice);
+				if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
+					boardsize=(boardsizechoice-5)/4;
+					// uncomment this to auto-reset numpieces
+					//numpieces=-1;
+					InitializeGame();
+				} else {
+					printf("Incorrect size.\n");
+				}
+				break;
+			case 'N':
+				fflush(stdin);
+				choice=getc(stdin);
+				printf("Please enter the number of pieces you want to be in play [1-%d]",maxsize);
+				scanf("%d",&boardsizechoice);
+				if(boardsizechoice>=1 && boardsizechoice <= maxsize) {
+					numpieces=boardsizechoice;
+					InitializeGame();
+				} else {
+					printf("Incorrect number of pieces.\n");
+				}
+				break;
+			case 'R':
+				printf("Not this time, sorry.\n");
+				break;
+			case 'H':
+				printf("Not this time, sorry.\n");
+				break;
+			case 'W':
+				printf("Not this time, sorry.\n");
+				break;
+			case 'Q':
+				return;
+			default:
+				printf("You did not select a valid option.\n");
+				break;
+		}	
+	}
 }
 
 
@@ -1416,10 +1444,12 @@ POSITION GetInitialPosition ()
 	while(in!='\n') {
 		if(count < maxsize) {
 			switch(toupper(in)) {
-				case PLAYER1:	
+				//case PLAYER1:	
+				case 'X':
 					board[count]=PLAYER1;
 					break;
-				case PLAYER2:
+				//case PLAYER2:
+				case 'O':
 					board[count]=PLAYER2;
 					break;
 				default:
@@ -1433,10 +1463,10 @@ POSITION GetInitialPosition ()
 	}		
 	printf("Please enter the player whose turn it is [1,2]: ");
 	scanf("%d",&pnum);
-	printf("Please enter the number of turns that have passed [0-%d]:",(maxsize-1));
+	printf("Please enter the number of turns that have passed [0-%d]:",(numpieces));
 	scanf("%d",&turn);
 	if(pnum<1 || pnum>2) pnum=1;
-	if(turn<0||turn>(maxsize-1)) turn=maxsize-1;
+	if(turn<0||turn>(numpieces)) turn=numpieces;
 				
     return hash(board,pnum,turn);
 }
