@@ -33,7 +33,8 @@
 **                          initial definitions.
 **                      [-] replaced all of the original helper functions,
 **                          partially because they were designed to run on the
-**                          preliminary format, partially because they weren't
+**                          preliminary format which didn't have any support
+**                          for undoing moves, partially because they weren't
 **                          sufficiently general enough for my tastes, and
 **                          partially because i'm more comfortable with the
 **                          operation of the algorithms this way. Despite this,
@@ -41,22 +42,32 @@
 **                          to pass them a pointer and not a variable.
 **            02/08/05: [*] Committed this version into CVS.
 **                      [+] All necessary functions have been implemented.
-**                          Work out the quirks and we are ready for prime time.
+**                          Work out the quirks and we are ready for prime time
+**            02/09/05: [*] Corrected some indexing and pointer problems.
+**                      [+] Implemented GetAndPrintPlayersMove correctly and
+**                          hotwired GetInitialPosition
 **
 **************************************************************************/
 
 
 /* TODO:
-**       implement the rest of the functions.
-**            ayup. preferably by next wednesday. - I thought we were done.
-**       some more stuff to put here....
-**            Please double check the converstions between (x,y) and the index in
-**            the vector. I think we should not think of them as x, y corrdinates
-**            but uniformly as row number and column number.
-**            so index = row*number of columns + col.
-**            Some unnecessary checks here and there, but doesn't hurt.
-**            if we get this version to work faster, I will take down my version
-**            and make this ours.
+**    implement the rest of the functions.
+**        ayup. preferably by next wednesday. - I thought we were done.
+**    some more stuff to put here....
+**        >> evan <<
+**        Please double check the converstions between (x,y) and the index
+**        in the vector. I think we should not think of them as x, y
+**        corrdinates but uniformly as row number and column number.
+**        so index = row*number of columns + col.
+**        Some unnecessary checks here and there, but doesn't hurt.
+**        if we get this version to work faster, I will take down my
+**        version and make this ours.
+**        >> guy <<
+**        aren't the two ways of thinking about indexing them equivalent?
+**        (1)y iterates over all of the rows, hence it is the row number.
+**        (2)x iterates over all of the columns, hence... etc.
+**        what do you mean by "unnecessary checks"?
+**        what do you mean "work faster"?
 */
 
 /* FORMATS:
@@ -129,7 +140,9 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  */
 
 STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
-// should probably be changed to north/south interface
+/* should probably be changed to north/south interface if ever generalize
+ * move types
+ */
 STRING   kHelpTextInterface =
   "On your turn, enter the xy coordinates of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
@@ -172,7 +185,9 @@ STRING   kHelpExample = "coming soon! buy viagra in the meantime!";
 ** Global Variables
 **
 *************************************************************************/
-/* want to be able to change these so they are more universal */
+/* want to be able to change these so they are more universal, but that's for
+ * later.
+ */
 
 /* the user input that corresponds to the direction in DIR_INCREMENTS */
 STRING directions[] {"up", "right", "down", "left"}
@@ -324,8 +339,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	  // for every possible movement as specified in dir_increments
 	  dx = x + dir_increments[i][0];
 	  dy = y + dir_increments[i][1];
-	  if ((dx >= 0) && (dy >= 0) &&	(dy < BOARD_ROWS) && \
-	      (dx < BOARD_COLS) && \
+	  if ((dx >= 0) && (dy >= 0) &&	\
+	      (dy < BOARD_ROWS) && (dx < BOARD_COLS) && \
 	      (board[CoordsToIndex(dx,dy)] == EMPTY_PIECE)) {
 	    moves = CreateMovelistNode(EncodeMove(x,y,dx,dy),moves);
 	  }
@@ -335,8 +350,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	  // for every possible movement as specified in dir_increments
 	  dx = x + dir_increments[i][0];
 	  dy = y + dir_increments[i][1];
-	  if ((dx >= 0) && (dy >= 0) &&	(dy < BOARD_ROWS) && \
-	      (dx < BOARD_COLS) && \
+	  if ((dx >= 0) && (dy >= 0) && \
+	      (dy < BOARD_ROWS) && (dx < BOARD_COLS) && \
 	      (board[CoordsToIndex(dx,dy)] == EMPTY_PIECE)) {
 	    moves = CreateMovelistNode(EncodeMove(x,y,dx,dy),moves);
 	  }
@@ -370,7 +385,7 @@ POSITION DoMove (POSITION position, MOVE move)
   board = generic_unhash (position, board);
   int coords[4];
   int player = whoseMove(position);
-  coords = DecodeMove(move, &coords);
+  coords = DecodeMove(move, coords);
   board[CoordsToIndex(coords[0],coords[1])] = EMPTY_PIECE;
   if (player == 1) {
     board[CoordsToIndex(coords[2],coords[3])] = PLAYER1_PIECE;
@@ -476,11 +491,12 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf (" The game board as %s sees it:\n  +", playersName);
   for (x = 0; x < BOARD_COLS; x++)
     printf("-+");
-  for (y = 0; y < BOARD_ROWS; y++) {
+  for (y = BOARD_ROWS-1; y >= 0; y--) {
+    /* printing the board top-down */
     printf ( "\n%d |" , i );
-    for (x = BOARD_COLS-1; x >= 0; x--) 
+    for (x = 0; x < BOARD_COLS; x++) 
       printf ("%c|", board[CoordsToIndex(x,y)]);
-    printf ("  +");
+    printf ("\n  +");
     for (x = 0; x < BOARD_COLS; x++)
       printf("-+");
   }
@@ -507,7 +523,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
     int position = Unhasher_Position (computersMove);
     int direction = Unhasher_Direction (computersMove);
     int[] coords;
-    coords = DecodeMove(computersMove, &coords);
+    coords = DecodeMove(computersMove, coords);
     printf("%8s moved (%2d,%2d) to (%2d,%2d)\n\n ",computersName, coords[0], \
 	   coords[1], coords[2], coords[3]);
 }
@@ -555,11 +571,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
     
-    for (;;) {
+    while (TRUE) {
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/([0-%d][0-%d] [up,down,left,right])] : ", \
+	       playersName, BOARD_COLS-1, BOARD_ROWS-1);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -697,7 +714,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+    return gInitialPosition;
 }
 
 
@@ -789,27 +806,21 @@ int CoordsToIndex (int x, int y) {
 }
 
 /* remember to call with a pointer! */
-int* IndexToCoords (int index, int[] coords) {
+int[] IndexToCoords (int index, int[] coords) {
   coords[0] = index/BOARD_ROWS;
   coods[1] = index%BOARD_ROWS;
   return coords;
 }
 
 MOVE EncodeMove (int from_x, int from_y, int to_x, int to_y) {
-  return (MOVE) ( ( (from_x*BOARD_COLS+from_y) *BOARD_ROWS+to_x)
-		  *BOARD_COLS + to_y);
+  return (MOVE) ( ( (from_x*BOARD_ROWS+from_y) *BOARD_COLS+to_x)
+		  *BOARD_ROWS + to_y);
 }
 
-int* DecodeMove(MOVE hashed_move, int[] coords) {
-  coords[0] = hashed_move/(BOARD_COLS*BOARD_ROWS*BOARD_COLS); /* fromx */
-  coords[1] = (hashed_move/(BOARD_ROWS*BOARD_COLS))%BOARD_COLS; /* fromy */
-  coords[2] = (hashed_move/BOARD_COLS)%BOARD_ROWS; /* tox */
-  coords[3] = hashed_move % BOARD_COLS; /* toy */
+int[] DecodeMove(MOVE hashed_move, int[] coords) {
+  coords[0] = hashed_move/(BOARD_ROWS*BOARD_COLS*BOARD_ROWS); /* fromx */
+  coords[1] = (hashed_move/(BOARD_ROWS*BOARD_COLS))%BOARD_ROWS; /* fromy */
+  coords[2] = (hashed_move/BOARD_ROWS)%BOARD_COLS; /* tox */
+  coords[3] = hashed_move % BOARD_ROWS; /* toy */
   return coords;
 }
-
-/*
-int Unhasher_Direction (MOVE hashed_move) {
-  return (hashed_move%4);
-}
-*/
