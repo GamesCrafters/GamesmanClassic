@@ -41,6 +41,8 @@ STRING   kGameName            = "Odd or Even"; /* The name of your game */
 STRING   kAuthorName          = "Peter Yu"; /* Your name(s) */
 STRING   kDBName              = "ooe"; /* The name to store the database under */
 
+void* gGameSpecificTclInit = NULL;
+
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
