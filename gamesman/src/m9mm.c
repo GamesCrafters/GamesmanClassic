@@ -6,9 +6,10 @@
 **
 ** AUTHOR:      YOUR NAMES HERE
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        Start: 10am 2004.2.22
+**              Finish: Never
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** UPDATE HIST: 2004.2.22: Begin coding module, wrote:
 **
 ** 
 **
