@@ -1169,7 +1169,6 @@ MOVE move;
 void showStatus(int done)
 {
 	static POSITION num_pos_seen = 0;
-	static POSITION updateThreshold = 0;
 	static float timeDelayTicks = CLOCKS_PER_SEC / 10;
 	static clock_t updateTime = (clock_t) NULL;
 	int print_length=0;
@@ -1185,8 +1184,8 @@ void showStatus(int done)
 			num_pos_seen++;
 			break;
 		case 1:
-			print_length = fprintf(stderr,"Solving Done. Writing Database...\e[K");
-			fprintf(stderr,"\e[%dD",print_length);
+			print_length = fprintf(stderr,"Writing Database...\e[K");
+			fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 			num_pos_seen = 0;
 			updateTime = (clock_t) NULL;
 			return;
@@ -1195,13 +1194,13 @@ void showStatus(int done)
 	if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
 	{
 		print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
-		fprintf(stderr,"\e[%dD",print_length);
+		fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 	else if (clock() > updateTime)
 	{
 		print_length = fprintf(stderr,"%2.1f%% Done \e[K",(float)num_pos_seen/(float)gNumberOfPositions * 100.0);
-		fprintf(stderr,"\e[%dD",print_length);
+		fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 }
