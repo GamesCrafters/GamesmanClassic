@@ -40,7 +40,6 @@
 POSITION gNumberOfPositions  = 9565938;  /* 3^14 times 2 */
 
 POSITION gInitialPosition    = 4605835;
-POSITION gMinimalPosition    = 4605835;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Change!";
@@ -147,6 +146,15 @@ int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049,
 		  177147, 531441, 1594323 };
 
 BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck means you lose. */
+
+/* local function prototypes */
+void PositionToBlankOX(POSITION, BlankOX*, BlankOX*);
+POSITION BlankOXToPosition(BlankOX*, BlankOX);
+BOOLEAN OkMove(BlankOX*, BlankOX, SLOT, int, int, SLOT*);
+BOOLEAN FullSlots(BlankOX[]);
+BOOLEAN Trapped(POSITION);
+void MoveToSlots(MOVE, SLOT*, SLOT*);
+SLOT GetToSlot(BlankOX, SLOT, int, int);
 
 
 /************************************************************************
@@ -278,7 +286,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 
 POSITION GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
   int i, goodInputs = 0;
@@ -363,7 +370,6 @@ void PrintComputersMove(MOVE computersMove,STRING computersName)
 
 VALUE Primitive(POSITION position) 
 {
-  BOOLEAN FullSlots(), Trapped();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
 
   PositionToBlankOX(position,theBlankOX,&whosTurn);
@@ -389,7 +395,7 @@ BOOLEAN FullSlots(theBlankOX)
 
 BOOLEAN Trapped(POSITION position)
 {
-  MOVELIST *ptr, *GenerateMoves();
+  MOVELIST *ptr;
   BOOLEAN trapped;
 
   ptr = GenerateMoves(position);
@@ -418,8 +424,6 @@ BOOLEAN Trapped(POSITION position)
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)    
 {
   int i;
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
@@ -470,8 +474,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position; 
 { 
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE Primitive();
+  MOVELIST *head = NULL;
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   SLOT i, toSlot;
   
@@ -625,10 +628,9 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   int xpos, ypos;
-  BOOLEAN ValidMove();
   char input = '0';
   BOOLEAN done = FALSE;
-  USERINPUT ret, HandleDefaultTextInput();
+  USERINPUT ret;
   
   do {
     printf("%8s's move [(u)ndo/1-14  1-14] :  ", playerName);
@@ -684,7 +686,6 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  MOVE SlotsToMove();
   SLOT fromSlot, toSlot;
   int text;
   text = sscanf(input, "%d %d", &fromSlot, &toSlot);
@@ -754,7 +755,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-PositionToBlankOX(thePos,theBlankOX,whosTurn)
+void PositionToBlankOX(thePos,theBlankOX,whosTurn)
      POSITION thePos;
      BlankOX *theBlankOX, *whosTurn;
 {
@@ -811,7 +812,7 @@ POSITION BlankOXToPosition(theBlankOX, whosTurn)
   return(position);
 }
 
-MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot)
      MOVE theMove;
      SLOT *fromSlot, *toSlot;
 {
