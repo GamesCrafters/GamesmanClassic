@@ -161,12 +161,13 @@ void InitializeGame ()
 	maxsize=5+4*boardsize;	
 	gNumberOfPositions=generic_hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	eboard=emptyboard();
-	gInitialPosition=generic_hash(eboard);
+	gInitialPosition=generic_hash(eboard,1);
 	free(eboard);		
 }
 
 char *emptyboard() {
 	char *ret;
+	int i;
 	ret=(char *)malloc(sizeof(char)*maxsize);
 	for(i=0;i<maxsize;i++) ret[i]='O';
 	return ret;
@@ -230,16 +231,17 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
 	char *board,piece;
-	int maxsize=5+4*boardsize;	
+	int maxsize=5+4*boardsize,wmove;	
 	POSITION hashed;
 	
 	board=(char *)malloc(sizeof(char)*maxsize);
 	board=emptyboard();
 	board=generic_unhash(position,board);
 
-	if(whoseMove==1) {
+	wmove=whoseMove(position);
+	if(wmove==1) {
 		piece='X';
-	} else if (whoseMove==2) {
+	} else if (wmove==2) {
 		piece='*';
 	} else {
 		fprintf(stderr,"Bad else: Do Move (Piece selection)\n");
@@ -248,7 +250,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	board[move]=piece;
 	
-    	hashed = generic_hash(board,(piece==X)?2:1); 
+    	hashed = generic_hash(board,(piece=='X')?2:1); 
 	free(board);
 	return hashed;
 }
@@ -369,7 +371,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	toprint = generic_unhash(position,toprint);
 	displayasciiboard(toprint,prediction); 
 	free(toprint);
-	free(prediciton);
+	free(prediction);
 } 
 
 
