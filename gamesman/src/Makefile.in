@@ -36,8 +36,8 @@ TCLEXEFLAGS	= @TCLEXEFLAGS@
 TCLDBGX		= @TCLDBGX@
 
 LIBSUFFIX	= @LIBSUFFIX@
-OBJSUFFIX	= @OBJEXT@
-EXESUFFIX	= @EXEEXT@
+OBJSUFFIX	= @OBJSUFFIX@
+EXESUFFIX	= @EXESUFFIX@
 
 
 ##############################################################################
