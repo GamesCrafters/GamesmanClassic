@@ -1021,33 +1021,16 @@ proc GS_GetGameSpecificOptions { } {
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
     global pieceSize
-    set winner 0
 
     set board [unhash $position]
-    if { $nameOfWinningPiece == "x" } {
-	set winner 2
-    } elseif { $nameOfWinningPiece == "o" } {
-	set winner 1
-    } else {
-	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != x or o"
-    }
     
-    # win on the top row
-    if {[lindex $board 1] == $winner && [lindex $board 2] == $winner && [lindex $board 3] == $winner} {set p {1 3}}
-    # win on the middle row
-    if {[lindex $board 4] == $winner && [lindex $board 5] == $winner && [lindex $board 6] == $winner} {set p {4 6}}
-    # win on the bottom row
-    if {[lindex $board 7] == $winner && [lindex $board 8] == $winner && [lindex $board 9] == $winner} {set p {7 9}}    
-    # win on the first column
-    if {[lindex $board 1] == $winner && [lindex $board 4] == $winner && [lindex $board 7] == $winner} {set p {1 7}}
-    # win on the middle column
-    if {[lindex $board 2] == $winner && [lindex $board 5] == $winner && [lindex $board 8] == $winner} {set p {2 8}}
-    # win on the right column
-    if {[lindex $board 3] == $winner && [lindex $board 6] == $winner && [lindex $board 9] == $winner} {set p {3 9}}
-    # win on the left diagonal
-    if {[lindex $board 1] == $winner && [lindex $board 5] == $winner && [lindex $board 9] == $winner} {set p {1 9}}
-    # win on the right diagonal 
-    if {[lindex $board 3] == $winner && [lindex $board 5] == $winner && [lindex $board 7] == $winner} {set p {3 7}}
+    set winningSets {{1 2 3} {4 5 6} {7 8 9} {1 4 7} {2 5 8} {3 6 9} {1 5 9} {3 5 7}}
+    foreach {set} $winningSets {
+	set s1 [lindex $set 0]
+	set s2 [lindex $set 1]
+	set s3 [lindex $set 2]
+	if {[lindex $board $s1] == [lindex $board $s2]  && [lindex $board $s1] == [lindex $board $s3] && [lindex $board $s1] != 0} {
+	    set p [list $s1 $s3]}}
 
     set startx [getXCoord [lindex $p 0]]
     set starty [getYCoord [lindex $p 0]] 
@@ -1058,7 +1041,6 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
 
     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
     $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
-
 
 }
 
