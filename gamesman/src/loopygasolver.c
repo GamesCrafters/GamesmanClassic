@@ -59,7 +59,7 @@ VALUE lgas_DetermineValue(POSITION position)
   lgas_ParentInitialize();
   NumberChildrenInitialize();
 
-  value = lgas_DetermineLoopyValue1(gMinimalPosition);
+  value = lgas_DetermineLoopyValue1(position);
 
   /* free */
   NumberChildrenFree();
@@ -120,9 +120,9 @@ POSITION position;
       
       if (parent != kBadPosition && gGoAgain(parent,move)) {
 	switch(childValue) {
-	case(win) : adjustedChildValue = lose; break;
-	case(lose): adjustedChildValue = win; break;
-	default:    adjustedChildValue = childValue;
+	case win:  adjustedChildValue = lose; break;
+	case lose: adjustedChildValue = win; break;
+	default:   adjustedChildValue = childValue;
 	}
       } else {
 	adjustedChildValue = childValue;
