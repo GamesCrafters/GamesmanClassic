@@ -24,9 +24,13 @@ proc GS_InitGameSpecific {} {
     set height 4
 
     global cellPadding slotSize
-    set slotSize(w) [expr boardWidth / width]
-    set slotSize(h) [expr boardHeight / height]
+    set slotSize(w) [expr $boardWidth / $width]
+    set slotSize(h) [expr $boardHeight / $height]
     set cellPadding 10
+
+    global xColor oColor
+    set xColor blue
+    set oColor red
 
     ### Set the name of the game
     
@@ -42,20 +46,20 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
-    set kStandardString "First player to reach 10 WINS"
-    set kMisereString "First player to reach 10 LOSES"
+    set kStandardString ""
+    set kMisereString ""
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
-	global gMisereGame
-	if {!$gMisereGame} {
-		SetToWinString "To Win: (fill in)"
-	} else {
-		SetToWinString "To Win: (fill in)"
-	}
-
-	### Edit this string
+    global gMisereGame
+    if {!$gMisereGame} {
+	SetToWinString "To Win: (fill in)"
+    } else {
+	SetToWinString "To Win: (fill in)"
+    }
+    
+    ### Edit this string
 
     SetToMoveString "To Move: (fill in)"
 	    
@@ -76,7 +80,7 @@ proc GS_InitGameSpecific {} {
 
 proc GS_NameOfPieces {} {
 
-    return [list black white]
+    return [list x o]
 
 }
 
@@ -95,8 +99,10 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 
 proc GS_ColorOfPlayers {} {
-
-    return [list blue red]
+    global xColor oColor
+    set xColor blue
+    set oColor red
+    return [list $xColor $oColor]
     
 }
 
@@ -180,20 +186,6 @@ proc GS_SetOption { option } {
     set gMisereGame [expr 1-($option%2)]
 }
 
-# GS_ColorOfPlayers should return a list of two strings, each representing 
-# the color of a player. If a specific color appears uniquely on one player's 
-# pieces, it might be a good choice for that player's color. In impartial 
-# games, both players may share the same color.
-# This function is called FIRST, ONCE, only when the player starts playing the 
-# game, and before he clicks "New Game". The left player's color should be the 
-# first item in the list. The right player's color should be second.
-
-#proc GS_ColorOfPlayers {} {
-
-#}
-
-
-
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
 # You could put an opening animation in this function that introduces the game
@@ -203,25 +195,63 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
 
-    global width height boardWidth boardHeight
+    global witdh height boardWidth boardHeight
+    set boardWidth 300 
+    set boardHeight 300
+    set width 4
+    set height 4
+
+    global cellPadding slotSize
+    set slotSize(w) [expr $boardWidth / $width]
+    set slotSize(h) [expr $boardHeight / $height]
+    set cellPadding 10
+
+    global xColor oColor
+    set xColor blue
+    set oColor red
+  
+    global xPieces oPeices
+    global background
+
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width $boardWidth -height $boardHeight 
-    
-    global pieces 
-    global cellPadding slotSize
 
-    for {set i 0} {$i < width} {incr i} {
-	for {set j 0} {$j < height} {incr j} {
-	    set pieces($i, $j) [$c create oval [expr i * slotSize(w) + cellPadding] [expr (j+1) * slotSize(h) - cellPadding] [expr (i+1) * slotSize(w) - cellPadding] [expr j * slotSize(h) + cellPadding] -fill purple]
+    #draw the pieces
+    for {set i 0} {$i < $width} {incr i} {
+	for {set j 0} { $j < $height} {incr j} {
+	    set xPieces($i,$j) [$c create oval \
+				    [expr $i * $slotSize(w) + $cellPadding] \
+				    [expr ($j+1) * $slotSize(h) - $cellPadding] \
+				    [expr ($i+1) * $slotSize(w) - $cellPadding] \
+				    [expr $j * $slotSize(h) + $cellPadding] \
+				    -fill $xColor -tags [list xPieces]]
+	    set oPieces($i,$j) [$c create oval \
+				    [expr $i * $slotSize(w) + $cellPadding] \
+				    [expr ($j+1) * $slotSize(h) - $cellPadding] \
+				    [expr ($i+1) * $slotSize(w) - $cellPadding] \
+				    [expr $j * $slotSize(h) + $cellPadding] \
+				    -fill $oColor -tags [list oPieces]]
 	}
     }
     
-     for {set i 0} {$i < width} {incr i} {
-	for {set j 0} {$j < height} {incr j} {
-	    $c bind pieces($i,$j) <ButtonPress-1> {puts "button ($i,$j)"}
-	}
+    #draw the background board and lines
+    set background [$c create rectangle 0 0 $boardWidth $boardHeight -fill gray]
+    for {set i 1} {$i < $width} {incr i} {
+	$c create line \
+	    [expr $i * $slotSize(w)] 0 \
+	    [expr $i * $slotSize(w)] $boardHeight \
+	    -tags [list lines]
     }
-} 
+    for {set j 1} {$j < $height} {incr j} {
+	$c create line \
+	    0 [expr $j * $slotSize(h)]  \
+	    $boardWidth [expr $j * $slotSize(h)] \
+	    -tags [list lines]
+    }
+    
+    $c raise $background
+    $c raise lines
+}
 
 proc GS_Deinitialize { c } {
     $c delete all
