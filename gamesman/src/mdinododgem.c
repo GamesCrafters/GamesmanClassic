@@ -146,6 +146,12 @@ BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 
 BOOLEAN initialized = FALSE;
 
+/*external function prototypes*/
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern POSITION         generic_hash(char *board, int player);
+extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern int              whoseMove (POSITION hashed);
+
 /* local function prototypes */
 POSITION BlankOXToPosition(BlankOX*, BlankOX);
 void PositionToBlankOX(POSITION, BlankOX*, BlankOX*);

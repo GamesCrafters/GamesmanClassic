@@ -490,10 +490,10 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-extern int              generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
-extern int              generic_hash(char *board, int player);
-extern char            *generic_unhash(int hash_number, char *empty_board);
-extern int              whoseMove (int hashed);
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern POSITION         generic_hash(char *board, int player);
+extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern int              whoseMove (POSITION hashed);
 BOOLEAN offBoard(MOVE);
 BOOLEAN isPlayer(PIECE,PLAYER);
 
