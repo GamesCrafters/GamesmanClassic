@@ -162,6 +162,7 @@ void InitializeGame ()
 {
   int half = (BOARDSIZE + 1) / 2;
 
+  /*
   int piece_array[13];
   piece_array[0]=(int)(gBlankORBString[0]);
   piece_array[3]=(int)(gBlankORBString[1]);
@@ -176,6 +177,11 @@ void InitializeGame ()
   piece_array[10]=0;
   piece_array[11]=half;
   piece_array[12]=-1;
+
+  redefined piece_array (below)
+  */
+
+  int piece_array[] = {'B', 0, half, 'R', 0, half, 'O', 0, BOARDSIZE, '·', 0, BOARDSIZE, -1};
 
   int BoardPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
 
