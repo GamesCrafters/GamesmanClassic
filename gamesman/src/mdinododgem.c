@@ -10,22 +10,18 @@
 ** Everything below here must be in every game file
 **************************************************************************/
 #include <stdio.h>
-#include "gsolve.h"
+#include "gamesman.h"
 #include <math.h>
 
-extern STRING gValueString[];
-
-STRING   KDBName             = "Dodgem"; // Sunil Database
-STRING   kGameName           = "Dodgem";
+STRING   kDBName             = "dinododgem";
+STRING   kGameName           = "Dino Dodgem";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
 "The LEFT button puts a small circle over your piece. This selects\n\
@@ -124,48 +120,90 @@ Computer wins. Nice try, dude.";
 ** Every variable declared here is only used in this file (game-specific)
 **************************************************************************/
 /* Default 3x3 board, changed in GameSpecificMenu. */
-int      gNumberOfPositions  = 86093442; /* 3^9 times 2 = 39366*/
-POSITION gInitialPosition    = 1561; /* Initial position 1561 */
+POSITION gNumberOfPositions;
+POSITION gInitialPosition;
 POSITION kBadPosition        = -1;    /* This can never be the rep. of a position */
 int boardsize = 9;                    /* default boardsize */
 int side = 3;                         /* get side length of board */
 int offtheboard = 9;                  /* Removing that piece from the board */
 #define BADSLOT         -2            /* You've moved off the board in a bad way */
-int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
-//43046721, 129140163, 387420489, 1162261467, 3486784401, 10460353203, 31381059609, 94143178827, 282429536481};
+POSITION* g3Array = NULL;             /* Powers of 3 */
 
-typedef enum possibleBoardPieces {
-  Blank, o, x
-} BlankOX;
+/* Maximum length of a side (constrained by 32-bit machine) */
+#define MAX_SIDE 5
+ /* Minimum length of a side */
+#define MIN_SIDE 3
+
+typedef char BlankOX;
+#define Blank 0
+#define o 1
+#define x 2
+
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 char *gBlankOXString[] = { "-", "O", "X" };
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 
-/*************************************************************************
-** Here we declare the global database variables
-**************************************************************************/
-VALUE     *gDatabase;
+BOOLEAN initialized = FALSE;
+
+/* local function prototypes */
+POSITION BlankOXToPosition(BlankOX*, BlankOX);
+void PositionToBlankOX(POSITION, BlankOX*, BlankOX*);
+BOOLEAN CantMove(POSITION);
+POSITION DefaultInitialPosition();
 
 /************************************************************************
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 ** DESCRIPTION: Initialize the gDatabase, a global variable.
 ************************************************************************/
-InitializeDatabases() {
-  GENERIC_PTR SafeMalloc();
+void InitializeGame() {
   int i;
+  int piecesArray[10];
+  BlankOX board[boardsize];
 
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
+  assert(boardsize==side*side);
+  assert(offtheboard==boardsize);
 
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
+  piecesArray[0] = Blank;
+  piecesArray[1] = boardsize-2*(side-1); /* initial */
+  piecesArray[2] = boardsize-1; /* all but 1 off board */
+  piecesArray[3] = o;
+  piecesArray[4] = 0;
+  piecesArray[5] = side-1;
+  piecesArray[6] = x;
+  piecesArray[7] = 0;
+  piecesArray[8] = side-1;
+  piecesArray[9] = -1;
+
+  if (initialized) 
+    freeAll();
+
+  gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
+  initialized = TRUE;
+
+  /*
+  if (g3Array != NULL) {
+    SafeFree(g3Array);
+  }
+  g3Array = (POSITION*) SafeMalloc((boardsize+1) * sizeof(POSITION));
+  g3Array[0] = 1;
+
+  for (i=1; i<=boardsize; i++) {
+    g3Array[i] = g3Array[i-1]*3;
+  }
+
+  gNumberOfPositions = (int) pow((double)3, (double)boardsize)*2;
+  */
+  gInitialPosition = DefaultInitialPosition();
+
+  generic_unhash(gInitialPosition, board);
 }
 
 /************************************************************************
 ** NAME:        DebugMenu
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
 ************************************************************************/
-DebugMenu() { }
+void DebugMenu() { }
 
 /************************************************************************
 ** NAME:        GameSpecificMenu
@@ -173,57 +211,50 @@ DebugMenu() { }
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
 ************************************************************************/
-GameSpecificMenu() {
-  char GetMyChar();
+void GameSpecificMenu() {
   int c, n; // My char for board size input.
-  BOOLEAN tempPredictions = gPredictions;
-  POSITION GetInitialPosition();
-  gPredictions = FALSE;
   
   do {
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
-    // printf("\tI)\tChoose the (I)nitial position\n");
+    printf("\tI)\tChoose the (I)nitial position\n");
     printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
+    printf("\ts)\tSet board (s)ize.\n");
     
     printf("\tb)\t(B)ack = Return to previous activity.\n");
-    printf("\ts)\tset board (s)ize.\n");
+  
     printf("\nSelect an option: ");
     
     switch(GetMyChar()) {
-    case 'I': case 'i': // Get initial position, found as is.
-      printf("\n\n(I) not yet implemented");
-      break;
     case 'S': case 's': // Set board size game option.
-      printf("\n\nYou have an n by n board. What do you wish n to be? (9 or smaller please!)\n");
-      n=getchar();
-      c=getchar();
-      c = c - '0';
-      side = c;
-      boardsize = c*c;
-      offtheboard = boardsize;
-      gNumberOfPositions = (int) pow((double)3, (double)boardsize)*2;
-      gInitialPosition = 0;
-      gInitialPosition = GetInitialPosition();
+      getchar();
+      do {
+	printf("\n\nYou have an n by n board. What do you wish n to be? (Between %d and %d, inclusive. Values >4 can cause memory errors)\n", MIN_SIDE, MAX_SIDE);
+	c=getchar();
+	c = c - '0';
+	side = c;
+	boardsize = side*side;
+	offtheboard = boardsize;
+      } while (side<MIN_SIDE || side>MAX_SIDE);
+      InitializeGame();
       break;
     case 'Q': case 'q':
       ExitStageRight();
     case 'H': case 'h':
       HelpMenus();
       break;
-    case '1':
+    case 'I': case'i':
       gInitialPosition = GetInitialPosition();
       break;
     case 'T': case 't':
       gToTrapIsToWin = !gToTrapIsToWin;
       break;
     case 'b': case 'B':
-      gPredictions = tempPredictions;
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -238,7 +269,7 @@ GameSpecificMenu() {
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
 ************************************************************************/
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   gToTrapIsToWin = (BOOLEAN) theOptions[0];
@@ -285,13 +316,14 @@ POSITION DoMove(thePosition, theMove)
 ************************************************************************/
 POSITION GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
   BlankOX theBlankOX[boardsize], whosTurn;
   signed char c;
   int i, goodInputs, row, col;
+  int numX, numO;
   goodInputs = 0;
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");
+  printf("\tYou board must have at least one x or o and no more than %d x's and %d o's\n", side-1, side-1);
   printf("\tNote that it should be in the following format:\n\n");
   /* Print example board. */
   printf("EXAMPLE of a %d by %d board:\n", side, side);
@@ -319,80 +351,55 @@ POSITION GetInitialPosition()
     col = 1;
     row++;
   }
-  printf("\n\tNow enter a new board:\n");
 
-  /* Get inputted initial position. */
-  i = 0;
-  getchar();
-
-  row = side - 1;
-  col = 0;
-  while (row >= 0) {
-    while (col < side) {
-      c = getchar();
-      if(c == 'x' || c == 'X') {
-	theBlankOX[((side*row)+col)] = x;
-	col++;
-      }
-      else if(c == 'o' || c == 'O' || c == '0') {
-	theBlankOX[((side*row)+col)] = o;
-	col++;
-      }
-      else if(c == '-') {
-	theBlankOX[((side*row)+col)] = Blank;
-	col++;
-      }
-      else {
-      }
-    }
-    row--;
+  do {
+    numX = numO = 0;
+    printf("\nNow enter a new board:\n");
+    
+    /* Get inputted initial position. */
+    i = 0;
+    getchar();
+    
+    row = side - 1;
     col = 0;
-  }
+    while (row >= 0) {
+      while (col < side) {
+	c = getchar();
+	if(c == 'x' || c == 'X') {
+	  numX++;
+	  theBlankOX[((side*row)+col)] = x;
+	  col++;
+	}
+	else if(c == 'o' || c == 'O' || c == '0') {
+	  numO++;
+	  theBlankOX[((side*row)+col)] = o;
+	  col++;
+	}
+	else if(c == '-') {
+	  theBlankOX[((side*row)+col)] = Blank;
+	  col++;
+	}
+	else {
+	}
+      }
+      row--;
+      col = 0;
+    }
+    
+    getchar();
+    printf("\nNow, whose turn is it? [O/X] : ");
+    scanf("%c",&c);
+    if(c == 'x' || c == 'X')
+      whosTurn = x;
+    else
+      whosTurn = o;
 
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = x;
-  else
-    whosTurn = o;
+    if (numX>side-1 || numO>side-1 || (numX==0 && numO==0)) {
+      printf("\nInvalid board configuration\n");
+    }
+  } while (numX>side-1 || numO>side-1 || (numX==0 && numO==0));
 
   return(BlankOXToPosition(theBlankOX,whosTurn));
-}
-
-/************************************************************************
-** NAME:        GetComputersMove
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** INPUTS:      POSITION thePosition : The position in question.
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-** CALLS:       int GetRandomNumber()
-************************************************************************/
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-  MOVE theMove;
-
-  if(gPossibleMoves) 
-    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  while(ptr != NULL) {
-    numberMoves++;
-    if(gPossibleMoves) 
-      PrintMove(ptr->move);
-    ptr = ptr->next;
-  }
-  if(gPossibleMoves) 
-    printf("]\n\n");
-  randomMove = GetRandomNumber(numberMoves);
-  ptr = head;
-  for(i = 0; i < randomMove ; i++)
-    ptr = ptr->next;
-
-  theMove = ptr->move;
-  FreeMoveList(head);
-  return(theMove);
 }
 
 /************************************************************************
@@ -401,7 +408,7 @@ MOVE GetComputersMove(thePosition)
 ** INPUTS:      MOVE    computersMove : The computer's move. 
 **              STRING  computersName : The computer's name. 
 ************************************************************************/
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName; {
   int from, to;
@@ -490,13 +497,12 @@ BlankOX OnlyPlayerLeft(theBlankOX)
 **              GetValueOfPosition()
 **              GetPrediction()
 ************************************************************************/
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
   int row = 0, col = 0;
-  STRING GetPrediction();
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
@@ -525,18 +531,18 @@ PrintPosition(position,playerName,usersTurn)
   printf("\n\n");
 
   if ( gBlankOXString[(int)whosTurn] == "O")
-    printf("
-        ^     ** It is player O's turn to move
-        |     ** and this is the move you can
-        O->   ** perform on one of your pieces.
-        |
+    printf("\n\
+        ^     ** It is player O's turn to move\n\
+        |     ** and this is the move you can\n\
+        O->   ** perform on one of your pieces.\n\
+        |\n\
         v \n\n");
       else
-	printf("
-           ^       ** It is player X's turn to move
-           |       ** and this is the move you can
+	printf("\n\
+           ^       ** It is player X's turn to move\n\
+           |       ** and this is the move you can\n\
         <- X ->    ** perform on one of your pieces.\n\n");
-  printf("   **Enter your input in the following format:
+  printf("   **Enter your input in the following format:\n\
          <from slot #> < space > <to slot #>\n\n");
   
   
@@ -697,7 +703,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
 
   do {
-    printf("%8s's move [(u)ndo/1-9] : ", playerName);
+    printf("%8s's move [(u)ndo/0-%d 0-%d] : ", playerName, boardsize-1, boardsize-1);
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -757,7 +763,7 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 ** DESCRIPTION: Print the move in a nice format.
 ** INPUTS:      MOVE *theMove         : The move to print. 
 ************************************************************************/
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT from, to;
@@ -769,112 +775,29 @@ PrintMove(theMove)
 }
 
 /************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-************************************************************************/
-
-/************************************************************************
-** NAME:        StaticEvaluator
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** INPUTS:      POSITION thePosition : The position in question.
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-************************************************************************/
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-** NAME:        PositionToMinOrMax
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**              Not called if kSupportsHeuristic == FALSE
-** INPUTS:      POSITION thePosition : The position in question.
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-************************************************************************/
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-}
-
-/************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-************************************************************************/
-
-/************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-************************************************************************/
-
-/************************************************************************
-** NAME:        GetRawValueFromDatabase
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** INPUTS:      POSITION position : The position to return the value of.
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-************************************************************************/
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  return(&gDatabase[position]);
-}
-
-/************************************************************************
-** NAME:        GetNextPosition
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-************************************************************************/
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-  
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-  
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
-}
-
-/************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-************************************************************************/
-
-/************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
 ************************************************************************/
+
+/************************************************************************
+** NAME:        DefaultInitialPosition
+** DESCRIPTION: Determines the default initial position
+** INPUTS:      None
+** OUTPUTS:     The integer hashcode that embodies the default initial position
+************************************************************************/
+POSITION DefaultInitialPosition() {
+  BlankOX blankOX[boardsize];
+  int i, j;
+
+  for (i=0; i<boardsize; i++) {
+      blankOX[i] = Blank;
+  }
+  for (i=1; i<side; i++) {
+    blankOX[i*side] = o;
+    blankOX[i] = x;
+  }
+
+  return BlankOXToPosition(blankOX, x);
+}
 
 /************************************************************************
 ** NAME:        BlankOXToPosition
@@ -882,18 +805,9 @@ POSITION GetNextPosition()
 ** INPUTS:      The current position array and whos turn.
 ** OUTPUTS:     The integer hashcode that embodies current position array and who's turn.
 ************************************************************************/
-/*  POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; { */
-/*    int i; */
-/*    int position = 0; */
-  
-/*    for (i = 0; i < boardsize; i++) { */
-/*        position += (theBlankOX[i] << (i*2)); */
-/*    } */
-/*    position = position << 2; */
-/*    position += whosTurn; */
-/*    return(position); */
-/*  } */
 POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
+  return generic_hash(theBlankOX, whosTurn);
+  /*
   int i;
   int position = 0;
   
@@ -903,6 +817,7 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
   position = position << 1;
   position += whosTurn - 1;
   return(position);
+  */
 }
 
 /************************************************************************
@@ -912,16 +827,10 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
 **              A container for the position,
 **              A container for who's turn.
 ************************************************************************/
-/*  PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; {  */
-/*    int i; */
-  
-/*    *whosTurn = thePos & 3; */
-/*    thePos = thePos >> 2; */
-/*    for(i = 0; i < boardsize; i++) { */
-/*      theBlankOX[i] = (thePos >> (i*2)) & 3; */
-/*    } */
-/*  } */
-PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; { 
+void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; { 
+  generic_unhash(thePos, theBlankOX);
+  *whosTurn = whoseMove(thePos);
+  /*
   int i;
 
   *whosTurn = (thePos & 1) + 1;
@@ -929,21 +838,31 @@ PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlank
   for(i = 0; i < boardsize; i++) {
     theBlankOX[i] = (thePos / g3Array[i]) % 3;
   }
+  */
 }
 
 /************************************************************************
- **              Database Functions for Sunil
+ **              Database Functions
  ************************************************************************/
-int setOption (int opt) {
-  if (opt == 1) { gStandardGame = TRUE; }
-  else { gStandardGame = FALSE; }
+void setOption (int option) {
+  option--;
+  gStandardGame = (option%2 == 0);
+  gToTrapIsToWin = (option/2%2 == 1);
+
+  side = (option/2/2)+MIN_SIDE;
+  boardsize = side*side;
+  offtheboard = boardsize;
+
 }
 
 int getOption () {
-  if (gStandardGame) { return 1; }
-  else { return 2; }
+  int option = 1;
+  option += (gStandardGame ? 0 : 1);
+  option += 2*(gToTrapIsToWin ? 1 : 0);
+  option += 2*2*(side-MIN_SIDE);
+  return option;
 }
 
-int numOps () {
-  return 2;
+int NumberOfOptions () {
+  return 2*2*(MAX_SIDE-MIN_SIDE+1);
 }
