@@ -716,6 +716,8 @@ proc InitWindow { kRootDir } {
 	.middle.f1.cMLeft lower startupPic
 	.middle.f2.cMain lower base
 	.middle.f1.cMLeft lower detVal
+	.middle.f1.cMLeft raise ToWin
+	.middle.f1.cMLeft raise ToMove
 
 	.cToolbar raise iATB
 
@@ -753,12 +755,12 @@ proc InitWindow { kRootDir } {
     .cStatus create image 100 40 -image iABB2p -tags [list sbb iABB iABB2 playA def]
     .cStatus create image 100 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI]
    #create toWin checked
-    .cStatus create image 290 25 -image iABB3p -tags [list sbb iABB iABB3 winA]
-    .cStatus create image 290 25 -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
+    .cStatus create image 290 25 -image iABB3p -tags [list sbb iABB iABB3 winA def]
+    .cStatus create image 290 25 -image iIBB3p -tags [list sbb iIBB iIBB3 winI]
     #create toMove checked
-    .cStatus create image 290 50 -image iABB4p -tags [list sbb iABB iABB4 moveA]
+    .cStatus create image 290 50 -image iABB4p -tags [list sbb iABB iABB4 moveA def]
     #create toMove unchecked
-    .cStatus create image 290 50 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
+    .cStatus create image 290 50 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI]
     
     ######
     ### create the shoow "none" moves toggle
@@ -858,13 +860,13 @@ proc InitWindow { kRootDir } {
     }
 
     .cStatus bind iABB8 <ButtonRelease-1> {
-	#.middle.f3.cMRight raise iIMB4
+	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight lower Predictions
 	.cStatus raise iIBB8
     }
 
     .cStatus bind iIBB8 <ButtonRelease-1> {
-	#.middle.f3.cMRight raise iIMB4
+	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight raise Predictions
 	.cStatus raise iABB8
     }
