@@ -283,6 +283,7 @@ extern void		SafeFree ();
 int vcfg(int* this_cfg);
 int next_player(POSITION position);
 
+int XYToNumber(char* xy);
 int countPieces(char *board, char piece);
 int scoreBoard(char *board, char player);
 void ChangeBoardSize();
