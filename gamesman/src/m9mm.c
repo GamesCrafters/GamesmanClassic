@@ -9,10 +9,8 @@
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
 **
-<<<<<<< m9mm.c
-** UPDATE HIST: 2004.02.22: Begin coding module, wrote: almost everything
-**              2004.03.07: DoMove compiles, change piece b to blank
-=======
+
+
 ** UPDATE HIST: 2004.02.22: Begin coding module, implemented functions: 
 **                          int hash
 **                          POSITION unhash
@@ -34,7 +32,7 @@
 **                          MOVELIST *GenerateMoves(POSITION position)
 **
 **              2004.03.07: DoMove, GenerateMoves  now compiles
->>>>>>> 1.11
+
 ** 
 **
 **
@@ -139,7 +137,7 @@ char *gblankoxString[] = { " ", "x", "o"};
 
 
 int hash(blankox *board, blankox turn);
-POSITION unhash(int hash_val, blankox *dest);
+blankox *unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
 void unparse_board(blankox *b_board, char *c_board);
 blankox whose_turn(int hash_val);
@@ -176,13 +174,13 @@ extern VALUE     *gDatabase;
 
 void InitializeGame()
 {
-  //generic_hash_init(BOARDSIZE, mino, maxo, minx, maxx);
+
   int b_size = BOARDSIZE;
   int pminmax[4];
-  pminmax[1] = mino;
-  pminmax[2] = maxo;
-  pminmax[3] = minx;
-  pminmax[4] = maxx;
+  pminmax[0] = mino;
+  pminmax[1] = maxo;
+  pminmax[2] = minx;
+  pminmax[3] = maxx;
   generic_hash_init(b_size, pminmax, NULL);
 }
 
@@ -248,7 +246,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  blankox board [24];  
+  blankox board [BOARDSIZE];  
   int from_slot = from(theMove);
   int to_slot = to(theMove);
   int remove_slot = remove_piece(theMove);
@@ -442,7 +440,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	  {
 	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
 	      (blanks[j] * BOARDSIZE);
-	    if (closes_Mill(position, raw_move))
+	    if (closes_mill(position, raw_move))
 	      {
 		for (k = 0; k < opponent_count; k++)
 		  if (can_be_taken(position, opponent_pieces[k]))
@@ -624,8 +622,10 @@ int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 int hash(blankox *b_board, blankox turn)
 {
 
+  char c_board[BOARDSIZE];
   int raw_hash;
-  char c_board[BOARDSIZE]; 
+  int generic_hash();
+  
   unparse_board(b_board, c_board);
   raw_hash = generic_hash(c_board);
   return (turn == o ? raw_hash : raw_hash + gHashNumberOfPos);
@@ -633,7 +633,7 @@ int hash(blankox *b_board, blankox turn)
 
 blankox *unhash(int hash_val, blankox *b_board)
 {
-  char[BOARDSIZE] c_board;
+  char c_board [BOARDSIZE];
   
   
   (hash_val > gHashNumberOfPos ? generic_unhash(hash_val - gHashNumberOfPos, c_board)
@@ -659,7 +659,7 @@ void parse_board(char *c_board, blankox *b_board)
     }
 }
 
-void unparse_board(blankox *b_board, char *b_board)
+void unparse_board(blankox *b_board, char *c_board)
 {
   int i;
   for (i = 0; i < BOARDSIZE; i++)
@@ -676,7 +676,7 @@ void unparse_board(blankox *b_board, char *b_board)
 
 blankox whose_turn(int hash_val)
 {
-  return (hash_val > gHashNumerOfPos ? x : o);
+  return (hash_val > gHashNumberOfPos ? x : o);
 }
 
 MOVE hash_move(int from, int to, int remove)
@@ -696,7 +696,7 @@ int to(MOVE move)
 
 int remove_piece(MOVE the_move)
 {
-  return (move % BOARDSIZE);
+  return (the_move % BOARDSIZE);
 }
 
 blankox opponent (blankox player)
@@ -706,16 +706,16 @@ blankox opponent (blankox player)
 
 BOOLEAN can_be_taken(POSITION position, int slot)
 {
-  blankox[BOARDSIZE] board;
-  unhash(position, slot);
+  blankox board[BOARDSIZE];
+  unhash(position, board);
   return !check_mill(board, slot);
 }
 
 BOOLEAN closes_mill(POSITION position, int raw_move)
 {
-  blankox[BOARDSIZE] board;
-  unhash(do_move(position, raw_move), board);
-  return (check_mill board, to(raw_move));
+  blankox board[BOARDSIZE];
+  unhash(DoMove(position, raw_move), board);
+  return check_mill (board, to(raw_move));
 }
 
 BOOLEAN check_mill(blankox *board, int slot)
@@ -748,6 +748,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.12  2004/03/07 19:05:03  weitu
+//1.12 added hash.h and changed to fit new hash function.
+//
 
 //Revision 1.11  2004/03/07 18:59:04  ogren
 //commet changes -Elmer
