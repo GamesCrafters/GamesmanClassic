@@ -47,7 +47,7 @@
 #include "gamesman.h"
 #include "hash.h"
 
-int debug = 3;
+int debug = 0;
 int printMethods = 0;
 
 extern STRING gValueString[];
@@ -94,18 +94,15 @@ STRING   kHelpExample =
 **************************************************************************/
 
 
-#define BOARDSIZE     12           /* 4x3 board, must agree with the 2 definitions below */
+#define BOARDSIZE      9           /* 4x3 board, must agree with the 2 definitions below */
 #define BOARDHEIGHT    3           /* dimensions of the board */
-#define BOARDWIDTH     4           /*  "               "      */
-
-
-
-#define MAX_X          5           /* maximum number of pieces of X that is possible in a game */
-#define MAX_O          5           /*  "            "            "O                  "         */
+#define BOARDWIDTH     3           /*  "               "      */
+#define MAX_X          3           /* maximum number of pieces of X that is possible in a game */
+#define MAX_O          3           /*  "            "            "O                  "         */
 
 #define COMMENTSPACE   5           /* number of spaces to the right of board before comment starts */
 
-/* oh shit, API doesn't use 32 bit elements for board array!
+/*
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
@@ -137,6 +134,7 @@ POSITION BlankOXToPosition(BlankOX* board);
 int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece);
 Coordinates IndexToCoordinates(int index);
 Coordinates Neighbor(Coordinates pos, Direction dir);
+Direction OtherDirection(Direction);
 
 void dbg(char *);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,9 +156,7 @@ void InitializeGame()
 {
   dbg("->InitializeGame");
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
-  char initialBoard[BOARDSIZE] = { O,O,O,O,
-				   X,B,B,O,
-				   X,X,X,X };
+  char initialBoard[BOARDSIZE] = { O,O,O,B,B,B,X,X,X };
   POSITION initialPos =  BlankOXToPosition(initialBoard);
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
@@ -230,9 +226,6 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  printf("->DoMove\n");
-  // fill me
-  
   int index,intdir,cap;
   Direction dir;
   BlankOX board[BOARDSIZE];
@@ -240,24 +233,55 @@ POSITION DoMove(thePosition, theMove)
   Coordinates coord;
   POSITION newPosition;
 
+  // extract the information from theMove
   cap = 3 & theMove;
   intdir = (28 & theMove) >> 2;
   index = (0xffffffe0 & theMove) >> 5;
 
+  // unpack the direction to more than 3 bits
   intdir++;
   if(intdir>=5)
     intdir++;
 
+  // convert integer direction to enum direction
   dir = (Direction)intdir;
+  Direction otherDir = OtherDirection(dir);
 
   coord = IndexToCoordinates(index);
 
-  printf("DoMove sees: %d\t\n",theMove);
   PositionToBlankOX(thePosition, board);
+  // do the actual move
   movingPiece = board[index];
+  char otherPlayer = (movingPiece == X ? O : X);
   board[index] = B;
-  board[CoordinatesToIndex(Neighbor(coord,(Direction)dir))] = movingPiece;
+  board[CoordinatesToIndex(Neighbor(coord,dir))] = movingPiece;
 
+  Coordinates attacking;
+  // check for capture
+  if(cap == 1) {  // if by approach todo
+    attacking = Neighbor(Neighbor(coord,dir),dir);
+    while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
+      board[CoordinatesToIndex(attacking)] = B;
+      attacking = Neighbor(attacking,dir);
+    }
+  }else if(cap == 2) { // if by withdraw
+    attacking = Neighbor(coord,otherDir);
+    while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
+      board[CoordinatesToIndex(attacking)] = B;
+      attacking = Neighbor(attacking,otherDir);
+    }
+  }
+
+  // change to next guy's turn
+  // printf("That was %c's turn. Next it's %c's turn.\n",turn,(turn = (turn == X ? O : X)));
+  if(turn == X)
+    turn = O;
+  else if(turn == O)
+    turn = X;
+  else
+    printf("BAD ERROR!\n");
+
+  // return new state in hashed form
   newPosition = BlankOXToPosition(board);
   return newPosition;
 }
@@ -595,14 +619,13 @@ MOVELIST *GenerateMoves(position)
   int CoordinatesToIndex(Coordinates);
   int InBounds(Coordinates);
   Coordinates Neighbor(Coordinates,Direction);
-  Direction EachDirection();
+  Direction EachDirection(Coordinates);
   Direction OtherDirection(Direction);
   BlankOX OtherPlayer();
   BlankOX WhoseTurn(int);
 
-  // update turn (todo: not need?)
-  turn = (whoseMove(position) == X ? 2 : 1);
-  printf("whoseMove: %d\n",whoseMove(position));
+  char thisPlayer = WhoseTurn(position);
+  char otherPlayer = thisPlayer==X ? O : X;
 
 
   BlankOX board[BOARDSIZE];
@@ -618,10 +641,10 @@ MOVELIST *GenerateMoves(position)
     PositionToBlankOX(position,board);
     if(debug>2) printf("Primitive undecided\n");
     for(i = 0 ; i < BOARDSIZE ; i++) {
-      if(board[i] == WhoseTurn(position)) {      // if current player's piece then we consider where we can move this
+      if(board[i] == thisPlayer) {      // if current player's piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
 	if(debug>2) printf("Found side's piece at %d,%d\n",pos.x,pos.y);
-	for(;dir = EachDirection();) {
+	for(;dir = EachDirection(pos);) {
 	  intdir = (int)dir;
 	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
 	    intdir--;    // 5 is not a direction, don't need that
@@ -631,7 +654,9 @@ MOVELIST *GenerateMoves(position)
 	  if(InBounds(Neighbor(pos,dir)) && board[CoordinatesToIndex(Neighbor(pos,dir))]==B) {      // vacant neighboring cell exists
 	    if(debug>2) printf("Found vacant neighbor at dir: %d\n",dir);
 	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
-	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) {  // have enemy, can attack by approach
+	    if(debug>2) printf("attacking: %c\n",board[CoordinatesToIndex(attackingpos)]);
+	    if(debug>2) printf("Other players is: %c\n",otherPlayer);
+	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==otherPlayer) {  // have enemy, can attack by approach
 	      numofcaps++;
 	      if(debug>2) printf("Can attack someone by approach @ dir: %d\n",dir);
 	      cap = 1;  // attack by approach mode
@@ -641,7 +666,7 @@ MOVELIST *GenerateMoves(position)
 	    } // end if can attack by approach
 	    
 	    attackingpos = Neighbor(pos,OtherDirection(dir));
-	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
+	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==otherPlayer) { // have enemy, can attack by withdraw
 	      numofcaps++;
 	      if(debug>2) printf("Can attack someone by withdraw @ dir: %d\n",OtherDirection(dir));
 	      cap = 2; // attack by withdraw mode
@@ -652,6 +677,7 @@ MOVELIST *GenerateMoves(position)
 	    
 	    if(numofcaps==0) { // no captures possible for this move
 	      cap = 0;
+	      if(debug>2) printf("Attack no one.\n");
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
 	      if(debug>2) printf("Generated move: %d\n",move);
 	      head = CreateMovelistNode( move, head);
@@ -672,23 +698,32 @@ MOVELIST *GenerateMoves(position)
  *              in the end, will return nodir = 0
  * Calls:
  ***********************************************************************/
-Direction EachDirection() {
-  static Direction dir = lowleft;
-
-  switch(dir) {
-  case lowleft: return dir=left;
-  case left: return dir=upleft;
-  case upleft: return dir=up;
-  case up: return dir=upright;
-  case upright: return dir=right;
-  case right: return dir=lowright;
-  case lowright: return dir=down;
-  case down: return dir=nodir;
-  case nodir: return dir=lowleft;
+Direction EachDirection(Coordinates pos) {
+  static Direction dir = left;
+  if( (pos.x & 1) == (pos.y & 1) ) {
+    switch(dir) {
+    case left: return dir=upleft;
+    case upleft: return dir=up;
+    case up: return dir=upright;
+    case upright: return dir=right;
+    case right: return dir=lowright;
+    case lowright: return dir=down;
+    case down: return dir=lowleft;
+    case lowleft: return dir=nodir;
+    case nodir: return dir=left;
+    }
+  }else {
+    switch(dir) {
+    case left: return dir=up;
+    case up: return dir=right;
+    case right: return dir=down;
+    case down: return dir=nodir;
+    case nodir: return dir=left;
+    }
   }
 }
-
-/************************************************************************
+  
+  /************************************************************************
  * Inputs: Direction
  * Description: returns opposite direction
  * Calls:
@@ -928,7 +963,7 @@ void PrintMove(theMove)
  **********************************************************************/
 PositionToBlankOX(POSITION position, BlankOX *board) {
   dbg("->PositionToBlankOX");
-  generic_unhash(position,(char *)board);  // TODO: doesn't API stick with their own types?? (arg2)
+  generic_unhash(position,(char *)board);
 }
 
 /************************************************************************
@@ -941,7 +976,7 @@ PositionToBlankOX(POSITION position, BlankOX *board) {
  ***********************************************************************/
 POSITION BlankOXToPosition(BlankOX *board) {
   dbg("->BlankOXToPosition");
-  return generic_hash((char *)board, turn==X?2:1 );  // TODO: doesn't API stick with their own types?? (arg 1)
+  return generic_hash((char *)board, turn==X?2:1 ); 
 }
 
 /***********************************************************************
