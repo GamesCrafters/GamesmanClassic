@@ -11,5 +11,8 @@ clean:
 	@$(MAKE) -w -C ../src clean-bins
 	rm -rf *~
 
-m%:
+../src/%.o:
+	@$(MAKE) -w -C ../src $@
+
+m%: ../src/gamesman.o ../src/m%.o
 	@$(MAKE) -w -C ../src ../bin/$@
