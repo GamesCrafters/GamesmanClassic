@@ -67,7 +67,7 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     scrollbar $w.vscroll -orient vertical -command "$c yview"
     
     set width  [expr {($pad+100)*$cols+$pad}]
-    set height [expr {(($under+100)*$rows)+$under}]
+    set height [expr {(($under+151)*$rows)+$under}]
     set littleheight [expr {$under/2+($under+100)*$rows}]
     set la [concat 0 0 $width $height]
     
@@ -88,26 +88,26 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     pack .fall -fill both
 
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set theProgram "./Xm[lindex $thePrograms $i]"
-	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-	set theColor [lindex $theGuiTypes $i]
-	catch { image delete image$i }
-	image create photo image$i -file $theGif
-	set theString [lindex $theStrings $i]
-	set borderWidth 5
+		set theProgram "./Xm[lindex $thePrograms $i]"
+		set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+		set theColor [lindex $theGuiTypes $i]
+		catch { image delete image$i }
+		image create photo image$i -file $theGif
+		set theString [lindex $theStrings $i]
+		set borderWidth 5
 	
-	button $c.butBitmap$i \
-		-image image$i \
-	        -bg $theColor \
-	        -borderwidth $borderWidth \
-		-command "exec @WISHLOC@ -f $theProgram &"
+		button $c.butBitmap$i \
+			-image image$i \
+	        	-bg $theColor \
+	        	-borderwidth $borderWidth \
+			-command "exec @WISHLOC@ -f $theProgram &"
 
-	#set upperLeftx [expr {$pad+(100+$pad)*($i%$cols)-5}] 
-	#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
-	#$c create rectangle $upperLeftx $upperLefty [expr $upperLeftx + 110] [expr $upperLefty + 110] -fill $theColor
+		#set upperLeftx [expr {$pad+(100+$pad)*($i%$cols)-5}] 
+		#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
+		#$c create rectangle $upperLeftx $upperLefty [expr $upperLeftx + 110] [expr $upperLefty + 110] -fill $theColor
 
-	$c create window [expr {$pad+(100+$pad)*($i%$cols)}] [expr {$under/2+($under+100)*($i/$cols)}] -window $c.butBitmap$i -anchor nw
-	$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font $kLabelFont
+		$c create window [expr {$pad+(100+$pad)*($i%$cols)}] [expr {$under/2+($under+100)*($i/$cols)}] -window $c.butBitmap$i -anchor nw
+		$c create text [expr {$pad+(100+$pad)*($i%$cols)+50+$borderWidth}] [expr {$under/2+($under+100)*($i/$cols)+100+$under/4}] -text $theString -anchor n -font $kLabelFont
 
     }
 
@@ -117,13 +117,29 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
 ##
 ## getColumns
 ##
-##  given the number of games, returns the number of columns this window should have
-##  basically it tries to choose the number of columns so that the window will be
-##   a square, so it uses the square root.
+##  given the number of games, returns the number of columns 
+## 	this window should have
+##
+##  This is currently set as the largest integer greater than 1 that
+##		divides the number of games evenly.
+##
+##
+##  Commented out code does the following:
+##
+##  basically it tries to choose the number of columns so that 
+##		the window will be a square, so it uses the square root.
 ##
 #############################################################################
 proc getColumns { numGames } {
-    set result [expr int( sqrt($numGames)) + 1 ]
+	
+	## at least 2 columns because I said so
+	set result 2 
+
+	while {[expr $numGames % $result] != 0} {
+		incr result
+	}
+	
+  	#set result [expr int( sqrt($numGames)) + 1 ]
 
 ## NOTE: for the below code, I assumed
 ## * more than 7 columns will be too big for the screen, so if it's > 7
@@ -180,22 +196,11 @@ proc main {} {
     set theGuiTypes { gold gold gold gold gold gold grey grey grey grey grey grey grey grey brown brown brown brown brown brown brown }
 
 
-
-
-
-	 #set thePrograms {  1210 ttt tactix dodgem  cmass sim 3dot Lgame lite3 con win4 nim dnb ctoi foxes achi qx}
-
- 	 #set theStrings  { "1,2,...,10" "TicTacToe" "Tac Tix" "Dodgem" "Critical Mass" "Sim" "3-Dot" "L Game" "Lite 3" "Connections!" "Connect 4" "Nim" "Dots and Boxes" "Chung-Toi" "Foxes and Geese" "Achi" "QuickCross"}
-
-    #set theGuiTypes { grey gold grey grey brown brown brown grey grey brown grey gold brown grey brown gold gold} 
-
     ### Give it a Nostalgic, tcl7.3 look
     ### tk_setPalette bisque1
 
 
-
     CreateButtonLauncher $theBitmapDir $thePrograms $theStrings $theGuiTypes
-
 
 
     #bind .fall <Configure> "puts [. cget -width]; .fall.c configure -width [. cget -width]"
@@ -208,3 +213,6 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.3  2004/04/17 07:14:55  ogren
+##Shift-Tac-Toe is now available on the XGamesman menu.  Total Games = 21, so I still have to move the rows and columns around.  Also, the bitmap for stt is 1210, so that might need changing...  Also moved some commented obsolete code around, can I delete those?  -Elmer
+##
