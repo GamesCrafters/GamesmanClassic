@@ -283,7 +283,7 @@ POSITION DoMove(thePosition, theMove)
   //debug
   if (debug) {
     unparse_board(board, cboard);
-    printf("The board after the move is: ");
+    printf("The board after the move is: \n");
     debugBoard(board,cboard);
   }
   
@@ -435,7 +435,6 @@ VALUE Primitive ( POSITION h )
     debugPosition(h);
     printf("And has found %dXs, %dOs.\n", numXs, numOs);
   }
-
 
   // doesn't check getting stuck
   if (turn == o && numOs == mino)
@@ -890,7 +889,6 @@ blankox *unhash(int hash_val, blankox *b_board)
   //debug
   if (debug) {
     printf("The hash value is: %d\n", hash_val);
-    debugBoard(b_board, c_board);
   }
   
   parse_board(c_board, b_board);
@@ -933,10 +931,10 @@ blankox parse_char(char c) {
 }
 
 
-//blankox to char, eventually
+//blankox to char
 char unparse_blankox(blankox b)
 {
-  
+  return gblankoxChar[b];
 }
 
 //blankox to char conversion
@@ -1056,8 +1054,9 @@ void debugPosition(POSITION h)
   if (debug) {
     unhash(h, bboard);
     unparse_board(bboard, cboard);
-    printf("Current position %d: /n", h);
-    printf("Current turn: %d/n", whose_turn(h));
+    printf("Current position = %d, ", h);
+    printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
+    printf("Current board = \n");
     debugBoard(bboard, cboard);
   }
 }
@@ -1065,6 +1064,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.29  2004/04/07 23:45:23  ogren
+//expanded debugPosition (still untested) and added a place for future char unparse_blankox (just for balance)
+//
 //Revision 1.28  2004/04/07 22:57:37  ogren
 //added debug function void debugPosition to print the c/b boards given position h, all debug functions untested =D -Elmer
 //
