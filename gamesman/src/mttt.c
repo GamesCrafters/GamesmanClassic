@@ -31,16 +31,29 @@
 ** Lose      =  1574 out of 19683
 ** Win       =  2836 out of 19683
 ** Tie       =  1068 out of 19683
-** Unk       =     0 out of 19683
+** Unknown   =     0 out of 19683
 ** TOTAL     =  5478 out of 19683
 **
 ** With SLIM = Symmetry-limiting Initial Move
+** (only 1st move do we limit moves to 1,2,5)
 **
 ** Lose      =  1274 out of 4163
 ** Win       =  2083 out of 4163
 ** Tie       =   806 out of 4163
 ** Unknown   =     0 out of 4163
 ** TOTAL     =  4163 out of 19683 allocated
+**
+** With SLIMFAST = Symmetry-LImiting Move Fast!
+** (EVERY move we limit if there are symmetries)
+** 
+** Lose      =  1084 out of 3481
+** Win       =  1725 out of 3481
+** Tie       =   672 out of 3481
+** Unknown   =     0 out of 3481 (Sanity-check...should always be 0)
+** TOTAL     =  3481 out of 19683 allocated
+**
+**     Time Loss : ??
+** Space Savings : 1.573
 **
 ** While checking for symmetries and storing a canonical elt from them.
 **
@@ -53,7 +66,7 @@
 ** TOTAL     =   765 out of 19682
 **
 **     Time Loss : 3.723
-** Space Savings : 6.279
+** Space Savings : 7.160 (why did I earlier write 6.279?)
 **
 **************************************************************************/
 
@@ -159,18 +172,45 @@ Computer wins. Nice try, Dan.";
 #define BOARDSIZE     9           /* 3x3 board */
 
 typedef enum possibleBoardPieces {
-	Blank, o, x
+  Blank, o, x
 } BlankOX;
 
 char *gBlankOXString[] = { "-", "O", "X" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
-int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
+int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
 /** Function Prototypes **/
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 
-BOOLEAN gSlim = FALSE; /* Whether we use SLIM position reduction */
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+
+#define NUMSYMMETRIES 8   /*  4 rotations, 4 flipped rotations */
+
+int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+
+/* Proofs of correctness for the below arrays:
+**
+** FLIP						ROTATE
+**
+** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
+** 3 4 5  ->  	5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
+** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		2 1 0
+*/
+
+/* This is the array used for flipping along the N-S axis */
+int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
+
+/* This is the array used for rotating 90 degrees clockwise */
+int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
 
 /************************************************************************
 **
@@ -182,6 +222,29 @@ BOOLEAN gSlim = FALSE; /* Whether we use SLIM position reduction */
 
 void InitializeGame()
 {
+  /**************************************************/
+  /**************** SYMMETRY FUN BEGIN **************/
+  /**************************************************/
+
+  int i, j, temp; /* temp is used for debugging */
+
+  if(kSupportsSymmetries) { /* Initialize gSymmetryMatrix[][] */
+    for(i = 0 ; i < BOARDSIZE ; i++) {
+      temp = i;
+      for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	if(j == NUMSYMMETRIES/2)
+	  temp = gFlipNewPosition[i];
+	if(j < NUMSYMMETRIES/2)
+	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	else
+	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+      }
+    }
+  }
+
+  /**************************************************/
+  /**************** SYMMETRY FUN END ****************/
+  /**************************************************/
 }
 
 void FreeGame()
@@ -472,27 +535,90 @@ MOVELIST *GenerateMoves(position)
      POSITION position;
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE Primitive();
   BlankOX theBlankOX[BOARDSIZE];
   int i;
-  
-  if (Primitive(position) != undecided) { 
-    return(NULL);                        /* I.e., if game over, no moves! */
-  } else {
-    if (gSlim && position == gInitialPosition) {  /* SLIM=Symmetry-Limiting Initial Move*/
-      head = CreateMovelistNode(1,head); /* top center  (1903 pos) */
-      head = CreateMovelistNode(2,head); /* upper right (1871 pos) */
-      head = CreateMovelistNode(4,head); /* center      (1838 pos) */
-    } else {
-      PositionToBlankOX(position,theBlankOX);
-      for(i = 0 ; i < BOARDSIZE ; i++) {
-	if(theBlankOX[i] == Blank)
-	  head = CreateMovelistNode(i,head);
-      }
-    }
-    return(head);
+
+  PositionToBlankOX(position,theBlankOX);
+  for(i = 0 ; i < BOARDSIZE ; i++) {
+    if(theBlankOX[i] == Blank)
+      head = CreateMovelistNode(i,head);
   }
+  return(head);
 }
+
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+** 
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(position)
+     POSITION position;
+{
+  POSITION newPosition, theCanonicalPosition, DoSymmetry();
+  int i;
+  
+  theCanonicalPosition = position;
+  
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    
+    newPosition = DoSymmetry(position, i);    /* get new */
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
+
+  return(theCanonicalPosition);
+}
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+** 
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(position, symmetry)
+     POSITION position;
+     int symmetry;
+{  
+  int i;
+  BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
+  POSITION BlankOXToPosition();
+  
+  PositionToBlankOX(position,theBlankOx);
+  PositionToBlankOX(position,symmBlankOx); /* Make copy */
+  
+  /* Copy from the symmetry matrix */
+  
+  for(i = 0 ; i < BOARDSIZE ; i++)
+    symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
+  
+  return(BlankOXToPosition(symmBlankOx));
+} 
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
 
 /************************************************************************
 **
