@@ -34,6 +34,12 @@ proc GS_InitGameSpecific {} {
     set gInitialPosition 0
     set gPosition $gInitialPosition
 
+    ### Set boardHeight, boardWidth, boardSize
+    global boardHeight boardWidth boardSize
+    set boardHeight 4
+    set boardWidth 4
+    set boardSize 16
+
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
@@ -58,9 +64,9 @@ proc GS_InitGameSpecific {} {
     set kTclAuthors "Greg Bonin, Nathan Spindel"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
-    set gInitialPosition [C_InitialPosition]
-    puts $gInitialPosition
-    set pieceString [C_GenericUnhash 62300342 16]
+#    set gInitialPosition [C_InitialPosition]
+#    puts $gInitialPosition
+#    set pieceString [C_Generic_Unhash gInitialPosition 16]
 
 
 }
@@ -76,7 +82,7 @@ proc GS_InitGameSpecific {} {
 #############################################################################
 proc GS_NameOfPieces {} {
 
-    ### FILL THIS IN
+    return [list blue red]
 
 }
 
@@ -126,15 +132,51 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Misere" \
 	    ]
 
+    set captureRule \
+	[list \
+	     "Should capture moves be mandatory?" \
+	     "Yes" \
+	     "No" \
+	    ]
+
+    set boardWidthRule \
+	[list \
+	     "Board width:" \
+	     "1" \
+	     "2" \
+	     "3" \
+	     "4" \
+	     "5"
+	    ]
+
+    set boardHeightRule \
+	[list \
+	     "Board height:" \
+	     "1" \
+	     "2" \
+	     "3" \
+	     "4" \
+	     "5"
+	    ]
+
     # List of all rules, in some order
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $captureRule $boardWidthRule $boardHeightRule]
 
     # Declare and initialize rule globals
     global gMisereGame
     set gMisereGame 0
 
+    global gForcedCapture
+    set gForcedCapture 0
+
+    global gBoardWidth
+    set gBoardWidth 3
+
+    global gBoardHeight
+    set gBoardHeight 3
+
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "gBoardWidth" "gBoardHeight"]
 
     global kLabelFont
     set ruleNum 0
@@ -164,10 +206,22 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    # TODO: Needs to change with more variants
-    global gMisereGame
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    global gMisereGame gForcedCapture gBoardWidth gBoardHeight
+
+    set option 0
+#    set option [expr $option + $gBoardWidth+1]
+#    set option [expr $option + 6 + $gBoardHeight+1]
+#    set option [expr $option + 12 + $gMisereGame+1]
+
+    # for HWrap
+#    set option [expr $option + 14 + 1]
+
+    # for VWrap
+#    set option [expr $option + 16 + 1]
+
+#    set option [expr $option + 18 + $gForcedCapture + 1]
+
+#    puts $option
     return $option
 }
 
@@ -185,9 +239,27 @@ proc GS_GetOption { } {
 #############################################################################
 proc GS_SetOption { option } {
     # TODO: Needs to change with more variants
-    global gMisereGame
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+#    global gMisereGame gForcedCapture gBoardWidth gBoardHeight
+
+#    set gForcedCapture [expr $option - 18 - 1]
+#    set option [expr $option - 2]
+
+    # HWrap
+#    set option [expr $option - 2]
+
+    # VWrap
+ #   set option [expr $option - 2]
+
+  #  set gStandardGame [expr $option - 12 - 1]
+  #  set option [expr $option - 2]
+
+  #  set gBoardHeight [expr $option - 5 - 1]
+  #  set option [expr $option - 2]
+
+#    set gBoardWidth [expr $option - 1]
+
+#    set option [expr $option - 1]
+#    set gMisereGame [expr 1-($option%2)]
 }
 
 
@@ -208,13 +280,11 @@ proc max { x y } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-    global canvasWidth canvasHeight
+    global canvasWidth canvasHeight boardHeight boardWidth
     $c configure -width $canvasWidth -height $canvasHeight
     set base [$c create rectangle 0 0  [expr $canvasWidth - 1] [expr $canvasHeight - 1] -fill white -tag base]   
 
     set margin 75
-    set boardHeight 4
-    set boardWidth 4
 
     set boardMax [max $boardHeight $boardWidth]
     set cellSize [expr [expr $canvasWidth - [expr $margin * 2]] / [expr $boardMax - 1]]
@@ -243,82 +313,64 @@ proc GS_Initialize { c } {
 	for {set y 0} {$y < $boardHeight} {incr y} {
 	    set pos [expr [expr $y * $boardWidth] + $x]
 	    set verticalOffset [expr $verticalStart + [expr $y * $cellSize]]
+
 	    $c create oval [expr $horizontalOffset - $pieceSize] [expr $verticalOffset - $pieceSize] \
-		[expr $horizontalOffset + $pieceSize] [expr $verticalOffset + $pieceSize] -fill blue -tag piece$x$y
+		[expr $horizontalOffset + $pieceSize] [expr $verticalOffset + $pieceSize] -fill blue -width 2 -tag piece$x$y
+
+#	    $c bind piece$x$y <Enter> "MouseOverExpand piece$x$y $c"
+#	    $c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
+
 	    if {$pos >= $boardWidth} {
 		set temp [expr $y -  1]
 		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset - $arrowLength] \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$x$temp arrow]
 	    }
 
 	    if {$pos >= [expr $boardWidth * 2]} {
 		set temp [expr $y -  2]
 		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset - $longArrowLength] \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$x$temp arrow]
 	    }
 	    
 	    if {$pos < [expr $boardWidth * [expr $boardHeight - 1]]} {
 		set temp [expr $y + 1]
 		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset + $arrowLength] \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$x$temp arrow]
 	    }
 	    
 	    if {$pos < [expr $boardWidth * [expr $boardHeight - 2]]} {
 		set temp [expr $y +  2]
 		$c create line $horizontalOffset $verticalOffset $horizontalOffset [expr $verticalOffset + $longArrowLength] \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$x$temp
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $x $temp $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$x$temp arrow]
 	    }
 	    
 	    if {[expr $pos % $boardWidth] != 0} {
 		set temp [expr $x -  1]
 		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset - $arrowLength] $verticalOffset \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$temp$y arrow]
 	    }
 	    
 	    if {[expr $pos % $boardWidth] > 1} {
 		set temp [expr $x -  2]
 		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset - $longArrowLength] $verticalOffset \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$temp$y arrow]
 	    }
 	    
 	    if {[expr $pos % $boardWidth] < [expr $boardWidth - 1]} {
 		set temp [expr $x +  1]
 		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset + $arrowLength] $verticalOffset \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$temp$y arrow]
 	    }
 	    
 	    if {[expr $pos % $boardWidth] < [expr $boardWidth - 2]} {
 		set temp [expr $x +  2]
 		$c create line $horizontalOffset $verticalOffset [expr $horizontalOffset + $longArrowLength] $verticalOffset \
-		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tag arrow$x$y$temp$y
-		$c bind arrow$x$y$temp$y <ButtonRelease-1> "MovePiece $x $y $temp $y $c"
+		    -arrow last -width $arrowVar1 -arrowshape [list $arrowVar2 $arrowVar2 $arrowVar1] -tags [list arrow$x$y$temp$y arrow]
 	    }
-	       
-	    $c bind piece$x$y <Enter> "MouseOverExpand piece$x$y $c"
-	    $c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
-
 	}
     }
 
-    $c raise base all    
-#    $c raise arrow1121
-
-#    set gInitialPosition [C_InitialPosition]
-#    set gInitialPosition [C_Primitive]
-#    puts $gInitialPosition
-
-#    set gPosition $gInitialPosition
-
- #   set pieceString [string range [C_GenericUnhash 62300324 16] 0 15]
-#    puts $pieceString
-
+    $c raise base
 }    
 
 proc MovePiece { x1 y1 x2 y2 c} {
@@ -329,11 +381,11 @@ proc MovePiece { x1 y1 x2 y2 c} {
 
 proc MouseOverExpand { dot c } {
     global dotExpandAmount
-    $c itemconfig $dot -fill red
+#    $c itemconfig $dot -fill red
 }
 
 proc MouseOutContract { dot c } {
-    $c itemconfig $dot -fill blue
+#    $c itemconfig $dot -fill blue
 }
 
 
@@ -360,8 +412,26 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
+    global boardWidth boardHeight boardSize
     
-    ### TODO: Fill this in
+    $c raise base all
+
+    set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
+    set pieceNumber 0
+
+    for {set i 0} {$i < $boardWidth} {set i [expr $i + 1]} {
+	for {set j 0} {$j < $boardHeight} {set j [expr $j + 1]} {
+	    if {[string compare [string index $pieceString $pieceNumber] "x"] == 0} {
+		$c itemconfig piece$j$i -fill red		
+		$c raise piece$j$i
+	    } elseif {[string compare [string index $pieceString $pieceNumber] "o"] == 0} {
+		$c itemconfig piece$j$i -fill blue		
+		$c raise piece$j$i
+	    } else {}
+
+	    set pieceNumber [expr $pieceNumber + 1]
+	}
+    }
 
 }
 
@@ -404,8 +474,7 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-	### TODO: Fill this in
-    
+    GS_DrawPosition $c $newPosition
 }
 
 
@@ -426,7 +495,32 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    ### TODO: Fill this in
+    foreach item $moveList {
+	set move [lindex $item 0]
+	set value [lindex $item 1]
+	set color cyan
+	
+	if {$moveType == "value"} {
+	    if {$value == "Tie"} {
+		set color yellow
+	    } elseif {$value == "Lose"} {
+		set color green
+	    } else {
+		set color red
+	    }
+	}
+	
+	set dest [GetDestFromMove $move]
+	set source [GetSourceFromMove $move]
+
+	$c raise arrow$source$dest
+	$c itemconfig arrow$source$dest -fill $color
+	$c bind arrow$source$dest <ButtonRelease-1> "ReturnFromHumanMove $move"
+	$c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black"
+	$c bind arrow$source$dest <Leave> "$c itemconfig arrow$source$dest -fill $color"
+
+#	$c raise piece$source
+    }
 }
 
 
@@ -438,7 +532,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 proc GS_HideMoves { c moveType position moveList} {
 
     ### TODO: Fill this in
-
+    
+    $c lower arrow
 }
 
 
@@ -465,6 +560,7 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
 #############################################################################
 proc GS_GetGameSpecificOptions { } {
+
 }
 
 
@@ -495,4 +591,26 @@ proc GS_UndoGameOver { c position } {
 
 	### TODO if needed
 
+}
+
+proc GetDestFromMove {theMove} {
+    global boardHeight boardWidth
+
+    set dest [expr $theMove % 1000]
+
+    set width [expr $dest % $boardWidth]
+    set height [expr $dest / $boardWidth]
+
+    return $width$height
+}
+
+proc GetSourceFromMove {theMove} {
+    global boardHeight boardWidth
+
+    set source [expr $theMove / 1000]
+
+    set width [expr $source % $boardWidth]
+    set height [expr $source / $boardWidth]
+
+    return $width$height
 }
