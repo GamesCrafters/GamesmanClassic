@@ -31,7 +31,7 @@
 **************************************************************************/
 
 #include "gamesman.h"
-
+#include <time.h>
 
 /*
 ** Local function prototypes

@@ -30,19 +30,16 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include "analysis.h"
 
 
 /*
 ** Globals
 */
 
-int   gHashEfficiency = 0;
-float gAverageFanout = +0.0f;
-long  gTotalPositions = 0;
 long  gTotalMoves = 0;
-long  gWinCount = 0, gLoseCount = 0, gTieCount = 0, gUnknownCount = 0;
-long  gPrimitiveWins = 0, gPrimitiveLoses = 0, gPrimitiveTies = 0;
 
+ANALYSIS gAnalysis;
 
 /*
 ** Code
@@ -180,31 +177,25 @@ void PrintValuePositions(char c, int maxPositions)
 
 void PrintGameValueSummary()
 {
-    
-    
     printf("\n\n\t----- Summary of Game values -----\n\n");
     
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
-    printf("\tLose      = %5lu out of %lu\n",gLoseCount,gTotalPositions);	
-    printf("\tWin       = %5lu out of %lu\n",gWinCount,gTotalPositions);	
-    printf("\tTie       = %5lu out of %lu\n",gTieCount,gTotalPositions);	
-    printf("\tUnknown   = %5lu out of %lu\n",gUnknownCount,gTotalPositions);	
-    printf("\tTOTAL     = %5lu out of %lu allocated\n",
-	   gTotalPositions,
-	   gNumberOfPositions);
+    printf("\tLose      = %5lu out of %lu (%5lu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
+    printf("\tWin       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.WinCount,gAnalysis.TotalPositions, gAnalysis.PrimitiveWins);
+    printf("\tTie       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.TieCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveTies);
+    printf("\tUnknown   = %5lu out of %lu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);  
+    printf("\tTOTAL     = %5lu out of %lu allocated (%5lu primitive)\n",
+       gAnalysis.TotalPositions,
+       gNumberOfPositions,
+       gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies);
     
-    printf("\tHash Efficiency                   = %6d\%%        \n",gHashEfficiency);
-    printf("\tTotal Moves                       = %5lu\n",gTotalMoves);
-    printf("\tAvg. number of moves per position = %2f           \n", gAverageFanout);
-    printf("\tTotal Primitive Wins              = %5lu\n", gPrimitiveWins);
-    printf("\tTotal Primitive Loses             = %5lu\n", gPrimitiveLoses);
-    printf("\tTotal Primitive Ties              = %5lu\n", gPrimitiveTies);
-    
-    
+    printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
+    printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
+    printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
     return;
-    
 }
+
 
 
 /** Analysis **/
@@ -238,42 +229,43 @@ void analyzer()
     reachablePositions = 0;
     hashEfficiency = 0;
     averageFanout = 0;
+
     for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
-	{
-	    theValue = GetValueOfPosition(thePosition);
-	    if (theValue != undecided) {
-		totalPositions++;
-		if(theValue == win)  {
-		    winCount++;
-		    reachablePositions++;
-		    if (Remoteness(thePosition) == 0) primitiveWins++;
-		} else if(theValue == lose) {
-		    loseCount++;
-		    reachablePositions++;
-		    if (Remoteness(thePosition) == 0) primitiveLoses++;
-		} else if(theValue == tie) {
-		    tieCount++;
-		    reachablePositions++;
-		    if (Remoteness(thePosition) == 0) primitiveTies++;
-		} else {
-		    unknownCount++;
-		}
-	    }
-	}
+    {
+        theValue = GetValueOfPosition(thePosition);
+        if (theValue != undecided) {
+        totalPositions++;
+        if(theValue == win)  {
+            winCount++;
+            reachablePositions++;
+            if (Remoteness(thePosition) == 0) primitiveWins++;
+        } else if(theValue == lose) {
+            loseCount++;
+            reachablePositions++;
+            if (Remoteness(thePosition) == 0) primitiveLoses++;
+        } else if(theValue == tie) {
+            tieCount++;
+            reachablePositions++;
+            if (Remoteness(thePosition) == 0) primitiveTies++;
+        } else {
+            unknownCount++;
+        }
+        }
+    }
     hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
-    averageFanout = (float)((float)gTotalMoves/(float)reachablePositions);
+    averageFanout = (float)((float)gAnalysis.TotalMoves/(float)(reachablePositions - primitiveWins - primitiveLoses - primitiveTies));
     
-    gHashEfficiency = hashEfficiency;
-    gAverageFanout = averageFanout;
-    gTotalPositions = totalPositions;
-    gWinCount = winCount;
-    gLoseCount = loseCount;
-    gTieCount = tieCount;
-    gUnknownCount = unknownCount;
-    gPrimitiveWins = primitiveWins;
-    gPrimitiveLoses = primitiveLoses;
-    gPrimitiveTies = primitiveTies;
-    
+    gAnalysis.HashEfficiency = hashEfficiency;
+    gAnalysis.AverageFanout = averageFanout;
+    gAnalysis.TotalPositions = totalPositions;
+    gAnalysis.WinCount = winCount;
+    gAnalysis.LoseCount = loseCount;
+    gAnalysis.TieCount = tieCount;
+    gAnalysis.UnknownCount = unknownCount;
+    gAnalysis.PrimitiveWins = primitiveWins;
+    gAnalysis.PrimitiveLoses = primitiveLoses;
+    gAnalysis.PrimitiveTies = primitiveTies;
+    gAnalysis.NumberOfPositions = gNumberOfPositions;
 }
 
 
@@ -415,7 +407,7 @@ void writeVarHTML ()
     FILE * rowp;
     char rowFileName[256];
     
-    sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption()) ;
+    sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption());
     
     rowp = fopen(rowFileName, "w");
     
@@ -431,39 +423,39 @@ void writeVarHTML ()
     
     writeVarStat("value", gValueString[(int)gValue], rowp);
     
-    sprintf(text, "%5lu", gWinCount);
+    sprintf(text, "%5lu", gAnalysis.WinCount);
     writeVarStat("WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gLoseCount);
+    sprintf(text, "%5lu", gAnalysis.LoseCount);
     writeVarStat("LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gTieCount);
+    sprintf(text, "%5lu", gAnalysis.TieCount);
     writeVarStat("TieCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveWins);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveWins);
     writeVarStat("Prim.WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveLoses);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveLoses);
     writeVarStat("Prim.LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gPrimitiveTies);
+    sprintf(text, "%5lu", gAnalysis.PrimitiveTies);
     writeVarStat("Prim.TieCount", text, rowp);
     
     
-    sprintf(text, "%5lu", gTotalPositions);
+    sprintf(text, "%5lu", gAnalysis.TotalPositions);
     writeVarStat("totalPositions", text , rowp);
     
     sprintf(text, "%5lu", gNumberOfPositions);
     writeVarStat("NumberOfPositions", text, rowp);
     
-    sprintf(text, "%d", gHashEfficiency);
+    sprintf(text, "%d", gAnalysis.HashEfficiency);
     writeVarStat("hashEfficiency", text, rowp);
     
     
-    sprintf(text, "%2f", gAverageFanout);
+    sprintf(text, "%2f", gAnalysis.AverageFanout);
     writeVarStat("AverageFanout", text, rowp);
     
-    sprintf(text, "%d", gTimer);
+    sprintf(text, "%d", gAnalysis.TimeToSolve);
     writeVarStat("TimeToSolve", text, rowp);
     
     
@@ -537,6 +529,82 @@ BOOLEAN CorruptedValuesP()
 }
 
 /*
+** Analysis XML Output
+*/
+
+void writeXML(STATICMESSAGE msg)
+{
+  int mkdir();
+    static FILE *xmlFile = 0;
+    switch(msg)
+    {
+        case Init:
+            xmlFile = prepareXMLFile();
+            break;
+        case Save:
+            if(xmlFile != 0)
+            {
+                writeXMLData(xmlFile);
+            }
+            break;
+        case Clean:
+            if(xmlFile != 0)
+            {
+                closeXMLFile(xmlFile);
+                xmlFile=0;
+            }
+            break;    
+    }
+}
+
+FILE* prepareXMLFile()
+{
+  int mkdir();
+  FILE * xmlFile;
+  char xmlPath[256];
+  
+  sprintf(xmlPath, "analysis/xml/%s.xml", kDBName);
+  
+  mkdir("analysis/xml",0755);
+  
+  xmlFile = fopen(xmlPath,"w");
+  fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
+  fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
+  return xmlFile;
+}
+
+void closeXMLFile(FILE* xmlFile)
+{
+    fprintf(xmlFile,"</game>\n");
+    fclose(xmlFile);
+}
+
+void writeXMLData(FILE* xmlFile)
+{
+    fprintf(xmlFile,"    <variant hashcode=\"%d\">\n",getOption());
+    fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
+    fprintf(xmlFile,"        <count>\n");
+    fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.WinCount);
+    fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.LoseCount);
+    fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.TieCount);
+    fprintf(xmlFile,"        </count>\n");
+    fprintf(xmlFile,"        <primitive>\n");
+    fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.PrimitiveWins);
+    fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.PrimitiveLoses);
+    fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.PrimitiveTies);
+    fprintf(xmlFile,"        </primitive>\n");
+    fprintf(xmlFile,"        <positionstats>\n");
+    fprintf(xmlFile,"            <total>%d</total>\n",gAnalysis.TotalPositions);
+    fprintf(xmlFile,"            <hashtotal>%d</hashtotal>\n",gNumberOfPositions);
+    fprintf(xmlFile,"            <hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
+    fprintf(xmlFile,"            <fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
+    fprintf(xmlFile,"        </positionstats>\n");
+    fprintf(xmlFile,"        <time>%d</time>\n",gAnalysis.TimeToSolve);
+    fprintf(xmlFile,"    </variant>\n");
+    fflush(xmlFile);
+}
+
+/*
 ** Percentage
 **
 ** TODO: I'll let you actually implement this one, Robert. -JJ
@@ -546,5 +614,19 @@ BOOLEAN CorruptedValuesP()
 
 float percentDone (STATICMESSAGE msg)
 {
-	return 0.0f;
+	static POSITION num_pos_seen = 0;
+    float percent = 0;
+    switch (msg)
+    {
+        case Update:
+            num_pos_seen++;
+            break;
+        case Clean:
+            num_pos_seen = 0;
+    }
+    percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
+    if (percent > 100)
+        return num_pos_seen;
+    else
+        return percent;
 }
