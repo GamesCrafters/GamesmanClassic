@@ -38,7 +38,7 @@ BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
@@ -48,22 +48,22 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"No help for you!"; 
 
 STRING   kHelpOnYourTurn =
-"";
+"Make a move";
 
 STRING   kHelpStandardObjective =
-"";
+"Win";
 
 STRING   kHelpReverseObjective =
-"";
+"Lose";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+"A Tie occurs when....never!";
 
 STRING   kHelpExample =
-"";
+"See example.";
 
 /*************************************************************************
 **
@@ -958,6 +958,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.19  2004/03/15 23:36:18  bryonr
+//Changed some return types to match function prototypes in gamesman.h. Made minor fixes where necessary.
+//
 //Revision 1.18  2004/03/14 22:28:13  jjjordan
 //Prototype fix. -JJ
 //
