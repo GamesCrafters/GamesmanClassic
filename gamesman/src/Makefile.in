@@ -271,17 +271,17 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
-CCGAMEOBJS = $(CON_OBJ)
+CCGAMEOBJS = $(CON_OBJ) $(DNB_OBJ)
 
 # Binary files
-CCGAMES = $(CON_EXE)
+CCGAMES = $(CON_EXE) $(DNB_EXE)
 
 # Tcl/Tk libraries
-CCTCL = $(CON_SO)
+CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
-SPECIALGAMES = $(DNB_EXE) $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE)
-SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(TTT_SO)
+SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE)
+SPECIALTCL = $(FOXES_SO) $(TTT_SO)
 
 
 ##############################################################################
@@ -362,15 +362,6 @@ $(TTT_EXE): $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ)
 
 $(TTT_SO): $(TTT_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LOOPYGASOLVER_OBJ)
 	$(CC) -o $@ $(TTT_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
-
-$(DNB_OBJ): %$(OBJSUFFIX): %.cc $(DEP_INCLUDE)
-	$(CCC) $(CCFLAGS) -c -o $@ $< $(TCLCFLAGS)
-
-$(DNB_EXE): $(DNB_OBJ) $(DEP_OBJS)
-	$(CCC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
-
-$(DNB_SO): $(DNB_OBJ) $(DEP_OBJS) $(DEP_GWISH_OBJ)
-	$(CCC) -o $@ $< $(DEP_OBJS) $(DEP_GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<

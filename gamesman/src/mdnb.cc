@@ -29,36 +29,17 @@ typedef int Tk_Window;
 #define EXTERNC extern "C"
 
 EXTERNC {
-#include "deprecated/gsolve.h"
+#include "gamesman.h"
 #define max(a,b) (((a)>(b))?(a):(b))
-
-GENERIC_PTR SafeMalloc(int);
-void PrintMove(MOVE theMove);
-int GetRandomNumber(int);
-MOVELIST* CreateMovelistNode(MOVE,MOVELIST*); 
-void FreeMoveList(MOVELIST*);
-MOVELIST* GetValueEquivalentMoves(POSITION);
-USERINPUT HandleDefaultTextInput(POSITION,MOVE*,STRING);
-VALUE GetValueOfPosition(POSITION);
-
-#pragma weak gGoAgain
-extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
-
-#pragma weak Tcl_GetInt
-#pragma weak Tcl_CreateCommand
 }
 
-extern STRING gValueString[];
-
-int      gNumberOfPositions  =  0;
+POSITION gNumberOfPositions  =  0;
 POSITION gInitialPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Dots and Boxes";
+STRING   kDBName             = "dnb";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kSupportsHeuristic  = FALSE;
-BOOLEAN  kSupportsSymmetries = FALSE;
-BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = TRUE;
@@ -94,19 +75,23 @@ STRING   kHelpExample = "No help";
 #ifndef NO_GRAPHICS
 static int		ScoredCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+/*
 static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+*/
+
 #endif
 
-bool UnderTcl=false;
+#define MAX_X 3
+#define MAX_Y 3
+
 int BoardSizeX = 2;
-int BoardSizeY = 1;
-bool SolvePrivately=false;
-bool CompressDatabase=false;
+int BoardSizeY = 2;
+//bool SolvePrivately=false;
+//bool CompressDatabase=false;
 bool TrackBoxOwners=true;  // use extra bits to track who scored? only on small boards
 bool ParallelMoves=false; /* Do all moves in parallel, vs. using gGoAgain */
 
-bool Closed=true;
 POSITION staticMoves=0;
 
 #define ISSET(POS,P) ((1<<(P))&(POS))
@@ -308,24 +293,19 @@ int DNB::TurnBit=0;
 
 BOOLEAN DNBGoAgain(POSITION pos,MOVE move) {
   DNB oldpos(pos);
-  DNB newpos=pos;
+  DNB newpos(pos);
   newpos.DoMove(move);
   return oldpos.BoxesCompleted()!=newpos.BoxesCompleted();
 }
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-VALUE     *gDatabase=NULL;
-unsigned char*gDatabaseTight=NULL;
-
+/*
 // ************************ PRIVATE SOLVE ********************
 
 // the position stored in the database is the score one could expect
 // from the remaining unscored boxes in this position, going first
+
+
+unsigned char*gDatabaseTight=NULL;
 
 signed char *privateDatabase=NULL;
 int privateMask=0;
@@ -397,35 +377,35 @@ void DoPrivateSolve() {
     fclose(f);
   }
 }
+*/
 
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize the game
 ** 
 ************************************************************************/
 
-EXTERNC void InitializeDatabasesForReal()
+EXTERNC void InitializeGame()
 {
   int i;
 
   if (BoardSizeX*BoardSizeY>=6) {
     TrackBoxOwners=false;
-    //    CompressDatabase=true;
+    //CompressDatabase=true;
     //SolvePrivately=true;
   }
 
   DNB::PreCalc();
 
-  if (Closed) {
-    gInitialPosition = (1<<BoardSizeX)-1;
-    gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+1));
-    gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+2));
-  }
+  gInitialPosition = (1<<BoardSizeX)-1;
+  gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+1));
+  gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+2));
 
   gNumberOfPositions = DNB::NumberOfPositions();
 
+  /*
   if (SolvePrivately) {
     DoPrivateSolve();
   } else if (CompressDatabase) {
@@ -438,7 +418,7 @@ EXTERNC void InitializeDatabasesForReal()
     for(i = 0; i < gNumberOfPositions; i++)
       gDatabase[i] = undecided;
   }
-
+  */
 
   if (!ParallelMoves) {
     if (!&gGoAgain)
@@ -448,21 +428,14 @@ EXTERNC void InitializeDatabasesForReal()
   }
 }
 
-
-EXTERNC void InitializeDatabases() {
-//  if (!UnderTcl)
-    InitializeDatabasesForReal();
-}
-
 #ifndef NO_GRAPHICS
 
 EXTERNC int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 {
-  UnderTcl=true;
   Tcl_CreateCommand(interp, "C_Scored", (Tcl_CmdProc*) ScoredCmd, (ClientData) mainWindow,
 		    (Tcl_CmdDeleteProc*) NULL);
-  Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
-		    (Tcl_CmdDeleteProc*) NULL);
+  /* Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
+     (Tcl_CmdDeleteProc*) NULL); */
   return TCL_OK;
 }
 
@@ -498,10 +471,10 @@ EXTERNC void DebugMenu()
 ************************************************************************/
 
 EXTERNC void GameSpecificMenu() {
-  do { printf("Enter X size (1-3): ");
-  } while (scanf("%i",&BoardSizeX)!=1 || unsigned(BoardSizeX-1)>=3);
-  do { printf("Enter Y size (1-3): ");
-  } while (scanf("%i",&BoardSizeY)!=1 || unsigned(BoardSizeY-1)>=3);
+  do { printf("Enter X size (1-%d): ", MAX_X);
+  } while (scanf("%i",&BoardSizeX)!=1 || unsigned(BoardSizeX-1)>=MAX_X);
+  do { printf("Enter Y size (1-%d): ", MAX_Y);
+  } while (scanf("%i",&BoardSizeY)!=1 || unsigned(BoardSizeY-1)>=MAX_Y);
 
  }
 
@@ -521,9 +494,8 @@ EXTERNC void SetTclCGameSpecificOptions(int theOptions[])
   
   if (BoardSizeY==0xf) {
     BoardSizeY=1;
-    Closed=true;
   }
-  InitializeDatabasesForReal();
+  //InitializeDatabasesForReal();
 }
 
 /************************************************************************
@@ -563,60 +535,6 @@ EXTERNC POSITION DoMove(POSITION thePosition, MOVE theMove)
 EXTERNC POSITION GetInitialPosition()
 {
   return 0;
-}
-
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
-**
-************************************************************************/
-
-EXTERNC MOVE GetComputersMove(POSITION thePosition)
-{
-  POSITION canPosition;
-  MOVE DecodeMove(), theMove;
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head; 
-
-    //  DNB board(thePosition);
-    //  board.Print();
-    //  printf("postion %08x\n",thePosition);
-
-    if(gPossibleMoves) 
-      printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-    head = ptr = GetValueEquivalentMoves(thePosition);
-    while(ptr != NULL) {
-      numberMoves++;
-      if(gPossibleMoves) {
-	PrintMove(ptr->move);
-	printf(" ");
-      }
-      ptr = ptr->next;
-    }
-    if(gPossibleMoves) 
-      printf("]\n\n");
-    if (numberMoves<=0) {
-      for (int i = 0; i < 5; i++)
-	printf("Error, Computer has no available moves!!\n");
-      return 0;
-    }
-    randomMove = GetRandomNumber(numberMoves);
-    //    randomMove=0;
-    ptr = head;
-    for(i = 0; i < randomMove ; i++)
-      ptr = ptr->next;
-    theMove = ptr->move;
-    FreeMoveList(head);
-    return(theMove);
 }
 
 /************************************************************************
@@ -670,9 +588,9 @@ EXTERNC VALUE Primitive(POSITION position)
   if (first+second<board.Boxes()) return undecided;
   if (first==second) return tie;
   if (board.Turn())
-    return (first>second)?lose:win; // 2nd person just lost/won
+    return ((first>second) ^ !gStandardGame)?lose:win; // 2nd person just lost/won
   else
-    return (first<second)?lose:win; // 1st person...
+    return ((first<second) ^ !gStandardGame)?lose:win; // 1st person...
 }
 
 /************************************************************************
@@ -740,6 +658,7 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
       head = CreateMovelistNode(move,head);
       continue;
     }
+
     /* go again, because we scored */
     // be careful not to enter duplicate moves "a->c->d" vs "c->a->d"
     for (p=x;p;p=p->next) {
@@ -859,102 +778,7 @@ EXTERNC void PrintMove(MOVE theMove)
 	printf("%c", i+'a'); 
 }
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-EXTERNC FUZZY StaticEvaluator(POSITION thePosition)
-{
-  printf("Unimplemented!\n");
-  return 0;
-}
-
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-** CALLS:       PositionToBlankOX(POSITION,*BlankOX)
-**              BlankOX WhosTurn(*BlankOX)
-**
-************************************************************************/
-
-EXTERNC MINIMAX PositionToMinOrMax(POSITION thePosition)
-{
-  printf("Unimplemented!\n");
-  return minimizing;
-}
-
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** 
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**
-************************************************************************/
-
+/*
 EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
 {
   static POSITION lastpos=-1;
@@ -988,47 +812,28 @@ EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
   }
   return(&gDatabase[position]);
 }
+*/
 
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** 
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
+/*** Database ***/
 
-EXTERNC POSITION GetNextPosition()
-{
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
+EXTERNC int NumberOfOptions() {
+  return MAX_X * MAX_Y * 2;
 }
 
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
+EXTERNC int getOption() {
+  int option = 1;
+  option += gStandardGame ? 0 : 1;
+  option += 2 * (BoardSizeX - 1);
+  option += 2 * MAX_X * (BoardSizeY - 1);
+  return option;
+}
+
+EXTERNC void setOption(int option) {
+  option--;
+  gStandardGame = (option%2==0);
+  BoardSizeX = option/2 % MAX_X + 1;
+  BoardSizeY = option/(2*MAX_X) % MAX_Y + 1;
+}
 
 /************************************************************************
 *************************************************************************
@@ -1063,6 +868,7 @@ ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   }
 }
 
+/*
 static int
 GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
 {     
@@ -1083,5 +889,6 @@ GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
     return TCL_OK;
   }
 }
+*/
 
 #endif

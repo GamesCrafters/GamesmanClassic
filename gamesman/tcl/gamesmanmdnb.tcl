@@ -1666,13 +1666,13 @@ proc ShowValueMoves {} {
 	set theMove [lindex $theMoveValue 0]
 	set theValue [lindex $theMoveValue 1]
 
-	if {[C_GoAgain $gPosition $theMove]} {
-	    switch $theValue {
-		"Tie" {set theValue "Tie"}
-		"Win" {set theValue "Lose"}
-		"Lose" {set theValue "Win"}
-	    }
-	}
+#	if {[C_GoAgain $gPosition $theMove]} {
+#	    switch $theValue {
+#		"Tie" {set theValue "Tie"}
+#		"Win" {set theValue "Lose"}
+#		"Lose" {set theValue "Win"}
+#	    }
+#	}
         DrawMove .winBoard.c $theMove [ValueToColor $theValue] $kBigPiece
     }
 
