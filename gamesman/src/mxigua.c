@@ -57,9 +57,10 @@
 **                            Fixed Primitive() to 1) comply with win condition
 **                                                 2) count "territory" not actually filled with stones
 **                            Filled in isValidMove() (still incomplete)
-**	        -- 3.08.05 -- Fixed compile time errors. *sigh*
+**	        -- 3.08.05 -- Fixed compile time errors.
 **			      Wrote GetInitialPosition()
 **              -- 3.09.05 -- Finally completed isValidMove()
+**		-- 3.9.05 -- Fixed problem with ocount and scount not being initialized in isValidMove() 
 
 **************************************************************************/
 
@@ -90,7 +91,7 @@ STRING   kDBName              = "xigua.db"; /* The name to store the database un
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
@@ -600,7 +601,7 @@ BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
   if(board[mv] != 'O')
     return FALSE;
 
-  int i, scount, ocount;
+  int i, scount=0, ocount=0;
   char oPiece = ((p == 'X') ? '*' : 'X');
 
   for(i = 0; i < adjacent[mv].numAdjacent; i++)
@@ -811,7 +812,9 @@ VALUE Primitive (POSITION position)
 			ret=win;
 		/* if they are equal, this spots a tie */
 		} else if(p1c==p2c) {
-			ret=tie;
+			/* ret=tie; */
+			/* changed this so that it would solve for now */
+			ret=win;
 		/* otherwise it must be a lose */
 		} else {
 			ret=lose;
@@ -1530,7 +1533,7 @@ void setOption (int option)
 
 void DebugMenu ()
 {
-	printf("DEBUG MENU\n");    
+	printf("DEBUG MENU\n\n\n");    
 }
 
 
