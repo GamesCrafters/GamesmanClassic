@@ -146,9 +146,9 @@ STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
 STRING   kHelpTextInterface =
   "On your turn, enter the xy coordinates of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
-<column><row><direction> where the direction is any one of 'n', 'down',\n\
+<column> <row> <direction> where the direction is any one of 'up', 'down',\n\
 'left', or 'right'.  For example, to move the piece in column 3 and row 2 up\n\
-one square, you would enter '32 up'.";
+one square, you would enter '3 2 up'.";
 
 STRING   kHelpOnYourTurn =
 "You should type: <row number> <column number> <direction>, ie. one of \n\
@@ -177,9 +177,12 @@ STRING   kHelpExample = "coming soon! buy viagra in the meantime!";
 #define EMPTY_PIECE ' ';
 int BOARD_ROWS = 5;
 int BOARD_COLS = 4;
-int PLAYER_PIECES = BOARD_COLS;
+int PLAYER_PIECES = 4; /* BOARD_COLS */
+/* should enforce this stronger by hardcoding BOARD_COLS? not an issue unless
+ * consider allowing debugging to alter this.
+ */
 int NUM_TO_WIN = 3; /* how many pieces must be in the line */
-int BOARD_SIZE = BOARD_ROWS*BOARD_COLS;
+int BOARD_SIZE = 20; /* BOARD_ROWS*BOARD_COLS */
 
 /*************************************************************************
 **
@@ -191,47 +194,13 @@ int BOARD_SIZE = BOARD_ROWS*BOARD_COLS;
  */
 
 /* the user input that corresponds to the direction in DIR_INCREMENTS */
-STRING directions[] {"up", "right", "down", "left"}
+/* changed this from strings to chars to deal with difficulties of character
+ * input.
+ */
+const STRING directions[] = {"up", "right", "down", "left"};
 
 /* 0 = up, 1 = right, 2 = down, 3 = left */
-int dir_increments[][] {{ 0 , 1 } , { 1 , 0 } , { 0 , -1 } , { -1 , 0 }}
-
-/* reasoning for the arrangement - anything with index < 3 is a move up, and
- * anything with index > 4 is a move down.  anything with index > 0 and < 7,
- * where index % 2 = 1 is a move right, and where index % 2 = 0 is a move left.
- * have arbitrarily adopted cardinal points as directions because "NE" is more
- * familiar to most people than "up-right".  this may be a bad idea if the game
- * ever is meant to be seen in the southern hemisphere, since maps there tend
- * to have the south pole on top.
- */
-/* STRING directions[] {""}; */
-/* actually, i note that with the above definition i don't need these indices.
- * the internal representation of a user input could be a two digit base three
- * number, with the three's place representing the kind of vertical movement
- * and the one's place representing the kind of horizontal movement.
- *     actually, may have to do this anyway, since i don't know how the move
- * propagates out of GetAndPrintPlayersMove, i may have to encode the entire
- * move.
- */
-
-/*
-STRING initial_board = {
-  PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE   , EMPTY_PIECE ,
-  PLAYER1_PIECE , PLAYER2_PIECE , PLAYER1_PIECE , PLAYER2_PIECE
-};
-*/
-
-/* typedef enum PLAYERS {ONE = 1, TWO} Player; this may be a dumb thing to do*/
-/* char * board; */
-/* the scratchspace of the game. unsafe to trust data here between calls. */
-/* Player current_player; unnecessary */
-
-/*POSITION current_position;          /* illegal by module spec */
-/*int current_player = PLAYER1_PIECE; /* ditto */
+const int dir_increments[][] = {{0,1} , {1,0} , {0,-1} , {-1,0}};
 
 /*************************************************************************
 **
@@ -242,9 +211,39 @@ STRING initial_board = {
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+extern int generic_hash_init();
+extern int generic_hash();
+extern int whoseMove();
+extern char* generic_unhash();
 /* Internal */
 void InitializeGame();
-
+MOVELIST *GenerateMoves(POSITION position);
+POSITION DoMove (POSITION position, MOVE move);
+VALUE Primitive (POSITION position);
+void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
+void printBoard(char board[]);
+void PrintComputersMove(MOVE computersMove, STRING computersName);
+void PrintMove(MOVE move);
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
+BOOLEAN ValidTextInput(STRING input);
+MOVE ConvertTextInputToMove(STRING input);
+void GameSpecificMenu();
+void SetTclCGameSpecificOptions(int options[]);
+POSITION GetInitialPosition();
+BOOLEAN GetInitPosHelper (char playerchar);
+int NumberOfOptions();
+int getOption();
+void setOption(int option);
+void DebugMenu();
+/* helper */
+int CoordsToIndex(int x, int y);
+int* IndexToCoords(int index, int[] coords);
+MOVE CoordsToMove(int from_x, int from_y, int to_x, int to_y);
+int * MoveToCoords(MOVE hashed_move, int[] coords);
+int *MoveToIndex(MOVE move, int[] index);
+MOVE IndexToMove (int from_index, int to_index);
+int *initializePiecesArray(int p_a[]);
+int* initializeBoard(int board[]);
 
 /*************************************************************************
 **
@@ -252,7 +251,7 @@ void InitializeGame();
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+extern VALUE *gDatabase;
 
 
 /************************************************************************
@@ -269,14 +268,28 @@ void InitializeGame ()
 {
   int x,y;
   char piece;
-  char board[BOARD_SIZE];
+  char board[BOARD_ROWS*BOARD_COLS];
   int player = 1;
-  int[] pieces_array = {PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
+  int p_a[10];
+  BOARD_SIZE = BOARD_ROWS*BOARD_COLS;
+  PLAYER_PIECES = BOARD_COLS;
+  /* so far can't imagine a circumstance in which i'd want to initialize the
+   * board externally, but if i ever do, the methods are at the very bottom.
+  initializePiecesArray(pieces_array);
+  initializeBoard(board);
+
+  int pieces_array[] = {PLAYER1_PIECE, PLAYER_PIECES, PLAYER_PIECES,
 			PLAYER2_PIECE, PLAYER_PIECES, PLAYER_PIECES,
 			EMPTY_PIECE,   BOARD_SIZE-2*PLAYER_PIECES,
 			BOARD_SIZE-2*PLAYER_PIECES, -1};
-  /* board = SafeMalloc(sizeof(char)*num_squares); */
-  /* memory leak - how do i free the board? */
+  */
+  p_a[0] = PLAYER1_PIECE;
+  p_a[3] = PLAYER2_PIECE;
+  p_a[6] = EMPTY_PIECE;
+  p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
+  p_a[7] = p_a[8] = BOARD_SIZE-2*PLAYER_PIECES;
+  p_a[9] = -1;
+
   for (x = 0; x < BOARD_COLS; x++) {
     for (y = 0; y < BOARD_ROWS; y++) {
       if (y == 0) {
@@ -297,15 +310,9 @@ void InitializeGame ()
       board[CoordsToIndex(x,y)] = piece;
     }
   }
-  gNumberOfPositions = generic_hash_init(BOARD_SIZE, pieces_array, NULL);
+  gNumberOfPositions = generic_hash_init(BOARD_SIZE, p_a, NULL);
   gInitialPosition = generic_hash(board, player);
 }
-
-/*
-void FreeGame () {
-  SafeFree(board);
-}
-*/
 
 /************************************************************************
 **
@@ -327,11 +334,12 @@ void FreeGame () {
 
 MOVELIST *GenerateMoves (POSITION position)
 {
+  extern const int dir_increments[][];
   MOVELIST *moves = NULL;
   int x, y, i, dx, dy;
   char board[BOARD_SIZE];
   int player = whoseMove(position);
-  board = generic_unhash (position, board);
+  generic_unhash (position, board);
 
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   for (x = 0; x < BOARD_COLS; x++) {
@@ -344,7 +352,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	  if ((dx >= 0) && (dy >= 0) &&	\
 	      (dy < BOARD_ROWS) && (dx < BOARD_COLS) && \
 	      (board[CoordsToIndex(dx,dy)] == EMPTY_PIECE)) {
-	    moves = CreateMovelistNode(EncodeMove(x,y,dx,dy),moves);
+	    moves = CreateMovelistNode(CoordsToMove(x,y,dx,dy),moves);
 	  }
 	}
       } else if ((player==2) && (board[CoordsToIndex(x,y)] == PLAYER2_PIECE)) {
@@ -355,7 +363,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	  if ((dx >= 0) && (dy >= 0) && \
 	      (dy < BOARD_ROWS) && (dx < BOARD_COLS) && \
 	      (board[CoordsToIndex(dx,dy)] == EMPTY_PIECE)) {
-	    moves = CreateMovelistNode(EncodeMove(x,y,dx,dy),moves);
+	    moves = CreateMovelistNode(CoordsToMove(x,y,dx,dy),moves);
 	  }
 	}
       }
@@ -384,17 +392,18 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
   char board[BOARD_SIZE];
-  board = generic_unhash (position, board);
-  int coords[4];
+  int index[2];
   int player = whoseMove(position);
-  coords = DecodeMove(move, coords);
-  board[CoordsToIndex(coords[0],coords[1])] = EMPTY_PIECE;
+  generic_unhash(position, board);
+  MoveToCoords(move, index);
+  board[index[0]] = EMPTY_PIECE;
   if (player == 1) {
-    board[CoordsToIndex(coords[2],coords[3])] = PLAYER1_PIECE;
+    board[index[1]] = PLAYER1_PIECE;
+    return generic_hash(board, 2);
   } else {
-    board[CoordsToIndex(coords[2],coords[3])] = PLAYER2_PIECE;
+    board[index[1]] = PLAYER2_PIECE;
+    return generic_hash(board, 1);
   }
-  return generic_hash(board, (player == 1) ? 2 : 1);
 }
 
 
@@ -429,8 +438,8 @@ VALUE Primitive (POSITION position)
    * own pieces.
    */
   char board[BOARD_SIZE];
-  board = generic_unhash (position, board);
   int x,y,d;
+  generic_unhash (position, board);
   for (y = 0; y < BOARD_ROWS+1-NUM_TO_WIN; y++) {
     for (x = 0; x < BOARD_COLS+1-NUM_TO_WIN; x++) {
       if (board[CoordsToIndex(x,y)] != EMPTY_PIECE) {
@@ -488,19 +497,27 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   char board[BOARD_SIZE];
-  board = generic_unhash (position);
-  int x,y;
+  generic_unhash (position, board);
   printf (" The game board as %s sees it:\n  +", playersName);
-  for (x = 0; x < BOARD_COLS; x++)
-    printf("-+");
+  printBoard(board);
+}
+
+void printBoard(char board[]) {
+  /* this is not the most efficient implementation.  better to structure the
+   * board so that traverse columns left to right and rows top to bottom.
+   * that way can just have one for loop.  so far x is fine, but y must be
+   * inverted.  best part is entire program relies on CoordsToIndex, so only
+   * need to change the helper functions.
+   */
+  int x,y;
+  printf("  +");
+  for (x = 0; x < BOARD_COLS; x++) printf("-+");
   for (y = BOARD_ROWS-1; y >= 0; y--) {
     /* printing the board top-down */
-    printf ( "\n%d |" , i );
-    for (x = 0; x < BOARD_COLS; x++) 
-      printf ("%c|", board[CoordsToIndex(x,y)]);
+    printf ( "\n%d |" , y );
+    for (x = 0; x < BOARD_COLS; x++) printf ("%c|", board[CoordsToIndex(x,y)]);
     printf ("\n  +");
-    for (x = 0; x < BOARD_COLS; x++)
-      printf("-+");
+    for (x = 0; x < BOARD_COLS; x++) printf("-+");
   }
   printf("\n  ");
   for (x = 0; x < BOARD_COLS; x++)
@@ -522,10 +539,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    int position = Unhasher_Position (computersMove);
-    int direction = Unhasher_Direction (computersMove);
     int coords[4];
-    coords = DecodeMove(computersMove, coords);
+    MoveToCoords(computersMove, coords);
     printf("%8s moved (%2d,%2d) to (%2d,%2d)\n\n ",computersName, coords[0], \
 	   coords[1], coords[2], coords[3]);
 }
@@ -543,7 +558,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 {
   int xy[4];
-  xy = DecodeMove(move, xy);
+  MoveToCoords(move, xy);
   printf("from (%2d,%2d) to (%2d,%2d)", xy[0], xy[1], xy[2], xy[3]);
 }
 
@@ -620,9 +635,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
  */
 BOOLEAN ValidTextInput (STRING input)
 {
+  extern const STRING directions[];
   int x,y,i;
-  char *dir;
-  sscanf(input, "%d%d %s",&x,&y,dir);
+  char dir[strlen(input)];
+  sscanf(input, "%d %d %s",&x,&y,dir);
   if ((x >= 0) && (x < BOARD_COLS) && (y >= 0) && (y < BOARD_ROWS)) {
     for (i = 0; i < 4; i++) {
       // for every string in directions
@@ -649,16 +665,18 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
+  extern const STRING directions[];
+  extern const int dir_increments[][];
   int x,y,i;
-  char *dir;
-  sscanf(input, "%d%d %s",&x,&y,dir);
+  char dir[strlen(input)];
+  sscanf(input, "%d %d %s",&x,&y,dir);
   for (i = 0; i < 4; i++) {
     // for every string in directions
     if (strcmp(directions[i], dir) == 0) {
-      return EncodeMove(x,y,x + dir_increments[i][0],y + dir_increments[i][1]);
+      return CoordsToMove(x,y,x+dir_increments[i][0],y+dir_increments[i][1]);
     }
   }
-  printf("ERROR - CONVERTTEXTINPUTTOMOVE CAUGHT BAD MOVE");
+  printf("ERROR - CONVERT TEXT INPUT TO MOVE CAUGHT BAD MOVE");
   return kBadPosition;
 }
 
@@ -716,7 +734,68 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return gInitialPosition;
+  char board[BOARD_SIZE];
+  int i;
+  const int player = 1;
+  char input[80];
+  BOOLEAN setboard = TRUE;
+  BOOLEAN tryagain = TRUE;
+
+  while (tryagain) {
+    for (i = 0; i < BOARD_SIZE; i++) {
+      board[i] = EMPTY_PIECE;
+    }
+    printf("please enter board locations for the pieces in 'x y' format.\n");
+    printf("for example, to place a piece at (0,1) you'd enter '0 1'.\n");
+    printf("enter 'quit' or 'exit' to leave this function and return to\n");
+    printf("the default initial board.\n");
+    if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER1_PIECE))) break;
+    if (!(setboard = tryagain = GetInitPosHelper(board, PLAYER2_PIECE))) break;
+    while (TRUE) {
+      printf("is this the board you want? (y/n)");
+      printBoard(board);
+      gets(input);
+      if ((strcmp(input,"y") == 0) || (strcmp(input,"yes") == 0)) {
+	setboard = TRUE;
+	tryagain = FALSE;
+	break;
+      } else if ((strcmp(input,"n") == 0) || (strcmp(input,"no") == 0)) {
+	setboard = FALSE;
+	tryagain = TRUE;
+	break;
+      } else {
+	printf("error. enter 'y', 'yes', 'n', or 'no'.\n");
+      }
+    }
+  }
+  if (setboard) gInitialPosition = generic_hash(board, player);
+  return gInitialPosition;
+}
+
+BOOLEAN GetInitPosHelper (char board[], char playerchar) {
+  int i,x,y;
+  char input[80];
+  for (i = 0; i < PLAYER_PIECES; i++) {
+    printf("enter the location of %c piece %d: ",playerchar,i+1);
+    gets(input);
+    if ((strcmp(input,"quit") == 0) || (strcmp(input,"exit") == 0)) {
+      return FALSE;
+    } else {
+      sscanf(input,"%d %d",x,y);
+      if ((x < 0) || (y < 0) || (x >= BOARD_COLS) || (y >= BOARD_ROWS)) {
+	printf("error - off board.");
+	i--;
+	continue;
+      } else if (board[CoordsToIndex(x,y)] != EMPTY_PIECE) {
+	printf("error - already occupied.");
+	i--;
+	continue;
+      } else {
+	board[CoordsToIndex(x,y)] = playerchar;
+      }
+    }
+  }
+  return TRUE;
 }
 
 
@@ -748,7 +827,13 @@ int NumberOfOptions ()
 ** OUTPUTS:     int : the number representation of the options.
 **
 ************************************************************************/
-
+/* possible variants:
+ *   misere (2 options) - implemented
+ *   push one/push many (3 options)
+ *   move one/move many (2 options)
+ *   move style: rook/bishop (3 options)
+ *   36 options total.
+ */
 int getOption ()
 {
   if (gStandardGame) return 1;
@@ -803,18 +888,26 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+/* EVAN: once these functions are in place, feel free to modify them any
+ * way you want. (split IndexToCoords into an x and y variant for example)
+ * just make sure they fulfill their basic contract to answer meaningfully.
+ */
+
 int CoordsToIndex (int x, int y) {
   return  (x*BOARD_ROWS+y);
 }
 
 /* remember to call with a pointer! */
-int[] IndexToCoords (int index, int[] coords) {
+int* IndexToCoords (int index, int coords[]) {
   coords[0] = index/BOARD_ROWS;
-  coods[1] = index%BOARD_ROWS;
+  coords[1] = index%BOARD_ROWS;
   return coords;
 }
 
+/* depracated
 MOVE EncodeMove (int from_x, int from_y, int to_x, int to_y) {
+*/
+MOVE CoordsToMove (int from_x, int from_y, int to_x, int to_y) {
   return (MOVE) ( ( (from_x*BOARD_ROWS+from_y) *BOARD_COLS+to_x)
 		  *BOARD_ROWS + to_y);
 }
@@ -822,7 +915,10 @@ MOVE EncodeMove (int from_x, int from_y, int to_x, int to_y) {
 /* why do i use board rows and columns directly?  why don't i use
  * CoordsToIndex and board size?
  */
-int[] DecodeMove(MOVE hashed_move, int[] coords) {
+/* depracated
+int* DecodeMove(MOVE hashed_move, int[] coords) {
+*/
+int* MoveToCoords (MOVE hashed_move, int coords[]) {
   coords[0] = hashed_move/(BOARD_ROWS*BOARD_COLS*BOARD_ROWS); /* fromx */
   coords[1] = (hashed_move/(BOARD_ROWS*BOARD_COLS))%BOARD_ROWS; /* fromy */
   coords[2] = (hashed_move/BOARD_ROWS)%BOARD_COLS; /* tox */
@@ -835,12 +931,50 @@ int[] DecodeMove(MOVE hashed_move, int[] coords) {
  * don't have Encode and Decode Move.
  */
 
-int[] MoveToIndex(MOVE move, int[] index) {
+int* MoveToIndex (MOVE move, int index[]) {
   index[0] = move/BOARD_SIZE;
   index[1] = move%BOARD_SIZE;
   return index;
 }
 
-MOVE IndexToMove(int[] index) {
-  return index[0]*BOARD_SIZE+index[1];
+MOVE IndexToMove (int from_index, int to_index) {
+  return from_index*BOARD_SIZE+to_index;
+}
+
+/* not used.  yet.
+ */
+int* initializePiecesArray(int p_a[]) {
+  p_a[0] = PLAYER1_PIECE;
+  p_a[3] = PLAYER2_PIECE;
+  p_a[6] = EMPTY_PIECE;
+  p_a[9] = -1;
+  p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
+  p_a[7] = p_a[8] = BOARD_SIZE-2*PLAYER_PIECES;
+  return p_a;
+}
+
+int* initializeBoard (int board[]) {
+  int x,y;
+  char piece;
+  for (x = 0; x < BOARD_COLS; x++) {
+    for (y = 0; y < BOARD_ROWS; y++) {
+      if (y == 0) {
+	if ((x%2) == 0) {
+	  piece = PLAYER1_PIECE;
+	} else {
+	  piece = PLAYER2_PIECE;
+	} 
+      } else if (y == BOARD_ROWS-1) {
+	if ((x%2) == 0) {
+	  piece = PLAYER2_PIECE;
+	} else {
+	  piece = PLAYER1_PIECE;
+	}
+      } else {
+	piece = EMPTY_PIECE;
+      }
+      board[CoordsToIndex(x,y)] = piece;
+    }
+  }
+  return board;
 }
