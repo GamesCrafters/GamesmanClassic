@@ -98,6 +98,27 @@ proc InitConstants {} {
     global gGameSolved 
     set gGameSolved false
 
+    set rules [GS_GetGameSpecificOptions]
+
+    set kStandardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+    global gRuleset
+    set gRuleset [linsert $rules 0 $kStandardRule]
+    
+    global gNumberOfRules
+    set gNumberOfRules [llength $gRuleset]
+
+    for { set i 0 } { $i < $gNumberOfRules } { incr i } {
+	global gRule$i
+	set gRule$i 0
+    }
+
+    set settings [GetGameSpecificOptions]
+    eval [concat C_SetGameSpecificOptions [GetGameSpecificOptions]]
 }
 
 #############################################################################

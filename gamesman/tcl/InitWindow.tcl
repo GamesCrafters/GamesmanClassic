@@ -11,12 +11,8 @@ proc TBaction1 {} {
     global kGameName varObjective gPosition gInitialPosition
     global gGameSolved
     
-
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
-	set varObjective butStandard
-	eval [concat C_SetGameSpecificOptions [expr {$varObjective == "butStandard"}] \
-		[GS_GetGameSpecificOptions]]
 	. config -cursor watch
 	set theValue [C_DetermineValue $gPosition]
 	set gGameSolved true
@@ -37,10 +33,11 @@ proc TBaction1 {} {
 	.middle.f3.cMRight lower play
 	.middle.f1.cMLeft lower detVal
 	.cToolbar raise iATB
-
+	.cStatus lower base
+	update idletasks
 	NewGame
 	set gamestarted true 
-	.cStatus lower base
+	
 	.cToolbar bind iOTB1 <Any-Leave> \
 		".cToolbar raise iATB1"
     }
@@ -50,7 +47,7 @@ proc TBaction1 {} {
 proc TBaction2 {} {
     .cToolbar raise iITB
     pack forget .middle.f2.cMain   
-    pack .middle.f2.fRules -side bottom
+    pack .middle.f2.fRules -side bottom -fill both -expand 1
 }
 
 # Help button
@@ -108,8 +105,18 @@ proc SetupPlayOptions {} {
 
 }
 
-
-
+proc GetGameSpecificOptions {} {
+    global gRule0
+    set settings [expr !$gRule0]
+    global gNumberOfRules
+    
+    for { set i 1 } { $i < $gNumberOfRules } { incr i } {
+	global gRule$i
+	set settings [concat $settings [subst $[subst gRule$i]]]
+    }
+    return $settings
+}
+    
 proc InitWindow { kRootDir } {
 
 
@@ -272,8 +279,7 @@ proc InitWindow { kRootDir } {
 	-width [expr $gWindowWidth * 10 / 16] \
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background white
-
-
+    
     # 
     # PLAY OPTIONS FRAME
     #
@@ -389,16 +395,16 @@ proc InitWindow { kRootDir } {
     ## Rules Frame 
     ##            
     ##########
-
+	
     frame .middle.f2.fRules \
 	-width [expr $gWindowWidth * 10 / 16] \
 	-height [expr $gWindowHeight * 2 / 30]
-   
-    pack propagate .middle.f2.fRules 0
-
+    
     set rulesFrame .middle.f2.fRules
     frame $rulesFrame.buttons
-
+    
+    pack propagate $rulesFrame 0
+    
     button $rulesFrame.buttons.bCancel -text "Cancel" \
 	-command {
 	    pack forget .middle.f2.fRules
@@ -413,12 +419,34 @@ proc InitWindow { kRootDir } {
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
 	    update
+	    eval [concat C_SetGameSpecificOptions [GetGameSpecificOptions]]
+	    C_InitializeGame
+	    C_InitializeDatabases
+	    set theValue [C_DetermineValue $gPosition]
+	    TBaction1
 	}
 
     pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
     pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
-    pack $rulesFrame.buttons -side bottom -fill x -expand 1
-	
+    pack $rulesFrame.buttons -side bottom -fill x
+
+    global gRuleset
+    set ruleNum 0
+    foreach rule $gRuleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0]
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	global gRule$ruleNum
+	set gRule$ruleNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable gRule$ruleNum -value $rulePartNum -highlightthickness 0
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    }    
 
     #
     # Help Frame

@@ -40,6 +40,8 @@ static int		InitializeCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		InitializeDatabasesCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+static int              InitializeGameCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
 static int		GetComputersMoveCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		SetGameSpecificOptionsCmd _ANSI_ARGS_((ClientData clientData,
@@ -65,6 +67,8 @@ static int		ComputeCCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
  #endif
 static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		GetPredictionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
 /************************************************************************
@@ -94,6 +98,8 @@ Gamesman_Init(interp)
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_InitializeDatabases", (Tcl_CmdProc*) InitializeDatabasesCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_InitializeGame", (Tcl_CmdProc*) InitializeGameCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_GetComputersMove", (Tcl_CmdProc*) GetComputersMoveCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", (Tcl_CmdProc*) SetGameSpecificOptionsCmd, (ClientData) mainWindow,
@@ -119,6 +125,8 @@ Gamesman_Init(interp)
 		      (Tcl_CmdDeleteProc*) NULL);
  #endif
     Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetPrediction", (Tcl_CmdProc*) GetPredictionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     {
@@ -170,6 +178,24 @@ InitializeCmd(dummy, interp, argc, argv)
   else {
     Initialize();
     interp->result = "System Initialized";
+    return TCL_OK;
+  }
+}
+
+static int
+InitializeGameCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  if (argc != 1) {
+    interp->result = "wrong # args: shouldn't have any args";
+    return TCL_ERROR;
+  }
+  else {
+    InitializeGame();
+    interp->result = "Game Initialized";
     return TCL_OK;
   }
 }
@@ -475,6 +501,34 @@ RandomCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+
+static int
+GetPredictionCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  POSITION position;
+  STRING playerName, prediction;
+  STRING GetPrediction();
+  
+  if (argc != 3) {
+    interp->result = "wrong # args: GetPrediction position playerName";
+    return TCL_ERROR;
+  }
+
+  else {
+    if(Tcl_GetInt(interp, argv[1], &position) != TCL_OK)
+      return TCL_ERROR;
+    playerName = (STRING) argv[2];
+
+    prediction =  GetPrediction(position, playerName, TRUE);
+    sprintf(interp->result,"%s",prediction);
+    return TCL_OK;
+  }
+}
+
 
  #ifdef COMPUTEC
 static int

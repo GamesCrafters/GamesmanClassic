@@ -40,18 +40,6 @@ proc GS_InitGameSpecific {} {
 
     set kToMove "1) If possible, flip an opponent's piece to an adjacent space by clicking an arrow.\n2) Place a black or white piece in any empty space by clicking one of the small boxes within the space."
 
-    global kRuleSet
-    
-    set diagonalRule {
-	Two in a row
-	is NOT equivalent to three in a row
-	is equivalent to three in a row
-    }
-	
-    set kRuleSet {
-	diagonalRule
-    }
-	
 }
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -480,7 +468,7 @@ proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
     set unit [expr $blockSize/100]
 
     # increment must be divisible by 100
-    set increment 5 
+    set increment 10 
 
     if { $startingOrientation == "o" || $startingOrientation == "x" } {
 	set colorIncrement $increment; set initial 0
@@ -513,7 +501,7 @@ proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
 
 proc AnimateMovePart2 { c orientation newPiece } {
     #increment must be divisible by 50
-    set increment 5
+    set increment 10
 
     $c itemconfigure [subst $orientation]b-$newPiece -fill grey50
     $c raise [subst $orientation]b-$newPiece base
@@ -796,6 +784,14 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
 proc GS_GetGameSpecificOptions { } {
+    set diagonalRule \
+	[list \
+	     "Two in a row equivalent to three in a row" \
+	     "No" \
+	     "Yes" \
+	     ]
+	
+    return [list $diagonalRule]
 }
 
 
@@ -835,5 +831,3 @@ proc GS_Deinitialize { c } {
     # font delete ourArial
 }
 
-proc GS_GetGameSpecificOptions { } {
-}

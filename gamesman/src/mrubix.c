@@ -289,7 +289,11 @@ POSITION *hashBasePosition;
 void CombinationInit(int boardsize)
 {
   GENERIC_PTR SafeMalloc();
+  void SafeFree();
   int i, j;
+  if (CArray != NULL) {
+    SafeFree((GENERIC_PTR) CArray);
+  }
   CArray = (POSITION**) SafeMalloc(sizeof(POSITION*) * (boardsize + 1));
   for(i=0; i<=boardsize; i++) {
     CArray[i] = (POSITION*) SafeMalloc(sizeof(POSITION) * (boardsize + 1));
@@ -549,7 +553,7 @@ void GameSpecificMenu() {
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
-    /* No need to have anything here, we have no extra options */
+  twoInARow = theOptions[0];
 }
 
 /************************************************************************
