@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.50 2005-01-15 21:19:33 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.51 2005-01-15 21:25:17 scarr2508 Exp $
 
 # 
 #  the actions to be performed when the toolbar buttons are pressed
@@ -22,9 +22,9 @@ proc TBaction1 {} {
     if { $gGameSolved == "false"} {
 	.middle.f1.cMLeft raise iDMB
 	.middle.f3.cMRight raise play
+	.cToolbar raise iDTB
 	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
-#	.cToolbar raise iDTB
 	SetupPlayOptions
 
 	global gLeftName gRightName
