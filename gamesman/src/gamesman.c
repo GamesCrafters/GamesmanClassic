@@ -2712,17 +2712,16 @@ DFS_SetParents(parent,position)
 POSITION parent,position;
 {				
   BOOLEAN Visited();
-  MOVELIST *ptr, *head, *GenerateMoves();
+  MOVELIST *moveptr, *movehead, *GenerateMoves();
   VALUE Primitive(), value;
   POSITION child;
-  POSITIONLIST *StorePositionInList();
+  POSITIONLIST *posptr, *poshead, *StorePositionInList();
   
   if(kDebugDetermineValue) printf("DV (%d,%d)\n", parent,position);
   if(Visited(position)) { /* We've been down this path before, don't DFS */
     if(kDebugDetermineValue) printf("Seen\n");
     /* PARENT me */
     gParents[position] = StorePositionInList(parent, gParents[position]);
-    return;
   } else if((value = Primitive(position)) != undecided) { /* Primitive */
     if(kDebugDetermineValue) printf("PRIM value = %s\n", gValueString[value]);
     SetRemoteness(position,0); /* Primitives are leaves, remoteness = 0 */
@@ -2741,20 +2740,37 @@ POSITION parent,position;
       BadElse("DetermineLoopyValue1 found primitive with value other than win/lose/tie");
     /* Set the value */
     StoreValueOfPosition(position,value);
-    return;
   } else { /* first time, need to recursively determine value */
     /* PARENT me */
     gParents[position] = StorePositionInList(parent, gParents[position]);
     if(kDebugDetermineValue) printf("normal, continue searching\n");
     MarkAsVisited(position);
-    head = ptr = GenerateMoves(position);
-    while (ptr != NULL) {
-      gNumberChildren[(int)position]++;    /* Record the number of kids */
-      child = DoMove(position,ptr->move);  /* Create the child */
-      DFS_SetParents(position,child);      /* DFS call */
-      ptr = ptr->next;                     /* Go to the next child */
+    movehead = GenerateMoves(position);
+    poshead = NULL;
+    
+    for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
+      gNumberChildren[(int)position]++;        /* Record the number of kids */
+      child = DoMove(position, moveptr->move); /* Create the child */
+      if (Visited(child)) {		       /* Visited? */
+        DFS_SetParents(position, child);       /* Go ahead and call (it'll be quick) */
+      } else {
+        /* Visit it later */
+        poshead = StorePositionInList(child, poshead);
+        /* Lock it so it gets evaluated here (as high in the tree as possible). */
+        MarkAsVisited(child);
+      }
     }
-    FreeMoveList(head);
+    
+    FreeMoveList(movehead);
+    
+    /* Make DFS calls on all children. */
+    for (posptr = poshead; posptr != NULL; posptr = posptr -> next) {
+      child = posptr -> position;
+      UnMarkAsVisited(child);		/* Release our lock on it */
+      DFS_SetParents(position, child);  /* DFS Recursion */
+    }
+    
+    FreePositionList(poshead);
   }
   return;          /* But has been added to satisty lint */
 }
