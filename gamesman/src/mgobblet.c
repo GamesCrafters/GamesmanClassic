@@ -425,7 +425,7 @@ POSITION DoMove(thePosition, theMove)
    
    if(srcPos >= TABLE_SLOTS)
    {
-      pieceSize = (srcPos - TABLE_SLOTS)/2;
+      pieceSize = srcPos - TABLE_SLOTS;
    }else{
       pieceSize = getTopPieceSize( newPos.board[ srcPos]);
       newPos.board[ srcPos] ^= PIECE_VALUE(getTopPieceColor( newPos.board[ srcPos] ),pieceSize);
@@ -693,7 +693,7 @@ void PrintPosition(position, playerName, usersTurn)
     for(cols2 = 0; cols2 < BOARD_SIZE;cols2++)
     {
         printf(" ");
-	gobbletPrintSpace(myPos.board[cols2]);
+	gobbletPrintSpace(myPos.board[rows+cols2]);
     }
     printf("\n");
   }
