@@ -1,3 +1,4 @@
+
 ############################################################################
 ##
 ## Source The Utility Functions
@@ -727,7 +728,7 @@ proc main {kRootDir} {
     # Initialize generic top-level window
     source "$kRootDir/../tcl/InitWindow.tcl"
     InitGlobals
-    InitWindow $kRootDir
+    InitWindow $kRootDir MandelSkin gif
 
     # Initialize game-specific globals and frame
     GS_InitGameSpecific
@@ -737,12 +738,14 @@ proc main {kRootDir} {
     global kGameName
     wm title . "$kGameName - GAMESMAN"
 
-    # Generate game-specific About and Help frames
+    # Generate game-specific About, Help, and Skins frames
     global gFrameWidth
     SetupAboutFrame .middle.f2.fAbout.content $gFrameWidth
     SetupHelpFrame .middle.f2.fHelp.content $gFrameWidth
+    SetupSkinsFrame .middle.f2.fSkins.content $gFrameWidth
 
     # Initialize the C backend
     C_Initialize
     C_InitializeDatabases
 }
+
