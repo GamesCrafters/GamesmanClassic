@@ -68,9 +68,12 @@
 ** 08 Mar 2005 Yanpei: EMPTYSLOT changed to 0 to accomodate for present hash()/unhash();
 **                     QTBOARD invariants temporarily violated to make things work;
 **                     Primitive() changed to reflect this; must change back later. 
-** 08 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
+** 09 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
 **
 ** 09 Mar 2005 Amy:    added move format in getandPrintPlayersMove(), printComputerMove() coded.
+** 10 Mar 2005 Mario:  corrected problem after switch to EMPTYSLOT, made game kPartizan
+**                     For some reason the second move is always a win, maybe Primitive needs to be updated
+**                     introducing some indirection for manipulating the board, still deciding what
 **************************************************************************/
 
 /*************************************************************************
@@ -97,7 +100,7 @@ STRING   kGameName            = "QUARTO"; /* The name of your game */
 STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
@@ -184,6 +187,7 @@ typedef struct board_item {
 typedef QTBOARD* QTBPtr;
 
 /* Letter codes for the different piece states */
+/*char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};*/
 char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
 
 /* ASCII Hex */
@@ -234,9 +238,12 @@ BOOLEAN			boards_equal ( QTBPtr, QTBPtr );
 void			print_board( QTBPtr );
 QTBPtr			TestHash( QTBPtr, int );
 
-MOVE CreateMove( MOVE slot, MOVE piece );
-MOVE GetMovePiece( MOVE move );
-MOVE GetMoveSlot( MOVE move );
+MOVE			CreateMove( MOVE slot, MOVE piece );
+MOVE			GetMovePiece( MOVE move );
+MOVE			GetMoveSlot( MOVE move );
+unsigned short	GetHandPiece( QTBPtr );
+void			SetHandPiece( QTBPtr, unsigned short );
+unsigned short	GetBoardPiece( QTBPtr, unsigned short );
 
 void PrintCell( void *cell, char (*CellContent)( short, void * ) );
 void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) );
@@ -328,7 +335,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	board	= unhash( position );
 	
 	/* If there's piece in hand, the only valid moves are the ones placing the piece in board slot */
-	if( board->slots[HAND] != EMPTYSLOT ) {
+	if( GetHandPiece( board ) != EMPTYSLOT ) {
 		
 		/* For each slot on board */
 		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
@@ -337,7 +344,7 @@ MOVELIST *GenerateMoves (POSITION position)
 			if ( board->slots[slot] == EMPTYSLOT ) {
 				
 				/* Add move which moves piece from hand into empty slot */
-				moves	= CreateMovelistNode( CreateMove( slot, board->slots[HAND] ), moves );
+			   moves	= CreateMovelistNode( CreateMove( slot, GetHandPiece( board ) ), moves );
 				
 			}
 			
@@ -359,7 +366,7 @@ MOVELIST *GenerateMoves (POSITION position)
 			if( board->slots[slot] != EMPTYSLOT ) {
 				
 				/* Remove piece from array of available pieces */
-				available_pieces[board->slots[slot] - FIRSTSLOT] = FALSE;
+				available_pieces[board->slots[slot]] = FALSE;
 				
 			}
 			
@@ -426,10 +433,10 @@ POSITION DoMove (POSITION position, MOVE move)
 		board->usersTurn	= !board->usersTurn;
 
 	/* Otherwise, if there's piece in hand */
-	} else if ( board->slots[HAND] != EMPTYSLOT ) {
+	} else if ( GetHandPiece( board ) != EMPTYSLOT ) {
 		
 		/* Take piece out of hand */
-		board->slots[HAND]	= EMPTYSLOT;
+	   SetHandPiece( board, EMPTYSLOT );
 		
 	}
 	
@@ -637,7 +644,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 {
 	
-	int slot, piece, trait;
+	unsigned short slot, piece, trait;
 	
 	/* Determine piece information */
 	piece	= GetMovePiece( move );
@@ -645,7 +652,6 @@ void PrintMove (MOVE move)
 	/* Determine slot information */
 	slot	= GetMoveSlot( move );
 	
-	printf("%d_",move);
 	/* For each piece trait */
 	for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
 		
@@ -846,7 +852,6 @@ MOVE ConvertTextInputToMove (STRING input)
 		
 	}
 
-	printf("created move %d\n", CreateMove(slot,piece));
 	return CreateMove( slot, piece );
 
 }
@@ -1168,6 +1173,7 @@ QTBPtr packunhash( POSITION hash ) {
 	return board;
 
 }
+
 
 /* Mario: non-gap hash function, INCOMPLETE!!! */
 POSITION qhash( QTBPtr board ) {
@@ -1597,4 +1603,22 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 	
 	PrintHorizontalBorder( '-', ' ', pad, "\n" );
 
+}
+
+unsigned short GetHandPiece( QTBPtr board ) {
+ 
+   return board->slots[HAND];
+     
+}
+
+void SetHandPiece( QTBPtr board, unsigned short piece ) {
+ 
+   board->slots[HAND] = piece;
+     
+}
+
+unsigned short GetBoardPiece( QTBPtr board, unsigned short slot ) {
+   
+   return board->slots[slot + FIRSTSLOT];
+   
 }
