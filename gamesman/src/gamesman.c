@@ -241,7 +241,7 @@ static BOOLEAN gAgainstComputer = TRUE;        /* TRUE iff the user is playing t
 static BOOLEAN gHumanGoesFirst;         /* TRUE iff the user goes first vs. computer */
 BOOLEAN gStandardGame = TRUE;           /* TRUE iff game is STANDARD (not REVERSE) */
 static BOOLEAN gPrintPredictions = TRUE;       /* TRUE iff the predictions should be printed */
-static BOOLEAN gHints = TRUE;          	 /* TRUE iff possible moves should be printed */
+static BOOLEAN gHints = FALSE;          	 /* TRUE iff possible moves should be printed */
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 STRING kSolveVersion = "3.02.03" ;    /* This will be valid for the next hundred years hehehe */
@@ -1854,8 +1854,7 @@ MOVE GetComputersMove(thePosition)
     }
     if(gHints) {
       printf("Random move: \n");
-      printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-    }
+      printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);      }
     
     for (head = NULL, i = 0; i <= LOSEMOVE; i++) {
       ptr = moves -> moveList[i];
