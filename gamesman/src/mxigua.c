@@ -35,6 +35,8 @@
 #include <unistd.h>
 #include <limits.h>
 
+/* didn't see hash.h included in gamesman.h */
+#include "hash.h"
 
 /*************************************************************************
 **
@@ -110,7 +112,7 @@ extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
 /* Internal */
-void displayasciiboard(char *);
+void displayasciiboard(char *, char *);
 
 /*************************************************************************
 **
@@ -133,7 +135,8 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-    
+	int piecesarray[]={'X',0,21,'*',0,21,'O',0,21,-1};
+	generic_hash_init(21, piecesarray, NULL);    /* initialize the hash */
 }
 
 
@@ -218,32 +221,21 @@ VALUE Primitive (POSITION position)
 
 
 /************************************************************************
-**
-** NAME:        PrintPosition
-**
-** DESCRIPTION: Prints the position in a pretty format, including the
-**              prediction of the game's outcome.
+** displayasciiboard() -- displays the board in a nice to view manner
 ** 
-** INPUTS:      POSITION position    : The position to pretty print.
-**              STRING   playersName : The name of the player.
-**              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
+** Takes in a char array that represents each of the positions and a character
+** array with the prediction.
 **
-** CALLS:       Unhash()
-**              GetPrediction()      : Returns the prediction of the game
+** IMPORTANT: Prediction needs to be 15 characters, 15 is the number of characters
+** for 16 is too much and 14 is too few. 15 is the number of characters needed
+** for the output to look proper  -JK
 **
-************************************************************************/
+** Returns nothing.
+**
+** Still need to add the prediction into the drawing. -JK
+** 
+*************************************************************************/
 
-/**
- * displayasciiboard() -- displays the board in a nice to view manner
- * 
- * Takes in a char array that represents each of the positions and a character
- * array with the prediction.
- *
- * Returns nothing.
- *
- * Still need to add the prediction into the drawing. -JK
- * 
- */
 void displayasciiboard(char *positionvalues, char *prediction) {
 	/* dirty but should work */
 	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
@@ -258,12 +250,33 @@ void displayasciiboard(char *positionvalues, char *prediction) {
         printf("       F......G......H             %c......%c......%c\n",pos[14],pos[15],pos[16]);
         printf("        \\.....|...../               \\.....|...../\n");
         printf("         \\....I..../                 \\....%c..../\n",pos[17]);
-        printf("          \\../|\\../                   \\../|\\../\n");
-        printf("           \\J-K-L/                     \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+        printf("          \\../|\\../   Prediction:     \\../|\\../\n");
+        printf("           \\J-K-L/  (%s)  \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
 
 }
-/* Whoops, forgot to move the comment describing PrintPosition 
- will do it later, till then, scroll up directly above the previous function */
+
+void getprediction(char *pred) {
+	int i=0;
+	/* code to initialize it to blank values until a later time */
+	pred = (char *)malloc(sizeof(char)*17);
+	for(;i<16;i++) pred[i]=(char)32; /* fill with spaces */
+	pred[i]='\0';
+}
+/************************************************************************
+**
+** NAME:        PrintPosition
+**
+** DESCRIPTION: Prints the position in a pretty format, including the
+**              prediction of the game's outcome.
+** 
+** INPUTS:      POSITION position    : The position to pretty print.
+**              STRING   playersName : The name of the player.
+**              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
+**
+** CALLS:       Unhash()
+**              GetPrediction()      : Returns the prediction of the game
+**
+************************************************************************/
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
@@ -285,8 +298,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 *
 	 * all thanks to boring lectures =)
 	 */
-	char *toprint;
-	GetPrintablePosition(position,toprint);
+	char *toprint, *prediction;
+	/* need to get prediction, till then... */
+	getprediciton(prediction);
+	toprint = generic_unhash(position,toprint);
 	displayasciiboard(toprint); 
 } 
 
