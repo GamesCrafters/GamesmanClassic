@@ -24,7 +24,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition [C_InitialPosition]
+    set gInitialPosition 129
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -587,15 +587,15 @@ proc GS_DrawPosition { c position } {
 #unhashes the position from the C code with C_GenericUnhash. Returns the unhashed position.
 proc Unhash { position } {
 
-    set stringPosition ""
-    set stringPositionR [C_GenericUnhash $position 9]
+    #set stringPosition ""
+    set stringPosition [C_GenericUnhash $position 9]
     #set pieceString [string range [C_GenericUnhash $position 9] 0 8]
     #set stringPosition "_ooooxxxx"
 
 
-     for {set x 9} {$x >= 0} {set x [expr $x - 1]} {
- 	append stringPosition [string index $stringPositionR $x]
-     }
+#     for {set x 9} {$x >= 0} {set x [expr $x - 1]} {
+# 	append stringPosition [string index $stringPositionR $x]
+#     }
 
 
 
