@@ -49,6 +49,8 @@
 **			    	Created a game specific menu, (currently only changes boardsize)
 **				Created smaller board sizes (5 board, have functions for 9, 13, 17)
 **		 -- 3.7.05 -- Created more boards (9, 13, and 17)
+**			      Wrote ValidTextInput() and Convert TextInputToMove()
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -584,9 +586,9 @@ void display9board(char *pos,char *prediction) {
 void display13board(char *pos,char *prediction) {
 	printf("Legend:   1......2......3   Current:    %c......%c......%c\n",pos[0],pos[1],pos[2]);
 	printf("          |\\..../|\\..../|   Player1: *  |\\..../|\\..../|\n");
-	printf("          4-5--6-7-8--9-Z   Player2: X  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
+	printf("          4-5--6-7-8--9-B   Player2: X  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
 	printf("          |/....\\|/....\\|               |/....\\|/....\\|\n");
-	printf("          Y......X......W               %c......%c......%c\n",pos[10],pos[11],pos[12]);
+	printf("          D......E......F               %c......%c......%c\n",pos[10],pos[11],pos[12]);
 	printf(" Prediction (%s)\n\n",prediction);
 }
 
@@ -597,9 +599,9 @@ void display17board(char *pos,char *prediction) {
         printf("        /.....|.....\\               /.....|.....\\\n");
         printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
         printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
-        printf("       8-9--Z-Y-X--W-V             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+        printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
         printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
-        printf("       U......T......S             %c......%c......%c\n",pos[14],pos[15],pos[16]);
+        printf("       I......J......K             %c......%c......%c\n",pos[14],pos[15],pos[16]);
 	printf(" Prediction (%s)\n\n",prediction);
 }
 
@@ -612,13 +614,13 @@ void display21board(char *positionvalues, char *prediction) {
         printf("        /.....|.....\\               /.....|.....\\\n");
         printf("       5......6......7             %c......%c......%c\n",pos[4],pos[5],pos[6]);
         printf("       |\\..../|\\..../|             |\\..../|\\..../|\n");
-        printf("       8-9--A-B-C--D-E             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+        printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
         printf("       |/....\\|/....\\|             |/....\\|/....\\|\n");
-        printf("       F......G......H             %c......%c......%c\n",pos[14],pos[15],pos[16]);
+        printf("       I......J......K             %c......%c......%c\n",pos[14],pos[15],pos[16]);
         printf("        \\.....|...../               \\.....|...../\n");
-        printf("         \\....I..../                 \\....%c..../\n",pos[17]);
+        printf("         \\....L..../                 \\....%c..../\n",pos[17]);
         printf("          \\../|\\../   Prediction:     \\../|\\../\n");
-        printf("           \\J-K-L/  (%s)  \\%c-%c-%c/\n",prediction,pos[18],pos[19],pos[20]);
+        printf("           \\M-N-P/  (%s)  \\%c-%c-%c/\n",prediction,pos[18],pos[19],pos[20]);
 
 }
 
@@ -710,7 +712,50 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+	char move=0;
+	if(computersMove>-1 && computersMove < 9) {
+		move=49+computersMove;
+	} else {
+		switch(computersMove) {
+			case 9:
+				move='B';
+				break;
+			case 10:
+				move='D';
+				break;
+			case 11:
+				move='E';
+				break;
+			case 12:
+				move='F';
+				break;
+			case 13:
+				move='G';
+				break;
+			case 14:
+				move='I';
+				break;
+			case 15:
+				move='J';
+				break;
+			case 16:
+				move='K';
+				break;
+			case 17:
+				move='L';
+				break;
+			case 18:
+				move='M';
+				break;
+			case 19:
+				move='N';
+				break;
+			case 20:
+				move='P';
+				break;
+		}
+	}
+	printf("%s's move		: %c\n",computersName,move);				
 }
 
 
@@ -726,7 +771,50 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    
+        char movechar=0;
+        if(move>-1 && move < 9) {
+                movechar=49+move;
+        } else {
+                switch(move) {
+                        case 9:
+                                movechar='B';
+                                break;
+                        case 10:
+                                movechar='D';
+                                break;
+                        case 11:
+                                movechar='E';
+                                break;
+                        case 12:
+                                movechar='F';
+                                break;
+                        case 13:
+                                movechar='G';
+                                break;
+                        case 14:
+                                movechar='I';
+                                break;
+                        case 15:
+                                movechar='J';
+                                break;
+                        case 16:
+                                movechar='K';
+                                break;
+                        case 17:
+                                movechar='L';
+                                break;
+                        case 18:
+                                movechar='M';
+                                break;
+                        case 19:
+                                movechar='N';
+                                break;
+                        case 20:
+                                movechar='P';
+                                break;
+                }
+        }
+	printf("%c ",movechar);	 
 }
 
 
@@ -799,6 +887,30 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+	switch(toupper(input[0])) {
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		case 'B':
+		case 'D':
+		case 'E':
+		case 'F':
+		case 'G': 
+	        case 'I':
+		case 'J':
+		case 'K':
+		case 'L':
+		case 'M':
+		case 'N':
+		case 'P':
+			return TRUE;
+	}		
     return FALSE;
 }
 
@@ -819,6 +931,35 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
+	switch(toupper(input[0])) {
+		case 'B':
+			return (MOVE)9;
+		case 'D':
+			return (MOVE)10;
+                case 'E':
+			return (MOVE)11;
+                case 'F':
+			return (MOVE)12;
+                case 'G':
+			return (MOVE)13; 
+                case 'I':
+			return (MOVE)14;
+                case 'J':
+			return (MOVE)15;
+                case 'K':
+			return (MOVE)16;
+                case 'L':
+			return (MOVE)17;
+                case 'M':
+			return (MOVE)18;
+                case 'N':
+			return (MOVE)19;
+                case 'P':
+			return (MOVE)20;
+		default:
+			input[1]='\0';
+			return (MOVE)atoi(input)-1;
+	}	
     return 0;
 }
 
