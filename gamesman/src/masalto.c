@@ -244,12 +244,6 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 void InitializeGame ()
 {
-	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
-		  	    'F', FOX_MIN, FOX_MAX,
-		            'G', GEESE_HASH_MIN, GEESE_MAX, -1};
-	int max;
-	int init;
-	
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
 
@@ -543,7 +537,7 @@ void GameSpecificMenu ()
 	do
 	{
 		printf("\n\t----- Game Specific Options for Asalto ----- \n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tm)\t(M)odify Board\n");
 		printf("\tg)\tToggle (G)o Again from ");
@@ -804,8 +798,6 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 POSITION GetInitialPosition()
 {
         int boardStats[2];
-	int coordinate[2];
-	int location = -1;
 	char selection_command[80];
 	char selection = 'Z';
 	
@@ -813,7 +805,7 @@ POSITION GetInitialPosition()
 	{
 		boardPieceStats(start_standard_board, boardStats);
 		printf("\n\t----- Asalto Initial Position Setup -----\n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
@@ -1019,6 +1011,7 @@ VALUE Primitive (POSITION pos)
 		if (PRIMITIVE_DEBUG) { printf("Undecided\n"); }
 		return undecided;
 	}
+	return undecided; /* Ummm... We shouldn't be here */
 }
 
 
@@ -1062,7 +1055,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 		piece = 'Z';
 	}
 	
-	if (PRINTPOSITION_DEBUG) { printf("Position Hash %d\n",position);}
+	if (PRINTPOSITION_DEBUG) { printf("Position Hash " POSITION_FORMAT "\n",position);}
 	
 	printf("\n");
 	
@@ -1120,7 +1113,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	if (GENERATEMOVES_DEBUG)
 	{
 		printf("mASALTO - GenerateMoves() Running...\n"); 
-		printf("mASALTO - GenerateMoves() --> pos: %d  player: %d\n",position,player);
+		printf("mASALTO - GenerateMoves() --> pos: " POSITION_FORMAT "  player: " POSITION_FORMAT "\n",position,player);
 	}
 	
 	generic_unhash(getPosition(position), board);
@@ -1476,6 +1469,7 @@ int validMove(const char board[BOARDSIZE], int move[2],int player)
 	{
 		return 0;
 	}
+	return 0; /* We shouldn't be here */
 }
 
 
@@ -1850,14 +1844,13 @@ void AddRemoveFoxes(char board[])
 	int location = -1;
 	int coordinate[2] = {-1,-1};
 	int boardStats[3];
-	int num_fox_placed = 0;
 	int validCoord=0;
 		
 	do
 	{
 		boardPieceStats(board, boardStats);
 		printf("\n\t----- Asalto Fox Placement -----\n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
@@ -1959,7 +1952,7 @@ void AddRemoveGeese(char board[])
 	{
 		boardPieceStats(board, boardStats);
 		printf("\n\t----- Asalto Geese Placement-----\n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tCurrent Board\n");
 		
