@@ -92,15 +92,15 @@ opponent piece two spaces away. If a capture move is not available, you move\n\
 one of your pieces to an adjacent space.";
 
 STRING   kHelpStandardObjective =
-"To capture all of your opponent's pieces, or to put them into a position where\n\
-they cannot move.";
+"To capture all but one of your opponent's pieces, or to put them into a position\n\
+where they cannot move.";
 
 STRING   kHelpReverseObjective =
-"To have all your pieces captured first, or to be put in a position where\n\
+"To have all but one of your pieces captured first, or to be put in a position where\n\
 you cannot move.";
 
 STRING   kHelpTieOccursWhen =
-"(impossible)";
+"Both players have exactly one piece each, or both players cannot move.";
 
 STRING   kHelpExample =
 "";
@@ -369,14 +369,14 @@ VALUE Primitive (POSITION position)
 {
   int player = whoseMove(position);
 
-  if ((numberOfPieces(position, player) == 1) || 
-      (numberOfPieces(position, oppositePlayer(player)) == 1) || 
+  if ((numberOfPieces(position, player) == 1) ||
       GenerateMoves(position) == NULL)
     return (gStandardGame ? lose : win);
-  
   else
     return undecided;
+
 }
+
 
 /************************************************************************
 **
