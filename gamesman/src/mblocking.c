@@ -1446,7 +1446,7 @@ int handleImage(char* token, int* pos, nodes board) {
 
   order_counter = 0;
   name[1] = '\0';
-  while(c_line) {
+  while(c_line && (i < 20)) {
     sprintf(image[i], "%.35s", c_line);
     j = 0;
     while(image[i][j] && (image[i][j] != '\n') 
