@@ -146,6 +146,25 @@ typedef struct valuemoves_item
 }
 VALUE_MOVES;
 
+/* Analysis Data */
+
+typedef struct analysis_info
+{
+	int HashEfficiency;
+	float AverageFanout;
+	POSITION NumberOfPositions;
+	POSITION TotalPositions;
+	unsigned int TotalMoves;
+	unsigned long WinCount;
+	unsigned long LoseCount;
+	unsigned long TieCount;
+	unsigned long UnknownCount;
+	unsigned long PrimitiveWins;
+	unsigned long PrimitiveLoses;
+	unsigned long PrimitiveTies;
+	unsigned int TimeToSolve;
+} ANALYSIS;
+
 typedef signed char MEX;           /* The max mex value is 31 */
 typedef unsigned long int MEXCALC; /* ...since we use a long int here */
 
