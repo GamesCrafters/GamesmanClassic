@@ -636,7 +636,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
-    printf("%8s's move [(u)ndo/[0-23 0-23](,[0-23])?] :  ", playerName);
+    printf("%8s's move [(u)ndo/0-23 0-23 (0-23)] :  ", playerName);
 
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -667,51 +667,79 @@ BOOLEAN ValidTextInput(input)
      STRING input;
 {
   // we could bulletproof this a lot more
-  // currently checks for a number, a space followed by a number, 
-  // and an optional comma with a number
-  
-  int i;
 
-  BOOLEAN hasSpace, hasComma;
+
+  
+  int moveFrom, moveTo, moveRemove;
+
+  BOOLEAN hasSpace, has2Space;
   STRING afterSpace;
-  STRING afterComma;
+  STRING after2Space;
   
   //debug
   if (debug) {
     printf("ValidTextInput evaluating: %s \n", input);
   }
 
-  i = atoi(input);
+  moveFrom = atoi(input);
 
-  hasSpace = index(input, ' ') != NULL;
-  hasComma = index(input, ',') != NULL;
+  //debug
+  if (debug) {
+    printf("moveFrom of input: %d", moveFrom);
+  }
   
-  if (hasSpace)
+  hasSpace = index(input, ' ') != NULL;
+  
+  
+  if (hasSpace) {
     afterSpace = index(input, ' ');
-  else {
+    //debug
+    if (debug) {
+      printf("index of the space: %d", afterSpace);
+    }
+  } else {
     return FALSE;
   }
     
-  if (hasComma)
-    afterComma = index(input, ',');
-  else
+  if (moveFrom < 0 || moveFrom >= BOARDSIZE){
+    //debug
+    if (debug) {
+      printf("move check fails b/c of Moveto");
+    }
     return FALSE;
+  }
+  
+  moveTo = atoi(afterSpace);
 
-  i = atoi(input);
-  if (!(i < BOARDSIZE) && (i >= 0))
-  	return FALSE;
+  //debug
+  if (debug) {
+    printf("moveTo of input: %d", moveTo);
+  }
   
-  i = atoi(afterSpace);
-  if (!(i < BOARDSIZE) && (i >= 0))
+  if (moveTo < 0 || moveTo >= BOARDSIZE) {
+    // debug
+    if (debug) {
+      printf("move check fails b/c of Moveto");
+    }
   	return FALSE;
+  }
   
-  if (hasComma)
-  i = atoi(afterComma);
-  if (!(i < BOARDSIZE) && (i >= 0))
-  	return FALSE;
-  else 
+  has2Space = index(++afterSpace, ' ') != NULL;
+  if (has2Space) {
+    after2Space = index(afterSpace, ' ');
+    moveRemove = atoi(after2Space);
+    if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
+      // debug
+    if (debug) {
+      printf("move check fails b/c of MoveRemove");
+    }
+      return FALSE;
+    }
+    else 
+      return TRUE;
+  } else {
     return TRUE;
-  
+  }
   return FALSE; // should never be reached
   
 }
@@ -735,28 +763,28 @@ MOVE ConvertTextInputToMove(input)
 {
   int from, to, remove;
   STRING afterSpace;
-  STRING afterComma;
-  BOOLEAN hasSpace, hasComma;
-
-  hasSpace = (index(input, ' ')) != NULL;
-  hasComma = (index(input, ',')) != NULL;
+  STRING after2Space;
+  BOOLEAN hasSpace, has2Space;
   
   from = atoi(input);
-
+  remove = from;
+  hasSpace = index(input, ' ') != NULL;
   
   if (hasSpace) {
     afterSpace = index(input, ' ');
-  to = atoi(afterSpace);
+    to = atoi(afterSpace);
+
+    has2Space = index(++afterSpace, ' ') != NULL;
+
+    if (has2Space) {
+      after2Space = index(afterSpace, ' ');
+      remove = atoi(after2Space);
+    } 
+    
   } else {
     return 0; // Should be a bad else
   }
-    
-  if (hasComma) {
-    afterComma = index(input, ',');
-    remove = atoi(afterComma);
-  } else
-    remove = from;
-  
+      
   //debug
   if (debug) {
     printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
@@ -982,7 +1010,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 }
 
 BOOLEAN closes_mill_move(MOVE the_move) {
-  return from(the_move) == remove_piece(the_move);
+  return from(the_move) != remove_piece(the_move);
 }
 
 BOOLEAN closes_mill(POSITION position, int raw_move)
@@ -1056,6 +1084,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.36  2004/04/13 05:23:23  jjjordan
+//You can now compile text games without having tcl. -JJ
+//
 //Revision 1.35  2004/04/12 19:34:11  ogren
 //Minor movements of comments -Elmer
 //
