@@ -16,13 +16,14 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-09-27:	Fixed name of function call in PrintPosition
-				Wrote vcfg
-				Wrote DoMove
+** UPDATE HIST: 2004-10-02:	Wrote GetMoveList
+**		2004-09-27:	Fixed name of function call in PrintPosition
+**				Wrote vcfg
+**				Wrote DoMove
 **		2004-09-26:	Defined pieceat (do we need getpiece and Board_Rep?)
-				Wrote InitializeBoard
+**				Wrote InitializeBoard
 **		2004-09-25:	Defined Board_Rep and getpiece
-				Wrote PrintPosition
+**				Wrote PrintPosition
 **
 **************************************************************************/
 
@@ -93,7 +94,11 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-typedef enum board_position { BLANK, WHITE, BLACK } BWB;
+#define BLANK '.'
+#define WHITE 'X'
+#define BLACK 'O'
+
+/*typedef enum board_position { BLANK, WHITE, BLACK } BWB;
 /*typedef int TURN;
 struct Board_Rep {
 	BWB* spaces;
@@ -103,8 +108,9 @@ struct Board_Rep {
 /* Do we need getpiece and Board_Rep?? */
 
 #define pieceat(B, x, y) ((B)[(y) * width + (x) + 1])
-#define get_x_coord(position) (position) % width
-#define get_y_coord(position) (position) / width
+#define get_location(x, y) ((y) * width + (x))
+#define get_x_coord(location) ((location) % width)
+#define get_y_coord(location) ((location) / width)
 
 /* The two leftmost bits of a MOVE are unused.
  * The next 10 bits encode the source of the player's SLIDE move.
@@ -136,6 +142,10 @@ int whitePiecesRemaining = numpieces, blackPiecesRemaining = numpieces;
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+int vcfg(int* this_cfg);
+int next_player(int position);
+void BadElse(char* message);
+
 
 /*************************************************************************
 **
@@ -158,13 +168,13 @@ extern VALUE     *gDatabase;
 
 void InitializeGame () {
 	int i, j;
-	int pieces_array[10] = {'.', 0, width * height, 'X', 0, numpieces, 'O', 0, numpieces, -1 };
+	int pieces_array[10] = {BLANK, 0, width * height, WHITE, 0, numpieces, BLACK, 0, numpieces, -1 };
 	char board[width * height];
 	
 	gNumberOfPositions = generic_hash_init(width * height, pieces_array, vcfg);
 	for (i = 0; i < height; i++) {
 		for (j = 0; j < width; j++) {
-			pieceat(board, j, i) = '.';
+			pieceat(board, j, i) = BLANK;
 		}
 	}
 	gInitialPosition = generic_hash(board, 1);
@@ -191,11 +201,73 @@ void InitializeGame () {
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
+	MOVELIST *moves = NULL;
     
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	int player;
+	int sx, sy, dx, dy, px, py; /* Source x-coord, source y-coord, dest x-coord... etc. */
+	int validDestination;
+	int i, j;
+	char board[width * height];
+	char players_piece;
+	MOVE move;
     
-    return moves;
+	player = next_player(position);
+	players_piece = (player == 1 ? WHITE : BLACK);
+	board = generic_unhash(position, board);
+	
+	for (sx = 0; sx < width; sx++) {
+		for (sy = 0; sy < height; sy++) {
+			if (pieceat(sx, sy, board) == players_piece) {
+				for (dx = 0; dx < width; dx++) {
+					for (dy = 0; dy < height; dy++) {
+						validDestination = 1; /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
+						if (sx == dx && sy == dy){
+							validDestination = 0;
+						}
+						else if (sx == dx && sy != dy) {
+							for (i = sy; i != dy; (sy < dy ? i++ : i--)) {
+								if (pieceat(board, sx, i) != BLANK) {
+									validDestination = 0;
+								}
+							}
+						}
+						else if (sx != dx && sy == dy) {
+							for (i = sx; i != dx; (sx < dx ? i++ : i--)) {
+								if (pieceat(board, i, sy) != BLANK) {
+									validDestination = 0;
+								}
+							}
+						}
+						else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
+							for (i = sx, j = sy; i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
+								if (pieceat(board, i, j) != BLANK) {
+									valid Destination = 0;
+								}
+							}
+						}
+						else BadElse("Bad Else in GenerateMoves\n");
+						if (validDestination) {
+							for (px = 0; px < width; px++) {
+								(py = 0; py < height; py++) {
+									if (pieceat(px, py, board) == BLANK) {
+										move = 0;
+										set_move_source(move, get_location(sx, sy));
+										set_move_dest(move, get_location(dx, dy);
+										set_move_place(move, get_location(px, py);
+										CreateMovelistNode(move, moves);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+	
+	return moves;
 }
 
 
@@ -218,8 +290,8 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move) {
 	/* This function does ZERO ZILCH ABSOLUTELY-NONE-AT-ALL error checking.  move had better be valid */
 	
-	int player; /* How do we initialize this?  Perhaps MOVEs encode which player did them? */
-	char players_piece = player == 1 ? 'X' : 'O';
+	int player = next_player(position);
+	char players_piece = player == 1 ? WHITE : BLACK;
 	POSITION new;
 	char* board[width * height];
 	
@@ -620,6 +692,27 @@ void DebugMenu ()
 ************************************************************************/
 
 int vcfg(int *this_cfg) {
-	/* If number of 'O's is equal to or one less than number of 'X's then this configuration is valid. */
+	/* If number of BLACKs is equal to or one less than number of WHITEs then this configuration is valid. */
 	return this_cfg[2] == this_cfg[1] || this_cfg[2] + 1 == this_cfg[1];
+}
+
+int next_player(int position) {
+	char board[width * height] = generic_unhash(position, board);
+	int i, numWhite, numBlack;
+	
+	numX = numO = 0;
+	for (i = 0; i < width * height; i++) {
+		if (board[i] == WHITE) {
+			numWhite++;
+		}
+		else if (board[i] == BLACK) {
+			numBlack++;
+		}
+	}
+	return (numWhite > numBlack ? 2 : 1);
+}
+
+void BadElse(char* message) {
+	printf("%s\n", message);
+	exit(1);
 }
