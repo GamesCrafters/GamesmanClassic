@@ -2720,15 +2720,9 @@ proc HandleTurn {} {
     
 	### So we can set the cursor to the other player (don't do on mac)
 
-	global tcl_platform macLeft macRight
-	if { $tcl_platform(platform) == "macintosh" || \
-             $tcl_platform(platform) == "windows" } {
-	    if { $thePlayersTurn } {
-		.winBoard.c config -cursor $macLeft
-	    } else {
-		.winBoard.c config -cursor $macRight
-	    }
-	} else {
+	global tcl_platform
+	if { $tcl_platform(platform) != "macintosh" && \
+             $tcl_platform(platform) != "windows" } {
 	    if { $thePlayersTurn } {
 		.winBoard.c config -cursor "@$xbmLeft blue"
 	    } else {
