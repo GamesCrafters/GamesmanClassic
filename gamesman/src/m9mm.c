@@ -26,8 +26,8 @@
 
 POSITION gNumberOfPositions  = 0;
 
-POSITION gInitialPosition    = 245103;
-POSITION gMinimalPosition    = 245103;
+POSITION gInitialPosition    = 432840;
+POSITION gMinimalPosition    = 432840;
 POSITION kBadPosition        = -1;
 
 STRING   kGameName           = "Nine Men's Morris";
@@ -813,10 +813,10 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-      printf("\"%d %d", from(theMove), to(theMove));
+      printf("[%d %d", from(theMove), to(theMove));
       if (closes_mill_move(theMove))
 	printf(" %d", remove_piece(theMove));
-      printf("\"");
+      printf("]");
 }
 
 /************************************************************************
@@ -1169,6 +1169,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.44  2004/04/23 05:59:46  ogren
+//position 245103 is current initial position.  It has a good mix for now, no 1-move wins, but i would eventually like to find a position with pieces in all 4 quadrants. -Elmer
+//
 //Revision 1.43  2004/04/22 03:18:30  jjjordan
 //Fixed gNumberOfPositions (InitializeGame). -JJ
 //
