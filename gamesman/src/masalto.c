@@ -50,7 +50,7 @@ BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
 void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+"No Graphic Interface with Asalto Right Now";
 
 STRING   kHelpTextInterface    =
 "Your move consists of the location of the piece you wantto move\n and the location of where you want to move the piece to.\n\nFor example, the move\n       [c4 c5]  (brackets are not necessary)\nwill move the piece located at c4 and move it to c5.\n\nNote: You can only move your own pieces.\n\nIf you're the fox and need to jump, do the exact same thing.\nThe removal of the geese is factored in automatically.\nIf you're the fox and have already previously jumped, you can\nenter 'p' to pass.";
@@ -68,7 +68,7 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A tie can never occur in Asalto.";
 
 STRING   kHelpExample =
-"Help";
+"Help Example On The Way!";
 
 /*************************************************************************
 **
@@ -246,7 +246,7 @@ void InitializeGame ()
 **
 ** NAME:        DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
 ** 
 ************************************************************************/
@@ -329,9 +329,7 @@ void SetTclCGameSpecificOptions (options)
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
-POSITION DoMove (thePosition, theMove)
-	POSITION thePosition;
-	MOVE theMove;
+POSITION DoMove (POSITION thePosition, MOVE theMove)
 {
 	int move[] = {0,0,0};
 	char board[BOARDSIZE];
@@ -340,7 +338,7 @@ POSITION DoMove (thePosition, theMove)
 	int destination = -1;
 	int coord_origin[2];
 	int coord_destination[2];
-	int goAgain = 0;
+	int goAgain = (int) GoAgain(thePosition,theMove);
 	int next_player = 0;
 	
 	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Running...\n"); }
@@ -370,7 +368,7 @@ POSITION DoMove (thePosition, theMove)
 		del_loc = coordToLocation(del_coord);
 		board[del_loc] = ' ';
 	}
-	if (0) /* Go Again */
+	if (0) /* Used to be if (goAgain) */
 	{
 		next_player = whoseMove(thePosition);
 	}
@@ -397,16 +395,13 @@ POSITION DoMove (thePosition, theMove)
 	return generic_hash(board,next_player);
 }
 
-/*BOOLEAN GoAgain(pos, move)
-	POSITION pos;
-	MOVE move;
+BOOLEAN GoAgain(POSITION pos, MOVE move)
 {
 	int unHashedMove[3];
 	unHashMove(move, unHashedMove);
 	return unHashedMove[2]==1;
 }
-
-BOOLEAN *gGoAgain = (BOOLEAN) GoAgain;*/
+BOOLEAN (*gGoAgain)(POSITION,MOVE) = GoAgain;
 
 /************************************************************************
 **
@@ -499,9 +494,7 @@ void init_board_hash()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-	MOVE computersMove;
-	STRING computersName;
+void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
 	int origin_coord[2];
 	int destination_coord[2];
@@ -516,7 +509,7 @@ void PrintComputersMove(computersMove, computersName)
 	coordToGridCoordinate(origin_coord,origin_grid);
 	coordToGridCoordinate(destination_coord,destination_grid);
 	
-	printf("%s moved from %c%c to %c%c",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
+	printf("%s moved from %c%c to %c%c",computersName,origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -539,8 +532,7 @@ void PrintComputersMove(computersMove, computersName)
 **
 ************************************************************************/
 
-VALUE Primitive (pos)
-	POSITION pos;
+VALUE Primitive (POSITION pos)
 {
 	int boardStats[]={0,0,0};
 	char board[BOARDSIZE];
@@ -672,10 +664,7 @@ VALUE Primitive (pos)
 **
 ************************************************************************/
 
-void PrintPosition (position, playerName, usersTurn)
-	POSITION position;
-	STRING playerName;
-	BOOLEAN usersTurn;
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
 	char currentBoard[BOARDSIZE];
 	generic_unhash(position, currentBoard);
@@ -708,8 +697,7 @@ void PrintPosition (position, playerName, usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (position)
-         POSITION position;
+MOVELIST *GenerateMoves (POSITION position)
 {
 	MOVELIST *CreateMovelistNode();
 	MOVELIST *moves = NULL;
@@ -750,10 +738,7 @@ MOVELIST *GenerateMoves (position)
 	return(moves);
 }
 
-MOVELIST *FoxGenerateMoves(board, moves, location)
-	const char board[BOARDSIZE];
-	MOVELIST *moves;
-	int location;
+MOVELIST *FoxGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location)
 {
 	MOVELIST *GenerateShiftMoves();
 	
@@ -767,10 +752,7 @@ MOVELIST *FoxGenerateMoves(board, moves, location)
 	return(moves);
 }
 
-MOVELIST *GeeseGenerateMoves(board, moves, location)
-	const char board[BOARDSIZE];
-	MOVELIST *moves;
-	int location;
+MOVELIST *GeeseGenerateMoves(const char board[BOARDSIZE], MOVELIST *moves, int location)
 {
 	/* Standard Shifting Moves for Geese*/
 	if (GEESEGENERATEMOVES_DEBUG) { printf("mASALTO - GeeseGenerateMoves() Running.\n"); }
@@ -780,11 +762,7 @@ MOVELIST *GeeseGenerateMoves(board, moves, location)
 	return(moves);
 }
 
-MOVELIST *GenerateShiftMoves(board, moves, location, player)
-	const char board[BOARDSIZE];
-	MOVELIST *moves;
-	int location;
-	int player;
+MOVELIST *GenerateShiftMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player)
 {
 	MOVELIST *CreateMovelistNode();
 	int delta_row = 0;
@@ -814,11 +792,7 @@ MOVELIST *GenerateShiftMoves(board, moves, location, player)
 	return(moves);
 }
 
-MOVELIST *GenerateKillMoves(board, moves, location, player)
-	const char board[BOARDSIZE];
-	MOVELIST *moves;
-	int location;
-	int player;
+MOVELIST *GenerateKillMoves(const char board[BOARDSIZE], MOVELIST *moves, int location, int player)
 {
 	int neighbor_location = 0;
 	int neighbor_coord[2] = {-1, -1};
@@ -1050,10 +1024,7 @@ int validMove(const char board[BOARDSIZE], int move[3],int player)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-	POSITION thePosition;
-	MOVE *theMove;
-	STRING playerName;
+USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName)
 {
 	BOOLEAN ValidMove();
 	USERINPUT ret, HandleDefaultTextInput();
@@ -1091,8 +1062,7 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-	STRING input;
+BOOLEAN ValidTextInput (STRING input)
 {
 	if (VALIDTEXT_DEBUG) {printf("mASALTO - ValidTextInput() Start\n"); 
 			      printf("mASALTO - ValidTextInput() <-- %s\n",input);}
@@ -1143,8 +1113,7 @@ BOOLEAN ValidTextInput (input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-	STRING input;
+MOVE ConvertTextInputToMove (STRING input)
 {
 	char origin_grid[2];
 	char destination_grid[2];
@@ -1192,8 +1161,7 @@ MOVE ConvertTextInputToMove (input)
 **
 ************************************************************************/
 
-void PrintMove (move)
-	MOVE move;
+void PrintMove (MOVE move)
 {
 	int moveArray[3];
 	char origin_grid[2];
