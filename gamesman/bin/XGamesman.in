@@ -53,8 +53,12 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     ## the number of columns of buttons
     ## the padding between buttons
     ## and the extra space between the rows of buttons
-    set cols [getColumns $theNumberOfPrograms]
+
+##  5 columns of games for now Jonathan Tsai 2004.04.18
+    set cols 5
+##   set cols [getColumns $theNumberOfPrograms]
     set rows [getRows $theNumberOfPrograms $cols]
+
     set pad 40
     set under 50
     
@@ -226,6 +230,12 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.6  2004/04/19 01:57:11  ddgarcia
+##
+##Removed ttt (silver) from the list, leaving 20 games (4x5, soon to be 5x4).
+##We already have ttt (gold), there's no reason we need silver anymore. BUT
+##we can use it as a buffer in case we need the ROWSxCOLUMNS numbers to work out.
+##
 ##Revision 1.5  2004/04/17 09:14:49  ogren
 ##Generalized the getColumns function a little more.  It now takes the largest integer smaller than or equal to the square root of the number of games that divides the number of games evenly (i need writing lessons, no?).  The game buttons are still scrolling above the top border, however.  -Elmer
 ##
