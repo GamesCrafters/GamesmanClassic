@@ -1183,7 +1183,7 @@ VALUE DetermineValue(POSITION position)
   if(gReadDatabase && loadDatabase())
     return GetValueOfPosition(position);
   else {
-    gValue = gSolver(gMinimalPosition);
+    gValue = gSolver(gInitialPosition);
     if(gWriteDatabase)
       writeDatabase();
     return GetValueOfPosition(position);
@@ -2600,7 +2600,7 @@ VALUE DetermineLoopyValue(POSITION position)
   ParentInitialize();
   NumberChildrenInitialize();
 
-  value = DetermineLoopyValue1(gMinimalPosition);
+  value = DetermineLoopyValue1(gInitialPosition);
 
   /* free */
   NumberChildrenFree();
