@@ -163,7 +163,7 @@ O's Turn        (Computer will Win in 5) Computer's move :  5   \n\n\
 **
 **************************************************************************/
 
-int DefaultN = 3;
+int DefaultN = 4;
 static int N;
 static int BoardSize;
 

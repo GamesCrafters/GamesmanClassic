@@ -322,6 +322,7 @@ void InitializeGame()
     SafeFree( gDatabase );
     gDatabase = NULL;
   }
+  printf("\nDone With Initalization\n\nDone With Initalization\n");
 }
 
 /************************************************************************
