@@ -472,8 +472,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
   if (neighbors(getSourceFromMove(computersMove), getDestFromMove(computersMove)))
     printf("%s moved the piece at %d to %d.\n\n", computersName,
 	   getSourceFromMove(computersMove)+1, getDestFromMove(computersMove)+1);
-  else printf("%s captured the piece at %d with the piece from %d.\n\n",
-	      computersName, getDestFromMove(computersMove)+1, getSourceFromMove(computersMove)+1);
+  else
+    printf("%s captured the piece at %d with the piece from %d.\n\n",
+	   computersName, getDestFromMove(computersMove)+1, getSourceFromMove(computersMove)+1);
 }
 
 
@@ -569,10 +570,7 @@ BOOLEAN ValidTextInput (STRING input)
       spaceCount++;
   }
 
-  if (spaceCount == 1)
-    return TRUE;
-  else
-    return FALSE;
+  return ((spaceCount == 1) ? TRUE : FALSE);
 }
 
 
@@ -648,9 +646,9 @@ void GameSpecificMenu ()
     switch(GetMyChar()) {
     case 'Q': case 'q':
       ExitStageRight();
-      case 'H': case 'h':
-        HelpMenus();
-        break;
+    case 'H': case 'h':
+      HelpMenus();
+      break;
     case 'D': case 'd':
       printf("\nPlease enter a new width (between 1 and 6, inclusive): ");
       scanf("%d", &WIDTH);
@@ -658,7 +656,7 @@ void GameSpecificMenu ()
 	printf("Please enter a new width (between 1 and 6, inclusive): ");
 	scanf("%d", &WIDTH);
       }
-
+      
       printf("Please enter a new height (between 1 and 6, inclusive): ");
       scanf("%d", &HEIGHT);
       while (HEIGHT < 1 || HEIGHT > 6) {
@@ -832,8 +830,7 @@ void DebugMenu ()
 ************************************************************************/
 
 int oppositePlayer(int player) {
-  if (player == BLACK_PLAYER) return WHITE_PLAYER;
-  else return BLACK_PLAYER;
+  return ((player == BLACK_PLAYER) ? WHITE_PLAYER : BLACK_PLAYER); 
 }
 
 int numberOfPieces(POSITION position, int player) {
@@ -842,11 +839,7 @@ int numberOfPieces(POSITION position, int player) {
 
   generic_unhash(position, gBoard);
 
-  if (player == 1) {
-    currentPlayer = 'x';
-  } else {
-    currentPlayer = 'o';
-  }
+  currentPlayer = (player == 1) ? 'x' : 'o';
 
   for (i = 0; i < BOARDSIZE; i++)
     if (gBoard[i] = currentPlayer) pieceCount++;
