@@ -111,10 +111,6 @@ void    MexFormat(POSITION position, STRING string);
 MEX     MexPrimitive(VALUE value);
 void    PrintMexValues(MEX mexValue, int maxPositions);
 
-/* Status Meter */
-void showStatus(int done);
-float percentDone(int done);
-
 /* solver function pointer */
 VALUE (*gSolver)(POSITION);
 
