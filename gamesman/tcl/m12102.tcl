@@ -284,7 +284,7 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-    $c lower pieces base
+#    $c lower pieces base
     $c itemconfigure base$newPosition -fill white
     $c itemconfigure tagTextSlot$newPosition -fill black
     
@@ -376,7 +376,8 @@ proc GS_HideMoves { c moveType position moveList} {
 # By default this function just calls GS_DrawPosition, but you certainly don't need to keep that.
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-    GS_DrawPosition $c $positionAfterUndo
+ 	$c lower piece-$currentPosition base
+    update idletasks
 }
 
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
