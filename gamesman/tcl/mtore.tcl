@@ -476,11 +476,10 @@ proc getPiecePositionY { boardLocation } {
 
 
 ## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
-proc drawOval { c x y size fill outline tag } {
+proc drawOvalPiece { c x y size fill outline tag } {
     set radius [expr $size / 2]
-    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
+    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline white -tag $tag
 }
-
 
 
 ## drawPiece draws an piece on the canvas at the board location
@@ -489,9 +488,6 @@ proc drawPiece { c boardLocation color } {
 
     drawOval $c [getPiecePositionX $boardLocation] [getPiecePositionY $boardLocation] $pieceCircleDiam $color $color "$color$boardLocation"
 }
-
-
-
 
 
 
@@ -562,25 +558,35 @@ proc GS_DrawPosition { c position } {
 
 
 
-    set mask 1
+    #set mask 1
 
-    set binaryPosition [Unhash $position]
+    #set binaryPosition [Unhash $position]
 
-    $c create text 20 20 -text $binaryPosition
+#    $c create text 250 250 -text [C_GenericUnhash $position 9]
+    #3uts "C_GenericUnhash"
+    #puts [C_GenericUnhash $position 9]
+
+    
+#    $c create text 20 20 -text $binaryPosition
+
+    set unhashedString [C_GenericUnhash $position 9]
 
     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
-	if {[expr $mask & $binaryPosition] == 0} {
-	    $c raise "blue$x"
-	} else {
+
+	if {[string compare [string index $unhashedString $x] "x"] == 0} {
 	    $c raise "red$x"
+	} elseif {[string compare [string index $unhashedString $x] "o"] == 0} {
+	    $c raise "blue$x"
+	} elseif {[string compare [string index $unhashedString $x] "_"] == 0} {
+	    #do nothing
+	    $c raise "white$x"
 	}
-	set mask [expr $mask * 2]
     }
 
 
-    set blankSpot [getBlankSpot $binaryPosition]
-    $c raise "white$blankSpot"
+#    set blankSpot [getBlankSpot $unhashedString]
+#    $c raise "white$blankSpot"
 
 }
 
@@ -626,8 +632,14 @@ proc Unhash { position } {
 
 # Gets the blank location of a position
 proc getBlankSpot { position } {
-    set blankSpot [expr $position >> 9]
-    return [expr $blankSpot & 15]
+    
+    set stringPosition [C_GenericUnhash $position 9]
+
+    for {set x 0} {$x < 9} {set x [expr $x + 1]} {
+	if {[string compare [string index $stringPosition $x] "_"] == 0} {
+	    return $x
+	}
+    }
 }
 
 
@@ -703,12 +715,14 @@ proc GS_ShowMoves { c moveType position moveList } {
 
     #$c create text 480 20 -text $position
 
-    set binaryPosition [Unhash $position]
-    set oldBlankSpot [getBlankSpot $binaryPosition]
+    #set binaryPosition [Unhash $position]
+    #set oldBlankSpot [getBlankSpot $binaryPosition]
     #set oldBlankSpot [getBlankSpot $position]
 
-    $c create text 250 250 -text $moveList
-    $c create text 250 20 -text [C_GenericUnhash $position 9]
+    #$c create text 250 250 -text $moveList
+    #$c create text 250 20 -text [C_GenericUnhash $position 9]
+
+    set oldBlankSpot [getBlankSpot $position]
 
     foreach item $moveList {
 	set move [lindex $item 0]
@@ -724,7 +738,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } elseif {$value == "Win"} {
-		set color red
+		set color red4
 	    } else {
 		#ERROR
 	    }
