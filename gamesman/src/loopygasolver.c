@@ -52,8 +52,6 @@ VALUE lgas_DetermineValue(POSITION position)
 {
   VALUE value;
 
-  printf("Using loopy go again solver\n");
-
   /* initialize */
   InitializeFR();
   lgas_ParentInitialize();

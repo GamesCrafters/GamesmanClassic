@@ -6,7 +6,7 @@
 #include <zlib.h>
 
 #include "gamesman.h"
-
+#include "loopygasolver.h"
 
 
 
@@ -22,6 +22,8 @@ extern STRING  kModuleAuthorName; // module writers
 
 
 /* gameplay-related internal function prototypes */
+void     Initialize();
+void     SetSolver();
 void     Menus();
 void     MenusBeforeEvaluation();
 void     MenusEvaluated();
@@ -326,18 +328,37 @@ void InitializeDatabases()
 void Initialize()
 {
   srand(time(NULL));
+
   /* set default solver */
-  if(kZeroMemSolver)
-    gSolver = DetermineZeroValue;
-  else if(kLoopy)
-    gSolver = DetermineLoopyValue;
-  else
-    gSolver = DetermineValue1;
+  gSolver = NULL;
+
   /* set default go again */
   gGoAgain=DefaultGoAgain;
+
   sprintf(gPlayerName[kPlayerOneTurn],"Player");
   sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
-  InitializeGame() ;
+  InitializeGame();
+  SetSolver();
+}
+
+void SetSolver() {
+
+  /* if solver set externally, leave alone */
+  if (gSolver != NULL)
+    return;
+
+  if(kZeroMemSolver)
+    gSolver = DetermineZeroValue;
+
+  else if(kLoopy) {
+    if (gGoAgain == DefaultGoAgain)
+      gSolver = DetermineLoopyValue;
+    else
+      gSolver = lgas_DetermineValue;
+  }
+    
+  else
+    gSolver = DetermineValue1;
 }
 
 void Menus()
@@ -512,16 +533,16 @@ void ParseBeforeEvaluationMenuChoice(c)
       BadMenuChoice();
     break;
   case 's': case 'S':
+      InitializeGame();
+      SetSolver();
       printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
-	  printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
+      if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
+      printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
       printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
       printf("\nInitializing insides of %s...", kGameName);
       /*      Stopwatch(&sec,&usec);*/
-      int Stopwatch();
-      InitializeGame();
       InitializeDatabases();
       printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
-	  int StopWatch();
 	  needSolve = TRUE;
 	  if(gReadDatabase) {
 		if(loadDatabase()){
@@ -3491,7 +3512,7 @@ void HandleArguments (int argc, char *argv[]) {
     else if(!strcasecmp(argv[i], "--2bit")) {
       gTwoBits = TRUE;
     }
-	else if(!strcasecmp(argv[i], "--lowmem")) {
+    else if(!strcasecmp(argv[i], "--lowmem")) {
       kZeroMemSolver = TRUE;
     }
     else if(!strcasecmp(argv[i], "--solve")) {
