@@ -15,7 +15,7 @@ Functions in Required Files:
 ####################################################################################
 
 ************************************************************************************
-int generic_hash_init(int boardsize, int pieces_array[], int *vcfg_function_ptr)
+int generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg))
 
 ************************************************************************************
 boardsize is the length of the game board.
