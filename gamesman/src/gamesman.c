@@ -557,7 +557,7 @@ void ParseBeforeEvaluationMenuChoice(c)
       gPrintDatabaseInfo = TRUE;
       gameValue = DetermineValue(gInitialPosition);
 
-      printf("done in %d seconds!", gTimer = Stopwatch());
+      printf("done in %d seconds!                          ", gTimer = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 
 
       
@@ -1204,7 +1204,7 @@ void showStatus(int done)
 	{
 		updateThreshold += onepercent;
 		percent += .1;
-		size = fprintf(stderr,"Solving... %2.1f\% Done",percent);
+		size = fprintf(stderr,"Solving... %2.1f%% Done",percent);
 		for (i = 0; i < size; i++)
 		{
 			fprintf(stderr,"\b");
