@@ -174,11 +174,11 @@ proc InitConstants {} {
     set gAnimationSpeed 8
 
     ##by AP
-    global gMoveSpeed
-    set gMoveSpeed 1
+    global gMoveDelay
+    set gMoveDelay 1
 
-    global gGameSpeed
-    set gGameSpeed 1
+    global gGameDelay
+    set gGameDelay 1
 }
 
 #############################################################################
@@ -415,7 +415,7 @@ proc InitWindow {} {
 	-font $kLabelFont \
 	-width 15
     
-    .f3.entPlayer1 insert 0 "Dan"
+    .f3.entPlayer1 insert 0 "Player"
     .f3.entPlayer2 insert 0 "The computer"
 
     #by AP
@@ -939,7 +939,7 @@ proc DoPlay {} {
     global gPosition 
     global gHumanGoesFirst
     global gPlayerOneTurn
-    global gMoveSpeed
+    global gMoveDelay
 
     ##set the appropriate vars
     SetPlayVars
@@ -959,7 +959,7 @@ proc DoPlay {} {
     while { $gLeftPlayerType && $gRightPlayerType } { 
 	DoComputersMove 
 	update
-	after [expr int($gMoveSpeed * 1000)]
+	after [expr int($gMoveDelay * 1000)]
     }
     
     if { $gPosition == $gInitialPosition && (!$gLeftPlayerType || !$gRightPlayerType) } {
@@ -983,7 +983,7 @@ proc SetPlayVars {} {
     global gPlayerOneTurn
     global gPosition gInitialPosition
     global gLeftPlayerType gRightPlayerType
-    global gMoveSpeed
+    global gMoveDelay
 
     if { $gLeftPlayerType && $gRightPlayerType } {
 	.f0.mesStatus config -text "Playing computer vs\ncomputer (perfect opponents)"
@@ -1007,7 +1007,7 @@ proc SetPlayVars {} {
     while { [winfo exists .winBoard.c] && [C_Primitive $gPosition] == "Undecided" && (($gPlayerOneTurn && $gLeftPlayerType) || (!$gPlayerOneTurn && $gRightPlayerType)) } {
 	DoComputersMove
 	update
-	after [expr int($gMoveSpeed * 1000)]
+	after [expr int($gMoveDelay * 1000)]
     }
 }
 
@@ -1535,7 +1535,7 @@ proc DoBoard {} {
     global kGameName
     global kToMove kToWinStandard kToWinMisere
     global kMovesOnAllTheTime
-    global gMoveSpeed gGameSpeed
+    global gMoveDelay gGameDelay
     
     ### Since we can only play one game at a time...
 
@@ -1673,42 +1673,42 @@ proc DoBoard {} {
 	-command ShowValueMoves
 
     ## by AP
-    label .winBoardControl.f7.labSpeed \
+    label .winBoardControl.f7.labDelay \
         -font $kLabelFont \
-        -text "Move Speed:" -width 6\
+        -text "Move Delay:" -width 6\
         -foreground $kLabelColor
 
     
 
-    scale .winBoardControl.f7.sclSpeed \
+    scale .winBoardControl.f7.sclDelay \
 	-from 0 \
 	-to 2 \
 	-orient horizontal \
 	-length 10c \
 	-resolution .1 \
-	-variable gMoveSpeed
+	-variable gMoveDelay
     
     pack append .winBoardControl.f7 \
-	    .winBoardControl.f7.labSpeed {left} \
-	    .winBoardControl.f7.sclSpeed {left expand fill}
+	    .winBoardControl.f7.labDelay {left} \
+	    .winBoardControl.f7.sclDelay {left expand fill}
 
 
-    label .winBoardControl.f8.labSpeed\
+    label .winBoardControl.f8.labDelay\
         -font $kLabelFont \
-        -text "Game Speed:" -width 6\
+        -text "Game Delay:" -width 6\
         -foreground $kLabelColor
 
-    scale .winBoardControl.f8.sclSpeed \
+    scale .winBoardControl.f8.sclDelay \
 	-from 0 \
 	-to 2 \
 	-orient horizontal \
 	-length 10c \
 	-resolution .1 \
-	-variable gGameSpeed
+	-variable gGameDelay
 
     pack append .winBoardControl.f8 \
-	    .winBoardControl.f8.labSpeed {left} \
-	    .winBoardControl.f8.sclSpeed {left expand fill}
+	    .winBoardControl.f8.labDelay {left} \
+	    .winBoardControl.f8.sclDelay {left expand fill}
     
     ### The two bottom buttons, undo and abort
     
@@ -1843,8 +1843,8 @@ proc DoBoard {} {
 	    .winBoardControl.f5.labTurn \
 	    .winBoardControl.f4.labPredictions \
 	    .winBoardControl.f1.labShow \
-	    .winBoardControl.f7.labSpeed \
-	    .winBoardControl.f8.labSpeed \
+	    .winBoardControl.f7.labDelay \
+	    .winBoardControl.f8.labDelay \
 	} {
 	$i config -width 12 -anchor e
     }
@@ -2666,7 +2666,7 @@ proc DoComputersMove {} {
     global gPlayerOneTurn gPosition gSlotSize gSlotList gSlotsX gSlotsY
     global kInteractionType
     global gRightPlayerType gLeftPlayerType
-    global gMoveSpeed gGameSpeed
+    global gMoveDelay gGameDelay
     set w .winBoard.c
 
     ## if on current player's turn it was switched from computer to human
@@ -2733,7 +2733,7 @@ proc DoComputersMove {} {
     #while { ((($gPlayerOneTurn && $gLeftPlayerType) || (!$gPlayerOneTurn && $gRightPlayerType)) 
     #      && [C_Primitive $gPosition] == "Undecided") } {
 #	update
-	#after [expr int($gMoveSpeed * 1000)]
+	#after [expr int($gMoveDelay * 1000)]
 	#DoComputersMove
     #}
 }
@@ -2871,7 +2871,7 @@ proc HandleGameOver { w theValue } {
 
     global gPlayerOneTurn
     global gLeftPlayerType gRightPlayerType
-    global gGameSpeed
+    global gGameDelay
     global gPosition gInitialPosition
     global gAgainstComputer gHumanGoesFirst
 
@@ -2888,7 +2888,7 @@ proc HandleGameOver { w theValue } {
     ##by AP - play a new game if comp vs comp
     if { ($gLeftPlayerType && $gRightPlayerType) } {
 	update
-	after [expr int($gGameSpeed * 1000)]
+	after [expr int($gGameDelay * 1000)]
 	
 	### Make the code a bit easier to read
 	
