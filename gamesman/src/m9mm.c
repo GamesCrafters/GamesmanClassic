@@ -1014,7 +1014,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
   blankox board[BOARDSIZE];
   unhash(position, board);
   return (count_mills(position, board[slot]) < 2) || !check_mill(board, slot);
-}
+} // this is wrong!  only if there are 3 pieces and 1 mill, then all true
 
 // Given position, player, count # of mills for player on board
 int count_mills(POSITION position, blankox player)
@@ -1167,6 +1167,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.40  2004/04/15 00:11:40  ogren
+//Added count_mills for the future, currently incorrectly implemented.... -Elmer
+//
 //Revision 1.39  2004/04/14 23:46:52  ogren
 //debug can print a mini board with actual board on left, legend on right (kinda ugly).  No major changes, generate moves is still funny -Elmer
 //
