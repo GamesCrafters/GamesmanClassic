@@ -99,6 +99,7 @@
 **                     GAMEDIMENSION = 3: 8419329 positions, 
 ** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
 **                     not enough memory. 
+** 29 Mar 2005 Yanpei: One line fix to logical error in Primitive().
 **
 **************************************************************************/
 
@@ -587,6 +588,7 @@ VALUE Primitive (POSITION position)
     BOOLEAN primitiveFound = FALSE;
     BOOLEAN emptyFound = FALSE;
     int i,j;
+    VALUE toReturn;
 
     // print debugging stuff
     /*
@@ -655,15 +657,17 @@ VALUE Primitive (POSITION position)
     if (!emptyFound) primitiveFound = searchPrimitive(rowColDiag);
     emptyFound = FALSE;
 
+    // returning stuff
+    if (primitiveFound) {
+      toReturn = lose;
+    } else {
+      toReturn = (b->squaresOccupied<BOARDSIZE) ? undecided : tie;
+    }
+
     SafeFree(rowColDiag);
     FreeBoard(b);
 
-    // returning stuff
-    if (primitiveFound) {
-      return lose;
-    } else {
-      return undecided;
-    }
+    return toReturn;
 
 }
 
