@@ -76,10 +76,10 @@ STRING kHelpWithFlying =
 "\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece.";
 
 STRING   kHelpStandardObjective =
-"A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two.";
+"A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two or by blocking all of your opponent's pieces so that\nthe opponent can no longer move.";
 
 STRING   kHelpReverseObjective =
-"A misere victory in Nine Men's Morris is won by being the first player to\nhave only two pieces on the board.";
+"A misere victory in Nine Men's Morris is won by being the first player to\nhave only two pieces on the board or the first player to be totally blocked\n(and have no more legal moves).";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A Tie will never occur in a standard game of Nine Men's Morris.";
@@ -459,7 +459,6 @@ POSITION GetInitialPosition()
   }
   
   return hash(board, turn);
- 
 }
 
 
@@ -489,10 +488,12 @@ void PrintComputersMove(computersMove, computersName)
 ** NAME:        Primitive
 **
 ** DESCRIPTION: Return the value of a position if it fulfills certain
-**              'primitive' constraints. Some examples of this is having
-**              three-in-a-row with Gobblet. Three in a row for the player
-**              whose turn it is a win, otherwise its a loss.
-**              Otherwise undecided.
+**              'primitive' constraints. If the current player only has
+**              2 pieces remaining or has no possible moves, then this
+**              position is a loss.  If the current player has more than
+**              2 pieces and the opponent either has only 2 pieces or
+**              cannot move, then this position is a win.  Otherwise,
+**              this position is undecided.
 ** 
 ** INPUTS:      POSITION position : The position to inspect.
 **
@@ -534,6 +535,8 @@ VALUE Primitive ( POSITION h )
     return (gStandardGame ? lose : win );
   else if (turn == x && numXs == minx)
     return (gStandardGame ? lose : win );
+  else if (GenerateMoves(h) == NULL)
+	 return (gStandardGame ? lose : win);
   else
     return undecided;	
   
@@ -672,35 +675,32 @@ MOVELIST *GenerateMoves(POSITION position)
     
     for (i = 0; i < player_count; i++)
       {
-	for (j = 0; j < blank_count; j++)
-	  {
-	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
-	      (blanks[j] * BOARDSIZE) + player_pieces[i];
+		  for (j = 0; j < blank_count; j++)
+			 {
+				raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
+				  (blanks[j] * BOARDSIZE) + player_pieces[i];
 
-	    //debug
-	    if (debug) {
-	      printf ("the raw_move is: %d\n", raw_move);
-	    }
+				//debug
+				if (debug) {
+				  printf ("the raw_move is: %d\n", raw_move);
+				}
 
-	    if (closes_mill(position, raw_move))
-	      {
-		for (k = 0; k < opponent_count; k++)
-		  if (can_be_taken(position, opponent_pieces[k]))
-		    head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
-	      }
-	    else
-	      head = CreateMovelistNode(raw_move, head);
-	    
-	  }
+				if (closes_mill(position, raw_move))
+				  {
+					 for (k = 0; k < opponent_count; k++)
+						if (can_be_taken(position, opponent_pieces[k]))
+						  head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
+				  }
+				else
+				  head = CreateMovelistNode(raw_move, head); 
+			 }
       }
 
- 
     return head;
   }
   else
     return NULL;
   
-    
 }
  
 /************************************************************************
@@ -738,6 +738,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
       return(ret);
   }
   while (TRUE);
+
   return (Continue);
 }
 
@@ -835,8 +836,8 @@ BOOLEAN ValidTextInput(input)
   } else {
     return TRUE;
   }
+
   return FALSE; // should never be reached
-  
 }
 
 /************************************************************************
@@ -885,7 +886,6 @@ MOVE ConvertTextInputToMove(input)
     printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
   }
 
-  
   return hash_move(from, to, remove);
 }
 
@@ -904,7 +904,7 @@ void PrintMove(theMove)
 {
       printf("[%d %d", from(theMove), to(theMove));
       if (closes_mill_move(theMove))
-	printf(" %d", remove_piece(theMove));
+		  printf(" %d", remove_piece(theMove));
       printf("]");
 }
 
@@ -990,8 +990,7 @@ POSITION hash(blankox *b_board, blankox turn)
 
   unparse_board(b_board, c_board);
   
-  return generic_hash(c_board, player);
-  
+  return generic_hash(c_board, player); 
 }
 
 blankox *unhash(int hash_val, blankox *b_board)
@@ -1014,7 +1013,6 @@ blankox *unhash(int hash_val, blankox *b_board)
   }
 
   return b_board;
-  
 }
 
 
@@ -1044,7 +1042,6 @@ blankox parse_char(char c) {
     return blank;
   else
     return blank; // fix this so that it's a badelse
-  
 }
 
 
@@ -1348,12 +1345,23 @@ int remove_piece(MOVE the_move)
   return (the_move % BOARDSIZE);
 }
 
+// Given POSITION, slot
+// Return true if piece at slot can be taken, false otherwise
 BOOLEAN can_be_taken(POSITION position, int slot)
 {
   blankox board[BOARDSIZE];
   unhash(position, board);
-  return (count_mills(position, board[slot]) < 2) || !check_mill(board, slot);
-} // this is wrong!  only if there are 3 pieces and 1 mill, then all true
+  blankox piece = board[slot];
+
+  /* According to the rules, a piece can be taken if it is not in a mill
+	  or if the opponent only has mills */
+  if (board[slot] == blank) {
+	 return FALSE;
+  }
+
+  return (count_pieces(board, piece) < 4 ||
+			 !check_mill(board, slot));
+} 
 
 
 // Given position, player, count # of mills for player on board
@@ -1379,7 +1387,6 @@ int count_mills(POSITION position, blankox player)
   return mills;
 }
   
-
 BOOLEAN closes_mill_move(MOVE the_move) {
   return from(the_move) != remove_piece(the_move);
 }
@@ -1445,9 +1452,9 @@ POSITIONLIST *GenerateParents (POSITION position)
   for (i = 0; i < BOARDSIZE; i++) {
     if (board[i] == turn) {
       if (check_mill(board, i)) {
-	head = AppendFormedMill(board, i, head);
+		  head = AppendFormedMill(board, i, head); // piece formed a mill
       } else {
-	head = AppendNeutralMove(board, i, head);
+		  head = AppendNeutralMove(board, i, head); // piece didnt form mill
       }
     }
   }
@@ -1475,14 +1482,14 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
   }
 
   for (i = 0; i < numBlanks; i++) {
-	 copy_bboard(board, prevBoard);
+	 copy_bboard(board, prevBoard); // reset prevBoard
 	 prevSlot = blanks[i];
-	 prevBoard[slot] = blank;
-	 prevBoard[prevSlot] = thisTurn;
+	 prevBoard[slot] = blank; // remove most recent piece
+	 prevBoard[prevSlot] = thisTurn; // replace most recent piece
 	 for (j = 0; j < numAllBlanks; j++) {
 		prevBlank = allBlanks[j];
 		if (prevBlank != slot && prevBlank != prevSlot) {
-		  prevBoard[prevBlank] = prevTurn;
+		  prevBoard[prevBlank] = prevTurn; // place opponent's piece
 		  plist = StorePositionInList(hash(prevBoard, thisTurn), plist);
 		}
 	 }
@@ -1502,16 +1509,13 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
 
   if (gFlying) {
     numBlanks = find_pieces(board, blank, blanks);
-    for (i = 0; i < numBlanks; i++) {
-      tempMove = hash_move(slot, blanks[i], slot);
-      mlist = CreateMovelistNode(tempMove, mlist);
-    }
   } else {
 	 numBlanks = find_adj_pieces(board, blank, blanks);
-	 for (i = 0; i < numBlanks; i++) {
-      tempMove = hash_move(slot, blanks[i], slot);
-      mlist = CreateMovelistNode(tempMove, mlist);
-	 }
+  }
+
+  for (i = 0; i < numBlanks; i++) {
+	 tempMove = hash_move(slot, blanks[i], slot);
+	 mlist = CreateMovelistNode(tempMove, mlist);
   }
 
   plist = AppendAllMoves(hash(board, board[slot]), mlist, plist);
@@ -1521,6 +1525,9 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
 
 // Given POSITION, MOVELIST, POSITIONLIST
 // Return the POSITIONLIST with the resoution of moves in MOVELIST appended
+//
+// For each move in the MOVELIST, do that move and append the POSITION
+//  onto the POSITIONLIST
 POSITIONLIST *AppendAllMoves(POSITION position, MOVELIST *ml, POSITIONLIST *pl)
 {
   POSITION tempPosition;
@@ -1567,7 +1574,6 @@ void debugCBoard(char *cboard)
   parse_board(cboard, bboard);
 
   debugBoard(bboard, cboard);
-  
 }
 
 //Given bboard, print a mini-cboard
@@ -1578,6 +1584,7 @@ void debugMiniBBoard(blankox *bboard)
   unparse_board(bboard, cboard);
 
   debugMiniCBoard(cboard);
+
 }
 
 //Given cboard, print a mini-board
@@ -1619,12 +1626,15 @@ void debugPosition(POSITION h)
   printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
   printf("Current board = \n");
   debugBoard(bboard, cboard);
-  
+
 }
 
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.57  2004/05/02 03:40:19  ogren
+//GenerateParents fully written, fully untested. -Elmer
+//
 //Revision 1.56  2004/05/01 23:24:22  ogren
 //Hardcoded find_adj_pieces and find_adjacent nastily, yet to finish AppendFormedMill -Elmer
 //
