@@ -24,6 +24,10 @@
 **              03/06/04 Wrote InBounds(...)
 **              03/06/04 Wrote OtherDirection(...)
 **              03/06/04 Wrote GenerateMoves(...)
+**              04/11/04 Changed the erronous naming of PositionToBoard(...) -> PositionToBlankOX(...)
+**              04/17/04 debugged PrintPosition(..)
+**              04/23/04 debugged EachDirection(...)
+**              04/23/04 debugged ConvertTextToInput(...)
 ** TODO LIST:
 **              03/02/04 PrintPosition() needs to print info about how to make moves
 **              03/02/04 Write DoMove(...)
@@ -38,6 +42,10 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.h"
+
+int debug = 1;
+int printMethods = 0;
 
 extern STRING gValueString[];
 
@@ -47,12 +55,12 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING   kGameName           = "Tic-Tac-Toe";
+STRING   kGameName           = "Fandango";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = FALSE;
 BOOLEAN  kTieIsPossible      = TRUE;
-BOOLEAN  kLoopy               = FALSE;
+BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING   kHelpGraphicInterface =
@@ -81,15 +89,7 @@ STRING   kHelpExample =
 ** Everything above here must be in every game file
 **
 **************************************************************************/
-void PositionToBlankOX (POSITION temp , char* temp2){
 
-
-    };
-/*************************************************************************
-**
-** Every variable declared here is only used in this file (game-specific)
-**
-**************************************************************************/
 
 #define BOARDSIZE     12           /* 4x3 board, must agree with the 2 definitions below */
 #define BOARDHEIGHT    3           /* dimensions of the board */
@@ -97,23 +97,45 @@ void PositionToBlankOX (POSITION temp , char* temp2){
 #define MAX_X          5           /* maximum number of pieces of X that is possible in a game */
 #define MAX_O          5           /*  "            "            "O                  "         */
 
+#define COMMENTSPACE   5           /* number of spaces to the right of board before comment starts */
+
+/* oh shit, API doesn't use 32 bit elements for board array!
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
+*/
+// this will have to do
+typedef char BlankOX;
+BlankOX X = 'X';
+BlankOX O = 'O';
+BlankOX B = '.';
 
 typedef enum _direction { nodir=0,lowleft=1,down=2,lowright=3,left=4,right=6,upleft=7,up=8,upright=9 } Direction;
 typedef struct _coord { int x,y; } Coordinates;
 
 char gBlankOXString[] = { '.', 'O', 'X' };
-int myPieces_array[9] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
+int myPieces_array[10] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* treat empty spaces as pieces as well */
                           'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
-                          'X', 0, MAX_X };        /* used to pass into generic_hash_init(...) */
-
-BlankOX turn = x;                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
+                          'X', 0, MAX_X,          /* used to pass into generic_hash_init(...) */
+			  -1 };                   // mark the end of array
+BlankOX turn = 'O';                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
 
 //---- Shing ----------------------------------------------
-char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
+char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
 //---------------------------------------------------------
+
+/////////////////////////////////////////// F U N C T I O N   P R O T O T Y P E S ///////////////////////////////////////////////////////
+void space(int n);
+POSITION BoardToPosition(BlankOX* board);
+int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece);
+
+void dbg(char *);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void dbg(char* msg) {
+  if(printMethods) puts(msg);
+
+};
 
 /************************************************************************
 **
@@ -125,7 +147,14 @@ char slash[] = { '|' , '\\' , '|' , '/' , '|' }; /* HRS: now just an array inste
 
 void InitializeGame()
 {
-  generic_hash_init(BOARDSIZE, myPieces_array, 0);  // pass null for function pointer
+  dbg("->InitializeGame");
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
+  char initialBoard[BOARDSIZE] = { O,O,O,O,
+				   X,B,B,O,
+				   X,X,X,X };
+  POSITION initialPos =  BoardToPosition(initialBoard);
+  gInitialPosition = initialPos;
+  gMinimalPosition = initialPos;
 }
 
 void FreeGame()
@@ -192,6 +221,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
+  dbg("->DoMove");
   // fill me
   int i = 1;
   printf("%d\n",i);
@@ -229,21 +259,17 @@ void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
+  dbg("->PrintComputersMove");
   printf("%8s's move              : %2d\n", computersName, computersMove+1);
+  dbg("<-PrintComputersMove");
 }
 
 /************************************************************************
 **
 ** NAME:        Primitive
 **
-** DESCRIPTION: Return the value of a position if it fulfills certain
-**              'primitive' constraints. Some examples of this is having
-**              three-in-a-row with TicTacToe. TicTacToe has two
-**              primitives it can immediately check for, when the board
-**              is filled but nobody has one = primitive tie. Three in
-**              a row is a primitive lose, because the player who faces
-**              this board has just lost. I.e. the player before him
-**              created the board and won. Otherwise undecided.
+** DESCRIPTION: Determines whether it's win/lose/tie or undecided based
+**              on what's left on the board.
 ** 
 ** INPUTS:      POSITION position : The position to inspect.
 **
@@ -258,14 +284,16 @@ void PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
+  dbg("->Primitive");
   BlankOX board[BOARDSIZE];
 
-  PositionToBoard(position,board);
+  PositionToBlankOX(position,board);
   
-  if (!AnyPiecesLeft(board,x) || !AnyPiecesLeft(board,o))   /* if either type of pieces is extinct */
+  if (!AnyPiecesLeft(board,X) || !AnyPiecesLeft(board,O))   /* if either type of pieces is extinct */
     return(gStandardGame ? lose : win);                     /* that means last player to go captured last piece of current player? */
   else
     return(undecided);
+  dbg("<-Primitive");
 }
 
 /************************************************************************
@@ -290,65 +318,49 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
+  dbg("->PrintPos");
+  int x, y;
+  int maxx = (BOARDWIDTH - 1 ) * 6;
+  int maxy = (BOARDHEIGHT - 1) * 2;
 
+  int slashFlag = 0;
+  int commentx = maxx + 1 + COMMENTSPACE;
 
-  // ----- Shing ----------------------------------------
-  int i,j; /*HRS*/
+  STRING  GetPrediction();
+  VALUE   GetValueOfPosition();
 
-  //  o --- o --- o --- o --- o
-  //  |  \  |  /  |  \  |  /  |
-  //  o --- x --- . --- o --- x
-  //  |  /  |  \  |  /  |  \  |
-  //  x --- x --- x --- x --- x
-  
+  BlankOX theBoard[BOARDSIZE];
 
-  // ----------------------------------------------------
+  PositionToBlankOX(position,theBoard);
 
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
-  BlankOX theBlankOx[BOARDSIZE]; /* HRS: boardSize -> BOARDSIZE */
-
-  PositionToBlankOX(position,theBlankOx);
-
-
-  for (i=1; i<=BOARDHEIGHT; i++)          // for row
-    {
-      putchar('\n');    
-      putchar('(');
-      for ( j=1; j<=BOARDWIDTH; j++)
-      {
-	putchar(' ');
-	putchar(j);
+  for (y = 0; y <= maxy; y++) {
+    for ( x = 0; x <= maxx; x++) {
+      if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
+	putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
+	slashFlag = !slashFlag;
       }
-      putchar(' ');
-      putchar(')');
-      putchar('\n');
-      putchar(':');
-
-      
-
-      for ( j=1; j<=BOARDWIDTH; j++)   // for column
-      {
+      else {                                                     // rows with cells
+	if ((x % 6) == 0) {                                      // if it's time to print a cell
+	  int boardIndex = (y/2) * BOARDWIDTH + (x/6);
+	  putchar(theBoard[boardIndex]);
+	} else if ( (x % 6) == 1 || (x % 6) == 5 )
 	  putchar(' ');
-	  if ( i % 2 == 0 )
-	  {
-	    putchar(slash[ j % 5 ]);
-	    putchar(' ');
-	    putchar(' ');
-	  }
-	  else
-	  {
-	    if ((j-1) % 6 == 0)
-	      putchar(gBlankOXString[(int)theBlankOx[j-1]]); /* HRS */
-	    else if ((j-1) % 6 == 1)
-	      putchar(' ');
-	    else
-	      putchar('-');
-	  }
+	else
+	  putchar('-');
       }
     }
+    puts("");
+  }
 
-  puts(GetPrediction(position,playerName,usersTurn)); /* HRS */
+  puts("");
+  puts(GetPrediction(position,playerName,usersTurn));
+  dbg("-<PrintPos");
+}
+
+void space(int n) {
+  int i = 0;
+  for(; i < n; i++)
+    putchar(' ');
 }
 
 /************************************************************************
@@ -374,6 +386,7 @@ void PrintPosition(position,playerName,usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
+  dbg("->GenerateMoves");
   MOVELIST *CreateMovelistNode(), *head = NULL;
   VALUE Primitive();
   Coordinates IndexToCoordinates(int);
@@ -383,7 +396,10 @@ MOVELIST *GenerateMoves(position)
   Direction EachDirection();
   Direction OtherDirection(Direction);
   BlankOX OtherPlayer();
-  BlankOX WhoseTurn();
+  BlankOX WhoseTurn(int);
+
+  // update turn
+  turn = (whoseMove(position) == O ? 1 : 2);
 
   BlankOX board[BOARDSIZE];
   int i;
@@ -392,38 +408,46 @@ MOVELIST *GenerateMoves(position)
   Coordinates pos,attackingpos;
   int cap=0;   // capture mode
   int numofcaps; //number of captures possible for one direction of move
+  int move;
 
   if (Primitive(position) == undecided) {
-    PositionToBoard(position,board);
+    PositionToBlankOX(position,board);
+    if(debug>0) printf("Primitive undecided\n");
     for(i = 0 ; i < BOARDSIZE ; i++) {
-      if(board[i] == WhoseTurn()) {      // if current player's piece then we consider where we can move this
+      if(board[i] == WhoseTurn(position)) {      // if current player's piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
+	if(debug>0) printf("Found side's piece\n");
 	for(;dir = EachDirection();) {
 	  intdir = (int)dir;
 	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
 	    intdir--;    // 5 is not a direction, don't need that
 	  intdir--;      // start at 0
 
-	  if(InBounds(Neighbor(pos,dir)) && board[i]==Blank) {      // vacant neighboring cell exists
-	    numofcaps=0;
-	    
+	  numofcaps=0;
+	  if(InBounds(Neighbor(pos,dir)) && board[i]==B) {      // vacant neighboring cell exists
 	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
 	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) {  // have enemy, can attack by approach
 	      numofcaps++;
 	      cap = 1;  // attack by approach mode
-	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+	      if(debug>1) printf("Generated move: %d\n",move);
+	      head = CreateMovelistNode(move, head);
 	    } // end if can attack by approach
 	    
 	    attackingpos = Neighbor(pos,OtherDirection(dir));
 	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
 	      numofcaps++;
 	      cap = 2; // attack by withdraw mode
-	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+	      if(debug>1) printf("Generated move: %d\n",move);
+	      head = CreateMovelistNode( move, head);
 	    } // end if can attack by withdraw
 	    
 	    if(numofcaps==0) { // no captures possible for this move
 	      cap = 0;
-	      head = CreateMovelistNode(pos.x<<18 | pos.y<<5 | intdir<<2 | cap, head);
+	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+	      if(debug>1) printf("Generated move: %d\n",move);
+	      head = CreateMovelistNode( move, head);
 	    } //end if no possible captures
 	  } // end if vacant target cell (i.e. can move)
 	} // end for this direction
@@ -433,6 +457,7 @@ MOVELIST *GenerateMoves(position)
   } else { // end if undecided (not win or lose)
     return(NULL);
   }
+  dbg("<-GenerateMoves");
 }
 
 /************************************************************************
@@ -442,8 +467,18 @@ MOVELIST *GenerateMoves(position)
  * Calls:
  ***********************************************************************/
 Direction EachDirection() {
-  static int dir = 0;
-  return (Direction)( ((++dir)%10==5) ? dir=6 : dir );
+  static Direction dir = lowleft;
+
+  switch(dir) {
+  case lowleft: return dir=left;
+  case left: return dir=upleft;
+  case upleft: return dir=up;
+  case up: return dir=upright;
+  case upright: return dir=right;
+  case right: return dir=lowright;
+  case lowright: return dir=down;
+  case down: return dir=lowleft;
+  }
 }
 
 /************************************************************************
@@ -540,6 +575,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
+  dbg("->GetAndPrintPlayersMove");
   int xpos, ypos;
   BOOLEAN ValidMove();
   char input = '0';
@@ -573,20 +609,27 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
-  char col;                           /* column: a, b, c, etc. */                                                              
-  int row,dir,cap;                    /* row: 1,2,3,etc.,
-					 direction: 1,2,3,4,6,7,8,9 (based on numpad),
-					 ,capture mode: a, w, n*/
-  int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
+  dbg("->ValidTextInput");
 
-  col = tolower(col);     /* to make case insensitive */
-  cap = tolower(cap);     /* "          "         "   */
+  int pos,dir;
+  int cap;
+  int scan_result;
 
-  return
-    (scan_result == 4) &&                        /* did we manage to get suitable vals for col,row,dir,cap? */
-    ('a' <= col < ('a'+BOARDWIDTH)) &&           /* is the column a character and in range? */
-    (1 <= row <= BOARDHEIGHT) &&                 /* is the row in range? i.e. not out of board */
-    ((cap == 'a')||(cap == 'w')||(cap == 'n'));  /* is capture mode a valid character? */    
+  scan_result = sscanf(input,"%d %d %d",&pos,&dir,&cap);
+
+  if(scan_result != 3)
+    return FALSE;
+  
+  if(pos<1 || pos>BOARDSIZE)
+    return FALSE;
+
+  if(dir==5 || dir<0 || dir>9)
+    return FALSE;  
+
+  if(cap<0 || cap>2)
+    return FALSE;
+
+  return TRUE;
 }
 
 /************************************************************************
@@ -604,32 +647,35 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  char col;                           /* column */                                                              
-  int row,dir,cap;                    /* row,direction,capture mode ('a','w','n')*/
-  int scan_result =  sscanf(input,"%c%d-%d-%c",col,row,dir,cap);
-  col = tolower(col);     /* to make case insensitive */
-  cap = tolower(cap);     /* "          "         "   */
-
   /* we want:
      ___________________________________________
-     |1:unused| 13:col | 13:row | 3:dir | 2:cap |
+     |              27: pos     | 3:dir | 2:cap |
      -------------------------------------------*/
-  if(cap == 'a')          /* encode 'a' as 01, 'w' as 10 and n as 00 */
-    cap = 1;
-  else if(cap == 'w')
-    cap = 2;
-  else // cap == 'n'
-    cap = 0;
+      /* encode 'a' as 01, 'w' as 10 and n as 00 */
 
-  row -= 1;    // we start at 0, user starts at 1
-  col = col - 'a';   // make col start at 0 and count up each alpha. i.e. 'b' = 1, 'c' = 2
+  int pos,dir,cap;
+
+  dbg("->ConvertTextInputToMove");
+
+  if(debug>1) printf("BEFORE: String is: %s\n",input);
+  if(debug>1) printf("BEFORE:\npos: %d\ndir: %d\ncap: %d\n",pos,dir,cap);
+
+  int scan_result = sscanf(input,"%d %d %d", &pos, &dir, &cap);
+  
+  if(debug>1) printf("AFTER: String is: %s\n",input);
+  if(debug>1) printf("AFTER:\npos: %d\ndir: %d\ncap: %d\nscanresult: %d\n",pos,dir,cap,scan_result);
+
+  pos--;  // we start at 0 while user starts at 1
 
   if(dir >= 5)
     dir--;    // 5 is not a dir
   dir--;      // make dir start at 0
 
+  int move = (pos<<5) | (dir<<2) | cap;
+  if(debug>1) printf("Resulting move %d\n",move);
+
   // mask everything into the MOVE to return
-  return (col<<18) | (row<<5) | (dir<<2) | cap;
+  return move;
 }
 
 /************************************************************************
@@ -645,8 +691,10 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d", theMove + 1); 
+  dbg("->PrintMove");
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  printf("%d", theMove + 1); 
+  dbg("<-PrintMove");
 }
 
 /************************************************************************
@@ -670,8 +718,10 @@ void PrintMove(theMove)
  *
  * Calls: generic_unhash(...)
  **********************************************************************/
-PositionToBoard(POSITION position, BlankOX *board) {
-  generic_unhash(position,board);
+PositionToBlankOX(POSITION position, BlankOX *board) {
+  dbg("->PositionToBlankOX");
+  generic_unhash(position,(char *)board);  // TODO: doesn't API stick with their own types?? (arg2)
+  dbg("<-PositionToBlankOX");
 }
 
 /************************************************************************
@@ -683,7 +733,9 @@ PositionToBoard(POSITION position, BlankOX *board) {
  * Calls: generic_hash(...)
  ***********************************************************************/
 POSITION BoardToPosition(BlankOX *board) {
-  return generic_hash(board);
+  dbg("->BoardToPosition");
+  return generic_hash((char *)board, turn==X?2:1 );  // TODO: doesn't API stick with their own types?? (arg 1)
+  dbg("<-BoardToPosition");
 }
 
 /***********************************************************************
@@ -695,6 +747,7 @@ POSITION BoardToPosition(BlankOX *board) {
  * Calls:
  **********************************************************************/
 int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
+  dbg("->AnyPiecesLeft");
   int i;
   int anyLeft = 0;    /* assume there are none left, then set true if we see one */
   
@@ -703,6 +756,7 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
       anyLeft = 1;    /* we saw one, so set to true */
 
   return anyLeft;
+  dbg("<-AnyPiecesLeft");
 }
 
 /************************************************************************
@@ -714,15 +768,15 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
  *
  * Calls:
  ***********************************************************************/
-BlankOX WhoseTurn() {
-  return turn;   /* turn is a global variable that keeps track of this */
+BlankOX WhoseTurn(int pos) {
+  return (whoseMove(pos) == 2 ? X : O);
 }
 
 BlankOX OtherPlayer() {
-  return turn==x ? o : x;
+  return turn==X ? O : X;
 }
 
-STRING kDBName = "ttt" ;
+STRING kDBName = "fandan" ;
      
 int NumberOfOptions()
 {    
@@ -743,3 +797,25 @@ void setOption(int option)
                 gStandardGame = FALSE ;
 }
 
+
+  // ----- Shing ----------------------------------------
+
+  //  o --- o --- o --- o --- o
+  //  |  \  |  /  |  \  |  /  |
+  //  o --- x --- . --- o --- x
+  //  |  /  |  \  |  /  |  \  |
+  //  x --- x --- x --- x --- x
+
+  //  (o)-(o)-(o)-(o)-(o)
+  //   | \ | / | \ | / |
+  //  (o)-(x)-( )-(o)-(x)
+  //   | / | \ | / | \ |
+  //  (x)-(x)-(x)-(x)-(x)
+
+  //  [o]-[o]-[o]-[o]-[o]
+  //   | \ | / | \ | / |
+  //  (o)-(x)-( )-(o)-(x)
+  //   | / | \ | / | \ |
+  //  (x)-(x)-(x)-(x)-(x)
+
+  // ----------------------------------------------------
