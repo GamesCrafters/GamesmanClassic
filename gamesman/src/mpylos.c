@@ -83,3 +83,14 @@ void setOption(int option) {}
 BOOLEAN ValidTextInput(STRING input) {
   return 0;
 }
+
+
+/*
+** Unfortunately, this is needed for now. -JJ
+*/
+
+int GameSpecificTclInit (interp, mainWindow) 
+	Tcl_Interp* interp;
+	Tk_Window mainWindow;
+{
+}
