@@ -36,22 +36,22 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
-    global gMisereGame
-    if {!$gMisereGame} {
-	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
-    } else {
-	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
-    }
-    SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
+#     global gMisereGame
+#     if {!$gMisereGame} {
+# 	SetToWinString "To Win: You must trap your opponent such that he/she can't move anymore."
+#     } else {
+# 	SetToWinString "To Win: You must trap yourself such that you can't move anymore."
+#     }
+#     SetToMoveString "To Move: You must move one of your pieces into a vacant space that is next to that piece. You may only move one piece each turn. In order to move from the edge to the center, your piece must be next to one of your opponent's pieces. You may move one of your pieces on the edge into an adjacent vacant edge."
 
 
 
-    # Authors Info. Change if desired
-    global kRootDir
-    global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Jeffrey Chou"
-    set kTclAuthors "Jeffrey Chou, Geoffrey Kwan"
-    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+#     # Authors Info. Change if desired
+#     global kRootDir
+#     global kCAuthors kTclAuthors kGifAuthors
+#     set kCAuthors "Jeffrey Chou"
+#     set kTclAuthors "Jeffrey Chou, Geoffrey Kwan"
+#     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
 
@@ -180,6 +180,9 @@ proc GS_SetOption { option } {
 }
 
 
+
+
+
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -188,10 +191,12 @@ proc GS_SetOption { option } {
 # This function is called ONCE after GS_InitGameSpecific, and before the
 # player hits "New Game"
 #############################################################################
+
+
 proc GS_Initialize { c } {
 
-    # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width 500 -height 500
+    # you may want to start by setting the size of the canvas; this line isn't necessary
+    $c configure -width 750 -height 750
 
     global xCenter yCenter
     global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
@@ -221,10 +226,13 @@ proc GS_Initialize { c } {
     ##### background circles
     
     ## large background circle
-    drawOval $c $xCenter $yCenter $largeCircleDiam "black" "black" "bgCircle"
+    drawOval $c $xCenter $yCenter [expr $largeCircleDiam * 1.24] "grey" "black" "bgGreyCircle"    
+
+    ## large background circle
+    drawOval $c $xCenter $yCenter $largeCircleDiam "black" "white" "bgCircle"
 
     ## center circle
-    drawOval $c $xCenter $yCenter $smallCircleDiam "white" "white" "bgMiniCircle"
+    drawOval $c $xCenter $yCenter $smallCircleDiam "white" "black" "bgMiniCircle"
 
 
 
@@ -299,41 +307,178 @@ proc GS_Initialize { c } {
     #    7
 
 
-
-
-    ##### pieces
-
-
     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
-	drawPiece $c $x "blue" b$x
-	drawPiece $c $x "red" r$x
+	drawPiece $c $x "blue"
+	drawPiece $c $x "red"
+	drawPiece $c $x "white"	
+    }
+
+#drawArrow $c $newBlankSpot $oldBlankSpot $color
+
+    for {set y 1} {$y < 9} {set y [expr $y + 1]} {
+	drawArrow $c 0 $y "cyan"
+	drawArrow $c $y 0 "cyan"
+
+	drawArrow $c 0 $y "yellow"
+	drawArrow $c $y 0 "yellow"
+
+	drawArrow $c 0 $y "green"
+	drawArrow $c $y 0 "green"
+
+	drawArrow $c 0 $y "red"
+	drawArrow $c $y 0 "red"
     }
 
 
+    for {set z 1} {$z < 9} {set z [expr $z + 1]} {
+	set cwNeighbor [expr [expr $z + 1] % 8]
+	set ccwNeighbor [expr [expr $z - 1] % 8]
+
+	if {$cwNeighbor == 0} {
+	    set cwNeighbor 8
+	}
+
+	if {$ccwNeighbor == 0} {
+	    set ccwNeighbor 8
+	}	
+
+
+	drawArrow $c $z $cwNeighbor "cyan"
+	drawArrow $c $z $ccwNeighbor "cyan"
+
+
+	drawArrow $c $z $cwNeighbor "yellow"
+	drawArrow $c $z $ccwNeighbor "yellow"
+
+
+	drawArrow $c $z $cwNeighbor "green"
+	drawArrow $c $z $ccwNeighbor "green"
+
+
+	drawArrow $c $z $cwNeighbor "red"
+	drawArrow $c $z $ccwNeighbor "red"
+
+
+    }
+
+
+    $c raise bgGreyCircle
     $c raise bgCircle
     $c raise line
     $c raise bgMiniCircle
 
 
-    # draws the 4 initial startup blue pieces
-    $c raise b1
-    $c raise b2
-    $c raise b3
-    $c raise b4
+    # draws the starting position with
+    # 0000111100000
+    # white0
+    # blue1
+    # blue2
+    # blue3
+    # blue4
+    # red5
+    # red6
+    # red7
+    # red8
+    GS_DrawPosition $c 480
 
-    # draws the 4 initial startup red pieces
-    $c raise r5
-    $c raise r6
-    $c raise r7
-    $c raise r8
-
-
-
-    ##### arrow
-    #$c create line 291 250 365 250 -width 15 -arrow last -arrowshape {30 30 15} -fill turquoise -tag arrow
+}
 
 
-} 
+
+
+
+    ##### board locations
+
+    #    3
+    # 2  |  4
+    #  \   /
+    #1-- 0 --5
+    #  / | \
+    # 8  |  6
+    #    7
+
+## getPiecePositionX takes in a board location (0-8) and returns the x-coordinate of the board location.
+proc getPiecePositionX { boardLocation } {
+
+    global xCenter yCenter
+    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
+
+
+    if {$boardLocation == 0} {
+	return $xCenter
+    } elseif {$boardLocation == 1} {
+	return [expr $xCenter - $largeCircleRadius]
+    } elseif {$boardLocation == 2} {
+	return [expr $xCenter - $cornerOffset]
+    } elseif {$boardLocation == 3} {
+	return $xCenter
+    } elseif {$boardLocation == 4} {
+	return [expr $xCenter + $cornerOffset]
+    } elseif {$boardLocation == 5} {
+	return [expr $xCenter + $largeCircleRadius]
+    } elseif {$boardLocation == 6} {
+	return [expr $xCenter + $cornerOffset]
+    } elseif {$boardLocation == 7} {
+	return $xCenter
+    } elseif {$boardLocation == 8} {
+	return [expr $xCenter - $cornerOffset]
+    } else {
+	#ERROR
+    }
+}
+
+
+
+## getPIecePositionY takes in a board location (0-8) and returns the y-coordinate of the board location.
+proc getPiecePositionY { boardLocation } {
+
+    global xCenter yCenter
+    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
+
+
+    if {$boardLocation == 0} {
+	return $yCenter
+    } elseif {$boardLocation == 1} {
+	return $yCenter
+    } elseif {$boardLocation == 2} {
+	return [expr $yCenter - $cornerOffset]
+    } elseif {$boardLocation == 3} {
+	return [expr $yCenter - $largeCircleRadius]
+    } elseif {$boardLocation == 4} {
+	return [expr $yCenter - $cornerOffset]
+    } elseif {$boardLocation == 5} {
+	return $yCenter
+    } elseif {$boardLocation == 6} {
+	return [expr $yCenter + $cornerOffset]
+    } elseif {$boardLocation == 7} {
+	return [expr $yCenter + $largeCircleRadius]
+    } elseif {$boardLocation == 8} {
+	return [expr $yCenter + $cornerOffset]
+    } else {
+	#ERROR
+    }
+}
+
+
+
+## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
+proc drawOval { c x y size fill outline tag } {
+    set radius [expr $size / 2]
+    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
+}
+
+
+
+## drawPiece draws an piece on the canvas at the board location
+proc drawPiece { c boardLocation color } {
+    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
+
+    drawOval $c [getPiecePositionX $boardLocation] [getPiecePositionY $boardLocation] $pieceCircleDiam $color $color "$color$boardLocation"
+}
+
+
+
+
 
 
 
@@ -361,6 +506,11 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
+    
+    $c raise bgGreyCircle
+    $c raise bgCircle
+    $c raise line
+    $c raise bgMiniCircle
 
     ##### board locations
 
@@ -371,8 +521,6 @@ proc GS_DrawPosition { c position } {
     #  / | \
     # 8  |  6
     #    7
-
-    # I think i was doin the wrong thing here so I commented all this out
 
     # hash on 13 digit binary
     # right most 9 digits specify board location and color
@@ -398,85 +546,33 @@ proc GS_DrawPosition { c position } {
     # so the blank space is 3 and should overwrite the red piece from above
 
 
-#     set mask 1
+    set mask 1
 
-#     for {set x 0} {$x < 9} {set x [expr $x + 1]} {
+    for {set x 0} {$x < 9} {set x [expr $x + 1]} {
 	
-# 	if {[expr $mask & $position] == 0} {
-# 	    drawPiece $c $x "blue"
-# 	} else {
-# 	    drawPiece $c $x "red"
-# 	}
-# 	set mask [expr $mask * 2]
-#     }
-
-#     set blankSpot [expr $position >> 9]
-#     set blankSpot [expr $blankSpot & 15]
-#     drawPiece $c $blankSpot "white"
-
-
-    global gWhoseTurn
-
-    $c raise bgCircle
-    $c raise line
-    $c raise bgMiniCircle
-
-    
-    
-    if {$gWhoseTurn == "blue"} {
-	$c raise b$position
-    } else {
-	$c raise r$position
+	if {[expr $mask & $position] == 0} {
+	    $c raise "blue$x"
+	} else {
+	    $c raise "red$x"
+	}
+	set mask [expr $mask * 2]
     }
 
-}
 
+    set blankSpot [getBlankSpot $position]
+    $c raise "white$blankSpot"
 
-    ##### board locations
-
-    #    3
-    # 2  |  4
-    #  \   /
-    #1-- 0 --5
-    #  / | \
-    # 8  |  6
-    #    7
-
-## drawPiece draws an piece on the canvas at the board location
-proc drawPiece { c boardLocation color tag} {
-    global xCenter yCenter
-    global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
-
-    if {$boardLocation == 0} {
-	drawOval $c $xCenter $yCenter $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 1} {
-	drawOval $c [expr $xCenter - $largeCircleRadius] $yCenter $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 2} {
-	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 3} {
-	drawOval $c $xCenter [expr $yCenter - $largeCircleRadius] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 4} {
-	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter - $cornerOffset] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 5} {
-	drawOval $c [expr $xCenter - $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 6} {
-	drawOval $c $xCenter [expr $yCenter + $largeCircleRadius] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 7} {
-	drawOval $c [expr $xCenter + $cornerOffset] [expr $yCenter + $cornerOffset] $pieceCircleDiam $color $color $tag
-    } elseif {$boardLocation == 8} {
-	drawOval $c [expr $xCenter + $largeCircleRadius] $yCenter $pieceCircleDiam $color $color $tag
-    } else {
-	#ERROR
-    }
 }
 
 
 
-## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
-proc drawOval { c x y size fill outline tag } {
-    set radius [expr $size / 2]
-    $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline $outline -tag $tag
+# Gets the blank location of a position
+proc getBlankSpot { position } {
+    set blankSpot [expr $position >> 9]
+    return [expr $blankSpot & 15]
 }
+
+
 
 
 
@@ -518,7 +614,7 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-	### TODO: Fill this in
+    GS_DrawPosition $c $newPosition
     
 }
 
@@ -540,8 +636,57 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    ### TODO: Fill this in
+    set oldBlankSpot [getBlankSpot $position]
+
+    foreach item $moveList {
+	set move [lindex $item 0]
+	set value [lindex $item 1]
+	set color cyan
+
+	set newBlankSpot [getBlankSpot $move]
+
+	if {$moveType == "value"} {
+	    if {$value == "Tie"} {
+		set color yellow
+	    } elseif {$value == "Lose"} {
+		set color green
+	    } elseif {$value == "Win"} {
+		set color red
+	    } else {
+		#ERROR
+	    }
+	}
+
+	raiseArrow $c $newBlankSpot $oldBlankSpot $position $move $color
+    }
 }
+
+
+
+# draws an arrow and binds the mouse enter and exit to animate the big arrow when mouse is entered
+proc drawArrow {c startLoc endLoc color} {
+##### arrow
+    $c create line [getPiecePositionX $startLoc] [getPiecePositionY $startLoc] [getPiecePositionX $endLoc] [getPiecePositionY $endLoc] -width 15 -arrow last -arrowshape {30 30 15} -fill $color -tag "arrow$color$startLoc$endLoc"
+
+    $c create line [getPiecePositionX $startLoc] [getPiecePositionY $startLoc] [getPiecePositionX $endLoc] [getPiecePositionY $endLoc] -width 30 -arrow last -arrowshape {60 60 30} -fill $color -tag "bigArrow$color$startLoc$endLoc"
+
+
+    $c bind "arrow$color$startLoc$endLoc" <Enter> "$c raise bigArrow$color$startLoc$endLoc"
+    $c bind "bigArrow$color$startLoc$endLoc" <Leave> "$c lower bigArrow$color$startLoc$endLoc"
+
+
+
+}
+
+
+# raises an arrow and binds it to a button release that handles that move
+proc raiseArrow {c startLoc endLoc oldPosition newPosition color} {
+    $c raise "arrow$color$startLoc$endLoc"
+
+    $c bind "bigArrow$color$startLoc$endLoc" <ButtonRelease> "GS_HandleMove $c $oldPosition $newPosition $newPosition"
+}
+
+
 
 
 #############################################################################
@@ -551,7 +696,30 @@ proc GS_ShowMoves { c moveType position moveList } {
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
 
-    ### TODO: Fill this in
+    set oldBlankSpot [getBlankSpot $position]
+
+    foreach item $moveList {
+	set move [lindex $item 0]
+	set value [lindex $item 1]
+	set color cyan
+
+	set newBlankSpot [getBlankSpot $move]
+
+	if {$moveType == "value"} {
+	    if {$value == "Tie"} {
+		set color yellow
+	    } elseif {$value == "Lose"} {
+		set color green
+	    } elseif {$value == "Win"} {
+		set color red
+	    } else {
+		#ERROR
+	    }
+	}
+
+	$c lower "arrow$color$newBlankSpot$oldBlankSpot"
+	$c lower "bigArrow$color$newBlankSpot$oldBlankSpot"
+    }
 
 }
 
