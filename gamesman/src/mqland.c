@@ -17,13 +17,10 @@
 ** DATE:        2004-09-13
 **
 ** UPDATE HIST: 2004-10-02:	Wrote GetMoveList
-**		2004-09-27:	Fixed name of function call in PrintPosition
-**				Wrote vcfg
+**		2004-09-27:    	Wrote vcfg
 **				Wrote DoMove
-**		2004-09-26:	Defined pieceat (do we need getpiece and Board_Rep?)
-**				Wrote InitializeBoard
-**		2004-09-25:	Defined Board_Rep and getpiece
-**				Wrote PrintPosition
+**		2004-09-26:	Wrote InitializeBoard
+**		2004-09-25:	Wrote PrintPosition
 **
 **************************************************************************/
 
@@ -143,7 +140,7 @@ extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
 int vcfg(int* this_cfg);
-int next_player(int position);
+int next_player(POSITION position);
 void BadElse(char* message);
 
 
@@ -696,7 +693,7 @@ int vcfg(int *this_cfg) {
 	return this_cfg[2] == this_cfg[1] || this_cfg[2] + 1 == this_cfg[1];
 }
 
-int next_player(int position) {
+int next_player(POSITION position) {
 	char board[width * height] = generic_unhash(position, board);
 	int i, numWhite, numBlack;
 	
