@@ -1,5 +1,4 @@
-// $id$
-// $log$
+// $Id: mtemplate.c,v 1.3 2005-03-10 02:06:47 ogren Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -502,3 +501,4 @@ void DebugMenu ()
 ************************************************************************/
 
 
+// $Log: not supported by cvs2svn $
