@@ -54,7 +54,7 @@
 extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 27962; /* # total possible positions -> given by the hash_init() function*/
-POSITION gInitialPosition    = 0; /* The initial position (starting board) */
+POSITION gInitialPosition    = 12587; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
@@ -320,16 +320,25 @@ void InitializeGame () {
     char tempname[BOARDARRAYSIZE];
     Board b = tempname;
     int r;
-    for (r=0; r<width*height; r++) setpce(b,r,'-');
+    for (r=0; r<width*height; r++){ 
+      if (r==4)
+	setpce(b,r,'-');
+	else  
+	  if (r % 2 == 0)
+	    setpce(b,r,'o');
+	  else 
+	    setpce(b,r,'x');
+    }
     setWhoseBoard(b, 'x');
-    setPlacingBoard(b,TRUE);
+    setPlacingBoard(b,FALSE);
     gInitialPosition = hash(b);
+    printf ("init------------- %d",gInitialPosition);
   } while (FALSE);
 }
 
 
 /************************************************************************
- **
+ **x
  ** NAME:        DebugMenu
  **
  ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
@@ -566,19 +575,22 @@ POSITION DoMove (POSITION position, MOVE m) {
 POSITION GetInitialPosition ()
 {
   // TODO: find a one-line way to say the following:
-  char tempname[BOARDARRAYSIZE];
-  Board b = tempname;
+  //char tempname[BOARDARRAYSIZE];
+  //Board b = tempname;
   
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
-  printf("Example:\n");
+  //printf("\n\n\t----- Get Initial Position -----\n");
+  //printf("\n\tPlease input the position to begin with.\n");
+  //printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
+  //printf("Example:\n");
   
-  printf("\nTEMP: On second thought let me just give you a random board.\n");
-  printf("TODO: allow you to enter something.\n");
+  //printf("\nTEMP: On second thought let me just give you a random board.\n");
+  //printf("TODO: allow you to enter something.\n");
   //setWhoseBoard(b, 'x');
-  makeRandomBoard(b);
-  return hash(b);
+  //makeRandomBoard(b);
+  //InitializeGame();
+  //printf("d",);
+  gInitialPosition=12587;
+  return gInitialPosition;
 }
 
 
