@@ -1829,6 +1829,7 @@ MOVE GetComputersMove(thePosition)
   VALUE_MOVES *moves, *GetValueMoves();
   REMOTENESSLIST *rptr, *rhead;
   BOOLEAN setBackSmartness = FALSE;
+  BOOLEAN moveFound;
   int oldsmartness = smartness;
   ptr = head = prev = NULL;
   i = 0;
@@ -1960,7 +1961,7 @@ MOVE GetComputersMove(thePosition)
     head = ptr = moves->moveList[i];
     i++;
 
-    while (i < LOSEMOVE+1) {    
+    while (i <= LOSEMOVE) {    
       ptr = moves->moveList[i];
       if (head == NULL && ptr != NULL) 
 	head = ptr;
@@ -1972,22 +1973,30 @@ MOVE GetComputersMove(thePosition)
 	  PrintMove(ptr->move);
 	  printf(" ");
 	}
-	if(ptr != NULL)
-	  {
-	    prev = ptr;
-	    ptr = ptr->next;
-	  }
+	prev = ptr;
+	ptr = ptr->next;
       }
       i++;
     }
     if(gHints)
       printf("]\n\n");
     randomMove = GetRandomNumber(numberMoves);
-    ptr = head;
-    for(i = 0; i < randomMove ; i++)
-      ptr = ptr->next; 
-    theMove = ptr->move;
-    
+    moveFound = FALSE;
+    for (i = 0; i<= LOSEMOVE && !moveFound; i++) {
+      ptr = moves->moveList[i];
+      while (ptr != NULL) {
+	if (randomMove != 0) {
+	  ptr = ptr->next; 
+	  randomMove--;
+	}
+	else {
+	  theMove = ptr->move;
+	  moveFound = TRUE;
+	  break;
+	}
+      }
+    }
+
     FreeValueMoves(moves);
     return(theMove);
   } 
