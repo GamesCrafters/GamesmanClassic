@@ -1,13 +1,34 @@
 
-FRnode *gHeadWinFR = NULL;               /* The FRontier Win Queue */
-FRnode *gTailWinFR = NULL;
-FRnode *gHeadLoseFR = NULL;              /* The FRontier Lose Queue */
-FRnode *gTailLoseFR = NULL;
-FRnode *gHeadTieFR = NULL;               /* The FRontier Tie Queue */
-FRnode *gTailTieFR = NULL;
-POSITIONLIST **gParents = NULL;         /* The Parent of each node in a list */
-char *gNumberChildren = NULL;           /* The Number of children (used for Loopy games) */
+#include "gamesman.h"
+#include "solveloopy.h"
 
+/*
+** Local variables
+*/
+
+FRnode*		gHeadWinFR = NULL;	/* The FRontier Win Queue */
+FRnode*		gTailWinFR = NULL;
+FRnode*		gHeadLoseFR = NULL;	/* The FRontier Lose Queue */
+FRnode*		gTailLoseFR = NULL;
+FRnode*		gHeadTieFR = NULL;	/* The FRontier Tie Queue */
+FRnode*		gTailTieFR = NULL;
+POSITIONLIST**	gParents = NULL;	/* The Parent of each node in a list */
+char*		gNumberChildren = NULL;	/* The Number of children (used for Loopy games) */
+
+
+/*
+** Internal prototypes
+*/
+
+static void		ParentInitialize		(void);
+static VALUE		DetermineLoopyValue1		(POSITION pos);
+static void		ParentFree			(void);
+static void		SetParents			(POSITION bad, POSITION root);
+
+
+/*
+** Code
+*/
 
 void MyPrintParents()
 {
@@ -355,22 +376,7 @@ void InitializeFR()
     gTailTieFR = NULL;
 }
 
-POSITION DeQueueWinFR()
-{
-    return DeQueueFR(&gHeadWinFR, &gTailWinFR);
-}
-
-POSITION DeQueueLoseFR()
-{
-    return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
-}
-
-POSITION DeQueueTieFR()
-{
-    return DeQueueFR(&gHeadTieFR, &gTailTieFR);
-}
-
-POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
+static POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
 {
     POSITION position;
     FRnode *tmp;
@@ -389,25 +395,22 @@ POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR)
     return position;
 }
 
-void InsertWinFR(POSITION position)
+POSITION DeQueueWinFR()
 {
-    /* printf("Inserting WinFR...\n"); */
-    InsertFR(position, &gHeadWinFR, &gTailWinFR);
+    return DeQueueFR(&gHeadWinFR, &gTailWinFR);
 }
 
-
-void InsertLoseFR(POSITION position)
+POSITION DeQueueLoseFR()
 {
-    /* printf("Inserting LoseFR...\n"); */
-    InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
+    return DeQueueFR(&gHeadLoseFR, &gTailLoseFR);
 }
 
-void InsertTieFR(POSITION position)
+POSITION DeQueueTieFR()
 {
-    InsertFR(position, &gHeadTieFR, &gTailTieFR);
+    return DeQueueFR(&gHeadTieFR, &gTailTieFR);
 }
 
-void InsertFR(POSITION position, FRnode **firstnode,
+static void InsertFR(POSITION position, FRnode **firstnode,
               FRnode **lastnode)
 {
     FRnode *tmp = (FRnode *) SafeMalloc(sizeof(FRnode));
@@ -423,6 +426,23 @@ void InsertFR(POSITION position, FRnode **firstnode,
         (*lastnode)->next = tmp;
         *lastnode = tmp;
     }
+}
+
+void InsertWinFR(POSITION position)
+{
+    /* printf("Inserting WinFR...\n"); */
+    InsertFR(position, &gHeadWinFR, &gTailWinFR);
+}
+
+void InsertLoseFR(POSITION position)
+{
+    /* printf("Inserting LoseFR...\n"); */
+    InsertFR(position, &gHeadLoseFR, &gTailLoseFR);
+}
+
+void InsertTieFR(POSITION position)
+{
+    InsertFR(position, &gHeadTieFR, &gTailTieFR);
 }
 
 // End Loopy

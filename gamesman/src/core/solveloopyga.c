@@ -1,35 +1,6 @@
 #include "gamesman.h"
-#include "loopygasolver.h"
-
-/*** these prototypes should be pulled from loopy.h
- *** once it gets created  ***/
-void     MyPrintParents();
-VALUE    DetermineLoopyValue1(POSITION position);
-VALUE    DetermineLoopyValue(POSITION position);
-void     SetParents (POSITION parent, POSITION root);
-void     ParentInitialize();
-void     ParentFree();
-void     NumberChildrenInitialize();
-void     NumberChildrenFree();
-void     InitializeFR();
-POSITION DeQueueWinFR();
-POSITION DeQueueLoseFR();
-POSITION DeQueueTieFR();
-POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR);
-void     InsertWinFR(POSITION position);
-void     InsertLoseFR(POSITION position);
-void     InsertTieFR(POSITION position);
-void     InsertFR(POSITION position, FRnode **firstnode, FRnode **lastnode);
-
-/* Start Loopy */
-extern FRnode *gHeadWinFR;               /* The FRontier Win Queue */
-extern FRnode *gTailWinFR;
-extern FRnode *gHeadLoseFR;              /* The FRontier Lose Queue */
-extern FRnode *gTailLoseFR;
-extern FRnode *gHeadTieFR;               /* The FRontier Tie Queue */
-extern FRnode *gTailTieFR;
-extern char *gNumberChildren;           /* The Number of children (used for Loopy games) */
-/* End Loopy */
+#include "solveloopyga.h"
+#include "solveloopy.h"
 
 typedef struct lgas_position_move_list {
   POSITION position;

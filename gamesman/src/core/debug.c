@@ -1,4 +1,5 @@
 
+#include "gamesman.h"
 
 void DebugModule()
 {

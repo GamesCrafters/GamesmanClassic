@@ -1,3 +1,7 @@
+
+#include "gamesman.h"
+#include "solveloopy.h"
+
 /**************
  **  Start ZeroSolver 
  **		Written by: Scott Lindeneau
@@ -131,7 +135,9 @@ VALUE DetermineZeroValue(POSITION position)
             }
         }
 	
-        printf("\nnumUndecided: %d, diff: %d, numNew: %d, lowSeen: %d, highSeen: %d",numUndecided,numUndecided - oldNumUndecided,numNew,lowSeen,highSeen);
+        printf("\nnumUndecided: " POSITION_FORMAT ", diff: " POSITION_FORMAT ", numNew: " POSITION_FORMAT
+               ", lowSeen: " POSITION_FORMAT ", highSeen: " POSITION_FORMAT,
+               numUndecided,numUndecided - oldNumUndecided,numNew,lowSeen,highSeen);
 	
     }
     

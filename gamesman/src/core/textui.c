@@ -1,3 +1,29 @@
+
+#include "gamesman.h"
+
+/*
+** Local prototypes
+*/
+
+static void	MenusBeforeEvaluation		(void);
+static void	MenusEvaluated			(void);
+static void	ParseMenuChoice			(char c);
+static BOOLEAN	ParseConstantMenuChoice		(char c);
+static void	ParseBeforeEvaluationMenuChoice	(char c);
+static void	ParseEvaluatedMenuChoice	(char c);
+static void	ParseHelpMenuChoice		(char c);
+static void	SmarterComputerMenu		(void);
+static void	AnalysisMenu			(void);
+
+void HitAnyKeyToContinue()
+{
+    static BOOLEAN first = TRUE;
+    
+    printf("\n\t----- Hit <return> to continue -----");
+    first ? (first = FALSE) : getchar(); /* to make lint happy */
+    while(getchar() != '\n');
+}
+
 char GetMyChar()
 {
     char inString[MAXINPUTLENGTH], ans;
@@ -53,7 +79,8 @@ void MenusBeforeEvaluation()
 
 void MenusEvaluated()
 {
-    VALUE gameValue;
+    VALUE gameValue = undecided;
+    
     if(!gUnsolved)
         gameValue = GetValueOfPosition(gInitialPosition);
     
@@ -155,9 +182,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 {
 
     BOOLEAN tempPredictions;
-    int timer;
     VALUE gameValue;
-
 
     switch(c) {
     case 'G': case 'g':
@@ -727,7 +752,7 @@ void showStatus(int done)
     if (num_pos_seen > gNumberOfPositions && clock() > updateTime)
 	{
 	    fflush(stdout);
-	    print_length = printf("Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",num_pos_seen,gNumberOfPositions);
+	    print_length = printf("Solving... " POSITION_FORMAT " Positions Visited - Reported Total Number of Positions: " POSITION_FORMAT "\e[K",num_pos_seen,gNumberOfPositions);
 	    printf("\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
 	    updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}

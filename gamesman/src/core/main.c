@@ -1,18 +1,23 @@
 
+#include "gamesman.h"
+#include "solveloopyga.h"
+#include "solveloopy.h"
+#include "solvezero.h"
+#include "solvestd.h"
+#include "hash.h"
+
 /* solver function pointer */
-VALUE (*gSolver)(POSITION);
+VALUE (*gSolver)(POSITION) = NULL;
 
 /* go again function pointer */
-BOOLEAN (*gGoAgain)(POSITION,MOVE);
+BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 
-static VALUE   gValue = undecided;          /* The value of the game */
-static BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
-static BOOLEAN gHumanGoesFirst;             /* TRUE iff the user goes first vs. computer */
-static BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
-static BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
-static BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
-
-extern STRING kAuthorName;
+VALUE   gValue = undecided;          /* The value of the game */
+BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
+BOOLEAN gHumanGoesFirst = TRUE;      /* TRUE iff the user goes first vs. computer */
+BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
+BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
+BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
@@ -37,10 +42,14 @@ int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
 VALUE oldValueOfPosition = tie;
 
-static MENU gMenuMode = BeforeEvaluation;
+MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
 
+/*
+** Local prototypes
+*/
 
+static void	SetSolver ();
 
 
 void InitializeDatabases()
@@ -74,6 +83,8 @@ void Initialize()
     
     sprintf(gPlayerName[kPlayerOneTurn],"Player");
     sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
+    
+    generic_hash_context_init();
     InitializeGame();
     SetSolver();
 }
@@ -99,8 +110,29 @@ void SetSolver()
         gSolver = DetermineValue1;
 }
 
-
-
+VALUE DetermineValue(POSITION position)
+{
+    if(gReadDatabase && loadDatabase()) {
+        if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
+	
+        if (GetValueOfPosition(position) == undecided) {
+            if (gPrintDatabaseInfo) printf("\nRe-evaluating the value of %s...", kGameName);
+            gSolver(position);
+            if(gWriteDatabase)
+                writeDatabase();
+        }
+    }
+    else {
+        if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
+        gSolver(position);
+        showStatus(1);
+        if(gWriteDatabase)
+            writeDatabase();
+    }
+    
+    gValue = GetValueOfPosition(position);
+    return gValue;
+}
 
 /* Starts a normal textbased game. */
 void StartGame()
@@ -188,7 +220,7 @@ void HandleArguments (int argc, char *argv[])
             if(argc != 4)
                 fprintf(stderr, "\nInvalid arguments!\n\n");
             else
-                printf("\nDoMove returns: %u\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
+                printf("\nDoMove returns: " POSITION_FORMAT "\n\n", DoMove(atoi(argv[2]), atoi(argv[3])));
             i += argc;
             gMessage = TRUE;
         }
@@ -256,7 +288,6 @@ void HandleArguments (int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     HandleArguments(argc, argv);
-    
     
     if(!gMessage) {
         if(!gJustSolving)

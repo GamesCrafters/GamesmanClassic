@@ -1,4 +1,13 @@
 
+#include "gamesman.h"
+
+/* Local function prototypes */
+
+static	MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+static	MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+static	VALUE_MOVES*	SortMoves			(POSITION, MOVE, VALUE_MOVES*);
+static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
+
 void PlayAgainstHuman()
 {
     POSITION currentPosition;
@@ -148,7 +157,7 @@ void ResetUndoList(UNDO* undo)
     gAgainstComputer = FALSE;
     while(undo->next != NULL)
         undo = HandleUndoRequest(&position, undo, &error);
-    if(!gUsolved)
+    if(!gUnsolved)
 	UnMarkAsVisited(undo->position);
     SafeFree((GENERIC_PTR)undo);
     gAgainstComputer = oldAgainstComputer;
@@ -167,7 +176,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     
     /* undo the first move */
     
-    if(!gUsolved)
+    if(!gUnsolved)
 	UnMarkAsVisited(undo->position);
     if (undo->givebackUsed) {
 	remainingGivebacks++;
@@ -320,6 +329,22 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
     return(undo);
 }
 
+BOOLEAN PrintPossibleMoves(POSITION thePosition)
+{
+    MOVELIST *ptr, *head;
+    
+    head = ptr = GenerateMoves(thePosition);
+    printf("\nValid Moves : [ ");
+    while (ptr != NULL) {
+        PrintMove(ptr->move);
+        printf(" ");
+        ptr = ptr->next;
+    }
+    printf("]\n\n");
+    FreeMoveList(head);
+    return(TRUE); /* This should always return true for GetAndPrintPlayersMove */
+}
+
 /* Jiong */
 void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 {
@@ -398,6 +423,89 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
         (void) sprintf(prediction," ");
     
     return(prediction);
+}
+
+
+MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList)
+{
+    MOVELIST *maxRemotenessMoveList = NULL;
+    REMOTENESS maxRemoteness;
+    int numMoves, random;
+    
+    numMoves = 0;
+    maxRemoteness = -1;
+    while(remotenessList != NULL) {
+        if (remotenessList->remoteness > maxRemoteness) {
+            numMoves = 1;
+            maxRemoteness = remotenessList->remoteness;
+            maxRemotenessMoveList = moveList;
+        }
+        else if (remotenessList->remoteness == maxRemoteness) {
+            numMoves++;
+        }
+        moveList = moveList->next;
+        remotenessList = remotenessList->next;
+    }
+    
+    if (numMoves<=0) {
+        return -1;
+    }
+    
+    random = GetRandomNumber(numMoves);
+    for (; random>0; random--) {
+        maxRemotenessMoveList = maxRemotenessMoveList->next;
+    }
+    return (maxRemotenessMoveList->move);
+}
+
+MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenessList)
+{
+    int numMoves, random;
+    REMOTENESS minRemoteness;
+    
+    numMoves = 0;
+    minRemoteness = REMOTENESS_MAX;
+    while(remotenessList!=NULL && remotenessList->remoteness <= minRemoteness) {
+        numMoves++;
+        minRemoteness = remotenessList->remoteness;
+        remotenessList = remotenessList->next;
+    }
+    
+    if (numMoves<=0) {
+        return -1;
+    }
+    
+    random = GetRandomNumber(numMoves);
+    for (; random>0; random--) {
+        moveList = moveList->next;
+    }
+    return (moveList->move);
+}     
+
+/* Jiong */
+VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves) 
+{
+    POSITION child;
+    VALUE childValue;
+    
+    child = DoMove(thePosition, move);
+    childValue = GetValueOfPosition(child);
+    if (gGoAgain(thePosition, move)) {
+        switch(childValue) {
+	case win: childValue = lose; break;
+	case lose: childValue = win; break;
+	default: childValue = childValue;
+        }
+    }
+    
+    if (childValue == lose) {  //winning moves
+        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
+    } else if (childValue == tie) {  //tie moves
+        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
+    } else if (childValue == win) {  //lose moves
+        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
+    }
+    return valueMoves;
 }
 
 /* Jiong */
@@ -565,87 +673,6 @@ MOVE GetComputersMove(POSITION thePosition)
     }
 }
 
-MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList)
-{
-    MOVELIST *maxRemotenessMoveList = NULL;
-    REMOTENESS maxRemoteness;
-    int numMoves, random;
-    
-    numMoves = 0;
-    maxRemoteness = -1;
-    while(remotenessList != NULL) {
-        if (remotenessList->remoteness > maxRemoteness) {
-            numMoves = 1;
-            maxRemoteness = remotenessList->remoteness;
-            maxRemotenessMoveList = moveList;
-        }
-        else if (remotenessList->remoteness == maxRemoteness) {
-            numMoves++;
-        }
-        moveList = moveList->next;
-        remotenessList = remotenessList->next;
-    }
-    
-    if (numMoves<=0) {
-        return -1;
-    }
-    
-    random = GetRandomNumber(numMoves);
-    for (; random>0; random--) {
-        maxRemotenessMoveList = maxRemotenessMoveList->next;
-    }
-    return (maxRemotenessMoveList->move);
-}
-
-MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenessList)
-{
-    int numMoves, random;
-    REMOTENESS minRemoteness;
-    
-    numMoves = 0;
-    minRemoteness = REMOTENESS_MAX;
-    while(remotenessList!=NULL && remotenessList->remoteness <= minRemoteness) {
-        numMoves++;
-        minRemoteness = remotenessList->remoteness;
-        remotenessList = remotenessList->next;
-    }
-    
-    if (numMoves<=0) {
-        return -1;
-    }
-    
-    random = GetRandomNumber(numMoves);
-    for (; random>0; random--) {
-        moveList = moveList->next;
-    }
-    return (moveList->move);
-}     
-
-/* Jiong */
-VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves) 
-{
-    POSITION child;
-    VALUE childValue;
-    
-    child = DoMove(thePosition, move);
-    childValue = GetValueOfPosition(child);
-    if (gGoAgain(thePosition, move)) {
-        switch(childValue) {
-	case win: childValue = lose; break;
-	case lose: childValue = win; break;
-	default: childValue = childValue;
-        }
-    }
-    
-    if (childValue == lose) {  //winning moves
-        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
-    } else if (childValue == tie) {  //tie moves
-        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
-    } else if (childValue == win) {  //lose moves
-        valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
-    }
-    return valueMoves;
-}
 
 /* Jiong */
 VALUE_MOVES* GetValueMoves(POSITION thePosition)
@@ -727,20 +754,4 @@ VALUE_MOVES* StoreMoveInList(MOVE theMove, REMOTENESS remoteness, VALUE_MOVES* v
     prevMoveList->next = newMove;
     prevRemotenessList->next = newRemoteness;
     return (valueMoves);
-}
-
-BOOLEAN PrintPossibleMoves(POSITION thePosition)
-{
-    MOVELIST *ptr, *head;
-    
-    head = ptr = GenerateMoves(thePosition);
-    printf("\nValid Moves : [ ");
-    while (ptr != NULL) {
-        PrintMove(ptr->move);
-        printf(" ");
-        ptr = ptr->next;
-    }
-    printf("]\n\n");
-    FreeMoveList(head);
-    return(TRUE); /* This should always return true for GetAndPrintPlayersMove */
 }

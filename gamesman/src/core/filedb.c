@@ -1,3 +1,9 @@
+
+#include <zlib.h>
+
+#include "gamesman.h"
+
+
 #define DBVER 1 //Will be stored as a short, thus only integers.
 
 
@@ -95,7 +101,7 @@ int writeDatabase()
 	    return 1;
 	} else {
         if(kDebugDetermineValue){
-            fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %u\nBytes Written:%u\n",goodCompression, goodClose,sTot*4,tot);
+            fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %lu\nBytes Written:%lu\n",goodCompression, goodClose,sTot*4,tot);
         }
         remove(outfilename);
         return 0;
@@ -112,7 +118,6 @@ int loadDatabase()
     char outfilename[256] ;
     int goodDecompression = 1;
     int goodClose = 1;
-    unsigned long sTot = gNumberOfPositions;
     BOOLEAN correctDBVer;
     
     if (gTwoBits)	/* TODO: Same here */

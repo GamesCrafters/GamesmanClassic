@@ -1,5 +1,7 @@
 
-int   gTimer;
+#include "gamesman.h"
+
+int   gTimer = 0;
 
 
 void FreeMoveList(MOVELIST* ptr)
@@ -63,7 +65,6 @@ BOOLEAN ValidMove(POSITION thePosition, MOVE theMove)
     return(FALSE);
 }
 
-
 int GetRandomNumber(int n)
 {
     int ans,nRequest,mulFactor;
@@ -104,7 +105,6 @@ int randSafe()
         ;
     return(ans);
 }
-
 
 int Stopwatch()
 {
@@ -162,15 +162,6 @@ void SafeFree(GENERIC_PTR ptr)
 void BadElse(STRING function)
 {
     printf("Error: %s() just reached an else clause it shouldn't have!\n\n",function);
-}
-
-void HitAnyKeyToContinue()
-{
-    static BOOLEAN first = TRUE;
-    
-    printf("\n\t----- Hit <return> to continue -----");
-    first ? (first = FALSE) : getchar(); /* to make lint happy */
-    while(getchar() != '\n');
 }
 
 MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
@@ -271,3 +262,70 @@ POSITION GetNextPosition()
         return(returnPosition);
     }
 }  
+
+MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
+{
+    if(theMex > 31) {
+        printf("Error: MexAdd handed a theMex greater than 31\n");
+        ExitStageRight();
+        exit(0);
+    } else if (theMex == kBadMexValue) {
+        printf("Error: MexAdd handed a kBadMexValue for theMex\n");
+        ExitStageRight();
+        exit(0);
+    }
+    return(theMexCalc | (1 << theMex));
+}
+
+MEX MexCompute(MEXCALC theMexCalc)
+{
+    MEX ans = 0;
+    while(theMexCalc & (1 << ans))
+        ans++;
+    return(ans);
+}
+
+MEXCALC MexCalcInit()
+{
+    return((MEXCALC) 0);
+}
+
+void MexFormat(POSITION position, STRING string)
+{
+    MEX theMex;
+    char tmp[5];
+    
+    if (!kPartizan) { /* Impartial, mex value available */
+        theMex = MexLoad(position);
+        if(theMex == (MEX)0)
+            (void) sprintf(tmp, "0");
+        else if(theMex == (MEX)1)
+            (void) sprintf(tmp, "*");
+        else
+            (void) sprintf(tmp, "*%d", (int)theMex);
+	
+        (void) sprintf(string,"[Val = %s]",tmp);
+    } else
+        sprintf(string, " ");
+}
+
+MEX MexPrimitive(VALUE value)
+{
+    if(value == undecided) {
+        printf("Error: MexPrimitive handed a value other than win/lose (undecided)\n");
+        ExitStageRight();
+        exit(0);
+    } else if(value == tie) {
+        printf("Error: MexPrimitive handed a value other than win/lose (tie)\n");
+        ExitStageRight();
+        exit(0);
+    } else if(value == win) 
+        return((MEX)1); /* A win terminal is not ideal, but it's a star */
+    else if (value == lose)
+        return((MEX)0); /* A lose is a zero, that's clear */
+    else {
+        BadElse("MexPrimitive");
+        ExitStageRight();
+        exit(0);
+    }
+}

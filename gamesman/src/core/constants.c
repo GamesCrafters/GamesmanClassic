@@ -1,4 +1,5 @@
 
+#include "gamesman.h"
 
 STRING   kOpeningCredits =
 "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n"

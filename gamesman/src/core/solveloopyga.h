@@ -1,8 +1,6 @@
-#ifndef __LOOPYGASOLVER_H__
-#define __LOOPYGASOLVER_H__
-
-#include "gamesman.h"
+#ifndef GM_LOOPYGASOLVER_H
+#define GM_LOOPYGASOLVER_H
 
 VALUE lgas_DetermineValue(POSITION position);
 
-#endif
+#endif /* GM_LOOPYGASOLVER_H */

@@ -1,10 +1,12 @@
 
-int   gHashEfficiency;
-float gAverageFanout;
-long  gTotalPositions;
-long  gTotalMoves;
-long  gWinCount, gLoseCount, gTieCount, gUnknownCount;
-long  gPrimitiveWins, gPrimitiveLoses, gPrimitiveTies;
+#include "gamesman.h"
+
+int   gHashEfficiency = 0;
+float gAverageFanout = +0.0f;
+long  gTotalPositions = 0;
+long  gTotalMoves = 0;
+long  gWinCount = 0, gLoseCount = 0, gTieCount = 0, gUnknownCount = 0;
+long  gPrimitiveWins = 0, gPrimitiveLoses = 0, gPrimitiveTies = 0;
 
 
 void PrintRawGameValues(BOOLEAN toFile)
@@ -456,6 +458,7 @@ BOOLEAN CorruptedValuesP()
                         switch(childValue) {
 			case win: childValue = lose; break;
 			case lose: childValue = win; break;
+			default: break;
                         }
                     }
 		    
@@ -492,4 +495,17 @@ BOOLEAN CorruptedValuesP()
         } /* if valid position */
     } /* for all positions */
     return(corrupted);
+}
+
+/*
+** Percentage
+**
+** TODO: I'll let you actually implement this one, Robert. -JJ
+** Also, please make it Pascal Case (PercentDone), like the rest of
+** gamesman's naming convention.
+*/
+
+float percentDone (STATICMESSAGE msg)
+{
+	return 0.0f;
 }

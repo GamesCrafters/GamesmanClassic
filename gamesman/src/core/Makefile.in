@@ -1,0 +1,82 @@
+##############################################################################
+#
+#  Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  GamesCrafters Research Group, UC Berkeley
+#  Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+#
+##############################################################################
+
+# @WARNGC@ Makefile.in
+# @configure_input@
+
+CC		= @CC@
+CFLAGS		= @CFLAGS@
+AR		= @AR@ cr
+RANLIB		= @RANLIB@
+
+LIBSUFFIX	= @LIBSUFFIX@
+OBJSUFFIX	= @OBJSUFFIX@
+EXESUFFIX	= @EXESUFFIX@
+
+
+##############################################################################
+### Files
+
+ANALYSIS_OBJ	= analysis$(OBJSUFFIX)
+CONSTANTS_OBJ	= constants$(OBJSUFFIX)
+DEBUG_OBJ	= debug$(OBJSUFFIX)
+FILEDB_OBJ	= filedb$(OBJSUFFIX)
+GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
+MAIN_OBJ	= main$(OBJSUFFIX)
+MEMDB_OBJ	= memdb$(OBJSUFFIX)
+MISC_OBJ	= misc$(OBJSUFFIX)
+TEXTUI_OBJ	= textui$(OBJSUFFIX)
+
+HASH_OBJ	= hash$(OBJSUFFIX)
+
+SOLVER_STD	= solvestd$(OBJSUFFIX)
+SOLVER_LOOPY	= solveloopy$(OBJSUFFIX)
+SOLVER_LOOPYGA	= solveloopyga$(OBJSUFFIX)
+SOLVER_ZERO	= solvezero$(OBJSUFFIX)
+
+
+##############################################################################
+### Files
+
+CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(DEBUG_OBJ) $(FILEDB_OBJ) \
+     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MEMDB_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ)
+
+SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO)
+
+MODULES=$(CORE) $(SOLVERS) hash.o
+
+INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
+	 globals.h memdb.h misc.h solveloopyga.h solveloopy.h solvestd.h \
+	 solvezero.h textui.h
+
+
+##############################################################################
+### Rules
+
+all: gamesman.a
+clean:
+	rm -rf $(MODULES) *~ gamesman.a
+
+gamesman.a: $(MODULES)
+	rm -f $@
+	$(AR) $@ $(MODULES) ; $(RANLIB) $@
+	cp gamesman.a ../gamesman.a ; $(RANLIB) ../gamesman.a
+
+$(MODULES): %.o: %.c $(INCLUDES)
+	$(CC) -c $(CFLAGS) $< -o $@

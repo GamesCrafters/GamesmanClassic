@@ -1,3 +1,6 @@
+
+#include "gamesman.h"
+
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
     VALUE *ptr;
@@ -116,3 +119,16 @@ void UnMarkAsVisited (POSITION position)
     
     *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
+
+void MexStore(POSITION position, MEX theMex)
+{
+    if (!gTwoBits)
+        gDatabase[position] |= ((theMex % 32) * 8) ;
+}
+
+MEX MexLoad(POSITION position)
+{
+    //Gameline code removed
+    return (gTwoBits ? 0 : (gDatabase[position]/8) % 32);
+}
+
