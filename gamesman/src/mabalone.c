@@ -135,6 +135,8 @@ void printlines (int, int);
 void changeBoard ();
 int b_size (int);
 int def_start_pieces (int);
+void changeMod();
+void changeKills();
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -317,7 +319,9 @@ void GameSpecificMenu()
     printf("3.\t Toggle from Side Steps Allowed to No Side Steps\n");
   else
     printf("3.\t Toggle from No Side Steps to Side Steps Allowed\n");
-  printf("4.\t Return to the previous menu\n\nSelect Option:  ");
+  printf("4.\t Change initial piece number modifier (currently %d)\n", PIECEMOD);
+  printf("5.\t Change the number of pieces that must be captured to win (currently %d)\n", XHITKILLS);
+printf("6.\t Return to the previous menu\n\nSelect Option:  ");
   (void) scanf("%d", &selection);
   
   if (selection == 1) {
@@ -330,6 +334,8 @@ void GameSpecificMenu()
     
     SafeFree(rows);
     SafeFree(gBoard);
+    XHITKILLS = 1;
+    PIECEMOD = 0;
     InitializeGame();
     GameSpecificMenu();
   } else if (selection == 3) {
@@ -343,7 +349,14 @@ void GameSpecificMenu()
     InitializeGame();
     GameSpecificMenu();
 
-  } else if (selection == 4)
+  } 
+  else if (selection == 4) {
+    changeMod();
+  } 
+  else if (selection == 5) {
+    changeKills();
+  }
+  else if (selection == 6)
     return;
   else {
     printf("\n\n\n Please select a valid option...\n");
@@ -363,6 +376,48 @@ void changeBoard()
   else {
     printf("Changing N to %d ...\n", size);
     N = size;
+    SafeFree(rows);
+    SafeFree(gBoard);
+    InitializeGame();
+  }
+}
+
+void changeKills()
+{
+  int kills;
+  printf("Enter the new number of pieces to capture:   ");
+  (void) scanf("%u", &kills);
+  if (maxPieces + PIECEMOD - kills < 0) {
+    printf("A player can only lose as many pieces as the game starts with\n");
+    changeKills();
+  }
+  else if (kills <= 0) {
+    printf("There must be at least one piece captured\n");
+    changeKills();
+  }
+  else{
+    XHITKILLS = kills;
+    SafeFree(rows);
+    SafeFree(gBoard);
+    InitializeGame();
+  }
+}
+
+void changeMod()
+{
+  int mod;
+  printf("Enter the new piece modifier:  ");
+  (void) scanf("%u", &mod);
+  if ((2 * (def_start_pieces(N) + mod) + (*rows[N-1]).size) > BOARDSIZE) {
+    printf("Too many pieces for board\n");
+    changeMod();
+  }
+  else if ((maxPieces + mod) < 2) {
+    printf("There must be at least two pieces\n");
+    changeMod();
+  }
+  else {
+    PIECEMOD = mod;
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
@@ -820,7 +875,7 @@ MOVELIST *GenerateMoves(position)
   int slot, slot2, dest0, dest1, dest2, direction, ssdir;
   char whoseTurn;
 
-  if (whoseMove(position) == 1) {
+  if (whoseMove(position) == 2) {
     whoseTurn = 'x';
   }
   else {
@@ -1238,9 +1293,11 @@ int NumberOfOptions()
 
 int getOption()
 {
-  int option = N * 100;
+  int option = N * 1000;
   option += MISERE;
   option += 10 * SS;
+  option += XHITKILLS * 100000;
+  option += PIECEMOD * 10000000;
 }
 
 /************************************************************************
@@ -1256,15 +1313,23 @@ int getOption()
 ************************************************************************/
 void setOption(int option)
 {
-  int m, ss;
+  int m, n, ss, kills, mod;
   m = option % 10;
   option = option /10;
   ss = option % 10;
   option = option / 10;
+  n = option % 100;
+  option = option / 100;
+  kills = option % 100;
+  option = option / 100;
+  mod = option % 100;
 
-  N = option;
+
+  N = n;
   SS = ss;
   MISERE = m;
+  XHITKILLS = kills;
+  PIECEMOD = mod;
   
 }
 
