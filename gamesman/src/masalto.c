@@ -65,167 +65,20 @@ BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles 
 BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
 void*	 gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
-"No Graphic Interface with Asalto Right Now";
+STRING kHelpGraphicInterface = "init_game_help not run!";
 
-STRING   kHelpTextInterface    =
-"Your move consists of the location of the piece you want to move\n\
-and the location of where you want to move the piece to.\n\
-\nFor example, the move\n\
-\t[c4 c5]  (brackets are not necessary)\n\
-will move the piece located at c4 and move it to c5.\n\n\
-Note: You can only move your own pieces.\n\n\
-JUMPING\n\
-If you're the fox and need to jump, do the exact same thing,\n\
-entering in the coordinates of the piece you want to move and\n\
-the coordinates you want to jump to.\n\
-The removal of the geese is factored in automatically.\n\
-Sometimes the fox has the option of jumping multiple times,\n\
-Enter in the move of your first jump. You will then be given the\n\
-chance to enter the moves of your second jump. When you don't want\n\
-to jump any longer, enter a 'd' (Done) to end your turn.";
+STRING   kHelpTextInterface  = "init_game_help not run!";
 
-STRING   kHelpOnYourTurn =
-"Both the fox and the geese can move to any adjacent empty square that\n\
-is connected to a piece by a line. Note that you can only move to a\n\
-few spots using a diagonal route. If you have the 'Geese Can Move\n\
-Backwards' option off, the geese cannot move away from the\n\
-'castle' area."; 
+STRING   kHelpOnYourTurn     = "init_game_help not run!"; 
 
-STRING   kHelpStandardObjective =
-"If you're the fox...\n\n\
-Kill all the geese before they occupy the 'castle' area.\n\
-In general, this means kill as many as you can.\n\n\
-If you're the geese...\n\n\
-Occupy the 'castle' area with a user-defined number of geese.\n\
-Alternately, the geese can win if they trap the foxes so they\n\
-cannot move.";
+STRING   kHelpStandardObjective = "init_game_help not run!";
 
-STRING   kHelpReverseObjective =
-"If you're the fox...\n\n\
-Try to let the geese take over the 'castle' area, or let\n\
-them trap you.\n\n\
-If you're the geese...\n\n\
-Try to let the fox kill you as much as possible.";
+STRING   kHelpReverseObjective  = "init_game_help not run!";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"A tie can never occur in Asalto.";
+STRING   kHelpTieOccursWhen =  "init_game_help not run!";
+/* Should follow 'A Tie occurs when... */
 
-STRING   kHelpExample = "Type '?' if you need assistance... \n \
-\n \
-\n \
-        +-------------------------------------------+\n \
-        | GAMESMAN Asalto                           |\n \
-        +---------------------------+---------------+\n \
-        |                           |               |\n \
-        |  5      G - G - G         |               |\n \
-        |         | / | \\ |         |               |\n \
-        |  4    -   -   -   -       |               |\n \
-        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
-        |  3    -   -   -   -       |   G = Geese   |\n \
-        |     | \\ | / | \\ | / |     |               |\n \
-        |  2    -   -   -   -       |   3 Geese     |\n \
-        |         | \\ | / |         |     Needed    |\n \
-        |  1      F -   - F         |     To Win    |\n \
-        |     a   b   c   d   e     |               |\n \
-        |                           |               |\n \
-        +---------------------------+---------------+\n \
-        | It is Geese's turn (G Piece).             |\n \
-        | (Geese should Win in 8)                   |\n \
-        +-------------------------------------------+\n \
-\n \
-   Geese's move [(u)ndo/([A-E][1-5])] :  c5 c4\n \
-\n \
-        +-------------------------------------------+\n \
-        | GAMESMAN Asalto                           |\n \
-        +---------------------------+---------------+\n \
-        |                           |               |\n \
-        |  5      G -   - G         |               |\n \
-        |         | / | \\ |         |               |\n \
-        |  4    -   - G -   -       |               |\n \
-        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
-        |  3    -   -   -   -       |   G = Geese   |\n \
-        |     | \\ | / | \\ | / |     |               |\n \
-        |  2    -   -   -   -       |   3 Geese     |\n \
-        |         | \\ | / |         |     Needed    |\n \
-        |  1      F -   - F         |     To Win    |\n \
-        |     a   b   c   d   e     |               |\n \
-        |                           |               |\n \
-        +---------------------------+---------------+\n \
-        | It is Foxes's turn (F Piece).             |\n \
-        | (Foxes should Lose in 7)                  |\n \
-        +-------------------------------------------+\n \
-\n \
-\n \
-   Foxes's move [(u)ndo/([A-E][1-5])] :  D1 D2\n \
-\n \
-        +-------------------------------------------+\n \
-        | GAMESMAN Asalto                           |\n \
-        +---------------------------+---------------+\n \
-        |                           |               |\n \
-        |  5      G -   - G         |               |\n \
-        |         | / | \\ |         |               |\n \
-        |  4    -   - G -   -       |               |\n \
-        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
-        |  3    -   -   -   -       |   G = Geese   |\n \
-        |     | \\ | / | \\ | / |     |               |\n \
-        |  2    -   -   - F -       |   3 Geese     |\n \
-        |         | \\ | / |         |     Needed    |\n \
-        |  1      F -   -           |     To Win    |\n \
-        |     a   b   c   d   e     |               |\n \
-        |                           |               |\n \
-        +---------------------------+---------------+\n \
-        | It is Geese's turn (G Piece).             |\n \
-        | (Geese should Win in 6)                   |\n \
-        +-------------------------------------------+\n \
-\n \
-   Geese's move [(u)ndo/([A-E][1-5])] :  c4 c3\n \
-\n \
-        +-------------------------------------------+\n \
-        | GAMESMAN Asalto                           |\n \
-        +---------------------------+---------------+\n \
-        |                           |               |\n \
-        |  5      G -   - G         |               |\n \
-        |         | / | \\ |         |               |\n \
-        |  4    -   -   -   -       |               |\n \
-        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
-        |  3    -   - G -   -       |   G = Geese   |\n \
-        |     | \\ | / | \\ | / |     |               |\n \
-        |  2    -   -   - F -       |   3 Geese     |\n \
-        |         | \\ | / |         |     Needed    |\n \
-        |  1      F -   -           |     To Win    |\n \
-        |     a   b   c   d   e     |               |\n \
-        |                           |               |\n \
-        +---------------------------+---------------+\n \
-        | It is Foxes's turn (F Piece).             |\n \
-        | (Foxes should Win in 1)                   |\n \
-        +-------------------------------------------+\n \
-\n \
-   Foxes's move [(u)ndo/([A-E][1-5])] :  D2 B4\n \
-\n \
-        +-------------------------------------------+\n \
-        | GAMESMAN Asalto                           |\n \
-        +---------------------------+---------------+\n \
-        |                           |               |\n \
-        |  5      G -   - G         |               |\n \
-        |         | / | \\ |         |               |\n \
-        |  4    - F -   -   -       |               |\n \
-        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
-        |  3    -   -   -   -       |   G = Geese   |\n \
-        |     | \\ | / | \\ | / |     |               |\n \
-        |  2    -   -   -   -       |   3 Geese     |\n \
-        |         | \\ | / |         |     Needed    |\n \
-        |  1      F -   -           |     To Win    |\n \
-        |     a   b   c   d   e     |               |\n \
-        |                           |               |\n \
-        +---------------------------+---------------+\n \
-        | It is Geese's turn (G Piece).             |\n \
-        | (Geese should Lose in 0)                  |\n \
-        +-------------------------------------------+\n \
-\n \
-\n \
-Foxes (player two) Wins!\n";
-
+STRING   kHelpExample = "init_game_help not run!";
 
 /*************************************************************************
 **
@@ -279,6 +132,10 @@ int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with 
 
 #define CONVERTEXTINPUTTOMOVE_DEBUG 0
 
+#define GETOPTION_DEBUG 0
+
+#define SETOPTION_DEBUG 0
+
 char start_standard_board[]={                'G','G','G',
 			                 ' ',' ',' ',' ',' ',    
 				         ' ',' ',' ',' ',' ',    
@@ -311,6 +168,7 @@ int NUM_GOAGAIN_BITS = -1;
 */
 
 void init_board_hash();
+void init_game_help();
 
 void PrintBoard(char board[]);
 
@@ -438,6 +296,217 @@ void init_board_hash()
 		generic_unhash(getPosition(init), test_board);
 		PrintBoard(test_board);
 	}
+	init_game_help();
+}
+
+void init_game_help()
+{
+	if (variant_goAgain)
+	{
+kHelpTextInterface    = 
+"Your move consists of the location of the piece you want to move\n\
+and the location of where you want to move the piece to.\n\
+\nFor example, the move\n\
+\t[c4 c5]  (brackets are not necessary)\n\
+will move the piece located at c4 and move it to c5.\n\
+\n\
+Note: You can only move your own pieces.\n\
+\n\
+JUMPING\n\
+If you're the fox and need to jump, do the exact same thing.\n\
+A fox must jump when given the opportunity.\n\
+Enter in the coordinates of the piece you want to move and\n\
+the coordinates you want to jump to.\n\
+The jump will kill the geese and remove the piece from the board.\n\
+Sometimes the fox has the option of jumping multiple times,\n\
+Enter in the move of your first jump. You will then be given the\n\
+chance to enter the moves of your second jump. When you don't want\n\
+to jump any longer, enter a 'd' (Done) to end your turn.";
+	}
+	else
+	{
+kHelpTextInterface    = 
+"Your move consists of the location of the piece you want to move\n\
+and the location of where you want to move the piece to.\n\
+\nFor example, the move\n\
+\t[c4 c5]  (brackets are not necessary)\n\
+will move the piece located at c4 and move it to c5.\n\
+\n\
+Note: You can only move your own pieces.\n\
+\n\
+JUMPING\n\
+If you're the fox and need to jump, do the exact same thing,\n\
+A fox must jump when given the opportunity.\n\
+entering in the coordinates of the piece you want to move and\n\
+the coordinates you want to jump to.\n\
+The jump will kill the geese and remove the piece from the board.\n\
+You have disabled the opportunity to perform multiple jumps.";
+	}
+	if (variant_geeseMoveBackwards)
+	{
+kHelpOnYourTurn =
+"Both the fox and the geese can move to any adjacent empty square that\n\
+is connected to a piece by a line. Note that you can only move to a\n\
+few spots using a diagonal route.";
+	}
+	else
+	{
+kHelpOnYourTurn =
+"Both the fox and the geese can move to any adjacent empty square that\n\
+is connected to a piece by a line. Note that you can only move to a\n\
+few spots using a diagonal route. The geese cannot move away from the\n\
+'castle' area.";
+	}
+	
+kHelpStandardObjective =
+"If you're the fox...\n\
+\n\
+Kill all the geese before they occupy the 'castle' area.\n\
+In general, this means kill as many as you can.\n\
+\n\
+If you're the geese...\n\
+\n\
+Occupy the 'castle' area with a user-defined number of geese.\n\
+Alternately, the geese can win if they trap the foxes so they\n\
+cannot move.\n\
+\n\
+The castle is defined to be the locations of these coordinates:\n\
+b1, c1, d2, b2, c2, d2.";
+
+kHelpReverseObjective =
+"If you're the fox...\n\
+\n\
+Try to let the geese take over the 'castle' area, or \n\
+let them trap you.\n\
+\n\
+If you're the geese...\n\
+\n\
+Try to let the fox kill you.\n\
+\n\
+The castle is defined to be the locations of these coordinates:\n\
+b1, c1, d2, b2, c2, d2.";
+
+kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"A tie can never occur in Asalto.";
+
+kHelpGraphicInterface =
+"No Graphic Interface with Asalto Right Now";
+
+kHelpExample = "Type '?' if you need assistance... \n \
+\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G - G - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   - F         |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn (G Piece).             |\n \
+        | (Geese should Win in 8)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Geese's move [(u)ndo/([A-E][1-5])] :  c5 c4\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   - G -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   - F         |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Foxes's turn (F Piece).             |\n \
+        | (Foxes should Lose in 7)                  |\n \
+        +-------------------------------------------+\n \
+\n \
+\n \
+   Foxes's move [(u)ndo/([A-E][1-5])] :  D1 D2\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   - G -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   - F -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn (G Piece).             |\n \
+        | (Geese should Win in 6)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Geese's move [(u)ndo/([A-E][1-5])] :  c4 c3\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    -   -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   - G -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   - F -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |          TRUE     |\n \
+        +---------------------------+---------------+\n \
+        | It is Foxes's turn (F Piece).             |\n \
+        | (Foxes should Win in 1)                   |\n \
+        +-------------------------------------------+\n \
+\n \
+   Foxes's move [(u)ndo/([A-E][1-5])] :  D2 B4\n \
+\n \
+        +-------------------------------------------+\n \
+        | GAMESMAN Asalto                           |\n \
+        +---------------------------+---------------+\n \
+        |                           |               |\n \
+        |  5      G -   - G         |               |\n \
+        |         | / | \\ |         |               |\n \
+        |  4    - F -   -   -       |               |\n \
+        |     | / | \\ | / | \\ |     |   F = Foxes   |\n \
+        |  3    -   -   -   -       |   G = Geese   |\n \
+        |     | \\ | / | \\ | / |     |               |\n \
+        |  2    -   -   -   -       |   3 Geese     |\n \
+        |         | \\ | / |         |     Needed    |\n \
+        |  1      F -   -           |     To Win    |\n \
+        |     a   b   c   d   e     |               |\n \
+        |                           |               |\n \
+        +---------------------------+---------------+\n \
+        | It is Geese's turn (G Piece).             |\n \
+        | (Geese should Lose in 0)                  |\n \
+        +-------------------------------------------+\n \
+\n \
+\n \
+Foxes (player two) Wins!\n";
+
 }
 
 /************************************************************************
@@ -1667,6 +1736,14 @@ int getOption()
 	/* Bit Shifting Hasher */
 	int hashed = 0;
 	hashed = variant_goAgain | variant_diagonals << 1 | variant_geeseMoveBackwards << 2 | GEESE_MIN << 3;
+	if (SETOPTION_DEBUG)
+	{
+		printf("\nBEFORE   GoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
+		        variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+		setOption(hashed);
+		printf("HASH %d   GoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
+		        hashed, variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+	}
 	return hashed;
 }
 
@@ -1691,6 +1768,11 @@ void setOption(int option)
 	                 GEESE_MIN = option >> 3;
 		    GEESE_HASH_MIN = GEESE_MIN - 1;
 		    init_board_hash();
+	if (SETOPTION_DEBUG)
+	{
+		printf("\nGoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
+		        variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+	}
 }
 
 
