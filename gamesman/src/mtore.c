@@ -180,44 +180,46 @@ void InitializeGame ()
 ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position)
-{char turn;
- char opp; 
- int i;
- int x;
- generic_unhash(position, gBoard);
- if (whoseMove(position) == 1){
-   turn = 'x';
-   opp = 'o';}
- else {
-   turn = 'o';
-   opp = 'x';}
-    MOVELIST *moves = NULL;
-    for (i = 0; i < 9; i++){
-      if (gBoard[i] == turn){
-	if (i == 0){
-	  for (x = 1; x < 9; x++){
-	    if (gBoard[x] == '_'){
-	      moves = CreateMovelistNode(move_make(i, x), moves);
+{
+  char turn;
+  char opp; 
+  int i;
+  int x;
+  generic_unhash(position, gBoard);
+  if (whoseMove(position) == 1){
+    turn = 'x';
+    opp = 'o';
+  } else {
+    turn = 'o';
+    opp = 'x';
+  }
+  MOVELIST *moves = NULL;
+  for (i = 0; i < 9; i++){
+    if (gBoard[i] == turn){
+      if (i == 0){
+	for (x = 1; x < 9; x++){
+	  if (gBoard[x] == '_'){
+	    moves = CreateMovelistNode(move_make(i, x), moves);
 	    }
+	}
+      }
+      else 
+	if (i == 1){
+	  if (gBoard[8] == '_'){
+	    moves = CreateMovelistNode(move_make(i, 8), moves);
+	  } else if (gBoard[8] == opp && gBoard[0] == '_'){
+	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	  } else if (gBoard[i+1] == '_'){
+	    moves = CreateMovelistNode(move_make(i, i+1), moves);
+	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
+	    moves = CreateMovelistNode(move_make(i, 0), moves);
 	  }
 	}
 	else 
-	  if (i == 1){
-	    if (gBoard[8] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 8), moves);
-	    } else if (gBoard[8] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
-	    } else if (gBoard[i+1] == '_'){
-	      moves = CreateMovelistNode(move_make(i, i+1), moves);
-	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(move_make(i, 0), moves);
-	    }
-	  }
-	else 
 	  if (i == 8){
-	     if (gBoard[1] == '_'){
+	    if (gBoard[1] == '_'){
 	      moves = CreateMovelistNode(move_make(i, 1), moves);
-	     } else if (gBoard[1] == opp && gBoard[0] == '_'){
+	    } else if (gBoard[1] == opp && gBoard[0] == '_'){
 	      moves = CreateMovelistNode(move_make(i, 0), moves);
 	    } else if (gBoard[i-1] == '_'){
 	      moves = CreateMovelistNode(move_make(i, i-1), moves);
@@ -225,26 +227,26 @@ MOVELIST *GenerateMoves (POSITION position)
 	      moves = CreateMovelistNode(move_make(i, 0), moves);
 	    }
 	  }
-	else {
-	  if (gBoard[i-1] == '_'){
-	    moves = CreateMovelistNode(move_make(i, i-1), moves);
-	  } else if (gBoard[i+1] == '_'){
-	    moves = CreateMovelistNode(move_make(i, i+1), moves);
-	  } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);
-	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(move_make(i, 0), moves);
+	  else {
+	    if (gBoard[i-1] == '_'){
+	      moves = CreateMovelistNode(move_make(i, i-1), moves);
+	    } else if (gBoard[i+1] == '_'){
+	      moves = CreateMovelistNode(move_make(i, i+1), moves);
+	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
+	      moves = CreateMovelistNode(move_make(i, 0), moves);
+	    }
 	  }
-	}
-      }
     }
-	    
-	      
-       
-    
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    
-    return moves;
+  }
+  
+  
+  
+  
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  
+  return moves;
 }
 
 
@@ -274,7 +276,7 @@ POSITION DoMove (POSITION position, MOVE move)
   oldc = gBoard[from];
   gBoard[from] = '_';
   gBoard[to] = oldc;
-  printf("DoMove from %d to %d\n", from, to);
+  //printf("DoMove from %d to %d\n", from, to);
   if (whoseMove(position) == 1) 
     return generic_hash(gBoard,2);
   else
@@ -311,10 +313,7 @@ VALUE Primitive (POSITION position)
 {
   if (GenerateMoves(position) != NULL){
     return undecided;
-  } else if (GenerateMoves(position) == NULL)
-    { 
-      return gStandardGame ? lose : win;
-    } else {
+  } else {
       return gStandardGame ? win : lose;
   }
 }
@@ -385,7 +384,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf("move to %d from %d", move_to(move), move_from(move));    
+  printf("[%d%d]", move_from(move), move_to(move));    
 }
 
 
@@ -418,7 +417,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/(## FromTo [80])] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -458,11 +457,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+  //return TRUE;
   unsigned int theInput = atoi(input);
   int from = theInput/10;
   int to = theInput%10;
-  printf("%d, %d", from, to);
-  return (from <= 8 && to <= 8 && from != to && from>= 0 && to >= 0);
+  //printf("%d, %d", from, to);
+  return ((from <= 8) && (to <= 8) && (from != to) && (from>= 0) && (to >= 0));
    
 }
 
@@ -482,7 +482,11 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return ((MOVE) move_make(input[0]-'0', input[1]-'0'));
+  int theInput = atoi(input);
+  int from = theInput/10;
+  int to = theInput%10;
+  //printf("convert; from: %d, to: %d\n",from,to);
+    return ((MOVE) move_make(from, to));
 }
 
 
