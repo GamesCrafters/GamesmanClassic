@@ -765,7 +765,7 @@ PlayAgainstComputer()
   MOVE theMove, GetComputersMove();
   VALUE Primitive();
   UNDO *undo, *InitializeUndo(), *HandleUndoRequest(), *UpdateUndo();
-  BOOLEAN usersTurn, error, abort;
+  BOOLEAN usersTurn, error, player_draw;
   USERINPUT userInput, GetAndPrintPlayersMove();
 
   thePosition = gInitialPosition;
@@ -805,8 +805,8 @@ PlayAgainstComputer()
     PrintPosition(thePosition = DoMove(thePosition,theMove),
 		  gPlayerName[usersTurn],usersTurn);
 
-    undo = UpdateUndo(thePosition, undo, &abort);
-    if(abort)
+    undo = UpdateUndo(thePosition, undo, &player_draw);
+    if(player_draw)
       break;
 
   }
@@ -822,7 +822,7 @@ PlayAgainstComputer()
 	   gPlayerName[kHumansTurn]);
   else if(userInput == Abort)
     printf("Your abort command has been received and successfully processed!\n");
-  else if (abort == TRUE) { /* Player chooses to end the game in a draw */
+  else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
     printf("The match ends in a draw.  Excellent strategy, %s. \n\n",
 	   gPlayerName[kHumansTurn]);
   }
