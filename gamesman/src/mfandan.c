@@ -732,8 +732,8 @@ void PrintPosition(position,playerName,usersTurn)
   int directionNum = 7;
   int rowNum = 1;
 
-  STRING  GetPrediction();
-  VALUE   GetValueOfPosition();
+  //STRING  GetPrediction();
+  //VALUE   GetValueOfPosition();
 
   BlankOX theBoard[BOARDSIZE];
 
