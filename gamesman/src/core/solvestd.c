@@ -69,9 +69,10 @@ VALUE DetermineValue1(position)
             MOVE move = ptr->move ;
             gAnalysis.TotalMoves++;
             child = DoMove(position,ptr->move);  /* Create the child */
-#ifdef SYMMETRY_REVISITED
-	    child = GetCanonicalPosition(child);
-#endif
+
+	    if(gSymmetries)
+		child = gCanonicalPosition(child);
+
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
             value = DetermineValue1(child);       /* DFS call */

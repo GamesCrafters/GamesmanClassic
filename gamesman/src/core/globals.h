@@ -12,7 +12,8 @@ extern BOOLEAN	gAgainstComputer, gHumanGoesFirst, gPrintPredictions, gHints,
 
 extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-		gTwoBits, gGlobalPositionSolver, kZeroMemSolver, gAnalyzing;
+		gTwoBits, gGlobalPositionSolver, kZeroMemSolver, gAnalyzing,
+                gSymmetries;
 
 extern char	gPlayerName[2][MAXNAME];
 extern VALUE*	gDatabase;
@@ -63,10 +64,6 @@ void		SetTclCGameSpecificOptions	(int theOptions[]);
 void		GameSpecificMenu		(void);
 void		DebugMenu			(void);
 
-#ifdef SYMMETRY_REVISITED
-POSITION	GetCanonicalPosition		(POSITION pos);
-#endif
-
 extern STRING   kHelpGraphicInterface; /* The Graphical Interface Help string. */
 extern STRING   kHelpTextInterface;    /* The Help for Text Interface string. */
 extern STRING   kHelpOnYourTurn;       /* The Help for Your turn string. */
@@ -97,6 +94,9 @@ extern VALUE	(*gSolver)(POSITION);
 /* go again function pointer */
 extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 
+/* symmetries function pointer */
+extern POSITION (*gCanonicalPosition)(POSITION);
+
 /* Global position solver function pointers. */
 extern void (*gGPSDoMove)(MOVE move);
 extern MOVELIST *(*gGPSGenerateMoves)();
@@ -107,6 +107,5 @@ extern void (*gGPSUndoMove)(MOVE move);
 
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*	gGameSpecificTclInit;
-
 
 #endif /* GMCORE_GLOBALS_H */

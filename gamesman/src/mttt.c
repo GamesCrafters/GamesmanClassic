@@ -197,6 +197,7 @@ VALUE GPS_Primitive();
 void GPS_UndoMove(MOVE move);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 BOOLEAN ThreeInARow(BlankOX[], int, int, int);
+POSITION GetCanonicalPosition(POSITION position);
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -240,6 +241,8 @@ void InitializeGame()
   /**************************************************/
   /**************** SYMMETRY FUN BEGIN **************/
   /**************************************************/
+
+  gCanonicalPosition = GetCanonicalPosition;
 
   int i, j, temp; /* temp is used for debugging */
 

@@ -112,6 +112,7 @@ void MenusBeforeEvaluation()
     printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolver ? "ON" : "OFF");
+    printf("\tm)\tToggle Sy(M)metries (currently %s)\n", gSymmetries ? "ON" : "OFF");
 }
 
 void MenusEvaluated()
@@ -245,6 +246,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
         break;
     case 'l': case 'L':
 	kZeroMemSolver = !kZeroMemSolver;
+	break;
+    case 'm': case 'M':
+	gSymmetries = !gSymmetries;
 	break;
     case 'o': case 'O':
 	gStandardGame = !gStandardGame;

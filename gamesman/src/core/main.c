@@ -43,6 +43,7 @@
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
+POSITION (*gCanonicalPosition)(POSITION) = NULL;
 void (*gGPSDoMove)(MOVE move) = NULL;
 MOVELIST *(*gGPSGenerateMoves)() = NULL;
 BOOLEAN (*gGPSGoAgain)(MOVE move) = NULL;
@@ -69,6 +70,7 @@ BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
 				   * solved, default: FALSE */
+BOOLEAN gSymmetries = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;

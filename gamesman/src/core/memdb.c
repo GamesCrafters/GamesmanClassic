@@ -69,8 +69,11 @@ VALUE GetValueOfPosition(POSITION position)
     ** once in DetermineValue and once here.
     */
     if(gMenuMode == Evaluated || gMenuMode == AnalysisSymmetries)
-      position = GetCanonicalPosition(position); /* Rotate board to canonical */
+      position = gCanonicalPosition(position); /* Rotate board to canonical */
 #endif
+
+    if(gMenuMode == Evaluated && gSymmetries)
+	position = gCanonicalPosition(position);
     
     if (gTwoBits) {
         /* values are always 32 bits */
@@ -88,8 +91,11 @@ REMOTENESS Remoteness(POSITION position)
     VALUE *GetRawValueFromDatabase(), *ptr;
 
 #ifdef SYMMETRY_REVISITED
-    position = GetCanonicalPosition(position); /* Rotate board to canonical */
+    position = gCanonicalPosition(position); /* Rotate board to canonical */
 #endif
+
+    if(gMenuMode == Evaluated && gSymmetries)
+	position = gCanonicalPosition(position);
 
     if (gTwoBits) {
         return REMOTENESS_TWOBITS;
@@ -177,9 +183,13 @@ void MexStore(POSITION position, MEX theMex)
 MEX MexLoad(POSITION position)
 {
 #ifdef SYMMETRY_REVISITED
-    position = GetCanonicalPosition(position);
+    position = gCanonicalPosition(position);
 #endif
     //Gameline code removed
+
+    if(gMenuMode == Evaluated && gSymmetries)
+	position = gCanonicalPosition(position);
+    
     return (gTwoBits ? -1 : (gDatabase[position]/8) % 32);
 }
 
