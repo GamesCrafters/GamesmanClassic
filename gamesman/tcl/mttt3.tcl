@@ -31,7 +31,7 @@ proc GS_InitGameSpecific {} {
 }
 
 proc GS_NameOfPieces {} {
-    return [list x o]
+    return [list o x]
 }
 
 proc GS_ColorOfPlayers {} {
@@ -155,7 +155,7 @@ proc GS_NewGame { c position } {
 
 proc GS_DrawPosition { c position } {
     $c raise base
-    DrawPieces $c $position 
+    DrawPieces $c $position
 }
 
 proc DrawPieces {c position } {
@@ -177,9 +177,9 @@ proc UnHashBoard {position arrayname} {
     upvar $arrayname a
     for {set i 0} {$i < 9} {set i [expr $i + 1]} {
         
-        if {[expr $position % 3] == 1} {   
+        if {[expr $position % 3] == 2} {   
             set a($i) x
-        } elseif {[expr $position %3 == 2]} {
+        } elseif {[expr $position %3 == 1]} {
             set a($i) o
         } else {
             set a($i) -
@@ -229,9 +229,12 @@ proc GS_ShowMoves { c moveType position moveList } {
                 set color yellow
             } elseif {$value == "Lose"} {
                 set color green
+            } elseif {$value == "Win"} {
+                set color red4
             } else {
-                set color red
-            }
+		set color cyan
+		BadElse GS_ShowMoves "$value not one of Tie/Lose/Win"
+	    }
         }
         $c itemconfigure mi-$move -fill $color
     }
