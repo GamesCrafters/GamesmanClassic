@@ -1262,3 +1262,6 @@ void setOption(int option)
 {
 }
 
+int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) 
+{
+}
