@@ -565,6 +565,21 @@ proc GS_DrawPosition { c position } {
 
 }
 
+#unhashes the position from the C code with C_genericUnhash.  Returns the unhashed position.
+proc Unhash { position } {
+    set hashPosition [C_GenericUnhash $position]
+    set unhashPosition 0
+    for {set n 0} {$n < 9} {set n [expr $n + 1]} {
+	if {[string compare [string index $hashPosition n] "x"] == 0} {
+	    #The thing in the string is "x", which is red in our game. Do something in binary.
+	} elseif {[string compare [string index $hashPosition n] "o"] == 0} {
+	    #The thing in the string is "o", which is blue in our game. Do something in binary.
+	} elseif {[string compare [string index $hashPosition n] "_"] == 0} {
+	    #the thing in the string is "_", which is the empty slot.  Do something in binary.
+	}
+    }
+    return unhashPosition
+}
 
 
 # Gets the blank location of a position
