@@ -1285,6 +1285,9 @@ FreePositionList(ptr)
 
 void FreeValueMoves(VALUE_MOVES *ptr) {
   int i;
+  
+  if (!ptr) return;
+  
   for (i=0; i<3; i++) {
     FreeMoveList(ptr->moveList[i]);
     FreeRemotenessList(ptr->remotenessList[i]);
@@ -1913,46 +1916,30 @@ MOVE GetComputersMove(thePosition)
       printf("Random move: \n");
       printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
     }
-
-    head = ptr = moves->moveList[i];
-    i++;
-
-    while (i <= LOSEMOVE) {    
-      ptr = moves->moveList[i];
-      if (head == NULL && ptr != NULL) 
-	head = ptr;
-      if (prev != NULL)
-	prev->next = ptr;
-      while(ptr != NULL) {
-	numberMoves++;
-	if(gHints) {
-	  PrintMove(ptr->move);
-	  printf(" ");
-	}
-	prev = ptr;
-	ptr = ptr->next;
+    
+    for (head = NULL, i = 0; i <= LOSEMOVE; i++) {
+      ptr = moves -> moveList[i];
+      while (ptr) {
+        if (gHints) {
+          PrintMove(ptr -> move);
+          printf(" ");
+        }
+        head = CreateMovelistNode(ptr -> move, head);
+        ptr = ptr -> next;
+        numberMoves++;
       }
-      i++;
     }
+    
     if(gHints)
       printf("]\n\n");
+    
     randomMove = GetRandomNumber(numberMoves);
-    moveFound = FALSE;
-    for (i = 0; i<= LOSEMOVE && !moveFound; i++) {
-      ptr = moves->moveList[i];
-      while (ptr != NULL) {
-	if (randomMove != 0) {
-	  ptr = ptr->next; 
-	  randomMove--;
-	}
-	else {
-	  theMove = ptr->move;
-	  moveFound = TRUE;
-	  break;
-	}
-      }
-    }
-
+    for (ptr = head; randomMove > 1; --randomMove)
+      ptr = ptr -> next;
+    
+    theMove = ptr -> move;
+    
+    FreeMoveList(head);
     FreeValueMoves(moves);
     return(theMove);
   } 
