@@ -1,6 +1,3 @@
-// $id$
-// $log$
-
 /************************************************************************
 **
 ** NAME:        mblocking.c
@@ -18,6 +15,8 @@
 **                          GetAndPrintPlayersMove, ConvertTextInputToMove,
 **                          and several auxillary functions.
 **              19 Mar, 04: Added parsing and printing code.
+**              06 Apr, 04: Added the rest of the functions, fixed
+**                          compiler errors.
 **
 ** 
 **
@@ -43,32 +42,35 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kGameName           = "";
-STRING   kDBName             = "";
+STRING   kGameName           = "Blocking";
+STRING   kDBName             = NULL;
 BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = ;
-BOOLEAN  kGameSpecificMenu   = ;
+BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
-BOOLEAN  kDebugDetermineValue = ;
+BOOLEAN  kDebugDetermineValue = FALSE;
 
 STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"Use the table of letter to number values to determine which numbers\
+to choose.\n\
+Enter the numbers of the node you wish to move your piece from and to\
+, respectively.\n";
 
 STRING   kHelpOnYourTurn =
-"";
+"Move one of your pieces to an empty spot on the board\n";
 
 STRING   kHelpStandardObjective =
-"Move your pieces such that your opponent is trapped (ie, cannot move).";
+"Move your pieces such that your opponent is trapped (ie, cannot move).\n";
 
 STRING   kHelpReverseObjective =
-"Move your pieces such that your opponent is forced to trap you.";
+"Move your pieces such that your opponent is forced to trap you.\n";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
@@ -99,14 +101,10 @@ STRING   kHelpExample =
 #define MAX_PIECES 30
 
 #define BOTH_PLAYERS -1
-#define BLACK_PLAYER 0
-#define WHITE_PLAYER 1
-#define NEITHER_PLAYER 2
+#define BLACK_PLAYER 1
+#define WHITE_PLAYER 2
+#define NEITHER_PLAYER 3
 #define INVALID -2
-
-#define EMPTY_NODE -1
-#define BLACK_NODE 0
-#define WHITE_NODE 1
 
 #define CLASS_TABLE 0
 #define NODES_TABLE 1
@@ -152,6 +150,9 @@ static int num_nodes;
 static int num_black;
 static int num_white;
 static char g_name[100];
+static FILE* g_file;
+static char default_file[100] = "../grf/default.blk";
+static BOOLEAN use_default = TRUE;
 static char image[20][500];
 
 static classes global_classes;
@@ -184,6 +185,7 @@ void printBoard(nodes board, pieces black_pieces,
 /* Prints just the structure, listing which node names
    correspond to which node numbers. */
 void printEmptyBoard(nodes board);
+
 
 /* Starting here are the function prototypes for the parser: */
 
@@ -231,6 +233,7 @@ void addToHash(int val, int num_val, int table);
 int hashLookup(char* token, classes node_classes, nodes board);
 /* Parser prototypes end here. */
 
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
@@ -255,6 +258,31 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  int generic_hash_init();
+
+  int hash_array[10];
+
+  nullInit(global_board, global_black, global_white, global_classes);
+
+  if(use_default) {
+    g_file = fopen(default_file, "r");
+  }
+
+  procFile(g_file, global_board, global_black, global_white, 
+	   global_classes);
+  hash_array[0] = global_black[0].pic;
+  hash_array[1] = hash_array[2] = num_black;
+  hash_array[3] = global_white[0].pic;
+  hash_array[4] = hash_array[5] = num_white;
+  hash_array[6] = '_';
+  hash_array[7] = hash_array[8] = num_nodes - num_black - num_white;
+  hash_array[9] = -1;
+
+  strcpy(kDBName, g_name);
+
+  gNumberOfPositions = generic_hash_init(num_nodes, hash_array, NULL);
+
+  return;
 }
 
 
@@ -284,6 +312,29 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
+  char file_name[100];
+  FILE* fp;
+  
+  use_default = TRUE;
+
+  while(use_default) {
+    printf("\nSpecify one of the .blk files in the ../grf directory");
+    printf("\n(But don't add the .blk at the end)\n\n");
+    system("ls ../grf");
+    printf("\nLoad Graph from : ");
+    scanf("%s", file_name);
+    (void) sprintf((char *)file_name, "../grf/%s.blk", file_name);
+
+
+    if(!(fp = fopen(file_name, "r")))
+      printf("Invalid file name\n");
+    else
+      use_default = FALSE;
+  }
+
+  InitializeGame();
+
+  return;
 }
 
   
@@ -315,14 +366,18 @@ void SetTclCGameSpecificOptions (options)
 **
 ** CALLS:       Hash ()
 **              Unhash ()
-**	            LIST OTHER CALLS HERE
+**	        whoseMove ()
+**
 *************************************************************************/
 
 POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
+  int generic_hash(), generic_unhash(), whoseMove();
+
   int to, from;
+  int player;
   char string_board[MAX_NODES];
 
   generic_unhash(thePosition, string_board);
@@ -330,7 +385,12 @@ POSITION DoMove (thePosition, theMove)
   string_board[to] = string_board[from];
   string_board[from] = '-';
 
-  return generic_hash(string_board);
+  if(whoseMove(thePosition) == BLACK_PLAYER)
+    player = WHITE_PLAYER;
+  else
+    player = BLACK_PLAYER;
+
+  return generic_hash(string_board, player);
 }
 
 
@@ -347,6 +407,42 @@ POSITION DoMove (thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
+  POSITION initialPosition;
+  int current_node;
+  int i;
+  char tmp[100];
+  char string_board[MAX_NODES];
+
+  printEmptyBoard(global_board);
+  printf("Enter the node numbers of black pieces, with spaces in between\n");
+  scanf("%s", &tmp);
+  
+  i = 0;
+  current_node = atoi(strtok(tmp, " "));
+  while(current_node) {
+    global_black[i].node = current_node;
+    global_board[current_node].game_piece = &global_black[i];
+    i++;
+    current_node = atoi(strtok(NULL, " "));
+  }
+
+  printf("Enter the node numbers of white pieces, with spaces in between\n");
+  scanf("%s", &tmp);
+  
+  i = 0;
+  current_node = atoi(strtok(tmp, " "));
+  while(current_node) {
+    global_white[i].node = current_node;
+    global_board[current_node].game_piece = &global_white[i];
+    i++;
+    current_node = atoi(strtok(NULL, " "));
+  }
+
+  boardToString(string_board, global_board, global_black, global_white);
+
+  initialPosition = generic_hash(string_board, 1);
+
+  return initialPosition;
 }
 
 
@@ -389,7 +485,9 @@ void PrintComputersMove(computersMove, computersName)
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       LIST FUNCTION CALLS
+** CALLS:       whoseMove ()
+**              generic_unhash ()
+**              stringToBoard ()
 **              
 **
 ************************************************************************/
@@ -397,6 +495,36 @@ void PrintComputersMove(computersMove, computersName)
 VALUE Primitive (pos)
 	POSITION pos;
 {
+  int whoseMove();
+
+  char string_board[MAX_NODES];
+  int player = whoseMove(pos);
+  pieces* pieces_ptr;
+  struct GraphNode* current_node;
+  int num, i, j;
+
+  generic_unhash(pos, string_board);
+  stringToBoard(string_board, global_board, global_black, global_white);
+
+  if(player == BLACK_PLAYER) { 
+    pieces_ptr = &global_black;
+    num = num_black;
+  } else {
+    pieces_ptr = &global_white;
+    num = num_white;
+  }
+
+  for(i = 0; i < num; i++) {
+    current_node = global_board[(*pieces_ptr)[i].node].adjacent[0];
+    while(current_node) {
+      if(!(current_node->game_piece))
+	return undecided;
+      j++;
+      current_node = global_board[(*pieces_ptr)[i].node].adjacent[j];
+    }
+  }
+
+  return (gStandardGame ? lose : win);
 }
 
 
@@ -413,7 +541,7 @@ VALUE Primitive (pos)
 **
 ** CALLS:       Unhash()
 **              GetPrediction()
-**              LIST OTHER CALLS HERE
+**              stringToBoard()
 **
 ************************************************************************/
 
@@ -430,8 +558,7 @@ void PrintPosition (position, playerName, usersTurn)
 
   printBoard(global_board, global_black, global_white);
 
-  printf("%s should %s in %d moves.", playerName, 
-	 GetPrediction(position), 0);
+  printf("%s", GetPrediction(position, playerName, usersTurn));
 
   return;
 }
@@ -458,6 +585,36 @@ void PrintPosition (position, playerName, usersTurn)
 MOVELIST *GenerateMoves (position)
          POSITION position;
 {
+  MOVELIST *CreateMovelistNode(), *head = NULL;
+  int whoseMove();
+  VALUE Primitive();
+
+  char string_board[MAX_NODES];
+  int player, i, j, max_pieces;
+  pieces* user_pieces;
+
+  if(Primitive(position) == undecided) {
+    player = whoseMove(position);
+    if(player == BLACK_PLAYER) {
+      max_pieces = num_black;
+      user_pieces = &global_black;
+    } else {
+      max_pieces = num_white;
+      user_pieces = &global_white;
+    }
+
+    generic_unhash(position, string_board);
+    stringToBoard(string_board, global_board, global_black, global_white);
+    for(i = 0; i < max_pieces; i++) {
+      for(j = 0; j < (num_nodes-1); j++)
+	if(global_board[(*user_pieces)[i].node].adjacent[j] == NULL)
+	  head = CreateMovelistNode(moveHash(j, i), head);
+    }
+
+    return (head);
+  } else {
+    return (NULL);
+  }
 }
 
  
@@ -497,7 +654,8 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
       return (ret);
   }
   while(TRUE);
-  return (Continue);
+
+  /* return (Continue); */
 }
 
 
@@ -521,6 +679,20 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 BOOLEAN ValidTextInput (input)
 	STRING input;
 {
+  char *node_string;
+  int node;
+
+  node_string = strtok(input, " ");
+  node = atoi(node_string);
+  if((node < 0) || (node > num_nodes))
+    return FALSE;
+
+  node_string = strtok(NULL, " ");
+  node = atoi(node_string);
+  if((node < 0) || (node > num_nodes))
+    return FALSE;
+
+  return TRUE;
 }
 
 
@@ -547,7 +719,7 @@ MOVE ConvertTextInputToMove (input)
   to_string = strtok(input, " ");
   to = atoi(to_string);
 
-  from_string = strtok(NULL);
+  from_string = strtok(NULL, " ");
   from = atoi(from_string);
 
   return moveHash(to, from);
@@ -567,6 +739,13 @@ MOVE ConvertTextInputToMove (input)
 void PrintMove (move)
 	MOVE move;
 {
+  int moveUnHash();
+
+  int to, from;
+  moveUnHash(move, &to, &from);
+
+  printf("[%d %d]", from, to);
+
 }
 
 
@@ -583,7 +762,7 @@ void PrintMove (move)
 
 int NumberOfOptions ()
 {
-	return 0;
+  return 2;
 }
 
 
@@ -601,7 +780,8 @@ int NumberOfOptions ()
 
 int getOption()
 {
-	return 0;
+  if(gStandardGame) return 1;
+  return 2;
 }
 
 
@@ -619,6 +799,10 @@ int getOption()
 
 void setOption(int option)
 {
+  if(option == 1)
+    gStandardGame = TRUE;
+  else
+    gStandardGame = FALSE;
 }
 
 
@@ -626,14 +810,15 @@ void setOption(int option)
 **
 ** NAME:        GameSpecificTclInit
 **
-** DESCRIPTION: 
+** DESCRIPTION: Types changed to fix compilation...
 **
 ************************************************************************/
 
 int GameSpecificTclInit (interp, mainWindow) 
-	Tcl_Interp* interp;
-	Tk_Window mainWindow;
+	void* interp;
+	void* mainWindow;
 {
+  return 0;
 }
 
 
@@ -679,22 +864,16 @@ void stringToBoard(char* s, nodes board, pieces black_pieces,
   black_counter = white_counter = 0;
 
   for(i = 0; i < num_nodes; i++) {
-    switch(s[i]) {
-    case '_':
+    if(s[i] == '_')
       board[i].game_piece = NULL;
-      break;
-    case black_pieces[0].pic:
+    else if(s[i] == black_pieces[0].pic) {
       black_pieces[black_counter].node = i;
       board[i].game_piece = &black_pieces[black_counter];
       black_counter++;
-      break;
-    case white_pieces[0].pic:
+    } else if(s[i] == white_pieces[0].pic) {
       white_pieces[white_counter].node = i;
       board[i].game_piece = &white_pieces[white_counter];
       white_counter++;
-      break;
-    default:
-      break;
     }
   }
 
