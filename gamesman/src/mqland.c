@@ -1,4 +1,4 @@
-// $id$
+// Alex Wallisch
 // $log$
 
 /*
@@ -17,6 +17,8 @@
 ** DATE:        2004-09-13
 **
 ** UPDATE HIST: 2004-10-03      Wrote Primitive
+**				Wrote ValidTextInput
+**				Wrote ConvertTextInputToMove
 **                              Wrote PrintComputersMove
 **                              Wrote PrintMove
 **              2004-10-02:	Wrote GetMoveList
@@ -38,6 +40,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <ctype.h>
 
 
 /*************************************************************************
@@ -48,7 +51,7 @@
 
 STRING   kGameName            = "Queensland"; /* The name of your game */
 STRING   kAuthorName          = "Steven Kusalo, Alex Wallisch"; /* Your name(s) */
-STRING   kDBName              = "queensland"; /* The name to store the database under */
+STRING   kDBName              = "qland"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -211,9 +214,9 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	int player;
 	int sx, sy, dx, dy, px, py; /* Source x-coord, source y-coord, dest x-coord... etc. */
-	int validDestination;
+	BOOLEAN validDestination;
 	int i, j;
-	char board[width * height];
+	char board[wi	/* errorcheck(position, move); */dth * height];
 	char players_piece;
 	MOVE move;
     
@@ -221,33 +224,46 @@ MOVELIST *GenerateMoves (POSITION position)
 	players_piece = (player == 1 ? WHITE : BLACK);
 	board = generic_unhash(position, board);
 	
+	/* Check moves that don't slide a piece from SOURCE to DEST */
+	for (px = 0; px < width; px++) {
+		for (py = 0; py < height; py++) {
+			if (pieceat(B, px, py) == BLANK) {
+				move = 0;
+				/*set_move_source(move, 0);
+				set_move_dest(move, 0);*/
+				set_move_place(move, get_location(px, py));
+				CreateMovelistNode(move, moves);
+			}
+		}
+	}
+	
 	for (sx = 0; sx < width; sx++) {
 		for (sy = 0; sy < height; sy++) {
 			if (pieceat(sx, sy, board) == players_piece) {
 				for (dx = 0; dx < width; dx++) {
 					for (dy = 0; dy < height; dy++) {
-						validDestination = 1; /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
+						validDestination = TRUE; /* validDestination checks whether the piece at (sx, sy) can be moved to (dx, dy) */
 						if (sx == dx && sy == dy){
-							validDestination = 0;
+							validDestination = FALSE;
 						}
 						else if (sx == dx && sy != dy) {
 							for (i = sy; i != dy; (sy < dy ? i++ : i--)) {
 								if (pieceat(board, sx, i) != BLANK) {
-									validDestination = 0;
+									validDestination = FALSE;
 								}
 							}
 						}
 						else if (sx != dx && sy == dy) {
 							for (i = sx; i != dx; (sx < dx ? i++ : i--)) {
 								if (pieceat(board, i, sy) != BLANK) {
-									validDestination = 0;
+									validDestination = FALSE;
 								}
 							}
 						}
 						else if (abs(sx - dx) == abs(sy - dy)) { /* Check if (sx, sy) and (dx, dy) are on the same diagonal line */
 							for (i = sx, j = sy; i != dx; (sx < dx ? i++ : i--), (sy < dy ? j++ : j--)) {
 								if (pieceat(board, i, j) != BLANK) {
-									valid Destination = 0;
+									valid Destination = FALSE;
 								}
 							}
 						}
@@ -510,7 +526,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/(SOURCE DESTINATION PLACE)] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -548,9 +564,17 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
-{
-    return FALSE;
+BOOLEAN ValidTextInput (STRING input) {
+    int i = 0;
+    
+    while(isdigit(input[i]) || input[i] == 'N') i++;	/* First characters should be integers (SOURCE) */
+    if (input[i] != ' ') return FALSE;			/* Space between SOURCE and DEST */
+    while(isdigit(input[i]) || input[i] == 'N') i++;	/* Next characters should be integers (DEST) */
+    if (input[i] != ' ') return FALSE;			/* Space between DEST and PLACE */
+    while(isdigit(input[i])) i++;			/* Final characters should be integers (PLACE) */
+    if (input[i] != 0) return FALSE;			/* PLACE should be last characters in string */
+    
+    return true;
 }
 
 
@@ -568,9 +592,36 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (STRING input)
-{
-    return 0;
+MOVE ConvertTextInputToMove (STRING input) {
+	
+	/* If player enters 'N' as either the SOURCE or the DEST, the player's SLIDE move is ignored. */
+	
+	char* curr = input;
+	MOVE new = 0;
+	
+	if (*curr != 'N') {
+		set_move_source(move, atoi(curr));
+	}
+	else {
+		set_move_source(move, 0);
+		set_move_dest(move, 0);
+		curr = strchr(curr, ' '); /* If SOURCE is 'N', then ignore DEST */
+		curr++;
+	}
+	curr = strchr(curr, ' ');
+	
+	if (*curr != 'N') {
+		set_move_dest(move, atoi(curr));
+	}
+	else {
+		set_move_source(move, 0);
+		set_move_dest(move, 0);
+	}
+	curr = strchr(curr, ' ');
+	
+	set_move_place(move, atoi(curr));
+	
+	return move;
 }
 
 
