@@ -25,6 +25,7 @@ proc peek {l} {
 ## returns whether or not the list l contains the key a
 proc containskey {a l} {
     set retval false
+
     foreach item $l {
         if {[lindex $item 0] == $a} {  
             set retval true
@@ -239,6 +240,7 @@ proc DriverLoop { } {
    
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
+    global gMoveDelay gGameDelay
 
     set gWaitingForHuman false
 
@@ -267,9 +269,9 @@ proc DriverLoop { } {
 	    }
 	    
 	    if { [PlayerIsComputer] } {
+		after [expr int($gMoveDelay * 1000)]
 		DoComputerMove
 		set gWaitingForHuman false
-		after 800
 		update
 	    } else {
 		DoHumanMove
@@ -402,7 +404,7 @@ proc ReturnFromHumanMoveHelper { theMove } {
     set primitive [C_Primitive $gPosition]
 
     set PositionValueList [C_GetValueMoves $gPosition]
-        
+
     if { $primitive == "Undecided" &&
          [containskey $theMove $PositionValueList] } {
         
@@ -425,6 +427,7 @@ proc ReturnFromHumanMoveHelper { theMove } {
         DriverLoop
 
     }
+
 }
 
 
@@ -442,8 +445,9 @@ proc ReturnFromHumanMoveHelper { theMove } {
 
 proc GameOver { position gameValue lastMove } {
 
-    global gPosition gGameSoFar gWhoseTurn gLeftName gRightName 
+    global gPosition gGameSoFar gWhoseTurn gLeftName gRightName
     global gLeftPiece gRightPiece
+    global gGameDelay gLeftHumanOrComputer gRightHumanOrComputer
 
     set previousPos [peek [pop $gGameSoFar]]
 
@@ -497,8 +501,14 @@ proc GameOver { position gameValue lastMove } {
     update idletasks
 
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove
+    update idletasks
 
     DisableMoves
+
+    if { $gLeftHumanOrComputer == "Computer" && $gRightHumanOrComputer == "Computer" } {
+	after [expr int($gGameDelay * 1000)]
+	TBaction1
+    }
 }
 
 
