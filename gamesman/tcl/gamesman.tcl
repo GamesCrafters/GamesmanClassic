@@ -1759,7 +1759,15 @@ proc DoBoard {} {
 	
 	### Call the Game-specific New Game command
 
+	DeleteMoves
 	GS_NewGame $w
+
+	global varMoves
+	if { $varMoves == "validMoves" } {
+	    ShowMoves
+	} elseif { $varMoves == "valueMoves" } {
+	    ShowValueMoves
+	}
 	
 	### Remove all Dead and Alive tags and reset them to what they were
 	### when we reset the game.
@@ -2906,9 +2914,18 @@ proc HandleGameOver { w theValue } {
 	set gHumanGoesFirst 0
 
 	### Call the Game-specific New Game command
-
+	
+	DeleteMoves
+	
 	GS_NewGame $w
 	
+	global varMoves
+	if { $varMoves == "validMoves" } {
+	    ShowMoves
+	} elseif { $varMoves == "valueMoves" } {
+	    ShowValueMoves
+	}
+
 	### Remove all Dead and Alive tags and reset them to what they were
 	### when we reset the game.
 
