@@ -1434,8 +1434,12 @@ void MexStore(POSITION position, MEX theMex)
 
 MEX MexLoad(POSITION position)
 {
+#ifdef SYMMETRY_REVISITED
+    POSITION GetCanonicalPosition();
+    position = GetCanonicalPosition(position); /* Rotate board to canonical */
+#endif
     //Gameline code removed
-  /* Changed twoBits return value to -1 (because 0 is a valid MEX value */
+    /* Changed twoBits return value to -1 (because 0 is a valid MEX value) */
     return (gTwoBits ? -1 : (gDatabase[position]/8) % 32); 
 }
 
