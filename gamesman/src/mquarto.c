@@ -109,6 +109,11 @@
 **                     [| X | 0  2  3  1 ] pieces = 4; squares = 4; turn = 0
 **                     Input handling is not modified yet, but in theory it should work as is
 **                     I did update : to . to remind us of the change
+** 06 Apr 2005 Mario:  removed packhash(), packunhash(), marioInitializeGame()
+**                     When game is started with w, p it is initialized a second time
+**                     Thus changed the spot where the is set variables are set - yanpeiInitialize now
+**                     Changed print layout
+**                     Changed GAMEDIMENSION to 3, game is "playable" now
 **
 **************************************************************************/
 
@@ -126,7 +131,7 @@
 
 #define	DEBUG 1
 
-/*************************************************************************
+/***************** ********************************************************
 **
 ** Game-specific constants
 **
@@ -191,7 +196,7 @@ STRING   kHelpExample =
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
-int GAMEDIMENSION = 2;
+int GAMEDIMENSION = 3;
 
 int BOARDSIZE;
 int NUMPIECES;
@@ -204,6 +209,7 @@ int LASTSLOT;
 int FACTORIALMAX;
 
 int HAND = 0;
+
 
 typedef struct board_item {
 
@@ -219,11 +225,12 @@ typedef struct board_item {
 typedef QTBOARD* QTBPtr;
 
 /* Letter codes for the different piece states */
-/*char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};*/
 char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
 
 /* ASCII Hex */
 char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+char border[] = "------------------";
 
 /*************************************************************************
 **
@@ -231,9 +238,9 @@ char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
 **
 *************************************************************************/
 
-BOOLEAN factorialTableSet =  FALSE;
+BOOLEAN factorialTableSet;
 POSITION *factorialTable;
-BOOLEAN offsetTableSet = FALSE;
+BOOLEAN offsetTableSet;
 POSITION *offsetTable;
 
 /*************************************************************************
@@ -255,28 +262,25 @@ POSITION		combination(int n, int r);
 POSITION		permutation(int n, int r);
 
 /* Implementations of hash/unhash */
-POSITION		packhash( QTBPtr );      // made redundant by hashUnsymQuarto()
-QTBPtr			packunhash( POSITION );  // made redundant by unhashUnsymQuarto()
 POSITION                hashUnsymQuarto(QTBPtr b);
 QTBPtr                  unhashUnsymQuarto(POSITION p);
 /* Implementations of InitializeGame */
 void                    yanpeiInitializeGame();
-void                    marioInitializeGame(); // not modified to fit updated datastructures
 /* Implementations of PrintPosition */
 void                    marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn );
 void                    yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn );
 /* Implementations of factorial */
-POSITION		factorialMem(int n);
+POSITION                factorialMem(int n);
 POSITION                factorialNoMem(int n);
 /* Implementations of getCannonical */
 POSITION                yanpeiGetCannonical(POSITION p);
 
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
-POSITION		(*hash)( QTBPtr ) = &hashUnsymQuarto;
-QTBPtr			(*unhash)( POSITION ) = &unhashUnsymQuarto;
+POSITION                (*hash)( QTBPtr ) = &hashUnsymQuarto;
+QTBPtr                  (*unhash)( POSITION ) = &unhashUnsymQuarto;
 void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
-POSITION                (*factorial)(int n) = &factorialNoMem;
+POSITION                (*factorial)(int n) = &factorialMem;
 POSITION                (*getCannonical)(POSITION p) = &yanpeiGetCannonical;
 
 /* support functions */
@@ -312,7 +316,10 @@ void PrintCell( void *cell, char (*CellContent)( short, void * ) );
 void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) );
 char LegendCoordinate( short pad, void *p_coordinate );
 char PieceTrait( short trait, void *p_piece );
+char BlankCell( short ignored, void *p_ignored );
+char BorderCell( short ignored, void* p_ignored );
 void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark );
+void PrintRange( void *cells, size_t content_size, int offset, int size, char (*CellContent)( short, void * ), char border, char *endmark );
 
 /*************************************************************************
 **
@@ -339,44 +346,6 @@ void InitializeGame ()
   
 }
 
-// Mario's implementation, to be used with his packhash and packunhash
-// earliest implementation
-void marioInitializeGame() {
-
-	QTBPtr board = MallocBoard();
-	QTBPtr error_board;
-	int slot;
-	
-	/* Initialize board to empty */
-	memset( board, 0, sizeof( QTBOARD ) );
-	
-	/* Initialize all slots to EMPTYSLOT */
-	for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
-		
-		board->slots[slot] = EMPTYSLOT;
-		
-	}
-
-	/* Set initial position to empty board */
-	gInitialPosition = hash( board );
-	
-	/* Test hasher on board, should print error if mismatch */
-	error_board = TestHash( board, 0 );
-	
-	if ( error_board ) {
-
-		POSITION p = hash( error_board );
-
-		fprintf( stderr, "Hashing error:\nboard\t\t" );
-		print_board( error_board );
-		fprintf( stderr, "\nhashes to\t%lu\nunhashes to\t", p );
-		print_board( unhash( p ) );
-		fprintf( stderr, "\n" );
-	
-	}
-
-}
-
 // Yanpei's implementation, to be used with the full blown hash/unhash
 // Rips off some code from Mario's implementation
 void yanpeiInitializeGame() {
@@ -384,7 +353,10 @@ void yanpeiInitializeGame() {
   QTBPtr board;
   short slot;
 
+	
   /* initializing globals */
+	factorialTableSet = FALSE; // Mario added to work around double calling of InitializeGame
+	offsetTableSet = FALSE; // Mario added to work around double calling of InitializeGame
   BOARDSIZE = square(GAMEDIMENSION);
   NUMPIECES = (1 << GAMEDIMENSION);
   EMPTYSLOT = NUMPIECES;
@@ -394,9 +366,10 @@ void yanpeiInitializeGame() {
     FACTORIALMAX = (NUMPIECES+1);
   else
     FACTORIALMAX = (BOARDSIZE+1);
-  factorialTable = (POSITION *) SafeMalloc(FACTORIALMAX*(sizeof(POSITION)));
+  //factorialTable = (POSITION *) SafeMalloc(FACTORIALMAX*(sizeof(POSITION)));
+	factorialTable = (POSITION *) malloc( FACTORIALMAX * (sizeof( POSITION ) ) );
   offsetTable = (POSITION *) SafeMalloc((NUMPIECES+2)*(sizeof(POSITION)));
-
+	
   if(!offsetTableSet) setOffsetTable();
   board = MallocBoard();
 
@@ -404,7 +377,7 @@ void yanpeiInitializeGame() {
   board->squaresOccupied = 0;
   board->piecesInPlay = 0;
   board->usersTurn = FALSE;
-
+	
   /* Initialize all slots to EMPTYSLOT */
   for(slot=0; slot<BOARDSIZE+1; slot++) {
     board->slots[slot] = EMPTYSLOT;  
@@ -476,7 +449,7 @@ MOVELIST *GenerateMoves (POSITION position)
 		memset( available_pieces, TRUE, sizeof( *available_pieces ) * NUMPIECES );
 		
 		/* For each slot on board */
-		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
+		for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
 			
 			/* If slot is not empty */
 			if( board->slots[slot] != EMPTYSLOT ) {
@@ -552,21 +525,12 @@ POSITION DoMove (POSITION position, MOVE move)
 	/* Place indicated piece into hand */
 	SetHandPiece( board, piece );
 	
-	/* Change the turn */
-	board->usersTurn	= !board->usersTurn;
-	
 	/* Increment number of pieces */
 	board->piecesInPlay++;
 	
 	/* If indicated slot is not hand, also increment number of squares */
 	board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
 
-	print_board( board );
-		
-	printf("\nbefore\n");
-	
-	print_board( unhash( hash( board ) ) );
-	
 	/* Return hashed board */
 	return hash( board );
 	
@@ -741,16 +705,67 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 {
 
 	QTBPtr board;
+	int j, rsize;
 	
 	/* Unhash position into internal board representation */
 	board = unhash( position );
 	
-	/* Print legend for board */
-	PrintBoard( hex_ascii, sizeof( *hex_ascii ), "LEGEND:", &LegendCoordinate );
-	
-	/* Print actual board */
-	PrintBoard( board->slots, sizeof( *board->slots ), "BOARD: ", &PieceTrait );
-	
+	for( rsize = GAMEDIMENSION, j = FIRSTSLOT; j < LASTSLOT; j+=rsize ) {
+		
+		if( j == FIRSTSLOT ) {
+			
+			int i;
+			printf("        -");
+			PrintCell( NULL, BorderCell );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
+			printf("                   -");
+			PrintCell( NULL, BorderCell );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+			printf("LEGEND: |");
+			PrintCell( hex_ascii + HAND * sizeof( char ), LegendCoordinate );
+		
+		} else {
+		
+			printf( "         " );
+			PrintCell( NULL, BlankCell );
+			
+		}
+		PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, LegendCoordinate, '|', "" );
+		if( j == FIRSTSLOT ) {
+			
+			printf("            BOARD: |");
+			PrintCell( board->slots + HAND * sizeof( *board->slots ), PieceTrait );
+		
+		} else {
+			
+			printf( "                    " );
+			PrintCell( NULL, BlankCell );
+			
+		}
+		PrintRange( board->slots, sizeof( *board->slots ), j, rsize, PieceTrait, '|', "\n" );
+		
+		if( j == FIRSTSLOT ) {
+			
+			printf("        -");
+			PrintCell( NULL, BorderCell );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
+			printf("                    ");
+			PrintCell( NULL, BorderCell );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+			
+		} else {
+			
+				printf("         ");
+				PrintCell( NULL, BlankCell );
+				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
+				printf("                    ");
+				PrintCell( NULL, BlankCell );
+				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+			
+		}
+		
+	}
+	printf("\n");
 
 }
 
@@ -854,11 +869,19 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     
     for (;;) {
+			
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
 	/*printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);*/
-        printf("%8s's move [(undo)/ [(B,w)(T,s)]:[H,0-3]] : ", playersName);
+			int i;
+			printf("%8s's move [(undo)/[", playersName );
+			for( i = 0; i < GAMEDIMENSION; i++ ) {
+				
+				printf( "(%c,%c)", states[i][0], states[i][1] );
+				
+			}
+			printf("[H,0-%d]] : ", BOARDSIZE - 1 );
 	input = HandleDefaultTextInput(position, move, playersName);
 	
 	if (input != Continue)
@@ -955,7 +978,7 @@ BOOLEAN ValidTextInput( STRING input )
 		
 	} 
 	
-	printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
+	//printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
 	return valid;
 }
 
@@ -1313,48 +1336,6 @@ QTBPtr TestHash( QTBPtr board, int slot ) {
 		}
 	}
 	return NULL;
-}
-
-/* Mario: This hash algorithm is wasteful. We just bitpack the board into an integer.
-          GAMEDIMENSION+1 bits for each square and hand, squaresOccupied
-          and piecesInPlay and 1 bit for usersTurn.
-          This will fail to pack for large game dimensions as POSITION is just a long. */
-POSITION packhash( QTBPtr board ) {
-
-	POSITION hash = 0;
-	int slot, shift;
-
-	for( slot = 0, shift = 0; slot < BOARDSIZE + 1; slot++, shift += GAMEDIMENSION + 1 ) {
-
-		hash += board->slots[slot] << shift;
-
-	}
-
-	hash += board->piecesInPlay << shift;
-	hash += board->squaresOccupied << ( shift += GAMEDIMENSION + 1 );
-	hash += board->usersTurn << ( shift += GAMEDIMENSION + 1 );
-
-	return hash;
-
-}
-
-QTBPtr packunhash( POSITION hash ) {
-
-	QTBPtr board = MallocBoard;
-	int slot, shift, mask = maskseq( GAMEDIMENSION + 1 );
-
-	for( slot = 0, shift = 0; slot < BOARDSIZE + 1; slot++, shift += GAMEDIMENSION + 1 ) {
-
-		board->slots[slot] = ( hash >> shift ) & mask;
-
-	}
-
-	board->piecesInPlay = ( hash >> shift ) & mask;
-	board->squaresOccupied = ( hash >> ( shift += GAMEDIMENSION + 1 ) ) & mask;
-	board->usersTurn = ( hash >> ( shift += GAMEDIMENSION + 1 ) ) & 1;
-
-	return board;
-
 }
 
 // hashing an internally represented QTBOARD into a POSITION
@@ -1767,6 +1748,18 @@ char LegendCoordinate( short pad, void *p_coordinate ) {
 	
 }
 
+char BorderCell( short ignored, void* p_ignored ) {
+	
+	return '-';
+	
+}
+
+char BlankCell( short ignored, void* p_ignored ) {
+	
+	return ' ';
+	
+}
+
 /* Prints cell for board */
 void PrintCell( void *cell, char (*CellContent)( short, void * ) ) {
 	
@@ -1778,20 +1771,37 @@ void PrintCell( void *cell, char (*CellContent)( short, void * ) ) {
 		
 	}
 	
-	printf( "|" );
+}
+
+void PrintRange( void *cells, size_t content_size, int offset, int size, char (*CellContent)( short, void * ), char border, char *endmark ) {
+	
+	int column;
+	
+	printf( "%c", border );
+	for( column = 0; column < size; column++ ) {
+		
+		PrintCell( cells + (offset + column)*content_size, CellContent );
+		printf( "%c", border );
+		
+	}
+	
+	printf( endmark );
+		
 	
 }
 
 /* Prints board */
+/*
 void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) ) {
 	
 	const int header_length = 20;
-	int i, cell, heading_length, hand_label_length;
+	int i, j, cell, heading_length, hand_label_length;
 	char *pad = "\n       ";
 	char *hand_label = " Hand ";
 	
 	heading_length		= strlen( heading );
 	hand_label_length	= strlen( hand_label );
+
 	
 	for ( i = 0; i < header_length; i++ ) {
 		
@@ -1863,8 +1873,8 @@ void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellCon
 	}
 	
 	PrintHorizontalBorder( '-', '-', pad, "\n" );
-
 }
+*/
 
 unsigned short GetHandPiece( QTBPtr board ) {
  
