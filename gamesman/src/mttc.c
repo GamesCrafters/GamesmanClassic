@@ -95,7 +95,7 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0; 
 POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
-STRING   kAuthorName         = "";
+STRING   kAuthorName         = "Reman Child";
 STRING   kGameName           = "Tic-Tac-Chec"; 
 STRING   kDBName             = "ttc"; 
 BOOLEAN  kPartizan           = TRUE; 
@@ -486,6 +486,8 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+BOOLEAN offBoard(MOVE);
+BOOLEAN isPlayer(PIECE,PLAYER);
 
 /*************************************************************************
 **
@@ -835,7 +837,7 @@ VALUE Primitive (POSITION position) {
   BOARD board, getBoard(POSITION);
   PLAYER player;
   int i, numInRow(CELL,BOARD);
-  BOOLEAN isPlayer(PIECE,PLAYER);
+
   board = getBoard(position);
   for (i = 0; i < getBoardSize(); i++) {
     if (numInRow(i,board) >= winCondition && !isPlayer(board[i],player)) {
@@ -967,7 +969,7 @@ MOVELIST *GenerateMoves (POSITION position) {
   MOVELIST *genPawnMoves(BOARD,PLAYER,CELL,MOVELIST *);
   MOVELIST *genKingMoves(BOARD,PLAYER,CELL,MOVELIST *);
   MOVELIST *head = NULL;
-  BOOLEAN isPlayer(PIECE,PLAYER);
+  
   int i;
   board = getBoard(position);
   player = getPlayer(position);
@@ -1345,6 +1347,7 @@ void addPieceToInit(PIECE piece) {
 /* Tests whether player has already specified an initial pieceset */
 BOOLEAN hadInitialPieces(PLAYER player) {
   int i;
+  
   for (i = 0; i < sizeOfPieceType(initPieces); i++) {
     if (isPlayer(initPieces[i].id,player))
       return TRUE;
@@ -1457,7 +1460,7 @@ BOOLEAN isAllied(CELL cell, BOARD board, PLAYER player) {
    piece onto the board) */
 MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,PLAYER player) {
   int i,j;
-  BOOLEAN isPlayer(PIECE,PLAYER);
+  
   struct pieceType *pt;
   pt = piecesOffBoard(initPieces,board);
   for (i = 0; i < getBoardSize(); i++)
