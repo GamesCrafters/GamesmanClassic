@@ -43,7 +43,7 @@ POSITION gNumberOfPositions ;
 POSITION gInitialPosition ;
 
 BOOLEAN  kPartizan            = TRUE;
-BOOLEAN  kDebugMenu           = FALSE;
+BOOLEAN  kDebugMenu           = TRUE;
 BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = TRUE;
 BOOLEAN  kLoopy               = FALSE;
@@ -147,33 +147,39 @@ int turn;             /* 0 = player 1's turn, 1 = player 2's turn */
 int rsize;
 int turnOffset;
 
-BOOLEAN OPT_STANDARD = 0;    /* What is the game type? 
-			        0: Standard
-			        1: Misere */  
-BOOLEAN OPT_NOCAPTURE = 0;   /* Landing on your own empty bin does what?
-		                0: Capture YOUR and OPPONENT's stones
-			        1: YOUR turn ends. */
-BOOLEAN OPT_CHAIN = 0;	     /* Landing on a non-empty bin does what?
-		                0: Nothing
-			        1: Chain-despersal */
-BOOLEAN OPT_MOVEOPP = 0;     /* From which bins can you move?
-		                0: YOUR own side
-			        1: YOUR own or OPPONENT's side */
-BOOLEAN OPT_NOEXTRATURN = 1; /* Landing in your mancala does what?
-		                0: YOU go again
-			        1: Nothing */
-BOOLEAN OPT_WINEMPTY = 0;    /* Emptying your side of the board does what?
-			        0: OPPONENT captures all stones in his bins at
+BOOLEAN OPT_NOCAPTURE = FALSE;  /* Landing on your own empty bin does what?
+				   0: Capture YOUR and OPPONENT's stones
+				   1: YOUR turn ends. */
+BOOLEAN OPT_CHAIN = FALSE;      /* Landing on a non-empty bin does what?
+				   0: Nothing
+				   1: Chain-despersal */
+BOOLEAN OPT_MOVEOPP = FALSE;    /* From which bins can you move?
+				   0: YOUR own side
+				   1: YOUR own or OPPONENT's side */
+BOOLEAN OPT_NOEXTRATURN = TRUE; /* Landing in your mancala does what?
+				   0: YOU go again
+				   1: Nothing */
+int OPT_WINEMPTY = 0;           /* Emptying your side of the board does what?
+				   0: OPPONENT captures all stones in his bins at
 			           the end of YOUR turn 
-			        1: OPPONENT captures all stones in his bins at
+				   1: OPPONENT captures all stones in his bins at
 			           the start of YOUR next turn
-			        2: can chose to disperse stones from OPPONENT'S
+				   2: can chose to disperse stones from OPPONENT'S
 			           bins
-			        3: YOU win
-			        4: YOU pass */
+				   3: YOU win
+				   4: YOU pass */
+
+
 
 /****** END added specifically for mancala */
 
+BOOLEAN rearranger_unhash(int, char*);
+int rearranger_hash(char*);
+void my_nCr_init(int);
+int my_nCr(int, int);
+void UpdateGameSpecs();
+void BadMenuChoice();
+int rearranger_hash_init(int, int, int);
 
 /************************************************************************
 **
@@ -206,7 +212,8 @@ void InitializeGame()
   //gNumberOfPositions = 601080390;
   gInitialPosition = array_unhash(arrayBoard);
   
-  free (arrayBoard);
+  SafeFree (arrayBoard);
+
 }
 
 
@@ -223,7 +230,7 @@ void InitializeGame()
 ** 
 ************************************************************************/
 
-UpdateGameSpecs()
+void UpdateGameSpecs()
 {
   int i, j, done, tBig, tSmall, tEnd, tArray[32];
   mancalaL = 0;
@@ -278,8 +285,8 @@ UpdateGameSpecs()
   gNumberOfPositions = turnOffset*2;
 
   if(DEBUGGING)printf("\nGAME INFO\nboardSize: %d\nnumOfPieces: %d\nturnOffset: %d\n"
-		      "gNumberOfPositions: %d\n", boardSize, numOfPieces,
-		      turnOffset, gNumberOfPositions);
+		      "gNumberOfPositions: " POSITION_FORMAT "\n", boardSize, 
+		      numOfPieces, turnOffset, gNumberOfPositions);
 }
 
 /************************************************************************
@@ -325,10 +332,10 @@ void GameSpecificMenu()
     printf("\n\tCurrent game configuration: \n");
     
     if(gStandardGame == TRUE) {
-      printf("\n\tG)\tChange (G)ame type FROM standard TO mezeire\n");
+      printf("\n\tG)\tChange (G)ame type FROM standard TO misere\n");
     }
     else {
-      printf("\n\tG)\tChange (G)ame type FROM mezeire TO standard\n");
+      printf("\n\tG)\tChange (G)ame type FROM misere TO standard\n");
     }
 
     if(OPT_NOCAPTURE == 0) {
@@ -482,6 +489,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
   POSITION newPosition;
   
   arrayHashedBoard = array_hash(thePosition);
+  
   t = arrayHashedBoard[turn];
 
   /* on my turn starting, i'm empty -> i pass */
@@ -596,8 +604,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 
 POSITION GetInitialPosition()
 {
-  POSITION initPosition;
-  int totalStones = numOfPieces;
   int i = 0;
   int result = 0;
   signed char c;
@@ -941,12 +947,12 @@ void PrintMove(MOVE theMove)
 
 int NumberOfOptions()
 {
-  /* There are 5 different options each with 2 possible values
+  /* There are 4 different options each with 2 possible values
      and 1 remaining option with 5 possible values:
-     2 * 2 * 2 * 2 * 2 * 5 = 160
-     This number includes the option to take an extra turn
+     2 * 2 * 2 * 2 * 5 = 80
+     This number doesn't include the option to take an extra turn
      which currently ISN'T implemented in the game */
-  return 160;
+  return 2*2*2*2*5;
 } 
 
 
@@ -962,12 +968,28 @@ int NumberOfOptions()
 
 int getOption()
 {
-  /* There are 5 different options each with 2 possible values
+  /* There are 4 different options each with 2 possible values
      and 1 remaining option with 5 possible values */
-  OPT_STANDARD = gStandardGame ? 1 : 2;
-  return (OPT_STANDARD * (OPT_NOCAPTURE + 1) * (OPT_CHAIN + 1) *
-	  (OPT_MOVEOPP + 1) * (OPT_NOEXTRATURN  + 1 ) *
-	  (OPT_WINEMPTY + 1));
+  int option = 0;
+
+  option *= 5;
+  option += OPT_WINEMPTY;
+
+  option *= 2;
+  option += (OPT_MOVEOPP ? 1 : 0);
+
+  option *= 2;
+  option += (OPT_CHAIN ? 1 : 0);
+
+  option *= 2;
+  option += (OPT_NOCAPTURE ? 1 : 0);
+
+  option *= 2;
+  option += (gStandardGame ? 0 : 1);
+
+  option++;
+
+  return option;
 } 
 
 
@@ -982,10 +1004,22 @@ int getOption()
 
 void setOption(int option)
 {
-  /* This only allows the user to set the standard option because
-     all other options can be set through game-specific options */
-  if(option == 1) gStandardGame = TRUE ;
-  else gStandardGame = FALSE ;
+  option--;
+
+  gStandardGame = (option%2 == 0);
+  option /= 2;
+
+  OPT_NOCAPTURE = (option%2 == 1);
+  option /= 2;
+
+  OPT_CHAIN = (option%2 == 1);
+  option /= 2;
+
+  OPT_MOVEOPP = (option%2 == 1);
+  option /= 2;
+  
+  OPT_WINEMPTY = (option%5);
+  option /= 5;
 }
 
 
@@ -1009,7 +1043,7 @@ void setOption(int option)
 
 int *array_hash (POSITION position) {
   int i, j = 0;
-  char *board = (char *) SafeMalloc (rsize);
+  char *board = (char *) SafeMalloc (rsize * sizeof(char));
   int *result = (int *) SafeMalloc ((boardSize + 1) * sizeof (int));
 
   if (position > turnOffset) {
@@ -1018,8 +1052,10 @@ int *array_hash (POSITION position) {
   } else result[turn] = 0;
   
   rearranger_unhash (position, board);
-  
-  for (i = 0; i < boardSize; result[i] = 0, i += 1);
+
+  for (i = 0; i < boardSize; i++) {
+    result[i] = 0;
+  }
 
   for (i = 0; i < rsize; i += 1) {
       if (board[i] == 'o')
@@ -1048,9 +1084,9 @@ int *array_hash (POSITION position) {
 POSITION array_unhash (int *hashed) {
   int i = 0, j = 0, k = rsize;
   POSITION result = 0;
-  char *dest = (char *) SafeMalloc (rsize);
+  char *dest = (char *) SafeMalloc (rsize * sizeof(char));
         
-  for (; i < k; i += 1) {
+  for (; i < k; i++) {
     if (hashed[j] > 0) {
       dest[i] = 'o';
       hashed[j] -= 1;
@@ -1060,7 +1096,7 @@ POSITION array_unhash (int *hashed) {
       j += 1;
     }	
   }
-  
+
   result = rearranger_hash(dest);
   
   if (hashed[turn] == 1) 
@@ -1073,10 +1109,9 @@ POSITION array_unhash (int *hashed) {
 // for atilla's hash code ...
 int *my_gHashOffset = NULL ;
 int *my_gNCR = NULL ;
-static int my_gHashOffsetSize;
-static int my_gHashBoardSize;
-static int my_gHashMinMax[4];
-static int my_gHashNumberOfPos;
+int my_gHashBoardSize;
+int my_gHashMinMax[4];
+int my_gHashNumberOfPos;
 // end for atilla's hash code
 
 void hash_free()
@@ -1101,18 +1136,19 @@ int rearranger_hash_init(int boardsize, int numOs, int numXs)
   my_gHashMinMax[3] = numXs;
   my_gHashBoardSize = boardsize;
   my_nCr_init(boardsize);
-  my_gHashNumberOfPos = my_nCr(numXs+numOs, numXs) * my_nCr(boardsize, numXs+numOs);   
+  my_gHashNumberOfPos = my_nCr(numXs+numOs, numXs) * my_nCr(boardsize, numXs+numOs);
   return my_gHashNumberOfPos ;
 }
 
 int rearranger_hash(char* board)
 {
-	int temp, i, numxs,  numos, numXs;
+	int temp, i, numxs,  numos;
 	int boardsize;
 	numxs = my_gHashMinMax[3];
 	numos = my_gHashMinMax[1];
 	boardsize = my_gHashBoardSize;
 	temp = 0;
+
 	for (i = 0; i < my_gHashBoardSize; i++)
 	{
 	  if (board[i] == 'b')
@@ -1141,7 +1177,7 @@ int rearranger_hash(char* board)
 
 BOOLEAN rearranger_unhash(int hashed, char* dest)
 {
-	int i, j, offst, numxs, numos, temp, boardsize;
+	int i, j, numxs, numos, temp, boardsize;
 	j = 0;
 	boardsize = my_gHashBoardSize;
 	numxs = my_gHashMinMax[3];
@@ -1173,7 +1209,7 @@ BOOLEAN rearranger_unhash(int hashed, char* dest)
 	return TRUE;
 }
 
-void my_nCr_init(boardsize)
+void my_nCr_init(int boardsize)
 {
 	int i, j;
 	my_gNCR = (int*) SafeMalloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
@@ -1193,6 +1229,7 @@ void my_nCr_init(boardsize)
 
 int my_nCr(int n, int r)
 {
+  if (r>n) return 0;
   return my_gNCR[n*(my_gHashBoardSize+1) + r];
 }
 
