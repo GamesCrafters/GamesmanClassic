@@ -290,7 +290,9 @@ void createAnalysisVarDir();
 void writeGameHTML();
 //void createAnalysisLink();
 
-
+/* Status Meter */
+void showStatus(int done);
+float percentDone(int done);
 
 /*** Other GamesCrafter .h Inclusion ***/
 #include "hash.h"
