@@ -12,7 +12,7 @@
 ** UPDATE HIST:
 **              02/28/04 Wrote WhoseTurn(...)
 **              03/02/04 Wrote AnyPiecesLeft(...)
-**              03/02/04 Wrote BoardToPosition(...)
+**              03/02/04 Wrote BlankOXToPosition(...)
 **              03/02/04 Wrote PositionToBoard(...)
 **              03/02/04 Debugged PrintPosition(...)
 **              03/02/04 Wrote ValidTextInput(...)
@@ -28,6 +28,9 @@
 **              04/17/04 debugged PrintPosition(..)
 **              04/23/04 debugged EachDirection(...)
 **              04/23/04 debugged ConvertTextToInput(...)
+**              04/24/04 wrote PrintMove(...)
+**              04/24/04 debugged generateMoves(...) still needs work
+**              04/24/04 debugged EachDirection(...)
 ** TODO LIST:
 **              03/02/04 PrintPosition() needs to print info about how to make moves
 **              03/02/04 Write DoMove(...)
@@ -44,7 +47,7 @@
 #include "gamesman.h"
 #include "hash.h"
 
-int debug = 2;
+int debug = 3;
 int printMethods = 0;
 
 extern STRING gValueString[];
@@ -118,7 +121,7 @@ int myPieces_array[10] = { '.', (BOARDSIZE-MAX_O-MAX_X), (BOARDSIZE-1),  /* trea
                           'O', 0, MAX_O,          /* info about the game pieces' diff. types and possible number of them in a game */
                           'X', 0, MAX_X,          /* used to pass into generic_hash_init(...) */
 			  -1 };                   // mark the end of array
-BlankOX turn = 'O';                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
+BlankOX turn = 'X';                                 /* keep track of whose turn it is, used by WhoseTurn(...) */
 
 //---- Shing ----------------------------------------------
 char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now just an array instead of pointer to array, and also \ -> \\ */
@@ -126,8 +129,10 @@ char slash[] = {'|',' ',' ','\\',' ',' ','|',' ',' ','/',' ',' '}; /* HRS: now j
 
 /////////////////////////////////////////// F U N C T I O N   P R O T O T Y P E S ///////////////////////////////////////////////////////
 void space(int n);
-POSITION BoardToPosition(BlankOX* board);
+POSITION BlankOXToPosition(BlankOX* board);
 int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece);
+Coordinates IndexToCoordinates(int index);
+Coordinates Neighbor(Coordinates pos, Direction dir);
 
 void dbg(char *);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,7 +157,7 @@ void InitializeGame()
   char initialBoard[BOARDSIZE] = { O,O,O,O,
 				   X,B,B,O,
 				   X,X,X,X };
-  POSITION initialPos =  BoardToPosition(initialBoard);
+  POSITION initialPos =  BlankOXToPosition(initialBoard);
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
 }
@@ -221,10 +226,35 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  dbg("->DoMove");
+  printf("->DoMove\n");
   // fill me
-  int i = 1;
-  printf("%d\n",i);
+  
+  int index,intdir,cap;
+  Direction dir;
+  BlankOX board[BOARDSIZE];
+  char movingPiece;
+  Coordinates coord;
+  POSITION newPosition;
+
+  cap = 3 & theMove;
+  intdir = (28 & theMove) >> 2;
+  index = (0xffffffe0 & theMove) >> 5;
+
+  if(intdir>=5)
+    intdir++;
+  intdir++;
+  dir = (Direction)intdir;
+
+  coord = IndexToCoordinates(index);
+
+  printf("DoMove sees: %d\t\n",theMove);
+  PositionToBlankOX(thePosition, board);
+  movingPiece = board[index];
+  board[index] = B;
+  board[CoordinatesToIndex(Neighbor(coord,(Direction)dir))] = movingPiece;
+
+  newPosition = BlankOXToPosition(board);
+  return newPosition;
 }
 
 /************************************************************************
@@ -261,7 +291,6 @@ void PrintComputersMove(computersMove,computersName)
 {
   dbg("->PrintComputersMove");
   printf("%8s's move              : %2d\n", computersName, computersMove+1);
-  dbg("<-PrintComputersMove");
 }
 
 /************************************************************************
@@ -293,7 +322,6 @@ VALUE Primitive(position)
     return(gStandardGame ? lose : win);                     /* that means last player to go captured last piece of current player? */
   else
     return(undecided);
-  dbg("<-Primitive");
 }
 
 /************************************************************************
@@ -354,7 +382,7 @@ void PrintPosition(position,playerName,usersTurn)
 
   puts("");
   puts(GetPrediction(position,playerName,usersTurn));
-  dbg("-<PrintPos");
+  dbg("<-PrintPos");
 }
 
 void space(int n) {
@@ -398,8 +426,10 @@ MOVELIST *GenerateMoves(position)
   BlankOX OtherPlayer();
   BlankOX WhoseTurn(int);
 
-  // update turn
-  turn = (whoseMove(position) == O ? 1 : 2);
+  // update turn (todo: not need?)
+  turn = (whoseMove(position) == X ? 2 : 1);
+  printf("whoseMove: %d\n",whoseMove(position));
+
 
   BlankOX board[BOARDSIZE];
   int i;
@@ -412,11 +442,11 @@ MOVELIST *GenerateMoves(position)
 
   if (Primitive(position) == undecided) {
     PositionToBlankOX(position,board);
-    if(debug>0) printf("Primitive undecided\n");
+    if(debug>2) printf("Primitive undecided\n");
     for(i = 0 ; i < BOARDSIZE ; i++) {
       if(board[i] == WhoseTurn(position)) {      // if current player's piece then we consider where we can move this
 	pos = IndexToCoordinates(i);
-	if(debug>0) printf("Found side's piece\n");
+	if(debug>2) printf("Found side's piece at %d,%d\n",pos.x,pos.y);
 	for(;dir = EachDirection();) {
 	  intdir = (int)dir;
 	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
@@ -424,31 +454,32 @@ MOVELIST *GenerateMoves(position)
 	  intdir--;      // start at 0
 
 	  numofcaps=0;
-	  if(InBounds(Neighbor(pos,dir)) && board[i]==B) {      // vacant neighboring cell exists
+	  if(InBounds(Neighbor(pos,dir)) && board[CoordinatesToIndex(Neighbor(pos,dir))]==B) {      // vacant neighboring cell exists
+	    if(debug>2) printf("Found vacant neighbor at dir: %d\n",dir);
 	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
-	    if(debug>0) printf("Found vacant neighbor\n");
 	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) {  // have enemy, can attack by approach
 	      numofcaps++;
-	      if(debug>0) printf("Can attack someone\n");
+	      if(debug>2) printf("Can attack someone by approach @ dir: %d\n",dir);
 	      cap = 1;  // attack by approach mode
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(debug>1) printf("Generated move: %d\n",move);
+	      if(debug>2) printf("Generated move: %d\n",move);
 	      head = CreateMovelistNode(move, head);
 	    } // end if can attack by approach
 	    
 	    attackingpos = Neighbor(pos,OtherDirection(dir));
 	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) { // have enemy, can attack by withdraw
 	      numofcaps++;
+	      if(debug>2) printf("Can attack someone by withdraw @ dir: %d\n",OtherDirection(dir));
 	      cap = 2; // attack by withdraw mode
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(debug>1) printf("Generated move: %d\n",move);
+	      if(debug>2) printf("Generated move: %d\n",move);
 	      head = CreateMovelistNode( move, head);
 	    } // end if can attack by withdraw
 	    
 	    if(numofcaps==0) { // no captures possible for this move
 	      cap = 0;
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(debug>1) printf("Generated move: %d\n",move);
+	      if(debug>2) printf("Generated move: %d\n",move);
 	      head = CreateMovelistNode( move, head);
 	    } //end if no possible captures
 	  } // end if vacant target cell (i.e. can move)
@@ -459,7 +490,6 @@ MOVELIST *GenerateMoves(position)
   } else { // end if undecided (not win or lose)
     return(NULL);
   }
-  dbg("<-GenerateMoves");
 }
 
 /************************************************************************
@@ -660,14 +690,8 @@ MOVE ConvertTextInputToMove(input)
 
   dbg("->ConvertTextInputToMove");
 
-  if(debug>1) printf("BEFORE: String is: %s\n",input);
-  if(debug>1) printf("BEFORE:\npos: %d\ndir: %d\ncap: %d\n",pos,dir,cap);
-
   int scan_result = sscanf(input,"%d %d %d", &pos, &dir, &cap);
   
-  if(debug>1) printf("AFTER: String is: %s\n",input);
-  if(debug>1) printf("AFTER:\npos: %d\ndir: %d\ncap: %d\nscanresult: %d\n",pos,dir,cap,scan_result);
-
   pos--;  // we start at 0 while user starts at 1
 
   if(dir >= 5)
@@ -694,10 +718,17 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  dbg("->PrintMove");
-  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  printf("%d", theMove + 1); 
-  dbg("<-PrintMove");
+   int pos,dir,cap;
+
+  cap = 3 & theMove;
+  dir = (28 & theMove) >> 2;
+  pos = (0xffffffe0 & theMove) >> 5;
+
+  if(dir >= 5)
+    dir++;
+  dir++;
+
+  printf(" [%d %d %d]",pos+1,dir,cap);
 }
 
 /************************************************************************
@@ -724,7 +755,6 @@ void PrintMove(theMove)
 PositionToBlankOX(POSITION position, BlankOX *board) {
   dbg("->PositionToBlankOX");
   generic_unhash(position,(char *)board);  // TODO: doesn't API stick with their own types?? (arg2)
-  dbg("<-PositionToBlankOX");
 }
 
 /************************************************************************
@@ -735,10 +765,9 @@ PositionToBlankOX(POSITION position, BlankOX *board) {
  *
  * Calls: generic_hash(...)
  ***********************************************************************/
-POSITION BoardToPosition(BlankOX *board) {
-  dbg("->BoardToPosition");
+POSITION BlankOXToPosition(BlankOX *board) {
+  dbg("->BlankOXToPosition");
   return generic_hash((char *)board, turn==X?2:1 );  // TODO: doesn't API stick with their own types?? (arg 1)
-  dbg("<-BoardToPosition");
 }
 
 /***********************************************************************
@@ -759,7 +788,6 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
       anyLeft = 1;    /* we saw one, so set to true */
 
   return anyLeft;
-  dbg("<-AnyPiecesLeft");
 }
 
 /************************************************************************
