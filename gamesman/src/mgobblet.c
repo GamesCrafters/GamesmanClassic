@@ -763,7 +763,7 @@ MOVELIST *GenerateMoves(position)
     for(i = 0; i < TABLE_SLOTS; i++) {
       topPieceFrom = getTopPieceSize(myPosition.board[i]);
       pieceColorFrom = getTopPieceColor(myPosition.board[i]);
-      if((pieceColorFrom == currentColor) && (topPieceFrom > 0)) {
+      if((topPieceFrom > -1) && (pieceColorFrom == currentColor)) {
         for(j = 0; j < TABLE_SLOTS; j++) {
           topPieceTo = getTopPieceSize(myPosition.board[j]);
           if(topPieceTo < topPieceFrom) {
