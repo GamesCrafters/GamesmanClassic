@@ -1298,6 +1298,8 @@ int getOption()
   option += 10 * SS;
   option += XHITKILLS * 100000;
   option += PIECEMOD * 10000000;
+
+  return option;
 }
 
 /************************************************************************
