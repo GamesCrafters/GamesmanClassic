@@ -25,6 +25,9 @@ gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include
 ** DATE:        Began 2004-09-29; Finished 2004-10-...
 **
 ** UPDATE HIST: 2004-10-04 Put it into CVS.
+**              2004-10-12 Peter: I wrote this earlier, but I didn't know
+**               know that checking-in a file would lead to a vi interface
+**              2004-10-12 Added more defines, GamesSpecificMenu, PrintPosition
 **
 **************************************************************************/
 
@@ -56,7 +59,7 @@ BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each pl
 //BOOLEAN  kSupportsSymmetries = ;
 BOOLEAN  kSupportsGraphics   = FALSE;
 BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
+BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy              = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
@@ -113,6 +116,12 @@ STRING   kHelpExample =
 ** Below is where you put your #define's and your global variables, structs
 **
 *************************************************************************/
+
+//note: having more than 9 rows would mess up the printf, unless we want to swap the letter and column convention
+#define MAXROWS 9
+#define MAXCOLS 9 
+#define DEFAULTROWS 3
+#define DEFAULTCOLS 3
 
 int width=3,height=3;
 int BOARDSIZE = 11; 
@@ -214,10 +223,67 @@ void DebugMenu () {
 ** 
 ************************************************************************/
 
-void GameSpecificMenu () {
-  
+void GameSpecificMenu()
+{
+    char GetMyChar();
+    
+    printf("\n");
+    printf("Seega Game Specific Menu\n\n");
+    printf("1) Change the board size (default = %d x %d) \n", DEFAULTROWS, DEFAULTCOLS);
+    printf("2) To be inserted.. \n");
+    printf("b) Back to previous menu\n\n");
+    
+    //printf("Current option:   %s\n", allDiag ? "All diagonal moves": noDiag ? "No diagonal moves" : "Standard diagonal moves");
+    printf("Select an option: ");
+    
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+	ExitStageRight();
+	break;
+    case '1':
+	changeBoard();
+	break;
+
+	
+    case 'b': case 'B':
+	return;
+    default:
+	printf("\nSorry, I don't know that option. Try another.\n");
+	HitAnyKeyToContinue();
+	GameSpecificMenu();
+	break;
+    }
 }
 
+void changeBoard() 
+{
+  int n_rows, n_cols, valid_cols;
+  valid_cols = 0;
+  printf("Enter the new number of rows (3-%d):  ", MAXROWS);
+  (void) scanf("%u", &n_rows);
+  if ((n_rows < 3) || (n_rows > MAXROWS)) {
+    printf("Number of rows must be between to 3 and %d\n", MAXROWS);
+    changeBoard();
+  } else {
+    printf("Changing number of rows to %d ...\n", n_rows);
+    Nrows = n_rows;
+  }
+  printf("Enter the new number of columns (3-%d):  ", MAXCOLS);
+  while (valid_cols == 0){
+    (void) scanf("%u", &n_cols);
+    if ((n_cols < 3) || (n_cols > MAXCOLS)) {
+      printf("Number of rows must be between to 3 and %d\n", MAXCOLS);
+    } else {
+      printf("Changing number of columns to %d ...\n", n_cols);
+      Ncols = n_cols;
+      valid_cols = 1;
+    }
+  }
+  InitializeGame();
+  //displayBoard(); //this is temporary!!
+  //printf("done! \n");
+  //GetMyChar();
+}
   
 /************************************************************************
 **
@@ -235,7 +301,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 
 /************************************************************************
 **
-** NAME:        DoMove
+** NAME:        DoMove //TEMPORARY!!
 **
 ** DESCRIPTION: Apply the move to the position.
 ** 
@@ -249,6 +315,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 
+//TODO CHANGE THIS
 POSITION DoMove (POSITION position, MOVE move) {
     
     BlankOX theBlankOX[BOARDSIZE];
@@ -366,8 +433,39 @@ VALUE Primitive (POSITION position) {
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  
+
+//this will be our print position function - prints for a general sized board
+//now we only have to grab the current values of the board!
+//TODO: take into account the arguments
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn){
+{
+  int currRow;
+  char currCol;
+  char alphabet[]="abcdefghijklmnopqrstuvwxyz";
+
+  printf("\n");
+  printf("          LEGEND:");
+  for (currCol = 0; currCol < Ncols; currCol++) {
+    printf("  ");
+  }
+  printf("             TOTAL:\n");
+  for (currRow = Nrows; currRow>0; currRow--) {
+    //printf("    %d ( a%d b%d c%d )          : - - -\n", currRow, currRow, currRow, currRow);
+    printf("    %d ( ", currRow);
+    for (currCol = 0; currCol < Ncols; currCol++) {
+      printf("%c%d ", alphabet[currCol], currRow);
+    }
+    printf(")          :");
+    for (currCol = 0; currCol < Ncols; currCol++) {
+      printf("%c ", '-'); //TODO GET VALUES FROM BOARD
+    }
+    printf("\n");
+  }
+  printf("        ");  //a  b  c          PLAYERS TURN\n\n");
+  for (currCol = 0; currCol < Ncols; currCol++) {
+    printf("%c  ", alphabet[currCol]);  //"          PLAYERS TURN\n\n");
+  }
+  printf("\n\n");
 }
 
 
