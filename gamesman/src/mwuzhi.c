@@ -1229,9 +1229,10 @@ int NumberOfOptions ()
 int getOption ()
 {
   int option = 1;
-  if(diagonals) option += 1*2;
-  option += 4*(gBoardwidth - 3);
+  option += (diagonals << 1);
+  option += (gBoardwidth - 3) << 2;
   return option;
+  
 }
 
 
@@ -1248,8 +1249,9 @@ int getOption ()
 
 void setOption (int option)
 {
-  diagonals = option/4%2;
-  gBoardwidth = option/4 + 3;  
+  diagonals = (option >> 1) & 0x1;
+  gBoardwidth = (option >> 2) + 3;
+
 }
 
 
