@@ -19,6 +19,10 @@
 **              original game has. I'll add some variants later.
 **                                                                -- jt
 **
+** 2004.4.6     Added in support for generic_hash; still have to add in
+**              modified ruleset as per discussion with Dom.
+**                                                                -- rc
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -32,14 +36,15 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include "hash.h"
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 2000000; /* Hmmm I made this number up */
+POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0; 
 POSITION gMinimalPosition    = 0; 
-POSITION kBadPosition        = -1; /* need to change once create hash stuff */
+POSITION kBadPosition        = -1; 
 
 STRING   kGameName           = "Tic-Tac-Chec"; 
 STRING   kDBName             = "mttc";
@@ -112,7 +117,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-typedef int* BOARD;
+typedef char* BOARD;
 typedef int PIECE;
 typedef int PLAYER;
 typedef int CELL;
@@ -145,10 +150,6 @@ char row_names[] = {'a','b','c','d','e','f','g','h'};
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
-/* Internal */
-int *ttc_unhash(POSITION pos);
-POSITION ttc_hash(BOARD board, PLAYER player);
-
 
 /*************************************************************************
 **
@@ -167,8 +168,10 @@ extern VALUE     *gDatabase;
 ** 
 ************************************************************************/
 
-void InitializeGame ()
-{
+void InitializeGame () {
+  int pieces_array[] = {'A',0,2,'B',0,2,'a',0,2,'b',0,2,'-',8,16,-1}; 
+  gNumberOfPositions = generic_hash_init(BOARD_LENGTH, pieces_array,NULL);
+  return;
 }
 
 
@@ -226,13 +229,13 @@ void SetTclCGameSpecificOptions (options)
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
-** CALLS:       ttc_hash ()
-**              ttc_unhash ()
+** CALLS:       get_board();
 **	           
 *************************************************************************/
 
 POSITION DoMove (POSITION thePosition, MOVE theMove) {
   int get_source(MOVE,POSITION), get_dest(MOVE);
+  POSITION make_position(BOARD,PLAYER);
   BOARD board, get_board(POSITION);
   PLAYER new_player;
   board = get_board(thePosition);
@@ -240,7 +243,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
   if (get_source(theMove,thePosition) != OFF) 
     board[get_source(theMove,thePosition)] = BLNK;
   board[get_dest(theMove)] = get_piece(theMove);
-  return ttc_hash(board, new_player);
+  return make_position(board, new_player);
 }
 
 /************************************************************************
@@ -342,7 +345,7 @@ VALUE Primitive (POSITION pos) {
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
 **
-** CALLS:       Unhash()
+** CALLS:       get_board()
 **              GetPrediction()
 **              LIST OTHER CALLS HERE
 **
@@ -395,11 +398,11 @@ MOVELIST *GenerateMoves(POSITION pos) {
   MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec);
   BOOLEAN is_knight(PIECE), is_queen(PIECE), is_rook(PIECE);
   BOOLEAN is_bishop(PIECE), is_pawn(PIECE);
-  MOVELIST *gen_pawn_moves(CELL cell, int *board, PLAYER player);
-  MOVELIST *gen_knight_moves(CELL cell, int *board, PLAYER player);
-  MOVELIST *gen_rook_moves(CELL cell, int *board, PLAYER player);
-  MOVELIST *gen_bishop_moves(CELL cell, int *board, PLAYER player);
-  MOVELIST *gen_queen_moves(CELL cell, int *board, PLAYER player);
+  MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player);
+  MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player);
   int player, piece_flags[NUM_PIECES], i, j;
   MOVELIST *head = NULL;
   player = get_player(pos);
@@ -634,15 +637,15 @@ MOVELIST *concat_ml(MOVELIST *first, MOVELIST *sec) {
   return first;
 }
 
-BOOLEAN is_occupied(CELL cell, int *board) {
+BOOLEAN is_occupied(CELL cell, BOARD board) {
   return board[cell] != BLNK;
 }
 
-BOOLEAN ally_occupies(PLAYER player, CELL cell, int *board) {
+BOOLEAN ally_occupies(PLAYER player, CELL cell, BOARD board) {
   return board[cell] != BLNK && player == which_player(cell,board);
 }
 
-BOOLEAN enemy_occupies(PLAYER player, CELL cell, int *board) {
+BOOLEAN enemy_occupies(PLAYER player, CELL cell, BOARD board) {
   return board[cell] != BLNK && player != which_player(cell,board);
 }
 
@@ -650,15 +653,18 @@ BOOLEAN enemy_occupies(PLAYER player, CELL cell, int *board) {
 
 BOARD get_board(POSITION pos) {
   BOARD board;
-  board = (int *) malloc(BOARD_LENGTH * sizeof(int));
-  /* Have to make some call to ttc_unhash */
+  board = (BOARD) SafeMalloc(BOARD_LENGTH * sizeof(char));
+  generic_unhash(pos, board);
   return board;
 }
 
 PLAYER get_player(POSITION pos) {
   PLAYER player;
-  /* make some call to ttc_unash */
-  return player;
+  return (whoseMove(pos) == 1)? BLACK : WHITE;
+}
+
+POSITION make_position(BOARD board, PLAYER player) {
+  return (POSITION) generic_hash(board,(player == BLACK)? 1 : 2);
 }
 
 /** Identity Functions **************************************************/
@@ -686,7 +692,7 @@ PLAYER opponent(PLAYER player) {
 }
 
 /* Given a board and cell, determines the player that occuppies the cell */
-PLAYER which_player(CELL cell, int *board) {
+PLAYER which_player(CELL cell, BOARD board) {
   /* Assumes BLACK has first half of pieces, WHITE second half */
   return (board[cell] < NUM_PIECES/2)? BLACK : WHITE;
 }
@@ -756,7 +762,7 @@ int get_piece(MOVE theMove) {
 int get_source(MOVE theMove, POSITION pos) {
   int piece, loc = OFF, i, *board, get_piece(MOVE);
   piece = get_piece(theMove);
-  board = ttc_unhash(pos);
+  board = get_board(pos);
   for(i = 0; i < BOARD_LENGTH; i++) {
     if(board[i] == piece) {
       loc = i;
@@ -774,7 +780,7 @@ int get_dest(MOVE theMove) {
 /** Some optimization might be in order **/
 
 /* Three available moves (dependant on location of enemy pieces */
-MOVELIST *gen_pawn_moves(CELL cell, int *board, PLAYER player) {
+MOVELIST *gen_pawn_moves(CELL cell, BOARD board, PLAYER player) {
   MOVELIST *head = NULL;
   if (cell >= BOARD_LENGTH-BOARD_WIDTH) /* if on last row */
     return NULL;
@@ -790,7 +796,7 @@ MOVELIST *gen_pawn_moves(CELL cell, int *board, PLAYER player) {
 }
 
 /* There are eight moves that a knight can make */
-MOVELIST *gen_knight_moves(CELL cell, int *board, PLAYER player) {
+MOVELIST *gen_knight_moves(CELL cell, BOARD board, PLAYER player) {
   MOVELIST *head = NULL;
   int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
   int space_down = cell/BOARD_WIDTH;
@@ -832,7 +838,7 @@ MOVELIST *gen_knight_moves(CELL cell, int *board, PLAYER player) {
 }
 
 /* Four general directions in which the rook can move */
-MOVELIST *gen_rook_moves(CELL cell, int *board, PLAYER player) {
+MOVELIST *gen_rook_moves(CELL cell, BOARD board, PLAYER player) {
   MOVELIST *head = NULL;
   int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
   int space_down = cell/BOARD_WIDTH;
@@ -889,7 +895,7 @@ MOVELIST *gen_rook_moves(CELL cell, int *board, PLAYER player) {
 }
 
 /* Like rook (four directions), but in diagonals */
-MOVELIST *gen_bishop_moves(CELL cell, int *board, PLAYER player) {
+MOVELIST *gen_bishop_moves(CELL cell, BOARD board, PLAYER player) {
   MOVELIST *head = NULL;
   int space_up = BOARD_HEIGHT - cell/BOARD_WIDTH - 1;
   int space_down = cell/BOARD_WIDTH;
@@ -945,22 +951,10 @@ MOVELIST *gen_bishop_moves(CELL cell, int *board, PLAYER player) {
   return head;
 }
 
-MOVELIST *gen_queen_moves(CELL cell, int *board, PLAYER player) {
+MOVELIST *gen_queen_moves(CELL cell, BOARD board, PLAYER player) {
   return concat_ml(gen_rook_moves(cell,board,player),
 		   gen_bishop_moves(cell,board,player));
 }
-
-
-/** HASH Stuff ***********************************************************/
-
-/** Placeholders for the real hash to come **/
-int *ttc_unhash(POSITION pos) {
-  return NULL;
-}
-POSITION ttc_hash(BOARD board, PLAYER player) {
-  return 0;
-}
-
 
 
 /************************************************************************
@@ -976,7 +970,7 @@ BOARD generate_board() {
   int pieces_used[] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
   int i = 0, j;
   BOARD board;
-  board = (int *) malloc(BOARD_LENGTH*sizeof(int));
+  board = (char *) SafeMalloc(BOARD_LENGTH*sizeof(char));
   srand(time(NULL));
 
   for(i = 0; i < BOARD_LENGTH; i++) {
