@@ -1,0 +1,25 @@
+#!/bin/sh
+# Automated gamesman solver
+# John Jordan
+
+
+if test "$1" = "all"
+then
+	options="-solve all"
+else
+	options="-solve"
+fi
+
+CWD=`dirname $0`
+MODULES=`ls -1 $CWD/m* 2>/dev/null`
+
+if test "$MODULES" = ""
+then
+	echo "Build gamesman first!"
+	exit 1
+fi
+
+for i in $MODULES
+do
+	$i $options
+done

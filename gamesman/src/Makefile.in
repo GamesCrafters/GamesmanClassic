@@ -213,9 +213,6 @@ ICEBLOCKS_SO		= $(LIBDIR)/libmiceblocks$(LIBSUFFIX)
 FANDAN_EXE		= $(BINDIR)/mfandan$(EXESUFFIX) 
 FANDAN_OBJ		= mfandan$(OBJSUFFIX)
 
-SOLVE_EXE		= $(BINDIR)/solve$(EXESUFFIX)
-SOLVE_OBJ		= solve$(OBJSUFFIX)
-
 
 ##############################################################################
 ### Game categories
@@ -259,14 +256,14 @@ SPECIALTCL = $(DNB_SO) $(FOXES_SO) $(TTT_SO)
 ##############################################################################
 ### Global build rules
 
-all: 		text_all @COMPILEGRAPHICS@ gameline $(SOLVE_EXE)
+all: 		text_all @COMPILEGRAPHICS@ gameline
 
 dist:		clean
 		rm -rf Makefile
 
 clean:
 		rm -rf $(CGAMES) $(CTCL) $(CCGAMES) $(CCTCL) $(SPECIALGAMES) \
-		$(SPECIALTCL) $(GAMELINE_EXE) $(SOLVE_EXE) $(LIBDIR)/*~ \
+		$(SPECIALTCL) $(GAMELINE_EXE) $(LIBDIR)/*~ \
 		$(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) $(DEP_GWISH_OBJ) *~
 
 text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
@@ -291,12 +288,6 @@ $(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 
 $(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(SOLVE_OBJ): %$(OBJSUFFIX): %.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(SOLVE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
-	$(CC) -o $@ $< $(LDFLAGS)
 
 $(HASH_OBJ): %$(OBJSUFFIX): %.c $(HASH_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
