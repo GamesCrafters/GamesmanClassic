@@ -1,0 +1,24 @@
+THANKS FOR READING THE README
+
+These are all you need to run the new gamesman.tcl.
+To get started, copy the .tcl files into the gamesman/tcl directory, and copy the "X files" to the gamesman/bin directory.
+Now, you have to run Xmttt3 directly, the tic tac toe built into gamesan will still be the old version.
+
+In other rwords try out Xmttt3 like this
+./Xmttt3
+
+To get started:
+
+1) rename the file Xblank XmYOUR_GAME_NAME
+(YOUR_GAME_NAME should become the abreviation you used in your .c file, like ttt or sim.  Note I omit the m.)
+
+2) Inside the file XmYOUR_GAME_NAME, replace the string YOUR_GAME_NAME with the same abreviation.
+
+3) Rename the mblank.tcl file mYOUR_GAME_NAME.tcl
+
+Then you're ready to code, fill in the functions inside mYOUR_GAME_NAME.tcl.
+
+You can run it just like Xmttt
+./XmYOUR_GAME_NAME
+
+FIN
