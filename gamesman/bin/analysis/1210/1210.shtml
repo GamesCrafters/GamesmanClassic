@@ -1,0 +1,19 @@
+<html><head>
+<style>a:link, a:visited {color: #000066
+text-decoration: none;}
+
+a:hover, a:active {color: #000066; text-decoration: none;}
+td {color: #FFFFFF}
+</style>
+</head>
+<body bgcolor="#000066">
+<font color = "#FFFFFF" face = verdana size = 2><center>
+<img src="../images/1210.gif" width = 100 height = 100></br></br>
+</center>
+<center><h1><b>
+1,2,...,10
+</h1></b>
+<h2><b>
+Crafted by: Dan Garcia & The Elite GamesCrafters</h2></b>
+</center><!--#include virtual="1210_table.shtml"-->
+</body></html>
