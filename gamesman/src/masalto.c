@@ -40,8 +40,8 @@ POSITION kBadPosition        = -1; /* A position that will never be used */
 STRING   kGameName           = "Asalto"; /* The name of your game */
 STRING   kDBName             = "Asalto"; /* The name to store the database under */
 BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = FALSE; /* TRUE if there is a game specific menu*/
+BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
+BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
 BOOLEAN  kDebugDetermineValue = TRUE; /* TRUE while debugging */
@@ -52,22 +52,22 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"Help Text"; 
 
 STRING   kHelpOnYourTurn =
-"";
+"On Your Turn";
 
 STRING   kHelpStandardObjective =
-"";
+"Standard Objective";
 
 STRING   kHelpReverseObjective =
-"";
+"Reverse Objective";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+"Tie Occurs when";
 
 STRING   kHelpExample =
-"";
+"Help";
 
 /*************************************************************************
 **
@@ -89,6 +89,14 @@ STRING   kHelpExample =
 #define GEESE_PLAYER 1
 #define FOX_PLAYER 2
 
+char start_standard_board[33]={      	     'G','G','G',
+	                                     'G','G','G',
+			             'G','G','G','G','G','G','G',
+				     'G','G','G','G','G','G','G',
+				     'G','G',' ',' ',' ','G','G',
+				             ' ',' ',' ',
+					     'F',' ','F'};
+
 /*************************************************************************
 **
 ** Below is where you put your #define's and your global variables, structs
@@ -108,21 +116,34 @@ int freeGeeseLocations[24];
 ** Function Prototypes:
 */
 
-/* Function prototypes here. */
-void printAscii (char start, char end, int spacing);
-void printNumberBar(int start, int end, int spacing);
-void stringToBoard(char board[], char returnBoard[7][7]);
-void boardToString(char board[7][7], char returnString[33]);
+void PrintBoard(char board[]);
+
+void FoxGenerateMoves(const char board[33], MOVELIST *moves, int location);
+void GeeseGenerateMoves(const char board[33], MOVELIST *moves, int location);
+void GenerateShiftMoves(const char board[33], MOVELIST *moves, int location, int player);
+void GenerateKillMoves(const char board[33], MOVELIST *moves, int location, int player);
+int MoreKillMoves(const char board[33], int location, int player);
+int validMove(const char board[33], int move[3],int player);
+int CantMove(const char board[33], int player);
+
 int hashMove(int move[3]);
 void unHashMove(int hashed_move, int move[3]);
-void boardPieceStats(char boardString[33], int stats[2]);
+
+void boardPieceStats(char board[33], int stats[2]);
 int numFoxes(int stats[2]);
 int numGeese(int stats[2]);
 int numWinGeese(int stats[2]);
+
 int coordToLocation(int coordinates[2]);
 void locationToCoord(int location, int coordinates[2]);
 int validCoord(int coord[2]);
+
+void UserInput(char input[]);
 void UserInputCoordinate(int coordinate[2]);
+
+void AddRemoveFoxes(char *boardPointer);
+void AddRemoveGeese(char *boardPointer);
+
 void initFreeGoose();
 void addFreeGoose(int geeseLocation);
 void updateFreeGoose(int geeseOrigin, int geeseDestination);
@@ -170,9 +191,9 @@ void InitializeGame ()
 
 void DebugMenu ()
 {
-	char GetMyChar();
+	/* char GetMyChar(); */
  
-	printf("The Debug menu is not done.");
+	printf("The Debug menu is not done. Good day now! \n");
 }
 
 
@@ -188,7 +209,32 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
-	printf("No Game Specific Menu Yet\n");
+	char selection_command[80];
+	char selection = 'Z';
+	POSITION GetInitialPosition();
+	do
+	{
+		printf("\n\n\n\n\n\nAsalto Options\n");
+		printf("==============\n");
+		printf("(1) Modify Board\n");
+		printf("(2) Exit Options\n");
+		printf("Selection: "); scanf("%s", selection_command);
+		selection = selection_command[0];
+		switch (selection)
+		{
+			case '1':
+				gInitialPosition = GetInitialPosition();
+				selection = 'Z';
+				break;
+			case '2':
+				return;
+			default:
+				printf("Invalid Option.\n");
+				selection = 'Z';
+				break;
+			
+		}
+	} while (selection != 2);
 }
 
   
@@ -227,49 +273,49 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  int move[] = {0,0,0};
-  char boardString[33];
-  char origPiece = '*';
-  int origin = -1;
-  int destination = -1;
-  int coord_origin[2];
-  int coord_destination[2];
-  int goAgain = 0;
-  int next_player = 0;
-  
-  generic_unhash(thePosition, boardString);
-  unHashMove(theMove, move);
-  
-  origin = move[0];
-  destination = move[1];
-  goAgain = move[2];
-  origPiece = boardString[origin];
-  
-  /* Barebones move */
-  boardString[origin] = ' ';
-  boardString[destination] = origPiece;
-  locationToCoord(origin,coord_origin);
-  locationToCoord(destination,coord_destination);
-  /* Now check if we need to remove pieces */
-  if(origPiece = 'F' && 
-     (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
-  {
-  	int del_coord[2];
-	int del_loc=-1;
-	del_coord[0] = (coord_origin[0] + coord_destination[0]) / 2;
-	del_coord[1] = (coord_origin[1] + coord_destination[1]) / 2;
-	del_loc = coordToLocation(del_coord);
-	boardString[del_loc] = ' ';
-  }
-  if (goAgain == 1)
-  {
-  	next_player = whoseMove(thePosition);
-  }
-  else
-  {
-  	next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
-  }
-  return generic_hash(boardString,next_player);
+	int move[] = {0,0,0};
+	char board[33];
+	char origPiece = '*';
+	int origin = -1;
+	int destination = -1;
+	int coord_origin[2];
+	int coord_destination[2];
+	int goAgain = 0;
+	int next_player = 0;
+	
+	generic_unhash(thePosition, board);
+	unHashMove(theMove, move);
+	
+	origin = move[0];
+	destination = move[1];
+	goAgain = move[2];
+	origPiece = board[origin];
+	
+	/* Barebones move */
+	board[origin] = ' ';
+	board[destination] = origPiece;
+	locationToCoord(origin,coord_origin);
+	locationToCoord(destination,coord_destination);
+	/* Now check if we need to remove pieces */
+	if(origPiece = 'F' && 
+	  (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
+	{
+		int del_coord[2];
+		int del_loc=-1;
+		del_coord[0] = (coord_origin[0] + coord_destination[0]) / 2;
+		del_coord[1] = (coord_origin[1] + coord_destination[1]) / 2;
+		del_loc = coordToLocation(del_coord);
+		board[del_loc] = ' ';
+	}
+	if (goAgain)
+	{
+		next_player = whoseMove(thePosition);
+	}
+	else
+	{
+		next_player = (whoseMove(thePosition) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
+	}
+	return generic_hash(board,next_player);
 }
 
 
@@ -286,47 +332,49 @@ POSITION DoMove (thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-	char start_standard_board[]={      'G','G','G',
-	                                   'G','G','G',
-			           'G','G','G','G','G','G','G',
-				   'G','G','G','G','G','G','G',
-				   'G','G',' ',' ',' ','G','G',
-				           ' ',' ',' ',
-					   ' ',' ',' '};
-        char *boardPointer=start_standard_board;
-	int num_fox_placed=0;
+        int boardStats[2];
 	int coordinate[2];
 	int location = -1;
-	printf("Fox Player: Please place two foxes in the blank positions\n");
+	char selection_command[80];
+	char selection = 'Z';
 	do
 	{
-		printf("  A   B   C   D   E   F   G       \n");
-  		printf("1         %c - %c - %c            \n",*(boardPointer +  0), *(boardPointer +  1), *(boardPointer +  2) );
-		printf("          | \\   / |              \n");
-		printf("2         %c - %c - %c            \n",*(boardPointer +  3), *(boardPointer +  4), *(boardPointer +  5) );
-		printf("          | /   \\ |              \n");
-		printf("3 %c - %c - %c - %c - %c - %c - %c    F = Fox \n",*(boardPointer +  6), *(boardPointer +  7), *(boardPointer +  8), *(boardPointer +  9), *(boardPointer + 10), *(boardPointer + 11), *(boardPointer + 12) );
-		printf("  | \\   / | \\   / | \\   /    | \n");
-		printf("4 %c - %c - %c - %c - %c - %c - %c    G = Geese\n",*(boardPointer + 13), *(boardPointer + 14), *(boardPointer + 15), *(boardPointer + 16), *(boardPointer + 17), *(boardPointer + 18), *(boardPointer + 19) );
-		printf("  | /   \\ | /   \\ | /   \\    | \n");
-		printf("5 %c - %c - %c - %c - %c - %c - %c\n",*(boardPointer + 20), *(boardPointer + 21), *(boardPointer + 22), *(boardPointer + 23), *(boardPointer + 24), *(boardPointer + 25), *(boardPointer + 26) );
-		printf("          | \\   / |              \n");
-		printf("6         %c - %c - %c            \n",*(boardPointer + 27), *(boardPointer + 28), *(boardPointer + 29));
-		printf("          | /   \\ |              \n");
-		printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));
-		printf("\n\n Please Enter in A Coordinate [Example C4]: ");
-		UserInputCoordinate(coordinate);
-		location = coordToLocation(coordinate);
-		if (start_standard_board[location] == ' ')
+		boardPieceStats(start_standard_board, boardStats);
+		printf("\n\n\n\n\n\nAsalto Initial Position Setup\n");
+		printf("=============================\n");
+		printf("Current Board\n");
+		PrintBoard(start_standard_board);
+		printf("(1) Add/Remove Geese\n");
+		if (numFoxes(boardStats) < 2)
 		{
-			start_standard_board[location] = 'F';
-			num_fox_placed++;
+			printf("(2) Add/Remove Foxes [REQUIRED]\n");
+			printf("You must place two foxes to play the game.\n");
 		}
 		else
 		{
-			printf("There is a goose there. Please try again. \n");
+			printf("(2) Add/Remove Foxes\n");
+			printf("(3) Exit Initial Setup\n");
 		}
-	}while(num_fox_placed < 2);
+		printf("Selection: "); scanf("%s", selection_command);
+		selection = selection_command[0];
+		switch (selection)
+		{
+			case '1':
+				AddRemoveGeese(start_standard_board);
+				selection = 'Z';
+				break;
+			case '2':
+				AddRemoveFoxes(start_standard_board);
+				selection= 'Z';
+				break;
+			case '3':
+				break;
+			default:
+				printf("Invalid option. Try again\n");
+				selection = -1;
+		}
+		
+	} while (selection != '3');
 	return generic_hash(start_standard_board, GEESE_PLAYER);
 }
 
@@ -371,29 +419,28 @@ void PrintComputersMove(computersMove, computersName)
 VALUE Primitive (pos)
 	POSITION pos;
 {
-  int boardStats[]={0,0,0};
-  char boardString[33];
-  int currentTurn = whoseMove(pos);
-  generic_unhash(pos, boardString);
-  boardPieceStats(boardString, boardStats);
-  if ( numGeese(boardStats) < 9 && currentTurn == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
-    {
-        return (gStandardGame ? lose : win);
-    }
-  else if(numWinGeese(boardStats) == 9 && currentTurn == FOX_PLAYER) // Foxes View
-    {
-        return (gStandardGame ? lose : win);
-    }
-  else if(currentTurn == FOX_PLAYER)
-    {
-    	BOOLEAN CantMove();
-	return CantMove(pos) ? lose : undecided;
-    }
-   else
-    {
-    	return undecided;
-    }
-  // Need to add Geese No Move Win for Fox.
+	int boardStats[]={0,0,0};
+	char board[33];
+	int player = whoseMove(pos);
+	
+	generic_unhash(pos, board);
+	boardPieceStats(board, boardStats);
+	if ( numGeese(boardStats) < 9 && player == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
+	{
+		return (gStandardGame ? lose : win);
+	}
+	else if(numWinGeese(boardStats) == 9 && player == FOX_PLAYER) // Foxes View
+	{
+		return (gStandardGame ? lose : win);
+	}
+	else if(player == FOX_PLAYER)
+	{
+		return CantMove(board,player) ? lose : undecided;
+	}
+	else
+	{
+		return undecided;
+	}
 }
 
 
@@ -419,27 +466,13 @@ void PrintPosition (position, playerName, usersTurn)
 	STRING playerName;
 	BOOLEAN usersTurn;
 {
-  char currentBoard[33];
-  char *boardPointer = currentBoard;
-  generic_unhash(position, currentBoard);
-  
-  /* Hard coded for now */
-  printf(" It is %s's turn", playerName);
-  printf("  A   B   C   D   E   F   G   H   \n");
-  printf("1         %c - %c - %c            \n",*(boardPointer +  0), *(boardPointer +  1), *(boardPointer +  2) );
-  printf("          | \\   / |              \n");
-  printf("2         %c - %c - %c            \n",*(boardPointer +  3), *(boardPointer +  4), *(boardPointer +  5) );
-  printf("          | /   \\ |              \n");
-  printf("3 %c - %c - %c - %c - %c - %c - %c    F = Fox \n",*(boardPointer +  6), *(boardPointer +  7), *(boardPointer +  8), *(boardPointer +  9), *(boardPointer + 10), *(boardPointer + 11), *(boardPointer + 12) );
-  printf("  | \\   / | \\   / | \\   /    | \n");
-  printf("4 %c - %c - %c - %c - %c - %c - %c    G = Geese\n",*(boardPointer + 13), *(boardPointer + 14), *(boardPointer + 15), *(boardPointer + 16), *(boardPointer + 17), *(boardPointer + 18), *(boardPointer + 19) );
-  printf("  | /   \\ | /   \\ | /   \\    | \n");
-  printf("5 %c - %c - %c - %c - %c - %c - %c\n",*(boardPointer + 20), *(boardPointer + 21), *(boardPointer + 22), *(boardPointer + 23), *(boardPointer + 24), *(boardPointer + 25), *(boardPointer + 26) );
-  printf("          | \\   / |              \n");
-  printf("6         %c - %c - %c            \n",*(boardPointer + 27), *(boardPointer + 28), *(boardPointer + 29));
-  printf("          | /   \\ |              \n");
-  printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));
+	char currentBoard[33];
+	generic_unhash(position, currentBoard);
+	
+	printf("It is %s's turn.\n", playerName);
+	PrintBoard(currentBoard);
 }
+
 
 
 
@@ -464,285 +497,279 @@ void PrintPosition (position, playerName, usersTurn)
 MOVELIST *GenerateMoves (position)
          POSITION position;
 {
-  MOVELIST *CreateMovelistNode();
-  MOVELIST *head = NULL;
-  char boardString[33];
-  int i=0;
-  int scratch_coord[2];
-  int candidate_destination_coord[2]={-1, -1};
-  int candidate_destination_loc=-1;
-  int candidate_move[3]={-1, -1, -1};
-  int delta_row=-5;  
-  int delta_col=-5;
-  int currentTurn=whoseMove(position);
-  generic_unhash(position, boardString);
-
-  /* Check Move */
-	if(currentTurn = FOX_PLAYER)
+	MOVELIST *CreateMovelistNode();
+	MOVELIST *moves = NULL;
+	char board[33];
+	int i=0;
+	int player = whoseMove(position);
+	
+	generic_unhash(position, board);
+	
+	if(player = FOX_PLAYER)
 	{
-		/* Scan through all pieces for foxes */
-		for (i=0; i < 33; i++)
+		for(i = 0; i < 33; i++) /* Scan For Foxes */
 		{
-			/* Do we have a fox ?*/
-			if (boardString[i] == 'F') /* Yup */
+			if(board[i] =='F')
 			{
-				locationToCoord(i, scratch_coord);
-				/* Scan all move directions */
-				for (delta_row = -1; delta_row <= 1; delta_row ++)
-				{
-					for (delta_col = -1; delta_col <= 1; delta_col ++)
-					{
-						if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
-						{
-							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-							if (validCoord(candidate_destination_coord) == 1)
-							{
-								candidate_destination_loc = coordToLocation(candidate_destination_coord);
-								if (boardString[candidate_destination_loc] == ' ')
-								{
-									candidate_move[0] = i;
-									candidate_move[1] = candidate_destination_loc;
-									candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
-									head = CreateMovelistNode(hashMove(candidate_move),head);
-								}
-								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
-								{
-									candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
-									candidate_destination_coord[1] = scratch_coord[0] + delta_col * 2; /* Next Space Blank */
-									candidate_destination_loc = coordToLocation(candidate_destination_coord);
-									if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
-									{
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}
-						}
-						else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
-						{
-							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-							if (validCoord(candidate_destination_coord) == 1)
-							{
-								candidate_destination_loc = coordToLocation(candidate_destination_coord);
-								if (boardString[candidate_destination_loc] == ' ')
-								{
-									candidate_move[0] = i;
-									candidate_move[1] = candidate_destination_loc;
-									candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
-									head = CreateMovelistNode(hashMove(candidate_move),head);
-								}
-								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
-								{
-									candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
-									candidate_destination_coord[1] = scratch_coord[0] + delta_col * 2; /* Next Space Blank */
-									candidate_destination_loc = coordToLocation(candidate_destination_coord);
-									if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
-									{
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}
-						}
-					}					
-				}
+				FoxGenerateMoves(board,moves,i);
 			}
 		}
 	}
-	else if (currentTurn = GEESE_PLAYER)
+	else if (player = GEESE_PLAYER)
 	{
-		/* Scan through all pieces for geese */
-		for (i=0; i < 33; i++)
+		for(i = 0; i < 33; i++) /* Scan For Geese */
 		{
-			/* Do we have a goose?*/
-			if (boardString[i] == 'G') /* Yup */
+			if(board[i] =='G')
 			{
-				locationToCoord(i, scratch_coord);
-				/* Free Goose? */
-				if (freeGoose(i))
+				GeeseGenerateMoves(board,moves,i);
+			}
+		}
+	}
+	return moves;
+}
+
+void FoxGenerateMoves(const char board[33], MOVELIST *moves, int location)
+{
+	/* Standard Shifting Moves for Foxes */
+	GenerateShiftMoves(board,moves,location,FOX_PLAYER);
+	
+	/* Standard Killing Moves for Foxes*/
+	GenerateKillMoves(board,moves,location,FOX_PLAYER);
+}
+
+void GeeseGenerateMoves(const char board[33], MOVELIST *moves, int location)
+{
+	/* Standard Shifting Moves for Geese*/
+	GenerateShiftMoves(board,moves,location,GEESE_PLAYER);
+}
+
+void GenerateShiftMoves(const char board[33], MOVELIST *moves, int location, int player)
+{
+	MOVELIST *CreateMovelistNode();
+	int delta_row = 0;
+	int delta_col = 0;
+	int origin_coord[2];
+	int destination_coord[2];
+	int candidate_move[3] = {location, -1, 0};
+	
+	locationToCoord(location,origin_coord);
+		
+	for(delta_row = -1; delta_row <= 1; delta_row++)
+	{
+		for(delta_col = -1; delta_col <= 1; delta_col++)
+		{
+			destination_coord[0] = origin_coord[0] + delta_row;
+			destination_coord[1] = origin_coord[1] + delta_col;
+			candidate_move[1] = coordToLocation(destination_coord);
+			if(validCoord(destination_coord) && validMove(board, candidate_move, player))
+			{
+				moves = CreateMovelistNode((hashMove(candidate_move)),moves);
+			}
+		}	
+	}
+}
+
+void GenerateKillMoves(const char board[33], MOVELIST *moves, int location, int player)
+{
+	int neighbor_location = 0;
+	int neighbor_coord[2] = {-1, -1};
+	
+	int neighbor_location_one_beyond = 0;
+	int neighbor_coord_one_beyond[2] = {-1, -1};
+	
+	int delta_row = 0;
+	int delta_col = 0;
+	
+	int origin_coord[2];
+	
+	int candidate_move[3] = {location, -1, 0};
+	
+	locationToCoord(location,origin_coord);
+	
+	if (player == FOX_PLAYER)
+	{
+		for(delta_row = -1; delta_row <= 1; delta_row++)
+		{
+			for(delta_col = -1; delta_col <= 1; delta_col++)
+			{
+				neighbor_coord[0] = origin_coord[0] + delta_row;
+				neighbor_coord[1] = origin_coord[1] + delta_col;
+				neighbor_location = coordToLocation(neighbor_coord);
+				
+				neighbor_coord_one_beyond[0] = origin_coord[0] + (2 * delta_row);
+				neighbor_coord_one_beyond[1] = origin_coord[1] + (2 * delta_col);
+				neighbor_location_one_beyond = coordToLocation(neighbor_coord_one_beyond);
+				
+				candidate_move[1] = neighbor_location_one_beyond;
+				
+				if(validCoord(neighbor_coord) && validCoord(neighbor_coord_one_beyond) && board[neighbor_location] == 'G' && validMove(board, candidate_move, player))
 				{
-					for (delta_row = -1; delta_row <= 1; delta_row ++)/* Scan all move directions */
-					{
-						for (delta_col = -1; delta_col <= 1; delta_col ++)
-						{
-							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-							if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
-							{
-								if (validCoord(candidate_destination_coord) == 1)
-								{
-									if (boardString[candidate_destination_loc] == ' ')
-									{
-										candidate_destination_loc = coordToLocation(candidate_destination_coord);
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}
-							else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
-							{
-								if (validCoord(candidate_destination_coord) == 1)
-								{
-									if (boardString[candidate_destination_loc] == ' ')
-									{
-										candidate_destination_loc = coordToLocation(candidate_destination_coord);
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}							
-						}
-					}
+					candidate_move[2] = MoreKillMoves(board, candidate_move[1], player);
+					moves = CreateMovelistNode((hashMove(candidate_move)),moves);
+				}
+			}	
+		}
+	}
+}
+
+int CantMove(const char board[33], int player)
+{
+	int delta_row = 0;
+	int delta_col = 0;
+	int origin_coord[2];
+	int destination_coord[2];
+	int candidate_move[3] = {-1, -1, 0};
+	int location = 0;
+	
+	for (location = 0; location <= 33; location ++)
+	{
+		candidate_move[0] = location;
+		locationToCoord(location,origin_coord);
+		for(delta_row = -1; delta_row <= 1; delta_row++)
+		{
+			for(delta_col = -1; delta_col <= 1; delta_col++)
+			{
+				destination_coord[0] = origin_coord[0] + delta_row;
+				destination_coord[1] = origin_coord[1] + delta_col;
+				candidate_move[1] = coordToLocation(destination_coord);
+				if(validCoord(destination_coord) && validMove(board, candidate_move, player))
+				{
+					return 0;
+				}
+				else if (MoreKillMoves(board, location, player))
+				{
+					return 0;
+				}
+			}	
+		}
+	}
+	return 1;
+}
+
+int MoreKillMoves(const char board[33], int location, int player)
+{
+	int neighbor_location = 0;
+	int neighbor_coord[2] = {-1, -1};
+	
+	int neighbor_location_one_beyond = 0;
+	int neighbor_coord_one_beyond[2] = {-1, -1};
+	
+	int delta_row = 0;
+	int delta_col = 0;
+	
+	int origin_coord[2];
+	
+	int candidate_move[3] = {location, -1, 0};
+	
+	locationToCoord(location,origin_coord);
+	
+	if (player == FOX_PLAYER)
+	{
+		for(delta_row = -1; delta_row <= 1; delta_row++)
+		{
+			for(delta_col = -1; delta_col <= 1; delta_col++)
+			{
+				neighbor_coord[0] = origin_coord[0] + delta_row;
+				neighbor_coord[1] = origin_coord[1] + delta_col;
+				neighbor_location = coordToLocation(neighbor_coord);
+				
+				neighbor_coord_one_beyond[0] = origin_coord[0] + (2 * delta_row);
+				neighbor_coord_one_beyond[1] = origin_coord[1] + (2 * delta_col);
+				neighbor_location_one_beyond = coordToLocation(neighbor_coord_one_beyond);
+				
+				candidate_move[1] = neighbor_location_one_beyond;
+				
+				if(validCoord(neighbor_coord) && validCoord(neighbor_coord_one_beyond) && board[neighbor_location] == 'G' && validMove(board, candidate_move, player))
+				{
+					return 1;
+				}
+			}	
+		}
+		return 0;
+	}
+	return 0;
+}
+
+int validMove(const char board[33], int move[3],int player)
+{
+	int origin_coord[2];
+	int destination_coord[2];
+	int delta_row = 0;
+	int delta_col = 0;
+	int diagonal = !(move[0] % 2);
+	
+	locationToCoord(move[0],origin_coord);
+	locationToCoord(move[1],destination_coord);
+	
+	delta_row = destination_coord[0] - origin_coord[0];
+	delta_col = destination_coord[1] - origin_coord[1];
+	
+	if (move[0] == move[1])
+	{
+		return 0;
+	}
+	if (player == FOX_PLAYER)
+	{
+		if (diagonal)
+		{
+			return (board[move[1]] == ' ' && validCoord(destination_coord)) ? 1 : 0;
+		}
+		else
+		{
+			return (board[move[1]] == ' ' && validCoord(destination_coord) && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+		}
+	}
+	else if (player == GEESE_PLAYER)
+	{
+		if (!validCoord(destination_coord))
+		{
+			return 0;
+		}
+		switch(origin_coord[0])
+		{
+			case 0:
+			case 1:
+				if (diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
 				}
 				else
 				{
-					for (delta_row = 0; delta_row <= 1; delta_row ++)/* Scan all move directions */
-					{
-						for (delta_col = 0; delta_col <= 1; delta_col ++)
-						{
-							candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-							candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-							if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
-							{
-								if (validCoord(candidate_destination_coord) == 1)
-								{
-									if (boardString[candidate_destination_loc] == ' ')
-									{
-										candidate_destination_loc = coordToLocation(candidate_destination_coord);
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}
-							else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can't Move Diagonally*/
-							{
-								if (validCoord(candidate_destination_coord) == 1)
-								{
-									if (boardString[candidate_destination_loc] == ' ')
-									{
-										candidate_destination_loc = coordToLocation(candidate_destination_coord);
-										candidate_move[0] = i;
-										candidate_move[1] = candidate_destination_loc;
-										candidate_move[2] = 0;
-										head = CreateMovelistNode(hashMove(candidate_move),head);
-									}
-								}
-							}
-						}
-					}
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
 				}
-			}
+				break;
+			case 2:
+			case 3:
+			case 4:
+				if (diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
+			case 5:
+			case 6:
+				if (diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col <= 0) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col <= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				
+				break;
 		}
 	}
-  return head;
-}
-
-BOOLEAN CantMove(position)
-     POSITION position;
-{
-  MOVELIST *ptr, *GenerateMoves();
-  BOOLEAN cantMove;
-
-  ptr = GenerateMoves(position);
-  cantMove = (ptr == NULL);
-  FreeMoveList(ptr);
-  return(cantMove);
-}
-
-BOOLEAN NoKillMoves(position)
-{
-	MOVELIST *ptr, *GenerateKillMoves();
-	BOOLEAN nokillMove;
-	
-	ptr = GenerateKillMoves(position);
-	nokillMove = (ptr == NULL);
-	FreeMoveList(ptr);
-	return (nokillMove);
-}
-
-MOVELIST *GenerateKillMoves (position,location)
-         POSITION position;
-{
-  MOVELIST *CreateMovelistNode();
-  MOVELIST *head = NULL;
-  char boardString[33];
-  int i=location;
-  int scratch_coord[2];
-  int candidate_destination_coord[2]={-1, -1};
-  int candidate_destination_loc=-1;
-  int candidate_move[3]={-1, -1, -1};
-  int delta_row=-5;  
-  int delta_col=-5;
-  int currentTurn=whoseMove(position);
-  generic_unhash(position, boardString);
-
-  /* Check Move */
-	if(currentTurn = FOX_PLAYER && boardString[i] == 'F')
+	else
 	{
-		locationToCoord(i, scratch_coord);
-		/* Scan all move directions */
-		for (delta_row = -1; delta_row <= 1; delta_row ++)
-		{
-			for (delta_col = -1; delta_col <= 1; delta_col ++)
-			{
-				if (delta_row != 0 && delta_col != 0 && i%2 == 0) /* Gotta Move Somewhere. Can Move Diagonally*/
-				{
-					candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-					candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-					candidate_destination_loc = coordToLocation(candidate_destination_coord);
-					if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == 'G')
-					{
-						candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
-						candidate_destination_coord[1] = scratch_coord[1] + delta_col * 2; /* Next Space Blank */
-						candidate_destination_loc = coordToLocation(candidate_destination_coord);
-						if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
-						{
-							candidate_move[0] = i;
-							candidate_move[1] = candidate_destination_loc;
-							candidate_move[2] = -1;
-							candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
-							head = CreateMovelistNode(hashMove(candidate_move),head);
-						}
-					}
-				}
-				else if(delta_row != 0 && delta_col != 0 && delta_row != delta_col) /* Gotta Move Somewhere. Can Move Diagonally*/
-				{
-					candidate_destination_coord[0] = scratch_coord[0] + delta_row;
-					candidate_destination_coord[1] = scratch_coord[1] + delta_col;
-					candidate_destination_loc = coordToLocation(candidate_destination_coord);
-					if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == 'G')
-					{
-						candidate_destination_coord[0] = scratch_coord[0] + delta_row * 2; /* Next Space Blank */
-						candidate_destination_coord[1] = scratch_coord[1] + delta_col * 2; /* Next Space Blank */
-						candidate_destination_loc = coordToLocation(candidate_destination_coord);
-						if (validCoord(candidate_destination_coord) == 1 && boardString[candidate_destination_loc] == ' ') /* Yes, we can */
-						{
-							candidate_move[0] = i;
-							candidate_move[1] = candidate_destination_loc;
-							candidate_move[2] = -1;
-							candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
-							head = CreateMovelistNode(hashMove(candidate_move),head);
-						}
-					}
-				}
-			}
-		}
-		
+		return 0;
 	}
-  return head;
 }
+
 
 /************************************************************************
 **
@@ -758,7 +785,7 @@ MOVELIST *GenerateKillMoves (position,location)
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
 **
-** CALLS:       ValidMove(MOVE, POSITION)
+** CALLS:       validMove(MOVE, POSITION)
 **              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
 **
 ************************************************************************/
@@ -895,92 +922,181 @@ void setOption(int option)
 ** ones.
 ************************************************************************/
 
-/* Prints an ASCII Header Bar */
-void printAscii (char start, char end, int spacing)
+void PrintBoard (char board[])
 {
-	for ( ; start <= end; start++)
+	char *boardPointer = board;
+	printf("  A   B   C   D   E   F   G\n");
+	printf("1         %c - %c - %c            \n",*(boardPointer +  0), *(boardPointer +  1), *(boardPointer +  2) );
+	printf("          | \\   / |              \n");
+	printf("2         %c - %c - %c            \n",*(boardPointer +  3), *(boardPointer +  4), *(boardPointer +  5) );
+	printf("          | /   \\ |              \n");
+	printf("3 %c - %c - %c - %c - %c - %c - %c    F = Fox \n",*(boardPointer +  6), *(boardPointer +  7), *(boardPointer +  8), *(boardPointer +  9), *(boardPointer + 10), *(boardPointer + 11), *(boardPointer + 12) );
+	printf("  | \\   / | \\   / | \\   / | \n");
+	printf("4 %c - %c - %c - %c - %c - %c - %c    G = Geese\n",*(boardPointer + 13), *(boardPointer + 14), *(boardPointer + 15), *(boardPointer + 16), *(boardPointer + 17), *(boardPointer + 18), *(boardPointer + 19) );
+	printf("  | /   \\ | /   \\ | /   \\ | \n");
+	printf("5 %c - %c - %c - %c - %c - %c - %c\n",*(boardPointer + 20), *(boardPointer + 21), *(boardPointer + 22), *(boardPointer + 23), *(boardPointer + 24), *(boardPointer + 25), *(boardPointer + 26) );
+	printf("          | \\   / |              \n");
+	printf("6         %c - %c - %c            \n",*(boardPointer + 27), *(boardPointer + 28), *(boardPointer + 29));
+	printf("          | /   \\ |              \n");
+	printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));	
+}
+
+void AddRemoveFoxes(char board[])
+{
+	char selection_command[80];
+	char selection = 'Z';
+	int location = -1;
+	int coordinate[2] = {-1,-1};
+	int boardStats[2];
+	int num_fox_placed = 0;
+	int validCoord=0;
+		
+	do
 	{
-		printf("%c", start);
-		int i;
-		for(i=0; i < spacing; i++)
+		boardPieceStats(board, boardStats);
+		printf("\n\n\n\n\n\nAsalto Fox Placement\n");
+		printf("====================\n");
+		printf("(1) Add a fox\n");
+		printf("(2) Remove a fox\n");
+		printf("(3) Show Board\n");
+		if (numFoxes(boardStats) < 2)
 		{
-			printf(" ");
+			printf("You must place two foxes to play the game\n");
 		}
-	}
-	printf("\n Done \n");	
+		else
+		{
+			printf("(4) Exit Fox Placement\n");
+		}
+		printf("Selection: "); scanf("%s", selection_command);
+		selection = selection_command[0];
+		switch (selection)
+		{
+			case '1':
+				printf("Where do you wish to add a fox?\n");
+				validCoord = 0;
+				do
+				{
+					UserInputCoordinate(coordinate);
+					location = coordToLocation(coordinate);
+					if (board[location] == ' ')
+					{
+						board[location] = 'F';
+						validCoord = 1;
+					}
+					else
+					{
+						printf("A piece is already there.\n");
+						validCoord = 0;
+					}
+				}while(!validCoord);
+				selection = 'Z';
+				break;
+			case '2':
+				printf("Where do you wish to remove a fox?\n");
+				validCoord = 0;
+				do
+				{
+					UserInputCoordinate(coordinate);
+					location = coordToLocation(coordinate);
+					if (board[location] == 'F')
+					{
+						board[location] = ' ';
+						validCoord = 1;
+					}
+					else
+					{
+						printf("That's not a fox.");
+						validCoord = 0;
+					}
+				}while(!validCoord);
+				selection = 'Z';
+				break;
+			case '3':
+				PrintBoard(board);
+				break;
+			case '4':
+				return;
+			default:
+				printf("Invalid option. Try again\n");
+				selection = 'Z';
+		}
+		
+	} while (selection != '4');
 }
 
-/* Prints a Number Bar */
-void printNumberBar(int start, int end, int spacing)
+void AddRemoveGeese(char board[])
 {
-    for ( ; start <= end ; start++)
-    {
-      printf("%d", start);
-      int i;
-      for(i=0; i < spacing; i++)
+	char selection_command[80];
+	char selection = 'Z';
+	int location = -1;
+	int coordinate[2] = {-1,-1};
+	int boardStats[2];
+	int validCoord=0;
+		
+	do
 	{
-	  printf(" ");
-	}
-    }
-    printf("\n");
-}
-
-/* Board Abstraction under test. Probably won't use*/
-void stringToBoard(char board[], char returnBoard[7][7])
-{
-  int i = 0;
-  int j = 0;
-  /* Initialize to blank */
-  for (i=0; i < 7; i++)
-    {
-      for (j=0; j < 7; j++)
-	{
-	  returnBoard[i][j]='*';
-	}
-    }
-  /* Top board 0-5 */
-  for (i=0; i <= 1; i++)
-    {
-      for (j=2; j<= 4; j++)
-	{
-	  returnBoard[i][j]=board[3*i+(j-2)];
-	}
-    }
-  /* Mid Board 6-26*/
-  for (i=2; i <= 4; i++)
-    {
-      for (j=0; j<= 6; j++)
-	{
-	  returnBoard[i][j]=board[6+7*(i-2)+j];
-	}
-    }
-  for (i=5; i <= 6; i++)
-    {
-      for (j=2; j<= 4; j++)
-	{
-	  returnBoard[i][j]=board[27+3*(i-5)+(j-2)];
-	}
-    }
-}
-
-/* BUG! returnString contains random characters at the end for some odd reason... */
-void boardToString(char board[7][7], char returnString[33])
-{
-  int index=0;
-  int i=0;
-  int j=0;
-  
-  for (i=0; i < 7; i++)
-    {
-      for (j=0; j < 7; j++)
-	{
-	  if (board[i][j] != '*')
-	    {
-	      returnString[index] = board[i][j];
-	      index++;
-	    }
-	}
-    }
+		boardPieceStats(board, boardStats);
+		printf("\n\n\n\n\n\nAsalto Geese Placement\n");
+		printf("======================\n");
+		printf("(1) Add a Goose\n");
+		printf("(2) Remove a Goose\n");
+		printf("(3) Show Board\n");
+		printf("(4) Exit Geese Placement\n");
+		printf("Selection: "); scanf("%s",selection_command);
+		selection = selection_command[0];
+		switch (selection)
+		{
+			case '1':
+				printf("Where do you wish to add a goose?\n");
+				validCoord = 0;
+				do
+				{
+					UserInputCoordinate(coordinate);
+					location = coordToLocation(coordinate);
+					if (board[location] == ' ')
+					{
+						board[location] = 'G';
+						validCoord = 1;
+					}
+					else
+					{
+						printf("A piece is already there.");
+						validCoord = 0;
+					}
+				}while(!validCoord);
+				selection = 'Z';
+				break;
+			case '2':
+				printf("Where do you wish to remove a goose?\n");
+				validCoord = 0;
+				do
+				{
+					UserInputCoordinate(coordinate);
+					location = coordToLocation(coordinate);
+					if (board[location] == 'G')
+					{
+						board[location] = ' ';
+						validCoord = 1;
+					}
+					else
+					{
+						printf("That's not a goose.");
+						validCoord = 0;
+					}
+				}while(!validCoord);
+				selection = 'Z';
+				break;
+			case '3':
+				PrintBoard(board);
+				break;
+			case '4':
+				return;
+			default:
+				printf("Invalid option. Try again\n");
+				selection = 'Z';
+		}
+		
+	} while (selection != '4');
 }
 
 int hashMove(int move[3]) /* Revamped Bitshiftting Hash Function */
@@ -996,27 +1112,27 @@ void unHashMove (int hashed_move, int move[3])
 	move[2] = hashed_move >> 12;
 }
 
-void boardPieceStats(char boardString[33], int stats[2])
+void boardPieceStats(char board[33], int stats[2])
 {
-  /* stats[0] = Number of Foxes , stats[1] = Number of Geese, stats[2] = Number of Geese in Winning Box */
-  int i=0;
-  stats[0] = 0; stats[1] = 0; stats[2] - 0;
-  for (i=0; i < 33; i++)
-    {
-      if(boardString[i]== 'F')
+	/* stats[0] = Number of Foxes , stats[1] = Number of Geese, stats[2] = Number of Geese in Winning Box */
+	int i=0;
+	stats[0] = 0; stats[1] = 0; stats[2] - 0;
+	for (i=0; i < 33; i++)
 	{
-	  stats[0]++;
+		if(board[i]== 'F')
+		{
+			stats[0]++;
+		}
+		else if (board[i]== 'G')
+		{
+			stats[1]++;
+			/* 22-24 and 27-32 Winning Zones */
+			if( (22 <= i && i <= 24) || (27 <= i && i <= 32))
+			{
+				stats[2]++;
+			}
+		}
 	}
-      else if (boardString[i]== 'G')
-	{
-	  stats[1]++;
-	  /* 22-24 and 27-32 Winning Zones */
-	  if( (22 <= i && i <= 24) || (27 <= i && i <= 32))
-	    {
-	      stats[2]++;
-	    }
-	}
-    }
 }
 
 int numFoxes(int stats[2])
@@ -1034,97 +1150,122 @@ int numWinGeese(int stats[2])
 
 int coordToLocation(int coordinates[2])
 {
-  int row = coordinates[0];
-  int col = coordinates[1];
-  if (0 <= row && row <= 1)
-    {
-      return 3 * row + (col - 2);
-    }
-  else if (2 <= row && row <= 4)
-    {
-      return 6 + (7 * (row - 2)) + col;
-    }
-  else if (5 <= row && row <= 6)
-    {
-      return 27 + 3 * (row - 5) + (col - 2);
-    }
-  else
-    {
-      return -1;
-    }
+	int row = coordinates[0];
+	int col = coordinates[1];
+	if (0 <= row && row <= 1)
+	{
+		return 3 * row + (col - 2);
+	}
+	else if (2 <= row && row <= 4)
+	{
+		return 6 + (7 * (row - 2)) + col;
+	}
+	else if (5 <= row && row <= 6)
+	{
+		return 27 + 3 * (row - 5) + (col - 2);
+	}
+	else
+	{
+		return -1;
+	}
 }
 
 void locationToCoord(int location, int coordinates[2])
 {
-  if (0 <= location && location <= 5)
-    {
-      coordinates[1] = 2 + location % 3;
-      coordinates[0] = (location - location % 3) / 3;
-    }
-  else if (6 <= location && location <= 26)
-    {
-      /* Translate Two Down */
-      location -= 6;
-      coordinates[1] = location % 7;
-      coordinates[0] = 2 + (location - coordinates[1]) / 7;
-    }
-  else if (27 <= location && location <= 32)
-    {
-      /* Translate 5 Down */
-      location -= 27;
-      coordinates[1] = 2 + location % 3;
-      coordinates[0] = 5 + (location - location % 3) / 3;
-    }
+	if (0 <= location && location <= 5)
+	{
+		coordinates[1] = 2 + location % 3;
+		coordinates[0] = (location - location % 3) / 3;
+	}
+	else if (6 <= location && location <= 26)
+	{
+	/* Translate Two Down */
+		location -= 6;
+		coordinates[1] = location % 7;
+		coordinates[0] = 2 + (location - coordinates[1]) / 7;
+	}
+	else if (27 <= location && location <= 32)
+	{
+	/* Translate 5 Down */
+		location -= 27;
+		coordinates[1] = 2 + location % 3;
+		coordinates[0] = 5 + (location - location % 3) / 3;
+	}
 }
 
 /* 1 for valid, 0 for invalid */
 int validCoord(int coord[2])
 {
-  int row = coord[0];
-  int col = coord[1];
-  if (row < 0 || 6 < row)
-    {
-      return 0;
-    }
-  else if (0 <= row && row <= 1)
-    {
-      return (2 <= col && col <= 4) ? 1 : 0;
-    }
-  else if (2 <= row && row <= 4)
-    {
-      return (0 <= col && col <= 6) ? 1 : 0;
-    }
-  else if (5 <= row && row <= 6)
-    {
-      return (2 <= col && col <= 4) ? 1 : 0;
-    }
-  else
-    {
-      return 0;
-    }
+	int row = coord[0];
+	int col = coord[1];
+	if (row < 0 || 6 < row)
+	{
+		return 0;
+	}
+	else if (0 <= row && row <= 1)
+	{
+		return (2 <= col && col <= 4) ? 1 : 0;
+	}
+	else if (2 <= row && row <= 4)
+	{
+		return (0 <= col && col <= 6) ? 1 : 0;
+	}
+	else if (5 <= row && row <= 6)
+	{
+		return (2 <= col && col <= 4) ? 1 : 0;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
+void UserInput(char input[])
+{
+	scanf("%s",input);
+}
 void UserInputCoordinate(int coordinate[2])
 {
-	char inString[80];
-	int coord[2];
-	int valid = 0;
-	do{
-		printf("Enter a coordinate [Example: D3]: "); scanf("%s",inString);
-		inString[0]=toupper(inString[0]);
-		coord[1] = (int) (inString[0] - 'A'); // Col
-		coord[0] = (int) (inString[1] - '0') - 1; // Row
-		if(validCoord(coord) == 1)
+	char input[80];
+	int coord[2]={-1, -1};
+	
+	do
+	{
+		printf("Enter a Coordinate: "); UserInput(input);
+		input[0] = toupper(input[0]);
+		coord[1] = (int) (input[0] - 'A'); // Column Switch
+		coord[0] = (int) (input[1] - '0') - 1; // Row Switch
+		if(validCoord(coord))
 		{
-			valid = 1;
+			coordinate[0] = coord[0];
+			coordinate[1] = coord[1];
+			return;
 		}
 		else
 		{
-			printf("Invalid Coordinate. Please try again: \n");
+			printf("Invalid coordinate. Use coordinates of this style: C3\n");
 		}
-	}while(valid != 1);
-	coordinate[0] = coord[0];
-	coordinate[1] = coord[1];
+		
+	}while(validCoord(coord) != 1);
+}
+int ProcessCoordinate(char input[],int coordinate[2])
+{
+	int coord[2];
+	
+	input[0]=toupper(input[0]);
+	coord[1] = (int) (input[0] - 'A'); // Col
+	coord[0] = (int) (input[1] - '0') - 1; // Row
+	if(validCoord(coord))
+	{
+		coordinate[0] = coord[0];
+		coordinate[1] = coord[1];
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+	
 }
 void initFreeGoose()
 {
