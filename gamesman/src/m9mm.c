@@ -59,19 +59,22 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface =
-"Nine Men's Morris does not currently support a Graphical User Interface (other than beloved ASCII).";
+"Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
 STRING   kHelpTextInterface    =
-"No help for you!"; 
+"The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
 
-STRING   kHelpOnYourTurn =
-"Make a move";
+STRING   kHelpOnYourTurn = 
+"If you still have pieces not on the board, place them in any open position.\nWhen all of your pieces have been placed on the board, you can choose any one of\nyour pieces and move it to an adjacent, open position.  If any of your moves\nresults in a 3-in-a-row, you can remove one of your opponent's pieces that is\nnot in a mill.  If your opponent only has 3 pieces remaining which happen to be\nin a mill, you can choose to remove any 1 of those 3 pieces.";
+
+STRING kHelpWithFlying = 
+"If you only have 3 pieces remaining, you may choose to\nmove your pieces to\nany open position in addition to the open positions adjacent to your piece. ";
 
 STRING   kHelpStandardObjective =
-"A victory in Nine Men's Morris is won by reducing the number of your opponent'ss pieces down to two.";
+"A victory in Nine Men's Morris is won by reducing the number of your\nopponent's pieces down to two.";
 
 STRING   kHelpReverseObjective =
-"A misere victory in Nine Men's Morris is won by being the first player to have only two pieces on the board.";
+"A misere victory in Nine Men's Morris is won by being the first player to\nhave only two pieces on the board.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A Tie will never occur in a standard game of Nine Men's Morris.";
@@ -174,13 +177,16 @@ void		SafeFree ();
 
 void InitializeGame()
 {
-  
-  
+    
   int b_size = BOARDSIZE;
   int pminmax[] = {gblankoxChar[2], mino, maxo, gblankoxChar[1], minx, maxx, gblankoxChar[0], minb, maxb, -1};
   //set mino, mninx to be 0
 
   gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
+
+/*   if (flying) { */
+/*     strcat(kHelpOnYourTurn, kHelpWithFlying); */
+/*   } */
 
 }
 
@@ -1035,6 +1041,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
   return (count_mills(position, board[slot]) < 2) || !check_mill(board, slot);
 } // this is wrong!  only if there are 3 pieces and 1 mill, then all true
 
+
 // Given position, player, count # of mills for player on board
 int count_mills(POSITION position, blankox player)
 {
@@ -1187,6 +1194,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.46  2004/04/25 10:00:04  ogren
+//added boolean flying for future use.  Initial Position is also now a little more interesting. -Elmer
+//
 //Revision 1.45  2004/04/25 09:29:08  ogren
 //changed move printing to [] to please Dan. -Elmer
 //
