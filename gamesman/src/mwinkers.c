@@ -91,6 +91,7 @@ STRING   kHelpExample =
 
 #define BOARDWIDTH     2 
 #define BOARDHEIGHT    2
+#define DUMMY -1
 int BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
 
 typedef enum possibleBoardPieces {
@@ -180,8 +181,12 @@ void InitializeGame ()
 
   redefined piece_array (below)
   */
-
-  int piece_array[] = {'B', 0, half, 'R', 0, half, 'O', 0, BOARDSIZE, '·', 0, BOARDSIZE, -1};
+  
+  int piece_array[] = {'B', 0, half, 
+		       'R' , 0, half, 
+		       'O', 0, BOARDSIZE, 
+		       '·', 0, BOARDSIZE, 
+		       -1};
 
   int BoardPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
 
@@ -256,16 +261,21 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  BlankORB theBlankORB[BOARDSIZE];
+  char unhashedPosition[BOARDSIZE];
   int turn = whoseMove(thePosition);
 
-  generic_unhash(thePosition, (char*)theBlankORB);
-  int dummy = moveUnhash_dummy(theMove);
-  int moveIndex = moveUnhash_index(theMove);
-  BlankORB piece = moveUnhash_piece(theMove);
-  if (!dummy)
-    theBlankORB[moveIndex] = piece;
-  return (generic_hash((char*)theBlankORB,(turn==1)?2:1));
+  generic_unhash(thePosition, unhashedPosition);
+
+  if (theMove != DUMMY) {
+    if (unhashedPosition[theMove] == '·')
+      unhashedPosition[theMove] = 'O';
+    else if (turn == 1)
+      unhashedPosition[theMove] = 'R';
+    else
+      unhashedPosition[theMove] = 'B';
+  }
+
+  return (generic_hash(unhashedPosition,(turn==1)?2:1));
 }
 
 int moveUnhash_dummy (theMove)
