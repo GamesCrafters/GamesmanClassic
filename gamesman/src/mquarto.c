@@ -13,14 +13,14 @@
 ** DESCRIPTION: Quarto
 **
 ** AUTHORS:      Yanpei CHEN  <ychen@berkeley.edu>
-**               Amy Sueh     <amysueh@berkeley.edu>
+**               Amy HSUEH    <amyhsueh@berkeley.edu>
 **               Mario TANEV  <mtanev@berkeley.edu>
 **
 ** DATE:        Began Jan 2005; 
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **              30 Jan 2005 Yanpei: PrintPosition() coded
-**              01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
+**              08 Feb 2005 Amy: corrected my name, changed kTieIsPossible to TRUE
 **
 **************************************************************************/
 
@@ -44,12 +44,12 @@
 **************************************************************************/
 
 STRING   kGameName            = "QUARTO"; /* The name of your game */
-STRING   kAuthorName          = "Yanpei CHEN, Amy SUEH, Mario TANEV"; /* Your name(s) */
+STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
@@ -223,33 +223,6 @@ POSITION DoMove (POSITION position, MOVE move)
 **
 ************************************************************************/
 
-/************************************************************************
-**
-**  PIECE ENCODING
-**
-**  Each piece has GAMEDIMENSION number of binary characteristics.
-**  Encode each characteristic as a bit.
-**
-**  Piece    D1   D2   D3   D4
-**  0        0    0    0    0
-**  1        0    0    0    1
-**  2        0    0    1    0
-**  3        0    0    1    1  
-**  4        0    1    0    0 
-**  5        0    1    0    1
-**  6        0    1    1    0
-**  7        0    1    1    1
-**  8        1    0    0    0
-**  9        1    0    0    1 
-**  a        1    0    1    0
-**  b        1    0    1    1
-**  c        1    1    0    0
-**  d        1    1    0    1
-**  e        1    1    1    0
-**  f        1    1    1    1
-**
-***********************************************************************/
-
 VALUE Primitive (POSITION position)
 {
     return undecided;
@@ -303,9 +276,9 @@ VALUE Primitive (POSITION position)
 **
 **  Each position is converted to an int by
 **
-**    position = sum(ith piece * number of states + ith state).
+**    position = sum(ith piece * number of states + ith state),
 **
-**  leading to 16*18 = 288 positions for game dimension of 4. 
+**  leading to total of 16*18 = 288 positions for game dimension of 4. 
 **
 **
 ************************************************************************/
@@ -323,7 +296,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   for (currentPiece=0; currentPiece<NUMPIECES; currentPiece++) {
     currentSquare = position - PIECESTATES * currentPiece;
-    if (0<=currentSquare && currentSquare<BOARDSIZE) {
+    if (1<=currentSquare && currentSquare<=BOARDSIZE) {
       newBoard->squares[currentSquare] = currentPiece;
     }
   }
