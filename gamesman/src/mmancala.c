@@ -1071,49 +1071,49 @@ POSITION array_unhash (int *hashed) {
 }
 
 // for atilla's hash code ...
-int *gHashOffset = NULL ;
-int *gNCR = NULL ;
-static int gHashOffsetSize;
-static int gHashBoardSize;
-static int gHashMinMax[4];
-static int gHashNumberOfPos;
+int *my_gHashOffset = NULL ;
+int *my_gNCR = NULL ;
+static int my_gHashOffsetSize;
+static int my_gHashBoardSize;
+static int my_gHashMinMax[4];
+static int my_gHashNumberOfPos;
 // end for atilla's hash code
 
 void hash_free()
 {
-	if(gHashOffset)
+	if(my_gHashOffset)
 	{
-		SafeFree(gHashOffset) ;
-		gHashOffset = NULL ;
+		SafeFree(my_gHashOffset) ;
+		my_gHashOffset = NULL ;
 	}
-	if(gNCR)
+	if(my_gNCR)
 	{
-		SafeFree(gNCR) ;
-		gHashOffset = NULL ;
+		SafeFree(my_gNCR) ;
+		my_gHashOffset = NULL ;
 	}
 }
 
 int rearranger_hash_init(int boardsize, int numOs, int numXs)
 {
-  gHashMinMax[0] = numOs;
-  gHashMinMax[1] = numOs;
-  gHashMinMax[2] = numXs;
-  gHashMinMax[3] = numXs;
-  gHashBoardSize = boardsize;
+  my_gHashMinMax[0] = numOs;
+  my_gHashMinMax[1] = numOs;
+  my_gHashMinMax[2] = numXs;
+  my_gHashMinMax[3] = numXs;
+  my_gHashBoardSize = boardsize;
   my_nCr_init(boardsize);
-  gHashNumberOfPos = my_nCr(numXs+numOs, numXs) * my_nCr(boardsize, numXs+numOs);   
-  return gHashNumberOfPos ;
+  my_gHashNumberOfPos = my_nCr(numXs+numOs, numXs) * my_nCr(boardsize, numXs+numOs);   
+  return my_gHashNumberOfPos ;
 }
 
 int rearranger_hash(char* board)
 {
 	int temp, i, numxs,  numos, numXs;
 	int boardsize;
-	numxs = gHashMinMax[3];
-	numos = gHashMinMax[1];
-	boardsize = gHashBoardSize;
+	numxs = my_gHashMinMax[3];
+	numos = my_gHashMinMax[1];
+	boardsize = my_gHashBoardSize;
 	temp = 0;
-	for (i = 0; i < gHashBoardSize; i++)
+	for (i = 0; i < my_gHashBoardSize; i++)
 	{
 	  if (board[i] == 'b')
 	    {
@@ -1143,10 +1143,10 @@ BOOLEAN rearranger_unhash(int hashed, char* dest)
 {
 	int i, j, offst, numxs, numos, temp, boardsize;
 	j = 0;
-	boardsize = gHashBoardSize;
-	numxs = gHashMinMax[3];
-	numos = gHashMinMax[1];
-	for (i = 0; i < gHashBoardSize; i++)
+	boardsize = my_gHashBoardSize;
+	numxs = my_gHashMinMax[3];
+	numos = my_gHashMinMax[1];
+	for (i = 0; i < my_gHashBoardSize; i++)
 	{
 	  temp = my_nCr(numxs + numos, numos) * 
 	    my_nCr(boardsize - 1, numxs + numos);
@@ -1176,24 +1176,24 @@ BOOLEAN rearranger_unhash(int hashed, char* dest)
 void my_nCr_init(boardsize)
 {
 	int i, j;
-	gNCR = (int*) SafeMalloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
+	my_gNCR = (int*) SafeMalloc(sizeof(int) * (boardsize + 1) * (boardsize + 1));
 	for(i = 0; i<= boardsize; i++)
 	{
-		gNCR[i*(boardsize+1)] = 1;
-		gNCR[i*(boardsize+1) + i] = 1;
+		my_gNCR[i*(boardsize+1)] = 1;
+		my_gNCR[i*(boardsize+1) + i] = 1;
 	}
 	for(i = 1; i<= boardsize; i++)
 	{
 		for(j = 1; j < i ; j++)
 		{
-			gNCR[i*(boardsize+1) + j] = gNCR[(i-1)*(boardsize+1) + j-1] + gNCR[(i-1)*(boardsize+1) + j];
+			my_gNCR[i*(boardsize+1) + j] = my_gNCR[(i-1)*(boardsize+1) + j-1] + my_gNCR[(i-1)*(boardsize+1) + j];
 		}
 	}
 }
 
 int my_nCr(int n, int r)
 {
-  return gNCR[n*(gHashBoardSize+1) + r];
+  return my_gNCR[n*(my_gHashBoardSize+1) + r];
 }
 
 
