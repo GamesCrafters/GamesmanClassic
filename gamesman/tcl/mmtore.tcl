@@ -190,8 +190,105 @@ proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width 500 -height 500
-    
-    ### TODO: fill this in
+
+
+    ########## background circles
+    $c create oval 75 75 425 425 -fill black -tag path
+    ##background circle
+
+    $c create oval 210 35 290 115 -fill white -tag hole1
+    ##top circle
+
+    $c create oval 210 385 290 465 -fill white -tag hole1
+    ##bottom circle
+
+    $c create oval 35 210 115 290 -fill white -tag hole1
+    ##left circle
+
+    $c create oval 385 210 465 290 -fill white -tag hole1
+    ##right circle
+
+    $c create oval 86.25 86.25 166.25 166.25 -fill white -tag hole2
+    ##upper left circle
+
+    $c create oval 86.25 333.75 166.25 413.75 -fill white -tag hole2
+    ##lower left circle
+
+    $c create oval 333.75 86.25 413.75 166.25 -fill white -tag hole2
+    ##upper right circle
+
+    $c create oval 333.75 333.75 413.75 413.75 -fill white  -tag hole2
+    ##lower right circle
+
+    $c create oval 210 210 290 290 -fill white -tag hole0
+    ##middle circle
+
+
+
+    ########## lines
+    $c create line 250 115 250 210 -fill white -tag l1
+    ##line from top to middle
+
+    $c create line 250 290 250 385 -fill white -tag l1
+    ##line from middle to bottom
+
+    $c create line 115 250 210 250 -fill white -tag l1
+    ##line from left to middle
+
+    $c create line 290 250 385 250 -fill white -tag l1
+    ##line from middle to right
+
+
+    $c create line 155 155 221 221 -fill white -tag l2
+    ##line from middle to upperleft
+
+    $c create line 279 279 345 345 -fill white -tag l2
+    ##line from middle to lowerright
+
+    $c create line 279 221 345 155 -fill white -tag l2
+    ##line from middle to upperright
+
+    $c create line 221 279 155 345 -fill white -tag l2
+    ##create line from middle to lowerleft
+
+
+
+
+    ###### pieces
+    #    3
+    # 2  |  4
+    #  \   /
+    #1-- 0 --5
+    #  / | \
+    # 8  |  6
+    #    7
+
+    # coordinates
+    # 0 = 220 220 280 280
+    # 1 = 45 220 105 280
+    # 2 = 98.25 98.25 156.25 156.25
+    # 3 = 220 45 280 105
+    # 4 = 343.75 98.25 403.75 156.25
+    # 5 = 395 220 455 280
+    # 6 = 343.75 343.75 403.75 403.75
+    # 7 = 220 395 280 455
+    # 8 = 96.25 343.75 156.25 403.75
+
+    $c create oval 45 220 105 280 -fill blue -outline blue -tag blue
+    $c create oval 98.25 98.25 156.25 156.25 -fill blue -outline blue -tag blue 
+    $c create oval 220 45 280 105 -fill blue -outline blue -tag blue
+    $c create oval 343.75 98.25 403.75 156.25 -fill blue -outline blue -tag blue 
+
+    $c create oval 96.25 343.75 156.25 403.75 -fill red -outline red -tag red
+    $c create oval 220 395 280 455 -fill red -outline red -tag red
+    $c create oval 343.75 343.75 403.75 403.75 -fill red -outline red -tag red
+    $c create oval 395 220 455 280 -fill red -outline red -tag red
+
+
+    ##### arrow
+    #$c create line 291 250 365 250 -width 15 -arrow last -arrowshape {30 30 15} -fill turquoise -tag arrow
+
+
 
 } 
 
