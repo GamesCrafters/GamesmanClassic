@@ -1,12 +1,21 @@
-
-
 ####################################################
 # this is a template for tcl module creation
 #
 # created by Alex Kozlowski and Peterson Trethewey
 # Updated Fall 2004 by Jeffrey Chiang, and others
 ####################################################
-
+# Name:     mwuzhi.tcl
+# Authors:  Diana Fang, Dachuan Yan
+# Update History:
+# 2005-3-25 -added animation for move in HandleMoves
+#           -added movePiece procedure
+#           -fixed "red" and "blue" duplicate arrow problem
+#           -ungrouped pieces and arrows
+#           -fixed off center board by adding "offset" variable
+#           -fixed arrows appearing when "values" is checked after game ends
+#            by adding "gGameover" global variable and if-statement in ShowMoves
+#           -added Diagonals option
+# 2005-3-26 -changed boardsize to gBoardSize
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -17,14 +26,12 @@
 # and gInitialPosition in this function.
 ############################################################################
 proc GS_InitGameSpecific {} {
-    
-    puts "GS_InitGameSpecific"
 
     ### Set the name of the game
-    
+
     global kGameName
     set kGameName "Wuzhi"
-    
+
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
@@ -40,14 +47,20 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
+    global gDiagonalsOption diagonals
+    set diagonals $gDiagonalsOption
+
+    global gBoardSize gBoardSizeOp
+    set gBoardSize [expr $gBoardSizeOp + 3]
+
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: Capture all but one of your opponenet's pieces. Capturing takes place when you move your piece into a capture position. A capture position is where two of your pieces are adjacent to each other and an opponent's piece is adjacent to one of those pieces all along the same line. You can also win if your opponent has no moves left."
+	SetToWinString "To Win: Capture all but one of your opponenet's piece or if your opponent has no moves left. A capture occurs when you move two of your pieces inline with an opponent's piece"
     } else {
 	SetToWinString "To Win: The Person with one piece left or the person with no moves left wins."
     }
     SetToMoveString "To Move: click on the arrow of the piece that you want to move in the direction that you want to move."
-	    
+
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
@@ -73,12 +86,12 @@ proc GS_NameOfPieces {} {
 
 
 #############################################################################
-# GS_ColorOfPlayers should return a list of two strings, 
+# GS_ColorOfPlayers should return a list of two strings,
 # each representing the color of a player.
 # If a specific color appears uniquely on one player's pieces,
 # it might be a good choice for that player's color.
 # In impartial games, both players may share the same color.
-# If the game is tic tac toe, this might be the line 
+# If the game is tic tac toe, this might be the line
 # return [list blue red]
 # If the game is nim, this might be the line
 # return [list green green]
@@ -90,14 +103,14 @@ proc GS_NameOfPieces {} {
 proc GS_ColorOfPlayers {} {
 
     return [list blue red]
-    
+
 }
 
 
 #############################################################################
 # GS_SetupRulesFrame sets up the rules frame;
-# Adds widgets to the rules frame that will allow the user to 
-# select the variant of this game to play. The options 
+# Adds widgets to the rules frame that will allow the user to
+# select the variant of this game to play. The options
 # selected by the user should be stored in a set of global
 # variables.
 # This procedure must initialize the global variables to some
@@ -117,15 +130,36 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Misere" \
 	    ]
 
+    set diagonalsRule \
+	[list \
+	     "Would you like to play with diagonal movement?" \
+	     "No Diagonals" \
+	     "Diagonals"
+	 ]
+
+    set boardsizeRule \
+	[list \
+	     "What size board would you like to play on?" \
+	     "3x3" \
+	     "4x4" \
+	     "5x5"
+	]
+
     # List of all rules, in some order
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $diagonalsRule $boardsizeRule]
 
     # Declare and initialize rule globals
     global gMisereGame
     set gMisereGame 0
 
+    global gDiagonalsOption
+    set gDiagonalsOption 0
+
+    global gBoardSizeOp
+    set gBoardSizeOp 0
+
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gDiagonalsOption" "gBoardSizeOp"]
 
     global kLabelFont
     set ruleNum 0
@@ -141,49 +175,53 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	    incr rulePartNum
 	}
 	incr ruleNum
-    } 
+    }
 }
 
 
 #############################################################################
 # GS_GetOption gets the game option specified by the rules frame
-# Returns the option of the variant of the game specified by the 
+# Returns the option of the variant of the game specified by the
 # global variables used by the rules frame
 # Args: none
 # Modifies: nothing
-# Returns: option (Integer) - the option of the game as specified by 
+# Returns: option (Integer) - the option of the game as specified by
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
     # TODO: Needs to change with more variants
-    global gMisereGame
+    global gMisereGame gDiagonalsOption gBoardSizeOp
     set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    set option [expr $option + (2*$gDiagonalsOption)]
+    set option [expr $option + (4*($gBoardSizeOp))]
+
     return $option
 }
 
 
 #############################################################################
 # GS_SetOption modifies the rules frame to match the given options
-# Modifies the global variables used by the rules frame to match the 
+# Modifies the global variables used by the rules frame to match the
 # given game option.
-# This procedure only needs to support options that can be selected 
+# This procedure only needs to support options that can be selected
 # using the rules frame.
-# Args: option (Integer) -  the option of the game as specified by 
+# Args: option (Integer) -  the option of the game as specified by
 # getOption and setOption in the module's C code
 # Modifies: the global variables used by the rules frame
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
     # TODO: Needs to change with more variants
-    global gMisereGame
+    global gMisereGame gDiagonalsOption diagonals gBoardSize
     set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    set gMisereGame [expr 1-($option/4%2)]
+    set diagonals gDiagonalsOption
+    set gBoardSize [expr ($option/4) + 3]
 }
 
 
 #############################################################################
-# GS_Initialize is where you can start drawing graphics.  
+# GS_Initialize is where you can start drawing graphics.
 # Its argument, c, is a canvas.  Please draw only in this canvas.
 # You could put an opening animation in this function that introduces the game
 # or just draw an empty board.
@@ -192,58 +230,78 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-#puts "GS_Initialize"
-
-    # you may want to start by setting the size of the canvas; this line isn't cecessary
-   # $c configure -width 300 -height 300
-global boardsize 
-
-set boardsize 3
-set dist 100 
-set boardwidth [expr $boardsize * $dist] 
-set numofBlue 0
-set numofRed 0
-#canvas .c
-$c configure -width $boardwidth -height $boardwidth
-pack $c
-$c create rectangle 0 0 $boardwidth $boardwidth -fill white -tags base
-# the board - can use for loop for variable board (currently 3 by 3)
-for {set i 0} {$i < [expr $boardsize - 1]} {set i [expr $i + 1]} {
-    for {set j 0} {$j < [expr $boardsize -1]} {set j [expr $j + 1]} {
-	$c create rectangle [expr $i * $dist + 50] [expr $j * $dist + 50] \
-	    [expr $i * $dist + 150] [expr $j * $dist + 150] -fill white -tags base
+    global gBoardSize gGameover dist gDiagonalsOption
+    set gGameover 0
+    set dist 100
+    set boardwidth [expr $gBoardSize * $dist]
+    set numofBlue 0
+    set numofRed 0
+    set numofArrowSet 0
+    set canvasWidth 500
+    # creates an offset variable to center the board
+    set offset [expr $canvasWidth / 2 - $boardwidth / 2]
+    #canvas .c
+    $c configure -width $canvasWidth -height $canvasWidth
+    pack $c
+    # creates a base which to hide the arrows
+    $c create rectangle [expr 0  + $offset] [expr 0 + $offset] [expr $boardwidth + $offset] \
+	[expr $boardwidth + $offset] -fill white -tags base
+    # the board
+    for {set i 0} {$i < [expr $gBoardSize - 1]} {set i [expr $i + 1]} {
+	for {set j 0} {$j < [expr $gBoardSize -1]} {set j [expr $j + 1]} {
+	    $c create rectangle [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
+		[expr $i * $dist + 150 + $offset] [expr $j * $dist + 150 + $offset] -fill white -tags base -width 3
+	    # create diagonal lines
+	    $c create line  [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
+		[expr $i * $dist + 150 + $offset] [expr $j * $dist + 150 + $offset] -tags [list base diag] -width 3
+	    $c create line  [expr $i * $dist + 150 + $offset] [expr $j * $dist + 50 + $offset] \
+		[expr $i * $dist + 50 + $offset] [expr $j * $dist + 150 + $offset] -tags [list base diag] -width 3
+	}
     }
-}
-# place pieces
-for {set j 0} {$j< $boardsize} {set j [expr $j + 1]} {
-    for {set i 0} {$i < $boardsize} {set i [expr $i + 1]} {
-	drawArrows $c [expr $i *$dist +50] [expr $j *$dist +50] blue$numofBlue
-	drawPiece $c [expr $i *$dist +50] [expr $j *$dist +50] blue $numofBlue
-	$c lower blue$numofBlue 
-	set numofBlue [expr $numofBlue + 1]
-	drawArrows $c [expr $i *$dist +50] [expr $j *$dist +50] red$numofRed
-	drawPiece $c [expr $i *$dist +50] [expr $j *$dist +50] red $numofRed
-	$c lower red$numofRed
-	set numofRed [expr $numofRed + 1]
+
+    # lower diagonals
+    if ($gDiagonalsOption) {
+	$c raise diag base
+    } else {
+	$c lower diag
     }
+
+    #set global settingup
+    #set settingup 1
+    #vwait settingup
+
+    # draws all possible pieces and arrows and lowers them
+    for {set j 0} {$j< $gBoardSize} {set j [expr $j + 1]} {
+	for {set i 0} {$i < $gBoardSize} {set i [expr $i + 1]} {
+	    # draws all possible arrows
+	    drawArrows $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] $numofArrowSet
+	    set numofArrowSet [expr $numofArrowSet + 1]
+	    # draws all possible blue pieces
+	    drawPiece $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] blue $numofBlue
+	    $c lower blue$numofBlue
+	    set numofBlue [expr $numofBlue + 1]
+	    # draws all possible red pieces
+	    drawPiece $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] red $numofRed
+	    $c lower red$numofRed
+	    set numofRed [expr $numofRed + 1]
+	}
+    }
+
+    # lowers all the arrows
+    $c lower arrow
+
+    # raise starting blue pieces
+    for {set b 0} {$b < $gBoardSize} {set b [expr $b + 1]} {
+	$c raise blue$b
+    }
+
+    # raise starting red pieces
+    for {set r [expr $gBoardSize*$gBoardSize - $gBoardSize]} {$r < [expr $gBoardSize*$gBoardSize]} {set r [expr $r + 1]} {
+	$c raise red$r
+    }
+
+    #set settingup 0
 }
-
-
-for {set b 0} {$b < $boardsize} {set b [expr $b + 1]} {
-    $c raise blue$b
-    $c lower arrowblue$b
-      
-}
-
-for {set r [expr $boardsize*$boardsize - $boardsize]} {$r < [expr $boardsize*$boardsize]} {set r [expr $r + 1]} {
-    $c raise red$r
-    $c lower arrowred$r
-     
-}
-
-
-
-} 
 
 
 #############################################################################
@@ -264,47 +322,44 @@ proc GS_Deinitialize { c } {
 # loads a saved game, and you must quickly return the board to its saved
 # state.  It probably shouldn't animate, but it can if you want.
 #
-# BY THE WAY: Before you go any further, I recommend writing a tcl function that 
+# BY THE WAY: Before you go any further, I recommend writing a tcl function that
 # UNhashes You'll thank yourself later.
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-  #  puts "GS_DrawPosition"
 
-    global boardsize pieceString
-    set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
-    
+    global gBoardSize pieceString
+    set pieceString [string range [C_GenericUnhash $position [expr $gBoardSize * $gBoardSize]] 0 [expr $gBoardSize*$gBoardSize-1]]
+
     # resets board
     $c raise base
 
     # raises appropriate pieces
-    for {set i 0} {$i < [expr $boardsize * $boardsize]} {set i [expr $i + 1]} {
+    for {set i 0} {$i < [expr $gBoardSize * $gBoardSize]} {set i [expr $i + 1]} {
 	if {[string compare [string index $pieceString $i] "w"] == 0} {
-	    $c raise red$i 
-	    $c lower arrowred$i
+	    $c raise red$i
 	} elseif {[string compare [string index $pieceString $i] "b"] == 0} {
 	    $c raise blue$i
-	    $c lower arrowblue$i
 	} else {}
     }
-   
-
-    ### TODO: Fill this in
-
 }
 
 
 #############################################################################
-# GS_NewGame should start playing the game. 
-# It's arguments are a canvas, c, where you should draw 
+# GS_NewGame should start playing the game.
+# It's arguments are a canvas, c, where you should draw
 # the hashed starting position of the game.
 # This is called just when the player hits "New Game"
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
- #   puts "GS_NewGame"
+
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+
+    global gGameover
+    set gGameover 0
+
     GS_DrawPosition $c $position
 }
 
@@ -317,7 +372,7 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+    return ""
 }
 
 
@@ -332,10 +387,30 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    # incr determines the animation speed
+    global incr
+    set incr 1
+    #figure out which piece to move and which direction
+    set arrayNum [getArraynum [GetXCoord $theMove] [GetYCoord $theMove]]
+    set dir [GetDirection $theMove]
+    #figure out whose piece it is
+    global gBoardSize pieceString
+    set pieceString [string range [C_GenericUnhash $oldPosition [expr $gBoardSize * $gBoardSize]] 0 [expr $gBoardSize*$gBoardSize-1]]
 
+    if {[string compare [string index $pieceString $arrayNum] "w"] == 0} {
+	set pieceToMove red$arrayNum
+    } elseif {[string compare [string index $pieceString $arrayNum] "b"] == 0} {
+	set pieceToMove blue$arrayNum
+    }
+
+    #start moving the piece in the direction
+    movePiece $c $pieceToMove $dir $incr
+
+    #execute the move which takes care of any pieces that are captured
     GS_DrawPosition $c $newPosition
-    
+
 }
+
 
 
 #############################################################################
@@ -351,71 +426,100 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # moveList = a list of lists.  Each list contains a move and its value.
 # These moves are represented as numbers (same as in C)
 # The value will be either "Win" "Lose" or "Tie"
-# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
+# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie }
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
-# puts "GS_ShowMoves"
-    global boardsize boardstring
-    #set pieceString [string range [C_GenericUnhash $position [expr $boardsize * $boardsize]] 0 [expr $boardsize*$boardsize-1]]
-    
-    foreach item $moveList {
-	set move [lindex $item 0]
-	set value [lindex $item 1]
-	set color cyan
+    global gBoardSize boardstring
+    global gGameover
+    # do not show moves if game is over, 0 means not over
+    if {$gGameover == 0} {
 
-	if {$moveType == "value"} {
-	    if {$value == "Tie"} {
-		set color yellow
-	    } elseif {$value == "Lose"} {
-		set color green
-	    } else {
-		set color red
+	foreach item $moveList {
+	    set move [lindex $item 0]
+	    set value [lindex $item 1]
+	    set color cyan
+
+	    if {$moveType == "value"} {
+		if {$value == "Tie"} {
+		    set color yellow
+		} elseif {$value == "Lose"} {
+		    set color green
+		} else {
+		    set color red
+		}
+	    }
+
+	    set arrayNum [getArraynum [GetXCoord $move] [GetYCoord $move]]
+	    set dir [GetDirection $move]
+
+	    switch $dir {
+		0 {
+		    $c raise arrowUP$arrayNum base
+		    $c itemconfig arrowUP$arrayNum -fill $color
+		    $c bind arrowUP$arrayNum <Enter> "$c itemconfig arrowUP$arrayNum -fill black"
+		    $c bind arrowUP$arrayNum <Leave> "$c itemconfig arrowUP$arrayNum -fill $color"
+		    $c bind arrowUP$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+
+		}
+		1 {
+		    $c raise arrowRIGHT$arrayNum base
+		    $c itemconfig arrowRIGHT$arrayNum -fill $color
+		    $c bind arrowRIGHT$arrayNum <Enter> "$c itemconfig arrowRIGHT$arrayNum -fill black"
+		    $c bind arrowRIGHT$arrayNum <Leave> "$c itemconfig arrowRIGHT$arrayNum -fill $color"
+		    $c bind arrowRIGHT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		2 {
+		    $c raise arrowDOWN$arrayNum base
+		    $c itemconfig arrowDOWN$arrayNum -fill $color
+		    $c bind arrowDOWN$arrayNum <Enter> "$c itemconfig arrowDOWN$arrayNum -fill black"
+		    $c bind arrowDOWN$arrayNum <Leave> "$c itemconfig arrowDOWN$arrayNum -fill $color"
+		    $c bind arrowDOWN$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		3 {
+		    $c raise arrowLEFT$arrayNum base
+		    $c itemconfig arrowLEFT$arrayNum -fill $color
+		    $c bind arrowLEFT$arrayNum <Enter> "$c itemconfig arrowLEFT$arrayNum -fill black"
+		    $c bind arrowLEFT$arrayNum <Leave> "$c itemconfig arrowLEFT$arrayNum -fill $color"
+		    $c bind arrowLEFT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		4 {
+		    $c raise arrowUPLEFT$arrayNum base
+		    $c itemconfig arrowUPLEFT$arrayNum -fill $color
+		    $c bind arrowUPLEFT$arrayNum <Enter> "$c itemconfig arrowUPLEFT$arrayNum -fill black"
+		    $c bind arrowUPLEFT$arrayNum <Leave> "$c itemconfig arrowUPLEFT$arrayNum -fill $color"
+		    $c bind arrowUPLEFT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		5 {
+		    $c raise arrowUPRIGHT$arrayNum base
+		    $c itemconfig arrowUPRIGHT$arrayNum -fill $color
+		    $c bind arrowUPRIGHT$arrayNum <Enter> "$c itemconfig arrowUPRIGHT$arrayNum -fill black"
+		    $c bind arrowUPRIGHT$arrayNum <Leave> "$c itemconfig arrowUPRIGHT$arrayNum -fill $color"
+		    $c bind arrowUPRIGHT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		6 {
+		    $c raise arrowDOWNRIGHT$arrayNum base
+		    $c itemconfig arrowDOWNRIGHT$arrayNum -fill $color
+		    $c bind arrowDOWNRIGHT$arrayNum <Enter> "$c itemconfig arrowDOWNRIGHT$arrayNum -fill black"
+		    $c bind arrowDOWNRIGHT$arrayNum <Leave> "$c itemconfig arrowDOWNRIGHT$arrayNum -fill $color"
+		    $c bind arrowDOWNRIGHT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		7 {
+		    $c raise arrowDOWNLEFT$arrayNum base
+		    $c itemconfig arrowDOWNLEFT$arrayNum -fill $color
+		    $c bind arrowDOWNLEFT$arrayNum <Enter> "$c itemconfig arrowDOWNLEFT$arrayNum -fill black"
+		    $c bind arrowDOWNLEFT$arrayNum <Leave> "$c itemconfig arrowDOWNLEFT$arrayNum -fill $color"
+		    $c bind arrowDOWNLEFT$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
+		}
+		default {}
 	    }
 	}
-
-	set arrayNum [getArraynum [GetXCoord $move] [GetYCoord $move]]
-	set dir [GetDirection $move]
-
-	switch $dir {
-	    0 {
-		$c raise arrowUPblue$arrayNum base
-		$c itemconfig arrowUPblue$arrayNum -fill $color
-		$c bind arrowUPblue$arrayNum <Enter> "$c itemconfig arrowUPblue$arrayNum -fill black"
-		$c bind arrowUPblue$arrayNum <Leave> "$c itemconfig arrowUPblue$arrayNum -fill $color"
-		$c bind arrowUPblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
-
-	    }
-	    1 {
-		$c raise arrowRIGHTblue$arrayNum base
-		$c itemconfig arrowRIGHTblue$arrayNum -fill $color
-		$c bind arrowRIGHTblue$arrayNum <Enter> "$c itemconfig arrowRIGHTblue$arrayNum -fill black"
-		$c bind arrowRIGHTblue$arrayNum <Leave> "$c itemconfig arrowRIGHTblue$arrayNum -fill $color"
-		$c bind arrowRIGHTblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    }
-	    2 {
-		$c raise arrowDOWNblue$arrayNum base
-		$c itemconfig arrowDOWNblue$arrayNum -fill $color
-		$c bind arrowDOWNblue$arrayNum <Enter> "$c itemconfig arrowDOWNblue$arrayNum -fill black"
-		$c bind arrowDOWNblue$arrayNum <Leave> "$c itemconfig arrowDOWNblue$arrayNum -fill $color"
-		$c bind arrowDOWNblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    }
-	    3 {
-		$c raise arrowLEFTblue$arrayNum base
-		$c itemconfig arrowLEFTblue$arrayNum -fill $color
-		$c bind arrowLEFTblue$arrayNum <Enter> "$c itemconfig arrowLEFTblue$arrayNum -fill black"
-		$c bind arrowLEFTblue$arrayNum <Leave> "$c itemconfig arrowLEFTblue$arrayNum -fill $color"
-		$c bind arrowLEFTblue$arrayNum <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    }
-	    default {}
-	}
-
     }
     update idletasks
 }
 
 
 #############################################################################
-# GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
+# GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the
 # same as GS_ShowMoves.
 # You might not use all the arguments, and that's okay.
 #############################################################################
@@ -435,12 +539,11 @@ proc GS_HideMoves { c moveType position moveList} {
 # theMoveToUndo is the M
 # positionAfterUndo is the A
 #
-# By default this function just calls GS_DrawPosition, but you certainly don't 
+# By default this function just calls GS_DrawPosition, but you certainly don't
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
     GS_DrawPosition $c $positionAfterUndo
 }
 
@@ -454,63 +557,86 @@ proc GS_GetGameSpecificOptions { } {
 
 #############################################################################
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
-# You could use this function to draw the line striking out the winning row in 
+# You could use this function to draw the line striking out the winning row in
 # tic tac toe for instance.  Or, you could congratulate the winner.
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global gGameover
+    set gGameover 1
+    $c create text 250 200 -text "$nameOfWinner" -font Wintext -fill orange -tags win
+    $c create text 250 275 -text "wins!" -font Wintext -fill orange -tags win
 
-	### TODO if needed
-	
 }
 
+font create Wintext -family arial -size 40
 
 #############################################################################
 # GS_UndoGameOver is called when the player hits undo after the game is finished.
-# This is provided so that you may undo the drawing you did in GS_GameOver if you 
+# This is provided so that you may undo the drawing you did in GS_GameOver if you
 # drew something.
-# For instance, if you drew a line crossing out the winning row in tic tac toe, 
+# For instance, if you drew a line crossing out the winning row in tic tac toe,
 # this is where you sould delete the line.
 #
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
-	### TODO if needed
+    global gGameover
+    set gGameover 0
+    $c delete win
 
 }
 
 
 ######################Helper Stuff###########################
 proc drawPiece {c x0 y0 color num} {
- $c create oval [expr $x0 - 25] [expr $y0 - 25] \
+$c create oval [expr $x0 - 25] [expr $y0 - 25] \
 	[expr $x0 + 25] [expr $y0 + 25] \
-	-fill $color -tags $color$num
+	-fill $color -tags $color$num -width 4
 
 }
 proc drawArrows {c x y piece} {
-set arrowLen 75
+    set arrowLen 75
+    set arrowLenD 50
     #up
     $c create line $x $y $x [expr $y - $arrowLen] \
-    -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
-    -tags [list arrowUP$piece arrow$piece $piece arrow]
-#    $c bind arrowUP$piece <Enter> "$c itemconfig arrowUP$piece -fill black"
+    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -tags [list arrowUP$piece arrow$piece arrow]
+
     #down
     $c create line $x $y $x [expr $y + $arrowLen] \
-    -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
-    -tags [list arrowDOWN$piece arrow$piece $piece arrow]
- #   $c bind arrowDOWN$piece <Enter> "$c itemconfig arrowDOWN$piece -fill black"
+    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -tags [list arrowDOWN$piece arrow$piece arrow]
+
     #left
     $c create line $x $y [expr $x - $arrowLen] $y \
-    -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
-    -tags [list arrowLEFT$piece arrow$piece $piece arrow]
-  #  $c bind arrowLEFT$piece <Enter> "$c itemconfig arrowLEFT$piece -fill black"
+    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -tags [list arrowLEFT$piece arrow$piece arrow]
+
     #right
     $c create line $x $y [expr $x + $arrowLen] $y \
-    -width 15 -arrow last -arrowshape [list 30 30 15] -fill lightblue \
-    -tags [list arrowRIGHT$piece arrow$piece $piece arrow]
-   # $c bind arrowRIGHT$piece <Enter> "$c itemconfig arrowRIGHT$piece -fill black"
+    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -tags [list arrowRIGHT$piece arrow$piece arrow]
+
+    #diagonal arrows
+    #upleft
+    $c create line $x $y [expr $x - $arrowLenD] [expr $y - $arrowLenD] \
+	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-tags [list arrowUPLEFT$piece arrow$piece arrow diagArrow]
+    #upright
+    $c create line $x $y [expr $x + $arrowLenD] [expr $y - $arrowLenD] \
+	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-tags [list arrowUPRIGHT$piece arrow$piece arrow diagArrow]
+    #downright
+    $c create line $x $y [expr $x + $arrowLenD] [expr $y + $arrowLenD] \
+	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-tags [list arrowDOWNRIGHT$piece arrow$piece arrow diagArrow]
+    #downleft
+    $c create line $x $y [expr $x - $arrowLenD] [expr $y + $arrowLenD] \
+	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-tags [list arrowDOWNLEFT$piece arrow$piece arrow diagArrow]
+
 }
 
 
@@ -529,6 +655,91 @@ proc GetYCoord {theMove} {
 
 
 proc getArraynum {xcoord ycoord} {
-global boardsize
-    return [expr ($boardsize *($boardsize - $ycoord)) - ($boardsize - $xcoord)]
+global gBoardSize
+    return [expr ($gBoardSize *($gBoardSize - $ycoord)) - ($gBoardSize - $xcoord)]
+}
+
+# animates movement of piece
+# @c           : canvas
+# @pieceToMove : piece to be moved
+# @dir         : direction of movement
+# @incr        : controls move speed / move amount per while loop
+proc movePiece { c pieceToMove dir incr } {
+    global dist
+    set tmpDist 0
+    switch $dir {
+	0 {
+	    set xAmount 0
+	    set yAmount [expr 0 - $incr]
+	}
+	1 {
+	    set xAmount $incr
+	    set yAmount 0
+	}
+	2 {
+	    set xAmount 0
+	    set yAmount $incr
+	}
+	3 {
+	    set xAmount [expr 0 - $incr]
+	    set yAmount 0
+	}
+	4 {
+	    set xAmount [expr 0 - $incr]
+	    set yAmount [expr 0 - $incr]
+	}
+	5 {
+	    set xAmount [expr 0 + $incr]
+	    set yAmount [expr 0 - $incr]
+	}
+	6 {
+	    set xAmount [expr 0 + $incr]
+	    set yAmount [expr 0 + $incr]
+	}
+	7 {
+	    set xAmount [expr 0 - $incr]
+	    set yAmount [expr 0 + $incr]
+	}
+	default {}
+    }
+
+    while {$tmpDist != $dist} {
+	# move piece by incr amount
+	$c move $pieceToMove $xAmount $yAmount
+	# increment tmpDist by incr amount
+	set tmpDist [expr $tmpDist + $incr]
+	update idletasks
+    }
+
+    # reset piece
+    $c lower $pieceToMove
+
+    switch $dir {
+	0 {
+	    $c move $pieceToMove 0 $dist
+	}
+	1 {
+	    $c move $pieceToMove [expr 0 - $dist] 0
+	}
+	2 {
+	    $c move $pieceToMove 0 [expr 0 - $dist]
+	}
+	3 {
+	    $c move $pieceToMove $dist 0
+	}
+	4 {
+	    $c move $pieceToMove $dist $dist
+	}
+	5 {
+	    $c move $pieceToMove [expr 0 - $dist] $dist
+	}
+	6 {
+	    $c move $pieceToMove [expr 0 - $dist] [expr 0 - $dist]
+	}
+	7 {
+	    $c move $pieceToMove $dist [expr 0 - $dist]
+	}
+	default {}
+    }
+    update idletasks
 }
