@@ -65,7 +65,7 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 char *  gVisited = NULL;
-STRING  kSolveVersion = "2004.05.05" ;
+STRING  kSolveVersion = "2005.02.09" ;
 
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;

@@ -563,6 +563,9 @@ void writeXML(STATICMESSAGE msg)
                 xmlFile=0;
             }
             break;    
+        default:
+           /* BadElse? */
+           break;
     }
 }
 
@@ -592,18 +595,18 @@ void writeXMLData(FILE* xmlFile)
     fprintf(xmlFile,"    <variant hashcode=\"%d\">\n",getOption());
     fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
     fprintf(xmlFile,"        <count>\n");
-    fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.WinCount);
-    fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.LoseCount);
-    fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.TieCount);
+    fprintf(xmlFile,"            <win>%ld</win>\n",gAnalysis.WinCount);
+    fprintf(xmlFile,"            <lose>%ld</lose>\n",gAnalysis.LoseCount);
+    fprintf(xmlFile,"            <tie>%ld</tie>\n",gAnalysis.TieCount);
     fprintf(xmlFile,"        </count>\n");
     fprintf(xmlFile,"        <primitive>\n");
-    fprintf(xmlFile,"            <win>%d</win>\n",gAnalysis.PrimitiveWins);
-    fprintf(xmlFile,"            <lose>%d</lose>\n",gAnalysis.PrimitiveLoses);
-    fprintf(xmlFile,"            <tie>%d</tie>\n",gAnalysis.PrimitiveTies);
+    fprintf(xmlFile,"            <win>%ld</win>\n",gAnalysis.PrimitiveWins);
+    fprintf(xmlFile,"            <lose>%ld</lose>\n",gAnalysis.PrimitiveLoses);
+    fprintf(xmlFile,"            <tie>%ld</tie>\n",gAnalysis.PrimitiveTies);
     fprintf(xmlFile,"        </primitive>\n");
     fprintf(xmlFile,"        <positionstats>\n");
-    fprintf(xmlFile,"            <total>%d</total>\n",gAnalysis.TotalPositions);
-    fprintf(xmlFile,"            <hashtotal>%d</hashtotal>\n",gNumberOfPositions);
+    fprintf(xmlFile,"            <total>%ld</total>\n",gAnalysis.TotalPositions);
+    fprintf(xmlFile,"            <hashtotal>%ld</hashtotal>\n",gNumberOfPositions);
     fprintf(xmlFile,"            <hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
     fprintf(xmlFile,"            <fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
     fprintf(xmlFile,"        </positionstats>\n");
@@ -631,6 +634,9 @@ float percentDone (STATICMESSAGE msg)
             break;
         case Clean:
             num_pos_seen = 0;
+            break;
+        default:
+            break;
     }
     percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
     if (percent > 100)

@@ -63,6 +63,10 @@ void		SetTclCGameSpecificOptions	(int theOptions[]);
 void		GameSpecificMenu		(void);
 void		DebugMenu			(void);
 
+#ifdef SYMMETRY_REVISITED
+POSITION	GetCanonicalPosition		(POSITION pos);
+#endif
+
 extern STRING   kHelpGraphicInterface; /* The Graphical Interface Help string. */
 extern STRING   kHelpTextInterface;    /* The Help for Text Interface string. */
 extern STRING   kHelpOnYourTurn;       /* The Help for Your turn string. */

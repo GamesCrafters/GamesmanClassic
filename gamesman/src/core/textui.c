@@ -218,7 +218,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
 {
 
     BOOLEAN tempPredictions;
-    int timer;
     VALUE gameValue;
     char mexString[20]; /* Mex values read "[Val = *14]", easily in 20 chars */
     char tmpString[80]; /* Just for saving the remoteness value in it */
@@ -826,13 +825,15 @@ void showStatus(STATICMESSAGE msg)
             }
             updateTime = (clock_t) NULL;
             return;
+       default:
+         break;
     }	
     
     if (percentDone(2) > gNumberOfPositions && clock() > updateTime)
     {
         fflush(stdout);
         fflush(stderr);
-        print_length = fprintf(stderr,"Solving... %d Positions Visited - Reported Total Number of Positions: %d\e[K",percentDone(2),gNumberOfPositions);
+        print_length = fprintf(stderr,"Solving... %g Positions Visited - Reported Total Number of Positions: " POSITION_FORMAT "\e[K",percentDone(2),gNumberOfPositions);
         fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
         updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
     }

@@ -16,7 +16,7 @@ void	PrintGameValueSummary		();
 void	analyze				();
 void	analyzer			();
 void	writeVarStat			(STRING statName, STRING text, FILE* out);
-void	DatabaseCombVisualizaotin	();
+void	DatabaseCombVisualization	();
 
 /* Analysis misc */
 
@@ -44,7 +44,7 @@ typedef struct analysis_info
   float AverageFanout;
   POSITION NumberOfPositions;
   POSITION TotalPositions;
-  unsigned int TotalMoves;
+  unsigned long TotalMoves;
   unsigned long WinCount;
   unsigned long LoseCount;
   unsigned long TieCount;
