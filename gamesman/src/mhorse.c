@@ -20,17 +20,16 @@
 **************************************************************************/
 
 #include <stdio.h>
-#include "gsolve.h"
-
-extern STRING gValueString[];
+#include "gamesman.h"
 
 
-int      gNumberOfPositions  = 39366;  /* 3^9*2  */
+POSITION gNumberOfPositions  = 39366;  /* 3^9*2  */
 
 POSITION gInitialPosition    = 116;  
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kGameName           = "Horseshoe";
+STRING   kDBName             = "horse";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
@@ -41,6 +40,7 @@ BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 BOOLEAN  kUseCustomBoard      = FALSE;
+void*	 gGameSpecificTclInit = NULL;
 
 
 STRING   kHelpGraphicInterface =
@@ -51,14 +51,14 @@ the same place as the FROM slot. The RIGHT button is the same as UNDO,\n\
 in that it reverts back to your most recent position.";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which numbers to choose to
-correspond to the location of your piece and an empty connected-adjacent
-slot you wish to move that piece to. Example: '5 2' moves your piece from
+"On your turn, use the LEGEND to determine which numbers to choose to\n\
+correspond to the location of your piece and an empty connected-adjacent\n\
+slot you wish to move that piece to. Example: '5 2' moves your piece from\n\
 slot 5 to slot 2, assuming the two slots are connected.";
 
 STRING   kHelpOnYourTurn =
-"Note: The circle always goes first.  Move one of your pieces to an empty
-slot.  To do so, type in two numbers: the fromSlot and the toSlot, like
+"Note: The circle always goes first.  Move one of your pieces to an empty\n\
+slot.  To do so, type in two numbers: the fromSlot and the toSlot, like\n\
 so: 2 3 and then hit <RETURN>";
 
 STRING   kHelpStandardObjective =
@@ -117,31 +117,20 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-VALUE     *gDatabase;
+/* local function prototypes */
+BOOLEAN CantMove(POSITION);
+BOOLEAN OkMove(BlankOX*, BlankOX, SLOT, int);
 
 /************************************************************************
 **
-** NAME:        InitializeDatabases
+** NAME:        InitializeGame
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize the game
 ** 
 ************************************************************************/
 
-InitializeDatabases()
+void InitializeGame()
 {
-  GENERIC_PTR SafeMalloc();
-  int i;
-
-  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
-  for(i = 0; i < gNumberOfPositions; i++)
-    gDatabase[i] = undecided;
 }
 
 /************************************************************************
@@ -153,7 +142,7 @@ InitializeDatabases()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -237,13 +226,8 @@ gCreateCustomBoard()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
-  char GetMyChar();
-  BOOLEAN tempPredictions = gPredictions;
-  POSITION GetInitialPosition();
-  gPredictions = FALSE;
-  
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
@@ -281,7 +265,6 @@ GameSpecificMenu()
       gToTrapIsToWin = !gToTrapIsToWin;
       break;
     case 'b': case 'B':
-      gPredictions = tempPredictions;
       return;
     default:
       printf("\nSorry, I don't know that option. Try another.\n");
@@ -300,7 +283,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   gToTrapIsToWin = (BOOLEAN) theOptions[0];
@@ -390,48 +373,6 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 
 /************************************************************************
 **
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       int GetRandomNumber()
-**
-************************************************************************/
-
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-  int i, randomMove, numberMoves = 0;
-  MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-  MOVE theMove;
-  
-  if(gPossibleMoves) 
-    printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-  head = ptr = GetValueEquivalentMoves(thePosition);
-  while(ptr != NULL) {
-    numberMoves++;
-    if(gPossibleMoves) 
-      PrintMove(ptr->move);
-    ptr = ptr->next;
-  }
-  if(gPossibleMoves) 
-    printf("]\n\n");
-  randomMove = GetRandomNumber(numberMoves);
-  ptr = head;
-  for(i = 0; i < randomMove ; i++)
-    ptr = ptr->next;
-
-  theMove = ptr->move;
-  FreeMoveList(head);
-  return(theMove);
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -441,7 +382,7 @@ MOVE GetComputersMove(thePosition)
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -550,7 +491,7 @@ BOOLEAN CantMove(position)
   |\
   4 3
 */
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      
 
      POSITION position;
@@ -560,14 +501,7 @@ PrintPosition(position,playerName,usersTurn)
 {
     
   int i;
-
-
-  
-  STRING GetPrediction();
-  VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
-
- 
   
   PositionToBlankOX(position,theBlankOx,&whosTurn);
 /*    
@@ -770,7 +704,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT fromSlot, toSlot;
@@ -779,142 +713,26 @@ PrintMove(theMove)
   printf("[ %d %d ] ", fromSlot, toSlot);
 }
 
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
 
-/************************************************************************
-**
-** NAME:        StaticEvaluator
-**
-** DESCRIPTION: Return the Static Evaluator value
-**
-**              If the game is PARTIZAN:
-**              the value 0 => player 2's advantage
-**              the value 1 => player 1's advantage
-**              player 1 MAXIMIZES and player 2 MINIMIZES
-**
-**              If the game is IMPARTIAL
-**              the value 0 => losing position
-**              the value 1 => winning position
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
-**
-************************************************************************/
-
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
+int NumberOfOptions() {
+  return 2*2;
 }
 
-/************************************************************************
-**
-** NAME:        PositionToMinOrMax
-**
-** DESCRIPTION: Given any position, this returns whether the player who
-**              has the position is a MAXIMIZER or MINIMIZER. If the
-**              game is IMPARTIAL (kPartizan == FALSE) then this procedure
-**              always returns MINIMIZER. See StaticEvaluator for the 
-**              reason. Note that for PARTIZAN games (kPartizan == TRUE):
-**              
-**              Player 1 MAXIMIZES
-**              Player 2 MINIMIZES
-**
-**              Not called if kSupportsHeuristic == FALSE
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
-**
-************************************************************************/
 
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
+int getOption() {
+  int option = 1;
+  option += (gStandardGame ? 0 : 1);
+  option += 2* (gToTrapIsToWin ? 1 : 0);
+  return option;
 }
 
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
 
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
+void setOption(int option) {
+  option--;
 
-/************************************************************************
-**
-** NAME:        GetRawValueFromDatabase
-**
-** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
-** 
-** INPUTS:      POSITION position : The position to return the value of.
-**
-** OUTPUTS:     (VALUE *) a pointer to the actual value.
-**
-************************************************************************/
-
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-  return(&gDatabase[position]);
+  gStandardGame = (option%2==0);
+  gToTrapIsToWin = (option/2%2==1);
 }
-
-/************************************************************************
-**
-** NAME:        GetNextPosition
-**
-** DESCRIPTION: Return the next non-undecided position when called 
-**              consecutively. When done, return kBadPosition and
-**              reset internal counter so that if called again,
-**              would start from the beginning.
-** 
-** OUTPUTS:     (POSITION) : the next non-Undecided position
-**
-************************************************************************/
-
-POSITION GetNextPosition()
-{
-  VALUE GetValueOfPosition();
-  static POSITION thePosition = 0; /* Cycle through every position */
-  POSITION returnPosition;
-  
-  while(thePosition < gNumberOfPositions &&
-	GetValueOfPosition(thePosition) == undecided)
-    thePosition++;
-  
-  if(thePosition == gNumberOfPositions) {
-    thePosition = 0;
-    return(kBadPosition);
-  }
-  else {
-    returnPosition = thePosition++;
-    return(returnPosition);
-  }
-}
-
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
 
 /************************************************************************
 *************************************************************************
