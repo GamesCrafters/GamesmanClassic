@@ -19,6 +19,10 @@
 ** UPDATE HIST: 09/29/04 - Initial Commit: DoMove, PrintPosition, Primitive,
 **                         helper functions, board representation.
 **
+**              10/07/04 - Fixed up everything. Game runs!
+**                         To-do: ValidTextInput and game specific options.
+**
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -41,7 +45,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "(Four Field) Kono"; /* The name of your game */
-/* STRING   kAuthorName          = "Greg Bonin, Nathan Spindel";   Your name(s) */
+STRING   kAuthorName          = "Greg Bonin, Nathan Spindel";   /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -53,7 +57,7 @@ BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when o
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  21526640; /* The initial hashed position for your starting board */
+POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 /* 
@@ -99,8 +103,8 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-int WIDTH = 4, HEIGHT = 4;
-
+int WIDTH = 2, HEIGHT = 5;
+char *gBoard;
 
 /*************************************************************************
 **
@@ -109,14 +113,14 @@ int WIDTH = 4, HEIGHT = 4;
 *************************************************************************/
 
 /* Internal */
-POSITION boardArrayToInt(int *boardArray);
-void boardIntToArray(POSITION boardInt, int *boardArray);
 int exponent(int base, int exponent);
 void printRowOfStars();
 int numberOfPieces(POSITION board, int player);
 int oppositePlayer(int player);
 int getSourceFromMove(MOVE move);
 int getDestFromMove(MOVE move);
+MOVE makeMove(int source, int dest);
+int neighbors(int x, int y);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -144,8 +148,32 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-  /* setup the board */
+  int i;
+  int BOARDSIZE = WIDTH*HEIGHT;
+
+  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
   
+  int piece_array[] = {'x', 0, BOARDSIZE/2,
+		       'o' , 0, BOARDSIZE/2,
+		       ' ', 0, BOARDSIZE-1, 
+		       -1};
+  
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0);
+
+  for (i = 0; i < BOARDSIZE/2; i++)
+    gBoard[i] = 'x';
+
+  if (BOARDSIZE % 2 != 0) {
+    gBoard[i] = ' ';
+    i++;
+  }
+
+  for (; i < BOARDSIZE; i++) {
+    gBoard[i] = 'o';
+  }
+
+  gInitialPosition = generic_hash(gBoard, 1);
+
 }
 
 
@@ -169,11 +197,74 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
-    
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    
+  /*  MOVELIST *CreateMovelistNode(); */
+  MOVELIST *moves = NULL, *captures = NULL;
+  int player = whoseMove (position);
+  int i;
+  char currentPlayer, oppPlayer;
+
+  generic_unhash(position, gBoard);
+
+  if (player == 1) {
+    currentPlayer = 'x';
+    oppPlayer = 'o';
+  } else {
+    currentPlayer = 'o';
+    oppPlayer = 'x';
+  }
+  
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  
+  for (i = WIDTH*HEIGHT; i >= 0; i--) {
+    if (gBoard[i] == currentPlayer) {
+
+      /* check up one */
+      if (i > WIDTH)
+	if (gBoard[i-WIDTH] == ' ')
+	  moves = CreateMovelistNode(makeMove(i, i-WIDTH), moves);
+
+      /* check up two */
+      if (i > WIDTH*2)
+	if (gBoard[i-WIDTH] == currentPlayer && gBoard[i-WIDTH*2] == oppPlayer)
+	  captures = CreateMovelistNode(makeMove(i, i-WIDTH*2), captures);
+
+      /* check down one */
+      if (i < WIDTH*(HEIGHT-1))
+	if (gBoard[i+WIDTH] == ' ')
+	  moves = CreateMovelistNode(makeMove(i, i+WIDTH), moves);
+
+      /* check down two */
+      if (i < WIDTH*(HEIGHT-2))
+	if (gBoard[i+WIDTH] == currentPlayer && gBoard[i+WIDTH*2] == oppPlayer)
+	  captures = CreateMovelistNode(makeMove(i, i+WIDTH*2), captures);
+
+      /* check left one */
+      if (i % WIDTH != 0)
+	if (gBoard[i-1] == ' ')
+	  moves = CreateMovelistNode(makeMove(i, i-1), moves);
+
+      /* check left two */
+      if (i % WIDTH > 1)
+	if (gBoard[i-1] == currentPlayer && gBoard[i-2] == oppPlayer)
+	  captures = CreateMovelistNode(makeMove(i, i-2), captures);
+
+      /* check right one */
+      if (i % WIDTH < WIDTH-1)
+	if (gBoard[i+1] == ' ')
+	  moves = CreateMovelistNode(makeMove(i, i+1), moves);
+
+      /* check right two */
+      if (i % WIDTH < WIDTH-2)
+	if (gBoard[i+1] == currentPlayer && gBoard[i+2] == oppPlayer)
+	  captures = CreateMovelistNode(makeMove(i, i+2), captures);
+    }
+  }
+  
+  /* if there are capture moves, return those. otherwise, return regular moves */
+  if (captures == NULL)
     return moves;
+  else
+    return captures;
 }
 
 
@@ -195,14 +286,15 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  int boardArray[WIDTH*HEIGHT];
-  boardIntToArray(position, boardArray);
+  int player = whoseMove(position);
 
-  boardArray[getSourceFromMove(move)] = EMPTY;
+  generic_unhash(position, gBoard);
 
-  boardArray[getDestFromMove(move)] = whoseMove(position);
+  gBoard[getSourceFromMove(move)] = ' ';
 
-  return boardArrayToInt(boardArray);
+  gBoard[getDestFromMove(move)] = (player == BLACK_PLAYER) ? 'x' : 'o';
+
+  return generic_hash(gBoard, oppositePlayer(player));
 }
 
 /************************************************************************
@@ -262,47 +354,61 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   int i, j, k;
-  int boardArray[WIDTH*HEIGHT];
-  boardIntToArray(position, boardArray);
+  
+  generic_unhash(position, gBoard);
 
   /* top row */
   printRowOfStars();
 
   /* other rows */
   for (i = 0; i < HEIGHT; i++) {
-    printf("* ");
-    for (j = 0; j < WIDTH-1; j++)
-      printf("%d--", boardArray[i*WIDTH + j]);
-
-    printf("%d *\t", boardArray[i*WIDTH + j]);
-
-    for (k = 1; k < WIDTH+1; k++) {
+    printf("\t");
+    /* print the legend */
+    for (k = 0; k < WIDTH; k++) {
       if (WIDTH*i+k < 10) printf(" ");
       printf("%d ", WIDTH*i+k);
     }
+
+    printf("\t| ");
+
+    for (j = 0; j < WIDTH-1; j++)
+      printf(" %c --", gBoard[i*WIDTH+j]);
+
+    /* print last piece in each row and a | and a tab */
+    printf(" %c  |\t", gBoard[i*WIDTH +j]);
+
     printf("\n");
 
+    /* print the | rows in between */
     if (i != HEIGHT-1) {
-      printf("*");
-      for (k = 0; k < WIDTH; k++) printf(" | ");
-      printf("*\n");
+      printf("\t");
+      for (k = 0; k < WIDTH; k++) printf("   ");
+      printf("\t|");
+      for (k = 0; k < WIDTH; k++) printf("  |  ");
+      printf("|\n");
     }
   }
 
-  printf("*");
+  printf("\t");
   for (k = 0; k < WIDTH; k++) printf("   ");
-  printf("*\n");
+  printf("\t|");
+  for (k = 0; k < WIDTH; k++) printf("     ");
+  printf("|\n");
 
   /* bottom row */
   printRowOfStars();
+
+  printf("\n\t\tIt is %s turn.\n\n", (whoseMove(position) == BLACK_PLAYER) ? "x's" : "o's");
 }
 
 void printRowOfStars() {
   int i;
 
-  printf("*");
-  for (i = 0; i < WIDTH; i++) printf("***");
-  printf("*\n");
+  printf("\t");
+  for (i = 0; i < WIDTH; i++) printf("   ");
+  printf("\t-");
+  for (i = 0; i < WIDTH; i++) printf("-----");
+  printf("-\n");
 }
 
 /************************************************************************
@@ -318,10 +424,11 @@ void printRowOfStars() {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  /* TODO: MENTION CAPTURE? */
-
-  printf("%s moved the piece at %d to %d.", computersName,
-	 getSourceFromMove(computersMove), getDestFromMove(computersMove));
+  if (neighbors(getSourceFromMove(computersMove), getDestFromMove(computersMove)))
+    printf("%s moved the piece at %d to %d.\n\n", computersName,
+	   getSourceFromMove(computersMove), getDestFromMove(computersMove));
+  else printf("%s captured the piece at %d with the piece from %d.\n\n",
+	      computersName, getDestFromMove(computersMove), getSourceFromMove(computersMove));
 }
 
 
@@ -337,7 +444,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf("You moved the piece at %d to %d.", getSourceFromMove(move), getDestFromMove(move));
+  printf("[%d %d]", getSourceFromMove(move), getDestFromMove(move));
 }
 
 
@@ -413,7 +520,7 @@ BOOLEAN ValidTextInput (STRING input)
   /* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
    *              "xxx yyy" is board has 100 to 999 squares */
 
-  return FALSE;
+  return TRUE;
 }
 
 
@@ -433,7 +540,24 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return 0;
+  int i, j = 0, k = 0, stringPos, source = 0, dest = 0;
+
+  for (i = 0; input[i] != ' '; i++) {} 
+
+  for (j = i-1; j >= 0; j--) {
+    source += ((input[j]-'0') * exponent(10, k++));
+  }
+
+  i++;
+  k = 0;
+  stringPos = i;
+
+  for (; i < strlen(input); i++) {}
+
+  for (j = i-1; j >= stringPos; j--)
+    dest += ((input[j]-'0') * exponent(10, k++));
+
+  return makeMove(source, dest);
 }
 
 
@@ -490,7 +614,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+  return 0;
 }
 
 
@@ -581,36 +705,20 @@ int oppositePlayer(int player) {
   else return BLACK_PLAYER;
 }
 
-POSITION boardArrayToInt(int *boardArray) {
-  POSITION boardInt = 0;
-  int i;
-
-  for (i = 0; i < WIDTH*HEIGHT; i++) {
-    /* printf("\ti: %d, boardArray[i]: %d\n", i, boardArray[i]); */
-    boardInt += (boardArray[i] * exponent(3, i));
-  }
-
-  return boardInt;
-}
-
-void boardIntToArray(POSITION boardInt, int *boardArray) {
-  int i;
-
-  for (i = 0; i < WIDTH*HEIGHT; i++) {
-    /* printf("\tIntToArray: i: %d, boardArray[i]: %d\n", i, boardArray[i]); */
-    boardArray[i] = boardInt % 3;
-    boardInt /= 3;
-  }
-}
-
-int numberOfPieces(POSITION board, int player) {
+int numberOfPieces(POSITION position, int player) {
   int pieceCount, i;
-  int boardArray[WIDTH*HEIGHT];
+  char currentPlayer;
 
-  boardIntToArray(board, boardArray);
+  generic_unhash(position, gBoard);
+
+  if (player == 1) {
+    currentPlayer = 'x';
+  } else {
+    currentPlayer = 'o';
+  }
 
   for (i = 0; i < WIDTH*HEIGHT; i++)
-    if (boardArray[i] = player) pieceCount++;
+    if (gBoard[i] = currentPlayer) pieceCount++;
 
   return pieceCount;
 }
@@ -630,4 +738,15 @@ int getSourceFromMove(MOVE move) {
 
 int getDestFromMove(MOVE move) {
   return move % 1000;
+}
+
+MOVE makeMove(int source, int dest) {
+  return (source*1000)+dest;
+}
+
+int neighbors(int x, int y) {
+  if (x - 1 == y || x + 1 == y || x - WIDTH == y || x + WIDTH == y)
+    return 1;
+  else
+    return 0;
 }
