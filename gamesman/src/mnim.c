@@ -60,7 +60,7 @@ void GameSpecificMenu()
 		printf("Currently you have %d rows. Rows can range between %d and %d\n", rows, MIN_ROWS, MAX_ROWS) ;
 		printf("Would you like to change it? ") ;
 		fflush(stdin) ;
-		scanf("%c", &option) ;
+		option = GetMyChar();
 		fflush(stdin) ;
 		option = toupper(option) ;
 		if(option == 'Y')
