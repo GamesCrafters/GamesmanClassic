@@ -269,15 +269,15 @@ MoveToInter(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   }
 }
 
-EXTERNC int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow) {
+EXTERNC int GameSpecificTclInit(Tcl_Interp* interp, Tk_Window mainWindow) {
 
   UnderTcl=true;
-  Tcl_CreateCommand(interp, "C_XYtoPos", XYtoPos, (ClientData) mainWindow,
-		    (void (*)(void*)) NULL);
-  Tcl_CreateCommand(interp, "C_GetTurn", GetTurn, (ClientData) mainWindow,
-		    (void (*)(void*)) NULL);
-  Tcl_CreateCommand(interp, "C_MoveToInter", MoveToInter, (ClientData) mainWindow,
-		    (void (*)(void*)) NULL);
+  Tcl_CreateCommand(interp, "C_XYtoPos", (Tcl_CmdProc*) XYtoPos, (ClientData) mainWindow,
+		    (Tcl_CmdDeleteProc*) NULL);
+  Tcl_CreateCommand(interp, "C_GetTurn", (Tcl_CmdProc*) GetTurn, (ClientData) mainWindow,
+		    (Tcl_CmdDeleteProc*) NULL);
+  Tcl_CreateCommand(interp, "C_MoveToInter", (Tcl_CmdProc*) MoveToInter, (ClientData) mainWindow,
+		    (Tcl_CmdDeleteProc*) NULL);
   return TCL_OK;
 }
 

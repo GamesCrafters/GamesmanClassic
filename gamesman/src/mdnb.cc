@@ -449,10 +449,10 @@ EXTERNC void InitializeDatabases() {
 EXTERNC int GameSpecificTclInit(Tcl_Interp* interp,Tk_Window mainWindow)
 {
   UnderTcl=true;
-  Tcl_CreateCommand(interp, "C_Scored", ScoredCmd, (ClientData) mainWindow,
-		    (void (*)(void*)) NULL);
-  Tcl_CreateCommand(interp, "C_GoAgain", GoAgainCmd, (ClientData) mainWindow,
-		    (void (*)(void*)) NULL);
+  Tcl_CreateCommand(interp, "C_Scored", (Tcl_CmdProc*) ScoredCmd, (ClientData) mainWindow,
+		    (Tcl_CmdDeleteProc*) NULL);
+  Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
+		    (Tcl_CmdDeleteProc*) NULL);
   return TCL_OK;
 }
 
