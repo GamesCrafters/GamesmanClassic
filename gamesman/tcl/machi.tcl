@@ -779,21 +779,18 @@ proc makeBoard { c } {
     foreach item $horizArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
-	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ## bind the vertical arrows
     foreach item $vertArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
-	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ## bind the diagonal arrows
     foreach item $diagArrows {
 	$c bind arrow-$item <ButtonRelease-1> "ReturnFromHumanMove $item"
 	$c bind arrow-$item <Enter> "SetColour $c arrow-$item black"
-	$c bind arrow-$item <Leave> "SetColour $c arrow-$item cyan"
     }
 
     ###  raise the base over the pieces
@@ -1001,6 +998,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    $c raise place-$move base
 	} else {
 	    $c itemconfig arrow-$move -fill $color
+	    $c bind arrow-$move <Leave> "SetColour $c arrow-$move $color"
 	    $c raise arrow-$move base
 	}
 	update idletasks
