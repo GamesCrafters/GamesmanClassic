@@ -802,6 +802,7 @@ VALUE Primitive (POSITION position)
 		      zeroChecked();
 		      if(isTerritory(board, (MOVE) i, PLAYER2, checked))
 			 p2c++;
+		      zeroChecked();
 		    }
 		  }
 
