@@ -1766,6 +1766,11 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
     case 's': case 'S':
       PrintValueMoves(thePosition);
       break;
+	case 'p': case 'P':
+	  gPrintPredictions = !gPrintPredictions;
+	  printf("\n Predictions %s\n", gPrintPredictions ? "On." : "Off.");
+	  PrintPosition(thePosition, playerName, TRUE);
+	  break;
     case '?':
       printf("%s",kHandleDefaultTextInputHelp);
       PrintPossibleMoves(thePosition);
