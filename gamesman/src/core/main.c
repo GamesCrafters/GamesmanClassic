@@ -59,8 +59,9 @@ BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printe
 BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
-BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
-BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
+//TEMPORARALLY DISABLE FILE DATABASES TILL MOVED TO NEW DB ARCH.
+BOOLEAN gWriteDatabase = FALSE;    /* Default is to write the database */
+BOOLEAN gReadDatabase = FALSE;     /* Default is to read the database if it exists */
 BOOLEAN gPrintDatabaseInfo = FALSE; /* Print to the console */
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
