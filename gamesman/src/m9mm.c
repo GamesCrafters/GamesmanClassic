@@ -250,10 +250,10 @@ void GameSpecificMenu()
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
-	 case 'F': case 'f':
-		gFlying = !gFlying;
-		setFlyingText();
-		break;
+    case 'F': case 'f':
+      gFlying = !gFlying;
+      setFlyingText();
+      break;
     case 'Q': case 'q':
       ExitStageRight();
     case 'H': case 'h':
@@ -1095,8 +1095,47 @@ int find_adj_pieces(blankox *board, int slot, int *pieces)
   int i;
   int num = 0;
 
+  // multiples of 3 (0, 3, 6, 9, 12, 15, 18, 21) are left-most edge
+  // 0, 1, 2, 3, 5, 6, 8 are top-most
+  // 7, 15, 16, 17, 18, 19, 20, 21, 22, 23 are bottom-most
+  // 2, 5, 8, 11, 14, 17, 20, 23 are right-most (each differs by 3)
+  // 4, 10, 13, 19 are centered (have adjacent pieces in all 4 directions)
+
+  switch (slot) {
+  case 0:
+    num = 2;
+    pieces[0] = 1;
+    pieces[1] = 9;
+    break;
+  case 1:
+    num = 3;
+    pieces[0] = 0;
+    pieces[1] = 2;
+    pieces[2] = 4;
+    break;
+  default:
+    break;
+  }
+
   return num;
 }
+  /*
+  0-----------1-----------2
+  |           |           |
+  |           |           |
+  |   3-------4-------5   |
+  |   |       |       |   |
+  |   |   6---7---8   |   |
+  |   |   |       |   |   |
+  9---10--11      12--13--14
+  |   |   |       |   |   |
+  |   |   15--16--17  |   |
+  |   |       |       |   |
+  |   18------19------20  |
+  |           |           |
+  |           |           |
+  21----------22----------23
+  */
 
 // Given bboard, piece
 // Return the number of instances of piece on the board
@@ -1375,6 +1414,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.53  2004/04/29 15:52:07  ogren
+//wrote count_pieces, full_board, skeleton for find_adj_pieces, all of which are untested. -Elmer
+//
 //Revision 1.52  2004/04/29 15:31:53  ogren
 //started implementing gamespecific menu.  Mutating kHelpOnYourTurn is very, very wrong, however.  -Elmer
 //
