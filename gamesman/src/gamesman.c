@@ -2652,7 +2652,6 @@ POSITION position;
 	/* If this is the last unknown child and they were all wins, parent is lose */
 	if(parent != kBadPosition && --gNumberChildren[parent] == 0) {
 	    /* no more kids, it's not been seen before, assign it as losing, put at head */
-	  /* Bryon */ printf("%d\n",parent);
 	  assert(GetValueOfPosition(parent) == undecided);
 
 	  InsertLoseFR(parent);
