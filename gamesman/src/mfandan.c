@@ -44,7 +44,7 @@
 #include "gamesman.h"
 #include "hash.h"
 
-int debug = 1;
+int debug = 2;
 int printMethods = 0;
 
 extern STRING gValueString[];
@@ -426,8 +426,10 @@ MOVELIST *GenerateMoves(position)
 	  numofcaps=0;
 	  if(InBounds(Neighbor(pos,dir)) && board[i]==B) {      // vacant neighboring cell exists
 	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
+	    if(debug>0) printf("Found vacant neighbor\n");
 	    if(InBounds(attackingpos) && board[CoordinatesToIndex(attackingpos)]==OtherPlayer()) {  // have enemy, can attack by approach
 	      numofcaps++;
+	      if(debug>0) printf("Can attack someone\n");
 	      cap = 1;  // attack by approach mode
 	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
 	      if(debug>1) printf("Generated move: %d\n",move);
@@ -477,7 +479,8 @@ Direction EachDirection() {
   case upright: return dir=right;
   case right: return dir=lowright;
   case lowright: return dir=down;
-  case down: return dir=lowleft;
+  case down: return dir=nodir;
+  case nodir: return dir=lowleft;
   }
 }
 
