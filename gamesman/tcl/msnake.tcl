@@ -52,6 +52,13 @@ proc GS_InitGameSpecific {} {
     set kToMove "\n- Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa.\n"
 
     set kToWin "\nFirst player to get any 3 vertical or horizontal pieces in a row WINS!"
+
+    # 4x4 board
+    global BOARDSIZE
+    set BOARDSIZE 16
+
+    global BOARDWIDTH
+    set BOARDWIDTH 4
 }
 
 # Setup the rules frame
@@ -225,6 +232,7 @@ proc GS_Initialize { c } {
 
     MakePieces $c 0
     MakeConnectors $c
+    MakeArrows $c
 
     # bind the tiles
     for {set i 0} {$i < $counter} {incr i} {
@@ -253,6 +261,92 @@ proc TileLeave {c tileNum } {
     $c itemconfig base$tileNum -outline black -width 2
 }
 
+# April
+# Make all the arrows (four arrows for every tile, excepting the corners and borders)
+proc MakeArrows { c } {
+    # ie 4x4, BOARDSIZE is 16
+    global BOARDSIZE
+    global BOARDWIDTH
+
+    # remember, the make arrow functions written by us take in external move reps (from, to slots)
+    for {set i 0} {$i < $BOARDSIZE} {set i [expr $i + 1]} {
+	# in a tile
+	
+	# the tile is, in 0,1,2,...,boardsize-1 indexing
+	set theTile $i
+
+	# theTile is the "from", now generate the "to"'s
+	set upTo [expr $theTile - $BOARDWIDTH]
+	set downTo [expr $theTile + $BOARDWIDTH]
+	set leftTo [expr $theTile - 1]
+	set rightTo [expr $theTile + 1]
+
+	if {$upTo >= 0} {
+	    #puts "in upTo section"
+	    drawUpArrow $c $theTile $upTo cyan
+
+	    # prepare internal move representation for binding
+	    set internalMove [SlotsToMove $theTile $upTo]
+
+	    # now bind the arrow; this depends on the draw<Dir>Arrow procs to tag the arrows appropriately! the draw<dir>arrow procs tag with 0,1,2,...,boardsize-1 indexing
+	    $c bind arrow$theTile$upTo <Enter> "ArrowEnter $c arrow$theTile$upTo"
+	    $c bind arrow$theTile$upTo <Leave> "ArrowLeave $c arrow$theTile$upTo"
+	    $c bind arrow$theTile$upTo <ButtonRelease-1> "$c itemconfig arrow$theTile$upTo -fill black; SendMove $internalMove"
+	}
+	# here assuming that the board length is same as board width (ie board is square). this is what  msnake.c  does, so i'm just following the msnake.c convention
+	if {$downTo < $BOARDSIZE} {
+	    #puts "in downTo section"
+	    drawDownArrow $c $theTile $downTo cyan
+	    set internalMove [SlotsToMove $theTile $downTo]
+	    $c bind arrow$theTile$downTo <Enter> "ArrowEnter $c arrow$theTile$downTo"
+	    $c bind arrow$theTile$downTo <Leave> "ArrowLeave $c arrow$theTile$downTo"
+	    $c bind arrow$theTile$downTo <ButtonRelease-1> "$c itemconfig arrow$theTile$downTo -fill black; SendMove $internalMove"
+	}
+	if {[expr $theTile % $BOARDWIDTH] != 0 } {
+	    #puts "in leftTo section"
+	    #puts "TILE: $theTile"
+	    puts [expr $i % $BOARDWIDTH]
+	    # drawLeftArrow appears to take internal move rep? dunno, didnt write that proc
+	    drawLeftArrow $c $theTile $leftTo cyan
+	    set internalMove [SlotsToMove $theTile $leftTo]
+	    $c bind arrow$theTile$leftTo <Enter> "ArrowEnter $c arrow$theTile$leftTo"
+	    $c bind arrow$theTile$leftTo <Leave> "ArrowLeave $c arrow$theTile$leftTo"    
+	    $c bind arrow$theTile$leftTo <ButtonRelease-1> "puts arrow$theTile$leftTo; $c itemconfig arrow$theTile$leftTo -fill black; SendMove $internalMove"
+	}
+	if {[expr ($theTile+1) % $BOARDWIDTH] != 0 } {
+	    #puts "in rightTo section"
+	    drawRightArrow $c $theTile $rightTo cyan
+	    set internalMove [SlotsToMove $theTile $rightTo]
+	    $c bind arrow$theTile$rightTo <Enter> "ArrowEnter $c arrow$theTile$rightTo"
+	    $c bind arrow$theTile$rightTo <Leave> "ArrowLeave $c arrow$theTile$rightTo"
+	    $c bind arrow$theTile$rightTo <ButtonRelease-1> "$c itemconfig arrow$theTile$rightTo -fill black; SendMove $internalMove"
+	}
+    }
+
+    $c lower arrows all
+}
+
+
+proc ArrowEnter { c theTag } {
+    global prevColour
+    
+    set prevColour [$c itemcget $theTag -fill]
+
+    $c itemconfig $theTag -fill black
+}
+
+proc ArrowLeave { c theTag } {
+    global prevColour
+
+    $c itemconfig $theTag -fill $prevColour
+}
+    
+
+proc SlotsToMove { fromSlot toSlot } {
+    global BOARDSIZE
+
+    return [expr $toSlot*($BOARDSIZE+1) + $fromSlot]
+}    
 
 # Makes the body pieces of the snake, but not the head or tail.
 proc MakePieces { c num } {
@@ -273,19 +367,20 @@ proc MakeBody { c x y tag } {
 # Makes the connecting pieces of the body. 
 proc MakeConnectors { c } {
     for {set i 0} {$i < 16} {set i [expr $i + 1]} {
-	MakeHorizontalConnectors $c $i $i+1	
+	MakeHorizontalConnectors $c $i [expr $i+1]	
+	#puts "in makehoriz"
     }
     for {set i 0} {$i < 4} {set i [expr $i + 1]} {
-	MakeVerticalConnectors $c $i $i+4
+	MakeVerticalConnectors $c $i [expr $i+4]
     }
     for {set i 4} {$i < 8} {set i [expr $i + 1]} {
-	MakeVerticalConnectors $c $i $i+4
+	MakeVerticalConnectors $c $i [expr $i+4]
     }
     for {set i 8} {$i < 12} {set i [expr $i + 1]} {
-	MakeVerticalConnectors $c $i $i+4
+	MakeVerticalConnectors $c $i [expr $i+4]
     }
     for {set i 12} {$i < 16} {set i [expr $i + 1]} {
-	MakeVerticalConnectors $c $i $i+4
+	MakeVerticalConnectors $c $i [expr $i+4]
     }
     $c lower vconnectors base
     $c lower hconnectors base
@@ -296,13 +391,16 @@ proc MakeHorizontalConnectors { c from to } {
     if {$from == [expr $to - 1]} {
 	set x [expr [expr $from % 4] * 125]
 	set y [expr [expr $from / 4] * 125]
-	$c create rect [expr $x + 95] [expr $y + 30] [expr $x + 155] [expr $y + 95] -fill green3 -tag [list hconnectors hcon$from$to]
+	$c create rect [expr $x + 95] [expr $y + 30] [expr $x + 155] [expr $y + 95] -fill green3 -tag [list connectors hconnectors hcon$from$to]
     }
     if {$from == [expr $to + 1]} {
 	set x [expr [expr $from % 4] * 125]
 	set y [expr [expr $from / 4] * 125]
-	$c create rect [expr $x - 25] [expr $y + 30] [expr $x + 35] [expr $y + 95] -fill green3 -tag [list hconnectors hcon$from$to]
+	$c create rect [expr $x - 25] [expr $y + 30] [expr $x + 35] [expr $y + 95] -fill green3 -tag [list connectors hconnectors hcon$from$to]
+	#puts $from
+	#puts $to
     }
+    puts "**** hcon$from$to"
 }
 
 # Makes vertical connecting pieces
@@ -310,12 +408,15 @@ proc MakeVerticalConnectors { c from to} {
     if {$from == [expr $to + 4]} {
 	set x [expr [expr $from % 4] * 125]
 	set y [expr [expr $from / 4] * 125]
-	$c create rect [expr $x + 30] [expr $y - 25 ] [expr $x + 95] [expr $y + 35] -fill green3 -tag [list vconnectors vcon$from$to]
+	$c create rect [expr $x + 30] [expr $y - 25 ] [expr $x + 95] [expr $y + 35] -fill green3 -tag [list connectors vconnectors vcon$from$to]
     }
     if {$from == [expr $to - 4]} {
 	set x [expr [expr $from % 4] * 125]
 	set y [expr [expr $from / 4] * 125]
-	$c create rect [expr $x + 30] [expr $y + 95] [expr $x + 95] [expr $y + 155] -fill green3 -tag [list vconnectors vcon$from$to]
+	$c create rect [expr $x + 30] [expr $y + 95] [expr $x + 95] [expr $y + 155] -fill green3 -tag [list connectors vconnectors vcon$from$to]
+	puts "---- vcon$from$to"
+	#puts $from
+	#puts $to
     }
 }
 
@@ -392,25 +493,54 @@ proc GS_DrawPosition { c position } {
 }
 
 proc unhash { position } {
+    global BOARDSIZE
+
     set findHead [expr $position & 15]
-    set findTail [expr $position & 240]
-    set findTail [expr $findTail >> 4]
+    set findTail [expr $position >> 4]
+    set findTail [expr $findTail & 15]
     set findBody [expr $position >> 8]
 
+# originals
+#    set findTail [expr $position & 240]
+#    set findTail [expr $findTail >> 4]
+
     # Building the board sequentially
-    for {set i 0} {$i<16} {incr i} {
-	if {$i == $findHead} {
-	    lappend board "head"
-	} elseif {$i == $findTail} {
-	    lappend board "tail"
-	} elseif {[expr $findBody & 1]} {
-	    lappend board "body" 
-	    set findBody [expr $findBody >> 1]
-	} else {
-	    lappend board "blank"
-	    set findBody [expr $findBody >> 1]
+
+# april - i started changing here
+
+    for {set i 0} {$i<$BOARDSIZE} {incr i} {
+	lappend board "blank"
+    }
+
+    lset board $findHead "head"
+    lset board $findTail "tail"
+
+    for {set i 0} {$i<$BOARDSIZE} {incr i} {
+	if {[lindex $board $i]=="blank"} {
+	    if {[expr $findBody & 1]} {
+		lset board $i "body"
+		set findBody [expr $findBody >> 1]
+	    } else {
+		lset board $i "blank"
+		set findBody [expr $findBody >> 1]
+	    }
 	}
     }
+
+#     #original
+#     for {set i 0} {$i<$BOARDSIZE} {incr i} {
+# 	if {$i == $findHead} {
+# 	    lappend board "head"
+# 	} elseif {$i == $findTail} {
+# 	    lappend board "tail"
+# 	} elseif {[expr $findBody & 1]} {
+# 	    lappend board "body" 
+# 	    set findBody [expr $findBody >> 1]
+# 	} else {
+# 	    lappend board "blank"
+# 	    set findBody [expr $findBody >> 1]
+# 	}
+#     }
 
     return $board
 }
@@ -426,7 +556,7 @@ proc GS_NewGame { c position } {
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
-    
+
     # Assume initial position is 8357 (for now). Draw the body connectors.
     MakeHorizontalConnectors $c 5 6
     MakeVerticalConnectors $c 6 10
@@ -441,10 +571,11 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 
 proc GS_WhoseMove { position } {
+    global BOARDSIZE
     puts "** GS_WhoseMove"
     set board [unhash $position]
     set count 0  
-    for {set i 0} {$i<16} {incr i} {
+    for {set i 0} {$i<$BOARDSIZE} {incr i} {
         if {[lindex $board $i] == "body"} {
             set count [expr $count + 1]
         }
@@ -468,14 +599,23 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    global BOARDSIZE
     puts "** GS_HandleMove"
 
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
 
-    set from [lindex $theMove 0]
-    set to [lindex $theMove 1]
+    #theMove is in internal rep format, gotta convert to external (from, slot) format, from slot format is in 0,1,2,...,boardsize-1 indexing form
+
+    set from [expr $theMove % ($BOARDSIZE+1)]
+    set to [expr $theMove / ($BOARDSIZE+1)]
     set piece head
+
+    puts "theMove: $theMove"
+    puts "from: $from"
+    puts "to: $to"
+
+    puts [GS_WhoseMove $oldPosition]
 
     if { [GS_WhoseMove $oldPosition] == "tail"} {
 	set piece tail
@@ -492,16 +632,23 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     if {$to == [expr $from - 4]} {
 	set direction  up
     }
+    #temp, cause my temp random "positions" seem to cause none of above direction if's to be hit
+    #set direction right
+    puts "---- direction: $direction"
+    puts "---- piece: $piece"
     $c raise body$from 
     MovePiece $c $piece $direction
     if {$direction == "up"} {
-	MakeVerticalConnectors $c $from $to
+	$c raise vcon$from$to all
     } elseif {$direction == "down"} {
-	MakeVerticalConnectors $c $from $to
+	$c raise vcon$from$to all
+#	MakeVerticalConnectors $c $from $to
     } elseif {$direction == "left"} {
-	MakeHorizontalConnectors $c $from $to
+	$c raise hcon$from$to all
+	#MakeHorizontalConnectors $c $from $to
     } elseif {$direction == "right"} {
-	MakeHorizontalConnectors $c $from $to
+	$c raise hcon$from$to all
+	#MakeHorizontalConnectors $c $from $to
     }
     $c raise head
 }
@@ -556,39 +703,55 @@ proc findPiece { piece position } {
 # The code snippet herein may be helpful but is not necessary to do it that way.
 # We provide a procedure called MoveTypeToColor that takes in moveType and
 # returns the correct color.
+
+# all draw<dir>Arrow procs take 0,1,2,..,boardsize-1 indexing
 proc drawUpArrow { c from to color} {
     set x [expr $from % 4]
     set y [expr $to / 4]
-    $c create poly [expr $x*125 + 25] [expr $y*125 + 110] [expr $x*125 + 62] [expr $y*125 + 90] [expr $x*125 + 100] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 110] -fill $color -tag upArrow
+    $c create poly [expr $x*125 + 25] [expr $y*125 + 110] [expr $x*125 + 62] [expr $y*125 + 90] [expr $x*125 + 100] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 110] -fill $color -tags [list arrows upArrow upArrow$from$to arrow$from$to]
 }
 
 proc drawDownArrow { c from to color } {
     set x [expr $from % 4]
     set y [expr $to / 4 - 1]
-    $c create poly [expr $x*125 + 50] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 140] [expr $x*125 + 100] [expr $y*125 + 140] [expr $x*125 + 62] [expr $y*125 + 160] [expr $x*125 + 25] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 140] -fill $color -tag downArrow
+    $c create poly [expr $x*125 + 50] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 110] [expr $x*125 + 75] [expr $y*125 + 140] [expr $x*125 + 100] [expr $y*125 + 140] [expr $x*125 + 62] [expr $y*125 + 160] [expr $x*125 + 25] [expr $y*125 + 140] [expr $x*125 + 50] [expr $y*125 + 140] -fill $color -tags [list arrows downArrow downArrow$from$to arrow$from$to]
 }
 
 proc drawRightArrow {c from to color } {
     set x [expr $from % 4]
     set y [expr $to / 4 ]
-    $c create poly  [expr $x*125 + 110] [expr $y*125 + 50] [expr $x*125 + 110] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 100] [expr $x*125 + 160] [expr $y*125 + 62] [expr $x*125 + 140] [expr $y*125 + 25] [expr $x*125 + 140] [expr $y*125 + 50] -fill $color -tag rightArrow
+    $c create poly  [expr $x*125 + 110] [expr $y*125 + 50] [expr $x*125 + 110] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 100] [expr $x*125 + 160] [expr $y*125 + 62] [expr $x*125 + 140] [expr $y*125 + 25] [expr $x*125 + 140] [expr $y*125 + 50] -fill $color -tags [list arrows rightArrow rightArrow$from$to arrow$from$to]
 }    
 
 proc drawLeftArrow { c from to color} {
     set x [expr $from % 4 - 1]
     set y [expr $to / 4]
-    $c create poly [expr $x*125 + 110] [expr $y*125 + 25] [expr $x*125 + 90] [expr $y*125 + 62] [expr $x*125 + 110] [expr $y*125 + 100] [expr $x*125 + 110] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 50] [expr $x*125 + 110] [expr $y*125 + 50] -fill $color -tag leftArrow
+    $c create poly [expr $x*125 + 110] [expr $y*125 + 25] [expr $x*125 + 90] [expr $y*125 + 62] [expr $x*125 + 110] [expr $y*125 + 100] [expr $x*125 + 110] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 75] [expr $x*125 + 140] [expr $y*125 + 50] [expr $x*125 + 110] [expr $y*125 + 50] -fill $color -tags [list arrows leftArrow leftArrow$from$to arrow$from$to]
 }
 
 proc GS_ShowMoves { c moveType position moveList } {
+    global BOARDSIZE
+
     puts "** GS_ShowMoves"
 
     puts "entered"
     set whoseTurn [GS_WhoseMove $position]
     set from [findPiece $whoseTurn $position]  
+    puts $from
     puts "say what"
     foreach item $moveList {
 	#	set color [MoveTypeToColor $moveType]
+	puts "in GS_ShowMoves: $item"
+
+	# this theMove is in internal rep format
+	set theMove [lindex $item 0]
+	# convert to external move format (ie from, to)
+	set fromSlot [expr $theMove % ($BOARDSIZE+1)]
+	set toSlot [expr $theMove / ($BOARDSIZE+1)]
+
+	set value [lindex $item 1]
+	set color cyan
+
  	if {$moveType == "value"} {
  	    if {$value == "Tie"} {
  		set color yellow
@@ -598,25 +761,31 @@ proc GS_ShowMoves { c moveType position moveList } {
  		set color green  
 		#switched colors (green/red)
  	    }
-	    puts "Got past color picker"
-	    if {$item < $from} {
-		set n [expr $item + 1]
-		if {$n == $from} { 
-		    #if item + 1 = from, then it must an left arrow
-		    drawLeftArrow $c $from $item $color
-		} else {
-		    drawUpArrow $c $from $item $color
-		}
-	    } else {
-		set n [expr $item - 1]
-		if {$n == $from} {
-		    drawRightArrow $c $from $item $color
-		} else {
-		    drawDownArrow $c $from $item $color
-		}
-	    }
-	    #updateidletasks
 	}
+	puts "Got past color picker"
+
+	$c itemconfig arrow$fromSlot$toSlot -fill $color
+	$c raise arrow$fromSlot$toSlot all
+
+
+# 	# april - replaced $item with $toSlot
+# 	if {$toSlot < $from} {
+# 	    set n [expr $toSlot + 1]
+# 	    if {$n == $from} { 
+# 		#if item + 1 = from, then it must an left arrow
+# 		drawLeftArrow $c $from $toSlot $color
+# 	    } else {
+# 		drawUpArrow $c $from $toSlot $color
+# 	    }
+# 	} else {
+# 	    set n [expr $toSlot - 1]
+# 	    if {$n == $from} {
+# 		drawRightArrow $c $from $toSlot $color
+# 	    } else {
+# 		drawDownArrow $c $from $toSlot $color
+# 	    }
+# 	}
+	update idletasks
     }
 }
 
@@ -624,6 +793,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 # You might not use all the arguments, and that's okay.
 # Or I could have created all of the arrows in GS_Initialize and just raise/lower them in showing moves (just don't forget to change colors in GS_ShowMoves).
 proc GS_HideMoves { c moveType position moveList} {
+    global BOARDSIZE
+
     puts "GS_HideMoves"
 
     set whoseTurn [GS_WhoseMove $position]
@@ -632,25 +803,33 @@ proc GS_HideMoves { c moveType position moveList} {
     foreach item $moveList {
 	set item [lindex $item 0]
 
-	if {$item < $from} {
-	    #puts $from
-	    #puts $item
-	    set n [expr $item + 1]
-	    if {$n == $from} { 
-		#if item + 1 = from, then it must an left arrow
-		$c lower leftArrow base
-	    } else {
-		$c lower upArrow base
-	    }
-	} else {
-	    set n [expr $item - 1]
-	    if {$n == $from} {
-		$c lower rightArrow base 
-	    } else {
-		$c lower downArrow base 
-	    }
-	}
-	#updateidletasks
+	# this theMove is in internal rep format
+	set theMove [lindex $item 0]
+	# convert to external move format (ie from, to)
+	set fromSlot [expr $theMove % ($BOARDSIZE+1)]
+	set toSlot [expr $theMove / ($BOARDSIZE+1)]
+
+	$c lower arrow$fromSlot$toSlot all
+
+	# if {$item < $from} {
+# 	    #puts $from
+# 	    #puts $item
+# 	    set n [expr $item + 1]
+# 	    if {$n == $from} { 
+# 		#if item + 1 = from, then it must an left arrow
+# 		$c lower leftArrow base
+# 	    } else {
+# 		$c lower upArrow base
+# 	    }
+# 	} else {
+# 	    set n [expr $item - 1]
+# 	    if {$n == $from} {
+# 		$c lower rightArrow base 
+# 	    } else {
+# 		$c lower downArrow base 
+# 	    }
+# 	}
+	update idletasks
     }	    
 }
 
@@ -668,7 +847,7 @@ proc GS_HideMoves { c moveType position moveList} {
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     puts "** GS_HandleUndo"
-    GS_DrawPosition c positionAfterUndo
+    GS_DrawPosition $c positionAfterUndo
 }
 
 
