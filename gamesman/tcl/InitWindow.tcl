@@ -19,7 +19,6 @@ proc TBaction1 {} {
 
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
-	##############where it was#############
 	.middle.f1.cMLeft raise iIMB
 	.middle.f3.cMRight raise play
 	.cStatus lower base
@@ -318,7 +317,7 @@ proc InitWindow { kRootDir } {
 		    set theValue [C_DetermineValue $gPosition]
 		    set gGameSolved true
 		    . config -cursor {}
-		    set gReallyUnsolved = false
+		    set gReallyUnsolved false
 		}
 	    }
 	    DriverLoop
