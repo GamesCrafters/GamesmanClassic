@@ -87,9 +87,6 @@ proc InitConstants {} {
     global gAnimationSpeed
     set gAnimationSpeed 8
     
-    global gPredictions
-    set gPredictions true
-    
     global gMoveType
     set gMoveType all
     
@@ -244,7 +241,7 @@ proc DriverLoop { } {
    
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
-    global gMoveDelay gGameDelay
+    global gMoveDelay gGameDelay gMoveType
 
     set gWaitingForHuman false
 
@@ -265,20 +262,20 @@ proc DriverLoop { } {
 		-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
 		update idletasks
 
-	    ## Handle Predictions if they're turned on
-	    
-	    global gPredictions
-	    
-	    if { $gPredictions } {
-		global gPredString
-		GetPredictions
+	    ## Handle Prediction
+	    global gPredString
+	    GetPredictions
 	    .middle.f3.cMRight itemconfigure Predictions \
-		    -text [format "Predictions: %s" $gPredString] 
-		update idletasks
-	    }
-	    
+		-text [format "Predictions: %s" $gPredString] 
+	    update idletasks
+       	    
 	    if { [PlayerIsComputer] } {
+		global gComputerMovesShown
+		set gComputerMovesShown true
+		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
 		after [expr int($gMoveDelay * 1000)]
+		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+		set gComputerMovesShown false
 		DoComputerMove
 		set gWaitingForHuman false
 		update
@@ -401,7 +398,8 @@ proc DoHumanMove { } {
 
 proc ReturnFromHumanMove { theMove } {
     global gamestarted
-    if {$gamestarted} {
+    global gComputerMovesShown
+    if {$gamestarted && !$gComputerMovesShown} {
         ReturnFromHumanMoveHelper $theMove
     }
 }
@@ -594,9 +592,7 @@ proc ChangeMoveType { fromMoveType toMoveType position moveList } {
 
     GS_HideMoves .middle.f2.cMain $fromMoveType $position $moveList
 
-    if { $gWaitingForHuman } {
-	GS_ShowMoves .middle.f2.cMain $toMoveType $position $moveList
-    }
+    GS_ShowMoves .middle.f2.cMain $toMoveType $position $moveList
 
 }
 

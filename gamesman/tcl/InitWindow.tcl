@@ -47,6 +47,8 @@ proc TBaction1 {} {
 # Rules button
 proc TBaction2 {} {
     .cToolbar raise iITB
+    global gWaitingForHuman
+    set gWaitingForHuman true
     pack forget .middle.f2.cMain   
     pack .middle.f2.fRules -side bottom -fill both -expand 1
 }
@@ -54,6 +56,8 @@ proc TBaction2 {} {
 # Help button
 proc TBaction3 {} {
     .cToolbar raise iITB
+    global gWaitingForHuman
+    set gWaitingForHuman true
     pack forget .middle.f2.cMain   
     pack .middle.f2.fHelp -side bottom
 }
@@ -61,6 +65,8 @@ proc TBaction3 {} {
 # About button
 proc TBaction4 {} {
     .cToolbar raise iITB
+    global gWaitingForHuman
+    set gWaitingForHuman true
     pack forget .middle.f2.cMain
     pack .middle.f2.fAbout -side bottom
 }
@@ -532,6 +538,7 @@ proc InitWindow { kRootDir } {
 	    .cToolbar raise iATB
             RaiseStatusBarIfGameStarted
 	    update
+	    DriverLoop
 	}
     button $rulesFrame.buttons.bOk \
 	-text "Start new game with above rule settings" \
@@ -595,6 +602,7 @@ proc InitWindow { kRootDir } {
 	    .cToolbar raise iATB
 	    RaiseStatusBarIfGameStarted
 	    update
+	    DriverLoop
 	}
     
     button .middle.f2.fAbout.bReturn -text "Return" \
@@ -604,6 +612,7 @@ proc InitWindow { kRootDir } {
 	    .cToolbar raise iATB
 	    RaiseStatusBarIfGameStarted
 	    update
+	    DriverLoop
 	}
     pack .middle.f2.fHelp.bReturn -side right -fill both -expand 1
     pack .middle.f2.fAbout.bReturn -side right -fill both -expand 1
@@ -832,7 +841,6 @@ proc InitWindow { kRootDir } {
     }
 
     .cStatus bind iABB8 <ButtonRelease-1> {
-	set gPredictions false
 	#.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight lower Predictions
 	.cStatus raise iIBB8
