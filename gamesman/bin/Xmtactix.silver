@@ -37,16 +37,14 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmtactix[info sharedlibextension]" Gamesman
 
-### Now source the rest of the game-playing interface code.
-
-source "$kRootDir/../tcl/gamesman3.tcl"
-
 ### Now source our Game-specific code.
 
 source "$kRootDir/../tcl/mtactix.tcl"
 
-main $kRootDir
+### This is specific to TacTix; we allow the user to edit the initial position.
 
+source "$kRootDir/../tcl/mtactixsubs.tcl"
 
+### Now source the rest of the game-playing interface code.
 
-
+source "$kRootDir/../tcl/gamesman.tcl"

@@ -248,13 +248,13 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 ctoi win4 dodgem Lgame tactix sim 3dot con cmass dnb foxes stt }
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi win4 dodgem Lgame sim 3dot con cmass dnb foxes stt }
     ### Removed ttt (silver version) ddg 2004-04-18
 
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Tac Tix" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
-    set theGuiTypes { gold gold gold gold gold gold gold gold grey grey grey grey grey grey brown brown brown brown brown brown }
+    set theGuiTypes { gold gold gold gold gold gold gold gold gold grey grey grey grey grey brown brown brown brown brown brown }
     ### Removed grey (for Tic-Tac-Toe)
 
 
@@ -275,6 +275,14 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.12  2005/01/10 17:28:17  reyjeffc
+##Changed XGamesman.in and Xmlite3 to reflect gold status
+##
+##Hmm, I just realized I probably said 2004 in my previous update...
+##
+##January 10, 2005
+##Jeffrey
+##
 ##Revision 1.11  2004/10/10 05:35:39  angell0rd
 ##? gamesman/.project
 ##? gamesman/Makefile

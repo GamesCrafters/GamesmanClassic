@@ -47,7 +47,7 @@ proc GS_InitGameSpecific {} {
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Gamescrafters Team!"
+    set kCAuthors "(Fill this in)"
     set kTclAuthors "(Fill this in)"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
@@ -282,15 +282,9 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # These moves are represented as numbers (same as in C)
 # The value will be either "Win" "Lose" or "Tie"
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
-#
-# The code snippet herein may be helpful but is not necessary to do it that way.
-# We provide a procedure called MoveTypeToColor that takes in moveType and
-# returns the correct color.
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    set color MoveTypeToColor moveType
-    
     ### TODO: Fill this in
 }
 

@@ -164,7 +164,7 @@ proc GS_InitGameSpecific {} {
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Gamescrafters Team!"
+    set kCAuthors "Alex Perelman, Babak Hamadani"
     set kTclAuthors "Dan Garcia, Alex Perelman, Jeffrey Chiang"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
