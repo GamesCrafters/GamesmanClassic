@@ -864,12 +864,20 @@ proc moveBigO {c littleO} {
     moveBigOHelper $c $littleO
     set gPhase 1
     set gOkay 1
+
+    global tcl_platform
     if {$gPlayerOneTurn} {
 	set gPlayerOneTurn [not $gPlayerOneTurn]
-	$c config -cursor "@$xbmLeft red"
+	if { $tcl_platform(platform) != "macintosh" && \
+		 $tcl_platform(platform) != "windows" } {
+	    $c config -cursor "@$xbmLeft red"
+	}
     } else {
 	set gPlayerOneTurn [not $gPlayerOneTurn]
-	$c config -cursor "@$xbmLeft blue"
+	if { $tcl_platform(platform) != "macintosh" && \
+		 $tcl_platform(platform) != "windows" } {
+	    $c config -cursor "@$xbmLeft blue"
+	}
     }
     $c lower neutral back
     if {[llength $gValueMoves] == 0} {
@@ -1049,7 +1057,13 @@ proc GS_NewGame {c} {
 	set gPlayerOneTurn 0
 	set gPosition 19389
     }
-    $c config -cursor "@$xbmLeft blue"
+    
+    global tcl_platform
+    if { $tcl_platform(platform) != "macintosh" && \
+	     $tcl_platform(platform) != "windows" } {
+	$c config -cursor "@$xbmLeft blue"
+    }
+
     $c itemconfig shade -fill blue -outline blue
     $c itemconfig bigO -fill purple
     
