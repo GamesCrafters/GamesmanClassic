@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include "gamesman.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -440,7 +441,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int row, col, i;/*
+  int row, col;/*
   generic_unhash(position, sBlankOX);
   for (i = 0; i < BOARDSIZE; i++) {
     printf("%c", sBlankOX[i]);
