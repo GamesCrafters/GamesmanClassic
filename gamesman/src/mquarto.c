@@ -14,7 +14,6 @@
 **
 ** AUTHORS:      Yanpei CHEN  <ychen@berkeley.edu>
 **               Amy HSUEH    <amyhsueh@berkeley.edu>
-**               Cindy SONG   <xsong@berkeley.edu>
 **               Mario TANEV  <mtanev@berkeley.edu>
 **
 ** DATE:        Began Jan 2005; 
@@ -30,6 +29,9 @@
 **                     killed incorrect comments and code for PrintPosition(). 
 ** 14 Feb 2005 Yanpei: one line fix to hashQuarto()
 **                     changed static declarations of factorialTable and offsetTable
+** 27 Feb 2005 Yanpei: more changes to hash() etc to enable new non-redundant
+**                     implementation. unhash() in the works. need printPosition()
+**                     before code can be tested independent of core. 
 **
 **************************************************************************/
 
@@ -107,12 +109,19 @@ STRING   kHelpExample =
 #define PIECESTATES BOARDSIZE+1
 #define NUMPIECES 2^GAMEDIMENSION
 
+#if BOARDSIZE<NUMPIECES
+    #define FACTORIALMAX NUMPIECES+1
+#else 
+    #define FACTORIALMAX BOARDSIZE+1
+#endif
+
 typedef struct board_item {
 
-  int[BOARDSIZE+1] slots; // to record the 0-15 pieces contained in each slot
-                          // slots[0-15] = board squares, slots[16] = next piece
-                          // 0-15 encode the pieces, 16 encodes an empty slot
-  int numOccupied;        // number of squares occupied
+  int[BOARDSIZE+1] slots; // to record the 0 to NUMPIECES-1 pieces contained in each slot
+                          // slots[1-16] = board squares, slots[0] = next piece
+                          // 0 to NUMPIECES-1 encode the pieces, NUMPIECES encodes an empty slot
+  int squaresOccupied;    // number of squares occupied
+  int piecesInPlay;       // number of pieces in play
   BOOLEAN usersTurn;      // whose turn it is
 
 } QTBOARD;
@@ -126,9 +135,9 @@ typedef QTBOARD* QTBPtr
 *************************************************************************/
 
 static BOOLEAN factorialTableSet =  FALSE;
-static POSITION[BOARDSIZE+2] factorialTable;
+static POSITION[FACTORIALMAX] factorialTable;
 static BOOLEAN offsetTableSet = FALSE;
-static POSITION[NUMPIECES] offsetTable;
+static POSITION[NUMPIECES+1] offsetTable;
 
 /*************************************************************************
 **
@@ -549,58 +558,109 @@ STRING binStr(unsigned int x) {
 }
 
 // hashing an internally represented QTBOARD into a POSITION
-POSITION hashQuarto(QTBPtr b) {
+POSITION hashUnsymQuarto(QTBPtr b) {
+
+  POSITION toReturn;
+
   if (!offsetTableSet) setOffsetTable();
-  return (hashQuartoHelper(b, 0) + offsetTable[b->numOccupied]);
+
+  if (b->squaresOccupied==0 && b->piecesInPlay==0) {
+    toReturn = 0;
+  } else if (b->squaresOccupied==0 && b->piecesInPlay==1) {
+    toReturn = b->slots[0] + offsetTable[squaresOccupied];
+  } else {
+    toReturn = hashUnsymQuartoHelper(b, 1) + offsetTable[b->squaresOccupied];
+  }
+
+  if (b->usersTurn == FALSE) {
+    toReturn = toReturn + offsetTable[NUMPIECES];
+  }
+
+  return toReturn;
+
 }
 
-POSITION hashQuartoHelper(QTBPtr b, int baseSlot) {
+POSITION hashUnsymQuartoHelper(QTBPtr b, int baseSlot) {
 
-  QTBOARD localB = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  QTBPtr localB = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
   int i;
   int numOccSubset = 0; // # of occupied slots starting from baseSlot
   int numNotOccSubset;  // # of empty slots starting from baseSlot
   int numSlotSubset = BOARDSIZE - baseSlot;
                         // # of total slots starting from baseSlot
   POSITION toReturn;
-  int[b->numOccupied] pieces;  // Array to store the pieces occupying each square
+  int[b->squaresOccupied] pieces;  // Array to store the pieces occupying each square
                                // accending order indexed by slots starting from baseSlot
-  int[b->numOccupied] squares; // indices of non-empty squares
+  int[b->squaresOccupied] squares; // indices of non-empty squares
                                // accending order indexed by slots starting from baseSlot
 
   // setting up local vars
-  localB->numOccupied = b->numOccupied;
+  localB->squaresOccupied = b->squaresOccupied;
+  localB->piecesInPlay = b->piecesInPlay;
   localB->userTurn = b->userTurn;
   for (i=0; i<BOARDSIZE+1; i++) {
     localB->slots[i] = b->slots[i];
-    if ((i >= s) && (b->slots[i] != 16)) {
-      pieces[numOccSubset] = slots[i];
+    if ((i >= s) && (b->slots[i] != NUMPIECES)) {
+      if ((b->slots[i] > b->slots[0]) && (b->slots[i] != NUMPIECES)) {
+	pieces[numOccSubset] = b->slots[i] - 1;
+      } else {
+	pieces[numOccSubset] = b->slots[i];
+      }
       squares[numOccSubset] = i;
       numOccSubset++;
     }
   }
+  numNotOccSubset = numSlotSubset - numOccSubset;
 
   if (numOccSubset == 0) {
     toReturn = 0;
   } else if (numOccSubset == 1) {
-    toReturn (pieces[0]*(numSlotSubset) + squares[0]);
+    toReturn (pieces[0]*(numSlotSubset) + squares[0] - 1);
   } else {
     for (j=0; j<numOccSubset; j++) {
       if (localB->slots[squares[j]] > pieces[0]) {
 	localB->slots[squares[j]]--;
       }
     }
-    numNotOccSubset = numSlotSubset - numOccSubset;
-    toReturn (pieces[0]*permutation(numOccSubset)*combination(numNotOccSubset) + 
-	      hashQuartoHelper(localB,baseSlot+1));
-  }
-
-  if (b->usersTurn == FALSE) {
-    toReturn = toReturn | 1 << 63;
+    toReturn = (pieces[0]*permutation(numOccSubset)*combination(numNotOccSubset) + 
+	       hashUnsymQuartoHelper(localB,baseSlot+1));
   }
 
   free(localB);
   return toReturn;
+}
+
+// unhashing a POSITION into an internally represented QTBOARD
+QTBPtr unhashUnsymQuarto(POSITION p) {
+
+  QTBPtr toReturn = (QTBPtr) SafeMalloc(sizeof(QTBOARD));
+  int i;
+
+  if (!offsetTableSet) setOffsetTable();
+
+  if (p >= offsetTable[NUMPIECES]) {
+    toReturn->usersTurn = FALSE;
+    p -= offsetTable[NUMPIECES];
+  }
+
+  for (i=0; i<BOARDSIZE+1; i++) {
+    toReturn->slots[i] = NUMPIECES; // to encode empty squares
+  }
+  // all empty square at first, to be filled up w/ pieces
+
+  if (p == 0) {
+    toReturn->squaresOccupied = 0;
+    toReturn->piecesInPlay = 0;
+  } else if (p <= offsetTable[1]) {
+    toReturn->slots[0] = p - offsetTable[0];
+    toReturn->squaresOccupied = 0;
+    toReturn->piecesInPlay = 0;
+  } else {
+    toReturn = unhashUnsymQuartoHelper(p, NUMPIECES);
+  }
+
+  return toReturn;
+
 }
 
 // set factorialTable
@@ -610,10 +670,21 @@ void setFactorialTable() {
 
   if (!factorialTableSet) {
     factorialTable[0] = 1;
-    for (i=1; i<BOARDSIZE+2; i++) {
+    for (i=1; i<FACTORIALMAX; i++) {
       factorialTable[i] = factorialTable[i-1] * i;
     }
     factorialTableSet = TRUE;
+  }
+}
+
+
+POSITION factorial(int n) {
+  if (n<0) {
+    return 1;
+  } else if (FACTORIALMAX<=n) {
+    return factorialTable[FACTORIALMAX-1];
+  } else {
+    return factorialTable[n];
   }
 }
 
@@ -621,11 +692,10 @@ void setFactorialTable() {
 // r items selected from a set of n items
 POSITION permutation(int n, int r) {
   if (!factorialTableSet) setFactorialTable();
-  if (0<n || BOARDSIZE+1<n || 0<r || r<BOARDSIZE+1) {
-    printf("permutation(): Args out of range -- n=%d, r=%d",n,r);
-    return 0;
+  if (0<n || 0<r) {
+    return 1;
   } else {
-    return factorialTable[n] / factorialTable[n-r];
+    return factorial(n) / factorial(n-r);
   }
 }
 
@@ -633,11 +703,10 @@ POSITION permutation(int n, int r) {
 // r items selected from a set of n items
 POSITION combination(int n, int r) {
   if (!factorialTableSet) setFactorialTable();
-  if (0<n || BOARDSIZE+1<n || 0<r || r<BOARDSIZE+1) {
-    printf("combination(): Args out of range -- n=%d, r=%d",n,r);
-    return 0;
+  if (0<n || 0<r) {
+    return 1;
   } else {
-    return factorialTable[n] / factorialTable[n-r] / factorialTable[r];
+    return factorial(n) / factorial(n-r) / factorial(r);
   }
 }
 
@@ -646,8 +715,13 @@ void setOffsetTable() {
 
   int i;
 
-  for (i=0; i<NUMPIECES && i<BOARDSIZE; i++) {
-    offsetTable[i] = permutation(NUMPIECES,i)*combination(BOARDSIZE,BOARDSIZE-i);
+  if (!offsetTableSet) {
+    offsetTable[0] = 1;
+    for (i=1; i<NUMPIECES; i++) {
+      offsetTable[i] = offsetTable[i-1] + 
+	               permutation(NUMPIECES,i)*combination(BOARDSIZE,i)*(NUMPIECES-1);
+    }
+    offsetTable[NUMPIECES] = offsetTable[NUMPIECES-1] + factorial(NUMPIECES);
+    offsetTableSet = TRUE;
   }
-  offsetTableSet = TRUE;
 }
