@@ -319,6 +319,7 @@ void InitializeGame () {
 		}
 	}
 	gInitialPosition = generic_hash(board, 1);
+	getOption();
 }
 
 
@@ -966,7 +967,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 5880;
 }
 
 
@@ -998,8 +999,9 @@ int getOption ()
     int moveStyleVal;
     int boardSizeVal;
     int scoreVal;
+    int i, j, k, l;
     
-    /* determine moveStyleVal ( to ) */
+    /* determine moveStyleVal (0 to 7) */
     if (slide_rules == NO_SLIDE) {
 	moveStyleVal = 0;
     } else if (slide_rules == MAY_SLIDE) {
@@ -1021,12 +1023,20 @@ int getOption ()
 	}
     }	
     
-    
-    /* determine boardSizeVal ( to ) */
+    /* determine boardSizeVal (0 to 244) */
     boardSizeVal = 0;
-    boardSizeVal += height;
-    
-    
+    l = 0;
+    for (i = MIN_WIDTH; i <= MAX_WIDTH; i++) {
+	for (j = MIN_PIECES; j <= i; j++) {
+	    for (k = MIN_HEIGHT ; k <= MAX_HEIGHT; k++) {
+		if (i ==  width && j == numpieces && k == height) {
+		    boardSizeVal = l;
+		}
+		l++;
+	    }
+	}
+    }
+
     /* determine scoreVal (0 to 2) */
     if (scoreDiagonal && scoreStraight) {
 	scoreVal = 0;
@@ -1038,6 +1048,7 @@ int getOption ()
 	BadElse("getOption");
     }
     
+    return 245*8*scoreVal + 8*boardSizeVal + moveStyleVal + 1;
 }
 
 
