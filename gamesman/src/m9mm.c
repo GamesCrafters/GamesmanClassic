@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.8 2004-03-07 18:41:41 ogren Exp $
+//$Id: m9mm.c,v 1.9 2004-03-07 18:54:06 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -10,8 +10,27 @@
 ** DATE:        Start: 10am 2004.2.22
 **              Finish: Never
 **
-** UPDATE HIST: 2004.02.22: Begin coding module, wrote: almost everything
-**              2004.03.07: DoMove compiles, change piece b to blank
+** UPDATE HIST: 2004.02.22: Begin coding module, implemented functions: 
+**                          int hash
+**                          POSITION unhash;
+**                          void parse_board
+**                          void unparse_board;
+**                          blankox whose_turn
+**                          MOVE hash_move
+**                          int from
+**                          int to
+**                          int remove_piece
+**                          blankox opponent;
+**                          BOOLEAN can_be_taken
+**                          BOOLEAN closes_mill
+**                          BOOLEAN check_mill
+**                          BOOLEAN three_in_a_row
+**                          void InitializeGame
+**                          POSITION DoMove
+**                          VALUE Primitive
+**                          MOVELIST *GenerateMoves(POSITION position)
+**
+**              2004.03.07: DoMove, GenerateMoves  now compiles
 ** 
 **
 **
@@ -114,7 +133,7 @@ char *gblankoxString[] = { " ", "x", "o"};
 */
 
 int hash(blankox *board, blankox turn);
-POSITION unhash(int hash_val, blankox *dest);
+blankox* unhash(int hash_val, blankox *dest);
 void parse_board(char *c_board, blankox *b_board);
 void unparse_board(blankox *b_board, char *c_board);
 blankox whose_turn(int hash_val);
@@ -632,7 +651,7 @@ void parse_board(char *c_board, blankox *b_board)
     }
 }
 
-void unparse_board(blankox *b_board, char *b_board)
+void unparse_board(blankox *b_board, char *c_board)
 {
   int i;
   for (i = 0; i < BOARDSIZE; i++)
@@ -721,6 +740,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.8  2004/03/07 18:41:41  ogren
+//removed semicolons from #define - Elmer
+//
 //Revision 1.7  2004/03/07 18:12:12  ogren
 //DoMove compiles, changed piece enumeration from "b,o,x" to "blank,o,x" - Elmer
 //
