@@ -12,8 +12,8 @@
 #  (A)nd
 #  (N)avigation
 #
-#  Dan Garcia, 05-15-95
-#  ddgarcia@cs.berkeley.edu
+#  GamesCrafters Research Group, UC Berkeley
+#  Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 #
 ##############################################################################
 
@@ -58,17 +58,26 @@ GAMELINE_EXE		= $(BINDIR)/server$(EXESUFFIX) $(BINDIR)/client$(EXESUFFIX)
 
 GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
 
-GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
-GAMESMAN_INCLUDE	= gamesman.h
+# Changed to gamesman.a -JJ
+# This notice and the comments should go away eventually..
 
-HASH_OBJ		= hash$(OBJSUFFIX)
-HASH_INCLUDE		= hash.h
+GAMESMAN_A		= gamesman.a
+#GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
+GAMESMAN_INCLUDE	= gamesman.h core/gamesman.h core/analysis.h \
+			  core/constants.h core/globals.h core/debug.h \
+			  core/gameplay.h core/misc.h core/memdb.h \
+			  core/textui.h core/filedb.h core/main.h
 
-LOOPYGASOLVER_OBJ	= loopygasolver$(OBJSUFFIX)
-LOOPYGASOLVER_INCLUDE	= loopygasolver.h
+GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
 
-LOOPYUPSOLVER_OBJ	= loopyupsolver$(OBJSUFFIX)
-LOOPYUPSOLVER_INCLUDE	= loopyupsolver.h
+#HASH_OBJ		= hash$(OBJSUFFIX)
+#HASH_INCLUDE		= hash.h
+
+#LOOPYGASOLVER_OBJ	= loopygasolver$(OBJSUFFIX)
+#LOOPYGASOLVER_INCLUDE	= loopygasolver.h
+
+#LOOPYUPSOLVER_OBJ	= loopyupsolver$(OBJSUFFIX)
+#LOOPYUPSOLVER_INCLUDE	= loopyupsolver.h
 
 1210_EXE		= $(BINDIR)/m1210$(EXESUFFIX)	# The wonderful game of 1,2,...,10
 1210_OBJ		= m1210$(OBJSUFFIX)
@@ -321,6 +330,7 @@ dist:		clean
 		rm -rf Makefile
 
 clean:		clean-bins
+		@$(MAKE) -w -C core clean
 		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~
@@ -345,8 +355,10 @@ $(GAMELINE_OBJ): %$(OBJSUFFIX): %.c
 $(GAMELINE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
 	$(CC) -o $@ $< $(LDFLAGS)
 
-$(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
-	$(CC) $(CFLAGS) -c -o $@ $<
+#$(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+#	$(CC) $(CFLAGS) -c -o $@ $<
+$(GAMESMAN_A): $(GAMESMAN_DEPS)
+	@$(MAKE) -w -C core all
 
 $(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -367,51 +379,51 @@ $(LOOPYUPSOLVER_OBJ): %$(OBJSUFFIX): %.c $(LOOPYUPSOLVER_INCLUDE)
 ##############################################################################
 ### Generic rules for games:
 
-$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(HASH_INCLUDE)
+$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ)
-	$(CC) -o $@ $< $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(HASH_INCLUDE) 
-	$(CC) $(CFLAGS) -c -o $@ $<
+test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
+	$(CC) $(CFLAGS) -Wall -c -o $@ $<
 
-test-%: test-%$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ)
-	$(CC) -o $@ $< $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS)
+test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS)
 
-$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ)  
-	$(CC) -o $@ $< $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GWISH_OBJ)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ)
-	$(CCC) -o $@ $< $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A)
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(GWISH_OBJ) 
-	$(CCC) -o $@ $< $(GAMESMAN_OBJ) $(HASH_OBJ) $(LOOPYGASOLVER_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GWISH_OBJ) 
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
 
-$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A)
+	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
+	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_A)
+	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_OBJ) $(ABALONE_TCL_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_A) $(ABALONE_TCL_OBJ)
+	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(TTT_EXE): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(TTT_EXE): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(GWISH_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
@@ -425,5 +437,5 @@ $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(LOOPYUPSOLVER_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ) $(LOOPYUPSOLVER_OBJ) $(LOOPYGASOLVER_OBJ) $(HASH_OBJ)
-	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_OBJ) $(LOOPYGASOLVER_OBJ) $(LOOPYUPSOLVER_OBJ) $(HASH_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
+$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ) $(LOOPYUPSOLVER_OBJ)
+	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(LOOPYUPSOLVER_OBJ) $(LDFLAGS) $(TCLEXEFLAGS)
