@@ -49,6 +49,7 @@ SOLVER_STD	= solvestd$(OBJSUFFIX)
 SOLVER_LOOPY	= solveloopy$(OBJSUFFIX)
 SOLVER_LOOPYGA	= solveloopyga$(OBJSUFFIX)
 SOLVER_ZERO	= solvezero$(OBJSUFFIX)
+SOLVER_LOOPYUP	= solveloopyup$(OBJSUFFIX)
 
 
 ##############################################################################
@@ -57,7 +58,8 @@ SOLVER_ZERO	= solvezero$(OBJSUFFIX)
 CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(DEBUG_OBJ) $(FILEDB_OBJ) \
      $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MEMDB_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ)
 
-SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO)
+SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
+	$(SOLVER_LOOPYUP)
 
 MODULES=$(CORE) $(SOLVERS) hash.o
 

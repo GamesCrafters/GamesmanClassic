@@ -1,6 +1,6 @@
 
-#ifndef GM_CONSTANTS_H
-#define GM_CONSTANTS_H
+#ifndef GMCORE_CONSTANTS_H
+#define GMCORE_CONSTANTS_H
 
 extern STRING	kOpeningCredits,
 		kHelpValueBeforeEvaluation,
@@ -12,4 +12,4 @@ extern STRING	kOpeningCredits,
 
 extern STRING	gValueString[];
 
-#endif /* GM_CONSTANTS_H */
+#endif /* GMCORE_CONSTANTS_H */

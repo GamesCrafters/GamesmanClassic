@@ -1,6 +1,43 @@
+/************************************************************************
+**
+** NAME:	solveloopyga.c
+**
+** DESCRIPTION:	Go-again loopy solver
+**
+** AUTHOR:	Bryon Ross
+**		GamesCrafters Research Group, UC Berkeley
+**		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+**
+** DATE:	2005-01-11
+**
+** LICENSE:	This file is part of GAMESMAN,
+**		The Finite, Two-person Perfect-Information Game Generator
+**		Released under the GPL:
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program, in COPYING; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+**
+**************************************************************************/
+
 #include "gamesman.h"
 #include "solveloopyga.h"
 #include "solveloopy.h"
+
+
+/*
+** Local types
+*/
 
 typedef struct lgas_position_move_list {
   POSITION position;
@@ -8,16 +45,30 @@ typedef struct lgas_position_move_list {
   struct lgas_position_move_list* next;
 } POSITIONMOVELIST;
 
-POSITIONMOVELIST** lgas_gParents = NULL;
 
-/* function prototypes */
-VALUE lgas_DetermineValue(POSITION position);
-VALUE lgas_DetermineLoopyValue1(POSITION position);
-POSITIONMOVELIST* CreatePositionMoveNode(POSITION position, MOVE move, POSITIONMOVELIST* next);
-void lgas_SetParents (POSITION parent, POSITION root);
-void FreePositionMoveList(POSITIONMOVELIST* posmovelist);
-void lgas_ParentInitialize();
-void lgas_ParentFree();
+/*
+** Local variables
+*/
+
+static POSITIONMOVELIST** lgas_gParents = NULL;
+
+
+/*
+** Local function prototypes
+*/
+
+VALUE				lgas_DetermineValue(POSITION position);
+static VALUE			lgas_DetermineLoopyValue1(POSITION position);
+static POSITIONMOVELIST*	CreatePositionMoveNode(POSITION position, MOVE move, POSITIONMOVELIST* next);
+static void			lgas_SetParents (POSITION parent, POSITION root);
+static void			FreePositionMoveList(POSITIONMOVELIST* posmovelist);
+static void			lgas_ParentInitialize();
+static void			lgas_ParentFree();
+
+
+/*
+** Code
+*/
 
 VALUE lgas_DetermineValue(POSITION position) 
 {

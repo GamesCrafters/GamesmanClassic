@@ -1,7 +1,7 @@
 
-#ifndef GM_SOLVEZERO_H
-#define GM_SOLVEZERO_H
+#ifndef GMCORE_SOLVEZERO_H
+#define GMCORE_SOLVEZERO_H
 
 VALUE	DetermineZeroValue	(POSITION position);
 
-#endif /* GM_SOLVEZERO_H */
+#endif /* GMCORE_SOLVEZERO_H */

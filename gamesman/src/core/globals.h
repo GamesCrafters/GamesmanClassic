@@ -1,6 +1,6 @@
 
-#ifndef GM_GLOBALS_H
-#define GM_GLOBALS_H
+#ifndef GMCORE_GLOBALS_H
+#define GMCORE_GLOBALS_H
 
 /*
 ** Solver globals
@@ -97,4 +97,4 @@ extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 extern void*	gGameSpecificTclInit;
 
 
-#endif /* GM_GLOBALS_H */
+#endif /* GMCORE_GLOBALS_H */

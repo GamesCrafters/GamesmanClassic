@@ -6,4 +6,4 @@ VALUE	DetermineValue		(POSITION start);
 void	InitializeDatabases	(void);
 void	Initialize		(void);
 
-#endif
+#endif /* GMCORE_MAIN_H */

@@ -1,7 +1,7 @@
 
-#ifndef GM_DEBUG_H
-#define GM_DEBUG_H
+#ifndef GMCORE_DEBUG_H
+#define GMCORE_DEBUG_H
 
 void	DebugModule		();
 
-#endif /* GM_DEBUG_H */
+#endif /* GMCORE_DEBUG_H */

@@ -1,6 +1,6 @@
 
-#ifndef GM_GAMEPLAY_H
-#define GM_GAMEPLAY_H
+#ifndef GMCORE_GAMEPLAY_H
+#define GMCORE_GAMEPLAY_H
 
 /* General gameplay entry points */
 
@@ -33,4 +33,4 @@ MOVE		GetComputersMove		(POSITION pos);
 VALUE_MOVES*	GetValueMoves			(POSITION pos);
 
 
-#endif /* GM_GAMEPLAY_H */
+#endif /* GMCORE_GAMEPLAY_H */

@@ -1,6 +1,6 @@
 
-#ifndef GM_MISC_H
-#define GM_MISC_H
+#ifndef GMCORE_MISC_H
+#define GMCORE_MISC_H
 
 void		FreeMoveList			(MOVELIST* ptr);
 void		FreeRemotenessList		(REMOTENESSLIST* ptr);
@@ -39,4 +39,4 @@ MEXCALC		MexCalcInit			(void);
 void		MexFormat			(POSITION pos, STRING str);
 MEX		MexPrimitive			(VALUE value);
 
-#endif /* GM_MISC_H */
+#endif /* GMCORE_MISC_H */

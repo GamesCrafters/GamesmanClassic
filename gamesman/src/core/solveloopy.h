@@ -1,6 +1,6 @@
 
-#ifndef GM_SOLVELOOPY_H
-#define GM_SOLVELOOPY_H
+#ifndef GMCORE_SOLVELOOPY_H
+#define GMCORE_SOLVELOOPY_H
 
 VALUE		DetermineLoopyValue		(POSITION position);
 
@@ -32,4 +32,4 @@ extern FRnode*		gTailTieFR;
 extern POSITIONLIST**	gParents;
 extern char*		gNumberChildren;
 
-#endif /* GM_SOLVELOOPY_H */
+#endif /* GMCORE_SOLVELOOPY_H */

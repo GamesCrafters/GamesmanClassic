@@ -1,7 +1,7 @@
 
-#ifndef GM_SOLVESTD_H
-#define GM_SOLVESTD_H
+#ifndef GMCORE_SOLVESTD_H
+#define GMCORE_SOLVESTD_H
 
 VALUE	DetermineValue1		(POSITION pos);
 
-#endif /* GM_SOLVESTD_H */
+#endif /* GMCORE_SOLVESTD_H */

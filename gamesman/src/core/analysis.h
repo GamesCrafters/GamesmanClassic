@@ -1,6 +1,6 @@
 
-#ifndef GM_ANALYSIS_H
-#define GM_ANALYSIS_H
+#ifndef GMCORE_ANALYSIS_H
+#define GMCORE_ANALYSIS_H
 
 /* Functions to output sets of data */
 
@@ -28,5 +28,5 @@ BOOLEAN	CorruptedValuesP	();
 
 float	percentDone		(STATICMESSAGE msg);
 
-#endif /* GM_ANALYSIS_H */
+#endif /* GMCORE_ANALYSIS_H */
 

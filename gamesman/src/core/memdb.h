@@ -1,6 +1,6 @@
 
-#ifndef GM_MEMDB_H
-#define GM_MEMDB_H
+#ifndef GMCORE_MEMDB_H
+#define GMCORE_MEMDB_H
 
 /* Value */
 VALUE		GetValueOfPosition	(POSITION pos);
@@ -20,4 +20,4 @@ void		MexStore		(POSITION pos, MEX mex);
 MEX		MexLoad			(POSITION pos);
 
 
-#endif /* GM_MEMDB_H */
+#endif /* GMCORE_MEMDB_H */

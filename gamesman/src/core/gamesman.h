@@ -167,5 +167,6 @@ typedef unsigned long int	MEXCALC; /* ...since we use a long int here */
 #include "textui.h"
 #include "filedb.h"
 #include "main.h"
+#include "solveloopyup.h"
 
 #endif /* GMCORE_GAMESMAN_H */

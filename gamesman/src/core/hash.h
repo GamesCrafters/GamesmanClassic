@@ -1,5 +1,6 @@
-#ifndef __HASH_H__
-#define __HASH_H__
+
+#ifndef GMCORE_HASH_H
+#define GMCORE_HASH_H
 
 
 #include <stdio.h>
@@ -85,5 +86,5 @@ int* gpd (int n);
 int gpi (int n);
 int* gPieceDist (int i);
 
-#endif
+#endif /* GMCORE_HASH_H */
 

@@ -1,6 +1,6 @@
 
-#ifndef GM_TEXTUI_H
-#define GM_TEXTUI_H
+#ifndef GMCORE_TEXTUI_H
+#define GMCORE_TEXTUI_H
 
 void		HitAnyKeyToContinue	();
 char		GetMyChar		();
@@ -16,4 +16,4 @@ void		showStatus		(int value);
 
 
 
-#endif /* GM_TEXTUI_H */
+#endif /* GMCORE_TEXTUI_H */
