@@ -1094,7 +1094,73 @@ int getOption ()
 
 void setOption (int option)
 {
+    option = option - 1;
+
+    int moveStyleVal = option % 8;
+    int boardSizeVal = (option/ 8) % 245;
+    int scoreVal = (option / (8 *245)) % 3;
+
+    int slide_op; 
+    int move_op;
     
+    int i, j, k, l;
+
+    /* set the options indicated by moveStyleVal */
+    if (moveStyleVal = 0) {
+	slide_rules = NO_SLIDE;
+    } else {
+	moveStyleVal = moveStyleVal - 1;
+	slide_op = moveStyleVal % 2;
+	move_op = (moveStyleVal / 2) % 3;
+	if (slide_op == 0) {
+	    slide_rules = MAY_SLIDE;
+	} else if (slide_op == 1) {
+	    slide_rules = MUST_SLIDE;
+	} else {
+	    BadElse("setOption");
+	}
+	if (move_op == 0) {
+	    moveDiagonal = TRUE;
+	    moveStraight = TRUE;
+	} else if (move_op == 1) {
+	    moveDiagonal = TRUE;
+	    moveStraight = FALSE;
+	} else if (move_op == 2) {
+	    moveDiagonal = FALSE;
+	    moveStraight = TRUE;
+	} else {
+	    BadElse("setOption");
+	}	
+    } 
+
+    /* set the options indicated by boardSizeVal */
+    l = 0;
+    for (i = MIN_WIDTH; i <= MAX_WIDTH; i++) {
+	for (j = MIN_PIECES; j <= i; j++) {
+	    for (k = MIN_HEIGHT ; k <= MAX_HEIGHT; k++) {
+		if (l == boardSizeVal) {
+		    width = i;
+		    numpieces = j;
+		    height = k;
+		}
+		l++;
+	    }
+	}
+    }
+
+    /* set the options indicated by scoreVal */
+    if (scoreVal == 0) {
+	scoreDiagonal = TRUE;
+	scoreStraight = TRUE;
+    } else if (scoreVal == 1) {
+	scoreDiagonal = TRUE;
+	scoreStraight = FALSE;
+    } else if (scoreVal == 2) {
+	scoreDiagonal = FALSE;
+	scoreStraight = TRUE;
+    } else {
+	BadElse("setOption");
+    }   
 }
 
 
