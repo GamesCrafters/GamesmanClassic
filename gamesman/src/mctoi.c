@@ -1145,7 +1145,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 {
   /* local variables */
   int xpos, ypos;
-  BOOLEAN ValidMove();
+  BOOLEAN ValidMove(), AllFilledIn();
   char input = '0';
   BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();

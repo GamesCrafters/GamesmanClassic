@@ -338,7 +338,7 @@ PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
-  BOOLEAN ThreeInARow(), AllFilledIn();
+  BOOLEAN ThreeInARow(), AllFilledIn(), Triangle();
   BlankOX theBlankOX[BOARDSIZE];
 
   PositionToBlankOX(position,theBlankOX);

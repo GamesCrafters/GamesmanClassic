@@ -1,4 +1,5 @@
 
+
 /************************************************************************
 **
 ** NAME:        mslideN.c
@@ -32,7 +33,6 @@
 #include "gamesman.h"
 
 extern STRING gValueString[];
-extern char* gNumberChildren;
 
 int gNumberOfPositions = 0;  /* variable size loopy game */
 
@@ -181,46 +181,7 @@ BOOLEAN gDiagonalRightGravity = FALSE;
 
 static int* g3Array;
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
 
-extern VALUE     *gDatabase;
-
-/************************************************************************
-**
-** NAME:        InitializeDatabases
-**
-** DESCRIPTION: Initialize the gDatabase, a global variable.
-** 
-************************************************************************/
-
-/* void InitializeDatabases() */
-/* { */
-/*   void InitializeGameVariables(); */
-/*   GENERIC_PTR SafeMalloc(); */
-/*   int i; */
-
-/*   if (gNumberOfPositions==0) InitializeGameVariables(DefaultN); */
-
-/*   gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE)); */
-  
-/*   for(i = 0; i < gNumberOfPositions; i++) */
-/*     gDatabase[i] = undecided; */
-  
-/*   /\* Do Loopy Initialization to make up for badly written loopy code *\/ */
-/*   if (gPrevFR != NULL) SafeFree(gPrevFR); */
-/*   if (gNextFR != NULL) SafeFree(gNextFR); */
-/*   InitializeFR(); */
-
-/*   if (gParents != NULL) SafeFree(gParents); */
-/*   ParentInitialize(); */
-
-/*   if (gNumberChildren != NULL) SafeFree(gNumberChildren); */
-/*   NumberChildrenInitialize(); */
-/* } */
 InitializeGame()
 {
   void InitializeGameVariables();
@@ -543,50 +504,6 @@ POSITION GetInitialPosition()
 
   return(BlankOXToPosition(theBlankOX,whosTurn));
 }
-
-/************************************************************************
-**
-** NAME:        GetComputersMove
-**
-** DESCRIPTION: Get the next move for the computer from the gDatabase
-** 
-** INPUTS:      POSITION thePosition : The position in question.
-**
-** OUTPUTS:     (MOVE) : the next move that the computer will take
-**
-** CALLS:       POSITION GetCanonicalPosition (POSITION)
-**              MOVE     DecodeMove (POSITION,POSITION,MOVE)
-**
-************************************************************************/
-
-/* MOVE GetComputersMove(thePosition) */
-/*      POSITION thePosition; */
-/* { */
-/*   MOVE theMove; */
-/*   int i, randomMove, numberMoves = 0; */
-/*   MOVELIST *ptr, *head, *GetValueEquivalentMoves(); */
-
-  
-/*   if(gPrintPossibleMoves)  */
-/*     printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]); */
-/*   head = ptr = GetValueEquivalentMoves(thePosition); */
-/*   while(ptr != NULL) { */
-/*     numberMoves++; */
-/*     if(gPrintPossibleMoves)  */
-/*       printf("%d ",ptr->move+1); */
-/*     ptr = ptr->next; */
-/*   } */
-/*   if(gPrintPossibleMoves)  */
-/*     printf("]\n\n"); */
-/*   randomMove = GetRandomNumber(numberMoves); */
-/*   ptr = head; */
-/*   for(i = 0; i < randomMove ; i++) */
-/*     ptr = ptr->next; */
-/*   theMove = ptr->move; */
-/*   FreeMoveList(head); */
-/*   return(theMove); */
-  
-/* } */
 
 /************************************************************************
 **

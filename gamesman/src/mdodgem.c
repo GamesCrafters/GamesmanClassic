@@ -370,8 +370,8 @@ PrintComputersMove(computersMove,computersName)
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       BOOLEAN ThreeInARow()
-**              BOOLEAN AllFilledIn()
+** CALLS:       BOOLEAN CantMove()
+**              BOOLEAN OkMove
 **              PositionToBlankOX()
 **              BlankOX OnlyPlayerLeft(*BlankOX)
 **
@@ -380,7 +380,7 @@ PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
-  BOOLEAN ThreeInARow(), AllFilledIn();
+  BOOLEAN CantMove(), OkMove();
   BlankOX theBlankOX[BOARDSIZE],whosTurn,OnlyPlayerLeft();
   
   PositionToBlankOX(position,theBlankOX,&whosTurn);
@@ -493,6 +493,7 @@ PrintPosition(position,playerName,usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
+  BOOLEAN OkMove();
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;

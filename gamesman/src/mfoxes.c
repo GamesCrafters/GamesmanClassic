@@ -490,6 +490,7 @@ PrintComputersMove(computersMove,computersName)
 VALUE Primitive(position) 
      POSITION position;
 {
+  BOOLEAN CantMove();
   BlankFG theBlankFG[BOARDSIZE],whosTurn;
   int i, foxMax=0, gooseMax=0;
   
@@ -667,6 +668,7 @@ PrintPosition(position,playerName,usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
+  BOOLEAN OkMove();
   MOVELIST *head = NULL, *temp;
   MOVELIST *CreateMovelistNode();
   BlankFG theBlankFG[BOARDSIZE], whosTurn;
