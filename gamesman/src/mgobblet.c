@@ -14,6 +14,7 @@
 ** 9/12/03 - Some Work on Text Interface, and file maintnence. -SL
 ** 10/7/03 - Imported Our functions from other files. -SL
 ** 10/14/03 - Finished other functions. Don't know if it works. - SL
+** 11/12/03 - Added Comments. Fixed kParizan. Fixed Some other comments. -SL
 **
 ** 
 **
@@ -41,10 +42,7 @@ POSITION kBadPosition        = -1; /* This can never be the rep. of a position *
 
 STRING   kGameName           = "Gobblet Jr";
 STRING   kDBName             = "gobblet";
-BOOLEAN  kPartizan           = FALSE; /* Unknown For sure.
-                                       * but fairly sure this
-                                       * this is right. More than
-                                       * one type of piece.*/
+BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
@@ -64,14 +62,14 @@ STRING   kHelpTextInterface    =
  at the upper left and 9 at the lower right) to correspond\nto the board\n\
  position that you desire to move from and the empty board position\n you\n\
  desire to move to. (i.e. if you wish to move from the 2nd board position\n\
- the the 3rd you would type \"23\" without the qoutes and hit return.)\n\
+ the the 3rd you would type \"2 3\" without the qoutes and hit return.)\n\
  If you wish to move a piece onto the board from your stock, check your total\n\
- pieces in stock, select a size with \"L\" \"M\" or \"S\" and the board postion\n\
- you wish to move to. (i.e. if you wish to move a Large piece to the 1st\n\
- postion you would type \"L1\" without the qoutes.) If at any point you have\n\
+ pieces in stock, select a size with the corresponding number, the one in\n\
+ the \"()\"  and the board postion you wish to move to.\n\
+ (i.e. if you wish to move a Large piece to the 1st\n\
+ If at any point you have\n\
  made a mistake\nyou can type u and hit return and the system will revert\n\
  back to your most recent\nposition."; 
- //Yea we can change this as we get more functions written but it feels like a good outline.
 
 STRING   kHelpOnYourTurn =
 "You move a piece, either from the board or stock, to an applicable board position.";
@@ -90,28 +88,33 @@ STRING   kHelpExample =
 "         ( 1 2 3 )            : -- -- --\n\
 LEGEND:  ( 4 5 6 )   Board:   : -- -- -- \n\
          ( 7 8 9 )            : -- -- -- \n\
-         Stock: X:2 x:2 \n\n\
-Computer's move              :  L5    \n\n\
+         Stock: (10)X:2 (11)x:2 \n\
+                    O:2     o:2 \n\n\
+Computer's move              :  10 5    \n\n\
          ( 1 2 3 )             : -- -- --\n\
 LEGEND:  ( 4 5 6 )    Board:   : -- O  -- \n\
          ( 7 8 9 )             : -- -- -- \n\
-         Stock: X:2 x:2 \n\n\
-     Dan's move [(u)ndo/1-9] : { M3 } \n\n\
+         Stock: (10)X:2 (11)x:2 \n\
+                    O:1     o:2 \n\n\
+     Dan's move [(u)ndo/1-9] : { 11 3 } \n\n\
          ( 1 2 3 )            : -- -- -x \n\
 LEGEND:  ( 4 5 6 )   Board:   : --  O -- \n\
          ( 7 8 9 )            : -- -- -- \n\
-         Stock: X:2 x:1 \n\n\
-Computer's move              :  L3    \n\n\
+         Stock: (10)X:2 (11)x:1 \n\
+                    O:1     o:2 \n\n\
+Computer's move              :  11 3    \n\n\
          ( 1 2 3 )            : -- -- Ox \n\
 LEGEND:  ( 4 5 6 )   Board:   : -- O  -- \n\
          ( 7 8 9 )            : -- -- -- \n\
-         Stock: X:2 x:1 \n\n\
-     Dan's move [(u)ndo/1-9] : { L7 } \n\n\
-         ( 1 2 3 )            : -- -- O  \n\
+         Stock: (10)X:2 (11)x:1 \n\
+                    O:0     o:2 \n\n\
+     Dan's move [(u)ndo/1-9] : { 10 7 } \n\n\
+         ( 1 2 3 )            : -- -- Ox \n\
 LEGEND:  ( 4 5 6 )   Board:   : -- O  -- \n\
          ( 7 8 9 )            : X  -- -- \n\
-         Stock: X:1 x:1 \n\n\
-ect...";
+         Stock: (10)X:1 (11)x:1 \n\
+                    O:0     o:2 \n\n\
+etc...";
 
 /*************************************************************************
 **
@@ -134,29 +137,53 @@ typedef unsigned long layer_t;
 #define MAX_PIECE_SIZES		4
 #define	MAX_PIECES_PER_SIZE	3
 
+//- Precomputed hash tables.
 layer_t *pos2hash = NULL;
 layer_t *hash2pos = NULL;
 
-int tableSize = 0;
+//The variables we use.
+int tableSize = 0; //- precomputation table size
 int BOARD_SIZE = 3,
     PIECE_SIZES = 2,
     PIECES_PER_SIZE = 2,
-    COLOR_BITS = -1,
-    TABLE_BITS = -1,
-    COLOR_MASK = -1,
-    TABLE_MASK = -1,
+    COLOR_BITS = -1, //Number of bits used internally to represent color
+    TABLE_BITS = -1, //Number of bits used internally to represent board position
+    COLOR_MASK = -1, //Internal bitmask representation for color.
+    TABLE_MASK = -1, //Internal bitmask representation for table.
     TABLE_SLOTS = -1,
     SLOT_PERMS = -1;
 
-#define CONS_MOVE(s,d)	(((s) * TABLE_SLOTS) + (d)) //Takes the source and dest
-                                                   //parts of a move and turns
-                                                   //it into a short(or MOVE)
-#define	GET_SRC(m)	((m) / TABLE_SLOTS)             //Gets the source location
-                                                   //from MOVE m                                      
-#define	GET_DEST(m)	((m) % TABLE_SLOTS)             //Gets the dest location
-                                                   //from MOVE m 
+/*
+CONS_MOVE
+  - Constructs an integer representation of a move.
+  - First argument: source position.  Use SRC_STASH() to move a piece from the stash
+  - Second argument: destination position (on the board 0 - TABLE_BITS)
+*/
+#define CONS_MOVE(s,d)	(((s) * TABLE_SLOTS) + (d))
 
+/*
+GET_SRC
+  - Takes an integer representation of a move, and returns the source position
+*/
+#define	GET_SRC(m)	((m) / TABLE_SLOTS)
+
+/*
+GET_DEST
+  - Takes an integer representation of a move and returns the destination position
+*/                                     
+#define	GET_DEST(m)	((m) % TABLE_SLOTS)
+ 
+/*
+SRC_STASH
+  - Returns the source position of a piece in the stash.  CONS_MOVE( SRC_STASH(0), ... ) will move a zero-size piece from the stash to somewhere on the board.
+*/
 #define	SRC_STASH(s)	(TABLE_SLOTS + (s))
+
+/*
+GET_SRC_SZ
+  - Opposite of SRC_STASH: GET_SRC_SIZE( SRC_STASH(x) ) ==> x
+  - Returns -1 if the source position is not in the stash
+  */
 #define	GET_SRC_SZ(s)	((s) >= TABLE_SLOTS ? ((s) - TABLE_SLOTS) : -1)
 
 
@@ -177,7 +204,7 @@ struct GPosition {
 	short	turn; //Stores whos turn it is.
 };
 
-
+//Piece Representations.
 #define	PIECE_NONE		0x0
 #define	PIECE_O			0x1	// Red
 #define	PIECE_X			0x2	// Yellow
@@ -185,11 +212,28 @@ struct GPosition {
 #define	TURN_O			0x0
 #define	TURN_X			0x1
 
-//Creates the bitwise representation of the piece p of size s.
+/*
+PIECE_VALUE(p,s)
+  - Returns the bitwise representation of piece with color p (PIECE_O, PIECE_X), and size s.  This value get's OR'd into a slot in GPosition to represent its presence on the board.
+*/
 #define PIECE_VALUE(p,s)	( (p) << (2 * (s)) ) 
 
+/*
+POS_NUMBER(row, column)
+  - Returns the slot number for the given row and column (ex: on a 3x3 board p_n(0,0) ==> 0, p_n(1, 0) ==> 3, ...)
+*/
 #define	POS_NUMBER(r,c)		( (c) + (BOARD_SIZE * (r)) )
+
+/*
+POS_GETROW(p)
+  - POS_GETROW( POS_NUMBER(x, y) ) ==> x
+*/
 #define	POS_GETROW(p)		(int)( (p) / BOARD_SIZE )
+
+/*
+POS_GETCOL(p)
+  - POS_GETCOL( POS_NUMBER(x, y) ) ==> y
+*/
 #define POS_GETCOL(p)		(int)( (p) % BOARD_SIZE )
 
 
@@ -224,7 +268,8 @@ VALUE     *gDatabase;
 **
 ** NAME:        InitializeDatabases
 **
-** DESCRIPTION: Initialize the gDatabase, a global variable.
+** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
+**              local variables.
 ** 
 ************************************************************************/
 
@@ -300,7 +345,7 @@ void DebugMenu()
 }
 
 /*
-** Dummy functions -- menu helpers
+** Dummy functions -- menu helpers still need to write these.
 */
 
 void SetBoardSize ()
@@ -332,7 +377,7 @@ void GameSpecificMenu()
   POSITION GetInitialPosition();
   
   do {
-    printf("Å\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
@@ -916,11 +961,11 @@ void PrintMove(theMove)
 **
 ** NAME:        getTopPieceSize
 **
-** INPUTS:      layer_t: an individual layer from the hash
+** INPUTS:      Slot from the board.
 **
-** DESCRIPTION: not sure.
+** DESCRIPTION: Discovers the top piece size of a slot.
 ** 
-** OUTPUTS:     (int) : not sure
+** OUTPUTS:     The piece size (0 - n) of the largest piece on that slot.
 **
 ************************************************************************/
 
@@ -961,11 +1006,11 @@ int getTopPieceSize ( SLOT slot )
 **
 ** NAME:        getTopPieceColor
 **
-** INPUTS:      layer_t: an individual layer from the hash
+** INPUTS:      Slot from the board.
 **
-** DESCRIPTION: not sure.
+** DESCRIPTION: Discovers the top piece color of a slot
 ** 
-** OUTPUTS:     (inline int) : not sure
+** OUTPUTS:     The piece color (PIECE_X or PIECE_O) of the largest piece in that slot
 **
 ************************************************************************/
 int getTopPieceColor ( SLOT slot )
@@ -1016,7 +1061,7 @@ int charToInt(char pieceRep)
 **
 ** INPUTS:      POSITION: represents a complete hash.
 **
-** DESCRIPTION: not sure.
+** DESCRIPTION: Counts the number of 1's in the binary representation of the input
 **
 ************************************************************************/
 
@@ -1041,7 +1086,7 @@ int countBits ( POSITION n )
 **
 ** NAME:        computeTables
 **
-** DESCRIPTION: not sure.
+** DESCRIPTION: Precomputes tables that will be used in hash and unhash: hash2pos and pos2hash
 **
 ** CALLS:       int countBits ( POSITION n )
 **              calloc();
@@ -1099,6 +1144,13 @@ void computeTables ()
 ** NAME:        hash
 **
 ** DESCRIPTION: convert an internal position to that of a GPosition.
+**
+** How It Works:
+**  1) Convert each "layer" (piece size) into an intermediate hash.  (X number of bits representing the table, and Y number of bits representing colors of pieces on the table -- X = TABLE_BITS, Y = COLOR_BITS)
+**  2) Pass each "layer" intermediate hash through the pos2hash array.
+**  3) Combine the results into a single number
+**  4) Shift everything to the left one bit
+**  5) Have the LSB represent whose turn it is (TURN_X, TURN_O)
 ** 
 ** INPUTS:      GPosition: the external position structure to be hashed.
 **
@@ -1219,5 +1271,4 @@ int getOption()
 void setOption(int option)
 {
 }
-
 
