@@ -28,6 +28,13 @@
 **              -- 2.23.05 -- Fixed Initialize game (set gNumberOfPositions and gInitialPosition)
 **                            Filled in DoMove and GenerateMoves();
 **                            Actually allocated space for the board in PrintPosition
+**              -- 3.1.05 -- Added in wrapped hash functions
+**			     Wrote Primitive()
+** 		  	     Changed functions to reflect the new hash functions
+**			     Get a floating point exception now though when trying to go into the debug
+**			     menu.
+**			     Also cannot represent more than 6 empty spaces...maybe something to do with
+**		             my new hash functions. Need the symmetries.
 **************************************************************************/
 
 /*************************************************************************
@@ -125,12 +132,20 @@ int maxsize;
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+void* gGameSpecificTclInit = NULL;
+
 /* Internal */
 void displayasciiboard(char *, char *);
 int NumberOfOptions();
 int getOption();
 void setOption(int);
 char *emptyboard();
+POSITION hash(char *,int,int);
+char *unhashboard(POSITION,char *);
+int getplayer(POSITION);
+int getturnnumber(POSITION);
+int countboard(char *,char);
+char *getprediction(char *);
 
 /*************************************************************************
 **
@@ -154,14 +169,17 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
 	/* need to change this to reflect the board size */
+	maxsize=6;
 	int piecesarray[]={'X',0,maxsize-1,'*',0,maxsize-1,'O',0,maxsize,-1};
 	char *eboard;
-	int i;
 
+	/* manually setting options right now */
+	boardsize=4;
+	
 	maxsize=5+4*boardsize;	
 	gNumberOfPositions=generic_hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	eboard=emptyboard();
-	gInitialPosition=generic_hash(eboard,1);
+	gInitialPosition=hash(eboard,1,0);
 	free(eboard);		
 }
 
@@ -200,7 +218,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	board=emptyboard();	 
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	/* wow, talk about making something foolproof for having students coding games */
-	board=generic_unhash(position,board);
+	board=unhashboard(position,board);
 	for(i=0;i<maxsize;i++) {
 		if(board[i]=='O') {
 			moves = CreateMovelistNode((MOVE)i,moves);
@@ -231,28 +249,30 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
 	char *board,piece;
-	int maxsize=5+4*boardsize,wmove;	
-	POSITION hashed;
+	int maxsize=5+4*boardsize;	
+	int player, turn;
 	
 	board=(char *)malloc(sizeof(char)*maxsize);
 	board=emptyboard();
 	board=generic_unhash(position,board);
-
-	wmove=whoseMove(position);
-	if(wmove==1) {
+	player=getplayer(position);
+	turn=getturnnumber(position);
+	if(player==1) {
 		piece='X';
-	} else if (wmove==2) {
+	} else if (player==2) {
 		piece='*';
+		turn++; /* sneak incrementing the turn, because next it will be player 1's turn */
 	} else {
 		fprintf(stderr,"Bad else: Do Move (Piece selection)\n");
 		exit(1);
 	}
 	
 	board[move]=piece;
-	
-    	hashed = generic_hash(board,(piece=='X')?2:1); 
+	/* check for capture */
+	player^=3; /* slickness, 1 becomes 2 becomes 1.... */	
+    	position = hash(board,player,turn); 
 	free(board);
-	return hashed;
+	return position;
 }
 
 
@@ -282,7 +302,38 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-    return undecided;
+	int player,turn;
+	int p1c, p2c;
+	char *board;
+	VALUE ret;
+	
+	turn=getturnnumber(position);
+	board=emptyboard();	
+	board=unhashboard(position,board);
+	/* if we've ran out of pieces or there are no more spaces on the board */
+	if(turn==maxsize-1 || countboard(board,'O')==0) {
+		player=getplayer(position);
+		p1c=countboard(board,'X');
+		p2c=countboard(board,'*');
+		/* if its player 2's turn and he's ahead, this spots a win */
+		if(p1c<p2c && player==2) {
+			ret=win;
+		/* if its player 1's turn and he's ahead, this spots a tie */
+		} else if(p1c>p2c && player==1) {
+			ret=win;
+		/* if they are equal, this spots a tie */
+		} else if(p1c==p2c) {
+			ret=tie;
+		/* otherwise it must be a lose */
+		} else {
+			ret=lose;
+		}
+	} else {
+		ret=undecided;
+	}
+	
+	free(board);
+    return ret;
 }
 
 
@@ -317,16 +368,16 @@ void displayasciiboard(char *positionvalues, char *prediction) {
         printf("        \\.....|...../               \\.....|...../\n");
         printf("         \\....I..../                 \\....%c..../\n",pos[17]);
         printf("          \\../|\\../   Prediction:     \\../|\\../\n");
-        printf("           \\J-K-L/  (%s)  \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+        printf("           \\J-K-L/  (%s)  \\%c-%c-%c/\n",prediction,pos[18],pos[19],pos[20]);
 
 }
 
-void getprediction(char *pred) {
+char *getprediction(char *pred) {
 	int i=0;
 	/* code to initialize it to blank values until a later time */
-	pred = (char *)malloc(sizeof(char)*17);
 	for(;i<16;i++) pred[i]=(char)32; /* fill with spaces */
 	pred[i]='\0';
+	return pred;
 }
 /************************************************************************
 **
@@ -366,9 +417,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 */
 	char *toprint, *prediction;
 	toprint=(char *)malloc(sizeof(char)*(5+4*boardsize));
+	prediction=(char *)malloc(sizeof(char)*17); /* put my magic numbers by my magic markers */
 	/* need to get prediction, till then... */
-	getprediction(prediction);
-	toprint = generic_unhash(position,toprint);
+	prediction=getprediction(prediction);
+	toprint = unhashboard(position,toprint);
 	displayasciiboard(toprint,prediction); 
 	free(toprint);
 	free(prediction);
@@ -663,4 +715,71 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+/************************************************************************
+** 
+** int hash(char *board,int player,int turn) 
+** takes in a board, player number, and turn number (starting from 0)
+** returns a hash of that
+**
+** uses the generic_hash() to hash the board and position
+** shifts that left 5 bits and encodes the turn number
+**
+**************************************************************************/
+POSITION hash(char *board, int player, int turn) {
+	POSITION ret;
+	
+	/* do the generic hash */
+	ret=generic_hash(board,player);
 
+	ret=ret<<5;
+	ret|=turn;
+	
+	return ret;	
+}
+
+/*************************************************************************
+**
+** char *unhashboard(int hashed)
+** returns a board from a hashed board
+** 
+***************************************************************************/
+
+char *unhashboard(POSITION hashed, char *board){
+	hashed=hashed>>5; /* get rid of the turn encoding */
+	/* better have a non null board */
+	return generic_unhash(hashed, board);
+}
+/***************************************************************************
+** 
+** int getplayer(int hashed)
+** returns a player number (whose turn it is currently)
+** takes in a hashed board
+**
+*****************************************************************************/
+int getplayer(POSITION hashed) {
+	hashed = hashed>>5;
+	return whoseMove(hashed);
+}
+/****************************************************************************
+**
+** int getturnnumber(int hashed)
+** returns the turn number of the current player
+**
+*****************************************************************************/
+int getturnnumber(POSITION hashed) {
+	return hashed&31;
+}
+
+/*********
+** 
+** int countboard(char *board, char tocount)
+** returns the number of occurances of a character in a board
+**
+***********/
+int countboard(char *board,char tocount) {
+	int counter=0,i=0;
+	for(;i<maxsize;i++) 
+		if(board[i]==tocount)
+			counter++;
+	return counter;
+}
