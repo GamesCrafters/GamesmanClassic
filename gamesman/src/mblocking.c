@@ -43,6 +43,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
+#include <dirent.h>
 
 extern STRING gValueString[];
 
@@ -314,6 +315,8 @@ void addToHash(int val, int num_val, int table);
 int hashLookup(char* token, classes node_classes, nodes board);
 /* Parser prototypes end here. */
 
+/* Addition to list the contents of a directory. -JJ */
+void	PrettyPrintDir (const char*, const char*);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -406,9 +409,12 @@ void GameSpecificMenu ()
   use_default = TRUE;
 
   while(use_default) {
-    printf("\nSpecify one of the .blk files in the ../meta directory");
+    /*printf("\nSpecify one of the .blk files in the ../meta directory");
     printf("\n(But don't add the .blk at the end)\n\n");
-    system("ls -C ../meta");
+    system("ls -C ../meta"); */
+    printf("\nSpecify one of the following definition files:\n\n");
+    PrettyPrintDir("../meta", ".blk");
+    
     printf("\nLoad Graph from : ");
     scanf("%s", tmp);
     (void) sprintf((char *)file_name, "../meta/%s.blk", tmp);
@@ -1664,3 +1670,79 @@ int hashLookup(char* token, classes node_classes, nodes board) {
 }
 
 /* End parser code. */
+
+
+struct string_list {
+  char*                 str;
+  struct string_list*   next;
+};
+
+void PrettyPrintDir (const char* dir, const char* extension)
+{
+  DIR*                  d;
+  struct dirent*        de;
+  size_t                ext_sz;
+  size_t                max_sz = 0;
+  struct string_list*   head = NULL;
+  struct string_list**  ptr = &head;
+  char*                 tmp;
+  int                   i;
+  
+  if (!(d = opendir(dir))) {
+    printf("No such directory \"%s\"\n\n", dir);
+    return;
+  }
+  
+  ext_sz = strlen(extension);
+  
+  while ((de = readdir(d))) {
+    size_t      sz;
+    char*       s;
+    
+    s = de -> d_name;
+    sz = strlen(s);
+    if (sz >= ext_sz && !strcasecmp(&s[sz - ext_sz], extension)) {
+      char*     cpy;
+      
+      cpy = strdup(s);
+      cpy[sz - ext_sz] = 0;
+      sz -= ext_sz;
+      
+      if (sz > max_sz)
+        max_sz = sz;
+      
+      *ptr = (struct string_list*) malloc(sizeof(struct string_list));
+      (*ptr) -> str = cpy;
+      (*ptr) -> next = NULL;
+      ptr = &(*ptr) -> next;
+    }
+  }
+  
+  closedir(d);
+  
+  max_sz += 4;  // How many spaces do you want?
+  tmp = (char*) malloc(max_sz + 1);
+  tmp[max_sz] = 0;
+  
+  i = 0;
+  while (head) {
+    struct string_list* next;
+    
+    memset(tmp, ' ', max_sz);
+    memcpy(tmp, head -> str, strlen(head -> str));
+    printf("%s", tmp);
+    if ((i += max_sz) + max_sz > 80) {
+      printf("\n");
+      i = 0;
+    }
+    next = head -> next;
+    free(head -> str);
+    free(head);
+    head = next;
+  }
+  
+  if (i)
+    printf("\n");
+  
+  free(tmp);
+}
