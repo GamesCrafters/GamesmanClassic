@@ -43,7 +43,7 @@ BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -180,7 +180,6 @@ int PIECES = 2;
 int primcount = 1;
 
 BOOLEAN DEBUGGING = FALSE;
-
 int BOARDSIZE;
 char *gBoard;
 
@@ -380,8 +379,8 @@ void InitializeGame()
   for (hash = 1; hash <= 32; hash++) {
     setOption(hash);
     printf("hash = %d:  N = %d, PIECES = %d, KILLS = %d, NSS = %d, MISERE = %d\n", hash, N, PIECES, XHITKILLS, NSS, MISERE);
-    }
- 
+  }
+  
   printf("the number of options is %d\n", NumberOfOptions());
   printf("current option is %d\n", getOption()); */
 
@@ -416,7 +415,7 @@ void GameSpecificMenu()
 {
   fflush(stdin);
   char selection;
-  printf("\tn)\t Change the value of (N), the edge size of the hexagon board -- currently %d\n", N);
+  printf("\n\tn)\t Change the value of (N), the edge size of the hexagon board -- currently %d\n", N);
   if (MISERE == 0)
     printf("\tm)\t Toggle from Standard to (M)isere\n");
   else
@@ -427,12 +426,15 @@ void GameSpecificMenu()
     printf("\ts)\t Toggle from No (S)ide Steps to Side Steps Allowed\n");
   printf("\tp)\t Change initial number of (p)ieces -- there are currently %d, max allowed is %d\n", PIECES, maxPieces(N));
   printf("\tc)\t Change the number of pieces that must be (c)aptured to win -- currently %d\n\n", XHITKILLS);
-  printf("\tr)\t (R)eturn to the previous menu\n\nSelect Option:  ");
+  printf("\tb)\t (B)ack to the previous menu\n\nSelect Option:  ");
 
 
-  fflush(stdin);
-  (void) scanf("%c", &selection);
-  
+  /*fflush(stdin);
+    (void) scanf("%c", &selection);*/
+
+  selection = (char) getchar();
+  selection = (char) getchar();
+
   if (selection == 'n' || selection == 'N') {
     changeBoard();
     printf("\n");
@@ -470,7 +472,7 @@ void GameSpecificMenu()
     printf("\n");
     GameSpecificMenu();
   }
-  else if ((selection == 'r') || (selection == 'R'))
+  else if ((selection == 'b') || (selection == 'B'))
     return;
   else {
     printf("\n\n\n Please select a valid option...\n\n");
@@ -505,6 +507,9 @@ void changeKills()
   int kills;
   printf("Enter the new number of pieces to capture:   ");
   (void) scanf("%u", &kills);
+  /*kills = (int) getchar();
+    kills = (int) getchar();*/
+
   if (PIECES - kills < 0) {
     printf("A player can only lose as many pieces as the game starts with\n");
     changeKills();
@@ -525,7 +530,11 @@ void changePieces()
 {
   int num;
   printf("Enter the new number of pieces:  ");
+  fflush(stdin);
   (void) scanf("%u", &num);
+  /*num = getchar();
+    num = getchar();*/
+
   if ((2 * num + (*rows[N-1]).size) > BOARDSIZE) {
     printf("Too many pieces for board\n");
     changePieces();
@@ -882,14 +891,17 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
+  char piece;
+  if (whoseMove(position) == 2)
+    piece = 'x';
+  else
+    piece = 'y';
+
+
   if (N < 4) {
     generic_unhash(position, gBoard);
   }
   int r, spacing;
-
- /*printf("the position is : %d\n", position);
-  printf("gInitialPosition is: %d\n", gInitialPosition);
-  printf("gMinimalPosition is: %d\n", gMinimalPosition); */
 
   if (N < 4) {
     /* messy centering spacing issues for sizeable first line*/
@@ -1071,23 +1083,12 @@ void PrintPosition(position, playerName, usersTurn)
   for (r = 0; r < N; r++){
     printf("----");
   }
-  printf("\n\n\n");
-
-    
   
-
-  /*
-printf("\\-------------------------------");
-  for (r = 0; r < (*rows[N - 1]).size; r++) {
-    if (N == 2)
-      printf("--------");
-    else
-      printf("---------");
+  for (r = 0; r < N - 2; r++) {
+    printf("  ");
   }
-  printf("/\n");*/
-
-
-  /*printf("To move one piece:     piece direction\nTo move two pieces:    piece1 piece2 direction\n\t(order of pieces doesn't matter)\n\n");*/
+  printf("       ");
+  printf("%s\n\n",GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -1287,9 +1288,18 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   
 {
   USERINPUT ret;
+  char whoseTurn;
+  if (whoseMove(thePosition) == 2) {
+    whoseTurn = 'x';
+  }
+  else {
+    whoseTurn = 'o';
+  }
+
+
   do {
     printf("for a list of valid moves, press ?\n\n");
-    printf("%8s's move :  ", playerName);
+    printf("%8s's move (%c):  ", playerName, whoseTurn);
   
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue) 
