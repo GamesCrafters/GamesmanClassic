@@ -184,7 +184,7 @@ void DebugMenu()
 
 void GameSpecificMenu() 
 {
-	char GetMyChar();
+  char GetMyChar();
   POSITION GetInitialPosition();
   
   do {
@@ -410,7 +410,6 @@ void PrintComputersMove(computersMove, computersName)
 VALUE Primitive ( POSITION h )
 {
   blankox dest[BOARDSIZE];
-  //blankox *dest = (blankox *) malloc (BOARDSIZE * sizeof (blankox));
   int numXs = 0;
   int numOs = 0;
   int i;
@@ -434,7 +433,7 @@ VALUE Primitive ( POSITION h )
     printf("And has found %dXs, %dOs.\n", numXs, numOs);
   }
 
-  // doesn't check getting stuck
+  // doesn't check getting stuck, but shouldn't need to?
   if (turn == o && numOs == mino)
     return (gStandardGame ? lose : win );
   else if (turn == x && numXs == minx)
@@ -879,7 +878,6 @@ POSITION hash(blankox *b_board, blankox turn)
   unparse_board(b_board, c_board);
   
   return generic_hash(c_board, player);
-
   
 }
 
@@ -904,6 +902,7 @@ blankox *unhash(int hash_val, blankox *b_board)
   return b_board;
   
 }
+
 
 // char to blankox conversion
 void parse_board(char *c_board, blankox *b_board)
@@ -958,6 +957,13 @@ blankox whose_turn(int hash_val)
   else return o;
 }
 
+blankox opponent (blankox player)
+{
+  return (player == o ? x : o);
+}
+
+/******************** MOVE abstractions ********************/
+
 // if there is no removal, then from == remove
 MOVE hash_move(int from, int to, int remove)
 {
@@ -977,11 +983,6 @@ int to(MOVE move)
 int remove_piece(MOVE the_move)
 {
   return (the_move % BOARDSIZE);
-}
-
-blankox opponent (blankox player)
-{
-  return (player == o ? x : o);
 }
 
 BOOLEAN can_be_taken(POSITION position, int slot)
@@ -1030,9 +1031,7 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
     (slot == slot1 || slot == slot2 || slot == slot3);
 }
 
-/************************************************************************
-** Some Debugging Functions
-************************************************************************/
+/******************** Some Debugging Functions ********************/
 
 //Given the b_board and c_board, print them
 void debugBoard(blankox *bboard, char *cboard)
@@ -1068,6 +1067,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.34  2004/04/12 19:21:11  ogren
+//parse_char and getinitialposition recognize 'b' and 'B' as blanks as well.  Does this conflict with anything?  -Elmer
+//
 //Revision 1.33  2004/04/12 16:13:12  evedar
 //Fixed internal representation so that b's are now _'s.  The i/o of positions is now consistent, and turn prints in print position
 //
