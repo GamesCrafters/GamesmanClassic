@@ -243,6 +243,7 @@ char *  gVisited = NULL;
 STRING kSolveVersion = "2004.05.05" ;
 BOOLEAN gWriteDatabase = TRUE;    /* Default is to write the database */
 BOOLEAN gReadDatabase = TRUE;     /* Default is to read the database if it exists */
+BOOLEAN gPrintDatabaseInfo = FALSE; /* Print to the console */
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
@@ -499,7 +500,7 @@ BOOLEAN ParseConstantMenuChoice(c)
 void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
-  BOOLEAN tempPredictions, needSolve ;
+  BOOLEAN tempPredictions;
   int timer;
   VALUE gameValue;
 
@@ -535,6 +536,7 @@ void ParseBeforeEvaluationMenuChoice(c)
   case 's': case 'S':
       InitializeGame();
       SetSolver();
+     
       printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
       if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
       printf("\nSolving with zero solver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
@@ -543,25 +545,9 @@ void ParseBeforeEvaluationMenuChoice(c)
       /*      Stopwatch(&sec,&usec);*/
       InitializeDatabases();
       printf("done in %d seconds!", timer = Stopwatch()); // for analysis bookkeeping
-	  needSolve = TRUE;
-	  if(gReadDatabase) {
-		if(loadDatabase()){
-			printf("\nLoading %s from Database...",kGameName);
-			if (GetValueOfPosition(gInitialPosition) == undecided) {
-				printf(" failed.");
-			}else{
-				needSolve = FALSE;
-			}
-		}
-	  }
-	  if(needSolve){
-		printf("\nEvaluating the value of %s...", kGameName);
-		gameValue = DetermineValue(gInitialPosition);
-		if(gWriteDatabase)
-			writeDatabase();
-	  }
 
-
+      gPrintDatabaseInfo = TRUE;
+      gameValue = DetermineValue(gInitialPosition);
       printf("done in %d seconds!", Stopwatch());
 
       
@@ -1258,7 +1244,23 @@ POSITION position;
 
 VALUE DetermineValue(POSITION position)
 {
-  gSolver(position);
+  if(gReadDatabase && loadDatabase()) {
+    if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
+    
+    if (GetValueOfPosition(position) == undecided) {
+      if (gPrintDatabaseInfo) printf("\nRe-evaluating the value of %s...", kGameName);
+      gSolver(position);
+      if(gWriteDatabase)
+	writeDatabase();
+    }
+  }
+  else {
+    if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
+    gSolver(position);
+    if(gWriteDatabase)
+      writeDatabase();
+  }
+  
   gValue = GetValueOfPosition(position);
   return gValue;
 }
