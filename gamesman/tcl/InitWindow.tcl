@@ -156,40 +156,40 @@ proc InitWindow { kRootDir } {
     foreach mode {A I O} {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
-	    image create photo $name -file [format %s_%s_1_%s.GIF $gSkinsLibName $mode $file]
+	    image create photo [subst $name]p -file [format %s_%s_1_%s.GIF $gSkinsLibName $mode $file]
 	    set type [format i%sTB $mode]
 	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
-		-image $name -tags [list tbb $type $name]
+		-image [subst $name]p -tags [list tbb $type $name]
 	}
     } 
-    image create photo iIMB1 -file [format %s_I_2_1.GIF $gSkinsLibName]
-    image create photo iIMB2 -file [format %s_I_2_2.GIF $gSkinsLibName]
-    image create photo iIMB3 -file [format %s_I_2_3.GIF $gSkinsLibName]
-    image create photo iIMB4 -file [format %s_I_2_4.GIF $gSkinsLibName]
-    image create photo iIMB5 -file [format %s_I_2_5.GIF $gSkinsLibName]
-    image create photo iIMB6 -file [format %s_I_2_6.GIF $gSkinsLibName]
-    image create photo iAMB5 -file [format %s_A_2_5.GIF $gSkinsLibName]
-    image create photo iSMB7 -file [format %s_A_2_7.GIF $gSkinsLibName]
-    image create photo iAMB7 -file [format %s_A_7_1.GIF $gSkinsLibName]
-    image create photo iAMB8 -file [format %s_A_8_1.GIF $gSkinsLibName]
-    image create photo iAMM1 -file [format %s_A_4_1.GIF $gSkinsLibName]
-    image create photo iBBB1 -file [format %s_A_3_1.GIF $gSkinsLibName]
-    image create photo iABB2 -file [format %s_A_3_2.GIF $gSkinsLibName]
-    image create photo iIBB2 -file [format %s_I_3_2.GIF $gSkinsLibName]
-    image create photo iABB3 -file [format %s_A_3_3.GIF $gSkinsLibName]
-    image create photo iIBB3 -file [format %s_I_3_3.GIF $gSkinsLibName]
-    image create photo iABB4 -file [format %s_A_3_4.GIF $gSkinsLibName]
-    image create photo iIBB4 -file [format %s_I_3_4.GIF $gSkinsLibName]
-    image create photo iABB5 -file [format %s_A_3_5.GIF $gSkinsLibName]    
-    image create photo iIBB5 -file [format %s_I_3_5.GIF $gSkinsLibName]
-    image create photo iABB6 -file [format %s_A_3_6.GIF $gSkinsLibName]
-    image create photo iIBB6 -file [format %s_I_3_6.GIF $gSkinsLibName]
-    image create photo iIBB7 -file [format %s_I_3_7.GIF $gSkinsLibName]
-    image create photo iABB7 -file [format %s_A_3_7.GIF $gSkinsLibName]
-    image create photo iIBB8 -file [format %s_I_3_8.GIF $gSkinsLibName]
-    image create photo iABB8 -file [format %s_A_3_8.GIF $gSkinsLibName]
-    image create photo iIBB9 -file [format %s_I_3_9.GIF $gSkinsLibName]
-    image create photo iABB9 -file [format %s_A_3_9.GIF $gSkinsLibName]
+    image create photo iIMB1p -file [format %s_I_2_1.GIF $gSkinsLibName]
+    image create photo iIMB2p -file [format %s_I_2_2.GIF $gSkinsLibName]
+    image create photo iIMB3p -file [format %s_I_2_3.GIF $gSkinsLibName]
+    image create photo iIMB4p -file [format %s_I_2_4.GIF $gSkinsLibName]
+    image create photo iIMB5p -file [format %s_I_2_5.GIF $gSkinsLibName]
+    image create photo iIMB6p -file [format %s_I_2_6.GIF $gSkinsLibName]
+    image create photo iAMB5p -file [format %s_A_2_5.GIF $gSkinsLibName]
+    image create photo iSMB7p -file [format %s_A_2_7.GIF $gSkinsLibName]
+    image create photo iAMB7p -file [format %s_A_7_1.GIF $gSkinsLibName]
+    image create photo iAMB8p -file [format %s_A_8_1.GIF $gSkinsLibName]
+    image create photo iAMM1p -file [format %s_A_4_1.GIF $gSkinsLibName]
+    image create photo iBBB1p -file [format %s_A_3_1.GIF $gSkinsLibName]
+    image create photo iABB2p -file [format %s_A_3_2.GIF $gSkinsLibName]
+    image create photo iIBB2p -file [format %s_I_3_2.GIF $gSkinsLibName]
+    image create photo iABB3p -file [format %s_A_3_3.GIF $gSkinsLibName]
+    image create photo iIBB3p -file [format %s_I_3_3.GIF $gSkinsLibName]
+    image create photo iABB4p -file [format %s_A_3_4.GIF $gSkinsLibName]
+    image create photo iIBB4p -file [format %s_I_3_4.GIF $gSkinsLibName]
+    image create photo iABB5p -file [format %s_A_3_5.GIF $gSkinsLibName]    
+    image create photo iIBB5p -file [format %s_I_3_5.GIF $gSkinsLibName]
+    image create photo iABB6p -file [format %s_A_3_6.GIF $gSkinsLibName]
+    image create photo iIBB6p -file [format %s_I_3_6.GIF $gSkinsLibName]
+    image create photo iIBB7p -file [format %s_I_3_7.GIF $gSkinsLibName]
+    image create photo iABB7p -file [format %s_A_3_7.GIF $gSkinsLibName]
+    image create photo iIBB8p -file [format %s_I_3_8.GIF $gSkinsLibName]
+    image create photo iABB8p -file [format %s_A_3_8.GIF $gSkinsLibName]
+    image create photo iIBB9p -file [format %s_I_3_9.GIF $gSkinsLibName]
+    image create photo iABB9p -file [format %s_A_3_9.GIF $gSkinsLibName]
 
     #
     # Deal with everything in the top toolbar
@@ -615,17 +615,17 @@ proc InitWindow { kRootDir } {
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background red
 
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iIMB1 -tags [list  iIMB iIMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iIMB2 -tags [list  iIMB iIMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iIMB3 -tags [list  iIMB iIMB3]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7 -tags [list detVal]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iSMB7 -tags [list startupPic]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 100 -image iIMB1p -tags [list  iIMB iIMB1]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 300 -image iIMB2p -tags [list  iIMB iIMB2]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 450 -image iIMB3p -tags [list  iIMB iIMB3]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iAMB7p -tags [list detVal]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] 250 -image iSMB7p -tags [list startupPic]
 	    	
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iAMB5 -tags [list  iAMB iAMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iIMB4 -tags [list  iIMB iIMB4]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iIMB5 -tags [list  iIMB iIMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iIMB6 -tags [list  iIMB iIMB6]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iAMB8 -tags [list play]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iAMB5p -tags [list  iAMB iAMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 100 -image iIMB4p -tags [list  iIMB iIMB4]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 300 -image iIMB5p -tags [list  iIMB iIMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 450 -image iIMB6p -tags [list  iIMB iIMB6]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iAMB8p -tags [list play]
 
     .middle.f1.cMLeft create text 75 100 \
 	    -text [format "To Win: %s" $kToWin] \
@@ -723,41 +723,40 @@ proc InitWindow { kRootDir } {
 	-background yellow
 
     #create bar border
-    .cStatus create image 400 40 -image iBBB1 -tags [list iABB iABB1 base]
-    .cStatus create image 120 40 -image iABB2 -tags [list sbb iABB iABB2 playA def]
-    .cStatus create image 120 40 -image iIBB2 -tags [list sbb iIBB iIBB2 playI]
+    .cStatus create image 400 40 -image iBBB1p -tags [list iABB iABB1 base]
+    .cStatus create image 120 40 -image iABB2p -tags [list sbb iABB iABB2 playA def]
+    .cStatus create image 120 40 -image iIBB2p -tags [list sbb iIBB iIBB2 playI]
    #create toWin checked
-    .cStatus create image 290 22.5 -image iABB3 -tags [list sbb iABB iABB3 winA]
-    .cStatus create image 290 22.5 -image iIBB3 -tags [list sbb iIBB iIBB3 winI def]
+    .cStatus create image 290 22.5 -image iABB3p -tags [list sbb iABB iABB3 winA]
+    .cStatus create image 290 22.5 -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
     #create toMove checked
-    .cStatus create image 290 57.5 -image iABB4 -tags [list sbb iABB iABB4 moveA]
+    .cStatus create image 290 57.5 -image iABB4p -tags [list sbb iABB iABB4 moveA]
     #create toMove unchecked
-    .cStatus create image 290 57.5 -image iIBB4 -tags [list sbb iIBB iIBB4 moveI def]
+    .cStatus create image 290 57.5 -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
     
     ######
     ### create the shoow "none" moves toggle
     ### default value for creating the "none" moves is "no"
     #####
     #create none moves filled, old coords 410,22.5
-    #.cStatus create image 530 22.5 -image iABB5 -tags [list sbb iABB iABB5 noneA]
+    #.cStatus create image 530 22.5 -image iABB5p -tags [list sbb iABB iABB5 noneA]
     #create none moves unfilled
-    #.cStatus create image 530 22.5 -image iIBB5 -tags [list sbb iIBB iIBB5 noneI def]
+    #.cStatus create image 530 22.5 -image iIBB5p -tags [list sbb iIBB iIBB5 noneI def]
    
     
     #create all moves filled, old coords 470,22.5
-    .cStatus create image 400 22.5 -image iABB6 -tags [list sbb iABB iABB6 allA def]
+    .cStatus create image 400 22.5 -image iABB6p -tags [list sbb iABB iABB6 allA def]
     #create all moves unfilled
-    .cStatus create image 400 22.5 -image iIBB6 -tags [list sbb iIBB iIBB6 allI]
+    .cStatus create image 400 22.5 -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
     #create value moves filled, old coords 530, 22.5
-    .cStatus create image 460 22.5 -image iABB7 -tags [list sbb iABB iABB7 valueA]
+    .cStatus create image 460 22.5 -image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
-    .cStatus create image 460 22.5 -image iIBB7 -tags [list sbb iIBB iIBB7 valueI def]
-    .cStatus create image 470 57.5 -image iABB8 -tags [list sbb iABB iABB8 predA]
-    .cStatus create image 470 57.5 -image iIBB8 -tags [list sbb iIBB iIBB8 predI def]
-    .cStatus create image 680 40 -image iABB9 -tags [list sbb iABB iABB9 undoA def]
-    .cStatus create image 680 40 -image iIBB9 -tags [list sbb iIBB iIBB9 undoI]    
-    
-    .middle.f2.cMain create image 250 250 -image iAMM1 -tags [list base iAMM iAMM1]
+    .cStatus create image 460 22.5 -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    .cStatus create image 470 57.5 -image iABB8p -tags [list sbb iABB iABB8 predA]
+    .cStatus create image 470 57.5 -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
+    .cStatus create image 680 40 -image iABB9p -tags [list sbb iABB iABB9 undoA def]
+    .cStatus create image 680 40 -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]    
+    .middle.f2.cMain create image 250 250 -image iAMM1p -tags [list base iAMM iAMM1]
 
     .cStatus bind playA <ButtonRelease-1> {
 	.cToolbar raise iITB
