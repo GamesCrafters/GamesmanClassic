@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.9 2004-03-07 18:54:06 ogren Exp $
+//$Id: m9mm.c,v 1.10 2004-03-07 18:56:29 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -705,9 +705,9 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 
 BOOLEAN closes_mill(POSITION position, int raw_move)
 {
-  blankox[BOARDSIZE] board;
+  blankox board[BOARDSIZE];
   unhash(do_move(position, raw_move), board);
-  return (check_mill board, to(raw_move));
+  return check_mill(board, to(raw_move));
 }
 
 BOOLEAN check_mill(blankox *board, int slot)
@@ -740,6 +740,9 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.9  2004/03/07 18:54:06  ogren
+//Fixed some small syntax errors -Elmer
+//
 //Revision 1.8  2004/03/07 18:41:41  ogren
 //removed semicolons from #define - Elmer
 //
