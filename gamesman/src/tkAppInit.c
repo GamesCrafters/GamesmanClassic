@@ -18,7 +18,6 @@
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
 extern BOOLEAN kPartizan;
-extern BOOLEAN kLoopy;
 extern int smartness;
 extern int scalelvl;
 
@@ -302,10 +301,7 @@ DetermineValueCmd(dummy, interp, argc, argv)
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
-    if(kLoopy)
-      interp->result = gValueString[(int)DetermineLoopyValue(position)];
-    else
-      interp->result = gValueString[(int)DetermineValue(position)];
+    interp->result = gValueString[(int)DetermineValue(position)];
 
     return TCL_OK;
   }
@@ -481,6 +477,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
+      printf("%d\n",ptr->move);
       value = GetValueOfPosition(DoMove(position,ptr->move));
 
       if (gGoAgain(position,ptr->move)) {
