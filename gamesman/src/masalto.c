@@ -122,6 +122,7 @@ int coordToLocation(int coordinates[2]);
 void locationToCoord(int location, int coordinates[2]);
 int validCoord(int coord[2]);
 void UserInputCoordinate(int coordinate[2]);
+void initFreeGoose();
 void addFreeGoose(int geeseLocation);
 void updateFreeGoose(int geeseOrigin, int geeseDestination);
 int freeGoose(int geeseLocation);
@@ -314,7 +315,7 @@ POSITION GetInitialPosition()
 		printf("7         %c - %c - %c            \n",*(boardPointer + 30), *(boardPointer + 31), *(boardPointer + 32));
 		printf("\n\n Please Enter in A Coordinate [Example C4]: ");
 		UserInputCoordinate(coordinate);
-		location = coordtoLocation(coordinate);
+		location = coordToLocation(coordinate);
 		if (start_standard_board[location] == ' ')
 		{
 			start_standard_board[location] = 'F';
@@ -371,7 +372,7 @@ VALUE Primitive (pos)
 {
   int boardStats[]={0,0,0};
   char boardString[33];
-  int currentTurn = whoseTurn(pos);
+  int currentTurn = whoseMove(pos);
   generic_unhash(pos, boardString);
   boardPieceStats(boardString, boardStats);
   if ( numGeese(boardStats) < 9 && currentTurn == GEESE_PLAYER) // Only will happen if the fox kill geese. It will be the geese's turn.
@@ -472,7 +473,7 @@ MOVELIST *GenerateMoves (position)
   int candidate_move[3]={-1, -1, -1};
   int delta_row=-5;  
   int delta_col=-5;
-  int currentTurn=whoseTurn(position);
+  int currentTurn=whoseMove(position);
   generic_unhash(position, boardString);
 
   /* Check Move */
@@ -501,7 +502,7 @@ MOVELIST *GenerateMoves (position)
 								{
 									candidate_move[0] = i;
 									candidate_move[1] = candidate_destination_loc;
-									candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+									candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
 									head = CreateMovelistNode(hashMove(candidate_move),head);
 								}
 								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
@@ -530,7 +531,7 @@ MOVELIST *GenerateMoves (position)
 								{
 									candidate_move[0] = i;
 									candidate_move[1] = candidate_destination_loc;
-									candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+									candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
 									head = CreateMovelistNode(hashMove(candidate_move),head);
 								}
 								else if (boardString[candidate_destination_loc] == 'G') /* Maybe we can jump */
@@ -683,7 +684,7 @@ MOVELIST *GenerateKillMoves (position,location)
   int candidate_move[3]={-1, -1, -1};
   int delta_row=-5;  
   int delta_col=-5;
-  int currentTurn=whoseTurn(position);
+  int currentTurn=whoseMove(position);
   generic_unhash(position, boardString);
 
   /* Check Move */
@@ -710,7 +711,7 @@ MOVELIST *GenerateKillMoves (position,location)
 							candidate_move[0] = i;
 							candidate_move[1] = candidate_destination_loc;
 							candidate_move[2] = -1;
-							candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+							candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
 							head = CreateMovelistNode(hashMove(candidate_move),head);
 						}
 					}
@@ -730,7 +731,7 @@ MOVELIST *GenerateKillMoves (position,location)
 							candidate_move[0] = i;
 							candidate_move[1] = candidate_destination_loc;
 							candidate_move[2] = -1;
-							candidate_move[2] = NoKillMoves(doMove(position,candidate_move));
+							candidate_move[2] = NoKillMoves(DoMove(position,hashMove(candidate_move)));
 							head = CreateMovelistNode(hashMove(candidate_move),head);
 						}
 					}
@@ -996,13 +997,13 @@ void boardToString(char board[7][7], char returnString[33])
     }
 }
 
-int hash_move(int move[3]) /* Revamped Bitshiftting Hash Function */
+int hashMove(int move[3]) /* Revamped Bitshiftting Hash Function */
 {
 	int hashed=0;
 	hashed = move[0] | move[1] << 6 | move[2] << 12;
 	return hashed;
 }
-void unhash_move (int hashed_move, int move[3])
+void unHashMove (int hashed_move, int move[3])
 {
 	move[0] = hashed_move & 0x3F; /* 0b111111*/
 	move[1] = hashed_move >> 6 & 0x3F; /* 0b111111 */
@@ -1117,7 +1118,7 @@ int validCoord(int coord[2])
     }
 }
 
-void GetCoordinate(int coordinate[2])
+void UserInputCoordinate(int coordinate[2])
 {
 	char inString[80];
 	int coord[2];
