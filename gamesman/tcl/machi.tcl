@@ -309,85 +309,6 @@ proc slideAnimation { pieceToMove from to c} {
 
 }
 
-
-###############################################
-# introAnimation c
-#arg1: c, is the canvas on which this animation happens
-# NOTE: the board has already been drawn.
-# in this animation, I bring up the name of the game by
-# having the letters appear one by one
-# and then erase it.
-#
-proc introAnimation { c } {
-    global slideDelay
-    
-    font create Helvetica -family arial -size 60
-
-    # create the dots for the letters
-    set letterA [$c create oval 40 40 80 80   -fill black -width 150 -tags {letterDot introAnim}]
-    set letterC [$c create oval 85 40 125 80  -fill black -width 150 -tags {letterDot introAnim}] 
-    set letterH [$c create oval 130 40 170 80 -fill black -width 150 -tags {letterDot introAnim}]
-    set letterI [$c create oval 175 40 215 80 -fill black -width 150 -tags {letterDot introAnim}]
-   # lower all of the dots
-    $c lower letterDot base
- 
-    # raise A dot, do the cool animation, and place the letter A.
-    $c raise $letterA base
-    for {set i 150} {$i >= 0} {set i [expr $i - 1]} {
-	$c itemconfig $letterA -width $i
-	update idletasks
-    }
-    for {set j 0} {$j < [expr $slideDelay * 2]} {incr j} {
-	# delay the animation
-    }    
-    
-    $c create text 60 60 -text "A" -fill white -font {helvetica -36} -tags introAnim
-
-    # raise C dot, do the cool animation, and place the letter C.
-    $c raise $letterC base
-    for {set i 150} {$i >= 0} {set i [expr $i - 1]} {
-	$c itemconfig $letterC -width $i
-	update idletasks
-    }
-    for {set j 0} {$j < [expr $slideDelay * 2]} {incr j} {
-	# delay the animation
-    }    
-    
-    $c create text 105 60 -text "C" -fill white -font {helvetica -36} -tags introAnim
-
-    # raise H dot, do the cool animation, and place the letter H.
-    $c raise $letterH base
-    for {set i 150} {$i >= 0} {set i [expr $i - 1]} {
-	$c itemconfig $letterH -width $i
-	update idletasks
-    }
-    for {set j 0} {$j < [expr $slideDelay * 2]} {incr j} {
-	# delay the animation
-    }    
-    
-    $c create text 150 60 -text "H" -fill white -font {helvetica -36} -tags introAnim    
-
-    # raise I dot, do the cool animation, and place the letter I.
-    $c raise $letterI base
-    for {set i 150} {$i >= 0} {set i [expr $i - 1]} {
-	$c itemconfig $letterI -width $i
-	update idletasks
-    }
-    for {set j 0} {$j < [expr $slideDelay * 2]} {incr j} {
-	# delay the animation
-    }    
-    
-    $c create text 195 60 -text "I" -fill white -font {helvetica -36} -tags introAnim
-
-    update idletasks
-    # delete all the stuff I just put up
-    for {set j 0} {$j < [expr $slideDelay * 10]} {incr j} {
-	# delay the animation
-    }     
-
-    $c delete introAnim
-}
-
 proc getXCoord {num} {
     global x1 x2 x3 x4 x5 x6 x7 x8 x9
     if { $num == 1 } {
@@ -509,9 +430,9 @@ proc GS_InitGameSpecific {} {
 
     global kToMove kToWin
 
-    set kToMove " TWO MOVES: Before you have placed all three of your pieces: Click near one of the dots in any empty square. This will place a piece for you\n After you have placed all of your pieces: click on an arrow to slide the piece\n"
+    set kToMove " click on a dot to place a piece, click on an arrow to slide a piece\n"
 
-    set kToWin "Connect 3 pieces in a row in any direction to win"
+    set kToWin "Connect 3 pieces in a row in any direction to WIN!"
 }
 
 
@@ -758,8 +679,9 @@ proc makeBoard { c } {
     }
 
     ###  raise the base over the pieces
-    $c raise base
-    update idletasks
+    $c lower piece all
+    $c lower arrow all
+    $c raise base all
 
 
     
@@ -787,7 +709,7 @@ proc GS_DrawPosition { c position } {
     # BTW too: don't make any assumptions about the state of the board.
     set boardList [unhash $position]
 
-    $c raise base
+    $c raise base all
     for {set i 1} {$i <= 9} {set i [expr $i + 1]} {
 	set posi [lindex $boardList $i]
 	if { $posi == 1 } {
@@ -811,7 +733,9 @@ proc GS_NewGame { c position } {
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     global canvasWidth canvasHeight goDelay
-    
+    GS_DrawPosition $c $position
+    $c raise base all
+
     #animationQualityQuery $c
 
     set go [$c create text [expr $canvasWidth / 2] [expr $canvasHeight / 2] \
@@ -825,7 +749,7 @@ proc GS_NewGame { c position } {
 	# delay the animation
     }
     $c delete $go
-    GS_DrawPosition $c $position
+
 }
 
 
@@ -1041,21 +965,54 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     global pieceSize
 
     set board [unhash $position]
-    
-    set winningSets {{1 2 3} {4 5 6} {7 8 9} {1 4 7} {2 5 8} {3 6 9} {1 5 9} {3 5 7}}
-    foreach {set} $winningSets {
-	set s1 [lindex $set 0]
-	set s2 [lindex $set 1]
-	set s3 [lindex $set 2]
-	if {[lindex $board $s1] == [lindex $board $s2]  && [lindex $board $s1] == [lindex $board $s3] && [lindex $board $s1] != 0} {
-	    set p [list $s1 $s3]}}
+    if { $nameOfWinningPiece == "x" } {
+	set winner 1
+    } elseif { $nameOfWinningPiece == "o" } {
+	set winner 2
+    } else {
+	#puts "BAD ELSE: GS_GameOver, nameOfWinningPiece != x or o"
+    }
+
+    set p {1 3}
+    # win on the top row
+    if {[lindex $board 1] == $winner && [lindex $board 2] == $winner && [lindex $board 3] == $winner} {
+	set p {1 3}
+    }
+    # win on the middle row
+    if {[lindex $board 4] == $winner && [lindex $board 5] == $winner && [lindex $board 6] == $winner} {
+	set p {4 6}
+    }
+    # win on the bottom row
+    if {[lindex $board 7] == $winner && [lindex $board 8] == $winner && [lindex $board 9] == $winner} {
+	set p {7 9}
+    }    
+    # win on the first column
+    if {[lindex $board 1] == $winner && [lindex $board 4] == $winner && [lindex $board 7] == $winner} {
+	set p {1 7}
+    }
+    # win on the middle column
+    if {[lindex $board 2] == $winner && [lindex $board 5] == $winner && [lindex $board 8] == $winner} {
+	set p {2 8}
+    }
+    # win on the right column
+    if {[lindex $board 3] == $winner && [lindex $board 6] == $winner && [lindex $board 9] == $winner} {
+	set p {3 9}
+    }
+    # win on the left diagonal
+    if {[lindex $board 1] == $winner && [lindex $board 5] == $winner && [lindex $board 9] == $winner} {
+	set p {1 9}
+    }
+    # win on the right diagonal 
+    if {[lindex $board 3] == $winner && [lindex $board 5] == $winner && [lindex $board 7] == $winner} {
+	set p {3 7}
+    }
 
     set startx [getXCoord [lindex $p 0]]
     set starty [getYCoord [lindex $p 0]] 
     set endx [getXCoord [lindex $p 1]] 
     set endy [getYCoord [lindex $p 1]]     
 
-    $c create line $startx $starty $endx $endy -fill gray80 -tags GameOverLine -width [expr $pieceSize / 5]
+    $c create line $startx $starty $endx $endy -fill gray80 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
 
     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
     $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
@@ -1104,66 +1061,61 @@ proc start_animation { c } {
     $c create text [expr 4 * $dotmid] [expr 2 * $dotmid] -text "C" -font {Helvetica 100} -fill orange -tags {c achi}
     $c create text [expr 2 * $dotmid] [expr 4 * $dotmid] -text "H" -font {Helvetica 100} -fill orange -tags {h achi}
     $c create text [expr 4 * $dotmid] [expr 4 * $dotmid] -text "I" -font {Helvetica 100} -fill orange -tags {i achi}
-    
+    $c lower achi base
     set flash_time 90000
 
-    for {set j 0} {$j < 3}  {incr j} {
-
-
-	$c raise a
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-	$c lower a base
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-
-	$c raise c
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-	$c lower c base
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-
-	$c raise i
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-	$c lower i base
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-
-	$c raise h
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-	$c lower h base
-	update idletasks
-	set next_time [expr [clock clicks] + $flash_time]
-	while {$next_time > [clock clicks]} {
-	    # spin wait
-	}
-
-
+    $c raise a
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
     }
+    $c lower a base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise c
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower c base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise h
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower h base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise i
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower i base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+
     $c raise achi
 
 }
