@@ -9,8 +9,14 @@ proc TBaction1 {} {
     
     # solve the game, 
     global kGameName varObjective gPosition gInitialPosition
-    global gGameSolved
+    global gGameSolved gGamePlayable
     
+    # If the play options pane is open, ignore
+    if { $gGameSolved == "true" && $gGamePlayable == "false" } {
+	# do nothing
+	return
+    }
+
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
 	. config -cursor watch
@@ -31,13 +37,14 @@ proc TBaction1 {} {
 	    -text [format "Player2:\n%s" $gRightName]
 	update
     } else {
+	set gGamePlayable false
 	.middle.f3.cMRight lower play
 	.middle.f1.cMLeft lower detVal
 	.cToolbar raise iATB
 	.cStatus lower base
 	update idletasks
 	NewGame
-	set gamestarted true 
+	set gGamePlayable true 
 	
 	.cToolbar bind iOTB1 <Any-Leave> \
 		".cToolbar raise iATB1"
@@ -49,7 +56,9 @@ proc TBaction2 {} {
     .cToolbar raise iITB
     global gWaitingForHuman
     set gWaitingForHuman true
-    pack forget .middle.f2.cMain   
+    pack forget .middle.f2.cMain
+    global gOldRules
+    set gOldRules [GS_GetOption]
     pack .middle.f2.fRules -side bottom -fill both -expand 1
 }
 
@@ -85,16 +94,6 @@ proc TBaction7 {} {
 
 proc SetupPlayOptions {} {
 
-    global varMoves varPredictions varObjective
-
-    global gSlotsX gSlotsY gSlotSize kLabelFont kLabelColor
-
-    global kGameName
-
-    global kToMove kToWinStandard kToWinMisere
-
-    global kMovesOnAllTheTime
-
     global gWaitingForHuman
     set gWaitingForHuman true
 
@@ -105,11 +104,6 @@ proc SetupPlayOptions {} {
     pack forget .middle.f2.cMain   
     pack .middle.f2.fPlayOptions -side bottom
     .cStatus raise base
-
-    global gamestarted
-
-    set gamestarted true
-
 }
     
 proc InitWindow { kRootDir } {
@@ -117,11 +111,11 @@ proc InitWindow { kRootDir } {
 
     global gWindowWidth gWindowHeight
     global gSkinsLibName
-    global gamestarted
+    global gGamePlayable
     global kGameName
     global kLabelFont
     global tcl_platform
-    global kToMove kToWin gPredString gWhoseTurn
+    global gPredString gWhoseTurn
     global gLeftName gRightName
     global gLeftColor gRightColor
     # jesse: move delay and game delay added fall '03
@@ -137,7 +131,7 @@ proc InitWindow { kRootDir } {
     set gWindowHeight 600
     set gWindowWidth 800
     wm aspect . 800 600 1600 1200
-    set gamestarted false 
+    set gGamePlayable false
     set gSkinsLibName "$kRootDir/../tcl/skins/BasicSkin/BasicSkin"
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
@@ -520,12 +514,15 @@ proc InitWindow { kRootDir } {
     ## Rules Frame 
     ##            
     ##########
-	
-    frame .middle.f2.fRules \
+    set rulesFrame .middle.f2.fRules
+    
+    frame $rulesFrame \
 	-width [expr $gWindowWidth * 10 / 16] \
 	-height [expr $gWindowHeight * 2 / 30]
+
     
-    set rulesFrame .middle.f2.fRules
+
+    frame $rulesFrame.module
     frame $rulesFrame.buttons
     
     pack propagate $rulesFrame 0
@@ -538,6 +535,8 @@ proc InitWindow { kRootDir } {
 	    .cToolbar raise iATB
             RaiseStatusBarIfGameStarted
 	    update
+	    global gOldRules
+	    GS_SetOption $gOldRules
 	    DriverLoop
 	}
     button $rulesFrame.buttons.bOk \
@@ -546,35 +545,24 @@ proc InitWindow { kRootDir } {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain
 	    .cToolbar raise iATB
+	    GS_Deinitialize .middle.f2.cMain
 	    update
-	    eval [concat C_SetGameSpecificOptions [GetAllGameOptions]]
+	    ImplementGameOption
 	    C_InitializeGame
 	    C_InitializeDatabases
+	    GS_InitGameSpecific
+	    GS_Initialize .middle.f2.cMain
 	    set theValue [C_DetermineValue $gPosition]
 	    TBaction1
 	}
 
     pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
     pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
-    pack $rulesFrame.buttons -side bottom -fill x
 
-    global gRuleset
-    set ruleNum 0
-    foreach rule $gRuleset {
-	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
-	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
-	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
-	pack $rulesFrame.rule$ruleNum.label -side left
-	set rulePartNum 0
-	global gRule$ruleNum
-	set gRule$ruleNum 0
-	foreach rulePart [lrange $rule 1 end] {
-	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable gRule$ruleNum -value $rulePartNum -highlightthickness 0 -font $kLabelFont
-	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
-	    incr rulePartNum
-	}
-	incr ruleNum
-    }    
+    GS_SetupRulesFrame $rulesFrame.module
+
+    pack $rulesFrame.buttons -side bottom -fill x
+    pack $rulesFrame.module -side top -fill x
 
     #
     # Help Frame
@@ -637,7 +625,7 @@ proc InitWindow { kRootDir } {
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] 250 -image iAMB8p -tags [list play]
 
     .middle.f1.cMLeft create text 75 100 \
-	    -text [format "To Win: %s" $kToWin] \
+	    -text "To Win:" \
 	    -width 140 \
 	    -justify center \
 	    -font $kLabelFont \
@@ -645,7 +633,7 @@ proc InitWindow { kRootDir } {
 	    -tags [list ToWin textitem]
 
     .middle.f1.cMLeft create text 75 300 \
-	    -text [format "To Move: %s" $kToMove] \
+	    -text "To Move:" \
 	    -width 140 \
 	    -justify center \
 	    -font $kLabelFont \
@@ -708,7 +696,8 @@ proc InitWindow { kRootDir } {
 
 	.cStatus lower base
 	NewGame
-	set gamestarted true
+	global gGamePlayable
+	set gGamePlayable true
  
     }	
     .middle.f1.cMLeft lower detVal
@@ -871,9 +860,6 @@ proc InitWindow { kRootDir } {
         -columnspan 1 -rowspan 1 
     grid config .cStatus  -column 0 -row 3 \
         -columnspan 1 -rowspan 1
-
-    GS_Initialize .middle.f2.cMain
-
 }
 
 proc RaiseStatusBarIfGameStarted {} {
@@ -902,4 +888,12 @@ proc EnableSmarterComputerInterface {} {
     if { $gSmartness == "Imperfectly" } {
 	.middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -foreground black -state normal
     }
+}
+
+proc SetToWinString { string } {
+    .middle.f1.cMLeft itemconfigure ToWin -text $string
+}
+
+proc SetToMoveString { string } {
+    .middle.f1.cMLeft itemconfigure ToMove -text $string
 }

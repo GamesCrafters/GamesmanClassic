@@ -55,15 +55,15 @@ proc MoveValueToColor { moveType value } {
 
 #############################################################################
 ##
-## InitConstants
+## InitGlobals
 ##
-## This procedure is used to reserve some keywords (which always begin with
+## This procedure is used to reserve some keywords. Constants begin with
 ## 'k' to remember they're constants to make the code easier to read. 
 ## Constants never change. Nice to know somethings don't change around here.
 ##
 #############################################################################
 
-proc InitConstants {} {
+proc InitGlobals {} {
 
     ### These are used in the routine that draws the pieces - we want a small
     ### piece used as a label but a larger piece used in the playing board.
@@ -96,69 +96,16 @@ proc InitConstants {} {
     global gGameSolved 
     set gGameSolved false
 
-    set rules [GS_GetGameSpecificOptions]
-
-    set kStandardRule \
-	[list \
-	     "What would you like your winning condition to be:" \
-	     "Standard" \
-	     "Misere" \
-	    ]
-    global gRuleset
-    set gRuleset [linsert $rules 0 $kStandardRule]
-    
-    global gNumberOfRules
-    set gNumberOfRules [llength $gRuleset]
-
-    for { set i 0 } { $i < $gNumberOfRules } { incr i } {
-	global gRule$i
-	set gRule$i 0
-    }
-
-    eval [concat C_SetGameSpecificOptions [GetAllGameOptions]]
+    ### Smarter Computer
 
     global gSmartness gSmartnessScale
     set gSmartness Perfectly
     set gSmartnessScale 100
-}
 
-#############################################################################
-##
-## InitWindow
-##
-## Here we initialize the window. Set up fonts, colors, widgets, helps, etc.
-##
-#############################################################################
-
-proc InitWindow {} {
- 
-    global kGameName
-    global kLabelFont
-    
-    wm title    . "GAMESMAN $kGameName v2.0 (1999-05-01)"
-    wm geometry . "+10+10"
-    global tcl_platform
-    if { $tcl_platform(platform) == "macintosh" || \
-         $tcl_platform(platform) == "windows" } {
-        console hide
-    }
-    
-    
-    ### f1 = The Setup frame (Setup: About,Start,Rules,Help,Quit)
-    
-    frame .f1
-    button .f1.butStart \
-        -text "Start" \
-        -font $kLabelFont \
-        -command DoStart
-
-    ### Pack everything in
-    
-    pack append .f1 \
-        .f1.butStart   {left pady 10 expand fill }
-    
-    pack append . \
-        .f1 {top expand fill}
+    ### ToMove & ToWin
+    global gToMove gToWin
+    set gToMove "To Move:"
+    set gToWin "To Win:"
 }
 
 
@@ -241,7 +188,11 @@ proc DriverLoop { } {
    
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
-    global gMoveDelay gGameDelay gMoveType
+    global gMoveDelay gGameDelay gMoveType gGameSolved
+
+    if { !$gGameSolved } {
+	return
+    }
 
     set gWaitingForHuman false
 
@@ -394,8 +345,8 @@ proc DoHumanMove { } {
 #############################################################################
 
 proc ReturnFromHumanMove { theMove } {
-    global gamestarted
-    if {$gamestarted && ![PlayerIsComputer]} {
+    global gGamePlayable
+    if {$gGamePlayable && ![PlayerIsComputer]} {
         ReturnFromHumanMoveHelper $theMove
     }
 }
@@ -750,30 +701,23 @@ proc GetPredictions {} {
     }
 }
 
-proc GetAllGameOptions {} {
-    global gRule0
-    set settings [GetGameSpecificOptions]
-    set settings [linsert $settings 0 [expr !$gRule0]]
-    return $settings
+
+proc ImplementGameOption { } {
+    set option [GS_GetOption]
+    
+    eval [concat C_SetOption $option]
+    GS_ImplementOption $option
 }
 
-proc GetGameSpecificOptions {} {
-    global gNumberOfRules
-    set settings ""
-
-    for { set i 1 } { $i < $gNumberOfRules } { incr i } {
-	global gRule$i
-	set settings [concat $settings [subst $[subst gRule$i]]]
-    }
-    return $settings
-}
 
 # argv etc
 proc main {kRootDir} {
     source "$kRootDir/../tcl/InitWindow.tcl"
-    InitConstants
-    C_Initialize
-    C_InitializeDatabases
+    InitGlobals
     GS_InitGameSpecific
     InitWindow $kRootDir
+    ImplementGameOption
+    GS_Initialize .middle.f2.cMain
+    C_Initialize
+    C_InitializeDatabases
 }

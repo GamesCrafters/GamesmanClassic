@@ -74,6 +74,10 @@ static int		GetPredictionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int              SetSmarterComputerCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+static int		GetOptionCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
 
 /************************************************************************
 **
@@ -133,6 +137,10 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_GetPrediction", (Tcl_CmdProc*) GetPredictionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_SetSmarterComputer", (Tcl_CmdProc*) SetSmarterComputerCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetOption", (Tcl_CmdProc*) GetOptionCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_SetOption", (Tcl_CmdProc*) SetOptionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     {
@@ -580,6 +588,50 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
   }
 }
 
+static int
+SetOptionCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int option;
+
+  if (argc != 2) {
+    interp->result = "wrong # args: SetOption (int)option";
+    return TCL_ERROR;
+  }
+  else {
+    if(Tcl_GetInt(interp, argv[1], &option) != TCL_OK)
+      return TCL_ERROR;
+
+    setOption(option);
+
+    return TCL_OK;
+  }
+}
+
+static int
+GetOptionCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int option;
+
+  if (argc != 1) {
+    interp->result = "wrong # args: GetOption";
+    return TCL_ERROR;
+  }
+  else {
+
+    option = getOption();
+    sprintf(interp->result,"%d",option);
+
+    return TCL_OK;
+  }
+}
 
  #ifdef COMPUTEC
 static int

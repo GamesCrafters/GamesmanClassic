@@ -53,39 +53,151 @@ proc GS_InitGameSpecific  {} {
     set NUM_FRAMES 30
 
     ### Set the name of the game
-    
-    global Dimension
-    set Dimension 3    
-
-    global kToMove kToWin
-     
-    set kToMove "Click on an arrow to place a piece."
-
-    set kToWin "Connect $Dimension in a row in any direction to win." 
 
     global kGameName
     set kGameName "The game of Slide-N"
-    
-    ### Set the initial position of the board
 
+
+    ### Set the initial position of the board
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
+
+        global Dimension
+    set Dimension 3  
 
     global Board_Size
     set Board_Size [expr $Dimension * $Dimension]
 
     # For drawing the board
-    global Gap Board_Length Piece_Radius
+    global Gap Board_Length Piece_Radius 
+    global MIN_CANVAS_LENGTH NUM_EXTRA_GAPS
     set Gap [expr $MIN_CANVAS_LENGTH / 2 / ($Dimension + $NUM_EXTRA_GAPS)]
     set Board_Length [expr $MIN_CANVAS_LENGTH - 2 * $NUM_EXTRA_GAPS * $Gap]
     set Piece_Radius [expr $Gap / sqrt(2)]
 
-    #global InitX
-    #global InitY
 
-    #global EndX
-    #global EndY
+}
+
+# Setup the rules frame
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables. This procedure should not modify global variables
+# that affect initialization or game play. Such actions should
+# occur in GS_ImplementOption. 
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    global gMisereGame
+    set gMisereGame 0
+
+    set ruleSettingGlobalNames [list "gMisereGame"]
+
+    global kLabelFont
+    set ruleset [list $standardRule]
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+    
+}
+
+
+# Get the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+proc GS_GetOption { } {
+    global gMisereGame
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+
+    # diagonals and tie loses
+    set option [expr $option + 2*2 + 2] 
+    return $option
+}
+
+
+# Modify the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option. This procedure should not modify any global 
+# variables that affect initialization or game play. Such actions 
+# should occur in GS_ImplementOption. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+proc GS_SetOption { option } {
+    global gMisereGame
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
+}
+
+
+# Implement the given game option
+# Modifies the global variables used to initialize and play the game 
+# to match the given option. This can include the To Win and To Move 
+# strings if any option modifies them. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used during initialization and game play
+# Returns: nothing
+proc GS_ImplementOption { option } {
+    set option [expr $option - 1]
+    set standardOption [expr $option%2]
+    
+    if { $standardOption == "1" } {
+	set toWin1 "To Win: "
+    } elseif { $standardOption == "0" } {
+	set toWin1 "To Lose: "
+    }
+
+    global Dimension
+    set toWin2  "Connect $Dimension in a row in any direction" 
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Click on an arrow to place a piece"
+}
+
+
+proc GS_GetDefaultRules {} {
+    global Dimension
+    set kToMove
+    set kToWin
+
+    return [list]
 }
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -128,7 +240,11 @@ proc GS_ColorOfPlayers {} {
 
 proc GS_Initialize { c } {
     DrawBoard $c
-} 
+}
+
+proc GS_Deinitialize { c } {
+    $c delete all
+}
 
 proc DrawBoard { c } {
     $c delete all
@@ -390,7 +506,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
     # Put code for gravity here
     
-    puts "Exit HandleMove"
+#    puts "Exit HandleMove"
     
 #    after 1
 
@@ -499,7 +615,7 @@ proc Animate_Pieces_Squeezed_Helper { c theMove myMove oldPositionUnhashed bound
 
     set MOVE_Y_PER_FRAME [expr 1.0 * $Gap / $NUM_FRAMES]
 
-    puts $MOVE_Y_PER_FRAME
+#    puts $MOVE_Y_PER_FRAME
 
     if {$theMove > $Dimension} {
 	set MOVE_X_PER_FRAME [expr -1 * $MOVE_Y_PER_FRAME]

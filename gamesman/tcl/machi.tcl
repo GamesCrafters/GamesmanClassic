@@ -432,12 +432,6 @@ proc GS_InitGameSpecific {} {
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
-
-    global kToMove kToWin
-
-    set kToMove " click on a dot to place a piece, click on an arrow to slide a piece\n"
-
-    set kToWin "Connect 3 pieces in a row in any direction to WIN!"
 }
 
 
@@ -473,6 +467,115 @@ proc GS_NameOfPieces {} {
 proc GS_ColorOfPlayers {} {
     return [list red2 blue4]
 }
+
+# Setup the rules frame
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables. This procedure should not modify global variables
+# that affect initialization or game play. Such actions should
+# occur in GS_ImplementOption. 
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    global gMisereGame
+    set gMisereGame 0
+
+    set ruleSettingGlobalNames [list "gMisereGame"]
+
+    global kLabelFont
+    set ruleset [list $standardRule]
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+    
+}
+
+
+# Get the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+proc GS_GetOption { } {
+    global gMisereGame
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+    return $option
+}
+
+
+# Modify the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option. This procedure should not modify any global 
+# variables that affect initialization or game play. Such actions 
+# should occur in GS_ImplementOption. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+proc GS_SetOption { option } {
+    global gMisereGame
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
+}
+
+
+# Implement the given game option
+# Modifies the global variables used to initialize and play the game 
+# to match the given option. This can include the To Win and To Move 
+# strings if any option modifies them. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used during initialization and game play
+# Returns: nothing
+proc GS_ImplementOption { option } {
+    set option [expr $option - 1]
+    set standardOption [expr $option%2]
+    
+    if { $standardOption == "1" } {
+	set toWin1 "To Win: "
+    } elseif { $standardOption == "0" } {
+	set toWin1 "To Lose: "
+    }
+
+    set toWin2 "Connect 3 pieces in a row in any direction"
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Click on a dot to place a piece, click on an arrow to slide a piece"
+}
+
 
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -695,6 +798,10 @@ proc makeBoard { c } {
 
 ################################   END INITIALIZING THE BOARD  (LONG FUNCTION!!) ########## 
 
+proc GS_Deinitialize { c } {
+    $c delete all
+    font delete Winner
+}
 
 # GS_DrawPosition this draws the board in an arbitrary position.
 # It's arguments are a canvas, c, where you should draw and the
@@ -950,16 +1057,6 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     }
    
 }
-
-
-
-
-
-# GS_GetGameSpecificOptions is not quite ready, don't worry about it .
-proc GS_GetGameSpecificOptions { } {
-}
-
-
 
 
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)

@@ -31,7 +31,6 @@
 
 proc GS_InitGameSpecific {} {
     # puts "begin initgamespecific"
-     font create Winner -family arial -size 80
 
     ### Set the name of the game
     
@@ -44,16 +43,6 @@ proc GS_InitGameSpecific {} {
     set kCAuthors "Thomas Yiu"
     set kTclAuthors "Jesse Phillips, Jennifer Lee, Rach Liu, Jeff Chiang"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
-
-    
-    ### Set the initial position of the board
-
-    global gInitialPosition gPosition
-    set gInitialPosition 0
-    set gPosition $gInitialPosition
-
-    global kToMove kToWin
-
 
     ### Globals
 
@@ -68,20 +57,6 @@ proc GS_InitGameSpecific {} {
     # BOTTOM_PADDING is the amount of space from the board bottom side to the canvas bottom edge
     global BOTTOM_PADDING
 
-    # NUM_TILES_HORIZ is number of tiles horizontally
-    global NUM_TILES_HORIZ
-    # NUM_TILES_VERT is number of tiles vertically
-    global NUM_TILES_VERT
-    # LENTOWIN is hte length to win
-    global LENTOWIN
-    # NUM_SQUARES is the number of squares on the board
-    global NUM_SQUARES
-
-    set NUM_TILES_HORIZ 4
-    set NUM_TILES_VERT  3
-    set LENTOWIN 3
-    set NUM_SQUARES [expr $NUM_TILES_HORIZ * $NUM_TILES_VERT]
-
     set CANVAS_WIDTH   500
     set CANVAS_HEIGHT  500
     set LEFT_PADDING   50
@@ -91,9 +66,6 @@ proc GS_InitGameSpecific {} {
 
     set BOARD_LENGTH [expr $CANVAS_WIDTH - $LEFT_PADDING  - $RIGHT_PADDING]
     set BOARD_HEIGHT [expr $CANVAS_HEIGHT - $TOP_PADDING - $BOTTOM_PADDING]
-
-    set TILE_WIDTH [expr $BOARD_LENGTH / $NUM_TILES_HORIZ]
-    set TILE_HEIGHT [expr $BOARD_HEIGHT / $NUM_TILES_VERT]
 
     # board line vars
 
@@ -157,22 +129,151 @@ proc GS_InitGameSpecific {} {
     set HORIZ_SHADOW_COLOUR gray75
     set HORIZ_SHADOW_SPACE_OFFSET 3
 
-    #array for hte board
-    global SHADOW_ARRAY
-    for {set q 0} {$q < $NUM_SQUARES} {incr q} {
-	lappend SHADOW_ARRAY 0
-    }
-    # puts $SHADOW_ARRAY
-
     #whoseturn variable
     global WHOSETURN
     set WHOSETURN 1
 
-    set kToMove "\n- Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa.\n"
+    # NUM_TILES_HORIZ is number of tiles horizontally
+    global NUM_TILES_HORIZ
+    # NUM_TILES_VERT is number of tiles vertically
+    global NUM_TILES_VERT
+    # LENTOWIN is hte length to win
+    global LENTOWIN
+    # NUM_SQUARES is the number of squares on the board
+    global NUM_SQUARES
 
-    set kToWin "\nFirst player to get any 3 vertical or horizontal pieces in a row WINS!"
+    set NUM_TILES_HORIZ 4
+    set NUM_TILES_VERT  3
+    set LENTOWIN 3
+    set NUM_SQUARES [expr $NUM_TILES_HORIZ * $NUM_TILES_VERT]
+
+    global BOARD_LENGTH BOARD_HEIGHT
+    global TILE_WIDTH TILE_HEIGHT
+    set TILE_WIDTH [expr $BOARD_LENGTH / $NUM_TILES_HORIZ]
+    set TILE_HEIGHT [expr $BOARD_HEIGHT / $NUM_TILES_VERT]
+
+    #array for the board
+    global SHADOW_ARRAY
+    for {set q 0} {$q < $NUM_SQUARES} {incr q} {
+	lappend SHADOW_ARRAY 0
+    }
+
+    ### Set the initial position of the board
+
+    global gInitialPosition gPosition
+    set gInitialPosition 0
+    set gPosition $gInitialPosition
+
 }
 
+# Setup the rules frame
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables. This procedure should not modify global variables
+# that affect initialization or game play. Such actions should
+# occur in GS_ImplementOption. 
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    global gMisereGame
+    set gMisereGame 0
+
+    set ruleSettingGlobalNames [list "gMisereGame"]
+
+    global kLabelFont
+    set ruleset [list $standardRule]
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+    
+}
+
+
+# Get the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+proc GS_GetOption { } {
+    global gMisereGame
+    set option 1
+    set option [expr $option + $gMisereGame]
+
+    return $option
+}
+
+
+# Modify the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option. This procedure should not modify any global 
+# variables that affect initialization or game play. Such actions 
+# should occur in GS_ImplementOption. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+proc GS_SetOption { option } {
+    global gMisereGame
+    set option [expr $option - 1]
+    set gMisereGame [expr $option%2]
+}
+
+
+# Implement the given game option
+# Modifies the global variables used to initialize and play the game 
+# to match the given option. This can include the To Win and To Move 
+# strings if any option modifies them. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used during initialization and game play
+# Returns: nothing
+proc GS_ImplementOption { option } {
+    set option [expr $option - 1]
+    set standardOption [expr $option%2]
+    
+    if { $standardOption == "0" } {
+	set toWin1 "To Win: "
+    } elseif { $standardOption == "1" } {
+	set toWin1 "To Lose: "
+    }
+
+    set toWin2 "Connect any 3 vertical or horizontal pieces in a row"
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move: Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa"
+}
 
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -219,6 +320,8 @@ proc GS_ColorOfPlayers {} {
 ################################    INITIALIZING THE BOARD  (LONG FUNCTION!!) ########## 
 
 proc GS_Initialize { c } {
+    font create Winner -family arial -size 80
+    
     global CANVAS_WIDTH CANVAS_HEIGHT
 
     # puts "begin of initialize"
@@ -232,6 +335,11 @@ proc GS_Initialize { c } {
 
     #start_animation $c
 
+}
+
+proc GS_Deinitialize { c } {
+    $c delete all
+    font delete "Winner"
 }
 
 proc MakeBoard { c } {
@@ -1628,11 +1736,11 @@ proc SendMove { moveType square } {
 
 ####################################################################
 
-# objects in list objs MUST have a width property defined
-# objs is a list of objects (or tags). percentage is the percent of the 
-# current line width that the lines' width will become; assigns widths
-# based on each line seperately, if more than one line
-# NOTE: Caller is responsible for updating idletasks
+# objects in list objs MUST have a width property defined
+# objs is a list of objects (or tags). percentage is the percent of the 
+# current line width that the lines' width will become; assigns widths
+# based on each line seperately, if more than one line
+# NOTE: Caller is responsible for updating idletasks
 proc shrink { c objs percentage } {
 
     foreach item $objs {
@@ -1643,8 +1751,8 @@ proc shrink { c objs percentage } {
     update idletasks
 }
 
-# set colour of objects in objs to given colour
-# NOTE: Caller is responsible for updating idletasks
+# set colour of objects in objs to given colour
+# NOTE: Caller is responsible for updating idletasks
 proc fade { c objs colour } {
 
     foreach item $objs {
@@ -1693,10 +1801,10 @@ proc shrinkAnim { c objs } {
     }    
 }
 
-# takes in a tag tagging only lines, shrinks the lines down to nothing
-# while fading them out.
-# does NOT alter the tagged lines at all, creates new temp lines to achieve
-# the desired effects
+# takes in a tag tagging only lines, shrinks the lines down to nothing
+# while fading them out.
+# does NOT alter the tagged lines at all, creates new temp lines to achieve
+# the desired effects
 # NOTE: this has a gray colour while being shrinked.
 proc shrinkAndFade { c objs frames bool_mutate} {
     # go through and back-up the original colours
@@ -1712,7 +1820,7 @@ proc shrinkAndFade { c objs frames bool_mutate} {
     # there are 100 shades of gray/grey in Tk
     set SHADES_GRAY 100
 
-    set digits [list 1 2 3 4 5 6 7 8 9 0]
+    set digits [list 1 2 3 4 5 6 7 8 9 0]
     set alphabet [list a b c d e f g h i j k l m n o p q r s t u v w x y z]
 
     set default_gray 50
@@ -1720,7 +1828,7 @@ proc shrinkAndFade { c objs frames bool_mutate} {
     for {set i 0 } {$i <= $frames} {incr i} {
 	foreach item $objs {
 	    
-	    # obtain current colour of item, if gray, use current colour, otherwise
+	    # obtain current colour of item, if gray, use current colour, otherwise
 	    # discard current colour and use default_gray_incr
 	    set curColour [$c itemcget $item -fill]
 	    set curColourDigTrim [string trim $curColour $digits]
@@ -1840,7 +1948,7 @@ proc anim_piece { c piece_tag pheta num_frames } {
 #    set FRAMES 15
 #    set ROT_ANG 1.570796
 
-    #convert pheta from degress to radians
+    #convert pheta from degress to radians
     set PI 3.141592654
     set pheta [expr $pheta * ($PI/180.0)]
 

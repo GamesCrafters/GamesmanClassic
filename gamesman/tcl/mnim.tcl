@@ -21,17 +21,9 @@ proc GS_InitGameSpecific {} {
     set kTclAuthors "Gamesman Spring 2003 Whole Team!"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
-    
-    ### Set the initial position of the board
-
-    global gInitialPosition gPosition
-    set gInitialPosition 65534
-    set gPosition $gInitialPosition
-
-    ### tomove and towin (write these)
-    global kToMove kToWin
-    set kToMove ""
-    set kToWin "" 
+    global kMinRows kMaxRows
+    set kMinRows 1
+    set kMaxRows 5
 }
 
 
@@ -67,6 +59,135 @@ proc GS_ColorOfPlayers {} {
     return [list black black]
 }
 
+
+# Setup the rules frame
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables. This procedure should not modify global variables
+# that affect initialization or game play. Such actions should
+# occur in GS_ImplementOption. 
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    set rowsRule \
+	[list \
+	     "How many rows?" \
+	     "1" "2" "3" "4" "5"
+	 ]
+
+    global gMisereGame gRowsSetting
+    set gMisereGame 0
+    set gRowsSetting 4
+
+    set ruleSettingGlobalNames [list "gMisereGame" "gRowsSetting"]
+
+    global kLabelFont
+    set ruleset [list $standardRule $rowsRule]
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+    
+}
+
+
+# Get the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+proc GS_GetOption { } {
+    global gMisereGame gRowsSetting
+    global kMinRows kMaxRows
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+    set option [expr $option + (2*$gRowsSetting)]
+    return $option
+}
+
+
+# Modify the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option. This procedure should not modify any global 
+# variables that affect initialization or game play. Such actions 
+# should occur in GS_ImplementOption. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+proc GS_SetOption { option } {
+    global gMisereGame gRowsSetting
+    global kMaxRows kMinRows
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
+    set gRowsSetting [expr $option/2%($kMaxRows - $kMinRows + 1)]
+}
+
+
+# Implement the given game option
+# Modifies the global variables used to initialize and play the game 
+# to match the given option. This can include the To Win and To Move 
+# strings if any option modifies them. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used during initialization and game play
+# Returns: nothing
+proc GS_ImplementOption { option }  {
+    set option [expr $option - 1]
+    set standardOption [expr $option%2]
+    
+    if { $standardOption == "1" } {
+	set toWin1 "To Win: "
+    } elseif { $standardOption == "0" } {
+	set toWin1 "To Lose: "
+    }
+
+    set toWin2 ""
+
+    SetToWinString [concat $toWin1 $toWin2]
+
+    SetToMoveString  "To Move:"
+
+    global gRows kMaxRows kMinRows
+    set gRows [expr ($option/2%($kMaxRows - $kMinRows + 1))+$kMinRows]
+    
+    ### Set the initial position of the board
+    global gInitialPosition gPosition
+    set gInitialPosition [expr int((pow(2, $gRows*3) - 1)) * 2]
+    set gPosition $gInitialPosition
+}
+
+
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
 # You could put an opening animation in this function that introduces the game
@@ -82,8 +203,10 @@ proc GS_Initialize { c } {
     $c create rect 0 0 400 400 -fill white -outline white -tag base
     $c create rect 0 300 400 400 -fill brown -outline black -tag base
     
+    global gRows
+
     for {set j 0} {$j<7} {incr j} {
-	for {set i 0} {$i<5} {incr i} {
+	for {set i 0} {$i<$gRows} {incr i} {
 	    
 	    set x [expr 70*$i+60]
 	    set y [expr 400-(30*$j+50)]
@@ -98,6 +221,7 @@ proc GS_Initialize { c } {
 }
 
 proc GS_Deinitialize { c } {
+    $c delete all
 }
 
 proc MyReturnFromHumanMove {w h} {
@@ -124,7 +248,8 @@ proc MyReturnFromHumanMove {w h} {
 proc unhash { position } {
     set position [expr $position/2]
     set retval []
-    foreach i {1 2 3 4 5} {
+    global gRows
+    for {set i 1} {$i<=$gRows} {incr i} {
 	lappend retval [expr $position%8]
 	set position [expr $position/8]
     }
@@ -136,8 +261,9 @@ proc GS_DrawPosition { c position } {
     
     set l [unhash $position]
     
+    global gRows
     for {set j 0} {$j<7} {incr j} {
-	for {set i 0} {$i<5} {incr i} {
+	for {set i 0} {$i<$gRows} {incr i} {
 	    
 	    set x [expr 70*$i+60]
 	    set y [expr 400-(30*$j+50)]
@@ -148,7 +274,7 @@ proc GS_DrawPosition { c position } {
 	}
     }
     
-    for {set i 1} {$i<6} {incr i} {
+    for {set i 1} {$i<=$gRows} {incr i} {
 	set height [lindex $l [expr $i-1]]
 	for {set j 7} {$j>$height} {incr j -1} {
 	    $c move move-$i$j 0 -400

@@ -1,4 +1,3 @@
-
 ####################################################
 # Rubik's Magic TCL/TK front end
 # by Jeffrey Chiang and Bryon Ross
@@ -30,24 +29,13 @@ proc GS_InitGameSpecific {} {
     set kCAuthors "Bryon Ross, Jeff Chiang"
     set kTclAuthors "Bryon Ross, Jeff Chiang"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
-    
+
     ### Set the initial position of the board
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
-
-    ### Set global constants
-    global BOARDSIZE WIDTH
-    set BOARDSIZE 9
-    set WIDTH 3
-
-    global kToMove kToWin
-
-    set kToWin "Complete a vertical, horizontal, or diagonal line of three of your pieces with the same background color that cannot be broken by your opponent on the next turn."
-
-    set kToMove "1) If possible, flip an opponent's piece to an adjacent space by clicking an arrow.\n2) Place a black or white piece in any empty space by clicking one of the small boxes within the space."
-
 }
+
 
 # GS_NameOfPieces should return a list of 2 strings that represent
 # your names for the "pieces".  If your game is some pathalogical game
@@ -80,6 +68,152 @@ proc GS_ColorOfPlayers {} {
     return [list blue red]
 }
 
+# Setup the rules frame
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables. This procedure should not modify global variables
+# that affect initialization or game play. Such actions should
+# occur in GS_ImplementOption. 
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    set twoInARowRule \
+	[list \
+	     "Two in a row equivalent to three in a row" \
+	     "No" \
+	     "Yes" \
+	    ]
+
+    set boardsizeRule \
+	[list \
+	     "Width and length of board" \
+	     "3x3" \
+	     "4x3" \
+	    ]
+
+    global gMisereGame gTwoInARow gBoardsizeSetting
+    set gMisereGame 0
+    set gTwoInARow 0
+    # 0=3x3 1=4x3
+    set gBoardsizeSetting 0
+
+    set ruleSettingGlobalNames [list "gMisereGame" "gTwoInARow" "gBoardsizeSetting"]
+
+    global kLabelFont
+    set ruleset [list $standardRule $twoInARowRule $boardsizeRule]
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+    
+}
+
+# Get the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+proc GS_GetOption { } {
+    global gMisereGame gTwoInARow gBoardsizeSetting
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+    set option [expr $option + $gTwoInARow*2]
+    set option [expr $option + $gBoardsizeSetting*2*2]
+    return $option
+}
+
+# Modify the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option. This procedure should not modify any global 
+# variables that affect initialization or game play. Such actions 
+# should occur in GS_ImplementOption. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+proc GS_SetOption { option } {
+    global gMisereGame gTwoInARow gBoardsizeSetting
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
+    set gTwoInARow [expr $option/2%2]
+    set gBoardsizeSetting [expr $option/(2*2)%2]
+}
+
+# Implement the given game option
+# Modifies the global variables used to initialize and play the game 
+# to match the given option. This can include the To Win and To Move 
+# strings if any option modifies them. 
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used during initialization and game play
+# Returns: nothing
+proc GS_ImplementOption { option } {
+    set option [expr $option - 1]
+    set standardOption [expr $option%2]
+    set twoInARowOption [expr $option/2%2]
+    set boardsizeOption [expr $option/(2*2)%2]
+    
+    if { $standardOption == "1" } {
+	set toWin1 "To Win: "
+    } elseif { $standardOption == "0" } {
+	set toWin1 "To Lose: "
+    }
+
+    set toWin2 "Complete a vertical, horizontal, or diagonal line of "
+    
+    if { $twoInARowOption == "1" } {
+	set toWin3 "two"
+    } elseif { $twoInARowOption == "0" } {
+	set toWin3 "three"
+    }
+
+    set toWin4 " of your pieces with the same background color that cannot be broken by your opponent on the next turn."
+
+    SetToWinString [concat $toWin1 $toWin2 $toWin3 $toWin4]
+
+    SetToMoveString "To Move: 1) If possible, flip an opponent's piece to an adjacent space by clicking an arrow.\n2) Place a black or white piece in any empty space by clicking one of the small boxes within the space."
+
+    global WIDTH BOARDSIZE
+    if { $boardsizeOption == "0"} {
+	set WIDTH 3
+	set BOARDSIZE 9
+    } elseif { $boardsizeOption == "1"} {
+	set WIDTH 4
+	set BOARDSIZE 12
+    }
+}
+
+
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
 # You could put an opening animation in this function that introduces the game
@@ -91,6 +225,7 @@ proc GS_Initialize { c } {
 
     global blockSize WIDTH BOARDSIZE boardWidth boardHeight
     global firstHalfAlreadyAnimated
+
     set HEIGHT [expr $BOARDSIZE/$WIDTH]
     set firstHalfAlreadyAnimated 0
 
@@ -330,7 +465,9 @@ proc MakeClickX { c x y tag } {
     $c lower cXb-$tag base
 }
     
-
+proc GS_Deinitialize { c } {   
+    $c delete all
+}
 
 # GS_DrawPosition this draws the board in an arbitrary position.
 # It's arguments are a canvas, c, where you should draw and the
@@ -789,21 +926,6 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 }
 
 
-# GS_GetGameSpecificOptions is not quite ready, don't worry about it .
-proc GS_GetGameSpecificOptions { } {
-    set diagonalRule \
-	[list \
-	     "Two in a row equivalent to three in a row" \
-	     "No" \
-	     "Yes" \
-	     ]
-	
-    return [list $diagonalRule]
-}
-
-
-
-
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
 # you could use this function to draw the line striking out the winning row in tic tac toe for instance
 # or you could congratulate the winner or do nothing if you want.
@@ -834,7 +956,4 @@ proc GS_UndoGameOver { c position } {
     # $c raise labelrubix base
 }
 
-proc GS_Deinitialize { c } {   
-    # font delete ourArial
-}
 
