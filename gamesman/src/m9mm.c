@@ -148,11 +148,12 @@ blankox parse_char(char c);
 char unparse_blankox(blankox b);
 BOOLEAN closes_mill_move(MOVE the_move);
 int count_mills(POSITION position, blankox player);
+int find_pieces(blankox *board, blankox piece, int *pieces);
 
 // Solving
 POSITIONLIST *GenerateParents (POSITION position);
-POSITIONLIST *AppendFlyingParents (blankox *bboard, int slot, POSITIONLIST *plist) ;
-POSITIONLIST *AppendParents (blankox *bboard, int slot, POSITIONLIST *plist);
+POSITIONLIST *AppendFormedMill(blankox *board, int slot, POSITIONLIST *plist) ;
+POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist);
 
 // Debugging
 void debugBoard(blankox *bboard, char *cboard);
@@ -190,7 +191,7 @@ void InitializeGame()
 
   // variables to help with mutating Help text
   int newHelpSize = sizeof(kHelpOnYourTurn) + sizeof(kHelpWithFlying);
-  char* newHelp = malloc(newHelpSize*sizeof(char));
+  char* newHelp = (char*)malloc(newHelpSize*sizeof(char));
 
 
 
@@ -198,7 +199,7 @@ void InitializeGame()
 
 
   // change kHelpOnYourTurn if gflying is TRUE
-  if (gflying) {
+  if (gflying && (newHelp != NULL)) {
     strcpy(newHelp, kHelpOnYourTurn);
     strcat(newHelp, kHelpWithFlying);
     kHelpOnYourTurn = newHelp;
@@ -1028,6 +1029,21 @@ blankox opponent (blankox player)
   return (player == o ? x : o);
 }
 
+// Given bboard, int array
+// Return number of pieces and array of each slot containing that piece
+int find_pieces(blankox *board, blankox piece, int *pieces)
+{
+  int i;
+  int num = 0;
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == piece)
+      pieces[num++] = i;
+  }
+
+  return num;
+}
+
 /******************** MOVE abstractions ********************/
 
 // if there is no removal, then from == remove
@@ -1137,18 +1153,18 @@ BOOLEAN three_in_a_row(blankox *board, int slot1, int slot2, int slot3, int slot
 POSITIONLIST *GenerateParents (POSITION position) 
 {
   POSITIONLIST *head = NULL;
-  blankox thisTurn = whose_turn(position);
-  blankox bboard[BOARDSIZE];
+  blankox turn = whose_turn(position);
+  blankox board[BOARDSIZE];
   int i;
 
-  unhash(position, bboard);
+  unhash(position, board);
 
   for (i = 0; i < BOARDSIZE; i++) {
-    if (bboard[i] == thisTurn) {
-      if (gflying) {
-	head = AppendFlyingParents(bboard, i, head);
+    if (board[i] == turn) {
+      if (check_mill(board, i)) {
+	head = AppendFormedMill(board, i, head);
       } else {
-	head = AppendParents(bboard, i, head);
+	head = AppendNeutralMove(board, i, head);
       }
     }
   }
@@ -1158,9 +1174,9 @@ POSITIONLIST *GenerateParents (POSITION position)
 
 // Given the current board, slot of interest, POSITIONLIST
 // Append POSITIONLIST of Parents involving slot (with flying)
-POSITIONLIST *AppendFlyingParents (blankox *bboard, int slot, POSITIONLIST *plist) 
+POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist) 
 {
-  blankox thisTurn = bboard[slot];
+  blankox thisTurn = board[slot];
   blankox prevTurn = opponent(thisTurn);
 
   return plist;
@@ -1168,10 +1184,20 @@ POSITIONLIST *AppendFlyingParents (blankox *bboard, int slot, POSITIONLIST *plis
 
 // Given the current board, slot of interest, POSITIONLIST
 // Append POSITIONLIST of Parents involving slot (without flying)
-POSITIONLIST *AppendParents (blankox *bboard, int slot, POSITIONLIST *plist) 
+POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist) 
 {
-  blankox thisTurn = bboard[slot];
-  blankox prevTurn = opponent(thisTurn);
+  MOVELIST *mlist = NULL;
+  MOVE tempMove;
+  int blanks[BOARDSIZE];
+  int numBlanks, i;
+
+  if (gflying) {
+    numBlanks = find_pieces(board, blank, blanks);
+    for (i = 0; i < numBlanks; i++) {
+      tempMove = hash_move(slot, blanks[i], slot);
+      mlist = CreateMovelistNode(tempMove, mlist);
+    }
+  }
 
   return plist;
 }
@@ -1267,6 +1293,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.49  2004/04/29 00:01:09  ogren
+//Started writing functinos for GenerateParents to support Bryon's 9mm reverse solver. -Elmer
+//
 //Revision 1.48  2004/04/28 21:57:35  ogren
 //kHelpOnYourTurn now changes depending on whether the gflying option is set to TRUE or FALSE -Elmer
 //
