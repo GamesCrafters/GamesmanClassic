@@ -1,3 +1,7 @@
+/*****
+** This file is no longer used.
+*****/
+
 #ifndef __GAMESMAN_H__
 #define __GAMESMAN_H__
 
