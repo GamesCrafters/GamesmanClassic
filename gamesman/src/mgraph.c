@@ -21,7 +21,6 @@
 
 #include <stdio.h>
 #include "gamesman.h"
-#include "loopygasolver.h"
 
 /* variables */
 POSITION gNumberOfPositions  = 50; /* Arbitrary upper-limit on graph nodes */
@@ -139,7 +138,6 @@ void InitializeGame()
   LoadGraphFromFile(gGraphFilename);
 
   gGoAgain = GraphGoAgain;
-  gSolver = lgas_DetermineValue;
 }
 
 void FreeGame()
