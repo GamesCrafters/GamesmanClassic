@@ -612,9 +612,9 @@ proc InitWindow { kRootDir kDir kExt } {
     pack $helpFrame.content -side top -fill both -expand 1
 
 
-    #
-    # Skins Frame
-    #
+    ########
+    ### Skins Frame
+    ########
 
     set skinsFrame .middle.f2.fSkins
     frame $skinsFrame \
@@ -626,8 +626,9 @@ proc InitWindow { kRootDir kDir kExt } {
 
     pack propagate $skinsFrame 0
 
-    image create photo burst_screenshot -file "$gSkinsRootDir\BurstSkin/screenshot.gif"
     image create photo mandel_screenshot -file "$gSkinsRootDir\MandelSkin/screenshot.gif"
+    image create photo burst_screenshot -file "$gSkinsRootDir\BurstSkin/screenshot.gif"
+    image create photo bubble_screenshot -file "$gSkinsRootDir\BubbleSkin/screenshot.gif"
 
 #radiobutton options for skins
 #    radiobutton $skinsFrame.content.burst\
@@ -649,6 +650,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -command {
 		set gSkinsDir "MandelSkin/"
 		InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+		TBaction5
 	    }
     button $skinsFrame.content.burst\
 	    -compound top\
@@ -657,6 +659,16 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -command {
 		set gSkinsDir "BurstSkin/"
 		InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+		TBaction5
+	    }
+    button $skinsFrame.content.bubble\
+	    -compound top\
+	    -image bubble_screenshot\
+	    -text "Bubbles"\
+	    -command {
+		set gSkinsDir "BubbleSkin/"
+		InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+		TBaction5
 	    }
 
     button $skinsFrame.buttons.bReturn -text "Return" \
@@ -672,8 +684,9 @@ proc InitWindow { kRootDir kDir kExt } {
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
-    pack $skinsFrame.content.burst
-    pack $skinsFrame.content.mandel
+    pack $skinsFrame.content.mandel -ipadx 4 -ipady 4 -side left -anchor nw
+    pack $skinsFrame.content.burst -ipadx 4 -ipady 4 -side top -anchor ne
+    pack $skinsFrame.content.bubble -ipadx 4 -ipady 4 -side right
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
