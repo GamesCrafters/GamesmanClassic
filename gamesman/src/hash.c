@@ -1,6 +1,3 @@
-
-#define HASH_LOCAL
-
 #include "hash.h"
 #include <stdlib.h>
 
@@ -12,19 +9,10 @@
 ***   and implemented by Attila Gyulassy
 *********************************************************************************/
 
-BOOLEAN DEBUG = FALSE;
-BOOLEAN DEBUG2 = FALSE;
-BOOLEAN DEBUG3 = TRUE;
-BOOLEAN DEBUG4 = FALSE;
-
-int* gNCR        = NULL;
-int* gHashOffset = NULL;
-
-static int gHashOffsetSize;
-static int gHashBoardSize;
-static int gHashMinMax[4];
-static int gHashNumberOfPos;
-
+int DEBUG = 0;
+int DEBUG2 = 0;
+int DEBUG3 = 1;
+int DEBUG4 = 1;
 int TERM = -1;
 int cTERM = 0;
 int MAX_PIECES = 50;
@@ -82,14 +70,24 @@ int searchOffset(int h)
    the members of *tc */
 int combiCount(int* tc)
 {
-	int i = 0, sum = 0, prod = 1;
-	while (tc[i] != TERM)
-	{
-		sum += tc[i];
-		prod *= fac(tc[i]);
-		i++;
-	}
-	return fac(sum)/prod;
+	int i = 0, sum = 0, prod = 1, ctr = 1, ind = 0;
+     int* cumul_count;
+     for (ctr = 0;tc[ctr] != TERM;ctr++);
+     cumul_count = (int*) malloc ((ctr+1) * sizeof(int));
+     ctr = 0;
+	while (tc[ctr] != TERM)
+        {
+        sum += tc[ctr];
+        cumul_count[ctr] = sum;
+        ctr++;
+        }
+        cumul_count[ctr] = TERM;
+    for (ind = 0;ind < ctr - 1;ind++)
+    {
+      prod *= nCr(cumul_count[ind + 1], cumul_count[ind]);
+      }
+      return prod;
+
 }
 
 /* debugging procedure to list critical variable values*/
@@ -210,15 +208,16 @@ void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int
 	{
 		miniIndices[i] = TERM;
 	}
-	for (i = 0;i < num_pieces;i++)
+	/*for (i = 0;i < num_pieces;i++)
 	{
 		sum += thiscount[i];
 		prod *= fac(thiscount[i]);
-	}
+	}        */
 	for (i = 0; i < num_pieces;i++)
 	{
 		newcount[i] = thiscount[i];
 	}
+    newcount[num_pieces] = TERM;
 	miniOffset[0] = 0;
 	miniIndices[0] = 0;
 	j = 1;
@@ -228,7 +227,9 @@ void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int
 		if (local_mins[i] > 1) max1 = local_mins[i];
 		if (newcount[i] >= max1)
 		{
-			miniOffset[j] = miniOffset[j-1] + (bigfac*newcount[i])/prod;
+            newcount[i]--;
+			miniOffset[j] = miniOffset[j-1] + combiCount(newcount);  // (bigfac*newcount[i])/prod;
+            newcount[i]++;
 			miniIndices[j] = i;
 			j++;
 		}
@@ -245,7 +246,7 @@ void hash_uncruncher (int hashed, int boardsize, int* thiscount, char* dest, int
 
 /* parses the char* input to generic_hash_init() and assigns corresponding values to
    the pieces, minima, and maxima arrays*/
-int getPieceParams (int pa[], char *pi, int *mi, int *ma)
+int getPieceParams (int *pa, char *pi, int *mi, int *ma)
 {
 	int i = 0;
 	while (pa[i*3] != TERM)
@@ -262,7 +263,7 @@ int getPieceParams (int pa[], char *pi, int *mi, int *ma)
 }
 /**************************************************************************************************/
 /* initializes hash tables and critical values */
-int generic_hash_init(int boardsize, int pieces_array[], int (*fn)(int *))
+int generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 {
 	int i = -1, j, prod = 1, temp, sofar, k;
      gfn = fn;
@@ -320,11 +321,11 @@ int generic_hash_init(int boardsize, int pieces_array[], int (*fn)(int *))
 	for (k = 1;k < useful_space + 1;k++)
 		{
 			prod = 1;
-			for (j = 0;j < num_pieces;j++)
+			/*for (j = 0;j < num_pieces;j++)
 			{
 				prod *= fac(gPieceDist(k-1)[j]);
-			}
-			gHashOffset[k] = fac(boardsize)/prod;
+			}*/
+			gHashOffset[k] = combiCount(gPieceDist(k-1)); //fac(boardsize)/prod;
 			gOffsetIndices[k] = gpi(k-1);
 		}
 	gHashOffset[k] = TERM;
