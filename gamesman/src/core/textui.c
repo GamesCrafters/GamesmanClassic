@@ -180,7 +180,10 @@ void MenusEvaluated()
 	    }
 	    printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
 	}
-    
+
+    printf("\n\ts)\t If only one move is available, (S)kip user input (currently %s)\n",
+	   gSkipInputOnSingleMove? "ON" : "OFF");
+
     if(kDebugMenu)
         printf("\td)\t(D)ebug Game AFTER Evaluation\n");
     printf("\n\tp)\t(P)LAY GAME.\n");
@@ -390,6 +393,11 @@ void ParseEvaluatedMenuChoice(char c)
 	    PlayAgainstHuman();
       HitAnyKeyToContinue();
       break;
+
+    case 's': case 'S':
+	gSkipInputOnSingleMove = !gSkipInputOnSingleMove;
+	break;
+
     case 'm': case 'M':
 	gMenuMode = BeforeEvaluation;
 	break;
@@ -706,28 +714,45 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 {
     MOVE tmpMove;
     char tmpAns[2], input[MAXINPUTLENGTH];
+    MOVELIST* head;
+    int onlyOneMove;
     
+    /*to skip input we have to see what moves are available first, and since we
+      are not solving there is esstially no performance issue here*/
+    head = GenerateMoves(thePosition); /* What are all moves available? */
+    onlyOneMove = (head != NULL && head->next == NULL);
+    *theMove = head->move;
+    if ( gSkipInputOnSingleMove && onlyOneMove ) {
+        printf("---------- SELECTING THE ONLY MOVE ---------> ");
+        PrintMove(*theMove);
+        printf("\n");
+	return (Move);
+    }
+    FreeMoveList(head);
+
     GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
     
     if(input[0] == '\0') {
-      MOVELIST* head;
-      int onlyOneMove;
       /* [DDG 2005-01-09] Check if there is only one move to be made.
        * If so, this can be a shortcut for moving, just hitting enter! */
-      head = GenerateMoves(thePosition); /* What are all moves available? */
+      /*      head = GenerateMoves(thePosition); /* What are all moves available? */
       /* There's exactly one */
-      if ((onlyOneMove = (head != NULL && head->next == NULL))) {
-        *theMove = head->move;
-        printf("----- AUTO-MOVE-SELECTED ------------> ");
-        PrintMove(*theMove);
-        printf("\n");
-      }
-      FreeMoveList(head);
-
-      if ( onlyOneMove ) 
-        return(Move);
-      else
-        PrintPossibleMoves(thePosition);
+      /*if (onlyOneMove = (head != NULL && head->next == NULL)){
+       *  *theMove = head->move;
+       * printf("----- AUTO-MOVE-SELECTED ------------> ");
+       * PrintMove(*theMove);
+       * printf("\n");
+       *}
+       *FreeMoveList(head);*/
+	
+	if ( onlyOneMove ) {
+	    printf("------ SELECTING THE ONLY MOVE --------> ");
+	    PrintMove(*theMove);
+	    printf("\n");
+	    return(Move);
+	} else
+	    PrintPossibleMoves(thePosition);
+	
     } else if (ValidTextInput(input)) {
         if(ValidMove(thePosition,tmpMove = ConvertTextInputToMove(input))) {
             *theMove = tmpMove;

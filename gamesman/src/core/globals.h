@@ -32,6 +32,7 @@ extern BOOLEAN	gPrintHints;
 */
 
 extern int	gTimer;
+extern BOOLEAN  gSkipInputOnSingleMove;
 
 
 /*

@@ -84,6 +84,7 @@ VALUE oldValueOfPosition = tie;
 MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
 
+BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
 
 /*
 ** Local function prototypes
