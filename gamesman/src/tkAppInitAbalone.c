@@ -23,11 +23,11 @@ extern int smartness;
 extern int scalelvl;
 
 /*prototypes from the game module and core that are used here*/
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
-extern int              move_hash (int, int, int, int);
-extern POSITION         getInitialPosition();
-extern int              whoseMove (POSITION hashed);
-extern int              destination (int, int);
+extern char     *generic_unhash(POSITION hash_number, char *empty_board);
+extern int       move_hash (int, int, int, int);
+extern POSITION  getInitialPosition();
+extern int       whoseMove (POSITION hashed);
+extern int       destination (int, int);
 
 /*
  * The following variable is a special hack that is needed in order for
