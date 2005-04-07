@@ -476,7 +476,7 @@ proc getPiecePositionY { boardLocation } {
 
 
 ## drawOval draws an oval on the canvas given its x and y coordinates, size, fill and outline color and tag
-proc drawOvalPiece { c x y size fill outline tag } {
+proc drawOval { c x y size fill outline tag } {
     set radius [expr $size / 2]
     $c create oval [expr $x - $radius] [expr $y - $radius] [expr $x + $radius] [expr $y + $radius] -fill $fill -outline white -tag $tag
 }
