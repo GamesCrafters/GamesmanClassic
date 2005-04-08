@@ -114,6 +114,13 @@
 **                     Thus changed the spot where the is set variables are set - yanpeiInitialize now
 **                     Changed print layout
 **                     Changed GAMEDIMENSION to 3, game is "playable" now
+** 07 Apr 2005 Mario:  Removed PrintBoard(), TestHash()
+**                     Made POSITION 64-bits so it works in 4 dimensions (in gamesman.h )
+**                     Updated printf format strings for POSITION to POSITION_FORMAT
+**                     Changed Primitive() to declare tie if all pieces are on board and no win on board
+**                     Previous behavior was if board was full, which doesn't work well in 3 dimensions
+**                     Stopped using fflush() for inputs (game-specific menu) as its behavior is undefined
+**                     Game is now solvable in 2 and 3D and doesn't have enough mem for 4D solving
 **
 **************************************************************************/
 
@@ -190,13 +197,15 @@ STRING   kHelpExample =
 #define ERROR	1
 #define SUCCESS	0
 
+#define newline() printf( "\n" )
+
 /* Squares x */
 #define square(x) ((x)*(x))
 
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
-int GAMEDIMENSION = 3;
+int GAMEDIMENSION = 4;
 
 int BOARDSIZE;
 int NUMPIECES;
@@ -228,9 +237,8 @@ typedef QTBOARD* QTBPtr;
 char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
 
 /* ASCII Hex */
-char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'y', 'Z' };
 
-char border[] = "------------------";
 
 /*************************************************************************
 **
@@ -320,6 +328,7 @@ char BlankCell( short ignored, void *p_ignored );
 char BorderCell( short ignored, void* p_ignored );
 void PrintHorizontalBorder( char fill, char border, char *startmark, char *endmark );
 void PrintRange( void *cells, size_t content_size, int offset, int size, char (*CellContent)( short, void * ), char border, char *endmark );
+char readchar( );
 
 /*************************************************************************
 **
@@ -390,12 +399,14 @@ void yanpeiInitializeGame() {
   //yanpeiTestCannonical();
 
   /* Set initial position to empty board */
+  gSymmetries = TRUE;
+  gCanonicalPosition = getCannonical;
   gInitialPosition = hash(board);
   gNumberOfPositions = offsetTable[NUMPIECES+1];
 
   printf("\n");
-  printf("gInitialPosition = %d\n",gInitialPosition);
-  printf("gNumberOfPositions = %d\n",gNumberOfPositions);
+  printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
+  printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
 
 }
 
@@ -417,6 +428,32 @@ void yanpeiInitializeGame() {
 ** CALLS:       MOVELIST *CreateMovelistNode();
 **
 ************************************************************************/
+int FlagAvailablePieces( QTBPtr board, BOOLEAN pieces[] ) {
+
+	int slot;
+	int available = NUMPIECES;
+
+	/* Initialize array of pieces */
+	memset( pieces, TRUE, sizeof( *pieces ) * NUMPIECES );
+		
+	/* For each slot on board */
+	for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
+			
+		/* If slot is not empty */
+		if( board->slots[slot] != EMPTYSLOT ) {
+				
+			/* Mark piece unavailable */
+			pieces[board->slots[slot]] = FALSE;
+			available--;
+				
+		}
+			
+	}
+	
+	return available;
+		
+}
+
 MOVELIST *GenerateMoves (POSITION position)
 {
     
@@ -444,22 +481,9 @@ MOVELIST *GenerateMoves (POSITION position)
 		
 		BOOLEAN available_pieces[NUMPIECES];
 		MOVE piece;
+		int available;
 				
-		/* Initialize array of available pieces */
-		memset( available_pieces, TRUE, sizeof( *available_pieces ) * NUMPIECES );
-		
-		/* For each slot on board */
-		for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
-			
-			/* If slot is not empty */
-			if( board->slots[slot] != EMPTYSLOT ) {
-				
-				/* Remove piece from array of available pieces */
-				available_pieces[board->slots[slot]] = FALSE;
-				
-			}
-			
-		}
+		available = FlagAvailablePieces( board, available_pieces );
 		
 		/* For each slot on board */
 		for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
@@ -467,20 +491,31 @@ MOVELIST *GenerateMoves (POSITION position)
 			/* If slot is empty */
 			if ( board->slots[slot] == EMPTYSLOT ) {
 				
-				/* For each piece */
-				for( piece = 0; piece < NUMPIECES; piece++ ) {
-			
-					/* If piece is available */
-					if( available_pieces[piece] != FALSE ) {
-		
-						/* Add move which moves item from hand into slot, and piece into hand */
-						moves	= CreateMovelistNode( CreateMove( slot, piece ), moves );
+				if( available == 0 ) {
+					
+					moves = CreateMovelistNode( CreateMove( slot, board->slots[HAND] ), moves );
+					
+				} else {
 				
-					}
+					/* For each piece */
+					for( piece = 0; piece < NUMPIECES; piece++ ) {
 			
+						/* If piece is available */
+						if( available_pieces[piece] != FALSE ) {
+		
+							/* Add move which moves item from hand into slot, and piece into hand */
+							moves	= CreateMovelistNode( CreateMove( slot, piece ), moves );
+				
+						}
+					
+					}
+					
 				}
+				
 			}
+			
 		}
+		
 	}
 
 	/* Return list of valid moves */
@@ -519,14 +554,14 @@ POSITION DoMove (POSITION position, MOVE move)
 	/* Determine which piece is to go into hand */
 	piece = GetMovePiece( move );
 	
+	/* Increment number of pieces */
+	board->piecesInPlay += ( piece == GetHandPiece( board ) ) ? 0 : 1;
+	
 	/* Place hand piece into indicated slot */
 	board->slots[slot] = GetHandPiece( board );
 	
 	/* Place indicated piece into hand */
-	SetHandPiece( board, piece );
-	
-	/* Increment number of pieces */
-	board->piecesInPlay++;
+	SetHandPiece( board, ( piece == board->slots[HAND] ) ? EMPTYSLOT : piece );
 	
 	/* If indicated slot is not hand, also increment number of squares */
 	board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
@@ -640,7 +675,8 @@ VALUE Primitive (POSITION position)
     if (primitiveFound) {
       toReturn = lose;
     } else {
-      toReturn = (b->squaresOccupied<BOARDSIZE) ? undecided : tie;
+			// Mario: comparing to NUMPIECES instead of BOARDSIZE
+      toReturn = (b->squaresOccupied<NUMPIECES) ? undecided : tie;
     }
 
     SafeFree(rowColDiag);
@@ -698,6 +734,7 @@ BOOLEAN searchPrimitive(short *rowColDiag) {
 	
 void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
 {
+	newline();
   printPos(position,playersName,usersTurn);
 }
 
@@ -706,6 +743,7 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 	QTBPtr board;
 	int j, rsize;
+	BOOLEAN pieces[NUMPIECES], comma;
 	
 	/* Unhash position into internal board representation */
 	board = unhash( position );
@@ -714,13 +752,12 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 		
 		if( j == FIRSTSLOT ) {
 			
-			int i;
-			printf("        -");
+			printf("        +");
 			PrintCell( NULL, BorderCell );
-			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
-			printf("                   -");
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "" );
+			printf("                +");
 			PrintCell( NULL, BorderCell );
-			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "\n" );
 			printf("LEGEND: |");
 			PrintCell( hex_ascii + HAND * sizeof( char ), LegendCoordinate );
 		
@@ -733,12 +770,12 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 		PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, LegendCoordinate, '|', "" );
 		if( j == FIRSTSLOT ) {
 			
-			printf("            BOARD: |");
+			printf("         BOARD: |");
 			PrintCell( board->slots + HAND * sizeof( *board->slots ), PieceTrait );
 		
 		} else {
 			
-			printf( "                    " );
+			printf( "                 " );
 			PrintCell( NULL, BlankCell );
 			
 		}
@@ -746,26 +783,40 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 		
 		if( j == FIRSTSLOT ) {
 			
-			printf("        -");
+			printf("        +");
 			PrintCell( NULL, BorderCell );
-			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
-			printf("                    ");
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "" );
+			printf("                +");
 			PrintCell( NULL, BorderCell );
-			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+			PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "\n" );
 			
 		} else {
 			
 				printf("         ");
 				PrintCell( NULL, BlankCell );
-				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "" );
-				printf("                    ");
+				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "" );
+				printf("                 ");
 				PrintCell( NULL, BlankCell );
-				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '-', "\n" );
+				PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "\n" );
 			
 		}
 		
 	}
-	printf("\n");
+	
+	FlagAvailablePieces( board, pieces );
+	printf("\nAvailable pieces: ");
+	
+	for( comma = FALSE, j = 0; j < NUMPIECES; j++ ) {
+
+		if( pieces[j] ) {
+
+			if ( comma ) printf( ", " ); else comma = TRUE;
+			PrintCell( &j, PieceTrait );
+
+		}
+
+	}
+	newline();
 
 }
 
@@ -783,7 +834,7 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
       printf("  -");
     }
   }
-  printf("\n");
+	newline();
   //printf("squaresOccupied %d\n",b->squaresOccupied);
   //printf("piecesInPlay    %d\n",b->piecesInPlay);
 
@@ -803,8 +854,9 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  printf( "%s's move was: ", computersName);
+  printf( "%s's move was:", computersName);
   PrintMove(computersMove);
+	newline();
 }
 
 
@@ -818,7 +870,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 **
 ************************************************************************/
 
-void PrintMove (MOVE move)
+void PrintMove( MOVE move )
 {
 	
 	unsigned short slot, piece, trait;
@@ -865,33 +917,31 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
-    
-    for (;;) {
-			
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	/*printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);*/
-			int i;
-			printf("%8s's move [(undo)/[", playersName );
-			for( i = 0; i < GAMEDIMENSION; i++ ) {
-				
-				printf( "(%c,%c)", states[i][0], states[i][1] );
-				
-			}
-			printf("[H,0-%d]] : ", BOARDSIZE - 1 );
-	input = HandleDefaultTextInput(position, move, playersName);
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 	
-	if (input != Continue)
-		/* REMOVE COMMENT OF FOLLOWING LINE TO BREAK EVERYTHING */
-		/*printf("blabla");*/
-		return input;
-    }
-
-    /* NOTREACHED */
-    return Continue;
+	for (;;) {
+			
+		int i;
+		printf("\n%8s's move [(undo)/[", playersName );
+		for( i = 0; i < GAMEDIMENSION; i++ ) {
+				
+			printf( "(%c,%c)", states[i][0], states[i][1] );
+				
+		}
+		printf("[%c,%c-%c]] ", hex_ascii[HAND], hex_ascii[FIRSTSLOT], hex_ascii[LASTSLOT] );
+		input = HandleDefaultTextInput(position, move, playersName);
+	
+		if (input != Continue) {
+			
+			return input;
+			
+		}
+		
+	}
+	
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -1062,25 +1112,28 @@ void GameSpecificMenu ()
   char choice;
   BOOLEAN validInput = FALSE;
 
-  //while (!validInput) {
+  while (!validInput) {
     printf("\t---- mquarto Option Menu ---- \n\n");
     printf("\ti)\tChange Game D(i)mension: Currently %d-Dimensional\n",GAMEDIMENSION);
     
     printf("Select an option: ");
-    fflush(stdin);
-    choice = getc(stdin);
+    //fflush(stdin); // This should only work on windows, flushing input is an ambiguous concept
+		//flush();
+    choice = readchar();
     choice = toupper(choice);
     switch(choice) {
       case 'I':
 	printf("Please enter the new GAMEDIMENSION (must be less than 4): ");
 	scanf("%d",&GAMEDIMENSION);
+	InitializeGame( );
 	validInput = TRUE;
 	break;
       default:
 	printf("Not a valid option.\n");
 	break;
     }
-    //}
+  }
+ 
 }
 
 
@@ -1279,63 +1332,6 @@ void print_board( QTBPtr board ) {
 	}
 	fprintf( stderr, "] pieces = %d; squares = %d; turn = %d ", board->piecesInPlay, board->squaresOccupied, board->usersTurn );
 
-}
-
-/*Mario: Hash Tester, should work with any hash implementation */
-QTBPtr TestHash( QTBPtr board, int slot ) {
-	
-	int i;
-
-	// For every possible piece
-	for( i = 0; i < NUMPIECES + 1; i++ ) {
-		int j, repeat = FALSE, pieces = 0, squares = 0;;
-		/* For every slot preceeding this one */
-		for( j = 0; j < slot; j++ ) {
-			/* If slot is not empty */
-			if( board->slots[j] != EMPTYSLOT ) {
-				/* Invalid board if this piece is same as piece in slot */
-				if( i == board->slots[j] ) {
-					repeat = TRUE;
-					break;
-				/* Valid board otherwise */
-				} else {
-					// Increment piece count
-					pieces++;
-					// If piece is not in hand, increment squares count
-					if( j != HAND ) {
-						squares++;
-					}
-				}
-			}
-		}
-
-		if ( !repeat ) {
-			/* Set slot to contain piece i */
-			board->slots[slot] = i;
-			if ( slot < BOARDSIZE ) {
-				QTBPtr error_board = TestHash( board, slot + 1 );
-				// If board is errant, propagate error board back to caller
-				if ( error_board ) {
-					return error_board;
-				}
-			} else {
-				// If slot is NOT empty
-				if ( i != EMPTYSLOT ) {
-					// Increment piece count
-					pieces++;
-					// If not in hand, also increment square count
-					if ( slot != HAND ) {
-						squares++;
-					}
-				}
-				board->piecesInPlay = pieces;
-				board->squaresOccupied = squares;
-				board->usersTurn = FALSE;
-				return boards_equal( board, unhash( hash ( board ) ) ) ? NULL : board;
-			}
-		}
-	}
-	return NULL;
 }
 
 // hashing an internally represented QTBOARD into a POSITION
@@ -1790,92 +1786,6 @@ void PrintRange( void *cells, size_t content_size, int offset, int size, char (*
 	
 }
 
-/* Prints board */
-/*
-void PrintBoard( void *cells, size_t content_size, char *heading, char (*CellContent)( short, void * ) ) {
-	
-	const int header_length = 20;
-	int i, j, cell, heading_length, hand_label_length;
-	char *pad = "\n       ";
-	char *hand_label = " Hand ";
-	
-	heading_length		= strlen( heading );
-	hand_label_length	= strlen( hand_label );
-
-	
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|" );
-	for ( i = 0; i < hand_label_length; i++ ) {
-		
-		printf( "^" );
-		
-	}
-	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION; i++ ) {
-		
-		printf( "^" );
-		
-	}
-	printf( "|" );
-	
-	printf( "\n%s", heading );
-	for ( i = 0; i < header_length - heading_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|%s|", hand_label );
-	PrintCell( cells, CellContent );
-	printf( "\n" );
-	
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	printf( "|" );
-	for ( i = 0; i < hand_label_length; i++ ) {
-		
-		printf( "_" );
-		
-	}
-	printf( "|" );
-	for ( i = 0; i < GAMEDIMENSION; i++ ) {
-		
-		printf( "_" );
-		
-	}
-	printf( "|" );
-
-	for ( i = 0; i < header_length; i++ ) {
-		
-		printf( " " );
-		
-	}
-	
-	for( cell = 1; cell <= BOARDSIZE; cell++ ) {
-		
-		if ( !( ( cell - 1 ) % GAMEDIMENSION ) ) {
-			PrintHorizontalBorder( '-', '-', pad, "" );
-			printf( "%s|", pad );
-			
-		}
-		
-		PrintCell( cells + cell*content_size, CellContent );
-		
-	}
-	
-	PrintHorizontalBorder( '-', '-', pad, "\n" );
-}
-*/
-
 unsigned short GetHandPiece( QTBPtr board ) {
  
    return board->slots[HAND];
@@ -1900,7 +1810,7 @@ void yanpeiTestOffset() {
 
   printf("\nTesting offsetTable ... \n");
   for (i=0; i<NUMPIECES+2; i++) {
-    printf("offsetTable[%d] = %d\n",i,offsetTable[i]);
+    printf("offsetTable[%d] = " POSITION_FORMAT "\n",i,offsetTable[i]);
   }
   printf("\n");
  
@@ -1922,8 +1832,8 @@ void yanpeiTestHash() {
     if (i != (h=hash(unhash(i)))) {
       allPassed = FALSE;
       printf("hash/unhash error:\n");
-      printf("position: %d, hashed: %d\n",i,h);
-      printf("\n");
+			printf("position: " POSITION_FORMAT ", hashed: " POSITION_FORMAT,i,h);
+			newline();
     }
     PrintPosition(i,"",TRUE);
     i++;
@@ -2178,10 +2088,10 @@ void yanpeiTestCannonical() {
   printPos = &yanpeiPrintSlots;
   
   for (i=0; i<offsetTable[NUMPIECES+1]; i++) {
-    printf("Position = %3d\t\t",i);
+    printf("Position = %3llu\t\t",i);
     PrintPosition(i,"",TRUE);
     c = getCannonical(i);
-    printf("Cannonical = %3d\t",c);
+    printf("Cannonical = %3llu\t",c);
     PrintPosition(c,"",TRUE);
     /*
     if (!SearchPosList(cannonicals,c)) {
@@ -2199,7 +2109,7 @@ void yanpeiTestCannonical() {
     */
   }
 
-  printf("\n ... %d cannonical positions in total.\n",cannonicalCount);
+  printf("\n ... " POSITION_FORMAT " cannonical positions in total.\n",cannonicalCount);
 
   FreePosList(cannonicals);
   printPos = oldPrintPos;
@@ -2220,4 +2130,11 @@ void FreePosList(POSITIONLIST *l) {
     }
     SafeFree(l);
   }
+}
+
+char readchar( ) {
+	
+	while( getchar( ) != '\n' );
+	return getchar( );
+	
 }
