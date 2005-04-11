@@ -155,6 +155,12 @@ FOXES_OBJ		= mfoxes$(OBJSUFFIX)
 FOXES_TCL_OBJ		= tkAppInitFoxes$(OBJSUFFIX)
 FOXES_SO		= $(LIBDIR)/libmfoxes$(LIBSUFFIX)
 
+## this is the new version of Foxes adapted to the current core API
+FOXES_NEW_EXE           = $(BINDIR)/mfoxes_new$(EXESUFFIX)
+FOXES_NEW_OBJ           = mfoxes_new$(OBJSUFFIX)
+FOXES_NEW_TCL_OBJ	= tkAppInitFoxes$(OBJSUFFIX)
+FOXES_NEW_SO            = $(LIBDIR)/libmfoxes_new$(LIBSUFFIX)
+
 GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of Gobblet
 GOBBLET_OBJ		= mgobblet$(OBJSUFFIX)
 GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
@@ -291,7 +297,8 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(TTC_OBJ) $(JOUST_OBJ) $(ICEBLOCKS_OBJ) $(BAGHCHAL_OBJ)\
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
 	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ) $(ABALONE_OBJ) \
-	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ)
+	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ) \
+	    $(FOXES_NEW_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -323,8 +330,8 @@ CCGAMES = $(CON_EXE) $(DNB_EXE)
 CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
-SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE)
-SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
+SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(FOXES_NEW_EXE)
+SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(FOXES_NEW_SO)
 
 
 ##############################################################################
@@ -439,6 +446,12 @@ $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
 
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 	$(CC) $(DEP_OBJS) tkAppInitFoxes$(OBJSUFFIX) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
+
+$(FOXES_NEW_EXE): $(FOXES_NEW_OBJ) $(GAMESMAN_A)
+	$(CC) -o $@ $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+
+$(FOXES_NEW_SO): $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(FOXES_NEW_TCL_OBJ)
+	$(CC) -o $@ $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(FOXES_NEW_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
