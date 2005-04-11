@@ -723,7 +723,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     onlyOneMove = (head != NULL && head->next == NULL);
     *theMove = head->move;
     if ( gSkipInputOnSingleMove && onlyOneMove ) {
-        printf("---------- SELECTING THE ONLY MOVE ---------> ");
+        printf("\n---------- SELECTING THE ONLY MOVE ---------> ");
         PrintMove(*theMove);
         printf("\n");
 	return (Move);
@@ -746,7 +746,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
        *FreeMoveList(head);*/
 	
 	if ( onlyOneMove ) {
-	    printf("------ SELECTING THE ONLY MOVE --------> ");
+	    printf("\n-------- SELECTING THE ONLY MOVE --------> ");
 	    PrintMove(*theMove);
 	    printf("\n");
 	    return(Move);
@@ -788,13 +788,23 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    PrintPosition(thePosition, playerName, TRUE);
 	    break;
 	case 's': case 'S':
-	    PrintValueMoves(thePosition);
-	    break;
+	    if (gUnsolved) {
+		printf("Sorry, we cannot give you these values before the game is solved.\n");
+		break;
+	    } else {
+		PrintValueMoves(thePosition);
+		break;
+	    }
 	case 'p': case 'P':
-	    gPrintPredictions = !gPrintPredictions;
-	    printf("\n Predictions %s\n", gPrintPredictions ? "On." : "Off.");
-	    PrintPosition(thePosition, playerName, TRUE);
-	    break;
+	    if (gUnsolved) {
+		printf("Sorry, we cannot make predictions before the game is solved.\n");
+		break;
+	    } else {
+		gPrintPredictions = !gPrintPredictions;
+		printf("\n Predictions %s\n", gPrintPredictions ? "On." : "Off.");
+		PrintPosition(thePosition, playerName, TRUE);
+		break;
+	    }
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);
 	    PrintPossibleMoves(thePosition);
