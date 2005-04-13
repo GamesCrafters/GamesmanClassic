@@ -95,7 +95,7 @@ GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
 9MM_EXE			= $(BINDIR)/m9mm$(EXESUFFIX) # The ultimate game of Nine Men's Morris
 9MM_OBJ			= m9mm$(OBJSUFFIX)
 9MM_SO			= $(LIBDIR)/libm9mm$(LIBSUFFIX)
- 
+
 ABALONE_EXE		= $(BINDIR)/mabalone$(EXESUFFIX) #The TITillating game of abalone!
 ABALONE_OBJ		= mabalone$(OBJSUFFIX)
 ABALONE_TCL_OBJ		= tkAppInitAbalone$(OBJSUFFIX)
@@ -191,7 +191,7 @@ LGAME_SO		= $(LIBDIR)/libmLgame$(LIBSUFFIX)
 LITE3_EXE		= $(BINDIR)/mlite3$(EXESUFFIX)	# The illuminating game of lite3
 LITE3_OBJ		= mlite3$(OBJSUFFIX) 
 LITE3_SO		= $(LIBDIR)/libmlite3$(LIBSUFFIX)
- 
+
 MANCALA_EXE		= $(BINDIR)/mmancala$(EXESUFFIX) # The manic game of Mancala
 MANCALA_OBJ		= mmancala$(OBJSUFFIX)
 MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
@@ -199,7 +199,7 @@ MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
 NIM_EXE			= $(BINDIR)/mnim$(EXESUFFIX)	# The interesting game of NIM!
 NIM_OBJ			= mnim$(OBJSUFFIX)
 NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
- 
+
 OOE_EXE			= $(BINDIR)/mooe$(EXESUFFIX) # ooe
 OOE_OBJ			= mooe$(OBJSUFFIX)
 OOE_SO			= $(LIBDIR)/libmooe$(LIBSUFFIX)
@@ -259,6 +259,7 @@ TACTIX_SO		= $(LIBDIR)/libmtactix$(LIBSUFFIX)
 TORE_EXE		= $(BINDIR)/mtore$(EXESUFFIX)	# The great game of Tac Tix
 TORE_OBJ		= mtore$(OBJSUFFIX)
 TORE_SO			= $(LIBDIR)/libmtore$(LIBSUFFIX)
+
 TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
 TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
@@ -280,7 +281,7 @@ WUZHI_EXE		= $(BINDIR)/mwuzhi$(EXESUFFIX)	# Kono
 WUZHI_OBJ		= mwuzhi$(OBJSUFFIX)
 WUZHI_SO		= $(LIBDIR)/libmwuzhi$(LIBSUFFIX)
 
-NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # another version of tic-tac-toe
+NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
 NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
 NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
 
@@ -445,7 +446,7 @@ $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
 	$(CC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
-	$(CC) $(DEP_OBJS) tkAppInitFoxes$(OBJSUFFIX) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
+	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
 $(FOXES_NEW_EXE): $(FOXES_NEW_OBJ) $(GAMESMAN_A)
 	$(CC) -o $@ $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
