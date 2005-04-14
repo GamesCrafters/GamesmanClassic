@@ -248,10 +248,10 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi win4 dodgem Lgame sim 3dot con cmass dnb foxes stt }
+    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi win4 dodgem Lgame sim 3spot con cmass dnb foxes stt }
     ### Removed ttt (silver version) ddg 2004-04-18
 
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Sim" "3-Spot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
     set theGuiTypes { gold gold gold gold gold gold gold gold gold grey grey grey grey grey brown brown brown brown brown brown }
@@ -275,6 +275,12 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.13  2005/01/14 07:53:01  reyjeffc
+##Tactix is now gold.
+##
+##January 13, 2005
+##Jeffrey Chiang
+##
 ##Revision 1.12  2005/01/10 17:28:17  reyjeffc
 ##Changed XGamesman.in and Xmlite3 to reflect gold status
 ##
