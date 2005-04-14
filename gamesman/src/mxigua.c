@@ -64,7 +64,9 @@
 **		-- 4.5.05 -- fixed issues with the prediction not being displayed
 **			     made the debug menu look like the other menus
 **			     fixed a floating point exception bug in the hash piece array (introduced by me).
-**
+**            -- 04.14.05 -- Added symmetries
+**                           changed most function declarations to old C-style
+**                           few minuteia such as SafeMallocs, other debugging
 **************************************************************************/
 
 
@@ -162,6 +164,7 @@ int towin; /* 0-2  0 - counting territory, 1 - captured pieces, 2 - both */
 int maxsize;
 
 char *board;
+char *symmboard;
 BOOLEAN *checked;
 
 /*struct with adjacency information - built in Initialize Game */
@@ -205,6 +208,28 @@ BOOLEAN isTerritory(char *, MOVE, char, BOOLEAN *);  /* helper for Primitive */
 void removeStones(char *, MOVE, char, BOOLEAN *); /* helper for DoMove */
 char getmovechar(MOVE);
 
+
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries - false until full boardsize selected */
+
+#define NUMSYMMETRIES 8   /*  4 rotations, 4 flipped rotations */
+
+int **gSymmetryMatrix;
+/* This is the array used for flipping along the N-S axis */
+int * gFlipNewPosition;
+
+/* This is the array used for rotating 90 degrees clockwise */
+int *gRotate90CWNewPosition;
+
+POSITION GetCanonicalPosition(POSITION position);
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -235,7 +260,90 @@ void InitializeGame ()
 	/* manually setting options right now */
 	gNumberOfPositions=hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	board = emptyboard(board);
+	symmboard = emptyboard(board);
 	gInitialPosition=hash(board,1,0);
+
+
+	/**************************************************/
+	/**************** SYMMETRY FUN BEGIN **************/
+	/**************************************************/
+
+	if(boardsize == 4) {
+	  kSupportsSymmetries = TRUE; /* Whether we support symmetries - false until full boardsize selected */
+
+	  gSymmetryMatrix = SafeMalloc(sizeof(MOVE) * NUMSYMMETRIES * maxsize);
+
+	  /* This is the array used for flipping along the N-S axis */
+	  gFlipNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
+	  *gFlipNewPosition = 2;
+	  *(++gFlipNewPosition) = 1;
+	  *(++gFlipNewPosition) = 0;
+	  *(++gFlipNewPosition) = 3;
+	  *(++gFlipNewPosition) = 6;
+	  *(++gFlipNewPosition) = 5;
+	  *(++gFlipNewPosition) = 4;
+	  *(++gFlipNewPosition) = 13;
+	  *(++gFlipNewPosition) = 12;
+	  *(++gFlipNewPosition) = 11;
+	  *(++gFlipNewPosition) = 10;
+	  *(++gFlipNewPosition) = 9;
+	  *(++gFlipNewPosition) = 8;
+	  *(++gFlipNewPosition) = 7;
+	  *(++gFlipNewPosition) = 16;
+	  *(++gFlipNewPosition) = 15;
+	  *(++gFlipNewPosition) = 14;
+	  *(++gFlipNewPosition) = 17;
+	  *(++gFlipNewPosition) = 20;
+	  *(++gFlipNewPosition) = 19;
+	  *(++gFlipNewPosition) = 18;
+
+	  /* This is the array used for rotating 90 degrees clockwise */
+	  gRotate90CWNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
+	  *gRotate90CWNewPosition = 14;
+	  *(++gRotate90CWNewPosition) = 7;
+	  *(++gRotate90CWNewPosition) = 4;
+	  *(++gRotate90CWNewPosition) = 8;
+	  *(++gRotate90CWNewPosition) = 15;
+	  *(++gRotate90CWNewPosition) = 9;
+	  *(++gRotate90CWNewPosition) = 0;
+	  *(++gRotate90CWNewPosition) = 19;
+	  *(++gRotate90CWNewPosition) = 17;
+	  *(++gRotate90CWNewPosition) = 15;
+	  *(++gRotate90CWNewPosition) = 10;
+	  *(++gRotate90CWNewPosition) = 5;
+	  *(++gRotate90CWNewPosition) = 3;
+	  *(++gRotate90CWNewPosition) = 1;
+	  *(++gRotate90CWNewPosition) = 20;
+	  *(++gRotate90CWNewPosition) = 11;
+	  *(++gRotate90CWNewPosition) = 2;
+	  *(++gRotate90CWNewPosition) = 12;
+	  *(++gRotate90CWNewPosition) = 16;
+	  *(++gRotate90CWNewPosition) = 13;
+	  *(++gRotate90CWNewPosition) = 6;
+
+	  gCanonicalPosition = GetCanonicalPosition;
+
+	  int i, j, temp; /* temp is used for debugging */
+
+	  /* Initialize gSymmetryMatrix[][] */
+	  for(i = 0 ; i < maxsize ; i++) {
+	    temp = i;
+	    for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	      if(j == NUMSYMMETRIES/2)
+		temp = gFlipNewPosition[i];
+	      if(j < NUMSYMMETRIES/2)
+		temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	      else
+		temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	    }
+	  }
+	}
+
+	/**************************************************/
+	/**************** SYMMETRY FUN END ****************/
+	/**************************************************/
+
+
 	adjacent = (adjacency *) SafeMalloc(sizeof(adjacency) * maxsize);
 	
 	checked = (BOOLEAN *)SafeMalloc(sizeof(BOOLEAN)*maxsize);
@@ -548,7 +656,9 @@ void InitializeGame ()
 	}
 }
 
-char * emptyboard(char *board) {
+char * emptyboard(board)
+	char *board;
+{
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
@@ -713,7 +823,12 @@ void zeroChecked() {
 		checked[i] = FALSE;
 }
 
-BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check) {
+BOOLEAN isSurrounded(board, move, p, check)
+	char *board;
+	MOVE move;
+	char p;
+	BOOLEAN *check;
+{
   if(board[move] != p)
     return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
   else {
@@ -730,7 +845,12 @@ BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check) {
   }
 }
 
-void removeStones(char *board, MOVE move, char p, BOOLEAN *check) {
+void removeStones(board, move, p, check)
+	char *board;
+	MOVE move;
+	char p;
+	BOOLEAN *check;
+{
 	int i;
   if(board[move] == p) {
     check[move] = TRUE;
@@ -767,7 +887,8 @@ void removeStones(char *board, MOVE move, char p, BOOLEAN *check) {
 **
 ************************************************************************/
 
-VALUE Primitive (POSITION position)
+VALUE Primitive (position)
+	POSITION position;
 {
 	int player,turn;
 	int p1c, p2c;
@@ -838,7 +959,12 @@ VALUE Primitive (POSITION position)
 }
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
-BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check) {
+BOOLEAN isTerritory(board, move, p, check)
+	char *board;
+	MOVE move;
+	char p;
+	BOOLEAN *check;
+{
   if(board[move] != EMPTYSPACE)
     return (board[move] == p);
   else {
@@ -871,7 +997,10 @@ BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check) {
 ** 
 *************************************************************************/
 
-void display5board(char *pos, char *prediction) {
+void display5board(pos, prediction)
+	char *pos;
+	char *prediction;
+{
 	printf("Legend:    1         Current:      %c\n",pos[0]);
 	printf("          /|\\        Player1: X   /|\\\n");
 	printf("         2-3-4       Player2: *  %c-%c-%c\n",pos[1],pos[2],pos[3]);
@@ -879,7 +1008,10 @@ void display5board(char *pos, char *prediction) {
 	printf("           5                       %c\n",pos[4]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
-void display9board(char *pos,char *prediction) {
+void display9board(pos, prediction)
+	char *pos;
+	char *prediction;
+{
 	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
 	printf("         /|\\    /|        Player1: X   /|\\    /|\n");
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
@@ -887,7 +1019,10 @@ void display9board(char *pos,char *prediction) {
 	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
 	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
-void display13board(char *pos,char *prediction) {
+void display13board(pos, prediction)
+	char *pos;
+	char *prediction;
+{
 	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
 	printf("          |\\    /|\\    /|   Player1: X  |\\    /|\\    /|\n");
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
@@ -896,7 +1031,10 @@ void display13board(char *pos,char *prediction) {
 	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
 
-void display17board(char *pos,char *prediction) {
+void display17board(pos, prediction)
+	char *pos;
+	char *prediction;
+{
         printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
         printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
         printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -909,9 +1047,10 @@ void display17board(char *pos,char *prediction) {
 	if(prediction)printf(" Prediction: %s\n\n",prediction);
 }
 
-void display21board(char *positionvalues, char *prediction) {
-	/* dirty but should work */
-	char *pos = positionvalues; /* decided i didn't want to write positionvalues over and over */
+void display21board(pos, prediction)
+	char *pos;
+	char *prediction;
+{
         printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
         printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
         printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -929,7 +1068,9 @@ void display21board(char *positionvalues, char *prediction) {
 
 }
 
-char *getprediction(char *pred) {
+char *getprediction(pred)
+	char *pred;
+{
 	int i=0;
 	/* code to initialize it to blank values until a later time */
 	for(;i<16;i++) pred[i]=(char)32; /* fill with spaces */
@@ -952,7 +1093,10 @@ char *getprediction(char *pred) {
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+void PrintPosition (position, playersName, usersTurn)
+	POSITION position;
+	STRING playersName;
+	BOOLEAN usersTurn;
 {
 	/* just a doodle of the gameboard
 	 * - Josh
@@ -973,8 +1117,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	 * all thanks to boring lectures =)
 	 */
 	char *toprint, *prediction;
-	toprint=(char *)malloc(sizeof(char)*(5+4*boardsize));
-	/*prediction=(char *)malloc(sizeof(char)*17); */
+	toprint=(char *)SafeMalloc(sizeof(char)*(5+4*boardsize));
+	/*prediction=(char *)SafeMalloc(sizeof(char)*17); */
 	
 	/* need to get prediction, till then... */
 	prediction=GetPrediction(position,playersName,usersTurn);
@@ -1001,8 +1145,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 			exit(1);
 			break;
 	}
-	free(toprint);
-	free(prediction);
+	SafeFree(toprint);
+	SafeFree(prediction);
 } 
 
 
@@ -1017,7 +1161,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
+void PrintComputersMove (computersMove, computersName)
+	MOVE computersMove;
+	STRING computersName;
 {
 	char move=0;
 	if(computersMove>-1 && computersMove < 9) {
@@ -1077,14 +1223,17 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 
-void PrintMove (MOVE move)
+void PrintMove (move)
+	MOVE move;
 {
         char movechar=getmovechar(move);
 
 	printf("%c ",movechar);
 }
 
-char getmovechar(MOVE move) {
+char getmovechar(move)
+	MOVE move;
+{
 	char movechar=0;
         if(move>-1 && move < 9) {
                 movechar=49+move;
@@ -1152,7 +1301,10 @@ char getmovechar(MOVE move) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+USERINPUT GetAndPrintPlayersMove (position, move, playersName)
+	POSITION position;
+	MOVE *move;
+	STRING playersName;
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
@@ -1216,7 +1368,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
+BOOLEAN ValidTextInput (input)
+	STRING input;
 {
 	switch(toupper(input[0])) {
 		case '1':
@@ -1260,7 +1413,8 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (STRING input)
+MOVE ConvertTextInputToMove (input)
+	STRING input;
 {
 	switch(toupper(input[0])) {
 		case 'B':
@@ -1387,7 +1541,8 @@ void GameSpecificMenu ()
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[])
+void SetTclCGameSpecificOptions (options)
+	int options[];
 {
     
 }
@@ -1535,7 +1690,8 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
+void setOption (option)
+	int option;
 {
    	rulesvariant=option/30;
 	option-=(rulesvariant*30);
@@ -1587,7 +1743,11 @@ void DebugMenu ()
 ** shifts that left 5 bits and encodes the turn number
 **
 **************************************************************************/
-POSITION hash(char *board, int player, int turn) {
+POSITION hash(board, player, turn)
+	char *board;
+	int player;
+	int turn;
+{
 	POSITION ret;
 	
 	/* do the generic hash */
@@ -1606,7 +1766,10 @@ POSITION hash(char *board, int player, int turn) {
 ** 
 ***************************************************************************/
 
-char *unhashboard(POSITION hashed, char *board){
+char *unhashboard(hashed, board)
+	POSITION hashed;
+	char *board;
+{
 	hashed=hashed>>NUM_HASH_WRAPPER_BITS; /* get rid of the turn encoding */
 	/* better have a non null board */
 	return generic_unhash(hashed, board);
@@ -1614,8 +1777,8 @@ char *unhashboard(POSITION hashed, char *board){
 
 /*************************************************************************
 **
-** char *unhashboard(int hashed)
-** returns a board from a hashed board
+** int hash_init(int, int, int..)
+** initializes generic hash function
 ** 
 ***************************************************************************/
 
@@ -1631,7 +1794,9 @@ int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* c
 **
 *****************************************************************************/
 
-int getplayer(POSITION hashed) {
+int getplayer(hashed)
+	POSITION hashed;
+{
 	hashed = hashed>>NUM_HASH_WRAPPER_BITS;
 	return whoseMove(hashed);
 }
@@ -1643,7 +1808,9 @@ int getplayer(POSITION hashed) {
 **
 *****************************************************************************/
 
-int getturnnumber(POSITION hashed) {
+int getturnnumber(hashed)
+	POSITION hashed;
+{
 	return hashed&31;
 }
 
@@ -1654,10 +1821,89 @@ int getturnnumber(POSITION hashed) {
 **
 ***********/
 
-int countboard(char *board,char tocount) {
+int countboard(board, tocount)
+	char *board;
+	char tocount;
+{
 	int counter=0,i=0;
 	for(;i<maxsize;i++) 
 		if(board[i]==tocount)
 			counter++;
 	return counter;
 }
+
+
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+** 
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(position)
+     POSITION position;
+{
+  POSITION DoSymmetry();
+  POSITION newPosition, theCanonicalPosition;
+  int i;
+  
+  theCanonicalPosition = position;
+  
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    
+    newPosition = DoSymmetry(position, i);    /* get new */
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
+
+  return(theCanonicalPosition);
+}
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+** 
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(position, symmetry)
+     POSITION position;
+     int symmetry;
+{  
+  int i;
+  int player = getplayer(position);
+  int turn = getturnnumber(position);
+  
+  board = unhashboard(position,board);
+  symmboard = unhashboard(position,symmboard); /* Make copy */
+  
+  /* Copy from the symmetry matrix */
+  
+  for(i = 0 ; i < maxsize ; i++)
+    symmboard[i] = board[gSymmetryMatrix[symmetry][i]];
+  
+  return(hash(symmboard, player, turn));
+} 
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
