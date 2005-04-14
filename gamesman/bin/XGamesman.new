@@ -9,7 +9,7 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
     set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
-		win4 dodgem Lgame sim 3dot con cmass dnb foxes stt }
+		win4 dodgem lgame sim 3dot con cmass dnb foxes stt }
     set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" \
 		"QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" \
 		"Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" \
@@ -35,7 +35,7 @@ proc main {} {
     frame $leftScroll -width 10 -background red
     frame $leftBottom -height 100 -background green
 
-    frame $home -background pink
+    canvas $home -background pink
     frame $rightScroll -width 10 -background red
     frame $rightBottom -height 100 -background blue
 
@@ -50,37 +50,114 @@ proc main {} {
     pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
-    CreateMenuButtons $theBitmapDir $thePrograms $theStrings $theGuiTypes $menu
+
+    button $rightBottom.prev \
+	-text "Previous" \
+	-bg gold \
+	-state disabled \
+	-command {
+		
+	}
+    button $rightBottom.playGui \
+	-text "Play Gui" \
+	-bg gold \
+	-state disabled \
+	-command {
+		
+	}
+    button $rightBottom.playText \
+	-text "Play Text" \
+	-bg gold \
+	-state disabled \
+	-command {
+		
+	}
+    button $rightBottom.next \
+	-text "Next" \
+	-bg gold \
+	-state disabled \
+	-command {
+		
+	}
+
+    pack $rightBottom.prev -side left
+    pack $rightBottom.playGui -side left
+    pack $rightBottom.playText -side left
+    pack $rightBottom.next -side left
+
+    CreateGamePages $home $thePrograms
+
+    CreateMenuButtons $theBitmapDir $thePrograms $theStrings $theGuiTypes $menu $home
 }
 
-proc CreateMenuButtons { theBitmapDir thePrograms theStrings theGuiTypes frame } {
+proc CreateGamePages { frame thePrograms } {
     set theNumberOfPrograms [llength $thePrograms]
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-		set theProgram "./Xm[lindex $thePrograms $i]"
-		set theString [lindex $theStrings $i]
-		set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-		set theColor [lindex $theGuiTypes $i]
-		catch { image delete image$i }
-		catch { image delete small$i }
-		image create photo image$i -file $theGif
-		image create photo small$i
-		small$i copy image$i -subsample 2
-		set borderWidth 0
-		button $frame.gameBut$i \
-			-compound right \
-			-image small$i \
-			-text $theString \
-	        	-bg $theColor \
-	        	-borderwidth $borderWidth \
-			-width 120 \
-			-height 50 \
-			-anchor e \
-			-command "exec @WISHLOC@ -f $theProgram &"
-		pack $frame.gameBut$i -side top -anchor ne
+	$frame create text [list 200 200] -text [lindex $thePrograms $i] -tags [list gameText $i] -fill grey
+
+#	set item $frame.[lindex $thePrograms $i]
+#	canvas $item -background grey
+#	button $item.text \
+#		-text [lindex $thePrograms $i] \
+#		-bg blue
+#	pack $item.text
+#	pack $item -fill x -pady [expr 1 * $i]
+#	update
     }
 }
 
+proc CreateMenuButtons { theBitmapDir thePrograms theStrings theGuiTypes frame home} {
+    set theNumberOfPrograms [llength $thePrograms]
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set theProgram "./Xm[lindex $thePrograms $i]"
+	set theString [lindex $theStrings $i]
+	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+	set theColor [lindex $theGuiTypes $i]
+	catch { image delete image$i }
+	catch { image delete small$i }
+	image create photo image$i -file $theGif
+	image create photo small$i
+	small$i copy image$i -subsample 2
+	set borderWidth 0
+	button $frame.gameBut$i \
+		-compound right \
+		-image small$i \
+		-text $theString \
+        	-bg $theColor \
+        	-borderwidth $borderWidth \
+		-width 120 \
+		-height 50 \
+		-anchor e \
+		-command "CreateLaunchButtons [list $thePrograms] $i"
+			#raise $home.[lindex $thePrograms $i]
+	pack $frame.gameBut$i -side top -anchor ne
+    }
+}
 
+proc CreateLaunchButtons { thePrograms i } {
+    set theNumberOfPrograms [llength $thePrograms]
+    set theProgram "./Xm[lindex $thePrograms $i]"
+    if { $i == 0 } {
+	.rightSide.rightBottom.prev configure -state disabled
+    } else {
+	.rightSide.rightBottom.prev configure -state normal \
+		-command "CreateLaunchButtons [list $thePrograms] [expr $i - 1]"
+		#do something to load game description
+    }
+
+    .rightSide.rightBottom.playGui configure \
+	-command "exec @WISHLOC@ -f $theProgram &" -state normal
+
+    .rightSide.rightBottom.playText configure -state disabled
+
+    if { $i == [expr $theNumberOfPrograms - 1] } {
+	.rightSide.rightBottom.next configure -state disabled
+    } else {
+	.rightSide.rightBottom.next configure -state normal \
+		-command "CreateLaunchButtons [list $thePrograms] [expr $i + 1]"
+		#do something to load game description
+    }
+}
 
 ### Call the main procedure.
 main
