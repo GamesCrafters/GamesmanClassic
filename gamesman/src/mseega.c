@@ -54,7 +54,7 @@
 extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 27962; /* # total possible positions -> given by the hash_init() function*/
-POSITION gInitialPosition    = 12587; /* The initial position (starting board) */
+POSITION gInitialPosition    =  147972; /* The initial position (starting board) */
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
@@ -66,7 +66,7 @@ BOOLEAN  kPartizan           = FALSE; /* A partizan game is a game where each pl
 //BOOLEAN  kSupportsHeuristic  = ;
 //BOOLEAN  kSupportsSymmetries = ;
 BOOLEAN  kSupportsGraphics   = FALSE;
-BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
+BOOLEAN  kDebugMenu          = TRUE; /* TRUE while debugging */
 BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
 BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
 BOOLEAN  kLoopy              = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
@@ -255,6 +255,7 @@ BOOLEAN fullBoard(Board b);
 
 inline void setWhoseBoard(Board b, char t);
 inline void setpce(Board b, int r, char c);
+inline void setMove2(SMove m,int val);
 inline void setMove(SMove m, char who, int rfrom, int rto);
 inline void setPlacingBoard(Board b, BOOLEAN t);
 
@@ -321,16 +322,10 @@ void InitializeGame () {
     Board b = tempname;
     int r;
     for (r=0; r<width*height; r++){ 
-      if (r==4)
-	setpce(b,r,'-');
-	else  
-	  if (r % 2 == 0)
-	    setpce(b,r,'o');
-	  else 
-	    setpce(b,r,'x');
+	setpce(b,r,blank);
     }
     setWhoseBoard(b, 'x');
-    setPlacingBoard(b,FALSE);
+    setPlacingBoard(b,TRUE);
     gInitialPosition = hash(b);
     printf ("init------------- %d",gInitialPosition);
   } while (FALSE);
@@ -528,7 +523,7 @@ POSITION DoMove (POSITION position, MOVE m) {
   }
   if (placingBoard(b)) {
     setpce(b, toWhere(&m), c);
-    setpce(b, toWhere2(&m), c);
+    //setpce(b, toWhere2(&m), c);
     setWhoseBoard(b, d);
     if (fullBoard(b)) setPlacingBoard(b,FALSE);
   }
@@ -589,7 +584,7 @@ POSITION GetInitialPosition ()
   //makeRandomBoard(b);
   //InitializeGame();
   //printf("d",);
-  gInitialPosition=12587;
+  //gInitialPosition;
   return gInitialPosition;
 }
 
@@ -848,16 +843,13 @@ MOVELIST *GenerateMoves (POSITION position)
       //else
 	if(i==BOARDSIZE/2)
 	  continue;
-      
-      for (j=i+1;j<BOARDSIZE;j++){
-	if (j==BOARDSIZE/2)
-	  continue;
-	if(gBoard[i]==blank && gBoard[j]==blank){
-	  setMove(&m,mover,i,j);
-	  head=CreateMovelistNode(m,head);}
+	if(gBoard[i]==blank){
+	  setMove2(&m,i);
+	  head=CreateMovelistNode(m,head);
+	}
       }
     }
-  }
+  
 
   else{
 
@@ -1005,7 +997,10 @@ MOVE ConvertTextInputToMove (STRING input) {
   for (; input[n]!='\0' && (input[n]<'0' || input[n]>'9'); n++) ;
   for (; input[n]!='\0' && input[n] >= '0' && input[n] <= '9'; n++)
     p2 = p2*10 + input[n] - '0';
-  setMove(&m, 'x', p1, p2);
+  if (p2==0)
+    setMove2(&m,p1);
+  else
+    setMove(&m, 'x', p1, p2);
   if (DEBUGGING2) {printf("Conversion finds ");PrintMove(m);printf(".\n");}
   return m;
   //get first piece
@@ -1085,7 +1080,7 @@ MOVE ConvertTextInputToMove (STRING input) {
   }
 */
 void PrintMove(MOVE move) {
-  printf("[%d %d]", fromWhere(&move),toWhere(&move));
+  printf("[%d]", toWhere(&move));
 }
 
 
@@ -1185,6 +1180,9 @@ inline BOOLEAN placingBoard(Board b) {return b[width*height]==P1;}
 
 inline void setWhoseBoard(Board b, char t) {b[width*height+1]=t;}
 inline void setpce(Board b, int r, char c) {b[r]=c;}
+inline void setMove2(SMove m, int val){
+  *m=val;
+}
 inline void setMove(SMove m, char who, int rfrom, int rto) {
   /* TODO: figure out how we're supposed to encode invariants.
      if ((unsigned int)rfrom >= 1<<8*sizeof(MOVE)/2 ||

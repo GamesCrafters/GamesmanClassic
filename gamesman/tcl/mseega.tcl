@@ -21,6 +21,8 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "Seega"
     
+    global Winner
+    font create Winner -family arial -size 50    
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
@@ -55,11 +57,12 @@ proc GS_InitGameSpecific {} {
     set colorX blue
     set colorO red
     
-    global WIDTH HEIGHT BOARDSIZE
+    global WIDTH HEIGHT BOARDSIZE counter
     set WIDTH 3
     set HEIGHT 3
     set BOARDSIZE 9
     set BOARDARRAYSIZE [expr $BOARDSIZE + 2]
+    set counter 0
 }
 
 
@@ -295,11 +298,12 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
 
-    global BOARDARRAYSIZE BOARDSIZE colorX colorO gInitialPosition
+    global BOARDARRAYSIZE BOARDSIZE colorX colorO gInitialPosition counter
+
     $c raise base all
     # $c raise labelrubix base
     set a(0) 0
-
+    set counter [expr $counter + 1] 
 puts positions
 puts $gInitialPosition
 puts $position
@@ -310,9 +314,9 @@ puts $position
 	if {[string compare [string index $pieceString $i] "x"] == 0 } {
 	    puts x
 	    puts $i
-	    make_horizOval $c [calc_x $i] [calc_y $i] $colorX $i    
+	    make_horizOval $c [calc_x $i] [calc_y $i] $colorX $counter    
 	} elseif {[string compare [string index $pieceString $i] "o"] == 0} {
-	    make_VertOval $c [calc_x $i] [calc_y $i] $colorO $i
+	    make_VertOval $c [calc_x $i] [calc_y $i] $colorO $counter
 	}
 	    #$c raise [subst $a($i)]b-$i base
 	    #$c raise [subst $a($i)]c-$i [subst $a($i)]b-$i
@@ -340,13 +344,20 @@ global blockSize WIDTH
 }
 
 proc make_horizOval {c x y color tag} {
-    $c create oval [expr $x - 30] [expr $y - 20] [expr $x + 30] [expr $y + 20] -fill $color -tag $tag
+    $c create oval [expr $x - 30] [expr $y - 20] [expr $x + 30] [expr $y + 20] -fill $color -tag piece$tag
 } 
 
 proc make_VertOval {c x y color tag} {
-    $c create oval [expr $x - 20] [expr $y - 30] [expr $x + 20] [expr $y + 30] -fill $color -tag $tag
+    $c create oval [expr $x - 20] [expr $y - 30] [expr $x + 20] [expr $y + 30] -fill $color -tag piece$tag
 }
 
+proc drawDot {c x y color tag} {
+    $c create oval [expr $x - 10] [expr $y - 10] [expr $x + 10] [expr $y + 10] -fill $color -tag dot$tag
+
+ $c bind "dot$tag" <Enter> "$c itemconfig dot$tag -fill black"
+    $c bind "dot$tag" <Leave> "$c itemconfig dot$tag -fill $color"
+    $c bind "dot$tag" <ButtonRelease> "ReturnFromHumanMove $tag"
+}
 
 #############################################################################
 # GS_NewGame should start playing the game. 
@@ -408,9 +419,11 @@ GS_DrawPosition $c $newPosition
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 #set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
-
+global BOARDARRAYSIZE BOARDSIZE counter
+set pieceString [string range [C_GenericUnhash $position $BOARDARRAYSIZE] 0 [expr $BOARDARRAYSIZE - 1]]
 
  foreach item $moveList {
+
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
 	set color cyan
@@ -418,17 +431,23 @@ proc GS_ShowMoves { c moveType position moveList } {
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
-	    } elseif {$value == "Lose"} { ;# lose for opponent, win for you
+	    } elseif {$value == "Lose"} { # lose for opponent, win for you
 		set color green
 	    } else {
 		set color red4
 	    }
 	}
 
-     set from [fromIndex $move]
-     set to [toIndex $move]
-     drawArrow $c [calc_x $from] [calc_y $from] [calc_x $to] [calc_y $to]  $move $color  
- }
+	if {[string compare [string index $pieceString $BOARDSIZE] "x"] == 0 } {
+	    drawDot $c [calc_x $move] [calc_y $move] $color $move
+	} else {
+	    set from [fromIndex $move]
+	    set to [toIndex $move]
+	    drawArrow $c [calc_x $from] [calc_y $from] [calc_x $to] [calc_y $to]  $move $color  
+       
+	}
+     }
+ $c raise piece$counter all
 update idletasks
     
     ### TODO: Fill this in
@@ -451,6 +470,7 @@ proc  drawArrow {c x1 y1 x2 y2 move color} {
 
     $c bind "arrow$move" <Enter> "$c itemconfig arrow$move -fill black"
     $c bind "arrow$move" <Leave> "$c itemconfig arrow$move -fill $color"
+    #lkll$c bind "arrow$move" <ButtonRelease> "checkmove $move"
     $c bind "arrow$move" <ButtonRelease> "ReturnFromHumanMove $move"
     #$c itemconfig $obj -fill $colour
 
@@ -503,9 +523,20 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global boardHeight Winner
 
+    set x [expr [calc_x 1] + 0] 
+    for {set y 0} {$y <= [expr $boardHeight / 2]} {set y [expr $y + 10]} {
+	$c lower text
+	#update idletasks
+	$c create text $x $y -text "$nameOfWinner Wins!" -font Winner -fill orange -tag text
+	#$c create text  340 -text "WINS!"         -font Winner -fill orange -tags winner
+	update idletasks
+	#$c lower text
+	#Tcl_Sleep(10)
 	### TODO if needed
-	
+    }
+
 }
 
 
@@ -520,7 +551,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
+    #update idletasks
 	### TODO if needed
 
 }

@@ -614,7 +614,7 @@ proc GS_Initialize { c } {
 
     makeBoard $c
     # create font for Winner text at end of game
-    font create Winner -family arial -size 80
+    font create Winner -family arial -size 50
     #animationQualityQuery $c
 
     start_animation $c
