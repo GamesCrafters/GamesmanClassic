@@ -9,7 +9,7 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
     set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
-		win4 dodgem lgame sim 3dot con cmass dnb foxes stt }
+		win4 dodgem lgame sim 3spot con cmass dnb foxes stt }
     set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" \
 		"QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" \
 		"Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" \
