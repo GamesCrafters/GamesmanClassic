@@ -30,15 +30,15 @@ proc main {} {
     frame .leftSide
     frame .rightSide
 
-    frame $menu -height [expr $theNumberOfPrograms * 50]
-    frame $leftScroll -width 10 -background red
-    frame $leftBottom -background blue
+    canvas $menu -height [expr $theNumberOfPrograms * 50]
+    canvas $leftScroll -width 10 -background red
+    canvas $leftBottom -background blue
 
-    canvas $home -background pink
-    frame $rightScroll -width 10 -background red
-    frame $rightBottom -background blue
+    canvas $home -background pink -borderwidth 20
+    canvas $rightScroll -width 10 -background red
+    canvas $rightBottom -background blue
 
-    pack .leftSide -fill y -side left
+    pack .leftSide -fill y -side left 
     pack .rightSide -fill both -side left -expand 1
 
     pack $leftBottom -fill x -side bottom
@@ -49,7 +49,7 @@ proc main {} {
     pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
-    CreateGamePages $home $thePrograms $theStrings
+    CreateGamePages $home $thePrograms $theStrings $theBitmapDir
     CreateMenuButtons $theBitmapDir $thePrograms $theStrings $theGuiTypes $menu $home
     CreateHomeButton $leftBottom $home $rightBottom.buttons
     CreateLaunchButtons $rightBottom.buttons
@@ -149,26 +149,178 @@ proc CreateHomeButton { frame home rightBottom } {
     pack $frame.home -anchor center
 }
 
-proc CreateGamePages { frame thePrograms theStrings } {
+proc CreateGamePages { frame thePrograms theStrings theBitmapDir } {
     set theNumberOfPrograms [llength $thePrograms]
-
-    ##### Starting Page ########
-    canvas $frame.main -background gold
-    ## end start page
+    set width [expr 800 - 165]
+    set height [expr 600 - 30]
 
     ##### window displaying content of main frame ####
-    $frame create window 0 0 -width [expr 800 - 165] -height [expr 600 - 30] \
+    $frame create window 0 0 -width $width -height $height \
 	-tags [list viewer] -anchor nw
     ## end window
+
+    ##### Starting Page ########
+    set bgcolor blue
+    set fontcolor white
+    canvas $frame.main -background $bgcolor
+    message $frame.main.title -text \
+	"GAMESMAN \n\n \
+	A Finite, Two-Person, Perfect-Information Game Generator.\n\n \
+	\t Gamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\n \
+	\t Since 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\n \
+Select a game from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor
+
+    pack $frame.main.title -expand 1 -fill both -anchor nw
+
+    pack $frame.main -expand 1 -fill both -anchor nw
+    ## end start page
+
+    set Desc(achi) "\tAchi is one of the many traditional Morris type games that involve placing pieces on a board to connect three in a row. The game originated in Ghana where it is often played by children who use pebbles and sticks as pieces. Various versions of Achi are played all over the world from China, where it is known as Luk tsu k'i to France where the center point cannot be used as the first move. Large stones dating back to the third or fourth century AD have even been found in northern England."
+    set Desc(nim) "\tInvented in China, Nim (meaning 'to take') is played by children on small pieces of paper or by adults using coins. In 1902 it was given the name Nim by Harvard mathematician Charles Bouton, who published a full analysis of the game."
+    set Desc(rubix) "\tRubik's Magic was created by Erno Rubik."
+    set Desc(slideN) "\t"
+    set Desc(ttt3) "\tTic-tac-toe, also know as Naughts and Crosses, is one of the most widely known games. Found everywhere from the temples of ancient Egypt to the medieval cathedrals of England, tic-tac-toe has entertained people for centuries. While tic-tac-toe is now considered to be a child's game, it was not always the case. In the past, the game was linked to pagan rituals and was occasionally banned. Recent fame for tic-tac-toe came during a sequence in the Hollywood film Wargames, where tic-tac-toe was used to teach a super-computer about no-win situations."
+    set Desc(qx) "\t"
+    set Desc(1210) "\t1,2,....10 is a simple puzzle game that involves moving a counter one or two spaces. 1,2,....10 has several variants, including the 1,2,...4 and Henry Ernest Dudeney's 37 Puzzle Game."
+    set Desc(lite3) "\t"
+    set Desc(tactix) "\t"
+    set Desc(ctoi) "\tChung-toi was created by Reginald Chung and is based off of tic-tac-toe."
+    set Desc(win4) "\tFour-In-A-Row has its roots in Tic-Tac-Toe, a simple three in a row pencil and paper game. The object of the game is to get four pieces in a row. Four-In-A-Row, also, adds the element of restricted placement by requiring the players to 'drop' the pieces vertically down the board. In America, this game was popularized under the name Connect Four."
+    set Desc(dodgem) "\tDodgem was created in 1972 by Colin Vout, then a mathematics student at the University of Cambridge. The original game was devised with two red cars and two blue cars on a 3x3 board. Players alternate turns moving their cars, with the red player moving either North, East or South, and the red player moving either North, East or West."
+    set Desc(lgame) "\tL Games humble beginnings started during a dinner conversation between   Edward de Bono and mathematician Professor Littlewood. Both agreed that, while chess was difficult, it was also very complex because of its many pieces. De Bono took up the challenge to create a game that required skill, yet was also simple to play. The result was L Game."
+    set Desc(sim) "\t"
+    set Desc(3spot) "\tSimilar to the L Game, Three Spot is called by its creator Edward de Bono the  'Social Justice Game.' De Bono created L Game with the intention of creating a simple game that still required great skill."
+    set Desc(con) "\t"
+    set Desc(cmass) "\t"
+    set Desc(dnb) "\tThe game of Dots and Boxes was studied extensively by Elwyn Berlekamp, who in the late 1960s presented the Dots and Boxes theorem at the University of Calgary."
+    set Desc(foxes) "\t"
+    set Desc(stt) "\tShift Tac Toe was first released in 1988 by Pressman games."
+
+    set Rules(achi) "Rules:\n\
+	The game is played on the nine points of intersection. Players start out with three pieces and alternate turns placing their pieces on any unoccupied point. The process is repeated until all counters are placed on a board. In the second phase, the first player slides his or her piece to an adjacent, vacant intersection point. The first player to get three in a row is the winner.\n\
+	To move: There are two types of moves in Achi: place moves and slide moves. In a place move, you place three pieces on a board. Once all of your three pieces are on the board, you make a slide move by selecting a piece to a connected and unoccupied spot.\n\
+	To win:  To get three in a row either horizontally, vertically or diagonally.\n\
+	To win misere: Force your opponent to get three in a row."
+    set Rules(nim) "Rules:\n\
+	In this game counters are arranged randomly in several heaps. Each player on his or her turn removes at least one counter. The game continues until all the counters are removed. The person to remove the last counter is the winner.\n\
+	To move:  Remove at least one counter on your turn.\n\
+	To win:  To remove the last counter.\n\
+	To win misere: Force your opponent into removing the last counter."
+    set Rules(rubix) "Rules:\n\
+	The playing pieces consist of Xs and Os that are colored black or white. On the first move, the first player places his X on the board, with either the white or black side up. Play then continues with two types of moves. The second player moves one of the opponent's pieces to an adjacent open slot by 'flipping' the piece. This will change the position of the piece as well as the color. The player then places his second piece in any vacant square, whichever color facing up. The play then goes to the first player who has the same options of moves as the second player. The players continue until one person has 3 pieces in a row of the same color (black or white).\n\
+	Note: the game can be modified so that you need a different amount in a row to win.\n\
+	To move: On your turn, either flip an opponent's piece to an adjacent space or place a black or white piece in an empty space.\n\
+	To win: Complete a vertical, horizontal, or diagonal line with three of your pieces. The pieces must be of the same background color and cannot be broken by your opponent on his turn.\n\
+	To win misere: Force your opponent into getting three in a row at the end of the game.\n\
+	Variants: Two in a row"
+    set Rules(slideN) "Rules:\n\
+	The first player places his piece into the first slot on the diamond shaped board from either the right or left side. The next player may slide his piece into a top open slot or slide his opponent's piece to the adjacent square. When the row is filled players are not allowed to place any more pieces.\n\
+	To move: The first player may either move one or two spaces on his or her turn.\n\
+	To win: Connect three in a row in any direction."
+    set Rules(ttt3) "Rules:\n\
+	Starting with a board of nine empty squares, two players alternate turns placing X's and O's in the empty squares. The first player to connect three in a row, either horizontally, vertically or diagonally wins. If there is no more room on the board and neither player has obtained three in a row, the game is a tie.\n\
+	To move: Place your piece in an open square. To win: Connect three in a row either horizontally, vertically or diagonally.\n\
+	To win misere: Force your opponent to connect three in a row either horizontally, vertically or diagonally."
+    set Rules(qx) "Rules:\n\
+	Players alternate turns flipping the bars either horizontally or vertically. Play continues until one person gets all three horizontal or all three vertical pieces in a row.\n\
+	To move: Select a think vertical or horizontal bar to place it in the square. Once a piece is placed, players may flip the piece horizontally or vertically.\n\
+	To win: Be the first player to get three horizontal or vertical pieces in a row.\n\
+	To win misere: To force your opponent to get three horizontal or vertical pieces in a row."
+    set Rules(1210) "Rules:\n\
+	The number starts out at one and the players take turns increasing it by either one or two. Eventually, one player will be within two of 10 and they will be able to increase the number to 10, winning the game.\n\
+	To move: The first player may either move one or two spaces on his or her turn.\n\
+	To win: To be the first player to raise the total above ten.\n\
+	To win misere: To force your opponent into raising the total above ten."
+    set Rules(lite3) "Rules:\n\
+	Lite 3 is a game very similar to Tic Tac Toe. The game is for two players. The only rule added to this game is that when a player has four of the squares selected on the board, the first square that the player selected becomes neutral again.\n\
+	To move: Select an open slot.\n\
+	To win: Be the first player to get three of your pieces in a row either horizontally, vertically or diagonally.\n\
+	To win misere: Force your opponent to connect three of his pieces in a row either horizontally, vertically or diagonally.\n\
+	Variants: Surround and three in a row surround."
+    set Rules(tactix) "Rules:\n\
+	TacTix is a two-player game in which the players take turns removing pieces from the board. On a player's turn, he/she can remove adjacent pieces from a single row or column of the board. The pieces must be touching in order to be removed together. The player who is forced to make the last move loses.\n\
+	To move: Select either a line/circle that you wish to remove\n\
+	To win: To remove the last stone on the board.\n\
+	To win misere: To force your opponent to remove the last piece from the board."
+    set Rules(ctoi) "Rules:\n\
+	The players begin by taking turns placing their game pieces on the board until all the pieces are played. If neither player succeeds in getting three pieces in a row then the players continue by taking turns moving their pieces to other open spaces on the board. A piece can be moved to any open space as long as an arrow on that piece points in the direction of the desired space. A player may also change the direction of the arrows while moving. Additionally, a piece can just rotate in place or 'pass' (by spinning back to the original position). For a more detailed explanation of the rules, refer to Farzad Eskafi and Erwin Vedar's webpage.\n\
+	To move: Chung-toi has two phases of moves. In the first phase, each player alternates turns placing three pieces on the board. In the second phase, the pieces may be moved to different slots, rotated or both.\n\
+	To win: To get three in a row, vertically, horizontally or diagonally.\n\
+	To win misere: To force your opponent into getting three in a row. Variants: rotating piece, turn off one space hops, turn off two space hops, landing in different orientations, and trapped is a win/lose option."
+    set Rules(win4) "Rules:\n\
+	The players take turns dropping pieces into the slots. These pieces fall to the bottom of the board and the game continues until one player has four in a row and wins or until the board fills up, which results in a tie.\n\
+	To move: The player drops his or her piece into one of the open slots.\n\
+	To win: To get three in a row, vertically, horizontally or diagonally.\n\
+	To win misere: To force your opponent into getting three in a row."
+    set Rules(dodgem) "Rules:\n\
+	The pieces on the NxN Dodgem board are arranged at a right angle. Players alternate turns moving their pieces to an adjacent open space. The player with pieces lined up vertically may move to the north, east or south, while the player with pieces lined up horizontally may move north, east or west. Pieces lined up vertically leave the board by moving onto the right edge and pieces lined up horizontally move off the board when they reach the top row.\n\
+	To move: Move your piece into an opened space.\n\
+	To win: To be the first person to move all your pieces off the board.\n\
+	To win misere: To force your opponent into moving his pieces off the board."
+    set Rules(lgame) "Rules:\n\
+	The game is played on a 4 x 4 board with the two L-shaped pieces covering four squares. Each player takes turns placing his piece on the board in a different position as that prior to his turn. At the end of the turn, the player has the option to place the neutral circle piece on any open square. The game continues until one player cannot legally place his L-shaped piece on the board.\n\
+	To move: First select the L that represents the position you want for the L piece. Next, you may move a neutral piece onto the board.\n\
+	To win: To maneuver the opponent into a position where he cannot move his L piece.\n\
+	To win misere: To be unable to move your L piece."
+    set Rules(sim) "Rules:\n\
+	Also known as Honeycomb, Sim can be finished in less than 15 moves. The game starts out with six dots. Players take turns connecting 2 of these dots with a line. A line cannot be drawn twice and lines of the same color cannot form a triangle of if its end points are part of the outer dots.\n\
+	To move: The first player may either move one or two spaces on his or her turn.\n\
+	To win: Force your opponent to complete a triangle.\n\
+	To win misere: To complete a triangle before your opponent."
+    set Rules(3spot) "Rules:\n\
+	Made up of nine squares, the board of 3 Spot has spots in three of the squares. Each player has one piece on the board (there is one neutral piece), which he must move during his turn. Play begins with one person moving his piece on the board. Afterwards, the player is required to move the neutral piece to a different position. Points are scored by each spot that is covered by the player's piece.\n\
+	To move: Players first move their colored piece. Afterwards, they must move their neutral piece.\n\
+	To win: To score 12 points when the other player has at least 6. If your opponent has less than 6 points, you lose.\n\
+	To win misere: To force your opponent to score twelve points when you have at least six."
+    set Rules(con) "Rules:\n\
+	The players take turns placing their pieces in the open slots until either one player has a connection across the board (that player wins) or until the board is full (resulting in a tie).\n\
+	To move: Place a piece on an open space.\n\
+	To win: To get your own colored pieces to be touching either above or to the side of each other all the way across the board (for one player that means vertically, the other horizontally).\n\
+	To win misere: Force your opponent's colored pieces to connect across the board."
+    set Rules(cmass) "Rules:\n\
+	Players alternate turns placing pieces into any box that does not contain the opponent's color. If the box fills up it explodes and all the pieces in the box are removed except for one. The remaining pieces are distributed to each adjacent box and each box becomes the color of the player whose caused the explosion.\n\
+	To move: Place a piece into an open box that does not have the opponent's color.\n\
+	To win: Completeley remove all of your opponent's pieces."
+    set Rules(dnb) "Rules:\n\
+	Players take turns connecting horizontal or vertical lines between dots. After winning one or more boxes, the player places another line. The player's turn ends when he or she cannot make a box.\n\
+	To move: Connect any vertical or horizontal line between the dots.\n\
+	To win: To create the most boxes.\n\
+	To win misere: Force your opponent into creating the most boxes."
+    set Rules(foxes) "Rules:\n\
+	The game is initially set up with seventeen geese counters placed on the squares marked G and one fox counter placed on the square marked F. The first player is the geese and the second player is the fox. Players take turns moving a goose or fox to an adjacent spot. Geese are allowed to move one square left, right or down, while the fox can move either left, right, up, or down. The fox may also capture a goose on his turn by jumping over the goose that is in his immediate path.\n\
+	To move: The geese may either move left, right or down, while the fox can move left, right, up or down. The fox captures by jumping over a goose into the vacant spot next to it.\n\
+	To win: For the geese, the object is to surround the fox so that he is unable to move. For the fox to win, he must either capture all the geese or advance to the bottom of the board."
+    set Rules(stt) "Rules:\n\
+	Shift Tac Toe is very similar to Tic Tac Toe, with the extra option to 'shift' on of the rows on your turn. The players take turns, and on each turn a player gets to choose either to drop a piece into the board or shift on of the rows. The game ends when one of the players gets three-in-a-row.\n\
+	To move: The player either selects an open slot or shifts the game board.\n\
+	To win: To be the first player to get three in a row either horizontally, vertically or diagonally.\n\
+	To win misere: To force your opponent in getting three in a row either horizontally, vertically or diagonally."
 
     ### this loop creates default content for game specific pages
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set gameName [lindex $thePrograms $i]
+	set temp $gameName
 	set gameString [lindex $theStrings $i]
-	canvas $frame.$gameName -background grey
-	message $frame.$gameName.title -text $gameString -anchor center
+	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+	set desc Desc
+	set bgcolor blue
+	set fontcolor white
+	canvas $frame.$gameName -background $bgcolor
+	message $frame.$gameName.title -text $gameString -anchor center -width 300 \
+		-foreground $fontcolor -background $bgcolor
+	catch { image delete image$gameName }
+	image create photo image$gameName -file $theGif
+	canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
+	$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
+	message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
+		-foreground $fontcolor -background $bgcolor -anchor nw
+	message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
+		-foreground $fontcolor -background $bgcolor -anchor nw
 	pack $frame.$gameName.title -anchor center -fill x
-	pack $frame.$gameName -fill both -expand 1
+	pack $frame.$gameName.photo
+	pack $frame.$gameName.desc -anchor nw -fill x
+	pack $frame.$gameName.rules -anchor nw -fill x
+	pack $frame.$gameName -fill both -expand 1 -anchor nw
 
 	$frame itemconfigure viewer -window $frame.$gameName
     }
@@ -177,4 +329,3 @@ proc CreateGamePages { frame thePrograms theStrings } {
 
 ### Call the main procedure.
 main
-
