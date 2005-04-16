@@ -128,11 +128,11 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: Remove the last stone from the board"
+	SetToWinString "To Win: Remove the last stone from the board."
     } else {
 	SetToWinString "To Win: Force your opponent into removing the last stone from the board."
     }
-    SetToMoveString "To Move: Click on the line/circle that removes the pieces you wish"
+    SetToMoveString "To Move: On a player's turn, he or she may either remove one piece or remove adjacent pieces from a single row or column. The pieces must be touching in order to be removed together.  If you want to remove a single piece select the circle. If you would like to remove a row or column of pieces, select the line corresponding to the pieces you want to remove."
 
     # Authors Info. Change if desired
     global kRootDir
