@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.62 2005-04-06 21:11:11 ogren Exp $
+# $Id: InitWindow.tcl,v 1.63 2005-04-16 08:38:57 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1227,7 +1227,7 @@ proc SetupAboutFrame { f width } {
 	-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
     
     global kRootDir
-    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2004FaNamesSmall.pnm"
+    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2005SpNames.ppm"
     canvas $sp.photo -height 360 -width 480
     $sp.photo create image 240 180 -image GamesCraftersImage
 
