@@ -47,7 +47,7 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non the slot you want and put three pieces down, then click the arrow of the piece you want to move"
+    set kToMove "The players begin by taking turns placing their game pieces on the board until all the pieces are played. If neither player succeeds in getting three pieces in a row then the players continue by taking turns moving their pieces to other open spaces on the board. A piece can be moved to any open space as long as an arrow on that piece points in the direction of the desired space. A player may also change the direction of the arrows while moving. Additionally, a piece can just rotate in place or “pass” (by spinning back to the original position)."
     set kToWinStandard  "Be the first player to get three of your pieces\nin a row (horizontally, vertically or diagonally)"
     set kToWinMisere  "Force your opponent into getting three of his pieces\nin a row (horizontally, vertically or diagonally) first"
 

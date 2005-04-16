@@ -176,7 +176,7 @@ proc GS_InitGameSpecific {} {
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa"
+    SetToMoveString  "To Move: Each player may either place a piece in an empty square or flip the bar vertically or horizontally. Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square.  Click on a thick piece to flip it from horizontal to vertical."
 
 }
 

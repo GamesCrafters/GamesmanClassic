@@ -158,7 +158,7 @@ proc GS_InitGameSpecific {} {
 	    SetToWinString "To Win: Either force your opponent to get 3 in a row or force your opponent to surround one of your pieces"
 	}
     }
-    SetToMoveString "To Move: Place your piece on an empty space.  If you already have three pieces on the board, the most least recently used piece will be removed when you make your next move."
+    SetToMoveString "To Move: Place your piece on an empty space.  If you already have three pieces on the board, the earliest piece you  placed will be removed. This creates an open neutral spot. Select a square to place your piece. The number on the bottom left hand corner corresponds to when you placed the piece. "
 
 	    
     # Authors Info. Change if desired
