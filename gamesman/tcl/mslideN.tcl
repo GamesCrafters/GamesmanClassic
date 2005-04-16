@@ -77,7 +77,7 @@ proc GS_InitGameSpecific  {} {
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Click on an arrow to place a piece"
+    SetToMoveString  "To Move: The first player places his piece into the first slot on the diamond shaped board from either the right or left side. The next player may slide his piece into a top open slot or slide his opponent’s piece to the adjacent square. When the row is filled players are not allowed to place any more pieces. Click on an arrow to place a piece"
 }
 
 # Setup the rules frame
