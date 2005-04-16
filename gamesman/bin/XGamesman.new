@@ -151,8 +151,8 @@ proc CreateHomeButton { frame home rightBottom } {
 
 proc CreateGamePages { frame thePrograms theStrings theBitmapDir } {
     set theNumberOfPrograms [llength $thePrograms]
-    set width [expr 800 - 165]
-    set height [expr 600 - 30]
+    set width [expr 800 - 164]
+    set height [expr 600 - 29]
 
     ##### window displaying content of main frame ####
     $frame create window 0 0 -width $width -height $height \
@@ -168,7 +168,7 @@ proc CreateGamePages { frame thePrograms theStrings theBitmapDir } {
 	A Finite, Two-Person, Perfect-Information Game Generator.\n\n \
 	\t Gamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\n \
 	\t Since 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\n \
-Select a game from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor
+Select a game from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor -width 615
 
     pack $frame.main.title -expand 1 -fill both -anchor nw
 
