@@ -53,9 +53,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button on a slot slot"
-    set kToWinStandard  "Be the first player to get 4 in a row"
-    set kToWinMisere    "Force your opponent to get 4 in a row"
+    set kToMove "The players take turns dropping pieces into one of the four slots. The pieces fall to the bottom of the board or stack on top of each other.  Select an open slot to drop your piece."
+    set kToWinStandard  "Be the first player to get 4 in a row."
+    set kToWinMisere    "Force your opponent to get 4 in a row."
    
     ### Set the initial position of the board in our representation
 
