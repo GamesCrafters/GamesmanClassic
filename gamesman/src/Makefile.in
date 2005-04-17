@@ -158,7 +158,7 @@ FOXES_SO		= $(LIBDIR)/libmfoxes$(LIBSUFFIX)
 ## this is the new version of Foxes adapted to the current core API
 FOXES_NEW_EXE           = $(BINDIR)/mfoxes_new$(EXESUFFIX)
 FOXES_NEW_OBJ           = mfoxes_new$(OBJSUFFIX)
-FOXES_NEW_TCL_OBJ	= tkAppInitFoxes$(OBJSUFFIX)
+#FOXES_NEW_TCL_OBJ	= tkAppInitFoxes$#(OBJSUFFIX)
 FOXES_NEW_SO            = $(LIBDIR)/libmfoxes_new$(LIBSUFFIX)
 
 GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of Gobblet
@@ -310,7 +310,7 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
 	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
-	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE)
+	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
@@ -318,7 +318,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
-	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO)
+	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(FOXES_NEW_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
@@ -331,8 +331,8 @@ CCGAMES = $(CON_EXE) $(DNB_EXE)
 CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
-SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(FOXES_NEW_EXE)
-SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(FOXES_NEW_SO)
+SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE)
+SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
 
 
 ##############################################################################
@@ -447,12 +447,6 @@ $(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
 
 $(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
-
-$(FOXES_NEW_EXE): $(FOXES_NEW_OBJ) $(GAMESMAN_A)
-	$(CC) -o $@ $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
-
-$(FOXES_NEW_SO): $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(FOXES_NEW_TCL_OBJ)
-	$(CC) -o $@ $(FOXES_NEW_OBJ) $(GAMESMAN_A) $(FOXES_NEW_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
