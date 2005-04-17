@@ -1,4 +1,4 @@
-// $Id: mfoxes_new.c,v 1.1 2005-04-11 18:01:10 hevanm Exp $
+// $Id: mfoxes_new.c,v 1.2 2005-04-17 00:45:20 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -19,6 +19,8 @@
 **
 ** UPDATE HIST: (was blank in the original)
 **              4/7/05  [+]Initial adoption of the old module to the current core
+**              4/11/05 [-]realized that ComputeC is deprecated, and removed it.
+**              4/16/05 [*]Geese go first. That was the right default.
 **
 **************************************************************************/
 
@@ -141,10 +143,9 @@ int Player2Side = GOOSETURN;            /*player 2's side in the game*/
 
 /*const char *gBlankFGString[] = { "-", "F", "G" };*/
 
-int WhoGoesFirst = FOXTURN;             /*by default, foxes go first*/
+int WhoGoesFirst = GOOSETURN;             /*by default, geese go first*/
 int BOARDSIZE = ROWCOUNT*4;
 
-static int C[MAXBOARDSIZE][MAXBOARDSIZE];
 static BOOLEAN connected[MAXBOARDSIZE][MAXBOARDSIZE];
 static int order[MAXBOARDSIZE];
 
@@ -187,8 +188,7 @@ void                    MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE                    SlotsToMove (SLOT fromSlot, SLOT toSlot);
 void                    InitializeAdjacency();
 void                    InitializeOrder();
-void                    InitializeC();
-int                     ComputeC(int n, int k);
+
 
 /*************************************************************************
 **
@@ -990,61 +990,10 @@ void InitializeOrder () {
   return;
 }
 
-/*these are apparently used in the TCL interface, but I don't have
- *the remotest idea of what they are for ...   ---evan*/
-/************************************************************************
-**
-** NAME:        InitializeC
-**
-** DESCRIPTION: Initializes an array of binomial coefficients
-** 
-** INPUTS:      None
-**
-** OUTPUTS:     None
-**
-** CALLS:       ComputeC()
-**
-************************************************************************/
-
-void InitializeC () {
-  int i,j;
-
-  for( i=0; i<MAXBOARDSIZE; i++ )
-    for( j=0; j<=i; j++ )
-      C[i][j]=-1;  /* Value is not computed yet */
-
-  for( i=0; i<MAXBOARDSIZE; i++ )
-    ComputeC(MAXBOARDSIZE-1, i);
-
-  return;
-};
-
-/************************************************************************
-**
-** NAME:        ComputeC
-**
-** DESCRIPTION: Recusively fills out a Pascal Triangle in the array C.
-** 
-** INPUTS:      int n, k
-**
-** OUTPUTS:     None
-**
-************************************************************************/
-
-int ComputeC (int n, int k) {
-
-  if( C[n][k] == -1 )      /* the value C(n,k) is not yet computed */
-    if( (k==0) || (n==k) ) /* If k=0 or n=k, then C(n,k)=1 */
-      C[n][k]=1;
-    else {                 /* Else we use the formula */
-      ComputeC(n-1, k);      /* C(n,k)=C(n-1,k)+C(n-1,k-1) */
-      ComputeC(n-1, k-1);
-      C[n][k]=C[n-1][k]+C[n-1][k-1];
-    };
-  return(C[n][k]);
-}
-
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2005/04/11 18:01:10  hevanm
+// A version of mfoxes that uses the current core API. Everything except the GUI works, with the exception of a few strange bugs here and there...
+//
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
