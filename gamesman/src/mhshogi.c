@@ -182,6 +182,14 @@ Computer wins. Nice try, Player.";
 
 #define NUMSYMMETRIES 1
 
+// for calculating number of game specific options
+#define BOARD_WIDTH 9
+#define BOARD_HEIGHT 9
+#define ROWS_OF_PIECES 2
+#define CAPTURE_VERSIONS 2
+#define CAPTURE_ALL 2
+#define IN_A_LINE 9
+
 typedef char BlankOX;
 /* Represents a complete shogi move */
 
@@ -395,7 +403,7 @@ MOVELIST *GenerateMoves(position)
 
 POSITION GetCanonicalPosition(POSITION position)
 {
-  POSITION newPosition, theCanonicalPosition;
+  POSITION newPosition, theCanonicalPosition = position;
   int i;
   
   for(i = 0 ; i < NUMSYMMETRIES ; i++) {
@@ -814,7 +822,7 @@ void GameSpecificMenu ()
       InitializeGame();
     } else if (!strcmp(option,"v")) {
       captureVersion = (captureVersion == VERSION_NO_CORNER?
-			VERSION_CAPTURE : VERSION_NO_CORNER);
+			VERSION_NO_CORNER : VERSION_CAPTURE);
     } else if (!strcmp(option,"w")) {
       printf("\n  Winning conditions:\n");
       printf("\tl)\t (L)ine up your pieces - [%d] in a row\n", numInRow);
@@ -893,7 +901,8 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return (BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES
+	    * CAPTURE_VERSIONS * CAPTURE_ALL * IN_A_LINE);
 }
 
 
@@ -911,7 +920,14 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+  // N = n0 + d0n1 + d0d1n2 + ... + d0d1*...*dk-1nk
+  int hashNum = numOfCols
+    + BOARD_WIDTH * numOfRows
+    + BOARD_WIDTH * BOARD_HEIGHT * rowsOfPieces
+    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * captureVersion
+    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * (winVersion != VERSION_LINE ? 1 : 0)
+    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * CAPTURE_ALL * (winVersion == VERSION_CAPTURE ? 0 : numInRow - 1);
+    return hashNum;
 }
 
 
@@ -928,9 +944,26 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+  int captureAll, inALine;
+  // nk = (N / Pi(i=0,k-1,di) % dk 
+  
+  numOfCols = option % BOARD_WIDTH;
+  numOfRows = (option / BOARD_WIDTH) % BOARD_HEIGHT;
+  rowsOfPieces = (option / BOARD_WIDTH / BOARD_HEIGHT) % ROWS_OF_PIECES;
+  captureVersion = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES) % CAPTURE_VERSIONS;
+  captureAll = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS) % CAPTURE_ALL;
+  inALine = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS / CAPTURE_ALL) % IN_A_LINE;
+  if (captureAll == 1 && inALine != 0) {
+    numInRow = inALine + 1;
+    winVersion = VERSION_BOTH;
+  }
+  else if (captureAll == 1)
+    winVersion = VERSION_CAPTURE;
+  else {
+    winVersion = VERSION_LINE;
+    numInRow = inALine + 1;
+  }
 }
-
 
 /************************************************************************
 **
