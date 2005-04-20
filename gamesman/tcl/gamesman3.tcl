@@ -213,6 +213,7 @@ proc DriverLoop { } {
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
     global gMoveDelay gGameDelay gMoveType gGameSolved
+    global gAnimationDelay
 
     if { !$gGameSolved } {
 	return
@@ -246,7 +247,7 @@ proc DriverLoop { } {
        	    
 	    if { [PlayerIsComputer] } {
 		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
-		after [expr int($gMoveDelay * 1000)]
+		after [expr int($gAnimationDelay * 1000)]
 		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
 		DoComputerMove
 		set gWaitingForHuman false
