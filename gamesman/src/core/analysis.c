@@ -237,6 +237,7 @@ void analyze()
     {
       analyzer();
       analyzed = 1;
+      previousOption = getOption();
     }
   
 }
@@ -585,9 +586,9 @@ BOOLEAN CorruptedValuesP()
 		    
                     if (gGoAgain(position, ptr->move)) {
                         switch(childValue) {
-			case win: childValue = lose; break;
-			case lose: childValue = win; break;
-			default: break;
+                            case win: childValue = lose; break;
+                            case lose: childValue = win; break;
+                            default: break;
                         }
                     }
 		    
