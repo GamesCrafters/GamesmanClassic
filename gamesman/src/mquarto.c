@@ -23,8 +23,7 @@
 ** 30 Jan 2005 Yanpei: the data structure framework added, PrintPosition() coded
 ** 01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
 ** 08 Feb 2005 Amy:    corrected my name, changed kTieIsPossible to TRUE.
-** 11 Feb 2005 Yanpei: added Cindy's name to author's list
-**                     added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
+** 11 Feb 2005 Yanpei: added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
 **                     permutation(), combination(), setOffsetTable();
 **                     killed incorrect comments and code for PrintPosition(). 
 ** 14 Feb 2005 Yanpei: one line fix to hashQuarto()
@@ -121,6 +120,8 @@
 **                     Previous behavior was if board was full, which doesn't work well in 3 dimensions
 **                     Stopped using fflush() for inputs (game-specific menu) as its behavior is undefined
 **                     Game is now solvable in 2 and 3D and doesn't have enough mem for 4D solving
+** 21 Apr 2005 Yanpei: Should not peek under the hook and set gSymmetries. One line fix in 
+**                     yanpeiInitializeGame()
 **
 **************************************************************************/
 
@@ -205,7 +206,7 @@ STRING   kHelpExample =
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
-int GAMEDIMENSION = 4;
+int GAMEDIMENSION = 2;
 
 int BOARDSIZE;
 int NUMPIECES;
@@ -399,7 +400,6 @@ void yanpeiInitializeGame() {
   //yanpeiTestCannonical();
 
   /* Set initial position to empty board */
-  gSymmetries = TRUE;
   gCanonicalPosition = getCannonical;
   gInitialPosition = hash(board);
   gNumberOfPositions = offsetTable[NUMPIECES+1];
@@ -1657,7 +1657,7 @@ POSITION combination(int n, int r) {
   } else if (n <= 0) {
     return 0;
   } else {
-		return factorial(n) / factorial(n-r) / factorial(r);
+    return factorial(n) / factorial(n-r) / factorial(r);
   }
 }
 
