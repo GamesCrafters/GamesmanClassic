@@ -245,10 +245,10 @@ void analyzer()
 {    
     POSITION thePosition;
     VALUE theValue;
-    long winCount, loseCount, tieCount, unknownCount;
-    long primitiveWins, primitiveLoses, primitiveTies;
-    long reachablePositions;
-    long totalPositions;
+    POSITION winCount, loseCount, tieCount, unknownCount;
+    POSITION primitiveWins, primitiveLoses, primitiveTies;
+    POSITION reachablePositions;
+    POSITION totalPositions;
     int  hashEfficiency;
     float averageFanout;
     
