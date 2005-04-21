@@ -45,14 +45,14 @@ typedef struct analysis_info
   float AverageFanout;
   POSITION NumberOfPositions;
   POSITION TotalPositions;
-  unsigned long TotalMoves;
-  unsigned long WinCount;
-  unsigned long LoseCount;
-  unsigned long TieCount;
-  unsigned long UnknownCount;
-  unsigned long PrimitiveWins;
-  unsigned long PrimitiveLoses;
-  unsigned long PrimitiveTies;
+  POSITION TotalMoves;
+  POSITION WinCount;
+  POSITION LoseCount;
+  POSITION TieCount;
+  POSITION UnknownCount;
+  POSITION PrimitiveWins;
+  POSITION PrimitiveLoses;
+  POSITION PrimitiveTies;
   unsigned int  TimeToSolve;
   
   VALUE InitialPositionValue;

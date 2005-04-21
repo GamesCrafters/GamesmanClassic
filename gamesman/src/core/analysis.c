@@ -207,17 +207,17 @@ void PrintGameValueSummary()
     
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
-    printf("\tLose      = %5lu out of %lu (%5lu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
-    printf("\tWin       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.WinCount,gAnalysis.TotalPositions, gAnalysis.PrimitiveWins);
-    printf("\tTie       = %5lu out of %lu (%5lu primitive)\n",gAnalysis.TieCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveTies);
-    printf("\tUnknown   = %5lu out of %lu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);  
-    printf("\tTOTAL     = %5lu out of %lu allocated (%5lu primitive)\n",
+    printf("\tLose      = %5llu out of %llu (%5llu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
+    printf("\tWin       = %5llu out of %llu (%5llu primitive)\n",gAnalysis.WinCount,gAnalysis.TotalPositions, gAnalysis.PrimitiveWins);
+    printf("\tTie       = %5llu out of %llu (%5llu primitive)\n",gAnalysis.TieCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveTies);
+    printf("\tUnknown   = %5llu out of %llu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);  
+    printf("\tTOTAL     = %5llu out of %llu allocated (%5llu primitive)\n",
        gAnalysis.TotalPositions,
        gNumberOfPositions,
        gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies);
     
     printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
-    printf("\tTotal Moves                       = %5lu\n",gAnalysis.TotalMoves);
+    printf("\tTotal Moves                       = %5llu\n",gAnalysis.TotalMoves);
     printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
     printf("\tProbability of maintaining a %-5s= %2f\n", initialPositionValue,gAnalysis.InitialPositionProbability);
     
@@ -521,29 +521,29 @@ void writeVarHTML ()
     
     writeVarStat("value", gValueString[(int)gValue], rowp);
     
-    sprintf(text, "%5lu", gAnalysis.WinCount);
+    sprintf(text, "%5llu", gAnalysis.WinCount);
     writeVarStat("WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gAnalysis.LoseCount);
+    sprintf(text, "%5llu", gAnalysis.LoseCount);
     writeVarStat("LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gAnalysis.TieCount);
+    sprintf(text, "%5llu", gAnalysis.TieCount);
     writeVarStat("TieCount", text, rowp);
     
-    sprintf(text, "%5lu", gAnalysis.PrimitiveWins);
+    sprintf(text, "%5llu", gAnalysis.PrimitiveWins);
     writeVarStat("Prim.WinCount", text, rowp);
     
-    sprintf(text, "%5lu", gAnalysis.PrimitiveLoses);
+    sprintf(text, "%5llu", gAnalysis.PrimitiveLoses);
     writeVarStat("Prim.LoseCount", text, rowp);
     
-    sprintf(text, "%5lu", gAnalysis.PrimitiveTies);
+    sprintf(text, "%5llu", gAnalysis.PrimitiveTies);
     writeVarStat("Prim.TieCount", text, rowp);
     
     
-    sprintf(text, "%5lu", gAnalysis.TotalPositions);
+    sprintf(text, "%5llu", gAnalysis.TotalPositions);
     writeVarStat("totalPositions", text , rowp);
     
-    sprintf(text, "%5lu", gNumberOfPositions);
+    sprintf(text, "%5llu", gNumberOfPositions);
     writeVarStat("NumberOfPositions", text, rowp);
     
     sprintf(text, "%d", gAnalysis.HashEfficiency);
@@ -683,18 +683,18 @@ void writeXMLData(FILE* xmlFile)
     fprintf(xmlFile,"    <variant hashcode=\"%d\">\n",getOption());
     fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
     fprintf(xmlFile,"        <count>\n");
-    fprintf(xmlFile,"            <win>%ld</win>\n",gAnalysis.WinCount);
-    fprintf(xmlFile,"            <lose>%ld</lose>\n",gAnalysis.LoseCount);
-    fprintf(xmlFile,"            <tie>%ld</tie>\n",gAnalysis.TieCount);
+    fprintf(xmlFile,"            <win>%llu</win>\n",gAnalysis.WinCount);
+    fprintf(xmlFile,"            <lose>%llu</lose>\n",gAnalysis.LoseCount);
+    fprintf(xmlFile,"            <tie>%llu</tie>\n",gAnalysis.TieCount);
     fprintf(xmlFile,"        </count>\n");
     fprintf(xmlFile,"        <primitive>\n");
-    fprintf(xmlFile,"            <win>%ld</win>\n",gAnalysis.PrimitiveWins);
-    fprintf(xmlFile,"            <lose>%ld</lose>\n",gAnalysis.PrimitiveLoses);
-    fprintf(xmlFile,"            <tie>%ld</tie>\n",gAnalysis.PrimitiveTies);
+    fprintf(xmlFile,"            <win>%llu</win>\n",gAnalysis.PrimitiveWins);
+    fprintf(xmlFile,"            <lose>%llu</lose>\n",gAnalysis.PrimitiveLoses);
+    fprintf(xmlFile,"            <tie>%llu</tie>\n",gAnalysis.PrimitiveTies);
     fprintf(xmlFile,"        </primitive>\n");
     fprintf(xmlFile,"        <positionstats>\n");
-    fprintf(xmlFile,"            <total>%ld</total>\n",gAnalysis.TotalPositions);
-    fprintf(xmlFile,"            <hashtotal>%ld</hashtotal>\n",gNumberOfPositions);
+    fprintf(xmlFile,"            <total>%llu</total>\n",gAnalysis.TotalPositions);
+    fprintf(xmlFile,"            <hashtotal>%llu</hashtotal>\n",gNumberOfPositions);
     fprintf(xmlFile,"            <hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
     fprintf(xmlFile,"            <fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
     fprintf(xmlFile,"        </positionstats>\n");
@@ -771,7 +771,7 @@ void DatabaseCombVisualization()
     else {
       /* Streak of Undecideds prints as a negative # */
       /* Streak of Knowns     prints as a positive # */
-      printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+      printf("%s%lu\n", (lastUndecided ? "-" : ""), streak);
       streak = 1; /* A new streak of 1 of a different parity */
       switches++;
     }
@@ -779,12 +779,12 @@ void DatabaseCombVisualization()
   }
   
   /* Must flush the last bookend one too */
-  printf("%s%ld\n", (lastUndecided ? "-" : ""), streak);
+  printf("%s%lu\n", (lastUndecided ? "-" : ""), streak);
 
   /* Print some stats */
-  printf("\n\nLongest   Visited (positive #s) streak: %ld\n", longestDecided);
-  printf("Longest UnVisited (negative #s) streak: %ld\n", longestUndecided);
-  printf("Total switches we have (# of changes) : %ld\n", switches);
+  printf("\n\nLongest   Visited (positive #s) streak: %lu\n", longestDecided);
+  printf("Longest UnVisited (negative #s) streak: %lu\n", longestUndecided);
+  printf("Total switches we have (# of changes) : %lu\n", switches);
 
   HitAnyKeyToContinue();
 }
