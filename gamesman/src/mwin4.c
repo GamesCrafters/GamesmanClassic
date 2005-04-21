@@ -110,6 +110,9 @@ int  WIN4_HEIGHT = 4;
 #define MINH 1
 // Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
 
+#define DIRECTION_PAIRS 4
+#define NO_COLUMN -1
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -136,15 +139,37 @@ typedef enum possibleBoardPieces {
 
 char *gBlankOXString[] = { "X", "O", "-" };
 
+int gContinuousPiecesGoal = 4;
+
 /* Global position solver variables.*/
 struct {
   XOBlank board[MAXW][MAXH];
   int heights[MAXW];
+  int lastColumn;
   XOBlank nextPiece;
   int piecesPlaced;
+  int previousColumn;
 } gPosition;
 
+typedef enum {
+  NO_DIRECTION,
+  DOWN,
+  LEFT,
+  RIGHT,
+  UP,
+  DIRECTIONS
+} Direction;
+
+Direction gDirections[DIRECTION_PAIRS][2] = {{LEFT, UP},
+                                             {NO_DIRECTION, UP},
+                                             {RIGHT, UP},
+                                             {LEFT, NO_DIRECTION}};
+
+Direction gOppositeDirections[DIRECTIONS];
+
 /** Function Prototypes **/
+int CountContinuousPieces(int column, int row, Direction horizontalDirection,
+                          Direction verticalDirection);
 void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 void UndoMove(MOVE move);
 
@@ -172,6 +197,11 @@ void InitializeGame()
 //  for(i = 0; i < gNumberOfPositions; i++)
   //  gDatabase[i] = undecided;
 
+  gOppositeDirections[NO_DIRECTION] = NO_DIRECTION;
+  gOppositeDirections[DOWN] = UP;
+  gOppositeDirections[LEFT] = RIGHT;
+  gOppositeDirections[RIGHT] = LEFT;
+  gOppositeDirections[UP] = DOWN;
   PositionToBoard(gInitialPosition, gPosition.board);
 
   for (i = 0; i < WIN4_WIDTH; ++i) {
@@ -185,6 +215,7 @@ void InitializeGame()
     }
   }
 
+  gPosition.lastColumn = NO_COLUMN;
   gPosition.nextPiece = x;
   gPosition.piecesPlaced = 0;
   gUndoMove = UndoMove;
@@ -209,9 +240,10 @@ char GetMyChar();
   char tChar;
   
   do {
-    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);  
-	printf("\tW)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
-	printf("\tH)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
+    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\tp)\tContinuous (P)ieces goal (%d)\n", gContinuousPiecesGoal);
+	printf("\tw)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
+	printf("\th)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
@@ -219,10 +251,14 @@ char GetMyChar();
     case 'Q': case 'q':
       ExitStageRight();
 	  break;
+    case 'P': case 'p':
+        printf("Enter continuous pieces goal: ");
+        scanf("%d", &gContinuousPiecesGoal);
+        break;
 	case 'W' : case 'w':
 		printf("Enter a width (%d through %d): ",MINW,MAXW);
-		tChar = GetMyChar();
-		temp = atoi(&tChar);
+        scanf("%d", &temp);
+
 		while(temp > MAXW || temp < MINW){
 			printf("Out of range\n");
 			printf("Enter a width (%d through %d): ",MINW,MAXW);
@@ -233,8 +269,8 @@ char GetMyChar();
 		break;
     case 'H': case 'h':
       printf("Enter a height (%d through %d): ",MINH,MAXH);
-		tChar = GetMyChar();
-		temp = atoi(&tChar);
+        scanf("%d", &temp);
+
 		while(temp > MAXH || temp < MINH){
 			printf("Out of range\n");
 			printf("Enter a height (%d through %d): ",MINH,MAXH);
@@ -296,6 +332,8 @@ POSITION DoMove(POSITION position, MOVE move)
 
   if (gUseGPS) {
     gPosition.board[move][gPosition.heights[move]++] = gPosition.nextPiece;
+    gPosition.previousColumn = gPosition.lastColumn;
+    gPosition.lastColumn = move;
     gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
     ++gPosition.piecesPlaced;
   }
@@ -306,6 +344,7 @@ POSITION DoMove(POSITION position, MOVE move)
 void UndoMove(MOVE move)
 {
   gPosition.board[move][--gPosition.heights[move]] = Blank;
+  gPosition.lastColumn = gPosition.previousColumn;
   gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
   --gPosition.piecesPlaced;
 }
@@ -351,9 +390,35 @@ void PrintComputersMove(computersMove,computersName)
 **
 ************************************************************************/
 
-VALUE Primitive(pos) 
-     POSITION pos;
+VALUE Primitive(POSITION position)
 {
+  if (gUseGPS) {
+    int count, index;
+    Direction horizontalDirection, verticalDirection;
+    int lastRow = gPosition.heights[gPosition.lastColumn] - 1;
+
+    for (index = 0; index < DIRECTION_PAIRS; ++index) {
+      count = 1;
+      horizontalDirection = gDirections[index][0];
+      verticalDirection = gDirections[index][1];
+      count += CountContinuousPieces(gPosition.lastColumn, lastRow,
+                                     horizontalDirection, verticalDirection);
+
+      if (count >= gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
+
+      count += CountContinuousPieces(gPosition.lastColumn, lastRow,
+                                     gOppositeDirections[horizontalDirection],
+                                     gOppositeDirections[verticalDirection]);
+
+      if (count >= gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
+    }
+
+    return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie :
+           undecided;
+  }
+
   int ul[WIN4_WIDTH][WIN4_HEIGHT];//upper left
   int l[WIN4_WIDTH][WIN4_HEIGHT];//left
   int ll[WIN4_WIDTH][WIN4_HEIGHT];//lower left
@@ -361,8 +426,7 @@ VALUE Primitive(pos)
   XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
   int col,row;
 
-  if (!gUseGPS)
-    PositionToBoard(pos, gPosition.board); // Temporary storage.
+  PositionToBoard(position, gPosition.board); // Temporary storage.
 
   for (col=0;col<WIN4_WIDTH;col++)
     board[col][WIN4_HEIGHT]=2;
@@ -386,7 +450,8 @@ VALUE Primitive(pos)
       ll[0][row]=1;
       if (board[0][row+1]==board[0][row]) {
 	u[0][row]=u[0][row+1]+1;
-	if (u[0][row]==4) return(gStandardGame ? lose : win);  
+	if (u[0][row] == gContinuousPiecesGoal)
+      return gStandardGame ? lose : win;
       }
       else u[0][row]=1;
     }
@@ -405,22 +470,26 @@ VALUE Primitive(pos)
       else {
 	if (board[col][row]==board[col][row+1]) {
 	  u[col][row]=u[col][row+1]+1;
-	  if (u[col][row]==4) return(gStandardGame ? lose : win);
+	  if (u[col][row] == gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
 	}
 	else u[col][row]=1;
 	if (board[col][row]==board[col-1][row+1]) {
 	  ul[col][row]=ul[col-1][row+1]+1;
-	  if (ul[col][row]==4) return(gStandardGame ? lose : win);
+	  if (ul[col][row] == gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
 	}
 	else ul[col][row]=1;
 	if (board[col][row]==board[col-1][row]) {
 	  l[col][row]=l[col-1][row]+1;
-	  if (l[col][row]==4) return(gStandardGame ? lose : win);
+	  if (l[col][row] == gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
 	}
 	else l[col][row]=1;
 	if (board[col][row]==board[col-1][row-1]) {
 	  ll[col][row]=ll[col-1][row-1]+1;
-	  if (ll[col][row]==4) return(gStandardGame ? lose : win);
+	  if (ll[col][row] == gContinuousPiecesGoal)
+        return gStandardGame ? lose : win;
 	}
 	else ll[col][row]=1;
       }
@@ -435,27 +504,27 @@ VALUE Primitive(pos)
     else {
       if (board[col][row]==board[col][row+1]) {
 	u[col][row]=u[col][row+1]+1;
-	if (u[col][row]==4) return(gStandardGame ? lose : win);
+	if (u[col][row] == gContinuousPiecesGoal)
+      return gStandardGame ? lose : win;
       }
       else u[col][row]=1;
       if (board[col][row]==board[col-1][row+1]) {
 	ul[col][row]=ul[col-1][row+1]+1;
-	if (ul[col][row]==4) return(gStandardGame ? lose : win);
+	if (ul[col][row] == gContinuousPiecesGoal)
+      return gStandardGame ? lose : win;
       }
       else ul[col][row]=1;
       if (board[col][row]==board[col-1][row]) {
 	l[col][row]=l[col-1][row]+1;
-	if (l[col][row]==4) return(gStandardGame ? lose : win);
+	if (l[col][row] == gContinuousPiecesGoal)
+      return gStandardGame ? lose : win;
       }
       else l[col][row]=1;
       ll[col][row]=1;
     }
   }
-  //Now check if the board is full:
-  if (gUseGPS)
-    return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie :
-           undecided;
 
+  //Now check if the board is full:
   for (col=0;col<WIN4_WIDTH;col++)
     for (row=0;row<WIN4_HEIGHT;row++)
       if (board[col][row]==2) return(undecided);
@@ -815,6 +884,37 @@ void setOption(int option)
                 gStandardGame = TRUE ;
         else
                 gStandardGame = FALSE ;
-} 
+}
 
+int CountContinuousPieces(int column, int row, Direction horizontalDirection,
+                          Direction verticalDirection) {
+  int count = -1;
+  XOBlank piece;
 
+  do {
+    ++count;
+    piece = gPosition.board[column][row];
+
+    switch (horizontalDirection) {
+      case LEFT:
+        --column;
+        break;
+      case RIGHT:
+        ++column;
+        break;
+    }
+
+    switch (verticalDirection) {
+      case DOWN:
+        --row;
+        break;
+      case UP:
+        ++row;
+        break;
+    }
+  }
+  while (column >= 0 && column < WIN4_WIDTH && row >= 0 && row < WIN4_HEIGHT &&
+         gPosition.board[column][row] == piece);
+
+  return count;
+}
