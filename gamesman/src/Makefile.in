@@ -285,6 +285,11 @@ NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
 NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
 NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
 
+QUARTO_EXE		= $(BINDIR)/mquarto$(EXESUFFIX)	# QUARTO
+QUARTO_OBJ		= mquarto$(OBJSUFFIX)
+QUARTO_SO		= $(LIBDIR)/libmquarto$(LIBSUFFIX)
+
+
 ##############################################################################
 ### Game categories
 
@@ -299,7 +304,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
 	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ) $(ABALONE_OBJ) \
 	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ) \
-	    $(FOXES_NEW_OBJ)
+	    $(FOXES_NEW_OBJ) $(QUARTO_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -310,7 +315,7 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
 	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
-	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE)
+	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE) $(QUARTO_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
@@ -318,7 +323,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
-	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(FOXES_NEW_SO)
+	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(FOXES_NEW_SO) $(QUARTO_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
