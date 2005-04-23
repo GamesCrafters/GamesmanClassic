@@ -181,7 +181,7 @@ void MenusEvaluated()
 	    printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
 	}
 
-    printf("\n\ts)\t If only one move is available, (S)kip user input (currently %s)\n",
+    printf("\n\ts)\tIf only one move is available, (S)kip user input (currently %s)\n",
 	   gSkipInputOnSingleMove? "ON" : "OFF");
 
     if(kDebugMenu)
