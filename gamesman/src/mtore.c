@@ -316,6 +316,8 @@ extern POSITION         generic_hash(char *board, int player);
 extern char            *generic_unhash(POSITION hash_number, char *empty_board);
 extern int              whoseMove (POSITION hashed);
 
+POSITION getCanonicalPosition(POSITION position);
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -323,7 +325,6 @@ extern int              whoseMove (POSITION hashed);
 **************************************************************************/
 
 extern VALUE     *gDatabase;
-
 
 /************************************************************************
 **
@@ -357,6 +358,8 @@ void InitializeGame ()
   gBoard[0] = '_';
 
   gInitialPosition = generic_hash(gBoard, 1);
+
+  gCanonicalPosition = getCanonicalPosition;
 }
 
 
@@ -867,3 +870,64 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+POSITION getCanonicalPosition (POSITION position) {
+    
+    char board[9], invertedBoard[9], reversedSideBoard[9], temp;
+    POSITION minPosHash = position, newHash = 0;
+    int currentTurn = whoseMove(position), reverseTurn = (currentTurn == 1 ? 2 : 1);
+    int i, j;
+
+    generic_unhash(position, board);
+
+    /*inverted board, where the order of pieces go from clockwise to counter-clockwise*/
+    invertedBoard[0] = board[0];
+    invertedBoard[1] = board[1];
+    for (i = 2; i < 6; i++)
+	invertedBoard[i] = board[10-i];
+    newHash = generic_hash(invertedBoard, currentTurn);
+    if (newHash < minPosHash) minPosHash = newHash;
+
+    /*rotate it*/
+    for (i = 0; i < 8; i++) {
+	temp = invertedBoard[1];
+	for (j = 1; j < 8; j++)
+	    invertedBoard[j] = invertedBoard[j+1];
+	invertedBoard[8] = temp;
+	newHash = generic_hash(invertedBoard, currentTurn);
+	if (newHash < minPosHash) minPosHash = newHash;	
+    }
+
+    /*reversed board, with the pieces changed to one of its opposing side,
+     *and the turn changed to the other player*/
+    for (i = 0; i < 9; i++) {
+	if (board[i] != '_')
+	    reversedSideBoard[i] = (board[i] == 'x'? 'o':'x');
+	else
+	    reversedSideBoard[i] = '_';
+    }
+    newHash = generic_hash(reversedSideBoard, reverseTurn);
+    if (newHash < minPosHash) minPosHash = newHash;
+
+    /*turn this board too because they lead to the same value*/
+    /*rotate it*/
+    for (i = 0; i < 8; i++) {
+	temp = reversedSideBoard[1];
+	for (j = 1; j < 8; j++)
+	    reversedSideBoard[j] = reversedSideBoard[j+1];
+	reversedSideBoard[8] = temp;
+	newHash = generic_hash(reversedSideBoard, reverseTurn);
+	if (newHash < minPosHash) minPosHash = newHash;	
+    }
+
+    /*rotate current board*/
+    for (i = 0; i < 8; i++) {
+	temp = board[1];
+	for (j = 1; j < 8; j++)
+	    board[j] = board[j+1];
+	board[8] = temp;
+	newHash = generic_hash(board, currentTurn);
+	if (newHash < minPosHash) minPosHash = newHash;	
+    }
+
+    return minPosHash;
+}
