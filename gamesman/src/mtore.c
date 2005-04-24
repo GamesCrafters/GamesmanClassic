@@ -882,8 +882,9 @@ POSITION getCanonicalPosition (POSITION position) {
     /*inverted board, where the order of pieces go from clockwise to counter-clockwise*/
     invertedBoard[0] = board[0];
     invertedBoard[1] = board[1];
-    for (i = 2; i < 6; i++)
+    for (i = 2; i < 9; i++)
 	invertedBoard[i] = board[10-i];
+    //    printf("invertedBoard: %s", invertedBoard);
     newHash = generic_hash(invertedBoard, currentTurn);
     if (newHash < minPosHash) minPosHash = newHash;
 
@@ -893,6 +894,7 @@ POSITION getCanonicalPosition (POSITION position) {
 	for (j = 1; j < 8; j++)
 	    invertedBoard[j] = invertedBoard[j+1];
 	invertedBoard[8] = temp;
+	//	printf("invertedBoard rotated: %s", invertedBoard);
 	newHash = generic_hash(invertedBoard, currentTurn);
 	if (newHash < minPosHash) minPosHash = newHash;	
     }
@@ -905,6 +907,7 @@ POSITION getCanonicalPosition (POSITION position) {
 	else
 	    reversedSideBoard[i] = '_';
     }
+    //    printf("reversedSideBoard: %s", invertedBoard);
     newHash = generic_hash(reversedSideBoard, reverseTurn);
     if (newHash < minPosHash) minPosHash = newHash;
 
@@ -915,6 +918,7 @@ POSITION getCanonicalPosition (POSITION position) {
 	for (j = 1; j < 8; j++)
 	    reversedSideBoard[j] = reversedSideBoard[j+1];
 	reversedSideBoard[8] = temp;
+	//printf("reversedSideBoard rotated: %s", invertedBoard);
 	newHash = generic_hash(reversedSideBoard, reverseTurn);
 	if (newHash < minPosHash) minPosHash = newHash;	
     }
@@ -925,6 +929,7 @@ POSITION getCanonicalPosition (POSITION position) {
 	for (j = 1; j < 8; j++)
 	    board[j] = board[j+1];
 	board[8] = temp;
+	//printf("board rotated: %s", invertedBoard);
 	newHash = generic_hash(board, currentTurn);
 	if (newHash < minPosHash) minPosHash = newHash;	
     }
