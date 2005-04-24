@@ -276,6 +276,7 @@ void InitializeGame ()
   initializeBoard(board);
   gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
   gInitialPosition = generic_hash(board, PLAYER1_TURN);
+  gCanonicalPosition = getCanonicalPosition;
 }
 
 
@@ -681,7 +682,7 @@ void GameSpecificMenu ()
     printf("\t(C) set the number of columns, currently %d\n", BOARD_COLS);
     printf("\t(W) set how many pieces it takes to win, currently %d\n", \
 	   NUM_TO_WIN);
-    printf("\t(M) toggle misere play.  It is currently %s\n", miserelabel);
+    /*    printf("\t(M) toggle misere play.  It is currently %s\n", miserelabel);*/
     printf("\t(D) toggle diagonal moves.  They are currently %s\n", dialabel);
     printf("\t(Q) leave this menu.\n");
     printf("You are thy dungeonman. Enter thine selection: ");
@@ -711,14 +712,14 @@ void GameSpecificMenu ()
       scanf("%d", &i);
       if ((i >= NUM_TO_WIN_MIN) && (i <= NUM_TO_WIN_MAX) && \
 	  ((i <= BOARD_ROWS) || (i <= BOARD_COLS))) {
-	BOARD_COLS = i;
+	NUM_TO_WIN = i;
       } else {
 	printf("Thou cannotest use such numbers of pieces, knave.\n");
 	printf("Thou must select a value that (1) is between %d and %d and\n\
  can fit on the current board size.\n", NUM_TO_WIN_MIN, NUM_TO_WIN_MAX);
       }
-    } else if ((c == 'M') || (c == 'm')) {
-      MISERE = (MISERE) ? FALSE : TRUE;
+      /*    } else if ((c == 'M') || (c == 'm')) {
+       *MISERE = (MISERE) ? FALSE : TRUE;*/
     } else if ((c == 'D') || (c == 'd')) {
       CAN_MOVE_DIAGONALLY = (CAN_MOVE_DIAGONALLY) ? FALSE : TRUE;
     } else if ((c == 'Q') || (c == 'q')) {
