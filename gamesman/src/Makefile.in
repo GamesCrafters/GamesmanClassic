@@ -52,6 +52,8 @@ DEP_GWISH_OBJ		= deprecated/tkAppInitHash$(OBJSUFFIX)
 
 ##############################################################################
 ### Games
+###########  When adding games ensure that you put them in ALPHABETICAL ORDER.
+
 
 GAMELINE_OBJ		= server$(OBJSUFFIX) client$(OBJSUFFIX)
 GAMELINE_EXE		= $(BINDIR)/server$(EXESUFFIX) $(BINDIR)/client$(EXESUFFIX)
@@ -200,6 +202,10 @@ NIM_EXE			= $(BINDIR)/mnim$(EXESUFFIX)	# The interesting game of NIM!
 NIM_OBJ			= mnim$(OBJSUFFIX)
 NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
 
+NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
+NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
+NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
+
 OOE_EXE			= $(BINDIR)/mooe$(EXESUFFIX) # ooe
 OOE_OBJ			= mooe$(OBJSUFFIX)
 OOE_SO			= $(LIBDIR)/libmooe$(LIBSUFFIX)
@@ -216,6 +222,10 @@ QLAND_EXE		= $(BINDIR)/mqland$(EXESUFFIX)
 QLAND_OBJ		= mqland$(OBJSUFFIX)
 QLAND_SO		= $(LIBDIR)/libmqland$(LIBSUFFIX)
 
+QUARTO_EXE		= $(BINDIR)/mquarto$(EXESUFFIX)	# QUARTO
+QUARTO_OBJ		= mquarto$(OBJSUFFIX)
+QUARTO_SO		= $(LIBDIR)/libmquarto$(LIBSUFFIX)
+
 QX_EXE			= $(BINDIR)/mqx$(EXESUFFIX)	# The great game of quick cross
 QX_OBJ			= mqx$(OBJSUFFIX)
 QX_SO			= $(LIBDIR)/libmqx$(LIBSUFFIX)
@@ -231,6 +241,10 @@ RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
 SEEGA_EXE    	= $(BINDIR)/mseega$(EXESUFFIX)
 SEEGA_OBJ		= mseega$(OBJSUFFIX)
 SEEGA_SO		= $(LIBDIR)/libmseega$(LIBSUFFIX)
+
+SHOGI_EXE    	= $(BINDIR)/mshogi$(EXESUFFIX)
+SHOGI_OBJ		= mshogi$(OBJSUFFIX)
+SHOGI_SO		= $(LIBDIR)/libmshogi$(LIBSUFFIX)
 
 SIM_EXE			= $(BINDIR)/msim$(EXESUFFIX)	# The simple game of sim
 SIM_OBJ			= msim$(OBJSUFFIX)
@@ -281,14 +295,13 @@ WUZHI_EXE		= $(BINDIR)/mwuzhi$(EXESUFFIX)	# Kono
 WUZHI_OBJ		= mwuzhi$(OBJSUFFIX)
 WUZHI_SO		= $(LIBDIR)/libmwuzhi$(LIBSUFFIX)
 
-NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
-NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
-NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
+XIGUA_EXE		= $(BINDIR)/mxigua$(EXESUFFIX)	# Kono
+XIGUA_OBJ		= mxigua$(OBJSUFFIX)
+XIGUA_SO		= $(LIBDIR)/libxigua$(LIBSUFFIX)
 
-QUARTO_EXE		= $(BINDIR)/mquarto$(EXESUFFIX)	# QUARTO
-QUARTO_OBJ		= mquarto$(OBJSUFFIX)
-QUARTO_SO		= $(LIBDIR)/libmquarto$(LIBSUFFIX)
-
+############                       IMPORTANT!
+### Please Ensure that all games are added in ALPHABETICAL order to the section above.
+############
 
 ##############################################################################
 ### Game categories
@@ -304,7 +317,7 @@ CGAMEOBJS = $(1210_OBJ) $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(NIM_OBJ) \
 	    $(CHANGE_OBJ) $(HORSE_OBJ) $(DINODODGEM_OBJ) $(MANCALA_OBJ) \
 	    $(RINFIN_OBJ) $(TTTPPM_OBJ) $(KONO_OBJ) $(QLAND_OBJ) $(ABALONE_OBJ) \
 	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ) \
-	    $(FOXES_NEW_OBJ) $(QUARTO_OBJ)
+	    $(FOXES_NEW_OBJ) $(QUARTO_OBJ) $(XIGUA_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
@@ -315,7 +328,8 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
 	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
-	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE) $(QUARTO_EXE)
+	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE) $(QUARTO_EXE) \
+	  $(XIGUA_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
@@ -323,7 +337,8 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
-	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(FOXES_NEW_SO) $(QUARTO_SO)
+	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(FOXES_NEW_SO) $(QUARTO_SO) \
+	$(XIGUA_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
