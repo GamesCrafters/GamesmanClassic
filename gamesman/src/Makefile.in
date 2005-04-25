@@ -297,7 +297,7 @@ WUZHI_SO		= $(LIBDIR)/libmwuzhi$(LIBSUFFIX)
 
 XIGUA_EXE		= $(BINDIR)/mxigua$(EXESUFFIX)	# Kono
 XIGUA_OBJ		= mxigua$(OBJSUFFIX)
-XIGUA_SO		= $(LIBDIR)/libxigua$(LIBSUFFIX)
+XIGUA_SO		= $(LIBDIR)/libmxigua$(LIBSUFFIX)
 
 ############                       IMPORTANT!
 ### Please Ensure that all games are added in ALPHABETICAL order to the section above.
