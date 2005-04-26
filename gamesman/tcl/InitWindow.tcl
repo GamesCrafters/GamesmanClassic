@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.63 2005-04-16 08:38:57 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.64 2005-04-26 10:51:43 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -661,6 +661,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
     image create photo oxy_screenshot -file "$gSkinsRootDir/OxySkin/screenshot.ppm"
+    image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
 
     button $skinsFrame.content.right.lily\
 	    -compound top\
@@ -677,6 +678,14 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -text "Official Skin"\
 	    -command {
 		InitButtons $gSkinsRootDir OxySkin/ ppm
+		TBaction4
+	    }
+    button $skinsFrame.content.left.mac\
+	    -compound top\
+	    -image mac_screenshot\
+	    -text "Mac Skin"\
+	    -command {
+		InitButtons $gSkinsRootDir MacSkin/ ppm
 		TBaction4
 	    }
 
@@ -696,6 +705,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     pack $skinsFrame.content.left.oxy -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.left.mac -ipadx 4 -ipady 4 -anchor n
     pack $skinsFrame.content.right.lily -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
