@@ -118,7 +118,9 @@ proc SetLaunchButtons { rightBottom thePrograms i } {
     set nextGameName [lindex $thePrograms [expr $i + 1]]
     set home .rightSide.home
     if { $i == 0 } {
-	$rightBottom.prev configure -state disabled
+	$rightBottom.prev configure -state normal \
+		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $theNumberOfPrograms - 1]; \
+			$home itemconfigure viewer -window $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]"
     } else {
 	$rightBottom.prev configure -state normal \
 		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $i - 1]; \
@@ -131,7 +133,9 @@ proc SetLaunchButtons { rightBottom thePrograms i } {
     $rightBottom.playText configure -state disabled
 
     if { $i == [expr $theNumberOfPrograms - 1] } {
-	$rightBottom.next configure -state disabled
+	$rightBottom.next configure -state normal \
+		-command "SetLaunchButtons $rightBottom [list $thePrograms] 0; \
+			$home itemconfigure viewer -window $home.[lindex $thePrograms 0]"
     } else {
 	$rightBottom.next configure -state normal \
 		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $i + 1]; \
