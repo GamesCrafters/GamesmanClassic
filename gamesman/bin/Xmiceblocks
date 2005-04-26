@@ -1,0 +1,46 @@
+#!/usr/sww/bin/wish -f
+#
+#############################################################################
+##
+## NAME: Ice Blocks
+##
+## DESCRIPTION: Ice Blocks
+## AUTHOR: John Lo
+## DATE: 2/8/205
+## UPDATE HISTORY: 
+##   2/8/2005 - Created file.
+##
+#############################################################################
+
+#############################################################################
+##
+## Now we source all the files for this particular module
+## 
+#############################################################################
+
+### Remember where our executable is.
+
+global kRootDir
+if { $tcl_platform(platform) == "unix" } {
+    set kRootDir [file dirname [info script]]
+} else {
+    set kRootDir "."
+}
+
+### Load the Gamesman solver
+
+load "$kRootDir/../lib/libmiceblocks[info sharedlibextension]" Gamesman
+
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman3.tcl"
+
+### Now source our Game-specific code.
+
+source "$kRootDir/../tcl/miceblocks.tcl"
+
+main $kRootDir
+
+
+
+
