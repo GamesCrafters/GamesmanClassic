@@ -81,19 +81,16 @@ STRING   kHelpGraphicInterface =
 "Nothing yet";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose to correspond\n\
-to the board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"Players alternate turns placing pieces in one of the squares that do not contain the opponent's \n\ piece. As the box fills up, as shown by the counter next to the player's piece, the slot \n\explodes. One piece remains in the original spot, while the others  are distributed to each \n\ adjacent square. If the spot is occupied by the opponent, their piece is removed and replaced \n\ by your piece.";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions or add to a square you already occupy.";
+"Select the desired spot to place your piece by using the legend. A counter next to your piece, \n\ either x or o, keeps track of how many pieces are in the spot. ";
 
 STRING   kHelpStandardObjective =
 "To occupy the board with your \"color\" by placing pieces.";
 
 STRING   kHelpReverseObjective =
-"To force the other player to occupy the board, I suppose.";
+"To be the first player to completely remove all his or her pieces.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "A tie is not possible";
