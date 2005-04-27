@@ -81,13 +81,13 @@ STRING   kHelpGraphicInterface =
 "Nothing yet";
 
 STRING   kHelpTextInterface    =
-"Players alternate turns placing pieces in one of the squares that do not contain the opponent's \n\ piece. As the box fills up, as shown by the counter next to the player's piece, the slot \n\explodes. One piece remains in the original spot, while the others  are distributed to each \n\ adjacent square. If the spot is occupied by the opponent, their piece is removed and replaced \n\ by your piece.";
+"Players alternate turns placing pieces in one of the squares that do not contain the opponent's \n piece. As the box fills up, as shown by the counter next to the player's piece, the slot \n explodes. One piece remains in the original spot, while the others  are distributed to each \n adjacent square. If the spot is occupied by the opponent, their piece is removed and replaced \n by your piece.";
 
 STRING   kHelpOnYourTurn =
-"Select the desired spot to place your piece by using the legend. A counter next to your piece, \n\ either x or o, keeps track of how many pieces are in the spot. ";
+"Select the desired spot to place your piece by using the legend. A counter next to your piece keeps track of how many \n pieces are in the spot. ";
 
 STRING   kHelpStandardObjective =
-"To occupy the board with your \"color\" by placing pieces.";
+"To occupy the whole board.";
 
 STRING   kHelpReverseObjective =
 "To be the first player to completely remove all his or her pieces.";
