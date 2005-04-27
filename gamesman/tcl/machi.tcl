@@ -76,7 +76,8 @@ set vertArrows  { 3 30 14 41 25 52 36 63 47 74 58 85}
 ## animation delay
 set slideDelay 20000
 set goDelay 3000000
-set animQuality "low"
+#set animQuality "low"
+##### animQuality is really a hack for animation speed
 # x and y position numbers
 set x0 $firstXCoord
 set x1 [expr $x0 + $dotgap]
@@ -146,29 +147,30 @@ proc MouseOutContract { dot c } {
 #animationQualityQuery
 #  asks the user whether they want low or high
 #  quality animations
+# DEPRECATED - replaced with gAnimationSpeed
 #######################################################
-proc animationQualityQuery { c } {
-    global animQuality
-    set anim_choice [$c create text 120 20  -text "choose animation quality:" \
-			 -fill NavyBlue \
-			 -font {Helvetica -20} -tags {base anim_qual}]
-    set high [$c create text 270 20 -text "HIGH" -font {Helvetica -24} \
-		  -fill gray30 -tags {high anim_qual base}]
-    set dash [$c create text 325 20 -text " or"  -font {Helvetica -24} \
-		  -fill NavyBlue -tags {base anim_qual}]
-    set low  [$c create text 370 20 -text "low"  -font {Helvetica -24} \
-		  -fill gray30 -tags {low anim_qual base}]
+#proc animationQualityQuery { c } {
+#    global animQuality
+#    set anim_choice [$c create text 120 20  -text "choose animation quality:" \
+#			 -fill NavyBlue \
+#			 -font {Helvetica -20} -tags {base anim_qual}]
+#    set high [$c create text 270 20 -text "HIGH" -font {Helvetica -24} \
+#		  -fill gray30 -tags {high anim_qual base}]
+#    set dash [$c create text 325 20 -text " or"  -font {Helvetica -24} \
+#		  -fill NavyBlue -tags {base anim_qual}]
+#    set low  [$c create text 370 20 -text "low"  -font {Helvetica -24} \
+#		  -fill gray30 -tags {low anim_qual base}]
 
-    $c bind high <Enter> "$c itemconfig high -fill black -font {Helvetica -30}"
-    $c bind high <Leave> "$c itemconfig high -fill gray30 -font {Helvetica -24}"
+#    $c bind high <Enter> "$c itemconfig high -fill black -font {Helvetica -30}"
+#    $c bind high <Leave> "$c itemconfig high -fill gray30 -font {Helvetica -24}"
 
-    $c bind low <Enter>  "$c itemconfig low -fill black -font {Helvetica -30}"
-    $c bind low <Leave>  "$c itemconfig low -fill gray30 -font {Helvetica -24}"
+#    $c bind low <Enter>  "$c itemconfig low -fill black -font {Helvetica -30}"
+#    $c bind low <Leave>  "$c itemconfig low -fill gray30 -font {Helvetica -24}"
 
-    $c bind high <ButtonRelease-1> "set animQuality high"
-    $c bind low  <ButtonRelease-1> "set animQuality low"
+#    $c bind high <ButtonRelease-1> "set animQuality high"
+#    $c bind low  <ButtonRelease-1> "set animQuality low"
     
-}
+#}
 
 #######################################################
 # animateMove
@@ -225,7 +227,11 @@ proc animateMove { whoseTurn pieceToMove from to c } {
 #      1) the piece is sliding left so 
 #   b. the piece slides vertically, so x is fixed, i.e. xDist == 0
 #   c. the piece slides along a diagonal so xDist == yDist.
-proc slideAnimation { pieceToMove from to c} {
+
+# DEPRECATED - animation Quality is no longer a variable, it has been replaced
+# with the more modular gAnimationSpeed
+
+proc slideAnimation2 { pieceToMove from to c} {
     global slideDelay animQuality
 
     set xfrom [getXCoord $from]
@@ -245,13 +251,6 @@ proc slideAnimation { pieceToMove from to c} {
     } else {
 	set move_size 1
     }
-
-    #puts "from $from to $to"
-
-    #puts "xfrom $xfrom xto $xto"
-    #puts "yfrom $yfrom yto $yto"
-
-    #puts "xDist: $xDist yDist: $yDist" 
 
     if {$yDist == 0} {
 	if {$xDist < 0} {
@@ -325,6 +324,61 @@ proc slideAnimation { pieceToMove from to c} {
 
     }
 
+}
+
+#this implementation assumes can move things with float values
+# fortunately, you can.
+# unfortunately, i'm not sure if you can set the locations of pieces, so that
+# might be a problem.  first design:
+# determine actual time of animation, have global setting how many frames per
+# second.  paint a frame, and wait until the clock is greater than or equal to
+# the number of the frame you should be at. (okay to be slower)
+proc slideAnimation { pieceToMove from to c} {
+    #i'm itching to make this system-independent, but to do that i *need* to
+    #know how many clicks per second the clock goes through!
+    #I'll assume for now it's like java and [clock clicks] returns the system
+    #time in milliseconds. (i'll adjust it later)
+
+    #clicks of animation time. 1000 is the default.
+    set animDuration [AdjustedTimeOfAnimation 1000]
+    #how many frames to paint in this time? 15 is the default
+    #(re-using AdjustedTimeOfAnimation is a hack, but heuristically I want the
+    #same thing to happen to the number of frames that happened to
+    #animDuration.  i.e. if the time of animation went up, so should the number
+    #of frames.)
+    set numFrames [AdjustedTimeOfAnimation 15]
+    #how much time in between painting?
+    set clicksPerFrame [expr $animDuration / $numFrames]
+
+    #starting and ending screen coordinates
+    set xDist [expr [getXCoord $to] - [getXCoord $from]]
+    set yDist [expr [getYCoord $to] - [getYCoord $from]]
+    set xPlus [expr $xDist / $numFrames]
+    set yPlus [expr $yDist / $numFrames]
+
+    #store time so can determine what frame we should be on.  this is only
+    #relevant in that we can use it to determine how long the thread should
+    #wait after painting a frame
+    #EX: after [expr int($gMoveDelay * 1000)]
+    set currentTime [clock clicks]
+    set endTime [expr $currentTime + $animDuration]
+
+    #algorithm: move the piece by xPlus/yPlus, then wait the number of clicks
+    #until this frame expires
+    for {} {$currentTime < $endTime} {set currentTime [expr $currentTime + $clicksPerFrame]} {
+	#in java, i'd increment elapsed clicks by the actual amount of time
+	#that passed, but then i'd be able to actually set the piece's
+	#location, so can't do that here. (at least, not with my meager
+	#knowledge of Tcl)
+	$c move $pieceToMove $xPlus $yPlus
+	update idletasks
+
+	#check if must wait until ready for next frame
+	set waitClicks [expr [expr $currentTime + $clicksPerFrame] - [clock clicks]]
+	if {$waitClicks > 0} {
+	    after $waitClicks
+	}
+    }
 }
 
 proc getXCoord {num} {
@@ -950,9 +1004,14 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	set num_steps 5
 	set startSize [expr $pieceSize * 5]
 
-	if {$animQuality == "low"} {
-	set num_steps 100
-	}
+#	if {$animQuality == "low"} {
+	#this is an atrocious hack designed to reverse the normal behavior of
+	#AdjustedTimeOfAnimation.  see slideAnimation for what it does, and see
+	#gamesman3.tcl for how it works
+	#Ideally, all this code would be in another method called animateDrop
+	#or something, but this section isn't critical.
+	set num_steps [expr 10000 / [AdjustedTimeOfAnimation 100]]
+#	}
 
 	for {set i $startSize} {$i >= $pieceOutline} {set i [expr $i - $num_steps]} {
 	    $c itemconfig $whoseTurn-$theMove -width $i
@@ -960,14 +1019,14 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	    update idletasks
 	}
 
-	if { $animQuality == "high" } {
-	    set start_offset 50000
-	    set time [clock clicks]
-	    set new_time [clock clicks]
-	    while { $new_time < [expr $time + $start_offset] } {
-		set new_time [clock clicks]
-	    }
-	}
+#	if { $animQuality == "high" } {
+#	    set start_offset 50000
+#	    set time [clock clicks]
+#	    set new_time [clock clicks]
+#	    while { $new_time < [expr $time + $start_offset] } {
+#		set new_time [clock clicks]
+#	    }
+#	}
 
 	$c itemconfig $whoseTurn-$theMove -width $pieceOutline
 	update idletasks

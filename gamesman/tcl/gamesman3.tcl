@@ -53,6 +53,23 @@ proc MoveValueToColor { moveType value } {
     return $color
 }
 
+##### animation utility function
+###
+ # This function takes a normal number of frames and adjusts it mathematically,
+ # taking into account the value of the animationSpeed scrollbar.  logically,
+ # if gAnimationSpeed is a high value, this should return a low value because
+ # a faster animation takes less time.
+ ##
+proc AdjustedTimeOfAnimation { norm } {
+    #the exponential base
+    set base 2
+    #what value of gAnimationSpeed causes norm to be returned unaltered?
+    #this is dependent on what value is at the middle of the animation speed
+    #scrollbar.  
+    set median 0
+    global gAnimationSpeed
+    return [expr $norm * pow($base, [expr $median - $gAnimationSpeed])]
+}
 
 #############################################################################
 ##
@@ -94,10 +111,11 @@ proc InitGlobals {} {
     global kLabelColor
     set kLabelColor grey40
 
-    ### Set the animation speed
+    ### Set the animation speed.  determined exponentially, so middle value is
+    ### 0.
 
     global gAnimationSpeed
-    set gAnimationSpeed 8
+    set gAnimationSpeed 0
     
     global gMoveType
     set gMoveType all
@@ -213,7 +231,6 @@ proc DriverLoop { } {
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
     global gMoveDelay gGameDelay gMoveType gGameSolved
-    global gAnimationDelay
 
     if { !$gGameSolved } {
 	return
@@ -247,7 +264,7 @@ proc DriverLoop { } {
        	    
 	    if { [PlayerIsComputer] } {
 		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
-		after [expr int($gAnimationDelay * 1000)]
+		after [expr int($gMoveDelay * 1000)]
 		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
 		DoComputerMove
 		set gWaitingForHuman false
