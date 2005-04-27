@@ -400,21 +400,32 @@ STRING   kHelpGraphicInterface =
 "Farzad and Erwin: Once there's a graphic interface, fill this in.";
 
 STRING   kHelpTextInterface    =
-"Chung-Toi has two phases to it.  First, pieces are placed on the board until\n\both players have placed three pieces on the board each.In the second phase,\n\the pieces may be moved to different slots or rotated or both.  In both phases,\n\the legend denotes the slot numbering.  Pieces have either x or + orientation,\n\indicating which direction the piece can hop.\n\
-
-In the first phase, to place a piece, locate the slot number you want to move\n\to and whether you want to place it in the x or + orientation.  Enter that slot\n\number immediately followed by the orientation. \n\ Example: 7x would place a piece\n\in the bottom left corner in the x orientation.\n\
-In the second phase, enter a move as the slot you want to move from, immediately\n\followed by the slot you with to move to, and the orientation.  Example: 75+\n\would cause a piece at 7 to move to slot 5 and land in + orientation.  An in-\n\place rotation would be considered a move from a slot back to the same slot.\n\Example: 77+ would cause the piece at 7 to rotate to the + orientation.";
+"Chung-Toi has two phases to it.  First, pieces are placed on the board until \n\
+both players have placed three pieces on the board each.In the second phase,\n\
+the pieces may be moved to different slots or rotated or both.  In both phases,\n\
+the legend denotes the slot numbering.  Pieces have either x or + orientation,\n\
+indicating which direction the piece can hop.\n\n\
+In the first phase, to place a piece, locate the slot number you want to move\n\
+to and whether you want to place it in the x or + orientation.  Enter that slot\n\
+number immediately followed by the orientation. \n\
+Example: 7x would place a piece\n\
+in the bottom left corner in the x orientation.\n\
+In the second phase, enter a move as the slot you want to move from, immediately\n\
+followed by the slot you with to move to, and the orientation.  Example: 75+\n\
+would cause a piece at 7 to move to slot 5 and land in + orientation.  An in-\n\
+place rotation would be considered a move from a slot back to the same slot.\n\
+Example: 77+ would cause the piece at 7 to rotate to the + orientation.";
 
 STRING   kHelpOnYourTurn =
 "Place up to the three pieces on the board.  Then cause pieces to hop from\n\
 slot to slot, or rotate in place.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers in a row, either\n\"
+"To get three of your markers in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers \n\"
+"To force your opponent into getting three of his markers \n\
 in a row, either horizontally, vertically, or diagonally. 3-in-a-row LOSES.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
