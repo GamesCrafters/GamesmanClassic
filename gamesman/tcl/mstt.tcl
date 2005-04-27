@@ -47,9 +47,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non the move you would like to move"
-    set kToWinStandard  "Be the first player to get three of your pieces\nin a row (horizontally, vertically or diagonally)"
-    set kToWinMisere  "Force your opponent into getting three of his pieces\nin a row (horizontally, vertically or diagonally) first"
+    set kToMove "Shift Tac Toe is similar to Tic Tac Toe, except it has the extra option of shifting one of the rows on your turn. Players drop a piece into the slot by clicking the arrow that corresponds to where they would like to move. To shift the board, select the arrow on the sides that correspond to row that the player wants to shift."
+    set kToWinStandard  "Be the first player to get three of your pieces\nin a row (horizontally, vertically or diagonally)."
+    set kToWinMisere  "Force your opponent into getting three of his pieces\nin a row (horizontally, vertically or diagonally) first."
 
     ### Set the size of the board
 

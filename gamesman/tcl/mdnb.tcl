@@ -41,9 +41,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non the line you want to draw"
-    set kToWinStandard  "Score more boxes than your opponent"
-    set kToWinMisere  ""
+    set kToMove "Select the line you want to begin drawing a square. You may make square even if it contains an opponent's line. Select the line you want to draw on the board."
+    set kToWinStandard  "Score more boxes than your opponent. Boxes are denoted by an X or an O."
+    set kToWinMisere  "Force your opponent to draw the most boxes."
 
     ### Set the size of the board
 
