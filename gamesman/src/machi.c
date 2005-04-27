@@ -1,5 +1,4 @@
-// $id$
-// $log$
+// $Id: machi.c,v 1.15 2005-04-27 21:22:03 ogren Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -44,7 +43,7 @@ BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = TRUE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = TRUE;
-BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -212,7 +211,7 @@ void FreeGame()
  **
  ** NAME:        DebugMenu
  **
- ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+ ** DESCRIPTION: Menu used to debug internal problems. Does nothing if
  **              kDebugMenu == FALSE
  ** 
  **
@@ -1189,3 +1188,5 @@ void setOption(int option)
   allDiag = option/2%3==1;
   noDiag = option/2%3==2;
 }
+
+// $Log: not supported by cvs2svn $
