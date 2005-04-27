@@ -59,9 +59,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
     
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "First click on the small L that represents the location to which you want to move your L piece; then click on a black or white neutral piece (circle) in the square to where you want to move that colored neutral piece."
-    set kToWinStandard  "Force your opponent into a position from which he cannot move"
-    set kToWinMisere  "Get yourself in a position from which you cannot move"
+    set kToMove "Each player takes turns moving his or her L piece into a different position. At the end of each turn, players place one of the neutral circle pieces onto any open square. Click on the small L that represents the location you want to move your L piece. Then click on the square where you want to place the black or white neutral circle."
+    set kToWinStandard  "Force your opponent into a position from which he cannot move."
+    set kToWinMisere  "Get yourself in a position from which you cannot move."
     
     ### Set the size of the board
     

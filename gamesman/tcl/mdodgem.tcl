@@ -46,7 +46,7 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click on the arrow that moves the piece in the direction you wish to move. Note that you can only move to an adjacent UNOCCUPIED square and you may never move away from your goal as shown by the \"Legend\" in the upper-right."
+    set kToMove "The pieces are intially arranged at a right angle. Players alternate turns moving their pieces to an adjacent open space. The player with pieces lined up vertically may move north, east, or south. The player with his or her pieces lind up horizontally may move north, east or west. Click on the arrow that moves the piece in the direction you wish to move. Note that you can only move to an adjacent UNOCCUPIED square and you may never move away from your goal as shown by the \"Legend\" in the upper-right."
     set kToWinStandard  "Move both of your pieces off of the board into your goal area first or trap your opponent so that he may not move."
     set kToWinMisere  "Force your opponent to move both of his pieces off the board first or trap yourself so you can't move."
 
