@@ -44,9 +44,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non an empty square to place a piece\nor add to a square of your color"
-    set kToWinStandard  "Be the first player to occupy the board with your color"
-    set kToWinMisere  "Force your opponent to capture every square"
+    set kToMove "Players alternate turns placing pieces into any box that does not contain the opponent's color. If the box fills up, then it will explode and all the pieces, except for one,  are distributed to the surrounding boxes. If one of the surrounding boxes is occupied by the opponent, it is captured and taken over by your color. Multiple explosions may occur if the previous explosion caused other spaces to reach critical mass. Select an empty square to place a piece or  to add a square of your color."
+    set kToWinStandard  "Be the first player to occupy the board with your color."
+    set kToWinMisere  "Force your opponent to capture every square."
     
     ### Set the size of the board
     
