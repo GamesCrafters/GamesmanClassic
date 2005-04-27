@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.64 2005-04-26 10:51:43 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.65 2005-04-27 22:00:31 grenrock Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -449,13 +449,13 @@ proc InitWindow { kRootDir kDir kExt } {
 	-variable gSmartnessScale \
 	-orient horizontal
 
-    global gAnimationDelay
+    global gAnimationSpeed
 
     scale .middle.f2.fPlayOptions.fMid.fRight.animationDelay \
-        -label "Animation delay:" \
-        -from 0 \
-        -to 10 \
-        -variable gAnimationDelay \
+        -label "Animation speed:" \
+        -from -5 \
+        -to 5 \
+        -variable gAnimationSpeed \
         -orient horizontal
 
     ############################SOLVING OPTIONS############################
