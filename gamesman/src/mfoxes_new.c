@@ -1,4 +1,4 @@
-// $Id: mfoxes_new.c,v 1.2 2005-04-17 00:45:20 hevanm Exp $
+// $Id: mfoxes_new.c,v 1.3 2005-04-27 22:47:48 ciokita Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -71,17 +71,30 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to detemine which numbers to choose (between\n\
-1 and the current size of the board , with 1 at the lower left) to correspond\n\
-to the location of your piece and the empty diagonally-adjacent position\n\
-you wish to move that piece to. Example: '1 5' will move your piece from\n\
-square 1 to square 5."; 
+"Move your piece to an adjacent point on the line. If you are\n\
+a geese, then you can only move forward, diagonally forward or\n\
+sideways. Use the LEGEND to detemine which numbers to choose\n\
+to correspond to the location of your piece and the empty\n\
+diagonally-adjacent position you wish to move that piece to. \n\
+Example: '1 5' will move your piece from square 1 to square 5.\n\
+To capture a goose, a fox must be adjacent to the goose and the\n\
+goose must have an empty square behind it. The fox captures by\n\
+jumping over the goose to the empty space. Once the goose is\n\
+captured, it is removed from the board.  The geese cannot\n\
+jump over the fox, but it can try to maneuver it into a position\n\
+where it cannot move.";
 
 STRING   kHelpOnYourTurn =
-"";
+"If you are a fox, you may move along the line to an empty spot\n\
+or capture a goose, by jumping over it to and open spot. The fox\n\
+may move forwards, backwards, diagonally or to the sides. If you\n\
+are a goose, you may only move forward or sideways and you cannot\n\
+jump over the fox. ";
 
 STRING   kHelpStandardObjective =
-"";
+"If you are the fox, the objective is to eat up all the geese until\n\
+they are unable to trap you. If you are a goose, the objective is to\n\
+trap the fox so that it is impossible for him to move.";
 
 STRING   kHelpReverseObjective =
 "";
@@ -991,6 +1004,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2005/04/17 00:45:20  hevanm
+// Cleaned up unused functions and let the geese go first by default. This completes all major work on bringing F&G to the current core.
+//
 // Revision 1.1  2005/04/11 18:01:10  hevanm
 // A version of mfoxes that uses the current core API. Everything except the GUI works, with the exception of a few strange bugs here and there...
 //
