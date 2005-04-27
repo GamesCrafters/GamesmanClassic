@@ -22,7 +22,7 @@ void		colldb_unmark_visited	(POSITION pos);
 typedef struct colldb_node {
 
   VALUE myValue; 
-  POSITION myPos;
+  char myPos;
   struct colldb_node *next;
 
 } colldb_value_node;

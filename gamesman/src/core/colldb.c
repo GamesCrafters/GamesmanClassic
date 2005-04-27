@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:	memdb.c
+** NAME:	coldb.c
 **
 ** DESCRIPTION:	Accessor functions for the in-memory database.
 **
@@ -37,18 +37,24 @@
 
 colldb_value_node** colldb_hash_table;
 POSITION colldb_num_allocated;
-#define colldb_HASHSIZE 1019 //currently hardcoded. Next revision calculate
+int colldb_HASHSIZE; 
+int hitcount;
+extern int accesscount;
+extern int remotecount;
+extern int visitcount;
 /*
 ** Code
 */
 
 
 DB_Table* colldb_init(){
+  hitcount = 0;
+  colldb_HASHSIZE = (int) gNumberOfPositions / 4;
   //Make db_table
   DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
   //setup internal memory table
   colldb_hash_table = (colldb_value_node **) SafeMalloc (colldb_HASHSIZE * sizeof(colldb_value_node*));
-  
+  printf("initalizing collision database. %d rows allocated.\n",colldb_HASHSIZE);
   
   //set function pointers
   new_db->get_value = colldb_get_value;
@@ -82,17 +88,22 @@ void colldb_free(){
 
 colldb_value_node *colldb_find_pos(POSITION position){
   POSITION i;
+  char key;
   colldb_value_node *cur;
-
+  key = (char) (position / colldb_HASHSIZE);
   i = position % colldb_HASHSIZE;
   cur = colldb_hash_table[i];
 
   while(cur != NULL){
-    if(cur->myPos == position)
-      return cur;
+	  if(cur->myPos == key){
+		  hitcount++;
+		if(hitcount%1000 == 0){
+			printf("hit: %d, access: %d, visit: %d, remote: %d\n",hitcount,accesscount,visitcount,remotecount);
+		}	
+		return cur;	
+	  }
     cur = cur->next;
   }
-  
   return NULL;
   
   
@@ -100,10 +111,14 @@ colldb_value_node *colldb_find_pos(POSITION position){
 
 colldb_value_node* colldb_make_node(POSITION pos, VALUE val, colldb_value_node *next){
   colldb_value_node *ptr = (colldb_value_node *) SafeMalloc (sizeof(colldb_value_node));
-  ptr->myPos = pos;
+  ptr->myPos = (char) (pos / colldb_HASHSIZE);
   ptr->myValue = val;
   ptr->next = next;
   colldb_num_allocated++;
+  if(colldb_num_allocated % 100 == 0){
+	  printf("number allocated: "POSITION_FORMAT"\n",colldb_num_allocated);
+	  fflush(NULL);
+  }
   return ptr;
 }
 colldb_value_node *colldb_add_node(POSITION position){
