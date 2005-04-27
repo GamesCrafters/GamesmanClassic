@@ -72,16 +72,16 @@ slot. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position.";
 
 STRING   kHelpOnYourTurn =
-"You ''drop'' one of your pieces into a slot that is not yet full.";
+"''Drop'' one of your pieces into an open slot by entering the \n\
+corresponding number. ";
 
 STRING   kHelpStandardObjective =
-"To get four of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 4-in-a-row WINS.";
+"To get four of your pieces in a row, either horizontally, vertically,\n\
+ or diagonally.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting four of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 4-in-a-row\n\
-LOSES.";
+"To force your opponent into getting four of his pieces  in a row, either \n\
+ horizontally, vertically, or diagonally.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "the board fills up without either player getting four-in-a-row.";
