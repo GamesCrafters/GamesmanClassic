@@ -35,9 +35,9 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non the line you want to draw"
-    set kToWinStandard  "Connect your edges or surround your opponent"
-    set kToWinMisere  ""
+    set kToMove "Players alternate turns connecting the open spots. To place a piece, select an open spot."
+    set kToWinStandard  "Get your colored pieces to connect across the board or surround your opponent."
+    set kToWinMisere  "Force your opponent to connect his colored pieces across the board."
 
     ### Set the size of the board
 

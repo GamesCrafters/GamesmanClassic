@@ -53,7 +53,7 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click on the stick you want to color."
+    set kToMove "Players take turns connecting 2 of the 6 corners with a line. A line cannot be drawn tiwce and lines of the same color cannot form a triangle if the end points are part of the outer corners. Click on the stick you want to color."
     set kToWinStandard  "Avoid making a triangle of your color."
     set kToWinMisere  "Complete a triangle before your opponent."
     
