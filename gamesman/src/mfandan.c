@@ -46,20 +46,30 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 STRING   kHelpGraphicInterface ="";
 
 STRING   kHelpTextInterface    =
-"On your turn use the file letter and row number to determine how to specify the\n\
-piece you wish to move and the direction and attack method. If you have made a\n\
-wrong move at any point, you can type u to revert back to the previous state.\n\
+"On your turn use the file letter and row number to determine the piece you wish\n\
+to move, the direction and attack method. A move consists of moving a piece to an\n\
+empty adjacent spot. You can capture either by approach or withdrawal. If you move\n\
+towards the opponent, so that your piece is next to the opposing piece, then you have\n\
+captured by approach. Any pieces that are in the same line are also captured unless they\n\
+are separated by empty spaces or the opponent's piece. To capture by withdrawal, a piece\n\
+must be moved away from the opponent's piece. This will capture any pieces that are in a\n\
+continuous line with the captured piece. Any captured pieces are removed from the board\n\
+If you have made a wrong move at any point,you can type u to revert back to the previous state.\n\
 ";
 
 
 STRING   kHelpOnYourTurn =
-"You move one of your pieces on the board in one of the eight directions by one edge.\n\
-";
+"Move one of your pieces in one of the eight directions by selecting the letter and row \n\
+number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n\
+capture by approach the player must move towards the opponent piece so that it is\n\ 
+adjacent to the piece. Any enemy pieces that are in a continuous line with the piece\n\
+are also captured. To capture by withdrawal, move a piece that is adjacent to the\n\
+opponent's piece away from the opposing piece.";
 
 
 STRING   kHelpStandardObjective =
-"To capture all of your opponents pieces.\n\
-";
+"To capture all of your opponents pieces or to leave them in a position where they have\n\
+no more available moves.";
 
 
 STRING   kHelpReverseObjective =
