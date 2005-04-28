@@ -39,9 +39,9 @@ colldb_value_node** colldb_hash_table;
 POSITION colldb_num_allocated;
 int colldb_HASHSIZE; 
 int hitcount;
-extern int accesscount;
-extern int remotecount;
-extern int visitcount;
+//extern int accesscount;
+//extern int remotecount;
+//extern int visitcount;
 /*
 ** Code
 */
@@ -98,7 +98,7 @@ colldb_value_node *colldb_find_pos(POSITION position){
 	  if(cur->myPos == key){
 		  hitcount++;
 		if(hitcount%1000 == 0){
-			printf("hit: %d, access: %d, visit: %d, remote: %d\n",hitcount,accesscount,visitcount,remotecount);
+		    //printf("hit: %d, access: %d, visit: %d, remote: %d\n",hitcount,accesscount,visitcount,remotecount);
 		}	
 		return cur;	
 	  }
