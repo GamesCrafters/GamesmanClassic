@@ -327,11 +327,13 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set i  [expr $theMove/10]
     
     set im1 [expr $i-1]
+    set maxframes [AdjustedTimeOfAnimation 50]
+    set dely [expr 64/[AdjustedTimeOfAnimation -8]]
     
-    for {set frame 0} {$frame < 50} {incr frame} {
+    for {set frame 0} {$frame < $maxframes} {incr frame} {
 	
 	for {set j [lindex $oldl $im1]} {$j>[lindex $newl $im1]} {incr j -1} {
-	    $c move move-$i$j 0 -8
+	    $c move move-$i$j 0 $dely
 	}
 	update idletasks
     }
