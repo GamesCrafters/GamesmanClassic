@@ -361,7 +361,7 @@ proc slideAnimation { pieceToMove from to c} {
     #wait after painting a frame
     #EX: after [expr int($gMoveDelay * 1000)]
     set currentTime [clock clicks]
-    set endTime [expr $currentTime + $animDuration]
+    set endTime [expr $currentTime + $animDuration - $clicksPerFrame]
 
     #algorithm: move the piece by xPlus/yPlus, then wait the number of clicks
     #until this frame expires
@@ -374,7 +374,7 @@ proc slideAnimation { pieceToMove from to c} {
 	update idletasks
 
 	#check if must wait until ready for next frame
-	set waitClicks [expr [expr $currentTime + $clicksPerFrame] - [clock clicks]]
+	set waitClicks [expr $currentTime + $clicksPerFrame - [clock clicks]]
 	if {$waitClicks > 0} {
 	    after $waitClicks
 	}
