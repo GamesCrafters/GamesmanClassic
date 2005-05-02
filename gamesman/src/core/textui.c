@@ -126,7 +126,7 @@ void MenusEvaluated()
     
     printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
     printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
-    if(!gAgainstComputer)
+    if(gOpponent == AgainstHuman)
         printf("\t3)\tSwap %s (plays FIRST) with %s (plays SECOND)\n", gPlayerName[1], gPlayerName[0]);
     
     if(!gUnsolved) {
@@ -142,11 +142,12 @@ void MenusEvaluated()
     
     printf("\n\tPlaying Options:\n\n");
     if(!gUnsolved) {
-	printf("\t6)\tToggle opponent from a %s to a %s\n",
-	       gAgainstComputer ? "COMPUTER" : "HUMAN",
-	       gAgainstComputer ? "HUMAN" : "COMPUTER");
+	printf("\t6)\tToggle opponents, currently: %s\n",
+	       (gOpponent == AgainstComputer) ? "PLAYING A COMPUTER" : 
+	       (gOpponent == AgainstHuman) ? "PLAYING A HUMAN" : 
+	       "COMPUTER PLAYING A COMPUTER");
     }
-    if(gAgainstComputer)
+    if(gOpponent == AgainstComputer)
 	{
 	    if(gameValue == tie)
 		printf("\t7)\tToggle from going %s (can tie/lose) to %s (can tie/lose)\n",
@@ -264,7 +265,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	break;
     case 's': case 'S':
 	Initialize();
-	gAgainstComputer = TRUE;
+	gOpponent = AgainstComputer;
 	gPrintPredictions = TRUE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
 	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
@@ -303,7 +304,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'w': case 'W':
 	InitializeGame();
 	gUnsolved = TRUE;
-	gAgainstComputer = FALSE;
+	gOpponent = AgainstHuman;
 	gPrintPredictions = FALSE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player 1");
 	sprintf(gPlayerName[kPlayerTwoTurn],"Player 2");
@@ -321,6 +322,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 void ParseEvaluatedMenuChoice(char c)
 {
     char tmpName[MAXNAME];
+    PLAYER playerOne,playerTwo;
     
     switch(c) {
     case '1':
@@ -361,10 +363,20 @@ void ParseEvaluatedMenuChoice(char c)
 	    BadMenuChoice();
 	    HitAnyKeyToContinue();
 	}
-	gAgainstComputer = !gAgainstComputer;
+	if(gOpponent == AgainstComputer) {
+	    gOpponent = AgainstHuman;
+	}
+	else if(gOpponent == AgainstHuman) {
+	    gOpponent = ComputerComputer;
+	}
+	else if(gOpponent == ComputerComputer) {
+	    gOpponent = AgainstComputer;
+	}
+	else
+	    BadElse("Invalid Opponent!");
 	break;
     case '7':
-	if(gAgainstComputer)
+	if(gOpponent == AgainstComputer)
 	    gHumanGoesFirst = !gHumanGoesFirst;
 	else {
 	    BadMenuChoice();
@@ -383,14 +395,32 @@ void ParseEvaluatedMenuChoice(char c)
 	SmarterComputerMenu();
 	break;
     case 'A': case 'a':
-        analyze();
+        //analyze();
 	AnalysisMenu();
 	break;
     case 'p': case 'P':
-	if(gAgainstComputer)
-	    PlayAgainstComputer();
+	if(gOpponent == AgainstComputer) {
+	    if(gHumanGoesFirst) {
+		playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+		playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    } else {
+		playerOne = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],0);
+		playerTwo = NewHumanPlayer(gPlayerName[kPlayerOneTurn],1);
+	    }	    
+	    PlayGame(playerOne,playerTwo);
+	}
+	else if(gOpponent == AgainstHuman) {
+	    playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+	    playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    PlayGame(playerOne,playerTwo);
+	}
+	else if(gOpponent == ComputerComputer) {
+	    playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
+	    playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    PlayGame(playerOne,playerTwo);
+	}
 	else
-	    PlayAgainstHuman();
+	    BadElse("Invalid Opponent to play!");
       HitAnyKeyToContinue();
       break;
 
@@ -473,7 +503,7 @@ void ParseHelpMenuChoice(char c)
     case '5':
 	printf("\n\t----- What does the VALUE of %s mean? -----\n\n",kGameName);
 	if(gMenuMode == Evaluated) {
-	    if(gAgainstComputer)
+	    if(gOpponent == AgainstComputer)
 		PrintComputerValueExplanation();
 	    else
 		PrintHumanValueExplanation();
@@ -591,15 +621,10 @@ void AnalysisMenu()
     char c;
     
     gPrintPredictions = FALSE;
-    gMenuMode = AnalysisNoSymmetries; /* By default, no symmetries -- raw values */
+    gMenuMode = Analysis; /* By default, no symmetries -- raw values */
     
     do {
         printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
-	
-#ifdef SYMMETRY_REVISITED
-        printf("\ts)\tToggle Use-(S)ymmetry-for-Values (currently %s)\n", 
-	       gMenuMode == AnalysisNoSymmetries ? "off" : "on");
-#endif
         printf("\ti)\tPrint the (I)nitial position\n");
         printf("\tn)\tChange the (N)umber of printed positions (currently %d)\n",maxPositions);
         if(!kPartizan) { /* Impartial */
@@ -629,11 +654,6 @@ void AnalysisMenu()
         printf("\n\nSelect an option: ");
 	
         switch(c = GetMyChar()) {
-#ifdef SYMMETRY_REVISITED
-	case 'S': case 's':
-	  gMenuMode = (gMenuMode == AnalysisSymmetries) ? AnalysisNoSymmetries : AnalysisSymmetries;
-	  break;
-#endif
 	case 'Q': case 'q':
 	    ExitStageRight();
 	    exit(0);
@@ -644,10 +664,12 @@ void AnalysisMenu()
 	    DatabaseCombVisualization();
 	    break;
 	case 'C': case 'c':
+	    gMenuMode = Evaluated;
 	    if(CorruptedValuesP())
 		printf("\nCorrupted values found and printed above. Sorry.\n");
 	    else
 		printf("\nNo Corrupted Values found!\n");
+	    gMenuMode = Analysis;
 	    HitAnyKeyToContinue();
 	    break;
 	case 'F': case 'f':
@@ -735,7 +757,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     if(input[0] == '\0') {
       /* [DDG 2005-01-09] Check if there is only one move to be made.
        * If so, this can be a shortcut for moving, just hitting enter! */
-      /*      head = GenerateMoves(thePosition); /* What are all moves available? */
+      /*      head = GenerateMoves(thePosition); What are all moves available? */
       /* There's exactly one */
       /*if (onlyOneMove = (head != NULL && head->next == NULL)){
        *  *theMove = head->move;

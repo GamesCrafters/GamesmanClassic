@@ -32,5 +32,21 @@ STRING		GetPrediction			(POSITION pos, STRING playerName, BOOLEAN usersTurn);
 MOVE		GetComputersMove		(POSITION pos);
 VALUE_MOVES*	GetValueMoves			(POSITION pos);
 
+/* Player structure */
+typedef enum player_enum {Human, Computer} PTYPE;
+
+typedef struct Player {
+    int turn;
+    char* name;
+    PTYPE type;
+    USERINPUT (*GetMove)(POSITION,MOVE*,STRING);
+} *PLAYER;
+
+/* Player Constructors */
+PLAYER          NewHumanPlayer                  (STRING name,int turn);
+PLAYER          NewComputerPlayer               (STRING name,int turn);
+USERINPUT       ComputerMove                    (POSITION position,MOVE* move, STRING name);
+
+void            PlayGame                        (PLAYER playerOne,PLAYER playerTwo);
 
 #endif /* GMCORE_GAMEPLAY_H */

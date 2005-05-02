@@ -98,7 +98,7 @@ VALUE;
 
 typedef enum menu_enum
 {
-  BeforeEvaluation, Evaluated, AnalysisNoSymmetries, AnalysisSymmetries
+  BeforeEvaluation, Evaluated, Analysis
 }
 MENU;
 

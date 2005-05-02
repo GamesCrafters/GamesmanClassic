@@ -7,8 +7,7 @@
 */
 
 extern VALUE	gValue;
-extern BOOLEAN	gAgainstComputer, gHumanGoesFirst, gPrintPredictions, gHints,
-		gUnsolved;
+extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 
 extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
@@ -103,5 +102,9 @@ extern void (*gUndoMove)(MOVE move);
 
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*	gGameSpecificTclInit;
+
+typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPPONENT;
+
+OPPONENT gOpponent;
 
 #endif /* GMCORE_GLOBALS_H */

@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.3 2005-03-10 02:06:47 ogren Exp $
+// $Id: mtemplate.c,v 1.4 2005-05-02 17:33:01 nizebulous Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -449,6 +449,9 @@ int NumberOfOptions ()
 
 int getOption ()
 {
+    /* If you have implemented symmetries you should
+       include the boolean variable gSymmetries in your
+       hash */
     return 0;
 }
 
@@ -466,7 +469,9 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+    /* If you have implemented symmetries you should
+       include the boolean variable gSymmetries in your
+       hash */
 }
 
 
@@ -502,3 +507,6 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2005/03/10 02:06:47  ogren
+// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
+//

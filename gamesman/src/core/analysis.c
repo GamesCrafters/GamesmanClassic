@@ -231,10 +231,12 @@ void PrintGameValueSummary()
 void analyze()
 {
   static int analyzed = 0;
-  static int previousOption = 0;
+  static int previousOption = -1;
   
   if (analyzed == 0 || previousOption != getOption())
     {
+	printf("analyzed is %d, previous is %d, current is %d\n", analyzed, previousOption, getOption());
+	previousOption = getOption();
       analyzer();
       analyzed = 1;
       previousOption = getOption();

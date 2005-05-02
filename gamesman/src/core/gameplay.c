@@ -42,208 +42,94 @@ static	MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 static	VALUE_MOVES*	SortMoves			(POSITION, MOVE, VALUE_MOVES*);
 static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
 
-
-/*
-** Code
-*/
-
-void PlayAgainstHuman()
+void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 {
     char c;
-    POSITION currentPosition;
-    MOVE theMove;
+    POSITION position;
+    MOVE move;
     UNDO *undo;
-    BOOLEAN playerOneTurn = TRUE, error, player_draw;
+    VALUE value;
+    BOOLEAN error, player_draw;
     BOOLEAN playing = TRUE;
     BOOLEAN aborted = FALSE;
     BOOLEAN menu    = TRUE;
     USERINPUT userInput = Continue; /* default added to satify compiler */
-    
-    currentPosition = gInitialPosition;
-    undo = InitializeUndo();
-    
-#ifndef X
-    printf("Type '?' if you need assistance...\n\n");
-#endif
-    
-    PrintPosition(currentPosition, gPlayerName[playerOneTurn], kHumansTurn);
-    
-    while(playing) {
-	
-	while(Primitive(currentPosition) == undecided) { /* Not dead yet! */
-	    
-	    while((userInput = GetAndPrintPlayersMove(currentPosition,&theMove,
-						      gPlayerName[playerOneTurn])) == Undo) {
-		undo = HandleUndoRequest(&currentPosition,undo,&error);
-		if(!error)
-		    playerOneTurn = !playerOneTurn;		/* the other's turn */
-	    PrintPosition(currentPosition,gPlayerName[playerOneTurn], kHumansTurn);
-	    }
-	    if(userInput == Abort)
-		break;                 /* jump out of while loop */
-	    
-	    if (!gGoAgain(currentPosition,theMove))
-		playerOneTurn = !playerOneTurn;           /* the other's turn */
-	    
-	    /* It's !playerOneTurn because the text (Player will lose) is for the other */
-	    PrintPosition(currentPosition = DoMove(currentPosition,theMove),
-			  gPlayerName[playerOneTurn], kHumansTurn);
-	    
-	    undo = UpdateUndo(currentPosition, undo, &player_draw);
-	    if(player_draw)
-		break;
-	    
-	}
-	if(Primitive(currentPosition) == tie)
-	    printf("The match ends in a draw. Excellent strategies, %s and %s.\n\n", 
-		   gPlayerName[0], gPlayerName[1]);
-	else if(Primitive(currentPosition) == lose)
-	    printf("\n%s (player %s) Wins!\n\n", gPlayerName[!playerOneTurn], 
-		   playerOneTurn ? "two" : "one"); 
-	else if(Primitive(currentPosition) == win)
-	    printf("\n%s (player %s) Wins!\n\n", gPlayerName[playerOneTurn], 
-		   playerOneTurn ? "one" : "two");
-	else if(userInput == Abort) {
-	    printf("Your abort command has been received and successfully processed!\n");
-	    aborted = TRUE;
-	    playing = FALSE;         /*get out of the game-playing loop*/
-	}
-	else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
-	    printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",
-		   gPlayerName[0], gPlayerName[1]);
-	}
-	else
-	    BadElse("PlayAgainstHuman"); 
-	
-	if(!aborted) {
-	    while(menu) {
-		printf("What would you like to do?\n"
-		       "\tu)\t(U)ndo the last move\n"
-		       "\tb)\t(B)ack to the menu\n"
-		       "\tq)\t(Q)uit\n\n"
-		       "Select an option:  ");
-		c = GetMyChar();
-		switch(c) {
-		case 'u': case 'U':
-		    undo = HandleUndoRequest(&currentPosition,undo,&error);
-		    playing = TRUE;
-		    menu = FALSE;
-		    break;
-		case 'b': case 'B':
-		    playing = FALSE;
-		    menu = FALSE;
-		    break;
-		case 'q': case 'Q':
-		    ExitStageRight();
-		    exit(0);
-		default:
-		    BadMenuChoice();
-		}
-	    }
-	    menu = TRUE;
-	}
-	    
-    }
-    
-    ResetUndoList(undo);
-}
-
-void PlayAgainstComputer()
-{
-    char c;
-    POSITION thePosition;
-    MOVE theMove;
-    UNDO *undo;
-    BOOLEAN usersTurn, error, player_draw;
-    BOOLEAN playing = TRUE;
-    BOOLEAN aborted = FALSE;
-    BOOLEAN menu    = TRUE;
-    USERINPUT userInput = Continue; /* default added to satisfy compiler */
+    PLAYER player = playerOne;
     int oldRemainingGivebacks;
     
-    thePosition = gInitialPosition;
-    remainingGivebacks = initialGivebacks;
+    position = gInitialPosition;
     undo = InitializeUndo();
-    usersTurn = gHumanGoesFirst;
-    
-    printf("\nOk, %s and %s, let us begin.\n\n",
-	   gPlayerName[kPlayerOneTurn], gPlayerName[kPlayerTwoTurn]);
     
 #ifndef X
     printf("Type '?' if you need assistance...\n\n");
 #endif
-
+    
     while(playing) {
-	
-	PrintPosition(thePosition,gPlayerName[usersTurn],usersTurn);
-	
-	while(Primitive(thePosition) == undecided) { /* Not dead yet! */
-	    
-	    oldRemainingGivebacks = remainingGivebacks; /* keep track of giveback usage for undo */
-	    
-	    if(usersTurn) {		/* User's turn */
-		
-		while((userInput = GetAndPrintPlayersMove(thePosition,
-							  &theMove, 
-							  gPlayerName[usersTurn])) == Undo) {
-		    undo = HandleUndoRequest(&thePosition,undo,&error); /* undo */
-		    PrintPosition(thePosition,gPlayerName[usersTurn],usersTurn);
-		}
-	    }
-	    else {				/* Computer's turn */
-		theMove = GetComputersMove(thePosition);
-		PrintComputersMove(theMove,gPlayerName[usersTurn]);
-	    }
-	    if(userInput == Abort)
-		break;                 /* jump out of while loop */
-	    
-	    if (!gGoAgain(thePosition,theMove))
-		usersTurn = !usersTurn;           /* The other person's turn */
-	    
-	    PrintPosition(thePosition = DoMove(thePosition,theMove),
-			  gPlayerName[usersTurn],usersTurn);
-	    
-	    undo = UpdateUndo(thePosition, undo, &player_draw);
-	    undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
-	    if(player_draw)
-		break;
-	    
-	}
-	if((Primitive(thePosition) == lose && usersTurn) || 
-	   (Primitive(thePosition) == win && !usersTurn))
-	    printf("\n%s wins. Nice try, %s.\n\n", gPlayerName[kComputersTurn],
-		   gPlayerName[kHumansTurn]); 
-	else if((Primitive(thePosition) == lose && !usersTurn) ||
-		(Primitive(thePosition) == win && usersTurn))
-	    printf("\nExcellent! You won!\n\n");
-	else if(Primitive(thePosition) == tie)
-	    printf("The match ends in a tie. Excellent strategy, %s.\n\n", 
-		   gPlayerName[kHumansTurn]);
-	else if(userInput == Abort) {
-	    printf("Your abort command has been received and successfully processed!\n");
-	    aborted = TRUE;
-	    playing = FALSE;            /*get out of the game-playing loop*/
-	}
-	else if (player_draw == TRUE) { /* Player chooses to end the game in a draw */
-	    printf("The match ends in a draw.  Excellent strategy, %s. \n\n",
-		   gPlayerName[kHumansTurn]);
-	}
-	else
-	    BadElse("PlayAgainstHuman"); 
 
+	while((value = Primitive(position)) == undecided) {
+	    oldRemainingGivebacks = remainingGivebacks;
+
+	    PrintPosition(position, player->name, (player->type==Human?TRUE:FALSE));
+
+	    if((userInput = player->GetMove(position,&move,player->name)) == Undo) {
+		undo = HandleUndoRequest(&position,undo,&error);
+		if(!error && gOpponent == AgainstHuman) {
+		    player = (player->turn ? playerOne : playerTwo);
+		}
+	    } else if(userInput == Abort) {
+		break;
+	    } else {
+		position = DoMove(position,move);
+		undo = UpdateUndo(position,undo,&player_draw);
+		undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
+		if(!gGoAgain(position,move)) {
+		    player = (player->turn ? playerOne : playerTwo);
+		}
+		if(player_draw)
+		    break;
+	    }
+	}
+	PrintPosition(position,player->name,(player->type==Human?TRUE:FALSE));
+	switch(value) {
+	case tie:
+	    printf("The match ends in a draw. Excellent strategies, %s and %s\n",playerOne->name,playerTwo->name);
+	    break;
+	case lose:
+	    printf("\n%s (player %s) Wins!\n\n",player->turn?playerOne->name:playerTwo->name,player->turn?"one":"two");
+	    break;
+	case win:
+	    printf("\n%s (player %s) Wins!\n\n",player->turn?playerTwo->name:playerOne->name,player->turn?"two":"one");
+	    break;
+	default:
+	    if(userInput == Abort) {
+		printf("Your abort command has been received and successfully processed!\n");
+		aborted = TRUE;
+		playing = FALSE;
+	    }
+	    else if(player_draw)
+		printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",playerOne->name,playerTwo->name);
+	    else
+		BadElse("PlayGame");
+	}
 	if(!aborted) {
 	    while(menu) {
-		printf("What would you like to do?\n"
-		       "\tu)\t(U)ndo the last move\n"
-		       "\tb)\t(B)ack to the menu\n"
-		       "\tq)\t(Q)uit\n\n"
+		printf("%s%s%s%s%s",
+		       "What would you like to do?\n",
+		       (gOpponent != ComputerComputer) ? 
+		       "\tu)\t(U)ndo the last move\n" : "",
+		       "\tb)\t(B)ack to the menu\n",
+		       "\tq)\t(Q)uit\n\n",
 		       "Select an option:  ");
 		c = GetMyChar();
 		switch(c) {
 		case 'u': case 'U':
-		    undo = HandleUndoRequest(&thePosition,undo,&error);
-		    playing = TRUE;
-		    menu = FALSE;
+		    if(gOpponent != ComputerComputer) {
+			undo = HandleUndoRequest(&position,undo,&error);
+			playing = TRUE;
+			menu = FALSE;
+		    }
+		    else
+			BadMenuChoice();
 		    break;
 		case 'b': case 'B':
 		    playing = FALSE;
@@ -258,25 +144,23 @@ void PlayAgainstComputer()
 	    }
 	    menu = TRUE;
 	}
-	
     }
-    
     ResetUndoList(undo);
 }
-
 
 void ResetUndoList(UNDO* undo)
 {
     POSITION position;
-    BOOLEAN error, oldAgainstComputer; /* kludge so that it resets everything */
+    BOOLEAN error; /* kludge so that it resets everything */
+    OPPONENT oldOpponent;
     
-    oldAgainstComputer = gAgainstComputer;
-    gAgainstComputer = FALSE;
+    oldOpponent = gOpponent;
+    gOpponent = AgainstHuman;
     while(undo->next != NULL)
         undo = HandleUndoRequest(&position, undo, &error);
     
     SafeFree((GENERIC_PTR)undo);
-    gAgainstComputer = oldAgainstComputer;
+    gOpponent = oldOpponent;
 }
 
 UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
@@ -284,7 +168,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     UNDO *tmp;
     
     if((*error = ((undo->next == NULL) ||
-		  (gAgainstComputer && (undo->next->next == NULL))))) {
+		  (gOpponent == AgainstComputer && (undo->next->next == NULL))))) {
 	
 	printf("\nSorry - can't undo, I'm already at beginning!\n");
 	return(undo);
@@ -302,7 +186,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
     
     /* If playing against the computer, undo the users move here */
     
-    if(gAgainstComputer) {
+    if(gOpponent == AgainstComputer) {
 	tmp = undo;
 	undo = undo->next;
 	SafeFree((GENERIC_PTR)tmp);
@@ -495,23 +379,23 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
         if (value == tie && Remoteness(position) == REMOTENESS_MAX) {
             (void) sprintf(prediction, "(%s %s draw) %s",
 			   playerName,
-			   ((value == lose && usersTurn && gAgainstComputer) ||
-			    (value == win && !usersTurn && gAgainstComputer)) ?
+			   ((value == lose && usersTurn && gOpponent == AgainstComputer) ||
+			    (value == win && !usersTurn && gOpponent == AgainstComputer)) ?
 			   "will" : "should",
 			   mexString);
         } else {
             if (gTwoBits) {
                 sprintf(prediction, "(%s %s %s)",
 			playerName,
-			((value == lose && usersTurn && gAgainstComputer) ||
-			 (value == win && !usersTurn && gAgainstComputer)) ?
+			((value == lose && usersTurn && gOpponent == AgainstComputer) ||
+			 (value == win && !usersTurn && gOpponent == AgainstComputer)) ?
 			"will" : "should",
 			gValueString[(int)value]);
             } else {
                 sprintf(prediction, "(%s %s %s in %d) %s",
 			playerName,
-			((value == lose && usersTurn && gAgainstComputer) ||
-			 (value == win && !usersTurn && gAgainstComputer)) ?
+			((value == lose && usersTurn && gOpponent == AgainstComputer) ||
+			 (value == win && !usersTurn && gOpponent == AgainstComputer)) ?
 			"will" : "should",
 			gValueString[(int)value],
 			Remoteness(position),
@@ -856,4 +740,31 @@ VALUE_MOVES* StoreMoveInList(MOVE theMove, REMOTENESS remoteness, VALUE_MOVES* v
     prevMoveList->next = newMove;
     prevRemotenessList->next = newRemoteness;
     return (valueMoves);
+}
+
+PLAYER NewHumanPlayer(STRING name, int turn)
+{
+    PLAYER new = (PLAYER)SafeMalloc(sizeof(struct Player));
+    new->name = name;
+    new->turn = turn;
+    new->type = Human;
+    new->GetMove = GetAndPrintPlayersMove;
+    return new;
+}
+
+PLAYER NewComputerPlayer(STRING name, int turn)
+{
+    PLAYER new = (PLAYER)SafeMalloc(sizeof(struct Player));
+    new->name = name;
+    new->turn = turn;
+    new->type = Computer;
+    new->GetMove = ComputerMove;
+    return new;
+}
+
+USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)
+{
+    *move = GetComputersMove(position);
+    PrintComputersMove(*move,name);
+    return Continue;
 }

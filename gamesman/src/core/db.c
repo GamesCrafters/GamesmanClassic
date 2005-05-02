@@ -79,19 +79,19 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
 // This is it
 VALUE GetValueOfPosition(POSITION position)
 {
-  if(gMenuMode == Evaluated && gSymmetries)
-    position = gCanonicalPosition(position);
+    if(gMenuMode == Evaluated && gSymmetries)
+	position = gCanonicalPosition(position);
 
-  return db_functions->get_value(position);
+    return db_functions->get_value(position);
 }
 
 
 REMOTENESS Remoteness(POSITION position)
 { 
-  if(gMenuMode == Evaluated && gSymmetries)
+    if(gMenuMode == Evaluated && gSymmetries)
 	position = gCanonicalPosition(position);
-  
-  return db_functions->get_remoteness(position);
+    
+    return db_functions->get_remoteness(position);
 }
     
 

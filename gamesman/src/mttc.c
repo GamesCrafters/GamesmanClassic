@@ -443,7 +443,7 @@ struct pieceType {
 
 typedef char* BOARD;
 typedef int PIECE;
-typedef int PLAYER;
+typedef int MPLAYER;
 typedef int CELL;
 
 /** Global Variables *****************************************************/
@@ -495,7 +495,7 @@ extern POSITION         generic_hash(char *board, int player);
 extern char            *generic_unhash(POSITION hash_number, char *empty_board);
 extern int              whoseMove (POSITION hashed);
 BOOLEAN offBoard(MOVE);
-BOOLEAN isPlayer(PIECE,PLAYER);
+BOOLEAN isPlayer(PIECE,MPLAYER);
 
 
 /* Local */
@@ -505,7 +505,7 @@ CELL getDest(MOVE move);
 int getBoardSize();
 int getRow(CELL cell);
 int getCol(CELL cell);
-PLAYER getPlayer(POSITION pos);
+MPLAYER getPlayer(POSITION pos);
 int numOnBoard(PIECE piece, BOARD board);
 int sizeOfPieceType(struct pieceType *pt);
 MOVE makeMove(PIECE piece, CELL source, CELL dest);
@@ -626,7 +626,7 @@ void GameSpecificMenu () {
   int *input,i,j;
   char move[MOVE_LENGTH+1], piece;
   char option[2];
-  BOOLEAN hadInitialPieces(PLAYER);
+  BOOLEAN hadInitialPieces(MPLAYER);
   POSITION pos;
   input = (int *) malloc(1*sizeof(int));
   while(TRUE) {
@@ -747,8 +747,8 @@ void SetTclCGameSpecificOptions (int options[]) {
 
 POSITION DoMove (POSITION pos, MOVE move) {
   BOARD getBoard(POSITION), newBoard;
-  PLAYER getPlayer(POSITION), newPlayer;
-  POSITION makePosition(BOARD, PLAYER),newPos;
+  MPLAYER getPlayer(POSITION), newPlayer;
+  POSITION makePosition(BOARD, MPLAYER),newPos;
   newPlayer = (getPlayer(pos) == WHITE)? BLACK : WHITE;
   newBoard = getBoard(pos);
   newBoard[getDest(move)] = getPiece(move, newBoard);
@@ -774,7 +774,7 @@ POSITION DoMove (POSITION pos, MOVE move) {
 POSITION GetInitialPosition () {
   char command[COMMAND_LENGTH+1];
   char inString[MOVE_LENGTH+1];
-  PLAYER player, getPlayer(POSITION);
+  MPLAYER player, getPlayer(POSITION);
   POSITION pos = gInitialPosition, switchPlayer(POSITION);
   while(TRUE) {
     player = getPlayer(pos);
@@ -856,7 +856,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 
 VALUE Primitive (POSITION position) {
   BOARD board, getBoard(POSITION);
-  PLAYER player;
+  MPLAYER player;
   int i, numInRow(CELL,BOARD);
 
   board = getBoard(position);
@@ -981,14 +981,14 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 MOVELIST *GenerateMoves (POSITION position) {
   BOARD getBoard(POSITION), board;
-  PLAYER player, getPlayer(POSITION);
-  MOVELIST *genPlacingMoves(BOARD,MOVELIST *,PLAYER);
-  MOVELIST *genBishopMoves(BOARD,PLAYER,CELL,MOVELIST *);
-  MOVELIST *genQueenMoves(BOARD,PLAYER,CELL,MOVELIST *);
-  MOVELIST *genKnightMoves(BOARD,PLAYER,CELL,MOVELIST *);
-  MOVELIST *genRookMoves(BOARD,PLAYER,CELL,MOVELIST *);
-  MOVELIST *genPawnMoves(BOARD,PLAYER,CELL,MOVELIST *);
-  MOVELIST *genKingMoves(BOARD,PLAYER,CELL,MOVELIST *);
+  MPLAYER player, getPlayer(POSITION);
+  MOVELIST *genPlacingMoves(BOARD,MOVELIST *,MPLAYER);
+  MOVELIST *genBishopMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+  MOVELIST *genQueenMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+  MOVELIST *genKnightMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+  MOVELIST *genRookMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+  MOVELIST *genPawnMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+  MOVELIST *genKingMoves(BOARD,MPLAYER,CELL,MOVELIST *);
   MOVELIST *head = NULL;
   
   int i;
@@ -1318,7 +1318,7 @@ int numInRow(CELL start, BOARD board) {
 
 /* Returns the same board with the player switched */
 POSITION switchPlayer(POSITION pos) {
-  POSITION makePosition(BOARD,PLAYER),newPos;
+  POSITION makePosition(BOARD,MPLAYER),newPos;
   BOARD board, getBoard(POSITION);
   board = getBoard(pos);
   newPos = makePosition(board,(getPlayer(pos) == WHITE)? BLACK : WHITE);
@@ -1366,7 +1366,7 @@ void addPieceToInit(PIECE piece) {
 }
 
 /* Tests whether player has already specified an initial pieceset */
-BOOLEAN hadInitialPieces(PLAYER player) {
+BOOLEAN hadInitialPieces(MPLAYER player) {
   int i;
   
   for (i = 0; i < sizeOfPieceType(initPieces); i++) {
@@ -1461,25 +1461,25 @@ int getSpaceDown(CELL cell) {
 }
 
 /* Determines if specified piece is one of player's */
-BOOLEAN isPlayer(PIECE piece, PLAYER player) {
+BOOLEAN isPlayer(PIECE piece, MPLAYER player) {
   return (isWhite(piece) && player == WHITE) ||
     (isBlack(piece) && player == BLACK);
 }
 
 /* Tests to see if given cell in board has an opponent's piece */
-BOOLEAN isOpponent(CELL cell, BOARD board, PLAYER player) {
+BOOLEAN isOpponent(CELL cell, BOARD board, MPLAYER player) {
   return isPlayer(board[cell],(player == WHITE)? BLACK : WHITE);
 }
 
 /* Tests to see whether the given board is occupied by player's piece */
-BOOLEAN isAllied(CELL cell, BOARD board, PLAYER player) {
+BOOLEAN isAllied(CELL cell, BOARD board, MPLAYER player) {
   return isPlayer(board[cell],player);
 }
 
 
 /* Generates all available placing moves (as in, placing an offboard
    piece onto the board) */
-MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,PLAYER player) {
+MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,MPLAYER player) {
   int i,j;
   
   struct pieceType *pt;
@@ -1495,7 +1495,7 @@ MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,PLAYER player) {
 }
 
 /* Generates all available bishop moves given a specific board and cell - 4 directions*/
-MOVELIST *genBishopMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genBishopMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   int i;
   int spaceLeft,spaceRight,spaceUp,spaceDown;
   PIECE piece;
@@ -1545,7 +1545,7 @@ MOVELIST *genBishopMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) 
 }
 
 /* Generates the Knight moves - 8 max */
-MOVELIST *genKnightMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genKnightMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   int spaceLeft,spaceRight,spaceUp,spaceDown;
   PIECE piece;
   CELL test;
@@ -1589,7 +1589,7 @@ MOVELIST *genKnightMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) 
   return head;
 }
 /* Generates the King moves - 8 max */
-MOVELIST *genKingMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genKingMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   int spaceLeft,spaceRight,spaceUp,spaceDown;
   PIECE piece;
   CELL test;
@@ -1626,7 +1626,7 @@ MOVELIST *genKingMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
   return head;
 }
 /* Generates the Rook moves - 4 directions */
-MOVELIST *genRookMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genRookMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   int spaceLeft,spaceRight,spaceUp,spaceDown;
   int i;
   PIECE piece;
@@ -1676,7 +1676,7 @@ MOVELIST *genRookMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
   return head;
 }
 /* Generates the Queen moves - basically the rook and bishop moves combined */
-MOVELIST *genQueenMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genQueenMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   int spaceLeft,spaceRight,spaceUp,spaceDown;
   int i;
   PIECE piece;
@@ -1760,7 +1760,7 @@ MOVELIST *genQueenMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
   return head;
 }
 /* Generates the Pawn moves */
-MOVELIST *genPawnMoves(BOARD board, PLAYER player, CELL cell, MOVELIST *head) {
+MOVELIST *genPawnMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   return head;
 }
 
@@ -1777,11 +1777,11 @@ BOARD getBoard(POSITION pos) {
 
 /* Gets the Player from the hash position */
 
-PLAYER getPlayer(POSITION pos) { // Note: WHITE is player 1
+MPLAYER getPlayer(POSITION pos) { // Note: WHITE is player 1
   return (whoseMove(pos) == 1)? WHITE : BLACK;
 }
 
-POSITION makePosition(BOARD board, PLAYER player) {
+POSITION makePosition(BOARD board, MPLAYER player) {
   return generic_hash(board,(player == WHITE)? 1 : 2);
 }
 
