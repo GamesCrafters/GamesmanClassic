@@ -105,8 +105,8 @@ BOOLEAN  kGameSpecificMenu    = TRUE ;
 BOOLEAN  kTieIsPossible       = FALSE ;
 BOOLEAN  kLoopy               = TRUE ;
 /* the following two vars should be TRUE only during debugging. */
-BOOLEAN  kDebugMenu           = TRUE ;
-BOOLEAN  kDebugDetermineValue = TRUE ;
+BOOLEAN  kDebugMenu           = FALSE ;
+BOOLEAN  kDebugDetermineValue = FALSE ;
 
 /* as we discussed, the total number of positions is 20!/(12!*4!*4!), which
  * equals 8,817,900.  this will be fine for generic hash.
