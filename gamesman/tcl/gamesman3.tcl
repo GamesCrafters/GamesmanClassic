@@ -53,14 +53,13 @@ proc MoveValueToColor { moveType value } {
     return $color
 }
 
-##### animation utility function
+##### animation utility functions
 ###
- # This function takes a normal number of frames and adjusts it mathematically,
- # taking into account the value of the animationSpeed scrollbar.  logically,
- # if gAnimationSpeed is a high value, this should return a low value because
- # a faster animation takes less time.
+ # This function takes a number associated with a function and adjusts it
+ # mathematically, taking into account the value of the animationSpeed
+ # scrollbar.
  ##
-proc AdjustedTimeOfAnimation { norm } {
+proc ScaleDownAnimation { norm } {
     #the exponential base
     set base 2
     #what value of gAnimationSpeed causes norm to be returned unaltered?
@@ -69,6 +68,22 @@ proc AdjustedTimeOfAnimation { norm } {
     set median 0
     global gAnimationSpeed
     return [expr $norm * pow($base, [expr $median - $gAnimationSpeed])]
+}
+
+###
+ # This function takes a number associated with a function and adjusts it
+ # mathematically, taking into account the value of the animationSpeed
+ # scrollbar.  It's basic contract is that it is the inverse operation of 
+ # whatever ScaleDownAnimation did.  So, for example, if an animation should
+ # occur in a certain amount of time, then the animator's choice of using
+ # ScaleDownAnimation to decrease the amount of time between frames or using
+ # ScaleUpAnimation to increase the number of frames MUST be equivalent.
+ ##
+proc ScaleUpAnimation { norm } {
+    set base 2
+    set median 0
+    global gAnimationSpeed
+    return [expr $norm * pow($base, [expr $gAnimationSpeed - $median])]
 }
 
 #############################################################################

@@ -321,14 +321,18 @@ proc GS_WhoseMove { position } {
 # update idletasks.  You can call this to force the canvas to update if
 # you make changes before tcl enters the event loop again.
 
+# hard-coding the value -8 makes me really nervous here.  ideally, it should
+# be calculated from the window height.  (c has this information in it's height
+# tag, but i can't make it CONFESS!)
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
     set i  [expr $theMove/10]
     
     set im1 [expr $i-1]
-    set maxframes [AdjustedTimeOfAnimation 50]
-    set dely [expr 64/[AdjustedTimeOfAnimation -8]]
+    #if the animation sliderbar is high, this value should be low
+    set maxframes [ScaleDownAnimation 50]
+    set dely [ScaleUpAnimation -8]
     
     for {set frame 0} {$frame < $maxframes} {incr frame} {
 	

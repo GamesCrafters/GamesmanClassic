@@ -340,13 +340,13 @@ proc slideAnimation { pieceToMove from to c} {
     #time in milliseconds. (i'll adjust it later)
 
     #clicks of animation time. 1000 is the default.
-    set animDuration [AdjustedTimeOfAnimation 1000]
+    set animDuration [ScaleDownAnimation 1000]
     #how many frames to paint in this time? 15 is the default
     #(re-using AdjustedTimeOfAnimation is a hack, but heuristically I want the
     #same thing to happen to the number of frames that happened to
     #animDuration.  i.e. if the time of animation went up, so should the number
     #of frames.)
-    set numFrames [AdjustedTimeOfAnimation 15]
+    set numFrames [ScaleDownAnimation 15]
     #how much time in between painting?
     set clicksPerFrame [expr $animDuration / $numFrames]
 
@@ -1001,32 +1001,16 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     if { [expr $theMove < 10 ] } {
 	$c itemconfig $whoseTurn-$theMove -width [expr $pieceSize * 5]
 	$c raise $whoseTurn-$theMove base
-	set num_steps 5
 	set startSize [expr $pieceSize * 5]
 
-#	if {$animQuality == "low"} {
-	#this is an atrocious hack designed to reverse the normal behavior of
-	#AdjustedTimeOfAnimation.  see slideAnimation for what it does, and see
-	#gamesman3.tcl for how it works
 	#Ideally, all this code would be in another method called animateDrop
 	#or something, but this section isn't critical.
-	set num_steps [expr 10000 / [AdjustedTimeOfAnimation 100]]
-#	}
+	set num_steps [ScaleUpAnimation 100]
 
 	for {set i $startSize} {$i >= $pieceOutline} {set i [expr $i - $num_steps]} {
 	    $c itemconfig $whoseTurn-$theMove -width $i
-	    #puts " drop move width $i"
 	    update idletasks
 	}
-
-#	if { $animQuality == "high" } {
-#	    set start_offset 50000
-#	    set time [clock clicks]
-#	    set new_time [clock clicks]
-#	    while { $new_time < [expr $time + $start_offset] } {
-#		set new_time [clock clicks]
-#	    }
-#	}
 
 	$c itemconfig $whoseTurn-$theMove -width $pieceOutline
 	update idletasks
