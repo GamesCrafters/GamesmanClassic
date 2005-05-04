@@ -12,7 +12,7 @@
 ** UPDATE HIST:
 **
 **
-** Last Updated: $Id: mtttppm.c,v 1.3 2004-12-01 22:31:29 ogren Exp $
+** Last Updated: $Id: mtttppm.c,v 1.4 2005-05-04 22:54:15 ogren Exp $
 **************************************************************************/
 
 /*************************************************************************
@@ -51,16 +51,18 @@ PIXELBUFFER *CreatePixelBuffer();
 PIXELBUFFER *CreatePixelBufferAtDepth();
 COLOR GetBuffer();
 
-//void tttppm(int,int);
-//void WritePreamblePS(FILE *,int,int);
-//void tttppmrecur(FILE *,PIXELBUFFER *,int,int,POSITION,int,int,int);
-//void DrawColor(FILE *,PIXELBUFFER *,int,int,int,int,POSITION,int); 
+void tttppm(int,int);
+void WritePreamblePS(FILE *,int,int);
+void tttppmrecur(FILE *,PIXELBUFFER *,int,int,POSITION,int,int,int);
+void DrawColor(FILE *,PIXELBUFFER *,int,int,int,int,POSITION,int); 
+
 COLOR SwapWinLoseColor(COLOR,int);
 int GetOffset(int,int);
-//void PrintPPMBufferbinary(FILE *,PIXELBUFFER *);
-//void PrintPPMBufferAscii(FILE *,PIXELBUFFER *);
-//void PrintBuffer(PIXELBUFFER *);
-//void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
+
+void PrintPPMBufferbinary(FILE *,PIXELBUFFER *);
+void PrintPPMBufferAscii(FILE *,PIXELBUFFER *);
+void PrintBuffer(PIXELBUFFER *);
+void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
 /***** End Prototypes *****/
 
 
@@ -79,7 +81,7 @@ int GetOffset(int,int);
 **
 ************************************************************************/
 
-tttppm(toPS,toFile)
+void tttppm(toPS,toFile)
 int toPS, toFile;
 {
   FILE *fp;
@@ -123,7 +125,9 @@ int toPS, toFile;
 
   if(!toPS) {
     if(toFile)
-      PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]);
+	  PrintPPMBufferAscii(fp,pixbuf);
+	// PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]);
+	// This was an incorrect call... -Elmer
       /* PrintPPMBufferBinary(fp,pixbuf,gS[depth],gS[depth]); */
     else
       PrintBuffer(pixbuf);
@@ -152,7 +156,7 @@ int toPS, toFile;
 **
 ************************************************************************/
 
-WritePreamblePS(fp,scale,depth)
+void WritePreamblePS(fp,scale,depth)
 FILE *fp;
 int scale,depth;
 {
@@ -223,7 +227,7 @@ U %d 0 0 F\n\
 **
 ************************************************************************/
 
-tttppmrecur(fp,pixbuf,cx,cy,pos,depth,topdowndepth,toPS)
+void tttppmrecur(fp,pixbuf,cx,cy,pos,depth,topdowndepth,toPS)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 int cx,cy,depth,topdowndepth,toPS;
@@ -276,7 +280,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-DrawColor(fp,pixbuf,cx,cy,depth,topdowndepth,pos,toPS)
+void DrawColor(fp,pixbuf,cx,cy,depth,topdowndepth,pos,toPS)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 int cx,cy,depth,topdowndepth,toPS;
@@ -355,7 +359,7 @@ int topdowndepth;
 **
 ************************************************************************/
 
-GetOffset(depth,topdowndepth)
+int GetOffset(depth,topdowndepth)
 int depth,topdowndepth;
 {
   return((gS[depth - topdowndepth]-1)/2);
@@ -374,7 +378,7 @@ int depth,topdowndepth;
 **
 ************************************************************************/
 
-PrintPPMBufferBinary(fp,pixbuf)
+void PrintPPMBufferBinary(fp,pixbuf)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 {
@@ -403,7 +407,7 @@ PIXELBUFFER *pixbuf;
 **
 ************************************************************************/
 
-PrintPPMBufferAscii(fp,pixbuf)
+void PrintPPMBufferAscii(fp,pixbuf)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 {
@@ -432,7 +436,7 @@ PIXELBUFFER *pixbuf;
 **
 ************************************************************************/
 
-PrintBuffer(pixbuf)
+void PrintBuffer(pixbuf)
 PIXELBUFFER *pixbuf;
 {
   int i,j;
@@ -508,7 +512,7 @@ int x,y;
 **
 ************************************************************************/
 
-WriteBuffer(pixbuf,i,j,color)
+void WriteBuffer(pixbuf,i,j,color)
 PIXELBUFFER *pixbuf;
 int i,j;
 COLOR color;
@@ -550,4 +554,7 @@ int i,j;
 
 /* Changelog:
 $Log: not supported by cvs2svn $
+Revision 1.3  2004/12/01 22:31:29  ogren
+added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
+
 */
