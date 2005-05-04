@@ -49,9 +49,9 @@ proc GS_InitGameSpecific {} {
 
     global kToMove kToWin
 
-    set kToMove "\n- Click on a thin vertical or horizontal bar to place a vertical or horizontal piece in the square\n- Click on a thick piece to flip it from horizontal to vertical or vice versa.\n"
+    set kToMove "Players alternate turns moving one space up, right or left into an adjacent open square. Once the player has moved to an open slot, it bcomes occupied and neither player is allowed to move into that space. The game ends when there is no room for one player to move."
 
-    set kToWin "\nFirst player to get any 3 vertical or horizontal pieces in a row WINS!"
+    set kToWin "Force your opponent into a spot where on the next turn he or she will hit the wall or the snake's body."
 
     # 4x4 board
     global BOARDSIZE
@@ -87,17 +87,17 @@ proc GS_InitGameSpecific {} {
 	set toWin1 "To Win: "
     }
 
-    set toWin2  "To trap your opponent so that he/she is no longer able to make a valid move"
+    set toWin2  "Force your opponent into a spot where on the next turn he or she will hit the wall or the snake's body."
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    set toMove1 "To Move: Click on an arrow to move "
+    set toMove1 "To Move: Players alternate turns moving one space up, right or left into an adjacent open square. Once the player has moved to an open slot, it bcomes occupied and neither player is allowed to move into that space. Select an arrow to move"
     if { $gMoveTail } {
 	set toMove2 "the head or tail "
     } else {
-	set toMove2 "the head (Player 1) or tail (Player 2) only "
+	set toMove2 "the head (Player 1) or tail (Player 2) "
     }
-    set toMove3 "to an empty adjacent space"
+    set toMove3 "to an empty adjacent space."
 
     SetToMoveString [concat $toMove1 $toMove2 $toMove3]
 }

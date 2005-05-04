@@ -63,11 +63,11 @@ proc GS_InitGameSpecific {} {
 	set toWin3 " or get trapped by the opponent"
     }
     
-    set toWin2 "Get to the other side" 
+    set toWin2 "Occupy your opponent's initial spaces " 
     
     SetToWinString [concat $toWin1 $toWin2 $toWin3]
     
-    SetToMoveString "To Move: Click on an arrow to move a piece"
+    SetToMoveString "To Move: Players alternate turns by sliding one of their pieces along the line towards the opponent's starting point. On your turn you may move either one or two spaces forward, but you cannot turn corners, jump or go backwards."
 }
 
 
