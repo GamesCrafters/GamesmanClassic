@@ -201,7 +201,11 @@ proc GS_SetupRulesFrame { rulesFrame } {
 proc GS_GetOption { } {
     # TODO: Needs to change with more variants
     global gMisereGame gDiagonalsOption gBoardSizeOp
-    set option 1
+    if {$gMisereGame} {
+	set option 0
+    } else { 
+	set option 1
+    }
     set option [expr $option + ($gDiagonalsOption << 1)]
     set option [expr $option + ($gBoardSizeOp << 2)]
 
@@ -223,10 +227,14 @@ proc GS_GetOption { } {
 proc GS_SetOption { option } {
     # TODO: Needs to change with more variants
     global gMisereGame gDiagonalsOption diagonals gBoardSize
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option/4%2)]
+    set gMisereGame [expr $option & 1]
+    if {$gMisereGame} {
+	set gMisereGame 0
+    } else { 
+	set gMisereGame 1
+    }
     set diagonals gDiagonalsOption
-    set gBoardSize [($options >> 2) + 3]
+    set gBoardSize [expr ($option >> 2) + 3]
 }
 
 
