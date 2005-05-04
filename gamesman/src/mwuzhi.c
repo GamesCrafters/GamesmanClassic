@@ -151,7 +151,7 @@ the white piece is not adjacent to the black piece:\n\
 ( )--( )--( )--( )--( )\n";
 
 STRING   kHelpReverseObjective =
-"";
+"Try to lose all but one of your pieces.";
 
 STRING   kHelpTieOccursWhen =
 "A tie occurs when ...";
@@ -356,7 +356,7 @@ void InitializeGame ()
   }
   gBoard[gBoardlength] = '\0'; 
   gInitialPosition = generic_hash(gBoard, 1);
-  //printf("This is the initialPosition:%d", gInitialPosition);//
+  /* printf("This is the initialPosition:%d", gInitialPosition); */
     
 
 }
@@ -707,9 +707,9 @@ VALUE Primitive (POSITION position)
       numplayerpiece++;
   }
   if (numplayerpiece <= 1) 
-    return lose;
+    return gStandardGame ? lose : win;
   else if (GenerateMoves(position) == NULL) {
-    return lose;
+    return gStandardGame ? lose : win;
   }
   else
     return undecided;
@@ -1173,25 +1173,25 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-  //int i, j, k;
-  // gBoardlength = gBoardwidth * gBoardwidth;
-  //int pieces_array[] = {WHITE, 1, gBoardwidth, BLACK, 1, gBoardwidth, BLANK, gBoardlength - (gBoardwidth * 2), gBoardlength - 2, -1 };
-  // gNumberOfPositions = generic_hash_init(gBoardlength, pieces_array, NULL);
-  // gBoard = (char*)malloc(sizeof(char) * (gBoardlength + 1));
-  // for(i = 0; i < gBoardwidth; i++) {
-  //  gBoard[i] = BLACK;
-  // }
-  // for (j = gBoardlength - 1; j > gBoardlength - gBoardwidth - 1; j--) {
-  //  gBoard[j] = WHITE;
-  // }
-  // for (k = gBoardwidth; k < gBoardlength - gBoardwidth; k++) {
-  //gBoard[k] = BLANK;
-  // }
-  // gBoard[gBoardlength] = '\0'; 
-  //gInitialPosition = generic_hash(gBoard,1);
-  // free(gBoard);
-   return gInitialPosition;
-
+  printf ("Calling getInitialPosition in C");
+  /* int i, j, k;
+   gBoardlength = gBoardwidth * gBoardwidth;
+  int pieces_array[] = {WHITE, 1, gBoardwidth, BLACK, 1, gBoardwidth, BLANK, gBoardlength - (gBoardwidth * 2), gBoardlength - 2, -1 };
+   gNumberOfPositions = generic_hash_init(gBoardlength, pieces_array, NULL);
+   gBoard = (char*)malloc(sizeof(char) * (gBoardlength + 1));
+  for(i = 0; i < gBoardwidth; i++) {
+    gBoard[i] = BLACK;
+   }
+   for (j = gBoardlength - 1; j > gBoardlength - gBoardwidth - 1; j--) {
+    gBoard[j] = WHITE;
+   }
+   for (k = gBoardwidth; k < gBoardlength - gBoardwidth; k++) {
+  gBoard[k] = BLANK;
+   }
+  gBoard[gBoardlength] = '\0'; 
+  gInitialPosition = generic_hash(gBoard,1);
+  //free(gBoard); */
+  return gInitialPosition;
 
   // return gInitialPosition;
 }
@@ -1229,6 +1229,10 @@ int NumberOfOptions ()
 int getOption ()
 {
   int option = 1;
+  if (gStandardGame)
+    option = 1;
+  else 
+    option = 0;
   option += (diagonals << 1);
   option += (gBoardwidth - 3) << 2;
   return option;
@@ -1249,6 +1253,7 @@ int getOption ()
 
 void setOption (int option)
 {
+  gStandardGame = option & 0x1 == 1;
   diagonals = (option >> 1) & 0x1;
   gBoardwidth = (option >> 2) + 3;
 
