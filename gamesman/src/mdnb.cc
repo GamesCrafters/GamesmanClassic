@@ -51,11 +51,14 @@ STRING   kHelpGraphicInterface = "No help";
 
 STRING   kHelpTextInterface    = "No help";
 
-STRING   kHelpOnYourTurn = "No help";
+STRING   kHelpOnYourTurn = "Players alternate turns connecting vertical or\n\
+horizontal lines between dots. To draw a line, select the letter that\n\
+corresponds to where you would like the line to be drawn.";
 
-STRING   kHelpStandardObjective = "No help";
+STRING   kHelpStandardObjective = "To create the most boxes.";
 
-STRING   kHelpReverseObjective = "No help";
+STRING   kHelpReverseObjective = "To force your opponent to create the most\n\
+boxes.";
 
 STRING   kHelpTieOccursWhen = "No help";
 
