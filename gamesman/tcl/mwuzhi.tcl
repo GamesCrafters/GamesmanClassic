@@ -33,10 +33,21 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "Wuzhi"
 
+    global gBoardSize gBoardSizeOp
+    set gBoardSize [expr $gBoardSizeOp + 3]
+
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 19
+
+    if {$gBoardSize == 3} {
+	set gInitialPosition 19
+    } elseif {$gBoardSize == 4} {
+	set gInitialPosition 494
+    } elseif {$gBoardSize == 5} {
+	set gInitialPosition 15503
+    }
+
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -50,9 +61,6 @@ proc GS_InitGameSpecific {} {
 
     global gDiagonalsOption diagonals
     set diagonals $gDiagonalsOption
-
-    global gBoardSize gBoardSizeOp
-    set gBoardSize [expr $gBoardSizeOp + 3]
 
     global gMisereGame
     if {!$gMisereGame} {
@@ -246,9 +254,9 @@ proc GS_Initialize { c } {
     $c configure -width $canvasWidth -height $canvasWidth
     pack $c
     # creates a base which to hide the arrows
-    $c create rectangle [expr 0  + $offset] [expr 0 + $offset] [expr $boardwidth + $offset] \
-	[expr $boardwidth + $offset] -fill white -tags base
-    # the board - can use for loop for variable board (currently 3 by 3)
+    $c create rectangle [expr 0  + $offset - 25] [expr 0 + $offset - 25] [expr $boardwidth + $offset + 25] \
+	[expr $boardwidth + $offset + 25] -fill white -tags base
+    # the board 
     for {set i 0} {$i < [expr $gBoardSize - 1]} {set i [expr $i + 1]} {
 	for {set j 0} {$j < [expr $gBoardSize -1]} {set j [expr $j + 1]} {
 	    $c create rectangle [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
@@ -438,8 +446,10 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie }
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
+
     global gBoardSize boardstring
     global gGameover
+
     # do not show moves if game is over, 0 means not over
     if {$gGameover == 0} {
 
@@ -454,7 +464,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 		} elseif {$value == "Lose"} {
 		    set color green
 		} else {
-		    set color red
+		    set color red4
 		}
 	    }
 
@@ -522,9 +532,10 @@ proc GS_ShowMoves { c moveType position moveList } {
 		default {}
 	    }
 	}
-    }
     update idletasks
+    }
 }
+
 
 
 #############################################################################
