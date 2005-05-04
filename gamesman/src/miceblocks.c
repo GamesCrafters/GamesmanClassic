@@ -50,43 +50,41 @@ void*	 gGameSpecificTclInit = NULL;
 
 /* Help strings for this game */
 STRING gStandard =
-"The objective of this game is to obtain more points than\n"
-"your opponent.  You get 3 points for getting 3 blocks in\n"
-"a row and two additional points for every following block.\n"
-"Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
-"5 in a row gets 7 points. Diagonals are valid.";
+"The objective of this game is to obtain more points than your opponent.\n\
+You get 3 points for getting 3 blocks in a row and two additional points\n\
+for every following block.\n\
+Example: 3 in a row gets 3 points, 4 in a row gets 5 points,5 in a row gets\n\
+7 points. Diagonals are valid.";
 STRING gTallyBlocks =
-"The objective of this game is to get the most number of\n"
-"blocks in a single row.";
+"The objective of this game is to get the most number of blocks in a single\n\
+row.";
 STRING gTallyThrees =
-"The objective of this game is to get more threes in a row\n"
-"than your opponent.  If you have 4 in a row, it will be counted\n"
-"as two threes in a row.  Same goes for any sequence of blocks\n"
-"greater than 4.  Diagonals are valid.";
+"The objective of this game is to get more threes in a row than your\n\
+opponent.  If you have 4 in a row, it will be counted as two threes in a\n\
+row.  Same goes for any sequence of blocks greater than 4. Diagonals are\n\
+valid.";
 STRING gStandardR = 
-"The objective of this game is to obtain less points than\n"
-"your opponent.  You get 3 points for getting 3 blocks in\n"
-"a row and two additional points for every following block.\n"
-"Example: 3 in a row gets 3 points, 4 in a row gets 5 points,\n"
-"5 in a row gets 7 points. Diagonals are valid.";
+"The objective of this game is to obtain less points than your opponent.\n\
+You get 3 points for getting 3 blocks in a row and two additional points\n\
+for every following block.\n\
+Example: 3 in a row gets 3 points, 4 in a row gets 5 points,5 in a row gets\n\
+7 points. Diagonals are valid.";
 STRING gTallyBlocksR =
-"The objective of this game is to not get the most number of\n"
-"blocks in a single row.";
+"The objective of this game is to not get the most number of blocks in a\n\
+single row.";
 STRING gTallyThreesR =
-"The objective of this game is to get less threes in a row\n"
-"than your opponent.  If you have 4 in a row, it will be counted\n"
-"as two threes in a row.  Same goes for any sequence of blocks\n"
-"greater than 4.  Diagonals are valid.";
+"The objective of this game is to get less threes in a row than your\n\
+opponent. If you have 4 in a row, it will be counted as two threes in a row.\n\
+Same goes for any sequence of blocks greater than 4. Diagonals are valid.";
 STRING kHelpGraphicInterface =
 "Not written yet";
 STRING kHelpTextInterface =
-"On your turn, determine where you wish to move your piece.\n"
-"Simply type in the numeric representation of that position\n"
-"as it is presented on the board.";
+"On your turn, determine where you wish to move your piece.Simply type in\n\
+the numeric representation of that position as it is presented on the board.";
 STRING kHelpOnYourTurn =
-"Place a block somewhere in the pyramid by entering the\n"
-"corresponding number.  You may only place a block if it is\n"
-"on the bottom row, or on top of two adjacent pieces.";
+"Place a block in the pyramid by entering the corresponding number.\n\
+You may only place a block if it is on the bottom row, or on top of two\n\
+adjacent pieces.";
 STRING kHelpStandardObjective = NULL;
 STRING kHelpReverseObjective = NULL;
 STRING kHelpTieOccursWhen =

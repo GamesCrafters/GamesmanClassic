@@ -81,10 +81,15 @@ you wish to move that piece to. Example: '1 5' will move your piece from\n\
 square 1 to square 5.";
 
 STRING   kHelpOnYourTurn =
-"";
+"If you are playing the geese, then you are allowed to move one square left,\n\
+right, or down. The player who is the fox may move forward, backward, to the\n\
+sides or diagonally. The fox may also capture on his turn by jumping over a\n\
+goose that is in his path and if the hole next to the next to the goose is\n\
+empty.";
 
 STRING   kHelpStandardObjective =
-"";
+"For the geese, the objective of the game is to surround the fox so that he\n\
+unable to move. For the fox to win, he must capture all the geese.";
 
 STRING   kHelpReverseObjective =
 "";

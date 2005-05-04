@@ -55,22 +55,21 @@ STRING kHelpGraphicInterface =
 
 STRING   kHelpTextInterface    =
 "On your turn, determine if you wish to move a new piece onto the board\n\
- or move an existing piece on the board. If you wish to move an existing piece,\n\
- use the LEGEND to determine which numbers to choose (between\n1 and 9, with 1\n\
- at the upper left and 9 at the lower right) to correspond\nto the board\n\
- position that you desire to move from and the empty board position\n you\n\
- desire to move to. (i.e. if you wish to move from the 2nd board position\n\
- the the 3rd you would type \"2 3\" without the qoutes and hit return.)\n\
- If you wish to move a piece onto the board from your stock, check your total\n\
- pieces in stock, select a size with the corresponding number, the one in\n\
- the \"()\"  and the board postion you wish to move to.\n\
- (i.e. if you wish to move a Large piece to the 1st\n\
- If at any point you have\n\
- made a mistake\nyou can type u and hit return and the system will revert\n\
- back to your most recent\nposition."; 
+or move an existing piece on the board. If you want to move an existing\n\
+piece, use the LEGEND to determine which number (from 1 and 9, with 1\n\
+at the upper left and 9 at the lower right) corresponds to the board\n\
+position that you desire to move from and the empty board position you\n\
+desire to move to. (i.e. if you wish to move from the 2nd board position\n\
+the the 3rd you would type \"2 3\" without the qoutes and hit return.)\n\
+If you wish to move a piece onto the board from your stock, check the total\n\
+pieces in your stock, select a size,(the number  in \"()\"  and the board\n\
+postion you wish to move to. If at any point you have made a mistake you can\n\
+type u and hit return and the system will revert back to your most recent\n\
+position."; 
 
 STRING   kHelpOnYourTurn =
-"You move a piece, either from the board or stock, to an applicable board position.";
+"You move a piece, either from the board or stock, to an applicable board\n\
+position.";
 
 STRING   kHelpStandardObjective =
 "To make three in a row, horizontally, vertically, or diagonally.";

@@ -49,29 +49,22 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
-"The Left button puts an X or O (depending on whether you went first\n\
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
-button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+"";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"Two players control a single knight chess piece. Players alternate turns\n\
+moving their piece in an L shaped movement on the board. Once the player\n\
+has moved from space, the square that was previously occupied is considered\n\
+to be burned. No piece may occupy the square again.";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions.";
+"Move your knight piece to any open spot that is not burned.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"To force your opponent into a position where he cannot move.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+"To be in a spot where you cannot move your piece.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "the board fills up without either player getting three-in-a-row.";
