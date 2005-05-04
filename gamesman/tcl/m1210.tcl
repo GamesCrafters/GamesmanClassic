@@ -46,7 +46,7 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button 1 or 2 slots above the current highest slot"
+    set kToMove "On your turn, move one or two spaces on the board. Select the dot that corresponds to the desired move."
     set kToWinStandard  "Be the first player to reach the top slot (10)"
     set kToWinMisere    "Force your opponent to reach the top slot (10) first"
 

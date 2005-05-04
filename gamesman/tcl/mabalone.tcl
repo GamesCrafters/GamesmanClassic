@@ -39,11 +39,11 @@ proc GS_InitGameSpecific {} {
 	#set toWin1 "To Win: "
 #    }
 
- #   set toWin2 "Remove the last piece from the board"
+ #   set toWin2 "Push the specified number of pieces off the board."
 
 #    SetToWinString [concat $toWin1 $toWin2]
 
-#    SetToMoveString  "To Move: Click on a piece to remove that piece and all the pieces above it in that row"
+#    SetToMoveString  "To Move: On your turn you may move either 1,2, or 3 of you marbles into any of the six adjacent spaces. The space you move to must be empty and all the marbles must move in the same direction. To push your opponent set up a sumito by having a numerical superiority over your opponent's marbles. In other words, your pieces must outnumber the player's pieces which are being pushed. Remember that you may only use 3 pieces at a time to push your opponent. During the push move, you may eject pieces off the board by pushing the opponent's pieces off the board. "
     
     ### Set the initial position of the board
  #   global gInitialPosition gPosition
