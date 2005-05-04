@@ -598,7 +598,7 @@ proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
     set unit [expr $blockSize/100]
 
     # increment must be divisible by 100
-    set increment 10 
+    set increment [ScaleUpAnimation 10]
 
     if { $startingOrientation == "o" || $startingOrientation == "x" } {
 	set colorIncrement $increment; set initial 0
@@ -614,8 +614,8 @@ proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
     for { set i 0 } { $i < [expr 100/$increment] } { incr i } {
 	$c move [subst $startingOrientation]b-$movedFrom [expr $xDir*$increment*$unit] [expr $yDir*$increment*$unit]
 	$c move [subst $startingOrientation]c-$movedFrom [expr $xDir*$increment*$unit] [expr $yDir*$increment*$unit]
-	$c itemconfigure [subst $startingOrientation]b-$movedFrom -fill grey[expr $initial+$i*$colorIncrement]
-	after 0
+	$c itemconfigure [subst $startingOrientation]b-$movedFrom -fill grey[expr $initial+int($i*$colorIncrement)]
+#	after 0
 	update idletasks
     }
 
@@ -630,21 +630,29 @@ proc AnimateMovePart1 { c movedFrom startingOrientation direction } {
 }
 
 proc AnimateMovePart2 { c orientation newPiece } {
-    #increment must be divisible by 50
-    set increment 10
+    #if the bar is set higher, make the number of frames and duration lower
+    set numframes [ScaleDownAnimation 5]
+#    set animDuration [ScaleDownAnimation 1000]
+#    set clicksPerFrame [expr $animDuration/$numframes]
+    set increment [expr 50/$numframes]
 
     $c itemconfigure [subst $orientation]b-$newPiece -fill grey50
     $c raise [subst $orientation]b-$newPiece base
     if { $orientation == "o" || $orientation == "x" } {
 	set colorIncrement -$increment
+	set finalVal 0
     } else {
 	set colorIncrement $increment
+	set finalVal 100
     }
     for { set i 50 } { $i<=100 && $i>=0 } { set i [expr $i + $colorIncrement] } {
-	after 0
+	$c itemconfigure [subst $orientation]b-$newPiece -fill grey[expr int($i)]
 	update idletasks
-	$c itemconfigure [subst $orientation]b-$newPiece -fill grey$i
+#	after [expr int($clicksPerFrame)]
     }
+
+    $c itemconfigure [subst $orientation]b-$newPiece -fill grey[subst $finalVal]
+    update idletasks
 
     global firstHalfAlreadyAnimated
     set firstHalfAlreadyAnimated 0
