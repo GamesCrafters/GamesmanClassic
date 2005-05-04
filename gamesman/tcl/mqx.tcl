@@ -1782,7 +1782,7 @@ proc shrinkAnim { c objs } {
 
 	$c itemconfig $item -width $curWidth
 	
-    }    
+    }
 }
 
 # takes in a tag tagging only lines, shrinks the lines down to nothing
@@ -1936,7 +1936,7 @@ proc anim_piece { c piece_tag pheta num_frames } {
     set PI 3.141592654
     set pheta [expr $pheta * ($PI/180.0)]
 
-    set FRAMES $num_frames
+    set FRAMES [ScaleDownAnimation $num_frames]
     set ROT_ANG $pheta
     set ROT_ANG_STEP [expr $ROT_ANG/$FRAMES]
     
@@ -1977,7 +1977,7 @@ proc anim_piece { c piece_tag pheta num_frames } {
     }
 
     # clean up
-    for {set i [expr $FRAMES-$TIME_DELAY]} {$i <= $FRAMES} {incr i} {
+    for {set i [expr int($FRAMES-$TIME_DELAY)]} {$i <= $FRAMES} {incr i} {
 	$c delete animTemp$i
     }
 
