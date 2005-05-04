@@ -60,18 +60,17 @@ button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your most recent position.";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"Players alternate turns moving one of their pieces along the lines. First\n\
+select the piece by typing in the number the piece is in. Then select where\n\
+you want to move the piece by typing in the corresponding space. Pieces may\n\
+not move backward, jump pieces or turn corners ";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions.";
+"Slide your piece to an empty space by first selecting your piece number\n\
+the space number.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"To be the first player to occupy your opponent's spaces.";
 
 STRING   kHelpReverseObjective =
 "To force your opponent into getting three of his markers (either X or\n\

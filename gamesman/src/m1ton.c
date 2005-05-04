@@ -58,10 +58,15 @@ void*	 gGameSpecificTclInit = NULL;
 STRING   kHelpGraphicInterface = "";  /* empty since kSupportsGraphics == FALSE */
 
 STRING   kHelpTextInterface    =
-"On your turn, select the number 1 or 2 to raise the total sum. After selecting\n your move, the total is displayed. The play then alternates to the second\n player, who also has the choice of raising the sum by 1 or 2 points. The winner\n is the first person to raise the total sum to N.  If at any point you have\n made a mistake, type u to revert back to your previous position.";
+"On your turn, select the number 1 or 2 to raise the total sum. After\n\
+selecting your move, the total is displayed. The play then alternates to the\n\
+second player, who also has the choice of raising the sum by 1 or 2 points.\n\
+The winneris the first person to raise the total sum to N. If at any point\n\
+you have made a mistake, type u to revert back to your previous position.";
 
 STRING   kHelpOnYourTurn =
-"Select the number 1 or 2 to raise the total sum. You can also revert to the\n previous position by typing u.";
+"Select the number 1 or 2 to raise the total sum. You can also revert to the\n\
+previous position by typing u.";
 
 STRING   kHelpStandardObjective =
 "To be the player to raise the total to N.";
