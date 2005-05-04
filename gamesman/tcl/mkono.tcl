@@ -51,7 +51,7 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "To Win: To capture all of your opponent's pieces or to prevent him or her from moving."
     } else {
 	SetToWinString "To Win: To capture all of your opponent's pieces or to prevent him or her from moving."
     }
