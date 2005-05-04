@@ -96,7 +96,7 @@ proc GS_InitGameSpecific {} {
     } else {
 	SetToWinString "To Win: Get the fewest $winningString"
     }
-    SetToMoveString "To Move:  You and your opponent are trying to build a pyramid shaped igloo wall out of the blue and clear ice blocks. Players take turn placing one ice block at a time. The block must be next to another block or on top of any two touching blocks. It does not matter what color the blocks are. 
+    SetToMoveString "To Move:  You and your opponent are trying to build a pyramid shaped igloo wall out of the blue and clear ice blocks. Players take turn placing one ice block at a time. The block must be next to another block or on top of any two touching blocks. It does not matter what color the blocks are."
     
     # Authors Info. Change if desired
     global kRootDir
