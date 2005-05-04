@@ -122,17 +122,17 @@ STRING   kHelpOnYourTurn =
 "It is your turn: you need to input a valid move:\n\
 VALID MOVES: a valid move is a pair of a pair of a \n\
 number(1-8) and a letter indicating the orientation\n\
-of the piece. The number represendts the \"head\" of \n\
+of the piece. The number represents the \"head\" of \n\
 your piece.\n\n\
 EXAMPLE: 1v 2v\n\
-this will first move your piece to 1v, and then the \n\
+This will first move your piece to 1v, and then the \n\
 white piece to 2v, so that the board will look like:\n\n\
 BEFORE: ..B    AFTER: RWB\n\
         RWB           RWB\n\
         RWo           ooo\n\n\
-You must change the position of your piece, and then\n\
+You must change the position of your piece, and the\n\
 the white piece. You earn points by covering up the\n\
-squares with \'o\'s on them.\n ";
+squares with \'o\'s.\n ";
 
 STRING   kHelpStandardObjective ="PlayerX wins if:\n\
 PlayerX >= PlayerX's winning score AND\n\

@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.15 2005-04-27 21:22:03 ogren Exp $
+// $Id: machi.c,v 1.16 2005-05-04 22:47:47 ciokita Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -54,37 +54,34 @@ STRING   kHelpGraphicInterface =
 "There is currently no graphic interface\n";
 
 STRING   kHelpTextInterface    =
-"There are two types of turns in Achi: place moves, and slide moves.\n\
+"There are two types of moves in Achi: place moves and slide moves.\n\
 PLACE MOVES:\n\
 First, you place your 3 pieces on the board: use the LEGEND to determine\n\
-which number to choose (between 1 and 9, with 1 at the upper left and 9\n\
-at the lower right) to correspond to the empty board position you desire\n\
-and hit return.\n\
+which number to choose (between 1 and 9, with 1 at the upper left and 9 \n\
+a the lower right) to correspond to the empty board position you desire.\n\
 SLIDE MOVES:\n\
-Next, once all 3 of your pieces are on the board, you make\n\
-slides moves.  To do a slide move, you type two numbers instead of one:\n\
-FIRST: choose a piece to move and type the number (1-9) of the space it is on.\n\
-SECOND: type the number (1-9) of the space you would like to slide to\n\
-        i.e. 23, 45, 69 etc.\n\
-NOTE: you may only do slide moves between spots that are connected,\n\
-the destination MUST be unoccupied, and you may not move to the same\n\
-spot you are on (i.e. 11, 22, 33, etc are illegal slide moves).\n\
-If at any point you have made a mistake, you can type u and hit return\n\
-and the system will revert back to your most recent position.";
+Once all 3 of your pieces are on the board, the player makes sliding moves.\n\
+To do a slide move, type two numbers instead of one:\n\
+FIRST: Choose a piece to moveand type the number (1-9) of the space it is on.\n\
+SECOND: Type the number (1-9) of the space you would like to slide to.\n\
+i.e. 23, 45, 69 etc.\n\
+NOTE: Slide moves are only permitted between spots that are connected, an\n\
+unoccupie destination, and you may not move to the same spot you are on\n\ 
+(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n\
+a mistake, type u to revert back to your previous position.";
 
 STRING   kHelpOnYourTurn =
-"For the first six turns, each player puts the a piece on an empty board position.\n\
-After all six pieces are on the board, you move any one of your pieces along a line to any open\n\
-spot on the board in an attempt to get three in a row.";
+"For the first six turns, each player puts a piece on an empty board position.\n\
+After all six pieces are on the board, move any one of your pieces along a\n\
+line to an open spot on the board.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"To get three of your markers, in a row, either horizontally, vertically, or\n\
+diagonally. 3-in-a-row WINS.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+"To force your opponent into getting three of his or her pieces in a row,\n\
+ either horizontally, vertically, or diagonally.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "NEVER!!!";
@@ -1190,3 +1187,6 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2005/04/27 21:22:03  ogren
+// fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
+//

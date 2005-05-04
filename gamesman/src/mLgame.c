@@ -49,26 +49,25 @@ STRING   kHelpTextInterface    =
 First enter the orientation index number of your desired L-piece position.\n\
 Then, after entering a space, enter the desired position for the corner square \n\
 of your newly selected L-piece orientation.  If you do not wish to move a \n\
-neutral piece, then you are done so hit enter to complete the move.\n\
+neutral piece, then hit enter to complete the move.\n\
 MOVING A NEUTRAL PIECE:\n\
 If you choose to move a neutral piece, enter a space, then the 'w' or 'g'\n\
 character (depending on which neutral piece you want to move), and finally a\n\
 space followed by the new position of this neutral piece.";
 
 STRING kMove1or0HelpOnYourTurn =
-"You move your L-piece to an empty position and then one (or neither) of\n\
+"Move your L-piece to an empty position and then one (or neither) of\n\
 the neutral pieces to an empty square.";
 
 STRING kMove1or0SpecHelpOnYourTurn = 
-"You move your L-piece to an empty position and then your neutral piece (optionally)\n\
-to an empty square.";
+"Move your L-piece to an empty position and then your neutral piece (optional)\n\to an empty square.";
 
 STRING kMove1HelpOnYourTurn =
-"You move your L-piece to an empty position and then one of\n\
+"Move your L-piece to an empty position and then one of\n\
 the neutral pieces to an empty square.";
 
 STRING kMove1SpecHelpOnYourTurn = 
-"You move your L-piece to an empty position and then your neutral piece\n\
+"Move your L-piece to an empty position and then your neutral piece\n\
 to an empty square.";
 
 STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
