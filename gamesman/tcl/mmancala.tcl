@@ -63,12 +63,11 @@ proc GS_InitGameSpecific {} {
 	set toWin1 "To Win: "
     }
 
-    set toWin2  "Play until all the stones are contained in the two mancalas and no more moves are possible. The player whose mancala contains more stones wins" 
+    set toWin2  "Play until all the stones are contained in the two mancalas and no more moves are possible. The player whose mancala contains more stones wins." 
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: Choose one of your bins. Player 1 chooses from the bottom, Player 2 from the top. Your stones will disperse counterclockwise around the board from that bin."
-
+    SetToMoveString  "To Move: The first player begins by picking up his pieces in any of the holes on his side. Moving counter-clockwise, the player deposits one of his pieces into each hole until his pieces run out. The player starts by placing a seed into the hole next to the one he or she just emptied."
 }
 
 
