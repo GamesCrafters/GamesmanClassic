@@ -46,7 +46,7 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to tell the user how to move and what the goal is.
 
     global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click with the left button\non the slot you want"
+    set kToMove "Each player has a knight piece, which moves as in the game of Chess. Once the piece is moved, the square the piece previously occupied cannot be re-entered by either player."
     set kToWinStandard  "Set up a position that prevents your opponent from moving"
     set kToWinMisere  "Force your opponent to set up a position that prevents you from moving"
 

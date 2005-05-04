@@ -43,8 +43,8 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
-    set kStandardString "First player to ______ WINS"
-    set kMisereString "First player to ______ LOSES"
+    set kStandardString "To capture all of your opponent's pieces or to prevent him from moving."
+    set kMisereString "To have all your pieces captured or to not be able to move."
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
@@ -53,9 +53,9 @@ proc GS_InitGameSpecific {} {
     if {!$gMisereGame} {
 	SetToWinString "To Win: (fill in)"
     } else {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "To Win: To capture all of your opponent's pieces or to prevent him or her from moving."
     }
-    SetToMoveString "To Move: (fill in)"
+    SetToMoveString "To Move: Players take turns moving their pieces either horizontally or vertically. To capture the opponent's piece a player must jump over one of his or her pieces and land on the opponent's piece. Captures cannot be made diagonally and only one piece can be captured on a move."
 	    
     # Authors Info. Change if desired
     global kRootDir
