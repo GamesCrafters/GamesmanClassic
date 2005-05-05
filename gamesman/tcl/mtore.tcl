@@ -393,7 +393,7 @@ proc GS_Initialize { c } {
 #     $c raise red8
 
 
-    $c create text 250 480 -text $gInitialPosition
+    #$c create text 250 480 -text $gInitialPosition
 
 }
 
@@ -658,7 +658,7 @@ proc GS_NewGame { c position } {
     # but if you want you can add a special behaivior here like an animation
 
     #GS_DrawPosition $c $position
-    $c create text 250 5 -text $position
+    #$c create text 250 5 -text $position
     GS_DrawPosition $c $position
 }
 
