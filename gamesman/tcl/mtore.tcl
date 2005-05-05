@@ -738,7 +738,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } elseif {$value == "Win"} {
-		set color red4
+		set color red
 	    } else {
 		#ERROR
 	    }
