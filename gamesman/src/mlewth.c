@@ -81,8 +81,13 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
+<<<<<<< mlewth.c
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+=======
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+>>>>>>> 1.2
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -95,16 +100,16 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 **************************************************************************/
 
 /* constants for board size */
-int boardWidth 		      = 5;
+int boardWidth 		      = 3;
 int boardHeight		      = 5;
 
-int numBlackPieces            = 12;
-int numWhitePieces            = 12;
+int numXpieces                = 7;
+int numOpieces                = 7;
 
 /* other constants */
 
-#define black  1   /* Has to be 0 or 1 */
-#define white  2   /* Has to 1 - black */
+#define X      1
+#define O      2   
 #define space -1
 
 #define up     0
@@ -112,19 +117,10 @@ int numWhitePieces            = 12;
 #define left   2
 #define right  3
 
-BOOLEAN multiplePieceMoves     = FALSE;
-
-
-/* Custom board allows the user to choose a rectangular board of any size,
-any number of white and black pieces (as long as exactly one empty space
-remains), and any starting configuration.  Should this option be chosen,
-all three as well as who is to move first must be specified.  Another
-option would be and odd x odd board with an even number of pieces for each
-player and a symmetric configuration with the space in the center.  The
-default will be this configuration with board size 5x5. */
+BOOLEAN multiplePieceMoves    = FALSE;
 
 BOOLEAN gCustomBoard          = FALSE;
-int gFirstToMove              = black;
+int gFirstToMove              = X;
 BOOLEAN positionInitialized   = FALSE;
 
 BOOLEAN detailedDebug         = FALSE;
@@ -143,23 +139,154 @@ BOOLEAN detailedDebug         = FALSE;
 STRING kHelpGraphicInterface =
 "Not written yet";
 
+// How to tell the computer WHICH MOVE I want?
 STRING   kHelpTextInterface    =
-"";
+"The text input of a move is composed of a direction (one of the \
+following four letters: ijkl, corresponding \
+to up, left, down, and right), and, if multiple piece moves are allowed, of \
+the number of pieces to move. Please note, under regular rules, \
+you can only move one piece at a time.";
 
+// What do I do on MY TURN?
 STRING   kHelpOnYourTurn =
-"";
+"On your turn, you try to move one of your pieces \
+into the available space. If you are playing under the regular rules, \
+you can only move one piece at a time.  Therefore, choose \
+one of your pieces on the left, right, top, or bottom \
+of the available space to move into the space.";
 
+// std objective of lewth game
 STRING   kHelpStandardObjective =
-"";
+"The standard objective of Lewthwaite's game is to move your \
+pieces so that your opponent cannot move any \
+of his pieces on his turn.";
 
+//
 STRING   kHelpReverseObjective =
-"";
+"The reverse objective of Lewthwaite's game is to move your \
+pieces so that after your opponent's turn, you cannot move any \
+of your pieces.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie is not possible in this game.";
 
-STRING   kHelpExample =
-"";
+STRING   kHelpExample = "                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                O X O\n\
+                X - X\n\
+                O X O\n\n\n\
+                X TO MOVE\n\n\n\
+Computer: (Computer should Lose in 8)\n\  
+Computer has moved l\n\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                O X O\n\
+                - X X\n\
+                O X O\n\n\n\
+                O TO MOVE\n\n\n\
+Player: (Player should Win in 7)\n\  
+Player's move [(u)ndo/(direction) : direction = i,j,k,l] : k\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                - X O\n\
+                O X X\n\
+                O X O\n\n\n\
+                X TO MOVE\n\n\n\
+Computer: (Computer should Lose in 6)\n\  
+Computer has moved j\n\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X - O\n\
+                O X X\n\
+                O X O\n\n\n\
+                O TO MOVE\n\n\n\
+Player: (Player should Win in 5)\n\  
+Player's move [(u)ndo/(direction) : direction = i,j,k,l] : j\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X O -\n\
+                O X X\n\
+                O X O\n\n\n\
+                X TO MOVE\n\n\n\
+Computer: (Computer should Lose in 4)\n\  
+Computer has moved i\n\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X O X\n\
+                O X -\n\
+                O X O\n\n\n\
+                O TO MOVE\n\n\n\
+Player: (Player should Win in 3)\n\  
+Player's move [(u)ndo/(direction) : direction = i,j,k,l] : i\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X O X\n\
+                O X O\n\
+                O X -\n\n\n\
+                X TO MOVE\n\n\n\
+Computer: (Computer should Lose in 2)\n\  
+Computer has moved l\n\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X O X\n\
+                O X O\n\
+                O - X\n\n\n\
+                O TO MOVE\n\n\n\
+Player: (Player should Win in 1)\n\  
+Player's move [(u)ndo/(direction) : direction = i,j,k,l] : l\n\n\
+                DIRECTION KEY\n\n\
+                    (up)\n\
+                     i\n\
+           (left) j     l (right)\n\
+                     k\n\
+                   (down)\n\n\n\
+                CURRENT BOARD\n\n\
+                X O X\n\
+                O X O\n\
+                - O X\n\n\n\
+                X TO MOVE\n\n\n\
+Computer: (Computer should Lose in 0)\n\n\
+Excellent! You won!\n";
 
 
 /*************************************************************************
@@ -184,12 +311,13 @@ STRING   kHelpExample =
 
 /* Internal */
 void setDefaultInitialPosition();
-int GetSpace(POSITION);
-int GetPlayer(POSITION, int, int, int);
+int GetSpace(char*);
+int GetPlayer(char*, int, int, int);
 int otherPlayer(int);
 char getPiece(int);
 int ModifyOffset(int, int);
 int validCellToCheck(int, int, int);
+void printBoard(char*);
 MOVE hashMove(int, int);
 int getDirection(MOVE);
 int getNumPieces(MOVE);
@@ -223,8 +351,8 @@ extern VALUE     *gDatabase;
 void InitializeGame ()
 {
   int boardSize = boardWidth*boardHeight;
-  int pieces[] = {'b', numBlackPieces, numBlackPieces,
-		 'w', numWhitePieces, numWhitePieces,
+  int pieces[] = {'X', numXpieces, numXpieces,
+		 'O', numOpieces, numOpieces,
 		 '-', 1, 1,
 		 -1};
 
@@ -237,13 +365,13 @@ void InitializeGame ()
  
     for (i=0; i<boardSize;i++) {
       if (i%2 == 0) {
-	gBoard[i] = 'w';
+	gBoard[i] = 'O';
       } else {
-	gBoard[i] = 'b';
+	gBoard[i] = 'X';
       }
     }
   
-    if (gBoard[boardSize/2] == 'w') {
+    if (gBoard[boardSize/2] == 'O') {
       gBoard[boardSize/2] = '-';
     } else {
       gBoard[boardSize/2 - boardWidth] = '-';
@@ -279,14 +407,16 @@ MOVELIST *GenerateMoves (POSITION position)
   MOVELIST *moves = NULL;
   int spaceIndex, dir, numToMove;
   int player = whoseMove(position);
+  char posArray[boardWidth*boardHeight];
+  generic_unhash(position, posArray);
   
  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   
-  spaceIndex = GetSpace(position);
+  spaceIndex = GetSpace(posArray);
 
   for (dir=0; dir<4; dir++) {
     if (validCellToCheck(1,dir,spaceIndex) 
-	&& GetPlayer(position, spaceIndex, 1, dir) == player){
+	&& GetPlayer(posArray, spaceIndex, 1, dir) == player){
       
       moves = CreateMovelistNode(hashMove(dir, 1), moves);        
     
@@ -294,7 +424,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	numToMove = 2;
 	while(validCellToCheck(numToMove,dir,spaceIndex)){
 	  	  
-	  if (GetPlayer(position,spaceIndex,numToMove,dir) == player) {
+	  if (GetPlayer(posArray,spaceIndex,numToMove,dir) == player) {
 	    moves = CreateMovelistNode(hashMove(dir, numToMove), moves);
 	  }
 	  
@@ -326,10 +456,11 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
+  if (detailedDebug) printf("DoMove start\n");
   char posArray[boardWidth*boardHeight];
   generic_unhash(position, posArray);
   int whosMove = whoseMove(position);
-  int empty_space = GetSpace(position);
+  int empty_space = GetSpace(posArray);
 
   int direction = getDirection(move);
   int numPieces = getNumPieces(move);
@@ -358,6 +489,9 @@ POSITION DoMove (POSITION position, MOVE move)
   } else {
     //error("Invalid Move");
   }
+
+  if (detailedDebug) printf("new position %s\n", posArray);
+  if (detailedDebug) printf("DoMove end\n");
   return generic_hash(posArray, otherPlayer(whosMove));
 
 }
@@ -391,8 +525,9 @@ VALUE Primitive (POSITION position)
 {
    int spaceIndex,dir;
    int player;
-  
-   spaceIndex = GetSpace(position);
+   char posArray[boardWidth*boardHeight];
+   generic_unhash(position, posArray);  
+   spaceIndex = GetSpace(posArray);
    player = whoseMove(position);
   
    /* Current player loses when all 4 cells around the space
@@ -400,7 +535,7 @@ VALUE Primitive (POSITION position)
     */
    for (dir=0; dir<4; dir++){
      if (validCellToCheck(1, dir,spaceIndex)){
-       if (GetPlayer(position, spaceIndex, 1, dir) == player){
+       if (GetPlayer(posArray, spaceIndex, 1, dir) == player){
 	 return undecided;
        }
      }
@@ -429,20 +564,30 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   if (detailedDebug) printf("PrintPosition start\n");
   printf("\n");
-  int i;
   STRING name = "";
 
   char board[boardWidth*boardHeight];
   generic_unhash(position, board);
-  
-  printf("\t\t");
-  for (i=1; i<=boardHeight*boardWidth; i++){
-    printf("%c ", board[i-1]);
-    if (i%boardWidth == 0){
-      printf("\n\t\t");
-    }
-  }
-  
+
+  printf("\t\tDIRECTION KEY\n\n");
+
+  printf("\t            (up)\n");
+  printf("\t             i\n");
+  printf("\t   (left) j     l (right)\n");
+  printf("\t             k\n");
+  printf("\t           (down)\n");
+
+  printf("\n\n");
+
+  printf("\t\tCURRENT BOARD\n\n");
+  printBoard(board);
+
+  printf("\n\n");
+
+  printf("\t\t%c TO MOVE", getPiece(whoseMove(position)));
+
+  printf("\n\n");
+
   if (usersTurn){
     name = playersName;
   } else {
@@ -485,6 +630,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
+  if (detailedDebug) printf("PrintMove start\n");
   char* pieceString = "";
   char* dirString = "";
   int numPieces = getNumPieces(move);
@@ -497,16 +643,21 @@ void PrintMove (MOVE move)
   }
 
   if (direction == up) {
-    dirString = "u";
+    dirString = "i";
   } else if (direction == down) {
-    dirString = "d";
+    dirString = "k";
   } else if (direction == left) {
-    dirString = "l";
+    dirString = "j";
   } else if (direction == right) {
-    dirString = "r";
+    dirString = "l";
   }
 
-  printf("%d%s", numPieces, dirString);
+  if (multiplePieceMoves) {
+    printf("%s%d", dirString, numPieces);
+  } else {
+    printf("%s", dirString);
+  }
+  if (detailedDebug) printf("PrintMove end\n");
 }
 
 
@@ -532,6 +683,7 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
+  if (detailedDebug) printf("GetAndPrintPlayersMove start\n");
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
   
@@ -539,13 +691,21 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     /***********************************************************
      * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
      ***********************************************************/
-    printf("%8s's move [(u)ndo/(xy) : x = # pieces, y in {u, d, l, r}] : ", 
-	   playersName);
+    if (multiplePieceMoves) {
+      printf("%s's move [(u)ndo/(xy) : x = direction(i,j,k,l), y = # of pieces] : ", 
+	     playersName);
+    } else {
+      printf("%s's move [(u)ndo/(direction) : direction = i,j,k,l] : ", 
+	     playersName);
+    }
     
     input = HandleDefaultTextInput(position, move, playersName);
+    if (detailedDebug) if (input == Continue) printf("invalid move\n");
     
-    if (input != Continue)
+    if (input != Continue) {
+      if (detailedDebug) printf("GetAndPrintPlayersMove end\n");
       return input;
+    }
   }
   /* NOTREACHED */
   return Continue;
@@ -579,30 +739,34 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+  if (detailedDebug) printf("ValidTextInput start\n");
   char c = *input;
   int direction = 0;
   int numPieces = 0;
   
-  if (c < '0' || c > '9') {
-    return FALSE;
-  }
-
-  while ((c = *input) >= '0' && c <='9') {
-    numPieces = (numPieces * 10) + (c - '0');
-    input++;
-  }
-
-  if (c == 'u') {
+  if (c == 'i') {
     direction = up;
-  } else if (c == 'd') {
+  } else if (c == 'k') {
     direction = down;
-  } else if (c == 'l') {
+  } else if (c == 'j') {
     direction = left;
-  } else if (c == 'r') {
+  } else if (c == 'l') {
     direction = right;
   } else {
     return FALSE;
   }
+
+  if (multiplePieceMoves) {
+    input++;
+    while ((c = *input) != '\0') {
+      if (c < '0' || c > '9') {
+	return FALSE;
+      }
+      numPieces = (numPieces * 10) + (c - '0');
+      input++;
+    }
+  }
+  if (detailedDebug) printf("ValidTextInput end\n");
   return TRUE; //////////// NOT IMPLEMENTED!!!!!!!!!!!!1
   
 }
@@ -624,27 +788,36 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  char c;
+  if (detailedDebug) printf("ConvertTextInputToMove start\n");
+  char c = *input;
   int direction = 0;
-  int numPieces = 0;
+  int numPieces = 1;
   
-  while ((c = *input) >= '0' && c <='9') {
-    numPieces = (numPieces * 10) + (c - '0');
-    input++;
-  }
-
-  if (c == 'u') {
+  if (c == 'i') {
     direction = up;
-  } else if (c == 'd') {
+  } else if (c == 'k') {
     direction = down;
-  } else if (c == 'l') {
+  } else if (c == 'j') {
     direction = left;
-  } else if (c == 'r') {
+  } else if (c == 'l') {
     direction = right;
   } else {
-    //error("Invalid direction");
+    return FALSE;
   }
 
+  if (multiplePieceMoves) {
+    numPieces = 0;
+    input++;
+    while ((c = *input) != '\0') {
+      if (c < '0' || c > '9') {
+	return FALSE;
+      }
+      numPieces = (numPieces * 10) + (c - '0');
+      input++;
+    }
+  }
+
+  if (detailedDebug) printf("ConvertTextInputToMove end\n");
   return hashMove(direction, numPieces);
 }
 
@@ -668,12 +841,15 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+  char initialBoard[boardWidth*boardHeight];
   while (TRUE) {
     printf("\n\t----- Game-specific options for %s -----\n", kGameName);
     printf("\n\tBoard Options:\n\n");
     printf("\td)\tChange board (D)imension (%d,%d)\n", boardWidth, boardHeight);
     printf("\ti)\tChange (i)nitial position.  Current position is:\n");
-    PrintPosition(gInitialPosition, "Player", TRUE);
+    printf("\n");
+    generic_unhash(gInitialPosition, initialBoard);
+    printBoard(initialBoard);
     printf("\n\tRule Options:\n\n");
     printf("\tp)\tMultiple (p)iece moves (%s)\n", multiplePieceMoves ? "On" : "Off");
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
@@ -702,8 +878,8 @@ void GameSpecificMenu ()
 	scanf("%d", &boardHeight);
       }	
 
-      numWhitePieces = boardHeight*boardWidth/2;
-      numBlackPieces = numWhitePieces;
+      numOpieces = boardHeight*boardWidth/2;
+      numXpieces = numOpieces;
       positionInitialized = FALSE;
       InitializeGame();
       break;
@@ -759,8 +935,8 @@ void SetTclCGameSpecificOptions (int options[])
 POSITION GetInitialPosition ()
 {
   int i,j, length;
-  int numWhite = 0;
-  int numBlack = 0;
+  int numO = 0;
+  int numX = 0;
   int boardSize = boardWidth*boardHeight;
   char row[boardSize],board[boardSize],c;
   BOOLEAN spaceExists = FALSE;
@@ -783,12 +959,12 @@ POSITION GetInitialPosition ()
     for (j=0;j<boardWidth;j++) {
       c = row[j];
 
-      if (c == 'w') {
-	numWhite++;
+      if (c == 'O') {
+	numO++;
 	board[j+i*boardWidth] = c;
 	
-      } else if (c == 'b') {
-	numBlack++;
+      } else if (c == 'X') {
+	numX++;
 	board[j+i*boardWidth] = c;
       
       } else if (c == '-') {
@@ -814,8 +990,8 @@ POSITION GetInitialPosition ()
     return GetInitialPosition();
   }
 
-  numWhitePieces = numWhite;
-  numBlackPieces = numBlack;
+  numOpieces = numO;
+  numXpieces = numX;
   InitializeGame();
   return generic_hash(board, gFirstToMove);
 }
@@ -919,9 +1095,7 @@ void DebugMenu ()
 **
 ***********************************************************************/
 
-int GetSpace(POSITION position) {
-  char posArray[boardWidth*boardHeight];
-  generic_unhash(position, posArray);
+int GetSpace(char* posArray) {
   int i;
   for (i=0;i<boardWidth*boardHeight;i++) {
     if (posArray[i] == '-') {
@@ -946,9 +1120,7 @@ int GetSpace(POSITION position) {
 **
 ***********************************************************************/
 
-int GetPlayer(POSITION position, int spaceIndex, int numAway, int dir) {
-  char posArray[boardWidth*boardHeight];
-  generic_unhash(position, posArray);
+int GetPlayer(char* posArray, int spaceIndex, int numAway, int dir) {
 
   int index;
   if (dir == down) {
@@ -961,10 +1133,10 @@ int GetPlayer(POSITION position, int spaceIndex, int numAway, int dir) {
     index = spaceIndex-numAway;
   }
 
-  if (posArray[index] == 'b') {
-    return black;
-  } else if (posArray[index] == 'w') {
-    return white;
+  if (posArray[index] == 'X') {
+    return X;
+  } else if (posArray[index] == 'O') {
+    return O;
   } else if (posArray[index] == '-') {
     return space;
   } else {
@@ -975,10 +1147,10 @@ int GetPlayer(POSITION position, int spaceIndex, int numAway, int dir) {
 
 
 int otherPlayer(int player) {
-  if (player == white) {
-    return black;
+  if (player == O) {
+    return X;
   }
-  return white;
+  return O;
 }
 
 
@@ -986,7 +1158,7 @@ int otherPlayer(int player) {
 **
 ** NAME:		getPiece
 **
-** DESCRIPTION: Return character representation of one of: black, white,
+** DESCRIPTION: Return character representation of one of: X, O,
 **              space.
 **
 ** INPUTS: 	        int piece_or_player: numerical representation of
@@ -997,10 +1169,10 @@ int otherPlayer(int player) {
 ***********************************************************************/
 
 char getPiece(int piece_or_player) {
-  if (piece_or_player == black) {
-    return 'b';
-  } else if (piece_or_player == white) {
-    return 'w';
+  if (piece_or_player == X) {
+    return 'X';
+  } else if (piece_or_player == O) {
+    return 'O';
   } else if (piece_or_player == space) {
     return '-';
   } else {
@@ -1028,6 +1200,19 @@ int validCellToCheck(int numPieces, int dir, int indSpace){
 
   return 1;
 }
+
+void printBoard(char* board) {
+  int i;
+
+  printf("\t\t");
+  for (i=1; i<=boardHeight*boardWidth; i++){
+    printf("%c ", board[i-1]);
+    if (i%boardWidth == 0){
+      printf("\n\t\t");
+    }
+  }
+}
+
 
 
 /*********************************************************************
