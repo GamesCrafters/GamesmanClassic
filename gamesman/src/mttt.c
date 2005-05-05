@@ -913,16 +913,18 @@ int NumberOfOptions()
    
 int getOption()
 {
-  if(gStandardGame) 
-    return 1 ;
-  return 2 ;
+  int option = 0;
+  option += gStandardGame;
+  option *= 2;
+  option += gSymmetries;
+  return option+1;
 } 
 
 void setOption(int option)
 {
-  if(option == 1)
-    gStandardGame = TRUE;
-  else
-    gStandardGame = FALSE;
+    option -= 1;
+    gSymmetries = option % 2;
+    option /= 2;
+    gStandardGame = option;
 }
 
