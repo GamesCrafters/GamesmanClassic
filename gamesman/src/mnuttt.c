@@ -100,7 +100,7 @@ STRING   kGameName            = "Nu Tic-Tac-Toe";
 STRING   kAuthorName          = "Guy Boo and Ming (Evan) Huang";
 STRING   kDBName              = "nuttt"; /* The name of the stored database */
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ;
 BOOLEAN  kTieIsPossible       = FALSE ;
 BOOLEAN  kLoopy               = TRUE ;
@@ -132,7 +132,8 @@ the diagonal directions NW, NE, SW, and SE will not be accepted unless\n\
 diagonal moves are legal in the current game.";
 
 STRING   kHelpOnYourTurn =
-  "You should type: <column number><row number> <direction>, where direction\n\
+  "On your turn, you slide one of your pieces in one of the directions available.\n\
+You should type: <column number><row number> <direction>, where direction\n\
 is a cardinal direction.";
 
 STRING   kHelpStandardObjective =
@@ -176,9 +177,9 @@ STRING   kHelpExample = "coming soon!";
  ** Global Variables
  **
  *************************************************************************/
-int     BOARD_ROWS          = 5;
-int     BOARD_COLS          = 4;
-int     NUM_TO_WIN          = 3;
+int     BOARD_ROWS          = 4;
+int     BOARD_COLS          = 3;
+int     NUM_TO_WIN          = 2;
 BOOLEAN CAN_MOVE_DIAGONALLY = FALSE;
 BOOLEAN MISERE              = FALSE;
 
@@ -678,17 +679,17 @@ void GameSpecificMenu ()
     miserelabel = (MISERE) ? "ON" : "OFF";
     dialabel = (CAN_MOVE_DIAGONALLY) ? "ALLOWED" : "DISALLOWED";
     printf("\nHere is where you set game options.\n");
-    printf("\t(R) set the number of rows, currently %d\n", BOARD_ROWS);
-    printf("\t(C) set the number of columns, currently %d\n", BOARD_COLS);
-    printf("\t(W) set how many pieces it takes to win, currently %d\n", \
+    printf("\t(r)\tset the number of rows, currently %d\n", BOARD_ROWS);
+    printf("\t(c)\tset the number of columns, currently %d\n", BOARD_COLS);
+    printf("\t(w)\tset how many pieces it takes to win, currently %d\n", \
 	   NUM_TO_WIN);
     /*    printf("\t(M) toggle misere play.  It is currently %s\n", miserelabel);*/
-    printf("\t(D) toggle diagonal moves.  They are currently %s\n", dialabel);
-    printf("\t(Q) leave this menu.\n");
+    printf("\t(d)\ttoggle diagonal moves.  They are currently %s\n", dialabel);
+    printf("\t(b)\tleave this menu.\n");
     printf("You are thy dungeonman. Enter thine selection: ");
     c = GetMyChar();
     if ((c == 'R') || (c == 'r')) {
-      printf("How many rows d'ya want?\n: ");
+      printf("How many rows d'ya want?: ");
       scanf("%d",&i);
       if ((i >= BOARD_DIM_MIN) && (i <= BOARD_DIM_MAX)) {
 	BOARD_ROWS = i;
@@ -698,7 +699,7 @@ void GameSpecificMenu ()
 	       BOARD_DIM_MAX);
       }
     } else if ((c == 'C') || (c == 'c')) {
-      printf("How many columns d'ya want?\n: ");
+      printf("How many columns d'ya want?: ");
       scanf("%d", &i);
       if ((i >= BOARD_DIM_MIN) && (i <= BOARD_DIM_MAX)) {
 	BOARD_COLS = i;
@@ -708,7 +709,7 @@ void GameSpecificMenu ()
 	       BOARD_DIM_MAX);
       }
     } else if ((c == 'W') || (c == 'w')) {
-      printf("How many pieces must be in a line to win?\n: ");
+      printf("How many pieces must be in a line to win?: ");
       scanf("%d", &i);
       if ((i >= NUM_TO_WIN_MIN) && (i <= NUM_TO_WIN_MAX) && \
 	  ((i <= BOARD_ROWS) || (i <= BOARD_COLS))) {
@@ -722,7 +723,7 @@ void GameSpecificMenu ()
        *MISERE = (MISERE) ? FALSE : TRUE;*/
     } else if ((c == 'D') || (c == 'd')) {
       CAN_MOVE_DIAGONALLY = (CAN_MOVE_DIAGONALLY) ? FALSE : TRUE;
-    } else if ((c == 'Q') || (c == 'q')) {
+    } else if ((c == 'B') || (c == 'b')) {
       tryagain = FALSE;
     } else {
       printf("thou art no dungeonman, knave. ENTER A BLOODY OPTION.\n");
