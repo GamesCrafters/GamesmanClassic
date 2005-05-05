@@ -70,6 +70,7 @@
 **                  bug created when undo was chosen with 2 human players
 ** 05-15-95 1.0   : Final release code for M.S.
 **
+** Last Change: $Id: gsolve.c,v 1.2 2005-05-05 03:25:12 ogren Exp $
 **************************************************************************/
  
 #include <stdio.h>
@@ -148,6 +149,44 @@ extern BOOLEAN  kLoopy;                /* TRUE <==> Game graph has cycles */
 extern BOOLEAN  kDebugDetermineValue;  /* TRUE <==> Print visited nodes */
 
 extern int      gNumberOfPositions;    /* The number of positions in the game */
+/***** External Function Prototypes *****/
+//void PrintPosition(POSITION, STRING);
+//void PrintPosition(POSITION, STRING, int);
+void PrintMove(MOVE);
+POSITION DoMove(POSITION, MOVE);
+void PrintComputersMove(MOVE, STRING);
+
+/***** Function Prototypes *****/
+void MexInitialize();
+void HitAnyKeyToContinue();
+void MenusBeforeEvaluation();
+void MenusEvaluated();
+void ParseMenuChoice(char);
+void BadElse(STRING);
+void ParseBeforeEvaluationMenuChoice(char);
+void ParseEvaluatedMenuChoice(char);
+void ExitStageRight();
+void HelpMenus();
+void BadMenuChoice();
+void DebugModule();
+void PlayAgainstComputer();
+void PlayAgainstHuman();
+int GetRandomNumber(int);
+int Stopwatch();
+void ParseHelpMenuChoice(char);
+void PrintComputerValueExplanation();
+void PrintHumanValueExplanation();
+void GetMyString(char *, int, BOOLEAN, BOOLEAN);
+void FreeMoveList(MOVELIST *);
+void ResetUndoList(UNDO *);
+void UnMarkAsVisited (POSITION);
+void SafeFree(GENERIC_PTR);
+void SetRemoteness (POSITION, REMOTENESS);
+void MexStore(POSITION, MEX);
+REMOTENESS Remoteness(POSITION);
+int GetSmallRandomNumber(int);
+void MarkAsVisited (POSITION);
+int randSafe();
 
 /************************************************************************
 **
@@ -159,8 +198,14 @@ extern int      gNumberOfPositions;    /* The number of positions in the game */
 **
 ************************************************************************/
  
-Initialize()
+void Initialize()
 {
+
+  //Prototypes
+  void InitializeFR();
+  void ParentInitialize();
+  void NumberChildrenInitialize();
+ 
   srand(time(NULL));
 
   gValue            = undecided;
@@ -204,7 +249,7 @@ Initialize()
 **
 ************************************************************************/
 
-Menus()
+void Menus()
 {
   char GetMyChar();
 
@@ -237,7 +282,7 @@ Menus()
 ** 
 ************************************************************************/
 
-MenusBeforeEvaluation()
+void MenusBeforeEvaluation()
 {
   printf("\n\ts)\t(S)TART THE GAME\n");
 
@@ -265,7 +310,7 @@ MenusBeforeEvaluation()
 **
 ************************************************************************/
 
-MenusEvaluated()
+void MenusEvaluated()
 {
   printf("\n\tPlayer Name Options:\n\n");
       
@@ -341,7 +386,7 @@ MenusEvaluated()
 **
 ************************************************************************/
 
-ParseMenuChoice(c)
+void ParseMenuChoice(c)
 char c;
 {
   BOOLEAN ParseConstantMenuChoice();	
@@ -404,10 +449,13 @@ BOOLEAN ParseConstantMenuChoice(c)
 **
 ************************************************************************/
 
-ParseBeforeEvaluationMenuChoice(c)
+void ParseBeforeEvaluationMenuChoice(c)
      char c;
 {
+  //Prototypes
   VALUE DetermineValue(), DetermineLoopyValue();
+  void GameSpecificMenu();
+  void InitializeDatabases();
 
   switch(c) {
   case 'G': case 'g':
@@ -492,9 +540,14 @@ ParseBeforeEvaluationMenuChoice(c)
 **
 ************************************************************************/
 
-ParseEvaluatedMenuChoice(c)
+void ParseEvaluatedMenuChoice(c)
      char c;
 {
+
+  //Prototypes
+  void AnalysisMenu();
+  void DebugMenu();
+
   char tmpName[MAXNAME];
   
   switch(c) {
@@ -591,7 +644,7 @@ ParseEvaluatedMenuChoice(c)
 **
 ************************************************************************/
 
-HelpMenus()
+void HelpMenus()
 {
   char c, GetMyChar();
 
@@ -641,7 +694,7 @@ HelpMenus()
 **
 ************************************************************************/
 
-ParseHelpMenuChoice(c)
+void ParseHelpMenuChoice(c)
      char c;
 {
   switch(c) {
@@ -717,7 +770,7 @@ ParseHelpMenuChoice(c)
 **
 ************************************************************************/
 
-BadMenuChoice()
+void BadMenuChoice()
 {
   printf("\nSorry, I don't know that option. Try another.\n");
 }
@@ -731,8 +784,11 @@ BadMenuChoice()
 ** 
 ************************************************************************/
 
-DebugModule()
+void DebugModule()
 {
+  //Prototypes
+  void PrintPosition(POSITION, STRING, int);
+  
   char GetMyChar();
   int numberMoves = 0, move;
   POSITION DoMove(), GetInitialPosition();
@@ -832,8 +888,11 @@ DebugModule()
 **
 ************************************************************************/
 
-PlayAgainstHuman()
+void PlayAgainstHuman()
 {
+  //Prototypes
+  void PrintPosition(POSITION, STRING, int);
+
   POSITION currentPosition;
   MOVE theMove;
   VALUE Primitive();
@@ -914,8 +973,12 @@ PlayAgainstHuman()
 **
 ************************************************************************/
 
-PlayAgainstComputer()
+void PlayAgainstComputer()
 {
+
+  //Prototypes
+  void PrintPosition(POSITION, STRING, int);
+
   POSITION thePosition;
   MOVE theMove, GetComputersMove();
   VALUE Primitive();
@@ -1005,7 +1068,7 @@ PlayAgainstComputer()
 **
 ************************************************************************/
 
-ResetUndoList(undo)
+void ResetUndoList(undo)
      UNDO *undo;
 {
   POSITION position;
@@ -1152,7 +1215,7 @@ UNDO *InitializeUndo()
 ** 
 ************************************************************************/
 
-PrintHumanValueExplanation()
+void PrintHumanValueExplanation()
 {
   if(gValue == tie) {
     printf("Since this game is a TIE game, the following should happen. The player\n");
@@ -1183,7 +1246,7 @@ PrintHumanValueExplanation()
 ** 
 ************************************************************************/
 
-PrintComputerValueExplanation()
+void PrintComputerValueExplanation()
 {
   if(gValue == tie) {
     printf("You should know that since this is a TIE game, the player who goes\n");
@@ -1481,7 +1544,7 @@ MEXCALC MexCalcInit()
 **
 ************************************************************************/
 
-MexStore(position,theMex)
+void MexStore(position,theMex)
 POSITION position;
 MEX theMex;
 {
@@ -1496,7 +1559,7 @@ MEX theMex;
 ** 
 ************************************************************************/
 
-MexInitialize()
+void MexInitialize()
 {
   GENERIC_PTR SafeMalloc();
   int i;
@@ -1539,7 +1602,7 @@ POSITION position;
 **
 ************************************************************************/
 
-MexFormat(position,string)
+void MexFormat(position,string)
 POSITION position;
 STRING string;
 {
@@ -1604,7 +1667,7 @@ VALUE value;
 **
 ************************************************************************/
 
-FreeMoveList(ptr)
+void FreeMoveList(ptr)
      MOVELIST *ptr;
 {
   MOVELIST *last;
@@ -1625,7 +1688,7 @@ FreeMoveList(ptr)
 **
 ************************************************************************/
 
-FreePositionList(ptr)
+void FreePositionList(ptr)
      POSITIONLIST *ptr;
 {
   POSITIONLIST *last;
@@ -1797,7 +1860,7 @@ BOOLEAN PrintPossibleMoves(thePosition)
 **
 ************************************************************************/
 
-PrintValueEquivalentMoves(thePosition)
+void PrintValueEquivalentMoves(thePosition)
      POSITION thePosition;
 {
   MOVELIST *ptr, *head, *GetValueEquivalentMoves();
@@ -1875,7 +1938,7 @@ STRING GetPrediction(position,playerName,usersTurn)
 **
 ************************************************************************/
 
-Stopwatch()
+int Stopwatch()
 {
   static int first = 1;
   static time_t oldT, newT;
@@ -1899,7 +1962,7 @@ Stopwatch()
 **
 ************************************************************************/
  
-ExitStageRight()
+void ExitStageRight()
 {
   printf("\nThanks for playing %s!\n",kGameName); /* quit */
   exit(0);
@@ -1915,7 +1978,7 @@ ExitStageRight()
 **
 ************************************************************************/
 
-ExitStageRightErrorString(errorMsg)
+void ExitStageRightErrorString(errorMsg)
 char errorMsg[];
 {
   printf("\nError: %s\n",errorMsg);
@@ -1968,7 +2031,7 @@ GENERIC_PTR SafeMalloc(amount)
 **
 ************************************************************************/
  
-SafeFree(ptr)
+void SafeFree(ptr)
      GENERIC_PTR ptr;
 {
   free(ptr);
@@ -2156,7 +2219,7 @@ REMOTENESS Remoteness(position)
 **
 ************************************************************************/
 
-SetRemoteness (position, remoteness)
+void SetRemoteness (position, remoteness)
      POSITION position;
      REMOTENESS remoteness;
 {
@@ -2210,7 +2273,7 @@ BOOLEAN Visited(position)
 **
 ************************************************************************/
 
-MarkAsVisited (position)
+void MarkAsVisited (position)
      POSITION position;
 {
   VALUE *GetRawValueFromDatabase(), *ptr;
@@ -2232,7 +2295,7 @@ MarkAsVisited (position)
 **
 ************************************************************************/
 
-UnMarkAsVisited (position)
+void UnMarkAsVisited (position)
      POSITION position;
 {
   VALUE *GetRawValueFromDatabase(), *ptr;
@@ -2252,7 +2315,7 @@ UnMarkAsVisited (position)
 **
 ************************************************************************/
 
-BadElse(function)
+void BadElse(function)
      STRING function;
 {
   printf("Error: %s() just reached an else clause it shouldn't have!\n\n",function);
@@ -2270,7 +2333,7 @@ BadElse(function)
 ** 
 ************************************************************************/
 
-HitAnyKeyToContinue()
+void HitAnyKeyToContinue()
 {
   static BOOLEAN first = TRUE;
 
@@ -2298,6 +2361,10 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
+
+  //Prototypes
+  void PrintPosition(POSITION, STRING);
+
   MOVE ConvertTextInputToMove(), tmpMove;
   BOOLEAN ValidTextInput();
   char tmpAns[2], input[MAXINPUTLENGTH];
@@ -2394,7 +2461,7 @@ char GetMyChar()
 ** 
 ************************************************************************/
 
-GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
+void GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
      char *name;
      int   size;
      BOOLEAN eatFirstChar, putCarraigeReturnBack;
@@ -2421,3 +2488,4 @@ GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
 }
 
 
+//$Log: not supported by cvs2svn $
