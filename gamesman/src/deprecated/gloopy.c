@@ -9,6 +9,7 @@
 **
 ** DATE:         1999-02-23
 **
+** Last Change: $Id: gloopy.c,v 1.5 2005-05-05 04:12:35 ogren Exp $
 **************************************************************************/
 
 #include <stdio.h>
@@ -23,9 +24,17 @@ extern char *gNumberChildren;        /* The Number of children (used for Loopy g
 
 /* Function prototypes */
 BOOLEAN MemberFR(POSITION pos);
+DFS_SetParents(POSITION,POSITION);
+void RemoveFR(POSITION);
+void InsertHeadFR(POSITION);
+void InsertTailFR(POSITION);
+
 
 /* External function prototypes */
 extern BOOLEAN Visited(POSITION position);
+extern void SetRemoteness(POSITION, int);
+extern void ExitStageRight();
+extern void StoreValueOfPositon(POSITION, VALUE);
 
 /************************************************************************
 **
@@ -50,7 +59,7 @@ extern BOOLEAN Visited(POSITION position);
 **
 ************************************************************************/
 
-MyPrintParents()
+void MyPrintParents()
 {
   int i;
   POSITIONLIST *ptr;
@@ -296,7 +305,7 @@ POSITION parent,position;
 ** 
 ************************************************************************/
 
-ParentInitialize()
+void ParentInitialize()
 {
   GENERIC_PTR SafeMalloc();
   int i;
@@ -314,7 +323,7 @@ ParentInitialize()
 ** 
 ************************************************************************/
 
-NumberChildrenInitialize()
+void NumberChildrenInitialize()
 {
   GENERIC_PTR SafeMalloc();
   int i;
@@ -339,13 +348,16 @@ NumberChildrenInitialize()
 ** 
 ************************************************************************/
 
-InitializeFR()
+void InitializeFR()
 {
+  //Prototypes
+  GENERIC_PTR SafeMalloc();
+
   int i;
   gHeadFR = kBadPosition;
   gTailFR = kBadPosition;
-  gPrevFR = (POSITION *) malloc (sizeof(POSITION) * gNumberOfPositions);
-  gNextFR = (POSITION *) malloc (sizeof(POSITION) * gNumberOfPositions);
+  gPrevFR = (POSITION *) SafeMalloc (sizeof(POSITION) * gNumberOfPositions);
+  gNextFR = (POSITION *) SafeMalloc (sizeof(POSITION) * gNumberOfPositions);
   for (i = 0; i < gNumberOfPositions; i++) {
     gPrevFR[i] = kBadPosition;
     gNextFR[i] = kBadPosition;
@@ -393,7 +405,7 @@ POSITION GetTailFR()
 **
 ************************************************************************/
 
-InsertHeadFR(pos)
+void InsertHeadFR(pos)
 POSITION pos;
 {
   /* Check to make sure it's not a member already! */
@@ -427,7 +439,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-InsertTailFR(pos)
+void InsertTailFR(pos)
 POSITION pos;
 {
   /* Check to make sure it's not a member already! */
@@ -481,7 +493,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-RemoveFR(pos)
+void RemoveFR(pos)
 POSITION pos;
 {
   POSITION newHead, newTail, thePrev, theNext;
@@ -530,3 +542,5 @@ POSITION pos;
     gNextFR[pos]     = kBadPosition;
   }
 }
+
+//$Log: not supported by cvs2svn $
