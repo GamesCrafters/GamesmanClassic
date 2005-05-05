@@ -15,6 +15,7 @@
 ** 05-15-1995   1.0   : Final release code for M.S.
 ** 1999-03-09   1.2   : Added Mex printing in the AnalysisMenu
 **
+** Last Change: $Id: gfuzzy.c,v 1.2 2005-05-05 03:48:44 ogren Exp $
 **************************************************************************/
 
 #include <stdio.h>
@@ -34,6 +35,25 @@ extern BOOLEAN  kPartizan;             /* TRUE <==> module is a Partizan game */
 extern POSITION kBadPosition;          /* A POSITION that will never be used */
 extern POSITION gInitialPosition;      /* The initial position of the game */
 extern int      gNumberOfPositions;    /* The number of positions in the game */
+
+/***** External Function Prototypes *****/
+POSITION DoMove(POSITION, MOVE);
+void FreeMoveList(MOVELIST *);
+void BadElse(STRING);
+void ExitStageRight();
+void HelpMenus();
+void PrintPosition(POSITION);
+void FreePositionList(POSITIONLIST *);
+void HitAnyKeyToContinue();
+void BadMenuChoice();
+
+/***** Function Prototypes *****/
+void PrintRawGameValues(BOOLEAN);
+void PrintValuePositions(char, int);
+void TestStaticEvaluator(POSITIONLIST **, POSITIONLIST **, POSITIONLIST **);
+void PrintBadPositions(char,int,POSITIONLIST *,POSITIONLIST *,POSITIONLIST *);
+void PrintGameValueSummary();
+void PrintMexValues(MEX, int);
 
 /************************************************************************
 **
@@ -217,7 +237,7 @@ BOOLEAN CorruptedValuesP()
 **
 ************************************************************************/
 
-AnalysisMenu()
+void AnalysisMenu()
 {
   POSITIONLIST *badWinPositions = NULL, *badTiePositions = NULL, *badLosePositions = NULL;
   BOOLEAN tempPredictions = gPredictions, CorruptedValuesP();
@@ -348,9 +368,13 @@ AnalysisMenu()
 **
 ************************************************************************/
 
-PrintRawGameValues(toFile)
+void PrintRawGameValues(toFile)
 BOOLEAN toFile;
 {
+  //Prototypes
+  void ExitStageRightErrorString(STRING);
+  REMOTENESS Remoteness(POSITION);
+
   BOOLEAN Visited();
   FILE *fp;
   char filename[80];
@@ -395,7 +419,7 @@ BOOLEAN toFile;
 **
 ************************************************************************/
 
-PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositions)
+void PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositions)
      char c;
      int maxPositions;
      POSITIONLIST *badWinPositions, *badTiePositions, *badLosePositions;
@@ -445,7 +469,7 @@ PrintBadPositions(c,maxPositions,badWinPositions, badTiePositions, badLosePositi
 **
 ************************************************************************/
 
-PrintGameValueSummary()
+void PrintGameValueSummary()
 {
   POSITION thePosition, GetNextPosition();
   VALUE GetValueOfPosition(), theValue;
@@ -491,7 +515,7 @@ PrintGameValueSummary()
 **
 ************************************************************************/
 
-PrintMexValues(mexValue,maxPositions)
+void PrintMexValues(mexValue,maxPositions)
      MEX mexValue;
      int maxPositions;
 {
@@ -537,7 +561,7 @@ PrintMexValues(mexValue,maxPositions)
 **
 ************************************************************************/
 
-PrintValuePositions(c,maxPositions)
+void PrintValuePositions(c,maxPositions)
      char c;
      int maxPositions;
 {      
@@ -647,7 +671,7 @@ MOVELIST *StoreMoveInList(theMove,theMoveList)
 **
 ************************************************************************/
 
-TestStaticEvaluator(badWinPositions, badTiePositions, badLosePositions)
+void TestStaticEvaluator(badWinPositions, badTiePositions, badLosePositions)
      POSITIONLIST **badWinPositions, **badTiePositions, **badLosePositions;
 {
   POSITION thePosition, GetNextPosition();
@@ -1106,3 +1130,4 @@ FUZZY BoundedDifference(a,b)
   return(mMax(0.0,(a + b - 1.0)));
 }
 
+//$Log: not supported by cvs2svn $
