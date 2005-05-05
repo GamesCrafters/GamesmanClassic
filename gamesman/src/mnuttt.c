@@ -179,7 +179,7 @@ STRING   kHelpExample = "coming soon!";
  *************************************************************************/
 int     BOARD_ROWS          = 4;
 int     BOARD_COLS          = 3;
-int     NUM_TO_WIN          = 2;
+int     NUM_TO_WIN          = 3;
 BOOLEAN CAN_MOVE_DIAGONALLY = FALSE;
 BOOLEAN MISERE              = FALSE;
 
@@ -678,14 +678,14 @@ void GameSpecificMenu ()
   while (tryagain) {
     miserelabel = (MISERE) ? "ON" : "OFF";
     dialabel = (CAN_MOVE_DIAGONALLY) ? "ALLOWED" : "DISALLOWED";
-    printf("\nHere is where you set game options.\n");
-    printf("\t(r)\tset the number of rows, currently %d\n", BOARD_ROWS);
-    printf("\t(c)\tset the number of columns, currently %d\n", BOARD_COLS);
-    printf("\t(w)\tset how many pieces it takes to win, currently %d\n", \
+    printf("\nHere is where you set game options.\n\n");
+    printf("\tr)\tset the number of rows, currently %d\n", BOARD_ROWS);
+    printf("\tc)\tset the number of columns, currently %d\n", BOARD_COLS);
+    printf("\tw)\tset how many pieces it takes to win, currently %d\n", \
 	   NUM_TO_WIN);
     /*    printf("\t(M) toggle misere play.  It is currently %s\n", miserelabel);*/
-    printf("\t(d)\ttoggle diagonal moves.  They are currently %s\n", dialabel);
-    printf("\t(b)\tleave this menu.\n");
+    printf("\td)\ttoggle diagonal moves.  They are currently %s\n", dialabel);
+    printf("\tb)\tleave this menu.\n\n");
     printf("You are thy dungeonman. Enter thine selection: ");
     c = GetMyChar();
     if ((c == 'R') || (c == 'r')) {
