@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.16 2005-05-04 22:47:47 ciokita Exp $
+// $Id: machi.c,v 1.17 2005-05-05 02:19:03 ogren Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -218,6 +218,7 @@ void FreeGame()
 void DebugMenu()
 {
   char GetMyChar();
+  void tttppm();
 
   do {
     printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
@@ -1187,6 +1188,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.16  2005/05/04 22:47:47  ciokita
+// fixed help strings
+//
 // Revision 1.15  2005/04/27 21:22:03  ogren
 // fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
 //
