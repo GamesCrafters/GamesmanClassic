@@ -679,13 +679,13 @@ void GameSpecificMenu ()
     miserelabel = (MISERE) ? "ON" : "OFF";
     dialabel = (CAN_MOVE_DIAGONALLY) ? "ALLOWED" : "DISALLOWED";
     printf("\nHere is where you set game options.\n\n");
-    printf("\tr)\tset the number of rows, currently %d\n", BOARD_ROWS);
-    printf("\tc)\tset the number of columns, currently %d\n", BOARD_COLS);
-    printf("\tw)\tset how many pieces it takes to win, currently %d\n", \
+    printf("\tr)\tset the number of (R)ows, currently %d\n", BOARD_ROWS);
+    printf("\tc)\tset the number of (C)olumns, currently %d\n", BOARD_COLS);
+    printf("\tw)\tset how many pieces it takes to (W)in, currently %d\n", \
 	   NUM_TO_WIN);
     /*    printf("\t(M) toggle misere play.  It is currently %s\n", miserelabel);*/
-    printf("\td)\ttoggle diagonal moves.  They are currently %s\n", dialabel);
-    printf("\tb)\tleave this menu.\n\n");
+    printf("\td)\ttoggle (D)iagonal moves.  They are currently %s\n", dialabel);
+    printf("\tb)\t(B)ack to the main menu.\n\n");
     printf("You are thy dungeonman. Enter thine selection: ");
     c = GetMyChar();
     if ((c == 'R') || (c == 'r')) {
