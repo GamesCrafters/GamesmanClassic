@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.75 2005-01-06 07:02:57 liao_r Exp $
+//$Id: m9mm.c,v 1.76 2005-05-05 02:47:48 ogren Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -709,7 +709,7 @@ void setFlyingText()
    free(kHelpOnYourTurn);
   }
  
-  newHelp = (char*)malloc(newHelpSize*sizeof(char));
+  newHelp = (char*)SafeMalloc(newHelpSize*sizeof(char));
 
   // debug 
   if (debug) {
@@ -2183,6 +2183,13 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.75  2005/01/06 07:02:57  liao_r
+//Added Author Names to kAuthorName when available.
+//
+//Fixed stopwatch for --analyze solving.
+//
+//-RL
+//
 //Revision 1.74  2004/10/22 17:53:15  ogren
 //Typo change, Id instead of id. -Elmer
 //
