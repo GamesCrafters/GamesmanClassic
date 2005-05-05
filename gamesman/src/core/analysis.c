@@ -235,8 +235,6 @@ void analyze()
   
   if (analyzed == 0 || previousOption != getOption())
     {
-	printf("analyzed is %d, previous is %d, current is %d\n", analyzed, previousOption, getOption());
-	previousOption = getOption();
       analyzer();
       analyzed = 1;
       previousOption = getOption();
