@@ -42,6 +42,8 @@ static	MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 static	VALUE_MOVES*	SortMoves			(POSITION, MOVE, VALUE_MOVES*);
 static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
 
+OPPONENT gOpponent;
+
 void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 {
     char c;

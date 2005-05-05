@@ -105,6 +105,6 @@ extern void*	gGameSpecificTclInit;
 
 typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPPONENT;
 
-OPPONENT gOpponent;
+extern OPPONENT gOpponent;
 
 #endif /* GMCORE_GLOBALS_H */
