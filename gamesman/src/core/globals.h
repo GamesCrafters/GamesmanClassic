@@ -103,6 +103,12 @@ extern void (*gUndoMove)(MOVE move);
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*	gGameSpecificTclInit;
 
+/* Help string function pointers */
+extern STRING (*GetHelpTextInterface)();
+extern STRING (*GetHelpOnYourTurn)();
+extern STRING (*GetHelpObjective)();
+extern STRING (*GetHelpTieOccursWhen)();
+
 typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPPONENT;
 
 extern OPPONENT gOpponent;

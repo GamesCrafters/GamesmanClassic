@@ -45,6 +45,10 @@ VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
 void (*gUndoMove)(MOVE move) = NULL;
+STRING (*GetHelpTextInterface)() = NULL;
+STRING (*GetHelpOnYourTurn)() = NULL;
+STRING (*GetHelpObjective)() = NULL;
+STRING (*GetHelpTieOccursWhen)() = NULL;
 
 VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */

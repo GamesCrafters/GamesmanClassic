@@ -72,6 +72,8 @@ void db_free(){
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
     return db_functions->put_value(position,value);
 }
 
@@ -79,7 +81,8 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
 // This is it
 VALUE GetValueOfPosition(POSITION position)
 {
-    if(gMenuMode == Evaluated && gSymmetries)
+    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && 
+       gSymmetries)
 	position = gCanonicalPosition(position);
 
     return db_functions->get_value(position);
@@ -88,7 +91,8 @@ VALUE GetValueOfPosition(POSITION position)
 
 REMOTENESS Remoteness(POSITION position)
 { 
-    if(gMenuMode == Evaluated && gSymmetries)
+    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && 
+       gSymmetries)
 	position = gCanonicalPosition(position);
     
     return db_functions->get_remoteness(position);
@@ -97,24 +101,32 @@ REMOTENESS Remoteness(POSITION position)
 
 void SetRemoteness (POSITION position, REMOTENESS remoteness)
 {
-     if(db_functions->put_remoteness != NULL)
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
+    if(db_functions->put_remoteness != NULL)
         db_functions->put_remoteness(position,remoteness);
 }
  
 
 BOOLEAN Visited(POSITION position)
 {
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
     return db_functions->check_visited(position);
 }
 
 
 void MarkAsVisited (POSITION position)
 {
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
     return db_functions->mark_visited(position);
 }
 
 void UnMarkAsVisited (POSITION position)
 {
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
     db_functions->unmark_visited(position);
 }
 
