@@ -35,7 +35,7 @@ proc main {} {
     canvas $leftScroll -width 10 -background red
     canvas $leftBottom -background blue
 
-    canvas $home -background pink -borderwidth 20
+    canvas $home -background blue
     canvas $rightScroll -width 10 -background red
     canvas $rightBottom -background blue
 
@@ -347,8 +347,7 @@ Select a game from the sidebar to learn more about it." -anchor nw -background $
 	canvas $frame.$gameName -background $bgcolor
 	message $frame.$gameName.title -text $gameString -anchor center -width 300 \
 		-foreground $fontcolor -background $bgcolor
-	catch { image delete image$gameName }
-	image create photo image$gameName -file $theGif
+	image create photo image$gameName -file $theGif -width 100 -height 100
 	canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
 	$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
 	message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
@@ -356,10 +355,10 @@ Select a game from the sidebar to learn more about it." -anchor nw -background $
 	message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -anchor nw
 
-	pack $frame.$gameName.title -anchor n -fill x -expand 0
-	pack $frame.$gameName.photo -anchor n
-	pack $frame.$gameName.desc -anchor nw -fill x -expand 0
-	pack $frame.$gameName.rules -anchor nw -fill x -expand 0
+	pack $frame.$gameName.title -fill both
+	pack $frame.$gameName.photo
+	pack $frame.$gameName.desc -anchor nw -fill both
+	pack $frame.$gameName.rules -anchor nw -fill both -expand 1
     }
 }
 
