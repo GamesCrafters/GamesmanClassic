@@ -21,7 +21,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 
+/* Function Prototypes */
+extern void Initialize();
+extern void Menus();
 
 /************************************************************************
 **

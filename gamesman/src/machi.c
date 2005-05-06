@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.17 2005-05-05 02:19:03 ogren Exp $
+// $Id: machi.c,v 1.18 2005-05-06 07:24:55 nizebulous Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -54,21 +54,21 @@ STRING   kHelpGraphicInterface =
 "There is currently no graphic interface\n";
 
 STRING   kHelpTextInterface    =
-"There are two types of moves in Achi: place moves and slide moves.\n\
-PLACE MOVES:\n\
-First, you place your 3 pieces on the board: use the LEGEND to determine\n\
-which number to choose (between 1 and 9, with 1 at the upper left and 9 \n\
-a the lower right) to correspond to the empty board position you desire.\n\
-SLIDE MOVES:\n\
-Once all 3 of your pieces are on the board, the player makes sliding moves.\n\
-To do a slide move, type two numbers instead of one:\n\
-FIRST: Choose a piece to moveand type the number (1-9) of the space it is on.\n\
-SECOND: Type the number (1-9) of the space you would like to slide to.\n\
-i.e. 23, 45, 69 etc.\n\
-NOTE: Slide moves are only permitted between spots that are connected, an\n\
-unoccupie destination, and you may not move to the same spot you are on\n\ 
-(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n\
-a mistake, type u to revert back to your previous position.";
+"There are two types of moves in Achi: place moves and slide moves.\n"
+"PLACE MOVES:\n"
+"First, you place your 3 pieces on the board: use the LEGEND to determine\n"
+"which number to choose (between 1 and 9, with 1 at the upper left and 9 \n"
+"a the lower right) to correspond to the empty board position you desire.\n"
+"SLIDE MOVES:\n"
+"Once all 3 of your pieces are on the board, the player makes sliding moves.\n"
+"To do a slide move, type two numbers instead of one:\n"
+"FIRST: Choose a piece to moveand type the number (1-9) of the space it is on.\n"
+"SECOND: Type the number (1-9) of the space you would like to slide to.\n"
+"i.e. 23, 45, 69 etc.\n"
+"NOTE: Slide moves are only permitted between spots that are connected, an\n"
+"unoccupie destination, and you may not move to the same spot you are on\n"
+"(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n"
+"a mistake, type u to revert back to your previous position.";
 
 STRING   kHelpOnYourTurn =
 "For the first six turns, each player puts a piece on an empty board position.\n\
@@ -1188,6 +1188,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.17  2005/05/05 02:19:03  ogren
+// local prototyped void tttppm() in DebugMenu() -Elmer
+//
 // Revision 1.16  2005/05/04 22:47:47  ciokita
 // fixed help strings
 //

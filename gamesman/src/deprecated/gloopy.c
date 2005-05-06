@@ -9,7 +9,7 @@
 **
 ** DATE:         1999-02-23
 **
-** Last Change: $Id: gloopy.c,v 1.5 2005-05-05 04:12:35 ogren Exp $
+** Last Change: $Id: gloopy.c,v 1.6 2005-05-06 07:24:56 nizebulous Exp $
 **************************************************************************/
 
 #include <stdio.h>
@@ -24,7 +24,7 @@ extern char *gNumberChildren;        /* The Number of children (used for Loopy g
 
 /* Function prototypes */
 BOOLEAN MemberFR(POSITION pos);
-DFS_SetParents(POSITION,POSITION);
+void DFS_SetParents(POSITION,POSITION);
 void RemoveFR(POSITION);
 void InsertHeadFR(POSITION);
 void InsertTailFR(POSITION);
@@ -34,7 +34,12 @@ void InsertTailFR(POSITION);
 extern BOOLEAN Visited(POSITION position);
 extern void SetRemoteness(POSITION, int);
 extern void ExitStageRight();
-extern void StoreValueOfPositon(POSITION, VALUE);
+extern void StoreValueOfPosition(POSITION, VALUE);
+extern void BadElse(STRING);
+extern void UnMarkAsVisited(POSITION);
+extern void MarkAsVisited(POSITION);
+extern POSITION DoMove(POSITION,MOVE);
+extern void FreeMoveList(MOVELIST *);
 
 /************************************************************************
 **
@@ -246,7 +251,7 @@ POSITION position;
 **
 ************************************************************************/
 
-DFS_SetParents(parent,position)
+void DFS_SetParents(parent,position)
 POSITION parent,position;
 {				
   BOOLEAN Visited();
@@ -544,3 +549,6 @@ POSITION pos;
 }
 
 //$Log: not supported by cvs2svn $
+//Revision 1.5  2005/05/05 04:12:35  ogren
+//Started adding function prototypes in gloopy -Elmer
+//

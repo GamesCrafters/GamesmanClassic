@@ -59,22 +59,21 @@ If you have made a wrong move at any point,you can type u to revert back to the 
 
 
 STRING   kHelpOnYourTurn =
-"Move one of your pieces in one of the eight directions by selecting the letter and row\n\
-number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n\
-capture by approach the player must move towards the opponent piece so that it is\n\ 
-adjacent to the piece. Any enemy pieces that are in a continuous line with the piece\n\
-are also captured. To capture by withdrawal, move a piece that is adjacent to the\n\
-opponent's piece away from the opposing piece.";
+"Move one of your pieces in one of the eight directions by selecting the letter and row\n"
+"number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n"
+"capture by approach the player must move towards the opponent piece so that it is\n"
+"adjacent to the piece. Any enemy pieces that are in a continuous line with the piece\n"
+"are also captured. To capture by withdrawal, move a piece that is adjacent to the\n"
+"opponent's piece away from the opposing piece.";
 
 
 STRING   kHelpStandardObjective =
-"To capture all of your opponents pieces or to leave them in a position where they have\n\
-no more available moves.";
+"To capture all of your opponents pieces or to leave them in a position where they have\n"
+"no more available moves.";
 
 
 STRING   kHelpReverseObjective =
-"To get all of your pieces captured.\n\
-";
+"To get all of your pieces captured.\n";
 
 
 STRING   kHelpTieOccursWhen ="";

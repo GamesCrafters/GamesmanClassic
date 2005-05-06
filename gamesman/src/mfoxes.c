@@ -23,6 +23,7 @@
 **************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "deprecated/gsolve.h"
 
 #ifndef NO_GRAPHICS
@@ -143,6 +144,25 @@ char *gBlankFGString[] = { "-", "F", "G" };
 
 int gGameType = FOXESGEESETRAP;
 
+/* Function Prototypes */
+void InitializeC(void);
+void InitializeAdjacency(void);
+void InitializeOrder(void);
+void PrintPosition(POSITION,STRING,BOOLEAN);
+void ChangeInitialValues();
+void ChangeTurn();
+void PositionToBlankFG(POSITION,BlankFG*,BlankFG*);
+void MoveToSlots(MOVE,SLOT*,SLOT*);
+POSITION BlankFGToPosition(BlankFG*,BlankFG);
+MOVE SlotsToMove(SLOT,SLOT);
+void FillPosition(POSITION,int,int,BlankFG*,int);
+int ComputeC (int,int);
+int GetRandomNumber(int);
+extern void FreeMoveList(MOVELIST*);
+extern void HitAnyKeyToContinue();
+extern void ExitStageRight();
+extern void HelpMenus();
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -153,7 +173,7 @@ int gGameType = FOXESGEESETRAP;
 **
 ************************************************************************/
 
-InitializeDatabases()
+void InitializeDatabases()
 {
   GENERIC_PTR SafeMalloc();
   int i;
@@ -174,10 +194,10 @@ InitializeDatabases()
   TOTALPIECES = FOXES + GEESE;
 }
 
-FreeGame()
+void FreeGame()
 {}
 
-MinimalInitialize()
+void MinimalInitialize()
 {
   TOTALPIECES = FOXES + GEESE;
   InitializeC();
@@ -202,7 +222,7 @@ MinimalInitialize()
 ** 
 ************************************************************************/
 
-DebugMenu()
+void DebugMenu()
 {
 }
 
@@ -216,7 +236,7 @@ DebugMenu()
 ** 
 ************************************************************************/
 
-GameSpecificMenu() 
+void GameSpecificMenu() 
 {
   char GetMyChar();
   POSITION GetInitialPosition();
@@ -278,7 +298,7 @@ GameSpecificMenu()
 ** 
 ************************************************************************/
 
-SetTclCGameSpecificOptions(theOptions)
+void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
   BlankFG theBlankFG[BOARDSIZE], whosTurn;
@@ -287,7 +307,7 @@ int theOptions[];
   if (theOptions[0]) {
     /* foxes go first */
     PositionToBlankFG(gInitialPosition, theBlankFG, &whosTurn);
-    gInitialPosition = BlankFGToPosition(&theBlankFG, f);
+    gInitialPosition = BlankFGToPosition(theBlankFG, f);
    
   }
 
@@ -327,7 +347,7 @@ POSITION DoMove(thePosition, theMove)
   theBlankFG[toSlot] = theBlankFG[fromSlot];
   theBlankFG[fromSlot]=Blank;
 
-  return(BlankFGToPosition(&theBlankFG,(whosTurn == f ? g : f)));
+  return(BlankFGToPosition(theBlankFG,(whosTurn == f ? g : f)));
 
 }  
  
@@ -390,7 +410,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 **
 ************************************************************************/
 
-ChangeInitialValues() /* UNWRITTEN */
+void ChangeInitialValues() /* UNWRITTEN */
 {
   STRING input;
   BlankFG *theBlankFG;
@@ -431,7 +451,7 @@ ChangeInitialValues() /* UNWRITTEN */
   return;
 }
 
-ChangeTurn()
+void ChangeTurn()
 {
   char GetMyChar();
   BlankFG theBlankFG[BOARDSIZE], whosTurn;
@@ -465,7 +485,7 @@ ChangeTurn()
 **
 ************************************************************************/
 
-PrintComputersMove(computersMove,computersName)
+void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName;
 {
@@ -571,7 +591,7 @@ BOOLEAN CantMove(position)
 **
 ************************************************************************/
 
-PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
@@ -837,7 +857,7 @@ MOVE ConvertTextInputToMove(input)
 **
 ************************************************************************/
 
-PrintMove(theMove)
+void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT fromSlot, toSlot;
@@ -867,7 +887,7 @@ PrintMove(theMove)
 **
 ************************************************************************/
 
-PositionToBlankFG(thePos,theBlankFG,whosTurn)
+void PositionToBlankFG(thePos,theBlankFG,whosTurn)
      POSITION thePos;
      BlankFG *theBlankFG, *whosTurn;
 {
@@ -892,8 +912,8 @@ PositionToBlankFG(thePos,theBlankFG,whosTurn)
   piecesPos = thePos % C[BOARDSIZE][TOTALPIECES];
   insidePos = thePos / C[BOARDSIZE][TOTALPIECES];
 
-  FillPosition(piecesPos, BOARDSIZE, TOTALPIECES, &tempBlankFG1, 0);
-  FillPosition(insidePos, TOTALPIECES, FOXES, &tempBlankFG2, 0);
+  FillPosition(piecesPos, BOARDSIZE, TOTALPIECES, tempBlankFG1, 0);
+  FillPosition(insidePos, TOTALPIECES, FOXES, tempBlankFG2, 0);
 
   for( i=0; i<BOARDSIZE; i++ )
     if( tempBlankFG1[i]==g ) {
@@ -924,7 +944,7 @@ PositionToBlankFG(thePos,theBlankFG,whosTurn)
 **
 ************************************************************************/
 
-FillPosition (thePos, totalPlaces, numberPieces, theBlankFG, startEntry)
+void FillPosition (thePos, totalPlaces, numberPieces, theBlankFG, startEntry)
      POSITION thePos;
      int totalPlaces, numberPieces;
      BlankFG *theBlankFG;
@@ -966,7 +986,7 @@ FillPosition (thePos, totalPlaces, numberPieces, theBlankFG, startEntry)
 **
 ************************************************************************/
 
-MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot)
      MOVE theMove;
      SLOT *fromSlot, *toSlot;
 {
@@ -1057,7 +1077,7 @@ POSITION BlankFGToPosition(theBlankFG,whosTurn)
 **
 ************************************************************************/
 
-InitializeC (void) {
+void InitializeC (void) {
   int i,j;
 
   for( i=0; i<MAXBOARDSIZE; i++ )
@@ -1082,8 +1102,8 @@ InitializeC (void) {
 **
 ************************************************************************/
 
-int ComputeC (int n, int k) {
 
+int ComputeC (int n, int k) {
   if( C[n][k] == -1 )      /* the value C(n,k) is not yet computed */
     if( (k==0) || (n==k) ) /* If k=0 or n=k, then C(n,k)=1 */
       C[n][k]=1;
@@ -1107,7 +1127,7 @@ int ComputeC (int n, int k) {
 **
 ************************************************************************/
 
-InitializeAdjacency (void) {
+void InitializeAdjacency (void) {
   int i, j;
   
   for( i=0; i<MAXBOARDSIZE; i++ )
@@ -1138,7 +1158,7 @@ InitializeAdjacency (void) {
 **
 ************************************************************************/
 
-InitializeOrder (void) {
+void InitializeOrder (void) {
   int i;
 
   for( i=0; i<ROWS; i++ ) {
