@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.66 2005-05-06 05:47:46 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.67 2005-05-06 18:04:15 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1153,47 +1153,36 @@ proc SetToMoveString { string } {
 proc SetupHelpFrame { f width } {
     global kDocumentFont kLabelFont
 
-	## Title Message (summary)
+    ## Title Message (summary)
     message $f.summary -width $width -font $kLabelFont -text "Welcome to GAMESMAN 3.0 (Gold)"
 	
-	pack $f.summary -side top
+    pack $f.summary -side top
 
-	## Create scrollpane, scrollbar
-	set sp $f.scrollpane
+    ## Create scrollpane, scrollbar
+    set sp $f.scrollpane
 	
-	canvas $sp 
-    #-scrollregion {0 0 30 800} \
-	#	-yscrollcommand "$f.vscroll set"
+    canvas $sp 
+    #-scrollregion {0 0 0 400 } -yscrollcommand "$f.vscroll set"
 	 
-	#scrollbar $f.vscroll -orient vertical -command "$sp yview"
+    #scrollbar $f.vscroll -orient vertical -command "$sp yview"
 
-   	#pack $f.vscroll -side right -fill y
-	pack $sp -side top -fill both -expand y
+    #pack $f.vscroll -side right -fill y
+    pack $sp -side top -fill both -expand y
 
-	## Create Image of Skin in Scrollpane
-	global kRootDir gSkinsExt gSkinsDir gSkinsRootDir
-
-	image create photo Screenshot -file [format %s%s/%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
-	$sp create image [expr $width / 2] 100 -image Screenshot
-
- 	## Create Help messages in the Scrollpane
-	$sp create text 0 200 -anchor nw -width $width -font $kDocumentFont \
-		-text "To start a New Game, click the NEW GAME button on the Toolbar."
-	
-	$sp create text 0 220 -anchor nw -width $width -font $kDocumentFont \
-		-text "To change the rules of this game, click the RULES button on the Toolbar."
-
-	$sp create text 0 240 -anchor nw -width $width -font $kDocumentFont \
-		-text "Clicking the ABOUT button displayes a brief introduction about GamesCrafters."
-
-	$sp create text 0 260 -anchor nw -width $width -font $kDocumentFont \
-		-text "To change the skin for GAMESMAN, click the SKINS button on the Toolbar."
-
-	$sp create text 0 280 -anchor nw -width $width -font $kDocumentFont \
-		-text "Clicking the Help button brings you to this window."
-
-	$sp create text 0 300 -anchor nw -width $width -font $kDocumentFont \
-		-text "To quit the game and exit GAMESMAN, click the QUIT button on the Toolbar."
+    ## Create Image of Skin in Scrollpane
+    global kRootDir gSkinsExt gSkinsDir gSkinsRootDir
+    
+    image create photo Screenshot -file [format %s%s/%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
+    $sp create image [expr $width / 2] 100 -image Screenshot
+    
+    ## Create Help messages in the Scrollpane
+    $sp create text 0 200 -anchor nw -width $width -font $kDocumentFont \
+	-text "To start a New Game, click the NEW GAME button on the Toolbar.\
+               \nTo change the rules of this game, click the RULES button on the Toolbar.\
+	       \nClicking the ABOUT button displayes a brief introduction about GamesCrafters.\
+	       \nTo change the skin for GAMESMAN, click the SKINS button on the Toolbar.\
+	       \nClicking the Help button brings you to this window.\
+	       \nTo quit the game and exit GAMESMAN, click the QUIT button on the Toolbar."
 
 }
 
