@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.65 2005-04-27 22:00:31 grenrock Exp $
+# $Id: InitWindow.tcl,v 1.66 2005-05-06 05:47:46 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1161,12 +1161,13 @@ proc SetupHelpFrame { f width } {
 	## Create scrollpane, scrollbar
 	set sp $f.scrollpane
 	
-	canvas $sp -scrollregion {0 0 30 800} \
-		-yscrollcommand "$f.vscroll set"
+	canvas $sp 
+    #-scrollregion {0 0 30 800} \
+	#	-yscrollcommand "$f.vscroll set"
 	 
-	scrollbar $f.vscroll -orient vertical -command "$sp yview"
+	#scrollbar $f.vscroll -orient vertical -command "$sp yview"
 
-   	pack $f.vscroll -side right -fill y
+   	#pack $f.vscroll -side right -fill y
 	pack $sp -side top -fill both -expand y
 
 	## Create Image of Skin in Scrollpane
