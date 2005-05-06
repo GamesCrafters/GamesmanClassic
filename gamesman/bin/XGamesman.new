@@ -6,6 +6,7 @@ proc main {} {
     wm title . "GAMESMAN"
     wm geometry . =800x600
 
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
 
     set theBitmapDir "../bitmaps"
     set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
@@ -49,16 +50,15 @@ proc main {} {
     pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
-    CreateGamePages $home $thePrograms $theStrings $theBitmapDir
-    CreateMenuButtons $theBitmapDir $thePrograms $theStrings $theGuiTypes $menu $home
+    CreateGamePages $home
+    CreateMenuButtons $menu $home
     CreateHomeButton $leftBottom $home $rightBottom.buttons
     CreateLaunchButtons $rightBottom.buttons
 }
 
-proc CreateMenuButtons { theBitmapDir thePrograms theStrings theGuiTypes frame home} {
-    set theNumberOfPrograms [llength $thePrograms]
+proc CreateMenuButtons { frame home } {
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set theProgram "./Xm[lindex $thePrograms $i]"
 	set gameName [lindex $thePrograms $i]
 	set theString [lindex $theStrings $i]
 	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
@@ -78,9 +78,24 @@ proc CreateMenuButtons { theBitmapDir thePrograms theStrings theGuiTypes frame h
 		-width 120 \
 		-height 50 \
 		-anchor e \
-		-command "SetLaunchButtons .rightSide.rightBottom.buttons [list $thePrograms] $i; \
-			$home itemconfigure viewer -window $home.$gameName"
+		-command "SetLaunchButtons .rightSide.rightBottom.buttons $i; \
+			pack forget $home.main; \
+			pack $home.$gameName -fill both -expand 1 -anchor nw; \
+			SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName; \
+			SetMenuButtons $frame $home $home.$gameName"
 	pack $frame.gameBut$i -side top -anchor ne
+    }
+}
+proc SetMenuButtons { frame home empty } {
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set gameName [lindex $thePrograms $i]
+	$frame.gameBut$i configure \
+		-command "SetLaunchButtons .rightSide.rightBottom.buttons $i; \
+			pack forget $empty; \
+			pack $home.$gameName -fill both -expand 1 -anchor nw; \
+			SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName; \
+			SetMenuButtons $frame $home $home.$gameName"
     }
 }
 
@@ -110,21 +125,28 @@ proc CreateLaunchButtons { rightBottom } {
     pack $rightBottom -anchor center
 }
 
-proc SetLaunchButtons { rightBottom thePrograms i } {
-    set theNumberOfPrograms [llength $thePrograms]
+proc SetLaunchButtons { rightBottom i } {
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
     set theProgram "./Xm[lindex $thePrograms $i]"
     set gameName [lindex $thePrograms $i]
     set prevGameName [lindex $thePrograms [expr $i - 1]]
     set nextGameName [lindex $thePrograms [expr $i + 1]]
     set home .rightSide.home
+    set frame .leftSide.menu
     if { $i == 0 } {
 	$rightBottom.prev configure -state normal \
-		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $theNumberOfPrograms - 1]; \
-			$home itemconfigure viewer -window $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]"
+		-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom [expr $theNumberOfPrograms - 1]; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]; \
+			SetMenuButtons $frame $home $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]; \
+			pack $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]] -fill both -expand 1 -anchor nw"
     } else {
 	$rightBottom.prev configure -state normal \
-		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $i - 1]; \
-			$home itemconfigure viewer -window $home.$prevGameName"
+		-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom [expr $i - 1]; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$prevGameName; \
+			SetMenuButtons $frame $home $home.$prevGameName; \
+			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
     }
 
     $rightBottom.playGui configure \
@@ -134,34 +156,47 @@ proc SetLaunchButtons { rightBottom thePrograms i } {
 
     if { $i == [expr $theNumberOfPrograms - 1] } {
 	$rightBottom.next configure -state normal \
-		-command "SetLaunchButtons $rightBottom [list $thePrograms] 0; \
-			$home itemconfigure viewer -window $home.[lindex $thePrograms 0]"
+		-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom 0; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms 0]; \
+			SetMenuButtons $frame $home $home.[lindex $thePrograms 0]; \
+			pack $home.[lindex $thePrograms 0] -fill both -expand 1 -anchor nw"
     } else {
 	$rightBottom.next configure -state normal \
-		-command "SetLaunchButtons $rightBottom [list $thePrograms] [expr $i + 1]; \
-			$home itemconfigure viewer -window $home.$nextGameName"
+		-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom [expr $i + 1]; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$nextGameName; \
+			SetMenuButtons $frame $home $home.$nextGameName; \
+			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
     }
 }
 
 proc CreateHomeButton { frame home rightBottom } {
     button $frame.home -text "Home" -bg gold \
-	-command "$home itemconfigure viewer -window $home.main; \
+	-command "pack $home.main -fill both -expand 1 -anchor nw; \
+			SetMenuButtons .leftSide.menu $home $home.main; \
 			$rightBottom.prev configure -state disabled; \
 			$rightBottom.playGui configure -state disabled; \
 			$rightBottom.playText configure -state disabled; \
 			$rightBottom.next configure -state disabled"
     pack $frame.home -anchor center
 }
+proc SetHomeButton { frame home rightBottom empty } {
+    $frame.home configure \
+	-command "pack forget $empty; \
+			SetMenuButtons .leftSide.menu $home $home.main; \
+			pack $home.main -fill both -expand 1 -anchor nw; \
+			$rightBottom.prev configure -state disabled; \
+			$rightBottom.playGui configure -state disabled; \
+			$rightBottom.playText configure -state disabled; \
+			$rightBottom.next configure -state disabled"
+}
 
-proc CreateGamePages { frame thePrograms theStrings theBitmapDir } {
-    set theNumberOfPrograms [llength $thePrograms]
+proc CreateGamePages { frame } {
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+
     set width [expr 800 - 164]
     set height [expr 600 - 29]
-
-    ##### window displaying content of main frame ####
-    $frame create window 0 0 -width $width -height $height \
-	-tags [list viewer] -anchor nw
-    ## end window
 
     ##### Starting Page ########
     set bgcolor blue
@@ -320,15 +355,12 @@ Select a game from the sidebar to learn more about it." -anchor nw -background $
 		-foreground $fontcolor -background $bgcolor -anchor nw
 	message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -anchor nw
-	pack $frame.$gameName.title -anchor center -fill x
-	pack $frame.$gameName.photo
-	pack $frame.$gameName.desc -anchor nw -fill x
-	pack $frame.$gameName.rules -anchor nw -fill x
-	pack $frame.$gameName -fill both -expand 1 -anchor nw
 
-	$frame itemconfigure viewer -window $frame.$gameName
+	pack $frame.$gameName.title -anchor n -fill x -expand 0
+	pack $frame.$gameName.photo -anchor n
+	pack $frame.$gameName.desc -anchor nw -fill x -expand 0
+	pack $frame.$gameName.rules -anchor nw -fill x -expand 0
     }
-    $frame itemconfigure viewer -window $frame.main
 }
 
 ### Call the main procedure.
