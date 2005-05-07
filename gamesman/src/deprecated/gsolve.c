@@ -70,7 +70,7 @@
 **                  bug created when undo was chosen with 2 human players
 ** 05-15-95 1.0   : Final release code for M.S.
 **
-** Last Change: $Id: gsolve.c,v 1.2 2005-05-05 03:25:12 ogren Exp $
+** Last Change: $Id: gsolve.c,v 1.3 2005-05-07 00:22:38 hevanm Exp $
 **************************************************************************/
  
 #include <stdio.h>
@@ -2363,7 +2363,7 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
 {
 
   //Prototypes
-  void PrintPosition(POSITION, STRING);
+  void PrintPosition(POSITION, STRING, int);
 
   MOVE ConvertTextInputToMove(), tmpMove;
   BOOLEAN ValidTextInput();
@@ -2399,10 +2399,10 @@ USERINPUT HandleDefaultTextInput(thePosition, theMove, playerName)
     case 'H': case 'h':
       HelpMenus();
       printf("");
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, kHumansTurn);
       break;
     case 'r': case 'R':
-      PrintPosition(thePosition, playerName);
+      PrintPosition(thePosition, playerName, kHumansTurn);
       break;
     case 's': case 'S':
       PrintValueEquivalentMoves(thePosition);
@@ -2489,3 +2489,6 @@ void GetMyString(name, size, eatFirstChar, putCarraigeReturnBack)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.2  2005/05/05 03:25:12  ogren
+//Added function prototypes to gsolve.c -Elmer
+//
