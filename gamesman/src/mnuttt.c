@@ -562,12 +562,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
+  char player_char = (whoseMove(position) == PLAYER1_TURN)?PLAYER1_PIECE:PLAYER2_PIECE;
     
   for (;;) {
     /***********************************************************
      * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
      ***********************************************************/
-    printf("%8s's move [(undo)/<row><col> <dir>] : ", playersName);
+    printf("%8s's (%c) move [(undo)/<row><col> <dir>] : ", playersName, player_char);
 	
     input = HandleDefaultTextInput(position, move, playersName);
 	
