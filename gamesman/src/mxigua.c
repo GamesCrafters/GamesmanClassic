@@ -104,7 +104,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
@@ -123,7 +123,7 @@ STRING   kHelpTextInterface    =
 "Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time)."; 
 
 STRING   kHelpOnYourTurn =
-"Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by '/,|,\\'.";
+"Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
 
 STRING   kHelpStandardObjective =
 "The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
@@ -1146,7 +1146,6 @@ void PrintPosition (position, playersName, usersTurn)
 			break;
 	}
 	SafeFree(toprint);
-	SafeFree(prediction);
 } 
 
 
@@ -1478,7 +1477,7 @@ void GameSpecificMenu ()
 		printf("\td)\tChange Boar(d) Size (Currently: %d)\n",maxsize);
 		printf("\tn)\tChange (N)umber of Pieces (Currently: %d)\n",numpieces);
 		printf("\n\n");
-		printf("\tq)\t(Q)uit to main menu\n\n\n");
+		printf("\tb)\t(B)ack to main menu\n\n\n");
 		/* printf("\tr)\tChange (R)ule Type (Currently: )\n"); */
 		/* printf("h - Handicapping (ON/OFF)\n"); */
 		/* printf("w - Win Style (Territory/Captures/Both)\n"); */
@@ -1522,7 +1521,7 @@ void GameSpecificMenu ()
 			case 'W':
 				printf("Not this time, sorry.\n");
 				break;
-			case 'Q':
+			case 'B':
 				return;
 			default:
 				printf("You did not select a valid option.\n");
