@@ -584,6 +584,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf(" %c", col + 'a');
   }
   printf("\n\n");
+  printf("%s\n\n", GetPrediction(position, playersName, usersTurn));
 }
 
 
