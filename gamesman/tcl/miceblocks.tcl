@@ -31,26 +31,6 @@ proc factorial { n } {
     return $result
 }
 
-# John's global vars
-
-set csize 500
-set rows 5
-set Boardsize [sum $rows]
-# set WinningCondition $Standard
-
-# Stuff taken from miceblocks.c
-
-set FALSE 0
-set TRUE 1
-set Standard 0
-set TallyBlocks 1
-set TallyThrees 2
-set X 99999
-set O 9999
-set MAX_BOARD_SIZE 6
-set MIN_BOARD_SIZE 2
-set NUM_OPTIONS 3
-
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -73,15 +53,35 @@ proc GS_InitGameSpecific {} {
     set gInitialPosition 3492116
     set gPosition $gInitialPosition
 
-    global WinningCondition TRUE FALSE Standard TallyBlocks TallyThrees
-    set winningString ""
-    if { $WinningCondition == $TallyBlocks } {
-	set winningString "blocks in a row"
-    } else { if { $WinningCondition == $TallyThrees } {
-	set winningString "three's in a row"
-    } else { set winningString "points (Three points for every string of three and two additional points for every additional block.)" } } 
+    global kMinRows kMaxRows
+    set kMinRows 2
+    set kMaxRows 6
+
+    global kNumOptions
+    set kNumOptions 3
+
+    global kFALSE kTRUE
+    set kFALSE 0
+    set kTRUE 1
+
+    global kStandard kTallyBlocks kTallyThrees
+    set kStandard 0
+    set kTallyBlocks 1
+    set kTallyThrees 2
+
+    global gCSize gRows gRowsOption gBoardsize
+    set gCSize 500
+    set gRows [expr $gRowsOption + $kMinRows]
 
     ### Set the strings to be used in the Edit Rules
+
+    global gWinningCondition
+    set winningString ""
+    if { $gWinningCondition == $kTallyBlocks } {
+	set winningString "blocks in a row"
+    } else { if { $gWinningCondition == $kTallyThrees } {
+	set winningString "three's in a row"
+    } else { set winningString "points (Three points for every string of three and two additional points for every additional block.)" } } 
 
     global kStandardString kMisereString
     set kStandardString "The player with the most $winningString WINS"
@@ -159,8 +159,7 @@ proc GS_ColorOfPlayers {} {
 # Returns: nothing
 #############################################################################
 proc GS_SetupRulesFrame { rulesFrame } {
-    global Standard TallyBlocks TallyThrees
-    global cv
+    global kStandard kTallyBlocks kTallyThrees
 
     set standardRule \
 	[list \
@@ -177,33 +176,65 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Three's in row" \
 	    ]
 
-#     set boardSizeRule \
+# VERSION WITH BOARDSIZERULE
+
+#     set standardRule \
 # 	[list \
-# 	      "How many blocks should be on the bottom row?" \
-# 	      "2" \
-# 	      "3" \
-# 	      "4" \
-# 	      "5" \
-# 	      "6" \
-# 	     ]
+# 	     "What would you like your winning condition to be:" \
+# 	     "Standard" \
+# 	     "Misere" \
+# 	    ]
+
+#     set winConditionRule \
+# 	[list \
+# 	     "The winner is the player with the most: " \
+# 	     "Points" \
+# 	     "Blocks in row" \
+# 	     "Three's in row" \
+# 	    ]
+
+#       set boardSizeRule \
+#   	[list \
+#   	      "How many blocks should be on the bottom row?" \
+#   	      "2" \
+#   	      "3" \
+#   	      "4" \
+#   	      "5" \
+#   	      "6" \
+#   	     ]
 
     # List of all rules, in some order
-    set ruleset [list $standardRule $winConditionRule] 
-    # $boardSizeRule
+
+    set ruleset [list $standardRule $winConditionRule]
+
+# VERSION WITH BOARDSIZERULE
+
+#     set ruleset [list $standardRule $winConditionRule $boardSizeRule]
 
     # Declare and initialize rule globals
-    global gMisereGame
+
+    global gMisereGame gWinningCondition gRowsOption
     set gMisereGame 0
+    set gWinningCondition 0 
+    set gRowsOption 3 
 
-    global WinningCondition
-    set WinningCondition $Standard
+# VERSION WITH BOARDSIZERULE
 
-#     global rows
-#     set rows 5
+#     global gMisereGame gWinningCondition gRowsOption
+#     set gMisereGame 0
+#     set gWinningCondition 0  
+#     # 0 should be $kStandard, but cannot use variable yet
+#     set gRowsOption 3
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "WinningCondition"]
-    # "rows"
+
+    set ruleSettingGlobalNames \
+	[list "gMisereGame" "gWinningCondition"]
+
+# VERSION WITH BOARDSIZERULE
+
+#     set ruleSettingGlobalNames \
+# 	[list "gMisereGame" "gWinningCondition" "gRowsOption"]
 
     global kLabelFont
     set ruleNum 0
@@ -238,18 +269,19 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global csize rows Boardsize
-    global WinningCondition gMisereGame MIN_BOARD_SIZE NUM_OPTIONS \
-	Standard TallyBlocks TallyThrees TRUE FALSE
-    set option [expr $rows - $MIN_BOARD_SIZE]
-    set option [expr $option * $NUM_OPTIONS]
-    if { $WinningCondition == $TallyBlocks } { 
+    global gCSize gRowsOption gBoardsize gWinningCondition \
+	gRows gMisereGame kMinRows kMaxRows kNumOptions \
+	kStandard kTallyBlocks kTallyThrees kTRUE kFALSE
+    
+    set option [expr $gRows - $kMinRows]
+    set option [expr $option * $kNumOptions]
+    if { $gWinningCondition == $kTallyBlocks } { 
 	set option [expr $option+1] 
-    } elseif { $WinningCondition == $TallyThrees } { 
+    } elseif { $gWinningCondition == $kTallyThrees } { 
 	    set option [expr $option+2] 
     }
     set option [expr $option * 2]
-    if { $gMisereGame == $TRUE } { set option [expr $option+1] }
+    if { $gMisereGame == $kTRUE } { set option [expr $option+1] }
     set option [expr $option+1]
     return $option
 #     # TODO: Needs to change with more variants
@@ -272,24 +304,22 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    global csize rows Boardsize
-    global WinningCondition gMisereGame MIN_BOARD_SIZE NUM_OPTIONS \
-	Standard TallyBlocks TallyThrees TRUE FALSE
+    global gCSize gRows gBoardsize gWinningCondition gMisereGame \
+	gMisereGame kMinRows kMaxRows kNumOptions kStandard \
+	kTallyBlocks kTallyThrees kTRUE kFALSE
     set option [expr $option-1]
-    set gMisereGame $FALSE
-    if { ($option % 2) != 0 } { set gMisereGame $TRUE }
+    set gMisereGame $kFALSE
+    if { ($option % 2) != 0 } { set gMisereGame $kTRUE }
     set option [expr $option / 2]
-    set tmp [expr $option % $NUM_OPTIONS]
+    set tmp [expr $option % $kNumOptions]
     if { $tmp == 0 } { 
-	set WinningCondition $Standard 
+	set gWinningCondition $kStandard 
     } elseif { $tmp == 1 } { 
-	set WinningCondition $TallyBlocks 
+	set gWinningCondition $kTallyBlocks 
     } elseif { $tmp == 2 } { 
-	set WinningCondition $TallyThrees 
+	set gWinningCondition $kTallyThrees 
     }
-    set option [expr $options / $NUM_OPTIONS]
-    set rows [expr $option + $MIN_BOARD_SIZE]
-    set Boardsize [sum $rows]
+    set option [expr $option / $kNumOptions]
     #     # TODO: Needs to change with more variants
     #     global gMisereGame
     #     set option [expr $option - 1]
@@ -306,24 +336,24 @@ proc GS_SetOption { option } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-    global csize rows Boardsize
-    set Boardsize [sum $rows]
+    global gCSize gRows gBoardsize
+    set gBoardsize [sum $gRows]
 
     # you may want to start by setting the size of the canvas; this line 
     # isn't necessary
-    $c configure -width $csize -height $csize
+    $c configure -width $gCSize -height $gCSize
 
-    set cols $rows
-    set bsize [expr $csize * .90]
-    set width [expr $bsize / $rows]
+    set cols $gRows
+    set bsize [expr $gCSize * .90]
+    set width [expr $bsize / $gRows]
     set hside $width
     set hoffs [expr $width * .70]
     set xincr [expr $width / 2]
     set yincr [expr .5 * ($hside - $hoffs)]
-    set xoffset [expr ($csize - ($rows * $width)) / 2]
-    set yoffset [expr ($csize - ($rows * $width)) / 2]
+    set xoffset [expr ($gCSize - ($gRows * $width)) / 2]
+    set yoffset [expr ($gCSize - ($gRows * $width)) / 2]
     set cnt 0
-    for {set j [expr $rows - 1]} {$j >= 0} {set j [expr $j - 1]} {
+    for {set j [expr $gRows - 1]} {$j >= 0} {set j [expr $j - 1]} {
 	for {set i 0} {$i < $cols} {set i [expr $i + 1]} {
 	    set cnt [expr $cnt+1]
 	    MakeMoveIndicator $c \
@@ -353,44 +383,14 @@ proc GS_Initialize { c } {
 		[expr $hside / 2] \
 		[expr $hoffs / 2] \
 		$cnt
-# 	    $c create oval [expr $i * $width + $xoffset + .4*$width] \
-# 		[expr $j * $width + $yoffset + .4*$width] \
-# 		[expr ($i+1) * $width + $xoffset - .4*$width] \
-# 		[expr ($j+1) * $width + $yoffset - .4*$width] \
-# 		-fill white -outline "" \
-# 		-tag [list moveindicators mi-$cnt]
-# 	    $c create rect [expr $i * $width + $xoffset] \
-# 		[expr $j * $width + $yoffset] \
-# 		[expr ($i+1) * $width + $xoffset] \
-# 		[expr ($j+1) * $width + $yoffset] \
-# 		-fill white -tag X$cnt
-# 	    $c create rect [expr $i * $width + $xoffset] \
-# 		[expr $j * $width + $yoffset] \
-# 		[expr ($i+1) * $width + $xoffset] \
-# 		[expr ($j+1) * $width + $yoffset] \
-# 		-fill white -tag O$cnt
-# 	    MakeX $c [expr $i * $width + $xoffset] \
-# 		[expr $j * $width + $yoffset] $width $cnt
-# 	    MakeO $c [expr $i * $width + $xoffset] \
-# 		[expr $j * $width + $yoffset] $width $cnt
 	}
 	set cols [expr $cols-1]
 	set xoffset [expr $xoffset + $xincr]
 	set yoffset [expr $yoffset + $yincr]
     }
-    $c create rectangle 0 0 $csize $csize -fill "light gray" -tag table
+    $c create rectangle 0 0 $gCSize $gCSize -fill "light gray" -tag table
     $c lower pieces table
-#     $c raise X1
-#     $c raise O6
-#     $c raise mi-2
-#     $c itemconfigure Block6 -fill red
-#     GS_ShowMoves $c value 3492116 { { 1 Win } { 2 Lose } { 3 Tie } }
-#     puts [C_GenericUnhash 3492116 15]
-#     GS_DrawPosition $c 3492116
-#     set john [sum 4]
-#     GS_DrawPosition $c 0
-#     puts [C_GenericUnhash 0 15]
-#     $c raise X1 base
+    $c raise base
     update idletasks
 }
 
@@ -409,8 +409,7 @@ proc MakeMoveIndicator { c x y w h1 h2 cnt } {
     $c create oval [expr $x - $h3] [expr $y - $h3] \
 	[expr $x + $h3] [expr $y + $h3] -fill cyan -outline "" \
 	-tag [list pieces moveindicators movedot-$cnt mi-$cnt]
-    $c bind movedot-$cnt <ButtonRelease-1> \
-	"ReturnFromHumanMove $cnt"
+    $c bind mi-$cnt <ButtonRelease-1> "ReturnFromHumanMove $cnt"
 }
 
 proc MakeXBlock { c x y w h1 h2 cnt } {
@@ -422,7 +421,7 @@ proc MakeXBlock { c x y w h1 h2 cnt } {
 	[expr $x + $w] [expr $y + $h1] \
 	[expr $x + $w] [expr $y - $h1] \
 	$x [expr $y - $h2] \
-	-fill "light blue" -joinstyle round \
+	-fill [lindex [GS_ColorOfPlayers] 0] -joinstyle round \
 	-outline "black" -width 2\
 	-tag [list pieces X$cnt]
 }
@@ -436,25 +435,10 @@ proc MakeOBlock { c x y w h1 h2 cnt } {
 	[expr $x + $w] [expr $y + $h1] \
 	[expr $x + $w] [expr $y - $h1] \
 	$x [expr $y - $h2] \
-	-fill "dark gray" -joinstyle round \
+	-fill [lindex [GS_ColorOfPlayers] 1] -joinstyle round \
 	-outline "black" -width 2\
 	-tag [list pieces O$cnt]
 }
-
-# proc MakeX { c x y w cnt } {
-#     $c create line [expr $x  + $w * 0.10] [expr $y + $w * 0.10] \
-# 	[expr $x + $w * 0.90] [expr $y + $w * 0.90] -width 10 \
-# 	-fill blue -capstyle round -tag X$cnt
-#     $c create line [expr $x  + $w * 0.10] [expr $y + $w * 0.90] \
-# 	[expr $x + $w * 0.90] [expr $y + $w * 0.10] -width 10 \
-# 	-fill blue -capstyle round -tag X$cnt
-# }
-
-# proc MakeO { c x y w cnt } {
-#     $c create oval [expr $x  + $w * 0.10] [expr $y + $w * 0.10] \
-# 	[expr $x + $w * 0.90] [expr $y + $w * 0.90] -width 10 \
-# 	-outline red -tag O$cnt
-# }
 
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure 
@@ -479,13 +463,13 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global csize rows Boardsize
-    set Boardsize [sum $rows]
+    global gCSize gRows gBoardsize
+    set gBoardsize [sum $gRows]
 
     $c lower pieces table
-    set pieceStr [string range [C_GenericUnhash $position $Boardsize] \
-		      0 [expr $Boardsize-1]]
-    for {set slot 0} {$slot < $Boardsize} {set slot [expr $slot+1]} {
+    set pieceStr [string range [C_GenericUnhash $position $gBoardsize] \
+		      0 [expr $gBoardsize-1]]
+    for {set slot 0} {$slot < $gBoardsize} {set slot [expr $slot+1]} {
 	if {[string compare [string index $pieceStr $slot] "x"] == 0} {
 	    $c raise X[expr $slot+1]
 	} elseif {[string compare [string index $pieceStr $slot] "o"] == 0} {
@@ -504,6 +488,7 @@ proc GS_DrawPosition { c position } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    $c raise table
     GS_DrawPosition $c $position
 }
 
@@ -566,7 +551,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } elseif {$value == "Win"} {
-		set color red 
+		set color red4
 	    } else {
 		set color cyan
 		BadElse GS_ShowMoves
@@ -647,3 +632,4 @@ proc GS_UndoGameOver { c position } {
     ### TODO if needed
 
 }
+
