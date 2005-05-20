@@ -344,7 +344,7 @@ void InitializeGame ()
   gBoardlength = gBoardwidth * gBoardwidth;
   int pieces_array[] = {WHITE, 1, gBoardwidth, BLACK, 1, gBoardwidth, BLANK, gBoardlength - (gBoardwidth * 2), gBoardlength - 2, -1 };
   gNumberOfPositions = generic_hash_init(gBoardlength, pieces_array, NULL);
-  gBoard = (char*)malloc(sizeof(char) * (gBoardlength + 1));
+  gBoard = (char*)SafeMalloc(sizeof(char) * (gBoardlength + 1));
   for(i = 0; i < gBoardwidth; i++) {
     gBoard[i] = BLACK;
   }
