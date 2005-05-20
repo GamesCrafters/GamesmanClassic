@@ -315,14 +315,14 @@ proc GS_Initialize { c } {
     # lowers all the arrows
     $c lower arrow
 
-    # raise starting blue pieces
-    for {set b 0} {$b < $gBoardSize} {set b [expr $b + 1]} {
-	$c raise blue$b
+    # raise starting red pieces
+    for {set r 0} {$r < $gBoardSize} {set r [expr $r + 1]} {
+	$c raise red$r
     }
 
-    # raise starting red pieces
-    for {set r [expr $gBoardSize*$gBoardSize - $gBoardSize]} {$r < [expr $gBoardSize*$gBoardSize]} {set r [expr $r + 1]} {
-	$c raise red$r
+    # raise starting blue pieces
+    for {set b [expr $gBoardSize*$gBoardSize - $gBoardSize]} {$b < [expr $gBoardSize*$gBoardSize]} {set b [expr $b + 1]} {
+	$c raise blue$b
     }
 
     #set settingup 0
@@ -362,9 +362,9 @@ proc GS_DrawPosition { c position } {
     # raises appropriate pieces
     for {set i 0} {$i < [expr $gBoardSize * $gBoardSize]} {set i [expr $i + 1]} {
 	if {[string compare [string index $pieceString $i] "w"] == 0} {
-	    $c raise red$i
-	} elseif {[string compare [string index $pieceString $i] "b"] == 0} {
 	    $c raise blue$i
+	} elseif {[string compare [string index $pieceString $i] "b"] == 0} {
+	    $c raise red$i
 	} else {}
     }
 }
@@ -423,9 +423,9 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set pieceString [string range [C_GenericUnhash $oldPosition [expr $gBoardSize * $gBoardSize]] 0 [expr $gBoardSize*$gBoardSize-1]]
 
     if {[string compare [string index $pieceString $arrayNum] "w"] == 0} {
-	set pieceToMove red$arrayNum
-    } elseif {[string compare [string index $pieceString $arrayNum] "b"] == 0} {
 	set pieceToMove blue$arrayNum
+    } elseif {[string compare [string index $pieceString $arrayNum] "b"] == 0} {
+	set pieceToMove red$arrayNum
     }
 
     #start moving the piece in the direction
