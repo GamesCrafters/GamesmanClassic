@@ -92,7 +92,7 @@ typedef int  BOOLEAN;
 
 typedef enum value_enum
 {
-	win, lose, tie, undecided, visited  /* visited = 4 */
+	win, lose, tie, undecided //, visited  should never have been here
 }
 VALUE;
 
