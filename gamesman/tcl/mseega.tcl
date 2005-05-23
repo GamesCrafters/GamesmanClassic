@@ -304,16 +304,16 @@ proc GS_DrawPosition { c position } {
     # $c raise labelrubix base
     set a(0) 0
     set counter [expr $counter + 1] 
-puts positions
-puts $gInitialPosition
-puts $position
+#puts positions
+#puts $gInitialPosition
+#puts $position
     set pieceString [string range [C_GenericUnhash $position $BOARDARRAYSIZE] 0 [expr $BOARDARRAYSIZE - 1]]
     #set a $pieceString
     
     for {set i 0} {$i < $BOARDSIZE} {incr i} {
 	if {[string compare [string index $pieceString $i] "x"] == 0 } {
-	    puts x
-	    puts $i
+	    #puts x
+	    #puts $i
 	    make_horizOval $c [calc_x $i] [calc_y $i] $colorX $counter    
 	} elseif {[string compare [string index $pieceString $i] "o"] == 0} {
 	    make_VertOval $c [calc_x $i] [calc_y $i] $colorO $counter
@@ -352,7 +352,7 @@ proc make_VertOval {c x y color tag} {
 }
 
 proc drawDot {c x y color tag} {
-    $c create oval [expr $x - 10] [expr $y - 10] [expr $x + 10] [expr $y + 10] -fill $color -tag dot$tag
+    $c create oval [expr $x - 18] [expr $y - 18] [expr $x + 18] [expr $y + 18] -fill $color -tag dot$tag
 
  $c bind "dot$tag" <Enter> "$c itemconfig dot$tag -fill black"
     $c bind "dot$tag" <Leave> "$c itemconfig dot$tag -fill $color"

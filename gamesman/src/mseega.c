@@ -327,7 +327,7 @@ void InitializeGame () {
     setWhoseBoard(b, 'x');
     setPlacingBoard(b,TRUE);
     gInitialPosition = hash(b);
-    printf ("init------------- %d",gInitialPosition);
+    //printf ("init------------- %d",gInitialPosition);
   } while (FALSE);
 }
 
