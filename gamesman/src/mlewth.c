@@ -81,13 +81,8 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-<<<<<<< mlewth.c
 BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-=======
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
->>>>>>> 1.2
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -181,7 +176,7 @@ STRING   kHelpExample = "                DIRECTION KEY\n\n\
                 X - X\n\
                 O X O\n\n\n\
                 X TO MOVE\n\n\n\
-Computer: (Computer should Lose in 8)\n\  
+Computer: (Computer should Lose in 8)\n\
 Computer has moved l\n\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -194,7 +189,7 @@ Computer has moved l\n\n\n\
                 - X X\n\
                 O X O\n\n\n\
                 O TO MOVE\n\n\n\
-Player: (Player should Win in 7)\n\  
+Player: (Player should Win in 7)\n\
 Player's move [(u)ndo/(direction) : direction = i,j,k,l] : k\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -207,7 +202,7 @@ Player's move [(u)ndo/(direction) : direction = i,j,k,l] : k\n\n\
                 O X X\n\
                 O X O\n\n\n\
                 X TO MOVE\n\n\n\
-Computer: (Computer should Lose in 6)\n\  
+Computer: (Computer should Lose in 6)\n\
 Computer has moved j\n\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -220,7 +215,7 @@ Computer has moved j\n\n\n\
                 O X X\n\
                 O X O\n\n\n\
                 O TO MOVE\n\n\n\
-Player: (Player should Win in 5)\n\  
+Player: (Player should Win in 5)\n\
 Player's move [(u)ndo/(direction) : direction = i,j,k,l] : j\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -233,7 +228,7 @@ Player's move [(u)ndo/(direction) : direction = i,j,k,l] : j\n\n\
                 O X X\n\
                 O X O\n\n\n\
                 X TO MOVE\n\n\n\
-Computer: (Computer should Lose in 4)\n\  
+Computer: (Computer should Lose in 4)\n\
 Computer has moved i\n\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -246,7 +241,7 @@ Computer has moved i\n\n\n\
                 O X -\n\
                 O X O\n\n\n\
                 O TO MOVE\n\n\n\
-Player: (Player should Win in 3)\n\  
+Player: (Player should Win in 3)\n\
 Player's move [(u)ndo/(direction) : direction = i,j,k,l] : i\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -259,7 +254,7 @@ Player's move [(u)ndo/(direction) : direction = i,j,k,l] : i\n\n\
                 O X O\n\
                 O X -\n\n\n\
                 X TO MOVE\n\n\n\
-Computer: (Computer should Lose in 2)\n\  
+Computer: (Computer should Lose in 2)\n\
 Computer has moved l\n\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -272,7 +267,7 @@ Computer has moved l\n\n\n\
                 O X O\n\
                 O - X\n\n\n\
                 O TO MOVE\n\n\n\
-Player: (Player should Win in 1)\n\  
+Player: (Player should Win in 1)\n\
 Player's move [(u)ndo/(direction) : direction = i,j,k,l] : l\n\n\
                 DIRECTION KEY\n\n\
                     (up)\n\
@@ -301,7 +296,7 @@ Excellent! You won!\n";
 ** Global Variables
 **
 *************************************************************************/
-
+void* gGameSpecificTclInit = NULL;
 
 /*************************************************************************
 **
