@@ -298,6 +298,7 @@ proc GS_DrawPosition { c position } {
 proc GS_NewGame { c position } {
     # The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    $c delete winner
     GS_DrawPosition $c $position
 }
 
