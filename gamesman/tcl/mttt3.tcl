@@ -1,3 +1,110 @@
+### Drawing in a Canvas
+###  (draw with mousebutton 1)
+
+#canvas .c1
+#pack .c1 -fill both -expand yes
+
+#bind .c1 <B1-Motion> ".c1 create rectangle %x %y %x %y -width 5"
+
+
+
+
+
+
+
+
+############   GLOBAL VARS #######################
+
+global dotgap dotmid
+global x1 x2 x3 y1 y2 y3
+global pieceSize pieceOutline xColor oColor pieceOffset
+global dotSize dotExpandAmount lineWidth lineColor baseColor base
+global dotx1 dotx2 dotx3 doty1 doty2 doty3
+global px1 px2 px3 py1 py2 py3
+global diagArrows horizArrows vertArrows slideDelay goDelay animQuality
+global canvasWidth canvasHeight
+
+# Authors Info
+global kRootDir
+global kCAuthors kTclAuthors kGifAuthors
+set kCAuthors "Jesse Phillips, Jennifer Lee"
+set kTclAuthors "Jesse Phillips, Jennifer Lee"
+set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
+## IMPORTANT: These are variables used to change the board.
+# board size
+set canvasWidth  500; # 230 for first ever board
+set canvasHeight 500
+#coordinates:
+set dotgap [expr $canvasWidth / 3] 
+set dotmid [expr $dotgap / 2]
+set firstXCoord $dotmid
+set firstYCoord $dotmid
+## pieces
+set pieceSize [expr $dotmid - ($dotmid / 4)]
+set pieceOutline [expr $pieceSize / 14]
+set xColor blue4
+set oColor red2
+set pieceOffset $dotgap
+## dots
+set dotSize [expr $pieceSize.0 / 2.6]
+set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
+## lines
+set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
+set lineColor CadetBlue4
+## base
+set baseColor white
+## arrow lists
+set diagArrows  {list 15 51 26 62 48 84 59 95 24 42 35 53 57 75 68 86}
+set horizArrows {list 12 21 23 32 45 54 56 65 78 87 89 98}
+set vertArrows  {list 14 41 25 52 36 63 47 74 58 85 69 96}
+## animation delay
+set slideDelay 20000
+set goDelay 3000000
+set animQuality "low"
+# x and y position numbers
+set x1 $firstXCoord
+set x2 [expr $x1 + $dotgap]
+set x3 [expr $x2 + $dotgap]
+set x4 $x1
+set x5 $x2
+set x6 $x3
+set x7 $x1
+set x8 $x2
+set x9 $x3
+
+set y1 $firstYCoord
+set y2 $y1
+set y3 $y1
+set y4 [expr $y1 + $dotgap]
+set y5 $y4
+set y6 $y4
+set y7 [expr $y4 + $dotgap]
+set y8 $y7
+set y9 $y7
+
+
+
+set dotx1 [expr $x1 - [expr $dotSize / 2]];
+set dotx2 [expr $x2 - [expr $dotSize / 2]];
+set dotx3 [expr $x3 - [expr $dotSize / 2]];
+set doty1 [expr $y1 - [expr $dotSize / 2]];
+set doty2 [expr $y4 - [expr $dotSize / 2]];
+set doty3 [expr $y7 - [expr $dotSize / 2]];
+
+set px1 [expr $x1 - [expr $pieceSize / 2]];
+set px2 [expr $x2 - [expr $pieceSize / 2]];
+set px3 [expr $x3 - [expr $pieceSize / 2]];
+set py1 [expr $y1 - [expr $pieceSize / 2]];
+set py2 [expr $y4 - [expr $pieceSize / 2]];
+set py3 [expr $y7 - [expr $pieceSize / 2]];
+
+
+
+
+
+
+
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -22,16 +129,16 @@ proc GS_InitGameSpecific {} {
 	set toWin1 "To Win: "
     }
 
-    set toWin2 "Connect 3 in a row either vertically, diagonally, or horizontally." 
+    set toWin2 "Connect 3 in a row in any direction to win" 
 
     SetToWinString [concat $toWin1 $toWin2]
 
-    SetToMoveString  "To Move: The first player puts an X in any of the nine boxes. The second player then  places his O piece in any open spot. Alternate turns until one player gets three in a row or the board is filled.  Click one of the dots in an empty square to place your  piece."
+    SetToMoveString  "To Move: Click near one of the dots in an empty square. This will place a piece for you"
     
 }
 
 proc GS_NameOfPieces {} {
-    return [list o x]
+    return [list x o]
 }
 
 proc GS_ColorOfPlayers {} {
@@ -106,47 +213,278 @@ proc GS_Initialize { c } {
         }
     }
     
+
+    #left-mid vertical border
     $c create line 166 0 166 500 -width 2 -tag base
+
+    #right-mid vertical border
     $c create line 332 0 332 500 -width 2 -tag base
+    
+
+    #top-mid horizontal border
     $c create line 0 166 500 166 -width 2 -tag base
+    
+    
+    #bottom-mid horizontal border
     $c create line 0 332 500 332 -width 2 -tag base
     MakePieces $c 0
     
     $c raise base
-    DrawSplash $c
+    NameFlash $c
     update idletasks
+
+
+   
 }
 
 proc GS_Deinitialize { c } {
     $c delete all
 }
 
-proc DrawSplash { c } {
-    $c create line 33 33 133 33 -width 10 -fill red
-    $c create line 83 33 83 133 -width 10 -fill red
+
+# fancy flashing of letters of the game (spelling the name of the game)
+proc NameFlash { c } {
+    global dotmid
+
+    #"T" in top left sq
+    #$c create line 33 33 133 33 -width 10 -fill red
+    #$c create line 83 33 83 133 -width 10 -fill red
+
+    #"TIC"
+    $c create text [expr 1 * $dotmid] [expr 1 * $dotmid] -text "T" -font {Helvetica 100} -fill red -tags {ttic ttt}
+$c create text [expr 3 * $dotmid] [expr 1 * $dotmid] -text "I" -font {Helvetica 100} -fill red -tags {itic ttt}
+    $c create text [expr 5 * $dotmid] [expr 1 * $dotmid] -text "C" -font {Helvetica 100} -fill red -tags {ctic ttt}
+    
+    #"TAC"
+    $c create text [expr 1 * $dotmid] [expr 3 * $dotmid] -text "T" -font {Helvetica 100} -fill green -tags {ttac ttt}
+   $c create text [expr 3 * $dotmid] [expr 3 * $dotmid] -text "A" -font {Helvetica 100} -fill green -tags {atac ttt}
+    $c create text [expr 5 * $dotmid] [expr 3 * $dotmid] -text "C" -font {Helvetica 100} -fill green -tags {ctac ttt}
+
+
+    #"TOE"
+$c create text [expr 1 * $dotmid] [expr 5 * $dotmid] -text "T" -font {Helvetica 100} -fill blue -tags {ttoe ttt}
+   $c create text [expr 3 * $dotmid] [expr 5 * $dotmid] -text "O" -font {Helvetica 100} -fill blue -tags {otoe ttt}
+    $c create text [expr 5 * $dotmid] [expr 5 * $dotmid] -text "E" -font {Helvetica 100} -fill blue -tags {etoe ttt}
+
+
+$c lower ttt base
+
+    #flash the letters one at a time, then show all the letters
+    set flash_time 90000
+
+    $c raise ttic
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower ttic base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise itic
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower itic base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise ctic
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower ctic base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise ttac
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower ttac base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+
+    $c raise atac
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower atac base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise ctac
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower ctac base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    
+    $c raise ttoe
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower ttoe base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+
+    $c raise otoe
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower otoe base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+
+
+    $c raise etoe
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+    $c lower etoe base
+    update idletasks
+    set next_time [expr [clock clicks] + $flash_time]
+    while {$next_time > [clock clicks]} {
+	# spin wait
+    }
+
+
+    $c raise ttt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+global coordList 
+set coordList {}
+
+
 
 proc MakePieces { c num } {
+
+  
     MakeX $c [expr $num % 3] [expr $num / 3] $num
     MakeO $c [expr $num % 3] [expr $num / 3] $num
+
+
     if { $num != 8 } {
         MakePieces $c [expr $num + 1]
     }
 }
 
+
+#Changed to make it look more like lite-3 - Jeffrey Chiang
 proc MakeX { c x y tag } {
-    set x [expr $x * 166]
-    set y [expr $y * 166]
-    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill blue -capstyle round -tag x-$tag 
-    $c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill blue -capstyle round -tag x-$tag
-    $c lower x-$tag base 
+    
+
+
+    #old way
+    
+
+     set x [expr $x * 166]
+     set y [expr $y * 166]
+     
+
+ 
+     #full X
+    #$c create line [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -fill blue -capstyle round -tag x-$tag 
+    #$c create line [expr $x  + 10] [expr $y + 156] [expr $x + 156] [expr $y + 10] -width 10 -fill blue -capstyle round -tag x-$tag
+    #$c lower x-$tag base
+
+     #X dots
+    $c create line [expr $x  + 10] [expr $y + 10] [expr $x + 10] [expr $y + 10] -width 24 -fill blue -tag x-$tag-1 
+    $c create line [expr $x  + 156] [expr $y + 10] [expr $x + 156] [expr $y + 10] -width 24 -fill blue -tag x-$tag-2
+    $c lower x-$tag-1 base
+    $c lower x-$tag-2 base
+
+    #new way
+### Drawing in a Canvas
+###  (draw with mousebutton 1)
+
+#bind $c <B1-Motion> "$c create rectangle  %x %y %x %y -outline blue  -width 10"
+
+
+
+    
 }
 
+# Changed to make it look more like Lite-3 - Jeffrey Chiang
 proc MakeO { c x y tag } {
-    set x [expr $x * 166]
-    set y [expr $y * 166]
-    $c create oval [expr $x  + 10] [expr $y + 10] [expr $x + 156] [expr $y + 156] -width 10 -outline red -tag o-$tag
-    $c lower x-$tag base
+     set x [expr $x * 166]
+     set y [expr $y * 166]
+
+
+# for the red dot in the top corner of the square
+#    $c create oval $x $y [expr $x + 1] [expr $y + 1] -width 10 -outline red -tag o-$tag
+
+    $c create oval [expr $x  + 20] [expr $y + 20] [expr $x + 146] [expr $y + 146] -width 16 -outline red -tag actual-o-$tag
+    $c create arc [expr $x  + 20] [expr $y + 20] [expr $x + 146] [expr $y + 146] -start 90 -extent 0 -style arc -width 16 -outline red -tag o-$tag
+    $c lower o-$tag base
+
+  #new way
+### Drawing in a Canvas
+###  (draw with mousebutton 1)
+
+
+
+#bind $c <B1-Motion> "$c create rectangle %x %y %x %y -outline red -width 10"
+
+
+
+
 }
 
 proc GS_NewGame { c position } {
@@ -155,7 +493,7 @@ proc GS_NewGame { c position } {
 
 proc GS_DrawPosition { c position } {
     $c raise base
-    DrawPieces $c $position
+    DrawPieces $c $position 
 }
 
 proc DrawPieces {c position } {
@@ -177,9 +515,9 @@ proc UnHashBoard {position arrayname} {
     upvar $arrayname a
     for {set i 0} {$i < 9} {set i [expr $i + 1]} {
         
-        if {[expr $position % 3] == 2} {   
+        if {[expr $position % 3] == 1} {   
             set a($i) x
-        } elseif {[expr $position %3 == 1]} {
+        } elseif {[expr $position %3 == 2]} {
             set a($i) o
         } else {
             set a($i) -
@@ -207,13 +545,112 @@ proc GS_WhoseMove { position } {
     
 }
 
+#proc drawX {
+
+
+
+
+
+proc DrawX { c x y positionNum } {
+      
+
+
+    for {set i 10} {$i < 157} {incr i 1} {
+       
+
+        $c create rectangle [expr $x + $i] [expr $y + $i] [expr $x + $i] [expr $y + $i] -outline blue  -width 10 -fill blue  -tag x-$positionNum
+	after 0
+	update idletasks
+
+     
+     }
+    for {set i 10} {$i < 157} {incr i 1} {
+       $c create rectangle [expr $x + $i] [expr $y + 166 - $i] [expr $x + $i] [expr $y + 166 - $i] -outline blue -width 10 -fill blue  -tag  x-$positionNum
+	 after 0 
+	 update idletasks
+     }
+
+}
+
+# Changed this to make it look more like Lite-3  - Jeffrey Chiang
+proc stretchX1 { c x y tag } {
+     for {set i 30} {$i < 137} {incr i 1} {
+       $c coords $tag [expr $x + 30] [expr $y + 30] [expr $x + $i] [expr $y + $i]
+	 after 0 
+	 update idletasks
+     }
+}
+
+# Changed this to make it look more like Lite-3  - Jeffrey Chiang
+proc stretchX2 { c x y tag } {
+     for {set i 30} {$i < 137} {incr i 1} {
+       $c coords $tag [expr $x + 136] [expr $y + 30] [expr $x + 166 - $i] [expr $y + $i]
+	 after 0 
+	 update idletasks
+     }
+}
+
+proc stretchO { c tag } {
+    for {set i 0} {$i < 360} {incr i 1} {
+	$c itemconfigure $tag -extent [expr 0 - $i]
+	after 0
+	update idletasks
+    }
+
+}
+
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    set x [expr [expr $theMove % 3] * 166]
+    set y [expr [expr $theMove / 3] * 166]
+
+    #for getting position in which to draw the piece
+
+   
     set piece x
+   #  bind $c <B1-Motion> "$c create rectangle  %x %y %x %y -outline blue  -width 10" 
     if { [GS_WhoseMove $oldPosition] == "o"} {
         set piece o
+# bind $c <B1-Motion> "$c create rectangle  %x %y %x %y -outline red  -width 10" 
+	$c raise $piece-$theMove base
+	stretchO $c $piece-$theMove
+	$c raise actual-$piece-$theMove base	
+	update idletasks
     }
-    $c raise $piece-$theMove base
+    
+       
+
+if { [GS_WhoseMove $oldPosition] == "x"} {
+
+ #   DrawX $c $xc $yc $theMove
+    $c raise $piece-$theMove-1 base
+    
+    stretchX1 $c $x $y $piece-$theMove-1
+   
+    $c raise $piece-$theMove-2 base
+
+    stretchX2 $c $x $y $piece-$theMove-2
+    
 }
+   
+    
+#     test the do-update proc
+#	do-update $c $piece $theMove 100
+ 
+
+
+}
+
+
+	proc do-update { c piece theMove loops }  {
+	    for {set i 0} {$i < $loops } {incr i 1} {
+		
+		$c move $piece-$theMove 1 1
+		after 10 
+		update idletasks
+	    }
+	}
+
+
 
 proc GS_ShowMoves { c moveType position moveList } {
     
@@ -229,12 +666,9 @@ proc GS_ShowMoves { c moveType position moveList } {
                 set color yellow
             } elseif {$value == "Lose"} {
                 set color green
-            } elseif {$value == "Win"} {
-                set color red4
             } else {
-		set color cyan
-		BadElse GS_ShowMoves "$value not one of Tie/Lose/Win"
-	    }
+                set color red
+            }
         }
         $c itemconfigure mi-$move -fill $color
     }
@@ -277,8 +711,13 @@ proc GS_HandleUndo { c currentPosition theMoveToReverse positionAfterUndo} {
     set piece x
     if { [GS_WhoseMove $positionAfterUndo] == "o"} {
         set piece o
+	$c lower $piece-$theMoveToReverse base
+	$c lower actual-$piece-$theMoveToReverse base
     }
-    $c lower $piece-$theMoveToReverse base
+    if { [GS_WhoseMove $positionAfterUndo] == "x"} {
+	$c lower $piece-$theMoveToReverse-1 base
+	$c lower $piece-$theMoveToReverse-2 base
+    }
 }
 
 proc GS_GetGameSpecificOptions { } {
@@ -286,3 +725,4 @@ proc GS_GetGameSpecificOptions { } {
 
 proc GS_Deinitialize { c } {   
 }
+
