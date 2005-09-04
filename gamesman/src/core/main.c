@@ -332,7 +332,16 @@ void HandleArguments (int argc, char *argv[])
     }
 }
 
+
+/* main() serves as a wrapper to gamesman_main() */
 int main(int argc, char *argv[])
+{
+	return gamesman_main(argc, argv);
+}
+
+/* main() is not exported in shared libraries, thus gamesman_main will handle everything */
+/* This is needed for external modules (e.g. python) to call it if necessary */
+int gamesman_main(int argc, char *argv[])
 {
     HandleArguments(argc, argv);
     
