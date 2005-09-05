@@ -34,6 +34,8 @@ LDFLAGS		= @LDFLAGS@
 TCLSOFLAGS	= @TCLSOFLAGS@
 TCLEXEFLAGS	= @TCLEXEFLAGS@
 TCLDBGX		= @TCLDBGX@
+PYTHONCFLAGS	= @PYTHONCFLAGS@
+PYTHONLIBFLAGS  = @PYTHONLIBFLAGS@
 
 LIBSUFFIX	= @LIBSUFFIX@
 OBJSUFFIX	= @OBJSUFFIX@
@@ -363,7 +365,7 @@ SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
 ##############################################################################
 ### Global build rules
 
-all: 		text_all @COMPILEGRAPHICS@
+all: 		text_all @COMPILEGRAPHICS@ pygamesman
 
 dist:		clean
 		rm -rf Makefile
@@ -479,7 +481,7 @@ $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 $(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ)
 	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-pygamesman:
-	$(CC) -pthread -fno-strict-aliasing -DNDEBUG -fPIC -I/usr/include/python2.3 -c -g pygamesman.c -o pygamesman.o
-	$(CC) -pthread -lz -shared pygamesman.o $(GAMESMAN_A) -o pygamesman.so
+pygamesman: $(GAMESMAN_A)
+	$(CC) -o pygamesman$(OBJSUFFIX) $(PYTHONCFLAGS) pygamesman.c
+	$(CC) -o pygamesman$(LIBSUFFIX) $(PYTHONLIBFLAGS) pygamesman$(OBJSUFFIX) $(GAMESMAN_A)
 
