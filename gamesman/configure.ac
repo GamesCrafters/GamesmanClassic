@@ -477,7 +477,7 @@ done
 ### see if we have it
 if test "$PYTHON_INCLUDE_PATH" = ""
 then
-  AC_MSG_ERROR([Python headers not found. You may not be able to run the python stuff here.])
+  AC_MSG_WARN([Python headers not found. You may not be able to run the python stuff here.])
 else
   OUTPYTHONCFLAGS="$OUTPYTHONCFLAGS -I$PYTHON_INCLUDE_PATH"
 fi

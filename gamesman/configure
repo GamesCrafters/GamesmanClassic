@@ -1345,7 +1345,7 @@ OUTOBJSUFFIX=""								# Object file extension
 OUTRMOBJS=""								# How to remove all object files
 OUTWISHLOC=""								# Location of wish
 OUTPYTHONCFLAGS="-fno-strict-aliasing -DNDEBUG -fPIC -c -g"	# The flags for compiling pygamesman
-OUTPYTHONLIBFLAGS="-lz -lm -lc -shared"				# flags for the python gamesman lib
+OUTPYTHONLIBFLAGS="-lz -shared"				# flags for the python gamesman lib
 
 ###
 ### Set up arguments to configure
@@ -6139,9 +6139,8 @@ done
 ### see if we have it
 if test "$PYTHON_INCLUDE_PATH" = ""
 then
-  { { echo "$as_me:$LINENO: error: Python headers not found. You may not be able to run the python stuff here." >&5
-echo "$as_me: error: Python headers not found. You may not be able to run the python stuff here." >&2;}
-   { (exit 1); exit 1; }; }
+  { echo "$as_me:$LINENO: WARNING: Python headers not found. You may not be able to run the python stuff here." >&5
+echo "$as_me: WARNING: Python headers not found. You may not be able to run the python stuff here." >&2;}
 else
   OUTPYTHONCFLAGS="$OUTPYTHONCFLAGS -I$PYTHON_INCLUDE_PATH"
 fi
@@ -6320,10 +6319,9 @@ for ac_i in : $LIBOBJS; do test "x$ac_i" = x: && continue
   # 1. Remove the extension, and $U if already installed.
   ac_i=`echo "$ac_i" |
 	 sed 's/\$U\././;s/\.o$//;s/\.obj$//'`
-  # 2. Prepend LIBOBJDIR.  When used with automake>=1.10 LIBOBJDIR
-  #    will be set to the directory where LIBOBJS objects are built.
-  ac_libobjs="$ac_libobjs \${LIBOBJDIR}$ac_i\$U.$ac_objext"
-  ac_ltlibobjs="$ac_ltlibobjs \${LIBOBJDIR}$ac_i"'$U.lo'
+  # 2. Add them.
+  ac_libobjs="$ac_libobjs $ac_i\$U.$ac_objext"
+  ac_ltlibobjs="$ac_ltlibobjs $ac_i"'$U.lo'
 done
 LIBOBJS=$ac_libobjs
 
