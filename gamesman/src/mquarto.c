@@ -7,125 +7,129 @@
  */
 
 /************************************************************************
- **
- ** NAME:        mquarto.c
- **
- ** DESCRIPTION: Quarto
- **
- ** AUTHORS:      Yanpei CHEN  <ychen@berkeley.edu>
- **               Amy HSUEH    <amyhsueh@berkeley.edu>
- **               Mario TANEV  <mtanev@berkeley.edu>
- **
- ** DATE:        Began Jan 2005; 
- **
- ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
- **
- ** 30 Jan 2005 Yanpei: the data structure framework added, PrintPosition() coded
- ** 01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
- ** 08 Feb 2005 Amy:    corrected my name, changed kTieIsPossible to TRUE.
- ** 11 Feb 2005 Yanpei: added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
- **                     permutation(), combination(), setOffsetTable();
- **                     killed incorrect comments and code for PrintPosition(). 
- ** 14 Feb 2005 Yanpei: one line fix to hashQuarto()
- **                     changed static declarations of factorialTable and offsetTable
- ** 27 Feb 2005 Yanpei: more changes to hash() etc to enable new non-redundant
- **                     implementation. unhash() in the works. need printPosition()
- **                     before code can be tested independent of core. 
- ** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
- ** 28 Feb 2005 Amy:    added gGameSpecificTclInit, as suggested in email
- ** 05 Mar 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
- ** 06 Mar 2005 Mario:  corrected incorrect behavior of combination() and permutation()
- **                     added non-memoizing factorial for debugging purposes (#define DEBUG to enable), currently enabled
- **                     corrected defines as ^ is not a power operator in C, but XOR
- **                     changed QTBOard field sizes to short as it should be sufficient
- **                     added function pointers hash and unhash, to be set to the default implementations
- **                     coded inefficient bitpacking hasher and testing function so we can proceed with further coding
- **                     added print_board and boards_equal to print and compare board contents (for internal use)
- **                     coded PrintPosition and auxilliary functions
- **                     buggy implementation of ValidTextInput
- **                     made PrintPosition work correctly with >2 dimension boards, try setting GAMEDIMENSION to 3 or 4
- ** 07 Mar 2005 Mario:  added DoMove, but it doesn't work yet (maybe I am missing a step here, what is ValidMove? )
- **                     feel free to modify
- ** 08 Mar 2005 Mario:  added CreateMove(), GetMovePiece(), GetMoveSlot() abstractions as I realized I
- **                     after I realized I had repetitions of code
- **                     seemingly complete () coded, whoever is to code the other MOVE related functions
- **                     should look at the implementation of PrintMove
- **                     started using define constants for things like index of hand in slot array (HAND)
- **                     and first and last board indices in slot array (FIRSTSLOT, LASTSLOT)
- **                     GenerateMoves() and DoMove() fully coded.
- **                     YOU CAN NOW MOVE AROUND BOARD. Try with ws:H then ws:0 and so on.
- **                     There's a bug in that players are switched by gamesman, even though a player may get 2 moves
- **                     One for placing the piece from the hand to the board, and the other into oponent's hand
- **                     Not sure of how to avoid it, 
- **                     but I dislike stacking two moves into one as parsing would get even uglier.
- **                     HOT & SPICY :There is a scary bug somewhere, a
- **                     apparently with a dangling reference to an overwritten stack
- **                     It might be in my code or the core code. If anyone dares to solve it,
- **                     please look at GetAndPrintPlayersMove and remove the noted comment and run. YIKES!
- ** 08 Mar 2005 Yanpei: added Primitive(), introduced global constant EMPTYSLOT 
- **                     to replace NUMPIECES to encode empty slots in QTBOARD->slots[];
- ** 08 Mar 2005 Yanpei: EMPTYSLOT changed to 0 to accomodate for present hash()/unhash();
- **                     QTBOARD invariants temporarily violated to make things work;
- **                     Primitive() changed to reflect this; must change back later. 
- ** 09 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
- ** 09 Mar 2005 Amy:    added move format in getandPrintPlayersMove(), printComputerMove() coded.
- ** 10 Mar 2005 Mario:  corrected problem after switch to EMPTYSLOT, made game kPartizan
- **                     For some reason the second move is always a win, maybe Primitive needs to be updated
- **                     introducing some indirection for manipulating the board, still deciding what
- ** 11 Mar 2005 Yanpei: EMPTYSLOT issue seems to be over. Primitive() strange behavior caused by toggling
- **                     of board->usersTurn upon each move. To deal with this we must have place piece and
- **                     select next piece combined into one move as in [square]:[nextPiece]. 
- **                     Else we need to have [nextPiece]:H moves not toggle board->usersTurn. 
- **                     See new debugging printf's. 
- **                     Kind of got the full version of hash figured out. If no bugs, hopefully working tomorrow.
- ** 14 Mar 2005 Yanpei: HOORAY!!!!! The full blown version of hash and unhash works for GAMEDIMENSION = 2, 3!!!!
- **                     Takes a split second to test all 317 positions for GAMEDIMENSION = 2 .... ok. 
- **                     Takes 15 min approx to test all 8419329 positions for GAMEDIMENSION = 3 .... scary!
- **                     Needs 64 bit machine to test for GAMEDIMENSION = 4. 
- **                     Try to understand the full blown hash/unhash if you are looking for something to do. 
- **                     I barely understand it myself ... yes it is that ugly and complicated. 
- **                     Also added some function points to accomodate multiple implementations.
- ** 22 Mar 2005 Mario:  Switched to marioInitialize to showcase (seemingly) hashing/unhashing error
- **                     Yanpei, please review: compile and run, and watch error output.
- **                     Reverted to yanpeiInitialize
- ** 26 Mar 2005 Yanpei: Some structural changes to allow for variable GAMEDIMENSION. Effect on
- **                     existing code should be minimal. Use MallocBoard() and FreeBoard() now
- **                     for memory management with boards. Use yanpeiInitializaGame(). 
- ** 26 Mar 2005 Yanpei: getCannonical() coded and tested. Very straight forward in fact. 
- **                     Combined Mario's and Prof Garcia's ideas.
- ** 26 Mar 2005 Yanpei: Some data of interest: 
- **                     GAMEDIMENSION = 2: 317 positions, 17 cannonicals
- **                     GAMEDIMENSION = 3: 8419329 positions, 
- ** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
- **                     not enough memory. 
- ** 29 Mar 2005 Yanpei: One line fix to logical error in Primitive().
- ** 03 Apr 2005 Mario:  Modified DoMove, GenerateMoves to perform 2-moves
- **                     Switched to non-memoizing factorial as memoizing produces arithmetic exceptions
- **                     I still however have hashing errors
- **                     Example: 
- **                     [| 3 | X  X  X  X ] pieces = 1; squares = 0; turn = 1
- **                     hashes to
- **                     [| X | 0  2  3  1 ] pieces = 4; squares = 4; turn = 0
- **                     Input handling is not modified yet, but in theory it should work as is
- **                     I did update : to . to remind us of the change
- ** 06 Apr 2005 Mario:  removed packhash(), packunhash(), marioInitializeGame()
- **                     When game is started with w, p it is initialized a second time
- **                     Thus changed the spot where the is set variables are set - yanpeiInitialize now
- **                     Changed print layout
- **                     Changed GAMEDIMENSION to 3, game is "playable" now
- ** 07 Apr 2005 Mario:  Removed PrintBoard(), TestHash()
- **                     Made POSITION 64-bits so it works in 4 dimensions (in gamesman.h )
- **                     Updated printf format strings for POSITION to POSITION_FORMAT
- **                     Changed Primitive() to declare tie if all pieces are on board and no win on board
- **                     Previous behavior was if board was full, which doesn't work well in 3 dimensions
- **                     Stopped using fflush() for inputs (game-specific menu) as its behavior is undefined
- **                     Game is now solvable in 2 and 3D and doesn't have enough mem for 4D solving
- ** 21 Apr 2005 Yanpei: Should not peek under the hook and set gSymmetries. One line fix in 
- **                     yanpeiInitializeGame()
- ** 25 Apr 2005 Mario:  Added GPS support. Works only if symmetries are on. 
- **                     I don't know why, but in 3 dimensions if symmetries are OFF, I get errors even in non-GPS.
- **
- **************************************************************************/
+<<<<<<< mquarto.c
+**
+** NAME:        mquarto.c
+**
+** DESCRIPTION: Quarto
+**
+** AUTHORS:      Yanpei CHEN  <ychen@berkeley.edu>
+**               Amy HSUEH    <amyhsueh@berkeley.edu>
+**               Mario TANEV  <mtanev@berkeley.edu>
+**
+** DATE:        Began Jan 2005; 
+**
+** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+**
+** 30 Jan 2005 Yanpei: the data structure framework added, PrintPosition() coded
+** 01 Feb 2005 Yanpei: PrintPosition() wrong, must be corrected later
+** 08 Feb 2005 Amy:    corrected my name, changed kTieIsPossible to TRUE.
+** 11 Feb 2005 Yanpei: added hashQuarto(), hashQuartoHelper(), setFactorialTable(),
+**                     permutation(), combination(), setOffsetTable();
+**                     killed incorrect comments and code for PrintPosition(). 
+** 14 Feb 2005 Yanpei: one line fix to hashQuarto()
+**                     changed static declarations of factorialTable and offsetTable
+** 27 Feb 2005 Yanpei: more changes to hash() etc to enable new non-redundant
+**                     implementation. unhash() in the works. need printPosition()
+**                     before code can be tested independent of core. 
+** 27 Feb 2005 Yanpei: more changes to hash() and unhash(), both yet to be ready.
+** 28 Feb 2005 Amy:    added gGameSpecificTclInit, as suggested in email
+** 05 Mar 2005 Mario:  fixed some ungodly compilation errors and warnings to get this to compile, diff for details
+** 06 Mar 2005 Mario:  corrected incorrect behavior of combination() and permutation()
+**                     added non-memoizing factorial for debugging purposes (#define DEBUG to enable), currently enabled
+**                     corrected defines as ^ is not a power operator in C, but XOR
+**                     changed QTBOard field sizes to short as it should be sufficient
+**                     added function pointers hash and unhash, to be set to the default implementations
+**                     coded inefficient bitpacking hasher and testing function so we can proceed with further coding
+**                     added print_board and boards_equal to print and compare board contents (for internal use)
+**                     coded PrintPosition and auxilliary functions
+**                     buggy implementation of ValidTextInput
+**                     made PrintPosition work correctly with >2 dimension boards, try setting GAMEDIMENSION to 3 or 4
+** 07 Mar 2005 Mario:  added DoMove, but it doesn't work yet (maybe I am missing a step here, what is ValidMove? )
+**                     feel free to modify
+** 08 Mar 2005 Mario:  added CreateMove(), GetMovePiece(), GetMoveSlot() abstractions as I realized I
+**                     after I realized I had repetitions of code
+**                     seemingly complete () coded, whoever is to code the other MOVE related functions
+**                     should look at the implementation of PrintMove
+**                     started using define constants for things like index of hand in slot array (HAND)
+**                     and first and last board indices in slot array (FIRSTSLOT, LASTSLOT)
+**                     GenerateMoves() and DoMove() fully coded.
+**                     YOU CAN NOW MOVE AROUND BOARD. Try with ws:H then ws:0 and so on.
+**                     There's a bug in that players are switched by gamesman, even though a player may get 2 moves
+**                     One for placing the piece from the hand to the board, and the other into oponent's hand
+**                     Not sure of how to avoid it, 
+**                     but I dislike stacking two moves into one as parsing would get even uglier.
+**                     HOT & SPICY :There is a scary bug somewhere, a
+**                     apparently with a dangling reference to an overwritten stack
+**                     It might be in my code or the core code. If anyone dares to solve it,
+**                     please look at GetAndPrintPlayersMove and remove the noted comment and run. YIKES!
+** 08 Mar 2005 Yanpei: added Primitive(), introduced global constant EMPTYSLOT 
+**                     to replace NUMPIECES to encode empty slots in QTBOARD->slots[];
+** 08 Mar 2005 Yanpei: EMPTYSLOT changed to 0 to accomodate for present hash()/unhash();
+**                     QTBOARD invariants temporarily violated to make things work;
+**                     Primitive() changed to reflect this; must change back later. 
+** 09 Mar 2005 Mario:  Updated code to use EMPTYSLOT, updated EMPTYSLOT to be NUMPIECES instead of 0. Seems to work.
+** 09 Mar 2005 Amy:    added move format in getandPrintPlayersMove(), printComputerMove() coded.
+** 10 Mar 2005 Mario:  corrected problem after switch to EMPTYSLOT, made game kPartizan
+**                     For some reason the second move is always a win, maybe Primitive needs to be updated
+**                     introducing some indirection for manipulating the board, still deciding what
+** 11 Mar 2005 Yanpei: EMPTYSLOT issue seems to be over. Primitive() strange behavior caused by toggling
+**                     of board->usersTurn upon each move. To deal with this we must have place piece and
+**                     select next piece combined into one move as in [square]:[nextPiece]. 
+**                     Else we need to have [nextPiece]:H moves not toggle board->usersTurn. 
+**                     See new debugging printf's. 
+**                     Kind of got the full version of hash figured out. If no bugs, hopefully working tomorrow.
+** 14 Mar 2005 Yanpei: HOORAY!!!!! The full blown version of hash and unhash works for GAMEDIMENSION = 2, 3!!!!
+**                     Takes a split second to test all 317 positions for GAMEDIMENSION = 2 .... ok. 
+**                     Takes 15 min approx to test all 8419329 positions for GAMEDIMENSION = 3 .... scary!
+**                     Needs 64 bit machine to test for GAMEDIMENSION = 4. 
+**                     Try to understand the full blown hash/unhash if you are looking for something to do. 
+**                     I barely understand it myself ... yes it is that ugly and complicated. 
+**                     Also added some function points to accomodate multiple implementations.
+** 22 Mar 2005 Mario:  Switched to marioInitialize to showcase (seemingly) hashing/unhashing error
+**                     Yanpei, please review: compile and run, and watch error output.
+**                     Reverted to yanpeiInitialize
+** 26 Mar 2005 Yanpei: Some structural changes to allow for variable GAMEDIMENSION. Effect on
+**                     existing code should be minimal. Use MallocBoard() and FreeBoard() now
+**                     for memory management with boards. Use yanpeiInitializaGame(). 
+** 26 Mar 2005 Yanpei: getCannonical() coded and tested. Very straight forward in fact. 
+**                     Combined Mario's and Prof Garcia's ideas.
+** 26 Mar 2005 Yanpei: Some data of interest: 
+**                     GAMEDIMENSION = 2: 317 positions, 17 cannonicals
+**                     GAMEDIMENSION = 3: 8419329 positions, 
+** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
+**                     not enough memory. 
+** 29 Mar 2005 Yanpei: One line fix to logical error in Primitive().
+** 03 Apr 2005 Mario:  Modified DoMove, GenerateMoves to perform 2-moves
+**                     Switched to non-memoizing factorial as memoizing produces arithmetic exceptions
+**                     I still however have hashing errors
+**                     Example: 
+**                     [| 3 | X  X  X  X ] pieces = 1; squares = 0; turn = 1
+**                     hashes to
+**                     [| X | 0  2  3  1 ] pieces = 4; squares = 4; turn = 0
+**                     Input handling is not modified yet, but in theory it should work as is
+**                     I did update : to . to remind us of the change
+** 06 Apr 2005 Mario:  removed packhash(), packunhash(), marioInitializeGame()
+**                     When game is started with w, p it is initialized a second time
+**                     Thus changed the spot where the is set variables are set - yanpeiInitialize now
+**                     Changed print layout
+**                     Changed GAMEDIMENSION to 3, game is "playable" now
+** 07 Apr 2005 Mario:  Removed PrintBoard(), TestHash()
+**                     Made POSITION 64-bits so it works in 4 dimensions (in gamesman.h )
+**                     Updated printf format strings for POSITION to POSITION_FORMAT
+**                     Changed Primitive() to declare tie if all pieces are on board and no win on board
+**                     Previous behavior was if board was full, which doesn't work well in 3 dimensions
+**                     Stopped using fflush() for inputs (game-specific menu) as its behavior is undefined
+**                     Game is now solvable in 2 and 3D and doesn't have enough mem for 4D solving
+** 21 Apr 2005 Yanpei: Should not peek under the hood and set gSymmetries. One line fix in 
+**                     yanpeiInitializeGame()
+** 25 Apr 2005 Mario:  Added GPS support. Works only if symmetries are on. 
+**                     I don't know why, but in 3 dimensions if symmetries are OFF, I get errors even in non-GPS.
+** 08 Sep 2005 Yanpei: What is going on? Quarto has error now!!!! Mario what did you change with GPS?
+**                     kGameName changed to "Quarto" at Dan's request.
+**
+**************************************************************************/
+
 
 /*************************************************************************
  **
@@ -147,7 +151,7 @@
  **
  **************************************************************************/
 
-STRING   kGameName            = "QUARTO"; /* The name of your game */
+STRING   kGameName            = "Quarto"; /* The name of your game */
 STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
@@ -208,7 +212,7 @@ STRING   kHelpExample =
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
-int GAMEDIMENSION = 2;
+int GAMEDIMENSION = 3;
 
 int BOARDSIZE;
 int NUMPIECES;
