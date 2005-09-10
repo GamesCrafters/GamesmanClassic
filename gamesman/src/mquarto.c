@@ -164,6 +164,10 @@ BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycle
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
+/*added by amy */
+BOOLEAN amyDebug                 = TRUE; /* TRUE when debugging, prints debug stuff */
+/*added by amy */ 
+
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
@@ -296,6 +300,7 @@ POSITION                (*hash)( QTBPtr ) = &hashUnsymQuarto;
 QTBPtr                  (*unhash)( POSITION ) = &unhashUnsymQuarto;
 void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
+//void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &yanpeiPrintSlots;
 POSITION                (*factorial)(int n) = &factorialMem;
 POSITION                (*getCannonical)(POSITION p) = &yanpeiGetCannonical;
 
@@ -1032,10 +1037,12 @@ BOOLEAN ValidTextInput( STRING input )
 
 	// Checking if position indicated is valid
 	for( i = 0; i < BOARDSIZE+1; i++ ) {
-	  //printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
-	  //printf("are they equal? %d\n", input[0] == hex_ascii[i] );
+	  if (amyDebug) {
+	    printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
+	    printf("are they equal? %d\n", input[0] == hex_ascii[i] );
+	  }
 	    if( input[0] == hex_ascii[i] ) {
-	      //printf("%c, a valid position", input[0]);		
+	      if (amyDebug) printf("%c is, a valid position\n", input[0]);		
 		valid = TRUE;
 		break;
 				
@@ -1048,7 +1055,8 @@ BOOLEAN ValidTextInput( STRING input )
 	    int trait;
 			
 	    for( trait = 2; trait < GAMEDIMENSION+2; trait++ ) {
-		for( i = 2; i < GAMEDIMENSION+1; i++ ) {
+		for( i = 0; i < GAMEDIMENSION; i++ ) {
+		  if (amyDebug)  printf("the input trait: %c, the states comparing: %c, %c\n", input[trait], states[i][0], states[i][1]);
 		    if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
 			BOOLEAN repeat = FALSE;
 			int j;
