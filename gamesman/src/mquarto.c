@@ -127,7 +127,8 @@
 **                     I don't know why, but in 3 dimensions if symmetries are OFF, I get errors even in non-GPS.
 ** 08 Sep 2005 Yanpei: What is going on? Quarto has error now!!!! Mario what did you change with GPS?
 **                     kGameName changed to "Quarto" at Dan's request.
-**
+** 09 Sep 2005 Amy:    Changed the way moves are printed/inputted. Also support for 1-dim quarto added. yay! Format for moves is now
+                       [slot to place piece],[new piece to select]
 **************************************************************************/
 
 
