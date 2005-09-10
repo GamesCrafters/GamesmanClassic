@@ -1037,12 +1037,12 @@ BOOLEAN ValidTextInput( STRING input )
 
 	// Checking if position indicated is valid
 	for( i = 0; i < BOARDSIZE+1; i++ ) {
-	  if (amyDebug) {
+	  
 	    printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
 	    printf("are they equal? %d\n", input[0] == hex_ascii[i] );
-	  }
+	    printf("currently %svalid\n", valid ? "" : "not ");
 	    if( input[0] == hex_ascii[i] ) {
-	      if (amyDebug) printf("%c is, a valid position\n", input[0]);		
+	      printf("%c is, a valid position\n", input[0]);		
 		valid = TRUE;
 		break;
 				
@@ -1053,31 +1053,36 @@ BOOLEAN ValidTextInput( STRING input )
 	if ( valid ) {
 	  //check traits		   
 	    int trait;
-			
+	    int x;	
 	    for( trait = 2; trait < GAMEDIMENSION+2; trait++ ) {
 		for( i = 0; i < GAMEDIMENSION; i++ ) {
-		  if (amyDebug)  printf("the input trait: %c, the states comparing: %c, %c\n", input[trait], states[i][0], states[i][1]);
+		  //amyDebug ? printf("the input trait: %c, the states comparing: %c, %c\n", input[trait], states[i][0], states[i][1]) : printf("");
+
+		  /* for (x = 0; x < GAMEDIMENSION; printf("%i ",valid_traits[x]), x++)
+			  newline();
+		  */
 		    if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
 			BOOLEAN repeat = FALSE;
 			int j;
 						
-			for( j = 2; j < trait; j++ ) {
+			for( j = 0; j < trait-2; j++ ) {
 			    if ( valid_traits[j] == i + 1 ) {
 				repeat = TRUE;
 			    }
 			}
 			if ( !repeat ) {
-			    valid_traits[trait] = i + 1;
+			    valid_traits[trait-2] = i + 1;
 			    break;
 			}
 		    }
 		}
-				
-		if ( valid_traits[trait] == 0 ) {
-					
+		/*for (x = 0; x < GAMEDIMENSION; printf("%i ",valid_traits[x]), x++)
+		  newline();
+		amyDebug ? printf("the input: %c, is valid state %i\n", input[trait], valid_traits[trait-2]) : printf("");		
+		*/
+		if ( valid_traits[trait-2] == 0 ) {
 		    valid = FALSE;
-		    break;
-					
+		    break;	
 		}
 			
 	    }
