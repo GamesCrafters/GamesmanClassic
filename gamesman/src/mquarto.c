@@ -790,10 +790,11 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
     /* Use GPS board if GPS solving, otherwise use unhashed position */
     board = gUseGPS ? GPSBoard : unhash( position );
 	
-    for( rsize = GAMEDIMENSION, j = FIRSTSLOT; j < LASTSLOT; j+=rsize ) {
-		
+    for( rsize = GAMEDIMENSION, j = FIRSTSLOT; j <= LASTSLOT; j+=rsize ) {
+	
 	if( j == FIRSTSLOT ) {
-			
+	  //printf("debugging mode:");
+	  // newline();				
 	    printf("        +");
 	    PrintCell( NULL, BorderCell );
 	    PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, BorderCell, '+', "" );
@@ -811,7 +812,6 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 	}
 	PrintRange( hex_ascii, sizeof( *hex_ascii ), j, rsize, LegendCoordinate, '|', "" );
 	if( j == FIRSTSLOT ) {
-			
 	    printf("         BOARD: |");
 	    PrintCell( board->slots + HAND * sizeof( *board->slots ), PieceTrait );
 		
@@ -896,7 +896,7 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    printf( "%s's move was:", computersName);
+    printf( "%s's move was: ", computersName);
     PrintMove(computersMove);
     newline();
 }
@@ -923,6 +923,9 @@ void PrintMove( MOVE move )
     /* Determine slot information */
     slot	= GetMoveSlot( move );
 	
+    /* Print character describing position on board/hand */
+    printf( "%c,", hex_ascii[slot] );
+
     /* For each piece trait */
     for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
 		
@@ -931,8 +934,7 @@ void PrintMove( MOVE move )
 				
     }
 	
-    /* Print character describing position on board/hand */
-    printf( ".%c", hex_ascii[slot] );
+
 	
 }
 
@@ -965,13 +967,16 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     for (;;) {
 			
 	int i;
-	printf("\n%8s's move [(undo)/[", playersName );
+	printf("\n%s's move [(undo)/", playersName );
+
+	//printf("[%c,%c-%c]], ", hex_ascii[HAND], hex_ascii[FIRSTSLOT], hex_ascii[LASTSLOT] );
+	printf("[%c-%c],[", hex_ascii[FIRSTSLOT], hex_ascii[LASTSLOT] );
 	for( i = 0; i < GAMEDIMENSION; i++ ) {
 				
 	    printf( "(%c,%c)", states[i][0], states[i][1] );
 				
 	}
-	printf("[%c,%c-%c]] ", hex_ascii[HAND], hex_ascii[FIRSTSLOT], hex_ascii[LASTSLOT] );
+	printf("]]: ");
 	input = HandleDefaultTextInput(position, move, playersName);
 	
 	if (input != Continue) {
@@ -1017,18 +1022,19 @@ BOOLEAN ValidTextInput( STRING input )
 	
     BOOLEAN valid = FALSE;
 	
-    if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[GAMEDIMENSION] == '.' ) {
+    if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[1] == ',' ) {
 		
 	int i;
 	int valid_traits[GAMEDIMENSION];
 		
 	memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );		
-		
+
 	// Checking if position indicated is valid
-	for( i = 0; i < BOARDSIZE + 1; i++ ) {
-			
-	    if( input[GAMEDIMENSION+1] == hex_ascii[i] ) {
-				
+	for( i = 0; i < BOARDSIZE+1; i++ ) {
+	  //printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
+	  //printf("are they equal? %d\n", input[0] == hex_ascii[i] );
+	    if( input[0] == hex_ascii[i] ) {
+	      //printf("%c, a valid position", input[0]);		
 		valid = TRUE;
 		break;
 				
@@ -1037,16 +1043,16 @@ BOOLEAN ValidTextInput( STRING input )
 	}
 		
 	if ( valid ) {
-		   
+	  //check traits		   
 	    int trait;
 			
-	    for( trait = 0; trait < GAMEDIMENSION; trait++ ) {
-		for( i = 0; i < GAMEDIMENSION; i++ ) {
+	    for( trait = 2; trait < GAMEDIMENSION+2; trait++ ) {
+		for( i = 2; i < GAMEDIMENSION+1; i++ ) {
 		    if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
 			BOOLEAN repeat = FALSE;
 			int j;
 						
-			for( j = 0; j < trait; j++ ) {
+			for( j = 2; j < trait; j++ ) {
 			    if ( valid_traits[j] == i + 1 ) {
 				repeat = TRUE;
 			    }
@@ -1070,7 +1076,7 @@ BOOLEAN ValidTextInput( STRING input )
 		
     } 
 	
-    //printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
+    printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
     return valid;
 }
 
@@ -1096,10 +1102,10 @@ MOVE ConvertTextInputToMove (STRING input)
     int i, j, k;
 	
     /* Lower GAMEDIMENSION + 1 bits for position */
-    for( slot = 0; ( slot < BOARDSIZE + 1 ) && hex_ascii[slot] != input[GAMEDIMENSION + 1]; slot++ );
+    for( slot = 0; ( slot < BOARDSIZE + 1 ) && hex_ascii[slot] != input[0]; slot++ );
 	
     /* Adjacent GAMEDIMENSION bits for piece */
-    for( i = 0; i < GAMEDIMENSION; i++ ) {
+    for( i = 2; i < GAMEDIMENSION+2; i++ ) {
 		
 	BOOLEAN ready = FALSE;
 		
