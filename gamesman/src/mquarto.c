@@ -1037,12 +1037,13 @@ BOOLEAN ValidTextInput( STRING input )
 
 	// Checking if position indicated is valid
 	for( i = 0; i < BOARDSIZE+1; i++ ) {
-	  
+	  /*
 	    printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
 	    printf("are they equal? %d\n", input[0] == hex_ascii[i] );
 	    printf("currently %svalid\n", valid ? "" : "not ");
+	  */
 	    if( input[0] == hex_ascii[i] ) {
-	      printf("%c is, a valid position\n", input[0]);		
+	      //    printf("%c is, a valid position\n", input[0]);		
 		valid = TRUE;
 		break;
 				
@@ -1090,7 +1091,7 @@ BOOLEAN ValidTextInput( STRING input )
 		
     } 
 	
-    printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
+    //printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
     return valid;
 }
 
