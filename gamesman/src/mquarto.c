@@ -484,9 +484,9 @@ MOVELIST *GenerateMoves (POSITION position)
     /* Use GPS board if GPS solving, otherwise use unhashed position */
     board = gUseGPS ? GPSBoard : unhash( position );
 
-    /* If there's no piece in hand, the only valid moves are the ones placing a piece into the hand */
+    /* If there are no pieces on the board, the only valid moves are the ones placing a piece into the hand */
     /* These are special moves, as their board position indicates HAND, and are only valid for a first move */
-    if( GetHandPiece( board ) == EMPTYSLOT ) {
+    if( board->squaresOccupied == 0 ) {
 		
 	/* For every piece possible (since board is initial, every piece is allowed into the game */
 	for( piece = 0; piece < NUMPIECES; piece++ ) {
