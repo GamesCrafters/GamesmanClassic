@@ -1,3 +1,4 @@
+// $Id: mabalone.c,v 1.25 2005-09-15 03:56:08 ogren Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -38,7 +39,7 @@ POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
 STRING   kAuthorName         = "Michael Mottmann and Melinda Franco";
-STRING   kGameName           = "abalone";
+STRING   kGameName           = "Abalone";
 STRING   kDBName             = "Abalone";
 BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
@@ -2110,3 +2111,6 @@ int sum(int start, int stop) {
 int getInitialPosition() {
   return ((int)gInitialPosition);
 }
+
+
+// $Log: not supported by cvs2svn $
