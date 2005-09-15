@@ -1,5 +1,5 @@
-// $id$
-// $log$
+// $id:$
+
 
 /*
  * The above lines will include the name and log of the last person
@@ -2201,3 +2201,6 @@ char readchar( ) {
     return getchar( );
 	
 }
+
+
+// $log:$
