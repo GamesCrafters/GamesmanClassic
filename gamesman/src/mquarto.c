@@ -1,4 +1,4 @@
-// $id:$
+// $Id: mquarto.c,v 1.46 2005-09-15 04:34:32 ogren Exp $
 
 
 /*
@@ -2203,4 +2203,4 @@ char readchar( ) {
 }
 
 
-// $log:$
+// $Log: not supported by cvs2svn $
