@@ -326,8 +326,8 @@ proc GS_Initialize { c } {
 	drawArrow $c 0 $y "green"
 	drawArrow $c $y 0 "green"
 
-	drawArrow $c 0 $y "red"
-	drawArrow $c $y 0 "red"
+	drawArrow $c 0 $y "red4"
+	drawArrow $c $y 0 "red4"
     }
 
 
@@ -356,8 +356,8 @@ proc GS_Initialize { c } {
 	drawArrow $c $z $ccwNeighbor "green"
 
 
-	drawArrow $c $z $cwNeighbor "red"
-	drawArrow $c $z $ccwNeighbor "red"
+	drawArrow $c $z $cwNeighbor "red4"
+	drawArrow $c $z $ccwNeighbor "red4"
 
 
     }
@@ -738,7 +738,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } elseif {$value == "Win"} {
-		set color red
+		set color red4
 	    } else {
 		#ERROR
 	    }
@@ -798,7 +798,7 @@ proc GS_HideMoves { c moveType position moveList} {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } elseif {$value == "Win"} {
-		set color red
+		set color red4
 	    } else {
 		#ERROR
 	    }
