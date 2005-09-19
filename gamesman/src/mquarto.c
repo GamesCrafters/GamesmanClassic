@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.46 2005-09-15 04:34:32 ogren Exp $
+// $Id: mquarto.c,v 1.47 2005-09-19 05:29:48 yanpeichen Exp $
 
 
 /*
@@ -128,7 +128,8 @@
 ** 08 Sep 2005 Yanpei: What is going on? Quarto has error now!!!! Mario what did you change with GPS?
 **                     kGameName changed to "Quarto" at Dan's request.
 ** 09 Sep 2005 Amy:    Changed the way moves are printed/inputted. Also support for 1-dim quarto added. yay! Format for moves is now
-                       [slot to place piece],[new piece to select]
+**                     [slot to place piece],[new piece to select]
+** 18 Sep 2005 Yanpei: Bug in setOffset() fixed. Now solves for 3-D as well. 
 **************************************************************************/
 
 
@@ -874,6 +875,7 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
     QTBPtr b = unhash(position);
     short i;
 
+    printf("hashed %8d  ",position);
     printf("slots: ");
     for (i=0; i<BOARDSIZE+1; i++) {
 	if (b->slots[i] != EMPTYSLOT) {
@@ -1735,9 +1737,10 @@ void setOffsetTable() {
 	    offsetTable[i] = offsetTable[i-1] + 
 		permutation(NUMPIECES,i-1)
 		*combination(BOARDSIZE,i-1)
-		*(NUMPIECES-i+1);
+		*(NUMPIECES-i+1 ? NUMPIECES-i+1 : 1);
 	}
-	offsetTable[NUMPIECES+1] = offsetTable[NUMPIECES] + factorial(NUMPIECES);
+	//offsetTable[NUMPIECES+1] = offsetTable[NUMPIECES] + factorial(NUMPIECES);
+	// ABOVE IS ERROR CODE
 	offsetTableSet = TRUE;
     }
 }
@@ -1889,9 +1892,9 @@ void yanpeiTestHash() {
 
     printPos = &yanpeiPrintSlots;
   
-    i=0;
+    i=offsetTable[NUMPIECES];
     while (i<offsetTable[NUMPIECES+1] && allPassed) {
-	//printf("%8d\n",i);
+        //printf("%8d\n",i);
 	if (i != (h=hash(unhash(i)))) {
 	    allPassed = FALSE;
 	    printf("hash/unhash error:\n");
@@ -2204,3 +2207,6 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.46  2005/09/15 04:34:32  ogren
+// capitalized CVS keywords
+//
