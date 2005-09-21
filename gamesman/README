@@ -88,6 +88,9 @@ I have successfully built GAMESMAN on Linux, Solaris, HP-UX, and IRIX. I
 also have a Macintosh port and a PC port, but I have only built 1210 for
 the PC port.
 
+For more detailed instructions, please refer to the INSTALL file located
+in the root gamesman directory.
+
 DEVELOPERS
 ==========
 
