@@ -159,6 +159,34 @@ OUTLDFLAGS="$OUTLDFLAGS $LIBS"
 AC_HEADER_STDC
 AC_CHECK_HEADERS([errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h])
 
+###
+### An attempt to detect python
+###
+
+### go through the common locations for the header
+PYTHON_INCLUDE_PATH=""
+if test "$OS" = "MACOSX"
+then
+  _python_locations="/Library/Frameworks/Python.framework/include"
+else
+  _python_locations="/usr/include/python2.4 /usr/include/python2.3 /usr/local/include/python2.4 /usr/local/include/python2.3"
+fi
+
+for testpath in $_python_locations
+do
+  if test "$PYTHON_INCLUDE_PATH" = ""
+    then AC_CHECK_HEADER([$testpath/Python.h],[PYTHON_INCLUDE_PATH=$testpath])
+  fi
+done
+
+### see if we have it
+if test "$PYTHON_INCLUDE_PATH" = ""
+then
+  AC_MSG_WARN([Python headers not found. You may not be able to run the python stuff here.])
+else
+  OUTPYTHONCFLAGS="$OUTPYTHONCFLAGS -I$PYTHON_INCLUDE_PATH"
+fi
+
 
 
 ###
@@ -455,35 +483,6 @@ fi
 
 
 ###
-### An attempt to detect python
-###
-
-### go through the common locations for the header
-PYTHON_INCLUDE_PATH=""
-if test "$OS" = "MACOSX"
-then
-  _python_locations="/Library/Frameworks/Python.framework/include"
-else
-  _python_locations="/usr/include/python2.3 /usr/include/python2.4 /usr/local/include/python2.3 /usr/local/include/python2.4"
-fi
-
-for testpath in $_python_locations
-do
-  if test "$PYTHON_INCLUDE_PATH" = ""
-    then AC_CHECK_HEADER([$testpath/Python.h],[PYTHON_INCLUDE_PATH=$testpath])
-  fi
-done
-
-### see if we have it
-if test "$PYTHON_INCLUDE_PATH" = ""
-then
-  AC_MSG_WARN([Python headers not found. You may not be able to run the python stuff here.])
-else
-  OUTPYTHONCFLAGS="$OUTPYTHONCFLAGS -I$PYTHON_INCLUDE_PATH"
-fi
-
-
-###
 ### More crazy cygwin stuff
 ###
 
@@ -519,11 +518,14 @@ AC_SUBST(WISHLOC, $OUTWISHLOC)
 AC_SUBST(PYTHONCFLAGS, $OUTPYTHONCFLAGS)
 AC_SUBST(PYTHONLIBFLAGS, $OUTPYTHONLIBFLAGS)
 
+### get the file name for all the *.in files
+x_scripts=`ls bin/*.in | sed 's/\.in$//'`
+
 
 ###
 ### Do output
 ###
 
-AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile bin/XGamesman])
-AC_CONFIG_COMMANDS([XGamesman-chmod], [chmod 755 bin/XGamesman])
+AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile $x_scripts])
+AC_CONFIG_COMMANDS([chmod-X-scripts],[./chmod-X-scripts])
 AC_OUTPUT
