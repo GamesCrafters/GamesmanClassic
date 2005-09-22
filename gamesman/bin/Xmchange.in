@@ -1,0 +1,50 @@
+#! @WISHLOC@ -f
+#
+#  @WARNGC@ Xmchange.in
+#
+#############################################################################
+##
+## NAME:         Xmchange 
+## 
+## DESCRIPTION:  Change!
+##
+## AUTHOR:       Alice Chang
+##
+## DATE:         2004-05-02
+##
+## UPDATE HISTORY:
+##
+#############################################################################
+
+#############################################################################
+##
+## Now we source all the files for this particular module
+## 
+#############################################################################
+
+### Remember where our executable is.
+
+global kRootDir
+if { $tcl_platform(platform) == "unix" } {
+    set kRootDir [file dirname [info script]]
+} else {
+    set kRootDir "."
+}
+
+### Load the Gamesman solver
+
+load "$kRootDir/../lib/libmchange[info sharedlibextension]" Gamesman
+
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman3.tcl"
+
+### Now source our Game-specific code.
+
+source "$kRootDir/../tcl/mchange.tcl"
+
+main $kRootDir
+
+
+
+
