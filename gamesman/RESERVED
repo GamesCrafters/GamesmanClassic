@@ -1,4 +1,4 @@
-// $Id: RESERVED,v 1.1 2005-09-21 23:12:59 ogren Exp $
+// $Id: RESERVED,v 1.2 2005-09-22 05:01:47 ogren Exp $
 
 This lists all reserved characters used by the Gamesman core, ordered by menu.
 
@@ -144,3 +144,6 @@ b
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.1  2005/09/21 23:12:59  ogren
+//Started Reserved Characters list -Elmer
+//
