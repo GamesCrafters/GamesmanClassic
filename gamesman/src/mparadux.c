@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.1 2005-09-14 19:57:44 yanpeichen Exp $
+// $Id: mparadux.c,v 1.2 2005-09-26 08:09:43 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -17,10 +17,11 @@
 **
 ** UPDATE HIST: 
 **
-** 9/13/2005 David  - First Revision
-** 9/14/2005 Yanpei - Fixed some typo in InitializeGame().
+** 09/13/2005 David  - First Revision
+** 09/14/2005 Yanpei - Fixed some typo in InitializeGame().
 **                    Proposed alternative board indexing.
 **                    Drew initial board position.
+** 09/26/2005 Yanpei - Re-drew board position and coordinates.
 **
 **************************************************************************/
 
@@ -47,7 +48,7 @@ STRING   kGameName            = "Paradux"; /* The name of your game */
 STRING   kAuthorName          = "David Chen, Yanpei Chen"; /* Your name(s) */
 STRING   kDBName              = ""; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
@@ -203,50 +204,35 @@ void InitializeGame ()
 
   board = (char *) SafeMalloc (sizeof(char) * boardSize);
 
-  /* 
-     More effective translation from matrix indices to slots on board
-     Use "polar" idea, slot described by order pair (r,n)
-     where r = number of layers from the center, n = index within each layer.
-     Indexing of board char array start from layer 0 outwards, and within each
-     layer from n = 0 progressing counter clockwise, i.e.
+  /* Board Coordinates
 
-     (r,n)       3,06  3,05  3,04  3,03                 board[i]    25  24  23  22
-            
-              3,07  2,04  2,03  2,02  3,02                        26  11  10  09  21
+         0,0  0,1  0,2
 
-           3,08  2,05  1,02  1,01  2,01  3,01                   27  12  03  02  08  20
+       1,0  1,1  1,2  1,3
 
-        3,09  2,06  1,03  0,00  1,00  2,00  3,00              28  13  04  00  01  07  19
+     2,0  2,1  2,2  2,3  2,4
 
-           3,10  2,07  1,04  1,05  2,11  3,17                   29  14  05  06  18  36
+       3,0  3,1  3,2  3,3
 
-              3,11  2,08  2,09  2,10  3,16                        30  15  16  17  35
+         4,0  4,1  4,2
 
-                 3,12  3,13  3,14  3,15                             31  32  33  34
-
-     This way of encoding enables easy computation of "neighboring" indices
-     for generating moves, checking primitives etc.
 
   */
 
-  /* Initial board
+  /* Initial board - Paradux mini
 
-          X   O   X   O
+          X   O   X 
 
-        O   -   -   -   X
+        O   -   -   - 
 
-      X   -   -   X   -   O
+      X   -   -   -   0 
 
-    O   -   -   -   -   -   X
+        -   -   -   x   
 
-      X   -   O   -   -   O
+          0   x   0     
 
-        O   -   -   -   X
-
-          X   O   X   O
   */
 
-  // Need to ask David to explain col row el .....
 
   int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
 
@@ -259,7 +245,7 @@ void InitializeGame ()
 
     for (row = 0; row < maxRow; row++, el++) {
       if (col == 0 || col == maxCol) {
-	board[el] = row % 2 + 1;
+	board[el] = row % 2 ? 'X' : 'O';
       } else if (col == boardSide - 2) {
 	if (row == 0 || row == boardSide - 1) {
 	  board[el] = 'X';
@@ -672,6 +658,11 @@ MOVE hashMove (int direction, int pos1, int pos2)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2005/09/14 19:57:44  yanpeichen
+// David Chen, Yanpei Chen modifying mparadux.c
+//
+// First revision
+//
 // Revision 1.4  2005/05/02 17:33:01  nizebulous
 // mtemplate.c: Added a comment letting people know to include gSymmetries
 // 	     in their getOption/setOption hash.
