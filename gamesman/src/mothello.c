@@ -88,7 +88,6 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-
 #define DEBUG 0
 #define DEBUGHELPERS 0
 #define SOLVERCOUNTER 0
@@ -1185,9 +1184,9 @@ void ChangeRows()
 	printf("\nPlease enter a row number between 2 and %d: ", MAXROWS + 1);
 	scanf("%s", selection_command);
 	row = (int) (selection_command[0] - '0');
-	if(row	> 2 && row < MAXROWS)
+	if(row	> 2 && row <= MAXROWS)
 		{
-		OthRows = row;
+		  OthRows = row;
 		}
 	} while(row <= 2 || (row > MAXROWS));
 	
@@ -1206,7 +1205,7 @@ void ChangeCols()
 	printf("\nPlease enter a column number between 2 and %d: ", MAXCOLS + 1);
 	scanf("%s", selection_command);
 	col = (int) (selection_command[0] - '0');
-	if(col	> 2 && col < MAXCOLS)
+	if(col	> 2 && col <= MAXCOLS)
 		{
 		OthCols = col;
 		}
