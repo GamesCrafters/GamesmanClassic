@@ -7,20 +7,21 @@
 #include "gamesman.h"
 #include "hash.h"
 
-#define ALLOW_SQUARING    TRUE
-#define ALLOW_STACKING    TRUE
-#define BLANK_PIECE_LABEL '-'
-#define BOARD_DIMENSION   3
-#define BOARD_SPACE       " )          : "
-#define BOARD_TITLE       " )  BOARD:  : "
-#define DARK_PIECE_LABEL  'O'
-#define LEGEND_SPACE      "         ( "
-#define LEGEND_TITLE      "LEGEND:  ( "
-#define LIGHT_PIECE_LABEL 'X'
-#define MOVE_PROMPT       "%s's move : "
-#define MOVES_IN_GROUP    sizeof(int)
-#define NUMBER_OF_OPTIONS CalculatePower(2, 3)
-#define PIECES_LEFT_TITLE "PIECES LEFT: "
+#define BOARD_SPACE                " )          : "
+#define BOARD_TITLE                " )  BOARD:  : "
+#define DEFAULT_ALLOW_SQUARING     TRUE
+#define DEFAULT_ALLOW_STACKING     TRUE
+#define DEFAULT_BLANK_PIECE_LABEL  '-'
+#define DEFAULT_BOARD_DIMENSION    3
+#define DEFAULT_DARK_PIECE_LABEL   'O'
+#define DEFAULT_LIGHT_PIECE_LABEL  'X'
+#define LEGEND_SPACE               "         ( "
+#define LEGEND_TITLE               "LEGEND:  ( "
+#define MOVE_PROMPT                "%s's move : "
+#define MOVES_IN_GROUP             sizeof(int)
+#define NUMBER_OF_OPTIONS          CalculatePower(2, 3)
+#define OPPONENT_PIECES_LEFT_TITLE "OPPONENT PIECES LEFT: "
+#define PIECES_LEFT_TITLE          "         PIECES LEFT: "
 
 #ifndef WORD_BIT
 #define WORD_BIT          CHAR_BIT * sizeof(int)
@@ -29,13 +30,15 @@
 /********************************************* Global variables for Gamesman */
 POSITION gInitialPosition       = 0;
 POSITION gNumberOfPositions     = 0;
+STRING   kAuthorName            = "Eric Siroker";
 POSITION kBadPosition           = -1;
 STRING   kDBName                = "pylos";
-STRING   kAuthorName            = "Eric Siroker";
 BOOLEAN  kDebugDetermineValue   = FALSE;
 BOOLEAN  kDebugMenu             = FALSE;
 STRING   kGameName              = "Pylos";
 BOOLEAN  kGameSpecificMenu      = TRUE;
+
+/* Out of date. */
 STRING   kHelpExample           = "\
          (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
@@ -243,17 +246,17 @@ struct Pyramid {
   Pyramid *bases[NUMBER_OF_DIRECTIONS], *parents[NUMBER_OF_DIRECTIONS];
 };
 
-BOOLEAN gAllowSquaring = ALLOW_SQUARING;
-BOOLEAN gAllowStacking = ALLOW_STACKING;
+BOOLEAN gAllowSquaring = DEFAULT_ALLOW_SQUARING;
+BOOLEAN gAllowStacking = DEFAULT_ALLOW_STACKING;
 int gBoardAddresses;
-int gBoardDimension = BOARD_DIMENSION;
+int gBoardDimension = DEFAULT_BOARD_DIMENSION;
 int gBoardPieces;
 int gBoardSize;
 
 char gPieceLabels[] = {
-  BLANK_PIECE_LABEL,
-  LIGHT_PIECE_LABEL,
-  DARK_PIECE_LABEL
+  DEFAULT_BLANK_PIECE_LABEL,
+  DEFAULT_LIGHT_PIECE_LABEL,
+  DEFAULT_DARK_PIECE_LABEL
 };
 
 /********************************************* Function prototypes for Pylos */
@@ -337,8 +340,10 @@ void GameSpecificMenu() {
     printf("\t1)\tChange player (1)'s piece (%c)\n", gPieceLabels[LIGHT_PIECE]);
     printf("\t2)\tChange player (2)'s piece (%c)\n", gPieceLabels[DARK_PIECE]);
     printf("\n\tRule Options:\n\n");
-    printf("\ts)\t%sllow (S)quaring\n", gAllowSquaring ? "Disa" : "A");
-    printf("\tt)\t%sllow s(T)acking\n", gAllowStacking ? "Disa" : "A");
+    printf("\ts)\t%sable (S)quaring (currently %sabled)\n",
+           gAllowSquaring ? "Dis" : "En", gAllowSquaring ? "en" : "dis");
+    printf("\tt)\t%sable s(T)acking (currently %sabled)\n",
+           gAllowStacking ? "Dis" : "En", gAllowStacking ? "en" : "dis");
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
 
@@ -477,7 +482,7 @@ int getOption() {
   options.doNotAllowSquaring = !gAllowSquaring;
   options.doNotAllowStacking = !gAllowStacking;
   options.isNotStandardGame = !gStandardGame;
-  options.boardDimension = BOARD_DIMENSION - gBoardDimension;
+  options.boardDimension = DEFAULT_BOARD_DIMENSION - gBoardDimension;
 
   return *(int*)&options + 1;
 }
@@ -542,14 +547,18 @@ void PrintMove(MOVE move) {
 /************************************************************* PrintPosition */
 void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
   int address, column, count, digits = CalculateDigits(gBoardSize), offset;
-  int pieces, row, rows = gBoardDimension * 2 - 1;
+  int opponentPieces, pieces, row, rows = gBoardDimension * 2 - 1;
   int columns = strlen(LEGEND_SPACE) + rows * digits +
                 strlen(BOARD_SPACE) + rows + 1; /* + 1 for '\n' */
   char board[gBoardSize], buffer[rows][columns], number[digits];
   char format[CalculateDigits(digits) + 2], *string; /* + 2 for %d */
+  Piece opponent = whoseMove(position) == LIGHT_PIECE ? DARK_PIECE :
+                   LIGHT_PIECE;
+  char opponentPieceLabel = gPieceLabels[opponent];
   char pieceLabel = gPieceLabels[whoseMove(position)];
 
   generic_unhash(position, board);
+  opponentPieces = gBoardPieces - CountPieces(board, opponent);
   pieces = gBoardPieces - CountPieces(board, whoseMove(position));
   MakeAddressable(board);
 
@@ -586,13 +595,27 @@ void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
   printf("\n%s %s\n\n%s", buffer, GetPrediction(position, name, isUsersTurn),
          PIECES_LEFT_TITLE);
 
-  for (count = 0; count < pieces; count++)
-    putchar(pieceLabel);
+  if (pieces == 0)
+    printf("None");
+  else {
+    for (count = 0; count < pieces; count++)
+      putchar(pieceLabel);
 
-  if (pieces > 0)
-    putchar(' ');
+    printf(" (%d)", pieces);
+  }
 
-  printf("(%d)\n\n", pieces);
+  printf("\n%s", OPPONENT_PIECES_LEFT_TITLE);
+
+  if (opponentPieces == 0)
+    printf("None");
+  else {
+    for (count = 0; count < opponentPieces; count++)
+      putchar(opponentPieceLabel);
+
+    printf(" (%d)", opponentPieces);
+  }
+
+  printf("\n\n");
 }
 
 /***************************************************************** setOption */
@@ -604,7 +627,7 @@ void setOption(int option) {
   gAllowSquaring = !options.doNotAllowSquaring;
   gAllowStacking = !options.doNotAllowStacking;
   gStandardGame = !options.isNotStandardGame;
-  gBoardDimension = BOARD_DIMENSION - options.boardDimension;
+  gBoardDimension = DEFAULT_BOARD_DIMENSION - options.boardDimension;
 }
 
 /************************************************************ ValidTextInput */
