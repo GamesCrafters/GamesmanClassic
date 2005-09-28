@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.5 2005-09-28 05:27:24 trikeizo Exp $
+// $Id: mparadux.c,v 1.6 2005-09-28 06:17:18 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -161,7 +161,7 @@ char[] valToChar = { '-', 'X', 'O' };
 */
 
 /* On the hexagonal board, only one side needs to be specified */
-#define boardSide 3
+int boardSide = 3
 
 /* Other options */
 #define firstGo X
@@ -980,15 +980,18 @@ int slotToRC(int s) {
 }
 
 void getColRow(int pos, int* pCol, int* pRow) {
-  int col = 0, row = 0, rowSize = boardSize, numEls = boardSize;
+  int col = 0, row = 0, rowSize = boardSide, numEls = 0;
 
-  for (; pos < (numEls - rowSize); col++, rowSize += (col > boardSize - 1 ? -1 : 1), numEls += rowSize);
+  for (; pos >= numEls + rowSize; col++, numEls += rowSize, rowSize += (col > boardSide - 1 ? -1 : 1 ));
 
   *pCol = col;
   *pRow = pos - numEls + rowSize;
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.5  2005/09/28 05:27:24  trikeizo
+// See change log.
+//
 // Revision 1.4  2005/09/28 04:54:03  yanpeichen
 // 09/27/2005 Yanpei - Some support functions and data structs
 //
