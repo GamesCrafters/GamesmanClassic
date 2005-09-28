@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.2 2005-09-26 08:09:43 yanpeichen Exp $
+// $Id: mparadux.c,v 1.3 2005-09-28 04:24:24 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -19,8 +19,8 @@
 **
 ** 09/13/2005 David  - First Revision
 ** 09/14/2005 Yanpei - Fixed some typo in InitializeGame().
-**                    Proposed alternative board indexing.
-**                    Drew initial board position.
+**                     Proposed alternative board indexing.
+**                     Drew initial board position.
 ** 09/26/2005 Yanpei - Re-drew board position and coordinates.
 **
 **************************************************************************/
@@ -109,12 +109,6 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-/* On the hexagonal board, only one side needs to be specified */
-int boardSide = 4;
-
-/* Other options */
-int firstGo = X;
-
 /* Magically generated (in InitializeGame) */
 int boardSize;
 int numX;
@@ -129,6 +123,54 @@ char *board;
 ** #defines and structs
 **
 **************************************************************************/
+
+/* Board Coordinates
+   
+          0,0  0,1  0,2              00  01  02
+
+       1,0  1,1  1,2  1,3          03  04  05  06
+
+     2,0  2,1  2,2  2,3  2,4     07  08  09  10  11
+
+       3,0  3,1  3,2  3,3          12  13  14  15
+
+         4,0  4,1  4,2               16  17  18
+
+
+*/
+
+/* Initial board - Paradux mini
+
+          X   O   X 
+
+        O   -   -   - 
+
+      X   -   -   -   0 
+
+        -   -   -   x   
+
+          0   x   0     
+
+*/
+
+/* On the hexagonal board, only one side needs to be specified */
+#define boardSide 3
+
+/* Other options */
+#define firstGo X
+
+typedef struct board_item {
+
+    short *slots;        
+
+} PARABOARD;
+
+typedef PARABOARD* PBPtr;
+
+// must be used on arithmetic expressions and comparables
+// "x" and "y" should not contain side effects
+#define max(x,y) ((x)>(y) ? (x) : (y))
+#define min(x,y) ((x)<(y) ? (x) : (y))
 
 
 /*************************************************************************
@@ -148,6 +190,31 @@ char *board;
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+/* Multiple Implementations */
+
+void                    (*initGame)( ) = &davidInitGame;
+
+/* Support Functions */
+
+PBPtr                   MallocBoard();
+void                    FreeBoard(PBPtr);
+
+// returns TRUE if square u,v is next to square x,y
+// where u,v and x,y are the row,column coordinates
+// returns FALSE for invalid coordinates
+BOOLEAN                 neighbor(int u, int v, int x, int y);
+
+// returns slot number when given row and column coordinates
+// returns -1 when given invalid coordinates
+int                     rcToSlot(int r, int c);
+
+// returns row coordinate when given slot number
+// returns -1 when given invalid slot number
+int                     slotToR(int s);
+
+// returns cloumn coordinate when given slot number
+// returns -1 when given invalid slot number
+int                     slotToC(int s);
 
 /*************************************************************************
 **
@@ -170,22 +237,30 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  initGame();
+}
+
+void davidInitGame() {
   if (boardSide % 2) {
     printf("ERROR: boards with odd side length are asymmetric\n");
     exit(1);
   }
+  /*
   if (boardSide < 4) {
     printf("ERROR: boards with side length < 4 cannot be represented or are trivial");
     exit(1);
   }
+  */
 
   /*         n = boardSide
-
-	           n-1       
-     boardSize = 6 SUM k + 1 = 6 n(n-1)/2 + 1 = 3n(n-1) + 1
-                   k=0       
+	     
+                 n-1       
+   boardSize = 6 SUM k + 1 = 6 n(n-1)/2 + 1 = 3n(n-1) + 1
+                 k=0       
   */
-  boardSize = 3 boardSide * (boardSide - 1) + 1;
+
+  boardSize = 3 boardSide * (boardSide - 1) + 1
+
 
   /* 
      boards with side length 1 don't follow this but we'll ignore that 
@@ -203,36 +278,6 @@ void InitializeGame ()
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
   board = (char *) SafeMalloc (sizeof(char) * boardSize);
-
-  /* Board Coordinates
-
-         0,0  0,1  0,2
-
-       1,0  1,1  1,2  1,3
-
-     2,0  2,1  2,2  2,3  2,4
-
-       3,0  3,1  3,2  3,3
-
-         4,0  4,1  4,2
-
-
-  */
-
-  /* Initial board - Paradux mini
-
-          X   O   X 
-
-        O   -   -   - 
-
-      X   -   -   -   0 
-
-        -   -   -   x   
-
-          0   x   0     
-
-  */
-
 
   int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
 
@@ -656,8 +701,111 @@ MOVE hashMove (int direction, int pos1, int pos2)
 ** 
 ************************************************************************/
 
+/************************************************************************
+**
+**  SUPPORT FUNCTIONS
+**
+************************************************************************/
+
+PBPtr MallocBoard() {
+    PBPtr toReturn = (PBPtr) SafeMalloc(sizeof(PARABOARD));
+    toReturn->slots = (short *) SafeMalloc(boardSize);
+    return toReturn;
+}
+
+void FreeBoard(PBPtr b) {
+    SafeFree(b->slots);
+    SafeFree(b);
+}
+
+// returns TRUE if square u,v is next to square x,y
+// where u,v and x,y are the row,column coordinates
+// returns FALSE for invalid coordinates
+BOOLEAN neighbor(int u, int v, int x, int y) {
+
+  return
+    // valid rows
+    (u>=0 && u<(2*boardSide-1) && x>=0 && x<(2*boardSide-1)) &&
+    // valid columns
+    (v>=0 && v<(u<boardSide ? boardSide+u : 2*boardSide - u%boardSide - 2)) &&    
+    (y>=0 && y<(x<boardSide ? boardSide+x : 2*boardSide - x%boardSide - 2)) &&
+    // neighbor same row, two possible neighbors, two cases
+    (((u==x) && ((v==y-1) || (v==y+1))) ||
+     // neighbor different rows, four possible neighbors, four cases
+     (((u==x-1) || (u==x+1)) && 
+      ((v==y) ||
+       (x<(boardSide-1) ? ((u==x-1) && (v==y-1)) : ((u==x+1) && (v==y+1))) ||
+       (x>(boardSide-1) ? ((u==x-1) && (v==y+1)) : ((u==x+1) && (v==y-1))) ||
+       (x==(boardSide-1) && (v==y-1))
+       )
+      ) // end neighbor different rows
+     ) // end all neighbors
+    ; // end return
+
+}
+
+// returns slot number when given row and column coordinates
+// returns -1 when given invalid coordinates
+int rcToSlot(int r, int c) {
+
+  int x,y=boardSide,toReturn=0;
+
+  if (    
+      // valid r
+      (r>=0 && r<(2*boardSide-1)) &&
+      // valid columns
+      (c>=0 && c<(r<boardSide ? boardSide+r : 2*boardSide - r%boardSide - 2))
+      ) {
+    for (x=0; x<min(boardSide,r); x++) {
+      toReturn += y++;
+    }
+    for (; x<min(2*boardSide-1,r); x++) {
+      toReturn += y--;
+    }
+    return toReturn += c;
+  } else {
+    // invalid r,c
+    return -1;
+  }
+
+}
+
+// returns row and column coordinate when given slot number
+// returns -1 when given invalid slot number
+// return data format = r*100+c
+int slotToRC(int s) {
+
+  int x=0,y=boardSide,z=0;
+  int r,c;
+
+  while (z<s && x<boardSide) {
+    z += y++;
+    x++;
+  }
+  y--;
+  while (z<s && x<(2*boardSide-1)) {
+    z += y--;
+    x++;
+  }
+
+  r = x-1;
+  if (r<=boardSide
+  return x-1;
+
+}
+
+// returns cloumn coordinate when given slot number
+// returns -1 when given invalid slot number
+int slotToC(int s) {
+
+
+
+
 
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2005/09/26 08:09:43  yanpeichen
+// yanpei: additional comments
+//
 // Revision 1.1  2005/09/14 19:57:44  yanpeichen
 // David Chen, Yanpei Chen modifying mparadux.c
 //
