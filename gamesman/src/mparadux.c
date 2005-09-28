@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.3 2005-09-28 04:24:24 yanpeichen Exp $
+// $Id: mparadux.c,v 1.4 2005-09-28 04:54:03 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -22,6 +22,7 @@
 **                     Proposed alternative board indexing.
 **                     Drew initial board position.
 ** 09/26/2005 Yanpei - Re-drew board position and coordinates.
+** 09/27/2005 Yanpei - Some support functions and data structs
 **
 **************************************************************************/
 
@@ -208,13 +209,10 @@ BOOLEAN                 neighbor(int u, int v, int x, int y);
 // returns -1 when given invalid coordinates
 int                     rcToSlot(int r, int c);
 
-// returns row coordinate when given slot number
+// returns row and column coordinate when given slot number
 // returns -1 when given invalid slot number
-int                     slotToR(int s);
-
-// returns cloumn coordinate when given slot number
-// returns -1 when given invalid slot number
-int                     slotToC(int s);
+// return data format = r*100+c
+int                     slotToRC(int s);
 
 /*************************************************************************
 **
@@ -748,7 +746,7 @@ BOOLEAN neighbor(int u, int v, int x, int y) {
 // returns -1 when given invalid coordinates
 int rcToSlot(int r, int c) {
 
-  int x,y=boardSide,toReturn=0;
+  int x,y=boardSide,toReturn=-1;
 
   if (    
       // valid r
@@ -775,34 +773,40 @@ int rcToSlot(int r, int c) {
 // return data format = r*100+c
 int slotToRC(int s) {
 
-  int x=0,y=boardSide,z=0;
+  int x=0,y=boardSide,z=-1;
   int r,c;
 
   while (z<s && x<boardSide) {
     z += y++;
     x++;
   }
-  y--;
+  if (x==(boardSide-1)) y--;
   while (z<s && x<(2*boardSide-1)) {
     z += y--;
     x++;
   }
 
   r = x-1;
-  if (r<=boardSide
-  return x-1;
+  if (r<boardSide-1) {
+    c = (s-(z-y+1)-1)%(y-1);
+  } else if (r==boardSize-1) {
+    c = (s-);
+  } else {
+    c = (s-(z-y+1)+1)%(y+1);
+  }
+
+  return 0;
 
 }
-
-// returns cloumn coordinate when given slot number
-// returns -1 when given invalid slot number
-int slotToC(int s) {
 
 
 
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2005/09/28 04:24:24  yanpeichen
+// *** empty log message ***
+//
 // Revision 1.2  2005/09/26 08:09:43  yanpeichen
 // yanpei: additional comments
 //
