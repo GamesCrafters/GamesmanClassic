@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.4 2005-09-28 04:54:03 yanpeichen Exp $
+// $Id: mparadux.c,v 1.5 2005-09-28 05:27:24 trikeizo Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -23,6 +23,8 @@
 **                     Drew initial board position.
 ** 09/26/2005 Yanpei - Re-drew board position and coordinates.
 ** 09/27/2005 Yanpei - Some support functions and data structs
+** 09/27/2005 David  - Merged some changes from my version (CVS doesn't
+**                     work for me?)
 **
 **************************************************************************/
 
@@ -95,14 +97,15 @@ STRING   kHelpExample =
 #define X 1
 #define O 2
 
-/* possible moves */
-#define SWAP  0
-#define UL    1
-#define UR    2
-#define L     3
-#define R     4
-#define DL    5
-#define DR    6
+/* directions */
+#define NW   0
+#define NE   1
+#define E    2
+#define SE   3
+#define SW   4
+#define W    5
+#define SWAP 6
+#define NA -1
 
 /*************************************************************************
 **
@@ -118,6 +121,9 @@ int numBlank;
 
 /* The actual board */
 char *board;
+
+/* Mapping from values to characters */
+char[] valToChar = { '-', 'X', 'O' };
 
 /*************************************************************************
 **
@@ -238,45 +244,51 @@ void InitializeGame ()
   initGame();
 }
 
-void davidInitGame() {
-  if (boardSide % 2) {
-    printf("ERROR: boards with odd side length are asymmetric\n");
-    exit(1);
+/* Initialize odd-sided board */
+void initOddBoard() {
+  int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
+
+  for (col = 0; col <= maxCol; col++) {
+    if (col < boardSide) {
+      maxRow++;
+    } else {
+      maxRow--;
+    }
+
+    for (row = 0; row < maxRow; ro++, el++) {
+      if (col == 0) {
+	board[el] = valToChar[row % 2 + 1];
+      } else if (col == maxCol) {
+	board[el] = valToChar[(row + 1) % 2 + 1];
+      } else if (col <= boardSize - 2) {
+	if (row == 0) {
+	  board[el] = valToChar[(col + 1) % 2 + 1];
+	} else {
+	  board[el] = valToChar[BLANK];
+	}
+      } else if (col >= boardSize) {
+	if (row == maxRow) {
+	  board[el] = valToChar[col % 2 + 1];
+	} else {
+	  board[el] = valToChar[BLANK];
+	}
+      } else {
+	if (row == 0) {
+	  board[el] = valToChar[(col + 1) % 2 + 1];
+	} else if (row == maxRow) {
+	  board[el] = valToChar[col % 2 + 1];
+	} else {
+	  board[el] = valToChar[BLANK];
+	}
+      }
+    }
   }
-  /*
-  if (boardSide < 4) {
-    printf("ERROR: boards with side length < 4 cannot be represented or are trivial");
-    exit(1);
-  }
-  */
 
-  /*         n = boardSide
-	     
-                 n-1       
-   boardSize = 6 SUM k + 1 = 6 n(n-1)/2 + 1 = 3n(n-1) + 1
-                 k=0       
-  */
+  gInitialPosition = generic_hash(board, firstGo);
+}
 
-  boardSize = 3 boardSide * (boardSide - 1) + 1
-
-
-  /* 
-     boards with side length 1 don't follow this but we'll ignore that 
-     numX = numO = 1/2 * number of slots on the outer-most ring + 1
-                 = 1/2 * (n-1)*6 + 1
-  */
-  numX = numO = (boardSide - 1) * 3 + 1;
-  numBlank = boardSize - numX - numO;
-
-  int pieces[] = { 'X', numX, numX,
-		   'O', numO, numO,
-		   '-', numBlank, numBlank,
-		   -1 };
-
-  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
-
-  board = (char *) SafeMalloc (sizeof(char) * boardSize);
-
+/* Initialize even-sided board */
+void initEvenBoard() {
   int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
 
   for (col = 0; col <= maxCol; col++) {
@@ -288,39 +300,67 @@ void davidInitGame() {
 
     for (row = 0; row < maxRow; row++, el++) {
       if (col == 0 || col == maxCol) {
-	board[el] = row % 2 ? 'X' : 'O';
+	board[el] = valToChar[row % 2 + 1];
       } else if (col == boardSide - 2) {
 	if (row == 0 || row == boardSide - 1) {
-	  board[el] = 'X';
+	  board[el] = valToChar[X];
 	} else if (row == maxRow) {
-	  board[el] = 'O';
+	  board[el] = valToChar[O];
 	} else {
-	  board[el] = '-';
+	  board[el] = valToChar[BLANK];
 	}
       } else if (col == boardSide) {
 	if (row == 0) {
-	  board[el] = 'X';
+	  board[el] = valToChar[X];
 	} else if (row == maxRow || row == maxRow - boardSide + 2) {
-	  board[el] = 'O';
+	  board[el] = valToChar[O];
 	} else {
-	  board[el] = '-';
+	  board[el] = valToChar[BLANK];
 	}
       } else {
 	if (row == 0) {
-	  board[el] = (col + 1) % 2 + 1;
+	  board[el] = valToChar[(col + 1) % 2 + 1];
 	} else if (row == maxRow) {
-	  board[el] = col % 2 + 1;
+	  board[el] = valToChar[col % 2 + 1];
 	} else {
-	  board[el] = '-';
+	  board[el] = valToChar[BLANK];
 	}
       }
     }
   }
-  
 
   gInitialPosition = generic_hash(board, firstGo);
 }
 
+void davidInitGame ()
+{
+  if (boardSide < 3) {
+    printf("ERROR: boards with side length < 3 cannot be represented or are trivial");
+    exit(1);
+  }
+
+  /* 3(n-1)n + 1... I think */
+  boardSize = 3 * (boardSide - 1) * boardSide + 1;
+
+  /* boards with side length 1 don't follow this but we'll ignore that */
+  numX = numO = (boardSide - 1) * 6 + 1;
+  numBlank = boardSize - numX - numO;
+
+  int pieces[] = { 'X', numXpieces, numXpieces,
+		   'O', numOpieces, numOpieces,
+		   '-', numBlank, numBlank,
+		   0 };
+
+  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
+
+  board = (char *) SafeMalloc (sizeof(char) * boardSize);
+
+  if (boardSide % 2) {
+    initOddBoard();
+  } else {
+    initEvenBoard();
+  }
+}
 
 /************************************************************************
 **
@@ -684,9 +724,17 @@ void DebugMenu ()
 
 MOVE hashMove (int direction, int pos1, int pos2)
 {
-  return direction * 10000 + piece1 * 100 + piece2;
+  int nDirection = neighboringDirection(pos1, pos2);
+
+  return (pos1 << 26) & (nDirection << 3) & direction;
 }
 
+void unhashMove (MOVE move, int* direction, int* pos1, int* pos2) {
+  *pos1 = move >> 26;
+  *pos2 = getNeighbor(*pos1, (move >> 3) & 7);
+
+  *direction = move & 7;
+}
 
 /************************************************************************
 **
@@ -714,6 +762,138 @@ PBPtr MallocBoard() {
 void FreeBoard(PBPtr b) {
     SafeFree(b->slots);
     SafeFree(b);
+}
+
+int getNeighbor(int pos, int direction) {
+  return 0;
+}
+
+/* Direction in which the neighbor neighbors pos:
+  0 NW
+  1 NE
+  2 E
+  3 SE
+  4 SW
+  5 W
+ -1 Not neighboring
+*/
+
+int neighboringDirection(int pos, int neighbor) {
+  int pCol, pRow;
+  int nCol, nRow;
+
+  getColRow(&pCol, &pRow);
+  getColRow(&nCol, &nRow);
+
+  int dCol = nCol - pCol,
+      dRow = nRow - pRow;
+
+  if (pCol < boardSize - 1) {
+    switch (dCol) {
+    case -1:
+      switch (dRow) {
+      case -1:
+	return NW;
+      case 0:
+	return NE;
+      default:
+	return NA;
+      }
+      break;
+    case 1:
+      switch (dRow) {
+      case 1:
+	return  SE;
+      case 0:
+	return SW;
+      default:
+	return NA;
+      }
+      break;
+    case 0:
+      switch (dRow) {
+      case -1:
+	return W;
+      case 1:
+	return E;
+      default:
+	return NA;
+      }
+      break;
+    default:
+      return NA;
+    }
+  } else if (pCol > boardSize) {
+    switch (dCol) {
+    case -1:
+      switch (dRow) {
+      case 1:
+	return NE;
+      case 0:
+	return NW;
+      default:
+	return NA;
+      }
+      break;
+    case 1:
+      switch (dRow) {
+      case -1:
+	return SW;
+      case 0:
+	return SE;
+      default:
+	return NA;
+      }
+      break;
+    case 0:
+      switch (dRow) {
+      case -1:
+	return W;
+      case 1:
+	return E;
+      default:
+	return -1;
+      }
+      break;
+    default:
+      return -1;
+    }
+  } else {
+    switch (dCol) {
+    case -1:
+      switch (dRow) {
+      case -1:
+	return NW;
+      case 0:
+	return NE;
+     default:
+	return -1;
+      }
+      break;
+    case 1:
+      switch (dRow) {
+      case -1:
+	return SW;
+      case 0:
+	return SE;
+      default:
+	return -1;
+      }
+      break;
+    case 0:
+      switch (dRow) {
+      case -1:
+	return W;
+      case 1:
+	return E;
+      default:
+	return -1;
+      }
+      break;
+    default:
+      return -1;
+    }
+  }
 }
 
 // returns TRUE if square u,v is next to square x,y
@@ -799,11 +979,19 @@ int slotToRC(int s) {
 
 }
 
+void getColRow(int pos, int* pCol, int* pRow) {
+  int col = 0, row = 0, rowSize = boardSize, numEls = boardSize;
 
+  for (; pos < (numEls - rowSize); col++, rowSize += (col > boardSize - 1 ? -1 : 1), numEls += rowSize);
 
-
+  *pCol = col;
+  *pRow = pos - numEls + rowSize;
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2005/09/28 04:54:03  yanpeichen
+// 09/27/2005 Yanpei - Some support functions and data structs
+//
 // Revision 1.3  2005/09/28 04:24:24  yanpeichen
 // *** empty log message ***
 //
