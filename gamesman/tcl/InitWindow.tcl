@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.67 2005-05-06 18:04:15 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.68 2005-09-29 00:32:52 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -126,6 +126,8 @@ proc InitWindow { kRootDir kDir kExt } {
     global kLabelFont kPlayerLabelFont kToMoveToWinFont
     global tcl_platform
     global gPredString gWhoseTurn
+    # sean: skipinputonsinglemove added fall '05
+    global gSkipInputOnSingleMove 
     global gLeftName gRightName
     global gLeftColor gRightColor
     # jesse: move delay and game delay added fall '03
@@ -143,6 +145,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gWhoseTurn "Jesse"
     set gPredString ""
     wm geometry . =800x600
+    #wm geometry . =1024x768
     update
     set gWindowWidth [winfo width .]
     set gWindowHeight [winfo height .]
@@ -154,6 +157,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
     set gWaitingForHuman false
+    set gSkipInputOnSingleMove false
     set gNewGame false
     if { $tcl_platform(platform) == "macintosh" || \
          $tcl_platform(platform) == "windows" } {
@@ -414,6 +418,14 @@ proc InitWindow { kRootDir kDir kExt } {
     frame .middle.f2.fPlayOptions.fMid.fRight \
 	-width [expr $gFrameWidth / 2]
 
+    global gSkipInputOnSingleMove
+    
+    radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rAutoMove \
+	-text "Automove if one possible move" \
+	-font $kLabelFont \
+	-variable gSkipInputOnSingleMove \
+	-value true
+
     global gSmartness gSmartnessScale
     
     label .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -text "How should the computer play:" -font $kLabelFont
@@ -513,6 +525,7 @@ proc InitWindow { kRootDir kDir kExt } {
     ## smarter computer widgets
     pack .middle.f2.fPlayOptions.fMid.fLeft -side left -fill x -expand 1
     pack .middle.f2.fPlayOptions.fMid.fRight -side right -fill x -expand 1
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rAutoMove -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly -expand 1 -fill both -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly -expand 1 -fill both -side top

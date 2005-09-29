@@ -285,8 +285,15 @@ proc DriverLoop { } {
 		set gWaitingForHuman false
 		update
 	    } else {
-		DoHumanMove
-		set gWaitingForHuman true
+		global gSkipInputOnSingleMove
+		if {[llength [C_GetValueMoves $gPosition]] == 1 && $gSkipInputOnSingleMove} {
+		    SwitchWhoseTurn
+		    DoComputerMove
+		    SwitchWhoseTurn
+		} else {
+		    DoHumanMove
+		    set gWaitingForHuman true
+		}
 	    }
 	}
     }
