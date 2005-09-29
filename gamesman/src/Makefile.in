@@ -211,7 +211,7 @@ NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
 
 NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
 NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
-NUTTT_SO		= $(LIBDIR)/libnuttt$(LIBSUFFIX)
+NUTTT_SO		= $(LIBDIR)/libmnuttt$(LIBSUFFIX)
 
 OOE_EXE			= $(BINDIR)/mooe$(EXESUFFIX) # ooe
 OOE_OBJ			= mooe$(OBJSUFFIX)
@@ -345,7 +345,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
-	$(FOXES_NEW_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) $(ICEBLOCKS_SO) $(LEWTH_SO)
+	$(FOXES_NEW_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) $(ICEBLOCKS_SO) $(LEWTH_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
