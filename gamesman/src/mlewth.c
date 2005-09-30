@@ -113,6 +113,7 @@ int numOpieces                = 7;
 #define right  3
 
 BOOLEAN multiplePieceMoves    = FALSE;
+BOOLEAN gMisereGame           = FALSE;
 
 BOOLEAN gCustomBoard          = FALSE;
 int gFirstToMove              = X;
@@ -535,7 +536,7 @@ VALUE Primitive (POSITION position)
        }
      }
    }
-   return lose;
+   return (gMisereGame ? win : lose);
 }
 
 
@@ -1005,8 +1006,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  return 2 /* width */
-    * 2 /* height */
+  return 2 /* misere */
     * 2 /* mulptiple peice moves */
     ;
 }
@@ -1027,7 +1027,10 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+  int option = 0;
+  if (gMisereGame) option += 1;
+  if (multiplePieceMoves) option += 1*2;
+    return option;
 }
 
 
@@ -1044,7 +1047,8 @@ int getOption ()
 
 void setOption (int option)
 {
-
+  gMisereGame = option%2==1;
+  multiplePieceMoves = (option/2%2)==1;
 }
 
 
