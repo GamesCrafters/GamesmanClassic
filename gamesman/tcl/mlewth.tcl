@@ -6,7 +6,7 @@
 ####################################################
 
 global canvasWidth canvasHeight
-set canvasWidth  500;
+set canvasWidth  500
 set canvasHeight 500
 
 
@@ -51,6 +51,9 @@ set rightArrow 1
 set upArrow 2
 set downArrow 3
 
+global X O
+set X 1
+set O 0
 
 
 #############################################################################
@@ -180,19 +183,20 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set multipleMoves \
 	[list \
 	     "Would you like to be able to slide multiple pieces:" \
-	     "Yes" \
 	     "No" \
+	     "Yes" \
 	     ]
 
     # List of all rules, in some order
     set ruleset [list $standardRule $multipleMoves]
 
     # Declare and initialize rule globals
-    global gMisereGame
+    global gMisereGame multiplePieceMoves
     set gMisereGame 0
+    set multiplePieceMoves 0
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "multiplePieceMoves"]
 
     global kLabelFont
     set ruleNum 0
@@ -227,10 +231,9 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    # TODO: Needs to change with more variants
-    global gMisereGame
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    global gMisereGame multiplePieceMoves
+    set option 0
+    set option [expr $option + $gMisereGame + 2*$multiplePieceMoves]
     return $option
 }
 
@@ -247,10 +250,10 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    # TODO: Needs to change with more variants
-    global gMisereGame
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    global gMisereGame multiplePieceMoves
+    set option 0
+    set gMisereGame [expr $option%2]
+    set multiplePieceMoves [expr ($option/2)%2]
 }
 
 
@@ -278,8 +281,8 @@ proc GS_Initialize { c } {
 
 
 #############################################################################
-# GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
-# is here, so whoever put this here should update this.  -Jeff
+# GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why 
+# this is here, so whoever put this here should update this.  -Jeff
 #############################################################################
 proc GS_Deinitialize { c } {
     $c delete all
@@ -295,8 +298,8 @@ proc GS_Deinitialize { c } {
 # loads a saved game, and you must quickly return the board to its saved
 # state.  It probably shouldn't animate, but it can if you want.
 #
-# BY THE WAY: Before you go any further, I recommend writing a tcl function that 
-# UNhashes You'll thank yourself later.
+# BY THE WAY: Before you go any further, I recommend writing a tcl function 
+# that UNhashes You'll thank yourself later.
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
@@ -333,6 +336,8 @@ proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
+    global O
+    animateMove $O $O-1-1 [list 1 1] [list 1 2] $c
 }
 
 
@@ -366,10 +371,10 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 
 #############################################################################
-# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
-# player clicks to make the move)  It is also the function that handles coloring
-# of the moves according to value. It is called by gamesman just before the player
-# is prompted for a move.
+# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever 
+# the player clicks to make the move)  It is also the function that handles 
+# coloring of the moves according to value. It is called by gamesman just 
+# before the player is prompted for a move.
 #
 # Arguments:
 # c = the canvas to draw in as usual
@@ -402,8 +407,8 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 # GS_HandleUndo handles undoing a move (possibly with animation)
 # Here's the undo logic
-# The game was in position A, a player makes move M bringing the game to position B
-# then an undo is called
+# The game was in position A, a player makes move M bringing the game to 
+# position B then an undo is called
 # currentPosition is the B
 # theMoveToUndo is the M
 # positionAfterUndo is the A
@@ -431,7 +436,8 @@ proc GS_GetGameSpecificOptions { } {
 # tic tac toe for instance.  Or, you could congratulate the winner.
 # Or, do nothing.
 #############################################################################
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner \
+		       lastMove} {
 
 	### TODO if needed
 	
@@ -439,14 +445,14 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 
 
 #############################################################################
-# GS_UndoGameOver is called when the player hits undo after the game is finished.
-# This is provided so that you may undo the drawing you did in GS_GameOver if you 
-# drew something.
-# For instance, if you drew a line crossing out the winning row in tic tac toe, 
-# this is where you sould delete the line.
+# GS_UndoGameOver is called when the player hits undo after the game is 
+# finished.  This is provided so that you may undo the drawing you did in 
+# GS_GameOver if you drew something. For instance, if you drew a line crossing 
+# out the winning row in tic tac toe, this is where you sould delete the line.
 #
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
-# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
+# note: GS_HandleUndo is called regardless of whether the move undoes the end 
+# of the game, so IF you choose to do nothing in GS_GameOver, you needn't do 
+# anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
@@ -479,6 +485,7 @@ proc makeBoard { c } {
     global pieceGap vertGap horizGap 
     global tileSize
     global leftArrow rightArrow upArrow downArrow
+    global X O
 
     set base \
 	[$c create rectangle \
@@ -497,7 +504,8 @@ proc makeBoard { c } {
 		 [expr $vertGap + $i * $tileSize] \
 		 [expr $canvasWidth - $horizGap] \
 		 [expr $vertGap + $i * $tileSize] \
-		 -fill $lineColor -tags [list base line-01 line-10 line]]; #!!!!!!!!! change list
+		 -fill $lineColor -width $lineWidth -tags [list base line]]; 
+
 	
     }
 
@@ -509,29 +517,15 @@ proc makeBoard { c } {
 		 $vertGap \
 		 [expr $horizGap + $i * $tileSize] \
 		 [expr $canvasHeight - $vertGap] \
-		 -fill $lineColor -tags [list base line-01 line-10 line]]; #!!!!!!!!! change list
+		 -fill $lineColor -width $lineWidth -tags [list base line]];
 	
     }
 
     # create pieces
     for {set i 0} {$i < $height} {incr i} {
 	for {set j 0} {$j < $width} {incr j} {
-	    
-	    set piecex-$i-$j \
-		[$c create rect \
-		     [expr $horizGap + $j * $tileSize + $pieceGap] \
-		     [expr $vertGap + $i * $tileSize + $pieceGap] \
-		     [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
-		     [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
-		     -fill $xColor -tags [list piece x-$i-$j]];
-	    
-	    set pieceo-$i-$j \
-		[$c create rect \
-		     [expr $horizGap + $j * $tileSize + $pieceGap] \
-		     [expr $vertGap + $i * $tileSize + $pieceGap] \
-		     [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
-		     [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
-		     -fill $oColor -tags [list piece o-$i-$j]];
+	    createPiece $c $X $i $j piecex-$i-$j
+	    createPiece $c $O $i $j pieceo-$i-$j
 	}
     }
 
@@ -560,13 +554,6 @@ proc makeBoard { c } {
 	    drawArrow $c $downArrow $i $j down-$i-$j
 	}
     }	 
-
-
-    ## change the widths of the lines to $lineWidth
-    
-    foreach item [$c find withtag line] {
-	$c itemconfig $item -width $lineWidth
-    }
 
     ###  raise the base over the pieces
     #$c lower piece all
@@ -628,6 +615,150 @@ proc drawArrow { c type i j name} {
     $c bind $name <Enter> "SetColour $c $name black"
 }
 
+
+#############################################################################
+# Draws a piece on canvas c in slot (i,j). Whose is one of X, O.
+#############################################################################
+proc createPiece {c whose i j name} {
+    global X O
+    global horizGap vertGap pieceGap tileSize
+    global xColor oColor
+    
+    if { $whose == $X } {
+	set $name \
+	    [$c create rect \
+		 [expr $horizGap + $j * $tileSize + $pieceGap] \
+		 [expr $vertGap + $i * $tileSize + $pieceGap] \
+		 [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
+		 [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
+		 -fill $xColor -tags [list piece x-$i-$j $X-$i-$j $name]];
+    }
+    
+    if { $whose == $O } {
+	set $name \
+	    [$c create rect \
+		 [expr $horizGap + $j * $tileSize + $pieceGap] \
+		 [expr $vertGap + $i * $tileSize + $pieceGap] \
+		 [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
+		 [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
+		 -fill $oColor -tags [list piece o-$i-$j $O-$i-$j $name]];
+    }
+
+    return $name
+}
+###########
+#
+# ANIMATION
+#
+###########
+
+#update comments!!!!!!!!!!!!!!!!!1
+#######################################################
+# animateMove
+# arg1: whoseTurn
+# arg2: the tag of the piece to be moved
+# arg3; the board position number from which the piece is being moved (1-9)
+# arg4; the board position number to which to move the piece (1-9)
+# arg5: the canvas
+# pieceToMove is on the board already, so we create a piece at the same spot
+#   lower the previous piece, slide the created piece over, raise the 
+#    piece at $whoseTurn-$to, and destroy the temporary piece
+#
+#######################################################
+proc animateMove { whoseTurn pieceToMove from to c } {
+    global oColor xColor pieceSize pieceOutline base
+
+    #$c lower piece all
+    
+    createPiece $c $whoseTurn [lindex $from 0] [lindex $from 1] temp
+   
+    $c lower $pieceToMove base
+    $c raise temp base
+
+    slideAnimation temp $from $to $c
+
+    $c raise $whoseTurn-[lindex $to 0]-[lindex $to 1] base
+    $c delete temp
+
+}
+
+
+#slideAnimation:
+# pieceToMove  the tag of the piece to be moved
+# from         the board position number from which the piece is being moved 
+#              (1-9)
+# to           the board position number to which to move the piece (1-9)
+# c            c the canvas
+#
+# pieceToMove is on the board already, so we need to slide animate it, then 
+# put it back under the board in the correct spot, and finally raise the piece 
+# at position $to, so that in the end we don't have two pieces of the same 
+# color at the same position.
+#
+# 1) find the distance needed to travel:
+#   a. find the difference between the "from" x coord, and the "to" x coord  
+#   b. do the same for the 'from' y and 'to' y
+# 2) There are two cases:
+#   a. the piece slides horizontally, so y is fixed, i.e. yDist == 0
+#      1) the piece is sliding left so 
+#   b. the piece slides vertically, so x is fixed, i.e. xDist == 0
+
+
+#this implementation assumes can move things with float values
+# fortunately, you can.
+# unfortunately, i'm not sure if you can set the locations of pieces, so that
+# might be a problem.  first design:
+# determine actual time of animation, have global setting how many frames per
+# second.  paint a frame, and wait until the clock is greater than or equal to
+# the number of the frame you should be at. (okay to be slower)
+proc slideAnimation { pieceToMove from to c} {
+    global tileSize
+    #i'm itching to make this system-independent, but to do that i *need* to
+    #know how many clicks per second the clock goes through!
+    #I'll assume for now it's like java and [clock clicks] returns the system
+    #time in milliseconds. (i'll adjust it later)
+
+    #clicks of animation time. 1000 is the default.
+    set animDuration [ScaleDownAnimation 1000]
+    #how many frames to paint in this time? 15 is the default
+    #(re-using AdjustedTimeOfAnimation is a hack, but heuristically I want the
+    #same thing to happen to the number of frames that happened to
+    #animDuration.  i.e. if the time of animation went up, so should the number
+    #of frames.)
+    set numFrames [ScaleDownAnimation 100]
+    #how much time in between painting?
+    set clicksPerFrame [expr $animDuration / $numFrames]
+
+    #starting and ending screen coordinates
+    set xDist [expr ([lindex $to 0] - [lindex $from 0]) * $tileSize]
+    set yDist [expr ([lindex $to 1] - [lindex $from 1]) * $tileSize]
+    set xPlus [expr $xDist / $numFrames]
+    set yPlus [expr $yDist / $numFrames]
+
+    #store time so can determine what frame we should be on.  this is only
+    #relevant in that we can use it to determine how long the thread should
+    #wait after painting a frame
+    #EX: after [expr int($gMoveDelay * 1000)]
+    set currentTime [clock clicks]
+    set endTime [expr $currentTime + $animDuration - $clicksPerFrame]
+
+    #algorithm: move the piece by xPlus/yPlus, then wait the number of clicks
+    #until this frame expires
+    for {} {$currentTime < $endTime} {set currentTime [expr $currentTime + $clicksPerFrame]} {
+	#in java, i'd increment elapsed clicks by the actual amount of time
+	#that passed, but then i'd be able to actually set the piece's
+	#location, so can't do that here. (at least, not with my meager
+	#knowledge of Tcl)
+	$c move $pieceToMove $xPlus $yPlus
+	update idletasks
+
+	#check if must wait until ready for next frame
+	set waitClicks [expr $currentTime + $clicksPerFrame - [clock clicks]]
+	if {$waitClicks > 0} {
+	    after $waitClicks
+	}
+    }
+}
 
 
 ###############
