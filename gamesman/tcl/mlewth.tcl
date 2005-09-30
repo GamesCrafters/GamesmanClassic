@@ -476,13 +476,11 @@ proc GS_UndoGameOver { c position } {
 # base.
 #############################################################################
 proc makeBoard { c } {
-    global xColor oColor
     global lineWidth lineColor baseColor base
-    global horizArrows diagArrows vertArrows
     global canvasWidth canvasHeight
 
     global height width 
-    global pieceGap vertGap horizGap 
+    global vertGap horizGap 
     global tileSize
     global leftArrow rightArrow upArrow downArrow
     global X O
@@ -530,28 +528,13 @@ proc makeBoard { c } {
     }
 
     # create arrows
-    # left arrows 
+
     for {set i 0} {$i < $height} {incr i} {
-	for {set j 1} {$j < $width} {incr j} {
-	    drawArrow $c $leftArrow $i $j left-$i-$j
-	}
-    }
-    # right arrows 
-    for {set i 0} {$i < $height} {incr i} {
-	for {set j 0} {$j < $width - 1} {incr j} {
-	    drawArrow $c $rightArrow $i $j right-$i-$j
-	}
-    }
-    # up arrows 
-    for {set i 0} {$i < $height - 1} {incr i} {
 	for {set j 0} {$j < $width} {incr j} {
-	    drawArrow $c $upArrow $i $j up-$i-$j
-	}
-    }
-    # down arrows 
-    for {set i 1} {$i < $height} {incr i} {
-	for {set j 0} {$j < $width} {incr j} {
-	    drawArrow $c $downArrow $i $j down-$i-$j
+	    if { $i > 0 } { drawArrow $c $downArrow $i $j down-$i-$j }
+	    if { $i < $height - 1 } { drawArrow $c $upArrow $i $j up-$i-$j }
+	    if { $j < $width - 1 } {drawArrow $c $rightArrow $i $j right-$i-$j}
+	    if { $j > 0 } { drawArrow $c $leftArrow $i $j left-$i-$j }
 	}
     }	 
 
@@ -569,7 +552,7 @@ proc makeBoard { c } {
 #############################################################################
 proc drawArrow { c type i j name} {
     global height width 
-    global pieceGap vertGap horizGap 
+    global vertGap horizGap 
     global tileSize
     global arrowLength leftArrow rightArrow upArrow downArrow
     global lineWidth
@@ -652,7 +635,7 @@ proc createPiece {c whose i j name} {
 #
 ###########
 
-#update comments!!!!!!!!!!!!!!!!!1
+
 #######################################################
 # animateMove
 # arg1: whoseTurn
@@ -712,7 +695,7 @@ proc animateMove { whoseTurn pieceToMove from to c } {
 # second.  paint a frame, and wait until the clock is greater than or equal to
 # the number of the frame you should be at. (okay to be slower)
 proc slideAnimation { pieceToMove from to c} {
-    global tileSize
+    global tileSize gAnimationSpeed
     #i'm itching to make this system-independent, but to do that i *need* to
     #know how many clicks per second the clock goes through!
     #I'll assume for now it's like java and [clock clicks] returns the system
@@ -725,7 +708,7 @@ proc slideAnimation { pieceToMove from to c} {
     #same thing to happen to the number of frames that happened to
     #animDuration.  i.e. if the time of animation went up, so should the number
     #of frames.)
-    set numFrames [ScaleDownAnimation 100]
+    set numFrames [ScaleDownAnimation 15]
     #how much time in between painting?
     set clicksPerFrame [expr $animDuration / $numFrames]
 
@@ -744,7 +727,8 @@ proc slideAnimation { pieceToMove from to c} {
 
     #algorithm: move the piece by xPlus/yPlus, then wait the number of clicks
     #until this frame expires
-    for {} {$currentTime < $endTime} {set currentTime [expr $currentTime + $clicksPerFrame]} {
+    for {} {$currentTime < $endTime} \
+	{set currentTime [expr $currentTime + $clicksPerFrame]} {
 	#in java, i'd increment elapsed clicks by the actual amount of time
 	#that passed, but then i'd be able to actually set the piece's
 	#location, so can't do that here. (at least, not with my meager
@@ -754,7 +738,7 @@ proc slideAnimation { pieceToMove from to c} {
 
 	#check if must wait until ready for next frame
 	set waitClicks [expr $currentTime + $clicksPerFrame - [clock clicks]]
-	if {$waitClicks > 0} {
+ 	if {$waitClicks > 0} {
 	    after $waitClicks
 	}
     }
