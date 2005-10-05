@@ -155,9 +155,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 proc GS_GetOption { } {
     # TODO: Needs to change with more variants
     global gMisereGame
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
-    return $option
+    return $gMisereGame
 }
 
 
@@ -175,8 +173,7 @@ proc GS_GetOption { } {
 proc GS_SetOption { option } {
     # TODO: Needs to change with more variants
     global gMisereGame
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    set gMisereGame $option
 }
 
 
@@ -575,9 +572,9 @@ proc GS_DrawPosition { c position } {
 	
 
 	if {[string compare [string index $unhashedString $x] "x"] == 0} {
-	    $c raise "red$x"
-	} elseif {[string compare [string index $unhashedString $x] "o"] == 0} {
 	    $c raise "blue$x"
+	} elseif {[string compare [string index $unhashedString $x] "o"] == 0} {
+	    $c raise "red$x"
 	} elseif {[string compare [string index $unhashedString $x] "_"] == 0} {
 	    #do nothing
 	    $c raise "white$x"
