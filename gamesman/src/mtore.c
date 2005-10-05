@@ -819,7 +819,10 @@ int NumberOfOptions ()
 
 int getOption ()
 {
+  if (gStandardGame)
     return 0;
+  else
+    return 1;
 }
 
 
@@ -836,6 +839,10 @@ int getOption ()
 
 void setOption (int option)
 {
+  if (option == 1)
+    gStandardGame = 0;
+  else
+    gStandardGame = 1;
     
 }
 
