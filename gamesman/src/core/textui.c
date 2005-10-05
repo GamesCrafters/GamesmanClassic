@@ -827,6 +827,8 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 		PrintPosition(thePosition, playerName, TRUE);
 		break;
 	    }
+	case 'v': case 'V':
+	  PrintVisualValueHistory(thePosition);
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);
 	    PrintPossibleMoves(thePosition);
