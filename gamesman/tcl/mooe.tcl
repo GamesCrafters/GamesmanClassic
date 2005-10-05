@@ -30,6 +30,7 @@ proc GS_InitGameSpecific {} {
     global gInitialPosition gPosition valueMoveColorWin valueMoveColorLose valueMoveColorTie
 	#How do you call original C code to determine initial position?
     set gInitialPosition 1150000; #MIGHT HAVE TO CHANGE TO A VARIABLE (C_GetInitialPosition or something...)
+    ##set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
     
     ### Set the different colors to be displayed in showMove!!
@@ -40,20 +41,20 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
-    set kStandardString "Player who has an even number of objects (matches) at end game WINS"
-    set kMisereString "Player who has an even number of objects (matches) at end game LOSES"
+    set kStandardString "Player who has an even number of matches (objects) at end game WINS"
+    set kMisereString "Player who has an even number of matches (objects) at end game LOSES"
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: Obtain an even number of objects (matches) at the end of the game"
+	SetToWinString "To Win: Obtain an even number of matches (objects) at the end of the game"
     } else {
-	SetToWinString "To Win: Obtain an odd number of objects (matches) at the end of the game"
+	SetToWinString "To Win: Obtain an odd number of matches (objects) at the end of the game"
     }
 	#MAY HAVE TO CHANGE, PICK 1 TO 3 OBJECTS SHOULD BE AN ARBITRARY NUMBER AS WE FIXED THE GAME!!!
-    SetToMoveString "To Move: Pick 1 to 3 objects (matches) from the row"
+    SetToMoveString "To Move: Pick n matches (1 to 3) from the row by clicking the nth match head from the right"
 		
     
     # Authors Info. Change if desired
@@ -205,28 +206,27 @@ proc GS_Initialize { c } {
     $c configure -width 500 -height 500
     
 	global canvasLength canvasWidth gYPosition spaceBetween rectWidth rectLength ovalHWidth ovalHLength backgroundColor
+	global pieceColor movablePieceColor
 	#Note that spaceBetween will the variable that HandleMove and ShowMove will be using
 	set gRows 15
 	set canvasLength 500
 	set canvasWidth 500
-	set gYPosition [expr $canvasLength - 200]
+	set gYPosition [expr $canvasLength - 180]
 	set myFont Courier
 	set backgroundColor aquamarine
+	set pieceColor Cyan
+	set movablePieceColor magenta
+	set spaceScaleFactor 80
 
 	$c create rect 0 0 $canvasWidth $canvasLength -fill $backgroundColor -outline white -tag base
-	#$c create oval [expr 200 - $canvasWidth/1.2] [expr 400 - $canvasLength/3] \
-	#			[expr 200 + $canvasWidth/1.2] [expr 400 + $canvasLength/3] -fill green -outline black -tag base
-	#$c create text 50 80 \
-	#-text "First Player: 0"
-	#$c create text 330 80 \
-	#-text "Second Player: 0"
+	##$c create rect 0 300 $canvasWidth $canvasLength -fill brown -outline black -tag base
 
-	set rectWidth 5
-	set rectLength 90
-	set ovalHWidth 7
-	set ovalHLength 12
-	set iPosition 20
-	set spaceBetween [expr ($canvasWidth-$iPosition) / $gRows]
+	set rectWidth 3
+	set rectLength 15
+	set ovalHWidth 20
+	set ovalHLength 30
+	set iPosition [expr 20 + $spaceScaleFactor / 2]
+	set spaceBetween [expr ($canvasWidth-$iPosition-$spaceScaleFactor) / $gRows]
 	set h 1
 		
 	for {set p 0} {$p<$gRows} {incr p} {
@@ -234,31 +234,41 @@ proc GS_Initialize { c } {
 		set y $gYPosition
 		set w [expr $p + 1]
 		set m [expr $p + 1]
-		
-		#TESTING move-$m
-		$c create rect $x $y [expr $x + $rectWidth] [expr $y + $rectLength] \
-		-outline black -fill yellow -tag move-$m
-		$c create oval [expr ($x+$x+$rectWidth) / 2 - $ovalHWidth] [expr $y+10-$ovalHLength] \
-					[expr ($x+$x+$rectWidth) / 2 + $ovalHWidth] [expr $y+10+$ovalHLength] \
-		-outline black -fill red  -tag move-$m
-		#Move this to ShowMove!!!
-		#ReturnFromHumanMove -> pass a "move" that clicking on that match represents...
-		#Find out where the move is carried out and have to change it!!!
-	}
 
-	#THIS PORTION IS FOR TEST OF ANIMATIONS FOR NEW GAME
-	#Is there any way to maybe hold the input so that it will move much slower?
-	for {set k 1} {$k<500} {set k [expr $k + 1]} {
-		$c create text [expr $k - 1] 80 \
-		-text "Odd Or Even" -font {{Times New Roman} 14} -fill $backgroundColor
-		$c create text $k 80 \
-		-text "Odd Or Even" -font {{Times New Roman} 14}
+		##EITHER DRAW COINS, GOBLETS, OR BALLOONS WILL BE SET THROUGH OPTIONS
+		Draw_Matches $c $ovalHWidth $ovalHLength $rectWidth $rectLength $x $y $m
+		
 	}
-	update idletasks
-	#END OF TEST OF ANIMATION
 
 } 
 
+proc Draw_Matches { c ovalHWidth ovalHLength rectWidth rectLength xCoord yCoord tagNum } {
+
+		global attachFactor MaxMove 
+		set placeBelow 45
+		
+		##Variable MaxMove
+		##Probably not as descriptive as it should be, it is an indication of where the binding of the bottom stick
+		## of our matches should start
+		##NOTE: MAXMOVE WILL ULTIMATELY BE DEPENDENT ON THE USER INPUT OF THE NUMBER OF MATCHES
+		set MaxMove 20
+	 	
+		global canvasLength canvasWidth gYPosition spaceBetween backgroundColor pieceColor 
+		$c create oval [expr $xCoord - $ovalHWidth] [expr $yCoord - $ovalHLength] \
+			     [expr $xCoord + $ovalHWidth] [expr $yCoord + $ovalHLength] \
+		-outline black -fill $pieceColor -tag move-$tagNum
+		$c create rect [expr $xCoord-$rectWidth] [expr $yCoord + $placeBelow -$rectLength] [expr $xCoord+$rectWidth] [expr $yCoord + $placeBelow +$rectLength] \
+		-outline black -fill brown -tag move-[expr $tagNum + $MaxMove]
+
+}
+
+proc Raise_Match { c m } {
+
+	global MaxMove	
+
+	$c raise move-$m
+	$c raise move-[expr $m + $MaxMove]
+}
 
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
@@ -287,6 +297,12 @@ proc GS_DrawPosition { c position } {
     ### TODO: Fill this in
 
 	global canvasLength canvasWidth gYPosition backgroundColor gRows iPosition
+
+	#try it out...DON'T KNOW WHETHER WE'RE ALLOWED TO DO THIS...
+	#global variables extracted directly from gamesman3.tcl
+	global gLeftName gRightName
+	#end try it out
+
 	set gRows [expr ($position/10000)%100]
 	set canvasLength 500
 	set canvasWidth 500
@@ -294,31 +310,17 @@ proc GS_DrawPosition { c position } {
 	set myFont Courier
 	set currentTurn [expr ($position/1000000)*100] 
 	
-	##Remember to remove all these hard-coded portion and replace it with variables
-	#if {$temp == 1} {
-	#	set currentTurn 200
-	#}
-	#if {$temp == 2} {
-#		set currentTurn 100
-	#}
-
 	$c create rect 0 0 $canvasWidth $canvasLength -fill $backgroundColor -outline white -tag base
-	$c create text 50 80 \
-	-text "First Player: [expr ($position/100)%100] "
+	$c create text 100 80 \
+	-text "$gLeftName: [expr ($position/100)%100] " -font {{$myFont} 14} -justify center 
 	$c create text 330 80 \
-	-text "Second Player:  [expr $position%100]"
+	-text "$gRightName: [expr $position%100]" -font {{$myFont} 14} -justify center 
+	
 
 	for {set p 0} {$p<$gRows} {incr p} {
 		set m [expr $p + 1]
-		$c raise move-$m
-	} 
-
-	#for {set p 1} {$p<=$gRows && $p<=3} {incr p} {
-	#	set m [expr $gRows - $p + 1]
-	#	$c bind move-$m <ButtonRelease-1> "ReturnFromHumanMove [expr $currentTurn + $p]"
-	#}
-
-	
+		Raise_Match $c $m;
+	}	
 }
 
 
@@ -332,7 +334,7 @@ proc GS_DrawPosition { c position } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
-    GS_DrawPosition $c $position
+      GS_DrawPosition $c $position
 }
 
 
@@ -364,36 +366,53 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
+	global maxframes xSpacePerMove ySpacePerMove attachFactor
 	### TODO: Fill this in
     ##Two for loops, one for the number of moves, one for the moving matches...
 	set oldNumberMatches [expr ($oldPosition / 10000) % 100]
 	set newNumberMatches [expr ($newPosition / 10000) % 100]
+
+##NEED TO PERFECT ANIMATION
+##1. IT WOULD NEED TO MOVE BOTH UP-DOWN AND LEFT-RIGHT
+##2. NEED TO CONTROL THE SPEED OF THE MOVEMENTS
 	
-	#for {set i oldNumberMatches} {$i > newNumberMatches} {decr i} {
-	#	set x [expr oldNumberMatches*spaceBetween + iPosition]
-	#	set y $gYPosition
-	#	#animation portion
-	#	for {set x $x} {$x < 500} {incr x} {
-	#		$c create rect $x $y [expr $x + $rectWidth] [expr $y + $rectLength] \
-	#		-outline black -fill yellow
-	#		$c create oval [expr ($x+$x+$rectWidth) / 2 - $ovalHWidth] [expr $y+10-$ovalHLength] \
-	#					[expr ($x+$x+$rectWidth) / 2 + $ovalHWidth] [expr $y+10+$ovalHLength] \
-	#		-outline black -fill $backgroundColor
-	#		$c create rect $x $y [expr $x + $rectWidth] [expr $y + $rectLength] \
-	#		-outline black -fill yellow
-	#		$c create oval [expr ($x+$x+$rectWidth) / 2 - $ovalHWidth] [expr $y+10-$ovalHLength] \
-	#					[expr ($x+$x+$rectWidth) / 2 + $ovalHWidth] [expr $y+10+$ovalHLength] \
-	#		-outline black -fill $backgroundColor
-	#	}
-	#}
-	#end
-	
-	for {set i $oldNumberMatches} {$i > $newNumberMatches} {set i [expr $i - 1]} {
-		$c lower move-$i
-	}
+	##Maxframe, control number of animations executed!!!
+      set maxframes 300
+	set xSpacePerMove 1
+	set ySpacePerMove 0
+	set xBackgroundMove 1
+	set yBackgroundMove 0
+	set maxReturnFrames [expr $maxframes / $xBackgroundMove]
+
+	Animate_Match_Move $c $maxframes $oldNumberMatches $newNumberMatches $xSpacePerMove $ySpacePerMove	
 	GS_DrawPosition $c $newPosition
+	
+	Animate_Match_Move_Back $c $maxReturnFrames $oldNumberMatches $newNumberMatches $xBackgroundMove $yBackgroundMove
 }
  
+proc Animate_Match_Move { c maxframes oldNumberMatches newNumberMatches xSpacePerMove ySpacePerMove} {
+	global MaxMove
+ 
+	for {set frame 0} {$frame < $maxframes} {incr frame} {
+		for {set i $oldNumberMatches} {$i > $newNumberMatches} {set i [expr $i - 1]} {
+			$c move move-$i $xSpacePerMove $ySpacePerMove
+			$c move move-[expr $i + $MaxMove] $xSpacePerMove $ySpacePerMove
+		}
+		update idletasks
+	}
+}
+
+proc Animate_Match_Move_Back { c maxReturnFrames oldNumberMatches newNumberMatches xBackgroundMove yBackgroundMove} {
+	global MaxMove
+
+	##TO MOVE THE PIECES IN THE BACKGROUND BACK INTO ITS ORIGINAL POSITION!!!
+	for {set frame 0} {$frame < $maxReturnFrames} {incr frame} {
+		for {set i $oldNumberMatches} {$i > $newNumberMatches} {set i [expr $i - 1]} {
+			$c move move-$i [expr 0 - $xBackgroundMove] $yBackgroundMove
+			$c move move-[expr $i + $MaxMove] [expr 0 - $xBackgroundMove] $yBackgroundMove
+		}
+	}
+}
 
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
@@ -412,17 +431,29 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
+	##*****************************************************
+	##PROBLEM!!!
+	##Because of the way I bind the moves, if you Undo with Value turned on, then you are going to see the
+	##values of every three moves because it doesn't erase!!!
+	##ANY WAY TO "UNBIND" THE VALUE COLORS???? (ASK!!!!!!!!!!!!!!!!!)
+	##*****************************************************
 	global valueMoveColorLose
       global valueMoveColorWin
 	global valueMoveColorTie
+	global movablePieceColor
+	global pieceColor
 
       set currentMatches [expr ($position/10000)%100]
 	foreach item $moveList {
 		set theMove  [lindex $item 0]
 		set value [lindex $item 1]	
-		#set color white
+		set color $pieceColor
+		
+		set m [expr $currentMatches - $theMove%100 + 1]
+		$c bind move-$m <ButtonRelease-1> "ReturnFromHumanMove $theMove"
+		$c bind move-$m <Enter> "Mouseover_Move $c $position $m"
+		$c bind move-$m <Leave> "Mouseleave_Move $c $position $m $moveType $value"
 
-		#Wierd, the command "else" generate an error for unknown command 'else'
 		if {$moveType == "value"} {
 	    		if {$value == "Tie"} {
 				set color $valueMoveColorTie
@@ -435,14 +466,59 @@ proc GS_ShowMoves { c moveType position moveList } {
 	 	   	}
 			
 		}
-
-		set m [expr $currentMatches - $theMove%100 + 1]
-		$c bind move-$m <ButtonRelease-1> "ReturnFromHumanMove $theMove"
-		#$c itemconfigure move-$m -fill $color
-
+		$c itemconfigure move-$m -fill $color
 	}
 }
 
+##DOESN'T WORK
+##RIGHT NOW EVEN THE BOTTOM STICKS WILL LIGHT UP!!
+proc Mouseover_Move {c currentPosition moveNumber} {
+	global movablePieceColor
+
+	##replace constants with variables in C code!!!
+	set currentMatches [expr ($currentPosition / 10000) % 100] 
+	set i $moveNumber
+	set color $movablePieceColor
+
+	while { $i <= $currentMatches } {
+		$c itemconfigure move-$i -fill $color
+		set i [expr $i + 1]
+	}
+
+	##FOR TESTING PURPOSES:
+	#$c create text 250 200 \
+	#-text "currentMatches = $currentMatches" -font {{Arial} 12} -fill black
+	#$c create text 250 250 \
+	#-text "i = $i" -font {{Arial} 12} -fill black
+	
+}
+
+##doesn't work!!!
+proc Mouseleave_Move {c currentPosition moveNumber moveType value} {
+	global pieceColor valueMoveColorTie valueMoveColorWin valueMoveColorLose
+
+	##replace constants with variables in C code!!!
+	set currentMatches [expr ($currentPosition / 10000) % 100] 
+	set i $moveNumber
+	set color $pieceColor
+
+	while { $i <= $currentMatches } {
+		if {$moveType == "value"} {
+	    		if {$value == "Tie"} {
+				set color $valueMoveColorTie
+	    		}
+			if {$value == "Lose"} {
+				set color $valueMoveColorWin
+	    		}
+			if {$value == "Win"} {
+				set color $valueMoveColorLose
+	 	   	}
+			
+		}
+		$c itemconfigure move-$i -fill $color
+		set i [expr $i + 1]
+	}
+}
 
 #############################################################################
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
@@ -470,7 +546,7 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
+    
     GS_DrawPosition $c $positionAfterUndo
 }
 
