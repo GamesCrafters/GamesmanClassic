@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.71 2005-10-06 04:22:44 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.72 2005-10-06 05:08:12 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1308,15 +1308,19 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set convertExists true
     set scalePercent [expr $gWindowRatio * 100]%
 
-    if { [file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
+    if { [file isdirectory [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] } {
+	if { ![file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
+	    set convertExists false
+	}
 	set resolutionExists true
     } else {
-	exec mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
+	file mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
 	exec convert -resize $scalePercent [format %s%s/A_1_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 	if { ![file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
 	    set convertExists false
-	}	
+	}
     }
+
 
     if { !$convertExists } {
 	set resolutionDir ""
