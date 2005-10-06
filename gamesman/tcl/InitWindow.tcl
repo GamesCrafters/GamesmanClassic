@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.69 2005-10-06 01:27:27 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.70 2005-10-06 03:15:03 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1303,22 +1303,22 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsRootDir $skinsRootDir
 
     set resolutionExists false
-    set resolutionDir ""
+    set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
     set convertExists true
     set scalePercent [expr $gWindowRatio * 100]%
 
-    if { [file exists [format %s%s/%sx%s/A_1_1.%s $skinsRootDir $skinsDir $gWindowWidth $gWindowHeight $skinsExt]] } {
+    if { [file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
 	set resolutionExists true
     } else {
-	exec mkdir [format %s%s/%sx%s $skinsRootDir $skinsDir $gWindowWidth $gWindowHeight]
-	exec convert -resize $scalePercent [format %s%s/A_1_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sx%s/A_1_1.%s $skinsRootDir $skinsDir $gWindowWidth $gWindowHeight $skinsExt]
-	if { ![file exists [format %s%s/%sx%s/A_1_1.%s $skinsRootDir $skinsDir $gWindowWidth $gWindowHeight $skinsExt]] } {
+	exec mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
+	exec convert -resize $scalePercent [format %s%s/A_1_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	if { ![file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
 	    set convertExists false
 	}	
     }
 
-    if { $convertExists } {
-	set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
+    if { !$convertExists } {
+	set resolutionDir ""
     }
 
 
@@ -1328,7 +1328,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    set name [format i%sTB%s $mode $file]
 
 	    if { !$resolutionExists && $convertExists } {
-		exec convert -resize $scalePercent [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $gWindowWidth $gWindowHeight $mode $file $skinsExt]
+		exec convert -resize $scalePercent [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    #old way
