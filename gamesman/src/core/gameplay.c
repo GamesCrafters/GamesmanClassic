@@ -84,10 +84,12 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
     maxR = 14;
     maxTR = 14;
     int r;
-    for(i = 0; i < gNumberOfPositions; i++){
-      r = Remoteness(i);
-      if (GetValueOfPosition(i) != tie) { if (r > maxR) maxR = r; }
-      else { if (r > maxTR) maxTR = r; }
+    if(!gUnsolved) {
+      for(i = 0; i < gNumberOfPositions; i++){
+	r = Remoteness(i);
+	if (GetValueOfPosition(i) != tie) { if (r > maxR) maxR = r; }
+	else { if (r > maxTR) maxTR = r; }
+      }
     }
     position = gInitialPosition;
     undo = InitializeUndo();
@@ -235,6 +237,7 @@ void moveListHandleGameOver(moveList* lastEntry) {
 
 void PrintVisualValueHistory(POSITION position)
 {
+  if (gUnsolved) return;
   moveList* mlist = mList;
   int maxN = 10;
   int maxL = maxN+1+maxR+1+maxTR+1+maxTR+1+maxR+1+maxN;
@@ -279,14 +282,19 @@ void PrintVisualValueHistory(POSITION position)
   
   printLine(gPlayerName[kPlayerOneTurn], gPlayerName[kPlayerTwoTurn], 
 	      whoseTurn, gInitialPosition, maxN, maxR,  maxTR, maxL);
+  printf("\n");
 
   while(mlist != 0) {
     if (whoseTurn == kPlayerTwoTurn) {
-      printLine("p1", "", whoseTurn, mlist->position, maxN, maxR,maxTR,maxL);
+      PrintMove(mlist->move);
+      printLine("", "", whoseTurn, mlist->position, maxN-1, maxR,maxTR,maxL);
+      printf("\n");
       whoseTurn = kPlayerOneTurn;
     } else {
-      printLine("", "p2", whoseTurn, mlist->position, maxN, maxR,maxTR,maxL);
+      printLine(" ", "", whoseTurn, mlist->position, maxN, maxR,maxTR,maxL);
       whoseTurn = kPlayerTwoTurn;
+      PrintMove(mlist->move);
+      printf("\n");
     }
     mlist = mlist->next;
   }
@@ -327,7 +335,7 @@ void printLine(char* mPlayer1, char* mPlayer2, int whoseTurn,
   winForRight ? addRemoteness(line, FALSE, remoteness, maxR) :
     addRemoteness(line, FALSE, -1, maxR);
   addMove(line, FALSE, mPlayer2, maxN);
-  printf("%s\n", line);
+  printf("%s", line);
 }
 char* addMove(char* line, int left, char* move, int maxL){
   if (left) {
