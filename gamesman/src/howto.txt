@@ -79,7 +79,10 @@ InitializeGame	   - initializes the database and various variables
 		     the beginning of the game.  This will be 
 		     different for every game.
 
-That pretty much covers all the coding.
+That pretty much covers all the coding. We have provided you a template
+source file with all the necessary declarations for the above functions
+to get you started. It is in <source root>/src/mtemplate.c. Consult the
+comments above the functions to get further informations on them.
 
 Step 5: Debugging.
 
