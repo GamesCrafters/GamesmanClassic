@@ -151,6 +151,12 @@ proc InitGlobals {} {
     global gToMove gToWin
     set gToMove "To Move:"
     set gToWin "To Win:"
+
+    ### Automove when only 1 possible move
+    global gSkipInputOnSingleMove
+    global gJustUndone
+    set gSkipInputOnSingleMove false
+    set gJustUndone false
 }
 
 
@@ -285,8 +291,8 @@ proc DriverLoop { } {
 		set gWaitingForHuman false
 		update
 	    } else {
-		global gSkipInputOnSingleMove
-		if {[llength [C_GetValueMoves $gPosition]] == 1 && $gSkipInputOnSingleMove} {
+		global gSkipInputOnSingleMove gJustUndone
+		if {$gSkipInputOnSingleMove && !$gJustUndone  && [llength [C_GetValueMoves $gPosition]] == 1} {
 		    SwitchWhoseTurn
 		    DoComputerMove
 		    SwitchWhoseTurn
@@ -294,6 +300,7 @@ proc DriverLoop { } {
 		    DoHumanMove
 		    set gWaitingForHuman true
 		}
+		set gJustUndone false
 	    }
 	}
     }
@@ -634,7 +641,8 @@ proc Undo { } {
     .middle.f3.cMRight itemconfigure Predictions \
 	    -text [format "Predictions: %s" $gPredString] 
     update idletasks
-    
+    global gJustUndone
+    set gJustUndone true
     DriverLoop
 }
 
