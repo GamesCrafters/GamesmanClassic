@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.4 2005-05-02 17:33:01 nizebulous Exp $
+// $Id: mtemplate.c,v 1.5 2005-10-06 03:06:11 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -48,7 +48,7 @@ BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if i
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -507,6 +507,26 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2005/05/02 17:33:01  nizebulous
+// mtemplate.c: Added a comment letting people know to include gSymmetries
+// 	     in their getOption/setOption hash.
+// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
+//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
+// analysis.c: Changed initialization of option variable in analyze() to -1.
+// db.c: Changed check in the getter functions (GetValueOfPosition and
+//       getRemoteness) to check if gMenuMode is Evaluated.
+// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
+//             which is a generic version of the two that uses to PLAYER's.
+// gameplay.h: Created the necessary structs and types to have PLAYER's, both
+// 	    Human and Computer to be sent in to the PlayGame function.
+// gamesman.h: Really don't think I changed anything....
+// globals.h: Also don't think I changed anything....both these I just looked at
+//            and possibly made some format changes.
+// textui.c: Redid the portion of the menu that allows you to choose opponents
+// 	  and then play a game.  Added computer vs. computer play.  Also,
+//           changed the analysis part of the menu so that analysis should
+// 	  work properly with symmetries (if it is in getOption/setOption hash).
+//
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
