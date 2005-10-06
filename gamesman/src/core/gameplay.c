@@ -88,7 +88,9 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
       for(i = 0; i < gNumberOfPositions; i++){
 	r = Remoteness(i);
 	if (GetValueOfPosition(i) != tie) { if (r > maxR) maxR = r; }
-	else { if (r > maxTR) maxTR = r; }
+	else {
+	  if (r > maxTR && r != REMOTENESS_MAX) maxTR = r;
+	}
       }
     }
     position = gInitialPosition;
