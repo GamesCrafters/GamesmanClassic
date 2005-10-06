@@ -323,14 +323,16 @@ void printLine(char* mPlayer1, char* mPlayer2, int whoseTurn,
   int winForLeft = ((value == win && whoseTurn == kPlayerOneTurn) 
 		    || (value == lose && whoseTurn == kPlayerTwoTurn));
   int winForRight = !winForLeft && value!= tie;
+
+  int draw = remoteness == REMOTENESS_MAX;
  
   addMove(line, TRUE, mPlayer1, maxN);
   winForLeft ? addRemoteness(line, TRUE, remoteness, maxR) :
     addRemoteness(line, TRUE, -1, maxR);
-  value == tie ? addRemoteness(line, 1, remoteness, maxTR) :
+  value == tie && !draw ? addRemoteness(line, 1, remoteness, maxTR) :
     addRemoteness(line, TRUE, -1, maxTR);
-  addDraw(line, value == tie);
-  value == tie ? addRemoteness(line, 0, remoteness, maxTR) :
+  addDraw(line, draw);
+  value == tie && !draw ? addRemoteness(line, 0, remoteness, maxTR) :
     addRemoteness(line, FALSE, -1, maxTR);
   winForRight ? addRemoteness(line, FALSE, remoteness, maxR) :
     addRemoteness(line, FALSE, -1, maxR);
