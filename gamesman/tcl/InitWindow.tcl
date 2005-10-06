@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.70 2005-10-06 03:15:03 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.71 2005-10-06 04:22:44 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -20,7 +20,7 @@ proc TBaction1 {} {
 	.middle.f1.cMLeft raise iDMB
 	.middle.f3.cMRight raise play
 	.cToolbar raise iDTB
-	.cStatus lower base
+#	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
 	SetupPlayOptions
 
@@ -146,10 +146,10 @@ proc InitWindow { kRootDir kDir kExt } {
     set gPredString ""
     wm geometry . =800x600
     #wm geometry . =1024x768
+    #wm geometry . =1200x900
     update
     set gWindowWidth [winfo width .]
     set gWindowHeight [winfo height .]
-    update
     set gWindowRatio [expr $gWindowWidth/800.0]
     set gFrameWidth [expr $gWindowWidth * 10 / 16]
     wm aspect . 800 600 1600 1200
@@ -233,7 +233,7 @@ proc InitWindow { kRootDir kDir kExt } {
             .cToolbar bind iOTB2 <Any-Leave> \
 		    ".cToolbar raise iITB2"
 	    pack forget .middle.f2.fPlayOptions   
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
             .cStatus lower base
 	    update
@@ -244,7 +244,7 @@ proc InitWindow { kRootDir kDir kExt } {
             .cToolbar bind iOTB2 <Any-Leave> \
 		    ".cToolbar raise iITB2"
 	    pack forget .middle.f2.fPlayOptions   
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
             .cStatus lower base
 	    .cToolbar raise iITB
 	    global gSmartness gSmartnessScale
@@ -582,7 +582,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-text "Cancel" \
 	-command {
 	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
             RaiseStatusBarIfGameStarted
 	    update
@@ -595,7 +595,7 @@ proc InitWindow { kRootDir kDir kExt } {
         -command {
 	    # Hide rules frame
 	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
 
 	    # Delete old board
@@ -643,7 +643,7 @@ proc InitWindow { kRootDir kDir kExt } {
     button $helpFrame.buttons.bReturn -text "Return" \
 	-command {
 	    pack forget .middle.f2.fHelp   
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
 	    .cToolbar raise iITB
@@ -708,7 +708,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-command {
 	    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 	    pack forget .middle.f2.fSkins  
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
 	    .cToolbar raise iITB
@@ -747,7 +747,7 @@ proc InitWindow { kRootDir kDir kExt } {
     button $aboutFrame.buttons.bReturn -text "Return" \
 	-command {
 	    pack forget .middle.f2.fAbout   
-	    pack .middle.f2.cMain
+	    pack .middle.f2.cMain -expand 1
 	    global gWaitingForHuman
 	    set gWaitingForHuman false
 	    .cToolbar raise iITB
@@ -790,7 +790,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iAMB8p -tags [list play]
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iOMB8p -tags [list playOver]
 
-    .middle.f1.cMLeft create text 75 100 \
+    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 100] \
 	    -text "To Win:" \
 	    -width 140 \
 	    -justify center \
@@ -798,7 +798,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -anchor center \
 	    -tags [list ToWin textitem]
 
-    .middle.f1.cMLeft create text 75 300 \
+    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 300] \
 	    -text "To Move:" \
 	    -width 140 \
 	    -justify center \
@@ -806,7 +806,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -anchor center \
 	    -tags [list ToMove textitem]
 
-    .middle.f1.cMLeft create text 75 450 \
+    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
 	    -text [format "Left:\n%s" $gLeftName] \
 	    -width 140 \
 	    -justify center \
@@ -815,7 +815,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -tags [list LeftName Names textitem] \
 	    -fill $gLeftColor
 
-    .middle.f3.cMRight create text 75 450 \
+    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
 	    -text [format "Right:\n%s" $gRightName] \
 	    -width 140 \
 	    -justify center \
@@ -824,7 +824,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -tags [list RightName Names textitem] \
 	    -fill $gRightColor
 
-    .middle.f3.cMRight create text 75 150 \
+    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 150] \
 	    -text [format "Predictions: %s" $gPredString] \
 	    -width 140 \
 	    -justify center \
@@ -832,7 +832,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    -anchor center \
 	    -tags [list Predictions textitem]
 
-    .middle.f3.cMRight create text 75 80\
+    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 80]\
 	-text "" \
 	-width 140 \
 	-justify center \
@@ -926,6 +926,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cStatus raise predI
 	}
 	.middle.f3.cMRight raise WhoseTurn
+	.middle.f3.cMRight raise RightName
 	.cStatus raise undoD
     }
     .middle.f3.cMRight lower play
@@ -933,7 +934,7 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight raise iDMB
 
     pack .middle.f1.cMLeft -expand 1
-    pack .middle.f2.cMain  -expand 1
+    pack .middle.f2.cMain -expand 1
     pack .middle.f3.cMRight -expand 1
 
     pack .middle.f1 -side left -expand 1
