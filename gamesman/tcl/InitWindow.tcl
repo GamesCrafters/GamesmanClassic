@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.72 2005-10-06 05:08:12 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.73 2005-10-07 00:49:46 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -144,6 +144,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gGameDelay 1
     set gWhoseTurn "Jesse"
     set gPredString ""
+    #wm geometry . =640x480
     wm geometry . =800x600
     #wm geometry . =1024x768
     #wm geometry . =1200x900
@@ -152,6 +153,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gWindowHeight [winfo height .]
     set gWindowRatio [expr $gWindowWidth/800.0]
     set gFrameWidth [expr $gWindowWidth * 10 / 16]
+    puts $gFrameWidth
     wm aspect . 800 600 1600 1200
     set gGamePlayable false
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
@@ -174,7 +176,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-bd 0 \
 	-width $gWindowWidth \
 	-height [expr $gWindowHeight / 30] \
-	-background green
+	-background black
 
 	InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 
@@ -211,8 +213,10 @@ proc InitWindow { kRootDir kDir kExt } {
     canvas .middle.f2.cMain -highlightthickness 0 \
 	-bd 0 \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30] \
+	-height $gFrameWidth \
 	-background white
+    # since main frame is square, the width and height are the same
+    #	-height [expr $gWindowHeight * 25 / 30] \
     
     # 
     # PLAY OPTIONS FRAME
@@ -768,7 +772,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-bd 0 \
 	-width [expr $gWindowWidth * 3 / 16] \
 	-height [expr $gWindowHeight * 25 / 30] \
-	-background red
+	-background black
 
 
     .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 100] -image iIMB1p -tags [list  iIMB iIMB1]
@@ -792,7 +796,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 100] \
 	    -text "To Win:" \
-	    -width 140 \
+	-width [expr $gWindowRatio * 140] \
 	    -justify center \
 	    -font $kToMoveToWinFont \
 	    -anchor center \
@@ -800,7 +804,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 300] \
 	    -text "To Move:" \
-	    -width 140 \
+	-width [expr $gWindowRatio * 140] \
 	    -justify center \
 	    -font $kToMoveToWinFont \
 	    -anchor center \
@@ -808,7 +812,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
 	    -text [format "Left:\n%s" $gLeftName] \
-	    -width 140 \
+	-width [expr $gWindowRatio * 140] \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
@@ -817,7 +821,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
 	    -text [format "Right:\n%s" $gRightName] \
-	    -width 140 \
+	-width [expr $gWindowRatio * 140] \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
@@ -826,7 +830,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 150] \
 	    -text [format "Predictions: %s" $gPredString] \
-	    -width 140 \
+	-width [expr $gWindowRatio * 140] \
 	    -justify center \
 	    -font $kLabelFont \
 	    -anchor center \
@@ -834,7 +838,7 @@ proc InitWindow { kRootDir kDir kExt } {
 
     .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 80]\
 	-text "" \
-	-width 140 \
+	-width [expr $gWindowRatio * 140] \
 	-justify center \
 	-font $kLabelFont \
 	-anchor center \
@@ -948,7 +952,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	-bd 0 \
 	-width $gWindowWidth \
 	-height [expr $gWindowHeight * 4 / 30] \
-	-background yellow
+	-background black
 
     #create bar border
     .cStatus create image [expr $gWindowRatio * 400] [expr $gWindowRatio * 40] -image iBBB1p -tags [list iABB iABB1 base]
