@@ -1,0 +1,118 @@
+Report Created by / Person to blame:  Jonathan Tsai
+
+updated 2004.10.27
+-----------------------------------------------------------------
+Current module files in /src
+
+updated 2004.10.27
+
+m1210.c        mchange.c      mhorse.c       mqland.c       mtactix.c
+m1ton.c        mcmass.c       miceblocks.c   mqx.c          mtore.c
+m3dot.c        mctoi.c        mjoust.c       mrInfin2.c     mttc.c
+m3spot.c       mdinododgem.c  mkono.c        mrubix.c       mttt.c
+m9mm.c         mdodgem.c      mlite3.c       mseega.c       mtttppm.c
+mLgame.c       mdodgemhash.c  mmancala.c     msim.c         mwin4.c
+mabalone.c     mfandan.c      mnim.c         mslideN.c      mwinkers.c
+machi.c        mfoxes.c       module.c       msnake.c
+masalto.c      mgobblet.c     mothello.c     mstt.c
+mblocking.c    mgraph.c       mpylos.c       mswans.c
+-----------------------------------------------------------------
+have restrictions because of solvability (supports n-based):
+
+updated 2004.10.27
+
+mwinkers.c
+mwin4.c
+mttc.c
+mmancala.c
+mabalone.c
+mfandan.c
+mslideN.c
+mfoxes.c
+mgobblet.c
+mothello.c
+mpylos.c
+
+maybe not fully n-based
+
+mblocking.c (meta game)
+mdinododgem.c (n > 4 causes errors)
+-----------------------------------------------------------------
+supports n-based, limits are relatively large
+
+updated 2004.10.27
+
+m1ton.c
+
+-----------------------------------------------------------------
+can be n-based ?, but not implemented
+
+updated 2004.10.27
+
+
+mrInfin2.c
+mtactix.c
+m3spot.c
+mctoi.c
+mkono.c
+m9mm.c
+
+mlite3.c
+msnake.c
+mstt.c
+mswans.c
+-----------------------------------------------------------------
+has an n-based relative
+
+updated 2004.10.27
+
+m1210.c (m1ton)
+mdodgem.c (mdinododgem)
+-----------------------------------------------------------------
+fixed-size games
+
+updated 2004.10.27
+
+machi.c
+mLgame.c
+mttt.c
+
+-----------------------------------------------------------------
+pseudo n-based (k1 <= n <= k2)
+find the n!
+(limitations possibly because of solvability or board printing)
+
+updated 2004.10.27
+
+mjoust.c
+mhorse.c
+mqx.c
+mchange.c
+mcmass.c
+miceblocks.c
+mrubix.c
+mnim.c
+masalto.c
+
+-----------------------------------------------------------------
+errors in text ui: (everyone writes their own menu...)
+ugly text ui
+bad verbiage
+operating restrictions
+ToWin strings should be same in text and gui versions
+
+mjoust.c
+mdinododgem.c (format that one string that prints ugly)
+mstt.c
+mgraph.c (cannot ctrl-c)
+
+-----------------------------------------------------------------
+uncategorized/incomplete
+
+mtttppm.c
+mtore.c
+mqland.c
+m3dot.c (remove requested) email scott or jj about this
+mdodgemhash.c (very bad name) ? not used?
+mseega.c
+module.c (bad name!)

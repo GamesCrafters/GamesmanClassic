@@ -1,6 +1,8 @@
-How to make a gamesman game:
+	     HOW TO MAKE A NEW GAMESMAN GAME MODULE
 
+------------------------------------------------------------------
 Step 1: Choose Game.
+------------------------------------------------------------------
 Choose what game you want to code and get really familiar with
 how to play the game.  Think of the variances that you might want
 to add to the game to make it more interesting (misere in tic tac
@@ -9,7 +11,9 @@ Gamesman games are:
 2 person
 perfect information (no chance and no hidden information)  
 
+------------------------------------------------------------------
 Step 2: Board Representation.
+------------------------------------------------------------------
 Think of a way you might represent your board.  Most common
 representation is an array.  Also think how you might represent
 it in bits (fun project, helps with the hash function).  You must
@@ -17,7 +21,9 @@ also think of some way to encode whose turn it is in the way you
 represent the board and various board positions.  At the same time,
 you should think about how you can represent a move.
 
+------------------------------------------------------------------
 Step 3: Hash Function.
+------------------------------------------------------------------
 Gamesman has some built in hash functions that could be used for
 the game you have chosen.  If you are confident in your abilities
 feel free to take a look at the hash function code in gamesman.c,
@@ -30,8 +36,9 @@ turn a board position (any board configuration that could occur in
 a game) into a unique number.  For more information about hash
 functions, either talk to Dan, or a more experienced gamecrafter.
 
+------------------------------------------------------------------
 Step 4: Coding.
-
+------------------------------------------------------------------
 NOTE: Try to make all games as generally as possible. In other words
       do not make the board size and the number of variables fixed.
 
@@ -84,10 +91,47 @@ source file with all the necessary declarations for the above functions
 to get you started. It is in <source root>/src/mtemplate.c. Consult the
 comments above the functions to get further informations on them.
 
+-------------------------------------------------------------------
 Step 5: Debugging.
+-------------------------------------------------------------------
 
+-------------------------------------------------------------------
 Step 6: Polishing/Variants.
+-------------------------------------------------------------------
 
+-------------------------------------------------------------------
 Step 7: Add it to GAMESMAN.
+-------------------------------------------------------------------
 
+-------------------------------------------------------------------
 Step 8: GUI.
+-------------------------------------------------------------------
+These steps are all you need to take to run the new gamesman3.tcl.
+To get started, copy the .tcl files into the gamesman/tcl directory,
+and copy the .in file to the gamesman/bin directory.
+
+To get started:
+
+1) rename the file Xblank.in XmYOUR_GAME_NAME.in (YOUR_GAME_NAME should
+become the abbreviation you used in your .c file, like ttt or sim.  Note
+I omit the m.)
+
+2) Inside the file XmYOUR_GAME_NAME.in, replace the string YOUR_GAME_NAME
+with the same abbreviation.
+
+3) Rename the mblank.tcl file mYOUR_GAME_NAME.tcl
+
+4) Then you're ready to code, fill in the functions inside
+mYOUR_GAME_NAME.tcl.
+
+5) When you are all done, do a ./configure to get the launch script
+generated.
+
+You can run it from gamesman/bin by typing the name of your .in file
+without the extension, like this:
+./XmYOUR_GAME_NAME
+
+-------------------------------------------------------------------
+CONGRATULATIONS ON COMPLETING THE FULL-COURSE DEVELOPMENT OF
+		A NEW GAMESMAN MODULE!
+-------------------------------------------------------------------
