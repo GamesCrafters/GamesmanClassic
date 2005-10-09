@@ -18,6 +18,7 @@ UNDO*		InitializeUndo			();
 
 void		PrintHumanValueExplanation	();
 void		PrintComputerValueExplanation	();
+void		PrintVisualValueHistory		(POSITION position);
 UNDO*		Stalemate			(UNDO*, POSITION stalematePos, BOOLEAN* abort);
 
 /* Data output */
