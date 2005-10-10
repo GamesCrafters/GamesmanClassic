@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.47 2005-09-19 05:29:48 yanpeichen Exp $
+// $Id: mquarto.c,v 1.48 2005-10-10 08:09:57 neyiah Exp $
 
 
 /*
@@ -130,6 +130,7 @@
 ** 09 Sep 2005 Amy:    Changed the way moves are printed/inputted. Also support for 1-dim quarto added. yay! Format for moves is now
 **                     [slot to place piece],[new piece to select]
 ** 18 Sep 2005 Yanpei: Bug in setOffset() fixed. Now solves for 3-D as well. 
+** 10 Oct 2005 Amy:		 fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
 **************************************************************************/
 
 
@@ -487,7 +488,8 @@ MOVELIST *GenerateMoves (POSITION position)
 
     /* If there are no pieces on the board, the only valid moves are the ones placing a piece into the hand */
     /* These are special moves, as their board position indicates HAND, and are only valid for a first move */
-    if( board->squaresOccupied == 0 ) {
+    /* MAKE SURE HAND IS NOT OCCUPIED */
+    if( board->squaresOccupied == 0 && board->slots[HAND] == EMPTYSLOT) {
 		
 	/* For every piece possible (since board is initial, every piece is allowed into the game */
 	for( piece = 0; piece < NUMPIECES; piece++ ) {
@@ -2207,6 +2209,11 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.47  2005/09/19 05:29:48  yanpeichen
+// 18 Sep 2005 Yanpei Chen changing mquarto.c
+//
+// Bug in setOffset() fixed. Now solves for 3-D as well.
+//
 // Revision 1.46  2005/09/15 04:34:32  ogren
 // capitalized CVS keywords
 //
