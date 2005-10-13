@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.73 2005-10-07 00:49:46 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.74 2005-10-13 07:01:16 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -117,8 +117,9 @@ proc SetupPlayOptions {} {
 
 proc InitWindow { kRootDir kDir kExt } {
 
-    global gWindowWidth gWindowHeight gWindowRatio
+    global gWindowWidth gWindowHeight gWindowRatio gWindowWidthRatio gWindowHeightRatio
     global gFrameWidth
+    global convertExists
     global gSkinsRootDir
     global gSkinsDir
     global gSkinsExt
@@ -144,21 +145,41 @@ proc InitWindow { kRootDir kDir kExt } {
     set gGameDelay 1
     set gWhoseTurn "Jesse"
     set gPredString ""
-    #wm geometry . =640x480
-    wm geometry . =800x600
-    #wm geometry . =1024x768
-    #wm geometry . =1200x900
-    update
-    set gWindowWidth [winfo width .]
-    set gWindowHeight [winfo height .]
-    set gWindowRatio [expr $gWindowWidth/800.0]
-    set gFrameWidth [expr $gWindowWidth * 10 / 16]
-    puts $gFrameWidth
-    wm aspect . 800 600 1600 1200
-    set gGamePlayable false
+
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
     set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
+
+
+    set convertExists false
+    if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
+	set convertExists true
+    } else {
+	exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"
+	if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
+	    set convertExists true
+	}
+    }
+
+    if { !$convertExists } {
+	wm geometry . =800x600
+    } else {
+	set maxsize [wm maxsize .]
+	set maxwidth [lindex $maxsize 0]
+	set maxheight [lindex $maxsize 1]
+	wm geometry . =[expr $maxwidth]x[expr $maxheight]
+    }
+    update
+
+    set gWindowWidth [winfo width .]
+    set gWindowHeight [winfo height .]
+    set gWindowRatio [expr $gWindowWidth/800.0]
+    set gWindowWidthRatio [expr $gWindowWidth/800.0]
+    set gWindowHeightRatio [expr $gWindowHeight/600.0]
+    set gFrameWidth [expr $gWindowWidth * 10 / 16]
+
+
+    set gGamePlayable false
     set gWaitingForHuman false
     set gSkipInputOnSingleMove false
     set gNewGame false
@@ -775,70 +796,70 @@ proc InitWindow { kRootDir kDir kExt } {
 	-background black
 
 
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 100] -image iIMB1p -tags [list  iIMB iIMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 300] -image iIMB2p -tags [list  iIMB iIMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 450] -image iIMB3p -tags [list  iIMB iIMB3]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 100] -image iDMB1p -tags [list  iDMB iDMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 300] -image iDMB2p -tags [list  iDMB iDMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 450] -image iDMB3p -tags [list  iDMB iDMB3]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iAMB7p -tags [list startupPic]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iOMB7p -tags [list startupPicOver]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iIMB1p -tags [list  iIMB iIMB1]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iIMB2p -tags [list  iIMB iIMB2]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iIMB3p -tags [list  iIMB iIMB3]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iDMB1p -tags [list  iDMB iDMB1]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iDMB2p -tags [list  iDMB iDMB2]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iDMB3p -tags [list  iDMB iDMB3]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iAMB7p -tags [list startupPic]
+    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iOMB7p -tags [list startupPicOver]
 	    	
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 300] -image iAMB5p -tags [list  iAMB iAMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 100] -image iIMB4p -tags [list  iIMB iIMB4]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 300] -image iIMB5p -tags [list  iIMB iIMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 450] -image iIMB6p -tags [list  iIMB iIMB6]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 100] -image iDMB4p -tags [list  iDMB iDMB4]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 300] -image iDMB5p -tags [list  iDMB iDMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 450] -image iDMB6p -tags [list  iDMB iDMB6]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iAMB8p -tags [list play]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowRatio * 250] -image iOMB8p -tags [list playOver]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iAMB5p -tags [list  iAMB iAMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iIMB4p -tags [list  iIMB iIMB4]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iIMB5p -tags [list  iIMB iIMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iIMB6p -tags [list  iIMB iIMB6]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iDMB4p -tags [list  iDMB iDMB4]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iDMB5p -tags [list  iDMB iDMB5]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iDMB6p -tags [list  iDMB iDMB6]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iAMB8p -tags [list play]
+    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iOMB8p -tags [list playOver]
 
-    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 100] \
+    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
 	    -text "To Win:" \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	    -justify center \
 	    -font $kToMoveToWinFont \
 	    -anchor center \
 	    -tags [list ToWin textitem]
 
-    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 300] \
+    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 300] \
 	    -text "To Move:" \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	    -justify center \
 	    -font $kToMoveToWinFont \
 	    -anchor center \
 	    -tags [list ToMove textitem]
 
-    .middle.f1.cMLeft create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
+    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
 	    -text [format "Left:\n%s" $gLeftName] \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
 	    -tags [list LeftName Names textitem] \
 	    -fill $gLeftColor
 
-    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 450] \
+    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
 	    -text [format "Right:\n%s" $gRightName] \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	    -justify center \
 	    -font $kPlayerLabelFont \
 	    -anchor center \
 	    -tags [list RightName Names textitem] \
 	    -fill $gRightColor
 
-    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 150] \
+    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 150] \
 	    -text [format "Predictions: %s" $gPredString] \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	    -justify center \
 	    -font $kLabelFont \
 	    -anchor center \
 	    -tags [list Predictions textitem]
 
-    .middle.f3.cMRight create text [expr $gWindowRatio * 75] [expr $gWindowRatio * 80]\
+    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 80]\
 	-text "" \
-	-width [expr $gWindowRatio * 140] \
+	-width [expr $gWindowWidthRatio * 140] \
 	-justify center \
 	-font $kLabelFont \
 	-anchor center \
@@ -955,19 +976,19 @@ proc InitWindow { kRootDir kDir kExt } {
 	-background black
 
     #create bar border
-    .cStatus create image [expr $gWindowRatio * 400] [expr $gWindowRatio * 40] -image iBBB1p -tags [list iABB iABB1 base]
-    .cStatus create image [expr $gWindowRatio * 100] [expr $gWindowRatio * 40] -image iABB2p -tags [list sbb iABB iABB2 playA]
-    .cStatus create image [expr $gWindowRatio * 100] [expr $gWindowRatio * 40] -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
-    .cStatus create image [expr $gWindowRatio * 100] [expr $gWindowRatio * 40] -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
-    .cStatus create image [expr $gWindowRatio * 100] [expr $gWindowRatio * 40] -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
+    .cStatus create image [expr $gWindowWidthRatio * 400] [expr $gWindowHeightRatio * 40] -image iBBB1p -tags [list iABB iABB1 base]
+    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iABB2p -tags [list sbb iABB iABB2 playA]
+    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
+    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
+    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
     #create toWin checked
-    .cStatus create image [expr $gWindowRatio * 290] [expr $gWindowRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 winA]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 winA]
     #create toWin unchecked
-    .cStatus create image [expr $gWindowRatio * 290] [expr $gWindowRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
     #create toMove checked
-    .cStatus create image [expr $gWindowRatio * 290] [expr $gWindowRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 moveA]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 moveA]
     #create toMove unchecked
-    .cStatus create image [expr $gWindowRatio * 290] [expr $gWindowRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
     
 
     ######
@@ -980,26 +1001,26 @@ proc InitWindow { kRootDir kDir kExt } {
     #.cStatus create image 530 22.5 -image iIBB5p -tags [list sbb iIBB iIBB5 noneI def]
    
     #create the cover for the moves image
-    .cStatus create image [expr $gWindowRatio * 425] [expr $gWindowRatio * 25] -image iDBB6p -tags [list sbb iDBB iDBB6 allD]
+    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iDBB6p -tags [list sbb iDBB iDBB6 allD]
     #create all moves filled, old coords 470,22.5
-    .cStatus create image [expr $gWindowRatio * 425] [expr $gWindowRatio * 25] -image iABB6p -tags [list sbb iABB iABB6 allA def]
+    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iABB6p -tags [list sbb iABB iABB6 allA def]
     #create all moves unfilled
-    .cStatus create image [expr $gWindowRatio * 425] [expr $gWindowRatio * 25] -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
+    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
     #create the cover for the values image
-    .cStatus create image [expr $gWindowRatio * 515] [expr $gWindowRatio * 25] -image iDBB7p -tags [list sbb iDBB iDBB7 valueD]
+    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iDBB7p -tags [list sbb iDBB iDBB7 valueD]
     #create value moves filled, old coords 530, 22.5
-    .cStatus create image [expr $gWindowRatio * 515] [expr $gWindowRatio * 25] -image iABB7p -tags [list sbb iABB iABB7 valueA]
+    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
-    .cStatus create image [expr $gWindowRatio * 515] [expr $gWindowRatio * 25] -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
-    .cStatus create image [expr $gWindowRatio * 470] [expr $gWindowRatio * 52] -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
-    .cStatus create image [expr $gWindowRatio * 470] [expr $gWindowRatio * 52] -image iABB8p -tags [list sbb iABB iABB8 predA]
-    .cStatus create image [expr $gWindowRatio * 470] [expr $gWindowRatio * 52] -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
-    .cStatus create image [expr $gWindowRatio * 700] [expr $gWindowRatio * 40] -image iABB9p -tags [list sbb iABB iABB9 undoA]
-    .cStatus create image [expr $gWindowRatio * 700] [expr $gWindowRatio * 40] -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
-    .cStatus create image [expr $gWindowRatio * 700] [expr $gWindowRatio * 40] -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
-    .cStatus create image [expr $gWindowRatio * 700] [expr $gWindowRatio * 40] -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
+    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iABB8p -tags [list sbb iABB iABB8 predA]
+    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iABB9p -tags [list sbb iABB iABB9 undoA]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
 
-    .middle.f2.cMain create image [expr $gWindowRatio * 250] [expr $gWindowRatio * 250] -image iAMM1p -tags [list base iAMM iAMM1]
+    .middle.f2.cMain create image [expr $gWindowWidthRatio * 250] [expr $gWindowHeightRatio * 250] -image iAMM1p -tags [list base iAMM iAMM1]
 
     #play options
     .cStatus bind playI <Any-Enter> {
@@ -1297,7 +1318,9 @@ proc HandleScrollFeedback { bar whichOffset args } {
 
 proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
-    global gWindowWidth gWindowHeight gWindowRatio gSkinsExt gSkinsDir gSkinsRootDir
+    global gWindowWidth gWindowHeight gWindowRatio gWindowWidthRatio gWindowHeightRatio
+    global convertExists
+    global gSkinsExt gSkinsDir gSkinsRootDir
 	
     #
     # Load all the button images
@@ -1307,27 +1330,13 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsDir $skinsDir
     set gSkinsRootDir $skinsRootDir
 
-    set resolutionExists false
+    set scalePercent [expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
     set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
-    set convertExists true
-    set scalePercent [expr $gWindowRatio * 100]%
+    set resolutionExists true
 
-    if { [file isdirectory [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] } {
-	if { ![file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
-	    set convertExists false
-	}
-	set resolutionExists true
-    } else {
+    if { ![file isdirectory [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] && $convertExists } {
 	file mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
-	exec convert -resize $scalePercent [format %s%s/A_1_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	if { ![file exists [format %s%s/%sA_1_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]] } {
-	    set convertExists false
-	}
-    }
-
-
-    if { !$convertExists } {
-	set resolutionDir ""
+	set resolutionExists false
     }
 
 
@@ -1336,7 +1345,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
 
-	    if { !$resolutionExists && $convertExists } {
+	    if { $convertExists && !$resolutionExists } {
 		exec convert -resize $scalePercent [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1355,7 +1364,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {1 2 3 4 5 6} {
 	    set name [format i%sMB%s $mode $file]
 
-	    if { !$resolutionExists && $convertExists } {
+	    if { $convertExists && !$resolutionExists } {
 		exec convert -resize $scalePercent [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1363,7 +1372,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	}
     }
 
-    if { !$resolutionExists && $convertExists } {
+    if { $convertExists && !$resolutionExists } {
 	exec convert -resize $scalePercent [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 	exec convert -resize $scalePercent [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 	exec convert -resize $scalePercent [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
@@ -1386,7 +1395,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {2 9} {
 	    set name [format i%sBB%s $mode $file]
 
-	    if { !$resolutionExists && $convertExists } {
+	    if { $convertExists && !$resolutionExists } {
 		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1397,7 +1406,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {3 4 6 7 8} {
 	    set name [format i%sBB%s $mode $file]
 
-	    if { !$resolutionExists && $convertExists } {
+	    if { $convertExists && !$resolutionExists } {
 		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1406,7 +1415,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     }
 
     foreach file {6 7 8} {
-	if { !$resolutionExists && $convertExists } {
+	if { $convertExists && !$resolutionExists } {
 	    exec convert -resize $scalePercent [format %s%s/D_3_%s.%s $skinsRootDir $skinsDir $file $skinsExt] [format %s%s/%sD_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $file $skinsExt]
 	}
 
