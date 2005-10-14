@@ -1,4 +1,0 @@
-#! /bin/bash
-chmod 755 bin/Xm*
-chmod 755 bin/XGamesman
-chmod -x bin/*.in
