@@ -1,13 +1,20 @@
-#!/usr/bin/env wish
+#!/usr/bin wish
 
 #############################################################################
 ##
-## NAME:
+## NAME:         Xmdodgem
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
-## UPDATE HISTORY:
+## DESCRIPTION:  The source code for the Tcl component of Dodgem
+##               for the Master's project GAMESMAN
+##
+## AUTHOR:       Dan Garcia  -  University of California at Berkeley
+##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##
+## DATE:         05-14-95
+##
+## UPDATE HIST:
+##
+## 05-15-95 1.0    : Final release code for M.S.
 ##
 #############################################################################
 
@@ -28,18 +35,12 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
-
-### Now source the rest of the game-playing interface code.
-
-source "$kRootDir/../tcl/gamesman3.tcl"
+load "$kRootDir/../lib/libmdodgem[info sharedlibextension]" Gamesman
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/mdodgem.tcl"
 
-main $kRootDir
+### Now source the rest of the game-playing interface code.
 
-
-
-
+source "$kRootDir/../tcl/gamesman.tcl"

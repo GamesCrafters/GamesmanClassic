@@ -2,12 +2,19 @@
 
 #############################################################################
 ##
-## NAME:
+## NAME:         Xmttt
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
-## UPDATE HISTORY:
+## DESCRIPTION:  The source code for the Tcl component of TicTacToe
+##               for the Master's project GAMESMAN
+##
+## AUTHOR:       Dan Garcia  -  University of California at Berkeley
+##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##
+## DATE:         05-12-95
+##
+## UPDATE HIST:
+##
+## 05-15-95 1.0    : Final release code for M.S.
 ##
 #############################################################################
 
@@ -28,7 +35,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmttt[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
@@ -36,9 +43,13 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/mttt3.tcl"
 
 main $kRootDir
+
+
+
+
 
 
 

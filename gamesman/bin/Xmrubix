@@ -2,12 +2,16 @@
 
 #############################################################################
 ##
-## NAME:
+## NAME:         Xmrubix
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
-## UPDATE HISTORY:
+## DESCRIPTION:  Rubik's Magic
+##
+## AUTHOR:       Jeffrey Chiang & Bryon Ross
+##
+## DATE:         2003-05-14
+##
+## UPDATE HIST:
+##
 ##
 #############################################################################
 
@@ -28,7 +32,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmrubix[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
@@ -36,10 +40,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/mrubix.tcl"
 
 main $kRootDir
-
-
-
 

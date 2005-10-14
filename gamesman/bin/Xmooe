@@ -2,11 +2,13 @@
 
 #############################################################################
 ##
-## NAME:
+## NAME: Odd Or Even (mooe)
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
+## DESCRIPTION:  Start with Odd number of matches, players can take 1, 2, or 3
+## 			matches on their turn. When all the matches are taken, players
+##			with the even of number of matches wins.
+## AUTHOR:       Pai-hsien (Peter) Yu
+## DATE:         2/08/05
 ## UPDATE HISTORY:
 ##
 #############################################################################
@@ -28,7 +30,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmooe[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
@@ -36,7 +38,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/mooe.tcl"
 
 main $kRootDir
 

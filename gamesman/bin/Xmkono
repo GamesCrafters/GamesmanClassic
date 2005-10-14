@@ -2,11 +2,11 @@
 
 #############################################################################
 ##
-## NAME:
+## NAME: Xmkono
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
+## DESCRIPTION: (Four Field) Kono
+## AUTHOR: Greg Bonin, Nathan Spindel    
+## DATE: 2005-01-26        
 ## UPDATE HISTORY:
 ##
 #############################################################################
@@ -28,7 +28,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmkono[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
@@ -36,7 +36,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/mkono.tcl"
 
 main $kRootDir
 

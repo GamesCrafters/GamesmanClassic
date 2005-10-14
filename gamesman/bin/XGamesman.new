@@ -1,6 +1,4 @@
-#!@WISHLOC@ -f
-
-# @WARNGC@ XGamesman.in
+#!/usr/bin/env wish
 
 proc main {} {
     wm title . "GAMESMAN"

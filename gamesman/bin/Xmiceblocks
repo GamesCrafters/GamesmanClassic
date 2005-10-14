@@ -2,12 +2,13 @@
 
 #############################################################################
 ##
-## NAME:
+## NAME: Ice Blocks
 ##
-## DESCRIPTION:  
-## AUTHOR:       
-## DATE:         
-## UPDATE HISTORY:
+## DESCRIPTION: Ice Blocks
+## AUTHOR: John Lo
+## DATE: 2/8/205
+## UPDATE HISTORY: 
+##   2/8/2005 - Created file.
 ##
 #############################################################################
 
@@ -28,7 +29,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmYOUR_GAME_NAME[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmiceblocks[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
@@ -36,7 +37,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mYOUR_GAMENAME.tcl"
+source "$kRootDir/../tcl/miceblocks.tcl"
 
 main $kRootDir
 
