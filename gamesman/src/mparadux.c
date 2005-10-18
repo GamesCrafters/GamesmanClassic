@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.7 2005-10-05 03:23:55 trikeizo Exp $
+// $Id: mparadux.c,v 1.8 2005-10-18 08:34:01 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -28,6 +28,8 @@
 ** 10/04/2005 David  - Added a bunch of simple functions--without testing
 **                     and which are incomplete; just wanted to get
 **                     something out before the meeting.
+** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
+**                     more tidy code. Proof read hashMove() unhashMove()
 **
 **************************************************************************/
 
@@ -174,6 +176,8 @@ STRING computerName = "Robbie";
 
 */
 
+/* MOVE encoding: (position << 6) | (direction << 3) | type
+
 /* On the hexagonal board, only one side needs to be specified */
 int boardSide = 3
 
@@ -193,6 +197,9 @@ typedef PARABOARD* PBPtr;
 // "x" and "y" should not contain side effects
 #define max(x,y) ((x)>(y) ? (x) : (y))
 #define min(x,y) ((x)<(y) ? (x) : (y))
+
+// must be used on ints or POSITION or the like
+#define abs(x) (0<(x) ? (x) : (-x))
 
 
 /*************************************************************************
@@ -215,16 +222,34 @@ extern void		SafeFree ();
 /* Multiple Implementations */
 
 void                    (*initGame)( ) = &davidInitGame;
+void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn) = &dyPrintPos;
 
 /* Support Functions */
 
 PBPtr                   MallocBoard();
 void                    FreeBoard(PBPtr);
+MOVE                    hashMove(int type, int pos1, int pos2);
+void                    unhashMove(MOVE move, int* type, int* pos1, int* pos2);
 
 // returns TRUE if square u,v is next to square x,y
 // where u,v and x,y are the row,column coordinates
 // returns FALSE for invalid coordinates
 BOOLEAN                 neighbor(int u, int v, int x, int y);
+
+// if there is no neigher in the specified direction, return INVALID
+int                     getNeighbor(int pos, int direction);
+
+/* Direction in which the neighbor neighbors pos:
+  0 NW
+  1 NE
+  2 E
+  3 SE
+  4 SW
+  5 W
+ -1 Not neighboring
+*/
+
+int                     neighboringDirection(int pos, int neighbor);
 
 // returns slot number when given row and column coordinates
 // returns -1 when given invalid coordinates
@@ -234,6 +259,8 @@ int                     rcToSlot(int r, int c);
 // returns -1 when given invalid slot number
 // return data format = r*100+c
 int                     slotToRC(int s);
+
+void                    getColRow(int pos, int* pCol, int* pRow);
 
 /*************************************************************************
 **
@@ -624,28 +651,37 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  printf("It is %s's turn.\n\n", (usersTurn ? playerName : computerName));
 
-  int el = 0;
+  printPos(position, playersName, usersTurn);
+
+}
+
+void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn) 
+{
+
+  printf("It is %s's turn.\n\n", (usersTurn ? playersName : computerName));
+
+  int initEl, el = 0;
   int totalCols = boardSide;
+  int row, col, i;
 
   char* board = SafeMalloc(sizeof(char) * boardSize);
 
   generic_unhash(position, board);
 
-  for (int row = 0; row < boardSide * 2 - 1; row++) {
-    int initEl = el;
+  for (row = 0; row < boardSide * 2 - 1; row++) {
+    initEl = el;
 
     // Leading spaces
-    for (int i = 0; i < boardSide - row; i++) {
+    for (i = 0; i < boardSide - row; i++) {
       printf(" ");
     }
 
-    for (int col = 0; col < totalCols; col++, el++) {
+    for (col = 0; col < totalCols; col++, el++) {
       printf("%c ", board[el]);
     }
     // Spaces between board and divider
-    for (int i = 0; i < boardSide - row - 1; i++) {
+    for (i = 0; i < boardSide - row - 1; i++) {
       printf(" ");
     }
 
@@ -653,19 +689,19 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
     // Spaces between divider and legend; and legend
     if (boardSide < 6) {
-      for (int i = 0; i < boardSide - row; i++) {
+      for (i = 0; i < boardSide - row; i++) {
 	printf("  ");
       }
 
-      for (int col = 0; col < totalCols; col++, el++) {
+      for (col = 0; col < totalCols; col++, el++) {
 	printf("%2d", el);
       }
     } else {
-      for (int i = 0; i < boardSide - row; i++) {
+      for (i = 0; i < boardSide - row; i++) {
 	printf("   ");
       }
 
-      for (int col = 0; col < totalCols; col++, el++) {
+      for (col = 0; col < totalCols; col++, el++) {
 	printf("%3d", el);
       }
     }
@@ -683,8 +719,76 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("|   SW  S  SE               |                              |\n");
   printf("|                           |                              |\n");
   printf("+---------------------------+------------------------------+\n\n");
+
+  SafeFree(board);
+
 }
 
+void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn) 
+{
+
+  printf("It is %s's turn.\n\n", (usersTurn ? playersName : computerName));
+
+  int el = 0, initEl;
+  int row, col, i, totalCols = boardSide;
+
+  char* board = generic_unhash(position, SafeMalloc(sizeof(char) * boardSize));
+
+  for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
+
+    initEl = el;
+  
+    // Leading spaces
+    for (i = 0; i < abs(boardSide - row); i++) {
+      printf("  ");
+    }
+    // Columns
+    for (col = 0; col < totalCols; col++, el++) {
+      printf("%c   ", board[el]);
+    }
+    // Spaces between board and divider
+    for (i = 0; i < abs(boardSide - row); i++) {
+      printf("  ");
+    }
+
+    el = initEl;
+    
+    // Spaces between divider and legend; and legend
+    if (boardSide < 6) {
+      // less than 100 slots
+      for (i = 0; i < abs(boardSide - row); i++) {
+	printf("  ");
+      }
+      for (col = 0; col < totalCols; col++, el++) {
+	printf("%2d  ", el);
+      }
+    } else {
+      // more than 100 slots
+      for (i = 0; i < abs(boardSide - row); i++) {
+	printf("   ");
+      }
+      for (col = 0; col < totalCols; col++, el++) {
+	printf("%3d  ", el);
+      }
+    } // end lengend
+    
+    printf("\n\n");
+  } // end for (row = 0 ...)
+        
+  printf("+---------------------------+------------------------------+\n");
+  printf("|        MOVEMENT KEY       |          PREDICTION          |\n");
+  printf("|                           |                              |\n");
+  printf("|   NW  N  NE               |                              |\n");
+  printf("|     \\ | /                 |                              |\n");
+  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playerName,usersTurn));
+  printf("|     / | \\                 |                              |\n");
+  printf("|   SW  S  SE               |                              |\n");
+  printf("|                           |                              |\n");
+  printf("+---------------------------+------------------------------+\n\n");
+       
+  SafeFree(board);
+
+}
 
 /************************************************************************
 **
@@ -944,20 +1048,6 @@ void DebugMenu ()
     
 }
 
-MOVE hashMove (int type, int pos1, int pos2)
-{
-  int nDirection = neighboringDirection(pos1, pos2);
-
-  return (pos1 << 26) | (nDirection << 3) | type;
-}
-
-void unhashMove (MOVE move, int* type, int* pos1, int* pos2) {
-  *pos1 = move >> 26;
-  *pos2 = getNeighbor(*pos1, (move >> 3) & 7);
-
-  *type = move & 7;
-}
-
 /************************************************************************
 **
 ** Everything specific to this module goes below these lines.
@@ -968,6 +1058,20 @@ void unhashMove (MOVE move, int* type, int* pos1, int* pos2) {
 ** Any other function you deem necessary to help the ones above.
 ** 
 ************************************************************************/
+
+MOVE hashMove (int type, int pos1, int pos2)
+{
+  int nDirection = neighboringDirection(pos1, pos2);
+
+  return (pos1 << 6) | (nDirection << 3) | type;
+}
+
+void unhashMove (MOVE move, int* type, int* pos1, int* pos2) {
+  *pos1 = move >> 6;
+  *pos2 = getNeighbor(*pos1, (move >> 3) & 7);
+
+  *type = move & 7;
+}
 
 /************************************************************************
 **
@@ -1166,6 +1270,7 @@ int rcToSlot(int r, int c) {
     return toReturn += c;
   } else {
     // invalid r,c
+    printf("**** Error -- rcToSlot: Invalid r,c ****");
     return -1;
   }
 
@@ -1216,6 +1321,9 @@ void getColRow(int pos, int* pCol, int* pRow) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2005/10/05 03:23:55  trikeizo
+// Added a bunch of small functions, untested.
+//
 // Revision 1.6  2005/09/28 06:17:18  yanpeichen
 // *** empty log message ***
 //
