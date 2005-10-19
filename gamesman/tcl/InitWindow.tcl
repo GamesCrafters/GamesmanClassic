@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.74 2005-10-13 07:01:16 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.75 2005-10-19 20:36:19 ogren Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1240,8 +1240,13 @@ proc SetupSkinsFrame { f width } {
 proc SetupAboutFrame { f width } {
 
     set width [expr $width - 40]
+    
     canvas $f.scrollpane -yscrollcommand "HandleScrollFeedback $f.bar aboutOffset"
     scrollbar $f.bar -command "HandleScrolling $f aboutOffset"
+    
+    #canvas $f.scrollpane -yscrollcommand "$f.bar set"
+    #scrollbar $f.bar -command "$f.scrollpane yview"
+
     pack $f.bar -side right -fill y
     
     set sp $f.scrollpane
@@ -1269,7 +1274,7 @@ proc SetupAboutFrame { f width } {
 	-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
     
     global kRootDir
-    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2005SpNames.ppm"
+    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2005FaNamesSmall.ppm"
     canvas $sp.photo -height 360 -width 480
     $sp.photo create image 240 180 -image GamesCraftersImage
 
