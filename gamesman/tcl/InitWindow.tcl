@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.75 2005-10-19 20:36:19 ogren Exp $
+# $Id: InitWindow.tcl,v 1.76 2005-10-20 01:19:07 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -117,8 +117,8 @@ proc SetupPlayOptions {} {
 
 proc InitWindow { kRootDir kDir kExt } {
 
-    global gWindowWidth gWindowHeight gWindowRatio gWindowWidthRatio gWindowHeightRatio
-    global gFrameWidth
+    global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
+    global gFrameWidth gFrameHeight
     global convertExists
     global gSkinsRootDir
     global gSkinsDir
@@ -168,15 +168,16 @@ proc InitWindow { kRootDir kDir kExt } {
 	set maxwidth [lindex $maxsize 0]
 	set maxheight [lindex $maxsize 1]
 	wm geometry . =[expr $maxwidth]x[expr $maxheight]
+#	wm geometry . =1200x670
     }
     update
 
     set gWindowWidth [winfo width .]
     set gWindowHeight [winfo height .]
-    set gWindowRatio [expr $gWindowWidth/800.0]
     set gWindowWidthRatio [expr $gWindowWidth/800.0]
     set gWindowHeightRatio [expr $gWindowHeight/600.0]
     set gFrameWidth [expr $gWindowWidth * 10 / 16]
+    set gFrameHeight [expr $gWindowHeight * 5 / 6]
 
 
     set gGamePlayable false
@@ -212,13 +213,13 @@ proc InitWindow { kRootDir kDir kExt } {
     # set the size of the frames and force them to stay that way
     frame .middle.f1 \
 	-width [expr $gWindowWidth * 3 / 16] \
-	-height [expr $gWindowHeight * 25 / 30]
+	-height $gFrameHeight
     frame .middle.f2 \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30] 
+	-height $gFrameHeight
     frame .middle.f3 \
 	-width [expr $gWindowWidth * 3 / 16] \
-	-height [expr $gWindowHeight * 25 / 30]
+	-height $gFrameHeight
 
     pack propagate .middle.f1 0
     pack propagate .middle.f2 0
@@ -231,10 +232,12 @@ proc InitWindow { kRootDir kDir kExt } {
 	-height [expr $gWindowHeight * 25 / 30] \
 	-background black
     
+    
+
     canvas .middle.f2.cMain -highlightthickness 0 \
 	-bd 0 \
 	-width $gFrameWidth \
-	-height $gFrameWidth \
+	-height $gFrameHeight \
 	-background white
     # since main frame is square, the width and height are the same
     #	-height [expr $gWindowHeight * 25 / 30] \
@@ -245,7 +248,8 @@ proc InitWindow { kRootDir kDir kExt } {
 	    
     frame .middle.f2.fPlayOptions \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30]
+	-height $gFrameHeight
+    #[expr $gWindowHeight * 25 / 30]
     pack propagate .middle.f2.fPlayOptions 0
     frame .middle.f2.fPlayOptions.fBot \
 	-width $gFrameWidth \
@@ -658,7 +662,8 @@ proc InitWindow { kRootDir kDir kExt } {
     set helpFrame .middle.f2.fHelp
     frame $helpFrame \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30] 
+	-height $gFrameHeight 
+    #[expr $gWindowHeight * 25 / 30] 
 
     frame $helpFrame.buttons
     frame $helpFrame.content
@@ -690,7 +695,8 @@ proc InitWindow { kRootDir kDir kExt } {
     set skinsFrame .middle.f2.fSkins
     frame $skinsFrame \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30] 
+	-height $gFrameHeight
+    #[expr $gWindowHeight * 25 / 30] 
 
     frame $skinsFrame.buttons
     frame $skinsFrame.content
@@ -762,7 +768,8 @@ proc InitWindow { kRootDir kDir kExt } {
     set aboutFrame .middle.f2.fAbout
     frame $aboutFrame \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 25 / 30]
+	-height $gFrameWidth
+    #[expr $gWindowHeight * 25 / 30]
 
     frame $aboutFrame.buttons
     frame $aboutFrame.content
@@ -1323,7 +1330,7 @@ proc HandleScrollFeedback { bar whichOffset args } {
 
 proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
-    global gWindowWidth gWindowHeight gWindowRatio gWindowWidthRatio gWindowHeightRatio
+    global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
     global convertExists
     global gSkinsExt gSkinsDir gSkinsRootDir
 	

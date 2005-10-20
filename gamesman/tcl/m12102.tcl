@@ -169,21 +169,41 @@ proc GS_Initialize { c } {
 	global kLabelFont gMisereGame	
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width 500 -height 500
-        
-    for {set j 0} {$j<10} {incr j} {
-		set i [expr 10 - $j]
-	    $c create rect 225 [expr 50 * $j] 275 [expr 50 * [expr $j + 1]] -fill white -outline black -tag [list base base$i]
-	    $c create oval 235 [expr $j * 50 + 10] 265 [expr $j * 50 + 40] -width 2 -outline "" -tag [list pieces piece-$i]
-	    $c create oval 245 [expr $j * 50 + 20] 255 [expr $j * 50 + 30] -width 2 -outline "" -tag [list moveindicators mi-$i]
-	    $c lower piece$i base
+    #$c configure -width 500 -height 500
+    #why did we ever hard code this!!!!!!!!
+	global gFrameWidth gFrameHeight
+	set edgeBuffer 50
+	set gameHeight [expr $gFrameHeight - $edgeBuffer*2]
+        set gameWidth [expr $gameHeight/10]
 
-	    set theText [$c create text 232 [expr ($j+1)*50 - 5] \
-		    -text "$i" \
-		    -anchor sw \
-		    -font $kLabelFont \
-		    -fill black \
-		    -tag tagText]
+	for {set j 0} {$j<10} {incr j} {
+	    set i [expr 10 - $j]
+	    $c create rect \
+		[expr [expr $gFrameWidth/2] - [expr $gameWidth/2]] \
+		[expr $gameWidth * $j + $edgeBuffer] \
+		[expr [expr $gFrameWidth/2] + [expr $gameWidth/2]] \
+		[expr $gameWidth * [expr $j + 1] + $edgeBuffer] \
+		-fill white -outline black -tag [list base base$i]
+	    $c create oval \
+		[expr [expr $gFrameWidth/2] - [expr $gameWidth * 0.3]] \
+		[expr $j * $gameWidth + [expr $gameWidth/5] + $edgeBuffer] \
+		[expr [expr $gFrameWidth/2] + [expr $gameWidth * .3]] \
+		[expr $j * $gameWidth + [expr $gameWidth*4/5] + $edgeBuffer] \
+		-width 2 -outline "" -tag [list pieces piece-$i]
+	    $c create oval \
+		[expr [expr $gFrameWidth/2] - [expr $gameWidth/10]] \
+		[expr $j * $gameWidth + [expr $gameWidth*2/5] + $edgeBuffer] \
+		[expr [expr $gFrameWidth/2] + [expr $gameWidth/10]] \
+		[expr $j * $gameWidth + [expr $gameWidth*3/5] + $edgeBuffer] \
+		-width 2 -outline "" -tag [list moveindicators mi-$i]
+	    $c lower piece$i base
+	    
+	    set theText [$c create text [expr [expr $gFrameWidth/2] - [expr $gameWidth*0.36]] [expr ($j+1)*$gameWidth - 5  + $edgeBuffer] \
+			     -text "$i" \
+			     -anchor sw \
+			     -font $kLabelFont \
+			     -fill black \
+			     -tag tagText]
 	
 	    $c addtag tagTextSlot$i withtag $theText
 	    #puts "theText = $theText"
@@ -196,7 +216,7 @@ proc GS_Initialize { c } {
 			    set theMessage "LOSE"
 			}
 		
-			set theText [$c create text 250 5 \
+			set theText [$c create text [expr $gFrameWidth/2] [expr 5 + $edgeBuffer] \
 				-text $theMessage \
 				-anchor n \
 				-font $kLabelFont \
