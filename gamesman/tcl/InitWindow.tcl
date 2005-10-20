@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.77 2005-10-20 05:34:39 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.78 2005-10-20 06:53:23 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -155,8 +155,10 @@ proc InitWindow { kRootDir kDir kExt } {
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
 	set convertExists true
     } else {
-	exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"
-	if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
+	if { [catch {exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"}] } {
+	    set convertExists false
+	}
+	elseif { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
 	    set convertExists true
 	}
     }
