@@ -140,11 +140,37 @@ typedef char BlankOX;
 #define o 1
 #define x 2
 
+typedef char DIRECTION;
+#define EAST 0
+#define SOUTH 1
+#define WEST 2
+#define NORTH 3
+#define INVALID 4
+ 
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 char *gBlankOXString[] = { "-", "O", "X" };
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
+BOOLEAN gRealDino = TRUE;  /* Real DinoDodgem (i.e. like physical game) */
 
 BOOLEAN initialized = FALSE;
+BlankOX gWhosMove = x;
+
+#define HAVEFORBS ( gRealDino && side > 4 )
+#define NUMPIECES ( HAVEFORBS ? side-2 : side-1 )
+ 
+#define ISFORB(i) ( (i==0) || (i==1) || (i==side) )
+#define FORBIDDEN(i) ( (HAVEFORBS && ISFORB(i) ? TRUE : FALSE ) )
+ 
+#define OSTART(i) ( i && ((i%side) == 0) && !(HAVEFORBS && ISFORB(i)) )
+#define OSTART2(a,b) ( OSTART(a) && OSTART(b) )
+ 
+#define XSTART(i) ( i && (i<side) && !(HAVEFORBS && ISFORB(i)) )
+#define XSTART2(a,b) ( XSTART(a) && XSTART(b) )
+ 
+#define STARTLR(from, to, piece) \
+( (piece == x) ? XSTART2(from, to) : OSTART2(from, to) )
+ 
+#define DINO_COND(i,dir) ( HAVEFORBS ? (!FORBIDDEN(dir) && !STARTLR(i, dir, theBlankOX[i])) : TRUE )
 
 /*external function prototypes*/
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
@@ -230,6 +256,9 @@ void GameSpecificMenu() {
     printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
+    printf("\tR)\t(R)eal DinoDodgem mode toggle from %s to %s\n", 
+	   gRealDino ? "ON" : "OFF",
+	   !gRealDino ? "ON" : "OFF");
     printf("\ts)\tSet board (s)ize.\n");
     
     printf("\tb)\t(B)ack = Return to previous activity.\n");
@@ -259,6 +288,9 @@ void GameSpecificMenu() {
       break;
     case 'T': case 't':
       gToTrapIsToWin = !gToTrapIsToWin;
+      break;
+    case 'R': case 'r':
+      gRealDino = !gRealDino;
       break;
     case 'b': case 'B':
       return;
@@ -519,7 +551,7 @@ void PrintPosition(position,playerName,usersTurn)
         else
 	  printf("\n\t        ");
     for (col = 0; col < side; col++) {
-      printf ("%s ", gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
+      printf ("%s ", ((gRealDino && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
     }
     if (row == side-1)
       printf("\t LEGEND:  ");
@@ -606,7 +638,7 @@ MOVELIST *GenerateMoves(position)
 	right = i + 1;
 	up = i + side;
         /* left */
-	if ((i % side) != 0 && theBlankOX[left] == Blank) {
+	if ((i % side) != 0 && theBlankOX[left] == Blank && DINO_COND(i,left)) {
 	  // add new move i to left
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -614,7 +646,7 @@ MOVELIST *GenerateMoves(position)
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
-	if ((i % side) != (side - 1) && theBlankOX[right] == Blank) {
+	if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i,right)) {
 	  // add new move i to right
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -622,7 +654,7 @@ MOVELIST *GenerateMoves(position)
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* up */
-	if (up < boardsize && theBlankOX[up] == Blank) {
+	if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 	  // add new move i to up
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -646,7 +678,7 @@ MOVELIST *GenerateMoves(position)
 	down = i - side;
 	right = i + 1;
         /* up */
-	if (up < boardsize && theBlankOX[up] == Blank) {
+	if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 	  // add new move i to up
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -654,7 +686,7 @@ MOVELIST *GenerateMoves(position)
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* down */
-	if (down >= 0 && theBlankOX[down] == Blank) {
+	if (down >= 0 && theBlankOX[down] == Blank && DINO_COND(i,down)) {
 	  // add new move i to down
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -662,7 +694,7 @@ MOVELIST *GenerateMoves(position)
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
-	if ((i % side) != (side - 1) && theBlankOX[right] == Blank) {
+	if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i, right)) {
 	  // add new move i to right
 	  theMove = i;
 	  theMove = theMove << 8;
@@ -797,8 +829,8 @@ POSITION DefaultInitialPosition() {
       blankOX[i] = Blank;
   }
   for (i=1; i<side; i++) {
-    blankOX[i*side] = o;
-    blankOX[i] = x;
+    blankOX[i*side] = (HAVEFORBS && ISFORB(i*side)) ? Blank : o;
+    blankOX[i] = (HAVEFORBS && ISFORB(i)) ? Blank : x;
   }
 
   return BlankOXToPosition(blankOX, x);
@@ -853,8 +885,9 @@ void setOption (int option) {
   option--;
   gStandardGame = (option%2 == 0);
   gToTrapIsToWin = (option/2%2 == 1);
+  gRealDino = (option/2/2%2 == 1);
 
-  side = (option/2/2)+MIN_SIDE;
+  side = (option/2/2/2)+MIN_SIDE;
   boardsize = side*side;
   offtheboard = boardsize;
 
@@ -864,10 +897,11 @@ int getOption () {
   int option = 1;
   option += (gStandardGame ? 0 : 1);
   option += 2*(gToTrapIsToWin ? 1 : 0);
-  option += 2*2*(side-MIN_SIDE);
+  option += 2*2*(gRealDino ? 1 : 0);
+  option += 2*2*2*(side-MIN_SIDE);
   return option;
 }
 
 int NumberOfOptions () {
-  return 2*2*(MAX_SIDE-MIN_SIDE+1);
+  return 2*2*2*(MAX_SIDE-MIN_SIDE+1);
 }
