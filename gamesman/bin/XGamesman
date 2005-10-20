@@ -123,7 +123,7 @@ if {[shouldScrollH] && [shouldScrollV]} {
 			-image image$i \
 	        	-bg $theColor \
 	        	-borderwidth $borderWidth \
-			-command "exec /bin/wish.exe -f $theProgram &"
+			-command "exec /usr/bin/env wish -f $theProgram &"
 
 		#set upperLeftx [expr {$pad+(100+$pad)*($i%$cols)-5}] 
 		#set upperLefty [expr {$under/2+($under+100)*($i/$cols) - 5}]
@@ -273,6 +273,9 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.1  2005/10/14 00:01:15  hevanm
+##Dan found a way to invoke wish from the scripts without manually detecting its path. I am therefore removing all the .in files and code in the configure scripts that do the manual detection. From now on make sure you have wish in your path.
+##
 ##Revision 1.14  2005/04/14 01:29:46  ogren
 ##Renamed 3dot to 3spot -Elmer
 ##
