@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.76 2005-10-20 01:19:07 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.77 2005-10-20 05:34:39 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1343,7 +1343,11 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsRootDir $skinsRootDir
 
     set scalePercent [expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
-    set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
+    if { $convertExists } {
+	set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
+    } else {
+	set resolutionDir ""
+    }
     set resolutionExists true
 
     if { ![file isdirectory [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] && $convertExists } {
