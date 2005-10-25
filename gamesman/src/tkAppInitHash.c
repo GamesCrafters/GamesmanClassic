@@ -379,6 +379,7 @@ GetValueOfPositionCmd(dummy, interp, argc, argv)
   }
 }
 
+/* [C_Remoteness $position] */
 static int
 RemotenessCmd(dummy, interp, argc, argv)
     ClientData dummy;			/* Not used. */
@@ -503,6 +504,9 @@ PrimitiveCmd(dummy, interp, argc, argv)
   }
 }
 
+/* [C_GetValueMoves $position] 
+ * returns {move value remoteness}
+ */
 static int
 GetValueMovesCmd(dummy, interp, argc, argv)
     ClientData dummy;			/* Not used. */
@@ -526,7 +530,11 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
-      value = GetValueOfPosition(DoMove(position,ptr->move));
+      
+      POSITION temp = DoMove(position,ptr->move);
+      value = GetValueOfPosition(temp);
+      
+      //value = GetValueOfPosition(DoMove(position,ptr->move));
 
       if (gGoAgain(position,ptr->move)) {
 	switch(value) {
@@ -536,9 +544,23 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 	}
       }
 
+      /*
       sprintf(tmp,"{ %d %s } ",
 	      (ptr->move), 
 	      gValueString[value]);
+      */
+
+      sprintf(tmp,"{ %d %s %d } ", 
+	      (ptr->move),
+	      gValueString[value],
+	      (int) Remoteness(temp));
+
+      /*
+      printf("Move: %d, Value: %s, Remoteness: %d \n", (ptr->move),
+	     gValueString[value], (int) Remoteness(temp));
+      */
+
+
       /* If this barfs, change 'char' to 'const char' */
       strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
       ptr = ptr->next;
