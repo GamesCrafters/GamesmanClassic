@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.8 2005-10-18 08:34:01 yanpeichen Exp $
+// $Id: mparadux.c,v 1.9 2005-10-26 09:37:54 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -30,6 +30,7 @@
 **                     something out before the meeting.
 ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 **                     more tidy code. Proof read hashMove() unhashMove()
+** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged. 
 **
 **************************************************************************/
 
@@ -125,20 +126,15 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-/* Magically generated (in InitializeGame) */
-int boardSize;
-int numX;
-int numO;
-int numBlank;
 
 /* The actual board */
 char *board;
 
 /* Mapping from values to characters */
-char[] valToChar = { '-', 'X', 'O', '*' };
+char valToChar[] = { '-', 'X', 'O', '*' };
 
 /* Just for kicks, let the user choose his name.. and the computer's */
-STRING playerName = "Humanoid";
+STRING playersName = "Humanoid";
 STRING computerName = "Robbie";
 
 /*************************************************************************
@@ -147,7 +143,9 @@ STRING computerName = "Robbie";
 **
 **************************************************************************/
 
-/* Board Coordinates
+/* Board Coordinates 
+
+          row,col format          el(ement) format
    
           0,0  0,1  0,2              00  01  02
 
@@ -162,27 +160,38 @@ STRING computerName = "Robbie";
 
 */
 
-/* Initial board - Paradux mini
+/* Initial board - 
 
-          X   O   X 
+         Paradux mini                  Paradux regular
 
-        O   -   -   - 
+          X   O   X                     X   O   X   O
 
-      X   -   -   -   0 
+        O   -   -   -                 O   -   -   -   X
 
-        -   -   -   x   
+      X   -   -   -   0             X   -   -   X   -   O
 
-          0   x   0     
+        -   -   -   x             O   -   -   -   -   -   X
 
+          0   x   0                 X   -   O   -   -   O
+
+                                      O   -   -   -   X
+
+                                        X   O   X   O
 */
 
 /* MOVE encoding: (position << 6) | (direction << 3) | type
 
 /* On the hexagonal board, only one side needs to be specified */
-int boardSide = 3
+int boardSide = 3;
+
+/* Magically generated (in InitializeGame) */
+int boardSize;
+int numX;
+int numO;
+int numBlank;
 
 /* Other options */
-#define firstGo X
+int firstGo = X;
 
 typedef struct board_item {
 
@@ -199,7 +208,7 @@ typedef PARABOARD* PBPtr;
 #define min(x,y) ((x)<(y) ? (x) : (y))
 
 // must be used on ints or POSITION or the like
-#define abs(x) (0<(x) ? (x) : (-x))
+#define abs(x) (0<(x) ? (x) : -(x))
 
 
 /*************************************************************************
@@ -220,6 +229,9 @@ extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
 /* Multiple Implementations */
+
+void davidInitGame ();
+void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn);
 
 void                    (*initGame)( ) = &davidInitGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn) = &dyPrintPos;
@@ -262,6 +274,9 @@ int                     slotToRC(int s);
 
 void                    getColRow(int pos, int* pCol, int* pRow);
 
+int                     whoseMoveF(POSITION p);
+
+
 /*************************************************************************
 **
 ** Global Database Declaration
@@ -283,87 +298,101 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+  //printf("testpoint1\n");
   initGame();
+  //printf("testpoint2\n");
 }
 
 /* Initialize odd-sided board */
 void initOddBoard() {
-  int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
+  int i,row, col, el = 0, maxCol = boardSide - 1, maxRow = boardSide * 2 - 2;
 
-  for (col = 0; col <= maxCol; col++) {
-    if (col < boardSide) {
-      maxRow++;
+  char* board = (char *) SafeMalloc (sizeof(char) * boardSize);
+
+
+  for (row = 0; row <= maxRow; row++) {
+    if (row < boardSide) {
+      maxCol++;
     } else {
-      maxRow--;
+      maxCol--;
     }
 
-    for (row = 0; row < maxRow; ro++, el++) {
-      if (col == 0) {
-	board[el] = valToChar[row % 2 + 1];
-      } else if (col == maxCol) {
-	board[el] = valToChar[(row + 1) % 2 + 1];
-      } else if (col <= boardSize - 2) {
-	if (row == 0) {
-	  board[el] = valToChar[(col + 1) % 2 + 1];
+    for (col = 0; col < maxCol; col++, el++) {
+      if (row == 0) {
+	board[el] = valToChar[col % 2 + 1];
+      } else if (row == maxRow) {
+	board[el] = valToChar[(col + 1) % 2 + 1];
+      } else if (row <= boardSide - 2) {
+	if (col == 0) {
+	  board[el] = valToChar[row % 2 + 1];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
-      } else if (col >= boardSize) {
-	if (row == maxRow) {
-	  board[el] = valToChar[col % 2 + 1];
+      } else if (row >= boardSide) {
+	if (col == maxCol-1) {
+	  board[el] = valToChar[(row + 1) % 2 + 1];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
-      } else {
-	if (row == 0) {
-	  board[el] = valToChar[(col + 1) % 2 + 1];
-	} else if (row == maxRow) {
-	  board[el] = valToChar[col % 2 + 1];
+      } else { // (row == boardSide-1)
+	if (col == 0) {
+	  board[el] = valToChar[row % 2 + 1];
+	} else if (col == maxCol-1) {
+	  board[el] = valToChar[(row+1) % 2 + 1];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
       }
     }
   }
+  /*
+  for (i=0; i<boardSize; i++) {
+    printf("%c",board[i]);
+  }
+  printf("\n");
+  */
 
   gInitialPosition = generic_hash(board, firstGo);
+  SafeFree(board);
 }
 
 /* Initialize even-sided board */
 void initEvenBoard() {
-  int col, row, el = 0, maxRow = boardSide - 1, maxCol = boardSize * 2 - 2;
+  int row, col, el = 0, maxCol = boardSide - 1, maxRow = boardSide * 2 - 2;
 
-  for (col = 0; col <= maxCol; col++) {
-    if (col < boardSide) {
-      maxRow++;
+  char* board = (char *) SafeMalloc (sizeof(char) * boardSize);
+
+  for (row = 0; row <= maxRow; row++) {
+    if (row < boardSide) {
+      maxCol++;
     } else {
-      maxRow--;
+      maxCol--;
     }
 
-    for (row = 0; row < maxRow; row++, el++) {
-      if (col == 0 || col == maxCol) {
-	board[el] = valToChar[row % 2 + 1];
-      } else if (col == boardSide - 2) {
-	if (row == 0 || row == boardSide - 1) {
+    for (col = 0; col < maxCol; col++, el++) {
+      if (row == 0 || row == maxRow) {
+	board[el] = valToChar[col % 2 + 1];
+      } else if (row == boardSide - 2) {
+	if (col == 0 || col == boardSide - 1) {
 	  board[el] = valToChar[X];
-	} else if (row == maxRow) {
+	} else if (col == maxCol-1) {
 	  board[el] = valToChar[O];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
-      } else if (col == boardSide) {
-	if (row == 0) {
+      } else if (row == boardSide) {
+	if (col == 0) {
 	  board[el] = valToChar[X];
-	} else if (row == maxRow || row == maxRow - boardSide + 2) {
+	} else if (col == maxCol-1 || col == boardSide - 2) {
 	  board[el] = valToChar[O];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
       } else {
-	if (row == 0) {
-	  board[el] = valToChar[(col + 1) % 2 + 1];
-	} else if (row == maxRow) {
-	  board[el] = valToChar[col % 2 + 1];
+	if (col == 0) {
+	  board[el] = valToChar[row % 2 + 1];
+	} else if (col == maxCol-1) {
+	  board[el] = valToChar[(row+1) % 2 + 1];
 	} else {
 	  board[el] = valToChar[BLANK];
 	}
@@ -372,10 +401,13 @@ void initEvenBoard() {
   }
 
   gInitialPosition = generic_hash(board, firstGo);
+  SafeFree(board);
 }
 
 void davidInitGame ()
 {
+  int pieces[10];
+
   if (boardSide < 3) {
     printf("ERROR: boards with side length < 3 cannot be represented or are trivial");
     exit(1);
@@ -384,24 +416,42 @@ void davidInitGame ()
   /* 3(n-1)n + 1... I think */
   boardSize = 3 * (boardSide - 1) * boardSide + 1;
 
+  //printf("%d\n", boardSize);
+
   /* boards with side length 1 don't follow this but we'll ignore that */
-  numX = numO = (boardSide - 1) * 6 + 1;
+  if (boardSide % 2) { // odd board
+    numX = numO = 2*boardSide - 1;
+  } else { // even board
+    numX = numO = (boardSide - 1) * 3 + 1;
+  }
   numBlank = boardSize - numX - numO;
 
-  int pieces[] = { 'X', numXpieces, numXpieces,
-		   'O', numOpieces, numOpieces,
-		   '-', numBlank, numBlank,
-		   0 };
+  pieces[0] = 'X';
+  pieces[1] = numX;
+  pieces[2] = numX;
+  pieces[3] = 'O';
+  pieces[4] = numO;
+  pieces[5] = numO;
+  pieces[6] = '-';
+  pieces[7] = numBlank;
+  pieces[8] = numBlank;
+  pieces[9] = -1;
+
+  //printf("testpoint4\n");
 
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
-  board = (char *) SafeMalloc (sizeof(char) * boardSize);
+  //printf("testpoint3\n");
 
   if (boardSide % 2) {
     initOddBoard();
   } else {
     initEvenBoard();
   }
+
+  //printf("%d\n", gInitialPosition);
+
+  PrintPosition(gInitialPosition, playersName, TRUE);
 }
 
 /************************************************************************
@@ -429,9 +479,16 @@ MOVELIST *GenerateMoves (POSITION position)
 {
   MOVELIST *moves = NULL;
     
+  int i,j,curPiece;
+  char *board = SafeMalloc(sizeof(char) * boardSize);
+  int pos, nPos, whoseMove = whoseMoveF(position);
+  char pieceA;
+  char piece;
+  char player = valToChar[whoseMove], otherPlayer = valToChar[nextPlayer(whoseMove)];
+
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPiece = board[getNeighbor(j, E)];
 
 	if (piece != curPiece)
@@ -443,7 +500,7 @@ MOVELIST *GenerateMoves (POSITION position)
       }
 
       // Check southeast
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPiece = board[getNeighbor(j, SE)];
 
 	if (piece != curPiece)
@@ -455,7 +512,7 @@ MOVELIST *GenerateMoves (POSITION position)
       }
       
       // Check southwest
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPiece = board[getNeighbor(j, SW)];
 
 	if (piece != curPiece)
@@ -466,12 +523,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	}
       }
 
-  char *board = SafeMalloc(sizeof(char) * boardSize);
-  int pos, nPos, whoseMove = whoseMove(position);
-  char player = valToChar[whoseMove], otherPlayer = valToChar[nextPlayer(whoseMove)];
-  char pieceA;
 
-  for (int i = 0; i < boardSize; i++) {
+  for (i = 0; i < boardSize; i++) {
     pos = i;
 
     piece = board[i];
@@ -570,10 +623,11 @@ VALUE Primitive (POSITION position)
   int pos, curPos;
   char player = valToChar[whoseMove(position)];
   char piece, curPiece;
+  int i,j;
 
   generic_unhash(position, board);
 
-  for (int i = 0; i < boardSize; i++) {
+  for (i = 0; i < boardSize; i++) {
     pos = i;
 
     piece = board[i];
@@ -582,7 +636,7 @@ VALUE Primitive (POSITION position)
       // Check east
       curPos = pos;
 
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPos = getNeighbor(curPos, E);
 
 	curPiece = board[curPos];
@@ -598,7 +652,7 @@ VALUE Primitive (POSITION position)
       // Check southeast
       curPos = pos;
 
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPos = getNeighbor(curPos, SE);
 
 	curPiece = board[curPos];
@@ -614,7 +668,7 @@ VALUE Primitive (POSITION position)
       // Check southwest
       curPos = pos;
 
-      for (int j = 0; j < boardSide - 1; j++) {
+      for (j = 0; j < boardSide - 1; j++) {
 	curPos = getNeighbor(curPos, SW);
 
 	curPiece = board[curPos];
@@ -682,7 +736,7 @@ void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
     }
     // Spaces between board and divider
     for (i = 0; i < boardSide - row - 1; i++) {
-      printf(" ");
+      printf("------");
     }
 
     el = initEl;
@@ -690,7 +744,7 @@ void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
     // Spaces between divider and legend; and legend
     if (boardSide < 6) {
       for (i = 0; i < boardSide - row; i++) {
-	printf("  ");
+	printf("     ");
       }
 
       for (col = 0; col < totalCols; col++, el++) {
@@ -698,7 +752,7 @@ void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
       }
     } else {
       for (i = 0; i < boardSide - row; i++) {
-	printf("   ");
+	printf("  ");
       }
 
       for (col = 0; col < totalCols; col++, el++) {
@@ -714,7 +768,7 @@ void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("|                           |                              |\n");
   printf("|   NW  N  NE               |                              |\n");
   printf("|     \\ | /                 |                              |\n");
-  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playerName,usersTurn));
+  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playersName,usersTurn));
   printf("|     / | \\                 |                              |\n");
   printf("|   SW  S  SE               |                              |\n");
   printf("|                           |                              |\n");
@@ -729,17 +783,33 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   printf("It is %s's turn.\n\n", (usersTurn ? playersName : computerName));
 
+  //printf("%d\n", position);
+
   int el = 0, initEl;
   int row, col, i, totalCols = boardSide;
 
-  char* board = generic_unhash(position, SafeMalloc(sizeof(char) * boardSize));
+  char* board = (char*) SafeMalloc(sizeof(char) * boardSize);
+  generic_unhash(position, board);
+
+  /*
+  //board[0] = 'a';
+  //board[1] = 'a';
+  printf ("testpoint8\n");
+  for (i=0; i<boardSize; i++) {
+    //printf("testpoint9 %d\n", i);
+    printf("%c",board[i]);
+  }
+  printf("\n");
+  */
+  //printf("%d %d %d\n",abs(-1+1),abs(-2+1),abs(-1+2));
 
   for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
-
     initEl = el;
   
     // Leading spaces
-    for (i = 0; i < abs(boardSide - row); i++) {
+    printf("     ");
+
+    for (i = 0; i < abs(boardSide - row - 1); i++) {
       printf("  ");
     }
     // Columns
@@ -747,16 +817,17 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
       printf("%c   ", board[el]);
     }
     // Spaces between board and divider
-    for (i = 0; i < abs(boardSide - row); i++) {
+    for (i = 0; i < abs(boardSide - row - 1); i++) {
       printf("  ");
     }
 
+    printf("         ");
     el = initEl;
     
     // Spaces between divider and legend; and legend
     if (boardSide < 6) {
       // less than 100 slots
-      for (i = 0; i < abs(boardSide - row); i++) {
+      for (i = 0; i < abs(boardSide - row - 1); i++) {
 	printf("  ");
       }
       for (col = 0; col < totalCols; col++, el++) {
@@ -780,7 +851,7 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("|                           |                              |\n");
   printf("|   NW  N  NE               |                              |\n");
   printf("|     \\ | /                 |                              |\n");
-  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playerName,usersTurn));
+  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playersName,usersTurn));
   printf("|     / | \\                 |                              |\n");
   printf("|   SW  S  SE               |                              |\n");
   printf("|                           |                              |\n");
@@ -1109,8 +1180,8 @@ int neighboringDirection(int pos, int neighbor) {
   int pCol, pRow;
   int nCol, nRow;
 
-  getColRow(&pCol, &pRow);
-  getColRow(&nCol, &nRow);
+  getColRow(pos, &pCol, &pRow);
+  getColRow(pos, &nCol, &nRow);
 
   int dCol = nCol - pCol,
       dRow = nRow - pRow;
@@ -1298,7 +1369,7 @@ int slotToRC(int s) {
   if (r<boardSide-1) {
     c = (s-(z-y+1)-1)%(y-1);
   } else if (r==boardSize-1) {
-    c = (s-);
+    c = (s--);
   } else {
     c = (s-(z-y+1)+1)%(y+1);
   }
@@ -1320,7 +1391,16 @@ void getColRow(int pos, int* pCol, int* pRow) {
   *pRow = pos - numEls;
 }
 
+int whoseMoveF(POSITION p) {
+  return p;
+}
+
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2005/10/18 08:34:01  yanpeichen
+// ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
+// **                     more tidy code. Proof read hashMove() unhashMove()
+// **
+//
 // Revision 1.7  2005/10/05 03:23:55  trikeizo
 // Added a bunch of small functions, untested.
 //
