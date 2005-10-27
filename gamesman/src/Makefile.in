@@ -49,7 +49,7 @@ EXESUFFIX	= @EXESUFFIX@
 DEP_INCLUDE		= deprecated/gsolve.h deprecated/gstrings.h
 DEP_OBJS		= deprecated/gmain$(OBJSUFFIX) deprecated/gsolve$(OBJSUFFIX) \
 			  deprecated/gfuzzy$(OBJSUFFIX) deprecated/gloopy$(OBJSUFFIX)
-DEP_GWISH_OBJ		= deprecated/tkAppInitHash$(OBJSUFFIX)
+DEP_GWISH_OBJ		= deprecated/tkAppInit$(OBJSUFFIX)
 
 
 ##############################################################################
@@ -60,7 +60,7 @@ DEP_GWISH_OBJ		= deprecated/tkAppInitHash$(OBJSUFFIX)
 GAMELINE_OBJ		= server$(OBJSUFFIX) client$(OBJSUFFIX)
 GAMELINE_EXE		= $(BINDIR)/server$(EXESUFFIX) $(BINDIR)/client$(EXESUFFIX)
 
-GWISH_OBJ		= tkAppInitHash$(OBJSUFFIX)
+GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
 
 # Changed to gamesman.a -JJ
 # This notice and the comments should go away eventually..
