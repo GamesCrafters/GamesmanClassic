@@ -17,7 +17,7 @@ STRING   kAuthorName         = "Can Chang and Desmond Cheung";
 STRING   kDBName             = "dinododgem";
 STRING   kGameName           = "Dino Dodgem";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = TRUE;
+BOOLEAN  kDebugMenu          = FALSE; /*TRUE;*/
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -145,15 +145,35 @@ typedef char DIRECTION;
 #define SOUTH 1
 #define WEST 2
 #define NORTH 3
-#define INVALID 4
+#define INVALID (-1)
  
+DIRECTION getDirection(int from, int to) {
+  if (to == boardsize) {
+    if ((from%side) == (side-1))
+      return EAST;
+    else if ((from/side) == (side-1))
+      return NORTH;
+    else return INVALID;
+  } else if (to == from+1)
+    return EAST;
+  else if (to == from-1)
+    return WEST;
+  else if (to == from+side)
+    return NORTH;
+  else if (to == from-side)
+    return SOUTH;
+  else return INVALID;
+}
+
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 char *gBlankOXString[] = { "-", "O", "X" };
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
 BOOLEAN gRealDino = TRUE;  /* Real DinoDodgem (i.e. like physical game) */
+BOOLEAN gChessMoves = TRUE; /* Chess moves interface */
 
+BlankOX gWhosTurn = x;
+BOOLEAN gIsPlaying = FALSE;
 BOOLEAN initialized = FALSE;
-BlankOX gWhosMove = x;
 
 #define HAVEFORBS ( gRealDino && side > 4 )
 #define NUMPIECES ( HAVEFORBS ? side-2 : side-1 )
@@ -170,7 +190,7 @@ BlankOX gWhosMove = x;
 #define STARTLR(from, to, piece) \
 ( (piece == x) ? XSTART2(from, to) : OSTART2(from, to) )
  
-#define DINO_COND(i,dir) ( HAVEFORBS ? (!FORBIDDEN(dir) && !STARTLR(i, dir, theBlankOX[i])) : TRUE )
+#define DINO_COND(i,dir) ( HAVEFORBS ? (!FORBIDDEN(dir) && !STARTLR(i, dir, theBlankOX[i])) : ( gRealDino ? dir : TRUE ) )
 
 /*external function prototypes*/
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
@@ -207,9 +227,8 @@ void InitializeGame() {
   piecesArray[8] = side-1;
   piecesArray[9] = -1;
 
-  
-
   gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
+  gWhosTurn = x;
   initialized = TRUE;
 
   /*
@@ -259,8 +278,10 @@ void GameSpecificMenu() {
     printf("\tR)\t(R)eal DinoDodgem mode toggle from %s to %s\n", 
 	   gRealDino ? "ON" : "OFF",
 	   !gRealDino ? "ON" : "OFF");
-    printf("\ts)\tSet board (s)ize.\n");
-    
+    printf("\tC)\t(C)hess moves interface toggle from %s to %s\n", 
+	   gChessMoves ? "ON" : "OFF",
+	   !gChessMoves ? "ON" : "OFF");
+    printf("\ts)\tSet board (s)ize.\n");    
     printf("\tb)\t(B)ack = Return to previous activity.\n");
   
     printf("\nSelect an option: ");
@@ -269,7 +290,7 @@ void GameSpecificMenu() {
     case 'S': case 's': // Set board size game option.
       getchar();
       do {
-	printf("\n\nYou have an n by n board. What do you wish n to be? (Between %d and %d, inclusive. Values >4 can cause memory errors)\n", MIN_SIDE, MAX_SIDE);
+	printf("\n\nYou have an n by n board. What do you wish n to be?  (Between %d and %d, \ninclusive. Values greater than 4 can cause memory errors)\n", MIN_SIDE, MAX_SIDE);
 	c=getchar();
 	c = c - '0';
 	side = c;
@@ -291,6 +312,9 @@ void GameSpecificMenu() {
       break;
     case 'R': case 'r':
       gRealDino = !gRealDino;
+      break;
+    case 'C': case 'c':
+      gChessMoves = !gChessMoves;
       break;
     case 'b': case 'B':
       return;
@@ -333,6 +357,7 @@ POSITION DoMove(thePosition, theMove)
   /* Unhash. */
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
   /* Un-encrypt the move. */
+  theMove = theMove >> 8;
   to = theMove & 255;
   from = (theMove >> 8) & 255;
   /* Do the move. */
@@ -450,11 +475,28 @@ void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
      STRING computersName; {
   int from, to;
+  char letter, num, dir;
+  DIRECTION theDirection;
+  BlankOX whosTurn;
   MOVE theMove = computersMove;
   /* Un-encrypt the move. */
+  whosTurn = theMove & 255;
+  theMove = theMove >> 8;
   to = theMove & 255;
   from = (theMove >> 8) & 255;
-  printf("%8s's move              : %d %d\n", computersName, from, to);
+  letter = from%side + 'a';
+  num = from/side + '1';
+  theDirection = getDirection (from, to);
+  if ((whosTurn == x && theDirection == NORTH) || (whosTurn == o && theDirection == EAST))
+    dir = 'f';
+  else if ((whosTurn == x && theDirection == WEST) || (whosTurn == o && theDirection == NORTH))
+    dir = 'l';
+  else if ((whosTurn == x && theDirection == EAST) || (whosTurn == o && theDirection == SOUTH))
+    dir = 'r';
+  else dir = '-';
+  if (gChessMoves)
+    printf("%8s's move              : %c%c%c\n", computersName, letter, num, dir);
+  else printf("%8s's move              : %d %d\n", computersName, from, to);
 }
 
 /************************************************************************
@@ -546,25 +588,54 @@ void PrintPosition(position,playerName,usersTurn)
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
   for (row = side - 1; row >= 0; row--) {
-    if (row == side-1)
-      printf("\n\tBOARD:  ");
-        else
-	  printf("\n\t        ");
+    if (gChessMoves) {
+      if (row == side-1)
+	printf("\n\tBOARD:  %c ", row+'1');
+      else
+	printf("\n\t        %c ", row+'1');
+    } else {
+      if (row == side-1)
+	printf("\n\tBOARD:  ");
+      else
+	printf("\n\t        ");
+    }
     for (col = 0; col < side; col++) {
       printf ("%s ", ((gRealDino && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
     }
-    if (row == side-1)
-      printf("\t LEGEND:  ");
-        else
-	  printf("\t          ");
-    for (col = 0; col < side; col++){
-      if (col+(row*side)>=10) {
-	printf("%d ",  col+(row*side));
-      }
-      else {
-	printf("%d  ",  col+(row*side));
+    if (gChessMoves) {
+      /*
+      if (row == side-1)
+	printf("\t LEGEND:  %c ", row+'1');
+      else
+	printf("\t          %c ", row+'1');
+      for (col = 0; col < side; col++)
+	printf("- ");
+      */
+    } else {
+      if (row == side-1)
+	printf("\t LEGEND:  ");
+      else
+	printf("\t          ");
+      for (col = 0; col < side; col++){
+	if (col+(row*side)>=10) {
+	  printf("%d ",  col+(row*side));
+	}
+	else {
+	  printf("%d  ",  col+(row*side));
+	}
       }
     }
+  }
+  if (gChessMoves) {
+    /*
+    printf("\n                ");
+    for (col = 0; col < side; col++)
+      printf("  ");
+    printf("              ");
+    */
+    printf("\n                  ");
+    for (col = 0; col < side; col++)
+      printf("%c ", col+'a');
   }
   printf("\n\n");
 
@@ -629,6 +700,7 @@ MOVELIST *GenerateMoves(position)
   int left, right, up, down; /* Board position relative to current piece. */
   
   PositionToBlankOX(position,theBlankOX,&whosTurn);
+  gWhosTurn = whosTurn;
 
   /* X */
   if (whosTurn == x) {
@@ -643,6 +715,8 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += left;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
@@ -651,6 +725,8 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += right;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* up */
@@ -659,12 +735,16 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += up;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
 	else if (up >= boardsize) {
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += boardsize;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
       }
@@ -683,6 +763,8 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += up;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* down */
@@ -691,6 +773,8 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += down;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
@@ -699,12 +783,16 @@ MOVELIST *GenerateMoves(position)
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += right;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
 	else if ((i % side) == (side - 1)) {
 	  theMove = i;
 	  theMove = theMove << 8;
 	  theMove += boardsize;
+	  theMove = theMove << 8;
+	  theMove += whosTurn;
 	  head = CreateMovelistNode (theMove, head);
 	}
       }
@@ -740,7 +828,9 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
 
   do {
-    printf("%8s's move [(u)ndo/0-%d 0-%d] : ", playerName, boardsize-1, boardsize-1);
+    if (gChessMoves)
+      printf("%8s's move [(u)ndo/{{a-%c}{1-%c}{f,l,r}}] : ", playerName, side-1+'a', side-1+'1');
+    else printf("%8s's move [(u)ndo/0-%d 0-%d] : ", playerName, boardsize-1, boardsize-1);
     
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
@@ -766,11 +856,20 @@ BOOLEAN ValidTextInput(input)
      STRING input;
 {
   SLOT fromSlot, toSlot;
+  char letter, num, dir;
+  int l, n;
   int ret;
 
-  ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-  return(ret == 2 &&
-	 fromSlot <= boardsize && fromSlot >= 0 && toSlot <= boardsize && toSlot >= 0);
+  if (gChessMoves) {
+    ret = sscanf(input,"%c%c%c", &letter, &num, &dir);
+    l = letter-'a';
+    n = (num - '1');
+    return(ret == 3 && l >= 0 && l < side && n >= 0 && n < side && (dir == 'f' || dir == 'l' || dir == 'r'));
+  } else {
+    ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+    return(ret == 2 &&
+	   fromSlot <= boardsize && fromSlot >= 0 && toSlot <= boardsize && toSlot >= 0);
+  }
 }
 
 /************************************************************************
@@ -785,13 +884,50 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input) STRING input; {
   SLOT fromSlot, toSlot;
   MOVE theMove;
+  char letter, num, dir;
+  DIRECTION theDirection;
+  int l, n;
   int ret;
 
-  ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-  /* Encrypt from and to into a MOVE. */
+  if (gChessMoves) {
+    ret = sscanf(input,"%c%c%c", &letter, &num, &dir);
+    
+    l = letter-'a';
+    n = (num - '1');
+    fromSlot = side * n;
+    fromSlot += l;
+    
+    if (dir == 'f')
+      theDirection = (gWhosTurn == x) ? NORTH : EAST;
+    else if (dir == 'l')
+      theDirection = (gWhosTurn == x) ? WEST : NORTH;
+    else if (dir == 'r')
+      theDirection = (gWhosTurn == x) ? EAST : SOUTH;
+    else theDirection = INVALID;
+
+    if (theDirection == NORTH) {
+      if ((fromSlot/side) == (side-1))
+	toSlot = boardsize;
+      else toSlot = (fromSlot + side);
+    } else if (theDirection == EAST) {
+      if ((fromSlot%side) == (side-1))
+	toSlot = boardsize;
+      else toSlot = (fromSlot + 1);
+    } else if (theDirection == WEST)
+      toSlot = (fromSlot - 1);
+    else if (theDirection == SOUTH)
+      toSlot = (fromSlot - side);
+    else toSlot = -1;
+    
+  } else ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+  
+  /* Encrypt from and to into a MOVE. */  
   theMove = fromSlot;
   theMove = theMove << 8;
   theMove += toSlot;
+  theMove = theMove << 8;
+  theMove += gWhosTurn;
+  
   return(theMove);
 }
 
@@ -804,11 +940,28 @@ void PrintMove(theMove)
      MOVE theMove;
 {
   SLOT from, to;
+  char letter, num, dir;
+  BlankOX whosTurn;
+  DIRECTION theDirection;
   
   /* Un-encrypt the move. */
+  whosTurn = theMove & 255;
+  theMove = theMove >> 8;
   to = theMove & 255;
   from = (theMove >> 8) & 255;
-  printf("[ %d %d ] ", from, to);
+  letter = from%side + 'a';
+  num = from/side + '1';
+  theDirection = getDirection (from, to);
+  if ((whosTurn == x && theDirection == NORTH) || (whosTurn == o && theDirection == EAST))
+    dir = 'f';
+  else if ((whosTurn == x && theDirection == WEST) || (whosTurn == o && theDirection == NORTH))
+    dir = 'l';
+  else if ((whosTurn == x && theDirection == EAST) || (whosTurn == o && theDirection == SOUTH))
+    dir = 'r';
+  else dir = '-';
+  if (gChessMoves)
+    printf("[ %c%c%c ] ", letter, num, dir);
+  else printf("[ %d %d ] ", from, to);
 }
 
 /************************************************************************
