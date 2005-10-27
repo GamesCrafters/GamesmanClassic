@@ -15,8 +15,10 @@
 #include "tk.h"
 #include "gamesman.h"
 #include "hash.h"
+#include <string.h>
+#include "core/analysis.h"
 
-extern STRING gValueString[];        /* The GAMESMAN Value strings */
+extern STRING gValueString[]; /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
 extern BOOLEAN kPartizan;
 extern int smartness;
@@ -191,8 +193,11 @@ InitialPositionCmd(dummy, interp, argc, argv)
     interp->result ="wrong # args: shouldn't be any";
     return TCL_ERROR;
   }
-  sprintf(interp->result,"%d",gInitialPosition);
+  // Ported from tkAppInitHash, correct version tbd
+  sprintf(interp->result,"%d",(int)GetInitialPosition());
   return TCL_OK;  
+  //sprintf(interp->result,"%d",gInitialPosition);
+  //return TCL_OK;  
 }
 
 static int
@@ -207,12 +212,21 @@ GenericUnhashCmd(dummy, interp, argc, argv)
     interp->result = "wrong # args: should be 2";
     return TCL_ERROR;
   }
+  // Ported from tkAppInitHash, correct version tbd
+  char *board;
+  POSITION pos = atoi(argv[1]);
+  board = generic_unhash_tcl(pos);
+  sprintf(interp->result, "%s",board);
+  SafeFree(board);
+  return TCL_OK;
+  /*
   char *board;
   int n;
   board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
   generic_unhash(atoi(argv[1]),board);
   sprintf(interp->result, "%s",board);
   return TCL_OK;
+  */
 }
 
 
@@ -572,6 +586,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 	      (ptr->move), 
 	      gValueString[value], 
 	      (int) Remoteness(temp));
+      
       /*
       printf("Move: %d, Value: %s, Remoteness: %d \n", (ptr->move),
 	     gValueString[value], (int)Remoteness(temp));
@@ -735,11 +750,11 @@ percentDoneCmd(dummy, interp, argc, argv)
     char **argv;            /* Argument strings. */
 {
   if (argc != 1) {
-    interp->result = "wrong # args: percentDone";
+    interp->result = "wrong # args: PercentDone";
     return TCL_ERROR;
   }
   else {
-    sprintf(interp->result,"%d",percentDone(2));
+    sprintf(interp->result,"%d",PercentDone(2));
     return TCL_OK;
   }
 }
