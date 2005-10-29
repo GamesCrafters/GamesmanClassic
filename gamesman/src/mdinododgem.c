@@ -960,7 +960,7 @@ void PrintMove(theMove)
     dir = 'r';
   else dir = '-';
   if (gChessMoves)
-    printf("[ %c%c%c ] ", letter, num, dir);
+    printf("%c%c%c", letter, num, dir);
   else printf("[ %d %d ] ", from, to);
 }
 
