@@ -5,9 +5,6 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 ####################################################
 
-set canvasWidth  500; # 230 for first ever board
-set canvasHeight 500
-
 #set dotExpandAmount 10
 
 
@@ -32,6 +29,7 @@ proc GS_InitGameSpecific {} {
 
     global gInitialPosition gPosition
     set gInitialPosition 593531
+    #set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
     
@@ -39,10 +37,10 @@ proc GS_InitGameSpecific {} {
     #set pieceString [C_Generic_Unhash gInitialPosition 16]
     #set gPosition gInitialPosition
 
-    ### Set boardHeight, boardWidth, boardSize
-    global boardHeight boardWidth boardSize
-    set boardHeight 4
-    set boardWidth 4
+    ### Set boardRows, boardCols, boardSize
+    global boardRows boardCols boardSize
+    set boardRows 4
+    set boardCols 4
     set boardSize 16
 
     ### Set the strings to be used in the Edit Rules
@@ -60,7 +58,7 @@ proc GS_InitGameSpecific {} {
     } else {
 	SetToWinString "To Win: Have the least number of pieces of your color when the board is filled."
     }
-    SetToMoveString "To Move: Players take turns placing a piece on the board where it will result in a capture.  A capture is made when a piece is placed so that it and another piece of the same color sandwich some of the opponent's pieces.  Then, all of the sandwiched pieces change to the player's color.  Captures can be made vertically, horizontally, and diagonally."
+    SetToMoveString "To Move: Players take turns placing a piece on the board where a capture will result.  A capture is made when a piece is placed so that it and another piece of the same color sandwich one or more oppositely colored pieces.  All of the sandwiched pieces then switch to the player's color.  Captures can be made vertically, horizontally, and diagonally."
 	    
     # Authors Info. Change if desired
     global kRootDir
@@ -138,7 +136,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "No" \
 	    ]
 
-    set boardWidthRule \
+    set boardColsRule \
 	[list \
 	     "Board width:" \
 	     "3" \
@@ -146,7 +144,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "5"
 	    ]
 
-    set boardHeightRule \
+    set boardRowsRule \
 	[list \
 	     "Board height:" \
 	     "3" \
@@ -155,7 +153,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	    ]
 
     # List of all rules, in some order
-    set ruleset [list $standardRule $captureRule $boardWidthRule $boardHeightRule]
+    set ruleset [list $standardRule $captureRule $boardColsRule $boardRowsRule]
 
     # Declare and initialize rule globals
     global gMisereGame
@@ -284,13 +282,11 @@ proc min { x y } {
 
 proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 
-    set theSlotSize $slotSize
-
-    set circleWidth [expr $theSlotSize/10.0]
-    set startCircle [expr $theSlotSize/8.0]
+    set circleWidth [expr $slotSize/10.0]
+    set startCircle [expr $slotSize/8.0]
     set endCircle   [expr $startCircle*7.0]
-    set cornerX     [expr $slotX*$theSlotSize]
-    set cornerY     [expr $slotY*$theSlotSize]
+    set cornerX     [expr $slotX*$slotSize]
+    set cornerY     [expr $slotY*$slotSize]
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -outline $theColor \
@@ -298,7 +294,8 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 		       -tag $theTag]
 
     $w move $theCircle $cornerX $cornerY
-    $w addtag piece$slotX$slotY withtag $theCircle
+
+    #$w addtag piece$slotX$slotY withtag $theCircle
     #$w addtag tagPieceCoord$slotX$slotY withtag $theCircle
     #$w addtag tagPieceOnCoord$slotX$slotY withtag $theCircle
 
@@ -315,23 +312,25 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-    global canvasWidth canvasHeight boardHeight boardWidth
+    global boardRows boardCols
     global gFrameWidth gFrameHeight
 
     set mySize [min $gFrameWidth [expr $gFrameHeight * [expr 4.0/5]]]
-    set vertCellSize [expr $mySize / $boardHeight]
-    set horizCellSize [expr $mySize / $boardWidth]
+    set vertCellSize [expr $mySize / $boardRows]
+    set horizCellSize [expr $mySize / $boardCols]
     
-   for {set x 0} {$x < $boardWidth} {incr x} {
-	for {set y 0} {$y < $boardHeight} {incr y} {
+   for {set x 0} {$x < $boardCols} {incr x} {
+	for {set y 0} {$y < $boardRows} {incr y} {
 	    $c create rectangle [expr $x * $horizCellSize] [expr $y * $vertCellSize] [expr ($x + 1) * $horizCellSize] [expr ($y + 1) * $vertCellSize] -fill darkgreen -outline black -width 2 -tag base 
 	}
     }
 
-    for {set x 0} {$x < $boardWidth} {incr x} {
-	for {set y 0} {$y < $boardHeight} {incr y} {
+    for {set x 0} {$x < $boardCols} {incr x} {
+	for {set y 0} {$y < $boardRows} {incr y} {
 
-	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y pieces [lindex [GS_ColorOfPlayers] 0]
+	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y [list piece$x$y pieces] [lindex [GS_ColorOfPlayers] 0]
+
+	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y [list movedot$x$y moves] cyan
 	    #DrawCircle $c [min $vertCellSize $horizCellSize] $x $y pieces [lindex [GS_ColorOfPlayers] 1]
 
 	    #$c bind piece$x$y <Enter> "MouseOverExpand piece$x$y $c"
@@ -341,12 +340,6 @@ proc GS_Initialize { c } {
     }
 
     $c raise base
-
-    #puts [C_InitialPosition]
-    #$c raise pieces
-
-    #global gInitialPosition
-    #GS_DrawPosition $c $gInitialPosition
 
 }    
 
@@ -389,24 +382,17 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global boardWidth boardHeight boardSize
+    global boardCols boardRows boardSize
 
     $c lower pieces
-    #$c raise base all
+    $c lower moves
     $c raise base
-
-    #puts $position
-    #[C_GenericUnhash $position $boardSize]
 
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     set pieceNumber 0
 
-    #set pieceString "     BW  WB     "
-
-    puts $pieceString
-
-    for {set i 0} {$i < $boardWidth} {set i [expr $i + 1]} {
-	for {set j 0} {$j < $boardHeight} {set j [expr $j + 1]} {
+    for {set i 0} {$i < $boardCols} {set i [expr $i + 1]} {
+	for {set j 0} {$j < $boardRows} {set j [expr $j + 1]} {
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
 		$c itemconfig piece$j$i -fill white
 		$c raise piece$j$i
@@ -482,6 +468,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
+    $c lower moves
+
     foreach item $moveList {
 	set move [lindex $item 0]
 	set value [lindex $item 1]
@@ -497,8 +485,17 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 	
-	set dest [GetDestFromMove $move]
-	set source [GetSourceFromMove $move]
+	#puts $item
+	#puts [GetXYFromMove $item]
+
+	set movetag movedot[GetXYFromMove $item]
+
+	$c raise $movetag
+	$c itemconfig $movetag -fill $color
+
+	$c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
+	$c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black"
+	$c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color"
 
 	#TODO: do this
 
@@ -582,28 +579,25 @@ proc GS_UndoGameOver { c position } {
 
 }
 
-proc GetDestFromMove {theMove} {
-    global boardHeight boardWidth
 
-    puts $theMove
+## returns the x and y values
+proc GetXYFromMove {theMove} {
 
-    set dest [expr $theMove % 1000]
+    set pos [lindex $theMove 0]
+    return [Column $pos][Row $pos]
 
-    set width [expr $dest % $boardWidth]
-    set height [expr $dest / $boardWidth]
-
-    return $width$height
 }
 
-proc GetSourceFromMove {theMove} {
-    global boardHeight boardWidth
+proc Row { index } {
+    global boardCols
 
-    puts $theMove
+    return [expr $index / $boardCols]
 
-    set source [expr $theMove / 1000]
+}
 
-    set width [expr $source % $boardWidth]
-    set height [expr $source / $boardWidth]
+proc Column { index } {
+    global boardCols
 
-    return $width$height
+    return [expr $index % $boardCols]
+
 }
