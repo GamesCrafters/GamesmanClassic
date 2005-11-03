@@ -194,10 +194,8 @@ InitialPositionCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   // Ported from tkAppInitHash, correct version tbd
-  sprintf(interp->result,"%d",(int)GetInitialPosition());
+  sprintf(interp->result,"%d",gInitialPosition);
   return TCL_OK;  
-  //sprintf(interp->result,"%d",gInitialPosition);
-  //return TCL_OK;  
 }
 
 static int
@@ -207,9 +205,9 @@ GenericUnhashCmd(dummy, interp, argc, argv)
      int argc;
      char **argv;
 {
-  /*argv[1] is position, argv[2] is boardsize*/
-  if (argc != 3) {
-    interp->result = "wrong # args: should be 2";
+  /* argv[1] is position, argv[2] USED to be boardsize */
+  if (!(argc == 2 || argc == 3)) {
+    interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
     return TCL_ERROR;
   }
   // Ported from tkAppInitHash, correct version tbd
