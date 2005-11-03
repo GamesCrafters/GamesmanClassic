@@ -36,8 +36,7 @@
 ** Code
 */
 
-VALUE DetermineValue1(position)
-     POSITION position;
+VALUE DetermineValue1(POSITION position)
 {
     BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
     MOVELIST *ptr, *head;

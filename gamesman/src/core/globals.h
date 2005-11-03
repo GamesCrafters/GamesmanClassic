@@ -12,7 +12,7 @@ extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
                 gTwoBits, gCollDB, gGlobalPositionSolver, kZeroMemSolver,
-                gAnalyzing, gSymmetries, gUseGPS;
+                gAnalyzing, gSymmetries, gUseGPS, gBottomUp;
 
 extern char	gPlayerName[2][MAXNAME];
 extern VALUE*	gDatabase;
@@ -96,6 +96,10 @@ extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 
 /* symmetries function pointer */
 extern POSITION (*gCanonicalPosition)(POSITION);
+
+/* enumerate all positions that result from the same stage in a game */
+/* argument and return value will have their typedefs later */
+extern POSITIONLIST *(*gEnumerateWithinStage)(int);
 
 /* Global position solver function pointer. */
 extern void (*gUndoMove)(MOVE move);

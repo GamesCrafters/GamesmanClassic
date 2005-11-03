@@ -37,8 +37,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-
-
 extern STRING gValueString[];
 POSITION MyInitialPosition();
 POSITION MyNumberOfPos();
@@ -108,6 +106,7 @@ int  WIN4_HEIGHT = 4;
 #define MAXH 9
 #define MINW 1
 #define MINH 1
+#define TOTALSTAGE WIN4_WIDTH*WIN4_HEIGHT
 // Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
 
 #define DIRECTION_PAIRS 4
@@ -124,8 +123,9 @@ int  WIN4_HEIGHT = 4;
 **
 ************************************************************************/
 
+POSITIONLIST *EnumerateWithinStage(int stage);
 POSITION GetInitialPosition() {return MyInitialPosition();}
-
+//POSITIONLIST *(*gEnumerateWithinStage)(int) = &EnumerateWithinStage;
 
 /*************************************************************************
 **
@@ -187,6 +187,7 @@ void InitializeGame()
   unsigned int i, j, temp;
   gNumberOfPositions = MyNumberOfPos();
   gInitialPosition    = MyInitialPosition();
+  gEnumerateWithinStage = &EnumerateWithinStage;
 
 //  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
 
@@ -917,4 +918,17 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
          gPosition.board[column][row] == piece);
 
   return count;
+}
+
+
+POSITIONLIST *EnumerateWithinStage(int stage) {
+    //take the stage, generate all combinations of the columns, and then hash it, and append it to the list.
+    //using an array and doubling length when expanding size for ammortized O(n) running time
+
+    POSITIONLIST *head = NULL;
+
+    if(stage == TOTALSTAGE) //we are solving leaves
+    return head;
+
+    return NULL;
 }

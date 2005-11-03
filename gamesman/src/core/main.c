@@ -35,6 +35,7 @@
 #include "solveloopy.h"
 #include "solvezero.h"
 #include "solvestd.h"
+#include "solvebottomup.h"
 #include "hash.h"
 
 /*
@@ -44,6 +45,7 @@
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
+POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
 void (*gUndoMove)(MOVE move) = NULL;
 STRING (*GetHelpTextInterface)() = NULL;
 STRING (*GetHelpOnYourTurn)() = NULL;
@@ -69,6 +71,7 @@ BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN gUseGPS = FALSE;
+BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enable for only win4 */
 BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
 				   * solved, default: FALSE */
@@ -137,6 +140,8 @@ void SetSolver()
         else
             gSolver = lgas_DetermineValue;
     }
+    else if(gBottomUp)
+	gSolver = DetermineValueBU;
     else
         gSolver = DetermineValue1;
 }
@@ -151,8 +156,10 @@ VALUE DetermineValue(POSITION position)
         if (GetValueOfPosition(position) == undecided) {
             if (gPrintDatabaseInfo) printf("\nRe-evaluating the value of %s...", kGameName);
             gSolver(position);
-            if(gWriteDatabase)
+            if(gWriteDatabase) {
+		printf("\nWriting the values of %s into a database...", kGameName);
                 writeDatabase();
+	    }
         }
     }
     else {
@@ -237,6 +244,9 @@ void HandleArguments (int argc, char *argv[])
         else if(!strcasecmp(argv[i], "--gps")) {
             gGlobalPositionSolver = TRUE;
         }
+	else if(!strcasecmp(argv[i], "--bottomup")) {
+	    gBottomUp = TRUE;
+	}
         else if(!strcasecmp(argv[i], "--lowmem")) {
             kZeroMemSolver = TRUE;
         }
