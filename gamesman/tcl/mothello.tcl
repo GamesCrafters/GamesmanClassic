@@ -31,12 +31,13 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition 593531
     set gPosition $gInitialPosition
 
-#    set gInitialPosition [C_InitialPosition]
-#    set pieceString [C_Generic_Unhash gInitialPosition 16]
-#    set gPosition gInitialPosition
+    
+    #set gInitialPosition [C_InitialPosition]
+    #set pieceString [C_Generic_Unhash gInitialPosition 16]
+    #set gPosition gInitialPosition
 
     ### Set boardHeight, boardWidth, boardSize
     global boardHeight boardWidth boardSize
@@ -278,7 +279,6 @@ proc min { x y } {
 ## DrawCircle
 ##
 ## Here we draw a circle on (slotX,slotY) in window w with a tag of theTag
-## If drawBig is false we don't move it to slotX,slotY.
 ##
 #############################################################################
 
@@ -299,11 +299,12 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 
     $w move $theCircle $cornerX $cornerY
     $w addtag piece$slotX$slotY withtag $theCircle
-    $w addtag tagPieceCoord$slotX$slotY withtag $theCircle
-    $w addtag tagPieceOnCoord$slotX$slotY withtag $theCircle
+    #$w addtag tagPieceCoord$slotX$slotY withtag $theCircle
+    #$w addtag tagPieceOnCoord$slotX$slotY withtag $theCircle
 
     return $theCircle
 }
+
 
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
@@ -390,15 +391,17 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
     global boardWidth boardHeight boardSize
 
-    $c raise base all
+    $c lower pieces
+    #$c raise base all
+    $c raise base
 
-    puts $position
+    #puts $position
     #[C_GenericUnhash $position $boardSize]
 
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     set pieceNumber 0
 
-#    set pieceString "     BW  WB     "
+    #set pieceString "     BW  WB     "
 
     puts $pieceString
 
@@ -407,11 +410,9 @@ proc GS_DrawPosition { c position } {
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
 		$c itemconfig piece$j$i -fill white
 		$c raise piece$j$i
-		#puts "Saw a white piece"
 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
 		$c itemconfig piece$j$i -fill black	
 		$c raise piece$j$i
-		#puts "saw a black piece"
 	    } else {}
 
 	    set pieceNumber [expr $pieceNumber + 1]
@@ -581,24 +582,28 @@ proc GS_UndoGameOver { c position } {
 
 }
 
-#proc GetDestFromMove {theMove} {
-#    global boardHeight boardWidth
-#
-#    set dest [expr $theMove % 1000]
-#
-#    set width [expr $dest % $boardWidth]
-#    set height [expr $dest / $boardWidth]
-#
-#    return $width$height
-#}
+proc GetDestFromMove {theMove} {
+    global boardHeight boardWidth
 
-#proc GetSourceFromMove {theMove} {
-#    global boardHeight boardWidth
-#
-#    set source [expr $theMove / 1000]
-#
-#    set width [expr $source % $boardWidth]
-#    set height [expr $source / $boardWidth]
-#
-#    return $width$height
-#}
+    puts $theMove
+
+    set dest [expr $theMove % 1000]
+
+    set width [expr $dest % $boardWidth]
+    set height [expr $dest / $boardWidth]
+
+    return $width$height
+}
+
+proc GetSourceFromMove {theMove} {
+    global boardHeight boardWidth
+
+    puts $theMove
+
+    set source [expr $theMove / 1000]
+
+    set width [expr $source % $boardWidth]
+    set height [expr $source / $boardWidth]
+
+    return $width$height
+}
