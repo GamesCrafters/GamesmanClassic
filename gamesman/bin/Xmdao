@@ -28,7 +28,7 @@ if { $tcl_platform(platform) == "unix" } {
 
 ### Load the Gamesman solver
 
-load "$kRootDir/../lib/libmkono[info sharedlibextension]" Gamesman
+load "$kRootDir/../lib/libmdao[info sharedlibextension]" Gamesman
 
 ### Now source the rest of the game-playing interface code.
 
