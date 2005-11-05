@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.79 2005-10-27 06:20:36 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.80 2005-11-05 23:46:11 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -115,6 +115,15 @@ proc SetupPlayOptions {} {
     .cStatus raise base
 }
 
+proc min { x y } {
+    if { x < y } {
+	return x
+    }
+    else {
+	return y
+    }
+}
+
 proc InitWindow { kRootDir kDir kExt } {
 
     global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
@@ -167,11 +176,27 @@ proc InitWindow { kRootDir kDir kExt } {
     if { !$convertExists } {
 	wm geometry . =800x600
     } else {
+	set aspectRatioWidth 4
+	set aspectRatioHeight 3
 	set maxsize [wm maxsize .]
 	set maxwidth [lindex $maxsize 0]
 	set maxheight [lindex $maxsize 1]
+
+	set tempWidth [expr $maxheight * $aspectRatioWidth / $aspectRatioHeight]
+	set tempHeight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
+
+	if { $tempHeight > $maxheight } {
+	    set maxheight [expr [expr $maxheight / $aspectRatioHeight] * $aspectRatioHeight]
+	    set maxwidth [expr $maxheight * $aspectRatioWidth / $aspectRatioHeight]
+	    puts "to wide"
+	} else {
+	    if { $tempWidth > $maxwidth } {
+		set maxwidth [expr [expr $maxwidth / $aspectRatioWidth] * $aspectRatioWidth]
+		set maxheight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
+		puts "to tall"
+	    }
+	}
 	wm geometry . =[expr $maxwidth]x[expr $maxheight]
-#	wm geometry . =1200x670
     }
     update
 
