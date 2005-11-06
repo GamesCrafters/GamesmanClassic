@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.80 2005-11-05 23:46:11 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.81 2005-11-06 07:57:28 eudean Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -116,11 +116,11 @@ proc SetupPlayOptions {} {
 }
 
 proc min { x y } {
-    if { x < y } {
-	return x
+    if { $x < $y } {
+	return $x
     }
     else {
-	return y
+	return $y
     }
 }
 
