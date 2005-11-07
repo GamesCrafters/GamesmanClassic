@@ -21,6 +21,7 @@
 extern STRING gValueString[]; /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
 extern BOOLEAN kPartizan;
+extern POSITION gInitialPosition;
 extern int smartness;
 extern int scalelvl;
 extern MENU gMenuMode;
@@ -194,7 +195,7 @@ InitialPositionCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   // Ported from tkAppInitHash, correct version tbd
-  sprintf(interp->result,"%d",gInitialPosition);
+  sprintf(interp->result,"%d",(int)gInitialPosition);
   return TCL_OK;  
 }
 
