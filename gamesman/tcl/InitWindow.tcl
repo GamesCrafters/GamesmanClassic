@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.81 2005-11-06 07:57:28 eudean Exp $
+# $Id: InitWindow.tcl,v 1.82 2005-11-07 07:44:11 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -115,15 +115,6 @@ proc SetupPlayOptions {} {
     .cStatus raise base
 }
 
-proc min { x y } {
-    if { $x < $y } {
-	return $x
-    }
-    else {
-	return $y
-    }
-}
-
 proc InitWindow { kRootDir kDir kExt } {
 
     global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
@@ -134,6 +125,7 @@ proc InitWindow { kRootDir kDir kExt } {
     global gSkinsExt
     global gGamePlayable
     global kLabelFont kPlayerLabelFont kToMoveToWinFont
+    global gFontColor
     global tcl_platform
     global gPredString gWhoseTurn
     # sean: skipinputonsinglemove added fall '05
@@ -158,6 +150,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
     set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
+    set gFontColor "black"
 
 
     set convertExists false
@@ -188,12 +181,10 @@ proc InitWindow { kRootDir kDir kExt } {
 	if { $tempHeight > $maxheight } {
 	    set maxheight [expr [expr $maxheight / $aspectRatioHeight] * $aspectRatioHeight]
 	    set maxwidth [expr $maxheight * $aspectRatioWidth / $aspectRatioHeight]
-	    puts "to wide"
 	} else {
 	    if { $tempWidth > $maxwidth } {
 		set maxwidth [expr [expr $maxwidth / $aspectRatioWidth] * $aspectRatioWidth]
 		set maxheight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
-		puts "to tall"
 	    }
 	}
 	wm geometry . =[expr $maxwidth]x[expr $maxheight]
@@ -736,24 +727,19 @@ proc InitWindow { kRootDir kDir kExt } {
     image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
     image create photo oxy_screenshot -file "$gSkinsRootDir/OxySkin/screenshot.ppm"
     image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
+    image create photo oxyHiRes_screenshot -file "$gSkinsRootDir/OxySkin_HiRes/screenshot.ppm"
+    image create photo earthFromSpace_HiRes_screenshot -file "$gSkinsRootDir/EarthFromSpace_HiRes/screenshot.ppm"
+    image create photo spaceCloud_HiRes_screenshot -file "$gSkinsRootDir/SpaceCloud_HiRes/screenshot.ppm"
 
-    button $skinsFrame.content.right.lily\
+    button $skinsFrame.content.left.oxyHiRes\
 	    -compound top\
-	    -image lily_screenshot\
-	    -text "Water Lily"\
+	    -image oxyHiRes_screenshot\
+	    -text "Official Skin (HiRes)"\
 	    -command {
-		InitButtons $gSkinsRootDir LilySkin/ ppm
+		InitButtons $gSkinsRootDir OxySkin_HiRes/ ppm
 		TBaction4
 	    }
 
-    button $skinsFrame.content.left.oxy\
-	    -compound top\
-	    -image oxy_screenshot\
-	    -text "Official Skin"\
-	    -command {
-		InitButtons $gSkinsRootDir OxySkin/ ppm
-		TBaction4
-	    }
     button $skinsFrame.content.left.mac\
 	    -compound top\
 	    -image mac_screenshot\
@@ -762,6 +748,35 @@ proc InitWindow { kRootDir kDir kExt } {
 		InitButtons $gSkinsRootDir MacSkin/ ppm
 		TBaction4
 	    }
+
+    button $skinsFrame.content.left.lily\
+	    -compound top\
+	    -image lily_screenshot\
+	    -text "Water Lily"\
+	    -command {
+		InitButtons $gSkinsRootDir LilySkin/ ppm
+		TBaction4
+	    }
+
+
+    button $skinsFrame.content.right.earthFromSpace_HiRes\
+	    -compound top\
+	    -image earthFromSpace_HiRes_screenshot\
+	    -text "Earth From Space (HiRes)"\
+	    -command {
+		InitButtons $gSkinsRootDir EarthFromSpace_HiRes/ ppm
+		TBaction4
+	    }
+
+    button $skinsFrame.content.right.spaceCloud_HiRes\
+	    -compound top\
+	    -image spaceCloud_HiRes_screenshot\
+	    -text "Space Cloud (HiRes)"\
+	    -command {
+		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
+		TBaction4
+	    }
+
 
     button $skinsFrame.buttons.bReturn -text "Return" \
 	-command {
@@ -778,15 +793,16 @@ proc InitWindow { kRootDir kDir kExt } {
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
-    pack $skinsFrame.content.left.oxy -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.left.oxyHiRes -ipadx 4 -ipady 4 -anchor n
     pack $skinsFrame.content.left.mac -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.right.lily -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.left.lily -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.right.earthFromSpace_HiRes -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.right.spaceCloud_HiRes -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
     pack $skinsFrame.content.left -side left -fill y
     pack $skinsFrame.content.right -side right -fill y
-
 
     
     #    
@@ -851,52 +867,56 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iOMB8p -tags [list playOver]
 
     .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
-	    -text "To Win:" \
+	-text "To Win:" \
 	-width [expr $gWindowWidthRatio * 140] \
-	    -justify center \
-	    -font $kToMoveToWinFont \
-	    -anchor center \
-	    -tags [list ToWin textitem]
+	-justify center \
+	-font $kToMoveToWinFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list ToWin textitem]
 
     .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 300] \
-	    -text "To Move:" \
+	-text "To Move:" \
 	-width [expr $gWindowWidthRatio * 140] \
-	    -justify center \
-	    -font $kToMoveToWinFont \
-	    -anchor center \
-	    -tags [list ToMove textitem]
+	-justify center \
+	-font $kToMoveToWinFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list ToMove textitem]
 
     .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
-	    -text [format "Left:\n%s" $gLeftName] \
+	-text [format "Left:\n%s" $gLeftName] \
 	-width [expr $gWindowWidthRatio * 140] \
-	    -justify center \
-	    -font $kPlayerLabelFont \
-	    -anchor center \
-	    -tags [list LeftName Names textitem] \
-	    -fill $gLeftColor
+	-justify center \
+	-font $kPlayerLabelFont \
+	-anchor center \
+	-tags [list LeftName Names textitem] \
+	-fill $gLeftColor
 
     .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
-	    -text [format "Right:\n%s" $gRightName] \
+	-text [format "Right:\n%s" $gRightName] \
 	-width [expr $gWindowWidthRatio * 140] \
-	    -justify center \
-	    -font $kPlayerLabelFont \
-	    -anchor center \
-	    -tags [list RightName Names textitem] \
-	    -fill $gRightColor
+	-justify center \
+	-font $kPlayerLabelFont \
+	-anchor center \
+	-tags [list RightName Names textitem] \
+	-fill $gRightColor
 
     .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 150] \
-	    -text [format "Predictions: %s" $gPredString] \
+	-text [format "Predictions: %s" $gPredString] \
 	-width [expr $gWindowWidthRatio * 140] \
-	    -justify center \
-	    -font $kLabelFont \
-	    -anchor center \
-	    -tags [list Predictions textitem]
+	-justify center \
+	-font $kLabelFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list Predictions textitem]
 
     .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 80]\
 	-text "" \
 	-width [expr $gWindowWidthRatio * 140] \
 	-justify center \
 	-font $kLabelFont \
+	-fill $gFontColor \
 	-anchor center \
 	-tags [list WhoseTurn textitem]
 
@@ -1361,6 +1381,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
     global convertExists
     global gSkinsExt gSkinsDir gSkinsRootDir
+    global gFontColor
 	
     #
     # Load all the button images
@@ -1370,11 +1391,41 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     set gSkinsDir $skinsDir
     set gSkinsRootDir $skinsRootDir
 
-    set scalePercent [expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
+    ### Set FONT COLOR for each skin ###
+    if { $gSkinsDir == "EarthFromSpace_HiRes/" || \
+	     $gSkinsDir == "SpaceCloud_HiRes/"} {
+	set gFontColor "white"
+	if { [winfo exists .middle.f1.cMLeft] } {
+	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
+	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
+	}
+    } else {
+	set gFontColor "black"
+	if { [winfo exists .middle.f1.cMLeft] } {
+	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
+	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
+	}
+    }
+
+    ### Determine scaling of images ###
+    ### gWindow*Ratio is based on the original 800x600 size,
+    #### but HiRes skins are 2560x1920 so they must be scaled down by 3.2
+    if { [string match *\H\i\R\e\s* $gSkinsDir] } {
+	set scalePercent [expr $gWindowWidthRatio * 100 / 3.2]x[expr $gWindowHeightRatio * 100 / 3.2]%!
+    } else {
+	set scalePercent [expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
+    }
+
+    ### If system has the convert utility use the directory for the specified resolution
+    #### otherwise use the 800x600 directory
     if { $convertExists } {
 	set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
     } else {
-	set resolutionDir ""
+	set resolutionDir "800x600/"
     }
     set resolutionExists true
 

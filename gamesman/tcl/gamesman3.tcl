@@ -808,7 +808,7 @@ proc main {kRootDir} {
     # Initialize generic top-level window
     source "$kRootDir/../tcl/InitWindow.tcl"
     InitGlobals
-    InitWindow $kRootDir OxySkin ppm
+    InitWindow $kRootDir OxySkin_HiRes/ ppm
 
     # Initialize game-specific globals and frame
     GS_InitGameSpecific
