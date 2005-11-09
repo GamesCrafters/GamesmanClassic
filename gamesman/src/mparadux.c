@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.10 2005-11-09 10:01:11 yanpeichen Exp $
+// $Id: mparadux.c,v 1.11 2005-11-09 10:10:12 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -317,7 +317,7 @@ void InitializeGame ()
 
 /* Initialize odd-sided board */
 void initOddBoard() {
-  int i,row, col, el = 0, maxCol = boardSide - 1, maxRow = boardSide * 2 - 2;
+  int row, col, el = 0, maxCol = boardSide - 1, maxRow = boardSide * 2 - 2;
 
   char* board = (char *) SafeMalloc (sizeof(char) * boardSize);
 
@@ -508,6 +508,8 @@ MOVELIST *GenerateMoves (POSITION position)
 
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 
+  /* Copy-Paste from Primitive?
+
       for (j = 0; j < boardSide - 1; j++) {
 	curPiece = board[getNeighbor(j, E)];
 
@@ -542,7 +544,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	  return (piece == player ? win : lose);
 	}
       }
-
+  */
 
   for (i = 0; i < boardSize; i++) {
     pos = i;
@@ -644,7 +646,6 @@ VALUE Primitive (POSITION position)
 {
   char *board = SafeMalloc(sizeof(char) * boardSize);
   int pos, curPos;
-  char player = valToChar[whoseMove(position)];
   char piece, curPiece;
   int i,j;
 
@@ -907,23 +908,24 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
   int type, pos1, pos2;
-  unhashMove(move, &type, &pos1, &pos2);
+  unhashMove(computersMove, &type, &pos1, &pos2);
 
   switch (type) {
   case NW: 
-    printf("Computer moves %d %d NW",pos1,pos2);
+    printf("Computer %s moves %d %d NW",computersName,pos1,pos2);
   case NE:
-    printf("Computer moves %d %d NE",pos1,pos2);
+    printf("Computer %s moves %d %d NE",computersName,pos1,pos2);
   case E:
-    printf("Computer moves %d %d E", pos1,pos2);
+    printf("Computer %s moves %d %d E", computersName,pos1,pos2);
   case SE:
-    printf("Computer moves %d %d SE",pos1,pos2);
+    printf("Computer %s moves %d %d SE",computersName,pos1,pos2);
   case SW:
-    printf("Computer moves %d %d SW",pos1,pos2);
+    printf("Computer %s moves %d %d SW",computersName,pos1,pos2);
   case W:
-    printf("Computer moves %d %d W", pos1,pos2);
+    printf("Computer %s moves %d %d W", computersName,pos1,pos2);
   case SWAP:
-    printf("Computer %d %d SWAP",    pos1,pos2);    
+    printf("Computer %s SWAP %d %d",    computersName,pos1,pos2); 
+  }   
 }
 
 
@@ -957,6 +959,7 @@ void PrintMove (MOVE move)
     printf("%d %d move W", pos1,pos2);
   case SWAP:
     printf("%d %d SWAP",   pos1,pos2);
+  }
 }
 
 
@@ -1483,6 +1486,14 @@ void yanpeiTestNeighboringDir() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2005/11/09 10:01:11  yanpeichen
+// ** 11/09/2005 Yanpei - DoMove proof read, reasonably confident,
+// **                     need to write getNeighbor,
+// **                     yanpeiTestBeighboringDir() written but yet to run.
+// **                     Primitive proof read, reasonably confident
+// **                     Wrote PrintMove + PrintComputersMove
+// **                     Still to do: GenerateMoves + test UI functions
+//
 // Revision 1.9  2005/10/26 09:37:54  yanpeichen
 // yanpei: debugged printPos and initGamme for odd boards
 //
