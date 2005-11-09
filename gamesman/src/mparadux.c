@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.9 2005-10-26 09:37:54 yanpeichen Exp $
+// $Id: mparadux.c,v 1.10 2005-11-09 10:01:11 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -11,7 +11,8 @@
 **
 ** DESCRIPTION: Paradux
 **
-** AUTHOR:      David Chen, Yanpei Chen
+** AUTHOR:      David Chen   chendx@berkeley.edu
+**              Yanpei Chen  ychen@berkeley.edu
 **
 ** DATE:        09/13/03
 **
@@ -31,6 +32,12 @@
 ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 **                     more tidy code. Proof read hashMove() unhashMove()
 ** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged. 
+** 11/09/2005 Yanpei - DoMove proof read, reasonably confident, 
+**                     need to write getNeighbor, 
+**                     yanpeiTestBeighboringDir() written but yet to run. 
+**                     Primitive proof read, reasonably confident
+**                     Wrote PrintMove + PrintComputersMove
+**                     Still to do: GenerateMoves + test UI functions
 **
 **************************************************************************/
 
@@ -108,7 +115,9 @@ STRING   kHelpExample =
 #define BLANK 0
 #define X 1
 #define O 2
-#define INVALID 3
+#define INVALID -1 
+// INVALID used by getNeighbor(),
+// so must not be valid return value of getNeighbor()
 
 /* directions */
 #define NW   0
@@ -230,8 +239,8 @@ extern void		SafeFree ();
 
 /* Multiple Implementations */
 
-void davidInitGame ();
-void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn);
+void                    davidInitGame ();
+void                    dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn);
 
 void                    (*initGame)( ) = &davidInitGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn) = &dyPrintPos;
@@ -276,6 +285,9 @@ void                    getColRow(int pos, int* pCol, int* pRow);
 
 int                     whoseMoveF(POSITION p);
 
+/* Test Functions */
+
+void                    yanpeiTestNeighboringDir();
 
 /*************************************************************************
 **
@@ -437,7 +449,12 @@ void davidInitGame ()
   pieces[8] = numBlank;
   pieces[9] = -1;
 
-  //printf("testpoint4\n");
+  printf("testpoint4 %d %d\n",boardSize,numX);
+
+  int i;
+  for (i=0; i<10; i++)
+    printf("%d ",pieces[i]);
+  printf("\n");
 
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
@@ -452,6 +469,9 @@ void davidInitGame ()
   //printf("%d\n", gInitialPosition);
 
   PrintPosition(gInitialPosition, playersName, TRUE);
+
+  yanpeiTestNeighboringDir();
+
 }
 
 /************************************************************************
@@ -569,7 +589,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  int type, pos1, pos2, temp;
+  int type, pos1, pos2, target1, target2, temp1, temp2;
 
   char *board = SafeMalloc(sizeof(char) * boardSize);
 
@@ -577,18 +597,21 @@ POSITION DoMove (POSITION position, MOVE move)
   generic_unhash(position, board);
 
   if (type == SWAP) {
-    temp = board[pos1];
+    temp1 = board[pos1];
     board[pos1] = board[pos2];
-    board[pos2] = temp;
+    board[pos2] = temp1;
   } else {
-    temp = getNeighbor(pos1, type);
-    board[temp] = board[pos1];
+    target1 = getNeighbor(pos1, type);
+    target2 = getNeighbor(pos2, type);
+    temp1 = board[pos1];
+    temp2 = board[pos2];
     board[pos1] = valToChar[BLANK];
-    temp = getNeighbor(pos2, type);
-    board[temp] = board[pos2];
     board[pos2] = valToChar[BLANK];
+    board[target1] = temp1;
+    board[target2] = temp2;
   }
 
+  SafeFree(board);
   return generic_hash(board, nextPlayer(whoseMove(position)));
 }
 
@@ -633,11 +656,13 @@ VALUE Primitive (POSITION position)
     piece = board[i];
 
     if (piece != '-') {
+
       // Check east
       curPos = pos;
 
       for (j = 0; j < boardSide - 1; j++) {
-	curPos = getNeighbor(curPos, E);
+	if ((curPos = getNeighbor(curPos, E)) == INVALID)
+	  break;
 
 	curPiece = board[curPos];
 
@@ -645,7 +670,7 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
+	  return lose;
 	}
       }
 
@@ -653,7 +678,8 @@ VALUE Primitive (POSITION position)
       curPos = pos;
 
       for (j = 0; j < boardSide - 1; j++) {
-	curPos = getNeighbor(curPos, SE);
+	if ((curPos = getNeighbor(curPos, SE)) == INVALID)
+	  break;
 
 	curPiece = board[curPos];
 
@@ -661,7 +687,7 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
+	  return lose;
 	}
       }
       
@@ -669,7 +695,8 @@ VALUE Primitive (POSITION position)
       curPos = pos;
 
       for (j = 0; j < boardSide - 1; j++) {
-	curPos = getNeighbor(curPos, SW);
+	if ((curPos = getNeighbor(curPos, SW)) == INVALID)
+	  break;
 
 	curPiece = board[curPos];
 
@@ -677,12 +704,17 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
+	  return lose;
 	}
       }
+
+      // No need to check W NE or NW because we search from pos = 0 forwards
+      // So any W NE or NW should have been found by E SW or SE earlier. 
+
     }
   }
 
+  SafeFree(board);
   return undecided;
 }
 
@@ -874,7 +906,24 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+  int type, pos1, pos2;
+  unhashMove(move, &type, &pos1, &pos2);
+
+  switch (type) {
+  case NW: 
+    printf("Computer moves %d %d NW",pos1,pos2);
+  case NE:
+    printf("Computer moves %d %d NE",pos1,pos2);
+  case E:
+    printf("Computer moves %d %d E", pos1,pos2);
+  case SE:
+    printf("Computer moves %d %d SE",pos1,pos2);
+  case SW:
+    printf("Computer moves %d %d SW",pos1,pos2);
+  case W:
+    printf("Computer moves %d %d W", pos1,pos2);
+  case SWAP:
+    printf("Computer %d %d SWAP",    pos1,pos2);    
 }
 
 
@@ -890,7 +939,24 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    
+  int type, pos1, pos2;
+  unhashMove(move, &type, &pos1, &pos2);
+
+  switch (type) {
+  case NW: 
+    printf("%d %d move NW",pos1,pos2);
+  case NE:
+    printf("%d %d move NE",pos1,pos2);
+  case E:
+    printf("%d %d move E", pos1,pos2);
+  case SE:
+    printf("%d %d move SE",pos1,pos2);
+  case SW:
+    printf("%d %d move SW",pos1,pos2);
+  case W:
+    printf("%d %d move W", pos1,pos2);
+  case SWAP:
+    printf("%d %d SWAP",   pos1,pos2);
 }
 
 
@@ -1395,7 +1461,31 @@ int whoseMoveF(POSITION p) {
   return p;
 }
 
+////////////////////////////
+//
+//  TEST CODE
+//
+////////////////////////////
+
+void yanpeiTestNeighboringDir() {
+
+  int i, j;
+
+  printf("\nTESTING neighboringDirection()\n");
+  for (i=0; i<boardSize; i++) {
+    for (j=0; j<boardSize; j++) {
+      if (i!=j) {
+	printf("pos %d neighbor%d direction%d\n",
+	       i,j,neighboringDirection(i,j));
+      }
+    }
+  }
+}
+
 // $Log: not supported by cvs2svn $
+// Revision 1.9  2005/10/26 09:37:54  yanpeichen
+// yanpei: debugged printPos and initGamme for odd boards
+//
 // Revision 1.8  2005/10/18 08:34:01  yanpeichen
 // ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 // **                     more tidy code. Proof read hashMove() unhashMove()
