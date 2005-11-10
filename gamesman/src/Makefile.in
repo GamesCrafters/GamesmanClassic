@@ -45,11 +45,11 @@ EXESUFFIX	= @EXESUFFIX@
 ##############################################################################
 ### Support for deprecated gamesman API
 ### For use with games that do not support gamesman 3 features
-
-DEP_INCLUDE		= deprecated/gsolve.h deprecated/gstrings.h
-DEP_OBJS		= deprecated/gmain$(OBJSUFFIX) deprecated/gsolve$(OBJSUFFIX) \
-			  deprecated/gfuzzy$(OBJSUFFIX) deprecated/gloopy$(OBJSUFFIX)
-DEP_GWISH_OBJ		= deprecated/tkAppInit$(OBJSUFFIX)
+### As of 11/10 this section is RIP.
+#DEP_INCLUDE		= deprecated/gsolve.h deprecated/gstrings.h
+#DEP_OBJS		= deprecated/gmain$(OBJSUFFIX) deprecated/gsolve$(OBJSUFFIX) \
+#			  deprecated/gfuzzy$(OBJSUFFIX) deprecated/gloopy$(OBJSUFFIX)
+#DEP_GWISH_OBJ		= deprecated/tkAppInit$(OBJSUFFIX)
 
 
 ##############################################################################
@@ -158,16 +158,17 @@ FANDAN_OBJ		= mfandan$(OBJSUFFIX)
 
 ## Warning: uses computec, and therefore a different tkAppInit.c
 ## Warning: Foxes uses Deprecated API
+## The above warning does not apply anymore as of 11-10-2005. The C code uses current API now.
 FOXES_EXE		= $(BINDIR)/mfoxes$(EXESUFFIX)	# The unreasonably witty game of foxes & geese
 FOXES_OBJ		= mfoxes$(OBJSUFFIX)
-FOXES_TCL_OBJ		= tkAppInitFoxes$(OBJSUFFIX)
+#FOXES_TCL_OBJ		= tkAppInitFoxes$(OBJSUFFIX)
 FOXES_SO		= $(LIBDIR)/libmfoxes$(LIBSUFFIX)
 
 ## this is the new version of Foxes adapted to the current core API
-FOXES_NEW_EXE           = $(BINDIR)/mfoxes_new$(EXESUFFIX)
-FOXES_NEW_OBJ           = mfoxes_new$(OBJSUFFIX)
+#FOXES_NEW_EXE           = $(BINDIR)/mfoxes_new$(EXESUFFIX)
+#FOXES_NEW_OBJ           = mfoxes_new$(OBJSUFFIX)
 #FOXES_NEW_TCL_OBJ	= tkAppInitFoxes$#(OBJSUFFIX)
-FOXES_NEW_SO            = $(LIBDIR)/libmfoxes_new$(LIBSUFFIX)
+#FOXES_NEW_SO            = $(LIBDIR)/libmfoxes_new$(LIBSUFFIX)
 
 GOBBLET_EXE		= $(BINDIR)/mgobblet$(EXESUFFIX) # The ridiculously complex game of Gobblet
 GOBBLET_OBJ		= mgobblet$(OBJSUFFIX)
@@ -340,7 +341,7 @@ CGAMES =  $(1210_EXE) $(WINKERS_EXE) $(ASALTO_EXE) $(OTHELLO_EXE) $(NIM_EXE) \
 	  $(TTC_EXE) $(JOUST_EXE) $(ICEBLOCKS_EXE) $(CHANGE_EXE) \
 	  $(HORSE_EXE) $(DINODODGEM_EXE) $(MANCALA_EXE) $(RINFIN_EXE) $(SWANS_EXE) \
 	  $(KONO_EXE) $(QLAND_EXE) $(BAGHCHAL_EXE) $(WUZHI_EXE) $(SEEGA_EXE) \
-	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_NEW_EXE) $(QUARTO_EXE) \
+	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_EXE) $(QUARTO_EXE) \
 	  $(XIGUA_EXE) $(SHOGI_EXE) $(LEWTH_EXE) $(DAO_EXE)
 
 # Tcl/Tk libraries
@@ -350,7 +351,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
-	$(FOXES_NEW_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
+	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
         $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO)
 
 ### Games written in C++ that work with the current gamesman core:
@@ -364,8 +365,8 @@ CCGAMES = $(CON_EXE) $(DNB_EXE)
 CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
-SPECIALGAMES = $(FOXES_EXE) $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE)
-SPECIALTCL = $(FOXES_SO) $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
+SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE)
+SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
 
 
 ##############################################################################
@@ -472,14 +473,14 @@ $(TTT_EXE): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A)
 $(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
 	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
-	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
+#$(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
+#	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
-	$(CC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
+#	$(CC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
-	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
+#$(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
+#	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
 $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
