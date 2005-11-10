@@ -28,15 +28,6 @@
 
 # Game parameters
 
-# size = size of the board (assuming a square board)
-# set size 500
-# margin is the area we want around our game board
-# set margin [expr 0.1*$size]
-# side = dimension of the sides of our squares that make up the board
-# set side [expr ($size-2*$margin)/4]
-# r is the radius of our pieces
-# set r [expr $side/4]
-
 # t = line thickness
 set t 5
 # arrowwidth = width of arrows
@@ -527,9 +518,7 @@ proc animate { c piece origin destination captured } {
     # Relative speed factor gotten from gAnimationSpeed
     # If gAnimationSpeed is 0, then divide by base number
     # If gAnimationSpeed is greater than 1, divide by (base number) ^ (n * gAnimationSpeed)
-    # set factor [expr (100 / 11) * ($gAnimationSpeed + 6)]
 
-    # set speed [expr 1000 / ($factor >> 2)]
     # speed should equal the amount of ms we take to run this whole thing
     set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
     
@@ -547,6 +536,45 @@ proc animate { c piece origin destination captured } {
 	if {$captured != 0} {
 	    if {$i == [expr $speed / 2]} {
 		$c delete $captured
+	    }
+	}
+	after 1
+	update idletasks
+    }
+}
+
+# This animates an undo (similar to animate, but reverses the capture if there is one) #
+proc undo { c piece origin destination uncaptured } {
+
+    global basespeed gAnimationSpeed
+
+    set x0 [lindex $origin 0]
+    set x1 [lindex $destination 0]
+    set y0 [lindex $origin 1]
+    set y1 [lindex $destination 1]
+
+    # Relative speed factor gotten from gAnimationSpeed
+    # If gAnimationSpeed is 0, then divide by base number
+    # If gAnimationSpeed is greater than 1, divide by (base number) ^ (n * gAnimationSpeed)
+
+    # speed should equal the amount of ms we take to run this whole thing
+    set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
+    
+    # If things get too fast, just make it instant
+    if {$speed < 10} {
+	set speed 10
+    }
+
+    set dx [expr ($x1 - $x0) / $speed]
+    set dy [expr ($y1 - $y0) / $speed]
+
+    for {set i 0} {$i < $speed} {incr i} {
+	$c move $piece $dx $dy
+	
+	if {$uncaptured != 0} {
+	    if {$i == [expr $speed / 2]} {
+		$c raise $uncaptured
+		$c raise $piece
 	    }
 	}
 	after 1
@@ -644,7 +672,7 @@ proc drawmove { c move moveType position } {
     # adding some distance toward the destination, similar to how we shorten the arrows
     # on the opposite end.
 
-    # Diagonals have to be handled specially, though.
+    # Diagonals have to be handled specially, though (distance is divided by root 2 in each direction)
     if {[diagonal $origin $destination]} {
 	set arrow [$c create line \
 		   [expr [lindex $origin 0] + $r / sqrt(2) * [sign [expr [lindex $destination 0] - [lindex $origin 0]]]] \
@@ -694,6 +722,59 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
     # TODO:
     # Animate theMoveToUndo (should be easy, just like animating a move).
+
+    global r outline
+    
+    set origposition [expr $theMoveToUndo >> 6]
+    set origin [coords $origposition]
+    set destination [coords [expr $theMoveToUndo & 0x3F]]
+
+    # Draw currentPosition with piece at origin gone
+    DrawBoard $c
+    set oldBoard [unhash $currentPosition]
+    set movedpiece [string index $oldBoard $origposition]
+
+    switch $movedpiece {
+	F { set color red  }
+	G { set color blue }
+    }
+
+    set oldBoard [string replace $oldBoard $origposition $origposition " "]
+    set uncaptured 0
+
+    set newBoard [unhash $positionAfterUndo]
+
+    # Capture condition: newBoard has a goose where oldBoard does not, AND a fox has moved
+    # (i.e. there is a spot where newBoard has a fox and oldBoard has a blank)
+    set foxmoved 0
+    for {set i 0} {$i < 21} {incr i} {
+	if { [string index $oldBoard $i] == " " && [string index $newBoard $i] == "F"} {
+	    set foxmoved 1
+	}
+    }
+
+    for {set i 0} {$i < 21} {incr i} {
+	if { [string index $oldBoard $i] == " " && [string index $newBoard $i] == "G" && $foxmoved} {
+	    set oldBoard [string replace $oldBoard $i $i " "]
+	    set uncaptured [coords $i]
+	}
+    }
+
+    if {$uncaptured != 0} {
+	set uncaptured [$c create oval \
+			[expr [lindex $uncaptured 0] - $r] \
+			[expr [lindex $uncaptured 1] - $r] \
+			[expr [lindex $uncaptured 0] + $r] \
+			[expr [lindex $uncaptured 1] + $r] \
+			-fill blue -width $outline]
+	$c lower $uncaptured
+    }
+
+    DrawPieces $c $oldBoard
+
+    set piece [$c create oval [expr [lindex $origin 0] - $r] [expr [lindex $origin 1] - $r] [expr [lindex $origin 0] + $r] [expr [lindex $origin 1] + $r] -fill $color -width $outline]
+
+    undo $c $piece $origin $destination $uncaptured
 
     GS_DrawPosition $c $positionAfterUndo
 }
