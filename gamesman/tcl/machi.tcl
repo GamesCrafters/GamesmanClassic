@@ -23,6 +23,13 @@
 #             removed the erroneous drawing of strikeouts for a misere game
 #             still broken: GS_HandleUndo
 #
+# Fall 2005
+# Eudean Sun
+#
+# 2005.10.20  Achi now scales with the window's canvas (commented out variable initializations and moved
+#             them to GS_Initialize. Also changed the location of the winning text declaration to fit the
+#             new canvas features.
+#
 # Future changes:
 # a lot of hardcoding done in Spring 2003, hard to undo
 # be able to retrieve coordinates for arrows and positions dynamically, instead of hardcoded
@@ -45,26 +52,33 @@ set kCAuthors "Jesse Phillips, Jennifer Lee"
 set kTclAuthors "Jesse Phillips, Jennifer Lee, Jonathan Tsai"
 set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x132.gif"
 
+############################################################
+# Note: All variables dependent on the size of the canvas
+# are now in GS_Initialize, where the canvas is first
+# received. The game now scales with the canvas size.
+############################################################
+
 ## IMPORTANT: These are variables used to change the board.
 # board size
-set canvasWidth  500; # 230 for first ever board
-set canvasHeight 500
-#coordinates:
-set dotgap [expr $canvasWidth / 3] 
-set dotmid [expr $dotgap / 2]
-set firstXCoord $dotmid
-set firstYCoord $dotmid
+# set canvasWidth  500; # 230 for first ever board
+# set canvasHeight 500
+# coordinates:
+# set dotgap [expr $canvasWidth / 3] 
+# set dotmid [expr $dotgap / 2]
+# set firstXCoord $dotmid
+# set firstYCoord $dotmid
 ## pieces
-set pieceSize [expr $dotmid - ($dotmid / 4)]
-set pieceOutline [expr $pieceSize / 14]
-set xColor red
-set oColor blue
-set pieceOffset $dotgap
+# set pieceSize [expr $dotmid - ($dotmid / 4)]
+# set pieceOutline [expr $pieceSize / 14]
+# set xColor red
+# set oColor blue
+# set pieceOffset $dotgap
 ## dots
-set dotSize [expr $pieceSize.0 / 2.6]
-set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
+# set dotSize [expr $pieceSize.0 / 2.6]
+# set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
 ## lines
-set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
+# set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
+
 set lineColor CadetBlue4
 ## base
 set baseColor lightgrey
@@ -72,46 +86,6 @@ set baseColor lightgrey
 set diagArrows  { 4 40 15 51 37 73 48 84 13 31 24 42 46 64 57 75}
 set horizArrows { 1 10 12 21 34 43 45 54 67 76 78 87}
 set vertArrows  { 3 30 14 41 25 52 36 63 47 74 58 85}
-
-## animation delay
-set slideDelay 20000
-set goDelay 3000000
-#set animQuality "low"
-##### animQuality is really a hack for animation speed
-# x and y position numbers
-set x0 $firstXCoord
-set x1 [expr $x0 + $dotgap]
-set x2 [expr $x1 + $dotgap]
-set x3 $x0
-set x4 $x1
-set x5 $x2
-set x6 $x0
-set x7 $x1
-set x8 $x2
-
-set y0 $firstYCoord
-set y1 $y0
-set y2 $y0
-set y3 [expr $y0 + $dotgap]
-set y4 $y3
-set y5 $y3
-set y6 [expr $y3 + $dotgap]
-set y7 $y6
-set y8 $y6
-
-set dotx0 [expr $x0 - [expr $dotSize / 2]];
-set dotx1 [expr $x1 - [expr $dotSize / 2]];
-set dotx2 [expr $x2 - [expr $dotSize / 2]];
-set doty0 [expr $y0 - [expr $dotSize / 2]];
-set doty1 [expr $y3 - [expr $dotSize / 2]];
-set doty2 [expr $y6 - [expr $dotSize / 2]];
-
-set px0 [expr $x0 - [expr $pieceSize / 2]];
-set px1 [expr $x1 - [expr $pieceSize / 2]];
-set px2 [expr $x2 - [expr $pieceSize / 2]];
-set py0 [expr $y0 - [expr $pieceSize / 2]];
-set py1 [expr $y3 - [expr $pieceSize / 2]];
-set py2 [expr $y6 - [expr $pieceSize / 2]];
 
 
 
@@ -662,9 +636,74 @@ proc GS_SetOption { option } {
 ################################    INITIALIZING THE BOARD  (LONG FUNCTION!!) ########## 
 
 proc GS_Initialize { c } {
-    global canvasWidth canvasHeight
-    # you may want to start by setting the size of the canvas; this line isn't necessary
-    $c configure -width $canvasWidth -height $canvasHeight
+
+    # All are global
+
+    global canvasWidth canvasHeight dotgap dotmid firstXCoord firstYCoord pieceSize pieceOutline
+    global xColor oColor pieceOffset dotSize dotExpandAmount lineWidth slideDelay animQuality x0 x1 x2 x3 x4 x5 x6 x7 x8
+    global y0 y1 y2 y3 y4 y5 y6 y7 y8 dotx0 dotx1 dotx2 doty0 doty1 doty2 px0 px1 px2 py0 py1 py2
+
+    # Set canvas size based on canvas given to us
+    set canvasWidth [$c cget -width]
+    set canvasHeight $canvasWidth
+
+    # Initialize all of those variables that were previously at the top of the program
+    #coordinates:
+    set dotgap [expr $canvasWidth / 3 ] 
+    set dotmid [expr $dotgap / 2]
+    set firstXCoord [expr $dotmid ]
+    set firstYCoord [expr $dotmid ]
+    ## pieces
+    set pieceSize [expr $dotmid]
+    set pieceOutline [expr $pieceSize / 14]
+    set xColor red
+    set oColor blue
+    set pieceOffset $dotgap
+    ## dots
+    set dotSize [expr $pieceSize / 2.6]
+    set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
+    ## lines
+    set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
+    
+    ## animation delay
+    set slideDelay 20000
+    set goDelay 3000000
+    #set animQuality "low"
+    ##### animQuality is really a hack for animation speed
+    # x and y position numbers
+    set x0 $firstXCoord
+    set x1 [expr $x0 + $dotgap]
+    set x2 [expr $x1 + $dotgap]
+    set x3 $x0
+    set x4 $x1
+    set x5 $x2
+    set x6 $x0
+    set x7 $x1
+    set x8 $x2
+    
+    set y0 $firstYCoord
+    set y1 $y0
+    set y2 $y0
+    set y3 [expr $y0 + $dotgap]
+    set y4 $y3
+    set y5 $y3
+    set y6 [expr $y3 + $dotgap]
+    set y7 $y6
+    set y8 $y6
+    
+    set dotx0 [expr $x0 - [expr $dotSize / 2]];
+    set dotx1 [expr $x1 - [expr $dotSize / 2]];
+    set dotx2 [expr $x2 - [expr $dotSize / 2]];
+    set doty0 [expr $y0 - [expr $dotSize / 2]];
+    set doty1 [expr $y3 - [expr $dotSize / 2]];
+    set doty2 [expr $y6 - [expr $dotSize / 2]];
+    
+    set px0 [expr $x0 - [expr $pieceSize / 2]];
+    set px1 [expr $x1 - [expr $pieceSize / 2]];
+    set px2 [expr $x2 - [expr $pieceSize / 2]];
+    set py0 [expr $y0 - [expr $pieceSize / 2]];
+    set py1 [expr $y3 - [expr $pieceSize / 2]];
+    set py2 [expr $y6 - [expr $pieceSize / 2]];
 
     makeBoard $c
     # create font for Winner text at end of game
@@ -1144,7 +1183,7 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    global pieceSize
+    global pieceSize canvasWidth
 
     set board [unhash $position]
     if { $nameOfWinningPiece == "x" } {
@@ -1188,8 +1227,10 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     if { $p != {} } {
         $c create line $startx $starty $endx $endy -fill gray70 -tags GameOverLine -width [expr $pieceSize / 5] -capstyle round
     }
-    $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text 250 340 -text "WINS!"         -font Winner -fill orange -tags winner
+
+    # Text position now dependent on size of canvas (nameOfWinner just above center, WINS! just below center)
+    $c create text [expr $canvasWidth/2] [expr $canvasWidth/2 - 40] -text "$nameOfWinner" -font Winner -fill orange -tags winner
+    $c create text [expr $canvasWidth/2] [expr $canvasWidth/2 + 40] -text "WINS!"         -font Winner -fill orange -tags winner
 
 }
 
