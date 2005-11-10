@@ -282,8 +282,7 @@ proc min { x y } {
 
 proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 
-    set circleWidth [expr $slotSize/10.0]
-    set startCircle [expr $slotSize/8.0]
+    set startCircle [expr $slotSize / 8.0]
     set endCircle   [expr $startCircle*7.0]
     set cornerX     [expr $slotX*$slotSize]
     set cornerY     [expr $slotY*$slotSize]
@@ -295,9 +294,27 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 
     $w move $theCircle $cornerX $cornerY
 
-    #$w addtag piece$slotX$slotY withtag $theCircle
+    $w addtag piece$slotX$slotY withtag $theCircle
     #$w addtag tagPieceCoord$slotX$slotY withtag $theCircle
     #$w addtag tagPieceOnCoord$slotX$slotY withtag $theCircle
+
+    return $theCircle
+}
+
+proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
+    
+    set startCircle [expr $slotSize / 3.0]
+    set endCircle   [expr $startCircle*2.0]
+    set cornerX     [expr $slotX*$slotSize]
+    set cornerY     [expr $slotY*$slotSize]
+    set theCircle [$w create oval $startCircle $startCircle \
+		       $endCircle $endCircle \
+		       -fill $theColor \
+		       -tag $theTag]
+
+    $w move $theCircle $cornerX $cornerY
+
+    $w addtag movedot$slotX$slotY withtag $theCircle
 
     return $theCircle
 }
@@ -315,25 +332,28 @@ proc GS_Initialize { c } {
     global boardRows boardCols
     global gFrameWidth gFrameHeight
 
-    set mySize [min $gFrameWidth [expr $gFrameHeight * [expr 4.0/5]]]
+    #set mySize [min $gFrameWidth [expr $gFrameHeight * [expr 4.0/5]]]
+    set mySize [min $gFrameWidth $gFrameHeight]
+
     set vertCellSize [expr $mySize / $boardRows]
     set horizCellSize [expr $mySize / $boardCols]
     
    for {set x 0} {$x < $boardCols} {incr x} {
 	for {set y 0} {$y < $boardRows} {incr y} {
 	    $c create rectangle [expr $x * $horizCellSize] [expr $y * $vertCellSize] [expr ($x + 1) * $horizCellSize] [expr ($y + 1) * $vertCellSize] -fill darkgreen -outline black -width 2 -tag base 
+
 	}
+
     }
 
     for {set x 0} {$x < $boardCols} {incr x} {
 	for {set y 0} {$y < $boardRows} {incr y} {
 
-	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y [list piece$x$y pieces] [lindex [GS_ColorOfPlayers] 0]
+	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y pieces [lindex [GS_ColorOfPlayers] 0]
 
-	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y [list movedot$x$y moves] cyan
-	    #DrawCircle $c [min $vertCellSize $horizCellSize] $x $y pieces [lindex [GS_ColorOfPlayers] 1]
+	    DrawMoveCircle $c [min $vertCellSize $horizCellSize] $x $y moves cyan
 
-	    #$c bind piece$x$y <Enter> "MouseOverExpand piece$x$y $c"
+	    #$c bind movedot$x$y <Enter> "MouseOverExpand movedot$x$y $c"
 	    #$c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
 
 	}
@@ -351,7 +371,10 @@ proc GS_Initialize { c } {
 
 proc MouseOverExpand { dot c } {
     global dotExpandAmount
+#    set dotExpandAmount .1
 #    $c itemconfig $dot -fill red
+#    $c itemconfig $dot -expand dotExpandAmount
+#    puts "mouseoverexpand"
 }
 
 proc MouseOutContract { dot c } {
@@ -485,9 +508,6 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 	
-	#puts $item
-	#puts [GetXYFromMove $item]
-
 	set movetag movedot[GetXYFromMove $item]
 
 	$c raise $movetag
@@ -496,6 +516,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	$c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
 	$c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black"
 	$c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color"
+	#$c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -width 25 -fill black -outline black"
 
 	#TODO: do this
 
@@ -599,5 +620,12 @@ proc Column { index } {
     global boardCols
 
     return [expr $index % $boardCols]
+
+}
+
+proc Index { row col } {
+    global boardCols
+
+    return [expr [expr $row * $boardCols] + $col]
 
 }
