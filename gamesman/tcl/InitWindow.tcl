@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.83 2005-11-10 06:40:27 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.84 2005-11-10 07:58:05 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1452,8 +1452,8 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    image create photo [subst $name]p -file [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 
 	    set type [format i%sTB $mode]
-	    .cToolbar create image [expr ($gWindowWidth / 16.0) + ($file - 1) * $gWindowWidth / 8.0] [expr $gWindowHeight / 60.0] \
-		-image [subst $name]p -tags [list tbb $type $name]
+	    .cToolbar create image [expr 100 * ($file - 1) * $gWindowWidthRatio] 0 \
+		-anchor nw -image [subst $name]p -tags [list tbb $type $name]
 	}
     }
     #Load images for middle section
