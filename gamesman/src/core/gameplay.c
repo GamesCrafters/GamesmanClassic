@@ -56,6 +56,7 @@ static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
 static  void            printLine                       (char*, char*, int, POSITION, int, int, int, int);
 static  char*           addMove                         (char*, int, char*, int);
 static  char*           addRemoteness                   (char*, int, int, int);
+static  char*           addRemoteness1                  (char*, int, int, int, int);
 static  char*           addDraw                         (char*, int);
 static  char*           addSpacePadding                 (char*, int);
 static  char*           digitToString                   (char*, int);
@@ -380,14 +381,14 @@ void printLine(char* mPlayer1, char* mPlayer2, int whoseTurn,
  
   addMove(line, TRUE, mPlayer1, maxN);
   winForLeft ? addRemoteness1(line, TRUE, remoteness, maxR, whoseTurn) :
-    addRemoteness1(line, TRUE, -1, maxR);
-  value == tie && !draw ? addRemoteness1(line, 1, remoteness, maxTR) :
-    addRemoteness1(line, TRUE, -1, maxTR);
+    addRemoteness1(line, TRUE, -1, maxR, whoseTurn);
+  value == tie && !draw ? addRemoteness1(line, 1, remoteness, maxTR, whoseTurn) :
+    addRemoteness1(line, TRUE, -1, maxTR, whoseTurn);
   addDraw(line, draw);
-  value == tie && !draw ? addRemoteness1(line, 0, remoteness, maxTR) :
-    addRemoteness1(line, FALSE, -1, maxTR);
-  winForRight ? addRemoteness1(line, FALSE, remoteness, maxR) :
-    addRemoteness1(line, FALSE, -1, maxR);
+  value == tie && !draw ? addRemoteness1(line, 0, remoteness, maxTR, whoseTurn) :
+    addRemoteness1(line, FALSE, -1, maxTR, whoseTurn);
+  winForRight ? addRemoteness1(line, FALSE, remoteness, maxR, whoseTurn) :
+    addRemoteness1(line, FALSE, -1, maxR, whoseTurn);
   addMove(line, FALSE, mPlayer2, maxN);
   printf("%s", line);
 }
