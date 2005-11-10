@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.82 2005-11-07 07:44:11 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.83 2005-11-10 06:40:27 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -193,10 +193,12 @@ proc InitWindow { kRootDir kDir kExt } {
 
     set gWindowWidth [winfo width .]
     set gWindowHeight [winfo height .]
+
     set gWindowWidthRatio [expr $gWindowWidth/800.0]
     set gWindowHeightRatio [expr $gWindowHeight/600.0]
-    set gFrameWidth [expr $gWindowWidth * 10 / 16]
-    set gFrameHeight [expr $gWindowHeight * 5 / 6]
+
+    set gFrameWidth [expr $gWindowWidth * 10 / 16.0]
+    set gFrameHeight [expr $gWindowHeight * 5 / 6.0]
 
 
     set gGamePlayable false
@@ -216,7 +218,7 @@ proc InitWindow { kRootDir kDir kExt } {
     canvas .cToolbar -highlightthickness 0 \
 	-bd 0 \
 	-width $gWindowWidth \
-	-height [expr $gWindowHeight / 30] \
+	-height [expr $gWindowHeight / 30.0] \
 	-background black
 
 	InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
@@ -231,13 +233,13 @@ proc InitWindow { kRootDir kDir kExt } {
 
     # set the size of the frames and force them to stay that way
     frame .middle.f1 \
-	-width [expr $gWindowWidth * 3 / 16] \
+	-width [expr $gWindowWidth * 3 / 16.0] \
 	-height $gFrameHeight
     frame .middle.f2 \
 	-width $gFrameWidth \
 	-height $gFrameHeight
     frame .middle.f3 \
-	-width [expr $gWindowWidth * 3 / 16] \
+	-width [expr $gWindowWidth * 3 / 16.0] \
 	-height $gFrameHeight
 
     pack propagate .middle.f1 0
@@ -247,8 +249,8 @@ proc InitWindow { kRootDir kDir kExt } {
     # set up the necessary canvases in each frame
     canvas .middle.f1.cMLeft -highlightthickness 0 \
 	-bd 0 \
-	-width [expr $gWindowWidth * 3 / 16] \
-	-height [expr $gWindowHeight * 25 / 30] \
+	-width [expr $gWindowWidth * 3 / 16.0] \
+	-height $gFrameHeight \
 	-background black
     
     
@@ -272,7 +274,7 @@ proc InitWindow { kRootDir kDir kExt } {
     pack propagate .middle.f2.fPlayOptions 0
     frame .middle.f2.fPlayOptions.fBot \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 2 / 30]
+	-height [expr $gWindowHeight * 2 / 30.0]
     pack propagate .middle.f2.fPlayOptions.fBot 0
 
     # this is not packed now <- you cannot cancel
@@ -319,21 +321,21 @@ proc InitWindow { kRootDir kDir kExt } {
         }
     frame .middle.f2.fPlayOptions.fMid \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 8 / 30] \
+	-height [expr $gWindowHeight * 8 / 30.0] \
 	-bd 2
     pack propagate .middle.f2.fPlayOptions.fMid 0
     frame .middle.f2.fPlayOptions.fTop \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 15 / 30] \
+	-height [expr $gWindowHeight * 15 / 30.0] \
 	-bd 2
 	pack propagate .middle.f2.fPlayOptions.fTop 0
     frame .middle.f2.fPlayOptions.fTop.fLeft \
 	-width [expr $gFrameWidth / 2] \
-	-height [expr $gWindowHeight * 20 / 30] \
+	-height [expr $gWindowHeight * 20 / 30.0] \
 	-bd 2
     frame .middle.f2.fPlayOptions.fTop.fRight \
 	-width [expr $gFrameWidth / 2] \
-	-height [expr $gWindowHeight * 20 / 30] \
+	-height [expr $gWindowHeight * 20 / 30.0] \
 	-bd 2
     # the contents of the play options frame
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rPlaysFirst \
@@ -617,7 +619,7 @@ proc InitWindow { kRootDir kDir kExt } {
     
     frame $rulesFrame \
 	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 2 / 30]
+	-height [expr $gWindowHeight * 2 / 30.0]
 
     
 
@@ -842,29 +844,29 @@ proc InitWindow { kRootDir kDir kExt } {
     # create the right hand frame
     canvas .middle.f3.cMRight -highlightthickness 0 \
 	-bd 0 \
-	-width [expr $gWindowWidth * 3 / 16] \
-	-height [expr $gWindowHeight * 25 / 30] \
+	-width [expr $gWindowWidth * 3 / 16.0] \
+	-height $gFrameHeight \
 	-background black
 
-
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iIMB1p -tags [list  iIMB iIMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iIMB2p -tags [list  iIMB iIMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iIMB3p -tags [list  iIMB iIMB3]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iDMB1p -tags [list  iDMB iDMB1]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iDMB2p -tags [list  iDMB iDMB2]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iDMB3p -tags [list  iDMB iDMB3]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iAMB7p -tags [list startupPic]
-    .middle.f1.cMLeft create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iOMB7p -tags [list startupPicOver]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iIMB1p -tags [list  iIMB iIMB1]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iIMB2p -tags [list  iIMB iIMB2]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iIMB3p -tags [list  iIMB iIMB3]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iDMB1p -tags [list  iDMB iDMB1]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iDMB2p -tags [list  iDMB iDMB2]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iDMB3p -tags [list  iDMB iDMB3]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iAMB7p -tags [list startupPic]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iOMB7p -tags [list startupPicOver]
 	    	
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iAMB5p -tags [list  iAMB iAMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iIMB4p -tags [list  iIMB iIMB4]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iIMB5p -tags [list  iIMB iIMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iIMB6p -tags [list  iIMB iIMB6]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 100] -image iDMB4p -tags [list  iDMB iDMB4]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 300] -image iDMB5p -tags [list  iDMB iDMB5]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 450] -image iDMB6p -tags [list  iDMB iDMB6]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iAMB8p -tags [list play]
-    .middle.f3.cMRight create image [expr $gWindowWidth * 3/32] [expr $gWindowHeightRatio * 250] -image iOMB8p -tags [list playOver]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iAMB5p -tags [list  iAMB iAMB5]
+
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iIMB4p -tags [list  iIMB iIMB4]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iIMB5p -tags [list  iIMB iIMB5]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iIMB6p -tags [list  iIMB iIMB6]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iDMB4p -tags [list  iDMB iDMB4]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iDMB5p -tags [list  iDMB iDMB5]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iDMB6p -tags [list  iDMB iDMB6]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iAMB8p -tags [list play]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iOMB8p -tags [list playOver]
 
     .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
 	-text "To Win:" \
@@ -1027,15 +1029,15 @@ proc InitWindow { kRootDir kDir kExt } {
     canvas .cStatus -highlightthickness 0 \
 	-bd 0 \
 	-width $gWindowWidth \
-	-height [expr $gWindowHeight * 4 / 30] \
+	-height [expr $gWindowHeight * 4 / 30.0] \
 	-background black
 
     #create bar border
-    .cStatus create image [expr $gWindowWidthRatio * 400] [expr $gWindowHeightRatio * 40] -image iBBB1p -tags [list iABB iABB1 base]
-    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iABB2p -tags [list sbb iABB iABB2 playA]
-    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
-    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
-    .cStatus create image [expr $gWindowWidthRatio * 100] [expr $gWindowHeightRatio * 40] -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
+    .cStatus create image 0 0 -anchor nw -image iBBB1p -tags [list iABB iABB1 base]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40] -anchor w -image iABB2p -tags [list sbb iABB iABB2 playA]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
     #create toWin checked
     .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 winA]
     #create toWin unchecked
@@ -1070,12 +1072,12 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iABB8p -tags [list sbb iABB iABB8 predA]
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iABB9p -tags [list sbb iABB iABB9 undoA]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iABB9p -tags [list sbb iABB iABB9 undoA]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
 
-    .middle.f2.cMain create image [expr $gWindowWidthRatio * 250] [expr $gWindowHeightRatio * 250] -image iAMM1p -tags [list base iAMM iAMM1]
+    .middle.f2.cMain create image 0 0 -anchor nw -image iAMM1p -tags [list base iAMM iAMM1]
 
     #play options
     .cStatus bind playI <Any-Enter> {
@@ -1450,7 +1452,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    image create photo [subst $name]p -file [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 
 	    set type [format i%sTB $mode]
-	    .cToolbar create image [expr ($gWindowWidth / 16) + ($file - 1) * $gWindowWidth / 8] [expr $gWindowHeight / 60] \
+	    .cToolbar create image [expr ($gWindowWidth / 16.0) + ($file - 1) * $gWindowWidth / 8.0] [expr $gWindowHeight / 60.0] \
 		-image [subst $name]p -tags [list tbb $type $name]
 	}
     }
