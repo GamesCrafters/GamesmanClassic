@@ -1,4 +1,4 @@
-// $Id: mfoxes_new.c,v 1.3 2005-04-27 22:47:48 ciokita Exp $
+// $Id: mfoxes.c,v 1.9 2005-11-10 20:58:51 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -1004,6 +1004,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2005/04/27 22:47:48  ciokita
+// update helpstrings
+//
 // Revision 1.2  2005/04/17 00:45:20  hevanm
 // Cleaned up unused functions and let the geese go first by default. This completes all major work on bringing F&G to the current core.
 //
