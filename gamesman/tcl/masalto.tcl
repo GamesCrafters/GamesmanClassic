@@ -297,7 +297,7 @@ proc DrawBoard { c } {
     set margin [expr 0.1*$size]
     set side [expr ($size-2*$margin)/4]
     set r [expr 0.33*$side]
-    set fontsize [expr 5 * $size / 100]
+    set fontsize [expr int(5 * $size / 100)]
 
     # Size the canvas
     $c configure -width $size -height $size
