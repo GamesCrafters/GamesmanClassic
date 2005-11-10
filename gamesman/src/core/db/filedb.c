@@ -114,30 +114,3 @@ int filedb_get(POSITION pos, RECORDTYPE type, char* data, DB_Table* my_table){
 
 	return 0;
 }
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

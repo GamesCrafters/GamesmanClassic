@@ -7,7 +7,7 @@
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2005-01-11
+** DATE:	2005-11-25
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -35,14 +35,16 @@
 int TotalStage = 16;
 
 //helper data structures
-typedef struct PosValuePair_t{
-    POSITION 	position;
-    VALUE	value;
-    struct PosValuePair_t *next;
-} POSVALUEPAIR;
+//typedef struct PosValuePair_t{
+//    POSITION 	position;
+//    VALUE	value;
+//    struct PosValuePair_t *next;
+//} POSVALUEPAIR;
 
 
 //the initial position is ignored!
+//this will always return undecided, just enough to signal it completed
+//no go agains, no mex, no remoteness, connect 4 only.
 VALUE DetermineValueBU(POSITION position)
 {
     if(!strcmp(kGameName,"Connect-4")) {
@@ -55,62 +57,98 @@ VALUE DetermineValueBU(POSITION position)
     int     		CurrentStage = 16; //4*4 board, will figure out how to do this dynamically later
 
     //this is what we get from enumerating all positions in the current Stage.
-    POSITIONLIST	*head;
+    POSITIONLIST	*phead = NULL;
     POSITIONLIST 	*PosList = NULL;
 
-    int			ValueListLen = 100;
-    POSVALUEPAIR	*tail, *current;
+    MOVELIST		*mhead = NULL;
+    MOVELIST		*MoveList = NULL;
+
+    //int			ValueListLen = 100;
+    //POSVALUEPAIR	*tail, *current;
     //This is the value list from last stage.
-    POSVALUEPAIR    	*ValueList = SafeMalloc(sizeof(VALUE)*ValueListLen);
+    //POSVALUEPAIR    	*ValueList = SafeMalloc(sizeof(VALUE)*ValueListLen);
 
     FILE   		*DataFile = NULL;
-    char 		DataFileName[7] = "stage  ";
+    char 		DataFileName[11] = "stage  .sdb";
     FILE		*OutFile = NULL;
-    char		OutFileName[7] = "stage  ";
+    char		OutFileName[11] = "stage  .sdb";
 
     //status
     printf("Solving %s with the bottom up solver.", kGameName);
     do {
 
-	if(CurrentStage != TotalStage) {//we are not solving the lowest level, we need the values from last stage
+	if(CurrentStage != TotalStage) {//we are not solving the lowest level, we need the values from last stage from the file
 	    DataFileName[1] = '0' + (CurrentStage/10);
 	    DataFileName[0] = '0' + (CurrentStage%10);
-	    if (!(DataFile = fopen(DataFileName,'r')))
+	    if (!(DataFile = fopen(DataFileName,"r")))
 		ExitStageRightErrorString("cannot find the file for the values from last stage, please make sure data file is present");
-	    tail = 100, current = 0;
-	    while(!feof(DataFile)){
+	    //tail = 100, current = 0;
+	    //while(!feof(DataFile)){
 
 		//read in the values into StageDB
+		//fscanf(DataFileName, "%llu %c\n", 
 
-	    }
+	    //}
 	}
 
-	head = PosList = gEnumerateWithinStage(CurrentStage);
+	phead = PosList = gEnumerateWithinStage(CurrentStage);
 
 	OutFileName[1] = '0' + (CurrentStage-1)/10;
 	OutFileName[0] = '0' + (CurrentStage-1)%10;
-	OutFile = fopen(OutFileName,'w');
+	OutFile = fopen(OutFileName,"w");
 
-	while(head != NULL) {
+	while(phead != NULL) {
 
 	    BOOLEAN  foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
-	    VALUE currentvalue;
-	    POSITION postosolve = head->position;
+	    VALUE currentValue = undecided;
+	    POSITION postosolve = phead->position, child;
 
-	    //solve
-	    currentvalue = Primitive(postosolve);
-	    if (currentvalue == undecided) { //we better infer its value from the last stage
-		
+	    //solve like the non-loopy solver, but does not recurse
+	    if(CurrentStage != TotalStage) { //we are solving non-primitives
+		mhead = MoveList = GenerateMoves(postosolve);
+		for( ; mhead != NULL; mhead = mhead->next) {
+		    child = DoMove(postosolve, mhead->move);
+		    currentValue = GetValueOfPosition(child);
+		    if(currentValue == lose) {
+			foundLose = TRUE;
+		    }
+		    else if(currentValue == tie) {
+			foundTie = TRUE;
+		    }
+		    else if(currentValue == win) {
+			foundWin = TRUE;
+		    }
+		    else printf("undecided position encountered in %llu", child);
+		}
+		FreeMoveList(MoveList);
+		if(foundLose)
+		    StoreValueOfPosition(postosolve, win);
+		else if(foundTie)
+		    StoreValueOfPosition(postosolve, tie);
+		else if(foundWin)
+		    StoreValueOfPosition(postosolve, lose);
+		else //the position is wierd.
+		    printf("encountered unsolvable value for node %llu. WATCH OUT!!", postosolve);
+	    }
+	    else { //we are solving primitives
+		currentValue = Primitive(postosolve);
+		if (currentValue == undecided) {
+		    printf("encountered an undecided value for a primitive %llu. Skipping it.\n", postosolve);
+		} else {
+		    StoreValueOfPosition(position,currentValue);
+		}
 	    }
 	    
-	    fprintf(OutFile, "%llu %c\n", head->position, currentvalue);
+	    fprintf(OutFile, "%llu %c\n", phead->position, currentValue);
 	
-	    head = head->next;
+	    phead = phead->next;
 	}
 	
 	SafeFree(PosList);
 	fclose(DataFile);
 	fclose(OutFile);
+
+	CurrentStage--;
 
 	printf("I have finished solving stage %d. Do you want to continue solving the next stage? (y/n)", CurrentStage);
 
