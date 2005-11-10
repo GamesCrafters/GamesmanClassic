@@ -63,7 +63,14 @@ static  moveList*       moveListHandleUndo              (moveList*);
 static  moveList*       moveListHandleNewMove           (POSITION, MOVE, moveList*);
 static  void            moveListHandleGameOver             (moveList*);
 
+
+void             PrintMoveHistory                (POSITION);
+void             PrintVisualValueHistory         (POSITION);
+
+
 OPPONENT gOpponent;
+
+
 
 void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 {
@@ -154,12 +161,15 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	}
 	if(!aborted) {
 	    while(menu) {
-		printf("%s%s%s%s%s",
+		printf("%s%s%s%s%s%s%s",
 		       "What would you like to do?\n",
 		       (gOpponent != ComputerComputer) ? 
 		       "\tu)\t(U)ndo the last move\n" : "",
+		       "\tv)\t(V)isual Value History\n",
+		       "\tt)\tGame Scrip(T)\n",
 		       "\tb)\t(B)ack to the menu\n",
 		       "\tq)\t(Q)uit\n\n",
+		       
 		       "Select an option:  ");
 		c = GetMyChar();
 		switch(c) {
@@ -181,6 +191,12 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		case 'q': case 'Q':
 		    ExitStageRight();
 		    exit(0);
+		case 't': case 'T':
+		    PrintMoveHistory(-1);
+		    break;
+		case 'v': case 'V':
+		    PrintVisualValueHistory(-1);
+		    break;
 		default:
 		    BadMenuChoice();
 		}
@@ -209,6 +225,7 @@ moveList* moveListHandleUndo(moveList* lastEntry) {
   return lastEntry;
 }
 
+
 moveList* moveListHandleNewMove(POSITION position, MOVE move, 
 				moveList* lastEntry) {
   moveList* newmlist;
@@ -236,6 +253,39 @@ void moveListHandleGameOver(moveList* lastEntry) {
   }
   mList = 0;
 }
+
+
+void PrintMoveHistory(POSITION position)
+{
+  int whoseTurn = kPlayerOneTurn;
+  moveList* mlist = mList;
+  printf("\n***************************************\n");
+  printf("  Script of %s", kGameName);
+  printf("\n***************************************\n");
+
+  if (gOpponent == AgainstComputer) {
+    printf("\t%s\t%s\n", gPlayerName[kPlayerOneTurn], gPlayerName[kPlayerTwoTurn]);
+  }
+  while(mlist != 0) {
+    printf("\t");
+    PrintMove(mlist->move);
+    if (whoseTurn == kPlayerOneTurn) whoseTurn = kPlayerTwoTurn;
+    else {
+      printf("\n");
+      whoseTurn = kPlayerOneTurn;
+    }
+    mlist = mlist->next;
+  }
+
+  printf("\n\n");
+  
+  if (position != -1) {
+    PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
+  }
+  
+
+}
+
 
 void PrintVisualValueHistory(POSITION position)
 {
@@ -304,7 +354,7 @@ void PrintVisualValueHistory(POSITION position)
   if (whoseTurn == kPlayerTwoTurn) whoseTurn = kPlayerOneTurn;
   else whoseTurn = kPlayerTwoTurn;
 
-  PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
+  if (position != -1) PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
   strcpy(line, "*");
   for (i = 0; i < maxL-1; i++) strcat(line, "*");
   printf("%s\n", line);
@@ -329,15 +379,15 @@ void printLine(char* mPlayer1, char* mPlayer2, int whoseTurn,
   int draw = remoteness == REMOTENESS_MAX;
  
   addMove(line, TRUE, mPlayer1, maxN);
-  winForLeft ? addRemoteness(line, TRUE, remoteness, maxR) :
-    addRemoteness(line, TRUE, -1, maxR);
-  value == tie && !draw ? addRemoteness(line, 1, remoteness, maxTR) :
-    addRemoteness(line, TRUE, -1, maxTR);
+  winForLeft ? addRemoteness1(line, TRUE, remoteness, maxR, whoseTurn) :
+    addRemoteness1(line, TRUE, -1, maxR);
+  value == tie && !draw ? addRemoteness1(line, 1, remoteness, maxTR) :
+    addRemoteness1(line, TRUE, -1, maxTR);
   addDraw(line, draw);
-  value == tie && !draw ? addRemoteness(line, 0, remoteness, maxTR) :
-    addRemoteness(line, FALSE, -1, maxTR);
-  winForRight ? addRemoteness(line, FALSE, remoteness, maxR) :
-    addRemoteness(line, FALSE, -1, maxR);
+  value == tie && !draw ? addRemoteness1(line, 0, remoteness, maxTR) :
+    addRemoteness1(line, FALSE, -1, maxTR);
+  winForRight ? addRemoteness1(line, FALSE, remoteness, maxR) :
+    addRemoteness1(line, FALSE, -1, maxR);
   addMove(line, FALSE, mPlayer2, maxN);
   printf("%s", line);
 }
@@ -345,9 +395,41 @@ char* addMove(char* line, int left, char* move, int maxL){
   if (left) {
     strcpy(line, move);
     addSpacePadding(line, maxL - strlen(move));
+    
   } else {
     addSpacePadding(line, maxL - strlen(move));
     strcat(line, move);
+  }
+  return line;
+}
+char* addRemoteness1(char* line, int left, int remoteness, int maxR, int whoseTurn){
+  int i;
+  if (left) {
+    remoteness == 0 ? strcat(line, "*") : strcat(line, "|");
+    for(i = 1; i <= maxR; i++) {
+      if (remoteness == i) strcat(line, "*");
+      else {
+	if (whoseTurn == kPlayerTwoTurn) {
+	  if (remoteness == -1) strcat(line, " ");
+	  else remoteness > i ? strcat(line, "_") : strcat(line, " ");
+	} else {
+	  (remoteness == -1 || remoteness < i) ? strcat(line, "_") : strcat(line, " ");
+	}
+      }
+    }
+  } else {
+    for(i = maxR; i > 0; i--) {
+      if (remoteness == i) strcat(line, "*");
+      else {
+	if (whoseTurn == kPlayerOneTurn) {
+	  if (remoteness == -1) strcat(line, "_");
+	  else remoteness > i ? strcat(line, " ") : strcat(line, "_");
+	} else {
+	  (remoteness == -1 || remoteness < i) ? strcat(line, " ") : strcat(line, "_");
+	}
+      }
+    }
+    remoteness == 0 ? strcat(line, "*") : strcat(line, "|");
   }
   return line;
 }
@@ -356,7 +438,7 @@ char* addRemoteness(char* line, int left, int remoteness, int maxR){
   if (left) {
     remoteness == 0 ? strcat(line, "*") : strcat(line, "|");
     for(i = 1; i <= maxR; i++) 
-      remoteness == i ? strcat(line, "*") : strcat(line, " ");
+      remoteness == i ? strcat(line, "*") : strcat(line, "_");
   } else {
     for(i = maxR; i > 0; i--) 
       remoteness == i ? strcat(line, "*") : strcat(line, " ");

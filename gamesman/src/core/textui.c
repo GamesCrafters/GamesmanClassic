@@ -829,6 +829,10 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    }
 	case 'v': case 'V':
 	  PrintVisualValueHistory(thePosition);
+	  break;
+	case 't': case 'T':
+	  PrintMoveHistory(thePosition);
+	  break;
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);
 	    PrintPossibleMoves(thePosition);
