@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.11 2005-11-09 10:10:12 yanpeichen Exp $
+// $Id: mparadux.c,v 1.12 2005-11-11 08:52:20 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -34,10 +34,14 @@
 ** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged. 
 ** 11/09/2005 Yanpei - DoMove proof read, reasonably confident, 
 **                     need to write getNeighbor, 
-**                     yanpeiTestBeighboringDir() written but yet to run. 
+**                     yanpeiTestNeighboringDir() written but yet to run. 
 **                     Primitive proof read, reasonably confident
 **                     Wrote PrintMove + PrintComputersMove
 **                     Still to do: GenerateMoves + test UI functions
+** 11/10/2005 Yanpei - GenerateMoves proof read, reasonably confident
+**                     Need to write AddMovesPerPair to make it work
+**                     Need to check hash to see whether need to keep
+**                     track of turns. 
 **
 **************************************************************************/
 
@@ -258,9 +262,11 @@ void                    unhashMove(MOVE move, int* type, int* pos1, int* pos2);
 BOOLEAN                 neighbor(int u, int v, int x, int y);
 
 // if there is no neigher in the specified direction, return INVALID
+// returns a board index b/n 0 and boardSize
 int                     getNeighbor(int pos, int direction);
 
 /* Direction in which the neighbor neighbors pos:
+  returns one of 
   0 NW
   1 NE
   2 E
@@ -449,12 +455,13 @@ void davidInitGame ()
   pieces[8] = numBlank;
   pieces[9] = -1;
 
-  printf("testpoint4 %d %d\n",boardSize,numX);
-
+  //printf("testpoint4 %d %d\n",boardSize,numX);
+  /*
   int i;
   for (i=0; i<10; i++)
     printf("%d ",pieces[i]);
   printf("\n");
+  */
 
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
@@ -470,7 +477,7 @@ void davidInitGame ()
 
   PrintPosition(gInitialPosition, playersName, TRUE);
 
-  yanpeiTestNeighboringDir();
+  //yanpeiTestNeighboringDir();
 
 }
 
@@ -492,59 +499,79 @@ void davidInitGame ()
 **
 ************************************************************************/
 
-void AddMovesPerPair(char *board, int pos1, int pos2) {
+MOVELIST *AddMovesPerPair(char *board, int pos1, int pos2, MOVELIST *moveL) {
+  // can assume GenerateMoves is correct, and pos1,pos2 are neighboring
+
+  int target1, target2;
+
+  // can always SWAP
+  moveL = CreateMovelistNode(hashMove(SWAP,pos1,pos2), moveL);
+
+  // check NW
+  if (((target1 = getNeighbor(pos1,NW)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,NW)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(NW,pos1,pos2), moveL);
+  }
+
+  // check NE
+  if (((target1 = getNeighbor(pos1,NE)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,NE)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(NE,pos1,pos2), moveL);
+  }
+
+  // check E
+  if (((target1 = getNeighbor(pos1,E)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,E)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(E,pos1,pos2), moveL);
+  }
+
+  // check SE
+  if (((target1 = getNeighbor(pos1,SE)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,SE)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(SE,pos1,pos2), moveL);
+  }
+
+  // check SW
+  if (((target1 = getNeighbor(pos1,SW)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,SW)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(SW,pos1,pos2), moveL);
+  }
+
+  // check W
+  if (((target1 = getNeighbor(pos1,W)) != INVALID) &&
+      ((target2 = getNeighbor(pos2,W)) != INVALID) &&
+      (board[target1] == '-' || target1 == pos2) && 
+      (board[target2] == '-' || target2 == pos1)) {
+    moveL = CreateMovelistNode(hashMove(W,pos1,pos2), moveL);
+  }
+
 }
 
 MOVELIST *GenerateMoves (POSITION position)
 {
   MOVELIST *moves = NULL;
     
-  int i,j,curPiece;
+  int i;
   char *board = SafeMalloc(sizeof(char) * boardSize);
   int pos, nPos, whoseMove = whoseMoveF(position);
-  char pieceA;
+  //char pieceA;
   char piece;
-  char player = valToChar[whoseMove], otherPlayer = valToChar[nextPlayer(whoseMove)];
+  //char player = valToChar[whoseMove], otherPlayer = valToChar[nextPlayer(whoseMove)];
 
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  /* have AddMovesPerPair() call CreateMoveListNode() */
 
-  /* Copy-Paste from Primitive?
-
-      for (j = 0; j < boardSide - 1; j++) {
-	curPiece = board[getNeighbor(j, E)];
-
-	if (piece != curPiece)
-	  break;
-
-	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
-	}
-      }
-
-      // Check southeast
-      for (j = 0; j < boardSide - 1; j++) {
-	curPiece = board[getNeighbor(j, SE)];
-
-	if (piece != curPiece)
-	  break;
-
-	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
-	}
-      }
-      
-      // Check southwest
-      for (j = 0; j < boardSide - 1; j++) {
-	curPiece = board[getNeighbor(j, SW)];
-
-	if (piece != curPiece)
-	  break;
-
-	if (j == boardSide - 2) {
-	  return (piece == player ? win : lose);
-	}
-      }
-  */
+  printf("testpoint GenerateMoves");
 
   for (i = 0; i < boardSize; i++) {
     pos = i;
@@ -553,19 +580,26 @@ MOVELIST *GenerateMoves (POSITION position)
 
     if (piece != '-') {
       // Check east
-      if (board[nPos = getNeighbor(i, E)] == otherPlayer) {
-	AddMovesPerPair(board, pos, nPos);
+      nPos = getNeighbor(i, E);
+      if ((board[nPos] != piece) && (board[nPos] != '-')) {
+	moves = AddMovesPerPair(board, pos, nPos, moves);
       }
 
       // Check southeast
-      if(board[nPos = getNeighbor(i, SE)] == otherPlayer) {
-	AddMovesPerPair(board, pos, nPos);
+      nPos = getNeighbor(i, SE);
+      if ((board[nPos] != piece) && (board[nPos] != '-')) {
+	moves = AddMovesPerPair(board, pos, nPos, moves);
       }
 
       // Check southwest
-      if (board[nPos = getNeighbor(i, SW)] == otherPlayer) {
-	AddMovesPerPair(board, pos, nPos);
+      nPos = getNeighbor(i, SW);
+      if ((board[nPos] != piece) && (board[nPos] != '-')) {
+	moves = AddMovesPerPair(board, pos, nPos, moves);
       }
+
+      // No need to check W NE or NW because we start from pos = 0 forwards
+      // So any W NE or NW should have been found by E SW or SE earlier. 
+
     }
   }
     
@@ -649,6 +683,8 @@ VALUE Primitive (POSITION position)
   char piece, curPiece;
   int i,j;
 
+  printf("testpoint Primitive\n");
+
   generic_unhash(position, board);
 
   for (i = 0; i < boardSize; i++) {
@@ -671,6 +707,7 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
+	  printf("testpoint1 %d %d\n",i,j);
 	  return lose;
 	}
       }
@@ -688,6 +725,7 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
+	  printf("testpoint2\n");
 	  return lose;
 	}
       }
@@ -705,6 +743,7 @@ VALUE Primitive (POSITION position)
 	  break;
 
 	if (j == boardSide - 2) {
+	  printf("testpoint3\n");
 	  return lose;
 	}
       }
@@ -1231,11 +1270,13 @@ void FreeBoard(PBPtr b) {
 }
 
 // if there is no neigher in the specified direction, return INVALID
+// returns a board index b/n 0 and boardSize
 int getNeighbor(int pos, int direction) {
   return 0;
 }
 
 /* Direction in which the neighbor neighbors pos:
+  returns one of 
   0 NW
   1 NE
   2 E
@@ -1486,6 +1527,9 @@ void yanpeiTestNeighboringDir() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2005/11/09 10:10:12  yanpeichen
+// brief fixes to prev commit
+//
 // Revision 1.10  2005/11/09 10:01:11  yanpeichen
 // ** 11/09/2005 Yanpei - DoMove proof read, reasonably confident,
 // **                     need to write getNeighbor,
