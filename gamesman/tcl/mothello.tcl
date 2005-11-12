@@ -32,16 +32,13 @@ proc GS_InitGameSpecific {} {
     #set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
-    
-    #set gInitialPosition [C_InitialPosition]
-    #set pieceString [C_Generic_Unhash gInitialPosition 16]
-    #set gPosition gInitialPosition
-
     ### Set boardRows, boardCols, boardSize
     global boardRows boardCols boardSize
     set boardRows 4
     set boardCols 4
     set boardSize 16
+
+    set gForceCapture 0
 
     ### Set the strings to be used in the Edit Rules
 
@@ -53,6 +50,7 @@ proc GS_InitGameSpecific {} {
     ### If you have more options, you will need to edit this section
 
     global gMisereGame
+    set gMisereGame 0
     if {!$gMisereGame} {
 	SetToWinString "To Win: Have the most number of pieces of your color when the board is filled."
     } else {
@@ -138,18 +136,22 @@ proc GS_SetupRulesFrame { rulesFrame } {
 
     set boardColsRule \
 	[list \
-	     "Board width:" \
+	     "Board Columns:" \
+	     "0" \
+	     "1" \
+	     "2" \
 	     "3" \
 	     "4" \
-	     "5"
 	    ]
 
     set boardRowsRule \
 	[list \
-	     "Board height:" \
+	     "Board Rows:" \
+	     "0" \
+	     "1" \
+	     "2" \
 	     "3" \
 	     "4" \
-	     "5"
 	    ]
 
     # List of all rules, in some order
@@ -162,14 +164,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gForcedCapture
     set gForcedCapture 0
 
-    global gBoardWidth
-    set gBoardWidth 4
+    global boardCols
+    #set boardCols 3
 
-    global gBoardHeight
-    set gBoardHeight 4
+    global boardCols
+    #set boardRows 3
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "gBoardWidth" "gBoardHeight"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "boardCols" "boardRows"]
 
     global kLabelFont
     set ruleNum 0
@@ -199,22 +201,10 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global gMisereGame gForcedCapture gBoardWidth gBoardHeight
+    global gMisereGame gForcedCapture boardCols boardRows
 
-    set option 0
-#    set option [expr $option + $gBoardWidth+1]
-#    set option [expr $option + 6 + $gBoardHeight+1]
-#    set option [expr $option + 12 + $gMisereGame+1]
+    set option [expr [expr $boardCols << 5] + [expr $boardRows << 1] + $gForcedCapture]
 
-    # for HWrap
-#    set option [expr $option + 14 + 1]
-
-    # for VWrap
-#    set option [expr $option + 16 + 1]
-
-#    set option [expr $option + 18 + $gForcedCapture + 1]
-
-#    puts $option
     return $option
 }
 
@@ -231,6 +221,13 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
+
+    global gForcedCapture boardCols boardRows
+    
+    set gForcedCapture [expr $option & 0x1]
+    set boardRows [expr [expr $option >> 0x01] & 0x0f]
+    set boardCols [expr $option  >> 5]
+
     # TODO: Needs to change with more variants
 #    global gMisereGame gForcedCapture gBoardWidth gBoardHeight
 
@@ -359,6 +356,9 @@ proc GS_Initialize { c } {
 	}
     }
 
+    $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] -font {Helvetica 32 bold} \
+	-fill white -text "No moves available.  Click here to pass." -tag NoMovesText
+
     $c raise base
 
 }    
@@ -369,17 +369,17 @@ proc GS_Initialize { c } {
 #    $c raise piece$x2$y2
 #}
 
-proc MouseOverExpand { dot c } {
-    global dotExpandAmount
+#proc MouseOverExpand { dot c } {
+#    global dotExpandAmount
 #    set dotExpandAmount .1
 #    $c itemconfig $dot -fill red
 #    $c itemconfig $dot -expand dotExpandAmount
 #    puts "mouseoverexpand"
-}
+#}
 
-proc MouseOutContract { dot c } {
+#proc MouseOutContract { dot c } {
 #    $c itemconfig $dot -fill blue
-}
+#}
 
 
 #############################################################################
@@ -416,10 +416,13 @@ proc GS_DrawPosition { c position } {
 
     for {set i 0} {$i < $boardCols} {set i [expr $i + 1]} {
 	for {set j 0} {$j < $boardRows} {set j [expr $j + 1]} {
+
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
+		#puts "white piece at $j, $i"
 		$c itemconfig piece$j$i -fill white
 		$c raise piece$j$i
 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
+		#puts "black piece at $j, $i"
 		$c itemconfig piece$j$i -fill black	
 		$c raise piece$j$i
 	    } else {}
@@ -427,7 +430,6 @@ proc GS_DrawPosition { c position } {
 	    set pieceNumber [expr $pieceNumber + 1]
 	}
     }
-
 }
 
 
@@ -439,8 +441,16 @@ proc GS_DrawPosition { c position } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
-    # TODO: The default behavior of this funciton is just to draw the position
+    # TODO: The default behavior of this function is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    global boardRows boardCols
+
+    GS_Deinitialize $c
+    GS_Initialize $c
+
+    puts "done with initialization"
+    puts $boardRows
+    puts $boardCols
 
     GS_DrawPosition $c $position
 }
@@ -508,25 +518,27 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 	
-	set movetag movedot[GetXYFromMove $item]
+	if { $move != -1 } {
+	    #we get -1 when there are no moves available
 
-	$c raise $movetag
-	$c itemconfig $movetag -fill $color
+	    set movetag movedot[GetXYFromMove $item]
+	    
+	    $c raise $movetag
+	    $c itemconfig $movetag -fill $color
+	    
+	    $c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
+	    $c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black"
+	    $c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color"
 
-	$c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
-	$c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black"
-	$c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color"
-	#$c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -width 25 -fill black -outline black"
+	} else {
+	    
+	    $c raise NoMovesText
 
-	#TODO: do this
+	    $c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
+	    $c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
+	    $c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
 
-	#$c raise arrow$source$dest
-	#$c itemconfig arrow$source$dest -fill $color
-	#$c bind arrow$source$dest <ButtonRelease-1> "ReturnFromHumanMove $move"
-	#$c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black"
-	#$c bind arrow$source$dest <Leave> "$c itemconfig arrow$source$dest -fill $color"
-
-	#$c raise piece$source
+	}
     }
 }
 
@@ -540,7 +552,9 @@ proc GS_HideMoves { c moveType position moveList} {
 
     ### TODO: Fill this in
     
-    #$c lower arrow
+    $c lower moves
+    $c lower NoMovesText
+
 }
 
 

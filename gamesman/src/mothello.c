@@ -133,10 +133,13 @@ void init_board_hash();
 int PrintPositionRow(int);
 void PrintBoard(char[]);
 
+POSITION SetupInitialPosition();
 
 int AddRemovePieces(char[], int, char);
-void ChangeRows();
-void ChangeCols();
+void UserSelectRows();
+void UserSelectCols();
+void ChangeRows(int rows);
+void ChangeCols(int cols);
 POSITION MakeInitialSquare();
 
 int InvertRow(int);
@@ -209,7 +212,7 @@ void InitializeGame ()
 		char* test_board;
 		printf("Hash Test. Unhashed Board. Hash Value %d\n", init);
 		test_board = getBoard(gInitialPosition);
-		printf("\nBoard is... %8\n", test_board);
+		printf("\nBoard is... %s\n", test_board);
 	}
 	
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
@@ -244,7 +247,7 @@ void GameSpecificMenu ()
 {
 	char selection_command[80];
 	char selection = 'Z';
-	POSITION GetInitialPosition();
+	//POSITION GetInitialPosition();
 	do
 	{
 		printf("\n\t----- Game Specific Options for Othello ----- \n\n");
@@ -261,7 +264,7 @@ void GameSpecificMenu ()
 		switch (selection)
 		{
 			case 'M':
-				gInitialPosition = GetInitialPosition();
+				gInitialPosition = SetupInitialPosition();
 				selection = 'Z';
 				break;
 			case 'P':
@@ -368,6 +371,22 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 **
 ** NAME:        GetInitialPosition
 **
+** DESCRIPTION: returns the initial position of this board.
+**
+************************************************************************/
+
+POSITION GetInitialPosition()
+{
+    printf( "initial position is: %d\n", gInitialPosition );
+    fflush( stdout );
+
+    return gInitialPosition;
+}
+
+/************************************************************************
+**
+** NAME:        SetupInitialPosition
+**
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
 ** 
@@ -375,7 +394,8 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
+
+POSITION SetupInitialPosition()
 {
 	int coordinate[2];
 	int location = -1;
@@ -387,6 +407,7 @@ POSITION GetInitialPosition()
 	do
 	{
 		board = getBoard(gInitialPosition);
+		printf( "current board: %s\n", board );
 		blacktally = 0;
 		whitetally = 0;
 		blanktally = 0;
@@ -432,10 +453,10 @@ POSITION GetInitialPosition()
 				selection = 'Z';
 				break;
 			case 'R':
-				ChangeRows();
+				UserSelectRows();
 				break;
 			case 'C':
-				ChangeCols();
+				UserSelectCols();
 				break;
 			case 'B':
 				if(whitetally < 2 || blacktally < 2)
@@ -450,7 +471,17 @@ POSITION GetInitialPosition()
 
 	init_board_hash();
 
-	return(generic_hash(board, BLACK));
+	printf( "board: %s\n", board );
+	printf( "hashed value: %d\n", generic_hash( board, BLACK ));
+	gInitialPosition = generic_hash( board, BLACK );
+
+	char* temp;
+	temp = generic_unhash( gInitialPosition, temp );
+	printf( "hash/un gen:   \"%s\"\n", temp );
+	printf( "hash/un board: \"%s\"\n", getBoard( gInitialPosition ) );
+
+	printf( "init pos: %d", GetInitialPosition() );
+	return(gInitialPosition);
 
 }
 
@@ -1050,7 +1081,7 @@ int NumberOfOptions ()
 
 int getOption()
 {
-	return (int) variant_NoGenMovesRestriction;
+	return (int) ( (OthCols << 5) + (OthRows << 1) + variant_NoGenMovesRestriction);
 }
 
 
@@ -1068,7 +1099,14 @@ int getOption()
 
 void setOption(int option)
 {
-	variant_NoGenMovesRestriction = option;
+	printf("setOption called\n");
+	fflush(stdout);
+	variant_NoGenMovesRestriction = option & 0x01;
+	ChangeCols( (option >> 0x01) & 0x0f);
+	ChangeRows( option >> 0x05 );
+
+	printf("moves res: %d, cols: %d, rows: %d\n", variant_NoGenMovesRestriction, OthCols, OthRows);
+	fflush(stdout);
 }
 
 
@@ -1093,8 +1131,9 @@ char* getBoard(POSITION pos) {
   char * generic_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
-  newBoard = SafeMalloc(boardsize*sizeof(char));
+  newBoard = SafeMalloc(boardsize*sizeof(char)+1);
   newBoard = generic_unhash(pos,newBoard);
+  newBoard[boardsize] = '\0';
   return newBoard;
 }
 
@@ -1175,46 +1214,78 @@ BOOLEAN IsPlayableBoard(char board[])
 	else return 0;
 }
 
-void ChangeRows()
+void UserSelectRows()
 {
-	char selection_command[80];
-	int row = -1;
+    char selection_command[80];
+    int row = -1;
 	
-	do {
+    do {
 	printf("\nPlease enter a row number between 2 and %d: ", MAXROWS + 1);
 	scanf("%s", selection_command);
 	row = (int) (selection_command[0] - '0');
 	if(row	> 2 && row <= MAXROWS)
-		{
-		  OthRows = row;
-		}
-	} while(row <= 2 || (row > MAXROWS));
+	{
+	    OthRows = row;
+	}
+    } while(row <= 2 || (row > MAXROWS));
 	
-	printf("Rows have now been set to %d.\n", OthRows);
-	init_board_hash();
+    printf("Rows have now been set to %d.\n", OthRows);
+    init_board_hash();
 
-	gInitialPosition = MakeInitialSquare();
+    gInitialPosition = MakeInitialSquare();
 }
 
-void ChangeCols()
+void UserSelectCols()
 {
-	char selection_command[80];
-	int col = -1;
+    char selection_command[80];
+    int col = -1;
 	
-	do {
+    do {
 	printf("\nPlease enter a column number between 2 and %d: ", MAXCOLS + 1);
 	scanf("%s", selection_command);
 	col = (int) (selection_command[0] - '0');
 	if(col	> 2 && col <= MAXCOLS)
-		{
-		OthCols = col;
-		}
-	} while(col <= 2 || (col > MAXCOLS));
+	{
+	    OthCols = col;
+	}
+    } while(col <= 2 || (col > MAXCOLS));
 	
-	printf("Columns have now been set to %d.\n", OthCols);
-	init_board_hash();
+    printf("Columns have now been set to %d.\n", OthCols);
+    init_board_hash();
 
-	gInitialPosition = MakeInitialSquare();	
+    gInitialPosition = MakeInitialSquare();	
+}
+
+
+void ChangeRows( int row )
+{
+    if( row > 2 && row <= MAXROWS )
+    {
+	OthRows = row;
+	init_board_hash();
+  
+	gInitialPosition = MakeInitialSquare();
+    }
+    else
+    {
+	printf( "Bad number of rows" );
+    }
+}
+
+
+void ChangeCols( int cols )
+{
+    if( cols > 2 && cols <= MAXCOLS )
+    {
+	OthCols = cols;
+	init_board_hash();
+	
+	gInitialPosition = MakeInitialSquare();
+    }
+    else
+    {
+	printf( "Bad number of columns" );
+    }
 }
 
 POSITION MakeInitialSquare()
