@@ -126,7 +126,7 @@ BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycle
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  3000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  1; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 						 /* Don't know */
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board: 0 in this game */
 POSITION kBadPosition         = -1; /* A position that will never be used */
@@ -238,6 +238,7 @@ void InitializeGame ()
 	  gNumberOfPositions*=5;
 	}
     }
+  board->squaresOccupied=0;
   board->currentTurn=FIRST_TURN;
   gNumberOfPositions*=2;
   gInitialPosition = hashBoard(board);
@@ -832,7 +833,6 @@ MOVE ConvertTextInputToMove (STRING input)
     {
       updown = DOWN;
     }
-  PrintMove(hashMove (col, row, updown));
   return hashMove (col, row, updown);
 }
 
