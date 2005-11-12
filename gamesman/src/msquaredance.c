@@ -8,15 +8,15 @@
 #define POSSIBLE_SQUARE_VALUES 5  // 5 possible values for a square, should not be changed
 
 
-#define ROW_START 0
-#define COL_START 0
+#define ROW_START '0'
+#define COL_START '0'
 
 
 /* Note: DOES NOT support size of 4 x 4 or greater
  */
 
-#define DEFAULT_BOARD_WIDTH 4
-#define DEFAULT_BOARD_HEIGHT 3
+#define DEFAULT_BOARD_WIDTH 3
+#define DEFAULT_BOARD_HEIGHT 2
 
 /* Note:
  * comment out this line for Gamesman compiling
@@ -75,7 +75,7 @@ STRING   kDBName              = "squaredance"; /* The name to store the database
 
 void* gGameSpecificTclInit = NULL;
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
@@ -136,7 +136,7 @@ typedef struct {
 int BOARD_WIDTH = DEFAULT_BOARD_WIDTH, BOARD_HEIGHT =DEFAULT_BOARD_HEIGHT;
 int     BOARD_ROWS          = DEFAULT_BOARD_HEIGHT;
 int     BOARD_COLS          = DEFAULT_BOARD_WIDTH;
-BOOLEAN bCanWinByColor = FALSE;
+BOOLEAN bCanWinByColor = TRUE;
 BOOLEAN bCanWinByUD = TRUE; 
 
 /*************************************************************************
@@ -258,6 +258,8 @@ POSITION DoMove(POSITION position, MOVE move ) {
   /* unhash board */
   SDBPtr board = unhashBoard(position);
   
+
+
   board->squares[boardIndex(move_x, move_y)] = (move_color << 1) + move_ud + 1;
   board->squaresOccupied++;
   board->currentTurn = !board->currentTurn;
@@ -301,11 +303,11 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
       for(w=1;x1+w<BOARD_WIDTH && y1+w<BOARD_HEIGHT;w++) {
 	x2 = x1+w;
 	y2 = y1+w;
-	slot2 = board->squares[y1*BOARD_WIDTH+x2];
-	slot3 = board->squares[y2*BOARD_WIDTH+x1];
-	slot4 = board->squares[y2*BOARD_WIDTH+x2];
+	slot2 = board->squares[boardIndex(x2,y1)];
+	slot3 = board->squares[boardIndex(x1,y2)];
+	slot4 = board->squares[boardIndex(x2,y2)];
 	if(isSquareWin(slot1,slot2,slot3,slot4))
-	  return win;
+	  return gStandardGame ? lose : win;
       }
     }
   }
@@ -321,7 +323,7 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
     	slot4 = board->squares[yc*BOARD_WIDTH+x2];
       }
       if(isSquareWin(slot1,slot2,slot3,slot4)) {
-	return win;
+	 return gStandardGame ? lose : win;
       }
     }
   }
@@ -432,7 +434,7 @@ int hashSquare(int ud, int color) { return color<<1+ud; }
 int getSquare(SDBPtr board, int x, int y) { return board->squares[boardIndex(x,y)]; }
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y) { return getSquare(board,x,y)==0; }
 int getSquareColor(SDBPtr board, int x, int y) { return getSquare(board,x,y)>=3; }
-int getSquareUD(SDBPtr board, int x, int y) { return getSquare(board,x,y)&1==0; }
+int getSquareUD(SDBPtr board, int x, int y) { return (getSquare(board,x,y)&1)==0; } //Joey made a change
 int setSquare(SDBPtr board, int x, int y, int value) { board->squares[boardIndex(x,y)] = value; }
 int setSquareEmpty(SDBPtr board, int x, int y) { setSquare(board,x,y,EMPTY); }
 int setSquareColor(SDBPtr board, int x, int y, int color) {
@@ -524,11 +526,11 @@ BOOLEAN isSquareWin(short slot1, short slot2, short slot3, short slot4) {
     uds[i]=(slots[i]-1) & 1;
   }
   
-   for(i=1;i<3;i++) {
+  for(i=1;i<4;i++) {  
      if(colors[i]==colors[0]) colorMatch++;
      if(uds[i]==uds[0]) udMatch++;
    }
-   return (bCanWinByColor && colorMatch==4 || bCanWinByUD && udMatch==4);
+   return ((bCanWinByColor && colorMatch==4) || (bCanWinByUD && udMatch==4));
    
 }
 
@@ -582,6 +584,21 @@ int main() {//int argc, char [] argv) {
 
 void PrintMove(MOVE move)
 {
+  int col;
+  int row;
+  char UD;
+  col = unhashMoveToX(move);
+  row = unhashMoveToY(move);
+  if(unhashMoveToUD(move)==UP)
+    {
+      UD='u';
+    }
+  else
+    {
+      UD='d';
+    }
+  printf("%d%d%c", col, row, UD);
+  //printf("%d%d%c", unhashMoveToX, unhashMoveToY, unhashMoveToUD);
 }
 
 
@@ -712,14 +729,13 @@ void DebugMenu ()
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  
   int i;
   if (strlen(input) != 3)
     return FALSE;
-  if ((input[0] < ROW_START) || (input[0] > (ROW_START+BOARD_COLS)) ||
-      (input[1] < COL_START) || (input[1] > COL_START+BOARD_ROWS))
-    return FALSE;
-  if ((input[2] != 'u') && (input[2] != 'd'))
+  //if ((input[0] < COL_START) || (input[0] > (COL_START+BOARD_ROWS)) ||
+  //  (input[1] < ROW_START) || (input[1] > ROW_START+BOARD_COLS))
+  // return FALSE;
+  if ((input[2] != 'u') && (input[2] != 'd') && (input[2] != 'U') && input[2] != 'D')
     return FALSE;
   return TRUE;
 }
@@ -742,10 +758,18 @@ MOVE ConvertTextInputToMove (STRING input)
 {
   int row, col, updown;
 
-  col = input[0] - COL_START;
-  row = input[1] - ROW_START;
-
-  return hashMove (row, col, updown);
+  col = input[0] - ROW_START;
+  row = input[1] - COL_START;
+  if(input[2]=='u' || input[2]=='U')
+    {
+      updown = UP;
+    }
+  else
+    {
+      updown = DOWN;
+    }
+  PrintMove(hashMove (col, row, updown));
+  return hashMove (col, row, updown);
 }
 
 
@@ -773,13 +797,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
-  char player_char = (whoseMove(position) == YELLOW)?YELLOW:BLUE;
+  char player_char = (getCurrentTurn(position) == YELLOW)?YELLOW:BLUE;
     
   for (;;) {
     /***********************************************************
      * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
      ***********************************************************/
-    printf("%8s's (%c) move [<row><col><u/d>] : ", playersName, player_char);
+    printf("%8s's (%c) move [<col><row><u/d>] : ", playersName, player_char);
 	
     input = HandleDefaultTextInput(position, move, playersName);
 	
