@@ -16,7 +16,7 @@
 /* Note: DOES NOT support size of 4 x 4 or greater
  */
 
-#define DEFAULT_BOARD_WIDTH 4
+#define DEFAULT_BOARD_WIDTH 3
 #define DEFAULT_BOARD_HEIGHT 3
 
 /* Note:
@@ -36,6 +36,7 @@
 	BOOLEAN gStandardGame = TRUE;
 	typedef enum {
         win, lose, draw, tie, undecided } VALUE;
+        void PrintMove(MOVE move);
 #endif
 
 
@@ -51,6 +52,35 @@
 ** DATE:        WHEN YOU START/FINISH
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+**
+** 2005-11-12
+**   Joey - Fixed the problem in initializeGame().  The game now solves and plays
+**          for 3x3.  Memory allocation error for 4x3, still possibly a problem
+**          with my initializeGame() or maybe something else.
+**
+**   Joey - Major changes: Added a call to freeBoard before returns in Primitive
+**    and GenerateMoves.  Changed the array indexing in Primitive to utilize boardIndex 
+**    for ease of reading.  Fixed ValidTextInput to check for valid numbers.  Made 
+**    initializeGame fill in gInitialPosition and gNumberofPositions. Changed the 
+**    representation of a square from short to int, for uniformity (such a small difference 
+**    in memory seems insignificant when there will only be one board representation at a 
+**    time...  can change it back if necessary; it was just to test for possible problems.)  
+**    Changed the malloc in unhashBoard to allocate sizeof(int)*BOARD_WIDTH*BOARD_HEIGHT, 
+**    previously was sizeof(BOARD_WIDTH*BOARD_HEIGHT).
+**
+**    Some testing done: Inserted a printf into hashBoard. It is called, of course, when 
+**    it solves for 2x3 and 3x2, but not for 3x3.  So the problem can't be in the hash.  The above 
+**    changes seemed to make a difference: the game now plays without solving at 4x3 (and 4x4 and 5x5), 
+**    and goes into solving, but encounters a "bad position" which isn't really a bad position...
+**    probably a problem with my initializegame.
+
+**    Various minor changes: Changed FIRST_TURN and SECOND_TURN to YELLOW and BLUE for ease of 
+**    understanding.  Removed isEmpty prototype since the procedure was previously removed.  
+**
+**
+
+
+
 **
 ** 2005/11/11
 **   Jack - add more #ifdef and #ifndef for selftest main(), we can remove the line:
@@ -198,17 +228,20 @@ void InitializeGame ()
 {
   SDBPtr board = (SDBPtr) malloc(sizeof(board));
   board->squares = (int *)  malloc(sizeof(int)*BOARD_COLS*BOARD_ROWS);
-  int row, col;
+  int row, col, i;
+  gNumberOfPositions=1;
   for(col=0;col<BOARD_COLS;col++)
     {
       for(row=0;row<BOARD_ROWS;row++)
 	{
 	  board->squares[boardIndex(col,row)]=0;
+	  gNumberOfPositions*=5;
 	}
     }
   board->currentTurn=FIRST_TURN;
-  gNumberOfPositions = (5^(BOARD_COLS*BOARD_ROWS))*2;
+  gNumberOfPositions*=2;
   gInitialPosition = hashBoard(board);
+  printf("Number of Positions: %d\n",gNumberOfPositions);
   freeBoard(board);
     
 }
@@ -577,9 +610,11 @@ int main() {//int argc, char [] argv) {
   STRING playerName = "User Name";
   STRING computerName = "Computer Name";
   
-  position = 0;
-  PrintPosition(position, playerName, turn);
-  
+  //position = 3;
+  //PrintPosition(position, playerName, turn);
+  //position = 3752;
+  //PrintPosition(position, playerName, turn);
+  //PrintMove(50397184);
   for(i=0;i<4;i++) {
     switch(i) {
        case 0: position = DoMove(position, hashMove(0,0, UP));  break;
@@ -590,7 +625,7 @@ int main() {//int argc, char [] argv) {
   }
     turn = ! turn;
     PrintPosition(position, (turn ? playerName : computerName), turn);
-  }
+    }
 //  printf("%d",position);
   //printf("Primitive = %d\n",Primitive(board));
   getchar();
