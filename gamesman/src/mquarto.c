@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.48 2005-10-10 08:09:57 neyiah Exp $
+// $Id: mquarto.c,v 1.49 2005-11-12 22:06:06 mtanev Exp $
 
 
 /*
@@ -82,7 +82,7 @@
 ** 14 Mar 2005 Yanpei: HOORAY!!!!! The full blown version of hash and unhash works for GAMEDIMENSION = 2, 3!!!!
 **                     Takes a split second to test all 317 positions for GAMEDIMENSION = 2 .... ok. 
 **                     Takes 15 min approx to test all 8419329 positions for GAMEDIMENSION = 3 .... scary!
-**                     Needs 64 bit machine to test for GAMEDIMENSION = 4. 
+*                     Needs 64 bit machine to test for GAMEDIMENSION = 4. 
 **                     Try to understand the full blown hash/unhash if you are looking for something to do. 
 **                     I barely understand it myself ... yes it is that ugly and complicated. 
 **                     Also added some function points to accomodate multiple implementations.
@@ -92,12 +92,12 @@
 ** 26 Mar 2005 Yanpei: Some structural changes to allow for variable GAMEDIMENSION. Effect on
 **                     existing code should be minimal. Use MallocBoard() and FreeBoard() now
 **                     for memory management with boards. Use yanpeiInitializaGame(). 
-** 26 Mar 2005 Yanpei: getCannonical() coded and tested. Very straight forward in fact. 
+** 26 Mar 2005 Yanpei: getCanonical() coded and tested. Very straight forward in fact. 
 **                     Combined Mario's and Prof Garcia's ideas.
 ** 26 Mar 2005 Yanpei: Some data of interest: 
-**                     GAMEDIMENSION = 2: 317 positions, 17 cannonicals
+**                     GAMEDIMENSION = 2: 317 positions, 17 canonicals
 **                     GAMEDIMENSION = 3: 8419329 positions, 
-** 27 Mar 2005 Yanpei: Tried counting total cannonical positions for GAMEDIMENSION = 3
+** 27 Mar 2005 Yanpei: Tried counting total canonical positions for GAMEDIMENSION = 3
 **                     not enough memory. 
 ** 29 Mar 2005 Yanpei: One line fix to logical error in Primitive().
 ** 03 Apr 2005 Mario:  Modified DoMove, GenerateMoves to perform 2-moves
@@ -219,6 +219,13 @@ STRING   kHelpExample =
 /* Creates sequence n least significant 1 bits, preceeded by 0 bits */
 #define maskseq(n) ~(~0<<(n))
 
+#define get_bit(x, n)				\
+  (x >> n) & 1
+
+#define set_bit(x, n, y)			\
+  x &= ~(1 << n);				\
+  x |= (y & 1) << n
+
 int GAMEDIMENSION = 3;
 
 int BOARDSIZE;
@@ -294,8 +301,9 @@ void                    yanpeiPrintSlots(POSITION position, STRING playersName, 
 /* Implementations of factorial */
 POSITION                factorialMem(int n);
 POSITION                factorialNoMem(int n);
-/* Implementations of getCannonical */
-POSITION                yanpeiGetCannonical(POSITION p);
+/* Implementations of getCanonical */
+POSITION                yanpeiGetCanonical(POSITION p);
+POSITION                marioGetCanonical(POSITION position);
 
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
 POSITION                (*hash)( QTBPtr ) = &hashUnsymQuarto;
@@ -304,7 +312,7 @@ void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
 //void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &yanpeiPrintSlots;
 POSITION                (*factorial)(int n) = &factorialMem;
-POSITION                (*getCannonical)(POSITION p) = &yanpeiGetCannonical;
+POSITION                (*getCanonical)(POSITION p) = &marioGetCanonical;
 
 /* support functions */
 POSITION                hashUnsymQuartoHelper(QTBPtr b, int baseSlot);
@@ -312,14 +320,14 @@ void                    unhashUnsymQuartoHelper(POSITION p, int baseSlot, QTBPtr
 
 BOOLEAN                 searchPrimitive(short *);
 
-POSITION                rotateBoard90(POSITION p);
-POSITION                reflectBoard(POSITION p);
+POSITION                rotatePosition90(POSITION p);
+POSITION                reflectPosition(POSITION p);
 POSITION                maskBoard(POSITION p, short mask);
 
 void                    yanpeiTestOffset();
 void                    yanpeiTestHash();
-void                    yanpeiTestCannonicalSupport();
-void                    yanpeiTestCannonical();
+void                    yanpeiTestCanonicalSupport();
+void                    yanpeiTestCanonical();
 
 void                    FreePosList(POSITIONLIST *l);
 BOOLEAN                 SearchPosList(POSITIONLIST *l, POSITION p);
@@ -414,11 +422,11 @@ void yanpeiInitializeGame() {
     /* calls to test functions */
     //yanpeiTestOffset();
     //yanpeiTestHash();
-    //yanpeiTestCannonicalSupport();
-    //yanpeiTestCannonical();
+    //yanpeiTestCanonicalSupport();
+    //yanpeiTestCanonical();
 
     /* Set initial position to empty board */
-    gCanonicalPosition = getCannonical;
+    gCanonicalPosition = getCanonical;
     gInitialPosition = hash(board);
     gNumberOfPositions = offsetTable[NUMPIECES+1];
 	
@@ -477,72 +485,72 @@ int FlagAvailablePieces( QTBPtr board, BOOLEAN pieces[] ) {
 
 MOVELIST *GenerateMoves (POSITION position)
 {
+  
+  QTBPtr board;
+  MOVELIST *moves	= NULL;
+  MOVE slot;
+  MOVE piece;
+  
+  /* Use GPS board if GPS solving, otherwise use unhashed position */
+  board = gUseGPS ? GPSBoard : unhash( position );
+
+  /* If there are no pieces on the board, the only valid moves are the ones placing a piece into the hand */
+  /* These are special moves, as their board position indicates HAND, and are only valid for a first move */
+  /* MAKE SURE HAND IS NOT OCCUPIED */
+  if( board->squaresOccupied == 0 && board->slots[HAND] == EMPTYSLOT) {
     
-    QTBPtr board;
-    MOVELIST *moves	= NULL;
-    MOVE slot;
-    MOVE piece;
-
-    /* Use GPS board if GPS solving, otherwise use unhashed position */
-    board = gUseGPS ? GPSBoard : unhash( position );
-
-    /* If there are no pieces on the board, the only valid moves are the ones placing a piece into the hand */
-    /* These are special moves, as their board position indicates HAND, and are only valid for a first move */
-    /* MAKE SURE HAND IS NOT OCCUPIED */
-    if( board->squaresOccupied == 0 && board->slots[HAND] == EMPTYSLOT) {
-		
-	/* For every piece possible (since board is initial, every piece is allowed into the game */
-	for( piece = 0; piece < NUMPIECES; piece++ ) {
-			
-	    /* Generate a move that places the piece into the hand. The slot = HAND is indicative of initial move */
-	    moves	= CreateMovelistNode( CreateMove( HAND, piece ), moves );
-			
-	}
-		
-    } else {
-		
-	BOOLEAN available_pieces[NUMPIECES];
-	MOVE piece;
-	int available;
-				
-	available = FlagAvailablePieces( board, available_pieces );
-		
-	/* For each slot on board */
-	for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
-			
-	    /* If slot is empty */
-	    if ( board->slots[slot] == EMPTYSLOT ) {
-				
-		if( available == 0 ) {
-					
-		    moves = CreateMovelistNode( CreateMove( slot, board->slots[HAND] ), moves );
-					
-		} else {
-				
-		    /* For each piece */
-		    for( piece = 0; piece < NUMPIECES; piece++ ) {
-			
-			/* If piece is available */
-			if( available_pieces[piece] != FALSE ) {
-		
-			    /* Add move which moves item from hand into slot, and piece into hand */
-			    moves	= CreateMovelistNode( CreateMove( slot, piece ), moves );
-				
-			}
-					
-		    }
-					
-		}
-				
-	    }
-			
-	}
-		
+    /* For every piece possible (since board is initial, every piece is allowed into the game */
+    for( piece = 0; piece < NUMPIECES; piece++ ) {
+      
+      /* Generate a move that places the piece into the hand. The slot = HAND is indicative of initial move */
+      moves	= CreateMovelistNode( CreateMove( HAND, piece ), moves );
+      
     }
-
-    /* Return list of valid moves */
-    return moves;
+    
+  } else {
+    
+    BOOLEAN available_pieces[NUMPIECES];
+    MOVE piece;
+    int available;
+    
+    available = FlagAvailablePieces( board, available_pieces );
+    
+    /* For each slot on board */
+    for( slot = FIRSTSLOT; slot <= LASTSLOT; slot++ ) {
+      
+      /* If slot is empty */
+      if ( board->slots[slot] == EMPTYSLOT ) {
 	
+	if( available == 0 ) {
+	  
+	  moves = CreateMovelistNode( CreateMove( slot, board->slots[HAND] ), moves );
+	  
+	} else {
+	  
+	  /* For each piece */
+	  for( piece = 0; piece < NUMPIECES; piece++ ) {
+	    
+	    /* If piece is available */
+	    if( available_pieces[piece] != FALSE ) {
+	      
+	      /* Add move which moves item from hand into slot, and piece into hand */
+	      moves	= CreateMovelistNode( CreateMove( slot, piece ), moves );
+	      
+	    }
+	    
+	  }
+	  
+	}
+	
+      }
+      
+    }
+    
+  }
+  
+  /* Return list of valid moves */
+  return moves;
+  
 }
 
 /************************************************************************
@@ -563,34 +571,43 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-	
-    QTBPtr board;
-    int piece, slot;
-	 
-    /* Use GPS board if GPS solving, otherwise use unhashed position */
-    board = gUseGPS ? GPSBoard : unhash( position );
-    
-    /* Determine slot on board piece from hand is to go into */
-    slot = GetMoveSlot( move );
-	
-    /* Determine which piece is to go into hand */
-    piece = GetMovePiece( move );
-	
-    /* Increment number of pieces */
-    board->piecesInPlay += ( piece == GetHandPiece( board ) ) ? 0 : 1;
-	
-    /* Place hand piece into indicated slot */
-    board->slots[slot] = GetHandPiece( board );
-	
-    /* Place indicated piece into hand */
-    SetHandPiece( board, ( piece == board->slots[HAND] ) ? EMPTYSLOT : piece );
-	
-    /* If indicated slot is not hand, also increment number of squares */
-    board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
+  
+  QTBPtr board;
+  int piece, slot;
+  POSITION newposition;
+  
+  /* Use GPS board if GPS solving, otherwise use unhashed position */
+  board = gUseGPS ? GPSBoard : unhash( position );
+  
+  /* Determine slot on board piece from hand is to go into */
+  slot = GetMoveSlot( move );
+  
+  /* Determine which piece is to go into hand */
+  piece = GetMovePiece( move );
+  
+  /* Increment number of pieces */
+  board->piecesInPlay += ( piece == GetHandPiece( board ) ) ? 0 : 1;
+  
+  /* Place hand piece into indicated slot */
+  board->slots[slot] = GetHandPiece( board );
+  
+  /* Place indicated piece into hand */
+  SetHandPiece( board, ( piece == board->slots[HAND] ) ? EMPTYSLOT : piece );
+  
+  /* If indicated slot is not hand, also increment number of squares */
+  board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
+  
+  //fprintf(stderr, "old position is " POSITION_FORMAT "\n", position);
+  //marioPrintPos(position, "blabla", TRUE);
    
-    /* Return hashed board */
-    return hash( board );
-	
+  //printf("new board contains %d occupied and %d in play\n", board->squaresOccupied, board->piecesInPlay);
+  newposition = hash(board);
+  //fprintf(stderr, "new position is " POSITION_FORMAT "\n", newposition);
+  //marioPrintPos(newposition, "blabla", TRUE);
+  
+  /* Return hashed board */
+  return newposition;
+  
 }
 
 void UndoMove( MOVE move )
@@ -598,7 +615,7 @@ void UndoMove( MOVE move )
   
     int piece, slot;
     QTBPtr board = GPSBoard;
- 
+
     /* Determine slot on board piece from hand is to go into */
     slot = GetMoveSlot( move );
   
@@ -1912,7 +1929,280 @@ void yanpeiTestHash() {
     printPos = oldPrintPos;
 }
 
-POSITION yanpeiGetCannonical(POSITION p) {
+POSITION marioGetCanonical(POSITION position) {
+  
+  inline QTBPtr rotateBoard90(QTBPtr b);
+  inline QTBPtr reflectBoard(QTBPtr b);
+  inline QTBPtr normalizeBoard(QTBPtr board);
+  
+  QTBPtr orbit[8];
+  short group;
+  
+  orbit[0] = unhash(position);
+  orbit[1] = rotateBoard90(orbit[0]);
+  orbit[2] = rotateBoard90(orbit[1]);
+  orbit[3] = rotateBoard90(orbit[2]);
+  orbit[4] = reflectBoard(orbit[0]);
+  orbit[5] = reflectBoard(orbit[1]);
+  orbit[6] = reflectBoard(orbit[2]);
+  orbit[7] = reflectBoard(orbit[3]);
+  
+  position = offsetTable[NUMPIECES+1];
+  for (group = 0; group < 8; group++) {
+    int temp = hash(normalizeBoard(orbit[group]));
+    position = (temp < position) ? temp : position;
+  }
+  
+  return position;
+  
+}
+
+QTBPtr rotateBoard90(QTBPtr b) {
+
+  QTBPtr c = MallocBoard();
+  short i,j;
+  
+  c->squaresOccupied = b->squaresOccupied;
+  c->piecesInPlay = b->piecesInPlay;
+  c->usersTurn = b->usersTurn;
+  
+  for (i=0; i<GAMEDIMENSION; i++) {
+    for (j=0; j<GAMEDIMENSION; j++) {
+      c->slots[GAMEDIMENSION*i + j + 1] 
+	= b->slots[GAMEDIMENSION*j + (GAMEDIMENSION-i-1) + 1];
+    }
+  }
+  c->slots[0] = b->slots[0];
+  
+  return c;
+}
+
+QTBPtr reflectBoard(QTBPtr b) {
+
+  QTBPtr c = MallocBoard();
+  short i,j;
+  
+  c->squaresOccupied = b->squaresOccupied;
+  c->piecesInPlay = b->piecesInPlay;
+  c->usersTurn = b->usersTurn;
+  
+  for (i=0; i<GAMEDIMENSION; i++) {
+    for(j=0; j<GAMEDIMENSION; j++) {
+      c->slots[GAMEDIMENSION*i + j + 1] 
+	= b->slots[GAMEDIMENSION*i + (GAMEDIMENSION-j-1) + 1];
+    }
+  }
+  c->slots[0] = b->slots[0];
+  
+  return c;
+}
+
+QTBPtr normalizeBoard(QTBPtr board) {
+  
+  inline short *normalize(short *pieces, short count);
+
+  // Array of ordered pieces to be normalized
+  short pieces[board->piecesInPlay];
+
+  // Locations of ordered pieces on the board
+  short locations[board->piecesInPlay];
+
+  // Index to location on board
+  int index;
+
+  // Index to piece in ordered set of pieces
+  int piece;
+
+  // For every location on board, until all pieces have been examined
+  for (index = 0, piece = 0; piece < board->piecesInPlay; index++) {
+
+    // If board location contains a piece
+    if (board->slots[index] != EMPTYSLOT) {
+      
+      // Store the piece value in ordered array of pieces
+      pieces[piece] = board->slots[index];
+      
+      // Store the piece location on board
+      locations[piece] = index;
+
+      // Increment piece index
+      piece++;
+      
+    }
+
+  }
+
+  // Normalize pieces
+  normalize(pieces, board->piecesInPlay);
+
+  // For every piece in ordered set of normalized pieces
+  for (piece = 0; piece < board->piecesInPlay; piece++) {
+
+    // Place normalized piece back on the board in the same location
+    board->slots[locations[piece]] = pieces[piece];
+
+  }
+
+  return board;
+  
+}
+
+short *normalize(short *pieces, short count) {
+
+   inline void swap_columns(short *pieces, short count, short this, short that);
+   
+   /* Array to store sequences of individual bits across the different pieces */
+   /* The first row of each column contains 0 (which will be the final value of the first piece */
+   short bit_columns[GAMEDIMENSION];
+
+   /* Placeholder for number of bit sequences that can no longer be exchanged */
+   short invariants;
+
+   /* Placeholders for locations of bits in a bit array (integer) */
+   short this, that;
+
+   /* Placeholders for bits of bit array (integer) */
+   short this_bit, that_bit;
+
+   /* Placeholder for indexing of individual pieces of the pieces array */
+   short piece;
+
+   /* Initialize each bit column to 0 */
+   for (this = 0; this < GAMEDIMENSION; this++) {
+
+     /* Set column to 0 */
+     bit_columns[this] = 0;
+
+   }
+   
+   /* Toggle every bit of every piece which is set on the first piece
+      However, the first piece should be filtered last
+      Sample input: { 1011, 0101, 1010, 1110 }
+      Corresponding output: { 0000, 1110, 0001, 0101 }
+   */
+   for (piece = count - 1; piece >= 0; piece--) {
+
+     /* The bit array of the first piece serves as the XOR mask for all of them */
+     pieces[piece] ^= pieces[0];
+
+   }
+
+   /* Go through every piece starting with the second piece, and swap two bits uniformly,
+      while preserving the equivalence of individual bit columns
+      Sample input: { 0000, 1110, 0001, 0101 }, bit_column = { 0, 0, 0, 0 }, invariants = 0
+      After 2nd piece: { 0000, 0111, 1000, 1100 }, bit_column = { 00, 01, 01, 01 }, invariants = 1
+      After 3rd piece: { 0000, 0111, 1000, 1100 }, bit_column = { 001, 010, 011, 010 }, invariants = 2
+      After 4th piece: { 0000, 0111, 1000, 1001 }, bit_column = { 0011, 0100, 0110, 0101 }, invariants = 4
+   */
+   for (piece = 1, invariants = 0; invariants < GAMEDIMENSION && piece < count; piece++) {
+
+     /* Mark all columns as invariant; to be decremented later when equivalent columns are known better */
+     invariants = GAMEDIMENSION;
+     
+     /* Start from the most significant bit, and pair it with a less significant bit */
+     for (this = GAMEDIMENSION - 1; this >= 0; this--) {
+       
+       /* Placeholder for number of columns equivalent to this column */
+       int equivalences = 0;
+       
+       /* Loop through every less significant bit than this bit.
+	  Stop if this_bit turns to be 0, or have exhausted all less signifcant bits
+       */
+       for (that = this - 1, this_bit = get_bit(pieces[piece], this);
+	    this_bit != 0 && that >= 0;
+	    that--) {
+	 
+	 /* Obtain the less significant bit (indexed by that) */
+	 that_bit = get_bit(pieces[piece], that);
+	 
+	 /* If the more significant bit is 1 and the less significant bit is 0 */
+	 if (this_bit > that_bit) {
+	   
+	   /* If this and that columns are equivalent, swap the two columns */
+	   if (bit_columns[this] == bit_columns[that]) {
+	     
+	     /* Swap columns this and that on the array starting at piece piece.
+		It should be noted that the result on the entire array ought to be the same
+	     */
+	     swap_columns(pieces + piece, count - piece, this, that);
+	     
+	     /* Update this_bit to the swapped-in value */
+	     this_bit = get_bit(pieces[piece], this);
+	     
+	   }
+	   
+	 }
+	 
+       }
+       
+       /* Now, this column is fixed, so add this row cell to it.
+	  Shift the other rows up by 1 and add this bit
+       */
+       bit_columns[this] <<= 1;
+       bit_columns[this] += this_bit;
+       
+       /* Now find number of columns equivalent to this column */
+       for (that = GAMEDIMENSION - 2; that >= 0; that--) {
+	 
+	 /* Obtain the less significant bit (indexed by that) */
+	 that_bit = get_bit(pieces[piece], that);
+	 
+	 /* If this column equals to that column (in its current state, but up to permutation of columns) */
+	 if (bit_columns[this] == (bit_columns[that] << 1) + that_bit) {
+	   
+	   /* Increment number of equivalent columns */
+	   equivalences++;
+	   
+	 }
+	 
+       }
+       
+       /* Decrement invariants by 1 if there are more than two equivalences */
+       if (equivalences > 1) {
+	 invariants --;
+       }
+       /* Decrement invariants by 2 if there is one equivalence */
+       else if (equivalences == 1) {
+	 invariants -= 2;
+       }
+       
+     }
+     
+   }
+   
+   return pieces;
+   
+}
+
+void swap_columns(short *pieces, short count, short this, short that) {
+
+  /* Placeholder for index to pieces in pieces array */
+  int piece;
+  
+  // Go through each piece
+  for (piece = 0; piece < count; piece++) {
+    
+    /* Placeholders to bits this and that in pieces array at index piece */
+    short this_bit, that_bit;
+    
+    // Extract the this bit
+    this_bit = get_bit(pieces[piece], this);
+    
+    // Extract the that bit
+    that_bit = get_bit(pieces[piece], that);
+    
+    // Set the this bit of piece to the that bit
+    set_bit(pieces[piece], this, that_bit);
+    
+    // Set the that bit of piece to the this bit
+    set_bit(pieces[piece], that, this_bit);
+    
+  }
+  
+}
+
+
+POSITION yanpeiGetCanonical(POSITION p) {
 
     POSITION geometricSym[8];
     POSITION toReturn = offsetTable[NUMPIECES+1];
@@ -1920,13 +2210,13 @@ POSITION yanpeiGetCannonical(POSITION p) {
     short i,j;
 
     geometricSym[0] = p;
-    geometricSym[1] = rotateBoard90(geometricSym[0]);
-    geometricSym[2] = rotateBoard90(geometricSym[1]);
-    geometricSym[3] = rotateBoard90(geometricSym[2]);
-    geometricSym[4] = reflectBoard(geometricSym[0]);
-    geometricSym[5] = reflectBoard(geometricSym[1]);
-    geometricSym[6] = reflectBoard(geometricSym[2]);
-    geometricSym[7] = reflectBoard(geometricSym[3]);
+    geometricSym[1] = rotatePosition90(geometricSym[0]);
+    geometricSym[2] = rotatePosition90(geometricSym[1]);
+    geometricSym[3] = rotatePosition90(geometricSym[2]);
+    geometricSym[4] = reflectPosition(geometricSym[0]);
+    geometricSym[5] = reflectPosition(geometricSym[1]);
+    geometricSym[6] = reflectPosition(geometricSym[2]);
+    geometricSym[7] = reflectPosition(geometricSym[3]);
 
     for (i=0; i<NUMPIECES; i++) {
 	for (j=0; j<8; j++) {
@@ -1938,7 +2228,7 @@ POSITION yanpeiGetCannonical(POSITION p) {
 
 }
 
-POSITION rotateBoard90(POSITION p) {
+POSITION rotatePosition90(POSITION p) {
 
     QTBPtr b = unhash(p);
     QTBPtr c = MallocBoard();
@@ -1964,7 +2254,7 @@ POSITION rotateBoard90(POSITION p) {
     return toReturn;
 }
 
-POSITION reflectBoard(POSITION p) {
+POSITION reflectPosition(POSITION p) {
 
     QTBPtr b = unhash(p);
     QTBPtr c = MallocBoard();
@@ -2016,8 +2306,8 @@ void yanpeiTestRotate();
 void yanpeiTestReflect();
 void yanpeiTestMask();
 
-void yanpeiTestCannonicalSupport() {
-    printf("\nTesting support functions for GetCannonicalPosition()\n");
+void yanpeiTestCanonicalSupport() {
+    printf("\nTesting support functions for GetCanonicalPosition()\n");
     yanpeiTestRotate();
     yanpeiTestReflect();
     yanpeiTestMask();
@@ -2030,7 +2320,7 @@ void yanpeiTestRotate() {
     POSITION p,q;
     void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
 
-    printf("\nTesting rotateBoard()\n");
+    printf("\nTesting rotatePosition()\n");
 
     printPos = &yanpeiPrintSlots;
 
@@ -2046,16 +2336,16 @@ void yanpeiTestRotate() {
     q = p;
     PrintPosition(q,"",TRUE);
     printf("Rotating board ...\n");
-    q = rotateBoard90(q);
+    q = rotatePosition90(q);
     PrintPosition(q,"",TRUE);
     printf("Rotating board ...\n");
-    q = rotateBoard90(q);
+    q = rotatePosition90(q);
     PrintPosition(q,"",TRUE);
     printf("Rotating board ...\n");
-    q = rotateBoard90(q);
+    q = rotatePosition90(q);
     PrintPosition(q,"",TRUE);
     printf("Rotating board ...\n");
-    q = rotateBoard90(q);
+    q = rotatePosition90(q);
     PrintPosition(q,"",TRUE);
 
     if (p == q) printf("\n ... testRotate() passed.\n"); 
@@ -2074,7 +2364,7 @@ void yanpeiTestReflect() {
     POSITION p,q;
     void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
 
-    printf("\nTesting reflectBoard()\n");
+    printf("\nTesting reflectPosition()\n");
 
     printPos = &yanpeiPrintSlots;
 
@@ -2090,10 +2380,10 @@ void yanpeiTestReflect() {
     q = p;
     PrintPosition(q,"",TRUE);
     printf("Reflecting board ...\n");
-    q = reflectBoard(q);
+    q = reflectPosition(q);
     PrintPosition(q,"",TRUE);
     printf("Reflecting board ...\n");
-    q = reflectBoard(q);
+    q = reflectPosition(q);
     PrintPosition(q,"",TRUE);
 
     if (p == q) printf("\n ... testReflect() passed.\n"); 
@@ -2142,44 +2432,44 @@ void yanpeiTestMask() {
 
 }
 
-void yanpeiTestCannonical() {
+void yanpeiTestCanonical() {
 
     POSITION i,c;
-    POSITION cannonicalCount = 0;
-    POSITIONLIST *cannonicals = NULL;
+    POSITION canonicalCount = 0;
+    POSITIONLIST *canonicals = NULL;
     POSITIONLIST *newNode;
 
     void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
 
-    printf("\nTesting getCannonicalPosition() ... \n");
+    printf("\nTesting getCanonicalPosition() ... \n");
 
     printPos = &yanpeiPrintSlots;
   
     for (i=0; i<offsetTable[NUMPIECES+1]; i++) {
 	printf("Position = %3llu\t\t",i);
 	PrintPosition(i,"",TRUE);
-	c = getCannonical(i);
-	printf("Cannonical = %3llu\t",c);
+	c = getCanonical(i);
+	printf("Canonical = %3llu\t",c);
 	PrintPosition(c,"",TRUE);
 	/*
-	  if (!SearchPosList(cannonicals,c)) {
-	  cannonicalCount++;
+	  if (!SearchPosList(canonicals,c)) {
+	  canonicalCount++;
 	  newNode = SafeMalloc(sizeof(POSITIONLIST));
 	  newNode->position = c;
-	  if (cannonicals!=NULL) {
-	  newNode->next = cannonicals->next;
-	  cannonicals->next = newNode;
+	  if (canonicals!=NULL) {
+	  newNode->next = canonicals->next;
+	  canonicals->next = newNode;
 	  } else {
 	  newNode->next = NULL;
-	  cannonicals = newNode;
+	  canonicals = newNode;
 	  }
 	  }
 	*/
     }
 
-    printf("\n ... " POSITION_FORMAT " cannonical positions in total.\n",cannonicalCount);
+    printf("\n ... " POSITION_FORMAT " canonical positions in total.\n",canonicalCount);
 
-    FreePosList(cannonicals);
+    FreePosList(canonicals);
     printPos = oldPrintPos;
 }
 
@@ -2209,6 +2499,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.48  2005/10/10 08:09:57  neyiah
+// Fixed bug where generatemoves() generates move to place piece in hand slot when hand is already occupied
+//
 // Revision 1.47  2005/09/19 05:29:48  yanpeichen
 // 18 Sep 2005 Yanpei Chen changing mquarto.c
 //
