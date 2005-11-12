@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.12 2005-11-11 08:52:20 yanpeichen Exp $
+// $Id: mparadux.c,v 1.13 2005-11-12 07:39:33 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -202,6 +202,8 @@ int boardSize;
 int numX;
 int numO;
 int numBlank;
+
+int posStrLength;
 
 /* Other options */
 int firstGo = X;
@@ -434,6 +436,12 @@ void davidInitGame ()
   /* 3(n-1)n + 1... I think */
   boardSize = 3 * (boardSide - 1) * boardSide + 1;
 
+  int posStrL = 1, temp = boardSize;
+  while ((temp = temp / 10) >= 10) {
+    posStrL++;
+  }
+  posStrLength = posStrL;
+
   //printf("%d\n", boardSize);
 
   /* boards with side length 1 don't follow this but we'll ignore that */
@@ -476,6 +484,12 @@ void davidInitGame ()
   //printf("%d\n", gInitialPosition);
 
   PrintPosition(gInitialPosition, playersName, TRUE);
+
+  printf("%d %s\n",atoi("01"),"01");
+  printf("%d %s\n",atoi(" 10")," 10");
+  printf("%d %s\n",atoi("10 10"),"10 10");
+  printf("%d %s\n",atoi("10s"),"10s");
+  printf("%d %s\n",atoi("s"),"s");
 
   //yanpeiTestNeighboringDir();
 
@@ -1071,7 +1085,39 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-    return FALSE;
+  
+  int i,pos1,pos2,moveType;
+  char *pos2s, *moveTypes;
+  BOOLEAN toReturn = TRUE;
+
+  // pos1 within range
+  toReturn = toReturn && (pos1 = atoi(input)) < boardSize;
+
+  while (input[i]!= ' ') {
+    i++;
+  }
+  i++;
+  pos2s = input + i;
+
+  // pos2 within range
+  toReturn = toReturn && (pos2 = atoi(pos2s)) < boardSize;
+
+  while (input[i]!= ' ') {
+    i++;
+  }
+
+  // pos1 and pos2 not equal
+  toReturn = toReturn && pos1 != pos2;
+
+  moveTypes = input + i;
+  moveType = atoi(moveTypes);
+
+  toReturn = toReturn && 
+             (moveType==NW || moveType==NE || moveType==E ||
+	      moveType==SE || moveType==SW || moveType==W ||
+	      moveType==SWAP);
+
+  return toReturn;
 }
 
 
@@ -1091,7 +1137,32 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return 0;
+  
+  int i,pos1,pos2,moveType;
+  char *pos2s, *moveTypes;
+
+  // pos1
+  pos1 = atoi(input);
+
+  while (input[i]!= ' ') {
+    i++;
+  }
+  i++;
+  pos2s = input + i;
+
+  // pos2
+  pos2 = atoi(pos2s);
+
+  while (input[i]!= ' ') {
+    i++;
+  }
+
+  // type
+  moveTypes = input + i;
+  moveType = atoi(moveTypes);
+
+  return hashMove(moveType,pos1,pos2);
+
 }
 
 
@@ -1491,7 +1562,7 @@ int slotToRC(int s) {
 void getColRow(int pos, int* pCol, int* pRow) {
   int col = 0, row = 0, rowSize = boardSide, numEls = 0;
 
-  for (; pos >= numEls + rowSize; col++, numEls += rowSize, rowSize += (col > boardSize - 1 ? -1 : 1));
+  for (; pos >= numEls + rowSize; col++, numEls += rowSize, rowSize += (col > boardSide - 1 ? -1 : 1));
 
   //  for (; pos < (numEls - rowSize); col++, rowSize += (col > boardSize - 1 ? -1 : 1), numEls += rowSize);
 
@@ -1527,6 +1598,9 @@ void yanpeiTestNeighboringDir() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2005/11/11 08:52:20  yanpeichen
+// *** empty log message ***
+//
 // Revision 1.11  2005/11/09 10:10:12  yanpeichen
 // brief fixes to prev commit
 //
