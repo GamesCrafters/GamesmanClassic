@@ -6,6 +6,9 @@
 #define POSSIBLE_SQUARE_VALUES 5  // 5 possible values for a square, should not be changed
 
 
+/* Note: these are to be used as offsets for parsing input, so should only be changed if
+ * changing the input method (e.g. changing from 0-4x0-4 to a-dx0-4).
+ */
 #define ROW_START '0'
 #define COL_START '0'
 
@@ -13,7 +16,7 @@
 /* Note: DOES NOT support size of 4 x 4 or greater
  */
 
-#define DEFAULT_BOARD_WIDTH 3
+#define DEFAULT_BOARD_WIDTH 4
 #define DEFAULT_BOARD_HEIGHT 3
 
 /* Note:
@@ -123,8 +126,8 @@ STRING   kHelpExample ="";
 **
 **************************************************************************/
 
-#define FIRST_TURN 1
-#define SECOND_TURN 2
+#define FIRST_TURN YELLOW
+#define SECOND_TURN BLUE
 
 /*************************************************************************
 **
@@ -133,13 +136,13 @@ STRING   kHelpExample ="";
 *************************************************************************/
 
 typedef struct {
-  short *squares;
+  int *squares;
   int squaresOccupied;
   int currentTurn;
 } SDBoard, *SDBPtr;
 
 /* variants */
-int BOARD_WIDTH = DEFAULT_BOARD_WIDTH, BOARD_HEIGHT =DEFAULT_BOARD_HEIGHT;
+int BOARD_WIDTH = DEFAULT_BOARD_WIDTH, BOARD_HEIGHT = DEFAULT_BOARD_HEIGHT;
 int     BOARD_ROWS          = DEFAULT_BOARD_HEIGHT;
 int     BOARD_COLS          = DEFAULT_BOARD_WIDTH;
 BOOLEAN bCanWinByColor = TRUE;
@@ -151,7 +154,7 @@ BOOLEAN bCanWinByUD = TRUE;
 **
 *************************************************************************/
 
-BOOLEAN isSquareWin(short slot1, short slot2, short slot3, short slot4);
+BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4);
 int boardIndex(int x, int y);
 
 /* Square */
@@ -170,14 +173,16 @@ MOVE hashMove(int x, int y, int ud);
 int unhashMoveToX(MOVE move);
 int unhashMoveToY(MOVE move);
 int unhashMoveToUD(MOVE move);
-//int unhashMoveToColor(MOVE move);
+/*** Had to remove color from the move hash in order to use it in ConvertTextInputToMove. 
+int unhashMoveToColor(MOVE move);
+Note: Delete this once we're certain we won't need color in the move hash.
+*/
 
 /* Board */
 POSITION hashBoard(SDBPtr board);
 SDBPtr unhashBoard(POSITION position);
 // unhashBoard will create a board, need to call freeBoard in the end
 void freeBoard(SDBPtr board); // need to call this as soon as we dont need the board
-BOOLEAN isEmpty(SDBPtr board, int x, int y);
 
 /************************************************************************
 **
@@ -191,6 +196,20 @@ BOOLEAN isEmpty(SDBPtr board, int x, int y);
 
 void InitializeGame ()
 {
+  SDBPtr board = (SDBPtr) malloc(sizeof(board));
+  board->squares = (int *)  malloc(sizeof(int)*BOARD_COLS*BOARD_ROWS);
+  int row, col;
+  for(col=0;col<BOARD_COLS;col++)
+    {
+      for(row=0;row<BOARD_ROWS;row++)
+	{
+	  board->squares[boardIndex(col,row)]=0;
+	}
+    }
+  board->currentTurn=FIRST_TURN;
+  gNumberOfPositions = (5^(BOARD_COLS*BOARD_ROWS))*2;
+  gInitialPosition = hashBoard(board);
+  freeBoard(board);
     
 }
 
@@ -229,6 +248,7 @@ MOVELIST *GenerateMoves (POSITION position)
 			}
 		}
 	}
+	freeBoard(board);
 	return moves;
 }
 #endif
@@ -307,7 +327,10 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
 	slot3 = board->squares[boardIndex(x1,y2)];
 	slot4 = board->squares[boardIndex(x2,y2)];
 	if(isSquareWin(slot1,slot2,slot3,slot4))
-	  return gStandardGame ? lose : win;
+	  {
+	    freeBoard(board);
+	    return gStandardGame ? lose : win;
+	  }
       }
     }
   }
@@ -317,35 +340,42 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
   for(xc=1;xc<BOARD_WIDTH-1;xc++) {
     for(yc=1;yc<BOARD_HEIGHT-1;yc++) {
       for(w=1; (x1=xc-w)>=0 && (x2=xc+w)<=BOARD_WIDTH-1 && (y1=yc-w)>=0 && (y2=yc+w)<=BOARD_HEIGHT-1; w++) {
-    	slot1 = board->squares[y1*BOARD_WIDTH+xc];
-    	slot2 = board->squares[y2*BOARD_WIDTH+xc];
-    	slot3 = board->squares[yc*BOARD_WIDTH+x1];
-    	slot4 = board->squares[yc*BOARD_WIDTH+x2];
+    	slot1 = board->squares[boardIndex(xc,y1)];
+    	slot2 = board->squares[boardIndex(xc,y2)];
+    	slot3 = board->squares[boardIndex(x1,yc)];
+    	slot4 = board->squares[boardIndex(x2,yc)];
       }
       if(isSquareWin(slot1,slot2,slot3,slot4)) {
-	 return gStandardGame ? lose : win;
+	freeBoard(board);
+	return gStandardGame ? lose : win;
       }
     }
   }
   
   //hard code for 4x4 board
   if(BOARD_WIDTH==4 && BOARD_HEIGHT==4){
-    slot1 = board->squares[0*BOARD_WIDTH+1];
-    slot2 = board->squares[1*BOARD_WIDTH+3];
-    slot3 = board->squares[3*BOARD_WIDTH+2];
-    slot4 = board->squares[2*BOARD_WIDTH+0];
+    slot1 = board->squares[boardIndex(1,0)];
+    slot2 = board->squares[boardIndex(3,1)];
+    slot3 = board->squares[boardIndex(2,3)];
+    slot4 = board->squares[boardIndex(0,2)];
     if(isSquareWin(slot1,slot2,slot3,slot4)) return win;
-    slot1 = board->squares[0*BOARD_WIDTH+2];
-    slot2 = board->squares[1*BOARD_WIDTH+0];
-    slot3 = board->squares[2*BOARD_WIDTH+3];
-    slot4 = board->squares[3*BOARD_WIDTH+1];
+    slot1 = board->squares[boardIndex(2,0)];
+    slot2 = board->squares[boardIndex(0,1)];
+    slot3 = board->squares[boardIndex(3,2)];
+    slot4 = board->squares[boardIndex(1,3)];
     if(isSquareWin(slot1,slot2,slot3,slot4)) return win;
   }
   
   if(board->squaresOccupied==BOARD_WIDTH*BOARD_HEIGHT)
-    return tie;
+    {
+      freeBoard(board);
+      return tie;
+    }
   else
-    return undecided;
+    {
+      freeBoard(board);
+      return undecided;
+    }
   
 }
 
@@ -400,7 +430,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn )
   printf("|\n|    ");
   for(x=0;x<BOARD_WIDTH;x++)
     printf("---");
-  printf("-\n|     ");
+  printf("-\n|    ");
   for(x=0;x<BOARD_WIDTH;x++)
     printf("  %d",x);
   printf("\n");
@@ -465,7 +495,8 @@ POSITION hashBoard(SDBPtr board) {
 	for(y=0;y<BOARD_HEIGHT;y++)
 		for(x=0;x<BOARD_WIDTH;x++)
 			hash = hash * base + getSquare(board,x,y);
-	hash = (hash << 1) + board->currentTurn; // last bit stores the current turn
+
+	hash = (hash << 1) + board->currentTurn; // last bit stores the current turn		 
 	return hash;
 }
 
@@ -477,7 +508,7 @@ POSITION hashBoard(SDBPtr board) {
 SDBPtr unhashBoard(POSITION position) {
     
 	SDBPtr board = (SDBPtr) malloc(sizeof(SDBoard));
-	board->squares = (short*) malloc(sizeof(BOARD_WIDTH*BOARD_HEIGHT));
+	board->squares = (int*) malloc(sizeof(int)*BOARD_WIDTH*BOARD_HEIGHT);
 	
 	int x, y, squareValue;
 	int base = POSSIBLE_SQUARE_VALUES;
@@ -513,8 +544,8 @@ void freeBoard(SDBPtr board) {
 }
 
 /********** helper function for Primitive **************/
-BOOLEAN isSquareWin(short slot1, short slot2, short slot3, short slot4) {
-  short slots[4]={slot1,slot2,slot3,slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
+BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4) {
+  int slots[4]={slot1,slot2,slot3,slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
   int i;
 
   if(slot1==0  || slot2==0 || slot3==0 || slot4==0) {
@@ -730,9 +761,9 @@ BOOLEAN ValidTextInput (STRING input)
   int i;
   if (strlen(input) != 3)
     return FALSE;
-  //if ((input[0] < COL_START) || (input[0] > (COL_START+BOARD_ROWS)) ||
-  //  (input[1] < ROW_START) || (input[1] > ROW_START+BOARD_COLS))
-  // return FALSE;
+  if ((input[0] < COL_START) || (input[0] > (COL_START+BOARD_ROWS)) ||
+    (input[1] < ROW_START) || (input[1] > ROW_START+BOARD_COLS))
+   return FALSE;
   if ((input[2] != 'u') && (input[2] != 'd') && (input[2] != 'U') && input[2] != 'D')
     return FALSE;
   return TRUE;
