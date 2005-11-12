@@ -1,5 +1,3 @@
-                                                                                                                                                                                                                                                               
-/* square: bu 4 bd 3 yu 2 yd 1 */
 #define YELLOW 0
 #define BLUE 1
 #define DOWN 0
@@ -16,7 +14,7 @@
  */
 
 #define DEFAULT_BOARD_WIDTH 3
-#define DEFAULT_BOARD_HEIGHT 2
+#define DEFAULT_BOARD_HEIGHT 3
 
 /* Note:
  * comment out this line for Gamesman compiling
@@ -25,12 +23,16 @@
 //#define SQUAREDANCEDEBUG
 
 #ifdef SQUAREDANCEDEBUG
-	typedef char* STRING;
-	typedef int BOOLEAN;
-	typedef long int POSITION;
 	#define NULL 0
 	#define FALSE 0
 	#define TRUE 1
+	typedef char* STRING;
+	typedef int BOOLEAN;
+	typedef long int POSITION;
+	typedef int MOVE;
+	BOOLEAN gStandardGame = TRUE;
+	typedef enum {
+        win, lose, draw, tie, undecided } VALUE;
 #endif
 
 
@@ -47,6 +49,14 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
+** 2005/11/11
+**   Jack - add more #ifdef and #ifndef for selftest main(), we can remove the line:
+**              #define SQUAREDANCEDEBUG
+**          to compile this file alone without importing
+**   Joey - Fixed various bugs, most notably fixing Primitive to return properly
+**          for standard game.  Also changed size to 3x2, since 3x3 and above fails.
+**   Joey - Incomplete version of squaredance. Compiled and runs, but crashes
+**          upon starting game with or without solve.
 **************************************************************************/
 
 /*************************************************************************
@@ -121,10 +131,6 @@ STRING   kHelpExample ="";
 ** Global Variables
 **
 *************************************************************************/
-
-//typedef enum {
-//        win, lose, draw, tie, undecided } VALUE;
-//typedef int MOVE;
 
 typedef struct {
   short *squares;
@@ -217,7 +223,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	for(x=0;x<BOARD_WIDTH;x++) {
 		for(y=0;y<BOARD_HEIGHT;y++) {
-			if(isEmpty(board,x,y)) { // for each empty slots
+			if(isSquareEmpty(board,x,y)) { // for each empty slots
 				moves = CreateMovelistNode(hashMove(x,y,UP),moves);
 				moves = CreateMovelistNode(hashMove(x,y,DOWN),moves);
 			}
@@ -226,12 +232,6 @@ MOVELIST *GenerateMoves (POSITION position)
 	return moves;
 }
 #endif
-
-BOOLEAN isEmpty(SDBPtr board, int x, int y)
-{
-  int square = board->squares[boardIndex(x,y)];
-  return square==0;
-}
 
 /************************************************************************
 **
@@ -413,36 +413,36 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 /************* Other helper functions ******************/
 
-/* for debugging */
+/* for debugging
 void printBinary(int x){
   int i;
   for(i=0;i<32;i++,x=x>>1)
     printf("%d",x%2);
        printf("\n");
 }
-
-
+*/
 
 /************************************************************************
 ** Utility functions Implementation. Private to this file.
 *************************************************************************/
 
-int boardIndex(int x, int y) { return y*BOARD_WIDTH+x; }
-
 /* Square */
-int hashSquare(int ud, int color) { return color<<1+ud; }
+int boardIndex(int x, int y) { return y*BOARD_WIDTH+x; }
 int getSquare(SDBPtr board, int x, int y) { return board->squares[boardIndex(x,y)]; }
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y) { return getSquare(board,x,y)==0; }
 int getSquareColor(SDBPtr board, int x, int y) { return getSquare(board,x,y)>=3; }
 int getSquareUD(SDBPtr board, int x, int y) { return (getSquare(board,x,y)&1)==0; } //Joey made a change
 int setSquare(SDBPtr board, int x, int y, int value) { board->squares[boardIndex(x,y)] = value; }
 int setSquareEmpty(SDBPtr board, int x, int y) { setSquare(board,x,y,EMPTY); }
+/*
+int hashSquare(int ud, int color) { return (color<<1)+ud; }
 int setSquareColor(SDBPtr board, int x, int y, int color) {
 	setSquare(board,x,y,hashSquare(getSquareUD(board,x,y),color)); 
 }
 int setSquareUD(SDBPtr board, int x, int y, int ud) {
 	setSquare(board,x,y,hashSquare(ud,getSquareColor(board,x,y)));
 }
+*/
 
 /* Move */
 MOVE hashMove(int x, int y, int ud) { return ((x << 24) | (y << 16) | (ud << 8)); }
@@ -537,7 +537,7 @@ BOOLEAN isSquareWin(short slot1, short slot2, short slot3, short slot4) {
 
 
 /******************* MAIN ***********************/
-/*
+#ifdef SQUAREDANCEDEBUG
 int main() {//int argc, char [] argv) {
   int i;
   POSITION position=gInitialPosition;
@@ -551,10 +551,10 @@ int main() {//int argc, char [] argv) {
   
   for(i=0;i<4;i++) {
     switch(i) {
-       case 0: position = doMove(position, hashMove(0,0, UP,YELLOW));  break;
-  	   case 1: position = doMove(position, hashMove(0,BOARD_HEIGHT-1, UP,BLUE)); break;
-  	   case 2: position = doMove(position, hashMove(BOARD_WIDTH-1,0, UP,YELLOW)); break;
-  	   case 3: position = doMove(position, hashMove(BOARD_WIDTH-1,BOARD_HEIGHT-1, DOWN,BLUE)); break;
+       case 0: position = DoMove(position, hashMove(0,0, UP));  break;
+  	   case 1: position = DoMove(position, hashMove(0,BOARD_HEIGHT-1, UP)); break;
+  	   case 2: position = DoMove(position, hashMove(BOARD_WIDTH-1,0, UP)); break;
+  	   case 3: position = DoMove(position, hashMove(BOARD_WIDTH-1,BOARD_HEIGHT-1, DOWN)); break;
 	     // default: 
   }
     turn = ! turn;
@@ -566,9 +566,7 @@ int main() {//int argc, char [] argv) {
   return 0;
     
 }
-*/
-
-
+#endif
 
 
 /************************************************************************
@@ -792,7 +790,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **                                 : Gamesman Core Input Handling
 **
 ************************************************************************/
-
+#ifndef SQUAREDANCEDEBUG
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
   USERINPUT input;
@@ -814,6 +812,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   /* NOTREACHED */
   return Continue;
 }
+#endif
 
 /************************************************************************
 **
