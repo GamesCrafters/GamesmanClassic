@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.51 2005-11-13 11:00:41 mtanev Exp $
+// $Id: mquarto.c,v 1.52 2005-11-13 11:45:06 mtanev Exp $
 
 
 /*
@@ -130,7 +130,9 @@
 ** 09 Sep 2005 Amy:    Changed the way moves are printed/inputted. Also support for 1-dim quarto added. yay! Format for moves is now
 **                     [slot to place piece],[new piece to select]
 ** 18 Sep 2005 Yanpei: Bug in setOffset() fixed. Now solves for 3-D as well. 
-** 10 Oct 2005 Amy:		 fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
+** 10 Oct 2005 Amy:    fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
+** 13 Nov 2005 Mario:  Canonicals should now truly be canonicals, added normalize function to normalize pieces after group actions
+** 13 Nov 2005 Mario:  Avoid memory leaks by freeing boards when necessary
 **************************************************************************/
 
 
@@ -547,6 +549,11 @@ MOVELIST *GenerateMoves (POSITION position)
     }
     
   }
+
+  /* Deallocate board if not using GPS */
+  if (!gUseGPS) {
+    FreeBoard(board);
+  }
   
   /* Return list of valid moves */
   return moves;
@@ -597,13 +604,12 @@ POSITION DoMove (POSITION position, MOVE move)
   /* If indicated slot is not hand, also increment number of squares */
   board->squaresOccupied += ( slot == HAND ) ? 0 : 1;
   
-  //fprintf(stderr, "old position is " POSITION_FORMAT "\n", position);
-  //marioPrintPos(position, "blabla", TRUE);
-   
-  //printf("new board contains %d occupied and %d in play\n", board->squaresOccupied, board->piecesInPlay);
   newposition = hash(board);
-  //fprintf(stderr, "new position is " POSITION_FORMAT "\n", newposition);
-  //marioPrintPos(newposition, "blabla", TRUE);
+  
+  /* Deallocate board if not using GPS */
+  if (!gUseGPS) {
+    FreeBoard(board);
+  }
   
   /* Return hashed board */
   return newposition;
@@ -748,7 +754,11 @@ VALUE Primitive (POSITION position)
     }
 
     SafeFree(rowColDiag);
-    if( !gUseGPS) FreeBoard(b);
+
+  /* Deallocate board if not using GPS */
+    if (!gUseGPS) {
+      FreeBoard(b);
+    }
 
     return toReturn;
 
@@ -800,7 +810,7 @@ BOOLEAN searchPrimitive(short *rowColDiag) {
  ************************************************************************/
 
 	
-void PrintPosition ( POSITION position, STRING playersName, BOOLEAN usersTurn )
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn )
 {
     newline();
     printPos(position,playersName,usersTurn);
@@ -885,6 +895,11 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 
     }
     newline();
+
+    /* Deallocate board if not using GPS */
+    if (!gUseGPS) {
+      FreeBoard(board);
+    }
 
 }
 
@@ -2501,6 +2516,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.51  2005/11/13 11:00:41  mtanev
+//
+// add 1 to gNumberOfPositions, otherwise it fails for 4D
+//
 // Revision 1.50  2005/11/13 10:54:08  mtanev
 //
 // Ahh, don't memory leak on getCanonical
