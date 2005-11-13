@@ -92,7 +92,11 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
     maxR = 14;
     maxTR = 14;
     int r;
-    if(!gUnsolved) {
+
+	/* Temporarily disable this loop for gUnivDB
+	 * Mario: need to ask about its usefulness
+	 */
+    if(!gUnsolved && !gUnivDB) {
       for(i = 0; i < gNumberOfPositions; i++){
 	r = Remoteness(i);
 	if (GetValueOfPosition(i) != tie) { if (r > maxR) maxR = r; }
