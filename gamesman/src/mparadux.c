@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.13 2005-11-12 07:39:33 yanpeichen Exp $
+// $Id: mparadux.c,v 1.14 2005-11-13 07:38:14 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -483,15 +483,18 @@ void davidInitGame ()
 
   //printf("%d\n", gInitialPosition);
 
-  PrintPosition(gInitialPosition, playersName, TRUE);
-
+  /*
   printf("%d %s\n",atoi("01"),"01");
   printf("%d %s\n",atoi(" 10")," 10");
   printf("%d %s\n",atoi("10 10"),"10 10");
   printf("%d %s\n",atoi("10s"),"10s");
   printf("%d %s\n",atoi("s"),"s");
+  */
 
+  //PrintPosition(gInitialPosition, playersName, TRUE);
   //yanpeiTestNeighboringDir();
+  //yanpeiTestRcToSlot();
+  
 
 }
 
@@ -1505,7 +1508,8 @@ BOOLEAN neighbor(int u, int v, int x, int y) {
 // returns -1 when given invalid coordinates
 int rcToSlot(int r, int c) {
 
-  int x,y=boardSide,toReturn=-1;
+  int x,y=boardSide,toReturn=0;
+  int row, col, totalCols = boardSide;
 
   if (    
       // valid r
@@ -1513,13 +1517,14 @@ int rcToSlot(int r, int c) {
       // valid columns
       (c>=0 && c<(r<boardSide ? boardSide+r : 2*boardSide - r%boardSide - 2))
       ) {
-    for (x=0; x<min(boardSide,r); x++) {
-      toReturn += y++;
-    }
-    for (; x<min(2*boardSide-1,r); x++) {
-      toReturn += y--;
-    }
+    
+    // for rows before r w/ increasing length
+    for (x=0; x<min(boardSide-1,r); x++, toReturn += y++);
+    // for rows before r w/ decreasing length
+    for (; x<r; x++, toReturn += y--);
+    // for columns in row = r
     return toReturn += c;
+
   } else {
     // invalid r,c
     printf("**** Error -- rcToSlot: Invalid r,c ****");
@@ -1597,7 +1602,25 @@ void yanpeiTestNeighboringDir() {
   }
 }
 
+void yanpeiTestRcToSlot() {
+
+  int row, col, totalCols = boardSide;
+
+  printf("\nTESTING rcToSlot()\n");
+
+  for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
+    for (col = 0; col < totalCols; col++) {
+      printf("r c %d %d slot %d\n", row, col, rcToSlot(row, col));
+    }
+  }
+  printf ("\n");
+
+}
+
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2005/11/12 07:39:33  yanpeichen
+// *** empty log message ***
+//
 // Revision 1.12  2005/11/11 08:52:20  yanpeichen
 // *** empty log message ***
 //
