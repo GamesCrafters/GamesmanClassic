@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.50 2005-11-13 10:54:08 mtanev Exp $
+// $Id: mquarto.c,v 1.51 2005-11-13 11:00:41 mtanev Exp $
 
 
 /*
@@ -428,7 +428,7 @@ void yanpeiInitializeGame() {
     /* Set initial position to empty board */
     gCanonicalPosition = getCanonical;
     gInitialPosition = hash(board);
-    gNumberOfPositions = offsetTable[NUMPIECES+1];
+    gNumberOfPositions = offsetTable[NUMPIECES+1] + 1;
 	
     GPSBoard = board;
     gUndoMove = &UndoMove;
@@ -2501,6 +2501,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.50  2005/11/13 10:54:08  mtanev
+//
+// Ahh, don't memory leak on getCanonical
+//
 // Revision 1.49  2005/11/12 22:06:06  mtanev
 //
 // Added normalize function to properly normalize board.
