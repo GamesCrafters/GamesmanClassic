@@ -11,7 +11,7 @@ extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 
 extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-                gTwoBits, gCollDB, gGlobalPositionSolver, kZeroMemSolver,
+                gTwoBits, gCollDB, gUnivDB, gGlobalPositionSolver, kZeroMemSolver,
                 gAnalyzing, gSymmetries, gUseGPS, gBottomUp;
 
 extern char	gPlayerName[2][MAXNAME];

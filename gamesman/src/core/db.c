@@ -41,6 +41,7 @@
 #include "memdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
+#include "univdb.h"
 #include "globals.h"
 
 DB_Table *db_functions;
@@ -58,6 +59,8 @@ void db_initialize(){
         db_functions = twobitdb_init();
     } else if(gCollDB){
       db_functions = colldb_init();
+    } else if(gUnivDB) {
+      db_functions = univdb_init();
     } else {
         db_functions = memdb_init();
     }

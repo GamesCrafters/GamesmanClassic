@@ -67,7 +67,7 @@ unsigned long int mul(unsigned long int a, unsigned long int b, unsigned long in
 unsigned long int add(unsigned long int a, unsigned long int b, unsigned long int m);
 
 /* Hash-table creation */
-univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode);
+univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor);
 
 /* Hash-table destruction */
 void univht_destroy(univht *ht);

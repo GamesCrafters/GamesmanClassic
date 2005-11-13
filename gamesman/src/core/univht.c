@@ -23,7 +23,7 @@
 
 FILE *strdbg = NULL;
 
-univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode) {
+univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor) {
 
   void univht_generate_function(univht *ht);
 
@@ -43,6 +43,9 @@ univht *univht_create(int slots, float load_factor, univht_equal equal, univht_h
 
   /* Set the hashcode producer callback */
   ht->hashcode = hashcode;
+
+  /* Set the object destructor callback */
+  ht->destructor = destructor;
 
   /* Create NULL slots */
   ht->table = (univht_entry **) calloc(ht->slots, sizeof(univht_entry *));
@@ -67,7 +70,7 @@ void univht_generate_function(univht *ht) {
   ht->b = rand() % ht->modulus;
 
   /* Diagnostic message */
-  fprintf(strdbg, "univht: generated randomized function h(x) = %ux + %u (mod %u)\n", ht->a, ht->b, ht->modulus);
+  //fprintf(strdbg, "univht: generated randomized function h(x) = %lux + %lu (mod %lu)\n", ht->a, ht->b, ht->modulus);
 
 }
 
@@ -139,10 +142,10 @@ void univht_resize(univht *ht) {
     univht *new_ht;
     
     /* Diagnostic message */
-    fprintf(strdbg, "univht: load factor of %f reached, resizing database from %u to %u slots\n", load, ht->slots, ht->slots * 2);
+    //fprintf(strdbg, "univht: load factor of %f reached, resizing database from %lu to %lu slots\n", load, ht->slots, ht->slots * 2);
     
     /* Allocate new hash table to accomodate the moved entries */
-    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode);
+    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor);
     
     for (slot = 0; ht->entries; slot++) {
       
@@ -176,6 +179,7 @@ void univht_resize(univht *ht) {
     assert(ht->load_factor == new_ht->load_factor);
     assert(ht->equal == new_ht->equal);
     assert(ht->hashcode == new_ht->hashcode);
+    assert(ht->destructor == new_ht->destructor);
     
     ht->slots = new_ht->slots;
     ht->entries = new_ht->entries;
