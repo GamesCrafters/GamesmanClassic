@@ -118,18 +118,42 @@ void *univht_lookup(univht *ht, void *object) {
   unsigned long int univht_key(univht *ht, void *object);
 
   unsigned long int key;
-  univht_entry *slot;
+  univht_entry **slot;
 
   /* Obtain the key for the object */
   key = univht_key(ht, object);
 
   /* Locate the slot in the chain for this entry */
-  for (slot = ht->table[key];
-       slot && !(ht->equal(slot->object, object));
-       slot = slot->chain);
-
-  /* Return NULL if no slot found, or object associated with slot found */
-  return slot ? slot->object : NULL;
+  for (slot = &ht->table[key];
+       *slot && !(ht->equal((*slot)->object, object));
+       slot = &((*slot)->chain));
+  
+  /* If slot found, move it to the head of the chain and return the object */
+  if (*slot) {
+    
+    univht_entry *entry;
+    
+    /* Extract the entry from slot */
+    entry = *slot;
+    
+    /* Set slot to next entry in chain */
+    *slot = entry->chain;
+    
+    /* Make entry's chain point to the head of the chain */
+    entry->chain = ht->table[key];
+    
+    /* Make entry the head of the chain */
+    ht->table[key] = entry;
+    
+    /* Return entry's object */
+    return entry->object;
+    
+  } else {
+    
+    /* Return NULL if this object was not found in the hash-table */
+    return NULL;
+    
+  }
 
 }
 
