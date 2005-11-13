@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.49 2005-11-12 22:06:06 mtanev Exp $
+// $Id: mquarto.c,v 1.50 2005-11-13 10:54:08 mtanev Exp $
 
 
 /*
@@ -1951,8 +1951,10 @@ POSITION marioGetCanonical(POSITION position) {
   for (group = 0; group < 8; group++) {
     int temp = hash(normalizeBoard(orbit[group]));
     position = (temp < position) ? temp : position;
+    /* Free allocated board */
+    FreeBoard(orbit[group]);
   }
-  
+
   return position;
   
 }
@@ -2499,6 +2501,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.49  2005/11/12 22:06:06  mtanev
+//
+// Added normalize function to properly normalize board.
+//
 // Revision 1.48  2005/10/10 08:09:57  neyiah
 // Fixed bug where generatemoves() generates move to place piece in hand slot when hand is already occupied
 //
