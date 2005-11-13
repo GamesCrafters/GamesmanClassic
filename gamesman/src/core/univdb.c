@@ -40,6 +40,7 @@ DB_Table *univdb_init() {
 
   /* Return newly created table of database callbacks */
   return db;
+  
 }
 
 BOOLEAN univdb_equal_entries(void *left, void* right) {
@@ -55,19 +56,20 @@ POSITION univdb_hashcode(void *object) {
 }
 
 void univdb_destroy_entry(void *entry) {
-
+  
   SafeFree(entry);
-
+  
 }
 
 univdb_entry *univdb_create_entry(POSITION position) {
-
+  
   univdb_entry *entry;
-
+  
   entry = (univdb_entry *) SafeMalloc(sizeof(univdb_entry));
   entry->position = position;
   entry->flags = undecided;
   
+  // fprintf(stderr, "creating entry\n");
   /* Insert newly created entry into hash table */
   univht_insert(ht, entry);
   
@@ -87,12 +89,16 @@ univdb_entry *univdb_lookup_entry(POSITION position) {
 void univdb_free() {
   /* Destroy hash table */
   univht_destroy(ht);
+  fprintf(stderr, "destroying hash\n");
+  ht = NULL;
 }
 
 
 VALUE univdb_get_value (POSITION position) {
 
   univdb_entry *entry;
+
+  // fprintf(stderr, "get_value of position: " POSITION_FORMAT "\n", position);
 
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
@@ -116,6 +122,8 @@ VALUE univdb_put_value (POSITION position, VALUE value) {
 
   univdb_entry *entry;
 
+  //fprintf(stderr, "put_value of position: " POSITION_FORMAT "\n", position);
+
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
@@ -126,15 +134,12 @@ VALUE univdb_put_value (POSITION position, VALUE value) {
     entry = univdb_create_entry(position);
     
   }
-
-  /* Filter value of useless bits */
-  value &= VALUE_MASK;
-
+  
   /* Set new flags to entry to include for updated value */
-  entry->flags = (entry->flags & ~VALUE_MASK) | value;
+  entry->flags = (entry->flags & ~VALUE_MASK) | (value & VALUE_MASK);
 
   /* Return filtered value */
-  return value;
+  return (entry->flags & VALUE_MASK);
 
 }
 
@@ -142,15 +147,17 @@ REMOTENESS univdb_get_remoteness (POSITION position) {
 
   univdb_entry *entry;
 
+  //fprintf(stderr, "get_remoteness of position: " POSITION_FORMAT "\n", position);
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
-
+  
   /* If no entry in hash-table, remoteness is 0 */
   if (entry == NULL) {
     
     return 0;
     
   }
+  
   /* Else extract remoteness from the flags bit-array */
   else {
     
@@ -163,6 +170,8 @@ REMOTENESS univdb_get_remoteness (POSITION position) {
 void univdb_put_remoteness (POSITION position, REMOTENESS remoteness) {
 
   univdb_entry *entry;
+
+  //fprintf(stderr, "put_remoteness of position: " POSITION_FORMAT "\n", position);
 
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
@@ -183,6 +192,8 @@ void univdb_put_remoteness (POSITION position, REMOTENESS remoteness) {
 BOOLEAN univdb_check_visited (POSITION position) {
 
   univdb_entry *entry;
+
+  //fprintf(stderr, "check_visited of position: " POSITION_FORMAT "\n", position);
 
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
@@ -206,6 +217,8 @@ void univdb_mark_visited (POSITION position) {
 
   univdb_entry *entry;
 
+  //fprintf(stderr, "mark_visited of position: " POSITION_FORMAT "\n", position);
+
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
@@ -218,10 +231,12 @@ void univdb_mark_visited (POSITION position) {
   }
 
 }
-  
+
 void univdb_unmark_visited (POSITION position) {
 
   univdb_entry *entry;
+
+  //fprintf(stderr, "unmark_visited of position: " POSITION_FORMAT "\n", position);
 
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);

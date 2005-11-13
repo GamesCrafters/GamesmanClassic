@@ -70,7 +70,7 @@ void univht_generate_function(univht *ht) {
   ht->b = rand() % ht->modulus;
 
   /* Diagnostic message */
-  //fprintf(strdbg, "univht: generated randomized function h(x) = %lux + %lu (mod %lu)\n", ht->a, ht->b, ht->modulus);
+  fprintf(strdbg, "univht: generated randomized function h(x) = %lux + %lu (mod %lu)\n", ht->a, ht->b, ht->modulus);
 
 }
 
@@ -142,7 +142,7 @@ void univht_resize(univht *ht) {
     univht *new_ht;
     
     /* Diagnostic message */
-    //fprintf(strdbg, "univht: load factor of %f reached, resizing database from %lu to %lu slots\n", load, ht->slots, ht->slots * 2);
+    fprintf(strdbg, "univht: load factor of %f reached, resizing database from %lu to %lu slots\n", load, ht->slots, ht->slots * 2);
     
     /* Allocate new hash table to accomodate the moved entries */
     new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor);
