@@ -2,7 +2,7 @@
 **
 ** NAME:	univht.c
 **
-** DESCRIPTION:	Collision Database - hash function generation
+** DESCRIPTION:	2-Universal randomized, resizable hash-table implementation
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
@@ -32,9 +32,9 @@
 /*
   Author: Mario Tanev @ GamesCrafters
   Credits:
-    Professor Marty Weissman (Math 115, Fall 2005) for primaility testing lecture
-    Professor Mike Jordan (CS170, Fall 2005) for 2-universal hashing lecture
-    Professor Jonathan Shewchuck (CS61B, Spring 2005) for hashing concepts
+   Professor Marty Weissman (Math 115, Fall 2005) for primaility testing lecture
+   Professor Mike Jordan (CS170, Fall 2005) for 2-universal hashing lecture
+   Professor Jonathan Shewchuck (CS61B, Spring 2005) for hashing concepts
 */
 
 /* Include support for bignums */
@@ -55,105 +55,110 @@
 FILE *strdbg = NULL;
 
 univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor) {
-
+  
   void univht_generate_function(univht *ht);
-
+  
   univht *ht = (univht *) malloc(sizeof(univht));
-
+  
   /* Set the initial number of entries to 0 */
   ht->entries = 0;
-
+  
   /* Set the initial number of slots in the hash table */
   ht->slots = slots;
-
+  
   /* Set the load factor of the hash table */
   ht->load_factor = load_factor;
-
+  
   /* Set the equality test callback */
   ht->equal = equal;
-
+  
   /* Set the hashcode producer callback */
   ht->hashcode = hashcode;
-
+  
   /* Set the object destructor callback */
   ht->destructor = destructor;
-
+  
   /* Create NULL slots */
   ht->table = (univht_entry **) calloc(ht->slots, sizeof(univht_entry *));
-
+  
   /* Generate the random function */
   univht_generate_function(ht);
-
+  
   /* Return newly created hash-table */
   return ht;
-
+  
 }
 
 void univht_generate_function(univht *ht) {
-
+  
   /* Generate the prime modulus */
   ht->modulus = find_next_prime(ht->slots);
-
+  
   /* Generate the linear coefficient */
   ht->a = rand() % ht->modulus;
-
+  
   /* Generate the constant coefficient */
   ht->b = rand() % ht->modulus;
-
+  
   /* Diagnostic message */
   fprintf(strdbg, "univht: generated randomized function h(x) = %lux + %lu (mod %lu)\n", ht->a, ht->b, ht->modulus);
-
+  
 }
 
 unsigned long int univht_insert(univht *ht, void *object) {
+  
+  inline unsigned long int univht_insert_entry(univht *ht, univht_entry *entry);
+  
+  univht_entry *entry;
+  
+  /* Allocate new hashtable entry */
+  entry = (univht_entry *) malloc(sizeof(univht_entry));
+  
+  /* Insert object into entry */
+  entry->object = object;
+  
+  /* Return key at which entry was inserted */
+  return univht_insert_entry(ht, entry);
+  
+}
 
-  void univht_resize(univht *ht);
-  unsigned long int univht_key(univht *ht, void *object);
-
+unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
+  
+  inline void univht_resize(univht *ht);
+  inline unsigned long int univht_key(univht *ht, void *object);
+  
   unsigned long int key;
-  univht_entry **slot;
-
+  
   /* Resize the hash table if needed */
   univht_resize(ht);
   
   /* Obtain the key for the object */
-  key = univht_key(ht, object);
+  key = univht_key(ht, entry->object);
   
-  /* Locate the proper spot in the chain for this entry */
-  for (slot = &ht->table[key];
-      *slot;
-      slot = &((*slot)->chain));
-
-  /* Allocate new hashtable entry and place it in the chain */
-  *slot = (univht_entry *) malloc(sizeof(univht_entry));
-
-  /* Set the entry to the given object */
-  (*slot)->object = object;
-
-  /* This entry ends the chain, set its chain to NULL */
-  (*slot)->chain = NULL;
-
+  /* Attach chain to entry, overwriting any previous chains this entry might have headed */
+  entry->chain = ht->table[key];
+  
+  /* Push entry onto chain (stack) */
+  ht->table[key] = entry;
+  
   /* Increment number of entries in hash-table */
   ht->entries++;
-
-  /* Diagnostic message */
-  // fprintf(strdbg, "univht: inserted object with key %d\n", key);
-
+  
   /* Return key at which entry was inserted */
   return key;
-
+  
 }
 
 void *univht_lookup(univht *ht, void *object) {
-
-  unsigned long int univht_key(univht *ht, void *object);
-
+  
+  inline unsigned long int univht_key(univht *ht, void *object);
+  
   unsigned long int key;
   univht_entry **slot;
-
+  
   /* Obtain the key for the object */
   key = univht_key(ht, object);
-
+  
   /* Locate the slot in the chain for this entry */
   for (slot = &ht->table[key];
        *slot && !(ht->equal((*slot)->object, object));
@@ -185,11 +190,13 @@ void *univht_lookup(univht *ht, void *object) {
     return NULL;
     
   }
-
+  
 }
 
 void univht_resize(univht *ht) {
-
+  
+  inline unsigned long int univht_insert_entry(univht *ht, univht_entry *entry);
+  
   float load = (float) ht->entries / (float) ht->slots;
   if (load >= ht->load_factor) {
     
@@ -207,16 +214,16 @@ void univht_resize(univht *ht) {
       /* Traverse the chain */
       while (ht->table[slot]) {
 	
-	univht_entry *entry = ht->table[slot];
+	univht_entry *chain;
 	
-	/* Insert object at entry of chain into new hash table */
-	univht_insert(new_ht, entry->object);
+	/* Store the previous chain to this entry */
+	chain = ht->table[slot]->chain;
 	
-	/* Link the slot to chain of object moved */
-	ht->table[slot] = entry->chain;
+	/* Move entry into new hash table */
+	univht_insert_entry(new_ht, ht->table[slot]);
 	
-	/* Free old chain entry */
-	free(entry);
+	/* Link the slot to previous chain of entry moved */
+	ht->table[slot] = chain;
 	
 	/* Decrement number of entries in hash table */
 	ht->entries--;
@@ -242,33 +249,33 @@ void univht_resize(univht *ht) {
     ht->a = new_ht->a;
     ht->b = new_ht->b;
     ht->table = new_ht->table;
-   
+    
     /* Dispose of the new hash table */
     free(new_ht);
   }
 }
 
 unsigned long int univht_key(univht *ht, void *object) {
-
+  
   unsigned long long hashcode, key;
-
+  
   /* Obtain the hashcode for the object */
   hashcode = ht->hashcode(object);
   
   /* Produce the key */
   key = add(mul(hashcode, ht->a, ht->modulus), ht->b, ht->modulus) % ht->slots;
   //key = (((hashcode % ht->modulus) * ht->a + ht->b) % ht->modulus) % ht->slots;
-
+  
   /* Diagnostic message */
   //fprintf(strdbg, "univht: created key %u for hashcode %u\n", key, hashcode);
-
+  
   return key;
   
 }
 
 void univht_destroy(univht *ht) {
   int slot;
-
+  
   for (slot = 0; ht->entries; slot++) {
     
     /* Traverse the chain */
@@ -294,34 +301,34 @@ void univht_destroy(univht *ht) {
   
   /* Free slots of hash table */
   free(ht->table);
-
+  
   /* Free actual hash table */
   free(ht);
-
+  
 }
 
 /* Raise b to the e-th power, mod m
    Return: b^e (mod m)
 */
 unsigned long int expt(unsigned long int b, unsigned long int e, unsigned long int m) {
-
+  
   mpz_t base, exponent, modulus, result;
   unsigned long int r;
-
+  
   mpz_init(result);
   mpz_init_set_ui(base, b);
   mpz_init_set_ui(exponent, e);
   mpz_init_set_ui(modulus, m);
-
+  
   mpz_powm(result, base, exponent, modulus);
   
   r = mpz_get_ui(result);
-
+  
   mpz_clear(result);
   mpz_clear(base);
   mpz_clear(exponent);
   mpz_clear(modulus);
-
+  
   return r;
   
 }
@@ -330,25 +337,25 @@ unsigned long int expt(unsigned long int b, unsigned long int e, unsigned long i
    Return: a+b (mod m)
 */
 unsigned long int add(unsigned long int a, unsigned long int b, unsigned long int m) {
-
+  
   mpz_t left, right, modulus, result;
   unsigned long int r;
-
+  
   mpz_init(result);
   mpz_init_set_ui(left, a);
   mpz_init_set_ui(right, b);
   mpz_init_set_ui(modulus, m);
-
+  
   mpz_add(result, left, right);
   mpz_mod(result, result, modulus);
-
+  
   r = mpz_get_ui(result);
-
+  
   mpz_clear(result);
   mpz_clear(left);
   mpz_clear(right);
   mpz_clear(modulus);
-
+  
   return r;
   
 }
@@ -357,27 +364,27 @@ unsigned long int add(unsigned long int a, unsigned long int b, unsigned long in
    Return: a+b (mod m)
 */
 unsigned long int mul(unsigned long int a, unsigned long int b, unsigned long int m) {
-
- mpz_t left, right, modulus, result;
- unsigned long int r;
- 
- mpz_init(result);
- mpz_init_set_ui(left, a);
- mpz_init_set_ui(right, b);
- mpz_init_set_ui(modulus, m);
- 
- mpz_mul(result, left, right);
- mpz_mod(result, result, modulus);
- 
- r = mpz_get_ui(result);
- 
- mpz_clear(result);
- mpz_clear(left);
- mpz_clear(right);
- mpz_clear(modulus);
-
+  
+  mpz_t left, right, modulus, result;
+  unsigned long int r;
+  
+  mpz_init(result);
+  mpz_init_set_ui(left, a);
+  mpz_init_set_ui(right, b);
+  mpz_init_set_ui(modulus, m);
+  
+  mpz_mul(result, left, right);
+  mpz_mod(result, result, modulus);
+  
+  r = mpz_get_ui(result);
+  
+  mpz_clear(result);
+  mpz_clear(left);
+  mpz_clear(right);
+  mpz_clear(modulus);
+  
   return r;
-
+ 
 }
 
 BOOLEAN rabin_miller(unsigned long int number, short witness) {
@@ -397,8 +404,10 @@ BOOLEAN rabin_miller(unsigned long int number, short witness) {
        i++, result = expt(result, 2, number)) {
     
       prime = (result == number - 1) || (result == 1 && i == 0);
-
+      
   }
+  
+  /* Return true if witness considers the number prime */
   return prime;
   
 }
@@ -409,7 +418,7 @@ BOOLEAN prime_p(unsigned long int number) {
 
   /* If number is odd and not equal to 1, perform Rabin-Miller test */
   if ((number & 1) && (number ^ 1)) {
-
+    
     int witness;      
     
     /* Try with witnesses 2 through min(9, number) */
@@ -420,17 +429,17 @@ BOOLEAN prime_p(unsigned long int number) {
 	return FALSE;
       }
     }
-
+    
     /* If Rabin-Miller didn't fail on any of the witnesses, assume it is prime */
     return TRUE;
     
   } else {
-
+    
     /* If number is not odd or is 1, it is only prime if it is 2 */
     return (number == 2);
-
+    
   }
-
+  
 }
 
 unsigned long int find_next_prime(unsigned long int number) {
@@ -440,41 +449,3 @@ unsigned long int find_next_prime(unsigned long int number) {
   }
   return number;
 }
-
-
-
-/*
-BOOLEAN equal(void *left, void *right) {
-  
-  return (int)left == (int)right;
-  
-}
-
-unsigned long long hashcode(void *object) {
-
-  return (int)object;
-
-}
-
-
-int main() {
-
-  strdbg = stderr;
-  int i = 2;
-  void *a;
-
-  univht *ht = univht_create(1000000, 0.75, equal, hashcode);
-
-  for (i = 0; i < 2000000; i++) {
-    int returned;
-    int key = univht_insert(ht, (void *)i);
-    //fprintf(strdbg, "Inserted %u at key %u\n", i, key);
-    returned = (int)univht_lookup(ht, (void *)i);
-    if (returned != i) {
-      fprintf(strdbg, "Inserted %u, but received %u\n", i, returned);
-    }
-  }
-  univht_destroy(ht);
-
-}
-*/

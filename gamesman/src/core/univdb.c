@@ -100,7 +100,6 @@ univdb_entry *univdb_create_entry(POSITION position) {
   entry->position = position;
   entry->flags = undecided;
   
-  // fprintf(stderr, "creating entry\n");
   /* Insert newly created entry into hash table */
   univht_insert(ht, entry);
   
@@ -129,9 +128,7 @@ VALUE univdb_get_value (POSITION position) {
 
   univdb_entry *entry;
 
-  // fprintf(stderr, "get_value of position: " POSITION_FORMAT "\n", position);
-
-  /* Obtain entry from hash-table */
+   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
 
   /* If no entry in hash-table, value is undecided */
@@ -153,9 +150,7 @@ VALUE univdb_put_value (POSITION position, VALUE value) {
 
   univdb_entry *entry;
 
-  //fprintf(stderr, "put_value of position: " POSITION_FORMAT "\n", position);
-
-  /* Obtain entry from hash-table */
+   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
   /* If no entry in hash-table, create new one */
@@ -178,8 +173,7 @@ REMOTENESS univdb_get_remoteness (POSITION position) {
 
   univdb_entry *entry;
 
-  //fprintf(stderr, "get_remoteness of position: " POSITION_FORMAT "\n", position);
-  /* Obtain entry from hash-table */
+   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
   /* If no entry in hash-table, remoteness is 0 */
@@ -202,9 +196,7 @@ void univdb_put_remoteness (POSITION position, REMOTENESS remoteness) {
 
   univdb_entry *entry;
 
-  //fprintf(stderr, "put_remoteness of position: " POSITION_FORMAT "\n", position);
-
-  /* Obtain entry from hash-table */
+   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
   /* If no entry in hash-table, create new one */
@@ -224,32 +216,28 @@ BOOLEAN univdb_check_visited (POSITION position) {
 
   univdb_entry *entry;
 
-  //fprintf(stderr, "check_visited of position: " POSITION_FORMAT "\n", position);
-
-  /* Obtain entry from hash-table */
+   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
 
   /* If no entry in hash-table, entry is not visited */
   if (entry == NULL) {
-
+    
     return FALSE;
-
+    
   }
   /* Else extract visited mark from the flags bit-array */
   else {
-
+    
     return (entry->flags & VISITED_MASK) == VISITED_MASK;
-
+    
   }
 
 }
 
 void univdb_mark_visited (POSITION position) {
-
+  
   univdb_entry *entry;
-
-  //fprintf(stderr, "mark_visited of position: " POSITION_FORMAT "\n", position);
-
+  
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
   
@@ -266,8 +254,6 @@ void univdb_mark_visited (POSITION position) {
 void univdb_unmark_visited (POSITION position) {
 
   univdb_entry *entry;
-
-  //fprintf(stderr, "unmark_visited of position: " POSITION_FORMAT "\n", position);
 
   /* Obtain entry from hash-table */
   entry = univdb_lookup_entry(position);
