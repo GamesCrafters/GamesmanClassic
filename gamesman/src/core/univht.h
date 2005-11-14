@@ -54,8 +54,8 @@ typedef struct {
   Function prototypes
 */
 
-/* Generation of first prime >= number */
-unsigned long int find_next_prime(unsigned long int number);
+/* Generation of random prime between number and 2 * number */
+unsigned long int find_next_random_prime(unsigned long int number);
 
 /* Raise b to the e-th power, mod m */
 unsigned long int expt(unsigned long int b, unsigned long int e, unsigned long int m);

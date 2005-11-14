@@ -92,7 +92,7 @@ univht *univht_create(int slots, float load_factor, univht_equal equal, univht_h
 void univht_generate_function(univht *ht) {
   
   /* Generate the prime modulus */
-  ht->modulus = find_next_prime(ht->slots);
+  ht->modulus = find_next_random_prime(ht->slots);
   
   /* Generate the linear coefficient */
   ht->a = rand() % ht->modulus;
@@ -442,10 +442,17 @@ BOOLEAN prime_p(unsigned long int number) {
   
 }
 
-unsigned long int find_next_prime(unsigned long int number) {
+/* Finds random prime between number and 2*number */
+unsigned long int find_next_random_prime(unsigned long int number) {
   
-  while (!prime_p(number)) {
-    number++;
-  }
-  return number;
+  unsigned long int candidate;
+  
+  do {
+    
+    candidate = number + rand() % number;
+      
+  } while (!prime_p(candidate));
+  
+  return candidate;
+  
 }
