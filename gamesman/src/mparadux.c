@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.14 2005-11-13 07:38:14 yanpeichen Exp $
+// $Id: mparadux.c,v 1.15 2005-11-18 08:35:35 trikeizo Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -42,13 +42,17 @@
 **                     Need to write AddMovesPerPair to make it work
 **                     Need to check hash to see whether need to keep
 **                     track of turns. 
+** 11/18/2005 David  - Got it compiling and running. Looks like there's a
+**                     memory leak somewhere when solving. Also, solving
+**                     is very slow. Anyways, this update plays. Next will
+**                     have optimizations, maybe GPS.
 **
 **************************************************************************/
 
 /*************************************************************************
 **
 ** Everything below here must be in every game file
-**
+**NUM_DIRECTIONS
 **************************************************************************/
 
 #include <stdio.h>
@@ -66,7 +70,7 @@
 
 STRING   kGameName            = "Paradux"; /* The name of your game */
 STRING   kAuthorName          = "David Chen, Yanpei Chen"; /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kDBName              = "Paradux"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -91,19 +95,19 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"";
 
 STRING   kHelpOnYourTurn =
-"";
+"Choose one of your pieces and one of your opponent's pieces. Then choose a direction to move in or SWAP to swap the pieces."; 
 
 STRING   kHelpStandardObjective =
-"";
+"On a board with side length N, to line N of your pieces in a row in any direction.";
 
 STRING   kHelpReverseObjective =
-"";
+"On a board with side length N, to line N of your opponent's pieces in a row in any direction.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie can never occur";
 
 STRING   kHelpExample =
 "";
@@ -124,14 +128,27 @@ STRING   kHelpExample =
 // so must not be valid return value of getNeighbor()
 
 /* directions */
-#define NW   0
-#define NE   1
-#define E    2
-#define SE   3
-#define SW   4
-#define W    5
-#define SWAP 6
-#define NA -1
+/* #define NW   0 */
+/* #define NE   1 */
+/* #define E    2 */
+/* #define SE   3 */
+/* #define SW   4 */
+/* #define W    5 */
+/* #define SWAP 6 */
+/* #define INVALID -1 */
+
+// new directions so you can do something like MAX_DIR - DIR_A to get the opposite direction
+
+#define NW       0
+#define NE       1
+#define E        2
+#define W        3
+#define SW       4
+#define SE       5
+#define SWAP     6
+#define INVALID -1
+
+#define MAX_DIR 5
 
 /*************************************************************************
 **
@@ -192,7 +209,7 @@ STRING computerName = "Robbie";
                                         X   O   X   O
 */
 
-/* MOVE encoding: (position << 6) | (direction << 3) | type
+/* MOVE encoding: (position << 6) | (direction << 3) | type */
 
 /* On the hexagonal board, only one side needs to be specified */
 int boardSide = 3;
@@ -291,6 +308,9 @@ int                     slotToRC(int s);
 
 void                    getColRow(int pos, int* pCol, int* pRow);
 
+// exact same thing as getColRow but in the more standard row, col format
+void                    getRowCol(int pos, int* pRow, int* pCol);
+
 int                     whoseMoveF(POSITION p);
 
 /* Test Functions */
@@ -308,7 +328,7 @@ extern VALUE     *gDatabase;
 
 /************************************************************************
 **
-** NAME:        InitializeGame
+** NAME:        InitializeGamedavidInitGame
 **
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
@@ -316,11 +336,60 @@ extern VALUE     *gDatabase;
 ** 
 ************************************************************************/
 
+BOOLEAN tested = FALSE;
+
+void runTests() {
+  if (tested)
+    return;
+
+  printf("Running a series of tests on Paradux code...\n");
+
+  printf(" + Testing getRowCol and rcToSlot...\n");
+  int i, row, col;
+
+  for (i = 0; i < boardSize; i++) {
+    getRowCol(i, &row, &col);
+    printf("   - getRowCol(%d) returns (%d, %d)\n", i, row, col);
+
+    int slot = rcToSlot(row, col);
+
+    printf("   - rcToSlot(%d, %d) return %d\n", row, col, slot);
+
+    if (slot != i) {
+      printf("   ! ERROR: getRowCol and rcToSlot do not have matching output!!\n");
+    }
+  }
+
+  printf("\n\n + Testing getNeighbor...\n");
+  for (i = 0; i < boardSize; i++) {
+    int j;
+    for (j = 0; j <= MAX_DIR; j++) {
+      int nPos = getNeighbor(i, j);
+
+      printf("   - getNeighbor(%d, %d) returns %d\n", i, j, nPos);
+
+      if (nPos >= 0) {
+	int dir = neighboringDirection(i, nPos);
+
+	printf("   - neighboringDirection(%d, %d) returns %d\n", i, nPos, dir);
+
+	if (dir != j) {
+	  printf("   ! ERROR: getNeighbor and neighboringDirection do not have matching output!!\n");
+	}
+      }
+    }
+  }
+
+  tested = TRUE;
+}
+
 void InitializeGame ()
 {
   //printf("testpoint1\n");
   initGame();
   //printf("testpoint2\n");
+
+  runTests();
 }
 
 /* Initialize odd-sided board */
@@ -473,6 +542,8 @@ void davidInitGame ()
 
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
+  printf("gNumberOfPositions = %d\n", (int)gNumberOfPositions);
+
   //printf("testpoint3\n");
 
   if (boardSide % 2) {
@@ -516,6 +587,65 @@ void davidInitGame ()
 **
 ************************************************************************/
 
+// Returns true if the two pieces can move in the given direction
+BOOLEAN isOpen(char* board, int direction, int pos1, int pos2) {
+  int p1Top2 = neighboringDirection(pos1, pos2);
+  int p2Top1 = MAX_DIR - p1Top2;
+
+  int p1Neighbor = getNeighbor(pos1, direction),
+    p2Neighbor = getNeighbor(pos2, direction);
+
+  if (direction == p1Top2) {
+    return p2Neighbor != INVALID && board[p2Neighbor] == '-';
+  } else if (direction == p2Top1) {
+    return p1Neighbor != INVALID && board[p1Neighbor] == '-';
+  } else {
+    return p1Neighbor != INVALID && board[p1Neighbor] == '-' && p2Neighbor != INVALID && board[p2Neighbor] == '-';
+  }
+
+  // should never fall through to here
+  return FALSE;
+}
+
+void AddMovesPerPair(MOVELIST **moves, char *board, int pos1, int pos2) {
+  //  int r1 = 0, c1 = 0,
+  //    r2 = 0, c2 = 0;
+
+  //  printf("  - Adding moves for pair %d and %d\n", pos1, pos2);
+
+  //  getRowCol(pos1, &r1, &c1);
+
+  //  getRowCol(pos2, &r2, &c2);
+
+  //  printf("Adding moves for pair (%d, %d) and (%d, %d)\n", r1, c1, r2, c2);
+  // Note that we will have to take care of not being able to undo a move here
+
+  int lastMoveHash = -1;
+
+  int curHash;
+
+  // Swapping pieces requires little logic
+  curHash = hashMove(SWAP, pos1, pos2);
+  if (curHash != lastMoveHash) {
+    //    printf("     * AddMovesPerPair - Adding swap move\n");
+    *moves = CreateMovelistNode(curHash, *moves);
+  }
+
+  int i;
+
+  // Loop over each of the directions
+  for (i = 0; i <= 2; i++) {
+    if (isOpen(board, i, pos1, pos2)) {
+      curHash = hashMove(i, pos1, pos2);
+
+      if (curHash != lastMoveHash) {
+	//	printf("     * AddMovesPerPair - Adding move in direction %d\n", i);
+	*moves = CreateMovelistNode(curHash, *moves);
+      }
+    }
+  }
+}
+  /* Yanpei's AddMovesPerPair
 MOVELIST *AddMovesPerPair(char *board, int pos1, int pos2, MOVELIST *moveL) {
   // can assume GenerateMoves is correct, and pos1,pos2 are neighboring
 
@@ -572,7 +702,7 @@ MOVELIST *AddMovesPerPair(char *board, int pos1, int pos2, MOVELIST *moveL) {
     moveL = CreateMovelistNode(hashMove(W,pos1,pos2), moveL);
   }
 
-}
+  */
 
 MOVELIST *GenerateMoves (POSITION position)
 {
@@ -580,7 +710,7 @@ MOVELIST *GenerateMoves (POSITION position)
     
   int i;
   char *board = SafeMalloc(sizeof(char) * boardSize);
-  int pos, nPos, whoseMove = whoseMoveF(position);
+  int pos, nPos;//, whoseMove = whoseMoveF(position);
   //char pieceA;
   char piece;
   //char player = valToChar[whoseMove], otherPlayer = valToChar[nextPlayer(whoseMove)];
@@ -588,30 +718,45 @@ MOVELIST *GenerateMoves (POSITION position)
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   /* have AddMovesPerPair() call CreateMoveListNode() */
 
-  printf("testpoint GenerateMoves");
+  //  printf("testpoint GenerateMoves");
+
+  generic_unhash(position, board);
 
   for (i = 0; i < boardSize; i++) {
     pos = i;
 
     piece = board[i];
 
+    char otherPiece = (piece == valToChar[X] ? valToChar[O] : valToChar[X]);
+
     if (piece != '-') {
+      //      printf("Checking piece at location %d...\n", i);
+
       // Check east
       nPos = getNeighbor(i, E);
-      if ((board[nPos] != piece) && (board[nPos] != '-')) {
-	moves = AddMovesPerPair(board, pos, nPos, moves);
-      }
-
-      // Check southeast
-      nPos = getNeighbor(i, SE);
-      if ((board[nPos] != piece) && (board[nPos] != '-')) {
-	moves = AddMovesPerPair(board, pos, nPos, moves);
+      //      if (nPos >= 0) {
+      //	printf("  * Neighbor on the east is %d, with piece type of %c\n", nPos, board[nPos]);
+      //      }
+      if (nPos >= 0 && board[nPos] == otherPiece) {
+	AddMovesPerPair(&moves, board, pos, nPos);
       }
 
       // Check southwest
       nPos = getNeighbor(i, SW);
-      if ((board[nPos] != piece) && (board[nPos] != '-')) {
-	moves = AddMovesPerPair(board, pos, nPos, moves);
+      //      if (nPos >= 0) {
+      //	printf("  * Neighbor on the southwest is %d, with piece type of %c\n", nPos, board[nPos]);
+      //      }
+      if (nPos >= 0 && board[nPos] == otherPiece) {
+	AddMovesPerPair(&moves, board, pos, nPos);
+      }
+
+      // Check southeast
+      nPos = getNeighbor(i, SE);
+      //      if (nPos >= 0) {
+      //	printf("  * Neighbor on the southeast is %d, with piece type of %c\n", nPos, board[nPos]);
+      //      }
+      if (nPos >= 0 && board[nPos] == otherPiece) {
+	AddMovesPerPair(&moves, board, pos, nPos);
       }
 
       // No need to check W NE or NW because we start from pos = 0 forwards
@@ -619,8 +764,12 @@ MOVELIST *GenerateMoves (POSITION position)
 
     }
   }
-    
+
+  SafeFree(board);
+
   return moves;
+
+  //  return NULL;
 }
 
 
@@ -664,8 +813,10 @@ POSITION DoMove (POSITION position, MOVE move)
     board[target2] = temp2;
   }
 
+  int hashVal = generic_hash(board, nextPlayer(whoseMove(position)));
   SafeFree(board);
-  return generic_hash(board, nextPlayer(whoseMove(position)));
+
+  return hashVal;
 }
 
 
@@ -700,8 +851,6 @@ VALUE Primitive (POSITION position)
   char piece, curPiece;
   int i,j;
 
-  printf("testpoint Primitive\n");
-
   generic_unhash(position, board);
 
   for (i = 0; i < boardSize; i++) {
@@ -723,8 +872,9 @@ VALUE Primitive (POSITION position)
 	if (piece != curPiece)
 	  break;
 
-	if (j == boardSide - 2) {
-	  printf("testpoint1 %d %d\n",i,j);
+	if (j == boardSide) {
+	  printf("lose on east\n");
+	  SafeFree(board);
 	  return lose;
 	}
       }
@@ -741,8 +891,10 @@ VALUE Primitive (POSITION position)
 	if (piece != curPiece)
 	  break;
 
-	if (j == boardSide - 2) {
-	  printf("testpoint2\n");
+
+	if (j == boardSide) {
+	  printf("lose on se\n");
+	  SafeFree(board);
 	  return lose;
 	}
       }
@@ -759,8 +911,9 @@ VALUE Primitive (POSITION position)
 	if (piece != curPiece)
 	  break;
 
-	if (j == boardSide - 2) {
-	  printf("testpoint3\n");
+	if (j == boardSide) {
+	  printf("lose on sw");
+	  SafeFree(board);
 	  return lose;
 	}
       }
@@ -855,11 +1008,11 @@ void davidPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("+---------------------------+------------------------------+\n");
   printf("|        MOVEMENT KEY       |          PREDICTION          |\n");
   printf("|                           |                              |\n");
-  printf("|   NW  N  NE               |                              |\n");
-  printf("|     \\ | /                 |                              |\n");
-  printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playersName,usersTurn));
-  printf("|     / | \\                 |                              |\n");
-  printf("|   SW  S  SE               |                              |\n");
+  printf("|   NW     NE               |                              |\n");
+  printf("|     \\   /                 |                              |\n");
+  printf("|   W - + - E   or   SWAP   |  %-26s  |\n", GetPrediction(position,playersName,usersTurn));
+  printf("|     /   \\                 |                              |\n");
+  printf("|   SW     SE               |                              |\n");
   printf("|                           |                              |\n");
   printf("+---------------------------+------------------------------+\n\n");
 
@@ -876,7 +1029,6 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   int el = 0, initEl;
   int row, col, i, totalCols = boardSide;
-
   char* board = (char*) SafeMalloc(sizeof(char) * boardSize);
   generic_unhash(position, board);
 
@@ -938,11 +1090,11 @@ void dyPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("+---------------------------+------------------------------+\n");
   printf("|        MOVEMENT KEY       |          PREDICTION          |\n");
   printf("|                           |                              |\n");
-  printf("|   NW  N  NE               |                              |\n");
-  printf("|     \\ | /                 |                              |\n");
+  printf("|   NW     NE               |                              |\n");
+  printf("|     \\   /                 |                              |\n");
   printf("|   E - + - W   or   SWAP   |  %-26s  |\n", GetPrediction(position,playersName,usersTurn));
-  printf("|     / | \\                 |                              |\n");
-  printf("|   SW  S  SE               |                              |\n");
+  printf("|     /   \\                 |                              |\n");
+  printf("|   SW     SE               |                              |\n");
   printf("|                           |                              |\n");
   printf("+---------------------------+------------------------------+\n\n");
        
@@ -1002,19 +1154,26 @@ void PrintMove (MOVE move)
 
   switch (type) {
   case NW: 
-    printf("%d %d move NW",pos1,pos2);
+    printf("[%d %d NW]",pos1,pos2);
+    break;
   case NE:
-    printf("%d %d move NE",pos1,pos2);
+    printf("[%d %d NE]",pos1,pos2);
+    break;
   case E:
-    printf("%d %d move E", pos1,pos2);
+    printf("[%d %d E]", pos1,pos2);
+    break;
   case SE:
-    printf("%d %d move SE",pos1,pos2);
+    printf("[%d %d SE]",pos1,pos2);
+    break;
   case SW:
-    printf("%d %d move SW",pos1,pos2);
+    printf("[%d %d SW]",pos1,pos2);
+    break;
   case W:
-    printf("%d %d move W", pos1,pos2);
+    printf("[%d %d W]", pos1,pos2);
+    break;
   case SWAP:
-    printf("%d %d SWAP",   pos1,pos2);
+    printf("[%d %d SWAP]", pos1,pos2);
+    break;
   }
 }
 
@@ -1089,7 +1248,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
   
-  int i,pos1,pos2,moveType;
+  int i = 0,pos1,pos2,moveType;
   char *pos2s, *moveTypes;
   BOOLEAN toReturn = TRUE;
 
@@ -1113,7 +1272,7 @@ BOOLEAN ValidTextInput (STRING input)
   toReturn = toReturn && pos1 != pos2;
 
   moveTypes = input + i;
-  moveType = atoi(moveTypes);
+  //  moveType = atoi(moveTypes);
 
   toReturn = toReturn && 
              (moveType==NW || moveType==NE || moveType==E ||
@@ -1141,7 +1300,7 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
   
-  int i,pos1,pos2,moveType;
+  int i = 0,pos1,pos2,moveType;
   char *pos2s, *moveTypes;
 
   // pos1
@@ -1343,10 +1502,106 @@ void FreeBoard(PBPtr b) {
     SafeFree(b);
 }
 
+// Return whether or not a position, given by a row and a column, is valid
+// on the current board size
+// NOTE: no longer in use because rcToSlot returns invalid on fail
+BOOLEAN validPosition(int row, int col) {
+  printf("validPosition called on %d, %d\n", row, col);
+
+  return TRUE;
+}
+
 // if there is no neigher in the specified direction, return INVALID
 // returns a board index b/n 0 and boardSize
 int getNeighbor(int pos, int direction) {
-  return 0;
+  int pRow, pCol;
+
+  //  getColRow(pos, &pCol, &pRow);
+
+  getRowCol(pos, &pRow, &pCol);
+
+  //  printf("     * getNeighbor: getRowCol(%d) returns (%d, %d)\n", pos, pRow, pCol);
+
+  if (pRow < boardSide - 1) {
+    // if the position in the top half of the board
+    //    printf("     * getNeighbor: position %d is in top half of board\n", pos);
+
+    switch (direction) {
+    case NW:
+      return rcToSlot(pRow - 1, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol - 1) ? rcToSlot(pRow - 1, pCol - 1) : INVALID);
+    case NE:
+      return rcToSlot(pRow - 1, pCol);
+      //      return (validPosition(pRow, pCol - 1) ? rcToSlot(pRow, pCol - 1) : INVALID);
+    case SE:
+      return rcToSlot(pRow + 1, pCol + 1);
+      //      return (validPosition(pRow + 1, pCol + 1) ? rcToSlot(pRow + 1, pCol + 1) : INVALID);
+    case SW:
+      return rcToSlot(pRow + 1, pCol);
+      //      return (validPosition(pRow, pCol + 1) ? rcToSlot(pRow, pCol) : INVALID);
+    case W:
+      return rcToSlot(pRow, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol) ? rcToSlot(pRow - 1, pCol) : INVALID);
+    case E:
+      return rcToSlot(pRow, pCol + 1);
+      //      return (validPosition(pRow + 1, pCol) ? rcToSlot(pRow + 1, pCol) : INVALID);
+    default:
+      return INVALID;
+    }
+  } else if (pRow > boardSide) {
+    // if the position in the bottom half of the board
+
+    switch (direction) {
+    case NW:
+      return rcToSlot(pRow - 1, pCol);
+      //      return (validPosition(pRow, pCol - 1) ? rcToSlot(pRow, pCol - 1) : INVALID);
+    case NE:
+      return rcToSlot(pRow - 1, pCol + 1);
+      //      return (validPosition(pRow + 1, pCol - 1) ? rcToSlot(pRow + 1, pCol - 1) : INVALID);
+    case SE:
+      return rcToSlot(pRow + 1, pCol);
+      //      return (validPosition(pRow, pCol + 1) ? rcToSlot(pRow, pCol + 1) : INVALID);
+    case SW:
+      return rcToSlot(pRow + 1, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol + 1) ? rcToSlot(pRow - 1, pCol) : INVALID);
+    case W:
+      return rcToSlot(pRow, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol) ? rcToSlot(pRow - 1, pCol) : INVALID);
+    case E:
+      return rcToSlot(pRow, pCol + 1);
+      //      return (validPosition(pRow + 1, pCol) ? rcToSlot(pRow + 1, pCol) : INVALID);
+    default:
+      return INVALID;
+    }
+  } else {
+    // if the position in the middle row of the board
+
+    switch (direction) {
+    case NW:
+      return rcToSlot(pRow - 1, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol - 1) ? rcToSlot(pRow - 1, pCol - 1) : INVALID);
+    case NE:
+      return rcToSlot(pRow - 1, pCol);
+      //      return (validPosition(pRow, pCol - 1) ? rcToSlot(pRow, pCol - 1) : INVALID);
+    case SE:
+      return rcToSlot(pRow + 1, pCol);
+      //      return (validPosition(pRow, pCol + 1) ? rcToSlot(pRow, pCol + 1) : INVALID);
+    case SW:
+      return rcToSlot(pRow + 1, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol + 1) ? rcToSlot(pRow - 1, pCol) : INVALID);
+    case W:
+      return rcToSlot(pRow, pCol - 1);
+      //      return (validPosition(pRow - 1, pCol) ? rcToSlot(pRow - 1, pCol) : INVALID);
+    case E:
+      return rcToSlot(pRow, pCol + 1);
+      //      return (validPosition(pRow + 1, pCol) ? rcToSlot(pRow + 1, pCol) : INVALID);
+    default:
+      return INVALID;
+    }
+  }
+
+  // should never fall through here
+  return INVALID;
 }
 
 /* Direction in which the neighbor neighbors pos:
@@ -1364,116 +1619,125 @@ int neighboringDirection(int pos, int neighbor) {
   int pCol, pRow;
   int nCol, nRow;
 
-  getColRow(pos, &pCol, &pRow);
-  getColRow(pos, &nCol, &nRow);
+  //  getColRow(pos, &pCol, &pRow);
+  //  getColRow(pos, &nCol, &nRow);
+
+  getRowCol(pos, &pRow, &pCol);
+  getRowCol(neighbor, &nRow, &nCol);
 
   int dCol = nCol - pCol,
       dRow = nRow - pRow;
 
-  if (pCol < boardSize - 1) {
-    switch (dCol) {
+  if (pRow < boardSide - 1) {
+    // if the first position is in the top half of the board
+
+    switch (dRow) {
     case -1:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return NW;
       case 0:
 	return NE;
       default:
-	return NA;
+	return INVALID;
       }
       break;
     case 1:
-      switch (dRow) {
+      switch (dCol) {
       case 1:
 	return  SE;
       case 0:
 	return SW;
       default:
-	return NA;
+	return INVALID;
       }
       break;
     case 0:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return W;
       case 1:
 	return E;
       default:
-	return NA;
+	return INVALID;
       }
       break;
     default:
-      return NA;
+      return INVALID;
     }
-  } else if (pCol > boardSize) {
-    switch (dCol) {
+  } else if (pRow > boardSide) {
+    // if the first position is in the bottom half of the board
+
+    switch (dRow) {
     case -1:
-      switch (dRow) {
+      switch (dCol) {
       case 1:
 	return NE;
       case 0:
 	return NW;
       default:
-	return NA;
+	return INVALID;
       }
       break;
     case 1:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return SW;
       case 0:
 	return SE;
       default:
-	return NA;
+	return INVALID;
       }
       break;
     case 0:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return W;
       case 1:
 	return E;
       default:
-	return -1;
+	return INVALID;
       }
       break;
     default:
-      return -1;
+      return INVALID;
     }
   } else {
-    switch (dCol) {
+    // if the first position is in the middle row of the board
+
+    switch (dRow) {
     case -1:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return NW;
       case 0:
 	return NE;
      default:
-	return -1;
+	return INVALID;
       }
       break;
     case 1:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return SW;
       case 0:
 	return SE;
       default:
-	return -1;
+	return INVALID;
       }
       break;
     case 0:
-      switch (dRow) {
+      switch (dCol) {
       case -1:
 	return W;
       case 1:
 	return E;
       default:
-	return -1;
+	return INVALID;
       }
       break;
     default:
-      return -1;
+      return INVALID;
     }
   }
 }
@@ -1527,10 +1791,9 @@ int rcToSlot(int r, int c) {
 
   } else {
     // invalid r,c
-    printf("**** Error -- rcToSlot: Invalid r,c ****");
-    return -1;
+    //    printf("**** Error -- rcToSlot: Invalid r,c: %d, %d\n", r, c);
+    return INVALID;
   }
-
 }
 
 // returns row and column coordinate when given slot number
@@ -1560,7 +1823,9 @@ int slotToRC(int s) {
     c = (s-(z-y+1)+1)%(y+1);
   }
 
-  return 0;
+  return r * 100 + c;
+
+  //  return 0;
 
 }
 
@@ -1577,6 +1842,26 @@ void getColRow(int pos, int* pCol, int* pRow) {
   *pRow = pos - numEls;
 }
 
+/* void getRowCol(int pos, int* pRow, int* pCol) { */
+/*   int col = 0, row = 0, rowSize = boardSide, numEls = 0; */
+
+/*   for (; pos >= numEls + rowSize; col++, numEls += rowSize, rowSize += (col > boardSide - 1 ? -1 : 1)); */
+
+/*   *pCol = col; */
+
+/*   *pRow = pos - numEls; */
+/* } */
+
+void getRowCol(int pos, int* pRow, int* pCol) {
+  int col = 0, row = 0, colSize = boardSide, numEls = 0;
+
+  for (; pos >= numEls + colSize; row++, numEls += colSize, colSize += (row > boardSide - 1 ? -1 : 1));
+
+  *pRow = row;
+
+  *pCol = pos - numEls;
+}
+
 int whoseMoveF(POSITION p) {
   return p;
 }
@@ -1591,12 +1876,12 @@ void yanpeiTestNeighboringDir() {
 
   int i, j;
 
-  printf("\nTESTING neighboringDirection()\n");
+  //  printf("\nTESTING neighboringDirection()\n");
   for (i=0; i<boardSize; i++) {
     for (j=0; j<boardSize; j++) {
       if (i!=j) {
-	printf("pos %d neighbor%d direction%d\n",
-	       i,j,neighboringDirection(i,j));
+	//	printf("pos %d neighbor%d direction%d\n",
+	//	       i,j,neighboringDirection(i,j));
       }
     }
   }
@@ -1618,6 +1903,9 @@ void yanpeiTestRcToSlot() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2005/11/13 07:38:14  yanpeichen
+// *** empty log message ***
+//
 // Revision 1.13  2005/11/12 07:39:33  yanpeichen
 // *** empty log message ***
 //
@@ -1641,7 +1929,7 @@ void yanpeiTestRcToSlot() {
 // Revision 1.8  2005/10/18 08:34:01  yanpeichen
 // ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 // **                     more tidy code. Proof read hashMove() unhashMove()
-// **
+// **final fantasy ix 
 //
 // Revision 1.7  2005/10/05 03:23:55  trikeizo
 // Added a bunch of small functions, untested.
