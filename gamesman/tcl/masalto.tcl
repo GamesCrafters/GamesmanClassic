@@ -1,8 +1,17 @@
 ####################################################
-# this is a template for tcl module creation
 #
-# created by Alex Kozlowski and Peterson Trethewey
-# Updated Fall 2004 by Jeffrey Chiang, and others
+# masalto.tcl
+#
+# Asalto GUI, Tck/Tk
+#
+# C authored by Robert Liao and Michael Chen
+# Tcl/Tk authored by Eudean Sun
+#
+# History:
+#
+# 2005-11-11
+# Cleaned up comments. Consider this official V1.0.
+#
 ####################################################
 
 ####################################################
@@ -31,7 +40,7 @@
 # t = line thickness
 set t 5
 # arrowwidth = width of arrows
-set arrowwidth [expr $t * 3]
+set arrowwidth [expr $t * 2.5]
 # dot = dot radius (at intersections)
 set dot 10
 # color = color of the board
@@ -39,7 +48,7 @@ set color "black"
 # outlineColor = color of piece outlines
 set outlineColor "black"
 # outline = size of piece outlines
-set outline 4
+set outline 3
 # player1 = color of player 1's pieces (geese)
 set player1 "blue"
 # player2 = color of player 2's pieces (foxes)
@@ -50,7 +59,7 @@ set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
 set arrowlength 0.7
 # arrowcolor = default color of arrows showing moves
 set arrowcolor cyan
-# basespeed = base speed of the animations (values 10-1000, larger is faster)
+# basespeed = base speed of the animations in milliseconds (values 10-1000, larger is faster)
 set basespeed 100
 
 #############################################################################
@@ -96,7 +105,7 @@ proc GS_InitGameSpecific {} {
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Robert Liao, Michael Chen"
-    set kTclAuthors "Eudean Sun, Suthee An"
+    set kTclAuthors "Eudean Sun"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -239,6 +248,9 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
     
     global side margin size color outlineColor outline t dot r player1 player2 fontsize
+    
+    # Save the GC background skin
+    $c addtag background all
 
     set board "GGG               F F"
     
@@ -247,7 +259,7 @@ proc GS_Initialize { c } {
     DrawPieces $c $board
 
     # Finally, draw a title
-    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 2 -outline black
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black
     $c create text [expr $size/2] [expr $size/2] -text "Welcome to Asalto!" -font "Arial $fontsize" -anchor center -fill black -width [expr 4*$side] -justify center
 
 } 
@@ -283,18 +295,19 @@ proc DrawBoard { c } {
     global side margin size color outlineColor outline t dot r player1 player2 gFrameWidth gFrameHeight fontsize
 
     # If we don't clean the canvas, things pile up and get slow
-    $c delete all
-    set size [min $gFrameWidth $gFrameHeight]
+    $c delete {!background}
+    
+    set size [expr int([min $gFrameWidth $gFrameHeight])]
     set margin [expr 0.1*$size]
     set side [expr ($size-2*$margin)/4]
     set r [expr 0.33*$side]
     set fontsize [expr int(5 * $size / 100)]
 
     # Size the canvas
-    $c configure -width $size -height $size
+    # $c configure -width $size -height $size
 
     # Make a gray background
-    $c create rect 0 0 $size $size -fill darkgray -width 2 -outline black
+    $c create rect 0 0 $size $size -fill darkgray -width 1 -outline black
 
     # Draw the default board
 
@@ -496,7 +509,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
     DrawPieces $c $oldBoard
 
-    set piece [$c create oval [expr [lindex $origin 0] - $r] [expr [lindex $origin 1] - $r] [expr [lindex $origin 0] + $r] [expr [lindex $origin 1] + $r] -fill $color -width $outline]
+    set piece [$c create oval [expr [lindex $origin 0] - $r] [expr [lindex $origin 1] - $r] [expr [lindex $origin 0] + $r] [expr [lindex $origin 1] + $r] -fill $color -width $outline]	       
 
     animate $c $piece $origin $destination $captured
 
@@ -516,9 +529,6 @@ proc animate { c piece origin destination captured } {
     set y1 [lindex $destination 1]
 
     # Relative speed factor gotten from gAnimationSpeed
-    # If gAnimationSpeed is 0, then divide by base number
-    # If gAnimationSpeed is greater than 1, divide by (base number) ^ (n * gAnimationSpeed)
-
     # speed should equal the amount of ms we take to run this whole thing
     set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
     
@@ -543,7 +553,9 @@ proc animate { c piece origin destination captured } {
     }
 }
 
+########################################################################################
 # This animates an undo (similar to animate, but reverses the capture if there is one) #
+########################################################################################
 proc undo { c piece origin destination uncaptured } {
 
     global basespeed gAnimationSpeed
@@ -554,9 +566,6 @@ proc undo { c piece origin destination uncaptured } {
     set y1 [lindex $destination 1]
 
     # Relative speed factor gotten from gAnimationSpeed
-    # If gAnimationSpeed is 0, then divide by base number
-    # If gAnimationSpeed is greater than 1, divide by (base number) ^ (n * gAnimationSpeed)
-
     # speed should equal the amount of ms we take to run this whole thing
     set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
     
@@ -643,11 +652,11 @@ proc drawmove { c move moveType position } {
     switch $moveType {
 	value {
 
-	    # If the move leads to a win, it is a losing move
-	    # If the move leads to a losing position, it is a winning move
-	    # If the move leads to a tieing position, it is a tieing move
+	    # If the move leads to a win, it is a losing move (RED)
+	    # If the move leads to a losing position, it is a winning move (GREEN)
+	    # If the move leads to a tieing position, it is a tieing move (YELLOW)
 	    switch [lindex $move 1] {
-		Win { set color red }
+		Win { set color darkred }
 		Lose { set color green }
 		Tie { set color yellow }
 		default { set color $arrowcolor }
@@ -719,9 +728,6 @@ proc GS_HideMoves { c moveType position moveList} {
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-
-    # TODO:
-    # Animate theMoveToUndo (should be easy, just like animating a move).
 
     global r outline
     
@@ -798,7 +804,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     global size gameover fontsize box
     
     # Tell us it's "Game Over!"
-    set box [$c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 2 -outline black]
+    set box [$c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black]
     set gameover [$c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black]
 	
 }
