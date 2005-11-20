@@ -21,22 +21,29 @@
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
-    
+
     global kGameName
     set kGameName "Othello"
     
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 593531
-    #set gInitialPosition [C_InitialPosition]
+    #set gInitialPosition 593531
+    set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
+
+    #these are set in GS_SetupRulesFrame
+    global gRowsOption gColsOption
+
+    global gMinRows gMinCols
+    set gMinRows 3
+    set gMinCols 3
 
     ### Set boardRows, boardCols, boardSize
     global boardRows boardCols boardSize
-    set boardRows 4
-    set boardCols 4
-    set boardSize 16
+    set boardRows [expr $gRowsOption + $gMinRows]
+    set boardCols [expr $gColsOption + $gMinCols]
+    set boardSize [expr $boardRows * $boardCols]
 
     set gForceCapture 0
 
@@ -64,6 +71,12 @@ proc GS_InitGameSpecific {} {
     set kCAuthors "Michael Chen, Robert Liao"
     set kTclAuthors "Keaton Mowery, Victor Perez"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
+
+#     puts "After InitGameSpecific"
+#     puts $boardRows
+#     puts $boardCols
+#     puts $gInitialPosition
 }
 
 
@@ -137,9 +150,6 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set boardColsRule \
 	[list \
 	     "Board Columns:" \
-	     "0" \
-	     "1" \
-	     "2" \
 	     "3" \
 	     "4" \
 	    ]
@@ -147,9 +157,6 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set boardRowsRule \
 	[list \
 	     "Board Rows:" \
-	     "0" \
-	     "1" \
-	     "2" \
 	     "3" \
 	     "4" \
 	    ]
@@ -164,14 +171,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gForcedCapture
     set gForcedCapture 0
 
-    global boardCols
-    #set boardCols 3
+    global boardCols boardRows
 
-    global boardCols
-    #set boardRows 3
+    global gRowsOption gColsOption
+    set gRowsOption 1
+    set gColsOption 1
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "boardCols" "boardRows"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "gColsOption" "gRowsOption"]
 
     global kLabelFont
     set ruleNum 0
@@ -201,9 +208,27 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global gMisereGame gForcedCapture boardCols boardRows
+    global gMisereGame gForcedCapture
+    global boardCols boardRows
+    global gMinCols gMinRows
+    global gColsOption gRowsOption
+
+    set boardCols [expr $gMinCols + $gColsOption]
+    set boardRows [expr $gMinRows + $gRowsOption]
+
+#     puts "GetOption"
+#     puts "cols:"
+#     puts $boardCols
+#     puts "rows:"
+#     puts $boardRows
 
     set option [expr [expr $boardCols << 5] + [expr $boardRows << 1] + $gForcedCapture]
+
+#     puts "tcl GetOption"
+#     puts "rows: "
+#     puts $boardRows
+#     puts "cols: "
+#     puts $boardCols
 
     return $option
 }
@@ -223,33 +248,19 @@ proc GS_GetOption { } {
 proc GS_SetOption { option } {
 
     global gForcedCapture boardCols boardRows
+
+#    puts "tcl SetOption\n"
     
     set gForcedCapture [expr $option & 0x1]
     set boardRows [expr [expr $option >> 0x01] & 0x0f]
     set boardCols [expr $option  >> 5]
 
-    # TODO: Needs to change with more variants
-#    global gMisereGame gForcedCapture gBoardWidth gBoardHeight
+#     puts "SetOption"
+#     puts "rows: "
+#     puts $boardRows
+#     puts "cols: "
+#     puts $boardCols
 
-#    set gForcedCapture [expr $option - 18 - 1]
-#    set option [expr $option - 2]
-
-    # HWrap
-#    set option [expr $option - 2]
-
-    # VWrap
- #   set option [expr $option - 2]
-
-  #  set gStandardGame [expr $option - 12 - 1]
-  #  set option [expr $option - 2]
-
-  #  set gBoardHeight [expr $option - 5 - 1]
-  #  set option [expr $option - 2]
-
-#    set gBoardWidth [expr $option - 1]
-
-#    set option [expr $option - 1]
-#    set gMisereGame [expr 1-($option%2)]
 }
 
 
@@ -277,12 +288,12 @@ proc min { x y } {
 ##
 #############################################################################
 
-proc DrawCircle { w slotSize slotX slotY theTag theColor } {
+proc DrawCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
 
-    set startCircle [expr $slotSize / 8.0]
+    set startCircle [expr [min $slotSizeX $slotSizeY] / 8.0]
     set endCircle   [expr $startCircle*7.0]
-    set cornerX     [expr $slotX*$slotSize]
-    set cornerY     [expr $slotY*$slotSize]
+    set cornerX     [expr $slotX*$slotSizeX]
+    set cornerY     [expr $slotY*$slotSizeY]
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -outline $theColor \
@@ -298,12 +309,12 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
     return $theCircle
 }
 
-proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
+proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
     
-    set startCircle [expr $slotSize / 3.0]
+    set startCircle [expr [min $slotSizeX $slotSizeY] / 3.0]
     set endCircle   [expr $startCircle*2.0]
-    set cornerX     [expr $slotX*$slotSize]
-    set cornerY     [expr $slotY*$slotSize]
+    set cornerX     [expr $slotX*$slotSizeX]
+    set cornerY     [expr $slotY*$slotSizeY]
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -fill $theColor \
@@ -346,9 +357,9 @@ proc GS_Initialize { c } {
     for {set x 0} {$x < $boardCols} {incr x} {
 	for {set y 0} {$y < $boardRows} {incr y} {
 
-	    DrawCircle $c [min $vertCellSize $horizCellSize] $x $y pieces [lindex [GS_ColorOfPlayers] 0]
+	    DrawCircle $c $horizCellSize $vertCellSize $x $y pieces [lindex [GS_ColorOfPlayers] 0]
 
-	    DrawMoveCircle $c [min $vertCellSize $horizCellSize] $x $y moves cyan
+	    DrawMoveCircle $c $horizCellSize $vertCellSize $x $y moves cyan
 
 	    #$c bind movedot$x$y <Enter> "MouseOverExpand movedot$x$y $c"
 	    #$c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
@@ -414,8 +425,12 @@ proc GS_DrawPosition { c position } {
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     set pieceNumber 0
 
-    for {set i 0} {$i < $boardCols} {set i [expr $i + 1]} {
-	for {set j 0} {$j < $boardRows} {set j [expr $j + 1]} {
+#     puts "DrawPosition"
+#     puts $position
+#     puts $pieceString
+
+    for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
+	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
 
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
 		#puts "white piece at $j, $i"
@@ -430,6 +445,24 @@ proc GS_DrawPosition { c position } {
 	    set pieceNumber [expr $pieceNumber + 1]
 	}
     }
+
+#     for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
+# 	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
+
+# 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
+# 		puts "white piece at $i, $j"
+# 		$c itemconfig piece$i$j -fill white
+# 		$c raise piece$i$j
+# 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
+# 		puts "black piece at $i, $j"
+# 		$c itemconfig piece$i$j -fill black	
+# 		$c raise piece$i$j
+# 	    } else {}
+
+# 	    set pieceNumber [expr $pieceNumber + 1]
+# 	}
+#     }
+
 }
 
 
@@ -445,12 +478,16 @@ proc GS_NewGame { c position } {
     # but if you want you can add a special behaivior here like an animation
     global boardRows boardCols
 
+#     puts "initialization started..."
+#     puts $boardRows
+#     puts $boardCols
+
     GS_Deinitialize $c
     GS_Initialize $c
 
-    puts "done with initialization"
-    puts $boardRows
-    puts $boardCols
+#     puts "done with initialization"
+#     puts $boardRows
+#     puts $boardCols
 
     GS_DrawPosition $c $position
 }

@@ -32,8 +32,8 @@ extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
-POSITION gInitialPosition    = 0; /* The initial position (starting board) */
-POSITION gMinimalPosition    = 0; /* */
+POSITION gInitialPosition    = 593531; /* The initial position (starting board) */
+//POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
 STRING   kGameName           = "Othello"; /* The name of your game */
@@ -216,6 +216,7 @@ void InitializeGame ()
 	}
 	
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
+	fflush( stdout );
 	
 }
 /************************************************************************
@@ -380,6 +381,9 @@ POSITION GetInitialPosition()
     printf( "initial position is: %d\n", gInitialPosition );
     fflush( stdout );
 
+    if ( gInitialPosition == 0 )
+	init_board_hash();
+
     return gInitialPosition;
 }
 
@@ -496,7 +500,8 @@ void init_board_hash()
 	if(DEBUG) printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
 	if(DEBUG) printf("\ninit_board_hash starting...\n");
 	max = generic_hash_init(OthCols * OthRows, hash_data, NULL);
-	init = generic_hash(start_standard_board, BLACK);
+	//init = generic_hash(start_standard_board, BLACK);
+	init = MakeInitialSquare();
 	if(DEBUG) printf("\nmax is %d\n", max); 
 	gInitialPosition = init;		
 	gNumberOfPositions = max;
@@ -1099,14 +1104,14 @@ int getOption()
 
 void setOption(int option)
 {
-	printf("setOption called\n");
-	fflush(stdout);
 	variant_NoGenMovesRestriction = option & 0x01;
-	ChangeCols( (option >> 0x01) & 0x0f);
-	ChangeRows( option >> 0x05 );
+	ChangeRows( (option >> 0x01) & 0x0f);
+	ChangeCols( option >> 0x05 );
 
-	printf("moves res: %d, cols: %d, rows: %d\n", variant_NoGenMovesRestriction, OthCols, OthRows);
+	printf("C setOption\nmoves res: %d, cols: %d, rows: %d\n", variant_NoGenMovesRestriction, OthCols, OthRows);
 	fflush(stdout);
+
+	init_board_hash();
 }
 
 
