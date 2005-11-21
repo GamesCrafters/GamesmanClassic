@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.52 2005-11-13 11:45:06 mtanev Exp $
+// $Id: mquarto.c,v 1.53 2005-11-21 04:14:23 neyiah Exp $
 
 
 /*
@@ -133,6 +133,7 @@
 ** 10 Oct 2005 Amy:    fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
 ** 13 Nov 2005 Mario:  Canonicals should now truly be canonicals, added normalize function to normalize pieces after group actions
 ** 13 Nov 2005 Mario:  Avoid memory leaks by freeing boards when necessary
+** 20 Nov 2005 Amy:	   changed piece representation to use {0,1}. Added help strings.
 **************************************************************************/
 
 
@@ -168,10 +169,6 @@ BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycle
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
-/*added by amy */
-BOOLEAN amyDebug                 = TRUE; /* TRUE when debugging, prints debug stuff */
-/*added by amy */ 
-
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
@@ -185,22 +182,70 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"If it is the first move, place a piece into the 'hand' slot \n\ 
+by looking up which piece you want and entering H,[piece].\n\ 
+[piece] is a string such as 0100 where each character specifies a\n\
+characteristic of the piece. On a four-dimensional game, a \n\
+piece will have 4 characters, etc. For example, the pieces 0000 and\n\
+1100 have the last two characteristics in common (they are both 0)\n\n\
+Example of a first move: H,0100\n\n\
+If there is already a piece in the hand slot, place the piece in the \n\
+hand slot onto an empty position on the board by looking up the character\n\
+that represents the slot in the legend, then choose another piece to \n\
+put in the hand slot just like the first move:\n\n\
+Example: 2,0100 (places the piece in the hand splot into slot labeled 2, \n\
+then place piece '0100' into the hand slot";
 
 STRING   kHelpOnYourTurn =
-"";
+"If it is the first move, place a piece into the 'hand' slot \n\
+If there is already a piece in the hand slot, place the piece in the\n\
+slot into an empty position on the board and then choose another piece\n\
+to place into the now-empty 'hand' slot.";
 
 STRING   kHelpStandardObjective =
-"";
+"Be the first player to place a piece that finishes off a row of \n\
+four pieces (or less if the game dimension is less than four) that \n\
+have something in common.";
 
 STRING   kHelpReverseObjective =
 "";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"A tie occurs when all the available pieces have been placed and the\n\
+'hand' slot is also empty, but there are no rows of four pieces (or \n\
+less if the game dimension is less than four) that have something in \n\
+common.\n";
 
 STRING   kHelpExample =
-"";
+"        +--+--+--+                +--+--+--+\n\
+LEGEND: | H| 0| 1|         BOARD: |  |  |  |\n\
+        +--+--+--+                +--+--+--+\n\
+           | 2| 3|                   |  |  |\n\
+           +--+--+                   +--+--+\n\
+Available pieces: 00, 10, 01, 11\n\
+Computer's move was: H,01\n\
+        +--+--+--+                +--+--+--+\n\
+LEGEND: | H| 0| 1|         BOARD: |01|  |  |\n\
+        +--+--+--+                +--+--+--+\n\
+           | 2| 3|                   |  |  |\n\
+           +--+--+                   +--+--+\n\
+Available pieces: 00, 10, 11\n\
+Player's move [(undo)/[0-3],[(0,1)(0,1)]]: 0,00\n\
+is valid\n\
+        +--+--+--+                +--+--+--+\n\
+LEGEND: | H| 0| 1|         BOARD: |00|01|  |\n\
+        +--+--+--+                +--+--+--+\n\
+           | 2| 3|                   |  |  |\n\
+           +--+--+                   +--+--+\n\
+Available pieces: 10, 11\n\
+Computer's move was: 2,11\n\
+        +--+--+--+                +--+--+--+\n\
+LEGEND: | H| 0| 1|         BOARD: |11|01|  |\n\
+        +--+--+--+                +--+--+--+\n\
+           | 2| 3|                   |00|  |\n\
+           +--+--+                   +--+--+\n\
+Available pieces: 10\n\
+Computer (player one) Wins!\n";
 
 
 /*************************************************************************
@@ -257,7 +302,8 @@ typedef struct board_item {
 typedef QTBOARD* QTBPtr;
 
 /* Letter codes for the different piece states */
-char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
+//char states[][2]={{'w', 'B'}, {'s', 'T'}, {'h', 'S'}, {'r', 'E'}};
+char states[][2]={{'0', '1'}, {'0', '1'}, {'0', '1'}, {'0', '1'}};
 
 /* ASCII Hex */
 char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'y', 'Z' };
@@ -1061,74 +1107,36 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput( STRING input )
 {
-	
-    BOOLEAN valid = FALSE;
-	
-    if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[1] == ',' ) {
-		
-	int i;
-	int valid_traits[GAMEDIMENSION];
-		
-	memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );		
+	BOOLEAN positionValid = FALSE;
+	BOOLEAN traitValid = FALSE;
 
-	// Checking if position indicated is valid
-	for( i = 0; i < BOARDSIZE+1; i++ ) {
-	  /*
-	    printf ("the current slot is : %c, the input position is: %c\n", hex_ascii[i], input[0]);
-	    printf("are they equal? %d\n", input[0] == hex_ascii[i] );
-	    printf("currently %svalid\n", valid ? "" : "not ");
-	  */
-	    if( input[0] == hex_ascii[i] ) {
-	      //    printf("%c is, a valid position\n", input[0]);		
-		valid = TRUE;
-		break;
-				
-	    }
-			
-	}
-		
-	if ( valid ) {
-	  //check traits		   
-	    int trait;
-	    int x;	
-	    for( trait = 2; trait < GAMEDIMENSION+2; trait++ ) {
-		for( i = 0; i < GAMEDIMENSION; i++ ) {
-		  //amyDebug ? printf("the input trait: %c, the states comparing: %c, %c\n", input[trait], states[i][0], states[i][1]) : printf("");
-
-		  /* for (x = 0; x < GAMEDIMENSION; printf("%i ",valid_traits[x]), x++)
-			  newline();
-		  */
-		    if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
-			BOOLEAN repeat = FALSE;
-			int j;
-						
-			for( j = 0; j < trait-2; j++ ) {
-			    if ( valid_traits[j] == i + 1 ) {
-				repeat = TRUE;
-			    }
+	if ( ( strlen( input ) == ( 2 + GAMEDIMENSION ) ) && input[1] == ',' ) {
+		int i;
+		int valid_traits[GAMEDIMENSION];
+		memset( valid_traits, 0, GAMEDIMENSION * sizeof( int ) );
+		// Checking if position indicated is valid
+		for( i = 0; i < BOARDSIZE+1; i++ ) {
+			if( input[0] == hex_ascii[i] ) {
+				positionValid = TRUE;
+				break;
 			}
-			if ( !repeat ) {
-			    valid_traits[trait-2] = i + 1;
-			    break;
+		}
+		if ( positionValid ) {
+			//check traits
+			int trait;
+			for( trait = 2; trait < GAMEDIMENSION+1; trait++ ) {
+				for( i = 0; i < GAMEDIMENSION; i++ ) {
+					if ( input[trait] == states[i][0] || input[trait] == states[i][1] ) {
+						traitValid = TRUE; //if the trait is valid, go one to next piece...
+						break;
+					}
+				}
+				if (traitValid == FALSE) break;
 			}
-		    }
 		}
-		/*for (x = 0; x < GAMEDIMENSION; printf("%i ",valid_traits[x]), x++)
-		  newline();
-		amyDebug ? printf("the input: %c, is valid state %i\n", input[trait], valid_traits[trait-2]) : printf("");		
-		*/
-		if ( valid_traits[trait-2] == 0 ) {
-		    valid = FALSE;
-		    break;	
-		}
-			
-	    }
 	}
-		
-    } 
-	
-    //printf("Move does%s adhere to valid syntax\n", valid ? "" : " not" );
-    return valid;
+	(positionValid && traitValid) ? printf ("is valid") : printf("not valid");
+	return (positionValid && traitValid);
 }
 
 
@@ -1148,45 +1156,32 @@ BOOLEAN ValidTextInput( STRING input )
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	
-    MOVE piece = 0, slot = 0;
-    int i, j, k;
-	
-    /* Lower GAMEDIMENSION + 1 bits for position */
-    for( slot = 0; ( slot < BOARDSIZE + 1 ) && hex_ascii[slot] != input[0]; slot++ );
-	
-    /* Adjacent GAMEDIMENSION bits for piece */
-    for( i = 2; i < GAMEDIMENSION+2; i++ ) {
-		
-	BOOLEAN ready = FALSE;
-		
-	for( j = 0; j < GAMEDIMENSION; j++ ) {
-			
-	    for( k = 0; k < 2; k++ ) {
-				
-		if( states[j][k] == input[i] ) {
-				
-		    piece += k << j;
-		    ready = TRUE;
-		    break;
-					
-		}
-				
-	    }
-			
-	    if ( ready ) {
-				
-		break;
-				
-	    }
-			
+
+	MOVE piece = 0, slot = 0;
+	int i, j, k;
+
+	/* Lower GAMEDIMENSION + 1 bits for position */
+	for( slot = 0; ( slot < BOARDSIZE + 1 ) && hex_ascii[slot] != input[0]; slot++ );
+
+	/* Adjacent GAMEDIMENSION bits for piece */
+	for( i = 2; i < GAMEDIMENSION+2; i++ ) {
+		BOOLEAN ready = FALSE;
+		//for( j = 0; j < GAMEDIMENSION; j++ ) {
+			for( k = 0; k < 2; k++ ) {
+				if( states[i-2][k] == input[i] ) {
+					piece += (k << (i-2));
+					ready = TRUE;
+					break;
+				}
+			}
+			//if ( ready ) {
+			//	break;
+			//}
+		//}
 	}
-		
-    }
-
-    return CreateMove( slot, piece );
-
+	return CreateMove( slot, piece );
 }
+
 
 
 /************************************************************************
@@ -2516,6 +2511,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.52  2005/11/13 11:45:06  mtanev
+//
+// Fix memory leaks
+//
 // Revision 1.51  2005/11/13 11:00:41  mtanev
 //
 // add 1 to gNumberOfPositions, otherwise it fails for 4D
