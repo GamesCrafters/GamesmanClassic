@@ -1,12 +1,10 @@
 ####################################################
-# this is a template for tcl module creation
+# Based upon the template for tcl module creation
+# and Xmnim
 #
-# created by Alex Kozlowski and Peterson Trethewey
-# Updated Fall 2004 by Jeffrey Chiang, and others
+# Authors: Keaton Mowery and Victor Perez
+# Written Fall 2005
 ####################################################
-
-#set dotExpandAmount 10
-
 
 
 #############################################################################
@@ -28,7 +26,6 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    #set gInitialPosition 593531
     set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
@@ -45,7 +42,11 @@ proc GS_InitGameSpecific {} {
     set boardCols [expr $gColsOption + $gMinCols]
     set boardSize [expr $boardRows * $boardCols]
 
+    global gForceCapture
     set gForceCapture 0
+
+    global pi
+    set pi 3.14159265
 
     ### Set the strings to be used in the Edit Rules
 
@@ -72,11 +73,6 @@ proc GS_InitGameSpecific {} {
     set kTclAuthors "Keaton Mowery, Victor Perez"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
-
-#     puts "After InitGameSpecific"
-#     puts $boardRows
-#     puts $boardCols
-#     puts $gInitialPosition
 }
 
 
@@ -133,16 +129,23 @@ proc GS_ColorOfPlayers {} {
 #############################################################################
 proc GS_SetupRulesFrame { rulesFrame } {
 
-    set standardRule \
-	[list \
-	     "What would you like your winning condition to be:" \
-	     "Standard" \
-	     "Misere" \
-	    ]
+#     set standardRule \
+# 	[list \
+# 	     "What would you like your winning condition to be:" \
+# 	     "Standard" \
+# 	     "Misere" \
+# 	    ]
 
     set captureRule \
 	[list \
 	     "Should capture moves be mandatory?" \
+	     "Yes" \
+	     "No" \
+	    ]
+
+    set autoPassRule \
+	[list \
+	     "Should you pass automatically if there are no moves available?" \
 	     "Yes" \
 	     "No" \
 	    ]
@@ -161,8 +164,9 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "4" \
 	    ]
 
+
     # List of all rules, in some order
-    set ruleset [list $standardRule $captureRule $boardColsRule $boardRowsRule]
+    set ruleset [list $captureRule $autoPassRule $boardColsRule $boardRowsRule]
 
     # Declare and initialize rule globals
     global gMisereGame
@@ -171,6 +175,9 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gForcedCapture
     set gForcedCapture 0
 
+    global gNoAutoPass
+    set gNoAutoPass 1
+
     global boardCols boardRows
 
     global gRowsOption gColsOption
@@ -178,7 +185,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set gColsOption 1
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "gForcedCapture" "gColsOption" "gRowsOption"]
+    set ruleSettingGlobalNames [list "gForcedCapture" "gNoAutoPass" "gColsOption" "gRowsOption"]
 
     global kLabelFont
     set ruleNum 0
@@ -216,19 +223,7 @@ proc GS_GetOption { } {
     set boardCols [expr $gMinCols + $gColsOption]
     set boardRows [expr $gMinRows + $gRowsOption]
 
-#     puts "GetOption"
-#     puts "cols:"
-#     puts $boardCols
-#     puts "rows:"
-#     puts $boardRows
-
     set option [expr [expr $boardCols << 5] + [expr $boardRows << 1] + $gForcedCapture]
-
-#     puts "tcl GetOption"
-#     puts "rows: "
-#     puts $boardRows
-#     puts "cols: "
-#     puts $boardCols
 
     return $option
 }
@@ -249,17 +244,9 @@ proc GS_SetOption { option } {
 
     global gForcedCapture boardCols boardRows
 
-#    puts "tcl SetOption\n"
-    
     set gForcedCapture [expr $option & 0x1]
     set boardRows [expr [expr $option >> 0x01] & 0x0f]
     set boardCols [expr $option  >> 5]
-
-#     puts "SetOption"
-#     puts "rows: "
-#     puts $boardRows
-#     puts "cols: "
-#     puts $boardCols
 
 }
 
@@ -293,18 +280,17 @@ proc DrawCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
     set startCircle [expr [min $slotSizeX $slotSizeY] / 8.0]
     set endCircle   [expr $startCircle*7.0]
     set cornerX     [expr $slotX*$slotSizeX]
-    set cornerY     [expr $slotY*$slotSizeY]
+    set cornerY     [expr $slotY*$slotSizeY] 
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
-		       -outline $theColor \
 		       -fill $theColor \
+		       -outline $theColor \
 		       -tag $theTag]
+
 
     $w move $theCircle $cornerX $cornerY
 
     $w addtag piece$slotX$slotY withtag $theCircle
-    #$w addtag tagPieceCoord$slotX$slotY withtag $theCircle
-    #$w addtag tagPieceOnCoord$slotX$slotY withtag $theCircle
 
     return $theCircle
 }
@@ -318,6 +304,7 @@ proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -fill $theColor \
+		       -outline $theColor \
 		       -tag $theTag]
 
     $w move $theCircle $cornerX $cornerY
@@ -339,8 +326,8 @@ proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
 proc GS_Initialize { c } {
     global boardRows boardCols
     global gFrameWidth gFrameHeight
+    global vertCellSize horizCellSize
 
-    #set mySize [min $gFrameWidth [expr $gFrameHeight * [expr 4.0/5]]]
     set mySize [min $gFrameWidth $gFrameHeight]
 
     set vertCellSize [expr $mySize / $boardRows]
@@ -373,12 +360,6 @@ proc GS_Initialize { c } {
     $c raise base
 
 }    
-
-#proc MovePiece { x1 y1 x2 y2 c} {
-#    $c lower piece$x1$y1
-#    $c itemconfig piece$x2$y2 -fill [$c itemcget piece$x1$y1 -fill]
-#    $c raise piece$x2$y2
-#}
 
 #proc MouseOverExpand { dot c } {
 #    global dotExpandAmount
@@ -425,43 +406,20 @@ proc GS_DrawPosition { c position } {
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     set pieceNumber 0
 
-#     puts "DrawPosition"
-#     puts $position
-#     puts $pieceString
-
     for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
 	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
 
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
-		#puts "white piece at $j, $i"
-		$c itemconfig piece$j$i -fill white
+		$c itemconfig piece$j$i -fill white -outline white
 		$c raise piece$j$i
 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
-		#puts "black piece at $j, $i"
-		$c itemconfig piece$j$i -fill black	
+		$c itemconfig piece$j$i -fill black -outline black
 		$c raise piece$j$i
 	    } else {}
 
 	    set pieceNumber [expr $pieceNumber + 1]
 	}
     }
-
-#     for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
-# 	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
-
-# 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
-# 		puts "white piece at $i, $j"
-# 		$c itemconfig piece$i$j -fill white
-# 		$c raise piece$i$j
-# 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
-# 		puts "black piece at $i, $j"
-# 		$c itemconfig piece$i$j -fill black	
-# 		$c raise piece$i$j
-# 	    } else {}
-
-# 	    set pieceNumber [expr $pieceNumber + 1]
-# 	}
-#     }
 
 }
 
@@ -478,16 +436,8 @@ proc GS_NewGame { c position } {
     # but if you want you can add a special behaivior here like an animation
     global boardRows boardCols
 
-#     puts "initialization started..."
-#     puts $boardRows
-#     puts $boardCols
-
     GS_Deinitialize $c
     GS_Initialize $c
-
-#     puts "done with initialization"
-#     puts $boardRows
-#     puts $boardCols
 
     GS_DrawPosition $c $position
 }
@@ -501,7 +451,7 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+    return ""
 }
 
 
@@ -516,8 +466,86 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    global boardRows boardCols boardSize
+    
+    set oldBoard [string range [C_GenericUnhash $oldPosition $boardSize] 0 [expr $boardSize-1]]
+    set newBoard [string range [C_GenericUnhash $newPosition $boardSize] 0 [expr $boardSize-1]]
 
-    GS_DrawPosition $c $newPosition
+    for {set y 0} {$y < $boardRows} {set y [expr $y + 1]} {
+	for {set x 0} {$x < $boardCols} {set x [expr $x + 1]} {
+	    
+	    set old [string index $oldBoard [Index $x $y]]
+	    set new [string index $newBoard [Index $x $y]]
+
+	    if { $old ne $new } {
+
+		if { $old eq " " } {
+		    set type fadein
+		} else {
+		    set type flip
+		}
+
+		if { $new eq "W" } {
+		    set color [lindex [GS_ColorOfPlayers] 1]
+		} else {
+		    set color [lindex [GS_ColorOfPlayers] 0]
+		}
+
+		FadePiece $c $x $y $color $type
+	    }
+	}
+    }
+}
+
+proc FadePiece { c x y newColor type } {
+    global boardRows boardCols boardSize
+    global gAnimationSpeed
+    global vertCellSize horizCellSize
+    global pi
+
+    if { $type != "flip" && $type != "fadein" } {
+	error type must be flip or fadein
+    }
+
+    set speed [expr 60 - $gAnimationSpeed*10]
+    
+    set startCircle [expr [min $horizCellSize $vertCellSize] / 8.0]
+    set endCircle   [expr $startCircle*7.0]
+    set width       [expr $endCircle - $startCircle]
+    
+    set cornerX     [expr $x*$horizCellSize]
+    set cornerY     [expr $y*$vertCellSize] 
+
+
+    if { $type == "fadein" } {
+	#we want to only do the last half if we're fading in
+	set loopStart [expr $speed/2]
+    } else {
+	#otherwise, do the whole thing
+	set loopStart 0
+    }
+
+    $c raise piece$x$y
+
+    for {set i $loopStart} {$i < $speed} {incr i} {
+
+	if { $i == [expr $speed/2] } {
+	    $c itemconfig piece$x$y -fill $newColor -outline $newColor
+	}
+
+	set size [expr cos([expr $pi*$i/$speed])]
+	set offsetX [expr $startCircle + (1-$size)*$width/2]
+	set pieceWidth [expr $size*$width]
+	
+	$c coords piece$x$y [expr $cornerX + $offsetX] \
+	    [expr $cornerY + $startCircle ] \
+	    [expr $cornerX + $offsetX + $pieceWidth] \
+	    [expr $cornerY + $endCircle ]
+		
+	after 1
+	update idletasks
+    }
+
 }
 
 
@@ -537,6 +565,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
+    global gNoAutoPass
 
     $c lower moves
 
@@ -551,7 +580,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } elseif {$value == "Lose"} {
 		set color green
 	    } else {
-		set color red
+		set color darkred
 	    }
 	}
 	
@@ -561,19 +590,22 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    set movetag movedot[GetXYFromMove $item]
 	    
 	    $c raise $movetag
-	    $c itemconfig $movetag -fill $color
+	    $c itemconfig $movetag -fill $color -outline $color
 	    
 	    $c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    $c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black"
-	    $c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color"
+	    $c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black -outline black"
+	    $c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color -outline $color"
 
 	} else {
-	    
-	    $c raise NoMovesText
+	    if { $gNoAutoPass } {
+		$c raise NoMovesText		
 
-	    $c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    $c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
-	    $c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
+		$c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
+		$c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
+		$c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
+	    } else {
+		ReturnFromHumanMove $move
+	    }
 
 	}
     }
@@ -652,7 +684,6 @@ proc GS_UndoGameOver { c position } {
 }
 
 
-## returns the x and y values
 proc GetXYFromMove {theMove} {
 
     set pos [lindex $theMove 0]
@@ -674,7 +705,7 @@ proc Column { index } {
 
 }
 
-proc Index { row col } {
+proc Index { col row } {
     global boardCols
 
     return [expr [expr $row * $boardCols] + $col]
