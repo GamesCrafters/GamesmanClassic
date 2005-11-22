@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.17 2005-11-22 03:45:01 trikeizo Exp $
+// $Id: mparadux.c,v 1.18 2005-11-22 09:32:44 trikeizo Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -53,6 +53,11 @@
 ** 11/21/2005 David  - Added help text (except the example play, because
 **                     solving the game takes too long). Cleaned up the
 **                     code a lot.
+** 11/22/2005 David  - Added functionality to support the rule that a
+**                     player cannot undo the move that his opponent has
+**                     just made. Unfortunately, this brings the number of
+**                     positions to ~37 billion. Will decide proper course
+**                     of action tomorrow.
 **
 **************************************************************************/
 
@@ -241,6 +246,7 @@ int boardSize;
 int numX;
 int numO;
 int numBlank;
+int numGenericPositions;
 
 int slotStrLength;
 
@@ -264,8 +270,15 @@ void                    initEvenBoard();
 void                    initCaches();
 void                    freeCaches();
 
+void                    AddMovesPerPair(MOVELIST **moves, char *board, int slot1, int slot2, MOVE lastMoveHash);
+BOOLEAN                 isOpen(char* board, int direction, int slot1, int slot2);
+
 MOVE                    hashMove(int type, int slot1, int slot2);
 void                    unhashMove(MOVE move, int* type, int* slot1, int* slot2);
+
+POSITION                paraduxHashInit(int boardSize, int* pieces_array, int (*fn)(int *));
+POSITION                paraduxHash(char* board, MOVE lastMoveHash, int player);
+char*                   paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash);
 
 // returns TRUE if square u,v is next to square x,y
 // where u,v and x,y are the row,column coordinates
@@ -367,16 +380,17 @@ void InitializeGame ()
   pieces[8] = numBlank;
   pieces[9] = -1;
 
-  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
+  //  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
+  gNumberOfPositions = paraduxHashInit(boardSize, pieces, NULL);
+
+  // Due to horrible performance, we cache all of the position lookup code
+  initCaches();
 
   if (boardSide % 2) {
     initOddBoard();
   } else {
     initEvenBoard();
   }
-
-  // Due to horrible performance, we cache all of the position lookup code
-  initCaches();
 }
 
 /* Initialize odd-sided board */
@@ -385,6 +399,8 @@ void initOddBoard() {
 
   char* board = (char *) SafeMalloc (sizeof(char) * boardSize);
 
+  // This is an impossible move used as a dummy for paraduxhashMove
+  MOVE lastMoveHash = hashMove(NW, 0, 1);
 
   for (row = 0; row <= maxRow; row++) {
     if (row < boardSide) {
@@ -422,7 +438,8 @@ void initOddBoard() {
     }
   }
 
-  gInitialPosition = generic_hash(board, firstGo);
+  //  gInitialPosition = generic_hash(board, firstGo);
+  gInitialPosition = paraduxHash(board, lastMoveHash, firstGo);
   SafeFree(board);
 }
 
@@ -431,6 +448,9 @@ void initEvenBoard() {
   int row, col, el = 0, maxCol = boardSide - 1, maxRow = boardSide * 2 - 2;
 
   char* board = (char *) SafeMalloc (sizeof(char) * boardSize);
+
+  // This is an impossible move used as a dummy for paraduxhashMove
+  MOVE lastMoveHash = hashMove(NW, 0, 1);
 
   for (row = 0; row <= maxRow; row++) {
     if (row < boardSide) {
@@ -470,7 +490,8 @@ void initEvenBoard() {
     }
   }
 
-  gInitialPosition = generic_hash(board, firstGo);
+  //  gInitialPosition = generic_hash(board, firstGo);
+  gInitialPosition = paraduxHash(board, lastMoveHash, firstGo);
   SafeFree(board);
 }
 
@@ -554,31 +575,60 @@ void freeCaches ()
 **
 ************************************************************************/
 
-// Returns true if the two pieces can move in the given direction
-BOOLEAN isOpen(char* board, int direction, int slot1, int slot2) {
-  int p1Top2 = NEIGHBORING_DIRECTION(slot1, slot2);
-  int p2Top1 = MAX_DIR - p1Top2;
+MOVELIST *GenerateMoves (POSITION position)
+{
+  MOVELIST *moves = NULL;
+    
+  int i;
+  char *board = SafeMalloc(sizeof(char) * boardSize);
+  int slot, nSlot;
+  char piece;
 
-  int p1Neighbor = GET_NEIGHBOR(slot1, direction),
-    p2Neighbor = getNeighbor(slot2, direction);
+  MOVE lastMoveHash;
 
-  if (direction == p1Top2) {
-    return p2Neighbor != INVALID && board[p2Neighbor] == '-';
-  } else if (direction == p2Top1) {
-    return p1Neighbor != INVALID && board[p1Neighbor] == '-';
-  } else {
-    return p1Neighbor != INVALID && board[p1Neighbor] == '-' && p2Neighbor != INVALID && board[p2Neighbor] == '-';
+  //  generic_unhash(position, board);
+  paraduxUnhash(position, board, &lastMoveHash);
+
+  for (i = 0; i < boardSize; i++) {
+    slot = i;
+
+    piece = board[i];
+
+    char otherPiece = (piece == valToChar[X] ? valToChar[O] : valToChar[X]);
+
+    if (piece != '-') {
+      // Check east
+      nSlot = GET_NEIGHBOR(i, E);
+      if (nSlot >= 0 && board[nSlot] == otherPiece) {
+	AddMovesPerPair(&moves, board, slot, nSlot, lastMoveHash);
+      }
+
+      // Check southwest
+      nSlot = GET_NEIGHBOR(i, SW);
+      if (nSlot >= 0 && board[nSlot] == otherPiece) {
+	AddMovesPerPair(&moves, board, slot, nSlot, lastMoveHash);
+      }
+
+      // Check southeast
+      nSlot = GET_NEIGHBOR(i, SE);
+      if (nSlot >= 0 && board[nSlot] == otherPiece) {
+	AddMovesPerPair(&moves, board, slot, nSlot, lastMoveHash);
+      }
+
+      // No need to check W NE or NW because we start from slot = 0 forwards
+      // So any W NE or NW should have been found by E SW or SE earlier. 
+    }
   }
 
-  // should never fall through to here
-  BadElse("isOpen");
-  return FALSE;
+  SafeFree(board);
+
+  return moves;
 }
 
-void AddMovesPerPair(MOVELIST **moves, char *board, int slot1, int slot2) {
+void AddMovesPerPair(MOVELIST **moves, char *board, int slot1, int slot2, MOVE lastMoveHash) {
   // Note that we will have to take care of not being able to undo a move here
 
-  int lastMoveHash = -1;
+  //  int lastMoveHash = -1;
 
   int curHash;
 
@@ -602,53 +652,26 @@ void AddMovesPerPair(MOVELIST **moves, char *board, int slot1, int slot2) {
   }
 }
 
-MOVELIST *GenerateMoves (POSITION position)
-{
-  MOVELIST *moves = NULL;
-    
-  int i;
-  char *board = SafeMalloc(sizeof(char) * boardSize);
-  int slot, nSlot;
-  char piece;
+// Returns true if the two pieces can move in the given direction
+BOOLEAN isOpen(char* board, int direction, int slot1, int slot2) {
+  int p1Top2 = NEIGHBORING_DIRECTION(slot1, slot2);
+  int p2Top1 = MAX_DIR - p1Top2;
 
-  generic_unhash(position, board);
+  int p1Neighbor = GET_NEIGHBOR(slot1, direction),
+    p2Neighbor = getNeighbor(slot2, direction);
 
-  for (i = 0; i < boardSize; i++) {
-    slot = i;
-
-    piece = board[i];
-
-    char otherPiece = (piece == valToChar[X] ? valToChar[O] : valToChar[X]);
-
-    if (piece != '-') {
-      // Check east
-      nSlot = GET_NEIGHBOR(i, E);
-      if (nSlot >= 0 && board[nSlot] == otherPiece) {
-	AddMovesPerPair(&moves, board, slot, nSlot);
-      }
-
-      // Check southwest
-      nSlot = GET_NEIGHBOR(i, SW);
-      if (nSlot >= 0 && board[nSlot] == otherPiece) {
-	AddMovesPerPair(&moves, board, slot, nSlot);
-      }
-
-      // Check southeast
-      nSlot = GET_NEIGHBOR(i, SE);
-      if (nSlot >= 0 && board[nSlot] == otherPiece) {
-	AddMovesPerPair(&moves, board, slot, nSlot);
-      }
-
-      // No need to check W NE or NW because we start from slot = 0 forwards
-      // So any W NE or NW should have been found by E SW or SE earlier. 
-    }
+  if (direction == p1Top2) {
+    return p2Neighbor != INVALID && board[p2Neighbor] == '-';
+  } else if (direction == p2Top1) {
+    return p1Neighbor != INVALID && board[p1Neighbor] == '-';
+  } else {
+    return p1Neighbor != INVALID && board[p1Neighbor] == '-' && p2Neighbor != INVALID && board[p2Neighbor] == '-';
   }
 
-  SafeFree(board);
-
-  return moves;
+  // should never fall through to here
+  BadElse("isOpen");
+  return FALSE;
 }
-
 
 /************************************************************************
 **
@@ -668,17 +691,24 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  int type, slot1, slot2, target1, target2, temp1, temp2;
+  int type, slot1, slot2, target1, target2, temp1, temp2, hashVal;
+
+  // This is so that a user cannot undo his opponent's move
+  // (which would make the game a trivial draw)
+  MOVE oppositeMove;
 
   char *board = SafeMalloc(sizeof(char) * boardSize);
 
   unhashMove(move, &type, &slot1, &slot2);
-  generic_unhash(position, board);
+  //  generic_unhash(position, board);
+  paraduxUnhash(position, board, &oppositeMove);
 
   if (type == SWAP) {
     temp1 = board[slot1];
     board[slot1] = board[slot2];
     board[slot2] = temp1;
+
+    oppositeMove = hashMove(SWAP, slot1, slot2);
   } else {
     target1 = GET_NEIGHBOR(slot1, type);
     target2 = GET_NEIGHBOR(slot2, type);
@@ -689,9 +719,13 @@ POSITION DoMove (POSITION position, MOVE move)
     board[slot2] = valToChar[BLANK];
     board[target1] = temp1;
     board[target2] = temp2;
+
+    oppositeMove = hashMove(MAX_DIR - type, target1, target2);
   }
 
-  int hashVal = generic_hash(board, nextPlayer(whoseMove(position)));
+  //  int hashVal = generic_hash(board, nextPlayer(whoseMove(position)));
+  hashVal = paraduxHash(board, oppositeMove, nextPlayer(whoseMove(position)));
+
   SafeFree(board);
 
   return hashVal;
@@ -727,9 +761,12 @@ VALUE Primitive (POSITION position)
   char *board = SafeMalloc(sizeof(char) * boardSize);
   int slot, curSlot;
   char piece, curPiece, playersPiece = valToChar[whoseMove(position)];
-  int i,j;
+  int i, j;
 
-  generic_unhash(position, board);
+  MOVE lastMoveHash;
+
+  //  generic_unhash(position, board);
+  paraduxUnhash(position, board, &lastMoveHash);
 
   for (i = 0; i < boardSize; i++) {
     slot = i;
@@ -830,7 +867,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   int el = 0, initEl;
   int row, col, i, totalCols = boardSide;
   char* board = (char*) SafeMalloc(sizeof(char) * boardSize);
-  generic_unhash(position, board);
+
+  MOVE lastMoveHash;
+
+  //  generic_unhash(position, board);
+  paraduxUnhash(position, board, &lastMoveHash);
 
   for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
     initEl = el;
@@ -1305,6 +1346,27 @@ void unhashMove (MOVE move, int* type, int* slot1, int* slot2) {
   *slot2 = GET_NEIGHBOR(*slot1, UNHASH_MOVE_NDIR(move));
 }
 
+POSITION paraduxHashInit(int boardSize, int* pieces_array, int (*fn)(int *)) {
+  numGenericPositions = generic_hash_init(boardSize, pieces_array, fn);
+
+  return boardSize * NUM_DIRS * NUM_DIRS * numGenericPositions;
+}
+
+POSITION paraduxHash(char* board, MOVE lastMoveHash, int player) {
+  // First, get the generic hash
+  POSITION genericPart = generic_hash(board, player);
+
+  return lastMoveHash * numGenericPositions + genericPart;
+}
+
+char* paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash) {
+  *lastMoveHash = hashed / numGenericPositions;
+
+  generic_unhash(hashed % numGenericPositions, dest);
+
+  return dest;
+}
+
 /************************************************************************
 **
 **  SUPPORT FUNCTIONS
@@ -1393,7 +1455,6 @@ int getNeighbor(int slot, int direction) {
   5 W
  -1 Not neighboring
 */
-
 int neighboringDirection(int slot, int neighbor) {
   int pCol, pRow;
   int nCol, nRow;
@@ -1610,8 +1671,6 @@ void runTests() {
   for (i = 0; i < boardSize; i++) {
     slotToRC(i, &row, &col);
     printf("   - slotToRC(%d) returns (%d, %d)\n", i, row, col);
-    //    SLOT_TO_ROW(i) = row;
-    //    SLOT_TO_COL(i) = col;
     printf("   - (SLOT_TO_ROW(%d), SLOT_TO_COL(%d)) returns (%d, %d)\n", i, i, SLOT_TO_ROW(i), SLOT_TO_COL(i));
 
     int slot = rcToSlot(row, col);
@@ -1650,6 +1709,9 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.17  2005/11/22 03:45:01  trikeizo
+// Added help text and cleaned up the code.
+//
 // Revision 1.16  2005/11/19 09:24:57  trikeizo
 // Compiling and solving--but still some issues to resolve with the code.
 //
