@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.18 2005-11-22 09:32:44 trikeizo Exp $
+// $Id: mparadux.c,v 1.19 2005-11-23 03:29:33 trikeizo Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -58,6 +58,16 @@
 **                     just made. Unfortunately, this brings the number of
 **                     positions to ~37 billion. Will decide proper course
 **                     of action tomorrow.
+** 11/22/2005 David  - Solved Paradux without the undo stuff last night.
+**                     At most, a player can have 34 moves (experimentally
+**                     discovered). Therefore, I simply enumerate the
+**                     moves and the hash actually fits under 2^31.
+**                     Unfortunately, memdb calls malloc on
+**                     gNumberOfPositions * sizeof(VALUE)--which is about
+**                     2 GB--which my computer can't handle. Using 2-bit
+**                     solver thrases my hard drive. This is about as
+**                     compact as we can get... Time to commit and let
+**                     Yanpei think about this one.
 **
 **************************************************************************/
 
@@ -248,6 +258,9 @@ int numO;
 int numBlank;
 int numGenericPositions;
 
+/* The maximum number of moves in one turn; this is experimentally derived. */
+int maxNumMoves;
+
 int slotStrLength;
 
 /* Whether or not the caches have been initialized already */
@@ -359,6 +372,18 @@ void InitializeGame ()
     slotStrL++;
   }
   slotStrLength = slotStrL;
+
+  switch(boardSide) {
+  case 3:
+    maxNumMoves = 34;
+    break;
+  default:
+    printf("Warning: maxNumMoves has not yet been generated for a board of this size.\n\n");
+    maxNumMoves = boardSize * NUM_DIRS * NUM_DIRS;
+  }
+
+  // Add one for the first move
+  maxNumMoves++;
 
   if (boardSide % 2) {
     // odd-sided board
@@ -575,19 +600,13 @@ void freeCaches ()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (POSITION position)
+MOVELIST *GenerateMovesFromBoard (char *board, MOVE lastMoveHash)
 {
   MOVELIST *moves = NULL;
-    
   int i;
-  char *board = SafeMalloc(sizeof(char) * boardSize);
+
   int slot, nSlot;
   char piece;
-
-  MOVE lastMoveHash;
-
-  //  generic_unhash(position, board);
-  paraduxUnhash(position, board, &lastMoveHash);
 
   for (i = 0; i < boardSize; i++) {
     slot = i;
@@ -619,6 +638,20 @@ MOVELIST *GenerateMoves (POSITION position)
       // So any W NE or NW should have been found by E SW or SE earlier. 
     }
   }
+
+  return moves;
+}
+
+MOVELIST *GenerateMoves (POSITION position)
+{
+  char *board = SafeMalloc(sizeof(char) * boardSize);
+
+  MOVE lastMoveHash;
+
+  //  generic_unhash(position, board);
+  paraduxUnhash(position, board, &lastMoveHash);
+
+  MOVELIST *moves = GenerateMovesFromBoard(board, lastMoveHash);
 
   SafeFree(board);
 
@@ -835,7 +868,6 @@ VALUE Primitive (POSITION position)
 
       // No need to check W NE or NW because we search from slot = 0 forwards
       // So any W NE or NW should have been found by E SW or SE earlier. 
-
     }
   }
 
@@ -872,6 +904,12 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   //  generic_unhash(position, board);
   paraduxUnhash(position, board, &lastMoveHash);
+
+  if (lastMoveHash > 0) {
+    printf("NOTE: You may not make the move ");
+    PrintMove(lastMoveHash);
+    printf(" as it would undo the last move.\n\n");
+  }
 
   for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
     initEl = el;
@@ -910,7 +948,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
       }
       for (col = 0; col < totalCols; col++, el++) {
 	printf("%3d  ", el);
-      }
+      } 
     } // end lengend
     
     printf("\n\n");
@@ -940,7 +978,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **              STRING  computersName : The computer's name. 
 **
 ************************************************************************/
-
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
   int type, slot1, slot2;
@@ -1050,7 +1087,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ** DESCRIPTION: Rudimentary check to check if input is in the move form
 **              you are expecting. Does not check if it is a valid move.
 **              Only checks if it fits the move form.
-**
+**  POSITION 
 **              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
 **                                          COMMANDS IN YOUR GAME
 **              ?, s, u, r, h, a, c, q
@@ -1349,20 +1386,61 @@ void unhashMove (MOVE move, int* type, int* slot1, int* slot2) {
 POSITION paraduxHashInit(int boardSize, int* pieces_array, int (*fn)(int *)) {
   numGenericPositions = generic_hash_init(boardSize, pieces_array, fn);
 
-  return boardSize * NUM_DIRS * NUM_DIRS * numGenericPositions;
+  return maxNumMoves * numGenericPositions;
+
+  //  return boardSize * NUM_DIRS * NUM_DIRS * numGenericPositions;
 }
 
 POSITION paraduxHash(char* board, MOVE lastMoveHash, int player) {
   // First, get the generic hash
   POSITION genericPart = generic_hash(board, player);
 
-  return lastMoveHash * numGenericPositions + genericPart;
+  // Then, enumerate the moves
+  MOVELIST *moves = GenerateMovesFromBoard(board, INVALID);
+
+  // Find the index of the move that undoes the last move
+  int index = 0;
+  for (; moves != NULL && moves->move != lastMoveHash; moves = moves->next, index++);
+
+  if (moves == NULL) {
+    index = maxNumMoves - 1;
+  }
+
+  //  printf("paraduxHash: genericPart = %d, index = %d\n", (int)genericPart, index);
+
+  return index * numGenericPositions + genericPart;
+  //  return genericPart;
+  //  return lastMoveHash * numGenericPositions + genericPart;
 }
 
 char* paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash) {
-  *lastMoveHash = hashed / numGenericPositions;
+  // First, get the index
+  int index = hashed / numGenericPositions;
 
+  // Get the board that corresponds to the generic part of the position
   generic_unhash(hashed % numGenericPositions, dest);
+
+  // Then, enumerate the moves from the board 
+  MOVELIST *moves = GenerateMovesFromBoard(dest, INVALID);
+
+  // Finally, find the lastMoveHash using the index
+  int i = 0;
+  for (; i < index && moves != NULL; moves = moves->next, i++);
+
+  //  printf("paraduxUnhash: genericPart = %d, index = %d\n", (int)(hashed % numGenericPositions), index);
+
+  if (moves == NULL) {
+    *lastMoveHash = -1;
+  } else {
+    *lastMoveHash = moves->move;
+  }
+
+  //  *lastMoveHash = hashed / numGenericPositions;
+
+  //  generic_unhash(hashed % numGenericPositions, dest);
+
+  //  *lastMoveHash = -1;
+  //  generic_unhash(hashed, dest);
 
   return dest;
 }
@@ -1709,6 +1787,9 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2005/11/22 09:32:44  trikeizo
+// Added support for the rule that a player cannot undo his opponent's move. This brings the number of positions to ~37 billion. Boo.
+//
 // Revision 1.17  2005/11/22 03:45:01  trikeizo
 // Added help text and cleaned up the code.
 //
