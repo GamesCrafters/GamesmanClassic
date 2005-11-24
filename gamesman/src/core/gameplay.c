@@ -160,7 +160,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	    printf("\n%s (player %s) Wins!\n\n",player->turn?playerOne->name:playerTwo->name,player->turn?"one":"two");
 	    break;
 	case win:
-	    printf("\n%s (player %s) Wins!\n\n",player->turn?playerTwo->name:playerOne->name,player->turn?"two":"one");
+	  printf("\n%s (player %s) Wins!\n\n",player->turn?playerTwo->name:playerOne->name,player->turn?"two":"one");
 	    break;
 	default:
 	    if(userInput == Abort) {
@@ -191,7 +191,12 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		case 'u': case 'U':
 		    if(gOpponent != ComputerComputer) {
 			undo = HandleUndoRequest(&position,undo,&error);
-			moveListHandleUndo(mlist);
+			if(!error && gOpponent == AgainstHuman) {
+			  player = (player->turn ? playerOne : playerTwo);
+			}
+			if (!error) {
+			  mlist = moveListHandleUndo(mlist);
+			}
 			playing = TRUE;
 			menu = FALSE;
 		    }
