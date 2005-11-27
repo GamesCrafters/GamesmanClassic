@@ -34,6 +34,10 @@ proc GS_InitGameSpecific {} {
     global gameDimension
     set gameDimension 4
     
+    ### Set NumPieces, number of pieces total
+    global numPieces
+    set numPieces [expr int(pow(2,$gameDimension))]
+    
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
@@ -210,7 +214,7 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    ########### graphics constants #####
+    ########### graphics constants ##############################################################
     global canvasWidth canvasHeight
 
 	global gameDimension
@@ -220,12 +224,18 @@ proc GS_Initialize { c } {
     
     # size of the board within the canvas
     global boardWidth canvasWidth
-    set boardWidth [expr $canvasWidth * .75]
-    set boardHeight [expr $canvasHeight * .75]
+    set boardWidth [expr $canvasWidth/($gameDimension+1)*($gameDimension)]
+    set boardHeight [expr $canvasHeight/($gameDimension+1)*($gameDimension)]
     
     global slotSize cellPadding megaCellPadding arrowWidth
     set slotSize(w) [expr $boardWidth / $gameDimension]
     set slotSize(h) [expr $boardHeight / $gameDimension]
+    
+    global dotExpandAmount dotSize
+    set dotExpandAmount [expr ($slotSize(h)+$slotSize(w))/18]
+    set dotSize(w) [expr $slotSize(w)/9]
+    set dotSize(h) [expr $slotSize(h)/9]
+    
     #set cellPadding 10
     #set megaCellPadding [expr 3 * $cellPadding]
     #set arrowWidth [expr $slotSize(w) / 8]
@@ -234,7 +244,7 @@ proc GS_Initialize { c } {
     set border [expr ($slotSize(w)+$slotSize(h))/100]
     # font for label
     font create labelFont -family Helvetica -size [expr int(floor($slotSize(h)/7))] 
-    ############# graphics constants #######################################
+    ############################## board #######################################
     
     # draw the board and lines
     
@@ -258,15 +268,132 @@ proc GS_Initialize { c } {
     set hand [$c create rectangle $boardWidth 0 [expr $slotSize(w) + $boardWidth] $slotSize(h) -fill pink] 
     set handLabel [$c create text [expr $slotSize(w)/2 + $boardWidth] [expr $slotSize(h)/6] -font labelFont -text "Hand:"] 
     
-    # Unused Pieces
-    set unusedContainer [$c create oval [expr $slotSize(w)/2 + $border] $boardHeight \
-    					[expr $slotSize(w) + $boardWidth + $border] [expr $boardHeight + $slotSize(h)] \
-    					-fill lightGreen -width $border]
-   	set ContainerLabel [$c create text [expr ($slotSize(w)/2 + $slotSize(w) + $boardWidth)/2]  [expr $boardHeight + $slotSize(h)/6] \
-   						-font labelFont -text "Unused Pieces:"] 
+    # Unused Pieces Container
+    set x1 [expr $slotSize(w)/2 + $border]
+    set y1 $boardHeight
+    set x2 [expr $slotSize(w) + $boardWidth + $border]
+    set y2 [expr $boardHeight + $slotSize(h)]
+    set unusedContainer [$c create oval $x1 $y1 $x2 $y2	-fill lightGreen -width $border]
+   	set ContainerLabel [$c create text [expr ($slotSize(w)/2 + $slotSize(w) + $boardWidth)/2] \
+   					   [expr $boardHeight + $slotSize(h)/6] \
+   					   -font labelFont -text "Pieces Left:"] 
+   	# Unused Pieces				   
+ 	global unusedPieces numPieces
+ 	# font for pieces
+ 	global unusedPiecesFont unusedPiecesFontExpand
+ 	font create unusedPiecesFont -family Helvetica -size [expr int(floor($slotSize(h)/9))] 
+ 	font create unusedPiecesFontExpand -family Helvetica -size [expr int(floor($slotSize(h)/5))] 
+   
+ 	# the first (2^gamedimension)/2 = [expr pow(2,$gameDimension-1)]
+ 	# for 4-d, i iterates 0-7
+ 	
+ 	for {set i 0} {$i < [expr $numPieces/2]} {incr i 1} {
+ 		set xPos [expr int($slotSize(w)) + $i*$slotSize(w)/7*3]
+ 		drawUnusedPiece $i $xPos [expr int($y1 + $slotSize(h)/3)] $c
+ 	}
+ 	# 8-16
+ 	for {set i [expr $numPieces/2]} {$i < $numPieces} {incr i 1} {
+ 		set xPos [expr int($slotSize(w)) + ($i-$numPieces/2)*$slotSize(w)/7*3]
+ 		drawUnusedPiece $i $xPos [expr int($y1 + $slotSize(h)/3*2)] $c
+ 	}
+ 	# bind these pieces to command
+ 	for {set i 0} {$i < $numPieces} {incr i 1} {
+ 		$c bind $unusedPieces($i) <Enter> "MouseOverExpandText $unusedPieces($i) $c"
+ 		$c bind $unusedPieces($i) <Leave> "MouseOutContractText $unusedPieces($i) $c"
+ 		# drag
+		$c bind $unusedPieces($i) <Button-1> {CanvasMark %x %y %W}
+		$c bind $unusedPieces($i) <B1-Motion> {CanvasDrag %x %y %W}
+ 	}
+ 	
+ 	global dots
+ 	# draw dots
+ 	for {set i 0} {$i < $gameDimension} {incr i 1} {
+ 		for {set j 0} {$j < $gameDimension} {incr j 1} {
+ 			set x1 [expr ($slotSize(w)/2 + $i*$slotSize(w)) - $dotSize(w)]
+			set y1 [expr ($slotSize(h)/2 + $j*$slotSize(h)) - $dotSize(h)]
+			set x2 [expr ($slotSize(w)/2 + $i*$slotSize(w)) + $dotSize(w)]
+			set y2 [expr ($slotSize(h)/2 + $j*$slotSize(h)) + $dotSize(h)]
+ 			set dots($i,$j) [$c create oval $x1 $y1 $x2 $y2 -fill pink -outline pink -tag dots]
+ 			 
+ 			$c bind $dots($i,$j) <Enter> "MouseOverExpand $dots($i,$j) $c"
+ 			$c bind $dots($i,$j) <Leave> "MouseOutContract $dots($i,$j) $c"
+ 		}
+ 	}
+
+}	
+#############################################################
+################### HELPER FUNCTIONS ########################
+# the built in create oval function is HORRIBLE! HORRIBLE!!
+# forgot what the radiousX and radiusY are called...
+proc drawOval { c x y radiusX radiusY theTag theColor } {
+	set x1 [expr $x - $radiusX]
+	set y1 [expr $y - $radiusY]
+	set x2 [expr $x + $radiusX]
+	set y2 [expr $y + $radiusY]
+	return [$c create oval $x1 $y1 $x2 $y2 -fill $theColor -tag $theTag]
 }
-proc drawPiece {piece} {
+# pieces in quarto works like: piece is a short with 4 bits,
+# rightmost bit is trait 0, then 1, 2, 3... etc
+proc drawUnusedPiece { piece x y c } {
+	# an array for unusedPieces handles
+	global unusedPieces
+ 	global unusedPiecesFont
+ 	
+	set bits [intToBits $piece]
+	set unusedPieces($piece) [$c create text $x $y -text $bits -font unusedPiecesFont -tags unusedPieces]
 }
+# int to bits
+# returns a bit string given int
+proc intToBits {x} {
+	global gameDimension
+	set ans ""
+	# loops through traits
+	for {set i 0} {$i < $gameDimension} { incr i 1} {
+		set tmp [cconcat $ans [expr ($x >> $i) & 1]]
+		set ans $tmp
+	}
+	return $ans
+}
+proc cconcat args {join $args ""}
+proc CanvasMark {x y w} {
+	global canvas
+	set canvas($w,obj) [$w find closest $x $y]
+	set canvas($w,x) $x
+	set canvas($w,y) $y
+}
+proc CanvasDrag {x y w} {
+	global canvas
+	set dx [expr $x - $canvas($w,x)]
+	set dy [expr $y - $canvas($w,y)]
+	$w move $canvas($w,obj) $dx $dy
+	
+    global unusedPiecesFontExpand
+    $w itemconfigure $canvas($w,obj) -font unusedPiecesFontExpand
+	set canvas($w,x) $x
+	set canvas($w,y) $y
+}
+#### MouseOverExpandText
+proc MouseOverExpandText { obj c } {
+    global unusedPiecesFontExpand
+    $c itemconfigure $obj -font unusedPiecesFontExpand
+}
+
+#### MouseOutContractText
+proc MouseOutContractText { obj c } {
+	global unusedPiecesFont
+    $c itemconfigure $obj -font unusedPiecesFont
+}
+#### MouseOverExpand
+proc MouseOverExpand { obj c } {
+    global dotExpandAmount
+    $c itemconfig $obj -width $dotExpandAmount
+}
+
+#### MouseOutContract
+proc MouseOutContract { obj c } {
+    $c itemconfigure $obj -width 0
+}
+
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
 # is here, so whoever put this here should update this.  -Jeff
@@ -334,7 +461,7 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-	### TODO: Fill this in
+	GS_DrawPosition $c $newPosition
     
 }
 
@@ -356,9 +483,32 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    ### TODO: Fill this in
-}
+	global unusedPieces
+	### TODO: Fill this in
+	foreach item $moveList {
+		set move [lindex $item 0]
+		set value [lindex $item 1]
+		set color cyan
 
+		if {$moveType == "value"} {
+			if {$value == "Tie"} {
+				set color yellow
+				} elseif {$value == "Lose"} {
+					set color green
+					} else {
+						set color red
+					}
+				}
+		$c bind $unusedPieces(0) <ButtonRelease-1> "ReturnFromHumanMove $move" 
+		#set dest [GetDestFromMove $move]
+		#set source [GetSourceFromMove $move]
+		#$c raise arrow$source$dest
+		#$c itemconfig arrow$source$dest -fill $color
+		#$c bind arrow$source$dest <ButtonRelease-1> "ReturnFromHumanMove $move"
+		#$c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black"
+		#$c bind arrow$source$dest <Leave> "$c itemconfig arrow$source$dest -fill $color"
+	}
+}
 
 #############################################################################
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
