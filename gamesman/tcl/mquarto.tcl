@@ -8,11 +8,11 @@
 ## UPDATE HISTORY:
 ##
 ##
-## 30 Jan 2005 Amy: file created 
+## 26 Nov 2005 Amy: file created 
+## 28 Nov 2005 Amy: attempted to bind moves, don't think i can do anything else 
+## without writing unhash first
 #############################################################################
 
-#set canvasWidth  500; # 230 for first ever board
-#set canvasHeight 500
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -32,7 +32,11 @@ proc GS_InitGameSpecific {} {
     
     ### Set default gameDimension, currently constant and 3 dimensions
     global gameDimension
-    set gameDimension 4
+    set gameDimension 2
+    
+    ### Set HAND slot
+    global hand
+    set hand 0
     
     ### Set NumPieces, number of pieces total
     global numPieces
@@ -214,11 +218,11 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    ########### graphics constants ##############################################################
+    ########### graphics constants ##########################################
     global canvasWidth canvasHeight
 
 	global gameDimension
-	    # Set canvas size based on canvas given to us
+	# Set canvas size based on canvas given to us
     set canvasWidth [$c cget -width]
     set canvasHeight [$c cget -height]
     
@@ -249,24 +253,24 @@ proc GS_Initialize { c } {
     # draw the board and lines
     
     # board
-    set board [$c create rectangle 0 0 $boardWidth $boardHeight -fill gray]
+    set board [$c create rectangle 0 0 $boardWidth $boardHeight -fill gray -tag board]
     # grids
     for {set i 1} {$i < $gameDimension} {incr i} {
 	$c create line \
 	    [expr $i * $slotSize(w)] 0 \
 	    [expr $i * $slotSize(w)] $boardHeight \
-	    -tags [list lines]
+	    -tags lines
     }
     for {set j 1} {$j < $gameDimension} {incr j} {
 	$c create line \
 	    0 [expr $j * $slotSize(h)]  \
 	    $boardWidth [expr $j * $slotSize(h)] \
-	    -tags [list lines]
+	    -tags lines
     }
     
     # Hand slot
-    set hand [$c create rectangle $boardWidth 0 [expr $slotSize(w) + $boardWidth] $slotSize(h) -fill pink] 
-    set handLabel [$c create text [expr $slotSize(w)/2 + $boardWidth] [expr $slotSize(h)/6] -font labelFont -text "Hand:"] 
+    set hand [$c create rectangle $boardWidth 0 [expr $slotSize(w) + $boardWidth] $slotSize(h) -fill pink -tag base] 
+    set handLabel [$c create text [expr $slotSize(w)/2 + $boardWidth] [expr $slotSize(h)/6] -font labelFont -text "Hand:" -tag base] 
     
     # Unused Pieces Container
     set x1 [expr $slotSize(w)/2 + $border]
@@ -309,28 +313,30 @@ proc GS_Initialize { c } {
  	# draw dots
  	for {set i 0} {$i < $gameDimension} {incr i 1} {
  		for {set j 0} {$j < $gameDimension} {incr j 1} {
- 			set x1 [expr ($slotSize(w)/2 + $i*$slotSize(w)) - $dotSize(w)]
-			set y1 [expr ($slotSize(h)/2 + $j*$slotSize(h)) - $dotSize(h)]
-			set x2 [expr ($slotSize(w)/2 + $i*$slotSize(w)) + $dotSize(w)]
-			set y2 [expr ($slotSize(h)/2 + $j*$slotSize(h)) + $dotSize(h)]
- 			set dots($i,$j) [$c create oval $x1 $y1 $x2 $y2 -fill pink -outline pink -tag dots]
- 			 
+ 			set dots($i,$j) [drawOval $c \
+ 							[expr ($slotSize(w)/2 + $i*$slotSize(w))] \
+ 							[expr ($slotSize(h)/2 + $j*$slotSize(h))] \
+ 							$dotSize(w) $dotSize(h) \
+ 							dots pink pink]
  			$c bind $dots($i,$j) <Enter> "MouseOverExpand $dots($i,$j) $c"
  			$c bind $dots($i,$j) <Leave> "MouseOutContract $dots($i,$j) $c"
  		}
  	}
-
+ 	$c lower dots all
+ 	#$c lower unusedPieces all
+    #$c raise lines all
+  
 }	
 #############################################################
 ################### HELPER FUNCTIONS ########################
 # the built in create oval function is HORRIBLE! HORRIBLE!!
 # forgot what the radiousX and radiusY are called...
-proc drawOval { c x y radiusX radiusY theTag theColor } {
+proc drawOval { c x y radiusX radiusY theTag theColor outlineColor} {
 	set x1 [expr $x - $radiusX]
 	set y1 [expr $y - $radiusY]
 	set x2 [expr $x + $radiusX]
 	set y2 [expr $y + $radiusY]
-	return [$c create oval $x1 $y1 $x2 $y2 -fill $theColor -tag $theTag]
+	return [$c create oval $x1 $y1 $x2 $y2 -fill $theColor -outline $outlineColor -tag $theTag]
 }
 # pieces in quarto works like: piece is a short with 4 bits,
 # rightmost bit is trait 0, then 1, 2, 3... etc
@@ -400,6 +406,7 @@ proc MouseOutContract { obj c } {
 #############################################################################
 proc GS_Deinitialize { c } {
     $c delete all
+    #delete fonts??
 }
 
 
@@ -483,7 +490,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-	global unusedPieces
+	global unusedPieces hand moves
+	#$c raise base all
 	### TODO: Fill this in
 	foreach item $moveList {
 		set move [lindex $item 0]
@@ -499,24 +507,89 @@ proc GS_ShowMoves { c moveType position moveList } {
 						set color red
 					}
 				}
-		$c bind $unusedPieces(0) <ButtonRelease-1> "ReturnFromHumanMove $move" 
-		#set dest [GetDestFromMove $move]
-		#set source [GetSourceFromMove $move]
-		#$c raise arrow$source$dest
-		#$c itemconfig arrow$source$dest -fill $color
-		#$c bind arrow$source$dest <ButtonRelease-1> "ReturnFromHumanMove $move"
-		#$c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black"
-		#$c bind arrow$source$dest <Leave> "$c itemconfig arrow$source$dest -fill $color"
+		set piece [getPiece $move]
+		set slot [getSlot $move]
+		
+		if { $slot == $hand } {
+			$c bind $unusedPieces($piece) <ButtonRelease-1> "putIntoHand $c $piece"
+		}
+		
+		#$c raise UnusedPieces($piece) all
+		set moves($piece,$slot) $move
+		
 	}
+	global currentMove
+	set currentMove(piece) -1
+	set currentMove(slot) -1
+	#$c raise unusedPieces all
+	#$c raise base all 
+	#$c raise lines all
 }
+############################## MOVE ##########################################
+### how to get pieces and places from MOVE
+# the C code:
+#/* Creates move given slot and piece */
+#MOVE CreateMove( MOVE slot, MOVE piece ) {	
+#    return slot + ( piece << ( GAMEDIMENSION + 1 ) );
+#}
+# slot is from 0 to NUMPIECES
+### GetSlot
+proc getSlot { move } {
+	global numPieces
+	return [expr $move & $numPieces]
+}
+### GetPiece
+proc getPiece { move } {
+	global gameDimension
+	set piece [expr $move >> ($gameDimension+1)]
+	return $piece
+}
+### createMove
+### the C code equivalent, makes Move from slot and piece
+### not used
+#proc createMove { slot piece } {
+#	global gameDimension
+#	return [expr $slot + ( $piece << ($gameDimension+1))]
+#}
+########################### ReturnFromHumanMove ################################
+### markSlot
 
+### markPiece
+### gets 
+### putIntoHand puts the piece into the hand
+### currentMove stores part of the current move
+proc putIntoHand { c piece } {
+	global currentMove unusedPieces boardWidth slotSize hand
+	drawHandSlotPiece $c $piece
+	$c lower unusedPieces all
+	set currentMove(slot) $hand
+	set currentMove(piece) $piece
+	$c create text 20 20 -text $hand$piece
+	returnMoveIfNeeded 
+}
+proc drawHandSlotPiece { c piece } {
+	global inHand slotSize boardWidth
+	set bits [intToBits $piece]
+	set inHand($piece) [$c create text [expr $boardWidth + $slotSize(w)/2] [expr $slotSize(h)/2] \
+										 -text $bits -font unusedPiecesFont -tags inHand]
+}
+proc returnMoveIfNeeded {} {
+	global currentMove moves
+	if {[expr ($currentMove(slot) != -1) && ($currentMove(piece) != -1)]} {
+		bell
+		ReturnFromHumanMove $moves($currentMove(piece),$currentMove(slot))
+	} else {
+		return 
+	}
+}	
+	
 #############################################################################
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
 # same as GS_ShowMoves.
 # You might not use all the arguments, and that's okay.
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-
+	$c lower inHand all
     ### TODO: Fill this in
 
 }
