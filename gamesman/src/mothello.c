@@ -378,9 +378,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 
 POSITION GetInitialPosition()
 {
-    printf( "initial position is: %d\n", gInitialPosition );
-    fflush( stdout );
-
     if ( gInitialPosition == 0 )
 	init_board_hash();
 
@@ -411,7 +408,6 @@ POSITION SetupInitialPosition()
 	do
 	{
 		board = getBoard(gInitialPosition);
-		printf( "current board: %s\n", board );
 		blacktally = 0;
 		whitetally = 0;
 		blanktally = 0;
@@ -475,16 +471,8 @@ POSITION SetupInitialPosition()
 
 	init_board_hash();
 
-	printf( "board: %s\n", board );
-	printf( "hashed value: %d\n", generic_hash( board, BLACK ));
 	gInitialPosition = generic_hash( board, BLACK );
 
-	char* temp;
-	temp = generic_unhash( gInitialPosition, temp );
-	printf( "hash/un gen:   \"%s\"\n", temp );
-	printf( "hash/un board: \"%s\"\n", getBoard( gInitialPosition ) );
-
-	printf( "init pos: %d", GetInitialPosition() );
 	return(gInitialPosition);
 
 }
@@ -1107,9 +1095,6 @@ void setOption(int option)
 	variant_NoGenMovesRestriction = option & 0x01;
 	ChangeRows( (option >> 0x01) & 0x0f);
 	ChangeCols( option >> 0x05 );
-
-	printf("C setOption\nmoves res: %d, cols: %d, rows: %d\n", variant_NoGenMovesRestriction, OthCols, OthRows);
-	fflush(stdout);
 
 	init_board_hash();
 }
