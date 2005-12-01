@@ -466,11 +466,18 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    
+    AnimateMove $c $oldPosition $newPosition
+
+}
+
+proc AnimateMove { c oldPosition newPosition } {
     global boardRows boardCols boardSize
     
     set oldBoard [string range [C_GenericUnhash $oldPosition $boardSize] 0 [expr $boardSize-1]]
     set newBoard [string range [C_GenericUnhash $newPosition $boardSize] 0 [expr $boardSize-1]]
 
+    #check for new and removed pieces
     for {set y 0} {$y < $boardRows} {set y [expr $y + 1]} {
 	for {set x 0} {$x < $boardCols} {set x [expr $x + 1]} {
 	    
@@ -478,12 +485,33 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	    set new [string index $newBoard [Index $x $y]]
 
 	    if { $old ne $new } {
-
+		
 		if { $old eq " " } {
-		    set type fadein
-		} else {
-		    set type flip
+		    
+		    if { $new eq "W" } {
+			set color [lindex [GS_ColorOfPlayers] 1]
+		    } else {
+			set color [lindex [GS_ColorOfPlayers] 0]
+		    }
+		    
+		    FadePiece $c $x $y $color fadein
 		}
+
+		if { $new eq " " } {
+		    FadePiece $c $x $y black fadeout
+		}
+	    }
+	}
+    }
+
+    #check for changed pieces
+    for {set y 0} {$y < $boardRows} {set y [expr $y + 1]} {
+	for {set x 0} {$x < $boardCols} {set x [expr $x + 1]} {
+	    
+	    set old [string index $oldBoard [Index $x $y]]
+	    set new [string index $newBoard [Index $x $y]]
+
+	    if { $old ne $new && $old ne " " && $new ne " " } {
 
 		if { $new eq "W" } {
 		    set color [lindex [GS_ColorOfPlayers] 1]
@@ -491,10 +519,11 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		    set color [lindex [GS_ColorOfPlayers] 0]
 		}
 
-		FadePiece $c $x $y $color $type
+		FadePiece $c $x $y $color flip
 	    }
 	}
     }
+
 }
 
 proc FadePiece { c x y newColor type } {
@@ -503,7 +532,7 @@ proc FadePiece { c x y newColor type } {
     global vertCellSize horizCellSize
     global pi
 
-    if { $type != "flip" && $type != "fadein" } {
+    if { $type != "flip" && $type != "fadein" && $type != "fadeout" } {
 	error type must be flip or fadein
     }
 
@@ -518,16 +547,26 @@ proc FadePiece { c x y newColor type } {
 
 
     if { $type == "fadein" } {
-	#we want to only do the last half if we're fading in
+	#we want to only do the last half if we're fading in (zero to full size)
 	set loopStart [expr $speed/2]
-    } else {
-	#otherwise, do the whole thing
-	set loopStart 0
+	set loopEnd $speed
+    } else { 
+	if { $type == "fadeout" } {
+	    #go from the start (entire piece)
+	    #and go halfway (piece width 0)
+	    set loopStart 0
+	    set loopEnd [expr $speed/2]
+	    
+	} else {
+	    #otherwise, do the whole thing
+	    set loopStart 0
+	    set loopEnd $speed
+	}
     }
 
     $c raise piece$x$y
 
-    for {set i $loopStart} {$i < $speed} {incr i} {
+    for {set i $loopStart} {$i < $loopEnd} {incr i} {
 
 	if { $i == [expr $speed/2] } {
 	    $c itemconfig piece$x$y -fill $newColor -outline $newColor
@@ -544,6 +583,14 @@ proc FadePiece { c x y newColor type } {
 		
 	after 1
 	update idletasks
+    }
+    
+    if { $type == "fadeout" } {
+	$c lower piece$x$y
+	$c coords piece$x$y [expr $cornerX + $startCircle] \
+	    [expr $cornerY + $startCircle] \
+	    [expr $cornerX + $startCircle + $width] \
+	    [expr $cornerY + $startCircle + $width]
     }
 
 }
@@ -619,11 +666,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
 
-    ### TODO: Fill this in
-    
     $c lower moves
     $c lower NoMovesText
-
 }
 
 
@@ -641,8 +685,7 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
-    GS_DrawPosition $c $positionAfterUndo
+    AnimateMove $c $currentPosition $positionAfterUndo
 }
 
 
@@ -663,7 +706,6 @@ proc GS_GetGameSpecificOptions { } {
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
 
 	### TODO if needed
-	
 }
 
 
@@ -680,7 +722,6 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 proc GS_UndoGameOver { c position } {
 
 	### TODO if needed
-
 }
 
 
@@ -688,26 +729,22 @@ proc GetXYFromMove {theMove} {
 
     set pos [lindex $theMove 0]
     return [Column $pos][Row $pos]
-
 }
 
 proc Row { index } {
     global boardCols
 
     return [expr $index / $boardCols]
-
 }
 
 proc Column { index } {
     global boardCols
 
     return [expr $index % $boardCols]
-
 }
 
 proc Index { col row } {
     global boardCols
 
     return [expr [expr $row * $boardCols] + $col]
-
 }

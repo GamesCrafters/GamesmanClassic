@@ -192,8 +192,9 @@ void InitializeGame ()
 	if (DEBUG) { printf("InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
 	
-	if (DEBUG) { printf("InitializeGame() --> generic_hash_init\n"); 
-	max = generic_hash_init(OthCols * OthRows, hash_data, NULL);
+	if (DEBUG) { 
+	  printf("InitializeGame() --> generic_hash_init\n"); 
+	  max = generic_hash_init(OthCols * OthRows, hash_data, NULL);
 	}
 	if (SOLVERCOUNTER) solvercountermax = generic_hash_init(OthCols * OthRows, hash_data, NULL);
 		
@@ -201,7 +202,7 @@ void InitializeGame ()
 	
 	if (DEBUG) { printf("InitalizeGame() --> generic_hash\n"); init = generic_hash(start_standard_board,BLACK);}
 	
-	if (DEBUG) {printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]); }
+	if (DEBUG) { printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]); }
 			
 	if (DEBUG) { printf("InitializeGame() <-- generic_hash: %d\n",init); }
 
@@ -833,10 +834,10 @@ MOVELIST *GenerateMoves(POSITION position)
 			printf("\b");
 		solvercounter++;
 		if(solvercounter > solvercountermax - 1)
-			{
-				if(DEBUG) printf("Solvercounter ended");
-				solvercounter = -1;
-			}
+		{
+		  if(DEBUG) printf("Solvercounter ended");
+		  solvercounter = -1;
+		}
 	}
 	
 	board = getBoard(position);
@@ -1506,5 +1507,3 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 
 	return 0;
 }
-
-
