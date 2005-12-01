@@ -147,11 +147,11 @@ typedef char DIRECTION;
 #define NORTH 3
 #define INVALID (-1)
  
-DIRECTION getDirection(int from, int to) {
+DIRECTION getDirection(int from, int to, BlankOX whosTurn) {
   if (to == boardsize) {
-    if ((from%side) == (side-1))
+    if ((from%side) == (side-1) && whosTurn == o)
       return EAST;
-    else if ((from/side) == (side-1))
+    else if ((from/side) == (side-1) && whosTurn == x)
       return NORTH;
     else return INVALID;
   } else if (to == from+1)
@@ -168,29 +168,47 @@ DIRECTION getDirection(int from, int to) {
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 char *gBlankOXString[] = { "-", "O", "X" };
 BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
-BOOLEAN gRealDino = TRUE;  /* Real DinoDodgem (i.e. like physical game) */
+BOOLEAN gForwardStart = TRUE; /* Forces forwards as starting moves if TRUE */
+BOOLEAN gOpponentsSpace = FALSE; /* Allows entry into opponent's start space if TRUE */
+BOOLEAN gForbidden = TRUE; /* Forbidden spaces (like in Real Dinododgem) if TRUE */
+BOOLEAN gBuckets = FALSE;//TRUE; /* Enable the buckets at the win spots */
+#define NUM_BUCKETS MAX_SIDE * MAX_SIDE
+BOOLEAN gBucketIndicator[2][MAX_SIDE*MAX_SIDE];
 BOOLEAN gChessMoves = TRUE; /* Chess moves interface */
+BOOLEAN gPowerBar = TRUE; /* Power bar indicator */
 
 BlankOX gWhosTurn = x;
-BOOLEAN gIsPlaying = FALSE;
+BOOLEAN gHasClearedBuckets = FALSE;
 BOOLEAN initialized = FALSE;
 
-#define HAVEFORBS ( gRealDino && side > 4 )
+#define HAVEFORBS ( gForbidden && side > 4 )
 #define NUMPIECES ( HAVEFORBS ? side-2 : side-1 )
  
 #define ISFORB(i) ( (i==0) || (i==1) || (i==side) )
 #define FORBIDDEN(i) ( (HAVEFORBS && ISFORB(i) ? TRUE : FALSE ) )
  
-#define OSTART(i) ( i && ((i%side) == 0) && !(HAVEFORBS && ISFORB(i)) )
+#define OSTART(i) ( ((i%side) == 0) && ((i/side) >= (HAVEFORBS?2:1)) )
 #define OSTART2(a,b) ( OSTART(a) && OSTART(b) )
  
-#define XSTART(i) ( i && (i<side) && !(HAVEFORBS && ISFORB(i)) )
+#define XSTART(i) ( (i < side) && (i >= (HAVEFORBS?2:1)) )
 #define XSTART2(a,b) ( XSTART(a) && XSTART(b) )
  
 #define STARTLR(from, to, piece) \
 ( (piece == x) ? XSTART2(from, to) : OSTART2(from, to) )
+
+#define OPPONENTS_SPACE(to, piece) \
+( (piece == x) ? OSTART(to) : XSTART(to) )
  
-#define DINO_COND(i,dir) ( HAVEFORBS ? (!FORBIDDEN(dir) && !STARTLR(i, dir, theBlankOX[i])) : ( gRealDino ? dir : TRUE ) )
+#define DINO_COND(i, dir) \
+( (gForwardStart ? !STARTLR(i, dir, theBlankOX[i]) : TRUE) && \
+  (gOpponentsSpace ? TRUE : !OPPONENTS_SPACE(dir, theBlankOX[i])) && \
+  (gForbidden ? (dir && !FORBIDDEN(dir)) : TRUE) && \
+  ((dir == boardsize) ? ( (theBlankOX[i] == x) ? getDirection(i,dir,theBlankOX[i]) == NORTH : getDirection(i,dir,theBlankOX[i]) == EAST ) : TRUE) && \
+  ((gBuckets && (dir == boardsize)) ? FALSE : TRUE) )
+/*#define DINO_COND(i,dir) ( HAVEFORBS ? (!FORBIDDEN(dir) && !STARTLR(i, dir, theBlankOX[i])) : ( gRealDino ? dir : TRUE ) )*/
+
+#define BUCKET_X(i) (boardsize-1-i)
+#define BUCKET_O(i) ((i-(side-1))/side)
 
 /*external function prototypes*/
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
@@ -203,6 +221,7 @@ POSITION BlankOXToPosition(BlankOX*, BlankOX);
 void PositionToBlankOX(POSITION, BlankOX*, BlankOX*);
 BOOLEAN CantMove(POSITION);
 POSITION DefaultInitialPosition();
+void UndoMove(MOVE theMove);
 
 /************************************************************************
 ** NAME:        InitializeGame
@@ -229,6 +248,10 @@ void InitializeGame() {
 
   gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
   gWhosTurn = x;
+  for (i = 0; i < NUM_BUCKETS; i++)
+    gBucketIndicator[0][i] = gBucketIndicator[1][i] = FALSE;
+  gUndoMove = UndoMove;
+  gHasClearedBuckets = FALSE;
   initialized = TRUE;
 
   /*
@@ -275,12 +298,27 @@ void GameSpecificMenu() {
     printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
-    printf("\tR)\t(R)eal DinoDodgem mode toggle from %s to %s\n", 
-	   gRealDino ? "ON" : "OFF",
-	   !gRealDino ? "ON" : "OFF");
+    printf("\tA)\tToggle start moves (A)dvance forward only from %s to %s\n",
+	   gForwardStart ? "ON" : "OFF",
+	   !gForwardStart ? "ON" : "OFF");
+    printf("\tO)\tToggle allow entry of (O)pponent's start space from %s to %s\n",
+	   gOpponentsSpace ? "ON" : "OFF",
+	   !gOpponentsSpace ? "ON" : "OFF");
+    printf("\tF)\tToggle (F)orbidden spaces from %s to %s\n",
+	   gForbidden ? "ON" : "OFF",
+	   !gForbidden ? "ON" : "OFF");
+    /*
+    printf("\tW)\tToggle Buckets at (W)in spots from %s to %s\n", 
+	   gBuckets ? "ON" : "OFF",
+	   !gBuckets ? "ON" : "OFF");
+    */
+    printf("\tD)\tSet all options to actual (D)inoDodgem\n");
     printf("\tC)\t(C)hess moves interface toggle from %s to %s\n", 
 	   gChessMoves ? "ON" : "OFF",
 	   !gChessMoves ? "ON" : "OFF");
+    printf("\tP)\t(P)ower bar interface toggle from %s to %s\n", 
+	   gPowerBar ? "ON" : "OFF",
+	   !gPowerBar ? "ON" : "OFF");
     printf("\ts)\tSet board (s)ize.\n");    
     printf("\tb)\t(B)ack = Return to previous activity.\n");
   
@@ -304,17 +342,43 @@ void GameSpecificMenu() {
     case 'H': case 'h':
       HelpMenus();
       break;
+      /*
     case 'I': case'i':
       gInitialPosition = GetInitialPosition();
       break;
+      */
     case 'T': case 't':
       gToTrapIsToWin = !gToTrapIsToWin;
       break;
-    case 'R': case 'r':
-      gRealDino = !gRealDino;
+    case 'A': case 'a':
+      gForwardStart = !gForwardStart;
+      break;
+    case 'O': case 'o':
+      gOpponentsSpace = !gOpponentsSpace;
+      break;
+    case 'F': case 'f':
+      gForbidden = !gForbidden;
+      break;
+      /*
+    case 'W': case 'w':
+      gBuckets = !gBuckets;
+      break;
+      */
+    case 'D': case 'd':
+      side = MAX_SIDE;
+      boardsize = side*side;
+      offtheboard = boardsize;
+      InitializeGame();
+      gForwardStart = TRUE;
+      gOpponentsSpace = FALSE;
+      gForbidden = TRUE;
+      gBuckets = FALSE;
       break;
     case 'C': case 'c':
       gChessMoves = !gChessMoves;
+      break;
+    case 'P': case 'p':
+      gPowerBar = !gPowerBar;
       break;
     case 'b': case 'B':
       return;
@@ -365,10 +429,30 @@ POSITION DoMove(thePosition, theMove)
   if (to != boardsize) {
     theBlankOX[to] = whosTurn;
   }
+  if (gBuckets && to == boardsize) {
+    if (whosTurn == x) gBucketIndicator[1][BUCKET_X(from)] = TRUE;
+    else if (whosTurn == o) gBucketIndicator[0][BUCKET_O(from)] = TRUE;
+  }
   /* Hash. */
   thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
   /* Return hashed position. */
   return thePosition;
+}
+
+void UndoMove(MOVE theMove)
+{
+  int from, to;
+
+  /* Un-encrypt the move. */
+  theMove = theMove >> 8;
+  to = theMove & 255;
+  from = (theMove >> 8) & 255;
+  
+  if (to == boardsize && gBuckets) {
+    if (gWhosTurn == o) /* changed from x */
+      gBucketIndicator[0][BUCKET_O(from)] = FALSE;
+    else gBucketIndicator[1][BUCKET_X(from)] = FALSE;
+  }
 }
 
 /************************************************************************
@@ -486,7 +570,7 @@ void PrintComputersMove(computersMove,computersName)
   from = (theMove >> 8) & 255;
   letter = from%side + 'a';
   num = from/side + '1';
-  theDirection = getDirection (from, to);
+  theDirection = getDirection (from, to, whosTurn);
   if ((whosTurn == x && theDirection == NORTH) || (whosTurn == o && theDirection == EAST))
     dir = 'f';
   else if ((whosTurn == x && theDirection == WEST) || (whosTurn == o && theDirection == NORTH))
@@ -586,7 +670,27 @@ void PrintPosition(position,playerName,usersTurn)
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
+  int pbar_max, pbar_len, xcount, ocount, numx, numo;
+
   PositionToBlankOX(position,theBlankOx,&whosTurn);
+  /*  
+  if (!gHasClearedBuckets) {
+    for (col = 0; col < MAX_SIDE; col++)
+      gBucketIndicator[0][col] = gBucketIndicator[1][col] = FALSE;
+    gHasClearedBuckets = TRUE;
+  }
+  */
+
+  if (gBuckets) {
+    printf("                  ");
+    row = side-1;
+    for (col = 0; col < side; col++) {
+      if (gBucketIndicator[1][BUCKET_X(side*row+col)])
+	printf ("%d ", gBucketIndicator[1][BUCKET_X(side*row+col)]);
+      else printf ("%d ", gBucketIndicator[1][BUCKET_X(side*row+col)]);
+    }
+  }
+
   for (row = side - 1; row >= 0; row--) {
     if (gChessMoves) {
       if (row == side-1)
@@ -600,7 +704,8 @@ void PrintPosition(position,playerName,usersTurn)
 	printf("\n\t        ");
     }
     for (col = 0; col < side; col++) {
-      printf ("%s ", ((gRealDino && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
+      printf ("%s ", ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
+      if (col == side-1 && gBuckets) printf("%d ", gBucketIndicator[0][BUCKET_O(side*row+col)]);
     }
     if (gChessMoves) {
       /*
@@ -639,18 +744,62 @@ void PrintPosition(position,playerName,usersTurn)
   }
   printf("\n\n");
 
+  if (gPowerBar) {
+    pbar_max = NUMPIECES * (side-1);
+    pbar_len = 2*pbar_max + 1;
+    xcount = ocount = numx = numo = 0;
+
+    for (row = 0; row < side; row++) {
+      for (col = 0; col < side; col++) {
+	if (theBlankOx[side*row+col] == x) {
+	  xcount += row;
+	  numx++;
+	}
+	if (theBlankOx[side*row+col] == o) {
+	  ocount += col;
+	  numo++;
+	}
+      }
+    }
+
+    xcount += side*(NUMPIECES-numx);
+    ocount += side*(NUMPIECES-numo);
+
+    /*
+    printf("  O");
+    for (col = 0; col < pbar_len-2; col++)
+      printf(" ");
+    printf("X\n");
+    */
+
+    printf("        X power: ", xcount);
+    for (col = 0; col < xcount; col++)
+      printf("X");
+    if (gBlankOXString[(int)whosTurn] == "X") printf("x");
+    printf("\n");
+
+    printf("        O power: ", ocount);
+    for (col = 0; col < ocount; col++)
+      printf("O");
+    if (gBlankOXString[(int)whosTurn] == "O") printf("o");
+    printf("\n");
+  }
+
   if ( gBlankOXString[(int)whosTurn] == "O")
     printf("\n\
+        l \n\
         ^     ** It is player O's turn to move\n\
         |     ** and this is the move you can\n\
-        O->   ** perform on one of your pieces.\n\
-        |\n\
-        v \n\n");
+        O->f  ** perform on one of your pieces.\n\
+        | \n\
+        v \n\
+        r \n\n");
       else
 	printf("\n\
+           f \n\
            ^       ** It is player X's turn to move\n\
            |       ** and this is the move you can\n\
-        <- X ->    ** perform on one of your pieces.\n\n");
+       l<- X ->r   ** perform on one of your pieces.\n\n");
   printf("  Move format: [from to] \n\n");
   
   
@@ -951,7 +1100,7 @@ void PrintMove(theMove)
   from = (theMove >> 8) & 255;
   letter = from%side + 'a';
   num = from/side + '1';
-  theDirection = getDirection (from, to);
+  theDirection = getDirection (from, to, whosTurn);
   if ((whosTurn == x && theDirection == NORTH) || (whosTurn == o && theDirection == EAST))
     dir = 'f';
   else if ((whosTurn == x && theDirection == WEST) || (whosTurn == o && theDirection == NORTH))
@@ -1038,9 +1187,12 @@ void setOption (int option) {
   option--;
   gStandardGame = (option%2 == 0);
   gToTrapIsToWin = (option/2%2 == 1);
-  gRealDino = (option/2/2%2 == 1);
+  gForwardStart = (option/2/2%2 == 1);
+  gOpponentsSpace = (option/2/2/2%2 == 1);
+  gForbidden = (option/2/2/2/2%2 == 1);
+  gBuckets = (option/2/2/2/2/2%2 == 1);
 
-  side = (option/2/2/2)+MIN_SIDE;
+  side = (option/2/2/2/2/2/2)+MIN_SIDE;
   boardsize = side*side;
   offtheboard = boardsize;
 
@@ -1050,11 +1202,14 @@ int getOption () {
   int option = 1;
   option += (gStandardGame ? 0 : 1);
   option += 2*(gToTrapIsToWin ? 1 : 0);
-  option += 2*2*(gRealDino ? 1 : 0);
-  option += 2*2*2*(side-MIN_SIDE);
+  option += 2*2*(gForwardStart ? 1 : 0);
+  option += 2*2*2*(gOpponentsSpace ? 1 : 0);
+  option += 2*2*2*2*(gForbidden ? 1 : 0);
+  option += 2*2*2*2*2*(gBuckets ? 1 : 0);
+  option += 2*2*2*2*2*2*(side-MIN_SIDE);
   return option;
 }
 
 int NumberOfOptions () {
-  return 2*2*2*(MAX_SIDE-MIN_SIDE+1);
+  return 2*2*2*2*2*2*(MAX_SIDE-MIN_SIDE+1);
 }
