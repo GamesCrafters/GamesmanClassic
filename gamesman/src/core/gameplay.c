@@ -71,7 +71,7 @@ void             PrintVisualValueHistory         (POSITION);
  * Prototypes for delta-Remoteness
  **/
 REMOTENESS findMaxRemoteness (REMOTENESSLIST*);
-REMOTENESS findDelta(REMOTENESS, REMOTENESSLIST*);
+REMOTENESS FindDelta(REMOTENESS, REMOTENESSLIST*);
 BOOLEAN DEBUG = FALSE;
 
 
@@ -912,7 +912,7 @@ void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
             printf("%d", (int) remoteptr->remoteness);
 	printf(" \t");
 	printf(" \t");
-	printf("%d", (int) findDelta(remoteptr->remoteness, remoteptr));
+	printf("%d", (int) FindDelta(remoteptr->remoteness, remoteptr));
 	printf(" \t");
         ptr = ptr->next;
         remoteptr = remoteptr->next;
@@ -1359,13 +1359,13 @@ USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)
  * Delta-Remoteness will indicate progressively worse moves.
  * (i.e., farther from a win or closer to a lose)
  **/
-REMOTENESS findDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
+REMOTENESS FindDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
   
   REMOTENESS max_remoteness = findMaxRemoteness(remoteptr);
   REMOTENESS delta = max_remoteness - remote;
 
   if (DEBUG) {
-    printf("findDelta called with REMOTENESS:%d", (int) remote);
+    printf("FindDelta called with REMOTENESS:%d", (int) remote);
   }
 
   /*

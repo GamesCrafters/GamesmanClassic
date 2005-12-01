@@ -28,7 +28,7 @@ void		PrintMoves			(MOVELIST* ptr, REMOTENESSLIST* remotePtr);
 void		PrintValueMoves			(POSITION pos);
 BOOLEAN		PrintPossibleMoves		(POSITION pos);
 
-REMOTENESS      findDelta                       (REMOTENESS remote, REMOTENESSLIST* remoteptr);
+REMOTENESS      FindDelta                       (REMOTENESS remote, REMOTENESSLIST* remoteptr);
 
 /* Brains of the gameplay */
 
