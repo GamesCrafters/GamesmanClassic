@@ -56,7 +56,7 @@ BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when 
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
+POSITION gInitialPosition     =  2266758; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
@@ -188,7 +188,7 @@ Computer wins. Nice try, Player.";
 #define ROWS_OF_PIECES 2
 #define CAPTURE_VERSIONS 2
 #define CAPTURE_ALL 2
-#define IN_A_LINE 9
+#define IN_A_LINE 5
 
 typedef char BlankOX;
 /* Represents a complete shogi move */
@@ -206,14 +206,14 @@ typedef struct cleanMove {
 **
 *************************************************************************/
 
-int numOfRows = 3;
-int numOfCols = 3;
+int numOfRows = 4;
+int numOfCols = 4;
 int rowsOfPieces = 1;
-int numInRow = 3;
+int numInRow = 4;
 int winVersion = VERSION_LINE;
 int captureVersion = VERSION_NO_CORNER;
 
-int boardSize = 9;
+int boardSize = 16;
 
 /*************************************************************************
 **
@@ -536,7 +536,10 @@ VALUE Primitive (POSITION position)
   else if((winVersion == VERSION_CAPTURE || winVersion == VERSION_BOTH) &&
 	  ((oneOrNoPieces(theBlankOX) == X && turn == 1) ||
 	  (oneOrNoPieces(theBlankOX) == O && turn == 2)))
-    return lose;
+    return(gStandardGame ? lose : win);
+  // The player left with no moves loses.
+  else if(GenerateMoves(position) == NULL)
+    return(gStandardGame ? lose : win);
   else
     return undecided;
 }
@@ -780,8 +783,8 @@ void GameSpecificMenu ()
   input = (int *) malloc(1*sizeof(int));
 
   while(TRUE) {
-    versionName = (captureVersion == VERSION_NO_CORNER?
-		      "corner" : "no corner");
+    versionName = (captureVersion == VERSION_NO_CORNER ?
+		      "no corner" : "corner");
     printf("\n  Game Specific Options:\n\n");
     printf("\tr)\t (R)ows in the board         -   [%d] rows\n",numOfRows);
     printf("\tc)\t (C)olumns in the board      -   [%d] cols\n",numOfCols);
@@ -822,8 +825,8 @@ void GameSpecificMenu ()
       rowsOfPieces = input[0];
       InitializeGame();
     } else if (!strcmp(option,"v")) {
-      captureVersion = (captureVersion == VERSION_NO_CORNER?
-			VERSION_NO_CORNER : VERSION_CAPTURE);
+      captureVersion = (captureVersion == VERSION_NO_CORNER ?
+			VERSION_CORNER : VERSION_NO_CORNER);
     } else if (!strcmp(option,"w")) {
       printf("\n  Winning conditions:\n");
       printf("\tl)\t (L)ine up your pieces - [%d] in a row\n", numInRow);
@@ -902,8 +905,9 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return (BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES
+    return (2 * BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES
 	    * CAPTURE_VERSIONS * CAPTURE_ALL * IN_A_LINE);
+    // 2 for gStandardGame
 }
 
 
@@ -922,12 +926,13 @@ int NumberOfOptions ()
 int getOption ()
 {
   // N = n0 + d0n1 + d0d1n2 + ... + d0d1*...*dk-1nk
-  int hashNum = numOfCols
-    + BOARD_WIDTH * numOfRows
-    + BOARD_WIDTH * BOARD_HEIGHT * rowsOfPieces
-    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * captureVersion
-    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * (winVersion != VERSION_LINE ? 1 : 0)
-    + BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * CAPTURE_ALL * (winVersion == VERSION_CAPTURE ? 0 : numInRow - 1);
+  int hashNum = gStandardGame
+    + 2 * numOfCols
+    + 2 * BOARD_WIDTH * numOfRows
+    + 2 * BOARD_WIDTH * BOARD_HEIGHT * rowsOfPieces
+    + 2 * BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * captureVersion
+    + 2 * BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * (winVersion != VERSION_LINE ? 1 : 0)
+    + 2 * BOARD_WIDTH * BOARD_HEIGHT * ROWS_OF_PIECES * CAPTURE_VERSIONS * CAPTURE_ALL * (winVersion == VERSION_CAPTURE ? 0 : numInRow - 1);
     return hashNum;
 }
 
@@ -1051,7 +1056,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 	    return TRUE;
 
 	  //check diagonal left
-	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x-xN > 0) && ( y+yN != bad_row); yN++, xN++){
+	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x-xN >= 0) && ( y+yN != bad_row); yN++, xN++){
 	  
 	    if(theBlankOX[(y+yN)*numOfCols + x-xN] != piece)
 	      break;
