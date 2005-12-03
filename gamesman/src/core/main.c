@@ -242,8 +242,13 @@ void HandleArguments (int argc, char *argv[])
         }else if(!strcasecmp(argv[i], "--colldb")) {
             gCollDB = TRUE;
         }
+	/* Enable usage of UnivDB - randomized hashing, collision database, dependent on GMP support */
 	else if(!strcasecmp(argv[i], "--univdb")) {
+#ifdef HAVE_GMP
 	    gUnivDB = TRUE;
+#else
+		fprintf(stderr, "\nGMP support must be compiled in to use --univdb option\n\n");
+#endif
 	}
         else if(!strcasecmp(argv[i], "--gps")) {
             gGlobalPositionSolver = TRUE;
@@ -321,7 +326,9 @@ void HandleArguments (int argc, char *argv[])
 		   "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 		   "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
 		   "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
+#ifdef HAVE_GMP
 		   "--univdb\t\tStarts game with 2-Universal hash-based resizable database. Very experimental!. \n"
+#endif
 		   "--gps\t\t\tStarts game with global position solver enabled.\n"
 		   "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
 		   "\t\t\tTo solve all option configurations of game, use <all>.\n"

@@ -31,7 +31,6 @@ OUTRMOBJS=""								# How to remove all object files
 #OUTWISHLOC=""								# Location of wish, deprecated
 OUTPYTHONCFLAGS="-fno-strict-aliasing -DNDEBUG -fPIC -c -g"	# The flags for compiling pygamesman
 OUTPYTHONLIBFLAGS="-lz -shared"				# flags for the python gamesman lib
-OUTGMPLIBFLAGS="-lgmp"						# Flag to include the GNU bignum library (for univht)
 
 ###
 ### Set up arguments to configure
@@ -162,7 +161,10 @@ AC_HEADER_STDC
 AC_CHECK_HEADERS([errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h])
 
 # Make sure GNU MP is installed as bignums are needed for univt
-AC_CHECK_LIB(gmp, __gmpz_init, , [AC_MSG_ERROR([GNU MP not found, see http://swox.com/gmp])])
+AC_CHECK_LIB(gmp, __gmpz_init, [
+	OUTGMPLIBFLAGS="-lgmp"
+	OUTGMPCFLAGS="-DHAVE_GMP"
+	], [AC_MSG_WARN([GNU MP not found, univdb option will not be supported])])
 
 ###
 ### An attempt to detect python
@@ -522,6 +524,7 @@ AC_SUBST(TCLDBGX, $TCLDBGX)
 #AC_SUBST(WISHLOC, $OUTWISHLOC)
 AC_SUBST(PYTHONCFLAGS, $OUTPYTHONCFLAGS)
 AC_SUBST(PYTHONLIBFLAGS, $OUTPYTHONLIBFLAGS)
+AC_SUBST(GMPCFLAGS, $OUTGMPCFLAGS)
 AC_SUBST(GMPLIBFLAGS, $OUTGMPLIBFLAGS)
 
 ### get the file name for all the *.in files, not needed anymore

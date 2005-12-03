@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR CPP EGREP LIBOBJS LIBSUFFIX COMPILEGRAPHICS TCLSOFLAGS TCLCFLAGS TCLEXEFLAGS EXESUFFIX OBJSUFFIX RMOBJS TCLDBGX PYTHONCFLAGS PYTHONLIBFLAGS GMPLIBFLAGS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR CPP EGREP LIBOBJS LIBSUFFIX COMPILEGRAPHICS TCLSOFLAGS TCLCFLAGS TCLEXEFLAGS EXESUFFIX OBJSUFFIX RMOBJS TCLDBGX PYTHONCFLAGS PYTHONLIBFLAGS GMPCFLAGS GMPLIBFLAGS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1344,7 +1344,6 @@ OUTRMOBJS=""								# How to remove all object files
 #OUTWISHLOC=""								# Location of wish, deprecated
 OUTPYTHONCFLAGS="-fno-strict-aliasing -DNDEBUG -fPIC -c -g"	# The flags for compiling pygamesman
 OUTPYTHONLIBFLAGS="-lz -shared"				# flags for the python gamesman lib
-OUTGMPLIBFLAGS="-lgmp"						# Flag to include the GNU bignum library (for univht)
 
 ###
 ### Set up arguments to configure
@@ -4304,7 +4303,6 @@ done
 
 
 # Make sure GNU MP is installed as bignums are needed for univt
-
 echo "$as_me:$LINENO: checking for __gmpz_init in -lgmp" >&5
 echo $ECHO_N "checking for __gmpz_init in -lgmp... $ECHO_C" >&6
 if test "${ac_cv_lib_gmp___gmpz_init+set}" = set; then
@@ -4370,16 +4368,13 @@ fi
 echo "$as_me:$LINENO: result: $ac_cv_lib_gmp___gmpz_init" >&5
 echo "${ECHO_T}$ac_cv_lib_gmp___gmpz_init" >&6
 if test $ac_cv_lib_gmp___gmpz_init = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGMP 1
-_ACEOF
 
-  LIBS="-lgmp $LIBS"
+	OUTGMPLIBFLAGS="-lgmp"
+	OUTGMPCFLAGS="-DHAVE_GMP"
 
 else
-  { { echo "$as_me:$LINENO: error: GNU MP not found, see http://swox.com/gmp" >&5
-echo "$as_me: error: GNU MP not found, see http://swox.com/gmp" >&2;}
-   { (exit 1); exit 1; }; }
+  { echo "$as_me:$LINENO: WARNING: GNU MP not found, univdb option will not be supported" >&5
+echo "$as_me: WARNING: GNU MP not found, univdb option will not be supported" >&2;}
 fi
 
 
@@ -6215,6 +6210,8 @@ PYTHONCFLAGS=$OUTPYTHONCFLAGS
 
 PYTHONLIBFLAGS=$OUTPYTHONLIBFLAGS
 
+GMPCFLAGS=$OUTGMPCFLAGS
+
 GMPLIBFLAGS=$OUTGMPLIBFLAGS
 
 
@@ -6893,6 +6890,7 @@ s,@RMOBJS@,$RMOBJS,;t t
 s,@TCLDBGX@,$TCLDBGX,;t t
 s,@PYTHONCFLAGS@,$PYTHONCFLAGS,;t t
 s,@PYTHONLIBFLAGS@,$PYTHONLIBFLAGS,;t t
+s,@GMPCFLAGS@,$GMPCFLAGS,;t t
 s,@GMPLIBFLAGS@,$GMPLIBFLAGS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF

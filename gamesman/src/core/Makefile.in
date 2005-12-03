@@ -21,7 +21,7 @@
 # @configure_input@
 
 CC		= @CC@
-CFLAGS		= -Wall @CFLAGS@ @TCLCFLAGS@
+CFLAGS		= -Wall @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@
 AR		= @AR@ cr
 RANLIB		= @RANLIB@
 
@@ -47,8 +47,11 @@ DB_OBJ		= db$(OBJSUFFIX)
 MEMDB_OBJ	= memdb$(OBJSUFFIX)
 TWOBITDB_OBJ	= twobitdb$(OBJSUFFIX)
 COLLDB_OBJ	= colldb$(OBJSUFFIX)
+
+ifneq (@GMPCFLAGS@,)
 UNIVHT_OBJ	= univht$(OBJSUFFIX)
 UNIVDB_OBJ	= univdb$(OBJSUFFIX)
+endif
 
 HASH_OBJ	= hash$(OBJSUFFIX)
 

@@ -41,8 +41,12 @@
 #include "memdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
-#include "univdb.h"
 #include "globals.h"
+
+/* Provide optional support for randomized-hash based collision database, dependent on GMP */
+#ifdef HAVE_GMP
+#include "univdb.h"
+#endif
 
 DB_Table *db_functions;
 
@@ -59,9 +63,13 @@ void db_initialize(){
         db_functions = twobitdb_init();
     } else if(gCollDB){
       db_functions = colldb_init();
-    } else if(gUnivDB) {
+    }
+#ifdef HAVE_GMP
+	else if(gUnivDB) {
       db_functions = univdb_init();
-    } else {
+    }
+#endif
+	else {
         db_functions = memdb_init();
     }
 }
