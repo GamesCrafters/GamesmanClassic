@@ -97,6 +97,9 @@ extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 /* symmetries function pointer */
 extern POSITION (*gCanonicalPosition)(POSITION);
 
+/* Custom unhash into string function pointer (useful for TCL interoperability) */
+extern STRING (*gCustomUnhashString)(POSITION);
+
 /* enumerate all positions that result from the same stage in a game */
 /* argument and return value will have their typedefs later */
 extern POSITIONLIST *(*gEnumerateWithinStage)(int);
