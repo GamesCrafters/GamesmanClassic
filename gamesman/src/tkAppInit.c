@@ -43,7 +43,10 @@ int *tclDummyMathPtr = (int *) matherr;
 
 static int		InitialPositionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
+
 static int		GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		CustomUnhashCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
 static int		FooCmd _ANSI_ARGS_((ClientData clientData,
@@ -117,7 +120,10 @@ Gamesman_Init(interp)
 
     Tcl_CreateCommand(interp, "C_InitialPosition", (Tcl_CmdProc*) InitialPositionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
+
     Tcl_CreateCommand(interp, "C_GenericUnhash", (Tcl_CmdProc*) GenericUnhashCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_CustomUnhash", (Tcl_CmdProc*) CustomUnhashCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
@@ -227,6 +233,30 @@ GenericUnhashCmd(dummy, interp, argc, argv)
   return TCL_OK;
   */
 }
+
+static int
+CustomUnhashCmd(dummy, interp, argc, argv)
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
+     char **argv;
+{
+  /* argv[1] is position, argv[2] USED to be boardsize */
+  if (!(argc == 2 || argc == 3)) {
+    interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
+    return TCL_ERROR;
+  } else if (gCustomUnhashString == NULL) {
+    interp->result = "CustomUnhash is not defined for this game";
+    return TCL_ERROR;
+  }
+  // Ported from tkAppInitHash, correct version tbd
+  char *board;
+  POSITION pos = atoi(argv[1]);
+  board = gCustomUnhashString(pos);
+  sprintf(interp->result, "%s",board);
+  SafeFree(board);
+  return TCL_OK;
+ }
 
 
 static int
