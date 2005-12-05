@@ -31,7 +31,7 @@ POSITION kBadPosition		= -1;
 
 STRING   kAuthorName          = "Dan Garcia";
 STRING   kGameName            = "Graph";
-STRING   kDBName              = NULL;
+STRING   kDBName              = "graph";
 BOOLEAN  kPartizan            = TRUE;
 BOOLEAN  kDebugMenu           = TRUE;
 BOOLEAN  kGameSpecificMenu    = TRUE;

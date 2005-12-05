@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.1 2005-12-01 03:14:15 zwizeguy Exp $
+// $Id: mtilechess.c,v 1.2 2005-12-05 11:14:00 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -41,7 +41,7 @@
 
 STRING   kGameName            = ""; /* The name of your game */
 STRING   kAuthorName          = ""; /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kDBName              = "tilechess"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -1148,6 +1148,9 @@ int main() {
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2005/12/01 03:14:15  zwizeguy
+// Faulty version of mtilechess
+//
 // Revision 1.5  2005/10/06 03:06:11  hevanm
 // Changed kDebugDetermineValue to be FALSE.
 //

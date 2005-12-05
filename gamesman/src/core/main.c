@@ -42,60 +42,8 @@
 ** Globals
 */
 
-VALUE (*gSolver)(POSITION) = NULL;
-BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
-POSITION (*gCanonicalPosition)(POSITION) = NULL;
+/* these have been moved to globals.c - 12/2/2005 */
 
-STRING (*gCustomUnhash)(POSITION) = NULL;
-
-POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
-void (*gUndoMove)(MOVE move) = NULL;
-STRING (*GetHelpTextInterface)() = NULL;
-STRING (*GetHelpOnYourTurn)() = NULL;
-STRING (*GetHelpObjective)() = NULL;
-STRING (*GetHelpTieOccursWhen)() = NULL;
-
-VALUE   gValue = undecided;          /* The value of the game */
-BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
-BOOLEAN gHumanGoesFirst = TRUE;      /* TRUE iff the user goes first vs. computer */
-BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
-BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
-BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
-
-BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
-//TEMPORARALLY DISABLE FILE DATABASES TILL MOVED TO NEW DB ARCH.
-BOOLEAN gWriteDatabase = FALSE;    /* Default is to write the database */
-BOOLEAN gReadDatabase = FALSE;     /* Default is to read the database if it exists */
-BOOLEAN gPrintDatabaseInfo = FALSE; /* Print to the console */
-BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
-BOOLEAN gMessage = FALSE;         /* Default is no message */
-BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
-BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
-BOOLEAN gCollDB = FALSE;
-BOOLEAN gUnivDB = FALSE;
-BOOLEAN gGlobalPositionSolver = FALSE;
-BOOLEAN gUseGPS = FALSE;
-BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enable for only win4 */
-BOOLEAN kZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
-BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
-				   * solved, default: FALSE */
-BOOLEAN gSymmetries = FALSE;
-
-char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
-VALUE * gDatabase = NULL;
-char *  gVisited = NULL;
-STRING  kSolveVersion = "2005.02.09" ;
-
-int   smartness = SMART;
-int   scalelvl = MAXSCALE;
-int   remainingGivebacks = 0;
-int   initialGivebacks = 0;
-VALUE oldValueOfPosition = tie;
-
-MENU gMenuMode = BeforeEvaluation;
-BOOLEAN gPrintHints = TRUE;
-
-BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
 
 /*
 ** Local function prototypes
@@ -108,17 +56,13 @@ static void	SetSolver ();
 ** Code
 */
 
-void InitializeDatabases()
-{
-    db_initialize();
-}
-
 void Initialize()
 {
     srand(time(NULL));
     
     /* set default solver */
-    gSolver = NULL;
+    /* already done in globals.c */
+    //    gSolver = NULL;
     
     /* set default go again */
     gGoAgain=DefaultGoAgain;
@@ -126,8 +70,17 @@ void Initialize()
     sprintf(gPlayerName[kPlayerOneTurn],"Player");
     sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
     
+    /* generic hash */
     generic_hash_context_init();
+
+    /* database function pointers, all NULL at this time */
+    /* but at least the struct is malloc'ed */
+    db_create();
+
+    /* game-specific variabless */
     InitializeGame();
+
+    /* set the solver */
     SetSolver();
 }
 
@@ -136,7 +89,7 @@ void SetSolver()
     /* if solver set externally, leave alone */
     if (gSolver != NULL)
         return;
-    else if(kZeroMemSolver)
+    else if(gZeroMemSolver)
         gSolver = DetermineZeroValue;
     else if(kLoopy) {
         if (gGoAgain == DefaultGoAgain)
@@ -147,22 +100,22 @@ void SetSolver()
     else if(gBottomUp)
 	gSolver = DetermineValueBU;
     else
-        gSolver = DetermineValue1;
+        gSolver = DetermineValueSTD;
 }
 
 VALUE DetermineValue(POSITION position)
 {
     gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
 
-    if(gReadDatabase && loadDatabase()) {
+    if(gLoadDatabase && loadDatabase()) {
         if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
 	
         if (GetValueOfPosition(position) == undecided) {
             if (gPrintDatabaseInfo) printf("\nRe-evaluating the value of %s...", kGameName);
             gSolver(position);
-            if(gWriteDatabase) {
+            if(gSaveDatabase) {
 		printf("\nWriting the values of %s into a database...", kGameName);
-                writeDatabase();
+                saveDatabase();
 	    }
         }
     }
@@ -170,8 +123,8 @@ VALUE DetermineValue(POSITION position)
         if (gPrintDatabaseInfo) printf("\nEvaluating the value of %s...", kGameName);
         gSolver(position);
         showStatus(Clean);
-        if(gWriteDatabase)
-            writeDatabase();
+        if(gSaveDatabase)
+            saveDatabase();
     }
 
     gUseGPS = FALSE;
@@ -189,7 +142,6 @@ void StartGame()
 /* Solves the game and stores it, without anybody actually playing it */
 void SolveAndStore()
 {
-    Initialize();
     InitializeDatabases();
     gAnalysis.TotalMoves = 0;
     DetermineValue(gInitialPosition);
@@ -212,11 +164,11 @@ void HandleArguments (int argc, char *argv[])
     int i, option;
     for(i = 1; i < argc; i++) {
         if(!strcasecmp(argv[i], "--nodb")) {
-            gWriteDatabase = FALSE;
-            gReadDatabase = FALSE;
+            gSaveDatabase = FALSE;
+            gLoadDatabase = FALSE;
         }
         else if(!strcasecmp(argv[i], "--newdb"))
-            gReadDatabase = FALSE;
+            gLoadDatabase = FALSE;
         else if(!strcasecmp(argv[i], "--numoptions")) {
             fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
             gMessage = TRUE;
@@ -250,7 +202,7 @@ void HandleArguments (int argc, char *argv[])
 #ifdef HAVE_GMP
 	    gUnivDB = TRUE;
 #else
-		fprintf(stderr, "\nGMP support must be compiled in to use --univdb option\n\n");
+	    fprintf(stderr, "\nGMP support must be compiled in to use --univdb option\n\n");
 #endif
 	}
         else if(!strcasecmp(argv[i], "--gps")) {
@@ -260,7 +212,7 @@ void HandleArguments (int argc, char *argv[])
 	    gBottomUp = TRUE;
 	}
         else if(!strcasecmp(argv[i], "--lowmem")) {
-            kZeroMemSolver = TRUE;
+            gZeroMemSolver = TRUE;
         }
         else if(!strcasecmp(argv[i], "--solve")) {
             gJustSolving = TRUE;
@@ -316,36 +268,7 @@ void HandleArguments (int argc, char *argv[])
             gMessage = TRUE;
         }
         else if(!strcasecmp(argv[i], "--help")) {
-            printf("\nSyntax:\n"
-		   "%s {--nodb | --newdb | --curroption | --numoptions |"
-		   "\t\t --option <n> | --solve [<n> | <all>] | --analyze [ <linkname> ]|\n"
-		   "\t\t--DoMove <args> <move> | --Primitive <args> | \n"
-		   "\t\t--PrintPosition <args> --GenerateMoves <args>} | --help}\n\n"
-		   "--nodb\t\t\tStarts game without loading or saving to the database.\n"
-		   "--newdb\t\t\tStarts game and clobbers the old database.\n"
-		   "--numoptions\t\tPrints the number of options.\n"
-		   "--curroption\t\tPrints the current option.\n"
-		   "--option <n>\t\tStarts game with the n option configuration.\n"
-		   "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
-		   "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
-		   "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
-#ifdef HAVE_GMP
-		   "--univdb\t\tStarts game with 2-Universal hash-based resizable database. Very experimental!. \n"
-#endif
-		   "--gps\t\t\tStarts game with global position solver enabled.\n"
-		   "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
-		   "\t\t\tTo solve all option configurations of game, use <all>.\n"
-		   "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
-		   "\t\t\tconfiguration.\n"
-		   "\t\t\tExamples:\n"
-		   "\t\t\t%s --solve\n"
-		   "\t\t\t%s --solve 2\n"
-		   "\t\t\t%s --solve all\n"
-		   "--analyze\t\tCreates the analysis directory with info on all variants\n"
-		   "--DoMove <args>\n"
-		   "--Primitive <args>\n"
-		   "--PrintPosition <args>\n"
-		   "--GenerateMoves <args>\n\n", argv[0], argv[0], argv[0], argv[0]);
+            printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
             gMessage = TRUE;
             i += argc;
         }
@@ -369,7 +292,9 @@ int main(int argc, char *argv[])
 int gamesman_main(int argc, char *argv[])
 {
     HandleArguments(argc, argv);
-    
+
+    //Initialize();
+
     if(!gMessage) {
         if(!gJustSolving)
             StartGame();

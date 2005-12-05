@@ -9,15 +9,14 @@
 extern VALUE	gValue;
 extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 
-extern BOOLEAN	gStandardGame, gWriteDatabase, gReadDatabase,
+extern BOOLEAN	gStandardGame, gSaveDatabase, gLoadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-                gTwoBits, gCollDB, gUnivDB, gGlobalPositionSolver, kZeroMemSolver,
+                gTwoBits, gCollDB, gUnivDB, gGlobalPositionSolver, gZeroMemSolver,
                 gAnalyzing, gSymmetries, gUseGPS, gBottomUp;
 
 extern char	gPlayerName[2][MAXNAME];
 extern VALUE*	gDatabase;
 extern char*	gVisited;
-extern STRING	kSolveVersion;
 
 extern int	smartness, scalelvl, remainingGivebacks, initialGivebacks;
 extern VALUE	oldValueOfPosition;
@@ -64,6 +63,7 @@ void		SetTclCGameSpecificOptions	(int theOptions[]);
 void		GameSpecificMenu		(void);
 void		DebugMenu			(void);
 
+/* constant string literals */
 extern STRING   kHelpGraphicInterface; /* The Graphical Interface Help string. */
 extern STRING   kHelpTextInterface;    /* The Help for Text Interface string. */
 extern STRING   kHelpOnYourTurn;       /* The Help for Your turn string. */
@@ -72,21 +72,21 @@ extern STRING   kHelpReverseObjective; /* The Help for reverse Objective string.
 extern STRING   kHelpTieOccursWhen;    /* The Help for Tie occuring string. */
 extern STRING   kHelpExample;          /* The Help for Exmaples string. */
 extern STRING   kAuthorName;	       /* Name of the Author ... */
+extern STRING   kGameName;
+extern STRING   kDBName;	       /* supposed to be the name of the DB?*/
 
+/* constant numeric and boolean values*/
 extern POSITION gInitialPosition;      /* The initial position of the game */
 extern POSITION gMinimalPosition;
+extern POSITION gNumberOfPositions;    /* The number of positions in the game */
+extern BOOLEAN  gPrintHints;
+extern BOOLEAN  kDebugDetermineValue;
+extern BOOLEAN  kDebugMenu;	       /* whether to display the debug menu or not*/
 extern POSITION kBadPosition;
 extern BOOLEAN  kPartizan;             /* TRUE <==> module is a Partizan game */
 extern BOOLEAN  kGameSpecificMenu;     /* TRUE <==> module supports GameSpecificMenu() */
 extern BOOLEAN  kTieIsPossible;        /* TRUE <==> A Tie is possible */
 extern BOOLEAN  kLoopy;                /* TRUE <==> Game graph has cycles */
-extern POSITION gNumberOfPositions;    /* The number of positions in the game */
-extern BOOLEAN  gPrintHints;
-extern STRING   kGameName;
-extern STRING   kAuthorName;
-extern BOOLEAN  kDebugMenu;
-extern STRING   kDBName;
-extern BOOLEAN  kDebugDetermineValue;
 
 /* solver function pointer */
 extern VALUE	(*gSolver)(POSITION);

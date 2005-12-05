@@ -53,74 +53,172 @@ DB_Table *db_functions;
 /*
 ** Code
 */
+void InitializeDatabases()
+{
+    db_initialize();
+}
 
 void db_initialize(){
 
-    if(db_functions){
-        db_functions->free_db();
-    }
     if (gTwoBits) {
         db_functions = twobitdb_init();
     } else if(gCollDB){
-      db_functions = colldb_init();
+	db_functions = colldb_init();
     }
 #ifdef HAVE_GMP
-	else if(gUnivDB) {
-      db_functions = univdb_init();
+    else if(gUnivDB) {
+	db_functions = univdb_init();
     }
 #endif
-	else {
-        db_functions = memdb_init();
+    else {
+	memdb_init(db_functions);
     }
 }
 
-void db_free(){
+void db_create() {
+    
+    /*if there is an old database table, get rid of it*/
+    db_free();
+
+    /* get a new table */
+    db_functions = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+
+    /*set all function pointers to NULL, and each database can choose*/
+    /*whatever ones they wanna implement and associate them*/
+    db_functions->get_value = NULL;
+    db_functions->put_value = NULL;
+    db_functions->get_remoteness = NULL;
+    db_functions->put_remoteness = NULL;
+    db_functions->check_visited = NULL;
+    db_functions->mark_visited = NULL;
+    db_functions->unmark_visited = NULL;
+    db_functions->get_mex = NULL;
+    db_functions->put_mex = NULL;
+    db_functions->save_database = NULL;
+    db_functions->load_database = NULL;
+    db_functions->free_db = NULL;
+}
+
+void db_free() {
     if(db_functions) {
-	db_functions->free_db();
+	if(db_functions->free_db)
+	    db_functions->free_db();
 	SafeFree(db_functions);
     }
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->put_value) {
+	printf("FATAL: This db does not support storing of values. It might be read-only...\n");
+	crash = TRUE;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to store value for nonexistant position " POSITION_FORMAT ".\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->put_value(position,value);
 }
 
 
-// This is it
 VALUE GetValueOfPosition(POSITION position)
 {
-    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && 
-       gSymmetries)
-	position = gCanonicalPosition(position);
+    BOOLEAN crash = FALSE;
 
+    if(!db_functions->get_value) {
+	printf("FATAL: This db does not support reading of values. It might be write only...\n");
+	crash = TRUE;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to get value for nonexistant position " POSITION_FORMAT ".\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
+    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
+	position = gCanonicalPosition(position);
     return db_functions->get_value(position);
 }
 
 
 REMOTENESS Remoteness(POSITION position)
-{ 
-    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && 
-       gSymmetries)
+{
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->get_remoteness) {
+	if(gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support reading of remoteness.");
+	return kBadRemoteness;
+    }
+    if(position > gNumberOfPositions) {
+	printf("FATAL: Attempt to get remoteness for nonexistant position " POSITION_FORMAT ".\n", position);
+        crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
+    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
 	position = gCanonicalPosition(position);
-    
     return db_functions->get_remoteness(position);
 }
     
 
 void SetRemoteness (POSITION position, REMOTENESS remoteness)
 {
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->put_remoteness){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support storing of remoteness value.");
+	//just don't do anything
+	return ;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to get remoteness for nonexistant position " POSITION_FORMAT ".\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
-    if(db_functions->put_remoteness != NULL)
-        db_functions->put_remoteness(position,remoteness);
+    db_functions->put_remoteness(position,remoteness);
 }
  
 
 BOOLEAN Visited(POSITION position)
 {
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->check_visited) {
+	printf("WARNING: This db does not support checking of visit status.");
+	return FALSE;
+    }
+    if(position > gNumberOfPositions) {
+	printf("FATAL: Attempt to check visit status for nonexistant position " POSITION_FORMAT ".\n", position);
+        crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->check_visited(position);
@@ -129,13 +227,47 @@ BOOLEAN Visited(POSITION position)
 
 void MarkAsVisited (POSITION position)
 {
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->mark_visited){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support marking of visited status.");
+	//just don't do anything
+	return ;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to mark nonexistant position " POSITION_FORMAT " as visited.\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
-    return db_functions->mark_visited(position);
+    db_functions->mark_visited(position);
 }
 
 void UnMarkAsVisited (POSITION position)
 {
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->unmark_visited){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support storing of remoteness value.");
+	//just don't do anything
+	return ;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to unmark nonexistant position " POSITION_FORMAT " as visited.\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
     db_functions->unmark_visited(position);
@@ -144,6 +276,13 @@ void UnMarkAsVisited (POSITION position)
 void UnMarkAllAsVisited()
 {
     POSITION i = 0;
+ 
+    if(!db_functions->unmark_visited){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support storing of remoteness value.");
+	//just don't do anything
+	return ;
+    }
     
     for(i = 0; i < gNumberOfPositions; i++)
     {
@@ -155,11 +294,71 @@ void UnMarkAllAsVisited()
 
 void MexStore(POSITION position, MEX theMex)
 {
-    //not implemented yet.
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->put_mex){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support storing of MEX value.");
+	//just don't do anything
+	return ;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to store mex value for nonexistant position " POSITION_FORMAT ".\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
+    /* do we need this?? */
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
+
+    db_functions->put_mex(position, theMex);
 }
 
 MEX MexLoad(POSITION position)
 {
-    //not implmented yet.
-    return 0;
+    BOOLEAN crash = FALSE;
+
+    if(!db_functions->get_mex){
+	if (gPrintDatabaseInfo)
+	    printf("WARNING: This db does not support reading of MEX value.");
+	return kBadMexValue;
+    }
+    if(position > gNumberOfPositions){
+	printf("FATAL: Attempt to read mex value for nonexistant position " POSITION_FORMAT ".\n", position);
+	crash = TRUE;
+    }
+    if(crash){
+	ExitStageRight();
+        exit(0);
+    }
+
+    /* do we need this?? */
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
+
+    return db_functions->get_mex(position);
+}
+
+BOOLEAN saveDatabase() {
+    if(db_functions->save_database)
+	return db_functions->save_database();    
+    else {
+	if (gPrintDatabaseInfo)
+	    printf("This db does not support saving. No data will be saved.\n");
+	return FALSE;
+    }
+}
+
+BOOLEAN loadDatabase() {
+    if(db_functions->load_database)
+	return db_functions->load_database();
+    else {
+	if (gPrintDatabaseInfo)
+	    printf("This db does not support loading. No data will be loaded.\n");
+	return FALSE;
+    }
 }

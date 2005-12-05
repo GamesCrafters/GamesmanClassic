@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.53 2005-11-21 04:14:23 neyiah Exp $
+// $Id: mquarto.c,v 1.54 2005-12-05 11:14:00 hevanm Exp $
 
 
 /*
@@ -159,7 +159,7 @@
 
 STRING   kGameName            = "Quarto"; /* The name of your game */
 STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kDBName              = "quarto"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -182,8 +182,8 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"If it is the first move, place a piece into the 'hand' slot \n\ 
-by looking up which piece you want and entering H,[piece].\n\ 
+"If it is the first move, place a piece into the 'hand' slot \n\
+by looking up which piece you want and entering H,[piece].\n\
 [piece] is a string such as 0100 where each character specifies a\n\
 characteristic of the piece. On a four-dimensional game, a \n\
 piece will have 4 characters, etc. For example, the pieces 0000 and\n\
@@ -2511,6 +2511,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.53  2005/11/21 04:14:23  neyiah
+// changed piece representation to use {0,1}, added help strings.
+//
 // Revision 1.52  2005/11/13 11:45:06  mtanev
 //
 // Fix memory leaks

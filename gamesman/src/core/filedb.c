@@ -46,7 +46,7 @@
 ************
 **	Database functions.
 **
-**	Name: writeDatabase()
+**	Name: saveDatabase()
 **
 **	Description: writes gDatabase to a compressed file in gzip format.
 **
@@ -55,44 +55,22 @@
 **	Outputs: none
 **
 **	Calls:	(In libz libraries)
-**			gzopen 
-**			gzclose
-**			gzwrite
-**			(In std libraries)
-**			htonl
-**			ntohl
+**		gzopen 
+**		gzclose
+**		gzwrite
+**		(In std libraries)
+**		htonl
+**		ntohl
 **
 **	Requirements:	gDatabase contains a valid database of positions
-**					gNumberOfPositions stores the correct number of positions in gDatabase
-**					kDBName is set correctly.
-**					getOption() returns the correct option number
+**			gNumberOfPositions stores the correct number of positions in gDatabase
+**			kDBName is set correctly.
+**			getOption() returns the correct option number
 **					
-**
-**
-**	Name: loadDatabase()
-**
-**	Description: loads the compressed file in gzip format into gDatabase.
-**
-**	Inputs: none
-**
-**	Outputs: none
-**
-**	Calls:	(In libz libraries)
-**			gzopen 
-**			gzclose
-**			gzread
-**			(In std libraries)
-**			ntohl
-**
-**	Requirements:	gDatabase has enough space malloced to store uncompressed database
-**					gNumberOfPositions stores the correct number of uncompressed positions in gDatabase
-**					kDBName is set correctly.
-**					getOption() returns the correct option number
-**
-**		~Scott
-************
-***********/
-int writeDatabase()
+*/
+
+
+int WriteDatabase()
 {
     
     short dbVer[1];
@@ -147,7 +125,32 @@ int writeDatabase()
     
 }
 
-int loadDatabase()
+/*
+**	Name: loadDatabase()
+**
+**	Description: loads the compressed file in gzip format into gDatabase.
+**
+**	Inputs: none
+**
+**	Outputs: none
+**
+**	Calls:	(In libz libraries)
+**			gzopen 
+**			gzclose
+**			gzread
+**			(In std libraries)
+**			ntohl
+**
+**	Requirements:	gDatabase has enough space malloced to store uncompressed database
+**			gNumberOfPositions stores the correct number of uncompressed positions in gDatabase
+**			kDBName is set correctly.
+**		        getOption() returns the correct option number
+**
+**		~Scott
+************
+***********/
+
+int ReadDatabase()
 {
     short dbVer[1];
     POSITION numPos[1];
@@ -196,7 +199,7 @@ int loadDatabase()
     if(goodDecompression && (goodClose == 0) && correctDBVer)
 	{
 	    if(kDebugDetermineValue){
-            printf("File Successfully Decompressed\n");
+		printf("File Successfully Decompressed\n");
 	    }
 	    return 1;
 	}else{

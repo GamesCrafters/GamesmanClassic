@@ -35,8 +35,8 @@ EXESUFFIX	= @EXESUFFIX@
 
 ANALYSIS_OBJ	= analysis$(OBJSUFFIX)
 CONSTANTS_OBJ	= constants$(OBJSUFFIX)
+GLOBALS_OBJ	= globals$(OBJSUFFIX)
 DEBUG_OBJ	= debug$(OBJSUFFIX)
-FILEDB_OBJ	= filedb$(OBJSUFFIX)
 GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
 MAIN_OBJ	= main$(OBJSUFFIX)
 MISC_OBJ	= misc$(OBJSUFFIX)
@@ -65,7 +65,7 @@ SOLVER_BOTTOMUP = solvebottomup$(OBJSUFFIX)
 ##############################################################################
 ### Files
 
-CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(DEBUG_OBJ) $(FILEDB_OBJ) \
+CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(TWOBITDB_OBJ) $(COLLDB_OBJ) \
      $(UNIVHT_OBJ) $(UNIVDB_OBJ) $(STRINGBUILDER_OBJ)

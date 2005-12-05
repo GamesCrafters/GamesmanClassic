@@ -56,7 +56,7 @@ POSITION kBadPosition        = -1;
 
 STRING   kAuthorName         = "Greg Bonin and Tanya Gordeeva";
 STRING   kGameName           = "Blocking";
-STRING   kDBName             = NULL;
+STRING   kDBName             = "blocking";
 BOOLEAN  kPartizan           = TRUE; 
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;

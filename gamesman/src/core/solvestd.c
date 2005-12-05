@@ -36,7 +36,7 @@
 ** Code
 */
 
-VALUE DetermineValue1(POSITION position)
+VALUE DetermineValueSTD(POSITION position)
 {
     BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
     MOVELIST *ptr, *head;
@@ -74,7 +74,7 @@ VALUE DetermineValue1(POSITION position)
 
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
-            value = DetermineValue1(child);       /* DFS call */
+            value = DetermineValueSTD(child);       /* DFS call */
 	    
             if (gGoAgain(position,move))
                 switch(value)

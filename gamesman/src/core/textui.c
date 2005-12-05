@@ -111,7 +111,7 @@ void MenusBeforeEvaluation()
         printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
     printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
-    printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", kZeroMemSolver ? "ON" : "OFF");
+    printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", gZeroMemSolver ? "ON" : "OFF");
     printf("\tm)\tToggle Sy(M)metries (currently %s)\n", gSymmetries ? "ON" : "OFF");
 }
 
@@ -249,7 +249,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
         gGlobalPositionSolver = !gGlobalPositionSolver;
         break;
     case 'l': case 'L':
-	kZeroMemSolver = !kZeroMemSolver;
+	gZeroMemSolver = !gZeroMemSolver;
 	break;
     case 'm': case 'M':
 	gSymmetries = !gSymmetries;
@@ -271,7 +271,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
 	if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
-	printf("\nSolving with ZeroSolver %s...%s!",kGameName,kZeroMemSolver?"Yes":"No");
+	printf("\nSolving with ZeroSolver %s...%s!",kGameName,gZeroMemSolver?"Yes":"No");
 	printf("\nRandom(100) three times %s...%d %d %d",kGameName,GetRandomNumber(100),GetRandomNumber(100),GetRandomNumber(100));
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
@@ -889,7 +889,7 @@ void showStatus(STATICMESSAGE msg)
     switch (msg)
     {
         case Clean:
-            if(gWriteDatabase) 
+            if(gSaveDatabase) 
             {
                 print_length = fprintf(stderr,"Writing Database...\e[K");
                 fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */

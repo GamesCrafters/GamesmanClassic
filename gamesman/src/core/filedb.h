@@ -4,8 +4,8 @@
 
 #define	DBVER	1
 
-int	writeDatabase	();
-int	loadDatabase	();
+int	WriteDatabase	();
+int	ReadDatabase	();
 
 
 #endif /* GMCORE_FILEDB_H */

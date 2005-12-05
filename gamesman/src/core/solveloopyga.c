@@ -84,7 +84,7 @@ VALUE lgas_DetermineValue(POSITION position)
   /* free */
   NumberChildrenFree();
   lgas_ParentFree();
-  writeDatabase();
+  saveDatabase();
 
   return value;
 }
