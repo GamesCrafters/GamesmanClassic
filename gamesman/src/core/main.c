@@ -46,7 +46,7 @@ VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
 
-STRING (*gCustomUnhashString)(POSITION) = NULL;
+STRING (*gCustomUnhashToString)(POSITION) = NULL;
 
 POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
 void (*gUndoMove)(MOVE move) = NULL;

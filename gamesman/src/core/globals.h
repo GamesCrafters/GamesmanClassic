@@ -98,7 +98,7 @@ extern BOOLEAN	(*gGoAgain)(POSITION,MOVE);
 extern POSITION (*gCanonicalPosition)(POSITION);
 
 /* Custom unhash into string function pointer (useful for TCL interoperability) */
-extern STRING (*gCustomUnhashString)(POSITION);
+extern STRING (*gCustomUnhashToString)(POSITION);
 
 
 /* enumerate all positions that result from the same stage in a game */
