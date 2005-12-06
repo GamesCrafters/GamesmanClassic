@@ -51,7 +51,6 @@
 
 static void	SetSolver ();
 
-
 /*
 ** Code
 */
@@ -72,10 +71,6 @@ void Initialize()
     
     /* generic hash */
     generic_hash_context_init();
-
-    /* database function pointers, all NULL at this time */
-    /* but at least the struct is malloc'ed */
-    db_create();
 
     /* game-specific variabless */
     InitializeGame();
@@ -142,6 +137,7 @@ void StartGame()
 /* Solves the game and stores it, without anybody actually playing it */
 void SolveAndStore()
 {
+    InitializeGame();
     InitializeDatabases();
     gAnalysis.TotalMoves = 0;
     DetermineValue(gInitialPosition);
@@ -158,7 +154,8 @@ void SolveAndStore()
     }
 }
 
-/* Handles the command line arguments by setting flags and options */
+/* Handles the command line arguments by setting flags and options
+   declared in in globals.h */
 void HandleArguments (int argc, char *argv[])
 {
     int i, option;
@@ -284,15 +281,15 @@ void HandleArguments (int argc, char *argv[])
 /* main() serves as a wrapper to gamesman_main() */
 int main(int argc, char *argv[])
 {
-	return gamesman_main(argc, argv);
+    HandleArguments(argc, argv);
+
+    return gamesman_main();
 }
 
 /* main() is not exported in shared libraries, thus gamesman_main will handle everything */
 /* This is needed for external modules (e.g. python) to call it if necessary */
-int gamesman_main(int argc, char *argv[])
+int gamesman_main()
 {
-    HandleArguments(argc, argv);
-
     //Initialize();
 
     if(!gMessage) {

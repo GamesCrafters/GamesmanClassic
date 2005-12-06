@@ -132,7 +132,7 @@ VALUE_MOVES;
 #include "misc.h"
 #include "db.h"
 #include "textui.h"
-#include "filedb.h"
+//#include "filedb.h"
 #include "main.h"
 #include "solveloopyup.h"
 
