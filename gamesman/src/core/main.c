@@ -72,6 +72,9 @@ void Initialize()
     /* generic hash */
     generic_hash_context_init();
 
+    /* get the DB function table with all pointers to NULL */
+    db_create();
+
     /* game-specific variabless */
     InitializeGame();
 
