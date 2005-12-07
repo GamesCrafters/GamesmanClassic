@@ -39,7 +39,3 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 source "$kRootDir/../tcl/mhshogi.tcl"
 
 main $kRootDir
-
-
-
-
