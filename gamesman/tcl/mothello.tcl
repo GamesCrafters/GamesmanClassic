@@ -36,11 +36,11 @@ proc GS_InitGameSpecific {} {
     set gMinRows 3
     set gMinCols 3
 
-    ### Set boardRows, boardCols, boardSize
-    global boardRows boardCols boardSize
-    set boardRows [expr $gRowsOption + $gMinRows]
-    set boardCols [expr $gColsOption + $gMinCols]
-    set boardSize [expr $boardRows * $boardCols]
+    ### Set gBoardRows, gBoardCols, boardSize
+    global gBoardRows gBoardCols boardSize
+    set gBoardRows [expr $gRowsOption + $gMinRows]
+    set gBoardCols [expr $gColsOption + $gMinCols]
+    set boardSize [expr $gBoardRows * $gBoardCols]
 
     global gForceCapture
     set gForceCapture 0
@@ -48,7 +48,8 @@ proc GS_InitGameSpecific {} {
     global pi
     set pi 3.14159265
 
-    #percentage of the canvas that should be used for the tug-of-war
+    #Percentage of the canvas that should be used for the score bar
+
     global gTugHeight
     set gTugHeight .05
 
@@ -126,13 +127,6 @@ proc GS_ColorOfPlayers {} {
 #############################################################################
 proc GS_SetupRulesFrame { rulesFrame } {
 
-#     set standardRule \
-# 	[list \
-# 	     "What would you like your winning condition to be:" \
-# 	     "Standard" \
-# 	     "Misere" \
-# 	    ]
-
     set captureRule \
 	[list \
 	     "Should capture moves be mandatory?" \
@@ -147,14 +141,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "No" \
 	    ]
 
-    set boardColsRule \
+    set gBoardColsRule \
 	[list \
 	     "Board Columns:" \
 	     "3" \
 	     "4" \
 	    ]
 
-    set boardRowsRule \
+    set gBoardRowsRule \
 	[list \
 	     "Board Rows:" \
 	     "3" \
@@ -163,7 +157,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 
 
     # List of all rules, in some order
-    set ruleset [list $captureRule $autoPassRule $boardColsRule $boardRowsRule]
+    set ruleset [list $captureRule $autoPassRule $gBoardColsRule $gBoardRowsRule]
 
     # Declare and initialize rule globals
     global gMisereGame
@@ -175,7 +169,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gNoAutoPass
     set gNoAutoPass 1
 
-    global boardCols boardRows
+    global gBoardCols gBoardRows
 
     global gRowsOption gColsOption
     set gRowsOption 1
@@ -213,14 +207,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
 #############################################################################
 proc GS_GetOption { } {
     global gMisereGame gForcedCapture
-    global boardCols boardRows
+    global gBoardCols gBoardRows
     global gMinCols gMinRows
     global gColsOption gRowsOption
 
-    set boardCols [expr $gMinCols + $gColsOption]
-    set boardRows [expr $gMinRows + $gRowsOption]
+    set gBoardCols [expr $gMinCols + $gColsOption]
+    set gBoardRows [expr $gMinRows + $gRowsOption]
 
-    set option [expr [expr $boardCols << 5] + [expr $boardRows << 1] + $gForcedCapture]
+    set option [expr [expr $gBoardCols << 5] + [expr $gBoardRows << 1] + $gForcedCapture]
 
     return $option
 }
@@ -239,23 +233,21 @@ proc GS_GetOption { } {
 #############################################################################
 proc GS_SetOption { option } {
 
-    global gForcedCapture boardCols boardRows
+    global gForcedCapture gBoardCols gBoardRows
 
     set gForcedCapture [expr $option & 0x1]
-    set boardRows [expr [expr $option >> 0x01] & 0x0f]
-    set boardCols [expr $option  >> 5]
+    set gBoardRows [expr [expr $option >> 0x01] & 0x0f]
+    set gBoardCols [expr $option  >> 5]
 
 }
 
 
+#############################################################################
+# DrawCircle
+#
+# Here we draw a piece-sied circle on (slotX,slotY) in window w with a tag of theTag
+#############################################################################
 
-#############################################################################
-##
-## DrawCircle
-##
-## Here we draw a circle on (slotX,slotY) in window w with a tag of theTag
-##
-#############################################################################
 
 proc DrawCircle { w slotSize slotX slotY theTag theColor } {
     global xBoardOffset yBoardOffset
@@ -278,6 +270,13 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
     return $theCircle
 }
 
+#############################################################################
+# DrawMoveCircle
+#
+# Here we draw a circle that will represent a move on (slotX,slotY)
+#  in the window w with a tag of theTag
+#############################################################################
+
 proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
     global xBoardOffset yBoardOffset
     
@@ -299,37 +298,6 @@ proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
 }
 
 
-proc GetCellSize {} {
-    global boardRows boardCols
-    global gFrameWidth gFrameHeight
-    global gTugHeight
-
-    set mySize [min $gFrameWidth [expr $gFrameHeight * (1-$gTugHeight)]]
-    
-    return [min [expr $mySize / $boardRows] [expr $mySize / $boardCols]]
-}
-
-proc GetBoardYOffset {} {
-    global boardRows boardCols
-    global gFrameWidth gFrameHeight
-    global cellSize
-    global gTugHeight
-
-    if { $boardCols > $boardRows } {
-	return [expr int( (($boardCols - $boardRows) * $cellSize / 2) + ( $gFrameHeight * $gTugHeight)) ]
-    } else {
-	return [expr int( $gFrameHeight * $gTugHeight )]
-    }
-}
-
-proc GetBoardXOffset {} {
-    global boardRows boardCols
-    global gFrameWidth gFrameHeight
-    global cellSize
-
-    return [expr int( ($gFrameWidth - ($cellSize * $boardCols)) /2 )]
-}
-
 
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
@@ -340,7 +308,7 @@ proc GetBoardXOffset {} {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-    global boardRows boardCols
+    global gBoardRows gBoardCols
     global gFrameWidth gFrameHeight
     global cellSize
     global xBoardOffset yBoardOffset
@@ -353,8 +321,8 @@ proc GS_Initialize { c } {
     set xBoardOffset [GetBoardXOffset]
     set yBoardOffset [GetBoardYOffset]
 
-    for {set x 0} {$x < $boardCols} {incr x} {
-	for {set y 0} {$y < $boardRows} {incr y} {
+    for {set x 0} {$x < $gBoardCols} {incr x} {
+	for {set y 0} {$y < $gBoardRows} {incr y} {
 	    
 	    $c create rectangle [expr $x * $cellSize + $xBoardOffset] [expr $y * $cellSize + $yBoardOffset] \
 		[expr ($x + 1) * $cellSize + $xBoardOffset] [expr ($y + 1) * $cellSize + $yBoardOffset] \
@@ -362,8 +330,8 @@ proc GS_Initialize { c } {
 	}
     }
 
-    for {set x 0} {$x < $boardCols} {incr x} {
-	for {set y 0} {$y < $boardRows} {incr y} {
+    for {set x 0} {$x < $gBoardCols} {incr x} {
+	for {set y 0} {$y < $gBoardRows} {incr y} {
 
 	    DrawCircle $c $cellSize $x $y pieces [lindex [GS_ColorOfPlayers] 0]
 	    DrawMoveCircle $c $cellSize $x $y moves cyan
@@ -371,10 +339,14 @@ proc GS_Initialize { c } {
 	}
     }
 
-    $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] -font {Helvetica 32 bold} \
-	-fill white -text "No moves available.  Click here to pass." -tag NoMovesText
+    $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] \
+	-font {Helvetica 32 bold} -fill white -text "No moves available.  Click here to pass." \
+	-tag NoMovesText
+
+    DrawScoreBar $c 2 2
 
     $c raise base
+    $c raise scorebar
 }    
 
 
@@ -401,7 +373,7 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global boardCols boardRows boardSize
+    global gBoardCols gBoardRows boardSize
 
     $c lower pieces
     $c lower moves
@@ -413,8 +385,8 @@ proc GS_DrawPosition { c position } {
     set whitePieces 0
     set blackPieces 0
 
-    for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
-	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
+    for {set i 0} {$i < $gBoardRows} {set i [expr $i + 1]} {
+	for {set j 0} {$j < $gBoardCols} {set j [expr $j + 1]} {
 
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
 		$c itemconfig piece$j$i -fill white -outline white
@@ -433,70 +405,7 @@ proc GS_DrawPosition { c position } {
     }
 
     DrawScoreBar $c $blackPieces $whitePieces
-}
-
-proc DrawScoreBar { c numBlack numWhite } {
-    global gFrameWidth gFrameHeight
-    global gTugHeight
-    global xBoardOffset
-
-    global gLastNumBlack gLastNumWhite
-
-    $c delete scorebar
-
-    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
-    set cutoff [expr int( $boardWidth * double($numBlack) / ($numBlack + $numWhite)) ]
-    set height [expr int( $gTugHeight * $gFrameHeight ) ]
-
-    #puts "Black: $numBlack  White: $numWhite"
-    #puts "Width: $boardWidth  Cutoff:  $cutoff"
-    
-    $c create rectangle $xBoardOffset 0 \
-	[expr $cutoff + $xBoardOffset] $height \
-	-fill black -outline black -width 1 -tag [list blackScore scorebar]
-
-    $c create rectangle [expr $cutoff + $xBoardOffset] 0 \
-	[expr $boardWidth + $xBoardOffset] $height \
-	-fill white -outline white -width 1 -tag [list whiteScore scorebar]
-
-    set gLastNumBlack $numBlack
-    set gLastNumWhite $numWhite
-}
-
-proc AnimateScoreBar { c numBlack numWhite } {
-    global gTugHeight
-    global gFrameWidth gFrameHeight
-    global xBoardOffset
-    global gAnimationSpeed
-    global pi
-
-    global gLastNumBlack gLastNumWhite
-    
-    set oldratio [expr double( $gLastNumBlack ) / ( $gLastNumBlack + $gLastNumWhite) ]
-    set newratio [expr double( $numBlack ) / ($numBlack + $numWhite) ]
-
-    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
-    set height [expr int( $gTugHeight * $gFrameHeight ) ]
-
-    set length [expr 60 - $gAnimationSpeed*10]
-
-    for {set i 0} {$i < $length} {incr i} {
-	set currentratio [expr $oldratio + ($newratio-$oldratio)*sin($pi*.5*double($i)/$length) ]
-
-	set cutoff [expr int( $boardWidth * $currentratio)]
-
-	$c coords blackScore $xBoardOffset 0 \
-	    [expr $cutoff + $xBoardOffset] $height
-	
-	$c coords whiteScore [expr $cutoff + $xBoardOffset] 0 \
-	    [expr $boardWidth + $xBoardOffset] $height
-
-	after 1
-	update idletasks
-    }
-
-    set gLastNumBlack $numBlack
-    set gLastNumWhite $numWhite
+    $c raise scorebar
 }
 
 
@@ -508,9 +417,7 @@ proc AnimateScoreBar { c numBlack numWhite } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
-    # TODO: The default behavior of this function is just to draw the position
-    # but if you want you can add a special behaivior here like an animation
-    global boardRows boardCols
+    global gBoardRows gBoardCols
 
     GS_Deinitialize $c
     GS_Initialize $c
@@ -544,18 +451,202 @@ proc GS_WhoseMove { position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     
     AnimateMove $c $oldPosition $newPosition
+}
+
+#############################################################################
+# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
+# player clicks to make the move)  It is also the function that handles coloring
+# of the moves according to value. It is called by gamesman just before the player
+# is prompted for a move.
+#
+# Arguments:
+# c = the canvas to draw in as usual
+# moveType = a string which is either value, moves or best according to which radio button is down
+# position = the current hashed position
+# moveList = a list of lists.  Each list contains a move and its value.
+# These moves are represented as numbers (same as in C)
+# The value will be either "Win" "Lose" or "Tie"
+# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
+#############################################################################
+proc GS_ShowMoves { c moveType position moveList } {
+    global gNoAutoPass
+
+    $c lower moves
+
+    foreach item $moveList {
+	set move [lindex $item 0]
+	set value [lindex $item 1]
+	set color cyan
+	
+	if {$moveType == "value"} {
+	    if {$value == "Tie"} {
+		set color yellow
+	    } elseif {$value == "Lose"} {
+		set color green
+	    } else {
+		set color darkred
+	    }
+	}
+	
+	if { $move != -1 } {
+	    #we get -1 when there are no moves available
+
+	    set movetag movedot[GetXYFromMove $item]
+	    
+	    $c raise $movetag
+	    $c itemconfig $movetag -fill $color -outline $color
+	    
+	    $c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
+	    $c bind $movetag <Enter> "$c itemconfig $movetag -fill black -outline black"
+	    $c bind $movetag <Leave> "$c itemconfig $movetag -fill $color -outline $color"
+
+	} else {
+	    if { $gNoAutoPass } {
+		# If we want to show the pass text, raise and bind it
+		$c raise NoMovesText		
+
+		$c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
+		$c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
+		$c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
+	    } else {
+		# Otherwise, just move on
+		ReturnFromHumanMove $move
+	    }
+
+	}
+    }
+}
+
+
+#############################################################################
+# GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
+# same as GS_ShowMoves.
+# You might not use all the arguments, and that's okay.
+#############################################################################
+proc GS_HideMoves { c moveType position moveList} {
+
+    $c lower moves
+    $c lower NoMovesText
+}
+
+
+#############################################################################
+# GS_HandleUndo handles undoing a move (possibly with animation)
+# Here's the undo logic
+# The game was in position A, a player makes move M bringing the game to position B
+# then an undo is called
+# currentPosition is the B
+# theMoveToUndo is the M
+# positionAfterUndo is the A
+#
+# By default this function just calls GS_DrawPosition, but you certainly don't 
+# need to keep that.
+#############################################################################
+proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+
+    AnimateMove $c $currentPosition $positionAfterUndo
+}
+
+
+#############################################################################
+# GS_GetGameSpecificOptions is not quite ready, don't worry about it .
+#############################################################################
+proc GS_GetGameSpecificOptions { } {
 
 }
 
+
+#############################################################################
+# GS_GameOver is called the moment the game is finished (won, lost or tied)
+# You could use this function to draw the line striking out the winning row in 
+# tic tac toe for instance.  Or, you could congratulate the winner.
+# Or, do nothing.
+#############################################################################
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global gFrameWidth gFrameHeight
+
+    $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] \
+	-font {Helvetica 64 bold} -fill blue -text "$nameOfWinner wins!" \
+	-tag winText
+
+}
+
+
+#############################################################################
+# GS_UndoGameOver is called when the player hits undo after the game is finished.
+# This is provided so that you may undo the drawing you did in GS_GameOver if you 
+# drew something.
+# For instance, if you drew a line crossing out the winning row in tic tac toe, 
+# this is where you sould delete the line.
+#
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
+# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
+#############################################################################
+proc GS_UndoGameOver { c position } {
+
+    $c delete winText
+}
+
+
+#############################################################################
+# GetCellSize gets the correct size of the board locations for this canvas 
+#and board size.
+#############################################################################
+proc GetCellSize {} {
+    global gBoardRows gBoardCols
+    global gFrameWidth gFrameHeight
+    global gTugHeight
+
+    set boardCanvasSize [min $gFrameWidth [expr $gFrameHeight * (1-$gTugHeight)]]
+    
+    return [min [expr $boardCanvasSize / $gBoardRows] [expr $boardCanvasSize / $gBoardCols]]
+}
+
+#############################################################################
+# GetBoardYOffset returns the length in pixels from the top of the canvas to
+# where the top of the board should be drawn.
+#############################################################################
+proc GetBoardYOffset {} {
+    global gBoardRows gBoardCols
+    global gFrameWidth gFrameHeight
+    global cellSize
+    global gTugHeight
+
+    if { $gBoardCols > $gBoardRows } {
+	return [expr int( (($gBoardCols - $gBoardRows) * $cellSize / 2) + ( $gFrameHeight * $gTugHeight)) ]
+    } else {
+	return [expr int( $gFrameHeight * $gTugHeight )]
+    }
+}
+
+#############################################################################
+# GetBoardXOffset returns the length in pixels from the leftmost edge of the
+# canvas to where the left side of the board should be drawn.
+#############################################################################
+proc GetBoardXOffset {} {
+    global gBoardRows gBoardCols
+    global gFrameWidth gFrameHeight
+    global cellSize
+
+    return [expr int( ($gFrameWidth - ($cellSize * $gBoardCols)) /2 )]
+}
+
+
+#############################################################################
+# AnimateMove animates any board change, changing from oldPosition to newPosition.
+#############################################################################
 proc AnimateMove { c oldPosition newPosition } {
-    global boardRows boardCols boardSize
+    global gBoardRows gBoardCols boardSize
     
     set oldBoard [string range [C_GenericUnhash $oldPosition $boardSize] 0 [expr $boardSize-1]]
     set newBoard [string range [C_GenericUnhash $newPosition $boardSize] 0 [expr $boardSize-1]]
 
+    set whitePieces 0
+    set blackPieces 0
+
     #check for new and removed pieces
-    for {set y 0} {$y < $boardRows} {set y [expr $y + 1]} {
-	for {set x 0} {$x < $boardCols} {set x [expr $x + 1]} {
+    for {set y 0} {$y < $gBoardRows} {set y [expr $y + 1]} {
+	for {set x 0} {$x < $gBoardCols} {set x [expr $x + 1]} {
 	    
 	    set old [string index $oldBoard [Index $x $y]]
 	    set new [string index $newBoard [Index $x $y]]
@@ -577,12 +668,19 @@ proc AnimateMove { c oldPosition newPosition } {
 		    FadePiece $c $x $y black fadeout
 		}
 	    }
+
+	    #Count the pieces.  This has nothing to do with modifying the board, we just need it later.
+	    if { $new eq "W" } {
+		set whitePieces [expr $whitePieces+1]
+	    } elseif { $new eq "B" } {
+		set blackPieces [expr $blackPieces+1]
+	    }
 	}
     }
 
     #check for changed pieces
-    for {set y 0} {$y < $boardRows} {set y [expr $y + 1]} {
-	for {set x 0} {$x < $boardCols} {set x [expr $x + 1]} {
+    for {set y 0} {$y < $gBoardRows} {set y [expr $y + 1]} {
+	for {set x 0} {$x < $gBoardCols} {set x [expr $x + 1]} {
 	    
 	    set old [string index $oldBoard [Index $x $y]]
 	    set new [string index $newBoard [Index $x $y]]
@@ -600,28 +698,24 @@ proc AnimateMove { c oldPosition newPosition } {
 	}
     }
 
-
-
-    set whitePieces 0
-    set blackPieces 0
-
-    for {set i 0}  {$i < $boardSize} {set i [expr $i + 1]} {
-	set piece [string index $newBoard $i]
-	if { $piece eq "W" } {
-	    set whitePieces [expr $whitePieces+1]
-	} else {
-	    if { $piece eq "B" } {
-		set blackPieces [expr $blackPieces+1]
-	    }
-	}
-    }
-
     AnimateScoreBar $c $blackPieces $whitePieces
-
 }
 
+#############################################################################
+# FadePiece animates a piece flipping.  x and y are the column and row of
+# the piece, respectively, while newColor is the color that the piece
+# should be when the animation is finished.
+#
+# type should be one of three things, "flip", "fadein", or "fadeout".
+#
+# flip should be used when a piece is already showing in this location.
+# fadein should be used when the spot is empty, and we're creating a new
+#  piece.
+# fadeout should be used when the spot was previously full, and should be
+#  empty when we're done.
+#############################################################################
 proc FadePiece { c x y newColor type } {
-    global boardRows boardCols boardSize
+    global gBoardRows gBoardCols boardSize
     global gAnimationSpeed
     global cellSize
     global pi
@@ -691,159 +785,125 @@ proc FadePiece { c x y newColor type } {
 
 
 #############################################################################
-# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
-# player clicks to make the move)  It is also the function that handles coloring
-# of the moves according to value. It is called by gamesman just before the player
-# is prompted for a move.
-#
-# Arguments:
-# c = the canvas to draw in as usual
-# moveType = a string which is either value, moves or best according to which radio button is down
-# position = the current hashed position
-# moveList = a list of lists.  Each list contains a move and its value.
-# These moves are represented as numbers (same as in C)
-# The value will be either "Win" "Lose" or "Tie"
-# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
+# DrawScoreBar draws the relative score bar at the top of the canvas c.
+# It is constant length, and sets each color according to the ratio of the
+# number of that color to the total number of pieces.
 #############################################################################
-proc GS_ShowMoves { c moveType position moveList } {
-    global gNoAutoPass
+proc DrawScoreBar { c numBlack numWhite } {
+    global gFrameWidth gFrameHeight
+    global gTugHeight
+    global xBoardOffset
 
-    $c lower moves
+    global gLastNumBlack gLastNumWhite
 
-    foreach item $moveList {
-	set move [lindex $item 0]
-	set value [lindex $item 1]
-	set color cyan
+    $c delete scorebar
+
+    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
+    set cutoff [expr int( $boardWidth * double($numBlack) / ($numBlack + $numWhite)) ]
+    set height [expr int( $gTugHeight * $gFrameHeight ) ]
+
+    set firstColor [lindex [GS_ColorOfPlayers] 0]
+    set secondColor [lindex [GS_ColorOfPlayers] 1]
+
+    $c create rectangle $xBoardOffset 0 \
+	[expr $cutoff + $xBoardOffset] $height \
+	-fill $firstColor -outline $firstColor -width 1 -tags [list blackScore scorebar]
+
+    $c create rectangle [expr $cutoff + $xBoardOffset] 0 \
+	[expr $boardWidth + $xBoardOffset] $height \
+	-fill $secondColor -outline $secondColor -width 1 -tags [list whiteScore scorebar]
+
+    set gLastNumBlack $numBlack
+    set gLastNumWhite $numWhite
+}
+
+#############################################################################
+# AnimteScoreBar animates a change in the scroll bar.  It needs a canvas,
+# the number of black pieces, and the number of white pieces. 
+#
+# DrawScoreBar must be run before AnimateScrollBar is called!
+#############################################################################
+proc AnimateScoreBar { c numBlack numWhite } {
+    global gTugHeight
+    global gFrameWidth gFrameHeight
+    global xBoardOffset
+    global gAnimationSpeed
+    global pi
+
+    global gLastNumBlack gLastNumWhite
+    
+    set oldratio [expr double( $gLastNumBlack ) / ( $gLastNumBlack + $gLastNumWhite) ]
+    set newratio [expr double( $numBlack ) / ($numBlack + $numWhite) ]
+
+    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
+    set barHeight [expr int( $gTugHeight * $gFrameHeight ) ]
+
+    set animLength [expr 60 - $gAnimationSpeed*10]
+
+    for {set i 0} {$i < $animLength} {incr i} {
+	set currentratio [expr $oldratio + ($newratio-$oldratio)*sin($pi*.5*double($i)/$animLength) ]
+
+	set cutoff [expr int( $boardWidth * $currentratio)]
+
+	$c coords blackScore $xBoardOffset 0 \
+	    [expr $cutoff + $xBoardOffset] $barHeight
 	
-	if {$moveType == "value"} {
-	    if {$value == "Tie"} {
-		set color yellow
-	    } elseif {$value == "Lose"} {
-		set color green
-	    } else {
-		set color darkred
-	    }
-	}
-	
-	if { $move != -1 } {
-	    #we get -1 when there are no moves available
+	$c coords whiteScore [expr $cutoff + $xBoardOffset] 0 \
+	    [expr $boardWidth + $xBoardOffset] $barHeight
 
-	    set movetag movedot[GetXYFromMove $item]
-	    
-	    $c raise $movetag
-	    $c itemconfig $movetag -fill $color -outline $color
-	    
-	    $c bind $movetag <ButtonRelease-1> "ReturnFromHumanMove $move"
-	    $c bind $movetag <Enter> "$c itemconfig movedot[GetXYFromMove $item] -fill black -outline black"
-	    $c bind $movetag <Leave> "$c itemconfig movedot[GetXYFromMove $item] -fill $color -outline $color"
-
-	} else {
-	    if { $gNoAutoPass } {
-		$c raise NoMovesText		
-
-		$c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
-		$c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
-		$c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
-	    } else {
-		ReturnFromHumanMove $move
-	    }
-
-	}
+	after 1
+	update idletasks
     }
+
+    set gLastNumBlack $numBlack
+    set gLastNumWhite $numWhite
 }
 
 
 #############################################################################
-# GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
-# same as GS_ShowMoves.
-# You might not use all the arguments, and that's okay.
+# GetXYFromMove takes a move as passed in to GS_ShowMoves.  It then returns
+# the x location and y location, concatenated together. "00" would be the
+# return value for the first column and first row, while "12" would be the
+# return value for the second column and third row.
 #############################################################################
-proc GS_HideMoves { c moveType position moveList} {
-
-    $c lower moves
-    $c lower NoMovesText
-}
-
-
-#############################################################################
-# GS_HandleUndo handles undoing a move (possibly with animation)
-# Here's the undo logic
-# The game was in position A, a player makes move M bringing the game to position B
-# then an undo is called
-# currentPosition is the B
-# theMoveToUndo is the M
-# positionAfterUndo is the A
-#
-# By default this function just calls GS_DrawPosition, but you certainly don't 
-# need to keep that.
-#############################################################################
-proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-
-    AnimateMove $c $currentPosition $positionAfterUndo
-}
-
-
-#############################################################################
-# GS_GetGameSpecificOptions is not quite ready, don't worry about it .
-#############################################################################
-proc GS_GetGameSpecificOptions { } {
-
-}
-
-
-#############################################################################
-# GS_GameOver is called the moment the game is finished (won, lost or tied)
-# You could use this function to draw the line striking out the winning row in 
-# tic tac toe for instance.  Or, you could congratulate the winner.
-# Or, do nothing.
-#############################################################################
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-
-	### TODO if needed
-}
-
-
-#############################################################################
-# GS_UndoGameOver is called when the player hits undo after the game is finished.
-# This is provided so that you may undo the drawing you did in GS_GameOver if you 
-# drew something.
-# For instance, if you drew a line crossing out the winning row in tic tac toe, 
-# this is where you sould delete the line.
-#
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
-# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
-#############################################################################
-proc GS_UndoGameOver { c position } {
-
-	### TODO if needed
-}
-
-
 proc GetXYFromMove {theMove} {
 
     set pos [lindex $theMove 0]
     return [Column $pos][Row $pos]
 }
 
+#############################################################################
+# Row takes an index on the board and returns the row where this index
+# resides.
+#############################################################################
 proc Row { index } {
-    global boardCols
+    global gBoardCols
 
-    return [expr $index / $boardCols]
+    return [expr $index / $gBoardCols]
 }
 
+#############################################################################
+# Column takes an index on the board and returns the column where this index
+# resides.
+#############################################################################
 proc Column { index } {
-    global boardCols
+    global gBoardCols
 
-    return [expr $index % $boardCols]
+    return [expr $index % $gBoardCols]
 }
 
+#############################################################################
+# Index takes a column and a row and returns the index of the place.
+#############################################################################
 proc Index { col row } {
-    global boardCols
+    global gBoardCols
 
-    return [expr [expr $row * $boardCols] + $col]
+    return [expr [expr $row * $gBoardCols] + $col]
 }
 
-
+#############################################################################
+# max simply returns the largest value passed to it.
+#############################################################################
 proc max { x y } {
     if {$x > $y} {
 	return $x
@@ -852,6 +912,9 @@ proc max { x y } {
     }
 }
 
+#############################################################################
+# min returns the smaller value passed to it.
+#############################################################################
 proc min { x y } {
     if {$x < $y} {
 	return $x
@@ -859,4 +922,3 @@ proc min { x y } {
 	return $y
     }
 }
-
