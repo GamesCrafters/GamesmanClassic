@@ -4,7 +4,7 @@
 
 #define VISITED_MASK     	4          /* ...00000000000000100 */
 #define VALUE_MASK       	3          /* ...00000000000000011 */
-#define MEX_MAX	  		63	   /* 2^6-1 */
+#define MEX_MAX	  		31	   /* 2^5-1 */
 #define MEX_SHIFT		3	   /* ...00000000011111000 */
 #define MEX_MASK		(MEX_MAX << MEX_SHIFT)
 #define REMOTENESS_SHIFT 	8          /* ...01111111100000000 */

@@ -231,7 +231,7 @@ void MarkAsVisited (POSITION position)
 
     if(!db_functions->mark_visited){
 	if (gPrintDatabaseInfo)
-	    printf("WARNING: This db does not support marking of visited status.");
+	    printf("WARNING: This db does not support marking of visit status.");
 	//just don't do anything
 	return ;
     }
@@ -255,7 +255,7 @@ void UnMarkAsVisited (POSITION position)
 
     if(!db_functions->unmark_visited){
 	if (gPrintDatabaseInfo)
-	    printf("WARNING: This db does not support storing of remoteness value.");
+	    printf("WARNING: This db does not support unmarking of visit status.");
 	//just don't do anything
 	return ;
     }
@@ -279,7 +279,7 @@ void UnMarkAllAsVisited()
  
     if(!db_functions->unmark_visited){
 	if (gPrintDatabaseInfo)
-	    printf("WARNING: This db does not support storing of remoteness value.");
+	    printf("WARNING: This db does not support unmarking of visit status.");
 	//just don't do anything
 	return ;
     }
@@ -348,7 +348,7 @@ BOOLEAN saveDatabase() {
 	return db_functions->save_database();    
     else {
 	if (gPrintDatabaseInfo)
-	    printf("This db does not support saving. No data will be saved.\n");
+	    printf("NOTE: This db does not support saving. No data will be saved.\n");
 	return FALSE;
     }
 }
@@ -358,7 +358,7 @@ BOOLEAN loadDatabase() {
 	return db_functions->load_database();
     else {
 	if (gPrintDatabaseInfo)
-	    printf("This db does not support loading. No data will be loaded.\n");
+	    printf("NOTE: This db does not support loading. No data will be loaded.\n");
 	return FALSE;
     }
 }
