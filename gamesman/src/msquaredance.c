@@ -38,7 +38,26 @@
 **          for 3x3.  Memory allocation error for 4x3, still possibly a problem
 **          with my initializeGame() or maybe something else.
 **
-**   Joey - Major changes: Added a call to freeBoard before returns in Primitive
+**   Joey - Major changes: Added a call to freeBoard before returns in
+/************************************************************************
+**
+** NAME:        msquaredance.c
+**
+** DESCRIPTION: Square Dance
+**
+** AUTHOR:      Yu-TE (Jack) Hsu
+**				Joey Corless
+**
+** DATE:        WHEN YOU START/FINISH
+**
+** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+**
+** 2005-11-12
+**   Joey - Fixed the problem in initializeGame().  The game now solves and plays
+**          for 3x3.  Memory allocation error for 4x3, still possibly a problem
+**          with my initializeGame() or maybe something else.
+**
+**   Joey - Major changes: Added a call to freeBoard before returns i Primitive
 **    and GenerateMoves.  Changed the array indexing in Primitive to utilize boardIndex 
 **    for ease of reading.  Fixed ValidTextInput to check for valid numbers.  Made 
 **    initializeGame fill in gInitialPosition and gNumberofPositions. Changed the 
@@ -94,7 +113,7 @@ STRING   kDBName              = "squaredance"; /* The name to store the database
 void* gGameSpecificTclInit = NULL;
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -198,8 +217,14 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 #define BLUE 1
 #define DOWN 0
 #define UP 1
-#define EMPTY 0
+//#define EMPTY 0
 #define POSSIBLE_SQUARE_VALUES 5  // 5 possible values for a square, should not be changed
+
+#define EMPTY 0
+#define YELLOW_DOWN 1
+#define YELLOW_UP 2
+#define BLUE_DOWN 3
+#define BLUE_UP 4
 
 
 /* Note: these are to be used as offsets for parsing input, so should only be changed if
@@ -212,7 +237,7 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 /* Note: DOES NOT support size of 4 x 4 or greater
  */
 
-#define DEFAULT_BOARD_WIDTH  4
+#define DEFAULT_BOARD_WIDTH  3
 #define DEFAULT_BOARD_HEIGHT 3
 
 /*************************************************************************
@@ -231,7 +256,7 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 *************************************************************************/
 
 typedef struct {
-  int *squares;
+  char *squares;
   int squaresOccupied;
   int currentTurn;
 } SDBoard, *SDBPtr;
@@ -240,8 +265,8 @@ typedef struct {
 int BOARD_WIDTH = DEFAULT_BOARD_WIDTH, BOARD_HEIGHT = DEFAULT_BOARD_HEIGHT;
 int     BOARD_ROWS          = DEFAULT_BOARD_HEIGHT;
 int     BOARD_COLS          = DEFAULT_BOARD_WIDTH;
-BOOLEAN bCanWinByColor = TRUE;
-BOOLEAN bCanWinByUD = TRUE; 
+BOOLEAN gCanWinByColor = TRUE;
+BOOLEAN gCanWinByUD = TRUE; 
 
 char charColorYellow = 'X';
 char charColorBlue = 'O';
@@ -255,7 +280,7 @@ char charPositionDown = 'd';
 **
 *************************************************************************/
 
-BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4);
+BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4);
 int boardIndex(int x, int y);
 
 /* Square */
@@ -286,6 +311,9 @@ SDBPtr unhashBoard(POSITION position);
 SDBPtr newBoard();
 void freeBoard(SDBPtr board); // need to call this as soon as we dont need the board
 
+/*needed for generic hash*/
+int vcfg(int *this_cfg);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -298,31 +326,65 @@ void freeBoard(SDBPtr board); // need to call this as soon as we dont need the b
 
 void InitializeGame ()
 {
+  SDBPtr board = newBoard(); 
+  SDBPtr board2;
   int row, col, i;
+
+  int init_pieces[16] = { YELLOW_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  			  YELLOW_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  			  BLUE_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
+  			  BLUE_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
+			  EMPTY, 0, BOARD_ROWS*BOARD_COLS, -1};
+
+  //int init_pieces[10] = { YELLOW_UP, 0, 9,  
+  //			YELLOW_DOWN, 0, 9,  
+  //			EMPTY, 0, 9, 
+  //			-1};
+
+  //int init_pieces[16] = { 'X', 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  //			  'x', 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  //			  'O', 0, ((BOARD_ROWS*BOARD_COLS)/2), 
+  //			  'o', 0, ((BOARD_ROWS*BOARD_COLS)/2),  
+  //			  '-', 0, BOARD_ROWS*BOARD_COLS, 
+  //			  -1};
+
   
-  gNumberOfPositions=1;
   
-  SDBPtr board = newBoard();  
-  
-  for(col=0;col<BOARD_COLS;col++)
+
+  gNumberOfPositions = generic_hash_init(BOARD_ROWS*BOARD_COLS, init_pieces, NULL);
+
+  for(row=0;row<BOARD_ROWS;row++)
     {
-      for(row=0;row<BOARD_ROWS;row++)
+      for(col=0;col<BOARD_COLS;col++)
 	{
-	  board->squares[boardIndex(col,row)]=0;
-	  gNumberOfPositions*=5;
-	}
+	  board->squares[boardIndex(col,row)] = EMPTY;
+	} 
     }
-    
+
   board->squaresOccupied=0;
   board->currentTurn=FIRST_TURN;
   
-  gNumberOfPositions*=2;
-  
-  gInitialPosition = hashBoard(board);
+  gInitialPosition = generic_hash(board->squares, board->currentTurn);
+  printf("%d\n",gInitialPosition);
   printf("Number of Positions: %d\n",gNumberOfPositions);
+  board2 = newBoard();
+  generic_unhash(gInitialPosition, board2->squares);
+  for(i=0;i<BOARD_ROWS*BOARD_COLS;i++)
+      printf("%d, %d\n",board->squares[i],board2->squares[i]);
+  //PrintPosition(gInitialPosition, "test", 1);
   freeBoard(board);
-    
+
+
+  
 }
+
+int vcfg(int *this_cfg)
+{
+  //return 1;
+  return ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3])) || ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3] + 1));
+
+}
+
 
 /************************************************************************
 **
@@ -677,7 +739,7 @@ int unhashMoveToUD(MOVE move) { return (move >> 8) &  0xff; }
 **       but limited to 3x4, 4x3
 ***************************************************/
 POSITION hashBoard(SDBPtr board) {
-	POSITION hash = 0;
+  /*	POSITION hash = 0;
 	int base = POSSIBLE_SQUARE_VALUES;
 	int x, y;
 	for(y=0;y<BOARD_HEIGHT;y++)
@@ -685,7 +747,37 @@ POSITION hashBoard(SDBPtr board) {
 			hash = hash * base + getSquare(board,x,y);
 
 	hash = (hash << 1) + board->currentTurn; // last bit stores the current turn		 
-	return hash;
+	return hash;*/
+  /*
+
+	POSITION hash = 0;
+	char pieces_ud[board->squaresOccupied];
+	char pieces_color[board->squaresOccupied];
+	int row, col,i=0;
+	for(row=0;row<BOARD_ROWS;row++)
+	  {
+	    for(col=0;col<BOARD_COLS;col++)
+	      {
+		if(getSquare(board,col,row)==EMPTY)
+		  {
+		    pieces_color[BoardIndex(col,row)]=0;
+		  }
+		else
+		  {
+		pieces_color[BoardIndex(col,row)]=getSquareColor(board,col,row)+1;
+		pieces_ud[i]=getSquareUD(board,col,row);
+		i++;
+		  }
+	      }
+	  }
+	hash = generic_hash(pieces_color,board->currentTurn);
+	for(int i=0;i<board->squaresOccupied;i++)
+	  {
+	    hash = hash + (1 << (SHIFT_AMOUNT + 1));
+	  }
+	  return hash;*/
+  return generic_hash(board->squares, board->currentTurn);
+		
 }
 
 /*************************************************
@@ -694,7 +786,7 @@ POSITION hashBoard(SDBPtr board) {
 **       but limited to 3x4, 4x3
 ***************************************************/
 SDBPtr unhashBoard(POSITION position) {
-    
+  /*
 	SDBPtr board = newBoard();
 	
 	int x, y, squareValue;
@@ -715,31 +807,48 @@ SDBPtr unhashBoard(POSITION position) {
 		}
 	}
 	
-	return board;
+	return board;*/
+
+  SDBPtr board = newBoard();
+  generic_unhash(position, board->squares);
+  int col, row;
+  for(row=0;row<BOARD_ROWS;row++)
+    {
+      for(col=0;col<BOARD_COLS;col++)
+	{
+	  if(board->squares[boardIndex(col,row)]!=EMPTY)
+	    {
+	      board->squaresOccupied++;
+	    }
+	}
+    }
+  board->currentTurn=whoseMove(position);
+  return board;
+
 }
 
 /* return the color of the current turn */
 int getCurrentTurn(POSITION position) {
-	return position & 1; // the last bit
+  return whoseMove(position);
 }
 
 /* free the memory space for the board
   called when board is not needed anymore */
 void freeBoard(SDBPtr board) {
-  free(board->squares);
-  free(board);
+  SafeFree(board->squares);
+  SafeFree(board);
 }
 
 /* allocate space for the board */
 SDBPtr newBoard() {
-	SDBPtr board = (SDBPtr) malloc(sizeof(SDBoard));
-	board->squares = (int*) malloc(sizeof(int)*BOARD_WIDTH*BOARD_HEIGHT);
+	SDBPtr board = (SDBPtr) SafeMalloc(sizeof(SDBoard));
+	board->squares = (char *) SafeMalloc(sizeof(char)*BOARD_WIDTH*BOARD_HEIGHT);
 	return board;
 }
 
 /********** helper function for Primitive **************/
-BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4) {
-  int slots[4]={slot1,slot2,slot3,slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
+BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4) {
+  int slots[4]={(int) slot1, (int) slot2, (int) slot3,(int) slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
   int i;
 
   if(slot1==0  || slot2==0 || slot3==0 || slot4==0) {
@@ -755,7 +864,7 @@ BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4) {
      if(colors[i]==colors[0]) colorMatch++;
      if(uds[i]==uds[0]) udMatch++;
    }
-   return ((bCanWinByColor && colorMatch==4) || (bCanWinByUD && udMatch==4));
+   return ((gCanWinByColor && colorMatch==4) || (gCanWinByUD && udMatch==4));
    
 }
 
@@ -877,9 +986,93 @@ int NumberOfOptions ()
 
 void GameSpecificMenu ()
 {
+  char selection_command[80];
+	char selection = 'Z';
+	do
+	{
+		printf("\n\t----- Game Specific Options for Squaredance ----- \n\n");
+		printf("\tCurrent Number of Maximum Positions: %d\n\n", gNumberOfPositions);
+		printf("\tc)\tToggle win by (C)olor.  [Currently: ");
+		  if(gCanWinByColor)
+		    printf("ON]\n");
+		  else
+		    printf("OFF]\n");
+		  printf("\to)\tToggle win by (O)rientation.  [Currently: ");
+		  if(gCanWinByUD)
+		    printf("ON]\n");
+		  else
+		    printf("OFF]\n");
+		printf("\ts)\tChange Board (S)ize [Currently: %dx%d]\n", BOARD_COLS, BOARD_ROWS);
+		printf("\tb)\t(B)ack to previous screen\n\n");
+		printf("\tPlease select an option: "); scanf("%s", selection_command);
+		selection = toupper(selection_command[0]);
+		switch (selection)
+		  {
+		  case 'C':
+		    gCanWinByColor = !gCanWinByColor;
+		    selection = 'Z';
+		    break;
+		  case 'O':
+		    gCanWinByUD = !gCanWinByUD;
+		    selection = 'Z';
+		    break;
+		  case 'S':
+		    BOARD_WIDTH = BOARD_COLS = prompt_board_width();
+		    BOARD_HEIGHT = BOARD_ROWS = prompt_board_height();
+		    selection = 'Z';
+		    break;
+		  case 'B':
+		    return;
+		  default:
+		    printf("Invalid Option.\n");
+		    selection = 'Z';
+		    break;
+			
+		}
+	} while (selection != 'B');
+
     
 }
 
+int prompt_board_width()
+{
+  char selection_command[90];
+  char selection = 'Z';
+  while(1) {
+    printf("Enter board width (From 1 to 4): ");
+    scanf("%s", selection_command);
+    selection = toupper(selection_command[0]);
+    if(selection < '1' || selection > '4')
+     {
+       printf("Invalid width.\n");
+     }
+    else
+      {
+	return (int) (selection - '0');
+	}
+  }
+	
+} 
+
+
+int prompt_board_height()
+{
+  char selection_command[90];
+  char selection = 'Z';
+  while(1) {
+    printf("Enter board height (From 1 to 4): ");
+    scanf("%s", selection_command);
+    selection = toupper(selection_command[0]);
+    if(selection < '1' || selection > '4')
+      {
+	printf("Invalid width.\n");
+      }
+    else
+      {
+	return (int) (selection - '0');
+      }
+      }
+}
 
 /************************************************************************
 **
