@@ -48,14 +48,11 @@ proc GS_InitGameSpecific {} {
     global pi
     set pi 3.14159265
 
+    #percentage of the canvas that should be used for the tug-of-war
+    global gTugHeight
+    set gTugHeight .05
+
     ### Set the strings to be used in the Edit Rules
-
-    #global kStandardString kMisereString
-    #set kStandardString "To have the most pieces of your color on the board at the end of the game."
-    #set kMisereString "To have the least pieces of your color on the board at the end of the game."
-
-    ### Set the strings to tell the user how to move and what the goal is.
-    ### If you have more options, you will need to edit this section
 
     global gMisereGame
     set gMisereGame 0
@@ -251,21 +248,6 @@ proc GS_SetOption { option } {
 }
 
 
-proc max { x y } {
-    if {$x > $y} {
-	return $x
-    } else {
-	return $y
-    }
-}
-
-proc min { x y } {
-    if {$x < $y} {
-	return $x
-    } else {
-	return $y
-    }
-}
 
 #############################################################################
 ##
@@ -275,12 +257,13 @@ proc min { x y } {
 ##
 #############################################################################
 
-proc DrawCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
+proc DrawCircle { w slotSize slotX slotY theTag theColor } {
+    global xBoardOffset yBoardOffset
 
-    set startCircle [expr [min $slotSizeX $slotSizeY] / 8.0]
+    set startCircle [expr $slotSize / 8.0]
     set endCircle   [expr $startCircle*7.0]
-    set cornerX     [expr $slotX*$slotSizeX]
-    set cornerY     [expr $slotY*$slotSizeY] 
+    set cornerX     [expr $slotX*$slotSize + $xBoardOffset]
+    set cornerY     [expr $slotY*$slotSize + $yBoardOffset] 
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -fill $theColor \
@@ -295,12 +278,13 @@ proc DrawCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
     return $theCircle
 }
 
-proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
+proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
+    global xBoardOffset yBoardOffset
     
-    set startCircle [expr [min $slotSizeX $slotSizeY] / 3.0]
+    set startCircle [expr $slotSize / 3.0]
     set endCircle   [expr $startCircle*2.0]
-    set cornerX     [expr $slotX*$slotSizeX]
-    set cornerY     [expr $slotY*$slotSizeY]
+    set cornerX     [expr $slotX*$slotSize + $xBoardOffset]
+    set cornerY     [expr $slotY*$slotSize + $yBoardOffset]
     set theCircle [$w create oval $startCircle $startCircle \
 		       $endCircle $endCircle \
 		       -fill $theColor \
@@ -315,6 +299,38 @@ proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
 }
 
 
+proc GetCellSize {} {
+    global boardRows boardCols
+    global gFrameWidth gFrameHeight
+    global gTugHeight
+
+    set mySize [min $gFrameWidth [expr $gFrameHeight * (1-$gTugHeight)]]
+    
+    return [min [expr $mySize / $boardRows] [expr $mySize / $boardCols]]
+}
+
+proc GetBoardYOffset {} {
+    global boardRows boardCols
+    global gFrameWidth gFrameHeight
+    global cellSize
+    global gTugHeight
+
+    if { $boardCols > $boardRows } {
+	return [expr int( (($boardCols - $boardRows) * $cellSize / 2) + ( $gFrameHeight * $gTugHeight)) ]
+    } else {
+	return [expr int( $gFrameHeight * $gTugHeight )]
+    }
+}
+
+proc GetBoardXOffset {} {
+    global boardRows boardCols
+    global gFrameWidth gFrameHeight
+    global cellSize
+
+    return [expr int( ($gFrameWidth - ($cellSize * $boardCols)) /2 )]
+}
+
+
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -326,30 +342,31 @@ proc DrawMoveCircle { w slotSizeX slotSizeY slotX slotY theTag theColor } {
 proc GS_Initialize { c } {
     global boardRows boardCols
     global gFrameWidth gFrameHeight
-    global vertCellSize horizCellSize
+    global cellSize
+    global xBoardOffset yBoardOffset
 
-    set mySize [min $gFrameWidth $gFrameHeight]
+    #Save the background so we don't delete it later...
+    $c addtag background all
 
-    set vertCellSize [expr $mySize / $boardRows]
-    set horizCellSize [expr $mySize / $boardCols]
-    
-   for {set x 0} {$x < $boardCols} {incr x} {
+    set cellSize [GetCellSize]
+
+    set xBoardOffset [GetBoardXOffset]
+    set yBoardOffset [GetBoardYOffset]
+
+    for {set x 0} {$x < $boardCols} {incr x} {
 	for {set y 0} {$y < $boardRows} {incr y} {
-	    $c create rectangle [expr $x * $horizCellSize] [expr $y * $vertCellSize] [expr ($x + 1) * $horizCellSize] [expr ($y + 1) * $vertCellSize] -fill darkgreen -outline black -width 2 -tag base 
-
+	    
+	    $c create rectangle [expr $x * $cellSize + $xBoardOffset] [expr $y * $cellSize + $yBoardOffset] \
+		[expr ($x + 1) * $cellSize + $xBoardOffset] [expr ($y + 1) * $cellSize + $yBoardOffset] \
+		-fill darkgreen -outline black -width 2 -tag base 
 	}
-
     }
 
     for {set x 0} {$x < $boardCols} {incr x} {
 	for {set y 0} {$y < $boardRows} {incr y} {
 
-	    DrawCircle $c $horizCellSize $vertCellSize $x $y pieces [lindex [GS_ColorOfPlayers] 0]
-
-	    DrawMoveCircle $c $horizCellSize $vertCellSize $x $y moves cyan
-
-	    #$c bind movedot$x$y <Enter> "MouseOverExpand movedot$x$y $c"
-	    #$c bind piece$x$y <Leave> "MouseOutContract piece$x$y $c"
+	    DrawCircle $c $cellSize $x $y pieces [lindex [GS_ColorOfPlayers] 0]
+	    DrawMoveCircle $c $cellSize $x $y moves cyan
 
 	}
     }
@@ -358,20 +375,7 @@ proc GS_Initialize { c } {
 	-fill white -text "No moves available.  Click here to pass." -tag NoMovesText
 
     $c raise base
-
 }    
-
-#proc MouseOverExpand { dot c } {
-#    global dotExpandAmount
-#    set dotExpandAmount .1
-#    $c itemconfig $dot -fill red
-#    $c itemconfig $dot -expand dotExpandAmount
-#    puts "mouseoverexpand"
-#}
-
-#proc MouseOutContract { dot c } {
-#    $c itemconfig $dot -fill blue
-#}
 
 
 #############################################################################
@@ -379,7 +383,7 @@ proc GS_Initialize { c } {
 # is here, so whoever put this here should update this.  -Jeff
 #############################################################################
 proc GS_Deinitialize { c } {
-    $c delete all
+    $c delete {!background}
 }
 
 
@@ -406,21 +410,93 @@ proc GS_DrawPosition { c position } {
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     set pieceNumber 0
 
+    set whitePieces 0
+    set blackPieces 0
+
     for {set i 0} {$i < $boardRows} {set i [expr $i + 1]} {
 	for {set j 0} {$j < $boardCols} {set j [expr $j + 1]} {
 
 	    if {[string compare [string index $pieceString $pieceNumber] "W"] == 0} {
 		$c itemconfig piece$j$i -fill white -outline white
 		$c raise piece$j$i
+		
+		set whitePieces [expr $whitePieces + 1]
 	    } elseif {[string compare [string index $pieceString $pieceNumber] "B"] == 0} {
 		$c itemconfig piece$j$i -fill black -outline black
 		$c raise piece$j$i
+
+		set blackPieces [expr $blackPieces + 1]
 	    } else {}
 
 	    set pieceNumber [expr $pieceNumber + 1]
 	}
     }
 
+    DrawScoreBar $c $blackPieces $whitePieces
+}
+
+proc DrawScoreBar { c numBlack numWhite } {
+    global gFrameWidth gFrameHeight
+    global gTugHeight
+    global xBoardOffset
+
+    global gLastNumBlack gLastNumWhite
+
+    $c delete scorebar
+
+    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
+    set cutoff [expr int( $boardWidth * double($numBlack) / ($numBlack + $numWhite)) ]
+    set height [expr int( $gTugHeight * $gFrameHeight ) ]
+
+    #puts "Black: $numBlack  White: $numWhite"
+    #puts "Width: $boardWidth  Cutoff:  $cutoff"
+    
+    $c create rectangle $xBoardOffset 0 \
+	[expr $cutoff + $xBoardOffset] $height \
+	-fill black -outline black -width 1 -tag [list blackScore scorebar]
+
+    $c create rectangle [expr $cutoff + $xBoardOffset] 0 \
+	[expr $boardWidth + $xBoardOffset] $height \
+	-fill white -outline white -width 1 -tag [list whiteScore scorebar]
+
+    set gLastNumBlack $numBlack
+    set gLastNumWhite $numWhite
+}
+
+proc AnimateScoreBar { c numBlack numWhite } {
+    global gTugHeight
+    global gFrameWidth gFrameHeight
+    global xBoardOffset
+    global gAnimationSpeed
+    global pi
+
+    global gLastNumBlack gLastNumWhite
+    
+    set oldratio [expr double( $gLastNumBlack ) / ( $gLastNumBlack + $gLastNumWhite) ]
+    set newratio [expr double( $numBlack ) / ($numBlack + $numWhite) ]
+
+    set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
+    set height [expr int( $gTugHeight * $gFrameHeight ) ]
+
+    set length [expr 60 - $gAnimationSpeed*10]
+
+    for {set i 0} {$i < $length} {incr i} {
+	set currentratio [expr $oldratio + ($newratio-$oldratio)*sin($pi*.5*double($i)/$length) ]
+
+	set cutoff [expr int( $boardWidth * $currentratio)]
+
+	$c coords blackScore $xBoardOffset 0 \
+	    [expr $cutoff + $xBoardOffset] $height
+	
+	$c coords whiteScore [expr $cutoff + $xBoardOffset] 0 \
+	    [expr $boardWidth + $xBoardOffset] $height
+
+	after 1
+	update idletasks
+    }
+
+    set gLastNumBlack $numBlack
+    set gLastNumWhite $numWhite
 }
 
 
@@ -524,13 +600,32 @@ proc AnimateMove { c oldPosition newPosition } {
 	}
     }
 
+
+
+    set whitePieces 0
+    set blackPieces 0
+
+    for {set i 0}  {$i < $boardSize} {set i [expr $i + 1]} {
+	set piece [string index $newBoard $i]
+	if { $piece eq "W" } {
+	    set whitePieces [expr $whitePieces+1]
+	} else {
+	    if { $piece eq "B" } {
+		set blackPieces [expr $blackPieces+1]
+	    }
+	}
+    }
+
+    AnimateScoreBar $c $blackPieces $whitePieces
+
 }
 
 proc FadePiece { c x y newColor type } {
     global boardRows boardCols boardSize
     global gAnimationSpeed
-    global vertCellSize horizCellSize
+    global cellSize
     global pi
+    global xBoardOffset yBoardOffset
 
     if { $type != "flip" && $type != "fadein" && $type != "fadeout" } {
 	error type must be flip or fadein
@@ -538,13 +633,12 @@ proc FadePiece { c x y newColor type } {
 
     set speed [expr 60 - $gAnimationSpeed*10]
     
-    set startCircle [expr [min $horizCellSize $vertCellSize] / 8.0]
+    set startCircle [expr $cellSize / 8.0]
     set endCircle   [expr $startCircle*7.0]
     set width       [expr $endCircle - $startCircle]
     
-    set cornerX     [expr $x*$horizCellSize]
-    set cornerY     [expr $y*$vertCellSize] 
-
+    set cornerX     [expr $x*$cellSize + $xBoardOffset]
+    set cornerY     [expr $y*$cellSize + $yBoardOffset] 
 
     if { $type == "fadein" } {
 	#we want to only do the last half if we're fading in (zero to full size)
@@ -748,3 +842,21 @@ proc Index { col row } {
 
     return [expr [expr $row * $boardCols] + $col]
 }
+
+
+proc max { x y } {
+    if {$x > $y} {
+	return $x
+    } else {
+	return $y
+    }
+}
+
+proc min { x y } {
+    if {$x < $y} {
+	return $x
+    } else {
+	return $y
+    }
+}
+
