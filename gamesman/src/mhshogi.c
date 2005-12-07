@@ -183,12 +183,12 @@ Computer wins. Nice try, Player.";
 #define NUMSYMMETRIES 1
 
 // for calculating number of game specific options
-#define BOARD_WIDTH 9
-#define BOARD_HEIGHT 9
-#define ROWS_OF_PIECES 2
+#define BOARD_WIDTH 10 // maximum board width + 1
+#define BOARD_HEIGHT 10 // maximum board height + 1
+#define ROWS_OF_PIECES 3 // maximum rows of pieces + 1
 #define CAPTURE_VERSIONS 2
 #define CAPTURE_ALL 2
-#define IN_A_LINE 5
+#define IN_A_LINE 5 // maximum pieces in a line to win + 1
 
 typedef char BlankOX;
 /* Represents a complete shogi move */
@@ -209,7 +209,7 @@ typedef struct cleanMove {
 int numOfRows = 4;
 int numOfCols = 4;
 int rowsOfPieces = 1;
-int numInRow = 4;
+int numInRow = 3;
 int winVersion = VERSION_LINE;
 int captureVersion = VERSION_NO_CORNER;
 
@@ -277,7 +277,6 @@ void InitializeGame ()
   for (; i < boardSize; i++) {
     theBlankOX[i] = O;
   }
-
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
   gInitialPosition = generic_hash(theBlankOX, 1);
 }
@@ -527,12 +526,9 @@ VALUE Primitive (POSITION position)
   generic_unhash(position, theBlankOX);
   BlankOX oppositePiece  = (turn == 1 ? 'o' : 'x');
 
-  if(inARow(theBlankOX, oppositePiece))
+  if((winVersion == VERSION_LINE || winVersion == VERSION_BOTH) &&
+     inARow(theBlankOX, oppositePiece))
     return(gStandardGame ? lose : win);
-  /*
-  if(inARow(theBlankOX)){
-    printf("game determined by inArow");
-    return(gStandardGame ? lose : win);}*/
   else if((winVersion == VERSION_CAPTURE || winVersion == VERSION_BOTH) &&
 	  ((oneOrNoPieces(theBlankOX) == X && turn == 1) ||
 	  (oneOrNoPieces(theBlankOX) == O && turn == 2)))
@@ -888,6 +884,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
+  InitializeGame();
   return gInitialPosition;
 }
 
@@ -952,13 +949,15 @@ void setOption (int option)
 {
   int captureAll, inALine;
   // nk = (N / Pi(i=0,k-1,di) % dk 
-  
-  numOfCols = option % BOARD_WIDTH;
-  numOfRows = (option / BOARD_WIDTH) % BOARD_HEIGHT;
-  rowsOfPieces = (option / BOARD_WIDTH / BOARD_HEIGHT) % ROWS_OF_PIECES;
-  captureVersion = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES) % CAPTURE_VERSIONS;
-  captureAll = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS) % CAPTURE_ALL;
-  inALine = (option / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS / CAPTURE_ALL) % IN_A_LINE;
+
+  gStandardGame = (option % 2) == 1 ? 0 : 1;
+  numOfCols = (option / 2) % BOARD_WIDTH;
+  numOfRows = (option / 2 / BOARD_WIDTH) % BOARD_HEIGHT;
+  boardSize = numOfCols * numOfRows;
+  rowsOfPieces = (option / 2 / BOARD_WIDTH / BOARD_HEIGHT) % ROWS_OF_PIECES;
+  captureVersion = (option / 2 / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES) % CAPTURE_VERSIONS;
+  captureAll = (option / 2 / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS) % CAPTURE_ALL;
+  inALine = (option / 2 / BOARD_WIDTH / BOARD_HEIGHT / ROWS_OF_PIECES / CAPTURE_VERSIONS / CAPTURE_ALL) % IN_A_LINE;
   if (captureAll == 1 && inALine != 0) {
     numInRow = inALine + 1;
     winVersion = VERSION_BOTH;
@@ -1019,18 +1018,28 @@ void DebugMenu ()
 BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 {
   int x, y, loc, xN, yN;
-  int bad_row; //row that the pieces cannot be in
+  int bad_row[2]; //row that the pieces cannot be in
 
   
-  if (piece == 'x'){
-    bad_row = 0;
+  if (piece == 'x') {
+    bad_row[0] = 0;
+    if (rowsOfPieces == 1) {
+      bad_row[1] = 10; // invalid row
+    } else {
+      bad_row[1] = 1;
+    }
   } else {
-    bad_row = numOfRows-1;
+    bad_row[0] = numOfRows-1;
+    if (rowsOfPieces == 1) {
+      bad_row[1] = 10; // invalid row
+    } else {
+      bad_row[1] = numOfRows-2;
+    }
   }
   
 
   for (y = 0; y < numOfRows; y++){
-    if (y != bad_row){
+    if (y != bad_row[0] && y != bad_row[1]){
       for (x = 0; x < numOfCols; x++){
 	loc = y*numOfCols + x;
 	if(theBlankOX[loc] == piece){
@@ -1047,7 +1056,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 	  
 	  //check vertical
 	  //we are checking upwards
-	  for (yN = 0; (y+yN < numOfRows) && (y+yN != bad_row); yN++){
+	  for (yN = 0; (y+yN < numOfRows) && (y+yN != bad_row[0] && y+yN != bad_row[1]); yN++){
 	  
 	    if(theBlankOX[loc+yN*numOfCols] != piece)
 	      break;
@@ -1056,7 +1065,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 	    return TRUE;
 
 	  //check diagonal left
-	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x-xN >= 0) && ( y+yN != bad_row); yN++, xN++){
+	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x-xN >= 0) && ( y+yN != bad_row[0] && y+yN != bad_row[1]); yN++, xN++){
 	  
 	    if(theBlankOX[(y+yN)*numOfCols + x-xN] != piece)
 	      break;
@@ -1065,7 +1074,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 	    return TRUE;
 
 	  //check diagonal right
-	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x+xN < numOfCols) && (y+yN != bad_row); yN++, xN++){
+	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x+xN < numOfCols) && (y+yN != bad_row[0] && y+yN != bad_row[1]); yN++, xN++){
 	  
 	    if(theBlankOX[(y+yN)*numOfCols + x+xN] != piece)
 	      break;
