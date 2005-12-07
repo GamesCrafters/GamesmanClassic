@@ -255,9 +255,9 @@ SEEGA_EXE    	= $(BINDIR)/mseega$(EXESUFFIX)
 SEEGA_OBJ		= mseega$(OBJSUFFIX)
 SEEGA_SO		= $(LIBDIR)/libmseega$(LIBSUFFIX)
 
-SHOGI_EXE    	= $(BINDIR)/mshogi$(EXESUFFIX)
-SHOGI_OBJ		= mshogi$(OBJSUFFIX)
-SHOGI_SO		= $(LIBDIR)/libmshogi$(LIBSUFFIX)
+SHOGI_EXE    	= $(BINDIR)/mhshogi$(EXESUFFIX)
+SHOGI_OBJ		= mhshogi$(OBJSUFFIX)
+SHOGI_SO		= $(LIBDIR)/libmhshogi$(LIBSUFFIX)
 
 SIM_EXE			= $(BINDIR)/msim$(EXESUFFIX)	# The simple game of sim
 SIM_OBJ			= msim$(OBJSUFFIX)
