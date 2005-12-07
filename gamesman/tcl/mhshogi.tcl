@@ -1,5 +1,5 @@
 ###################################################
-# this is a tcl module for the game of Shogi
+# this is a tcl module for the game of Hasami Shogi
 #
 # created by Alex Kozlowski and Peterson Trethewey
 # Updated Fall 2004 by Jeffrey Chiang, and others
@@ -30,12 +30,18 @@ proc GS_InitGameSpecific {} {
     set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
-    ### Set maximum gBoardRows, gBoardCols, rowsOfPieces, gNumInALine
-    global kMaxBoardRows kMaxBoardCols kMaxRowsOfPieces kMaxNumInALine kMaxCaptureVersions kCaptureAll
-    set kMaxBoardRows 9
-    set kMaxBoardCols 9
-    set kMaxRowsOfPieces 2; # rows of pieces for each player
-    set kMaxNumInALine 5; # number of pieces in a line to win
+    ### Set maximum gBoardRows, gBoardCols, gRowsOfPieces, gNumInALine
+
+    global kMaxBoardRows kMaxBoardCols kMaxRowsOfPieces kMaxNumInALine
+    # really maximum + 1, because there are n + 1 numbers from 0 to n
+    set kMaxBoardRows 10
+    set kMaxBoardCols 10
+    set kMaxRowsOfPieces 3; # rows of pieces for each player
+    set kMaxNumInALine 6; # number of pieces in a line to win
+
+    ### Set constants for variant calculations
+
+    global kMaxCaptureVersions kCaptureAll
     set kMaxCaptureVersions 2; # corner capture or no corner capture
     set kCaptureAll 2
 
@@ -54,27 +60,27 @@ proc GS_InitGameSpecific {} {
 	gNumInALine
     if {$gWinCondition == $kVersionLine} {
 	if {!$gMisereGame} {
-	    SetToWinString "To Win: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows."
+	    SetToWinString "To Win: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or leave enemy with no moves."
 	} else {
-	    SetToWinString "To Lose: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows."
+	    SetToWinString "To Lose: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or leave enemy with no moves."
 	}
     } elseif {$gWinCondition == $kVersionCapture} {
 	if {!$gMisereGame} {
-	    SetToWinString "To Win: Reduce enemy to 1 or 0 pieces."
+	    SetToWinString "To Win: Reduce enemy to 1 or 0 pieces. Or leave enemy with no moves."
 	} else {
-	    SetToWinString "To Lose: Reduce enemy to 1 or 0 pieces."
+	    SetToWinString "To Lose: Reduce enemy to 1 or 0 pieces. Or leave enemy with no moves."
 	}
     } elseif {$gWinCondition == $kVersionBoth} {
 	if {!$gMisereGame} {
-	    SetToWinString "To Win: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or reduce enemy to 1 or 0 pieces."
+	    SetToWinString "To Win: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or reduce enemy to 1 or 0 pieces. Or leave enemy with no moves."
 	} else {
-	    SetToWinString "To Lose: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or reduce enemy to 1 or 0 pieces."
+	    SetToWinString "To Lose: Move your pieces into a connected chain of $gNumInALine pieces that is either vertical, horizontal, or diagonal. None of the pieces may be in your original starting rows. Or reduce enemy to 1 or 0 pieces. Or leave enemy with no moves."
 	}
     } else {}
     if {$gCaptureVersion == $kVersionNoCorner} {
-	SetToMoveString "To Move: Verticallly or horizontally, slide in a straight line or jump over one piece of either player adjacent to the starting spot, landing at the space just beyond the jumped piece. Capture one or more enemy pieces connected in a line by making a sandwich so that you have two pieces at boths ends of the line. No corner captures are allowed."
+	SetToMoveString "To Move: Vertically or horizontally, slide in a straight line or jump over one piece of either player adjacent to the starting spot, landing at the space just beyond the jumped piece. Capture one or more enemy pieces connected in a line by making a sandwich so that you have two pieces at boths ends of the line. No corner captures are allowed."
     } elseif {$gCaptureVersion == $kVersionCorner} {
-	SetToMoveString "To Move: Verticallly or horizontally, slide in a straight line or jump over one piece of either player adjacent to the starting spot, landing at the space just beyond the jumped piece. Capture one or more enemy pieces connected in a line by making a sandwich so that you have two pieces at boths ends of the line. Corner captures are allowed."
+	SetToMoveString "To Move: Vertically or horizontally, slide in a straight line or jump over one piece of either player adjacent to the starting spot, landing at the space just beyond the jumped piece. Capture one or more enemy pieces connected in a line by making a sandwich so that you have two pieces at boths ends of the line. Corner captures are allowed."
     } else {}
 
     global kRootDir
@@ -136,22 +142,36 @@ proc GS_SetupRulesFrame { rulesFrame } {
 
     ### Set version constant definitions
     global kVersionNoCorner kVersionCorner kVersionLine kVersionCapture kVersionBoth
-    set kVersionNoCorner 1
-    set kVersionCorner 0
+    set kVersionNoCorner 0
+    set kVersionCorner 1
     set kVersionLine 0
     set kVersionCapture 1
     set kVersionBoth 2
 
     # Declare and initialize rule globals
-    global gMisereGame gBoardRows gBoardCols gRowsOfPieces gNumInALine gCaptureVersion gWinCondition \
+    global gBoardRows gBoardCols gRowsOfPieces gNumInALine \
+	gMisereGame gBoardRowsOption gBoardColsOption gRowsOfPiecesOption gNumInALineOption \
+	gCaptureVersion gCaptureOption gWinCondition \
+	kMinBoardRows kMinBoardCols kMinRowsOfPieces kMinNumInALine \
 	kVersionNoCorner kVersionCorner kVersionLine kVersionCapture kVersionBoth
+    set kMinBoardRows 3
+    set kMinBoardCols 2
+    set kMinRowsOfPieces 1; # rows of pieces for each player
+    set kMinNumInALine 2; # number of pieces in a line to win
+
     set gMisereGame 0
-    set gBoardRows 4
-    set gBoardCols 4
-    set gRowsOfPieces 1; # 1 row of pieces for each player
-    set gNumInALine 4; # 4 in a line to win
-    set gCaptureVersion $kVersionCorner; # corner capture allowed
-    set gWinCondition $kVersionBoth; # both in a line and capture all
+    set gBoardRowsOption [expr 4 - $kMinBoardRows]
+    set gBoardColsOption [expr 4 - $kMinBoardCols]
+    set gRowsOfPiecesOption 0
+    set gNumInALineOption [expr 3 - $kMinNumInALine]; # 3 in a line to win
+    set gCaptureVersion $kVersionNoCorner; # no corner capture allowed
+    set gCaptureOption [expr $gCaptureVersion == $kVersionCorner ? 0 : 1]
+    set gWinCondition $kVersionLine; # in a line
+
+    set gBoardRows [expr $gBoardRowsOption + $kMinBoardRows]
+    set gBoardCols [expr $gBoardColsOption + $kMinBoardCols]
+    set gRowsOfPieces [expr $gRowsOfPiecesOption + $kMinRowsOfPieces]
+    set gNumInALine [expr $gNumInALineOption + $kMinNumInALine]
 
     set standardRule \
 	[list \
@@ -166,11 +186,6 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "2" \
 	     "3" \
 	     "4" \
-	     "5" \
-	     "6" \
-	     "7" \
-	     "8" \
-	     "9"
 	    ]
 
     set boardRowsRule \
@@ -178,18 +193,13 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Board height:" \
 	     "3" \
 	     "4" \
-	     "5" \
-	     "6" \
-	     "7" \
-	     "8" \
-	     "9"
 	    ]
 
     set rowsOfPiecesRule \
 	[list \
 	     "Rows of pieces per player:" \
 	     "1" \
-	     "2"
+	     "2" \
 	    ]
 
     set numInALineRule \
@@ -198,7 +208,6 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "2" \
 	     "3" \
 	     "4" \
-	     "5"
 	    ]
 
     set captureVersionRule \
@@ -213,14 +222,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Winning condition" \
 	     "$gNumInALine pieces in a line" \
 	     "Reduce enemy to 1 or 0 pieces" \
-	     "Both"
+	     "Both" \
 	    ]
 
     # List of all rules, in some order
     set ruleset [list $standardRule $boardColsRule $boardRowsRule $rowsOfPiecesRule $numInALineRule $captureVersionRule $winConditionRule]
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "gBoardRows" "gBoardCols" "gRowsOfPieces" "gNumInALine" "gCaptureVersion" "gWinCondition"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gBoardColsOption" "gBoardRowsOption" "gRowsOfPiecesOption" "gNumInALineOption" "gCaptureOption" "gWinCondition"]
 
     global kLabelFont
     set ruleNum 0
@@ -250,17 +259,28 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global gMisereGame gBoardRows gBoardCols gRowsOfPieces gCaptureVersion gWinCondition gNumInALine \
+
+    global gMisereGame gBoardRowsOption gBoardColsOption gRowsOfPiecesOption gNumInALineOption \
+	gCaptureVersion gCaptureOption gWinCondition \
+	gBoardRows gBoardCols gRowsOfPieces gNumInALine \
+	kMinBoardRows kMinBoardCols kMinRowsOfPieces kMinNumInALine \
 	kMaxBoardRows kMaxBoardCols kMaxRowsOfPieces kMaxNumInALine kMaxCaptureVersions kCaptureAll \
+	kVersionCorner kVersionNoCorner \
 	kVersionLine kVersionCapture kVersionBoth
 
-    return [expr {$gMisereGame \
+    set gBoardRows [expr $gBoardRowsOption + $kMinBoardRows]
+    set gBoardCols [expr $gBoardColsOption + $kMinBoardCols]
+    set gRowsOfPieces [expr $gRowsOfPiecesOption + $kMinRowsOfPieces]
+    set gNumInALine [expr $gNumInALineOption + $kMinNumInALine]
+    set gCaptureVersion [expr $gCaptureOption? $kVersionNoCorner : $kVersionCorner]
+
+    return [expr $gMisereGame \
 		      + 2 * $gBoardCols \
 		      + 2 * $kMaxBoardCols * $gBoardRows \
 		      + 2 * $kMaxBoardCols * $kMaxBoardRows * $gRowsOfPieces \
 		      + 2 * $kMaxBoardCols * $kMaxBoardRows * $kMaxRowsOfPieces * $gCaptureVersion \
 		      + 2 * $kMaxBoardCols * $kMaxBoardRows * $kMaxRowsOfPieces * $kMaxCaptureVersions * ($gWinCondition != $kVersionLine ? 1 : 0) \
-		      + 2 * $kMaxBoardCols * $kMaxBoardRows * $kMaxRowsOfPieces * $kMaxCaptureVersions * $kCaptureAll * ($gWinCondition == $kVersionCapture ? 0 : $gNumInALine - 1)}]
+		      + 2 * $kMaxBoardCols * $kMaxBoardRows * $kMaxRowsOfPieces * $kMaxCaptureVersions * $kCaptureAll * ($gWinCondition == $kVersionCapture ? 0 : $gNumInALine - 1)]
 }
 
 
@@ -276,16 +296,27 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    global gMisereGame gBoardRows gBoardCols gRowsOfPieces gCaptureVersion gWinCondition gNumInALine \
+
+    global  gMisereGame gBoardRowsOption gBoardColsOption gRowsOfPiecesOption gNumInALineOption \
+	gCaptureVersion gCaptureOption gWinCondition \
+	gBoardRows gBoardCols gRowsOfPieces gNumInALine \
+	kMinBoardRows kMinBoardCols kMinRowsOfPieces kMinNumInALine \
 	kMaxBoardRows kMaxBoardCols kMaxRowsOfPieces kMaxNumInALine kMaxCaptureVersions kCaptureAll \
+	kVersionCorner kVersionNoCorner \
 	kVersionLine kVersionCapture kVersionBoth
   
-    set gBoardCols [expr $option % $kMaxBoardCols]
-    set gBoardRows [expr ($option / $kMaxBoardCols) % $kMaxBoardRows]
-    set gRowsOfPieces [expr ($option / $kMaxBoardCols / $kMaxBoardRows) % $kMaxRowsOfPieces]
-    set gCaptureVersion [expr ($option / $kMaxBoardCols / $kMaxBoardRows / $kMaxRowsOfPieces) % $kMaxCaptureVersions]
-    set captureAll [expr ($option / $kMaxBoardCols / $kMaxBoardRows / $kMaxRowsOfPieces / $kMaxCaptureVersions) % $kCaptureAll]
-    set inALine [expr ($option / $kMaxBoardCols / $kMaxBoardRows / $kMaxRowsOfPieces / $kMaxCaptureVersions / $kCaptureAll) %  $kMaxNumInALine]
+    set gMisereGame     [expr  $option % 2]
+    set gBoardCols      [expr ($option / 2) % $kMaxBoardCols]
+    set gBoardRows      [expr ($option / 2  / $kMaxBoardCols) % $kMaxBoardRows]
+    set gRowsOfPieces   [expr ($option / 2  / $kMaxBoardCols  / $kMaxBoardRows) % $kMaxRowsOfPieces]
+    set gCaptureVersion [expr ($option / 2  / $kMaxBoardCols  / $kMaxBoardRows  / $kMaxRowsOfPieces) \
+			     % $kMaxCaptureVersions]
+    set captureAll      [expr ($option / 2  / $kMaxBoardCols  / $kMaxBoardRows  / $kMaxRowsOfPieces  \
+				   / $kMaxCaptureVersions) % $kCaptureAll]
+    set inALine         [expr ($option / 2  / $kMaxBoardCols  / $kMaxBoardRows  / $kMaxRowsOfPieces  \
+				   / $kMaxCaptureVersions  / $kCaptureAll) %  $kMaxNumInALine]
+
+    set gBoardSize [expr $gBoardCols * $gBoardRows]
 
     if {$captureAll == 1 && $inALine != 0} {
 	set gNumInALine [expr $inALine + 1]
@@ -296,9 +327,18 @@ proc GS_SetOption { option } {
 	set gWinCondition $kVersionLine
 	set gNumInRow [expr $inALine + 1]
     }
+
+    set gBoardRowsOption [expr $gBoardRows - $kMinBoardRows]
+    set gBoardColsOption [expr $gBoardCols - $kMinBoardCols]
+    set gRowsOfPiecesOption [expr $gRowsOfPieces - $kMinRowsOfPieces]
+    set gNumInALineOption [expr $gNumInALine - $kMinNumInALine]
+    set gCaptureOption [expr $gCaptureVersion == $kVersionCorner ? 0 : 1]
 }
 
 
+#############################################################################
+# max returns the greater of the two given values (integers).
+#############################################################################
 proc max { x y } {
     if {$x > $y} {
 	return $x
@@ -308,6 +348,9 @@ proc max { x y } {
 }
 
 
+#############################################################################
+# max returns the lesser of the two given values (integers).
+#############################################################################
 proc min { x y } {
     if {$x < $y} {
 	return $x
@@ -318,14 +361,10 @@ proc min { x y } {
 
 
 #############################################################################
-##
-## DrawCircle
-##
-## Here we draw a circle on (slotX,slotY) in window w with a tag of theTag
-## If drawBig is false we don't move it to slotX,slotY.
-##
+# DrawCircle
+# Here we draw a circle on (slotX,slotY) in window w with a tag of theTag
+# If drawBig is false we don't move it to slotX,slotY.
 #############################################################################
-
 proc DrawCircle { w slotX slotY theTag theColor } {
 
     global gCellSize
@@ -358,135 +397,165 @@ proc DrawCircle { w slotX slotY theTag theColor } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
+
     global gCanvasWidth gCanvasHeight gBoardRows gBoardCols gBoardSize
-    global gFrameWidth gFrameHeight
+    global gFrameWidth gFrameHeight gMinFrameLength
     global gPieceSize gCellSize
     global gFontSize
-
     global gPosition
 
+    # Make sure the board size is up to date.
     set gBoardSize [expr $gBoardRows * $gBoardCols]
 
+    # Get canvas and frame size values.
     set gCanvasWidth  [$c cget -width]
-    set gCanvasHeight $gCanvasWidth
-    set gMinFrameLength [min $gFrameWidth $gFrameHeight]
-    #set boardMax [max $gBoardRows $gBoardCols]
-    set gCellSize [expr [min $gFrameWidth $gFrameHeight] / 4]
+    set gCanvasHeight [$c cget -height]
+    set gMinFrameLength [min [expr $gFrameWidth - 1] [expr $gFrameHeight - 1]]
 
-    set horizontalStart [expr [expr $gCanvasWidth - [expr $gCellSize * [expr $gBoardCols - 1]]] / 2]
-    set verticalStart [expr [expr $gCanvasHeight - [expr $gCellSize * [expr $gBoardRows - 1]]] / 2]
-
+    # Calculate sizes of elements on the board.
+    set gCellSize [min [expr ($gFrameWidth - 1) / $gBoardCols] [expr ($gFrameHeight - 1) / $gBoardRows]]
     set gPieceSize [expr $gCellSize / 4]
     set gFontSize [expr int($gPieceSize * 3 / 2)]
-    #set xColor [lindex [GS_ColorOfPlayers] 0]
-    #set oColor [lindex [GS_ColorOfPlayers] 1]
     set arrowWidth [expr $gCellSize / 15]
     set arrowWidth2 [expr $arrowWidth * 2]
-    set offset [list [expr -1 * $gPieceSize * 2 / 3] 0 [expr $gPieceSize * 2 / 3]]
-    #set offsetSource [expr $gPieceSize / 10] 
     set arrowLength [list [expr $gCellSize - $gPieceSize] [expr [expr $gCellSize * 2] - $gPieceSize] [expr [expr $gCellSize * 3] - $gPieceSize]]
 
+    # Calculate offsets.
+    set horizontalStart [expr $gCellSize / 2]
+    set verticalStart [expr $gCellSize / 2]
+    # offset is to separate the arrows from the same piece
+    set offset [list [expr -1 * $gPieceSize * 2 / 3] 0 0 [expr $gPieceSize * 2 / 3]]
+    # offsetShift is to offset all the arrows so that they won't overlap (specifically length 2 middle)
+    set offsetShift [list [expr [lindex $offset 0] / 2] [expr [lindex $offset 3] / 2]]
+    # offsetSource is to offset the starting point of an arrow so it's not in the center of the piece
+    set offsetSource [list [expr [lindex $offsetShift 0] - $arrowWidth] [expr [lindex $offsetShift 1] + $arrowWidth]]
+
+    # base
     for {set x 0} {$x < $gBoardCols} {incr x} {
 	for {set y 0} {$y < $gBoardRows} {incr y} {
-	    $c create rectangle [toCanvasCoord $x] [toCanvasCoord $y] [toCanvasCoord [expr $x + 1]] [toCanvasCoord [expr $y + 1]] -fill white -outline black -tag base 
+	    $c create rectangle [ToCanvasCoord $x] [ToCanvasCoord $y] [ToCanvasCoord [expr $x + 1]] [ToCanvasCoord [expr $y + 1]] -fill white -outline black -tag base 
 	}
     }
 
+    # pieces
     for {set cols 0} {$cols < $gBoardCols} {incr cols} {
 	DrawCircle $c $cols 0 pieces [lindex [GS_ColorOfPlayers] 0]
 	DrawCircle $c $cols 3 pieces [lindex [GS_ColorOfPlayers] 1]
     }
 
+    # arrows
     for {set x 0} {$x < $gBoardCols} {incr x} {
-	set horizontalOffset [expr $horizontalStart + [toCanvasCoord $x]]
+	set horizontalOffset [expr $horizontalStart + [ToCanvasCoord $x]]
 	for {set y 0} {$y < $gBoardRows} {incr y} {
-	    set verticalOffset [expr $verticalStart + [toCanvasCoord $y]]
+	    set verticalOffset [expr $verticalStart + [ToCanvasCoord $y]]
 	    # arrows with length 1
+	    # pointing down
 	    if {($y >= 0) && ($y <= [expr $gBoardRows - 2])} {
 		set temp [expr $y + 1]
-		$c create line [expr $horizontalOffset + [lindex $offset 0]]  $verticalOffset [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset + [lindex $arrowLength 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowDown arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 0]]  [expr $verticalOffset + [lindex $offsetSource 1]] [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset + [lindex $arrowLength 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowDown arrow$x$y$x$temp arrow]
 	    }
+	    # pointing up
 	    if {($y >= 1) && ($y <= [expr $gBoardRows - 1])} {
 		set temp [expr $y - 1]
-		$c create line [expr $horizontalOffset + [lindex $offset 2]] $verticalOffset [expr $horizontalOffset + [lindex $offset 2]] [expr $verticalOffset - [lindex $arrowLength 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowUp arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset + [lindex $offsetSource 0]] [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset - [lindex $arrowLength 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowUp arrow$x$y$x$temp arrow]
 	    }
+	    # pointing right
 	    if {($x >= 0) && ($x <= [expr $gBoardCols - 2])} {
 		set temp [expr $x + 1]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset + [lindex $arrowLength 0]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowRight arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 1]] [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset + [lindex $arrowLength 0]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowRight arrow$x$y$temp$y arrow]
 	    }
+	    # pointing left
 	    if {($x >= 1) && ($x <= [expr $gBoardCols - 1])} {
 		set temp [expr $x - 1]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 2]] [expr $horizontalOffset - [lindex $arrowLength 0]] [expr $verticalOffset + [lindex $offset 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowLeft arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 0]] [expr $verticalOffset + [lindex $offset 3]] [expr $horizontalOffset - [lindex $arrowLength 0]] [expr $verticalOffset + [lindex $offset 3]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength1 arrowLeft arrow$x$y$temp$y arrow]
 	    }
 	    # arrows with length 2 (side)
+	    # pointing down
 	    if {($y >= 1) && ($y <= [expr $gBoardRows - 3])} {
 		set temp [expr $y + 2]
-		$c create line [expr $horizontalOffset + [lindex $offset 2]] $verticalOffset [expr $horizontalOffset + [lindex $offset 2]] [expr $verticalOffset + [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowDown arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset + [lindex $offsetSource 1]] [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset + [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowDown arrow$x$y$x$temp arrow]
 	    }
+	    # pointing up
 	    if {($y >= 2) && ($y <= [expr $gBoardRows - 2])} {
 		set temp [expr $y - 2]
-		$c create line [expr $horizontalOffset + [lindex $offset 0]] $verticalOffset [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset - [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowUp arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset + [lindex $offsetSource 0]] [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset - [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowUp arrow$x$y$x$temp arrow]
 	    }
+	    # pointing right
 	    if {($x >= 1) && ($x <= [expr $gBoardCols - 3])} {
 		set temp [expr $x + 2]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 2]] [expr $horizontalOffset + [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowRight arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 1]] [expr $verticalOffset + [lindex $offset 3]] [expr $horizontalOffset + [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 3]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowRight arrow$x$y$temp$y arrow]
 	    }
+	    # pointing left
 	    if {($x >= 2) && ($x <= [expr $gBoardCols - 2])} {
 		set temp [expr $x - 2]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset - [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowLeft arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 0]] [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset - [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowLeft arrow$x$y$temp$y arrow]
 	    }
 	    # arrows with length 2 (middle)
-	    if {$y == 0} {
+	    # pointing down
+	    if {$y == 0 && $gBoardRows >= 3} {
 		set temp [expr $y + 2]
-		$c create line [expr $horizontalOffset + [lindex $offset 1]] $verticalOffset [expr $horizontalOffset + [lindex $offset 1]] [expr $verticalOffset + [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowDown arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 1]] [expr $verticalOffset + [lindex $offsetSource 1]] [expr $horizontalOffset + [lindex $offset 1]] [expr $verticalOffset + [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowDown arrow$x$y$x$temp arrow]
 	    }
-	    if {$y == [expr $gBoardRows - 1]} {
+	    # pointing up
+	    if {$y == [expr $gBoardRows - 1] && $gBoardRows >= 3} {
 		set temp [expr $y - 2]
-		$c create line [expr $horizontalOffset + [lindex $offset 1]] $verticalOffset [expr $horizontalOffset + [lindex $offset 1]] [expr $verticalOffset - [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowUp arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 2]] [expr $verticalOffset + [lindex $offsetSource 0]] [expr $horizontalOffset + [lindex $offset 2]] [expr $verticalOffset - [lindex $arrowLength 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowUp arrow$x$y$x$temp arrow]
 	    }
-	    if {$x == 0} {
+	    # pointing right
+	    if {$x == 0 && $gBoardCols >= 3} {
 		set temp [expr $x + 2]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 1]] [expr $horizontalOffset + [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowRight arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 1]] [expr $verticalOffset + [lindex $offset 1]] [expr $horizontalOffset + [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowRight arrow$x$y$temp$y arrow]
 	    }
-	    if {$x == [expr $gBoardCols - 1]} {
+	    # pointing left
+	    if {$x == [expr $gBoardCols - 1] && $gBoardCols >= 3} {
 		set temp [expr $x - 2]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 1]] [expr $horizontalOffset - [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 1]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowLeft arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 0]] [expr $verticalOffset + [lindex $offset 2]] [expr $horizontalOffset - [lindex $arrowLength 1]] [expr $verticalOffset + [lindex $offset 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength2 arrowLeft arrow$x$y$temp$y arrow]
 	    }
 	    # arrows with length 3
+	    # pointing down
 	    if {($y >= 0) && ($y <= [expr $gBoardRows - 4])} {
 		set temp [expr $y + 3]
-		$c create line [expr $horizontalOffset + [lindex $offset 2]] $verticalOffset [expr $horizontalOffset + [lindex $offset 2]] [expr $verticalOffset + [lindex $arrowLength 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowDown arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset + [lindex $offsetSource 1]] [expr $horizontalOffset + [lindex $offset 3]] [expr $verticalOffset + [lindex $arrowLength 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowDown arrow$x$y$x$temp arrow]
 	    }
-	    if {($y >= [expr $gBoardRows - 1]) && ($y <= 3)} {
+	    # pointing up
+	    if {($y >= 3) && ($y <= [expr $gBoardRows - 1])} {
 		set temp [expr $y - 3]
-		$c create line [expr $horizontalOffset + [lindex $offset 0]] $verticalOffset [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset - [lindex $arrowLength 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowUp arrow$x$y$x$temp arrow]
+		$c create line [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset + [lindex $offsetSource 0]] [expr $horizontalOffset + [lindex $offset 0]] [expr $verticalOffset - [lindex $arrowLength 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowUp arrow$x$y$x$temp arrow]
 	    }
-	    if {($x >= 0) && ($x <= [expr $gBoardRows - 4])} {
+	    # pointing right
+	    if {($x >= 0) && ($x <= [expr $gBoardCols - 4])} {
 		set temp [expr $x + 3]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 2]] [expr $horizontalOffset + [lindex $arrowLength 2]] [expr $verticalOffset + [lindex $offset 2]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowRight arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 1]] [expr $verticalOffset + [lindex $offset 3]] [expr $horizontalOffset + [lindex $arrowLength 2]] [expr $verticalOffset + [lindex $offset 3]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowRight arrow$x$y$temp$y arrow]
 	    }
-	    if {($x >= [expr $gBoardCols - 1]) && ($x <= 3)} {
+	    # pointing left
+	    if {($x >= 3) && ($x <= [expr $gBoardCols - 1])} {
 		set temp [expr $x - 3]
-		$c create line $horizontalOffset [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset - [lindex $arrowLength 2]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowLeft arrow$x$y$temp$y arrow]
+		$c create line [expr $horizontalOffset + [lindex $offsetSource 0]] [expr $verticalOffset + [lindex $offset 0]] [expr $horizontalOffset - [lindex $arrowLength 2]] [expr $verticalOffset + [lindex $offset 0]] -arrow last -width $arrowWidth -arrowshape [list $arrowWidth2 $arrowWidth2 $arrowWidth] -tags [list arrowLength3 arrowLeft arrow$x$y$temp$y arrow]
 	    }
 	}
     }
 
+    # Shift all the arrows so they won't overlap (specifically length 2 middle).
+    $c move arrowUp [lindex $offsetShift 1] 0
+    $c move arrowDown [lindex $offsetShift 0] 0
+    $c move arrowRight 0 [lindex $offsetShift 0]
+    $c move arrowLeft 0 [lindex $offsetShift 1]
+
+    # Make only the base visible.
     $c raise base
-#    $c raise pieces
-#    $c raise arrow
-#    $c raise arrowDown
-#    $c raise arrowUp
-#    $c raise arrowLeft
-#    $c raise arrowRight
 
-    #global gInitialPosition
-    #GS_DrawPosition $c $gInitialPosition
+    # Move everything to the center of the frame.
+    $c move all [expr ($gFrameWidth - 1 - [ToCanvasCoord $gBoardCols]) / 2] [expr ($gFrameHeight - 1 - [ToCanvasCoord $gBoardRows]) / 2]
 
+    # Draw a 4 by 4 board with 1 row of pieces per player.
     set pieceString "oooo        xxxx"
     DrawBoardString $c $pieceString
-    $c create rectangle 0 [expr $gCanvasWidth/2 - 80] $gMinFrameLength [expr $gCanvasWidth/2 + 80] -fill gray -width 1 -outline black
-    $c create text [expr $gCanvasWidth/2] [expr $gCanvasWidth/2] -text "Welcome to Hasami Shogi!" -font "Arial $gFontSize" -anchor center -fill black -width $gCanvasWidth -justify center
+
+    # Create welcome sign.
+    $c create rectangle 0 [expr $gCanvasWidth/2 - 80] $gMinFrameLength [expr $gCanvasWidth/2 + 80] -fill gray -width 1 -outline black -tag welcome
+    $c create text [expr $gCanvasWidth/2] [expr $gCanvasWidth/2] -text "Welcome to Hasami Shogi!" -font "Arial $gFontSize" -anchor center -fill black -width $gCanvasWidth -justify center -tag welcome
+    # Move welcome sign to the center of the frame.
+    $c move welcome [expr ($gFrameWidth - 1 - $gMinFrameLength) / 2] [expr ($gFrameHeight - 1 - $gMinFrameLength) / 2]
 }
 
 
@@ -513,18 +582,29 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global gBoardSize
-    set pieceString [yCoordConvert [string range [C_GenericUnhash $position $gBoardSize] 0 [expr $gBoardSize-1]]]
-    return [DrawBoardString $c $pieceString]
 
+    global gBoardSize
+
+    set pieceString [YCoordConvert [string range [C_GenericUnhash $position $gBoardSize] 0 [expr $gBoardSize-1]]]
+    return [DrawBoardString $c $pieceString]
 }
+
+
+#############################################################################
+# DrawBoardString draws an arbitrary board from a string.
+# It's arguments are a canvas, c, where you should draw and the
+# string containing the board configuration.
+#############################################################################
 proc DrawBoardString { c pieceString } {
-    global gBoardCols gBoardRows
-    
+
+    global gFrameWidth gFrameHeight gBoardCols gBoardRows
+
+    # Start with a clear board.
     $c raise base all
     $c delete pieces
     set pieceNumber 0
 
+    # Draw pieces.
     for {set rows 0} {$rows < $gBoardRows} {set rows [expr $rows + 1]} {
 	for {set cols 0} {$cols < $gBoardCols} {set cols [expr $cols + 1]} {
 	    if {[string compare [string index $pieceString $pieceNumber] [lindex [GS_NameOfPieces] 0]] == 0} {
@@ -536,6 +616,8 @@ proc DrawBoardString { c pieceString } {
 	}
     }
 
+    # Move all the new pieces to the center of the frame.
+    $c move pieces [expr ($gFrameWidth - 1 - [ToCanvasCoord $gBoardCols]) / 2] [expr ($gFrameHeight - 1 - [ToCanvasCoord $gBoardRows]) / 2]
 }
 
 
@@ -547,6 +629,9 @@ proc DrawBoardString { c pieceString } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
+    GS_Deinitialize $c
+    GS_Initialize $c
+    $c delete welcome
     GS_DrawPosition $c $position
 }
 
@@ -559,7 +644,7 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+    return ""
 }
 
 
@@ -575,16 +660,23 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition move newPosition } {
 
-    global gBoardSize gBoardCols
+    global gFrameWidth gFrameHeight gBoardSize gBoardCols gBoardRows
 
+    # Get source and destinations from move.
     set source [GetSourceFromMove $move]
     set dest [GetDestFromMove $move]
     set sourceCol [lindex $source 0]
     set sourceRow [lindex $source 1]
     set sourceIndex [expr [expr $sourceRow * $gBoardCols] + $sourceCol]
-    set oldBoard [yCoordConvert [C_GenericUnhash $oldPosition $gBoardSize]]
-    set newBoard [yCoordConvert [C_GenericUnhash $newPosition $gBoardSize]]
+
+    # Get old and new boards in strings.
+    set oldBoard [YCoordConvert [C_GenericUnhash $oldPosition $gBoardSize]]
+    set newBoard [YCoordConvert [C_GenericUnhash $newPosition $gBoardSize]]
+
+    # Get the name of the piece that moved.
     set movedpiece [string index $oldBoard $sourceIndex]
+
+    # Set player and enemy colors.
     if {[string compare $movedpiece [lindex [GS_NameOfPieces] 0]] == 0} {
 	set color [lindex [GS_ColorOfPlayers] 0]
 	set enemyColor [lindex [GS_ColorOfPlayers] 1]
@@ -593,17 +685,25 @@ proc GS_HandleMove { c oldPosition move newPosition } {
 	set enemyColor [lindex [GS_ColorOfPlayers] 0]
     } else {}
 
+    # Replace the source of the moved piece to empty in the old board.
     set oldBoard [string replace $oldBoard $sourceIndex $sourceIndex " "]
 
+    # Find all the captured piece positions (new board is empty where old board is not).
     for {set i 0} {$i < $gBoardSize} {incr i} {
 	if { [string index $oldBoard $i] !=  " " && [string index $newBoard $i] == " " } {
-	    lappend captured [DrawCircle $c [expr $i % $gBoardCols] [expr $i / $gBoardCols] captured $enemyColor]
+	    lappend captured [DrawCircle $c [expr $i % $gBoardCols] [expr $i / $gBoardCols] [list pieces captured] $enemyColor]
 	}
     }
 
+    # Draw the old board without the moved piece.
     DrawBoardString $c $oldBoard
-    set piece [DrawCircle $c $sourceCol $sourceRow piece $color]    
+    # Draw the moved piece at the source.
+    set piece [DrawCircle $c $sourceCol $sourceRow pieces $color]
+    # Move piece, because the board is in the center fo the frame.
+    $c move $piece [expr ($gFrameWidth - 1 - [ToCanvasCoord $gBoardCols]) / 2] [expr ($gFrameHeight - 1 - [ToCanvasCoord $gBoardRows]) / 2]
+    # Animate the move.
     animate $c $piece $source $dest 0
+    # Draw the new position.
     GS_DrawPosition $c $newPosition
 }
 
@@ -612,8 +712,9 @@ proc GS_HandleMove { c oldPosition move newPosition } {
 ####################################################
 proc animate { c piece source destination undo } {
 
-    global gCellSize gBaseSpeed gAnimationSpeed
+    global gBaseSpeed gAnimationSpeed
 
+    # Get source and destination coordinates.
     set x0 [lindex $source 0]
     set x1 [lindex $destination 0]
     set y0 [lindex $source 1]
@@ -628,21 +729,26 @@ proc animate { c piece source destination undo } {
 	set speed 10
     }
 
-    set dx [expr [toCanvasCoord [expr $x1 - $x0]] / $speed]
-    set dy [expr [toCanvasCoord [expr $y1 - $y0]] / $speed]
+    # Distance to be moved per unit of delay.
+    set dx [expr [ToCanvasCoord [expr $x1 - $x0]] / $speed]
+    set dy [expr [ToCanvasCoord [expr $y1 - $y0]] / $speed]
 
+    # Animate the move.
     for {set i 0} {$i < $speed} {incr i} {
 	$c move $piece $dx $dy
 	
 	after 1
 	update idletasks
     }
+
+    # Do captures/uncaptures.
     if {$undo} {
 	$c raise uncaptured
     } else {
 	$c delete captured
     }
 }
+
 
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
@@ -660,14 +766,24 @@ proc animate { c piece source destination undo } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
+
     global gBoardSize gBoardCols
+
+    # Delete possible jump and normal tags from previous calls of this function
+    $c dtag arrowJump arrowJump
+    $c dtag arrowNorm arrowNorm
+
+    # Show an arrow for each move in the movelist.
     foreach item $moveList {
+	# Initialize values for new arrow.
 	set move [lindex $item 0]
 	set value [lindex $item 1]
 	set color cyan
 
-	set boardString [yCoordConvert [C_GenericUnhash $position $gBoardSize]]
-	
+	# Get the board string from position.
+	set boardString [YCoordConvert [C_GenericUnhash $position $gBoardSize]]
+
+	# Set colors for values.
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
@@ -678,6 +794,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 
+	# Get source and destination from move.
 	set source [GetSourceFromMove $move]
 	set sourcex [lindex $source 0]
 	set sourcey [lindex $source 1]
@@ -686,8 +803,13 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set destx [lindex $dest 0]
 	set desty [lindex $dest 1]
 	set dest $destx$desty
+
+	# Show the arrow.
 	$c raise arrow$source$dest
+	# Assign the arrow the correct color.
 	$c itemconfig arrow$source$dest -fill $color
+
+	# Detect jump arrows.  (Only arrows with length 2 can be jump arrows)
 	if {[lindex [$c gettags arrow$source$dest] 0] == "arrowLength2"} {
 	    switch [lindex [$c gettags arrow$source$dest] 1] {
 		arrowLeft {
@@ -713,13 +835,28 @@ proc GS_ShowMoves { c moveType position moveList } {
 		default {}
 	    }
 	}
+
+	# Action arrows on releasing the mouse.
 	$c bind arrow$source$dest <ButtonRelease-1> "ReturnFromHumanMove $move"
-	$c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black"
+
+        # Action for jump arrow on mouse over.  Raise jump arrow above everything else.
+	if {[lindex [$c gettags arrow$source$dest] end] == "arrowJump"} {
+	    $c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black; $c raise arrow$source$dest"
+	} else {
+	    # Action for normal arrows on mouse over.
+	    # Raise normal arrow above other normal arrows (still underneath jump arrows).
+	    $c addtag arrowNorm withtag arrow$source$dest;
+	    $c bind arrow$source$dest <Enter> "$c itemconfig arrow$source$dest -fill black; $c raise arrow$source$dest arrowNorm"
+	}
+
+	# Action on mouse leave.
 	$c bind arrow$source$dest <Leave> "$c itemconfig arrow$source$dest -fill $color"
     }
+
+    # Raise the pieces above all the arrows.
     $c raise pieces
+    # Raise the jump arrows above everything else.
     $c raise arrowJump
-    $c dtag arrowJump arrowJump
 }
 
 
@@ -747,16 +884,23 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    global gBoardSize gBoardCols
+    global gFrameWidth gFrameHeight gBoardSize gBoardCols gBoardRows
 
+    # Get source and destinations from move.
     set source [GetDestFromMove $theMoveToUndo]
     set dest [GetSourceFromMove $theMoveToUndo]
     set sourceCol [lindex $source 0]
     set sourceRow [lindex $source 1]
     set sourceIndex [expr [expr $sourceRow * $gBoardCols] + $sourceCol]
-    set oldBoard [yCoordConvert [C_GenericUnhash $currentPosition $gBoardSize]]
-    set newBoard [yCoordConvert [C_GenericUnhash $positionAfterUndo $gBoardSize]]
+
+    # Get old and new boards in strings.
+    set oldBoard [YCoordConvert [C_GenericUnhash $currentPosition $gBoardSize]]
+    set newBoard [YCoordConvert [C_GenericUnhash $positionAfterUndo $gBoardSize]]
+
+    # Get the name of the piece that moved.
     set movedpiece [string index $oldBoard $sourceIndex]
+
+    # Set player and enemy colors.
     if {[string compare $movedpiece [lindex [GS_NameOfPieces] 0]] == 0} {
 	set color [lindex [GS_ColorOfPlayers] 0]
 	set enemyColor [lindex [GS_ColorOfPlayers] 1]
@@ -765,22 +909,28 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	set enemyColor [lindex [GS_ColorOfPlayers] 0]
     } else {}
 
+    # Replace the source of the moved piece to empty in the old board.
     set oldBoard [string replace $oldBoard $sourceIndex $sourceIndex " "]
 
+    # Find all the captured piece positions (old board is empty where new board is not).
     for {set i 0} {$i < $gBoardSize} {incr i} {
 	if { [string index $oldBoard $i] ==  " " && [string index $newBoard $i] != " " } {
-	    lappend uncaptured [DrawCircle $c [expr $i % $gBoardCols] [expr $i / $gBoardCols] uncaptured $enemyColor]
+	    lappend uncaptured [DrawCircle $c [expr $i % $gBoardCols] [expr $i / $gBoardCols] [list pieces uncaptured] $enemyColor]
 	}
     }
 
+    # Draw the old board without the moved piece.
     DrawBoardString $c $oldBoard
-
-    set piece [DrawCircle $c $sourceCol $sourceRow piece $color]
-
+    # Draw the moved piece at the source.
+    set piece [DrawCircle $c $sourceCol $sourceRow pieces $color]
+    # Move piece, because the board is in the center fo the frame.
+    $c move $piece [expr ($gFrameWidth - 1 - [ToCanvasCoord $gBoardCols]) / 2] [expr ($gFrameHeight - 1 - [ToCanvasCoord $gBoardRows]) / 2]
+    # Animate the move.
     animate $c $piece $source $dest 1
-
+    # Draw the new position.
     GS_DrawPosition $c $positionAfterUndo
 }
+
 
 #############################################################################
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
@@ -797,45 +947,108 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-    global gCanvasWidth gCellSize gPieceSize gFontSize
+
+    global gFrameWidth gFrameHeight gMinFrameLength gCanvasWidth gCellSize gPieceSize gFontSize
+    global gBoardCols gBoardRows
+
+    # Delete possible game over objects from previous calls of this function.
+    $c delete GameOverLine
+    $c delete winner
+
+    # Draw a line through winning in a row pieces.  (There might be multiple lines.)
     foreach coord [InARow $position $nameOfWinningPiece $lastMove] {
+	# Get source and destinations.
 	set source [lindex $coord 0]
 	set dest [lindex $coord 1]
 	set sourcex [lindex $source 0]
 	set sourcey [lindex $source 1]
 	set destx [lindex $dest 0]
 	set desty [lindex $dest 1]
-	$c create line [expr [toCanvasCoord $sourcex] + ($gCellSize / 2)] [expr [toCanvasCoord $sourcey] + ($gCellSize / 2)] [expr [toCanvasCoord $destx] + ($gCellSize / 2)] [expr [toCanvasCoord $desty] + ($gCellSize / 2)] -fill gray70 -tags GameOverLine -width [expr $gPieceSize / 2] -capstyle round
+	# Create the winning line.
+	$c create line [expr [ToCanvasCoord $sourcex] + ($gCellSize / 2)] [expr [ToCanvasCoord $sourcey] + ($gCellSize / 2)] [expr [ToCanvasCoord $destx] + ($gCellSize / 2)] [expr [ToCanvasCoord $desty] + ($gCellSize / 2)] -fill gray70 -tags GameOverLine -width [expr $gPieceSize / 2] -capstyle round
     }
 
+    # Display notice of who wins.
     $c create text [expr $gCanvasWidth/2] [expr $gCanvasWidth/2 - 40] -text "$nameOfWinner" -font "Arial $gFontSize" -fill orange -tags winner
     $c create text [expr $gCanvasWidth/2] [expr $gCanvasWidth/2 + 40] -text "WINS!"         -font "Arial $gFontSize" -fill orange -tags winner
+
+    # Move game over objects to the center of the canvas.
+    $c move GameOverLine [expr ($gFrameWidth - 1 - [ToCanvasCoord $gBoardCols]) / 2] [expr ($gFrameHeight - 1 - [ToCanvasCoord $gBoardRows]) / 2]
+    $c move winner [expr ($gFrameWidth - 1 - $gMinFrameLength) / 2] [expr ($gFrameHeight - 1 - $gMinFrameLength) / 2]
 }
 
-proc toCanvasCoord {coord} {
+
+#############################################################################
+# ToCanvasCoord converts a given cell coordinate to its canvas coordinates
+# (before moving to the center of the frame).
+#############################################################################
+proc ToCanvasCoord {coord} {
+
     global gCellSize
+
     return [expr $coord * $gCellSize]
 }
 
+
+#############################################################################
+# InARow takes a position, the name of a winning piece, and the last move
+# before winning and returns the starting and ending coordinates of the
+# pieces in a row, could be none or more than one.
+#############################################################################
 proc InARow { position nameOfWinningPiece lastMove } {
 
-    global gBoardSize gBoardRows gBoardCols gNumInALine
+    global gBoardSize gBoardRows gBoardCols gNumInALine gMisereGame
 
-    set boardList [yCoordConvert [C_GenericUnhash $position $gBoardSize]]
+    # Return an empty list if there were no moves made before the win.
+    if {$lastMove==""} {
+	return {}
+    }
+
+    # Get the board string from the position.
+    set boardList [YCoordConvert [C_GenericUnhash $position $gBoardSize]]
+
+    # Get the destination of the winning move.
     set dest [GetDestFromMove $lastMove]
     set destCol [lindex [GetDestFromMove $lastMove] 0]
     set destRow [lindex [GetDestFromMove $lastMove] 1]
     set destIndex [expr [expr $destRow * $gBoardCols] + $destCol]
+
+    # Calculate the starting rows of the winner.
+    # (In a row pieces do not contain pieces in the starting rows).
+    # This currently only works for one row of pieces per player.
+    # Need to do a list of bad rows if want to expand to other options.
     if {$nameOfWinningPiece == [lindex [GS_NameOfPieces] 0]} {
-	set badRow [expr $gBoardRows - 1]
+	if {!$gMisereGame} {
+	    set badRow [expr $gBoardRows - 1]
+	} else {
+	    set badRow 0
+	}
     } else {
-	set badRow 0
+	if {!$gMisereGame} {
+	    set badRow 0
+	} else {
+	    set badRow [expr $gBoardRows - 1]
+	}
     }
 
+    # Set the name of the pieces in a row to check for.
+    # Winner of standard game and loser if misere game.
+    if {!$gMisereGame} {
+	set side $nameOfWinningPiece
+    } else {
+	if {$nameOfWinningPiece == [lindex [GS_NameOfPieces] 0]} {
+	    set side [lindex [GS_NameOfPieces] 1]
+	} else {
+	    set side [lindex [GS_NameOfPieces] 0]
+	}
+    }
+
+
+    # Start finding pieces in a row.
     # check left
     set rows $destRow
     for {set cols $destCol} {$cols >= 0} {incr cols -1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -845,7 +1058,7 @@ proc InARow { position nameOfWinningPiece lastMove } {
     # check right
     set rows $destRow
     for {set cols $destCol} {$cols < $gBoardCols} {incr cols} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -855,7 +1068,7 @@ proc InARow { position nameOfWinningPiece lastMove } {
     # check up
     set cols $destCol
     for {set rows $destRow} {$rows >= 0 && $rows != $badRow} {incr rows -1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -865,7 +1078,7 @@ proc InARow { position nameOfWinningPiece lastMove } {
     # check down
     set cols $destCol
     for {set rows $destRow} {$rows < $gBoardRows && $rows != $badRow} {incr rows} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -874,7 +1087,7 @@ proc InARow { position nameOfWinningPiece lastMove } {
 
     # check diagonal left up
     for {set rows $destRow; set cols $destCol} {$rows >= 0 && $cols >= 0 && $rows != $badRow} {incr rows -1; incr cols -1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -883,28 +1096,28 @@ proc InARow { position nameOfWinningPiece lastMove } {
     set leftUp [list $cols $rows]
 
     # check diagonal right up
-    for {set rows $destRow; set cols $destCol} {$rows < $gBoardRows && $cols >= 0 && $rows != $badRow} {incr rows 1; incr cols -1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
-	    break
-	}
-    }
-    incr rows -1
-    incr cols 1
-    set rightUp [list $cols $rows]
-
-    # check diagonal left down
-    for {set rows $destRow; set cols $destCol} {$rows >= 0 && $cols < $gBoardCols && $rows != $badRow} {incr rows -1; incr cols 1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+    for {set rows $destRow; set cols $destCol} {$rows < $gBoardRows && $cols >= 0 && $rows != $badRow} {incr rows -1; incr cols 1} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
     incr rows 1
     incr cols -1
+    set rightUp [list $cols $rows]
+
+    # check diagonal left down
+    for {set rows $destRow; set cols $destCol} {$rows >= 0 && $cols < $gBoardCols && $rows != $badRow} {incr rows 1; incr cols -1} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
+	    break
+	}
+    }
+    incr rows -1
+    incr cols 1
     set leftDown [list $cols $rows]
 
     # check diagonal right down
     for {set rows $destRow; set cols $destCol} {$rows < $gBoardRows && $cols < $gBoardCols && $rows != $badRow} {incr rows 1; incr cols 1} {
-	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $nameOfWinningPiece} {
+	if {[string index $boardList [expr ($rows * $gBoardCols) + $cols]] != $side} {
 	    break
 	}
     }
@@ -912,7 +1125,10 @@ proc InARow { position nameOfWinningPiece lastMove } {
     incr cols -1
     set rightDown [list $cols $rows]
 
+    # Initialize the list of coordinates to be an empty list.
     set coordList {}
+
+    # Make the list of coordinates.
     # check horizontal
     if {[expr [lindex $right 0] - [lindex $left 0] + 1] >= $gNumInALine} {
 	lappend coordList [list $left $right]
@@ -945,31 +1161,47 @@ proc InARow { position nameOfWinningPiece lastMove } {
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
     $c delete GameOverLine
     $c delete winner
-
 }
 
 
+#############################################################################
+# GetDestFromMove returns the destination coordinates of a move in a list.
+#############################################################################
 proc GetDestFromMove {theMove} {
+
     global gBoardRows gBoardCols
+
     set width [expr [expr $theMove >> 8] & 0xff]
     set height [expr [expr $gBoardRows - 1] - [expr $theMove & 0xff]]
     return [list $width $height]
 }
 
 
+#############################################################################
+# GetSourceFromMove returns the source coordinates of a move in a list.
+#############################################################################
 proc GetSourceFromMove {theMove} {
+
     global gBoardRows gBoardCols
+
     set width [expr [expr $theMove >> 24] & 0xff]
     set height [expr [expr $gBoardRows - 1] - [expr [expr $theMove >> 16] & 0xff]]
     return [list $width $height]
 }
 
 
-proc yCoordConvert {pieceString} {
+#############################################################################
+# YCoordConvert flips the y coordinate system of a board configuration
+# passed in as a string.
+# The y coordinate system in mhshogi.c, 0 starts at the bottom, were as the
+# one in tcl starts at the top.  So we need to flip the y coordinate.
+#############################################################################
+proc YCoordConvert {pieceString} {
+
     global gBoardRows gBoardCols gBoardSize
+
     set newString ""
     for {set rows [expr $gBoardRows - 1]} {$rows >= 0} {set rows [expr $rows - 1]} {
 	append newString [string range $pieceString [expr $rows * $gBoardCols] [expr [expr $rows * $gBoardCols] + [expr $gBoardCols - 1]]]
