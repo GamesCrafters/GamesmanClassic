@@ -789,7 +789,7 @@ void PrintPosition(position,playerName,usersTurn)
       printf("  ");
     printf("              ");
     */
-    printf("\n               ");
+    printf("\n                  ");
     for (col = 0; col < side; col++)
       printf("%c ", col+'a');
   }
