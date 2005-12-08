@@ -1,4 +1,6 @@
 ####################################################
+# Othello
+#
 # Based upon the template for tcl module creation
 # and Xmnim
 #
@@ -29,7 +31,7 @@ proc GS_InitGameSpecific {} {
     set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
-    #these are set in GS_SetupRulesFrame
+    #These are set in GS_SetupRulesFrame
     global gRowsOption gColsOption
 
     global gMinRows gMinCols
@@ -50,8 +52,8 @@ proc GS_InitGameSpecific {} {
 
     #Percentage of the canvas that should be used for the score bar
 
-    global gTugHeight
-    set gTugHeight .05
+    global gScoreBarHeight
+    set gScoreBarHeight .025
 
     ### Set the strings to be used in the Edit Rules
 
@@ -85,7 +87,6 @@ proc GS_InitGameSpecific {} {
 proc GS_NameOfPieces {} {
 
     return [list black white]
-
 }
 
 
@@ -107,7 +108,6 @@ proc GS_NameOfPieces {} {
 proc GS_ColorOfPlayers {} {
 
     return [list black white]
-    
 }
 
 
@@ -243,12 +243,9 @@ proc GS_SetOption { option } {
 
 
 #############################################################################
-# DrawCircle
-#
-# Here we draw a piece-sied circle on (slotX,slotY) in window w with a tag of theTag
+# DrawCircle draws a piece-sied circle on (slotX,slotY) in window w 
+# with a tag of theTag.
 #############################################################################
-
-
 proc DrawCircle { w slotSize slotX slotY theTag theColor } {
     global xBoardOffset yBoardOffset
 
@@ -271,10 +268,8 @@ proc DrawCircle { w slotSize slotX slotY theTag theColor } {
 }
 
 #############################################################################
-# DrawMoveCircle
-#
-# Here we draw a circle that will represent a move on (slotX,slotY)
-#  in the window w with a tag of theTag
+# DrawMoveCircle draws a small circle that represents a move on (slotX,slotY)
+#  in the window w and adds the tag theTag
 #############################################################################
 
 proc DrawMoveCircle { w slotSize slotX slotY theTag theColor } {
@@ -335,12 +330,11 @@ proc GS_Initialize { c } {
 
 	    DrawCircle $c $cellSize $x $y pieces [lindex [GS_ColorOfPlayers] 0]
 	    DrawMoveCircle $c $cellSize $x $y moves cyan
-
 	}
     }
 
     $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] \
-	-font {Helvetica 32 bold} -fill white -text "No moves available.  Click here to pass." \
+	-font {Helvetica 32 bold} -fill blue -text "No moves available.  Click here to pass." \
 	-tag NoMovesText
 
     DrawScoreBar $c 2 2
@@ -506,8 +500,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 		$c raise NoMovesText		
 
 		$c bind NoMovesText <ButtonRelease-1> "ReturnFromHumanMove $move"
-		$c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill black"
-		$c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill white"
+		$c bind NoMovesText <Enter> "$c itemconfig NoMovesText -fill darkblue"
+		$c bind NoMovesText <Leave> "$c itemconfig NoMovesText -fill blue"
 	    } else {
 		# Otherwise, just move on
 		ReturnFromHumanMove $move
@@ -595,9 +589,9 @@ proc GS_UndoGameOver { c position } {
 proc GetCellSize {} {
     global gBoardRows gBoardCols
     global gFrameWidth gFrameHeight
-    global gTugHeight
+    global gScoreBarHeight
 
-    set boardCanvasSize [min $gFrameWidth [expr $gFrameHeight * (1-$gTugHeight)]]
+    set boardCanvasSize [min $gFrameWidth [expr $gFrameHeight * (1-$gScoreBarHeight)]]
     
     return [min [expr $boardCanvasSize / $gBoardRows] [expr $boardCanvasSize / $gBoardCols]]
 }
@@ -610,12 +604,11 @@ proc GetBoardYOffset {} {
     global gBoardRows gBoardCols
     global gFrameWidth gFrameHeight
     global cellSize
-    global gTugHeight
 
     if { $gBoardCols > $gBoardRows } {
-	return [expr int( (($gBoardCols - $gBoardRows) * $cellSize / 2) + ( $gFrameHeight * $gTugHeight)) ]
+	return [expr int( ($gBoardCols - $gBoardRows) * $cellSize / 2)]
     } else {
-	return [expr int( $gFrameHeight * $gTugHeight )]
+	return 0
     }
 }
 
@@ -791,27 +784,37 @@ proc FadePiece { c x y newColor type } {
 #############################################################################
 proc DrawScoreBar { c numBlack numWhite } {
     global gFrameWidth gFrameHeight
-    global gTugHeight
-    global xBoardOffset
+    global gScoreBarHeight
+    global xBoardOffset yBoardOffset
 
     global gLastNumBlack gLastNumWhite
+    global cellSize
+    global gBoardRows gBoardCols
 
     $c delete scorebar
 
     set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
     set cutoff [expr int( $boardWidth * double($numBlack) / ($numBlack + $numWhite)) ]
-    set height [expr int( $gTugHeight * $gFrameHeight ) ]
+    set barHeight [expr int( $gScoreBarHeight * $gFrameHeight) ]
+
+    set offsetY [expr $yBoardOffset + $cellSize * $gBoardRows]
 
     set firstColor [lindex [GS_ColorOfPlayers] 0]
     set secondColor [lindex [GS_ColorOfPlayers] 1]
 
-    $c create rectangle $xBoardOffset 0 \
-	[expr $cutoff + $xBoardOffset] $height \
-	-fill $firstColor -outline $firstColor -width 1 -tags [list blackScore scorebar]
+    $c create rectangle $xBoardOffset $offsetY \
+	[expr $cutoff + $xBoardOffset] [expr $offsetY + $barHeight] \
+	-fill $firstColor -outline $firstColor -width 2 -tags [list blackScore scorebar]
 
-    $c create rectangle [expr $cutoff + $xBoardOffset] 0 \
-	[expr $boardWidth + $xBoardOffset] $height \
-	-fill $secondColor -outline $secondColor -width 1 -tags [list whiteScore scorebar]
+    $c create rectangle [expr $cutoff + $xBoardOffset] $offsetY \
+	[expr $boardWidth + $xBoardOffset] [expr $offsetY + $barHeight] \
+	-fill $secondColor -outline $secondColor -width 2 -tags [list whiteScore scorebar]
+
+    if { $numBlack == 0 } {
+	$c itemconfig blackScore -outline [lindex [GS_ColorOfPlayers] 1]
+    } elseif { $numWhite == 0 } {
+	$c itemconfig whiteScore -outline [lindex [GS_ColorOfPlayers] 0]
+    }
 
     set gLastNumBlack $numBlack
     set gLastNumWhite $numWhite
@@ -824,10 +827,12 @@ proc DrawScoreBar { c numBlack numWhite } {
 # DrawScoreBar must be run before AnimateScrollBar is called!
 #############################################################################
 proc AnimateScoreBar { c numBlack numWhite } {
-    global gTugHeight
+    global gScoreBarHeight
     global gFrameWidth gFrameHeight
-    global xBoardOffset
+    global xBoardOffset yBoardOffset
+    global gBoardRows gBoardCols
     global gAnimationSpeed
+    global cellSize
     global pi
 
     global gLastNumBlack gLastNumWhite
@@ -836,23 +841,42 @@ proc AnimateScoreBar { c numBlack numWhite } {
     set newratio [expr double( $numBlack ) / ($numBlack + $numWhite) ]
 
     set boardWidth [expr $gFrameWidth - ($xBoardOffset * 2) ]
-    set barHeight [expr int( $gTugHeight * $gFrameHeight ) ]
+    set barHeight [expr int( $gScoreBarHeight * $gFrameHeight ) ]
 
     set animLength [expr 60 - $gAnimationSpeed*10]
 
+    set offsetY [expr $yBoardOffset + $cellSize * $gBoardRows]
+
+    #make sure the outlines are the right color
+    if { $numBlack != 0 } {
+	$c itemconfig blackScore -outline [lindex [GS_ColorOfPlayers] 0]
+    }
+    if { $numWhite != 0 } {
+	$c itemconfig whiteScore -outline [lindex [GS_ColorOfPlayers] 1]
+    }
+
+    #loop through the animation
     for {set i 0} {$i < $animLength} {incr i} {
+	
 	set currentratio [expr $oldratio + ($newratio-$oldratio)*sin($pi*.5*double($i)/$animLength) ]
 
 	set cutoff [expr int( $boardWidth * $currentratio)]
 
-	$c coords blackScore $xBoardOffset 0 \
-	    [expr $cutoff + $xBoardOffset] $barHeight
+	$c coords blackScore $xBoardOffset $offsetY \
+	    [expr $cutoff + $xBoardOffset] [expr $offsetY + $barHeight]
 	
-	$c coords whiteScore [expr $cutoff + $xBoardOffset] 0 \
-	    [expr $boardWidth + $xBoardOffset] $barHeight
+	$c coords whiteScore [expr $cutoff + $xBoardOffset] $offsetY \
+	    [expr $boardWidth + $xBoardOffset] [expr $offsetY + $barHeight]
 
 	after 1
 	update idletasks
+    }
+
+    #if we've obliterated someone, change their outline color
+    if { $numBlack == 0 } {
+	$c itemconfig blackScore -outline [lindex [GS_ColorOfPlayers] 1]
+    } elseif { $numWhite == 0 } {
+	$c itemconfig whiteScore -outline [lindex [GS_ColorOfPlayers] 0]
     }
 
     set gLastNumBlack $numBlack
