@@ -892,10 +892,14 @@ proc makeBoard { c } {
     }
 
     ## changes the arrows
+    set lineGap [expr $lineWidth * 2]
+    set arrow1 [expr $lineGap * 2]
+    set arrow2 [expr $lineGap * 2]
+    set arrow3 [expr $lineGap * 1]
     foreach item [$c find withtag arrow] {
 	$c lower arrow base
 	$c itemconfig $item -width [expr $lineWidth * 2] -arrow last \
-	    -arrowshape {28 28 14}
+	    -arrowshape [list $arrow1 $arrow2 $arrow3]
     }
 
     ## bind the horizontal arrows
