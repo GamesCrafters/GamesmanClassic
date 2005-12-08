@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.20 2005-12-08 03:24:33 ogren Exp $
+// $Id: machi.c,v 1.21 2005-12-08 03:56:29 ogren Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -165,6 +165,8 @@ void FreeGame()
  *****/
 void InitializeHelpStrings() {
 
+  printf("InitializeHelpStrings called.");
+
 kHelpGraphicInterface =
 "There is currently no graphic interface\n";
 
@@ -185,10 +187,17 @@ kHelpTextInterface    =
 "(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n"
 "a mistake, type u to revert back to your previous position.";
 
+ if (noDiag) {
+kHelpOnYourTurn = 
+"For the first six turns, each player puts a piece on an empty board position.\n\
+After all six pieces are on the board, move any one of your pieces along a\n\
+vertical or horizontal line to an open spot on the board.";
+ } else {
 kHelpOnYourTurn =
 "For the first six turns, each player puts a piece on an empty board position.\n\
 After all six pieces are on the board, move any one of your pieces along a\n\
 line to an open spot on the board.";
+ }
 
 kHelpStandardObjective =
 "To get three of your markers, in a row, either horizontally, vertically, or\n\
@@ -1245,9 +1254,15 @@ void setOption(int option)
   gStandardGame = option%2==1;
   allDiag = option/2%3==1;
   noDiag = option/2%3==2;
+
+  InitializeHelpStrings();
+
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2005/12/08 03:24:33  ogren
+// created InitializeHelpStrings() to prepare for dynamic help strings.  -Elmer
+//
 // Revision 1.19  2005/12/08 01:26:18  yulikjan
 // Added MoveToString.
 //
