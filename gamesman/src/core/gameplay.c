@@ -51,6 +51,10 @@ static int drawsExist = 0;
 static int playerOne = 0;
 static int playerTwo = 1;
 
+static int maxN = 10;
+static int maxPossibleMoveLength = 30;
+static int maxPossibleLineLength = 256;
+
 /*
 ** Local function prototypes
 */
@@ -316,6 +320,7 @@ void PrintMoveHistory(POSITION position)
 }
 
 
+
 char* addSpacePadding(char* s, int n) {
   while (n-- > 0) strcat(s, " ");
   return s;
@@ -343,7 +348,7 @@ void PrintHeader(int maxMoveLength, int maxRemoteness,
 
   int length = 2*maxMoveLength+2*maxRemoteness+2*maxTieRemoteness+6;
   int lineLength = length < 81 ? 81 : length;
-  char line[lineLength];
+  char line[maxPossibleLineLength];
   char* digit = "";
   int i;
 
@@ -406,7 +411,7 @@ void PrintFooter(int maxMoveLength, int maxRemoteness,
 
   int length = 2*maxMoveLength+2*maxRemoteness+2*maxTieRemoteness+6;
   int lineLength = length < 81 ? 81 : length;
-  char line[lineLength];
+  char line[maxPossibleLineLength];
   int i;
 
   if (position != -1) PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
@@ -615,15 +620,21 @@ int getComment(POSITION position, POSITION prevPos) {
 }
 
 
-void printLine(moveList* moveInfo, int whoseTurn) {
+void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen) {
   
   int drawDash = 1;
   int drawOtherMoves = 1;
 
   int comment;
+  STRING moveString;
+  int moveLen;
+  
+  char moveToPrint[maxPossibleMoveLength];
   
   int dividers[6];
-  char line[getDividers(dividers)[5]+1];
+  char line[maxPossibleLineLength];
+  
+  strcpy(moveToPrint, "");
   createBlankLine(line);
   
   // ADD DASHES
@@ -648,18 +659,77 @@ void printLine(moveList* moveInfo, int whoseTurn) {
 		       moveInfo->position);
 
   if (whoseTurn == playerOne) {
-    if (comment == 0) printf("         ");
-    if (comment == 1) printf("?        ");
-    if (comment == 2) printf("?!       ");
-    PrintMove(moveInfo->move);
-    printf("%s\n", line);
+    if (MoveToString == NULL) {
+      if (comment == 0) printf("         ");
+      if (comment == 1) printf("?        ");
+      if (comment == 2) printf("?!       ");
+      PrintMove(moveInfo->move);
+      printf("%s\n", line);
+    } else {
+      moveString = MoveToString(moveInfo->move);
+      moveLen = strlen(moveString);
+      if (comment == 0) addSpacePadding(moveToPrint, maxMoveLen - moveLen);
+      if (comment == 1) {
+	strcat(moveToPrint, "?");
+	addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
+      }
+      if (comment == 2) {
+	strcat(moveToPrint, "?!");
+	addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+      }
+      strcat(moveToPrint, moveString);
+      printf("%s%s\n", moveToPrint, line);
+      SafeFree(moveString);
+    }
   } else {
-    printf("          %s", line);
-    PrintMove(moveInfo->move);
-    if (comment == 0) printf("\n");
-    if (comment == 1) printf("        ?\n");
-    if (comment == 2) printf("       ?!\n");
+    if (MoveToString == NULL) {
+      printf("          %s", line);
+      PrintMove(moveInfo->move);
+      if (comment == 0) printf("\n");
+      if (comment == 1) printf("        ?\n");
+      if (comment == 2) printf("       ?!\n");
+    } else {
+      addSpacePadding(moveToPrint, maxMoveLen);
+      printf("%s%s",moveToPrint,line);
+      moveString = MoveToString(moveInfo->move);
+      moveLen = strlen(moveString);
+      strcpy(moveToPrint, moveString);
+      if (comment == 0) strcat(moveToPrint, "\n");
+      if (comment == 1) {
+	addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
+	strcat(moveToPrint, "?");
+      }
+      if (comment == 2) {
+	addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+	strcat(moveToPrint, "?!");
+      }
+      printf("%s", moveToPrint);
+      SafeFree(moveString);
+    }
+      
   }
+}
+
+int getMaxMoveLength() {
+
+  STRING move;
+  moveList* mlist = mList;
+  int result = 0;
+  int newLen = 0;
+
+  if (MoveToString == NULL) return maxN;
+
+  while(mlist != 0) {
+    
+    move = MoveToString(mlist->move);
+    newLen = strlen(move);
+    if (newLen > result) result = newLen;
+    SafeFree(move);
+    mlist = mlist->next;
+  }
+
+  return result;
+
 }
 
 
@@ -667,20 +737,24 @@ void PrintVisualValueHistory(POSITION position)
 {
   if (gUnsolved) return;
   moveList* mlist = mList;
-  int maxN = 10;
+  int maxMoveLength = getMaxMoveLength();
+  
   int whoseTurn;
   
   int dividers[6];
 
-  char line[getDividers(dividers)[5]+1];
-  char playerName[maxN];
+  char line[maxPossibleLineLength];
+  char playerName[maxPossibleMoveLength];
 
   char* playerOneName = gPlayerName[kPlayerOneTurn];
   char* playerTwoName = gPlayerName[kPlayerTwoTurn];
+  
+  if (maxN > maxMoveLength) maxMoveLength = maxN;
+  
 
   whoseTurn = playerOne;
 
-  PrintHeader(maxN, maxR, maxTR, position, whoseTurn);
+  PrintHeader(maxMoveLength, maxR, maxTR, position, whoseTurn);
 
   if(gOpponent == AgainstComputer) {
     if(gHumanGoesFirst) {
@@ -698,13 +772,13 @@ void PrintVisualValueHistory(POSITION position)
   
   createBlankLine(line);
   addMove(line, gInitialPosition, playerTwo, '*');
-  printf("%s", justify(playerOneName, playerName, maxN, leftJustified));
-  printf("%s%s\n", line, justify(playerTwoName, playerName, maxN, rightJustified));
+  printf("%s", justify(playerOneName, playerName, maxMoveLength, leftJustified));
+  printf("%s%s\n", line, justify(playerTwoName, playerName, maxMoveLength, rightJustified));
   
 
   while(mlist != 0) {
 
-    printLine(mlist, whoseTurn);
+    printLine(mlist, whoseTurn, maxMoveLength);
 
     if (whoseTurn == playerOne) whoseTurn = playerTwo;
     else whoseTurn = playerOne;
@@ -712,7 +786,7 @@ void PrintVisualValueHistory(POSITION position)
     mlist = mlist->next;
   }
 
-  PrintFooter(maxN, maxR, maxTR, position, whoseTurn);
+  PrintFooter(maxMoveLength, maxR, maxTR, position, whoseTurn);
   
  
 }
