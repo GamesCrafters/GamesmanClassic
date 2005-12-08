@@ -75,7 +75,11 @@ void             PrintVisualValueHistory         (POSITION);
  * Prototypes for delta-Remoteness
  **/
 REMOTENESS findMaxRemoteness (REMOTENESSLIST*);
-REMOTENESS FindDelta(REMOTENESS, REMOTENESSLIST*);
+REMOTENESS findMinRemoteness(REMOTENESSLIST*);
+REMOTENESS FindDelta(REMOTENESS, REMOTENESSLIST*, VALUE);
+REMOTENESS FindWinningDelta(REMOTENESS, REMOTENESSLIST*);
+REMOTENESS FindLosingDelta(REMOTENESS, REMOTENESSLIST*);
+REMOTENESS FindTieingDelta(REMOTENESS, REMOTENESSLIST*);
 BOOLEAN DEBUG = FALSE;
 
 
@@ -1063,12 +1067,32 @@ void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
             printf("%d", (int) remoteptr->remoteness);
 	printf(" \t");
 	printf(" \t");
-	printf("%d", (int) FindDelta(remoteptr->remoteness, remoteptr));
-	printf(" \t");
         ptr = ptr->next;
         remoteptr = remoteptr->next;
     }
     printf("\n");
+}
+
+// Overloaded; this one takes in the Value of the move
+void PrintMovesWithDelta(MOVELIST* ptr, REMOTENESSLIST* remoteptr, VALUE val) {
+  REMOTENESSLIST* rl_copy = CopyRemotenesslist(remoteptr);
+  
+  while (ptr != NULL) {
+    printf("\n\t\t");
+    PrintMove(ptr->move);
+    printf(" \t");
+    if ((remoteptr->remoteness) == REMOTENESS_MAX)
+      printf("Draw");
+    else
+      printf("%d", (int) remoteptr->remoteness);
+    printf(" \t");
+    printf(" \t");
+    printf("%d", (int) FindDelta(remoteptr->remoteness, rl_copy, val));
+    printf(" \t");
+    ptr = ptr->next;
+    remoteptr = remoteptr->next;
+  }
+  printf("\n");
 }
 
 /* Jiong */
@@ -1081,11 +1105,11 @@ void PrintValueMoves(POSITION thePosition)
     printf("\nHere are the values of all possible moves: \n");
     printf("\t\tMove \tRemoteness \tDelta\n");
     printf("Winning Moves: \t");
-    PrintMoves(ptr->moveList[WINMOVE], ptr->remotenessList[WINMOVE]);
+    PrintMovesWithDelta(ptr->moveList[WINMOVE], ptr->remotenessList[WINMOVE], win);
     printf("Tieing Moves: \t");
-    PrintMoves(ptr->moveList[TIEMOVE], ptr->remotenessList[TIEMOVE]);
+    PrintMovesWithDelta(ptr->moveList[TIEMOVE], ptr->remotenessList[TIEMOVE], tie);
     printf("Losing Moves: \t");
-    PrintMoves(ptr->moveList[LOSEMOVE], ptr->remotenessList[LOSEMOVE]);
+    PrintMovesWithDelta(ptr->moveList[LOSEMOVE], ptr->remotenessList[LOSEMOVE], lose);
     printf("\n");
     
     FreeValueMoves(ptr);
@@ -1496,66 +1520,161 @@ USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)
 
 
 /**
- * findDelta(REMOTENESS, REMOTENESSLIST)
+ * findDelta(REMOTENESS, REMOTENESSLIST, VALUE)
  *
- * Given the REMOTENESS and the relevant REMOTENESSLIST
+ * Given the REMOTENESS, the relevant REMOTENESSLIST, VALUE of the MOVE
  *
  * Return the Delta-Remoteness of the MOVE
  *
  * The best move of any type will increase the Remoteness by 1
- * (e.g., 1 closer to a win, 1 closer to a move)
+ * (e.g., 1 closer to a win, 1 closer to a lose, 1 closer to a tie)
  * or 0 (e.g., still a draw).
  *
  * The Delta-Remoteness of the best move will be 0, and increasing
  * Delta-Remoteness will indicate progressively worse moves.
  * (i.e., farther from a win or closer to a lose)
+ *
+ * In the case of a Tieing Move, we want to reach the Tie ASAP since
+ * we must assume the opponent is playing perfectly.
  **/
-REMOTENESS FindDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
+REMOTENESS FindDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr, VALUE val) {
   
-  REMOTENESS max_remoteness = findMaxRemoteness(remoteptr);
-  REMOTENESS delta = max_remoteness - remote;
-
   if (DEBUG) {
-    printf("FindDelta called with REMOTENESS:%d", (int) remote);
+    printf("\nFindDelta called with REMOTENESS:%d\n", (int) remote);
+    printf("FindDelta called with VALUE:%d\n", (int) val);
   }
 
-  /*
-  if (delta == 0) {
-    return 0;
-  } else {
-    return delta - 1 + 1;
+  switch (val) {
+  case win:
+    return FindWinningDelta(remote, remoteptr);
+  case lose:
+    return FindLosingDelta(remote, remoteptr);
+  case tie:
+    return FindTieingDelta(remote, remoteptr);
+  default:
+    BadElse("Error: Unrecognized Move Value\n");
   }
-  */
 
-  return delta;
+  // reaching this is a bad, bad thing
+  return -1;
 
 }
+
+// FindWinningDelta - return the delta remoteness of a Winning Move
+REMOTENESS FindWinningDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
+  REMOTENESS min_remoteness = findMinRemoteness(remoteptr);
+  REMOTENESS delta;
+
+  if (DEBUG) {
+    printf("FindWinningDelta called with REMOTENESS:%d\n", (int) remote);
+  }
+
+  delta = remote - min_remoteness;
+
+  if (DEBUG) {
+    printf("returning delta:%d\n", (int) delta);
+  }
+
+  return delta;
+}
+
+// FindLosingDelta - return the delta remoteness of a Losing Move
+REMOTENESS FindLosingDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
+  REMOTENESS max_remoteness = findMaxRemoteness(remoteptr);
+  REMOTENESS delta;
+
+  if (DEBUG) {
+    printf("FindLosingDelta called with REMOTENESS:%d\n", (int) remote);
+  }
+
+  delta = max_remoteness - remote;
+  
+  if (DEBUG) {
+    printf("returning delta:%d\n", (int) delta);
+  }
+
+  return delta;
+}
+
+// FindTieingDelta - return the delta remoteness of a Tieing Move
+REMOTENESS FindTieingDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr) {
+  REMOTENESS min_remoteness = findMinRemoteness(remoteptr);
+  REMOTENESS delta;
+
+  if (DEBUG) {
+    printf("FindTieingDelta called with REMOTENESS:%d\n", (int) remote);
+  }
+
+  delta = remote - min_remoteness;
+
+  if (DEBUG) {
+    printf("returning delta:%d\n", (int) delta);
+  }
+
+  return delta;
+}
+
 
 /**
  * findMaxRemoteness(REMOTENESSLIST)
  *
  * Given a REMOTENESSLIST
  *
- * Return the maximum REMOTENESS
+ * Return the maximum REMOTENESS within the list
  **/
 REMOTENESS findMaxRemoteness(REMOTENESSLIST* remoteptr) {
   REMOTENESS max = 0;
   REMOTENESS temp = 0;
 
   if (DEBUG) {
-    printf("findMaxRemoteness called.");
+    printf("\nfindMaxRemoteness called.\n");
   }
 
   while (remoteptr != NULL) {
     temp = remoteptr->remoteness;
+    if (DEBUG) {
+      printf("temp: %d\n", temp);
+    }
     if (temp > max) {
       max = temp;
       if (DEBUG) {
-	printf("new max remoteness found: %d", max);
+	printf("new max remoteness found: %d\n", max);
       }
     }
     remoteptr = remoteptr->next;
   }
 
   return max;
+}
+
+/**
+ * findMinRemoteness(REMOTENESSLIST)
+ *
+ * Given a REMOTENESSLIST
+ *
+ * Return the minimum REMOTENESS within the list
+ **/
+REMOTENESS findMinRemoteness(REMOTENESSLIST* remoteptr) {
+  REMOTENESS min = REMOTENESS_MAX;
+  REMOTENESS temp = REMOTENESS_MAX;
+
+  if (DEBUG) {
+    printf("\nfindMinRemoteness called.\n");
+  }
+
+  while (remoteptr != NULL) {
+    temp = remoteptr->remoteness;
+    if (DEBUG) {
+      printf("temp: %d\n", temp);
+    }
+    if (temp < min) {
+      min = temp;
+      if (DEBUG) {
+	printf("new min remoteness found: %d\n", min);
+      }
+    }
+    remoteptr = remoteptr->next;
+  }
+
+  return min;
 }
