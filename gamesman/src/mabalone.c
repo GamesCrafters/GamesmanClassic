@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.25 2005-09-15 03:56:08 ogren Exp $
+// $Id: mabalone.c,v 1.26 2005-12-08 07:16:56 ogren Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -2005,7 +2005,7 @@ void printrow (int line, int flag) {
 
 
 void printlines (int line, int flag) {
-  int s, max;
+  int s, line_max;
  
   for (s = 0; s < abs((N - 1) - line); s++) {
     printf ("  ");
@@ -2060,16 +2060,16 @@ void printlines (int line, int flag) {
 
   if (flag == 0) {
     if (line < N - 1) {
-      max = 2 * abs((N - 1) - line) - 1;
+      line_max = 2 * abs((N - 1) - line) - 1;
     }
     else {
-      max = 2 * abs((N - 1) - line);
+      line_max = 2 * abs((N - 1) - line);
     }
   }
   else
-    max = abs((N - 1) - line);
+    line_max = abs((N - 1) - line);
  
-  for (; s < max; s++) {
+  for (; s < line_max; s++) {
     if (flag == 0)
       printf (" ");
     if (flag == 1)
@@ -2114,3 +2114,6 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.25  2005/09/15 03:56:08  ogren
+// added : $, : $, changed kGameName = Abalone
+//
