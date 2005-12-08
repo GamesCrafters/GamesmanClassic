@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.18 2005-05-06 07:24:55 nizebulous Exp $
+// $Id: machi.c,v 1.19 2005-12-08 01:26:18 yulikjan Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -180,6 +180,8 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
+STRING MToS (MOVE);
+
 /*************************************************************************
  **
  ** Here we declare the global database variables
@@ -198,6 +200,8 @@ extern VALUE     *gDatabase;
 
 void InitializeGame()
 {
+  MoveToString = &MToS;
+
 }
 
 void FreeGame()
@@ -871,6 +875,24 @@ void PrintMove(theMove)
   }
 }
 
+
+STRING MToS(theMove)
+     MOVE theMove;
+{
+    /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  if(theMove < 9) {
+    STRING move = (STRING) SafeMalloc(2);
+    sprintf(move, "%d", theMove + 1);
+    return move;
+  } else {
+    STRING move = (STRING) SafeMalloc(3);
+    sprintf(move, "%d", theMove);
+    return move;
+  }
+}
+
+
+
 /************************************************************************
 *************************************************************************
 ** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
@@ -1188,6 +1210,11 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2005/05/06 07:24:55  nizebulous
+// Finally fixed ALL the function prototypes so that there are NO warnings
+// when gamesman compiles.  YAY!
+//      -Dom
+//
 // Revision 1.17  2005/05/05 02:19:03  ogren
 // local prototyped void tttppm() in DebugMenu() -Elmer
 //
