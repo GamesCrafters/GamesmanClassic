@@ -256,7 +256,8 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 *************************************************************************/
 
 typedef struct {
-  char *squares;
+  //char *squares;
+  int *squares;
   int squaresOccupied;
   int currentTurn;
 } SDBoard, *SDBPtr;
@@ -327,53 +328,44 @@ int vcfg(int *this_cfg);
 void InitializeGame ()
 {
   SDBPtr board = newBoard(); 
-  SDBPtr board2;
-  int row, col, i;
+  // SDBPtr board2;
+  //int i;
+  int row, col;
 
-  int init_pieces[16] = { YELLOW_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  			  YELLOW_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  			  BLUE_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
-  			  BLUE_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
-			  EMPTY, 0, BOARD_ROWS*BOARD_COLS, -1};
+  //int init_pieces[16] = { YELLOW_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  //			  YELLOW_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
+  //			  BLUE_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2),    
+  //			  BLUE_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
+  //			  EMPTY, 0, BOARD_ROWS*BOARD_COLS, -1};
 
-  //int init_pieces[10] = { YELLOW_UP, 0, 9,  
-  //			YELLOW_DOWN, 0, 9,  
-  //			EMPTY, 0, 9, 
-  //			-1};
+  //gNumberOfPositions = generic_hash_init(BOARD_ROWS*BOARD_COLS, init_pieces, vcfg);
 
-  //int init_pieces[16] = { 'X', 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  //			  'x', 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  //			  'O', 0, ((BOARD_ROWS*BOARD_COLS)/2), 
-  //			  'o', 0, ((BOARD_ROWS*BOARD_COLS)/2),  
-  //			  '-', 0, BOARD_ROWS*BOARD_COLS, 
-  //			  -1};
-
-  
-  
-
-  gNumberOfPositions = generic_hash_init(BOARD_ROWS*BOARD_COLS, init_pieces, NULL);
-
+  gNumberOfPositions=1;
   for(row=0;row<BOARD_ROWS;row++)
     {
       for(col=0;col<BOARD_COLS;col++)
 	{
-	  board->squares[boardIndex(col,row)] = EMPTY;
+	  setSquareEmpty(board,col,row);
+	  gNumberOfPositions*=5;
 	} 
     }
 
   board->squaresOccupied=0;
   board->currentTurn=FIRST_TURN;
-  
-  gInitialPosition = generic_hash(board->squares, board->currentTurn);
-  printf("%d\n",gInitialPosition);
-  printf("Number of Positions: %d\n",gNumberOfPositions);
-  board2 = newBoard();
-  generic_unhash(gInitialPosition, board2->squares);
-  for(i=0;i<BOARD_ROWS*BOARD_COLS;i++)
-      printf("%d, %d\n",board->squares[i],board2->squares[i]);
-  //PrintPosition(gInitialPosition, "test", 1);
-  freeBoard(board);
 
+
+  gInitialPosition = hashBoard(board);
+  freeBoard(board);
+  
+  //gInitialPosition = generic_hash(board->squares, board->currentTurn);
+  //printf("%d\n",gInitialPosition);
+  //printf("Number of Positions: %d\n",gNumberOfPositions);
+  //board2 = newBoard();
+  //generic_unhash(gInitialPosition, board2->squares);
+  //for(i=0;i<BOARD_ROWS*BOARD_COLS;i++)
+  //   printf("%d, %d\n",board->squares[i],board2->squares[i]);
+  //PrintPosition(gInitialPosition, "test", 1);
+  //freeBoard(board);
 
   
 }
@@ -708,6 +700,7 @@ void printBinary(int x){
 
 /* Square */
 int boardIndex(int x, int y) { return y*BOARD_WIDTH+x; }
+//int getSquare(SDBPtr board, int x, int y) { return (int) board->squares[boardIndex(x,y)]; }
 int getSquare(SDBPtr board, int x, int y) { return board->squares[boardIndex(x,y)]; }
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y) { return getSquare(board,x,y)==0; }
 int getSquareColor(SDBPtr board, int x, int y) { return getSquare(board,x,y)>=3; }
@@ -739,7 +732,7 @@ int unhashMoveToUD(MOVE move) { return (move >> 8) &  0xff; }
 **       but limited to 3x4, 4x3
 ***************************************************/
 POSITION hashBoard(SDBPtr board) {
-  /*	POSITION hash = 0;
+  	POSITION hash = 0;
 	int base = POSSIBLE_SQUARE_VALUES;
 	int x, y;
 	for(y=0;y<BOARD_HEIGHT;y++)
@@ -747,36 +740,9 @@ POSITION hashBoard(SDBPtr board) {
 			hash = hash * base + getSquare(board,x,y);
 
 	hash = (hash << 1) + board->currentTurn; // last bit stores the current turn		 
-	return hash;*/
-  /*
+	return hash;
 
-	POSITION hash = 0;
-	char pieces_ud[board->squaresOccupied];
-	char pieces_color[board->squaresOccupied];
-	int row, col,i=0;
-	for(row=0;row<BOARD_ROWS;row++)
-	  {
-	    for(col=0;col<BOARD_COLS;col++)
-	      {
-		if(getSquare(board,col,row)==EMPTY)
-		  {
-		    pieces_color[BoardIndex(col,row)]=0;
-		  }
-		else
-		  {
-		pieces_color[BoardIndex(col,row)]=getSquareColor(board,col,row)+1;
-		pieces_ud[i]=getSquareUD(board,col,row);
-		i++;
-		  }
-	      }
-	  }
-	hash = generic_hash(pieces_color,board->currentTurn);
-	for(int i=0;i<board->squaresOccupied;i++)
-	  {
-	    hash = hash + (1 << (SHIFT_AMOUNT + 1));
-	  }
-	  return hash;*/
-  return generic_hash(board->squares, board->currentTurn);
+  //return generic_hash(board->squares, board->currentTurn);
 		
 }
 
@@ -786,7 +752,7 @@ POSITION hashBoard(SDBPtr board) {
 **       but limited to 3x4, 4x3
 ***************************************************/
 SDBPtr unhashBoard(POSITION position) {
-  /*
+  
 	SDBPtr board = newBoard();
 	
 	int x, y, squareValue;
@@ -807,9 +773,9 @@ SDBPtr unhashBoard(POSITION position) {
 		}
 	}
 	
-	return board;*/
+	return board;
 
-  SDBPtr board = newBoard();
+	/*  SDBPtr board = newBoard();
   generic_unhash(position, board->squares);
   int col, row;
   for(row=0;row<BOARD_ROWS;row++)
@@ -823,13 +789,14 @@ SDBPtr unhashBoard(POSITION position) {
 	}
     }
   board->currentTurn=whoseMove(position);
-  return board;
+  return board;*/
 
 }
 
 /* return the color of the current turn */
 int getCurrentTurn(POSITION position) {
-  return whoseMove(position);
+  //return whoseMove(position);
+  return position & 1;
 }
 
 /* free the memory space for the board
@@ -842,7 +809,8 @@ void freeBoard(SDBPtr board) {
 /* allocate space for the board */
 SDBPtr newBoard() {
 	SDBPtr board = (SDBPtr) SafeMalloc(sizeof(SDBoard));
-	board->squares = (char *) SafeMalloc(sizeof(char)*BOARD_WIDTH*BOARD_HEIGHT);
+	//board->squares = (char *) SafeMalloc(sizeof(char)*BOARD_WIDTH*BOARD_HEIGHT);
+	board->squares = (int *) SafeMalloc(sizeof(int)*BOARD_WIDTH*BOARD_HEIGHT);
 	return board;
 }
 
