@@ -22,8 +22,8 @@ proc GS_InitGameSpecific {} {
     set kGameName "DinoDodgem"
     
     ### Set boardWidth, boardSize
-    global boardWidth boardSize 
-    set boardWidth 3
+    global boardWidth boardSize gBoardSizeOp 
+    set boardWidth [expr $gBoardSizeOp + 3]
     set boardSize [expr $boardWidth * $boardWidth]
 
     ### Set the initial position of the board (default 0)
@@ -188,8 +188,7 @@ proc GS_GetOption { } {
     # TODO: Needs to change with more variants
     global gMisereGame gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets 
-    global boardWidth gBoardSizeOp
-    set boardWidth [expr $gBoardSizeOp + 3]
+    global gBoardSizeOp
     set option 1
     set option [expr $option + $gMisereGame]
     set option [expr $option + (2 * $gToTrapIsToWin)]
@@ -197,7 +196,7 @@ proc GS_GetOption { } {
     set option [expr $option + (2*2*2*$gOpponentsSpace)]
     set option [expr $option + (2*2*2*2*$gForbidden)]
     set option [expr $option + (2*2*2*2*2*$gBuckets)]
-    set option [expr $option + (2*2*2*2*2*2*($boardWidth - 3))]
+    set option [expr $option + (2*2*2*2*2*2*$gBoardSizeOp)]
     return $option
 
 
@@ -227,7 +226,6 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    puts "Calling setoption"
     # TODO: Needs to change with more variants
     global gMisereGame gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets 
@@ -240,7 +238,7 @@ proc GS_SetOption { option } {
     set gForbidden [expr $option/2/2/2/2%2]
     set gBuckets [expr $option/2/2/2/2/2%2]
 
-    set boardWidth [expr $option/2/2/2/2/2/2 + 3]
+    set boardWidth [expr ($option/2/2/2/2/2/2) + 3]
     set boardSize [expr $boardWidth * $boardWidth]
     set gBoardSizeOp [expr $boardSize - 3]
 
