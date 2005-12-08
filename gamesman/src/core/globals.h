@@ -116,6 +116,8 @@ extern STRING (*GetHelpOnYourTurn)();
 extern STRING (*GetHelpObjective)();
 extern STRING (*GetHelpTieOccursWhen)();
 
+extern STRING (*MoveToString)(MOVE);
+
 typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPPONENT;
 
 extern OPPONENT gOpponent;
