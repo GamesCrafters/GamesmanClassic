@@ -3,6 +3,9 @@
 
 #define FILEVER 1
 
+typedef short cellValue;
+
+
 /* General */
 void       	memdb_init 		(DB_Table *new_db);
 void       	memdb_free 		();

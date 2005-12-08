@@ -35,7 +35,7 @@
 #include "memdb.h"
 #include "db.h"
 
-VALUE* memdb_array;
+cellValue* memdb_array;
 
 /*
 ** Code
@@ -43,10 +43,10 @@ VALUE* memdb_array;
 
 void memdb_init(DB_Table *new_db) {
   
-    int i;
+    POSITION i;
 
     //setup internal memory table
-    memdb_array = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
+    memdb_array = (cellValue *) SafeMalloc (gNumberOfPositions * sizeof(cellValue));
   
     for(i = 0; i< gNumberOfPositions; i++)
 	memdb_array[i] = undecided;
@@ -74,42 +74,42 @@ void memdb_free() {
 }
 
 
-VALUE* memdb_get_raw_ptr(POSITION pos) {
+cellValue* memdb_get_raw_ptr(POSITION pos) {
     return (&memdb_array[pos]);
 }
 
 VALUE memdb_set_value(POSITION position, VALUE value) {
 
-    VALUE *ptr;
+    cellValue *ptr;
     
     ptr = memdb_get_raw_ptr(position);
     
     /* put it in the right position, but we have to blank field and then
     ** add new value to right slot, keeping old slots */
-    return (VALUE)((*ptr = ((*ptr & ~VALUE_MASK) | (value & VALUE_MASK))) & VALUE_MASK); 
+    return (VALUE)((*ptr = (((cellValue)*ptr & ~VALUE_MASK) | (value & VALUE_MASK))) & VALUE_MASK); 
 }
 
 // This is it
 VALUE memdb_get_value(POSITION position) {
 
-    VALUE *ptr;
+    cellValue *ptr;
 
     ptr = memdb_get_raw_ptr(position);
 
-    return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
+    return((VALUE)((cellValue)*ptr & VALUE_MASK)); /* return pure value */
 }
 
 REMOTENESS memdb_get_remoteness(POSITION position) {
 
-    VALUE *ptr;
+    cellValue *ptr;
 
     ptr = memdb_get_raw_ptr(position);
 
-    return (REMOTENESS)((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
+    return (REMOTENESS)((((cellValue)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
 }
 
 void memdb_set_remoteness (POSITION position, REMOTENESS remoteness) {
-    VALUE *ptr;
+    cellValue *ptr;
     
     ptr = memdb_get_raw_ptr(position);
     
@@ -120,20 +120,22 @@ void memdb_set_remoteness (POSITION position, REMOTENESS remoteness) {
     }
     
     /* blank field then add new remoteness */
-    *ptr = (VALUE)(((int)*ptr & ~REMOTENESS_MASK) |
+    *ptr = (VALUE)(((cellValue)*ptr & ~REMOTENESS_MASK) |
 		   (remoteness << REMOTENESS_SHIFT));
 }
 
 BOOLEAN memdb_check_visited(POSITION position) {
-    VALUE *ptr;  
+
+    cellValue *ptr;  
 
     ptr = memdb_get_raw_ptr(position);
 
-    return (BOOLEAN)((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
+    return (BOOLEAN)((((cellValue)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
 }
 
 void memdb_mark_visited (POSITION position) {
-    VALUE *ptr;
+
+    cellValue *ptr;
     
     showStatus(Update);
     
@@ -143,34 +145,36 @@ void memdb_mark_visited (POSITION position) {
 }
 
 void memdb_unmark_visited (POSITION position) {
-    VALUE *ptr;
+
+    cellValue *ptr;
     
     ptr = memdb_get_raw_ptr(position);
     
-    *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
+    *ptr = (VALUE)((cellValue)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
 
 void memdb_set_mex(POSITION position, MEX theMex) {
-    VALUE *ptr;
+
+    cellValue *ptr;
 
     if(gTwoBits)
 	return;
 
     ptr = memdb_get_raw_ptr(position);
 
-    *ptr = (VALUE)(((int)*ptr & ~MEX_MASK) | (theMex << MEX_SHIFT));
+    *ptr = (VALUE)(((cellValue)*ptr & ~MEX_MASK) | (theMex << MEX_SHIFT));
 }
 
 MEX memdb_get_mex(POSITION position) {
 
-    VALUE *ptr;
+    cellValue *ptr;
 
     if(gTwoBits)
 	return kBadMexValue;
 
     ptr = memdb_get_raw_ptr(position);
 
-    return (MEX)(((int)*ptr & MEX_MASK) >> MEX_SHIFT);
+    return (MEX)(((cellValue)*ptr & MEX_MASK) >> MEX_SHIFT);
 }
 
 
@@ -211,7 +215,7 @@ BOOLEAN memdb_save_database () {
     char outfilename[256] ;
     int goodCompression = 1;
     int goodClose = 0;
-    unsigned long tot = 0,sTot = gNumberOfPositions;
+    POSITION tot = 0,sTot = gNumberOfPositions;
     
     if (gTwoBits)	/* TODO: Make db's compatible with 2-bits */
         return FALSE;	/* for some reason, 0 is error, because it means FALSE. -JJ */
@@ -231,11 +235,11 @@ BOOLEAN memdb_save_database () {
     numPos[0] = htonl(gNumberOfPositions);
     goodCompression = gzwrite(filep, dbVer, sizeof(short));
     goodCompression = gzwrite(filep, numPos, sizeof(POSITION));
-    for(i=0;i<gNumberOfPositions && goodCompression;i++){ //convert to network byteorder for platform independence.
-        memdb_array[i] = htonl(memdb_array[i]);
-        goodCompression = gzwrite(filep, memdb_array+i,sizeof(VALUE));
+    for(i=0; i<gNumberOfPositions && goodCompression; i++){ //convert to network byteorder for platform independence.
+        memdb_array[i] = htons(memdb_array[i]);
+        goodCompression = gzwrite(filep, memdb_array+i, sizeof(cellValue));
         tot += goodCompression;
-        memdb_array[i] = ntohl(memdb_array[i]);
+        memdb_array[i] = ntohs(memdb_array[i]);
         //gzflush(filep,Z_FULL_FLUSH);
     }
     goodClose = gzclose(filep);
@@ -315,8 +319,8 @@ BOOLEAN memdb_load_database() {
     
     if (correctDBVer) {
         for(i = 0; i < gNumberOfPositions && goodDecompression; i++){
-            goodDecompression = gzread(filep, memdb_array+i, sizeof(VALUE));
-            memdb_array[i] = ntohl(memdb_array[i]);
+            goodDecompression = gzread(filep, memdb_array+i, sizeof(cellValue));
+            memdb_array[i] = ntohs(memdb_array[i]);
         }
     }
     /***
