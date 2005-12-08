@@ -136,9 +136,9 @@ POSITION* g3Array = NULL;             /* Powers of 3 */
 #define MIN_SIDE 3
 
 typedef char BlankOX;
-#define Blank 0
-#define o 1
-#define x 2
+#define Blank '-'
+#define o 'o'
+#define x 'x'
 
 typedef char DIRECTION;
 #define EAST 0
@@ -167,7 +167,7 @@ DIRECTION getDirection(int from, int to, BlankOX whosTurn) {
 
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 char *gBlankOXString[] = { "-", "O", "X" };
-BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
+BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck is when you can't move. */
 BOOLEAN gForwardStart = TRUE; /* Forces forwards as starting moves if TRUE */
 BOOLEAN gOpponentsSpace = FALSE; /* Allows entry into opponent's start space if TRUE */
 BOOLEAN gForbidden = TRUE; /* Forbidden spaces (like in Real Dinododgem) if TRUE */
@@ -223,6 +223,11 @@ BOOLEAN CantMove(POSITION);
 POSITION DefaultInitialPosition();
 void UndoMove(MOVE theMove);
 
+MOVE encodemove( int from, int to,  BlankOX whosTurn);
+int getfrom (MOVE theMove);
+int getto(MOVE theMove);
+BlankOX getwhosTurnfromMove(MOVE theMove);
+
 /************************************************************************
 ** NAME:        InitializeGame
 ** DESCRIPTION: Initialize the gDatabase, a global variable.
@@ -248,10 +253,12 @@ void InitializeGame() {
 
   gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
   gWhosTurn = x;
+
   for (i = 0; i < NUM_BUCKETS; i++)
     gBucketIndicator[0][i] = gBucketIndicator[1][i] = FALSE;
   gUndoMove = UndoMove;
   gHasClearedBuckets = FALSE;
+
   initialized = TRUE;
 
   /*
@@ -268,7 +275,6 @@ void InitializeGame() {
   gNumberOfPositions = (int) pow((double)3, (double)boardsize)*2;
   */
   gInitialPosition = DefaultInitialPosition();
-
   generic_unhash(gInitialPosition, board);
 }
 
@@ -298,6 +304,7 @@ void GameSpecificMenu() {
     printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
+
     printf("\tA)\tToggle start moves (A)dvance forward only from %s to %s\n",
 	   gForwardStart ? "ON" : "OFF",
 	   !gForwardStart ? "ON" : "OFF");
@@ -417,6 +424,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove; {
   BlankOX theBlankOX[boardsize], whosTurn;
+  int nextplayer;
   int from, to;
   /* Unhash. */
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
@@ -429,15 +437,23 @@ POSITION DoMove(thePosition, theMove)
   if (to != boardsize) {
     theBlankOX[to] = whosTurn;
   }
+
   if (gBuckets && to == boardsize) {
     if (whosTurn == x) gBucketIndicator[1][BUCKET_X(from)] = TRUE;
     else if (whosTurn == o) gBucketIndicator[0][BUCKET_O(from)] = TRUE;
   }
+
   /* Hash. */
-  thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
+  if (whosTurn == x)
+    nextplayer = o;
+  else if (whosTurn == o)
+    nextplayer = x;
+  thePosition = BlankOXToPosition(theBlankOX, nextplayer);
+  // thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
   /* Return hashed position. */
   return thePosition;
 }
+
 
 void UndoMove(MOVE theMove)
 {
@@ -564,10 +580,13 @@ void PrintComputersMove(computersMove,computersName)
   BlankOX whosTurn;
   MOVE theMove = computersMove;
   /* Un-encrypt the move. */
-  whosTurn = theMove & 255;
+  whosTurn = getwhosTurnfromMove(theMove);
+  to = getto(theMove);
+  from = getfrom(theMove);
+  /*whosTurn = theMove & 255;
   theMove = theMove >> 8;
   to = theMove & 255;
-  from = (theMove >> 8) & 255;
+  from = (theMove >> 8) & 255;*/
   letter = from%side + 'a';
   num = from/side + '1';
   theDirection = getDirection (from, to, whosTurn);
@@ -670,9 +689,18 @@ void PrintPosition(position,playerName,usersTurn)
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
-  int pbar_max, pbar_len, xcount, ocount, numx, numo;
+  int pbar_max, pbar_len, xcount, ocount, numx, numo, index, i;
+
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
+
+  printf("This is the position: %d", position);
+  // printf("This is the board:");
+  // for (i = 0 ; i <boardsize;i++) {
+  //  printf("%d", theBlankOx[i]);
+  // }
+  // printf ("This is the stringboard: %s", theBlankOx);
+
   /*  
   if (!gHasClearedBuckets) {
     for (col = 0; col < MAX_SIDE; col++)
@@ -691,6 +719,7 @@ void PrintPosition(position,playerName,usersTurn)
     }
   }
 
+
   for (row = side - 1; row >= 0; row--) {
     if (gChessMoves) {
       if (row == side-1)
@@ -704,9 +733,31 @@ void PrintPosition(position,playerName,usersTurn)
 	printf("\n\t        ");
     }
     for (col = 0; col < side; col++) {
-      printf ("%s ", ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
+
+       /*if (theBlankOx[((side*row)+col)] == Blank)
+	 index = 0;
+       if (theBlankOx[((side*row)+col)] == x)
+	 index = 2;
+       if (theBlankOx[((side*row)+col)] == o)
+       index = 1;*/
+       /* index = theBlankOx[((side*row)+col)];
+       if (index == 65)
+	 index = 0;
+       if (index == 66)
+	 index = 1;
+       if (index == 67)
+       index = 2; */
+      if ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) {
+	printf("  ");
+      }
+      else {
+	printf("%c ", theBlankOx[((side*row)+col)]);
+      }
+	
+      /*printf ("%s ", ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : (char)theBlankOx[((side*row)+col)]); */
       if (col == side-1 && gBuckets) printf("%d ", gBucketIndicator[0][BUCKET_O(side*row+col)]);
     }
+
     if (gChessMoves) {
       /*
       if (row == side-1)
@@ -738,7 +789,7 @@ void PrintPosition(position,playerName,usersTurn)
       printf("  ");
     printf("              ");
     */
-    printf("\n                  ");
+    printf("\n               ");
     for (col = 0; col < side; col++)
       printf("%c ", col+'a');
   }
@@ -775,17 +826,20 @@ void PrintPosition(position,playerName,usersTurn)
     printf("        X power: ", xcount);
     for (col = 0; col < xcount; col++)
       printf("X");
-    if (gBlankOXString[(int)whosTurn] == "X") printf("x");
+    /*if (gBlankOXString[(int)whosTurn] == "X") printf("x"); */
+    if (whosTurn == x) printf("x");
     printf("\n");
 
     printf("        O power: ", ocount);
     for (col = 0; col < ocount; col++)
       printf("O");
-    if (gBlankOXString[(int)whosTurn] == "O") printf("o");
+    /* if (gBlankOXString[(int)whosTurn] == "O") printf("o"); */
+    if (whosTurn == o) printf("o");
     printf("\n");
   }
 
-  if ( gBlankOXString[(int)whosTurn] == "O")
+  /* if ( gBlankOXString[(int)whosTurn] == "O") */
+  if (whosTurn == o)
     printf("\n\
         l \n\
         ^     ** It is player O's turn to move\n\
@@ -861,39 +915,43 @@ MOVELIST *GenerateMoves(position)
         /* left */
 	if ((i % side) != 0 && theBlankOX[left] == Blank && DINO_COND(i,left)) {
 	  // add new move i to left
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += left;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn; */
+	  theMove = encodemove(i, left, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
 	if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i,right)) {
 	  // add new move i to right
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += right;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn;*/
+	  theMove = encodemove(i, right, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* up */
 	if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 	  // add new move i to up
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += up;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn; */
+	  theMove = encodemove(i, up, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
 	else if (up >= boardsize) {
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += boardsize;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn;*/
+	  theMove = encodemove(i, boardsize, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
       }
@@ -909,39 +967,43 @@ MOVELIST *GenerateMoves(position)
         /* up */
 	if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 	  // add new move i to up
-	  theMove = i;
+	  /* theMove = i;
 	  theMove = theMove << 8;
 	  theMove += up;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn; */
+	  theMove = encodemove(i, up, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* down */
 	if (down >= 0 && theBlankOX[down] == Blank && DINO_COND(i,down)) {
 	  // add new move i to down
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += down;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn;*/
+	  theMove = encodemove(i, down, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
         /* right */
 	if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i, right)) {
 	  // add new move i to right
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += right;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn; */
+	  theMove = encodemove(i, right, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
 	else if ((i % side) == (side - 1)) {
-	  theMove = i;
+	  /*theMove = i;
 	  theMove = theMove << 8;
 	  theMove += boardsize;
 	  theMove = theMove << 8;
-	  theMove += whosTurn;
+	  theMove += whosTurn;*/
+	  theMove = encodemove(i, boardsize, whosTurn);
 	  head = CreateMovelistNode (theMove, head);
 	}
       }
@@ -1071,12 +1133,12 @@ MOVE ConvertTextInputToMove(input) STRING input; {
   } else ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
   
   /* Encrypt from and to into a MOVE. */  
-  theMove = fromSlot;
+  /*theMove = fromSlot;
   theMove = theMove << 8;
   theMove += toSlot;
   theMove = theMove << 8;
-  theMove += gWhosTurn;
-  
+  theMove += gWhosTurn;*/
+  theMove = encodemove(fromSlot, toSlot, gWhosTurn); 
   return(theMove);
 }
 
@@ -1094,10 +1156,13 @@ void PrintMove(theMove)
   DIRECTION theDirection;
   
   /* Un-encrypt the move. */
-  whosTurn = theMove & 255;
+  whosTurn = getwhosTurnfromMove(theMove);
+  to = getto(theMove);
+  from = getfrom(theMove);
+  /*whosTurn = theMove & 255;
   theMove = theMove >> 8;
   to = theMove & 255;
-  from = (theMove >> 8) & 255;
+  from = (theMove >> 8) & 255;*/
   letter = from%side + 'a';
   num = from/side + '1';
   theDirection = getDirection (from, to, whosTurn);
@@ -1145,7 +1210,12 @@ POSITION DefaultInitialPosition() {
 ** OUTPUTS:     The integer hashcode that embodies current position array and who's turn.
 ************************************************************************/
 POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
-  return generic_hash(theBlankOX, whosTurn);
+  int player;
+  if (whosTurn == x)
+    player = 2;
+  else if (whosTurn == o)
+    player = 1;
+  return generic_hash(theBlankOX, player);
   /*
   int i;
   int position = 0;
@@ -1166,9 +1236,11 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
 **              A container for the position,
 **              A container for who's turn.
 ************************************************************************/
-void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; { 
+void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; {
+  int player;
   generic_unhash(thePos, theBlankOX);
-  *whosTurn = whoseMove(thePos);
+  player = whoseMove(thePos);
+  *whosTurn = (player == 1 ? o : x);
   /*
   int i;
 
@@ -1212,4 +1284,32 @@ int getOption () {
 
 int NumberOfOptions () {
   return 2*2*2*2*2*2*(MAX_SIDE-MIN_SIDE+1);
+}
+/*************************************************
+ **  Move Stuff 
+ ************************************************/
+MOVE encodemove( int from, int to,  BlankOX whosTurn) {
+  MOVE theMove;
+  theMove = from;
+  theMove = theMove << 8;
+  theMove += to;
+  theMove = theMove << 8;
+  if (whosTurn == x) 
+    return theMove;
+  else if (whosTurn == o)
+    return theMove + 1;
+}
+
+int getfrom (MOVE theMove) {
+  return (theMove >> 16) & 255;
+}
+
+int getto(MOVE theMove) {
+  return (theMove >> 8) & 255;
+}
+
+BlankOX getwhosTurnfromMove(MOVE theMove) {
+  int player;
+  player = theMove & 255;
+  return (player == 1) ? o : x;
 }
