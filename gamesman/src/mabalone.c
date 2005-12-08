@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.26 2005-12-08 07:16:56 ogren Exp $
+// $Id: mabalone.c,v 1.27 2005-12-08 07:26:32 esiroker Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -239,7 +239,7 @@ extern VALUE     *gDatabase;
 **              local variables.
 ** 
 ************************************************************************/
-int max;
+int gMax;
 int init;
 
 void InitializeGame()
@@ -348,8 +348,8 @@ void InitializeGame()
     printf("%d: %d\n", count, init_array[count]);
     }*/
 
-  max = generic_hash_init(BOARDSIZE,init_array,NULL);
-  /*printf("%d  # of hash positions!\n",max);*/
+  gMax = generic_hash_init(BOARDSIZE,init_array,NULL);
+  /*printf("%d  # of hash positions!\n",gMax);*/
   
   
   /*printf("The Board before unhashing is:\n");
@@ -367,7 +367,7 @@ void InitializeGame()
     printf("%d: %c\n", count, gBoard[count]);
     }*/
   
-  gNumberOfPositions  = max;
+  gNumberOfPositions  = gMax;
   gInitialPosition    = init;
   gMinimalPosition    = init;
 
@@ -2114,6 +2114,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2005/12/08 07:16:56  ogren
+// changed second definition of max to line_max.  dont really know if the name is appropriate. -Elmer
+//
 // Revision 1.25  2005/09/15 03:56:08  ogren
 // added : $, : $, changed kGameName = Abalone
 //
