@@ -281,7 +281,8 @@ char charPositionDown = 'd';
 **
 *************************************************************************/
 
-BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4);
+//BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4);
+BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4);
 int boardIndex(int x, int y);
 
 /* Square */
@@ -372,8 +373,8 @@ void InitializeGame ()
 
 int vcfg(int *this_cfg)
 {
-  //return 1;
-  return ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3])) || ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3] + 1));
+  return 1;
+  //return ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3])) || ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3] + 1));
 
 }
 
@@ -815,8 +816,10 @@ SDBPtr newBoard() {
 }
 
 /********** helper function for Primitive **************/
-BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4) {
-  int slots[4]={(int) slot1, (int) slot2, (int) slot3,(int) slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
+//BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4) {
+BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4) {
+  //int slots[4]={(int) slot1, (int) slot2, (int) slot3,(int) slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
+  int slots[4]={slot1, slot2, slot3, slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
   int i;
 
   if(slot1==0  || slot2==0 || slot3==0 || slot4==0) {
