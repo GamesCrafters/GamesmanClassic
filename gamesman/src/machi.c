@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.21 2005-12-08 03:56:29 ogren Exp $
+// $Id: machi.c,v 1.22 2005-12-08 04:00:22 ogren Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -165,7 +165,7 @@ void FreeGame()
  *****/
 void InitializeHelpStrings() {
 
-  printf("InitializeHelpStrings called.");
+  //printf("InitializeHelpStrings called.");
 
 kHelpGraphicInterface =
 "There is currently no graphic interface\n";
@@ -1260,6 +1260,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2005/12/08 03:56:29  ogren
+// achi has holder text for HelpOnYourTurn with noDiag. -Elmer
+//
 // Revision 1.20  2005/12/08 03:24:33  ogren
 // created InitializeHelpStrings() to prepare for dynamic help strings.  -Elmer
 //
