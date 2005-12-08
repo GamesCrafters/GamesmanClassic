@@ -7,11 +7,6 @@
 # C authored by Robert Liao and Michael Chen
 # Tcl/Tk authored by Eudean Sun
 #
-# History:
-#
-# 2005-11-11
-# Cleaned up comments. Consider this official V1.0.
-#
 ####################################################
 
 ####################################################
@@ -31,7 +26,8 @@
 # This allows the board to fill the given canvas space instead of
 # forcing a fixed dimension.
 #
-# DrawBoard deals with size, margin, side, and r now
+# DrawBoard deals with size, margin, side, r, arrowwidth,
+# and arrowhead now
 #
 ####################################################
 
@@ -39,8 +35,6 @@
 
 # t = line thickness
 set t 5
-# arrowwidth = width of arrows
-set arrowwidth [expr $t * 2.5]
 # dot = dot radius (at intersections)
 set dot 10
 # color = color of the board
@@ -53,8 +47,6 @@ set outline 3
 set player1 "blue"
 # player2 = color of player 2's pieces (foxes)
 set player2 "red"
-# arrowhead = shape of arrows (list)
-set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
 # arrowlength = relative length of arrows (100% would be completely across a square)
 set arrowlength 0.7
 # arrowcolor = default color of arrows showing moves
@@ -292,7 +284,7 @@ proc min { a b } {
 ##################################################
 proc DrawBoard { c } {
 
-    global side margin size color outlineColor outline t dot r player1 player2 gFrameWidth gFrameHeight fontsize
+    global side margin size color outlineColor outline t dot r player1 player2 gFrameWidth gFrameHeight fontsize arrowwidth arrowhead
 
     # If we don't clean the canvas, things pile up and get slow
     $c delete {!background}
@@ -302,6 +294,8 @@ proc DrawBoard { c } {
     set side [expr ($size-2*$margin)/4]
     set r [expr 0.33*$side]
     set fontsize [expr int(5 * $size / 100)]
+    set arrowwidth [expr 0.4 * $r]
+    set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
 
     # Size the canvas
     # $c configure -width $size -height $size
@@ -647,7 +641,7 @@ proc drawmove { c move moveType position } {
     # 2. Convert indices into coordinates
     # 3. Draw arrow from origin to destination coordinates
 
-    global t arrowhead arrowlength arrowcolor r
+    global t arrowhead arrowwidth arrowlength arrowcolor r
 
     switch $moveType {
 	value {
@@ -688,14 +682,14 @@ proc drawmove { c move moveType position } {
 		   [expr [lindex $origin 1] + $r / sqrt(2) * [sign [expr [lindex $destination 1] - [lindex $origin 1]]]] \
 		   [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
 		   [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
-		   -width [expr $t * 5] -fill $color -arrow last -arrowshape $arrowhead]
+		   -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
     } else {
 	set arrow [$c create line \
 		       [expr [lindex $origin 0] + $r * [sign [expr [lindex $destination 0] - [lindex $origin 0]]]] \
 		       [expr [lindex $origin 1] + $r * [sign [expr [lindex $destination 1] - [lindex $origin 1]]]] \
 		       [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
 		       [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
-		       -width [expr $t * 5] -fill $color -arrow last -arrowshape $arrowhead]
+		       -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
     }
 	       
     $c bind $arrow <Enter> "$c itemconfigure $arrow -fill black"
