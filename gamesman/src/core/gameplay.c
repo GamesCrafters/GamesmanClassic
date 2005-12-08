@@ -259,9 +259,9 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		if (!gUnsolved)
 		  printf("%s",
 			 "\tv)\t(V)isual Value History\n");
-		else 
-		  printf("%s",
-			 "\tm)\tScript of (M)ove History\n");
+		
+		printf("%s",
+		       "\tm)\tScript of (M)ove History\n");
 		printf("%s%s%s",
 		       "\tb)\t(B)ack to the menu\n",
 		       "\tq)\t(Q)uit\n\n",
@@ -372,16 +372,20 @@ void moveListHandleGameOver(moveList* lastEntry) {
 void PrintMoveHistory(POSITION position)
 {
   int whoseTurn = kPlayerOneTurn;
+  int ct = 0;
   moveList* mlist = mList;
-  printf("\n***************************************\n");
-  printf("  Script of %s", kGameName);
-  printf("\n***************************************\n");
+  printf("\n\t*************************************\n");
+  printf("\t  Script of %s", kGameName);
+  printf("\n\t*************************************\n");
 
   if (gOpponent == AgainstComputer) {
-    printf("\t%s\t%s\n", gPlayerName[kPlayerOneTurn], gPlayerName[kPlayerTwoTurn]);
+    printf("\t\t%s\t%s\n", gPlayerName[kPlayerOneTurn], gPlayerName[kPlayerTwoTurn]);
   }
   while(mlist != 0) {
     printf("\t");
+    
+    if (whoseTurn == kPlayerOneTurn) 
+      printf("%d.\t", ct++);
     PrintMove(mlist->move);
     if (whoseTurn == kPlayerOneTurn) whoseTurn = kPlayerTwoTurn;
     else {

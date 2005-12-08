@@ -543,9 +543,12 @@ void MenusEvaluated()
     }
 
 
-    if(kDebugMenu)
-        printf("\td)\t(D)ebug Game AFTER Evaluation\n");
+
     printf("\n\tp)\t(P)LAY GAME\n");
+
+
+    if(kDebugMenu)
+        printf("\n\td)\t(D)ebug Game AFTER Evaluation\n");
 
     printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position\n");
 }
@@ -1143,8 +1146,6 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
 
     if (!gUnsolved)
       printf("%s", kPrintMenuWithSolving);
-    else 
-      printf("%s", kPrintMenuWithoutSolving);
     printf("%s", kPrintMenuEnd);
     printf("\n\nSelect an option: ");
 
@@ -1172,14 +1173,8 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
 	return;
       }
     case 'm': case 'M':
-      if (gUnsolved) {
-	PrintMoveHistory(thePosition);
-	return;
-      } else {
-	BadMenuChoice();
-	HitAnyKeyToContinue();
-	break;
-      }
+      PrintMoveHistory(thePosition);
+      return;
     case 'H': case 'h':
       HelpMenus();
       printf("");

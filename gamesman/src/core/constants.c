@@ -156,10 +156,9 @@ STRING kPrintMenuWithSolving =
 "\ts)\t(S)how the values of all possible moves\n"
 "\tv)\tPrint (V)isual Value History\n";
 
-STRING kPrintMenuWithoutSolving = 
-"\tm)\tShow Move History\n";
 
 STRING kPrintMenuEnd = 
+"\tm)\tShow Move History\n"
 "\n\th)\t(H)elp\n\n"
 "\tb)\t(B)ack\n";
 

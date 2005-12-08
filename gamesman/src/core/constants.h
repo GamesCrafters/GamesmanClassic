@@ -43,7 +43,6 @@ extern STRING	kOpeningCredits,
                 kSolveVersion,             
                 kPrintMenu,
                 kPrintMenuWithSolving,
-                kPrintMenuWithoutSolving,
                 kPrintMenuEnd;
 
 
