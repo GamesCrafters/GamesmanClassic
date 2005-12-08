@@ -92,7 +92,8 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
     UNDO *undo;
     VALUE value;
     BOOLEAN error, player_draw;
-    BOOLEAN playing = TRUE;
+    /*BOOLEAN playing = TRUE;*/
+    gPlaying = TRUE;
     BOOLEAN aborted = FALSE;
     BOOLEAN menu    = TRUE;
     USERINPUT userInput = Continue; /* default added to satify compiler */
@@ -133,14 +134,70 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
     printf("Type '?' if you need assistance...\n\n");
 #endif
     
-    while(playing) {
+    while(gPlaying) {
 
-	while((value = Primitive(position)) == undecided) {
+	while((value = Primitive(position)) == undecided || 
+	      userInput==Configure ||
+	      userInput==Switch) {
 	    oldRemainingGivebacks = remainingGivebacks;
 
-
 	    PrintPosition(position, player->name, (player->type==Human?TRUE:FALSE));
-	    if((userInput = player->GetMove(position,&move,player->name)) == Undo) {
+	    userInput = player->GetMove(position,&move,player->name);
+	    
+	    /*Set up the players correctly in case Configurations have changed.*/
+	    if (gOpponent == AgainstComputer) {
+	      if (userInput != Switch) {
+	      
+		if (strcmp(gPlayerName[kPlayerOneTurn],"Data") == 0 ||
+		    strcmp(gPlayerName[kPlayerOneTurn],"Lore") == 0) {
+		  playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
+		  playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
+		} else {
+		  playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+		  playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
+		}
+		if (player->turn) 
+		  player = playerTwo;
+		else
+		  player = playerOne;
+	      } else {
+		if (gHumanGoesFirst) {
+		  playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn], 0);
+		  playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn], 1);
+		} else { 
+		  playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn], 0);
+		  playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
+		}
+		if (player->turn) 
+		  player = playerTwo;
+		else
+		  player = playerOne;
+	      }
+	    
+	    } else if (gOpponent == AgainstHuman) {
+	      
+	      playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+	      playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn],1);
+	      if (player->turn) 
+		player = playerTwo;
+	      else
+		player = playerOne;
+	      
+	    } else if (gOpponent == ComputerComputer) {
+	      
+	      playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
+	      playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
+	      if (player->turn) 
+		player = playerTwo;
+	      else
+		player = playerOne;
+	    }
+	    /*end of players' setup*/
+
+	
+
+
+	    if(userInput == Undo) {
 	        undo = HandleUndoRequest(&position,undo,&error);
 	        if(!error && gOpponent == AgainstHuman) {
 		    player = (player->turn ? playerOne : playerTwo);
@@ -150,19 +207,22 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		}
 	    } else if(userInput == Abort) {
 		break;
-	    } else {
-	        generatedMoves = GenerateMoves(position);
-	        mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
-		position = DoMove(position,move);
-		undo = UpdateUndo(position,undo,&player_draw);
-		undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
-		if(!gGoAgain(position,move)) {
-		    player = (player->turn ? playerOne : playerTwo);
-		}
-		if(player_draw)
-		    break;
+	    } else if(userInput == Configure || userInput == Switch) {
+	    } else{ 
+	      generatedMoves = GenerateMoves(position);
+	      mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
+	      position = DoMove(position,move);
+	      undo = UpdateUndo(position,undo,&player_draw);
+	      undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
+	      if(!gGoAgain(position,move)) {
+		player = (player->turn ? playerOne : playerTwo);
+	      }
+	      if(player_draw)
+		break;
+
 	    }
 	}
+	
 	PrintPosition(position,player->name,(player->type==Human?TRUE:FALSE));
 	switch(value) {
 	case tie:
@@ -179,7 +239,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		printf("Your abort command has been received and successfully processed!\n");
 		moveListHandleGameOver(mlist);
 		aborted = TRUE;
-		playing = FALSE;
+		gPlaying = FALSE;
 	    }
 	    else if(player_draw)
 		printf("The match ends in a draw.  Excellent strategy, %s and %s. \n\n",playerOne->name,playerTwo->name);
@@ -203,13 +263,15 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		case 'u': case 'U':
 		    if(gOpponent != ComputerComputer) {
 			undo = HandleUndoRequest(&position,undo,&error);
+
 			if(!error && gOpponent == AgainstHuman) {
 			  player = (player->turn ? playerOne : playerTwo);
 			}
 			if (!error) {
 			  mlist = moveListHandleUndo(mlist);
 			}
-			playing = TRUE;
+			gPlaying = TRUE;
+
 			menu = FALSE;
 		    }
 		    else
@@ -217,7 +279,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		    break;
 		case 'b': case 'B':
 		    moveListHandleGameOver(mlist);
-		    playing = FALSE;
+		    gPlaying = FALSE;
 		    menu = FALSE;
 		    break;
 		case 'q': case 'Q':
@@ -1391,7 +1453,7 @@ VALUE_MOVES* StoreMoveInList(MOVE theMove, REMOTENESS remoteness, VALUE_MOVES* v
 }
 
 PLAYER NewHumanPlayer(STRING name, int turn)
-{
+{ 
     PLAYER new = (PLAYER)SafeMalloc(sizeof(struct Player));
     new->name = name;
     new->turn = turn;

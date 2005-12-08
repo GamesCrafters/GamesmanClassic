@@ -70,7 +70,8 @@ MENU;
 
 typedef enum user_input_enum
 {
-    Undo, Abort, Continue, Move
+  Undo, Abort, Continue, Move, Configure, Switch
+
 }
 USERINPUT;
 

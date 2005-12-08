@@ -22,13 +22,13 @@ extern int	smartness, scalelvl, remainingGivebacks, initialGivebacks;
 extern VALUE	oldValueOfPosition;
 
 extern MENU	gMenuMode;
-extern BOOLEAN	gPrintHints;
 
 
 /*
 ** Miscellaneous globals
 */
 
+extern BOOLEAN  gPlaying;
 extern int	gTimer;
 extern BOOLEAN  gSkipInputOnSingleMove;
 
@@ -123,3 +123,6 @@ typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPP
 extern OPPONENT gOpponent;
 
 #endif /* GMCORE_GLOBALS_H */
+
+
+

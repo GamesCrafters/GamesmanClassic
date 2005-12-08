@@ -33,14 +33,18 @@
 #define kComputersTurn 		0 
 
 extern STRING	kOpeningCredits,
-    kHelpValueBeforeEvaluation,
-    kHelpWhatIsGameValue,
-    kHelpWhatIsEvaluation,
-    kHelpWhatArePredictions,
-    kHelpWhatAreHints,
-    kHandleDefaultTextInputHelp,
-    kSolveVersion,
-    kCommandSyntaxHelp;
+		kHelpValueBeforeEvaluation,
+		kHelpWhatIsGameValue,
+		kHelpWhatIsEvaluation,
+		kHelpWhatArePredictions,
+		kHelpWhatAreHints,
+		kHandleDefaultTextInputHelp,
+                kCommandSyntaxHelp,
+                kSolveVersion,             
+                kPrintMenu,
+                kPrintMenuWithSolving,
+                kPrintMenuEnd;
+
 
 extern STRING	gValueString[];
 extern char	gValueLetter[];

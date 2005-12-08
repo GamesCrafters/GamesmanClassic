@@ -82,7 +82,9 @@ int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
 VALUE oldValueOfPosition = tie;
 
+
 MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
 
 BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
+BOOLEAN gPlaying = FALSE; 

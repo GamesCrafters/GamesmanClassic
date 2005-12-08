@@ -39,16 +39,16 @@
 
 STRING   kOpeningCredits =
 "\nWelcome to GAMESMAN, version %s, written by Dan Garcia.\n\n"
-"(G)ame-independent\n"
-"(A)utomatic\n"
-"(M)ove-tree\n"
-"(E)xhaustive\n"
-"(S)earch,\n"
-"(M)anipulation\n"
-"(A)nd\n"
-"(N)avigation\n\n"
-"This program will determine the value of %s, and allow you to play\n"
-"the computer or another human. Have fun!\n";
+"\t(G)ame-independent\n"
+"\t(A)utomatic\n"
+"\t(M)ove-tree\n"
+"\t(E)xhaustive\n"
+"\t(S)earch,\n"
+"\t(M)anipulation\n"
+"\t(A)nd\n"
+"\t(N)avigation\n\n"
+"\tThis program will determine the value of %s, and allow you to play\n"
+"\tthe computer or another human. Have fun!\n";
 
 STRING   kHelpValueBeforeEvaluation =
 "At this point, the computer does not know the value of the game\n"
@@ -132,19 +132,35 @@ STRING   kHelpWhatAreHints =
 "have a TIE position, the moves that give your opponent a TIE position\n"
 "are listed in the hints.";
 
+
+
 STRING  kHandleDefaultTextInputHelp = 
 "\n"
 "Text Input Commands:\n"
 "-------------------\n"
 "?           : Brings up this list of Text Input Commands available\n"
-"s (or S)    : (S)how the values of all possible moves\n"
-"p (or P)    : Toggle (P)rint predictions\n"
+"p (or P)    : Brings up the (P)rint Menu\n"
+"c (or C)    : Brings up the (C)onfiguration Menu\n"
 "u (or U)    : (U)ndo last move (not possible at beginning position)\n"
-"r (or R)    : (R)eprint the position\n"
-"h (or H)    : (H)elp\n"
 "a (or A)    : (A)bort the game\n"
-"c (or C)    : Adjust (C)omputer's brain\n"
+"h (or H)    : (H)elp\n"
 "q (or Q)    : (Q)uit";
+
+STRING kPrintMenu = 
+"\n"
+"\t---- Print Menu ----\n\n"
+"\tr)\t(R)eprint the position\n";
+
+
+STRING kPrintMenuWithSolving = 
+"\ts)\t(S)how the values of all possible moves\n"
+"\tv)\tPrint (V)isual Value History\n";
+
+
+STRING kPrintMenuEnd = 
+"\tm)\tPrint the script of (M)ove history\n"
+"\n\th)\t(H)elp\n\n"
+"\tb)\t(B)ack\n";
 
 
 char *gValueString[] =

@@ -63,6 +63,7 @@ void db_initialize(){
     if (gTwoBits) {
         db_functions = twobitdb_init();
     } else if(gCollDB){
+
 	db_functions = colldb_init();
     }
 #ifdef HAVE_GMP
@@ -72,6 +73,7 @@ void db_initialize(){
 #endif
     else {
 	memdb_init(db_functions);
+
     }
 }
 

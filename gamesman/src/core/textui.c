@@ -44,8 +44,9 @@ static BOOLEAN	ParseConstantMenuChoice		(char c);
 static void	ParseBeforeEvaluationMenuChoice	(char c);
 static void	ParseEvaluatedMenuChoice	(char c);
 static void	ParseHelpMenuChoice		(char c);
-static void	SmarterComputerMenu		(void);
 static void	AnalysisMenu			(void);
+static void     GamePrintMenu                   (POSITION thePosition, STRING playerName, BOOLEAN usersTurn);
+
 
 
 /*
@@ -55,7 +56,7 @@ static void	AnalysisMenu			(void);
 void HitAnyKeyToContinue()
 {
     static BOOLEAN first = TRUE;
-    
+
     printf("\n\t----- Hit <return> to continue -----");
     first ? (first = FALSE) : getchar(); /* to make lint happy */
     while(getchar() != '\n');
@@ -70,7 +71,6 @@ char GetMyChar()
 }
 
 
-
 void Menus()
 {
     printf(kOpeningCredits,kSolveVersion,kGameName);
@@ -78,7 +78,7 @@ void Menus()
     HitAnyKeyToContinue();
 
     do {
-        printf("\n\t----- GAMESMAN version %s with %s module -----\n", 
+        printf("\n\t----- GAMESMAN version %s with %s module -----\n",
             kSolveVersion, kGameName);
 
         if(gMenuMode == BeforeEvaluation)
@@ -86,8 +86,8 @@ void Menus()
         else if(gMenuMode == Evaluated)
             MenusEvaluated();
 
-        printf("\n\th)\t(H)elp.\n");
-        printf("\n\n\tq)\t(Q)uit.\n");
+        printf("\n\th)\t(H)elp\n");
+        printf("\n\n\tq)\t(Q)uit\n");
         printf("\n\nSelect an option: ");
 
         ParseMenuChoice(GetMyChar());
@@ -97,7 +97,7 @@ void Menus()
 void MenusBeforeEvaluation()
 {
     gUnsolved = FALSE;
-    
+
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
@@ -115,81 +115,428 @@ void MenusBeforeEvaluation()
     printf("\tm)\tToggle Sy(M)metries (currently %s)\n", gSymmetries ? "ON" : "OFF");
 }
 
-void MenusEvaluated()
+int max(int a, int b, int c) {
+  if (a>=b) {
+    if (a>=c) 
+      return a;
+    if (c>=a)
+      return c;
+  } else {
+    if (b>=c) 
+      return b;
+    if (c>=b)
+      return c;
+  }
+  return -99999;
+}
+
+void printGrid(int* maxs, int numCol) {
+  int ct = 0;
+  int i;
+  printf("\t|");
+  for (i=0; i<numCol; i++) {
+    printf("-");
+    while(ct < (maxs[i]+3)) {
+      printf("-");
+      ct++;
+    }
+    ct = 0;
+    printf("|");
+  }
+}
+
+void printCell(STRING str, int max) {
+  printf("| %s", str);
+  max = (strlen(str)-max);
+  while (max<0) {
+    printf(" ");
+    max++;
+  }
+  printf("   ");
+}
+
+
+
+void printPlayerConfig(STRING type1, STRING type2) {
+  char tmp[80];
+  int max1 = max(strlen(gPlayerName[kPlayerOneTurn]) + 3, strlen("Player 1"), strlen(type1)+3);
+  int max2 = max(strlen(gPlayerName[kPlayerTwoTurn]) + 3, strlen("Player 2"), strlen(type2)+3);
+  int max0 = 4;
+  int maxs[] = {max0, max1, max2};
+
+  printGrid(maxs, 3);
+
+  printf("\n\t");
+  printCell(" ", max0);
+  printCell("Player 1", max1);
+  printCell("Player 2", max2);
+  printf("|\n");
+  
+  printGrid(maxs, 3);
+  
+  printf("\n\t");
+  printCell("Name", max0);
+  sprintf(tmp, "1) %s", gPlayerName[kPlayerOneTurn]);
+  printCell(tmp, max1);
+  sprintf(tmp, "2) %s", gPlayerName[kPlayerTwoTurn]);
+  printCell(tmp, max2);
+  printf("|\n");
+
+  printGrid(maxs, 3);
+
+  printf("\n\t");
+  printCell("Type", max0);
+  sprintf(tmp, "3) %s", type1);
+  printCell(tmp, max1);
+  sprintf(tmp, "4) %s", type2);
+  printCell(tmp, max2);
+  printf("|\n");
+
+  printGrid(maxs, 3);
+ 
+  printf("\n\n");
+}
+
+void setNames(int playerTurn, int isHuman) {
+  int other;
+  if (playerTurn)
+    other=kPlayerTwoTurn;
+  else
+    other=kPlayerOneTurn;
+  if(isHuman) {
+    if (gPlayerName[other][0] == 'p' || gPlayerName[other][0] == 'P')
+    sprintf(gPlayerName[playerTurn],"Challenger");
+    else
+    sprintf(gPlayerName[playerTurn],"Player");
+  } else {
+    if (gPlayerName[other][0] == 'd' ||
+	gPlayerName[other][0] == 'D')
+      sprintf(gPlayerName[playerTurn],"Lore");
+    else
+      sprintf(gPlayerName[playerTurn],"Data");
+  }
+}
+USERINPUT ConfigurationMenu()
 {
-    VALUE gameValue = undecided;
-    
+  USERINPUT result = Configure;
+  char c;
+  char tmpName[MAXNAME];
+  VALUE gameValue = undecided;
+  STRING type1;
+  STRING type2;
+  int humanIndex, compIndex;
+
+
     if(!gUnsolved)
         gameValue = GetValueOfPosition(gInitialPosition);
-    
-    printf("\n\tPlayer Name Options:\n\n");
-    
-    printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
-    printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
-    if(gOpponent == AgainstHuman)
-        printf("\t3)\tSwap %s (plays FIRST) with %s (plays SECOND)\n", gPlayerName[1], gPlayerName[0]);
-    
-    if(!gUnsolved) {
-	printf("\n\tGeneric Options:\n\n");
-	
-	printf("\t4)\tToggle from %sPREDICTIONS to %sPREDICTIONS\n",
+
+    do {
+      printf("\n\t----- Configuration Menu for %s -----\n\n", kGameName);
+
+      type1 = "Human";
+      type2 = "Computer";
+      if(gOpponent == AgainstHuman)
+	type2 = type1;
+      else if(gOpponent == ComputerComputer)
+	type1 = type2;
+      else if(gOpponent == AgainstComputer) {
+	if(!gHumanGoesFirst) {
+	  type2 = type1;
+	  type1 = "Computer";
+	}
+      }
+
+      printPlayerConfig(type1, type2);
+
+
+      printf("\n\tPlayer Options:\n");
+      printf("\t-----------------\n");
+
+      printf("\tUse the numbers to change the corresponding name or type of players:\n");
+      printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
+      printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
+
+      printf("\t3)\tChange player type of %s (currently %s)\n", gPlayerName[1], type1);
+      printf("\t4)\tChange player type of %s (currently %s)\n\n", gPlayerName[0], type2);
+
+      if(gOpponent == AgainstHuman) {
+	if(gPlaying)
+
+	  printf("\tw)\tS(W)itch seats\n");
+	else
+	  printf("\tl)\t(L)et %s go FIRST\n", gPlayerName[kPlayerTwoTurn]);
+      }
+      if(gOpponent == AgainstComputer)
+	{
+	  humanIndex = kPlayerOneTurn;
+	  compIndex = kPlayerTwoTurn;
+	  if (!gHumanGoesFirst) {
+	    humanIndex = kPlayerTwoTurn;
+	    compIndex = kPlayerOneTurn;
+	  }
+	  if(gPlaying) {
+	    printf("\tw)\tS(W)itch seats\n");
+	  } else {
+	    if(gameValue == tie)
+	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n",
+		     gPlayerName[humanIndex],
+		     !gHumanGoesFirst ? "FIRST" : "SECOND");
+	    else if (gameValue == lose)
+	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: First - can %s; Second - can %s\n",
+		 gPlayerName[humanIndex],
+		     !gHumanGoesFirst ? "FIRST" : "SECOND",
+		     gHumanGoesFirst ? "only lose" : "win/lose",
+		     gHumanGoesFirst ? "win/lose" : "only lose");
+	    else if (gameValue == win)
+	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: First - can %s; Second - can %s\n",
+		     gPlayerName[humanIndex],
+		     !gHumanGoesFirst ? "FIRST" : "SECOND",
+		     gHumanGoesFirst ? "win/lose" : "only lose",
+		     gHumanGoesFirst ? "only lose" : "win/lose");
+	    else
+	      BadElse("Menus");
+	  }
+	  /*analysis taken out*/
+
+	  printf("\n\n\tAI Options:\n");
+	  printf("\t-------------\n");
+	  printf("\tAdjust AI %s's brain (currently ", gPlayerName[compIndex]);
+	  if (smartness==SMART) {
+	    printf("%d%% perfect", scalelvl);
+	  }
+	  else if (smartness==DUMB) {
+	    printf("misere-ly");
+	  }
+	  else if (smartness==RANDOM) {
+	    printf("randomly");
+	  }
+	  printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
+	  printf("\t\tp)\t(P)erfectly always\n");
+	  printf("\t\ti)\t(I)mperfectly (Plays randomly at times)\n");
+	  printf("\t\tr)\t(R)andomly always\n");
+	  printf("\t\tm)\t(M)isere-ly always (i.e., trying to lose!)\n\n");
+	  printf("\t\tg)\tChange the number of (G)ive-backs\n");
+	} 
+
+
+      printf("\n\n\tPlaying Options:\n");
+      printf("\t------------------\n");
+      if(!gUnsolved) {
+
+	printf("\td)\tToggle from %sPRE(D)ICTIONS to %sPREDICTIONS\n",
 	       gPrintPredictions ? "   " : "NO ",
 	       !gPrintPredictions ? "   " : "NO ");
-	printf("\t5)\tToggle from %sHINTS       to %sHINTS\n",
+	printf("\tn)\tToggle from %sHI(N)TS       to %sHINTS\n",
 	       gHints ? "   " : "NO ",
 	       !gHints ? "   " : "NO ");
-    }
-    
-    printf("\n\tPlaying Options:\n\n");
-    if(!gUnsolved) {
-	printf("\t6)\tToggle opponents, currently: %s\n",
-	       (gOpponent == AgainstComputer) ? "PLAYING A COMPUTER" : 
-	       (gOpponent == AgainstHuman) ? "PLAYING A HUMAN" : 
-	       "COMPUTER PLAYING A COMPUTER");
-    }
-    if(gOpponent == AgainstComputer)
-	{
-	    if(gameValue == tie)
-		printf("\t7)\tToggle from going %s (can tie/lose) to %s (can tie/lose)\n",
-		       gHumanGoesFirst ? "FIRST" : "SECOND",
-		       gHumanGoesFirst ? "SECOND" : "FIRST");
-	    else if (gameValue == lose)
-		printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
-		       gHumanGoesFirst ? "FIRST" : "SECOND",
-		       gHumanGoesFirst ? "only lose" : "win/lose",
-		       gHumanGoesFirst ? "SECOND" : "FIRST",
-		       gHumanGoesFirst ? "win/lose" : "only lose");
-	    else if (gameValue == win)
-		printf("\t7)\tToggle from going %s (can %s) to %s (can %s)\n",
-		       gHumanGoesFirst ? "FIRST" : "SECOND",
-		       gHumanGoesFirst ? "win/lose" : "only lose",
-		       gHumanGoesFirst ? "SECOND" : "FIRST",
-		       gHumanGoesFirst ? "only lose" : "win/lose");
-	    else
-		BadElse("Menus");
-	    
-	    printf("\n\ta)\t(A)nalyze the game\n");
-	    printf("\tc)\tAdjust (C)omputer's brain (currently ");
-	    if (smartness==SMART) {
-		printf("%d%% perfect", scalelvl);
-	    }
-	    else if (smartness==DUMB) {
-		printf("misere-ly");
-	    }
-	    else if (smartness==RANDOM) {
-	    printf("randomly");
-	    }
-	    printf (" w/%d giveback%s)\n", initialGivebacks, initialGivebacks == 1 ? "" : "s");
-	}
+      }
 
-    printf("\n\ts)\tIf only one move is available, (S)kip user input (currently %s)\n",
-	   gSkipInputOnSingleMove? "ON" : "OFF");
+      printf("\ts)\tIf only one move is available, (S)kip user input (currently %s)\n\n",
+	     gSkipInputOnSingleMove? "ON" : "OFF");
+      printf("\th)\t(H)elp\n\n");
+      printf("\tb)\t(B)ack = Return to previous activity\n\n");
+      printf("\n\nSelect an option: ");
+
+      switch(c = GetMyChar()) {
+      case '1':
+	printf("\nEnter the name of player 1 (max. %d chars) [%s] : ",
+	       MAXNAME-1, gPlayerName[kPlayerOneTurn]);
+	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
+	if(strcmp(tmpName,""))
+	  (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",tmpName);
+	break;
+      case '2':
+	printf("\nEnter the name of player 2 (max. %d chars) [%s] : ",
+	       MAXNAME-1, gPlayerName[kPlayerTwoTurn]);
+	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
+	if(strcmp(tmpName,""))
+	  (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
+	break;
+      case '3':
+	if(gUnsolved) {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	  break;
+	}
+	if(gOpponent == AgainstHuman) {
+	  gOpponent = AgainstComputer;
+	  gHumanGoesFirst = FALSE;
+	  setNames(kPlayerOneTurn, 0);
+	} else if(gOpponent == AgainstComputer) {
+	  if(gHumanGoesFirst) {
+	    gOpponent = ComputerComputer;
+	    setNames(kPlayerOneTurn, 0);
+	  } else {
+	    gOpponent = AgainstHuman;
+	    setNames(kPlayerOneTurn, 1);
+	  }
+	} else if(gOpponent == ComputerComputer) {
+	  gOpponent = AgainstComputer;
+	  gHumanGoesFirst = TRUE;
+	  setNames(kPlayerOneTurn, 1);
+	} else {
+	  BadElse("Invalid Opponent!");
+	  break;
+	}
+	/*result = Configure;*/
+	break;
+      case '4':
+	if(gUnsolved) {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	  break;
+	}
+	if(gOpponent == AgainstHuman) {
+	  gOpponent = AgainstComputer;
+	  gHumanGoesFirst = TRUE;
+	  setNames(kPlayerTwoTurn, 0);
+	} else if(gOpponent == AgainstComputer) {
+	  if(gHumanGoesFirst) {
+	    gOpponent = AgainstHuman;
+	    setNames(kPlayerTwoTurn, 1);
+	  } else {
+	    gOpponent = ComputerComputer;
+	    setNames(kPlayerTwoTurn, 0);
+	  }
+	} else if(gOpponent == ComputerComputer) {
+	  gOpponent = AgainstComputer;
+	  gHumanGoesFirst = FALSE;
+	  setNames(kPlayerTwoTurn, 1);
+	} else {
+	  BadElse("Invalid Opponent!");
+	  break;
+	}
+	/*result = Configure;*/
+	break;
+      case 'w': case 'W':
+	if(gPlaying) {
+	  if(gOpponent == AgainstHuman) {
+	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
+	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
+	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
+	  } else if(gOpponent == AgainstComputer){
+	    gHumanGoesFirst = !gHumanGoesFirst;
+	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
+	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
+	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
+	    result = Switch;
+	  } else {
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	  }
+	} else {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	}
+	break;
+  
+      case 'D': case 'd':
+	if(gUnsolved) {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	  break;
+	}
+	gPrintPredictions = !gPrintPredictions;
+	break;
+      case 'N': case 'n':
+	if(gUnsolved) {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	  break;
+	}
+	gHints = !gHints;
+	break;
+      case 'L': case 'l':
+	if(!gPlaying) {
+	  if(gOpponent == AgainstComputer) {
+	    gHumanGoesFirst = !gHumanGoesFirst;
+	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
+	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
+	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
+	  } else if(gOpponent == AgainstHuman) {
+	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
+	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
+	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
+	  } else {
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	  }
+	} else {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	}
+	break;
+
+      case 's': case 'S':
+	gSkipInputOnSingleMove = !gSkipInputOnSingleMove;
+	break;
+      	case 'P': case 'p':
+	    smartness = SMART;
+	    scalelvl = 100;
+	    HitAnyKeyToContinue();
+	    break;
+	case 'I': case 'i':
+	    smartness = SMART;
+	    printf("\nPlease enter the chance %% of time the computer plays perfectly (0-100): ");
+	    scanf("%d", &scalelvl);
+	    while (scalelvl < 0 || scalelvl > 100) {
+		printf("\nPlease enter the chance %% of time the computer plays perfectly (0-100): ");
+		scanf("%d", &scalelvl);
+	    }
+	    HitAnyKeyToContinue();
+	    break;
+	case 'R': case 'r':
+	    smartness = RANDOM;
+	    HitAnyKeyToContinue();
+	    break;
+	case 'M': case 'm':
+	    smartness = DUMB;
+	    HitAnyKeyToContinue();
+	    break;
+	case 'G': case 'g':
+	    printf("\nPlease enter the number of give-backs the computer will perform (0-%d): ", MAXGIVEBACKS);
+	    scanf("%d", &initialGivebacks);
+	    while (initialGivebacks > MAXGIVEBACKS || initialGivebacks < 0) {
+		printf("\nPlease enter the number of give-backs the computer will perform (0-%d): ", MAXGIVEBACKS);
+		scanf("%d", &initialGivebacks);
+	    }
+	    remainingGivebacks = initialGivebacks;
+	    HitAnyKeyToContinue();
+	    break;
+      case 'h': case 'H':
+	HelpMenus();
+	break;
+      case 'B': case 'b':
+	printf("\n\n");
+	return result;
+      default:
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+	break;
+      }
+
+
+    } while (TRUE);
+}
+
+void MenusEvaluated()
+{
+   /*took out configuration options*/
+
+    printf("\n\tc)\t(C)onfigure play options\n");
+
+
+    if(gOpponent == AgainstComputer)
+    {
+      printf("\n\ta)\t(A)nalyze the game\n");
+    }
+
 
     if(kDebugMenu)
         printf("\td)\t(D)ebug Game AFTER Evaluation\n");
-    printf("\n\tp)\t(P)LAY GAME.\n");
-    
-    printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position.\n");
+    printf("\n\tp)\t(P)LAY GAME\n");
+
+    printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position\n");
 }
 
 void ParseMenuChoice(char c)
@@ -230,18 +577,18 @@ void ParseBeforeEvaluationMenuChoice(char c)
 
     switch(c) {
     case 'G': case 'g':
-	if(kGameSpecificMenu)
-      {
+      if(kGameSpecificMenu)
+	{
           tempPredictions = gPrintPredictions ;
           gPrintPredictions = FALSE ;
           GameSpecificMenu();
           gPrintPredictions = tempPredictions ;
-      }
-	else {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
 	}
-	break;
+      else {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+      }
+      break;
     case '2':
 	gTwoBits = !gTwoBits;
 	break;
@@ -268,7 +615,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gOpponent = AgainstComputer;
 	gPrintPredictions = TRUE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
-	sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
+	sprintf(gPlayerName[kPlayerTwoTurn],"Data");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
 	if (kLoopy && gGoAgain!=DefaultGoAgain) printf(" with Go Again support");
 	printf("\nSolving with ZeroSolver %s...%s!",kGameName,gZeroMemSolver?"Yes":"No");
@@ -288,9 +635,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	} else {
 	  MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
 	  sprintf(tmpString, "in %d", Remoteness(gInitialPosition));
-	  printf("\n\nThe Game %s has value: %s %s %s\n\n", 
-		 kGameName, 
-		 gValueString[(int)gameValue], 
+	  printf("\n\nThe Game %s has value: %s %s %s\n\n",
+		 kGameName,
+		 gValueString[(int)gameValue],
 		 gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
 		 mexString);
 	}
@@ -306,8 +653,8 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gUnsolved = TRUE;
 	gOpponent = AgainstHuman;
 	gPrintPredictions = FALSE;
-	sprintf(gPlayerName[kPlayerOneTurn],"Player 1");
-	sprintf(gPlayerName[kPlayerTwoTurn],"Player 2");
+	sprintf(gPlayerName[kPlayerOneTurn],"Player");
+	sprintf(gPlayerName[kPlayerTwoTurn],"Challenger");
 	printf("\n\nYou have chosen to play the game without solving.  Have fun!\n\n");
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
@@ -319,70 +666,17 @@ void ParseBeforeEvaluationMenuChoice(char c)
     }
 }
 
+
+
+
+
 void ParseEvaluatedMenuChoice(char c)
 {
-    char tmpName[MAXNAME];
+
     PLAYER playerOne,playerTwo;
-    
+
     switch(c) {
-    case '1':
-	printf("\nEnter the name of player 1 (max. %d chars) [%s] : ",
-	       MAXNAME-1, gPlayerName[kPlayerOneTurn]);
-	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
-	if(strcmp(tmpName,""))
-	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",tmpName);
-	break;
-    case '2':
-	printf("\nEnter the name of player 2 (max. %d chars) [%s] : ",
-	       MAXNAME-1, gPlayerName[kPlayerTwoTurn]);
-	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
-	if(strcmp(tmpName,""))
-	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
-	break;
-    case '3':
-	(void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
-	(void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
-	(void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
-	break;
-    case '4':
-	if(gUnsolved) {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
-	}
-	gPrintPredictions = !gPrintPredictions;
-	break;
-    case '5':
-	if(gUnsolved) {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
-	}
-	gHints = !gHints;
-	break;
-    case '6':
-	if(gUnsolved) {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
-	}
-	if(gOpponent == AgainstComputer) {
-	    gOpponent = AgainstHuman;
-	}
-	else if(gOpponent == AgainstHuman) {
-	    gOpponent = ComputerComputer;
-	}
-	else if(gOpponent == ComputerComputer) {
-	    gOpponent = AgainstComputer;
-	}
-	else
-	    BadElse("Invalid Opponent!");
-	break;
-    case '7':
-	if(gOpponent == AgainstComputer)
-	    gHumanGoesFirst = !gHumanGoesFirst;
-	else {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
-      }
-	break;
+
     case 'D': case 'd':
 	if(kDebugMenu)
 	    DebugMenu();
@@ -392,11 +686,16 @@ void ParseEvaluatedMenuChoice(char c)
 	}
       break;
     case 'C': case 'c':
-	SmarterComputerMenu();
-	break;
+      ConfigurationMenu();
+      break;
     case 'A': case 'a':
         //analyze();
+      if (!gUnsolved || (gOpponent == AgainstComputer))
 	AnalysisMenu();
+      else {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+      }
 	break;
     case 'p': case 'P':
 	if(gOpponent == AgainstComputer) {
@@ -404,9 +703,9 @@ void ParseEvaluatedMenuChoice(char c)
 		playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
 		playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
 	    } else {
-		playerOne = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],0);
-		playerTwo = NewHumanPlayer(gPlayerName[kPlayerOneTurn],1);
-	    }	    
+		playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
+		playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    }
 	    PlayGame(playerOne,playerTwo);
 	}
 	else if(gOpponent == AgainstHuman) {
@@ -424,9 +723,6 @@ void ParseEvaluatedMenuChoice(char c)
       HitAnyKeyToContinue();
       break;
 
-    case 's': case 'S':
-	gSkipInputOnSingleMove = !gSkipInputOnSingleMove;
-	break;
 
     case 'm': case 'M':
 	gMenuMode = BeforeEvaluation;
@@ -441,35 +737,35 @@ void ParseEvaluatedMenuChoice(char c)
 void HelpMenus()
 {
     char c;
-    
+
     do {
         printf("\n\t----- HELP for %s module -----\n\n", kGameName);
-	
+
         printf("\t%s Help:\n\n",kGameName);
-	
+
         printf("\t1)\tWhat do I do on MY TURN?\n");
         printf("\t2)\tHow to tell the computer WHICH MOVE I want?\n");
-        printf("\t3)\tWhat is the %s OBJECTIVE of %s?\n", 
+        printf("\t3)\tWhat is the %s OBJECTIVE of %s?\n",
             gStandardGame ? "STANDARD" : "REVERSE", kGameName);
         printf("\t4)\tIs a TIE possible?\n");
         printf("\t5)\tWhat does the VALUE of this game mean?\n");
         printf("\t6)\tShow SAMPLE %s game.\n",kGameName);
-	
+
         printf("\n\tGAMESMAN Help:\n\n");
-	
+
         printf("\t7)\tWhat is a game VALUE?\n");
         printf("\t8)\tWhat is EVALUATION?\n");
-	
+
         printf("\n\tGeneric Options Help:\n\n");
 
         printf("\t9)\tWhat are PREDICTIONS?\n");
         printf("\t0)\tWhat are HINTS?\n");
-	
-        printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+
+        printf("\n\n\tb)\t(B)ack = Return to previous activity\n");
         printf("\n\nSelect an option: ");
-	
+
         ParseHelpMenuChoice(c = GetMyChar());
-	
+
     } while(c != 'b' && c != 'B');
 }
 
@@ -488,7 +784,7 @@ void ParseHelpMenuChoice(char c)
       printf("%s\n",kHelpTextInterface);
       break;
     case '3':
-	printf("\n\t----- What is the %s OBJECTIVE of %s? -----\n\n", 
+	printf("\n\t----- What is the %s OBJECTIVE of %s? -----\n\n",
 	       gStandardGame ? "STANDARD" : "REVERSE", kGameName);
 	printf("%s\n",
 	       gStandardGame ? kHelpStandardObjective : kHelpReverseObjective);
@@ -547,7 +843,7 @@ void BadMenuChoice()
 }
 
 /* Jiong */
-void SmarterComputerMenu()
+/*void SmarterComputerMenu()
 {
     char c;
     do {
@@ -559,13 +855,10 @@ void SmarterComputerMenu()
         printf("\tg)\tChange the number of (G)ive-backs (currently %d)\n\n", initialGivebacks);
         printf("\th)\t(H)elp\n\n");
         printf("\tb)\t(B)ack = Return to previous activity\n\n");
-        printf("\tq)\t(Q)uit.\n");
         printf("\nSelect an option: ");
-	
+
         switch(c = GetMyChar()) {
-	case 'Q': case 'q':
-	    ExitStageRight();
-	    exit(0);
+
 	case 'P': case 'p':
 	    smartness = SMART;
 	    scalelvl = 100;
@@ -595,7 +888,7 @@ void SmarterComputerMenu()
 	    while (initialGivebacks > MAXGIVEBACKS || initialGivebacks < 0) {
 		printf("\nPlease enter the number of give-backs the computer will perform (0-%d): ", MAXGIVEBACKS);
 		scanf("%d", &initialGivebacks);
-	    } 
+	    }
 	    remainingGivebacks = initialGivebacks;
 	    HitAnyKeyToContinue();
 	    break;
@@ -610,7 +903,7 @@ void SmarterComputerMenu()
 	    break;
         }
     } while(TRUE);
-}
+}*/
 
 void AnalysisMenu()
 {
@@ -619,12 +912,12 @@ void AnalysisMenu()
     MEX mexValue = 0;
     int mexInt, maxPositions = 10;
     char c;
-    
+
     gPrintPredictions = FALSE;
     gMenuMode = Analysis; /* By default, no symmetries -- raw values */
-    
+
     do {
-        printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
+        printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
         printf("\ti)\tPrint the (I)nitial position\n");
         printf("\tn)\tChange the (N)umber of printed positions (currently %d)\n",maxPositions);
         if(!kPartizan) { /* Impartial */
@@ -638,21 +931,21 @@ void AnalysisMenu()
         printf("\n\tp)\t(P)rint the overall summmary of game values\n");
         printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
         printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
-	
+
         printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
-	
+
         if(badWinPositions != NULL)
             printf("\t1)\tPrint up to %d (W)inning INCORRECT positions\n",maxPositions);
         if(badTiePositions != NULL)
             printf("\t2)\tPrint up to %d (T)ieing  INCORRECT positions\n",maxPositions);
         if(badLosePositions != NULL)
             printf("\t3)\tPrint up to %d (L)osing  INCORRECT positions\n",maxPositions);
-	
+
         printf("\n\th)\t(H)elp\n");
         printf("\n\tb)\t(B)ack = Return to previous activity\n");
         printf("\n\nSelect an option: ");
-	
+
         switch(c = GetMyChar()) {
 	case 'Q': case 'q':
 	    ExitStageRight();
@@ -738,7 +1031,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     char tmpAns[2], input[MAXINPUTLENGTH];
     MOVELIST* head;
     int onlyOneMove;
-    
+
     /*to skip input we have to see what moves are available first, and since we
       are not solving there is esstially no performance issue here*/
     head = GenerateMoves(thePosition); /* What are all moves available? */
@@ -753,7 +1046,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     FreeMoveList(head);
 
     GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
-    
+
     if(input[0] == '\0') {
       /* [DDG 2005-01-09] Check if there is only one move to be made.
        * If so, this can be a shortcut for moving, just hitting enter! */
@@ -766,7 +1059,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
        * printf("\n");
        *}
        *FreeMoveList(head);*/
-	
+
 	if ( onlyOneMove ) {
 	    printf("\n-------- SELECTING THE ONLY MOVE --------> ");
 	    PrintMove(*theMove);
@@ -774,7 +1067,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    return(Move);
 	} else
 	    PrintPossibleMoves(thePosition);
-	
+
     } else if (ValidTextInput(input)) {
         if(ValidMove(thePosition,tmpMove = ConvertTextInputToMove(input))) {
             *theMove = tmpMove;
@@ -782,7 +1075,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
         }
         else
             PrintPossibleMoves(thePosition);
-    
+
     } else {
         switch(input[0]) {
 	case 'Q': case 'q':
@@ -796,42 +1089,22 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    printf("\n");
 	    if(tmpAns[0] == 'y' || tmpAns[0] == 'Y')
 		return(Abort);
-	    else
+	    else{
+	      PrintPosition(thePosition, playerName, TRUE);
 		return(Continue);
+	    }
 	case 'H': case 'h':
 	    HelpMenus();
 	    printf("");
 	    PrintPosition(thePosition, playerName, TRUE);
 	    break;
 	case 'c': case 'C':
-	    SmarterComputerMenu();
+	  return ConfigurationMenu();
+	  /*PrintPosition(thePosition, playerName, TRUE);*/
 	    break;
-	case 'r': case 'R':
-	    PrintPosition(thePosition, playerName, TRUE);
-	    break;
-	case 's': case 'S':
-	    if (gUnsolved) {
-		printf("Sorry, we cannot give you these values before the game is solved.\n");
-		break;
-	    } else {
-		PrintValueMoves(thePosition);
-		break;
-	    }
 	case 'p': case 'P':
-	    if (gUnsolved) {
-		printf("Sorry, we cannot make predictions before the game is solved.\n");
-		break;
-	    } else {
-		gPrintPredictions = !gPrintPredictions;
-		printf("\n Predictions %s\n", gPrintPredictions ? "On." : "Off.");
-		PrintPosition(thePosition, playerName, TRUE);
-		break;
-	    }
-	case 'v': case 'V':
-	  PrintVisualValueHistory(thePosition);
-	  break;
-	case 't': case 'T':
-	  PrintMoveHistory(thePosition);
+	  GamePrintMenu(thePosition, playerName,TRUE);
+
 	  break;
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);
@@ -844,30 +1117,85 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    break;
         }
     }
-    
+
     return(Continue);  /* The default action is to return Continue */
 }
 
+void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
+{
+  char c;
+
+  do {
+
+
+    printf("%s", kPrintMenu);
+
+    if (!gUnsolved)
+      printf("%s", kPrintMenuWithSolving);
+    printf("%s", kPrintMenuEnd);
+    printf("\n\nSelect an option: ");
+
+    switch(c = GetMyChar()) {
+    case 'r': case 'R':
+      PrintPosition(thePosition, playerName, TRUE);
+      return;
+    case 's': case 'S':
+      if (gUnsolved) {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+	break;
+      } else {
+	PrintValueMoves(thePosition);
+	PrintPosition(thePosition, playerName, TRUE);
+	return;
+      }
+    case 'v': case 'V':
+      if (gUnsolved) {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+	break;
+      } else {
+	PrintVisualValueHistory(thePosition);
+	return;
+      }
+    case 'm': case 'M':
+      PrintMoveHistory(thePosition);
+      return;
+    case 'H': case 'h':
+      HelpMenus();
+      printf("");
+      PrintPosition(thePosition, playerName, TRUE);
+      return;
+    case 'b': case 'B':
+      PrintPosition(thePosition, playerName, TRUE);
+      return;
+    default:
+      BadMenuChoice();
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
+}
 
 void GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN putCarraigeReturnBack)
-{	
+{
     int ctr = 0;
     BOOLEAN seenFirstNonSpace = FALSE;
     signed char c;
-    
+
     if(eatFirstChar)
         (void) getchar();
-    
+
     while((c = getchar()) != '\n' && c != EOF) {
-	
+
         if(!seenFirstNonSpace && c != ' ')
             seenFirstNonSpace = TRUE;
-	
+
         if(ctr < size - 1 && seenFirstNonSpace)
             name[ctr++] = c;
     }
     name[ctr] = '\0';
-    
+
     if(putCarraigeReturnBack)
         ungetc('\n',stdin);  /* Put the \n back on the input */
 }
@@ -875,20 +1203,22 @@ void GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN putCarraige
 /* Status Meter */
 void showStatus(STATICMESSAGE msg)
 {
-    
+
     static float timeDelayTicks = CLOCKS_PER_SEC / 10;
     static clock_t updateTime = (clock_t) NULL;
     int print_length=0;
     float percent = PercentDone(msg);
-    
+
     if (updateTime == (clock_t) NULL)
     {
         updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
     }
-    
+
     switch (msg)
     {
         case Clean:
+	  /*if(gWriteDatabase)*/
+
             if(gSaveDatabase) 
             {
                 print_length = fprintf(stderr,"Writing Database...\e[K");
@@ -898,8 +1228,8 @@ void showStatus(STATICMESSAGE msg)
             return;
        default:
          break;
-    }	
-    
+    }
+
     if (clock() > updateTime)
     {
         fflush(stdout);
