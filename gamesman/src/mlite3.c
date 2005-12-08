@@ -108,6 +108,8 @@ typedef enum possibleBoardPieces {
 
 BOOLEAN  gShowMoveSuccession = FALSE;
 
+/** Variants **/
+
 typedef enum possibleGameObjectives {
   THREE_IN_A_ROW, SURROUND, BOTH
 } GameObjective;
@@ -176,6 +178,7 @@ void FreeGame()
 {}
 
 // Set up the help strings based on the variant being played
+// gGameObjective = THREE_IN_A_ROW, SURROUND, BOTH
 void InitializeHelpStrings() {
 
 kHelpGraphicInterface =
@@ -194,9 +197,20 @@ revert back to your most recent position.";
 kHelpOnYourTurn =
 "You place one of your pieces on one of the empty board positions.";
 
+ if (gGameObjective == SURROUND) {
+kHelpStandardObjective = "Surround your opponent’s piece with three of your\n\
+pieces to win.";
+ }
+ if (gGameObjective == THREE_IN_A_ROW) {
 kHelpStandardObjective =
 "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+ }
+ if (gGameObjective == BOTH) {
+kHelpStandardObjective = 
+"Either get three of your pieces in a row either vertically, horizontally\n\
+ or diagonally or surround your opponent to win.";
+ }
 
 kHelpReverseObjective =
 "To force your opponent into getting three of his markers (either X or\n\
