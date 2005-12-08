@@ -186,10 +186,19 @@ void printPlayerConfig(STRING type1, STRING type2) {
 
   printf("\n\t");
   printCell("Type", max0);
-  sprintf(tmp, "3) %s", type1);
-  printCell(tmp, max1);
-  sprintf(tmp, "4) %s", type2);
-  printCell(tmp, max2);
+  if (gUnsolved) {
+    
+    sprintf(tmp, "%s", type1);
+    printCell(tmp, max1);
+    sprintf(tmp, "%s", type2);
+    printCell(tmp, max2);
+  }
+  else {
+    sprintf(tmp, "3) %s", type1);
+    printCell(tmp, max1);
+    sprintf(tmp, "4) %s", type2);
+    printCell(tmp, max2);
+  }
   printf("|\n");
 
   printGrid(maxs, 3);
@@ -256,9 +265,11 @@ USERINPUT ConfigurationMenu()
       printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
       printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
 
+      if (!gUnsolved) {
       printf("\t3)\tChange player type of %s (currently %s)\n", gPlayerName[1], type1);
-      printf("\t4)\tChange player type of %s (currently %s)\n\n", gPlayerName[0], type2);
-
+      printf("\t4)\tChange player type of %s (currently %s)\n", gPlayerName[0], type2);
+      }
+      printf("\n");
       if(gOpponent == AgainstHuman) {
 	if(gPlaying)
 
@@ -1132,6 +1143,8 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
 
     if (!gUnsolved)
       printf("%s", kPrintMenuWithSolving);
+    else 
+      printf("%s", kPrintMenuWithoutSolving);
     printf("%s", kPrintMenuEnd);
     printf("\n\nSelect an option: ");
 
@@ -1159,8 +1172,14 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
 	return;
       }
     case 'm': case 'M':
-      PrintMoveHistory(thePosition);
-      return;
+      if (gUnsolved) {
+	PrintMoveHistory(thePosition);
+	return;
+      } else {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+	break;
+      }
     case 'H': case 'h':
       HelpMenus();
       printf("");

@@ -248,12 +248,17 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	}
 	if(!aborted) {
 	    while(menu) {
-		printf("%s%s%s%s%s%s%s",
+		printf("%s%s",
 		       "What would you like to do?\n",
 		       (gOpponent != ComputerComputer) ? 
-		       "\tu)\t(U)ndo the last move\n" : "",
-		       "\tv)\t(V)isual Value History\n",
-		       "\tt)\tGame Scrip(T)\n",
+		       "\tu)\t(U)ndo the last move\n" : "");
+		if (!gUnsolved)
+		  printf("%s",
+			 "\tv)\t(V)isual Value History\n");
+		else 
+		  printf("%s",
+			 "\tm)\tScript of (M)ove History\n");
+		printf("%s%s%s",
 		       "\tb)\t(B)ack to the menu\n",
 		       "\tq)\t(Q)uit\n\n",
 		       
@@ -285,12 +290,22 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		case 'q': case 'Q':
 		    ExitStageRight();
 		    exit(0);
-		case 't': case 'T':
+		case 'm': case 'M':
+		  if (gUnsolved) {
 		    PrintMoveHistory(-1);
 		    break;
+		  }
+		  BadMenuChoice();
+		  HitAnyKeyToContinue();
+		  break;
 		case 'v': case 'V':
-		    PrintVisualValueHistory(-1);
+		  if (gUnsolved) {
+		    BadMenuChoice();
+		    HitAnyKeyToContinue();
 		    break;
+		  }
+		  PrintVisualValueHistory(-1);
+		  break;
 		default:
 		    BadMenuChoice();
 		}
