@@ -42,17 +42,14 @@ proc GS_InitGameSpecific {} {
     ### Variants
     global gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets
-    set gToTrapIsToWin 1
-    set gForwardStart 1
-    set gOpponentsSpace 0
     set gForbidden 1
     set gBuckets 0
     
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
-    set kStandardString "First player to ______ WINS"
-    set kMisereString "First player to ______ LOSES"
+    set kStandardString "First player to reach the goal WINS"
+    set kMisereString "First player to reach the goal LOSES"
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
@@ -65,7 +62,7 @@ proc GS_InitGameSpecific {} {
 	SetToWinString "To Win: Be the last player to move your pieces off of the board or to be \
 prevented from moving by your opponent's pieces"
     }
-    SetToMoveString "To Move: (fill in)"
+    SetToMoveString "To Move: Select the arrow of the direction that you want to move your piece."
 	    
     # Authors Info. Change if desired
     global kRootDir
@@ -142,9 +139,27 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "4x4" \
 	     "5x5"
 	]
+    set TrapToWinRule \
+	[list \
+	     "Should Trapping be a win?" \
+	     "No" \
+	     "Yes" 
+	]
+    set ForwardStartRule \
+	[list \
+	     "Should the pieces in the start area move forward first?" \
+	     "No" \
+	     "Yes"
+	 ]
+    set OpponentsSpaceRule \
+	[list \
+	     "Should you be able to go into your opponents starting space?" \
+	     "No"\
+	     "Yes"
+	]
 
     # List of all rules, in some order
-    set ruleset [list $standardRule $boardsizeRule]
+    set ruleset [list $standardRule $boardsizeRule $TrapToWinRule $ForwardStartRule $OpponentsSpaceRule]
 
     # Declare and initialize rule globals
     global gMisereGame
@@ -153,8 +168,15 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gBoardSizeOp
     set gBoardSizeOp 0
 
+    global gToTrapIsToWin gForwardStart 
+    set gToTrapIsToWin 1
+    set gForwardStart 1
+    global gOpponentsSpace gForbidden gBuckets 
+    set gOpponentsSpace 0
+    set gForbidden 1
+    set gBuckets 0
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame" "gBoardSizeOp"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gBoardSizeOp" "gToTrapIsToWin" "gForwardStart" "gOpponentsSpace"]
 
     global kLabelFont
     set ruleNum 0
@@ -184,8 +206,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    #puts "calling getoption"
-    # TODO: Needs to change with more variants
+
     global gMisereGame gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets 
     global gBoardSizeOp
@@ -199,18 +220,6 @@ proc GS_GetOption { } {
     set option [expr $option + (2*2*2*2*2*2*$gBoardSizeOp)]
     return $option
 
-
-
-
-#  int option = 1;
-#  option += (gStandardGame ? 0 : 1);
-#  option += 2*(gToTrapIsToWin ? 1 : 0);
-#  option += 2*2*(gForwardStart ? 1 : 0);
-#  option += 2*2*2*(gOpponentsSpace ? 1 : 0);
-#  option += 2*2*2*2*(gForbidden ? 1 : 0);
-#  option += 2*2*2*2*2*(gBuckets ? 1 : 0);
-#  option += 2*2*2*2*2*2*(side-MIN_SIDE);
-#  return option;
 }
 
 
@@ -226,7 +235,7 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    # TODO: Needs to change with more variants
+   
     global gMisereGame gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets 
     global boardWidth boardSize gBoardSizeOp
@@ -241,19 +250,6 @@ proc GS_SetOption { option } {
     set boardWidth [expr ($option/2/2/2/2/2/2) + 3]
     set boardSize [expr $boardWidth * $boardWidth]
     set gBoardSizeOp [expr $boardSize - 3]
-
-
-
-# option--;
-#  gStandardGame = (option%2 == 0);
-#  gToTrapIsToWin = (option/2%2 == 1);
-#  gForwardStart = (option/2/2%2 == 1);
-#  gOpponentsSpace = (option/2/2/2%2 == 1);
-#  gForbidden = (option/2/2/2/2%2 == 1);
-#  gBuckets = (option/2/2/2/2/2%2 == 1);
-
-#  side = (option/2/2/2/2/2/2)+MIN_SIDE;
-#  boardsize = side*side;
 }
 
 
@@ -277,7 +273,9 @@ proc GS_Initialize { c } {
     # Squares labeled from bottom left corner starting left to right from 0
     for {set x 0} {$x < $boardWidth} {incr x} {
 	for {set y 1} {$y < [expr $boardWidth+1]} {incr y} {
-	    $c create rectangle [expr $x * $cellSize] [expr $y * $cellSize] [expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] -fill grey -outline black -tags [list base square[expr $x+((($boardWidth -1) - ($y - 1)) * $boardWidth)]] 
+	    $c create rectangle [expr $x * $cellSize] [expr $y * $cellSize] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+		-fill grey -outline black -tags [list base square[expr $x+((($boardWidth -1) - ($y - 1)) * $boardWidth)]] 
 	}
     } 
 
@@ -285,8 +283,11 @@ proc GS_Initialize { c } {
     if {$boardWidth != 5} {
 	for {set x 1} {$x < $boardWidth} {incr x} {
 	    set y 0
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] [expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] -fill blue -outline black -tags [list base goal]
-	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] [expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
+	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+		-fill blue -outline black -tags [list base goal]
+	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] \
+		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
 	}
 	for {set y 1} {$y < $boardWidth} {incr y} {
 	    set x $boardWidth
@@ -308,7 +309,7 @@ proc GS_Initialize { c } {
     }
 	
 
-    #Drawing the pieces and arrows
+#Drawing the pieces and arrows
     for {set x 0} {$x < $boardWidth} {incr x} {
 	for {set y 1} {$y < [expr $boardWidth+1]} {incr y} {
 	    drawPiece $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2] $cellSize blue [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)]
@@ -335,7 +336,7 @@ proc GS_Initialize { c } {
     $c lower arrows
     $c lower pieces
 
-    ### TODO: fill this in
+   
 } 
 
 
@@ -364,11 +365,7 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
     
     global boardWidth boardSize
-   # puts "This is the position:$position"
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
-    #puts [string length $pieceString]
-    #puts $pieceString
-    # resets board
     $c raise base
 
     # raises appropriate pieces
@@ -523,7 +520,6 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
     GS_DrawPosition $c $positionAfterUndo
 }
 
@@ -650,8 +646,11 @@ proc Moveto {theMove} {
 proc Movefrom {theMove} {
     return [expr ($theMove >> 16) & 255]
 }
+
 # 1 represents o
 # 0 represents x
 proc whosturn {theMove} {
     return [expr $theMove & 255]
 }
+
+
