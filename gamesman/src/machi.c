@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.19 2005-12-08 01:26:18 yulikjan Exp $
+// $Id: machi.c,v 1.20 2005-12-08 03:24:33 ogren Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -7,7 +7,7 @@
  **
  ** AUTHOR:      Jeffrey Chiang
  **              Jennifer Lee
- **	       Jesse Phillips
+ **	         Jesse Phillips
  **
  ** DATE:        02/11/2003
  **
@@ -33,7 +33,7 @@
 POSITION gNumberOfPositions  = 39366; /*19683;*/  /* 3^9 */
 
 POSITION gInitialPosition    =  0;
-POSITION gMinimalPosition    = 0 ;
+POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
 STRING   kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
@@ -50,10 +50,125 @@ BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
+// Help strings are placeholders to be filled in after InitializeGame
 STRING   kHelpGraphicInterface =
-"There is currently no graphic interface\n";
+"Help strings not initialized.";
 
 STRING   kHelpTextInterface    =
+"Help strings not initialized.";
+
+STRING   kHelpOnYourTurn =
+"Help strings not initialized.";
+
+STRING   kHelpStandardObjective =
+"Help strings not initialized.";
+
+STRING   kHelpReverseObjective =
+"Help strings not initialized.";
+
+STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"Help strings not initialized.";
+
+STRING   kHelpExample =
+"Help strings not initialized.";
+
+/*************************************************************************
+ **
+ ** Everything above here must be in every game file
+ **
+ **************************************************************************/
+
+/*************************************************************************
+ **
+ ** Every variable declared here is only used in this file (game-specific)
+ **
+ **************************************************************************/
+
+#define BOARDSIZE     9           /* 3x3 board */
+#define NUMSYMMETRIES 8           /* 4 rotations, 4 flipped rotations */
+#define WIDTH 3
+#define POSITION_OFFSET  19683       /* 3^9 */
+
+typedef enum possibleBoardPieces {
+    Blank, o, x
+} BlankOX;
+
+char *gBlankOXString[] = { "·", "#", "$" };
+
+/* Powers of 3 - this is the way I encode the position, as an integer */
+int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
+
+/* function prototypes */
+POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
+void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
+
+/* Variants */
+BOOLEAN allDiag = FALSE;
+BOOLEAN noDiag = FALSE;
+
+void InitializeHelpStrings();
+
+static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+
+/* Proofs of correctness for the below arrays:
+**
+** FLIP						ROTATE
+**
+** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
+** 3 4 5  ->  	5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
+** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		2 1 0
+*/
+
+/* This is the array used for flipping along the N-S axis */
+int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
+
+/* This is the array used for rotating 90 degrees clockwise */
+int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
+
+STRING MToS (MOVE);
+
+/*************************************************************************
+ **
+ ** Here we declare the global database variables
+ **
+ **************************************************************************/
+
+extern VALUE     *gDatabase;
+
+/************************************************************************
+ **
+ ** NAME:        InitializeDatabases
+ **
+ ** DESCRIPTION: Initialize the gDatabase, a global variable.
+ ** 
+ ************************************************************************/
+
+void InitializeGame()
+{
+  MoveToString = &MToS;
+  
+  InitializeHelpStrings();
+}
+
+void FreeGame()
+{
+}
+
+/*****
+ ** void InitializeHelpStrings()
+ ** 
+ ** Set up the help strings based on the variant being played
+ **
+ ** Variants: 
+ ** BOOLEAN allDiag
+ ** BOOLEAN noDiag
+ *****/
+void InitializeHelpStrings() {
+
+kHelpGraphicInterface =
+"There is currently no graphic interface\n";
+
+kHelpTextInterface    =
 "There are two types of moves in Achi: place moves and slide moves.\n"
 "PLACE MOVES:\n"
 "First, you place your 3 pieces on the board: use the LEGEND to determine\n"
@@ -70,23 +185,23 @@ STRING   kHelpTextInterface    =
 "(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n"
 "a mistake, type u to revert back to your previous position.";
 
-STRING   kHelpOnYourTurn =
+kHelpOnYourTurn =
 "For the first six turns, each player puts a piece on an empty board position.\n\
 After all six pieces are on the board, move any one of your pieces along a\n\
 line to an open spot on the board.";
 
-STRING   kHelpStandardObjective =
+kHelpStandardObjective =
 "To get three of your markers, in a row, either horizontally, vertically, or\n\
 diagonally. 3-in-a-row WINS.";
 
-STRING   kHelpReverseObjective =
+kHelpReverseObjective =
 "To force your opponent into getting three of his or her pieces in a row,\n\
  either horizontally, vertically, or diagonally.";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "NEVER!!!";
 
-STRING   kHelpExample =
+kHelpExample =
 "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
@@ -128,85 +243,8 @@ LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
          ( 7 8 9 )           : O - O \n\n\
 Computer wins. Nice try, Dan.";
 
-
-/*************************************************************************
- **
- ** Everything above here must be in every game file
- **
- **************************************************************************/
-
-/*************************************************************************
- **
- ** Every variable declared here is only used in this file (game-specific)
- **
- **************************************************************************/
-
-#define BOARDSIZE     9           /* 3x3 board */
-#define NUMSYMMETRIES 8           /* 4 rotations, 4 flipped rotations */
-#define WIDTH 3
-#define POSITION_OFFSET  19683       /* 3^9 */
-
-typedef enum possibleBoardPieces {
-    Blank, o, x
-} BlankOX;
-
-char *gBlankOXString[] = { "·", "#", "$" };
-
-/* Powers of 3 - this is the way I encode the position, as an integer */
-int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
-
-/* function prototypes */
-POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
-void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
-
-
-BOOLEAN allDiag = FALSE;
-BOOLEAN noDiag = FALSE;
-
-static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
-
-/* Proofs of correctness for the below arrays:
-**
-** FLIP						ROTATE
-**
-** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
-** 3 4 5  ->  	5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
-** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		2 1 0
-*/
-
-/* This is the array used for flipping along the N-S axis */
-int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
-
-/* This is the array used for rotating 90 degrees clockwise */
-int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
-
-STRING MToS (MOVE);
-
-/*************************************************************************
- **
- ** Here we declare the global database variables
- **
- **************************************************************************/
-
-extern VALUE     *gDatabase;
-
-/************************************************************************
- **
- ** NAME:        InitializeDatabases
- **
- ** DESCRIPTION: Initialize the gDatabase, a global variable.
- ** 
- ************************************************************************/
-
-void InitializeGame()
-{
-  MoveToString = &MToS;
-
 }
 
-void FreeGame()
-{
-}
 
 /************************************************************************
  **
@@ -1210,6 +1248,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2005/12/08 01:26:18  yulikjan
+// Added MoveToString.
+//
 // Revision 1.18  2005/05/06 07:24:55  nizebulous
 // Finally fixed ALL the function prototypes so that there are NO warnings
 // when gamesman compiles.  YAY!
