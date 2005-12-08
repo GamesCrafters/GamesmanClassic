@@ -58,66 +58,25 @@ BOOLEAN  kDebugDetermineValue = FALSE;
 void*	 gGameSpecificTclInit = NULL;
 
 STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n\
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
-button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+"Help strings not initialized.";
 
 STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+"Help strings not initialized.";
 
 STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions.";
+"Help strings not initialized.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+"Help strings not initialized.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+"Help strings not initialized.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the board fills up without either player getting three-in-a-row.";
+"Help strings not initialized.";
 
 STRING   kHelpExample =
-"         ( 1 2 3 )           : - - -\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  3    \n\n\
-         ( 1 2 3 )           : - - X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  6    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - O \n\n\
-Computer's move              :  5    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : - - O \n\n\
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer's move              :  4    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer wins. Nice try, Dan.";
+"Help strings not initialized.";
 
 /*************************************************************************
 **
@@ -195,6 +154,9 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 /** Function Prototypes **/
 void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX);
 
+/** Changing Variants **/
+void InitializeHelpStrings();
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -205,10 +167,80 @@ void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX);
 
 void InitializeGame()
 {
+
+  InitializeHelpStrings();
+
 }
 
 void FreeGame()
 {}
+
+// Set up the help strings based on the variant being played
+void InitializeHelpStrings() {
+
+kHelpGraphicInterface =
+"The LEFT button puts an X or O (depending on whether you went first\n\
+or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
+button does nothing, and the RIGHT button is the same as UNDO, in that\n\
+it reverts back to your your most recent position.";
+
+kHelpTextInterface    =
+"On your turn, use the LEGEND to determine which number to choose (between\n\
+1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
+to the empty board position you desire and hit return. If at any point\n\
+you have made a mistake, you can type u and hit return and the system will\n\
+revert back to your most recent position.";
+
+kHelpOnYourTurn =
+"You place one of your pieces on one of the empty board positions.";
+
+kHelpStandardObjective =
+"To get three of your markers (either X or O) in a row, either\n\
+horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+
+kHelpReverseObjective =
+"To force your opponent into getting three of his markers (either X or\n\
+O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
+LOSES.";
+
+kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"the board fills up without either player getting three-in-a-row.";
+
+kHelpExample =
+"         ( 1 2 3 )           : - - -\n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+Computer's move              :  3    \n\n\
+         ( 1 2 3 )           : - - X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
+         ( 7 8 9 )           : - - - \n\n\
+Computer's move              :  6    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
+         ( 7 8 9 )           : - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
+         ( 7 8 9 )           : - - O \n\n\
+Computer's move              :  5    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
+         ( 7 8 9 )           : - - O \n\n\
+     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
+         ( 7 8 9 )           : O - O \n\n\
+Computer's move              :  4    \n\n\
+         ( 1 2 3 )           : - O X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
+         ( 7 8 9 )           : O - O \n\n\
+Computer wins. Nice try, Dan.";
+
+}
 
 /************************************************************************
 **
@@ -1063,5 +1095,7 @@ void setOption(int option)
 	if(option == 0) gGameObjective = BOTH ;
 	else if(option == 1) gGameObjective = THREE_IN_A_ROW ;
 	else gGameObjective = SURROUND ;
+
+	InitializeHelpStrings();
 }
 

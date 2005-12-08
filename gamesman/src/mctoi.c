@@ -397,80 +397,25 @@ BOOLEAN  kDebugDetermineValue = FALSE      ;
 void*	 gGameSpecificTclInit = NULL	   ;
 
 STRING   kHelpGraphicInterface =
-"Farzad and Erwin: Once there's a graphic interface, fill this in.";
+"Help strings not initialized.";
 
 STRING   kHelpTextInterface    =
-"Chung-Toi has two phases to it.  First, pieces are placed on the board until\n\
-both players have placed three pieces on the board each. In the second phase,\n\
-the pieces may be moved to different slots, rotated or both.  In both phases,\n\
-the legend denotes the slot numbering.  Pieces have either x or + orientation,\n\
-indicating which direction the piece can hop.\n\n\
-In the first phase, to place a piece, locate the slot number you want to move\n\
-to and whether you want to place it in the x or + orientation.  Enter that slot\n\
-number immediately followed by the orientation. \n\
-Example: 7x would place a piece in the bottom left corner in the x orientation.\n\n\
-In the second phase, enter a move as the slot you want to move from, immediately\n\
-followed by the slot you with to move to, and the orientation. \n\
-Example: 75+ would cause a piece at 7 to move to slot 5 and land in + orientation.\n\n\
-An in-place rotation would be considered a move from a slot back to the same slot.\n\
-Example: 77+ would cause the piece at 7 to rotate to the + orientation.";
+"Help strings not initialized.";
 
 STRING   kHelpOnYourTurn =
-"Place up to the three pieces on the board. The pieces can hop from \n\
-slot to slot, or rotate in place.";
+"Help strings not initialized.";
 
 STRING   kHelpStandardObjective =
-"To get three of your markers in a row, either horizontally, vertically, or \n\
-diagonally. 3-in-a-row WINS.";
+"Help strings not initialized.";
 
 STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers \n\
-in a row, either horizontally, vertically, or diagonally. 3-in-a-row LOSES.";
+"Help strings not initialized.";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"Players have looped into a stalemate, unable to force a lose on the other player.";
+"Help strings not initialized.";
 
 STRING   kHelpExample =
-"        ( 1 2 3 )           : -- -- --\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
-         ( 7 8 9 )           : -- -- -- \n\n\
-Computer's move              :  3x    \n\n\
-         ( 1 2 3 )           : -- -- Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
-         ( 7 8 9 )           : -- -- -- \n\n\
-     Dan's move [(u)ndo/1-9] : { 2+} \n\n\
-         ( 1 2 3 )           : -- W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
-         ( 7 8 9 )           : -- -- -- \n\n\
-Computer's move              :  6+    \n\n\
-         ( 1 2 3 )           : -- W+ Rx X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
-         ( 7 8 9 )           : -- -- -- \n\n\
-     Dan's move [(u)ndo/1-9] : { 9x} \n\n\
-         ( 1 2 3 )           : -- W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
-         ( 7 8 9 )           : -- -- Wx \n\n\
-Computer's move              :  5+    \n\n\
-         ( 1 2 3 )           : -- W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- R+ R+ \n\
-         ( 7 8 9 )           : -- -- Wx \n\n\
-     Dan's move [(u)ndo/1-9] : { 7+ } \n\n\
-         ( 1 2 3 )           : -- W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- R+ R+ \n\
-         ( 7 8 9 )           : W+ -- Wx \n\n\
-Computer's move              :  55x    \n\n\
-         ( 1 2 3 )           : -- W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- Rx R+ \n\
-         ( 7 8 9 )           : W+ -- Wx \n\n\
-     Dan's move [(u)ndo/1-9] : { 91+ } \n\n\
-         ( 1 2 3 )           : Wx W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- Rx R+ \n\
-         ( 7 8 9 )           : W+ -- -- \n\n\
-Computer's move              :  59x    \n\n\
-         ( 1 2 3 )           : Wx W+ Rx \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
-         ( 7 8 9 )           : W+ -- Rx \n\n\
-Computer wins. Nice try, Dan.";
+"Help strings not initialized.";
 
 /*************************************************************************
 **
@@ -557,11 +502,14 @@ void UnHashChungToi          (BlankoxOX *, int         );
 void PositionToBlankoxOX     (POSITION, BlankoxOX*     );
 POSITION BlankoxOXToPosition (BlankoxOX*, BlankoxOX    );
 
-
+/* Changing Variants */
+void InitializeHelpString    (                         );
 
 /**********************************************/
 
 void InitializeGame(){
+
+  InitializeHelpString();
 
 }
 
@@ -569,6 +517,86 @@ void FreeGame() {
 
 }
 
+// Set up the help strings based on the current variant being played
+void InitializeHelpString() {
+
+kHelpGraphicInterface =
+"Farzad and Erwin: Once there's a graphic interface, fill this in.";
+
+kHelpTextInterface    =
+"Chung-Toi has two phases to it.  First, pieces are placed on the board until\n\
+both players have placed three pieces on the board each. In the second phase,\n\
+the pieces may be moved to different slots, rotated or both.  In both phases,\n\
+the legend denotes the slot numbering.  Pieces have either x or + orientation,\n\
+indicating which direction the piece can hop.\n\n\
+In the first phase, to place a piece, locate the slot number you want to move\n\
+to and whether you want to place it in the x or + orientation.  Enter that slot\n\
+number immediately followed by the orientation. \n\
+Example: 7x would place a piece in the bottom left corner in the x orientation.\n\n\
+In the second phase, enter a move as the slot you want to move from, immediately\n\
+followed by the slot you with to move to, and the orientation. \n\
+Example: 75+ would cause a piece at 7 to move to slot 5 and land in + orientation.\n\n\
+An in-place rotation would be considered a move from a slot back to the same slot.\n\
+Example: 77+ would cause the piece at 7 to rotate to the + orientation.";
+
+kHelpOnYourTurn =
+"Place up to the three pieces on the board. The pieces can hop from \n\
+slot to slot, or rotate in place.";
+
+kHelpStandardObjective =
+"To get three of your markers in a row, either horizontally, vertically, or \n\
+diagonally. 3-in-a-row WINS.";
+
+kHelpReverseObjective =
+"To force your opponent into getting three of his markers \n\
+in a row, either horizontally, vertically, or diagonally. 3-in-a-row LOSES.";
+
+kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+"Players have looped into a stalemate, unable to force a lose on the other player.";
+
+kHelpExample =
+"        ( 1 2 3 )           : -- -- --\n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
+         ( 7 8 9 )           : -- -- -- \n\n\
+Computer's move              :  3x    \n\n\
+         ( 1 2 3 )           : -- -- Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
+         ( 7 8 9 )           : -- -- -- \n\n\
+     Dan's move [(u)ndo/1-9] : { 2+} \n\n\
+         ( 1 2 3 )           : -- W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- -- \n\
+         ( 7 8 9 )           : -- -- -- \n\n\
+Computer's move              :  6+    \n\n\
+         ( 1 2 3 )           : -- W+ Rx X \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
+         ( 7 8 9 )           : -- -- -- \n\n\
+     Dan's move [(u)ndo/1-9] : { 9x} \n\n\
+         ( 1 2 3 )           : -- W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
+         ( 7 8 9 )           : -- -- Wx \n\n\
+Computer's move              :  5+    \n\n\
+         ( 1 2 3 )           : -- W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- R+ R+ \n\
+         ( 7 8 9 )           : -- -- Wx \n\n\
+     Dan's move [(u)ndo/1-9] : { 7+ } \n\n\
+         ( 1 2 3 )           : -- W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- R+ R+ \n\
+         ( 7 8 9 )           : W+ -- Wx \n\n\
+Computer's move              :  55x    \n\n\
+         ( 1 2 3 )           : -- W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- Rx R+ \n\
+         ( 7 8 9 )           : W+ -- Wx \n\n\
+     Dan's move [(u)ndo/1-9] : { 91+ } \n\n\
+         ( 1 2 3 )           : Wx W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- Rx R+ \n\
+         ( 7 8 9 )           : W+ -- -- \n\n\
+Computer's move              :  59x    \n\n\
+         ( 1 2 3 )           : Wx W+ Rx \n\
+LEGEND:  ( 4 5 6 )  TOTAL:   : -- -- R+ \n\
+         ( 7 8 9 )           : W+ -- Rx \n\n\
+Computer wins. Nice try, Dan.";
+
+}
 
 /************************************************************************
 **
@@ -2375,6 +2403,8 @@ void setOption(int option)
 	gHopOne = option % 2 ;
 	option /= 2;
 	gRotateInPlace = option % 2 ;
+
+	InitializeHelpString();
 }
 
 
