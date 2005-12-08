@@ -26,6 +26,9 @@ MOVELIST*	CopyMovelist			(MOVELIST* list);
 POSITIONLIST*	StorePositionInList		(POSITION pos, POSITIONLIST* tail);
 POSITIONLIST*	CopyPositionList		(POSITIONLIST* list);
 
+REMOTENESSLIST* CreateRemotenesslistNode        (REMOTENESS theRemoteness, REMOTENESSLIST* theNextRemoteness); 
+REMOTENESSLIST* CopyRemotenesslist              (REMOTENESSLIST* theRemotenesslist);
+
 void		FoundBadPosition		(POSITION pos, POSITION parent, MOVE move);
 
 

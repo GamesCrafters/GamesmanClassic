@@ -207,6 +207,30 @@ void BadElse(STRING function)
     printf("Error: %s() just reached an else clause it shouldn't have!\n\n",function);
 }
 
+// Adapted from CreateMovelistNode
+REMOTENESSLIST *CreateRemotenesslistNode(REMOTENESS theRemoteness, REMOTENESSLIST* theNextRemoteness) {
+  REMOTENESSLIST *theHead;
+
+  theHead = (REMOTENESSLIST *) SafeMalloc (sizeof(REMOTENESSLIST));
+  theHead->remoteness = theRemoteness;
+  theHead->next = theNextRemoteness;
+
+  return(theHead);
+}
+
+// Adapted from CopyMovelist, same problem of reverse order
+REMOTENESSLIST *CopyRemotenesslist(REMOTENESSLIST* theRemotenesslist) {
+  REMOTENESSLIST *ptr, *head = NULL;
+
+  ptr = theRemotenesslist;
+  while (ptr != NULL) {
+    head = CreateRemotenesslistNode(ptr->remoteness, head);
+    ptr = ptr->next;
+  }
+
+  return(head);
+}
+
 MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
 {
     MOVELIST *theHead;
