@@ -612,9 +612,12 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'l': case 'L':
 	gZeroMemSolver = !gZeroMemSolver;
 	break;
-    case 'm': case 'M':
-	gSymmetries = !gSymmetries;
+    case 'm': case 'M': {
+	if(gCanonicalPosition)
+	    gSymmetries = !gSymmetries;
+	else printf("Sorry, but the game does not seem to have support for symmetries.\n");
 	break;
+    }
     case 'o': case 'O':
 	gStandardGame = !gStandardGame;
 	break;
