@@ -39,7 +39,8 @@
 **          with my initializeGame() or maybe something else.
 **
 **   Joey - Major changes: Added a call to freeBoard before returns in
-/************************************************************************
+*/
+/*************************************************************************
 **
 ** NAME:        msquaredance.c
 **
@@ -181,7 +182,7 @@ Example 3  \n\
 O wins!\n";
 
 
-STRING   kHelpReverseObjective ="";
+STRING   kHelpReverseObjective ="Force your opponent to make a square before you do.";
 
 STRING   kHelpTieOccursWhen ="the board is full and no squares are formed.";
 
@@ -217,10 +218,10 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 #define BLUE 1
 #define DOWN 0
 #define UP 1
-//#define EMPTY 0
+#define EMPTY 0
 #define POSSIBLE_SQUARE_VALUES 5  // 5 possible values for a square, should not be changed
 
-#define EMPTY 0
+//#define EMPTY 0
 #define YELLOW_DOWN 1
 #define YELLOW_UP 2
 #define BLUE_DOWN 3
@@ -239,6 +240,8 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 #define DEFAULT_BOARD_WIDTH  3
 #define DEFAULT_BOARD_HEIGHT 3
+#define MAX_BOARD_WIDTH 4
+#define MAX_BOARD_HEIGHT 4
 
 /*************************************************************************
 **
@@ -291,10 +294,8 @@ int getSquare(SDBPtr board, int x, int y);
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y);
 int getSquareColor(SDBPtr board, int x, int y);
 int getSquareUD(SDBPtr board, int x, int y);
-int setSquare(SDBPtr board, int x, int y, int value);
-int setSquareEmpty(SDBPtr board, int x, int y);
-int setSquareColor(SDBPtr board, int x, int y, int color);
-int setSquareUD(SDBPtr board, int x, int y, int ud);
+void setSquare(SDBPtr board, int x, int y, int value);
+void setSquareEmpty(SDBPtr board, int x, int y);
 
 /* Move */
 MOVE hashMove(int x, int y, int ud);
@@ -313,6 +314,13 @@ SDBPtr unhashBoard(POSITION position);
 SDBPtr newBoard();
 void freeBoard(SDBPtr board); // need to call this as soon as we dont need the board
 
+
+/* Assorted Helpers */
+int prompt_board_width();
+int prompt_board_height();
+int getCurrentTurn(POSITION position);
+
+
 /*needed for generic hash*/
 int vcfg(int *this_cfg);
 
@@ -329,17 +337,9 @@ int vcfg(int *this_cfg);
 void InitializeGame ()
 {
   SDBPtr board = newBoard(); 
-  // SDBPtr board2;
-  //int i;
+  
   int row, col;
 
-  //int init_pieces[16] = { YELLOW_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  //			  YELLOW_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2)+((BOARD_ROWS*BOARD_COLS)%2),  
-  //			  BLUE_UP, 0, ((BOARD_ROWS*BOARD_COLS)/2),    
-  //			  BLUE_DOWN, 0, ((BOARD_ROWS*BOARD_COLS)/2),  
-  //			  EMPTY, 0, BOARD_ROWS*BOARD_COLS, -1};
-
-  //gNumberOfPositions = generic_hash_init(BOARD_ROWS*BOARD_COLS, init_pieces, vcfg);
 
   gNumberOfPositions=1;
   for(row=0;row<BOARD_ROWS;row++)
@@ -351,6 +351,7 @@ void InitializeGame ()
 	} 
     }
 
+  gNumberOfPositions <<=1;
   board->squaresOccupied=0;
   board->currentTurn=FIRST_TURN;
 
@@ -358,23 +359,14 @@ void InitializeGame ()
   gInitialPosition = hashBoard(board);
   freeBoard(board);
   
-  //gInitialPosition = generic_hash(board->squares, board->currentTurn);
-  //printf("%d\n",gInitialPosition);
-  //printf("Number of Positions: %d\n",gNumberOfPositions);
-  //board2 = newBoard();
-  //generic_unhash(gInitialPosition, board2->squares);
-  //for(i=0;i<BOARD_ROWS*BOARD_COLS;i++)
-  //   printf("%d, %d\n",board->squares[i],board2->squares[i]);
-  //PrintPosition(gInitialPosition, "test", 1);
-  //freeBoard(board);
+  
 
   
 }
 
 int vcfg(int *this_cfg)
 {
-  return 1;
-  //return ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3])) || ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3] + 1));
+  return ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3])) || ((this_cfg[0] + this_cfg[1])  == (this_cfg[2] + this_cfg[3] + 1));
 
 }
 
@@ -404,7 +396,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	int x, y, valid_color;
 	MOVELIST *moves = NULL;
 	SDBPtr board = unhashBoard(position);
-	valid_color = getCurrentTurn(board);
+	valid_color = getCurrentTurn(position);
 	
 	for(x=0;x<BOARD_WIDTH;x++) {
 		for(y=0;y<BOARD_HEIGHT;y++) {
@@ -480,7 +472,7 @@ POSITION DoMove(POSITION position, MOVE move ) {
 /* determine the result of the game */
 VALUE Primitive (POSITION position) { //(POSITION position) {
   SDBPtr board = unhashBoard(position);
-  int x1, y1, x2, y2, w, slot1, slot2, slot3, slot4;
+  int x1, y1, x2, y2, w, slot1 = EMPTY, slot2 = EMPTY, slot3 = EMPTY, slot4 = EMPTY;
   for(x1=0;x1<BOARD_WIDTH-1;x1++) {
     for(y1=0;y1<BOARD_HEIGHT-1;y1++) {
       slot1 = board->squares[y1*BOARD_WIDTH+x1];
@@ -525,12 +517,12 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
     slot2 = board->squares[boardIndex(3,1)];
     slot3 = board->squares[boardIndex(2,3)];
     slot4 = board->squares[boardIndex(0,2)];
-    if(isSquareWin(slot1,slot2,slot3,slot4)) return win;
+    if(isSquareWin(slot1,slot2,slot3,slot4)) return gStandardGame ? lose : win;
     slot1 = board->squares[boardIndex(2,0)];
     slot2 = board->squares[boardIndex(0,1)];
     slot3 = board->squares[boardIndex(3,2)];
     slot4 = board->squares[boardIndex(1,3)];
-    if(isSquareWin(slot1,slot2,slot3,slot4)) return win;
+    if(isSquareWin(slot1,slot2,slot3,slot4)) return gStandardGame ? lose : win;
   }
   
   if(board->squaresOccupied==BOARD_WIDTH*BOARD_HEIGHT)
@@ -567,7 +559,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
   SDBPtr board = unhashBoard(position);
 
 	int whoseturn = board->currentTurn;
-	int strlenname = strlen(playerName);
+	
 	char turnString1[80], turnString2[80], prediction[80];
 	
 	char ownColor = (whoseturn==YELLOW) ? charColorYellow : charColorBlue;
@@ -686,14 +678,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
 
 /************* Other helper functions ******************/
 
-/* for debugging
-void printBinary(int x){
-  int i;
-  for(i=0;i<32;i++,x=x>>1)
-    printf("%d",x%2);
-       printf("\n");
-}
-*/
+
 
 /************************************************************************
 ** Utility functions Implementation. Private to this file.
@@ -706,17 +691,9 @@ int getSquare(SDBPtr board, int x, int y) { return board->squares[boardIndex(x,y
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y) { return getSquare(board,x,y)==0; }
 int getSquareColor(SDBPtr board, int x, int y) { return getSquare(board,x,y)>=3; }
 int getSquareUD(SDBPtr board, int x, int y) { return (getSquare(board,x,y)&1)==0; } //Joey made a change
-int setSquare(SDBPtr board, int x, int y, int value) { board->squares[boardIndex(x,y)] = value; }
-int setSquareEmpty(SDBPtr board, int x, int y) { setSquare(board,x,y,EMPTY); }
-/*
-int hashSquare(int ud, int color) { return (color<<1)+ud; }
-int setSquareColor(SDBPtr board, int x, int y, int color) {
-	setSquare(board,x,y,hashSquare(getSquareUD(board,x,y),color)); 
-}
-int setSquareUD(SDBPtr board, int x, int y, int ud) {
-	setSquare(board,x,y,hashSquare(ud,getSquareColor(board,x,y)));
-}
-*/
+void setSquare(SDBPtr board, int x, int y, int value) { board->squares[boardIndex(x,y)] = value; }
+void setSquareEmpty(SDBPtr board, int x, int y) { setSquare(board,x,y,EMPTY); }
+
 
 /* Move */
 MOVE hashMove(int x, int y, int ud) { return ((x << 24) | (y << 16) | (ud << 8)); }
@@ -914,10 +891,7 @@ void PrintMove(MOVE move)
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+  return (((BOARD_ROWS-1) << 5) + ((BOARD_COLS-1) << 3) + (gCanWinByColor << 2) + (gCanWinByUD << 1) + gStandardGame);
 }
 
 
@@ -934,7 +908,7 @@ int getOption ()
 
 int NumberOfOptions ()
 {
-    return 1;
+  return MAX_BOARD_WIDTH*MAX_BOARD_HEIGHT*8;
 }
 
 
@@ -962,7 +936,6 @@ void GameSpecificMenu ()
 	do
 	{
 		printf("\n\t----- Game Specific Options for Squaredance ----- \n\n");
-		printf("\tCurrent Number of Maximum Positions: %d\n\n", gNumberOfPositions);
 		printf("\tc)\tToggle win by (C)olor.  [Currently: ");
 		  if(gCanWinByColor)
 		    printf("ON]\n");
@@ -1010,10 +983,10 @@ int prompt_board_width()
   char selection_command[90];
   char selection = 'Z';
   while(1) {
-    printf("Enter board width (From 1 to 4): ");
+    printf("Enter board width (From 1 to %d): ", MAX_BOARD_WIDTH);
     scanf("%s", selection_command);
     selection = toupper(selection_command[0]);
-    if(selection < '1' || selection > '4')
+    if(selection < '1' || selection > ('0' + MAX_BOARD_WIDTH))
      {
        printf("Invalid width.\n");
      }
@@ -1031,10 +1004,10 @@ int prompt_board_height()
   char selection_command[90];
   char selection = 'Z';
   while(1) {
-    printf("Enter board height (From 1 to 4): ");
+    printf("Enter board height (From 1 to %d): ", MAX_BOARD_HEIGHT);
     scanf("%s", selection_command);
     selection = toupper(selection_command[0]);
-    if(selection < '1' || selection > '4')
+    if(selection < '1' || selection > '0' + MAX_BOARD_HEIGHT)
       {
 	printf("Invalid width.\n");
       }
@@ -1061,6 +1034,11 @@ void setOption (int option)
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+  BOARD_ROWS = (option >> 5)+1;
+  BOARD_COLS = ((option >> 3) & 3)+1;
+  gCanWinByColor = (option >> 2) & 1;
+  gCanWinByUD = (option >> 1) & 1;
+  gCanWinByUD = option & 1;
 }
 
 
@@ -1110,7 +1088,6 @@ void DebugMenu ()
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  int i;
   if (strlen(input) != 3)
     return FALSE;
   if ((input[0] < COL_START) || (input[0] > (COL_START+BOARD_ROWS)) ||
@@ -1184,7 +1161,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
      * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
      ***********************************************************/
     printf("%8s's (%c) move [(u)ndo/([%c-%c][%c-%c][%c/%c])] : ", playersName, player_char,
-				  COL_START, COL_START+BOARD_WIDTH-1, ROW_START, ROW_START+BOARD_WIDTH-1, charPositionUp, charPositionDown );
+				  COL_START, COL_START+BOARD_WIDTH-1, ROW_START, ROW_START+BOARD_HEIGHT-1, charPositionUp, charPositionDown );
 	
     input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -1209,13 +1186,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-  int x = unhashMoveToX(computersMove);
-  int y = unhashMoveToY(computersMove);
-  int ud = unhashMoveToUD(computersMove);
-  char charUD = (ud==UP) ? charPositionUp : charPositionDown;
-//  char player_char = (getCurrentTurn(position) == YELLOW)? charColorYellow : charColorBlue;
-    
+{   
   printf("%8s's move [([%c-%c][%c-%c][%c/%c])] : ", computersName,
 				  COL_START, COL_START+BOARD_WIDTH-1, ROW_START, ROW_START+BOARD_WIDTH-1, charPositionUp, charPositionDown );
   PrintMove(computersMove);
