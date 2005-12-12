@@ -664,33 +664,27 @@ proc drawmove { c move moveType position } {
     set m [unhashmove [lindex $move 0]]
     set origin [coords [lindex $m 0]]
     set destination [coords [lindex $m 1]]
+    set board [unhash $position]
     
     # This expression draws the arrows from origin to destination. However, since
     # we want some space between the end of the arrow and the destination (otherwise
     # we get some ugly overlap), we set our destination to be the actual destination
     # minus some factor multiplied by the distance from origin to destination.
 
-    # Also, we don't want the arrows to begin exactly at the origin. This makes for
-    # some messiness as well (overlapping arrows on the pieces). We can remedy this by
-    # adding some distance toward the destination, similar to how we shorten the arrows
-    # on the opposite end.
-
-    # Diagonals have to be handled specially, though (distance is divided by root 2 in each direction)
-    if {[diagonal $origin $destination]} {
-	set arrow [$c create line \
-		   [expr [lindex $origin 0] + $r / sqrt(2) * [sign [expr [lindex $destination 0] - [lindex $origin 0]]]] \
-		   [expr [lindex $origin 1] + $r / sqrt(2) * [sign [expr [lindex $destination 1] - [lindex $origin 1]]]] \
+    set arrow [$c create line \
+		   [expr [lindex $origin 0]] \
+		   [expr [lindex $origin 1]] \
 		   [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
 		   [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
 		   -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
-    } else {
-	set arrow [$c create line \
-		       [expr [lindex $origin 0] + $r * [sign [expr [lindex $destination 0] - [lindex $origin 0]]]] \
-		       [expr [lindex $origin 1] + $r * [sign [expr [lindex $destination 1] - [lindex $origin 1]]]] \
-		       [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
-		       [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
-		       -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
-    }
+
+    # Now, in order to make sure the arrows show up under the pieces they are on, we have to draw the pieces again.
+    # However, we cannot draw all of them, only the ones that have moves on them. This is to ensure that the arrows
+    # go over pieces that are to be captured (which must be a subset of already drawn pieces).
+
+    set piece [string index $board [lindex $m 0]]
+
+    draw $piece [lindex $m 0] $c
 	       
     $c bind $arrow <Enter> "$c itemconfigure $arrow -fill black"
     $c bind $arrow <Leave> "$c itemconfigure $arrow -fill $color"
