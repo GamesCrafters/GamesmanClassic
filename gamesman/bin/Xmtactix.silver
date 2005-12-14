@@ -39,7 +39,7 @@ load "$kRootDir/../lib/libmtactix[info sharedlibextension]" Gamesman
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/mtactix.tcl"
+source "$kRootDir/../tcl/mtactix.tcl.silver"
 
 ### This is specific to TacTix; we allow the user to edit the initial position.
 
