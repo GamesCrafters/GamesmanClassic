@@ -21,7 +21,7 @@
 # @configure_input@
 
 CC		= @CC@
-CFLAGS		= -Wall @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@
 AR		= @AR@ cr
 RANLIB		= @RANLIB@
 
@@ -94,4 +94,4 @@ gamesman.a: $(MODULES)
 	cp gamesman.a ../gamesman.a ; $(RANLIB) ../gamesman.a
 
 $(MODULES): %.o: %.c $(INCLUDES)
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) -c -o $@ $<

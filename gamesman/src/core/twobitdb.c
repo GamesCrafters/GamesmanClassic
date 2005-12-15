@@ -33,6 +33,8 @@
 #include "db.h"
 #include "twobitdb.h"
 
+//THIS IS NOT A 2-BIT DB, but a 4-BIT ONE!!!!!!!!!!!
+
 VALUE* twobitdb_database;
 char* twobitdb_visited;
 /*

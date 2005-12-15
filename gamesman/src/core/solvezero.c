@@ -89,8 +89,8 @@ VALUE DetermineZeroValue(POSITION position)
     POSITION numTot, numWin, numTie;
     int tieRemoteness, winRemoteness;
     
-    if (gTwoBits)
-        InitializeVisitedArray();
+    //if (gTwoBits)
+    //    InitializeVisitedArray();
     
     StoreValueOfPosition(position,Primitive(position));
     MarkAsVisited(position);

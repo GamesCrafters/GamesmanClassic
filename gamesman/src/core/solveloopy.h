@@ -4,8 +4,8 @@
 
 VALUE		DetermineLoopyValue		(POSITION position);
 
-void		InitializeVisitedArray		(void);
-void		FreeVisitedArray		(void);
+//void		InitializeVisitedArray		(void);
+//void		FreeVisitedArray		(void);
 
 void		MyPrintParents			(void);
 

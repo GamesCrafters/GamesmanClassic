@@ -74,7 +74,7 @@ BOOLEAN gSymmetries = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
-char *  gVisited = NULL;
+//char *  gVisited = NULL;
 
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;
