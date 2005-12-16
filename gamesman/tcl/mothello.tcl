@@ -64,7 +64,7 @@ proc GS_InitGameSpecific {} {
     } else {
 	SetToWinString "To Win: Have the least number of pieces of your color when the board is filled."
     }
-    SetToMoveString "To Move: Players take turns placing a piece on the board where a capture will result.  A capture is made when a piece is placed so that it and another piece of the same color sandwich one or more oppositely colored pieces.  All of the sandwiched pieces then switch to the player's color.  Captures can be made vertically, horizontally, and diagonally."
+    SetToMoveString "To Move: Players take turns placing a piece on the board.  A capture is made when a piece is placed so that it and another piece of the same color sandwich one or more oppositely colored pieces.  All of the sandwiched pieces then switch to the player's color.  Captures can be made vertically, horizontally, and diagonally."
 	    
     # Authors Info. Change if desired
     global kRootDir
