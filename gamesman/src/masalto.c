@@ -1040,8 +1040,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char piece;
 	int width = strlen("+-------------------------------------------+");
 	
-	printf("\n\nPosition: %d\n\n", position);
-
 	generic_unhash(getPosition(position), currentBoard);
 	
 	if (whoseMove(getPosition(position)) ==  FOX_PLAYER)
