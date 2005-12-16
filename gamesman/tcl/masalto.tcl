@@ -9,29 +9,8 @@
 #
 ####################################################
 
-####################################################
-#
-# Preliminary Notes:
-#
-# The game parameters below allow the adjustment of the following:
-# - The thickness of the lines that make up the grid of the board
-# - The radius of the dots located at the intersection points of the board
-# - The color of the grid of the board
-# - The outline color of the pieces
-# - The color of player1's pieces
-# - The color of player2's pieces
-# - The size of the outline of the pieces
-#
-# The size of the board is now assumed to be given by the canvas.
-# This allows the board to fill the given canvas space instead of
-# forcing a fixed dimension.
-#
-# DrawBoard deals with size, margin, side, r, arrowwidth,
-# and arrowhead now
-#
-####################################################
-
 # Game parameters
+# Note: Other parameters in DrawBoard
 
 # t = line thickness
 set t 5
@@ -287,6 +266,7 @@ proc DrawBoard { c } {
     global side margin size color outlineColor outline t dot r player1 player2 gFrameWidth gFrameHeight fontsize arrowwidth arrowhead
 
     # If we don't clean the canvas, things pile up and get slow
+    # We need to keep the background, though (otherwise we get ugly borders around game on some resolutions)
     $c delete {!background}
     
     set size [expr int([min $gFrameWidth $gFrameHeight])]
@@ -296,9 +276,6 @@ proc DrawBoard { c } {
     set fontsize [expr int(5 * $size / 100)]
     set arrowwidth [expr 0.4 * $r]
     set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
-
-    # Size the canvas
-    # $c configure -width $size -height $size
 
     # Make a gray background
     $c create rect 0 0 $size $size -fill darkgray -width 1 -outline black
@@ -463,10 +440,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
     global r outline
     
-    # C unHashMove:
-    # move[0] = hashed_move & 0x3F; /* 0b111111*/
-    # move[1] = hashed_move >> 6;
-
+    # Unhashes the move
     set origposition [expr $theMove & 0x3F]
     set origin [coords $origposition]
     set destination [coords [expr $theMove >> 6]]
@@ -607,16 +581,6 @@ proc GS_ShowMoves { c moveType position moveList } {
 	drawmove $c $move $moveType $position
     }
 
-}
-
-# Returns 1 if num or 0 or positive, -1 if num is negative
-proc sign { num } {
-    if { $num == 0 } {
-	return 0
-    } elseif { $num >= 0 } {
-	return 1
-    }
-    return -1
 }
 
 ################################
@@ -791,7 +755,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     
     global size gameover fontsize box
     
-    # Tell us it's "Game Over!"
+    # Tell us it's "Game Over!" and announce and winner
     set box [$c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black]
     set gameover [$c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black]
 	
