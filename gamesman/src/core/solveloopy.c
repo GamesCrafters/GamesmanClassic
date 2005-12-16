@@ -221,7 +221,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 	while (ptr != NULL) {
 	    parent = ptr->position;
 	    
-	    if(GetValueOfPosition(parent) == undecided) {
+	    if(parent != kBadPosition && GetValueOfPosition(parent) == undecided) {
 		/* this position has no losing children but has a tieing position so it must be a 
 		 * tie. Assign its value and set its remoteness.  Note that 
 		 * we give ties with lowest remoteness priority (i.e. if a 

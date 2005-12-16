@@ -31,4 +31,6 @@ clean:
 
 dist:
 	cd src && $(MAKE) dist
-	rm -rf Makefile config.status config.log bin/XGamesman *~ bin/data src/data
+
+dist-clean:
+	rm -rf Makefile config.status config.log *~ bin/data src/data
