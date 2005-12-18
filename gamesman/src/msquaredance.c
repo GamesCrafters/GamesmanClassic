@@ -53,6 +53,9 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
+** 2005-12-18
+**   Jack - added MoveToString
+**
 ** 2005-11-12
 **   Joey - Fixed the problem in initializeGame().  The game now solves and plays
 **          for 3x3.  Memory allocation error for 4x3, still possibly a problem
@@ -188,9 +191,14 @@ STRING   kHelpTieOccursWhen ="the board is full and no squares are formed.";
 
 STRING   kHelpExample ="";
 
+
+#ifndef SQUAREDANCEDEBUG
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+
+#endif
 
 /*************************************************************************
 **
@@ -284,6 +292,8 @@ char charPositionDown = 'd';
 **
 *************************************************************************/
 
+STRING MToS(MOVE theMove);
+
 //BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4);
 BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4);
 int boardIndex(int x, int y);
@@ -336,20 +346,20 @@ int vcfg(int *this_cfg);
 
 void InitializeGame ()
 {
-  SDBPtr board = newBoard(); 
-  
   int row, col;
+  SDBPtr board = newBoard(); 
+  int totalPositions = 1;
 
-
-  gNumberOfPositions=1;
   for(row=0;row<BOARD_ROWS;row++)
     {
       for(col=0;col<BOARD_COLS;col++)
 	{
 	  setSquareEmpty(board,col,row);
-	  gNumberOfPositions*=5;
+	  totalPositions*=5;
 	} 
-    }
+  }
+    
+ gNumberOfPositions = totalPositions << 1; // last bit for storing whose turn it is
 
   gNumberOfPositions <<=1;
   board->squaresOccupied=0;
@@ -358,10 +368,8 @@ void InitializeGame ()
 
   gInitialPosition = hashBoard(board);
   freeBoard(board);
-  
-  
+  MoveToString = &MToS;
 
-  
 }
 
 int vcfg(int *this_cfg)
@@ -559,7 +567,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
   SDBPtr board = unhashBoard(position);
 
 	int whoseturn = board->currentTurn;
-	
 	char turnString1[80], turnString2[80], prediction[80];
 	
 	char ownColor = (whoseturn==YELLOW) ? charColorYellow : charColorBlue;
@@ -642,15 +649,15 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
 	//Player Name. Stolen directly from Othello
 	sprintf(turnString1,"| It is %s's turn.", playerName);
 	printf("\t%s",turnString1); 
-	if(strlen(turnString1) < (3 * BOARD_WIDTH) + 24)
-		for(hyphens = 0; (int) hyphens < (int) (3 * BOARD_WIDTH) + 24 - strlen(turnString1); hyphens++)
+	if((int) strlen(turnString1) < (3 * BOARD_WIDTH) + 24)
+		for(hyphens = 0; (int) hyphens < (int) ((3 * BOARD_WIDTH) + 24 - strlen(turnString1)); hyphens++)
 			printf(" "); 
 	printf("|\n");
 
 	sprintf(turnString2,"| %s is playing %c", playerName, ownColor);
 	printf("\t%s",turnString2); 
-	if(strlen(turnString2) < (3 * BOARD_WIDTH) + 24)
-		for(hyphens = 0; (int) hyphens < (int) (3 * BOARD_WIDTH) + 24 - strlen(turnString2); hyphens++) 
+	if((int) strlen(turnString2) < (int) ((3 * BOARD_WIDTH) + 24))
+		for(hyphens = 0; (int) hyphens < (int) ((3 * BOARD_WIDTH) + 24 - strlen(turnString2)); hyphens++) 
 			printf(" ");
 	printf("|\n");
 	
@@ -659,8 +666,8 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
 	if (prediction[2] == '(')
 	{
 		printf("\t%s", prediction);
-		if(strlen(prediction) < (3 * BOARD_WIDTH) + 24)
-			for(hyphens = 0; (int) hyphens < (int) (3 * BOARD_WIDTH) + 24 - strlen(prediction); hyphens++) 
+		if((int) strlen(prediction) < (3 * BOARD_WIDTH) + 24)
+			for(hyphens = 0; (int) hyphens < (int) ((3 * BOARD_WIDTH) + 24 - strlen(prediction)); hyphens++) 
 				printf(" ");
 		printf("|\n");
 	}
@@ -686,7 +693,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn )
 
 /* Square */
 int boardIndex(int x, int y) { return y*BOARD_WIDTH+x; }
-//int getSquare(SDBPtr board, int x, int y) { return (int) board->squares[boardIndex(x,y)]; }
 int getSquare(SDBPtr board, int x, int y) { return board->squares[boardIndex(x,y)]; }
 BOOLEAN isSquareEmpty(SDBPtr board, int x, int y) { return getSquare(board,x,y)==0; }
 int getSquareColor(SDBPtr board, int x, int y) { return getSquare(board,x,y)>=3; }
@@ -700,7 +706,6 @@ MOVE hashMove(int x, int y, int ud) { return ((x << 24) | (y << 16) | (ud << 8))
 int unhashMoveToX(MOVE move)  { return move >> 24; }
 int unhashMoveToY(MOVE move)  { return (move >> 16) & 0xff; }
 int unhashMoveToUD(MOVE move) { return (move >> 8) &  0xff; }
-//int unhashMoveToColor(MOVE move) { return move & 0xff; }
 
 /* Board */
 
@@ -787,7 +792,6 @@ void freeBoard(SDBPtr board) {
 /* allocate space for the board */
 SDBPtr newBoard() {
 	SDBPtr board = (SDBPtr) SafeMalloc(sizeof(SDBoard));
-	//board->squares = (char *) SafeMalloc(sizeof(char)*BOARD_WIDTH*BOARD_HEIGHT);
 	board->squares = (int *) SafeMalloc(sizeof(int)*BOARD_WIDTH*BOARD_HEIGHT);
 	return board;
 }
@@ -795,7 +799,6 @@ SDBPtr newBoard() {
 /********** helper function for Primitive **************/
 //BOOLEAN isSquareWin(char slot1, char slot2, char slot3, char slot4) {
 BOOLEAN isSquareWin(int slot1, int slot2, int slot3, int slot4) {
-  //int slots[4]={(int) slot1, (int) slot2, (int) slot3,(int) slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
   int slots[4]={slot1, slot2, slot3, slot4}, colors[4], uds[4], colorMatch=1, udMatch=1;
   int i;
 
@@ -866,16 +869,29 @@ int main() {//int argc, char [] argv) {
 
 void PrintMove(MOVE move)
 {
-  int col;
-  int row;
-  char UD;
-  col = unhashMoveToX(move);
-  row = unhashMoveToY(move);
-  UD = (unhashMoveToUD(move)==UP) ? charPositionUp : charPositionDown;
-  printf("%c%c%c", col + COL_START, row + ROW_START, UD);
+  printf("%s",MoveToString(move));
 }
 
 
+/************************************************************************
+**
+** NAME:        MToS()
+**
+** DESCRIPTION: return the string of the move
+** 
+** INPUTS:      MOVE move         : The move 
+**
+** OUTPUTS:     String : the string form of the move
+**
+************************************************************************/
+STRING MToS(MOVE theMove) {
+    STRING move = (STRING) SafeMalloc(4);
+	int col = unhashMoveToX(theMove);
+	int row = unhashMoveToY(theMove);
+	char UD = (unhashMoveToUD(theMove)==UP) ? charPositionUp : charPositionDown;
+	sprintf(move,"%c%c%c", col + COL_START, row + ROW_START, UD);
+    return move;
+}
 
 /************************************************************************
 **
