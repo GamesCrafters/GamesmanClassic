@@ -1052,12 +1052,7 @@ void GameSpecificMenu ()
 		    printf("ON]\n");
 		  else
 		    printf("OFF]\n");
-		printf("\ts)\tChange Board (S)ize [Currently: %dx%d]\n", BOARD_COLS, BOARD_ROWS);
-		printf("\tg)\tToggle (G)PS [Currently: ");
-		if(gUseGPS)
-		  printf("ON]\n");
-		else
-		  printf("OFF]\n");
+		  printf("\ts)\tChange Board (S)ize [Currently: %dx%d]\n", BOARD_COLS, BOARD_ROWS);
 		printf("\tb)\t(B)ack to previous screen\n\n");
 		printf("\tPlease select an option: "); scanf("%s", selection_command);
 		selection = toupper(selection_command[0]);
@@ -1076,9 +1071,6 @@ void GameSpecificMenu ()
 		    BOARD_HEIGHT = BOARD_ROWS = prompt_board_height();
 		    selection = 'Z';
 		    break;
-		  case 'G':
-		    gUseGPS = !gUseGPS;
-		    selection = 'Z';
 		  case 'B':
 		    return;
 		  default:
