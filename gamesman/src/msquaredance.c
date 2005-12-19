@@ -1,25 +1,3 @@
-
-/* Note:
- * comment out this line for Gamesman compiling
- * keep this when run the main() test on its own
- */
-//#define SQUAREDANCEDEBUG
-
-#ifdef SQUAREDANCEDEBUG
-	#define NULL 0
-	#define FALSE 0
-	#define TRUE 1
-	typedef char* STRING;
-	typedef int BOOLEAN;
-	typedef long int POSITION;
-	typedef int MOVE;
-	BOOLEAN gStandardGame = TRUE;
-	typedef enum {
-        win, lose, draw, tie, undecided } VALUE;
-        void PrintMove(MOVE move);
-#endif
-
-
 /************************************************************************
 **
 ** NAME:        msquaredance.c
@@ -95,6 +73,27 @@
 **          upon starting game with or without solve.
 **************************************************************************/
 
+/* Note:
+ * comment out this line for Gamesman compiling
+ * keep this when run the main() test on its own
+ */
+//#define SQUAREDANCEDEBUG
+
+#ifdef SQUAREDANCEDEBUG
+	#define NULL 0
+	#define FALSE 0
+	#define TRUE 1
+	typedef char* STRING;
+	typedef int BOOLEAN;
+	typedef long int POSITION;
+	typedef int MOVE;
+	BOOLEAN gStandardGame = TRUE;
+	typedef enum {
+        win, lose, draw, tie, undecided } VALUE;
+        void PrintMove(MOVE move);
+#endif
+
+
 /*************************************************************************
 **
 ** Everything below here must be in every game file
@@ -137,7 +136,12 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 STRING kHelpGraphicInterface =
 "No Graphic Interface with Square Dance Right Now";
 
-STRING   kHelpTextInterface=""; 
+STRING   kHelpTextInterface=
+"You denote the column of your move with a letter (starting with a on the \n\
+left and increasing), and the row with a number (starting with 1 on the bottom \n\
+and increasing).  You then specify which way you want to place it (u for up, d \n\
+for down).  All three characters should be entered on one line with no spaces \n\
+in between.\n"; 
 
 STRING   kHelpOnYourTurn =
 "You can place your piece on the blank spot.\n\
@@ -189,7 +193,68 @@ STRING   kHelpReverseObjective ="Force your opponent to make a square before you
 
 STRING   kHelpTieOccursWhen ="the board is full and no squares are formed.";
 
-STRING   kHelpExample ="";
+STRING   kHelpExample =
+"              \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |  |  |  \n\
+   |--+--+--|  \n\
+ 1 |  |  |  |  \n\
+   ----------  \n\
+     a  b  c  \n\
+ O placed the piece U at (b3).  \n\
+               \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |XD|  |  \n\
+   |--+--+--|  \n\
+ 1 |  |  |  |  \n\
+   ----------  \n\
+     a  b  c   \n\
+ X placed the piece D at b2.  \n\
+               \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |XD|OD|  \n\
+   |--+--+--|  \n\
+ 1 |  |  |  |  \n\
+   ----------  \n\
+     a  b  c   \n\
+ O placed the piece D at c2.  \n\
+               \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |XD|OD|  \n\
+   |--+--+--|  \n\
+ 1 |XD|  |  |  \n\
+   ----------  \n\
+     a  b  c  \n\
+ X placed the piece D at a1.  \n\
+               \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |XD|OD|  \n\
+   |--+--+--|  \n\
+ 1 |XD|OD|  |  \n\
+   ----------  \n\
+     a  b  c  \n\
+ O placed the piece D at b1.  \n\
+               \n\
+   ----------  \n\
+ 3 |  |OU|  |  \n\
+   |--+--+--|  \n\
+ 2 |  |XD|OD|  \n\
+   |--+--+--|  \n\
+ 1 |XD|OD|XD|  \n\
+   ----------  \n\
+     a  b  c  \n\
+ X placed the piece D at c1.  \n\
+X wins!\n" ;
 
 
 #ifndef SQUAREDANCEDEBUG
@@ -280,6 +345,9 @@ int     BOARD_COLS          = DEFAULT_BOARD_WIDTH;
 BOOLEAN gCanWinByColor = TRUE;
 BOOLEAN gCanWinByUD = TRUE; 
 
+//For GPS:
+SDBPtr gBoard;
+
 char charColorYellow = 'X';
 char charColorBlue = 'O';
 char charPositionUp = 'u';
@@ -367,7 +435,12 @@ void InitializeGame ()
 
 
   gInitialPosition = hashBoard(board);
-  freeBoard(board);
+  
+  if(gUseGPS)
+    gBoard = board;
+  else
+    freeBoard(board);
+  
   MoveToString = &MToS;
 
 }
@@ -442,15 +515,25 @@ POSITION DoMove(POSITION position, MOVE move ) {
   int move_ud = unhashMoveToUD(move);
   int move_color = getCurrentTurn(position);
   /* unhash board */
-  SDBPtr board = unhashBoard(position);
+  if(!gUseGPS)
+    {
+      SDBPtr board = unhashBoard(position);
 
-  board->squares[boardIndex(move_x, move_y)] = (move_color << 1) + move_ud + 1;
-  board->squaresOccupied++;
-  board->currentTurn = !board->currentTurn;
+      board->squares[boardIndex(move_x, move_y)] = (move_color << 1) + move_ud + 1;
+      board->squaresOccupied++;
+      board->currentTurn = !board->currentTurn;
 
-  POSITION hash = hashBoard(board);
-  freeBoard(board);
-  return hash;
+      POSITION hash = hashBoard(board);
+      freeBoard(board);
+      return hash;
+    }
+  else
+    {
+      gBoard->squares[boardIndex(move_x, move_y)] = (move_color << 1) + move_ud + 1;
+      gBoard->squaresOccupied++;
+      gBoard->currentTurn = !gBoard->currentTurn;
+      return 0;
+    }
 }
 
 /************************************************************************
@@ -475,11 +558,15 @@ POSITION DoMove(POSITION position, MOVE move ) {
 **
 ** CALLS:       None              
 **
-************************************************************************/
+***********************************************************************/
 
 /* determine the result of the game */
 VALUE Primitive (POSITION position) { //(POSITION position) {
-  SDBPtr board = unhashBoard(position);
+  SDBPtr board;
+  if(gUseGPS)
+    board = gBoard;
+  else
+    board = unhashBoard(position);
   int x1, y1, x2, y2, w, slot1 = EMPTY, slot2 = EMPTY, slot3 = EMPTY, slot4 = EMPTY;
   for(x1=0;x1<BOARD_WIDTH-1;x1++) {
     for(y1=0;y1<BOARD_HEIGHT-1;y1++) {
@@ -510,7 +597,8 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
     	slot4 = board->squares[boardIndex(x2,yc)];
       }
       if(isSquareWin(slot1,slot2,slot3,slot4)) {
-	freeBoard(board);
+	if(!gUseGPS)
+	  freeBoard(board);
 	return gStandardGame ? lose : win;
       }
     }
@@ -535,12 +623,14 @@ VALUE Primitive (POSITION position) { //(POSITION position) {
   
   if(board->squaresOccupied==BOARD_WIDTH*BOARD_HEIGHT)
     {
-      freeBoard(board);
+      if(!gUseGPS)
+	freeBoard(board);
       return tie;
     }
   else
     {
-      freeBoard(board);
+      if(!gUseGPS)
+	freeBoard(board);
       return undecided;
     }
   
@@ -907,7 +997,7 @@ STRING MToS(MOVE theMove) {
 
 int getOption ()
 {
-  return (((BOARD_ROWS-1) << 5) + ((BOARD_COLS-1) << 3) + (gCanWinByColor << 2) + (gCanWinByUD << 1) + gStandardGame);
+  return (((BOARD_ROWS-1) << 5) + ((BOARD_COLS-1) << 3) + (gCanWinByColor << 2) + (gCanWinByUD << 1) + (gStandardGame));
 }
 
 
@@ -963,6 +1053,11 @@ void GameSpecificMenu ()
 		  else
 		    printf("OFF]\n");
 		printf("\ts)\tChange Board (S)ize [Currently: %dx%d]\n", BOARD_COLS, BOARD_ROWS);
+		printf("\tg)\tToggle (G)PS [Currently: ");
+		if(gUseGPS)
+		  printf("ON]\n");
+		else
+		  printf("OFF]\n");
 		printf("\tb)\t(B)ack to previous screen\n\n");
 		printf("\tPlease select an option: "); scanf("%s", selection_command);
 		selection = toupper(selection_command[0]);
@@ -981,6 +1076,9 @@ void GameSpecificMenu ()
 		    BOARD_HEIGHT = BOARD_ROWS = prompt_board_height();
 		    selection = 'Z';
 		    break;
+		  case 'G':
+		    gUseGPS = !gUseGPS;
+		    selection = 'Z';
 		  case 'B':
 		    return;
 		  default:
