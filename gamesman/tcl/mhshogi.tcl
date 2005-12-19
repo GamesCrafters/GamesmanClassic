@@ -220,7 +220,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set winConditionRule \
 	[list \
 	     "Winning condition" \
-	     "$gNumInALine pieces in a line" \
+	     "Pieces in a line" \
 	     "Reduce enemy to 1 or 0 pieces" \
 	     "Both" \
 	    ]
@@ -268,12 +268,14 @@ proc GS_GetOption { } {
 	kVersionCorner kVersionNoCorner \
 	kVersionLine kVersionCapture kVersionBoth
 
+    # Calculate the actual game parameters from the options chosen.
     set gBoardRows [expr $gBoardRowsOption + $kMinBoardRows]
     set gBoardCols [expr $gBoardColsOption + $kMinBoardCols]
     set gRowsOfPieces [expr $gRowsOfPiecesOption + $kMinRowsOfPieces]
     set gNumInALine [expr $gNumInALineOption + $kMinNumInALine]
     set gCaptureVersion [expr $gCaptureOption? $kVersionNoCorner : $kVersionCorner]
 
+    # Calculate the option from game parameters with a tight hash function.
     return [expr $gMisereGame \
 		      + 2 * $gBoardCols \
 		      + 2 * $kMaxBoardCols * $gBoardRows \
@@ -305,6 +307,7 @@ proc GS_SetOption { option } {
 	kVersionCorner kVersionNoCorner \
 	kVersionLine kVersionCapture kVersionBoth
   
+    # Unhash the game parameters from the given option.
     set gMisereGame     [expr  $option % 2]
     set gBoardCols      [expr ($option / 2) % $kMaxBoardCols]
     set gBoardRows      [expr ($option / 2  / $kMaxBoardCols) % $kMaxBoardRows]
@@ -315,9 +318,6 @@ proc GS_SetOption { option } {
 				   / $kMaxCaptureVersions) % $kCaptureAll]
     set inALine         [expr ($option / 2  / $kMaxBoardCols  / $kMaxBoardRows  / $kMaxRowsOfPieces  \
 				   / $kMaxCaptureVersions  / $kCaptureAll) %  $kMaxNumInALine]
-
-    set gBoardSize [expr $gBoardCols * $gBoardRows]
-
     if {$captureAll == 1 && $inALine != 0} {
 	set gNumInALine [expr $inALine + 1]
 	set gWinCondition [expr $kVersionBoth]
@@ -326,8 +326,12 @@ proc GS_SetOption { option } {
     } else {
 	set gWinCondition $kVersionLine
 	set gNumInRow [expr $inALine + 1]
+
+	# Update the board size from the new number of columns and rows.
+	set gBoardSize [expr $gBoardCols * $gBoardRows]
     }
 
+    # Calculate the game specific option values (in the rule frame) from the game parameters.
     set gBoardRowsOption [expr $gBoardRows - $kMinBoardRows]
     set gBoardColsOption [expr $gBoardCols - $kMinBoardCols]
     set gRowsOfPiecesOption [expr $gRowsOfPieces - $kMinRowsOfPieces]

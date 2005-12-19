@@ -14,7 +14,7 @@
 **
 ** AUTHOR:      Chris Willmore, Ann Chen
 **
-** DATE:        February 1, 2005 / FINISH DATE
+** DATE:        February 1, 2005 / December 6, 2005
 **
 ** UPDATE HIST:
 ** 02/02/2005 Updated some game-specific constants.
@@ -1377,7 +1377,9 @@ void captureCorner(int x, int y, BlankOX piece, BlankOX theBlankOX[]) {
 	}
       }
     }
+  }
 
+  if (x == numOfCols - 1) {
     // Check capture up left
     for (yN = 1; y+yN < numOfRows; yN++) {
       if (theBlankOX[(y+yN)*numOfCols + x] != oppositePiece)
@@ -1411,7 +1413,7 @@ void captureCorner(int x, int y, BlankOX piece, BlankOX theBlankOX[]) {
 	}
       }
     }
-  } 
+  }
 }
 
 //clear a given row
