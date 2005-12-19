@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.4 2005-12-17 04:31:55 zwizeguy Exp $
+// $Id: mtilechess.c,v 1.5 2005-12-19 11:11:04 brianzimmer Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -64,7 +64,7 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"The board is arranged like a standard chess board, with the exception that it can change size. The rows are specified by numeric values, while the rows are specified by letters. A square is referenced by the column and then the row, i.e. a1."; 
 
 STRING   kHelpOnYourTurn =
 "Enter your move in a style similar to algebraic notation for chess. Specify the beginning square with the rank and file (a letter then a number), and the destination square. All of the pieces move in the same way as regular chess, with a few exceptions. You can jump over your own pieces with pieces other than the knight, and pawns can move, as well as capture, forwards and backwards.\nEx: If you want to move a king from square b2 to b3, type b2b3.";
@@ -143,6 +143,8 @@ The match ends in a draw. Excellent strategies, Player and Computer\n";
 #define PLAYER2_TURN 0
 #define TOTAL_PIECES 3
 #define BOARD_SIZE 9
+
+// Constants specifying directions to "look" on the board
 #define UP 0
 #define DOWN 1
 #define LEFT 2
@@ -157,12 +159,12 @@ The match ends in a draw. Excellent strategies, Player and Computer\n";
 ** Global Variables
 **
 *************************************************************************/
-int indexToBoard[48];
-int boardToIndex[512];
-char *piecesunhashed[6];
+int indexToBoard[48]; // PreProcessed array of legal placements
+int boardToIndex[512]; // The reverse of the previous array (placement to an index)
+char *piecesunhashed[6]; // Permutations of piece characters
 
 /*VARIANTS*/
-BOOLEAN bishopVariant = FALSE;
+BOOLEAN bishopVariant = TRUE; // Default is the Bishop Variant
 BOOLEAN rookVariant = FALSE;
 
 /*************************************************************************
@@ -177,7 +179,7 @@ int atobi(char s[], int base);
 BOOLEAN isEqualString(char s[], char t[]);
 int hashBishopPieces(char pieceArray[]);
 int hashRookPieces(char pieceArray[]);
-int isLegalBoard(int place);
+int isLegalPlacement(int place);
 void PreProcess();
 POSITION hashBoard(char bA[], int currentPlayer);
 int getCurrTurn(POSITION position);
@@ -189,7 +191,7 @@ MOVE createMove(int init, int final, int sidelength);
 BOOLEAN testMove(int newspot, int origspot, POSITION N);
 BOOLEAN inCheck(POSITION N);
 BOOLEAN kingCheck(char *bA, int place, int currentPlayer);
-BOOLEAN isLegalPlacement(char *bA);
+BOOLEAN isLegalBoard(char *bA);
 void generateBishopMoves(POSITION N, MOVELIST **moves, int place);
 void generateRookMoves(POSITION N, MOVELIST **moves, int place);
 BOOLEAN rookCheck(char *bA, int place, int currentPlayer);
@@ -223,14 +225,16 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
-	MoveToString = &MToS;
-    PreProcess();
-	gNumberOfPositions = (((boardToIndex[448]*BMAX) + 5) << 1) + PLAYER1_TURN;
-	if (rookVariant) {
-	    gInitialPosition = (((boardToIndex[273]*BMAX) + hashRookPieces("KRk")) << 1) + PLAYER1_TURN;
-	} else if (bishopVariant) {
-		gInitialPosition = (((boardToIndex[7]*BMAX) + hashBishopPieces("KBk")) << 1) + PLAYER1_TURN;
-	}
+  MoveToString = &MToS;
+  PreProcess(); // Generate the legal placements for pieces
+  /*gNumberOfPositions = (((MaxPlacementIndex*MaxPiecePermutationValue) + 
+    MaxPiecePermutationValue-1) << 1) + MaxPlayerTurnValue; */
+  gNumberOfPositions = (((boardToIndex[448]*BMAX) + 5) << 1) + PLAYER1_TURN;
+  if (rookVariant) {
+    gInitialPosition = (((boardToIndex[273]*BMAX) + hashRookPieces("KRk")) << 1) + PLAYER1_TURN;
+  } else if (bishopVariant) {
+    gInitialPosition = (((boardToIndex[7]*BMAX) + hashBishopPieces("KBk")) << 1) + PLAYER1_TURN;
+  }
 }
 
 /************************************************************************
@@ -253,34 +257,33 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    MOVELIST *moves = NULL;
-    int currentPlayer, i;
-    char piece;
-    char *boardArray;
-    boardArray = unhashBoard(position);
-    currentPlayer = getCurrTurn(position);
-    for (i = 0; i < strlen(boardArray); i++) {
-    	piece = boardArray[i];
-    	if (isSameTeam(piece,currentPlayer)){
-	    	if (piece >= 'a' && piece <= 'z') {
-	    		piece = piece - 'a' + 'A';
-	    	}
-	    	switch (piece) {
-	    		case 'K': 
-	    			generateKingMoves(position,&moves,i);
-	    			break;    				
-	    		case 'B':
-	    			generateBishopMoves(position,&moves,i);
-	    			break;
-	    		case 'R':
-	    			generateRookMoves(position,&moves,i);
-	    		default: 
-	    			break;
-	    	}
-    	}
+  MOVELIST *moves = NULL;
+  int currentPlayer, i;
+  char piece;
+  char *boardArray;
+  boardArray = unhashBoard(position);
+  currentPlayer = getCurrTurn(position);
+  for (i = 0; i < strlen(boardArray); i++) {
+    piece = boardArray[i];
+    if (isSameTeam(piece,currentPlayer)){ 
+      // The piece we're look at is the current player's piece
+      if (piece >= 'a' && piece <= 'z') 
+	piece = piece - 'a' + 'A'; // Capitalize piece for switch statement
+      switch (piece) {
+      case 'K': 
+	generateKingMoves(position,&moves,i);
+	break;    				
+      case 'B':
+	generateBishopMoves(position,&moves,i);
+	break;
+      case 'R':
+	generateRookMoves(position,&moves,i);
+      default: 
+	break;
+      }
     }
-    return moves;
+  }
+  return moves;
 }
 
 
@@ -302,25 +305,25 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-	char *boardArray;
-    int filef;
-    int rankf;
-    int filei;
-    int ranki;
-    char pieceMoved;
-    int sideLength = (int)pow(BOARD_SIZE,0.5)+2;
-    boardArray = unhashBoard(position);
-    //ANDing by 2^(4)-1 will give the last 4 bits
-    filef = move & 15;
-    rankf = (move >> 4) & 15;
-    filei = (move >> 8) & 15;
-    ranki = (move >> 12) & 15;
-    ranki -= 10;
-    rankf -= 10;
-    pieceMoved = boardArray[(sideLength-filei)*sideLength+ranki];
-    boardArray[(sideLength-filei)*sideLength+ranki] = ' ';
-    boardArray[(sideLength-filef)*sideLength+rankf] = pieceMoved;
-	return hashBoard(boardArray,!getCurrTurn(position));
+  char *boardArray;
+  int filef;
+  int rankf;
+  int filei;
+  int ranki;
+  char pieceMoved;
+  int sideLength = (int)pow(BOARD_SIZE,0.5)+2;
+  boardArray = unhashBoard(position);
+  //ANDing by 2^(4)-1 will give the last 4 bits
+  filef = move & 15;
+  rankf = (move >> 4) & 15;
+  filei = (move >> 8) & 15;
+  ranki = (move >> 12) & 15;
+  ranki -= 10;
+  rankf -= 10;
+  pieceMoved = boardArray[(sideLength-filei)*sideLength+ranki];
+  boardArray[(sideLength-filei)*sideLength+ranki] = ' ';
+  boardArray[(sideLength-filef)*sideLength+rankf] = pieceMoved;
+  return hashBoard(boardArray,!getCurrTurn(position));
 }
 
 
@@ -350,14 +353,16 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-	if (inCheck(position) && !canMove(position)) {
-		return (gStandardGame) ? lose : win;
-	}
-	else if (!inCheck(position) && !canMove(position)) {
-		return tie;
-	} else {
-	    return undecided;
-	}
+  if (inCheck(position) && !canMove(position)) {
+    // The king is checked and can't move
+    return (gStandardGame) ? lose : win;
+  }
+  else if (!inCheck(position) && !canMove(position)) {
+    // King is not in check and can't move - Stalemate
+    return tie;
+  } else {
+    return undecided;
+  }
 }
 
 
@@ -379,47 +384,51 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-    char *boardArray;
-    int r, c, sideLength, x, y;
-    boardArray = unhashBoard(position);
-    sideLength = pow(strlen(boardArray),0.5);
-    int bi=0;
-    int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
-    for(bi=0;bi<strlen(boardArray);bi++){
-        if(boardArray[bi]!=' '){
-            x = bi%sideLength;
-            y = bi/sideLength;
-            if(x<minx) minx=x;
-            if(x>maxx) maxx=x;
-            if(y<miny) miny=y;
-            if(y>maxy) maxy=y;
-        }
+  char *boardArray;
+  int r, c, sideLength, x, y;
+  boardArray = unhashBoard(position);
+  sideLength = pow(strlen(boardArray),0.5);
+  int bi=0;
+  int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
+  
+  /* Determine the rectangle the pieces reside in. 
+     This is done so as not to print unnecessary empty
+     rows and columns. */
+  for(bi=0;bi<strlen(boardArray);bi++){
+    if(boardArray[bi]!=' '){
+      x = bi%sideLength;
+      y = bi/sideLength;
+      if(x<minx) minx=x;
+      if(x>maxx) maxx=x;
+      if(y<miny) miny=y;
+      if(y>maxy) maxy=y;
     }
-    printf("\n");
-    for(r = miny-1; r <= maxy+1; r++){
-        printf("    +");
-        for(c = minx-1; c <= maxx+1; c++){
-            printf("---+");
-        }
-        printf("\n");
-        printf("  %d |", sideLength - r);
-        for(c = minx-1; c <= maxx+1; c++){
-           printf(" %c |", boardArray[r*sideLength+c]);
-        }
-        printf("\n");
-    }
+  }
+  printf("\n");
+  for(r = miny-1; r <= maxy+1; r++){
     printf("    +");
     for(c = minx-1; c <= maxx+1; c++){
-        printf("---+");
+      printf("---+");
     }
     printf("\n");
-    printf("     ");
-    for(c = 0; c <= maxx+1; c++){
-        printf(" %c  ", 97+c);
+    printf("  %d |", sideLength - r);
+    for(c = minx-1; c <= maxx+1; c++){
+      printf(" %c |", boardArray[r*sideLength+c]);
     }
     printf("\n");
-    printf("%s\n",GetPrediction(position,playersName,usersTurn));
-    printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase");
+  }
+  printf("    +");
+  for(c = minx-1; c <= maxx+1; c++){
+    printf("---+");
+  }
+  printf("\n");
+  printf("     ");
+  for(c = 0; c <= maxx+1; c++){
+    printf(" %c  ", 97+c);
+  }
+  printf("\n");
+  printf("%s\n",GetPrediction(position,playersName,usersTurn));
+  printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase");
 }
 
 
@@ -452,7 +461,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    printf("%x",move);
+  printf("%x",move); // For now, move is a hex number
 }
 
 
@@ -478,23 +487,23 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+  USERINPUT input;
+  USERINPUT HandleDefaultTextInput();
+  
+  for (;;) {
+    /***********************************************************
+     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+     ***********************************************************/
+    printf("%8s's move [(undo)/<ranki><filei><rankf><filef>] : ", playersName);
     
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/<ranki><filei><rankf><filef>] : ", playersName);
-	
-	input = HandleDefaultTextInput(position, move, playersName);
-	
-	if (input != Continue)
-		return input;
-    }
-
-    /* NOTREACHED */
-    return Continue;
+    input = HandleDefaultTextInput(position, move, playersName);
+    
+    if (input != Continue)
+      return input;
+  }
+  
+  /* NOTREACHED */
+  return Continue;
 }
 
 
@@ -525,24 +534,26 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	if(strlen(input)!=4)
-    	return FALSE;
-    else{
-    	int sidelength = pow(BOARD_SIZE, 0.5)+2;
-    	char maxChar = 'A' + sidelength-1;
-    	char maxInt = '1' + sidelength-1;
-    	char c = input[0];
-    	if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
-    	if(c > maxChar || c < 'A') return FALSE;
-    	c = input[2];
-    	if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
-    	if(c > maxChar || c < 'A') return FALSE;
-    	c = input[1];
-    	if(c > maxInt || c < '1') return FALSE;
-    	c = input[3];
-    	if(c > maxInt || c < '1') return FALSE;
-    }
-    return TRUE;
+  if(strlen(input)!=4)
+    return FALSE;
+  else{
+    int sidelength = pow(BOARD_SIZE, 0.5)+2;
+    char maxChar = 'A' + sidelength-1;
+    char maxInt = '1' + sidelength-1;
+    char c = input[0];
+    /* Make sure the rank and file are within the bounds
+       set by the current board size. */ 
+    if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+    if(c > maxChar || c < 'A') return FALSE;
+    c = input[2];
+    if (c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+    if(c > maxChar || c < 'A') return FALSE;
+    c = input[1];
+    if(c > maxInt || c < '1') return FALSE;
+    c = input[3];
+    if(c > maxInt || c < '1') return FALSE;
+  }
+  return TRUE;
 }
 
 
@@ -562,7 +573,8 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return (MOVE)atobi(input,16);
+  // For now, the move can be represented as a hex number
+  return (MOVE)atobi(input,16);
 }
 
 
@@ -585,33 +597,33 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    printf("\n");
-    printf("Tile Chess Game Specific Menu\n\n");
-    printf("1) Bishop Variant\n");
-    printf("2) Rook Variant\n");
-    printf("b) Back to previous menu\n\n");
-    
-    printf("Select an option: ");
-    
-    switch(GetMyChar()) {
-    	case 'Q': case 'q':
-			ExitStageRight();
-    	case '1':
-			bishopVariant = TRUE;
-			rookVariant = FALSE;
-			break;
-	    case '2':
-			rookVariant = TRUE;
-			bishopVariant = FALSE;
-			break;
-		case 'b': case 'B':
-			return;
-	    default:
-			printf("\nSorry, I don't know that option. Try another.\n");
-			HitAnyKeyToContinue();
-			GameSpecificMenu();
-			break;
-    }
+  printf("\n");
+  printf("Tile Chess Game Specific Menu\n\n");
+  printf("1) Bishop Variant\n");
+  printf("2) Rook Variant\n");
+  printf("b) Back to previous menu\n\n");
+  
+  printf("Select an option: ");
+  
+  switch(GetMyChar()) {
+  case 'Q': case 'q':
+    ExitStageRight();
+  case '1':
+    bishopVariant = TRUE;
+    rookVariant = FALSE;
+    break;
+  case '2':
+    rookVariant = TRUE;
+    bishopVariant = FALSE;
+    break;
+  case 'b': case 'B':
+    return;
+  default:
+    printf("\nSorry, I don't know that option. Try another.\n");
+    HitAnyKeyToContinue();
+    GameSpecificMenu();
+    break;
+  }
 }
 
 /************************************************************************
@@ -644,7 +656,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return gInitialPosition;
+  return gInitialPosition;
 }
 
 
@@ -661,7 +673,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 2;
+  return 2;
 }
 
 
@@ -679,17 +691,14 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    if (bishopVariant) {
-    	return 1;
-    } else if (rookVariant) {
-    	return 2;
-    } else {
-      	BadElse("getOption");
-    }
-    return -1;
+  if (bishopVariant)
+    return 1;
+  else if (rookVariant)
+    return 2;
+  else
+    BadElse("getOption");
+
+  return -1;
 }
 
 
@@ -706,16 +715,13 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-	if (option == 1) {
-		bishopVariant = TRUE;
-		rookVariant = FALSE;
-	} else if (option == 2) {
-		bishopVariant = FALSE;
-		rookVariant = TRUE;
-	}
+  if (option == 1) {
+    bishopVariant = TRUE;
+    rookVariant = FALSE;
+  } else if (option == 2) {
+    bishopVariant = FALSE;
+    rookVariant = TRUE;
+  }
 }
 
 
@@ -749,614 +755,685 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+/* Returns a string representation of theMove */
 STRING MToS(MOVE theMove) {
-    STRING move = (STRING) SafeMalloc(2);
-    sprintf(move, "%x", theMove);
-    return move;
+  STRING move = (STRING) SafeMalloc(2);
+  sprintf(move, "%x", theMove);
+  return move;
 }
 
+/* Reverses the order of a string
+   PRECONDITION: s must end with a null character
+   POSTCONDITION: the characters in s are reversed */
 void reverse(char s[]) {
-	int c, i, j;
-	for (i = 0, j = strlen(s)-1; i < j; i++, j--) {
-		c = s[i];
-		s[i] = s[j];
-		s[j] = c;
-	}
+  int c, i, j;
+  for (i = 0, j = strlen(s)-1; i < j; i++, j--) {
+    c = s[i];
+    s[i] = s[j];
+    s[j] = c;
+  }
 }
 
+/* Returns the string of base 'base' as an integer
+   PRECONDITION: s must end in a null character, and contain only the digits
+   0-9, and the letters a-f (hexadecimal) */
 int atobi(char s[], int base) {
-	int i;
-	int total = 0;
-	char c;
-	for (i = 0; s[i] != '\0'; i++) {
-		c = s[i];
-		total = total*base + ((isalpha(c)) ? toupper(c)-'A'+10:c-'0');
-	}
-	return total;
+  int i;
+  int total = 0;
+  char c;
+  for (i = 0; s[i] != '\0'; i++) {
+    c = s[i];
+    total = total*base + ((isalpha(c)) ? toupper(c)-'A'+10:c-'0');
+  }
+  return total;
 }
 
+/* Sets s[] to be a string representation of a
+   base 'base' number n
+   POSTCONDITION: s ends in a null character contains
+   the digits of n*/
 void itoa(int n, char s[], int base){
-	int i, sign, nmodbase;
-	if ((sign = n) <0)
-		n = -n;
-	i=0;
-	do {
-		if ((nmodbase = n%base) > 9)
-			s[i++] = nmodbase-10 + 'a';
-		else
-			s[i++] = n% base + '0';
-	} while((n = n / base)>0);
-	if(sign<0)
-		s[i++] = '-';
-	s[i] = '\0';
-	reverse(s);
+  int i, sign, nmodbase;
+  if ((sign = n) <0)
+    n = -n;
+  i=0;
+  do {
+    if ((nmodbase = n%base) > 9)
+      s[i++] = nmodbase-10 + 'a';
+    else
+      s[i++] = n% base + '0';
+  } while((n = n / base)>0);
+  if(sign<0)
+    s[i++] = '-';
+  s[i] = '\0';
+  reverse(s);
 }
 
+/* Fills the global arrays indexToBoard and boardToIndex
+   with the values of valid placements.  Also sets up piece
+   hashing/unhashing based on what the variant is set to. */
 void PreProcess() {
-	int board, legalcounter;
-	legalcounter = 0;
-	bishopVariant = TRUE;
-	for (board = 0; board < 512; board++) {
-		if (isLegalBoard(board)) {
-			indexToBoard[legalcounter] = board;
-			boardToIndex[board] = legalcounter;
-			legalcounter++;
-		}
-	}
-	if (rookVariant) {
-		piecesunhashed[0] = "kKR";
-		piecesunhashed[1] = "kRK";
-		piecesunhashed[2] = "RkK";
-		piecesunhashed[3] = "RKk";
-		piecesunhashed[4] = "KRk";
-		piecesunhashed[5] = "KkR";
-	} else if (bishopVariant) {
-		piecesunhashed[0] = "kKB";
-		piecesunhashed[1] = "kBK";
-		piecesunhashed[2] = "BkK";
-		piecesunhashed[3] = "BKk";
-		piecesunhashed[4] = "KBk";
-		piecesunhashed[5] = "KkB";
-	}
+  int placement, legalcounter;
+  legalcounter = 0;
+  for (placement = 0; placement < 512; placement++) {
+    if (isLegalPlacement(placement)) {
+      indexToBoard[legalcounter] = placement;
+      boardToIndex[placement] = legalcounter;
+      legalcounter++;
+    }
+  }
+  if (rookVariant) {
+    piecesunhashed[0] = "kKR";
+    piecesunhashed[1] = "kRK";
+    piecesunhashed[2] = "RkK";
+    piecesunhashed[3] = "RKk";
+    piecesunhashed[4] = "KRk";
+    piecesunhashed[5] = "KkR";
+  } else if (bishopVariant) {
+    piecesunhashed[0] = "kKB";
+    piecesunhashed[1] = "kBK";
+    piecesunhashed[2] = "BkK";
+    piecesunhashed[3] = "BKk";
+    piecesunhashed[4] = "KBk";
+    piecesunhashed[5] = "KkB";
+  }
 }
 
+/* Returns TRUE if the strings s and t are equal, and FALSE
+   otherwise.
+   PRECONDITION: s and t both end in a null character */
 BOOLEAN isEqualString(char s[], char t[]) {
-	int i;
-	for (i = 0; s[i] != '\0' && t[i] != '\0'; i++) {
-		if (s[i] != t[i]) {
-			return FALSE;
-		}
-	}
-	return TRUE;
+  int i;
+  for (i = 0; s[i] != '\0' && t[i] != '\0'; i++) {
+    if (s[i] != t[i]) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
 
+/* Returns a number representation of a given
+   arrangement of pieces for the rook variant.
+   This function essentially handles how pieces are
+   hashed. */
 int hashRookPieces(char pieceArray[]) {
-	if (isEqualString(pieceArray,"kKR")) {
-		return 0;
-	} else if (isEqualString(pieceArray,"kRK")) {
-		return 1;
-	} else if (isEqualString(pieceArray,"RkK")) {
-		return 2;
-	} else if (isEqualString(pieceArray,"RKk")) {
-		return 3;
-	} else if (isEqualString(pieceArray,"KRk")) {
-		return 4;
-	} else if (isEqualString(pieceArray,"KkR")) {
-		return 5;
-	} else {
-		return -1;
-	}
+  if (isEqualString(pieceArray,"kKR"))
+    return 0;
+  else if (isEqualString(pieceArray,"kRK"))
+    return 1;
+  else if (isEqualString(pieceArray,"RkK"))
+    return 2;
+  else if (isEqualString(pieceArray,"RKk"))
+    return 3;
+  else if (isEqualString(pieceArray,"KRk"))
+    return 4;
+  else if (isEqualString(pieceArray,"KkR"))
+    return 5;
+  else 
+    return -1;
 }
 
+/* Returns a number representation of a given
+   arrangement of pieces for the bishop variant.
+   This function essentially handles how pieces are
+   hashed. */
 int hashBishopPieces(char pieceArray[]) {
-	if (isEqualString(pieceArray,"kKB")) {
-		return 0;
-	} else if (isEqualString(pieceArray,"kBK")) {
-		return 1;
-	} else if (isEqualString(pieceArray,"BkK")) {
-		return 2;
-	} else if (isEqualString(pieceArray,"BKk")) {
-		return 3;
-	} else if (isEqualString(pieceArray,"KBk")) {
-		return 4;
-	} else if (isEqualString(pieceArray,"KkB")) {
-		return 5;
-	} else {
-		return -1;
-	}
+  if (isEqualString(pieceArray,"kKB"))
+    return 0;
+  else if (isEqualString(pieceArray,"kBK"))
+    return 1;
+  else if (isEqualString(pieceArray,"BkK"))
+    return 2;
+  else if (isEqualString(pieceArray,"BKk"))
+    return 3;
+  else if (isEqualString(pieceArray,"KBk"))
+    return 4;
+  else if (isEqualString(pieceArray,"KkB"))
+    return 5;
+  else
+    return -1;
 }
 
-int isLegalBoard(int place) {
-	char *pA;
-	int i, pieces, surrounding, sidelength;
-	pieces = surrounding = 0;
-	pA = SafeMalloc((BOARD_SIZE+2) * sizeof(char));
-    place = place | (int)pow(2,BOARD_SIZE);
-    itoa(place,pA,2);
-	sidelength = pow(BOARD_SIZE,0.5);
-	pA++;
-	for (i = 0; i < BOARD_SIZE; i++) {
-		if (pA[i] == '1') {
-			pieces++;
-			if (i-sidelength >= 0 && pA[i-sidelength] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < BOARD_SIZE && pA[i+sidelength] == '1') {
-				surrounding++;
-			}
-			if ((i+1)%sidelength != 0 && pA[i+1] == '1') {
-				surrounding++;
-			}
-			if (i%sidelength != 0 && pA[i-1] == '1') {
-				surrounding++;
-			}
-			if (i-sidelength >= 0 && (i+1)%sidelength != 0 && pA[i-sidelength+1] == '1') {
-				surrounding++;
-			}
-			if (i-sidelength >= 0 && i%sidelength != 0 && pA[i-sidelength-1] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < BOARD_SIZE && (i+1)%sidelength != 0 && pA[i+sidelength+1] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < BOARD_SIZE && i%sidelength != 0 && pA[i+sidelength-1] == '1') {
-				surrounding++;
-			}
-			if (surrounding == 0) {
-				pA--;
-				SafeFree(pA);
-				return 0;
-			} else {
-				surrounding = 0;
-			}
-		}
-	}
+/* Checks to see if any piece is separated from the rest of the pieces.
+   For each piece (1) that it finds, it makes sure that there is at least
+   1 other piece around it.  If it is a legal board, this function returns
+   1.  Otherwise, it returns 0. */
+int isLegalPlacement(int place) {
+  char *pA;
+  int i, pieces, surrounding, sidelength;
+  pieces = surrounding = 0;
+  pA = SafeMalloc((BOARD_SIZE+2) * sizeof(char));
+  place = place | (int)pow(2,BOARD_SIZE);
+  itoa(place,pA,2);
+  sidelength = pow(BOARD_SIZE,0.5);
+  pA++;
+  for (i = 0; i < BOARD_SIZE; i++) {
+    if (pA[i] == '1') {
+      pieces++;
+      if ((i-sidelength >= 0 && pA[i-sidelength] == '1') ||
+	  (i+sidelength < BOARD_SIZE && pA[i+sidelength] == '1') ||
+	  ((i+1)%sidelength != 0 && pA[i+1] == '1') || 
+	  (i%sidelength != 0 && pA[i-1] == '1') ||
+	  (i-sidelength >= 0 && (i+1)%sidelength != 0 && pA[i-sidelength+1] == '1') ||
+	  (i-sidelength >= 0 && i%sidelength != 0 && pA[i-sidelength-1] == '1') ||
+	  (i+sidelength < BOARD_SIZE && (i+1)%sidelength != 0 && pA[i+sidelength+1] == '1') ||
+	  (i+sidelength < BOARD_SIZE && i%sidelength != 0 && pA[i+sidelength-1] == '1'))
+	surrounding++;
+      if (surrounding == 0) {
 	pA--;
 	SafeFree(pA);
-	if (pieces != 3) {
-		return 0;
-	} else {
-		return 1;
-	}
-}
-
-POSITION hashBoard(char boardArray[], int currentPlayer) {
-	POSITION N;
-	int newPlacement = 0;
-    int B = 0, hashedPlacement;
-    char *snewPieces;
-    int sideLength = pow(strlen(boardArray),0.5);
-    int bi=0,pi=0,x,y;
-    int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
-    snewPieces = SafeMalloc((TOTAL_PIECES+1) * sizeof(char));
-    for(bi=0;bi<strlen(boardArray);bi++) {
-        if(boardArray[bi]!=' '){
-            x = bi%sideLength;
-            y = bi/sideLength;
-            if(x<minx) minx=x;
-            if(x>maxx) maxx=x;
-            if(y<miny) miny=y;
-            if(y>maxy) maxy=y;
-        }
-    }
-    while ((maxx-minx) < pow(BOARD_SIZE,0.5)-1) {
-    	if(maxx < sideLength-1)
-    		maxx++;
-    	else {
-    		int i, length = strlen(boardArray);
-            for (i = 0; i < length; i++) {
-            	if ((i+1)%sideLength != 0) {
-                	boardArray[i] = boardArray[i + 1];
-                }
-			}
-    		minx--;
-    	}
-    }
-    while ((maxy-miny) < pow(BOARD_SIZE,0.5)-1) {
-    	if(miny>0)
-    		miny--;
-        else {
-        	int i, length = strlen(boardArray);
-            for (i = length-1; i >= sideLength; i--) {
-            	boardArray[i] = boardArray[i - sideLength];
-            }
-            maxy++;
-		}
-    }
-    
-    for(y=miny;y<=maxy;y++){
-        for(x=minx;x<=maxx;x++){
-            bi=y*sideLength+x;
-            if(boardArray[bi]!=' '){
-                newPlacement = newPlacement | (1<<(BOARD_SIZE-((y-miny)*(maxy-miny+1)+(x-minx))-1)); // (strlen(boardArray)-1-bi) ---> boardSize-index of piece
-                snewPieces[pi++] = boardArray[bi];
-            } 
-        }
-    }
-    hashedPlacement = boardToIndex[newPlacement];
-    if (rookVariant) {
-    	B = hashRookPieces(snewPieces);
-    } else if (bishopVariant) {
-    	B = hashBishopPieces(snewPieces);
-    }
-    N = ((hashedPlacement*BMAX+B) << 1) + currentPlayer;
-    SafeFree(snewPieces);
-    return N;
-}
-
-int getCurrTurn(POSITION position) {
-	return (position & 1);	
-}
-
-char *unhashBoard(POSITION position) {
-	int A, B, currentPlayer;
-	char *pieces;
-	char *placement;
-	char *bA;
-	currentPlayer = getCurrTurn(position);
-	position = position >> 1;
-	placement = SafeMalloc((BOARD_SIZE+2) * sizeof(char));
-	A = indexToBoard[position/BMAX] | (int)pow(2,BOARD_SIZE);
-	B = position%BMAX;
-	itoa(A,placement,2);
-	pieces = piecesunhashed[B];
-	bA = FillBoardArray(pieces,placement);
-	SafeFree(placement);
-	return bA;
-}
-
-char *FillBoardArray(char *pieceArray, char *placeArray) {
-      int c, r, sideLength, displayBoardSize;
-      char *bA;
-      sideLength = (int)pow(BOARD_SIZE,0.5)+2; // +2 is for border
-      displayBoardSize = sideLength*sideLength;
-      bA = SafeMalloc((displayBoardSize + 1) * sizeof(char));
-      placeArray++; //Ignore bit that indicates number of significant bits
-      for(c = 0; c < sideLength; c++){
-            bA[c] = ' ';
-      }
-      for (r = 1; r < sideLength-1; r++) {
-            bA[r*sideLength] = ' ';
-            for(c = 1; c < sideLength-1; c++){
-                  if (*placeArray == '1') {
-                        bA[r*sideLength+c] = *pieceArray;
-                        pieceArray++;
-                  }
-                  else {
-                        bA[r*sideLength+c] = ' ';
-                  }
-                  placeArray++;
-            }
-            bA[r*sideLength+c] = ' ';
-      }
-      for(c = 0; c < sideLength; c++){
-            bA[displayBoardSize-sideLength+c] = ' ';
-      }
-      bA[displayBoardSize] = '\0';
-      return bA;
-}
-
-void generateKingMoves(POSITION N, MOVELIST **moves, int place) {
-	int direction, sidelength;
-	char *boardArray = unhashBoard(N);
-	sidelength = pow(strlen(boardArray),0.5);
-	/*MOVE UP*/
-	direction = place-sidelength;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE DOWN*/
-	direction = place+sidelength;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE RIGHT*/
-	direction = place+1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE LEFT*/
-	direction = place-1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE UPPER-RIGHT*/
-	direction = place-sidelength+1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE UPPER-LEFT*/
-	direction = place-sidelength-1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE LOWER-RIGHT*/
-	direction = place+sidelength+1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-	/*MOVE LOWER-LEFT*/
-	direction = place+sidelength-1;
-	if (testMove(direction,place,N) == TRUE) {
-		*moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
-	}
-}
-
-void generateBishopMoves(POSITION N, MOVELIST **moves, int place) {
-	generateMovesDirection(N,moves,place,UL);
-	generateMovesDirection(N,moves,place,UR);
-	generateMovesDirection(N,moves,place,DL);
-	generateMovesDirection(N,moves,place,DR);
-}
-
-void generateRookMoves(POSITION N, MOVELIST **moves, int place) {
-	generateMovesDirection(N,moves,place,UP);
-	generateMovesDirection(N,moves,place,DOWN);
-	generateMovesDirection(N,moves,place,LEFT);
-	generateMovesDirection(N,moves,place,RIGHT);
-}
-
-void generateMovesDirection(POSITION N, MOVELIST **moves, int place, int direction) {
-	int i, iterations=0, sideLength, x, y, x_inc=0, y_inc=0;
-	char piece;
-	char *boardArray = unhashBoard(N);
-	sideLength = (int) sqrt(BOARD_SIZE)+2;
-	x = place % sideLength;
-	y = place / sideLength;
-	switch (direction){
-		case UP: 
-			y_inc = -1;
-			iterations = y;
-			break;
-		case DOWN: 
-			y_inc = 1;
-			iterations = sideLength - 1 - y;
-			break;
-		case LEFT: 
-			x_inc = -1;
-			iterations = x;
-			break;
-		case RIGHT: 
-			x_inc = 1;
-			iterations = sideLength - 1 - x;
-			break;
-		case UL: 
-			y_inc = -1;
-			x_inc = -1;
-			iterations = ((x<y)? x : y);
-			break;
-		case UR: 
-			y_inc = -1;
-			x_inc = 1; 
-			iterations = ((y<(sideLength - 1 - x))? y : sideLength - 1 - x);
-			break;
-		case DL: 
-			y_inc = 1;
-			x_inc = -1;
-			iterations = ((x<(sideLength - 1 - y))? x : sideLength - 1 - y);
-			break;
-		case DR: 
-			y_inc = 1;
-			x_inc = 1;
-			iterations = ((x>y)? x : y);
-			break;
-	}
-	for(i=0; i<iterations; i++){
-		x += x_inc;
-		y += y_inc;
-		piece = boardArray[y*sideLength+x];
-		if(piece != ' ')
-			return;
-		else {
-			if (testMove(y*sideLength+x,place,N)) {
-				*moves = CreateMovelistNode(createMove(place,y*sideLength+x,sideLength), *moves);
-			}
-		}
-	}
-}
-
-BOOLEAN isSameTeam(char piece, int currentPlayer) {
-	if (piece >= 'a' && piece <= 'z' && currentPlayer == PLAYER2_TURN) {
-		return TRUE;
-	} else if (piece >= 'A' && piece <= 'Z' && currentPlayer == PLAYER1_TURN) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
-}
-
-MOVE createMove(int init, int final, int sidelength) {
-	MOVE m;
-	int filei, ranki, filef, rankf;
-	filei = 10+init%sidelength;
-	filef = 10+final%sidelength;
-	ranki = sidelength-(init/sidelength);
-	rankf = sidelength-(final/sidelength);
-	m = (filei << 12) | (ranki << 8) | (filef << 4) | rankf;
-	return m;
-}
-
-BOOLEAN testMove(int newspot, int origspot, POSITION N) {
-	int sidelength, A;
-	char newpiece;
-	POSITION NEW_N;
-	char *bA = unhashBoard(N);
-	sidelength = pow(strlen(bA),0.5);
-	newpiece = bA[newspot];
-	if (!isSameTeam(newpiece,getCurrTurn(N))) {
-		bA[newspot] = bA[origspot];
-		bA[origspot] = ' ';
-		if (isLegalPlacement(bA)) {
-			NEW_N = hashBoard(bA,getCurrTurn(N));
-			A = indexToBoard[(NEW_N >> 1)/BMAX];
-			if (isLegalBoard(A) && !inCheck(NEW_N)) {
-				bA[origspot] = bA[newspot];
-				bA[newspot] = newpiece;
-				return TRUE;
-			}
-		}
-		bA[origspot] = bA[newspot];
-		bA[newspot] = newpiece;
-	}
-	return FALSE;
-}
-
-BOOLEAN inCheck(POSITION N) {
-	int i;
-	char piece;
-	int currentPlayer = getCurrTurn(N);
-	char *bA = unhashBoard(N);
-	for (i = 0; i < strlen(bA); i++) {
-		piece = bA[i];
-		if (!isSameTeam(piece,currentPlayer)) {
-			if (piece >= 'a' && piece <= 'z') {
-	    		piece = piece - 'a' + 'A';
-	    	}
-	    	switch (piece) {
-	    		case 'K': 
-	    			if (kingCheck(bA, i, currentPlayer) == TRUE) {
-		    			return TRUE;
-	    			} else {
-		    			break;    				
-	    			}
-	    		case 'B':
-	    			if (bishopCheck(bA, i, currentPlayer) == TRUE) {
-	    				return TRUE;
-	    			} else {
-	    				break;
-	    			}
-	    		case 'R':
-	    			if (rookCheck(bA, i, currentPlayer) == TRUE) {
-	    				return TRUE;
-	    			} else {
-	    				break;
-	    			}
-	    		default: 
-	    			break;
-	    	}
-		}
-	}
-	return FALSE;
-}
-
-BOOLEAN kingCheck(char *bA, int place, int currentPlayer) {
-	char king;
-	int sidelength;
-	king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
-	sidelength = pow(strlen(bA),0.5);
-	return  ((bA[place-sidelength]==king) ||
-			 (bA[place+sidelength]==king) ||
-			 (bA[place+1]==king) ||
-			 (bA[place-1]==king) ||
-			 (bA[place-sidelength+1]==king) ||
-			 (bA[place-sidelength-1]==king) ||
-			 (bA[place+sidelength+1]==king) ||
-			 (bA[place+sidelength-1]==king)) ? TRUE : FALSE;
-}
-
-BOOLEAN bishopCheck(char *bA, int place, int currentPlayer) {
-	char king;
-	int sidelength;
-	king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
-	sidelength = pow(strlen(bA),0.5);
-	return ((bA[place-sidelength+1]==king) ||
-			(bA[place-sidelength-1]==king) ||
-			(bA[place+sidelength+1]==king) ||
-			(bA[place+sidelength-1]==king)) ? TRUE : FALSE;
-}
-
-BOOLEAN rookCheck(char *bA, int place, int currentPlayer) {
-	char king;
-	int sidelength;
-	king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
-	sidelength = pow(strlen(bA),0.5);
-	return ((bA[place-sidelength]==king) ||
-			(bA[place+sidelength]==king) ||
-			(bA[place+1]==king) ||
-			(bA[place-1]==king)) ? TRUE : FALSE;
-}
-
-BOOLEAN canMove(POSITION position) {
-	int currentPlayer = getCurrTurn(position);
-	MOVELIST *moves = NULL;
-	char *bA = unhashBoard(position);
-	char king = (currentPlayer == PLAYER1_TURN) ? 'K' : 'k';
-	int length = strlen(bA);
-	int i, kingplace;
-	for(i = 0; i < length; i++) {
-		if (bA[i] == king) {
-			kingplace = i;
-			break;
-		}
-	}
-	generateKingMoves(position,&moves,i);
-	return !(moves == NULL);
-}
-
-BOOLEAN isLegalPlacement(char *bA) {
-	char temp[strlen(bA)+1];
-	int i, sidelength, pieces = 0, surrounding = 0, length = strlen(bA);
-	for (i = 0; bA[i] != '\0'; i++) {
-		if (bA[i] == ' ') {
-			temp[i] = '0';
-		} else {
-			temp[i] = '1';
-		}
-	}
-	temp[i] = '\0';
-	sidelength = pow(length,0.5);
-	for (i = 0; i < length; i++) {
-		if (temp[i] == '1') {
-			pieces++;
-			if (i-sidelength >= 0 && temp[i-sidelength] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < length && temp[i+sidelength] == '1') {
-				surrounding++;
-			}
-			if ((i+1)%sidelength != 0 && temp[i+1] == '1') {
-				surrounding++;
-			}
-			if (i%sidelength != 0 && temp[i-1] == '1') {
-				surrounding++;
-			}
-			if (i-sidelength >= 0 && (i+1)%sidelength != 0 && temp[i-sidelength+1] == '1') {
-				surrounding++;
-			}
-			if (i-sidelength >= 0 && i%sidelength != 0 && temp[i-sidelength-1] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < length && (i+1)%sidelength != 0 && temp[i+sidelength+1] == '1') {
-				surrounding++;
-			}
-			if (i+sidelength < length && i%sidelength != 0 && temp[i+sidelength-1] == '1') {
-				surrounding++;
-			}
-			if (surrounding == 0) {
-				return 0;
-			} else {
-				surrounding = 0;
-			}
-		}
-	}
-	if (pieces != 3) {
-		return FALSE;
-	} else {
-		return TRUE;
-	}
-}
-
-/*
-int main(int argc, char *argv[]) {
-	InitializeGame();
-	hashBoard(" KB   k                  ",PLAYER1_TURN);
-	hashBoard("      K     B    k       ",PLAYER1_TURN);
-	hashBoard(" K     Bk                ",PLAYER1_TURN);
 	return 0;
+      } else {
+	surrounding = 0;
+      }
+    }
+  }
+  pA--;
+  SafeFree(pA);
+  if (pieces != 3) {
+    return 0;
+  } else {
+    return 1;
+  }
 }
-*/
+
+/* Given a string which represents a board and the currentPlayer,
+   this function returns a POSITION, which is a number representing the
+   hashed value of the given board
+   EXAMPLE:
+    +---+---+---+---+---+
+  3 |   |   |   |   |   |
+    +---+---+---+---+---+
+  2 |   | K | B | k |   |
+    +---+---+---+---+---+
+  1 |   |   |   |   |   |
+    +---+---+---+---+---+
+      a   b   c   d   e
+      This board would be hashed as follows:
+      (((boardToIndex[7]*BMAX) + hashBishopPieces("KBk")) << 1) + currentPlayer
+      The number 7 comes  from a binary representation of a 3x3 board:
+      000
+      000
+      111  ------------> 000000111 -------> 7 */
+POSITION hashBoard(char boardArray[], int currentPlayer) {
+  POSITION N;
+  int newPlacement = 0;
+  int B = 0, hashedPlacement;
+  char *snewPieces;
+  int sideLength = pow(strlen(boardArray),0.5);
+  int bi=0,pi=0,x,y;
+  int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
+  snewPieces = SafeMalloc((TOTAL_PIECES+1) * sizeof(char));
+  
+  // Find the rectangle of the board that the pieces occupy
+  for(bi=0;bi<strlen(boardArray);bi++) {
+    if(boardArray[bi]!=' '){
+      x = bi%sideLength;
+      y = bi/sideLength;
+      if(x<minx) minx=x;
+      if(x>maxx) maxx=x;
+      if(y<miny) miny=y;
+      if(y>maxy) maxy=y;
+    }
+  }
+
+  // Squarize the rectangle
+  while ((maxx-minx) < pow(BOARD_SIZE,0.5)-1) {
+    if(maxx < sideLength-1)
+      maxx++;
+    else {
+      int i, length = strlen(boardArray);
+      for (i = 0; i < length; i++) {
+	if ((i+1)%sideLength != 0) {
+	  boardArray[i] = boardArray[i + 1];
+	}
+      }
+      minx--;
+    }
+  }
+  while ((maxy-miny) < pow(BOARD_SIZE,0.5)-1) {
+    if(miny>0)
+      miny--;
+    else {
+      int i, length = strlen(boardArray);
+      for (i = length-1; i >= sideLength; i--) {
+	boardArray[i] = boardArray[i - sideLength];
+      }
+      maxy++;
+    }
+  }
+  
+
+  /* Go through the spaces on the board inside the square just obtained.
+     If a piece is found, put a 1 in the placement number corresponding to
+     the place it was found. Then add that piece to the pieces string.*/
+  for(y=miny;y<=maxy;y++){
+    for(x=minx;x<=maxx;x++){
+      bi=y*sideLength+x;
+      if(boardArray[bi]!=' '){
+	newPlacement = newPlacement | (1<<(BOARD_SIZE-((y-miny)*(maxy-miny+1)+(x-minx))-1));
+	snewPieces[pi++] = boardArray[bi];
+      } 
+    }
+  }
+  hashedPlacement = boardToIndex[newPlacement];
+  if (rookVariant) {
+    B = hashRookPieces(snewPieces);
+  } else if (bishopVariant) {
+    B = hashBishopPieces(snewPieces);
+  }
+  N = ((hashedPlacement*BMAX+B) << 1) + currentPlayer;
+  SafeFree(snewPieces);
+  return N;
+}
+
+/* Returns whose turn it is based on the given position */
+int getCurrTurn(POSITION position) {
+  return (position & 1);
+}
+
+/* Given a hashed value, this function returns a string
+   which represents a board */
+char *unhashBoard(POSITION position) {
+  int A, B, currentPlayer;
+  char *pieces;
+  char *placement;
+  char *bA;
+  currentPlayer = getCurrTurn(position);
+  position = position >> 1; // Remove the bit indicating player turn
+  placement = SafeMalloc((BOARD_SIZE+2) * sizeof(char)); // +2 is for border
+  A = indexToBoard[position/BMAX] | (int)pow(2,BOARD_SIZE);
+  B = position%BMAX;
+  itoa(A,placement,2);
+  pieces = piecesunhashed[B];
+  bA = FillBoardArray(pieces,placement);
+  SafeFree(placement);
+  return bA;
+}
+
+/* Given a placement array (string of 1's and 0's) and a string of pieces, will
+   return a board with the corresponding pieces placed according to the placeArray. */
+char *FillBoardArray(char *pieceArray, char *placeArray) {
+  int c, r, sideLength, displayBoardSize;
+  char *bA;
+  sideLength = (int)pow(BOARD_SIZE,0.5)+2; // +2 is for border
+  displayBoardSize = (int)pow(sideLength,2);
+  bA = SafeMalloc((displayBoardSize + 1) * sizeof(char));
+  placeArray++; //Ignore bit that indicates number of significant bits
+  for(c = 0; c < sideLength; c++){
+    bA[c] = ' '; // Top border
+  }
+  for (r = 1; r < sideLength-1; r++) {
+    bA[r*sideLength] = ' '; // Left border
+    for(c = 1; c < sideLength-1; c++){
+      if (*placeArray == '1') {
+	bA[r*sideLength+c] = *pieceArray;
+	pieceArray++;
+      }
+      else {
+	bA[r*sideLength+c] = ' '; // Right border
+      }
+      placeArray++;
+    }
+    bA[r*sideLength+c] = ' ';
+  }
+  for(c = 0; c < sideLength; c++){
+    bA[displayBoardSize-sideLength+c] = ' '; // Bottom border
+  }
+  bA[displayBoardSize] = '\0';
+  return bA;
+}
+
+/* Given a position N, a MOVELIST, and the placement of the king,
+   this function "creates" all of the available moves for the king.
+   POSTCONDITION: moves is updated with all the legal moves. */
+void generateKingMoves(POSITION N, MOVELIST **moves, int place) {
+  int direction, sidelength;
+  char *boardArray = unhashBoard(N);
+  sidelength = pow(strlen(boardArray),0.5);
+  /*MOVE UP*/
+  direction = place-sidelength;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE DOWN*/
+  direction = place+sidelength;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE RIGHT*/
+  direction = place+1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE LEFT*/
+  direction = place-1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE UPPER-RIGHT*/
+  direction = place-sidelength+1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE UPPER-LEFT*/
+  direction = place-sidelength-1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE LOWER-RIGHT*/
+  direction = place+sidelength+1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+  /*MOVE LOWER-LEFT*/
+  direction = place+sidelength-1;
+  if (testMove(direction,place,N) == TRUE) {
+    *moves = CreateMovelistNode(createMove(place,direction,sidelength), *moves);
+  }
+}
+
+/* Given a position N, a MOVELIST, and the placement of the bishop,
+   this function "creates" all of the available moves for the bishop.
+   POSTCONDITION: moves is updated with all the legal moves. */
+void generateBishopMoves(POSITION N, MOVELIST **moves, int place) {
+  generateMovesDirection(N,moves,place,UL);
+  generateMovesDirection(N,moves,place,UR);
+  generateMovesDirection(N,moves,place,DL);
+  generateMovesDirection(N,moves,place,DR);
+}
+
+/* Given a position N, a MOVELIST, and the placement of the rook,
+   this function "creates" all of the available moves for the rook.
+   POSTCONDITION: moves is updated with all the legal moves. */
+void generateRookMoves(POSITION N, MOVELIST **moves, int place) {
+  generateMovesDirection(N,moves,place,UP);
+  generateMovesDirection(N,moves,place,DOWN);
+  generateMovesDirection(N,moves,place,LEFT);
+  generateMovesDirection(N,moves,place,RIGHT);
+}
+
+/* Given a position N, a MOVELIST, the placement of a piece, and
+   a direction, this function will "create" all of the available/legal
+   moves of the piece at place in the given direction.
+   POSTCONDITION: moves is updated with all of the legal moves. */
+void generateMovesDirection(POSITION N, MOVELIST **moves, int place, int direction) {
+  int i, iterations=0, sideLength, x, y, x_inc=0, y_inc=0;
+  char piece;
+  char *boardArray = unhashBoard(N);
+  sideLength = (int) sqrt(BOARD_SIZE)+2;
+  x = place % sideLength;
+  y = place / sideLength;
+  switch (direction){
+  case UP: 
+    y_inc = -1;
+    iterations = y;
+    break;
+  case DOWN: 
+    y_inc = 1;
+    iterations = sideLength - 1 - y;
+    break;
+  case LEFT: 
+    x_inc = -1;
+    iterations = x;
+    break;
+  case RIGHT: 
+    x_inc = 1;
+    iterations = sideLength - 1 - x;
+    break;
+  case UL: 
+    y_inc = -1;
+    x_inc = -1;
+    iterations = ((x<y)? x : y);
+    break;
+  case UR: 
+    y_inc = -1;
+    x_inc = 1; 
+    iterations = ((y<(sideLength - 1 - x))? y : sideLength - 1 - x);
+    break;
+  case DL: 
+    y_inc = 1;
+    x_inc = -1;
+    iterations = ((x<(sideLength - 1 - y))? x : sideLength - 1 - y);
+    break;
+  case DR: 
+    y_inc = 1;
+    x_inc = 1;
+    iterations = ((x>y)? x : y);
+    break;
+  }
+  for(i=0; i<iterations; i++){
+    x += x_inc;
+    y += y_inc;
+    piece = boardArray[y*sideLength+x];
+    if(piece != ' ')
+      return;
+    else {
+      if (testMove(y*sideLength+x,place,N)) {
+	*moves = CreateMovelistNode(createMove(place,y*sideLength+x,sideLength), *moves);
+      }
+    }
+  }
+}
+
+/* Returns TRUE if the given piece belongs to currentPlayer,
+   and FALSE otherwise. */
+BOOLEAN isSameTeam(char piece, int currentPlayer) {
+  if (piece >= 'a' && piece <= 'z' && currentPlayer == PLAYER2_TURN)
+    return TRUE;
+  else if (piece >= 'A' && piece <= 'Z' && currentPlayer == PLAYER1_TURN)
+    return TRUE;
+  else 
+    return FALSE;
+}
+
+/* Given the starting and ending indeces, will return
+   a MOVE representing this move.
+   PRECONDITION: The move is legal */
+MOVE createMove(int init, int final, int sidelength) {
+  MOVE m;
+  int filei, ranki, filef, rankf;
+  filei = 10+init%sidelength;
+  filef = 10+final%sidelength;
+  ranki = sidelength-(init/sidelength);
+  rankf = sidelength-(final/sidelength);
+  m = (filei << 12) | (ranki << 8) | (filef << 4) | rankf;
+  return m;
+}
+
+/* Checks to see whether the move will create an illegal board - 
+   Checks to see if it will result in an illegal placement,
+   or if the move will cause the player to be in check.  Returns
+   TRUE if the move is legal, and FALSE otherwise. */
+BOOLEAN testMove(int newspot, int origspot, POSITION N) {
+  int sidelength, A;
+  char newpiece;
+  POSITION NEW_N;
+  char *bA = unhashBoard(N);
+  sidelength = pow(strlen(bA),0.5);
+  newpiece = bA[newspot];
+  if (!isSameTeam(newpiece,getCurrTurn(N))) {
+    bA[newspot] = bA[origspot];
+    bA[origspot] = ' ';
+    if (isLegalBoard(bA)) {
+      NEW_N = hashBoard(bA,getCurrTurn(N));
+      A = indexToBoard[(NEW_N >> 1)/BMAX];
+      if (!inCheck(NEW_N)) {
+	bA[origspot] = bA[newspot];
+	bA[newspot] = newpiece;
+	return TRUE;
+      }
+    }
+    bA[origspot] = bA[newspot];
+    bA[newspot] = newpiece;
+  }
+  return FALSE;
+}
+
+/* Determines if the player is currently in check based on
+   the given position.  Returns TRUE if the player is in check,
+   and FALSE otherwise. */
+BOOLEAN inCheck(POSITION N) {
+  int i;
+  char piece;
+  int currentPlayer = getCurrTurn(N);
+  char *bA = unhashBoard(N);
+  for (i = 0; i < strlen(bA); i++) {
+    piece = bA[i];
+    if (!isSameTeam(piece,currentPlayer)) {
+      if (piece >= 'a' && piece <= 'z') {
+	piece = piece - 'a' + 'A';
+      }
+      switch (piece) {
+      case 'K': 
+	if (kingCheck(bA, i, currentPlayer) == TRUE) {
+	  return TRUE;
+	} else {
+	  break;    				
+	}
+      case 'B':
+	if (bishopCheck(bA, i, currentPlayer) == TRUE) {
+	  return TRUE;
+	} else {
+	  break;
+	}
+      case 'R':
+	if (rookCheck(bA, i, currentPlayer) == TRUE) {
+	  return TRUE;
+	} else {
+	  break;
+	}
+      default: 
+	break;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/* Checks if the king is checking the opposing king based on the given
+   board, the placement of the king that might be checking, and the currentPlayer. */
+BOOLEAN kingCheck(char *bA, int place, int currentPlayer) {
+  char king;
+  int sidelength;
+  king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
+  sidelength = pow(strlen(bA),0.5);
+  return  ((bA[place-sidelength]==king) ||
+	   (bA[place+sidelength]==king) ||
+	   (bA[place+1]==king) ||
+	   (bA[place-1]==king) ||
+	   (bA[place-sidelength+1]==king) ||
+	   (bA[place-sidelength-1]==king) ||
+	   (bA[place+sidelength+1]==king) ||
+	   (bA[place+sidelength-1]==king)) ? TRUE : FALSE;
+}
+
+/* Checks if the bishop is checking the opposing king based on the given
+   board, the placement of the bishop, and the currentPlayer. */
+BOOLEAN bishopCheck(char *bA, int place, int currentPlayer) {
+  char king;
+  int sidelength;
+  king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
+  sidelength = pow(strlen(bA),0.5);
+  return ((bA[place-sidelength+1]==king) ||
+	  (bA[place-sidelength-1]==king) ||
+	  (bA[place+sidelength+1]==king) ||
+	  (bA[place+sidelength-1]==king)) ? TRUE : FALSE;
+}
+
+/* Checks if the rook is checking the opposing king based on the given
+   board, the placement of the rook, and the currentPlayer. */
+BOOLEAN rookCheck(char *bA, int place, int currentPlayer) {
+  char king;
+  int sidelength;
+  king = (currentPlayer == PLAYER2_TURN) ? 'k' : 'K';
+  sidelength = pow(strlen(bA),0.5);
+  return ((bA[place-sidelength]==king) ||
+	  (bA[place+sidelength]==king) ||
+	  (bA[place+1]==king) ||
+	  (bA[place-1]==king)) ? TRUE : FALSE;
+}
+
+/* Checks if the king has any legal moves based on the given
+   position.  Returns TRUE if the king has a legal move,
+   and FALSE otherwise. */
+BOOLEAN canMove(POSITION position) {
+  int currentPlayer = getCurrTurn(position);
+  MOVELIST *moves = NULL;
+  char *bA = unhashBoard(position);
+  char king = (currentPlayer == PLAYER1_TURN) ? 'K' : 'k';
+  int length = strlen(bA);
+  int i, kingplace;
+  for(i = 0; i < length; i++) {
+    if (bA[i] == king) {
+      kingplace = i;
+      break;
+    }
+  }
+  generateKingMoves(position,&moves,i);
+  return !(moves == NULL);
+}
+
+/* Temporary work around so that we do not need to hash a board that is
+   not of size 9 - Our preprocessed arrays only deal with this size.
+   Same as isLegalPlacement, but takes a board instead of a placement. */
+BOOLEAN isLegalBoard(char *bA) {
+  char temp[strlen(bA)+1];
+  int i, sidelength, pieces = 0, surrounding = 0, length = strlen(bA);
+  for (i = 0; bA[i] != '\0'; i++) {
+    if (bA[i] == ' ') {
+      temp[i] = '0';
+    } else {
+      temp[i] = '1';
+    }
+  }
+  temp[i] = '\0';
+  sidelength = pow(length,0.5);
+  for (i = 0; i < length; i++) {
+    if (temp[i] == '1') {
+      pieces++;
+      if (i-sidelength >= 0 && temp[i-sidelength] == '1') {
+	surrounding++;
+      }
+      if (i+sidelength < length && temp[i+sidelength] == '1') {
+	surrounding++;
+      }
+      if ((i+1)%sidelength != 0 && temp[i+1] == '1') {
+	surrounding++;
+      }
+      if (i%sidelength != 0 && temp[i-1] == '1') {
+	surrounding++;
+      }
+      if (i-sidelength >= 0 && (i+1)%sidelength != 0 && temp[i-sidelength+1] == '1') {
+	surrounding++;
+      }
+      if (i-sidelength >= 0 && i%sidelength != 0 && temp[i-sidelength-1] == '1') {
+	surrounding++;
+      }
+      if (i+sidelength < length && (i+1)%sidelength != 0 && temp[i+sidelength+1] == '1') {
+	surrounding++;
+      }
+      if (i+sidelength < length && i%sidelength != 0 && temp[i+sidelength-1] == '1') {
+	surrounding++;
+      }
+      if (surrounding == 0) {
+	return 0;
+      } else {
+	surrounding = 0;
+      }
+    }
+  }
+  if (pieces != 3) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2005/12/17 04:31:55  zwizeguy
+// Implemented rook/bishop variants, and misere option.
+//
 // Revision 1.5  2005/10/06 03:06:11  hevanm
 // Changed kDebugDetermineValue to be FALSE.
 //
