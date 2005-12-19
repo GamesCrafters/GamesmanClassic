@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.20 2005-12-07 10:50:19 yanpeichen Exp $
+// $Id: mparadux.c,v 1.21 2005-12-19 10:06:23 trikeizo Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -71,6 +71,7 @@
 ** 12/07/2005 Yanpei - Added prevMoveAllowed as game option
 **                     Coded brief game options menu
 **                     Fixed some memory leaks
+** 12/19/2005 David  - Fixed first player always wins
 **
 **************************************************************************/
 
@@ -804,7 +805,7 @@ VALUE Primitive (POSITION position)
 {
   char *board = SafeMalloc(sizeof(char) * boardSize);
   int slot, curSlot;
-  char piece, curPiece, playersPiece = valToChar[whoseMove(position)];
+  char piece, curPiece, playersPiece = valToChar[whoseMove(position % numGenericPositions)];
   int i, j;
 
   MOVE lastMoveHash;
@@ -834,6 +835,10 @@ VALUE Primitive (POSITION position)
 	if (j == boardSide - 2) {
 	  SafeFree(board);
 
+	  printf("primitive at board location %d, playersPiece = %c\n", i, playersPiece);
+
+	  printf("this is a %s position\n", (playersPiece == piece ? "winning" : "losing"));
+
 	  return playersPiece == piece ? win : lose;
 	}
       }
@@ -854,6 +859,10 @@ VALUE Primitive (POSITION position)
 	if (j == boardSide - 2) {
 	  SafeFree(board);
 
+	  printf("primitive at board location %d, playersPiece = %c\n", i, playersPiece);
+
+	  printf("this is a %s position\n", (playersPiece == piece ? "winning" : "losing"));
+
 	  return playersPiece == piece ? win : lose;
 	}
       }
@@ -872,6 +881,10 @@ VALUE Primitive (POSITION position)
 
 	if (j == boardSide - 2) {
 	  SafeFree(board);
+
+	  printf("primitive at board location %d, playersPiece = %c\n", i, playersPiece);
+
+	  printf("this is a %s position\n", (playersPiece == piece ? "winning" : "losing"));
 
 	  return playersPiece == piece ? win : lose;
 	}
@@ -1049,7 +1062,7 @@ void PrintMove (MOVE move)
     printf("[%d %d W]", slot1,slot2);
     break;
   case SWAP:
-    printf("[%d %d SWAP]", slot1,slot2);
+    printf("[%d %d]", slot1,slot2);
     break;
   }
 }
@@ -1080,7 +1093,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     
     for (;;) {
-	printf("%8s's move [(undo)/slot1 slot2 type] : ", playersName);
+	printf("%8s's move [(undo)/slot1 slot2 [type]] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -1137,7 +1150,7 @@ BOOLEAN ValidTextInput (STRING input)
   // slot2 within range
   toReturn = toReturn && (slot2 = atoi(slot2s)) < boardSize && slot2 >= 0;
 
-  while (input[i]!= ' ') {
+  while (input[i] != ' ' && input[i] != '\0') {
     i++;
   }
 
@@ -1155,7 +1168,8 @@ BOOLEAN ValidTextInput (STRING input)
   }
 
   toReturn = toReturn && 
-    (// strstr(moveTypes, "swap") ||
+    //    (strstr(moveTypes, "swap") ||
+    (moveTypes[0] == '\0' ||
      strstr(moveTypes, "sw")   || strstr(moveTypes, "se") ||
      strstr(moveTypes, "nw")   || strstr(moveTypes, "ne") ||
      strstr(moveTypes, "w")    || strstr(moveTypes, "e"));
@@ -1203,7 +1217,7 @@ MOVE ConvertTextInputToMove (STRING input)
     slot2 = temp;
   }
 
-  while (input[i]!= ' ') {
+  while (input[i] != ' ' && input[i] != '\0') {
     i++;
   }
 
@@ -1217,7 +1231,8 @@ MOVE ConvertTextInputToMove (STRING input)
     i++;
   }
 
-  if (strstr(moveTypes, "")) {
+  //  if (strstr(moveTypes, "swap")) {
+  if (moveTypes[0] == '\0') {
     moveType = SWAP;
   } else if (strstr(moveTypes, "sw")) {
     moveType = SW;
@@ -1853,6 +1868,13 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2005/12/07 10:50:19  yanpeichen
+// ** 12/07/2005 Yanpei - Added prevMoveAllowed as game option
+// **                     Coded brief game options menu
+// **                     Fixed some memory leaks
+// **                     Changed SWAP move input to "", i.e. no need to type "swap"
+// **                     All changes untested.
+//
 // Revision 1.19  2005/11/23 03:29:33  trikeizo
 // Now, everything fits 2^31 but the solver still tries to malloc about 2 gigs. My computer can't handle that. On the bright side, you now cannot undo the last move :-). See the file for more changes.
 //
