@@ -43,8 +43,7 @@ proc GS_InitGameSpecific {} {
     global gToTrapIsToWin gForwardStart 
     global gOpponentsSpace gForbidden gBuckets
     set gForbidden 1
-    set gBuckets 0
-    
+    set gBuckets 0    
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
@@ -67,8 +66,8 @@ prevented from moving by your opponent's pieces"
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "(Fill this in)"
-    set kTclAuthors "(Fill this in)"
+    set kCAuthors "John Lo and Diana Fang"
+    set kTclAuthors "Diana Fang"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -249,7 +248,7 @@ proc GS_SetOption { option } {
 
     set boardWidth [expr ($option/2/2/2/2/2/2) + 3]
     set boardSize [expr $boardWidth * $boardWidth]
-    set gBoardSizeOp [expr $boardSize - 3]
+    set gBoardSizeOp [expr $boardWidth - 3]
 }
 
 
@@ -263,9 +262,8 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    global boardWidth boardSize
+    global boardWidth boardSize xbmLightGrey
     global gFrameWidth gFrameHeight
-    $c configure -width 500 -height 500
     set mySize [min $gFrameHeight $gFrameWidth] 
     set cellSize [expr $mySize / ($boardWidth+1)]
     # Drawing the base
@@ -280,34 +278,28 @@ proc GS_Initialize { c } {
     } 
 
     #Draw the goals
-    if {$boardWidth != 5} {
+    font configure GOALtext -size [expr round($cellSize/6)]
 	for {set x 1} {$x < $boardWidth} {incr x} {
 	    set y 0
 	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] \
 		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
-		-fill blue -outline black -tags [list base goal]
+		-fill blue3 -outline black -tags [list base goal] \
+		-stipple gray75 -width 3
 	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] \
-		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
+		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -justify center \
+		-font GOALtext -tags [list base goaltext] 
 	}
+   
 	for {set y 1} {$y < $boardWidth} {incr y} {
 	    set x $boardWidth
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] [expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] -fill red -outline black -tags [list base goal]
-	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] [expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
+	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+		-fill red3 -outline black -tags [list base goal] -stipple gray75 -width 3
+	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] \
+		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -justify center \
+		-font GOALtext -tags [list base goaltext]
 	}
-    }
-    if {$boardWidth == 5}  {
- 	for {set x 2} {$x < $boardWidth} {incr x} {
-	    set y 0
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] [expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] -fill blue -outline black -tags [list base goal]
-	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] [expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
-	}
-	for {set y 1} {$y < [expr $boardWidth-1]} {incr y} {
-	    set x $boardWidth
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] [expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] -fill red -outline black -tags [list base goal]
-	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] [expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -tag base
-	}
-    }
-	
+    $c itemconfig goaltext -fill white
 
 #Drawing the pieces and arrows
     for {set x 0} {$x < $boardWidth} {incr x} {
@@ -335,6 +327,11 @@ proc GS_Initialize { c } {
     }
     $c lower arrows
     $c lower pieces
+   
+    #draw the legend
+    set x [expr $boardWidth * $cellSize]
+    set y 0
+    drawLegend $c $x $y $cellSize
 
    
 } 
@@ -388,8 +385,6 @@ proc GS_DrawPosition { c position } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
-    # TODO: The default behavior of this funciton is just to draw the position
-    # but if you want you can add a special behaivior here like an animation
     GS_DrawPosition $c $position
 }
 
@@ -573,36 +568,83 @@ proc min { x y } {
 
 proc drawPiece {c x0 y0 cellsize color num} {
     set circlesize [expr $cellsize/3]
-$c create oval [expr $x0 - $circlesize] [expr $y0 - $circlesize] \
+    $c create oval [expr $x0 - $circlesize] [expr $y0 - $circlesize] \
 	[expr $x0 + $circlesize] [expr $y0 + $circlesize] \
-    -fill $color -tags [list $color$num pieces] -outline black
+	-fill $color -tags [list $color$num pieces] -outline black
 
 }
 
 proc drawArrows {c x y cellsize piecenum} {
-    set arrowLen $cellsize
-    set arrowWidth [expr $cellsize/6]
+    # -7 so that the arrows do not touch each other
+    set arrowLen [expr $cellsize - 7] 
+    set arrowWidth [expr $cellsize/7]
     #up
     $c create line $x $y $x [expr $y - $arrowLen] \
-	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill lightblue \
+	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill cyan \
 	-tags [list arrowUP$piecenum arrow$piecenum arrows]
 
     #down
     $c create line $x $y $x [expr $y + $arrowLen] \
-    	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill lightblue \
+    	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill cyan \
 	-tags [list arrowDOWN$piecenum arrow$piecenum arrows]
 
     #left
     $c create line $x $y [expr $x - $arrowLen] $y \
-	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill lightblue \
+	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill cyan \
 	-tags [list arrowLEFT$piecenum arrow$piecenum arrows]
 
     #right
     $c create line $x $y [expr $x + $arrowLen] $y \
-	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill lightblue \
+	-width $arrowWidth -arrow last -arrowshape [list [expr $arrowWidth * 2]  [expr $arrowWidth * 2] $arrowWidth] -fill cyan \
 	-tags [list arrowRIGHT$piecenum arrow$piecenum arrows]
    
 
+}
+
+proc drawLegend {c x y cellsize} {
+    set legendcellsize [expr $cellsize/3]
+    set legendArrowWidth [expr $legendcellsize/7]
+    set legendArrowLen [expr $legendcellsize - 3]
+    set bluex0 [expr $x + (($legendcellsize + 2*$legendcellsize)/2)]
+    set bluey0 [expr $y + ((2*$legendcellsize + 3*$legendcellsize)/2)]
+    set redx0 [expr $x + ($legendcellsize/2)]
+    set redy0  [expr $y + (($legendcellsize + 2*$legendcellsize)/2)]
+    #border
+    $c create rectangle $x $y [expr $x + $cellsize] [expr $y + $cellsize] -width 3 -fill gray -tags [list legend base]
+    #legend text
+    font configure LEGENDtext -size [expr round($legendcellsize/3)] -weight bold
+    $c create text  [expr $x + $legendcellsize + $legendcellsize/1.5]  [expr $y + $legendcellsize/2] \
+	-text "LEGEND" -justify center -font LEGENDtext -tags [list legend base]
+    #red arrows
+    #up
+      $c create line $redx0 $redy0 $redx0 [expr $redy0 - $legendArrowLen] \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan -tags [list legend base]
+    #down
+      $c create line $redx0 $redy0 $redx0 [expr $redy0 + $legendArrowLen] \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan -tags [list legend base]
+    #right
+    $c create line $redx0 $redy0 [expr $redx0 + $legendArrowLen] $redy0 \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan -tags [list legend base]
+    #blue arrows
+    #up
+     $c create line $bluex0 $bluey0 $bluex0 [expr $bluey0 - $legendArrowLen] \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan  -tags [list legend base]
+    
+    #left
+    $c create line $bluex0 $bluey0 [expr $bluex0 - $legendArrowLen] $bluey0 \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan  -tags [list legend base]
+    #right
+    $c create line $bluex0 $bluey0 [expr $bluex0 + $legendArrowLen] $bluey0 \
+	-width $legendArrowWidth -arrow last -arrowshape [list [expr $legendArrowWidth * 2]  [expr $legendArrowWidth * 2] $legendArrowWidth] -fill cyan -tags [list legend base]
+      
+    #pieces
+    set legendcirclesize [expr $legendcellsize/3]
+    $c create oval [expr $bluex0 - $legendcirclesize] [expr $bluey0 - $legendcirclesize] \
+	[expr $bluex0 + $legendcirclesize] [expr $bluey0 + $legendcirclesize] \
+	-fill blue -tags [list legend base] -outline black -width 3
+    $c create oval [expr $redx0 - $legendcirclesize] [expr $redy0 - $legendcirclesize] \
+	[expr $redx0 + $legendcirclesize] [expr $redy0 + $legendcirclesize] \
+	-fill red -tags [list legend base] -outline black -width 3
 }
 
 #Move Stuff
@@ -653,4 +695,7 @@ proc whosturn {theMove} {
     return [expr $theMove & 255]
 }
 
+#Creating fonts for text
+font create GOALtext -family arial
+font create LEGENDtext -family Times
 
