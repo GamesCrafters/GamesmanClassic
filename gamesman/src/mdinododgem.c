@@ -686,7 +686,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int row = 0, col = 0;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
   int pbar_max, pbar_len, xcount, ocount, numx, numo, index, i;

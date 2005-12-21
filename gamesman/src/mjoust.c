@@ -569,7 +569,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int i, j, spot;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   BlankBurntOX theBlankBurntOX[BOARDSIZE];
   BlankBurntOX WhoseTurn();
 

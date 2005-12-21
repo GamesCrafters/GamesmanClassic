@@ -495,7 +495,7 @@ void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {	
     
     int i; 
-    VALUE GetValueOfPosition();
+    //    VALUE GetValueOfPosition();
     BlankBHT theBlankBHT[BOARDSIZE];
 
     SnakeUnhash(position, theBlankBHT);

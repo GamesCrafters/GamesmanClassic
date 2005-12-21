@@ -558,7 +558,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int i,row;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   XOBlank board[MAXW][MAXH], WhoseTurn();
 
   PositionToBoard(position,board);

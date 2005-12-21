@@ -72,8 +72,8 @@ void Initialize()
     /* generic hash */
     generic_hash_context_init();
 
-    /* get the DB function table with all pointers to NULL */
-    db_create();
+    /* get the DB function table with all pointers to default */
+    CreateDatabases();
 
     /* game-specific variabless */
     InitializeGame();
@@ -105,7 +105,7 @@ VALUE DetermineValue(POSITION position)
 {
     gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
 
-    if(gLoadDatabase && loadDatabase()) {
+    if(gLoadDatabase && LoadDatabase()) {
         if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
 	
         if (GetValueOfPosition(position) == undecided) {
@@ -113,7 +113,7 @@ VALUE DetermineValue(POSITION position)
             gSolver(position);
             if(gSaveDatabase) {
 		printf("\nWriting the values of %s into a database...", kGameName);
-                saveDatabase();
+                SaveDatabase();
 	    }
         }
     }
@@ -122,7 +122,7 @@ VALUE DetermineValue(POSITION position)
         gSolver(position);
         showStatus(Clean);
         if(gSaveDatabase)
-            saveDatabase();
+            SaveDatabase();
     }
 
     gUseGPS = FALSE;

@@ -476,7 +476,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int i;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   BlankO *theBlankO;
   GENERIC_PTR SafeMalloc();
 

@@ -495,7 +495,7 @@ fi
 
 if test "$OS" = "WIN32"
 then
-  OUTCFLAGS="-g -O"
+  OUTCFLAGS="-Wimplicit -g -O"
   OUTLDFLAGS="-lm -lc -lz"
   OUTLIBSUFFIX=".dll"
 else  #added because cygwin gcc does not know about -pthread

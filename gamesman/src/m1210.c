@@ -252,7 +252,7 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  VALUE GetValueOfPosition();
+    //  VALUE GetValueOfPosition();
   
   printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
          position, GetPrediction(position,playerName,usersTurn));

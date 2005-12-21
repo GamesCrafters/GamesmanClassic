@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.22 2005-12-08 04:00:22 ogren Exp $
+// $Id: machi.c,v 1.23 2005-12-21 00:54:22 hevanm Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -615,7 +615,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
     int i;
-    VALUE GetValueOfPosition();
+    //    VALUE GetValueOfPosition();
     BlankOX theBlankOx[BOARDSIZE];
     BlankOX whosTurn;
     
@@ -1260,6 +1260,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2005/12/08 04:00:22  ogren
+// removed debug string. -Elmer
+//
 // Revision 1.21  2005/12/08 03:56:29  ogren
 // achi has holder text for HelpOnYourTurn with noDiag. -Elmer
 //

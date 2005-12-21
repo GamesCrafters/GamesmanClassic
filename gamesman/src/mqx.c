@@ -518,7 +518,7 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int i;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   BlankHV theBlankHV[BOARDSIZE], whosTurn;
 
   PositionToBlankHV(position,theBlankHV, &whosTurn);

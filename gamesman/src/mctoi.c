@@ -987,7 +987,7 @@ void PrintPosition(position,playerName,usersTurn)
 {
   /* local variables */
   int i;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   static BlankoxOX theBlankoxOX[BOARDSIZE];
 
   PositionToBlankoxOX(position,theBlankoxOX);          /* function call */

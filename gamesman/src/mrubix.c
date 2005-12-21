@@ -869,7 +869,7 @@ VALUE Primitive(position)
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
   int i, j;
-  VALUE GetValueOfPosition();
+  //  VALUE GetValueOfPosition();
   void PositionToBlankOX();
   BlankOX theBlankOX[BOARDSIZE], WhoseTurn();
   STRING playerString;

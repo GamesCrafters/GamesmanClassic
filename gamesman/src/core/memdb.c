@@ -35,6 +35,35 @@
 #include "memdb.h"
 #include "db.h"
 
+/*internal declarations and definitions*/
+
+#define FILEVER 1
+
+typedef short cellValue;
+
+void       	memdb_free 		();
+
+/* Value */
+VALUE		memdb_get_value	        (POSITION pos);
+VALUE		memdb_set_value	        (POSITION pos, VALUE val);
+
+/* Remoteness */
+REMOTENESS	memdb_get_remoteness	(POSITION pos);
+void		memdb_set_remoteness	(POSITION pos, REMOTENESS val);
+
+/* Visited */
+BOOLEAN		memdb_check_visited    	(POSITION pos);
+void		memdb_mark_visited     	(POSITION pos);
+void		memdb_unmark_visited	(POSITION pos);
+
+/* Mex */
+MEX		memdb_get_mex		(POSITION pos);
+void		memdb_set_mex		(POSITION pos, MEX mex);
+
+/* saving to/reading from a file */
+BOOLEAN		memdb_save_database	();
+BOOLEAN		memdb_load_database	();
+
 cellValue* memdb_array;
 
 /*
@@ -252,7 +281,7 @@ BOOLEAN memdb_save_database () {
 	    return TRUE;
 	} else {
         if(kDebugDetermineValue){
-            fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: %lu\nBytes Written:%lu\n",goodCompression, goodClose,sTot*4,tot);
+            fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: " POSITION_FORMAT "\nBytes Written: " POSITION_FORMAT "\n",goodCompression, goodClose,sTot*4,tot);
         }
         remove(outfilename);
         return FALSE;

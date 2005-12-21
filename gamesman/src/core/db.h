@@ -1,6 +1,8 @@
-
 #ifndef GMCORE_DB_H
 #define GMCORE_DB_H
+
+/*This header file contains all the exported definitions and declarations of the DB class*/
+
 
 #define VISITED_MASK     	4          /* ...00000000000000100 */
 #define VALUE_MASK       	3          /* ...00000000000000011 */
@@ -18,6 +20,10 @@
    a draw. Will this be ok... hmm */
 #define kBadRemoteness		REMOTENESS_MAX
 
+typedef enum known_dbs_enum{
+    memdb, twobitdb, colldb, univdb
+} known_db_types;
+
 typedef struct DB {
 
     /* for Database authors: */
@@ -27,7 +33,9 @@ typedef struct DB {
        a single get and put is really all we need.
        - last words of Scott that are not necessarily true anymore*/
 
-    /* all these functions may assume the completion of any error-checking
+    /* here are the things that ARE true:*/
+
+    /* all these 12 functions may assume the completion of any error-checking
        for their parameters */
 
     /* for functions that return a BOOLEAN, make it TRUE if the operation succeeds,
@@ -39,40 +47,46 @@ typedef struct DB {
        return whatever is IN ITS DB DATA STRUCTURE (ARRAY, ETC.) for comparison */
 
     /* for a DB to be useful you have to implement at least the value-related functions*/
-    /* if gamesman does not see those two available it will exit.
-       For the other function it will simply return a bad value or do nothing*/
+    /* if gamesman does not see those two available it will exit right away.
+       For the other function it will simply return a bad value or do nothing */
     /* if gamesman sees an error during range-checking, it will exit. This happens
        even when, for example, the cannonical sibling of a position is within range,
        but the position itself is not. */
 
+    void        (*free_db)       	();
+
     VALUE	(*get_value)		(POSITION pos);
     VALUE	(*put_value)		(POSITION pos, VALUE data);
+
     REMOTENESS  (*get_remoteness)	(POSITION pos);
     void	(*put_remoteness)	(POSITION pos, REMOTENESS data);
+
     BOOLEAN     (*check_visited)	(POSITION pos);
     void	(*mark_visited)		(POSITION pos);
     void     	(*unmark_visited)	(POSITION pos);
+
     MEX		(*get_mex)		(POSITION pos);
     void	(*put_mex)		(POSITION pos, MEX theMex);
+
     BOOLEAN	(*save_database)	();
     BOOLEAN	(*load_database)	();
 
-    void        (*free_db)		();
-
 } DB_Table;
 
+typedef struct db_list_struct{
+    DB_Table *db;
+    struct db_list_struct *next_db;
+} db_list;
 
+/* external interface functions. Limited to one db at a time, therefore needs to be
+   changed */
 
 /* General */
+void		CreateDatabases		();
 void		InitializeDatabases	();
+void		DestroyDatabases       	();
 
-void            db_initialize();
-/*will make this return the function table later*/
-void		db_create();
-void            db_free();
-
-//VALUE*	GetRawValueFromDatabase	(POSITION pos);	// TODO: Move to misc
-
+/* Since the solvers will These will be deprecated soon */
 /* Value */
 VALUE		GetValueOfPosition	(POSITION pos);
 VALUE		StoreValueOfPosition	(POSITION pos, VALUE val);
@@ -92,7 +106,7 @@ void		MexStore		(POSITION pos, MEX mex);
 MEX		MexLoad			(POSITION pos);
 
 /* Persistence */
-BOOLEAN		saveDatabase		();
-BOOLEAN		loadDatabase		();
+BOOLEAN		SaveDatabase		();
+BOOLEAN		LoadDatabase		();
 
 #endif /* GMCORE_DB_H */

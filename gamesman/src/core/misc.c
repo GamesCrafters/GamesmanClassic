@@ -167,7 +167,7 @@ void ExitStageRight()
 {
     printf("\nThanks for playing %s!\n",kGameName); /* quit */
     // This is good practice
-    db_free();
+    DestroyDatabases();
     exit(0);
 }
 
