@@ -2,7 +2,9 @@
 **
 ** NAME:	univdb.c
 **
-** DESCRIPTION:	Collision Database - implementation
+** DESCRIPTION:
+               Implementation of a dynamically-resizable database,
+               based on resizable 2-universal hash table
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
@@ -59,6 +61,8 @@ DB_Table *univdb_init() {
   db->check_visited = univdb_check_visited;
   db->mark_visited = univdb_mark_visited;
   db->unmark_visited = univdb_unmark_visited;
+  db->get_mex = univdb_get_mex;
+  db->put_mex = univdb_put_mex;
   db->free_db = univdb_free;
 
   /* Decide how many slots the database will have initially.
@@ -210,6 +214,50 @@ void univdb_put_remoteness (POSITION position, REMOTENESS remoteness) {
   /* Set new flags to entry to include for updated remoteness */
   entry->flags = (entry->flags & ~REMOTENESS_MASK) | (remoteness << REMOTENESS_SHIFT);
   
+}
+
+void univdb_put_mex (POSITION position, MEX mex) {
+
+  univdb_entry *entry;
+
+   /* Obtain entry from hash-table */
+  entry = univdb_lookup_entry(position);
+  
+  /* If no entry in hash-table, create new one */
+  if (entry == NULL) {
+    
+    /* Create new hash table entry for position */
+    entry = univdb_create_entry(position);
+    
+  }
+
+  /* Set new flags to entry to include for updated remoteness */
+  entry->flags = (VALUE) ((entry->flags & ~MEX_MASK) | (mex << MEX_SHIFT));
+  
+}
+
+MEX univdb_get_mex (POSITION position) {
+
+  univdb_entry *entry;
+
+   /* Obtain entry from hash-table */
+  entry = univdb_lookup_entry(position);
+  
+  /* If no entry in hash-table, mex value is 0 */
+  /* NOTE: Is that the correct thing to do? */
+  if (entry == NULL) {
+    
+    return 0;
+    
+  }
+  
+  /* Else extract remoteness from the flags bit-array */
+  else {
+    
+    return (MEX) ((entry->flags & MEX_MASK) >> MEX_SHIFT);
+    
+  }
+
 }
 
 BOOLEAN univdb_check_visited (POSITION position) {
