@@ -158,9 +158,10 @@ STRING kPrintMenuWithSolving =
 
 
 STRING kPrintMenuEnd = 
-"\tm)\tShow Move History\n"
+"\tm)\tShow (M)ove History\n"
 "\n\th)\t(H)elp\n\n"
-"\tb)\t(B)ack\n";
+"\tb)\t(B)ack\n\n"
+"\tq)\t(Q)uit\n\n";
 
 
 char *gValueString[] =

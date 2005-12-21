@@ -87,7 +87,7 @@ void Menus()
             MenusEvaluated();
 
         printf("\n\th)\t(H)elp\n");
-        printf("\n\n\tq)\t(Q)uit\n");
+        printf("\n\tq)\t(Q)uit\n");
         printf("\n\nSelect an option: ");
 
         ParseMenuChoice(GetMyChar());
@@ -270,13 +270,8 @@ USERINPUT ConfigurationMenu()
       printf("\t4)\tChange player type of %s (currently %s)\n", gPlayerName[0], type2);
       }
       printf("\n");
-      if(gOpponent == AgainstHuman) {
-	if(gPlaying)
-
-	  printf("\tw)\tS(W)itch seats\n");
-	else
-	  printf("\tl)\t(L)et %s go FIRST\n", gPlayerName[kPlayerTwoTurn]);
-      }
+      if(gOpponent == AgainstHuman) 
+	printf("\tf)\t(F)lip board to swap players 1 and 2\n");
       if(gOpponent == AgainstComputer)
 	{
 	  humanIndex = kPlayerOneTurn;
@@ -285,28 +280,20 @@ USERINPUT ConfigurationMenu()
 	    humanIndex = kPlayerTwoTurn;
 	    compIndex = kPlayerOneTurn;
 	  }
-	  if(gPlaying) {
-	    printf("\tw)\tS(W)itch seats\n");
-	  } else {
+	  printf("\tf)\t(F)lip board to swap players 1 and 2\n");
 	    if(gameValue == tie)
-	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n",
-		     gPlayerName[humanIndex],
-		     !gHumanGoesFirst ? "FIRST" : "SECOND");
+	     printf("\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n");
 	    else if (gameValue == lose)
-	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: First - can %s; Second - can %s\n",
-		 gPlayerName[humanIndex],
-		     !gHumanGoesFirst ? "FIRST" : "SECOND",
-		     gHumanGoesFirst ? "only lose" : "win/lose",
+	      printf("\t\tNOTE: First - can %s; Second - can %s\n",
+	 	     gHumanGoesFirst ? "only lose" : "win/lose",
 		     gHumanGoesFirst ? "win/lose" : "only lose");
 	    else if (gameValue == win)
-	      printf("\tl)\t(L)et %s go %s \n\t\tNOTE: First - can %s; Second - can %s\n",
-		     gPlayerName[humanIndex],
-		     !gHumanGoesFirst ? "FIRST" : "SECOND",
+	      printf("\t\tNOTE: First - can %s; Second - can %s\n",
 		     gHumanGoesFirst ? "win/lose" : "only lose",
 		     gHumanGoesFirst ? "only lose" : "win/lose");
 	    else
 	      BadElse("Menus");
-	  }
+	  
 	  /*analysis taken out*/
 
 	  printf("\n\n\tAI Options:\n");
@@ -345,7 +332,8 @@ USERINPUT ConfigurationMenu()
       printf("\ts)\tIf only one move is available, (S)kip user input (currently %s)\n\n",
 	     gSkipInputOnSingleMove? "ON" : "OFF");
       printf("\th)\t(H)elp\n\n");
-      printf("\tb)\t(B)ack = Return to previous activity\n\n");
+      printf("\tb)\t(B)ack = Return to previous activity\n");
+      printf("\n\tq)\t(Q)uit\n\n");
       printf("\n\nSelect an option: ");
 
       switch(c = GetMyChar()) {
@@ -419,27 +407,6 @@ USERINPUT ConfigurationMenu()
 	}
 	/*result = Configure;*/
 	break;
-      case 'w': case 'W':
-	if(gPlaying) {
-	  if(gOpponent == AgainstHuman) {
-	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
-	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
-	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
-	  } else if(gOpponent == AgainstComputer){
-	    gHumanGoesFirst = !gHumanGoesFirst;
-	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
-	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
-	    (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
-	    result = Switch;
-	  } else {
-	    BadMenuChoice();
-	    HitAnyKeyToContinue();
-	  }
-	} else {
-	  BadMenuChoice();
-	  HitAnyKeyToContinue();
-	}
-	break;
   
       case 'D': case 'd':
 	if(gUnsolved) {
@@ -457,8 +424,7 @@ USERINPUT ConfigurationMenu()
 	}
 	gHints = !gHints;
 	break;
-      case 'L': case 'l':
-	if(!gPlaying) {
+      case 'F': case 'f':
 	  if(gOpponent == AgainstComputer) {
 	    gHumanGoesFirst = !gHumanGoesFirst;
 	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
@@ -472,10 +438,6 @@ USERINPUT ConfigurationMenu()
 	    BadMenuChoice();
 	    HitAnyKeyToContinue();
 	  }
-	} else {
-	  BadMenuChoice();
-	  HitAnyKeyToContinue();
-	}
 	break;
 
       case 's': case 'S':
@@ -520,6 +482,10 @@ USERINPUT ConfigurationMenu()
       case 'B': case 'b':
 	printf("\n\n");
 	return result;
+
+      case 'Q': case 'q':
+	ExitStageRight();
+	exit(0);
       default:
 	BadMenuChoice();
 	HitAnyKeyToContinue();
@@ -659,8 +625,12 @@ void ParseBeforeEvaluationMenuChoice(char c)
 		 mexString);
 	}
 	gMenuMode = Evaluated;
-	if(gameValue == lose)
+	if(gameValue == lose){
 	    gHumanGoesFirst = FALSE;
+	    
+	    sprintf(gPlayerName[kPlayerTwoTurn],"Player");
+	    sprintf(gPlayerName[kPlayerOneTurn],"Data");
+	}
 	else
 	    gHumanGoesFirst = TRUE ;
 	HitAnyKeyToContinue();
@@ -1186,6 +1156,10 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
     case 'b': case 'B':
       PrintPosition(thePosition, playerName, TRUE);
       return;
+
+    case 'Q': case 'q':
+      ExitStageRight();
+      exit(0);
     default:
       BadMenuChoice();
       HitAnyKeyToContinue();

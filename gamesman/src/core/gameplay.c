@@ -372,7 +372,7 @@ void moveListHandleGameOver(moveList* lastEntry) {
 void PrintMoveHistory(POSITION position)
 {
   int whoseTurn = kPlayerOneTurn;
-  int ct = 0;
+  int ct = 1;
   moveList* mlist = mList;
   printf("\n\t*************************************\n");
   printf("\t  Script of %s", kGameName);
