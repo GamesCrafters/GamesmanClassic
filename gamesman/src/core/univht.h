@@ -10,6 +10,7 @@
 typedef BOOLEAN (*univht_equal) (void *, void*);
 typedef unsigned long long (*univht_hashcode) (void *);
 typedef void (*univht_destructor) (void *);
+typedef void *(*univht_visitor) (void *, void *);
 
 typedef struct _univht_entry{
   void *object;
@@ -78,5 +79,7 @@ unsigned long int univht_insert(univht *ht, void *object);
 /* Hash-table lookup */
 void *univht_lookup(univht *ht, void *object);
 
+/* Hash-table traversal */
+void univht_traverse(univht *ht, univht_visitor visitor, void *state);
 
 #endif

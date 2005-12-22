@@ -307,6 +307,27 @@ void univht_destroy(univht *ht) {
   
 }
 
+void univht_traverse(univht *ht, univht_visitor visitor, void *state) {
+
+  int slot;
+
+  /* Traverse every key in the table */
+  for (slot = 0; ht->entries; slot++) {
+    
+    univht_entry *entry;
+    
+    /* Traverse the chain */
+    for (entry = ht->table[slot]; entry != NULL; entry = entry->chain) {
+      
+      /* Invoke visitor on entry, propagating state changes */
+      state = visitor(entry->object, state);
+      
+    }
+    
+  }
+
+}
+
 /* Raise b to the e-th power, mod m
    Return: b^e (mod m)
 */

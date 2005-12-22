@@ -25,7 +25,9 @@ BOOLEAN univdb_check_visited (POSITION position);
 void univdb_mark_visited (POSITION position);
 void univdb_unmark_visited (POSITION position);
 
-MEX univdb_get_mex		(POSITION position);
-void univdb_put_mex		(POSITION position, MEX mex);
+MEX univdb_get_mex (POSITION position);
+void univdb_put_mex (POSITION position, MEX mex);
+BOOLEAN univdb_save_database();
+BOOLEAN univdb_load_database();
 
 #endif

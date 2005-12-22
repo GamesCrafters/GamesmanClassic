@@ -64,6 +64,8 @@ DB_Table *univdb_init() {
   db->get_mex = univdb_get_mex;
   db->put_mex = univdb_put_mex;
   db->free_db = univdb_free;
+  db->save_database = univdb_save_database;
+  db->load_database = univdb_load_database;
 
   /* Decide how many slots the database will have initially.
      It is the maximum of gNumberOfPosition or MAX_INIT_SLOTS
@@ -314,4 +316,16 @@ void univdb_unmark_visited (POSITION position) {
     
   }
   
+}
+
+BOOLEAN univdb_save_database () {
+  
+  return FALSE;
+    
+}
+
+BOOLEAN univdb_load_database() {
+
+  return FALSE;
+
 }
