@@ -12,7 +12,7 @@ extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 extern BOOLEAN	gStandardGame, gSaveDatabase, gLoadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
                 gTwoBits, gCollDB, gUnivDB, gGlobalPositionSolver, gZeroMemSolver,
-                gAnalyzing, gSymmetries, gUseGPS, gBottomUp;
+  gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta;
 
 extern char	gPlayerName[2][MAXNAME];
 extern VALUE*	gDatabase;
@@ -22,6 +22,8 @@ extern int	smartness, scalelvl, remainingGivebacks, initialGivebacks;
 extern VALUE	oldValueOfPosition;
 
 extern MENU	gMenuMode;
+
+extern REMOTENESS gMaxRemoteness, gMinRemoteness;
 
 
 /*

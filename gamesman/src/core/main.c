@@ -36,6 +36,7 @@
 #include "solvezero.h"
 #include "solvestd.h"
 #include "solvebottomup.h"
+#include "solveweakab.h"
 #include "hash.h"
 
 /*
@@ -97,6 +98,8 @@ void SetSolver()
     }
     else if(gBottomUp)
 	gSolver = DetermineValueBU;
+    else if(gAlphaBeta)
+      gSolver = DetermineValueAlphaBeta;
     else
         gSolver = DetermineValueSTD;
 }
@@ -210,6 +213,9 @@ void HandleArguments (int argc, char *argv[])
         }
 	else if(!strcasecmp(argv[i], "--bottomup")) {
 	    gBottomUp = TRUE;
+	}
+	else if(!strcasecmp(argv[i], "--alpha-beta")) {
+	    gAlphaBeta = TRUE;
 	}
         else if(!strcasecmp(argv[i], "--lowmem")) {
             gZeroMemSolver = TRUE;

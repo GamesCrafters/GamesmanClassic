@@ -64,6 +64,7 @@ BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gUnivDB = FALSE;
+BOOLEAN gAlphaBeta = FALSE;
 BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN gUseGPS = FALSE;
 BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enable for only win4 */
@@ -75,6 +76,9 @@ BOOLEAN gSymmetries = FALSE;
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 VALUE * gDatabase = NULL;
 //char *  gVisited = NULL;
+
+REMOTENESS gMaxRemoteness = 0;
+REMOTENESS gMinRemoteness = 0;
 
 int   smartness = SMART;
 int   scalelvl = MAXSCALE;

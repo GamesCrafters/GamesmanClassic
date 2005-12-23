@@ -190,8 +190,9 @@ STRING kCommandSyntaxHelp =
 "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
 "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
 #ifdef HAVE_GMP
-"--univdb\t\tStarts game with 2-Universal hash-based resizable database. Very experimental!. \n"
+"--univdb\t\tStarts game with 2-Universal hash-based resizable database. \n"
 #endif
+"--alpha-beta\t\tStarts game with weak alpha-beta solver. \n"
 "--gps\t\t\tStarts game with global position solver enabled.\n"
 "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
 "\t\t\tTo solve all option configurations of game, use <all>.\n"

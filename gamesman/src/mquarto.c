@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.54 2005-12-05 11:14:00 hevanm Exp $
+// $Id: mquarto.c,v 1.55 2005-12-23 05:13:27 mtanev Exp $
 
 
 /*
@@ -477,6 +477,9 @@ void yanpeiInitializeGame() {
     gCanonicalPosition = getCanonical;
     gInitialPosition = hash(board);
     gNumberOfPositions = offsetTable[NUMPIECES+1] + 1;
+
+    gMaxRemoteness = NUMPIECES + 1;
+    gMinRemoteness = GAMEDIMENSION + 1;
 	
     GPSBoard = board;
     gUndoMove = &UndoMove;
@@ -2511,6 +2514,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.54  2005/12/05 11:14:00  hevanm
+// Fixed up the memory database to write to a file when instructed. Moved around some constants and #defines to contants.h, and added globals.c to initialize the global variables. This breaks all other databases, the fixing of which I (and hopefully Mario too, if he is not too angry about my breaking his stuff) will follow up in the near future.
+//
 // Revision 1.53  2005/11/21 04:14:23  neyiah
 // changed piece representation to use {0,1}, added help strings.
 //
