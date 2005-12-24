@@ -45,7 +45,7 @@ static void	ParseBeforeEvaluationMenuChoice	(char c);
 static void	ParseEvaluatedMenuChoice	(char c);
 static void	ParseHelpMenuChoice		(char c);
 static void	AnalysisMenu			(void);
-static void     GamePrintMenu                   (POSITION thePosition, STRING playerName, BOOLEAN usersTurn);
+static void     GamePrintMenu                   (POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input);
 
 
 
@@ -1090,8 +1090,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	  /*PrintPosition(thePosition, playerName, TRUE);*/
 	    break;
 	case 'p': case 'P':
-	  GamePrintMenu(thePosition, playerName,TRUE);
-
+	  GamePrintMenu(thePosition, playerName, TRUE, input[1]);
 	  break;
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);
@@ -1108,21 +1107,27 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     return(Continue);  /* The default action is to return Continue */
 }
 
-void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn)
+void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input)
 {
   char c;
 
   do {
+    
+    if (input == '\0') 
+      {
 
-
-    printf("%s", kPrintMenu);
-
-    if (!gUnsolved)
-      printf("%s", kPrintMenuWithSolving);
-    printf("%s", kPrintMenuEnd);
-    printf("\n\nSelect an option: ");
-
-    switch(c = GetMyChar()) {
+	printf("%s", kPrintMenu);
+	
+	if (!gUnsolved)
+	  printf("%s", kPrintMenuWithSolving);
+	printf("%s", kPrintMenuEnd);
+	printf("\n\nSelect an option: ");
+	c = GetMyChar();
+      }
+    else {
+      c = input;
+    }
+    switch(c) {
     case 'r': case 'R':
       PrintPosition(thePosition, playerName, TRUE);
       return;
