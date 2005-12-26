@@ -1,66 +1,87 @@
-####################################################
-# this is a template for tcl module creation
+#############################################################################
+# 
+# mlewth.tcl 
 #
-# created by Alex Kozlowski and Peterson Trethewey
-# Updated Fall 2004 by Jeffrey Chiang, and others
-####################################################
+# C authored by Yuliya Sarkisyan and Cindy Song
+# Tcl/Tk authored by Yuliya Sarkisyan, Cindy Song, Suthee Chaidaroon 
+# 
+# Note: Yuliya, Cindy: were original author
+# 	Suthee Chaidaroon: Added animation with speed.
+#			   Fixed a board drawing function  
+#			   Added undo
+#			   Added Winning text
+#			   Implemented a multi-pieces move variant
+# Bug Report:
+#	The mlewth.c does not return a correct moveList when it handles the move
+#	around the conner and edge. So we will see some extra arrows. 
+#############################################################################
 
-global canvasWidth canvasHeight
-set canvasWidth  500
-set canvasHeight 500
+#############################################################################
+# All Initial setup will be invoked here
+#############################################################################
 
+# Set Board dimensions
+global height width boardSize 
 
-# Board dimensions
-
-global height width boardSize
-set height 5
-set width 3 
-set boardSize $width
-if {$boardSize < $height} {
-    set boardSize $height;
-}
-
-global spaceI spaceJ
-
+# Board information (needed for Hashing)
 global numPositions numSlots numPieces
 
-#################################
-#
-# Variables for drawing the board
-#
-#################################
+# piece representations
+global X O
 
+# Space position (needed for showmove and animation)
+global spaceI spaceJ 
+
+# for handle undo
+global undomake
+set undomake "OFF"
+
+# for gameover
+global wintext gameover
+
+###########################################
+# Set up variables for drawing the board
+###########################################
+
+# board variable
 global base
-
 global pieceGap vertGap horizGap 
 global tileSize
+
 set pieceGap 5
-set vertGap 50
-set tileSize [expr ($canvasHeight - 2*$vertGap)/$height]
-set horizGap [expr ($canvasWidth - $width*$tileSize)/2]
+set height 5
+set width 3
 
-global arrowLength lineWidth
-set arrowLength 20
+# Arrow 
+global arrowLength lineWidth ArWFactor ArShpLst
+global ArPosOffsetX ArPosOffsetY ArGap
+global left right up down
+
+set up 0
+set down 1
+set left 3
+set right 2
+set arrowLength 38
 set lineWidth 2
+set ArWFactor 3 
+set ArPosOffsetX 21
+set ArPosOffsetY 21
+set ArShpLst [list 8 8 5]
+set ArGap 15
 
+# color set up
 global xColor oColor lineColor baseColor
+
 set xColor red
 set oColor blue
 set lineColor CadetBlue4
 set baseColor lightgrey
-
-# Arrow types
-
-global left right up down
-set up 0
-set down 1
-set left 2
-set right 3
-
-global X O
 set X 4
 set O 5
 
+#animation
+global basespeed
+set basespeed 200
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -72,33 +93,46 @@ set O 5
 # and gInitialPosition in this function.
 ############################################################################
 proc GS_InitGameSpecific {} {
-    global height width
+    
+    global gFrameHeight gFrameWidth
     global numSlots numPieces
     global numPositions
    
     ### Set the name of the game
-    
     global kGameName
     set kGameName "Lewthwaite's Game"
     
     ### Set the initial position of the board (default 0)
-
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition [C_InitialPosition]
+    
+    set gInitialPosition 31193
     set gPosition $gInitialPosition
+    
+    # game varible specific setup
+    global boardSize height width base pieceGap vertGap horizGap tileSize 
+    
+    set boardSize [max $width $height]
+    set tileSize [expr ($gFrameHeight - 2*50)/$boardSize]
+    set horizGap [expr ($gFrameWidth - $width*$tileSize)/2]
+    set vertGap  [expr ($gFrameHeight - $height*$tileSize)/2]
+    set numSlots $width*$height
+    set numPieces [expr ($numSlots - 1)/2]
+    set numPositions 	[expr 2 * [factorial $numSlots]\
+    			 /[factorial $numPieces]\
+    			 /[factorial $numPieces]\
+			 /[factorial [expr $numSlots - 2*$numPieces]]]
 
     ### Set the strings to be used in the Edit Rules
-
     global kStandardString kMisereString
-    set stdStr "To Win: have your opponent be "
+    set stdStr "To Win: have your opponent to be"
     set misStr "To Win: be "
     set gameEnd "the first player who has no moves "
     set kStandardString [concat $stdStr $gameEnd]
     set kMisereString [concat $misStr $gameEnd]
-
+    
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
-
     global gMisereGame
    
     if {!$gMisereGame} {
@@ -115,18 +149,9 @@ proc GS_InitGameSpecific {} {
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Yuliya Sarkisyan, Cindy Song"
-    set kTclAuthors "Yuliya Sarkisyan, Cindy Song"
+    set kTclAuthors "Yuliya Sarkisyan, Cindy Song, Suthee Chaidaroon"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
-    set numSlots $width*$height
-    set numPieces [expr ($numSlots - 1)/2]
-    set numPositions [expr 2 * [factorial $numSlots]\
-			  /[factorial $numPieces]\
-			  /[factorial $numPieces]\
-			  /[factorial [expr $numSlots - 2*$numPieces]]]
-
-    set numPositions 102960
-    set gInitialPosition 31193
 }
 
 
@@ -159,7 +184,7 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 #############################################################################
 proc GS_ColorOfPlayers {} {
-    return [list blue red]
+    return [list red blue]
 }
 
 
@@ -192,7 +217,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "No" \
 	     "Yes" \
 	     ]
-
+	  
     # List of all rules, in some order
     set ruleset [list $standardRule $multipleMoves]
 
@@ -200,29 +225,29 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global gMisereGame multiplePieceMoves
     set gMisereGame 0
     set multiplePieceMoves 0
+    
+    # board dimension global
+    global heightflag widthflag
+    set heightflag 1
+    set widthflag  0
 
     # List of all rule globals, in same order as rule list
     set ruleSettingGlobalNames [list "gMisereGame" "multiplePieceMoves"]
 
     global kLabelFont
-    set ruleNum 0
-    foreach rule $ruleset {
-	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
-	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
-	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] \
-	    -font $kLabelFont
-	pack $rulesFrame.rule$ruleNum.label -side left
-	set rulePartNum 0
-	foreach rulePart [lrange $rule 1 end] {
-	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum \
-		-text $rulePart \
-		-variable [lindex $ruleSettingGlobalNames $ruleNum] \
-		-value $rulePartNum -highlightthickness 0 -font $kLabelFont
-	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left \
-		-expand 1 -fill both
-	    incr rulePartNum
-	}
-	incr ruleNum
+        set ruleNum 0
+        foreach rule $ruleset {
+    	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+    	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+    	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+    	pack $rulesFrame.rule$ruleNum.label -side left
+    	set rulePartNum 0
+    	foreach rulePart [lrange $rule 1 end] {
+    	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+    	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+    	    incr rulePartNum
+    	}
+    	incr ruleNum
     } 
 }
 
@@ -237,9 +262,10 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global gMisereGame multiplePieceMoves
+    global gMisereGame multiplePieceMoves heightflag widthflag
     set option 0
     set option [expr $option + $gMisereGame + 2*$multiplePieceMoves]
+    
     return $option
 }
 
@@ -256,7 +282,8 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    global gMisereGame multiplePieceMoves
+    
+    global gMisereGame multiplePieceMoves heightflag widthflag height width
     set option 0
     set gMisereGame [expr $option%2]
     set multiplePieceMoves [expr ($option/2)%2]
@@ -273,18 +300,20 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
     
-    global canvasWidth canvasHeight
-    $c configure -width $canvasWidth -height $canvasHeight
-    makeBoard $c
- 
-    # create font for Winner text at end of game
-    # font create Winner -family arial -size 50
+    global gFrameWidth gFrameHeight 
+    
+    # Save the GC background skin
+    $c addtag background all
+
+    # draw a canvas with a default width and height
+    $c configure -width $gFrameWidth -height $gFrameHeight
    
+    # clean up all objects (except a background) on canvas before drawing a new board
+    $c delete {!background}
+    
+    # drawing a board
+    makeBoard $c
 } 
-
-
-
-
 
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why 
@@ -310,21 +339,21 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
     
-    global height width numSlots spaceI spaceJ
+    global X O height width numSlots spaceI spaceJ
     
+    # get a board's string representation
     set boardList [C_GenericUnhash $position $numSlots]
-    set o 'O'
-    set x 'X'
-
-
+  
     $c raise base all
     for {set i 0} {$i < $height} {incr i} {
 	for {set j 0} {$j < $width} {incr j} {
 	    set piece [string index $boardList [expr $i*$width + $j]]
 	    if { [string compare $piece "O"] == 0 } {
-		$c raise o-$i-$j base
+		$c itemconfig piece-$i$j -fill blue
+		$c raise piece-$i$j base
 	    } elseif { [string compare $piece "X"] == 0 } {
-		$c raise x-$i-$j base
+		$c itemconfig piece-$i$j -fill red
+		$c raise piece-$i$j base
 	    } elseif { [string compare $piece "-"] == 0 } {
 		set spaceI $i
 		set spaceJ $j
@@ -344,6 +373,9 @@ proc GS_DrawPosition { c position } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    GS_Deinitialize $c
+    GS_Initialize $c
+
     GS_DrawPosition $c $position
 }
 
@@ -370,38 +402,80 @@ proc GS_WhoseMove { position } {
 # update idletasks.  You can call this to force the canvas to update if
 # you make changes before tcl enters the event loop again.
 #############################################################################
-proc GS_HandleMove { c oldPosition theMove newPosition } {
-    global numSlots spaceI spaceJ up down left right
-
-    set whoseTurn [whoseMove oldPosition]
-
-    set direction [getDirection $theMove]
-    set numPieces [getNumPieces $theMove]
-    puts stdout $direction
-        
-    if {$direction == $up} {
-	puts stdout up
-	set from [list $spaceJ [expr $spaceI - $numPieces]]
-    } elseif {$direction == $down} {
-	puts stdout down
-	set from [list $spaceJ [expr $spaceI + $numPieces]]
-    } elseif {$direction == $right} {
-	puts stdout right
-	set from [list [expr $spaceJ - $numPieces] $spaceI] 
-    } elseif {$direction == $left} {
-	puts stdout left
-	set from [list [expr $spaceJ + $numPieces] $spaceI] 
-    }
-
-    set to [list $spaceJ $spaceI]
-
-    puts stdout handlingmove098908
-    animateMove $whoseTurn $whoseTurn-[lindex $from 0]-[lindex $from 1] \
-	$from $to $c
-    update idletasks
+proc GS_HandleMove { c oldPosition theMove newPosition } { 
+	
+	global numSlots width height X O spaceI spaceJ
+	global xColor oColor
+	global undomake
+	
+	set oldboard [C_GenericUnhash $oldPosition $numSlots]
+	set newboard [C_GenericUnhash $newPosition $numSlots]
+	
+	# Calculate the direction the piece will move to
+	for {set j 0} {$j < $height} {incr j} {
+		for {set i 0} {$i < $width} {incr i} {
+			set index [expr $j * $width + $i]
+			set space [string index $oldboard $index]
+			if {[string compare $space "-"] == 0} {
+				set spacex $i
+				set spacey $j
+			}
+		}
+	}
+	
+	# Calculate the direction the piece will move to
+	for {set j 0} {$j < $height} {incr j} {
+		for {set i 0} {$i < $width} {incr i} {
+			set index [expr $j * $width + $i]
+			set space [string index $newboard $index]
+			if {[string compare $space "-"] == 0} {
+				set spacenewx $i
+				set spacenewy $j
+			}
+		}
+	}
+	
+	# get a direction number representation
+	set d [getDirection $theMove]
+	set numPiece [getNumPieces $theMove]
+	
+	#if it is undo, we need to reverse a direction
+	if {$undomake == "ON"} {
+		switch $d {
+			"0" { set d 1}
+			"1" { set d 0}
+			"2" { set d 3}
+			"3" { set d 2}
+			default { puts "NOT MATCH"}
+		}
+		# if undo was called, asserted the undo flag back to OFF
+		set undomake "OFF"
+   	}
+	
+	# get a list of color 
+	set lcolor [getListColor $oldboard $d $spacex $spacey]
+	# determine which piece we have to handle its animation
+	set movepiece [string index $oldboard [expr $spacenewy * $width + $spacenewx]]
+	
+	# handle a color of moving piece
+	if {$movepiece == "O"} { 
+		$c itemconfig piece-$spacey$spacex -fill blue -outline black
+		set color $oColor
+	} else {
+		$c itemconfig piece-$spacey$spacex -fill red -outline black
+		set color $xColor
+	}
+	
+	# slide the piece (doing an animation)
+	doAnimation $c $lcolor $spacex $spacey $spacenewx $spacenewy $numPiece
+	
+	GS_DrawPosition $c $newPosition  
+	# arrow handles (passing the space's new position to ShowMove procedure)
+	$c lower arrow all
+	set spaceJ $spacenewx
+	set spaceI $spacenewy
 }
-
-
+	
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever 
 # the player clicks to make the move)  It is also the function that handles 
@@ -420,33 +494,89 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    global spaceI spaceJ
+    global spaceI spaceJ numSlots tileSize ArGap
+    
+    set lnummove [getNumMove $moveList]
+    set numup [lindex $lnummove 0]
+    set numdw [lindex $lnummove 1]
+    set numrg [lindex $lnummove 2]
+    set numlf [lindex $lnummove 3]
+    
+    # the maximum arrow for each direction
+    set valup [lindex $lnummove 0]
+    set valdw [lindex $lnummove 1]
+    set valrg [lindex $lnummove 2]
+    set vallf [lindex $lnummove 3]
+    
+    # repeat drawing an arrow
     foreach item $moveList {
-	set move  [lindex $item 0]
-	set value [lindex $item 1]
-	set color cyan
-
-	if {$moveType == "value"} {
-	    if {$value == "Tie"} {
-		set color yellow
-	    } elseif {$value == "Lose"} { ;# lose for opponent, win for you
-		set color green
-	    } else {
-		set color red4
-	    }
+    	set move  [lindex $item 0]
+    	set value [lindex $item 1]
+    	set color cyan
+    	set direction [getDirection $move]
+    	
+    	if {$moveType == "value"} {
+    	    if {$value == "Tie"} {
+    		set color yellow
+    	    } elseif {$value == "Lose"} { ;# lose for opponent, win for you
+    		set color green
+    	    } else {
+    		set color red4
+    	    }
+    	}
+    	
+    	set name arrow-$move-$spaceI-$spaceJ
+    	$c bind $name <ButtonRelease-1> "ReturnFromHumanMove $move"
+	$c bind $name <Enter> "SetColour $c $name black"
+    	$c bind $name <Leave> "SetColour $c $name $color"
+    	
+    	set i $spaceI
+    	set j $spaceJ
+    	set len [expr ([getNumPieces $move] - 1) * 80]
+    	global vertGap horizGap arrowLength
+    	# shift arrow so that a multiple arrow will be packed nicely
+    	switch $direction {
+		"0" {
+			# move back to an original position first
+			$c coords $name [expr $horizGap + $j * $tileSize] \
+		       			[expr $vertGap + ($i+1) * $tileSize + 20 + $len] \
+		       			[expr $horizGap + $j * $tileSize] \
+		       			[expr $vertGap + ($i+1) * $tileSize - $arrowLength + 20]
+			# move to an appropriate offset
+			$c move $name [expr ($tileSize / 2) - $ArGap * ($valup - $numup)] 0
+			set numup [expr $numup - 1]
+		    }
+		"1" {
+			$c coords $name [expr $horizGap + $j * $tileSize] \
+					[expr $vertGap + $i * $tileSize - 20 - $len] \
+					[expr $horizGap + $j * $tileSize] \
+		                        [expr $vertGap + $i * $tileSize + $arrowLength - 20]
+			$c move $name [expr ($tileSize / 2) - $ArGap * ($valdw - $numdw)] 0
+			set numdw [expr $numdw - 1]
+		    }
+		"2" {
+			$c coords $name [expr $horizGap + ($j+1) * $tileSize + 20 + $len] \
+		       			[expr $vertGap + $i * $tileSize] \
+		       			[expr $horizGap + ($j+1) * $tileSize - $arrowLength + 20] \
+		       			[expr $vertGap + $i * $tileSize] 
+			$c move $name 0 [expr ($tileSize / 2) - $ArGap * ($valrg - $numrg)]
+			set numrg [expr $numrg - 1]
+		    }
+		"3" {
+			$c coords $name [expr $horizGap + $j * $tileSize - 20 - $len]\
+				        [expr $vertGap + $i * $tileSize]\
+				        [expr $horizGap + $j * $tileSize + $arrowLength - 20] \
+				        [expr $vertGap + $i * $tileSize]
+			$c move $name 0 [expr ($tileSize / 2) - $ArGap * ($vallf - $numlf)]
+			set numlf [expr $numlf - 1]
+		    }
 	}
 	
-	set direction [getDirection $move]
-	set numPieces [getNumPieces $move]
-	
-	$c itemconfig arrow-$direction-$spaceI-$spaceJ -fill $color
-	$c bind arrow-$direction-$spaceI-$spaceJ <Leave> \
-	    "SetColour $c arrow-$direction-$spaceI-$spaceJ $color"
-	$c raise arrow-$direction-$spaceI-$spaceJ base
-    	update idletasks
+    	$c itemconfig $name -fill $color
+    	$c raise $name 
+        update idletasks
     }
 }
-
 
 #############################################################################
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
@@ -454,15 +584,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 # You might not use all the arguments, and that's okay.
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-    global spaceI spaceJ
-    foreach item $moveList {
-	set move  [lindex $item 0]
-	set direction [getDirection $move]
-	set numPieces [getNumPieces $move]
-
-	$c lower arrow-$direction-$spaceI-$spaceJ base
-    }
-    update idletasks
+    GS_DrawPosition $c $position
 }
 
 
@@ -479,9 +601,12 @@ proc GS_HideMoves { c moveType position moveList} {
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-
-    ### TODO if needed
-    GS_DrawPosition $c $positionAfterUndo
+	
+    global undomake
+	
+    # initial the undomake 
+    set undomake "ON"
+    GS_HandleMove $c $currentPosition $theMoveToUndo $positionAfterUndo 
 }
 
 
@@ -501,8 +626,14 @@ proc GS_GetGameSpecificOptions { } {
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner \
 		       lastMove} {
 
-	### TODO if needed
+    global wintext gameover gFrameWidth gFrameHeight
 	
+    set size [min $gFrameWidth $gFrameHeight]
+    
+    # create a text and box
+    set wintext  [$c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black]
+    set gameover [$c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial 18" -fill black]
+
 }
 
 
@@ -518,41 +649,40 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner \
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-	### TODO if needed
-
+    global wintext gameover
+    
+    # deleted a text and box
+    $c delete $gameover
+    $c delete $wintext
 }
 
 
 
-############################## HELPER FUNCTIONS #############################
-
-###################
-#
-# DRAWING THE BOARD
-#
-###################
-
-
 #############################################################################
-# Draws all of the pieces, arrows, etc. on the board and hides them under the 
-# base.
+# makeBoard
+# 
+# It draw a board and instantiate all objects that will be needed for 
+# animatation and showmove
+# param:
+# 	c - a canvas to be draw on
+#	
 #############################################################################
 proc makeBoard { c } {
     global lineWidth lineColor baseColor base
-    global canvasWidth canvasHeight
+    global gFrameWidth gFrameHeight
 
-    global height width 
+    global height width boardSize
     global vertGap horizGap 
     global tileSize
     global left right up down
     global X O
-
+	
     set base \
 	[$c create rectangle \
 	     0 \
 	     0 \
-	     [expr $canvasWidth - 1] \
-	     [expr $canvasHeight - 1] \
+	     [expr $gFrameWidth- 1] \
+	     [expr $gFrameHeight - 1] \
 	     -fill $baseColor -tag base];
 
 
@@ -562,11 +692,9 @@ proc makeBoard { c } {
 	    [$c create line \
 		 $horizGap \
 		 [expr $vertGap + $i * $tileSize] \
-		 [expr $canvasWidth - $horizGap] \
+		 [expr $gFrameWidth- $horizGap] \
 		 [expr $vertGap + $i * $tileSize] \
-		 -fill $lineColor -width $lineWidth -tags [list base line]]; 
-
-	
+		 -fill $lineColor -width $lineWidth -tags [list base line]]; 	
     }
 
     # create vertical lines
@@ -576,7 +704,7 @@ proc makeBoard { c } {
 		 [expr $horizGap + $i * $tileSize] \
 		 $vertGap \
 		 [expr $horizGap + $i * $tileSize] \
-		 [expr $canvasHeight - $vertGap] \
+		 [expr $gFrameHeight- $vertGap] \
 		 -fill $lineColor -width $lineWidth -tags [list base line]];
 	
     }
@@ -584,296 +712,337 @@ proc makeBoard { c } {
     # create pieces
     for {set i 0} {$i < $height} {incr i} {
 	for {set j 0} {$j < $width} {incr j} {
-	    createPiece $c $X $i $j piecex-$i-$j
-	    createPiece $c $O $i $j pieceo-$i-$j
+	    drawCircle $c $i $j "black" "off" 0 0
 	}
     }
 
     # create arrows
-
     for {set i 0} {$i < $height} {incr i} {
-	for {set j 0} {$j < $width} {incr j} {
-	    if { $i > 0 } { drawArrow $c $down $i $j arrow-$down-$i-$j }
-	    if { $i < $height - 1 } { drawArrow $c $up $i $j arrow-$up-$i-$j }
-	    if { $j < $width - 1 } \
-		{ drawArrow $c $right $i $j arrow-$right-$i-$j}
-	    if { $j > 0 } { drawArrow $c $left $i $j arrow-$left-$i-$j }
-	}
-    }	 
+    	for {set j 0} {$j < $width} {incr j} {
+	#down
+	    for {set k 0} {$k < $i} {incr k} {
+		    set movetype [hashMove $down [expr $k + 1]]
+		    drawArrow $c $down $i $j arrow-$movetype-$i-$j \
+			      [expr $k * 15] 0 0 [expr $k * 80]
+	    }
+
+	#up
+	    for {set k 0} {$k < [expr $height - $i - 1]} {incr k} {
+		    set movetype [hashMove $up [expr $k + 1]]
+		    drawArrow $c $up $i $j arrow-$movetype-$i-$j \
+			      [expr $k * 15] 0 0 [expr $k * 80]
+	    }
+
+	 #left
+	    for {set k 0} {$k < $j} {incr k} {
+		    set movetype [hashMove $left [expr $k + 1]]
+		    drawArrow $c $left $i $j arrow-$movetype-$i-$j \
+			      0 [expr $k * 15] [expr $k * 80] 0
+	    }
+    	    
+	 #right
+	    for {set k 0} {$k < [expr $width - $j - 1]} {incr k} {
+		    set movetype [hashMove $right [expr $k + 1]]
+		    drawArrow $c $right $i $j arrow-$movetype-$i-$j \
+			      0 [expr $k * 15] [expr $k * 80] 0
+	    }
+    	}
+    } 	 
 
     ###  raise the base over the pieces
-    #$c lower piece all
-    #$c lower arrow all
-    #$c raise base all
+    $c lower arrow all
+    $c raise base all
 
 } 
-
-
+		 
 #############################################################################
 # Draws an arrows on canvas c in slot (i,j). Type is one of leftArrow, 
 # rightArrow, upArrow, downArrow.
 #############################################################################
-proc drawArrow { c type i j name} {
+proc drawArrow { c type i j name {offsetx 0} {offsety 0} {lenx 0} {leny 0}} {
+    
     global height width 
     global vertGap horizGap 
-    global tileSize
+    global tileSize 
     global arrowLength left right up down
-    global lineWidth
-
+    global lineWidth ArWFactor ArShpLst ArPosOffsetX ArPosOffsetY
+    
     if { $type == $left } {
-	set $name [$c create line \
-		       [expr $horizGap + $j * $tileSize] \
-		       [expr $vertGap + $i * $tileSize + $tileSize/2] \
-		       [expr $horizGap + $j * $tileSize + $arrowLength] \
-		       [expr $vertGap + $i * $tileSize + $tileSize/2] \
-		       -tags [list $name arrow] \
-		       -width [expr $lineWidth * 1] -arrow last \
-		       -arrowshape {20 20 20}]
-	set movebind [hashMove $left 1]
+    	set $name [$c create line \
+    		       [expr $horizGap + $j * $tileSize - 20 - $lenx]\
+    		       [expr $vertGap + $i * $tileSize]\
+    		       [expr $horizGap + $j * $tileSize + $arrowLength - 20] \
+    		       [expr $vertGap + $i * $tileSize] \
+    		       -tags [list $name arrow] \
+    		       -width [expr $lineWidth * $ArWFactor] -arrow last \
+    		       -arrowshape $ArShpLst]
     } 
+    
     if { $type == $right } {
 	set $name [$c create line \
-		       [expr $horizGap + ($j+1) * $tileSize] \
-		       [expr $vertGap + $i * $tileSize + $tileSize/2] \
-		       [expr $horizGap + ($j+1) * $tileSize - $arrowLength] \
-		       [expr $vertGap + $i * $tileSize + $tileSize/2] \
+		       [expr $horizGap + ($j+1) * $tileSize + 20 + $lenx] \
+		       [expr $vertGap + $i * $tileSize] \
+		       [expr $horizGap + ($j+1) * $tileSize - $arrowLength + 20] \
+		       [expr $vertGap + $i * $tileSize] \
 		       -tags [list $name arrow] \
-		       -width [expr $lineWidth * 1] -arrow last \
-		       -arrowshape {20 20 20}]
-	set movebind [hashMove $right 1]
+		       -width [expr $lineWidth * $ArWFactor] -arrow last \
+		       -arrowshape $ArShpLst]
     }
     if { $type == $up } {
 	set $name [$c create line \
-		       [expr $horizGap + $j * $tileSize + $tileSize/2] \
-		       [expr $vertGap + ($i+1) * $tileSize] \
-		       [expr $horizGap + $j * $tileSize + $tileSize/2] \
-		       [expr $vertGap + ($i+1) * $tileSize - $arrowLength] \
+		       [expr $horizGap + $j * $tileSize] \
+		       [expr $vertGap + ($i+1) * $tileSize + 20 + $leny] \
+		       [expr $horizGap + $j * $tileSize] \
+		       [expr $vertGap + ($i+1) * $tileSize - $arrowLength + 20] \
 		       -tags [list $name arrow] \
-		       -width [expr $lineWidth * 1] -arrow last \
-		       -arrowshape {20 20 20}]
-	set movebind [hashMove $up 1]
+		       -width [expr $lineWidth * $ArWFactor] -arrow last \
+		       -arrowshape $ArShpLst]
     }
     if { $type == $down } {
 	set $name [$c create line \
-		       [expr $horizGap + $j * $tileSize + $tileSize/2] \
-		       [expr $vertGap + $i * $tileSize] \
-		       [expr $horizGap + $j * $tileSize + $tileSize/2] \
-		       [expr $vertGap + $i * $tileSize + $arrowLength] \
+		       [expr $horizGap + $j * $tileSize] \
+		       [expr $vertGap + $i * $tileSize - 20 - $leny] \
+		       [expr $horizGap + $j * $tileSize] \
+		       [expr $vertGap + $i * $tileSize + $arrowLength - 20] \
 		       -tags [list $name arrow] \
-		       -width [expr $lineWidth * 1] -arrow last \
-		       -arrowshape {20 20 20}]
-	set movebind [hashMove $down 1]
+		       -width [expr $lineWidth * $ArWFactor] -arrow last \
+		       -arrowshape $ArShpLst]
     }
-    
-    $c bind $name <ButtonRelease-1> "ReturnFromHumanMove $movebind"
-    $c bind $name <Enter> "SetColour $c $name black"
+  
 }
-
 
 #############################################################################
-# Draws a piece on canvas c in slot (i,j). Whose is one of X, O.
+# Draws a circle on canvas c in slot (i,j). fill with color and tag with either
+#	piece-$i$j or just a temp tag and offsetx and y
+# param:
+#	i is a y coordinate 
+#	j is an x coordinate
+#	tag is a flag to force a tag name to temp-$iden (tags == "on")
+#	iden helps us draw multiple temporaly circle namely temp-$iden
+#	offsetx used for animation (how much a circle offsets from its orginal position
+#	offsety same as offsetx but used for y-coordinate
 #############################################################################
-proc createPiece {c whose i j name} {
-    global X O
-    global horizGap vertGap pieceGap tileSize
-    global xColor oColor
-    
-    if { $whose == $X } {
-	set $name \
-	    [$c create rect \
-		 [expr $horizGap + $j * $tileSize + $pieceGap] \
-		 [expr $vertGap + $i * $tileSize + $pieceGap] \
-		 [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
-		 [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
-		 -fill $xColor -tags [list piece x-$i-$j $X-$i-$j $name]];
-    }
-    
-    if { $whose == $O } {
-	set $name \
-	    [$c create rect \
-		 [expr $horizGap + $j * $tileSize + $pieceGap] \
-		 [expr $vertGap + $i * $tileSize + $pieceGap] \
-		 [expr $horizGap + ($j+1) * $tileSize - $pieceGap] \
-		 [expr $vertGap + ($i+1) * $tileSize - $pieceGap] \
-		 -fill $oColor -tags [list piece o-$i-$j $O-$i-$j $name]];
-    }
-
-    return $name
-}
-###########
-#
-# ANIMATION
-#
-###########
-
-
-#######################################################
-# animateMove
-# arg1: whoseTurn
-# arg2: the tag of the piece to be moved
-# arg3; the board position number from which the piece is being moved (1-9)
-# arg4; the board position number to which to move the piece (1-9)
-# arg5: the canvas
-# pieceToMove is on the board already, so we create a piece at the same spot
-#   lower the previous piece, slide the created piece over, raise the 
-#    piece at $whoseTurn-$to, and destroy the temporary piece
-#
-#######################################################
-proc animateMove { whoseTurn pieceToMove from to c } {
-    global oColor xColor pieceSize pieceOutline base
-
-    puts stdout $whoseTurn
-    puts stdout $pieceToMove
-    puts stdout $from
-    puts stdout $to
-
-    #$c lower piece all
-    
-    createPiece $c $whoseTurn [lindex $from 0] [lindex $from 1] temp
-   
-    $c lower $pieceToMove base
-    $c raise temp base
-
-    #slideAnimation temp $from $to $c
-
-    $c raise $whoseTurn-[lindex $to 0]-[lindex $to 1] base
-    $c delete temp
-
-}
-
-
-#slideAnimation:
-# pieceToMove  the tag of the piece to be moved
-# from         the board position number from which the piece is being moved 
-#              (1-9)
-# to           the board position number to which to move the piece (1-9)
-# c            c the canvas
-#
-# pieceToMove is on the board already, so we need to slide animate it, then 
-# put it back under the board in the correct spot, and finally raise the piece 
-# at position $to, so that in the end we don't have two pieces of the same 
-# color at the same position.
-#
-# 1) find the distance needed to travel:
-#   a. find the difference between the "from" x coord, and the "to" x coord  
-#   b. do the same for the 'from' y and 'to' y
-# 2) There are two cases:
-#   a. the piece slides horizontally, so y is fixed, i.e. yDist == 0
-#      1) the piece is sliding left so 
-#   b. the piece slides vertically, so x is fixed, i.e. xDist == 0
-
-
-#this implementation assumes can move things with float values
-# fortunately, you can.
-# unfortunately, i'm not sure if you can set the locations of pieces, so that
-# might be a problem.  first design:
-# determine actual time of animation, have global setting how many frames per
-# second.  paint a frame, and wait until the clock is greater than or equal to
-# the number of the frame you should be at. (okay to be slower)
-proc slideAnimation { pieceToMove from to c} {
-    global tileSize gAnimationSpeed
-    #i'm itching to make this system-independent, but to do that i *need* to
-    #know how many clicks per second the clock goes through!
-    #I'll assume for now it's like java and [clock clicks] returns the system
-    #time in milliseconds. (i'll adjust it later)
-
-    #clicks of animation time. 1000 is the default.
-    set animDuration [ScaleDownAnimation 1000]
-    #how many frames to paint in this time? 15 is the default
-    #(re-using AdjustedTimeOfAnimation is a hack, but heuristically I want the
-    #same thing to happen to the number of frames that happened to
-    #animDuration.  i.e. if the time of animation went up, so should the number
-    #of frames.)
-    set numFrames [ScaleDownAnimation 15]
-    #how much time in between painting?
-    set clicksPerFrame [expr $animDuration / $numFrames]
-
-    #starting and ending screen coordinates
-    set xDist [expr ([lindex $to 0] - [lindex $from 0]) * $tileSize]
-    set yDist [expr ([lindex $to 1] - [lindex $from 1]) * $tileSize]
-    set xPlus [expr $xDist / $numFrames]
-    set yPlus [expr $yDist / $numFrames]
-
-    #store time so can determine what frame we should be on.  this is only
-    #relevant in that we can use it to determine how long the thread should
-    #wait after painting a frame
-    #EX: after [expr int($gMoveDelay * 1000)]
-    set currentTime [clock clicks]
-    set endTime [expr $currentTime + $animDuration - $clicksPerFrame]
-
-    #algorithm: move the piece by xPlus/yPlus, then wait the number of clicks
-    #until this frame expires
-    for {} {$currentTime < $endTime} \
-	{set currentTime [expr $currentTime + $clicksPerFrame]} {
-	#in java, i'd increment elapsed clicks by the actual amount of time
-	#that passed, but then i'd be able to actually set the piece's
-	#location, so can't do that here. (at least, not with my meager
-	#knowledge of Tcl)
-	$c move $pieceToMove $xPlus $yPlus
-	update idletasks
-
-	#check if must wait until ready for next frame
-	set waitClicks [expr $currentTime + $clicksPerFrame - [clock clicks]]
- 	if {$waitClicks > 0} {
-	    after $waitClicks
+proc drawCircle {c i j {color "black"} {tags "off"} {iden 0} {offsetx 0} {offsety 0}} {
+	global X O
+    	global horizGap vertGap pieceGap tileSize
+    	global xColor oColor
+    	
+    	# check if it is a temp circle (for animation)
+	if {$tags == "off"} {
+		set nametags piece-$i$j
+	} else {
+		set nametags "temp-$iden"
 	}
-    }
+	
+	# calculate a position for each circle
+	set xstart [expr $horizGap + $j * $tileSize + $pieceGap]
+	set ystart [expr $vertGap + $i * $tileSize + $pieceGap]
+	set xend   [expr $horizGap + ($j+1) * $tileSize - $pieceGap]
+	set yend   [expr $vertGap + ($i+1) * $tileSize - $pieceGap]
+	
+	# drawing a circle onto a canvas
+	$c create oval [expr $xstart + $offsetx] \
+		       [expr $ystart + $offsety] \
+		       [expr $xend + $offsetx] \
+		       [expr $yend + $offsety] \
+		       -fill $color -tag $nametags
+		 
+	$c lower $nametags
 }
 
+#############################################################################
+# doAnimation is called by GS_HandleMove() 
+# 
+# It animates a piece from an original position (oldx, oldy) 
+# to a destination (newx, newy)
+# param:
+# 	c - a canvas to be draw on
+#	lcolor - a list of color to be drawn
+#	oldx, oldy - an origin
+#	newx, newy - a destination
+#############################################################################
+proc doAnimation { c lcolor oldx oldy newx newy {numberpiece 1}} {
+    
+    global basespeed gAnimationSpeed tileSize 
+    	
+    set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
+    set signx [neg [expr $oldx - $newx]]
+    set signy [neg [expr $oldy - $newy]]
+    set dx [expr $signx * $tileSize / $speed]
+    set dy [expr $signy * $tileSize / $speed]
+     
+    # draw a temporaly circle
+    for {set i 0} {$i < $numberpiece} {incr i} {
+	set offsetx [expr $signx * $i]
+	set offsety [expr $signy * $i]
+	set color [lindex $lcolor $i]
+	set px [expr $newx + $offsetx]
+	set py [expr $newy + $offsety]
+	# remove a current piece first
+    	$c lower piece-$py$px
+    	drawCircle $c $py $px $color "on" $i
+    	$c raise temp-$i
+    }
+    
+    # moving a circle
+    for {set k 1} {$k < $speed} {incr k} {
+    	for {set j 0} {$j < $numberpiece} {incr j} {
+    		$c move temp-$j $dx $dy
+	}
+    	after 1
+	update idletasks
+    }
+    
+    # delete all temporaly circle
+    for {set j 0} {$j < $numberpiece} {incr j} {
+	$c delete temp-$j
+    }
+}
+#############################################################################
+# getListColor - get a list of color from the given direction
+#
+# This proc used for drawing multiple pieces at the same move
+#############################################################################
+proc getListColor { board direction spacex spacey} {
+	global height width
+	
+	set lcolorup {}
+	set lcolordw {}
+	set lcolorrg {}
+	set lcolorlf {}
+	
+	# Calculate the direction the piece will move to
+	for {set j 0} {$j < $height} {incr j} {
+		for {set i 0} {$i < $width} {incr i} {
+			set index [expr $j * $width + $i]
+			set piece [string index $board $index]
+			set color [getColor $piece]
+			#check for up
+			if {$i == $spacex} {
+				if {$j < $spacey} {
+					set lcolorup [concat $color $lcolorup]
+				} elseif {$j > $spacey} {
+					set lcolordw [concat $lcolordw $color]
+				}
+			} elseif {$j == $spacey} {
+				if {$i < $spacex} {
+					set lcolorlf [concat $color $lcolorlf]
+				} elseif {$i > $spacex} {
+					set lcolorrg [concat $lcolorrg $color]
+				}	
+			}
+		}
+	}
+	switch $direction {
+		"0" { set lcolor $lcolordw}
+		"1" { set lcolor $lcolorup}
+		"2" { set lcolor $lcolorrg}
+		"3" { set lcolor $lcolorlf}
+		default { puts "NOT MATCH"}
+	}
+  	return $lcolor	
+}
+    
+#############################################################################
+# Hash functions
+#
+#############################################################################
 
-#/*********************************************************************
-# **
-# **  START OF MOVE HASHING CODE
-# **
-# ********************************************************************/
-
+# Return a string represeted a board 
 proc hashMove { direction numPieces } {
     global boardSize
     return [expr $direction*($boardSize-1)+$numPieces]
 }
 
+# Calculate direction based on the given move
 proc getDirection { move } {
     global boardSize
     set direction [expr $move / ($boardSize-1)]
     return $direction
 }
 
+# Calculate number of pieces on the board
 proc getNumPieces { move } {
     global boardSize
     return [expr $move%($boardSize-1)]
 }
 
 
-#/*********************************************************************
-# **
-# **  END OF MOVE HASHING CODE
-# **
-# ********************************************************************/
-
-###############
+#############################################################################
+# Helper functions
 #
-# OTHER HELPERS
-#
-###############
+#############################################################################
 
+# Set the given obj to a specified color
 proc SetColour { c obj colour } {
     $c itemconfig $obj -fill $colour
 }
 
+# get color from a given piece
+proc getColor {piece} {
+    global xColor oColor
+    if {[string compare $piece "X"] == 0} {
+	set color $xColor
+    } else {
+	set color $oColor
+    }
+    
+    return $color
+}
+
+# get a list of number of arrow for each direction	
+proc getNumMove { moveList } {
+    set up 0
+    set dw 0
+    set lf 0
+    set rg 0
+  
+    foreach item $moveList {
+	set direction [getDirection [lindex $item 0]]
+	
+	switch $direction {
+		"0" { incr up}
+		"1" { incr dw}
+		"2" { incr rg}
+		"3" { incr lf}
+	}
+    }
+    return [concat $up $dw $rg $lf]
+}
+# Return a factorial value
 proc factorial { n } {
     if { $n == 0 || $n == 1 } {
 	return 1
+    } else {
+    	return [expr $n * [factorial [expr $n - 1]]]
     }
-    return [expr $n * [factorial [expr $n - 1]]]
 } 
 
-proc whoseMove { hashed } {
-    global numPositions
-    if { $hashed >= $numPositions } {
-	puts stdout player2togo
-	return 2
+# Return a minimum value 
+proc min {x y} {
+    if {$x > $y} {
+	return $y
     } else {
-	puts stdout player1togo
+	return $x
+    }
+}
+
+# Return a minimum value 
+proc max {x y} {
+    if {$x > $y} {
+	return $x
+    } else {
+	return $y
+    }
+}
+
+#get a negative 1
+proc neg {x} {
+    if {$x < 0} {
+	return -1
+    } elseif {$x == 0} {
+	return 0
+    } else {
 	return 1
     }
 }

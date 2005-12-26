@@ -93,7 +93,11 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-
+/*************************************************************************
+**
+** Every variable declared here is only used in this file (game-specific)
+**
+**************************************************************************/
 
 /************************************************************************
 **
@@ -111,27 +115,6 @@ int  WIN4_HEIGHT = 4;
 
 #define DIRECTION_PAIRS 4
 #define NO_COLUMN -1
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-** 
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITIONLIST *EnumerateWithinStage(int stage);
-POSITION GetInitialPosition() {return MyInitialPosition();}
-//POSITIONLIST *(*gEnumerateWithinStage)(int) = &EnumerateWithinStage;
-
-/*************************************************************************
-**
-** Every variable declared here is only used in this file (game-specific)
-**
-**************************************************************************/
 
 typedef enum possibleBoardPieces {
 	x, o, Blank
@@ -168,18 +151,26 @@ Direction gDirections[DIRECTION_PAIRS][2] = {{LEFT, UP},
 Direction gOppositeDirections[DIRECTIONS];
 
 /** Function Prototypes **/
+POSITIONLIST *EnumerateWithinStage(int stage);
 int CountContinuousPieces(int column, int row, Direction horizontalDirection,
                           Direction verticalDirection);
 void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 void UndoMove(MOVE move);
 
-/*************************************************************************
+/************************************************************************
 **
-** Here we declare the global database variables
+** NAME:        GetInitialPosition
 **
-**************************************************************************/
+** DESCRIPTION: Ask the user for an initial position for testing. Store
+**              it in the space pointed to by initialPosition;
+** 
+** OUTPUTS:     POSITION initialPosition : The position to fill.
+**
+************************************************************************/
 
-extern VALUE     *gDatabase;
+POSITION GetInitialPosition() {
+    return MyInitialPosition();
+}
 
 void InitializeGame()
 {

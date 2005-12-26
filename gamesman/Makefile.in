@@ -27,10 +27,10 @@ all: Makefile
 
 clean:
 	cd src && $(MAKE) clean
-	rm -rf *~
+	rm -rf *~ test-*
 
 dist:
 	cd src && $(MAKE) dist
 
-dist-clean:
-	rm -rf Makefile config.status config.log *~ bin/data src/data
+dist-clean: clean
+	rm -rf Makefile configure config.status config.log *~ bin/data src/data autom4te.cache
