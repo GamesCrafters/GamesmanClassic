@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.23 2005-12-21 00:54:22 hevanm Exp $
+// $Id: machi.c,v 1.24 2005-12-27 05:25:19 ciokita Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -171,27 +171,29 @@ kHelpGraphicInterface =
 "There is currently no graphic interface\n";
 
 kHelpTextInterface    =
-"There are two types of moves in Achi: place moves and slide moves.\n"
-"PLACE MOVES:\n"
-"First, you place your 3 pieces on the board: use the LEGEND to determine\n"
-"which number to choose (between 1 and 9, with 1 at the upper left and 9 \n"
-"a the lower right) to correspond to the empty board position you desire.\n"
-"SLIDE MOVES:\n"
-"Once all 3 of your pieces are on the board, the player makes sliding moves.\n"
-"To do a slide move, type two numbers instead of one:\n"
-"FIRST: Choose a piece to moveand type the number (1-9) of the space it is on.\n"
-"SECOND: Type the number (1-9) of the space you would like to slide to.\n"
-"i.e. 23, 45, 69 etc.\n"
-"NOTE: Slide moves are only permitted between spots that are connected, an\n"
-"unoccupie destination, and you may not move to the same spot you are on\n"
-"(i.e.11, 22, 33, etc are illegal slide moves). If at any point you have made\n"
-"a mistake, type u to revert back to your previous position.";
+"There are two types of moves in Achi: place moves and slide moves.\n
+PLACE MOVES:\n
+The game starts out with place moves, when players alternates turns placing\n
+each of their three piece on the board. During this turn players attempt\n
+to get three in a row, either diagonally, horizontally, or vertically. If\n
+a player is able to get three in a row, then he or she wins the game. If\n
+both players are unable to get three in a row after placing all their pieces\n
+then players start sliding their pieces.\n
+SLIDE MOVES:\n
+In this phase, players alternate turns sliding their pieces along the line\n
+to any empty adjacent spot. In the standard version of the game, players \n
+may move up, down, or diagonally to any unoccupied, connected spot.\n
+FIRST: Choose a piece to move and type the number (1-9) of the space it is on.\n
+SECOND: Type the number (1-9) of the space you would like to slide to.\n
+i.e. 23, 45, 69 etc.\n";
 
  if (noDiag) {
 kHelpOnYourTurn = 
-"For the first six turns, each player puts a piece on an empty board position.\n\
-After all six pieces are on the board, move any one of your pieces along a\n\
-vertical or horizontal line to an open spot on the board.";
+"Players alternate turns placing each of their three pieces on one of the nine\n
+spaces. During this placing phase, players attempt to connect any of \n\
+their three pieces in a row. If no one succeeds, then the first player slides\n
+any of his three pieces to any open adjacent spot. The pieces can only be moved\n
+to a spot that is up or down from the previous spaces. Diagonal sliding is not\nallowed.";
  } else {
 kHelpOnYourTurn =
 "For the first six turns, each player puts a piece on an empty board position.\n\
@@ -200,8 +202,7 @@ line to an open spot on the board.";
  }
 
 kHelpStandardObjective =
-"To get three of your markers, in a row, either horizontally, vertically, or\n\
-diagonally. 3-in-a-row WINS.";
+"To get three pieces in a row either diagonally, vertically, or horizontally.";
 
 kHelpReverseObjective =
 "To force your opponent into getting three of his or her pieces in a row,\n\
@@ -1260,6 +1261,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2005/12/21 00:54:22  hevanm
+// database updates and various commenting through out the modules where getValueOfPosition is declared outside of core code.... bad bad bad
+//
 // Revision 1.22  2005/12/08 04:00:22  ogren
 // removed debug string. -Elmer
 //
