@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.1 2005-10-07 05:23:40 ddgarcia Exp $
+// $Id: mdao.c,v 1.2 2005-12-27 10:57:50 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -189,7 +189,7 @@ POSITION                getCanonicalPosition(POSITION p);
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+//extern VALUE     *gDatabase;
 
 
 /************************************************************************

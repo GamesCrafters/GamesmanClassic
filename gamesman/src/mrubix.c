@@ -283,13 +283,6 @@ void* gGameSpecificTclInit = NULL;
 #endif
 
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 static POSITION **CArray;
 static POSITION *hashSizes;
 static POSITION *hashBasePosition;

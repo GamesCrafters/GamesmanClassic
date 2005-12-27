@@ -28,7 +28,7 @@
 /* External Globals */
 extern GENERIC_PTR SafeMalloc ();
 extern void SafeFree ();
-extern VALUE *gDatabase;
+//extern VALUE *gDatabase;
 extern STRING gValueString[];
 /* External Globals */
 

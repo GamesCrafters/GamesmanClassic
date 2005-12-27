@@ -318,14 +318,6 @@ extern int              whoseMove (POSITION hashed);
 
 POSITION getCanonicalPosition(POSITION position);
 
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
-
 /************************************************************************
 **
 ** NAME:        InitializeGame

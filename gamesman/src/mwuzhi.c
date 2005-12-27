@@ -319,15 +319,6 @@ BOOLEAN canmovedownright(int arraynum);
 BOOLEAN canmovedownleft(int arraynum); 
 BOOLEAN canmoveupright(int arraynum); 
 
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
-
-
 /************************************************************************
 **
 ** NAME:        InitializeGame

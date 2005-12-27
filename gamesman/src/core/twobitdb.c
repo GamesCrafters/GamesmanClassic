@@ -35,99 +35,128 @@
 
 //THIS IS NOT A 2-BIT DB, but a 4-BIT ONE!!!!!!!!!!!
 
-VALUE* twobitdb_database;
-char* twobitdb_visited;
+void            twobitdb_free ();
+
+/* Value */
+VALUE		twobitdb_get_value		(POSITION pos);
+VALUE		twobitdb_set_value		(POSITION pos, VALUE val);
+
+/* Remoteness */
+//REMOTENESS	twobitdb_get_remoteness		(POSITION pos);
+//void		twobitdb_set_remoteness		(POSITION pos, REMOTENESS val);
+
+/* Visited */
+BOOLEAN		twobitdb_check_visited   	(POSITION pos);
+void		twobitdb_mark_visited    	(POSITION pos);
+void		twobitdb_unmark_visited		(POSITION pos);
+
+
+char* twobitdb_database; //a cell has 8 bits
+char* twobitdb_visited;  //a cell has 8 bits
+
 /*
 ** Code
 */
 
-DB_Table* twobitdb_init() {
-  DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+void twobitdb_init(DB_Table *new_db) {
 
-  size_t dbSize = sizeof(VALUE) * (1+gNumberOfPositions) / (sizeof(VALUE)*4);
-  twobitdb_database = (VALUE*) SafeMalloc(dbSize);
-  memset(twobitdb_database, 0xff,dbSize);
-    
-  //set function pointers
-  new_db->get_value = twobitdb_get_value;
-  new_db->put_value = twobitdb_set_value;
-  new_db->get_remoteness = twobitdb_get_remoteness;
-  new_db->put_remoteness = twobitdb_set_remoteness;
-  new_db->check_visited = twobitdb_check_visited;
-  new_db->mark_visited = twobitdb_mark_visited;
-  new_db->unmark_visited = twobitdb_unmark_visited;
+    //DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+
+    //a char has 1 byte, we need two bits per position, so 4 values per cell
+    size_t dbSize = gNumberOfPositions >> 2;
+    //a char has 1 byte, we need one bit per position, so 8 visited values per cell
+    size_t visitedSize = gNumberOfPositions >> 3;
+
+    twobitdb_database = (char*) SafeMalloc(dbSize);
+    memset(twobitdb_database, 0xf, dbSize);
+    twobitdb_visited = (char*) SafeMalloc(visitedSize);
+    memset(twobitdb_visited, 0xf, visitedSize);
+
+    //set function pointers
+    new_db->get_value = twobitdb_get_value;
+    new_db->put_value = twobitdb_set_value;
+    //new_db->get_remoteness = twobitdb_get_remoteness;
+    //new_db->put_remoteness = twobitdb_set_remoteness;
+    new_db->check_visited = twobitdb_check_visited;
+    new_db->mark_visited = twobitdb_mark_visited;
+    new_db->unmark_visited = twobitdb_unmark_visited;
   
-  new_db->free_db = twobitdb_free;
+    new_db->free_db = twobitdb_free;
 
-  return new_db;
+    return;
 
 }
 
 void twobitdb_free(){
   if(twobitdb_visited)
-    SafeFree(twobitdb_visited);
+      SafeFree(twobitdb_visited);
   if(twobitdb_database)
-    SafeFree(twobitdb_database);
+      SafeFree(twobitdb_database);
 }
 
-VALUE* twobitdb_get_raw_ptr(POSITION pos){
-  return (&twobitdb_database[pos]);
+char* twobitdb_get_raw_ptr(POSITION pos){
+  return (&twobitdb_database[pos>>2]);
 }
 
 VALUE twobitdb_set_value(POSITION position, VALUE value)
 {
     int shamt;
-    VALUE* ptr;
+    char* ptr;
 
-    ptr = twobitdb_get_raw_ptr(position >> 4);
-    shamt = (position & 0xf) * 2;
+    ptr = twobitdb_get_raw_ptr(position);
+    shamt = (position & 3) << 1;
 
-    *ptr = (*ptr & ~(0x3 << shamt)) | ((0x3 & value) << shamt);
+    *ptr = (*ptr & ~(3 << shamt)) | ((3 & value) << shamt);
+
     return value;
 }
 
 // This is it
 VALUE twobitdb_get_value(POSITION position)
 {
-   // values are always 32 bits 
-  VALUE* ptr;
-  ptr = twobitdb_get_raw_ptr(position >> 4);
-  return (VALUE)(3 & ((int)*ptr >> ((position & 0xf) * 2)));
+    char* ptr;
+    int shamt;
+
+    ptr = twobitdb_get_raw_ptr(position);
+    shamt = (position & 3) << 1;
+    return (VALUE)(3 & ((int)*ptr >> shamt));
+
 }
 
 
-void twobitdb_set_remoteness(POSITION position, REMOTENESS rem)
-{
+//void twobitdb_set_remoteness(POSITION position, REMOTENESS rem)
+//{
  
-}
+//}
 
-REMOTENESS twobitdb_get_remoteness(POSITION position)
-{
-    return REMOTENESS_TWOBITS;
-}
+//REMOTENESS twobitdb_get_remoteness(POSITION position)
+//{
+//    return REMOTENESS_TWOBITS;
+//}
 
 BOOLEAN twobitdb_check_visited(POSITION position)
 {
-  if (twobitdb_visited){
+    //if (twobitdb_visited){
     return (twobitdb_visited[position >> 3] >> (position & 7)) & 1;
-  }
-    return FALSE;
+    //}
+    //return FALSE;
 }
 
 void twobitdb_mark_visited (POSITION position)
 {
-  if (!twobitdb_visited){
-    twobitdb_visited = (char*) SafeMalloc((gNumberOfPositions>>3) +1);
-    memset(twobitdb_visited, 0, (gNumberOfPositions>>3) +1);
-  }
-  twobitdb_visited[position >> 3] |= 1 << (position & 7);
+    //if (!twobitdb_visited){
+    //	twobitdb_visited = (char*) SafeMalloc((gNumberOfPositions>>3) +1);
+    //	memset(twobitdb_visited, 0, (gNumberOfPositions>>3) +1);
+    //}
+    twobitdb_visited[position >> 3] |= 1 << (position & 7);
+    return;
 }
 
 void twobitdb_unmark_visited (POSITION position)
 {
-  if (twobitdb_visited){
+    //  if (twobitdb_visited){
     twobitdb_visited[position >> 3] &= ~(1 << (position & 7));
-  }
+    //}
     return;
 }
 

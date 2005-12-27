@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.6 2005-12-23 01:34:12 brianzimmer Exp $
+// $Id: mtilechess.c,v 1.7 2005-12-27 10:57:50 hevanm Exp $
 
 /* 
  * The above lines will include the name and log of the last person 
@@ -202,16 +202,6 @@ void generateMovesDirection(POSITION N, MOVELIST **moves, int place, int directi
 /* External */ 
 extern GENERIC_PTR	SafeMalloc (); 
 extern void		SafeFree (); 
- 
- 
-/************************************************************************* 
-** 
-** Global Database Declaration 
-** 
-**************************************************************************/ 
- 
-extern VALUE     *gDatabase; 
- 
  
 /************************************************************************ 
 ** 
@@ -1394,6 +1384,9 @@ BOOLEAN isLegalBoard(char *bA) {
 } 
  
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2005/12/23 01:34:12  brianzimmer
+// Final version of Tile Chess that adheres to the 10 point checklist for the Fall 2005 semester.
+//
 // Revision 1.5  2005/12/19 11:11:04  brianzimmer
 // Cleaned up and commented final version of Tile Chess for the Fall 2005 semester.
 // 

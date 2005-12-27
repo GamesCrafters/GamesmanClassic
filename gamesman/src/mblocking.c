@@ -324,14 +324,6 @@ void	PrettyPrintDir (const char*, const char*);
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
-
 
 /************************************************************************
 **

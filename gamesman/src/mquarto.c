@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.55 2005-12-23 05:13:27 mtanev Exp $
+// $Id: mquarto.c,v 1.56 2005-12-27 10:57:50 hevanm Exp $
 
 
 /*
@@ -404,14 +404,6 @@ void UndoMove(MOVE move);
 
 
 QTBPtr		GPSBoard;
-
-/*************************************************************************
- **
- ** Global Database Declaration
- **
- **************************************************************************/
-
-extern VALUE     *gDatabase;
 
 /************************************************************************
  **
@@ -2514,6 +2506,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.55  2005/12/23 05:13:27  mtanev
+//
+// Initial version of alpha-beta solver, very experimental and very buggy
+//
 // Revision 1.54  2005/12/05 11:14:00  hevanm
 // Fixed up the memory database to write to a file when instructed. Moved around some constants and #defines to contants.h, and added globals.c to initialize the global variables. This breaks all other databases, the fixing of which I (and hopefully Mario too, if he is not too angry about my breaking his stuff) will follow up in the near future.
 //

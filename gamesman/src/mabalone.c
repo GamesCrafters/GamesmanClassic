@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.27 2005-12-08 07:26:32 esiroker Exp $
+// $Id: mabalone.c,v 1.28 2005-12-27 10:57:50 hevanm Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -229,7 +229,7 @@ int sum(int, int);
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+//extern VALUE     *gDatabase;
 
 /************************************************************************
 **
@@ -2114,6 +2114,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2005/12/08 07:26:32  esiroker
+// Made compilable on Mac.
+//
 // Revision 1.26  2005/12/08 07:16:56  ogren
 // changed second definition of max to line_max.  dont really know if the name is appropriate. -Elmer
 //

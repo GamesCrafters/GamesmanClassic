@@ -267,14 +267,6 @@ int RowWidth(int i);
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 /************************************************************************

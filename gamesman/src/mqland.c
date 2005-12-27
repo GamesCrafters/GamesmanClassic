@@ -291,15 +291,6 @@ void ChangeNumPieces();
 MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
 BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
 
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
-
-
 /************************************************************************
 **
 ** NAME:        InitializeGame

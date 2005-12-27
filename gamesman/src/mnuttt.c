@@ -248,14 +248,6 @@ void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
 
-/*************************************************************************
- **
- ** Global Database Declaration
- **
- **************************************************************************/
-
-extern VALUE     *gDatabase;
-
 
 /************************************************************************
  **

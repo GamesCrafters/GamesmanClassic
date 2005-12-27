@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.24 2005-12-27 05:25:19 ciokita Exp $
+// $Id: machi.c,v 1.25 2005-12-27 10:57:50 hevanm Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -127,13 +127,6 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 STRING MToS (MOVE);
 
-/*************************************************************************
- **
- ** Here we declare the global database variables
- **
- **************************************************************************/
-
-extern VALUE     *gDatabase;
 
 /************************************************************************
  **
@@ -1261,6 +1254,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.24  2005/12/27 05:25:19  ciokita
+// *** empty log message ***
+//
 // Revision 1.23  2005/12/21 00:54:22  hevanm
 // database updates and various commenting through out the modules where getValueOfPosition is declared outside of core code.... bad bad bad
 //

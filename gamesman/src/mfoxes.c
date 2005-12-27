@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.9 2005-11-10 20:58:51 hevanm Exp $
+// $Id: mfoxes.c,v 1.10 2005-12-27 10:57:50 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -209,7 +209,7 @@ void                    InitializeOrder();
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+//extern VALUE     *gDatabase;
 
 
 /************************************************************************
@@ -1004,6 +1004,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.9  2005/11/10 20:58:51  hevanm
+// Renaming mfoxes_new to mfoxes. You need to regenerate the makefiles with config.status to adopt the changes.
+//
 // Revision 1.3  2005/04/27 22:47:48  ciokita
 // update helpstrings
 //

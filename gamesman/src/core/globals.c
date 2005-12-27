@@ -74,7 +74,7 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 BOOLEAN gSymmetries = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
-VALUE * gDatabase = NULL;
+//VALUE * gDatabase = NULL;
 //char *  gVisited = NULL;
 
 REMOTENESS gMaxRemoteness = 0;

@@ -15,7 +15,7 @@ extern BOOLEAN	gStandardGame, gSaveDatabase, gLoadDatabase,
   gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta;
 
 extern char	gPlayerName[2][MAXNAME];
-extern VALUE*	gDatabase;
+//extern VALUE*	gDatabase;
 //extern char*	gVisited;
 
 extern int	smartness, scalelvl, remainingGivebacks, initialGivebacks;

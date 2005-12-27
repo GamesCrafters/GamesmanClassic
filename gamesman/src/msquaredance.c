@@ -265,13 +265,6 @@ extern void		SafeFree ();
 
 #endif
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 

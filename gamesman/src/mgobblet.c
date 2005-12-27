@@ -253,14 +253,6 @@ void			PrintPosition (POSITION, STRING, BOOLEAN);
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE *gDatabase;
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -304,7 +296,6 @@ void InitializeGame()
   for (i = 0; i < PIECE_SIZES; i++) {
     if ((UINT_MAX / tableSize) < gNumberOfPositions) {
       printf( "Game too large.\n" );
-      gDatabase = NULL;
       return;
     }
     gNumberOfPositions *= tableSize;
@@ -312,15 +303,10 @@ void InitializeGame()
   
   if ((UINT_MAX / 2) < gNumberOfPositions) {
     printf( "Game too large.\n" );
-    gDatabase = NULL;
     return;
   }
   gNumberOfPositions <<= 1;
   
-  if (gDatabase) {
-    SafeFree( gDatabase );
-    gDatabase = NULL;
-  }
   printf("\nDone With Initalization\n\nDone With Initalization\n");
 }
 

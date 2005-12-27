@@ -114,7 +114,7 @@ void db_destroy() {
 void db_initialize(){
 
     if (gTwoBits) {
-        db_functions = twobitdb_init();
+        twobitdb_init(db_functions);
 
     } else if(gCollDB){
 	db_functions = colldb_init();

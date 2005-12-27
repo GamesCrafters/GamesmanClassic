@@ -510,15 +510,6 @@ int numOnBoard(PIECE piece, BOARD board);
 int sizeOfPieceType(struct pieceType *pt);
 MOVE makeMove(PIECE piece, CELL source, CELL dest);
 
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
-
-
 /************************************************************************
 **
 ** NAME:        InitializeGame

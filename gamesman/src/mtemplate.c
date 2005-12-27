@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.5 2005-10-06 03:06:11 hevanm Exp $
+// $Id: mtemplate.c,v 1.6 2005-12-27 10:57:50 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -106,15 +106,6 @@ STRING   kHelpExample =
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
-
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 
 
 /************************************************************************
@@ -507,6 +498,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.5  2005/10/06 03:06:11  hevanm
+// Changed kDebugDetermineValue to be FALSE.
+//
 // Revision 1.4  2005/05/02 17:33:01  nizebulous
 // mtemplate.c: Added a comment letting people know to include gSymmetries
 // 	     in their getOption/setOption hash.

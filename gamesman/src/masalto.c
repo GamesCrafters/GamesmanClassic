@@ -229,7 +229,7 @@ extern void		SafeFree ();
 **
 **************************************************************************/
 
-extern VALUE     *gDatabase;
+//extern VALUE     *gDatabase;
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 
