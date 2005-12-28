@@ -73,8 +73,8 @@ DB_Table *univdb_init() {
   slots = (gNumberOfPositions > MAX_INIT_SLOTS) ? MAX_INIT_SLOTS : gNumberOfPositions;
   
   /* Create hash table for database */
-  ht = univht_create((unsigned long int) slots, 0.75, univdb_equal_entries, univdb_hashcode, univdb_destroy_entry);
-
+  ht = univht_create((unsigned long int) slots, 0.75, univdb_equal_entries, univdb_hashcode, univdb_destroy_entry, sizeof(univdb_entry));
+  
   /* Return newly created table of database callbacks */
   return db;
   

@@ -66,7 +66,7 @@ typedef struct {
   double stat_avg_entry_lookup;
   
   /* Entry size in bytes (constant across all entries, but is only used for statistical purposes) */
-  unsigned long int stat_entry_size;
+  unsigned int stat_entry_size;
   
   /* Number of chains (occupied slots) in hash table */
   unsigned long int stat_chains;
@@ -90,7 +90,7 @@ unsigned long int mul(unsigned long int a, unsigned long int b, unsigned long in
 unsigned long int add(unsigned long int a, unsigned long int b, unsigned long int m);
 
 /* Hash-table creation */
-univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor);
+univht *univht_create(unsigned int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor, unsigned int entry_size);
 
 /* Hash-table destruction */
 void univht_destroy(univht *ht);

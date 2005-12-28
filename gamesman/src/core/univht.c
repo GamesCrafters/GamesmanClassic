@@ -54,7 +54,13 @@
 
 FILE *strdbg = NULL;
 
-univht *univht_create(int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor) {
+univht *univht_create(unsigned int slots,
+		      float load_factor,
+		      univht_equal equal,
+		      univht_hashcode hashcode,
+		      univht_destructor destructor,
+		      unsigned int entry_size
+		      ) {
   
   void univht_generate_function(univht *ht);
   
@@ -92,6 +98,9 @@ univht *univht_create(int slots, float load_factor, univht_equal equal, univht_h
   
   /* Number of chains (unoccupied slots) defaults to 0 */
   ht->stat_chains = 0;
+  
+  /* Record entry size */
+  ht->stat_entry_size = entry_size;
   
   /* Return newly created hash-table */
   return ht;
@@ -158,8 +167,7 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
     ht->stat_avg_chain_length += 1 / ht->stat_chains;
     
   }
-  
-  
+    
   /* Attach chain to entry, overwriting any previous chains this entry might have headed */
   entry->chain = ht->table[key];
   
@@ -239,7 +247,7 @@ void univht_resize(univht *ht) {
     fprintf(strdbg, "univht: load factor of %f reached, resizing database from %lu to %lu slots\n", load, ht->slots, ht->slots * 2);
     
     /* Allocate new hash table to accomodate the moved entries */
-    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor);
+    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor, ht->stat_entry_size);
     
     for (slot = 0; ht->entries; slot++) {
       
@@ -314,6 +322,8 @@ void univht_destroy(univht *ht) {
   printf("\tNumber of occupied slots: %d\n", ht->stat_chains);
   printf("\tLength of longest chain: %d\n", ht->stat_max_chain_length);
   printf("\tAverage chain length: %f\n", ht->stat_avg_chain_length);
+  printf("\tTotal memory occupied: %d bytes\n", ht->slots * sizeof(univht_entry *) + ht->entries * (ht->stat_entry_size + sizeof(univht_entry)));
+  printf("\tMemory occupied by entries: %d bytes\n", ht->entries * (ht->stat_entry_size + sizeof(univht_entry)));
 	 
   for (slot = 0; ht->entries; slot++) {
     
