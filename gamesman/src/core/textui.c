@@ -1147,7 +1147,16 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
 	HitAnyKeyToContinue();
 	break;
       } else {
-	PrintVisualValueHistory(thePosition);
+	PrintVisualValueHistory(thePosition, 0);
+	return;
+      }
+    case 'w': case 'W':
+      if (gUnsolved) {
+	BadMenuChoice();
+	HitAnyKeyToContinue();
+	break;
+      } else {
+	PrintVisualValueHistory(thePosition, 1);
 	return;
       }
     case 'm': case 'M':

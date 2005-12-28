@@ -154,7 +154,9 @@ STRING kPrintMenu =
 
 STRING kPrintMenuWithSolving = 
 "\ts)\t(S)how the values of all possible moves\n"
-"\tv)\tPrint (V)isual Value History\n";
+"\tv)\tPrint (V)isual Value History\n"
+"\tw)\tPrint Visual Value History (W)ith All Possible Moves\n";
+
 
 
 STRING kPrintMenuEnd = 
