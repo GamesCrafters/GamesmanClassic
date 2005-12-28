@@ -3,7 +3,7 @@
 
 #ifndef NO_GRAPHICS
 #include "tcl.h"
-//#include "tk.h"
+#include "tk.h"
 #else	/* Dummy types */
 typedef int Tcl_Interp;
 typedef int Tk_Window;
