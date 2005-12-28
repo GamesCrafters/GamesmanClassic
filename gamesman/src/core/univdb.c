@@ -73,7 +73,7 @@ DB_Table *univdb_init() {
   slots = (gNumberOfPositions > MAX_INIT_SLOTS) ? MAX_INIT_SLOTS : gNumberOfPositions;
   
   /* Create hash table for database */
-  ht = univht_create((unsigned long int) slots, 0.75, univdb_equal_entries, univdb_hashcode, univdb_destroy_entry, sizeof(univdb_entry));
+  ht = univht_create((unsigned long int) slots, 0.75, univdb_equal_entries, univdb_hashcode, univdb_destroy_entry, sizeof(univdb_entry), offsetof(univdb_entry, chain));
   
   /* Return newly created table of database callbacks */
   return db;
@@ -107,7 +107,7 @@ univdb_entry *univdb_create_entry(POSITION position) {
   entry->flags = undecided;
   
   /* Insert newly created entry into hash table */
-  univht_insert(ht, entry);
+  univht_insert(ht, (void *)entry);
   
   /* Return newly created entry */
   return entry;

@@ -4,10 +4,11 @@
 #include "db.h"
 #include "gamesman.h"
 
-typedef struct {
+typedef struct univdb_entry {
 
   POSITION position;
   VALUE flags;
+  struct univdb_entry *chain;
 
 } univdb_entry;
 

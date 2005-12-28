@@ -52,6 +52,8 @@
 /* Include prototypes */
 #include "univht.h"
 
+#define chain(ht, entry) *(void **)((char *)entry + ht->entry_chain_offset)
+
 FILE *strdbg = NULL;
 
 univht *univht_create(unsigned int slots,
@@ -59,7 +61,8 @@ univht *univht_create(unsigned int slots,
 		      univht_equal equal,
 		      univht_hashcode hashcode,
 		      univht_destructor destructor,
-		      unsigned int entry_size
+		      unsigned int entry_size,
+		      unsigned int entry_chain_offset
 		      ) {
   
   void univht_generate_function(univht *ht);
@@ -85,7 +88,7 @@ univht *univht_create(unsigned int slots,
   ht->destructor = destructor;
   
   /* Create NULL slots */
-  ht->table = (univht_entry **) calloc(ht->slots, sizeof(univht_entry *));
+  ht->table = (void **) calloc(ht->slots, sizeof(void *));
   
   /* Generate the random function */
   univht_generate_function(ht);
@@ -101,6 +104,9 @@ univht *univht_create(unsigned int slots,
   
   /* Record entry size */
   ht->stat_entry_size = entry_size;
+  
+  /* Record entry chain offset */
+  ht->entry_chain_offset = entry_chain_offset;
   
   /* Return newly created hash-table */
   return ht;
@@ -123,24 +129,7 @@ void univht_generate_function(univht *ht) {
   
 }
 
-unsigned long int univht_insert(univht *ht, void *object) {
-  
-  inline unsigned long int univht_insert_entry(univht *ht, univht_entry *entry);
-  
-  univht_entry *entry;
-  
-  /* Allocate new hashtable entry */
-  entry = (univht_entry *) malloc(sizeof(univht_entry));
-  
-  /* Insert object into entry */
-  entry->object = object;
-  
-  /* Return key at which entry was inserted */
-  return univht_insert_entry(ht, entry);
-  
-}
-
-unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
+unsigned long int univht_insert(univht *ht, void *entry) {
   
   inline void univht_resize(univht *ht);
   inline unsigned long int univht_key(univht *ht, void *object);
@@ -152,7 +141,7 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   univht_resize(ht);
   
   /* Obtain the key for the object */
-  key = univht_key(ht, entry->object);
+  key = univht_key(ht, entry);
   
   /* If previously unoccupied slot is selected */
   if (ht->table[key] == NULL) {
@@ -169,7 +158,7 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   }
     
   /* Attach chain to entry, overwriting any previous chains this entry might have headed */
-  entry->chain = ht->table[key];
+  chain(ht, entry) = ht->table[key];
   
   /* Push entry onto chain (stack) */
   ht->table[key] = entry;
@@ -178,7 +167,9 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   ht->entries++;
   
   /* Determine number of entries in chain */
-  for (entry = ht->table[key], num_entries = 0; entry != NULL; entry = entry->chain, num_entries++);
+  for (entry = ht->table[key], num_entries = 0;
+       entry != NULL;
+       entry = chain(ht, entry), num_entries++);
   
   /* Update the longest chain statistic if necessary */
   if (num_entries > ht->stat_max_chain_length)
@@ -189,53 +180,43 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   
 }
 
-void *univht_lookup(univht *ht, void *object) {
+void *univht_lookup(univht *ht, void *entry) {
   
   inline unsigned long int univht_key(univht *ht, void *object);
   
   unsigned long int key;
-  univht_entry **slot;
+  void **slot;
   
   /* Obtain the key for the object */
-  key = univht_key(ht, object);
+  key = univht_key(ht, entry);
   
   /* Locate the slot in the chain for this entry */
   for (slot = &ht->table[key];
-       *slot && !(ht->equal((*slot)->object, object));
-       slot = &((*slot)->chain));
+       *slot && !(ht->equal(*slot, entry));
+       slot = &(chain(ht, *slot)));
   
-  /* If slot found, move it to the head of the chain and return the object */
-  if (*slot) {
-    
-    univht_entry *entry;
-    
-    /* Extract the entry from slot */
-    entry = *slot;
+  /* Set entry to entry at slot or NULL */
+  entry = *slot;
+
+  /* If entry found, move it to the head of the chain for faster future lookups */
+  if (entry != NULL) {
     
     /* Set slot to next entry in chain */
-    *slot = entry->chain;
+    *slot = chain(ht, entry);
     
     /* Make entry's chain point to the head of the chain */
-    entry->chain = ht->table[key];
+    chain(ht, entry) = ht->table[key];
     
     /* Make entry the head of the chain */
     ht->table[key] = entry;
-    
-    /* Return entry's object */
-    return entry->object;
-    
-  } else {
-    
-    /* Return NULL if this object was not found in the hash-table */
-    return NULL;
-    
   }
+  
+  /* Return entry */
+  return entry;
   
 }
 
 void univht_resize(univht *ht) {
-  
-  inline unsigned long int univht_insert_entry(univht *ht, univht_entry *entry);
   
   float load = (float) ht->entries / (float) ht->slots;
   if (load >= ht->load_factor) {
@@ -247,20 +228,20 @@ void univht_resize(univht *ht) {
     fprintf(strdbg, "univht: load factor of %f reached, resizing database from %lu to %lu slots\n", load, ht->slots, ht->slots * 2);
     
     /* Allocate new hash table to accomodate the moved entries */
-    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor, ht->stat_entry_size);
+    new_ht = univht_create(ht->slots * 2, ht->load_factor, ht->equal, ht->hashcode, ht->destructor, ht->stat_entry_size, ht->entry_chain_offset);
     
     for (slot = 0; ht->entries; slot++) {
       
       /* Traverse the chain */
       while (ht->table[slot]) {
 	
-	univht_entry *chain;
+	void *chain;
 	
 	/* Store the previous chain to this entry */
-	chain = ht->table[slot]->chain;
+	chain = chain(ht, ht->table[slot]);
 	
 	/* Move entry into new hash table */
-	univht_insert_entry(new_ht, ht->table[slot]);
+	univht_insert(new_ht, ht->table[slot]);
 	
 	/* Link the slot to previous chain of entry moved */
 	ht->table[slot] = chain;
@@ -322,24 +303,21 @@ void univht_destroy(univht *ht) {
   printf("\tNumber of occupied slots: %d\n", ht->stat_chains);
   printf("\tLength of longest chain: %d\n", ht->stat_max_chain_length);
   printf("\tAverage chain length: %f\n", ht->stat_avg_chain_length);
-  printf("\tTotal memory occupied: %d bytes\n", ht->slots * sizeof(univht_entry *) + ht->entries * (ht->stat_entry_size + sizeof(univht_entry)));
-  printf("\tMemory occupied by entries: %d bytes\n", ht->entries * (ht->stat_entry_size + sizeof(univht_entry)));
+  printf("\tTotal memory occupied: %d bytes\n", ht->slots * sizeof(void *) + ht->entries * ht->stat_entry_size);
+  printf("\tMemory occupied by entries: %d bytes\n", ht->entries * ht->stat_entry_size);
 	 
   for (slot = 0; ht->entries; slot++) {
     
     /* Traverse the chain */
     while (ht->table[slot]) {
       
-      univht_entry *entry = ht->table[slot];
+      void *entry = ht->table[slot];
       
       /* Link the slot to chain of object moved */
-      ht->table[slot] = entry->chain;
+      ht->table[slot] = chain(ht, entry);
       
       /* Invoke entry object destructor */
-      ht->destructor(entry->object);
-      
-      /* Free old chain entry */
-      free(entry);
+      ht->destructor(entry);
       
       /* Decrement number of entries in hash table */
       ht->entries--;
@@ -363,13 +341,13 @@ void univht_traverse(univht *ht, univht_visitor visitor, void *state) {
   /* Traverse every key in the table */
   for (slot = 0; ht->entries; slot++) {
     
-    univht_entry *entry;
+    void *entry;
     
     /* Traverse the chain */
-    for (entry = ht->table[slot]; entry != NULL; entry = entry->chain) {
+    for (entry = ht->table[slot]; entry != NULL; entry = chain(ht, entry)) {
       
       /* Invoke visitor on entry, propagating state changes */
-      state = visitor(entry->object, state);
+      state = visitor(entry, state);
       
     }
     

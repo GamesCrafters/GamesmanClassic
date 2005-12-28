@@ -12,11 +12,6 @@ typedef unsigned long long (*univht_hashcode) (void *);
 typedef void (*univht_destructor) (void *);
 typedef void *(*univht_visitor) (void *, void *);
 
-typedef struct _univht_entry{
-  void *object;
-  struct _univht_entry *chain;
-} univht_entry;
-
 typedef struct {
 
   /* Number of slots in hash table */
@@ -47,8 +42,11 @@ typedef struct {
   univht_destructor destructor;
 
   /* Array storage */
-  univht_entry **table;
-
+  void **table;
+  
+  /* Offset of chain within entry object */
+  int entry_chain_offset;
+  
   /***
       Statistical entries
   ***/
@@ -90,13 +88,13 @@ unsigned long int mul(unsigned long int a, unsigned long int b, unsigned long in
 unsigned long int add(unsigned long int a, unsigned long int b, unsigned long int m);
 
 /* Hash-table creation */
-univht *univht_create(unsigned int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor, unsigned int entry_size);
+univht *univht_create(unsigned int slots, float load_factor, univht_equal equal, univht_hashcode hashcode, univht_destructor destructor, unsigned int entry_size, unsigned int entry_chain_offset);
 
 /* Hash-table destruction */
 void univht_destroy(univht *ht);
 
 /* Hash-table insertion */
-unsigned long int univht_insert(univht *ht, void *object);
+unsigned long int univht_insert(univht *ht, void *entry);
 
 /* Hash-table lookup */
 void *univht_lookup(univht *ht, void *object);
