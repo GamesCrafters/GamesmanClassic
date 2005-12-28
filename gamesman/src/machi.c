@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.25 2005-12-27 10:57:50 hevanm Exp $
+// $Id: machi.c,v 1.26 2005-12-28 18:34:03 ddgarcia Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -164,33 +164,33 @@ kHelpGraphicInterface =
 "There is currently no graphic interface\n";
 
 kHelpTextInterface    =
-"There are two types of moves in Achi: place moves and slide moves.\n
-PLACE MOVES:\n
-The game starts out with place moves, when players alternates turns placing\n
-each of their three piece on the board. During this turn players attempt\n
-to get three in a row, either diagonally, horizontally, or vertically. If\n
-a player is able to get three in a row, then he or she wins the game. If\n
-both players are unable to get three in a row after placing all their pieces\n
-then players start sliding their pieces.\n
-SLIDE MOVES:\n
-In this phase, players alternate turns sliding their pieces along the line\n
-to any empty adjacent spot. In the standard version of the game, players \n
-may move up, down, or diagonally to any unoccupied, connected spot.\n
-FIRST: Choose a piece to move and type the number (1-9) of the space it is on.\n
-SECOND: Type the number (1-9) of the space you would like to slide to.\n
+"There are two types of moves in Achi: place moves and slide moves. \n\
+PLACE MOVES: \n\
+The game starts out with place moves, when players alternates turns placing \n\
+each of their three piece on the board. During this turn players attempt \n\
+to get three in a row, either diagonally, horizontally, or vertically. If \n\
+a player is able to get three in a row, then he or she wins the game. If \n\
+both players are unable to get three in a row after placing all their pieces \n\
+then players start sliding their pieces. \n\
+SLIDE MOVES: \n\
+In this phase, players alternate turns sliding their pieces along the line \n\
+to any empty adjacent spot. In the standard version of the game, players \n\
+may move up, down, or diagonally to any unoccupied, connected spot. \n\
+FIRST: Choose a piece to move and type the number (1-9) of the space it is on. \n\
+SECOND: Type the number (1-9) of the space you would like to slide to. \n\
 i.e. 23, 45, 69 etc.\n";
 
  if (noDiag) {
 kHelpOnYourTurn = 
-"Players alternate turns placing each of their three pieces on one of the nine\n
+"Players alternate turns placing each of their three pieces on one of the nine \n\
 spaces. During this placing phase, players attempt to connect any of \n\
-their three pieces in a row. If no one succeeds, then the first player slides\n
-any of his three pieces to any open adjacent spot. The pieces can only be moved\n
+their three pieces in a row. If no one succeeds, then the first player slides \n\
+any of his three pieces to any open adjacent spot. The pieces can only be moved \n\
 to a spot that is up or down from the previous spaces. Diagonal sliding is not\nallowed.";
  } else {
 kHelpOnYourTurn =
-"For the first six turns, each player puts a piece on an empty board position.\n\
-After all six pieces are on the board, move any one of your pieces along a\n\
+"For the first six turns, each player puts a piece on an empty board position. \n\
+After all six pieces are on the board, move any one of your pieces along a \n\
 line to an open spot on the board.";
  }
 
@@ -198,14 +198,14 @@ kHelpStandardObjective =
 "To get three pieces in a row either diagonally, vertically, or horizontally.";
 
 kHelpReverseObjective =
-"To force your opponent into getting three of his or her pieces in a row,\n\
+"To force your opponent into getting three of his or her pieces in a row, \n\
  either horizontally, vertically, or diagonally.";
 
 kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "NEVER!!!";
 
 kHelpExample =
-"         ( 1 2 3 )           : - - -\n\
+"         ( 1 2 3 )           : - - - \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
 Computer's move              :  3    \n\n\
@@ -232,11 +232,11 @@ LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
          ( 1 2 3 )           : - O X \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
          ( 7 8 9 )           : O - O \n\n\
-Computer's move              :  54    \n\n\
+Computer's move              :  54   \n\n\
          ( 1 2 3 )           : - O X \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : X - X \n\
          ( 7 8 9 )           : O - O \n\n\
-     Dan's move  : { 98 }    \n\n\
+     Dan's move  : { 98 } \n\n\
          ( 1 2 3 )           : - O X \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : X - X \n\
          ( 7 8 9 )           : O O - \n\n\
@@ -245,7 +245,6 @@ Computer's move              :  35    \n\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
          ( 7 8 9 )           : O - O \n\n\
 Computer wins. Nice try, Dan.";
-
 }
 
 
@@ -1254,6 +1253,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.25  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.24  2005/12/27 05:25:19  ciokita
 // *** empty log message ***
 //
