@@ -44,8 +44,6 @@ typedef struct moveList {
 }moveList;
 
 static moveList* mList;
-static int maxR;
-static int maxTR;
 static int tiesExist = 0;
 static int drawsExist = 0;
 static int playerOne = 0;
@@ -69,7 +67,7 @@ static  void            moveListHandleGameOver             (moveList*);
 
 
 void             PrintMoveHistory                (POSITION);
-void             PrintVisualValueHistory         (POSITION);
+void             PrintVisualValueHistory         (POSITION, int);
 
 /**
  * Prototypes for delta-Remoteness
@@ -106,31 +104,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 
     moveList* mlist = 0;
     MOVELIST* generatedMoves = 0;
-    int i;
-    maxR = 8;
-    maxTR = 8;
-    int r;
-
-	/* Temporarily disable this loop for gUnivDB
-	 * Mario: need to ask about its usefulness
-	 */
-    if(!gUnsolved && !gUnivDB) {
-      for(i = 0; i < gNumberOfPositions; i++){
-	r = Remoteness(i);
-	if (GetValueOfPosition(i) != tie) { if (r > maxR) maxR = r; }
-	else {
-	  if (r > maxTR) {
-	    if (r != REMOTENESS_MAX) {
-	      maxTR = r;
-	      tiesExist = 1;
-	    } else {
-	      drawsExist = 1;
-	    }
-	  }
-	}
-      }
-    }
-
+        
     position = gInitialPosition;
     undo = InitializeUndo();
     
@@ -294,6 +268,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		case 'q': case 'Q':
 		    ExitStageRight();
 		    exit(0);
+		    
 		case 'm': case 'M':
 		  if (gUnsolved) {
 		    PrintMoveHistory(-1);
@@ -308,7 +283,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		    HitAnyKeyToContinue();
 		    break;
 		  }
-		  PrintVisualValueHistory(-1);
+		  PrintVisualValueHistory(-1, 1);
 		  break;
 		default:
 		    BadMenuChoice();
@@ -519,7 +494,7 @@ int isDraw(int remoteness) {
 }
 
 
-int* getDividers(int *dividers) {
+int* getDividers(int *dividers, int maxR, int maxTR) {
   if (tiesExist) {
     dividers[0] = 0;
     dividers[1] = dividers[0]+maxR+1;
@@ -539,12 +514,12 @@ int* getDividers(int *dividers) {
 }
 
 
-char* createBlankLine(char* line) {
+char* createBlankLine(char* line, int maxR, int maxTR) {
   int i;
 
   int dividers[6];
   
-  getDividers(dividers);
+  getDividers(dividers, maxR, maxTR);
 
   int lineLength = dividers[5]+1;
   
@@ -558,10 +533,10 @@ char* createBlankLine(char* line) {
 }
 
 
-char* addDividers(char* line) {
+char* addDividers(char* line, int maxR, int maxTR) {
   int i;
   int dividers[6];
-  int divider1 = getDividers(dividers)[0];
+  int divider1 = getDividers(dividers, maxR, maxTR)[0];
   int divider2 = dividers[1];
   int divider3 = dividers[2];
   int divider4 = dividers[3];
@@ -576,7 +551,8 @@ char* addDividers(char* line) {
 }
 
 
-void addMove(char* line, POSITION position, int whoseTurn, char mark) {
+void addMove(char* line, POSITION position, int whoseTurn, char mark,
+	     int maxR, int maxTR) {
 
   VALUE value = GetValueOfPosition(position);
   int remoteness = Remoteness(position);
@@ -585,7 +561,7 @@ void addMove(char* line, POSITION position, int whoseTurn, char mark) {
   int drawDivider;
   int winRightDivider;
   
-  getDividers(dividers);
+  getDividers(dividers, maxR, maxTR);
 
   if (tiesExist) drawDivider = dividers[2];
   else drawDivider = dividers[1];
@@ -626,7 +602,7 @@ char* justify(char* input, char* output, int length, int justifyCase) {
 }
 
 
-void drawDashes(char* line, POSITION position, int whoseTurn){
+void drawDashes(char* line, POSITION position, int whoseTurn, int maxR, int maxTR){
 
   int i;
   int moveIndex = -1;
@@ -635,7 +611,7 @@ void drawDashes(char* line, POSITION position, int whoseTurn){
   int remoteness = Remoteness(position);
   
   int dividers[6];
-  getDividers(dividers)[0];
+  getDividers(dividers, maxR, maxTR)[0];
   
   int leftWin = dividers[0];
   int rightWin;
@@ -669,7 +645,7 @@ void drawDashes(char* line, POSITION position, int whoseTurn){
     for (i = rightWin-1; i > moveIndex; i--) line[i] = '-';
   }
 
-  addDividers(line);
+  addDividers(line, maxR, maxTR);
 
 }
 
@@ -705,10 +681,10 @@ int getComment(POSITION position, POSITION prevPos) {
 }
 
 
-void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen) {
+void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen, 
+	       int maxR, int maxTR, int showAllMoves) {
   
   int drawDash = 1;
-  int drawOtherMoves = 1;
 
   int comment;
   STRING moveString;
@@ -720,25 +696,27 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen) {
   char line[maxPossibleLineLength];
   
   strcpy(moveToPrint, "");
-  createBlankLine(line);
+  createBlankLine(line, maxR, maxTR);
   
   // ADD DASHES
   if (drawDash) {
     drawDashes(line, DoMove(moveInfo->position, moveInfo->move),
-	       whoseTurn);
+	       whoseTurn, maxR, maxTR);
   }
 
   // ADD OTHER MOVES
-  if (drawOtherMoves) {
+  if (showAllMoves == 1) {
     MOVELIST* generatedMoves = moveInfo->generatedMoves;
     while(generatedMoves) {
-      addMove(line, DoMove(moveInfo->position, generatedMoves->move), whoseTurn, '.');
+      addMove(line, DoMove(moveInfo->position, generatedMoves->move), whoseTurn, 
+	      '.', maxR, maxTR);
       generatedMoves = generatedMoves->next;
     }
   }
 
   // ADD MOVE
-  addMove(line, DoMove(moveInfo->position, moveInfo->move), whoseTurn, '*');
+  addMove(line, DoMove(moveInfo->position, moveInfo->move), whoseTurn, 
+	  '*', maxR, maxTR);
 
   comment = getComment(DoMove(moveInfo->position, moveInfo->move), 
 		       moveInfo->position);
@@ -818,12 +796,35 @@ int getMaxMoveLength() {
 }
 
 
-void PrintVisualValueHistory(POSITION position)
-{
-  if (gUnsolved) return;
-  moveList* mlist = mList;
-  int maxMoveLength = getMaxMoveLength();
+void updateRemoteness(int* maxR, int* maxTR, 
+		      POSITION position, MOVE move, int doMoveFlag) {
   
+  int r;
+
+  if(gUnsolved || gUnivDB) return;
+  if (doMoveFlag) position = DoMove(position, move);
+  r = Remoteness(position);
+  if (GetValueOfPosition(position) != tie) { if (r > *maxR) *maxR = r; }
+  else {
+    if (r > *maxTR) {
+      if (r != REMOTENESS_MAX) {
+	*maxTR = r;
+	tiesExist = 1;
+      } else {
+	drawsExist = 1;
+      }
+    }
+  }
+
+}
+
+void PrintVisualValueHistory(POSITION position, int showAllMoves)
+{
+  int maxR = 8;
+  int maxTR = 8;
+
+  moveList* mlist = mList;
+
   int whoseTurn;
   
   int dividers[6];
@@ -834,12 +835,40 @@ void PrintVisualValueHistory(POSITION position)
   char* playerOneName = gPlayerName[kPlayerOneTurn];
   char* playerTwoName = gPlayerName[kPlayerTwoTurn];
   
+  POSITION lastPosition = gInitialPosition;
+  MOVELIST* generatedMoves;
+
+  int maxMoveLength = getMaxMoveLength();  
+	
+  if (gUnsolved) return;
   if (maxN > maxMoveLength) maxMoveLength = maxN;
   
-
   whoseTurn = playerOne;
 
+  // Determine maximum remotenesses
+
+  updateRemoteness(&maxR, &maxTR, gInitialPosition, 0, 0);
+
+  while(mlist != 0) {
+    updateRemoteness(&maxR, &maxTR, mlist->position, mlist->move, 1);
+    lastPosition = DoMove(mlist->position, mlist->move);
+    mlist = mlist->next;
+  }
+  mlist = mList;
+
+  if (gPrintPredictions) {
+    generatedMoves = GenerateMoves(lastPosition);
+    while(generatedMoves) {
+      updateRemoteness(&maxR, &maxTR, lastPosition, generatedMoves->move, 1);
+      generatedMoves = generatedMoves->next;
+    }
+  }
+
+  // Print header
+
   PrintHeader(maxMoveLength, maxR, maxTR, position, whoseTurn);
+
+  // Determine players' names
 
   if(gOpponent == AgainstComputer) {
     if(gHumanGoesFirst) {
@@ -855,21 +884,44 @@ void PrintVisualValueHistory(POSITION position)
     playerTwoName = gPlayerName[kPlayerTwoTurn];
   }
   
-  createBlankLine(line);
-  addMove(line, gInitialPosition, playerTwo, '*');
+  // Print line for initial position
+
+  createBlankLine(line, maxR, maxTR);
+  addMove(line, gInitialPosition, playerTwo, '*', maxR, maxTR);
   printf("%s", justify(playerOneName, playerName, maxMoveLength, leftJustified));
   printf("%s%s\n", line, justify(playerTwoName, playerName, maxMoveLength, rightJustified));
-  
+
+  // Print move values
 
   while(mlist != 0) {
 
-    printLine(mlist, whoseTurn, maxMoveLength);
+    printLine(mlist, whoseTurn, maxMoveLength, maxR, maxTR, showAllMoves);
 
     if (whoseTurn == playerOne) whoseTurn = playerTwo;
     else whoseTurn = playerOne;
 
     mlist = mlist->next;
   }
+
+  // If predictions are on, print values for possible moves
+
+  if (gPrintPredictions) {
+    
+    generatedMoves = GenerateMoves(lastPosition);
+    if (generatedMoves) {
+      createBlankLine(line, maxR, maxTR);
+      while(generatedMoves) {
+	addMove(line, DoMove(lastPosition, generatedMoves->move), whoseTurn, 
+		'.', maxR, maxTR);
+	generatedMoves = generatedMoves->next;
+      }
+      strcpy(playerName, "");
+      addSpacePadding(playerName, maxMoveLength);
+      printf("%s%s\n", playerName, line);
+    }
+  }
+
+  // Print footer
 
   PrintFooter(maxMoveLength, maxR, maxTR, position, whoseTurn);
   
