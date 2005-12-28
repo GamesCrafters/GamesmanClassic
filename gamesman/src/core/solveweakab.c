@@ -1,5 +1,7 @@
 #include "solveweakab.h"
 
+#define INFINITY (2*gMaxRemoteness + 1)
+
 /*
  Function: invert_score
     Create inverse of given score (depending on maximum remoteness)
@@ -9,6 +11,8 @@
     max_remoteness - maximum remoteness (determines range scores for win/lose/tie)
 
 */
+int ctra = 0;
+
 SCORE invert_score(SCORE score, REMOTENESS max_remoteness) {
 
   /* If score is in the tie range, retain it */
@@ -45,13 +49,20 @@ SCORE generate_score(VALUE value, REMOTENESS remoteness, REMOTENESS min_remotene
 
 }
 
-SCORE minimax(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remoteness, REMOTENESS max_remoteness) {
 
+
+SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remoteness, REMOTENESS max_remoteness) {
+  
   VALUE value;
   REMOTENESS remoteness;
   MOVELIST *moves_list, *move_node;
   POSITION child, best_child;
   SCORE score;
+  
+  ctra++;
+  if (!(ctra & 0xFFFF)) {
+    printf("evaluated %d positions\n", ctra);
+  }
 
   /* First examine if the game value of position is known already */
   value = GetValueOfPosition(position);
@@ -100,8 +111,8 @@ SCORE minimax(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remoten
 	    
 	  }
 	  
-	  /* Run the minimax algorithm on the child board with inverted alpha and beta */
-	  score = invert_score(minimax(child,
+	  /* Run the alpha_beta algorithm on the child board with inverted alpha and beta */
+	  score = invert_score(alpha_beta(child,
 				       invert_score(beta, max_remoteness),
 				       invert_score(alpha, max_remoteness),
 				       min_remoteness - 1,
@@ -164,15 +175,50 @@ SCORE minimax(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remoten
   
 }
 
+SCORE MTD(POSITION position, SCORE score) {
+
+  SCORE upperbound, lowerbound, beta;
+
+  upperbound = +INFINITY;
+  lowerbound = -INFINITY;
+  
+  /* Repeat until zeroed in on score */
+  do {  
+    /* beta is a *valid* version of the approximate score
+       i.e. it is either the approximate score,
+       or in case the approximate score is the lowerbound, it is the minimal valid score,
+       since the lowerbound score is invalid and we need a valid alpha
+    */
+    beta = (lowerbound == score) ? score + 1 : score;
+    
+    /* Run the alpha-beta pruning minimax search with alpha = beta - 1 */
+    score = alpha_beta(position, beta - 1, beta, gMinRemoteness, gMaxRemoteness);
+    
+    /* If score is less than beta, change upperbound to equal score */
+    if (score < beta) {
+      upperbound = score;
+    }
+    /* Otherwise change lowerbound to equal score */
+    else {
+      lowerbound = score;
+    }
+  } while (lowerbound < upperbound);
+
+  return score;
+
+}
+
 
 VALUE DetermineValueAlphaBeta(POSITION position) {
   
-  printf("starting minimax with alpha = %d, beta = %d, min_remoteness = %d, max_remoteness = %d\n",
-	 - 2*gMaxRemoteness - 1,
-	 2*gMaxRemoteness + 1,
+  printf("starting alpha_beta with alpha = %d, beta = %d, min_remoteness = %d, max_remoteness = %d\n",
+	 -INFINITY,
+	 +INFINITY,
 	 gMinRemoteness,
 	 gMaxRemoteness);
-  minimax(position, - 2*gMaxRemoteness - 1, 2*gMaxRemoteness + 1, gMinRemoteness, gMaxRemoteness);
+
+  MTD(position, -INFINITY);
+  //alpha_beta(position, -INFINITY, +INFINITY, gMinRemoteness, gMaxRemoteness);
   return GetValueOfPosition(position);
 
 }
