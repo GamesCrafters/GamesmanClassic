@@ -49,6 +49,28 @@ typedef struct {
   /* Array storage */
   univht_entry **table;
 
+  /***
+      Statistical entries
+  ***/
+  
+  /* Length of longest chain */
+  unsigned long int stat_max_chain_length;
+  
+  /* Chain length on average (excludes 0 length chains) */
+  double stat_avg_chain_length;
+  
+  /* Number of lookups for most looked up entry in table */
+  unsigned long int stat_max_entry_lookup;
+  
+  /* Average number of lookups for entry in table */
+  double stat_avg_entry_lookup;
+  
+  /* Entry size in bytes (constant across all entries, but is only used for statistical purposes) */
+  unsigned long int stat_entry_size;
+  
+  /* Number of chains (occupied slots) in hash table */
+  unsigned long int stat_chains;
+
 } univht;
 
 /*

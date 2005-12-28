@@ -40,7 +40,7 @@ univht *ht;
 
 extern FILE *strdbg;
 
-#define MAX_INIT_SLOTS 2000000
+#define MAX_INIT_SLOTS 200
 
 DB_Table *univdb_init() {
 

@@ -84,6 +84,15 @@ univht *univht_create(int slots, float load_factor, univht_equal equal, univht_h
   /* Generate the random function */
   univht_generate_function(ht);
   
+  /* Maximum chain length defaults to 0 */
+  ht->stat_max_chain_length = 0;
+  
+  /* Average chain length defaults to 0 */
+  ht->stat_avg_chain_length = 0.0;
+  
+  /* Number of chains (unoccupied slots) defaults to 0 */
+  ht->stat_chains = 0;
+  
   /* Return newly created hash-table */
   return ht;
   
@@ -128,12 +137,28 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   inline unsigned long int univht_key(univht *ht, void *object);
   
   unsigned long int key;
+  int num_entries;
   
   /* Resize the hash table if needed */
   univht_resize(ht);
   
   /* Obtain the key for the object */
   key = univht_key(ht, entry->object);
+  
+  /* If previously unoccupied slot is selected */
+  if (ht->table[key] == NULL) {
+    
+    /* Recompute the average chain length and increment number of chains */
+    ht->stat_avg_chain_length = (ht->stat_avg_chain_length * ht->stat_chains + 1) / ++ht->stat_chains;
+    
+  }
+  /* Otherwise simply recompute average chain length */
+  else {
+    
+    ht->stat_avg_chain_length += 1 / ht->stat_chains;
+    
+  }
+  
   
   /* Attach chain to entry, overwriting any previous chains this entry might have headed */
   entry->chain = ht->table[key];
@@ -143,6 +168,13 @@ unsigned long int univht_insert_entry(univht *ht, univht_entry *entry) {
   
   /* Increment number of entries in hash-table */
   ht->entries++;
+  
+  /* Determine number of entries in chain */
+  for (entry = ht->table[key], num_entries = 0; entry != NULL; entry = entry->chain, num_entries++);
+  
+  /* Update the longest chain statistic if necessary */
+  if (num_entries > ht->stat_max_chain_length)
+    ht->stat_max_chain_length = num_entries;
   
   /* Return key at which entry was inserted */
   return key;
@@ -276,6 +308,13 @@ unsigned long int univht_key(univht *ht, void *object) {
 void univht_destroy(univht *ht) {
   int slot;
   
+  /* Print statistical information about database */
+  printf("Statistics:\n");
+  printf("\tNumber of entries: %d\n", ht->entries);
+  printf("\tNumber of occupied slots: %d\n", ht->stat_chains);
+  printf("\tLength of longest chain: %d\n", ht->stat_max_chain_length);
+  printf("\tAverage chain length: %f\n", ht->stat_avg_chain_length);
+	 
   for (slot = 0; ht->entries; slot++) {
     
     /* Traverse the chain */
