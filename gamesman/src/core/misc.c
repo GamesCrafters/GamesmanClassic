@@ -366,7 +366,7 @@ void MexFormat(POSITION position, STRING string)
         else
             (void) sprintf(tmp, "*%d", (int)theMex);
 	
-        (void) sprintf(string,"[Val = %s]",tmp);
+        (void) sprintf(string,"[Grundy # = %s]",tmp);
     } else
         sprintf(string, " ");
 }
