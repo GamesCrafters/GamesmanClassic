@@ -109,7 +109,7 @@ VALUE DetermineValue(POSITION position)
     gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
 
     if(gLoadDatabase && LoadDatabase()) {
-        if (gPrintDatabaseInfo) printf("\nLoading %s from Database...",kGameName);
+        if (gPrintDatabaseInfo) printf("\nLoading in Database for %s...",kGameName);
 	
         if (GetValueOfPosition(position) == undecided) {
             if (gPrintDatabaseInfo) printf("\nRe-evaluating the value of %s...", kGameName);
@@ -134,10 +134,10 @@ VALUE DetermineValue(POSITION position)
 }
 
 /* Starts a normal textbased game. */
-void StartGame()
+void StartGame(STRING executableName)
 {
     Initialize();
-    Menus();
+    Menus(executableName);
 }
 
 /* Solves the game and stores it, without anybody actually playing it */
@@ -292,18 +292,18 @@ int main(int argc, char *argv[])
 {
     HandleArguments(argc, argv);
 
-    return gamesman_main();
+    return gamesman_main(argv[0]);
 }
 
 /* main() is not exported in shared libraries, thus gamesman_main will handle everything */
 /* This is needed for external modules (e.g. python) to call it if necessary */
-int gamesman_main()
+int gamesman_main(STRING executableName)
 {
     //Initialize();
 
     if(!gMessage) {
         if(!gJustSolving)
-            StartGame();
+            StartGame(executableName);
         else if(!gSolvingAll) {
             fprintf(stderr, "Solving \"%s\" option %u....", kGameName, getOption());
             fflush(stderr);
