@@ -71,17 +71,14 @@ char GetMyChar()
 }
 
 
-void Menus()
+void Menus(STRING executableName)
 {
-    printf(kOpeningCredits,kSolveVersion,kGameName);
+    printf(kOpeningCredits,kSolveVersion,executableName,kGameName,kAuthorName);
 
     HitAnyKeyToContinue();
 
     do {
-        printf("\n\t----- GAMESMAN version %s with %s module -----\n",
-            kSolveVersion, kGameName);
-
-        if(gMenuMode == BeforeEvaluation)
+        if(gMenuMode == BeforeEvaluation) 
             MenusBeforeEvaluation();
         else if(gMenuMode == Evaluated)
             MenusEvaluated();
@@ -97,6 +94,8 @@ void Menus()
 void MenusBeforeEvaluation()
 {
     gUnsolved = FALSE;
+
+    printf("\n\t----- Main (Pre-Solved) Menu for %s -----\n", kGameName);
 
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
@@ -333,7 +332,7 @@ USERINPUT ConfigurationMenu()
 	     gSkipInputOnSingleMove? "ON" : "OFF");
       printf("\th)\t(H)elp\n\n");
       printf("\tb)\t(B)ack = Return to previous activity\n");
-      printf("\n\tq)\t(Q)uit\n\n");
+      printf("\n\tq)\t(Q)uit\n");
       printf("\n\nSelect an option: ");
 
       switch(c = GetMyChar()) {
@@ -498,7 +497,11 @@ USERINPUT ConfigurationMenu()
 
 void MenusEvaluated()
 {
+    printf("\n\t----- Play (Post-Solved) Menu for %s -----\n", kGameName);
+
    /*took out configuration options*/
+
+    printf("\n\tp)\t(P)LAY NEW GAME\n");
 
     printf("\n\tc)\t(C)onfigure play options\n");
 
@@ -509,14 +512,10 @@ void MenusEvaluated()
     }
 
 
-
-    printf("\n\tp)\t(P)LAY GAME\n");
-
-
     if(kDebugMenu)
         printf("\n\td)\t(D)ebug Game AFTER Evaluation\n");
 
-    printf("\n\tm)\tGo to (M)ain Menu to edit game rules or starting position\n");
+    printf("\n\tm)\tGo to the (M)ain Menu to edit the rules / starting position\n");
 }
 
 void ParseMenuChoice(char c)
@@ -1116,12 +1115,13 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
     if (input == '\0') 
       {
 
+	printf("\n\t----- Print Menu for %s -----\n", kGameName);
 	printf("%s", kPrintMenu);
 	
 	if (!gUnsolved)
 	  printf("%s", kPrintMenuWithSolving);
 	printf("%s", kPrintMenuEnd);
-	printf("\n\nSelect an option: ");
+	printf("\nSelect an option: ");
 	c = GetMyChar();
       }
     else {
