@@ -204,7 +204,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	PrintPosition(position,player->name,(player->type==Human?TRUE:FALSE));
 	switch(value) {
 	case tie:
-	    printf("The match ends in a tie. Excellent strategies, %s and %s!\n",playerOne->name,playerTwo->name);
+	    printf("\nThe match ends in a tie. Excellent strategies, %s and %s!\n",playerOne->name,playerTwo->name);
 	    break;
 	case lose:
 	    printf("\n%s (player %s) Wins!\n\n",player->turn?playerOne->name:playerTwo->name,player->turn?"one":"two");
@@ -220,7 +220,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		gPlaying = FALSE;
 	    }
 	    else if(player_draw)
-		printf("The match ends in a tie. Excellent strategies, %s and %s! \n\n",playerOne->name,playerTwo->name);
+		printf("\nThe match ends in a draw. Excellent strategies, %s and %s! \n\n",playerOne->name,playerTwo->name);
 	    else
 		BadElse("PlayGame");
 	}
