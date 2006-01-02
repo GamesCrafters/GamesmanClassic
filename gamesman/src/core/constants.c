@@ -166,7 +166,7 @@ STRING kPrintMenuWithSolving =
 
 
 STRING kPrintMenuEnd = 
-"\tm)\tShow (M)ove History\n"
+"\tm)\tScript of (M)ove History\n"
 "\n\th)\t(H)elp\n\n"
 "\tb)\t(B)ack\n\n"
 "\tq)\t(Q)uit\n\n";

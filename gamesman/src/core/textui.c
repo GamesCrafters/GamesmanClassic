@@ -706,7 +706,6 @@ void ParseEvaluatedMenuChoice(char c)
 	}
 	else
 	    BadElse("Invalid Opponent to play!");
-      HitAnyKeyToContinue();
       break;
 
 

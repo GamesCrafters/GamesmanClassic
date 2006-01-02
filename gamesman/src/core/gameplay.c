@@ -232,14 +232,16 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		printf("%s",
 		       (gOpponent != ComputerComputer) ? 
 		       "\tu)\t(U)ndo the last move\n" : "");
-		if (!gUnsolved)
+		if (!gUnsolved){
 		  printf("%s",
-			 "\tv)\t(V)isual Value History\n");
+			 "\tv)\tPrint (V)isual Value History\n");
+		  printf("%s", "\tw)\tPrint Visual Value History (W)ith All Possible Moves\n");
+			 }
 		
 		printf("%s",
 		       "\tm)\tScript of (M)ove History\n");
 		printf("%s%s%s",
-		       "\tb)\t(B)ack to the menu\n",
+		       "\tb)\t(B)ack to the Play Menu\n",
 		       "\tq)\t(Q)uit\n\n",
 		       
 		       "Select an option:  ");
@@ -272,12 +274,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		    exit(0);
 		    
 		case 'm': case 'M':
-		  if (gUnsolved) {
-		    PrintMoveHistory(-1);
-		    break;
-		  }
-		  BadMenuChoice();
-		  HitAnyKeyToContinue();
+		  PrintMoveHistory(-1);
 		  break;
 		case 'v': case 'V':
 		  if (gUnsolved) {
@@ -285,6 +282,14 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		    HitAnyKeyToContinue();
 		    break;
 		  }
+		  PrintVisualValueHistory(-1, 0);
+		  break;
+		case 'w': case 'W':
+		  if (gUnsolved) {
+		    BadMenuChoice();
+		    HitAnyKeyToContinue();
+		    break;
+		  } 
 		  PrintVisualValueHistory(-1, 1);
 		  break;
 		default:
