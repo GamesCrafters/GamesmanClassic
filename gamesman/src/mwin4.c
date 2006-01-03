@@ -180,14 +180,7 @@ void InitializeGame()
   gInitialPosition    = MyInitialPosition();
   gEnumerateWithinStage = &EnumerateWithinStage;
 
-//  gDatabase = (VALUE *) SafeMalloc (gNumberOfPositions * sizeof(VALUE));
-
   gMinimalPosition = gInitialPosition ;
-
-//  printf("numofpos = %u %x, ptr=%u\n", 
-//	 gNumberOfPositions, gNumberOfPositions, gDatabase);
-//  for(i = 0; i < gNumberOfPositions; i++)
-  //  gDatabase[i] = undecided;
 
   gOppositeDirections[NO_DIRECTION] = NO_DIRECTION;
   gOppositeDirections[DOWN] = UP;

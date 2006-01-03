@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.26 2005-12-28 18:34:03 ddgarcia Exp $
+// $Id: machi.c,v 1.27 2006-01-03 00:19:34 hevanm Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -127,14 +127,6 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 STRING MToS (MOVE);
 
-
-/************************************************************************
- **
- ** NAME:        InitializeDatabases
- **
- ** DESCRIPTION: Initialize the gDatabase, a global variable.
- ** 
- ************************************************************************/
 
 void InitializeGame()
 {
@@ -472,49 +464,6 @@ POSITION GetInitialPosition()
 
 /************************************************************************
  **
- ** NAME:        GetComputersMove
- **
- ** DESCRIPTION: Get the next move for the computer from the gDatabase
- ** 
- ** INPUTS:      POSITION thePosition : The position in question.
- **
- ** OUTPUTS:     (MOVE) : the next move that the computer will take
- **
- ** CALLS:       POSITION GetCanonicalPosition (POSITION)
- **              MOVE     DecodeMove (POSITION,POSITION,MOVE)
- **
- ************************************************************************/
-/*****
-MOVE GetComputersMove(thePosition)
-     POSITION thePosition;
-{
-    MOVE theMove;
-    int i, randomMove, numberMoves = 0;
-    MOVELIST *ptr, *head, *GetValueEquivalentMoves();
-
-    //if(gPossibleMoves) 
-//	printf("%s could equivalently choose [ ", gPlayerName[kComputersTurn]);
-    head = ptr = GetValueEquivalentMoves(thePosition);
-    while(ptr != NULL) {
-	numberMoves++;
-	//if(gPossibleMoves) 
-	  //  printf("%d ",ptr->move+1);
-	ptr = ptr->next;
-    }
-    if(gPossibleMoves) 
-	printf("]\n\n");
-    randomMove = GetRandomNumber(numberMoves);
-    ptr = head;
-    for(i = 0; i < randomMove ; i++)
-	ptr = ptr->next;
-    theMove = ptr->move;
-    FreeMoveList(head);
-    return(theMove);
-}
-*****/
-
-/************************************************************************
- **
  ** NAME:        PrintComputersMove
  **
  ** DESCRIPTION: Nicely format the computers move.
@@ -608,7 +557,6 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
     int i;
-    //    VALUE GetValueOfPosition();
     BlankOX theBlankOx[BOARDSIZE];
     BlankOX whosTurn;
     
@@ -931,153 +879,6 @@ STRING MToS(theMove)
   }
 }
 
-
-
-/************************************************************************
-*************************************************************************
-** BEGIN   FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
- **
- ** NAME:        StaticEvaluator
- **
- ** DESCRIPTION:  the Static Evaluator value
- **
- **              If the game is PARTIZAN:
- **              the value 0 => player 2's advantage
- **              the value 1 => player 1's advantage
- **              player 1 MAXIMIZES and player 2 MINIMIZES
- **
- **              If the game is IMPARTIAL
- **              the value 0 => losing position
- **              the value 1 => winning position
- **
- **              Not called if kSupportsHeuristic == FALSE
- ** 
- ** INPUTS:      POSITION thePosition : The position in question.
- **
- ** OUTPUTS:     (FUZZY) : the Fuzzy Static Evaluation value
- **
- ************************************************************************/
-
-/**
-FUZZY StaticEvaluator(thePosition)
-     POSITION thePosition;
-{
-    return 0;
-}
-**/
-/************************************************************************
- **
- ** NAME:        PositionToMinOrMax
- **
- ** DESCRIPTION: Given any position, this returns whether the player who
- **              has the position is a MAXIMIZER or MINIMIZER. If the
- **              game is IMPARTIAL (kPartizan == FALSE) then this procedure
- **              always returns MINIMIZER. See StaticEvaluator for the 
- **              reason. Note that for PARTIZAN games (kPartizan == TRUE):
- **              
- **              Player 1 MAXIMIZES
- **              Player 2 MINIMIZES
- **
- **              Not called if kSupportsHeuristic == FALSE
- ** 
- ** INPUTS:      POSITION thePosition : The position in question.
- **
- ** OUTPUTS:     (MINIMAX) : either minimizing or maximizing
- **
- ** CALLS:       PositionToBlankOx(POSITION,*BlankOX)
- **              BlankOX WhosTurn(*BlankOX)
- **
- ************************************************************************/
-/**
-MINIMAX PositionToMinOrMax(thePosition)
-     POSITION thePosition;
-{
-    return 0;
-}
-**/
-/************************************************************************
-*************************************************************************
-** END     FUZZY STATIC EVALUATION ROUTINES. DON'T WORRY ABOUT UNLESS
-**         YOU'RE NOT GOING TO EXHAUSTIVELY SEARCH THIS GAME
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
-*************************************************************************
-** BEGIN   PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
-/************************************************************************
- **
- ** NAME:        GetRawValueFromDatabase
- **
- ** DESCRIPTION: Get a pointer to the value of the position from gDatabase.
- ** 
- ** INPUTS:      POSITION position : The position to return the value of.
- **
- ** OUTPUTS:     (VALUE *) a pointer to the actual value.
- **
- ** CALLS:       POSITION GetCanonicalPosition (POSITION)
- **
- ************************************************************************/
-/**
-VALUE *GetRawValueFromDatabase(position)
-     POSITION position;
-{
-    return(&gDatabase[position]);
-}
-**/
-/************************************************************************
- **
- ** NAME:        GetNextPosition
- **
- ** DESCRIPTION: Return the next non-undecided position when called 
- **              consecutively. When done, return kBadPosition and
- **              reset internal counter so that if called again,
- **              would start from the beginning.
- ** 
- ** OUTPUTS:     (POSITION) : the next non-Undecided position
- **
- ************************************************************************/
-
-/**
-POSITION GetNextPosition()
-{
-    VALUE GetValueOfPosition();
-    static POSITION thePosition = 0; // Cycle through every position
-    POSITION returnPosition;
-
-    while(thePosition < gNumberOfPositions &&  GetValueOfPosition(thePosition) == undecided)
-	thePosition++;
-
-    if(thePosition == gNumberOfPositions) {
-	thePosition = 0;
-	return(kBadPosition);
-    }
-    else {
-	returnPosition = thePosition++;
-	return(returnPosition);
-    }
-}
-**/
-/************************************************************************
-*************************************************************************
-** END     PROBABLY DON'T HAVE TO CHANGE THESE SUBROUTINES UNLESS YOU
-**         FUNDAMENTALLY WANT TO CHANGE THE WAY YOUR GAME STORES ITS
-**         POSITIONS IN THE TABLE FROM AN ARRAY TO SOMETHING ELSE
-**         AND ALSO CHANGE THE DEFINITION OF A POSITION (NOW AN INT)
-*************************************************************************
-************************************************************************/
-
 /************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
@@ -1253,6 +1054,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2005/12/28 18:34:03  ddgarcia
+// Fixed some trailing \n\ in the text strings...
+//
 // Revision 1.25  2005/12/27 10:57:50  hevanm
 // almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
 //

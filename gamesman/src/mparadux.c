@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.21 2005-12-19 10:06:23 trikeizo Exp $
+// $Id: mparadux.c,v 1.22 2006-01-03 00:19:35 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -344,14 +344,6 @@ int*                    slotToRCCache;
 /* Test Functions */
 
 void                    runTests();
-
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-extern VALUE     *gDatabase;
 
 /************************************************************************
 **
@@ -1868,6 +1860,9 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2005/12/19 10:06:23  trikeizo
+// Fixed first player always wins.
+//
 // Revision 1.20  2005/12/07 10:50:19  yanpeichen
 // ** 12/07/2005 Yanpei - Added prevMoveAllowed as game option
 // **                     Coded brief game options menu

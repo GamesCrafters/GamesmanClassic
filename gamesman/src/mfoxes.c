@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.10 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mfoxes.c,v 1.11 2006-01-03 00:19:35 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -201,16 +201,6 @@ void                    MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE                    SlotsToMove (SLOT fromSlot, SLOT toSlot);
 void                    InitializeAdjacency();
 void                    InitializeOrder();
-
-
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-//extern VALUE     *gDatabase;
-
 
 /************************************************************************
 **
@@ -1004,6 +994,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.9  2005/11/10 20:58:51  hevanm
 // Renaming mfoxes_new to mfoxes. You need to regenerate the makefiles with config.status to adopt the changes.
 //

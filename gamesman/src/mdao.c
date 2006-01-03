@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.2 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mdao.c,v 1.3 2006-01-03 00:19:35 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -182,15 +182,6 @@ void                    setGameParameters(int row, int col, int num_of_dirs, BOO
 void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
-
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-//extern VALUE     *gDatabase;
-
 
 /************************************************************************
 **

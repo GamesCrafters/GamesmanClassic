@@ -240,16 +240,6 @@ sMove unhashMove(MOVE move);
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
-
-/*************************************************************************
-**
-** Global Database Declaration
-**
-**************************************************************************/
-
-//extern VALUE     *gDatabase;
-
-
 /************************************************************************
 **
 ** NAME:        InitializeGame

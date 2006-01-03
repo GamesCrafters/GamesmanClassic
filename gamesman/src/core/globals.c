@@ -2,7 +2,7 @@
 **
 ** NAME:	global.c
 **
-** DESCRIPTION:	Sets the default values of global variables
+** DESCRIPTION:	Allocates memory for and sets the defaults of globals
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
@@ -29,7 +29,8 @@
 **
 **************************************************************************/
 
-#include "gamesman.h"
+#include "types.h"
+#include "constants.h"
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
@@ -74,8 +75,6 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 BOOLEAN gSymmetries = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
-//VALUE * gDatabase = NULL;
-//char *  gVisited = NULL;
 
 REMOTENESS gMaxRemoteness = 0;
 REMOTENESS gMinRemoteness = 0;
@@ -85,7 +84,6 @@ int   scalelvl = MAXSCALE;
 int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
 VALUE oldValueOfPosition = tie;
-
 
 MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;

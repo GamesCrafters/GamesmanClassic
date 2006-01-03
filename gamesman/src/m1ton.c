@@ -106,14 +106,6 @@ Computer wins. Nice try, Dan.";
 
 STRING gGameSpecificMenu = "1.\tSet the value of N\n  \t(the target ending sum.\n\n2.\tSet the highest number you can add\n  \tto the running sum.\n\n3.\tReturn to previous menu.\n\nSelect option: ";
 
-/************************************************************************
-**
-** NAME:        InitializeDatabases
-**
-** DESCRIPTION: Initialize the gDatabase, a global variable.
-** 
-************************************************************************/
-
 void InitializeGame()
 {
   gNumberOfPositions = N + 1;

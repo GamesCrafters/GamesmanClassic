@@ -12,11 +12,9 @@ extern BOOLEAN	gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 extern BOOLEAN	gStandardGame, gSaveDatabase, gLoadDatabase,
 		gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
                 gTwoBits, gCollDB, gUnivDB, gGlobalPositionSolver, gZeroMemSolver,
-  gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta;
+    gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta;
 
 extern char	gPlayerName[2][MAXNAME];
-//extern VALUE*	gDatabase;
-//extern char*	gVisited;
 
 extern int	smartness, scalelvl, remainingGivebacks, initialGivebacks;
 extern VALUE	oldValueOfPosition;
@@ -119,8 +117,6 @@ extern STRING (*GetHelpObjective)();
 extern STRING (*GetHelpTieOccursWhen)();
 
 extern STRING (*MoveToString)(MOVE);
-
-typedef enum play_opponent { AgainstComputer,AgainstHuman,ComputerComputer } OPPONENT;
 
 extern OPPONENT gOpponent;
 

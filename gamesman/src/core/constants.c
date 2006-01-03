@@ -2,7 +2,8 @@
 **
 ** NAME:	constants.c
 **
-** DESCRIPTION:	Long string literals and other constant declarations.
+** DESCRIPTION:	Allocates memory for long string literals and other
+**		constant declarations.
 **		Mostly help/documentation.
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
@@ -30,8 +31,7 @@
 **
 **************************************************************************/
 
-#include "gamesman.h"
-
+#include "types.h"
 
 /*
 ** Globals
@@ -60,8 +60,8 @@ STRING   kOpeningCredits =
 STRING   kHelpValueBeforeEvaluation =
 "At this point, the computer does not know the value of the game\n"
 "because you have not chosen to EVALUATE it. Once you choose to\n"
-"do that, the value will be determined told to you. Then you can \n"
-"bring this help menu back up to find out what it means.";
+"do that, the value will be determined and shown to you. Then you \n"
+"can bring this help menu back up to find out what it means.";
 
 STRING   kHelpWhatIsGameValue =
 "A game VALUE is one of either WIN, LOSE, or TIE.  That is, if a game \n"

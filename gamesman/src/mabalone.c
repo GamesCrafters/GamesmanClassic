@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.28 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mabalone.c,v 1.29 2006-01-03 00:19:34 hevanm Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -223,13 +223,6 @@ void changePieces();
 void changeKills();
 int maxPieces(int);
 int sum(int, int);
-/*************************************************************************
-**
-** Here we declare the global database variables
-**
-**************************************************************************/
-
-//extern VALUE     *gDatabase;
 
 /************************************************************************
 **
@@ -2114,6 +2107,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.27  2005/12/08 07:26:32  esiroker
 // Made compilable on Mac.
 //

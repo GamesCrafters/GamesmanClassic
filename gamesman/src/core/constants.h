@@ -45,7 +45,6 @@ extern STRING	kOpeningCredits,
                 kPrintMenuWithSolving,
                 kPrintMenuEnd;
 
-
 extern STRING	gValueString[];
 extern char	gValueLetter[];
 

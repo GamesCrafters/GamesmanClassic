@@ -90,8 +90,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 POSITION gNumberOfPositions  = 2097152;  /* 2^21 */
 
 POSITION gInitialPosition    =  0x001009BD;
