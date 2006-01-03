@@ -769,6 +769,16 @@ void PrintPosition(position,playerName,usersTurn)
       if ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) {
 	printf("  ");
       }
+	else if (!gOpponentsSpace && whosTurn == x) {
+		if (((side*row+col)%side == 0) && (((side*row+col)/side) >= (HAVEFORBS?2:1)) && theBlankOx[side*row+col] == Blank) 
+			printf("  ");
+		else printf("%c ", theBlankOx[((side*row)+col)]);
+	}
+	else if (!gOpponentsSpace && whosTurn == o) {
+		if (XSTART(side*row+col) && theBlankOx[side*row+col] == Blank) 
+			printf("  ");
+		else printf("%c ", theBlankOx[((side*row)+col)]);
+	}
       else {
 	printf("%c ", theBlankOx[((side*row)+col)]);
       }
