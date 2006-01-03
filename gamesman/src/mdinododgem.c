@@ -17,7 +17,7 @@ STRING   kAuthorName         = "Can Chang and Desmond Cheung";
 STRING   kDBName             = "dinododgem";
 STRING   kGameName           = "Dino Dodgem";
 BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
+BOOLEAN  kDebugMenu          = FALSE; /*TRUE;*/
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -120,20 +120,20 @@ Computer wins. Nice try, dude.";
 /*************************************************************************
 ** Every variable declared here is only used in this file (game-specific)
 **************************************************************************/
+/* Default 3x3 board, changed in GameSpecificMenu. */
+POSITION gNumberOfPositions;
+POSITION gInitialPosition;
+POSITION kBadPosition        = -1;     /* This can never be the rep. of a position */
+int boardsize = 25;                    /* default boardsize */
+int side = 5;                          /* get side length of board */
+int offtheboard = 25;                  /* Removing that piece from the board */
+#define BADSLOT         -2             /* You've moved off the board in a bad way */
+POSITION* g3Array = NULL;              /* Powers of 3 */
+
 /* Maximum length of a side (constrained by 32-bit machine) */
 #define MAX_SIDE 5
  /* Minimum length of a side */
 #define MIN_SIDE 3
-
-/* Default 3x3 board, changed in GameSpecificMenu. */
-POSITION gNumberOfPositions;
-POSITION gInitialPosition;
-POSITION kBadPosition        = -1;    /* This can never be the rep. of a position */
-int side = MAX_SIDE;                  /* get side length of board */
-int boardsize = MAX_SIDE*MAX_SIDE;    /* default boardsize */
-int offtheboard = MAX_SIDE*MAX_SIDE;  /* Removing that piece from the board */
-#define BADSLOT         -2            /* You've moved off the board in a bad way */
-POSITION* g3Array = NULL;             /* Powers of 3 */
 
 typedef char BlankOX;
 #define Blank '-'
@@ -187,8 +187,7 @@ BOOLEAN initialized = FALSE;
 #define ISFORB(i) ( (i==0) || (i==1) || (i==side) )
 #define FORBIDDEN(i) ( (HAVEFORBS && ISFORB(i) ? TRUE : FALSE ) )
  
-#define OSTART(i) (i%side == 0) && ((i/side) >= (HAVEFORBS?2:1))
-// ( ((i%side) == 0) && ((i/side) >= (HAVEFORBS?2:1)) )
+#define OSTART(i) ( ((i%side) == 0) && ((i/side) >= (HAVEFORBS?2:1)) )
 #define OSTART2(a,b) ( OSTART(a) && OSTART(b) )
  
 #define XSTART(i) ( (i < side) && (i >= (HAVEFORBS?2:1)) )
@@ -508,7 +507,7 @@ POSITION GetInitialPosition()
   printf("\n\tPlease input the position to begin with.\n");
   printf("\tYou board must have at least one x or o and no more than %d x's and %d o's\n", side-1, side-1);
   printf("\tNote that it should be in the following format:\n\n");
-  // Print example board.
+  /* Print example board. */
   printf("EXAMPLE of a %d by %d board:\n", side, side);
   row = 0;
   col = 0;
@@ -539,7 +538,7 @@ POSITION GetInitialPosition()
     numX = numO = 0;
     printf("\nNow enter a new board:\n");
     
-    // Get inputted initial position.
+    /* Get inputted initial position. */
     i = 0;
     getchar();
     
@@ -706,14 +705,21 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   int row = 0, col = 0;
-  //  VALUE GetValueOfPosition();
+  VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
   int pbar_max, pbar_len, xcount, ocount, numx, numo, index, i;
 
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
-  
+
+  // printf("This is the position: %d", position);
+  // printf("This is the board:");
+  // for (i = 0 ; i <boardsize;i++) {
+  //  printf("%d", theBlankOx[i]);
+  // }
+  // printf ("This is the stringboard: %s", theBlankOx);
+
   /*  
   if (!gHasClearedBuckets) {
     for (col = 0; col < MAX_SIDE; col++)
@@ -746,21 +752,40 @@ void PrintPosition(position,playerName,usersTurn)
 	printf("\n\t        ");
     }
     for (col = 0; col < side; col++) {
-      if (!gOpponentsSpace &&
-	  ((whosTurn = x && 
-	    ((side*row+col)%side == 0) && (((side*row+col)/side) >= (HAVEFORBS?2:1)) && theBlankOx[side*row+col] == Blank) ||
-	   (whosTurn = o && XSTART(side*row+col) && theBlankOx[side*row+col] == Blank)))
+
+       /*if (theBlankOx[((side*row)+col)] == Blank)
+	 index = 0;
+       if (theBlankOx[((side*row)+col)] == x)
+	 index = 2;
+       if (theBlankOx[((side*row)+col)] == o)
+       index = 1;*/
+       /* index = theBlankOx[((side*row)+col)];
+       if (index == 65)
+	 index = 0;
+       if (index == 66)
+	 index = 1;
+       if (index == 67)
+       index = 2; */
+      if ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) {
 	printf("  ");
-      else if ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) {
-	printf("  ");
-      } else {
+      }
+      else {
 	printf("%c ", theBlankOx[((side*row)+col)]);
       }
+	
+      /*printf ("%s ", ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : (char)theBlankOx[((side*row)+col)]); */
       if (col == side-1 && gBuckets) printf("%d ", gBucketIndicator[0][BUCKET_O(side*row+col)]);
     }
 
     if (gChessMoves) {
-      ;
+      /*
+      if (row == side-1)
+	printf("\t LEGEND:  %c ", row+'1');
+      else
+	printf("\t          %c ", row+'1');
+      for (col = 0; col < side; col++)
+	printf("- ");
+      */
     } else {
       if (row == side-1)
 	printf("\t LEGEND:  ");
@@ -776,7 +801,6 @@ void PrintPosition(position,playerName,usersTurn)
       }
     }
   }
-
   if (gChessMoves) {
     /*
     printf("\n                ");
@@ -837,23 +861,30 @@ void PrintPosition(position,playerName,usersTurn)
     printf (" O\n");
 
     /*
+    printf("  O");
+    for (col = 0; col < pbar_len-2; col++)
+      printf(" ");
+    printf("X\n");
+    
     printf("        X power: ", xcount);
     for (col = 0; col < xcount; col++)
       printf("X");
+    //if (gBlankOXString[(int)whosTurn] == "X") printf("x"); 
     if (whosTurn == x) printf("x");
     printf("\n");
 
     printf("        O power: ", ocount);
     for (col = 0; col < ocount; col++)
       printf("O");
+    // if (gBlankOXString[(int)whosTurn] == "O") printf("o");
     if (whosTurn == o) printf("o");
     printf("\n");
     */
   }
 
-  if (gChessMoves) {
-    if (whosTurn == o)
-      printf("\n\
+  /* if ( gBlankOXString[(int)whosTurn] == "O") */
+  if (whosTurn == o)
+    printf("\n\
         l \n\
         ^     ** It is player O's turn to move\n\
         |     ** and this is the move you can\n\
@@ -861,31 +892,14 @@ void PrintPosition(position,playerName,usersTurn)
         | \n\
         v \n\
         r \n\n");
-    else
-      printf("\n\
+      else
+	printf("\n\
            f \n\
            ^       ** It is player X's turn to move\n\
            |       ** and this is the move you can\n\
        l<- X ->r   ** perform on one of your pieces.\n\n");
-    printf("  Move format: [{col}{row}{dir}] \n\n");
-  } else {
-    if (whosTurn == o)
-      printf("\n\
-          \n\
-        ^     ** It is player O's turn to move\n\
-        |     ** and this is the move you can\n\
-        O->   ** perform on one of your pieces.\n\
-        | \n\
-        v \n\
-          \n\n");
-    else
-      printf("\n\
-             \n\
-           ^       ** It is player X's turn to move\n\
-           |       ** and this is the move you can\n\
-        <- X ->    ** perform on one of your pieces.\n\n");
-    printf("  Move format: [from to] \n\n");
-  }
+  printf("  Move format: [from to] \n\n");
+  
   
 //  PositionToBlankOX(position,theBlankOx,&whosTurn);
 //  for (row = side - 1; row >= 0; row--) {
@@ -911,6 +925,7 @@ void PrintPosition(position,playerName,usersTurn)
 /*    printf("   **Enter your input in the following format: */
 /*         <from slot #> < space > <to slot #>\n\n"); */
 }
+
 
 /************************************************************************
 ** NAME:        GenerateMoves
@@ -1270,7 +1285,7 @@ void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *the
   int player;
   generic_unhash(thePos, theBlankOX);
   player = whoseMove(thePos);
-  *whosTurn = ((player == 1) ? o : x);
+  *whosTurn = (player == 1 ? o : x);
   /*
   int i;
 
@@ -1296,8 +1311,6 @@ void setOption (int option) {
 
   side = (option/2/2/2/2/2/2)+MIN_SIDE;
   boardsize = side*side;
-  printf("this is the boardsize: %d", side);
-  printf("this is the C option: %d", option);
   offtheboard = boardsize;
 
 }
