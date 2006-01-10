@@ -55,13 +55,13 @@ VALUE DetermineValueSTD(POSITION position)
     } else if((value = Primitive(position)) != undecided) {  
         /* first time, end */
         SetRemoteness(position,0); /* terminal positions have 0 remoteness */
-        if(!kPartizan)
+        if(!kPartizan && !gTwoBits)
             MexStore(position,MexPrimitive(value)); /* lose=0, win=* */
         return(StoreValueOfPosition(position,value));
         /* first time, need to recursively determine value */
     } else { 
         MarkAsVisited(position);
-        if(!kPartizan)
+        if(!kPartizan && !gTwoBits)
             theMexCalc = MexCalcInit();
         head = ptr = GenerateMoves(position);
         while (ptr != NULL) {
@@ -85,7 +85,7 @@ VALUE DetermineValueSTD(POSITION position)
 		    }
 	    
             remoteness = Remoteness(child);
-            if(!kPartizan)
+            if(!kPartizan && !gTwoBits)
                 theMexCalc = MexAdd(theMexCalc,MexLoad(child));
             if(value == lose) {        /* found a way to give you a lose */
                 foundLose = TRUE;        /* thus, it's a winning move      */
@@ -109,7 +109,7 @@ VALUE DetermineValueSTD(POSITION position)
         }
         FreeMoveList(head);
         UnMarkAsVisited(position);
-        if(!kPartizan)
+        if(!kPartizan && !gTwoBits)
             MexStore(position,MexCompute(theMexCalc));
         if(foundLose) {
             SetRemoteness(position,minRemoteness+1); /* Winners want to mate soon! */

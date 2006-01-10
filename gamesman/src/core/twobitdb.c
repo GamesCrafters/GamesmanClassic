@@ -30,7 +30,6 @@
 **************************************************************************/
 
 #include "gamesman.h"
-#include "db.h"
 #include "twobitdb.h"
 
 //THIS IS NOT A 2-BIT DB, but a 4-BIT ONE!!!!!!!!!!!
@@ -40,10 +39,6 @@ void            twobitdb_free ();
 /* Value */
 VALUE		twobitdb_get_value		(POSITION pos);
 VALUE		twobitdb_set_value		(POSITION pos, VALUE val);
-
-/* Remoteness */
-//REMOTENESS	twobitdb_get_remoteness		(POSITION pos);
-//void		twobitdb_set_remoteness		(POSITION pos, REMOTENESS val);
 
 /* Visited */
 BOOLEAN		twobitdb_check_visited   	(POSITION pos);
@@ -60,23 +55,19 @@ char* twobitdb_visited;  //a cell has 8 bits
 
 void twobitdb_init(DB_Table *new_db) {
 
-    //DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
-
     //a char has 1 byte, we need two bits per position, so 4 values per cell
     size_t dbSize = gNumberOfPositions >> 2;
     //a char has 1 byte, we need one bit per position, so 8 visited values per cell
     size_t visitedSize = gNumberOfPositions >> 3;
 
     twobitdb_database = (char*) SafeMalloc(dbSize);
-    memset(twobitdb_database, 0xf, dbSize);
+    memset(twobitdb_database, 0xffff, dbSize);
     twobitdb_visited = (char*) SafeMalloc(visitedSize);
-    memset(twobitdb_visited, 0xf, visitedSize);
+    memset(twobitdb_visited, 0, visitedSize);
 
     //set function pointers
     new_db->get_value = twobitdb_get_value;
     new_db->put_value = twobitdb_set_value;
-    //new_db->get_remoteness = twobitdb_get_remoteness;
-    //new_db->put_remoteness = twobitdb_set_remoteness;
     new_db->check_visited = twobitdb_check_visited;
     new_db->mark_visited = twobitdb_mark_visited;
     new_db->unmark_visited = twobitdb_unmark_visited;
@@ -123,40 +114,20 @@ VALUE twobitdb_get_value(POSITION position)
 
 }
 
-
-//void twobitdb_set_remoteness(POSITION position, REMOTENESS rem)
-//{
- 
-//}
-
-//REMOTENESS twobitdb_get_remoteness(POSITION position)
-//{
-//    return REMOTENESS_TWOBITS;
-//}
-
 BOOLEAN twobitdb_check_visited(POSITION position)
 {
-    //if (twobitdb_visited){
     return (twobitdb_visited[position >> 3] >> (position & 7)) & 1;
-    //}
-    //return FALSE;
 }
 
 void twobitdb_mark_visited (POSITION position)
 {
-    //if (!twobitdb_visited){
-    //	twobitdb_visited = (char*) SafeMalloc((gNumberOfPositions>>3) +1);
-    //	memset(twobitdb_visited, 0, (gNumberOfPositions>>3) +1);
-    //}
     twobitdb_visited[position >> 3] |= 1 << (position & 7);
     return;
 }
 
 void twobitdb_unmark_visited (POSITION position)
 {
-    //  if (twobitdb_visited){
     twobitdb_visited[position >> 3] &= ~(1 << (position & 7));
-    //}
     return;
 }
 

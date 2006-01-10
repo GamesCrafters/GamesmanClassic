@@ -37,11 +37,9 @@
 
 
 #include "gamesman.h"
-#include "db.h"
 #include "memdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
-#include "globals.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP

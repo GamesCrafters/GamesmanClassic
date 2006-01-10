@@ -33,7 +33,6 @@
 #include <netinet/in.h>
 #include "gamesman.h"
 #include "memdb.h"
-#include "db.h"
 
 /*internal declarations and definitions*/
 
