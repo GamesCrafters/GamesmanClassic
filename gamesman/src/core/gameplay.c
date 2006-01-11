@@ -699,7 +699,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
   
   char moveToPrint[maxPossibleMoveLength];
   
-  int dividers[6];
+  //int dividers[6];
   char line[maxPossibleLineLength];
   
   strcpy(moveToPrint, "");
@@ -834,7 +834,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
   int whoseTurn;
   
-  int dividers[6];
+  //int dividers[6];
 
   char line[maxPossibleLineLength];
   char playerName[maxPossibleMoveLength];

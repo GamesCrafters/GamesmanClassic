@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.11 2006-01-03 00:19:35 hevanm Exp $
+// $Id: mfoxes.c,v 1.12 2006-01-11 22:55:03 hevanm Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -31,12 +31,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -120,11 +115,6 @@ STRING   kHelpExample =
 #define FOXCOUNT 1
 #define GEESECOUNT 4
 #define ROWCOUNT 8
-/*#define BOARDSIZE COLS*ROWS       /* 4x4 (changeable) board, only black squares used
-				    imported from the file feature later */
-//#define MAXNUMPOSITIONS 4000000  /* Some very big number */
-/*int gNumberOfPositions = 2013760;        /* C(BOARDSIZE,TOTALPIECES)*C(TOTALPIECES,FOXES)*2 */
-//int POSITION_OFFSET = 1006880;     /* C(BOARDSIZE,TOTALPIECES)*C(TOTALPIECES,FOXES) */
 
 #define MAXNUMBERROWS 8
 
@@ -134,10 +124,6 @@ STRING   kHelpExample =
 #define BLANKPIECE '-'
 #define FOXPIECE 'F'
 #define GOOSEPIECE 'G'
-
-/*typedef enum possibleBoardPieces {
- *Blank, f, g
- *} BlankFG;*/
 
 typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 
@@ -153,8 +139,6 @@ int ROWS = ROWCOUNT;
 int gGameType = FOXESGEESETRAP;
 int Player1Side = FOXTURN;              /*player 1's side in the game*/
 int Player2Side = GOOSETURN;            /*player 2's side in the game*/
-
-/*const char *gBlankFGString[] = { "-", "F", "G" };*/
 
 int WhoGoesFirst = GOOSETURN;             /*by default, geese go first*/
 int BOARDSIZE = ROWCOUNT*4;
@@ -994,6 +978,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2006/01/03 00:19:35  hevanm
+// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
+//
 // Revision 1.10  2005/12/27 10:57:50  hevanm
 // almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
 //

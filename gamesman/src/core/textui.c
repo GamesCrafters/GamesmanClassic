@@ -612,7 +612,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
 	printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
-	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX){
+	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX && !gTwoBits){
 	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
 	} else {
 	  MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
