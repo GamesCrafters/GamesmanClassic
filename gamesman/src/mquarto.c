@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.56 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mquarto.c,v 1.57 2006-01-11 03:02:45 mtanev Exp $
 
 
 /*
@@ -950,7 +950,7 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
     QTBPtr b = unhash(position);
     short i;
 
-    printf("hashed %8d  ",position);
+    printf("hashed " POSITION_FORMAT, position);
     printf("slots: ");
     for (i=0; i<BOARDSIZE+1; i++) {
 	if (b->slots[i] != EMPTYSLOT) {
@@ -1153,7 +1153,7 @@ MOVE ConvertTextInputToMove (STRING input)
 {
 
 	MOVE piece = 0, slot = 0;
-	int i, j, k;
+	int i,  k;
 
 	/* Lower GAMEDIMENSION + 1 bits for position */
 	for( slot = 0; ( slot < BOARDSIZE + 1 ) && hex_ascii[slot] != input[0]; slot++ );
@@ -2444,7 +2444,6 @@ void yanpeiTestCanonical() {
     POSITION i,c;
     POSITION canonicalCount = 0;
     POSITIONLIST *canonicals = NULL;
-    POSITIONLIST *newNode;
 
     void (*oldPrintPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = printPos;
 
@@ -2506,6 +2505,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.56  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.55  2005/12/23 05:13:27  mtanev
 //
 // Initial version of alpha-beta solver, very experimental and very buggy
