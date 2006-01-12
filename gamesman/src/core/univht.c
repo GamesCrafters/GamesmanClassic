@@ -299,12 +299,12 @@ void univht_destroy(univht *ht) {
   
   /* Print statistical information about database */
   printf("Statistics:\n");
-  printf("\tNumber of entries: %d\n", ht->entries);
-  printf("\tNumber of occupied slots: %d\n", ht->stat_chains);
-  printf("\tLength of longest chain: %d\n", ht->stat_max_chain_length);
+  printf("\tNumber of entries: %lu\n", ht->entries);
+  printf("\tNumber of occupied slots: %lu\n", ht->stat_chains);
+  printf("\tLength of longest chain: %lu\n", ht->stat_max_chain_length);
   printf("\tAverage chain length: %f\n", ht->stat_avg_chain_length);
-  printf("\tTotal memory occupied: %d bytes\n", ht->slots * sizeof(void *) + ht->entries * ht->stat_entry_size);
-  printf("\tMemory occupied by entries: %d bytes\n", ht->entries * ht->stat_entry_size);
+  printf("\tTotal memory occupied: %lu bytes\n", ht->slots * sizeof(void *) + ht->entries * ht->stat_entry_size);
+  printf("\tMemory occupied by entries: %lu bytes\n", ht->entries * ht->stat_entry_size);
 	 
   for (slot = 0; ht->entries; slot++) {
     
