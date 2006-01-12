@@ -115,7 +115,7 @@ void db_initialize(){
         twobitdb_init(db_functions);
 
     } else if(gCollDB){
-	db_functions = colldb_init();
+	colldb_init(db_functions);
     }
 
 #ifdef HAVE_GMP

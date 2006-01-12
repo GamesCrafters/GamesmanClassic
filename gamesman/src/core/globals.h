@@ -44,24 +44,6 @@ extern long		gTotalMoves, gTotalPositions;
 ** Game module externs
 */
 
-void			InitializeGame			(void);
-POSITION		DoMove				(POSITION thePosition, MOVE theMove);
-POSITION		GetInitialPosition		(void);
-void			PrintComputersMove		(MOVE computersMove, STRING computersName);
-VALUE			Primitive			(POSITION position);
-void			PrintPosition			(POSITION position, STRING playerName, BOOLEAN usersTurn);
-MOVELIST*		GenerateMoves			(POSITION position);
-USERINPUT		GetAndPrintPlayersMove		(POSITION thePosition, MOVE* theMove, STRING playerName);
-BOOLEAN			ValidTextInput			(STRING input);
-MOVE			ConvertTextInputToMove		(STRING input);
-void			PrintMove			(MOVE theMove);
-int			NumberOfOptions			(void);
-int			getOption			(void);
-void			setOption			(int option);
-void			SetTclCGameSpecificOptions	(int theOptions[]);
-void			GameSpecificMenu		(void);
-void			DebugMenu			(void);
-
 /* constant string literals */
 extern STRING   	kHelpGraphicInterface; /* The Graphical Interface Help string. */
 extern STRING   	kHelpTextInterface;    /* The Help for Text Interface string. */

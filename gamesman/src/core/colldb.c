@@ -33,11 +33,44 @@
 #include "colldb.h"
 #include "db.h"
 
+void            colldb_free ();
 
+/* Value */
+VALUE		colldb_get_value	        (POSITION pos);
+VALUE		colldb_set_value	        (POSITION pos, VALUE val);
+
+/* Remoteness */
+REMOTENESS	colldb_get_remoteness	(POSITION pos);
+void		colldb_set_remoteness	(POSITION pos, REMOTENESS val);
+
+/* Visited */
+BOOLEAN		colldb_check_visited    	(POSITION pos);
+void		colldb_mark_visited     	(POSITION pos);
+void		colldb_unmark_visited	(POSITION pos);
+
+/* Collision Specific */
+typedef struct colldb_node {
+
+  VALUE myValue; 
+  char myPos;
+  struct colldb_node *next;
+
+} colldb_value_node;
+
+colldb_value_node *colldb_find_pos(POSITION position);
+colldb_value_node* colldb_make_node(POSITION pos, VALUE val, colldb_value_node *next);
+
+colldb_value_node *colldb_add_node(POSITION position);
+
+
+/* Mex not implemented yet. will implement once db class implemented
+void		MexStore		(POSITION pos, MEX mex);
+MEX		MexLoad			(POSITION pos);
+*/
 
 colldb_value_node** colldb_hash_table;
 POSITION colldb_num_allocated;
-int colldb_HASHSIZE; 
+int colldb_HASHSIZE;
 int hitcount;
 //extern int accesscount;
 //extern int remotecount;
@@ -47,11 +80,11 @@ int hitcount;
 */
 
 
-DB_Table* colldb_init(){
+void colldb_init(DB_Table *new_db)
+{
   hitcount = 0;
-  colldb_HASHSIZE = (int) gNumberOfPositions / 4;
-  //Make db_table
-  DB_Table *new_db = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+  colldb_HASHSIZE = (int) gNumberOfPositions / 4 + 1;
+
   //setup internal memory table
   colldb_hash_table = (colldb_value_node **) SafeMalloc (colldb_HASHSIZE * sizeof(colldb_value_node*));
   printf("initalizing collision database. %d rows allocated.\n",colldb_HASHSIZE);
@@ -67,7 +100,7 @@ DB_Table* colldb_init(){
   
   new_db->free_db = colldb_free;
   
-  return new_db;
+  return;
 }
 
 void colldb_free(){
