@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.57 2006-01-11 03:02:45 mtanev Exp $
+// $Id: mquarto.c,v 1.58 2006-01-12 02:12:36 mtanev Exp $
 
 
 /*
@@ -1954,7 +1954,7 @@ POSITION marioGetCanonical(POSITION position) {
   
   position = offsetTable[NUMPIECES+1];
   for (group = 0; group < 8; group++) {
-    int temp = hash(normalizeBoard(orbit[group]));
+    POSITION temp = hash(normalizeBoard(orbit[group]));
     position = (temp < position) ? temp : position;
     /* Free allocated board */
     FreeBoard(orbit[group]);
@@ -2505,6 +2505,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.57  2006/01/11 03:02:45  mtanev
+//
+// Eliminate make warnings
+//
 // Revision 1.56  2005/12/27 10:57:50  hevanm
 // almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
 //
