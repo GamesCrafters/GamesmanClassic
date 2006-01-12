@@ -53,8 +53,8 @@ STRING   kHelpTextInterface    =
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the location of your piece and the empty orthogonally-adjacent position\n\
 you wish to move that piece to. If you wish to move a piece off of the board,\n\
-choose 0 as your destination. Example: '2 0' moves the piece on location\n\
-2 off of the board. '5 2' moves your piece from position 5 to position 2.";
+choose 0 as your destination. Example: '20' moves the piece on location\n\
+2 off of the board. '52' moves your piece from position 5 to position 2.";
 
 STRING   kHelpOnYourTurn =
 "The moves on your turn are different for different players. Here is a summary:\n\
@@ -88,43 +88,43 @@ STRING   kHelpExample =
 "         ( 1 2 3 )           : O - -     PLAYER O's turn\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - -                     \n\
          ( 7 8 9 )           : - X X                     \n\n\
-     Dan's move [(u)ndo/1-9] : 1 2                       \n\n\
+     Dan's move [(u)ndo/1-9] : 12                       \n\n\
          ( 1 2 3 )           : - O -     PLAYER X's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - -                     \n\
          ( 7 8 9 )           : - X X                     \n\n\
-Computer's move              : 9 6                       \n\n\
+Computer's move              : 96                       \n\n\
          ( 1 2 3 )           : - O -     PLAYER O's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - X                     \n\
          ( 7 8 9 )           : - X -                     \n\n\
-     Dan's move [(u)ndo/1-9] : 2 3                       \n\n\
+     Dan's move [(u)ndo/1-9] : 23                       \n\n\
          ( 1 2 3 )           : - - O     PLAYER X's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - X                     \n\
          ( 7 8 9 )           : - X -                     \n\n\
-Computer's move              : 8 7                       \n\n\
+Computer's move              : 87                       \n\n\
          ( 1 2 3 )           : - - O     PLAYER O's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - X                     \n\
          ( 7 8 9 )           : X - -                     \n\n\
-     Dan's move [(u)ndo/1-9] : 4 5                       \n\n\
+     Dan's move [(u)ndo/1-9] : 45                       \n\n\
          ( 1 2 3 )           : - - O     PLAYER X's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - O X                     \n\
          ( 7 8 9 )           : X - -                     \n\n\
-Computer's move              : 7 8                       \n\n\
+Computer's move              : 78                       \n\n\
          ( 1 2 3 )           : - - O     PLAYER O's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - O X                     \n\
          ( 7 8 9 )           : - X -                     \n\n\
-     Dan's move [(u)ndo/1-9] : 5 2                       \n\n\
+     Dan's move [(u)ndo/1-9] : 52                       \n\n\
          ( 1 2 3 )           : - O O     PLAYER X's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - X                     \n\
          ( 7 8 9 )           : - X -                     \n\n\
-Computer's move              : 8 5                       \n\n\
+Computer's move              : 85                       \n\n\
          ( 1 2 3 )           : - O O     PLAYER O's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - X X                     \n\
          ( 7 8 9 )           : - - -                     \n\n\
-     Dan's move [(u)ndo/1-9] : 3 0                       \n\n\
+     Dan's move [(u)ndo/1-9] : 30                       \n\n\
          ( 1 2 3 )           : - O -     PLAYER X's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - X X                     \n\
          ( 7 8 9 )           : - - -                     \n\n\
-Computer's move              : 6 3                       \n\n\
+Computer's move              : 63                       \n\n\
          ( 1 2 3 )           : - O X     PLAYER O's turn \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - X -                     \n\
          ( 7 8 9 )           : - - -                     \n\n\n\
@@ -167,9 +167,11 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot, int direction,BlankOX whosTurn);
 
+STRING MToS (MOVE);
 
 void InitializeGame()
 {
+  MoveToString = &MToS;
 }
 
 void FreeGame()
@@ -625,9 +627,13 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 BOOLEAN ValidTextInput(input)
      STRING input;
 {
+  char fromChar, toChar;
   SLOT fromSlot, toSlot;
   int ret;
-  ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+  //   ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+  ret = sscanf(input,"%c%c", &fromChar, &toChar);
+  fromSlot = fromChar - '0';
+  toSlot   = toChar   - '0';
   return(ret == 2 &&
 	 fromSlot <= 9 && fromSlot >= 1 && toSlot <= 9 && toSlot >= 0);
 }
@@ -651,8 +657,12 @@ MOVE ConvertTextInputToMove(input)
 {
   MOVE SlotsToMove();
   SLOT fromSlot, toSlot;
+  char fromChar, toChar;
   int ret;
-  ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+  // ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+  ret = sscanf(input,"%c%c", &fromChar, &toChar);
+  fromSlot = fromChar - '0';
+  toSlot   = toChar   - '0';
   
   fromSlot--;               /* user input is 1-9, our rep. is 0-8 */
   if(toSlot == 0)
@@ -679,7 +689,17 @@ void PrintMove(theMove)
   SLOT fromSlot, toSlot;
   MoveToSlots(theMove,&fromSlot,&toSlot);
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  printf("[ %d %d ] ", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
+  printf("%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
+}
+
+STRING MToS(theMove)
+     MOVE theMove;
+{
+  SLOT fromSlot, toSlot;
+  STRING move = (STRING) SafeMalloc(3);
+  MoveToSlots(theMove,&fromSlot,&toSlot);
+  sprintf(move, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
+  return move;
 }
 
 /************************************************************************
