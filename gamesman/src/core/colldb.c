@@ -87,6 +87,8 @@ void colldb_init(DB_Table *new_db)
     colldb_hash_table = (colldb_value_node **) SafeMalloc (colldb_HASHSIZE * sizeof(colldb_value_node*));
     //printf("initalizing collision database. %d rows allocated.\n",colldb_HASHSIZE);
   
+    memset(colldb_hash_table, 0x0000, colldb_HASHSIZE * sizeof(colldb_value_node*));
+
     //set function pointers
     new_db->get_value = colldb_get_value;
     new_db->put_value = colldb_set_value;
