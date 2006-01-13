@@ -21,7 +21,7 @@
 #define kBadRemoteness		REMOTENESS_MAX
 
 typedef enum known_dbs_enum{
-    memdb, twobitdb, colldb, univdb
+    nulldb, memdb, twobitdb, colldb, univdb
 } known_db_types;
 
 typedef struct DB {
@@ -56,17 +56,17 @@ typedef struct DB {
     void        (*free_db)       	();
 
     VALUE	(*get_value)		(POSITION pos);
-    VALUE	(*put_value)		(POSITION pos, VALUE data);
+    VALUE	(*put_value)		(POSITION pos, VALUE val);
 
     REMOTENESS  (*get_remoteness)	(POSITION pos);
-    void	(*put_remoteness)	(POSITION pos, REMOTENESS data);
+    void	(*put_remoteness)	(POSITION pos, REMOTENESS val);
 
     BOOLEAN     (*check_visited)	(POSITION pos);
     void	(*mark_visited)		(POSITION pos);
     void     	(*unmark_visited)	(POSITION pos);
 
     MEX		(*get_mex)		(POSITION pos);
-    void	(*put_mex)		(POSITION pos, MEX theMex);
+    void	(*put_mex)		(POSITION pos, MEX mex);
 
     BOOLEAN	(*save_database)	();
     BOOLEAN	(*load_database)	();

@@ -69,8 +69,8 @@ cellValue* memdb_array;
 ** Code
 */
 
-void memdb_init(DB_Table *new_db) {
-  
+void memdb_init(DB_Table *new_db)
+{
     POSITION i;
 
     //setup internal memory table
@@ -96,113 +96,112 @@ void memdb_init(DB_Table *new_db) {
 }
 
 
-void memdb_free() {
+void memdb_free()
+{
     if(memdb_array)
         SafeFree(memdb_array);
 }
 
 
-cellValue* memdb_get_raw_ptr(POSITION pos) {
+cellValue* memdb_get_raw_ptr(POSITION pos)
+{
     return (&memdb_array[pos]);
 }
 
-VALUE memdb_set_value(POSITION position, VALUE value) {
-
+VALUE memdb_set_value(POSITION pos, VALUE val)
+{
     cellValue *ptr;
     
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
     
     /* put it in the right position, but we have to blank field and then
     ** add new value to right slot, keeping old slots */
-    return (VALUE)((*ptr = (((cellValue)*ptr & ~VALUE_MASK) | (value & VALUE_MASK))) & VALUE_MASK); 
+    return (VALUE)((*ptr = (((int)*ptr & ~VALUE_MASK) | (val & VALUE_MASK))) & VALUE_MASK); 
 }
 
-// This is it
-VALUE memdb_get_value(POSITION position) {
-
+VALUE memdb_get_value(POSITION pos)
+{
     cellValue *ptr;
 
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
 
-    return((VALUE)((cellValue)*ptr & VALUE_MASK)); /* return pure value */
+    return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
 }
 
-REMOTENESS memdb_get_remoteness(POSITION position) {
-
+REMOTENESS memdb_get_remoteness(POSITION pos)
+{
     cellValue *ptr;
 
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
 
-    return (REMOTENESS)((((cellValue)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
+    return (REMOTENESS)((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
 }
 
-void memdb_set_remoteness (POSITION position, REMOTENESS remoteness) {
+void memdb_set_remoteness (POSITION pos, REMOTENESS val)
+{
     cellValue *ptr;
     
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
     
-    if(remoteness > REMOTENESS_MAX) {
-        printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",remoteness,position,REMOTENESS_MAX);
+    if(val > REMOTENESS_MAX) {
+        printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",val,pos,REMOTENESS_MAX);
         ExitStageRight();
         exit(0);
     }
     
     /* blank field then add new remoteness */
-    *ptr = (VALUE)(((cellValue)*ptr & ~REMOTENESS_MASK) |
-		   (remoteness << REMOTENESS_SHIFT));
+    *ptr = (VALUE)(((int)*ptr & ~REMOTENESS_MASK) | (val << REMOTENESS_SHIFT));
 }
 
-BOOLEAN memdb_check_visited(POSITION position) {
-
+BOOLEAN memdb_check_visited(POSITION pos)
+{
     cellValue *ptr;  
 
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
 
-    return (BOOLEAN)((((cellValue)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
+    //printf("check pos: %llu\n", pos);
+
+    return (BOOLEAN)((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
 }
 
-void memdb_mark_visited (POSITION position) {
-
+void memdb_mark_visited (POSITION pos)
+{
     cellValue *ptr;
+        
+    ptr = memdb_get_raw_ptr(pos);
     
-    showStatus(Update);
-    
-    ptr = memdb_get_raw_ptr(position);
-    
+    //printf("mark pos: %llu\n", pos);
+
     *ptr = (VALUE)((int)*ptr | VISITED_MASK);       /* Turn bit on */
 }
 
-void memdb_unmark_visited (POSITION position) {
-
+void memdb_unmark_visited (POSITION pos)
+{
     cellValue *ptr;
     
-    ptr = memdb_get_raw_ptr(position);
+    ptr = memdb_get_raw_ptr(pos);
+
+    //printf("unmark pos: %llu\n", pos);
     
-    *ptr = (VALUE)((cellValue)*ptr & ~VISITED_MASK);      /* Turn bit off */
+    *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
 
-void memdb_set_mex(POSITION position, MEX theMex) {
-
+void memdb_set_mex(POSITION pos, MEX mex)
+{
     cellValue *ptr;
 
-    if(gTwoBits)
-	return;
+    ptr = memdb_get_raw_ptr(pos);
 
-    ptr = memdb_get_raw_ptr(position);
-
-    *ptr = (VALUE)(((cellValue)*ptr & ~MEX_MASK) | (theMex << MEX_SHIFT));
+    *ptr = (VALUE)(((int)*ptr & ~MEX_MASK) | (mex << MEX_SHIFT));
 }
 
-MEX memdb_get_mex(POSITION position) {
-
+MEX memdb_get_mex(POSITION pos)
+{
     cellValue *ptr;
 
-    if(gTwoBits)
-	return kBadMexValue;
+    ptr = memdb_get_raw_ptr(pos);
 
-    ptr = memdb_get_raw_ptr(position);
-
-    return (MEX)(((cellValue)*ptr & MEX_MASK) >> MEX_SHIFT);
+    return (MEX)(((int)*ptr & MEX_MASK) >> MEX_SHIFT);
 }
 
 
@@ -234,8 +233,8 @@ MEX memdb_get_mex(POSITION position) {
 */
 
 
-BOOLEAN memdb_save_database () {
-
+BOOLEAN memdb_save_database ()
+{
     short dbVer[1];
     POSITION numPos[1];
     unsigned long i;
@@ -251,7 +250,7 @@ BOOLEAN memdb_save_database () {
 	return FALSE;
     
     mkdir("data", 0755) ;
-    sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption());
+    sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption());
     if((filep = gzopen(outfilename, "wb")) == NULL) {
         if(kDebugDetermineValue){
             printf("Unable to create compressed data file\n");
@@ -313,8 +312,8 @@ BOOLEAN memdb_save_database () {
 ************
 ***********/
 
-BOOLEAN memdb_load_database() {
-
+BOOLEAN memdb_load_database()
+{
     short dbVer[1];
     POSITION numPos[1];
     POSITION i;
@@ -329,7 +328,7 @@ BOOLEAN memdb_load_database() {
     if(!memdb_array)
 	return FALSE;
 
-    sprintf(outfilename, "./data/m%s_%d.dat.gz", kDBName, getOption()) ;
+    sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
     if((filep = gzopen(outfilename, "rb")) == NULL) return 0 ;
     
     goodDecompression = gzread(filep,dbVer,sizeof(short));

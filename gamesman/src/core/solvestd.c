@@ -47,7 +47,9 @@ VALUE DetermineValueSTD(POSITION position)
     MEXCALC theMexCalc = 0; /* default to satisfy compiler */
     
     if(Visited(position)) { /* Cycle! */
-        return(win);
+        printf("Sorry, but I think this is a loopy game. I give up.");
+	ExitStageRight();
+	exit(0);
     }
     /* It's been seen before and value has been determined */
     else if((value = GetValueOfPosition(position)) != undecided) { 
@@ -74,15 +76,16 @@ VALUE DetermineValueSTD(POSITION position)
 
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
+
             value = DetermineValueSTD(child);       /* DFS call */
 	    
             if (gGoAgain(position,move))
                 switch(value)
-		    {
+		{
 		    case lose: value=win;break;
 		    case win: value=lose;break;
 		    default: break; /* value stays the same */
-		    }
+		}
 	    
             remoteness = Remoteness(child);
             if(!kPartizan && !gTwoBits)

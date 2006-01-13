@@ -273,12 +273,11 @@ MOVELIST *GenerateMoves(position)
   MOVELIST *head = NULL;
   MOVELIST *CreateMovelistNode();
   
-  head = CreateMovelistNode(1,head);
-  
   /* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
-  
-  if (position != 9) 
-    head = CreateMovelistNode(2,head);
+  if (position < 9) 
+      head = CreateMovelistNode(2,head);
+
+  head = CreateMovelistNode(1,head);
   
   return(head);
 }

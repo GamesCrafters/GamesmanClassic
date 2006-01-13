@@ -176,12 +176,12 @@ void db_put_mex(POSITION pos, MEX theMex){
 }
 
 BOOLEAN db_save_database(){
-    printf("NOTE: The database cannot be saved.");
+    //printf("NOTE: The database cannot be saved.");
     return FALSE;
 }
 
 BOOLEAN db_load_database(){
-    printf("NOTE: The database cannot be loaded.");
+    //printf("NOTE: The database cannot be loaded.");
     return FALSE;
 }
 
@@ -202,6 +202,8 @@ void DestroyDatabases()
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
+    showStatus(Update);
+
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->put_value(position,value);
