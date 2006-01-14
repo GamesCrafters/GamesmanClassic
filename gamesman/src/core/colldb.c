@@ -32,6 +32,16 @@
 #include "gamesman.h"
 #include "colldb.h"
 
+/* this defines the maximum number of bits that can be in the hash field
+ * of a position.
+ * (thus limiting the maximum length of the hash array to be (2^HASH_FIELD_MAX)*40 bits)
+ * the maximum size of the db should be
+ * (2^HASH_FIELD_MAX)*32 + (2^HASH_FIELD_MAX + 8)*40
+ * the first term needs to be continuous space, the second one consists of sparse 40-bit spaces
+ *  ----------- hand tuning with big games possible -------------
+ */
+#define HASH_FIELD_MAX 16
+
 void            colldb_free ();
 
 /* Value */
@@ -52,6 +62,20 @@ MEX		colldb_get_mex		(POSITION pos);
 void		colldb_set_mex		(POSITION pos, MEX mex);
 
 
+/* the concept here is to divide the POSITION into two fields */
+
+/* 00000000000000000000000000000000
+ * | key  |      hash index       |
+ * The key is stored in the chain hanging off the bucket
+ * the hash index determines which bucket the POSITION goes in.
+ * the database always try to minimize the hash index for maximum capacity
+ * due to memory restrictions the hash index may reach its theoretical
+ * maximum around 2^20 (because the array needs continuous space)
+ * so this db may not make do with all 64 bits of the POSITION
+ * but it is better than the array db, since it has more tolerance
+ * for fragmentation
+ */
+
 /* Collision Specific */
 typedef struct colldb_node {
 
@@ -62,32 +86,70 @@ typedef struct colldb_node {
 } colldb_value_node;
 
 colldb_value_node *colldb_find_pos(POSITION position);
-colldb_value_node* colldb_make_node(POSITION pos, VALUE val, colldb_value_node *next);
-
+colldb_value_node *colldb_make_node(POSITION pos, VALUE val, colldb_value_node *next);
 colldb_value_node *colldb_add_node(POSITION position);
 
 colldb_value_node** colldb_hash_table;
+
 POSITION colldb_num_allocated;
-int colldb_HASHSIZE;
-int hitcount;
-int accesscount;
-int remotecount;
-int visitcount;
+unsigned int hash_field_len;
+POSITION hash_mask;
+
+unsigned int hitcount;
+unsigned int accesscount;
+unsigned int remotecount;
+unsigned int visitcount;
 /*
 ** Code
 */
 
+/* this guarantees that in the case of a tight hash,
+ * and all POSITIONs are valid,
+ * each bucket contains as many POSITIONs as possible
+ * (all 2^8 keys allowed are utilized)
+ */
+unsigned int calc_field_len(POSITION total)
+{
+  unsigned int shamt = 0;
 
+  while (total > ((1<<8)-1)) {
+    total = total >> 1;
+    shamt++;
+  }
+  
+  if (shamt > HASH_FIELD_MAX) {
+    /* the hash index field exceeds a predefined value */
+    printf("this is probably too big to be handled by the collision database. I give up.\n");
+    ExitStageRight();
+    exit(0);
+  }
+
+  return shamt;
+}
+
+    
 void colldb_init(DB_Table *new_db)
 {
     hitcount = 0;
-    colldb_HASHSIZE = (int)(gNumberOfPositions >> 8) + 1;
+    hash_field_len = calc_field_len(gNumberOfPositions);
+    hash_mask = (1 << hash_field_len) - 1;
+/*
+ *   POSITION temp = hash_mask;
+*
+*    printf("hash_mask = ");
 
+*    while(temp > 1) {
+*      printf("%d", (int)(temp & 1));
+*      temp = temp >> 1;
+*    }
+    
+*    printf("\n");
+*/
     //setup internal memory table
-    colldb_hash_table = (colldb_value_node **) SafeMalloc (colldb_HASHSIZE * sizeof(colldb_value_node*));
+    colldb_hash_table = (colldb_value_node **) SafeMalloc ((1 << hash_field_len) * sizeof(colldb_value_node*));
     //printf("initalizing collision database. %d rows allocated.\n",colldb_HASHSIZE);
   
-    memset(colldb_hash_table, 0x0000, colldb_HASHSIZE * sizeof(colldb_value_node*));
+    memset(colldb_hash_table, 0x0000, (1 << hash_field_len) * sizeof(colldb_value_node*));
 
     //set function pointers
     new_db->get_value = colldb_get_value;
@@ -111,7 +173,7 @@ void colldb_free(){
     colldb_value_node *next, *cur;
 
     if(colldb_hash_table){
-	for(i=0;i<colldb_HASHSIZE;i++){
+	for(i=0;i<(1 << hash_field_len);i++){
 	    cur = colldb_hash_table[i];
 	    while(cur != NULL){
 		next = cur->next;
@@ -129,16 +191,18 @@ colldb_value_node *colldb_find_pos(POSITION position){
     char key;
     colldb_value_node *cur;
 
-    key = (char) (position / colldb_HASHSIZE);
-    i = position % colldb_HASHSIZE;
+    key = (char) (position >> hash_field_len);
+    i = position & hash_mask;
     cur = colldb_hash_table[i];
     
     while(cur != NULL){
 	if(cur->myPos == key){
-	    hitcount++;
-	    if(hitcount%1000 == 0){
-		//printf("hit: %d, access: %d, visit: %d, remote: %d\n",hitcount,accesscount,visitcount,remotecount);
-	    }	
+	    /*
+	     *hitcount++;
+	     *if(hitcount%1000 == 0){
+	     *	printf("hit: %d, access: %d, visit: %d, remote: %d\n",hitcount,accesscount,visitcount,remotecount);
+	     *}	
+	     */
 	    return cur;	
 	}
 	cur = cur->next;
@@ -151,22 +215,22 @@ colldb_value_node* colldb_make_node(POSITION pos, VALUE val, colldb_value_node *
 
     colldb_value_node *ptr = (colldb_value_node *) SafeMalloc (sizeof(colldb_value_node));
 
-    ptr->myPos = (char) (pos / colldb_HASHSIZE);
+    ptr->myPos = (char) (pos >> hash_field_len);
     ptr->myValue = val;
     ptr->next = next;
     colldb_num_allocated++;
-    
-    if(colldb_num_allocated % 100 == 0){
-	//printf("number allocated: "POSITION_FORMAT"\n",colldb_num_allocated);
-	fflush(NULL);
-    }
-    
+    /*
+     *if(colldb_num_allocated % 100 == 0){
+     *	printf("number allocated: "POSITION_FORMAT"\n",colldb_num_allocated);
+     *	fflush(NULL);
+     *    }
+     */
     return ptr;
 }
 
-colldb_value_node *colldb_add_node(POSITION position){
-  POSITION i;
-  i = position % colldb_HASHSIZE;
+colldb_value_node *colldb_add_node(POSITION position)
+{
+  POSITION i = position & hash_mask;
  
   colldb_hash_table[i] = colldb_make_node(position, undecided, colldb_hash_table[i]);
   
