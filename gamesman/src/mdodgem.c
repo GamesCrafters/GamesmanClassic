@@ -309,7 +309,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -358,7 +358,7 @@ void PrintComputersMove(computersMove,computersName)
 {
   SLOT fromSlot,toSlot;
   MoveToSlots(computersMove,&fromSlot,&toSlot);
-  printf("%8s's move              : %d %d\n", computersName, 
+  printf("%8s's move              : %d%d\n", computersName, 
 	 fromSlot+1,toSlot==OFFTHEBOARD?0:toSlot+1);
 }
 
@@ -458,7 +458,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  int i;
   //  VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
   
@@ -560,8 +559,10 @@ SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
     return (fromSlot + 3);
   else if (whosTurn == x && direction == 0)         /* west */
     return (fromSlot - 1);
-  else
+  else {
     BadElse("GetToSlot");
+    return(BADSLOT); /* Control never gets here, but lint is happy */
+  }
 }
 
 /************************************************************************
@@ -589,12 +590,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   USERINPUT ret, HandleDefaultTextInput();
-  int xpos, ypos;
-  char input = '0', fromSlotChar, toSlotChar, HandleTextualInput();
-  BOOLEAN done = FALSE, ValidMove();
-  SLOT fromSlot = BADSLOT, toSlot;
-  BlankOX theBlankOX[BOARDSIZE], whosTurn;
-  PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
   
   do {
     printf("%8s's move [(u)ndo/1-9] : ", playerName);
