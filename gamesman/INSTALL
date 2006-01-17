@@ -15,8 +15,34 @@ README file included in this package.
 COMPILING INSTRUCTIONS
 ======================
 
-In order to compile gamesman, simply go to the gamesman root directory and
-type:
+In order to compile gamesman, You need to have the necessary building tools
+and libraries installed. Here is a partial list:
+
+autoconf (latest version)
+GNU make (latest version)
+gcc, corresponding headers and libraries for C and C++ development
+(latest version)
+
+if you are building GUI applications for the games, you will also need:
+
+tcl/tk development headers (version 8.4)
+X headers (latest version)
+
+if you want to compile games with big integer support:
+
+The GMP library (latest version)
+
+if you want to compile pygamesman (a python port of gamesman):
+
+Python (version 2.4)
+
+When you have installed all the necessary components, you can generate the
+configure script by typing in the gamesman root directory (if it does not
+already exist):
+
+% autoconf
+
+then simply type:
 
 % ./configure
 % make
