@@ -34,7 +34,7 @@
 
 //the initial position is ignored!
 //this will always return undecided, just enough to signal it completed
-//no go agains, no mex, no remoteness, connect 4 only.
+//no go agains, connect 4 only.
 VALUE DetermineValueBU(POSITION position)
 {
 	if(!strcmp(kGameName,"Connect-4")) {
@@ -43,6 +43,8 @@ VALUE DetermineValueBU(POSITION position)
 	}
 
 	BOOLEAN 		UserQuit = FALSE;
+
+	int			TotalStage = 16;
 
 	int     		CurrentStage = 16; //4*4 board, will figure out how to do this dynamically later
 

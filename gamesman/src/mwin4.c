@@ -113,7 +113,7 @@ int  WIN4_HEIGHT = 4;
 #define MAXH 9
 #define MINW 1
 #define MINH 1
-#define TOTALSTAGE WIN4_WIDTH*WIN4_HEIGHT
+#define TOTAL_STAGES (WIN4_WIDTH*WIN4_HEIGHT)
 // Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
 
 #define DIRECTION_PAIRS 4
@@ -952,8 +952,8 @@ void SetPieces(int currentcol)
 			StorePositionInList(pos, currentStage);
 			
 			for (i=0; i< 20; i++) {
-				printf("%d", (int)(position & 1));
-				position = position >> 1;
+				printf("%d", (int)(pos & 1));
+				pos = pos >> 1;
 			}
 		
 		}			
@@ -992,6 +992,6 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 
 	SetHeights(0, stage);
 
-	//gotta remember to free this.... somehow.
+	//gotta free this in the bottom up solver.
 	return currentStage;
 }
