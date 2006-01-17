@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.58 2006-01-12 02:12:36 mtanev Exp $
+// $Id: mquarto.c,v 1.59 2006-01-17 08:01:51 yanpeichen Exp $
 
 
 /*
@@ -7,7 +7,6 @@
  */
 
 /************************************************************************
-<<<<<<< mquarto.c
 **
 ** NAME:        mquarto.c
 **
@@ -131,9 +130,15 @@
 **                     [slot to place piece],[new piece to select]
 ** 18 Sep 2005 Yanpei: Bug in setOffset() fixed. Now solves for 3-D as well. 
 ** 10 Oct 2005 Amy:    fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
+** 26 Oct 2005 Yanpei: symmetries VERY inefficient right now. MUST CHANGE EVENTUALLY. 
+**
+** 10 Oct 2005 Amy:    fixed weird bug in 2nd move where generatemoves() wants to put moves into HAND slot when it is already occupied.
 ** 13 Nov 2005 Mario:  Canonicals should now truly be canonicals, added normalize function to normalize pieces after group actions
 ** 13 Nov 2005 Mario:  Avoid memory leaks by freeing boards when necessary
-** 20 Nov 2005 Amy:	   changed piece representation to use {0,1}. Added help strings.
+** 20 Nov 2005 Amy:    changed piece representation to use {0,1}. Added help strings.
+** 16 Jan 2006 Yanpei: Coded generic canonicals for n-dimensional game based on
+**                     generalized rotation of n-dimensional pieces hypercube.
+**                     In testing phase. Have disagreements w/ mario's cannonicals.
 **************************************************************************/
 
 
@@ -308,6 +313,10 @@ char states[][2]={{'0', '1'}, {'0', '1'}, {'0', '1'}, {'0', '1'}};
 /* ASCII Hex */
 char hex_ascii[] = { 'H', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'y', 'Z' };
 
+/* for generic cannonicals */
+int **trivialTable=NULL;
+int **lookupTable=NULL;
+int twoPowers[] = {1,2,4,8,16,32,64,128,256};
 
 /*************************************************************************
  **
@@ -372,6 +381,10 @@ POSITION                rotatePosition90(POSITION p);
 POSITION                reflectPosition(POSITION p);
 POSITION                maskBoard(POSITION p, short mask);
 
+int                     **getLookupTable();
+int                     **getLookupTableHelper(int d, int **prevTable);
+void                    printLookupTable(int **lookupTable);
+
 void                    yanpeiTestOffset();
 void                    yanpeiTestHash();
 void                    yanpeiTestCanonicalSupport();
@@ -381,6 +394,7 @@ void                    FreePosList(POSITIONLIST *l);
 BOOLEAN                 SearchPosList(POSITIONLIST *l, POSITION p);
 
 BOOLEAN                 boards_equal ( QTBPtr, QTBPtr );
+void                    copy_board ( QTBPtr, QTBPtr );
 void                    print_board( QTBPtr );
 QTBPtr                  TestHash( QTBPtr, int );
 
@@ -428,14 +442,15 @@ void yanpeiInitializeGame() {
 
     QTBPtr board;
     short slot;
-
-	
+    int i;
+    
+    if (lookupTable) SafeFree(lookupTable);
     /* initializing globals */
     factorialTableSet = FALSE; // Mario added to work around double calling of InitializeGame
     offsetTableSet = FALSE; // Mario added to work around double calling of InitializeGame
     BOARDSIZE = square(GAMEDIMENSION);
     NUMPIECES = (1 << GAMEDIMENSION);
-    EMPTYSLOT = NUMPIECES;
+    EMPTYSLOT = NUMPIECES; // generic cannonical depend on this, do not change lightly
     FIRSTSLOT = 1;
     LASTSLOT = BOARDSIZE;
     if (BOARDSIZE<NUMPIECES)
@@ -479,6 +494,40 @@ void yanpeiInitializeGame() {
     printf("\n"); 
     printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
     printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
+
+    if (!trivialTable) {
+      trivialTable = (int**)SafeMalloc(4*sizeof(int*));
+      for (i=0; i<4; i++) {
+	trivialTable[i] = (int*)SafeMalloc(4*sizeof(int));
+      }
+      trivialTable[0][0]=0;
+      trivialTable[0][1]=1;
+      trivialTable[0][2]=2;
+      trivialTable[0][3]=3;
+      trivialTable[1][0]=2;
+      trivialTable[1][1]=0;
+      trivialTable[1][2]=3;
+      trivialTable[1][3]=1;
+      trivialTable[2][0]=3;
+      trivialTable[2][1]=2;
+      trivialTable[2][2]=1;
+      trivialTable[2][3]=0;
+      trivialTable[3][0]=1;
+      trivialTable[3][1]=3;
+      trivialTable[3][2]=0;
+      trivialTable[3][3]=2;
+    }
+
+    lookupTable = getLookupTable();
+    printLookupTable(lookupTable);
+
+    printf("%d %d\n",yanpeiGetCanonical(120),marioGetCanonical(120));
+    printPos(120,"",TRUE);
+    printPos(64,"",TRUE);
+
+    printf("%d %d\n",yanpeiGetCanonical(1200),marioGetCanonical(1200));
+    printPos(1200,"",TRUE);
+    printPos(544,"",TRUE);
 
 }
 
@@ -1203,7 +1252,7 @@ void GameSpecificMenu ()
 
     while (!validInput) {
 	printf("\t---- mquarto Option Menu ---- \n\n");
-	printf("\ti)\tChange Game D(i)mension: Currently %d-Dimensional\n",GAMEDIMENSION);
+	printf("\ti)\tChange Game D(i)mension: Currently %d-Dimensional\n\n",GAMEDIMENSION);
     
 	printf("Select an option: ");
 	//fflush(stdin); // This should only work on windows, flushing input is an ambiguous concept
@@ -1385,6 +1434,24 @@ BOOLEAN boards_equal ( QTBPtr b1, QTBPtr b2 ) {
     }
 
     return equal;
+
+}
+
+/* Yanpei: copies board contents to b1 from b2 exactly */
+void copy_board ( QTBPtr b1, QTBPtr b2 ) {
+
+    int slot;
+
+    b1->piecesInPlay = b2->piecesInPlay;
+    b1->squaresOccupied = b2->squaresOccupied;
+    b1->usersTurn = b2->usersTurn;
+
+    for( slot = 0; slot < BOARDSIZE + 1; slot++ ) {
+
+	b1->slots[slot] = b2->slots[slot];
+
+    }
+
 
 }
 
@@ -1934,6 +2001,8 @@ void yanpeiTestHash() {
     printPos = oldPrintPos;
 }
 
+// Mario's Cannonical stuff
+
 POSITION marioGetCanonical(POSITION position) {
   
   inline QTBPtr rotateBoard90(QTBPtr b);
@@ -2209,27 +2278,150 @@ void swap_columns(short *pieces, short count, short this, short that) {
 }
 
 
+// Yanpei's Cannonical stuff
+
+int **getLookupTableHelper(int d, int **prevTable) {
+
+  int i,j,k,l,insert,temp,index;
+  int test1;
+  BOOLEAN pass = TRUE;
+  int *hyperface = (int*)SafeMalloc(twoPowers[d-1] * sizeof(int));
+  int *oppositeface = (int*)SafeMalloc(twoPowers[d-1] * sizeof(int));
+  int **currentTable = (int **)SafeMalloc(twoPowers[d-1] * factorial(d) * sizeof(int *));
+
+  for (i=0; i<(twoPowers[d-1] * factorial(d)); i++) 
+    currentTable[i] = (int *)SafeMalloc(twoPowers[d] * sizeof(int));
+
+  // filling up the current lookup table
+  index = 0;
+  for (i=0; i<d; i++) {// places to insert 0 and 1 to generate hyperfaces
+                       // for d dimensional hypercube from vertices of
+                       // d-1 dimensional hypercube
+    for (insert=0; insert<=1; insert++) {// insert 0 then insert 1
+
+      for (j=0; j<twoPowers[d-1]; j++) {// to get a hyperface, one-to-one correspondence w/
+	                                // vertices of d-1 dimensional hypercube
+	hyperface[j] = (~(~0 << i) & j) | (((~0 << i) & j) << 1) | (insert << i);
+      }
+
+      /* print hyperface 
+      printf("%14s","hyperface:");
+      for (test1=0; test1<twoPowers[d-1]; test1++) {
+	printf("  %2d",hyperface[test1]);
+      }
+      printf("\n");
+      */
+
+      for (j=0; j<twoPowers[d-1]; j++) {// to get the hyperface opposite the previous
+	for (k=0; k<d; k++) {// vertices are adjacent if they differ by 1 bit
+	  temp = hyperface[j] ^ (1 << k);
+	  for (l=0; l<twoPowers[d-1]; l++) {// test if temp is in hyperface and thus not the opposite
+	    pass = pass && (temp!=hyperface[l] || l==j);
+	  }
+	  if (pass) oppositeface[j] = temp;
+	  else pass = TRUE;
+	}
+      }
+
+      /* print opposite face 
+      printf("%14s","oppositeface:");
+      for (test1=0; test1<twoPowers[d-1]; test1++) {
+	printf("  %2d",oppositeface[test1]);
+      }
+      printf("\n");
+      */
+
+      for (j=0; j < twoPowers[d-2]*factorial(d-1); j++) {// for each rotation in hyperface
+	for (k=0; k<twoPowers[d-1]; k++) {// for each vertex in hyperface and oppositeface
+                                          // derive corresponding vertex from prevTable
+	  //printf("%3d %3d %3d\n",j,k,index);
+	  currentTable[index+j][k]                = hyperface   [prevTable[j][k]];
+	  currentTable[index+j][k+twoPowers[d-1]] = oppositeface[prevTable[j][k]];
+	}
+      } // finished one hyperface
+
+      index = index + twoPowers[d-1];
+
+    } // loop for another hyperface insert 0 or 1
+  } // loop for another pair of hyperfaces by changing bit position where 0 or 1 is inserted
+
+  // freeing stuff
+  SafeFree(hyperface);
+  SafeFree(oppositeface);
+  if (prevTable != trivialTable) {
+    for (i=0; i<(twoPowers[d-2] * factorial(d-1)); i++)
+      SafeFree(prevTable[i]);
+    SafeFree(prevTable);
+  }
+
+  // returning and recursing
+  if (d==GAMEDIMENSION) 
+    return currentTable;
+  else 
+    return getLookupTableHelper(d+1,currentTable);
+
+}
+
+
+int **getLookupTable() {
+
+  if (GAMEDIMENSION==2) {
+    return trivialTable;
+  } else {
+    return getLookupTableHelper(3, trivialTable);
+  }
+
+}
+
+void printLookupTable(int **lookupTable) {
+
+  int i,j;
+
+  printf("\n");
+  for (i=0; i<(twoPowers[GAMEDIMENSION-1]*factorial(GAMEDIMENSION)); i++) {
+    for (j=0; j<twoPowers[GAMEDIMENSION]; j++) {
+      printf("  %2d",lookupTable[i][j]);
+    }
+    printf("\n");
+    if (!((i+1) % (twoPowers[GAMEDIMENSION-2]*factorial(GAMEDIMENSION-1))))  printf("\n");
+  }
+}
+
+
 POSITION yanpeiGetCanonical(POSITION p) {
 
-    POSITION geometricSym[8];
+    QTBPtr geometricSym[8];
     POSITION toReturn = offsetTable[NUMPIECES+1];
     POSITION temp;
-    short i,j;
+    int i,j,k;
+    QTBPtr tempBoard = MallocBoard();
 
-    geometricSym[0] = p;
-    geometricSym[1] = rotatePosition90(geometricSym[0]);
-    geometricSym[2] = rotatePosition90(geometricSym[1]);
-    geometricSym[3] = rotatePosition90(geometricSym[2]);
-    geometricSym[4] = reflectPosition(geometricSym[0]);
-    geometricSym[5] = reflectPosition(geometricSym[1]);
-    geometricSym[6] = reflectPosition(geometricSym[2]);
-    geometricSym[7] = reflectPosition(geometricSym[3]);
+    geometricSym[0] = unhash(p);
+    geometricSym[1] = rotateBoard90(geometricSym[0]);
+    geometricSym[2] = rotateBoard90(geometricSym[1]);
+    geometricSym[3] = rotateBoard90(geometricSym[2]);
+    geometricSym[4] = reflectBoard(geometricSym[0]);
+    geometricSym[5] = reflectBoard(geometricSym[1]);
+    geometricSym[6] = reflectBoard(geometricSym[2]);
+    geometricSym[7] = reflectBoard(geometricSym[3]);
 
-    for (i=0; i<NUMPIECES; i++) {
-	for (j=0; j<8; j++) {
-	    if ((temp=maskBoard(geometricSym[j],i)) < toReturn) toReturn = temp;
+    for (i=0; i<8; i++) { // iterate thru geometric symmetries
+      for (j=0; j<twoPowers[GAMEDIMENSION-1] * factorial(GAMEDIMENSION); j++) { 
+	// iterate thru rotation of pieces hypercube
+	copy_board(tempBoard,geometricSym[i]);
+	for (k=0; k<BOARDSIZE+1; k++) {
+	  // change pieces on tempBoard to equivalents
+	  if (tempBoard->slots[k] != EMPTYSLOT) {
+	    tempBoard->slots[k] = lookupTable[j][tempBoard->slots[k]];
+	  }
 	}
+	temp = hash(tempBoard);
+	toReturn = (temp < toReturn) ? temp : toReturn;
+      }
+      SafeFree(geometricSym[i]);
     }
+
+    SafeFree(tempBoard);
 
     return toReturn;
 
@@ -2505,6 +2697,10 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.58  2006/01/12 02:12:36  mtanev
+//
+// Fix super-duper-ridiculous bug of declaring temp position of type int in getCanonical
+//
 // Revision 1.57  2006/01/11 03:02:45  mtanev
 //
 // Eliminate make warnings
