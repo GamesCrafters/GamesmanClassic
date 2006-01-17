@@ -28,6 +28,13 @@
 **
 **************************************************************************/
 
+/* a position seem to be made with this: (4x4)
+ * 10100 10010 11010 01110
+ * every segment denotes a row, with the last digit always 0
+ * due to the encoding scheme
+ * the whole binary number will be the POSITION.
+ */
+
 /*************************************************************************
 **
 ** Everything below here must be in every game file
@@ -120,7 +127,9 @@ char 	       *gBlankOXString[] = { "X", "O", "-" };
 
 int		gContinuousPiecesGoal = 4;
 
+
 /* Global position solver variables.*/
+
 struct {
 	XOBlank board[MAXW][MAXH];
 	int heights[MAXW];
@@ -146,10 +155,25 @@ Direction 	gDirections[DIRECTION_PAIRS][2] = {{LEFT, UP},
 
 Direction 	gOppositeDirections[DIRECTIONS];
 
+/* stage-based bottom-up solver variables */
+int	currentHeights[MAXW];
+
+int	currentPieces[MAXW];
+
+POSITIONLIST   *currentStage;
+
+
 /** Function Prototypes **/
 POSITION 	MyInitialPosition();
 POSITION 	MyNumberOfPos();
+
+void		CountPieces(POSITION pos, int *xcount, int *ocount);
+
+void		SetHeights(int currentcol, int piecesleft);
+void		SetPieces(int currentcol);
+void		RecordPosition(POSITION pos, POSITIONLIST *head);
 POSITIONLIST   *EnumerateWithinStage(int stage);
+
 int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 				      Direction verticalDirection);
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
@@ -556,6 +580,14 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 		for (i=0;i<WIN4_WIDTH;i++)
 			printf(" %s",gBlankOXString[(int)board[i][row]]);
 	}
+
+	for (i=0; i< 20; i++) {
+		printf("%d", (int)(position & 1));
+		position = position >> 1;
+	}
+
+	printf("\n");
+
 	printf("\n\nPrediction: %s",
 	       GetPrediction(position,playerName,usersTurn));
 }
@@ -704,7 +736,8 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 	for (col=0; col<WIN4_WIDTH;col++) {
 		row=WIN4_HEIGHT-1;
 		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-		     (pos & (1 << h)) == 0; h--) {
+		     (pos & (1 << h)) == 0;
+		     h--) {
 			board[col][row]=2;
 			row--;
 		}
@@ -735,21 +768,9 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 
 XOBlank WhoseTurn(POSITION pos)
 {
-	int col,row,h;
 	int xcount = 0,ocount = 0;
 
-	for (col=0; col<WIN4_WIDTH;col++) {
-		row=WIN4_HEIGHT-1;
-		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-		     (pos & (1 << h)) == 0; h--) row--;
-		h--;
-		while (row >=0) {
-			if ((pos & (1<<h)) != 0) ocount++;
-			else xcount++;
-			row--;
-			h--;
-		}
-	}
+	CountPieces(pos, &xcount, &ocount);
 
 	if(xcount == ocount)
 		return(x);            /* x always goes first */
@@ -890,14 +911,87 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
 	return count;
 }
 
+void CountPieces(POSITION pos, int *xcount, int *ocount)
+{
+	int row, col, h;
+
+	for (col=0; col<WIN4_WIDTH;col++) {
+		row=WIN4_HEIGHT-1;
+		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
+		     (pos & (1 << h)) == 0; h--) row--;
+		h--;
+		while (row >=0) {
+			if ((pos & (1<<h)) != 0) (*ocount)++;
+			else (*xcount)++;
+			row--;
+			h--;
+		}
+	}
+}
+
+/* bottom-up solver support functions */
+
+int min(int a, int b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+
+void SetPieces(int currentcol)
+{
+	int xcount = 0, ocount = 0, i;
+	POSITION pos = 0;
+
+	if (currentcol > WIN4_WIDTH) {
+		for(i=0; i<WIN4_WIDTH; i++)
+			pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
+		CountPieces(pos, &xcount, &ocount);
+		if ((xcount == ocount) || (xcount == ocount+1)) {//seems like a valid pos
+			StorePositionInList(pos, currentStage);
+			
+			for (i=0; i< 20; i++) {
+				printf("%d", (int)(position & 1));
+				position = position >> 1;
+			}
+		
+		}			
+	} else {
+		for (currentPieces[currentcol] = (1 << currentHeights[currentcol]);
+		     currentPieces[currentcol] < (1 << (currentHeights[currentcol]+1));
+		     currentPieces[currentcol]++)
+			SetPieces(currentcol + 1);
+	}
+}
+
+void SetHeights(int currentcol, int piecesleft)
+{
+	if ((currentcol > WIN4_WIDTH) && (piecesleft == 0)) {
+		SetPieces(0);
+	} else {
+		for (currentHeights[currentcol] = min(WIN4_HEIGHT, piecesleft);
+		     currentHeights[currentcol] >= 0;
+		     currentHeights[currentcol] --) {
+			SetHeights(currentcol + 1, piecesleft - currentHeights[currentcol]);
+		}
+	}
+}
+
+
 //take the stage, generate all combinations of the columns, and then hash it, and append it to the list.
 //using an array and doubling length when expanding size for ammortized O(n) running time
 POSITIONLIST *EnumerateWithinStage(int stage) {
 
-    POSITIONLIST *head = NULL;
+	/*
+	if(stage == TOTALSTAGE)
+		return head;
+	*/
+	
+	assert(currentStage == NULL); 
 
-    if(stage == TOTALSTAGE) //we are solving leaves
-    return head;
+	SetHeights(0, stage);
 
-    return NULL;
+	//gotta remember to free this.... somehow.
+	return currentStage;
 }
