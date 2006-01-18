@@ -873,24 +873,14 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
   // Print header
 
-  PrintHeader(maxMoveLength, maxR, maxTR, position, whoseTurn);
+  PrintHeader(maxMoveLength, maxR, maxTR, position, kPlayerOneTurn);
 
   // Determine players' names
 
-  if(gOpponent == AgainstComputer) {
-    if(gHumanGoesFirst) {
-      playerOneName = gPlayerName[kPlayerOneTurn];
-      playerTwoName = gPlayerName[kPlayerTwoTurn];
-    } else {
-      playerOneName = gPlayerName[kPlayerTwoTurn];
-      playerTwoName = gPlayerName[kPlayerOneTurn];
-    }	    
-  } else if(gOpponent == AgainstHuman 
-	    || gOpponent == ComputerComputer) {
-    playerOneName = gPlayerName[kPlayerOneTurn];
-    playerTwoName = gPlayerName[kPlayerTwoTurn];
-  }
-  
+  playerOneName = gPlayerName[kPlayerOneTurn];
+  playerTwoName = gPlayerName[kPlayerTwoTurn];
+
+
   // Print line for initial position
 
   createBlankLine(line, maxR, maxTR);
@@ -910,7 +900,10 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
     mlist = mlist->next;
   }
 
-  // If predictions are on, print values for possible moves
+  if (whoseTurn == playerOne) whoseTurn = playerTwo;
+  else whoseTurn = playerOne;
+  
+// If predictions are on, print values for possible moves
 
   if (gPrintPredictions) {
     
