@@ -81,7 +81,7 @@ proc GS_InitGameSpecific {} {
     set oColor red2
     set pieceOffset $dotgap
     ## dots
-    set dotSize [expr $pieceSize.0 / 2.6]
+    set dotSize [expr $pieceSize / 2.6]
     set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
     ## lines
     set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
