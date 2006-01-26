@@ -675,7 +675,7 @@ proc GS_ShowMoves { c moveType position moveList } {
             } elseif {$value == "Lose"} {
                 set color green
             } else {
-                set color red
+                set color red4
             }
         }
         $c itemconfigure mi-$move -fill $color
