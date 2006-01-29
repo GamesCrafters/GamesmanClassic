@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.6 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mtemplate.c,v 1.7 2006-01-29 09:59:47 ddgarcia Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -114,7 +114,6 @@ extern void		SafeFree ();
 **
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
-**              Sets up gDatabase (if necessary).
 ** 
 ************************************************************************/
 
@@ -498,6 +497,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.5  2005/10/06 03:06:11  hevanm
 // Changed kDebugDetermineValue to be FALSE.
 //
