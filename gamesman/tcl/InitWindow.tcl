@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.84 2005-11-10 07:58:05 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.85 2006-01-31 01:32:33 eudean Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -24,11 +24,16 @@ proc TBaction1 {} {
 	pack forget .middle.f2.fPlayOptions.fBot
 	SetupPlayOptions
 
-	global gLeftName gRightName
+	global gLeftName gRightName gWindowWidth
+
+	# Let Left: and Right: fonts scale with gWindowWidth
+	set playerFontSize [expr int($gWindowWidth / 70)]
 	.middle.f1.cMLeft itemconfig LeftName \
-	    -text [format "Left:\n%s" $gLeftName]
+	    -text [format "Left:\n%s" $gLeftName] \
+	    -font "Helvetica $playerFontSize bold"
 	.middle.f3.cMRight itemconfig RightName \
-	    -text [format "Right:\n%s" $gRightName]
+	    -text [format "Right:\n%s" $gRightName] \
+	    -font "Helvetica $playerFontSize bold"
 	update
     } else {
 	set gGamePlayable false
@@ -1010,6 +1015,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	.middle.f3.cMRight raise WhoseTurn
 	.middle.f3.cMRight raise RightName
 	.cStatus raise undoD
+	#.middle.f3.cMRight raise RightName
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
