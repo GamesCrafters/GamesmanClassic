@@ -127,7 +127,7 @@ VALUE DetermineValueSTD(POSITION position)
             return(StoreValueOfPosition(position,lose));
         }
         else
-            BadElse("DetermineValue[2]");
+            BadElse("DetermineValue[2]. GenereateMoves most likely didnt return anything.");
     }
     BadElse("DetermineValue[3]");  /* This should NEVER be reached */
     return(undecided);          /* But has been added to satisty lint */
