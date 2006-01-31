@@ -203,7 +203,7 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width 500 -height 500
+    #$c configure -width 500 -height 500
     
 	global canvasLength canvasWidth gYPosition spaceBetween rectWidth rectLength ovalHWidth ovalHLength backgroundColor
 	global pieceColor movablePieceColor
@@ -213,7 +213,7 @@ proc GS_Initialize { c } {
 	set canvasWidth 500
 	set gYPosition [expr $canvasLength - 180]
 	set myFont Courier
-	set backgroundColor aquamarine
+	set backgroundColor grey
 	set pieceColor Cyan
 	set movablePieceColor magenta
 	set spaceScaleFactor 80
