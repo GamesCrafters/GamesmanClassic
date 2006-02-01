@@ -53,7 +53,7 @@ proc CreateButtonLauncher { theBitmapDir thePrograms theStrings theGuiTypes} {
     ## and the extra space between the rows of buttons
 
 ##  5 columns of games for now Jonathan Tsai 2004.04.18
-    set cols 5
+    set cols 7
 ##   set cols [getColumns $theNumberOfPrograms]
     set rows [getRows $theNumberOfPrograms $cols]
 
@@ -246,13 +246,19 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms {  achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi win4 dodgem Lgame sim 3spot con cmass dnb foxes stt }
+    set thePrograms { 1210 abalone achi asalto change dao dinododgem hshogi iceblocks lewth lite3 mancala tore nim ooe othello qx rubix seega slideN snake tactix ttt3 wuzhi \
+			   ctoi win4 dodgem Lgame sim \
+			   3spot con cmass dnb foxes stt }
     ### Removed ttt (silver version) ddg 2004-04-18
 
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" "QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Sim" "3-Spot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" "Dao" "Dino Dodgem" "Hasami Shogi" "Ice Blocks" "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" "Nim" "Odd or Even" "Othello" "QuickCross" "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" "Tic-Tac-Toe" "Wuzhi" \
+			  "Chung-Toi" "Connect 4" "Dodgem" "L Game" "Sim" \
+			  "3-Spot" "Connections!" "Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     ### Removed Tic-Tac-Toe (silver version) ddg 2004-04-18
 
-    set theGuiTypes { gold gold gold gold gold gold gold gold gold grey grey grey grey grey brown brown brown brown brown brown }
+    set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold gold \
+			  grey grey grey grey grey \
+			  brown brown brown brown brown brown }
     ### Removed grey (for Tic-Tac-Toe)
 
 
@@ -273,6 +279,9 @@ main
 
 ##### Revision Logs #####
 ##$Log: not supported by cvs2svn $
+##Revision 1.2  2005/10/20 22:25:32  hevanm
+##Changed hard-coded lauching command in XGamesman to /usr/bin/env wish
+##
 ##Revision 1.1  2005/10/14 00:01:15  hevanm
 ##Dan found a way to invoke wish from the scripts without manually detecting its path. I am therefore removing all the .in files and code in the configure scripts that do the manual detection. From now on make sure you have wish in your path.
 ##
