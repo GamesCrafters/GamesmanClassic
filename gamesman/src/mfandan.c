@@ -1665,7 +1665,7 @@ void PlacePieces() {
     if('Q' == file)
       return;
 
-    if('A' <= file <= ('A' + BOARDWIDTH))
+    if(('A' <= file) && (file <= ('A' + BOARDWIDTH)))
       done = 1;
     else
       printf("\n\\Incorrect file\n");
