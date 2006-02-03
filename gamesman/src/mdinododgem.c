@@ -292,7 +292,7 @@ void DebugMenu() { }
 **              nothing if kGameSpecificMenu == FALSE
 ************************************************************************/
 void GameSpecificMenu() {
-  int c, n; // My char for board size input.
+  int c; // My char for board size input.
   
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -708,7 +708,7 @@ void PrintPosition(position,playerName,usersTurn)
   VALUE GetValueOfPosition();
   BlankOX theBlankOx[boardsize], whosTurn;
 
-  int pbar_max, pbar_len, xcount, ocount, numx, numo, index, i;
+  int pbar_max, pbar_len, xcount, ocount, numx, numo, i;
 
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
@@ -954,7 +954,7 @@ MOVELIST *GenerateMoves(position)
   MOVE theMove;
   MOVELIST *CreateMovelistNode();
   BlankOX theBlankOX[boardsize], whosTurn;
-  int i,j;     /* Values for J: 0=left,1=straight,2=right */
+  int i;     /* Values for J: 0=left,1=straight,2=right */
   int left, right, up, down; /* Board position relative to current piece. */
   
   PositionToBlankOX(position,theBlankOX,&whosTurn);
@@ -1085,10 +1085,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   USERINPUT ret, HandleDefaultTextInput();
-  int xpos, ypos;
-  char input = '0', fromSlotChar, toSlotChar, HandleTextualInput();
-  BOOLEAN done = FALSE, ValidMove();
-  SLOT fromSlot = BADSLOT, toSlot;
   BlankOX theBlankOX[boardsize], whosTurn;
 
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
@@ -1245,7 +1241,7 @@ void PrintMove(theMove)
 ************************************************************************/
 POSITION DefaultInitialPosition() {
   BlankOX blankOX[boardsize];
-  int i, j;
+  int i;
 
   for (i=0; i<boardsize; i++) {
       blankOX[i] = Blank;
@@ -1353,6 +1349,9 @@ MOVE encodemove( int from, int to,  BlankOX whosTurn) {
     return theMove;
   else if (whosTurn == o)
     return theMove + 1;
+
+  //should not be reached
+  return 0;
 }
 
 int getfrom (MOVE theMove) {

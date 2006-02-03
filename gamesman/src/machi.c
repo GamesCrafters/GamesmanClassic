@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.27 2006-01-03 00:19:34 hevanm Exp $
+// $Id: machi.c,v 1.28 2006-02-03 06:08:39 hevanm Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -108,7 +108,7 @@ BOOLEAN noDiag = FALSE;
 
 void InitializeHelpStrings();
 
-static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+/*static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];*/
 
 /* Proofs of correctness for the below arrays:
 **
@@ -428,7 +428,7 @@ POSITION GetInitialPosition()
 {
     BlankOX theBlankOX[BOARDSIZE], whosTurn;
     signed char c;
-    int i, goodInputs = 0;
+    int i;
 
 
     printf("\n\n\t----- Get Initial Position -----\n");
@@ -556,7 +556,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-    int i;
     BlankOX theBlankOx[BOARDSIZE];
     BlankOX whosTurn;
     
@@ -772,10 +771,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-    int xpos, ypos;
     BOOLEAN ValidMove();
-    char input = '0';
-    BOOLEAN done = FALSE;
     USERINPUT ret, HandleDefaultTextInput();
   
     do {
@@ -1054,6 +1050,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2006/01/03 00:19:34  hevanm
+// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
+//
 // Revision 1.26  2005/12/28 18:34:03  ddgarcia
 // Fixed some trailing \n\ in the text strings...
 //

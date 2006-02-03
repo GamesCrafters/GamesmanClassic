@@ -508,7 +508,6 @@ POSITION GetInitialPosition()
 {
   POSITION initialPosition;
   int current_node, i, player;
-  char* node_name;
   char* string_board = (char*)SafeMalloc(sizeof(char)*MAX_NODES);
 
   for(i = 0; i < num_nodes; i++)
@@ -857,8 +856,7 @@ BOOLEAN ValidTextInput (input)
 MOVE ConvertTextInputToMove (input)
 	STRING input;
 {
-  char *to_string, *from_string;
-  int to, from, move;
+  int to, from;
 
   sscanf(input, "%d %d", &from, &to);
   from--;

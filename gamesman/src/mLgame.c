@@ -291,7 +291,7 @@ char *gBlankOXString[] = { "-", "O", "X" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
-static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+/*static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];*/
 
 /* Proofs of correctness for the below arrays:
 **
@@ -1400,6 +1400,8 @@ int untransformOrient(int L) {
 	return (i+1);
     }
   }
+  //should never reach here
+  return 0;
 }
 
 /************************************************************************
@@ -1421,6 +1423,8 @@ int untransformOrig(int L, int orient) {
     if (L == transArr[orient-1][i])
       return (i+1);
   }
+  //should never be reached
+  return 0;
 }
 
 /************************************************************************
@@ -1602,12 +1606,13 @@ int Make8to16(int L1, int L2, int S1as8) {
     arr[FOURSQUARES[L2][i]] = 1;
   }
   for (i = 1; i<17; i++)
-    if (arr[i] == 0)
-      if (S1as8 == 1) {
-	arr[i] = 2;
-	S1as8 = S1as8-1;
-      }
-      else S1as8 = S1as8-1;
+	  if (arr[i] == 0) {
+		  if (S1as8 == 1) {
+			  arr[i] = 2;
+			  S1as8 = S1as8-1;
+		  }
+		  else S1as8 = S1as8-1;
+	  }
   for (i = 1; i<17; i++)
     if (arr[i] == 2)
       S1as16 = i;
@@ -1690,12 +1695,13 @@ int Make7to16(int L1, int L2, int S1, int S2as7) {
   }
   arr[S1] = 1;
   for (i = 1; i<17; i++)
-    if (arr[i] == 0)
-      if (S2as7 == 1) { //S2as7 is used as a counter
-	arr[i] = 2;
-	S2as7 = S2as7-1;  //decrement counter to avoid error
-      }
-      else S2as7 = S2as7-1;  //decrement counter
+	  if (arr[i] == 0) {
+		  if (S2as7 == 1) { //S2as7 is used as a counter
+			  arr[i] = 2;
+			  S2as7 = S2as7-1;  //decrement counter to avoid error
+		  }
+		  else S2as7 = S2as7-1;  //decrement counter
+	  }
   for (i = 1; i<17; i++)
     if (arr[i] == 2)
       S2as16 = i;

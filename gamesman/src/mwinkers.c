@@ -539,7 +539,7 @@ POSITION DoMove (thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  BlankORB theBlankORB[BOARDSIZE];
+	/*  BlankORB theBlankORB[BOARDSIZE];*/
   void printBoard();
   signed char c;
   int i;
@@ -632,7 +632,7 @@ VALUE Primitive (pos)
 {
   BOOLEAN AllFilledIn();
   char ThreeInARow();
-  BlankORB theBlankORB[BOARDSIZE];
+  /*  BlankORB theBlankORB[BOARDSIZE];*/
   VALUE EndGame(char, int);
   generic_unhash(pos, gBoard);
   char current;
@@ -701,7 +701,7 @@ void PrintPosition (position, playerName, usersTurn)
 	STRING playerName;
 	BOOLEAN usersTurn;
 {
-  int i, j, m = 0, n = 0;
+	int i, j, m = 0;/*, n = 0;*/
   generic_unhash(position, gBoard);
 
   char wink, opWink;
@@ -932,7 +932,7 @@ BOOLEAN ValidTextInput (input)
   if (strlen(input) != 1 && strlen(input)!= 2)
     return FALSE;
   int a;
-  if (a = ConvertToNumber(input) < 0)
+  if ((a = ConvertToNumber(input)) < 0)
     return FALSE;
   return TRUE;
 }
@@ -1190,7 +1190,7 @@ BOOLEAN AllFilledIn(theBlankORB)
 int RowNumber(i)
      int i;
 {
-  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)
@@ -1212,7 +1212,7 @@ int RowNumber(i)
 int RowWidth(i)
      int i;
 {
-  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)
@@ -1237,7 +1237,7 @@ int RowWidth(i)
 int ColPosition(i)
      int i;
 {
-  int CurrentRow = 0, CurrentPosition = 0, CurrentWidth = BOARDWIDTH;
+  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
   
   while(TRUE) {
     if (i < CurrentWidth)

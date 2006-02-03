@@ -1103,7 +1103,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	if (GENERATEMOVES_DEBUG)
 	{
 		printf("mASALTO - GenerateMoves() Running...\n"); 
-		printf("mASALTO - GenerateMoves() --> pos: " POSITION_FORMAT "  player: " POSITION_FORMAT "\n",position,player);
+		printf("mASALTO - GenerateMoves() --> pos: " POSITION_FORMAT "  player: %d\n",position,player);
 	}
 	
 	generic_unhash(getPosition(position), board);

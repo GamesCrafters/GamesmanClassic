@@ -590,7 +590,7 @@ void DebugMenu () {
     printf(" 1) Test Generate Moves\n");
     printf(" 0) Exit\n");
     printf("\n  DEBUG> ");
-    scanf("%d",option);
+    scanf("%d",&option);
   }
   return;
 }
@@ -614,16 +614,16 @@ void GameSpecificMenu () {
   void PrintPosition (POSITION, STRING, BOOLEAN);
   void resetBoard(), resetPieces(),addPieceToInit(PIECE);
   PIECE stringToPiece(char);
-  int *input,i,j;
+  int *input,i;
   char move[MOVE_LENGTH+1], piece;
   char option[2];
   BOOLEAN hadInitialPieces(MPLAYER);
-  POSITION pos;
+
   input = (int *) malloc(1*sizeof(int));
   while(TRUE) {
     PrintPosition(gInitialPosition,"GameMenu",FALSE);
     printf("  Game Specific Options:\n");
-    printf("    Current number of positions: %u\n",gNumberOfPositions);
+    printf("    Current number of positions: "POSITION_FORMAT"\n",gNumberOfPositions);
     printf("    *note* this should be <= ~2,000,000 positions\n\n");
     printf("\tr)\t (R)ows in board       -     [%d] rows\n",numRows);
     printf("\tc)\t (C)olumns in board    -     [%d] cols\n",numCols);
@@ -906,7 +906,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   for(row = 0; row < numRows; row++) {
     printf("  %d",numRows-row);
     for (col = 0; col < numCols; col++)
-      printf(" | %c" ,piece_strings[board[row*numCols+col]]);
+      printf(" | %c" ,piece_strings[board[row*numCols+col]-'0']);
     printf(" |      ");
 
     if (row == 0) {
@@ -1379,7 +1379,7 @@ PIECE stringToPiece(char piece) {
 /** PRINT POSITION helper functions ************************************/
 
 struct pieceType *piecesOffBoard(struct pieceType *pieces, BOARD board) {
-  int getBoardSize(), sizeOfPieceType(struct pieceType *),i,count;
+  int getBoardSize(), sizeOfPieceType(struct pieceType *),i;
   struct pieceType *newPT;
   newPT = (struct pieceType *)SafeMalloc((sizeOfPieceType(pieces)+1) * sizeof(struct pieceType));
   for (i = 0; i < sizeOfPieceType(pieces)+1; i++) {
@@ -1759,7 +1759,7 @@ MOVELIST *genPawnMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
 
 /* Gets the Board from the hash position */
 BOARD getBoard(POSITION pos) {
-  int getBoardSize(),i; 
+  int getBoardSize();
   BOARD newBoard;
   newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
   newBoard = generic_unhash(pos,newBoard);

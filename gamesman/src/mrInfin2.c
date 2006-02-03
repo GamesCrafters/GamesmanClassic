@@ -448,7 +448,6 @@ POSITION DoMove(thePosition, theMove)
 {
   //if theMove goes beyond 1, 2, 3, or 4, 5, 6 (for the special pieces)then throw error
   int currentScore, tempScore;
-  int blackLocation, whiteLocation;
   int matchingYellow, matchingBlue, totalmatches;
   int c1, c2, c3, c4, c5, c6, c7, c8;  // ints to find columns,rows,diags
 
@@ -1079,8 +1078,7 @@ POSITION GetInitialPosition()
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[REDUCTBOARDSIZE], whosTurn, temp;
   signed char c;
-  int i, j = 9, goodInputs = 0;
-  char boardSpace[REALBOARDSIZE];
+  int i;
   int c1,c2,c3,c4,c5,c6,c7,c8,c9; // REDUCT: These nums stores all the values first before actually storing them into theBlankOX var
   int column1, column2, column3;
 
@@ -1321,7 +1319,6 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   /* All our variables before functions */
-  int i;
   BlankOX theBlankOX[REDUCTBOARDSIZE];
   char elt[REALBOARDSIZE];
   char *meters[] = { "----------@",
@@ -1539,11 +1536,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
-  BOOLEAN ValidMove();
-  char input = '0';
-   BOOLEAN done = FALSE;
-  USERINPUT ret, HandleDefaultTextInput();
+  USERINPUT ret;
 
   do {
     printf("%8s's move [(u)ndo/1-6] :  ", playerName);
@@ -1627,6 +1620,8 @@ int getOption() {
   int option = 1;
   
   option += (gStandardGame ? 0 : 1);
+
+  return option;
 }
 
 void setOption(int option) {
@@ -1659,8 +1654,6 @@ void PositionToBlankOX(thePos,theBlankOX)
      POSITION thePos;
      BlankOX *theBlankOX;
 {
-
-  int i;
   int b0,b1, b2, b3, b4, b5, b6;
 
    b6 = thePos % 2; // turn
@@ -1697,7 +1690,6 @@ void PositionToBlankOX(thePos,theBlankOX)
 POSITION BlankOXToPosition(theBlankOX)
      BlankOX *theBlankOX;
 {
-  int i;
   POSITION position = 0;
 
   int turn = theBlankOX[6];
@@ -1854,6 +1846,8 @@ int ConvertBackToInt(char* letter)
     return o;
   }
 
+  //never reaches here
+  return Blank;
 }
 
 /************************************************************************

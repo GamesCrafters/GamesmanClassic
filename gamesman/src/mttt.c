@@ -406,9 +406,9 @@ void UndoMove(MOVE move)
 
 POSITION GetInitialPosition()
 {
-  BlankOX theBlankOX[BOARDSIZE], whosTurn;
+  BlankOX theBlankOX[BOARDSIZE];
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -497,8 +497,8 @@ VALUE Primitive(POSITION position)
       ThreeInARow(gPosition.board, 0, 4, 8) ||
       ThreeInARow(gPosition.board, 2, 4, 6))
     return gStandardGame ? lose : win;
-  else if (gUseGPS && gPosition.piecesPlaced == BOARDSIZE ||
-           !gUseGPS && AllFilledIn(gPosition.board))
+  else if ((gUseGPS && (gPosition.piecesPlaced == BOARDSIZE)) ||
+           ((!gUseGPS) && AllFilledIn(gPosition.board)))
     return tie;
   else
     return undecided;
@@ -526,8 +526,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  int i;
-  //  VALUE GetValueOfPosition();
   BlankOX theBlankOx[BOARDSIZE];
 
   PositionToBlankOX(position,theBlankOx);
@@ -677,11 +675,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
-  BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
-  USERINPUT ret, HandleDefaultTextInput();
+  USERINPUT ret;
   
   do {
     printf("%8s's move [(u)ndo/1-9] :  ", playerName);

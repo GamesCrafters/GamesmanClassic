@@ -31,9 +31,9 @@ void InitNode( Node* this );
 Node* NewNode(void);
 void DeleteNode( Node* this );
 
-bool AddPiece( Node* this, Player );
+void AddPiece( Node* this, Player );
 bool AddNeighbor( Node* theNode, Node* NewNeighbor );
-bool AddPieceToQueue( Node* this, Player );
+void AddPieceToQueue( Node* this, Player );
 bool Burst( Node* this );
 bool TransferQueue( Node* this );
 
@@ -168,7 +168,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 void InitializeGame()
 {
-  int i, j, temp;
+	int i;
   Node* theBoard;
   
   theBoard = (Node*)SafeMalloc( sizeof(Node)*BOARDSIZE );
@@ -625,7 +625,6 @@ MOVELIST *GenerateMoves(position)
   int i;
   Player WhoseTurnItIs=0;
   POSITION realPosition;
-  Player theWinner;
   long totalcombos=0;
   static int lastboardsize = 0;
   static Node* theBoard = NULL;
@@ -696,10 +695,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();
   
   
@@ -952,7 +948,7 @@ void PrintNodes( Node* theNodes, int NodeCount )
 
 
 
-bool AddPiece( Node* this, Player thePlayer )
+void AddPiece( Node* this, Player thePlayer )
 {
   this->piececount++; 
   this->Owner=thePlayer;
@@ -960,7 +956,7 @@ bool AddPiece( Node* this, Player thePlayer )
 
 
 
-bool AddPieceToQueue( Node* this, Player thePlayer )
+void  AddPieceToQueue( Node* this, Player thePlayer )
 {
   this->queue++;
   this->queueOwner=thePlayer;
@@ -1303,7 +1299,6 @@ POSITION EncodeBoard( Node* theBoard, long NodeCount )
 Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos )
 {
   long i = 0;
-  POSITION counter;
   unsigned long runningquotient;
     
   runningquotient = inPos;

@@ -341,7 +341,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -629,10 +629,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   USERINPUT ret, HandleDefaultTextInput();
-  int xpos, ypos;
-  char input = '0', fromSlotChar, toSlotChar, HandleTextualInput();
-  BOOLEAN done = FALSE, ValidMove();
-  SLOT fromSlot = BADSLOT, toSlot;
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   PositionToBlankOX(thePosition,theBlankOX,&whosTurn);
   

@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.76 2005-05-05 02:47:48 ogren Exp $
+//$Id: m9mm.c,v 1.77 2006-02-03 06:08:39 hevanm Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -801,7 +801,7 @@ POSITION DoMove(thePosition, theMove)
   unhash(thePosition, board);
   //debug
   if (debug) {
-    printf("thePosition is: %ld\n", thePosition);
+    printf("thePosition is: "POSITION_FORMAT"\n", thePosition);
     printf("It is this person's turn: %d\n", whoseMove(thePosition));
   }
 
@@ -1078,7 +1078,6 @@ MOVELIST *GenerateMoves(POSITION position)
   int i, j, k, x_count, o_count, blank_count;
   int player_count, opponent_count, raw_move;
   MOVELIST *CreateMovelistNode(), *head = NULL;
-  MOVELIST *temp_head = NULL;
   blankox dest[BOARDSIZE];
   int x_pieces[maxx];
   int o_pieces[maxo];
@@ -1262,7 +1261,7 @@ BOOLEAN ValidTextInput(input)
     afterSpace = index(input, ' ');
     //debug
     if (debug) {
-      printf("index of the space: %d", afterSpace);
+      printf("index of the space: %s", afterSpace);
     }
   } else {
     return FALSE;
@@ -1451,7 +1450,6 @@ POSITION hash(blankox *b_board, blankox turn)
 {
 
   char c_board[BOARDSIZE];
-  int raw_hash;
   int player;
 
   if (turn == x) 
@@ -1863,7 +1861,7 @@ int count_mills(POSITION position, blankox player)
   }
 
   if (debug) {
-    printf("At position %ld, count_mills found %d mill(s) for player %c.\n", position, mills, unparse_blankox(player));
+    printf("At position "POSITION_FORMAT", count_mills found %d mill(s) for player %c.\n", position, mills, unparse_blankox(player));
   }
 
   return mills;
@@ -1940,7 +1938,7 @@ BOOLEAN all_mills(blankox *board, int slot)
   if (debug) {
 	 printf("all_mills checked this board:\n");
 	 debugMiniBBoard(board);
-	 printf("and is returning %b", allMills);
+	 printf("and is returning %d", allMills);
   }
 
   return allMills;
@@ -2037,7 +2035,7 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
   }
   for (i = 0; i < numBlanks; i++) {
     /* transform position */
-    int blankSlot = blanks[i];
+    blankSlot = blanks[i];
     board[blankSlot] = board[slot];
     board[slot] = blank; 
 
@@ -2173,7 +2171,7 @@ void debugPosition(POSITION h)
 
   unhash(h, bboard);
   unparse_board(bboard, cboard);
-  printf("Current position = %ld, ", h);
+  printf("Current position = "POSITION_FORMAT", ", h);
   printf("%c player's turn.\n", gblankoxChar[whose_turn(h)]);
   printf("Current board = \n");
   debugBoard(bboard, cboard);
@@ -2183,6 +2181,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.76  2005/05/05 02:47:48  ogren
+//changed malloc calls to SafeMalloc -Elmer
+//
 //Revision 1.75  2005/01/06 07:02:57  liao_r
 //Added Author Names to kAuthorName when available.
 //

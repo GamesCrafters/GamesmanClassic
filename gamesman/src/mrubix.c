@@ -204,7 +204,7 @@ int g5Array[] = { 1, 5, 25, 125, 625, 3125, 15625, 78125, 390625};
 
 #ifndef NO_GRAPHICS
 
-#pragma weak Tcl_CreateCommand
+/*#pragma weak Tcl_CreateCommand*/
 
 static int HashCmd(ClientData dummy, Tcl_Interp *interp,
 		   int argc, char **argv);
@@ -1306,7 +1306,7 @@ int getOption()
 void setOption(int option)
 {
   int width=MIN_WIDTH, length=MIN_LENGTH;
-  int boardsizeOption, i;
+  int boardsizeOption;
   option -= 1;
 
   gStandardGame = option & 1;
@@ -1385,13 +1385,13 @@ void PositionToBlankOX(thePos,theBlankOX)
   for (i=0; i<BOARDSIZE; i++) {
     piece = theBlankOX[i];
     if (piece==x) {
-      if (parityPos&1 == 1) {
+      if ((parityPos&1) == 1) {
 	theBlankOX[i] = X;
       }
       parityPos >>= 1;
     }
     else if (piece==o) {
-      if (parityPos&1 == 1) {
+      if ((parityPos&1) == 1) {
 	theBlankOX[i] = O;
       }
       parityPos >>= 1;

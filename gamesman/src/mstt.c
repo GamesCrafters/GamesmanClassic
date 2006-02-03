@@ -397,9 +397,9 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 
 POSITION GetInitialPosition()
 {
-  BlankOX theBlankOX[BOARDSIZE], whosTurn;
+  BlankOX theBlankOX[BOARDSIZE];
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -802,10 +802,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
@@ -1123,7 +1120,6 @@ BlankOX WhoseTurn(int thePos)
 void printBoard(POSITION thePos)
 {
   BlankOX tempBoard[BOARDSIZE];
-  int i;
 
   PositionToBlankOX(thePos,tempBoard);
 

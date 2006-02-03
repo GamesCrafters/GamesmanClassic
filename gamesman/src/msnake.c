@@ -296,8 +296,8 @@ POSITION DoMove(thePosition, theMove)
   return newPosition;
   }
 
-  /* added 03/27/04 */
-  //return newPosition;
+  /* should never reach here? */
+  return newPosition;
 }
 
 /* whoseTurn takes in theBlankBHT and returns H or T in a length 1 
@@ -654,6 +654,9 @@ struct node* maxDepthOf(struct node *a, struct node *b, struct node *c, struct n
 	     ( (b == NULL) || (d->depth >= b->depth) ) &&
 	     ( (c == NULL) || (d->depth >= c->depth) ) )
 	    return d;
+
+    //should never reach here
+    return NULL;
 }	
 
 // Returns the node of the tree which is the tail piece farthest away (most deep) from the head.
@@ -958,13 +961,9 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  USERINPUT ret, HandleDefaultTextInput();
-  int xpos, ypos;
-  char input = '0', fromSlotChar, toSlotChar, HandleTextualInput();
-  BOOLEAN done = FALSE, ValidMove();
-  SLOT fromSlot = BADSLOT, toSlot;
-  BlankBHT theBlankBHT[BOARDSIZE];
-  SnakeUnhash(thePosition,theBlankBHT);
+	USERINPUT ret;
+	BlankBHT theBlankBHT[BOARDSIZE];
+	SnakeUnhash(thePosition,theBlankBHT);
   
   do {
     printf("%8s's move [(u)ndo/1-%d 1-%d] : ", playerName, BOARDSIZE, BOARDSIZE);

@@ -135,7 +135,7 @@ h (or H)    : (H)elp\n\
 a (or A)    : (A)bort the game\n\
 q (or Q)    : (Q)uit";
 
-static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+/*static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];*/
 
 /* Proofs of correctness for the below arrays:
 **
@@ -281,10 +281,6 @@ void DebugMenu()
 
 void GameSpecificMenu()
 {
-  char GetMyChar();
-  signed char c;
-  int choice, i;
-
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
@@ -498,7 +494,7 @@ POSITION GetInitialPosition()
   POSITION BlankOOOXXXToPosition();
   BlankOOOXXX theBlankOOOXXX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -621,8 +617,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  int i;
-  //  VALUE GetValueOfPosition();
   BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 
   PositionToBlankOOOXXX(position,theBlankOOOXXX);
@@ -724,10 +718,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleTextInput();
   
   do {

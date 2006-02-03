@@ -783,7 +783,7 @@ percentDoneCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    sprintf(interp->result,"%d",PercentDone(2));
+    sprintf(interp->result,"%f3.0",PercentDone(2));
     return TCL_OK;
   }
 }

@@ -122,7 +122,7 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 	   move_node != NULL && alpha < beta;
 	   move_node = move_node->next)
 	{
-	  SCORE tempa, tempb;
+		/*SCORE tempa, tempb;*/
 	  run = TRUE;
 	  
 	  /* Obtain position resulting from application of move */

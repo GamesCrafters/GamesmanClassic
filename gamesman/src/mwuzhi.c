@@ -691,7 +691,6 @@ VALUE Primitive (POSITION position)
   char* board = (char*)generic_unhash (position, gBoard);
   char playerpiece = (player == 1 ? WHITE : BLACK);
   int numplayerpiece = 0;
-  int numOppPieces = 0;
   int i;
   for (i = 0; i < gBoardlength; i++) {
     if (board[i] == playerpiece)
@@ -1244,10 +1243,9 @@ int getOption ()
 
 void setOption (int option)
 {
-  gStandardGame = option & 0x1 == 1;
-  diagonals = (option >> 1) & 0x1;
-  gBoardwidth = (option >> 2) + 3;
-
+	gStandardGame = ((option & 1) == 1);
+	diagonals = (option >> 1) & 1;
+	gBoardwidth = (option >> 2) + 3;
 }
 
 

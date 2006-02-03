@@ -295,7 +295,7 @@ int GetWhoseTurn(POSITION thePosition){
 /*
  * 
 char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
-
+*/
 
 /************************************************************************
 **
@@ -1229,8 +1229,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();
   
   do {

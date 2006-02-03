@@ -246,7 +246,7 @@ void GameSpecificMenu ()
 	do
 	{
 		printf("\n\t----- Game Specific Options for Othello ----- \n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: "POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tm)\t(M)odify Board\n");
 		if(variant_NoGenMovesRestriction)
@@ -392,8 +392,8 @@ POSITION GetInitialPosition()
 
 POSITION SetupInitialPosition()
 {
-	int coordinate[2];
-	int location = -1;
+	/*int coordinate[2];*/
+	/*int location = -1;*/
 	char selection_command[80];
 	char selection = 'Z';
 	char* board;
@@ -420,7 +420,7 @@ POSITION SetupInitialPosition()
 			}	
 
 		printf("\n\t----- Othello Initial Position Setup ----- \n\n");
-		printf("\tCurrent Number of Maximum Positions: %d", gNumberOfPositions);
+		printf("\tCurrent Number of Maximum Positions: "POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
 		printf("\tCurrent Board\n");
 		PrintBoard(board);
@@ -565,30 +565,34 @@ VALUE Primitive (POSITION pos)
 		}		
 	}
 	
-	if(blanktally != 0)
+	if(blanktally != 0) {
 		if(quickgeneratemoves(board, whoseturn))
 			return undecided;
-		else
-			if(quickgeneratemoves(board, oppositeturn(whoseturn)))
-				return undecided;
+		else if(quickgeneratemoves(board, oppositeturn(whoseturn)))
+			return undecided;
+	}
 
 	if(blacktally == whitetally)
 	{
 		return tie;
 	}
 	
-	if(blacktally > whitetally)
+	if(blacktally > whitetally) {
 		if(whoseturn == 1)
 			return (gStandardGame ? win : lose);//blackwin
 		else
 			return (gStandardGame ? lose : win);//whitelose
-	if(whitetally > blacktally)
+	}
+	if(whitetally > blacktally) {
 		if(whoseturn == 1)
 			return (gStandardGame ? lose : win);//blacklose
 		else
 			return (gStandardGame ? win : lose);//whitewin
-	
+	}
 	printf("ERROR: Primitive returns no value");
+
+	/*control should never reach here*/
+	return undecided;
 }
 
 
@@ -616,7 +620,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
 	int whoseturn = whoseMove(position);
-	int strlenname = strlen(playerName);
+	/*int strlenname = strlen(playerName);*/
 	char turnString1[80], turnString2[80], prediction[80];
 	
 	//for loops inits
@@ -646,11 +650,11 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	
 	if(whoseturn == 1)
 	{	
-		sprintf(owncolor,"Black\0");
+		sprintf(owncolor,"Black");
 	}	
 	else
 	{
-		sprintf(owncolor,"White\0");
+		sprintf(owncolor,"White");
 	}
 	
 	/*Start Printing Board*/
@@ -814,7 +818,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	char ownpiece, opponentpiece;
 	int AnyMovesAtAll = 0;
 	int move[2];
-	int max, numsolvercounter;
+	int numsolvercounter;
 	MOVELIST *CreateMovelistNode(), *head = NULL;
 
 	
@@ -848,7 +852,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	
 	for(i = 0; i < (OthRows * OthCols); i++)
 
-		if(board[i] == BLANKPIECE)
+		if(board[i] == BLANKPIECE) {
 
 			if(variant_NoGenMovesRestriction)
 			{
@@ -866,7 +870,8 @@ MOVELIST *GenerateMoves(POSITION position)
 						head = CreateMovelistNode(i, head);
 						break;				
 					}
-	
+		}
+
 	if(!AnyMovesAtAll)
 		head = CreateMovelistNode(PASSMOVE, head);
 		
@@ -937,7 +942,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	BOOLEAN lenthree = 0;
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
 	if(DEBUG) printf("ValidTextInput Starting. Strlen = %d\n", strlen(input));
@@ -1008,6 +1012,9 @@ MOVE ConvertTextInputToMove (STRING input)
 					((int) (input[2] - '0'))));
 		return (MOVE) CoordtoArrayNum(move[0], move[1]);
 	}
+
+	/* control should nenvre reach here */
+	return (MOVE)NULL;
 }
 
 /************************************************************************
@@ -1111,7 +1118,7 @@ void setOption(int option)
 
 /*Stolen from mttc.c*/
 char* getBoard(POSITION pos) {
-  int boardsize, i;
+  int boardsize;
   char * generic_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
@@ -1122,7 +1129,7 @@ char* getBoard(POSITION pos) {
 }
 
 char* getBlankBoard() {
-  int boardsize, i;
+  int boardsize;
   char * generic_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
@@ -1175,6 +1182,8 @@ int oppositedirection(int direction)
 		case 8: return 6;
 		default: printf("Error: oppositeturn");
 	}
+	/*control should not be here*/
+	return 0;
 }
 
 BOOLEAN ValidCoord(int coord[])
@@ -1472,7 +1481,6 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 {
 	int i, j;
 	char ownpiece, opponentpiece;
-	BOOLEAN AnyMovesAtAll = 0, AlreadyListed = 0; 
 	
 	if(DEBUG) printf("\nQuick Generate Moves starting\n\n");
 	

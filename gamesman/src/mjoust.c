@@ -219,10 +219,8 @@ Piecetype OBurn = knight;
 ** 
 ************************************************************************/
 
-void InitializeGame() {
-  POSITION i, res;
-  BlankBurntOX ox[BOARDSIZE], wt;
-
+void InitializeGame()
+{
   gInitialPosition = GenerateNewInitial();
   gMinimalPosition = gInitialPosition;
   gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
@@ -345,7 +343,6 @@ POSITION DoMove(thePosition, theMove)
   BlankBurntOX whoseTurn;
   BlankBurntOX theBlankBurntOX[BOARDSIZE];
   POSITION newPos;
-  int i;
 
   PositionToBlankBurntOX(thePosition, theBlankBurntOX);
 
@@ -387,7 +384,7 @@ POSITION GetInitialPosition()
   POSITION BlankBurntOXToPosition();
   BlankBurntOX theBlankBurntOX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0, xCount = 0, oCount = 0;
+  int i, xCount = 0, oCount = 0;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -614,7 +611,7 @@ void PrintPosition(position,playerName,usersTurn)
   printf("\n");
 
   if (kPrintDebug)
-    printf("Position = %d\n", position);
+    printf("Position = "POSITION_FORMAT"\n", position);
 }
 
 /************************************************************************
@@ -719,6 +716,8 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
       }
     }
   
+  //should never reach there
+  return FALSE;
 }
 
 /*So many possibilities...
@@ -1037,6 +1036,9 @@ BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX th
     {
       return FALSE;
     }
+
+  //never reached
+  return FALSE;
 }
 
 
@@ -1145,7 +1147,6 @@ BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX t
 BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, POSITION Pos, BlankBurntOX theBlankBurntOX[]){
   int piecePos;
   MOVE aMove;
-  POSITION movedPos;
 
   piecePos = GetPFromPosition(Pos);
   
@@ -1265,6 +1266,9 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
 	break;
       }
     }
+
+  //never reached
+  return FALSE;
 }
 
 /************************************************************************
@@ -1364,13 +1368,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
-  BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
-  USERINPUT ret, HandleDefaultTextInput();
-
-  
+  USERINPUT ret;
 
   do {
     if (burnType==0) {
@@ -1820,13 +1818,11 @@ BlankBurntOX WhoseTurn(thePosition)
  *   For use with Primitive.
  **************************************************/
 
-BOOLEAN CanMove(POSITION position) {
-    MOVELIST *head = NULL;
-
+BOOLEAN CanMove(POSITION position)
+{
   int i;
   int j;
   int piecePos;
-  MOVE aMove;
   BlankBurntOX theBlankBurntOX[BOARDSIZE];
   PositionToBlankBurntOX(position, theBlankBurntOX);
   

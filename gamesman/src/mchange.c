@@ -286,7 +286,7 @@ POSITION GetInitialPosition()
 {
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -421,7 +421,6 @@ BOOLEAN Trapped(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)    
 {
-  int i;
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
 
   PositionToBlankOX(position,theBlankOx,&whosTurn);
@@ -599,6 +598,9 @@ SLOT GetToSlot(BlankOX whosTurn, SLOT fromSlot, int direction, int slide)
       return(fromSlot - 10);
   } //ends if(whosTurn == x) !!!!!!!!!!!!!!!
   BadElse("GetToSlot"); //if it doesn't return anything, there's a PROBLEM
+
+  //should never reach here
+  return 0;
 }
 
 /************************************************************************
@@ -625,9 +627,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      MOVE *theMove;
      STRING playerName;
 {
-  int xpos, ypos;
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret;
   
   do {

@@ -12,7 +12,7 @@
 ** UPDATE HIST:
 **
 **
-** Last Updated: $Id: mtttppm.c,v 1.4 2005-05-04 22:54:15 ogren Exp $
+** Last Updated: $Id: mtttppm.c,v 1.5 2006-02-03 06:08:39 hevanm Exp $
 **************************************************************************/
 
 /*************************************************************************
@@ -346,6 +346,7 @@ int topdowndepth;
     else 
       return(color);
   }
+  return(c_invalid);
 }
 
 /************************************************************************
@@ -554,6 +555,9 @@ int i,j;
 
 /* Changelog:
 $Log: not supported by cvs2svn $
+Revision 1.4  2005/05/04 22:54:15  ogren
+prototyped void functions properly.  Fixed a call to PrintPPMBufferAscii(fp,pixbuf) -Elmer
+
 Revision 1.3  2004/12/01 22:31:29  ogren
 added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
 

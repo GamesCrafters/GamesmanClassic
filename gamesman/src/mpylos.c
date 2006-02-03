@@ -393,7 +393,6 @@ MOVELIST *GenerateMoves(POSITION position) {
   char board[gBoardSize];
   char center; /* Used for hardcoding */
   int height, index;
-  MOVE move;
   MOVELIST* moveList = NULL;
   MoveGroup moveGroup;
   Pyramid *pyramid, pyramids[gBoardAddresses];
@@ -414,9 +413,9 @@ MOVELIST *GenerateMoves(POSITION position) {
        moveGroup.moves[0]--) {
     pyramid = &pyramids[moveGroup.moves[0] - 1];
 
-    if (IsBlankPyramid(pyramid) && IsSupportedPyramid(pyramid) ||
-        gBoardDimension == 3 && moveGroup.moves[0] == 7 && /* Hardcoded */
-        board[4] == gPieceLabels[BLANK_PIECE]) {
+    if ((IsBlankPyramid(pyramid) && IsSupportedPyramid(pyramid)) ||
+        (gBoardDimension == 3 && moveGroup.moves[0] == 7 && /* Hardcoded */
+        board[4] == gPieceLabels[BLANK_PIECE])) {
       if (gAllowSquaring && !(gBoardDimension == 3 && /* Hardcoded */
           moveGroup.moves[0] == 7 && center != gPieceLabels[BLANK_PIECE]) &&
           FormsSquare(pyramid, whoseMove(position))) {
@@ -425,8 +424,8 @@ MOVELIST *GenerateMoves(POSITION position) {
           pyramid = &pyramids[moveGroup.moves[1] - 1];
 
           if (moveGroup.moves[1] == moveGroup.moves[0] ||
-              pyramid->pieceLabel == gPieceLabels[whoseMove(position)] &&
-              !IsSupportingPyramid(pyramid))
+              (pyramid->pieceLabel == gPieceLabels[whoseMove(position)] &&
+	       !IsSupportingPyramid(pyramid)))
             moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
         }
       }
@@ -592,8 +591,7 @@ void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
 
   buffer[rows - 1][columns - 1] = '\0';
 
-  printf("\n%s %s\n\n%s", buffer, GetPrediction(position, name, isUsersTurn),
-         PIECES_LEFT_TITLE);
+  printf("\n%s %s\n\n%s", (char *)buffer, GetPrediction(position, name, isUsersTurn), PIECES_LEFT_TITLE);
 
   if (pieces == 0)
     printf("None");

@@ -23,7 +23,7 @@ EXTERNC
 {
 #include "gamesman.h"
 
-#pragma weak Tcl_CreateCommand
+	//#pragma weak Tcl_CreateCommand
 }
 
 POSITION gNumberOfPositions  =  0;
@@ -70,7 +70,7 @@ STRING   kHelpExample = "No help";
 **************************************************************************/
 
 bool UnderTcl=false;
-int BoardSize = 2   *2;
+unsigned BoardSize = 2   *2;
 
 const int Empty=0;
 const int Red=1;
@@ -91,7 +91,6 @@ struct Con {
 
   int Turn() const {
     int moves=0;
-    int p=pos;
     for (int p=pos; p; p>>=1)
       moves += p&1;
     return !!(moves&1);
@@ -129,8 +128,8 @@ struct Con {
   }
 
   void Print() {
-    for (int j = 0; j < BoardSize*2+1; j++) {
-      for (int i = 0; i < BoardSize*2+1; i++) {
+    for (unsigned j = 0; j < BoardSize*2+1; j++) {
+      for (unsigned i = 0; i < BoardSize*2+1; i++) {
 	if (i&1 || j&1) {
 	  printf(" ");
 	  continue;
@@ -168,8 +167,6 @@ private:
 
 EXTERNC void InitializeDatabasesForReal()
 {
-  int i;
-
   Con::PreCalc();
 
   gNumberOfPositions = Con::NumberOfPositions();
@@ -202,7 +199,7 @@ XYtoPos(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
     if (sscanf(argv[2], "%d", &y) == EOF)
       return TCL_ERROR;
     
-    sprintf(interp->result,POSITION_FORMAT,(int)Con::Pos(x,y));
+    sprintf(interp->result,POSITION_FORMAT,(POSITION)Con::Pos(x,y));
     return TCL_OK;
   }
 }
@@ -241,9 +238,9 @@ MoveToInter(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
     
     int xypos=0;
     // do this really cheesily, since it's only needed by the GUI
-    for (int i = 0; i <= BoardSize; i++)
-      for (int j = 0; j <= BoardSize; j++) {
-	if (Con::Pos(i,j)==pos)
+    for (unsigned i = 0; i <= BoardSize; i++)
+      for (unsigned j = 0; j <= BoardSize; j++) {
+	if ((unsigned)Con::Pos(i,j)==pos)
 	  xypos=i+j*(BoardSize+1);
       }
 	
@@ -392,9 +389,9 @@ EXTERNC void PrintComputersMove(MOVE computersMove,STRING computersName)
 // Can we get from x,y to Bottom/Right Edge 
 bool Traverse(const Con& board,int x,int y,int Color,int visited) {
   if (Color == Red) {
-    if (y == BoardSize) return true;
+    if ((unsigned)y == BoardSize) return true;
   } else {
-    if (x == BoardSize) return true;
+    if ((unsigned)x == BoardSize) return true;
   }
      
   for (int d = 0; d < 4; d++) {
@@ -429,12 +426,12 @@ EXTERNC VALUE Primitive(POSITION position)
 
   int whowon=0;
 
-  for (int i = 1; i < BoardSize; i+=2)
+  for (unsigned i = 1; i < BoardSize; i+=2)
     if (Traverse(board,i,0,Red,0)) {
       whowon=Red; goto wehaveawinner;
     }
 
-  for (int j = 1; j < BoardSize; j+=2)
+  for (unsigned j = 1; j < BoardSize; j+=2)
     if (Traverse(board,0,j,White,0)) {
       whowon=White; goto wehaveawinner;
     }
@@ -494,7 +491,6 @@ EXTERNC void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn
 EXTERNC MOVELIST *GenerateMoves(POSITION position)
 {
   MOVELIST *head = NULL;
-  int i;
   
   //  printf("got GenerateMoves call with position %08x\n",position);
 
@@ -505,8 +501,8 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
   int turn = board.Turn();
   
-  for (int j = 0; j <= BoardSize; j++)
-    for (int i = 0; i <= BoardSize; i++) {
+  for (unsigned j = 0; j <= BoardSize; j++)
+    for (unsigned i = 0; i <= BoardSize; i++) {
       int p = board.Pos(i,j);
       if (p < 0) continue;
       if (turn)
@@ -542,10 +538,7 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
 EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret; 
   
   do {

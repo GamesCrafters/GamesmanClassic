@@ -530,7 +530,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
     char* board;
-    int i, j, goatCount = 0;
+    int i, j;
     int turn = whoseTurn(position);
     board = unhash(position);
     if(turn == 1) {
@@ -809,7 +809,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    int i, x, y, x1, y1;
+    int x, y, x1, y1;
     int shift = boardSize;
     MOVE move;
     x = input[0] - 'a' + 1;
@@ -987,7 +987,7 @@ POSITION GetInitialPosition ()
 	       TIGER,GOAT,GOAT,GOAT,TIGER);
 	for(i = 1; i <= length; i++) {
 	    printf(">");
-	    scanf("%s", &line);
+	    scanf("%s", line);
 	    for(j = 1; j <= width; j++) {
 		if(line[j-1] != SPACE && line[j-1] != GOAT && line[j-1] != TIGER)
 		    valid = FALSE;
@@ -997,7 +997,7 @@ POSITION GetInitialPosition ()
 	printf("Enter how many goats are left to place: ");
 	scanf("%d", &goatsLeft);
 	printf("Enter who you would like to go first (goats or tigers): ");
-	scanf("%s", &line);
+	scanf("%s", line);
 	if(!strcmp(line, "goats"))
 	    turn = PLAYER_ONE;
 	else
@@ -1235,7 +1235,7 @@ void SetupHash ()
     gNumberOfPositions = generic_hash_init(boardSize, game, vcfg_board);
     if(phase1)
 	gNumberOfPositions *= (goats + 1);
-    printf("Number of positions: %ld\n", gNumberOfPositions);
+    printf("Number of positions: "POSITION_FORMAT"\n", gNumberOfPositions);
 }
 
 void SetInitialPosition ()

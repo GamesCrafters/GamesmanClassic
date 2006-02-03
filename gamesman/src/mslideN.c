@@ -351,7 +351,6 @@ POSITION DoMove(thePosition, theMove)
 {
   int i;
   int myMove;
-  BOOLEAN isSqueezed;
   
   void LeftGravity(), RightGravity();
   POSITION BlankOXToPosition();

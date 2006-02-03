@@ -409,7 +409,7 @@ POSITION GetInitialPosition()
   char whosTurn;
   signed char c;
   int numX, numO;
-  int i, goodInputs = 0, phase, numSwans;
+  int i, phase, numSwans;
 
 
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -746,6 +746,9 @@ SLOT GetToSlot(theBoard,fromSlot,direction,whosTurn)
       return(fromSlot + 4);
   else
     BadElse("GetToSlot");
+
+  //never reaches here
+  return 0;
 }
 
 /************************************************************************
@@ -773,10 +776,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   USERINPUT ret;
-  int xpos, ypos, phase, numSwans;
-  char input = '0', fromSlotChar, toSlotChar;
-  BOOLEAN done = FALSE;
-  SLOT fromSlot = BADSLOT, toSlot;
+  int phase, numSwans;
   char whosTurn;
   generic_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
 

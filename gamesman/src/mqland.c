@@ -342,11 +342,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	int player;
 	int s, d; /* source, dest */
-	BOOLEAN validDestination;
-	int i, j;
 	char* board = (char*) SafeMalloc(sizeof(char) * width * height);
 	char players_piece;
-	MOVE move;
    
 	player = next_player(position);
 	players_piece = (player == 1 ? WHITE : BLACK);
@@ -1099,7 +1096,7 @@ void setOption (int option)
     int i, j, k, l;
 
     /* set the options indicated by moveStyleVal */
-    if (moveStyleVal = 0) {
+    if (moveStyleVal == 0) {
 	slide_rules = NO_SLIDE;
     } else {
 	moveStyleVal = moveStyleVal - 1;
@@ -1284,7 +1281,7 @@ void ChangeBoardSize() {
 	printf("Enter a new height for the board (between %d and %d): ", MIN_HEIGHT, MAX_HEIGHT);
 	while (isspace(c = getc(stdin))) ;
 	newHeight = c - '0';;
-	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH & newHeight >= MIN_HEIGHT) {
+	if (newWidth <= MAX_WIDTH && newHeight <= MAX_HEIGHT && newWidth >= MIN_WIDTH && newHeight >= MIN_HEIGHT) {
 	    height = newHeight;
 	    width = newWidth;
 	    printf("\nThe board is now %d by %d.\n", width, height);

@@ -699,7 +699,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
   int index=0;
   int currRow;
   char currCol;
-  char alphabet[]="abcdefghijklmnopqrstuvwxyz";
   char temp[BOARDARRAYSIZE];
   Board b=temp;
   int moveCounter;
@@ -807,11 +806,10 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
  ************************************************************************/
 MOVELIST *GenerateMoves (POSITION position)
 {
-  MOVELIST *moves = NULL;
   char gBoard[BOARDARRAYSIZE];
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   char mover;
-  int player,i,j;
+  int player,i;
   // void boardcopy();
   int legalMove();
   int isoddbrd;
@@ -1151,13 +1149,13 @@ inline void unhash(Board b, POSITION p) {
 }
 
 inline int fromWhere(SMove m) { // applies only if !placingBoard(b)
-  return *m>>(8*sizeof(MOVE)/2) & (1<<8*sizeof(MOVE)/2)-1;
+  return (*m>>(8*sizeof(MOVE)/2)) & ((1<<8*sizeof(MOVE)/2)-1);
 }
 inline int toWhere(SMove m) {
-  return *m & (1<<8*sizeof(MOVE)/2)-1;
+  return *m & ((1<<8*sizeof(MOVE)/2)-1);
 }
 inline int toWhere2(SMove m) { // applies only if placingBoard(b)
-  return *m>>8*sizeof(MOVE)/2 & (1<<8*sizeof(MOVE)/2)-1;
+  return (*m>>(8*sizeof(MOVE)/2)) & ((1<<8*sizeof(MOVE)/2)-1);
 }
 
 inline int whoToInt(char c) {
@@ -1219,7 +1217,7 @@ int nextSpotOfType(Board b, int lowerBound, int whoseTurn) {
 MOVELIST *GeneratePlacingMoves(Board b) {
   MOVELIST *CreateMovelistNode(), *head = NULL;
   char c = whoseBoard(b);
-  int i,j,move=0;
+  int i,move=0;
   for (i=nextOpenInitSpot(b,0);
        i!=-1;
        i=nextOpenInitSpot(b, i+1))
@@ -1316,7 +1314,6 @@ void boardcopy(char *from,char*to){
 /* tells whether r is a forbidden spot for placing pieces (i.e. the
    center) */
 int forbiddenSpot(int r) {
-  int i;
   //printf("FORBIDDEN spot check r[%u] height[%u] width[%u]\n", r, height, width);
   if (defaultForbidden) {
     return height/2 == r/width && width/2 == r%width;

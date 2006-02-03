@@ -216,7 +216,7 @@ POSITION GetInitialPosition()
 {
   POSITION initialPosition;
   printf("Please input the starting value [0 - N] : ");
-  (void) scanf("%d",initialPosition);
+  scanf(POSITION_FORMAT,&initialPosition);
   return initialPosition;
 }
 
@@ -288,7 +288,7 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  printf("\nTOTAL                        : %2d %s \n\n",position,
+  printf("\nTOTAL                        : "POSITION_FORMAT" %s \n\n",position,
 	 GetPrediction(position,playerName,usersTurn));
 }
 

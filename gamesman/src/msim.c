@@ -278,7 +278,7 @@ POSITION GetInitialPosition()
   POSITION BlankOXToPosition();
   BlankOX theBlankOX[BOARDSIZE], whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");

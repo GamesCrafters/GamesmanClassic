@@ -89,8 +89,8 @@ static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
 #define MAX_X 3
 #define MAX_Y 3
 
-int BoardSizeX = 2;
-int BoardSizeY = 2;
+unsigned BoardSizeX = 2;
+unsigned BoardSizeY = 2;
 //bool SolvePrivately=false;
 //bool CompressDatabase=false;
 bool TrackBoxOwners=true;  // use extra bits to track who scored? only on small boards
@@ -122,8 +122,8 @@ struct DNB {
       pos |= 1<<move;
 
     if (ParallelMoves) {
-      for (int j = 0; j < BoardSizeY; j++)
-	for (int i = 0; i < BoardSizeX; i++)
+      for (unsigned j = 0; j < BoardSizeY; j++)
+	for (unsigned i = 0; i < BoardSizeX; i++)
 	  if (!oldboard.BoxCompleted(i,j) && BoxCompleted(i,j)) {
 	    scored=true;
 	    AddScore(i,j);
@@ -188,8 +188,8 @@ struct DNB {
       return;
     }
     first=0,second=0;
-    for (int j=0; j < BoardSizeY; j++)
-      for (int i=0; i < BoardSizeX; i++) {
+    for (unsigned j=0; j < BoardSizeY; j++)
+      for (unsigned i=0; i < BoardSizeX; i++) {
 	if (BoxCompleted(i,j)) {
 	  if (Scored(i,j))
 	    second++;
@@ -201,8 +201,8 @@ struct DNB {
   
   int BoxesCompleted() {
     int count=0;
-    for (int j=0; j < BoardSizeY; j++)
-      for (int i=0; i < BoardSizeX; i++)
+    for (unsigned j=0; j < BoardSizeY; j++)
+      for (unsigned i=0; i < BoardSizeX; i++)
 	if (BoxCompleted(i,j))
 	  count++;
     return count;
@@ -231,8 +231,8 @@ struct DNB {
   char ChoiceV(int i, int j) {return 'a'+VertMoveOffset+i*BoardSizeY+j;}
 
   void Print() {
-    for (int j = 0; j <= BoardSizeY; j++) {
-      for (int i = 0; i < BoardSizeX; i++) {
+    for (unsigned j = 0; j <= BoardSizeY; j++) {
+      for (unsigned i = 0; i < BoardSizeX; i++) {
 	printf("+");
 	if (EdgeH(i,j))
 	  printf("---");
@@ -242,18 +242,18 @@ struct DNB {
       if (j==BoardSizeY) break;
       printf("+\n");
 
-      for (int i = 0; i <= BoardSizeX; i++)
+      for (unsigned i = 0; i <= BoardSizeX; i++)
 	printf("%c   ",EdgeV(i,j)?'|':' ');
       printf("\n");
 
-      for (int i = 0; i <= BoardSizeX; i++) {
+      for (unsigned i = 0; i <= BoardSizeX; i++) {
 	printf("%c",EdgeV(i,j)?'|':ChoiceV(i,j));
 	if (i == BoardSizeX) break;
 	printf(" %c ",BoxCompleted(i,j)?!TrackBoxOwners?'?':Scored(i,j)?'O':'X':' ');
       }
       printf("\n");
 
-      for (int i = 0; i <= BoardSizeX; i++)
+      for (unsigned i = 0; i <= BoardSizeX; i++)
 	printf("%c   ",EdgeV(i,j)?'|':' ');
 
       printf("\n");
@@ -393,8 +393,6 @@ void DoPrivateSolve() {
 
 EXTERNC void InitializeGame()
 {
-  int i;
-
   if (BoardSizeX*BoardSizeY>=6) {
     TrackBoxOwners=false;
     //CompressDatabase=true;
@@ -699,10 +697,7 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
 EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret; 
   
   do {

@@ -254,7 +254,6 @@ void GameSpecificMenu()
   char GetMyChar();
   signed char c;
   int choice, i;
-  BOOLEAN fullPosition;
   
   do {
     if(gInitialPosition == (gNumberOfPositions - 1)) /* full 4x4 */
@@ -475,8 +474,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  int i;
-  //  VALUE GetValueOfPosition();
   BlankO *theBlankO;
   GENERIC_PTR SafeMalloc();
 
@@ -610,7 +607,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 {
   BOOLEAN ValidMove();
   USERINPUT ret, HandleDefaultTextInput();
-  char input = '0';
   
   do {
     *theMove = 0;

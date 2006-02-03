@@ -216,7 +216,6 @@ GenericUnhashCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   char *board;
-  int n;
   board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
   generic_unhash(atoi(argv[1]),board);
   sprintf(interp->result, "%s",board);

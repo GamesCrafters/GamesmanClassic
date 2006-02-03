@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.29 2006-01-03 00:19:34 hevanm Exp $
+// $Id: mabalone.c,v 1.30 2006-02-03 06:08:39 hevanm Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -241,7 +241,7 @@ void InitializeGame()
 
   rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
   
-  int rowsize = N, rownum, slot = 0, bsize = 0;
+  int rowsize = N, rownum, slot = 0;
   for (rownum = 0; rownum < N - 1; rownum++) {
     rows[rownum] = makerow(rowsize,slot);
     slot += rowsize;
@@ -1825,6 +1825,8 @@ int destination(int slot, int direction) {
     }
     return ((slot - start) + (*rows[r-1]).start_slot);
   }
+  //should never reach here
+  return 0;
 }
 
 
@@ -1893,9 +1895,8 @@ int move_hash(int slot1, int slot2, int slot3, int direction) {
   }
 }
 
-struct row * makerow (int size, int start) {
-  int i;
-
+struct row * makerow (int size, int start) 
+{
   struct row *new;
   new = (struct row *) SafeMalloc(1 * sizeof(struct row));
   (*new).size = size;
@@ -1942,56 +1943,58 @@ void printrow (int line, int flag) {
     printf ("  ");
   }
   if (flag == 0) {
-    if (line > N - 1) 
-      printf("\\ \\  ");
-    else if (line == N - 1)
-      printf("| |  ");
-    else
-      printf("/ /  ");
+	  if (line > N - 1) 
+		  printf("\\ \\  ");
+	  else if (line == N - 1)
+		  printf("| |  ");
+	  else
+		  printf("/ /  ");
   }
 
   for (s = 0; s < size; s++) {
-    printf ("(");
+	  printf ("(");
     
-    if (flag == 0)
-      if (gBoard[start + s] == '*')
-	printf(" ");
-      else
-	printf ("%c", gBoard[start + s]);
-    if (flag == 1) {
-      if (N == 2) {
-	printf("%d", start + s + 1);
-      }
-      else {
-	if (start + s < 9)
-	  printf("0");
-	printf("%d",start + s + 1);
-      }
-    }
-    
-    if (s != size - 1)
-      printf(")-");
-    else
-      printf(") ");
+	  if (flag == 0) {
+		  if (gBoard[start + s] == '*')
+			  printf(" ");
+		  else
+			  printf ("%c", gBoard[start + s]);
+	  }
+	  if (flag == 1) {
+		  if (N == 2) {
+			  printf("%d", start + s + 1);
+		  }
+		  else {
+			  if (start + s < 9)
+				  printf("0");
+			  printf("%d",start + s + 1);
+		  }
+	  }
+	  
+	  if (s != size - 1)
+		  printf(")-");
+	  else
+		  printf(") ");
   }
   if (flag == 0) {
-    if (line > N - 1) 
-      printf(" / /");
-    else if (line == N - 1)
-      printf(" | |");
-    else
-      printf(" \\ \\");
+	  if (line > N - 1) 
+		  printf(" / /");
+	  else if (line == N - 1)
+		  printf(" | |");
+	  else
+		  printf(" \\ \\");
   }
 
   
   for (s = 0; s < abs((N - 1) - line); s++) {
-    if (flag == 0)
-      printf ("  ");
-    if (flag == 1)
-      if (N == 2)
-	printf("  ");
-      else
-	printf ("   ");
+	  if (flag == 0)
+		  printf ("  ");
+	  if (flag == 1) {
+		  if (N == 2)
+			  printf("  ");
+		  else
+			  printf ("   ");
+	  }
   }
 }
     
@@ -2065,9 +2068,10 @@ void printlines (int line, int flag) {
   for (; s < line_max; s++) {
     if (flag == 0)
       printf (" ");
-    if (flag == 1)
+    if (flag == 1) {
       if (N == 2)
 	printf ("  ");
+    }
     else
       printf ("   ");
   }
@@ -2107,6 +2111,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2006/01/03 00:19:34  hevanm
+// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
+//
 // Revision 1.28  2005/12/27 10:57:50  hevanm
 // almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
 //

@@ -210,7 +210,6 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 	int whoseTurn = move / MULTIPLE;
 	int matches = move % MULTIPLE;
-	int matchesLeft = numberOfMatches(position);
 	int addition;
 	if(whoseTurn == FIRST_TURN) {
 		addition = matches * MULTIPLE;
@@ -232,7 +231,7 @@ POSITION DoMove (POSITION position, MOVE move)
 		return (position - power(MULTIPLE, 3) - matches + addition);
 		/* Subtract 1000000 to get first player turn*/
 	}
-	printf("Current Turn: " , currentTurn);
+	printf("Current Turn: %d" , currentTurn);
 }
 
 
@@ -507,8 +506,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    	POSITION initialPosition;
-	int totalMatches, firstMatches, secondMatches; /* first and second Matches probably should not be changed */
+	int totalMatches; /* first and second Matches probably should not be changed */
   	printf("Please input the total number of matches: ");
   	scanf("%d",&totalMatches);
 	printf("Total matches is: %d \n", totalMatches);

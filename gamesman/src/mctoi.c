@@ -309,7 +309,6 @@ void unhashC2(char *board, int sizeOfBoard, int xCount, int oCount, int hashcode
   int subi;
   char fullc[sizeOfBoard];
   char subc[xCount + oCount];
-  int i;
   
   mul = nCr1((xCount + oCount), xCount);
 
@@ -359,9 +358,9 @@ void replaceXS(char *board, int bSize, char *full, int fSize, char *sub, int sSi
   }
 }
 
-/**********************************************************************************************************
-/********************************   END HERE, hascode stuff *****************BOOLEAN gAlignedX      = FALSE ;
-**********************************************************************************************************/
+/**********************************************************************************************************/
+/********************************   END HERE, hascode stuff *****************BOOLEAN gAlignedX      = FALSE ;*/
+/**********************************************************************************************************/
 
 
 # define BOARDSIZE  9           /* 3x3 board */ 
@@ -378,7 +377,7 @@ POSITION kBadPosition        = -1;           /* This can never be the rep. of a
 						position                       */
 POSITION gMinimalPosition    = 0;
 
-static char board[BOARDSIZE];
+/*static char board[BOARDSIZE];*/
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
 
 STRING   kAuthorName          = "Dan Garcia, Farzad H. Eskafi, and Erwin A. Vedar"; 
@@ -815,7 +814,7 @@ POSITION GetInitialPosition()
   static BlankoxOX theBlankoxOX[BOARDSIZE]; 
   BlankoxOX whosTurn;
   signed char c;
-  int i, goodInputs = 0;
+  int i;
 
   blankoxOX_init(theBlankoxOX);
   printf("\n\n\t----- Get Initial Position -----\n");
@@ -976,9 +975,6 @@ void PrintPosition(position,playerName,usersTurn)
      STRING playerName;
      BOOLEAN  usersTurn;
 {
-  /* local variables */
-  int i;
-  //  VALUE GetValueOfPosition();
   static BlankoxOX theBlankoxOX[BOARDSIZE];
 
   PositionToBlankoxOX(position,theBlankoxOX);          /* function call */
@@ -1159,10 +1155,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   /* local variables */
-  int xpos, ypos;
   BOOLEAN ValidMove(), AllFilledIn();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();
   BlankoxOX theBlankoxOX[BOARDSIZE]; 
   
@@ -1342,7 +1335,6 @@ POSITION BlankoxOXToPosition(theBlankoxOX, turn)
      BlankoxOX *theBlankoxOX, turn;
 {
   /* local variables */ 
-  int i;
   POSITION position = 0;
   
   position = HashChungToi(theBlankoxOX, turn );  /*
@@ -1372,8 +1364,7 @@ POSITION BlankoxOXToPosition(theBlankoxOX, turn)
 POSITION GetCanonicalPosition(position)
      POSITION position;
 {
-  POSITION newPosition, theCanonicalPosition;
-  int i;
+  POSITION theCanonicalPosition;
 
   theCanonicalPosition = position;
   return(theCanonicalPosition);
@@ -1542,7 +1533,6 @@ BOOLEAN BlankPiece (aBlankoxOX )
 BOOLEAN AllFilledIn(theBlankoxOX)
      BlankoxOX theBlankoxOX[];
 {
-  BOOLEAN answer = TRUE;
   int i, count = 0;
 	
   for(i = 0; i < BOARDSIZE; i++) {
@@ -1858,6 +1848,9 @@ BOOLEAN IsLegalJump (from, to, piece)
     break;  
     
   }
+
+  //should never reach here
+  return FALSE;
 }
   
   
@@ -2084,6 +2077,9 @@ BlankoxOX GetTurn(int hashcode) {
   } else {
     printf("You shouldn't get here in GetTurn");
   }
+
+  //should never reach here
+  return Wx;
 }
 
 
@@ -2097,7 +2093,6 @@ BlankoxOX GetTurn(int hashcode) {
 int GetOrientationBitmask(int hashcode) {
   int i ;
   int mask = 0;
-  int total = 0;
   int tempHash = 0;
   int count = GetPieceCount (hashcode);
   
@@ -2159,7 +2154,7 @@ int GetRawHashcode(int hashcode) {
 ** 
 ************************************************************************/
 int ConvertToTTTHash(int hashcode) {
-  int hash, count, i;
+  int hash;
 
 
   hash = GetRawHashcode(hashcode);
@@ -2256,7 +2251,6 @@ void UnHashChungToi(BlankoxOX *dest, int hashcode) {
 ** 
 ************************************************************************/
 void FixOrientations(BlankoxOX *dest, int mask) {
-  int count = NUMPIECES - 1;
   int current;
   int currentMask = mask;
   int i;

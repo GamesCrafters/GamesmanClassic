@@ -430,6 +430,9 @@ VALUE Primitive (POSITION pos) {
     else
       return tie;
   }
+
+  //should never reach here
+  return undecided;
 }
 
 /************************************************************************

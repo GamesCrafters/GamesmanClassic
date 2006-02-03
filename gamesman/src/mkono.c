@@ -252,11 +252,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	/* check up two */
 	if (pos >= WIDTH*2 || gAllowVWrap)
-	  if (gBoard[upOne(i, j)] == currentPlayer && gBoard[upTwo(i, j)] == oppPlayer)
-	    if (gMustCapture)
-	      captures = CreateMovelistNode(makeMove(pos, upTwo(i, j)), captures);
-	    else moves = CreateMovelistNode(makeMove(pos, upTwo(i, j)), moves);
-	
+		if (gBoard[upOne(i, j)] == currentPlayer && gBoard[upTwo(i, j)] == oppPlayer) {
+			if (gMustCapture)
+				captures = CreateMovelistNode(makeMove(pos, upTwo(i, j)), captures);
+			else moves = CreateMovelistNode(makeMove(pos, upTwo(i, j)), moves);
+		}
 	/* check down one */
 	if (pos < WIDTH*(HEIGHT-1) || gAllowVWrap)
 	  if (gBoard[downOne(i, j)] == ' ')
@@ -264,11 +264,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	/* check down two */
 	if (pos < WIDTH*(HEIGHT-2) || gAllowVWrap)
-	  if (gBoard[downOne(i, j)] == currentPlayer && gBoard[downTwo(i, j)] == oppPlayer)
-	    if (gMustCapture) 
-	      captures = CreateMovelistNode(makeMove(pos, downTwo(i, j)), captures);
-	    else moves = CreateMovelistNode(makeMove(pos, downTwo(i, j)), moves);
-	
+		if (gBoard[downOne(i, j)] == currentPlayer && gBoard[downTwo(i, j)] == oppPlayer) {
+			if (gMustCapture) 
+				captures = CreateMovelistNode(makeMove(pos, downTwo(i, j)), captures);
+			else moves = CreateMovelistNode(makeMove(pos, downTwo(i, j)), moves);
+		}
 	/* check left one */
 	if (pos % WIDTH != 0 || gAllowHWrap)
 	  if (gBoard[leftOne(i, j)] == ' ')
@@ -276,11 +276,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	/* check left two */
 	if (pos % WIDTH > 1 || gAllowHWrap)
-	  if (gBoard[leftOne(i, j)] == currentPlayer && gBoard[leftTwo(i, j)] == oppPlayer)
-	    if (gMustCapture) 
-	      captures = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), captures);
-	    else moves = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), moves);
-	
+		if (gBoard[leftOne(i, j)] == currentPlayer && gBoard[leftTwo(i, j)] == oppPlayer) {
+			if (gMustCapture) 
+				captures = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), captures);
+			else moves = CreateMovelistNode(makeMove(pos, leftTwo(i, j)), moves);
+		}
 	/* check right one */
 	if (pos % WIDTH != WIDTH-1 || gAllowHWrap)
 	  if (gBoard[rightOne(i, j)] == ' ')
@@ -288,10 +288,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	/* check right two */
 	if (pos % WIDTH < WIDTH-2 || gAllowHWrap)
-	  if (gBoard[rightOne(i, j)] == currentPlayer && gBoard[rightTwo(i, j)] == oppPlayer)
-	    if (gMustCapture) 
-	      captures = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), captures);
-	    else moves = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), moves);
+		if (gBoard[rightOne(i, j)] == currentPlayer && gBoard[rightTwo(i, j)] == oppPlayer) {
+			if (gMustCapture) 
+				captures = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), captures);
+			else moves = CreateMovelistNode(makeMove(pos, rightTwo(i, j)), moves);
+		}
       }
     }
   }

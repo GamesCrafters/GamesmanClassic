@@ -111,7 +111,6 @@ POSITION gLargestNodeNumber;
 
 void InitializeGame()
 {
-  MOVELIST *head = NULL;
   int i;
 
   if (gGraphPrimitiveList != NULL) {
@@ -143,8 +142,6 @@ void InitializeGame()
 
 void FreeGame()
 {
-  POSITION i; 
-
   if (gGraphPrimitiveList==NULL) {
     SafeFree(gGraphPrimitiveList);
   }
@@ -158,13 +155,10 @@ void LoadGraphFromFile(graphFilename)
 STRING graphFilename;
 {
   POSITIONLIST *head = NULL;
-  VALUE nodeValue;
   FILE *fp;
   POSITION nodeNumber, nodeChild;
-  POSITION from, to;
   int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
   char theValueChar;
-  char input;
   char goAgainChar;
   
   /*** See if the file can even be read ***/
@@ -258,6 +252,7 @@ char c;
     return(tie);
   else 
     BadElse("TextToValue");
+  return undecided;  //should never be reached
 }
 
 /************************************************************************
@@ -426,6 +421,8 @@ VALUE Primitive(position)
       BadElse("Primitive");
   else
     return(undecided);
+  //should never reach here
+  return undecided;
 }
 
 /************************************************************************
@@ -474,8 +471,6 @@ void PrintPosition(position,playerName,usersTurn)
 MOVELIST *GenerateMoves(position)
      POSITION position;
 { 
-  MOVE move;
-  POSITION i;
   POSITIONLIST* temp;
   MOVELIST* result;
 
@@ -596,7 +591,7 @@ void PrintMove(theMove)
      MOVE theMove;
 {
   if (theMove>=gNumberOfPositions) {
-    printf("%dg", theMove%gNumberOfPositions);
+    printf(POSITION_FORMAT"g", (POSITION)theMove%gNumberOfPositions);
   } else {
     printf("%d", theMove);
   }

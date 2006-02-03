@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.60 2006-01-28 10:40:51 yanpeichen Exp $
+// $Id: mquarto.c,v 1.61 2006-02-03 06:08:39 hevanm Exp $
 
 
 /*
@@ -447,7 +447,6 @@ void yanpeiInitializeGame() {
     QTBPtr board;
     short slot;
     int i;
-    POSITION test,result;
     
     if (lookupTable) SafeFree(lookupTable);
     /* initializing globals */
@@ -2774,6 +2773,11 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.60  2006/01/28 10:40:51  yanpeichen
+//  28 Jan 2006 Yanpei: Canonicals fully debugged. Mario and Yanpei's canonicals
+//                      cross checked and mutually agrees. Algorithms timed and
+//                      compared. Mario's is MUCH MUCH faster.
+//
 // Revision 1.59  2006/01/17 08:01:51  yanpeichen
 // yanpei chen: generic canonicals coded. under testing. need to ask mario
 // about matching his results.

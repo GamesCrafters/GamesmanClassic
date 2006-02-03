@@ -311,7 +311,7 @@ void InitHash() {
   myPieces_array[9]=-1;
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL);  // pass null for function pointer
-  printf("%d\n", gNumberOfPositions);
+  printf(POSITION_FORMAT"\n", gNumberOfPositions);
 }
 
 void DefaultPieces(BlankOX* board) {
@@ -503,11 +503,7 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  int index,intdir,cap;
-  Direction dir;
   BlankOX board[BOARDSIZE];
-  char movingPiece;
-  Coordinates coord;
   POSITION newPosition;
   char turn = WhoseTurn(thePosition);
   BOOLEAN captured;
@@ -733,17 +729,10 @@ void PrintPosition(position,playerName,usersTurn)
   int maxY;
   int slashFlag = 1;
   int commentx;
-  char* myBoard = "BOARD";
-  //char* myLegend = "LEGEND";
-  char* myDirection = "DIRECTION";
-  char* myAction = "ACTION";
   int myBoardStartAt;
-  int myLegendStartAt;
   int myDirectionStartAt;
   int myActionStartAt;
   int boardIndex;
-  int legendNum = 0;
-  int directionNum = 7;
   int rowNum = 1;
 
   //STRING  GetPrediction();
@@ -786,7 +775,7 @@ void PrintPosition(position,playerName,usersTurn)
 
 
   /*
-  // Display title
+   // Display title
   for (x=0; x<maxX; x++)
     {
       // display "BOARD"
@@ -795,13 +784,10 @@ void PrintPosition(position,playerName,usersTurn)
 	  printf("%c",myBoard[x - myBoardStartAt]);
 	}
       // display "LEGEND"
-      /*
       else if ((x >= myLegendStartAt) && ( x <= myLegendStartAt +6))
 	{
 	  printf("%c",myLegend[x - myLegendStartAt]);
 	}
-      */
-  /*
       // display "DIRECTION"
       else if ((x >= myDirectionStartAt) && ( x <= myDirectionStartAt +9))
 	{
@@ -1126,8 +1112,11 @@ Direction NextDirection(Coordinates pos, Direction dir) {
     case right: return dir=down;
     case down: return dir=nodir;
     case nodir: return dir=left;
+    default: return nodir;  //this should never happen, I think
     }
   }
+
+  return nodir; //should never be reached
 }
 
 /************************************************************************
@@ -1225,10 +1214,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   dbg("->GetAndPrintPlayersMove");
-  int xpos, ypos;
   BOOLEAN ValidMove();
-  char input = '0';
-  BOOLEAN done = FALSE;
   USERINPUT ret, HandleDefaultTextInput();
   
   do {
