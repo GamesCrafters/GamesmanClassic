@@ -165,6 +165,8 @@ extern void		SafeFree ();
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 
+STRING MToS(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -211,7 +213,8 @@ void InitializeGame ()
 	
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
 	fflush( stdout );
-	
+
+	MoveToString = &MToS;
 }
 /************************************************************************
 **
@@ -1043,6 +1046,30 @@ void PrintMove (MOVE move)
 	printf("%c%d", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
 	}
 }
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(3);
+
+  if( ((int)theMove) == PASSMOVE) {
+    sprintf( move, "P" );
+  }  else {
+    sprintf( move, "%c%d", theMove%OthCols+'a', InvertRow(theMove/OthCols+1) );
+  }
+
+  return move;
+}	
 
 /************************************************************************
 **
