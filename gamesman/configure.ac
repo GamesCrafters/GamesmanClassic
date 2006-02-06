@@ -245,7 +245,8 @@ if test "$graphics" != "no"
 then
   tclconf=""
   tkconf=""
-  _common_locations="/usr/lib /usr/local/lib /lib /sw/lib /usr/sww/lib"
+  _common_tcl_locations="/usr/lib /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tcl8.4"
+  _common_tk_locations="/usr/lib /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tk8.4"
   _mac_locations="/Library/Frameworks /System/Library/Frameworks"
   
   ### Look for tclConfig.sh and tkConfig.sh
@@ -357,7 +358,7 @@ then
     fi
     OUTTCLSOFLAGS="$OUTTCLSOFLAGS -dynamiclib -flat_namespace"
   else
-    flocs=$_common_locations
+    flocs=$_common_tcl_locations
     
     for fcheck in $flocs
     do
@@ -365,6 +366,11 @@ then
       then
         AC_CHECK_FILE([$fcheck/tclConfig.sh], tclconf="$fcheck/tclConfig.sh")
       fi
+    done
+
+    flocs=$_common_tk_locations
+    for fcheck in $flocs
+    do
       if test "$tkconf" = ""
       then
         AC_CHECK_FILE([$fcheck/tkConfig.sh], tkconf="$fcheck/tkConfig.sh")
