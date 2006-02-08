@@ -57,8 +57,10 @@ proc GS_InitGameSpecific {} {
     # BOTTOM_PADDING is the amount of space from the board bottom side to the canvas bottom edge
     global BOTTOM_PADDING
 
-    set CANVAS_WIDTH   500
-    set CANVAS_HEIGHT  500
+    global gFrameWidth gFrameHeight
+
+    set CANVAS_WIDTH   [expr int([min $gFrameWidth $gFrameHeight])]
+    set CANVAS_HEIGHT  $CANVAS_WIDTH
     set LEFT_PADDING   50
     set RIGHT_PADDING  50
     set TOP_PADDING    100
@@ -104,8 +106,8 @@ proc GS_InitGameSpecific {} {
     # piece thickness vars
     global VERT_PIECE_THICKNESS
     global HORIZ_PIECE_THICKNESS
-    set VERT_PIECE_THICKNESS 10
-    set HORIZ_PIECE_THICKNESS 10
+    set VERT_PIECE_THICKNESS 15
+    set HORIZ_PIECE_THICKNESS 15
 
     # piece color vars
     global PIECE_COLOUR
@@ -299,6 +301,13 @@ proc GS_ColorOfPlayers {} {
 }
 
 
+proc min { a b } {
+    if {$a < $b} {
+	return $a
+    }
+    return $b
+}
+
 # GS_Initialize draws the graphics for the game on the canvas c
 # You could put an opening animation or just draw an empty board.
 # This function is called after GS_InitGameSpecific
@@ -306,7 +315,10 @@ proc GS_ColorOfPlayers {} {
 proc GS_Initialize { c } {
     font create Winner -family arial -size 80
     
-    global CANVAS_WIDTH CANVAS_HEIGHT
+    global CANVAS_WIDTH CANVAS_HEIGHT gFrameWidth gFrameHeight
+
+    set CANVAS_WIDTH [expr int([min $gFrameWidth $gFrameHeight])]
+    set CANVAS_HEIGHT $CANVAS_WIDTH
 
     # puts "begin of initialize"
     # you may want to start by setting the size of the canvas; this line isn't necessary
@@ -935,11 +947,11 @@ proc GS_WhoseMove { position } {
  # or you could congratulate the winner or do nothing if you want.
 
  proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-     global NUM_SQUARES NUM_TILES_HORIZ LENTOWIN
+     global NUM_SQUARES NUM_TILES_HORIZ LENTOWIN CANVAS_WIDTH CANVAS_HEIGHT
      $c itemconfig PIECES -fill black
 
-     $c create text 250 160 -text "$nameOfWinner" -font Winner -fill green -tags winner
-     $c create text 250 340 -text "WINS!"         -font Winner -fill green -tags winner      
+     $c create text [expr $CANVAS_WIDTH / 2] [expr $CANVAS_HEIGHT / 2 - 30] -text "$nameOfWinner\n" -font Winner -fill green -tags winner
+     $c create text [expr $CANVAS_WIDTH / 2] [expr $CANVAS_HEIGHT / 2 + 30] -text "WINS!"         -font Winner -fill green -tags winner      
 
      # FIRST: get the winning square
      if { $lastMove < $NUM_SQUARES } {
