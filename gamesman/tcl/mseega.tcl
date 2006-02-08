@@ -190,6 +190,12 @@ proc GS_SetOption { option } {
     set gMisereGame [expr 1-($option%2)]
 }
 
+proc min { a b } {
+    if {$a < $b} {
+	return $a
+    }
+    return $b
+}
 
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
@@ -204,14 +210,14 @@ proc GS_Initialize { c } {
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     #$c configure -width 500 -height 500
     
-    global blockSize WIDTH BOARDSIZE boardWidth boardHeight
+    global blockSize WIDTH BOARDSIZE boardWidth boardHeight gFrameWidth gFrameHeight
     global firstHalfAlreadyAnimated
 
     set HEIGHT [expr $BOARDSIZE/$WIDTH]
     set firstHalfAlreadyAnimated 0
 
-    set preferredHeight 500.0
-    set preferredWidth 500.0
+    set preferredHeight [expr int([min $gFrameWidth $gFrameHeight])]
+    set preferredWidth [expr int([min $gFrameWidth $gFrameHeight])]
     
     # The label has been removed due to an error in GAMESMAN
     # set labelSize 50.0
