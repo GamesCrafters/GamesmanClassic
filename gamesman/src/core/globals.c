@@ -42,7 +42,7 @@ STRING (*GetHelpTextInterface)() = NULL;
 STRING (*GetHelpOnYourTurn)() = NULL;
 STRING (*GetHelpObjective)() = NULL;
 STRING (*GetHelpTieOccursWhen)() = NULL;
-STRING (*MoveToString)(MOVE) = NULL;
+STRING (*gMoveToStringFunPtr)(MOVE) = NULL;
 
 VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */

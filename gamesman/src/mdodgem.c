@@ -171,7 +171,7 @@ STRING MToS (MOVE);
 
 void InitializeGame()
 {
-  MoveToString = &MToS;
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame()

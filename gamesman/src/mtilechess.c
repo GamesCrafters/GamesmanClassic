@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.7 2005-12-27 10:57:50 hevanm Exp $
+// $Id: mtilechess.c,v 1.8 2006-02-12 02:30:57 kmowery Exp $
 
 /* 
  * The above lines will include the name and log of the last person 
@@ -215,7 +215,7 @@ extern void		SafeFree ();
  
 void InitializeGame () 
 { 
-  MoveToString = &MToS; 
+  gMoveToStringFunPtr = &MToS; 
   PreProcess(); // Generate the legal placements for pieces 
   /*gNumberOfPositions = (((MaxPlacementIndex*MaxPiecePermutationValue) +  
     MaxPiecePermutationValue-1) << 1) + MaxPlayerTurnValue; */ 
@@ -1384,6 +1384,9 @@ BOOLEAN isLegalBoard(char *bA) {
 } 
  
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2005/12/27 10:57:50  hevanm
+// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
+//
 // Revision 1.6  2005/12/23 01:34:12  brianzimmer
 // Final version of Tile Chess that adheres to the 10 point checklist for the Fall 2005 semester.
 //

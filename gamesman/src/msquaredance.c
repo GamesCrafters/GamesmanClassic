@@ -60,8 +60,6 @@
 **
 **
 
-
-
 **
 ** 2005/11/11
 **   Jack - add more #ifdef and #ifndef for selftest main(), we can remove the line:
@@ -434,7 +432,7 @@ void InitializeGame ()
   else
     freeBoard(board);
   
-  MoveToString = &MToS;
+  gMoveToStringFunPtr = &MToS;
 
 }
 
@@ -952,7 +950,7 @@ int main() {//int argc, char [] argv) {
 
 void PrintMove(MOVE move)
 {
-  printf("%s",MoveToString(move));
+  printf("%s",gMoveToStringFunPtr(move));
 }
 
 

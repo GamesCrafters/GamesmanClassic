@@ -729,14 +729,14 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 		       moveInfo->position);
 
   if (whoseTurn == playerOne) {
-    if (MoveToString == NULL) {
+    if (gMoveToStringFunPtr == NULL) {
       if (comment == 0) printf("         ");
       if (comment == 1) printf("?        ");
       if (comment == 2) printf("?!       ");
       PrintMove(moveInfo->move);
       printf("%s\n", line);
     } else {
-      moveString = MoveToString(moveInfo->move);
+      moveString = gMoveToStringFunPtr(moveInfo->move);
       moveLen = strlen(moveString);
       if (comment == 0) addSpacePadding(moveToPrint, maxMoveLen - moveLen);
       if (comment == 1) {
@@ -752,7 +752,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
       SafeFree(moveString);
     }
   } else {
-    if (MoveToString == NULL) {
+    if (gMoveToStringFunPtr == NULL) {
       printf("          %s", line);
       PrintMove(moveInfo->move);
       if (comment == 0) printf("\n");
@@ -761,7 +761,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
     } else {
       addSpacePadding(moveToPrint, maxMoveLen);
       printf("%s%s",moveToPrint,line);
-      moveString = MoveToString(moveInfo->move);
+      moveString = gMoveToStringFunPtr(moveInfo->move);
       moveLen = strlen(moveString);
       strcpy(moveToPrint, moveString);
       if (comment == 0) strcat(moveToPrint, "\n");
@@ -787,11 +787,11 @@ int getMaxMoveLength() {
   int result = 0;
   int newLen = 0;
 
-  if (MoveToString == NULL) return maxN;
+  if (gMoveToStringFunPtr == NULL) return maxN;
 
   while(mlist != 0) {
     
-    move = MoveToString(mlist->move);
+    move = gMoveToStringFunPtr(mlist->move);
     newLen = strlen(move);
     if (newLen > result) result = newLen;
     SafeFree(move);

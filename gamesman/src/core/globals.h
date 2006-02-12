@@ -97,7 +97,7 @@ extern STRING 		(*GetHelpOnYourTurn)();
 extern STRING 		(*GetHelpObjective)();
 extern STRING 		(*GetHelpTieOccursWhen)();
 
-extern STRING 		(*MoveToString)(MOVE);
+extern STRING 		(*gMoveToStringFunPtr)(MOVE);
 
 extern OPPONENT 	gOpponent;
 

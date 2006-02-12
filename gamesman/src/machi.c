@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.28 2006-02-03 06:08:39 hevanm Exp $
+// $Id: machi.c,v 1.29 2006-02-12 02:30:58 kmowery Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -130,8 +130,7 @@ STRING MToS (MOVE);
 
 void InitializeGame()
 {
-  MoveToString = &MToS;
-  
+  gMoveToStringFunPtr = &MToS;
   InitializeHelpStrings();
 }
 
@@ -863,7 +862,7 @@ void PrintMove(theMove)
 STRING MToS(theMove)
      MOVE theMove;
 {
-    /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
   if(theMove < 9) {
     STRING move = (STRING) SafeMalloc(2);
     sprintf(move, "%d", theMove + 1);
@@ -1050,6 +1049,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2006/02/03 06:08:39  hevanm
+// fixed warnings. I will leave the real bugs to retro hehehehe.
+//
 // Revision 1.27  2006/01/03 00:19:34  hevanm
 // Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
 //

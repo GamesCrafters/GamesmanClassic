@@ -214,7 +214,7 @@ void InitializeGame ()
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
 	fflush( stdout );
 
-	MoveToString = &MToS;
+	gMoveToStringFunPtr = &MToS;
 }
 /************************************************************************
 **
