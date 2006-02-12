@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.77 2006-02-03 06:08:39 hevanm Exp $
+//$Id: m9mm.c,v 1.78 2006-02-12 08:30:48 kmowery Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -513,6 +513,8 @@ LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\tTurn: o\n\
 Excellent! You won!\n\
 ";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -630,6 +632,8 @@ void InitializeGame()
   setFlyingText();
 
   //gSolver = loopyup_DetermineValue;
+
+  gMoveToStringFunPtr = &MToS;
 }
 
 /************************************************************************
@@ -1372,10 +1376,32 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-      printf("[%d %d", from(theMove), to(theMove));
-      if (closes_mill_move(theMove))
-		  printf(" %d", remove_piece(theMove));
-      printf("]");
+  printf( "%s", MToS(theMove) );
+}
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move;
+  if( closes_mill_move(theMove ) ) {
+    move = (STRING) SafeMalloc(11);
+    sprintf( move, "[%d %d %d]", from(theMove), to(theMove), remove_piece(theMove) );
+  } else {
+    move = (STRING) SafeMalloc(8);
+    sprintf( move, "[%d %d]", from(theMove), to(theMove) );
+  }
+
+  return move;
 }
 
 /************************************************************************
@@ -2181,6 +2207,9 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.77  2006/02/03 06:08:39  hevanm
+//fixed warnings. I will leave the real bugs to retro hehehehe.
+//
 //Revision 1.76  2005/05/05 02:47:48  ogren
 //changed malloc calls to SafeMalloc -Elmer
 //

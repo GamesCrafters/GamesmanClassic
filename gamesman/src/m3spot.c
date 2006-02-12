@@ -143,6 +143,8 @@ STRING   kHelpReverseObjective ="";
 STRING   kHelpTieOccursWhen ="";
 STRING   kHelpExample = "";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -307,6 +309,7 @@ char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame()
@@ -1303,19 +1306,19 @@ int ctoi (char c){
   return -1;
 }		
 
-char *moveToString(char *theString, MOVE theMove){
-  theString[0] = '(';
-  theString[1] = moveToTextInt[(theMove >> 4) -2];
-  theString[2] = moveToTextOri[(theMove >> 4) -2];
-  if((theMove & 0x0000000F) == 0){
-    theString[3] = ')';
+STRING MToS( theMove )
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(7);
+  if( (theMove & 0x0F) == 0 ) {
+    sprintf( move, "(%c%c)", moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2] );
   } else {
-    theString[3] = ' ';
-    theString[4] = moveToTextInt[(theMove & 0x000F) -2];
-    theString[5] = moveToTextOri[(theMove & 0x000F) -2];
-    theString[6] = ')';
+    sprintf( move, "(%c%c %c%c)", 
+	     moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2],
+	     moveToTextInt[(theMove & 0x0F) -2], moveToTextOri[(theMove & 0x0F) -2] );
   }
-  return theString;
+
+  return move;
 }
 
 MOVE ConvertTextInputToMove(input)
@@ -1345,9 +1348,7 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  char st[] = {' ',' ',' ',' ',' ',' ',' ', 0};
-  moveToString(st, theMove);
-  printf("%s", st); 
+  printf( "%s", MToS(theMove) );
 }
 
 

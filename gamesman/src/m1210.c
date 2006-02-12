@@ -79,6 +79,8 @@ Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
 Computer wins. Nice try, Dan.";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -93,6 +95,7 @@ Computer wins. Nice try, Dan.";
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame()
@@ -379,6 +382,29 @@ void PrintMove(theMove)
 {
   printf("%d", theMove);
 }
+
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(3);
+
+  sprintf( move, "%d", theMove );
+
+  return move;
+}
+
+
 
 
 STRING kDBName = "1210" ;

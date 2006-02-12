@@ -129,6 +129,8 @@ Type '?' if you need assistance...\n\n\n\
    X's turn      (Dan will Lose in 0) \n\n\n\
 Computer wins. Nice try, Dan.";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -347,6 +349,7 @@ int checkOrient(int Lo, int L1);
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame()
@@ -1161,14 +1164,35 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void PrintMove(MOVE theMove) {
+  printf( "%s", MToS( theMove ) );
+}
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(13);
+
   int L = unhashMoveL(theMove);
   if (unhashMoveSPiece(theMove) == 0)
-    printf("[%d %d] ", transPairs[L][0], transPairs[L][1]);
+    sprintf( move, "[%d %d] ", transPairs[L][0], transPairs[L][1]);
   else if (unhashMoveSPiece(theMove) == 1)
-    printf("[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
+    sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
   else
-    printf("[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
+    sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
+
+  return move;
 }
+
 
 /**************************************************************
 ** Lgame specific functions
