@@ -416,6 +416,8 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 STRING   kHelpExample =
 "Help strings not initialized.";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -501,6 +503,7 @@ void InitializeGame(){
 
   InitializeHelpString();
 
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame() {
@@ -1274,17 +1277,37 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  printf( "%s", MToS(theMove) );
+}
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(4);
+
   if (MoveFrom(theMove) == 9) {    /* if placing pieces into the board     */
-    printf("%d%c", MoveTo(theMove) +1, (MoveOrientation(theMove) ? '+' : 'x'));
+    sprintf(move, "%d%c", MoveTo(theMove) +1, (MoveOrientation(theMove) ? '+' : 'x'));
   } else {                         /* otherwise                            */
 	                           /* The plus 1 is because the user 
                                     * thinks it's 1-9, but MOVE is 0-8 
                                     */
-    printf("%d%d%c", MoveFrom       (theMove) + 1, 
-	   MoveTo         (theMove) + 1, 
-	   (MoveOrientation(theMove) ? '+' : 'x')
-	   );
+    sprintf(move, "%d%d%c", MoveFrom       (theMove) + 1, 
+	    MoveTo         (theMove) + 1, 
+	    (MoveOrientation(theMove) ? '+' : 'x')
+	    );
   }
+
+  return move;
 }
 
 /************************************************************************

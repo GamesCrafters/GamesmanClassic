@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.3 2006-01-03 00:19:35 hevanm Exp $
+// $Id: mdao.c,v 1.4 2006-02-13 23:19:33 kmowery Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -160,6 +160,7 @@ void                    PrintPosition(POSITION position, STRING playersName, BOO
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
 void                    PrintMove(MOVE move);
+STRING			MToS(MOVE);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -201,6 +202,8 @@ void InitializeGame ()
   initializePiecesArray(init_pieces);
   gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
   gInitialPosition = generic_hash(board, PLAYER1_TURN);
+
+  gMoveToStringFunPtr = &MToS;
 }
 
 
@@ -496,11 +499,31 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  int position = Unhasher_Index(move);
-  int direction = Unhasher_Direction(move);
+  printf( "%s", MToS(move) );
+}
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(5);
+
+  int position = Unhasher_Index(theMove);
+  int direction = Unhasher_Direction(theMove);
     
-  printf ("%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
+  sprintf (move, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
 	  directions[direction]);
+  
+  return move;
 }
 
 

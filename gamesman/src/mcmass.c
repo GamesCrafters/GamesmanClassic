@@ -104,6 +104,8 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 STRING   kHelpExample =
 "It's not rocket science.";
 
+STRING MToS(MOVE);
+
 /*************************************************************************
  **
  ** Everything above here must be in every game file
@@ -185,6 +187,8 @@ void InitializeGame()
   gNumberOfPositions*=2;
   
   free( theBoard );
+
+  gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame()
@@ -767,8 +771,28 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  printf( "%s", MToS(theMove) );
+}
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(3);
+
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  printf("%d", theMove + 1); 
+  sprintf( move, "%d", theMove+1 );
+
+  return move;
 }
 
 
