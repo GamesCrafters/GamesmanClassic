@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.30 2006-02-03 06:08:39 hevanm Exp $
+// $Id: mabalone.c,v 1.31 2006-02-13 08:34:47 kmowery Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -152,6 +152,8 @@ Player's move :  5 w\n\
        -----------\n\
 \n\
 Excellent! You won!";
+
+STRING MToS( MOVE );
 
 /*************************************************************************
 **
@@ -377,6 +379,7 @@ void InitializeGame()
   printf("the number of options is %d\n", NumberOfOptions());
   printf("current option is %d\n", getOption()); */
 
+  gMoveToStringFunPtr = &MToS;
 
   if (DEBUGGING) printf("end initializegame\n");
 }
@@ -1567,8 +1570,16 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  printf( "%s", MToS(theMove) );
+}
+
+STRING MToS( theMove ) 
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(12);
+
   if (DEBUGGING) 
-    printf("starting print w/move = %d\n", theMove);
+    printf("starting MToS w/move = %d\n", theMove);
   int direction, slot1, slot2, slot3;
   int dir_shift = 10;
   int piece_shift = 100;
@@ -1617,30 +1628,32 @@ void PrintMove(theMove)
   /*printf("slot1 = %d, slot2 = %d, slot3 = %d, direction = %d\n", slot1, slot2, slot3, direction);*/
 
   if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
-    printf("[%d %s]", slot3, dir);
+    sprintf(move, "[%d %s]", slot3, dir);
   }
   else if ((slot3 == NULLSLOT) && (slot2 == NULLSLOT)) {
-    printf("[%d %s]", slot1, dir);
+    sprintf(move, "[%d %s]", slot1, dir);
   }
   else if (slot1 == NULLSLOT) {
     if ((slot3 - 1 ) == destination ((slot2 - 1), direction))
-      printf("[%d %s]", slot2, dir);
+      sprintf(move, "[%d %s]", slot2, dir);
     else
-      printf("[%d %d %s]",slot2, slot3, dir);
+      sprintf(move, "[%d %d %s]",slot2, slot3, dir);
   }
   else if (slot3 == NULLSLOT) {
     if ((slot2 - 1) == destination ((slot1 - 1), direction))
-      printf("[%d %s]", slot1, dir);
+      sprintf(move, "[%d %s]", slot1, dir);
     else
-      printf("[%d %d %s]",slot1, slot2, dir);
+      sprintf(move, "[%d %d %s]",slot1, slot2, dir);
   }
   else if ((slot2 - 1) == destination((slot1 - 1), direction)) { 
-     printf("[%d %s]",slot1, dir);
+     sprintf(move, "[%d %s]",slot1, dir);
   }
   else {
-    printf("[%d %d %d %s]",slot1,slot2,slot3, dir);
+    sprintf(move, "[%d %d %d %s]",slot1,slot2,slot3, dir);
   }
-  if (DEBUGGING) printf("finished printmove\n");
+  if (DEBUGGING) printf("finished MToS\n");
+
+  return move;
 }
 
 /************************************************************************
@@ -2111,6 +2124,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2006/02/03 06:08:39  hevanm
+// fixed warnings. I will leave the real bugs to retro hehehehe.
+//
 // Revision 1.29  2006/01/03 00:19:34  hevanm
 // Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
 //

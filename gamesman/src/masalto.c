@@ -218,6 +218,8 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum);
 
 void PrintSpaces(int spaces);
 
+STRING MToS( MOVE );
+
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -242,6 +244,8 @@ void InitializeGame ()
 	/* GoAgain assignment moved here. -JJ */
 	gGoAgain = GoAgain;
 	
+	gMoveToStringFunPtr = &MToS;
+
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
 
@@ -1662,28 +1666,42 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void PrintMove (MOVE move)
 {
-	int moveArray[2];
-	char origin_grid[2];
-	char destination_grid[2];
-	int origin_coord[2];
-	int destination_coord[2];
+  printf( "%s", MToS( move ) );
+}
+
+
+/************************************************************************
+**
+** NAME:        MToS
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MToS (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(9);
+
+  int moveArray[2];
+  char origin_grid[2];
+  char destination_grid[2];
+  int origin_coord[2];
+  int destination_coord[2];
 	
-	unHashMove(move,moveArray);
+  unHashMove(theMove,moveArray);
 	
-	locationToCoord(moveArray[0], origin_coord);
-	locationToCoord(moveArray[1], destination_coord);
+  locationToCoord(moveArray[0], origin_coord);
+  locationToCoord(moveArray[1], destination_coord);
 	
-	coordToGridCoordinate(origin_coord, origin_grid);
-	coordToGridCoordinate(destination_coord, destination_grid);
+  coordToGridCoordinate(origin_coord, origin_grid);
+  coordToGridCoordinate(destination_coord, destination_grid);
 	
-	if (move == -1)
-	{
-		printf("[(d)one]");
-	}
-	else
-	{
-		printf("[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
-	}
+  sprintf(move, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
+
+  return move;
 }
 
 
