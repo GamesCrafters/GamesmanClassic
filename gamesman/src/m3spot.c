@@ -1309,7 +1309,7 @@ int ctoi (char c){
 STRING MToS( theMove )
      MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc(7);
+  STRING move = (STRING) SafeMalloc(8);
   if( (theMove & 0x0F) == 0 ) {
     sprintf( move, "(%c%c)", moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2] );
   } else {
