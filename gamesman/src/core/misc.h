@@ -23,14 +23,17 @@ void		BadElse				(STRING function);
 
 MOVELIST*	CreateMovelistNode		(MOVE move, MOVELIST* tail);
 MOVELIST*	CopyMovelist			(MOVELIST* list);
+
 POSITIONLIST*	StorePositionInList		(POSITION pos, POSITIONLIST* tail);
 POSITIONLIST*	CopyPositionList		(POSITIONLIST* list);
+
+void		AddPositionToQueue		(POSITION pos, POSITIONQUEUE** tail);
+POSITION	RemovePositionFromQueue		(POSITIONQUEUE** head);
 
 REMOTENESSLIST* CreateRemotenesslistNode        (REMOTENESS theRemoteness, REMOTENESSLIST* theNextRemoteness); 
 REMOTENESSLIST* CopyRemotenesslist              (REMOTENESSLIST* theRemotenesslist);
 
 void		FoundBadPosition		(POSITION pos, POSITION parent, MOVE move);
-
 
 BOOLEAN		DefaultGoAgain			(POSITION pos, MOVE move);
 POSITION	GetNextPosition			();		// TODO: Move to solve

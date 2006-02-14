@@ -44,9 +44,7 @@ VALUE DetermineValueBU(POSITION position)
 
 	BOOLEAN 		UserQuit = FALSE;
 
-	int			TotalStage = 16;
-
-	int     		CurrentStage = 16; //4*4 board, will figure out how to do this dynamically later
+	int			TotalStage = 16, CurrentStage = 16; //4*4 board, will figure out how to do this dynamically later
 
 	//this is what we get from enumerating all positions in the current Stage.
 	POSITIONLIST	*phead = NULL;
@@ -62,6 +60,9 @@ VALUE DetermineValueBU(POSITION position)
 
 	//status
 	printf("Solving %s with the bottom up solver.", kGameName);
+
+//	WalkGameTree();
+
 	do {
 		printf("I am starting to solve stage %d", CurrentStage);
 		

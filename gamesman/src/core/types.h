@@ -63,7 +63,7 @@ typedef struct positionlist_item
     POSITION position;
     struct positionlist_item *next;
 }
-POSITIONLIST, FRnode;
+POSITIONLIST, FRnode, POSITIONQUEUE;
 
 typedef struct undolist_item
 {

@@ -284,6 +284,34 @@ POSITIONLIST *CopyPositionlist(POSITIONLIST* thePositionlist)
     return(head);
 }
 
+/* be sure that queue points to the TAIL of the queue,
+   otherwise this will be an insert
+ */
+void AddPositionToQueue (POSITION pos, POSITIONQUEUE** tail)
+{
+    POSITIONQUEUE* new_node = (POSITIONQUEUE *) SafeMalloc (sizeof(POSITIONQUEUE));
+    new_node->position = pos;
+    new_node->next = (*tail)->next;
+    (*tail)->next = new_node;
+    *tail = new_node;
+    return;
+}
+
+/* returns the first position in the queue as well as changing queue
+   to point to the next position
+*/
+POSITION RemovePositionFromQueue(POSITIONQUEUE** head)
+{
+    POSITION result = (*head)->position;
+    POSITIONQUEUE *next = (*head)->next;
+    
+    SafeFree(*head);
+
+    (*head) = next;
+
+    return result;
+}
+
 void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
 {
 #ifdef dup2	/* Redirect stdout to stderr */
