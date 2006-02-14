@@ -63,7 +63,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
@@ -1327,7 +1327,7 @@ MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIS
 	MOVE move;
 	for (px = width - 1; px >= 0; px--) {
 		for (py = height - 1; py >= 0; py--) {
-			if (pieceat(board, px, py) == BLANK) {
+			if (pieceat(board, px, py) == BLANK && !(get_x_coord(dest_pos) == px && get_y_coord(dest_pos) == py)) {
 				move = 0;
 				set_move_source(move, source_pos);
 				set_move_dest(move, dest_pos);
