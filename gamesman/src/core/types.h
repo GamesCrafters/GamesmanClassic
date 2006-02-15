@@ -35,75 +35,75 @@ typedef int  			BOOLEAN;
 
 typedef enum value_enum
 {
-    win, lose, tie, undecided
+        win, lose, tie, undecided
 }
 VALUE;
 
 typedef enum menu_enum
 {
-    BeforeEvaluation, Evaluated, Analysis
+        BeforeEvaluation, Evaluated, Analysis
 }
 MENU;
 
 typedef enum user_input_enum
 {
-  Undo, Abort, Continue, Move, Configure, Switch
+        Undo, Abort, Continue, Move, Configure, Switch
 
 }
 USERINPUT;
 
 typedef enum static_func_msg_enum
 {
-    Init, Clean, Save, Update, Poll
+        Init, Clean, Save, Update, Poll
 }
 STATICMESSAGE;
 
 typedef struct positionlist_item
 {
-    POSITION position;
-    struct positionlist_item *next;
+        POSITION position;
+        struct positionlist_item *next;
 }
 POSITIONLIST, FRnode, POSITIONQUEUE;
 
 typedef struct undolist_item
 {
-    POSITION position;
-    BOOLEAN givebackUsed;
-    struct undolist_item *next;
+        POSITION position;
+        BOOLEAN givebackUsed;
+        struct undolist_item *next;
 }
 UNDO;
 
 typedef struct booleanlist_item
 {
-    BOOLEAN value;
-    struct booleanlist_item *next;
+        BOOLEAN value;
+        struct booleanlist_item *next;
 }
 BOOLEANLIST;
 
 typedef struct movelist_item
 {
-    MOVE move;
-    struct movelist_item *next;
+        MOVE move;
+        struct movelist_item *next;
 }
 MOVELIST;
 
 typedef struct remotenesslist_item
 {
-    REMOTENESS remoteness;
-    struct remotenesslist_item *next;
+        REMOTENESS remoteness;
+        struct remotenesslist_item *next;
 }
 REMOTENESSLIST;
 
 typedef struct valuemoves_item
 {
-    MOVELIST* moveList[3];
-    REMOTENESSLIST* remotenessList[3];
+        MOVELIST* moveList[3];
+        REMOTENESSLIST* remotenessList[3];
 }
 VALUE_MOVES;
 
 typedef enum play_opponent
 {
-    AgainstComputer,AgainstHuman,ComputerComputer
+        AgainstComputer,AgainstHuman,ComputerComputer
 }
 OPPONENT;
 

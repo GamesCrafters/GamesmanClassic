@@ -30,122 +30,218 @@
 **************************************************************************/
 
 #include "gamesman.h"
-#include <stdio.h>
 
-//the initial position is ignored!
-//this will always return undecided, just enough to signal it completed
-//no go agains, connect 4 only.
+#define MAX_FN_LEN 40
+
+//DO NOT USE THIS WITH A LOOPY GAME, IT WILL EVENTUALLY EXPLODE IN MEMORY USAGE
+
+int   totalstages;
+
+char  filename[MAX_FN_LEN];
+FILE *stagefile;
+
+void newStageFile()
+{
+        int i;
+        for (i = 0; i < MAX_FN_LEN; i++)
+                filename[i] = ' ';
+        sprintf(filename, "./stages/%s_stage%d.txt", kDBName, totalstages);
+        if ((stagefile = (fopen(filename, "wb"))) == NULL) {
+                printf("Unable to create file for writing positions in a stage. Aborting.");
+                ExitStageRight();
+                exit(1);
+        }
+}
+
+void openStageFile(FILE **filep, int stagenum)
+{
+        int i;
+        char filen[MAX_FN_LEN];
+
+        for (i = 0; i < MAX_FN_LEN; i++)
+                filen[i]=' ';
+        sprintf(filename, "./stages/%s_stage%d.txt", kDBName, stagenum);
+        if (((*filep) = fopen(filen, "r")) == NULL) {
+                printf("unable to create file for reading positions in a stage. Aborting.");
+                ExitStageRight();
+                exit(1);
+        }
+}
+
+/* walk the game tree (no graphs please) and generate files with the names
+	"./stages/1210_stage1_positions.txt"
+   to aid solving the stuff*/
+void WalkGameTree()
+{
+        /*
+          initialize head, tail, stagetail, and open the first file, totalstages = 0;
+        */
+
+        POSITIONQUEUE *head, *tail, *stagetail;
+        BOOLEAN        isPrimitive, beginNewStage;
+        MOVE           currentMove;
+        MOVELIST      *currentMoves, *currentMovesHead;
+        POSITION       currentPos, childPos;
+
+        tail = NULL;
+        AddPositionToQueue(gInitialPosition, &tail);
+        head = tail;
+        stagetail = tail;
+        totalstages = 0;
+
+        mkdir("stages", 0755);
+
+        printf("I am walking the game tree now.\n");
+
+        beginNewStage = TRUE;
+
+        do {
+                currentPos = head->position;
+
+                /*write the position to the first file;*/
+                if (beginNewStage) {
+                        printf("walking stage %d\n", totalstages);
+                        newStageFile();
+                        totalstages++;
+                        beginNewStage = FALSE;
+                }
+
+                fprintf(stagefile, POSITION_FORMAT"\n", currentPos);
+
+                currentMoves = currentMovesHead = GenerateMoves(currentPos);
+
+                //this must hold true since we are always considering legal positions
+                //they can only lead to valid positions
+                //and even if primitives might have more moves ahead we stop already
+                isPrimitive = (currentMoves == NULL || Primitive(currentPos) != undecided);
+
+                if (!isPrimitive) {
+                        for(; currentMovesHead != NULL; currentMovesHead = currentMovesHead->next) {
+                                currentMove = currentMovesHead->move;
+                                childPos = DoMove(currentPos, currentMove);
+                                AddPositionToQueue(childPos, &tail);
+                        }
+
+                        if (head == stagetail) //we have finished this stage, rotating
+                        {
+                                fclose(stagefile);
+                                stagetail = tail;
+                                beginNewStage = TRUE;
+                        }
+                }
+
+                FreeMoveList(currentMoves);
+
+                RemovePositionFromQueue(&head);
+
+        } while (head != NULL);
+}
+
 VALUE DetermineValueBU(POSITION position)
 {
-	if(!strcmp(kGameName,"Connect-4")) {
-		printf("I am sorry, this solver only supports connect 4 for now.");
-		return(undecided);
-	}
+        if(kLoopy == TRUE) {
+                printf("I am sorry, this solver only supports non-loopy games.");
+                return(undecided);
+        }
 
-	BOOLEAN 		UserQuit = FALSE;
+        BOOLEAN UserQuit = FALSE;
 
-	int			TotalStage = 16, CurrentStage = 16; //4*4 board, will figure out how to do this dynamically later
+        int	CurrentStage;
 
-	//this is what we get from enumerating all positions in the current Stage.
-	POSITIONLIST	*phead = NULL;
-	POSITIONLIST 	*PosList = NULL;
+        POSITION  solvingpos;
 
-	MOVELIST	*mhead = NULL;
-	MOVELIST	*MoveList = NULL;
+        //this is what we get from enumerating all positions in the current Stage.
+        POSITIONLIST	*phead = NULL, *PosList = NULL;
 
-	FILE   		*DataFile = NULL;
-	char 		DataFileName[11] = "stage  .sdb";
-	FILE		*OutFile = NULL;
-	char		OutFileName[11] = "stage  .sdb";
+        MOVELIST	*mhead = NULL, *MoveList = NULL;
 
-	//status
-	printf("Solving %s with the bottom up solver.", kGameName);
+        FILE   		*OutFile = NULL;
 
-//	WalkGameTree();
+        //status
+        //TODO: just put the results in a colldb for now....
 
-	do {
-		printf("I am starting to solve stage %d", CurrentStage);
-		
-		if(CurrentStage != TotalStage) {//we are not solving the lowest level, we need the values from last stage from the file
-			DataFileName[1] = '0' + (CurrentStage/10);
-			DataFileName[0] = '0' + (CurrentStage%10);
-			if (!(DataFile = fopen(DataFileName,"r")))
-				ExitStageRightErrorString("cannot find the file for the values from last stage, please make sure data file is present");
-			//tail = 100, current = 0;
-			//while(!feof(DataFile)){
+        printf("\nSolving %s with the bottom up solver.\n", kGameName);
 
-			//read in the values into StageDB
-			//fscanf(DataFileName, "%llu %c\n", 
+        WalkGameTree();
 
-			//}
-		}
+        CurrentStage = totalstages;
 
-		phead = PosList = gEnumerateWithinStage(CurrentStage);
+        do {
+                printf("I am starting to solve stage %d\n", CurrentStage);
 
-		OutFileName[1] = '0' + (CurrentStage-1)/10;
-		OutFileName[0] = '0' + (CurrentStage-1)%10;
-		OutFile = fopen(OutFileName,"w");
+                if(CurrentStage == totalstages) {  //primitives
+                        openStageFile(&OutFile, CurrentStage);
+                        while(!feof(OutFile)) {
+                                fscanf(OutFile, POSITION_FORMAT"\n", &solvingpos);
+                                StoreValueOfPosition(solvingpos, Primitive(solvingpos));
+                        }
+                        //TODO: save thisdb
 
-		while(phead != NULL) {
+                } else {
+                        //TODO: dump the lastdb if there is one, put thisdb to lastdb
+                        // and recreate thisdb
 
-			BOOLEAN  foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
-			VALUE currentValue = undecided;
-			POSITION postosolve = phead->position, child;
+                        openStageFile(&OutFile, CurrentStage);
 
-			//solve like the non-loopy solver, but does not recurse
-			if(CurrentStage != TotalStage) { //we are solving non-primitives
-				mhead = MoveList = GenerateMoves(postosolve);
-				for( ; mhead != NULL; mhead = mhead->next) {
-					child = DoMove(postosolve, mhead->move);
-					currentValue = GetValueOfPosition(child);
-					if(currentValue == lose) {
-						foundLose = TRUE;
-					}
-					else if(currentValue == tie) {
-						foundTie = TRUE;
-					}
-					else if(currentValue == win) {
-						foundWin = TRUE;
-					}
-					else printf("undecided position encountered in %llu", child);
-				}
-				FreeMoveList(MoveList);
-				if(foundLose)
-					StoreValueOfPosition(postosolve, win);
-				else if(foundTie)
-					StoreValueOfPosition(postosolve, tie);
-				else if(foundWin)
-					StoreValueOfPosition(postosolve, lose);
-				else //the position is wierd.
-					printf("encountered unsolvable value for node %llu. WATCH OUT!!", postosolve);
-			}
-			else { //we are solving primitives
-				currentValue = Primitive(postosolve);
-				if (currentValue == undecided) {
-					printf("encountered an undecided value for a primitive %llu. Skipping it.\n", postosolve);
-				} else {
-					StoreValueOfPosition(position,currentValue);
-				}
-			}
-			
-			fprintf(OutFile, "%llu %c\n", phead->position, currentValue);
-	
-			phead = phead->next;
-		}
-	
-		FreePositionList(PosList);
-		fclose(DataFile);
-		fclose(OutFile);
+                        BOOLEAN foundnewvalue = TRUE;
 
-		CurrentStage--;
+                        while(foundnewvalue) {
 
-		printf("I have finished solving stage %d. Do you want to continue solving the next stage? (y/n)", CurrentStage);
+                                //reset to start reading from the beginning
+                                fseek(OutFile, 0, SEEK_SET);
 
-		char response = getchar();
-		UserQuit = (response == 'y');
+                                while(!feof(OutFile)) {
 
-	}while (!UserQuit && CurrentStage != 0);
+                                        BOOLEAN  foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
+                                        VALUE currentValue = undecided;
+                                        POSITION postosolve, child;
 
-	return (undecided);
+                                        //read in the positions we need to solve with
+                                        fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
+
+                                        //solve like the non-loopy solver, but does not recurse
+                                        mhead = MoveList = GenerateMoves(postosolve);
+                                        for( ; mhead != NULL; mhead = mhead->next) {
+                                                child = DoMove(postosolve, mhead->move);
+                                                currentValue = GetValueOfPosition(child);
+                                                if(currentValue == lose) {
+                                                        foundLose = TRUE;
+                                                } else if(currentValue == tie) {
+                                                        foundTie = TRUE;
+                                                } else if(currentValue == win) {
+                                                        foundWin = TRUE;
+                                                }
+                                        }
+
+                                        FreeMoveList(MoveList);
+
+                                        if(foundLose)
+                                                StoreValueOfPosition(postosolve, win);
+                                        else if(foundTie)
+                                                StoreValueOfPosition(postosolve, tie);
+                                        else if(foundWin)
+                                                StoreValueOfPosition(postosolve, lose);
+                                        //otherwise this position will probably have to wait.
+
+                                        foundnewvalue = (foundnewvalue || foundTie || foundLose || foundWin);
+                                }  //find value for one position
+                        } //find value for all deducable positions
+
+                        //TODO: need to reread the whole file to get draws in. Save thisdb
+
+                        //fprintf(OutFile, "%llu %c\n", postosolve, gValueString[currentValue]);
+                        fclose(OutFile);
+                }
+
+                printf("I have finished solving stage %d. Do you want to continue solving the next stage? (y/n)", CurrentStage);
+
+                char response = getchar();
+                UserQuit = (response == 'y');
+
+                CurrentStage--;
+
+        } while (!UserQuit && CurrentStage >= 0);
+
+        return (GetValueOfPosition(gInitialPosition));
 
 }
