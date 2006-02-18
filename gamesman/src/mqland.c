@@ -1327,7 +1327,11 @@ MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIS
 	MOVE move;
 	for (px = width - 1; px >= 0; px--) {
 		for (py = height - 1; py >= 0; py--) {
-			if (pieceat(board, px, py) == BLANK && !(get_x_coord(dest_pos) == px && get_y_coord(dest_pos) == py)) {
+			//if (px,py) is BLANK and either
+			//1) there is no slide move; or
+			//2) the destination of the slide move is not (px,py)
+			//then (px,py) is a valid place move
+			if (pieceat(board, px, py) == BLANK && ((px == 0 && py == 0) || !(get_x_coord(dest_pos) == px && get_y_coord(dest_pos) == py))) {
 				move = 0;
 				set_move_source(move, source_pos);
 				set_move_dest(move, dest_pos);
