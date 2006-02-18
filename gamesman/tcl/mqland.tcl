@@ -73,8 +73,9 @@ proc GS_InitGameSpecific {} {
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
-proc UnhashPosition {postition} {
-
+proc UnhashPosition {position} {
+	global boardWidth boardHeight
+	return [C_GenericUnhash $position [expr $boardWidth * $boardHeight]]
 
 }
 
@@ -229,7 +230,7 @@ proc GS_Initialize { c } {
     set xColor blue
     set oColor red
   
-    global xPieces oPeices
+    global xPieces oPieces
     global placeMoves
     global slideStartLocs arrows
     global background
@@ -339,10 +340,23 @@ proc GS_Deinitialize { c } {
 
 proc GS_DrawPosition { c position } {
     
-    ### TODO: Fill this in
-    
-}
+    global xPieces oPieces width background
+    set board [UnhashPosition $position]
 
+    #raise the background to hide everything else
+    $c raise $background
+    $c raise lines
+
+    for {set i 0} {$i < [string length $board]} {incr i} {
+	set w [expr $i % $width]
+	set h [expr $i / $width]
+	if {[string index $board $i] == "X"} {
+		$c raise $xPieces($w,$h)
+	} elseif {[string index $board $i] == "O"} {
+		$c raise $oPieces($w,$h)
+	}
+    }
+}
 
 # GS_NewGame should start playing the game. "let's play"  :)
 # It's arguments are a canvas, c, where you should draw and
@@ -397,9 +411,34 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # returns the correct color.
 
 proc GS_ShowMoves { c moveType position moveList } {
-
-	### TODO: Fill this in
-	
+	#Draw all the slide moves
+	foreach move $moveList {
+		set theMove [UnhashMove [lindex $move 0]]
+		puts $theMove
+		if {[lindex $theMove 0] == 0 && [lindex $theMove 1] == 0} {
+			#handle case where it's not a slide move
+		} else {DrawSlideMove $c $theMove $moveType $position}
+	}
+}
+proc UnhashMove { move } {
+	return [list [GetMoveSource $move] [GetMoveDest $move] [GetMovePlace $move]]
+}
+proc GetMoveSource { move } {
+	global width height
+	return [expr $move / [expr $width * $width * $height * $height]]
+}
+proc GetMoveDest { move } {
+	global width height
+	return [expr [expr $move % [expr $width * $width * $height * $height]] / [expr $width * $height]]
+}
+proc GetMovePlace { move } {
+	global width height
+	return [expr $move % [expr $width * $height]]
+}
+proc DrawSlideMove { c theMove moveType position } {
+	global width
+	$c raise slideStartLocs([expr [lindex $theMove 0] % $width],[expr [lindex $theMove 0] / $width])
+	$c raise arrows([expr [lindex $theMove 0] % $width],[expr [lindex $theMove 0] / $width],[expr [lindex $theMove 1] % $width],[expr [lindex $theMove 1] / $width])
 }
 
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the same as GS_ShowMoves.
