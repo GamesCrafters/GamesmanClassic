@@ -21,6 +21,7 @@
 #include <limits.h>
 
 #include "types.h"
+#include "hash.h"
 #include "analysis.h"
 #include "constants.h"
 #include "globals.h"

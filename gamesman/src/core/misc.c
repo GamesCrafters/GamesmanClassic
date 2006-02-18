@@ -168,6 +168,7 @@ void ExitStageRight()
 {
         printf("\nThanks for playing %s!\n",kGameName); /* quit */
         // This is good practice
+        generic_hash_destroy();
         DestroyDatabases();
         exit(0);
 }
@@ -294,9 +295,10 @@ void AddPositionToQueue (POSITION pos, POSITIONQUEUE** tail)
         POSITIONQUEUE* new_node = (POSITIONQUEUE *) SafeMalloc (sizeof(POSITIONQUEUE));
 
         new_node->position = pos;
-	new_node->next = NULL;
-	if (*tail) (*tail)->next = new_node;
-	(*tail) = new_node;
+        new_node->next = NULL;
+        if (*tail)
+                (*tail)->next = new_node;
+        (*tail) = new_node;
         return;
 }
 

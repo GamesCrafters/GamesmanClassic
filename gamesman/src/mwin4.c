@@ -581,10 +581,10 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 			printf(" %s",gBlankOXString[(int)board[i][row]]);
 	}
 
-	for (i=0; i< 20; i++) {
-		printf("%d", (int)(position & 1));
-		position = position >> 1;
-	}
+	//for (i=0; i< 20; i++) {
+	//	printf("%d", (int)(position & 1));
+	//	position = position >> 1;
+	//}
 
 	printf("\n");
 

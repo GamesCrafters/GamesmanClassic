@@ -33,20 +33,21 @@
 
 #define MAX_FN_LEN 40
 
-//DO NOT USE THIS WITH A LOOPY GAME, IT WILL EVENTUALLY EXPLODE IN MEMORY USAGE
+//DO NOT USE THIS WITH A LOOPY GAME, IT WILL SPIN IN AN INFINITE LOOP
 
-int   totalstages;
+int   TotalStages;
 
-char  filename[MAX_FN_LEN];
-FILE *stagefile;
+FILE *StageFile;
 
 void newStageFile()
 {
+        char  filename[MAX_FN_LEN];
         int i;
+
         for (i = 0; i < MAX_FN_LEN; i++)
                 filename[i] = ' ';
-        sprintf(filename, "./stages/%s_stage%d.txt", kDBName, totalstages);
-        if ((stagefile = (fopen(filename, "wb"))) == NULL) {
+        sprintf(filename, "./stages/%s_stage%d.txt", kDBName, TotalStages);
+        if ((StageFile = fopen(filename, "wb")) == NULL) {
                 printf("Unable to create file for writing positions in a stage. Aborting.");
                 ExitStageRight();
                 exit(1);
@@ -60,7 +61,7 @@ void openStageFile(FILE **filep, int stagenum)
 
         for (i = 0; i < MAX_FN_LEN; i++)
                 filen[i]=' ';
-        sprintf(filename, "./stages/%s_stage%d.txt", kDBName, stagenum);
+        sprintf(filen, "./stages/%s_stage%d.txt", kDBName, stagenum);
         if (((*filep) = fopen(filen, "r")) == NULL) {
                 printf("unable to create file for reading positions in a stage. Aborting.");
                 ExitStageRight();
@@ -68,18 +69,13 @@ void openStageFile(FILE **filep, int stagenum)
         }
 }
 
-/* walk the game tree (no graphs please) and generate files with the names
+/* walk the game tree in a BFS (no graphs please) and generate files with the names
 	"./stages/1210_stage1_positions.txt"
    to aid solving the stuff*/
 void WalkGameTree()
 {
-        /*
-          initialize head, tail, stagetail, and open the first file, totalstages = 0;
-        */
-
         POSITIONQUEUE *head, *tail, *stagetail;
         BOOLEAN        isPrimitive, beginNewStage;
-        MOVE           currentMove;
         MOVELIST      *currentMoves, *currentMovesHead;
         POSITION       currentPos, childPos;
 
@@ -87,7 +83,7 @@ void WalkGameTree()
         AddPositionToQueue(gInitialPosition, &tail);
         head = tail;
         stagetail = tail;
-        totalstages = 0;
+        TotalStages = -1;
 
         mkdir("stages", 0755);
 
@@ -95,18 +91,21 @@ void WalkGameTree()
 
         beginNewStage = TRUE;
 
+        UnMarkAllAsVisited();
+
         do {
                 currentPos = head->position;
 
                 /*write the position to the first file;*/
                 if (beginNewStage) {
-                        printf("walking stage %d\n", totalstages);
+                        TotalStages++;
+                        printf("walking stage %d\n", TotalStages);
                         newStageFile();
-                        totalstages++;
                         beginNewStage = FALSE;
                 }
 
-                fprintf(stagefile, POSITION_FORMAT"\n", currentPos);
+                fprintf(StageFile, POSITION_FORMAT"\n", currentPos);
+                fflush(StageFile);
 
                 currentMoves = currentMovesHead = GenerateMoves(currentPos);
 
@@ -117,17 +116,19 @@ void WalkGameTree()
 
                 if (!isPrimitive) {
                         for(; currentMovesHead != NULL; currentMovesHead = currentMovesHead->next) {
-                                currentMove = currentMovesHead->move;
-                                childPos = DoMove(currentPos, currentMove);
-                                AddPositionToQueue(childPos, &tail);
+                                childPos = DoMove(currentPos, currentMovesHead->move);
+                                if (!Visited(childPos)) {
+                                        AddPositionToQueue(childPos, &tail);
+                                        MarkAsVisited(childPos);
+                                }
                         }
+                }
 
-                        if (head == stagetail) //we have finished this stage, rotating
-                        {
-                                fclose(stagefile);
-                                stagetail = tail;
-                                beginNewStage = TRUE;
-                        }
+                if (head == stagetail) //we have finished this stage, rotating
+                {
+                        fclose(StageFile);
+                        stagetail = tail;
+                        beginNewStage = TRUE;
                 }
 
                 FreeMoveList(currentMoves);
@@ -144,18 +145,16 @@ VALUE DetermineValueBU(POSITION position)
                 return(undecided);
         }
 
-        BOOLEAN UserQuit = FALSE;
-
         int	CurrentStage;
-
-        POSITION  solvingpos;
-
-        //this is what we get from enumerating all positions in the current Stage.
-        POSITIONLIST	*phead = NULL, *PosList = NULL;
 
         MOVELIST	*mhead = NULL, *MoveList = NULL;
 
         FILE   		*OutFile = NULL;
+
+        BOOLEAN		foundTie, foundLose, foundWin;
+        VALUE		currentValue, oldValue;
+        REMOTENESS	winRemoteness, loseRemoteness, tieRemoteness, childrmt;
+        POSITION	postosolve, child;
 
         //status
         //TODO: just put the results in a colldb for now....
@@ -164,83 +163,142 @@ VALUE DetermineValueBU(POSITION position)
 
         WalkGameTree();
 
-        CurrentStage = totalstages;
+        CurrentStage = TotalStages;
+
+        BOOLEAN foundnewvalue = TRUE;
+
+        //UnMarkAllAsVisited();
 
         do {
                 printf("I am starting to solve stage %d\n", CurrentStage);
 
-                if(CurrentStage == totalstages) {  //primitives
-                        openStageFile(&OutFile, CurrentStage);
+                openStageFile(&OutFile, CurrentStage);
+
+                //if(CurrentStage == TotalStages) {  //primitives
+
+                //      while(!feof(OutFile)) {
+                //            fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
+                //          StoreValueOfPosition(postosolve, Primitive(postosolve));
+
+                //}
+
+                //} else {
+                //TODO: put thisdb to lastdb and recreate thisdb
+
+                foundnewvalue = TRUE;
+
+                while(foundnewvalue) {
+
+                        //reset to start reading from the beginning
+                        fseek(OutFile, 0, SEEK_SET);
+
+                        foundnewvalue = FALSE;
+
                         while(!feof(OutFile)) {
-                                fscanf(OutFile, POSITION_FORMAT"\n", &solvingpos);
-                                StoreValueOfPosition(solvingpos, Primitive(solvingpos));
-                        }
-                        //TODO: save thisdb
 
-                } else {
-                        //TODO: dump the lastdb if there is one, put thisdb to lastdb
-                        // and recreate thisdb
+                                foundTie = FALSE;
+                                foundLose = FALSE;
+                                foundWin = FALSE;
+                                currentValue = undecided;
+                                winRemoteness = tieRemoteness = REMOTENESS_MAX;
+                                loseRemoteness = 0;
 
-                        openStageFile(&OutFile, CurrentStage);
+                                //read in the positions we need to solve with
+                                fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
 
-                        BOOLEAN foundnewvalue = TRUE;
+                                //            printf("read out position "POSITION_FORMAT"\n", postosolve);
 
-                        while(foundnewvalue) {
+                                //if the position is not solved yet, or is depending on other positions in the stage
+                                //if (!Visited(postosolve) || GetValueOfPosition(postosolve) == undecided) {
 
-                                //reset to start reading from the beginning
-                                fseek(OutFile, 0, SEEK_SET);
+                                //MarkAsVisited(postosolve);
+                                oldValue = GetValueOfPosition(postosolve);
 
-                                while(!feof(OutFile)) {
-
-                                        BOOLEAN  foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
-                                        VALUE currentValue = undecided;
-                                        POSITION postosolve, child;
-
-                                        //read in the positions we need to solve with
-                                        fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
-
-                                        //solve like the non-loopy solver, but does not recurse
+                                if ((currentValue = Primitive(postosolve)) != undecided) {
+                                        StoreValueOfPosition(postosolve, currentValue);
+                                        SetRemoteness(postosolve,0);
+                                } else {
+                                        //infer the value from children, but does not recurse
                                         mhead = MoveList = GenerateMoves(postosolve);
                                         for( ; mhead != NULL; mhead = mhead->next) {
                                                 child = DoMove(postosolve, mhead->move);
                                                 currentValue = GetValueOfPosition(child);
+                                                childrmt = Remoteness(child);
+
                                                 if(currentValue == lose) {
                                                         foundLose = TRUE;
+                                                        if (winRemoteness > childrmt)
+                                                                winRemoteness = childrmt;
                                                 } else if(currentValue == tie) {
                                                         foundTie = TRUE;
+                                                        if (tieRemoteness > childrmt)
+                                                                tieRemoteness = childrmt;
                                                 } else if(currentValue == win) {
                                                         foundWin = TRUE;
+                                                        if (loseRemoteness < childrmt)
+                                                                loseRemoteness = childrmt;
                                                 }
+                                                /*TODO:if I am winning I want to give you the shortest lose
+                                                	if I am losing I want to give you the longest win
+                                                	if we are tied I want to give you the longest tie
+                                                	handle those here */
+                                                //if (minrmt > childrmt)
+                                                //        minrmt = childrmt;
+                                                //if (maxrmt < childrmt)
+                                                //        maxrmt = childrmt;
                                         }
 
                                         FreeMoveList(MoveList);
 
-                                        if(foundLose)
+                                        if(foundLose) {
                                                 StoreValueOfPosition(postosolve, win);
-                                        else if(foundTie)
+                                                SetRemoteness(postosolve, winRemoteness + 1);
+                                        } else if(foundTie) {
                                                 StoreValueOfPosition(postosolve, tie);
-                                        else if(foundWin)
+                                                SetRemoteness(postosolve, tieRemoteness + 1);
+                                        } else if(foundWin) {
                                                 StoreValueOfPosition(postosolve, lose);
+                                                SetRemoteness(postosolve, loseRemoteness + 1);
+                                        }
                                         //otherwise this position will probably have to wait.
 
-                                        foundnewvalue = (foundnewvalue || foundTie || foundLose || foundWin);
-                                }  //find value for one position
-                        } //find value for all deducable positions
+                                        //                      printf("I am looking at "POSITION_FORMAT" and got a %s\n", postosolve, gValueString[GetValueOfPosition(postosolve)]);
+                                }
 
-                        //TODO: need to reread the whole file to get draws in. Save thisdb
+                                foundnewvalue = (foundnewvalue || (oldValue != GetValueOfPosition(postosolve)));
+                                //}
+                        }  //while(!feof(OutFile)) - find value for one position
+                } //while(foundnewvalue) - find value for all deducable positions in a stage
 
-                        //fprintf(OutFile, "%llu %c\n", postosolve, gValueString[currentValue]);
-                        fclose(OutFile);
+                fseek(OutFile, 0, SEEK_SET);
+
+                //take care of the all the draws
+                while (!feof(OutFile)) {
+                        fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
+                        if (GetValueOfPosition(postosolve) == undecided) {
+                                StoreValueOfPosition(postosolve, tie);
+                                SetRemoteness(postosolve, REMOTENESS_MAX);
+                                //this is what a draw is, a tie with remoteness REMOTENESS_MAX.
+                        }
                 }
 
-                printf("I have finished solving stage %d. Do you want to continue solving the next stage? (y/n)", CurrentStage);
+                //fprintf(OutFile, "%llu %c\n", postosolve, gValueString[currentValue]);
+                //}
 
-                char response = getchar();
-                UserQuit = (response == 'y');
+                //TODO: save db for this stage
+
+                fclose(OutFile);
+
+                printf("I have finished solving stage %d.\n", CurrentStage);
+                // Do you want to continue solving the next stage? (y/n)", CurrentStage);
+
+                //char response = getchar();
+                //UserQuit = (response == 'y');
 
                 CurrentStage--;
 
-        } while (!UserQuit && CurrentStage >= 0);
+        } while (CurrentStage >= 0)
+                ;
 
         return (GetValueOfPosition(gInitialPosition));
 

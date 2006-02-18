@@ -71,7 +71,7 @@ void Initialize()
         sprintf(gPlayerName[kPlayerTwoTurn],"Computer");
 
         /* generic hash */
-        generic_hash_context_init();
+        //generic_hash_context_init();
 
         /* get the DB function table with all pointers to default */
         CreateDatabases();
