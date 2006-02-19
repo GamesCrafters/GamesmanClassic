@@ -16,19 +16,25 @@
 
 proc GS_InitGameSpecific {} {
     
-    ### We added this
+    #global constants
     global width height boardWidth boardHeight
     set boardWidth 500 
     set boardHeight 500
     set width 4
     set height 4
 
-    global slotSize cellPadding megaCellPadding arrowWidth
+    #slotSize: the dimensions of each square on the board
+    #cellPadding: the size of the gap between the edge of a piece and the edge of the slot
+    #megaCellPadding: the size of the gap between the edge of one of the "place move" dots and the edge of the slot
+    #arrowWidth: the width of the "slide move" arrows
+    #mouseOverColor: the color of anything being moused over
+    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor
     set slotSize(w) [expr $boardWidth / $width]
     set slotSize(h) [expr $boardHeight / $height]
     set cellPadding 10
-    set megaCellPadding [expr 3 * $cellPadding]
+    set megaCellPadding [expr 5 * $cellPadding]
     set arrowWidth [expr $slotSize(w) / 8]
+    set mouseOverColor black
 
     global xColor oColor
     set xColor blue
@@ -212,28 +218,17 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
 
-    #global constants
-    global witdh height boardWidth boardHeight
-    set boardWidth 500 
-    set boardHeight 500
-    set width 4
-    set height 4
-
-    global slotSize cellPadding megaCellPadding arrowWidth
-    set slotSize(w) [expr $boardWidth / $width]
-    set slotSize(h) [expr $boardHeight / $height]
-    set cellPadding 10
-    set megaCellPadding [expr 3 * $cellPadding]
-    set arrowWidth [expr $slotSize(w) / 8]
-
+    global width height boardWidth boardHeight
+    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor
     global xColor oColor
-    set xColor blue
-    set oColor red
-  
     global xPieces oPieces
     global placeMoves
     global slideStartLocs arrows
     global background
+
+    #Everything starts out filled with dummy colors, but should be refilled before being used.
+    set dummyDotColor pink
+    set dummyArrowColor pink
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
     $c configure -width $boardWidth -height $boardHeight 
@@ -264,7 +259,7 @@ proc GS_Initialize { c } {
 				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
 				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
 				       [expr $j * $slotSize(h) + $megaCellPadding] \
-				       -fill pink]
+				       -fill $dummyDotColor]
 	}
     } 
    
@@ -277,7 +272,7 @@ proc GS_Initialize { c } {
 				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
 				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
 				       [expr $j * $slotSize(h) + $megaCellPadding] \
-				       -fill pink]
+				       -fill $dummyDotColor]
 	}
     } 
     for {set i 0} {$i < $width} {incr i} {
@@ -294,7 +289,7 @@ proc GS_Initialize { c } {
 						     [expr $l * $slotSize(h) + $slotSize(h) / 2] \
 						     -width $arrowWidth -arrow last \
 						     -arrowshape [list [expr 2 * $arrowWidth] [expr 2 * $arrowWidth] $arrowWidth] \
-						     -fill green -tags [list "i $i j $j p [expr ($i-$k)*($i-$k) + ($j-$l)*($j-$l)]"]]
+						     -fill $dummyArrowColor -tags [list "i $i j $j p [expr ($i-$k)*($i-$k) + ($j-$l)*($j-$l)]"]]
 		    }
 		}
 	    }
@@ -303,14 +298,14 @@ proc GS_Initialize { c } {
     }
 
     #draw the background board and lines
-    set background [$c create rectangle 0 0 $boardWidth $boardHeight -fill gray]
-    for {set i 1} {$i < $width} {incr i} {
+    set background [$c create rectangle 0 0 [$c cget -width] [$c cget -height] -fill gray]
+    for {set i 1} {$i <= $width} {incr i} {
 	$c create line \
 	    [expr $i * $slotSize(w)] 0 \
 	    [expr $i * $slotSize(w)] $boardHeight \
 	    -tags [list lines]
     }
-    for {set j 1} {$j < $height} {incr j} {
+    for {set j 1} {$j <= $height} {incr j} {
 	$c create line \
 	    0 [expr $j * $slotSize(h)]  \
 	    $boardWidth [expr $j * $slotSize(h)] \
@@ -377,7 +372,20 @@ proc GS_NewGame { c position } {
 # Optional Procedure
 
 proc GS_WhoseMove { position } {
-    return ""    
+	set X 0
+	set O 0
+	for {set i 0} {$i < [string length $position]} {incr i} {
+		if {[string index $position $i] == "X"} {
+			incr X
+		} elseif {[string index $position $i] == "O"} {
+			inrc O
+		}
+	}
+	if {$X == $O} {
+		return "x"
+	} else {
+		return "o"
+	}
 }
 
 # GS_HandleMove draws (animates) a move being made.
@@ -392,6 +400,7 @@ proc GS_WhoseMove { position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 	### TODO: Fill this in
+	GS_DrawPosition $c $newPosition
     
 }
 
@@ -411,15 +420,28 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # returns the correct color.
 
 proc GS_ShowMoves { c moveType position moveList } {
-	#Draw all the slide moves
+	#1. Draw all the slide moves
+	#2. If there are no slide moves, set slide(from) and slide(to) to 0, 0.
+	#   Otherwise, let the player click on an arrow to specify the values of slide
+	#   If he does, redraw the board to show the effects of the slide.
+	#3. Draw all the place moves that correspond to the slide that the player chose.
+	set foundSlideMove false
+	set currentPlayer [GS_WhoseMove $position]
 	foreach move $moveList {
 		set theMove [UnhashMove [lindex $move 0]]
-		puts $theMove
-		if {[lindex $theMove 0] == 0 && [lindex $theMove 1] == 0} {
-			#handle case where it's not a slide move
-		} else {DrawSlideMove $c $theMove $moveType $position}
+		if {[lindex $theMove 0] != 0 || [lindex $theMove 1] != 0} {
+			DrawSlideMove $c $theMove [lindex $move 1] $moveType $moveList $currentPlayer $position
+			set foundSlideMove true
+		} else {
+			set noSlideValue [lindex $theMove 1]
+		}
 	}
+	if {!$foundSlideMove} {
+		SetSlideComponent $c 0 0 $noSlideValue $moveType $moveList $currentPlayer $position
+	}
+	
 }
+#Unhashes a move.  The input is some number and the output is [source dest place].
 proc UnhashMove { move } {
 	return [list [GetMoveSource $move] [GetMoveDest $move] [GetMovePlace $move]]
 }
@@ -435,10 +457,53 @@ proc GetMovePlace { move } {
 	global width height
 	return [expr $move % [expr $width * $height]]
 }
-proc DrawSlideMove { c theMove moveType position } {
-	global width
-	$c raise slideStartLocs([expr [lindex $theMove 0] % $width],[expr [lindex $theMove 0] / $width])
-	$c raise arrows([expr [lindex $theMove 0] % $width],[expr [lindex $theMove 0] / $width],[expr [lindex $theMove 1] % $width],[expr [lindex $theMove 1] / $width])
+proc DrawSlideMove { c theMove value moveType moveList currentPlayer position} {
+	global width slideStartLocs arrows mouseOverColor
+	set fromrow [expr [lindex $theMove 0] % $width]
+	set fromcol [expr [lindex $theMove 0] / $width]
+	set torow [expr [lindex $theMove 1] % $width]
+	set tocol [expr [lindex $theMove 1] / $width]
+	#$c raise slideStartLocs($fromrow,$fromcol)
+	$c raise $arrows($fromrow,$fromcol,$torow,$tocol)
+	#THIS IS WRONG!  I NEED TO CALCULATE THE COLOR OF THE MOVE BY HAND
+	$c itemconfig $arrows($fromrow,$fromcol,$torow,$tocol) -fill [MoveValueToColor $moveType $value]
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <ButtonRelease-1> "SetSlideComponent $c [lindex $theMove 0] [lindex $theMove 1] $value $moveType [list $moveList] $currentPlayer $position"
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Enter> "$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill $mouseOverColor"
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Leave> "$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill [MoveValueToColor $moveType $value]"
+}
+proc SetSlideComponent {c source dest value moveType moveList currentPlayer position} {
+	global xPieces oPieces width
+	GS_HideMoves $c $moveType $position $moveList
+	if {$currentPlayer == "x"} {
+		$c lower $xPieces([expr $source % $width],[expr $source / $width])
+		$c raise $xPieces([expr $dest % $width],[expr $dest / $width])
+	} else {
+		$c lower $oPieces([expr $source % $width],[expr $source / $width])
+		$c raise $oPieces([expr $dest % $width],[expr $dest / $width])
+	}
+	foreach move $moveList {
+		set theMove [UnhashMove [lindex $move 0]]
+		if {[lindex $theMove 0] == $source && [lindex $theMove 1] == $dest} {
+			DrawPlaceMove $c $theMove $value $moveType $source $dest
+		}
+	}
+}
+proc DrawPlaceMove { c theMove value moveType source dest } {
+	global width placeMoves mouseOverColor
+	set row [expr [lindex $theMove 2] % $width]
+	set col [expr [lindex $theMove 2] / $width]
+	$c raise $placeMoves($row,$col)
+	$c itemconfig $placeMoves($row,$col) -fill [MoveValueToColor $moveType $value]
+	$c bind $placeMoves($row,$col) <Enter> "$c itemconfigure $placeMoves($row,$col) -fill $mouseOverColor"
+	$c bind $placeMoves($row,$col) <Leave> "$c itemconfigure $placeMoves($row,$col) -fill [MoveValueToColor $moveType $value]"
+	$c bind $placeMoves($row,$col) <ButtonRelease-1> "SetPlaceComponent $source $dest [expr $row + ($col * $width)]"
+}
+proc SetPlaceComponent {source dest place} {
+	global width height
+	set move [expr $source * $width * $width * $height * $height]
+	set move [expr $move + ($dest * $width * $height)]
+	set move [expr $move + $place]
+	ReturnFromHumanMove $move
 }
 
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the same as GS_ShowMoves.
@@ -446,7 +511,8 @@ proc DrawSlideMove { c theMove moveType position } {
 
 proc GS_HideMoves { c moveType position moveList} {
 
-    ### TODO: Fill this in
+    # DrawPosition raises the board (therefore hiding all the moves) and raises all the pieces on it.
+    GS_DrawPosition $c $position
 
 }
 
@@ -463,7 +529,7 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
 	### TODO if needed
-    GS_DrawPosition c positionAfterUndo
+    GS_DrawPosition $c positionAfterUndo
 }
 
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
