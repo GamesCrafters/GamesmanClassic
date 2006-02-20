@@ -28,13 +28,15 @@ proc GS_InitGameSpecific {} {
     #megaCellPadding: the size of the gap between the edge of one of the "place move" dots and the edge of the slot
     #arrowWidth: the width of the "slide move" arrows
     #mouseOverColor: the color of anything being moused over
-    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor
+    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor passButtonHeight passButtonWidth
     set slotSize(w) [expr $boardWidth / $width]
     set slotSize(h) [expr $boardHeight / $height]
     set cellPadding 10
     set megaCellPadding [expr 5 * $cellPadding]
     set arrowWidth [expr $slotSize(w) / 8]
     set mouseOverColor black
+    set passButtonHeight [expr $slotSize(h) / 2]
+    set passButtonWidth $slotSize(w)
 
     global xColor oColor
     set xColor blue
@@ -85,13 +87,25 @@ proc UnhashPosition {position} {
 
 }
 
-
-proc orderArrows {c i j} {
-    global width height 
-    set maxtag [expr ($width-1)*($width-1)+($height-1)*($height-1)]
-    for {set p $maxtag} {$p >= 1} {set p [expr $p - 1]} {
-	$c raise "i $i j $j p $p"
+# Calls orderArrowsFrom every space on the board
+proc orderAllArrows {c} {
+    global width height
+    for {set i 0} {$i < $width} {incr i} {
+	for {set j 0} {$j < $height} {incr j} {
+		orderArrowsFrom $c $i $j	
+	}
     }
+}
+
+# Looks at all arrows originating from (i,j) and orders them so that the shortest is raised to the top
+# and the longest is at the bottom.  Only considers arrows that represent "active" moves; that is,
+# moves that are currently selectable by the player.
+proc orderArrowsFrom {c i j} {
+	global width height	
+	set maxtag [expr ($width-1)*($width-1)+($height-1)*($height-1)]
+	for {set p $maxtag} {$p >= 1} {set p [expr $p - 1]} {
+		$c raise "i $i j $j p $p && active"
+	}
 }
 
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -219,11 +233,12 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
 
     global width height boardWidth boardHeight
-    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor
+    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor passButtonWidth passButtonHeight
     global xColor oColor
     global xPieces oPieces
     global placeMoves
     global slideStartLocs arrows
+    global passButton
     global background
 
     #Everything starts out filled with dummy colors, but should be refilled before being used.
@@ -231,7 +246,7 @@ proc GS_Initialize { c } {
     set dummyArrowColor pink
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    $c configure -width $boardWidth -height $boardHeight 
+    $c configure -width $boardWidth -height [expr $boardHeight + $passButtonHeight]
 
     #draw the pieces
     for {set i 0} {$i < $width} {incr i} {
@@ -293,9 +308,12 @@ proc GS_Initialize { c } {
 		    }
 		}
 	    }
-	    orderArrows $c $i $j
 	}
     }
+
+    #draw the pass button at the bottom
+    set passButton [$c create rectangle [expr ([$c cget -width] / 2) - ($passButtonWidth / 2)] [expr [$c cget -height] - $passButtonHeight] \
+	[expr ([$c cget -width] / 2) + ($passButtonWidth / 2)] [$c cget -height] -fill $dummyDotColor]
 
     #draw the background board and lines
     set background [$c create rectangle 0 0 [$c cget -width] [$c cget -height] -fill gray]
@@ -374,11 +392,12 @@ proc GS_NewGame { c position } {
 proc GS_WhoseMove { position } {
 	set X 0
 	set O 0
-	for {set i 0} {$i < [string length $position]} {incr i} {
-		if {[string index $position $i] == "X"} {
+	set board [UnhashPosition $position]
+	for {set i 0} {$i < [string length $board]} {incr i} {
+		if {[string index $board $i] == "X"} {
 			incr X
-		} elseif {[string index $position $i] == "O"} {
-			inrc O
+		} elseif {[string index $board $i] == "O"} {
+			incr O
 		}
 	}
 	if {$X == $O} {
@@ -404,6 +423,24 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     
 }
 
+# ****************************************************************************
+# This part of Queensland is a bit cryptic.  Essentially, the problem is that 
+# every move has both a "slide" and a "place" component, but Gamesman isn't
+# equipped to deal with multi-part moves.  In C, this problem is dealt with
+# by representing the move as the triplet [source dest place].  This doesn't
+# work so well in tcl/tk, because it is difficult for the player to visualize
+# a move as a single arrow or dot.  Therefore, the move is divided up into
+# two clicks.  This is accomplished by a sort of hack:
+# 1) First, the arrows are drawn by DrawSlideMove
+# 2) Each arrow is bound to an event that calls SetSlideComponent with
+#    parameters specific to the arrow clicked
+# 3) SetSlideComponent hides all the arrows and draws all of the dots with
+#    DrawPlaceMoves.
+# 4) Each dot is bound to a complete move (i.e. [source dest place]).  This
+#    is possible because when each dot is drawn, it "remembers" the slide move
+#    that was selected by the player.
+# ****************************************************************************
+
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
 # player clicks to make the move)  It is also the function that handles coloring
 # of the moves according to value. It is called by gamesman just before the player
@@ -420,24 +457,51 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # returns the correct color.
 
 proc GS_ShowMoves { c moveType position moveList } {
-	#1. Draw all the slide moves
-	#2. If there are no slide moves, set slide(from) and slide(to) to 0, 0.
-	#   Otherwise, let the player click on an arrow to specify the values of slide
-	#   If he does, redraw the board to show the effects of the slide.
-	#3. Draw all the place moves that correspond to the slide that the player chose.
+	global width height passButton mouseOverColor
 	set foundSlideMove false
 	set currentPlayer [GS_WhoseMove $position]
-	foreach move $moveList {
-		set theMove [UnhashMove [lindex $move 0]]
-		if {[lindex $theMove 0] != 0 || [lindex $theMove 1] != 0} {
-			DrawSlideMove $c $theMove [lindex $move 1] $moveType $moveList $currentPlayer $position
-			set foundSlideMove true
-		} else {
-			set noSlideValue [lindex $theMove 1]
+	for {set i 0} {$i < [expr $width * $height]} {incr i} {
+		for {set j 0} {$j < [expr $width * $height]} {incr j} {
+			set slideMoveVals($i,$j) "Lose"
 		}
 	}
+	# Set the values of each slide component.  Since each slide component corresponds to a handful of
+	# actual moves (many moves can have the same slide component but different place components), the
+	# value that each slide component is given is the BEST of all the possible moves it can lead to.
+	# Think of this as a go-again, even though that's not how this is implemented is C.
+	foreach move $moveList {
+		set theMove [UnhashMove [lindex $move 0]]
+		switch [lindex $move 1] {
+			"Win" {
+				set slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) "Win"
+			}
+			"Tie" {
+				if {$slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) != "Win"} {
+					set slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) "Tie"
+				}
+			}
+		}
+		# 0,0 represents the player's choice not to slide a piece.  If a move starts with 0,0
+		# then we need to somehow give the player the ability to signify that he doesn't want
+		# to slide.  The "passButton" is used to represent a "null slide."
+		if {[lindex $theMove 0] != 0 || [lindex $theMove 1] != 0} {
+			DrawSlideMove $c $theMove $slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) $moveType $moveList $currentPlayer $position
+			set foundSlideMove true
+		} else {
+			$c raise $passButton
+			$c itemconfig $passButton -fill [MoveValueToColor $moveType $slideMoveVals(0,0)]
+			$c bind $passButton <ButtonRelease-1> "SetSlideComponent $c 0 0 $moveType [list $moveList] $currentPlayer $position"
+			$c bind $passButton <Enter> "$c itemconfigure $passButton -fill $mouseOverColor"
+			$c bind $passButton <Leave> "$c itemconfigure $passButton -fill [MoveValueToColor $moveType $slideMoveVals(0,0)]"
+		}
+	}
+	# Raise shorter arrows on top of longer arrows to make them easier to click on.
+	orderAllArrows $c
+	# If there are absolutely no possible slide moves (for example, the beginning of the game when
+	# you don't have any pieces on the board yet) then skip straight to the part where you get
+	# to pick the place move, without having to first click on the passButton
 	if {!$foundSlideMove} {
-		SetSlideComponent $c 0 0 $noSlideValue $moveType $moveList $currentPlayer $position
+		SetSlideComponent $c 0 0 $moveType $moveList $currentPlayer $position
 	}
 	
 }
@@ -465,26 +529,32 @@ proc DrawSlideMove { c theMove value moveType moveList currentPlayer position} {
 	set tocol [expr [lindex $theMove 1] / $width]
 	#$c raise slideStartLocs($fromrow,$fromcol)
 	$c raise $arrows($fromrow,$fromcol,$torow,$tocol)
-	#THIS IS WRONG!  I NEED TO CALCULATE THE COLOR OF THE MOVE BY HAND
 	$c itemconfig $arrows($fromrow,$fromcol,$torow,$tocol) -fill [MoveValueToColor $moveType $value]
-	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <ButtonRelease-1> "SetSlideComponent $c [lindex $theMove 0] [lindex $theMove 1] $value $moveType [list $moveList] $currentPlayer $position"
-	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Enter> "$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill $mouseOverColor"
-	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Leave> "$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill [MoveValueToColor $moveType $value]"
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <ButtonRelease-1> \
+		"SetSlideComponent $c [lindex $theMove 0] [lindex $theMove 1] \
+		$moveType [list $moveList] $currentPlayer $position"
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Enter> \
+		"$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill $mouseOverColor; \
+		$c raise $arrows($fromrow,$fromcol,$torow,$tocol)"
+	$c bind $arrows($fromrow,$fromcol,$torow,$tocol) <Leave> \
+		"$c itemconfigure $arrows($fromrow,$fromcol,$torow,$tocol) -fill [MoveValueToColor $moveType $value]; \
+		orderArrowsFrom $c $fromrow $fromcol"
+	$c addtag "active" withtag $arrows($fromrow,$fromcol,$torow,$tocol)
 }
-proc SetSlideComponent {c source dest value moveType moveList currentPlayer position} {
+proc SetSlideComponent {c source dest moveType moveList currentPlayer position} {
 	global xPieces oPieces width
 	GS_HideMoves $c $moveType $position $moveList
-	if {$currentPlayer == "x"} {
+	if {$currentPlayer == "x" && ($source != 0 || $dest != 0)} {
 		$c lower $xPieces([expr $source % $width],[expr $source / $width])
 		$c raise $xPieces([expr $dest % $width],[expr $dest / $width])
-	} else {
+	} elseif {$currentPlayer == "o" && ($source != 0 || $dest != 0)} {
 		$c lower $oPieces([expr $source % $width],[expr $source / $width])
 		$c raise $oPieces([expr $dest % $width],[expr $dest / $width])
 	}
 	foreach move $moveList {
 		set theMove [UnhashMove [lindex $move 0]]
 		if {[lindex $theMove 0] == $source && [lindex $theMove 1] == $dest} {
-			DrawPlaceMove $c $theMove $value $moveType $source $dest
+			DrawPlaceMove $c $theMove [lindex $move 1] $moveType $source $dest
 		}
 	}
 }
@@ -511,6 +581,7 @@ proc SetPlaceComponent {source dest place} {
 
 proc GS_HideMoves { c moveType position moveList} {
 
+    $c dtag "all" "active"
     # DrawPosition raises the board (therefore hiding all the moves) and raises all the pieces on it.
     GS_DrawPosition $c $position
 
@@ -540,7 +611,7 @@ proc GS_GetGameSpecificOptions { } {
 # you could use this function to draw the line striking out the winning row in tic tac toe for instance
 # or you could congratulate the winner or do nothing if you want.
 
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner } {
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
 
 	### TODO if needed
 	
