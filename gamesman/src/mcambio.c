@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.1 2006-02-21 03:17:00 simontaotw Exp $
+// $Id: mcambio.c,v 1.2 2006-02-21 03:19:57 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -15,7 +15,7 @@
 **
 ** DATE:        2/20/2006
 **
-** UPDATE HIST: 2/20/2006 - Update game-specific constants
+** UPDATE HIST: 2/20/2006 - Updated game-specific constants
 **
 **************************************************************************/
 
@@ -515,6 +515,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2006/02/21 03:17:00  simontaotw
+// Updated game-specific constants
+//
 // Revision 1.7  2006/01/29 09:59:47  ddgarcia
 // Removed "gDatabase" reference from comment in InitializeGame
 //
