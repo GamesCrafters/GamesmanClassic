@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.2 2006-02-21 03:19:57 simontaotw Exp $
+// $Id: mcambio.c,v 1.3 2006-02-22 02:54:48 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -15,7 +15,8 @@
 **
 ** DATE:        2/20/2006
 **
-** UPDATE HIST: 2/20/2006 - Updated game-specific constants
+** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
+**              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
 **
 **************************************************************************/
 
@@ -107,6 +108,24 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
+#define ROWCOUNT 5;
+#define COLCOUNT 5;
+
+#define BLANK ' ';
+#define NEUTRAL '-';
+#define A_PIECE 'X';
+#define B_PIECE 'O';
+
+#define A_TURN 0;
+#define B_TURN 1;
+
+typedef enum possibleBoardPieces {
+  Neutral, A, B
+} BoardPiece;
+
+typedef enum playerTurn {
+  A, B
+} PlayerTurn;
 
 /*************************************************************************
 **
@@ -114,6 +133,12 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+int boardSize = ROWCOUNT * COLCOUNT;
+int aCount = 0;
+int bCount = 0;
+
+Player gWhosTurn;
+int gameType;
 
 /*************************************************************************
 **
@@ -122,9 +147,30 @@ STRING   kHelpExample =
 *************************************************************************/
 
 /* External */
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
-
+extern GENERIC_PTR		SafeMalloc ();
+extern void				SafeFree ();
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
+extern POSITION         generic_hash(char *board, int player);
+extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern int              whoseMove (POSITION hashed);
+/* Internal */
+void                    InitializeGame();
+MOVELIST               *GenerateMoves(POSITION position);
+POSITION                DoMove (POSITION position, MOVE move);
+VALUE                   Primitive (POSITION position);
+void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
+void                    PrintComputersMove(MOVE computersMove, STRING computersName);
+void                    PrintMove(MOVE move);
+USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
+BOOLEAN                 ValidTextInput(STRING input);
+MOVE                    ConvertTextInputToMove(STRING input);
+void                    GameSpecificMenu();
+void                    SetTclCGameSpecificOptions(int options[]);
+POSITION                GetInitialPosition();
+int                     NumberOfOptions();
+int                     getOption();
+void                    setOption(int option);
+void                    DebugMenu();
 
 /************************************************************************
 **
@@ -137,7 +183,21 @@ extern void		SafeFree ();
 
 void InitializeGame ()
 {
+  int i;
+  int piecesArray[] = { Blank, Neutral, A, B };
+
+  BoardOiece boardArray[boardSize];
+
+gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+    gWhosTurn = A;
     
+    boardArray[0] = boardArray[COLCOUNT-1] = boardArray[boardSize-(COLCOUNT-1)]  = boardArray[boardSize-1] = Neutral;
+
+    for (i = 0; i < boardSize; i++) {
+    	boardArray[i] = Blank;
+    }
+    
+    gInitialPosition = generic_hash(boardArray, gWhosTurn);
 }
 
 
