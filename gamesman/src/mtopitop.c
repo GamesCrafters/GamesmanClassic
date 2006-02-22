@@ -168,6 +168,13 @@ typedef enum playerTurn {
 	Blue, Red
 } PlayerTurn;
 
+// need this for unhashing...
+// "the" used for structs in code (use as convention??)
+typedef struct boardAndTurnRep {
+  char *theBoard;
+  PlayerTurn theTurn;
+} boardAndTurn;
+
 /*************************************************************************
 **
 ** Global Variables
@@ -731,28 +738,33 @@ POSITION arrayHash(char *board, PlayerTurn player) {
     CharToBoardPiece(board[6]) * 1000000 + 
     CharToBoardPiece(board[7]) * 10000000 + 
     CharToBoardPiece(board[8]) * 100000000 + 
-    CharToBoardPiece(board[9]) * 1000000000 + 
-    player * 10000000000;
+    player * 1000000000;
   return hashNum;
 }
 
-char* arrayUnhash(POSITION hashNumber) {
+boardAndTurn* arrayUnhash(POSITION hashNumber) {
   //char boardTemp[9];
-  char *boardTemp;
-  int i, j, temp = 0;
-  boardTemp = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeOf(char));
+  //char *boardTemp;
+
+  struct boardAndTurn bat;
+  int i, j;
+  bat.theBoard = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeOf(char));
 
   // should only be 9 entries (3 by 3 board)
   for (i = 0; i < ROWCOUNT; i++) {
     for (j = 0; j < COLCOUNT; j++) {
-      boardTemp[j + i*ROWCOUNT] = hashNumber % 10;
+      bat.theBoard[j + i*ROWCOUNT] = hashNumber % 10;
       hashNumber = hashNumber / 10;
     }
   }
+  bat.theTurn = hashNumber % 2;
   return boardTemp;
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2006/02/22 09:37:24  alexchoy
+// added hashing and unhashing functions
+//
 // Revision 1.1  2006/02/20 19:36:45  mikehamada
 // First addition to repository for Topitop by Mike Hamada
 // Setup #defines & data-structs
