@@ -914,6 +914,7 @@ void AnalysisMenu()
         printf("\tl)\tPrint up to %d (L)osing  positions\n",maxPositions);
         printf("\tt)\tPrint up to %d (T)ieing  positions\n",maxPositions);
         printf("\n\tp)\t(P)rint the overall summmary of game values\n");
+		printf("\ta)\tPrint detailed (A)nalysis of game values and remoteness distribution\n");  // New printf added
         printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
         printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
 
@@ -967,6 +968,12 @@ void AnalysisMenu()
 	    PrintGameValueSummary();
 	    HitAnyKeyToContinue();
 	    break;
+	case 'a': case 'A':					// New detailed analysis implementation
+		analyze();
+		//printf("\ngot through analyzing, segfault later!\n");
+		PrintDetailedGameValueSummary();
+		HitAnyKeyToContinue();
+		break;
 	case 'm': case 'M':
 	    if(!kPartizan) /* Impartial */
 		PrintMexValues(mexValue,maxPositions);

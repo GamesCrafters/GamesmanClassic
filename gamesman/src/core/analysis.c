@@ -184,6 +184,46 @@ void PrintValuePositions(char c, int maxPositions)
     HitAnyKeyToContinue();
 }
 
+void PrintDetailedGameValueSummary()
+{
+   char *initialPositionValue = "";
+   REMOTENESS currentRemoteness;
+
+   switch(gAnalysis.InitialPositionValue)
+   {
+       case win:
+           initialPositionValue = "Win";
+           break;
+       case lose:
+           initialPositionValue = "Lose";
+           break;
+       case tie:
+           initialPositionValue = "Tie";
+           break;
+       default:
+           BadElse("PrintGameValueSummary [InitialPositionValue]");
+   }
+   printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
+
+   printf("\tRemoteness           Win         Lose          Tie\n");
+   printf("\t-------------------------------------------------------\n");
+
+   for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness--) {
+       if(gAnalysis.DetailedPositionSummary[currentRemoteness][0] == 0 && gAnalysis.DetailedPositionSummary[currentRemoteness][1] == 0
+           && gAnalysis.DetailedPositionSummary[currentRemoteness][2] == 0) continue;
+
+       printf("\t%10u    %10llu   %10llu   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
+           gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+   }
+
+   printf("\t-------------------------------------------------------\n");
+   printf("\tTotals        %10llu   %10llu   %10llu\n", gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount);
+   printf("\tDraws = %llu\n", (gAnalysis.TotalPositions - gAnalysis.WinCount - gAnalysis.LoseCount - gAnalysis.TieCount));
+   printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
+   
+
+   return;
+}
 
 
 void PrintGameValueSummary()
@@ -210,6 +250,9 @@ void PrintGameValueSummary()
     printf("\tLose      = %5llu out of %llu (%5llu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
     printf("\tWin       = %5llu out of %llu (%5llu primitive)\n",gAnalysis.WinCount,gAnalysis.TotalPositions, gAnalysis.PrimitiveWins);
     printf("\tTie       = %5llu out of %llu (%5llu primitive)\n",gAnalysis.TieCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveTies);
+	printf("\tDraw      = %5llu out of %llu\n",
+		gAnalysis.TotalPositions - gAnalysis.WinCount - gAnalysis.LoseCount - gAnalysis.TieCount,  // ADDED to count draws
+		gAnalysis.TotalPositions);
     printf("\tUnknown   = %5llu out of %llu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);  
     printf("\tTOTAL     = %5llu out of %llu allocated (%5llu primitive)\n",
        gAnalysis.TotalPositions,
@@ -235,6 +278,7 @@ void analyze()
   
   if (analyzed == 0 || previousOption != getOption())
     {
+	  printf("\n\tRunning Position Analysis...\n");		// Added this so the long analysis times arent scary
       analyzer();
       analyzed = 1;
       previousOption = getOption();
@@ -242,22 +286,26 @@ void analyze()
   
 }
 
+
 void analyzer()
 {    
     POSITION thePosition;
     VALUE theValue;
-    POSITION winCount, loseCount, tieCount, unknownCount;
+    POSITION winCount, loseCount, tieCount, unknownCount;	// CHANGED from UINT (change back if no worky)
     POSITION primitiveWins, primitiveLoses, primitiveTies;
     POSITION reachablePositions;
     POSITION totalPositions;
     int  hashEfficiency;
     float averageFanout;
+	REMOTENESS theRemoteness;	/*	For extended analysis including remoteness */
+	REMOTENESS theLargestRemoteness;  // for keeping track of largest found remoteness.  For efficiency and a good statistic.
     
     totalPositions = winCount = loseCount = tieCount = unknownCount = 0;
     primitiveWins = primitiveLoses = primitiveTies = 0;
     reachablePositions = 0;
     hashEfficiency = 0;
     averageFanout = 0;
+	theLargestRemoteness = 0;
 
     for(thePosition = 0 ; thePosition < gNumberOfPositions ; thePosition++) 
     {
@@ -267,15 +315,24 @@ void analyzer()
             if(theValue == win)  {
                 winCount++;
                 reachablePositions++;
-                if (Remoteness(thePosition) == 0) primitiveWins++;
+                if ((theRemoteness = Remoteness(thePosition)) == 0) primitiveWins++;		// Stores remoteness on each call, saves data to array
+				gAnalysis.DetailedPositionSummary[theRemoteness][0] += 1;
+				if (theRemoteness > theLargestRemoteness) theLargestRemoteness = theRemoteness;  // Keeps track of the largest seen remoteness
             } else if(theValue == lose) {
                 loseCount++;
                 reachablePositions++;
-                if (Remoteness(thePosition) == 0) primitiveLoses++;
+                if ((theRemoteness = Remoteness(thePosition)) == 0) primitiveLoses++;
+				gAnalysis.DetailedPositionSummary[theRemoteness][1] += 1;
+				if (theRemoteness > theLargestRemoteness) theLargestRemoteness = theRemoteness;
             } else if(theValue == tie) {
-                tieCount++;
+                if ((theRemoteness = Remoteness(thePosition)) < REMOTENESS_MAX) 
+				{
+					tieCount++;
+					gAnalysis.DetailedPositionSummary[theRemoteness][2] += 1;
+					if (theRemoteness > theLargestRemoteness) theLargestRemoteness = theRemoteness;
+					if (theRemoteness == 0) primitiveTies++;
+				}
                 reachablePositions++;
-                if (Remoteness(thePosition) == 0) primitiveTies++;
             } else {
                 unknownCount++;
             }
@@ -303,6 +360,7 @@ void analyzer()
     gAnalysis.PrimitiveLoses    = primitiveLoses;
     gAnalysis.PrimitiveTies     = primitiveTies;
     gAnalysis.NumberOfPositions = gNumberOfPositions;
+	gAnalysis.LargestFoundRemoteness = theLargestRemoteness;  //ADDED
 }
 
 /* Determines the chance that you'll maintain your value if you *
