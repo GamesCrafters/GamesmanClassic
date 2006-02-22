@@ -1,4 +1,4 @@
-// $Id: mtopitop.c,v 1.1 2006-02-20 19:36:45 mikehamada Exp $
+
 
 /*
  * The above lines will include the name and log of the last person
@@ -11,16 +11,17 @@
 **
 ** DESCRIPTION: Topitop
 **
-** AUTHOR:      Mike Hamada
-**				Alex Choy
+** AUTHOR:      Mike Hamada, Alex Choy
 **
 ** DATE:        BEGIN: 02/20/2006
-**				  END: ???
+**	        END: ???
 **
 ** UPDATE HIST:
 **	
-**			02/20/2006 - Setup #defines & data-structs
-* 						 Wrote InitializeGame(), PrintPosition()
+**	    02/20/2006 - Setup #defines & data-structs
+** 			 Wrote InitializeGame(), PrintPosition()
+**          02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
+**                       Still need to edit above functions with these new fcts
 **
 **************************************************************************/
 
@@ -129,7 +130,7 @@ STRING   kHelpExample =
 #define ROWCOUNT 3;
 #define COLCOUNT 3;
 
-#define BLANKPIECE ' ';
+#define BLANKPIECE '_';
 #define SMALLPIECE 's';
 #define LARGEPIECE 'l';
 #define CASTLEPIECE 'c';
@@ -139,7 +140,7 @@ STRING   kHelpExample =
 #define REDSMALLPIECE 'R';
 #define BLUECASTLEPIECE 'X';
 #define REDCASTLEPIECE 'O';
-#define UNKNOWNPIECE '0';
+#define UNKNOWNPIECE '0';  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 
 #define BLUETURN 0;
 #define REDTURN 1;
@@ -159,7 +160,7 @@ STRING   kHelpExample =
 #define CROSS_LINE 197
 
 typedef enum possibleBoardPieces {
-    Blank, SmallSand, LargeSand, SandCastle, BlueBucket, 
+    Blank = 0, SmallSand, LargeSand, SandCastle, BlueBucket, 
     RedBucket, BlueSmall, RedSmall, BlueCastle, RedCastle
 } BoardPiece;
 
@@ -189,8 +190,8 @@ int gameType;
 *************************************************************************/
 
 /* External */
-extern GENERIC_PTR		SafeMalloc ();
-extern void				SafeFree ();
+extern GENERIC_PTR	SafeMalloc ();
+extern void		SafeFree ();
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
 extern POSITION         generic_hash(char *board, int player);
 extern char            *generic_unhash(POSITION hash_number, char *empty_board);
@@ -214,10 +215,10 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-char					BoardPieceToChar(BoardPiece piece);
-POSITION				arrayHash(char *board, PlayerTurn player);
-char				   *arrayUnhash(POSITION hashNumber);
-/*BOOLEAN                 OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot,SLOT toSlot);
+char			BoardPieceToChar(BoardPiece piece);
+POSITION		arrayHash(char *board, PlayerTurn player);
+char			*arrayUnhash(POSITION hashNumber);
+/*BOOLEAN               OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot,SLOT toSlot);
 BOOLEAN                 CantMove(POSITION position);
 void                    ChangeBoard();
 void                    MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
@@ -683,7 +684,7 @@ void DebugMenu ()
 
 char BoardPieceToChar(BoardPiece piece) {
 	switch (piece) {
-		case Blank:			return BLANKPIECE;
+		case Blank:		return BLANKPIECE;
 		case SmallSand:		return SMALLPIECE;
 		case LargeSand:		return LARGEPIECE;
 		case SandCastle:	return CASTLEPIECE;
@@ -698,15 +699,65 @@ char BoardPieceToChar(BoardPiece piece) {
 	return UNKNOWNPIECE;
 }
 
-POSITION arrayHash(char *board, PlayerTurn player) {
-	return 0;
+int CharToBoardPiece(char piece) {
+	switch (piece) {
+	  case BLANKPIECE:            return Blank;
+	  case SMALLPIECE:            return SmallSand;
+	  case LARGEPIECE:            return LargeSand;
+	  case CASTLEPIECE:           return SandCastle;
+	  case BLUEBUCKETPIECE:       return BlueBucket;
+	  case REDBUCKETPIECE:        return RedBucket;
+	  case BLUESMALLPIECE:        return BlueSmall;
+	  case REDSMALLPIECE:         return RedSmall;
+	  case BLUECASTLEPIECE:       return BlueCastle;
+	  case REDCASTLEPIECE:        return RedCastle;
+	}
+	
+	return -1;
 }
 
-char *arrayUnhash(POSITION hashNumber) {
-	return TRUE;
+/*
+  arrayHash - hashes the board to a number
+  Since there are 10 different pieces, this hash utilizes this fact and 
+*/
+POSITION arrayHash(char *board, PlayerTurn player) {
+  int hashNum = 
+    CharToBoardPiece(board[0]) + 
+    CharToBoardPiece(board[1]) * 10 + 
+    CharToBoardPiece(board[2]) * 100 + 
+    CharToBoardPiece(board[3]) * 1000 + 
+    CharToBoardPiece(board[4]) * 10000 + 
+    CharToBoardPiece(board[5]) * 100000 + 
+    CharToBoardPiece(board[6]) * 1000000 + 
+    CharToBoardPiece(board[7]) * 10000000 + 
+    CharToBoardPiece(board[8]) * 100000000 + 
+    CharToBoardPiece(board[9]) * 1000000000 + 
+    player * 10000000000;
+  return hashNum;
+}
+
+char* arrayUnhash(POSITION hashNumber) {
+  //char boardTemp[9];
+  char *boardTemp;
+  int i, j, temp = 0;
+  boardTemp = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeOf(char));
+
+  // should only be 9 entries (3 by 3 board)
+  for (i = 0; i < ROWCOUNT; i++) {
+    for (j = 0; j < COLCOUNT; j++) {
+      boardTemp[j + i*ROWCOUNT] = hashNumber % 10;
+      hashNumber = hashNumber / 10;
+    }
+  }
+  return boardTemp;
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2006/02/20 19:36:45  mikehamada
+// First addition to repository for Topitop by Mike Hamada
+// Setup #defines & data-structs
+// Wrote InitializeGame() and PrintPosition()
+//
 // Revision 1.7  2006/01/29 09:59:47  ddgarcia
 // Removed "gDatabase" reference from comment in InitializeGame
 //
