@@ -14,14 +14,14 @@
 ** AUTHOR:      Mike Hamada, Alex Choy
 **
 ** DATE:        BEGIN: 02/20/2006
-**	        END: ???
+**	              END: ???
 **
 ** UPDATE HIST:
 **	
 **	    02/20/2006 - Setup #defines & data-structs
-** 			 Wrote InitializeGame(), PrintPosition()
-**          02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
-**                       Still need to edit above functions with these new fcts
+** 			         Wrote InitializeGame(), PrintPosition()
+**      02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
+**                   Still need to edit above functions with these new fcts
 **
 **************************************************************************/
 
@@ -73,37 +73,37 @@ STRING kHelpGraphicInterface =
 
 STRING   kHelpTextInterface    =
 "VALID MOVES:\n\
-1.) Place 1 of your Buckets or 1 of the Small or Big Sand Piles\n
-    on any free space of the board.\n
-2.) Move 1 of your Buckets or any Small or Big Sand Pile already\n
-    placed on the board from one square to another (one space at\n
-    a time in any direction).\n
-       a.) Any piece already on the board can be moved to an \n
-           adjacent free space.\n
-       b.) A Bucket can go on top of a Small Sand Pile.\n
-       c.) A Small Sand Pile can go on top of a Big Sand Pile.\n
-       d.) A Small Sand Pile with a Bucket on its top can go on\n
-           top of a Big Sand Pile.\n
-       e.) A Bucket can go on top of a Sand Castle.\n
-    NOTE: You CANNOT place a piece on top of another piece.\n
-          Pieces must be MOVED on top of other pieces.\n
-3.) Move any combination of Sand Piles with your Buckets on top,\n
-    or any Sand Castle, to any free space.\n
-\n
-Each player takes turns making one valid move, also noting\n
-that player CANNOT reverse an opponent's move that was just made.\n
-Use the LEGEND to determine which numbers to choose to\n
-correspond to either a piece to place and a board slot to place it\n
-OR to the location of your piece or a neutral piece and the empty\n
+1.) Place 1 of your Buckets or 1 of the Small or Big Sand Piles\n\
+    on any free space of the board.\n\
+2.) Move 1 of your Buckets or any Small or Big Sand Pile already\n\
+    placed on the board from one square to another (one space at\n\
+    a time in any direction).\n\
+       a.) Any piece already on the board can be moved to an \n\
+           adjacent free space.\n\
+       b.) A Bucket can go on top of a Small Sand Pile.\n\
+       c.) A Small Sand Pile can go on top of a Big Sand Pile.\n\
+       d.) A Small Sand Pile with a Bucket on its top can go on\n\
+           top of a Big Sand Pile.\n\
+       e.) A Bucket can go on top of a Sand Castle.\n\
+    NOTE: You CANNOT place a piece on top of another piece.\n\
+          Pieces must be MOVED on top of other pieces.\n\
+3.) Move any combination of Sand Piles with your Buckets on top,\n\
+    or any Sand Castle, to any free space.\n\
+\n\
+Each player takes turns making one valid move, also noting\n\
+that player CANNOT reverse an opponent's move that was just made.\n\
+Use the LEGEND to determine which numbers to choose to\n\
+correspond to either a piece to place and a board slot to place it\n\
+OR to the location of your piece or a neutral piece and the empty\n\
 adjacent position you wish to move that piece to.";
 
 STRING   kHelpOnYourTurn =
-"Note that a player CANNOT undo an oppontent's move that was just made.\n
-Use the LEGEND to determine which numbers to choose to\n
-correspond to either a piece to place and a board slot where to place it\n
-OR to the location of your piece or a neutral piece and the empty\n
-adjacent position you wish to move that piece to.\n
-Example: 's 1' would place a Small Sand Pile in position 1\n
+"Note that a player CANNOT undo an oppontent's move that was just made.\n\
+Use the LEGEND to determine which numbers to choose to\n\
+correspond to either a piece to place and a board slot where to place it\n\
+OR to the location of your piece or a neutral piece and the empty\n\
+adjacent position you wish to move that piece to.\n\
+Example: 's 1' would place a Small Sand Pile in position 1\n\
 Example: '1 2' would move a piece in position 1 to position 2.";
 
 STRING   kHelpStandardObjective =
@@ -197,8 +197,8 @@ int gameType;
 *************************************************************************/
 
 /* External */
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern GENERIC_PTR		SafeMalloc ();
+extern void				SafeFree ();
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
 extern POSITION         generic_hash(char *board, int player);
 extern char            *generic_unhash(POSITION hash_number, char *empty_board);
@@ -222,9 +222,9 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-char			BoardPieceToChar(BoardPiece piece);
-POSITION		arrayHash(char *board, PlayerTurn player);
-char			*arrayUnhash(POSITION hashNumber);
+char					BoardPieceToChar(BoardPiece piece);
+POSITION				arrayHash(char *board, PlayerTurn player);
+char					*arrayUnhash(POSITION hashNumber);
 /*BOOLEAN               OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot,SLOT toSlot);
 BOOLEAN                 CantMove(POSITION position);
 void                    ChangeBoard();
@@ -762,6 +762,9 @@ boardAndTurn* arrayUnhash(POSITION hashNumber) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2006/02/22 09:49:04  alexchoy
+// edited unhash and hash to make them more correct
+//
 // Revision 1.2  2006/02/22 09:37:24  alexchoy
 // added hashing and unhashing functions
 //
