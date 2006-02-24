@@ -181,7 +181,7 @@ typedef struct boardAndTurnRep {
 **
 *************************************************************************/
 
-int boardSize = ROWCOUNT * COLCOUNT;
+int boardSize = 9;
 int rowWidth = COLCOUNT;
 int redCastles = 0;
 int blueCastles = 0;
@@ -374,7 +374,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	#define VERT_LINE 179
 	#define CROSS_LINE 197
 
- 	int *arrayHashedBoard, i;
+ 	boardAndTurn *arrayHashedBoard;
+ 	int i;
   
 	arrayHashedBoard = arrayUnhash(position);
 	
@@ -384,7 +385,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/***********************LINE 2**************************/
 	printf("       %c", BOLD_VERT);
 	for (i = 0; i < rowWidth; i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i], 
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard.), 
 										(i == (rowWidth-1)) ? VERT_LINE : BOLD_VERT);
 	}
 	printf("          ( 1 2 3 )\n");
@@ -394,7 +395,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/***********************LINE 4**************************/
 	printf("BOARD: %c", BOLD_VERT);
 	for (i = rowWidth; i < (rowWidth*2); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i], 
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i])
 										(i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT);
 	}
 	printf("  LEGEND: ( 4 5 6)\n");
@@ -403,7 +404,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);
 	/***********************LINE 6**************************/
 	for (i = rowWidth*2; i < (rowWidth*3); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i], 
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i])
 										(i == ((rowWidth*3)-1)) ? VERT_LINE : BOLD_VERT);
 	}
 	printf("          ( 7 8 9 )\n");
@@ -742,7 +743,7 @@ POSITION arrayHash(char *board, PlayerTurn player) {
   return hashNum;
 }
 
-boardAndTurn* arrayUnhash(POSITION hashNumber) {
+boardAndTurn* arrayUnhash(POSITION hashNumber, ) {
   //char boardTemp[9];
   //char *boardTemp;
 
@@ -762,6 +763,9 @@ boardAndTurn* arrayUnhash(POSITION hashNumber) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2006/02/23 07:19:20  mikehamada
+// *** empty log message ***
+//
 // Revision 1.3  2006/02/22 09:49:04  alexchoy
 // edited unhash and hash to make them more correct
 //
