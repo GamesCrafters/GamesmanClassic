@@ -146,6 +146,7 @@ STRING   kHelpExample =
 #define REDTURN 1
 
 #define PLAYEROFFSET 1000000000
+#define NUMCASTLESTOWIN 2
 
 #define BOLD_UL_CORNER 201
 #define BOLD_UR_CORNER 187
@@ -316,6 +317,10 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
+    BoardAndTurn board;
+    
+    board = arrayUnhash(position);
+    
     return 0;
 }
 
@@ -346,6 +351,16 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+    BoardAndTurn board;
+    
+    board = arrayUnhash(position);
+    
+    if (((board->theTurn == Blue) && (blueCastles >= NUMCASTLESTOWIN)) ||
+    	((board->theTurn == Red) && (redCastles >= NUMCASTLESTOWIN))) {
+    		return win;
+    }
+    	
+    
     return undecided;
 }
 
@@ -790,6 +805,9 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2006/02/25 09:33:55  mikehamada
+// *** empty log message ***
+//
 // Revision 1.6  2006/02/25 06:32:09  mikehamada
 // *** empty log message ***
 //
