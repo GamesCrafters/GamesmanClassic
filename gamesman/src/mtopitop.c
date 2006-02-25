@@ -127,25 +127,25 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define ROWCOUNT 3;
-#define COLCOUNT 3;
+#define ROWCOUNT 3
+#define COLCOUNT 3
 
-#define BLANKPIECE '_';
-#define SMALLPIECE 's';
-#define LARGEPIECE 'l';
-#define CASTLEPIECE 'c';
-#define BLUEBUCKETPIECE 'b';
-#define REDBUCKETPIECE 'r';
-#define BLUESMALLPIECE 'B';
-#define REDSMALLPIECE 'R';
-#define BLUECASTLEPIECE 'X';
-#define REDCASTLEPIECE 'O';
-#define UNKNOWNPIECE '0';  // hopefully none of these b/c can't be represented by a digit from 0 - 9
+#define BLANKPIECE '_'
+#define SMALLPIECE 's'
+#define LARGEPIECE 'l'
+#define CASTLEPIECE 'c'
+#define BLUEBUCKETPIECE 'b'
+#define REDBUCKETPIECE 'r'
+#define BLUESMALLPIECE 'B'
+#define REDSMALLPIECE 'R'
+#define BLUECASTLEPIECE 'X'
+#define REDCASTLEPIECE 'O'
+#define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 
-#define BLUETURN 0;
-#define REDTURN 1;
+#define BLUETURN 0
+#define REDTURN 1
 
-#define PLAYEROFFSET 1000000000;
+#define PLAYEROFFSET 1000000000
 
 #define BOLD_UL_CORNER 201
 #define BOLD_UR_CORNER 187
@@ -183,7 +183,7 @@ typedef struct boardAndTurnRep {
 **
 *************************************************************************/
 
-int boardSize = 9;
+int boardSize = ROWCOUNT * COLCOUNT;
 int rowWidth = COLCOUNT;
 int redCastles = 0;
 int blueCastles = 0;
@@ -191,6 +191,7 @@ int totalBoardPieces = 0;
 
 PlayerTurn gWhosTurn;
 int gameType;
+char* playerName;
 
 /*************************************************************************
 **
@@ -253,18 +254,18 @@ void InitializeGame ()
 						  BlueBucket, RedBucket, BlueSmall, RedSmall,
 						  BlueCastle, RedCastle };*/
     BoardAndTurn boardArray;
-    boardArray = (BoardAndTurn) SafeMalloc(sizeof(boardAndTurnRep));
-    boardArray.theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+    boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
+    boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
     
     //gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
-    gWhosTurn = boardArray.theTurn = Blue;
+    gWhosTurn = boardArray->theTurn = Blue;
     
     for (i = 0; i < boardSize; i++) {
-    	boardArray.theBoard[i] = Blank;
+    	boardArray->theBoard[i] = Blank;
     }
     
     gInitialPosition = arrayHash(boardArray);
-    SafeFree(boardArray.theBoard);
+    SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
 }
 
@@ -373,43 +374,67 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	arrayHashedBoard = arrayUnhash(position);
 	
 	/***********************LINE 1**************************/
-	printf("       %c%c%c%c%c%c%c\n", BOLD_UL_CORNER, BOLD_HOR, BOLD_HOR_DOWN, BOLD_HOR,
-									BOLD_HOR_DOWN, BOLD_HOR, BOLD_UR_CORNER);
+	printf("       *-*-*-*\n");
+	
+	/*printf("       %c%c%c%c%c%c%c\n", BOLD_UL_CORNER, BOLD_HOR, BOLD_HOR_DOWN, BOLD_HOR,
+									BOLD_HOR_DOWN, BOLD_HOR, BOLD_UR_CORNER);*/
 	/***********************LINE 2**************************/
-	printf("       %c", BOLD_VERT);
+	printf("       |");
 	for (i = 0; i < rowWidth; i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard.theBoard[i]), 
-										(i == (rowWidth-1)) ? VERT_LINE : BOLD_VERT);
+		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
 	}
+	
+	/*printf("       %c", BOLD_VERT);
+	for (i = 0; i < rowWidth; i++) {
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]), 
+										((i == (rowWidth-1)) ? VERT_LINE : BOLD_VERT));
+	}*/
 	printf("          ( 1 2 3 )\n");
 	/***********************LINE 3**************************/
-	printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
-										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);							
+	printf("       *-+-+-*\n");
+	
+	/*printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
+										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);*/							
 	/***********************LINE 4**************************/
-	printf("BOARD: %c", BOLD_VERT);
+	printf("BOARD: |");
 	for (i = rowWidth; i < (rowWidth*2); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i].theBoard[i])
-										(i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT);
+		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
 	}
+	
+	/*printf("BOARD: %c", BOLD_VERT);
+	for (i = rowWidth; i < (rowWidth*2); i++) {
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
+										((i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT));
+	}*/
 	printf("  LEGEND: ( 4 5 6)\n");
 	/***********************LINE 5**************************/
-	printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
-										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);
+	printf("       *-+-+-*\n");
+
+	/*printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
+										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);*/
 	/***********************LINE 6**************************/
+	printf("       |");
 	for (i = rowWidth*2; i < (rowWidth*3); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard[i].theBoard[i])
-										(i == ((rowWidth*3)-1)) ? VERT_LINE : BOLD_VERT);
+		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
 	}
+	
+	/*printf("       %c", BOLD_VERT);
+	for (i = rowWidth*2; i < (rowWidth*3); i++) {
+		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
+										((i == ((rowWidth*3)-1)) ? VERT_LINE : BOLD_VERT));
+	}*/
 	printf("          ( 7 8 9 )\n");
 	/***********************LINE 7**************************/
-	printf("       %c%c%c%c%c%c%c\n", BOLD_LL_CORNER, BOLD_HOR, BOLD_HOR_UP, BOLD_HOR,
-									BOLD_HOR_UP, BOLD_HOR, BOLD_LR_CORNER);
+	printf("       *-*-*-*\n");
+	
+	/*printf("       %c%c%c%c%c%c%c\n", BOLD_LL_CORNER, BOLD_HOR, BOLD_HOR_UP, BOLD_HOR,
+									BOLD_HOR_UP, BOLD_HOR, BOLD_LR_CORNER);*/
 	/***********************LINE 8, 9, 10, 11**************************/
 	printf("                 Small Sand Pile = s\n");
 	printf("                 Large Sand Pile = l\n");
 	printf("                          Bucket = b\n");
 	printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
-	SafeFree(arrayHashedBoard.theBoard);
+	SafeFree(arrayHashedBoard->theBoard);
 	SafeFree(arrayHashedBoard);
 }
 
@@ -726,11 +751,11 @@ POSITION arrayHash(BoardAndTurn board) {
 	int i, digit = 1, hashNum = 0;
 	
 	for (i = 0; i < boardSize; i++) {
-		hashNum += (CharToBoardPiece(board.theBoard[i]) * digit;
+		hashNum += (CharToBoardPiece(board->theBoard[i]) * digit);
 		digit *= 10;
 	}
 	
-	return hashNum + (board.theTurn * PLAYEROFFSET);
+	return hashNum + (board->theTurn * PLAYEROFFSET);
 	
 	/*
   int hashNum = 
@@ -749,22 +774,25 @@ POSITION arrayHash(BoardAndTurn board) {
 }
 
 BoardAndTurn arrayUnhash(POSITION hashNumber) {
-  BoardAndTurn bat = (BoardAndTurn) SafeMalloc(sizeOf(boardAndTurnRep));
-  bat.theBoard = (char *) SafeMalloc(boardSize * sizeOf(char));
+  BoardAndTurn bat = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
+  bat->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
   int i, j;
-  //bat.theBoard = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeOf(char));
+  //bat.theBoard = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeof(char));
 
   for (i = 0; i < ROWCOUNT; i++) {
     for (j = 0; j < COLCOUNT; j++) {
-      bat.theBoard[j + (i * ROWCOUNT)] = hashNumber % 10;
+      bat->theBoard[j + (i * ROWCOUNT)] = hashNumber % 10;
       hashNumber /= 10;
     }
   }
-  bat.theTurn = hashNumber % 2;
-  return boardTemp;
+  bat->theTurn = hashNumber % 2;
+  return bat;
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2006/02/25 06:32:09  mikehamada
+// *** empty log message ***
+//
 // Revision 1.5  2006/02/24 17:34:43  mikehamada
 // *** empty log message ***
 //
