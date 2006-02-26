@@ -416,7 +416,7 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 STRING   kHelpExample =
 "Help strings not initialized.";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -503,7 +503,7 @@ void InitializeGame(){
 
   InitializeHelpString();
 
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame() {
@@ -1277,12 +1277,12 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf( "%s", MToS(theMove) );
+  printf( "%s", MoveToString(theMove) );
 }
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -1290,7 +1290,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(4);

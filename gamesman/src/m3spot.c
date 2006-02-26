@@ -143,7 +143,7 @@ STRING   kHelpReverseObjective ="";
 STRING   kHelpTieOccursWhen ="";
 STRING   kHelpExample = "";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -309,7 +309,7 @@ char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
 
 void InitializeGame()
 {
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -1306,7 +1306,7 @@ int ctoi (char c){
   return -1;
 }		
 
-STRING MToS( theMove )
+STRING MoveToString( theMove )
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(8);
@@ -1348,7 +1348,7 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf( "%s", MToS(theMove) );
+  printf( "%s", MoveToString(theMove) );
 }
 
 

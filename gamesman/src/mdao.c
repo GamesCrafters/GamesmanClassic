@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.4 2006-02-13 23:19:33 kmowery Exp $
+// $Id: mdao.c,v 1.5 2006-02-26 08:31:15 kmowery Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -160,7 +160,7 @@ void                    PrintPosition(POSITION position, STRING playersName, BOO
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
 void                    PrintMove(MOVE move);
-STRING			MToS(MOVE);
+STRING			MoveToString(MOVE);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -203,7 +203,7 @@ void InitializeGame ()
   gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
   gInitialPosition = generic_hash(board, PLAYER1_TURN);
 
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -499,12 +499,12 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf( "%s", MToS(move) );
+  printf( "%s", MoveToString(move) );
 }
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -512,7 +512,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(5);

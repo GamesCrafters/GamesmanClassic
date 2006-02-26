@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.31 2006-02-13 08:34:47 kmowery Exp $
+// $Id: mabalone.c,v 1.32 2006-02-26 08:31:15 kmowery Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -153,7 +153,7 @@ Player's move :  5 w\n\
 \n\
 Excellent! You won!";
 
-STRING MToS( MOVE );
+STRING MoveToString( MOVE );
 
 /*************************************************************************
 **
@@ -379,7 +379,7 @@ void InitializeGame()
   printf("the number of options is %d\n", NumberOfOptions());
   printf("current option is %d\n", getOption()); */
 
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 
   if (DEBUGGING) printf("end initializegame\n");
 }
@@ -1570,16 +1570,16 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf( "%s", MToS(theMove) );
+  printf( "%s", MoveToString(theMove) );
 }
 
-STRING MToS( theMove ) 
+STRING MoveToString( theMove ) 
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(12);
 
   if (DEBUGGING) 
-    printf("starting MToS w/move = %d\n", theMove);
+    printf("starting MoveToString w/move = %d\n", theMove);
   int direction, slot1, slot2, slot3;
   int dir_shift = 10;
   int piece_shift = 100;
@@ -1651,7 +1651,7 @@ STRING MToS( theMove )
   else {
     sprintf(move, "[%d %d %d %s]",slot1,slot2,slot3, dir);
   }
-  if (DEBUGGING) printf("finished MToS\n");
+  if (DEBUGGING) printf("finished MoveToString\n");
 
   return move;
 }
@@ -2124,6 +2124,10 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2006/02/13 08:34:47  kmowery
+//
+// Added MoveToString and set gMoveToStringFunPtr (required for visual value history).
+//
 // Revision 1.30  2006/02/03 06:08:39  hevanm
 // fixed warnings. I will leave the real bugs to retro hehehehe.
 //

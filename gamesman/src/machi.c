@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.29 2006-02-12 02:30:58 kmowery Exp $
+// $Id: machi.c,v 1.30 2006-02-26 08:31:15 kmowery Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -125,12 +125,12 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
-STRING MToS (MOVE);
+STRING MoveToString (MOVE);
 
 
 void InitializeGame()
 {
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
   InitializeHelpStrings();
 }
 
@@ -859,7 +859,7 @@ void PrintMove(theMove)
 }
 
 
-STRING MToS(theMove)
+STRING MoveToString(theMove)
      MOVE theMove;
 {
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
@@ -1049,6 +1049,10 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2006/02/12 02:30:58  kmowery
+//
+// Changed MoveToString to be gMoveToStringFunPtr.  Updated already existing MoveToString implementations (Achi, Dodgem, SquareDance, and Othello)
+//
 // Revision 1.28  2006/02/03 06:08:39  hevanm
 // fixed warnings. I will leave the real bugs to retro hehehehe.
 //

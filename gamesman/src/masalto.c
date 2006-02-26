@@ -218,7 +218,7 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum);
 
 void PrintSpaces(int spaces);
 
-STRING MToS( MOVE );
+STRING MoveToString( MOVE );
 
 
 /* External */
@@ -244,7 +244,7 @@ void InitializeGame ()
 	/* GoAgain assignment moved here. -JJ */
 	gGoAgain = GoAgain;
 	
-	gMoveToStringFunPtr = &MToS;
+	gMoveToStringFunPtr = &MoveToString;
 
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
@@ -1666,13 +1666,13 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void PrintMove (MOVE move)
 {
-  printf( "%s", MToS( move ) );
+  printf( "%s", MoveToString( move ) );
 }
 
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -1680,7 +1680,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(9);

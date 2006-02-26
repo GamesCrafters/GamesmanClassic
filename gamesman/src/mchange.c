@@ -114,7 +114,7 @@ LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
          ( 7 8 9 )           : O - O \n\n\
 Computer wins. Nice try, Dan.";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -166,7 +166,7 @@ MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 ************************************************************************/
 
 void InitializeGame() {
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -709,12 +709,12 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf( "%s", MToS(theMove) );
+  printf( "%s", MoveToString(theMove) );
 }
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -722,7 +722,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(6);

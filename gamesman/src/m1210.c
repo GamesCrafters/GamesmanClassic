@@ -79,7 +79,7 @@ Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
 Computer wins. Nice try, Dan.";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -95,7 +95,7 @@ STRING MToS(MOVE);
 
 void InitializeGame()
 {
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -386,7 +386,7 @@ void PrintMove(theMove)
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -394,7 +394,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(3);

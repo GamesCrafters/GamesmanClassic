@@ -129,7 +129,7 @@ Type '?' if you need assistance...\n\n\n\
    X's turn      (Dan will Lose in 0) \n\n\n\
 Computer wins. Nice try, Dan.";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -349,7 +349,7 @@ int checkOrient(int Lo, int L1);
 
 void InitializeGame()
 {
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -1164,12 +1164,12 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void PrintMove(MOVE theMove) {
-  printf( "%s", MToS( theMove ) );
+  printf( "%s", MoveToString( theMove ) );
 }
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -1177,7 +1177,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(13);

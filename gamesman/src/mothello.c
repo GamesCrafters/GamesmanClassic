@@ -165,7 +165,7 @@ extern void		SafeFree ();
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /************************************************************************
 **
@@ -214,7 +214,7 @@ void InitializeGame ()
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
 	fflush( stdout );
 
-	gMoveToStringFunPtr = &MToS;
+	gMoveToStringFunPtr = &MoveToString;
 }
 /************************************************************************
 **
@@ -1049,7 +1049,7 @@ void PrintMove (MOVE move)
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -1057,7 +1057,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(3);

@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.78 2006-02-12 08:30:48 kmowery Exp $
+//$Id: m9mm.c,v 1.79 2006-02-26 08:31:15 kmowery Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -513,7 +513,7 @@ LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\tTurn: o\n\
 Excellent! You won!\n\
 ";
 
-STRING MToS(MOVE);
+STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -633,7 +633,7 @@ void InitializeGame()
 
   //gSolver = loopyup_DetermineValue;
 
-  gMoveToStringFunPtr = &MToS;
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1376,12 +1376,12 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf( "%s", MToS(theMove) );
+  printf( "%s", MoveToString(theMove) );
 }
 
 /************************************************************************
 **
-** NAME:        MToS
+** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 ** 
@@ -1389,7 +1389,7 @@ void PrintMove(theMove)
 **
 ************************************************************************/
 
-STRING MToS (theMove)
+STRING MoveToString (theMove)
      MOVE theMove;
 {
   STRING move;
@@ -2207,6 +2207,10 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.78  2006/02/12 08:30:48  kmowery
+//
+//Added MoveToString and gMoveToStringFunPtr (required for visual value history)
+//
 //Revision 1.77  2006/02/03 06:08:39  hevanm
 //fixed warnings. I will leave the real bugs to retro hehehehe.
 //
