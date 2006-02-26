@@ -142,10 +142,10 @@ STRING   kHelpExample =
 #define CASTLEPIECE 'c'
 #define BLUEBUCKETPIECE 'b'
 #define REDBUCKETPIECE 'r'
-#define BLUESMALLPIECE 'B'
-#define REDSMALLPIECE 'R'
-#define BLUECASTLEPIECE 'X'
-#define REDCASTLEPIECE 'O'
+#define BLUESMALLPIECE 'X'
+#define REDSMALLPIECE 'O'
+#define BLUECASTLEPIECE 'B'
+#define REDCASTLEPIECE 'R'
 #define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 
 #define BLUETURN 0
@@ -365,9 +365,9 @@ VALUE Primitive (POSITION position)
     board = arrayUnhash(position);
     
     for (i = 0; i < boardSize; i++) {
-    	if (board.theBoard[i] == BLUECASTLEPIECE) {
+    	if (board->theBoard[i] == BLUECASTLEPIECE) {
     		blueCastles++;
-    	} else if (board.theBoard[i] == REDCASTLEPIECE) {
+    	} else if (board->theBoard[i] == REDCASTLEPIECE) {
     		redCastles++;
     	}
     }
@@ -440,7 +440,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
 										((i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT));
 	}*/
-	printf("  LEGEND: ( 4 5 6)\n");
+	printf("  LEGEND: ( 4 5 6 )\n");
 	/***********************LINE 5**************************/
 	printf("       *-+-+-*\n");
 
@@ -824,6 +824,14 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.9  2006/02/26 08:31:26  mikehamada
+// Fixed errors that prevented game from being built
+// Edited InitializeGame(), PrintPosition() to use new hashes
+// Fixed struct for board representation
+// Changed PrintPosition() since Extended-ASCII does not work
+// Changed arrayHash() to use a for-loop to calculate hash
+// Wrote Primitive() (unsure if it is finished or not)
+//
 // Revision 1.8  2006/02/25 19:20:15  mikehamada
 // *** empty log message ***
 //
