@@ -22,6 +22,12 @@
 ** 			         Wrote InitializeGame(), PrintPosition()
 **      02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
 **                   Still need to edit above functions with these new fcts
+**		02/26/2006 - Fixed errors that prevented game from being built
+**					 Edited InitializeGame(), PrintPosition() to use new hashes
+** 					 Fixed struct for board representation
+** 					 Changed PrintPosition() since Extended-ASCII does not work
+**					 Changed arrayHash() to use a for-loop to calculate hash
+**					 Wrote Primitive() (unsure if it is finished or not)
 **
 **************************************************************************/
 
@@ -321,6 +327,8 @@ POSITION DoMove (POSITION position, MOVE move)
     
     board = arrayUnhash(position);
     
+    
+    
     return 0;
 }
 
@@ -351,16 +359,27 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+    int i, blueCastles = 0, redCastles = 0;
     BoardAndTurn board;
     
     board = arrayUnhash(position);
     
+    for (i = 0; i < boardSize; i++) {
+    	if (board.theBoard[i] == BLUECASTLEPIECE) {
+    		blueCastles++;
+    	} else if (board.theBoard[i] == REDCASTLEPIECE) {
+    		redCastles++;
+    	}
+    }
+    
     if (((board->theTurn == Blue) && (blueCastles >= NUMCASTLESTOWIN)) ||
     	((board->theTurn == Red) && (redCastles >= NUMCASTLESTOWIN))) {
     		return win;
-    }
-    	
-    
+    } else if (((board->theTurn == Blue) && (redCastles >= NUMCASTLESTOWIN)) ||
+   				((board->theTurn == Red) && (blueCastles >= NUMCASTLESTOWIN))) {
+   			return lose;
+   	}
+   	
     return undecided;
 }
 
@@ -805,6 +824,9 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2006/02/25 19:20:15  mikehamada
+// *** empty log message ***
+//
 // Revision 1.7  2006/02/25 09:33:55  mikehamada
 // *** empty log message ***
 //
