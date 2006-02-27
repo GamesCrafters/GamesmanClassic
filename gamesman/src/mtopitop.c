@@ -151,10 +151,10 @@ STRING   kHelpExample =
 #define CASTLEPIECE 'c'
 #define BLUEBUCKETPIECE 'b'
 #define REDBUCKETPIECE 'r'
-#define BLUESMALLPIECE 'B'
-#define REDSMALLPIECE 'R'
-#define BLUECASTLEPIECE 'X'
-#define REDCASTLEPIECE 'O'
+#define BLUESMALLPIECE 'X'
+#define REDSMALLPIECE 'O'
+#define BLUECASTLEPIECE 'B'
+#define REDCASTLEPIECE 'R'
 #define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 
 #define BLUETURN 0
@@ -210,7 +210,7 @@ int redCastles = 0;
 int blueCastles = 0;
 int totalBoardPieces = 0;
 
-PlayerTurn gWhosTurn;
+PlayerTurn gWhosTurn = Blue;
 int gameType;
 char* playerName;
 
@@ -221,8 +221,8 @@ char* playerName;
 *************************************************************************/
 
 /* External */
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern GENERIC_PTR		SafeMalloc ();
+extern void				SafeFree ();
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
 extern POSITION         generic_hash(char *board, int player);
 extern char             *generic_unhash(POSITION hash_number, char *empty_board);
@@ -246,10 +246,10 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-char			BoardPieceToChar(BoardPiece piece);
-BoardPiece 	        CharToBoardPiece(char piece);
-POSITION		arrayHash(BoardAndTurn board);
-BoardAndTurn		arrayUnhash(POSITION hashNumber);
+char					BoardPieceToChar(BoardPiece piece);
+BoardPiece 	        	CharToBoardPiece(char piece);
+POSITION				arrayHash(BoardAndTurn board);
+BoardAndTurn			arrayUnhash(POSITION hashNumber);
 /*sMove                   moveUnhash(MOVE move);*/
 /*BOOLEAN               OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot,SLOT toSlot);
 BOOLEAN                 CantMove(POSITION position);
@@ -338,6 +338,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
+  return 0;
   int i;
   BoardPiece fromLoc = -1, toLoc;
   BoardPiece tempBoardPiece, tempMoveBoardPiece;
@@ -386,6 +387,7 @@ POSITION DoMove (POSITION position, MOVE move)
   return newBoard;
   
   /* return 0;<-- their default return */
+  
 }
 
 
@@ -430,7 +432,7 @@ VALUE Primitive (POSITION position)
     
     if (((board->theTurn == Blue) && (blueCastles >= NUMCASTLESTOWIN)) ||
     	((board->theTurn == Red) && (redCastles >= NUMCASTLESTOWIN))) {
-    		return win;
+    	return win;
     } else if (((board->theTurn == Blue) && (redCastles >= NUMCASTLESTOWIN)) ||
    		((board->theTurn == Red) && (blueCastles >= NUMCASTLESTOWIN))) {
    		return lose;
@@ -496,7 +498,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
 										((i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT));
 	}*/
-	printf("  LEGEND: ( 4 5 6)\n");
+	printf("  LEGEND: ( 4 5 6 )\n");
 	/***********************LINE 5**************************/
 	printf("       *-+-+-*\n");
 
@@ -871,6 +873,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/02/27 23:28:08  mikehamada
+// Fixed Errors in DoMove and Primitive
+//
 // Revision 1.11  2006/02/27 00:19:08  alexchoy
 // wrote DoMove and GetInitialPosition, untested
 //
