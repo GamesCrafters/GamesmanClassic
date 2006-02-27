@@ -15,6 +15,10 @@
  **              m1210.c, which is used as a template. Done: InitializeGame,
  **              PrintPosition
  **
+ ** 2/26/2006    Changed piece representation from constants to variables.
+ **              Added new version of PrintPosition
+ **              Done: Primitive
+ **
  *****************************************************************************/
 
 /*****************************************************************************
@@ -37,7 +41,7 @@ STRING   kGameName            = "Rubik's Checkers";
 BOOLEAN  kPartizan            = TRUE;
 BOOLEAN  kDebugMenu           = FALSE;
 BOOLEAN  kGameSpecificMenu    = FALSE;
-BOOLEAN  kTieIsPossible       = FALSE;  /* TODO: Can both players be locked? */
+BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
@@ -91,13 +95,13 @@ extern int              whoseMove (POSITION hashed);
 #define P2                    2
 
 // Piece representation
-#define EMPTY                 ' '
-#define P1KING                'G'
-#define P1MAN                 'g'
-#define P2KING                'O'
-#define P2MAN                 'o'
-#define P1NAME                "Green"
-#define P2NAME                "Orange"
+char EMPTY                  = ' ';
+char P1KING                 = 'G';
+char P1MAN                  = 'g';
+char P2KING                 = 'O';
+char P2MAN                  = 'o';
+char* P1NAME                = "Green";
+char* P2NAME                = "Orange";
 
 // How large the board is
 unsigned int rows           = 6;  // Rubik's: 6, Checkers: 8
@@ -116,11 +120,9 @@ BOOLEAN forceCapture        = FALSE;     // No forced captures
 BOOLEAN startPromoted       = TRUE;      // Starting pieces are already kings
 unsigned int promoteRow     = BACKWARD;  // Promote on your row
 
-/*
-typedef enum square {
-    empty, orangeKing, orangeMan, greenKing, greenMan
-} squareState;
-*/
+/* Game-specific functions */
+unsigned int CountPieces(char board[],
+                         unsigned int *p1Pieces, unsigned int *p2Pieces);
 
 void InitializeGame()
 {
@@ -229,7 +231,6 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-    // TODO
     return gInitialPosition;
 }
 
@@ -273,13 +274,9 @@ unsigned int CountPieces(char board[],
     
     // Check if one player has no more pieces
     for (i = 0; i < boardSize; i++) {
-        switch (board[i]) {
-        case P1KING:
-        case P1MAN:
+        if ((board[i] == P1KING) || (board[i] == P1MAN)) {
             (*p1Pieces)++;
-            break;
-        case P2KING:
-        case P2MAN:
+        } else if ((board[i] == P2KING) || (board[i] == P2MAN)) {
             (*p2Pieces)++;
         }
     }
@@ -322,7 +319,8 @@ VALUE Primitive(position)
     CountPieces(board, &p1Pieces, &p2Pieces);
     if (&p1Pieces == 0) return lose;  // Player 1 has no more pieces
     
-    // TODO: Check for all pieces being locked (unable to move)
+    // Check for all pieces being locked (unable to move)
+    if (GenerateMoves(position) == NULL) return lose;
     
     return win; //undecided;
 }
@@ -340,6 +338,7 @@ VALUE Primitive(position)
 **
 ************************************************************************/
 
+/* // VERSION 1
 void PrintPosition(position,playerName,usersTurn)
      POSITION position;
      STRING playerName;
@@ -366,23 +365,25 @@ void PrintPosition(position,playerName,usersTurn)
     
     CountPieces(board, &p1Pieces, &p2Pieces);
 
+
+    k = boardSize;
     for (i = rows; i > 0; i--) {
         printf("%d|", i);  // Row number
         if ((i % 2) != 0) printf("%c", EMPTY);  // Shift alternating rows
         
         for (j = 0; j < cols; j++) {
             // Print square
-            printf("%c", board[k++]);
+            printf("%c", board[--k]);
             
             // Print empty squares in between
             if ((j != (cols-1)) || (i % 2) == 0) printf("%c", EMPTY);
         }
         printf("|");
         if (i == rows) {  // Print player 2's number of pieces
-            printf("    %-8s: %d pieces", P2NAME, p2Pieces);
+            printf("    %8s: %d pieces", P2NAME, p2Pieces);
             if (player == P2) printf(" (%s's turn)", P2NAME);
         } else if (i == 1) {  // Print player 1's number of pieces
-            printf("    %-8s: %d pieces", P1NAME, p1Pieces);
+            printf("    %8s: %d pieces", P1NAME, p1Pieces);
             if (player == P1) printf(" (%s's turn)", P1NAME);
         }
         printf("\n");
@@ -391,6 +392,70 @@ void PrintPosition(position,playerName,usersTurn)
     printf(" --");
     for (i = 0; i < (cols*2); i++) printf("-");
     printf("\n");
+}
+*/
+
+// VERSION 2
+void PrintPosition(position,playerName,usersTurn)
+     POSITION position;
+     STRING playerName;
+     BOOLEAN  usersTurn;
+{
+    char board[boardSize];
+    int player;
+    unsigned int i, j, k = 0;
+    unsigned int p1Pieces, p2Pieces;
+    
+    generic_unhash(position, board);  // Obtain board state
+    player = whoseMove(position);
+    
+    printf("RUBIK'S CHECKERS\n\n  ");
+    
+    // Print column letters **POSSIBLE OVERFLOW**
+    for (i = 0; i < (cols*2); i++) {
+        printf("%c ", 'a' + i);
+    }
+    
+    // Row separators
+    printf("\n +");
+    for (j = 0; j < (cols*2); j++) printf("-+");
+    printf("\n");
+    
+    CountPieces(board, &p1Pieces, &p2Pieces);
+
+
+    k = boardSize;
+    for (i = rows; i > 0; i--) {
+        printf("%d|", i);  // Row number
+        if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
+        for (j = 0; j < cols; j++) {
+            // Print square plus a column separator
+            printf("%c|", board[--k]);
+
+            // Print empty squares in between plus a column separator
+            if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
+        }
+        printf("%d", i);  // Repeat row number
+
+        if (i == rows) {  // Print player 2's number of pieces
+            printf("    %8s: %d pieces", P2NAME, p2Pieces);
+            if (player == P2) printf(" (%s's turn)", P2NAME);
+        } else if (i == 1) {  // Print player 1's number of pieces
+            printf("    %8s: %d pieces", P1NAME, p1Pieces);
+            if (player == P1) printf(" (%s's turn)", P1NAME);
+        }
+
+        // Row separators
+        printf("\n +");
+        for (j = 0; j < (cols*2); j++) printf("-+");
+        printf("\n");
+    }
+    
+    // Repeat column letters **POSSIBLE OVERFLOW**
+    printf("  ");
+    for (i = 0; i < (cols*2); i++) {
+        printf("%c ", 'a' + i);
+    }
 }
 
 /************************************************************************
