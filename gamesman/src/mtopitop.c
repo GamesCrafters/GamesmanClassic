@@ -353,9 +353,9 @@ POSITION DoMove (POSITION position, MOVE move)
   
   /* MOVE represented as a board...stores the new piece and the old, moved piece */
   for (i = 0; i < boardSize; i++) {
-    tempMoveBoardPiece = CharToBoardPiece(moveBoard->theBoard[j + (i * ROWCOUNT)]);
+    tempMoveBoardPiece = CharToBoardPiece(moveBoard->theBoard[i]);
     if (tempMoveBoardPiece != Blank) {
-      tempBoardPiece = CharToBoardPiece(board->theBoard[j + (i * ROWCOUNT)]);
+      tempBoardPiece = CharToBoardPiece(board->theBoard[i]);
       if (tempBoardPiece == tempMoveBoardPiece) {
 	/* this is the piece that was changed/affected */
 	fromLoc = i;
@@ -365,7 +365,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	toLoc = i;
       }
     }
-  }x
+  }
 
   /* add move to board */
   if (fromLoc >= 0) {
@@ -421,9 +421,9 @@ VALUE Primitive (POSITION position)
     board = arrayUnhash(position);
     
     for (i = 0; i < boardSize; i++) {
-    	if (board.theBoard[i] == BLUECASTLEPIECE) {
+    	if (board->theBoard[i] == BLUECASTLEPIECE) {
     		blueCastles++;
-    	} else if (board.theBoard[i] == REDCASTLEPIECE) {
+    	} else if (board->theBoard[i] == REDCASTLEPIECE) {
     		redCastles++;
     	}
     }
@@ -871,6 +871,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2006/02/27 00:19:08  alexchoy
+// wrote DoMove and GetInitialPosition, untested
+//
 // Revision 1.9  2006/02/26 08:31:26  mikehamada
 // Fixed errors that prevented game from being built
 // Edited InitializeGame(), PrintPosition() to use new hashes
