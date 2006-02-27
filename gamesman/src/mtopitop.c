@@ -11,7 +11,7 @@
 **
 ** DESCRIPTION: Topitop
 **
-** AUTHOR:      Mike Hamada, Alex Choy
+** AUTHOR:      Mike Hamada and Alex Choy
 **
 ** DATE:        BEGIN: 02/20/2006
 **	              END: ???
@@ -19,15 +19,24 @@
 ** UPDATE HIST:
 **	
 **	    02/20/2006 - Setup #defines & data-structs
-** 			         Wrote InitializeGame(), PrintPosition()
-**      02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
-**                   Still need to edit above functions with these new fcts
-**		02/26/2006 - Fixed errors that prevented game from being built
-**					 Edited InitializeGame(), PrintPosition() to use new hashes
-** 					 Fixed struct for board representation
-** 					 Changed PrintPosition() since Extended-ASCII does not work
-**					 Changed arrayHash() to use a for-loop to calculate hash
-**					 Wrote Primitive() (unsure if it is finished or not)
+** 			 Wrote InitializeGame(), PrintPosition()
+**          02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
+**                       Still need to edit above functions with these new fcts
+**                       Need to make arrayHash() a for loop
+**	    02/26/2006 - Fixed errors that prevented game from being built
+**			 Edited InitializeGame(), PrintPosition() to use new hashes
+** 			 Fixed struct for board representation
+** 			 Changed PrintPosition() since Extended-ASCII does not work
+**			 Changed arrayHash() to use a for-loop to calculate hash
+**			 Wrote Primitive() (unsure if it is finished or not)
+**          02/26/2006 - Not sure if total num of positions should include player 
+**                         turn (0 and 1 at msg, most significant digit)
+**                       Wrote GetInitialPosition()
+**                       For reference, MOVE = int, POSITION = int (from core/type.h)
+**                       Wrote DoMove(), didn't test yet
+**                       A move is represented using same hash/unhash as board, but
+**                         only has the moved piece (if has one) and the new piece
+**                       
 **
 **************************************************************************/
 
@@ -142,10 +151,10 @@ STRING   kHelpExample =
 #define CASTLEPIECE 'c'
 #define BLUEBUCKETPIECE 'b'
 #define REDBUCKETPIECE 'r'
-#define BLUESMALLPIECE 'X'
-#define REDSMALLPIECE 'O'
-#define BLUECASTLEPIECE 'B'
-#define REDCASTLEPIECE 'R'
+#define BLUESMALLPIECE 'B'
+#define REDSMALLPIECE 'R'
+#define BLUECASTLEPIECE 'X'
+#define REDCASTLEPIECE 'O'
 #define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 
 #define BLUETURN 0
@@ -184,6 +193,11 @@ typedef struct boardAndTurnRep {
   PlayerTurn theTurn;
 } *BoardAndTurn;
 
+/*typedef struct structMove {
+  int theFromLoc;
+  int theToLoc;
+  } sMove*/
+
 /*************************************************************************
 **
 ** Global Variables
@@ -207,15 +221,15 @@ char* playerName;
 *************************************************************************/
 
 /* External */
-extern GENERIC_PTR		SafeMalloc ();
-extern void				SafeFree ();
+extern GENERIC_PTR	SafeMalloc ();
+extern void		SafeFree ();
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
 extern POSITION         generic_hash(char *board, int player);
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
+extern char             *generic_unhash(POSITION hash_number, char *empty_board);
 extern int              whoseMove (POSITION hashed);
 /* Internal */
 void                    InitializeGame();
-MOVELIST               *GenerateMoves(POSITION position);
+MOVELIST                *GenerateMoves(POSITION position);
 POSITION                DoMove (POSITION position, MOVE move);
 VALUE                   Primitive (POSITION position);
 void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
@@ -232,10 +246,11 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-char					BoardPieceToChar(BoardPiece piece);
-BoardPiece 				CharToBoardPiece(char piece);
-POSITION				arrayHash(BoardAndTurn board);
-BoardAndTurn			arrayUnhash(POSITION hashNumber);
+char			BoardPieceToChar(BoardPiece piece);
+BoardPiece 	        CharToBoardPiece(char piece);
+POSITION		arrayHash(BoardAndTurn board);
+BoardAndTurn		arrayUnhash(POSITION hashNumber);
+/*sMove                   moveUnhash(MOVE move);*/
 /*BOOLEAN               OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot,SLOT toSlot);
 BOOLEAN                 CantMove(POSITION position);
 void                    ChangeBoard();
@@ -323,13 +338,54 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    BoardAndTurn board;
-    
-    board = arrayUnhash(position);
-    
-    
-    
-    return 0;
+  int i;
+  BoardPiece fromLoc = -1, toLoc;
+  BoardPiece tempBoardPiece, tempMoveBoardPiece;
+  POSITION newBoard = 0;
+  BoardAndTurn board, moveBoard;  
+  
+  board = arrayUnhash(position);
+  moveBoard = arrayUnhash(move);
+
+  /* not sure if we need to check if it is a valid move or not..
+     probably can just check the move list? or the move list should handle/filter
+     out the bad moves already...*/
+  
+  /* MOVE represented as a board...stores the new piece and the old, moved piece */
+  for (i = 0; i < boardSize; i++) {
+    tempMoveBoardPiece = CharToBoardPiece(moveBoard->theBoard[j + (i * ROWCOUNT)]);
+    if (tempMoveBoardPiece != Blank) {
+      tempBoardPiece = CharToBoardPiece(board->theBoard[j + (i * ROWCOUNT)]);
+      if (tempBoardPiece == tempMoveBoardPiece) {
+	/* this is the piece that was changed/affected */
+	fromLoc = i;
+      }
+      else {
+	/* this is where the move was made to */
+	toLoc = i;
+      }
+    }
+  }x
+
+  /* add move to board */
+  if (fromLoc >= 0) {
+    board->theBoard[fromLoc] = BLANKPIECE;
+  }  
+  board->theBoard[toLoc] = moveBoard->theBoard[toLoc];
+  
+  if (board->theTurn == Blue) {  /* blue's turn */
+    /* change the turn to 1 (red), and hash and return it */
+    board->theTurn = Red;
+  }
+  else { /* red's turn  */
+    /* change the turn to 0 (blue), and hash and return it */
+    board->theTurn = Blue;
+  }
+  
+  newBoard = arrayHash(board);
+  return newBoard;
+  
+  /* return 0;<-- their default return */
 }
 
 
@@ -365,9 +421,9 @@ VALUE Primitive (POSITION position)
     board = arrayUnhash(position);
     
     for (i = 0; i < boardSize; i++) {
-    	if (board->theBoard[i] == BLUECASTLEPIECE) {
+    	if (board.theBoard[i] == BLUECASTLEPIECE) {
     		blueCastles++;
-    	} else if (board->theBoard[i] == REDCASTLEPIECE) {
+    	} else if (board.theBoard[i] == REDCASTLEPIECE) {
     		redCastles++;
     	}
     }
@@ -376,9 +432,9 @@ VALUE Primitive (POSITION position)
     	((board->theTurn == Red) && (redCastles >= NUMCASTLESTOWIN))) {
     		return win;
     } else if (((board->theTurn == Blue) && (redCastles >= NUMCASTLESTOWIN)) ||
-   				((board->theTurn == Red) && (blueCastles >= NUMCASTLESTOWIN))) {
-   			return lose;
-   	}
+   		((board->theTurn == Red) && (blueCastles >= NUMCASTLESTOWIN))) {
+   		return lose;
+    }
    	
     return undecided;
 }
@@ -440,7 +496,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
 										((i == ((rowWidth*2)-1)) ? VERT_LINE : BOLD_VERT));
 	}*/
-	printf("  LEGEND: ( 4 5 6 )\n");
+	printf("  LEGEND: ( 4 5 6)\n");
 	/***********************LINE 5**************************/
 	printf("       *-+-+-*\n");
 
@@ -652,7 +708,8 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+  InitializeGame();
+  return 0;
 }
 
 
@@ -745,7 +802,7 @@ void DebugMenu ()
 
 char BoardPieceToChar(BoardPiece piece) {
 	switch (piece) {
-		case Blank:				return BLANKPIECE;
+		case Blank:			return BLANKPIECE;
 		case SmallSand:			return SMALLPIECE;
 		case LargeSand:			return LARGEPIECE;
 		case SandCastle:		return CASTLEPIECE;
@@ -790,21 +847,6 @@ POSITION arrayHash(BoardAndTurn board) {
 	}
 	
 	return hashNum + (board->theTurn * PLAYEROFFSET);
-	
-	/*
-  int hashNum = 
-    CharToBoardPiece(board[0]) + 
-    CharToBoardPiece(board[1]) * 10 + 
-    CharToBoardPiece(board[2]) * 100 + 
-    CharToBoardPiece(board[3]) * 1000 + 
-    CharToBoardPiece(board[4]) * 10000 + 
-    CharToBoardPiece(board[5]) * 100000 + 
-    CharToBoardPiece(board[6]) * 1000000 + 
-    CharToBoardPiece(board[7]) * 10000000 + 
-    CharToBoardPiece(board[8]) * 100000000 + 
-    player * PLAYEROFFSET;
-  return hashNum;
-  */
 }
 
 BoardAndTurn arrayUnhash(POSITION hashNumber) {
@@ -822,6 +864,11 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   bat->theTurn = hashNumber % 2;
   return bat;
 }
+/*
+sMove moveUnhash(MOVE move) {
+  struct goodMove m;
+  
+}*/
 
 // $Log: not supported by cvs2svn $
 // Revision 1.9  2006/02/26 08:31:26  mikehamada
