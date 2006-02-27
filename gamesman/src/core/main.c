@@ -106,31 +106,37 @@ void SetSolver()
 VALUE DetermineValue(POSITION position)
 {
         gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
-
-        if(gLoadDatabase && LoadDatabase()) {
-                if (gPrintDatabaseInfo)
-                        printf("\nLoading in Database for %s...",kGameName);
+        
+        if(gLoadDatabase && LoadAnalysis() && LoadDatabase()) {
+            if (gPrintDatabaseInfo)
+                printf("\nLoading in Database for %s...",kGameName);
 
                 if (GetValueOfPosition(position) == undecided) {
-                        if (gPrintDatabaseInfo)
-                                printf("\nRe-evaluating the value of %s...", kGameName);
-                        gSolver(position);
-                        if(gSaveDatabase) {
-                                printf("\nWriting the values of %s into a database...", kGameName);
-                                SaveDatabase();
-                        }
+                    if (gPrintDatabaseInfo)
+                        printf("\nRe-evaluating the value of %s...", kGameName);
+                    gSolver(position);
+                    AnalysisCollation();
+                    if(gSaveDatabase) {
+                        printf("\nWriting the values of %s into a database...", kGameName);
+                        SaveDatabase();
+                        SaveAnalysis();
+                    }
                 }
         } else {
                 if (gPrintDatabaseInfo)
                         printf("\nEvaluating the value of %s...", kGameName);
                 gSolver(position);
                 showStatus(Clean);
-                if(gSaveDatabase)
+                AnalysisCollation();
+                if(gSaveDatabase) {
                         SaveDatabase();
+                        SaveAnalysis();
+                }
         }
 
         gUseGPS = FALSE;
         gValue = GetValueOfPosition(position);
+        
         return gValue;
 }
 
@@ -149,16 +155,6 @@ void SolveAndStore()
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
         gAnalysis.TimeToSolve = Stopwatch();
-        // analysis
-        if (gAnalyzing) {
-                analyze(); // sets global variables
-
-                // Writing HTML Has Now Been Deprecated
-                // createAnalysisVarDir();
-                // writeVarHTML();
-
-                writeXML(Save);
-        }
 }
 
 /* Handles the command line arguments by setting flags and options

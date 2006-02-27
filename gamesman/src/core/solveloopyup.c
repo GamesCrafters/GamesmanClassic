@@ -377,8 +377,8 @@ void loopyup_StoreValueAndPropagate(POSITION pos, VALUE value, REMOTENESS remote
    POSITIONLIST *phead, *parents;
    POSITION parent;
 
-   StoreValueOfPosition(pos, value);
    SetRemoteness(pos, remoteness);
+   StoreValueOfPosition(pos, value);
 
    phead = parents = GenerateParents(pos);
     while(parents != NULL) {
@@ -411,8 +411,8 @@ void loopyup_CleanUpDatabase() {
   for (pos=0; pos<gNumberOfPositions; pos++) {
     UnMarkAsVisited(pos);
     if (GetValueOfPosition(pos) == undecided) {
-      StoreValueOfPosition(pos, tie);
       SetRemoteness(pos, REMOTENESS_MAX);
+      StoreValueOfPosition(pos, tie);
     }
   }
 }

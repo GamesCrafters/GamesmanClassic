@@ -125,11 +125,11 @@ POSITIONSTACK *InitializeFrontier(POSITION source) {
     /* If position is primitive */
     if (value != undecided) {
       
-      /* Store value of position */
-      StoreValueOfPosition(position, value);
-      
       /* Set remoteness of value to 0 (immediate) */
       SetRemoteness(position, 0);
+      
+      /* Store value of position */
+      StoreValueOfPosition(position, value);
       
       /* Add position to frontier */
       push(position, &frontier);

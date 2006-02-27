@@ -158,8 +158,8 @@ POSITION position;
 	    /* This is the first time we know the parent is a win */
 	    InsertWinFR(parent);
 	    if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
+        SetRemoteness(parent, remotenessChild + 1);
 	    StoreValueOfPosition(parent,win); 
-	    SetRemoteness(parent, remotenessChild + 1);
 	  } 
 	  else {
 	    /* We already know the parent is a winning position. */
@@ -185,10 +185,10 @@ POSITION position;
 
 	  InsertLoseFR(parent);
 	  if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
-	  StoreValueOfPosition(parent,lose);
 	  /* We always need to change the remoteness because we examine winning node with
 	  ** less remoteness first. */
 	  SetRemoteness(parent, remotenessChild + 1);
+      StoreValueOfPosition(parent,lose);
 	}
       } else {
 	BadElse("lgas_DetermineValue found FR member with other than win/lose value");
@@ -228,8 +228,8 @@ POSITION position;
 	
 	InsertTieFR(parent);
 	if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
-	StoreValueOfPosition(parent,tie); 
 	SetRemoteness(parent, remotenessChild + 1);
+    StoreValueOfPosition(parent,tie); 
       }
       ptr = ptr->next;
     }
@@ -253,8 +253,8 @@ POSITION position;
       if(kDebugDetermineValue)
 	printf(POSITION_FORMAT " was visited...",i);
       if(GetValueOfPosition((POSITION)i) == undecided) {
-	StoreValueOfPosition((POSITION)i,tie);
 	SetRemoteness((POSITION)i,REMOTENESS_MAX);
+	StoreValueOfPosition((POSITION)i,tie);
 	//we are done with this position and no longer need to keep around its list of parents
 	if (lgas_gParents[child]) FreePositionMoveList(lgas_gParents[child]);
 	if(kDebugDetermineValue)

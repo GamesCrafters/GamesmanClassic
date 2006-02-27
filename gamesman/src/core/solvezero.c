@@ -153,11 +153,11 @@ VALUE DetermineZeroValue(POSITION position)
                     FreeMoveList(headMove);
                     if((numTot != 0) && (numTot == numWin + numTie)){
                         if(numTie == 0){
-                            StoreValueOfPosition(i,lose);
                             SetRemoteness(i, winRemoteness+1);
+                            StoreValueOfPosition(i,lose);
                         }else{
-                            StoreValueOfPosition(i,tie);
                             SetRemoteness(i, tieRemoteness+1);
+                            StoreValueOfPosition(i,tie);
                         }
                     }
 		    
@@ -175,8 +175,8 @@ VALUE DetermineZeroValue(POSITION position)
     
     for(i = 0; i < gNumberOfPositions;i++){
         if(Visited(i) && (GetValueOfPosition(i) == undecided)){
-            StoreValueOfPosition(i, tie);
             SetRemoteness(i,REMOTENESS_MAX);
+            StoreValueOfPosition(i, tie);
         }
         UnMarkAsVisited(i);
     }

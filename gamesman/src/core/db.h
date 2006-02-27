@@ -57,6 +57,7 @@ typedef struct DB {
 
     VALUE	(*get_value)		(POSITION pos);
     VALUE	(*put_value)		(POSITION pos, VALUE val);
+    VALUE   (*original_put_value) (POSITION pos, VALUE val);
 
     REMOTENESS  (*get_remoteness)	(POSITION pos);
     void	(*put_remoteness)	(POSITION pos, REMOTENESS val);
@@ -77,6 +78,8 @@ typedef struct db_list_struct{
     DB_Table *db;
     struct db_list_struct *next_db;
 } db_list;
+
+VALUE       db_original_put_value(POSITION pos, VALUE data);
 
 /* external interface functions. Limited to one db at a time, therefore needs to be
    changed */

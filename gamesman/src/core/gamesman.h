@@ -22,13 +22,13 @@
 
 #include "types.h"
 #include "hash.h"
+#include "db.h"
 #include "analysis.h"
 #include "constants.h"
 #include "globals.h"
 #include "debug.h"
 #include "gameplay.h"
 #include "misc.h"
-#include "db.h"
 #include "textui.h"
 #include "main.h"
 

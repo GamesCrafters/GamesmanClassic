@@ -202,11 +202,11 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 
     }
     
-    /* Store value of position in database */
-    StoreValueOfPosition(position, value);
-    
     /* Store remoteness of value in database */
     SetRemoteness(position, remoteness);
+    
+    /* Store value of position in database */
+    StoreValueOfPosition(position, value);
     
   }
   

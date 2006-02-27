@@ -72,6 +72,7 @@ BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enab
 BOOLEAN gZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
 				   * solved, default: FALSE */
+BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gSymmetries = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */

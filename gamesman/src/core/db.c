@@ -48,6 +48,8 @@
 
 
 /* internal function prototypes */
+void        db_analysis_hook    (); /* hijacks the pointer in db_put_value in order to call AnalyzePosition() first */
+VALUE       db_original_put_value(POSITION pos, VALUE data);
 /* default functions common to all db's*/
 
 /*will make this return the function table later*/
@@ -127,9 +129,24 @@ void db_initialize(){
     else {
 	memdb_init(db_functions);
     }
-
+    //printf("\nCalling hooking function\n");
+    //db_analysis_hook();
 }
 
+void db_analysis_hook() {
+    db_functions->original_put_value = db_functions->put_value;
+    db_functions->put_value = AnalyzePosition;
+    
+    if (db_functions->put_value == NULL) {
+        printf("Function hook failed\n");
+    } else {
+        printf("Function successfully hooked\n");
+    }
+}
+
+VALUE db_original_put_value(POSITION pos, VALUE data) {
+    return(db_functions->original_put_value(pos, data));
+}
 
 void db_free(){
     return ;
@@ -205,7 +222,8 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
     showStatus(Update);
 
     if(kLoopy && gSymmetries)
-	position = gCanonicalPosition(position);
+    	position = gCanonicalPosition(position);
+    AnalyzePosition(position,value);
     return db_functions->put_value(position,value);
 }
 

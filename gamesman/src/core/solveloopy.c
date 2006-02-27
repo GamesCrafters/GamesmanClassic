@@ -154,8 +154,8 @@ VALUE DetermineLoopyValue1(POSITION position)
 			/* This is the first time we know the parent is a win */
 			InsertWinFR(parent);
 			if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
-			StoreValueOfPosition(parent,win); 
-			SetRemoteness(parent, remotenessChild + 1);
+            SetRemoteness(parent, remotenessChild + 1);
+            StoreValueOfPosition(parent,win); 
 		    } 
 		    else {
 			/* We already know the parent is a winning position. */
@@ -189,10 +189,10 @@ VALUE DetermineLoopyValue1(POSITION position)
 		    
 		    InsertLoseFR(parent);
 		    if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
-		    StoreValueOfPosition(parent,lose);
 		    /* We always need to change the remoteness because we examine winning node with
 		    ** less remoteness first. */
 		    SetRemoteness(parent, remotenessChild + 1);
+            StoreValueOfPosition(parent,lose);
 		}
 		ptr = ptr->next;  
 	    } /* while there are still parents */
@@ -233,8 +233,8 @@ VALUE DetermineLoopyValue1(POSITION position)
 		
 		InsertTieFR(parent);
 		if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
-		StoreValueOfPosition(parent,tie); 
 		SetRemoteness(parent, remotenessChild + 1);
+        StoreValueOfPosition(parent,tie); 
 	    }
 	    ptr = ptr->next;
 	}
@@ -258,8 +258,8 @@ VALUE DetermineLoopyValue1(POSITION position)
 	    if(kDebugDetermineValue)
 		    printf(POSITION_FORMAT " was visited...",i);
 	    if(GetValueOfPosition((POSITION)i) == undecided) {
+            SetRemoteness((POSITION)i,REMOTENESS_MAX);
 		    StoreValueOfPosition((POSITION)i,tie);
-		    SetRemoteness((POSITION)i,REMOTENESS_MAX);
 		    //we are done with this position and no longer need to keep around its list of parents
 	    	if (gParents[child]) 
                 FreePositionList(gParents[child]);

@@ -424,3 +424,22 @@ MEX MexPrimitive(VALUE value)
                 exit(0);
         }
 }
+
+/**
+ * Safely get a line of any length from a stream
+ */
+ 
+char *fgetline(FILE *fp)
+{
+    size_t size, length, last = 0;
+    char *buffer = NULL;
+
+    do {
+        size += 100;
+        buffer = realloc(buffer,size);          
+        fgets(buffer+last,size,fp);
+        length = strlen(buffer);
+        last = length - 1;
+    } while (!feof(fp) && buffer[last]!= '\n');
+    return buffer;
+}

@@ -215,8 +215,8 @@ VALUE DetermineValueBU(POSITION position)
                                 oldValue = GetValueOfPosition(postosolve);
 
                                 if ((currentValue = Primitive(postosolve)) != undecided) {
-                                        StoreValueOfPosition(postosolve, currentValue);
                                         SetRemoteness(postosolve,0);
+                                        StoreValueOfPosition(postosolve, currentValue);
                                 } else {
                                         //infer the value from children, but does not recurse
                                         mhead = MoveList = GenerateMoves(postosolve);
@@ -251,14 +251,14 @@ VALUE DetermineValueBU(POSITION position)
                                         FreeMoveList(MoveList);
 
                                         if(foundLose) {
-                                                StoreValueOfPosition(postosolve, win);
                                                 SetRemoteness(postosolve, winRemoteness + 1);
+                                                StoreValueOfPosition(postosolve, win);
                                         } else if(foundTie) {
-                                                StoreValueOfPosition(postosolve, tie);
                                                 SetRemoteness(postosolve, tieRemoteness + 1);
+                                                StoreValueOfPosition(postosolve, tie);
                                         } else if(foundWin) {
-                                                StoreValueOfPosition(postosolve, lose);
                                                 SetRemoteness(postosolve, loseRemoteness + 1);
+                                                StoreValueOfPosition(postosolve, lose);
                                         }
                                         //otherwise this position will probably have to wait.
 
@@ -276,8 +276,8 @@ VALUE DetermineValueBU(POSITION position)
                 while (!feof(OutFile)) {
                         fscanf(OutFile, POSITION_FORMAT"\n", &postosolve);
                         if (GetValueOfPosition(postosolve) == undecided) {
-                                StoreValueOfPosition(postosolve, tie);
                                 SetRemoteness(postosolve, REMOTENESS_MAX);
+                                StoreValueOfPosition(postosolve, tie);
                                 //this is what a draw is, a tie with remoteness REMOTENESS_MAX.
                         }
                 }

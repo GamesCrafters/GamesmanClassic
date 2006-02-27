@@ -964,12 +964,12 @@ void AnalysisMenu()
 	    HitAnyKeyToContinue();
 	    break;
 	case 'p': case 'P':
-	    analyze();
+	    //analyze();
 	    PrintGameValueSummary();
 	    HitAnyKeyToContinue();
 	    break;
 	case 'a': case 'A':					// New detailed analysis implementation
-		analyze();
+		//analyze(); Changed analysis to hook into solver, so don't need this call
 		//printf("\ngot through analyzing, segfault later!\n");
 		PrintDetailedGameValueSummary();
 		HitAnyKeyToContinue();
