@@ -462,7 +462,7 @@ BOOLEAN LoadAnalysis() {
         printf("\nFailed to open analysis file for reading. A new one will be generated.");
         return FALSE;
     }
-    printf("\nLoading Analysis Database for %s...", kGameName);
+    printf("\nLoading Analysis DB for %s...", kGameName);
     /* read data from file */
     line = fgetline(fp);
     
