@@ -74,6 +74,7 @@ int hash_tot_context = 0, currentContext = 0;
 
 /* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
 /* 2004-10-20 */
+/*
 POSITION *hash_hashOffset = NULL;
 POSITION *hash_NCR = NULL;
 POSITION *hash_miniOffset = NULL;
@@ -85,22 +86,23 @@ int hash_numPieces = 0;
 int hash_boardSize = 0;
 int hash_usefulSpace = 0;
 int hash_maxPos = 0;
+*/
 
-void hash_combiCalc();
-void freeHashContext(int contextNum);
-int validConfig(int *t);
-int searchIndices(int s);
-int searchOffset(int h);
-POSITION combiCount(int* tc);
-int hash_countPieces(int *pA);
-POSITION hash_cruncher (char* board);
-void hash_uncruncher (POSITION hashed, char *dest);
-int getPieceParams(int *pa,char *pi,int *mi,int *ma);
-int nCr(int n, int r);
-void nCr_init(int a);
-int* gpd (int n);
-int gpi (int n);
-int* gPieceDist (int i);
+void 		hash_combiCalc();
+void 		freeHashContext(int contextNum);
+int 		validConfig(int *t);
+int 		searchIndices(int s);
+int 		searchOffset(int h);
+POSITION 	combiCount(int* tc);
+int 		hash_countPieces(int *pA);
+POSITION 	hash_cruncher (char* board);
+void 		hash_uncruncher (POSITION hashed, char *dest);
+int 		getPieceParams(int *pa,char *pi,int *mi,int *ma);
+int 		nCr(int n, int r);
+void 		nCr_init(int a);
+int* 		gpd (int n);
+int 		gpi (int n);
+int* 		gPieceDist (int i);
 
 /*******************************
 **
@@ -114,8 +116,9 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
         int i = -1, k;
         int newcntxt;
         POSITION sofar,temp;
-        if(NULL == cCon)
-                ExitStageRightErrorString("Attempting to Initialize invalid hash context");
+
+        //if(cCon == NULL)
+        //        ExitStageRightErrorString("Attempting to Initialize invalid hash context");
 
         //if(cCon->init)
         //        freeHashContext(cCon);
@@ -186,7 +189,6 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
         }
         cCon->hashOffset[cCon->usefulSpace + 1] = -1;
         cCon->maxPos = sofar;
-
         return sofar*2;
 }
 
@@ -196,8 +198,10 @@ void nCr_init(int boardsize)
 {
         int i, j, k, sum, ctr;
         int *temp = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
-        hash_NCR = cCon->NCR = (POSITION*) SafeMalloc(sizeof(POSITION) * (boardsize + 1) * (boardsize + 1));
-        hash_boardSize = cCon->boardSize = boardsize;
+        /*hash_NCR = */
+	cCon->NCR = (POSITION*) SafeMalloc(sizeof(POSITION) * (boardsize + 1) * (boardsize + 1));
+        /*hash_boardSize = */
+	cCon->boardSize = boardsize;
 
         /*store the left and right wings of pascal's triangle*/
         for(i = 0; i<= boardsize; i++) {
@@ -280,33 +284,33 @@ void hash_combiCalc()
 POSITION generic_hash(char* board, int player) //accomodates whoseMove
 {
         int temp, i, j, sum;
-        int boardSize = hash_boardSize;
+        int boardSize = cCon->boardSize;/*hash_boardSize;*/
 
         for (i = 0;i < cCon->numPieces;i++)
         {
-                hash_thisCount[i] = 0;
-                hash_localMins[i] = cCon->mins[i];
+                cCon->thisCount[i] = 0;
+                cCon->localMins[i] = cCon->mins[i];
         }
 
         for (i = 0; i < boardSize; i++)
         {
-                for (j = 0; j < hash_numPieces; j++) {
-                        if (board[i] == hash_pieces[j]) {
-                                hash_thisCount[j]++;
+                for (j = 0; j < cCon->numPieces; j++) {
+                        if (board[i] == cCon->pieces[j]) {
+                                cCon->thisCount[j]++;
                         }
                 }
         }
         sum = 0;
-        for (i = hash_numPieces-1;i >= 0;i--)
+        for (i = cCon->numPieces-1;i >= 0;i--)
         {
-                sum += (hash_thisCount[i] - cCon->mins[i]);
+                sum += (cCon->thisCount[i] - cCon->mins[i]);
                 if (i > 0) {
                         sum *= cCon->nums[i-1];
                 }
         }
-        temp = hash_hashOffset[searchIndices(sum)];
+        temp = cCon->hashOffset[searchIndices(sum)];
         temp += hash_cruncher(board);
-        return temp + (player-1)*(hash_maxPos); //accomodates whoseMove
+        return temp + (player-1)*(cCon->maxPos); //accomodates whoseMove
 }
 
 /* helper func from generic_unhash() computes lexicographic rank of *board
@@ -315,26 +319,26 @@ POSITION hash_cruncher (char* board)
 {
         POSITION sum = 0;
         int i = 0, k = 0, max1 = 0;
-        int boardSize = hash_boardSize;
+        int boardSize = cCon->boardSize;
 
         for(;boardSize>1;boardSize--) {
                 i = 0;
 
-                while (board[boardSize - 1] != hash_pieces[i])
+                while (board[boardSize - 1] != cCon->pieces[i])
                         i++;
                 for (k = 0;k < i;k++) {
                         max1 = 1;
-                        if (hash_localMins[k] > 1)
-                                max1 = hash_localMins[k];
+                        if (cCon->localMins[k] > 1)
+                                max1 = cCon->localMins[k];
 
-                        if (hash_thisCount[k] >= max1) {
-                                hash_thisCount[k]--;
-                                sum += combiCount(hash_thisCount);
-                                hash_thisCount[k]++;
+                        if (cCon->thisCount[k] >= max1) {
+                                cCon->thisCount[k]--;
+                                sum += combiCount(cCon->thisCount);
+                                cCon->thisCount[k]++;
                         }
                 }
-                hash_thisCount[i]--;
-                hash_localMins[i]--;
+                cCon->thisCount[i]--;
+                cCon->localMins[i]--;
         }
 
         return sum;
@@ -356,9 +360,9 @@ int whoseMove (POSITION hashed)
 
 char* generic_unhash_tcl(POSITION pos)
 {
-        char* ret = (char*) SafeMalloc (sizeof(char) * hash_boardSize+1);
+        char* ret = (char*) SafeMalloc (sizeof(char) * cCon->boardSize+1);
         generic_unhash(pos,ret);
-        ret[hash_boardSize] = '\0';
+        ret[cCon->boardSize] = '\0';
         return ret;
 }
 
@@ -367,15 +371,15 @@ char* generic_unhash(POSITION hashed, char* dest)
 {
         POSITION offst;
         int i, j, boardSize;
-        hashed %= hash_maxPos; //accomodates whoseMove
+        hashed %= cCon->maxPos; //accomodates whoseMove
 
-        boardSize = hash_boardSize;
+        boardSize = cCon->boardSize;
         j = searchOffset(hashed);
-        offst = hash_hashOffset[j];
+        offst = cCon->hashOffset[j];
         hashed -= offst;
         for (i = 0;i < cCon->numPieces;i++) {
-                hash_localMins[i] = cCon->mins[i];
-                hash_thisCount[i] = gpd(cCon->offsetIndices[j + 1] - 1)[i];
+                cCon->localMins[i] = cCon->mins[i];
+                cCon->thisCount[i] = gpd(cCon->offsetIndices[j + 1] - 1)[i];
         }
         hash_uncruncher(hashed, dest);
         return dest;
@@ -387,35 +391,35 @@ void hash_uncruncher (POSITION hashed, char *dest)
 {
         int i = 0, j = 0;
         int max1 = 0;
-        int boardSize = hash_boardSize;
+        int boardSize = cCon->boardSize;
 
         for(;boardSize>0;boardSize--) {
                 if (boardSize == 1) {
                         i = 0;
-                        while (hash_thisCount[i] == 0)
+                        while (cCon->thisCount[i] == 0)
                                 i++;
-                        dest[0] = hash_pieces[i];
+                        dest[0] = cCon->pieces[i];
                 } else {
-                        hash_miniOffset[0] = 0;
-                        hash_miniIndices[0] = 0;
+                        cCon->miniOffset[0] = 0;
+                        cCon->miniIndices[0] = 0;
                         j = 1;
-                        for (i = 0; (i < hash_numPieces) && (hash_miniOffset[j-1] <= hashed);i++) {
+                        for (i = 0; (i < cCon->numPieces) && (cCon->miniOffset[j-1] <= hashed);i++) {
                                 max1 = 1;
-                                if (hash_localMins[i] > 1)
-                                        max1 = hash_localMins[i];
-                                if (hash_thisCount[i] >= max1) {
-                                        hash_thisCount[i]--;
-                                        hash_miniOffset[j] = hash_miniOffset[j-1] + combiCount(hash_thisCount);
-                                        hash_thisCount[i]++;
-                                        hash_miniIndices[j] = i;
+                                if (cCon->localMins[i] > 1)
+                                        max1 = cCon->localMins[i];
+                                if (cCon->thisCount[i] >= max1) {
+                                        cCon->thisCount[i]--;
+                                        cCon->miniOffset[j] = cCon->miniOffset[j-1] + combiCount(cCon->thisCount);
+                                        cCon->thisCount[i]++;
+                                        cCon->miniIndices[j] = i;
                                         j++;
                                 }
                         }
                         i = j-1;
-                        hash_thisCount[hash_miniIndices[i]]--;
-                        hash_localMins[hash_miniIndices[i]]--;
-                        dest[boardSize-1] = hash_pieces[hash_miniIndices[i]];
-                        hashed = hashed - hash_miniOffset[i-1];
+                        cCon->thisCount[cCon->miniIndices[i]]--;
+                        cCon->localMins[cCon->miniIndices[i]]--;
+                        dest[boardSize-1] = cCon->pieces[cCon->miniIndices[i]];
+                        hashed = hashed - cCon->miniOffset[i-1];
                 }
 
         }
@@ -452,7 +456,7 @@ int generic_hash_context_init()
         temp = (struct hashContext **) SafeMalloc (sizeof(struct hashContext*)*(hash_tot_context));
 
         if(contextList != NULL) {
-                for(i=0;i<hash_tot_context;i++)
+                for(i=0;i<(hash_tot_context-1);i++) //copy the last contexts over
                         temp[i] = contextList[i];
                 SafeFree(contextList);
                 contextList = temp;
@@ -497,23 +501,23 @@ int generic_hash_context_init()
 
 void generic_hash_context_switch(int context)
 {
-        if(context > hash_tot_context)
+        if(context > hash_tot_context || context < 0)
                 ExitStageRightErrorString("Attempting to switch to non-existant hash context");
 
         currentContext = context;
 
-        hash_hashOffset = cCon->hashOffset;
-        hash_NCR = cCon->NCR;
-        hash_miniOffset = cCon->miniOffset;
-        hash_pieces = cCon->pieces;
-        hash_thisCount = cCon->thisCount;
-        hash_localMins = cCon->localMins;
-        hash_miniOffset = cCon->miniOffset;
-        hash_miniIndices = cCon->miniIndices;
-        hash_numPieces = cCon->numPieces;
-        hash_boardSize = cCon->boardSize;
-        hash_usefulSpace = cCon->usefulSpace;
-        hash_maxPos = cCon->maxPos;
+        //hash_hashOffset = cCon->hashOffset;
+        //hash_NCR = cCon->NCR;
+        //hash_miniOffset = cCon->miniOffset;
+        //hash_pieces = cCon->pieces;
+        //hash_thisCount = cCon->thisCount;
+        //hash_localMins = cCon->localMins;
+        //hash_miniOffset = cCon->miniOffset;
+        //hash_miniIndices = cCon->miniIndices;
+        //hash_numPieces = cCon->numPieces;
+        //hash_boardSize = cCon->boardSize;
+        //hash_usefulSpace = cCon->usefulSpace;
+        //hash_maxPos = cCon->maxPos;
 }
 
 
@@ -567,8 +571,8 @@ int searchIndices(int s)
 /* function used to map a member of gOffsetIndices into gHashOffset */
 int searchOffset(int h)
 {
-        int i = hash_usefulSpace;
-        while(hash_hashOffset[i] > h)
+        int i = cCon->usefulSpace;
+        while(cCon->hashOffset[i] > h)
                 i--;
         return i;
 }
@@ -641,7 +645,7 @@ int gpi (int n)
 /* shorthand for n choose r */
 int nCr(int n, int r)
 {
-        return hash_NCR[n*(hash_boardSize+1) + r];
+        return cCon->NCR[n*(cCon->boardSize+1) + r];
 }
 
 void generic_hash_destroy()
@@ -650,4 +654,5 @@ void generic_hash_destroy()
         for (i=0; i < hash_tot_context; i++)
                 //if (contextList[i]->init)
                 freeHashContext(i);
+	SafeFree(contextList);
 }
