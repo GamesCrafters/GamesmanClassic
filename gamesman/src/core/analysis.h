@@ -79,6 +79,8 @@ typedef struct analysis_info
   POSITION DetailedPositionSummary[REMOTENESS_MAX][3];		/* Table for counting wins(1) and losses(2) and ties(3) 
 															*at each remoteness between 0 and REMOTENESS_MAX-1   */
   REMOTENESS LargestFoundRemoteness;
+
+  POSITION F0count;
 } ANALYSIS;
 
 extern ANALYSIS gAnalysis;

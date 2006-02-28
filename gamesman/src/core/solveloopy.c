@@ -31,6 +31,7 @@
 
 #include "gamesman.h"
 #include "solveloopy.h"
+#include "analysis.h" // fix this?? -MATT  lol
 
 /*
 ** Globals
@@ -44,6 +45,7 @@ FRnode*		gHeadTieFR = NULL;	/* The FRontier Tie Queue */
 FRnode*		gTailTieFR = NULL;
 POSITIONLIST**	gParents = NULL;	/* The Parent of each node in a list */
 char*		gNumberChildren = NULL;	/* The Number of children (used for Loopy games) */
+char*       gNumberChildrenOriginal = NULL; //MATT
 
 
 /*
@@ -108,6 +110,7 @@ VALUE DetermineLoopyValue1(POSITION position)
     VALUE childValue;
     REMOTENESS remotenessChild;
     POSITION i;
+    POSITION F0count = 0; //MATT
     
     /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
     
@@ -186,14 +189,16 @@ VALUE DetermineLoopyValue1(POSITION position)
 		if(parent != kBadPosition && --gNumberChildren[parent] == 0) {
 		    /* no more kids, it's not been seen before, assign it as losing, put at head */
 		    assert(GetValueOfPosition(parent) == undecided);
-		    
+		    F0count -= (gNumberChildrenOriginal[parent] - 1); //MATT
 		    InsertLoseFR(parent);
 		    if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
 		    /* We always need to change the remoteness because we examine winning node with
 		    ** less remoteness first. */
 		    SetRemoteness(parent, remotenessChild + 1);
             StoreValueOfPosition(parent,lose);
-		}
+		} else if (parent != kBadPosition) {
+            F0count++;
+         }
 		ptr = ptr->next;  
 	    } /* while there are still parents */
 	    
@@ -271,7 +276,7 @@ VALUE DetermineLoopyValue1(POSITION position)
         }
 	    UnMarkAsVisited((POSITION)i);
 	}
-    
+    gAnalysis.F0count = F0count;
     return(GetValueOfPosition(position));
 }
 
@@ -399,6 +404,7 @@ void SetParents (POSITION parent, POSITION root)
                 if (child < 0 || child >= gNumberOfPositions)
                     FoundBadPosition(child, pos, moveptr -> move);
                 ++gNumberChildren[(int)pos];
+                ++gNumberChildrenOriginal[(int)pos];
                 gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);
 		
                 if (Visited(child)) continue;
@@ -469,13 +475,17 @@ void NumberChildrenInitialize()
     POSITION i;
     
     gNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
-    for(i = 0; i < gNumberOfPositions; i++)
+    gNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));         //MATT
+    for(i = 0; i < gNumberOfPositions; i++) {
         gNumberChildren[i] = 0;
+        gNumberChildrenOriginal[i] = 0;
+        }
 }
 
 void NumberChildrenFree()
-{
+{                                                                                                      //MATT
     SafeFree(gNumberChildren);
+    SafeFree(gNumberChildrenOriginal);
 }
 
 void InitializeFR()
