@@ -273,7 +273,7 @@ proc DrawBoard { c } {
     set margin [expr 0.1*$size]
     set side [expr ($size-2*$margin)/4]
     set r [expr 0.33*$side]
-    set fontsize [expr int(5 * $size / 100)]
+    set fontsize [expr int($size / 20)]
     set arrowwidth [expr 0.4 * $r]
     set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
 
@@ -753,11 +753,11 @@ proc GS_GetGameSpecificOptions { } {
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
     
-    global size gameover fontsize box
+    global size fontsize
     
     # Tell us it's "Game Over!" and announce and winner
-    set box [$c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black]
-    set gameover [$c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black]
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 	
 }
 
@@ -774,10 +774,6 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-    global box gameover
-
     # Delete "Game Over!" text
     $c delete $gameover
-    $c delete $box
-
 }
