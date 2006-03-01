@@ -32,6 +32,12 @@
 #
 #############################################################################
 
+proc min { x y } {
+    if { $x < $y } {
+	return $x
+    }
+    return $y
+}
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -57,10 +63,10 @@ proc GS_InitGameSpecific {} {
 
     ### Set the size of the canvas (can be changed)
 
-    global CANVAS_WIDTH CANVAS_HEIGHT
+    global CANVAS_WIDTH CANVAS_HEIGHT gFrameWidth gFrameHeight
 
-    set CANVAS_WIDTH 500
-    set CANVAS_HEIGHT 500
+    set CANVAS_WIDTH [min $gFrameWidth $gFrameHeight]
+    set CANVAS_HEIGHT $CANVAS_WIDTH
 
     ### Set the size of the board
     # 3x3 board, element 0 is whoseTurn 
@@ -75,8 +81,8 @@ proc GS_InitGameSpecific {} {
     ### Hmmm, I think X is horizontal and Y is vertical...
     global gSlotSize
 
-    set widthLimit [expr $CANVAS_WIDTH/$gSlotsX]
-    set heightLimit [expr $CANVAS_HEIGHT/$gSlotsY]
+    set widthLimit [expr int($CANVAS_WIDTH/$gSlotsX)]
+    set heightLimit [expr int($CANVAS_HEIGHT/$gSlotsY)]
 
     if {$heightLimit < $widthLimit} {
         set gSlotSize $heightLimit
@@ -350,8 +356,6 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
     global CANVAS_WIDTH CANVAS_HEIGHT
     global gSlotsX gSlotsY
-
-    $c configure -width $CANVAS_WIDTH -height $CANVAS_HEIGHT
 
     # Creates the slots (on the board)
     for {set i 0} {$i < $gSlotsX } {incr i} { 
@@ -701,6 +705,7 @@ proc GS_NewGame { c position } {
     ### Delete all pieces that are left around
 
     $c delete tagPiece
+    $c delete gameover
 
     set varXone -1
     set varXtwo -1
@@ -1220,7 +1225,7 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-    global BOARDSIZE
+    global BOARDSIZE CANVAS_WIDTH
     global gSlotsY gSlotsX gSlotList
     
     for {set i 1} { $i < $BOARDSIZE } {incr i} {
@@ -1230,6 +1235,13 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 	set theSlot $gSlotList($slotX,$slotY)
 	DisableSlot $c $theSlot
     }
+
+    set size $CANVAS_WIDTH
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 }
 
 
@@ -1245,6 +1257,6 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-	### TODO if needed
-
+    # Delete "Game Over!" text
+    $c delete $gameover
 }
