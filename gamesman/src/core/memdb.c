@@ -99,7 +99,7 @@ void memdb_init(DB_Table *new_db)
 void memdb_free()
 {
         if(memdb_array)
-                SafeFree(memdb_array);
+        	SafeFree(memdb_array);
 }
 
 

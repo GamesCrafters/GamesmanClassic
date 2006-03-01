@@ -155,6 +155,13 @@ void SolveAndStore()
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
         gAnalysis.TimeToSolve = Stopwatch();
+        
+        if (gAnalyzing) {
+        				// Writing HTML Has Now Been Deprecated
+						// createAnalysisVarDir();
+						// writeVarHTML();
+			writeXML(Save);
+		}
 }
 
 /* Handles the command line arguments by setting flags and options

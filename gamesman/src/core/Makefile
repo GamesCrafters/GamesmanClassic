@@ -1,0 +1,98 @@
+##############################################################################
+#
+#  Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  GamesCrafters Research Group, UC Berkeley
+#  Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+#
+##############################################################################
+
+# @WARNGC@ Makefile.in
+# src/core/Makefile.  Generated from Makefile.in by configure.
+
+CC		= gcc
+CFLAGS		= -Wall -g  -mwin32  -DHAVE_GMP
+AR		= ar cr
+RANLIB		= ranlib
+
+LIBSUFFIX	= .dll
+OBJSUFFIX	= .o
+EXESUFFIX	= .exe
+
+
+##############################################################################
+### Files
+
+ANALYSIS_OBJ	= analysis$(OBJSUFFIX)
+CONSTANTS_OBJ	= constants$(OBJSUFFIX)
+GLOBALS_OBJ	= globals$(OBJSUFFIX)
+DEBUG_OBJ	= debug$(OBJSUFFIX)
+GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
+MAIN_OBJ	= main$(OBJSUFFIX)
+MISC_OBJ	= misc$(OBJSUFFIX)
+TEXTUI_OBJ	= textui$(OBJSUFFIX)
+STRINGBUILDER_OBJ = StringBuilder$(OBJSUFFIX)
+
+DB_OBJ		= db$(OBJSUFFIX)
+MEMDB_OBJ	= memdb$(OBJSUFFIX)
+TWOBITDB_OBJ	= twobitdb$(OBJSUFFIX)
+COLLDB_OBJ	= colldb$(OBJSUFFIX)
+
+ifneq (-DHAVE_GMP,)
+UNIVHT_OBJ	= univht$(OBJSUFFIX)
+UNIVDB_OBJ	= univdb$(OBJSUFFIX)
+endif
+
+HASH_OBJ	= hash$(OBJSUFFIX)
+
+SOLVER_STD	= solvestd$(OBJSUFFIX)
+SOLVER_LOOPY	= solveloopy$(OBJSUFFIX)
+SOLVER_LOOPYGA	= solveloopyga$(OBJSUFFIX)
+SOLVER_ZERO	= solvezero$(OBJSUFFIX)
+SOLVER_LOOPYUP	= solveloopyup$(OBJSUFFIX)
+SOLVER_BOTTOMUP = solvebottomup$(OBJSUFFIX)
+SOLVER_ALPHABETA = solveweakab$(OBJSUFFIX)
+
+##############################################################################
+### Files
+
+CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
+     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ) \
+     $(DB_OBJ) $(MEMDB_OBJ) $(TWOBITDB_OBJ) $(COLLDB_OBJ) \
+     $(UNIVHT_OBJ) $(UNIVDB_OBJ) $(STRINGBUILDER_OBJ)
+
+SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
+	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA)
+
+MODULES=$(CORE) $(SOLVERS) hash.o
+
+INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
+	 globals.h misc.h solveloopyga.h solveloopy.h solvestd.h \
+	 memdb.h twobitdb.h db.h \
+	 solvezero.h solveloopyup.h textui.h setup.h
+
+
+##############################################################################
+### Rules
+
+all: gamesman.a
+clean:
+	rm -rf $(MODULES) *~ gamesman.a
+
+gamesman.a: $(MODULES)
+	rm -f $@
+	$(AR) $@ $(MODULES) ; $(RANLIB) $@
+	cp gamesman.a ../gamesman.a ; $(RANLIB) ../gamesman.a
+
+$(MODULES): %.o: %.c $(INCLUDES)
+	$(CC) $(CFLAGS) -c -o $@ $<

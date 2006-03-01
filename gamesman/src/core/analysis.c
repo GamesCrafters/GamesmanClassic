@@ -495,6 +495,7 @@ BOOLEAN LoadAnalysis() {
     gAnalysis.InitialPositionValue = atoi(strtok(NULL, ","));
     gAnalysis.InitialPositionProbability = atof(strtok(NULL, ","));
     gAnalysis.LargestFoundRemoteness = atoi(strtok(NULL, ","));
+    //gAnalysis.LargestFoundRemoteness = atoi(strtok(NULL, ","));
     gAnalysis.F0count = (POSITION) atol(strtok(NULL, ","));
     
     for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) {

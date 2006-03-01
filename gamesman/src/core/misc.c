@@ -431,15 +431,24 @@ MEX MexPrimitive(VALUE value)
  
 char *fgetline(FILE *fp)
 {
-    size_t size, length, last = 0;
+    int size = 0;
+    int length = 0;
+    int last = 0;
     char *buffer = NULL;
-
+    
+    if(fp == NULL) {
+    	printf("\nHanded bad file pointer. Aborting.\n");
+    	exit(0);
+    }
     do {
-        size += 100;
+        size = 300 + size;
+        if(buffer == NULL) {
+        	buffer = malloc(size);
+        }
         buffer = realloc(buffer,size);          
         fgets(buffer+last,size,fp);
         length = strlen(buffer);
         last = length - 1;
-    } while (!feof(fp) && buffer[last]!= '\n');
+    } while (!feof(fp) && buffer[last] != '\n');
     return buffer;
 }

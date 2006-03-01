@@ -654,5 +654,8 @@ void generic_hash_destroy()
         for (i=0; i < hash_tot_context; i++)
                 //if (contextList[i]->init)
                 freeHashContext(i);
+    if (contextList == NULL) {
+    	printf("\ncontextList is null");	//mjolnir debug
+    }
 	SafeFree(contextList);
 }
