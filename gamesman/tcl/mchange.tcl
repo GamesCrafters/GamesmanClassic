@@ -29,7 +29,7 @@ proc GS_InitGameSpecific {} {
     
     # Author's info
     global kRootDir
-    global kCAuthors kTclAuthors kGifAuthors
+    global kCAuthors kTclAuthors kGifAuthors gFrameWidth gFrameHeight
     set kCAuthors "Alice Chang, Judy Tuan"
     set kTclAuthors "Alice Chang, Bryon Ross"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-31x232.gif"
@@ -40,7 +40,7 @@ proc GS_InitGameSpecific {} {
 
     # Canvas size
     global CanvasWidth CanvasHeight
-    set CanvasWidth 500
+    set CanvasWidth $gFrameWidth
     set CanvasHeight $CanvasWidth
 
     # Set the initial position of the board
@@ -210,11 +210,18 @@ proc DrawBoard { c } {
     # Draw base for hiding things
     global CanvasWidth CanvasHeight
     $c create rect 0 0 $CanvasWidth $CanvasHeight -fill white -outline white -tag base
+
+    # Piece radius
+    set r [expr $CanvasWidth / 20]
+    # Arrow width
+    set arrowwidth [expr $CanvasWidth / 50]
+    # Arrow shape
+    set arrowshape [list $arrowwidth $arrowwidth [expr $arrowwidth / 2]]
     
     # Measurements for finding the slots
-    set SideGap [expr $CanvasHeight / 10]
-    set xGap [expr ($CanvasWidth - 2 * $SideGap) / 3]
-    set yGap [expr ($CanvasHeight - 2 * $SideGap) / 7]
+    set SideGap [expr int($CanvasHeight / 10)]
+    set xGap [expr int(($CanvasWidth - 2 * $SideGap) / 3)]
+    set yGap [expr int(($CanvasHeight - 2 * $SideGap) / 7)]
     
     # The slots are labeled like this:
     #      7       
@@ -290,21 +297,19 @@ proc DrawBoard { c } {
 	    -fill black -tag [list base slots]
     }
 
-    # Draw the x's
+    # 2006-02-27 Change x's to o's as well, just of a different color
     for {set i 0} {$i < 27} {incr i 2} {
 	set x [lindex $CoordsList $i]
-	set y [lindex $CoordsList [expr $i + 1]]
-	$c create line [expr $x - 20] [expr $y - 20] [expr $x + 20] [expr $y + 20] \
-	    -fill blue -width 12 -tag x[expr $i/2]
-	$c create line [expr $x - 20] [expr $y + 20] [expr $x + 20] [expr $y - 20] \
-	    -fill blue -width 12 -tag x[expr $i / 2]
+    	set y [lindex $CoordsList [expr $i + 1]]
+    	$c create oval [expr $x - $r] [expr $y - $r] [expr $x + $r] [expr $y + $r] \
+    	    -fill blue -tag x[expr $i/2]
     } 
 
     # Draw the o's
     for {set i 0} {$i < 27} {incr i 2} {
 	set x [lindex $CoordsList $i]
 	set y [lindex $CoordsList [expr $i + 1]]
-	$c create oval [expr $x - 20] [expr $y - 20] [expr $x + 20] [expr $y + 20] \
+	$c create oval [expr $x - $r] [expr $y - $r] [expr $x + $r] [expr $y + $r] \
 	    -fill red -tag o[expr $i / 2]
     }
     
@@ -327,22 +332,22 @@ proc DrawBoard { c } {
 	    set to [expr $j / 2]
 	    if {($xTemp == $Upx) && ($yTemp == $Upy)} {
 		$c create line $x $y [expr $Upx + 10] [expr $Upy + 4] \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag fullarrow$from-$to
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag fullarrow$from-$to
 		$c create line $Upx $Upy [expr $x - 10] [expr $y - 4] \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag fullarrow$to-$from
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag fullarrow$to-$from
 		$c create line $HalfUpx $HalfUpy $Upx $Upy\
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag halfarrow$from-$to
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag halfarrow$from-$to
 		$c create line $HalfUpx $HalfUpy $x $y \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag halfarrow$to-$from
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag halfarrow$to-$from
 	    } elseif {($xTemp == $Downx) && ($yTemp == $Downy)} {
 		$c create line $x $y [expr $Downx + 10] [expr $Downy - 4] \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag fullarrow$from-$to
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag fullarrow$from-$to
 		$c create line $Downx $Downy [expr $x - 10] [expr $y + 4] \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag fullarrow$to-$from
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag fullarrow$to-$from
 		$c create line $HalfDownx $HalfDowny $Downx $Downy \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag halfarrow$from-$to
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag halfarrow$from-$to
 		$c create line $HalfDownx $HalfDowny $x $y \
-		    -arrow last -arrowshape {24 24 12} -width 12 -fill cyan -tag halfarrow$to-$from
+		    -arrow last -arrowshape $arrowshape -width $arrowwidth -fill cyan -tag halfarrow$to-$from
 	    }
 	}
     }    
