@@ -455,11 +455,13 @@ BOOLEAN LoadAnalysis() {
     int currentRemoteness;
     FILE *fp;
 
+	Stopwatch();
 	createAnalysisGameDir();
     sprintf(gameFileName, "analysis/%s/%s_analysis.dat", kDBName,kDBName);
     
     if((fp = fopen(gameFileName, "rb")) == NULL) {
-        printf("\nFailed to open analysis file for reading. A new one will be generated.");
+        printf("\nAnalysis file not found. Re-analysing %s.", kGameName);
+        Stopwatch();
         return FALSE;
     }
     printf("\nLoading Analysis DB for %s...", kGameName);
@@ -469,6 +471,7 @@ BOOLEAN LoadAnalysis() {
     /* Check file version */
     if(line[0] != 2) {
         printf("\nError: Version mismatch. A new database will be generated.");
+        Stopwatch();
         return FALSE;
     }
     
@@ -500,7 +503,7 @@ BOOLEAN LoadAnalysis() {
         gAnalysis.DetailedPositionSummary[currentRemoteness][1] = (POSITION) atol(strtok(NULL, ","));
         gAnalysis.DetailedPositionSummary[currentRemoteness][2] = (POSITION) atol(strtok(NULL, ","));
     }
-    printf("Done!");
+    printf("done in %u seconds!", Stopwatch());
     return TRUE;
 }
 
