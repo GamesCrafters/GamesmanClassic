@@ -168,6 +168,13 @@ proc GS_NameOfPieces {} {
 
 }
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
 # GS_Initialize draws the graphics for the game on the canvas c
 # You could put an opening animation or just draw an empty board.
 # This function is called after GS_InitGameSpecific
@@ -175,13 +182,13 @@ proc GS_NameOfPieces {} {
 proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
-    global boardSize binPieces pieceSize
-    set canvasSize 500
-    set fontSize [expr $canvasSize / 25]
+    global boardSize binPieces pieceSize gFrameWidth gFrameHeight
+    set canvasSize [min $gFrameWidth $gFrameHeight]
+    set fontSize [expr int($canvasSize / 25)]
     set boardYOffset [expr ($canvasSize / 3) / 2]
     set binSize [expr $canvasSize / (($boardSize / 2) + 2)]
     set x [expr $canvasSize / 150]
-    $c configure -width $canvasSize -height $canvasSize
+
     $c create rect 0 $boardYOffset $canvasSize [expr $canvasSize - $boardYOffset] \
 	-fill #b98e60 -tag board
     
