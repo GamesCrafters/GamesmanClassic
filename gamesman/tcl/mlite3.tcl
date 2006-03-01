@@ -1258,5 +1258,5 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 proc GS_UndoGameOver { c position } {
 
     # Delete "Game Over!" text
-    $c delete $gameover
+    $c delete gameover
 }
