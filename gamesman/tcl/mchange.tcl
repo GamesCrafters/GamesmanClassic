@@ -17,6 +17,14 @@
 #
 ####################################################
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
+
 # GS_InitGameSpecific initializes game-specific features
 # of the current game.  You can use this function 
 # to initialize data structures, but not to present any graphics.
@@ -40,7 +48,7 @@ proc GS_InitGameSpecific {} {
 
     # Canvas size
     global CanvasWidth CanvasHeight
-    set CanvasWidth $gFrameWidth
+    set CanvasWidth [min $gFrameWidth $gFrameHeight]
     set CanvasHeight $CanvasWidth
 
     # Set the initial position of the board
@@ -553,21 +561,37 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 proc GS_GetGameSpecificOptions { } {
 }
 
-
+#############################################################################
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
-# you could use this function to draw the line striking out the winning row in tic tac toe for instance
-# or you could congratulate the winner or do nothing if you want.
-
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
+# You could use this function to draw the line striking out the winning row in 
+# tic tac toe for instance.  Or, you could congratulate the winner.
+# Or, do nothing.
+#############################################################################
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    
+    global CanvasWidth
+    set size $CanvasWidth
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
+	
 }
 
 
-# GS_UndoGameOver is called then the player hits undo after the game is finished.
-# this is provided so that you may undo the drawing you did in GS_GameOver if you drew something.
-# for instance, if you drew a line crossing out the winning row in tic tac toe, this is where you sould delete the line.
-
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the game, so IF you choose to do nothing in
-# GS_GameOver, you needn't do anything here either.
-
+#############################################################################
+# GS_UndoGameOver is called when the player hits undo after the game is finished.
+# This is provided so that you may undo the drawing you did in GS_GameOver if you 
+# drew something.
+# For instance, if you drew a line crossing out the winning row in tic tac toe, 
+# this is where you sould delete the line.
+#
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
+# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
+#############################################################################
 proc GS_UndoGameOver { c position } {
-}
+
+    # Delete "Game Over!" text
+    $c delete $gameover
+ }
