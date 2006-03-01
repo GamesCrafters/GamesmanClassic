@@ -177,7 +177,12 @@ proc GS_SetOption { option } {
 }
 
 
-
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
 
 
 #############################################################################
@@ -192,15 +197,12 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
 
-    # you may want to start by setting the size of the canvas; this line isn't necessary
-    $c configure -width 500 -height 500
-
     global xCenter yCenter
     global smallCircleDiam largeCircleDiam pieceCircleDiam largeCircleRadius cornerOffset
-    global gInitialPosition gPosition
+    global gInitialPosition gPosition gFrameWidth gFrameHeight cWidth cHeight
 
-    set cWidth [$c cget -width]
-    set cHeight [$c cget -height]
+    set cWidth [min $gFrameWidth $gFrameHeight]
+    set cHeight $cWidth
     
     if {$cWidth < $cHeight} {
 	set cSmallerDim $cWidth
@@ -656,6 +658,7 @@ proc GS_NewGame { c position } {
 
     #GS_DrawPosition $c $position
     #$c create text 250 5 -text $position
+    $c delete gameover
     GS_DrawPosition $c $position
 }
 
@@ -833,7 +836,6 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 proc GS_GetGameSpecificOptions { } {
 }
 
-
 #############################################################################
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
 # You could use this function to draw the line striking out the winning row in 
@@ -841,8 +843,14 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-
-	### TODO if needed
+    
+    global cWidth
+    set size $cWidth
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 	
 }
 
@@ -859,6 +867,6 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-	### TODO if needed
-
+    # Delete "Game Over!" text
+    $c delete gameover
 }
