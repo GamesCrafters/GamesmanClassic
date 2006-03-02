@@ -283,10 +283,12 @@ void InitializeGame ()
     gWhosTurn = boardArray->theTurn = Blue;
     
     for (i = 0; i < boardSize; i++) {
-    	boardArray->theBoard[i] = Blank;
+    	boardArray->theBoard[i] = BLANKPIECE;
     }
     
     gInitialPosition = arrayHash(boardArray);
+    playerName = (char *) SafeMalloc(7 * sizeof(char));
+    //gPlayerName[kPlayerOneTurn] = playerName;
     SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
 }
@@ -544,7 +546,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+    printf(" THIS IS PRINT COMPUTER'S MOVE!\n");
 }
 
 
@@ -560,7 +562,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    
+    printf(" THIS IS PRINT MOVE!\n");
 }
 
 
@@ -676,7 +678,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    
+    printf(" THIS IS GAME SPECIFIC MENU!\n");
 }
 
 
@@ -873,6 +875,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/02/27 23:37:40  mikehamada
+// *** empty log message ***
+//
 // Revision 1.12  2006/02/27 23:28:08  mikehamada
 // Fixed Errors in DoMove and Primitive
 //
