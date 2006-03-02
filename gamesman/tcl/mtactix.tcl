@@ -35,6 +35,13 @@
 #     around depending on when the move is needed and in what form.
 #############################################################################
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -64,10 +71,10 @@ proc GS_InitGameSpecific {} {
 
     ### Set the size of the canvas (can be changed)
 
-    global CANVAS_WIDTH CANVAS_HEIGHT
+    global CANVAS_WIDTH CANVAS_HEIGHT gFrameWidth gFrameHeight
 
-    set CANVAS_WIDTH 500
-    set CANVAS_HEIGHT 500
+    set CANVAS_WIDTH [min $gFrameWidth $gFrameHeight]
+    set CANVAS_HEIGHT $CANVAS_WIDTH
 
     ### Set the size of the board
 
@@ -511,6 +518,7 @@ proc GS_NewGame { c position } {
     $c configure -width $CANVAS_WIDTH -height $CANVAS_HEIGHT
     
     GS_DrawPosition $c $position
+    $c delete gameover
     $c raise tagPiece all
 }
 
@@ -946,8 +954,14 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-
-	### TODO if needed
+    
+    global CANVAS_WIDTH
+    set size $CANVAS_WIDTH
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 	
 }
 
@@ -964,9 +978,10 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-	### TODO if needed
+    # Delete "Game Over!" text
+    $c delete gameover
+ }
 
-}
 
 #############################################################################
 ##

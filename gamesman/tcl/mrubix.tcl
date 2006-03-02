@@ -202,6 +202,12 @@ proc GS_SetOption { option } {
     set gBoardsizeOption [expr $option/(2*2)%2]
 }
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
 
 # GS_Initialize draws the graphics for the game on the canvas c
 # You could put an opening animation or just draw an empty board.
@@ -210,13 +216,13 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
 
     global blockSize WIDTH BOARDSIZE boardWidth boardHeight
-    global firstHalfAlreadyAnimated
+    global firstHalfAlreadyAnimated gFrameWidth gFrameHeight preferredHeight preferredWidth
 
     set HEIGHT [expr $BOARDSIZE/$WIDTH]
     set firstHalfAlreadyAnimated 0
 
-    set preferredHeight 500.0
-    set preferredWidth 500.0
+    set preferredHeight [min $gFrameWidth $gFrameHeight]
+    set preferredWidth $preferredHeight
     
     # The label has been removed due to an error in GAMESMAN
     # set labelSize 50.0
@@ -920,34 +926,37 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 }
 
 
+#############################################################################
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
-# you could use this function to draw the line striking out the winning row in tic tac toe for instance
-# or you could congratulate the winner or do nothing if you want.
-
-proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    GS_DrawPosition $c $position
-
-    # global boardWidth boardHeight
-    # $c lower labelrubix base
-   
-    # if { $gameValue != "Tie" } {
-    #	$c create text [expr $boardWidth/2] [expr $boardHeight+25] -text "$nameOfWinningPiece wins!" -font ourArial -tag labelend
-    # } else {
-    #	$c create text [expr $boardWidth/2] [expr $boardHeight+25] -text "Tie!" -font ourArial -tag labelend
-    # }
+# You could use this function to draw the line striking out the winning row in 
+# tic tac toe for instance.  Or, you could congratulate the winner.
+# Or, do nothing.
+#############################################################################
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    
+    global preferredWidth
+    set size $preferredWidth
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
+	
 }
 
 
-# GS_UndoGameOver is called then the player hits undo after the game is finished.
-# this is provided so that you may undo the drawing you did in GS_GameOver if you drew something.
-# for instance, if you drew a line crossing out the winning row in tic tac toe, this is where you sould delete the line.
-
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the game, so IF you choose to do nothing in
-# GS_GameOver, you needn't do anything here either.
-
+#############################################################################
+# GS_UndoGameOver is called when the player hits undo after the game is finished.
+# This is provided so that you may undo the drawing you did in GS_GameOver if you 
+# drew something.
+# For instance, if you drew a line crossing out the winning row in tic tac toe, 
+# this is where you sould delete the line.
+#
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
+# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
+#############################################################################
 proc GS_UndoGameOver { c position } {
-    # $c lower labelend base
-    # $c raise labelrubix base
-}
 
-
+    # Delete "Game Over!" text
+    $c delete gameover
+ }
