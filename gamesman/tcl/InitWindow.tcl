@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.85 2006-01-31 01:32:33 eudean Exp $
+# $Id: InitWindow.tcl,v 1.86 2006-03-03 12:16:40 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -129,7 +129,7 @@ proc InitWindow { kRootDir kDir kExt } {
     global gSkinsDir
     global gSkinsExt
     global gGamePlayable
-    global kLabelFont kPlayerLabelFont kToMoveToWinFont
+    global kLabelFont kPlayerLabelFont kToMoveToWinFont kDocumentFont kValueHistoryLabelFont
     global gFontColor
     global tcl_platform
     global gPredString gWhoseTurn
@@ -142,6 +142,10 @@ proc InitWindow { kRootDir kDir kExt } {
     global gReallyUnsolved
     global gWaitingForHuman
     global gNewGame
+    #move value history
+    global moveHistoryList moveHistoryCanvas moveHistoryVisible
+    global gameMenuToDriverLoop
+    global maxRemoteness maxTieRemoteness
 
     #
     # Initialize the constants
@@ -157,6 +161,12 @@ proc InitWindow { kRootDir kDir kExt } {
     set gSkinsExt "$kExt"
     set gFontColor "black"
 
+    set moveHistoryList []
+    set moveHistoryCanvas .middle.f1.cMLeft
+    set moveHistoryVisible false
+    set gameMenuToDriverLoop false
+    set maxRemoteness 1
+    set maxTieRemoteness 0
 
     set convertExists false
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
@@ -205,6 +215,20 @@ proc InitWindow { kRootDir kDir kExt } {
     set gFrameWidth [expr $gWindowWidth * 10 / 16.0]
     set gFrameHeight [expr $gWindowHeight * 5 / 6.0]
 
+
+    if { $tcl_platform(platform) == "windows" } {
+        set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 10)] bold"
+	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 10)]"
+	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 9)] bold"
+	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 15)] bold"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 5)]"
+    } else {
+        set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
+	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 12)]"
+	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
+	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 18)] bold"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 6)]"
+    }
 
     set gGamePlayable false
     set gWaitingForHuman false
@@ -322,6 +346,7 @@ proc InitWindow { kRootDir kDir kExt } {
 		    .cStatus raise predI
 		}
 	    }
+	    set gameMenuToDriverLoop true
 	    DriverLoop
         }
     frame .middle.f2.fPlayOptions.fMid \
@@ -643,6 +668,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    update
 	    global gOldRules
 	    GS_SetOption $gOldRules
+	    set gameMenuToDriverLoop true
 	    DriverLoop
 	}
     button $rulesFrame.buttons.bOk \
@@ -705,6 +731,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
+	    set gameMenuToDriverLoop true
 	    DriverLoop
 	}
     
@@ -795,6 +822,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
+	    set gameMenuToDriverLoop true
 	    DriverLoop
 	}
     
@@ -836,6 +864,7 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cToolbar raise iITB
 	    RaiseStatusBarIfGameStarted
 	    update
+	    set gameMenuToDriverLoop true
 	    DriverLoop
 	}
 
@@ -872,6 +901,69 @@ proc InitWindow { kRootDir kDir kExt } {
     .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iDMB6p -tags [list  iDMB iDMB6]
     .middle.f3.cMRight create image 0 0 -anchor nw -image iAMB8p -tags [list play]
     .middle.f3.cMRight create image 0 0 -anchor nw -image iOMB8p -tags [list playOver]
+
+
+    ## MOVE HISTORY SIDEBAR ##
+
+    set titleY [expr $gWindowWidthRatio * 10]
+    set descY [expr $gWindowWidthRatio * 20]
+    set labelsY [expr $gWindowWidthRatio * 29]
+    set graphTopY [expr $gWindowWidthRatio * 35]
+
+    set center [expr $gWindowWidthRatio * 75]
+
+    .middle.f1.cMLeft create text $center $titleY \
+	-text "Value History:" \
+	-width [expr $gWindowWidthRatio * 140] \
+	-justify center \
+	-font $kToMoveToWinFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list moveHistory moveHistoryTitle textitem]
+
+    .middle.f1.cMLeft create text 0 $descY \
+	-text "<-- $gLeftName Winning" \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor w \
+	-tags [list moveHistory moveHistoryDesc textitem]
+
+    .middle.f1.cMLeft create text [expr 2*$center] $descY \
+	-text "$gRightName Winning -->" \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor e \
+	-tags [list moveHistory moveHistoryDesc textitem]
+
+    .middle.f1.cMLeft create text $center $labelsY \
+	-text "D" \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list moveHistory moveHistoryLabels textitem]
+
+    .middle.f1.cMLeft create text 0 $labelsY \
+	-text "0" \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor w \
+	-tags [list moveHistory moveHistoryLabels textitem]
+
+    .middle.f1.cMLeft create text [expr 2 * $center] $labelsY \
+	-text "0" \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor e \
+	-tags [list moveHistory moveHistoryLabels textitem]
+
+    .middle.f1.cMLeft create line \
+	$center $graphTopY $center [expr $gWindowWidthRatio * 400] \
+	-fill $gFontColor \
+	-width 1 \
+	-tags [list moveHistory moveHistoryCenterLine]
+
+
+    ## END MOVE HISTORY SIDEBAR ##
 
     .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
 	-text "To Win:" \
@@ -988,8 +1080,10 @@ proc InitWindow { kRootDir kDir kExt } {
 	.middle.f2.cMain lower base
 	.middle.f1.cMLeft raise ToWin
 	.middle.f1.cMLeft raise ToMove
+	.middle.f1.cMLeft lower moveHistory
+	set moveHistoryVisible false
 	.cStatus raise winA
-	.cStatus raise moveA
+	.cStatus raise moveI
 
 	.cToolbar raise iITB
 	
@@ -1013,9 +1107,9 @@ proc InitWindow { kRootDir kDir kExt } {
 	    .cStatus raise predI
 	}
 	.middle.f3.cMRight raise WhoseTurn
+	.middle.f1.cMLeft raise LeftName
 	.middle.f3.cMRight raise RightName
 	.cStatus raise undoD
-	#.middle.f3.cMRight raise RightName
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
@@ -1044,13 +1138,13 @@ proc InitWindow { kRootDir kDir kExt } {
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
-    #create toWin checked
+    #create rules selected
     .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 winA]
-    #create toWin unchecked
+    #create rules unselected
     .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
-    #create toMove checked
+    #create value history selected
     .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 moveA]
-    #create toMove unchecked
+    #create value history unselected
     .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
     
 
@@ -1103,26 +1197,41 @@ proc InitWindow { kRootDir kDir kExt } {
 
 
     .cStatus bind winA <ButtonRelease-1> {
-	.middle.f1.cMLeft raise iIMB1
-	.cStatus raise iIBB3
+	#.middle.f1.cMLeft raise iIMB1
+	#.middle.f1.cMLeft raise iIMB2
+	#.cStatus raise iIBB3
 	update
     }
 
     .cStatus bind winI <ButtonRelease-1> {
+	.middle.f1.cMLeft raise iIMB1
+	.middle.f1.cMLeft raise iIMB2
 	.middle.f1.cMLeft raise ToWin
-	.cStatus raise iABB3
+	.middle.f1.cMLeft raise ToMove
+	.middle.f1.cMLeft lower moveHistory
+	set moveHistoryVisible false
+	.cStatus raise moveI
+	.cStatus raise winA
+	#.cStatus raise iABB3
 	update
     }
 
     .cStatus bind moveA <ButtonRelease-1> {
-	.middle.f1.cMLeft raise iIMB2
-	.cStatus raise moveI
+	#.middle.f1.cMLeft raise iIMB1
+	#.middle.f1.cMLeft raise iIMB2
+	#.cStatus raise moveI
 	update
     }
 
     .cStatus bind moveI <ButtonRelease-1> {
-	.middle.f1.cMLeft raise ToMove
-	.cStatus raise iABB4
+	.middle.f1.cMLeft raise iIMB1
+	.middle.f1.cMLeft raise iIMB2
+	.middle.f1.cMLeft raise iIMB3
+	.middle.f1.cMLeft raise moveHistory
+	set moveHistoryVisible true
+	.cStatus raise winI
+	.cStatus raise moveA
+	#.cStatus raise iABB4
 	update
     }
 
@@ -1384,6 +1493,259 @@ proc HandleScrollFeedback { bar whichOffset args } {
     $bar set $fraction 0
 }
 
+proc plotMove { turn theValue theRemoteness } {
+    global moveHistoryList moveHistoryCanvas moveHistoryVisible
+    global gWindowWidthRatio
+    global gFontColor
+    global maxRemoteness maxTieRemoteness
+
+    set drawRemoteness 255
+    set pieceRadius [expr 3.0 + $gWindowWidthRatio]
+    set center [expr $gWindowWidthRatio * 75]
+    set top [expr $gWindowWidthRatio * 35 + $pieceRadius]
+    set bottom [expr $gWindowWidthRatio * 400]
+
+    set numMoves [llength $moveHistoryList]
+
+    #do actual plotting
+    set mult 1.0
+    set color grey
+    if {$theValue == "Win" && $turn == "Left"} {
+	set mult -1.0
+    } elseif {$theValue == "Win" && $turn == "Right"} {
+	set mult 1.0
+    } elseif {$theValue == "Lose" && $turn == "Left"} {
+	set mult 1.0
+    } elseif {$theValue == "Lose" && $turn == "Right"} {
+	set mult -1.0
+    } elseif { $theRemoteness == $drawRemoteness } {
+	set mult 0.0
+    }
+
+    if { $theValue == "Win"} {
+	set color green
+	set lineColor red4
+    } elseif { $theValue == "Lose"} {
+	set color red4
+	set lineColor green
+    } else {
+	set color yellow
+	set lineColor yellow
+    }
+
+    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+
+    if { $theRemoteness < $drawRemoteness } {
+	set oldDeltaX $deltax
+	if { $theRemoteness > $maxRemoteness && $theValue != "Tie"} {
+	    set maxRemoteness [expr $theRemoteness + 1]
+	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+	    rescaleX $center $pieceRadius $oldDeltaX $deltax $maxTieRemoteness
+	} elseif { $theRemoteness > $maxTieRemoteness && $theValue == "Tie"} {
+	    set oldMaxTieRemoteness $maxTieRemoteness
+	    set maxTieRemoteness [expr $theRemoteness + 1]
+	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+	    rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxTieRemoteness
+	}
+    }
+    
+    #if { $theRemoteness == $drawRemoteness } {
+    #set theRemoteness $maxRemoteness
+    #}
+
+    set tieXRange [expr $maxTieRemoteness * $deltax]
+    set y [expr $top + [expr 2 * $pieceRadius * [expr $numMoves / 2]]]
+
+    #draw tie boundary lines
+    $moveHistoryCanvas delete moveHistoryTieLine
+    set leftTieLine \
+	[$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
+	     -fill $gFontColor \
+	     -width 1 \
+	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
+    set rightTieLine \
+	[$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
+	     -fill $gFontColor \
+	     -width 1 \
+	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
+    global kValueHistoryLabelFont
+    $moveHistoryCanvas delete moveHistoryLabelsMaxRemoteness
+    $moveHistoryCanvas create text [expr $center - $tieXRange - $deltax] [expr $top - $pieceRadius - 6.0 * $gWindowWidthRatio] \
+	-text $maxRemoteness \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list moveHistory moveHistoryLabels moveHistoryLabelsMaxRemoteness textitem]
+    $moveHistoryCanvas create text [expr $center + $tieXRange + $deltax] [expr $top - $pieceRadius - 6.0 * $gWindowWidthRatio] \
+	-text $maxRemoteness \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor center \
+	-tags [list moveHistory moveHistoryLabels moveHistoryLabelsMaxRemoteness textitem]
+
+    if { $theValue == "Tie" }  {
+	set xDistance [expr [expr $maxTieRemoteness - $theRemoteness] * $deltax * $mult]
+    } else {
+	set xDistance [expr [expr $tieXRange + [expr $maxRemoteness - $theRemoteness] * $deltax] * $mult]
+    }
+    set x [expr $center + $xDistance]
+    set xOpposite [expr $center - $xDistance]
+
+    if { $numMoves > 0} {
+	set prev [lindex $moveHistoryList [expr $numMoves - 1]]
+	set prevCoords [$moveHistoryCanvas coords $prev]
+	set prevX [expr [expr [lindex $prevCoords 0] + [lindex $prevCoords 2]] / 2]
+	set prevY [expr [expr [lindex $prevCoords 1] + [lindex $prevCoords 3]] / 2]
+	if { "" != [set prevCoordsOpposite [$moveHistoryCanvas coords oppositeLine$prevY]] } {
+	    set prevXOpposite [lindex $prevCoordsOpposite 2]
+	} else {
+	    set prevXOpposite $prevX
+	}
+    } else {
+	set prevX $x
+	set prevY $y
+	set prevXOpposite $x
+    }
+
+    set plottedLine \
+	[$moveHistoryCanvas create line $prevX $prevY $x $y \
+	     -fill $lineColor \
+	     -width 1 \
+	     -tags [list moveHistory moveHistoryLine]]
+
+    set plottedMove \
+	[$moveHistoryCanvas create oval \
+	     [expr $x - $pieceRadius] [expr $y - $pieceRadius] [expr $x + $pieceRadius] [expr $y + $pieceRadius] \
+	     -fill $color \
+	     -tags [list moveHistory moveHistoryPlot]]
+
+    if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
+	set plottedLineOpposite \
+	    [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
+		 -fill $lineColor \
+		 -width 1 \
+		 -tags [list moveHistory moveHistoryLine opposite$y oppositeLine$y]]
+
+	set plottedMoveOpposite \
+	    [$moveHistoryCanvas create oval \
+		 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
+		 -fill $color \
+		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y]]
+    }
+
+    $moveHistoryCanvas raise moveHistoryPlot
+
+    if { $moveHistoryVisible == false } {
+	$moveHistoryCanvas lower moveHistory
+    }
+    #done with plotting
+
+    #add new move to list
+    lappend moveHistoryList $plottedLine $plottedMove
+}
+
+proc unplotMove { numUndo } {
+    global moveHistoryList moveHistoryCanvas
+    set moveBackNum [expr [expr $numUndo + 1] * 2]
+    set len [llength $moveHistoryList]
+    set newLast [expr $len - $moveBackNum - 1]
+    #delete items
+    for {set i 0} {$i<[expr $moveBackNum+1] && [expr $len - $i] >= 0} {incr i} {
+	set end [lindex $moveHistoryList [expr $len - $i]]
+	set y [lindex [$moveHistoryCanvas coords $end] 3]
+	$moveHistoryCanvas delete opposite$y
+	$moveHistoryCanvas delete $end
+    }
+    #remove item from list
+    set moveHistoryList [lrange $moveHistoryList 0 $newLast]
+}
+
+proc clearMoveHistory { } {
+    global moveHistoryList moveHistoryCanvas
+    $moveHistoryCanvas delete moveHistoryPlot
+    $moveHistoryCanvas delete moveHistoryLine
+    set moveHistoryList []
+}
+
+proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness } {
+    global moveHistoryList moveHistoryCanvas
+    global maxTieRemoteness
+    for {set i 0} {$i<[llength $moveHistoryList]} {incr i} {
+	set current [lindex $moveHistoryList $i]
+	set currentCoords [$moveHistoryCanvas coords $current]
+	if { [$moveHistoryCanvas type $current] == "oval" } {
+	    set lineIn [lindex $moveHistoryList [expr $i - 1]]
+	    set lineInCoords [$moveHistoryCanvas coords $lineIn]
+	    if {$i < [expr [llength $moveHistoryList] - 1]} {
+		set lineOut [lindex $moveHistoryList [expr $i + 1]]
+		set lineOutCoords [$moveHistoryCanvas coords $lineOut]
+	    }
+	    set oldX [lindex $lineInCoords 2]
+	    set y [lindex $lineInCoords 3]
+
+	    #handle tie opposite pieces
+	    set isTie false
+	    if { [$moveHistoryCanvas type opposite$y] != "" } {
+		set isTie true
+	    }
+
+	    if {$oldX < $center} {
+		set mult -1
+	    } elseif {$oldX > $center} {
+		set mult 1
+	    } else {
+		set mult 0
+	    }
+	    set oldXDistance [expr [expr $oldX - $center] * $mult]
+	    set oldRemoteness [expr $oldXDistance / $oldDeltaX]
+	    set shift [expr $oldRemoteness * $mult * [expr $oldDeltaX - $newDeltaX]]
+	    if { $maxTieRemoteness > $oldMaxTieRemoteness } {
+		set shift [expr $shift - [expr $mult * $maxTieRemoteness * $newDeltaX]]
+	    }
+	    set steps 5
+	    set shift [expr $shift / $steps]
+	    global gAnimationSpeed
+	    #total time in ms for one piece to move to new location
+	    #range 0-100
+	    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
+	    for {set j 1} {$j<=$steps} {incr j} {
+		set newX [expr $oldX - [expr $shift * $j]]
+		set xOpposite [expr $center + $center - $newX]
+		lset lineInCoords 2 $newX
+		if {$i == 1} {
+		    lset lineInCoords 0 $newX
+		}
+		$moveHistoryCanvas coords $lineIn $lineInCoords
+		lset currentCoords 0 [expr $newX - $pieceRadius]
+		lset currentCoords 2 [expr $newX + $pieceRadius]
+		$moveHistoryCanvas coords $current $currentCoords
+		if {$i < [expr [llength $moveHistoryList] - 1]} {
+		    lset lineOutCoords 0 $newX
+		    $moveHistoryCanvas coords $lineOut $lineOutCoords
+		}
+
+		if { $isTie } {
+		    set nextY [expr $y + 2 * $pieceRadius]
+		    set oppLineInCoords [$moveHistoryCanvas coords oppositeLine$y]
+		    set oppPieceCoords [$moveHistoryCanvas coords oppositePiece$y]
+		    if {"" != [set oppLineOutCoords [$moveHistoryCanvas coords oppositeLine$nextY]]} {
+			lset oppLineOutCoords 0 $xOpposite
+			$moveHistoryCanvas coords oppositeLine$nextY $oppLineOutCoords
+		    }
+		    lset oppLineInCoords 2 $xOpposite
+		    lset oppPieceCoords 0 [expr $xOpposite - $pieceRadius]
+		    lset oppPieceCoords 2 [expr $xOpposite + $pieceRadius]
+		    $moveHistoryCanvas coords oppositeLine$y $oppLineInCoords
+		    $moveHistoryCanvas coords oppositePiece$y $oppPieceCoords
+		}
+
+		update idletasks
+		after [expr $delay / $steps]
+	    }
+	}
+    }
+}
+
 proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
     global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
@@ -1404,6 +1766,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	     $gSkinsDir == "SpaceCloud_HiRes/"} {
 	set gFontColor "white"
 	if { [winfo exists .middle.f1.cMLeft] } {
+	    .middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
 	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
@@ -1412,6 +1777,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     } else {
 	set gFontColor "black"
 	if { [winfo exists .middle.f1.cMLeft] } {
+	    .middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
 	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
@@ -1586,3 +1954,4 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     #
 
 }
+

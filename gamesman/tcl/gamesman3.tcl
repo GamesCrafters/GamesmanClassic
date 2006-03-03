@@ -107,21 +107,7 @@ proc InitGlobals {} {
     global kSmallPiece
     set kSmallPiece 0
 
-    ### Set the color and font of the labels
-
-    global kLabelFont kPlayerLabelFont kToMoveToWinFont kDocumentFont
-    global tcl_platform
-    if { $tcl_platform(platform) == "windows" } {
-        set kLabelFont { Helvetica 10 bold }
-	set kDocumentFont { Helvetica 10 }
-	set kToMoveToWinFont { Helvetica 9 bold }
-	set kPlayerLabelFont { Helvetica 15 bold }
-    } else {
-        set kLabelFont { Helvetica 12 bold }
-	set kDocumentFont { Helvetica 12 }
-	set kToMoveToWinFont {Helvetica 12 bold }
-	set kPlayerLabelFont { Helvetica 18 bold }
-    }
+    ### Set the color and font of the labels (moved to InitWindow.tcl)
 
     global kLabelColor
     set kLabelColor grey40
@@ -231,6 +217,9 @@ proc NewGame { } {
     GS_NewGame .middle.f2.cMain $gPosition
     .cStatus raise undoD
     EnableMoves
+    
+    clearMoveHistory
+
     DriverLoop
 }
 
@@ -252,6 +241,8 @@ proc DriverLoop { } {
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
     global gMoveDelay gGameDelay gMoveType gGameSolved
+    global gWhoseTurn gLeftName gRightName
+    global gameMenuToDriverLoop
 
     if { !$gGameSolved } {
 	return
@@ -260,6 +251,17 @@ proc DriverLoop { } {
     set gWaitingForHuman false
 
     while { [expr !$gWaitingForHuman] } {
+
+	if {!$gameMenuToDriverLoop} {
+	    ## Move History
+	    set theValue      [C_GetValueOfPosition $gPosition]
+	    set theRemoteness [C_Remoteness $gPosition]
+	    
+	    plotMove $gWhoseTurn $theValue $theRemoteness
+	    update idletasks
+	    ##
+	}
+	set gameMenuToDriverLoop false
 
 	set primitive [C_Primitive $gPosition]
 
@@ -271,7 +273,6 @@ proc DriverLoop { } {
 	    
 	} else {
 
-	    global gWhoseTurn gLeftName gRightName
 	    .middle.f3.cMRight itemconfigure WhoseTurn \
 		-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
 		update idletasks
@@ -280,7 +281,7 @@ proc DriverLoop { } {
 	    global gPredString
 	    GetPredictions
 	    .middle.f3.cMRight itemconfigure Predictions \
-		-text [format "Predictions: %s" $gPredString] 
+		-text [format "Predictions: %s" $gPredString]
 	    update idletasks
        	    
 	    if { [PlayerIsComputer] } {
@@ -301,6 +302,7 @@ proc DriverLoop { } {
 		    set gWaitingForHuman true
 		}
 		set gJustUndone false
+
 	    }
 	}
     }
@@ -640,9 +642,13 @@ proc Undo { } {
     global gPredString
     .middle.f3.cMRight itemconfigure Predictions \
 	    -text [format "Predictions: %s" $gPredString] 
+
+    unplotMove 1
+
     update idletasks
     global gJustUndone
     set gJustUndone true
+
     DriverLoop
 }
 
@@ -684,7 +690,9 @@ proc UndoHelper { } {
 	}
         
         if { [PlayerIsComputer] } {
-            
+
+            unplotMove 0
+
             UndoHelper
 
 	}
