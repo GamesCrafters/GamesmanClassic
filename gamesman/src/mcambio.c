@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.4 2006-02-26 20:36:53 simontaotw Exp $
+// $Id: mcambio.c,v 1.5 2006-03-03 05:19:49 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -18,6 +18,7 @@
 ** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
 **              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
 **              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
+**              3/2/2006 - Fixed various error.
 **
 **************************************************************************/
 
@@ -52,7 +53,7 @@ BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  900000000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  4000000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 /* 3^25 = 8.47E11 ~ 9E11 (this needs refining) */
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
@@ -68,30 +69,31 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"BOARD SETUP:\n
-1. The players each select a symbol to be their own, and decide\n
-   who will begin the game.\n
-2. Fill the four corners with neutral symbols.\n
-3. Player A creates a starting position for Player B by placing\n
-   5 cubes into the tray, with player B's symbol.\n  
-   These cubes may be placed in any of the positions that a cube\n   may occupy when the tray is full.\n
-4. Player B now places 4 of the first player A's symbol in any\n
-   free positions.\n
-5. Fill in the rest of the positions with neutral symbols.\n\n
-PLAY:\n
-Each player in turn places a spare cube with his/her own symbol, at\n
-the beginning of any row or column; frees the end cube by lifting\n
-it from the board; then pushes all the pieces in that line along\n
-one place. A player MAY NOT push cubes with your opponents symbol\n
+"BOARD SETUP:\n\
+1. The players each select a symbol to be their own, and decide\n\
+   who will begin the game.\n\
+2. Fill the four corners with neutral symbols.\n\
+3. Player A creates a starting position for Player B by placing\n\
+   5 cubes into the tray, with player B's symbol.\n\
+   These cubes may be placed in any of the positions that a cube\n\
+   may occupy when the tray is full.\n\
+4. Player B now places 4 of the first player A's symbol in any\n\
+   free positions.\n\
+5. Fill in the rest of the positions with neutral symbols.\n\n\
+PLAY:\n\
+Each player in turn places a spare cube with his/her own symbol, at\n\
+the beginning of any row or column; frees the end cube by lifting\n\
+it from the board; then pushes all the pieces in that line along\n\
+one place. A player MAY NOT push cubes with your opponents symbol\n\
 showing OFF the board.\n"; 
 
 STRING   kHelpOnYourTurn =
-"You may only push off neutral cubes, or cubes of your own symbol.\n
-As the game progresses, you should have more and more of your own\n
-cubes in play.";
+"You may only push off neutral cubes, or cubes of your own symbol.\n\
+As the game progresses, you should have more and more of your own\n\
+cubes in play.\n";
 
 STRING   kHelpStandardObjective =
-"To make a line composed of all 5 of your own symbol - \n
+"To make a line composed of all 5 of your own symbol - \n\
 horizontally, vertically or diagonally.\n";
 
 STRING   kHelpReverseObjective =
@@ -112,6 +114,7 @@ STRING   kHelpExample =
 
 #define ROWCOUNT 5;
 #define COLCOUNT 5;
+#define BOARDSIZE 25;
 
 #define BLANK ' ';
 #define NEUTRAL '-';
@@ -119,31 +122,13 @@ STRING   kHelpExample =
 #define B_PIECE 'O';
 #define UNKNOWN '?';
 
-#define A_TURN 1;
-#define B_TURN 2;
+typedef enum player {
+  playerA = 1, playerB = 2
+} Player;
 
-typedef enum possibleBoardPieces {
-  Blank = 0, Neutral, A, B
+typedef enum boardPieces {
+  Blank = 0, Neutral = 1, A = 2, B = 3
 } BoardPiece;
-
-typedef enum playerTurn {
-  A = 1, B
-} PlayerTurn;
-
-/* used in PrintPosition() */
-#define BOLD_UL_CORNER 201;
-#define BOLD_UR_CORNER 187;
-#define BOLD_LL_CORNER 200;
-#define BOLD_LR_CORNER 188;
-#define BOLD_HOR 205;
-#define BOLD_VERT 186;
-#define BOLD_HOR_DOWN 209;
-#define BOLD_HOR_UP 207;
-#define BOLD_VERT_LEFT 182;
-#define BOLD_VERT_RIGHT 199;
-#define HOR_LINE 196;
-#define VERT_LINE 179;
-#define CROSS_LINE 197;
 
 /*************************************************************************
 **
@@ -151,11 +136,13 @@ typedef enum playerTurn {
 **
 *************************************************************************/
 
-int boardSize = 25;
+int boardSize = BOARDSIZE;
+int rowcount = ROWCOUNT;
+int colcount = COLCOUNT;
 int aCount = 0;
 int bCount = 0;
 
-Player gWhosTurn;
+Player gWhosTurn = playerA;
 int gameType;
 
 /*************************************************************************
@@ -209,12 +196,12 @@ void InitializeGame ()
   BoardPiece boardArray[boardSize];
 
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
-  gWhosTurn = A_TURN;
+  gWhosTurn = playerA;
     
-  /* setting up the four corners; to neutrals */
-  boardArray[0] = boardArray[COLCOUNT-1] = boardArray[boardSize-(COLCOUNT-1)]  = boardArray[boardSize-1] = Neutral;
+  /* setting up the four corners; to Neutrals */
+  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = Neutral;
 
-  /* setting up the rest of the board; to blanks */
+  /* setting up the rest of the board; to Blanks */
   for (i = 0; i < boardSize; i++) {
     boardArray[i] = Blank;
   }
@@ -325,103 +312,66 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   char *theBoard = generic_unhash(position,theBoard);
   
   /***********************LINE 1**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_UL_CORNER, 
-	                                    BOLD_HOR, BOLD_HOR_DOWN, 
-                                            BOLD_HOR, BOLD_HOR_DOWN, 
-                                            BOLD_HOR, BOLD_HOR_DOWN, 
-                                            BOLD_HOR, BOLD_HOR_DOWN, 
-                                            BOLD_HOR, 
-                                            BOLD_UR_CORNER);
+  printf("       #-#-#-#-#-#\n");
 
   /***********************LINE 2**************************/
-  printf("       %c", BOLD_VERT);
-  for (i = 0; i < COLCOUNT; i++) {
-    printf("%c%c", BoardPieceToChar(arrayHashedBoard[i]), (i == (COLCOUNT-1)) ? VERT_LINE : BOLD_VERT);
+  printf("       |");
+  for (i = 0; i < colcount; i++) {
+    printf("%c|", BoardPieceToChar(theBoard[i]));
   }
   printf("          (  0  1  2  3  4 )\n");
 
   /***********************LINE 3**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE,
-                                            HOR_LINE, 
-                                            BOLD_VERT_LEFT);
-
+  printf("       #-#-#-#-#-#\n"); 
+                                 
   /***********************LINE 4**************************/
-  printf("       %c", BOLD_VERT);
-  for (; i < COLCOUNT*2; i++) {
-    printf("%c%c", BoardPieceToChar(arrayHashedBoard[i]), (i == (COLCOUNT*2-1)) ? VERT_LINE : BOLD_VERT);
+  printf("       |");
+  for (; i < colcount*2; i++) {
+    printf("%c|", BoardPieceToChar(theBoard[i]));
   }
   printf("          (  5  6  7  8  9 )\n");
 
   /***********************LINE 5**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE,
-                                            HOR_LINE, 
-                                            BOLD_VERT_LEFT);
+  printf("       #-#-#-#-#-#\n");                
+                                    
 
   /***********************LINE 6**************************/
-  printf("       %c", BOLD_VERT);
-  for (; i < COLCOUNT*3; i++) {
-    printf("%c%c", BoardPieceToChar(arrayHashedBoard[i]), (i == (COLCOUNT*3-1)) ? VERT_LINE : BOLD_VERT);
+  printf("       |");
+  for (; i < colcount*3; i++) {
+    printf("%c|", BoardPieceToChar(theBoard[i]));
   }
   printf("  LEGEND: ( 10 11 12 13 14 )\n");
 
   /***********************LINE 7**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE,
-                                            HOR_LINE, 
-                                            BOLD_VERT_LEFT);
-
+  printf("       #-#-#-#-#-#\n"); 
+                              
   /***********************LINE 8**************************/
-  printf("       %c", BOLD_VERT);
-  for (; i < COLCOUNT*4; i++) {
-    printf("%c%c", BoardPieceToChar(arrayHashedBoard[i]), (i == (COLCOUNT*4-1)) ? VERT_LINE : BOLD_VERT);
+  printf("       |");
+  for (; i < colcount*4; i++) {
+    printf("%c|", BoardPieceToChar(theBoard[i]));
   }
   printf("          ( 15 16 17 18 19 )\n");
 
   /***********************LINE 9**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE, 
-                                            HOR_LINE, CROSS_LINE,
-                                            HOR_LINE, 
-                                            BOLD_VERT_LEFT);
-
+  printf("       #-#-#-#-#-#\n");
+                                     
   /***********************LINE 10**************************/
-  printf("       %c", BOLD_VERT);
-  for (; i < COLCOUNT*5; i++) {
-    printf("%c%c", BoardPieceToChar(arrayHashedBoard[i]), (i == (COLCOUNT*5-1)) ? VERT_LINE : BOLD_VERT);
+  printf("       |");
+  for (; i < colcount*5; i++) {
+    printf("%c|", BoardPieceToChar(theBoard[i]));
   }
   printf("          ( 20 21 22 23 24 )\n");
 
   /***********************LINE 11**************************/
-  printf("       %c%c%c%c%c%c%c%c%c%c%c\n", BOLD_LL_CORNER, 
-	                                    BOLD_HOR, BOLD_HOR_UP, 
-                                            BOLD_HOR, BOLD_HOR_UP, 
-                                            BOLD_HOR, BOLD_HOR_UP, 
-                                            BOLD_HOR, BOLD_HOR_UP, 
-                                            BOLD_HOR, 
-                                            BOLD_LR_CORNER);
-
+  printf("       #-#-#-#-#-#\n"); 
+	                                 
   /***********************LINE 12**************************/
   printf("                      A's Symbol = X\n");
   printf("                      B's Symbol = O\n");
   printf("                         Neutral = -\n");
   printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
 
-  SafeFree(theBoard);
-}
-
+ }
 
 /************************************************************************
 **
@@ -706,6 +656,9 @@ char BoardPieceToChar(BoardPiece piece) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2006/02/26 20:36:53  simontaotw
+// Updated PrintPosition() (Modified PrintPosition() in mtopitop.c).
+//
 // Revision 1.3  2006/02/22 02:54:48  simontaotw
 // Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
 //
