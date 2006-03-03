@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.86 2006-03-03 12:16:40 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.87 2006-03-03 15:45:25 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1538,14 +1538,15 @@ proc plotMove { turn theValue theRemoteness } {
     if { $theRemoteness < $drawRemoteness } {
 	set oldDeltaX $deltax
 	if { $theRemoteness > $maxRemoteness && $theValue != "Tie"} {
+	    set oldMaxRemoteness $maxRemoteness
 	    set maxRemoteness [expr $theRemoteness + 1]
 	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
-	    rescaleX $center $pieceRadius $oldDeltaX $deltax $maxTieRemoteness
+	    rescaleX $center $pieceRadius $oldDeltaX $deltax $maxTieRemoteness $oldMaxRemoteness
 	} elseif { $theRemoteness > $maxTieRemoteness && $theValue == "Tie"} {
 	    set oldMaxTieRemoteness $maxTieRemoteness
 	    set maxTieRemoteness [expr $theRemoteness + 1]
 	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
-	    rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxTieRemoteness
+	    rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxTieRemoteness $maxRemoteness
 	}
     }
     
@@ -1667,9 +1668,9 @@ proc clearMoveHistory { } {
     set moveHistoryList []
 }
 
-proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness } {
+proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness oldMaxRemoteness } {
     global moveHistoryList moveHistoryCanvas
-    global maxTieRemoteness
+    global maxRemoteness maxTieRemoteness
     for {set i 0} {$i<[llength $moveHistoryList]} {incr i} {
 	set current [lindex $moveHistoryList $i]
 	set currentCoords [$moveHistoryCanvas coords $current]
@@ -1698,18 +1699,21 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness } {
 	    }
 	    set oldXDistance [expr [expr $oldX - $center] * $mult]
 	    set oldRemoteness [expr $oldXDistance / $oldDeltaX]
-	    set shift [expr $oldRemoteness * $mult * [expr $oldDeltaX - $newDeltaX]]
-	    if { $maxTieRemoteness > $oldMaxTieRemoteness } {
-		set shift [expr $shift - [expr $mult * $maxTieRemoteness * $newDeltaX]]
+	    if { $maxRemoteness > $oldMaxRemoteness } {
+		set oldRemoteness [expr $oldRemoteness + $maxRemoteness - $oldMaxRemoteness]
 	    }
+	    if { $maxTieRemoteness > $oldMaxTieRemoteness } {
+		set oldRemoteness [expr $oldRemoteness + $maxTieRemoteness - $oldMaxTieRemoteness]
+	    }
+	    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
 	    set steps 5
-	    set shift [expr $shift / $steps]
+	    set shift [expr $newXDistance / $steps]
 	    global gAnimationSpeed
 	    #total time in ms for one piece to move to new location
 	    #range 0-100
 	    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
 	    for {set j 1} {$j<=$steps} {incr j} {
-		set newX [expr $oldX - [expr $shift * $j]]
+		set newX [expr $center + [expr $shift * $j]]
 		set xOpposite [expr $center + $center - $newX]
 		lset lineInCoords 2 $newX
 		if {$i == 1} {
