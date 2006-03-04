@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.5 2006-03-03 05:19:49 simontaotw Exp $
+am// $Id: mcambio.c,v 1.6 2006-03-04 20:00:54 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -18,7 +18,8 @@
 ** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
 **              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
 **              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
-**              3/2/2006 - Fixed various error.
+**              3/2/2006 - Fixed various errors.
+**              3/4/2006 - Fixed compile errors.
 **
 **************************************************************************/
 
@@ -53,9 +54,9 @@ BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  4000000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-/* 3^25 = 8.47E11 ~ 9E11 (this needs refining) */
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
+POSITION gNumberOfPositions   = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+
+POSITION gInitialPosition     = 0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
@@ -126,7 +127,7 @@ typedef enum player {
   playerA = 1, playerB = 2
 } Player;
 
-typedef enum boardPieces {
+typedef enum boardPiece {
   Blank = 0, Neutral = 1, A = 2, B = 3
 } BoardPiece;
 
@@ -193,17 +194,17 @@ void InitializeGame ()
   int i;
   int piecesArray[] = { Blank, Neutral, A, B };
 
-  BoardPiece boardArray[boardSize];
+  char* boardArray[boardSize];
 
-  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+  gNumberOfPositions   = generic_hash_init(boardSize, piecesArray, NULL);
   gWhosTurn = playerA;
     
   /* setting up the four corners; to Neutrals */
-  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = Neutral;
+  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = NEUTRAL;
 
   /* setting up the rest of the board; to Blanks */
   for (i = 0; i < boardSize; i++) {
-    boardArray[i] = Blank;
+    boardArray[i] = BLANK;
   }
     
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
@@ -317,7 +318,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 2**************************/
   printf("       |");
   for (i = 0; i < colcount; i++) {
-    printf("%c|", BoardPieceToChar(theBoard[i]));
+    printf("%c|", theBoard[i]);
   }
   printf("          (  0  1  2  3  4 )\n");
 
@@ -327,7 +328,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 4**************************/
   printf("       |");
   for (; i < colcount*2; i++) {
-    printf("%c|", BoardPieceToChar(theBoard[i]));
+    printf("%c|", theBoard[i]);
   }
   printf("          (  5  6  7  8  9 )\n");
 
@@ -338,7 +339,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 6**************************/
   printf("       |");
   for (; i < colcount*3; i++) {
-    printf("%c|", BoardPieceToChar(theBoard[i]));
+    printf("%c|", theBoard[i]);
   }
   printf("  LEGEND: ( 10 11 12 13 14 )\n");
 
@@ -348,7 +349,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 8**************************/
   printf("       |");
   for (; i < colcount*4; i++) {
-    printf("%c|", BoardPieceToChar(theBoard[i]));
+    printf("%c|", theBoard[i]);
   }
   printf("          ( 15 16 17 18 19 )\n");
 
@@ -358,7 +359,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 10**************************/
   printf("       |");
   for (; i < colcount*5; i++) {
-    printf("%c|", BoardPieceToChar(theBoard[i]));
+    printf("%c|", theBoard[i]);
   }
   printf("          ( 20 21 22 23 24 )\n");
 
@@ -643,19 +644,13 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
-char BoardPieceToChar(BoardPiece piece) {
-  switch(piece) {
-    case Blank: return BLANK;
-    case Neutral: return NEUTRAL;
-    case A: return A_PIECE;
-    case B: return B_PIECE;
-  }
 
-  return UNKNOWN;
-}
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.5  2006/03/03 05:19:49  simontaotw
+// Fixed various errors.
+//
 // Revision 1.4  2006/02/26 20:36:53  simontaotw
 // Updated PrintPosition() (Modified PrintPosition() in mtopitop.c).
 //
