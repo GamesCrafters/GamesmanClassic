@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.87 2006-03-03 15:45:25 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.88 2006-03-04 20:32:19 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -98,11 +98,19 @@ proc TBaction7 {} {
     pack .middle.f2.fHelp -side bottom
 }
 proc TBaction8 {} {
+    #save player name to file
     global gLeftName gRightName
     set fileptr [open playername.txt w+]
     puts $fileptr $gLeftName
     puts $fileptr $gRightName
     close $fileptr
+
+    #save skin to file
+    global gSkinsDir
+    set fileptr [open skin.txt w+]
+    puts $fileptr $gSkinsDir
+    close $fileptr
+
     exit
 }
 
@@ -120,7 +128,7 @@ proc SetupPlayOptions {} {
     .cStatus raise base
 }
 
-proc InitWindow { kRootDir kDir kExt } {
+proc InitWindow { kRootDir kExt } {
 
     global gWindowWidth gWindowHeight gWindowWidthRatio gWindowHeightRatio
     global gFrameWidth gFrameHeight
@@ -157,7 +165,7 @@ proc InitWindow { kRootDir kDir kExt } {
     set gPredString ""
 
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
-    set gSkinsDir "$kDir"
+    #set gSkinsDir "$kDir"
     set gSkinsExt "$kExt"
     set gFontColor "black"
 

@@ -816,7 +816,16 @@ proc main {kRootDir} {
     # Initialize generic top-level window
     source "$kRootDir/../tcl/InitWindow.tcl"
     InitGlobals
-    InitWindow $kRootDir OxySkin_HiRes/ ppm
+
+    global gSkinsDir
+    if {[catch {set fileptr [open skin.txt r]}]} {
+	set gSkinsDir OxySkin_HiRes/
+    } else {
+	gets $fileptr gSkinsDir
+	close $fileptr
+    }
+
+    InitWindow $kRootDir ppm
 
     # Initialize game-specific globals and frame
     GS_InitGameSpecific
