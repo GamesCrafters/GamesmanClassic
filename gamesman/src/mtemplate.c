@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.7 2006-01-29 09:59:47 ddgarcia Exp $
+// $Id: mtemplate.c,v 1.8 2006-03-04 15:22:26 ddgarcia Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -131,8 +131,7 @@ void InitializeGame ()
 **              from this position. Returns a pointer to the head of the
 **              linked list.
 ** 
-** INPUTS:      POSITION position : Current position for move
-**                                  generation.
+** INPUTS:      POSITION position : Current position to generate moves
 **
 ** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
 **                                  the linked list of generated moves
@@ -497,6 +496,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2006/01/29 09:59:47  ddgarcia
+// Removed "gDatabase" reference from comment in InitializeGame
+//
 // Revision 1.6  2005/12/27 10:57:50  hevanm
 // almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
 //

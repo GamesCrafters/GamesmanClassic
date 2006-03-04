@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.5 2006-02-26 08:31:15 kmowery Exp $
+// $Id: mdao.c,v 1.6 2006-03-04 15:22:26 ddgarcia Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -51,7 +51,7 @@ BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when o
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  900900; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  711511; /* x--o -xo- -ox- o--x */ /* The initial hashed position for your starting board */
+POSITION gInitialPosition     =  189388; /* x--o -xo- -ox- o--x */ /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
@@ -129,13 +129,14 @@ STRING directions[NUM_OF_DIRS] = {
 
 /*the increments to the row and column numbers of the piece *
  * THESE ARE ACCORIDNG TO THE KEYPAD ARRANGEMENTS
- 7  8  9
+ 1  2  3
  4  5  6
- 1  2  3*/
+ 7  8  9
+*/
 int dir_increments[NUM_OF_DIRS][2] = {
-  { 1, -1 } , { 1 , 0 } , { 1 , 1 } , 
-  { 0, -1 } ,             { 0 , 1 } ,
-  { -1, -1} , { -1, 0 } , { -1, 1 }
+  { -1,  1 } , { 0 , 1 } , { 1 , 1 } ,
+  { -1,  0 } ,             { 1 , 0 } ,
+  { -1, -1 } , { 0, -1 } , { 1 ,-1 } 
 };
 
 /*************************************************************************
@@ -303,7 +304,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	    (row < BOARD_ROWS) && (col < BOARD_COLS) &&
 	    (board[Index(row,col)] == EMPTY_PIECE));
 
-  new_position = Index(row - dir_increments[direction][0], 
+  new_position = Index(row - dir_increments[direction][0],
 		       col - dir_increments[direction][1]);
     
   generic_unhash (position, board);

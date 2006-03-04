@@ -30,30 +30,47 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions  = 11;       /* Every board from 0 to 10 */
-POSITION kBadPosition = -1;
+/*************************************************************************
+**
+** Game-specific constants
+**
+**************************************************************************/
 
-POSITION gInitialPosition    = 0;
-
-POSITION gMinimalPosition = 0 ;
-
-STRING   kAuthorName          = "Dan Garcia and his GamesCrafters";
 STRING   kGameName            = "1,2,...,10";
+STRING   kAuthorName          = "Dan Garcia and his GamesCrafters";
+STRING   kDBName              = "1210" ;
+
 BOOLEAN  kPartizan            = FALSE;
-BOOLEAN  kDebugMenu           = FALSE;
 BOOLEAN  kGameSpecificMenu    = FALSE;
 BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = FALSE;
+
+BOOLEAN  kDebugMenu           = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
+
+POSITION gNumberOfPositions   = 11;       /* Every board from 0 to 10 */
+POSITION gInitialPosition     = 0;
+POSITION kBadPosition         = -1;
+
 void*	 gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface = "";  /* empty since kSupportsGraphics == FALSE */
+POSITION gMinimalPosition     = 0 ;       /* Is this used by anyone? */
+
+STRING   kHelpGraphicInterface = 
+"Not written yet";
 
 STRING   kHelpTextInterface    =
-"On your turn, select the number 1 or 2 to raise the total sum. After selecting\n your move, the total is displayed. The play then alternates to the second\n player, who also has the choice of raising the sum by 1 or 2 points. The winner\n is the first person to raise the total sum to 10. If at any point you have made\n a mistake, type u to revert back to your previous position.";
+/*
+--------------------------------------------------------------------------------
+*/
+"On your turn, select the number 1 or 2 to raise the total sum.\n"
+"After selecting your move, the total is displayed. \n"
+"The play then alternates to the second player, who also has the \n"
+"choice of raising the sum by 1 or 2 points. The winner is the first\n"
+"person to raise the total sum to exactly 10.";
 
 STRING   kHelpOnYourTurn =
-"Select the number 1 or 2 to raise the total sum. You may also revert to your\n previous position by typing u.";
+"Type 1 or 2 to choose how much you'd like to increase the total.";
 
 STRING   kHelpStandardObjective =
 "To be the first player to raise the total to 10.";
@@ -83,62 +100,71 @@ STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
-** Everything above here must be in every game file
+** #defines and structs
 **
 **************************************************************************/
 
+
 /*************************************************************************
 **
-** Every variable declared here is only used in this file (game-specific)
+** Global Variables
 **
-**************************************************************************/
+*************************************************************************/
+
+
+/*************************************************************************
+**
+** Function Prototypes
+**
+*************************************************************************/
+
+
+/************************************************************************
+**
+** NAME:        InitializeGame
+**
+** DESCRIPTION: Prepares the game for execution.
+**              Initializes required variables.
+** 
+************************************************************************/
 
 void InitializeGame()
 {
   gMoveToStringFunPtr = &MoveToString;
 }
 
-void FreeGame()
+/************************************************************************
+**
+** NAME:        GenerateMoves
+**
+** DESCRIPTION: Create a linked list of every move that can be reached
+**              from this position. Return a pointer to the head of the
+**              linked list.
+** 
+** INPUTS:      POSITION position : The position to branch off of.
+**
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+**              in the linked list of moves that can be generated.
+**
+** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
+**
+************************************************************************/
+
+MOVELIST *GenerateMoves(position)
+     POSITION position;
 {
+  MOVELIST *head = NULL;
+  MOVELIST *CreateMovelistNode();
+  
+  /* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
+  if (position < 9) 
+      head = CreateMovelistNode(2,head);
+
+  head = CreateMovelistNode(1,head);
+  
+  return(head);
 }
 
-/************************************************************************
-**
-** NAME:        DebugMenu
-**
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
-**              kDebugMenu == FALSE
-** 
-************************************************************************/
-
-void DebugMenu() { }
-
-/************************************************************************
-**
-** NAME:        GameSpecificMenu
-**
-** DESCRIPTION: Menu used to change game-specific parmeters, such as
-**              the side of the board in an nxn Nim board, etc. Does
-**              nothing if kGameSpecificMenu == FALSE
-** 
-************************************************************************/
-
-void GameSpecificMenu() { }
-
-/************************************************************************
-**
-** NAME:        SetTclCGameSpecificOptions
-**
-** DESCRIPTION: Set the C game-specific options (called from Tcl)
-**              Ignore if you don't care about Tcl for now.
-** 
-************************************************************************/
-
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
-  /* No need to have anything here, we have no extra options */
-}
 
 /************************************************************************
 **
@@ -160,42 +186,6 @@ POSITION DoMove(thePosition, theMove)
   return(thePosition + theMove);
 }
 
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-** 
-** INPUTS:      POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-  POSITION initialPosition;
-  printf("Please input the starting value [1 - 10] : ");
-  scanf(POSITION_FORMAT,&initialPosition);
-  return initialPosition;
-}
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE   *computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
-**
-************************************************************************/
-
-void PrintComputersMove(computersMove,computersName)
-     MOVE computersMove;
-     STRING computersName;
-{
-  printf("%8s's move              : %1d\n", computersName, computersMove);
-}
 
 /************************************************************************
 **
@@ -225,6 +215,7 @@ VALUE Primitive(position)
     return(undecided);
 }
 
+
 /************************************************************************
 **
 ** NAME:        PrintPosition
@@ -253,36 +244,40 @@ void PrintPosition(position,playerName,usersTurn)
          position, GetPrediction(position,playerName,usersTurn));
 }
 
+
 /************************************************************************
 **
-** NAME:        GenerateMoves
+** NAME:        PrintComputersMove
 **
-** DESCRIPTION: Create a linked list of every move that can be reached
-**              from this position. Return a pointer to the head of the
-**              linked list.
+** DESCRIPTION: Nicely format the computers move.
 ** 
-** INPUTS:      POSITION position : The position to branch off of.
-**
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
-**              in the linked list of moves that can be generated.
-**
-** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
+** INPUTS:      MOVE   *computersMove : The computer's move. 
+**              STRING  computersName : The computer's name. 
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-     POSITION position;
+void PrintComputersMove(computersMove,computersName)
+     MOVE computersMove;
+     STRING computersName;
 {
-  MOVELIST *head = NULL;
-  MOVELIST *CreateMovelistNode();
-  
-  /* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
-  if (position < 9) 
-	  head = CreateMovelistNode(2,head);
-  if (position < 10)
-	  head = CreateMovelistNode(1,head);
-  
-  return(head);
+  printf("%8s's move              : %1d\n", computersName, computersMove);
+}
+
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+** 
+** INPUTS:      MOVE *theMove         : The move to print. 
+**
+************************************************************************/
+
+void PrintMove(theMove)
+     MOVE theMove;
+{
+  printf("%d", theMove);
 }
 
 /************************************************************************
@@ -310,10 +305,6 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      STRING playerName;
 {
   USERINPUT ret, HandleDefaultTextInput();
-  BOOLEAN ValidMove();
-  char input[2];
-
-  input[0] = '3';
 
   do {
     printf("%8s's move [(u)ndo/1/2] : ", playerName);
@@ -326,28 +317,37 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   return(Continue); /* this is never reached, but lint is now happy */
 }
 
+
 /************************************************************************
 **
 ** NAME:        ValidTextInput
 **
-** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
-**              For example, if the user is allowed to select one slot
-**              from the numbers 1-9, and the user chooses 0, it's not
-**              valid, but anything from 1-9 IS, regardless if the slot
-**              is filled or not. Whether the slot is filled is left up
-**              to another routine.
+** DESCRIPTION: Rudimentary check to check if input is in the move form
+**              you are expecting. Does not check if it is a valid move.
+**              Only checks if it fits the move form.
+**
+**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
+**                                          COMMANDS IN YOUR GAME
+**              ?, s, u, r, h, a, c, q
+**                                          However, something like a3
+**                                          is okay.
 ** 
+**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
+**                       Only integers between 1 to 9 are accepted
+**                       regardless of board position.
+**                       Moves will be checked by the core.
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
-** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
+** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-     STRING input;
+BOOLEAN ValidTextInput(STRING input)
 {
-  return(input[0] <= '2' && input[0] >= '1');
+  return(input[0] == '1' || input[0] == '2');
 }
+
 
 /************************************************************************
 **
@@ -361,26 +361,58 @@ BOOLEAN ValidTextInput(input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-     STRING input;
+MOVE ConvertTextInputToMove(STRING input)
 {
-  return((MOVE) input[0] - '0'); /* user input is 1-9, our rep. is 0-8 */
+  return((MOVE) input[0] - '0'); /* user inputs '1','2', our rep. is 1,2 */
 }
+
 
 /************************************************************************
 **
-** NAME:        PrintMove
+** NAME:        GameSpecificMenu
 **
-** DESCRIPTION: Print the move in a nice format.
+** DESCRIPTION: Menu used to change game-specific parmeters, such as
+**              the side of the board in an nxn Nim board, etc. Does
+**              nothing if kGameSpecificMenu == FALSE
 ** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+************************************************************************/
+
+void GameSpecificMenu() { }
+
+
+/************************************************************************
+**
+** NAME:        SetTclCGameSpecificOptions
+**
+** DESCRIPTION: Set the C game-specific options (called from Tcl)
+**              Ignore if you don't care about Tcl for now.
+** 
+************************************************************************/
+
+void SetTclCGameSpecificOptions(theOptions)
+int theOptions[];
+{
+  /* No need to have anything here, we have no extra options */
+}
+
+
+/************************************************************************
+**
+** NAME:        GetInitialPosition
+**
+** DESCRIPTION: Ask the user for an initial position for testing. Store
+**              it in the space pointed to by initialPosition;
+** 
+** INPUTS:      POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-     MOVE theMove;
+POSITION GetInitialPosition()
 {
-  printf("%d", theMove);
+  POSITION initialPosition;
+  printf("Please input the starting value [1 - 10] : ");
+  scanf(POSITION_FORMAT,&initialPosition);
+  return initialPosition;
 }
 
 
@@ -404,28 +436,73 @@ STRING MoveToString (theMove)
   return move;
 }
 
+/************************************************************************
+**
+** NAME:        NumberOfOptions
+**
+** DESCRIPTION: Calculates and returns the number of variants
+**              your game supports.
+**
+** OUTPUTS:     int : Number of Game Variants
+**
+************************************************************************/
 
-
-
-STRING kDBName = "1210" ;
-
-int NumberOfOptions()
+int NumberOfOptions ()
 {
-	return 2 ;
-}
-
-int getOption()
-{
-	if(gStandardGame) return 1 ;
-	return 2 ;
-}
-
-void setOption(int option)
-{
-	if(option == 1)
-		gStandardGame = TRUE ;
-	else
-		gStandardGame = FALSE ;
+  return 2;
 }
 
 
+/************************************************************************
+**
+** NAME:        getOption
+**
+** DESCRIPTION: A hash function that returns a number corresponding
+**              to the current variant of the game.
+**              Each set of variants needs to have a different number.
+**
+** OUTPUTS:     int : the number representation of the options.
+**
+************************************************************************/
+
+int getOption ()
+{
+  return(gStandardGame ? 1 : 2);
+}
+
+
+/************************************************************************
+**
+** NAME:        setOption
+**
+** DESCRIPTION: The corresponding unhash function for game variants.
+**              Unhashes option and sets the necessary variants.
+**
+** INPUT:       int option : the number representation of the options.
+**
+************************************************************************/
+
+void setOption (int option)
+{
+  if      (option == 1)
+    gStandardGame = TRUE;
+  else if (option == 2)
+    gStandardGame = TRUE;
+  else
+    BadElse("setOption\n");
+}
+
+/************************************************************************
+**
+** NAME:        DebugMenu
+**
+** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
+**              debug menu). Menu used to debug internal problems.
+**
+**              If kDebugMenu == FALSE
+**                   Gamesman will not display a debug menu option
+**                   Gamesman will not call this function
+** 
+************************************************************************/
+
+void DebugMenu() { }
