@@ -1,4 +1,4 @@
-u // $Id: mquickchess.c,v 1.1 2006-03-01 01:49:21 vert84 Exp $
+// $Id: mquickchess.c,v 1.2 2006-03-05 03:32:12 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -572,6 +572,9 @@ void setupPieces(char (* Board)[6][5]) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2006/03/01 01:49:21  vert84
+// Added quickchess to cvs
+//
 // Revision 1.7  2006/01/29 09:59:47  ddgarcia
 // Removed "gDatabase" reference from comment in InitializeGame
 //
