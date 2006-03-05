@@ -1,4 +1,4 @@
-am// $Id: mcambio.c,v 1.6 2006-03-04 20:00:54 simontaotw Exp $
+// $Id: mcambio.c,v 1.7 2006-03-05 03:28:15 yanpeichen Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -648,6 +648,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2006/03/04 20:00:54  simontaotw
+// Fixed compile errors.
+//
 // Revision 1.5  2006/03/03 05:19:49  simontaotw
 // Fixed various errors.
 //
