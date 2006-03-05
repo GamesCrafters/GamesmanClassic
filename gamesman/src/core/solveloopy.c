@@ -110,7 +110,9 @@ VALUE DetermineLoopyValue1(POSITION position)
     VALUE childValue;
     REMOTENESS remotenessChild;
     POSITION i;
-    POSITION F0count = 0; //MATT
+    POSITION F0EdgeCount = 0;
+	POSITION F0NodeCount = 0;
+	POSITION F0DrawEdgeCount = 0;
     
     /* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
     
@@ -189,7 +191,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 		if(parent != kBadPosition && --gNumberChildren[parent] == 0) {
 		    /* no more kids, it's not been seen before, assign it as losing, put at head */
 		    assert(GetValueOfPosition(parent) == undecided);
-		    F0count -= (gNumberChildrenOriginal[parent] - 1); //MATT
+		    F0EdgeCount -= (gNumberChildrenOriginal[parent] - 1);
 		    InsertLoseFR(parent);
 		    if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
 		    /* We always need to change the remoteness because we examine winning node with
@@ -197,7 +199,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 		    SetRemoteness(parent, remotenessChild + 1);
             StoreValueOfPosition(parent,lose);
 		} else if (parent != kBadPosition) {
-            F0count++;
+            F0EdgeCount++;
          }
 		ptr = ptr->next;  
 	    } /* while there are still parents */
@@ -239,7 +241,11 @@ VALUE DetermineLoopyValue1(POSITION position)
 		InsertTieFR(parent);
 		if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"tie",remotenessChild+1);
 		SetRemoteness(parent, remotenessChild + 1);
-        StoreValueOfPosition(parent,tie); 
+        StoreValueOfPosition(parent,tie);
+		/*
+		gNumberChildren[parent] -= 1;
+		gNumberChildrenOriginal[parent] -=1; //As it is now, fringe0 can't have tie children
+		*/
 	    }
 	    ptr = ptr->next;
 	}
@@ -265,18 +271,24 @@ VALUE DetermineLoopyValue1(POSITION position)
 	    if(GetValueOfPosition((POSITION)i) == undecided) {
             SetRemoteness((POSITION)i,REMOTENESS_MAX);
 		    StoreValueOfPosition((POSITION)i,tie);
+			if (gNumberChildren[i] < gNumberChildrenOriginal[i]) {
+				F0DrawEdgeCount += gNumberChildren[i];
+				F0NodeCount+=1;
+			}
 		    //we are done with this position and no longer need to keep around its list of parents
-	    	if (gParents[child]) 
-                FreePositionList(gParents[child]);
+	    	/*if (gParents[child]) 
+                FreePositionList(gParents[child]); */ // is this a memory leak?
 	    	if(kDebugDetermineValue)
-		        printf("and was undecided, setting to tie\n");
+		        printf("and was undecided, setting to draw\n");
         } else {
 		    if(kDebugDetermineValue)
 		       printf("but was decided, ignoring\n");
         }
 	    UnMarkAsVisited((POSITION)i);
 	}
-    gAnalysis.F0count = F0count;
+    gAnalysis.F0EdgeCount = F0EdgeCount;
+	gAnalysis.F0NodeCount = F0NodeCount;
+	gAnalysis.F0DrawEdgeCount = F0DrawEdgeCount;
     return(GetValueOfPosition(position));
 }
 

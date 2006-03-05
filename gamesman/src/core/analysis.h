@@ -80,7 +80,9 @@ typedef struct analysis_info
 															*at each remoteness between 0 and REMOTENESS_MAX-1   */
   REMOTENESS LargestFoundRemoteness;
 
-  POSITION F0count;
+  POSITION F0EdgeCount;
+  POSITION F0NodeCount;
+  POSITION F0DrawEdgeCount;
 } ANALYSIS;
 
 extern ANALYSIS gAnalysis;
