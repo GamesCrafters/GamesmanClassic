@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.88 2006-03-04 20:32:19 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.89 2006-03-06 05:04:20 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -341,6 +341,10 @@ proc InitWindow { kRootDir kExt } {
 		    -text [format "Left:\n%s" $gLeftName]
             .middle.f3.cMRight itemconfigure RightName \
 		    -text [format "Right:\n%s" $gRightName]
+            .middle.f1.cMLeft itemconfigure moveHistoryLeftName \
+		    -text [format "<-- %s Winning" $gLeftName]
+            .middle.f1.cMLeft itemconfigure moveHistoryRightName \
+		    -text [format "%s Winning -->" $gRightName]
 	    update
 	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 		if { $gReallyUnsolved == true } {
@@ -934,14 +938,14 @@ proc InitWindow { kRootDir kExt } {
 	-font $kValueHistoryLabelFont \
 	-fill $gFontColor \
 	-anchor w \
-	-tags [list moveHistory moveHistoryDesc textitem]
+	-tags [list moveHistory moveHistoryDesc moveHistoryLeftName textitem]
 
     .middle.f1.cMLeft create text [expr 2*$center] $descY \
 	-text "$gRightName Winning -->" \
 	-font $kValueHistoryLabelFont \
 	-fill $gFontColor \
 	-anchor e \
-	-tags [list moveHistory moveHistoryDesc textitem]
+	-tags [list moveHistory moveHistoryDesc moveHistoryRightName textitem]
 
     .middle.f1.cMLeft create text $center $labelsY \
 	-text "D" \
@@ -1542,9 +1546,9 @@ proc plotMove { turn theValue theRemoteness } {
     }
 
     set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+    set oldDeltaX $deltax
 
     if { $theRemoteness < $drawRemoteness } {
-	set oldDeltaX $deltax
 	if { $theRemoteness > $maxRemoteness && $theValue != "Tie"} {
 	    set oldMaxRemoteness $maxRemoteness
 	    set maxRemoteness [expr $theRemoteness + 1]
@@ -1558,24 +1562,38 @@ proc plotMove { turn theValue theRemoteness } {
 	}
     }
     
-    #if { $theRemoteness == $drawRemoteness } {
-    #set theRemoteness $maxRemoteness
-    #}
-
     set tieXRange [expr $maxTieRemoteness * $deltax]
     set y [expr $top + [expr 2 * $pieceRadius * [expr $numMoves / 2]]]
 
+    #draw faint lines at every remoteness value
+    if {$oldDeltaX != $deltax} {
+	$moveHistoryCanvas delete moveHistory1Line
+	for {set i 0} {$i <= [expr $maxRemoteness + $maxTieRemoteness]} {incr i} {
+	    set width 0.2
+	    if { [expr $i % 5] == 0} {
+		set width 1
+	    }
+	    $moveHistoryCanvas create line [expr $center - [expr $i * $deltax]] $top [expr $center - [expr $i * $deltax]] $bottom \
+		-fill $gFontColor \
+		-width $width \
+		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineLeft]
+	    $moveHistoryCanvas create line [expr $center + [expr $i * $deltax]] $top [expr $center + [expr $i * $deltax]] $bottom \
+		-fill $gFontColor \
+		-width $width \
+		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineRight]
+	}
+    }
     #draw tie boundary lines
     $moveHistoryCanvas delete moveHistoryTieLine
     set leftTieLine \
 	[$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
 	     -fill $gFontColor \
-	     -width 1 \
+	     -width 2 \
 	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
     set rightTieLine \
 	[$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
 	     -fill $gFontColor \
-	     -width 1 \
+	     -width 2 \
 	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
     global kValueHistoryLabelFont
     $moveHistoryCanvas delete moveHistoryLabelsMaxRemoteness
