@@ -237,6 +237,13 @@ proc GS_SetOption { option } {
     set gBoardSize [expr ($option >> 2) + 3]
 }
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
 
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.
@@ -248,41 +255,38 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    global gBoardSize gGameover dist gDiagonalsOption
+    global gBoardSize gGameover dist gDiagonalsOption gFrameWidth gFrameHeight r arrowshape arrowwidth canvasWidth
     set gGameover 0
-    set dist 100
-    set boardwidth [expr $gBoardSize * $dist]
     set numofBlue 0
     set numofRed 0
     set numofArrowSet 0
-    set canvasWidth 500
-    # creates an offset variable to center the board
-    set offset [expr $canvasWidth / 2 - $boardwidth / 2]
-    #canvas .c
-    $c configure -width $canvasWidth -height $canvasWidth
+    set canvasWidth [min $gFrameWidth $gFrameHeight]
+    set margin [expr 0.2 * $canvasWidth]
+    set dist [expr ($canvasWidth - 2 * $margin) / [expr $gBoardSize - 1]]
+    set r [expr 0.2 * $dist]
+    set offset 0
+    set boardwidth [expr $gBoardSize * $dist]
+    set dot [expr 0.25 * $r]
+    set arrowwidth [expr 2 * $dot]
+    set arrowshape [list [expr 2 * $dot] [expr 2 * $dot] $dot]
+    set linewidth [expr 0.5 * $dot]
     pack $c
     # creates a base which to hide the arrows
-    $c create rectangle [expr 0  + $offset - 25] [expr 0 + $offset - 25] [expr $boardwidth + $offset + 25] \
-	[expr $boardwidth + $offset + 25] -fill white -tags base
-    # the board 
-    for {set i 0} {$i < [expr $gBoardSize - 1]} {set i [expr $i + 1]} {
-	for {set j 0} {$j < [expr $gBoardSize -1]} {set j [expr $j + 1]} {
-	    $c create rectangle [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
-		[expr $i * $dist + 150 + $offset] [expr $j * $dist + 150 + $offset] -fill white -tags base -width 3
-	    # create diagonal lines
-	    $c create line  [expr $i * $dist + 50 + $offset] [expr $j * $dist + 50 + $offset] \
-		[expr $i * $dist + 150 + $offset] [expr $j * $dist + 150 + $offset] -tags [list base diag] -width 3
-	    $c create line  [expr $i * $dist + 150 + $offset] [expr $j * $dist + 50 + $offset] \
-		[expr $i * $dist + 50 + $offset] [expr $j * $dist + 150 + $offset] -tags [list base diag] -width 3
+    $c create rectangle 0 0 $canvasWidth $canvasWidth -fill white -tags base
+
+    # board grid
+    for {set i 0} {$i < $gBoardSize} {incr i} {
+	$c create line $margin [expr $i * $dist + $margin] [expr $canvasWidth - $margin] [expr $i * $dist + $margin] -width $linewidth -fill black -tags base
+	$c create line [expr $i * $dist + $margin] $margin [expr $i * $dist + $margin] [expr $canvasWidth - $margin] -width $linewidth -fill black -tags base
+    }
+
+    # diagonals
+    for {set i 0} {$i < [expr $gBoardSize - 1]} {incr i} {
+	for {set j 0} {$j < [expr $gBoardSize - 1]} {incr j} {
+	    $c create line [expr $margin + $j * $dist] [expr $margin + $i * $dist] [expr $margin + ($j + 1) * $dist] [expr $margin + ($i + 1) * $dist] -width $linewidth -tags [list base diag]
+	    $c create line [expr $margin + ($j + 1) * $dist] [expr $margin + $i * $dist] [expr $margin + $j * $dist] [expr $margin + ($i + 1) * $dist] -width $linewidth -tags [list base diag]
 	}
     }
-    #The dots on the board
-    for {set i 0} {$i < $gBoardSize} {set i [expr $i + 1]} {
-	for {set j 0} {$j < $gBoardSize} {set j [expr $j + 1]} {	
-	    $c create oval  [expr $i * $dist + 40 + $offset] [expr $j * $dist + 40 + $offset] \
-		[expr $i * $dist + 60 + $offset] [expr $j * $dist + 60 + $offset] -fill black -tags base
-	}
-    } 
 
     # lower diagonals
     if ($gDiagonalsOption) {
@@ -291,22 +295,24 @@ proc GS_Initialize { c } {
 	$c lower diag
     }
 
-    #set global settingup
-    #set settingup 1
-    #vwait settingup
-
     # draws all possible pieces and arrows and lowers them
-    for {set j 0} {$j< $gBoardSize} {set j [expr $j + 1]} {
-	for {set i 0} {$i < $gBoardSize} {set i [expr $i + 1]} {
+    for {set j 0} {$j< $gBoardSize} {incr j} {
+	for {set i 0} {$i < $gBoardSize} {incr i} {
+	    # draws dots at vertices of board
+	    $c create oval [expr $margin + $i * $dist - $dot] [expr $margin + $j * $dist - $dot] \
+		[expr $margin + $i * $dist + $dot] [expr $margin + $j * $dist + $dot] -fill black -tags base
+
 	    # draws all possible arrows
-	    drawArrows $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] $numofArrowSet
+	    drawArrows $c [expr $margin + $i * $dist] [expr $margin + $j * $dist] $numofArrowSet
 	    set numofArrowSet [expr $numofArrowSet + 1]
+
 	    # draws all possible blue pieces
-	    drawPiece $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] blue $numofBlue
+	    drawPiece $c [expr $margin + $i * $dist] [expr $margin + $j * $dist] blue $numofBlue
 	    $c lower blue$numofBlue
 	    set numofBlue [expr $numofBlue + 1]
+
 	    # draws all possible red pieces
-	    drawPiece $c [expr $i *$dist +50 + $offset] [expr $j *$dist +50 + $offset] red $numofRed
+	    drawPiece $c [expr $margin + $i * $dist] [expr $margin + $j * $dist] red $numofRed
 	    $c lower red$numofRed
 	    set numofRed [expr $numofRed + 1]
 	}
@@ -414,7 +420,10 @@ proc GS_WhoseMove { position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     # incr determines the animation speed
     global incr
-    set incr 1
+
+    ## TODO: MAKE INCR CHANGE WITH gAnimationSpeed VARIABLE! ##
+
+    set incr 2
     #figure out which piece to move and which direction
     set arrayNum [getArraynum [GetXCoord $theMove] [GetYCoord $theMove]]
     set dir [GetDirection $theMove]
@@ -585,84 +594,93 @@ proc GS_GetGameSpecificOptions { } {
 
 #############################################################################
 # GS_GameOver is called the moment the game is finished ( won, lost or tied)
-# You could use this function to draw the line striking out the winning row in
+# You could use this function to draw the line striking out the winning row in 
 # tic tac toe for instance.  Or, you could congratulate the winner.
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-    global gGameover
-    set gGameover 1
-    $c create text 250 200 -text "$nameOfWinner" -font Wintext -fill orange -tags win
-    $c create text 250 275 -text "wins!" -font Wintext -fill orange -tags win
-
+    
+    global canvasWidth
+    set size $canvasWidth
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
+	
 }
 
-font create Wintext -family arial -size 40
 
 #############################################################################
 # GS_UndoGameOver is called when the player hits undo after the game is finished.
-# This is provided so that you may undo the drawing you did in GS_GameOver if you
+# This is provided so that you may undo the drawing you did in GS_GameOver if you 
 # drew something.
-# For instance, if you drew a line crossing out the winning row in tic tac toe,
+# For instance, if you drew a line crossing out the winning row in tic tac toe, 
 # this is where you sould delete the line.
 #
-# note: GS_HandleUndo is called regardless of whether the move undoes the end of the
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-    global gGameover
-    set gGameover 0
-    $c delete win
 
+    # Delete "Game Over!" text
+    $c delete gameover
 }
+
 
 
 ######################Helper Stuff###########################
 proc drawPiece {c x0 y0 color num} {
-$c create oval [expr $x0 - 25] [expr $y0 - 25] \
-	[expr $x0 + 25] [expr $y0 + 25] \
+
+    global r
+
+    $c create oval [expr $x0 - $r] [expr $y0 - $r] \
+	[expr $x0 + $r] [expr $y0 + $r] \
 	-fill $color -tags $color$num -width 4
 
 }
 proc drawArrows {c x y piece} {
-    set arrowLen 75
-    set arrowLenD 50
+
+    global dist arrowshape arrowwidth
+
+    set arrowLen [expr 0.5 * $dist]
+    set arrowLenD [expr .707 * $dist]
     #up
     $c create line $x $y $x [expr $y - $arrowLen] \
-    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
     -tags [list arrowUP$piece arrow$piece arrow]
 
     #down
     $c create line $x $y $x [expr $y + $arrowLen] \
-    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
     -tags [list arrowDOWN$piece arrow$piece arrow]
 
     #left
     $c create line $x $y [expr $x - $arrowLen] $y \
-    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
     -tags [list arrowLEFT$piece arrow$piece arrow]
 
     #right
     $c create line $x $y [expr $x + $arrowLen] $y \
-    -width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+    -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
     -tags [list arrowRIGHT$piece arrow$piece arrow]
 
     #diagonal arrows
     #upleft
     $c create line $x $y [expr $x - $arrowLenD] [expr $y - $arrowLenD] \
-	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
 	-tags [list arrowUPLEFT$piece arrow$piece arrow diagArrow]
     #upright
     $c create line $x $y [expr $x + $arrowLenD] [expr $y - $arrowLenD] \
-	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
 	-tags [list arrowUPRIGHT$piece arrow$piece arrow diagArrow]
     #downright
     $c create line $x $y [expr $x + $arrowLenD] [expr $y + $arrowLenD] \
-	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
 	-tags [list arrowDOWNRIGHT$piece arrow$piece arrow diagArrow]
     #downleft
     $c create line $x $y [expr $x - $arrowLenD] [expr $y + $arrowLenD] \
-	-width 12 -arrow last -arrowshape [list 24 24 12] -fill lightblue \
+	-width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
 	-tags [list arrowDOWNLEFT$piece arrow$piece arrow diagArrow]
 
 }
@@ -695,6 +713,8 @@ global gBoardSize
 proc movePiece { c pieceToMove dir incr } {
     global dist
     set tmpDist 0
+    set origcoords [$c coords $pieceToMove]
+
     switch $dir {
 	0 {
 	    set xAmount 0
@@ -731,7 +751,7 @@ proc movePiece { c pieceToMove dir incr } {
 	default {}
     }
 
-    while {$tmpDist != $dist} {
+    while {$tmpDist < $dist} {
 	# move piece by incr amount
 	$c move $pieceToMove $xAmount $yAmount
 	# increment tmpDist by incr amount
@@ -742,34 +762,8 @@ proc movePiece { c pieceToMove dir incr } {
     # reset piece
     $c lower $pieceToMove
 
-    switch $dir {
-	0 {
-	    $c move $pieceToMove 0 $dist
-	}
-	1 {
-	    $c move $pieceToMove [expr 0 - $dist] 0
-	}
-	2 {
-	    $c move $pieceToMove 0 [expr 0 - $dist]
-	}
-	3 {
-	    $c move $pieceToMove $dist 0
-	}
-	4 {
-	    $c move $pieceToMove $dist $dist
-	}
-	5 {
-	    $c move $pieceToMove [expr 0 - $dist] $dist
-	}
-	6 {
-	    $c move $pieceToMove [expr 0 - $dist] [expr 0 - $dist]
-	}
-	7 {
-	    $c move $pieceToMove $dist [expr 0 - $dist]
-	}
-	default {}
-    }
-    update idletasks
+    $c coords $pieceToMove $origcoords
+
 }
 
 
