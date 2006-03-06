@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.89 2006-03-06 05:04:20 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.90 2006-03-06 05:21:04 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -34,6 +34,10 @@ proc TBaction1 {} {
 	.middle.f3.cMRight itemconfig RightName \
 	    -text [format "Right:\n%s" $gRightName] \
 	    -font "Helvetica $playerFontSize bold"
+	.middle.f1.cMLeft itemconfigure moveHistoryLeftName \
+	    -text [format "<-- %s Winning" $gLeftName]
+	.middle.f1.cMLeft itemconfigure moveHistoryRightName \
+	    -text [format "%s Winning -->" $gRightName]
 	update
     } else {
 	set gGamePlayable false
