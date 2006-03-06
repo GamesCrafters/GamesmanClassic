@@ -829,6 +829,14 @@ proc main {kRootDir} {
 
     # Initialize game-specific globals and frame
     GS_InitGameSpecific
+
+    # This line tags the background of the blank canvas before sending it away to
+    # each game's Tcl code. This is because when changing rules, GS_Deinitialize is run
+    # which deletes everything, including the background. This can result in a border
+    # forming around the board. Hence, we should do $c delete {!background} in GS_Deinitialize
+    # now, but as a temporary easier fix I'll change the line in InitWindow.tcl, too.
+    .middle.f2.cMain addtag background all
+
     GS_Initialize .middle.f2.cMain
 
     # Set the window title
