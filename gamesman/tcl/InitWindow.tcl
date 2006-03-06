@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.93 2006-03-06 07:51:25 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.94 2006-03-06 20:50:37 eudean Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -293,14 +293,13 @@ proc InitWindow { kRootDir kExt } {
 	-width [expr $gWindowWidth * 3 / 16.0] \
 	-height $gFrameHeight \
 	-background black
-    
-    
 
     canvas .middle.f2.cMain -highlightthickness 0 \
 	-bd 0 \
 	-width $gFrameWidth \
 	-height $gFrameHeight \
 	-background white
+    
     # since main frame is square, the width and height are the same
     #	-height [expr $gWindowHeight * 25 / 30] \
     
@@ -696,7 +695,7 @@ proc InitWindow { kRootDir kExt } {
 	    .cToolbar raise iITB
 
 	    # Delete old board
-	    GS_Deinitialize .middle.f2.cMain
+	    .middle.f2.cMain delete {!background}
 	    update
 
 	    # Set C option and re-initialize 
