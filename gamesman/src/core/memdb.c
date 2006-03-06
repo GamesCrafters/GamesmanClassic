@@ -40,6 +40,7 @@
 
 typedef short	cellValue;
 
+BOOLEAN		dirty;
 POSITION	CurrentPosition;
 cellValue	CurrentValue;
 
@@ -93,7 +94,6 @@ void memdb_init(DB_Table *new_db)
         POSITION i;
         BOOLEAN useFile = gZeroMemPlayer;
 
-        //set function pointers
         if(useFile) {
                 //try openning the data file
                 sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
@@ -104,12 +104,13 @@ void memdb_init(DB_Table *new_db)
                         goodDecompression = gzread(filep,numPos,sizeof(POSITION));
                         *dbVer = ntohs(*dbVer);
                         *numPos = ntohl(*numPos);
-                        if((*numPos != gNumberOfPositions || *dbVer != FILEVER) && kDebugDetermineValue) {
+                        if((*numPos != gNumberOfPositions) || (*dbVer != FILEVER)) {
                                 printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions or incorrect version\n\n");
                                 useFile = FALSE;
                         }
                 }
         }
+        //set function pointers
         if(useFile) {
                 memdb_get_raw = memdb_get_raw_file;
 
@@ -119,6 +120,8 @@ void memdb_init(DB_Table *new_db)
                 new_db->unmark_visited = NULL;
                 new_db->put_mex = NULL;
                 new_db->free_db = memdb_close_file;
+
+		dirty = TRUE;
         } else {
                 memdb_get_raw = memdb_get_raw_ptr;
 
@@ -143,6 +146,7 @@ void memdb_init(DB_Table *new_db)
         new_db->save_database = memdb_save_database;
         new_db->load_database = memdb_load_database;
 
+
 }
 
 void memdb_free()
@@ -163,16 +167,20 @@ cellValue* memdb_get_raw_ptr(POSITION pos)
 
 cellValue* memdb_get_raw_file(POSITION pos)
 {
-        if(pos != CurrentPosition) {
-                z_off_t offset = sizeof(short) + sizeof(POSITION) + sizeof(VALUE)*pos;
+        if(dirty || (pos != CurrentPosition)) {
+		dirty = FALSE;
+		CurrentPosition = pos;
+                z_off_t offset = sizeof(short) + sizeof(POSITION) + sizeof(cellValue)*pos;
                 z_off_t zoffset = gztell(filep);
-                if(offset > zoffset)
+                if(offset >= zoffset)
                         gzseek(filep, offset-zoffset, SEEK_CUR);
                 else
                         gzseek(filep, offset, SEEK_SET);
                 gzread(filep, &CurrentValue, sizeof(cellValue));
-        }
+		CurrentValue = ntohs(CurrentValue);
+		//printf("reading pos = "POSITION_FORMAT", value = %u\n", pos, CurrentValue);
 
+        }
         return &CurrentValue;
 }
 
@@ -312,8 +320,8 @@ BOOLEAN memdb_save_database ()
                 return FALSE;	/* 0 is error, because it means FALSE. -JJ */
         if(!memdb_array)
                 return FALSE;
-        if(gZeroMemPlayer)  //we don't save the db if playing on zero memory
-                return FALSE;
+        if(gZeroMemPlayer)  //we don't save the db if playing on zero memory, but we will say that the db is saved
+                return TRUE;
 
         mkdir("data", 0755) ;
         sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption());
@@ -387,9 +395,9 @@ BOOLEAN memdb_load_database()
 
         if (gTwoBits)	/* TODO: Same here */
                 return FALSE;
-        if(!memdb_array)
+        if(!memdb_array && !gZeroMemPlayer)
                 return FALSE;
-        if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
+        else //if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
                 return TRUE;
 
         sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
