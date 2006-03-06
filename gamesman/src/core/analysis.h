@@ -24,8 +24,7 @@ void    PrintDetailedGameValueSummary();
 
 /* Analysis output */
 
-void	analyze				(POSITION thePosition);
-void	analyzer            ();
+void	analyze				();
 VALUE   AnalyzePosition(POSITION thePosition, VALUE value);
 void    AnalysisCollation();
 float   DetermineProbability    (POSITION position, VALUE value);
@@ -58,8 +57,6 @@ void	writeXMLData			(FILE* xmlFile);
 
 typedef struct analysis_info
 {
-  int HashEfficiency;
-  float AverageFanout;
   POSITION NumberOfPositions;
   POSITION TotalPositions;
   POSITION TotalMoves;
@@ -72,17 +69,17 @@ typedef struct analysis_info
   POSITION PrimitiveWins;
   POSITION PrimitiveLoses;
   POSITION PrimitiveTies;
-  unsigned int  TimeToSolve;
-  
-  VALUE InitialPositionValue;
-  float InitialPositionProbability;
-  POSITION DetailedPositionSummary[REMOTENESS_MAX][3];		/* Table for counting wins(1) and losses(2) and ties(3) 
-															*at each remoteness between 0 and REMOTENESS_MAX-1   */
-  REMOTENESS LargestFoundRemoteness;
-
   POSITION F0EdgeCount;
   POSITION F0NodeCount;
   POSITION F0DrawEdgeCount;
+  VALUE InitialPositionValue;
+  REMOTENESS LargestFoundRemoteness;
+  unsigned int  TimeToSolve;
+  int HashEfficiency;
+  float AverageFanout;
+  float InitialPositionProbability;
+  POSITION DetailedPositionSummary[REMOTENESS_MAX+1][4];		/* Table for counting wins(1) and losses(2) and ties(3) 
+															*at each remoteness between 0 and REMOTENESS_MAX-1   */
 } ANALYSIS;
 
 extern ANALYSIS gAnalysis;

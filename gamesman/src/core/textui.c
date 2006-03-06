@@ -901,6 +901,34 @@ void AnalysisMenu()
     gPrintPredictions = FALSE;
     gMenuMode = Analysis; /* By default, no symmetries -- raw values */
 
+	/* Check if analysis DB loaded */
+	do {
+		if(!gAnalysisLoaded) {
+			printf("\nNo analysis DB found.\nA new one must be generated in order to view analysis results.\n");
+			printf("\tr)\t(R)e-solve %s and generate an analysis DB.\n\t\t  WARNING: this could take a very long time.\n", kGameName);
+			printf("\tb)\t(B)ack = Return to previous activity\n");
+			printf("\n\nSelect an option: ");
+			switch(c = GetMyChar()) {
+				case 'R': case 'r':
+					analyze();
+					break;
+				case 'B': case 'b':
+					FreePositionList(badWinPositions);
+		    		FreePositionList(badTiePositions);
+		    		FreePositionList(badLosePositions);
+		    		gPrintPredictions = tempPredictions;
+		    		gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
+		    		return;
+		    	default:
+		    		BadMenuChoice();
+		    		HitAnyKeyToContinue();
+		    	break;
+			}
+		} else {
+			break;
+		}
+	} while(TRUE);
+	
     do {
         printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
         printf("\ti)\tPrint the (I)nitial position\n");

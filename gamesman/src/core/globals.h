@@ -38,6 +38,7 @@ extern BOOLEAN  	gSkipInputOnSingleMove;
 */
 
 extern long		gTotalMoves, gTotalPositions;
+extern BOOLEAN		gAnalysisLoaded;
 
 
 /*

@@ -7,7 +7,7 @@
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2005-01-11
+** DATE:	2006-03-06
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -165,7 +165,7 @@ void PrintMexValues(MEX mexValue, int maxPositions)
 }
 
 void PrintValuePositions(char c, int maxPositions)
-{      
+{   
     BOOLEAN continueSearching = TRUE;
     POSITION thePosition;
     VALUE theValue;
@@ -218,22 +218,30 @@ void PrintDetailedGameValueSummary()
    }
    printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
 
-   printf("\tRemoteness           Win         Lose          Tie\n");
-   printf("\t-------------------------------------------------------\n");
-
+   printf("\tRemoteness          Win         Lose         Tie         Draw        Total\n");
+   printf("\t------------------------------------------------------------------------------\n");
+   printf("\t       Inf  %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0],
+   			gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][1], gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][2],
+       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3]-gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][2]-
+       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][1]-gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0], 
+       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3]);
    for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness-=1) {
        if(gAnalysis.DetailedPositionSummary[currentRemoteness][0] == 0 && gAnalysis.DetailedPositionSummary[currentRemoteness][1] == 0
            && gAnalysis.DetailedPositionSummary[currentRemoteness][2] == 0) continue;
 
-       printf("\t%10u    %10llu   %10llu   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
-           gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+          printf("\t%10d  %10llu   %10llu   %10llu   %10llu   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2], 
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][3]-gAnalysis.DetailedPositionSummary[currentRemoteness][2]-
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][1]-gAnalysis.DetailedPositionSummary[currentRemoteness][0],
+       		gAnalysis.DetailedPositionSummary[currentRemoteness][3]);
    }
 
-   printf("\t-------------------------------------------------------\n");
-   printf("\tTotals        %10llu   %10llu   %10llu\n", gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount);
+   printf("\t------------------------------------------------------------------------------\n");
+   printf("\tTotals      %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount,
+   			gAnalysis.Draws, gAnalysis.TotalPositions);
    if (gAnalysis.Draws != 0) {
 	   printf("\tDraws = %llu\n\n", gAnalysis.Draws);
-	   printf("\tFringe0 Nodes = %llu\tAverage Win/Draw Child Ratio = %f\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
+	   printf("\tFringe0 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
    }
    printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
    
@@ -287,6 +295,24 @@ void PrintGameValueSummary()
 
 /** Analysis **/
 
+void analyze() {
+	if(!gAnalysisLoaded) {
+		CreateDatabases();
+		InitializeDatabases();
+		if (gPrintDatabaseInfo)
+			printf("\nEvaluating the value of %s...", kGameName);\
+        gSolver(gInitialPosition);
+        showStatus(Clean);
+        AnalysisCollation();
+        	
+        if(gSaveDatabase) {
+        	SaveDatabase();
+        	SaveAnalysis();
+        }
+		gAnalysisLoaded = TRUE;
+	}
+}
+
 VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
 {
     if (theValue != undecided) {
@@ -316,7 +342,9 @@ VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
             unknownCount++;
         }
     }
-
+	gAnalysis.DetailedPositionSummary[theRemoteness][3] = gAnalysis.DetailedPositionSummary[theRemoteness][0] +
+														  gAnalysis.DetailedPositionSummary[theRemoteness][1] +
+														  gAnalysis.DetailedPositionSummary[theRemoteness][2];
     return(theValue);
 }
     
@@ -327,7 +355,7 @@ void AnalysisCollation()
     
     gAnalysis.InitialPositionValue = GetValueOfPosition(gInitialPosition);
     
-    gAnalysis.InitialPositionProbability = DetermineProbability(gInitialPosition,gAnalysis.InitialPositionValue);
+    //gAnalysis.InitialPositionProbability = DetermineProbability(gInitialPosition,gAnalysis.InitialPositionValue);
     
     gAnalysis.HashEfficiency    = hashEfficiency;
     gAnalysis.AverageFanout     = averageFanout;
@@ -343,6 +371,9 @@ void AnalysisCollation()
     gAnalysis.NumberOfPositions = gNumberOfPositions;
     gAnalysis.TotalPrimitives   = gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies;
 	gAnalysis.LargestFoundRemoteness = theLargestRemoteness;  //ADDED
+	gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3] = gAnalysis.Draws;
+	
+	gAnalysisLoaded = TRUE;
 }
 
 /* Determines the chance that you'll maintain your value if you *
@@ -452,56 +483,77 @@ void createAnalysisVarDir()
 }
 
 BOOLEAN LoadAnalysis() {
-        return TRUE;
     char gameFileName[256];
-    char *line = NULL;
-    int currentRemoteness;
+    //int currentRemoteness;
+    char version;
     FILE *fp;
-
+    
+    Stopwatch();
+    createAnalysisGameDir();
     sprintf(gameFileName, "analysis/%s/%s_analysis.dat", kDBName,kDBName);
     
+    printf("\nLoading Analysis DB for %s...", kGameName);
+    
+    /* Open file for reading */
     if((fp = fopen(gameFileName, "rb")) == NULL) {
-        printf("\nFailed to open analysis file for reading. A new one will be generated.");
+    	printf("Failed!");
         return FALSE;
     }
-    printf("\nLoading Analysis Database for %s...", kGameName);
-    /* read data from file */
-    line = fgetline(fp);
-    
+   
     /* Check file version */
-    if(line[0] != 2) {
-        printf("\nError: Version mismatch. A new database will be generated.");
+    if((fread(&version, sizeof(char), 1, fp) != 1) || (version != 2)) {
+    	printf("Failed!");
         return FALSE;
     }
     
     /* Read misc. info */
-    line = fgetline(fp);
-    gAnalysis.HashEfficiency = atoi(strtok(line, ","));
-    gAnalysis.AverageFanout = atof(strtok(NULL, ",\n"));
-    gAnalysis.NumberOfPositions = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.TotalPositions = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.TotalMoves = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.TotalPrimitives = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.WinCount = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.LoseCount = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.TieCount = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.UnknownCount = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.Draws = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.PrimitiveWins = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.PrimitiveLoses = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.PrimitiveTies = (POSITION) atol(strtok(NULL, ","));
-    gAnalysis.TimeToSolve = atoi(strtok(NULL, ","));
-    gAnalysis.InitialPositionValue = atoi(strtok(NULL, ","));
-    gAnalysis.InitialPositionProbability = atof(strtok(NULL, ","));
-    gAnalysis.LargestFoundRemoteness = atoi(strtok(NULL, ","));
-    
-    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) {
-        line = fgetline(fp);
-        gAnalysis.DetailedPositionSummary[currentRemoteness][0] = (POSITION) atol(strtok(line, ","));
-        gAnalysis.DetailedPositionSummary[currentRemoteness][1] = (POSITION) atol(strtok(NULL, ","));
-        gAnalysis.DetailedPositionSummary[currentRemoteness][2] = (POSITION) atol(strtok(NULL, ","));
+    /*
+  	if((fread(&(gAnalysis.NumberOfPositions), sizeof(POSITION), 1, fp) != 1) ||
+  		(fread(&(gAnalysis.TotalPositions), sizeof(POSITION), 1, fp) != 1) ||
+  		(fread(&(gAnalysis.TotalMoves), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.TotalPrimitives), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.WinCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.LoseCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.TieCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.UnknownCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.Draws), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.PrimitiveWins), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.PrimitiveLoses), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.PrimitiveTies), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.F0EdgeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.F0NodeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.F0DrawEdgeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fread(&(gAnalysis.InitialPositionValue), sizeof(VALUE), 1, fp) != 1) ||
+		(fread(&(gAnalysis.LargestFoundRemoteness), sizeof(REMOTENESS), 1, fp) != 1) ||
+		(fread(&(gAnalysis.TimeToSolve), sizeof(unsigned int), 1, fp) != 1) ||
+		(fread(&(gAnalysis.HashEfficiency), sizeof(int), 1, fp) != 1) ||
+		(fread(&(gAnalysis.AverageFanout), sizeof(float), 1, fp) != 1) ||
+		(fread(&(gAnalysis.InitialPositionProbability), sizeof(float), 1, fp) != 1))
+	{
+		printf("Failed!");
+		return FALSE;
+	}
+
+    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) 
+    {
+        if((fread(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1) ||
+        	(fread(&(gAnalysis.DetailedPositionSummary[currentRemoteness][1]), sizeof(POSITION), 1, fp) != 1) ||
+        	(fread(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1))
+        {
+        	printf("Failed!");
+        	return FALSE;
+    	}
     }
-    printf("Done!");
+    */
+    
+    if(fread(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
+    	printf("Failed!");
+    	return FALSE;
+    }
+    
+    fclose(fp);
+    gAnalysisLoaded = TRUE;
+    printf("done in %u seconds!", Stopwatch());
     return TRUE;
 }
 
@@ -519,38 +571,79 @@ BOOLEAN LoadAnalysis() {
  */
 
 void SaveAnalysis() {
-     return;
     char gameFileName[256];
+    //int currentRemoteness;
+    char version = 2;
+    FILE *fp;
+    
+    Stopwatch();
     createAnalysisGameDir();
-    FILE *gamep;
-    REMOTENESS currentRemoteness;
-    
+
     sprintf(gameFileName, "analysis/%s/%s_analysis.dat", kDBName,kDBName);
-    gamep = fopen(gameFileName, "wb");
     
-    /* save data to file */
-    fprintf(gamep, "%c\n", 2);
+    printf("\nSaving Analysis DB for %s...", kGameName);
     
-    fprintf(gamep, "%d,%f,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu,%u,%d,%f,%d\n",
-            gAnalysis.HashEfficiency, gAnalysis.AverageFanout, gAnalysis.NumberOfPositions,
-            gAnalysis.TotalPositions, gAnalysis.TotalMoves, gAnalysis.TotalPrimitives,
-            gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount,
-            gAnalysis.UnknownCount, gAnalysis.Draws, gAnalysis.PrimitiveWins,
-            gAnalysis.PrimitiveLoses, gAnalysis.PrimitiveTies, gAnalysis.TimeToSolve,
-            gAnalysis.InitialPositionValue, gAnalysis.InitialPositionProbability, gAnalysis.LargestFoundRemoteness);
-    
-    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) {
-        if(gAnalysis.DetailedPositionSummary[currentRemoteness][0] == 0 
-            && gAnalysis.DetailedPositionSummary[currentRemoteness][1] == 0
-            && gAnalysis.DetailedPositionSummary[currentRemoteness][2] == 0) 
-            continue;
-           
-        fprintf(gamep, "%llu,%llu,%llu\n",
-                        gAnalysis.DetailedPositionSummary[currentRemoteness][0], 
-                        gAnalysis.DetailedPositionSummary[currentRemoteness][1],
-                        gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+    /* Open file for reading */
+    if((fp = fopen(gameFileName, "wb")) == NULL) {
+    	printf("Failed!");
+        return;
     }
-    fclose(gamep);
+   
+    /* Check file version */
+    if(fwrite(&version, sizeof(char), 1, fp) != 1) {
+    	printf("Failed!");
+        return;
+    }
+    
+    /* Read misc. info */
+    /*
+  	if((fwrite(&(gAnalysis.NumberOfPositions), sizeof(POSITION), 1, fp) != 1) ||
+  		(fwrite(&(gAnalysis.TotalPositions), sizeof(POSITION), 1, fp) != 1) ||
+  		(fwrite(&(gAnalysis.TotalMoves), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.TotalPrimitives), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.WinCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.LoseCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.TieCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.UnknownCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.Draws), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.PrimitiveWins), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.PrimitiveLoses), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.PrimitiveTies), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.F0EdgeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.F0NodeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.F0DrawEdgeCount), sizeof(POSITION), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.InitialPositionValue), sizeof(VALUE), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.LargestFoundRemoteness), sizeof(REMOTENESS), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.TimeToSolve), sizeof(unsigned int), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.HashEfficiency), sizeof(int), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.AverageFanout), sizeof(float), 1, fp) != 1) ||
+		(fwrite(&(gAnalysis.InitialPositionProbability), sizeof(float), 1, fp) != 1))
+	{
+		printf("Failed!");
+		return;
+	}
+
+    
+    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) 
+    {
+        if((fwrite(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1) ||
+        	(fwrite(&(gAnalysis.DetailedPositionSummary[currentRemoteness][1]), sizeof(POSITION), 1, fp) != 1) ||
+        	(fwrite(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1))
+        {
+        	printf("Failed!");
+        	return;
+    	}
+    }
+    */
+    if(fwrite(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
+    	printf("Failed!");
+    	return;
+    }
+    
+    fclose(fp);
+    gAnalysisLoaded = TRUE;
+    printf("done in %u seconds!", Stopwatch());
+    return;
 }
 
 void writeGameHTML()

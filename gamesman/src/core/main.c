@@ -7,7 +7,7 @@
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2005-01-11
+** DATE:	2006-03-06
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -107,31 +107,36 @@ VALUE DetermineValue(POSITION position)
 {
         gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
         
-        if(gLoadDatabase && LoadAnalysis() && LoadDatabase()) {
+		gAnalysisLoaded = LoadAnalysis();
+        
+        if(gLoadDatabase && LoadDatabase()) {
             if (gPrintDatabaseInfo)
                 printf("\nLoading in Database for %s...",kGameName);
-
-                if (GetValueOfPosition(position) == undecided) {
-                    if (gPrintDatabaseInfo)
-                        printf("\nRe-evaluating the value of %s...", kGameName);
-                    gSolver(position);
-                    AnalysisCollation();
-                    if(gSaveDatabase) {
-                        printf("\nWriting the values of %s into a database...", kGameName);
-                        SaveDatabase();
-                        SaveAnalysis();
-                    }
-                }
-        } else {
-                if (gPrintDatabaseInfo)
-                        printf("\nEvaluating the value of %s...", kGameName);
+            
+            if (GetValueOfPosition(position) == undecided) {
+            	if (gPrintDatabaseInfo)
+            		printf("\nRe-evaluating the value of %s...", kGameName);
                 gSolver(position);
-                showStatus(Clean);
                 AnalysisCollation();
+                
                 if(gSaveDatabase) {
-                        SaveDatabase();
-                        SaveAnalysis();
+                	printf("\nWriting the values of %s into a database...", kGameName);
+                	SaveDatabase();
+                	SaveAnalysis();
                 }
+            }
+        } else {
+        	if (gPrintDatabaseInfo)
+        		printf("\nEvaluating the value of %s...", kGameName);
+        	StoreValueOfPosition(position, undecided);
+        	gSolver(position);
+        	showStatus(Clean);
+        	AnalysisCollation();
+        	
+        	if(gSaveDatabase) {
+        		SaveDatabase();
+        		SaveAnalysis();
+        	}
         }
 
         gUseGPS = FALSE;

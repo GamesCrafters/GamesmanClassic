@@ -44,6 +44,5 @@ MEXCALC		MexCalcInit			(void);
 
 void		MexFormat			(POSITION pos, STRING str);
 MEX		MexPrimitive			(VALUE value);
-char    *fgetline(FILE *fp);
 
 #endif /* GMCORE_MISC_H */
