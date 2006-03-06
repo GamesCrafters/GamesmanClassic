@@ -28,9 +28,8 @@ extern REMOTENESS 	gMaxRemoteness, gMinRemoteness;
 ** Miscellaneous globals
 */
 
-extern BOOLEAN  	gPlaying;
+extern BOOLEAN  	gPlaying, gSkipInputOnSingleMove, gZeroMemPlayer;
 extern int		gTimer;
-extern BOOLEAN  	gSkipInputOnSingleMove;
 
 
 /*

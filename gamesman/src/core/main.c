@@ -106,42 +106,42 @@ void SetSolver()
 VALUE DetermineValue(POSITION position)
 {
         gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
-        
-		gAnalysisLoaded = LoadAnalysis();
-        
+
+        gAnalysisLoaded = LoadAnalysis();
+
         if(gLoadDatabase && LoadDatabase()) {
-            if (gPrintDatabaseInfo)
-                printf("\nLoading in Database for %s...",kGameName);
-            
-            if (GetValueOfPosition(position) == undecided) {
-            	if (gPrintDatabaseInfo)
-            		printf("\nRe-evaluating the value of %s...", kGameName);
-                gSolver(position);
-                AnalysisCollation();
-                
-                if(gSaveDatabase) {
-                	printf("\nWriting the values of %s into a database...", kGameName);
-                	SaveDatabase();
-                	SaveAnalysis();
+                if (gPrintDatabaseInfo)
+                        printf("\nLoading in Database for %s...",kGameName);
+
+                if (GetValueOfPosition(position) == undecided) {
+                        if (gPrintDatabaseInfo)
+                                printf("\nRe-evaluating the value of %s...", kGameName);
+                        gSolver(position);
+                        AnalysisCollation();
+
+                        if(gSaveDatabase) {
+                                printf("\nWriting the values of %s into a database...", kGameName);
+                                SaveDatabase();
+                                SaveAnalysis();
+                        }
                 }
-            }
         } else {
-        	if (gPrintDatabaseInfo)
-        		printf("\nEvaluating the value of %s...", kGameName);
-        	StoreValueOfPosition(position, undecided);
-        	gSolver(position);
-        	showStatus(Clean);
-        	AnalysisCollation();
-        	
-        	if(gSaveDatabase) {
-        		SaveDatabase();
-        		SaveAnalysis();
-        	}
+                if (gPrintDatabaseInfo)
+                        printf("\nEvaluating the value of %s...", kGameName);
+                StoreValueOfPosition(position, undecided);
+                gSolver(position);
+                showStatus(Clean);
+                AnalysisCollation();
+
+                if(gSaveDatabase) {
+                        SaveDatabase();
+                        SaveAnalysis();
+                }
         }
 
         gUseGPS = FALSE;
         gValue = GetValueOfPosition(position);
-        
+
         return gValue;
 }
 
@@ -160,13 +160,13 @@ void SolveAndStore()
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
         gAnalysis.TimeToSolve = Stopwatch();
-        
+
         if (gAnalyzing) {
-        				// Writing HTML Has Now Been Deprecated
-						// createAnalysisVarDir();
-						// writeVarHTML();
-			writeXML(Save);
-		}
+                // Writing HTML Has Now Been Deprecated
+                // createAnalysisVarDir();
+                // writeVarHTML();
+                writeXML(Save);
+        }
 }
 
 /* Handles the command line arguments by setting flags and options
@@ -266,6 +266,9 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--GenerateMoves")) {
                         i += argc;
                         gMessage = TRUE;
+                } else if(!strcasecmp(argv[i], "--lightplayer")) {
+                        i += argc;
+                        gZeroMemPlayer = TRUE;
                 } else if(!strcasecmp(argv[i], "--help")) {
                         printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
                         gMessage = TRUE;

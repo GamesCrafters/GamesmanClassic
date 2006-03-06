@@ -52,6 +52,7 @@ BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printe
 BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
+BOOLEAN gZeroMemPlayer = FALSE;		/*TRUE if we are reading from the gzip file when using memdb*/
 //TEMPORARALLY DISABLE FILE DATABASES TILL MOVED TO NEW DB ARCH.
 // 12.2.2005 - first attempt to fix memdb so it can be saved.
 //	     - This brings along a few big changes that will break all other dbs
