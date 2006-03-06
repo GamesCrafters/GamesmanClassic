@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.7 2006-03-05 03:28:15 yanpeichen Exp $
+// $Id: mcambio.c,v 1.8 2006-03-06 01:57:32 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -20,6 +20,7 @@
 **              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
 **              3/2/2006 - Fixed various errors.
 **              3/4/2006 - Fixed compile errors.
+**              3/5/2006 - Updated Primitive() and added FiveInARow().
 **
 **************************************************************************/
 
@@ -178,7 +179,7 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-char                    BoardPieceToChar(BoardPiece piece);
+BOOLEAN                 FiveInARow(char *board, char symbol);
 
 /************************************************************************
 **
@@ -194,7 +195,7 @@ void InitializeGame ()
   int i;
   int piecesArray[] = { Blank, Neutral, A, B };
 
-  char* boardArray[boardSize];
+  char boardArray[boardSize];
 
   gNumberOfPositions   = generic_hash_init(boardSize, piecesArray, NULL);
   gWhosTurn = playerA;
@@ -287,6 +288,22 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+  char *board = generic_unhash(position, board);
+  int turn = whoseMove(position);
+  char symbol;
+
+  if(turn == playerA)
+    symbol = B_PIECE;
+  else
+    symbol = A_PIECE;
+
+  if (FiveInARow(board, symbol))
+    return gStandardGame ? lose : win;
+  /*
+  else if ()
+    return tie;
+  */
+  else
     return undecided;
 }
 
@@ -643,11 +660,33 @@ void DebugMenu ()
 ** Any other function you deem necessary to help the ones above.
 ** 
 ************************************************************************/
-
+BOOLEAN FiveInARow(char *board, char symbol)
+{
+  return /* horizontal */
+         (board[0] == symbol && board[1] == symbol && board[2] == symbol && board[3] == symbol && board[4] == symbol)      ||
+         (board[5] == symbol && board[6] == symbol && board[7] == symbol && board[8] == symbol && board[9] == symbol)      ||
+         (board[10] == symbol && board[11] == symbol && board[12] == symbol && board[13] == symbol && board[14] == symbol) ||
+         (board[15] == symbol && board[16] == symbol && board[17] == symbol && board[18] == symbol && board[19] == symbol) ||
+         (board[20] == symbol && board[21] == symbol && board[22] == symbol && board[23] == symbol && board[24] == symbol) ||
+         /* vertical */
+         (board[0] == symbol && board[5] == symbol && board[10] == symbol && board[15] == symbol && board[20] == symbol)   ||
+         (board[1] == symbol && board[6] == symbol && board[11] == symbol && board[16] == symbol && board[21] == symbol)   ||
+         (board[2] == symbol && board[7] == symbol && board[12] == symbol && board[17] == symbol && board[22] == symbol)   ||
+         (board[3] == symbol && board[8] == symbol && board[13] == symbol && board[18] == symbol && board[23] == symbol)   ||
+         (board[4] == symbol && board[9] == symbol && board[14] == symbol && board[19] == symbol && board[24] == symbol)   ||
+         /* diagonal */
+         (board[0] == symbol && board[6] == symbol && board[12] == symbol && board[18] == symbol && board[24] == symbol)   ||
+         (board[4] == symbol && board[8] == symbol && board[12] == symbol && board[16] == symbol && board[20] == symbol);
+}
 
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2006/03/05 03:28:15  yanpeichen
+// Yanpei Chen changing mcambio.c
+//
+// deleted two stray characters that caused a compiler error.
+//
 // Revision 1.6  2006/03/04 20:00:54  simontaotw
 // Fixed compile errors.
 //
