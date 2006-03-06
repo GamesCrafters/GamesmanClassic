@@ -643,8 +643,8 @@ proc drawArrows {c x y piece} {
 
     global dist arrowshape arrowwidth
 
-    set arrowLen [expr 0.5 * $dist]
-    set arrowLenD [expr .707 * $dist]
+    set arrowLen [expr 0.49 * $dist]
+    set arrowLenD [expr 0.49 * $dist]
     #up
     $c create line $x $y $x [expr $y - $arrowLen] \
     -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
