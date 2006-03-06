@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.90 2006-03-06 05:21:04 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.91 2006-03-06 05:27:04 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1569,6 +1569,7 @@ proc plotMove { turn theValue theRemoteness } {
     set tieXRange [expr $maxTieRemoteness * $deltax]
     set y [expr $top + [expr 2 * $pieceRadius * [expr $numMoves / 2]]]
 
+
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
 	$moveHistoryCanvas delete moveHistory1Line
@@ -1577,11 +1578,11 @@ proc plotMove { turn theValue theRemoteness } {
 	    if { [expr $i % 5] == 0} {
 		set width 1
 	    }
-	    $moveHistoryCanvas create line [expr $center - [expr $i * $deltax]] $top [expr $center - [expr $i * $deltax]] $bottom \
+	    #$moveHistoryCanvas create line [expr $center - [expr $i * $deltax]] $top [expr $center - [expr $i * $deltax]] $bottom \
 		-fill $gFontColor \
 		-width $width \
 		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineLeft]
-	    $moveHistoryCanvas create line [expr $center + [expr $i * $deltax]] $top [expr $center + [expr $i * $deltax]] $bottom \
+	    #$moveHistoryCanvas create line [expr $center + [expr $i * $deltax]] $top [expr $center + [expr $i * $deltax]] $bottom \
 		-fill $gFontColor \
 		-width $width \
 		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineRight]
@@ -1592,12 +1593,12 @@ proc plotMove { turn theValue theRemoteness } {
     set leftTieLine \
 	[$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
 	     -fill $gFontColor \
-	     -width 2 \
+	     -width 1 \
 	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
     set rightTieLine \
 	[$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
 	     -fill $gFontColor \
-	     -width 2 \
+	     -width 1 \
 	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
     global kValueHistoryLabelFont
     $moveHistoryCanvas delete moveHistoryLabelsMaxRemoteness
