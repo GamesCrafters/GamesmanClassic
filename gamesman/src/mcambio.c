@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.8 2006-03-06 01:57:32 simontaotw Exp $
+// $Id: mcambio.c,v 1.9 2006-03-06 06:07:10 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -18,9 +18,9 @@
 ** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
 **              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
 **              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
-**              3/2/2006 - Fixed various errors.
-**              3/4/2006 - Fixed compile errors.
-**              3/5/2006 - Updated Primitive() and added FiveInARow().
+**              3/02/2006 - Fixed various errors.
+**              3/04/2006 - Fixed compile errors.
+**              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **
 **************************************************************************/
 
@@ -36,7 +36,6 @@
 #include <unistd.h>
 #include <limits.h>
 
-
 /*************************************************************************
 **
 ** Game-specific constants
@@ -49,7 +48,7 @@ STRING   kDBName              = "cambio"; /* The name to store the database unde
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
@@ -128,10 +127,6 @@ typedef enum player {
   playerA = 1, playerB = 2
 } Player;
 
-typedef enum boardPiece {
-  Blank = 0, Neutral = 1, A = 2, B = 3
-} BoardPiece;
-
 /*************************************************************************
 **
 ** Global Variables
@@ -141,8 +136,11 @@ typedef enum boardPiece {
 int boardSize = BOARDSIZE;
 int rowcount = ROWCOUNT;
 int colcount = COLCOUNT;
-int aCount = 0;
-int bCount = 0;
+char blank = BLANK;
+char neutral = NEUTRAL;
+char aPiece = A_PIECE;
+char bPiece = B_PIECE;
+char unknown = UNKNOWN;
 
 Player gWhosTurn = playerA;
 int gameType;
@@ -193,7 +191,7 @@ BOOLEAN                 FiveInARow(char *board, char symbol);
 void InitializeGame ()
 {
   int i;
-  int piecesArray[] = { Blank, Neutral, A, B };
+  int piecesArray[] = { blank, 0, 21, neutral, 4, 16, aPiece, 4, 21, bPiece, 5, 21, -1 };
 
   char boardArray[boardSize];
 
@@ -201,13 +199,13 @@ void InitializeGame ()
   gWhosTurn = playerA;
     
   /* setting up the four corners; to Neutrals */
-  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = NEUTRAL;
+  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = neutral;
 
   /* setting up the rest of the board; to Blanks */
   for (i = 0; i < boardSize; i++) {
-    boardArray[i] = BLANK;
+    boardArray[i] = blank;
   }
-    
+
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
 }
 
@@ -290,19 +288,21 @@ VALUE Primitive (POSITION position)
 {
   char *board = generic_unhash(position, board);
   int turn = whoseMove(position);
-  char symbol;
+  char symbol, opposymbol;
 
-  if(turn == playerA)
-    symbol = B_PIECE;
-  else
-    symbol = A_PIECE;
+  if(turn == playerB) {
+    symbol = aPiece;
+    opposymbol = bPiece;
+  }
+  else {
+    symbol = bPiece;
+    opposymbol = aPiece;
+  }
 
-  if (FiveInARow(board, symbol))
-    return gStandardGame ? lose : win;
-  /*
-  else if ()
+  if (FiveInARow(board, symbol) && FiveInARow(board, opposymbol))
     return tie;
-  */
+  else if (FiveInARow(board, symbol))
+    return gStandardGame ? lose : win;
   else
     return undecided;
 }
@@ -327,7 +327,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   int i;
-  char *theBoard = generic_unhash(position,theBoard);
+  char *theBoard = generic_unhash(position, theBoard);
   
   /***********************LINE 1**************************/
   printf("       #-#-#-#-#-#\n");
@@ -384,9 +384,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("       #-#-#-#-#-#\n"); 
 	                                 
   /***********************LINE 12**************************/
-  printf("                      A's Symbol = X\n");
-  printf("                      B's Symbol = O\n");
-  printf("                         Neutral = -\n");
+  printf("                      A's Symbol = %c\n", aPiece);
+  printf("                      B's Symbol = %c\n", bPiece);
+  printf("                         Neutral = %c\n", neutral);
   printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
 
  }
@@ -682,6 +682,9 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2006/03/06 01:57:32  simontaotw
+// Updated Primitive() and added FiveInARow().
+//
 // Revision 1.7  2006/03/05 03:28:15  yanpeichen
 // Yanpei Chen changing mcambio.c
 //
