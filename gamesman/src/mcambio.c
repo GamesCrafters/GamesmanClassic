@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.9 2006-03-06 06:07:10 simontaotw Exp $
+// $Id: mcambio.c,v 1.10 2006-03-07 07:59:11 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -101,7 +101,8 @@ STRING   kHelpReverseObjective =
 "";
 
 STRING   kHelpTieOccursWhen =
-"A tie never occurs.";
+"A tie is possible when a player's move causes two 5 in a rows \n\
+simultaneously.";
 
 STRING   kHelpExample =
 "";
@@ -682,6 +683,9 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.9  2006/03/06 06:07:10  simontaotw
+// Updated tie possible.
+//
 // Revision 1.8  2006/03/06 01:57:32  simontaotw
 // Updated Primitive() and added FiveInARow().
 //
