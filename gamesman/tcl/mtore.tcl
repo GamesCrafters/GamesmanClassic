@@ -770,6 +770,7 @@ proc drawArrow {c startLoc endLoc color} {
 proc raiseArrow {c startLoc endLoc oldPosition move color} {
     $c raise "arrow$color$startLoc$endLoc"
 
+    $c bind "arrow$color$startLoc$endLoc" <ButtonRelease> "ReturnFromHumanMove $move"
     $c bind "bigArrow$color$startLoc$endLoc" <ButtonRelease> "ReturnFromHumanMove $move"
 }
 
