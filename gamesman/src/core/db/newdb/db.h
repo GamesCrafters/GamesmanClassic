@@ -32,9 +32,21 @@
 #ifndef GMCORE_DB_H
 #define GMCORE_DB_H
 
-typedef int boolean;
-#define TRUE 1
-#define FALSE 0
+#include "db_globals.h"
 
+#include "db_store.h"
+#include "db_buf.h"
+#include "db_bman.h"
+#include "db_malloc.h"
+#include "db_basichash.h"
+
+
+typedef struct {
+  db_bman* buf_man;
+  db_buf_head* buffers;
+  db_store* filep;
+  frame_id num_buf;
+  page_id num_page;
+} games_db;
 
 #endif /* GMCORE_DB_H */

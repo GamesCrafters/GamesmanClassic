@@ -31,6 +31,8 @@
 
 #include "db_bman.h"
 #include "db_basichash.h"
+#include "db_buf.h"
+#include "db_malloc.h"
 
 /* buffer replacement stratagy and replacement tools.
  * ask the buffer manager for a specific buffer to be brought into memory.
@@ -40,10 +42,13 @@
 
 /* r_fn is the replacement stratagy function.
  */
-db_bman* bman_init(db_buf_head* bufp, frame_id (*r_fn) (db_bman*, void*)){
+
+
+db_bman* bman_init(db_buf_head* bufp){
+     // frame_id (*r_fn) (db_bman*, void*)){
   db_bman *new = (db_bman*) SafeMalloc(sizeof(db_bman));
   new->bufp = bufp;
-  new->replace_fun = r_fn;
+  //new->replace_fun = r_fn;
   // should initialize r_fn too... which will return an internal data pointer
   // which we then pass into r_fn on subsequent calls.
   // Nah... just make it deal with the first time it has been called and allow
@@ -60,7 +65,8 @@ frame_id bman_find(db_bman* dat, page_id id){
   frame_id ret = db_basichash_get(dat->hash,id);
   if(ret == -1){
     // bring into buffers.
-    ret = dat->replace_fun(dat,null); //null is going to be used for db_tell()
+    //ret = dat->replace_fun(dat,null); //null is going to be used for db_tell()
+    ret = 0;
     db_buf_flush(dat->bufp,ret);
     db_buf_read(dat->bufp,ret,id);
   }

@@ -32,18 +32,17 @@
 #ifndef GMCORE_DB_BMAN_H
 #define GMCORE_DB_BMAN_H
 
-#include "db_buf.h"
-#include "db_store.h"
 #include "db_basichash.h"
+#include "db_buf.h"
 
 typedef struct db_bman_struct {
   db_buf_head* bufp;
-  frame_id (*replace_fun) (db_bman*);
+  //frame_id (*replace_fun) (db_bman*);
   db_bhash *hash;
 } db_bman;
 
-db_bman* bman_init(db_buf_head*,frame_id (*r_fn));
-buf_loc bman_find(db_bman*,page_id);
+db_bman* bman_init(db_buf_head*);//,frame_id (*r_fn) (db_bman*));
+frame_id bman_find(db_bman*,page_id);
 
 
 

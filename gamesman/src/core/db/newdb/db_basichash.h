@@ -29,17 +29,10 @@
 **
 **************************************************************************/
 
-#ifndef GMCORE_DB_BASICHASH
-#define GMCORE_DB_BASICHASH
+#ifndef GMCORE_DB_BASICHASH_H
+#define GMCORE_DB_BASICHASH_H
 
-#include "db_buf.h"
-
-
-typedef struct db_bhash_struct {
-  int size;
-  db_bhashin* rows;
-
-} db_bhash;
+#include  "db_buf.h"
 
 typedef struct db_bhashin_struct {
   int num;
@@ -48,14 +41,22 @@ typedef struct db_bhashin_struct {
   struct db_bhashin_struct* next;
 } db_bhashin;
 
+
+typedef struct db_bhash_struct {
+  int size;
+  db_bhashin* rows;
+
+} db_bhash;
+
+
 db_bhash* db_basichash_create(int num_rows,int num_in);
-buf_loc db_basichash_get(db_bhash* hash, page_id id);
-buf_loc db_basichash_remove(db_bhash* hash, page_id id);
+frame_id db_basichash_get(db_bhash* hash, page_id id);
+frame_id db_basichash_remove(db_bhash* hash, page_id id);
 int db_basichash_put(db_bhash* hash, page_id, frame_id );
 void db_basichash_destroy(db_bhash* hash);
 
 //Helpers
-db_bhashin* db_basichash_getin(db_bhash* hash, buf_id id);
+db_bhashin* db_basichash_getin(db_bhash* hash, page_id id);
 
 
-#endif /* GMCORE_DB_BASICHASH */
+#endif /* GMCORE_DB_BASICHASH_H */

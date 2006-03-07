@@ -40,7 +40,7 @@ db_buf_head* db_buf_init(int rec_size, frame_id num_buf, int buf_size, db_store*
   frame_id i;
   
   bufp->filep = filep;
-  bufp->num_buf = num_buf;
+  bufp->n_buf = num_buf;
   bufp->buf_size = buf_size;
   bufp->buffers = (db_buf*) SafeMalloc (sizeof(db_buf) * num_buf);
   bufp->buf_off = (db_offset*) SafeMalloc(sizeof(db_offset) * num_buf);
@@ -118,7 +118,7 @@ int db_buf_read(db_buf_head* bufp, frame_id spot, page_id id){
 int db_buf_destroy(db_buf_head* bufp){
   frame_id i;
   
-  for(i=0;i<bufp->num_buf;i++){
+  for(i=0;i<bufp->n_buf;i++){
     SafeFree(bufp->buffers[i].mem);
   }
   SafeFree(bufp->buffers);

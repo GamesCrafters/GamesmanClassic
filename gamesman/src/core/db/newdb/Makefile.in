@@ -33,7 +33,7 @@ EXESUFFIX	= @EXESUFFIX@
 ##############################################################################
 ### Files
 
-DB_OBJ		= db$(OBJSUFFIX)
+DB_OBJ		=  db_store$(OBJSUFFIX) db_malloc$(OBJSUFFIX) db_buf$(OBJSUFFIX) db_bman$(OBJSUFFIX) db_basichash$(OBJSUFFIX) db$(OBJSUFFIX)
 
 ifneq (@GMPCFLAGS@,)
 UNIVHT_OBJ	= univht$(OBJSUFFIX)

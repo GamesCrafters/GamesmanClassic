@@ -30,6 +30,7 @@
 **************************************************************************/
 
 #include "db_basichash.h"
+#include "db_malloc.h"
 
 /*generates and returns a db_bhash pointer to newly malloced memory.
  * the destructor frees all of the memory. Whatever calls this
@@ -43,12 +44,12 @@ db_bhash* db_basichash_create(int num_rows,int num_in){
   new->rows = (db_bhashin*) SafeMalloc(sizeof(db_bhashin) * num_rows);
   
   for(i=0;i<num_rows;i++){
-    (new->rows)[i]->num = num_in;
-    (new->rows)[i]->loc = (frame_id*) SafeMalloc(sizeof(frame_id) * num_in);
-    (new->rows)[i]->id = (page_id*) SafeMalloc(sizeof(page_id) * num_in);
-    (new->rows)[i]->next = NULL;
-    for(j=0;j<num_in,j++){
-      (new->rows)[i]->id[j] = -1;
+    (new->rows)[i].num = num_in;
+    (new->rows)[i].loc = (frame_id*) SafeMalloc(sizeof(frame_id) * num_in);
+    (new->rows)[i].id = (page_id*) SafeMalloc(sizeof(page_id) * num_in);
+    (new->rows)[i].next = NULL;
+    for(j=0;j<num_in;j++){
+      (new->rows)[i].id[j] = -1;
     }
   }
   
@@ -114,7 +115,7 @@ frame_id db_basichash_remove(db_bhash* hash, page_id id){
   db_bhashin* place;
 
   place = db_basichash_getin(hash,id);
-  for(i=0;i < place->num && place->id[i] != id,i++);
+  for(i=0;i < place->num && place->id[i] != id;i++);
   if(place->id[i] == id){
     place->id[i] = -1;
     return place->loc[i];
@@ -123,8 +124,8 @@ frame_id db_basichash_remove(db_bhash* hash, page_id id){
 }
 
 void db_basichash_destroy(db_bhash* hash){
-  int i,j;
-  db_bhashin *place,*next,*start
+  int i;
+  db_bhashin *place,*next,*start;
 
   for(i=0;i < hash->size;i++){
     //once per row.
@@ -149,7 +150,7 @@ void db_basichash_destroy(db_bhash* hash){
 db_bhashin* db_basichash_getin(db_bhash* hash, page_id id){
   int i;
   int row = id % hash->size;
-  db_bhashin* prev=NULL,firstempty = NULL;
+  db_bhashin* prev = NULL,*firstempty = NULL;
   db_bhashin* place = (hash->rows) + row;
   while(place != NULL){
     for(i=0;i<place->num;i++){

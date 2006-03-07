@@ -32,7 +32,7 @@
 #ifndef GMCORE_DB_MALLOC_H
 #define GMCORE_DB_MALLOC_H
 
-#include "db_store.h"
+#include "db_globals.h"
 
 void* SafeMalloc (db_offset num_bytes);
 void SafeFree(void* ptr);

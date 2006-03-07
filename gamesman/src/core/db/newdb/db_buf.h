@@ -32,11 +32,10 @@
 #ifndef GMCORE_DB_BUF_H
 #define GMCORE_DB_BUF_H
 
+#include "db_globals.h"
 #include "db_store.h"
-#include "db.h"
 
-typedef unsigned long long frame_id;
-typedef unsigned long long page_id;
+
 
 typedef struct buf_struct {
   char* mem;
@@ -51,7 +50,7 @@ typedef struct main_buf_struct {
   db_buf* buffers;
   db_offset* buf_off;
   int buf_size;
-  int num_buf;
+  int n_buf;
 }db_buf_head;
 
 db_buf_head* db_buf_init(int rec_size, frame_id num_buf, int buf_size, db_store* filep);

@@ -1,3 +1,4 @@
+
 /************************************************************************
 **
 ** NAME:	db_store.h
@@ -32,9 +33,9 @@
 #ifndef GMCORE_DB_FILE_H
 #define GMCORE_DB_FILE_H
 
-#include <zlib.h>
+#include "db_globals.h"
 
-typedef unsigned long long db_offset;
+#include <zlib.h>
 
 typedef struct dbfile_struct{
   char* filename;

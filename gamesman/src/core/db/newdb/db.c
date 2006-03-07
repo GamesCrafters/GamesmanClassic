@@ -28,15 +28,11 @@
 ** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 **************************************************************************/
-typedef struct gamescrafters_db_struct {
-  db_bman* buf_man;
-  db_buf_head* buffers;
-  db_store* filep;
-  frame_id num_buf;
-  page_id num_page;
-} games_db;
+#include "db.h"
+#include "db_globals.h"
+#include <stdio.h>
 
-#define RECS_PER_PAGE 100;
+#define RECS_PER_PAGE 100
 
 /*
  * allocates memory and sets up a gamescrafters db. Must call destructive
@@ -48,7 +44,7 @@ games_db* db_create(Position num_rec, int rec_size, Position max_mem, char* db_n
   db_buf_head* bufp;
   games_db* data;
   boolean olddb = TRUE;
-  frame_id num_buf = max_mem / (rec_size*RECS_PER_PAGE);
+  frame_id num_buf = max_mem / (rec_size * RECS_PER_PAGE);
 
   filep = db_open(db_name,"r+");
   if(filep == NULL){
@@ -68,7 +64,7 @@ games_db* db_create(Position num_rec, int rec_size, Position max_mem, char* db_n
     bufp = db_buf_init(rec_size,num_buf, RECS_PER_PAGE,filep);
     //db_buf_filesetu(bufp);
   }
-  bman = bman_init(bufp,NULL);//need to make a buffer replacement strat.
+  bman = bman_init(bufp);//,NULL);//need to make a buffer replacement strat.
 
   data = (games_db*) SafeMalloc(sizeof(games_db));
 
@@ -76,8 +72,8 @@ games_db* db_create(Position num_rec, int rec_size, Position max_mem, char* db_n
   data->buffers = bufp;
   data->filep = filep;
   data->num_buf = num_buf;
-  data->rec_size = rec_size;
-  data->pg_size = RECS_PER_PAGE * rec_size;
+  //data->rec_size = rec_size;
+  //data->pg_size = RECS_PER_PAGE * rec_size;
   data->num_page = num_rec / (rec_size*RECS_PER_PAGE);
   if(num_rec % (rec_size*RECS_PER_PAGE) != 0)
     data->num_page++;
@@ -92,7 +88,7 @@ void db_destroy(games_db* data){
   bman_destroy(data->buf_man);
   db_buf_destroy(data->buffers);
   db_close(data->filep);
-  SafeFree(games_db);
+  SafeFree(data);
 
 }
 
@@ -101,14 +97,14 @@ void db_get(games_db* gdb, char* mem, Position pos){
   page_id pid = pos / RECS_PER_PAGE;
   frame_id fid;
   int off = pos - pid*RECS_PER_PAGE; 
-  int byte_off = off * gdb->rec_size;
+  int byte_off = off;// * gdb->rec_size;
   
   if(off > RECS_PER_PAGE)
     fprintf(stderr,"Error in database. db.c db_get >>  offset way large");
   
   
   fid = bman_find(gdb->buf_man,pid);
-  db_buf_copyOut(gdb->bufp,mem,fid,byte_off,gdb->rec_size);
+  //  db_buf_copyOut(gdb->bufp,mem,fid,byte_off,gdb->rec_size);
 
 }
 
@@ -117,13 +113,13 @@ void db_put(games_db* gdb, char* mem, Position pos){
   page_id pid = pos / RECS_PER_PAGE;
   frame_id fid;
   int off = pos - pid*RECS_PER_PAGE; 
-  int byte_off = off * gdb->rec_size;
+  int byte_off = off; //* gdb->rec_size;
   
   if(off > RECS_PER_PAGE)
     fprintf(stderr,"Error in database. db.c db_get >>  offset way large");
   
   
   fid = bman_find(gdb->buf_man,pid);
-  db_buf_copyIn(gdb->bufp,mem,fid,byte_off,gdb->rec_size);
+  //db_buf_copyIn(gdb->bufp,mem,fid,byte_off,gdb->rec_size);
 
 }
