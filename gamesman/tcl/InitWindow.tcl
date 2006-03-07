@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.94 2006-03-06 20:50:37 eudean Exp $
+# $Id: InitWindow.tcl,v 1.95 2006-03-07 01:11:41 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -177,7 +177,7 @@ proc InitWindow { kRootDir kExt } {
     set moveHistoryCanvas .middle.f1.cMLeft
     set moveHistoryVisible false
     set gameMenuToDriverLoop false
-    set maxRemoteness 1
+    set maxRemoteness 0
     set maxTieRemoteness 0
 
     set convertExists false
@@ -922,7 +922,6 @@ proc InitWindow { kRootDir kExt } {
 
     set titleY [expr $gWindowWidthRatio * 10]
     set descY [expr $gWindowWidthRatio * 20]
-    set labelsY [expr $gWindowWidthRatio * 29]
     set graphTopY [expr $gWindowWidthRatio * 35]
 
     set center [expr $gWindowWidthRatio * 75]
@@ -950,31 +949,11 @@ proc InitWindow { kRootDir kExt } {
 	-anchor e \
 	-tags [list moveHistory moveHistoryDesc moveHistoryRightName textitem]
 
-    .middle.f1.cMLeft create text $center $labelsY \
-	-text "D" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list moveHistory moveHistoryLabels textitem]
-
-    .middle.f1.cMLeft create text 0 $labelsY \
-	-text "0" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor w \
-	-tags [list moveHistory moveHistoryLabels textitem]
-
-    .middle.f1.cMLeft create text [expr 2 * $center] $labelsY \
-	-text "0" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor e \
-	-tags [list moveHistory moveHistoryLabels textitem]
 
     .middle.f1.cMLeft create line \
-	$center $graphTopY $center [expr $gWindowWidthRatio * 400] \
+	$center $graphTopY $center [expr $gWindowWidthRatio * 430] \
 	-fill $gFontColor \
-	-width 1 \
+	-width 2 \
 	-tags [list moveHistory moveHistoryCenterLine]
 
 
@@ -1243,6 +1222,7 @@ proc InitWindow { kRootDir kExt } {
 	.middle.f1.cMLeft raise iIMB2
 	.middle.f1.cMLeft raise iIMB3
 	.middle.f1.cMLeft raise moveHistory
+	.middle.f1.cMLeft raise LeftName
 	set moveHistoryVisible true
 	.cStatus raise winI
 	.cStatus raise moveA
@@ -1513,12 +1493,14 @@ proc plotMove { turn theValue theRemoteness } {
     global gWindowWidthRatio
     global gFontColor
     global maxRemoteness maxTieRemoteness
+    global kValueHistoryLabelFont
 
     set drawRemoteness 255
     set pieceRadius [expr 3.0 + $gWindowWidthRatio]
     set center [expr $gWindowWidthRatio * 75]
     set top [expr $gWindowWidthRatio * 35 + $pieceRadius]
-    set bottom [expr $gWindowWidthRatio * 400]
+    set bottom [expr $gWindowWidthRatio * 430]
+    set labelsY [expr $gWindowWidthRatio * 29]
 
     set numMoves [llength $moveHistoryList]
 
@@ -1548,7 +1530,11 @@ proc plotMove { turn theValue theRemoteness } {
 	set lineColor yellow
     }
 
-    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+    if { [expr $maxRemoteness + $maxTieRemoteness] == 0 } {
+	set deltax 0
+    } else {
+	set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+    }
     set oldDeltaX $deltax
 
     if { $theRemoteness < $drawRemoteness } {
@@ -1571,48 +1557,94 @@ proc plotMove { turn theValue theRemoteness } {
 
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
+	global tk_library
+
+	set labelBufferSpace 11.0; #in pixels
+
 	$moveHistoryCanvas delete moveHistory1Line
+	$moveHistoryCanvas delete moveHistoryLabelsRemoteness
+
 	for {set i 0} {$i <= [expr $maxRemoteness + $maxTieRemoteness]} {incr i} {
-	    set width 0.2
-	    if { [expr $i % 5] == 0} {
-		set width 1
+	    set reverse [expr $maxRemoteness + $maxTieRemoteness - $i]
+	    set stipple @[file join $tk_library demos images gray25.bmp]
+	    set width 2
+	    if { $reverse < $maxRemoteness } { #between edges and tieline/center
+		if { [expr $reverse % 5] == 0 } {
+		    set stipple ""
+		    set width 1
+		    if { [expr $i * $deltax] > [expr $tieXRange + $labelBufferSpace] } { #don't draw labels to close to tie or center label
+			.middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
+			    -text $reverse \
+			    -font $kValueHistoryLabelFont \
+			    -fill $gFontColor \
+			    -anchor center \
+			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+			.middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
+			    -text $reverse \
+			    -font $kValueHistoryLabelFont \
+			    -fill $gFontColor \
+			    -anchor center \
+			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+		    }
+		}		
+	    } else { #in tie range
+		if { [expr [expr $reverse - $maxRemoteness] % 5] == 0 } {
+		    set stipple ""
+		    set width 1
+		    if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels to close to center label
+			.middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
+			    -text [expr $reverse - $maxRemoteness] \
+			    -font $kValueHistoryLabelFont \
+			    -fill $gFontColor \
+			    -anchor center \
+			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+			.middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
+			    -text [expr $reverse - $maxRemoteness] \
+			    -font $kValueHistoryLabelFont \
+			    -fill $gFontColor \
+			    -anchor center \
+			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+		    }
+		}		
 	    }
-	    #$moveHistoryCanvas create line [expr $center - [expr $i * $deltax]] $top [expr $center - [expr $i * $deltax]] $bottom \
+	    $moveHistoryCanvas create line \
+		[expr $center - $i * $deltax] $top \
+		[expr $center - $i * $deltax] $bottom \
 		-fill $gFontColor \
+		-stipple $stipple \
 		-width $width \
 		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineLeft]
-	    #$moveHistoryCanvas create line [expr $center + [expr $i * $deltax]] $top [expr $center + [expr $i * $deltax]] $bottom \
+	    $moveHistoryCanvas create line \
+		[expr $center + [expr $i * $deltax]] $top \
+		[expr $center + [expr $i * $deltax]] $bottom \
 		-fill $gFontColor \
+		-stipple $stipple \
 		-width $width \
 		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineRight]
 	}
     }
-    #draw tie boundary lines
-    $moveHistoryCanvas delete moveHistoryTieLine
-    set leftTieLine \
-	[$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
-	     -fill $gFontColor \
-	     -width 1 \
-	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
-    set rightTieLine \
-	[$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
-	     -fill $gFontColor \
-	     -width 1 \
-	     -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
-    global kValueHistoryLabelFont
-    $moveHistoryCanvas delete moveHistoryLabelsMaxRemoteness
-    $moveHistoryCanvas create text [expr $center - $tieXRange - $deltax] [expr $top - $pieceRadius - 6.0 * $gWindowWidthRatio] \
-	-text $maxRemoteness \
+    if { $tieXRange > 0 } {
+	#draw tie boundary lines
+	$moveHistoryCanvas delete moveHistoryTieLine
+	set leftTieLine \
+	    [$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
+		 -fill $gFontColor \
+		 -width 2 \
+		 -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
+	set rightTieLine \
+	    [$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
+		 -fill $gFontColor \
+		 -width 2 \
+		 -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
+    }
+
+    #draw label
+   .middle.f1.cMLeft create text $center $labelsY \
+	-text "D" \
 	-font $kValueHistoryLabelFont \
 	-fill $gFontColor \
 	-anchor center \
-	-tags [list moveHistory moveHistoryLabels moveHistoryLabelsMaxRemoteness textitem]
-    $moveHistoryCanvas create text [expr $center + $tieXRange + $deltax] [expr $top - $pieceRadius - 6.0 * $gWindowWidthRatio] \
-	-text $maxRemoteness \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list moveHistory moveHistoryLabels moveHistoryLabelsMaxRemoteness textitem]
+	-tags [list moveHistory moveHistoryLabels textitem]
 
     if { $theValue == "Tie" }  {
 	set xDistance [expr [expr $maxTieRemoteness - $theRemoteness] * $deltax * $mult]
@@ -1648,6 +1680,7 @@ proc plotMove { turn theValue theRemoteness } {
 	[$moveHistoryCanvas create oval \
 	     [expr $x - $pieceRadius] [expr $y - $pieceRadius] [expr $x + $pieceRadius] [expr $y + $pieceRadius] \
 	     -fill $color \
+	     -outline "" \
 	     -tags [list moveHistory moveHistoryPlot]]
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
@@ -1661,6 +1694,7 @@ proc plotMove { turn theValue theRemoteness } {
 	    [$moveHistoryCanvas create oval \
 		 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
 		 -fill $color \
+		 -outline "" \
 		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y]]
     }
 
