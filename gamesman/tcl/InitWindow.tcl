@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.95 2006-03-07 01:11:41 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.96 2006-03-07 04:44:07 kmowery Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1762,7 +1762,11 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness oldMa
 		set mult 0
 	    }
 	    set oldXDistance [expr [expr $oldX - $center] * $mult]
-	    set oldRemoteness [expr $oldXDistance / $oldDeltaX]
+	    if { $oldDeltaX == 0 } {
+		set oldRemoteness 0
+	    } else {
+		set oldRemoteness [expr $oldXDistance / $oldDeltaX]
+	    }
 	    if { $maxRemoteness > $oldMaxRemoteness } {
 		if { $oldRemoteness > $oldMaxTieRemoteness } {
 		    set oldRemoteness [expr $oldRemoteness + $maxRemoteness - $oldMaxRemoteness]
