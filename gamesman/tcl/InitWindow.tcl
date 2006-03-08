@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.96 2006-03-07 04:44:07 kmowery Exp $
+# $Id: InitWindow.tcl,v 1.97 2006-03-08 03:10:17 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -157,7 +157,7 @@ proc InitWindow { kRootDir kExt } {
     #move value history
     global moveHistoryList moveHistoryCanvas moveHistoryVisible
     global gameMenuToDriverLoop
-    global maxRemoteness maxTieRemoteness
+    global maxRemoteness
 
     #
     # Initialize the constants
@@ -178,7 +178,6 @@ proc InitWindow { kRootDir kExt } {
     set moveHistoryVisible false
     set gameMenuToDriverLoop false
     set maxRemoteness 0
-    set maxTieRemoteness 0
 
     set convertExists false
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
@@ -215,6 +214,7 @@ proc InitWindow { kRootDir kExt } {
 	    }
 	}
 	wm geometry . =[expr $maxwidth]x[expr $maxheight]
+	#wm geometry . =800x600
     }
     update
 
@@ -233,13 +233,13 @@ proc InitWindow { kRootDir kExt } {
 	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 10)]"
 	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 9)] bold"
 	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 15)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 5)]"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 6)]"
     } else {
         set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
 	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 12)]"
 	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
 	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 18)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 6)]"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 7)]"
     }
 
     set gGamePlayable false
@@ -1492,7 +1492,7 @@ proc plotMove { turn theValue theRemoteness } {
     global moveHistoryList moveHistoryCanvas moveHistoryVisible
     global gWindowWidthRatio
     global gFontColor
-    global maxRemoteness maxTieRemoteness
+    global maxRemoteness
     global kValueHistoryLabelFont
 
     set drawRemoteness 255
@@ -1530,30 +1530,21 @@ proc plotMove { turn theValue theRemoteness } {
 	set lineColor yellow
     }
 
-    if { [expr $maxRemoteness + $maxTieRemoteness] == 0 } {
+    if { $maxRemoteness == 0 } {
 	set deltax 0
     } else {
-	set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
+	set deltax [expr [expr $center - $pieceRadius] / $maxRemoteness]
     }
     set oldDeltaX $deltax
 
-    if { $theRemoteness < $drawRemoteness } {
-	if { $theRemoteness > $maxRemoteness && $theValue != "Tie"} {
-	    set oldMaxRemoteness $maxRemoteness
-	    set maxRemoteness [expr $theRemoteness + 1]
-	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
-	    rescaleX $center $pieceRadius $oldDeltaX $deltax $maxTieRemoteness $oldMaxRemoteness
-	} elseif { $theRemoteness > $maxTieRemoteness && $theValue == "Tie"} {
-	    set oldMaxTieRemoteness $maxTieRemoteness
-	    set maxTieRemoteness [expr $theRemoteness + 1]
-	    set deltax [expr [expr $center - $pieceRadius] / [expr $maxRemoteness + $maxTieRemoteness]]
-	    rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxTieRemoteness $maxRemoteness
-	}
+    if { $theRemoteness < $drawRemoteness && $theRemoteness > $maxRemoteness } {
+	set oldMaxRemoteness $maxRemoteness
+	set maxRemoteness [expr $theRemoteness + 1]
+	set deltax [expr [expr $center - $pieceRadius] / $maxRemoteness]
+	rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxRemoteness
     }
     
-    set tieXRange [expr $maxTieRemoteness * $deltax]
     set y [expr $top + [expr 2 * $pieceRadius * [expr $numMoves / 2]]]
-
 
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
@@ -1564,48 +1555,30 @@ proc plotMove { turn theValue theRemoteness } {
 	$moveHistoryCanvas delete moveHistory1Line
 	$moveHistoryCanvas delete moveHistoryLabelsRemoteness
 
-	for {set i 0} {$i <= [expr $maxRemoteness + $maxTieRemoteness]} {incr i} {
-	    set reverse [expr $maxRemoteness + $maxTieRemoteness - $i]
+	for {set i 0} {$i <= $maxRemoteness} {incr i} {
+	    set reverse [expr $maxRemoteness - $i]
 	    set stipple @[file join $tk_library demos images gray25.bmp]
 	    set width 2
-	    if { $reverse < $maxRemoteness } { #between edges and tieline/center
-		if { [expr $reverse % 5] == 0 } {
-		    set stipple ""
-		    set width 1
-		    if { [expr $i * $deltax] > [expr $tieXRange + $labelBufferSpace] } { #don't draw labels to close to tie or center label
-			.middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
-			    -text $reverse \
-			    -font $kValueHistoryLabelFont \
-			    -fill $gFontColor \
-			    -anchor center \
-			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-			.middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
-			    -text $reverse \
-			    -font $kValueHistoryLabelFont \
-			    -fill $gFontColor \
-			    -anchor center \
-			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-		    }
-		}		
-	    } else { #in tie range
-		if { [expr [expr $reverse - $maxRemoteness] % 5] == 0 } {
-		    set stipple ""
-		    set width 1
-		    if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels to close to center label
-			.middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
-			    -text [expr $reverse - $maxRemoteness] \
-			    -font $kValueHistoryLabelFont \
-			    -fill $gFontColor \
-			    -anchor center \
-			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-			.middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
-			    -text [expr $reverse - $maxRemoteness] \
-			    -font $kValueHistoryLabelFont \
-			    -fill $gFontColor \
-			    -anchor center \
-			    -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-		    }
-		}		
+	    if { [expr $reverse % 5] == 0 } {
+		set stipple ""
+		set width 1
+		if { $reverse == 0 } {
+		    set width 2
+		}
+		if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels to close to center label
+		    .middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
+			-text $reverse \
+			-font $kValueHistoryLabelFont \
+			-fill $gFontColor \
+			-anchor center \
+			-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+		    .middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
+			-text $reverse \
+			-font $kValueHistoryLabelFont \
+			-fill $gFontColor \
+			-anchor center \
+			-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+		}
 	    }
 	    $moveHistoryCanvas create line \
 		[expr $center - $i * $deltax] $top \
@@ -1623,20 +1596,6 @@ proc plotMove { turn theValue theRemoteness } {
 		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineRight]
 	}
     }
-    if { $tieXRange > 0 } {
-	#draw tie boundary lines
-	$moveHistoryCanvas delete moveHistoryTieLine
-	set leftTieLine \
-	    [$moveHistoryCanvas create line [expr $center - $tieXRange] $top [expr $center - $tieXRange] $bottom \
-		 -fill $gFontColor \
-		 -width 2 \
-		 -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
-	set rightTieLine \
-	    [$moveHistoryCanvas create line [expr $center + $tieXRange] $top [expr $center + $tieXRange] $bottom \
-		 -fill $gFontColor \
-		 -width 2 \
-		 -tags [list moveHistory moveHistoryLine moveHistoryTieLine]]
-    }
 
     #draw label
    .middle.f1.cMLeft create text $center $labelsY \
@@ -1646,11 +1605,8 @@ proc plotMove { turn theValue theRemoteness } {
 	-anchor center \
 	-tags [list moveHistory moveHistoryLabels textitem]
 
-    if { $theValue == "Tie" }  {
-	set xDistance [expr [expr $maxTieRemoteness - $theRemoteness] * $deltax * $mult]
-    } else {
-	set xDistance [expr [expr $tieXRange + [expr $maxRemoteness - $theRemoteness] * $deltax] * $mult]
-    }
+    set xDistance [expr [expr $maxRemoteness - $theRemoteness] * $deltax * $mult]
+
     set x [expr $center + $xDistance]
     set xOpposite [expr $center - $xDistance]
 
@@ -1732,9 +1688,9 @@ proc clearMoveHistory { } {
     set moveHistoryList []
 }
 
-proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness oldMaxRemoteness } {
+proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxRemoteness } {
     global moveHistoryList moveHistoryCanvas
-    global maxRemoteness maxTieRemoteness
+    global maxRemoteness
     for {set i 0} {$i<[llength $moveHistoryList]} {incr i} {
 	set current [lindex $moveHistoryList $i]
 	set currentCoords [$moveHistoryCanvas coords $current]
@@ -1767,14 +1723,7 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxTieRemoteness oldMa
 	    } else {
 		set oldRemoteness [expr $oldXDistance / $oldDeltaX]
 	    }
-	    if { $maxRemoteness > $oldMaxRemoteness } {
-		if { $oldRemoteness > $oldMaxTieRemoteness } {
-		    set oldRemoteness [expr $oldRemoteness + $maxRemoteness - $oldMaxRemoteness]
-		}
-	    }
-	    if { $maxTieRemoteness > $oldMaxTieRemoteness } {
-		set oldRemoteness [expr $oldRemoteness + $maxTieRemoteness - $oldMaxTieRemoteness]
-	    }
+
 	    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
 	    set steps 5
 	    set shift [expr $newXDistance / $steps]
