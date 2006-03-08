@@ -338,58 +338,52 @@ MOVELIST *GenerateMoves (POSITION position)
 **
 *************************************************************************/
 
-POSITION DoMove (POSITION position, MOVE move)
-{
-  return 0;
-  int i;
-  BoardPiece fromLoc = -1, toLoc;
-  BoardPiece tempBoardPiece, tempMoveBoardPiece;
-  POSITION newBoard = 0;
-  BoardAndTurn board, moveBoard;  
+POSITION DoMove (POSITION position, MOVE move) {
+ 	return 0;
+ 	int i;
+	BoardPiece fromLoc = -1, toLoc;
+	BoardPiece tempBoardPiece, tempMoveBoardPiece;
+	POSITION newBoard = 0;
+	BoardAndTurn board, moveBoard;  
   
-  board = arrayUnhash(position);
-  moveBoard = arrayUnhash(move);
+	board = arrayUnhash(position);
+	moveBoard = arrayUnhash(move);
 
-  /* not sure if we need to check if it is a valid move or not..
-     probably can just check the move list? or the move list should handle/filter
-     out the bad moves already...*/
+ 	/* not sure if we need to check if it is a valid move or not..
+ 	 * probably can just check the move list? or the move list should handle/filter
+ 	 * out the bad moves already...*/
   
-  /* MOVE represented as a board...stores the new piece and the old, moved piece */
-  for (i = 0; i < boardSize; i++) {
-    tempMoveBoardPiece = CharToBoardPiece(moveBoard->theBoard[i]);
-    if (tempMoveBoardPiece != Blank) {
-      tempBoardPiece = CharToBoardPiece(board->theBoard[i]);
-      if (tempBoardPiece == tempMoveBoardPiece) {
-	/* this is the piece that was changed/affected */
-	fromLoc = i;
-      }
-      else {
-	/* this is where the move was made to */
-	toLoc = i;
-      }
-    }
-  }
-
-  /* add move to board */
-  if (fromLoc >= 0) {
-    board->theBoard[fromLoc] = BLANKPIECE;
-  }  
-  board->theBoard[toLoc] = moveBoard->theBoard[toLoc];
+	/* MOVE represented as a board...stores the new piece and the old, moved piece */
+	for (i = 0; i < boardSize; i++) {
+		tempMoveBoardPiece = CharToBoardPiece(moveBoard->theBoard[i]);
+ 		if (tempMoveBoardPiece != Blank) {
+      		tempBoardPiece = CharToBoardPiece(board->theBoard[i]);
+      		if (tempBoardPiece == tempMoveBoardPiece) {
+      			/* this is the piece that was changed/affected */
+      			fromLoc = i;
+      		} else {
+				/* this is where the move was made to */
+				toLoc = i;
+      		}
+    	}
+  	}
+	/* add move to board */
+ 	if (fromLoc >= 0) {
+		board->theBoard[fromLoc] = BLANKPIECE;
+	}  
+	board->theBoard[toLoc] = moveBoard->theBoard[toLoc];
+	if (board->theTurn == Blue) {  /* blue's turn */
+    	/* change the turn to 1 (red), and hash and return it */
+    	board->theTurn = Red;
+	} else { /* red's turn  */
+    	/* change the turn to 0 (blue), and hash and return it */
+    	board->theTurn = Blue;
+	}
   
-  if (board->theTurn == Blue) {  /* blue's turn */
-    /* change the turn to 1 (red), and hash and return it */
-    board->theTurn = Red;
-  }
-  else { /* red's turn  */
-    /* change the turn to 0 (blue), and hash and return it */
-    board->theTurn = Blue;
-  }
+	newBoard = arrayHash(board);
+	return newBoard;
   
-  newBoard = arrayHash(board);
-  return newBoard;
-  
-  /* return 0;<-- their default return */
-  
+	/* return 0;<-- their default return */
 }
 
 
@@ -875,6 +869,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2006/03/02 05:43:16  mikehamada
+// *** empty log message ***
+//
 // Revision 1.13  2006/02/27 23:37:40  mikehamada
 // *** empty log message ***
 //
