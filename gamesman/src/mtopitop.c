@@ -411,8 +411,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 **
 ************************************************************************/
 
-VALUE Primitive (POSITION position)
-{
+VALUE Primitive (POSITION position) {
     int i, blueCastles = 0, redCastles = 0;
     BoardAndTurn board;
     
@@ -869,6 +868,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/03/08 01:19:37  mikehamada
+// Formatted DoMove Code
+//
 // Revision 1.14  2006/03/02 05:43:16  mikehamada
 // *** empty log message ***
 //
