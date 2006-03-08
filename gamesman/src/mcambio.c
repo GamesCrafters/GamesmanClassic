@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.10 2006-03-07 07:59:11 albertchae Exp $
+// $Id: mcambio.c,v 1.11 2006-03-08 06:25:41 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,6 +21,7 @@
 **              3/02/2006 - Fixed various errors.
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
+**              3/06/2006 - Updated GetInitialPosition().
 **
 **************************************************************************/
 
@@ -47,7 +48,7 @@ STRING   kAuthorName          = "Albert Chae and Simon Tao"; /* Your name(s) */
 STRING   kDBName              = "cambio"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -119,7 +120,7 @@ STRING   kHelpExample =
 #define BOARDSIZE 25;
 
 #define BLANK ' ';
-#define NEUTRAL '-';
+#define NEUTRAL '+';
 #define A_PIECE 'X';
 #define B_PIECE 'O';
 #define UNKNOWN '?';
@@ -142,6 +143,8 @@ char neutral = NEUTRAL;
 char aPiece = A_PIECE;
 char bPiece = B_PIECE;
 char unknown = UNKNOWN;
+
+int piecesArray[] = { ' ', 0, 21, '+', 4, 16, 'X', 0, 21, 'O', 0, 21, -1 };
 
 Player gWhosTurn = playerA;
 int gameType;
@@ -192,20 +195,21 @@ BOOLEAN                 FiveInARow(char *board, char symbol);
 void InitializeGame ()
 {
   int i;
-  int piecesArray[] = { blank, 0, 21, neutral, 4, 16, aPiece, 4, 21, bPiece, 5, 21, -1 };
 
   char boardArray[boardSize];
 
-  gNumberOfPositions   = generic_hash_init(boardSize, piecesArray, NULL);
+  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
   gWhosTurn = playerA;
     
-  /* setting up the four corners; to Neutrals */
-  boardArray[0] = boardArray[colcount-1] = boardArray[boardSize-(colcount-1)] = boardArray[boardSize-1] = neutral;
-
   /* setting up the rest of the board; to Blanks */
-  for (i = 0; i < boardSize; i++) {
+  for (i = 0; i < boardSize; i++)
     boardArray[i] = blank;
-  }
+
+  /* setting up the four corners; to Neutrals */
+  boardArray[0] = neutral;
+  boardArray[colcount-1] = neutral;
+  boardArray[boardSize-colcount] = neutral;
+  boardArray[boardSize-1] = neutral;
 
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
 }
@@ -327,7 +331,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int i;
+  int i = 0;
   char *theBoard = generic_unhash(position, theBoard);
   
   /***********************LINE 1**************************/
@@ -335,7 +339,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   /***********************LINE 2**************************/
   printf("       |");
-  for (i = 0; i < colcount; i++) {
+  for (; i < colcount; i++) {
     printf("%c|", theBoard[i]);
   }
   printf("          (  0  1  2  3  4 )\n");
@@ -389,7 +393,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("                      B's Symbol = %c\n", bPiece);
   printf("                         Neutral = %c\n", neutral);
   printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
-
  }
 
 /************************************************************************
@@ -571,7 +574,22 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+  int i;
+  char boardArray[boardSize];
+  int turn;
+
+  for(i = 0; i < boardSize; i++) {
+    printf("Input the character at cell %i: ");
+    boardArray[i] = (char) getchar();
+  }
+
+  printf("Input whose turn it is (1 for player A, 2 for player B): ");
+  gWhosTurn = turn;
+
+  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+  gInitialPosition = generic_hash(boardArray, gWhosTurn);
+
+  return gInitialPosition;
 }
 
 
@@ -683,6 +701,9 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2006/03/07 07:59:11  albertchae
+// Minor change to the help strings regarding ties.
+//
 // Revision 1.9  2006/03/06 06:07:10  simontaotw
 // Updated tie possible.
 //
