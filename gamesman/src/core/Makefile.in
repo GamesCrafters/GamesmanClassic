@@ -40,6 +40,7 @@ DEBUG_OBJ	= debug$(OBJSUFFIX)
 GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
 MAIN_OBJ	= main$(OBJSUFFIX)
 MISC_OBJ	= misc$(OBJSUFFIX)
+MLIB_OBJ	= mlib$(OBJSUFFIX)
 TEXTUI_OBJ	= textui$(OBJSUFFIX)
 STRINGBUILDER_OBJ = StringBuilder$(OBJSUFFIX)
 
@@ -67,7 +68,7 @@ SOLVER_ALPHABETA = solveweakab$(OBJSUFFIX)
 ### Files
 
 CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
-     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(TEXTUI_OBJ) \
+     $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(MLIB_OBJ) $(TEXTUI_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(TWOBITDB_OBJ) $(COLLDB_OBJ) \
      $(UNIVHT_OBJ) $(UNIVDB_OBJ) $(STRINGBUILDER_OBJ)
 
@@ -77,7 +78,7 @@ SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 MODULES=$(CORE) $(SOLVERS) hash.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
-	 globals.h misc.h solveloopyga.h solveloopy.h solvestd.h \
+	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h textui.h setup.h
 
