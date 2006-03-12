@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.11 2006-03-08 06:25:41 simontaotw Exp $
+// $Id: mcambio.c,v 1.12 2006-03-12 22:13:02 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -149,6 +149,8 @@ int piecesArray[] = { ' ', 0, 21, '+', 4, 16, 'X', 0, 21, 'O', 0, 21, -1 };
 Player gWhosTurn = playerA;
 int gameType;
 
+char *gBoard;
+
 /*************************************************************************
 **
 ** Function Prototypes
@@ -290,11 +292,15 @@ POSITION DoMove (POSITION position, MOVE move)
 ************************************************************************/
 
 VALUE Primitive (POSITION position)
-{
-  char *board = generic_unhash(position, board);
+{  
   int turn = whoseMove(position);
   char symbol, opposymbol;
-
+  char *gBoard = (char *) malloc(boardSize*sizeof(char));
+  BOOLEAN playerWin, oppoWin;
+  
+  
+  generic_unhash(position, gBoard);
+  
   if(turn == playerB) {
     symbol = aPiece;
     opposymbol = bPiece;
@@ -304,9 +310,15 @@ VALUE Primitive (POSITION position)
     opposymbol = aPiece;
   }
 
-  if (FiveInARow(board, symbol) && FiveInARow(board, opposymbol))
+  
+  playerWin = FiveInARow(gBoard, symbol);
+  oppoWin = FiveInARow(gBoard, opposymbol);
+
+  free(gBoard);
+  
+  if (playerWin && oppoWin)
     return tie;
-  else if (FiveInARow(board, symbol))
+  else if (playerWin)
     return gStandardGame ? lose : win;
   else
     return undecided;
@@ -332,7 +344,9 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   int i = 0;
-  char *theBoard = generic_unhash(position, theBoard);
+  char *gBoard = (char *) malloc(boardSize*sizeof(char));
+  
+  generic_unhash(position, gBoard);
   
   /***********************LINE 1**************************/
   printf("       #-#-#-#-#-#\n");
@@ -340,7 +354,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 2**************************/
   printf("       |");
   for (; i < colcount; i++) {
-    printf("%c|", theBoard[i]);
+    printf("%c|", gBoard[i]);
   }
   printf("          (  0  1  2  3  4 )\n");
 
@@ -350,7 +364,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 4**************************/
   printf("       |");
   for (; i < colcount*2; i++) {
-    printf("%c|", theBoard[i]);
+    printf("%c|", gBoard[i]);
   }
   printf("          (  5  6  7  8  9 )\n");
 
@@ -361,7 +375,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 6**************************/
   printf("       |");
   for (; i < colcount*3; i++) {
-    printf("%c|", theBoard[i]);
+    printf("%c|", gBoard[i]);
   }
   printf("  LEGEND: ( 10 11 12 13 14 )\n");
 
@@ -371,7 +385,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 8**************************/
   printf("       |");
   for (; i < colcount*4; i++) {
-    printf("%c|", theBoard[i]);
+    printf("%c|", gBoard[i]);
   }
   printf("          ( 15 16 17 18 19 )\n");
 
@@ -381,7 +395,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /***********************LINE 10**************************/
   printf("       |");
   for (; i < colcount*5; i++) {
-    printf("%c|", theBoard[i]);
+    printf("%c|", gBoard[i]);
   }
   printf("          ( 20 21 22 23 24 )\n");
 
@@ -392,7 +406,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("                      A's Symbol = %c\n", aPiece);
   printf("                      B's Symbol = %c\n", bPiece);
   printf("                         Neutral = %c\n", neutral);
-  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
+/*  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));*/
+  
+  free(gBoard);
  }
 
 /************************************************************************
@@ -575,20 +591,36 @@ void SetTclCGameSpecificOptions (int options[])
 POSITION GetInitialPosition ()
 {
   int i;
-  char boardArray[boardSize];
+  char *boardArray;
   int turn;
+  
+  boardArray = (char*) malloc(boardSize*sizeof(char));
 
+  getchar(); // for the enter after picking option 1 on the debug menu
+  
   for(i = 0; i < boardSize; i++) {
-    printf("Input the character at cell %i: ");
-    boardArray[i] = (char) getchar();
+    printf("Input the character at cell %i: ", i);    
+	boardArray[i] = (char) getchar();
+	getchar();
   }
-
+  
+  /*for(i=0 ; i<boardSize ; i++){
+	if((i>=0 && i<6) || (i>15))
+		boardArray[i] = '-';
+	else boardArray[i] = 'X';
+  }*/
+  /* This block above was just to set the board to an arbitrary position and see if it hashed right. Basically
+	I was making sure it was the hash that's not working, not the input loop above this commented out block. */
+  
+  
   printf("Input whose turn it is (1 for player A, 2 for player B): ");
-  gWhosTurn = turn;
+  gWhosTurn = 1; /* need to change to this to getchar and then atoi*/
 
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
 
+  free(boardArray);
+  
   return gInitialPosition;
 }
 
@@ -701,6 +733,9 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2006/03/08 06:25:41  simontaotw
+// Updated GetInitialPosition().
+//
 // Revision 1.10  2006/03/07 07:59:11  albertchae
 // Minor change to the help strings regarding ties.
 //
