@@ -25,7 +25,8 @@ public interface IModule
 	 * 
 	 * @param req request to read data from
 	 * @param res response to write data to
+	 * @throws ModuleException
 	 */
-	public void handleRequest(IModuleRequest req, IModuleResponse res);
+	public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException;
 
 }

@@ -3,6 +3,7 @@ package edu.berkeley.gamesman.server.registration;
 import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
+import edu.berkeley.gamesman.server.ModuleException;
 
 public class RegistrationModule implements IModule
 {
@@ -19,7 +20,7 @@ public class RegistrationModule implements IModule
 		return false;
 	}
 
-	public void handleRequest(IModuleRequest req, IModuleResponse res)
+	public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
 		// TODO Auto-generated method stub
 
