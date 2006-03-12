@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.2 2006-03-05 03:32:12 yanpeichen Exp $
+// $Id: mquickchess.c,v 1.3 2006-03-12 03:56:42 vert84 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -7,15 +7,15 @@
 
 /************************************************************************
 **
-** NAME:        NAME OF FILE
+** NAME:        mquickchess.c
 **
-** DESCRIPTION: GAME NAME
+** DESCRIPTION: Quick Chess
 **
-** AUTHOR:      YOUR NAMES HERE
+** AUTHOR:      Adam Abed, Aaron Levitan
 **
-** DATE:        WHEN YOU START/FINISH
+** DATE:        Start Spring 2006
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** UPDATE HIST: 3/11/06 - updated fields
 **
 **************************************************************************/
 
@@ -38,9 +38,9 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = ""; /* The name of your game */
-STRING   kAuthorName          = ""; /* Your name(s) */
-STRING   kDBName              = ""; /* The name to store the database under */
+STRING   kGameName            = "Quick Chess"; /* The name of your game */
+STRING   kAuthorName          = "Aaron Levitan, Adam Abed"; /* Your name(s) */
+STRING   kDBName              = "quickchess"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -572,6 +572,11 @@ void setupPieces(char (* Board)[6][5]) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2006/03/05 03:32:12  yanpeichen
+// Yanpei Chen changing mquickchess.c
+//
+// Deleted a stray character that caused a file inclusion error.
+//
 // Revision 1.1  2006/03/01 01:49:21  vert84
 // Added quickchess to cvs
 //
