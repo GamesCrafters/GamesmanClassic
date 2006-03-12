@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.12 2006-03-12 22:13:02 albertchae Exp $
+// $Id: mcambio.c,v 1.13 2006-03-12 22:16:55 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -22,6 +22,7 @@
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **              3/06/2006 - Updated GetInitialPosition().
+**	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
 **
 **************************************************************************/
 
@@ -733,6 +734,9 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/03/12 22:13:02  albertchae
+// *** empty log message ***
+//
 // Revision 1.11  2006/03/08 06:25:41  simontaotw
 // Updated GetInitialPosition().
 //
