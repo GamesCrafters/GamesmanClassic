@@ -27,7 +27,10 @@ public class RegistrationModule implements IModule
 		// TODO Auto-generated constructor stub
 		usersOnline = new Hashtable();
 		secretKeys =  new Hashtable();
+		
+		//this hashtable may need to be populated with a list of valid game names
 		openGames = new Hashtable();
+		gameHosts = new Hashtable();
 	}
 
 	public boolean typeSupported(String requestTypeName)
@@ -53,7 +56,7 @@ public class RegistrationModule implements IModule
 			getOpenGames(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_REGISTER_NEW_GAME) {
-			//TODO
+			registerNewGame(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_UNREGISTER_GAME) {
 			//TODO
@@ -187,6 +190,95 @@ public class RegistrationModule implements IModule
 			res.setHeader(Macros.PROPERTY_HOST + index, host);
 			res.setHeader(Macros.PROPERTY_VARIATION + index, variationNumber);
 		}
+		//the client will need to know how many headers to extract, that's what this
+		//index is for
+		res.setHeader(Macros.GAME_SESSIONS_INDEX, (new Integer(index).toString()));
+	}
+	
+	/**
+	 * Register a new game request. Verify that the user is registered and not
+	 * already hosting a game. Also check that the variant is valid
+	 * 		On success register the game and respond with ACK status
+	 * 		else respond with DENY and corresponding error code
+	 * @param req
+	 * @param res
+	 */
+	void registerNewGame(ModuleRequest req, ModuleResponse res) {
+		String userName, secretKey, variation, gameMessage, gameName;
+		boolean validKey, notHostingGame, validVariant;
+		Integer gameID;
+		Hashtable gameSessions;
+		
+		//used to descibe the particular game session to be hosted
+		PropertyBucket propBucket = new PropertyBucket();
+		
+		//extract request headers
+		userName = req.getHeader(Macros.NAME);
+		secretKey= req.getHeader(Macros.SECRET_KEY);
+		variation = req.getHeader(Macros.VARIATION);
+		gameMessage = req.getHeader(Macros.GAME_MESSAGE);
+		
+		//TODO: note that userName may not exist and that would lead to a null game
+		//need to handle this
+		gameName = (String)usersOnline.get(userName);
+		
+		//Verify secretKey/userName
+		validKey = isValidUserKey(userName, secretKey);
+		notHostingGame = notHosting(userName);
+		validVariant = isValidVariation(gameName, variation);
+		if (validKey && notHostingGame && validVariant) {
+			//client will now be hosting game
+			gameHosts.put(userName, gameName);
+			
+			//populate property bucket
+			propBucket.setProperty(Macros.PROPERTY_HOST, userName);
+			propBucket.setProperty(Macros.PROPERTY_INTERESTED_USERS, new LinkedList());
+			propBucket.setProperty(Macros.PROPERTY_VARIATION, variation);
+			gameID = new Integer (generateGameID());
+			
+			gameSessions = (Hashtable)openGames.get(gameName);
+			//TODO: this check only applies if we don't initially populate openGames with
+			//all validGames
+			if (gameSessions == null) {
+				openGames.put(gameName, new Hashtable());
+				gameSessions = (Hashtable)openGames.get(gameName);
+			}
+			gameSessions.put(gameID, propBucket);
+			
+			//At this point the game has been registered successfully
+			res.setHeader(Macros.STATUS, Macros.ACK);
+		}
+		else {
+			//the request has failed
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			//TODO: change this so that the specific error code is used
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+		}
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	private int generateGameID() {
+		//TODO: deal with overflow, possibly generate gameID another way
+		//It is very unlikely that billions of users will be playing at the same time,
+		//but we can't overlook this
+		return gameID++;
+	}
+	
+	/**
+	 * 
+	 * @param gameName
+	 * @param variation
+	 * @return
+	 */
+	private boolean isValidVariation(String gameName, String variation) {
+		//check that gameName is not null
+		//For now just return true, but we need to figure out how to tell
+		//whether or not the user has specified the correct variation
+		//maybe the client side should take care of this before sending a request
+		return true;
 	}
 	
 	/**
@@ -197,6 +289,30 @@ public class RegistrationModule implements IModule
 	 */
 	private int isValidName(String name) {
 		return 0;
+	}
+	
+	/**
+	 * 
+	 * @param userName
+	 * @return
+	 */
+	private boolean notHosting(String userName) {
+		return gameHosts.get(userName) == null;
+	}
+	
+	/**
+	 * 
+	 * @param userName
+	 * @param secretKey
+	 * @return
+	 */
+	private boolean isValidUserKey(String userName, String secretKey) {
+		String key;
+		//we must verify that the user even exists
+		//the key can't possibly be valid if the user doesn't exist
+		if (usersOnline.get(userName) == null) return false;
+		key = (String)secretKeys.get(userName);	
+		return key.equals(secretKey);
 	}
 	
 	/**
@@ -236,7 +352,9 @@ public class RegistrationModule implements IModule
 		return (new Integer(errorCode)).toString();
 	}
 	
-	private Hashtable usersOnline, secretKeys, openGames;
+	//fields
+	private Hashtable usersOnline, secretKeys, openGames, gameHosts;
+	private static int gameID;
 	
 	/**
 	 * 

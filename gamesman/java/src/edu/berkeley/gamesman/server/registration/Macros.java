@@ -21,12 +21,6 @@ public final class Macros {
 	public static final String GAME = "GAME";
 	public static final String SECRET_KEY = "SECRETKEY";
 	
-	
-	//Error Code
-	public static final String ERROR_CODE = "ERRORCODE";
-	public static final String GENERIC_ERROR_CODE = "GENERIC_ERROR_CODE";
-	
-	
 	public static final String VARIATION = "VARIATION";
 	public static final String GAME_MESSAGE = "GAMEMESSAGE";
 	public static final String GAME_ID = "GAMEID";
@@ -46,16 +40,25 @@ public final class Macros {
 	public static final String REG_MOD_UNREGISTER_USER = "RegModUnRegisterUser";
 	
 	//Exception Code
-	public static final int UNKNOWN_REQUEST_TYPE_CODE = 1;
+	public static final int UNKNOWN_REQUEST_TYPE_CODE 	= 1;
 	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN_REQUEST_TYPE";
-	
 	//redirect IO Exception
-	public static final int IO_EXCEPTION_CODE = 2;
-	public static final String IO_EXCEPTION_TYPE_MSG = "IO EXCEPTION";
+	public static final int IO_EXCEPTION_CODE 			= 2;
+	public static final String IO_EXCEPTION_TYPE_MSG 	= "IO EXCEPTION";
 	
 	//property names
-	public static final String PROPERTY_HOST = "PROPERTY_HOST";
-	public static final String PROPERTY_VARIATION = "PROPERTY_VARIATION";
-	public static final String PROPERTY_INTERESTED_USERS = "PROPERTY_INTERESTED_USERS";
-	public static final String PROPERTY_GAME_ID = "PROPERTY_GAME_ID";
+	public static final String PROPERTY_HOST 				= "PROPERTY_HOST";
+	public static final String PROPERTY_VARIATION 			= "PROPERTY_VARIATION";
+	public static final String PROPERTY_INTERESTED_USERS 	= "PROPERTY_INTERESTED_USERS";
+	public static final String PROPERTY_GAME_ID 			= "PROPERTY_GAME_ID";
+	
+	public static final String GAME_SESSIONS_INDEX 	= "GAME_SESSIONS_INDEX";
+	
+	//Error Codes
+	public static final String ERROR_CODE = "ERRORCODE";
+	//public static final String GENERIC_ERROR_CODE = "GENERIC_ERROR_CODE";
+	public static final Integer INVALID_USER_NAME 	= new Integer(2);
+	public static final Integer INVALID_KEY 		= new Integer(3);
+	public static final Integer INVALID_VARIANT 	= new Integer(4);
+	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
 }
