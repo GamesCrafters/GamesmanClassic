@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.97 2006-03-08 03:10:17 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.98 2006-03-13 07:38:52 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -155,7 +155,7 @@ proc InitWindow { kRootDir kExt } {
     global gWaitingForHuman
     global gNewGame
     #move value history
-    global moveHistoryList moveHistoryCanvas moveHistoryVisible
+    global moveHistoryList moveHistoryCanvas moveHistoryVisible gPredictionsOn
     global gameMenuToDriverLoop
     global maxRemoteness
 
@@ -176,6 +176,7 @@ proc InitWindow { kRootDir kExt } {
     set moveHistoryList []
     set moveHistoryCanvas .middle.f1.cMLeft
     set moveHistoryVisible false
+    set gPredictionsOn true
     set gameMenuToDriverLoop false
     set maxRemoteness 0
 
@@ -1223,6 +1224,9 @@ proc InitWindow { kRootDir kExt } {
 	.middle.f1.cMLeft raise iIMB3
 	.middle.f1.cMLeft raise moveHistory
 	.middle.f1.cMLeft raise LeftName
+	if { $gPredictionsOn == false } {
+	    .middle.f1.cMLeft lower moveHistoryValidMoves
+	}
 	set moveHistoryVisible true
 	.cStatus raise winI
 	.cStatus raise moveA
@@ -1270,6 +1274,8 @@ proc InitWindow { kRootDir kExt } {
     .cStatus bind iABB8 <ButtonRelease-1> {
 	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight lower Predictions
+	$moveHistoryCanvas lower moveHistoryValidMoves
+	set gPredictionsOn false
 	.middle.f3.cMRight raise WhoseTurn
 	.cStatus raise iIBB8
     }
@@ -1277,6 +1283,11 @@ proc InitWindow { kRootDir kExt } {
     .cStatus bind iIBB8 <ButtonRelease-1> {
 	.middle.f3.cMRight raise iIMB4
 	.middle.f3.cMRight raise Predictions
+	if { $moveHistoryVisible == true } {
+	    $moveHistoryCanvas raise moveHistoryLine
+	    $moveHistoryCanvas raise moveHistoryPlot
+	}
+	set gPredictionsOn true
 	.middle.f3.cMRight raise WhoseTurn
 	#.cStatus
 	.cStatus raise iABB8
@@ -1488,12 +1499,19 @@ proc HandleScrollFeedback { bar whichOffset args } {
     $bar set $fraction 0
 }
 
-proc plotMove { turn theValue theRemoteness } {
+#turn = "Left" or "Right"
+#theValue = "Win","Lose", or "Tie"
+#theRemoteness = current positions remoteness
+#theMoves = [move value (resulting positions remoteness)]
+proc plotMove { turn theValue theRemoteness theMoves } {
     global moveHistoryList moveHistoryCanvas moveHistoryVisible
     global gWindowWidthRatio
     global gFontColor
     global maxRemoteness
     global kValueHistoryLabelFont
+    global gPredictionsOn
+
+    $moveHistoryCanvas delete moveHistoryValidMoves
 
     set drawRemoteness 255
     set pieceRadius [expr 3.0 + $gWindowWidthRatio]
@@ -1537,14 +1555,28 @@ proc plotMove { turn theValue theRemoteness } {
     }
     set oldDeltaX $deltax
 
-    if { $theRemoteness < $drawRemoteness && $theRemoteness > $maxRemoteness } {
+    set nextMaxRemoteness 0
+    for {set i 0} {$i < [llength $theMoves]} {incr i} {
+	set temp [lindex [lindex $theMoves $i] 2]
+	if { $nextMaxRemoteness < $temp && $temp < $drawRemoteness } {
+	    set nextMaxRemoteness $temp
+	}
+    }
+
+    if { $theRemoteness < $drawRemoteness && \
+	     ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
 	set oldMaxRemoteness $maxRemoteness
-	set maxRemoteness [expr $theRemoteness + 1]
+	if { $theRemoteness >= $nextMaxRemoteness } {
+	    set maxRemoteness [expr $theRemoteness + 1]
+	} else {
+	    set maxRemoteness [expr $nextMaxRemoteness + 1]
+	}
 	set deltax [expr [expr $center - $pieceRadius] / $maxRemoteness]
 	rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxRemoteness
     }
     
-    set y [expr $top + [expr 2 * $pieceRadius * [expr $numMoves / 2]]]
+    set y [expr $top + $pieceRadius * $numMoves]
+    set nextY [expr $top + 2 * $pieceRadius + $pieceRadius * $numMoves]
 
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
@@ -1653,9 +1685,60 @@ proc plotMove { turn theValue theRemoteness } {
 		 -outline "" \
 		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y]]
     }
+    
+    #old moves deleted at begining of proc so they dont stick around during animation
+    for {set i 0} {$i < [llength $theMoves]} {incr i} {
+	set moveRemoteness [lindex [lindex $theMoves $i] 2]
+	set moveValue [lindex [lindex $theMoves $i] 1]
+
+	set mult 1.0
+	set color grey
+	#multiplier is opposite of normal because it will be other players turn
+	if {$moveValue == "Win" && $turn == "Left"} {
+	    set mult 1.0
+	} elseif {$moveValue == "Win" && $turn == "Right"} {
+	    set mult -1.0
+	} elseif {$moveValue == "Lose" && $turn == "Left"} {
+	    set mult -1.0
+	} elseif {$moveValue == "Lose" && $turn == "Right"} {
+	    set mult 1.0
+	} elseif { $moveRemoteness == $drawRemoteness } {
+	    set mult 0.0
+	}
+
+	if { $moveValue == "Win"} {
+	    set color green
+	    set lineColor red4
+	} elseif { $moveValue == "Lose"} {
+	    set color red4
+	    set lineColor green
+	} else {
+	    set color yellow
+	    set lineColor yellow
+	}
+
+	set moveXDistance [expr [expr $maxRemoteness - $moveRemoteness] * $deltax * $mult]
+	
+	set moveX [expr $center + $moveXDistance]
+	#set xOpposite [expr $center - $moveXDistance]
+	$moveHistoryCanvas create line $x $y $moveX $nextY \
+	    -fill $lineColor \
+	    -width 1 \
+	    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves]
+
+	$moveHistoryCanvas create oval \
+	    [expr $moveX - $pieceRadius / 2] [expr $nextY - $pieceRadius / 2] \
+	    [expr $moveX + $pieceRadius / 2] [expr $nextY + $pieceRadius / 2] \
+	    -fill $color \
+	    -outline "" \
+	    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves]
+    }
 
     $moveHistoryCanvas raise moveHistoryPlot
 
+    if { $gPredictionsOn == false } {
+	$moveHistoryCanvas lower moveHistoryValidMoves
+    }
     if { $moveHistoryVisible == false } {
 	$moveHistoryCanvas lower moveHistory
     }
