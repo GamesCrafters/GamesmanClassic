@@ -65,16 +65,18 @@ public class RegistrationModule implements IModule
 			//TODO
 		}
 		else if (type == Macros.REG_MOD_JOIN_GAME_USER) {
-			//TODO
+			//Ambiguous meaning in the future if we implement multiple
+			//open-games per user. So might as well make it a client-side
+			//feature, instead of a dedicated server request. 
 		}
 		else if (type == Macros.REG_MOD_REFRESH_STATUS) {
-			//TODO
+			refreshHostStatus(mreq, mres); 
 		}
 		else if (type == Macros.REG_MOD_ACCEPT_CHALLENGE) {
-			//TODO
+			acceptChallenge(mreq, mres); 
 		}
 		else if (type == Macros.REG_MOD_UNREGISTER_USER) {
-			//TODO
+			unregisterUser(mreq, mres);
 		}
 		else {
 			//the request type cannot be handled
@@ -296,8 +298,113 @@ public class RegistrationModule implements IModule
 			res.setHeader(Macros.STATUS, Macros.DENY);
 			//TODO: make the error code more specific
 			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
-			
 		}
+	}
+	
+	void unregisterUser(ModuleRequest req, ModuleResponse res) {
+		String userName, secretKey;
+		int errorCode;
+		boolean validKey; 
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		validKey = isValidUserKey(userName, secretKey);
+		if (validKey) { 
+			usersOnline.remove(userName); 
+			if (isValidGameHost(userName)) {
+				unregisterGame(req, res); 
+			}
+			res.setHeader(Macros.STATUS, Macros.ACK);
+		} else {
+			//request has failed
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			//TODO: make the error code more specific
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+		}
+	}
+	
+	void acceptChallenge(ModuleRequest req, ModuleResponse res) {
+		String userName, secretKey, luckyUser, gameName, gameId, challengeResponse;
+		Hashtable gameSessions; 
+		PropertyBucket propBucket; 
+		LinkedList interestedList; 
+		int errorCode;
+		boolean validKey, hostAgreed; 
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		validKey = isValidUserKey(userName, secretKey);
+		if (validKey) {
+			hostAgreed = (challengeResponse == Macros.ACCEPTED); 
+			if (hostAgreed) {
+				//host said yes, so we let the other users know that they
+				//got denied, inform the P2P module of the new game, let
+				//the selected client know he's been accepted, unregister
+				//the open-game, and finally give the host the ack signel. 
+				gameName = (String)usersOnline.get(userName);
+				gameSessions = (Hashtable)openGames.get(gameName); 
+				gameId = (String) req.getHeader(Macros.GAME_ID); 
+				propBucket = (PropertyBucket) gameSessions.get(gameId); 
+				interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+				luckyUser = (String) interestedList.removeFirst(); 
+				edu.berkeley.gamesman.server.p2p.P2PModule.registerNewGame(userName, luckyUser); 
+				//TODO: Wake up the luckyUser here
+				//TODO: Wake up the other users with the bad news
+				unregisterGame(req, res);
+				res.setHeader(Macros.STATUS, Macros.ACK);
+			} else {
+				//host said no, so we need to let that client know that he 
+				//was denied, and take him off of the list of interested-clients
+				//so that on the next call to refresh, the server gets someone
+				//new instead. Do we need to lock access to the list, if a 
+				//client tries to add himself at the same time as the servlet
+				//is removing the front of the list? 
+				gameName = (String)usersOnline.get(userName);
+				gameSessions = (Hashtable)openGames.get(gameName); 
+				gameId = (String) req.getHeader(Macros.GAME_ID); 
+				propBucket = (PropertyBucket) gameSessions.get(gameId); 
+				interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+				interestedList.removeFirst(); 
+				res.setHeader(Macros.STATUS, Macros.ACK);
+			}
+		} else {
+			//request has failed
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			//TODO: make the error code more specific
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+		}
+	}
+	
+	public void refreshHostStatus(ModuleRequest req, ModuleResponse res) {
+		String userName, secretKey, luckyUser, gameName, gameId;
+		Hashtable gameSessions; 
+		PropertyBucket propBucket; 
+		LinkedList interestedList; 
+		int errorCode;
+		boolean validKey, validHost; 
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		validKey = isValidUserKey(userName, secretKey);
+		validHost = isValidGameHost(userName); 
+		//Client should not call refresh unless it thinks it's a game host. 
+		//We could change this easily. 
+		if (validKey && validHost) { 
+			gameName = (String)usersOnline.get(userName);
+			gameSessions = (Hashtable)openGames.get(gameName); 
+			gameId = (String) req.getHeader(Macros.GAME_ID); 
+			propBucket = (PropertyBucket) gameSessions.get(gameId); 
+			interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			luckyUser = (String) interestedList.getFirst();
+			//Being careful here! If there -isn't- anyone waiting, getFirst I think
+			//returns null, which we'll send along. The client will have to then
+			//have to interpret an ACK/Null combo as "no-one's waiting", no? 
+			res.setHeader(Macros.OPPONENT_USERNAME, luckyUser); 
+			res.setHeader(Macros.STATUS, Macros.ACK);
+		} else {
+			//request has failed
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			//TODO: make the error code more specific
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+		}
+		
 	}
 	
 	/**
@@ -404,8 +511,6 @@ public class RegistrationModule implements IModule
 	private String errorCodeToString(int errorCode) {
 		return (new Integer(errorCode)).toString();
 	}
-	
-	
 	
 	//fields
 	private Hashtable usersOnline, secretKeys, openGames, gameHosts;

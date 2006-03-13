@@ -25,6 +25,7 @@ public final class Macros {
 	public static final String GAME_MESSAGE = "GAMEMESSAGE";
 	public static final String GAME_ID = "GAMEID";
 	public static final String OPPONENT_USERNAME = "OPPONENTUSERNAME";
+	public static final String CHALLENGE_ACCEPTED = "CHALLENGEACCEPTED"; 
 	public static final String ACCEPTED = "ACCEPTED";
 	
 	//Request Types
