@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.98 2006-03-13 07:38:52 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.99 2006-03-13 09:41:17 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -157,7 +157,7 @@ proc InitWindow { kRootDir kExt } {
     #move value history
     global moveHistoryList moveHistoryCanvas moveHistoryVisible gPredictionsOn
     global gameMenuToDriverLoop
-    global maxRemoteness
+    global maxRemoteness maxMoveString
 
     #
     # Initialize the constants
@@ -234,14 +234,15 @@ proc InitWindow { kRootDir kExt } {
 	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 10)]"
 	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 9)] bold"
 	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 15)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 6)]"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -7)]"
     } else {
         set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
 	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 12)]"
 	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
 	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 18)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * 7)]"
+	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -8)]"
     }
+    set maxMoveString [font measure $kValueHistoryLabelFont "0"]
 
     set gGamePlayable false
     set gWaitingForHuman false
@@ -1503,11 +1504,11 @@ proc HandleScrollFeedback { bar whichOffset args } {
 #theValue = "Win","Lose", or "Tie"
 #theRemoteness = current positions remoteness
 #theMoves = [move value (resulting positions remoteness)]
-proc plotMove { turn theValue theRemoteness theMoves } {
+proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     global moveHistoryList moveHistoryCanvas moveHistoryVisible
     global gWindowWidthRatio
     global gFontColor
-    global maxRemoteness
+    global maxRemoteness maxMoveString
     global kValueHistoryLabelFont
     global gPredictionsOn
 
@@ -1521,6 +1522,7 @@ proc plotMove { turn theValue theRemoteness theMoves } {
     set labelsY [expr $gWindowWidthRatio * 29]
 
     set numMoves [llength $moveHistoryList]
+    set moveStringWidth [font measure $kValueHistoryLabelFont $lastMove]
 
     #do actual plotting
     set mult 1.0
@@ -1551,7 +1553,7 @@ proc plotMove { turn theValue theRemoteness theMoves } {
     if { $maxRemoteness == 0 } {
 	set deltax 0
     } else {
-	set deltax [expr [expr $center - $pieceRadius] / $maxRemoteness]
+	set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
     }
     set oldDeltaX $deltax
 
@@ -1563,16 +1565,21 @@ proc plotMove { turn theValue theRemoteness theMoves } {
 	}
     }
 
-    if { $theRemoteness < $drawRemoteness && \
-	     ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
-	set oldMaxRemoteness $maxRemoteness
-	if { $theRemoteness >= $nextMaxRemoteness } {
-	    set maxRemoteness [expr $theRemoteness + 1]
-	} else {
-	    set maxRemoteness [expr $nextMaxRemoteness + 1]
+    if { $moveStringWidth > $maxMoveString || ($theRemoteness < $drawRemoteness && \
+	     ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness)) } {
+	if { $moveStringWidth > $maxMoveString } {
+	    set maxMoveString $moveStringWidth
 	}
-	set deltax [expr [expr $center - $pieceRadius] / $maxRemoteness]
-	rescaleX $center $pieceRadius $oldDeltaX $deltax $oldMaxRemoteness
+	if {$theRemoteness < $drawRemoteness && \
+		($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
+	    if { $theRemoteness >= $nextMaxRemoteness } {
+		set maxRemoteness [expr $theRemoteness + 1]
+	    } else {
+		set maxRemoteness [expr $nextMaxRemoteness + 1]
+	    }
+	}
+	set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+	rescaleX $center $pieceRadius $oldDeltaX $deltax
     }
     
     set y [expr $top + $pieceRadius * $numMoves]
@@ -1618,14 +1625,14 @@ proc plotMove { turn theValue theRemoteness theMoves } {
 		-fill $gFontColor \
 		-stipple $stipple \
 		-width $width \
-		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineLeft]
+		-tags [list moveHistory moveHistory1Line moveHistory1LineLeft]
 	    $moveHistoryCanvas create line \
 		[expr $center + [expr $i * $deltax]] $top \
 		[expr $center + [expr $i * $deltax]] $bottom \
 		-fill $gFontColor \
 		-stipple $stipple \
 		-width $width \
-		-tags [list moveHistory moveHistoryLine moveHistory1Line moveHistory1LineRight]
+		-tags [list moveHistory moveHistory1Line moveHistory1LineRight]
 	}
     }
 
@@ -1636,6 +1643,21 @@ proc plotMove { turn theValue theRemoteness theMoves } {
 	-fill $gFontColor \
 	-anchor center \
 	-tags [list moveHistory moveHistoryLabels textitem]
+
+    if { $turn == "Right" } {
+	set moveStringX 0
+	set anchor w
+    } else {
+	set moveStringX [expr 2 * $center]
+	set anchor e
+    }
+
+    .middle.f1.cMLeft create text $moveStringX $y \
+	-text $lastMove \
+	-font $kValueHistoryLabelFont \
+	-fill $gFontColor \
+	-anchor $anchor \
+	-tags [list moveHistory moveHistoryMoveString moveString$y textitem]
 
     set xDistance [expr [expr $maxRemoteness - $theRemoteness] * $deltax * $mult]
 
@@ -1758,6 +1780,7 @@ proc unplotMove { numUndo } {
 	set end [lindex $moveHistoryList [expr $len - $i]]
 	set y [lindex [$moveHistoryCanvas coords $end] 3]
 	$moveHistoryCanvas delete opposite$y
+	$moveHistoryCanvas delete moveString$y
 	$moveHistoryCanvas delete $end
     }
     #remove item from list
@@ -1768,10 +1791,11 @@ proc clearMoveHistory { } {
     global moveHistoryList moveHistoryCanvas
     $moveHistoryCanvas delete moveHistoryPlot
     $moveHistoryCanvas delete moveHistoryLine
+    $moveHistoryCanvas delete moveHistoryMoveString
     set moveHistoryList []
 }
 
-proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxRemoteness } {
+proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
     global moveHistoryList moveHistoryCanvas
     global maxRemoteness
     for {set i 0} {$i<[llength $moveHistoryList]} {incr i} {
@@ -1814,39 +1838,41 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX oldMaxRemoteness } {
 	    #total time in ms for one piece to move to new location
 	    #range 0-100
 	    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
-	    for {set j 1} {$j<=$steps} {incr j} {
-		set newX [expr $center + [expr $shift * $j]]
-		set xOpposite [expr $center + $center - $newX]
-		lset lineInCoords 2 $newX
-		if {$i == 1} {
-		    lset lineInCoords 0 $newX
-		}
-		$moveHistoryCanvas coords $lineIn $lineInCoords
-		lset currentCoords 0 [expr $newX - $pieceRadius]
-		lset currentCoords 2 [expr $newX + $pieceRadius]
-		$moveHistoryCanvas coords $current $currentCoords
-		if {$i < [expr [llength $moveHistoryList] - 1]} {
-		    lset lineOutCoords 0 $newX
-		    $moveHistoryCanvas coords $lineOut $lineOutCoords
-		}
-
-		if { $isTie } {
-		    set nextY [expr $y + 2 * $pieceRadius]
-		    set oppLineInCoords [$moveHistoryCanvas coords oppositeLine$y]
-		    set oppPieceCoords [$moveHistoryCanvas coords oppositePiece$y]
-		    if {"" != [set oppLineOutCoords [$moveHistoryCanvas coords oppositeLine$nextY]]} {
-			lset oppLineOutCoords 0 $xOpposite
-			$moveHistoryCanvas coords oppositeLine$nextY $oppLineOutCoords
+	    if { $mult != 0 } {
+		for {set j 1} {$j<=$steps} {incr j} {
+		    set newX [expr $center + [expr $shift * $j]]
+		    set xOpposite [expr $center + $center - $newX]
+		    lset lineInCoords 2 $newX
+		    if {$i == 1} {
+			lset lineInCoords 0 $newX
 		    }
-		    lset oppLineInCoords 2 $xOpposite
-		    lset oppPieceCoords 0 [expr $xOpposite - $pieceRadius]
-		    lset oppPieceCoords 2 [expr $xOpposite + $pieceRadius]
-		    $moveHistoryCanvas coords oppositeLine$y $oppLineInCoords
-		    $moveHistoryCanvas coords oppositePiece$y $oppPieceCoords
+		    $moveHistoryCanvas coords $lineIn $lineInCoords
+		    lset currentCoords 0 [expr $newX - $pieceRadius]
+		    lset currentCoords 2 [expr $newX + $pieceRadius]
+		    $moveHistoryCanvas coords $current $currentCoords
+		    if {$i < [expr [llength $moveHistoryList] - 1]} {
+			lset lineOutCoords 0 $newX
+			$moveHistoryCanvas coords $lineOut $lineOutCoords
+		    }
+		    
+		    if { $isTie } {
+			set nextY [expr $y + 2 * $pieceRadius]
+			set oppLineInCoords [$moveHistoryCanvas coords oppositeLine$y]
+			set oppPieceCoords [$moveHistoryCanvas coords oppositePiece$y]
+			if {"" != [set oppLineOutCoords [$moveHistoryCanvas coords oppositeLine$nextY]]} {
+			    lset oppLineOutCoords 0 $xOpposite
+			    $moveHistoryCanvas coords oppositeLine$nextY $oppLineOutCoords
+			}
+			lset oppLineInCoords 2 $xOpposite
+			lset oppPieceCoords 0 [expr $xOpposite - $pieceRadius]
+			lset oppPieceCoords 2 [expr $xOpposite + $pieceRadius]
+			$moveHistoryCanvas coords oppositeLine$y $oppLineInCoords
+			$moveHistoryCanvas coords oppositePiece$y $oppPieceCoords
+		    }
+		    
+		    update idletasks
+		    after [expr $delay / $steps]
 		}
-
-		update idletasks
-		after [expr $delay / $steps]
 	    }
 	}
     }

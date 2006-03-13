@@ -254,11 +254,12 @@ proc DriverLoop { } {
 
 	if {!$gameMenuToDriverLoop} {
 	    ## Move History
+	    set lastMove      [peek $gMovesSoFar]
 	    set theMoves      [C_GetValueMoves $gPosition]
 	    set theValue      [C_GetValueOfPosition $gPosition]
 	    set theRemoteness [C_Remoteness $gPosition]
 	    
-	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves
+	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
 	    update idletasks
 	    ##
 	}
