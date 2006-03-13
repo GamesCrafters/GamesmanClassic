@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.LinkedList;
 
 import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
@@ -150,12 +151,42 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Serach all available open games and filter for the one the client specifies
+	 * Add headers with the properties of all avaliable games that meet the criteria
+	 * Properties are distinguished by the concatenation of an index after the property
+	 * name
 	 * @param req
 	 * @param res
+	 * @modifies res
 	 */
 	private void getOpenGames(ModuleRequest req, ModuleResponse res) {
+		String gameName, host, variationNumber; 
+		Integer gameID;
+		int index;
+		Hashtable gameSessions;
+		Enumeration gameSessionTable;
+		PropertyBucket propBucket;
 		
+		//filter the game client is looking for
+		gameName = req.getHeader(Macros.GAME);
+		
+		//get all sessions of that particular game
+		gameSessions = (Hashtable)openGames.get(gameName);
+		for (index = 0, gameSessionTable = gameSessions.keys(); 
+						gameSessionTable.hasMoreElements(); index++) {
+			
+			//list of properties descibing this game session instance
+			gameID = (Integer) gameSessionTable.nextElement();
+			propBucket = (PropertyBucket)gameSessions.get(gameID);
+			host = (String)propBucket.getProperty(Macros.PROPERTY_HOST);
+			variationNumber = (String)propBucket.getProperty(Macros.PROPERTY_VARIATION);
+			
+			//add headers to response
+			//note that index is necessary since there will be several game sessions
+			res.setHeader(Macros.PROPERTY_GAME_ID + index, gameID.toString());
+			res.setHeader(Macros.PROPERTY_HOST + index, host);
+			res.setHeader(Macros.PROPERTY_VARIATION + index, variationNumber);
+		}
 	}
 	
 	/**
@@ -206,5 +237,40 @@ public class RegistrationModule implements IModule
 	}
 	
 	private Hashtable usersOnline, secretKeys, openGames;
-
+	
+	/**
+	 * 
+	 * @author vperez
+	 *
+	 */
+	private class PropertyBucket {
+		
+		/**
+		 * 
+		 *
+		 */
+		public PropertyBucket() {
+			
+		}
+		
+		/**
+		 * 
+		 * @param propertyName
+		 * @param property
+		 */
+		public void setProperty(String propertyName, Object property) {
+			properties.put(propertyName, property);
+		}
+		
+		/**
+		 * 
+		 * @param propertyName
+		 * @return
+		 */
+		public Object getProperty(String propertyName) {
+			return properties.get(propertyName);
+		}
+		
+		Hashtable properties;
+	}
 }

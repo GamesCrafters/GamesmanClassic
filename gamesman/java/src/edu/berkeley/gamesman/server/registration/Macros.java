@@ -52,4 +52,10 @@ public final class Macros {
 	//redirect IO Exception
 	public static final int IO_EXCEPTION_CODE = 2;
 	public static final String IO_EXCEPTION_TYPE_MSG = "IO EXCEPTION";
+	
+	//property names
+	public static final String PROPERTY_HOST = "PROPERTY_HOST";
+	public static final String PROPERTY_VARIATION = "PROPERTY_VARIATION";
+	public static final String PROPERTY_INTERESTED_USERS = "PROPERTY_INTERESTED_USERS";
+	public static final String PROPERTY_GAME_ID = "PROPERTY_GAME_ID";
 }
