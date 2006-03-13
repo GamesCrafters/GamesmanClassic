@@ -296,6 +296,7 @@ public class RegistrationModule implements IModule
 			res.setHeader(Macros.STATUS, Macros.DENY);
 			//TODO: make the error code more specific
 			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			
 		}
 	}
 	
@@ -403,6 +404,8 @@ public class RegistrationModule implements IModule
 	private String errorCodeToString(int errorCode) {
 		return (new Integer(errorCode)).toString();
 	}
+	
+	
 	
 	//fields
 	private Hashtable usersOnline, secretKeys, openGames, gameHosts;
