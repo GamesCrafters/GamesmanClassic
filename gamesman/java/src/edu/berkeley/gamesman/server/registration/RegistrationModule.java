@@ -59,7 +59,7 @@ public class RegistrationModule implements IModule
 			registerNewGame(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_UNREGISTER_GAME) {
-			//TODO
+			unregisterGame(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_JOIN_GAME_NUMBER) {
 			//TODO
@@ -254,6 +254,58 @@ public class RegistrationModule implements IModule
 			//TODO: change this so that the specific error code is used
 			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
 		}
+	}
+	
+	/**
+	 * Unregister the client's currently hosted game
+	 * @param req
+	 * @param res
+	 */
+	void unregisterGame(ModuleRequest req, ModuleResponse res) {
+		String userName, secretKey, gameName, gameHost;
+		boolean validKey, validGameHost;
+		Hashtable gameSessions;
+		Enumeration gameSessionTable;
+		Integer gameID;
+		PropertyBucket propBucket;
+		
+		//extract header values
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		validKey = isValidUserKey(userName, secretKey);
+		validGameHost = isValidGameHost(userName);
+		if (validKey && validGameHost) {
+			gameName = (String)gameHosts.get(userName);
+			
+			//remove userName/game Session records
+			gameHosts.remove(userName);
+			gameSessions = (Hashtable)openGames.get(gameName);
+			for(gameSessionTable = gameSessions.keys(); gameSessionTable.hasMoreElements();) {
+				gameID = (Integer) gameSessionTable.nextElement();
+				propBucket = (PropertyBucket)gameSessions.get(gameID);
+				gameHost = (String) propBucket.getProperty(Macros.PROPERTY_HOST);
+				if (userName.equals(gameHost)) {
+					//remove game record
+					gameSessions.remove(gameID);
+				}
+			}
+			res.setHeader(Macros.STATUS, Macros.ACK);
+		}
+		else {
+			//request has failed
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			//TODO: make the error code more specific
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+		}
+	}
+	
+	/**
+	 * 
+	 * @param userName
+	 * @return
+	 */
+	private boolean isValidGameHost(String userName) {
+		return gameHosts.get(userName) != null;
 	}
 	
 	/**
