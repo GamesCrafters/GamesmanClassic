@@ -30,6 +30,7 @@ public final class Macros {
 	//Request Types
 	public static final String REG_MOD_REGISTER_USER = "RegModRegisterUser";
 	public static final String REG_MOD_GET_USERS_ONLINE = "RegModGetUsersOnline";
+	public static final String REG_MOD_GET_OPEN_GAMES = " RegModGetOpenGames";
 	public static final String REG_MOD_REGISTER_NEW_GAME = "RegModRegisterNewGame";
 	public static final String REG_MOD_UNREGISTER_GAME = "RegModUnRegisterGame";
 	public static final String REG_MOD_JOIN_GAME_NUMBER = "RegModJoinGameNumber";
@@ -37,4 +38,8 @@ public final class Macros {
 	public static final String REG_MOD_REFRESH_STATUS = "RegModRefreshStatus";
 	public static final String REG_MOD_ACCEPT_CHALLENGE = "RegModAcceptChallenge";
 	public static final String REG_MOD_UNREGISTER_USER = "RegModUnRegisterUser";
+	
+	//Exception Code
+	public static final int UNKNOWN_REQUEST_TYPE_CODE = 1;
+	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN_REQUEST_TYPE";
 }
