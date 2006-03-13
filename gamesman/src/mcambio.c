@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.13 2006-03-12 22:16:55 albertchae Exp $
+// $Id: mcambio.c,v 1.14 2006-03-13 06:15:12 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -10,7 +10,6 @@
 ** NAME:        mcambio.c
 **
 ** DESCRIPTION: Cambio
-**
 ** AUTHOR:      Albert Chae and Simon Tao
 **
 ** DATE:        Begin: 2/20/2006 End: 
@@ -22,7 +21,9 @@
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **              3/06/2006 - Updated GetInitialPosition().
-**	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
+**	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
+**                                    Removed blanks from the game.
+**p.
 **
 **************************************************************************/
 
@@ -120,7 +121,6 @@ STRING   kHelpExample =
 #define COLCOUNT 5;
 #define BOARDSIZE 25;
 
-#define BLANK ' ';
 #define NEUTRAL '+';
 #define A_PIECE 'X';
 #define B_PIECE 'O';
@@ -139,13 +139,12 @@ typedef enum player {
 int boardSize = BOARDSIZE;
 int rowcount = ROWCOUNT;
 int colcount = COLCOUNT;
-char blank = BLANK;
 char neutral = NEUTRAL;
 char aPiece = A_PIECE;
 char bPiece = B_PIECE;
 char unknown = UNKNOWN;
 
-int piecesArray[] = { ' ', 0, 21, '+', 4, 16, 'X', 0, 21, 'O', 0, 21, -1 };
+int piecesArray[] = {'+', 4, 25, 'X', 0, 21, 'O', 0, 21, -1 };
 
 Player gWhosTurn = playerA;
 int gameType;
@@ -204,15 +203,9 @@ void InitializeGame ()
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
   gWhosTurn = playerA;
     
-  /* setting up the rest of the board; to Blanks */
+  /* filling up the board; with Neutralss */
   for (i = 0; i < boardSize; i++)
-    boardArray[i] = blank;
-
-  /* setting up the four corners; to Neutrals */
-  boardArray[0] = neutral;
-  boardArray[colcount-1] = neutral;
-  boardArray[boardSize-colcount] = neutral;
-  boardArray[boardSize-1] = neutral;
+    boardArray[i] = neutral;
 
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
 }
@@ -734,6 +727,10 @@ BOOLEAN FiveInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/03/12 22:16:55  albertchae
+// I fixed the PrintPosition() seg fault. generic_hash requires an empty board which we did not have allocated before.
+// I also fixed the loop in GetInitialPosition() that asks for input. There is something wrong with hashing.
+//
 // Revision 1.12  2006/03/12 22:13:02  albertchae
 // *** empty log message ***
 //
