@@ -20,7 +20,13 @@ public final class Macros {
 	public static final String NAME = "NAME";
 	public static final String GAME = "GAME";
 	public static final String SECRET_KEY = "SECRETKEY";
+	
+	
+	//Error Code
 	public static final String ERROR_CODE = "ERRORCODE";
+	public static final String GENERIC_ERROR_CODE = "GENERIC_ERROR_CODE";
+	
+	
 	public static final String VARIATION = "VARIATION";
 	public static final String GAME_MESSAGE = "GAMEMESSAGE";
 	public static final String GAME_ID = "GAMEID";
@@ -42,4 +48,8 @@ public final class Macros {
 	//Exception Code
 	public static final int UNKNOWN_REQUEST_TYPE_CODE = 1;
 	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN_REQUEST_TYPE";
+	
+	//redirect IO Exception
+	public static final int IO_EXCEPTION_CODE = 2;
+	public static final String IO_EXCEPTION_TYPE_MSG = "IO EXCEPTION";
 }

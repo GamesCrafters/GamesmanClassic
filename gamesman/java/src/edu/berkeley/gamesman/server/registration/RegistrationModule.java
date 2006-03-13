@@ -1,10 +1,16 @@
 package edu.berkeley.gamesman.server.registration;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleRequest;
+import edu.berkeley.gamesman.server.ModuleResponse;
 
 /**
  * 
@@ -18,6 +24,9 @@ public class RegistrationModule implements IModule
 	{
 		super();
 		// TODO Auto-generated constructor stub
+		usersOnline = new Hashtable();
+		secretKeys =  new Hashtable();
+		openGames = new Hashtable();
 	}
 
 	public boolean typeSupported(String requestTypeName)
@@ -30,15 +39,17 @@ public class RegistrationModule implements IModule
 	{
 		// TODO Auto-generated method stub
 		String type;
-		type = ((ModuleRequest) req).getHeader(Macros.TYPE);
+		ModuleRequest mreq = (ModuleRequest) req;
+		ModuleResponse mres = (ModuleResponse) res;
+		type = mreq.getHeader(Macros.TYPE);
 		if (type == Macros.REG_MOD_REGISTER_USER) {
-			registerUser(req, res);
+			registerUser(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_GET_USERS_ONLINE) {
-			//TODO
+			getUsersOnline(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_GET_OPEN_GAMES) {
-			//TODO
+			getOpenGames(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_REGISTER_NEW_GAME) {
 			//TODO
@@ -65,8 +76,39 @@ public class RegistrationModule implements IModule
 			//the request type cannot be handled
 			throw new ModuleException (Macros.UNKNOWN_REQUEST_TYPE_CODE, Macros.UNKNOWN_REQUEST_TYPE_MSG);
 		}
+	}
+	
+	/**
+	 * Register the current user with the gameName he/she request
+	 * Respond with the status of this request
+	 * 		If sucessful return a secretKey that will be used for the duration of the session
+	 * 		else if the request is denied return the corresponding error code
+	 * @param req
+	 * @param res
+	 */
+	void registerUser(ModuleRequest req, ModuleResponse res) {
+		String userName, gameName, status, secretKey;
+		int errorCode;
 		
-
+		//get userName and gameName from the request object
+		userName = req.getHeader(Macros.NAME);
+		gameName = req.getHeader(Macros.GAME);
+		
+		if ((errorCode = isValidName(userName)) == Macros.VALID) {
+			addUser(userName, gameName);
+			status = Macros.ACK;
+			secretKey = generateKeyString(userName);
+			
+			//set response headers
+			res.setHeader(Macros.SECRET_KEY, secretKey);
+			secretKeys.put(userName, secretKey);
+			res.setHeader(Macros.STATUS, status);
+		}
+		else {
+			status = Macros.DENY;
+			res.setHeader(Macros.STATUS, status);
+			res.setHeader(Macros.ERROR_CODE, errorCodeToString(errorCode));
+		}
 	}
 	
 	/**
@@ -74,29 +116,46 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void registerUser(IModuleRequest req, IModuleResponse res) {
+	void getUsersOnline(ModuleRequest req, ModuleResponse res) throws ModuleException {
+		String gameName, onlineUser, onlineGame;
+		OutputStream outStream;
+		Enumeration users;
+		byte [] byteArr;
+		try {
+			outStream = res.getOutputStream();
+		}
+		catch (IOException ioe) {
+			throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
+		}
+		
+		//Get Name of game being requested and write each user to the output stream
+		//delimit with a newline
+		gameName = req.getHeader(Macros.GAME);
+		for (users = usersOnline.keys(); users.hasMoreElements();) {
+			onlineUser = (String)users.nextElement();
+			onlineGame = (String)usersOnline.get(onlineUser);
+			if (onlineGame.equals(gameName)) {
+				try {
+					onlineUser += "\n";
+					byteArr = onlineUser.getBytes();
+					outStream.write(byteArr);
+				}
+				catch (IOException ioe) {
+					throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
+				}
+			}
+		}
+		
 		
 	}
 	
 	/**
 	 * 
-	 * @param name
-	 * @param gameName
-	 * @return
+	 * @param req
+	 * @param res
 	 */
-	void registerUser(String name, String gameName) {
-		int errorCode, secretKey;
-		String status;
-		if ((errorCode = isValidName(name)) == Macros.VALID) {
-			addUser(name, gameName);
-			status = Macros.ACK;
-		}
-		else {
-			status = Macros.DENY;
-		}
-		secretKey = generateKey(name);
-		return;
-		//return Response.newRegisterResponse(status, secretKey, errorCode);
+	private void getOpenGames(ModuleRequest req, ModuleResponse res) {
+		
 	}
 	
 	/**
@@ -110,11 +169,12 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Add a mapping with the given user and game
 	 * @param name
+	 * @param game
 	 */
-	private void addUser(String name, String game) {
-		
+	private void addUser(String userName, String gameName) {
+		usersOnline.put(userName, gameName);
 	}
 	
 	/**
@@ -126,5 +186,25 @@ public class RegistrationModule implements IModule
 		//for now just return the user String hashCode
 		return user.hashCode();
 	}
+	
+	/**
+	 * 
+	 * @param user
+	 * @return
+	 */
+	private String generateKeyString(String user) {
+		return (new Integer(generateKey(user))).toString();
+	}
+	
+	/**
+	 * 
+	 * @param errorCode
+	 * @return
+	 */
+	private String errorCodeToString(int errorCode) {
+		return (new Integer(errorCode)).toString();
+	}
+	
+	private Hashtable usersOnline, secretKeys, openGames;
 
 }
