@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.15 2006-03-14 12:06:05 albertchae Exp $
+// $Id: mcambio.c,v 1.16 2006-03-14 12:38:29 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -78,10 +78,10 @@ STRING   kHelpTextInterface    =
    who will begin the game.\n\
 2. Fill the four corners with neutral symbols.\n\
 3. Player A creates a starting position for Player B by placing\n\
-   5 cubes into the tray, with player B's symbol.\n\
+   4 cubes into the tray, with player B's symbol.\n\
    These cubes may be placed in any of the positions that a cube\n\
    may occupy when the tray is full.\n\
-4. Player B now places 4 of the first player A's symbol in any\n\
+4. Player B now places 3 of the first player A's symbol in any\n\
    free positions.\n\
 5. Fill in the rest of the positions with neutral symbols.\n\n\
 PLAY:\n\
@@ -97,14 +97,14 @@ As the game progresses, you should have more and more of your own\n\
 cubes in play.\n";
 
 STRING   kHelpStandardObjective =
-"To make a line composed of all 5 of your own symbol - \n\
+"To make a line composed of all 4 of your own symbol - \n\
 horizontally, vertically or diagonally.\n";
 
 STRING   kHelpReverseObjective =
 "";
 
 STRING   kHelpTieOccursWhen =
-"A tie is possible when a player's move causes two 5 in a rows \n\
+"A tie is possible when a player's move causes two 4 in a rows \n\
 simultaneously.";
 
 STRING   kHelpExample =
@@ -232,9 +232,16 @@ void InitializeGame ()
 MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST *moves = NULL;
-    
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-    
+	MOVELIST *CreateMovelistNode();
+	/* first check board to see if first person's number of pieces is less than 4. this is phase 1.
+	     then check to see if second person's pieces is less than 3. this is phase 2.
+	     otherwise need to know whose move it is, then you can pick any move that doesn't involve pushing off opponent's piece.
+
+	    IDEA: represent moves as two integers. If the integers are the same, it's a place the piece down move (phase 1, 2)
+		otherwise it's a push off a cube move. Otherwise we'll have to do a string and lots of nasty digit counting and etc */
+	
+	
     return moves;
 }
 
@@ -719,6 +726,9 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/03/14 12:06:05  albertchae
+// Changed game to 4x4 variant. Added test case to Primitive().
+//
 // Revision 1.14  2006/03/13 06:15:12  albertchae
 // Removed blanks as a possible piece. By rewriting the instructions, we can play using only neutrals.
 //
