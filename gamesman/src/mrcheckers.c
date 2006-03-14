@@ -12,12 +12,16 @@
  ** UPDATE HIST:
  **
  ** 2/13/2006    Started. Much of the code is shamelessly borrowed from
- **              m1210.c, which is used as a template. Done: InitializeGame,
- **              PrintPosition
+ **              m1210.c, which is used as a template.
+ **              Done: InitializeGame, PrintPosition
  **
  ** 2/26/2006    Changed piece representation from constants to variables.
  **              Added new version of PrintPosition
  **              Done: Primitive
+ **
+ ** 3/06/2006    Made a wrapper around Primitive to support misere.
+ **              Done: getOption, setOption
+ **              Started: UnhashMove, HashMove, GetInitialPosition
  **
  *****************************************************************************/
 
@@ -39,7 +43,7 @@ POSITION gMinimalPosition     = 0;       /* TODO: ? */
 STRING   kAuthorName          = "Johnny Tran and Steve Wu";
 STRING   kGameName            = "Rubik's Checkers";
 BOOLEAN  kPartizan            = TRUE;
-BOOLEAN  kDebugMenu           = FALSE;
+BOOLEAN  kDebugMenu           = TRUE;
 BOOLEAN  kGameSpecificMenu    = FALSE;
 BOOLEAN  kTieIsPossible       = FALSE;
 BOOLEAN  kLoopy               = TRUE;
@@ -90,9 +94,23 @@ extern int              whoseMove (POSITION hashed);
 #define BACKWARD              0x2
 #define CAPTURE               0x4
 
+// Move action types
+#define A_BEGIN               1
+#define A_MOVE                2
+#define A_CAPTURE             3
+#define A_PROMOTE             4
+#define A_STOP                5
+
 // Player representation
 #define P1                    1
 #define P2                    2
+
+typedef struct action_item
+{
+        unsigned int type;  // see above
+        unsigned char x, y;
+}
+ACTION;
 
 // Piece representation
 char EMPTY                  = ' ';
@@ -123,10 +141,12 @@ unsigned int promoteRow     = BACKWARD;  // Promote on your row
 /* Game-specific functions */
 unsigned int CountPieces(char board[],
                          unsigned int *p1Pieces, unsigned int *p2Pieces);
+VALUE PrimitiveNormal(POSITION position);
 
 void InitializeGame()
 {
     int maxPieces = startRows * cols;
+    int i;
     boardSize = rows * cols;
     int pieces[] = { P1KING, 0, maxPieces,
                      P1MAN,  0, maxPieces,
@@ -134,10 +154,12 @@ void InitializeGame()
                      P2MAN,  0, maxPieces,
                      EMPTY,  boardSize-(maxPieces*2), boardSize-1,
                      -1 };
-    char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
-    int i;
-    
     generic_hash_init(boardSize, pieces, NULL);
+    
+    printf("initializeGame()\n");
+    
+    char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
+    POSITION initialPositionHash;
 
     // Create initial position
     for (i = 0; i < maxPieces; i++) {
@@ -149,8 +171,10 @@ void InitializeGame()
         initialPosition[i] = EMPTY;
     }
     
-    gInitialPosition = generic_hash(initialPosition, P1);
+    initialPositionHash = generic_hash(initialPosition, P1);
     SafeFree(initialPosition);
+
+    gInitialPosition = initialPositionHash;
 }
 
 void FreeGame()
@@ -231,7 +255,44 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-    return gInitialPosition;
+    int maxPieces = startRows * cols;
+    int i = 0;
+    boardSize = rows * cols;
+    int pieces[] = { P1KING, 0, maxPieces,
+                     P1MAN,  0, maxPieces,
+                     P2KING, 0, maxPieces,
+                     P2MAN,  0, maxPieces,
+                     EMPTY,  boardSize-(maxPieces*2), boardSize-1,
+                     -1 };
+    generic_hash_init(boardSize, pieces, NULL);
+    
+    char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
+    char c;
+    POSITION initialPositionHash;
+    
+    printf("GetInitialPosition()\n");
+
+    // Prompt for initial position
+    printf("%d\n",boardSize);
+    getchar();
+    while(i < boardSize && (c = getchar()) != EOF) {
+        if ((c == P1MAN) || (c == P1KING) ||
+            (c == P2MAN) || (c == P2KING) || (c == EMPTY)) {
+            printf("%d\n",i);
+            initialPosition[i++] = c;
+        } else {
+            ;//initialPosition[i++] = EMPTY;
+        }
+    }
+    
+    printf("%s\n",initialPosition);
+    initialPositionHash = generic_hash(initialPosition, P1);
+    generic_unhash(initialPositionHash,initialPosition);
+    printf("%s\n",initialPosition);
+    SafeFree(initialPosition);
+
+    gInitialPosition = initialPositionHash;
+    return initialPositionHash;
 }
 
 /************************************************************************
@@ -284,10 +345,9 @@ unsigned int CountPieces(char board[],
     return *p1Pieces + *p2Pieces;
 }
 
-
 /************************************************************************
 **
-** NAME:        Primitive
+** NAME:        PrimitiveNormal
 **
 ** DESCRIPTION: Return the value of a position if it fulfills certain
 **              'primitive' constraints. Some examples of this is having
@@ -309,9 +369,7 @@ unsigned int CountPieces(char board[],
 **
 ************************************************************************/
 
-VALUE Primitive(position) 
-     POSITION position;
-{
+VALUE PrimitiveNormal(POSITION position) {
     char board[boardSize];
     unsigned int p1Pieces, p2Pieces;
     
@@ -323,6 +381,45 @@ VALUE Primitive(position)
     if (GenerateMoves(position) == NULL) return lose;
     
     return win; //undecided;
+}
+
+
+/************************************************************************
+**
+** NAME:        Primitive
+**
+** DESCRIPTION: Return the value of a position if it fulfills certain
+**              'primitive' constraints. Some examples of this is having
+**              three-in-a-row with TicTacToe. TicTacToe has two
+**              primitives it can immediately check for, when the board
+**              is filled but nobody has one = primitive tie. Three in
+**              a row is a primitive lose, because the player who faces
+**              this board has just lost. I.e. the player before him
+**              created the board and won. Otherwise undecided.
+**
+**              Primitive is a wrapper for PrimitiveNormal that checks
+**              if it is a misere game (toggling win/lose as necessary)
+** 
+** INPUTS:      POSITION position : The position to inspect.
+**
+** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
+**
+**              We assume Player 1 is always the human
+**              No more pieces: primitive lose
+**              All Locked pieces: primitive lose
+**              Else: undecided
+**
+************************************************************************/
+
+VALUE Primitive(position) 
+     POSITION position;
+{
+    VALUE state = PrimitiveNormal(position);
+
+    if (state == lose) return (gStandardGame ? lose : win);
+    if (state == win) return (gStandardGame ? win : lose);
+
+    return state;
 }
 
 /************************************************************************
@@ -460,6 +557,53 @@ void PrintPosition(position,playerName,usersTurn)
 
 /************************************************************************
 **
+** NAME:        UnhashMove
+**
+** DESCRIPTION: Given a move hash, retrieve the move details (starting
+**              square, then a direction or sequence of movements/captures)
+** 
+** INPUTS:      MOVE move : The move to interpret
+**              POSITION board : The current board state
+**
+** OUTPUTS:     Array of actions (an action is a promotion, movement,
+**              capture, or stop
+**
+**              Directions encoded as follows: 0: NW, 1: NE, 2: SW, 3: SE
+**
+************************************************************************/
+ACTION *UnhashMove(MOVE move, POSITION board) {
+    int startx, starty;
+    
+    // Bits 0-3: starting square x coordinate
+    startx = move & 15;
+    move = move >> 4;
+    
+    // Bits 4-7: starting square y coordinate
+    starty = move & 15;
+    move = move >> 4;
+
+    return 0;
+}
+
+/************************************************************************
+**
+** NAME:        HashMove
+**
+** DESCRIPTION: Given an array of actions, return its hash
+** 
+** INPUTS:      ACTION actions[] - array of actions
+**
+** OUTPUTS:     The hash for that move
+**
+**              Directions encoded as follows: 0: NW, 1: NE, 2: SW, 3: SE
+**
+************************************************************************/
+MOVE HashMove(ACTION actions[]) {
+    return 0;
+}
+
+/************************************************************************
+**
 ** NAME:        GenerateMoves
 **
 ** DESCRIPTION: Create a linked list of every move that can be reached
@@ -592,17 +736,51 @@ STRING kDBName = "Rubik's Checkers" ;
 
 int NumberOfOptions()
 {
-    // TODO
-    return 0;
+    return (1 << 10);  // 2^10 possible options
 }
 
 int getOption()
 {
-    // TODO
-    return 0;
+    int option = 0;
+
+    if (demote) option++;
+    option = option << 1;
+
+    if (forceCapture) option++;
+    option = option << 1;
+
+    if (startPromoted) option++;
+    option = option << 1;
+
+    if (promoteRow == BACKWARD) option++;
+    option = option << 3;
+
+    option += kingMobility;
+    option = option << 3;
+
+    option += manMobility;
+
+    return (option + 1);  // Options start at 1 so push up by 1
 }
 
 void setOption(int option)
 {
-    // TODO
+    option--;  // Options start at 1 so normalize back to 0
+
+    manMobility = option & 7;  // mask lower 3 bits
+    option = option >> 3;
+
+    kingMobility = option & 7;
+    option = option >> 3;
+
+    promoteRow = ((option & 1) ? BACKWARD : FORWARD);
+    option = option >> 1;
+
+    startPromoted = option & 1;
+    option = option >> 1;
+
+    forceCapture = option & 1;
+    option = option >> 1;
+
+    demote = option & 1;
 }
