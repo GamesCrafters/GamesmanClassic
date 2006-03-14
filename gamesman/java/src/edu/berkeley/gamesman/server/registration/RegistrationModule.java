@@ -10,8 +10,6 @@ import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
-import edu.berkeley.gamesman.server.ModuleRequest;
-import edu.berkeley.gamesman.server.ModuleResponse;
 
 /**
  * 
@@ -43,8 +41,8 @@ public class RegistrationModule implements IModule
 	{
 		// TODO Auto-generated method stub
 		String type;
-		ModuleRequest mreq = (ModuleRequest) req;
-		ModuleResponse mres = (ModuleResponse) res;
+		IModuleRequest mreq = req;
+		IModuleResponse mres =  res;
 		type = mreq.getHeader(Macros.TYPE);
 		if (type == Macros.REG_MOD_REGISTER_USER) {
 			registerUser(mreq, mres);
@@ -89,7 +87,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void joinGameNumber(ModuleRequest req, ModuleResponse res)  throws ModuleException {
+	void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
 		String userName, secretKey, gameID, gameName;
 		boolean validKey;
 		LinkedList interestedUsers;
@@ -134,7 +132,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void registerUser(ModuleRequest req, ModuleResponse res) {
+	void registerUser(IModuleRequest req, IModuleResponse res) {
 		String userName, gameName, status, secretKey;
 		int errorCode;
 		
@@ -164,7 +162,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void getUsersOnline(ModuleRequest req, ModuleResponse res) throws ModuleException {
+	void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String gameName, onlineUser, onlineGame;
 		OutputStream outStream;
 		Enumeration users;
@@ -206,7 +204,7 @@ public class RegistrationModule implements IModule
 	 * @param res
 	 * @modifies res
 	 */
-	private void getOpenGames(ModuleRequest req, ModuleResponse res) {
+	private void getOpenGames(IModuleRequest req, IModuleResponse res) {
 		String gameName, host, variationNumber; 
 		Integer gameID;
 		int index;
@@ -247,7 +245,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void registerNewGame(ModuleRequest req, ModuleResponse res) {
+	void registerNewGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, variation, gameMessage, gameName;
 		boolean validKey, notHostingGame, validVariant;
 		Integer gameID;
@@ -305,7 +303,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void unregisterGame(ModuleRequest req, ModuleResponse res) {
+	void unregisterGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, gameName, gameHost;
 		boolean validKey, validGameHost;
 		Hashtable gameSessions;
@@ -343,7 +341,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	void unregisterUser(ModuleRequest req, ModuleResponse res) {
+	void unregisterUser(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey;
 		int errorCode;
 		boolean validKey; 
@@ -364,7 +362,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	void acceptChallenge(ModuleRequest req, ModuleResponse res) {
+	void acceptChallenge(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, luckyUser, gameName, gameId, challengeResponse;
 		Hashtable gameSessions; 
 		PropertyBucket propBucket; 
@@ -418,7 +416,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	public void refreshHostStatus(ModuleRequest req, ModuleResponse res) {
+	public void refreshHostStatus(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, luckyUser, gameName, gameId;
 		Hashtable gameSessions; 
 		PropertyBucket propBucket; 
