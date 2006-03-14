@@ -47,6 +47,9 @@ public final class Macros {
 	public static final int IO_EXCEPTION_CODE 			= 2;
 	public static final String IO_EXCEPTION_TYPE_MSG 	= "IO EXCEPTION";
 	
+	public static final int INTERRUPT_EXCEPTION_CODE	= 3;
+	public static final String INTERRUPT_EXCEPTION_MSG  = "INTERRUPT EXCEPTION";
+	
 	//property names
 	public static final String PROPERTY_HOST 				= "PROPERTY_HOST";
 	public static final String PROPERTY_VARIATION 			= "PROPERTY_VARIATION";

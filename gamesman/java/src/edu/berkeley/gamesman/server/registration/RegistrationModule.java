@@ -62,7 +62,7 @@ public class RegistrationModule implements IModule
 			unregisterGame(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_JOIN_GAME_NUMBER) {
-			//TODO
+			joinGameNumber(mreq, mres);
 		}
 		else if (type == Macros.REG_MOD_JOIN_GAME_USER) {
 			//Ambiguous meaning in the future if we implement multiple
@@ -81,6 +81,48 @@ public class RegistrationModule implements IModule
 		else {
 			//the request type cannot be handled
 			throw new ModuleException (Macros.UNKNOWN_REQUEST_TYPE_CODE, Macros.UNKNOWN_REQUEST_TYPE_MSG);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param req
+	 * @param res
+	 */
+	void joinGameNumber(ModuleRequest req, ModuleResponse res)  throws ModuleException {
+		String userName, secretKey, gameID, gameName;
+		boolean validKey;
+		LinkedList interestedUsers;
+		Hashtable gameSessions;
+		PropertyBucket propBucket;
+		
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		gameID = req.getHeader(Macros.GAME_ID);
+		
+		validKey = isValidUserKey(userName, secretKey);
+		gameName = (String)usersOnline.get(userName);
+		
+		gameSessions = (Hashtable)openGames.get(gameName);
+		
+		propBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
+		if (propBucket == null) {
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			return;
+		}
+		else {
+			interestedUsers = (LinkedList)propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			interestedUsers.add(this);
+			try {
+				// go to sleep and wait for another thread to wake us up when they refresh
+				this.wait();
+			}
+			catch (InterruptedException ie) {
+				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
+			}
+			res.setHeader(Macros.STATUS, Macros.ACK);
+			
 		}
 	}
 	
@@ -332,6 +374,8 @@ public class RegistrationModule implements IModule
 		userName = req.getHeader(Macros.NAME);
 		secretKey = req.getHeader(Macros.SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
+		//TODO: for now challenge response will be empty string, but it needs to be initialized
+		challengeResponse = req.getHeader(Macros.CHALLENGE_ACCEPTED);
 		if (validKey) {
 			hostAgreed = (challengeResponse == Macros.ACCEPTED); 
 			if (hostAgreed) {
@@ -345,7 +389,8 @@ public class RegistrationModule implements IModule
 				propBucket = (PropertyBucket) gameSessions.get(gameId); 
 				interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
 				luckyUser = (String) interestedList.removeFirst(); 
-				edu.berkeley.gamesman.server.p2p.P2PModule.registerNewGame(userName, luckyUser); 
+				//TODO: uncomment the following line ... commented out for compilation sake
+				//edu.berkeley.gamesman.server.p2p.P2PModule.registerNewGame(userName, luckyUser); 
 				//TODO: Wake up the luckyUser here
 				//TODO: Wake up the other users with the bad news
 				unregisterGame(req, res);
