@@ -397,7 +397,7 @@ BOOLEAN memdb_load_database()
                 return FALSE;
         if(!memdb_array && !gZeroMemPlayer)
                 return FALSE;
-        else //if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
+        else if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
                 return TRUE;
 
         sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
