@@ -252,10 +252,16 @@ proc DriverLoop { } {
 
     while { [expr !$gWaitingForHuman] } {
 
+	set primitive [C_Primitive $gPosition]
+
 	if {!$gameMenuToDriverLoop} {
 	    ## Move History
+        if { $primitive != "Undecided" } {
+            set theMoves  [list]
+        } else {
+            set theMoves  [C_GetValueMoves $gPosition]
+        }
 	    set lastMove      [peek $gMovesSoFar]
-	    set theMoves      [C_GetValueMoves $gPosition]
 	    set theValue      [C_GetValueOfPosition $gPosition]
 	    set theRemoteness [C_Remoteness $gPosition]
 	    
@@ -264,8 +270,6 @@ proc DriverLoop { } {
 	    ##
 	}
 	set gameMenuToDriverLoop false
-
-	set primitive [C_Primitive $gPosition]
 
 	## Game's over if the position is primitive
 	if { $primitive != "Undecided" } {
