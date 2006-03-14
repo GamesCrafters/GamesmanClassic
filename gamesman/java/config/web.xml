@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE web-app
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+
+    <display-name>Gamesman Server</display-name>
+    <description>
+      Server component to Gamesman.
+    </description>
+
+    <servlet>
+        <servlet-name>GamesmanServlet</servlet-name>
+        <servlet-class>edu.berkeley.gamesman.server.GamesmanServlet</servlet-class>
+        <init-param>
+            <param-name>imodules.length</param-name>
+            <param-value>3</param-value>
+        </init-param>
+        <init-param>
+            <param-name>imodules.list</param-name>
+            <param-value>
+            edu.berkeley.gamesman.server.p2p.P2PModule
+            edu.berkeley.gamesman.server.registration.RegistrationModule
+            edu.berkeley.gamesman.server.db.DbModule
+            </param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>GamesmanServlet</servlet-name>
+        <url-pattern>/GamesmanServlet</url-pattern>
+    </servlet-mapping>
+
+</web-app>
