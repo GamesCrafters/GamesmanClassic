@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.14 2006-03-13 06:15:12 albertchae Exp $
+// $Id: mcambio.c,v 1.15 2006-03-14 12:06:05 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -23,7 +23,7 @@
 **              3/06/2006 - Updated GetInitialPosition().
 **	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
 **                                    Removed blanks from the game.
-**p.
+**             3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
 **
 **************************************************************************/
 
@@ -117,9 +117,9 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define ROWCOUNT 5;
-#define COLCOUNT 5;
-#define BOARDSIZE 25;
+#define ROWCOUNT 4;
+#define COLCOUNT 4;
+#define BOARDSIZE 16;
 
 #define NEUTRAL '+';
 #define A_PIECE 'X';
@@ -144,7 +144,7 @@ char aPiece = A_PIECE;
 char bPiece = B_PIECE;
 char unknown = UNKNOWN;
 
-int piecesArray[] = {'+', 4, 25, 'X', 0, 21, 'O', 0, 21, -1 };
+int piecesArray[] = {'+', 0, 16, 'X', 0, 16, 'O', 0, 16, -1 };
 
 Player gWhosTurn = playerA;
 int gameType;
@@ -183,7 +183,7 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-BOOLEAN                 FiveInARow(char *board, char symbol);
+BOOLEAN                 FourInARow(char *board, char symbol);
 
 /************************************************************************
 **
@@ -305,15 +305,19 @@ VALUE Primitive (POSITION position)
   }
 
   
-  playerWin = FiveInARow(gBoard, symbol);
-  oppoWin = FiveInARow(gBoard, opposymbol);
+  playerWin = FourInARow(gBoard, symbol);
+  oppoWin = FourInARow(gBoard, opposymbol);
 
+  printf("playerWin: %i   oppoWin: %i \n", playerWin, oppoWin);
+  
   free(gBoard);
   
   if (playerWin && oppoWin)
     return tie;
   else if (playerWin)
     return gStandardGame ? lose : win;
+  else if (oppoWin)
+	return gStandardGame ? win : lose;
   else
     return undecided;
 }
@@ -343,27 +347,27 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   generic_unhash(position, gBoard);
   
   /***********************LINE 1**************************/
-  printf("       #-#-#-#-#-#\n");
+  printf("       #-#-#-#-#\n");
 
   /***********************LINE 2**************************/
   printf("       |");
   for (; i < colcount; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("          (  0  1  2  3  4 )\n");
+  printf("          ( 0  1  2  3 )\n");
 
   /***********************LINE 3**************************/
-  printf("       #-#-#-#-#-#\n"); 
+  printf("       #-#-#-#-#\n"); 
                                  
   /***********************LINE 4**************************/
   printf("       |");
   for (; i < colcount*2; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("          (  5  6  7  8  9 )\n");
+  printf("          ( 4  5  6  7 )\n");
 
   /***********************LINE 5**************************/
-  printf("       #-#-#-#-#-#\n");                
+  printf("       #-#-#-#-#\n");                
                                     
 
   /***********************LINE 6**************************/
@@ -371,32 +375,22 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   for (; i < colcount*3; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("  LEGEND: ( 10 11 12 13 14 )\n");
+  printf("  LEGEND: ( 8  9  10 11)\n");
 
   /***********************LINE 7**************************/
-  printf("       #-#-#-#-#-#\n"); 
+  printf("       #-#-#-#-#\n"); 
                               
   /***********************LINE 8**************************/
   printf("       |");
   for (; i < colcount*4; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("          ( 15 16 17 18 19 )\n");
+  printf("          ( 12 13 14 15)\n");
 
   /***********************LINE 9**************************/
-  printf("       #-#-#-#-#-#\n");
-                                     
-  /***********************LINE 10**************************/
-  printf("       |");
-  for (; i < colcount*5; i++) {
-    printf("%c|", gBoard[i]);
-  }
-  printf("          ( 20 21 22 23 24 )\n");
+  printf("       #-#-#-#-#\n");
 
-  /***********************LINE 11**************************/
-  printf("       #-#-#-#-#-#\n"); 
-	                                 
-  /***********************LINE 12**************************/
+  /***********************LINE 10**************************/
   printf("                      A's Symbol = %c\n", aPiece);
   printf("                      B's Symbol = %c\n", bPiece);
   printf("                         Neutral = %c\n", neutral);
@@ -705,28 +699,29 @@ void DebugMenu ()
 ** Any other function you deem necessary to help the ones above.
 ** 
 ************************************************************************/
-BOOLEAN FiveInARow(char *board, char symbol)
+BOOLEAN FourInARow(char *board, char symbol)
 {
-  return /* horizontal */
-         (board[0] == symbol && board[1] == symbol && board[2] == symbol && board[3] == symbol && board[4] == symbol)      ||
-         (board[5] == symbol && board[6] == symbol && board[7] == symbol && board[8] == symbol && board[9] == symbol)      ||
-         (board[10] == symbol && board[11] == symbol && board[12] == symbol && board[13] == symbol && board[14] == symbol) ||
-         (board[15] == symbol && board[16] == symbol && board[17] == symbol && board[18] == symbol && board[19] == symbol) ||
-         (board[20] == symbol && board[21] == symbol && board[22] == symbol && board[23] == symbol && board[24] == symbol) ||
+  return (/* horizontal */
+         (board[0]  == symbol && board[1]  == symbol && board[2]  == symbol && board[3]  == symbol) ||
+         (board[4]  == symbol && board[5]  == symbol && board[6]  == symbol && board[7]  == symbol) ||
+         (board[8]  == symbol && board[9]  == symbol && board[10] == symbol && board[11] == symbol) ||
+         (board[12] == symbol && board[13] == symbol && board[14] == symbol && board[15] == symbol) ||
          /* vertical */
-         (board[0] == symbol && board[5] == symbol && board[10] == symbol && board[15] == symbol && board[20] == symbol)   ||
-         (board[1] == symbol && board[6] == symbol && board[11] == symbol && board[16] == symbol && board[21] == symbol)   ||
-         (board[2] == symbol && board[7] == symbol && board[12] == symbol && board[17] == symbol && board[22] == symbol)   ||
-         (board[3] == symbol && board[8] == symbol && board[13] == symbol && board[18] == symbol && board[23] == symbol)   ||
-         (board[4] == symbol && board[9] == symbol && board[14] == symbol && board[19] == symbol && board[24] == symbol)   ||
+         (board[0]  == symbol && board[4] == symbol && board[8]  == symbol && board[12] == symbol) ||
+         (board[1]  == symbol && board[5] == symbol && board[9]  == symbol && board[13] == symbol) ||
+         (board[2]  == symbol && board[6] == symbol && board[10] == symbol && board[14] == symbol) ||
+         (board[3]  == symbol && board[7] == symbol && board[11] == symbol && board[15] == symbol) ||
          /* diagonal */
-         (board[0] == symbol && board[6] == symbol && board[12] == symbol && board[18] == symbol && board[24] == symbol)   ||
-         (board[4] == symbol && board[8] == symbol && board[12] == symbol && board[16] == symbol && board[20] == symbol);
+         (board[0]  == symbol && board[5] == symbol && board[10] == symbol && board[15] == symbol) ||
+         (board[3]  == symbol && board[6] == symbol && board[9]  == symbol && board[12] == symbol));
 }
 
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2006/03/13 06:15:12  albertchae
+// Removed blanks as a possible piece. By rewriting the instructions, we can play using only neutrals.
+//
 // Revision 1.13  2006/03/12 22:16:55  albertchae
 // I fixed the PrintPosition() seg fault. generic_hash requires an empty board which we did not have allocated before.
 // I also fixed the loop in GetInitialPosition() that asks for input. There is something wrong with hashing.
