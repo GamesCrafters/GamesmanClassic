@@ -178,8 +178,7 @@ STRING   kHelpExample =
 #define CROSS_LINE 197
 
 typedef enum possibleBoardPieces {
-    Blank = 0, SmallSand, LargeSand, SandCastle, BlueBucket, 
-    RedBucket, BlueSmall, RedSmall, BlueCastle, RedCastle
+    Blank = 0, SmallSand, LargeSand, BlueBucket, RedBucket
 } BoardPiece;
 
 typedef enum playerTurn {
@@ -192,6 +191,12 @@ typedef struct boardAndTurnRep {
   char *theBoard;
   PlayerTurn theTurn;
 } *BoardAndTurn;
+
+typedef struct tripleBoardRep {
+	char *boardL;
+	char *boardS;
+	char *boardB;
+} *BoardRep;
 
 /*typedef struct structMove {
   int theFromLoc;
@@ -272,14 +277,17 @@ void                    InitializeOrder();*/
 void InitializeGame ()
 {
     int i;
-    /*int piecesArray[] = { Blank, SmallSand, LargeSand, SandCastle,
-						  BlueBucket, RedBucket, BlueSmall, RedSmall,
-						  BlueCastle, RedCastle };*/
+    int LpiecesArray[] = { Blank, 5, 9, LargeSand, 0, 4 };
+    int SpiecesArray[] = { Blank, 5, 9, SmallSand, 0, 4 };
+    int BpiecesArray[] = { Blank, 5, 9, RedBucket, 0, 2, BlueBucket, 0, 2 };
+    
     BoardAndTurn boardArray;
     boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
     boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
     
-    //gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+    gNumberOfPositions = generic_hash_init(boardSize, LpiecesArray, NULL);
+    gNumberOfPositions = generic_hash_init(boardSize, SpiecesArray, NULL);
+    gNumberOfPositions = generic_hash_init(boardSize, BpiecesArray, NULL);
     gWhosTurn = boardArray->theTurn = Blue;
     
     for (i = 0; i < boardSize; i++) {
@@ -287,8 +295,6 @@ void InitializeGame ()
     }
     
     gInitialPosition = arrayHash(boardArray);
-    playerName = (char *) SafeMalloc(7 * sizeof(char));
-    //gPlayerName[kPlayerOneTurn] = playerName;
     SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
 }
@@ -868,6 +874,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.16  2006/03/08 01:22:30  mikehamada
+// *** empty log message ***
+//
 // Revision 1.15  2006/03/08 01:19:37  mikehamada
 // Formatted DoMove Code
 //
