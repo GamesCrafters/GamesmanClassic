@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.99 2006-03-13 09:41:17 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.100 2006-03-14 04:38:35 esiroker Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -176,7 +176,7 @@ proc InitWindow { kRootDir kExt } {
     set moveHistoryList []
     set moveHistoryCanvas .middle.f1.cMLeft
     set moveHistoryVisible false
-    set gPredictionsOn true
+    set gPredictionsOn false
     set gameMenuToDriverLoop false
     set maxRemoteness 0
 
@@ -1227,7 +1227,10 @@ proc InitWindow { kRootDir kExt } {
 	.middle.f1.cMLeft raise LeftName
 	if { $gPredictionsOn == false } {
 	    .middle.f1.cMLeft lower moveHistoryValidMoves
-	}
+	} else {
+        .middle.f1.cMLeft raise moveHistoryLine
+        .middle.f1.cMLeft raise moveHistoryPlot
+    }
 	set moveHistoryVisible true
 	.cStatus raise winI
 	.cStatus raise moveA
