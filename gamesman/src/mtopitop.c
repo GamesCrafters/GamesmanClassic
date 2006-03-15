@@ -156,6 +156,12 @@ STRING   kHelpExample =
 #define BLUECASTLEPIECE 'B'
 #define REDCASTLEPIECE 'R'
 #define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
+#define UNKNOWNBOARDPIECE -1
+
+#define HASHBLANK 0
+#define HASHSANDPILE 1
+#define HASHBLUEBUCKET 1
+#define HASHREDBUCKET 2
 
 #define BLUETURN 0
 #define REDTURN 1
@@ -178,7 +184,8 @@ STRING   kHelpExample =
 #define CROSS_LINE 197
 
 typedef enum possibleBoardPieces {
-    Blank = 0, SmallSand, LargeSand, BlueBucket, RedBucket
+    Blank = 0, SmallSand, LargeSand, SandCastle, BlueBucket, 
+    RedBucket, BlueSmall, RedSmall, BlueCastle, RedCastle
 } BoardPiece;
 
 typedef enum playerTurn {
@@ -193,10 +200,16 @@ typedef struct boardAndTurnRep {
 } *BoardAndTurn;
 
 typedef struct tripleBoardRep {
-	char *boardL;
-	char *boardS;
-	char *boardB;
+	char *boardL;	// Holds blanks (0) and large sand piles (1)
+	char *boardS;	// Holds blanks (0) and small sand piles (1)
+	char *boardB;	// Holds blanks (0), blue buckets (1), and red buckets (2).
 } *BoardRep;
+
+typedef struct threePieces {
+	char L;
+	char S;
+	char B;
+} *ThreePiece;
 
 /*typedef struct structMove {
   int theFromLoc;
@@ -277,9 +290,9 @@ void                    InitializeOrder();*/
 void InitializeGame ()
 {
     int i;
-    int LpiecesArray[] = { Blank, 5, 9, LargeSand, 0, 4 };
-    int SpiecesArray[] = { Blank, 5, 9, SmallSand, 0, 4 };
-    int BpiecesArray[] = { Blank, 5, 9, RedBucket, 0, 2, BlueBucket, 0, 2 };
+    int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4 };
+    int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4 };
+    int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2 };
     
     BoardAndTurn boardArray;
     boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
@@ -805,7 +818,7 @@ void DebugMenu ()
 
 char BoardPieceToChar(BoardPiece piece) {
 	switch (piece) {
-		case Blank:			return BLANKPIECE;
+		case Blank:				return BLANKPIECE;
 		case SmallSand:			return SMALLPIECE;
 		case LargeSand:			return LARGEPIECE;
 		case SandCastle:		return CASTLEPIECE;
@@ -834,7 +847,102 @@ BoardPiece CharToBoardPiece(char piece) {
 	  case REDCASTLEPIECE:		return RedCastle;
 	}
 	
-	return -1;
+	return UNKNOWNBOARDPIECE;
+}
+
+BoardPiece ThreePieceToBoardPiece(ThreePiece lsb) {
+	if (lsb->L == HASHBLANK) {
+		if (lsb->S == HASHBLANK) {
+			if (lsb->B == HASHBLANK) { return Blank; }
+			else if (lsb->B == HASHBLUEBUCKET) { return BlueBucket; }
+			else if (lsb->B == HASHREDBUCKET) { return RedBucket; }
+		} else if (lsb->S == HASHSANDPILE) {
+			if (lsb->B == HASHBLANK) { return SmallSand; }
+			else if (lsb->B == HASHBLUEBUCKET) { return BlueSmall; }
+			else if (lsb->B == HASHREDBUCKET) { return RedSmall; }
+		}
+	} else if (lsb->L == HASHSANDPILE) {
+		if (lsb->S == HASHBLANK) {
+			if (lsb->B == HASHBLANK) { return LargeSand; }
+			else if (lsb->B == HASHBLUEBUCKET) { return UNKNOWNBOARDPIECE; }
+			else if (lsb->B == HASHREDBUCKET) { return UNKNOWNBOARDPIECE; }
+		} else if (lsb->S == HASHSANDPILE) {
+			if (lsb->B == HASHBLANK) { return SandCastle; }
+			else if (lsb->B == HASHBLUEBUCKET) { return BlueCastle; }
+			else if (lsb->B == HASHREDBUCKET) { return RedCastle; }
+		}
+	}
+	
+	return UNKNOWNBOARDPIECE;
+}
+
+char ThreePieceToChar(ThreePiece lsb) {
+	return BoardPieceToChar(ThreePieceToBoardPiece(lsb));
+}
+
+ThreePiece BoardPieceToThreePiece(BoardPiece piece) {
+	ThreePiece newPiece = (ThreePiece) SafeMalloc(sizeof(struct threePieces));
+	
+	switch (piece) {
+		case Blank:
+			newPiece.L = 0;
+			newPiece.S = 0;
+			newPiece.B = 0;
+			break;
+	  	case BlueBucket:
+	  		newPiece.L = 0;
+			newPiece.S = 0;
+			newPiece.B = 1;
+			break;
+	  	case RedBucket:
+	  		newPiece.L = 0;
+			newPiece.S = 0;
+			newPiece.B = 2;
+			break;
+	  	case SmallSand:
+	  		newPiece.L = 0;
+			newPiece.S = 1;
+			newPiece.B = 0;
+			break;
+	  	case BlueSmall:
+	  		newPiece.L = 0;
+			newPiece.S = 1;
+			newPiece.B = 1;
+			break;
+	  	case RedSmall:
+	  		newPiece.L = 0;
+			newPiece.S = 1;
+			newPiece.B = 2;
+			break;
+	  	case LargeSand:
+	  		newPiece.L = 1;
+			newPiece.S = 0;
+			newPiece.B = 0;
+			break;
+	  	case SandCastle:
+	  		newPiece.L = 1;
+			newPiece.S = 1;
+			newPiece.B = 0;
+			break;
+	  	case BlueCastle:
+	  		newPiece.L = 1;
+			newPiece.S = 1;
+			newPiece.B = 1;
+			break;
+	  	case RedCastle:
+	  		newPiece.L = 1;
+			newPiece.S = 1;
+			newPiece.B = 2;
+			break;
+		default:
+			return NULL;
+	}
+	
+	return newPiece;
+}
+
+ThreePiece CharToThreePiece(char piece) {
+	return BoardPieceToThreePiece(CharToBoardPiece(piece));
 }
 
 /*
@@ -874,6 +982,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.17  2006/03/14 03:02:58  mikehamada
+// Changed InitializeGame(), added BoardRep, changed BoardPiece
+//
 // Revision 1.16  2006/03/08 01:22:30  mikehamada
 // *** empty log message ***
 //
