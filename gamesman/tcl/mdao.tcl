@@ -28,7 +28,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition 189388
     set gPosition $gInitialPosition
 
     ### Set boardRows, boardCols, boardSize
