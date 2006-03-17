@@ -18,13 +18,21 @@
             <param-value>3</param-value>
         </init-param>
         <init-param>
-            <param-name>imodules.list</param-name>
-            <param-value>
-            edu.berkeley.gamesman.server.p2p.P2PModule
-            edu.berkeley.gamesman.server.registration.RegistrationModule
-            edu.berkeley.gamesman.server.db.DbModule
-            </param-value>
-        </init-param>
+            <param-name>imodules.0.classname</param-name>
+            <param-value>edu.berkeley.gamesman.server.p2p.P2PModule</param-value>
+        <init-param>
+        <init-param>
+            <param-name>imodules.1.classname</param-name>
+            <param-value>edu.berkeley.gamesman.server.registration.RegistrationModule</param-value>
+        <init-param>        
+        <init-param>
+            <param-name>imodules.2.classname</param-name>
+            <param-value>edu.berkeley.gamesman.server.db.DbModule</param-value>
+        <init-param>
+        <init-param>
+            <param-name>imodules.2.args</param-name>
+            <param-value>somepath,somenumber,db1.gz,db2.gz</param-value>
+        <init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
 

@@ -10,6 +10,15 @@ package edu.berkeley.gamesman.server;
 public interface IModule
 {
 	/**
+	 * Initialization that takes configuration arguments as specified in the 
+	 * application config file. The configArgs array may be of length 0, but 
+	 * never null.
+	 * 
+	 * @param configArgs configuration arguments for the IModule
+	 */
+	public void initialize(String[] configArgs) throws ModuleInitializationException;
+	
+	/**
 	 * Returns true if the specified request type name is supported by this 
 	 * IModule, false otherwise.
 	 * 
