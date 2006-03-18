@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.16 2006-03-14 12:38:29 albertchae Exp $
+// $Id: mcambio.c,v 1.17 2006-03-18 10:36:35 albertchae Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -24,6 +24,8 @@
 **	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
 **                                    Removed blanks from the game.
 **             3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
+**             3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
+**             3/18/2006 - Added GenerateMove() and PrintMove()
 **
 **************************************************************************/
 
@@ -130,15 +132,16 @@ typedef enum player {
   playerA = 1, playerB = 2
 } Player;
 
+
 /*************************************************************************
 **
 ** Global Variables
 **
 *************************************************************************/
 
-int boardSize = BOARDSIZE;
 int rowcount = ROWCOUNT;
 int colcount = COLCOUNT;
+int boardSize = BOARDSIZE;
 char neutral = NEUTRAL;
 char aPiece = A_PIECE;
 char bPiece = B_PIECE;
@@ -146,8 +149,7 @@ char unknown = UNKNOWN;
 
 int piecesArray[] = {'+', 0, 16, 'X', 0, 16, 'O', 0, 16, -1 };
 
-Player gWhosTurn = playerA;
-int gameType;
+Player gWhosTurn; /* 1 for player A, 2 for player B */
 
 char *gBoard;
 
@@ -203,7 +205,7 @@ void InitializeGame ()
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
   gWhosTurn = playerA;
     
-  /* filling up the board; with Neutralss */
+  /* filling up the board; with Neutrals */
   for (i = 0; i < boardSize; i++)
     boardArray[i] = neutral;
 
@@ -230,17 +232,90 @@ void InitializeGame ()
 ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position)
+/* must check all the math used for general case, such as 5x5 and on */
 {
     MOVELIST *moves = NULL;
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	MOVELIST *CreateMovelistNode();
-	/* first check board to see if first person's number of pieces is less than 4. this is phase 1.
-	     then check to see if second person's pieces is less than 3. this is phase 2.
-	     otherwise need to know whose move it is, then you can pick any move that doesn't involve pushing off opponent's piece.
-
-	    IDEA: represent moves as two integers. If the integers are the same, it's a place the piece down move (phase 1, 2)
-		otherwise it's a push off a cube move. Otherwise we'll have to do a string and lots of nasty digit counting and etc */
+	char *gBoard = (char *) malloc(boardSize*sizeof(char));
+	char opposymbol;
+	int countA, countB, turn, i;
 	
+	generic_unhash(position, gBoard);
+	
+	countA = 0; countB = 0;
+	turn = whoseMove(position);
+	
+	/* count the number of pieces for each player */
+	for(i = 0; i < boardSize; i++)
+	{
+		if(gBoard[i] == aPiece)
+			countA++;
+		else if(gBoard[i] == bPiece)
+			countB++;
+	}
+	
+	/* Assign pieces for each player */
+	if(turn == playerB) {
+		opposymbol = aPiece;
+	}
+	else {
+		opposymbol = bPiece;
+	}
+	
+	/* Phase 1: Less than 4 of PlayerB's pieces on the board. */
+	if(countB < 4)
+	{
+		for(i = 0; i < boardSize; i++)
+		{
+			if((gBoard[i] != bPiece)  && 
+			   ((i != 0)                      && (i != (colcount-1)) && 
+			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
+				{
+					moves = CreateMovelistNode(i, moves);
+				}
+		}
+	}
+	/*.Phase 2: Less than 3 of PlayerA's pieces on the board. */
+	else if(countA < 3)
+	{
+		for(i = 0; i < boardSize; i++)
+		{
+			if((gBoard[i] != bPiece)  && (gBoard[i] != aPiece) &&
+			   ((i != 0)                      && (i != (colcount-1)) && 
+			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
+				{
+					moves = CreateMovelistNode(i, moves);
+				}
+		}
+	}
+	/* Phase 3:The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+	else
+	{
+		/* top row moves */
+		for(i = 0; i < colcount; i++)
+		{
+			if(gBoard[i + (boardSize-colcount)] != opposymbol) // should be 12=15 for 4x4
+				moves = CreateMovelistNode(i + boardSize, moves); // should be 16-19 for 4x4
+		}
+		/* right column moves */
+		for(i = 0; i < rowcount; i++) 
+		{
+			if(gBoard[((i+1)*colcount) - colcount] != opposymbol) // should be 0,4,8,12 for 4x4
+				moves = CreateMovelistNode(i + boardSize + colcount, moves); // should be 20-23 for 4x4
+		}
+		/* bottom row moves */
+		for(i = 0; i < colcount; i++)
+		{
+			if(gBoard[(colcount - i - 1)] != opposymbol) // should be 3-0 for 4xr
+				moves = CreateMovelistNode(i + boardSize + colcount + rowcount, moves); // should be 24-27 for 4x4
+		}
+		/* left column moves */
+		for(i = 0; i < rowcount; i++)
+		{
+			if(gBoard[((i+1)*colcount) - 1] != opposymbol) // should be 15, 11, 7, 3
+				moves = CreateMovelistNode(i + boardSize + colcount + rowcount + colcount, moves); // should be 28-31 for 4x4
+		}
+	}
 	
     return moves;
 }
@@ -303,27 +378,26 @@ VALUE Primitive (POSITION position)
   generic_unhash(position, gBoard);
   
   if(turn == playerB) {
-    symbol = aPiece;
-    opposymbol = bPiece;
-  }
-  else {
     symbol = bPiece;
     opposymbol = aPiece;
+  }
+  else {
+    symbol = aPiece;
+    opposymbol = bPiece;
   }
 
   
   playerWin = FourInARow(gBoard, symbol);
   oppoWin = FourInARow(gBoard, opposymbol);
 
-  printf("playerWin: %i   oppoWin: %i \n", playerWin, oppoWin);
   
   free(gBoard);
   
   if (playerWin && oppoWin)
     return tie;
-  else if (playerWin)
-    return gStandardGame ? lose : win;
   else if (oppoWin)
+    return gStandardGame ? lose : win;
+  else if (playerWin)
 	return gStandardGame ? win : lose;
   else
     return undecided;
@@ -354,7 +428,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   generic_unhash(position, gBoard);
   
   /***********************LINE 1**************************/
-  printf("       #-#-#-#-#\n");
+  printf("       ---------\n");
 
   /***********************LINE 2**************************/
   printf("       |");
@@ -364,7 +438,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("          ( 0  1  2  3 )\n");
 
   /***********************LINE 3**************************/
-  printf("       #-#-#-#-#\n"); 
+  printf("       ---------\n"); 
                                  
   /***********************LINE 4**************************/
   printf("       |");
@@ -374,7 +448,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("          ( 4  5  6  7 )\n");
 
   /***********************LINE 5**************************/
-  printf("       #-#-#-#-#\n");                
+  printf("       ---------\n");                
                                     
 
   /***********************LINE 6**************************/
@@ -385,7 +459,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("  LEGEND: ( 8  9  10 11)\n");
 
   /***********************LINE 7**************************/
-  printf("       #-#-#-#-#\n"); 
+  printf("       ---------\n"); 
                               
   /***********************LINE 8**************************/
   printf("       |");
@@ -395,7 +469,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("          ( 12 13 14 15)\n");
 
   /***********************LINE 9**************************/
-  printf("       #-#-#-#-#\n");
+  printf("       ---------\n");
 
   /***********************LINE 10**************************/
   printf("                      A's Symbol = %c\n", aPiece);
@@ -434,8 +508,18 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void PrintMove (MOVE move)
+/* must check all the math used for general case, such as 5x5 and on */
 {
-    
+    if(move < boardSize)
+		printf("Place a piece at %i.", move);
+	else if (move < boardSize + colcount)
+		printf("Push on %i and discard %i", (move - boardSize), (move - colcount));
+	else if (move < boardSize + colcount + rowcount)
+		printf("Push on %i and discard %i", (move - boardSize - colcount + 1)*colcount - 1, (move - boardSize - colcount)*colcount);
+	else if (move < boardSize + colcount + rowcount + colcount)
+		printf("Push on %i and discard %i", boardSize - (move - boardSize - colcount - rowcount + 1), colcount - (move - boardSize - colcount - rowcount) - 1);
+	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+		printf("Push on %i and discard %i", boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
 }
 
 
@@ -587,29 +671,28 @@ POSITION GetInitialPosition ()
 {
   int i;
   char *boardArray;
-  int turn;
+  char piece, turn;
   
   boardArray = (char*) malloc(boardSize*sizeof(char));
 
   getchar(); // for the enter after picking option 1 on the debug menu
   
-  for(i = 0; i < boardSize; i++) {
-    printf("Input the character at cell %i: ", i);    
-	boardArray[i] = (char) getchar();
-	getchar();
+  for(i = 0; i < boardSize; i++) {       
+	do{
+		printf("Input the character at cell %i: ", i);
+		piece = (char) getchar();
+		getchar();
+	}while((piece != '+') && (piece != 'X') && (piece != 'O'));
+	boardArray[i] = piece;
   }
   
-  /*for(i=0 ; i<boardSize ; i++){
-	if((i>=0 && i<6) || (i>15))
-		boardArray[i] = '-';
-	else boardArray[i] = 'X';
-  }*/
-  /* This block above was just to set the board to an arbitrary position and see if it hashed right. Basically
-	I was making sure it was the hash that's not working, not the input loop above this commented out block. */
   
-  
-  printf("Input whose turn it is (1 for player A, 2 for player B): ");
-  gWhosTurn = 1; /* need to change to this to getchar and then atoi*/
+  do{
+		printf("Input whose turn it is (1 for player A, 2 for player B): ");
+		turn = (char) getchar();
+		getchar();
+	}while((turn != '1') && (turn != '2')); 
+  gWhosTurn = atoi(&turn);
 
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
@@ -726,6 +809,10 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.16  2006/03/14 12:38:29  albertchae
+// Minor edit. Changed help strings to reflect 4x4. Added some ideas for
+// generate move.
+//
 // Revision 1.15  2006/03/14 12:06:05  albertchae
 // Changed game to 4x4 variant. Added test case to Primitive().
 //
