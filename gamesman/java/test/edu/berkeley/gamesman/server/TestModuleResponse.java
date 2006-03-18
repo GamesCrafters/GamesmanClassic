@@ -3,6 +3,7 @@ package edu.berkeley.gamesman.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -25,6 +26,7 @@ public class TestModuleResponse implements IModuleResponse
 	public TestModuleResponse(int outputSize)
 	{
 		this.out = new ByteArrayOutputStream(outputSize);
+		headers = new Hashtable();
 	}
 
 	/**
