@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.3 2006-03-12 03:56:42 vert84 Exp $
+// $Id: mquickchess.c,v 1.4 2006-03-18 04:16:10 runner139 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-
 
 /*************************************************************************
 **
@@ -89,8 +88,31 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 #define rows 6
-#define cols 5
+#define cols 5 
+#define WHITE_TURN 1 
+#define BLACK_TURN 0 
+#define BLACK_PAWN 'p'
+#define BLACK_BISHOP 'b'
+#define BLACK_ROOK 'r'
+#define BLACK_KNIGHT 'n'
+#define BLACK_QUEEN 'q'
+#define BLACK_KING 'k'
+#define WHITE_PAWN 'P'
+#define WHITE_BISHOP 'B'
+#define WHITE_ROOK 'R'
+#define WHITE_KNIGHT 'N'
+#define WHITE_KING 'K'
+#define WHITE_QUEEN 'Q'
 
+// Constants specifying directions to "look" on the board 
+#define UP 0 
+#define DOWN 1 
+#define LEFT 2 
+#define RIGHT 3 
+#define UL 4 
+#define UR 5 
+#define DL 6 
+#define DR 7 
 /*************************************************************************
 **
 ** Global Variables
@@ -217,7 +239,17 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-    return undecided;
+     if (inCheck(position) && !kingCanMove(position)) { 
+    // The king is checked and can't move 
+    return (gStandardGame) ? lose : win; 
+  } 
+  else if (!inCheck(position) && !kingCanMove(position)) { 
+    // King is not in check and can't move - Stalemate 
+    return tie; 
+  } else { 
+    return undecided; 
+  } 
+
 }
 
 
@@ -552,26 +584,279 @@ void setupPieces(char (* Board)[6][5]) {
   }
    /* setup pawns */
   for(y = 0; y < cols; y++ ){
-    (* Board)[1][y] = 'P';
-    (* Board)[4][y] = 'p';
+    (* Board)[1][y] = WHITE_PAWN;
+    (* Board)[4][y] = BLACK_PAWN;
   }
   /* setup black major pieces */
-  (* Board)[5][0] = 'r';
-  (* Board)[5][1] = 'b';
-  (* Board)[5][2] = 'k';
-  (* Board)[5][3] = 'q';
-  (* Board)[5][4] = 'n';
+  (* Board)[5][0] = BLACK_ROOK;
+  (* Board)[5][1] = BLACK_BISHOP;
+  (* Board)[5][2] = BLACK_KING;
+  (* Board)[5][3] = BLACK_QUEEN;
+  (* Board)[5][4] = BLACK_KNIGHT;
 
   /* setup white major pieces */
-  (* Board)[0][0] = 'R';
-  (* Board)[0][1] = 'B';
-  (* Board)[0][2] = 'K';
-  (* Board)[0][3] = 'Q';
-  (* Board)[0][4] = 'N';
+  (* Board)[0][0] = WHITE_ROOK;
+  (* Board)[0][1] = WHITE_BISHOP;
+  (* Board)[0][2] = WHITE_KING;
+  (* Board)[0][3] = WHITE_QUEEN;
+  (* Board)[0][4] = WHITE_KNIGHT;
 }
 
+BOOLEAN kingCanMove(POSITION position) {
+  
+return FALSE;
+}
+BOOLEAN inCheck(POSITION N, int currentPlayer) { 
+  int i, j; 
+  char piece;   
+  char bA[6][5] = unhashBoard(N);
+  for (i = 0; i < rows; i++) {
+    for(j = 0; j < cols; j++) {
+      piece = bA[i][j]; 
+	switch (piece) { 
+	case WHITE_QUEEN: case BLACK_QUEEN:  
+	  if (queenCheck(&bA, i, j, currentPlayer,piece, WHITE_QUEEN , BLACK_QUEEN) == TRUE) { 
+	    return TRUE; 
+	  } else { 
+	    break;    				 
+	  } 
+	case WHITE_BISHOP: case BLACK_BISHOP: 
+	  if (bishopCheck(&bA, i,j, currentPlayer, piece, WHITE_BISHOP , BLACK_BISHOP) == TRUE) { 
+	    return TRUE; 
+	  } else { 
+	    break; 
+	  } 
+	case WHITE_ROOK: case BLACK_ROOK:
+	  if (rookCheck(&bA, i, j, currentPlayer, piece, WHITE_ROOK , BLACK_ROOK) == TRUE) { 
+	    return TRUE; 
+	  } else { 
+	    break; 
+	  } 
+	case WHITE_KNIGHT: case BLACK_KNIGHT:
+	  if (knightCheck(&bA, i, j, currentPlayer, piece, WHITE_KNIGHT , BLACK_KNIGHT) == TRUE) { 
+	    return TRUE; 
+	  } else { 
+	    break; 
+	  } 
+	case WHITE_PAWN: case BLACK_PAWN:
+	   if (pawnCheck(&bA, i,j, currentPlayer, piece, WHITE_PAWN , BLACK_PAWN) == TRUE) { 
+	    return TRUE; 
+	  } else { 
+	    break; 
+	  } 
+	default:  
+	  break; 
+	} 
+      } 
+    } 
+    return FALSE; 
+} 
 
+BOOLEAN isKingCapture(char (* Board)[6][5], int row, int col, int currentPlayer, 
+		      char currentPiece, char whitePiece, char blackPiece) {
+  if(currentPlayer == WHITE_TURN) {
+      if(currentPiece == blackPiece) {
+	if((* Board)[row][col] == WHITE_KING) {
+	  return TRUE;
+	} else if((* Board)[row][col] != ' ') {
+	  break;
+	}
+      }
+    } else {
+      if(currentPiece == whitePiece) {
+	if((* Board)[row][col] == BLACK_KING) {
+	  return TRUE;
+	} else if((* Board)[row][col] != ' ') {
+	  break;
+	}
+      }
+    }
+  return FALSE;
+}
+BOOLEAN queenCheck(char (* Board)[6][5], int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
+return (bishopCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece) || rookCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece));
+}
+
+BOOLEAN bishopCheck(char (* Board)[6][5], int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
+  int rowTemp, colTemp;
+   
+  rowTemp = row;
+  colTemp = col;
+  // up and left
+  while(row-1 >= 0 && col-1 >= 0) {
+    row--;
+    col--;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  row = rowTemp;
+  col = colTemp; 
+  // up and right
+  while(row-1 >= 0 && col+1 < cols) {
+    row--;
+    col++;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  row = rowTemp;
+  col = colTemp;
+  // down and left
+  while(row+1 < rows && col-1 >= 0) {
+    row++;
+    col--;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+      return TRUE;
+    }
+  }
+  row = rowTemp;
+  col = colTemp;
+  // down and right
+  while(row+1 < rows && col+1 < cols) {
+    row++;
+    col++;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+
+  }
+  return FALSE;
+}
+
+BOOLEAN knightCheck(char (* Board)[6][5], int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
+  int rowTemp, colTemp;
+
+  rowTemp = row;
+  colTemp = col;
+
+  // up two left one
+  if(row-2 >= 0 && col-1 >= 0) {
+     if(isKingCapture(Board, row-2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // up two right one
+  if(row-2 >= 0 && col+1 < cols) {
+     if(isKingCapture(Board, row-2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // right two up one
+  if(col+2 < cols && row-1 >= 0) {
+     if(isKingCapture(Board, row-1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // right two down one
+  if(col+2 < cols && row+1 < rows) {
+     if(isKingCapture(Board, row+1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // down two left one
+  if(row+2 < rows && col-1 >= 0) {
+     if(isKingCapture(Board, row+2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // down two right one
+  if(row+2 < rows && col+1 < cols) {
+     if(isKingCapture(Board, row+2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // left two up one
+  if(col-2 >= 0 && row-1 >= 0) {
+     if(isKingCapture(Board, row-1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  // left two down one
+  while(col-2 >= 0 && row+1 < rows) {
+     if(isKingCapture(Board, row+1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+BOOLEAN rookCheck(char (* Board)[6][5], int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
+  int rowTemp, colTemp;
+
+  rowTemp = row;
+  colTemp = col;
+  // up 
+  while(row-1 >= 0) {
+    row--;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  row = rowTemp; 
+  // right
+  while(col+1 < cols) {
+    col++;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+      return TRUE;
+    }
+  }
+  col = colTemp;
+  // left
+  while(col-1 >= 0) {
+    col--;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+      return TRUE;
+    }
+  }
+
+  // down 
+  while(row+1 < rows) {
+    row++;
+    if(isKingCapture(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+      return TRUE;
+    }
+  }
+}
+BOOLEAN pawnCheck(char (* Board)[6][5], int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
+  if(currentPlayer == WHITE_TURN) { 
+    if(col-1 >= 0) {
+      if(isKingCapture(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+	return TRUE;
+      }
+    }
+    if(col+1 < cols) {
+      if(isKingCapture(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+	return TRUE;
+      }
+    }
+  } else {
+    if(col-1 >= 0) {
+      if(isKingCapture(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+	return TRUE;
+      }
+    }
+    if(col+1 < cols) {
+      if(isKingCapture(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+	return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+BOOLEAN kingCanMove(POSITION position) {
+  
+  MOVELIST *moves = NULL;
+  generateKingMoves(position, &moves);
+  if(moves == NULL) 
+    return FALSE;
+  else return TRUE;
+}
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2006/03/12 03:56:42  vert84
+// Updated description fields.
+//
 // Revision 1.2  2006/03/05 03:32:12  yanpeichen
 // Yanpei Chen changing mquickchess.c
 //
