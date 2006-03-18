@@ -40,21 +40,34 @@ public final class Macros {
 	public static final String REG_MOD_ACCEPT_CHALLENGE = "RegModAcceptChallenge";
 	public static final String REG_MOD_UNREGISTER_USER = "RegModUnRegisterUser";
 	
-	//Exception Code
+	/**
+	 * Exception Macros
+	 */
 	public static final int UNKNOWN_REQUEST_TYPE_CODE 	= 1;
-	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN_REQUEST_TYPE";
-	//redirect IO Exception
+	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN REQUEST TYPE";
+	
 	public static final int IO_EXCEPTION_CODE 			= 2;
 	public static final String IO_EXCEPTION_TYPE_MSG 	= "IO EXCEPTION";
 	
 	public static final int INTERRUPT_EXCEPTION_CODE	= 3;
 	public static final String INTERRUPT_EXCEPTION_MSG  = "INTERRUPT EXCEPTION";
 	
-	//property names
+	public static final int HASHTABLE_COLLISION_CODE	= 4;
+	public static final String HASHTABLE_COLLISION_MSG  = "HASHTABLE COLLISION";
+	
+	
+	
+	
+	
+	/**
+	 * RegistrationModule.PropertyBucket Macros
+	 */
 	public static final String PROPERTY_HOST 				= "PROPERTY_HOST";
 	public static final String PROPERTY_VARIATION 			= "PROPERTY_VARIATION";
 	public static final String PROPERTY_INTERESTED_USERS 	= "PROPERTY_INTERESTED_USERS";
 	public static final String PROPERTY_GAME_ID 			= "PROPERTY_GAME_ID";
+	
+	
 	
 	public static final String GAME_SESSIONS_INDEX 	= "GAME_SESSIONS_INDEX";
 	
@@ -65,4 +78,9 @@ public final class Macros {
 	public static final Integer INVALID_KEY 		= new Integer(3);
 	public static final Integer INVALID_VARIANT 	= new Integer(4);
 	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
+	
+	/**
+	 * Debugging Flags
+	 */
+	public static final boolean REG_MOD_DEBUGGING = true;
 }

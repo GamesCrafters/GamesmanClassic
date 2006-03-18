@@ -10,6 +10,7 @@ import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
+import edu.berkeley.gamesman.server.ModuleInitializationException;
 
 /**
  * 
@@ -30,7 +31,17 @@ public class RegistrationModule implements IModule
 		openGames = new Hashtable();
 		gameHosts = new Hashtable();
 	}
+	
+	/**
+	 * 
+	 */
+	public void initialize(String[] configArgs) throws ModuleInitializationException {
+		
+	}
 
+	/**
+	 * 
+	 */
 	public boolean typeSupported(String requestTypeName)
 	{
 		// TODO Auto-generated method stub
@@ -125,27 +136,27 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * Register the current user with the gameName he/she request
+	 * Register the current user with the gameName he/she requests
 	 * Respond with the status of this request
 	 * 		If sucessful return a secretKey that will be used for the duration of the session
 	 * 		else if the request is denied return the corresponding error code
 	 * @param req
 	 * @param res
+	 * @return
 	 */
-	void registerUser(IModuleRequest req, IModuleResponse res) {
+	void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
-		int errorCode;
+		int checkStatus;
 		
 		//get userName and gameName from the request object
 		userName = req.getHeader(Macros.NAME);
 		gameName = req.getHeader(Macros.GAME);
 		
-		if ((errorCode = isValidName(userName)) == Macros.VALID) {
+		//Name check successful
+		if ((checkStatus = checkName(userName)) == Macros.VALID) {
 			addUser(userName, gameName);
 			status = Macros.ACK;
 			secretKey = generateKeyString(userName);
-			
-			//set response headers
 			res.setHeader(Macros.SECRET_KEY, secretKey);
 			secretKeys.put(userName, secretKey);
 			res.setHeader(Macros.STATUS, status);
@@ -153,7 +164,7 @@ public class RegistrationModule implements IModule
 		else {
 			status = Macros.DENY;
 			res.setHeader(Macros.STATUS, status);
-			res.setHeader(Macros.ERROR_CODE, errorCodeToString(errorCode));
+			res.setHeader(Macros.ERROR_CODE, errorCodeToString(checkStatus));
 		}
 	}
 	
@@ -202,7 +213,7 @@ public class RegistrationModule implements IModule
 	 * name
 	 * @param req
 	 * @param res
-	 * @modifies res
+	 * @return
 	 */
 	private void getOpenGames(IModuleRequest req, IModuleResponse res) {
 		String gameName, host, variationNumber; 
@@ -490,7 +501,7 @@ public class RegistrationModule implements IModule
 	 * @param name
 	 * @return
 	 */
-	private int isValidName(String name) {
+	private int checkName(String name) {
 		return 0;
 	}
 	
@@ -522,9 +533,29 @@ public class RegistrationModule implements IModule
 	 * Add a mapping with the given user and game
 	 * @param name
 	 * @param game
+	 * @return
+	 * @modifies usersOnline
 	 */
-	private void addUser(String userName, String gameName) {
-		usersOnline.put(userName, gameName);
+	private void addUser(String userName, String gameName) throws ModuleException {
+		//usersOnline.put(userName, gameName);
+		/**
+		 * Modifying so that userOnline is now a Hashtable mapping userNames 
+		 * to PropertyBucket objects
+		 */
+		PropertyBucket propBucket = new PropertyBucket();
+		
+		/**
+		 * Check that we are not trying to add a user that's already in the table
+		 * This should have already been checked implicitly by the callee; this is only
+		 * for debugging.
+		 */
+		if (Macros.REG_MOD_DEBUGGING && (usersOnline.get(userName) != null)) 
+			throw new ModuleException(Macros.HASHTABLE_COLLISION_CODE, Macros.HASHTABLE_COLLISION_MSG);
+		
+		//store the game name
+		propBucket.setProperty(Macros.GAME, gameName);
+		//map user name to corresponding property bucket
+		usersOnline.put(userName, propBucket);	
 	}
 	
 	/**
@@ -555,6 +586,7 @@ public class RegistrationModule implements IModule
 		return (new Integer(errorCode)).toString();
 	}
 	
+	
 	//fields
 	private Hashtable usersOnline, secretKeys, openGames, gameHosts;
 	private static int gameID;
@@ -571,7 +603,7 @@ public class RegistrationModule implements IModule
 		 *
 		 */
 		public PropertyBucket() {
-			
+			properties = new Hashtable();
 		}
 		
 		/**
@@ -592,6 +624,6 @@ public class RegistrationModule implements IModule
 			return properties.get(propertyName);
 		}
 		
-		Hashtable properties;
+		private Hashtable properties;
 	}
 }
