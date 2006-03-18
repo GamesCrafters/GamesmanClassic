@@ -4,7 +4,7 @@
 package edu.berkeley.gamesman.server.registration;
 
 /**
- * @author vperez
+ * @author Victor Perez
  *	Commonly used header types and values
  */
 public final class Macros {
@@ -13,7 +13,8 @@ public final class Macros {
 	public static final String ACK = "ACK";
 	public static final String DENY = "DENY";
 	public static final String ONLINE_USERS = "ONLINE_USERS";
-	public static final int VALID = 0;
+	
+	
 	
 	//Headers
 	public static final String TYPE = "TYPE";
@@ -72,12 +73,16 @@ public final class Macros {
 	public static final String GAME_SESSIONS_INDEX 	= "GAME_SESSIONS_INDEX";
 	
 	//Error Codes
+	
+	//public static final int VALID = 0;
 	public static final String ERROR_CODE = "ERRORCODE";
-	//public static final String GENERIC_ERROR_CODE = "GENERIC_ERROR_CODE";
+	
 	public static final Integer INVALID_USER_NAME 	= new Integer(2);
 	public static final Integer INVALID_KEY 		= new Integer(3);
 	public static final Integer INVALID_VARIANT 	= new Integer(4);
 	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
+	public static final Integer VALID_CODE			= new Integer(0);
+	public static final Integer USER_ALREADY_EXISTS = new Integer(5);
 	
 	/**
 	 * Debugging Flags

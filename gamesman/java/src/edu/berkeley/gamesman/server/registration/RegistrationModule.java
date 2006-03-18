@@ -14,12 +14,16 @@ import edu.berkeley.gamesman.server.ModuleInitializationException;
 
 /**
  * 
- * @author vperez
+ * @author Victor Perez
  *
  */
 public class RegistrationModule implements IModule
 {
 
+	/**
+	 * 
+	 *
+	 */
 	public RegistrationModule()
 	{
 		super();
@@ -146,14 +150,14 @@ public class RegistrationModule implements IModule
 	 */
 	void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
-		int checkStatus;
+		Integer checkStatus;
 		
 		//get userName and gameName from the request object
 		userName = req.getHeader(Macros.NAME);
 		gameName = req.getHeader(Macros.GAME);
 		
 		//Name check successful
-		if ((checkStatus = checkName(userName)) == Macros.VALID) {
+		if ((checkStatus = checkName(userName)).equals(Macros.VALID_CODE)) {
 			addUser(userName, gameName);
 			status = Macros.ACK;
 			secretKey = generateKeyString(userName);
@@ -164,7 +168,7 @@ public class RegistrationModule implements IModule
 		else {
 			status = Macros.DENY;
 			res.setHeader(Macros.STATUS, status);
-			res.setHeader(Macros.ERROR_CODE, errorCodeToString(checkStatus));
+			res.setHeader(Macros.ERROR_CODE, checkStatus.toString());
 		}
 	}
 	
@@ -501,8 +505,14 @@ public class RegistrationModule implements IModule
 	 * @param name
 	 * @return
 	 */
-	private int checkName(String name) {
-		return 0;
+	private Integer checkName(String name) {
+		/**
+		 * check that name is not being duplicated
+		 */
+		if (isUserOnline(name)) return Macros.USER_ALREADY_EXISTS;
+		
+		
+		else return Macros.VALID_CODE;
 	}
 	
 	/**
@@ -520,7 +530,7 @@ public class RegistrationModule implements IModule
 	 * @param secretKey
 	 * @return
 	 */
-	private boolean isValidUserKey(String userName, String secretKey) {
+	protected boolean isValidUserKey(String userName, String secretKey) {
 		String key;
 		//we must verify that the user even exists
 		//the key can't possibly be valid if the user doesn't exist
@@ -549,13 +559,21 @@ public class RegistrationModule implements IModule
 		 * This should have already been checked implicitly by the callee; this is only
 		 * for debugging.
 		 */
-		if (Macros.REG_MOD_DEBUGGING && (usersOnline.get(userName) != null)) 
+		if (Macros.REG_MOD_DEBUGGING && isUserOnline(userName)) 
 			throw new ModuleException(Macros.HASHTABLE_COLLISION_CODE, Macros.HASHTABLE_COLLISION_MSG);
 		
 		//store the game name
 		propBucket.setProperty(Macros.GAME, gameName);
 		//map user name to corresponding property bucket
 		usersOnline.put(userName, propBucket);	
+	}
+	
+	/**
+	 * 
+	 * @param userName
+	 */
+	protected boolean isUserOnline(String userName) {
+		return (usersOnline.get(userName) != null);
 	}
 	
 	/**
