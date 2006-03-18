@@ -15,7 +15,7 @@
 ## UPDATE HIST:
 ##
 ## 05-15-95 1.0    : Final release code for M.S.
-##
+## 03-17-06 1.6    : updated for gamesman3 gui
 #############################################################################
 
 #############################################################################
@@ -37,15 +37,16 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmsim[info sharedlibextension]" Gamesman
 
-### Now source our Game-specific code.
-
-source "$kRootDir/../tcl/msim.tcl"
-
 ### Now source the rest of the game-playing interface code.
 
-source "$kRootDir/../tcl/gamesman.tcl"
+source "$kRootDir/../tcl/gamesman3.tcl"
 
-## an extra file, containing many gamesman.tcl functions and 
-## some functions rewritten specifically for mctoi.tcl
+### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/gamesmanmsim.tcl"
+source "$kRootDir/../tcl/mSim.tcl"
+
+main $kRootDir
+
+
+
+

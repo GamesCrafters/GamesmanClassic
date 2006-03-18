@@ -10,479 +10,300 @@
 ##
 ## DATE:         05-13-02
 ##
-## UPDATE HIST:
+## UPDATE HIST:  03-17-06 David Chan
+##                 - converted to gamesman3 gui, code from mttt3.tcl adopted
+##                   for this game
 ##
 #############################################################################
 
-#############################################################################
-##
-## GS_InitGameSpecific
-##
-## This initializes the game-specific variables.
-##
-#############################################################################
 
+# global variables
+set g3Array [list 1 3 9 27 81 243 729 2187 6561 19683 59049 177147 531441 1594323 4782969]
+
+set edges 15
+set bgColor black
+set bgColor2  grey
+set lineColor cyan
+set p1Color blue
+set p2Color red
+set vertices 6
+
+#############################################################################
+proc unhash {pos array} {
+    global edges
+    global g3Array
+    upvar $array a
+
+    for { set i [expr $edges - 1] } { $i >= 0 } { set i [expr $i - 1] } {
+	if { $pos >= [expr 2 * [lindex $g3Array $i]] } {
+	   set a($i) x
+	    set pos [expr $pos - [expr 2 * [lindex $g3Array $i]]]
+	} elseif { $pos >= [expr 1 * [lindex $g3Array $i]] } {
+	    set a($i) o
+	    set pos [expr $pos - [expr 1 * [lindex $g3Array $i]]]
+	} elseif { $pos >= [expr 0 * [lindex $g3Array $i]] } {
+	    set a($i) -
+	    set pos [expr $pos - [expr 0 * [lindex $g3Array $i]]]
+	}
+    }
+	    
+}
+
+#############################################################################
 proc GS_InitGameSpecific {} {
     
-    global grandwidth
-    global altcolor
-    global p1Color
-    global p2Color
-    global gHumanGoesFirst
-    
-    set grandwidth 500
-    
-    
     ### Set the name of the game
-
+    
     global kGameName
     set kGameName "Sim"
+    
+    ### Set the initial position of the board (default 0)
 
-    ### Set the size of the slot in the window
-    ### This should be a multiple of 80 (Why's that?)
-    
-    global gSlotSize
-    set gSlotSize $grandwidth
-    
-    ### Set the strings to be used in the Edit Rules
-    
-    global kStandardString kMisereString
-    set kStandardString "Completing a triangle loses"
-    set kMisereString "Completing a triangle wins"
-    
-    ### Set the strings to tell the user how to move and what the goal is.
-
-    global kToMove kToWinStandard kToWinMisere
-    set kToMove "Players take turns connecting 2 of the 6 corners with a line. A line cannot be drawn tiwce and lines of the same color cannot form a triangle if the end points are part of the outer corners. Click on the stick you want to color."
-    set kToWinStandard  "Avoid making a triangle of your color."
-    set kToWinMisere  "Complete a triangle before your opponent."
-    
-    ### Set the size of the board
-    
-    global gSlotsX gSlotsY
-    set gSlotsX 1
-    set gSlotsY 1
-    
-    ### Set the initial position of the board in our representation
-    
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
-    
-    ### Set what the cursors will look like. These can be the same because
-    ### they will be color-coded.
-    
-    global xbmLeft xbmRight macLeft macRight kRootDir
-    set xbmLeft  "$kRootDir/../bitmaps/circle.xbm"
-    set xbmRight "$kRootDir/../bitmaps/circle.xbm"
-    set macLeft  dot
-    set macRight dot
 
-    ### Authors Names and Photo (by AP)
+    ### Set the strings to be used in the Edit Rules
+
+    global kStandardString kMisereString
+    set kStandardString "First player to complete a triangle  LOSES"
+    set kMisereString "First player to complete a triangle wins"
+
+    ### Set the strings to tell the user how to move and what the goal is.
+    ### If you have more options, you will need to edit this section
+
+    global gMisereGame
+    if {!$gMisereGame} {
+	SetToWinString "To Win: Avoid making a triangle of your color."
+    } else {
+	SetToWinString "To Win: Complete a triangle of your color before your opponent."
+    }
+    SetToMoveString "To Move: Players take turns connecting 2 of the 6 corners with a line. A line cannot be drawn twice and lines of the same color cannot form a triangle if the end points are part of the outer corners. Click on the stick you want to color."
+	    
+    # Authors Info. Change if desired
+    global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Dan Garcia, Sunil Ramesh, Peter Trethewey"
-    set kTclAuthors "Peter Trethewey"
-    set kGifAuthors "$kRootDir/../bitmaps/sim100.gif"
-    
-    ### Set the procedures that will draw the pieces
-    ### (I prefer to do this myself)
-    
-    global kLeftDrawProc kRightDrawProc kBothDrawProc
-    set kLeftDrawProc  empty
-    set kRightDrawProc empty
-    set kBothDrawProc  empty
-    
-    ### What type of interaction will it be, sir?
-    
-    global kInteractionType
-    set kInteractionType Custom
-    
-    ### Will you be needing moves to be on all the time, sir?
-    
-    global kMovesOnAllTheTime
-    set kMovesOnAllTheTime 0
-    
-    ### Do you support editing of the initial position, sir?
-    
-    global kEditInitialPosition
-    set kEditInitialPosition 0
-    
-    ### What are the default game-specific options, sir?
-    ## none at the moment
-    
+    set kCAuthors "Dan Garcia & Sunil Ramesh, Peter Trethewey"
+    set kTclAuthors "Peter Trethewey, David Chan"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
+
+}
+
+#############################################################################
+proc GS_NameOfPieces {} {
+
+    return [list x o]
+
+}
+
+#############################################################################
+proc GS_ColorOfPlayers {} {
+
+    return [list blue red]
     
 }
 
 #############################################################################
-##
-## GS_AddGameSpecificGUIOptions
-##
-## This initializes the game-specific variables.
-##
-#############################################################################
+proc GS_SetupRulesFrame { rulesFrame } {
 
-proc GS_AddGameSpecificGUIOptions { w } {
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    # List of all rules, in some order
+    set ruleset [list $standardRule]
+
+    # Declare and initialize rule globals
+    global gMisereGame
+    set gMisereGame 0
+
+    # List of all rule globals, in same order as rule list
+    set ruleSettingGlobalNames [list "gMisereGame"]
+
+    global kLabelFont
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
 }
 
 #############################################################################
-##
-## GS_AddGameSpecificGUIOnTheFlyOptions
-##
-## This creates new frame(s) for GUI options that can be changed on the fly.
-##
-#############################################################################
-
-proc GS_AddGameSpecificGUIOnTheFlyOptions { w } {
-    ### Do nothing because there are no game-specific on-the-fly options
+proc GS_GetOption { } {
+    # TODO: Needs to change with more variants
+    global gMisereGame
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+    return $option
 }
 
-
 #############################################################################
-##
-## GS_GetGameSpecificOptions
-##
-## If you don't have any cool game specific options, then just return 
-## an empty list. Otherwise, return a list of 1s or 0s...
-##
-#############################################################################
-
-proc GS_GetGameSpecificOptions {} {
+proc GS_SetOption { option } {
+    # TODO: Needs to change with more variants
+    global gMisereGame
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
 }
 
-set bgColor #A0F0F0
-set chanColor #FFFFFF
-set volColor  #E0E0E0
-set dullColor #F7F7F7
-set navyColor #000350
-set greenColor #006010
-set peachColor #FFE0D0
-set redColor #701010
-set p1Color blue
-set p2Color red
-set highlightColor #E0E000
-
-
 #############################################################################
-##
-## GS_EmbellishSlot
-##
-## This is where we embellish a slot if its necessary
-##
-#############################################################################
+proc GS_Initialize { c } {
 
-proc GS_EmbellishSlot { w slotX slotY slot } {
-    
+    # you may want to start by setting the size of the canvas; this line isn't cecessary
+    #$c configure -width 500 -height 500
     global bgColor
-    global chanColor
-    global volColor
-    global dullColor
-    global navyColor
-    global greenColor
-    global peachColor
-    global redColor
-    global p1Color
-    global p2Color
-    global highlightColor
-    global grandwidth
-    
-    
-    set base $w
-    
-    ## background
-    
-    $base create rect 0 0 [expr {$grandwidth}] [expr {$grandwidth}] -fill $navyColor
-    $base create oval 0 0 [expr {$grandwidth}] [expr {$grandwidth}] -fill $peachColor
-    
-    
-    ## six lineserother
+    global bgColor2
+    global lineColor
+    global edges
+    global vertices
+
+    global gFrameWidth gFrameHeight
+
+    $c create rect 0 0 $gFrameWidth $gFrameWidth -fill $bgColor -tag bkgnd
+    $c create oval 0 0 $gFrameWidth $gFrameWidth -fill $bgColor2 -tag bkgnd2
     
     set i 0
-    
-    
-    for {set x 0} {$x < 6} {incr x} {
-	for {set y [expr {$x+1}]} {$y < 6} {incr y} {
-	    set c 1.0
-	    set r 1.0
-	    set c [expr {$grandwidth/2.0}]
-	    set r [expr {($grandwidth*0.9)/2.0}]
+    for {set x 0} {$x < $vertices} {incr x} {
+	for {set y [expr {$x+1}]} {$y < $vertices} {incr y} {
+	    set p 1.0
+	    set q 1.0
+	    set p [expr {$gFrameWidth/2.0}]
+	    set q [expr {($gFrameWidth*0.9)/2.0}]
 	    set pi 3.14159265
-	    
-	    ## one line between each pair of points x, y that are x*pi/3 radians around
-	    
-	    
-	    ## set item [$base create line [expr {$c+$r*cos($x*$pi/3)}] [expr {$c+$r*sin($x*$pi/3)}] [expr {$c+$r*cos($y*$pi/3)}] [expr {$c+$r*sin($y*$pi/3)}]	-width 30 -fill $chanColor]
-	    
-	    ## $base addtag tagClickable-$i withtag $item
-	    ## $base addtag tagIndicator-$i withtag $item
-	    ## $base addtag tagIndicator withtag $item
-	    
-	    set item [$base create line [expr {$c+$r*cos($x*$pi/3)}] [expr {$c+$r*sin($x*$pi/3)}] [expr {$c+$r*cos($y*$pi/3)}] [expr {$c+$r*sin($y*$pi/3)}]	-width 15 -fill $volColor -capstyle round]
-	    
-	    $base addtag tagClickable-$i withtag $item
-	    $base addtag tagWasMove-$i withtag $item
-	    $base addtag tagMove-$i withtag $item
-	    $base addtag tagMove withtag $item
-	    
- 	    $base bind tagClickable-$i <Any-1> "takeClick $w %x %y $i"
- 	    $base bind tagClickable-$i <Any-Enter> "enter $w %x %y $i"
- 	    $base bind tagClickable-$i <ButtonRelease-1> "letUp $w %x %y $i"
- 	    $base bind tagClickable-$i <Any-Leave> "Leave $w %x %y $i"
-	    $base addtag tagIndicator-$i withtag $item
-	    $base addtag tagIndicator withtag $item
-	    
+
+	    $c create line \
+		[expr {$p+$q*cos($x*$pi/3)}] \
+		[expr {$p+$q*sin($x*$pi/3)}] \
+		[expr {$p+$q*cos($y*$pi/3)}] \
+		[expr {$p+$q*sin($y*$pi/3)}] \
+		-width 15 -fill $lineColor -capstyle round \
+		-tag [list base base$i]
+
+	    $c create line \
+		[expr {$p+$q*cos($x*$pi/3)}] \
+		[expr {$p+$q*sin($x*$pi/3)}] \
+		[expr {$p+$q*cos($y*$pi/3)}] \
+		[expr {$p+$q*sin($y*$pi/3)}] \
+		-width 15 -fill $lineColor -capstyle round \
+		-tag [list vm vm-$i]
+
+	    $c bind base$i <ButtonRelease-1> "ReturnFromHumanMove $i"
+	    $c bind vm-$i <ButtonRelease-1> "ReturnFromHumanMove $i"
 	    incr i
 	}
     }
-    
-    
-    
+} 
+
+#############################################################################
+proc GS_Deinitialize { c } {
+    $c delete all
 }
 
-
-
-
-
-###################################
-## My own event handling follows ##
-###################################
-
-
-set squareisdown false
-set buttonisdown false
-set numberOfPaths 0
-set paths(0) 0
-set burstingPlayer 1
-
-
-
-proc enter {w x y i} {
-    $w raise current
-}
-
-
-proc takeClick {w x y i} {
-    global highlightColor
-
-    SetColorByTag $w tagMove-$i $highlightColor
- 
-    set buttonisdown true
-}
-
-
-proc Leave {w x y i} {
-    global buttonisdown
-    global volColor
-    ## SetColorByTag $w tagMove-$i $volColor
-    set buttonisdown false
-}
-
-proc letUp {w x y i} {
-    global volColor
-    global buttonisdown
-    global available
-    
-    SetColorByTag $w tagMove-$i $volColor
-    
-    if { $available($i) } {
-	HandleMove $i
-    }
-    set buttonisdown true
-}
-
-
-
-
-set altcolor $p1Color
-for {set i 0} {$i < 16} {incr i} {
-    set available($i) true
-}
-
-
-proc forceMove {w theMove color} {
-    global altcolor
+#############################################################################
+proc GS_DrawPosition { c position } {
+    global edges
+    global lineColor
     global p1Color
     global p2Color
-    global available
-    
-    SetColorByTag $w tagMove-$theMove $altcolor
-    $w dtag tagMove-$theMove
-    set available($theMove) false
-    
-    if {$altcolor == $p1Color} {
-	set altcolor $p2Color
-    } else {
-	set altcolor $p1Color
+    global valueMoves
+
+    set a(0) (0)
+
+    unhash $position a
+
+    for {set i 0} {$i < $edges} {incr i} {
+	if {$a($i) == "x"} {
+	    $c itemconfigure base$i -fill $p1Color
+	} elseif {$a($i) == "o"} {
+	    $c itemconfigure base$i -fill $p2Color
+	} else {
+	    $c itemconfigure base$i -fill $lineColor
+	}
+	$c raise base$i
     }
 }
 
-
 #############################################################################
-##
-## GS_ConvertInteractionToMove
-##
-## This converts the user's interaction to a move to be passed to the C code.
-##
-#############################################################################
-
-proc GS_ConvertInteractionToMove { theMove } {
-    return $theMove
+proc GS_NewGame { c position } {
+    GS_DrawPosition $c $position
 }
 
 #############################################################################
-##
-## GS_ConvertMoveToInteraction
-##
-## This converts the user's interaction to a move to be passed to the C code.
-##
-#############################################################################
+proc GS_WhoseMove { position } {
+    # code copied from mttt3.tcl
+    global edges
+    set a(0) 0
 
-proc GS_ConvertMoveToInteraction { theMove } {
-    return $theMove
+    unhash $position a
+    set counter 0
+    for {set i 0} {$i < $edges} {incr i} {
+	if {$a($i) != "-"} {
+	    incr counter
+	}
+
+	set val o
+	if ( [expr $counter % 2] == 0 } {
+	    set val x
+	}
+
+	return $val
 }
 
 #############################################################################
-##
-## GS_PostProcessBoard
-##
-## This allows us to post-process the board in case we need something
-##
-#############################################################################
-
-proc GS_PostProcessBoard { w } {
-    
+proc GS_HandleMove { c oldPosition theMove newPosition } {
+    GS_DrawPosition $c $newPosition
 }
 
 #############################################################################
-##
-## GS_ConvertToAbsoluteMove
-##
-## Sometimes the move handed back by our C code is a relative move. We need
-## to convert this to an absolute move to indicate on the board.
-##
-#############################################################################
+proc GS_ShowMoves { c moveType position moveList } {
+    foreach item $moveList {
+	set move [lindex $item 0]
+	set value [lindex $item 1]
+	set color cyan
 
-proc GS_ConvertToAbsoluteMove { theMove } {
-    global gPosition
-
-    return $theMove
-}
-
-#############################################################################
-##
-## GS_HandleEnablesDisables
-##
-## At this point a move has been registered and we have to handle the 
-## enabling and disabling of slots
-##
-#############################################################################
-
-proc GS_HandleEnablesDisables { w theSlot theMove } {
-    global chanColor
-    global p1Color
-    global gSlotsX
-    global gSlotsY
-    
-    SetColorByTag $w tagMove-$theMove $chanColor
-    forceMove $w $theMove $p1Color
-}
-
-#############################################################################
-##
-## GS_EnableSlotEmbellishments
-##
-## If there are any slot embellishments that need to be enabled, now is the
-## time to do it.
-##
-#############################################################################
-
-proc GS_EnableSlotEmbellishments { w theSlot } {
-    
-}
-
-#############################################################################
-##
-## GS_DisbleSlotEmbellishments
-##
-## If there are any slot embellishments that need to be enabled, now is the
-## time to do it.
-##
-#############################################################################
-
-proc GS_DisableSlotEmbellishments { w theSlot } {
-    
-}
-
-#############################################################################
-##
-## GS_NewGame
-##
-## "New Game" has just been clicked. We need to reset the slots
-##
-#############################################################################
-
-proc GS_NewGame { w } {
-    
-    global bgColor
-    global chanColor
-    global volColor
-    global dullColor
-    global navyColor
-    global greenColor
-    global peachColor
-    global redColor
-    global p1Color
-    global p2Color
-    global altcolor
-    global available
-    global gHumanGoesFirst
-    
-    if {$gHumanGoesFirst} {
-	set altcolor $p1Color
-    } else {
-	set altcolor $p2Color
-    }
-    
-    SetColorByTag $w tagIndicator $chanColor
-    SetColorByTag $w tagMove $volColor
-    for {set i 0} {$i < 16} {incr i} {
-	$w addtag tagMove-$i withtag tagWasMove-$i
-	set available($i) true
-    }
-
-     for { set x 0 } { $x<15 } { incr x} {	
-	$w addtag tagClickable-$x withtag tagUnclickable-$x
-    }
-    
-}
-
-proc SetColorByTag { w tag color } {
-    foreach item [$w find withtag $tag] {
-	$w itemconfig $item -fill $color
+	$c raise vm-$move base
+	if {$moveType == "value"} {
+	    if {$value == "Tie"} {
+		set color yellow
+	    } elseif {$value == "Lose"} {
+		set color green
+	    } else {
+		set color red4
+	    }
+	}
+	$c itemconfigure vm-$move -fill $color
     }
 }
 
-proc SetColorAndOutlineByTag { w tag color } {
-    foreach item [$w find withtag $tag] {
-	$w itemconfig $item -fill $color
-	$w itemconfig $item -outline $color
-    }
+#############################################################################
+proc GS_HideMoves { c moveType position moveList} {
+    $c lower vm base
 }
 
-
-
-proc empty {w a b c d e} {
+#############################################################################
+proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+    GS_DrawPosition $c $positionAfterUndo
 }
 
+#############################################################################
+proc GS_GetGameSpecificOptions { } {
+}
 
+#############################################################################
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+}
 
-
-
-
-
-
-
-
-
-
-
-
+#############################################################################
+proc GS_UndoGameOver { c position } {
+}
