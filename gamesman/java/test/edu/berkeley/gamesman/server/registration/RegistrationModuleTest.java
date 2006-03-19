@@ -26,6 +26,7 @@ public class RegistrationModuleTest extends TestCase {
 	 * 
 	 * @param status
 	 * @param msgs
+	 * @return
 	 */
 	private void testStatus(int testNum, String description , String[] msgs, boolean[] status) {
 		String statusStr;
@@ -51,6 +52,7 @@ public class RegistrationModuleTest extends TestCase {
 	/**
 	 * Test Case 1: tests registerUser() method
 	 * @throws ModuleException
+	 * @return
 	 */
 	public void test01() throws ModuleException {
 		regMod = new RegistrationModule();
@@ -106,6 +108,7 @@ public class RegistrationModuleTest extends TestCase {
 	/**
 	 * Test Case 2: tests getUsersOnline method
 	 * @throws ModuleException
+	 * @return
 	 */
 	public void test02() throws ModuleException{
 		regMod = new RegistrationModule();
