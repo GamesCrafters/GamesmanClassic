@@ -83,6 +83,7 @@ public final class Macros {
 	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
 	public static final Integer VALID_CODE			= new Integer(0);
 	public static final Integer USER_ALREADY_EXISTS = new Integer(5);
+	public static final Integer USER_ALREADY_HAS_OPEN_GAME = new Integer(6); 
 	
 	/**
 	 * Debugging Flags
