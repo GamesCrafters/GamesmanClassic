@@ -104,7 +104,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
+	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
 		String userName, secretKey, gameID, gameName;
 		boolean validKey;
 		LinkedList interestedUsers;
@@ -151,7 +151,7 @@ public class RegistrationModule implements IModule
 	 * @modifies this
 	 * @return
 	 */
-	protected void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	private void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
 		Integer checkStatus;
 		
@@ -182,7 +182,7 @@ public class RegistrationModule implements IModule
 	 * @return
 	 * @modifies this
 	 */
-	protected void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	private void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String gameName, onlineUser, onlineGame;
 		OutputStream outStream;
 		Enumeration users;
@@ -273,7 +273,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	protected void registerNewGame(IModuleRequest req, IModuleResponse res) {
+	private void registerNewGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, variation, gameMessage, gameName;
 		boolean validKey, notHostingGame, validVariant;
 		Integer gameID;
@@ -334,7 +334,7 @@ public class RegistrationModule implements IModule
 	 * @modifies this
 	 */
 	//dont need hosting table make it a property
-	protected void unregisterGame(IModuleRequest req, IModuleResponse res) {
+	private void unregisterGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, gameName, gameHost;
 		boolean validKey, validGameHost;
 		Hashtable gameSessions;
@@ -370,7 +370,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	void unregisterUser(IModuleRequest req, IModuleResponse res) {
+	private void unregisterUser(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey;
 		int errorCode;
 		boolean validKey; 
@@ -390,7 +390,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	void acceptChallenge(IModuleRequest req, IModuleResponse res) {
+	private void acceptChallenge(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, luckyUser, gameName, gameId, challengeResponse;
 		Hashtable gameSessions; 
 		PropertyBucket propBucket; 
@@ -444,7 +444,7 @@ public class RegistrationModule implements IModule
 		}
 	}
 	
-	public void refreshHostStatus(IModuleRequest req, IModuleResponse res) {
+	private void refreshHostStatus(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, luckyUser, gameName, gameId;
 		Hashtable gameSessions; 
 		PropertyBucket propBucket; 
