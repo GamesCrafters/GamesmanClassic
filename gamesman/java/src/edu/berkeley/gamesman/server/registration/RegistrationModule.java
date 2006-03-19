@@ -51,10 +51,12 @@ public class RegistrationModule implements IModule
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
+	/**
+	 * 
+	 */
 	public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
-		// TODO Auto-generated method stub
 		String type;
 		IModuleRequest mreq = req;
 		IModuleResponse mres =  res;
@@ -149,7 +151,7 @@ public class RegistrationModule implements IModule
 	 * @modifies this
 	 * @return
 	 */
-	void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	protected void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
 		Integer checkStatus;
 		
@@ -174,15 +176,19 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Request the list of players online, filtering based on the requested game
 	 * @param req
 	 * @param res
+	 * @return
+	 * @modifies this
 	 */
-	void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	protected void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String gameName, onlineUser, onlineGame;
 		OutputStream outStream;
 		Enumeration users;
 		byte [] byteArr;
+		PropertyBucket propBucket;
+		
 		try {
 			outStream = res.getOutputStream();
 		}
@@ -190,16 +196,20 @@ public class RegistrationModule implements IModule
 			throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
 		}
 		
-		//Get Name of game being requested and write each user to the output stream
-		//delimit with a newline
+		/**
+		 * Get the name of game being requested and write each user to the output stream
+		 * delimited with a newline
+		 */
 		gameName = req.getHeader(Macros.GAME);
 		for (users = usersOnline.keys(); users.hasMoreElements();) {
 			onlineUser = (String)users.nextElement();
-			onlineGame = (String) ((PropertyBucket)usersOnline.get(onlineUser)).getProperty(Macros.GAME);
+			propBucket = (PropertyBucket) usersOnline.get(onlineUser);
+			onlineGame = (String)propBucket.getProperty(Macros.GAME);
+			
 			if (onlineGame.equals(gameName)) {
+				onlineUser += "\n";
+				byteArr = onlineUser.getBytes();
 				try {
-					onlineUser += "\n";
-					byteArr = onlineUser.getBytes();
 					outStream.write(byteArr);
 				}
 				catch (IOException ioe) {
@@ -207,8 +217,6 @@ public class RegistrationModule implements IModule
 				}
 			}
 		}
-		
-		
 	}
 	
 	/**
@@ -265,7 +273,7 @@ public class RegistrationModule implements IModule
 	 * @param req
 	 * @param res
 	 */
-	void registerNewGame(IModuleRequest req, IModuleResponse res) {
+	protected void registerNewGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, variation, gameMessage, gameName;
 		boolean validKey, notHostingGame, validVariant;
 		Integer gameID;
@@ -278,11 +286,6 @@ public class RegistrationModule implements IModule
 		variation = req.getHeader(Macros.VARIATION);
 		gameMessage = req.getHeader(Macros.GAME_MESSAGE);
 		
-<<<<<<< RegistrationModule.java
-		//TODO: note that userName may not exist and that would lead to a null game
-		//need to handle this
-		gameName = (String) ((PropertyBucket)usersOnline.get(userName)).getProperty(Macros.GAME);
-=======
 		//Validity Checks
 		propBucket = getUser(userName);
 		/*
@@ -290,26 +293,14 @@ public class RegistrationModule implements IModule
 		 */
 		if (propBucket == null) gameName = null;
 		else gameName = (String)propBucket.getProperty(Macros.GAME);
->>>>>>> 1.15
 		
 		//Verify secretKey/userName
 		validKey = isValidUserKey(userName, secretKey);
-<<<<<<< RegistrationModule.java
-		notHostingGame = notHosting(userName);
-		if (!notHostingGame) {
-			//the request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.USER_ALREADY_HAS_OPEN_GAME.toString());
-			return; 
-		}
-		validVariant = isValidVariation(gameName, variation);
-=======
 		//check that the user is not already hosting a game
 		notHostingGame = isNotHostingGame(userName);
 		//at the moment this condition is not actually being checked so validVariant is always true
 		//but we definitely need a way to verify
 		validVariant = isValidVariant(gameName, variation);
->>>>>>> 1.15
 		if (validKey && notHostingGame && validVariant) {
 			//client will now be hosting game
 			hostGame(userName, gameName);
@@ -318,6 +309,7 @@ public class RegistrationModule implements IModule
 			propBucket.setProperty(Macros.PROPERTY_HOST, userName);
 			propBucket.setProperty(Macros.PROPERTY_INTERESTED_USERS, new LinkedList());
 			propBucket.setProperty(Macros.PROPERTY_VARIATION, variation);
+			propBucket.setProperty(Macros.PROPERTY_GAME_MESSAGE, gameMessage);
 			
 			//generate gameID and add the new game session to online games
 			gameID = new Integer (generateGameID());
@@ -338,8 +330,11 @@ public class RegistrationModule implements IModule
 	 * Unregister the client's currently hosted game
 	 * @param req
 	 * @param res
+	 * @return
+	 * @modifies this
 	 */
-	void unregisterGame(IModuleRequest req, IModuleResponse res) {
+	//dont need hosting table make it a property
+	protected void unregisterGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, gameName, gameHost;
 		boolean validKey, validGameHost;
 		Hashtable gameSessions;
@@ -351,28 +346,20 @@ public class RegistrationModule implements IModule
 		userName = req.getHeader(Macros.NAME);
 		secretKey = req.getHeader(Macros.SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
-		if (!validKey) {
-			//request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
-			return; 
-		}
 		validGameHost = isValidGameHost(userName);
 		if (validKey && validGameHost) {
-			gameName = (String)gameHosts.get(userName);
+			//remove userName/game session records
+			propBucket = getUser(userName);
+			gameName = (String)propBucket.getProperty(Macros.GAME);
+			gameID = (Integer)propBucket.getProperty(Macros.PROPERTY_GAME_ID);
 			
-			//remove userName/game Session records
-			gameHosts.remove(userName);
-			gameSessions = (Hashtable)openGames.get(gameName);
-			for(gameSessionTable = gameSessions.keys(); gameSessionTable.hasMoreElements();) {
-				gameID = (Integer) gameSessionTable.nextElement();
-				propBucket = (PropertyBucket)gameSessions.get(gameID);
-				gameHost = (String) propBucket.getProperty(Macros.PROPERTY_HOST);
-				if (userName.equals(gameHost)) {
-					//remove game record
-					gameSessions.remove(gameID);
-				}
-			}
+			//remove all game host mappings
+			//TODO: do we want to remove the user from usersOnline or just from hosting
+			removeUser(userName);
+			removeGameSession(gameName,gameID);
+			stopHostingGame(userName);
+			
+			//request was successful
 			res.setHeader(Macros.STATUS, Macros.ACK);
 		}
 		else {
@@ -506,6 +493,20 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
+	 * Remove the current gameName session correponding to gameID
+	 * @param gameName
+	 * @param gameID
+	 * @return
+	 * @modifies this
+	 */
+	private void removeGameSession(String gameName, Integer gameID) {
+		Hashtable gameSessions;
+		gameSessions = getGameSessions(gameName);
+		gameSessions.remove(gameID);
+	}
+	
+	
+	/**
 	 * Search open games for all game sessions of type gameName
 	 * Note if a game sessions doesn't exit create a new structure to hold them
 	 * @param gameName
@@ -540,6 +541,16 @@ public class RegistrationModule implements IModule
 	 */
 	private void hostGame(String userName, String gameName) {
 		gameHosts.put(userName, gameName);
+	}
+	
+	/**
+	 * Remove the current game host mapping
+	 * @param userName
+	 * @return
+	 * @modifies this
+	 */
+	private void stopHostingGame(String userName) {
+		gameHosts.remove(userName);
 	}
 	
 	/**
@@ -648,6 +659,17 @@ public class RegistrationModule implements IModule
 		propBucket.setProperty(Macros.GAME, gameName);
 		//map user name to corresponding property bucket
 		usersOnline.put(userName, propBucket);	
+	}
+	
+	/**
+	 * Remove the userName, property bucket mapping from usersOnline
+	 * @param userName
+	 * @return 	the property bucket to which userName was mapped
+	 * 			or null if a mapping did not exist
+	 * @modifies this
+	 */
+	private PropertyBucket removeUser(String userName) {
+		return (PropertyBucket)usersOnline.remove(userName);
 	}
 	
 	/**
