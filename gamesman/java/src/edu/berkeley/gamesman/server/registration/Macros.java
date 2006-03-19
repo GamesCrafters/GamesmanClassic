@@ -63,10 +63,11 @@ public final class Macros {
 	/**
 	 * RegistrationModule.PropertyBucket Macros
 	 */
-	public static final String PROPERTY_HOST 				= "PROPERTY_HOST";
-	public static final String PROPERTY_VARIATION 			= "PROPERTY_VARIATION";
-	public static final String PROPERTY_INTERESTED_USERS 	= "PROPERTY_INTERESTED_USERS";
-	public static final String PROPERTY_GAME_ID 			= "PROPERTY_GAME_ID";
+	public static final String PROPERTY_HOST 				= "PROPERTY HOST";
+	public static final String PROPERTY_VARIATION 			= "PROPERTY VARIATION";
+	public static final String PROPERTY_INTERESTED_USERS 	= "PROPERTY INTERESTED USERS";
+	public static final String PROPERTY_GAME_ID 			= "PROPERTY GAME ID";
+	public static final String PROPERTY_GAME_MESSAGE		= "PROPERTY GAME MESSAGE";
 	
 	
 	
