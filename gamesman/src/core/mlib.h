@@ -8,8 +8,12 @@ typedef enum possibleBoardPieces {
 } BlankOX;
 
 void LibInitialize(int,int,int,BOOLEAN);
-BOOLEAN NinaRow(BlankOX*,BlankOX,int,int);
+BOOLEAN NinaRow(void*,void*,int,int);
+BOOLEAN statelessNinaRow(void*,void*,int);
 BOOLEAN AmountOfWhat();
+void printBoard(BlankOX*);
 void Test();
+
+BOOLEAN mymemcmp(void*,void*,int);
 
 #endif
