@@ -51,10 +51,12 @@ public class RegistrationModule implements IModule
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
+	/**
+	 * 
+	 */
 	public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
-		// TODO Auto-generated method stub
 		String type;
 		IModuleRequest mreq = req;
 		IModuleResponse mres =  res;
@@ -148,7 +150,7 @@ public class RegistrationModule implements IModule
 	 * @param res
 	 * @return
 	 */
-	void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	protected void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
 		Integer checkStatus;
 		
@@ -173,15 +175,19 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Request the list of players online, filtering based on the requested game
 	 * @param req
 	 * @param res
+	 * @return
+	 * @modifies this
 	 */
-	void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
+	protected void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String gameName, onlineUser, onlineGame;
 		OutputStream outStream;
 		Enumeration users;
 		byte [] byteArr;
+		PropertyBucket propBucket;
+		
 		try {
 			outStream = res.getOutputStream();
 		}
@@ -189,16 +195,20 @@ public class RegistrationModule implements IModule
 			throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
 		}
 		
-		//Get Name of game being requested and write each user to the output stream
-		//delimit with a newline
+		/**
+		 * Get the name of game being requested and write each user to the output stream
+		 * delimited with a newline
+		 */
 		gameName = req.getHeader(Macros.GAME);
 		for (users = usersOnline.keys(); users.hasMoreElements();) {
 			onlineUser = (String)users.nextElement();
-			onlineGame = (String)usersOnline.get(onlineUser);
+			propBucket = (PropertyBucket) usersOnline.get(onlineUser);
+			onlineGame = (String)propBucket.getProperty(Macros.GAME);
+			
 			if (onlineGame.equals(gameName)) {
+				onlineUser += "\n";
+				byteArr = onlineUser.getBytes();
 				try {
-					onlineUser += "\n";
-					byteArr = onlineUser.getBytes();
 					outStream.write(byteArr);
 				}
 				catch (IOException ioe) {
@@ -206,8 +216,6 @@ public class RegistrationModule implements IModule
 				}
 			}
 		}
-		
-		
 	}
 	
 	/**
