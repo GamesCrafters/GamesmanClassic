@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.18 2006-03-19 06:21:27 albertchae Exp $
+// $Id: mcambio.c,v 1.19 2006-03-19 20:39:15 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,12 +21,13 @@
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **              3/06/2006 - Updated GetInitialPosition().
-**	       3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
+**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
 **                                    Removed blanks from the game.
-**             3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
-**             3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
-**             3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
+**              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
+**              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
+**              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
 **                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
+**              3/19/2006 - Changed the Legend so it looks less cramped.
 **
 **************************************************************************/
 
@@ -519,14 +520,14 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   
   /***********************LINE 1**************************/
   printf("       ---------");
-  printf("            16 17 18 19\n");
+  printf("                16 17 18 19\n");
 
   /***********************LINE 2**************************/
   printf("       |");
   for (; i < colcount; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("       31 ( 0  1  2  3 ) 20\n");
+  printf("           31 (  0  1  2  3) 20\n");
 
   /***********************LINE 3**************************/
   printf("       ---------\n"); 
@@ -536,7 +537,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   for (; i < colcount*2; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("       30 ( 4  5  6  7 ) 21\n");
+  printf("   LEGEND: 30 (  4  5  6  7) 21\n");
 
   /***********************LINE 5**************************/
   printf("       ---------\n");                
@@ -547,7 +548,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   for (; i < colcount*3; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("LEGEND:29 ( 8  9  10 11) 22\n");
+  printf("           29 (  8  9 10 11) 22\n");
 
   /***********************LINE 7**************************/
   printf("       ---------\n"); 
@@ -557,16 +558,19 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   for (; i < colcount*4; i++) {
     printf("%c|", gBoard[i]);
   }
-  printf("       28 ( 12 13 14 15) 23\n");
+  printf("           28 ( 12 13 14 15) 23\n");
 
   /***********************LINE 9**************************/
   printf("       ---------");
-  printf("            27 26 25 24\n");
+  printf("                27 26 25 24\n");
   
+  /***********************LINE 11**************************/
+  printf("\n");
+
   /***********************LINE 10**************************/
-  printf("                      A's Symbol = %c\n", aPiece);
-  printf("                      B's Symbol = %c\n", bPiece);
-  printf("                         Neutral = %c\n", neutral);
+  printf("                           A's Symbol = %c\n", aPiece);
+  printf("                           B's Symbol = %c\n", bPiece);
+  printf("                              Neutral = %c\n\n", neutral);
 /*  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));*/
   
   free(gBoard);
@@ -947,6 +951,10 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2006/03/19 06:21:27  albertchae
+// DoMove() works somewhat. Able to play human v human except for a bug
+// with alternating player's move and challenger's move.
+//
 // Revision 1.17  2006/03/18 10:36:35  albertchae
 // Wrote the code for GenerateMoves and PrintMoves. Tried to keep
 // the logic general in case we have variant board sizes. Still needs some
