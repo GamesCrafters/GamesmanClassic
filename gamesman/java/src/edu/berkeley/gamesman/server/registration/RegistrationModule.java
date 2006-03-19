@@ -148,6 +148,7 @@ public class RegistrationModule implements IModule
 	 * 		else if the request is denied return the corresponding error code
 	 * @param req
 	 * @param res
+	 * @modifies this
 	 * @return
 	 */
 	protected void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
@@ -272,10 +273,8 @@ public class RegistrationModule implements IModule
 		String userName, secretKey, variation, gameMessage, gameName;
 		boolean validKey, notHostingGame, validVariant;
 		Integer gameID;
-		Hashtable gameSessions;
-		
 		//used to descibe the particular game session to be hosted
-		PropertyBucket propBucket = new PropertyBucket();
+		PropertyBucket propBucket;
 		
 		//extract request headers
 		userName = req.getHeader(Macros.NAME);
@@ -283,34 +282,35 @@ public class RegistrationModule implements IModule
 		variation = req.getHeader(Macros.VARIATION);
 		gameMessage = req.getHeader(Macros.GAME_MESSAGE);
 		
-		//TODO: note that userName may not exist and that would lead to a null game
-		//need to handle this
-		gameName = (String)usersOnline.get(userName);
+		//Validity Checks
+		propBucket = getUser(userName);
+		/*
+		 * Because userName may not exist propBucket may be null and we have to check for that
+		 */
+		if (propBucket == null) gameName = null;
+		else gameName = (String)propBucket.getProperty(Macros.GAME);
 		
 		//Verify secretKey/userName
 		validKey = isValidUserKey(userName, secretKey);
-		notHostingGame = notHosting(userName);
-		validVariant = isValidVariation(gameName, variation);
+		//check that the user is not already hosting a game
+		notHostingGame = isNotHostingGame(userName);
+		//at the moment this condition is not actually being checked so validVariant is always true
+		//but we definitely need a way to verify
+		validVariant = isValidVariant(gameName, variation);
 		if (validKey && notHostingGame && validVariant) {
 			//client will now be hosting game
-			gameHosts.put(userName, gameName);
+			hostGame(userName, gameName);
 			
 			//populate property bucket
 			propBucket.setProperty(Macros.PROPERTY_HOST, userName);
 			propBucket.setProperty(Macros.PROPERTY_INTERESTED_USERS, new LinkedList());
 			propBucket.setProperty(Macros.PROPERTY_VARIATION, variation);
+			
+			//generate gameID and add the new game session to online games
 			gameID = new Integer (generateGameID());
+			addGameSession(gameName, gameID, propBucket);
 			
-			gameSessions = (Hashtable)openGames.get(gameName);
-			//TODO: this check only applies if we don't initially populate openGames with
-			//all validGames
-			if (gameSessions == null) {
-				openGames.put(gameName, new Hashtable());
-				gameSessions = (Hashtable)openGames.get(gameName);
-			}
-			gameSessions.put(gameID, propBucket);
-			
-			//At this point the game has been registered successfully
+			//At this point the game has been registered successfully so respond with Macros.ACK
 			res.setHeader(Macros.STATUS, Macros.ACK);
 		}
 		else {
@@ -475,6 +475,57 @@ public class RegistrationModule implements IModule
 	
 	/**
 	 * 
+	 * @param gameName
+	 * @param gameID
+	 * @param propBucket
+	 * @return
+	 * @modifies this
+	 */
+	private void addGameSession(String gameName, Integer gameID, PropertyBucket propBucket) {
+		Hashtable gameSessions;
+		gameSessions = getGameSessions(gameName);
+		gameSessions.put(gameID, propBucket);
+	}
+	
+	/**
+	 * Search open games for all game sessions of type gameName
+	 * Note if a game sessions doesn't exit create a new structure to hold them
+	 * @param gameName
+	 * @return a gameSessions data structure with all games of type gameName
+	 */
+	private Hashtable getGameSessions(String gameName) {
+		Hashtable gameSessions;
+		gameSessions = (Hashtable)openGames.get(gameName);
+		if (gameSessions == null) {
+			addGameSessions(gameName);
+			gameSessions = (Hashtable) openGames.get(gameName);
+		}
+		return gameSessions;
+	}
+	
+	/**
+	 * Add a new data structure to store all game sessions of type gameName
+	 * @param gameName
+	 * @return
+	 * @modifies this
+	 */
+	private void addGameSessions(String gameName) {
+		openGames.put(gameName, new Hashtable());
+	}
+	
+	/**
+	 * Add a mapping to indicate that userName will be hosting gameName
+	 * @param userName
+	 * @param gameName
+	 * @return
+	 * @modifies this
+	 */
+	private void hostGame(String userName, String gameName) {
+		gameHosts.put(userName, gameName);
+	}
+	
+	/**
+	 * 
 	 * @param userName
 	 * @return
 	 */
@@ -483,10 +534,10 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
-	 * @return
+	 * Generate a unique game id for a game
+	 * @return gameID
 	 */
-	private int generateGameID() {
+	private static int generateGameID() {
 		//TODO: deal with overflow, possibly generate gameID another way
 		//It is very unlikely that billions of users will be playing at the same time,
 		//but we can't overlook this
@@ -499,7 +550,7 @@ public class RegistrationModule implements IModule
 	 * @param variation
 	 * @return
 	 */
-	private boolean isValidVariation(String gameName, String variation) {
+	private boolean isValidVariant(String gameName, String variation) {
 		//check that gameName is not null
 		//For now just return true, but we need to figure out how to tell
 		//whether or not the user has specified the correct variation
@@ -524,24 +575,27 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Return whether or not userName is already hosting a game
 	 * @param userName
-	 * @return
+	 * @return 	true if user not hosting a game
+	 * 			false otherwise
 	 */
-	private boolean notHosting(String userName) {
+	private boolean isNotHostingGame(String userName) {
 		return gameHosts.get(userName) == null;
 	}
 	
 	/**
-	 * 
+	 * Verify that secretKey corresponds to userName
 	 * @param userName
 	 * @param secretKey
 	 * @return
 	 */
 	protected boolean isValidUserKey(String userName, String secretKey) {
 		String key;
-		//we must verify that the user even exists
-		//the key can't possibly be valid if the user doesn't exist
+		/**
+		 * We must verify that the user even exists
+		 * The key can't possibly be valid if the user doesn't exist
+		 */
 		if (usersOnline.get(userName) == null) return false;
 		key = (String)secretKeys.get(userName);	
 		return key.equals(secretKey);
@@ -552,7 +606,7 @@ public class RegistrationModule implements IModule
 	 * @param name
 	 * @param game
 	 * @return
-	 * @modifies usersOnline
+	 * @modifies this
 	 */
 	private void addUser(String userName, String gameName) throws ModuleException {
 		//usersOnline.put(userName, gameName);
@@ -574,6 +628,16 @@ public class RegistrationModule implements IModule
 		propBucket.setProperty(Macros.GAME, gameName);
 		//map user name to corresponding property bucket
 		usersOnline.put(userName, propBucket);	
+	}
+	
+	/**
+	 * Return the corresponding property bucket associated with userName
+	 * in the usersOnline hashtable or null if the mapping does not exist
+	 * @param userName
+	 * @return
+	 */
+	private PropertyBucket getUser(String userName) {
+		return (PropertyBucket)usersOnline.get(userName);
 	}
 	
 	/**
