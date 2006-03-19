@@ -15,9 +15,10 @@ public class RegistrationModuleTest extends TestCase {
 	private TestModuleRequest tReq;
 	private TestModuleResponse tRes;
 	private byte [] input;
-	private int INPUT_BYTE_ARR_SIZE = 80;
+	private int INPUT_BYTE_ARR_SIZE = 0;
 	private int OUTPUT_SIZE = 1024;
-	private int STRING_ARR_SIZE = 20;
+	
+	/** deafault userName and gameName **/
 	private String user = "user1";
 	private String game = "mancala";
 	private String TAB = "\t";
@@ -68,7 +69,7 @@ public class RegistrationModuleTest extends TestCase {
 		description = "Testing registerUser()";
 		
 		//don't actually need to use input stream
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		
 		tReq = new TestModuleRequest(input,headerNames,headerValues);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
@@ -123,11 +124,10 @@ public class RegistrationModuleTest extends TestCase {
 		int testNum = 2;
 		String description;
 		byte[] outputBytes, expectedOutputBytes;
-		char [] parsedBytes;
 		description = "Testing getUsersOnline()";
 		
 		//don't actually need to use input stream
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -207,8 +207,6 @@ public class RegistrationModuleTest extends TestCase {
 		int testNum = 3;
 		String description, secretKey, resHrdVal;
 		Map resHeaders;
-		byte[] outputBytes, expectedOutputBytes;
-		char [] parsedBytes;
 		description = "Testing registerNewGame()";
 		
 		/**
@@ -217,7 +215,7 @@ public class RegistrationModuleTest extends TestCase {
 		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
 		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
 		
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -279,8 +277,6 @@ public class RegistrationModuleTest extends TestCase {
 		int testNum = 4, gameCount;
 		String description, secretKey, resHrdVal;
 		Map resHeaders;
-		byte[] outputBytes, expectedOutputBytes;
-		char [] parsedBytes;
 		description = "Testing getOpenGames()";
 		
 		/**
@@ -289,7 +285,7 @@ public class RegistrationModuleTest extends TestCase {
 		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
 		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
 		
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -379,8 +375,6 @@ public class RegistrationModuleTest extends TestCase {
 		int testNum = 5;
 		String description, secretKey, user2SecretKey, resHrdVal;
 		Map resHeaders;
-		byte[] outputBytes, expectedOutputBytes;
-		char [] parsedBytes;
 		description = "Testing unregisterGame()";
 		
 		/**
@@ -389,7 +383,7 @@ public class RegistrationModuleTest extends TestCase {
 		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
 		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
 		
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -414,13 +408,13 @@ public class RegistrationModuleTest extends TestCase {
 		testMsgs[1] = "Game Register Response is ACK";
 		resHrdVal = (String) resHeaders.get(Macros.STATUS);
 		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
-		
+		//System.out.println("user1 registers game");
 		// Now we want to first try having someone else kill this game
 		// The try is some random person kill the game. 
 		String [] headerNames_1b  = {Macros.TYPE, Macros.NAME, Macros.GAME};
 		String [] headerValues_1b = {Macros.REG_MOD_REGISTER_USER, "user2", game};
 		
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1b,headerValues_1b);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		regMod.handleRequest(tReq, tRes);
@@ -437,6 +431,7 @@ public class RegistrationModuleTest extends TestCase {
 		testMsgs [2] = "Random person cannot kill someone else's game";
 		resHrdVal = (String) resHeaders.get(Macros.STATUS);
 		testStatus[2] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY);
+		//System.out.println("user2");
 		
 		// We double check that user1's game still exists
 		String [] headerNames_4  = {Macros.TYPE, Macros.GAME};
@@ -547,7 +542,7 @@ public class RegistrationModuleTest extends TestCase {
 		description = "Testing unregisterUser()";
 		
 		// First we add a user
-		input = new byte[0];
+		input = new byte[INPUT_BYTE_ARR_SIZE];
 		
 		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
 		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, user, game};
@@ -615,7 +610,7 @@ public class RegistrationModuleTest extends TestCase {
 	 * @param byteArr2
 	 * @return
 	 */
-	private boolean bytesEquals(byte [] byteArr1, byte[] byteArr2) {
+	private static boolean bytesEquals(byte [] byteArr1, byte[] byteArr2) {
 		if (byteArr1.length != byteArr2.length) return false;
 		for (int index = 0; index < byteArr1.length; index++) {
 			if (byteArr1[index] != byteArr2[index]) return false;
@@ -628,7 +623,7 @@ public class RegistrationModuleTest extends TestCase {
 	 * @param byteArr
 	 * @return
 	 */
-	private char[] parseByteArray(byte[] byteArr) {
+	private static char[] parseByteArray(byte[] byteArr) {
 		char [] charArr = new char[byteArr.length];
 		for (int index = 0; index < byteArr.length; index++) {
 			charArr[index] = (char) byteArr[index];
