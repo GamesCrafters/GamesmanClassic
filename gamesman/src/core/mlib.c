@@ -16,8 +16,9 @@
 **                        NinaRow bug found.
 **              3/14/06 - statelessNinaRow seems to work, but analysis
 **                        results are weird.
-**              3/18/06- statelessNinaRow confirmed to work with mttt and
+**              3/18/06 - statelessNinaRow confirmed to work with mttt and
 **                       mwin4.
+**              3/19/06 - wrote amountOfWhat. Not thoroughly tested.
 **************************************************************************/
 #include <stdio.h>
 #include "gamesman.h"
@@ -212,6 +213,33 @@ BOOLEAN statelessNinaRow(void* boardArray,void* type,int n) {
 	}
       }
     }
+  }
+  return FALSE;
+}
+
+/*Returns whether the board contains amount of given item 'what'*/
+BOOLEAN amountOfWhat(void* boardArray,void* what,int amount,BOOLEAN atLeast) {
+  int i,count=0;
+  
+  if (atLeast) {
+    if (amount==0) {
+      return TRUE;
+    }
+  }
+    
+  for(i=0;i<LocalBoard.rows*LocalBoard.cols;i++) {
+    if (!memcmp(boardArray + LocalBoard.eltSize*i,what,LocalBoard.eltSize)) { //element found
+      count++;
+      if (atLeast) {
+	if (count == amount) {
+	  return TRUE;
+	}
+      }
+    }
+  }
+
+  if (count==amount) {
+    return TRUE;
   }
   return FALSE;
 }
