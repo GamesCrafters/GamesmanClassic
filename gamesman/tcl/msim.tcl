@@ -10,10 +10,13 @@
 ##
 ## DATE:         05-13-02
 ##
-## UPDATE HIST:  03-17-06 David Chan
+## UPDATE HIST:  
+## 03-17-06 David Chan
 ##                 - converted to gamesman3 gui, code from mttt3.tcl adopted
 ##                   for this game
-##
+## 03-19-06 David Chan
+##                 - added scaling, code shamelessly ripped from Eudean
+##                   and game over screen, from Eudean
 #############################################################################
 
 
@@ -27,6 +30,8 @@ set lineColor cyan
 set p1Color blue
 set p2Color red
 set vertices 6
+set CANVAS_HEIGHT 1
+set CANVAS_WIDTH 1
 
 #############################################################################
 proc unhash {pos array} {
@@ -49,6 +54,14 @@ proc unhash {pos array} {
 	    
 }
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
+
 #############################################################################
 proc GS_InitGameSpecific {} {
     
@@ -62,6 +75,11 @@ proc GS_InitGameSpecific {} {
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
+
+    global CANVAS_WIDTH CANVAS_HEIGHT gFrameWidth gFrameHeight
+
+    set CANVAS_WIDTH [min $gFrameWidth $gFrameHeight]
+    set CANVAS_HEIGHT $CANVAS_WIDTH
 
     ### Set the strings to be used in the Edit Rules
 
@@ -168,18 +186,18 @@ proc GS_Initialize { c } {
     global edges
     global vertices
 
-    global gFrameWidth gFrameHeight
+    global CANVAS_WIDTH CANVAS_HEIGHT
 
-    $c create rect 0 0 $gFrameWidth $gFrameWidth -fill $bgColor -tag bkgnd
-    $c create oval 0 0 $gFrameWidth $gFrameWidth -fill $bgColor2 -tag bkgnd2
+    $c create rect 0 0 $CANVAS_WIDTH $CANVAS_WIDTH -fill $bgColor -tag bkgnd
+    $c create oval 0 0 $CANVAS_WIDTH $CANVAS_WIDTH -fill $bgColor2 -tag bkgnd2
     
     set i 0
     for {set x 0} {$x < $vertices} {incr x} {
 	for {set y [expr {$x+1}]} {$y < $vertices} {incr y} {
 	    set p 1.0
 	    set q 1.0
-	    set p [expr {$gFrameWidth/2.0}]
-	    set q [expr {($gFrameWidth*0.9)/2.0}]
+	    set p [expr {$CANVAS_WIDTH/2.0}]
+	    set q [expr {($CANVAS_WIDTH*0.9)/2.0}]
 	    set pi 3.14159265
 
 	    $c create line \
@@ -302,8 +320,16 @@ proc GS_GetGameSpecificOptions { } {
 
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global CANVAS_WIDTH
+    set size $CANVAS_WIDTH
+    set fontsize [expr int($size / 20)]
+    
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 }
 
 #############################################################################
 proc GS_UndoGameOver { c position } {
+    $c delete gameover
 }
