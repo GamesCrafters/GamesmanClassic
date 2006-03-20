@@ -34,14 +34,6 @@ proc GS_InitGameSpecific {} {
     set height 4
     set gNumPieces 4
 
-    #Some rules variables with their default values
-    global gMoveDiagonal gMoveStraight gSlideRules gScoreDiagonal gScoreStraight
-    set gMoveDiagonal true
-    set gMoveStraight true
-    set gSlideRules "MAY SLIDE"
-    set gScoreDiagonal true
-    set gScoreStraight true
-
     #slotSize: the dimensions of each square on the board
     #cellPadding: the size of the gap between the edge of a piece and the edge of the slot
     #megaCellPadding: the size of the gap between the edge of one of the "place move" dots and the edge of the slot
@@ -83,15 +75,11 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "Try to sandwich as many empty spaces between your pieces as possible.  At the end of the game \
-		draw a line from each of your pieces to each of your other pieces in the same row, column, or diagonal \
-		that is seperated only by empty squares. For each line you draw in this way, you get one point for each \
-		empty square it passes through. Whichever player scores the most points WINS."
+	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one of your pieces at each end. \
+		Whichever player sandwiches the most empty spaces in this way WINS."
     } else {
-	SetToWinString "Try to sandwich as few empty spaces between your pieces as possible.  At the end of the game \
-		draw a line from each of your pieces to each of your other pieces in the same row, column, or diagonal \
-		that is seperated only by empty squares. For each line you draw in this way, you get one point for each \
-		empty square it passes through. Whichever player scores the most points LOSES."
+	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one of your pieces at each end. \
+		Whichever player sandwiches the most empty spaces in this way LOSES."
     }
     
     ### Edit this string
@@ -194,15 +182,78 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "Misere" \
 	    ]
 
+    set slideRule \
+	[list \
+	     "Would you like sliding a piece to be:" \
+	     "Prohibited" \
+	     "Optional (default)" \
+	     "Required" \
+	    ]
+
+    set moveTypeRule \
+	[list \
+	     "How would you like pieces to move:" \
+	     "Like queens (default)" \
+	     "Like bishops" \
+	     "Like rooks" \
+	    ]
+
+    set scoreRule \
+	[list \
+	     "Should players receive points for forming straight lines or diagonal lines:" \
+	     "Both (default)" \
+	     "Just diagonal" \
+	     "Just straight" \
+	    ]
+    set widthRule \
+	[list \
+	     "What width should the board be:" \
+	     "3" \
+	     "4 (default)" \
+	     "5" \
+	]
+
+    set heightRule \
+	[list \
+	     "What height should the board be:" \
+	     "3" \
+	     "4 (default)" \
+	     "5" \
+	]
+
+    set numPiecesRule \
+	[list \
+	     "How many pieces should each player have:" \
+	     "4" \
+	]
+
     # List of all rules, in some order
-    set ruleset [list $standardRule]
+    set ruleset [list $standardRule $slideRule $moveTypeRule $scoreRule $widthRule $heightRule $numPiecesRule]
 
     # Declare and initialize rule globals
-    global gMisereGame
+    global gMisereGame gMoveRules gSlideRules gScoreRules gWidthRules gHeightRules gNumPiecesRules
+    
+    #0 is standard, 1 is misere
     set gMisereGame 0
+    
+    #0 is like queens, 1 is like bishops, 2 is like rooks
+    set gMoveRules 0
+    
+    #0 is no slide, 1 is may slide, 2 is must slide
+    set gSlideRules 1
+    
+    #0 is straight and diagonal, 1 is just diagonal, 2 is just straight
+    set gScoreRules 0
+
+    #0 is 3, 1 is 4, 2 is 5
+    set gWidthRules 1
+    set gHeightRules 1
+
+    #0 is 4
+    set gNumPiecesRules 0
 
     # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
+    set ruleSettingGlobalNames [list "gMisereGame" "gSlideRules" "gMoveRules" "gScoreRules" "gWidthRules" "gHeightRules" "gNumPiecesRules"]
 
     global kLabelFont
     set ruleNum 0
@@ -230,36 +281,24 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 
 proc GS_GetOption { } {
-    global gMisereGame gMoveDiagonal gMoveStraight gSlideRules gScoreDiagonal gScoreStraight gNumPieces
-    global width height MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
+    global gMisereGame gMoveRules gSlideRules gScoreRules gWidthRules gHeightRules gNumPiecesRules
+    global width height gNumPieces MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
 
     #set winConditionVal
     set winConditionVal $gMisereGame
     
     #set moveStyleVal
-    if {$gSlideRules == "NO SLIDE"} {
-	set moveStyleVal 0
-    } elseif {$gSlideRules == "MAY SLIDE"} {
-	set moveStyleVal 1
-    } elseif {$gSlideRules == "MUST SLIDE"} {
-	set moveStyleVal 2
-    } else {
-	BadElse "GS_GetOption" "moveStyleVal bad-elsed on gSlideRules"
-    }
-    if {$gSlideRules != "NO SLIDE"} {
-	if {$gMoveDiagonal && $gMoveStraight} {
-	    #add 0 to moveStyleVal
-	} elseif {$gMoveDiagonal} {
-	    set moveStyleVal [expr $moveStyleVal + 2]
-	} elseif {$gMoveDiagonal} {
-	    set moveStyleVal [expr $moveStyleVal + 4]
-	} else {
-	    BadElse "GS_GetOption" "moveStyleVal bad-elsed on gMoveDiagonal and gMoveStraight"
-	}
+    set moveStyleVal $gSlideRules
+    if {$gSlideRules != 0} {
+	set moveStyleVal [expr $moveStyleVal + (2 * $gMoveRules)]
     }
     
     #set boardSizeVal
     set l 0
+    #set width, height, and numPieces based on the respective rules.
+    set width [expr $gWidthRules + 3]
+    set height [expr $gHeightRules + 3]
+    set gNumPieces [expr $gNumPiecesRules + 4]
     for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {incr i} {
 	for {set j $MIN_PIECES} {$j <= $i} {incr j} {
 	    for {set k $MIN_HEIGHT} {$k <= $MAX_HEIGHT} {incr k} {
@@ -272,15 +311,7 @@ proc GS_GetOption { } {
     }
 
     #set scoreVal
-    if {$gScoreDiagonal && $gScoreStraight} {
-	set scoreVal 0
-    } elseif {$gScoreDiagonal} {
-	set scoreVal 1
-    } elseif {$gScoreStraight} {
-	set scoreVal 2
-    } else {
-	BadElse "GS_GetOption" "scoreVal"
-    }
+    set scoreVal $gScoreRules
     
     set option [expr 1 + $winConditionVal + (2*$moveStyleVal) + (2*8*$boardSizeVal) + (2*8*245*$scoreVal)]
     
