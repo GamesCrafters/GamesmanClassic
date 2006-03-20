@@ -228,6 +228,8 @@ int getfrom (MOVE theMove);
 int getto(MOVE theMove);
 BlankOX getwhosTurnfromMove(MOVE theMove);
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 ** NAME:        InitializeGame
 ** DESCRIPTION: Initialize the gDatabase, a global variable.
@@ -276,6 +278,8 @@ void InitializeGame() {
   */
   gInitialPosition = DefaultInitialPosition();
   generic_unhash(gInitialPosition, board);
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1201,6 +1205,24 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 void PrintMove(theMove)
      MOVE theMove;
 {
+  printf( "%s", MoveToString(theMove) );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(10);
+
   SLOT from, to;
   char letter, num, dir;
   BlankOX whosTurn;
@@ -1225,8 +1247,10 @@ void PrintMove(theMove)
     dir = 'r';
   else dir = '-';
   if (gChessMoves)
-    printf("%c%c%c", letter, num, dir);
-  else printf("[ %d %d ] ", from, to);
+    sprintf(move, "%c%c%c", letter, num, dir);
+  else sprintf( move, "[ %d %d ] ", from, to);
+
+  return move;
 }
 
 /************************************************************************

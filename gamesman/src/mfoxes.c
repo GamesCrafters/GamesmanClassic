@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.12 2006-01-11 22:55:03 hevanm Exp $
+// $Id: mfoxes.c,v 1.13 2006-03-20 23:56:56 kmowery Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -186,6 +186,8 @@ MOVE                    SlotsToMove (SLOT fromSlot, SLOT toSlot);
 void                    InitializeAdjacency();
 void                    InitializeOrder();
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -225,6 +227,8 @@ void InitializeGame ()
 
     gInitialPosition = generic_hash( theBlankFG, WhoGoesFirst );
     SafeFree(theBlankFG);
+
+    gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -519,11 +523,32 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    SLOT fromSlot, toSlot;
-    
-    MoveToSlots(move,&fromSlot,&toSlot);
-    /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-    printf("[ %d %d ] ", fromSlot + 1, toSlot + 1);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(10);
+  SLOT fromSlot, toSlot;
+  
+  MoveToSlots(theMove,&fromSlot,&toSlot);
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  sprintf( move, "[ %d %d ]", fromSlot + 1, toSlot + 1);
+
+  return move;
 }
 
 
@@ -978,6 +1003,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/01/11 22:55:03  hevanm
+// Hopefully really fixed twobitdb. Changed compiler flags for all platforms to "-Wall -g". Look at those warnings. They are not critical, but they are there. Removed the configure script. From now on please remember to (re)grenerate it yourself if/when configure.ac changes, by simply running autoconf.
+//
 // Revision 1.11  2006/01/03 00:19:35  hevanm
 // Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
 //

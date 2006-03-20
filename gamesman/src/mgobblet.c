@@ -253,6 +253,8 @@ void			PrintPosition (POSITION, STRING, BOOLEAN);
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -307,6 +309,8 @@ void InitializeGame()
   }
   gNumberOfPositions <<= 1;
   
+  gMoveToStringFunPtr = &MoveToString;
+
   printf("\nDone With Initalization\n\nDone With Initalization\n");
 }
 
@@ -939,13 +943,32 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(8);
   SLOT srcPos, destPos;
   srcPos = GET_SRC(theMove);
   destPos = GET_DEST(theMove);
-  // if(srcPos <= TABLE_SLOTS)
-    printf("\"%d %d\" ", srcPos+1,destPos+1);
-    // else
-    // printf("%d %d\n",  write this later..
+  
+  sprintf(move, "\"%d %d\"", srcPos+1,destPos+1);
+
+  return move;
 }
 
 

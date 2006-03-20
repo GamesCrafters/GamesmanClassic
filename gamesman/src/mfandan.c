@@ -87,7 +87,7 @@ STRING   kHelpExample =
         |  /  |  \\  |            / | \\ \n\
    3    X --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
 (Player should Win in 11)  \n\
-  Player's move [(u)ndo/1-9] :   b3 n a\n\n\
+  Player\'s move [(u)ndo/1-9] :   b3 n a\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    O --- . --- O          NW  N  NE        N = no action\n\
@@ -96,7 +96,7 @@ STRING   kHelpExample =
         |  /  |  \\  |            / | \\ \n\
    3    X --- . --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
 (Computer should Lose in 12)  \n\
-Computer's move              : 17 \n\n\n\
+Computer\'s move              : 17 \n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- O --- O          NW  N  NE        N = no action\n\
@@ -105,7 +105,7 @@ Computer's move              : 17 \n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    X --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Player should Win in 11)  \n\
-  Player's move [(u)ndo/1-9] : c3 w n\n\n\n\n\
+  Player\'s move [(u)ndo/1-9] : c3 w n\n\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- O --- O          NW  N  NE        N = no action\n\
@@ -114,7 +114,7 @@ Computer's move              : 17 \n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    X --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Computer should Lose in 14)  \n\
-Computer's move              : 45\n\n\n\
+Computer\'s move              : 45\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION \n\n\
    1    O --- . --- O          NW  N  NE        N = no action \n\
@@ -123,7 +123,7 @@ Computer's move              : 45\n\n\n\
         |  /  |  \\  |            / | \\ \n\
    3    X --- X --- .          SW  S  SE        W = capture by withdraw \n\n\n\n\
 (Player should Win in 13)  \n\
-  Player's move [(u)ndo/1-9] : b2 se w\n\n\n\
+  Player\'s move [(u)ndo/1-9] : b2 se w\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- . --- O          NW  N  NE        N = no action\n\
@@ -132,7 +132,7 @@ Computer's move              : 45\n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    X --- X --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Computer should draw)  \n\
-Computer's move              : 66 \n\n\n\
+Computer\'s move              : 66 \n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- . --- .          NW  N  NE        N = no action \n\
@@ -141,7 +141,7 @@ Computer's move              : 66 \n\n\n\
         |  /  |  \\  |            / | \\ \n\
    3    . --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
 (Player should draw)  \n\
-  Player's move [(u)ndo/1-9] : a2 n n\n\n\n\
+  Player\'s move [(u)ndo/1-9] : a2 n n\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    X --- . --- .          NW  N  NE        N = no action\n\
@@ -150,7 +150,7 @@ Computer's move              : 66 \n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- X --- X          SW  S  SE        W = capture by withdraw \n\n\n\n\
 (Computer will Win in 13)  \n\
-Computer's move              : 155 \n\n\n\
+Computer\'s move              : 155 \n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION \n\n\
    1    X --- O --- .          NW  N  NE        N = no action \n\
@@ -159,7 +159,7 @@ Computer's move              : 155 \n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Player will Lose in 12)  \n\
-  Player's move [(u)ndo/1-9] : a1 se n\n\n\n\
+  Player\'s move [(u)ndo/1-9] : a1 se n\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- O --- .          NW  N  NE        N = no action\n\
@@ -168,7 +168,7 @@ Computer's move              : 155 \n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- . --- X          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Computer will Win in 5)  \n\
-Computer's move              : 187\n\n\n\
+Computer\'s move              : 187\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- O --- O          NW  N  NE        N = no action\n\
@@ -177,7 +177,7 @@ Computer's move              : 187\n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Player will Lose in 4)  \n\
-  Player's move [(u)ndo/1-9] :  b2 s w \n\n\n\
+  Player\'s move [(u)ndo/1-9] :  b2 s w \n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION \n\n\
    1    . --- . --- O          NW  N  NE        N = no action \n\
@@ -186,7 +186,7 @@ Computer's move              : 187\n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Computer will Win in 3)  \n\
-Computer's move              : 65 \n\n\
+Computer\'s move              : 65 \n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- . --- .          NW  N  NE        N = no action\n\
@@ -195,7 +195,7 @@ Computer's move              : 65 \n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- X --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Player will Lose in 2)  \n\
-  Player's move [(u)ndo/1-9] :  b3 w n \n\n\n\
+  Player\'s move [(u)ndo/1-9] :  b3 w n \n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- . --- .          NW  N  NE        N = no action\n\
@@ -204,7 +204,7 @@ Computer's move              : 65 \n\n\
         |  /  |  \\  |            / | \\\n\
    3    X --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Computer will Win in 1)  \n\
-Computer's move              : 159\n\n\n\
+Computer\'s move              : 159\n\n\n\
             BOARD\n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    . --- . --- O          NW  N  NE        N = no action\n\
@@ -269,9 +269,9 @@ int FileRowToIndex(char,int);
 void PlacePieces();
 void InitHash();
 void DefaultPieces(BlankOX*);
-void PrintDir(int);
-void PrintPos(int);
-void PrintCap(int);
+char* StringDir(int);
+char* StringPos(int);
+char* StringCap(int);
 void ClearBoardPieces();
 
 void PositionToBlankOX(POSITION position, BlankOX *board);
@@ -280,6 +280,8 @@ int InBounds(Coordinates pos);
 int getNumOfDigit(int n);
 
 void dbg(char *);
+
+STRING MoveToString(MOVE);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void dbg(char* msg) {
@@ -395,6 +397,8 @@ void InitializeGame()
   
   gInitialPosition = initialPos;
   gMinimalPosition = initialPos;
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -1471,7 +1475,24 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-   int pos,dir,cap;
+  printf( "%s", MoveToString(theMove) );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc( 13 );
+  int pos,dir,cap;
 
   cap = 3 & theMove;
   dir = (28 & theMove) >> 2;
@@ -1480,45 +1501,64 @@ void PrintMove(theMove)
   dir++;
   if(dir >= 5)
     dir++;
+  
+  char* position = StringPos( pos );
+  char* direction = StringDir( dir );
+  char* capture = StringCap( cap );
 
-  printf("[ ");
-  PrintPos(pos); putchar(' ');
-  PrintDir(dir); putchar(' ');
-  PrintCap(cap); printf(" ]");
+  sprintf( move, "[ %s %s %s ]", position, direction, capture );
+
+  
+  SafeFree( position );
+  SafeFree( direction );
+  SafeFree( capture );
+
+  return move;
 }
 
-void PrintCap(int cap) {
+char* StringCap(int cap) {
+  char* capture = (char*) SafeMalloc( 2 );
+
   if(cap==0)
-    printf("N");
+    sprintf( capture, "N" );
   else if(cap==1)
-    printf("A");
+    sprintf( capture, "A" );
   else
-    printf("W");
+    sprintf( capture, "W" );
+
+  return capture;
 }
 
-void PrintDir(int dir) {
+char* StringDir(int dir) {
+  char* direction = (char*) SafeMalloc( 3 );
+
   if(dir==8)
-    printf("N");
+    sprintf( direction, "N" );
   else if(dir==9)
-    printf("NE");
+    sprintf( direction, "NE" );
   else if(dir==6)
-    printf("E");
+    sprintf( direction, "E" );
   else if(dir==3)
-    printf("SE");
+    sprintf( direction, "SE" );
   else if(dir==2)
-    printf("S");
+    sprintf( direction, "S" );
   else if(dir==1)
-    printf("SW");
+    sprintf( direction, "SW" );
   else if(dir==4)
-    printf("W");
+    sprintf( direction, "W" );
   else
-    printf("NW");
+    sprintf( direction, "NW" );
+
+  return direction;
 }
 
-void PrintPos(int pos) {
+char* StringPos(int pos) {
   int row = (pos/BOARDWIDTH) + 1;
   char file = 'a' + (pos%BOARDWIDTH);
-  printf("%c%d",file,row);
+  char* position = (char*) SafeMalloc(3);
+  sprintf( position, "%c%d", file, row );
+
+  return position;
 }
 
 /************************************************************************
