@@ -30,6 +30,7 @@
 #include "gameplay.h"
 #include "misc.h"
 #include "textui.h"
+#include "mlib.h"
 #include "main.h"
 
 /* function prototypes implemented in the module code */
