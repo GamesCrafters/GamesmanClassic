@@ -16,8 +16,8 @@ public class P2PModule implements IModule {
 	
 	
 	static void debugPrint(String s) {
-		if(P2PMacros.DEBUGGING) {
-			System.out.println(s);			
+		if(Const.DEBUGGING) {
+			System.out.println(s);
 		}
 	}
 	// hashes ActiveGames (see below) to current active associated IModuleResponse
@@ -118,22 +118,23 @@ public class P2PModule implements IModule {
 	public void initialize(String[] initStrings) { }
 	
 	public boolean typeSupported(String requestTypeName) {
-		return (requestTypeName == P2PMacros.SEND_MOVE || requestTypeName == P2PMacros.END_OF_GAME);
+		return (requestTypeName == Const.SEND_MOVE || requestTypeName == Const.END_OF_GAME);
 	}
 
 	public void handleRequest(IModuleRequest req, IModuleResponse res)
 	throws ModuleException {
 		
-		String incomingMove = req.getHeader(P2PMacros.MOVE_VALUE);
-		String destPlayer = req.getHeader(P2PMacros.DESTINATION_PLAYER);
-		String srcPlayer = req.getHeader(P2PMacros.SOURCE_PLAYER);
+		String incomingMove = req.getHeader(Const.MOVE_VALUE);
+		String destPlayer = req.getHeader(Const.DESTINATION_PLAYER);
+		String srcPlayer = req.getHeader(Const.SOURCE_PLAYER);
 		debugPrint("Move, source, and destination: "+incomingMove+", "+srcPlayer+", "+destPlayer);
 		ActiveGame game = new ActiveGame(destPlayer, srcPlayer, srcPlayer); // it's always the sender's turn
+
 		if(incomingMove == null) {
 			// first move
 			ActiveGame actualGame = ActiveGame.switchTurn(game); // since the player who sent the null is second
 			Object shouldBeZero = theGames.remove(actualGame);
-			debugPrint(shouldBeZero.toString());
+			debugPrint("0 = "+shouldBeZero.toString());
 			theGames.put(actualGame, res);
 			debugPrint("Initialized the game with a valid response in the hashtable");
 			return;
@@ -142,34 +143,27 @@ public class P2PModule implements IModule {
 		debugPrint("Going to handle move from"+srcPlayer+" to "+destPlayer);
 		synchronized(theGames) {
 			if(!theGames.containsKey(game)) {
-				throw new ModuleException(P2PMacros.NO_SUCH_GAME, "No game exists between "+destPlayer+" and "+srcPlayer);
+				throw new ModuleException(Const.NO_SUCH_GAME, "No game exists between "+destPlayer+" and "+srcPlayer);
 			}
 		}
 		synchronized(theGames) {
 			// update the game's pending response
 			IModuleResponse waitingPlayerResponse = (IModuleResponse) theGames.remove(game); 
-			waitingPlayerResponse.setHeader(P2PMacros.MOVE_VALUE, incomingMove);
-			waitingPlayerResponse.setHeader(P2PMacros.DESTINATION_PLAYER, destPlayer);
-			waitingPlayerResponse.setHeader(P2PMacros.SOURCE_PLAYER, srcPlayer);
+			waitingPlayerResponse.setHeader(Const.MOVE_VALUE, incomingMove);
+			waitingPlayerResponse.setHeader(Const.DESTINATION_PLAYER, destPlayer);
+			waitingPlayerResponse.setHeader(Const.SOURCE_PLAYER, srcPlayer);
 			theGames.put(ActiveGame.switchTurn(game), res);
-		}
-
-			
+		}			
 		// everything after this doesn't really work
 		synchronized(this) {
-			notify();
-			/*
-		}
-		synchronized(this) { */
+			this.notify();
 			try {
 				debugPrint("Trying to wait...");
-				wait();
+				this.wait();
 			} catch(InterruptedException e) {
-				throw new ModuleException(P2PMacros.THREAD_INTERRUPTED, "Thread interrupted", e);
+				throw new ModuleException(Const.THREAD_INTERRUPTED, "Thread interrupted", e);
 			}
 		}
 		debugPrint("Thread from "+srcPlayer+" to "+destPlayer+" woke up.");
-		
 	}
-	
 }
