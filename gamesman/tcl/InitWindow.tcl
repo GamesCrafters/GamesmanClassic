@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.101 2006-03-20 04:00:47 eudean Exp $
+# $Id: InitWindow.tcl,v 1.102 2006-03-20 18:47:02 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1553,7 +1553,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	set lineColor yellow
     }
 
-    if { $maxRemoteness < 1.0e-3 } {
+    if { $maxRemoteness == 0 } {
 	set deltax 0
     } else {
 	set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
@@ -1581,7 +1581,12 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 		set maxRemoteness [expr $nextMaxRemoteness + 1]
 	    }
 	}
-	set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+
+	if { $maxRemoteness == 0 } {
+	    set deltax 0
+	} else {
+	    set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+	}
 	rescaleX $center $pieceRadius $oldDeltaX $deltax
     }
     
