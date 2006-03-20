@@ -67,7 +67,7 @@ prevented from moving by your opponent's pieces"
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "John Lo and Diana Fang"
-    set kTclAuthors "Diana Fang"
+    set kTclAuthors $kCAuthors
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -251,7 +251,6 @@ proc GS_SetOption { option } {
     set gBoardSizeOp [expr $boardWidth - 3]
 }
 
-
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -263,16 +262,55 @@ proc GS_SetOption { option } {
 proc GS_Initialize { c } {
 
     global boardWidth boardSize xbmLightGrey
-    global gFrameWidth gFrameHeight
-    set mySize [min $gFrameHeight $gFrameWidth] 
+    global gFrameWidth gFrameHeight numPieces
+    global cell amount mySize yOffset
+    set amount -1
+    set winByBarSizePercent 0.90
+    set mySize [expr [min $gFrameHeight $gFrameWidth] * $winByBarSizePercent] 
+    set yOffset [expr [min $gFrameHeight $gFrameWidth] * (1 - $winByBarSizePercent)]
     set cellSize [expr $mySize / ($boardWidth+1)]
+
+    # draw the win-by bar
+    if { [expr $boardWidth > 4] && $gForbidden } { 
+	set numBars [expr [expr $boardWidth - 2] * $boardWidth]
+    } else { 
+	set numBars [expr [expr $boardWidth - 1] * $boardWidth]
+    }
+    set numPieces [expr $numBars / $boardWidth]
+
+    set cell [expr $mySize / $numBars]
+    set i 0
+    $c create oval [expr $mySize - $yOffset] 0 \
+	[expr $mySize + $yOffset] [expr 2 * $yOffset] \
+	-fill [lindex [GS_ColorOfPlayers] 0] \
+	-outline black \
+	-tag [list base bars bar$numBars]
+    for {set x 0} {$x < $numBars} {incr x} {
+	$c create rect [expr $x * $cell] 0 \
+	    [expr [expr $x + 1] * $cell] $yOffset \
+	    -fill [lindex [GS_ColorOfPlayers] 0] \
+	    -outline black \
+	    -tag [list base bars bar$i]
+	set i [expr $i + 1]
+    }
+    set i [expr $numBars + 1]
+    for {set y 0} {$y < $numBars} {incr y} {
+	$c create rect $mySize [expr $y * $cell + $yOffset + 1] \
+	    [expr $mySize + $yOffset] [expr [expr $y + 1] * $cell + $yOffset + 1] \
+	    -fill [lindex [GS_ColorOfPlayers] 1] \
+	    -outline black \
+	    -tag [list base bars bar$i]
+	set i [expr $i + 1]
+    }
+
     # Drawing the base
-    $c create rectangle 0 0 $mySize $mySize -fill white -tag base
+    $c create rectangle 0 [expr 0 + $yOffset] $mySize [expr $mySize + $yOffset] \
+	-outline black -width 3 -fill white -tag base
     # Squares labeled from bottom left corner starting left to right from 0
     for {set x 0} {$x < $boardWidth} {incr x} {
 	for {set y 1} {$y < [expr $boardWidth+1]} {incr y} {
-	    $c create rectangle [expr $x * $cellSize] [expr $y * $cellSize] \
-		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+	    $c create rectangle [expr $x * $cellSize] [expr $y * $cellSize + $yOffset] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize + $yOffset] \
 		-fill grey -outline black -tags [list base square[expr $x+((($boardWidth -1) - ($y - 1)) * $boardWidth)]] 
 	}
     } 
@@ -281,22 +319,22 @@ proc GS_Initialize { c } {
     font configure GOALtext -size [expr round($cellSize/6)]
 	for {set x 1} {$x < $boardWidth} {incr x} {
 	    set y 0
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] \
-		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize + $yOffset] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize + $yOffset] \
 		-fill blue3 -outline black -tags [list base goal] \
 		-stipple gray75 -width 3
 	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] \
-		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -justify center \
+		[expr ($y * $cellSize + ($y+1) *$cellSize)/2 + $yOffset] -text "GOAL" -justify center \
 		-font GOALtext -tags [list base goaltext] 
 	}
    
 	for {set y 1} {$y < $boardWidth} {incr y} {
 	    set x $boardWidth
-	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize] \
-		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize] \
+	    $c create oval [expr $x * $cellSize] [expr $y * $cellSize + $yOffset] \
+		[expr ($x + 1) * $cellSize] [expr ($y + 1) * $cellSize + $yOffset] \
 		-fill red3 -outline black -tags [list base goal] -stipple gray75 -width 3
 	    $c create text  [expr (($x * $cellSize) + ($x + 1) * $cellSize)/2] \
-		[expr ($y * $cellSize + ($y+1) *$cellSize)/2] -text "GOAL" -justify center \
+		[expr ($y * $cellSize + ($y+1) *$cellSize)/2 + $yOffset] -text "GOAL" -justify center \
 		-font GOALtext -tags [list base goaltext]
 	}
     $c itemconfig goaltext -fill white
@@ -304,9 +342,9 @@ proc GS_Initialize { c } {
 #Drawing the pieces and arrows
     for {set x 0} {$x < $boardWidth} {incr x} {
 	for {set y 1} {$y < [expr $boardWidth+1]} {incr y} {
-	    drawPiece $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2] $cellSize blue [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)]
-	    drawPiece $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2] $cellSize red [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)]
-	    drawArrows $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2] $cellSize [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)] 
+	    drawPiece $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2 + $yOffset] $cellSize blue [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)]
+	    drawPiece $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2 + $yOffset] $cellSize red [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)]
+	    drawArrows $c [expr (($x * $cellSize)+ ($x + 1) * $cellSize)/2] [expr (($y * $cellSize) + ($y+1) *$cellSize)/2 + $yOffset] $cellSize [expr $x+((($boardWidth -1) - ($y-1)) * $boardWidth)] 
 	 
 	}
     }  
@@ -330,10 +368,9 @@ proc GS_Initialize { c } {
    
     #draw the legend
     set x [expr $boardWidth * $cellSize]
-    set y 0
+    set y [expr 0 + $yOffset]
     drawLegend $c $x $y $cellSize
 
-   
 } 
 
 
@@ -361,7 +398,7 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
     
-    global boardWidth boardSize
+    global boardWidth boardSize numPieces amount cell mySize yOffset
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     $c raise base
 
@@ -374,8 +411,45 @@ proc GS_DrawPosition { c position } {
 	} else {}
     }
 
+    # does the win-by bar
+    set numx 0
+    set numo 0
+    set xcount 0
+    set ocount 0
+    for {set row 0} {$row < $boardWidth} {incr row} {
+	for {set col 0} {$col < $boardWidth} {incr col} {
+	    set i [expr $boardWidth * $row + $col]
+	    if {[string compare [string index $pieceString $i] "x"] == 0} {
+		set xcount [expr $xcount + $row]
+		set numx [expr $numx + 1]
+	    }
+	    if {[string compare [string index $pieceString $i] "o"] == 0} {
+		set ocount [expr $ocount + $col]
+		set numo [expr $numo + 1]
+	    }
+	}
+    }
+    set xcount [expr $xcount + ($boardWidth * ($numPieces - $numx))]
+    set ocount [expr $ocount + ($boardWidth * ($numPieces - $numo))]
+    set ocount [expr $ocount - $xcount]
+    if {$ocount == 0} { set ocount [expr $ocount + $amount] }
+    if {$amount < 0} { set amount 1 } else { set amount -1 }
+    set ocount [expr $ocount + $numPieces * $boardWidth]
+    for {set i 0} {$i < [expr 2 * $numPieces * $boardWidth + 1]} {incr i} {
+	if {$i < [expr $numPieces * $boardWidth]} {
+	    set x [expr $i * $cell]
+	    set y 0
+	} elseif {$i > [expr $numPieces * $boardWidth]} {
+	    set x $mySize
+	    set y [expr $yOffset + ($i - ($numPieces * $boardWidth)) * $cell]
+	}
+	if {$i < [expr 2 * $numPieces * $boardWidth + 1 - $ocount]} {
+	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 0]
+	} else {
+	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 1]
+	}
+    }
 }
-
 
 #############################################################################
 # GS_NewGame should start playing the game. 
