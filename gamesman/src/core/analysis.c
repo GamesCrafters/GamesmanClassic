@@ -490,7 +490,7 @@ BOOLEAN LoadAnalysis() {
     
     Stopwatch();
     createAnalysisGameDir();
-    sprintf(gameFileName, "analysis/%s/%s_analysis.dat", kDBName,kDBName);
+    sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
     
     printf("\nLoading Analysis DB for %s...", kGameName);
     
@@ -579,7 +579,7 @@ void SaveAnalysis() {
     Stopwatch();
     createAnalysisGameDir();
 
-    sprintf(gameFileName, "analysis/%s/%s_analysis.dat", kDBName,kDBName);
+    sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
     
     printf("\nSaving Analysis DB for %s...", kGameName);
     

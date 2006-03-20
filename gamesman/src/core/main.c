@@ -155,7 +155,7 @@ void StartGame(STRING executableName)
 /* Solves the game and stores it, without anybody actually playing it */
 void SolveAndStore()
 {
-        InitializeGame();
+		Initialize();
         InitializeDatabases();
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
