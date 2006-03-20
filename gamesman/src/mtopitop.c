@@ -224,9 +224,8 @@ typedef struct threePieces {
 
 int boardSize = ROWCOUNT * COLCOUNT;
 int rowWidth = COLCOUNT;
-int redCastles = 0;
-int blueCastles = 0;
-int totalBoardPieces = 0;
+int redCastles, blueCastles, totalBoardPieces = 0;
+int maxL, maxS, maxB = 0;
 
 PlayerTurn gWhosTurn = Blue;
 int gameType;
@@ -298,9 +297,10 @@ void InitializeGame ()
     boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
     boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
     
-    gNumberOfPositions = generic_hash_init(boardSize, LpiecesArray, NULL);
-    gNumberOfPositions = generic_hash_init(boardSize, SpiecesArray, NULL);
-    gNumberOfPositions = generic_hash_init(boardSize, BpiecesArray, NULL);
+    maxL = generic_hash_init(boardSize, LpiecesArray, NULL);
+    maxS = generic_hash_init(boardSize, SpiecesArray, NULL);
+    maxB = generic_hash_init(boardSize, BpiecesArray, NULL);
+    gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
     gWhosTurn = boardArray->theTurn = Blue;
     
     for (i = 0; i < boardSize; i++) {
@@ -885,54 +885,54 @@ ThreePiece BoardPieceToThreePiece(BoardPiece piece) {
 	
 	switch (piece) {
 		case Blank:
-			newPiece.L = 0;
-			newPiece.S = 0;
-			newPiece.B = 0;
+			newPiece->L = 0;
+			newPiece->S = 0;
+			newPiece->B = 0;
 			break;
 	  	case BlueBucket:
-	  		newPiece.L = 0;
-			newPiece.S = 0;
-			newPiece.B = 1;
+	  		newPiece->L = 0;
+			newPiece->S = 0;
+			newPiece->B = 1;
 			break;
 	  	case RedBucket:
-	  		newPiece.L = 0;
-			newPiece.S = 0;
-			newPiece.B = 2;
+	  		newPiece->L = 0;
+			newPiece->S = 0;
+			newPiece->B = 2;
 			break;
 	  	case SmallSand:
-	  		newPiece.L = 0;
-			newPiece.S = 1;
-			newPiece.B = 0;
+	  		newPiece->L = 0;
+			newPiece->S = 1;
+			newPiece->B = 0;
 			break;
 	  	case BlueSmall:
-	  		newPiece.L = 0;
-			newPiece.S = 1;
-			newPiece.B = 1;
+	  		newPiece->L = 0;
+			newPiece->S = 1;
+			newPiece->B = 1;
 			break;
 	  	case RedSmall:
-	  		newPiece.L = 0;
-			newPiece.S = 1;
-			newPiece.B = 2;
+	  		newPiece->L = 0;
+			newPiece->S = 1;
+			newPiece->B = 2;
 			break;
 	  	case LargeSand:
-	  		newPiece.L = 1;
-			newPiece.S = 0;
-			newPiece.B = 0;
+	  		newPiece->L = 1;
+			newPiece->S = 0;
+			newPiece->B = 0;
 			break;
 	  	case SandCastle:
-	  		newPiece.L = 1;
-			newPiece.S = 1;
-			newPiece.B = 0;
+	  		newPiece->L = 1;
+			newPiece->S = 1;
+			newPiece->B = 0;
 			break;
 	  	case BlueCastle:
-	  		newPiece.L = 1;
-			newPiece.S = 1;
-			newPiece.B = 1;
+	  		newPiece->L = 1;
+			newPiece->S = 1;
+			newPiece->B = 1;
 			break;
 	  	case RedCastle:
-	  		newPiece.L = 1;
-			newPiece.S = 1;
-			newPiece.B = 2;
+	  		newPiece->L = 1;
+			newPiece->S = 1;
+			newPiece->B = 2;
 			break;
 		default:
 			return NULL;
@@ -950,30 +950,55 @@ ThreePiece CharToThreePiece(char piece) {
   Since there are 10 different pieces, this hash utilizes this fact and 
 */
 POSITION arrayHash(BoardAndTurn board) {
-	int i, digit = 1, hashNum = 0;
+	BoardRep toHash = (BoardRep) SafeMalloc(sizeof(struct tripleBoardRep));
+	toHash->boardL = (char *) SafeMalloc(boardSize * sizeof(char));
+	toHash->boardS = (char *) SafeMalloc(boardSize * sizeof(char));
+	toHash->boardB = (char *) SafeMalloc(boardSize * sizeof(char));
+	ThreePiece piece;
+	POSITION L, S, B;
+	int i;
 	
 	for (i = 0; i < boardSize; i++) {
-		hashNum += (CharToBoardPiece(board->theBoard[i]) * digit);
-		digit *= 10;
+		piece = CharToThreePiece(board->theBoard[i]);
+		toHash->boardL = piece.L;
+		toHash->boardS = piece.S;
+		toHash->boardB = piece.B;
 	}
 	
-	return hashNum + (board->theTurn * PLAYEROFFSET);
+	L = generic_hash(toHash->boardL, board.theTurn);
+	S = generic_hash(toHash->boardS, board.theTurn);
+	B = generic_hash(tohash->boardB, board.theTurn);
+	
+	return B + (S * maxB) + (L * maxS * maxB);
 }
 
 BoardAndTurn arrayUnhash(POSITION hashNumber) {
-  BoardAndTurn bat = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
-  bat->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
-  int i, j;
-  //bat.theBoard = (char *)SafeMalloc(ROWCOUNT * COLCOUNT * sizeof(char));
+  BoardAndTurn board = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
+  board->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+  BoardRep toHash = (BoardRep) SafeMalloc(sizeof(struct tripleBoardRep));
+  toHash->boardL = (char *) SafeMalloc(boardSize * sizeof(char));
+  toHash->boardS = (char *) SafeMalloc(boardSize * sizeof(char));
+  toHash->boardB = (char *) SafeMalloc(boardSize * sizeof(char));
+  ThreePiece newPiece = (ThreePiece) SafeMalloc(sizeof(struct threePieces));
+  int i;
+  
+  POSITION L = hashNumber / (maxS * maxB);
+  POSITION S = hashNumber % (maxS * maxB) / maxB;
+  POSITION B = hashNumber / (maxB);
+  
+  generic_unhash(L, toHash->boardL);
+  generic_unhash(S, toHash->boardS);
+  generic_unhash(B, toHash->boardB);
 
-  for (i = 0; i < ROWCOUNT; i++) {
-    for (j = 0; j < COLCOUNT; j++) {
-      bat->theBoard[j + (i * ROWCOUNT)] = hashNumber % 10;
-      hashNumber /= 10;
-    }
+  for (i = 0; i < boardSize; i++) {
+  	newPiece.L = toHash->boardL[i];
+  	newPiece.S = toHash->boardS[i];
+  	newPiece.B = toHash->boardB[i];
+  	board->theBoard[i] = ThreePieceToChar(newPiece);
+  	board->theTurn = gWhosTurn;
   }
-  bat->theTurn = hashNumber % 2;
-  return bat;
+  
+  return board;
 }
 /*
 sMove moveUnhash(MOVE move) {
@@ -982,6 +1007,15 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2006/03/15 07:46:12  mikehamada
+// Added HASHBLANK, HASHSANDPILE, HASHBLUEBUCKET, HASHREDBUCKET defines.
+//
+// Added BoardRep representation and ThreePiece representation (for a board, use a ThreePiece array!).
+//
+// Updated InitializeGame() to use LSB generic_hash_init (internal board will still be kept as a BoardAndTurn though!).
+//
+// Added ThreePieceToBoardPiece(), ThreePieceToChar(), BoardPieceToThreePiece(), CharToThreePiece() methods used for arrayHash() and arrayUnhash().
+//
 // Revision 1.17  2006/03/14 03:02:58  mikehamada
 // Changed InitializeGame(), added BoardRep, changed BoardPiece
 //
