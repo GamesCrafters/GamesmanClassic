@@ -17,11 +17,30 @@
 proc GS_InitGameSpecific {} {
     
     #global constants
-    global width height boardWidth boardHeight
+    global MAX_HEIGHT MIN_HEIGHT MAX_WIDTH MIN_WIDTH MIN_PIECES
+    set MAX_HEIGHT 9
+    set MIN_HEIGHT 3
+    set MAX_WIDTH 9
+    set MIN_WIDTH 3
+    set MIN_PIECES 2
+
+    global boardWidth boardHeight
     set boardWidth 500 
     set boardHeight 500
+    
+    #These are global constants, but they can be changed in the play options menu.  4 is only the default value.
+    global width height gNumPieces
     set width 4
     set height 4
+    set gNumPieces 4
+
+    #Some rules variables with their default values
+    global gMoveDiagonal gMoveStraight gSlideRules gScoreDiagonal gScoreStraight
+    set gMoveDiagonal true
+    set gMoveStraight true
+    set gSlideRules "MAY SLIDE"
+    set gScoreDiagonal true
+    set gScoreStraight true
 
     #slotSize: the dimensions of each square on the board
     #cellPadding: the size of the gap between the edge of a piece and the edge of the slot
@@ -64,20 +83,30 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "Try to sandwich as many empty spaces between your pieces as possible.  At the end of the game \
+		draw a line from each of your pieces to each of your other pieces in the same row, column, or diagonal \
+		that is seperated only by empty squares. For each line you draw in this way, you get one point for each \
+		empty square it passes through. Whichever player scores the most points WINS."
     } else {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "Try to sandwich as few empty spaces between your pieces as possible.  At the end of the game \
+		draw a line from each of your pieces to each of your other pieces in the same row, column, or diagonal \
+		that is seperated only by empty squares. For each line you draw in this way, you get one point for each \
+		empty square it passes through. Whichever player scores the most points LOSES."
     }
     
     ### Edit this string
 
-    SetToMoveString "To Move: (fill in)"
+    SetToMoveString "Each turn, you do two things.  First, if you have any pieces on the board, you may slide one \
+		to any other square in the same row, column, or diagonal that is seperated only by empty squares \
+		(like a Queen in Chess).  Slide a piece by clicking on an arrow leading from that piece to the square \
+		you wish to move it to.  If you wish, you may skip this step by clicking on the button below the board. \
+		Then, place a piece on any empty square by clicking on the dot in that square."
 	    
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Gamescrafters Team!"
-    set kTclAuthors "(Fill this in)"
+    set kCAuthors "Alex Wallisch and Steven Kusalo"
+    set kTclAuthors "Alex Wallisch"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -201,9 +230,60 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 
 proc GS_GetOption { } {
-    global gMisereGame
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    global gMisereGame gMoveDiagonal gMoveStraight gSlideRules gScoreDiagonal gScoreStraight gNumPieces
+    global width height MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
+
+    #set winConditionVal
+    set winConditionVal $gMisereGame
+    
+    #set moveStyleVal
+    if {$gSlideRules == "NO SLIDE"} {
+	set moveStyleVal 0
+    } elseif {$gSlideRules == "MAY SLIDE"} {
+	set moveStyleVal 1
+    } elseif {$gSlideRules == "MUST SLIDE"} {
+	set moveStyleVal 2
+    } else {
+	BadElse "GS_GetOption" "moveStyleVal bad-elsed on gSlideRules"
+    }
+    if {$gSlideRules != "NO SLIDE"} {
+	if {$gMoveDiagonal && $gMoveStraight} {
+	    #add 0 to moveStyleVal
+	} elseif {$gMoveDiagonal} {
+	    set moveStyleVal [expr $moveStyleVal + 2]
+	} elseif {$gMoveDiagonal} {
+	    set moveStyleVal [expr $moveStyleVal + 4]
+	} else {
+	    BadElse "GS_GetOption" "moveStyleVal bad-elsed on gMoveDiagonal and gMoveStraight"
+	}
+    }
+    
+    #set boardSizeVal
+    set l 0
+    for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {incr i} {
+	for {set j $MIN_PIECES} {$j <= $i} {incr j} {
+	    for {set k $MIN_HEIGHT} {$k <= $MAX_HEIGHT} {incr k} {
+		if {$i == $width && $j == $gNumPieces && $k == $height} {
+		    set boardSizeVal $l
+		}
+		incr l
+	    }
+	}
+    }
+
+    #set scoreVal
+    if {$gScoreDiagonal && $gScoreStraight} {
+	set scoreVal 0
+    } elseif {$gScoreDiagonal} {
+	set scoreVal 1
+    } elseif {$gScoreStraight} {
+	set scoreVal 2
+    } else {
+	BadElse "GS_GetOption" "scoreVal"
+    }
+    
+    set option [expr 1 + $winConditionVal + (2*$moveStyleVal) + (2*8*$boardSizeVal) + (2*8*245*$scoreVal)]
+    
     return $option
 }
 
@@ -220,7 +300,7 @@ proc GS_GetOption { } {
 proc GS_SetOption { option } {
     global gMisereGame
     set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    set gMisereGame [expr $option%2]
 }
 
 # GS_Initialize is where you can start drawing graphics.  
@@ -352,7 +432,7 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 
 proc GS_DrawPosition { c position } {
-    
+
     global xPieces oPieces width background
     set board [UnhashPosition $position]
 
@@ -360,6 +440,7 @@ proc GS_DrawPosition { c position } {
     $c raise $background
     $c raise lines
 
+    puts "$board GS_DrawPosition"
     for {set i 0} {$i < [string length $board]} {incr i} {
 	set w [expr $i % $width]
 	set h [expr $i / $width]
@@ -462,21 +543,22 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set currentPlayer [GS_WhoseMove $position]
 	for {set i 0} {$i < [expr $width * $height]} {incr i} {
 		for {set j 0} {$j < [expr $width * $height]} {incr j} {
-			set slideMoveVals($i,$j) "Lose"
+			set slideMoveVals($i,$j) "Win"
 		}
 	}
 	# Set the values of each slide component.  Since each slide component corresponds to a handful of
 	# actual moves (many moves can have the same slide component but different place components), the
 	# value that each slide component is given is the BEST of all the possible moves it can lead to.
-	# Think of this as a go-again, even though that's not how this is implemented is C.
+	# Think of this as a go-again, even though that's not how this is implemented in C.
 	foreach move $moveList {
 		set theMove [UnhashMove [lindex $move 0]]
+		#[lindex $move 1] will be "Lose" if this move leads to a losing position - i.e. this move is a win.
 		switch [lindex $move 1] {
-			"Win" {
-				set slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) "Win"
+			"Lose" {
+				set slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) "Lose"
 			}
 			"Tie" {
-				if {$slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) != "Win"} {
+				if {$slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) != "Lose"} {
 					set slideMoveVals([lindex $theMove 0],[lindex $theMove 1]) "Tie"
 				}
 			}
@@ -583,7 +665,29 @@ proc GS_HideMoves { c moveType position moveList} {
 
     $c dtag "all" "active"
     # DrawPosition raises the board (therefore hiding all the moves) and raises all the pieces on it.
+    puts "[UnhashPosition $position] GS_HideMoves"
     GS_DrawPosition $c $position
+
+# The block below is the naive way of doing this.  I wrote it because I was getting weird behavior
+# and was trying to see if the "cheap" way I do HideMoves above was to blame.  It isn't, so the
+# code below is commented out.
+#
+#    global arrows placeMoves width height passButton
+#    $c lower $passButton
+#    for {set i 0} {$i < $width} {incr i} {
+#	for {set j 0} {$j < $height} {incr j} {
+#		$c lower $placeMoves($i,$j)
+#		for {set k 0} {$k < $width} {incr k} {
+#			for {set l 0} {$l < $height} {incr l} {
+#				if {([expr $k - $i] == 0 && [expr $l - $j] != 0) || \
+#			    		([expr $k - $i] != 0 && [expr $l - $j] == 0) || \
+#			    		([expr abs ([expr $k - $i])] == [expr abs ([expr $l - $j])] && [expr $k - $i] != 0)} {
+#						$c lower $arrows($i,$j,$k,$l)
+#				}
+#			}
+#		}
+#	}
+#    }
 
 }
 
@@ -600,6 +704,7 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
 	### TODO if needed
+    puts "[UnhashPosition positionAfterUndo] GS_HandleUndo"
     GS_DrawPosition $c positionAfterUndo
 }
 

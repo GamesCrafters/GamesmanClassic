@@ -986,7 +986,13 @@ POSITION GetInitialPosition () {
 
 int NumberOfOptions ()
 {
-    return 5880; 
+    /*
+     * 2 win conditions (standard or misere)
+     * 8 styles of moves
+     * 245 valid board size/num pieces configurations
+     * 3 styles of scoring
+     */
+    return 2 * 8 * 245 * 3;
 }
 
 
@@ -1013,13 +1019,23 @@ int getOption ()
      * BOOLEAN scoreStraight = TRUE;
      * BOOLEAN moveDiagonal = TRUE;
      * BOOLEAN moveStraight = TRUE;
+     *
+     * There is also the question of whether this is standard or misere.
      */
     
+    int winConditionVal;
     int moveStyleVal;
     int boardSizeVal;
     int scoreVal;
     int i, j, k, l;
     
+    /* determine winConditionVal (0 to 1) */
+    if (gStandardGame) {
+	winConditionVal = 0;
+    } else {
+	winConditionVal = 1;
+    }
+
     /* determine moveStyleVal (0 to 7) */
     if (slide_rules == NO_SLIDE) {
 	moveStyleVal = 0;
@@ -1067,7 +1083,7 @@ int getOption ()
 	BadElse("getOption");
     }
     
-    return 245*8*scoreVal + 8*boardSizeVal + moveStyleVal + 1;
+    return 245*8*2*scoreVal + 8*2*boardSizeVal + 2*moveStyleVal + winConditionVal + 1;
 }
 
 
@@ -1086,14 +1102,22 @@ void setOption (int option)
 {
     option = option - 1;
 
-    int moveStyleVal = option % 8;
-    int boardSizeVal = (option/ 8) % 245;
-    int scoreVal = (option / (8 *245)) % 3;
+    int winConditionVal = option % 2;
+    int moveStyleVal = (option / 2) % 8;
+    int boardSizeVal = (option / (2 * 8)) % 245;
+    int scoreVal = (option / (2 * 8 * 245)) % 3;
 
     int slide_op; 
     int move_op;
     
     int i, j, k, l;
+
+    /* set the options indicated by winConditionVal */
+    if (winConditionVal == 0) {
+	gStandardGame = TRUE;
+    } else {
+	gStandardGame = FALSE;
+    }
 
     /* set the options indicated by moveStyleVal */
     if (moveStyleVal == 0) {
