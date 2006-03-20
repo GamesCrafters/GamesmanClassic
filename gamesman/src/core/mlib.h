@@ -6,7 +6,7 @@
 void LibInitialize(int,int,int,BOOLEAN);
 BOOLEAN NinaRow(void*,void*,int,int);
 BOOLEAN statelessNinaRow(void*,void*,int);
-BOOLEAN AmountOfWhat(void*,void*,int);
+BOOLEAN amountOfWhat(void*,void*,int);
 void Test();
 
 BOOLEAN mymemcmp(void*,void*,int);
