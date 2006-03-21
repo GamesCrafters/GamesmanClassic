@@ -105,44 +105,46 @@ void SetSolver()
 
 VALUE DetermineValue(POSITION position)
 {
-        gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
-
-        gAnalysisLoaded = LoadAnalysis();
-
-        if(gLoadDatabase && LoadDatabase()) {
-                if (gPrintDatabaseInfo)
-                        printf("\nLoading in Database for %s...",kGameName);
-
-                if (GetValueOfPosition(position) == undecided) {
-                        if (gPrintDatabaseInfo)
-                                printf("\nRe-evaluating the value of %s...", kGameName);
-                        gSolver(position);
-                        AnalysisCollation();
-
-                        if(gSaveDatabase) {
-                                printf("\nWriting the values of %s into a database...", kGameName);
-                                SaveDatabase();
-                                SaveAnalysis();
-                        }
-                }
-        } else {
-                if (gPrintDatabaseInfo)
-                        printf("\nEvaluating the value of %s...", kGameName);
-                StoreValueOfPosition(position, undecided);
-                gSolver(position);
-                showStatus(Clean);
-                AnalysisCollation();
-
-                if(gSaveDatabase) {
-                        SaveDatabase();
-                        SaveAnalysis();
-                }
-        }
-
-        gUseGPS = FALSE;
-        gValue = GetValueOfPosition(position);
-
-        return gValue;
+	gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
+	
+	if (gAnalyzing && !LoadAnalysis()) {
+		gLoadDatabase = FALSE;
+	}
+	
+	if(gLoadDatabase && LoadDatabase()) {
+		if (gPrintDatabaseInfo)
+			printf("\nLoading in Database for %s...",kGameName);
+		
+		if (GetValueOfPosition(position) == undecided) {
+			if (gPrintDatabaseInfo)
+				printf("\nRe-evaluating the value of %s...", kGameName);
+			gSolver(position);
+			AnalysisCollation();
+			
+			if(gSaveDatabase) {
+				printf("\nWriting the values of %s into a database...", kGameName);
+				SaveDatabase();
+				SaveAnalysis();
+			}
+		}
+	} else {
+		if (gPrintDatabaseInfo)
+			printf("\nEvaluating the value of %s...", kGameName);
+		StoreValueOfPosition(position, undecided);
+		gSolver(position);
+		showStatus(Clean);
+		AnalysisCollation();
+		
+		if(gSaveDatabase) {
+			SaveDatabase();
+			SaveAnalysis();
+		}
+	}
+	
+	gUseGPS = FALSE;
+	gValue = GetValueOfPosition(position);
+	
+	return gValue;
 }
 
 /* Starts a normal textbased game. */

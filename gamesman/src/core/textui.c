@@ -903,7 +903,7 @@ void AnalysisMenu()
 
 	/* Check if analysis DB loaded */
 	do {
-		if(!gAnalysisLoaded) {
+		if(!(gAnalysisLoaded = LoadAnalysis())) {
 			printf("\nNo analysis DB found.\nA new one must be generated in order to view analysis results.\n");
 			printf("\tr)\t(R)e-solve %s and generate an analysis DB.\n\t\t  WARNING: this could take a very long time.\n", kGameName);
 			printf("\tb)\t(B)ack = Return to previous activity\n");

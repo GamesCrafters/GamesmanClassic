@@ -309,6 +309,7 @@ void analyze() {
         	SaveDatabase();
         	SaveAnalysis();
         }
+
 		gAnalysisLoaded = TRUE;
 	}
 }
@@ -497,12 +498,14 @@ BOOLEAN LoadAnalysis() {
     /* Open file for reading */
     if((fp = fopen(gameFileName, "rb")) == NULL) {
     	printf("Failed!");
+    	Stopwatch();
         return FALSE;
     }
    
     /* Check file version */
     if((fread(&version, sizeof(char), 1, fp) != 1) || (version != 2)) {
     	printf("Failed!");
+    	Stopwatch();
         return FALSE;
     }
     
@@ -548,6 +551,7 @@ BOOLEAN LoadAnalysis() {
     
     if(fread(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
     	printf("Failed!");
+    	Stopwatch();
     	return FALSE;
     }
     
@@ -586,12 +590,14 @@ void SaveAnalysis() {
     /* Open file for reading */
     if((fp = fopen(gameFileName, "wb")) == NULL) {
     	printf("Failed!");
+    	Stopwatch();
         return;
     }
    
     /* Check file version */
     if(fwrite(&version, sizeof(char), 1, fp) != 1) {
     	printf("Failed!");
+    	Stopwatch();
         return;
     }
     
@@ -637,6 +643,7 @@ void SaveAnalysis() {
     */
     if(fwrite(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
     	printf("Failed!");
+    	Stopwatch();
     	return;
     }
     
@@ -874,13 +881,16 @@ void writeXML(STATICMESSAGE msg)
             xmlFile = prepareXMLFile();
             break;
         case Save:
-            if(xmlFile != 0)
+            if(xmlFile != NULL)
             {
+            	printf("\nSaving XML data");
                 writeXMLData(xmlFile);
+            } else {
+            	printf("\nCouldn't write XML data");
             }
             break;
         case Clean:
-            if(xmlFile != 0)
+            if(xmlFile != NULL)
             {
                 closeXMLFile(xmlFile);
                 xmlFile=0;
@@ -896,12 +906,14 @@ FILE* prepareXMLFile()
 {
   FILE * xmlFile;
   char xmlPath[256];
+  char xmlDir[256];
   
-  sprintf(xmlPath, "analysis/xml/%s.xml", kDBName);
+  sprintf(xmlDir, "analysis/%s/xml", kDBName);
+  mkdir(xmlDir,0755);
   
-  mkdir("analysis/xml",0755);
+  sprintf(xmlPath, "analysis/%s/xml/m%s.xml", kDBName, kDBName);
   
-  xmlFile = fopen(xmlPath,"w");
+  xmlFile = fopen(xmlPath,"w+");
   fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
   fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
   return xmlFile;
