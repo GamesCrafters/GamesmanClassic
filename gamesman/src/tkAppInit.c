@@ -567,6 +567,12 @@ PrimitiveCmd(dummy, interp, argc, argv)
 
 /* [C_GetValueMoves $position] 
  * returns {move value remoteness delta_remoteness}
+ *
+ * Caveat: C_GetValueMoves is the only way Tcl has to get moves.
+ *  This means that C_GetValueMoves will be called regardless of whether
+ *  the game is actually solved or not. 
+ *  Therefore, any piece of code required by GetValueMovesCmd can not
+ *  have any type of error side effect due to an unsolved game.
  */
 static int
 GetValueMovesCmd(dummy, interp, argc, argv)
