@@ -10,6 +10,8 @@
 **
 ** DATE:	2005-01-11
 **
+** LAST CHANGE: $Id: gameplay.c,v 1.39 2006-03-21 18:26:11 ogren Exp $
+**
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
 **		Released under the GPL:
