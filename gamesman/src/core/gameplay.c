@@ -1705,7 +1705,9 @@ REMOTENESS FindDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr, VALUE val)
         case tie:
                 return FindTieingDelta(remote, remoteptr);
         default:
-                BadElse("Error: Unrecognized Move Value\n");
+	        //BadElse("FindDelta Given Unrecognized Move Value\n");
+	        //hack s.t. this is not displayed during GUI use
+	        return kBadRemoteness;
         }
 
         // reaching this is a bad, bad thing
