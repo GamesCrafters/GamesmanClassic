@@ -17,6 +17,7 @@
 #include "hash.h"
 #include <string.h>
 #include "core/analysis.h"
+#include "core/gameplay.h"
 
 extern STRING gValueString[]; /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
@@ -565,7 +566,7 @@ PrimitiveCmd(dummy, interp, argc, argv)
 }
 
 /* [C_GetValueMoves $position] 
- * returns {move value remoteness}
+ * returns {move value remoteness delta_remoteness}
  */
 static int
 GetValueMovesCmd(dummy, interp, argc, argv)
@@ -576,8 +577,10 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   MOVELIST *ptr, *head;
-  VALUE value;
+  VALUE value, j_value, m_value;
   char theAnswer[10000], tmp[1000];
+  VALUE_MOVES *vMoves;
+  REMOTENESS remote, delta;
 
   if (argc != 2) {
     interp->result = "wrong # args: GetValueMoves (int)Position";
@@ -593,8 +596,26 @@ GetValueMovesCmd(dummy, interp, argc, argv)
       
       POSITION temp = DoMove(position,ptr->move);
       value = GetValueOfPosition(temp);
-      
       //value = GetValueOfPosition(DoMove(position,ptr->move));
+      remote = Remoteness(temp);
+      vMoves = GetValueMoves(position);
+
+      //Flip values since moving to a winning position is a losing move, etc.
+      if (value == win) {
+	j_value = LOSEMOVE;
+	m_value = lose;
+      } else if (value == tie) {
+	j_value = TIEMOVE;
+	m_value = tie;
+      } else if (value == lose) {
+	j_value = WINMOVE;
+	m_value = win;
+      } else {
+	j_value = -1;
+	m_value = -1;
+      }
+
+      delta = FindDelta(remote, vMoves->remotenessList[j_value], value);
 
       if (gGoAgain(position,ptr->move)) {
 	switch(value) {
@@ -610,15 +631,19 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 	      gValueString[value]);
       */
 
-      /* save  move, value, remoteness */
-      sprintf(tmp,"{ %d %s %d } ",
+      /* save  move, value, remoteness, delta_remoteness */
+      sprintf(tmp,"{ %d %s %d %d } ",
 	      (ptr->move), 
 	      gValueString[value], 
-	      (int) Remoteness(temp));
+	      (int) remote,
+	      (int) delta);
       
       /*
-      printf("Move: %d, Value: %s, Remoteness: %d \n", (ptr->move),
-	     gValueString[value], (int)Remoteness(temp));
+      printf("Move: %d, Value: %s, Remoteness: %d, Delta: %d \n", 
+	     (ptr->move), 
+	     gValueString[value], 
+	     (int)remote, 
+	     (int)delta);
       */
 
       /* If this barfs, change 'char' to 'const char' */
@@ -633,6 +658,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+
 
 static int
 RandomCmd(dummy, interp, argc, argv)
