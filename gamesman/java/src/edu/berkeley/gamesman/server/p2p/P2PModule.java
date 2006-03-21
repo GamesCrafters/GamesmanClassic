@@ -149,7 +149,7 @@ public class P2PModule implements IModule {
 	throws ModuleInitializationException {}
 	
 	public boolean typeSupported(String requestTypeName) {
-		return false;
+		return (requestTypeName == Const.END_OF_GAME || requestTypeName == Const.SEND_MOVE);
 	}
 	
 	

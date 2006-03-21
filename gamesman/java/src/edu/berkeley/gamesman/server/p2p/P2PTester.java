@@ -67,7 +67,8 @@ public class P2PTester {
 					mod.handleRequest(fromAFinal, toAFinal);
 					TestModuleResponse aRes3 = (TestModuleResponse) toAFinal;
 					Map res3Headers = aRes3.getHeadersWritten();				
-					System.out.println("@@@@@@This was sent back to A (should be 'null'): "+res2Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was TYPE of what was sent back to A (should be 'Ack end'): "+res3Headers.get("type"));
+					
 					
 					
 				} catch(ModuleException e) {
@@ -100,7 +101,7 @@ public class P2PTester {
 					mod.handleRequest(fromBreq2, toBres2);
 					TestModuleResponse bRes2 = (TestModuleResponse) toBres2;
 					Map bRes2Headers = bRes2.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to B (should be 'Ack end'): "+bRes2Headers.get("type"));
+					System.out.println("@@@@@@This was sent back to B (should be 'null'): "+bRes2Headers.get(Const.MOVE_VALUE));
 				} catch(ModuleException e) {
 					System.out.println("### ModuleException: "+e.getLocalizedMessage());
 					return;
