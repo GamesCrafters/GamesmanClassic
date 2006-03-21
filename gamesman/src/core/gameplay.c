@@ -1548,6 +1548,22 @@ MOVE GetComputersMove(POSITION thePosition)
 
 
 /* Jiong */
+/****
+ ** GetValueMoves(POSITION)
+ **
+ ** Input: a position
+ ** Returns: a sorted list of moves from that position as a VALUE_MOVES*
+ **
+ ** The returned struct is composed of a moveList and a remotenessList
+ ** indexed by the type of move (WINMOVE, TIEMOVE, LOSEMOVE).
+ **
+ ** These sublists are accessed by:
+ **  ptr->moveList[WINMOVE]
+ **  ptr->remotenessList[WINMOVE]
+ **  etc...
+ **
+ ** The sublists correspond to each other based on move type.
+ ****/
 VALUE_MOVES* GetValueMoves(POSITION thePosition)
 {
         MOVELIST *ptr, *head;
