@@ -41,7 +41,17 @@ public class RegistrationModule implements IModule
 	 * 
 	 */
 	public boolean typeSupported(String requestTypeName) {
-		return false;
+		//All supported types
+	return 	requestTypeName.equals(Macros.REG_MOD_REGISTER_USER) 	||
+		 	requestTypeName.equals(Macros.REG_MOD_GET_USERS_ONLINE) ||
+		 	requestTypeName.equals(Macros.REG_MOD_GET_OPEN_GAMES) 	||
+		 	requestTypeName.equals(Macros.REG_MOD_REGISTER_NEW_GAME)||
+		 	requestTypeName.equals(Macros.REG_MOD_UNREGISTER_GAME)  ||
+		 	requestTypeName.equals(Macros.REG_MOD_JOIN_GAME_NUMBER) ||
+		 	requestTypeName.equals(Macros.REG_MOD_JOIN_GAME_USER)	||
+		 	requestTypeName.equals(Macros.REG_MOD_REFRESH_STATUS)	||
+		 	requestTypeName.equals(Macros.REG_MOD_ACCEPT_CHALLENGE) || 
+		 	requestTypeName.equals(Macros.REG_MOD_UNREGISTER_USER); 
 	}
 	
 	/**
