@@ -271,6 +271,7 @@ proc GS_Initialize { c } {
     set arrowshape [list [expr 2 * $dot] [expr 2 * $dot] $dot]
     set linewidth [expr 0.5 * $dot]
     pack $c
+
     # creates a base which to hide the arrows
     $c create rectangle 0 0 $canvasWidth $canvasWidth -fill white -tags base
 
@@ -419,11 +420,16 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     # incr determines the animation speed
-    global incr
+    global incr gAnimationSpeed dist
 
-    ## TODO: MAKE INCR CHANGE WITH gAnimationSpeed VARIABLE! ##
+    set speed [expr 100 / pow(2, $gAnimationSpeed)]
 
-    set incr 2
+    # If things get too fast, just make it instant
+    if {$speed < 10} {
+	set speed 10
+    }
+
+    set incr [expr $dist / $speed]
     #figure out which piece to move and which direction
     set arrayNum [getArraynum [GetXCoord $theMove] [GetYCoord $theMove]]
     set dir [GetDirection $theMove]
@@ -580,6 +586,52 @@ proc GS_HideMoves { c moveType position moveList} {
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+
+    # incr determines the animation speed
+    global incr gAnimationSpeed dist gBoardSize
+
+    set speed [expr 100 / pow(2, $gAnimationSpeed)]
+
+    # If things get too fast, just make it instant
+    if {$speed < 10} {
+	set speed 10
+    }
+
+    set incr [expr $dist / $speed]
+
+    # Let's find where the piece went to (our new starting point). Compare
+    # currentPosition and positionAfterUndo to see where there is a value in
+    # currentPosition that isn't there in positionAfterUndo.
+    set currentboard [string range [C_GenericUnhash $currentPosition [expr $gBoardSize * $gBoardSize]] 0 [expr $gBoardSize * $gBoardSize - 1]]
+    set boardafter [string range [C_GenericUnhash $positionAfterUndo [expr $gBoardSize * $gBoardSize]] 0 [expr $gBoardSize * $gBoardSize - 1]]
+
+    for { set i 0 } { $i < [expr $gBoardSize * $gBoardSize] } { incr i } {
+	set temp [string index $currentboard $i]
+
+	if { [string compare $temp "w"] == 0 && [string compare [string index $boardafter $i] " "] == 0 } {
+	    set pieceToMove blue$i
+	}
+	if { [string compare $temp "b"] == 0 && [string compare [string index $boardafter $i] " "] == 0 } {
+	    set pieceToMove red$i
+	}
+    }
+
+    set dir [GetDirection $theMoveToUndo]
+
+    # Flip dir to the opposite direction
+    switch $dir {
+	0 { set dir 2 }
+	1 { set dir 3 }
+	2 { set dir 0 }
+	3 { set dir 1 }
+	4 { set dir 6 }
+	5 { set dir 7 }
+	6 { set dir 4 }
+	7 { set dir 5 }
+    }
+    
+    #start moving the piece in the direction
+    movePiece $c $pieceToMove $dir $incr
 
     GS_DrawPosition $c $positionAfterUndo
 }
