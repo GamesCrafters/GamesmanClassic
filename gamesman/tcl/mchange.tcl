@@ -216,7 +216,7 @@ proc GS_Initialize { c } {
 proc DrawBoard { c } {
     
     # Draw base for hiding things
-    global CanvasWidth CanvasHeight
+    global CanvasWidth CanvasHeight CoordsList r
     $c create rect 0 0 $CanvasWidth $CanvasHeight -fill white -outline white -tag base
 
     # Piece radius
@@ -305,7 +305,7 @@ proc DrawBoard { c } {
 	    -fill black -tag [list base slots]
     }
 
-    # 2006-02-27 Change x's to o's as well, just of a different color
+    # 2006-02-27 Change x's to o's as well, just of a different color (blue)
     for {set i 0} {$i < 27} {incr i 2} {
 	set x [lindex $CoordsList $i]
     	set y [lindex $CoordsList [expr $i + 1]]
@@ -313,7 +313,7 @@ proc DrawBoard { c } {
     	    -fill blue -tag x[expr $i/2]
     } 
 
-    # Draw the o's
+    # Draw the red o's
     for {set i 0} {$i < 27} {incr i 2} {
 	set x [lindex $CoordsList $i]
 	set y [lindex $CoordsList [expr $i + 1]]
@@ -444,7 +444,76 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+
+    # Redraw board to remove arrows
+    $c lower all
+    $c raise base
+    GS_DrawPosition $c $oldPosition
+
+    global CoordsList r
+    set start [expr $theMove % 15]
+    set end [expr $theMove / 15]
+
+    set x0 [lindex $CoordsList [expr 2 * $start]]
+    set y0 [lindex $CoordsList [expr 2 * $start + 1]]
+    set x1 [lindex $CoordsList [expr 2 * $end]]
+    set y1 [lindex $CoordsList [expr 2 * $end + 1]]
+
+    # Four steps:
+    # 1) Draw dummy shape at x0, y0
+    # 2) Hide actual piece at x0, y0
+    # 3) Animate dummy from x0, y0 to x1, y1
+    # 4) Kill dummy, draw new position
+
+    set oldboard [Unhash $oldPosition]
+    set piece [string index $oldboard [expr 2 * $start]]
+
+    # 1 = red (o), 2 = blue (x)
+    if { $piece == 1 } {
+	set color "red"
+	$c lower o$start
+    } else {
+	set color "blue"
+	$c lower x$start
+    }
+
+    $c create oval [expr $x0 - $r] [expr $y0 - $r] [expr $x0 + $r] [expr $y0 + $r] -fill $color -tag move
+    animate $c move [list $x0 $y0] [list $x1 $y1]
+    $c delete move
+
     GS_DrawPosition $c $newPosition
+}
+
+####################################################
+# This animates a piece from origin to destination #
+####################################################
+proc animate { c piece origin destination } {
+
+    global gAnimationSpeed
+
+    set x0 [lindex $origin 0]
+    set x1 [lindex $destination 0]
+    set y0 [lindex $origin 1]
+    set y1 [lindex $destination 1]
+
+    # Relative speed factor gotten from gAnimationSpeed
+    # speed should equal the amount of ms we take to run this whole thing
+    set speed [expr 70 / pow(2, $gAnimationSpeed)]
+    
+    # If things get too fast, just make it instant
+    if {$speed < 10} {
+	set speed 10
+    }
+
+    set dx [expr ($x1 - $x0) / $speed]
+    set dy [expr ($y1 - $y0) / $speed]
+
+    for {set i 0} {$i < $speed} {incr i} {
+	$c move $piece $dx $dy
+	
+	after 1
+	update idletasks
+    }
 }
 
 
@@ -553,6 +622,37 @@ proc GS_HideMoves { c moveType position moveList} {
 # By default this function just calls GS_DrawPosition, but you certainly don't need to keep that.
 
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+
+    # Redraw board to remove arrows
+    $c lower all
+    $c raise base
+    GS_DrawPosition $c $currentPosition
+
+    global CoordsList r
+    set end [expr $theMoveToUndo % 15]
+    set start [expr $theMoveToUndo / 15]
+
+    set x0 [lindex $CoordsList [expr 2 * $start]]
+    set y0 [lindex $CoordsList [expr 2 * $start + 1]]
+    set x1 [lindex $CoordsList [expr 2 * $end]]
+    set y1 [lindex $CoordsList [expr 2 * $end + 1]]
+
+    set oldboard [Unhash $currentPosition]
+    set piece [string index $oldboard [expr 2 * $start]]
+
+    # 1 = red (o), 2 = blue (x)
+    if { $piece == 1 } {
+	set color "red"
+	$c lower o$start
+    } else {
+	set color "blue"
+	$c lower x$start
+    }
+
+    $c create oval [expr $x0 - $r] [expr $y0 - $r] [expr $x0 + $r] [expr $y0 + $r] -fill $color -tag move
+    animate $c move [list $x0 $y0] [list $x1 $y1]
+    $c delete move
+
     GS_DrawPosition $c $positionAfterUndo
 }
 
