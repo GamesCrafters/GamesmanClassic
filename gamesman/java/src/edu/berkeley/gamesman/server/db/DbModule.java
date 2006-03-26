@@ -1,3 +1,9 @@
+//bugs: gzip reading is broken at 2134
+//this gives 772; should be 1026
+//caused by byte alignment being broken
+//broken at least at 1600
+//help: I do not understand why this is happening!
+
 package edu.berkeley.gamesman.server.db;
 
 import edu.berkeley.gamesman.server.IModule;
@@ -38,20 +44,35 @@ public class DbModule implements IModule
 		short ret=0;		
 		for (byte i=0;i<2;i++){ // compiler better unroll this
 			ret <<= 8;
-			ret |= p_src[i];
+			ret |= (((char)p_src[i])&0xFF);
+			
 		}
 		return ret;
 	}
-	
 
-	/*GC storage of this is fux0red*/
+	/*generate int (which numpositions is stored as()*/
+	/*Note: using broken db format!*/
+	public static int makeInt( byte[] p_src)
+	{
+		/*
+		 * if (p_src.length != 2){ //ERROR return 0; }
+		 */
+		int ret=0;		
+		for (byte i=0;i<4;i++){ // compiler better unroll this
+			ret <<= 8;
+			ret = ret | (((char)p_src[i])&0xFF);
+			System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
+		}
+		return ret;
+	}
+	/*positions passed as 64 bit*/
 	public static long makeLong(byte[] p_src)	{
 		/*
 		 * if (p_src.length != 2){ //ERROR return 0; }
 		 */
 		long ret=0;
 		// assert(p_src.length == 8); //exception
-		for (byte i=0;i<4;i++){ // compiler better unroll this
+		for (byte i=0;i<8;i++){ // compiler better unroll this
 			ret = ret<< 8;
 			ret = ret | (((char)p_src[i])&0xFF);
 			System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
@@ -73,6 +94,7 @@ public class DbModule implements IModule
 			byte[] sbuf = new byte[2]; // memory buffer for reading in short
 			short s;
 			byte[] lbuf = new byte[8]; // memory buffer for reading in long			
+			byte[] ibuf = new byte[4]; // memory buffer for reading in int
 			int num_pos=0; // this really should be long; let's hope we don't have
 							// 16 gb databases anytime soon
 			//if (pl.length!=0)
@@ -82,7 +104,7 @@ public class DbModule implements IModule
 			if (len>configArgs.length)
 				throw new ModuleInitializationException("corrupted arguments");
 			
-			for (int i = 2;i<len+2;i++){
+			for (int i = 2;i<len;i++){
 				try {
 				f = new File(baseDir + configArgs[i]);
 				if (!f.exists()){
@@ -110,14 +132,17 @@ public class DbModule implements IModule
 					continue;
 				}
 								
-				if (gz.read(lbuf, 0, lbuf.length) == -1) // error log					
+				if (gz.read(ibuf, 0, ibuf.length) == -1) // error log					
 					continue;
 				
 				// FIXME: I need a version number here!!
 				// actually we are ignoring this for now
-				num_pos = (int)makeLong(lbuf); // this is the size (why this is long i don't know)
+				//num_pos = (int)makeLong(lbuf); // this is the size (why this is long i don't know)
+				num_pos = makeInt(ibuf);
+				
 				//only supports reading 32 bit files - who cares
 				System.out.println("num pos is " + num_pos);
+				gz.skip(4); //4 bytes of 0's in broken format
 				buf = new short[num_pos];
 				// now load in the entire system
 				for (int j=0;j<num_pos;j++){
@@ -126,8 +151,13 @@ public class DbModule implements IModule
 						break;			
 					}
 					s = makeShort(sbuf); // this is the position
-					if (j<10)
-						System.out.println("pos is " + s);
+					//if (j>=13400&&j<13410)
+					if (j>=2130&&j<2140){
+					
+						System.out.println(j + " pos is " + s);
+						System.out.println("high byte is " + sbuf[0] +
+								"low is " + sbuf[1]);
+					}
 					buf[j]=s;
 				}
 				}
@@ -149,7 +179,7 @@ public class DbModule implements IModule
 	}
 
 	// our request goes here
-	// must by mycmd as this is the only one supported
+	// must be mycmd as that is the only cmd supported
     public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException{
     	String hlen = req.getHeader("hash_length");
     	String gamename = req.getHeader("game_name");
@@ -182,12 +212,13 @@ public class DbModule implements IModule
     			//if (req.getInputStream().read(lbuf, 0, 8)==-1){ // must be aligned															
     				//module exception
     			//}
-    			long l = w.readLong();
-    			System.out.println("accessing " + l);
+    			long l = w.readLong(); //64 bit, though we can only use 32
+    			System.out.println("accessing " + (int)l);
     			//int l = (int)makeLong(lbuf); //only support 32 bit
     			short s = htable[(int)l];    			
     			//write in Big Endian to stream
-    			res.getOutputStream().write(s>>8);
+    			System.out.println("Got " + s);
+    			res.getOutputStream().write((s>>8)&0xFF);
     			res.getOutputStream().write(s&0xFF);
     		}
     		}
@@ -240,14 +271,17 @@ public class DbModule implements IModule
 			short [] outbuf = new short[inbuf.length];
 			//again: only 32 bit (long limits)
 			long lastpos = 0;
+			//subclass this crap: and do comparable stuff to sort!
+			//yay!
 			
 			//we iterate in ascending order to grab correct data!
 			for (Iterator p=insort.entrySet().iterator(); p.hasNext();){
 				Map.Entry v = (Map.Entry)p.next();
 				long vn = ((Long)(v.getKey())).longValue();
-				gz.skip(vn-lastpos);
-				lastpos = vn;
-							
+				System.out.println("seeking by " + (2*vn-lastpos));
+				gz.skip(2*vn-lastpos); //short array
+				lastpos = 2*vn+2;
+							//wiki this stuff
 				if (gz.read(sbuf, 0, 2) == -1) // error log
 					break;
 				
@@ -263,9 +297,11 @@ public class DbModule implements IModule
     			res.getOutputStream().write(outbuf[i]&0xFF);
 			}
 			gz.close();
+    	//fixme: gzip is fux0red
     		}
 			catch (Exception e){
 					//throw module exception (who needs details?)
+				System.out.println("Some exception fired");
 				return;
 			}
 			//done!
