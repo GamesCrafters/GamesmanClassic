@@ -504,7 +504,33 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+
+#     global gCSize gRows gBoardsize
+#     set gBoardsize [sum $gRows]
+
+#     set numX 0
+#     set numO 0
+
+#     set pieceStr [string range [C_GenericUnhash $position $gBoardsize] \
+# 		      0 [expr $gBoardsize-1]]
+#     for {set slot 0} {$slot < $gBoardsize} {set slot [expr $slot+1]} {
+# 	if {[string compare [string index $pieceStr $slot] "x"] == 0} {
+# 	    incr numX
+# 	} elseif {[string compare [string index $pieceStr $slot] "o"] == 0} {
+# 	    incr numO
+# 	}
+#     }
+    
+#     puts $numX
+#     puts $numO
+
+#     if {$numX > $numO} {
+# 	return "o"
+#     } elseif {$numX == $numO} {
+# 	return "x"
+#     } else {
+# 	BadElse "more o's than x's"
+#     }
 }
 
 
@@ -521,9 +547,37 @@ proc GS_WhoseMove { position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
-    GS_DrawPosition $c $newPosition
+    animateBlockDrop $c $newPosition $theMove 1
 }
 
+# does the animation of the blocks (direction: 1==do, -1==undo)
+proc animateBlockDrop { c position theMove direction } {
+    global gCSize gAnimationSpeed
+    set amount [expr -$gCSize]
+    if {$direction == 1} {
+	$c move X$theMove 0 $amount
+	$c move O$theMove 0 $amount
+	GS_DrawPosition $c $position
+    }
+    set speed [expr (60 - $gAnimationSpeed*10)*4]
+    set increment [expr -$amount/$speed]
+    for {set i 0} {$i < $speed} {incr i} {
+	if {$direction == -1} {
+	    $c move X$theMove 0 [expr 0-$increment]
+	    $c move O$theMove 0 [expr 0-$increment]
+	} else {
+	    $c move X$theMove 0 $increment
+	    $c move O$theMove 0 $increment
+	}
+	after 1
+	update idletasks
+    }
+    if {$direction == -1} {
+	GS_DrawPosition $c $position
+	$c move X$theMove 0 [expr 0-$amount]
+	$c move O$theMove 0 [expr 0-$amount]
+    }
+}
 
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
@@ -594,7 +648,7 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
     ### TODO if needed
-    GS_DrawPosition $c $positionAfterUndo
+    animateBlockDrop $c $positionAfterUndo $theMoveToUndo -1
 }
 
 
