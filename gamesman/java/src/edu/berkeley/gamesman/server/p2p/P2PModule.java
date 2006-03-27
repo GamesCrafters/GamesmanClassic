@@ -5,31 +5,32 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
-import java.util.HashMap;
 import java.util.Hashtable;
 
-
+/**
+ * IModule that handles message passing between two clients. 
+ * @author User
+ *
+ */
 public class P2PModule implements IModule {
 	
 	static Hashtable theGames = new Hashtable(200);
 	
 	/**
-	 * Registers a game between two players. 
+	 * Registers a game between two players. Should be called by Registration module
+	 * to register a game between players.
 	 * 
 	 * @param firstPlayer - Player who will move first
 	 * @param secondPlayer - Player who will move second
 	 */
 	public static void registerNewGame(String firstPlayer, String secondPlayer) {
-		int x = 0;
-		x++;
 		ActiveGame game = new ActiveGame(firstPlayer, secondPlayer);
 		GameInfoContainer info = new GameInfoContainer(secondPlayer);
 		debugPrint("Going to add the game and its info to the hashtable");
 		synchronized(theGames) {
 			theGames.put(game, info);
-			//new ActiveGame(firstPlayer, secondPlayer), new GameInfoContainer(secondPlayer));
 		}
-		debugPrint("Registering new game");
+		debugPrint("Registered new game!");
 	}
 	
 	
@@ -38,16 +39,21 @@ public class P2PModule implements IModule {
 	 * 
 	 * @param o
 	 */
-	public static void debugPrint(Object o) {
-		if(Const.DEBUGGING)  System.out.println("*** "+o.toString());
+	private static void debugPrint(Object o) {
+		if(Const.PRINT_DEBUGGING)  System.out.println("*** "+o.toString());
 	}
 	
+	private static void warn(Object o) {
+		if(Const.PRINT_WARNINGS) {
+			System.err.println("WARNING: "+o.toString());
+		}
+	}
 	/**
 	 * Class representing a game between two players. Holds two Strings representing players.
 	 * @author ramesh
 	 *
 	 */
-	static class ActiveGame {
+	protected static class ActiveGame {
 		protected String player1;
 		protected String player2;
 		
@@ -74,12 +80,10 @@ public class P2PModule implements IModule {
 			} else {
 				theString =  (player1+"===with==="+player2);
 			}
-			//debugPrint("  Calling toString: "+theString);
 			return theString;
 		}
 		
 		public int hashCode() {
-			//debugPrint("Hashing string: "+this.toString());
 			return this.toString().hashCode();
 		}
 		
@@ -89,8 +93,6 @@ public class P2PModule implements IModule {
 			} else {
 				ActiveGame that = (ActiveGame) o;
 				return(this.toString().equals(that.toString()));
-				//return ((this.player1 == that.player1 && this.player2 == that.player2) ||
-				//		(this.player2 == that.player1 && this.player1 == that.player2));
 			}
 		}
 	}
@@ -102,7 +104,7 @@ public class P2PModule implements IModule {
 	 * @author Ramesh Sridharan
 	 *
 	 */
-	static class GameInfoContainer {
+	protected static class GameInfoContainer {
 		protected String whoseTurn;
 		protected IModuleResponse pendingResponse;
 		
@@ -149,11 +151,10 @@ public class P2PModule implements IModule {
 	throws ModuleInitializationException {}
 	
 	public boolean typeSupported(String requestTypeName) {
-		return (requestTypeName == Const.END_OF_GAME || requestTypeName == Const.SEND_MOVE);
+		return (requestTypeName.equals(Const.END_OF_GAME) || 
+				requestTypeName.equals(Const.SEND_MOVE) ||
+				requestTypeName.equals(Const.SEND_RESIGNATION));
 	}
-	
-	
-	
 	
 	/**
 	 * Handles requests passed between two players. 
@@ -163,7 +164,7 @@ public class P2PModule implements IModule {
 	public void handleRequest(IModuleRequest req, IModuleResponse res)
 	throws ModuleException {
 		String incomingMove = null;
-		if(req.getHeader("type") != Const.END_OF_GAME) {
+		if(req.getHeader("type").equals(Const.SEND_MOVE)) {
 			incomingMove	= req.getHeader(Const.MOVE_VALUE);
 		}
 		String destPlayer	= req.getHeader(Const.DESTINATION_PLAYER);
@@ -178,26 +179,50 @@ public class P2PModule implements IModule {
 		gameStatus = (GameInfoContainer) theGames.get(theGame);
 		IModuleResponse waitingResponse = gameStatus.changePendingResponse(res);
 		debugPrint("");
-		if(req.getHeader("type") == Const.END_OF_GAME) {
+		
+		// possibly clean this up to avoid code duplication
+		if(req.getHeader("type").equals(Const.END_OF_GAME)) {
 			debugPrint("Game over!");
 			waitingResponse.setHeader(Const.TYPE, Const.SEND_MOVE);
-			waitingResponse.setHeader(Const.MOVE_VALUE, "");
+			waitingResponse.setHeader(Const.MOVE_VALUE, "null");
 			waitingResponse.setHeader(Const.DESTINATION_PLAYER, destPlayer);
 			waitingResponse.setHeader(Const.SOURCE_PLAYER, srcPlayer);
 			res.setHeader("type", Const.ACKNOWLEDGE_END);
-			synchronized(this) {
-				notify();
+			res.setHeader(Const.DESTINATION_PLAYER, destPlayer);
+			res.setHeader(Const.SOURCE_PLAYER, srcPlayer);
+			synchronized(gameStatus) {
+				gameStatus.notifyAll();
 			}
+			theGames.remove(theGame);
+			return;
+		} else if(req.getHeader("type").equals(Const.SEND_RESIGNATION)) {
+			waitingResponse.setHeader(Const.TYPE, Const.SEND_RESIGNATION);
+			waitingResponse.setHeader(Const.SOURCE_PLAYER, srcPlayer);
+			waitingResponse.setHeader(Const.DESTINATION_PLAYER, destPlayer);
+			res.setHeader("type", Const.ACKNOWLEDGE_RESIGNATION);
+			res.setHeader(Const.DESTINATION_PLAYER, destPlayer);
+			res.setHeader(Const.SOURCE_PLAYER, srcPlayer);
+			
+			synchronized(gameStatus) {
+				gameStatus.notifyAll();
+			}
+			theGames.remove(theGame);
 			return;
 		}
 		// Error-checking
 		if((waitingResponse == null) && (incomingMove != null)) {
-			throw new ModuleException(Const.INVALID_START_OF_GAME, "Game between "+srcPlayer+" and "+destPlayer+" has not yet been initialized");
+			warn("Game between "+srcPlayer+" and "+destPlayer+" has not yet been initialized");
+			return;
+			//throw new ModuleException(Const.INVALID_START_OF_GAME, "Game between "+srcPlayer+" and "+destPlayer+" has not yet been initialized");
 		} else if(waitingResponse !=null && incomingMove == null) {
-			throw new ModuleException(Const.GAME_ALREADY_INITIALIZED, "Game between "+srcPlayer+" and "+destPlayer+" has already been initialized");
+			warn("Game between "+srcPlayer+" and "+destPlayer+" has already been initialized");
+			return;
+			//throw new ModuleException(Const.GAME_ALREADY_INITIALIZED, "Game between "+srcPlayer+" and "+destPlayer+" has already been initialized");
 		}
 		if(gameStatus.getWhoseTurn() != srcPlayer) {
-			throw new ModuleException(Const.WRONG_PLAYER_TURN, "It isn't "+srcPlayer+"'s turn.");
+			warn("It isn't "+srcPlayer+"'s turn.");
+			return;
+			//throw new ModuleException(Const.WRONG_PLAYER_TURN, "It isn't "+srcPlayer+"'s turn.");
 		}
 		debugPrint("Okay! There were no errors detected.");
 		gameStatus.switchTurn(theGame);
@@ -205,22 +230,19 @@ public class P2PModule implements IModule {
 			updateResponse(req, waitingResponse);
 		}
 		debugPrint("Going to notify and then wait...");
-		synchronized(this) {
-			this.notify();
+		synchronized(gameStatus) {
+			gameStatus.notify();
 			try {
-				this.wait();
+				gameStatus.wait();
 			} catch(InterruptedException e) {
 				throw new ModuleException(Const.THREAD_INTERRUPTED, "Thread interrupted", e);
 				
 			}
 		}
 		
-		
-		
-		
-		
 	}
-	public void updateResponse(IModuleRequest data, IModuleResponse toBeUpdated) {
+	
+	private void updateResponse(IModuleRequest data, IModuleResponse toBeUpdated) {
 		String move = data.getHeader(Const.MOVE_VALUE);
 		String src = data.getHeader(Const.SOURCE_PLAYER);
 		String dest = data.getHeader(Const.DESTINATION_PLAYER);

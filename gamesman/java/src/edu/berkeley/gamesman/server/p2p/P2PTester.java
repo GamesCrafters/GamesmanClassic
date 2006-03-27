@@ -2,9 +2,6 @@ package edu.berkeley.gamesman.server.p2p;
 import edu.berkeley.gamesman.server.*;
 import java.util.Map;
 
-
-
-
 public class P2PTester {
 
 	
@@ -13,38 +10,63 @@ public class P2PTester {
 		if(s!=null)
 			System.out.println(s);
 		else System.out.println("--null--");
-
 	}
 	
 	public static void main(String[] args) throws Exception{
 		final P2PModule mod = new P2PModule();
 		P2PModule.registerNewGame("Player B", "Player A");
 		System.out.println("Registration method completed...now in main again");
+		P2PModule.registerNewGame("Player D", "Player C");
+		P2PModule.registerNewGame("Player F", "Player E");
 		final byte[] trash = new byte[0];
 		
 		final String type = "type";
 		final String pA = "Player A";
 		final String pB = "Player B";
-		final String m1 = "move 1";
-		final String m2 = "move 2";
-		final String m3 = "move 3";
+		final String pC = "Player C";
+		final String pD = "Player D";
+		final String pE = "Player E";
+		final String pF = "Player F";
+		final String abm1 = "AB move 1";
+		final String abm2 = "AB move 2";
+		final String abm3 = "AB move 3";
+		final String cdm1 = "CD move 1";
+		final String cdm2 = "CD move 2";
+		final String cdm3 = "CD move 3";
+		final String efm1 = "EF move 1";
+		//final String efResignation = "Player E resigned!";
 		
-		final String[] hVals1 = {Const.SEND_MOVE, m1, pA, pB};
-		final String[] hVals2 = {Const.SEND_MOVE, m2, pB, pA};
-		final String[] hVals3 = {Const.SEND_MOVE, m3, pA, pB};	
-		final String[] hVals0 = {Const.SEND_MOVE, null, pB, pA};
+		final String[] efhVals0 = {Const.SEND_MOVE, null, pF, pE};
+		final String[] efhVals1 = {Const.SEND_MOVE, efm1, pE, pF};
+		
+		
+		
+		final String[] cdhVals0 = {Const.SEND_MOVE, null, pD, pC};
+		final String[] cdhVals1 = {Const.SEND_MOVE, cdm1, pC, pD};
+		final String[] cdhVals2 = {Const.SEND_MOVE, cdm2, pD, pC};
+		final String[] cdhVals3 = {Const.SEND_MOVE, cdm3, pC, pD};				
+		
+		final String[] abhVals1 = {Const.SEND_MOVE, abm1, pA, pB};
+		final String[] abhVals2 = {Const.SEND_MOVE, abm2, pB, pA};
+		final String[] abhVals3 = {Const.SEND_MOVE, abm3, pA, pB};	
+		final String[] abhVals0 = {Const.SEND_MOVE, null, pB, pA};
 		final String[] stdReq = {type, Const.MOVE_VALUE, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
 		final String[] gameOverReq = {type, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
-		final String[] gameOverVals = {Const.END_OF_GAME, pB, pA};
+		final String[] resignationReq = {type, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
+		
+		
+		final String[] abGameOverVals = {Const.END_OF_GAME, pB, pA};
+		final String[] cdGameOverVals = {Const.END_OF_GAME, pD, pC};
+		final String[] efResignationVals = {Const.SEND_RESIGNATION, pF,pE};
 		// Create the requests that will eventually be sent
-
+		
 		Thread threadA = new Thread(new Runnable () {
 			// Client A
 			public void run() {
 				try {
-					IModuleRequest fromAreq1 = new TestModuleRequest(trash, stdReq, hVals0);
-					IModuleRequest fromAreq2 = new TestModuleRequest(trash, stdReq, hVals2);
-					IModuleRequest fromAFinal = new TestModuleRequest(trash, gameOverReq, gameOverVals);
+					IModuleRequest fromAreq1 = new TestModuleRequest(trash, stdReq, abhVals0);
+					IModuleRequest fromAreq2 = new TestModuleRequest(trash, stdReq, abhVals2);
+					IModuleRequest fromAFinal = new TestModuleRequest(trash, gameOverReq, abGameOverVals);
 					
 					IModuleResponse toAres1 = new TestModuleResponse(0);
 					IModuleResponse toAres2 = new TestModuleResponse(0);
@@ -79,13 +101,82 @@ public class P2PTester {
 			}
 		});
 		threadA.start();
-		Thread.sleep(100);
+		//Thread.sleep(100);
+		
+		Thread threadC = new Thread(new Runnable() {
+			public void run() {
+				try {
+					IModuleRequest fromCreq1 = new TestModuleRequest(trash, stdReq, cdhVals0);
+					IModuleRequest fromCreq2 = new TestModuleRequest(trash, stdReq, cdhVals2);
+					IModuleRequest fromCFinal = new TestModuleRequest(trash, gameOverReq, cdGameOverVals);
+					
+					IModuleResponse toCres1 = new TestModuleResponse(0);
+					IModuleResponse toCres2 = new TestModuleResponse(0);
+					IModuleResponse toCFinal = new TestModuleResponse(0);
+					System.out.println("Okay! Thread C started!");
+					
+
+					System.out.println("Calling handleRequest of first request from C");
+					mod.handleRequest(fromCreq1, toCres1);
+					TestModuleResponse cRes1 = (TestModuleResponse) toCres1;
+					Map res1Headers = cRes1.getHeadersWritten();
+					System.out.println("@@@@@@This was sent back to C (should be 'move 1'): "+res1Headers.get(Const.MOVE_VALUE));
+					
+					System.out.println("Calling handleRequest of second request from C");
+					mod.handleRequest(fromCreq2, toCres2);
+					TestModuleResponse cRes2 = (TestModuleResponse) toCres2;
+					Map res2Headers = cRes2.getHeadersWritten();
+					System.out.println("@@@@@@This was sent back to C (should be 'move 3'): "+res2Headers.get(Const.MOVE_VALUE));
+					
+					System.out.println("Calling handleRequest of 'game over' request from C");
+					mod.handleRequest(fromCFinal, toCFinal);
+					TestModuleResponse cRes3 = (TestModuleResponse) toCFinal;
+					Map res3Headers = cRes3.getHeadersWritten();				
+					System.out.println("@@@@@@This was TYPE of what was sent back to C (should be 'Ack end'): "+res3Headers.get("type"));
+					
+				} catch(ModuleException e) {
+					System.out.println(e.getLocalizedMessage());
+				}
+			}
+		});
+		threadC.start();
+		Thread threadE = new Thread(new Runnable() {
+			public void run() {
+				try {
+					IModuleRequest fromEreq1 = new TestModuleRequest(trash, stdReq, efhVals0);
+					IModuleRequest fromEreq2 = new TestModuleRequest(trash, resignationReq, efResignationVals);
+					
+					
+					IModuleResponse toEres1 = new TestModuleResponse(0);
+					IModuleResponse toEres2 = new TestModuleResponse(0);
+					
+					System.out.println("Okay! Thread E started!");
+
+					System.out.println("Calling handleRequest of first request from E");
+					mod.handleRequest(fromEreq1, toEres1);
+					TestModuleResponse eRes1 = (TestModuleResponse) toEres1;
+					Map res1Headers = eRes1.getHeadersWritten();
+					System.out.println("@@@@@@This was sent back to E (should be 'move 1'): "+res1Headers.get(Const.MOVE_VALUE));
+					
+					System.out.println("Calling handleRequest of resignation from E");
+					mod.handleRequest(fromEreq2, toEres2);
+					TestModuleResponse eRes2 = (TestModuleResponse) toEres2;
+					Map res2Headers = eRes2.getHeadersWritten();
+					System.out.println("@@@@@@This was TYPE of what was sent back to E (should be 'Ack resign'): "+res2Headers.get(type));
+					
+				} catch(ModuleException e) {
+					System.out.println(e.getLocalizedMessage());
+				}
+			}
+		});
+		threadE.start();
+		
 		Thread threadB = new Thread(new Runnable() {
 			//Client B
 			public void run() {
 				try {
-					IModuleRequest fromBreq1 = new TestModuleRequest(trash, stdReq, hVals1);		
-					IModuleRequest fromBreq2 = new TestModuleRequest(trash, stdReq, hVals3);
+					IModuleRequest fromBreq1 = new TestModuleRequest(trash, stdReq, abhVals1);		
+					IModuleRequest fromBreq2 = new TestModuleRequest(trash, stdReq, abhVals3);
 					
 					IModuleResponse toBres1 = new TestModuleResponse(0);
 					IModuleResponse toBres2 = new TestModuleResponse(0);
@@ -110,14 +201,68 @@ public class P2PTester {
 		});
 		threadB.start();
 		
-		
+		Thread threadD = new Thread(new Runnable() {
+			//Client D
+			public void run() {
+				try {
+					IModuleRequest fromDreq1 = new TestModuleRequest(trash, stdReq, cdhVals1);		
+					IModuleRequest fromDreq2 = new TestModuleRequest(trash, stdReq, cdhVals3);
+					
+					IModuleResponse toDres1 = new TestModuleResponse(0);
+					IModuleResponse toDres2 = new TestModuleResponse(0);
+					System.out.println("Okay! Thread D started!");
+					
+					System.out.println("Calling handleRequest of first request from D");
+					mod.handleRequest(fromDreq1, toDres1);
+					TestModuleResponse dRes1 = (TestModuleResponse) toDres1;
+					Map dRes1Headers = dRes1.getHeadersWritten();
+					System.out.println("@@@@@@This was sent back to D (should be 'move 2'): "+dRes1Headers.get(Const.MOVE_VALUE));
+					
+					System.out.println("Calling handleRequest of second request from B");
+					mod.handleRequest(fromDreq2, toDres2);
+					TestModuleResponse dRes2 = (TestModuleResponse) toDres2;
+					Map dRes2Headers = dRes2.getHeadersWritten();
+					System.out.println("@@@@@@This was sent back to D (should be 'null'): "+dRes2Headers.get(Const.MOVE_VALUE));
+				} catch(ModuleException e) {
+					System.out.println("### ModuleException: "+e.getLocalizedMessage());
+					return;
+				}
+			}
+		});
+		threadD.start();
 
-		while(Thread.activeCount() != 0) {
+		Thread threadF = new Thread(new Runnable() {
+			public void run() {
+				try {
+					IModuleRequest fromFreq1 = new TestModuleRequest(trash, stdReq, efhVals1);		
+
+					IModuleResponse toFres1 = new TestModuleResponse(0);
+
+					System.out.println("Okay! Thread F started!");
+					
+					System.out.println("Calling handleRequest of first request from F");
+					mod.handleRequest(fromFreq1, toFres1);
+					TestModuleResponse dRes1 = (TestModuleResponse) toFres1;
+					Map dRes1Headers = dRes1.getHeadersWritten();
+					System.out.println("@@@@@@This was TYPE of what was sent to F (should be 'resign'): "+dRes1Headers.get(type));
+					
+				} catch(ModuleException e) {
+					System.out.println("### ModuleException: "+e.getLocalizedMessage());
+					return;
+				}
+			}
+		});
+		threadF.start();
+		
+		while(Thread.activeCount() > 1) {
+			
 			try {
-				Thread.sleep(100);
+				//System.out.println("           There are still pending threads...");
+				Thread.sleep(5000);
 			} catch(InterruptedException e) {
 				System.out.println("### Thread interrupted");
 			}
 		}
+		System.out.println("Successful termination!");
 	}
 }
