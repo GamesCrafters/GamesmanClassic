@@ -64,6 +64,11 @@ public final class Macros {
 	public static final String PROPERTY_GAME_MESSAGE		= "PROPERTY GAME MESSAGE";
 	public static final String PROPERTY_HOSTING_GAME		= "PROPERTY HOSTING GAME";
 	public static final String PROPERTY_SECRET_KEY 			= "PROPERTY SECRET KEY";
+	public static final String PROPERTY_GAME_NAME			= "PROPERTY GAME NAME";
+	public static final String PROPERTY_HOST_ACCEPTED		= "PROPERTY HOST ACCEPTED";
+	
+	public static final Boolean HOST_ACCEPT 				= new Boolean(true);
+	public static final Boolean HOST_DECLINE				= new Boolean(false);
 	
 	/**
 	 * Error Code Macros
@@ -75,7 +80,9 @@ public final class Macros {
 	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
 	public static final Integer VALID_CODE			= new Integer(0);
 	public static final Integer USER_ALREADY_EXISTS = new Integer(5);
-	public static final Integer USER_ALREADY_HAS_OPEN_GAME = new Integer(6); 
+	public static final Integer USER_ALREADY_HAS_OPEN_GAME = new Integer(6);
+	public static final Integer INVALID_GAME_NUMBER = new Integer(7);
+	public static final Integer HOST_DECLINED		= new Integer(8);
 	
 	/**
 	 * Debugging Flags

@@ -10,7 +10,6 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
-
 /**
  * 
  * @author Victor Perez
@@ -102,35 +101,53 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Request to join host ganme identified by th GAME_ID header in req
+	 * If the host is busy, the guest (client) will be put to sleep and later woken up
+	 * by the host along with a notification of whether or not the host selected this client
+	 * as a player (accepted the challenge)
 	 * @param req
 	 * @param res
+	 * @return
+	 * @modifies this
 	 */
-	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
-		String userName, secretKey, gameID, gameName;
+	private synchronized void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
+		String userName, secretKey, gameName, gameID;
 		boolean validKey;
 		LinkedList interestedUsers;
 		Hashtable gameSessions;
-		PropertyBucket propBucket;
+		PropertyBucket hostPropBucket, userPropBucket;
+		boolean hostAccepted;
 		
+		//extract header values
 		userName = req.getHeader(Macros.NAME);
 		secretKey = req.getHeader(Macros.SECRET_KEY);
 		gameID = req.getHeader(Macros.GAME_ID);
 		
 		validKey = isValidUserKey(userName, secretKey);
-		gameName = (String)usersOnline.get(userName);
-		
-		gameSessions = (Hashtable)openGames.get(gameName);
-		
-		propBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
-		if (propBucket == null) {
+		if (!validKey) {
 			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
+			return;
+		}
+		
+		//get user's context game
+		userPropBucket = (PropertyBucket) getUser(userName);
+		gameName = (String) userPropBucket.getProperty(Macros.PROPERTY_GAME_NAME);
+		
+		//get all game sessions of gameName
+		gameSessions = getGameSessions(gameName);
+		
+		//get the property bucket corresponding to game number
+		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
+		if (hostPropBucket == null) {
+			//an invalid game number has been requested
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_GAME_NUMBER.toString());
 			return;
 		}
 		else {
-			interestedUsers = (LinkedList)propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-			interestedUsers.add(this);
+			interestedUsers = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			interestedUsers.add(userPropBucket);
 			try {
 				// go to sleep and wait for another thread to wake us up when they refresh
 				this.wait();
@@ -138,9 +155,33 @@ public class RegistrationModule implements IModule
 			catch (InterruptedException ie) {
 				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
 			}
-			res.setHeader(Macros.STATUS, Macros.ACK);
-			
+			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
+			if (hostAccepted) 
+				res.setHeader(Macros.STATUS, Macros.ACK);
+			else {
+				res.setHeader(Macros.STATUS, Macros.DENY);
+				res.setHeader(Macros.ERROR_CODE, Macros.HOST_DECLINED.toString());
+			}
+			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
 		}
+	}
+	
+	/**
+	 * For simulated testing purposes
+	 *
+	 */
+	protected synchronized void wakeThreads() {
+		notifyAll();
+	}
+	
+	/**
+	 * For simulated testing purposes
+	 * @param userName
+	 * @param hostAccepted
+	 */
+	protected synchronized void acceptUser(String userName, Boolean hostAccepted) {
+		PropertyBucket propBucket = getUser(userName);
+		propBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, hostAccepted);
 	}
 	
 	/**
@@ -205,7 +246,7 @@ public class RegistrationModule implements IModule
 		for (users = usersOnline.keys(); users.hasMoreElements();) {
 			onlineUser = (String)users.nextElement();
 			propBucket = (PropertyBucket) usersOnline.get(onlineUser);
-			onlineGame = (String)propBucket.getProperty(Macros.GAME);
+			onlineGame = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
 			
 			if (onlineGame.equals(gameName)) {
 				onlineUser += "\n";
@@ -237,15 +278,13 @@ public class RegistrationModule implements IModule
 		Enumeration gameSessionTable;
 		PropertyBucket propBucket;
 		
-		//filter the game client is looking for
+		//filter for the game client is looking for
 		gameName = req.getHeader(Macros.GAME);
 		
 		//get all sessions of that particular game
-		gameSessions = (Hashtable)openGames.get(gameName);
-		if (gameSessions == null) {
-			res.setHeader(Macros.GAME_SESSIONS_INDEX, (new Integer(0).toString()));
-			return; 
-		}
+		//Note that if gameName isn't being hosted, then an empty hashtable will be returned by getGameSessions
+		gameSessions = (Hashtable)getGameSessions(gameName);
+		
 		for (index = 0, gameSessionTable = gameSessions.keys(); 
 						gameSessionTable.hasMoreElements(); index++) {
 			
@@ -295,7 +334,7 @@ public class RegistrationModule implements IModule
 		 * Because userName may not exist propBucket may be null and we have to check for that
 		 */
 		if (propBucket == null) gameName = null;
-		else gameName = (String)propBucket.getProperty(Macros.GAME);
+		else gameName = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
 		
 		//Verify secretKey/userName
 		validKey = isValidUserKey(userName, secretKey);
@@ -353,7 +392,7 @@ public class RegistrationModule implements IModule
 		if (validKey && validGameHost) {
 			//remove userName/game session records
 			propBucket = getUser(userName);
-			gameName = (String)propBucket.getProperty(Macros.GAME);
+			gameName = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
 			gameID = (Integer)propBucket.getProperty(Macros.PROPERTY_GAME_ID);
 			
 			//remove all game host mappings
@@ -597,6 +636,10 @@ public class RegistrationModule implements IModule
 		return gameID++;
 	}
 	
+	protected static int getGameID() {
+		return gameID;
+	}
+	
 	/**
 	 * Check that variation is a valid gameName type
 	 * @param gameName
@@ -680,7 +723,7 @@ public class RegistrationModule implements IModule
 			throw new ModuleException(Macros.HASHTABLE_COLLISION_CODE, Macros.HASHTABLE_COLLISION_MSG);
 		
 		//store the game name
-		propBucket.setProperty(Macros.GAME, gameName);
+		propBucket.setProperty(Macros.PROPERTY_GAME_NAME, gameName);
 		//in order to avoid using another data structure for user secret keys
 		//add it to the property bucket
 		secretKey = generateKeyString(userName);
@@ -689,6 +732,8 @@ public class RegistrationModule implements IModule
 		//map user name to corresponding property bucket
 		usersOnline.put(userName, propBucket);	
 	}
+	
+	
 	
 	/**
 	 * Remove the userName, property bucket mapping from usersOnline
@@ -737,6 +782,7 @@ public class RegistrationModule implements IModule
 	private static String generateKeyString(String user) {
 		return (new Integer(generateKey(user))).toString();
 	}
+	
 	
 	//fields
 	private Hashtable usersOnline, openGames;
