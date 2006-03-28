@@ -66,6 +66,7 @@ public final class Macros {
 	public static final String PROPERTY_SECRET_KEY 			= "PROPERTY SECRET KEY";
 	public static final String PROPERTY_GAME_NAME			= "PROPERTY GAME NAME";
 	public static final String PROPERTY_HOST_ACCEPTED		= "PROPERTY HOST ACCEPTED";
+	public static final String PROPERTY_USER_NAME			= "USER NAME";
 	
 	public static final Boolean HOST_ACCEPT 				= new Boolean(true);
 	public static final Boolean HOST_DECLINE				= new Boolean(false);

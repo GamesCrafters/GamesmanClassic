@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
+import edu.berkeley.gamesman.server.p2p.P2PModule;
 /**
  * 
  * @author Victor Perez
@@ -110,7 +112,8 @@ public class RegistrationModule implements IModule
 	 * @return
 	 * @modifies this
 	 */
-	private synchronized void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
+	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
+		//Variable Declarations
 		String userName, secretKey, gameName, gameID;
 		boolean validKey;
 		LinkedList interestedUsers;
@@ -147,10 +150,17 @@ public class RegistrationModule implements IModule
 		}
 		else {
 			interestedUsers = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-			interestedUsers.add(userPropBucket);
+			synchronized (interestedUsers) {
+				interestedUsers.add(userPropBucket);
+			}
 			try {
-				// go to sleep and wait for another thread to wake us up when they refresh
-				this.wait();
+				// A classic condition variable
+				while (userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED) == null) {
+					// go to sleep and wait for another thread to wake us up when they refresh
+					synchronized (this) {
+						wait();
+					}
+				}
 			}
 			catch (InterruptedException ie) {
 				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
@@ -443,39 +453,63 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Request from game host to accept/decline game challenge
+	 * Host indicates whether or not to play against the first opponent to join
 	 * @param req
 	 * @param res
+	 * @return
+	 * @modifies this
 	 */
 	private void acceptChallenge(IModuleRequest req, IModuleResponse res) {
-		String userName, secretKey, luckyUser, gameName, gameId, challengeResponse;
-		Hashtable gameSessions; 
-		PropertyBucket propBucket; 
+		String userName, secretKey, luckyUser, challengeResponse; 
+		PropertyBucket hostPropBucket, guestPropBucket, tempBucket; 
 		LinkedList interestedList; 
+		Iterator iter;
 		boolean validKey, hostAgreed; 
 		userName = req.getHeader(Macros.NAME);
 		secretKey = req.getHeader(Macros.SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
-		//TODO: for now challenge response will be empty string, but it needs to be initialized
+		
+		
 		challengeResponse = req.getHeader(Macros.CHALLENGE_ACCEPTED);
 		if (validKey) {
-			hostAgreed = (challengeResponse == Macros.ACCEPTED); 
+			hostAgreed = (challengeResponse == Macros.ACCEPTED);
+			hostPropBucket = getUser(userName);
+			
+			//list of user's wanting to join host's game
+			interestedList = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			synchronized (interestedList) {
+				guestPropBucket = (PropertyBucket) interestedList.removeFirst();
+			}
+			
 			if (hostAgreed) {
 				//host said yes, so we let the other users know that they
 				//got denied, inform the P2P module of the new game, let
 				//the selected client know he's been accepted, unregister
 				//the open-game, and finally give the host the ack signel. 
-				gameName = (String)usersOnline.get(userName);
-				gameSessions = (Hashtable)openGames.get(gameName); 
-				gameId = (String) req.getHeader(Macros.GAME_ID); 
-				propBucket = (PropertyBucket) gameSessions.get(gameId); 
-				interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-				luckyUser = (String) interestedList.removeFirst(); 
-				//TODO: uncomment the following line ... commented out for compilation sake
-				//edu.berkeley.gamesman.server.p2p.P2PModule.registerNewGame(userName, luckyUser); 
-				//TODO: Wake up the luckyUser here
-				//TODO: Wake up the other users with the bad news
+				
+				//choose user in FIFO order
+				luckyUser = (String) guestPropBucket.getProperty(Macros.PROPERTY_USER_NAME);
+				guestPropBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, Macros.HOST_ACCEPT);
+				
+				/**
+				 * inform all other users waiting on the queue that they will not be able to join
+				 */
+				for (iter = interestedList.iterator(); iter.hasNext();) {
+					tempBucket = (PropertyBucket) iter.next();
+					tempBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, Macros.HOST_DECLINE);
+				}
+				
+				//Inform the P2P module of this game
+				P2PModule.registerNewGame(userName, luckyUser);
+				
+				//TODO: the following line breaks the abstraction barrier. A cleaner solution
+				//should be employed to remove the game record
 				unregisterGame(req, res);
+				
+				//Wake all waiting threads so they can be notified of the results
+				notifyAll();
+				
 				res.setHeader(Macros.STATUS, Macros.ACK);
 			} else {
 				//host said no, so we need to let that client know that he 
@@ -483,13 +517,27 @@ public class RegistrationModule implements IModule
 				//so that on the next call to refresh, the server gets someone
 				//new instead. Do we need to lock access to the list, if a 
 				//client tries to add himself at the same time as the servlet
-				//is removing the front of the list? 
-				gameName = (String)usersOnline.get(userName);
-				gameSessions = (Hashtable)openGames.get(gameName); 
-				gameId = (String) req.getHeader(Macros.GAME_ID); 
-				propBucket = (PropertyBucket) gameSessions.get(gameId); 
-				interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-				interestedList.removeFirst(); 
+				//is removing the front of the list? -Filip
+				/**
+				 * We definitely need a lock for the linked list because unlike the Hashtables
+				 * used in this class, linkedlists are not synchronized -Victor
+				 */
+				
+				//No longer need this code, since I implemented a cleaner way to access the host's property bucket
+				//gameName = (String)hostPropBucket.getProperty(Macros.PROPERTY_GAME_NAME);
+				//gameSessions = getGameSessions(gameName);
+				//gameId = (String) hostPropBucket.getProperty(Macros.PROPERTY_GAME_ID);
+				//hostPropBucket = (PropertyBucket) gameSessions.get(gameId); 
+				
+				guestPropBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, Macros.HOST_DECLINE);
+				
+				/**
+				 * Only notify the thread whose property bucket we just removed from the FIFO queue
+				 * Note I need to verify that this will indeed wake up the thread we removed
+				 * Actually notify() arbitrarily wakes up a thread waiting, therefore notifyAll() had to be used
+				 * along with a condition variable
+				 */
+				notifyAll();
 				res.setHeader(Macros.STATUS, Macros.ACK);
 			}
 		} else {
@@ -627,7 +675,7 @@ public class RegistrationModule implements IModule
 	 * Generate a unique game id for a game
 	 * @return gameID
 	 */
-	private static int generateGameID() {
+	private synchronized static int generateGameID() {
 		/**
 		 * TODO: deal with overflow, possibly generate gameID another way
 		 * It is very unlikely that billions of users will be playing at the same time,
@@ -726,11 +774,17 @@ public class RegistrationModule implements IModule
 		propBucket.setProperty(Macros.PROPERTY_GAME_NAME, gameName);
 		//in order to avoid using another data structure for user secret keys
 		//add it to the property bucket
-		secretKey = generateKeyString(userName);
+		secretKey = RegistrationModule.generateKeyString(userName);
 		propBucket.setProperty(Macros.PROPERTY_SECRET_KEY, secretKey);
 		
+		//new: add userName to the propertyBucket as well
+		propBucket.setProperty(Macros.PROPERTY_USER_NAME, userName);
+		
 		//map user name to corresponding property bucket
-		usersOnline.put(userName, propBucket);	
+		//this is a critical section so use a mutex
+		synchronized (usersOnline) {
+			usersOnline.put(userName, propBucket);
+		}
 	}
 	
 	
@@ -808,7 +862,7 @@ public class RegistrationModule implements IModule
 		 * @param propertyName
 		 * @param property
 		 */
-		public void setProperty(String propertyName, Object property) {
+		public synchronized void setProperty(String propertyName, Object property) {
 			properties.put(propertyName, property);
 		}
 		
@@ -817,7 +871,7 @@ public class RegistrationModule implements IModule
 		 * @param propertyName
 		 * @return
 		 */
-		public Object getProperty(String propertyName) {
+		public synchronized Object getProperty(String propertyName) {
 			return properties.get(propertyName);
 		}
 		
@@ -825,7 +879,7 @@ public class RegistrationModule implements IModule
 		 * 
 		 * @param propertyName
 		 */
-		public void removeProperty(String propertyName) {
+		public synchronized void removeProperty(String propertyName) {
 			properties.remove(propertyName);
 		}
 		
@@ -833,7 +887,7 @@ public class RegistrationModule implements IModule
 		 * 
 		 *
 		 */
-		public void removeAllProperties() {
+		public synchronized void removeAllProperties() {
 			properties = new Hashtable();
 		}
 		
