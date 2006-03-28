@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
+
 import edu.berkeley.gamesman.server.IModule;
 import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
@@ -31,6 +32,9 @@ public class RegistrationModule implements IModule
 		openGames = new Hashtable();
 	}
 	
+	private Hashtable openGames, usersOnline;
+	private static int gameID;
+
 	/**
 	 * 
 	 */
@@ -100,98 +104,6 @@ public class RegistrationModule implements IModule
 			//the request type cannot be handled
 			throw new ModuleException (Macros.UNKNOWN_REQUEST_TYPE_CODE, Macros.UNKNOWN_REQUEST_TYPE_MSG);
 		}
-	}
-	
-	/**
-	 * Request to join host ganme identified by th GAME_ID header in req
-	 * If the host is busy, the guest (client) will be put to sleep and later woken up
-	 * by the host along with a notification of whether or not the host selected this client
-	 * as a player (accepted the challenge)
-	 * @param req
-	 * @param res
-	 * @return
-	 * @modifies this
-	 */
-	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
-		//Variable Declarations
-		String userName, secretKey, gameName, gameID;
-		boolean validKey;
-		LinkedList interestedUsers;
-		Hashtable gameSessions;
-		PropertyBucket hostPropBucket, userPropBucket;
-		boolean hostAccepted;
-		
-		//extract header values
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
-		gameID = req.getHeader(Macros.GAME_ID);
-		
-		validKey = isValidUserKey(userName, secretKey);
-		if (!validKey) {
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
-			return;
-		}
-		
-		//get user's context game
-		userPropBucket = (PropertyBucket) getUser(userName);
-		gameName = (String) userPropBucket.getProperty(Macros.PROPERTY_GAME_NAME);
-		
-		//get all game sessions of gameName
-		gameSessions = getGameSessions(gameName);
-		
-		//get the property bucket corresponding to game number
-		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
-		if (hostPropBucket == null) {
-			//an invalid game number has been requested
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_GAME_NUMBER.toString());
-			return;
-		}
-		else {
-			interestedUsers = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-			synchronized (interestedUsers) {
-				interestedUsers.add(userPropBucket);
-			}
-			try {
-				// A classic condition variable
-				while (userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED) == null) {
-					// go to sleep and wait for another thread to wake us up when they refresh
-					synchronized (this) {
-						wait();
-					}
-				}
-			}
-			catch (InterruptedException ie) {
-				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
-			}
-			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
-			if (hostAccepted) 
-				res.setHeader(Macros.STATUS, Macros.ACK);
-			else {
-				res.setHeader(Macros.STATUS, Macros.DENY);
-				res.setHeader(Macros.ERROR_CODE, Macros.HOST_DECLINED.toString());
-			}
-			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
-		}
-	}
-	
-	/**
-	 * For simulated testing purposes
-	 *
-	 */
-	protected synchronized void wakeThreads() {
-		notifyAll();
-	}
-	
-	/**
-	 * For simulated testing purposes
-	 * @param userName
-	 * @param hostAccepted
-	 */
-	protected synchronized void acceptUser(String userName, Boolean hostAccepted) {
-		PropertyBucket propBucket = getUser(userName);
-		propBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, hostAccepted);
 	}
 	
 	/**
@@ -429,6 +341,80 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
+	 * Request to join host ganme identified by th GAME_ID header in req
+	 * If the host is busy, the guest (client) will be put to sleep and later woken up
+	 * by the host along with a notification of whether or not the host selected this client
+	 * as a player (accepted the challenge)
+	 * @param req
+	 * @param res
+	 * @return
+	 * @modifies this
+	 */
+	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
+		//Variable Declarations
+		String userName, secretKey, gameName, gameID;
+		boolean validKey;
+		LinkedList interestedUsers;
+		Hashtable gameSessions;
+		PropertyBucket hostPropBucket, userPropBucket;
+		boolean hostAccepted;
+		
+		//extract header values
+		userName = req.getHeader(Macros.NAME);
+		secretKey = req.getHeader(Macros.SECRET_KEY);
+		gameID = req.getHeader(Macros.GAME_ID);
+		
+		validKey = isValidUserKey(userName, secretKey);
+		if (!validKey) {
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
+			return;
+		}
+		
+		//get user's context game
+		userPropBucket = (PropertyBucket) getUser(userName);
+		gameName = (String) userPropBucket.getProperty(Macros.PROPERTY_GAME_NAME);
+		
+		//get all game sessions of gameName
+		gameSessions = getGameSessions(gameName);
+		
+		//get the property bucket corresponding to game number
+		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
+		if (hostPropBucket == null) {
+			//an invalid game number has been requested
+			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_GAME_NUMBER.toString());
+			return;
+		}
+		else {
+			interestedUsers = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			synchronized (interestedUsers) {
+				interestedUsers.add(userPropBucket);
+			}
+			try {
+				// A classic condition variable
+				while (userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED) == null) {
+					// go to sleep and wait for another thread to wake us up when they refresh
+					synchronized (this) {
+						wait();
+					}
+				}
+			}
+			catch (InterruptedException ie) {
+				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
+			}
+			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
+			if (hostAccepted) 
+				res.setHeader(Macros.STATUS, Macros.ACK);
+			else {
+				res.setHeader(Macros.STATUS, Macros.DENY);
+				res.setHeader(Macros.ERROR_CODE, Macros.HOST_DECLINED.toString());
+			}
+			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
+		}
+	}
+
+	/**
 	 * 
 	 * @param req
 	 * @param res
@@ -549,29 +535,41 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
+	 * Used by game host to find interested game opponents
 	 * @param req
 	 * @param res
+	 * @return
 	 */
 	private void refreshHostStatus(IModuleRequest req, IModuleResponse res) {
-		String userName, secretKey, luckyUser, gameName, gameId;
-		Hashtable gameSessions; 
-		PropertyBucket propBucket; 
+		String userName, secretKey, luckyUser;
+		PropertyBucket hostPropBucket, guestPropertBucket; 
 		LinkedList interestedList; 
 		boolean validKey, validHost; 
+		
 		userName = req.getHeader(Macros.NAME);
 		secretKey = req.getHeader(Macros.SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
 		validHost = isValidGameHost(userName); 
+		
 		//Client should not call refresh unless it thinks it's a game host. 
 		//We could change this easily. 
 		if (validKey && validHost) { 
+			
+			//The following code is no longer necessary to extract the interested users list
+			/*
 			gameName = (String)usersOnline.get(userName);
 			gameSessions = (Hashtable)openGames.get(gameName); 
 			gameId = (String) req.getHeader(Macros.GAME_ID); 
 			propBucket = (PropertyBucket) gameSessions.get(gameId); 
-			interestedList = (LinkedList) propBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
-			luckyUser = (String) interestedList.getFirst();
+			*/
+			
+			hostPropBucket = getUser(userName);
+			interestedList = (LinkedList)hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+			synchronized (interestedList) {
+				guestPropertBucket = (PropertyBucket)interestedList.getFirst();
+			}
+			luckyUser = (String)guestPropertBucket.getProperty(Macros.PROPERTY_USER_NAME);
+			
 			//Being careful here! If there -isn't- anyone waiting, getFirst I think
 			//returns null, which we'll send along. The client will have to then
 			//have to interpret an ACK/Null combo as "no-one's waiting", no? 
@@ -672,23 +670,6 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * Generate a unique game id for a game
-	 * @return gameID
-	 */
-	private synchronized static int generateGameID() {
-		/**
-		 * TODO: deal with overflow, possibly generate gameID another way
-		 * It is very unlikely that billions of users will be playing at the same time,
-		 * but we can't overlook this
-		 */
-		return gameID++;
-	}
-	
-	protected static int getGameID() {
-		return gameID;
-	}
-	
-	/**
 	 * Check that variation is a valid gameName type
 	 * @param gameName
 	 * @param variation
@@ -728,24 +709,6 @@ public class RegistrationModule implements IModule
 	 */
 	private boolean isNotHostingGame(String userName) {
 		return !isValidGameHost(userName);
-	}
-	
-	/**
-	 * Verify that secretKey corresponds to userName
-	 * @param userName
-	 * @param secretKey
-	 * @return
-	 */
-	protected boolean isValidUserKey(String userName, String secretKey) {
-		String key;
-		PropertyBucket propBucket;
-		/**
-		 * We must verify that the user even exists
-		 * The key can't possibly be valid if the user doesn't exist
-		 */
-		if ((propBucket = getUser(userName)) == null) return false;
-		key = (String) propBucket.getProperty(Macros.PROPERTY_SECRET_KEY);
-		return key.equals(secretKey);
 	}
 	
 	/**
@@ -811,13 +774,18 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * 
-	 * @param userName
+	 * Generate a unique game id for a game
+	 * @return gameID
 	 */
-	protected boolean isUserOnline(String userName) {
-		return (usersOnline.get(userName) != null);
+	private synchronized static int generateGameID() {
+		/**
+		 * TODO: deal with overflow, possibly generate gameID another way
+		 * It is very unlikely that billions of users will be playing at the same time,
+		 * but we can't overlook this
+		 */
+		return gameID++;
 	}
-	
+
 	/**
 	 * Get the hash value of the user string to use as secret key
 	 * @param user
@@ -836,12 +804,55 @@ public class RegistrationModule implements IModule
 	private static String generateKeyString(String user) {
 		return (new Integer(generateKey(user))).toString();
 	}
-	
-	
-	//fields
-	private Hashtable usersOnline, openGames;
-	private static int gameID;
-	
+
+	/**
+	 * 
+	 * @param userName
+	 */
+	protected boolean isUserOnline(String userName) {
+		return (usersOnline.get(userName) != null);
+	}
+
+	/**
+	 * Verify that secretKey corresponds to userName
+	 * @param userName
+	 * @param secretKey
+	 * @return
+	 */
+	protected boolean isValidUserKey(String userName, String secretKey) {
+		String key;
+		PropertyBucket propBucket;
+		/**
+		 * We must verify that the user even exists
+		 * The key can't possibly be valid if the user doesn't exist
+		 */
+		if ((propBucket = getUser(userName)) == null) return false;
+		key = (String) propBucket.getProperty(Macros.PROPERTY_SECRET_KEY);
+		return key.equals(secretKey);
+	}
+
+	protected static int getGameID() {
+		return gameID;
+	}
+
+	/**
+	 * For simulated testing purposes
+	 * @param userName
+	 * @param hostAccepted
+	 */
+	protected synchronized void acceptUser(String userName, Boolean hostAccepted) {
+		PropertyBucket propBucket = getUser(userName);
+		propBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, hostAccepted);
+	}
+
+	/**
+	 * For simulated testing purposes
+	 *
+	 */
+	protected synchronized void wakeThreads() {
+		notifyAll();
+	}
+
 	/**
 	 * 
 	 * @author Victor Perez
@@ -857,6 +868,8 @@ public class RegistrationModule implements IModule
 			properties = new Hashtable();
 		}
 		
+		private Hashtable properties;
+
 		/**
 		 * 
 		 * @param propertyName
@@ -877,20 +890,18 @@ public class RegistrationModule implements IModule
 		
 		/**
 		 * 
-		 * @param propertyName
-		 */
-		public synchronized void removeProperty(String propertyName) {
-			properties.remove(propertyName);
-		}
-		
-		/**
-		 * 
 		 *
 		 */
 		public synchronized void removeAllProperties() {
 			properties = new Hashtable();
 		}
-		
-		private Hashtable properties;
+
+		/**
+		 * 
+		 * @param propertyName
+		 */
+		public synchronized void removeProperty(String propertyName) {
+			properties.remove(propertyName);
+		}
 	}
 }
