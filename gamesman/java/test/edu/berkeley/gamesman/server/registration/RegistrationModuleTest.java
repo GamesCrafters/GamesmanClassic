@@ -21,6 +21,7 @@ public class RegistrationModuleTest extends TestCase {
 	/** deafault userName and gameName **/
 	private String user = "user1";
 	private String game = "mancala";
+	private String variation = "1";
 	private String TAB = "\t";
 	
 	/**
@@ -602,6 +603,126 @@ public class RegistrationModuleTest extends TestCase {
 		
 		//print the results
 		testStatus(testNum, description, testMsgs, testStatus);
+	}
+	
+	/**
+	 * 
+	 *
+	 */
+	public synchronized void test07() throws ModuleException {
+		regMod = new RegistrationModule();
+		Thread tr1 = new Thread( new Runnable() {
+			public void run () {
+				try {
+					String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+					String [] headerValues = {Macros.REG_MOD_REGISTER_USER, user, game};
+					String [] testMsgs = new String[4];
+					boolean [] testStatus = new boolean[4];
+					int testNum = 7;
+					Map resHeaders;
+					String resHrdVal, description, secretKey1, secretKey2;
+					
+					description = "Testing joinGameNumber()";
+					
+					//don't actually need to use input stream
+					input = new byte[INPUT_BYTE_ARR_SIZE];
+					tReq = new TestModuleRequest(input,headerNames,headerValues);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					
+					//user1 has been registed to play mancala
+					regMod.handleRequest(tReq, tRes);
+					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					
+					
+					//register user2 to also play the same game
+					headerValues[1] = "user2";
+					tReq = new TestModuleRequest(input,headerNames,headerValues);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					
+					//let user1 register a new game of mancala
+					//Registering the new game
+					String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
+					String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
+					tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					
+					//Now user2 will attempt to join this game, which should have a gameID of 0
+					//but with an incorrect secret key
+					String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
+					String [] headerValues_3 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user1", "WRONG_KEY", new Integer(3).toString()};
+					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					resHeaders = tRes.getHeadersWritten();
+					testMsgs[0] = "User1 attempting to join a game with an invalid secret key";
+					testStatus[0] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
+									resHeaders.get(Macros.ERROR_CODE).equals(Macros.INVALID_KEY.toString());
+					
+					/**
+					 * User will now attempt to join the same game with the correct secret key by with the wrong
+					 * gameID choose a random game ID
+					 */
+					headerValues_3[3] = new Integer(52).toString();
+					headerValues_3[2] = secretKey1;
+					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					resHeaders = tRes.getHeadersWritten();
+					testMsgs[1] = "User1 attempting to join a game providing an incorrect gameID";
+					testStatus[1] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
+									resHeaders.get(Macros.ERROR_CODE).equals(Macros.INVALID_GAME_NUMBER.toString());
+					
+					/**
+					 * The same user will now make a valid request and a denial will be simulated
+					 */
+					headerValues_3[3] = new Integer(3).toString();
+					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					resHeaders = tRes.getHeadersWritten();
+					testMsgs[2] = "Simulating user 1 trying to join, but host rejecting";
+					testStatus[2] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
+									resHeaders.get(Macros.ERROR_CODE).equals(Macros.HOST_DECLINED.toString());
+					
+					/**
+					 * Now simulate user2 requesting to join the game with a correct request, and receiving
+					 * an ACK
+					 */
+					headerValues_3[1] = "user2";
+					headerValues_3[2] = secretKey2;
+					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					resHeaders = tRes.getHeadersWritten();
+					testMsgs[3] = "Simulating user 2 trying to join, and host accepting the challenge";
+					testStatus[3] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+					
+					
+					testStatus(testNum, description, testMsgs, testStatus);
+				}
+				catch (ModuleException me) {
+					//do something
+					me.printStackTrace();
+				}
+			}
+		}
+		);
+		//begin thread execution
+		tr1.start();
+		
+		while (tr1.isAlive()){
+			try {
+				wait(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			regMod.acceptUser("user1", Macros.HOST_DECLINE);
+			regMod.acceptUser("user2", Macros.HOST_ACCEPT);
+			regMod.wakeThreads();
+		}
 	}
 	
 	/**
