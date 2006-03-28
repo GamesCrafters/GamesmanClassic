@@ -960,14 +960,14 @@ POSITION arrayHash(BoardAndTurn board) {
 	
 	for (i = 0; i < boardSize; i++) {
 		piece = CharToThreePiece(board->theBoard[i]);
-		toHash->boardL = piece.L;
-		toHash->boardS = piece.S;
-		toHash->boardB = piece.B;
+		toHash->boardL = piece->L;
+		toHash->boardS = piece->S;
+		toHash->boardB = piece->B;
 	}
 	
 	L = generic_hash(toHash->boardL, board.theTurn);
 	S = generic_hash(toHash->boardS, board.theTurn);
-	B = generic_hash(tohash->boardB, board.theTurn);
+	B = generic_hash(toHash->boardB, board.theTurn);
 	
 	return B + (S * maxB) + (L * maxS * maxB);
 }
@@ -991,9 +991,9 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   generic_unhash(B, toHash->boardB);
 
   for (i = 0; i < boardSize; i++) {
-  	newPiece.L = toHash->boardL[i];
-  	newPiece.S = toHash->boardS[i];
-  	newPiece.B = toHash->boardB[i];
+  	newPiece->L = toHash->boardL[i];
+  	newPiece->S = toHash->boardS[i];
+  	newPiece->B = toHash->boardB[i];
   	board->theBoard[i] = ThreePieceToChar(newPiece);
   	board->theTurn = gWhosTurn;
   }
@@ -1007,6 +1007,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2006/03/20 02:21:09  mikehamada
+// Finished arrayHash() and arrayUnhash()?
+//
 // Revision 1.18  2006/03/15 07:46:12  mikehamada
 // Added HASHBLANK, HASHSANDPILE, HASHBLUEBUCKET, HASHREDBUCKET defines.
 //
