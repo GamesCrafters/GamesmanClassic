@@ -19,23 +19,23 @@
 ** UPDATE HIST:
 **	
 **	    02/20/2006 - Setup #defines & data-structs
-** 			 Wrote InitializeGame(), PrintPosition()
-**          02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
-**                       Still need to edit above functions with these new fcts
-**                       Need to make arrayHash() a for loop
+** 			 		 Wrote InitializeGame(), PrintPosition()
+**      02/22/2006 - Added CharToBoardPiece(), arrayHash(), and arrayUnhash()
+**                   Still need to edit above functions with these new fcts
+**                   Need to make arrayHash() a for loop
 **	    02/26/2006 - Fixed errors that prevented game from being built
-**			 Edited InitializeGame(), PrintPosition() to use new hashes
-** 			 Fixed struct for board representation
-** 			 Changed PrintPosition() since Extended-ASCII does not work
-**			 Changed arrayHash() to use a for-loop to calculate hash
-**			 Wrote Primitive() (unsure if it is finished or not)
-**          02/26/2006 - Not sure if total num of positions should include player 
-**                         turn (0 and 1 at msg, most significant digit)
-**                       Wrote GetInitialPosition()
-**                       For reference, MOVE = int, POSITION = int (from core/type.h)
-**                       Wrote DoMove(), didn't test yet
-**                       A move is represented using same hash/unhash as board, but
-**                         only has the moved piece (if has one) and the new piece
+**			 		 Edited InitializeGame(), PrintPosition() to use new hashes
+** 			 		 Fixed struct for board representation
+** 					 Changed PrintPosition() since Extended-ASCII does not work
+**			 		 Changed arrayHash() to use a for-loop to calculate hash
+**			 		 Wrote Primitive() (unsure if it is finished or not)
+**      02/26/2006 - Not sure if total num of positions should include player 
+**                   turn (0 and 1 at msg, most significant digit)
+**                   Wrote GetInitialPosition()
+**                   For reference, MOVE = int, POSITION = int (from core/type.h)
+**                   Wrote DoMove(), didn't test yet
+**                   A move is represented using same hash/unhash as board, but
+**                   only has the moved piece (if has one) and the new piece
 **                       
 **
 **************************************************************************/
@@ -166,22 +166,7 @@ STRING   kHelpExample =
 #define BLUETURN 0
 #define REDTURN 1
 
-#define PLAYEROFFSET 1000000000
 #define NUMCASTLESTOWIN 2
-
-#define BOLD_UL_CORNER 201
-#define BOLD_UR_CORNER 187
-#define BOLD_LL_CORNER 200
-#define BOLD_LR_CORNER 188
-#define BOLD_HOR 205
-#define BOLD_VERT 186
-#define BOLD_HOR_DOWN 209
-#define BOLD_HOR_UP 207
-#define BOLD_VERT_LEFT 182
-#define BOLD_VERT_RIGHT 199
-#define HOR_LINE 196
-#define VERT_LINE 179
-#define CROSS_LINE 197
 
 typedef enum possibleBoardPieces {
     Blank = 0, SmallSand, LargeSand, SandCastle, BlueBucket, 
@@ -192,8 +177,6 @@ typedef enum playerTurn {
 	Blue = 0, Red
 } PlayerTurn;
 
-// need this for unhashing...
-// "the" used for structs in code (use as convention??)
 typedef struct boardAndTurnRep {
   char *theBoard;
   PlayerTurn theTurn;
@@ -211,11 +194,6 @@ typedef struct threePieces {
 	char B;
 } *ThreePiece;
 
-/*typedef struct structMove {
-  int theFromLoc;
-  int theToLoc;
-  } sMove*/
-
 /*************************************************************************
 **
 ** Global Variables
@@ -226,6 +204,7 @@ int boardSize = ROWCOUNT * COLCOUNT;
 int rowWidth = COLCOUNT;
 int redCastles, blueCastles, totalBoardPieces = 0;
 int maxL, maxS, maxB = 0;
+int LContext, SContext, BContext = 0;
 
 PlayerTurn gWhosTurn = Blue;
 int gameType;
@@ -289,17 +268,20 @@ void                    InitializeOrder();*/
 void InitializeGame ()
 {
     int i;
-    int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4 };
-    int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4 };
-    int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2 };
-    
+    int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+    int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+    int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2, -1 };
+   
     BoardAndTurn boardArray;
     boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
     boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
     
-    maxL = generic_hash_init(boardSize, LpiecesArray, NULL);
-    maxS = generic_hash_init(boardSize, SpiecesArray, NULL);
-    maxB = generic_hash_init(boardSize, BpiecesArray, NULL);
+    printf("maxL = %d\n", maxL = generic_hash_init(boardSize, LpiecesArray, NULL));
+    LContext = 0;
+    printf("maxS = %d\n", maxS = generic_hash_init(boardSize, SpiecesArray, NULL));
+    SContext = 1;
+    printf("maxB = %d\n", maxB = generic_hash_init(boardSize, BpiecesArray, NULL));
+    BContext = 2;
     gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
     gWhosTurn = boardArray->theTurn = Blue;
     
@@ -310,6 +292,8 @@ void InitializeGame ()
     gInitialPosition = arrayHash(boardArray);
     SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
+    printf("# Of Pos: %d\n", gNumberOfPositions);
+    printf("Init Pos: %d\n", gInitialPosition);
 }
 
 
@@ -958,16 +942,30 @@ POSITION arrayHash(BoardAndTurn board) {
 	POSITION L, S, B;
 	int i;
 	
+	printf("\n********** arrayHASH **********\n");
+	
 	for (i = 0; i < boardSize; i++) {
 		piece = CharToThreePiece(board->theBoard[i]);
 		toHash->boardL[i] = piece->L;
 		toHash->boardS[i] = piece->S;
 		toHash->boardB[i] = piece->B;
+		printf("boardL[%d] = %d\n", i, toHash->boardL[i]);
+		printf("boardS[%d] = %d\n", i, toHash->boardS[i]);
+		printf("boardB[%d] = %d\n", i, toHash->boardB[i]);
 	}
 	
+	generic_hash_context_switch(LContext);
 	L = generic_hash(toHash->boardL, board->theTurn);
+	generic_hash_context_switch(SContext);
 	S = generic_hash(toHash->boardS, board->theTurn);
+	generic_hash_context_switch(BContext);
 	B = generic_hash(toHash->boardB, board->theTurn);
+	printf("L = %d\n", L);
+	printf("S = %d\n", S);
+	printf("B = %d\n", B);
+	printf("HASHED # = %d\n", B + (S * maxB) + (L * maxS * maxB));
+	
+	printf("\n********** DONE **********\n");
 	
 	return B + (S * maxB) + (L * maxS * maxB);
 }
@@ -982,21 +980,39 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   ThreePiece newPiece = (ThreePiece) SafeMalloc(sizeof(struct threePieces));
   int i;
   
+  printf("\n********** arrayUNHASH **********\n");
+  
+  printf("HASHED # = %d\n", hashNumber);
+  
   POSITION L = hashNumber / (maxS * maxB);
   POSITION S = hashNumber % (maxS * maxB) / maxB;
   POSITION B = hashNumber / (maxB);
   
+  printf("L = %d\n", L);
+  printf("S = %d\n", S);
+  printf("B = %d\n", B);
+  
+  generic_hash_context_switch(LContext);
   generic_unhash(L, toHash->boardL);
+  generic_hash_context_switch(SContext);
   generic_unhash(S, toHash->boardS);
+  generic_hash_context_switch(BContext);
   generic_unhash(B, toHash->boardB);
 
   for (i = 0; i < boardSize; i++) {
   	newPiece->L = toHash->boardL[i];
   	newPiece->S = toHash->boardS[i];
   	newPiece->B = toHash->boardB[i];
+  	printf("boardL[%d] = %d\n", i, toHash->boardL[i]);
+  	printf("boardS[%d] = %d\n", i, toHash->boardS[i]);
+  	printf("boardB[%d] = %d\n", i, toHash->boardB[i]);
   	board->theBoard[i] = ThreePieceToChar(newPiece);
-  	board->theTurn = gWhosTurn;
+  	printf("board[%d] = %d\n", i, board->theBoard[i]);
   }
+  
+  board->theTurn = gWhosTurn;
+  
+  printf("\n********** DONE **********\n");
   
   return board;
 }
@@ -1007,6 +1023,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2006/03/28 02:03:30  mikehamada
+// *** empty log message ***
+//
 // Revision 1.20  2006/03/28 00:22:15  mikehamada
 // *** empty log message ***
 //
