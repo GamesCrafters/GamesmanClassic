@@ -158,6 +158,12 @@ STRING   kHelpExample =
 #define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
 #define UNKNOWNBOARDPIECE -1
 
+//#define HASHBLANK 0
+//#define HASHLARGESANDPILE 1
+//#define HASHSMALLSANDPILE 2
+//#define HASHBLUEBUCKET 3
+//#define HASHREDBUCKET 4
+
 #define HASHBLANK 0
 #define HASHSANDPILE 1
 #define HASHBLUEBUCKET 1
@@ -184,7 +190,7 @@ typedef struct boardAndTurnRep {
 
 typedef struct tripleBoardRep {
 	char *boardL;	// Holds blanks (0) and large sand piles (1)
-	char *boardS;	// Holds blanks (0) and small sand piles (1)
+	char *boardS;	// Holds blanks (0) and small sand piles (2)
 	char *boardB;	// Holds blanks (0), blue buckets (1), and red buckets (2).
 } *BoardRep;
 
@@ -205,6 +211,10 @@ int rowWidth = COLCOUNT;
 int redCastles, blueCastles, totalBoardPieces = 0;
 int maxL, maxS, maxB = 0;
 int LContext, SContext, BContext = 0;
+int totalContexts = 0;
+//int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+//int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+//int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2, -1 };
 
 PlayerTurn gWhosTurn = Blue;
 int gameType;
@@ -278,10 +288,13 @@ void InitializeGame ()
     
     printf("maxL = %d\n", maxL = generic_hash_init(boardSize, LpiecesArray, NULL));
     LContext = 0;
+    totalContexts++;
     printf("maxS = %d\n", maxS = generic_hash_init(boardSize, SpiecesArray, NULL));
     SContext = 1;
+    totalContexts++;
     printf("maxB = %d\n", maxB = generic_hash_init(boardSize, BpiecesArray, NULL));
     BContext = 2;
+    totalContexts++;
     gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
     gWhosTurn = boardArray->theTurn = Blue;
     
@@ -471,7 +484,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/***********************LINE 2**************************/
 	printf("       |");
 	for (i = 0; i < rowWidth; i++) {
-		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
+		printf("%c|", arrayHashedBoard->theBoard[i]);
 	}
 	
 	/*printf("       %c", BOLD_VERT);
@@ -488,7 +501,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/***********************LINE 4**************************/
 	printf("BOARD: |");
 	for (i = rowWidth; i < (rowWidth*2); i++) {
-		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
+		printf("%c|", arrayHashedBoard->theBoard[i]);
 	}
 	
 	/*printf("BOARD: %c", BOLD_VERT);
@@ -505,7 +518,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	/***********************LINE 6**************************/
 	printf("       |");
 	for (i = rowWidth*2; i < (rowWidth*3); i++) {
-		printf("%c|", BoardPieceToChar(arrayHashedBoard->theBoard[i]));
+		printf("%c|", arrayHashedBoard->theBoard[i]);
 	}
 	
 	/*printf("       %c", BOLD_VERT);
@@ -523,7 +536,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("                 Small Sand Pile = s\n");
 	printf("                 Large Sand Pile = l\n");
 	printf("                          Bucket = b\n");
-	printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
+	//printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
 	SafeFree(arrayHashedBoard->theBoard);
 	SafeFree(arrayHashedBoard);
 }
@@ -954,11 +967,17 @@ POSITION arrayHash(BoardAndTurn board) {
 		printf("boardB[%d] = %d\n", i, toHash->boardB[i]);
 	}
 	
-	generic_hash_context_switch(LContext);
+	generic_hash_context_switch(0);
+	//generic_hash_context_switch(LContext);
+	//generic_hash_init(boardSize, LpiecesArray, NULL);
 	L = generic_hash(toHash->boardL, board->theTurn);
-	generic_hash_context_switch(SContext);
+	generic_hash_context_switch(1);
+	//generic_hash_context_switch(SContext);
+	//generic_hash_init(boardSize, SpiecesArray, NULL);
 	S = generic_hash(toHash->boardS, board->theTurn);
-	generic_hash_context_switch(BContext);
+	generic_hash_context_switch(2);
+	//generic_hash_context_switch(BContext);
+	//generic_hash_init(boardSize, BpiecesArray, NULL);
 	B = generic_hash(toHash->boardB, board->theTurn);
 	printf("L = %d\n", L);
 	printf("S = %d\n", S);
@@ -984,19 +1003,25 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   
   printf("HASHED # = %d\n", hashNumber);
   
-  POSITION L = hashNumber / (maxS * maxB);
-  POSITION S = hashNumber % (maxS * maxB) / maxB;
-  POSITION B = hashNumber / (maxB);
+  POSITION L = hashNumber % (maxS * maxB);
+  POSITION S = (hashNumber / (maxS * maxB)) % maxS;
+  POSITION B = hashNumber % maxB;
   
   printf("L = %d\n", L);
   printf("S = %d\n", S);
   printf("B = %d\n", B);
   
-  generic_hash_context_switch(LContext);
+  generic_hash_context_switch(0);
+  //generic_hash_init(boardSize, LpiecesArray, NULL);
+  //generic_hash_context_switch(LContext);
   generic_unhash(L, toHash->boardL);
-  generic_hash_context_switch(SContext);
+  generic_hash_context_switch(1);
+  //generic_hash_init(boardSize, SpiecesArray, NULL);
+  //generic_hash_context_switch(SContext);
   generic_unhash(S, toHash->boardS);
-  generic_hash_context_switch(BContext);
+  generic_hash_context_switch(2);
+  //generic_hash_init(boardSize, BpiecesArray, NULL);
+  //generic_hash_context_switch(BContext);
   generic_unhash(B, toHash->boardB);
 
   for (i = 0; i < boardSize; i++) {
@@ -1007,7 +1032,7 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   	printf("boardS[%d] = %d\n", i, toHash->boardS[i]);
   	printf("boardB[%d] = %d\n", i, toHash->boardB[i]);
   	board->theBoard[i] = ThreePieceToChar(newPiece);
-  	printf("board[%d] = %d\n", i, board->theBoard[i]);
+  	printf("board[%d] = %c\n", i, board->theBoard[i]);
   }
   
   board->theTurn = gWhosTurn;
@@ -1023,6 +1048,9 @@ sMove moveUnhash(MOVE move) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2006/03/29 01:44:41  mikehamada
+// *** empty log message ***
+//
 // Revision 1.21  2006/03/28 02:03:30  mikehamada
 // *** empty log message ***
 //
