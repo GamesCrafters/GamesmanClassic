@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.19 2006-03-19 20:39:15 simontaotw Exp $
+// $Id: mcambio.c,v 1.20 2006-03-30 07:57:17 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -6,36 +6,37 @@
  */
 
 /************************************************************************
-**
-** NAME:        mcambio.c
-**
-** DESCRIPTION: Cambio
-** AUTHOR:      Albert Chae and Simon Tao
-**
-** DATE:        Begin: 2/20/2006 End: 
-**
-** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
-**              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
-**              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
-**              3/02/2006 - Fixed various errors.
-**              3/04/2006 - Fixed compile errors.
-**              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
-**              3/06/2006 - Updated GetInitialPosition().
-**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
-**                                    Removed blanks from the game.
-**              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
-**              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
-**              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
-**                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
-**              3/19/2006 - Changed the Legend so it looks less cramped.
-**
-**************************************************************************/
+ **
+ ** NAME:        mcambio.c
+ **
+ ** DESCRIPTION: Cambio
+ ** AUTHOR:      Albert Chae and Simon Tao
+ **
+ ** DATE:        Begin: 2/20/2006 End: 
+ **
+ ** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
+ **              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
+ **              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
+ **              3/02/2006 - Fixed various errors.
+ **              3/04/2006 - Fixed compile errors.
+ **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
+ **              3/06/2006 - Updated GetInitialPosition().
+ **	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
+ **                                    Removed blanks from the game.
+ **              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
+ **              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
+ **              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
+ **                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
+ **              3/19/2006 - Changed the Legend so it looks less cramped.
+ **              3/29/2006 - Changed PrintPosition.
+ **
+ **************************************************************************/
 
 /*************************************************************************
-**
-** Everything below here must be in every game file
-**
-**************************************************************************/
+ **
+ ** Everything below here must be in every game file
+ **
+ **************************************************************************/
 
 #include <stdio.h>
 #include "gamesman.h"
@@ -44,10 +45,10 @@
 #include <limits.h>
 
 /*************************************************************************
-**
-** Game-specific constants
-**
-**************************************************************************/
+ **
+ ** Game-specific constants
+ **
+ **************************************************************************/
 
 STRING   kGameName            = "Cambio"; /* The name of your game */
 STRING   kAuthorName          = "Albert Chae and Simon Tao"; /* Your name(s) */
@@ -116,10 +117,10 @@ STRING   kHelpExample =
 
 
 /*************************************************************************
-**
-** #defines and structs
-**
-**************************************************************************/
+ **
+ ** #defines and structs
+ **
+ **************************************************************************/
 
 #define ROWCOUNT 4;
 #define COLCOUNT 4;
@@ -136,10 +137,10 @@ typedef enum player {
 
 
 /*************************************************************************
-**
-** Global Variables
-**
-*************************************************************************/
+ **
+ ** Global Variables
+ **
+ *************************************************************************/
 
 int rowcount = ROWCOUNT;
 int colcount = COLCOUNT;
@@ -150,16 +151,20 @@ char bPiece = B_PIECE;
 char unknown = UNKNOWN;
 
 int piecesArray[] = {'+', 0, 16, 'X', 0, 16, 'O', 0, 16, -1 };
+char alphaArray[] = { 'a', 'b', 'c', 'd', 
+		      'e', 'f', 'g', 'h',
+		      'i', 'j', 'k', 'l',
+		      'm', 'n', 'o', 'p' };
 
 Player gWhosTurn; /* 1 for player A, 2 for player B */
 
 char *gBoard;
 
 /*************************************************************************
-**
-** Function Prototypes
-**
-*************************************************************************/
+ **
+ ** Function Prototypes
+ **
+ *************************************************************************/
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -190,13 +195,13 @@ void                    DebugMenu();
 BOOLEAN                 FourInARow(char *board, char symbol);
 
 /************************************************************************
-**
-** NAME:        InitializeGame
-**
-** DESCRIPTION: Prepares the game for execution.
-**              Initializes required variables.
-** 
-************************************************************************/
+ **
+ ** NAME:        InitializeGame
+ **
+ ** DESCRIPTION: Prepares the game for execution.
+ **              Initializes required variables.
+ ** 
+ ************************************************************************/
 
 void InitializeGame ()
 {
@@ -216,247 +221,247 @@ void InitializeGame ()
 
 
 /************************************************************************
-**
-** NAME:        GenerateMoves
-**
-** DESCRIPTION: Creates a linked list of every move that can be reached
-**              from this position. Returns a pointer to the head of the
-**              linked list.
-** 
-** INPUTS:      POSITION position : Current position for move
-**                                  generation.
-**
-** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
-**                                  the linked list of generated moves
-**
-** CALLS:       MOVELIST *CreateMovelistNode();
-**
-************************************************************************/
+ **
+ ** NAME:        GenerateMoves
+ **
+ ** DESCRIPTION: Creates a linked list of every move that can be reached
+ **              from this position. Returns a pointer to the head of the
+ **              linked list.
+ ** 
+ ** INPUTS:      POSITION position : Current position for move
+ **                                  generation.
+ **
+ ** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
+ **                                  the linked list of generated moves
+ **
+ ** CALLS:       MOVELIST *CreateMovelistNode();
+ **
+ ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position)
-/* must check all the math used for general case, such as 5x5 and on */
+     /* must check all the math used for general case, such as 5x5 and on */
 {
-    MOVELIST *moves = NULL;
-	MOVELIST *CreateMovelistNode();
-	char *gBoard = (char *) malloc(boardSize*sizeof(char));
-	char opposymbol;
-	int countA, countB, turn, i;
+  MOVELIST *moves = NULL;
+  MOVELIST *CreateMovelistNode();
+  char *gBoard = (char *) malloc(boardSize*sizeof(char));
+  char opposymbol;
+  int countA, countB, turn, i;
 	
-	generic_unhash(position, gBoard);
+  generic_unhash(position, gBoard);
 	
-	countA = 0; countB = 0;
-	turn = whoseMove(position);
+  countA = 0; countB = 0;
+  turn = whoseMove(position);
 	
-	/* count the number of pieces for each player */
-	for(i = 0; i < boardSize; i++)
+  /* count the number of pieces for each player */
+  for(i = 0; i < boardSize; i++)
+    {
+      if(gBoard[i] == aPiece)
+	countA++;
+      else if(gBoard[i] == bPiece)
+	countB++;
+    }
+	
+  /* Assign pieces for each player */
+  if(turn == playerB) {
+    opposymbol = aPiece;
+  }
+  else {
+    opposymbol = bPiece;
+  }
+	
+  /* Phase 1: Less than 4 of PlayerB's pieces on the board. */
+  if(countB < 4)
+    {
+      for(i = 0; i < boardSize; i++)
 	{
-		if(gBoard[i] == aPiece)
-			countA++;
-		else if(gBoard[i] == bPiece)
-			countB++;
+	  if((gBoard[i] != bPiece)  && 
+	     ((i != 0)                      && (i != (colcount-1)) && 
+	      (i != (boardSize - colcount)) && (i != (boardSize - 1))))
+	    {
+	      moves = CreateMovelistNode(i, moves);
+	    }
 	}
-	
-	/* Assign pieces for each player */
-	if(turn == playerB) {
-		opposymbol = aPiece;
-	}
-	else {
-		opposymbol = bPiece;
-	}
-	
-	/* Phase 1: Less than 4 of PlayerB's pieces on the board. */
-	if(countB < 4)
+    }
+  /*.Phase 2: Less than 3 of PlayerA's pieces on the board. */
+  else if(countA < 3)
+    {
+      for(i = 0; i < boardSize; i++)
 	{
-		for(i = 0; i < boardSize; i++)
-		{
-			if((gBoard[i] != bPiece)  && 
-			   ((i != 0)                      && (i != (colcount-1)) && 
-			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
-				{
-					moves = CreateMovelistNode(i, moves);
-				}
-		}
+	  if((gBoard[i] != bPiece)  && (gBoard[i] != aPiece) &&
+	     ((i != 0)                      && (i != (colcount-1)) && 
+	      (i != (boardSize - colcount)) && (i != (boardSize - 1))))
+	    {
+	      moves = CreateMovelistNode(i, moves);
+	    }
 	}
-	/*.Phase 2: Less than 3 of PlayerA's pieces on the board. */
-	else if(countA < 3)
+    }
+  /* Phase 3:The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+  else
+    {
+      /* top row moves */
+      for(i = 0; i < colcount; i++)
 	{
-		for(i = 0; i < boardSize; i++)
-		{
-			if((gBoard[i] != bPiece)  && (gBoard[i] != aPiece) &&
-			   ((i != 0)                      && (i != (colcount-1)) && 
-			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
-				{
-					moves = CreateMovelistNode(i, moves);
-				}
-		}
+	  if(gBoard[i + (boardSize-colcount)] != opposymbol) // should be 12=15 for 4x4
+	    moves = CreateMovelistNode(i + boardSize, moves); // should be 16-19 for 4x4
 	}
-	/* Phase 3:The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-	else
+      /* right column moves */
+      for(i = 0; i < rowcount; i++) 
 	{
-		/* top row moves */
-		for(i = 0; i < colcount; i++)
-		{
-			if(gBoard[i + (boardSize-colcount)] != opposymbol) // should be 12=15 for 4x4
-				moves = CreateMovelistNode(i + boardSize, moves); // should be 16-19 for 4x4
-		}
-		/* right column moves */
-		for(i = 0; i < rowcount; i++) 
-		{
-			if(gBoard[((i+1)*colcount) - colcount] != opposymbol) // should be 0,4,8,12 for 4x4
-				moves = CreateMovelistNode(i + boardSize + colcount, moves); // should be 20-23 for 4x4
-		}
-		/* bottom row moves */
-		for(i = 0; i < colcount; i++)
-		{
-			if(gBoard[(colcount - i - 1)] != opposymbol) // should be 3-0 for 4xr
-				moves = CreateMovelistNode(i + boardSize + colcount + rowcount, moves); // should be 24-27 for 4x4
-		}
-		/* left column moves */
-		for(i = 0; i < rowcount; i++)
-		{
-			if(gBoard[((colcount - i)*colcount) - 1] != opposymbol) // should be 15, 11, 7, 3
-				moves = CreateMovelistNode(i + boardSize + colcount + rowcount + colcount, moves); // should be 28-31 for 4x4
-		}
+	  if(gBoard[((i+1)*colcount) - colcount] != opposymbol) // should be 0,4,8,12 for 4x4
+	    moves = CreateMovelistNode(i + boardSize + colcount, moves); // should be 20-23 for 4x4
 	}
+      /* bottom row moves */
+      for(i = 0; i < colcount; i++)
+	{
+	  if(gBoard[(colcount - i - 1)] != opposymbol) // should be 3-0 for 4xr
+	    moves = CreateMovelistNode(i + boardSize + colcount + rowcount, moves); // should be 24-27 for 4x4
+	}
+      /* left column moves */
+      for(i = 0; i < rowcount; i++)
+	{
+	  if(gBoard[((colcount - i)*colcount) - 1] != opposymbol) // should be 15, 11, 7, 3
+	    moves = CreateMovelistNode(i + boardSize + colcount + rowcount + colcount, moves); // should be 28-31 for 4x4
+	}
+    }
 	
-	free(gBoard);
-    return moves;
+  free(gBoard);
+  return moves;
 }
 
 
 /************************************************************************
-**
-** NAME:        DoMove
-**
-** DESCRIPTION: Applies the move to the position.
-** 
-** INPUTS:      POSITION position : The old position
-**              MOVE     move     : The move to apply to the position
-**
-** OUTPUTS:     (POSITION)        : The position that results from move
-**
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
-**
-*************************************************************************/
+ **
+ ** NAME:        DoMove
+ **
+ ** DESCRIPTION: Applies the move to the position.
+ ** 
+ ** INPUTS:      POSITION position : The old position
+ **              MOVE     move     : The move to apply to the position
+ **
+ ** OUTPUTS:     (POSITION)        : The position that results from move
+ **
+ ** CALLS:       Some Board Hash Function
+ **              Some Board Unhash Function
+ **
+ *************************************************************************/
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-	char symbol, opposymbol;
-	char *gBoard = (char *) malloc(boardSize*sizeof(char));
-	int turn, countA, countB, i;
-	int pushon, pushoff;
-	POSITION positionAfterMove;
+  char symbol, opposymbol;
+  char *gBoard = (char *) malloc(boardSize*sizeof(char));
+  int turn, countA, countB, i;
+  int pushon, pushoff;
+  POSITION positionAfterMove;
 	
-	generic_unhash(position, gBoard);
-	turn = whoseMove(position);
-	countA = 0;
-	countB = 0;
+  generic_unhash(position, gBoard);
+  turn = whoseMove(position);
+  countA = 0;
+  countB = 0;
     
-	/* Assign pieces for each player */
-	if(turn == playerA) {
-		symbol = aPiece;
-		opposymbol = bPiece;
-	}
-	else {
-		symbol = bPiece;
-		opposymbol = aPiece;
-	}
+  /* Assign pieces for each player */
+  if(turn == playerA) {
+    symbol = aPiece;
+    opposymbol = bPiece;
+  }
+  else {
+    symbol = bPiece;
+    opposymbol = aPiece;
+  }
 	
-	/* count the number of pieces for each player */
-	for(i = 0; i < boardSize; i++)
-	{
-		if(gBoard[i] == aPiece)
-			countA++;
-		else if(gBoard[i] == bPiece)
-			countB++;
-	}
+  /* count the number of pieces for each player */
+  for(i = 0; i < boardSize; i++)
+    {
+      if(gBoard[i] == aPiece)
+	countA++;
+      else if(gBoard[i] == bPiece)
+	countB++;
+    }
 	
-	if(move < boardSize)
-		gBoard[move] = opposymbol;
-	else 
+  if(move < boardSize)
+    gBoard[move] = opposymbol;
+  else 
+    {
+      if (move < boardSize + colcount)
 	{
-		if (move < boardSize + colcount)
-		{
-			pushon = (move - boardSize);
-			pushoff = (move - colcount);
-			gBoard[pushoff] = gBoard[pushoff-colcount];
-			gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
-			gBoard[pushoff-colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount)
-		{
-			pushon = (move - boardSize - colcount + 1)*colcount - 1;
-			pushoff = (move - boardSize - colcount)*colcount;
-			gBoard[pushoff] = gBoard[pushoff+1];
-			gBoard[pushoff+1] = gBoard[pushoff+2];
-			gBoard[pushoff+2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount + colcount)
-		{
-			pushon = boardSize - (move - boardSize - colcount - rowcount + 1);
-			pushoff = colcount - (move - boardSize - colcount - rowcount) - 1;
-			gBoard[pushoff] = gBoard[pushoff+colcount];
-			gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
-			gBoard[pushoff+colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-		{
-			pushon = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount;
-			pushoff = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1;
-			gBoard[pushoff] = gBoard[pushoff-1];
-			gBoard[pushoff-1] = gBoard[pushoff-2];
-			gBoard[pushoff-2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}	
+	  pushon = (move - boardSize);
+	  pushoff = (move - colcount);
+	  gBoard[pushoff] = gBoard[pushoff-colcount];
+	  gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
+	  gBoard[pushoff-colcount*2] = gBoard[pushon];
+	  gBoard[pushon] = symbol;
+	}
+      else if (move < boardSize + colcount + rowcount)
+	{
+	  pushon = (move - boardSize - colcount + 1)*colcount - 1;
+	  pushoff = (move - boardSize - colcount)*colcount;
+	  gBoard[pushoff] = gBoard[pushoff+1];
+	  gBoard[pushoff+1] = gBoard[pushoff+2];
+	  gBoard[pushoff+2] = gBoard[pushon];
+	  gBoard[pushon] = symbol;
+	}
+      else if (move < boardSize + colcount + rowcount + colcount)
+	{
+	  pushon = boardSize - (move - boardSize - colcount - rowcount + 1);
+	  pushoff = colcount - (move - boardSize - colcount - rowcount) - 1;
+	  gBoard[pushoff] = gBoard[pushoff+colcount];
+	  gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
+	  gBoard[pushoff+colcount*2] = gBoard[pushon];
+	  gBoard[pushon] = symbol;
+	}
+      else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+	{
+	  pushon = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount;
+	  pushoff = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1;
+	  gBoard[pushoff] = gBoard[pushoff-1];
+	  gBoard[pushoff-1] = gBoard[pushoff-2];
+	  gBoard[pushoff-2] = gBoard[pushon];
+	  gBoard[pushon] = symbol;
 	}	
+    }	
 
-	/* change turns */
-	if(countB == 3)
-		turn = playerB;
-	else if(countA == 2)
-		turn = playerA;
-	else if((countB>=4) && (countA>=3))
-	{
-		if(turn == playerA)
-			turn = playerB;
-		else if(turn == playerB)
-			turn = playerA;
-	}
+  /* change turns */
+  if(countB == 3)
+    turn = playerB;
+  else if(countA == 2)
+    turn = playerA;
+  else if((countB>=4) && (countA>=3))
+    {
+      if(turn == playerA)
+	turn = playerB;
+      else if(turn == playerB)
+	turn = playerA;
+    }
 	
-	positionAfterMove = generic_hash(gBoard, turn);
-	free(gBoard);
+  positionAfterMove = generic_hash(gBoard, turn);
+  free(gBoard);
 	
-	return positionAfterMove;
+  return positionAfterMove;
 }
 
 
 /************************************************************************
-**
-** NAME:        Primitive
-**
-** DESCRIPTION: Returns the value of a position if it fulfills certain
-**              'primitive' constraints.
-**
-**              Example: Tic-tac-toe - Last piece already placed
-**
-**              Case                                  Return Value
-**              *********************************************************
-**              Current player sees three in a row    lose
-**              Entire board filled                   tie
-**              All other cases                       undecided
-** 
-** INPUTS:      POSITION position : The position to inspect.
-**
-** OUTPUTS:     (VALUE)           : one of
-**                                  (win, lose, tie, undecided)
-**
-** CALLS:       None              
-**
-************************************************************************/
+ **
+ ** NAME:        Primitive
+ **
+ ** DESCRIPTION: Returns the value of a position if it fulfills certain
+ **              'primitive' constraints.
+ **
+ **              Example: Tic-tac-toe - Last piece already placed
+ **
+ **              Case                                  Return Value
+ **              *********************************************************
+ **              Current player sees three in a row    lose
+ **              Entire board filled                   tie
+ **              All other cases                       undecided
+ ** 
+ ** INPUTS:      POSITION position : The position to inspect.
+ **
+ ** OUTPUTS:     (VALUE)           : one of
+ **                                  (win, lose, tie, undecided)
+ **
+ ** CALLS:       None              
+ **
+ ************************************************************************/
 
 VALUE Primitive (POSITION position)
 {  
@@ -489,103 +494,212 @@ VALUE Primitive (POSITION position)
   else if (oppoWin)
     return gStandardGame ? lose : win;
   else if (playerWin)
-	return gStandardGame ? win : lose;
+    return gStandardGame ? win : lose;
   else
     return undecided;
 }
 
 
 /************************************************************************
-**
-** NAME:        PrintPosition
-**
-** DESCRIPTION: Prints the position in a pretty format, including the
-**              prediction of the game's outcome.
-** 
-** INPUTS:      POSITION position    : The position to pretty print.
-**              STRING   playersName : The name of the player.
-**              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
-**
-** CALLS:       Unhash()
-**              GetPrediction()      : Returns the prediction of the game
-**
-************************************************************************/
+ **
+ ** NAME:        PrintPosition
+ **
+ ** DESCRIPTION: Prints the position in a pretty format, including the
+ **              prediction of the game's outcome.
+ ** 
+ ** INPUTS:      POSITION position    : The position to pretty print.
+ **              STRING   playersName : The name of the player.
+ **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
+ **
+ ** CALLS:       Unhash()
+ **              GetPrediction()      : Returns the prediction of the game
+ **
+ ************************************************************************/
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int i = 0;
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
-  
+  int countA = 0, countB = 0, i = 0, turn;
+	
   generic_unhash(position, gBoard);
+	
+  turn = whoseMove(position);
+	
+  /* count the number of pieces for each player */
+  for(i = 0; i < boardSize; i++)
+    {
+      if(gBoard[i] == aPiece)
+	countA++;
+      else if(gBoard[i] == bPiece)
+	countB++;
+    }
+	
+  /* Phase 1: Less than 4 of PlayerB's pieces or less than 3 of PlayerB's pieces on the board. */
+  if(countB < 4 || countA < 3)
+    {
+      printf("\n\n\n");  //reserve three lines on the top
+      printf("               ---------\n");
+
+      for(i = 0; i < boardSize; i++)
+	{
+	  //indentation
+	  if((i % 4) == 0)
+	    {
+	      printf("               ");
+	    }
+
+	  if(gBoard[i] == bPiece)
+	    {
+	      printf("|%c", aPiece);
+	    }
+	  else if(gBoard[i] == aPiece)
+	    {
+	      printf("|%c", bPiece);
+	    }
+	  else if(gBoard[i] == neutral)
+	    {
+	      printf("|%c", alphaArray[i]);  //display the letter at 
+	    }
+	  else
+	    {
+	      printf("Error in: PrintPosition Phase 1 Loop");
+	    }
+
+	  if((i != 0) && (((i+1) % 4) == 0))
+	    {
+	      printf("|\n");
+	    }
+	}
+
+      printf("               ---------\n");
+      printf("\n\n\n");  //reserve three lines on the bottom
+    }
+  /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+  else if(countB >= 4 && countA >= 3)
+    {
+      printf("\n");
+      printf("                a b c d \n");
+      printf("\n");
+      printf("               ---------\n");
+
+      for(i = 0; i < boardSize; i++)
+	{
+	  //indentation
+	  if((i % 4) == 0)
+	    {
+	      printf("             %d ", (i/4)+1);
+	    }
+
+	  if(gBoard[i] == bPiece)
+	    {
+	      printf("|%c", aPiece);
+	    }
+	  else if(gBoard[i] == aPiece)
+	    {
+	      printf("|%c", bPiece);
+	    }
+	  else if(gBoard[i] == neutral)
+	    {
+	      printf("|%c", alphaArray[i]);  //display the letter at 
+	    }
+	  else
+	    {
+	      printf("Error in: PrintPosition Phase 1 Loop");
+	    }
+
+	  if((i != 0) && (((i+1) % 4) == 0))
+	    {
+	      printf("| %d\n", (i/4)+5);
+	    }
+	}
+
+      printf("              ---------\n");
+      printf("\n");
+      printf("               e f g h \n");
+      printf("\n");
+    }
+  /* bad else */
+  else
+    {
+      printf("Error in: PrintPosition Phase Conditional\n"); 
+    }
+
+
+  /* old PrintPosition
+     int i = 0;
+     char *gBoard = (char *) malloc(boardSize*sizeof(char));
   
-  /***********************LINE 1**************************/
-  printf("       ---------");
-  printf("                16 17 18 19\n");
+     generic_unhash(position, gBoard);
+  
+     //***********************LINE 1**************************
+     printf("       ---------");
+     printf("                16 17 18 19\n");
 
-  /***********************LINE 2**************************/
-  printf("       |");
-  for (; i < colcount; i++) {
-    printf("%c|", gBoard[i]);
-  }
-  printf("           31 (  0  1  2  3) 20\n");
+     //***********************LINE 2**************************
+     printf("       |");
+     for (; i < colcount; i++) {
+     printf("%c|", gBoard[i]);
+     }
+     printf("           31 (  0  1  2  3) 20\n");
 
-  /***********************LINE 3**************************/
-  printf("       ---------\n"); 
+     //***********************LINE 3**************************
+     printf("       ---------\n"); 
                                  
-  /***********************LINE 4**************************/
-  printf("       |");
-  for (; i < colcount*2; i++) {
-    printf("%c|", gBoard[i]);
-  }
-  printf("   LEGEND: 30 (  4  5  6  7) 21\n");
+     //***********************LINE 4**************************
+     printf("       |");
+     for (; i < colcount*2; i++) {
+     printf("%c|", gBoard[i]);
+     }
+     printf("   LEGEND: 30 (  4  5  6  7) 21\n");
 
-  /***********************LINE 5**************************/
-  printf("       ---------\n");                
+     //***********************LINE 5**************************
+     printf("       ---------\n");                
                                     
 
-  /***********************LINE 6**************************/
-  printf("       |");
-  for (; i < colcount*3; i++) {
-    printf("%c|", gBoard[i]);
-  }
-  printf("           29 (  8  9 10 11) 22\n");
+     //***********************LINE 6**************************
+     printf("       |");
+     for (; i < colcount*3; i++) {
+     printf("%c|", gBoard[i]);
+     }
+     printf("           29 (  8  9 10 11) 22\n");
 
-  /***********************LINE 7**************************/
-  printf("       ---------\n"); 
+     //***********************LINE 7**************************
+     printf("       ---------\n"); 
                               
-  /***********************LINE 8**************************/
-  printf("       |");
-  for (; i < colcount*4; i++) {
-    printf("%c|", gBoard[i]);
-  }
-  printf("           28 ( 12 13 14 15) 23\n");
+     //***********************LINE 8**************************
+     printf("       |");
+     for (; i < colcount*4; i++) {
+     printf("%c|", gBoard[i]);
+     }
+     printf("           28 ( 12 13 14 15) 23\n");
 
-  /***********************LINE 9**************************/
-  printf("       ---------");
-  printf("                27 26 25 24\n");
+     //***********************LINE 9**************************
+     printf("       ---------");
+     printf("                27 26 25 24\n");
   
-  /***********************LINE 11**************************/
-  printf("\n");
+     //***********************LINE 11*************************
+     printf("\n");
 
-  /***********************LINE 10**************************/
-  printf("                           A's Symbol = %c\n", aPiece);
-  printf("                           B's Symbol = %c\n", bPiece);
-  printf("                              Neutral = %c\n\n", neutral);
-/*  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));*/
-  
+     //***********************LINE 10*************************
+     printf("                           A's Symbol = %c\n", aPiece);
+     printf("                           B's Symbol = %c\n", bPiece);
+     printf("                              Neutral = %c\n\n", neutral);
+     //  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
+     */
+
   free(gBoard);
- }
+}
 
 /************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
-**
-************************************************************************/
+ **
+ ** NAME:        PrintComputersMove
+ **
+ ** DESCRIPTION: Nicely formats the computers move.
+ ** 
+ ** INPUTS:      MOVE    computersMove : The computer's move. 
+ **              STRING  computersName : The computer's name. 
+ **
+ ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
@@ -594,186 +708,202 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 
 /************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
-**
-************************************************************************/
+ **
+ ** NAME:        PrintMove
+ **
+ ** DESCRIPTION: Prints the move in a nice format.
+ ** 
+ ** INPUTS:      MOVE move         : The move to print. 
+ **
+ ************************************************************************/
 
 void PrintMove (MOVE move)
-/* must check all the math used for general case, such as 5x5 and on */
+     /* must check all the math used for general case, such as 5x5 and on */
 {
-/*    if(move < boardSize)
-		printf("(%i) Place a piece at %i.", move, move);
+  /*    if(move < boardSize)
+	printf("(%i) Place a piece at %i.", move, move);
 	else if (move < boardSize + colcount)
-		printf("(%i) Push on %i and discard %i", move, (move - boardSize), (move - colcount));
+	printf("(%i) Push on %i and discard %i", move, (move - boardSize), (move - colcount));
 	else if (move < boardSize + colcount + rowcount)
-		printf("(%i) Push on %i and discard %i", move, (move - boardSize - colcount + 1)*colcount - 1, (move - boardSize - colcount)*colcount);
+	printf("(%i) Push on %i and discard %i", move, (move - boardSize - colcount + 1)*colcount - 1, (move - boardSize - colcount)*colcount);
 	else if (move < boardSize + colcount + rowcount + colcount)
-		printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount - rowcount + 1), colcount - (move - boardSize - colcount - rowcount) - 1);
+	printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount - rowcount + 1), colcount - (move - boardSize - colcount - rowcount) - 1);
 	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-		printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
-*/
-	if(move < boardSize)
-		printf("%i", move);
-	else if (move < boardSize + colcount)
-		printf("%i", move);
-	else if (move < boardSize + colcount + rowcount)
-		printf("%i", move);
-	else if (move < boardSize + colcount + rowcount + colcount)
-		printf("%i", move);
-	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-		printf("%i", move);
+	printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
+  */
+  if(move < boardSize)
+    printf("%i", move);
+  else if (move < boardSize + colcount)
+    printf("%i", move);
+  else if (move < boardSize + colcount + rowcount)
+    printf("%i", move);
+  else if (move < boardSize + colcount + rowcount + colcount)
+    printf("%i", move);
+  else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+    printf("%i", move);
 		
 
 }
 
 
 /************************************************************************
-**
-** NAME:        GetAndPrintPlayersMove
-**
-** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
-**              some other gamesman option. The gamesman core does
-**              most of the work here. 
-**
-** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
-**              STRING   playersName : Current Player's Name
-**
-** OUTPUTS:     USERINPUT          : One of
-**                                   (Undo, Abort, Continue)
-**
-** CALLS:       USERINPUT HandleDefaultTextInput(POSITION, MOVE*, STRING)
-**                                 : Gamesman Core Input Handling
-**
-************************************************************************/
+ **
+ ** NAME:        GetAndPrintPlayersMove
+ **
+ ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
+ **              some other gamesman option. The gamesman core does
+ **              most of the work here. 
+ **
+ ** INPUTS:      POSITION position    : Current position
+ **              MOVE     *move       : The move to fill with user's move. 
+ **              STRING   playersName : Current Player's Name
+ **
+ ** OUTPUTS:     USERINPUT          : One of
+ **                                   (Undo, Abort, Continue)
+ **
+ ** CALLS:       USERINPUT HandleDefaultTextInput(POSITION, MOVE*, STRING)
+ **                                 : Gamesman Core Input Handling
+ **
+ ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+  USERINPUT input;
+  USERINPUT HandleDefaultTextInput();
     
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/1-31] : ", playersName);
+  for (;;) {
+    /***********************************************************
+     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+     ***********************************************************/
+    printf("%8s's move [(undo)/0-31] : ", playersName);
 	
-	input = HandleDefaultTextInput(position, move, playersName);
+    input = HandleDefaultTextInput(position, move, playersName);
 	
-	if (input != Continue)
-		return input;
-    }
+    if (input != Continue)
+      return input;
+  }
 
-    /* NOTREACHED */
-    return Continue;
+  /* NOTREACHED */
+  return Continue;
 }
 
 
 /************************************************************************
-**
-** NAME:        ValidTextInput
-**
-** DESCRIPTION: Rudimentary check to check if input is in the move form
-**              you are expecting. Does not check if it is a valid move.
-**              Only checks if it fits the move form.
-**
-**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
-**                                          COMMANDS IN YOUR GAME
-**              ?, s, u, r, h, a, c, q
-**                                          However, something like a3
-**                                          is okay.
-** 
-**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
-**                       Only integers between 1 to 9 are accepted
-**                       regardless of board position.
-**                       Moves will be checked by the core.
-**
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
-**
-************************************************************************/
+ **
+ ** NAME:        ValidTextInput
+ **
+ ** DESCRIPTION: Rudimentary check to check if input is in the move form
+ **              you are expecting. Does not check if it is a valid move.
+ **              Only checks if it fits the move form.
+ **
+ **              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
+ **                                          COMMANDS IN YOUR GAME
+ **              ?, s, u, r, h, a, c, q
+ **                                          However, something like a3
+ **                                          is okay.
+ ** 
+ **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
+ **                       Only integers between 1 to 9 are accepted
+ **                       regardless of board position.
+ **                       Moves will be checked by the core.
+ **
+ ** INPUTS:      STRING input : The string input the user typed.
+ **
+ ** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
+ **
+ ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	int i;
+  int i;
 	
-	if(strlen(input) > 2)
-		return FALSE;
+  if(strlen(input) > 2)
+    return FALSE;
 	
-	for(i = 0; i < strlen(input); i++)
-	{
-		if(!((input[i] == '0') ||
-		     (input[i] == '1') ||
-		     (input[i] == '2') ||
-		     (input[i] == '3') ||
-		     (input[i] == '4') ||
-		     (input[i] == '5') ||
-		     (input[i] == '6') ||
-		     (input[i] == '7') ||
-		     (input[i] == '8') ||
-		     (input[i] == '9')))
-		     return FALSE;
-	}
+  for(i = 0; i < strlen(input); i++)
+    {
+      if(!((input[i] == '0') ||
+	   (input[i] == '1') ||
+	   (input[i] == '2') ||
+	   (input[i] == '3') ||
+	   (input[i] == '4') ||
+	   (input[i] == '5') ||
+	   (input[i] == '6') ||
+	   (input[i] == '7') ||
+	   (input[i] == '8') ||
+	   (input[i] == '9') ||
+	   (input[i] == 'a') ||
+	   (input[i] == 'b') ||
+	   (input[i] == 'c') ||
+	   (input[i] == 'd') ||
+	   (input[i] == 'e') ||
+	   (input[i] == 'f') ||
+	   (input[i] == 'g') ||
+	   (input[i] == 'h') ||
+	   (input[i] == 'i') ||
+	   (input[i] == 'j') ||
+	   (input[i] == 'k') ||
+	   (input[i] == 'l') ||
+	   (input[i] == 'm') ||
+	   (input[i] == 'n') ||
+	   (input[i] == 'o') ||
+	   (input[i] == 'p')))
+	return FALSE;
+    }
 	
-    return TRUE;
+  return TRUE;
 }
 
 
 /************************************************************************
-**
-** NAME:        ConvertTextInputToMove
-**
-** DESCRIPTION: Converts the string input your internal move representation.
-**              Gamesman already checked the move with ValidTextInput
-**              and ValidMove.
-** 
-** INPUTS:      STRING input : The VALID string input from the user.
-**
-** OUTPUTS:     MOVE         : Move converted from user input.
-**
-************************************************************************/
+ **
+ ** NAME:        ConvertTextInputToMove
+ **
+ ** DESCRIPTION: Converts the string input your internal move representation.
+ **              Gamesman already checked the move with ValidTextInput
+ **              and ValidMove.
+ ** 
+ ** INPUTS:      STRING input : The VALID string input from the user.
+ **
+ ** OUTPUTS:     MOVE         : Move converted from user input.
+ **
+ ************************************************************************/
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	int move, i, limit; // limit is part of a really ugly hack. fix this for reals later.
+  int move, i, limit; // limit is part of a really ugly hack. fix this for reals later.
 	
-	move = 0;
+  move = 0;
 	
-	if(strlen(input) == 1)
-		limit = 1;
-	else limit = strlen(input) - 1;
+  if(strlen(input) == 1)
+    limit = 1;
+  else limit = strlen(input) - 1;
 	
-	for(i = 0; i < limit; i++) //for some reason the last character gets duplicated??
-	{	
-		move = move * 10;
-		move = move + atoi(&input[i]);		
-	}
-    return (MOVE) move;
+  for(i = 0; i < limit; i++) //for some reason the last character gets duplicated??
+    {	
+      move = move * 10;
+      move = move + atoi(&input[i]);		
+    }
+  return (MOVE) move;
 }
 
 
 /************************************************************************
-**
-** NAME:        GameSpecificMenu
-**
-** DESCRIPTION: Prints, receives, and sets game-specific parameters.
-**
-**              Examples
-**              Board Size, Board Type
-**
-**              If kGameSpecificMenu == FALSE
-**                   Gamesman will not enable GameSpecificMenu
-**                   Gamesman will not call this function
-** 
-**              Resets gNumberOfPositions if necessary
-**
-************************************************************************/
+ **
+ ** NAME:        GameSpecificMenu
+ **
+ ** DESCRIPTION: Prints, receives, and sets game-specific parameters.
+ **
+ **              Examples
+ **              Board Size, Board Type
+ **
+ **              If kGameSpecificMenu == FALSE
+ **                   Gamesman will not enable GameSpecificMenu
+ **                   Gamesman will not call this function
+ ** 
+ **              Resets gNumberOfPositions if necessary
+ **
+ ************************************************************************/
 
 void GameSpecificMenu ()
 {
@@ -782,13 +912,13 @@ void GameSpecificMenu ()
 
 
 /************************************************************************
-**
-** NAME:        SetTclCGameSpecificOptions
-**
-** DESCRIPTION: Set the C game-specific options (called from Tcl)
-**              Ignore if you don't care about Tcl for now.
-** 
-************************************************************************/
+ **
+ ** NAME:        SetTclCGameSpecificOptions
+ **
+ ** DESCRIPTION: Set the C game-specific options (called from Tcl)
+ **              Ignore if you don't care about Tcl for now.
+ ** 
+ ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
@@ -797,17 +927,17 @@ void SetTclCGameSpecificOptions (int options[])
   
   
 /************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-** 
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
+ **
+ ** NAME:        GetInitialPosition
+ **
+ ** DESCRIPTION: Called when the user wishes to change the initial
+ **              position. Asks the user for an initial position.
+ **              Sets new user defined gInitialPosition and resets
+ **              gNumberOfPositions if necessary
+ ** 
+ ** OUTPUTS:     POSITION : New Initial Position
+ **
+ ************************************************************************/
 
 POSITION GetInitialPosition ()
 {
@@ -820,20 +950,20 @@ POSITION GetInitialPosition ()
   getchar(); // for the enter after picking option 1 on the debug menu
   
   for(i = 0; i < boardSize; i++) {       
-	do{
-		printf("Input the character at cell %i: ", i);
-		piece = (char) getchar();
-		getchar();
-	}while((piece != '+') && (piece != 'X') && (piece != 'O'));
-	boardArray[i] = piece;
+    do{
+      printf("Input the character at cell %i: ", i);
+      piece = (char) getchar();
+      getchar();
+    }while((piece != '+') && (piece != 'X') && (piece != 'O'));
+    boardArray[i] = piece;
   }
   
   
   do{
-		printf("Input whose turn it is (1 for player A, 2 for player B): ");
-		turn = (char) getchar();
-		getchar();
-	}while((turn != '1') && (turn != '2')); 
+    printf("Input whose turn it is (1 for player A, 2 for player B): ");
+    turn = (char) getchar();
+    getchar();
+  }while((turn != '1') && (turn != '2')); 
   gWhosTurn = atoi(&turn);
 
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
@@ -846,74 +976,74 @@ POSITION GetInitialPosition ()
 
 
 /************************************************************************
-**
-** NAME:        NumberOfOptions
-**
-** DESCRIPTION: Calculates and returns the number of variants
-**              your game supports.
-**
-** OUTPUTS:     int : Number of Game Variants
-**
-************************************************************************/
+ **
+ ** NAME:        NumberOfOptions
+ **
+ ** DESCRIPTION: Calculates and returns the number of variants
+ **              your game supports.
+ **
+ ** OUTPUTS:     int : Number of Game Variants
+ **
+ ************************************************************************/
 
 int NumberOfOptions ()
 {
-    return 0;
+  return 0;
 }
 
 
 /************************************************************************
-**
-** NAME:        getOption
-**
-** DESCRIPTION: A hash function that returns a number corresponding
-**              to the current variant of the game.
-**              Each set of variants needs to have a different number.
-**
-** OUTPUTS:     int : the number representation of the options.
-**
-************************************************************************/
+ **
+ ** NAME:        getOption
+ **
+ ** DESCRIPTION: A hash function that returns a number corresponding
+ **              to the current variant of the game.
+ **              Each set of variants needs to have a different number.
+ **
+ ** OUTPUTS:     int : the number representation of the options.
+ **
+ ************************************************************************/
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+  /* If you have implemented symmetries you should
+     include the boolean variable gSymmetries in your
+     hash */
+  return 0;
 }
 
 
 /************************************************************************
-**
-** NAME:        setOption
-**
-** DESCRIPTION: The corresponding unhash function for game variants.
-**              Unhashes option and sets the necessary variants.
-**
-** INPUT:       int option : the number representation of the options.
-**
-************************************************************************/
+ **
+ ** NAME:        setOption
+ **
+ ** DESCRIPTION: The corresponding unhash function for game variants.
+ **              Unhashes option and sets the necessary variants.
+ **
+ ** INPUT:       int option : the number representation of the options.
+ **
+ ************************************************************************/
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+  /* If you have implemented symmetries you should
+     include the boolean variable gSymmetries in your
+     hash */
 }
 
 
 /************************************************************************
-**
-** NAME:        DebugMenu
-**
-** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems.
-**
-**              If kDebugMenu == FALSE
-**                   Gamesman will not display a debug menu option
-**                   Gamesman will not call this function
-** 
-************************************************************************/
+ **
+ ** NAME:        DebugMenu
+ **
+ ** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
+ **              debug menu). Menu used to debug internal problems.
+ **
+ **              If kDebugMenu == FALSE
+ **                   Gamesman will not display a debug menu option
+ **                   Gamesman will not call this function
+ ** 
+ ************************************************************************/
 
 void DebugMenu ()
 {
@@ -922,35 +1052,38 @@ void DebugMenu ()
 
 
 /************************************************************************
-**
-** Everything specific to this module goes below these lines.
-**
-** Things you want down here:
-** Move Hasher
-** Move Unhasher
-** Any other function you deem necessary to help the ones above.
-** 
-************************************************************************/
+ **
+ ** Everything specific to this module goes below these lines.
+ **
+ ** Things you want down here:
+ ** Move Hasher
+ ** Move Unhasher
+ ** Any other function you deem necessary to help the ones above.
+ ** 
+ ************************************************************************/
 BOOLEAN FourInARow(char *board, char symbol)
 {
   return (/* horizontal */
-         (board[0]  == symbol && board[1]  == symbol && board[2]  == symbol && board[3]  == symbol) ||
-         (board[4]  == symbol && board[5]  == symbol && board[6]  == symbol && board[7]  == symbol) ||
-         (board[8]  == symbol && board[9]  == symbol && board[10] == symbol && board[11] == symbol) ||
-         (board[12] == symbol && board[13] == symbol && board[14] == symbol && board[15] == symbol) ||
-         /* vertical */
-         (board[0]  == symbol && board[4] == symbol && board[8]  == symbol && board[12] == symbol) ||
-         (board[1]  == symbol && board[5] == symbol && board[9]  == symbol && board[13] == symbol) ||
-         (board[2]  == symbol && board[6] == symbol && board[10] == symbol && board[14] == symbol) ||
-         (board[3]  == symbol && board[7] == symbol && board[11] == symbol && board[15] == symbol) ||
-         /* diagonal */
-         (board[0]  == symbol && board[5] == symbol && board[10] == symbol && board[15] == symbol) ||
-         (board[3]  == symbol && board[6] == symbol && board[9]  == symbol && board[12] == symbol));
+	  (board[0]  == symbol && board[1]  == symbol && board[2]  == symbol && board[3]  == symbol) ||
+	  (board[4]  == symbol && board[5]  == symbol && board[6]  == symbol && board[7]  == symbol) ||
+	  (board[8]  == symbol && board[9]  == symbol && board[10] == symbol && board[11] == symbol) ||
+	  (board[12] == symbol && board[13] == symbol && board[14] == symbol && board[15] == symbol) ||
+	  /* vertical */
+	  (board[0]  == symbol && board[4] == symbol && board[8]  == symbol && board[12] == symbol) ||
+	  (board[1]  == symbol && board[5] == symbol && board[9]  == symbol && board[13] == symbol) ||
+	  (board[2]  == symbol && board[6] == symbol && board[10] == symbol && board[14] == symbol) ||
+	  (board[3]  == symbol && board[7] == symbol && board[11] == symbol && board[15] == symbol) ||
+	  /* diagonal */
+	  (board[0]  == symbol && board[5] == symbol && board[10] == symbol && board[15] == symbol) ||
+	  (board[3]  == symbol && board[6] == symbol && board[9]  == symbol && board[12] == symbol));
 }
 
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2006/03/19 20:39:15  simontaotw
+// Changed the legend so it looks less cramped.
+//
 // Revision 1.18  2006/03/19 06:21:27  albertchae
 // DoMove() works somewhat. Able to play human v human except for a bug
 // with alternating player's move and challenger's move.
