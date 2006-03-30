@@ -49,6 +49,7 @@ public class RegistrationModuleTest extends TestCase {
 			else statusStr = "FAILED";
 			System.out.println(TAB + statusStr + ": " + msgs[index]);
 		}
+		System.out.println();
 	}
 	
 	/**
@@ -606,8 +607,8 @@ public class RegistrationModuleTest extends TestCase {
 	}
 	
 	/**
-	 * 
-	 *
+	 * Tests joinGameNumber method in isolation through the use of simulated accept/deny responses
+	 * @throws Module Exception
 	 */
 	public synchronized void test07() throws ModuleException {
 		regMod = new RegistrationModule();
@@ -620,7 +621,7 @@ public class RegistrationModuleTest extends TestCase {
 					boolean [] testStatus = new boolean[4];
 					int testNum = 7;
 					Map resHeaders;
-					String resHrdVal, description, secretKey1, secretKey2;
+					String description, secretKey1, secretKey2;
 					
 					description = "Testing joinGameNumber()";
 					
@@ -715,7 +716,7 @@ public class RegistrationModuleTest extends TestCase {
 		
 		while (tr1.isAlive()){
 			try {
-				wait(10);
+				wait(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -723,6 +724,333 @@ public class RegistrationModuleTest extends TestCase {
 			regMod.acceptUser("user2", Macros.HOST_ACCEPT);
 			regMod.wakeThreads();
 		}
+	}
+	
+	/**
+	 * 
+	 *
+	 */
+	public synchronized void test08() throws ModuleException{
+		//testStatus(testNum, description, testMsgs, testStatus);
+		
+		regMod = new RegistrationModule();
+		Thread tr1 = new Thread( new Runnable() {
+			public void run () {
+				try {
+					String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+					String [] headerValues = {Macros.REG_MOD_REGISTER_USER, user, game};
+					String [] testMsgs = new String[1];
+					boolean [] testStatus = new boolean[1];
+					int testNum = 8;
+					Map resHeaders;
+					String description, secretKey1, secretKey2;
+					
+					description = "Testing acceptChallenge() & refreshHostStatus()";
+					
+					//don't actually need to use input stream
+					input = new byte[INPUT_BYTE_ARR_SIZE];
+					tReq = new TestModuleRequest(input,headerNames,headerValues);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					
+					//user1 has been registed to play mancala
+					regMod.handleRequest(tReq, tRes);
+					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					
+					
+					//register user2 to also play the same game
+					headerValues[1] = "user2";
+					tReq = new TestModuleRequest(input,headerNames,headerValues);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					
+					//let user1 register a new game of mancala
+					//Registering the new game
+					String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
+					String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
+					tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					
+					//Now user2 will attempt to join this game, which should have a gameID of 4
+					//but with an incorrect secret key
+					String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
+					String [] headerValues_3 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey2, new Integer(4).toString()};
+					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
+					tRes = new TestModuleResponse(OUTPUT_SIZE);
+					regMod.handleRequest(tReq, tRes);
+					resHeaders = tRes.getHeadersWritten();
+					testMsgs[0] = "User2 attempting to join a game with an valid secret key";
+					testStatus[0] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+					
+					testStatus(testNum, description, testMsgs, testStatus);
+				}
+				catch (ModuleException me) {
+					//do something
+					me.printStackTrace();
+				}
+			}
+		}
+		);
+		//begin thread execution
+		tr1.start();
+		String secretKey;
+		String [] headerNames4 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY};
+		String [] headerValues4 = {Macros.REG_MOD_REFRESH_STATUS, "user1", secretKey = RegistrationModule.generateKeyString("user1")};
+		input = new byte[INPUT_BYTE_ARR_SIZE];
+		TestModuleRequest tReq1 = new TestModuleRequest(input,headerNames4,headerValues4);
+		TestModuleResponse tRes1 = new TestModuleResponse(OUTPUT_SIZE);
+		String opponent = Macros.DUMMY_USER;
+		boolean accept = false;
+		while (tr1.isAlive()){
+			try {
+				wait(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (opponent == Macros.DUMMY_USER) {
+				regMod.handleRequest(tReq1,tRes1);
+				opponent = (String)tRes1.getHeadersWritten().get(Macros.OPPONENT_USERNAME);
+			}
+			else if (!accept) {
+				accept = true;
+				String [] headerNames1 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.CHALLENGE_ACCEPTED};
+				String [] headerValues1 = {Macros.REG_MOD_ACCEPT_CHALLENGE, "user1", secretKey, Macros.ACCEPTED};
+				tReq1 = new TestModuleRequest(input,headerNames1,headerValues1);
+				tRes1 = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq1,tRes1);
+			}
+			
+		}
+	}
+	
+	/** Test 9 Fields */
+	String [] testMsgs_test9 = new String [4];
+	boolean [] testStatus_test9 = new boolean [4];
+	int testNum9 = 9;
+	String test9Description = "Scalar inter method test (joinGameNumber(), refreshHostStatus(), acceptChallenge())";
+	
+	public synchronized void test09() throws ModuleException, InterruptedException {
+		regMod = new RegistrationModule();
+		
+		/**
+		 * User 1 execution thread
+		 */
+		Thread user1 = new Thread( new Runnable() {
+			public void run () {
+				try {
+				String userName = "user1";
+				int userIndex = 0;
+				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String secretKey;
+				Map resHeaders;
+				
+				TestModuleRequest tReq;
+				TestModuleResponse tRes;
+				
+				//don't actually need to use input stream
+				input = new byte[INPUT_BYTE_ARR_SIZE];
+				tReq = new TestModuleRequest(input,headerNames,headerValues);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				
+				//user1 has been registed to play mancala
+				regMod.handleRequest(tReq, tRes);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				
+				//request to join the game of mancala, note that another thread must already be hosting the game
+				//Current id should be 5
+				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
+				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, userName, secretKey, new Integer(5).toString()};
+				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq, tRes);
+				resHeaders = tRes.getHeadersWritten();
+				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host DECLINED";
+				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.DENY);
+				
+				}
+				catch (Exception e) {
+					e.printStackTrace();	
+				}
+			}
+		});
+		
+		/**
+		 * User 2 execution thread
+		 * This is the lucky user who will be chosen to play
+		 */
+		Thread user2 = new Thread( new Runnable() {
+			public void run () {
+				try {
+				String userName = "user2";
+				int userIndex = 1;
+				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String secretKey;
+				Map resHeaders;
+				
+				TestModuleRequest tReq;
+				TestModuleResponse tRes;
+				
+				//don't actually need to use input stream
+				input = new byte[INPUT_BYTE_ARR_SIZE];
+				tReq = new TestModuleRequest(input,headerNames,headerValues);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				
+				//user1 has been registed to play mancala
+				regMod.handleRequest(tReq, tRes);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				
+				//request to join the game of mancala, note that another thread must already be hosting the game
+				//Current id should be 5
+				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
+				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
+				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq, tRes);
+				resHeaders = tRes.getHeadersWritten();
+				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host ACCEPTED";
+				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+				
+				}
+				catch (Exception e) {
+					e.printStackTrace();	
+				}
+			}
+		});
+		
+		/**
+		 * User 3 execution thread
+		 */
+		Thread user3 = new Thread( new Runnable() {
+			public void run () {
+				try {
+				String userName = "user3";
+				int userIndex = 2;
+				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String secretKey;
+				Map resHeaders;
+				
+				TestModuleRequest tReq;
+				TestModuleResponse tRes;
+				
+				//don't actually need to use input stream
+				input = new byte[INPUT_BYTE_ARR_SIZE];
+				tReq = new TestModuleRequest(input,headerNames,headerValues);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				
+				//user1 has been registed to play mancala
+				regMod.handleRequest(tReq, tRes);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				
+				//request to join the game of mancala, note that another thread must already be hosting the game
+				//Current id should be 5
+				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
+				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
+				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq, tRes);
+				resHeaders = tRes.getHeadersWritten();
+				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host DECLINED";
+				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.DENY);
+				
+				}
+				catch (Exception e) {
+					e.printStackTrace();	
+				}
+			}
+		});
+		
+		/**
+		 * User 4 Mancala Game Host
+		 */
+		Thread user4 = new Thread( new Runnable() {
+			public void run () {
+				try {
+				String userName = "user4";
+				int userIndex = 3;
+				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
+				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String secretKey;
+				
+				TestModuleRequest tReq;
+				TestModuleResponse tRes;
+				
+				//don't actually need to use input stream
+				input = new byte[INPUT_BYTE_ARR_SIZE];
+				tReq = new TestModuleRequest(input,headerNames,headerValues);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				
+				//user1 has been registed to play mancala
+				regMod.handleRequest(tReq, tRes);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				
+				//let user4 register a new game of mancala
+				//Registering the new game
+				String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
+				String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, userName, secretKey, game, variation, "I challenge anyone to play"};
+				tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq, tRes);
+				
+				
+				String [] headerNames_3 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY};
+				String [] headerValues_3 = {Macros.REG_MOD_REFRESH_STATUS, userName, secretKey};
+				input = new byte[INPUT_BYTE_ARR_SIZE];
+				tReq = new TestModuleRequest(input,headerNames_3,headerValues_3);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				
+				String opponent = Macros.DUMMY_USER;
+				while (!opponent.equals("user2")) {
+					synchronized (this) {
+						wait(10);
+					}
+					regMod.handleRequest(tReq,tRes);
+					opponent = (String)tRes.getHeadersWritten().get(Macros.OPPONENT_USERNAME);
+				}
+				
+				//When we are presented with user2 accept the challenge and inform the other users that
+				//they will not be able to join this game session
+				String [] headerNames_4 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.CHALLENGE_ACCEPTED};
+				String [] headerValues_4 = {Macros.REG_MOD_ACCEPT_CHALLENGE, userName, secretKey, Macros.ACCEPTED};
+				tReq = new TestModuleRequest(input,headerNames_4,headerValues_4);
+				tRes = new TestModuleResponse(OUTPUT_SIZE);
+				regMod.handleRequest(tReq,tRes);
+				
+				testMsgs_test9[userIndex] = "Host accepted user 2 response ACK";
+				testStatus_test9[userIndex] = 	tRes.getHeadersWritten().get(Macros.STATUS).equals(Macros.ACK);
+				
+				}
+				catch (Exception e) {
+					e.printStackTrace();	
+				}
+			}
+		});
+		
+		/*
+		user4.join();
+		user3.join();
+		user2.join();
+		user1.join();
+		*/
+		
+		user4.start();
+		//Give the host time to set up the game
+		wait(10);
+		
+		//Start all remaining threads
+		user3.start();
+		user2.start();
+		user1.start();
+		
+		while (user1.isAlive() || user2.isAlive() || user3.isAlive() || user4.isAlive()) {
+			//wait until thread execution is over
+			wait(10);
+		}
+		
+		testStatus(testNum9, test9Description, testMsgs_test9, testStatus_test9);
 	}
 	
 	/**
@@ -744,6 +1072,7 @@ public class RegistrationModuleTest extends TestCase {
 	 * @param byteArr
 	 * @return
 	 */
+	/*
 	private static char[] parseByteArray(byte[] byteArr) {
 		char [] charArr = new char[byteArr.length];
 		for (int index = 0; index < byteArr.length; index++) {
@@ -751,7 +1080,5 @@ public class RegistrationModuleTest extends TestCase {
 		}
 		return charArr;
 	}
+	*/
 }
-
-
-

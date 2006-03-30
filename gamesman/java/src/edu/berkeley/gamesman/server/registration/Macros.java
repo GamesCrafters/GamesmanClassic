@@ -70,6 +70,7 @@ public final class Macros {
 	
 	public static final Boolean HOST_ACCEPT 				= new Boolean(true);
 	public static final Boolean HOST_DECLINE				= new Boolean(false);
+	public static final String 	DUMMY_USER					= "*.* DUMMY USER *.*";
 	
 	/**
 	 * Error Code Macros

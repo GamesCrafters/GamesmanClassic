@@ -494,7 +494,9 @@ public class RegistrationModule implements IModule
 				unregisterGame(req, res);
 				
 				//Wake all waiting threads so they can be notified of the results
-				notifyAll();
+				synchronized (this) {
+					notifyAll();
+				}
 				
 				res.setHeader(Macros.STATUS, Macros.ACK);
 			} else {
@@ -523,7 +525,9 @@ public class RegistrationModule implements IModule
 				 * Actually notify() arbitrarily wakes up a thread waiting, therefore notifyAll() had to be used
 				 * along with a condition variable
 				 */
-				notifyAll();
+				synchronized (this) {
+					notifyAll();
+				}
 				res.setHeader(Macros.STATUS, Macros.ACK);
 			}
 		} else {
@@ -566,13 +570,18 @@ public class RegistrationModule implements IModule
 			hostPropBucket = getUser(userName);
 			interestedList = (LinkedList)hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
 			synchronized (interestedList) {
-				guestPropertBucket = (PropertyBucket)interestedList.getFirst();
+				if (interestedList.size() != 0) {
+					guestPropertBucket = (PropertyBucket)interestedList.getFirst();
+					luckyUser = (String)guestPropertBucket.getProperty(Macros.PROPERTY_USER_NAME);
+				}
+				else luckyUser = Macros.DUMMY_USER;
 			}
-			luckyUser = (String)guestPropertBucket.getProperty(Macros.PROPERTY_USER_NAME);
+			
 			
 			//Being careful here! If there -isn't- anyone waiting, getFirst I think
 			//returns null, which we'll send along. The client will have to then
-			//have to interpret an ACK/Null combo as "no-one's waiting", no? 
+			//have to interpret an ACK/Null combo as "no-one's waiting", no? -Filip
+			//Actually getFirst on an empty list will throw a No Such Element Exception -Victor
 			res.setHeader(Macros.OPPONENT_USERNAME, luckyUser); 
 			res.setHeader(Macros.STATUS, Macros.ACK);
 		} else {
@@ -801,7 +810,7 @@ public class RegistrationModule implements IModule
 	 * @param user
 	 * @return
 	 */
-	private static String generateKeyString(String user) {
+	protected static String generateKeyString(String user) {
 		return (new Integer(generateKey(user))).toString();
 	}
 
