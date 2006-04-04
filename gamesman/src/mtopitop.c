@@ -675,38 +675,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   
 	arrayHashedBoard = arrayUnhash(position);
 	
-	smallSandPiles = largeSandPiles = 4;
-    blueBuckets = redBuckets = 2;
-    for (i = 0; i < boardSize; i++) {
-    	switch (arrayHashedBoard->theBoard[i]) {
-    		case SMALLPIECE:		smallSandPiles--;
-    								break;
-    		case LARGEPIECE:		largeSandPiles--;
-    								break;
-    		case CASTLEPIECE:		smallSandPiles--;
-    								largeSandPiles--;
-    								break;
-    		case BLUEBUCKETPIECE:	blueBuckets--;
-    								break;
-    		case REDBUCKETPIECE:	redBuckets--;
-    								break;
-    		case BLUESMALLPIECE:	smallSandPiles--;
-    								blueBuckets--;
-    								break;
-    		case REDSMALLPIECE:		smallSandPiles--;
-    								redBuckets--;
-    								break;
-    		case BLUECASTLEPIECE:	smallSandPiles--;
-    								largeSandPiles--;
-    								blueBuckets--;
-    								break;
-    		case REDCASTLEPIECE:	smallSandPiles--;
-    								largeSandPiles--;
-    								redBuckets--;
-    								break;
-    	}
-    }
-	
 	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int) position); }
 	
 	/***********************LINE 1**************************/
@@ -880,12 +848,54 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(_u_ndo)/([l,s,b][1-9] OR [1-9][1-9])] : ", playersName);
+		printf("%8s's move [(_u_ndo)/([l,s,b][1-9] OR [1-9][1-9])] : ", playersName);
 	
-	input = HandleDefaultTextInput(position, move, playersName);
+		input = HandleDefaultTextInput(position, move, playersName);
 	
-	if (input != Continue)
-		return input;
+		/*if (input == Undo) {
+			smallSandPiles = largeSandPiles = 4;
+    		blueBuckets = redBuckets = 2;
+    		for (i = 0; i < boardSize; i++) {
+    			switch (arrayHashedBoard->theBoard[i]) {
+    				case SMALLPIECE:		smallSandPiles--;
+    										break;
+		    		case LARGEPIECE:		largeSandPiles--;
+    										break;
+		    		case CASTLEPIECE:		smallSandPiles--;
+    										largeSandPiles--;
+    										break;
+		    		case BLUEBUCKETPIECE:	blueBuckets--;
+    										break;
+		    		case REDBUCKETPIECE:	redBuckets--;
+    										break;
+		    		case BLUESMALLPIECE:	smallSandPiles--;
+    										blueBuckets--;
+    										break;
+		    		case REDSMALLPIECE:		smallSandPiles--;
+    										redBuckets--;
+    										break;
+		    		case BLUECASTLEPIECE:	smallSandPiles--;
+    										largeSandPiles--;
+    										blueBuckets--;
+    										break;
+		    		case REDCASTLEPIECE:	smallSandPiles--;
+    										largeSandPiles--;
+    										redBuckets--;
+    										break;
+		    	}
+		    }
+		    
+		    if (board->theTurn == Blue) {
+    			board->theTurn = gWhosTurn = Red;
+	    		currentBoard = arrayHash(board);
+    		} else {
+    			board->theTurn = gWhosTurn = Blue;
+    			currentBoard = arrayHash(board);
+    		}
+		}*/
+	
+		if (input != Continue)
+			return input;
     }
 
     /* NOTREACHED */
@@ -926,16 +936,6 @@ BOOLEAN ValidTextInput (STRING input)
     if (DEBUG_CTITM) {
     	printf("input[0] = %c\n", input[0]);
     	printf("input[1] = %c\n", input[1]);
-    }
-    
-    if (input[0] == 'u') {
-    	if (board->theTurn == Blue) {
-    		board->theTurn = gWhosTurn = Red;
-    		currentBoard = arrayHash(board);
-    	} else {
-    		board->theTurn = gWhosTurn = Blue;
-    		currentBoard = arrayHash(board);
-    	}
     }
     
     if (((input[0] >= '1') && (input[0] <= '9')) ||
@@ -1672,6 +1672,10 @@ int validPieceMove(int fromPos, int toPos) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.24  2006/04/04 23:33:12  mikehamada
+// A WHOLE BUNCH of changes...but IT WORKS!
+// Still must work out the bugs with UNDO though...
+//
 // Revision 1.23  2006/03/29 02:50:51  mikehamada
 // Hash Not Working yet...
 //
