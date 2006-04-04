@@ -234,7 +234,7 @@ typedef struct cleanMove {
 int boardSize = ROWCOUNT * COLCOUNT;
 int numCols = COLCOUNT;
 int numRows = ROWCOUNT;
-int DEBUG_G = 1;
+int DEBUG_G = 0;
 int DEBUG_GM = 0;
 int DEBUG_M = 0;
 int DEBUG_PP = 0;
@@ -930,7 +930,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	BoardAndTurn board = arrayUnhash(currentBoard);
 	if (DEBUG_CTITM) { printf("\n***** VALID TEXT INPUT *****\n\n"); }
     
     if (DEBUG_CTITM) {
@@ -1672,6 +1671,9 @@ int validPieceMove(int fromPos, int toPos) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.25  2006/04/04 23:46:20  mikehamada
+// *** empty log message ***
+//
 // Revision 1.24  2006/04/04 23:33:12  mikehamada
 // A WHOLE BUNCH of changes...but IT WORKS!
 // Still must work out the bugs with UNDO though...
