@@ -1,8 +1,8 @@
 /************************************************************************
 **
-** NAME:	db.h
+** NAME:	db.c
 **
-** DESCRIPTION:	Gamescrafters Database Global Header File
+** DESCRIPTION:	Gamescrafters Database Test Program
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
@@ -29,29 +29,33 @@
 **
 **************************************************************************/
 
-#ifndef GMCORE_DB_H
-#define GMCORE_DB_H
+#include <stdio.h>
+#include "db.h"
 
-#include "db_globals.h"
+int main(int argc, char *argv[])
+{
+	Position totalrecs = 10000;
+	size_t recsize = sizeof(short);
+	size_t bufferrecs = 100;
+	char dbname[] = "testdb.dat";
 
-#include "db_store.h"
-#include "db_buf.h"
-#include "db_bman.h"
-#include "db_malloc.h"
-#include "db_basichash.h"
+	games_db *testdb = db_create(totalrecs, recsize, recsize*bufferrecs, dbname);
+	printf("Starting DB test...\n");
+	
+	Position i;
+	short data = 0, result = 0;
 
+	for (i=0;i<totalrecs;i++) {
+		data = i % (1<<15);
+		db_put(testdb, &data, i);
+		db_get(testdb, &result, i);
+		if (data!=result) {
+			printf("ERROR: position %ull, saved %d, got %d\n", i, data, result);
+			break;
+		}
+	}
 
-typedef struct {
-  db_bman* buf_man;
-  db_buf_head* buffers;
-  db_store* filep;
-  frame_id num_buf;
-  page_id num_page;
-} games_db;
-
-games_db*	db_create	(Position num_rec, int rec_size, Position max_mem, char* db_name);
-void		db_destroy	(games_db* data);
-void		db_get		(games_db* gdb, char* mem, Position pos);
-void		db_put		(games_db* gdb, char* mem, Position pos);
-
-#endif /* GMCORE_DB_H */
+	printf("Ending DB test...\n");
+	db_destroy(testdb);
+	
+}

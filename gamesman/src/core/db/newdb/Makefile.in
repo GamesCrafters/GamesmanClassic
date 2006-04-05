@@ -52,8 +52,13 @@ INCLUDES=db_store.h db_malloc.h db.h db_buf.h db_bman.h db_basichash.h
 ### Rules
 
 all: gamesdb.a
+
+test: dbtest.c gamesdb.a
+	$(CC) $(CFLAGS) -c -o dbtest$(OBJSUFFIX) dbtest.c
+	$(CC) -o dbtest dbtest$(OBJSUFFIX) gamesdb.a -lz
+
 clean:
-	rm -rf gamesdb.a
+	rm -rf gamesdb.a *~ *.o dbtest
 
 gamesdb.a: $(CORE)
 	rm -f $@
