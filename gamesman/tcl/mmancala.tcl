@@ -193,7 +193,7 @@ proc GS_Initialize { c } {
 	-fill #b98e60 -tag board
     
     set counter 0
-    for {set j [expr ($canvasSize / 3)]} {$j <= 2 * ($canvasSize / 3)} \
+    for {set j [expr ($canvasSize / 3)]} {$j <= 2 * ($canvasSize / 3) || abs([expr $j - 2 * ($canvasSize / 3)]) < 1 } \
 	{set j [expr $j + ($canvasSize / 3)]} { 
 	if { $counter == [expr ($boardSize / 2) - 1] } {
 	    set counter $boardSize
