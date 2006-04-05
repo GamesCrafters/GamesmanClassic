@@ -5,7 +5,7 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
-import edu.berkeley.gamesman.server.RequestTypes;
+import edu.berkeley.gamesman.server.RequestType;
 
 import java.util.Hashtable;
 
@@ -184,10 +184,10 @@ public class P2PModule implements IModule
 
 	public boolean typeSupported(String requestTypeName)
 	{
-		return (requestTypeName.equalsIgnoreCase(RequestTypes.GAME_OVER) ||
-				requestTypeName.equalsIgnoreCase(RequestTypes.INIT_GAME) || 
-				requestTypeName.equalsIgnoreCase(RequestTypes.SEND_MOVE) || 
-				requestTypeName.equalsIgnoreCase(RequestTypes.RESIGN));
+		return (requestTypeName.equalsIgnoreCase(RequestType.GAME_OVER) ||
+				requestTypeName.equalsIgnoreCase(RequestType.INIT_GAME) || 
+				requestTypeName.equalsIgnoreCase(RequestType.SEND_MOVE) || 
+				requestTypeName.equalsIgnoreCase(RequestType.RESIGN));
 	}
 
 	/**
@@ -215,15 +215,15 @@ public class P2PModule implements IModule
 		IModuleResponse waitingResponse = gameStatus.changePendingResponse(res);
 
 		// possibly clean this up to avoid code duplication
-		if (type.equalsIgnoreCase(RequestTypes.SEND_MOVE))
+		if (type.equalsIgnoreCase(RequestType.SEND_MOVE))
 		{
 			incomingMove = req.getHeader(Const.HN_MOVE);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.INIT_GAME))
+		else if (type.equalsIgnoreCase(RequestType.INIT_GAME))
 		{
 			// Do nothing
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.GAME_OVER))
+		else if (type.equalsIgnoreCase(RequestType.GAME_OVER))
 		{
 			debugPrint("Game over!");
 			waitingResponse.setHeader(Const.HN_TYPE, Const.HN_MOVE);
@@ -240,9 +240,9 @@ public class P2PModule implements IModule
 			theGames.remove(theGame);
 			return;
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.RESIGN))
+		else if (type.equalsIgnoreCase(RequestType.RESIGN))
 		{
-			waitingResponse.setHeader(Const.HN_TYPE, RequestTypes.RESIGN);
+			waitingResponse.setHeader(Const.HN_TYPE, RequestType.RESIGN);
 			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			res.setHeader("type", Const.ACK); // Still needed?
@@ -309,7 +309,7 @@ public class P2PModule implements IModule
 		String src = data.getHeader(Const.HN_SOURCE_PLAYER);
 		String dest = data.getHeader(Const.HN_DESTINATION_PLAYER);
 
-		toBeUpdated.setHeader(Const.HN_TYPE, RequestTypes.SEND_MOVE);
+		toBeUpdated.setHeader(Const.HN_TYPE, RequestType.SEND_MOVE);
 		toBeUpdated.setHeader(Const.HN_MOVE, move);
 		toBeUpdated.setHeader(Const.HN_DESTINATION_PLAYER, dest);
 		toBeUpdated.setHeader(Const.HN_SOURCE_PLAYER, src);

@@ -12,7 +12,7 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
-import edu.berkeley.gamesman.server.RequestTypes;
+import edu.berkeley.gamesman.server.RequestType;
 import edu.berkeley.gamesman.server.p2p.P2PModule;
 /**
  * 
@@ -48,16 +48,16 @@ public class RegistrationModule implements IModule
 	 */
 	public boolean typeSupported(String requestTypeName) {
 		//All supported types
-	return 	requestTypeName.equalsIgnoreCase(RequestTypes.REGISTER_USER) 	||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.GET_USERS) ||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.GET_GAMES) ||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.REGISTER_GAME)||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.UNREGISTER_GAME)  ||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.JOIN_GAME_NUMBER) ||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.JOIN_GAME_USER)	||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.REFRESH_STATUS)	||
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.ACCEPT_CHALLENGE) || 
-		 	requestTypeName.equalsIgnoreCase(RequestTypes.UNREGISTER_USER); 
+	return 	requestTypeName.equalsIgnoreCase(RequestType.REGISTER_USER) 	||
+		 	requestTypeName.equalsIgnoreCase(RequestType.GET_USERS) ||
+		 	requestTypeName.equalsIgnoreCase(RequestType.GET_GAMES) ||
+		 	requestTypeName.equalsIgnoreCase(RequestType.REGISTER_GAME)||
+		 	requestTypeName.equalsIgnoreCase(RequestType.UNREGISTER_GAME)  ||
+		 	requestTypeName.equalsIgnoreCase(RequestType.JOIN_GAME_NUMBER) ||
+		 	requestTypeName.equalsIgnoreCase(RequestType.JOIN_GAME_USER)	||
+		 	requestTypeName.equalsIgnoreCase(RequestType.REFRESH_STATUS)	||
+		 	requestTypeName.equalsIgnoreCase(RequestType.ACCEPT_CHALLENGE) || 
+		 	requestTypeName.equalsIgnoreCase(RequestType.UNREGISTER_USER); 
 	}
 	
 	/**
@@ -70,36 +70,36 @@ public class RegistrationModule implements IModule
 		IModuleResponse mres =  res;
 		type = mreq.getType();
 		System.out.println(type);
-		if (type.equalsIgnoreCase(RequestTypes.REGISTER_USER)) {
+		if (type.equalsIgnoreCase(RequestType.REGISTER_USER)) {
 			registerUser(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.GET_USERS)) {
+		else if (type.equalsIgnoreCase(RequestType.GET_USERS)) {
 			getUsersOnline(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.GET_GAMES)) {
+		else if (type.equalsIgnoreCase(RequestType.GET_GAMES)) {
 			getOpenGames(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.REGISTER_GAME)) {
+		else if (type.equalsIgnoreCase(RequestType.REGISTER_GAME)) {
 			registerNewGame(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.UNREGISTER_GAME)) {
+		else if (type.equalsIgnoreCase(RequestType.UNREGISTER_GAME)) {
 			unregisterGame(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.JOIN_GAME_NUMBER)) {
+		else if (type.equalsIgnoreCase(RequestType.JOIN_GAME_NUMBER)) {
 			joinGameNumber(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.JOIN_GAME_USER)) {
+		else if (type.equalsIgnoreCase(RequestType.JOIN_GAME_USER)) {
 			//Ambiguous meaning in the future if we implement multiple
 			//open-games per user. So might as well make it a client-side
 			//feature, instead of a dedicated server request. 
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.REFRESH_STATUS)) {
+		else if (type.equalsIgnoreCase(RequestType.REFRESH_STATUS)) {
 			refreshHostStatus(mreq, mres); 
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.ACCEPT_CHALLENGE)) {
+		else if (type.equalsIgnoreCase(RequestType.ACCEPT_CHALLENGE)) {
 			acceptChallenge(mreq, mres); 
 		}
-		else if (type.equalsIgnoreCase(RequestTypes.UNREGISTER_USER)) {
+		else if (type.equalsIgnoreCase(RequestType.UNREGISTER_USER)) {
 			unregisterUser(mreq, mres);
 		}
 		else {

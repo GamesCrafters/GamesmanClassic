@@ -11,7 +11,7 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
-import edu.berkeley.gamesman.server.RequestTypes;
+import edu.berkeley.gamesman.server.RequestType;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -179,7 +179,7 @@ public class DbModule implements IModule
 		//this doesn't do anything
 	}
 	public boolean typeSupported(String requestTypeName){
-		return requestTypeName.equalsIgnoreCase(RequestTypes.GET_VALUE_OF_POSITIONS);
+		return requestTypeName.equalsIgnoreCase(RequestType.GET_VALUE_OF_POSITIONS);
 	}
 
 	// our request goes here

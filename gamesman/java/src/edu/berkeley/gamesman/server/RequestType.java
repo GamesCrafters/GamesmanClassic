@@ -12,7 +12,7 @@ package edu.berkeley.gamesman.server;
  * @author Matt Jacobsen
  *
  */
-public interface RequestTypes
+public interface RequestType
 {
 	/** DbModule request types */
 	public static final String GET_VALUE_OF_POSITIONS = "GetValueOfPositions";
