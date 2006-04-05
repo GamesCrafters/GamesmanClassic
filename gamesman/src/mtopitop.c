@@ -242,7 +242,7 @@ int DEBUG_AU = 0;
 int DEBUG_UM = 0;
 int DEBUG_PM = 0;
 int DEBUG_DM = 0;
-int DEBUG_CTITM = 0;
+int DEBUG_CTITM = 1;
 int DEBUG_VPM = 0;
 int DEBUG_IM = 0;
 int gameType;
@@ -843,6 +843,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
+    int i;
+    
+    BoardAndTurn board = arrayUnhash(position);
     
     for (;;) {
         /***********************************************************
@@ -851,12 +854,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 		printf("%8s's move [(_u_ndo)/([l,s,b][1-9] OR [1-9][1-9])] : ", playersName);
 	
 		input = HandleDefaultTextInput(position, move, playersName);
-	
-		/*if (input == Undo) {
-			smallSandPiles = largeSandPiles = 4;
+		
+		if ((input == Undo) && (position != gInitialPosition)) {
+			/*smallSandPiles = largeSandPiles = 4;
     		blueBuckets = redBuckets = 2;
     		for (i = 0; i < boardSize; i++) {
-    			switch (arrayHashedBoard->theBoard[i]) {
+    			switch (board->theBoard[i]) {
     				case SMALLPIECE:		smallSandPiles--;
     										break;
 		    		case LARGEPIECE:		largeSandPiles--;
@@ -883,17 +886,15 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     										redBuckets--;
     										break;
 		    	}
-		    }
+		    }*/
 		    
 		    if (board->theTurn == Blue) {
     			board->theTurn = gWhosTurn = Red;
-	    		currentBoard = arrayHash(board);
     		} else {
     			board->theTurn = gWhosTurn = Blue;
-    			currentBoard = arrayHash(board);
     		}
-		}*/
-	
+		}
+		
 		if (input != Continue)
 			return input;
     }
@@ -1559,7 +1560,7 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   	if (DEBUG_AU) { printf("board[%d] = %c\n", i, board->theBoard[i]); }
   }
   
-  board->theTurn = gWhosTurn;
+  board->theTurn = whoseMove(hashNumber);
   
   if (DEBUG_AU) { printf("\n********** END arrayUNHASH **********\n"); }
   
@@ -1695,6 +1696,9 @@ int validPieceMove(int fromPos, int toPos) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2006/04/05 03:35:39  alexchoy
+// *** empty log message ***
+//
 // Revision 1.26  2006/04/04 23:47:46  mikehamada
 // *** empty log message ***
 //
