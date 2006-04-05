@@ -10,82 +10,44 @@ package edu.berkeley.gamesman.server.registration;
 public final class Macros {
 	
 	/**
-	 * Headers/Values
+	 * Header names
 	 */
-	public static final String TYPE = "TYPE";
-	public static final String NAME = "NAME";
-	public static final String GAME = "GAME";
-	public static final String SECRET_KEY = "SECRETKEY";
-	public static final String GAME_SESSIONS_INDEX 	= "GAME_SESSIONS_INDEX";
-	public static final String VARIATION = "VARIATION";
-	public static final String GAME_MESSAGE = "GAMEMESSAGE";
-	public static final String GAME_ID = "GAMEID";
-	public static final String OPPONENT_USERNAME = "OPPONENTUSERNAME";
-	public static final String CHALLENGE_ACCEPTED = "CHALLENGEACCEPTED"; 
-	public static final String ACCEPTED = "ACCEPTED";
-	public static final String STATUS = "STATUS";
-	public static final String ACK = "ACK";
-	public static final String DENY = "DENY";
-	public static final String ONLINE_USERS = "ONLINE_USERS";
-	
+	public static final String HN_NAME = "Name";
+	public static final String HN_GAME = "Game";
+	public static final String HN_SECRET_KEY = "SecretKey";
+	public static final String HN_GAME_SESSIONS_INDEX 	= "GameSessionsCount";
+	public static final String HN_VARIANT = "Variant";
+	public static final String HN_GAME_MESSAGE = "GameMessage";
+	public static final String HN_GAME_ID = "GameId";
+	public static final String HN_OPPONENT_USERNAME = "OpponentUsername";
+	public static final String HN_CHALLENGE_ACCEPTED = "ChanllengeAccepted"; 
+	public static final String HN_STATUS = "Status";
+	public static final String HN_ONLINE_USERS = "OnlineUsers";
+
 	/**
-	 * Request Type Macros
+	 * Header values
 	 */
-	public static final String REG_MOD_REGISTER_USER = "RegisterUser";
-	public static final String REG_MOD_GET_USERS_ONLINE = "GetUsers";
-	public static final String REG_MOD_GET_OPEN_GAMES = "GetGames";
-	public static final String REG_MOD_REGISTER_NEW_GAME = "RegisterGame";
-	public static final String REG_MOD_UNREGISTER_GAME = "UnRegisterGame";
-	public static final String REG_MOD_JOIN_GAME_NUMBER = "JoinGameNumber";
-	public static final String REG_MOD_JOIN_GAME_USER = "JoinGameUser";
-	public static final String REG_MOD_REFRESH_STATUS = "RefreshStatus";
-	public static final String REG_MOD_ACCEPT_CHALLENGE = "AcceptChallenge";
-	public static final String REG_MOD_UNREGISTER_USER = "UnRegisterUser";
-	
-	/**
-	 * Exception Macros
-	 */
-	public static final int UNKNOWN_REQUEST_TYPE_CODE 	= 1;
-	public static final String UNKNOWN_REQUEST_TYPE_MSG = "UNKNOWN REQUEST TYPE";
-	public static final int IO_EXCEPTION_CODE 			= 2;
-	public static final String IO_EXCEPTION_TYPE_MSG 	= "IO EXCEPTION";
-	public static final int INTERRUPT_EXCEPTION_CODE	= 3;
-	public static final String INTERRUPT_EXCEPTION_MSG  = "INTERRUPT EXCEPTION";
-	public static final int HASHTABLE_COLLISION_CODE	= 4;
-	public static final String HASHTABLE_COLLISION_MSG  = "HASHTABLE COLLISION";
-	
+	public static final String ACCEPTED = "Accepted";
+	public static final int VALID_CODE = 0;
+
 	/**
 	 * RegistrationModule.PropertyBucket Macros
 	 */
-	public static final String PROPERTY_HOST 				= "PROPERTY HOST";
-	public static final String PROPERTY_VARIATION 			= "PROPERTY VARIATION";
-	public static final String PROPERTY_INTERESTED_USERS 	= "PROPERTY INTERESTED USERS";
-	public static final String PROPERTY_GAME_ID 			= "PROPERTY GAME ID";
-	public static final String PROPERTY_GAME_MESSAGE		= "PROPERTY GAME MESSAGE";
-	public static final String PROPERTY_HOSTING_GAME		= "PROPERTY HOSTING GAME";
-	public static final String PROPERTY_SECRET_KEY 			= "PROPERTY SECRET KEY";
-	public static final String PROPERTY_GAME_NAME			= "PROPERTY GAME NAME";
-	public static final String PROPERTY_HOST_ACCEPTED		= "PROPERTY HOST ACCEPTED";
-	public static final String PROPERTY_USER_NAME			= "USER NAME";
+	public static final String PROPERTY_HOST 				= "PropertyHost";
+	public static final String PROPERTY_VARIATION 			= "PropertyVariant";
+	public static final String PROPERTY_INTERESTED_USERS 	= "PropertyInterestedUsers";
+	public static final String PROPERTY_GAME_ID 			= "PropertyGameId";
+	public static final String PROPERTY_GAME_MESSAGE		= "PropertyGameMessage";
+	public static final String PROPERTY_HOSTING_GAME		= "PropertyHostingGame";
+	public static final String PROPERTY_SECRET_KEY 			= "PropertySecretKey";
+	public static final String PROPERTY_GAME_NAME			= "PropertyGameName";
+	public static final String PROPERTY_HOST_ACCEPTED		= "PropertyHostAccepted";
+	public static final String PROPERTY_USER_NAME			= "UserName";
 	
 	public static final Boolean HOST_ACCEPT 				= new Boolean(true);
 	public static final Boolean HOST_DECLINE				= new Boolean(false);
 	public static final String 	DUMMY_USER					= "*.* DUMMY USER *.*";
-	
-	/**
-	 * Error Code Macros
-	 */
-	public static final String ERROR_CODE = "ERRORCODE";
-	public static final Integer INVALID_USER_NAME 	= new Integer(2);
-	public static final Integer INVALID_KEY 		= new Integer(3);
-	public static final Integer INVALID_VARIANT 	= new Integer(4);
-	public static final Integer GENERIC_ERROR_CODE  = new Integer(1);
-	public static final Integer VALID_CODE			= new Integer(0);
-	public static final Integer USER_ALREADY_EXISTS = new Integer(5);
-	public static final Integer USER_ALREADY_HAS_OPEN_GAME = new Integer(6);
-	public static final Integer INVALID_GAME_NUMBER = new Integer(7);
-	public static final Integer HOST_DECLINED		= new Integer(8);
-	
+		
 	/**
 	 * Debugging Flags
 	 */

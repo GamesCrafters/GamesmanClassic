@@ -5,6 +5,8 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
+import edu.berkeley.gamesman.server.RequestTypes;
+
 import java.util.Hashtable;
 
 /**
@@ -182,10 +184,10 @@ public class P2PModule implements IModule
 
 	public boolean typeSupported(String requestTypeName)
 	{
-		return (requestTypeName.equalsIgnoreCase(Const.END_OF_GAME) ||
-				requestTypeName.equalsIgnoreCase(Const.INIT_GAME) || 
-				requestTypeName.equalsIgnoreCase(Const.SEND_MOVE) || 
-				requestTypeName.equalsIgnoreCase(Const.SEND_RESIGNATION));
+		return (requestTypeName.equalsIgnoreCase(RequestTypes.GAME_OVER) ||
+				requestTypeName.equalsIgnoreCase(RequestTypes.INIT_GAME) || 
+				requestTypeName.equalsIgnoreCase(RequestTypes.SEND_MOVE) || 
+				requestTypeName.equalsIgnoreCase(RequestTypes.RESIGN));
 	}
 
 	/**
@@ -198,14 +200,14 @@ public class P2PModule implements IModule
 	{
 		String type = req.getHeader("type");
 		String incomingMove = null;
-		String destPlayer = req.getHeader(Const.DESTINATION_PLAYER);
-		String srcPlayer = req.getHeader(Const.SOURCE_PLAYER);
+		String destPlayer = req.getHeader(Const.HN_DESTINATION_PLAYER);
+		String srcPlayer = req.getHeader(Const.HN_SOURCE_PLAYER);
 
 		ActiveGame theGame = new ActiveGame(destPlayer, srcPlayer);
 		GameInfoContainer gameStatus;
 		if (!theGames.containsKey(theGame))
 		{
-			throw new ModuleException(Const.NO_SUCH_GAME, "No game has been registered between "
+			throw new ModuleException(ErrorCode.NO_SUCH_GAME, "No game has been registered between "
 					+ srcPlayer + " and " + destPlayer);
 		}
 
@@ -213,24 +215,24 @@ public class P2PModule implements IModule
 		IModuleResponse waitingResponse = gameStatus.changePendingResponse(res);
 
 		// possibly clean this up to avoid code duplication
-		if (type.equalsIgnoreCase(Const.SEND_MOVE))
+		if (type.equalsIgnoreCase(RequestTypes.SEND_MOVE))
 		{
-			incomingMove = req.getHeader(Const.MOVE_VALUE);
+			incomingMove = req.getHeader(Const.HN_MOVE);
 		}
-		else if (type.equalsIgnoreCase(Const.INIT_GAME))
+		else if (type.equalsIgnoreCase(RequestTypes.INIT_GAME))
 		{
 			// Do nothing
 		}
-		else if (type.equalsIgnoreCase(Const.END_OF_GAME))
+		else if (type.equalsIgnoreCase(RequestTypes.GAME_OVER))
 		{
 			debugPrint("Game over!");
-			waitingResponse.setHeader(Const.TYPE, Const.SEND_MOVE);
-			waitingResponse.setHeader(Const.MOVE_VALUE, "null");
-			waitingResponse.setHeader(Const.DESTINATION_PLAYER, destPlayer);
-			waitingResponse.setHeader(Const.SOURCE_PLAYER, srcPlayer);
-			res.setHeader("type", Const.ACKNOWLEDGE_END);
-			res.setHeader(Const.DESTINATION_PLAYER, destPlayer);
-			res.setHeader(Const.SOURCE_PLAYER, srcPlayer);
+			waitingResponse.setHeader(Const.HN_TYPE, Const.HN_MOVE);
+			waitingResponse.setHeader(Const.HN_MOVE, "null");
+			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
+			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
+			res.setHeader("type", IModuleResponse.ACK);
+			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
+			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 			synchronized (gameStatus)
 			{
 				gameStatus.notifyAll();
@@ -238,14 +240,14 @@ public class P2PModule implements IModule
 			theGames.remove(theGame);
 			return;
 		}
-		else if (type.equalsIgnoreCase(Const.SEND_RESIGNATION))
+		else if (type.equalsIgnoreCase(RequestTypes.RESIGN))
 		{
-			waitingResponse.setHeader(Const.TYPE, Const.SEND_RESIGNATION);
-			waitingResponse.setHeader(Const.SOURCE_PLAYER, srcPlayer);
-			waitingResponse.setHeader(Const.DESTINATION_PLAYER, destPlayer);
-			res.setHeader("type", Const.ACKNOWLEDGE_RESIGNATION);
-			res.setHeader(Const.DESTINATION_PLAYER, destPlayer);
-			res.setHeader(Const.SOURCE_PLAYER, srcPlayer);
+			waitingResponse.setHeader(Const.HN_TYPE, RequestTypes.RESIGN);
+			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
+			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
+			res.setHeader("type", IModuleResponse.ACK);
+			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
+			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 
 			synchronized (gameStatus)
 			{
@@ -294,7 +296,7 @@ public class P2PModule implements IModule
 			}
 			catch (InterruptedException e)
 			{
-				throw new ModuleException(Const.THREAD_INTERRUPTED, "Thread interrupted", e);
+				throw new ModuleException(ErrorCode.THREAD_INTERRUPTED, "Thread interrupted", e);
 
 			}
 		}
@@ -303,14 +305,14 @@ public class P2PModule implements IModule
 
 	private void updateResponse(IModuleRequest data, IModuleResponse toBeUpdated)
 	{
-		String move = data.getHeader(Const.MOVE_VALUE);
-		String src = data.getHeader(Const.SOURCE_PLAYER);
-		String dest = data.getHeader(Const.DESTINATION_PLAYER);
+		String move = data.getHeader(Const.HN_MOVE);
+		String src = data.getHeader(Const.HN_SOURCE_PLAYER);
+		String dest = data.getHeader(Const.HN_DESTINATION_PLAYER);
 
-		toBeUpdated.setHeader(Const.TYPE, Const.SEND_MOVE);
-		toBeUpdated.setHeader(Const.MOVE_VALUE, move);
-		toBeUpdated.setHeader(Const.DESTINATION_PLAYER, dest);
-		toBeUpdated.setHeader(Const.SOURCE_PLAYER, src);
+		toBeUpdated.setHeader(Const.HN_TYPE, RequestTypes.SEND_MOVE);
+		toBeUpdated.setHeader(Const.HN_MOVE, move);
+		toBeUpdated.setHeader(Const.HN_DESTINATION_PLAYER, dest);
+		toBeUpdated.setHeader(Const.HN_SOURCE_PLAYER, src);
 	}
 
 }

@@ -12,6 +12,7 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
+import edu.berkeley.gamesman.server.RequestTypes;
 import edu.berkeley.gamesman.server.p2p.P2PModule;
 /**
  * 
@@ -47,16 +48,16 @@ public class RegistrationModule implements IModule
 	 */
 	public boolean typeSupported(String requestTypeName) {
 		//All supported types
-	return 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REGISTER_USER) 	||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_GET_USERS_ONLINE) ||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_GET_OPEN_GAMES) ||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REGISTER_NEW_GAME)||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_GAME)  ||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_NUMBER) ||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_USER)	||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REFRESH_STATUS)	||
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_ACCEPT_CHALLENGE) || 
-		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_USER); 
+	return 	requestTypeName.equalsIgnoreCase(RequestTypes.REGISTER_USER) 	||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.GET_USERS) ||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.GET_GAMES) ||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.REGISTER_GAME)||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.UNREGISTER_GAME)  ||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.JOIN_GAME_NUMBER) ||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.JOIN_GAME_USER)	||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.REFRESH_STATUS)	||
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.ACCEPT_CHALLENGE) || 
+		 	requestTypeName.equalsIgnoreCase(RequestTypes.UNREGISTER_USER); 
 	}
 	
 	/**
@@ -67,43 +68,43 @@ public class RegistrationModule implements IModule
 		String type;
 		IModuleRequest mreq = req;
 		IModuleResponse mres =  res;
-		type = mreq.getHeader(Macros.TYPE);
+		type = mreq.getType();
 		System.out.println(type);
-		if (type.equalsIgnoreCase(Macros.REG_MOD_REGISTER_USER)) {
+		if (type.equalsIgnoreCase(RequestTypes.REGISTER_USER)) {
 			registerUser(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_GET_USERS_ONLINE)) {
+		else if (type.equalsIgnoreCase(RequestTypes.GET_USERS)) {
 			getUsersOnline(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_GET_OPEN_GAMES)) {
+		else if (type.equalsIgnoreCase(RequestTypes.GET_GAMES)) {
 			getOpenGames(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_REGISTER_NEW_GAME)) {
+		else if (type.equalsIgnoreCase(RequestTypes.REGISTER_GAME)) {
 			registerNewGame(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_GAME)) {
+		else if (type.equalsIgnoreCase(RequestTypes.UNREGISTER_GAME)) {
 			unregisterGame(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_NUMBER)) {
+		else if (type.equalsIgnoreCase(RequestTypes.JOIN_GAME_NUMBER)) {
 			joinGameNumber(mreq, mres);
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_USER)) {
+		else if (type.equalsIgnoreCase(RequestTypes.JOIN_GAME_USER)) {
 			//Ambiguous meaning in the future if we implement multiple
 			//open-games per user. So might as well make it a client-side
 			//feature, instead of a dedicated server request. 
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_REFRESH_STATUS)) {
+		else if (type.equalsIgnoreCase(RequestTypes.REFRESH_STATUS)) {
 			refreshHostStatus(mreq, mres); 
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_ACCEPT_CHALLENGE)) {
+		else if (type.equalsIgnoreCase(RequestTypes.ACCEPT_CHALLENGE)) {
 			acceptChallenge(mreq, mres); 
 		}
-		else if (type.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_USER)) {
+		else if (type.equalsIgnoreCase(RequestTypes.UNREGISTER_USER)) {
 			unregisterUser(mreq, mres);
 		}
 		else {
 			//the request type cannot be handled
-			throw new ModuleException (Macros.UNKNOWN_REQUEST_TYPE_CODE, Macros.UNKNOWN_REQUEST_TYPE_MSG);
+			throw new ModuleException (ErrorCode.UNKNOWN_REQUEST_TYPE, ErrorCode.Msg.UNKNOWN_REQUEST_TYPE);
 		}
 	}
 	
@@ -119,24 +120,24 @@ public class RegistrationModule implements IModule
 	 */
 	private void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		String userName, gameName, status, secretKey;
-		Integer checkStatus;
+		int checkStatus;
 		
 		//get userName and gameName from the request object
-		userName = req.getHeader(Macros.NAME);
-		gameName = req.getHeader(Macros.GAME);
+		userName = req.getHeader(Macros.HN_NAME);
+		gameName = req.getHeader(Macros.HN_GAME);
 		
 		//Name check successful
-		if ((checkStatus = checkName(userName)).equals(Macros.VALID_CODE)) {
+		if ((checkStatus = checkName(userName)) == Macros.VALID_CODE) {
 			addUser(userName, gameName);
-			status = Macros.ACK;
+			status = IModuleResponse.ACK;
 			secretKey = (String)((PropertyBucket)getUser(userName)).getProperty(Macros.PROPERTY_SECRET_KEY);
-			res.setHeader(Macros.SECRET_KEY, secretKey);
-			res.setHeader(Macros.STATUS, status);
+			res.setHeader(Macros.HN_SECRET_KEY, secretKey);
+			res.setHeader(Macros.HN_STATUS, status);
 		}
 		else {
-			status = Macros.DENY;
-			res.setHeader(Macros.STATUS, status);
-			res.setHeader(Macros.ERROR_CODE, checkStatus.toString());
+			status = IModuleResponse.DENY;
+			res.setHeader(Macros.HN_STATUS, status);
+			res.setReturnCode(checkStatus);
 		}
 	}
 	
@@ -158,14 +159,14 @@ public class RegistrationModule implements IModule
 			outStream = res.getOutputStream();
 		}
 		catch (IOException ioe) {
-			throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
+			throw new ModuleException(ErrorCode.IO_EXCEPTION, ErrorCode.Msg.IO_EXCEPTION);
 		}
 		
 		/**
 		 * Get the name of game being requested and write each user to the output stream
 		 * delimited with a newline
 		 */
-		gameName = req.getHeader(Macros.GAME);
+		gameName = req.getHeader(Macros.HN_GAME);
 		for (users = usersOnline.keys(); users.hasMoreElements();) {
 			onlineUser = (String)users.nextElement();
 			propBucket = (PropertyBucket) usersOnline.get(onlineUser);
@@ -178,7 +179,7 @@ public class RegistrationModule implements IModule
 					outStream.write(byteArr);
 				}
 				catch (IOException ioe) {
-					throw new ModuleException(Macros.IO_EXCEPTION_CODE, Macros.IO_EXCEPTION_TYPE_MSG);
+					throw new ModuleException(ErrorCode.IO_EXCEPTION, ErrorCode.Msg.IO_EXCEPTION);
 				}
 			}
 		}
@@ -202,7 +203,7 @@ public class RegistrationModule implements IModule
 		PropertyBucket propBucket;
 		
 		//filter for the game client is looking for
-		gameName = req.getHeader(Macros.GAME);
+		gameName = req.getHeader(Macros.HN_GAME);
 		
 		//get all sessions of that particular game
 		//Note that if gameName isn't being hosted, then an empty hashtable will be returned by getGameSessions
@@ -225,7 +226,7 @@ public class RegistrationModule implements IModule
 		}
 		//the client will need to know how many headers to extract, that's what this
 		//index is for
-		res.setHeader(Macros.GAME_SESSIONS_INDEX, (new Integer(index).toString()));
+		res.setHeader(Macros.HN_GAME_SESSIONS_INDEX, (new Integer(index).toString()));
 	}
 	
 	/**
@@ -246,10 +247,10 @@ public class RegistrationModule implements IModule
 		PropertyBucket propBucket;
 		
 		//extract request headers
-		userName = req.getHeader(Macros.NAME);
-		secretKey= req.getHeader(Macros.SECRET_KEY);
-		variation = req.getHeader(Macros.VARIATION);
-		gameMessage = req.getHeader(Macros.GAME_MESSAGE);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey= req.getHeader(Macros.HN_SECRET_KEY);
+		variation = req.getHeader(Macros.HN_VARIANT);
+		gameMessage = req.getHeader(Macros.HN_GAME_MESSAGE);
 		
 		//Validity Checks
 		propBucket = getUser(userName);
@@ -283,14 +284,14 @@ public class RegistrationModule implements IModule
 			addGameSession(gameName, gameID, propBucket);
 			
 			//At this point the game has been registered successfully so respond with Macros.ACK
-			res.setHeader(Macros.STATUS, Macros.ACK);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 		}
 		else {
 			//the request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			if (!validKey) res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
-			else if (!notHostingGame) res.setHeader(Macros.ERROR_CODE, Macros.USER_ALREADY_HAS_OPEN_GAME.toString());
-			else if (!validVariant) res.setHeader(Macros.ERROR_CODE, Macros.INVALID_VARIANT.toString());
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			if (!validKey) res.setReturnCode(ErrorCode.INVALID_KEY);
+			else if (!notHostingGame) res.setReturnCode(ErrorCode.USER_ALREADY_HAS_OPEN_GAME);
+			else if (!validVariant) res.setReturnCode(ErrorCode.INVALID_VARIANT);
 		}
 	}
 	
@@ -308,8 +309,8 @@ public class RegistrationModule implements IModule
 		PropertyBucket propBucket;
 		
 		//extract header values
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
 		validGameHost = isValidGameHost(userName);
 		if (validKey && validGameHost) {
@@ -331,13 +332,13 @@ public class RegistrationModule implements IModule
 			propBucket.removeProperty(Macros.PROPERTY_GAME_ID);
 			
 			//request was successful
-			res.setHeader(Macros.STATUS, Macros.ACK);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 		}
 		else {
 			//request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
 			//TODO: make the error code more specific
-			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}
 	}
 	
@@ -361,14 +362,14 @@ public class RegistrationModule implements IModule
 		boolean hostAccepted;
 		
 		//extract header values
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
-		gameID = req.getHeader(Macros.GAME_ID);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
+		gameID = req.getHeader(Macros.HN_GAME_ID);
 		
 		validKey = isValidUserKey(userName, secretKey);
 		if (!validKey) {
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setReturnCode(ErrorCode.INVALID_KEY);
 			return;
 		}
 		
@@ -383,8 +384,8 @@ public class RegistrationModule implements IModule
 		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
 		if (hostPropBucket == null) {
 			//an invalid game number has been requested
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_GAME_NUMBER.toString());
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setReturnCode(ErrorCode.INVALID_GAME_NUMBER);
 			return;
 		}
 		else {
@@ -402,14 +403,14 @@ public class RegistrationModule implements IModule
 				}
 			}
 			catch (InterruptedException ie) {
-				throw new ModuleException(Macros.INTERRUPT_EXCEPTION_CODE, Macros.INTERRUPT_EXCEPTION_MSG);
+				throw new ModuleException(ErrorCode.INTERRUPT_EXCEPTION, ErrorCode.Msg.INTERRUPT_EXCEPTION);
 			}
 			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
 			if (hostAccepted) 
-				res.setHeader(Macros.STATUS, Macros.ACK);
+				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 			else {
-				res.setHeader(Macros.STATUS, Macros.DENY);
-				res.setHeader(Macros.ERROR_CODE, Macros.HOST_DECLINED.toString());
+				res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+				res.setReturnCode(ErrorCode.HOST_DECLINED);
 			}
 			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
 		}
@@ -423,19 +424,19 @@ public class RegistrationModule implements IModule
 	private void unregisterUser(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey;
 		boolean validKey; 
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
 		if (validKey) { 
 			if (isValidGameHost(userName)) {
 				unregisterGame(req, res); 
 			}
 			removeUser(userName); 
-			res.setHeader(Macros.STATUS, Macros.ACK);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 		} else {
 			//request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
-			res.setHeader(Macros.ERROR_CODE, Macros.INVALID_KEY.toString());
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setReturnCode(ErrorCode.INVALID_KEY);
 		}
 	}
 	
@@ -453,12 +454,12 @@ public class RegistrationModule implements IModule
 		LinkedList interestedList; 
 		Iterator iter;
 		boolean validKey, hostAgreed; 
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
 		
 		
-		challengeResponse = req.getHeader(Macros.CHALLENGE_ACCEPTED);
+		challengeResponse = req.getHeader(Macros.HN_CHALLENGE_ACCEPTED);
 		if (validKey) {
 			hostAgreed = (challengeResponse.equalsIgnoreCase(Macros.ACCEPTED));
 			hostPropBucket = getUser(userName);
@@ -499,7 +500,7 @@ public class RegistrationModule implements IModule
 					notifyAll();
 				}
 				
-				res.setHeader(Macros.STATUS, Macros.ACK);
+				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 			} else {
 				//host said no, so we need to let that client know that he 
 				//was denied, and take him off of the list of interested-clients
@@ -529,13 +530,13 @@ public class RegistrationModule implements IModule
 				synchronized (this) {
 					notifyAll();
 				}
-				res.setHeader(Macros.STATUS, Macros.ACK);
+				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 			}
 		} else {
 			//request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
 			//TODO: make the error code more specific
-			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}
 	}
 	
@@ -551,8 +552,8 @@ public class RegistrationModule implements IModule
 		LinkedList interestedList; 
 		boolean validKey, validHost; 
 		
-		userName = req.getHeader(Macros.NAME);
-		secretKey = req.getHeader(Macros.SECRET_KEY);
+		userName = req.getHeader(Macros.HN_NAME);
+		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
 		validKey = isValidUserKey(userName, secretKey);
 		validHost = isValidGameHost(userName); 
 		
@@ -583,13 +584,13 @@ public class RegistrationModule implements IModule
 			//returns null, which we'll send along. The client will have to then
 			//have to interpret an ACK/Null combo as "no-one's waiting", no? -Filip
 			//Actually getFirst on an empty list will throw a No Such Element Exception -Victor
-			res.setHeader(Macros.OPPONENT_USERNAME, luckyUser); 
-			res.setHeader(Macros.STATUS, Macros.ACK);
+			res.setHeader(Macros.HN_OPPONENT_USERNAME, luckyUser); 
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
 		} else {
 			//request has failed
-			res.setHeader(Macros.STATUS, Macros.DENY);
+			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
 			//TODO: make the error code more specific
-			res.setHeader(Macros.ERROR_CODE, Macros.GENERIC_ERROR_CODE.toString());
+			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}
 	}
 	
@@ -703,11 +704,11 @@ public class RegistrationModule implements IModule
 	 * @param name
 	 * @return
 	 */
-	private Integer checkName(String name) {
+	private int checkName(String name) {
 		/**
 		 * check that name is not being duplicated
 		 */
-		if (isUserOnline(name)) return Macros.USER_ALREADY_EXISTS;
+		if (isUserOnline(name)) return ErrorCode.USER_ALREADY_EXISTS;
 		else return Macros.VALID_CODE;
 	}
 	
@@ -741,7 +742,7 @@ public class RegistrationModule implements IModule
 		 * for debugging.
 		 */
 		if (Macros.REG_MOD_DEBUGGING && isUserOnline(userName)) 
-			throw new ModuleException(Macros.HASHTABLE_COLLISION_CODE, Macros.HASHTABLE_COLLISION_MSG);
+			throw new ModuleException(ErrorCode.HASHTABLE_COLLISION, ErrorCode.Msg.HASHTABLE_COLLISION);
 		
 		//store the game name
 		propBucket.setProperty(Macros.PROPERTY_GAME_NAME, gameName);

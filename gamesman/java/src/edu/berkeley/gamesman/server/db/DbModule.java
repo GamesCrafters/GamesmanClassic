@@ -11,6 +11,7 @@ import edu.berkeley.gamesman.server.IModuleRequest;
 import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
+import edu.berkeley.gamesman.server.RequestTypes;
 
 import java.io.DataInputStream;
 import java.io.File;
@@ -26,10 +27,13 @@ import java.util.zip.GZIPInputStream;
 
 public class DbModule implements IModule
 {
-
+	/** Header names */
+	public static final String HN_LENGTH = "length";
+	public static final String HN_GAME = "game";
+	public static final String HN_VARIANT = "variant";
+	
 	private HashMap loadedData; // hash of loaded data (maps to shorts!)
 	private String baseDir; //base directory of database files
-	private static String MYCMD = "getValueOfMove"; //cmd I recognize
     private short FILEVER = 1; //db file version
 	// private HashMap versions; //game versions table
 
@@ -175,15 +179,15 @@ public class DbModule implements IModule
 		//this doesn't do anything
 	}
 	public boolean typeSupported(String requestTypeName){
-		return requestTypeName.equalsIgnoreCase(MYCMD);
+		return requestTypeName.equalsIgnoreCase(RequestTypes.GET_VALUE_OF_POSITIONS);
 	}
 
 	// our request goes here
 	// must be mycmd as that is the only cmd supported
     public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException{
-    	String hlen = req.getHeader("length");
-    	String gamename = req.getHeader("game");
-    	String gameop = req.getHeader("variation");
+    	String hlen = req.getHeader(HN_LENGTH);
+    	String gamename = req.getHeader(HN_GAME);
+    	String gameop = req.getHeader(HN_VARIANT);
     	if (hlen == null || gameop == null || gamename == null){
     		// throw module error
     		return;
@@ -309,7 +313,7 @@ public class DbModule implements IModule
 			
     	}
     	// add header to response
-    	res.setHeader("length", hlen); // client gets back what it sent
+    	res.setHeader(HN_LENGTH, hlen); // client gets back what it sent
     }
     	
     	
