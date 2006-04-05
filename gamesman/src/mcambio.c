@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.20 2006-03-30 07:57:17 simontaotw Exp $
+// $Id: mcambio.c,v 1.21 2006-04-05 07:31:16 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,7 +21,7 @@
  **              3/04/2006 - Fixed compile errors.
  **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
  **              3/06/2006 - Updated GetInitialPosition().
- **	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
+ **	         3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
  **                                    Removed blanks from the game.
  **              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
  **              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
@@ -29,6 +29,8 @@
  **                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
  **              3/19/2006 - Changed the Legend so it looks less cramped.
  **              3/29/2006 - Changed PrintPosition.
+ **              3/30/2006 - Changed GetAndPrintPlayersMove.
+ **              4/05/2006 - Changed PrintMove.
  **
  **************************************************************************/
 
@@ -155,6 +157,24 @@ char alphaArray[] = { 'a', 'b', 'c', 'd',
 		      'e', 'f', 'g', 'h',
 		      'i', 'j', 'k', 'l',
 		      'm', 'n', 'o', 'p' };
+/* to convert, use alphaArray[i]
+                    {  0,   1,   2,   3,
+                       4,   5,   6,   7,
+		       8,   9,  10,  11,
+		      12,  13,  14,  15  };
+*/
+
+char shiftArray[] = { 'a', 'b', 'c', 'd',
+		      '5', '6', '7', '8',
+		      'h', 'g', 'f', 'e',
+		      '4', '3', '2', '1' };
+
+/* to convert, use shiftArray[i-16]
+                    {  16,  17,  18,  19,
+                       20,  21,  22,  23,
+		       24,  25,  26,  27,
+		       28,  29,  30,  31 };
+*/
 
 Player gWhosTurn; /* 1 for player A, 2 for player B */
 
@@ -239,7 +259,7 @@ void InitializeGame ()
  ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position)
-     /* must check all the math used for general case, such as 5x5 and on */
+     /* must check all the math used for general case, such as 4x4 and so on */
 {
   MOVELIST *moves = NULL;
   MOVELIST *CreateMovelistNode();
@@ -301,11 +321,11 @@ MOVELIST *GenerateMoves (POSITION position)
       /* top row moves */
       for(i = 0; i < colcount; i++)
 	{
-	  if(gBoard[i + (boardSize-colcount)] != opposymbol) // should be 12=15 for 4x4
+	  if(gBoard[i + (boardSize-colcount)] != opposymbol) // should be 12-15 for 4x4
 	    moves = CreateMovelistNode(i + boardSize, moves); // should be 16-19 for 4x4
 	}
       /* right column moves */
-      for(i = 0; i < rowcount; i++) 
+      for(i = 0; i < rowcount; i++)
 	{
 	  if(gBoard[((i+1)*colcount) - colcount] != opposymbol) // should be 0,4,8,12 for 4x4
 	    moves = CreateMovelistNode(i + boardSize + colcount, moves); // should be 20-23 for 4x4
@@ -313,7 +333,7 @@ MOVELIST *GenerateMoves (POSITION position)
       /* bottom row moves */
       for(i = 0; i < colcount; i++)
 	{
-	  if(gBoard[(colcount - i - 1)] != opposymbol) // should be 3-0 for 4xr
+	  if(gBoard[(colcount - i - 1)] != opposymbol) // should be 0-3 for 4x4
 	    moves = CreateMovelistNode(i + boardSize + colcount + rowcount, moves); // should be 24-27 for 4x4
 	}
       /* left column moves */
@@ -558,7 +578,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	    }
 	  else if(gBoard[i] == neutral)
 	    {
-	      printf("|%c", alphaArray[i]);  //display the letter at 
+	      printf("|%c", alphaArray[i]);  //display the letter at this position
 	    }
 	  else
 	    {
@@ -600,7 +620,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	    }
 	  else if(gBoard[i] == neutral)
 	    {
-	      printf("|%c", alphaArray[i]);  //display the letter at 
+	      printf("|%c", neutral);
 	    }
 	  else
 	    {
@@ -613,9 +633,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	    }
 	}
 
-      printf("              ---------\n");
+      printf("               ---------\n");
       printf("\n");
-      printf("               e f g h \n");
+      printf("                e f g h \n");
       printf("\n");
     }
   /* bad else */
@@ -718,7 +738,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
  ************************************************************************/
 
 void PrintMove (MOVE move)
-     /* must check all the math used for general case, such as 5x5 and on */
+     /* must check all the math used for general case, such as 4x4 and on */
 {
   /*    if(move < boardSize)
 	printf("(%i) Place a piece at %i.", move, move);
@@ -731,17 +751,17 @@ void PrintMove (MOVE move)
 	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
 	printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
   */
+
   if(move < boardSize)
-    printf("%i", move);
+    printf("%c", alphaArray[move]);
   else if (move < boardSize + colcount)
-    printf("%i", move);
+    printf("%c", shiftArray[move]);
   else if (move < boardSize + colcount + rowcount)
-    printf("%i", move);
+    printf("%c", shiftArray[move]);
   else if (move < boardSize + colcount + rowcount + colcount)
-    printf("%i", move);
+    printf("%c", shiftArray[move]);
   else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-    printf("%i", move);
-		
+    printf("%c", shiftArray[move]);  
 
 }
 
@@ -770,18 +790,55 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
-    
-  for (;;) {
-    /***********************************************************
-     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-     ***********************************************************/
-    printf("%8s's move [(undo)/0-31] : ", playersName);
+
+  char *gBoard = (char *) malloc(boardSize*sizeof(char));
+  generic_unhash(position, gBoard);
+
+  int countA = 0, countB = 0, i = 0;
 	
-    input = HandleDefaultTextInput(position, move, playersName);
+  /* count the number of pieces for each player */
+  for(i = 0; i < boardSize; i++)
+    {
+      if(gBoard[i] == aPiece)
+	countA++;
+      else if(gBoard[i] == bPiece)
+	countB++;
+    }
+  
+  /* Phase 1: Less than 4 of PlayerB's pieces or less than 3 of PlayerB's pieces on the board. */
+  if(countB < 4 || countA < 3)
+    {
+      for (;;) {
+	/***********************************************************
+	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+	 ***********************************************************/
+	printf("%8s's move [(undo)/a-p] : ", playersName);
 	
-    if (input != Continue)
-      return input;
-  }
+	input = HandleDefaultTextInput(position, move, playersName);
+	
+	if (input != Continue)
+	  return input;
+      }
+    }
+  /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+  else if(countB >= 4 && countA >= 3)
+    {
+      for (;;) {
+	/***********************************************************
+	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+	 ***********************************************************/
+	printf("%8s's move [(undo)/a-h or 1-8] : ", playersName);
+	
+	input = HandleDefaultTextInput(position, move, playersName);
+	
+	if (input != Continue)
+	  return input;
+      }
+    }
+  else
+    {
+      printf("Error in: GetAndPrintPlayersMove Phase 2");
+    }
 
   /* NOTREACHED */
   return Continue;
@@ -1081,6 +1138,9 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2006/03/30 07:57:17  simontaotw
+// Changed PrintPosition.
+//
 // Revision 1.19  2006/03/19 20:39:15  simontaotw
 // Changed the legend so it looks less cramped.
 //
