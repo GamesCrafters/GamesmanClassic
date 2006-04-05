@@ -389,9 +389,9 @@ MOVELIST *GenerateMoves (POSITION position)
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
     			}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
@@ -401,10 +401,10 @@ MOVELIST *GenerateMoves (POSITION position)
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
 	    	if ((board->theTurn == Blue) && (blueBuckets > 0)) {
@@ -413,11 +413,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
-				moves = CreateMovelistNode(tempMove, moves);
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
+			moves = CreateMovelistNode(tempMove, moves);
 	    	}
 	    	if ((board->theTurn == Red) && (redBuckets > 0)) {
 	    		newMove->movePiece = hRedBucket;
@@ -425,11 +425,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
-				moves = CreateMovelistNode(tempMove, moves);
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
+			moves = CreateMovelistNode(tempMove, moves);
 	    	}
     	}
     }
@@ -451,11 +451,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUESMALLPIECE) && (board->theTurn == Blue)) || 
     	 			((board->theBoard[i] == REDSMALLPIECE) && (board->theTurn == Red)) ||
@@ -464,11 +464,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUECASTLEPIECE) && (board->theTurn == Blue)) || 
     	 			((board->theBoard[i] == REDCASTLEPIECE) && (board->theTurn == Red)) ||
@@ -477,11 +477,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		}
     		}
@@ -1072,7 +1072,7 @@ POSITION GetInitialPosition ()
 	InitializeGame();
 	
 	board = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
-    board->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+	board->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
     
   	getchar(); // for the enter after picking option 1 on the debug menu
   
@@ -1228,7 +1228,7 @@ void DebugMenu ()
 
 char BoardPieceToChar(BoardPiece piece) {
 	switch (piece) {
-		case Blank:				return BLANKPIECE;
+		case Blank:			return BLANKPIECE;
 		case SmallSand:			return SMALLPIECE;
 		case LargeSand:			return LARGEPIECE;
 		case SandCastle:		return CASTLEPIECE;
@@ -1261,10 +1261,10 @@ char HashBoardPieceToChar(HashBoardPiece piece) {
 
 BoardPiece CharToBoardPiece(char piece) {
 	switch (piece) {
-	  case BLANKPIECE:			return Blank;
-	  case SMALLPIECE:			return SmallSand;
-	  case LARGEPIECE:			return LargeSand;
-	  case CASTLEPIECE:			return SandCastle;
+	  case BLANKPIECE:		return Blank;
+	  case SMALLPIECE:	        return SmallSand;
+	  case LARGEPIECE:		return LargeSand;
+	  case CASTLEPIECE:		return SandCastle;
 	  case BLUEBUCKETPIECE:		return BlueBucket;
 	  case REDBUCKETPIECE:		return RedBucket;
 	  case BLUESMALLPIECE:		return BlueSmall;
@@ -1278,9 +1278,9 @@ BoardPiece CharToBoardPiece(char piece) {
 
 HashBoardPiece CharToHashBoardPiece(char piece) {
 	switch (piece) {
-	  case SMALLPIECE:			return hSmallSand;
-	  case LARGEPIECE:			return hLargeSand;
-	  case CASTLEPIECE:			return hSandCastle;
+	  case SMALLPIECE:		return hSmallSand;
+	  case LARGEPIECE:		return hLargeSand;
+	  case CASTLEPIECE:		return hSandCastle;
 	  case BLUEBUCKETPIECE:		return hBlueBucket;
 	  case REDBUCKETPIECE:		return hRedBucket;
 	  case BLUESMALLPIECE:		return hBlueSmall;
@@ -1295,23 +1295,47 @@ HashBoardPiece CharToHashBoardPiece(char piece) {
 BoardPiece ThreePieceToBoardPiece(ThreePiece lsb) {
 	if (lsb->L == HASHBLANK) {
 		if (lsb->S == HASHBLANK) {
-			if (lsb->B == HASHBLANK) { return Blank; }
-			else if (lsb->B == HASHBLUEBUCKET) { return BlueBucket; }
-			else if (lsb->B == HASHREDBUCKET) { return RedBucket; }
+			if (lsb->B == HASHBLANK) { 
+			  return Blank; 
+			}
+			else if (lsb->B == HASHBLUEBUCKET) { 
+			  return BlueBucket; 
+			}
+			else if (lsb->B == HASHREDBUCKET) { 
+			  return RedBucket; 
+			}
 		} else if (lsb->S == HASHSANDPILE) {
-			if (lsb->B == HASHBLANK) { return SmallSand; }
-			else if (lsb->B == HASHBLUEBUCKET) { return BlueSmall; }
-			else if (lsb->B == HASHREDBUCKET) { return RedSmall; }
+			if (lsb->B == HASHBLANK) { 
+			  return SmallSand; 
+			}
+			else if (lsb->B == HASHBLUEBUCKET) { 
+			  return BlueSmall; 
+			}
+			else if (lsb->B == HASHREDBUCKET) { 
+			  return RedSmall; 
+			}
 		}
 	} else if (lsb->L == HASHSANDPILE) {
 		if (lsb->S == HASHBLANK) {
-			if (lsb->B == HASHBLANK) { return LargeSand; }
-			else if (lsb->B == HASHBLUEBUCKET) { return UNKNOWNBOARDPIECE; }
-			else if (lsb->B == HASHREDBUCKET) { return UNKNOWNBOARDPIECE; }
+			if (lsb->B == HASHBLANK) { 
+			  return LargeSand; 
+			}
+			else if (lsb->B == HASHBLUEBUCKET) { 
+			  return UNKNOWNBOARDPIECE; 
+			}
+			else if (lsb->B == HASHREDBUCKET) { 
+			  return UNKNOWNBOARDPIECE; 
+			}
 		} else if (lsb->S == HASHSANDPILE) {
-			if (lsb->B == HASHBLANK) { return SandCastle; }
-			else if (lsb->B == HASHBLUEBUCKET) { return BlueCastle; }
-			else if (lsb->B == HASHREDBUCKET) { return RedCastle; }
+			if (lsb->B == HASHBLANK) { 
+			  return SandCastle; 
+			}
+			else if (lsb->B == HASHBLUEBUCKET) { 
+			  return BlueCastle; 
+			}
+			else if (lsb->B == HASHREDBUCKET) { 
+			  return RedCastle; 
+			}
 		}
 	}
 	
@@ -1391,8 +1415,8 @@ char* BoardPieceToString(BoardPiece piece) {
 	char* pieceString = (char*) SafeMalloc(30 * sizeof(char));
 	
 	switch (piece) {
-		case Blank:				pieceString = BLANKSTRING;
-								break;
+		case Blank:		       	pieceString = BLANKSTRING;
+		                                                break;
 		case SmallSand:			pieceString = SMALLSTRING;
 								break;
 		case LargeSand:			pieceString = LARGESTRING;
@@ -1411,7 +1435,7 @@ char* BoardPieceToString(BoardPiece piece) {
 								break;
 		case RedCastle:			pieceString = REDCASTLESTRING;
 								break;
-		default:				pieceString = UNKNOWNSTRING;
+		default:			pieceString = UNKNOWNSTRING;
 	}
 	
 	return pieceString;
@@ -1439,7 +1463,7 @@ char* HashBoardPieceToString(HashBoardPiece piece) {
 								break;
 		case hRedCastle:		pieceString = REDCASTLESTRING;
 								break;
-		default:				pieceString = UNKNOWNSTRING;
+		default:			pieceString = UNKNOWNSTRING;
 	}
 	
 	return pieceString;
@@ -1671,6 +1695,9 @@ int validPieceMove(int fromPos, int toPos) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2006/04/04 23:47:46  mikehamada
+// *** empty log message ***
+//
 // Revision 1.25  2006/04/04 23:46:20  mikehamada
 // *** empty log message ***
 //
