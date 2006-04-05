@@ -31,16 +31,16 @@ public final class Macros {
 	/**
 	 * Request Type Macros
 	 */
-	public static final String REG_MOD_REGISTER_USER = "RegModRegisterUser";
-	public static final String REG_MOD_GET_USERS_ONLINE = "RegModGetUsersOnline";
-	public static final String REG_MOD_GET_OPEN_GAMES = " RegModGetOpenGames";
-	public static final String REG_MOD_REGISTER_NEW_GAME = "RegModRegisterNewGame";
-	public static final String REG_MOD_UNREGISTER_GAME = "RegModUnRegisterGame";
-	public static final String REG_MOD_JOIN_GAME_NUMBER = "RegModJoinGameNumber";
-	public static final String REG_MOD_JOIN_GAME_USER = "RegModJoinGameUser";
-	public static final String REG_MOD_REFRESH_STATUS = "RegModRefreshStatus";
-	public static final String REG_MOD_ACCEPT_CHALLENGE = "RegModAcceptChallenge";
-	public static final String REG_MOD_UNREGISTER_USER = "RegModUnRegisterUser";
+	public static final String REG_MOD_REGISTER_USER = "RegisterUser";
+	public static final String REG_MOD_GET_USERS_ONLINE = "GetUsers";
+	public static final String REG_MOD_GET_OPEN_GAMES = "GetGames";
+	public static final String REG_MOD_REGISTER_NEW_GAME = "RegisterGame";
+	public static final String REG_MOD_UNREGISTER_GAME = "UnRegisterGame";
+	public static final String REG_MOD_JOIN_GAME_NUMBER = "JoinGameNumber";
+	public static final String REG_MOD_JOIN_GAME_USER = "JoinGameUser";
+	public static final String REG_MOD_REFRESH_STATUS = "RefreshStatus";
+	public static final String REG_MOD_ACCEPT_CHALLENGE = "AcceptChallenge";
+	public static final String REG_MOD_UNREGISTER_USER = "UnRegisterUser";
 	
 	/**
 	 * Exception Macros

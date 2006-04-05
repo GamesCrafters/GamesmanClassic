@@ -18,6 +18,7 @@ public final class Const {
 	public static final String MOVE_VALUE = "Move";
 	
 	// Header types
+	public static final String INIT_GAME = "InitGame";
 	public static final String SEND_MOVE = "SendMove";
 	public static final String END_OF_GAME = "GameOver";
 	public static final String ACKNOWLEDGE_END = "Ack end";
@@ -25,6 +26,6 @@ public final class Const {
 	public static final String ACKNOWLEDGE_RESIGNATION = "Ack resign";
 	
 	// Set either to true to print statements of that type while running
-	public static final boolean PRINT_DEBUGGING = false;
+	public static final boolean PRINT_DEBUGGING = true;
 	public static final boolean PRINT_WARNINGS = true;
 }

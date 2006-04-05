@@ -2,6 +2,7 @@ package edu.berkeley.gamesman.server;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -34,7 +35,17 @@ public class ModuleRequest implements IModuleRequest
 	 */
 	public String getHeader(String name)
 	{
-		return this.request.getHeader(name);
+		Enumeration e = this.request.getHeaderNames();
+		while (e.hasMoreElements())
+		{
+			String n = ((String)e.nextElement()).trim();
+			String val = n;
+			if (val.endsWith(","))
+				val = val.substring(0, val.length()-1);
+			if (val.equalsIgnoreCase(name))
+				return this.request.getHeader(n);
+		}
+		return null;
 	}
 
 	/**

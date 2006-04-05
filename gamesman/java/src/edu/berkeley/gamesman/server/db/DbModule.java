@@ -29,7 +29,7 @@ public class DbModule implements IModule
 
 	private HashMap loadedData; // hash of loaded data (maps to shorts!)
 	private String baseDir; //base directory of database files
-	private static String MYCMD = "GET_VALUE_OF_MOVE"; //cmd I recognize
+	private static String MYCMD = "getValueOfMove"; //cmd I recognize
     private short FILEVER = 1; //db file version
 	// private HashMap versions; //game versions table
 
@@ -175,15 +175,15 @@ public class DbModule implements IModule
 		//this doesn't do anything
 	}
 	public boolean typeSupported(String requestTypeName){
-		return requestTypeName.equals(MYCMD);
+		return requestTypeName.equalsIgnoreCase(MYCMD);
 	}
 
 	// our request goes here
 	// must be mycmd as that is the only cmd supported
     public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException{
-    	String hlen = req.getHeader("hash_length");
-    	String gamename = req.getHeader("game_name");
-    	String gameop = req.getHeader("game_option");
+    	String hlen = req.getHeader("length");
+    	String gamename = req.getHeader("game");
+    	String gameop = req.getHeader("variation");
     	if (hlen == null || gameop == null || gamename == null){
     		// throw module error
     		return;
@@ -288,7 +288,8 @@ public class DbModule implements IModule
 				s = makeShort(sbuf); // this is the position
 				
 				//use value as idx to store!
-				outbuf[((Integer)(v.getValue())).intValue()]=s;				
+				outbuf[((Integer)(v.getValue())).intValue()]=s;	
+				System.out.println("outbuf["+((Integer)(v.getValue())).intValue()+"]="+s);
 			}
 			//dump out to stream (correctly sorted!)
 			for (int i=0;i<outbuf.length;i++){
@@ -308,8 +309,9 @@ public class DbModule implements IModule
 			
     	}
     	// add header to response
-    	res.setHeader("hash_lengh", hlen); // client gets back what it sent
+    	res.setHeader("length", hlen); // client gets back what it sent
     }
     	
     	
 }
+

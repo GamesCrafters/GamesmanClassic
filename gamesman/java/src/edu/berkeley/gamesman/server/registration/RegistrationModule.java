@@ -47,16 +47,16 @@ public class RegistrationModule implements IModule
 	 */
 	public boolean typeSupported(String requestTypeName) {
 		//All supported types
-	return 	requestTypeName.equals(Macros.REG_MOD_REGISTER_USER) 	||
-		 	requestTypeName.equals(Macros.REG_MOD_GET_USERS_ONLINE) ||
-		 	requestTypeName.equals(Macros.REG_MOD_GET_OPEN_GAMES) 	||
-		 	requestTypeName.equals(Macros.REG_MOD_REGISTER_NEW_GAME)||
-		 	requestTypeName.equals(Macros.REG_MOD_UNREGISTER_GAME)  ||
-		 	requestTypeName.equals(Macros.REG_MOD_JOIN_GAME_NUMBER) ||
-		 	requestTypeName.equals(Macros.REG_MOD_JOIN_GAME_USER)	||
-		 	requestTypeName.equals(Macros.REG_MOD_REFRESH_STATUS)	||
-		 	requestTypeName.equals(Macros.REG_MOD_ACCEPT_CHALLENGE) || 
-		 	requestTypeName.equals(Macros.REG_MOD_UNREGISTER_USER); 
+	return 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REGISTER_USER) 	||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_GET_USERS_ONLINE) ||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_GET_OPEN_GAMES) ||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REGISTER_NEW_GAME)||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_GAME)  ||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_NUMBER) ||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_USER)	||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_REFRESH_STATUS)	||
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_ACCEPT_CHALLENGE) || 
+		 	requestTypeName.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_USER); 
 	}
 	
 	/**
@@ -68,36 +68,37 @@ public class RegistrationModule implements IModule
 		IModuleRequest mreq = req;
 		IModuleResponse mres =  res;
 		type = mreq.getHeader(Macros.TYPE);
-		if (type == Macros.REG_MOD_REGISTER_USER) {
+		System.out.println(type);
+		if (type.equalsIgnoreCase(Macros.REG_MOD_REGISTER_USER)) {
 			registerUser(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_GET_USERS_ONLINE) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_GET_USERS_ONLINE)) {
 			getUsersOnline(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_GET_OPEN_GAMES) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_GET_OPEN_GAMES)) {
 			getOpenGames(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_REGISTER_NEW_GAME) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_REGISTER_NEW_GAME)) {
 			registerNewGame(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_UNREGISTER_GAME) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_GAME)) {
 			unregisterGame(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_JOIN_GAME_NUMBER) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_NUMBER)) {
 			joinGameNumber(mreq, mres);
 		}
-		else if (type == Macros.REG_MOD_JOIN_GAME_USER) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_JOIN_GAME_USER)) {
 			//Ambiguous meaning in the future if we implement multiple
 			//open-games per user. So might as well make it a client-side
 			//feature, instead of a dedicated server request. 
 		}
-		else if (type == Macros.REG_MOD_REFRESH_STATUS) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_REFRESH_STATUS)) {
 			refreshHostStatus(mreq, mres); 
 		}
-		else if (type == Macros.REG_MOD_ACCEPT_CHALLENGE) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_ACCEPT_CHALLENGE)) {
 			acceptChallenge(mreq, mres); 
 		}
-		else if (type == Macros.REG_MOD_UNREGISTER_USER) {
+		else if (type.equalsIgnoreCase(Macros.REG_MOD_UNREGISTER_USER)) {
 			unregisterUser(mreq, mres);
 		}
 		else {
@@ -459,7 +460,7 @@ public class RegistrationModule implements IModule
 		
 		challengeResponse = req.getHeader(Macros.CHALLENGE_ACCEPTED);
 		if (validKey) {
-			hostAgreed = (challengeResponse == Macros.ACCEPTED);
+			hostAgreed = (challengeResponse.equalsIgnoreCase(Macros.ACCEPTED));
 			hostPropBucket = getUser(userName);
 			
 			//list of user's wanting to join host's game

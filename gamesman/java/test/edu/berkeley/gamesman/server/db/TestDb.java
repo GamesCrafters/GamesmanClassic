@@ -1,10 +1,16 @@
-package edu.berkeley.gamesman.server;
+//breaks at 1502
+//pos is 768
+//given at 771
+//seek cannot read right!
+//help!
+
+package edu.berkeley.gamesman.server.db;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import edu.berkeley.gamesman.server.db.DbModule;
+import edu.berkeley.gamesman.server.*;
 
 public class TestDb {
 

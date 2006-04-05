@@ -1,6 +1,8 @@
 package edu.berkeley.gamesman.server;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 /**
  * Simple test client that will send header values and character/binary
@@ -100,34 +103,65 @@ public class TestClient
 			System.out.println("1) Set type header.");
 			System.out.println("2) Add header.");
 			System.out.println("3) Add string body and send.");
-			System.out.println("4) Add binary body and send.");
-			System.out.println("5) Just send.");
-			System.out.println("6) Quit");
+			System.out.println("4) Add binary body of long hash values and send.");
+			System.out.println("5) Add binary body and send.");
+			System.out.println("6) Just send.");
+			System.out.println("7) Quit");
 			
 			OutputStream os = null;
-			switch (Integer.parseInt(readInput()))
+			String str = readInput();
+			int selection = -1;
+			try
+			{
+				selection = Integer.parseInt(str);
+			}
+			catch (NumberFormatException ex)
+			{
+				if (str.equalsIgnoreCase("q") || str.equalsIgnoreCase("quit") || 
+						str.equalsIgnoreCase("exit") || str.equalsIgnoreCase("bye"))
+					System.exit(0);
+				System.out.println("Unrecognized menu selection. Try again.");
+				continue;
+			}
+			switch (selection)
 			{
 			case 1:
 				System.out.println("  Enter type: ");
-				conn.addRequestProperty("type", readInput());
+				conn.setRequestProperty("TYPE", readInput());
 				break;
 			case 2:
 				System.out.println("  Enter header name: ");
 				String name = readInput();
 				System.out.println("  Enter header value: ");		
-				conn.addRequestProperty(name, readInput());
+				conn.setRequestProperty(name, readInput());
 				break;
 			case 3:
-				System.out.println("  Enter value: ");		
+				System.out.println("  Enter value: ");				
+				readRequest(conn);
 				conn.connect();
 				os = conn.getOutputStream();
 				os.write(readInput().getBytes());
 				os.close();
-				readResponse(conn);
+				readResponse(conn, -1);
 				break outer;
 			case 4:
-				System.out.println("  Enter path to file: ");
+				System.out.println("  Enter sequence of long(s): ex. 34L 127L 123445323L ");
+				String longs = readInput();
+				StringTokenizer tokenizer = new StringTokenizer(longs, " Ll", false);
+				readRequest(conn);
+				conn.connect();
+				os = conn.getOutputStream();
+				DataOutputStream dos = new DataOutputStream(os);
+				int count = tokenizer.countTokens();
+				while (tokenizer.hasMoreTokens())
+					dos.writeLong(Long.parseLong(tokenizer.nextToken()));
+				dos.close();				
+				readResponse(conn, count);
+				break outer;
+			case 5:
+				System.out.println("  Enter absolute path to file: ");
 				FileInputStream fin = new FileInputStream(readInput());
+				readRequest(conn);
 				conn.connect();
 				os = conn.getOutputStream();
 				int read = -1;
@@ -136,13 +170,14 @@ public class TestClient
 					os.write(buf, 0, read);
 				fin.close();
 				os.close();				
-				readResponse(conn);
-				break outer;
-			case 5:
-				conn.connect();
-				readResponse(conn);
+				readResponse(conn, -1);
 				break outer;
 			case 6:
+				readRequest(conn);
+				conn.connect();
+				readResponse(conn, -1);
+				break outer;
+			case 7:
 				System.exit(0);
 				break;
 			default:
@@ -166,13 +201,38 @@ public class TestClient
 	}
 	
 	/**
-	 * Reads the HTTP response from the server and prints it to System.out.
+	 * Reads the HTTP request headers prints them to System.out.
 	 * 
 	 * @param conn HttpURLConnection to send and read from.
 	 * @throws IOException
 	 */
-	protected void readResponse(HttpURLConnection conn) throws IOException
+	protected void readRequest(HttpURLConnection conn) throws IOException
 	{
+		System.out.println("-------------->>");
+		Map headers = conn.getRequestProperties();
+		Iterator itr = headers.keySet().iterator();
+		while (itr.hasNext())
+		{
+			String key = (String)itr.next();
+			System.out.print(key + " = ");
+			Iterator itr2 = ((List)headers.get(key)).iterator();
+			while (itr2.hasNext())
+				System.out.println(itr2.next() + ", ");
+		}
+		System.out.println("-------------->>");
+	}
+	
+	/**
+	 * Reads the HTTP response from the server and prints it to System.out.
+	 * 
+	 * @param conn HttpURLConnection to send and read from.
+	 * @param longCount if == -1, then interpret body as char data, otherwise interpret
+	 * 			the body as the specified number of longs
+	 * @throws IOException
+	 */
+	protected void readResponse(HttpURLConnection conn, int longCount) throws IOException
+	{
+		System.out.println("<<--------------");
 		Map headers = conn.getHeaderFields();
 		Iterator itr = headers.keySet().iterator();
 		while (itr.hasNext())
@@ -184,12 +244,22 @@ public class TestClient
 				System.out.println(itr2.next() + ", ");
 		}
 		InputStream is = conn.getInputStream();
-		int read = -1;
-		byte[] buf = new byte[512];
-		while ((read = is.read(buf, 0, buf.length)) != -1)
-			System.out.write(buf, 0, read);
+		if (longCount != -1)
+		{
+			DataInputStream dis = new DataInputStream(is);
+			for (int i=0; i<longCount; i++)
+				System.out.println(dis.readShort());
+			is = dis;
+		}
+		else
+		{
+			int read = -1;
+			byte[] buf = new byte[512];
+			while ((read = is.read(buf, 0, buf.length)) != -1)
+				System.out.write(buf, 0, read);
+		}
 		is.close();
 		conn.disconnect();
-		System.out.println("");
+		System.out.println("<<--------------");
 	}
 }
