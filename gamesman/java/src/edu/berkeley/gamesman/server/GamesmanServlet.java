@@ -111,30 +111,31 @@ public class GamesmanServlet extends HttpServlet
 				try
 				{
 					modulesArray[counter].handleRequest(mRequest, mResponse);
+					mResponse.setReturnCode(ErrorCode.VALID_REQUEST);
 				}
 				catch (ModuleException e)
 				{
 					// send back error code
-					mResponse.setHeader("error_code", String.valueOf(e.getCode()));
-					mResponse.setHeader("error_message", e.getMessage());
+					mResponse.setReturnCode(e.getCode());
+					mResponse.setReturnMessage(e.getMessage() + (e.getCause() == null?"":" " + e.getCause().getMessage()));
 				}
 				catch (Exception e)
 				{
 					// send back error code
-					mResponse.setHeader("error_code", "1");
-					mResponse.setHeader("error_message", e.getMessage());
+					mResponse.setReturnCode(ErrorCode.GENERAL_EXCEPTION);
+					mResponse.setReturnMessage(ErrorCode.Msg.GENERAL_EXCEPTION + " " + e.getMessage());
 				}				
 			}
 			else
 			{
-				mResponse.setHeader("error_code", String.valueOf(ModuleException.BAD_REQUEST_TYPE));
-				mResponse.setHeader("error_message", "Bad Request Type");
+				mResponse.setReturnCode(ErrorCode.BAD_REQUEST_TYPE);
+				mResponse.setReturnMessage(ErrorCode.Msg.BAD_REQUEST_TYPE);
 			}
 		}
 		else
 		{
-			mResponse.setHeader("error_code", String.valueOf(ModuleException.BAD_REQUEST_TYPE));
-			mResponse.setHeader("error_message", "Server is Down");
+			mResponse.setReturnCode(ErrorCode.SERVER_NOT_INITIALIZED);
+			mResponse.setReturnMessage(ErrorCode.Msg.SERVER_NOT_INITIALIZED);
 		}
 	}
 

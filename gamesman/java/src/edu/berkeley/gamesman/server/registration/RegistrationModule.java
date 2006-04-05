@@ -129,13 +129,13 @@ public class RegistrationModule implements IModule
 		//Name check successful
 		if ((checkStatus = checkName(userName)) == Macros.VALID_CODE) {
 			addUser(userName, gameName);
-			status = IModuleResponse.ACK;
+			status = Macros.ACK; // Convert to use responseCode/responseMessage
 			secretKey = (String)((PropertyBucket)getUser(userName)).getProperty(Macros.PROPERTY_SECRET_KEY);
 			res.setHeader(Macros.HN_SECRET_KEY, secretKey);
 			res.setHeader(Macros.HN_STATUS, status);
 		}
 		else {
-			status = IModuleResponse.DENY;
+			status = Macros.DENY; // Convert to use responseCode/responseMessage
 			res.setHeader(Macros.HN_STATUS, status);
 			res.setReturnCode(checkStatus);
 		}
@@ -284,11 +284,11 @@ public class RegistrationModule implements IModule
 			addGameSession(gameName, gameID, propBucket);
 			
 			//At this point the game has been registered successfully so respond with Macros.ACK
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+			res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 		}
 		else {
 			//the request has failed
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			if (!validKey) res.setReturnCode(ErrorCode.INVALID_KEY);
 			else if (!notHostingGame) res.setReturnCode(ErrorCode.USER_ALREADY_HAS_OPEN_GAME);
 			else if (!validVariant) res.setReturnCode(ErrorCode.INVALID_VARIANT);
@@ -332,11 +332,11 @@ public class RegistrationModule implements IModule
 			propBucket.removeProperty(Macros.PROPERTY_GAME_ID);
 			
 			//request was successful
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+			res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 		}
 		else {
 			//request has failed
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			//TODO: make the error code more specific
 			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}
@@ -368,7 +368,7 @@ public class RegistrationModule implements IModule
 		
 		validKey = isValidUserKey(userName, secretKey);
 		if (!validKey) {
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			res.setReturnCode(ErrorCode.INVALID_KEY);
 			return;
 		}
@@ -384,7 +384,7 @@ public class RegistrationModule implements IModule
 		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
 		if (hostPropBucket == null) {
 			//an invalid game number has been requested
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			res.setReturnCode(ErrorCode.INVALID_GAME_NUMBER);
 			return;
 		}
@@ -407,9 +407,9 @@ public class RegistrationModule implements IModule
 			}
 			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
 			if (hostAccepted) 
-				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+				res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 			else {
-				res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+				res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 				res.setReturnCode(ErrorCode.HOST_DECLINED);
 			}
 			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
@@ -432,10 +432,10 @@ public class RegistrationModule implements IModule
 				unregisterGame(req, res); 
 			}
 			removeUser(userName); 
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+			res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 		} else {
 			//request has failed
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			res.setReturnCode(ErrorCode.INVALID_KEY);
 		}
 	}
@@ -500,7 +500,7 @@ public class RegistrationModule implements IModule
 					notifyAll();
 				}
 				
-				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+				res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 			} else {
 				//host said no, so we need to let that client know that he 
 				//was denied, and take him off of the list of interested-clients
@@ -530,11 +530,11 @@ public class RegistrationModule implements IModule
 				synchronized (this) {
 					notifyAll();
 				}
-				res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+				res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 			}
 		} else {
 			//request has failed
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			//TODO: make the error code more specific
 			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}
@@ -585,10 +585,10 @@ public class RegistrationModule implements IModule
 			//have to interpret an ACK/Null combo as "no-one's waiting", no? -Filip
 			//Actually getFirst on an empty list will throw a No Such Element Exception -Victor
 			res.setHeader(Macros.HN_OPPONENT_USERNAME, luckyUser); 
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.ACK);
+			res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
 		} else {
 			//request has failed
-			res.setHeader(Macros.HN_STATUS, IModuleResponse.DENY);
+			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 			//TODO: make the error code more specific
 			res.setReturnCode(ErrorCode.GENERIC_ERROR);
 		}

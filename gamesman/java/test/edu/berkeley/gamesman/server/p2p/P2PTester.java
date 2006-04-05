@@ -20,7 +20,7 @@ public class P2PTester {
 		P2PModule.registerNewGame("Player F", "Player E");
 		final byte[] trash = new byte[0];
 		
-		final String type = "type";
+		final String type = IModuleRequest.HN_TYPE;
 		final String pA = "Player A";
 		final String pB = "Player B";
 		final String pC = "Player C";
@@ -36,28 +36,28 @@ public class P2PTester {
 		final String efm1 = "EF move 1";
 		//final String efResignation = "Player E resigned!";
 		
-		final String[] efhVals0 = {Const.SEND_MOVE, null, pF, pE};
-		final String[] efhVals1 = {Const.SEND_MOVE, efm1, pE, pF};
+		final String[] efhVals0 = {RequestTypes.SEND_MOVE, null, pF, pE};
+		final String[] efhVals1 = {RequestTypes.SEND_MOVE, efm1, pE, pF};
 		
 		
 		
-		final String[] cdhVals0 = {Const.SEND_MOVE, null, pD, pC};
-		final String[] cdhVals1 = {Const.SEND_MOVE, cdm1, pC, pD};
-		final String[] cdhVals2 = {Const.SEND_MOVE, cdm2, pD, pC};
-		final String[] cdhVals3 = {Const.SEND_MOVE, cdm3, pC, pD};				
+		final String[] cdhVals0 = {RequestTypes.SEND_MOVE, null, pD, pC};
+		final String[] cdhVals1 = {RequestTypes.SEND_MOVE, cdm1, pC, pD};
+		final String[] cdhVals2 = {RequestTypes.SEND_MOVE, cdm2, pD, pC};
+		final String[] cdhVals3 = {RequestTypes.SEND_MOVE, cdm3, pC, pD};				
 		
-		final String[] abhVals1 = {Const.SEND_MOVE, abm1, pA, pB};
-		final String[] abhVals2 = {Const.SEND_MOVE, abm2, pB, pA};
-		final String[] abhVals3 = {Const.SEND_MOVE, abm3, pA, pB};	
-		final String[] abhVals0 = {Const.SEND_MOVE, null, pB, pA};
-		final String[] stdReq = {type, Const.MOVE_VALUE, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
-		final String[] gameOverReq = {type, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
-		final String[] resignationReq = {type, Const.DESTINATION_PLAYER, Const.SOURCE_PLAYER};
+		final String[] abhVals1 = {RequestTypes.SEND_MOVE, abm1, pA, pB};
+		final String[] abhVals2 = {RequestTypes.SEND_MOVE, abm2, pB, pA};
+		final String[] abhVals3 = {RequestTypes.SEND_MOVE, abm3, pA, pB};	
+		final String[] abhVals0 = {RequestTypes.SEND_MOVE, null, pB, pA};
+		final String[] stdReq = {type, Const.HN_MOVE, Const.HN_DESTINATION_PLAYER, Const.HN_SOURCE_PLAYER};
+		final String[] gameOverReq = {type, Const.HN_DESTINATION_PLAYER, Const.HN_SOURCE_PLAYER};
+		final String[] resignationReq = {type, Const.HN_DESTINATION_PLAYER, Const.HN_SOURCE_PLAYER};
 		
 		
-		final String[] abGameOverVals = {Const.END_OF_GAME, pB, pA};
-		final String[] cdGameOverVals = {Const.END_OF_GAME, pD, pC};
-		final String[] efResignationVals = {Const.SEND_RESIGNATION, pF,pE};
+		final String[] abGameOverVals = {RequestTypes.GAME_OVER, pB, pA};
+		final String[] cdGameOverVals = {RequestTypes.GAME_OVER, pD, pC};
+		final String[] efResignationVals = {RequestTypes.RESIGN, pF,pE};
 		// Create the requests that will eventually be sent
 		
 		Thread threadA = new Thread(new Runnable () {
@@ -77,13 +77,13 @@ public class P2PTester {
 					mod.handleRequest(fromAreq1, toAres1);
 					TestModuleResponse aRes1 = (TestModuleResponse) toAres1;
 					Map res1Headers = aRes1.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to A (should be 'move 1'): "+res1Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to A (should be 'move 1'): "+res1Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of second request from A");
 					mod.handleRequest(fromAreq2, toAres2);
 					TestModuleResponse aRes2 = (TestModuleResponse) toAres2;
 					Map res2Headers = aRes2.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to A (should be 'move 3'): "+res2Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to A (should be 'move 3'): "+res2Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of 'game over' request from A");
 					mod.handleRequest(fromAFinal, toAFinal);
@@ -120,13 +120,13 @@ public class P2PTester {
 					mod.handleRequest(fromCreq1, toCres1);
 					TestModuleResponse cRes1 = (TestModuleResponse) toCres1;
 					Map res1Headers = cRes1.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to C (should be 'move 1'): "+res1Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to C (should be 'move 1'): "+res1Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of second request from C");
 					mod.handleRequest(fromCreq2, toCres2);
 					TestModuleResponse cRes2 = (TestModuleResponse) toCres2;
 					Map res2Headers = cRes2.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to C (should be 'move 3'): "+res2Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to C (should be 'move 3'): "+res2Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of 'game over' request from C");
 					mod.handleRequest(fromCFinal, toCFinal);
@@ -156,7 +156,7 @@ public class P2PTester {
 					mod.handleRequest(fromEreq1, toEres1);
 					TestModuleResponse eRes1 = (TestModuleResponse) toEres1;
 					Map res1Headers = eRes1.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to E (should be 'move 1'): "+res1Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to E (should be 'move 1'): "+res1Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of resignation from E");
 					mod.handleRequest(fromEreq2, toEres2);
@@ -186,13 +186,13 @@ public class P2PTester {
 					mod.handleRequest(fromBreq1, toBres1);
 					TestModuleResponse bRes1 = (TestModuleResponse) toBres1;
 					Map bRes1Headers = bRes1.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to B (should be 'move 2'): "+bRes1Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to B (should be 'move 2'): "+bRes1Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of second request from B");
 					mod.handleRequest(fromBreq2, toBres2);
 					TestModuleResponse bRes2 = (TestModuleResponse) toBres2;
 					Map bRes2Headers = bRes2.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to B (should be 'null'): "+bRes2Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to B (should be 'null'): "+bRes2Headers.get(Const.HN_MOVE));
 				} catch(ModuleException e) {
 					System.out.println("### ModuleException: "+e.getLocalizedMessage());
 					return;
@@ -216,13 +216,13 @@ public class P2PTester {
 					mod.handleRequest(fromDreq1, toDres1);
 					TestModuleResponse dRes1 = (TestModuleResponse) toDres1;
 					Map dRes1Headers = dRes1.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to D (should be 'move 2'): "+dRes1Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to D (should be 'move 2'): "+dRes1Headers.get(Const.HN_MOVE));
 					
 					System.out.println("Calling handleRequest of second request from B");
 					mod.handleRequest(fromDreq2, toDres2);
 					TestModuleResponse dRes2 = (TestModuleResponse) toDres2;
 					Map dRes2Headers = dRes2.getHeadersWritten();
-					System.out.println("@@@@@@This was sent back to D (should be 'null'): "+dRes2Headers.get(Const.MOVE_VALUE));
+					System.out.println("@@@@@@This was sent back to D (should be 'null'): "+dRes2Headers.get(Const.HN_MOVE));
 				} catch(ModuleException e) {
 					System.out.println("### ModuleException: "+e.getLocalizedMessage());
 					return;

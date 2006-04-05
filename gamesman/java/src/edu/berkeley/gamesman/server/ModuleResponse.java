@@ -17,7 +17,6 @@ public class ModuleResponse implements IModuleResponse
 	protected HttpServletResponse response = null;
 	protected boolean returnCodeSet = false;
 	protected boolean returnMessageSet = false;
-	protected boolean returnValueSet = false;
 	
 	/**
 	 * Default constructor. Takes the HttpServletResponse to wrap.
@@ -29,23 +28,6 @@ public class ModuleResponse implements IModuleResponse
 		this.response = res;
 		this.returnCodeSet = false;
 		this.returnMessageSet = false;
-		this.returnValueSet = false;
-	}
-
-	/**
-	 * Sets the return value for this IModuleResponse. Must be either ACK or DENY.
-	 * The return value can only be set once. Calls to this method after the value 
-	 * has been set will have no effect.
-	 * 
-	 * @param value either ACK or DENY
-	 */
-	public void setReturnValue(String value)
-	{
-		if (!returnValueSet)
-		{
-			setHeader(HN_RETURN_VALUE, value);
-			returnValueSet = true;
-		}
 	}
 
 	/**

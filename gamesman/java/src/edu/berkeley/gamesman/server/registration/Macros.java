@@ -29,7 +29,12 @@ public final class Macros {
 	 */
 	public static final String ACCEPTED = "Accepted";
 	public static final int VALID_CODE = 0;
-
+	
+	// Need to get rid of these and convert over to use response.setReturnCode/setReturnMessage
+	public static final String ACK = "ACK";
+	public static final String DENY = "DENY";
+	
+	
 	/**
 	 * RegistrationModule.PropertyBucket Macros
 	 */

@@ -13,13 +13,6 @@ package edu.berkeley.gamesman.server;
  */
 public class ModuleException extends Exception
 {
-	// Exception codes to use when constructing this class.
-	// IModule implementors need to add to this set.
-	
-	/** When the request has a bad request type (or no request type) */
-	public static final int BAD_REQUEST_TYPE = 1;
-
-	
 	protected int code;
 	
 	/**

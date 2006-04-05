@@ -14,23 +14,8 @@ import java.io.OutputStream;
 public interface IModuleResponse
 {
 	/** Response header names */
-	public static final String HN_RETURN_VALUE = "ReturnValue";
 	public static final String HN_RETURN_CODE = "ReturnCode";
 	public static final String HN_RETURN_MESSAGE = "ReturnMessage";
-
-	/** Response header values */
-	public static final String ACK = "Ack";
-	public static final String DENY = "Deny";
-	
-	/**
-	/**
-	 * Sets the return value for this IModuleResponse. Must be either ACK or DENY.
-	 * The return value can only be set once. Calls to this method after the value 
-	 * has been set will have no effect.
-	 * 
-	 * @param value either ACK or DENY
-	 */
-	public void setReturnValue(String value);
 
 	/**
 	 * Sets the return code for this IModuleResponse. Same as error code. The default

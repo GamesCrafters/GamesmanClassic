@@ -16,6 +16,8 @@ public class TestModuleResponse implements IModuleResponse
 {
 	protected ByteArrayOutputStream out = null;
 	protected Map headers = null;
+	protected boolean returnCodeSet = false;
+	protected boolean returnMessageSet = false;
 	
 	/**
 	 * Default constructor. Takes the size of the buffer to which the 
@@ -27,8 +29,41 @@ public class TestModuleResponse implements IModuleResponse
 	{
 		this.out = new ByteArrayOutputStream(outputSize);
 		headers = new Hashtable();
+		this.returnCodeSet = false;
+		this.returnMessageSet = false;
 	}
 
+	/**
+	 * Sets the return code for this IModuleResponse. Same as error code. The default
+	 * code is 0, which corresponds to no error. The return code can only
+	 * be set once. Calls to this method after the code has been set will have no effect.
+	 * 
+	 * @param code return code integer
+	 */
+	public void setReturnCode(int code)
+	{
+		if (!returnCodeSet)
+		{
+			setHeader(HN_RETURN_CODE, String.valueOf(code));
+			returnCodeSet = true;
+		}
+	}
+
+	/**
+	 * Sets the return message for this IModuleResponse. The return message can only
+	 * be set once. Calls to this method after the message has been set will have no effect.
+	 * 
+	 * @param msg message to return as value for header defined in RETURN_MESSAGE
+	 */
+	public void setReturnMessage(String msg)
+	{
+		if (!returnMessageSet)
+		{
+			setHeader(HN_RETURN_MESSAGE, msg);
+			returnMessageSet = true;
+		}
+	}
+	
 	/**
 	 * Sets the specified header for the response.
 	 * 

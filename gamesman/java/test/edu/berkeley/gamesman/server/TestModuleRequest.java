@@ -36,6 +36,16 @@ public class TestModuleRequest implements IModuleRequest
 	}
 
 	/**
+	 * Returns the value of request type specified when the client made the request.
+	 * 
+	 * @return value of the request type specified when the client made the request
+	 */
+	public String getType()
+	{
+		return getHeader(HN_TYPE);
+	}
+	
+	/**
 	 * Returns the value of the specified request header or null if none 
 	 * exists with the specified name.
 	 * 

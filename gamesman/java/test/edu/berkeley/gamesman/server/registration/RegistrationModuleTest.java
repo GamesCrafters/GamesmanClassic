@@ -60,8 +60,8 @@ public class RegistrationModuleTest extends TestCase {
 	public void test01() throws ModuleException {
 		regMod = new RegistrationModule();
 		
-		String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues = {Macros.REG_MOD_REGISTER_USER, user, game};
+		String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues = {RequestTypes.REGISTER_USER, user, game};
 		String [] testMsgs = new String[5];
 		boolean [] testStatus = new boolean[5];
 		int testNum = 1;
@@ -84,11 +84,11 @@ public class RegistrationModuleTest extends TestCase {
 		testStatus[0] = regMod.isUserOnline(user);
 		
 		testMsgs[1] = "Response is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); 	
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		
 		testMsgs[2] = "Response has valid Secret Key";
-		resHrdVal = (String) resHeaders.get(Macros.SECRET_KEY);
+		resHrdVal = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		testStatus[2] = (resHrdVal != null) && regMod.isValidUserKey(user, resHrdVal);
 		
 		//Now keep the request the same and get a new response when the same userName is re-registered
@@ -98,12 +98,12 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs [3] = "Response is DENY if user already exists";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY); // Convert to use responseCode/responseMessage
 		
-		testMsgs[4] = "Error Code if user already exists is " + Macros.USER_ALREADY_EXISTS;
-		resHrdVal = (String) resHeaders.get(Macros.ERROR_CODE);
-		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(Macros.USER_ALREADY_EXISTS.toString());
+		testMsgs[4] = "Error Code if user already exists is " + ErrorCode.USER_ALREADY_EXISTS;
+		resHrdVal = (String) resHeaders.get(IModuleResponse.HN_RETURN_CODE);
+		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(String.valueOf(ErrorCode.USER_ALREADY_EXISTS));
 		//print the results
 		testStatus(testNum, description, testMsgs, testStatus);
 	}
@@ -119,8 +119,8 @@ public class RegistrationModuleTest extends TestCase {
 		/**
 		 * Add three users who want to play mancala
 		 */
-		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
+		String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1 = {RequestTypes.REGISTER_USER, "user1", game};
 		String [] testMsgs = new String[3];
 		boolean [] testStatus = new boolean[3];
 		int testNum = 2;
@@ -152,8 +152,8 @@ public class RegistrationModuleTest extends TestCase {
 		/** 
 		 * Now request the list of online users intested in playing mancala
 		 */
-		String [] headerNames_2  = {Macros.TYPE, Macros.GAME};
-		String [] headerValues_2 = {Macros.REG_MOD_GET_USERS_ONLINE, game};
+		String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_GAME};
+		String [] headerValues_2 = {RequestTypes.GET_USERS, game};
 		
 		tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
@@ -214,8 +214,8 @@ public class RegistrationModuleTest extends TestCase {
 		/**
 		 * So we add a user, and have them register a game.  
 		 */
-		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
+		String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1 = {RequestTypes.REGISTER_USER, "user1", game};
 		
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
@@ -224,14 +224,14 @@ public class RegistrationModuleTest extends TestCase {
 		//Adding user1
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
-		secretKey = (String) resHeaders.get(Macros.SECRET_KEY);
+		secretKey = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		
 		testMsgs[0] = "User name added to Registration Module Table";
 		testStatus[0] = regMod.isUserOnline(user);
 		
 		//Registering the new game
-		String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-		String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey, game, "1", "Looking for Data."};
+		String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+		String [] headerValues_2 = {RequestTypes.REGISTER_GAME, "user1", secretKey, game, "1", "Looking for Data."};
 		tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -239,8 +239,8 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs[1] = "Game Register Response is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		
 		testMsgs[2] = "User's key is valid";
 		testStatus[2] = regMod.isValidUserKey(user, secretKey); 
@@ -252,12 +252,12 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs [3] = "Response is DENY if user already has a game registered";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY); // Convert to use responseCode/responseMessage
 		
-		testMsgs[4] = "Error Code if user already has a game is " + Macros.USER_ALREADY_HAS_OPEN_GAME;
-		resHrdVal = (String) resHeaders.get(Macros.ERROR_CODE);
-		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(Macros.USER_ALREADY_HAS_OPEN_GAME.toString());
+		testMsgs[4] = "Error Code if user already has a game is " + ErrorCode.USER_ALREADY_HAS_OPEN_GAME;
+		resHrdVal = (String) resHeaders.get(IModuleResponse.HN_RETURN_CODE);
+		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(String.valueOf(ErrorCode.USER_ALREADY_HAS_OPEN_GAME));
 		//print the results
 		//System.out.print(resHrdVal + "\n" + Macros.USER_ALREADY_HAS_OPEN_GAME.toString() + "\n"); 
 		testStatus(testNum, description, testMsgs, testStatus);
@@ -284,8 +284,8 @@ public class RegistrationModuleTest extends TestCase {
 		/**
 		 * So we add a user, and have them register a game.  Again. 
 		 */
-		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
+		String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1 = {RequestTypes.REGISTER_USER, "user1", game};
 		
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
@@ -294,15 +294,15 @@ public class RegistrationModuleTest extends TestCase {
 		//Adding user1
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
-		secretKey = (String) resHeaders.get(Macros.SECRET_KEY);
+		secretKey = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		
 		testMsgs[0] = "User name added to Registration Module Table";
 		testStatus[0] = regMod.isUserOnline(user);
 		
 		//Registering the new game
 		String TEST_VARIATION = "1"; 
-		String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-		String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey, game, TEST_VARIATION, "Looking for Data."};
+		String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+		String [] headerValues_2 = {RequestTypes.REGISTER_GAME, "user1", secretKey, game, TEST_VARIATION, "Looking for Data."};
 		tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -310,22 +310,22 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs[1] = "Game Register Response is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		
 		testMsgs[2] = "User's key is valid";
 		testStatus[2] = regMod.isValidUserKey(user, secretKey); 
 		
 		// Now we want to get a listing of open games that user1 can see
-		String [] headerNames_3  = {Macros.TYPE, Macros.GAME};
-		String [] headerValues_3 = {Macros.REG_MOD_GET_OPEN_GAMES, game};
+		String [] headerNames_3  = {IModuleRequest.HN_TYPE, Macros.HN_GAME};
+		String [] headerValues_3 = {RequestTypes.GET_GAMES, game};
 		tReq = new TestModuleRequest(input,headerNames_3,headerValues_3);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		
-		gameCount = Integer.decode((String)resHeaders.get(Macros.GAME_SESSIONS_INDEX)).intValue();
+		gameCount = Integer.decode((String)resHeaders.get(Macros.HN_GAME_SESSIONS_INDEX)).intValue();
 		if (gameCount > TEST_LIMIT) {
 			System.out.print("More open-games than test array size.\n");
 			assertTrue(false); 
@@ -352,15 +352,15 @@ public class RegistrationModuleTest extends TestCase {
 			testStatus[3] = testStatus[3] && (openGamesHosts[x].equals(expectedGamesHosts[x])) && (openGamesIds[x].equals(expectedGamesIds[x])) && (openGamesVariations[x].equals(expectedGamesVariations[x])); 
 		
 		//Finally, we test to see that asking about a game no-one is registered for gives back an empty listing.
-		String [] headerNames_4  = {Macros.TYPE, Macros.GAME};
-		String [] headerValues_4 = {Macros.REG_MOD_GET_OPEN_GAMES, "ttt"};
+		String [] headerNames_4  = {IModuleRequest.HN_TYPE, Macros.HN_GAME};
+		String [] headerValues_4 = {RequestTypes.GET_GAMES, "ttt"};
 		tReq = new TestModuleRequest(input,headerNames_4,headerValues_4);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		testMsgs[4] = "Asking about a game for which there exist no open-games returns 0 for GAMES_SESSIONS_INDEX.";
-		testStatus[4] = (Integer.decode((String)resHeaders.get(Macros.GAME_SESSIONS_INDEX)).intValue() == 0); 
+		testStatus[4] = (Integer.decode((String)resHeaders.get(Macros.HN_GAME_SESSIONS_INDEX)).intValue() == 0); 
 		
 		testStatus(testNum, description, testMsgs, testStatus);
 	}
@@ -382,8 +382,8 @@ public class RegistrationModuleTest extends TestCase {
 		/**
 		 * So we add a user, and have them register a game.  Yet Again. 
 		 */
-		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, "user1", game};
+		String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1 = {RequestTypes.REGISTER_USER, "user1", game};
 		
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
@@ -392,15 +392,15 @@ public class RegistrationModuleTest extends TestCase {
 		//Adding user1
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
-		secretKey = (String) resHeaders.get(Macros.SECRET_KEY);
+		secretKey = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		
 		testMsgs[0] = "User name added to Registration Module Table";
 		testStatus[0] = regMod.isUserOnline(user);
 		
 		//Registering the new game
 		String TEST_VARIATION = "1"; 
-		String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-		String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey, game, TEST_VARIATION, "Looking for Data."};
+		String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+		String [] headerValues_2 = {RequestTypes.REGISTER_GAME, "user1", secretKey, game, TEST_VARIATION, "Looking for Data."};
 		tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -408,43 +408,43 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs[1] = "Game Register Response is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		//System.out.println("user1 registers game");
 		// Now we want to first try having someone else kill this game
 		// The try is some random person kill the game. 
-		String [] headerNames_1b  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1b = {Macros.REG_MOD_REGISTER_USER, "user2", game};
+		String [] headerNames_1b  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1b = {RequestTypes.REGISTER_USER, "user2", game};
 		
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		tReq = new TestModuleRequest(input,headerNames_1b,headerValues_1b);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
-		user2SecretKey = (String) resHeaders.get(Macros.SECRET_KEY);
+		user2SecretKey = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		
-		String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME};
-		String [] headerValues_3 = {Macros.REG_MOD_UNREGISTER_GAME, "user2", user2SecretKey, game};
+		String [] headerNames_3  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME};
+		String [] headerValues_3 = {RequestTypes.UNREGISTER_GAME, "user2", user2SecretKey, game};
 		tReq = new TestModuleRequest(input,headerNames_3,headerValues_3);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs [2] = "Random person cannot kill someone else's game";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[2] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[2] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY); // Convert to use responseCode/responseMessage
 		//System.out.println("user2");
 		
 		// We double check that user1's game still exists
-		String [] headerNames_4  = {Macros.TYPE, Macros.GAME};
-		String [] headerValues_4 = {Macros.REG_MOD_GET_OPEN_GAMES, game};
+		String [] headerNames_4  = {IModuleRequest.HN_TYPE, Macros.HN_GAME};
+		String [] headerValues_4 = {RequestTypes.GET_GAMES, game};
 		tReq = new TestModuleRequest(input,headerNames_4,headerValues_4);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		
-		int gameCount = Integer.decode((String)resHeaders.get(Macros.GAME_SESSIONS_INDEX)).intValue();
+		int gameCount = Integer.decode((String)resHeaders.get(Macros.HN_GAME_SESSIONS_INDEX)).intValue();
 		int TEST_LIMIT = 10; 
 		String [] openGamesHosts = new String[TEST_LIMIT];
 		String [] openGamesIds = new String[TEST_LIMIT];
@@ -476,27 +476,27 @@ public class RegistrationModuleTest extends TestCase {
 			testStatus[3] = testStatus[3] && (openGamesHosts[x].equals(expectedGamesHosts[x])) && (openGamesIds[x].equals(expectedGamesIds[x])) && (openGamesVariations[x].equals(expectedGamesVariations[x])); 
 		
 		// Now user1 gets to unregister his own game
-		String [] headerNames_5  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME};
-		String [] headerValues_5 = {Macros.REG_MOD_UNREGISTER_GAME, "user1", secretKey, game};
+		String [] headerNames_5  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME};
+		String [] headerValues_5 = {RequestTypes.UNREGISTER_GAME, "user1", secretKey, game};
 		tReq = new TestModuleRequest(input,headerNames_5,headerValues_5);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs[4] = "Response to user1 unregistering game is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		
 		//Finally we double check that user1's game is gone
-		String [] headerNames_6  = {Macros.TYPE, Macros.GAME};
-		String [] headerValues_6 = {Macros.REG_MOD_GET_OPEN_GAMES, game};
+		String [] headerNames_6  = {IModuleRequest.HN_TYPE, Macros.HN_GAME};
+		String [] headerValues_6 = {RequestTypes.GET_GAMES, game};
 		tReq = new TestModuleRequest(input,headerNames_6,headerValues_6);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
 		regMod.handleRequest(tReq, tRes);
 		resHeaders = tRes.getHeadersWritten();
 		
-		gameCount = Integer.decode((String)resHeaders.get(Macros.GAME_SESSIONS_INDEX)).intValue();
+		gameCount = Integer.decode((String)resHeaders.get(Macros.HN_GAME_SESSIONS_INDEX)).intValue();
 		openGamesHosts = new String[TEST_LIMIT];
 		openGamesIds = new String[TEST_LIMIT];
 		openGamesVariations = new String[TEST_LIMIT];
@@ -546,8 +546,8 @@ public class RegistrationModuleTest extends TestCase {
 		// First we add a user
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		
-		String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-		String [] headerValues_1 = {Macros.REG_MOD_REGISTER_USER, user, game};
+		String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+		String [] headerValues_1 = {RequestTypes.REGISTER_USER, user, game};
 		tReq = new TestModuleRequest(input,headerNames_1,headerValues_1);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -559,16 +559,16 @@ public class RegistrationModuleTest extends TestCase {
 		testStatus[0] = regMod.isUserOnline(user);
 		
 		testMsgs[1] = "Response is ACK";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); 	
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[1] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); 	 // Convert to use responseCode/responseMessage
 		
 		testMsgs[2] = "Response has valid Secret Key";
-		secretKey = (String) resHeaders.get(Macros.SECRET_KEY);
+		secretKey = (String) resHeaders.get(Macros.HN_SECRET_KEY);
 		testStatus[2] = (resHrdVal != null) && regMod.isValidUserKey(user, secretKey);
 		
 		// Next we try unregistering a random other user. 
-		String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME};
-		String [] headerValues_2 = {Macros.REG_MOD_UNREGISTER_USER, "user2", "iamfake", game};
+		String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME};
+		String [] headerValues_2 = {RequestTypes.UNREGISTER_USER, "user2", "iamfake", game};
 		tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -576,19 +576,19 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs [3] = "Response is DENY if user is not registered (I.E. invalid key)";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[3] = (resHrdVal != null) && resHrdVal.equals(Macros.DENY); // Convert to use responseCode/responseMessage
 		
-		testMsgs[4] = "Error Code if user fails to unregister is " + Macros.INVALID_KEY;
-		resHrdVal = (String) resHeaders.get(Macros.ERROR_CODE);
-		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(Macros.INVALID_KEY.toString());
+		testMsgs[4] = "Error Code if user fails to unregister is " + ErrorCode.INVALID_KEY;
+		resHrdVal = (String) resHeaders.get(IModuleResponse.HN_RETURN_CODE);
+		testStatus[4] = (resHrdVal != null) && resHrdVal.equals(String.valueOf(ErrorCode.INVALID_KEY));
 		
 		testMsgs[5] = "user1 is still in Registration Module Table";
 		testStatus[5] = regMod.isUserOnline(user);
 		
 		// Finally we let user1 unregister 
-		String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME};
-		String [] headerValues_3 = {Macros.REG_MOD_UNREGISTER_USER, user, secretKey, game};
+		String [] headerNames_3  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME};
+		String [] headerValues_3 = {RequestTypes.UNREGISTER_USER, user, secretKey, game};
 		tReq = new TestModuleRequest(input,headerNames_3,headerValues_3);
 		tRes = new TestModuleResponse(OUTPUT_SIZE);
 		
@@ -596,8 +596,8 @@ public class RegistrationModuleTest extends TestCase {
 		resHeaders = tRes.getHeadersWritten();
 		
 		testMsgs [6] = "Response is ACK for user1 to unregister";
-		resHrdVal = (String) resHeaders.get(Macros.STATUS);
-		testStatus[6] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK);
+		resHrdVal = (String) resHeaders.get(Macros.HN_STATUS);
+		testStatus[6] = (resHrdVal != null) && resHrdVal.equals(Macros.ACK); // Convert to use responseCode/responseMessage
 		
 		testMsgs[7] = "user1 is no longer in Registration Module Table";
 		testStatus[7] = !regMod.isUserOnline(user);
@@ -615,8 +615,8 @@ public class RegistrationModuleTest extends TestCase {
 		Thread tr1 = new Thread( new Runnable() {
 			public void run () {
 				try {
-					String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-					String [] headerValues = {Macros.REG_MOD_REGISTER_USER, user, game};
+					String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+					String [] headerValues = {RequestTypes.REGISTER_USER, user, game};
 					String [] testMsgs = new String[4];
 					boolean [] testStatus = new boolean[4];
 					int testNum = 7;
@@ -632,7 +632,7 @@ public class RegistrationModuleTest extends TestCase {
 					
 					//user1 has been registed to play mancala
 					regMod.handleRequest(tReq, tRes);
-					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 					
 					
 					//register user2 to also play the same game
@@ -640,27 +640,27 @@ public class RegistrationModuleTest extends TestCase {
 					tReq = new TestModuleRequest(input,headerNames,headerValues);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
-					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 					
 					//let user1 register a new game of mancala
 					//Registering the new game
-					String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-					String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
+					String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+					String [] headerValues_2 = {RequestTypes.REGISTER_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
 					tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
 					
 					//Now user2 will attempt to join this game, which should have a gameID of 0
 					//but with an incorrect secret key
-					String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
-					String [] headerValues_3 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user1", "WRONG_KEY", new Integer(3).toString()};
+					String [] headerNames_3  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME_ID};
+					String [] headerValues_3 = {RequestTypes.JOIN_GAME_NUMBER, "user1", "WRONG_KEY", new Integer(3).toString()};
 					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
 					resHeaders = tRes.getHeadersWritten();
 					testMsgs[0] = "User1 attempting to join a game with an invalid secret key";
-					testStatus[0] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
-									resHeaders.get(Macros.ERROR_CODE).equals(Macros.INVALID_KEY.toString());
+					testStatus[0] = resHeaders.get(Macros.HN_STATUS).equals(Macros.DENY) && // Convert to use responseCode/responseMessage
+									resHeaders.get(IModuleResponse.HN_RETURN_CODE).equals(String.valueOf(ErrorCode.INVALID_KEY));
 					
 					/**
 					 * User will now attempt to join the same game with the correct secret key by with the wrong
@@ -673,8 +673,8 @@ public class RegistrationModuleTest extends TestCase {
 					regMod.handleRequest(tReq, tRes);
 					resHeaders = tRes.getHeadersWritten();
 					testMsgs[1] = "User1 attempting to join a game providing an incorrect gameID";
-					testStatus[1] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
-									resHeaders.get(Macros.ERROR_CODE).equals(Macros.INVALID_GAME_NUMBER.toString());
+					testStatus[1] = resHeaders.get(Macros.HN_STATUS).equals(Macros.DENY) && // Convert to use responseCode/responseMessage
+									resHeaders.get(IModuleResponse.HN_RETURN_CODE).equals(String.valueOf(ErrorCode.INVALID_GAME_NUMBER));
 					
 					/**
 					 * The same user will now make a valid request and a denial will be simulated
@@ -685,8 +685,8 @@ public class RegistrationModuleTest extends TestCase {
 					regMod.handleRequest(tReq, tRes);
 					resHeaders = tRes.getHeadersWritten();
 					testMsgs[2] = "Simulating user 1 trying to join, but host rejecting";
-					testStatus[2] = resHeaders.get(Macros.STATUS).equals(Macros.DENY) &&
-									resHeaders.get(Macros.ERROR_CODE).equals(Macros.HOST_DECLINED.toString());
+					testStatus[2] = resHeaders.get(Macros.HN_STATUS).equals(Macros.DENY) && // Convert to use responseCode/responseMessage
+									resHeaders.get(IModuleResponse.HN_RETURN_CODE).equals(String.valueOf(ErrorCode.HOST_DECLINED));
 					
 					/**
 					 * Now simulate user2 requesting to join the game with a correct request, and receiving
@@ -699,7 +699,7 @@ public class RegistrationModuleTest extends TestCase {
 					regMod.handleRequest(tReq, tRes);
 					resHeaders = tRes.getHeadersWritten();
 					testMsgs[3] = "Simulating user 2 trying to join, and host accepting the challenge";
-					testStatus[3] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+					testStatus[3] = resHeaders.get(Macros.HN_STATUS).equals(Macros.ACK); // Convert to use responseCode/responseMessage
 					
 					
 					testStatus(testNum, description, testMsgs, testStatus);
@@ -737,8 +737,8 @@ public class RegistrationModuleTest extends TestCase {
 		Thread tr1 = new Thread( new Runnable() {
 			public void run () {
 				try {
-					String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-					String [] headerValues = {Macros.REG_MOD_REGISTER_USER, user, game};
+					String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+					String [] headerValues = {RequestTypes.REGISTER_USER, user, game};
 					String [] testMsgs = new String[1];
 					boolean [] testStatus = new boolean[1];
 					int testNum = 8;
@@ -754,7 +754,7 @@ public class RegistrationModuleTest extends TestCase {
 					
 					//user1 has been registed to play mancala
 					regMod.handleRequest(tReq, tRes);
-					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					secretKey1 = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 					
 					
 					//register user2 to also play the same game
@@ -762,26 +762,26 @@ public class RegistrationModuleTest extends TestCase {
 					tReq = new TestModuleRequest(input,headerNames,headerValues);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
-					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+					secretKey2 = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 					
 					//let user1 register a new game of mancala
 					//Registering the new game
-					String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-					String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
+					String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+					String [] headerValues_2 = {RequestTypes.REGISTER_GAME, "user1", secretKey1, game, variation, "I challenge anyone to play"};
 					tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
 					
 					//Now user2 will attempt to join this game, which should have a gameID of 4
 					//but with an incorrect secret key
-					String [] headerNames_3  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
-					String [] headerValues_3 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey2, new Integer(4).toString()};
+					String [] headerNames_3  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME_ID};
+					String [] headerValues_3 = {RequestTypes.JOIN_GAME_NUMBER, "user2", secretKey2, new Integer(4).toString()};
 					tReq = new TestModuleRequest(input, headerNames_3, headerValues_3);
 					tRes = new TestModuleResponse(OUTPUT_SIZE);
 					regMod.handleRequest(tReq, tRes);
 					resHeaders = tRes.getHeadersWritten();
 					testMsgs[0] = "User2 attempting to join a game with an valid secret key";
-					testStatus[0] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+					testStatus[0] = resHeaders.get(Macros.HN_STATUS).equals(Macros.ACK); // Convert to use responseCode/responseMessage
 					
 					testStatus(testNum, description, testMsgs, testStatus);
 				}
@@ -795,8 +795,8 @@ public class RegistrationModuleTest extends TestCase {
 		//begin thread execution
 		tr1.start();
 		String secretKey;
-		String [] headerNames4 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY};
-		String [] headerValues4 = {Macros.REG_MOD_REFRESH_STATUS, "user1", secretKey = RegistrationModule.generateKeyString("user1")};
+		String [] headerNames4 = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY};
+		String [] headerValues4 = {RequestTypes.REFRESH_STATUS, "user1", secretKey = RegistrationModule.generateKeyString("user1")};
 		input = new byte[INPUT_BYTE_ARR_SIZE];
 		TestModuleRequest tReq1 = new TestModuleRequest(input,headerNames4,headerValues4);
 		TestModuleResponse tRes1 = new TestModuleResponse(OUTPUT_SIZE);
@@ -810,12 +810,12 @@ public class RegistrationModuleTest extends TestCase {
 			}
 			if (opponent == Macros.DUMMY_USER) {
 				regMod.handleRequest(tReq1,tRes1);
-				opponent = (String)tRes1.getHeadersWritten().get(Macros.OPPONENT_USERNAME);
+				opponent = (String)tRes1.getHeadersWritten().get(Macros.HN_OPPONENT_USERNAME);
 			}
 			else if (!accept) {
 				accept = true;
-				String [] headerNames1 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.CHALLENGE_ACCEPTED};
-				String [] headerValues1 = {Macros.REG_MOD_ACCEPT_CHALLENGE, "user1", secretKey, Macros.ACCEPTED};
+				String [] headerNames1 = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_CHALLENGE_ACCEPTED};
+				String [] headerValues1 = {RequestTypes.ACCEPT_CHALLENGE, "user1", secretKey, Macros.ACCEPTED};
 				tReq1 = new TestModuleRequest(input,headerNames1,headerValues1);
 				tRes1 = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq1,tRes1);
@@ -841,8 +841,8 @@ public class RegistrationModuleTest extends TestCase {
 				try {
 				String userName = "user1";
 				int userIndex = 0;
-				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+				String [] headerValues = {RequestTypes.REGISTER_USER, userName, game};
 				String secretKey;
 				Map resHeaders;
 				
@@ -856,18 +856,18 @@ public class RegistrationModuleTest extends TestCase {
 				
 				//user1 has been registed to play mancala
 				regMod.handleRequest(tReq, tRes);
-				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 				
 				//request to join the game of mancala, note that another thread must already be hosting the game
 				//Current id should be 5
-				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
-				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, userName, secretKey, new Integer(5).toString()};
+				String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME_ID};
+				String [] headerValues_1 = {RequestTypes.JOIN_GAME_NUMBER, userName, secretKey, new Integer(5).toString()};
 				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq, tRes);
 				resHeaders = tRes.getHeadersWritten();
 				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host DECLINED";
-				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.DENY);
+				testStatus_test9[userIndex] = resHeaders.get(Macros.HN_STATUS).equals(Macros.DENY); // Convert to use responseCode/responseMessage
 				
 				}
 				catch (Exception e) {
@@ -885,8 +885,8 @@ public class RegistrationModuleTest extends TestCase {
 				try {
 				String userName = "user2";
 				int userIndex = 1;
-				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+				String [] headerValues = {RequestTypes.REGISTER_USER, userName, game};
 				String secretKey;
 				Map resHeaders;
 				
@@ -900,18 +900,18 @@ public class RegistrationModuleTest extends TestCase {
 				
 				//user1 has been registed to play mancala
 				regMod.handleRequest(tReq, tRes);
-				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 				
 				//request to join the game of mancala, note that another thread must already be hosting the game
 				//Current id should be 5
-				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
-				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
+				String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME_ID};
+				String [] headerValues_1 = {RequestTypes.JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
 				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq, tRes);
 				resHeaders = tRes.getHeadersWritten();
 				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host ACCEPTED";
-				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.ACK);
+				testStatus_test9[userIndex] = resHeaders.get(Macros.HN_STATUS).equals(Macros.ACK); // Convert to use responseCode/responseMessage
 				
 				}
 				catch (Exception e) {
@@ -928,8 +928,8 @@ public class RegistrationModuleTest extends TestCase {
 				try {
 				String userName = "user3";
 				int userIndex = 2;
-				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+				String [] headerValues = {RequestTypes.REGISTER_USER, userName, game};
 				String secretKey;
 				Map resHeaders;
 				
@@ -943,18 +943,18 @@ public class RegistrationModuleTest extends TestCase {
 				
 				//user1 has been registed to play mancala
 				regMod.handleRequest(tReq, tRes);
-				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 				
 				//request to join the game of mancala, note that another thread must already be hosting the game
 				//Current id should be 5
-				String [] headerNames_1  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME_ID};
-				String [] headerValues_1 = {Macros.REG_MOD_JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
+				String [] headerNames_1  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME_ID};
+				String [] headerValues_1 = {RequestTypes.JOIN_GAME_NUMBER, "user2", secretKey, new Integer(5).toString()};
 				tReq = new TestModuleRequest(input, headerNames_1, headerValues_1);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq, tRes);
 				resHeaders = tRes.getHeadersWritten();
 				testMsgs_test9[userIndex] = userName + " attempting to join a game with an valid secret key...host DECLINED";
-				testStatus_test9[userIndex] = resHeaders.get(Macros.STATUS).equals(Macros.DENY);
+				testStatus_test9[userIndex] = resHeaders.get(Macros.HN_STATUS).equals(Macros.DENY); // Convert to use responseCode/responseMessage
 				
 				}
 				catch (Exception e) {
@@ -971,8 +971,8 @@ public class RegistrationModuleTest extends TestCase {
 				try {
 				String userName = "user4";
 				int userIndex = 3;
-				String [] headerNames  = {Macros.TYPE, Macros.NAME, Macros.GAME};
-				String [] headerValues = {Macros.REG_MOD_REGISTER_USER, userName, game};
+				String [] headerNames  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_GAME};
+				String [] headerValues = {RequestTypes.REGISTER_USER, userName, game};
 				String secretKey;
 				
 				TestModuleRequest tReq;
@@ -985,19 +985,19 @@ public class RegistrationModuleTest extends TestCase {
 				
 				//user1 has been registed to play mancala
 				regMod.handleRequest(tReq, tRes);
-				secretKey = (String)tRes.getHeadersWritten().get(Macros.SECRET_KEY);
+				secretKey = (String)tRes.getHeadersWritten().get(Macros.HN_SECRET_KEY);
 				
 				//let user4 register a new game of mancala
 				//Registering the new game
-				String [] headerNames_2  = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.GAME, Macros.VARIATION, Macros.GAME_MESSAGE};
-				String [] headerValues_2 = {Macros.REG_MOD_REGISTER_NEW_GAME, userName, secretKey, game, variation, "I challenge anyone to play"};
+				String [] headerNames_2  = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_GAME, Macros.HN_VARIANT, Macros.HN_GAME_MESSAGE};
+				String [] headerValues_2 = {RequestTypes.REGISTER_GAME, userName, secretKey, game, variation, "I challenge anyone to play"};
 				tReq = new TestModuleRequest(input,headerNames_2,headerValues_2);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq, tRes);
 				
 				
-				String [] headerNames_3 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY};
-				String [] headerValues_3 = {Macros.REG_MOD_REFRESH_STATUS, userName, secretKey};
+				String [] headerNames_3 = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY};
+				String [] headerValues_3 = {RequestTypes.REFRESH_STATUS, userName, secretKey};
 				input = new byte[INPUT_BYTE_ARR_SIZE];
 				tReq = new TestModuleRequest(input,headerNames_3,headerValues_3);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
@@ -1008,19 +1008,19 @@ public class RegistrationModuleTest extends TestCase {
 						wait(10);
 					}
 					regMod.handleRequest(tReq,tRes);
-					opponent = (String)tRes.getHeadersWritten().get(Macros.OPPONENT_USERNAME);
+					opponent = (String)tRes.getHeadersWritten().get(Macros.HN_OPPONENT_USERNAME);
 				}
 				
 				//When we are presented with user2 accept the challenge and inform the other users that
 				//they will not be able to join this game session
-				String [] headerNames_4 = {Macros.TYPE, Macros.NAME, Macros.SECRET_KEY, Macros.CHALLENGE_ACCEPTED};
-				String [] headerValues_4 = {Macros.REG_MOD_ACCEPT_CHALLENGE, userName, secretKey, Macros.ACCEPTED};
+				String [] headerNames_4 = {IModuleRequest.HN_TYPE, Macros.HN_NAME, Macros.HN_SECRET_KEY, Macros.HN_CHALLENGE_ACCEPTED};
+				String [] headerValues_4 = {RequestTypes.ACCEPT_CHALLENGE, userName, secretKey, Macros.ACCEPTED};
 				tReq = new TestModuleRequest(input,headerNames_4,headerValues_4);
 				tRes = new TestModuleResponse(OUTPUT_SIZE);
 				regMod.handleRequest(tReq,tRes);
 				
 				testMsgs_test9[userIndex] = "Host accepted user 2 response ACK";
-				testStatus_test9[userIndex] = 	tRes.getHeadersWritten().get(Macros.STATUS).equals(Macros.ACK);
+				testStatus_test9[userIndex] = 	tRes.getHeadersWritten().get(Macros.HN_STATUS).equals(Macros.ACK); // Convert to use responseCode/responseMessage
 				
 				}
 				catch (Exception e) {

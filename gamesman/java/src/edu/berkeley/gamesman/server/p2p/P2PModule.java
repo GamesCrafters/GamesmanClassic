@@ -230,7 +230,7 @@ public class P2PModule implements IModule
 			waitingResponse.setHeader(Const.HN_MOVE, "null");
 			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-			res.setHeader("type", IModuleResponse.ACK);
+			res.setHeader("type", Const.ACK); // Still needed?
 			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 			synchronized (gameStatus)
@@ -245,7 +245,7 @@ public class P2PModule implements IModule
 			waitingResponse.setHeader(Const.HN_TYPE, RequestTypes.RESIGN);
 			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
-			res.setHeader("type", IModuleResponse.ACK);
+			res.setHeader("type", Const.ACK); // Still needed?
 			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
 

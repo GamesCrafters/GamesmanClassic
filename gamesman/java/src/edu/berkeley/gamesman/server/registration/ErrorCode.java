@@ -43,6 +43,5 @@ public interface ErrorCode
 		public static final String INTERRUPT_EXCEPTION = "Interrupt exception";
 		public static final String HASHTABLE_COLLISION = "Hashtable collision";
 
-		public static final String ERROR_CODE = "ERRORCODE";
 	}
 }
