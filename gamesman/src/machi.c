@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.30 2006-02-26 08:31:15 kmowery Exp $
+// $Id: machi.c,v 1.31 2006-04-05 11:42:00 arabani Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -7,17 +7,18 @@
  **
  ** AUTHOR:      Jeffrey Chiang
  **              Jennifer Lee
- **	         Jesse Phillips
+ **	         	 Jesse Phillips
  **
  ** DATE:        02/11/2003
  **
  ** UPDATE HIST:
  **
- ** 	2/11/2003 - wrote printPosition, doMove, generateMoves excluding diagonal moves 
+ ** 2/11/2003 - wrote printPosition, doMove, generateMoves excluding diagonal moves 
  **	2/13/2003 - wrote get input functions, print functions, fixed errors
  **	2/20/2003 - wrote hash/unhash, whosemove, fixed domove, representation of our move
  **	2/27/2003 - wrote help strings, added nodiag, alldiag variations
- **       3/06/2003 - updated print position
+ ** 3/06/2003 - updated print position
+ ** 4/02/2006 - added GetVarString to return English description of option hash
  **
  **************************************************************************/
 
@@ -101,6 +102,7 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 /* function prototypes */
 POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
+STRING GetVarString();
 
 /* Variants */
 BOOLEAN allDiag = FALSE;
@@ -131,6 +133,7 @@ STRING MoveToString (MOVE);
 void InitializeGame()
 {
   gMoveToStringFunPtr = &MoveToString;
+  gGetVarStringPtr = &GetVarString;
   InitializeHelpStrings();
 }
 
@@ -1037,6 +1040,35 @@ int getOption()
   return option;
 } 
 
+STRING GetVarString() {
+	switch (getOption())
+	{
+		case 1:
+			return "Misère game with standard diagonal moves";
+			break;
+		case 2:
+			return "Standard game with standard diagonal moves";
+			break;
+		case 3:
+			return "Misère game with all possible diagonal moves";
+			break;
+		case 4:
+			return "Standard game with all possible diagonal moves";
+			break;
+		case 5:
+			return "Misère game with no diagonal moves";
+			break;
+		case 6:
+			return "Standard game with no diagonal moves";
+			break;
+		default:
+			BadElse("GetVarString");
+			break;
+	}
+	return "String not set for this option";
+}
+
+
 void setOption(int option)
 {
   option -= 1;
@@ -1049,6 +1081,10 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2006/02/26 08:31:15  kmowery
+//
+// Changed MToS to MoveToString
+//
 // Revision 1.29  2006/02/12 02:30:58  kmowery
 //
 // Changed MoveToString to be gMoveToStringFunPtr.  Updated already existing MoveToString implementations (Achi, Dodgem, SquareDance, and Othello)

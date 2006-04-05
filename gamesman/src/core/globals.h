@@ -99,6 +99,9 @@ extern STRING 		(*GetHelpTieOccursWhen)();
 
 extern STRING 		(*gMoveToStringFunPtr)(MOVE);
 
+/* Variant string function pointer */
+STRING 		(*gGetVarStringPtr) ();
+
 extern OPPONENT 	gOpponent;
 
 #endif /* GMCORE_GLOBALS_H */

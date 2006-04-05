@@ -54,7 +54,7 @@ USERINPUT;
 
 typedef enum static_func_msg_enum
 {
-        Init, Clean, Save, Update, Poll
+        Init, Clean, Save, Update, Poll, InitVar, CleanVar, SaveVar
 }
 STATICMESSAGE;
 

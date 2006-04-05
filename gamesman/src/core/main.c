@@ -58,6 +58,7 @@ static void	SetSolver ();
 
 void Initialize()
 {
+		gGetVarStringPtr = &get_var_string;
         srand(time(NULL));
 
         /* set default solver */
@@ -120,6 +121,7 @@ VALUE DetermineValue(POSITION position)
 				printf("\nRe-evaluating the value of %s...", kGameName);
 			gSolver(position);
 			AnalysisCollation();
+			printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 			
 			if(gSaveDatabase) {
 				printf("\nWriting the values of %s into a database...", kGameName);
@@ -134,6 +136,7 @@ VALUE DetermineValue(POSITION position)
 		gSolver(position);
 		showStatus(Clean);
 		AnalysisCollation();
+		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 		
 		if(gSaveDatabase) {
 			SaveDatabase();
@@ -168,6 +171,8 @@ void SolveAndStore()
                 // createAnalysisVarDir();
                 // writeVarHTML();
                 writeXML(Save);
+                writeXML(SaveVar);
+                writeXML(CleanVar);
         }
 }
 
@@ -237,8 +242,8 @@ void HandleArguments (int argc, char *argv[])
                         gAnalyzing = TRUE;
                         gSolvingAll = TRUE;
                         createAnalysisGameDir();
-                        writeGameHTML();
-                        createVarTable();
+                        //writeGameHTML(); DEPRECATED
+                        //createVarTable(); DEPRECATED
                 } else if(!strcasecmp(argv[i], "--DoMove")) {
                         InitializeGame();
                         if(argc != 4)
@@ -318,14 +323,15 @@ int gamesman_main(STRING executableName)
                                 fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
                                 fflush(stderr);
                                 setOption(i);
+                        		if (gAnalyzing) {
+                                	writeXML(InitVar);
+                        		}
                                 SolveAndStore();
                                 fprintf(stderr, "%c[u", 27);
                         }
-
-                        if (gAnalyzing) {
-                                writeXML(Init);
+						if (gAnalyzing) {
+                                writeXML(Clean);
                         }
-
                         fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
                 }
         }

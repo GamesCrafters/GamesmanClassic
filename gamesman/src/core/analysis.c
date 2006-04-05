@@ -54,6 +54,9 @@ int  hashEfficiency = 0;
 float averageFanout = 0;
 REMOTENESS theRemoteness;	/*	For extended analysis including remoteness */
 REMOTENESS theLargestRemoteness = 0;  // for keeping track of largest found remoteness.  For efficiency and a good statistic.
+FILE *xmlFile = 0;
+FILE *xmlVarFile = 0;
+char xmlDir[256];
 
 /*
 ** Code
@@ -493,18 +496,21 @@ BOOLEAN LoadAnalysis() {
     createAnalysisGameDir();
     sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
     
-    printf("\nLoading Analysis DB for %s...", kGameName);
+    if(!gAnalyzing)
+    	printf("\nLoading Analysis DB for %s...", kGameName);
     
     /* Open file for reading */
     if((fp = fopen(gameFileName, "rb")) == NULL) {
-    	printf("Failed!");
+    	if(!gAnalyzing)
+    		printf("Failed!");
     	Stopwatch();
         return FALSE;
     }
    
     /* Check file version */
     if((fread(&version, sizeof(char), 1, fp) != 1) || (version != 2)) {
-    	printf("Failed!");
+    	if(!gAnalyzing)
+    		printf("Failed!");
     	Stopwatch();
         return FALSE;
     }
@@ -550,14 +556,16 @@ BOOLEAN LoadAnalysis() {
     */
     
     if(fread(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
-    	printf("Failed!");
+    	if(!gAnalyzing)
+    		printf("Failed!");
     	Stopwatch();
     	return FALSE;
     }
     
     fclose(fp);
     gAnalysisLoaded = TRUE;
-    printf("done in %u seconds!", Stopwatch());
+    if(!gAnalyzing)
+    	printf("done in %u seconds!", Stopwatch());
     return TRUE;
 }
 
@@ -584,7 +592,6 @@ void SaveAnalysis() {
     createAnalysisGameDir();
 
     sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
-    
     printf("\nSaving Analysis DB for %s...", kGameName);
     
     /* Open file for reading */
@@ -874,80 +881,153 @@ BOOLEAN CorruptedValuesP()
 
 void writeXML(STATICMESSAGE msg)
 {
-    static FILE *xmlFile = 0;
+	char xmlPath[512];
+	
     switch(msg)
     {
         case Init:
-            xmlFile = prepareXMLFile();
+            prepareXMLFile();
+            sprintf(xmlPath, "%s/m%s.xml", xmlDir, kDBName);
+            xmlFile = fopen(xmlPath, "a+");
+            break;
+        case InitVar:
+        	prepareXMLVarFile();
+        	sprintf(xmlPath, "%s/m%s_%d.xml", xmlDir, kDBName, getOption());
+            xmlVarFile = fopen(xmlPath, "a+");
             break;
         case Save:
             if(xmlFile != NULL)
             {
-            	printf("\nSaving XML data");
-                writeXMLData(xmlFile);
+                writeXMLData();
+                //printf("\nSaving XML data for option %d", getOption());
             } else {
-            	printf("\nCouldn't write XML data");
+            	//printf("\nCouldn't write XML data for option %d", getOption());
+            }
+            break;
+        case SaveVar:
+            if(xmlVarFile != NULL)
+            {
+                writeXMLVarData();
+                //printf("\nSaving XML Var data for option %d", getOption());
+            } else {
+            	//printf("\nCouldn't write XML Var data for option %d", getOption());
             }
             break;
         case Clean:
             if(xmlFile != NULL)
             {
-                closeXMLFile(xmlFile);
-                xmlFile=0;
+                closeXMLFile();
+                xmlFile = NULL;
             }
-            break;    
+            break;
+        case CleanVar:
+            if(xmlVarFile != NULL)
+            {
+                closeXMLVarFile();
+                xmlVarFile = NULL;
+            }
+            break;
         default:
-           /* BadElse? */
+           BadElse("writeXML");
            break;
     }
 }
 
-FILE* prepareXMLFile()
+void prepareXMLFile()
 {
-  FILE * xmlFile;
-  char xmlPath[256];
-  char xmlDir[256];
+  char xmlPath[512];
   
   sprintf(xmlDir, "analysis/%s/xml", kDBName);
   mkdir(xmlDir,0755);
   
-  sprintf(xmlPath, "analysis/%s/xml/m%s.xml", kDBName, kDBName);
-  
+  sprintf(xmlPath, "%s/m%s.xml", xmlDir, kDBName);
   xmlFile = fopen(xmlPath,"w+");
   fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
   fprintf(xmlFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
-  return xmlFile;
+  fclose(xmlFile);
 }
 
-void closeXMLFile(FILE* xmlFile)
+void prepareXMLVarFile()
+{
+  char xmlPath[512];
+  
+  sprintf(xmlDir, "analysis/%s/xml", kDBName);
+  mkdir(xmlDir,0755);
+  
+  sprintf(xmlPath, "%s/m%s_%d.xml", xmlDir, kDBName, getOption());
+  xmlVarFile = fopen(xmlPath, "w+");
+  fprintf(xmlVarFile,"<?xml version=\"1.0\"?>\n");
+  fprintf(xmlVarFile,"<game name=\"%s\" author=\"%s\" shortname=\"%s\">\n", kGameName,kAuthorName,kDBName);
+  fclose(xmlVarFile);
+}
+
+
+void closeXMLFile()
 {
     fprintf(xmlFile,"</game>\n");
     fclose(xmlFile);
+    //printf("\nxmlFile closed for option %d\n", getOption());
 }
 
-void writeXMLData(FILE* xmlFile)
+void closeXMLVarFile()
 {
-    fprintf(xmlFile,"    <variant hashcode=\"%d\">\n",getOption());
-    fprintf(xmlFile,"        <value>%s</value>\n",gValueString[(int)gValue]);
-    fprintf(xmlFile,"        <count>\n");
-    fprintf(xmlFile,"            <win>%llu</win>\n",gAnalysis.WinCount);
-    fprintf(xmlFile,"            <lose>%llu</lose>\n",gAnalysis.LoseCount);
-    fprintf(xmlFile,"            <tie>%llu</tie>\n",gAnalysis.TieCount);
-    fprintf(xmlFile,"        </count>\n");
-    fprintf(xmlFile,"        <primitive>\n");
-    fprintf(xmlFile,"            <win>%llu</win>\n",gAnalysis.PrimitiveWins);
-    fprintf(xmlFile,"            <lose>%llu</lose>\n",gAnalysis.PrimitiveLoses);
-    fprintf(xmlFile,"            <tie>%llu</tie>\n",gAnalysis.PrimitiveTies);
-    fprintf(xmlFile,"        </primitive>\n");
-    fprintf(xmlFile,"        <positionstats>\n");
-    fprintf(xmlFile,"            <total>%llu</total>\n",gAnalysis.TotalPositions);
-    fprintf(xmlFile,"            <hashtotal>%llu</hashtotal>\n",gNumberOfPositions);
-    fprintf(xmlFile,"            <hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
-    fprintf(xmlFile,"            <fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
-    fprintf(xmlFile,"        </positionstats>\n");
-    fprintf(xmlFile,"        <time>%d</time>\n",gAnalysis.TimeToSolve);
-    fprintf(xmlFile,"    </variant>\n");
+	fprintf(xmlVarFile,"</game>\n");
+    fclose(xmlVarFile);
+    //printf("\nxmlVarFile closed for option %d\n", getOption());
+}
+
+void writeXMLData()
+{
+    fprintf(xmlFile,"\t<variant hashcode=\"%d\" string=\"%s\">\n",getOption(),gGetVarStringPtr());
+    fprintf(xmlFile,"\t\t<value>%s</value>\n",gValueString[(int)gValue]);
+    fprintf(xmlFile,"\t\t<count>\n");
+    fprintf(xmlFile,"\t\t\t<win>%llu</win>\n",gAnalysis.WinCount);
+    fprintf(xmlFile,"\t\t\t<lose>%llu</lose>\n",gAnalysis.LoseCount);
+    fprintf(xmlFile,"\t\t\t<tie>%llu</tie>\n",gAnalysis.TieCount);
+    fprintf(xmlFile,"\t\t\t<draw>%llu</draw>\n",gAnalysis.Draws);
+    fprintf(xmlFile,"\t\t</count>\n");
+    fprintf(xmlFile,"\t\t<primitive>\n");
+    fprintf(xmlFile,"\t\t\t<win>%llu</win>\n",gAnalysis.PrimitiveWins);
+    fprintf(xmlFile,"\t\t\t<lose>%llu</lose>\n",gAnalysis.PrimitiveLoses);
+    fprintf(xmlFile,"\t\t\t<tie>%llu</tie>\n",gAnalysis.PrimitiveTies);
+    fprintf(xmlFile,"\t\t</primitive>\n");
+    fprintf(xmlFile,"\t\t<positionstats>\n");
+    fprintf(xmlFile,"\t\t\t<total>%llu</total>\n",gAnalysis.TotalPositions);
+    fprintf(xmlFile,"\t\t\t<hashtotal>%llu</hashtotal>\n",gNumberOfPositions);
+    fprintf(xmlFile,"\t\t\t<hashefficiency>%d</hashefficiency>\n",gAnalysis.HashEfficiency);
+    fprintf(xmlFile,"\t\t\t<fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
+    fprintf(xmlFile,"\t\t</positionstats>\n");
+    fprintf(xmlFile,"\t\t<time>%d</time>\n",gAnalysis.TimeToSolve);
+    fprintf(xmlFile,"\t</variant>\n");
     fflush(xmlFile);
+}
+
+void writeXMLVarData()
+{
+	REMOTENESS currentRemoteness;
+    fprintf(xmlVarFile,"\t<variant hashcode=\"%d\" string=\"%s\">\n",getOption(),gGetVarStringPtr());
+    fprintf(xmlVarFile,"\t\t<value>%s</value>\n",gValueString[(int)gValue]);
+    fprintf(xmlVarFile,"\t\t<count>\n");
+    fprintf(xmlVarFile,"\t\t\t<win>%llu</win>\n",gAnalysis.WinCount);
+    fprintf(xmlVarFile,"\t\t\t<lose>%llu</lose>\n",gAnalysis.LoseCount);
+    fprintf(xmlVarFile,"\t\t\t<tie>%llu</tie>\n",gAnalysis.TieCount);
+    fprintf(xmlVarFile,"\t\t\t<draw>%llu</draw>\n",gAnalysis.Draws);
+    fprintf(xmlVarFile,"\t\t</count>\n");
+    fprintf(xmlVarFile,"\t\t<positionstats>\n");
+    fprintf(xmlVarFile,"\t\t\t<total>%llu</total>\n",gAnalysis.TotalPositions);
+    fprintf(xmlVarFile,"\t\t</positionstats>\n");
+	fprintf(xmlVarFile,"\t\t<remotenessstats>\n");
+	/* write array of remoteness stats */
+	for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness--) {
+		fprintf(xmlVarFile,"\t\t\t<remoteness level=\"%d\">\n", currentRemoteness);
+		fprintf(xmlVarFile,"\t\t\t\t<win>%llu</win>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][0]);
+		fprintf(xmlVarFile,"\t\t\t\t<lose>%llu</lose>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][1]);
+		fprintf(xmlVarFile,"\t\t\t\t<tie>%llu</tie>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+		fprintf(xmlVarFile,"\t\t\t</remoteness>\n");
+	}
+	fprintf(xmlVarFile,"\t\t</remotenessstats>\n");
+	fprintf(xmlVarFile,"\t</variant>\n");
+	fflush(xmlVarFile);
 }
 
 /*

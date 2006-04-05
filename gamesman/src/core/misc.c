@@ -424,3 +424,7 @@ MEX MexPrimitive(VALUE value)
                 exit(0);
         }
 }
+
+STRING get_var_string() {
+	return "Not set";
+}

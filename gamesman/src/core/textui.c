@@ -506,7 +506,7 @@ void MenusEvaluated()
     printf("\n\tc)\t(C)onfigure play options\n");
 
 
-    if(gOpponent == AgainstComputer)
+    if(!gUnsolved)
     {
       printf("\n\ta)\t(A)nalyze the game\n");
     }
@@ -611,7 +611,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	Stopwatch();
 	gPrintDatabaseInfo = TRUE;
 	gameValue = DetermineValue(gInitialPosition);
-	printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 	if((Remoteness(gInitialPosition)) == REMOTENESS_MAX && !gTwoBits){
 	    printf("\n\nThe Game %s has value: Draw\n\n", kGameName);
 	} else {

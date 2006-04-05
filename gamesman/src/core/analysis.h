@@ -49,9 +49,12 @@ float	PercentDone			(STATICMESSAGE msg);
 /* Analysis XML Support */
 
 void	writeXML			(STATICMESSAGE msg);
-FILE*	prepareXMLFile			();
-void	closeXMLFile			(FILE* xmlFile);
-void	writeXMLData			(FILE* xmlFile);
+void	prepareXMLFile			();
+void 	prepareXMLVarFile		();
+void	closeXMLFile			();
+void	closeXMLVarFile			();
+void	writeXMLData			();
+void	writeXMLVarData			();
 
 /* Analysis Data Structure */
 

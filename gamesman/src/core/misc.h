@@ -45,4 +45,6 @@ MEXCALC		MexCalcInit			(void);
 void		MexFormat			(POSITION pos, STRING str);
 MEX		MexPrimitive			(VALUE value);
 
+STRING get_var_string();
+
 #endif /* GMCORE_MISC_H */
