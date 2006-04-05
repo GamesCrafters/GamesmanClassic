@@ -238,6 +238,7 @@ POSITION unHashMove(POSITION myPosition, int theMove)
   generic_unhash(myPosition, thePosition);
   int done = FALSE;
   unsigned int index = theMove >> (32-MVHASHACC), whosTurn = whoseMove(myPosition);
+  char myPiece = thePosition[index];
   theMove = theMove << MVHASHACC;
   unsigned int nextMove = (theMove >> 30)&0x00000003, previousMove = nextMove;
   unsigned int myForwardRight = forwardRight(whosTurn, index), myForwardLeft = forwardLeft(whosTurn, index), myBackwardRight = backwardRight(whosTurn, index), myBackwardLeft = backwardLeft(whosTurn, index);
@@ -274,10 +275,12 @@ POSITION unHashMove(POSITION myPosition, int theMove)
     }
   }
   while(!done){
+    myForwardRight = forwardRight(whosTurn, index), myForwardLeft = forwardLeft(whosTurn, index), myBackwardRight = backwardRight(whosTurn, index), myBackwardLeft = backwardLeft(whosTurn, index);
+    thePosition[index] = EMPTY;
     switch(nextMove){
     case FORWARDRIGHT: 
       if(thePosition[myForwardRight] == EMPTY){
-	thePosition[myForwardRight] = thePosition[index];
+	index = myForwardRight;
 	done = TRUE;
       }
       else{
@@ -285,12 +288,13 @@ POSITION unHashMove(POSITION myPosition, int theMove)
 	if(thePosition[myForwardRight] == opposingMan)
 	  thePosition[myForwardRight] = EMPTY;		    
 	else if (thePosition[myForwardRight] == opposingKing)
-	  thePosition[myForwardRight] = opposingMan;      
+	  thePosition[myForwardRight] = opposingMan; 
+	index = forwardRight(whosTurn, myForwardRight);     
       }
       break;
     case FORWARDLEFT:
       if(thePosition[myForwardLeft] == EMPTY){
-	thePosition[myForwardLeft] = thePosition[index];
+	index = myForwardLeft;
 	done = TRUE;	
       }
       else{
@@ -299,11 +303,12 @@ POSITION unHashMove(POSITION myPosition, int theMove)
 	  thePosition[myForwardLeft] = EMPTY;		    
 	else if (thePosition[myForwardLeft] == opposingKing)
 	  thePosition[myForwardLeft] = opposingMan;      
+	index = forwardLeft(whosTurn, myForwardLeft);
       }
       break;
     case BACKWARDLEFT:
       if(thePosition[myBackwardLeft] == EMPTY){
-	thePosition[myBackwardLeft] = thePosition[index];
+	index = myBackwardLeft;
 	done = TRUE;
       }	
       else{
@@ -312,28 +317,30 @@ POSITION unHashMove(POSITION myPosition, int theMove)
 	  thePosition[myBackwardLeft] = EMPTY;		    
 	else if (thePosition[myBackwardLeft] == opposingKing)
 	  thePosition[myBackwardLeft] = opposingMan;      
+	index = backwardLeft(whosTurn, myBackwardLeft);
       }
       break;
     case BACKWARDRIGHT:
       if(thePosition[myBackwardRight] == EMPTY){
-	thePosition[myBackwardRight] = thePosition[index];
+	index = myBackwardRight;
 	done = TRUE;
       }
       else{
-	thePosition[backwardRight(whosTurn, myBackwardRight)] = thePosition[index];
+	thePosition[backwardRight(whosTurn, backwardRight(whosTurn, index))] = thePosition[index];
 	if(thePosition[myBackwardRight] == opposingMan)
 	  thePosition[myBackwardRight] = EMPTY;		    
 	else if (thePosition[myBackwardRight] == opposingKing)
-	  thePosition[myBackwardRight] = opposingMan;      
+	  thePosition[myBackwardRight] = opposingMan; 	
+	index = backwardRight(whosTurn, myBackwardRight);
       }       
       break;
     }
-    thePosition[index] = EMPTY;
+    thePosition[index] = myPiece;
     previousMove = nextMove;
     theMove = theMove << 2;
     nextMove = (theMove >> 30)&0x00000003;
     if(oppositeMove(previousMove)==nextMove)
-      done = TRUE;  
+      done = TRUE;
   }
   whosTurn = (whosTurn == P1 ? P2:P1);//switch players
   return generic_hash(thePosition, whosTurn);
@@ -980,7 +987,7 @@ void PrintMove(theMove)
   printf("(%d ", theMove>>(32-MVHASHACC)), counter = 0;
   theMove = theMove<<MVHASHACC;
   currentMove = previousMove = theMove>>30;
-  while(counter<=(32-MVHASHACC)/2 && !done){  
+  while(counter<(32-MVHASHACC)/2 && !done){  
     previousMove = currentMove;
     currentMove = (theMove>>30)&0x00000003;
     if(currentMove != oppositeMove(previousMove))
@@ -990,10 +997,12 @@ void PrintMove(theMove)
     theMove = theMove<<2;
     counter++;
   }
-  //myMove[counter] = 0;
+  myMove[counter-1] = 0;
   if(counter<=(32-MVHASHACC)/2)
     printf("%s", myMove);
   printf(")");
+  SafeFree(myMove);
+
   // TODO
 }
 
