@@ -11,6 +11,7 @@
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
 **              11-28-05 Added Primitive
+**				04-05-06 All functions present, debugging
 **************************************************************************/
 
 /*************************************************************************
@@ -107,10 +108,10 @@ typedef enum{
 } Players;
 
 typedef enum possibleBoardPieces {
-	t, o, Blank
+	Blank, t, o
 } TOBlank;
 
-char *gBlankTOString[] = { "T", "O", "-" };
+char *gBlankTOString[] = { "-", "O", "T" };
 
 /*************************************************************************
 **
@@ -152,6 +153,11 @@ extern VALUE     *gDatabase;
 
 void InitializeGame ()
 {
+	gNumberOfPositions = MyNumberOfPos();
+	gInitialPosition = MyInitialPosition();
+	
+	int i = MyInitialPosition();
+	printf(" %i", i);
 
 }
 
@@ -235,10 +241,11 @@ POSITION pos;
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	 MOVELIST *CreateMovelistNode(), *head = NULL;
+	 MOVELIST *moves = NULL;
 
 	 /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-  int col,row, h, player;
+  int col, row, h, player;
+  
   player = WhoseTurn(position);
   PositionToPieces(position);
   for (col=0; col<TNO_WIDTH;col++) {
@@ -246,12 +253,22 @@ MOVELIST *GenerateMoves (POSITION position)
 	 for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT;
 	 (position & (1 << h)) == 0; h--) {
 	 if(player == 1){
-	   if(Player1.t != 0) head = CreateMovelistNode(h + 10, head);
-	   if(Player1.o != 0) head = CreateMovelistNode(h, head);
+		if(Player1.t != 0){
+	     h += 10;
+	     moves = CreateMovelistNode(h, moves);
+	   }
+	   if(Player1.o != 0){
+	      moves = CreateMovelistNode(h, moves);
+		}
 	 }
 	 else{
-	   if(Player2.t != 0) head = CreateMovelistNode(h + 10, head);
-	   if(Player2.o != 0) head = CreateMoveListNode(h, head);
+	   if(Player2.t != 0){
+		   h += 10;
+	       moves = CreateMovelistNode(h, moves);
+		 }
+	   if(Player2.o != 0){
+	     moves = CreateMovelistNode(h, moves);
+	   }
 	 }
 
 		row--;
@@ -259,7 +276,7 @@ MOVELIST *GenerateMoves (POSITION position)
   }
 
 
-	 return (head);
+	 return moves;
 }
 
 
@@ -284,8 +301,8 @@ POSITION DoMove (POSITION position, MOVE move)
   int player, col, bit, mask, i, x;
   i = (TNO_HEIGHT+1)*(TNO_WIDTH);
   TOBlank piece = 't';
-  player = WhoseTurn(position);
-  
+  player = WhoseTurn();
+  printf("beginning");
   for(bit = (col)*(TNO_HEIGHT+1); position >> bit == 0; bit--) 
   
   mask = 1 << (bit+1);
@@ -326,7 +343,7 @@ POSITION DoMove (POSITION position, MOVE move)
     }
   }
 	  
-	  
+return position;	  
 
 }
 
@@ -359,16 +376,23 @@ VALUE Primitive (POSITION position)
 {
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   int col,row;
-  PositionToBoard(position, board);
+  PositionToBoard(position, board); // Temporary storage.
+
+
+/*  for (col=0;col<TNO_WIDTH;col++)
+	 board[col][TNO_HEIGHT]=2;
+  for (col=0;col<TNO_WIDTH;col++)
+	 for (row=0;row<TNO_HEIGHT;row++)
+		board[col][row] = gPosition.board[col][row];*/
 
   // Check for toot/otto on the columns
-  for(col=0; col<TNO_WIDTH+1; col++)
+  for(col=0; col<TNO_WIDTH-1; col++)
 	 for(row=0; row<(TNO_HEIGHT-3); row++)
 		if(board[col][row]==board[col][row+3] && board[col][row+1]==board[col][row+2]);
 		  return gStandardGame ? lose : win;
 
   // Check for toot/otto on the rows
-  for(row=0; row<TNO_HEIGHT+1; row++)
+  for(row=0; row<TNO_HEIGHT-1; row++)
 	 for(col=0; col<(TNO_WIDTH-3); col++)
 		if(board[col][row]==board[col+3][row] && board[col+1][row]==board[col+2][row]);
 		  return gStandardGame ? lose : win;
@@ -382,6 +406,7 @@ VALUE Primitive (POSITION position)
   for(row=4; row<TNO_HEIGHT; row++)
 	 for(col=0; col<TNO_WIDTH; col++)
 		if(board[col][row]==board[col+3][row-3] && board[col+1][row-1]==board[col+2][row-2]);
+          return gStandardGame ? lose : win;
 
   // Check to see if game is over
   for (col=0;col<TNO_WIDTH;col++)
@@ -441,14 +466,15 @@ void PositionToBoard(pos,board)
 **
 ************************************************************************/
 
-POSITION MyInitialPosition() {
-  POSITION p=1;
+int MyInitialPosition() {
+  unsigned long int p=0;
   int i;
   p+=6;
   p = (p << 3);
   p+=6;
-  for (i=1;i<TNO_WIDTH;++i)
-	 p = (p << (TNO_HEIGHT+1))+1;
+  for (i=1;i<=TNO_WIDTH;++i){
+	 p = ((p << 1) + 1 << (TNO_HEIGHT));
+	}
 	 return p;
 }
 
@@ -463,9 +489,9 @@ POSITION MyInitialPosition() {
 ** OUTPUTS:     unsigned long int (number)
 **
 ************************************************************************/
-POSITION MyNumberOfPos() {
+int MyNumberOfPos() {
   int i;
-  POSITION size=1;
+  unsigned long int size=1;
   for (i=0;i<(TNO_HEIGHT+1)*TNO_WIDTH+6;i++)
 	 size *= 2;
   return size;
@@ -478,7 +504,7 @@ POSITION MyNumberOfPos() {
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-**
+** 
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -490,26 +516,38 @@ POSITION MyNumberOfPos() {
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	int i, row;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
 	PositionToBoard(position,board);
-	int col, row;
+	
 
-  printf("\n      ");
-  for (col=1;col<=TNO_WIDTH;col++)
-	 printf(" %i",col);
-  printf("\n      ");
-  for (col=1;col<=TNO_WIDTH;col++)
-	 printf(" |");
-  printf("\n      ");
-  for (col=1;col<=TNO_WIDTH;col++)
-	 printf(" V");
-  for (row=TNO_HEIGHT-1;row>=0;row--) {
-	 printf("\n\n      ");
-	 for (col=0;col<TNO_WIDTH;col++)
-	 printf(" %s",gBlankTOString[(int)board[col][row]]);
-  }
- // printf("\n\nPrediction: %s",
-//	 GetPrediction(position,playerName,usersTurn));
+	printf("\n	+-------------+");
+	printf("\n	|Current Board|");
+	printf("\n	+-------------+");
+	printf("\n	|             |");
+	printf("\n	|  ");
+	for(i=1; i<=TNO_WIDTH; i++)
+		printf(" %i", i);
+	printf("   |");
+	printf("\n	|  ");
+	for(i=1; i<=TNO_WIDTH; i++)
+		printf(" |");
+	printf("   |");
+	printf("\n	|  ");
+	for(i=1; i<=TNO_WIDTH; i++)
+		printf(" V");
+	printf("   |");
+	for(row=TNO_HEIGHT-1; row>=0; row--){
+		printf("\n	|  ");
+		for(i=0; i<TNO_WIDTH; i++)
+			printf(" %s", gBlankTOString[(int)board[i][row]]);
+		printf("   |");
+	}
+	printf("\n	|             |");
+	printf("\n	+-------------+");
+	//printf("\n	%8s's move", playersName);
+        //printf("	Prediction: %s", GetPrediction(position, playerName, usersTurn));
+
 }
 
 
@@ -518,20 +556,19 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
+** 
+** INPUTS:      MOVE    computersMove : The computer's move. 
+**              STRING  computersName : The computer's name. 
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-	  MOVE computersMove;
-     STRING computersName;
+void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
-	int col;
-	char piece;
-	// need to break up computers move into a char an int
-	printf("%8s's move              : %i%c\n", computersName, col, piece);
+	char o = "o", t = "t";
+	if(computersMove-10<0)
+		printf("%8s's move              : %i%c", computersName, computersMove, o);
+	else
+		printf("%8s's move              : %i%c", computersName, (computersMove%10), t);
 }
 
 /************************************************************************
@@ -544,14 +581,13 @@ void PrintComputersMove(computersMove,computersName)
 **
 ************************************************************************/
 
-void PrintMove (MOVE move)
-{
-	int col;
-	char piece;
-	// Need to break up move into col, piece
-	printf("\n %i%c", col+1, piece);
+void PrintMove (MOVE move){
+	char o = "o", t = "t";
+	if(move-10<0)
+		printf("%i%c", move, o);
+	else
+		printf("%i%c", (move%10), t);
 }
-
 
 /************************************************************************
 **
@@ -604,7 +640,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-**
+** 
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -618,9 +654,17 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	 return FALSE;
+	int column;
+	char piece;
+	sscanf(input, "%d%c", &column, &piece);
+	
+	if(column > 0 && column <= TNO_WIDTH && (piece=="t" || piece=="T" || piece=="o" || piece=="O")){
+			return TRUE;
+	}
+	else{
+		return FALSE;
+	}
 }
-
 
 /************************************************************************
 **
@@ -629,7 +673,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-**
+** 
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -638,8 +682,16 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	 return 0;
+	int column, theMove;
+	char piece;
+	sscanf(input, "%d%c", &column, &piece);
+	
+	if(piece=="t" || piece=="T")
+		theMove = theMove + 10;
+	theMove = theMove + column;
+	return theMove;
 }
+
 
 
 /************************************************************************
