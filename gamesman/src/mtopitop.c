@@ -238,13 +238,14 @@ int DEBUG_G = 0;
 int DEBUG_GM = 0;
 int DEBUG_M = 0;
 int DEBUG_PP = 0;
-int DEBUG_AU = 0;
+int DEBUG_AU = 1;
 int DEBUG_UM = 0;
 int DEBUG_PM = 0;
 int DEBUG_DM = 0;
 int DEBUG_CTITM = 1;
 int DEBUG_VPM = 0;
 int DEBUG_IM = 0;
+int DEBUG_GAPPM = 0;
 int gameType;
 
 int smallSandPiles = 4, largeSandPiles = 4, redBuckets = 2, blueBuckets = 2;
@@ -843,15 +844,27 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    int i;
+    int numSlots = numCols*numRows;
+    char* playerColor;
     
     BoardAndTurn board = arrayUnhash(position);
+
+    if (board->theTurn == Blue) {
+      playerColor = BLUEBUCKETSTRING;
+    }
+    else {
+      playerColor = REDBUCKETSTRING;
+    }
+
+    if (DEBUG_GAPPM) { printf("theTurn = %d\n", board->theTurn); }
     
     for (;;) {
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-		printf("%8s's move [(_u_ndo)/([l,s,b][1-9] OR [1-9][1-9])] : ", playersName);
+                printf(" move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
+		printf("%8s's move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
+		       playersName, numSlots, numSlots, numSlots);
 	
 		input = HandleDefaultTextInput(position, move, playersName);
 		
@@ -890,9 +903,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 		    
 		    if (board->theTurn == Blue) {
     			board->theTurn = gWhosTurn = Red;
-    		} else {
+		    } else {
     			board->theTurn = gWhosTurn = Blue;
-    		}
+		    }
 		}
 		
 		if (input != Continue)
@@ -1561,6 +1574,8 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   }
   
   board->theTurn = whoseMove(hashNumber);
+
+  if (DEBUG_AU) { printf("\nwhoseMove(hashNumber) = %d\n", whoseMove(hashNumber)); }
   
   if (DEBUG_AU) { printf("\n********** END arrayUNHASH **********\n"); }
   
@@ -1659,26 +1674,26 @@ void printMove(GMove move) {
 	//SafeFree(theMove);
 }
 
-int validPieceMove(int fromPos, int toPos) {
-	int fromX = fromPos % numCols;
-	int fromY = fromPos / numCols;
-	int toX = toPos % numCols;
-	int toY = toPos / numCols;
+int validPieceMove(int fromP, int toP) {
+	int fromX = fromP % numCols;
+	int fromY = fromP / numCols;
+        int toX = toP % numCols;
+	int toY = toP / numCols;
 	int x, y, valid = 0;
 	
 	if (DEBUG_VPM) { printf("\n***** VALID PIECE MOVE *****\n\n"); }
 	
 	if (DEBUG_VPM) { 
 		printf("fromPos %d -> fromX(%d) fromY(%d)\n",
-				fromPos, fromX, fromY);
+				fromP, fromX, fromY);
 		printf("toPos %d -> toX(%d) toY(%d)\n",
-				toPos, toX, toY);
+				toP, toX, toY);
 	}
 	
-	if (fromPos == toPos) { return 0; }
+	if (fromP == toP) { return 0; }
 	
-	if ((fromPos >= 0) && (fromPos < boardSize) &&
-		(toPos >= 0) && (toPos < boardSize)) {
+	if ((fromP >= 0) && (fromP < boardSize) &&
+		(toP >= 0) && (toP < boardSize)) {
 		for (x = -1; x <= 1; x++) {
 			for (y = -1; y <= 1; y++) {
 				if (((fromX + x) == toX) && ((fromY + y) == toY)) {
@@ -1693,9 +1708,13 @@ int validPieceMove(int fromPos, int toPos) {
 	
 	return valid;
 }
+
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2006/04/05 04:01:34  mikehamada
+// *** empty log message ***
+//
 // Revision 1.27  2006/04/05 03:35:39  alexchoy
 // *** empty log message ***
 //
