@@ -189,6 +189,13 @@ proc GS_SetOption { option } {
     set gRowsOption [expr $option/2%($kMaxRows - $kMinRows + 1)]
 }
 
+proc min { a b } {
+    if { $a < $b } {
+	return $a
+    }
+    return $b
+}
+
 
 # GS_Initialize draws the graphics for the game on the canvas c
 # You could put an opening animation or just draw an empty board.
@@ -196,25 +203,21 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
     global backgroundImage
-    global playareaImage
-    # you may want to start by setting the size of the canvas; this line isn't cecessary
-    #$c configure -width 500 -height 500
-    $c create rect 0 0 500 500 -fill black -tag base
-    $c create rect 0 300 499 499 -fill darkgrey -tag base
-    #background image here
-    #image create photo mnim-background -file $backgroundImage
-    #$c create image 200 200 -image mnim-background
-    #image create photo mnim-table -file $playareaImage
-    #$c create image 200 200 -image mnim-table
-    font create Winner -family arial -size 80
+    global playareaImage gFrameWidth gFrameHeight size
+
+    set size [min $gFrameWidth $gFrameHeight]
+
+    $c create rect 0 0 $size $size -fill black -tag base
+    $c create rect 0 [expr 0.6 * $size] $size $size -fill darkgrey -tag base
+    font create Winner -family arial -size [expr int($size / 15)]
     
     global gRows
 
     for {set j 0} {$j<7} {incr j} {
 	for {set i 0} {$i<$gRows} {incr i} {
 	    
-	    set x [expr 70*$i+107]
-	    set y [expr 400-(30*$j+50)]
+	    set x [expr 70*$i+($size/2)-35*($gRows-1)]
+	    set y [expr (0.75*$size)-(30*$j+50)]
 	    set h [expr $j+1]
 	    set w [expr $i+1]
 	    $c create oval [expr $x-25] [expr $y-20] [expr $x+25] [expr $y+20] \
@@ -267,12 +270,12 @@ proc GS_DrawPosition { c position } {
     
     set l [unhash $position]
     
-    global gRows
+    global gRows size
     for {set j 0} {$j<7} {incr j} {
 	for {set i 0} {$i<$gRows} {incr i} {
 	    
-	    set x [expr 70*$i+107]
-	    set y [expr 400-(30*$j+50)]
+	    set x [expr 70*$i+($size/2)-35*($gRows-1)]
+	    set y [expr 0.75*$size-(30*$j+50)]
 	    set h [expr $j+1]
 	    set w [expr $i+1]
 	    $c coords move-$w$h [expr $x-25] [expr $y-20] [expr $x+25] [expr $y+20]
@@ -326,6 +329,9 @@ proc GS_WhoseMove { position } {
 # be calculated from the window height.  (c has this information in it's height
 # tag, but i can't make it CONFESS!)
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+
+    global size
+
     set oldl [unhash $oldPosition]
     set newl [unhash $newPosition]
     set i  [expr $theMove/10]
@@ -333,7 +339,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     set im1 [expr $i-1]
     #if the animation sliderbar is high, this value should be low
     set maxframes [ScaleDownAnimation 50]
-    set dely [ScaleUpAnimation -8]
+    set dely [ScaleUpAnimation [expr -0.8*$size / 50]]
     
     for {set frame 0} {$frame < $maxframes} {incr frame} {
 	
@@ -425,8 +431,9 @@ proc GS_GetGameSpecificOptions { } {
 # or you could congratulate the winner or do nothing if you want.
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
-    $c create text 250 160 -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text 250 270 -text "WINS!"         -font Winner -fill orange -tags winner
+    global size
+    $c create text [expr $size/2] [expr $size/2 - 90] -text "$nameOfWinner" -font Winner -fill orange -tags winner
+    $c create text [expr $size/2] [expr $size/2 + 20] -text "WINS!"         -font Winner -fill orange -tags winner
 }
 
 
