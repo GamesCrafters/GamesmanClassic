@@ -1,5 +1,10 @@
 #include "solveweakab.h"
 
+/* INFINITY can sometimes already be defined in math.h. */
+#ifdef INFINITY
+#undef INFINITY
+#endif
+
 #define INFINITY (gMaxRemoteness + 1)
 
 /*
