@@ -389,11 +389,9 @@ then
     AC_MSG_RESULT(no)
     if test "$aquatcl" = ""
     then
-      AC_MSG_ERROR([Tcl not found.  Specify the tclConfig.sh file to use with the])
-      AC_MSG_ERROR([--with-tcl=/path/to/tclConfig.sh option])
+      AC_MSG_ERROR([Tcl not found.  Specify the tclConfig.sh file to use with the --with-tcl=/path/to/tclConfig.sh option])
     else
-      AC_MSG_ERROR([Non-aqua Tcl not found.  Specify the tclConfig.sh file to use with the])
-      AC_MSG_ERROR([--with-tcl=/path/to/tclConfig.sh option, or use --with-aqua (not recommended)])
+      AC_MSG_ERROR([Non-aqua Tcl not found.  Specify the tclConfig.sh file to use with the --with-tcl=/path/to/tclConfig.sh option, or use --with-aqua (not recommended)])
     fi
   fi
   
@@ -403,8 +401,7 @@ then
   
   if test "$OS" = "MACOSX" -a "$TCL_VERSION" = "8.3"
   then
-    AC_MSG_ERROR([Tcl/Tk 8.3 is not supported for Mac.  Please upgrade.])
-    AC_MSG_ERROR([(see http://tcl.activestate.com)])
+    AC_MSG_ERROR([Tcl/Tk 8.3 is not supported for Mac.  Please upgrade.  Visit http://tcl.activestate.com])
   fi
   
   AC_MSG_CHECKING(for Tk)
@@ -414,11 +411,9 @@ then
     AC_MSG_RESULT(no)
     if test "$aquatk" = ""
     then
-      AC_MSG_ERROR([Tk not found.  Specify the tkConfig.sh file to use with the])
-      AC_MSG_ERROR([--with-tk=/path/to/tkConfig.sh option])
+      AC_MSG_ERROR([Tk not found.  Specify the tkConfig.sh file to use with the --with-tk=/path/to/tkConfig.sh option])
     else
-      AC_MSG_ERROR([Non-aqua Tk not found.  Specify the tkConfig.sh file to use with the])
-      AC_MSG_ERROR([--with-tk=/path/to/tkConfig.sh option, or use --with-aqua (not recommended)])
+      AC_MSG_ERROR([Non-aqua Tk not found.  Specify the tkConfig.sh file to use with the --with-tk=/path/to/tkConfig.sh option, or use --with-aqua (not recommended)])
     fi
   fi
   
