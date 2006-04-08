@@ -109,7 +109,7 @@ STRING   kHelpExample =
 **  Game Specific Global Variables
 **
 ************************************************************************/
-int  WIN4_WIDTH = 4;
+int  WIN4_WIDTH = 5;
 int  WIN4_HEIGHT = 4;
 #define MAXW 9
 #define MAXH 9
@@ -403,70 +403,44 @@ void PrintComputersMove(MOVE computersMove,STRING computersName)
 
 VALUE Primitive(POSITION position)
 { 
-        if (gUseGPS) {
-	        int count, index;
-		Direction horizontalDirection, verticalDirection;
-		int lastRow = gPosition.heights[gPosition.lastColumn] - 1;
-		
-		for (index = 0; index < DIRECTION_PAIRS; ++index) {
-			count = 1;
-			horizontalDirection = gDirections[index][0];
-			verticalDirection = gDirections[index][1];
-			count += CountContinuousPieces(gPosition.lastColumn, lastRow,
-						       horizontalDirection, verticalDirection);
-			
-			if (count >= gContinuousPiecesGoal)
-				return gStandardGame ? lose : win;
-			
-			count += CountContinuousPieces(gPosition.lastColumn, lastRow,
-						       gOppositeDirections[horizontalDirection],
-						       gOppositeDirections[verticalDirection]);
-
-			if (count >= gContinuousPiecesGoal)
-				return gStandardGame ? lose : win;
-		}
-
-		return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
-        }
-
-
-
-	//int ul[WIN4_WIDTH][WIN4_HEIGHT];//upper left
-	//int l[WIN4_WIDTH][WIN4_HEIGHT];//left
-	//int ll[WIN4_WIDTH][WIN4_HEIGHT];//lower left
-	//int u[WIN4_WIDTH][WIN4_HEIGHT];//up
-	//XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
-	XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT];
-	int col,row;
+        int col,row;
 	int xx = 0;
 	int oo = 1;
+	int bb = 2;
+	XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT];
+
+        if (gUseGPS) {
+	  int lastRow = gPosition.heights[gPosition.lastColumn];
+
+	  //copy the board into 
+	  for(row=WIN4_HEIGHT-1;row>=0;row--) {
+	    for(col=0;col<WIN4_WIDTH;col++) {
+	      linearBoard[col+WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = gPosition.board[col][row];
+	    }
+	  }	  
+	  
+	  if (NinaRow(linearBoard,&xx,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal) || 
+	      NinaRow(linearBoard,&oo,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
+	    return gStandardGame ? lose : win;
+	  }
+	  
+	  return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+        }
 
 	PositionToBoard(position, gPosition.board); // Temporary storage.
 
-	/*for (col=0;col<WIN4_WIDTH;col++)
-		board[col][WIN4_HEIGHT]=2;
-	for (col=0;col<WIN4_WIDTH;col++)
-		for (row=0;row<WIN4_HEIGHT;row++)
-			board[col][row] = gPosition.board[col][row];
-	*/		
-
-	//copy the board
+	//copy the board into 
 	for(row=WIN4_HEIGHT-1;row>=0;row--) {
 	  for(col=0;col<WIN4_WIDTH;col++) {
 	    linearBoard[col+WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = gPosition.board[col][row];
 	  }
 	}
 
-	if (NinaRow(linearBoard,&xx,-1,4) || NinaRow(linearBoard,&oo,-1,4)) {
+	if (NinaRow(linearBoard,&xx,-1,gContinuousPiecesGoal) || NinaRow(linearBoard,&oo,-1,gContinuousPiecesGoal)) {
 	  return(lose);
 	}
 
-	//Now check if the board is full:
-	for (col=0;col<WIN4_WIDTH;col++)
-		for (row=0;row<WIN4_HEIGHT;row++)
-			if (gPosition.board[col][row]==2) return(undecided);
-	
-	return(tie);
+	return amountOfWhat(linearBoard,&bb,1,TRUE) ? undecided : tie;
 }
 
 
