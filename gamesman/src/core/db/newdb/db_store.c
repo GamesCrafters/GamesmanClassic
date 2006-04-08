@@ -39,7 +39,6 @@
 **can implement it however they choose.
 */
 
-
 /*
 ** Opens a database with filename.
 ** returns db_store pointer on success (freed in db_close)
@@ -49,7 +48,7 @@ db_store* db_open(char* filename, char* options){
   db_store* db = (db_store*) SafeMalloc(sizeof(db_store));
   db->filep = gzopen(filename,options);
   db->filename = (char*) SafeMalloc (sizeof(char)*strlen(filename));
-  strcpy(filename,db->filename);
+  strcpy(db->filename, filename);
   db->offset = 0;
   if(db->filep)
     return db;

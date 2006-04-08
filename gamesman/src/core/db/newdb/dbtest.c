@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	Position totalrecs = 10000;
 	size_t recsize = sizeof(short);
 	size_t bufferrecs = 100;
-	char dbname[] = "testdb.dat";
+	char dbname[] = "testdb.dat\0";
 
 	games_db *testdb = db_create(totalrecs, recsize, recsize*bufferrecs, dbname);
 	printf("Starting DB test...\n");
@@ -50,12 +50,12 @@ int main(int argc, char *argv[])
 		db_put(testdb, &data, i);
 		db_get(testdb, &result, i);
 		if (data!=result) {
-			printf("ERROR: position %ull, saved %d, got %d\n", i, data, result);
+			printf("ERROR: position %u, saved %d, got %d\n", i, data, result);
 			break;
 		}
 	}
 
 	printf("Ending DB test...\n");
 	db_destroy(testdb);
-	
+	return 0;
 }
