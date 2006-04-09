@@ -27,27 +27,6 @@ proc GS_InitGameSpecific {} {
     global boardWidth boardHeight
     set boardWidth 500 
     set boardHeight 500
-    
-    #These are global constants, but they can be changed in the play options menu.  4 is only the default value.
-    global width height gNumPieces
-    set width 4
-    set height 4
-    set gNumPieces 4
-
-    #slotSize: the dimensions of each square on the board
-    #cellPadding: the size of the gap between the edge of a piece and the edge of the slot
-    #megaCellPadding: the size of the gap between the edge of one of the "place move" dots and the edge of the slot
-    #arrowWidth: the width of the "slide move" arrows
-    #mouseOverColor: the color of anything being moused over
-    global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor passButtonHeight passButtonWidth
-    set slotSize(w) [expr $boardWidth / $width]
-    set slotSize(h) [expr $boardHeight / $height]
-    set cellPadding 10
-    set megaCellPadding [expr 5 * $cellPadding]
-    set arrowWidth [expr $slotSize(w) / 8]
-    set mouseOverColor black
-    set passButtonHeight [expr $slotSize(h) / 2]
-    set passButtonWidth $slotSize(w)
 
     global xColor oColor
     set xColor blue
@@ -211,6 +190,9 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "3" \
 	     "4 (default)" \
 	     "5" \
+	     "6" \
+	     "7" \
+	     "8" \
 	]
 
     set heightRule \
@@ -219,12 +201,17 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	     "3" \
 	     "4 (default)" \
 	     "5" \
+	     "6" \
+	     "7" \
+	     "8" \
 	]
 
     set numPiecesRule \
 	[list \
 	     "How many pieces should each player have:" \
-	     "4" \
+	     "3" \
+	     "4 (default)" \
+	     "5" \
 	]
 
     # List of all rules, in some order
@@ -249,8 +236,8 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set gWidthRules 1
     set gHeightRules 1
 
-    #0 is 4
-    set gNumPiecesRules 0
+    #0 is 3, 1 is 4, 2 is 5
+    set gNumPiecesRules 1
 
     # List of all rule globals, in same order as rule list
     set ruleSettingGlobalNames [list "gMisereGame" "gSlideRules" "gMoveRules" "gScoreRules" "gWidthRules" "gHeightRules" "gNumPiecesRules"]
@@ -282,7 +269,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 
 proc GS_GetOption { } {
     global gMisereGame gMoveRules gSlideRules gScoreRules gWidthRules gHeightRules gNumPiecesRules
-    global width height gNumPieces MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
+    global MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
 
     #set winConditionVal
     set winConditionVal $gMisereGame
@@ -296,13 +283,13 @@ proc GS_GetOption { } {
     #set boardSizeVal
     set l 0
     #set width, height, and numPieces based on the respective rules.
-    set width [expr $gWidthRules + 3]
-    set height [expr $gHeightRules + 3]
-    set gNumPieces [expr $gNumPiecesRules + 4]
+    set actual_width [expr $gWidthRules + 3]
+    set actual_height [expr $gHeightRules + 3]
+    set actual_gNumPieces [expr $gNumPiecesRules + 3]
     for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {incr i} {
 	for {set j $MIN_PIECES} {$j <= $i} {incr j} {
 	    for {set k $MIN_HEIGHT} {$k <= $MAX_HEIGHT} {incr k} {
-		if {$i == $width && $j == $gNumPieces && $k == $height} {
+		if {$i == $actual_width && $j == $actual_gNumPieces && $k == $actual_height} {
 		    set boardSizeVal $l
 		}
 		incr l
@@ -329,9 +316,38 @@ proc GS_GetOption { } {
 # Returns: nothing
 
 proc GS_SetOption { option } {
-    global gMisereGame
+    global gMisereGame gMoveRules gSlideRules gScoreRules gWidthRules gHeightRules gNumPiecesRuless
+    global MIN_WIDTH MAX_WIDTH MIN_HEIGHT MAX_HEIGHT MIN_PIECES
     set option [expr $option - 1]
-    set gMisereGame [expr $option%2]
+    set winConditionVal [expr $option % 2]
+    set moveStyleVal [expr ($option / 2) % 8]
+    set boardSizeVal [expr ($option / (2 * 8)) % 245]
+    set scoreVal [expr ($option / (2 * 8 * 245)) % 3]
+
+    set gMisereGame $winConditionVal
+    if {$moveStyleVal == 0} {
+	set gSlideRules 0
+    }
+    else {
+	set moveStyleVal [expr $moveStyleVal - 1]
+	set gSlideRules [expr ($moveStyleVal % 2) + 1]
+	set gMoveRules [expr ($moveStyleVal / 2) % 3]
+    }
+
+    set l 0
+    for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {inrc i} {
+	for {set j $MIN_PIECES} {$j <= $i} {incr j} {
+		for {set k $MIN_HEIGHT} {$k <= $MAX_HEIGHT} {incr k} {
+			if {$l == $boardSizeVal} {
+				set gWidthRules $i
+				set gNumPiecesRules $j
+				set gHeightRules $k
+			}
+			incr l
+		}
+	}
+    }
+
 }
 
 # GS_Initialize is where you can start drawing graphics.  
@@ -343,7 +359,8 @@ proc GS_SetOption { option } {
 
 proc GS_Initialize { c } {
 
-    global width height boardWidth boardHeight
+    global width height gNumPieces boardWidth boardHeight
+    global gWidthRules gHeightRules gNumPiecesRules
     global slotSize cellPadding megaCellPadding arrowWidth mouseOverColor passButtonWidth passButtonHeight
     global xColor oColor
     global xPieces oPieces
@@ -351,6 +368,28 @@ proc GS_Initialize { c } {
     global slideStartLocs arrows
     global passButton
     global background
+
+    #These are global constants, but they can be changed in the play options menu.  4 is only the default value.
+    set width [expr $gWidthRules + 3]
+    set height [expr $gHeightRules + 3]
+    set gNumPieces [expr $gNumPiecesRules + 3]
+
+    #slotSize: the dimensions of each square on the board
+    #cellPadding: the size of the gap between the edge of a piece and the edge of the slot
+    #megaCellPadding: the size of the gap between the edge of one of the "place move" dots and the edge of the slot
+    #arrowWidth: the width of the "slide move" arrows
+    #mouseOverColor: the color of anything being moused over
+    set slotSize(w) [expr $boardWidth / $width]
+    set slotSize(h) [expr $boardHeight / $height]
+    set cellPadding(w) [expr $slotSize(w) / 12]
+    set cellPadding(h) [expr $slotSize(h) / 12]
+    set megaCellPadding(w) [expr 5 * $cellPadding(w)]
+    set megaCellPadding(h) [expr 5 * $cellPadding(h)]
+    set arrowWidth [expr $slotSize(w) / 8]
+    set mouseOverColor black
+    set passButtonHeight [expr $slotSize(h) / 2]
+    set passButtonWidth $slotSize(w)
+
 
     #Everything starts out filled with dummy colors, but should be refilled before being used.
     set dummyDotColor pink
@@ -363,16 +402,16 @@ proc GS_Initialize { c } {
     for {set i 0} {$i < $width} {incr i} {
 	for {set j 0} { $j < $height} {incr j} {
 	    set xPieces($i,$j) [$c create oval \
-				    [expr $i * $slotSize(w) + $cellPadding] \
-				    [expr ($j+1) * $slotSize(h) - $cellPadding] \
-				    [expr ($i+1) * $slotSize(w) - $cellPadding] \
-				    [expr $j * $slotSize(h) + $cellPadding] \
+				    [expr $i * $slotSize(w) + $cellPadding(w)] \
+				    [expr ($j+1) * $slotSize(h) - $cellPadding(h)] \
+				    [expr ($i+1) * $slotSize(w) - $cellPadding(w)] \
+				    [expr $j * $slotSize(h) + $cellPadding(h)] \
 				    -fill $xColor -tags [list xPieces]]
 	    set oPieces($i,$j) [$c create oval \
-				    [expr $i * $slotSize(w) + $cellPadding] \
-				    [expr ($j+1) * $slotSize(h) - $cellPadding] \
-				    [expr ($i+1) * $slotSize(w) - $cellPadding] \
-				    [expr $j * $slotSize(h) + $cellPadding] \
+				    [expr $i * $slotSize(w) + $cellPadding(w)] \
+				    [expr ($j+1) * $slotSize(h) - $cellPadding(h)] \
+				    [expr ($i+1) * $slotSize(w) - $cellPadding(w)] \
+				    [expr $j * $slotSize(h) + $cellPadding(h)] \
 				    -fill $oColor -tags [list oPieces]]
 	}
     }
@@ -381,10 +420,10 @@ proc GS_Initialize { c } {
     for {set i 0} {$i < $width} {incr i} {
 	for {set j 0} {$j < $height} {incr j} {
 	    set placeMoves($i,$j) [$c create oval \
-				       [expr $i * $slotSize(w) + $megaCellPadding] \
-				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
-				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
-				       [expr $j * $slotSize(h) + $megaCellPadding] \
+				       [expr $i * $slotSize(w) + $megaCellPadding(w)] \
+				       [expr ($j+1) * $slotSize(h) - $megaCellPadding(h)] \
+				       [expr ($i+1) * $slotSize(w) - $megaCellPadding(w)] \
+				       [expr $j * $slotSize(h) + $megaCellPadding(h)] \
 				       -fill $dummyDotColor]
 	}
     } 
@@ -394,10 +433,10 @@ proc GS_Initialize { c } {
     for {set i 0} {$i < $width} {incr i} {
 	for {set j 0} {$j < $height} {incr j} {
 	    set slideStartLocs($i,$j) [$c create oval \
-				       [expr $i * $slotSize(w) + $megaCellPadding] \
-				       [expr ($j+1) * $slotSize(h) - $megaCellPadding] \
-				       [expr ($i+1) * $slotSize(w) - $megaCellPadding] \
-				       [expr $j * $slotSize(h) + $megaCellPadding] \
+				       [expr $i * $slotSize(w) + $megaCellPadding(w)] \
+				       [expr ($j+1) * $slotSize(h) - $megaCellPadding(h)] \
+				       [expr ($i+1) * $slotSize(w) - $megaCellPadding(w)] \
+				       [expr $j * $slotSize(h) + $megaCellPadding(h)] \
 				       -fill $dummyDotColor]
 	}
     } 
