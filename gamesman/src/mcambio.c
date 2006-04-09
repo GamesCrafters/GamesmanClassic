@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.22 2006-04-09 06:44:53 simontaotw Exp $
+// $Id: mcambio.c,v 1.23 2006-04-09 07:36:06 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -32,7 +32,7 @@
  **              3/30/2006 - Changed GetAndPrintPlayersMove.
  **              4/05/2006 - Changed PrintMove.
  **              4/08/2006 - Changed PrintPosition, GetAndPrintPlayerMove, PrintMove, ValidTextInpu, and ConvertTextInputToMove
- **                          to accomodate for new text graphic.
+ **                          to accomodate for new text graphic. Fixed consecutive name display problem.
  **
  **************************************************************************/
 
@@ -819,22 +819,36 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	countB++;
     }
   
-  /* Phase 1: Less than 4 of PlayerB's pieces or less than 3 of PlayerB's pieces on the board. */
-  if(countB < 4 || countA < 3)
+  /* Phase 1: Less than 4 of PlayerB's pieces */
+  if(countB < 4)
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(undo)/a-p] : ", playersName);
+	printf("Challenger's move [(undo)/a-p] : ");
 	
-	input = HandleDefaultTextInput(position, move, playersName);
+	input = HandleDefaultTextInput(position, move, "Challenger");
 	
 	if (input != Continue)
 	  return input;
       }
     }
-  /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+  /* Phase 2: Less than 3 of PlayerB's pieces on the board. */
+  else if(countB == 4 && countA < 3) {
+    for (;;) {
+	/***********************************************************
+	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+	 ***********************************************************/
+	printf("    Player's move [(undo)/a-p] : ");
+	
+	input = HandleDefaultTextInput(position, move, "Player");
+	
+	if (input != Continue)
+	  return input;
+      }
+  }
+  /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
   else if(countB >= 4 && countA >= 3)
     {
       for (;;) {
@@ -1174,6 +1188,10 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2006/04/09 06:44:53  simontaotw
+// Changed PrintPosition, GetAndPrintPlayerMove, PrintMove, ValidTextInpu, and
+// ConvertTextInputToMove to accomodate for new text graphic.
+//
 // Revision 1.21  2006/04/05 07:31:16  simontaotw
 // Changed PrintMove.
 //
