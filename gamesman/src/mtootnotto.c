@@ -10,8 +10,12 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-**              11-28-05 Added Primitive
-**				04-05-06 All functions present, debugging
+**              2005-11-28 Added Primitive
+**				2006-04-05 Edited Primitive to player1 wins if toot and
+**						   player2 wins if otto. Also fixed tie condition and
+**                         default output is now undecided if no win/lose/tie.
+**				2006-04-08 Added a lot of printfs for debugging. Gets bus error
+**						   with GetAndPrintPlayersMove
 **************************************************************************/
 
 /*************************************************************************
@@ -155,9 +159,6 @@ void InitializeGame ()
 {
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition = MyInitialPosition();
-	
-	int i = MyInitialPosition();
-	printf(" %i", i);
 
 }
 
@@ -178,25 +179,25 @@ void PositionToPieces(pos)
 
 
 void PiecesOnBoard(pos)
-    POSITION pos;
+	 POSITION pos;
 {
   Board.t = 0;
   Board.o = 0;
   Board.total = 0;
   int col,row,h;
   for (col=0; col<TNO_WIDTH;col++) {
-    row=TNO_HEIGHT-1;
-    for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT;
+	 row=TNO_HEIGHT-1;
+	 for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT;
 	 (pos & (1 << h)) == 0; h--) {
-      row--;
-    }
-    h--;
-    while (row >=0) {
-      if ((pos & (1<<h)) != 0) Board.o++;
-      else Board.t++;
-      row--;
-      h--;
-    }
+		row--;
+	 }
+	 h--;
+	 while (row >=0) {
+		if ((pos & (1<<h)) != 0) Board.o++;
+		else Board.t++;
+		row--;
+		h--;
+	 }
   }
   Board.total = Board.t + Board.o;
 }
@@ -245,7 +246,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
 	 /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   int col, row, h, player;
-  
+
   player = WhoseTurn(position);
   PositionToPieces(position);
   for (col=0; col<TNO_WIDTH;col++) {
@@ -254,21 +255,21 @@ MOVELIST *GenerateMoves (POSITION position)
 	 (position & (1 << h)) == 0; h--) {
 	 if(player == 1){
 		if(Player1.t != 0){
-	     h += 10;
-	     moves = CreateMovelistNode(h, moves);
-	   }
-	   if(Player1.o != 0){
-	      moves = CreateMovelistNode(h, moves);
+		  h += 10;
+		  moves = CreateMovelistNode(h, moves);
+		}
+		if(Player1.o != 0){
+			moves = CreateMovelistNode(h, moves);
 		}
 	 }
 	 else{
-	   if(Player2.t != 0){
-		   h += 10;
-	       moves = CreateMovelistNode(h, moves);
+		if(Player2.t != 0){
+			h += 10;
+			 moves = CreateMovelistNode(h, moves);
 		 }
-	   if(Player2.o != 0){
-	     moves = CreateMovelistNode(h, moves);
-	   }
+		if(Player2.o != 0){
+		  moves = CreateMovelistNode(h, moves);
+		}
 	 }
 
 		row--;
@@ -298,27 +299,28 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
+  printf("start domove");
   int player, col, bit, mask, i, x;
   i = (TNO_HEIGHT+1)*(TNO_WIDTH);
   TOBlank piece = 't';
   player = WhoseTurn();
   printf("beginning");
-  for(bit = (col)*(TNO_HEIGHT+1); position >> bit == 0; bit--) 
-  
+  for(bit = (col)*(TNO_HEIGHT+1); position >> bit == 0; bit--)
+
   mask = 1 << (bit+1);
   position = position | mask;
-  
+
   mask = 0;
   for(x = 1; x <= i; x++){
-    mask <<= 1;
+	 mask <<= 1;
 	if(x != bit || piece == 't') mask += 1;
   }
   position = position & mask;
-  
+
   if(player == 1){
-    if(piece == 't'){
+	 if(piece == 't'){
 	  for(x = 1; x <= i + 3; x++){
-	    mask <<= 1;
+		 mask <<= 1;
 		mask += 1;
 	  }
 	  position = position & mask;
@@ -327,23 +329,24 @@ POSITION DoMove (POSITION position, MOVE move)
 	}
 	else{
 	  for(x = 1; x <= i; x++){
-	    mask <<= 1;
+		 mask <<= 1;
 		mask += 1;
 	  }
 	  for(x = 1; x<=3; x++){
-	    mask << 1;
+		 mask <<= 1;
 	  }
 	  for(x = 1; x<=3; x++){
-	    mask <<= 1;
+		 mask <<= 1;
 		mask += 1;
 	  }
 	  position = position & mask;
 	  mask = (Player1.o - 1) << i;
 	  position = position | mask;
-    }
+	 }
   }
-	  
-return position;	  
+  printf("end domove");
+
+return position;
 
 }
 
@@ -374,8 +377,10 @@ return position;
 
 VALUE Primitive (POSITION position)
 {
+
+  printf("start primitive");
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-  int col,row;
+  int col,row, player1=1, player2=2, t=1, o=2, blank=0, count=0;
   PositionToBoard(position, board); // Temporary storage.
 
 
@@ -388,32 +393,110 @@ VALUE Primitive (POSITION position)
   // Check for toot/otto on the columns
   for(col=0; col<TNO_WIDTH-1; col++)
 	 for(row=0; row<(TNO_HEIGHT-3); row++)
-		if(board[col][row]==board[col][row+3] && board[col][row+1]==board[col][row+2]);
-		  return gStandardGame ? lose : win;
+		if(   (board[col][row]==board[col][row+3])
+			&& (board[col][row+1]==board[col][row+2])
+			&& (board[col][row] != board[col][row+2])
+			&& (board[col][row]!=blank)
+			&& (board[col][row+1]!=blank))
+		{
+			if(board[col][row]==t)                   //Checks if its toot or otto
+				if(WhoseTurn(position)==player1)      //then checks whose turns it
+					return win;                        //is to return right thing
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+			else                           //(board[col]row]==o)
+				if(WhoseTurn(position)==player1)
+					return win;
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+		}
+
 
   // Check for toot/otto on the rows
   for(row=0; row<TNO_HEIGHT-1; row++)
 	 for(col=0; col<(TNO_WIDTH-3); col++)
-		if(board[col][row]==board[col+3][row] && board[col+1][row]==board[col+2][row]);
-		  return gStandardGame ? lose : win;
+		if(    (board[col][row]==board[col+3][row])
+			&& (board[col+1][row]==board[col+2][row])
+			&& (board[col][row] != board[col+2][row]) 
+			&& (board[col][row]!=blank)
+			&& (board[col+1][row]!=blank))
+		  {
+			if(board[col][row]==t)                   //Checks if its toot or otto
+				if(WhoseTurn(position)==player1)      //then checks whose turns it
+					return win;                        //is to return right thing
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+			else                           //(board[col]row]==o)
+				if(WhoseTurn(position)==player1)
+					return win;
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+		} // if
 
   // Check for toot/otto on the diagonals
   for(row=0; row<(TNO_HEIGHT-3); row++)
 	 for(col=0; col<(TNO_WIDTH-3); col++)
-		if(board[col][row]==board[col+3][row+3] && board[col+1][row+1]==board[col+2][row+2]);
-		  return gStandardGame ? lose : win;
+		if(   (board[col][row]==board[col+3][row+3])
+			&& (board[col+1][row+1]==board[col+2][row+2])
+			&& (board[col][row] != board[col+2][row+2])
+            && (board[col][row]!=blank)
+			&& (board[col+1][row+1]!=blank))
+		{
+			if(board[col][row]==t)                   //Checks if its toot or otto
+				if(WhoseTurn(position)==player1)      //then checks whose turns it
+					return win;                        //is to return right thing
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+			else                           //(board[col]row]==o)
+				if(WhoseTurn(position)==player1)
+					return win;
+				else                        //(WhoseTurn(position)==player2)
+					return lose;
+		} // if
 
-  for(row=4; row<TNO_HEIGHT; row++)
-	 for(col=0; col<TNO_WIDTH; col++)
-		if(board[col][row]==board[col+3][row-3] && board[col+1][row-1]==board[col+2][row-2]);
-          return gStandardGame ? lose : win;
+  for(row=4; row<TNO_HEIGHT; row++){
+	 for(col=0; col<TNO_WIDTH; col++){
+		if(   (board[col][row]==board[col+3][row-3])
+			&& (board[col+1][row-1]==board[col+2][row-2])
+			&& (board[col][row] != board[col+2][row-2])
+			&& (board[col][row]!=blank)
+			&& (board[col+1][row-1]!=blank))
+		{
+			if(board[col][row]==t){                   //Checks if its toot or otto
+				if(WhoseTurn(position)==player1){      //then checks whose turns it
+					return win;
+				}                        //is to return right thing
+				else{                       //(WhoseTurn(position)==player2)
+					return lose;
+				}
+			}
+			else{                          //(board[col]row]==o)
+				if(WhoseTurn(position)==player1){
+					return win;
+				}
+				else{                        //(WhoseTurn(position)==player2)
+					return lose;
+				}
+			}
+		} // if
+	 }
+  }
 
-  // Check to see if game is over
-  for (col=0;col<TNO_WIDTH;col++)
-	 for (row=0;row<TNO_HEIGHT;row++)
-		if (board[col][row]==2) return(undecided);
-  // If no win and board is filled game is tie
-  return(tie);
+  // If board is filled and there is no winner, game is tie.
+  for (col=0;col<TNO_WIDTH;col++){
+	 for (row=0;row<TNO_HEIGHT;row++){
+		if (board[col][row]==1 || board[col][row]==2){
+			count++;
+		}
+	 }
+  }
+
+  if(count == (TNO_HEIGHT*TNO_WIDTH)){
+		return tie;
+	}
+  // If no win and board is not filled, its undecided
+  
+  return undecided;
 }
 
 /************************************************************************
@@ -467,6 +550,7 @@ void PositionToBoard(pos,board)
 ************************************************************************/
 
 int MyInitialPosition() {
+printf("start initposition");
   unsigned long int p=0;
   int i;
   p+=6;
@@ -475,6 +559,7 @@ int MyInitialPosition() {
   for (i=1;i<=TNO_WIDTH;++i){
 	 p = ((p << 1) + 1 << (TNO_HEIGHT));
 	}
+	printf("finish initposition");
 	 return p;
 }
 
@@ -516,6 +601,7 @@ int MyNumberOfPos() {
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	printf("start printposition\n");
 	int i, row;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
 	PositionToBoard(position,board);
@@ -545,8 +631,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 	printf("\n	|             |");
 	printf("\n	+-------------+");
-	//printf("\n	%8s's move", playersName);
-        //printf("	Prediction: %s", GetPrediction(position, playerName, usersTurn));
+	printf("\n	%8s's move\n", playersName);
+	printf("	Prediction: %s\n", GetPrediction(position, playersName, usersTurn));
+	printf("finish printposition\n");
 
 }
 
@@ -609,22 +696,51 @@ void PrintMove (MOVE move){
 **
 ************************************************************************/
 
+/*USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+{
+	 printf("start getandprintplayersmove\n");
+	 
+	 printf("declare USERINPUT\n");
+	 USERINPUT ret;
+	 printf("USERINPUT declared\n");
+
+	do {
+		printf("start do\n");
+		printf("%8s's move [(u)ndo/1-4 T or O] :  ", playersName);
+		printf("printed move format");
+    
+		printf("call handledefaulttextinput");
+		ret = HandleDefaultTextInput(position, move, playersName);
+		if(ret != Continue)
+			return(ret);
+    
+	}
+	while (TRUE);
+	return(Continue);
+}*/
+
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-	 USERINPUT input;
-	 USERINPUT HandleDefaultTextInput();
-
-	printf("%8s's move [(undo)/1-4 T or O (ex. 2t, 4o)] : ", playersName);
-
+    USERINPUT input;
+    USERINPUT HandleDefaultTextInput();
+    
+    for (;;) {
+        /***********************************************************
+         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+         ***********************************************************/
+	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	
 	input = HandleDefaultTextInput(position, move, playersName);
-
-	if (input != Continue){
+	
+	if (input != Continue)
 		return input;
-	 }
+    }
 
-	 /* NOTREACHED */
-	 return Continue;
+    /* NOTREACHED */
+    return Continue;
 }
+
+
 
 
 /************************************************************************
@@ -654,6 +770,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+	printf("start validtextinput");
 	int column;
 	char piece;
 	sscanf(input, "%d%c", &column, &piece);
@@ -682,6 +799,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
+	printf("start converttextinputtomove\n");
 	int column, theMove;
 	char piece;
 	sscanf(input, "%d%c", &column, &piece);
