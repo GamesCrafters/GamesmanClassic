@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.21 2006-04-05 07:31:16 simontaotw Exp $
+// $Id: mcambio.c,v 1.22 2006-04-09 06:44:53 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -31,6 +31,8 @@
  **              3/29/2006 - Changed PrintPosition.
  **              3/30/2006 - Changed GetAndPrintPlayersMove.
  **              4/05/2006 - Changed PrintMove.
+ **              4/08/2006 - Changed PrintPosition, GetAndPrintPlayerMove, PrintMove, ValidTextInpu, and ConvertTextInputToMove
+ **                          to accomodate for new text graphic.
  **
  **************************************************************************/
 
@@ -160,20 +162,19 @@ char alphaArray[] = { 'a', 'b', 'c', 'd',
 /* to convert, use alphaArray[i]
                     {  0,   1,   2,   3,
                        4,   5,   6,   7,
-		       8,   9,  10,  11,
-		      12,  13,  14,  15  };
+                       8,   9,  10,  11,
+                      12,  13,  14,  15  };
 */
 
-char shiftArray[] = { 'a', 'b', 'c', 'd',
-		      '5', '6', '7', '8',
-		      'h', 'g', 'f', 'e',
-		      '4', '3', '2', '1' };
-
+char shiftArray[] = { 'A', 'B', 'C', 'D', 
+		      'E', 'F', 'G', 'H',
+		      'I', 'J', 'K', 'L',
+		      'M', 'N', 'O', 'P' };
 /* to convert, use shiftArray[i-16]
-                    {  16,  17,  18,  19,
-                       20,  21,  22,  23,
-		       24,  25,  26,  27,
-		       28,  29,  30,  31 };
+                    { 16,  17,  18,  19,
+                      20,  21,  22,  23,
+                      24,  25,  26,  27,
+                      28,  29,  30,  31 };
 */
 
 Player gWhosTurn; /* 1 for player A, 2 for player B */
@@ -258,9 +259,8 @@ void InitializeGame ()
  **
  ************************************************************************/
 
-MOVELIST *GenerateMoves (POSITION position)
-     /* must check all the math used for general case, such as 4x4 and so on */
-{
+MOVELIST *GenerateMoves (POSITION position) {
+  /* must check all the math used for general case, such as 4x4 and so on */
   MOVELIST *moves = NULL;
   MOVELIST *CreateMovelistNode();
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
@@ -557,7 +557,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   /* Phase 1: Less than 4 of PlayerB's pieces or less than 3 of PlayerB's pieces on the board. */
   if(countB < 4 || countA < 3)
     {
-      printf("\n\n\n");  //reserve three lines on the top
+      printf("\n");
       printf("               ---------\n");
 
       for(i = 0; i < boardSize; i++)
@@ -592,14 +592,17 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 
       printf("               ---------\n");
-      printf("\n\n\n");  //reserve three lines on the bottom
+      printf("\n");
+      printf("                           A's Symbol = %c\n", aPiece);
+      printf("                           B's Symbol = %c\n", bPiece);
+      printf("                              Neutral = %c\n\n", neutral);
+      printf("\n");
     }
   /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
   else if(countB >= 4 && countA >= 3)
     {
       printf("\n");
-      printf("                a b c d \n");
-      printf("\n");
+      printf("                A B C D \n");
       printf("               ---------\n");
 
       for(i = 0; i < boardSize; i++)
@@ -607,7 +610,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	  //indentation
 	  if((i % 4) == 0)
 	    {
-	      printf("             %d ", (i/4)+1);
+	      printf("             %c ", ((char)80-(i/4)));
 	    }
 
 	  if(gBoard[i] == bPiece)
@@ -629,14 +632,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	  if((i != 0) && (((i+1) % 4) == 0))
 	    {
-	      printf("| %d\n", (i/4)+5);
+	      printf("| %c\n", ((char)(i/4)+69));
 	    }
 	}
 
       printf("               ---------\n");
+      printf("                L K J I \n");
       printf("\n");
-      printf("                e f g h \n");
-      printf("\n");
+      printf("                           A's Symbol = %c\n", aPiece);
+      printf("                           B's Symbol = %c\n", bPiece);
+      printf("                              Neutral = %c\n\n", neutral);
     }
   /* bad else */
   else
@@ -704,7 +709,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
      printf("                           A's Symbol = %c\n", aPiece);
      printf("                           B's Symbol = %c\n", bPiece);
      printf("                              Neutral = %c\n\n", neutral);
-     //  printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
+     printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
      */
 
   free(gBoard);
@@ -737,31 +742,40 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
  **
  ************************************************************************/
 
-void PrintMove (MOVE move)
-     /* must check all the math used for general case, such as 4x4 and on */
-{
-  /*    if(move < boardSize)
-	printf("(%i) Place a piece at %i.", move, move);
-	else if (move < boardSize + colcount)
-	printf("(%i) Push on %i and discard %i", move, (move - boardSize), (move - colcount));
-	else if (move < boardSize + colcount + rowcount)
-	printf("(%i) Push on %i and discard %i", move, (move - boardSize - colcount + 1)*colcount - 1, (move - boardSize - colcount)*colcount);
-	else if (move < boardSize + colcount + rowcount + colcount)
-	printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount - rowcount + 1), colcount - (move - boardSize - colcount - rowcount) - 1);
-	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-	printf("(%i) Push on %i and discard %i", move, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
+void PrintMove (MOVE move) {
+  /* must check all the math used for general case, such as 4x4 and on */
+  /*
+  if(move < boardSize)
+    printf("(%i) Place a piece at %i.", move, move);
+  else if (move < boardSize + colcount)
+    printf("(%i) Push on %i and discard %i", move, (move - boardSize), (move - colcount));
+  else if (move < boardSize + colcount + rowcount)
+    printf("(%i) Push on %i and discard %i", 
+	   move, 
+	   (move - boardSize - colcount + 1)*colcount - 1, 
+	   (move - boardSize - colcount)*colcount);
+  else if (move < boardSize + colcount + rowcount + colcount)
+    printf("(%i) Push on %i and discard %i", 
+	   move, 
+	   boardSize - (move - boardSize - colcount - rowcount + 1), 
+	   colcount - (move - boardSize - colcount - rowcount) - 1);
+  else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+    printf("(%i) Push on %i and discard %i", 
+	   move, 
+	   boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, 
+	   boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
   */
 
   if(move < boardSize)
     printf("%c", alphaArray[move]);
   else if (move < boardSize + colcount)
-    printf("%c", shiftArray[move]);
+    printf("%c", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount)
-    printf("%c", shiftArray[move]);
+    printf("%c", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount + colcount)
-    printf("%c", shiftArray[move]);
+    printf("%c", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-    printf("%c", shiftArray[move]);  
+    printf("%c", shiftArray[move-16]);  
 
 }
 
@@ -827,7 +841,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(undo)/a-h or 1-8] : ", playersName);
+	printf("%8s's move [(undo)/A-P] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -842,6 +856,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
   /* NOTREACHED */
   return Continue;
+
 }
 
 
@@ -879,16 +894,22 @@ BOOLEAN ValidTextInput (STRING input)
 	
   for(i = 0; i < strlen(input); i++)
     {
-      if(!((input[i] == '0') ||
-	   (input[i] == '1') ||
-	   (input[i] == '2') ||
-	   (input[i] == '3') ||
-	   (input[i] == '4') ||
-	   (input[i] == '5') ||
-	   (input[i] == '6') ||
-	   (input[i] == '7') ||
-	   (input[i] == '8') ||
-	   (input[i] == '9') ||
+      if(!((input[i] == 'A') ||
+	   (input[i] == 'B') ||
+	   (input[i] == 'C') ||
+	   (input[i] == 'D') ||
+	   (input[i] == 'E') ||
+	   (input[i] == 'F') ||
+	   (input[i] == 'G') ||
+	   (input[i] == 'H') ||
+	   (input[i] == 'I') ||
+	   (input[i] == 'J') ||
+	   (input[i] == 'K') ||
+	   (input[i] == 'L') ||
+	   (input[i] == 'M') ||
+	   (input[i] == 'N') ||
+	   (input[i] == 'O') ||
+	   (input[i] == 'P') ||
 	   (input[i] == 'a') ||
 	   (input[i] == 'b') ||
 	   (input[i] == 'c') ||
@@ -928,6 +949,19 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
+  int move = (int)input[0];
+
+  if((move >= 97) && (move <= 112)) {  // lower case; drop
+    move = move - 97;
+  }
+  else if((move >= 65) && (move <= 80)) { // upper case; shift
+    move = move - 49;
+  }
+  else {
+    printf("Error in: ConvertTextInputToMove");
+  }
+  
+  /*
   int move, i, limit; // limit is part of a really ugly hack. fix this for reals later.
 	
   move = 0;
@@ -941,6 +975,8 @@ MOVE ConvertTextInputToMove (STRING input)
       move = move * 10;
       move = move + atoi(&input[i]);		
     }
+  */
+
   return (MOVE) move;
 }
 
@@ -1138,6 +1174,9 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2006/04/05 07:31:16  simontaotw
+// Changed PrintMove.
+//
 // Revision 1.20  2006/03/30 07:57:17  simontaotw
 // Changed PrintPosition.
 //
