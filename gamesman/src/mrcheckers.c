@@ -584,7 +584,7 @@ VALUE Primitive(position)
 ************************************************************************/
 
 void PrintPosition(position,playerName,usersTurn)
-     POSITION position;
+        POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
@@ -596,45 +596,95 @@ void PrintPosition(position,playerName,usersTurn)
     generic_unhash(position, board);  // Obtain board state
     player = whoseMove(position);
     
+    // Set the game state
+    //curPlayer = player;
+    //curBoard = position;
+    
     printf("RUBIK'S CHECKERS\n\n  ");
-    
-    // Print column letters **POSSIBLE OVERFLOW**
-    for (i = 0; i < (cols*2); i++) {
-        printf("%c", 'a' + i);
-    }
-    
-    printf("\n --");
-    for (i = 0; i < (cols*2); i++) printf("-");
-    printf("\n");
     
     CountPieces(board, &p1Pieces, &p2Pieces);
 
-    for (i = rows; i > 0; i--) {
-        printf("%d|", i);  // Row number
-        if ((i % 2) != 0) printf("%c", EMPTY);  // Shift alternating rows
-        
-        for (j = 0; j < cols; j++) {
-            // Print square
-            printf("%c", board[k++]);
-            
-            // Print empty squares in between
-            if ((j != (cols-1)) || (i % 2) == 0) printf("%c", EMPTY);
+    if (player == P1) {
+        // Print column letters **POSSIBLE OVERFLOW**
+        for (i = 0; i < (cols*2); i++) {
+            printf("%c ", 'a' + i);
         }
-        printf("|");
-        if (i == rows) {  // Print player 2's number of pieces
-            printf("    %-8s: %d pieces", P2NAME, p2Pieces);
-            if (player == P2) printf(" (%s's turn)", P2NAME);
-        } else if (i == 1) {  // Print player 1's number of pieces
-            printf("    %-8s: %d pieces", P1NAME, p1Pieces);
-            if (player == P1) printf(" (%s's turn)", P1NAME);
-        }
-        printf("\n");
-    }
     
-    printf(" --");
-    for (i = 0; i < (cols*2); i++) printf("-");
-    printf("\n");
+        // Row separators
+        printf("\n +");
+        for (j = 0; j < (cols*2); j++) printf("-+");
+        printf("\n");
+        
+        k = 0;//boardSize;
+        for (i = rows; i > 0; i--) {
+            printf("%d|", i);  // Row number
+            if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
+            for (j = 0; j < cols; j++) {
+                // Print square plus a column separator
+                printf("%c|", board[k++]); //--k
+    
+                // Print empty squares in between plus a column separator
+                if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
+            }
+    
+            if (i == 1) {  // Print player 2's number of pieces
+                printf("    %8s: %d pieces", P2NAME, p2Pieces);
+                if (player == P2) printf(" (%s's turn)", P2NAME);
+            } else if (i == rows) {  // Print player 1's number of pieces
+                printf("    %8s: %d pieces", P1NAME, p1Pieces);
+                if (player == P1) printf(" (%s's turn)", P1NAME);
+            }
+    
+            // Row separators
+            printf("\n +");
+            for (j = 0; j < (cols*2); j++) printf("-+");
+            printf("\n");
+        }
+    } else if (player == P2) {  // Swap board
+        // Print column letters **POSSIBLE OVERFLOW**
+        for (i = 0; i < (cols*2); i++) {
+            printf("%c ", 'a' + (cols*2 - i - 1));
+        }
+    
+        // Row separators
+        printf("\n +");
+        for (j = 0; j < (cols*2); j++) printf("-+");
+        printf("\n");
+        
+        k = boardSize;
+        for (i = rows; i > 0; i--) {
+            printf("%d|", rows - i + 1);  // Row number
+            if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
+            for (j = 0; j < cols; j++) {
+                // Print square plus a column separator
+                printf("%c|", board[--k]); //--k
+    
+                // Print empty squares in between plus a column separator
+                if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
+            }
+    
+            if (i == rows) {  // Print player 2's number of pieces
+                printf("    %8s: %d pieces", P2NAME, p2Pieces);
+                if (player == P2) printf(" (%s's turn)", P2NAME);
+            } else if (i == 1) {  // Print player 1's number of pieces
+                printf("    %8s: %d pieces", P1NAME, p1Pieces);
+                if (player == P1) printf(" (%s's turn)", P1NAME);
+            }
+    
+            // Row separators
+            printf("\n +");
+            for (j = 0; j < (cols*2); j++) printf("-+");
+            printf("\n");
+        }
+    } else BadElse("PrintPosition");
+    
+    if (gPrintPredictions && (!gUnsolved)) {
+        printf("\n%s\n\n",GetPrediction(position,playerName,usersTurn));
+    } else {
+        printf("\n\n");
+    }
 }
+
 
 
 
@@ -883,6 +933,10 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   return(Continue); /* this is never reached, but lint is now happy */
 }
 
+int getIndexFromText(char currentRow, char currentCol){
+  return -((currentRow-'0')-rows)*cols + (currentCol-'a')/2;
+}
+
 /************************************************************************
 **
 ** NAME:        ValidTextInput
@@ -904,14 +958,25 @@ BOOLEAN ValidTextInput(input)
      STRING input;
 {
     // TODO
-    return(TRUE);
+  unsigned int myIndex, i = 0;
+  char currentRow = input[1], currentCol = input[0];
+  if(input[0] == 0 || input[1] == 0)
+    return(FALSE);
+  while(input[i-1]!=0 && input[i]!=0){
+    currentRow = input[i+1];
+    currentCol = input[i];
+    myIndex = getIndexFromText(currentRow, currentCol);
+    printf("%d\n", myIndex);
+    if(myIndex<0 || myIndex>boardSize)
+      return(FALSE);
+    i= i+2;
+  }
+  return(TRUE);
 }
 
 
 
-int getIndexFromText(char currentRow, char currentCol){
-  return -((currentRow-'0')-rows)*cols + (currentCol-'a')/2;
-}
+
 
 /************************************************************************
 **
@@ -993,7 +1058,6 @@ MOVE ConvertTextInputToMove(input)
   }
   if(previousMove != -1)
     myMove = myMove|(oppositeMove(previousMove)<<(32-MVHASHACC-(i)));
-  printf("%d\n", myMove);
   return(myMove);
 }
 
