@@ -10,25 +10,11 @@
  ** DATE:        Sunday, February 26 2006
  **
  ** UPDATE HIST:
- ** 4/10/2006    Redone: Primitive (supports Misere)
- **                      PrintPosition (switches board depending on player)
- **
- ** 4/02/2006    Redone: InitializeGame, GetInitialPosition: support initial pos.
- **                      PrintPosition: support prediction
- **
  ** 3/19/2006  	 fixed DoMove, added ConvertTextInputToMove, printMove(for debugging)
  **              Problems with internal row representation: printposition prints "bottom-up",
  **              while directional functions use implied "top-down."
- **
  ** 3/12/2006    Modified Forward-directions to return index instead of char
- **
- ** 3/06/2006    Done: getOption, setOption
- **              Done: GetInitialPosition
- **
  ** 2/26/2006    GenerateMoves, DoMoves, forward-directions
- **              Added new version of PrintPosition
- **              Done: Primitive
- **
  ** 2/13/2006    Started. Much of the code is shamelessly borrowed from
  **              m1210.c, which is used as a template. Done: InitializeGame,
  **              PrintPosition
@@ -157,7 +143,6 @@ unsigned int MVHASHACC = 8;
 void InitializeGame()
 {
     int maxPieces = startRows * cols;
-    int i;
     boardSize = rows * cols;
     int pieces[] = { P1KING, 0, maxPieces,
                      P1MAN,  0, maxPieces,
@@ -165,12 +150,10 @@ void InitializeGame()
                      P2MAN,  0, maxPieces,
                      EMPTY,  boardSize-(maxPieces*2), boardSize-1,
                      -1 };
-    generic_hash_init(boardSize, pieces, NULL);
-
-    gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
-    
     char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
-    POSITION initialPositionHash;
+    int i;
+    
+    gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
 
     // Create initial position
     for (i = 0; i < maxPieces; i++) {
@@ -180,14 +163,9 @@ void InitializeGame()
     
     for (i = maxPieces; i < (boardSize - maxPieces); i++) {
         initialPosition[i] = EMPTY;
-    }
-    
-    initialPositionHash = generic_hash(initialPosition, P1);
+    }       
+    gInitialPosition = generic_hash(initialPosition, P1);
     SafeFree(initialPosition);
-
-    if (gInitialPosition == 0) {
-        gInitialPosition = initialPositionHash;
-    }
 }
 
 void FreeGame()
@@ -490,40 +468,8 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-    int maxPieces = startRows * cols;
-    int i = 0;
-    boardSize = rows * cols;
-    int pieces[] = { P1KING, 0, maxPieces,
-                     P1MAN,  0, maxPieces,
-                     P2KING, 0, maxPieces,
-                     P2MAN,  0, maxPieces,
-                     EMPTY,  boardSize-(maxPieces*2), boardSize-1,
-                     -1 };
-    generic_hash_init(boardSize, pieces, NULL);
-    
-    char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
-    char c;
-    POSITION initialPositionHash;
-    
-    printf("Type in a board representation, using spaces for blank squares and letters for pieces.\n(e.g. 'GOOg    oGoG'): ");
-
-    // Prompt for initial position
-    getchar();
-    while(i < boardSize && (c = getchar()) != EOF) {
-        if ((c == P1MAN) || (c == P1KING) ||
-            (c == P2MAN) || (c == P2KING) || (c == EMPTY)) {
-            initialPosition[boardSize - ++i] = c;  // fill from the top down
-        } else {
-            ;//initialPosition[i++] = EMPTY;
-        }
-    }
-    
-    initialPositionHash = generic_hash(initialPosition, P1);
-    generic_unhash(initialPositionHash,initialPosition);
-    SafeFree(initialPosition);
-
-    gInitialPosition = initialPositionHash;
-    return initialPositionHash;
+    // TODO
+    return gInitialPosition;
 }
 
 /************************************************************************
@@ -614,13 +560,13 @@ VALUE Primitive(position)
     // Check for no more pieces
     CountPieces(board, &p1Pieces, &p2Pieces);
     if(whosTurn == P1){
-        if (&p1Pieces == 0) return (gStandardGame ? lose : win);  // Player 1 has no more pieces
+      if (&p1Pieces == 0) return lose;  // Player 1 has no more pieces
     }
-    else if(&p2Pieces == 0) return (gStandardGame ? lose : win);// P2 has no more pieces
+    else if(&p2Pieces == 0) return lose;// P2 has no more pieces
     
     // TODO: Check for all pieces being locked (unable to move)
     if(GenerateMoves(position) == NULL)
-        return (gStandardGame ? lose : win);
+      return lose; //undecided;
     return undecided;
 }
 
@@ -638,7 +584,7 @@ VALUE Primitive(position)
 ************************************************************************/
 
 void PrintPosition(position,playerName,usersTurn)
-        POSITION position;
+     POSITION position;
      STRING playerName;
      BOOLEAN  usersTurn;
 {
@@ -652,87 +598,42 @@ void PrintPosition(position,playerName,usersTurn)
     
     printf("RUBIK'S CHECKERS\n\n  ");
     
+    // Print column letters **POSSIBLE OVERFLOW**
+    for (i = 0; i < (cols*2); i++) {
+        printf("%c", 'a' + i);
+    }
+    
+    printf("\n --");
+    for (i = 0; i < (cols*2); i++) printf("-");
+    printf("\n");
+    
     CountPieces(board, &p1Pieces, &p2Pieces);
 
-    if (player == P1) {
-        // Print column letters **POSSIBLE OVERFLOW**
-        for (i = 0; i < (cols*2); i++) {
-            printf("%c ", 'a' + i);
-        }
-    
-        // Row separators
-        printf("\n +");
-        for (j = 0; j < (cols*2); j++) printf("-+");
-        printf("\n");
+    for (i = rows; i > 0; i--) {
+        printf("%d|", i);  // Row number
+        if ((i % 2) != 0) printf("%c", EMPTY);  // Shift alternating rows
         
-        k = 0;//boardSize;
-        for (i = rows; i > 0; i--) {
-            printf("%d|", i);  // Row number
-            if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
-            for (j = 0; j < cols; j++) {
-                // Print square plus a column separator
-                printf("%c|", board[k++]); //--k
-    
-                // Print empty squares in between plus a column separator
-                if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
-            }
-    
-            if (i == 1) {  // Print player 2's number of pieces
-                printf("    %8s: %d pieces", P2NAME, p2Pieces);
-                if (player == P2) printf(" (%s's turn)", P2NAME);
-            } else if (i == rows) {  // Print player 1's number of pieces
-                printf("    %8s: %d pieces", P1NAME, p1Pieces);
-                if (player == P1) printf(" (%s's turn)", P1NAME);
-            }
-    
-            // Row separators
-            printf("\n +");
-            for (j = 0; j < (cols*2); j++) printf("-+");
-            printf("\n");
+        for (j = 0; j < cols; j++) {
+            // Print square
+            printf("%c", board[k++]);
+            
+            // Print empty squares in between
+            if ((j != (cols-1)) || (i % 2) == 0) printf("%c", EMPTY);
         }
-    } else if (player == P2) {  // Swap board
-        // Print column letters **POSSIBLE OVERFLOW**
-        for (i = 0; i < (cols*2); i++) {
-            printf("%c ", 'a' + (cols*2 - i - 1));
+        printf("|");
+        if (i == rows) {  // Print player 2's number of pieces
+            printf("    %-8s: %d pieces", P2NAME, p2Pieces);
+            if (player == P2) printf(" (%s's turn)", P2NAME);
+        } else if (i == 1) {  // Print player 1's number of pieces
+            printf("    %-8s: %d pieces", P1NAME, p1Pieces);
+            if (player == P1) printf(" (%s's turn)", P1NAME);
         }
-    
-        // Row separators
-        printf("\n +");
-        for (j = 0; j < (cols*2); j++) printf("-+");
         printf("\n");
-        
-        k = boardSize;
-        for (i = rows; i > 0; i--) {
-            printf("%d|", rows - i + 1);  // Row number
-            if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
-            for (j = 0; j < cols; j++) {
-                // Print square plus a column separator
-                printf("%c|", board[--k]); //--k
-    
-                // Print empty squares in between plus a column separator
-                if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
-            }
-    
-            if (i == rows) {  // Print player 2's number of pieces
-                printf("    %8s: %d pieces", P2NAME, p2Pieces);
-                if (player == P2) printf(" (%s's turn)", P2NAME);
-            } else if (i == 1) {  // Print player 1's number of pieces
-                printf("    %8s: %d pieces", P1NAME, p1Pieces);
-                if (player == P1) printf(" (%s's turn)", P1NAME);
-            }
-    
-            // Row separators
-            printf("\n +");
-            for (j = 0; j < (cols*2); j++) printf("-+");
-            printf("\n");
-        }
-    } else BadElse("Invalid player!");
-    
-    if (gPrintPredictions && (!gUnsolved)) {
-        printf("\n%s\n\n",GetPrediction(position,playerName,usersTurn));
-    } else {
-        printf("\n\n");
     }
+    
+    printf(" --");
+    for (i = 0; i < (cols*2); i++) printf("-");
+    printf("\n");
 }
 
 
@@ -1038,7 +939,7 @@ MOVE ConvertTextInputToMove(input)
   */
   myMove = currentIndex = getIndexFromText(currentRow, currentCol);
   myMove = myMove<<(32-MVHASHACC);
-  printf("%d", myMove);
+  //printf("%d", myMove);
 
   /*if(input[0] == P1KING || input[0] == P1MAN)
     whosTurn = P1;
@@ -1115,51 +1016,17 @@ STRING kDBName = "Rubik's Checkers" ;
 
 int NumberOfOptions()
 {
-    return (1 << 10);  // 2^10 possible options
+    // TODO
+    return 0;
 }
 
 int getOption()
 {
-    int option = 0;
-
-    if (demote) option++;
-    option = option << 1;
-
-    if (forceCapture) option++;
-    option = option << 1;
-
-    if (startPromoted) option++;
-    option = option << 1;
-
-    if (promoteRow == BACKWARD) option++;
-    option = option << 3;
-
-    option += kingMobility;
-    option = option << 3;
-
-    option += manMobility;
-
-    return (option + 1);  // Options start at 1 so push up by 1
+    // TODO
+    return 0;
 }
 
 void setOption(int option)
 {
-    option--;  // Options start at 1 so normalize back to 0
-
-    manMobility = option & 7;  // mask lower 3 bits
-    option = option >> 3;
-
-    kingMobility = option & 7;
-    option = option >> 3;
-
-    promoteRow = ((option & 1) ? BACKWARD : FORWARD);
-    option = option >> 1;
-
-    startPromoted = option & 1;
-    option = option >> 1;
-
-    forceCapture = option & 1;
-    option = option >> 1;
-
-    demote = option & 1;
+    // TODO
 }
