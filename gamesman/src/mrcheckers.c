@@ -926,7 +926,6 @@ int getIndexFromText(char currentRow, char currentCol){
 ************************************************************************/
 
 //NO ERROR CHECKING YET
-//directional functions will not work for P2-no way to find out who's turn it is.
 //write 
 MOVE ConvertTextInputToMove(input)
      STRING input;
@@ -945,32 +944,56 @@ MOVE ConvertTextInputToMove(input)
     whosTurn = P1;
   else if (input[0] == P2KING || input[0] == P2MAN)
   whosTurn = P2;*/
-
-  while(input[i]!=0){
-    currentCol = input[i];
-    currentRow = input[i+1];
-    nextIndex = getIndexFromText(currentRow, currentCol);
-    if(nextIndex == forwardRight(currentTurn, currentIndex)){
-      myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
-      previousMove = FORWARDRIGHT;
+  currentCol = input[i];
+  currentRow = input[i+1];
+  nextIndex = getIndexFromText(currentRow, currentCol);
+  if(nextIndex == forwardRight(currentTurn, currentIndex)){
+    myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
+    previousMove = FORWARDRIGHT;
+  }
+  else if(nextIndex == forwardLeft(currentTurn, currentIndex)){
+    myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
+    previousMove = FORWARDLEFT;
+  }
+  else if(nextIndex == backwardLeft(currentTurn, currentIndex)){
+    myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
+    previousMove = BACKWARDLEFT;
+  }
+  else if(nextIndex == backwardRight(currentTurn, currentIndex)){
+    myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
+    previousMove = BACKWARDRIGHT;
+  }
+  i = i + 2;
+  if(previousMove == -1){
+    i = 2;
+    while(input[i]!=0){
+      currentCol = input[i];
+      currentRow = input[i+1];
+      nextIndex = getIndexFromText(currentRow, currentCol);
+      if(nextIndex == forwardRight(currentTurn, forwardRight(currentTurn, currentIndex))){
+	myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
+	previousMove = FORWARDRIGHT;
+      }
+      else if(nextIndex == forwardLeft(currentTurn, forwardLeft(currentTurn, currentIndex))){
+	myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
+	previousMove = FORWARDLEFT;
+      }
+      else if(nextIndex == backwardLeft(currentTurn, backwardLeft(currentTurn, currentIndex))){
+	myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
+	previousMove = BACKWARDLEFT;
+      }
+      else if(nextIndex == backwardRight(currentTurn, backwardRight(currentTurn, currentIndex))){
+	myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
+	previousMove = BACKWARDRIGHT;
+      }		      
+      i=i+2;
+      //printf("%d", previousMove);
+      currentIndex = nextIndex;
     }
-    else if(nextIndex == forwardLeft(currentTurn, currentIndex)){
-      myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
-      previousMove = FORWARDLEFT;
-    }
-    else if(nextIndex == backwardLeft(currentTurn, currentIndex)){
-      myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
-      previousMove = BACKWARDLEFT;
-    }
-    else if(nextIndex == backwardRight(currentTurn, currentIndex)){
-      myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
-      previousMove = BACKWARDRIGHT;
-    }		      
-    i=i+2;
-    printf("%d", previousMove);
   }
   if(previousMove != -1)
     myMove = myMove|(oppositeMove(previousMove)<<(32-MVHASHACC-(i)));
+  printf("%d\n", myMove);
   return(myMove);
 }
 
