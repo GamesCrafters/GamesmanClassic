@@ -85,6 +85,8 @@ extern POSITION         generic_hash(char* board, int player);
 extern char             *generic_unhash(POSITION hash_number, char *empty_board);
 extern int              whoseMove (POSITION hashed);
 
+
+
 // How a piece can move
 #define FORWARD               1
 #define BACKWARD              2
@@ -93,7 +95,6 @@ extern int              whoseMove (POSITION hashed);
 // Player representation
 #define P1                    1
 #define P2                    2
-
 
 //Piece Movement representation
 #define FORWARDLEFT           0
@@ -109,6 +110,9 @@ extern int              whoseMove (POSITION hashed);
 #define P2MAN                 'o'
 #define P1NAME                "Green"
 #define P2NAME                "Orange"
+
+//POSSIBLY TEMPORARY:
+unsigned int currentTurn = P1;
 
 // How large the board is
 unsigned int rows           = 6;  // Rubik's: 6, Checkers: 8
@@ -188,6 +192,7 @@ int forwardRight(int whosTurn, int currentIndex){
        if(!isEvenRow && !isLastOfRow)//odd row, not last column
 	 return currentIndex - cols+1;
        else if(isEvenRow)
+
 	 return currentIndex - cols;
      }
    }
@@ -246,6 +251,7 @@ POSITION unHashMove(POSITION myPosition, int theMove)
   int opposingMan = (whosTurn == P1 ? P2MAN:P1MAN);
   int isFirstRow = ((index/cols) == 0),
     isLastRow = ((index/cols) == rows-1);  
+   
   if(promoteRow == BACKWARD){
     if(thePosition[index] == P1MAN){
       if(isFirstRow){
@@ -342,7 +348,7 @@ POSITION unHashMove(POSITION myPosition, int theMove)
     if(oppositeMove(previousMove)==nextMove)
       done = TRUE;
   }
-  whosTurn = (whosTurn == P1 ? P2:P1);//switch players
+  currentTurn = whosTurn = (whosTurn == P1 ? P2:P1);//switch players
   return generic_hash(thePosition, whosTurn);
 }
   
@@ -925,47 +931,46 @@ int getIndexFromText(char currentRow, char currentCol){
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  printf("%d\n", backwardLeft(P1, 7));
-  //
-  int i = 3;
-  char currentRow = input[2], currentCol = input[1];
-  int whosTurn;
+  int i = 2;
+  char currentRow = input[1], currentCol = input[0];
   unsigned int myMove, previousMove = -1, currentIndex, nextIndex;
   /*  int isFirstRow = ((currentIndex/cols) == 0),
     isLastRow = ((currentIndex/cols) == rows-1);
   */
   myMove = currentIndex = getIndexFromText(currentRow, currentCol);
   myMove = myMove<<(32-MVHASHACC);
+  printf("%d", myMove);
 
-  if(input[0] == P1KING || input[0] == P1MAN)
+  /*if(input[0] == P1KING || input[0] == P1MAN)
     whosTurn = P1;
   else if (input[0] == P2KING || input[0] == P2MAN)
-    whosTurn = P2;
+  whosTurn = P2;*/
 
   while(input[i]!=0){
     currentCol = input[i];
     currentRow = input[i+1];
     nextIndex = getIndexFromText(currentRow, currentCol);
-    if(nextIndex == forwardRight(whosTurn, currentIndex)){
-      myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-(i-1)));
+    if(nextIndex == forwardRight(currentTurn, currentIndex)){
+      myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
       previousMove = FORWARDRIGHT;
     }
-    else if(nextIndex == forwardLeft(whosTurn, currentIndex)){
-      myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-(i-1)));
+    else if(nextIndex == forwardLeft(currentTurn, currentIndex)){
+      myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
       previousMove = FORWARDLEFT;
     }
-    else if(nextIndex == backwardLeft(whosTurn, currentIndex)){
-      myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-(i-1)));
+    else if(nextIndex == backwardLeft(currentTurn, currentIndex)){
+      myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
       previousMove = BACKWARDLEFT;
     }
-    else if(nextIndex == backwardRight(whosTurn, currentIndex)){
-      myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-(i-1)));
+    else if(nextIndex == backwardRight(currentTurn, currentIndex)){
+      myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
       previousMove = BACKWARDRIGHT;
     }		      
     i=i+2;
+    printf("%d", previousMove);
   }
   if(previousMove != -1)
-    myMove = myMove|(oppositeMove(previousMove)<<(32-MVHASHACC-(i-1)));
+    myMove = myMove|(oppositeMove(previousMove)<<(32-MVHASHACC-(i)));
   return(myMove);
 }
 
