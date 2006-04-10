@@ -18,7 +18,8 @@
 * Starting from LSB=bit 0
 *
 * bit 0..1   : openPositions value (win, loss, undecided)
-* bit 2..11  : corruption level
+* bit 2      : fringe bit
+* bit 3..11  : corruption level
 * bit 12..21 : level number
 * bit 22..31 : fringe remoteness (fremoteness)
 */
@@ -43,7 +44,8 @@
 #define IR_MASK 0x00FF8000
 #define OL_MASK 0xFF000000*/
 #define DV_MASK 0x3
-#define CL_MASK 0x00000FFC
+#define FB_MASK 0x4
+#define CL_MASK 0x00000FF8
 #define LN_MASK 0x003FF000
 #define FR_MASK 0xFFC00000
 
@@ -56,11 +58,12 @@
 #define IR_SHIFT 15
 #define OL_SHIFT 24*/
 #define DV_SHIFT 0
-#define CL_SHIFT 2
+#define FB_SHIFT 2
+#define CL_SHIFT 3
 #define LN_SHIFT 12
 #define FR_SHIFT 22
 
-#define CORRUPTION_MAX ((0x1<<10)-1)
+#define CORRUPTION_MAX ((0x1<<9)-1)
 #define FREMOTENESS_MAX ((0x1<<10)-1)
 
 /* macros */
@@ -83,11 +86,13 @@
 #define GetCorruptionLevel(entry)    (((entry)&CL_MASK)>>CL_SHIFT)
 #define GetLevelNumber(entry)        (((entry)&LN_MASK)>>LN_SHIFT)
 #define GetFremoteness(entry)        (((entry)&FR_MASK)>>FR_SHIFT)
+#define GetFringe(entry)             (((entry)&FB_MASK)>>FB_SHIFT)
 
 #define SetDrawValue(entry, newval)          (((entry)|DV_MASK)&(((newval)<<DV_SHIFT)|(~DV_MASK)))
 #define SetCorruptionLevel(entry, newval)    (((entry)|CL_MASK)&(((newval)<<CL_SHIFT)|(~CL_MASK)))
 #define SetLevelNumber(entry, newval)        (((entry)|LN_MASK)&(((newval)<<LN_SHIFT)|(~LN_MASK)))
 #define SetFremoteness(entry, newval)        (((entry)|FR_MASK)&(((newval)<<FR_SHIFT)|(~FR_MASK)))
+#define SetFringe(entry, newval)             (((entry)|FB_MASK)&(((newval)<<FB_SHIFT)|(~FB_MASK)))
 
 /* headers */
 
@@ -120,6 +125,7 @@ void EnqueueDP(POSITION pos);
 POSITION DequeueDP(void);
 void CleanUpBeneathCL(int cl);
 void PropogateFreAndCorUp(POSITION p);
+void PropogateFreAndCorUpFringe(POSITION p, char fringe);
 
 
 /* globals */

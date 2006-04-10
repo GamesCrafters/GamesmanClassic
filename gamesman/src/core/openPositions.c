@@ -116,6 +116,10 @@ void PrintChildrenCounts()
 }
 void PropogateFreAndCorUp(POSITION p)
 {
+	PropogateFreAndCorUpFringe(p, 0);
+}
+void PropogateFreAndCorUpFringe(POSITION p, char fringe)
+{
 	OPEN_POS_DATA dat=GetOpenData(p);
 	POSITIONLIST* parents=gParents[p];
 	if(GetDrawValue(dat)==undecided) return;
@@ -124,6 +128,7 @@ void PropogateFreAndCorUp(POSITION p)
 		OPEN_POS_DATA pdat=GetOpenData(parents->position);
 		OPEN_POS_DATA old=pdat;
 		if(GetLevelNumber(pdat)!=GetLevelNumber(dat)) continue;
+		if(fringe && !GetFringe(pdat)) continue;
 		switch(GetDrawValue(dat))
 		{
 		case win:
@@ -136,10 +141,12 @@ void PropogateFreAndCorUp(POSITION p)
 				{
 					pdat=SetCorruptionLevel(pdat,GetCorruptionLevel(dat));
 					pdat=SetFremoteness(pdat,GetFremoteness(dat)+1);
+					if(!fringe) pdat=SetFringe(pdat,0);
 				}
 				else if(GetCorruptionLevel(dat)==GetCorruptionLevel(pdat) && GetFremoteness(dat)+1>GetFremoteness(pdat))
 				{
 					pdat=SetFremoteness(pdat,GetFremoteness(dat)+1);
+					if(!fringe) pdat=SetFringe(pdat,0);
 				}
 				break;
 			}
@@ -151,22 +158,25 @@ void PropogateFreAndCorUp(POSITION p)
 				{
 					pdat=SetCorruptionLevel(pdat,GetCorruptionLevel(dat));
 					pdat=SetFremoteness(pdat,GetFremoteness(dat)+1);
+					if(!fringe) pdat=SetFringe(pdat,0);
 				}
 				else if(GetCorruptionLevel(dat)==GetCorruptionLevel(pdat) && GetFremoteness(dat)+1<GetFremoteness(pdat))
 				{
 					pdat=SetFremoteness(pdat,GetFremoteness(dat)+1);
+					if(!fringe) pdat=SetFringe(pdat,0);
 				}
 			}
 			break;
 		}
-		if(fringePositions[parents->position] && GetDrawValue(pdat)==lose)
+		if(!fringe && fringePositions[parents->position] && GetDrawValue(pdat)==lose)
 		{
 			pdat=SetFremoteness(pdat,0);
+			pdat=SetFringe(pdat,1);
 		}
 		if(pdat!=old)
 		{
 			SetOpenData(parents->position,pdat);
-			PropogateFreAndCorUp(parents->position);
+			PropogateFreAndCorUpFringe(parents->position,fringe);
 		}
 	}
 }
@@ -180,6 +190,7 @@ void ComputeOpenPositions()
 {
 	POSITIONLIST* ptr;
 	int curLevel=1;
+	POSITION iter;
 
 	if(!openPosData) return;
 	//PrintChildrenCounts();
@@ -188,7 +199,6 @@ void ComputeOpenPositions()
 
 	while(1)
 	{
-		POSITION iter;
 		int fringePosCount=0;
 		int maxCorruption=0;
 		int i;
@@ -203,7 +213,7 @@ void ComputeOpenPositions()
 			if(gNumberChildren[iter]&&gNumberChildren[iter]<gNumberChildrenOriginal[iter]&&GetDrawValue(GetOpenData(iter))==undecided && GetValueOfPosition(iter)==tie && Remoteness(iter)==REMOTENESS_MAX)
 			{
 				if(curLevel==1) dat=SetCorruptionLevel(dat,0);
-				SetOpenData(iter,SetLevelNumber(SetFremoteness(SetDrawValue(dat,lose),0),curLevel));
+				SetOpenData(iter,SetFringe(SetLevelNumber(SetFremoteness(SetDrawValue(dat,lose),0),curLevel),1));
 				InsertLoseFR(iter);
 				fringePosCount++;
 				fringePositions[iter]=1;
@@ -347,6 +357,7 @@ void ComputeOpenPositions()
 						old=pdat;
 						pdat=SetDrawValue(pdat,win);
 						pdat=SetLevelNumber(pdat,curLevel);
+						fringePositions[parents->position]=0;
 						if(GetCorruptionLevel(pdat)<i) continue;
 						if(GetCorruptionLevel(pdat)>i)
 						{
@@ -387,6 +398,7 @@ void ComputeOpenPositions()
 							pdat=SetDrawValue(pdat,lose);
 							pdat=SetLevelNumber(pdat,curLevel);
 							SetOpenData(parents->position,pdat);
+							fringePositions[parents->position]=0;
 							InsertLoseFR(parents->position);
 							timeToBreak=1;
 						}
@@ -424,12 +436,30 @@ void ComputeOpenPositions()
 	for(ptr=headNodeDP;ptr;ptr=ptr->next)
 	{
 		OPEN_POS_DATA dat=GetOpenData(ptr->position);
-		if(GetDrawValue(dat)==undecided)
+		if(GetValueOfPosition(ptr->position)==tie && Remoteness(ptr->position)==REMOTENESS_MAX && GetDrawValue(dat)==undecided)
 		{
 			dat=SetDrawValue(dat,tie);
 			dat=SetFremoteness(dat,0xFFFFFFFF);
 			SetOpenData(ptr->position,dat);
 		}
+	}
+	/* One more thing... find loop lengths for fringe positions */
+	for(iter=0;iter<gNumberOfPositions;iter++)
+	{
+		int maxFremote=0;
+		OPEN_POS_DATA dat=GetOpenData(iter);
+		MOVELIST* moves;
+		if(!GetFringe(dat)) continue;
+		moves=GenerateMoves(iter);
+		for(;moves;moves=moves->next)
+		{
+			POSITION child=DoMove(iter,moves->move);
+			OPEN_POS_DATA cdat=GetOpenData(iter);
+			if(!GetFringe(cdat) && GetLevelNumber(cdat)==GetLevelNumber(dat) && GetFremoteness(cdat)>maxFremote)
+				maxFremote=GetFremoteness(cdat);
+		}
+		dat=SetFremoteness(dat,maxFremote+1);
+		SetOpenData(iter,dat);
 	}
 	return;
 }
@@ -470,6 +500,7 @@ void PrintOpenDataFormatted(void)
 		}
 		printf("\nCorruption level: %d\n",GetCorruptionLevel(dat));
 		printf("Fremoteness: %d\n",GetFremoteness(dat));
+		printf("Fringe?: %s\n",GetFringe(dat)?"yes":"no");
 	}
 }
 void PrintOpenAnalysis(void)
