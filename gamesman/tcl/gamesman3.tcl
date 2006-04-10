@@ -1,3 +1,10 @@
+############################################################################
+##
+## gamesman3.tcl
+##
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.41 2006-04-10 22:53:26 ogren Exp $
+##
+############################################################################
 
 ############################################################################
 ##
@@ -84,6 +91,411 @@ proc ScaleUpAnimation { norm } {
     set median 0
     global gAnimationSpeed
     return [expr $norm * pow($base, [expr $gAnimationSpeed - $median])]
+}
+
+#############################################################################
+##
+## PolyArrow
+##
+## This procedure is used to draw arrows using polygons.
+## Arrows have to be polygons since arrowshape does not have a border
+## and borders are needed for delta-remoteness
+##
+## Assumes all points are in pixels (to allow arithmetic operations)
+##
+## Arrow starts at (startx, starty) and points to (endx, endy)
+##
+## Arrows point in 8 cardinal directions with 45o angles between them
+## (i.e., the absolute value of the slopes for the dagonal arrows are 1)       
+##
+## arrowWidth == -width w
+## {arrowTip arrowBase arrowSides} == -arrowShape {x y z}
+##
+## $path create line x1 y1 ... xn yn ?option value ...
+##  -arrow
+##  -arrowshape
+##  -tags
+##
+## $path create polygon x1 y1 ... xn yn ?option value ...
+##  -outline color
+##  -width outlineWidth
+##  -tags
+##
+## Tk coordinates: 
+## "Larger y-coordinates refer to points lower on the screen;
+##  larger x-coordinates refer to points farther to the right"
+##
+## (0,0) -> (n,0)
+##   |
+##   v
+## (0, n)
+##
+## Tk does not allow rotations on canvas objects, therefore we need 8 helpers
+#############################################################################
+
+proc PolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    global pi
+    set pi 3.14159265359
+    #3.1415926535897932384626433832795028841971693993751058209749445923078164 
+
+    if {($startx < $endx) && ($starty == $endy)} {
+	return [EPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx > $endx) && ($starty == $endy)} {
+	return [WPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx == $endx) && ($starty < $endy)} {
+	return [SPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]	
+    } elseif {($startx == $endx) && ($starty > $endy)} {
+	return [NPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx < $endx) && ($starty < $endy)} {
+	return [SEPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx < $endx) && ($starty > $endy)} {
+	return [NEPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx > $endx) && ($starty < $endy)} {
+	return [SWPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } elseif {($startx > $endx) && ($starty > $endy)} {
+	return [NWPolyArrow $canvas $startx $starty $endx $endy $arrowWidth $arrowTip $arrowBase $arrowSides $arrowTags]
+    } else {
+	[BadElse "PolyArrow" "unknown arrow type"]
+    }
+
+}
+
+## East Horizontal Arrow points:
+##
+##          3 
+## 1        2  
+##              4
+## 7        6
+##          5
+proc EPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    set halfWidth [expr $arrowWidth / 2]
+    
+    set x1 $startx
+    set y1 [expr $starty - $halfWidth]
+
+    set x2 [expr $endx - $arrowBase]
+    set y2 $y1
+
+    set x3 $x2
+    set y3 [expr $y2 - $arrowSides]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x7 $startx
+    set y7 [expr $starty + $halfWidth]
+
+    set x6 $x2
+    set y6 $y7
+
+    set x5 $x2
+    set y5 [expr $y6 + $arrowSides]
+
+    set epArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $epArrow
+
+}
+
+
+## West Arrow points:
+##      3 
+##      2         1
+##  4        
+##      6         7
+##      5
+proc WPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    set halfWidth [expr $arrowWidth / 2]
+    
+    set x1 $startx
+    set y1 [expr $starty - $halfWidth]
+
+    set x7 $x1
+    set y7 [expr $starty + $halfWidth]
+
+    set x2 [expr $endx + $arrowBase]
+    set y2 $y1
+
+    set x3 $x2
+    set y3 [expr $y2 - $arrowSides]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 $x2
+    set y6 $y7
+
+    set x5 $x2
+    set y5 [expr $y6 + $arrowSides]
+
+    set wpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $wpArrow
+
+}
+
+
+## North Arrow points:
+##
+##      4
+##
+##  3 2   6 5
+##
+##
+##    1   7
+proc NPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    set halfWidth [expr $arrowWidth / 2]
+    
+    set x1 [expr $startx - $halfWidth]
+    set y1 $starty
+
+    set x7 [expr $startx + $halfWidth]
+    set y7 $starty
+
+    set x2 $x1
+    set y2 [expr $endy - $arrowBase]
+
+    set x3 [expr $x2 - $arrowSides]
+    set y3 $y2
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 $x7
+    set y6 $y2
+
+    set x5 [expr $x6 + $arrowSides]
+    set y5 $y2
+    
+    set npArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $npArrow
+
+}
+
+
+## South Arrow points:
+##
+##    1   7
+##
+##          
+##  3 2   6 5
+##              
+##      4  
+proc SPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    set halfWidth [expr $arrowWidth / 2]
+    
+    set x1 [expr $startx - $halfWidth]
+    set y1 $starty
+
+    set x7 [expr $startx + $halfWidth]
+    set y7 $starty
+
+    set x2 $x1
+    set y2 [expr $endy - $arrowBase]
+
+    set x3 [expr $x2 - $arrowSides]
+    set y3 $y2
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 $x7
+    set y6 $y2
+
+    set x5 [expr $x6 + $arrowSides]
+    set y5 $y2
+
+    set spArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $spArrow
+
+}
+    
+
+## North-East Arrow points:
+##
+##     3    4
+##      2
+##        6 
+##   1     5
+##     7    
+proc NEPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    global pi
+
+    set halfWidth [expr $arrowWidth / 2]
+    set length [expr hypot(abs($endx - $startx), abs($endy - $starty))]
+    set tailLength [expr $length - $arrowTip]
+
+    set angle [expr atan(abs($endy - $starty) / abs($endx - $startx))]
+    set compAngle [expr ($pi / 2) - $angle]
+    
+    set x1 [expr $startx - ($halfWidth * cos($compAngle))]
+    set y1 [expr $starty - ($halfWidth * sin($compAngle))]
+
+    set x7 [expr $startx + ($halfWidth * cos($compAngle))]
+    set y7 [expr $starty + ($halfWidth * sin($compAngle))]
+
+    set x2 [expr $x1 + ($tailLength * cos($angle))]
+    set y2 [expr $y1 - ($tailLength * sin($angle))]
+
+    set x3 [expr $x2 - ($arrowSides * cos($compAngle))]
+    set y3 [expr $y2 - ($arrowSides * sin($compAngle))]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 [expr $x7 + ($tailLength * cos($angle))]
+    set y6 [expr $y7 - ($tailLength * sin($angle))] 
+
+    set x5 [expr $x6 + ($arrowSides * cos($compAngle))]
+    set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
+    
+    set nepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $nepArrow
+
+}
+
+## North-West Arrow points:
+##
+## 4   3
+##    2  
+##   6    1   
+##  5    7   
+##         
+proc NWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    global pi
+
+    set halfWidth [expr $arrowWidth / 2]
+    set length [expr hypot(abs($endx - $startx), abs($endy - $starty))]
+    set tailLength [expr $length - $arrowTip]
+
+    set angle [expr atan(abs($endy - $starty) / abs($endx - $startx))]
+    set compAngle [expr ($pi / 2) - $angle]
+    
+    set x1 [expr $startx + ($halfWidth * cos($compAngle))]
+    set y1 [expr $starty + ($halfWidth * sin($compAngle))]
+
+    set x7 [expr $startx - ($halfWidth * cos($compAngle))]
+    set y7 [expr $starty + ($halfWidth * sin($compAngle))]
+
+    set x2 [expr $x1 - ($tailLength * cos($angle))]
+    set y2 [expr $y1 - ($tailLength * sin($angle))]
+
+    set x3 [expr $x2 + ($arrowSides * cos($compAngle))]
+    set y3 [expr $y2 - ($arrowSides * sin($compAngle))]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 [expr $x7 - ($tailLength * cos($angle))]
+    set y6 [expr $y7 - ($tailLength * sin($angle))] 
+
+    set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
+    set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
+    
+    set nwpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $nwpArrow
+
+}
+
+## South-East Arrow points:
+##
+##    1    3 
+##   7    2
+##       6 
+##      5  4
+##         
+proc SEPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    global pi
+
+    set halfWidth [expr $arrowWidth / 2]
+    set length [expr hypot(abs($endx - $startx), abs($endy - $starty))]
+    set tailLength [expr $length - $arrowTip]
+
+    set angle [expr atan(abs($endy - $starty) / abs($endx - $startx))]
+    set compAngle [expr ($pi / 2) - $angle]
+    
+    set x1 [expr $startx + ($halfWidth * cos($compAngle))]
+    set y1 [expr $starty - ($halfWidth * sin($compAngle))]
+
+    set x7 [expr $startx - ($halfWidth * cos($compAngle))]
+    set y7 [expr $starty + ($halfWidth * sin($compAngle))]
+
+    set x2 [expr $x1 + ($tailLength * cos($angle))]
+    set y2 [expr $y1 + ($tailLength * sin($angle))]
+
+    set x3 [expr $x2 + ($arrowSides * cos($compAngle))]
+    set y3 [expr $y2 - ($arrowSides * sin($compAngle))]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 [expr $x7 + ($tailLength * cos($angle))]
+    set y6 [expr $y7 + ($tailLength * sin($angle))] 
+
+    set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
+    set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
+
+    set sepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $sepArrow
+
+}
+
+## South-West Arrow points:
+##
+##        1  
+##   3      7
+##    2      
+##     5    
+##  4   6     
+proc SWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
+
+    global pi
+
+    set halfWidth [expr $arrowWidth / 2]
+    set length [expr hypot(abs($endx - $startx), abs($endy - $starty))]
+    set tailLength [expr $length - $arrowTip]
+
+    set angle [expr atan(abs($endy - $starty) / abs($endx - $startx))]
+    set compAngle [expr ($pi / 2) - $angle]
+    
+    set x1 [expr $startx - ($halfWidth * cos($compAngle))]
+    set y1 [expr $starty - ($halfWidth * sin($compAngle))]
+
+    set x7 [expr $startx + ($halfWidth * cos($compAngle))]
+    set y7 [expr $starty + ($halfWidth * sin($compAngle))]
+
+    set x2 [expr $x1 - ($tailLength * cos($angle))]
+    set y2 [expr $y1 + ($tailLength * sin($angle))]
+
+    set x3 [expr $x2 - ($arrowSides * cos($compAngle))]
+    set y3 [expr $y2 - ($arrowSides * sin($compAngle))]
+
+    set x4 $endx
+    set y4 $endy
+
+    set x6 [expr $x7 - ($tailLength * cos($angle))]
+    set y6 [expr $y7 + ($tailLength * sin($angle))]
+
+    set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
+    set y5 [expr $y6 - ($arrowSides * sin($compAngle))]
+
+    set swpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    return $swpArrow
+
 }
 
 #############################################################################
@@ -256,11 +668,11 @@ proc DriverLoop { } {
 
 	if {!$gameMenuToDriverLoop} {
 	    ## Move History
-        if { $primitive != "Undecided" } {
-            set theMoves  [list]
-        } else {
-            set theMoves  [C_GetValueMoves $gPosition]
-        }
+	    if { $primitive != "Undecided" } {
+		set theMoves  [list]
+	    } else {
+		set theMoves  [C_GetValueMoves $gPosition]
+	    }
 	    set lastMove      [peek $gMovesSoFar]
 	    set theValue      [C_GetValueOfPosition $gPosition]
 	    set theRemoteness [C_Remoteness $gPosition]
@@ -299,7 +711,7 @@ proc DriverLoop { } {
 		update
 	    } else {
 		global gSkipInputOnSingleMove gJustUndone
-		if {$gSkipInputOnSingleMove && !$gJustUndone  && [llength [C_GetValueMoves $gPosition]] == 1} {
+		if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition]] == 1} {
 		    SwitchWhoseTurn
 		    DoComputerMove
 		    SwitchWhoseTurn
