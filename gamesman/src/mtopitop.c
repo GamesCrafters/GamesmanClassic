@@ -252,6 +252,7 @@ int smallSandPiles = 4, largeSandPiles = 4, redBuckets = 2, blueBuckets = 2;
 int redCastles = 0, blueCastles = 0;
 int maxL, maxS, maxB = 0;
 PlayerTurn gWhosTurn = Blue;
+POSITION prevBoard = -1;
 POSITION currentBoard = -1;		//If currentBoard = -1, has not been initialized
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
 
@@ -342,7 +343,7 @@ void InitializeGame ()
     	boardArray->theBoard[i] = BLANKPIECE;
     }
     
-    gInitialPosition = currentBoard = arrayHash(boardArray);
+    gInitialPosition = currentBoard = prevBoard = arrayHash(boardArray);
     SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
     if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
@@ -587,6 +588,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 		board->theTurn = gWhosTurn = Blue;
 	}
 	
+	prevBoard = currentBoard;
 	newPosition = currentBoard = arrayHash(board);
 	
 	if (DEBUG_DM) { printf("NEXT BOARD# = %d\n", (int) newPosition); }
@@ -844,10 +846,11 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    int numSlots = numCols*numRows;
+    int numSlots = numCols*numRows, i;
     char* playerColor;
     
     BoardAndTurn board = arrayUnhash(position);
+    BoardAndTurn previousBoard = arrayUnhash(prevBoard);
 
     if (board->theTurn == Blue) {
       playerColor = BLUEBUCKETSTRING;
@@ -869,10 +872,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 		input = HandleDefaultTextInput(position, move, playersName);
 		
 		if ((input == Undo) && (position != gInitialPosition)) {
-			/*smallSandPiles = largeSandPiles = 4;
+			smallSandPiles = largeSandPiles = 4;
     		blueBuckets = redBuckets = 2;
     		for (i = 0; i < boardSize; i++) {
-    			switch (board->theBoard[i]) {
+    			switch (previousBoard->theBoard[i]) {
     				case SMALLPIECE:		smallSandPiles--;
     										break;
 		    		case LARGEPIECE:		largeSandPiles--;
@@ -899,13 +902,11 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     										redBuckets--;
     										break;
 		    	}
-		    }*/
-		    
-		    if (board->theTurn == Blue) {
-    			board->theTurn = gWhosTurn = Red;
-		    } else {
-    			board->theTurn = gWhosTurn = Blue;
 		    }
+		    
+		    gWhosTurn = previousBoard->theTurn;
+		    currentBoard = prevBoard;
+		    prevBoard = -1;
 		}
 		
 		if (input != Continue)
@@ -1566,11 +1567,11 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   	newPiece->L = toHash->boardL[i];
   	newPiece->S = toHash->boardS[i];
   	newPiece->B = toHash->boardB[i];
-  	if (DEBUG_AU) { printf("boardL[%d] = %d\n", i, toHash->boardL[i]); }
-  	if (DEBUG_AU) { printf("boardS[%d] = %d\n", i, toHash->boardS[i]); }
-  	if (DEBUG_AU) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
+  	//if (DEBUG_AU) { printf("boardL[%d] = %d\n", i, toHash->boardL[i]); }
+  	//if (DEBUG_AU) { printf("boardS[%d] = %d\n", i, toHash->boardS[i]); }
+  	//if (DEBUG_AU) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
   	board->theBoard[i] = ThreePieceToChar(newPiece);
-  	if (DEBUG_AU) { printf("board[%d] = %c\n", i, board->theBoard[i]); }
+  	//if (DEBUG_AU) { printf("board[%d] = %c\n", i, board->theBoard[i]); }
   }
   
   board->theTurn = whoseMove(hashNumber);
@@ -1712,6 +1713,9 @@ int validPieceMove(int fromP, int toP) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2006/04/05 05:15:14  alexchoy
+// error when using arrayUnhash with whoseMove(), which always returns Red (2) after the first (Blue's) move
+//
 // Revision 1.28  2006/04/05 04:01:34  mikehamada
 // *** empty log message ***
 //
