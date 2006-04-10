@@ -240,16 +240,16 @@ int DEBUG_G = 0;
 int DEBUG_GM = 0;
 int DEBUG_M = 0;
 int DEBUG_PP = 0;
-int DEBUG_AU = 1;
+int DEBUG_AU = 0;
 int DEBUG_UM = 0;
 int DEBUG_PM = 0;
 int DEBUG_DM = 0;
-int DEBUG_CTITM = 1;
+int DEBUG_CTITM = 0;
 int DEBUG_VPM = 0;
 int DEBUG_IM = 0;
 int DEBUG_GAPPM = 0;
-int gameType;
 
+int gameType;
 int maxL, maxS, maxB = 0;
 PlayerTurn gWhosTurn = Blue;
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
@@ -1630,6 +1630,15 @@ int validPieceMove(int fromP, int toP) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2006/04/10 06:14:47  mikehamada
+// Removed prevBoard, curBoard, smallSandPiles, largeSandPiles,
+// blueBuckets, redBuckets, blueCastles, redCastles global variable
+// dependence and incorporated it into a single new structure
+// BoardData that is now apart of the BoardAndTurn structure.
+// arrayUnhash will set these values correctly when looking through
+// the board for each board.  So now...UNDO and changing the order
+// of players works!!!
+//
 // Revision 1.30  2006/04/10 01:54:11  mikehamada
 // *** empty log message ***
 //
