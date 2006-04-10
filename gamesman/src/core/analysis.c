@@ -498,6 +498,12 @@ BOOLEAN LoadAnalysis() {
     
     if(!gAnalyzing)
     	printf("\nLoading Analysis DB for %s...", kGameName);
+    	
+    if(gAnalysisLoaded) {
+    	if(!gAnalyzing)
+    		printf("done in %u seconds!", Stopwatch());
+    	return TRUE;
+    }
     
     /* Open file for reading */
     if((fp = fopen(gameFileName, "rb")) == NULL) {

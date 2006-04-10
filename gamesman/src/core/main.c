@@ -144,6 +144,7 @@ VALUE DetermineValue(POSITION position)
 		}
 	}
 	
+	gAnalysisLoaded = TRUE;
 	gUseGPS = FALSE;
 	gValue = GetValueOfPosition(position);
 	
