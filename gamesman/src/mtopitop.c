@@ -60,14 +60,6 @@
 **************************************************************************/
 
 STRING   kGameName            = "Topitop"; /* The name of your game */
-/*STRING	 kGameName			  =
-"\n\n\
-TTTTTTTTTTT    OOOOOO    PPPPPPPP  III  TTTTTTTTTTT    OOOOOO    PPPPPPPP\n\
-TTTTTTTTTTT   OOOOOOOO   PPPPPPPP  III  TTTTTTTTTTT   OOOOOOOO   PPPPPPPP\n\
-   TTTT      OOO    OOO  PP    PP  III     TTTT      OOO    OOO  PP    PP\n\
-   TTTT      OOO    OOO  PPPPPPPP  III     TTTT      OOO    OOO  PPPPPPPP\n\
-   TTTT       OOOOOOOO   PP        III     TTTT       OOOOOOOO   PP\n\
-   TTTT        OOOOOO    PP        III     TTTT        OOOOOO    PP\n\n";*/
     
 STRING   kAuthorName          = "Alex Choy and Mike Hamada"; /* Your name(s) */
 STRING   kDBName              = "topitop"; /* The name to store the database under */
@@ -163,7 +155,7 @@ STRING   kHelpExample =
 #define REDSMALLPIECE 'O'
 #define BLUECASTLEPIECE 'B'
 #define REDCASTLEPIECE 'R'
-#define UNKNOWNPIECE '0'  // hopefully none of these b/c can't be represented by a digit from 0 - 9
+#define UNKNOWNPIECE '0'
 #define UNKNOWNBOARDPIECE -1
 
 #define BLANKSTRING "Blank"
@@ -195,16 +187,26 @@ typedef enum possibleBoardPieces {
 
 typedef enum hashBoardPieces {
 	hSmallSand = 0, hLargeSand, hBlueBucket, hRedBucket, hSandCastle,
-	hBlueSmall, hRedSmall, hBlueCastle, hRedCastle
+	hBlueSmall, hRedSmall, hBlueCastle, hRedCastle, hUnknownPiece
 } HashBoardPiece;
 
 typedef enum playerTurn {
 	Blue = 1, Red
 } PlayerTurn;
 
+typedef struct boardDataElements {
+	int smallSandPiles;
+	int largeSandPiles;
+	int redBuckets;
+	int blueBuckets;
+	int redCastles;
+	int blueCastles;
+} *BoardData;
+
 typedef struct boardAndTurnRep {
   char *theBoard;
   PlayerTurn theTurn;
+  BoardData data;
 } *BoardAndTurn;
 
 typedef struct tripleBoardRep {
@@ -248,12 +250,8 @@ int DEBUG_IM = 0;
 int DEBUG_GAPPM = 0;
 int gameType;
 
-int smallSandPiles = 4, largeSandPiles = 4, redBuckets = 2, blueBuckets = 2;
-int redCastles = 0, blueCastles = 0;
 int maxL, maxS, maxB = 0;
 PlayerTurn gWhosTurn = Blue;
-POSITION prevBoard = -1;
-POSITION currentBoard = -1;		//If currentBoard = -1, has not been initialized
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
 
 
@@ -343,7 +341,7 @@ void InitializeGame ()
     	boardArray->theBoard[i] = BLANKPIECE;
     }
     
-    gInitialPosition = currentBoard = prevBoard = arrayHash(boardArray);
+    gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
     SafeFree(boardArray->theBoard);
     SafeFree(boardArray);
     if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
@@ -385,53 +383,53 @@ MOVELIST *GenerateMoves (POSITION position)
     for (i = 0; i < boardSize; i++) {
     	if (board->theBoard[i] == BLANKPIECE) {
 	    	newMove->toPos = i;
-    		if (smallSandPiles > 0) {
+    		if (board->data->smallSandPiles > 0) {
     			newMove->movePiece = hSmallSand;
     			tempMove = hashMove(newMove);
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-				printf("\n");
-				printMove(unhashMove(tempMove));
-				printf("\n");
+					printf("\n");
+					printMove(unhashMove(tempMove));
+					printf("\n");
     			}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
-    		if (largeSandPiles > 0) {
+    		if (board->data->largeSandPiles > 0) {
     			newMove->movePiece = hLargeSand;
     			tempMove = hashMove(newMove);
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-				printf("\n");
-				printMove(unhashMove(tempMove));
-				printf("\n");
-			}
+					printf("\n");
+					printMove(unhashMove(tempMove));
+					printf("\n");
+				}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
-	    	if ((board->theTurn == Blue) && (blueBuckets > 0)) {
+	    	if ((board->theTurn == Blue) && (board->data->blueBuckets > 0)) {
 	    		newMove->movePiece = hBlueBucket;
 	    		tempMove = hashMove(newMove);
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-				printf("\n");
-				printMove(unhashMove(tempMove));
-				printf("\n");
-			}
-			moves = CreateMovelistNode(tempMove, moves);
+					printf("\n");
+					printMove(unhashMove(tempMove));
+					printf("\n");
+				}
+				moves = CreateMovelistNode(tempMove, moves);
 	    	}
-	    	if ((board->theTurn == Red) && (redBuckets > 0)) {
+	    	if ((board->theTurn == Red) && (board->data->redBuckets > 0)) {
 	    		newMove->movePiece = hRedBucket;
 	    		tempMove = hashMove(newMove);
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-				printf("\n");
-				printMove(unhashMove(tempMove));
-				printf("\n");
-			}
-			moves = CreateMovelistNode(tempMove, moves);
+					printf("\n");
+					printMove(unhashMove(tempMove));
+					printf("\n");
+				}
+				moves = CreateMovelistNode(tempMove, moves);
 	    	}
     	}
     }
@@ -453,11 +451,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     						printMove(newMove);
-						printf("\n");
-						printMove(unhashMove(tempMove));
-						printf("\n");
-					}
-					moves = CreateMovelistNode(tempMove, moves);
+							printf("\n");
+							printMove(unhashMove(tempMove));
+							printf("\n");
+						}
+						moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUESMALLPIECE) && (board->theTurn == Blue)) || 
     	 			((board->theBoard[i] == REDSMALLPIECE) && (board->theTurn == Red)) ||
@@ -466,11 +464,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-						printf("\n");
-						printMove(unhashMove(tempMove));
-						printf("\n");
-					}
-					moves = CreateMovelistNode(tempMove, moves);
+							printf("\n");
+							printMove(unhashMove(tempMove));
+							printf("\n");
+						}
+						moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUECASTLEPIECE) && (board->theTurn == Blue)) || 
     	 			((board->theBoard[i] == REDCASTLEPIECE) && (board->theTurn == Red)) ||
@@ -479,11 +477,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-						printf("\n");
-						printMove(unhashMove(tempMove));
-						printf("\n");
-					}
-					moves = CreateMovelistNode(tempMove, moves);
+							printf("\n");
+							printMove(unhashMove(tempMove));
+							printf("\n");
+						}
+						moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		}
     		}
@@ -491,6 +489,7 @@ MOVELIST *GenerateMoves (POSITION position)
     }
         
     SafeFree(newMove);
+    SafeFree(board->data);
     SafeFree(board->theBoard);
     SafeFree(board);
     
@@ -532,18 +531,22 @@ POSITION DoMove (POSITION position, MOVE move) {
   		printf("\n");
   	}
   
+  	if ((newMove->movePiece == hUnknownPiece) && (newMove->fromPos != 0)) {
+  		newMove->movePiece = board->theBoard[newMove->fromPos - 1];
+  	}
+  
   	if (newMove->fromPos == 0) {
   		if (DEBUG_DM) { printf("--- PLACE PIECE ---\n"); }
   		if (DEBUG_DM) { printf("Piece To Place = %c\n", HashBoardPieceToChar(newMove->movePiece)); }
   		board->theBoard[newMove->toPos] = HashBoardPieceToChar(newMove->movePiece);
   		if (board->theBoard[newMove->toPos] == SMALLPIECE) {
-  			smallSandPiles--;
+  			board->data->smallSandPiles--;
   		} else if (board->theBoard[newMove->toPos] == LARGEPIECE) {
-  			largeSandPiles--;
+  			board->data->largeSandPiles--;
   		} else if (board->theBoard[newMove->toPos] == REDBUCKETPIECE) {
-  			redBuckets--;
+  			board->data->redBuckets--;
   		} else if (board->theBoard[newMove->toPos] == BLUEBUCKETPIECE) {
-  			blueBuckets--;
+  			board->data->blueBuckets--;
   		}
   	} else {
   		if (DEBUG_DM) { printf("--- MOVE PIECE ---\n"); }
@@ -566,18 +569,18 @@ POSITION DoMove (POSITION position, MOVE move) {
   				board->theBoard[newMove->toPos] = CASTLEPIECE;
   			} else if (pieceToMove == BLUESMALLPIECE) {
   				board->theBoard[newMove->toPos] = BLUECASTLEPIECE;
-  				blueCastles++;
+  				board->data->blueCastles++;
   			} else if (pieceToMove == REDSMALLPIECE) {
   				board->theBoard[newMove->toPos] = REDCASTLEPIECE;
-  				redCastles++;
+  				board->data->redCastles++;
   			}
   		} else if (pieceInWay == CASTLEPIECE) {
   			if (pieceToMove == BLUEBUCKETPIECE) {
   				board->theBoard[newMove->toPos] = BLUECASTLEPIECE;
-  				blueCastles++;
+  				board->data->blueCastles++;
   			} else if (pieceToMove == REDBUCKETPIECE) {
   				board->theBoard[newMove->toPos] = REDCASTLEPIECE;
-  				redCastles++;
+  				board->data->redCastles++;
   			}
   		}
   	}
@@ -588,11 +591,12 @@ POSITION DoMove (POSITION position, MOVE move) {
 		board->theTurn = gWhosTurn = Blue;
 	}
 	
-	prevBoard = currentBoard;
-	newPosition = currentBoard = arrayHash(board);
+	//prevBoard = currentBoard;
+	newPosition  = arrayHash(board); // = currentBoard
 	
 	if (DEBUG_DM) { printf("NEXT BOARD# = %d\n", (int) newPosition); }
 	
+	SafeFree(board->data);
 	SafeFree(board->theBoard);
     SafeFree(board);
     SafeFree(newMove);
@@ -628,27 +632,19 @@ POSITION DoMove (POSITION position, MOVE move) {
 ************************************************************************/
 
 VALUE Primitive (POSITION position) {
-    int i, blueCastlesMade = 0, redCastlesMade = 0;
     BoardAndTurn board;
     
     board = arrayUnhash(position);
     
-    for (i = 0; i < boardSize; i++) {
-    	if (board->theBoard[i] == BLUECASTLEPIECE) {
-    		blueCastlesMade++;
-    	} else if (board->theBoard[i] == REDCASTLEPIECE) {
-    		redCastlesMade++;
-    	}
-    }
-    
-    if (((board->theTurn == Blue) && (blueCastlesMade >= NUMCASTLESTOWIN)) ||
-    	((board->theTurn == Red) && (redCastlesMade >= NUMCASTLESTOWIN))) {
+    if (((board->theTurn == Blue) && (board->data->blueCastles >= NUMCASTLESTOWIN)) ||
+    	((board->theTurn == Red) && (board->data->redCastles >= NUMCASTLESTOWIN))) {
     	return win;
-    } else if (((board->theTurn == Blue) && (redCastlesMade >= NUMCASTLESTOWIN)) ||
-   		((board->theTurn == Red) && (blueCastlesMade >= NUMCASTLESTOWIN))) {
+    } else if (((board->theTurn == Blue) && (board->data->redCastles >= NUMCASTLESTOWIN)) ||
+   		((board->theTurn == Red) && (board->data->blueCastles >= NUMCASTLESTOWIN))) {
    		return lose;
     }
    	
+   	SafeFree(board->data);
    	SafeFree(board->theBoard);
    	SafeFree(board);
     return undecided;
@@ -673,10 +669,10 @@ VALUE Primitive (POSITION position) {
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-	BoardAndTurn arrayHashedBoard;
+	BoardAndTurn board;
  	int i;
   
-	arrayHashedBoard = arrayUnhash(position);
+	board = arrayUnhash(position);
 	
 	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int) position); }
 	
@@ -685,81 +681,62 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("                     ");
 	printf("%c = Blank\n", BLANKPIECE);
 	
-	/*printf("       %c%c%c%c%c%c%c\n", BOLD_UL_CORNER, BOLD_HOR, BOLD_HOR_DOWN, BOLD_HOR,
-									BOLD_HOR_DOWN, BOLD_HOR, BOLD_UR_CORNER);*/
 	/***********************LINE 2**************************/
 	printf("       |");
 	for (i = 0; i < numCols; i++) {
-		printf("%c|", arrayHashedBoard->theBoard[i]);
+		printf("%c|", board->theBoard[i]);
 	}
-	
-	/*printf("       %c", BOLD_VERT);
-	for (i = 0; i < numCols; i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]), 
-										((i == (numCols-1)) ? VERT_LINE : BOLD_VERT));
-	}*/
+
 	printf("          ( 1 2 3 )");
 	printf("  %c = Small Sand Pile\n", SMALLPIECE);
+	
 	/***********************LINE 3**************************/
 	printf("       *-+-+-*");
 	printf("                     ");
 	printf("%c = Large Sand Pile\n", LARGEPIECE);
-	
-	/*printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
-										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);*/							
+							
 	/***********************LINE 4**************************/
 	printf("BOARD: |");
 	for (i = numCols; i < (numCols*2); i++) {
-		printf("%c|", arrayHashedBoard->theBoard[i]);
+		printf("%c|", board->theBoard[i]);
 	}
 	
-	/*printf("BOARD: %c", BOLD_VERT);
-	for (i = numCols; i < (numCols*2); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
-										((i == ((numCols*2)-1)) ? VERT_LINE : BOLD_VERT));
-	}*/
 	printf("  LEGEND: ( 4 5 6 )");
 	printf("  %c = Sand Castle\n", CASTLEPIECE);
+	
 	/***********************LINE 5**************************/
 	printf("       *-+-+-*");
 	printf("                     ");
 	printf("%c = Blue Bucket\n", BLUEBUCKETPIECE);
 	
-	/*printf("       %c%c%c%c%c%c%c\n", BOLD_VERT_RIGHT, HOR_LINE, CROSS_LINE, HOR_LINE,
-										CROSS_LINE, HOR_LINE, BOLD_VERT_LEFT);*/
 	/***********************LINE 6**************************/
 	printf("       |");
 	for (i = numCols*2; i < (numCols*3); i++) {
-		printf("%c|", arrayHashedBoard->theBoard[i]);
+		printf("%c|", board->theBoard[i]);
 	}
 	
-	/*printf("       %c", BOLD_VERT);
-	for (i = numCols*2; i < (numCols*3); i++) {
-		printf("%c%c", BoardPieceToChar(arrayHashedBoard->theBoard[i]),
-										((i == ((numCols*3)-1)) ? VERT_LINE : BOLD_VERT));
-	}*/
 	printf("          ( 7 8 9 )");
 	printf("  %c = Red Bucket\n", REDBUCKETPIECE);
+	
 	/***********************LINE 7**************************/
 	printf("       *-*-*-*");
 	printf("                     ");
 	printf("%c = Blue Small Piece\n", BLUESMALLPIECE);
 	
-	/*printf("       %c%c%c%c%c%c%c\n", BOLD_LL_CORNER, BOLD_HOR, BOLD_HOR_UP, BOLD_HOR,
-									BOLD_HOR_UP, BOLD_HOR, BOLD_LR_CORNER);*/
 	/***********************LINE 8, 9, 10, 11**************************/
 	printf("                                   ");
 	printf("%c = Red Small Piece\n", REDSMALLPIECE);
 	printf("# Remaining:                       ");
 	printf("%c = Blue Sand Castle\n", BLUECASTLEPIECE);
-	printf("  Large = %d  |  Small = %d          ", largeSandPiles, smallSandPiles);
+	printf("  Large = %d  |  Small = %d          ", 
+			board->data->largeSandPiles, board->data->smallSandPiles);
 	printf("%c = Red Sand Castle\n", REDCASTLEPIECE);
-	printf("  RedB  = %d  |  BlueB = %d\n\n\n", redBuckets, blueBuckets);
-	//printf("# Remaining: Large = %d | Small = %d | RedB = %d | BlueB = %d\n\n",
-		//	largeSandPiles, smallSandPiles, redBuckets, blueBuckets);
+	printf("  RedB  = %d  |  BlueB = %d\n\n\n", 
+			board->data->redBuckets, board->data->blueBuckets);
 	//printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
-	SafeFree(arrayHashedBoard->theBoard);
-	SafeFree(arrayHashedBoard);
+	SafeFree(board->data);
+	SafeFree(board->theBoard);
+	SafeFree(board);
 }
 
 
@@ -797,10 +774,8 @@ void PrintMove (MOVE move)
 	if ( DEBUG_PM ) { printf("\n***** PRINT MOVE *****\n\n"); }
     GMove newMove = unhashMove(move);
     char toPrint;
-    //char* pieceString = HashBoardPieceToString(newMove->movePiece);
     
     if (newMove->fromPos == 0) {
-    	//printf("Placed %s at Position %d\n", pieceString, newMove->toPos);
     	if ((newMove->movePiece == hBlueBucket) || (newMove->movePiece == hRedBucket)) {
     		toPrint = 'b';
     	} else if (newMove->movePiece == hSmallSand) {
@@ -812,12 +787,10 @@ void PrintMove (MOVE move)
     	}
     	printf("%c%d", toPrint, newMove->toPos + 1);
     } else {
-    	//printf("Moved %s from Position %d to %d\n", pieceString, newMove->fromPos, newMove->toPos);
     	printf("%d%d", newMove->fromPos, newMove->toPos + 1);
     }
     
     SafeFree(newMove);
-    //SafeFree(pieceString);
     
     if ( DEBUG_PM ) { printf("\n***** END PRINT MOVE *****\n"); }
 }
@@ -846,11 +819,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    int numSlots = numCols*numRows, i;
     char* playerColor;
     
     BoardAndTurn board = arrayUnhash(position);
-    BoardAndTurn previousBoard = arrayUnhash(prevBoard);
 
     if (board->theTurn == Blue) {
       playerColor = BLUEBUCKETSTRING;
@@ -867,53 +838,22 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
          ***********************************************************/
                 printf(" move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
 		printf("%8s's move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
-		       playersName, numSlots, numSlots, numSlots);
+		       playersName, boardSize, boardSize, boardSize);
 	
 		input = HandleDefaultTextInput(position, move, playersName);
 		
 		if ((input == Undo) && (position != gInitialPosition)) {
-			smallSandPiles = largeSandPiles = 4;
-    		blueBuckets = redBuckets = 2;
-    		for (i = 0; i < boardSize; i++) {
-    			switch (previousBoard->theBoard[i]) {
-    				case SMALLPIECE:		smallSandPiles--;
-    										break;
-		    		case LARGEPIECE:		largeSandPiles--;
-    										break;
-		    		case CASTLEPIECE:		smallSandPiles--;
-    										largeSandPiles--;
-    										break;
-		    		case BLUEBUCKETPIECE:	blueBuckets--;
-    										break;
-		    		case REDBUCKETPIECE:	redBuckets--;
-    										break;
-		    		case BLUESMALLPIECE:	smallSandPiles--;
-    										blueBuckets--;
-    										break;
-		    		case REDSMALLPIECE:		smallSandPiles--;
-    										redBuckets--;
-    										break;
-		    		case BLUECASTLEPIECE:	smallSandPiles--;
-    										largeSandPiles--;
-    										blueBuckets--;
-    										break;
-		    		case REDCASTLEPIECE:	smallSandPiles--;
-    										largeSandPiles--;
-    										redBuckets--;
-    										break;
-		    	}
+		    if (board->theTurn == Blue) {
+		    	gWhosTurn = Red;
+		    } else {
+		    	gWhosTurn = Blue;
 		    }
-		    
-		    gWhosTurn = previousBoard->theTurn;
-		    currentBoard = prevBoard;
-		    prevBoard = -1;
 		}
 		
 		if (input != Continue)
 			return input;
     }
 
-    /* NOTREACHED */
     return Continue;
 }
 
@@ -985,7 +925,6 @@ MOVE ConvertTextInputToMove (STRING input)
 	if (DEBUG_CTITM) { printf("\n***** CONVERT TEXT INPUT TO MOVE *****\n\n"); }
     char first = input[0], second = input[1];
     MOVE thisMove;
-    BoardAndTurn curBoard = arrayUnhash(currentBoard);
     GMove newMove = (GMove) SafeMalloc(sizeof(struct cleanMove));
     
     if (DEBUG_CTITM) { 
@@ -999,14 +938,14 @@ MOVE ConvertTextInputToMove (STRING input)
     } else if (first == 's') {
     	newMove->movePiece = hSmallSand;
     } else if (first == 'b') {
-    	if (curBoard->theTurn == Blue) {
+    	if (gWhosTurn == Blue) {
     		newMove->movePiece = hBlueBucket;
     	} else {
     		newMove->movePiece = hRedBucket;
     	}
     } else {
     	newMove->fromPos = (int) (first - '0');
-    	newMove->movePiece = CharToHashBoardPiece(curBoard->theBoard[newMove->fromPos - 1]);
+    	newMove->movePiece = hUnknownPiece;
     }
     
     thisMove = hashMove(newMove);
@@ -1018,8 +957,6 @@ MOVE ConvertTextInputToMove (STRING input)
     }
     
     SafeFree(newMove);
-    SafeFree(curBoard->theBoard);
-    SafeFree(curBoard);
     
     if (DEBUG_CTITM) { printf("\n***** END CONVERT TEXT INPUT TO MOVE *****\n"); }
     
@@ -1098,44 +1035,6 @@ POSITION GetInitialPosition ()
 			getchar();
 		} while(CharToBoardPiece(piece) == UNKNOWNBOARDPIECE);
 		board->theBoard[i-1] = piece;
-		switch (piece) {
-			case SMALLPIECE:
-				smallSandPiles--;
-				break;
-			case LARGEPIECE:
-				largeSandPiles--;
-				break;
-			case CASTLEPIECE:
-				smallSandPiles--;
-				largeSandPiles--;
-				break;
-			case BLUEBUCKETPIECE:
-				blueBuckets--;
-				break;
-			case REDBUCKETPIECE:
-				redBuckets--;
-				break;
-			case BLUESMALLPIECE:
-				blueBuckets--;
-				smallSandPiles--;
-				break;
-			case REDSMALLPIECE:
-				redBuckets--;
-				smallSandPiles--;
-				break;
-			case BLUECASTLEPIECE:
-				blueCastles++;
-				blueBuckets--;
-				smallSandPiles--;
-				largeSandPiles--;
-				break;
-			case REDCASTLEPIECE:
-				redCastles++;
-				redBuckets--;
-				smallSandPiles--;
-				largeSandPiles--;
-				break;
-		}
   	}
   	
   	do{
@@ -1269,6 +1168,7 @@ char HashBoardPieceToChar(HashBoardPiece piece) {
 		case hRedSmall:			return REDSMALLPIECE;
 		case hBlueCastle:		return BLUECASTLEPIECE;
 		case hRedCastle:		return REDCASTLEPIECE;
+		case hUnknownPiece:		return UNKNOWNPIECE;
 	}
 	
 	return UNKNOWNPIECE;
@@ -1302,6 +1202,7 @@ HashBoardPiece CharToHashBoardPiece(char piece) {
 	  case REDSMALLPIECE: 		return hRedSmall;
 	  case BLUECASTLEPIECE:		return hBlueCastle;
 	  case REDCASTLEPIECE:		return hRedCastle;
+	  case UNKNOWNPIECE:		return hUnknownPiece;
 	}
 	
 	return UNKNOWNBOARDPIECE;
@@ -1450,7 +1351,7 @@ char* BoardPieceToString(BoardPiece piece) {
 								break;
 		case RedCastle:			pieceString = REDCASTLESTRING;
 								break;
-		default:			pieceString = UNKNOWNSTRING;
+		default:				pieceString = UNKNOWNSTRING;
 	}
 	
 	return pieceString;
@@ -1478,7 +1379,8 @@ char* HashBoardPieceToString(HashBoardPiece piece) {
 								break;
 		case hRedCastle:		pieceString = REDCASTLESTRING;
 								break;
-		default:			pieceString = UNKNOWNSTRING;
+		case hUnknownPiece:
+		default:				pieceString = UNKNOWNSTRING;
 	}
 	
 	return pieceString;
@@ -1535,12 +1437,13 @@ POSITION arrayHash(BoardAndTurn board) {
 BoardAndTurn arrayUnhash(POSITION hashNumber) {
   BoardAndTurn board = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
   board->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+  board->data = (BoardData) SafeMalloc(sizeof(struct boardDataElements));
   BoardRep toHash = (BoardRep) SafeMalloc(sizeof(struct tripleBoardRep));
   toHash->boardL = (char *) SafeMalloc(boardSize * sizeof(char));
   toHash->boardS = (char *) SafeMalloc(boardSize * sizeof(char));
   toHash->boardB = (char *) SafeMalloc(boardSize * sizeof(char));
   ThreePiece newPiece = (ThreePiece) SafeMalloc(sizeof(struct threePieces));
-  int i;
+  int i, small = 4, large = 4, redB = 2, blueB = 2, redC = 0, blueC = 0;
   
   if (DEBUG_AU) { printf("\n********** arrayUNHASH **********\n"); }
   
@@ -1572,8 +1475,23 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   	//if (DEBUG_AU) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
   	board->theBoard[i] = ThreePieceToChar(newPiece);
   	//if (DEBUG_AU) { printf("board[%d] = %c\n", i, board->theBoard[i]); }
+  	if (board->theBoard[i] == SMALLPIECE) { small--; }
+  	if (board->theBoard[i] == LARGEPIECE) { large--; }
+  	if (board->theBoard[i] == CASTLEPIECE) { small--; large--;}
+  	if (board->theBoard[i] == BLUEBUCKETPIECE) { blueB--; }
+  	if (board->theBoard[i] == REDBUCKETPIECE) { redB--; }
+  	if (board->theBoard[i] == BLUESMALLPIECE) { small--; blueB--; }
+  	if (board->theBoard[i] == REDSMALLPIECE) { small--; redB--;}
+  	if (board->theBoard[i] == BLUECASTLEPIECE) { small--; large--; blueB--; }
+  	if (board->theBoard[i] == REDCASTLEPIECE) { small--; large--; redB--; }
   }
   
+  board->data->smallSandPiles = small;
+  board->data->largeSandPiles = large;
+  board->data->redBuckets = redB;
+  board->data->blueBuckets = blueB;
+  board->data->redCastles = redC;
+  board->data->blueCastles = blueC;
   board->theTurn = whoseMove(hashNumber);
 
   if (DEBUG_AU) { printf("\nwhoseMove(hashNumber) = %d\n", whoseMove(hashNumber)); }
@@ -1672,7 +1590,6 @@ void printMove(GMove move) {
 	printf("MOVE: fromPos %d | toPos %d (POS %d) | piece %s(%d)",
 			move->fromPos, move->toPos, move->toPos + 1, theMove,
 			((int) move->movePiece));
-	//SafeFree(theMove);
 }
 
 int validPieceMove(int fromP, int toP) {
@@ -1713,6 +1630,9 @@ int validPieceMove(int fromP, int toP) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2006/04/10 01:54:11  mikehamada
+// *** empty log message ***
+//
 // Revision 1.29  2006/04/05 05:15:14  alexchoy
 // error when using arrayUnhash with whoseMove(), which always returns Red (2) after the first (Blue's) move
 //
