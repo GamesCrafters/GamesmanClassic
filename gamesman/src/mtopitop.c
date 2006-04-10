@@ -87,11 +87,11 @@ STRING kHelpGraphicInterface =
 "Not written yet.";
 
 STRING   kHelpTextInterface    =
-"Note that a player CANNOT undo an oppontent's move that was just made.\n\
-Use the LEGEND to determine which numbers to choose to\n\
+"Use the LEGEND to determine which numbers to choose to\n\
 correspond to either a piece to place and a board slot where to place it\n\
 OR to the location of your piece or a neutral piece and the empty\n\
 adjacent position you wish to move that piece to.\n\
+Note that a player CANNOT undo an oppontent's move that was just made.\n\
 Example: 's1' would place a Small Sand Pile in position 1\n\
 Example: '12' would move a piece in position 1 to position 2.";
 
@@ -407,7 +407,7 @@ MOVELIST *GenerateMoves (POSITION position)
 				}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
-	    	if ((board->theTurn == Blue) && (board->data->blueBuckets > 0)) {
+	    	if ((gWhosTurn == Blue) && (board->data->blueBuckets > 0)) {
 	    		newMove->movePiece = hBlueBucket;
 	    		tempMove = hashMove(newMove);
 	    		if (DEBUG_GM) { 
@@ -419,7 +419,7 @@ MOVELIST *GenerateMoves (POSITION position)
 				}
 				moves = CreateMovelistNode(tempMove, moves);
 	    	}
-	    	if ((board->theTurn == Red) && (board->data->redBuckets > 0)) {
+	    	if ((gWhosTurn == Red) && (board->data->redBuckets > 0)) {
 	    		newMove->movePiece = hRedBucket;
 	    		tempMove = hashMove(newMove);
 	    		if (DEBUG_GM) { 
@@ -440,12 +440,12 @@ MOVELIST *GenerateMoves (POSITION position)
     	for (j = 0; j < boardSize; j++) {
 	    	newMove->fromPos = i + 1;
 	    	newMove->toPos = j;
-    		newMove->movePiece = CharToHashBoardPiece(board->theBoard[i]);
+    		newMove->movePiece = hUnknownPiece;
     		if ((((int) (tempMove = hashMove(newMove))) != ((int) undoMove)) && 
     			(validPieceMove(i, j))) {
 			
-    			if (((board->theBoard[i] == BLUEBUCKETPIECE) && (board->theTurn == Blue)) || 
-    	 			((board->theBoard[i] == REDBUCKETPIECE) && (board->theTurn == Red))) {
+    			if (((board->theBoard[i] == BLUEBUCKETPIECE) && (gWhosTurn == Blue)) || 
+    	 			((board->theBoard[i] == REDBUCKETPIECE) && (gWhosTurn == Red))) {
     				if ((board->theBoard[j] == BLANKPIECE) || (board->theBoard[j] == SMALLPIECE) ||
     					(board->theBoard[j] == CASTLEPIECE)) {
     					if (DEBUG_GM) { 
@@ -457,8 +457,8 @@ MOVELIST *GenerateMoves (POSITION position)
 						}
 						moves = CreateMovelistNode(tempMove, moves);
     				}
-    	 		} else if (((board->theBoard[i] == BLUESMALLPIECE) && (board->theTurn == Blue)) || 
-    	 			((board->theBoard[i] == REDSMALLPIECE) && (board->theTurn == Red)) ||
+    	 		} else if (((board->theBoard[i] == BLUESMALLPIECE) && (gWhosTurn == Blue)) || 
+    	 			((board->theBoard[i] == REDSMALLPIECE) && (gWhosTurn == Red)) ||
     	 			(board->theBoard[i] == SMALLPIECE)) {
     				if ((board->theBoard[j] == BLANKPIECE) || (board->theBoard[j] == LARGEPIECE)) {
     					if (DEBUG_GM) { 
@@ -470,8 +470,8 @@ MOVELIST *GenerateMoves (POSITION position)
 						}
 						moves = CreateMovelistNode(tempMove, moves);
     				}
-    	 		} else if (((board->theBoard[i] == BLUECASTLEPIECE) && (board->theTurn == Blue)) || 
-    	 			((board->theBoard[i] == REDCASTLEPIECE) && (board->theTurn == Red)) ||
+    	 		} else if (((board->theBoard[i] == BLUECASTLEPIECE) && (gWhosTurn == Blue)) || 
+    	 			((board->theBoard[i] == REDCASTLEPIECE) && (gWhosTurn == Red)) ||
     	 			(board->theBoard[i] == LARGEPIECE) || (board->theBoard[i] == CASTLEPIECE)) {
     				if (board->theBoard[j] == BLANKPIECE) {
     					if (DEBUG_GM) { 
@@ -585,7 +585,7 @@ POSITION DoMove (POSITION position, MOVE move) {
   		}
   	}
   
-	if (board->theTurn == Blue) {
+	if (gWhosTurn == Blue) {
 		board->theTurn = gWhosTurn = Red;
 	} else {
 		board->theTurn = gWhosTurn = Blue;
@@ -636,11 +636,11 @@ VALUE Primitive (POSITION position) {
     
     board = arrayUnhash(position);
     
-    if (((board->theTurn == Blue) && (board->data->blueCastles >= NUMCASTLESTOWIN)) ||
-    	((board->theTurn == Red) && (board->data->redCastles >= NUMCASTLESTOWIN))) {
+    if (((gWhosTurn == Blue) && (board->data->blueCastles >= NUMCASTLESTOWIN)) ||
+    	((gWhosTurn == Red) && (board->data->redCastles >= NUMCASTLESTOWIN))) {
     	return win;
-    } else if (((board->theTurn == Blue) && (board->data->redCastles >= NUMCASTLESTOWIN)) ||
-   		((board->theTurn == Red) && (board->data->blueCastles >= NUMCASTLESTOWIN))) {
+    } else if (((gWhosTurn == Blue) && (board->data->redCastles >= NUMCASTLESTOWIN)) ||
+   		((gWhosTurn == Red) && (board->data->blueCastles >= NUMCASTLESTOWIN))) {
    		return lose;
     }
    	
@@ -823,11 +823,11 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     
     BoardAndTurn board = arrayUnhash(position);
 
-    if (board->theTurn == Blue) {
-      playerColor = BLUEBUCKETSTRING;
+    if (gWhosTurn == Blue) {
+      playerColor = "Blue";
     }
     else {
-      playerColor = REDBUCKETSTRING;
+      playerColor = "Red";
     }
 
     if (DEBUG_GAPPM) { printf("theTurn = %d\n", board->theTurn); }
@@ -836,14 +836,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-                printf(" move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
-		printf("%8s's move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
-		       playersName, boardSize, boardSize, boardSize);
+        //printf("Move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
+		printf("%s's (%s) move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
+		       playersName, playerColor, boardSize, boardSize, boardSize);
 	
 		input = HandleDefaultTextInput(position, move, playersName);
 		
 		if ((input == Undo) && (position != gInitialPosition)) {
-		    if (board->theTurn == Blue) {
+		    if (gWhosTurn == Blue) {
 		    	gWhosTurn = Red;
 		    } else {
 		    	gWhosTurn = Blue;
@@ -1412,11 +1412,11 @@ POSITION arrayHash(BoardAndTurn board) {
 	}
 	
 	generic_hash_context_switch(0);
-	L = generic_hash(toHash->boardL, board->theTurn);
+	L = generic_hash(toHash->boardL, gWhosTurn);
 	generic_hash_context_switch(1);
-	S = generic_hash(toHash->boardS, board->theTurn);
+	S = generic_hash(toHash->boardS, gWhosTurn);
 	generic_hash_context_switch(2);
-	B = generic_hash(toHash->boardB, board->theTurn);
+	B = generic_hash(toHash->boardB, gWhosTurn);
 	if (DEBUG_G) { 
 		printf("L = %d\n", (int) L);
 		printf("S = %d\n", (int) S);
@@ -1482,8 +1482,12 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   	if (board->theBoard[i] == REDBUCKETPIECE) { redB--; }
   	if (board->theBoard[i] == BLUESMALLPIECE) { small--; blueB--; }
   	if (board->theBoard[i] == REDSMALLPIECE) { small--; redB--;}
-  	if (board->theBoard[i] == BLUECASTLEPIECE) { small--; large--; blueB--; }
-  	if (board->theBoard[i] == REDCASTLEPIECE) { small--; large--; redB--; }
+  	if (board->theBoard[i] == BLUECASTLEPIECE) { 
+  		small--; large--; blueB--; blueC++;
+  	}
+  	if (board->theBoard[i] == REDCASTLEPIECE) { 
+  		small--; large--; redB--; redC++;
+  	}
   }
   
   board->data->smallSandPiles = small;
@@ -1493,6 +1497,7 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   board->data->redCastles = redC;
   board->data->blueCastles = blueC;
   board->theTurn = whoseMove(hashNumber);
+  //gWhosTurn = 
 
   if (DEBUG_AU) { printf("\nwhoseMove(hashNumber) = %d\n", whoseMove(hashNumber)); }
   
@@ -1630,6 +1635,9 @@ int validPieceMove(int fromP, int toP) {
 	
 
 // $Log: not supported by cvs2svn $
+// Revision 1.32  2006/04/10 06:16:04  mikehamada
+// Removed needless comments and turned off all debugs
+//
 // Revision 1.31  2006/04/10 06:14:47  mikehamada
 // Removed prevBoard, curBoard, smallSandPiles, largeSandPiles,
 // blueBuckets, redBuckets, blueCastles, redCastles global variable
