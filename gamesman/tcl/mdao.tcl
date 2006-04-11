@@ -4,6 +4,9 @@
 # created by Alex Kozlowski and Peterson Trethewey
 # Updated Fall 2004 by Jeffrey Chiang, and others
 # Dao-specific code by Dan Garcia and GamesCrafters2005Fa
+#
+# LAST CHANGE: $Id: mdao.tcl,v 1.4 2006-04-11 01:35:13 ogren Exp $
+#
 ####################################################
 
 global NUM_OF_DIRS
@@ -456,6 +459,7 @@ proc GS_ShowMoves { c moveType position moveList } {
     foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
+	set delta [lindex $item 3]
 	set color cyan
 	
 	if {$moveType == "value"} {
@@ -472,7 +476,11 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set dir   [Unhasher_Direction $move]
 
 	$c raise arrow$index$dir
-	$c itemconfig arrow$index$dir -fill $color
+	if {$moveType == "value"} {
+	    $c itemconfig arrow$index$dir -fill $color -width $delta
+	} else {
+	    $c itemconfig arrow$index$dir -fill $color
+	}
 	$c bind arrow$index$dir <ButtonRelease-1> "ReturnFromHumanMove $move"
 	$c bind arrow$index$dir <Enter> "$c itemconfig arrow$index$dir -fill black"
 	$c bind arrow$index$dir <Leave> "$c itemconfig arrow$index$dir -fill $color"
@@ -589,16 +597,26 @@ proc CreateArrow { c fromX fromY toX toY slotsX slotsY slotSize color } {
     set arrow1 [expr $lineGap * 2]
     set arrow2 [expr $lineGap * 2]
     set arrow3 [expr $lineGap * 1]
-    set theMove [$c create line 0 0 $endX $endY \
-	    -width $lineGap \
-	    -arrow last \
-	    -arrowshape [list $arrow1 $arrow2 $arrow3] \
-	    -fill $color]
+    # set theMove [$c create line 0 0 $endX $endY \
+# 	    -width $lineGap \
+# 	    -arrow last \
+# 	    -arrowshape [list $arrow1 $arrow2 $arrow3] \
+# 	    -fill $color]
+
+    #h4x
+    set theMove [PolyArrow $c 0 0 $endX $endY $lineGap $arrow1 $arrow2 $arrow3]
+    
     
     ### Shift the line to put it in the right place
     set cornerX [expr $fromX * $slotSize + $offX]
     set cornerY [expr $fromY * $slotSize + $offY]
     $c move $theMove $cornerX $cornerY
     
+    #h4x
+    #set theMove [PolyArrow $c $fromX $fromY $toX $toY $lineGap $arrow1 $arrow2 $arrow3 []]
+    #$c itemconfig $theMove -fill $color
+    #$c raise $theMove
+    
+        
     return $theMove
 }
