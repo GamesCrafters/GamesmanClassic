@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.41 2006-04-10 22:53:26 ogren Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.42 2006-04-11 01:28:15 ogren Exp $
 ##
 ############################################################################
 
@@ -193,7 +193,7 @@ proc EPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase ar
     set x5 $x2
     set y5 [expr $y6 + $arrowSides]
 
-    set epArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set epArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags] 
 
     return $epArrow
 
@@ -231,7 +231,7 @@ proc WPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase ar
     set x5 $x2
     set y5 [expr $y6 + $arrowSides]
 
-    set wpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set wpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags] 
 
     return $wpArrow
 
@@ -257,7 +257,7 @@ proc NPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase ar
     set y7 $starty
 
     set x2 $x1
-    set y2 [expr $endy - $arrowBase]
+    set y2 [expr $endy + $arrowBase]
 
     set x3 [expr $x2 - $arrowSides]
     set y3 $y2
@@ -271,7 +271,7 @@ proc NPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase ar
     set x5 [expr $x6 + $arrowSides]
     set y5 $y2
     
-    set npArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set npArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]
 
     return $npArrow
 
@@ -311,7 +311,7 @@ proc SPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase ar
     set x5 [expr $x6 + $arrowSides]
     set y5 $y2
 
-    set spArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set spArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]
 
     return $spArrow
 
@@ -357,7 +357,7 @@ proc NEPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
     set x5 [expr $x6 + ($arrowSides * cos($compAngle))]
     set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
     
-    set nepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set nepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]
 
     return $nepArrow
 
@@ -382,7 +382,7 @@ proc NWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
     set compAngle [expr ($pi / 2) - $angle]
     
     set x1 [expr $startx + ($halfWidth * cos($compAngle))]
-    set y1 [expr $starty + ($halfWidth * sin($compAngle))]
+    set y1 [expr $starty - ($halfWidth * sin($compAngle))]
 
     set x7 [expr $startx - ($halfWidth * cos($compAngle))]
     set y7 [expr $starty + ($halfWidth * sin($compAngle))]
@@ -402,7 +402,7 @@ proc NWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
     set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
     set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
     
-    set nwpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set nwpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags] 
 
     return $nwpArrow
 
@@ -447,7 +447,7 @@ proc SEPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
     set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
     set y5 [expr $y6 + ($arrowSides * sin($compAngle))]
 
-    set sepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+    set sepArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags] 
 
     return $sepArrow
 
@@ -458,8 +458,8 @@ proc SEPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
 ##        1  
 ##   3      7
 ##    2      
-##     5    
-##  4   6     
+##     6    
+##  4   5     
 proc SWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase arrowSides arrowTags} {
 
     global pi
@@ -486,13 +486,14 @@ proc SWPolyArrow {canvas startx starty endx endy arrowWidth arrowTip arrowBase a
     set x4 $endx
     set y4 $endy
 
-    set x6 [expr $x7 - ($tailLength * cos($angle))]
-    set y6 [expr $y7 + ($tailLength * sin($angle))]
+    set x6 [expr $x7 - ($tailLength * cos($compAngle))]
+    set y6 [expr $y7 + ($tailLength * sin($compAngle))]
 
-    set x5 [expr $x6 - ($arrowSides * cos($compAngle))]
-    set y5 [expr $y6 - ($arrowSides * sin($compAngle))]
+    set x5 [expr $x6 + ($arrowSides * cos($angle))]
+    set y5 [expr $y6 + ($arrowSides * sin($angle))]
 
-    set swpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags]] 
+
+    set swpArrow [$canvas create polygon $x1 $y1 $x2 $y2 $x3 $y3 $x4 $y4 $x5 $y5 $x6 $y6 $x7 $y7 -tags $arrowTags] 
 
     return $swpArrow
 
