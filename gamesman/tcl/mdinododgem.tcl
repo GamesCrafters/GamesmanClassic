@@ -263,7 +263,7 @@ proc GS_Initialize { c } {
 
     global boardWidth boardSize xbmLightGrey
     global gFrameWidth gFrameHeight numPieces
-    global cell amount mySize yOffset
+    global cell amount mySize yOffset numBars
     set amount -1
     set winByBarSizePercent 0.90
     set mySize [expr [min $gFrameHeight $gFrameWidth] * $winByBarSizePercent] 
@@ -285,6 +285,7 @@ proc GS_Initialize { c } {
 	-fill [lindex [GS_ColorOfPlayers] 0] \
 	-outline black \
 	-tag [list base bars bar$numBars]
+    $c itemconfig bar$numPieces -fill black
     for {set x 0} {$x < $numBars} {incr x} {
 	$c create rect [expr $x * $cell] 0 \
 	    [expr [expr $x + 1] * $cell] $yOffset \
@@ -398,7 +399,7 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
     
-    global boardWidth boardSize numPieces amount cell mySize yOffset
+    global boardWidth boardSize numPieces amount cell mySize yOffset numBars
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     $c raise base
 
@@ -431,23 +432,39 @@ proc GS_DrawPosition { c position } {
     }
     set xcount [expr $xcount + ($boardWidth * ($numPieces - $numx))]
     set ocount [expr $ocount + ($boardWidth * ($numPieces - $numo))]
-    set ocount [expr $ocount - $xcount]
-    if {$ocount == 0} { set ocount [expr $ocount + $amount] }
-    if {$amount < 0} { set amount 1 } else { set amount -1 }
-    set ocount [expr $ocount + $numPieces * $boardWidth]
+
+#     puts "--"
+#     puts $xcount
+#     puts $ocount
+
+    set ocount [expr $xcount - $ocount + $numBars]
+
+#     puts $ocount
+#     puts "--"
+
+#     if {$ocount == 0} { set ocount [expr $ocount + $amount] }
+#     if {$amount < 0} { set amount 1 } else { set amount -1 }
+#     set ocount [expr $ocount + $numPieces * $boardWidth]
     for {set i 0} {$i < [expr 2 * $numPieces * $boardWidth + 1]} {incr i} {
-	if {$i < [expr $numPieces * $boardWidth]} {
-	    set x [expr $i * $cell]
-	    set y 0
-	} elseif {$i > [expr $numPieces * $boardWidth]} {
-	    set x $mySize
-	    set y [expr $yOffset + ($i - ($numPieces * $boardWidth)) * $cell]
-	}
-	if {$i < [expr 2 * $numPieces * $boardWidth + 1 - $ocount]} {
+	if {$i < $ocount} {
 	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 0]
-	} else {
+	} elseif {$i > $ocount} {
 	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 1]
+	} else {
+	    $c itemconfig bar$i -fill black
 	}
+# 	if {$i < [expr $numPieces * $boardWidth]} {
+# 	    set x [expr $i * $cell]
+# 	    set y 0
+# 	} elseif {$i > [expr $numPieces * $boardWidth]} {
+# 	    set x $mySize
+# 	    set y [expr $yOffset + ($i - ($numPieces * $boardWidth)) * $cell]
+# 	}
+# 	if {$i < [expr 2 * $numPieces * $boardWidth + 1 - $ocount]} {
+# 	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 0]
+# 	} else {
+# 	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 1]
+# 	}
     }
 }
 
