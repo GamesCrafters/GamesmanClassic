@@ -5,7 +5,7 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 # Dao-specific code by Dan Garcia and GamesCrafters2005Fa
 #
-# LAST CHANGE: $Id: mdao.tcl,v 1.6 2006-04-11 01:50:33 ogren Exp $
+# LAST CHANGE: $Id: mdao.tcl,v 1.7 2006-04-11 16:01:31 ogren Exp $
 #
 ####################################################
 
@@ -459,9 +459,13 @@ proc GS_ShowMoves { c moveType position moveList } {
     foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
+	set remoteness [lindex $item 2]
 	set delta [lindex $item 3]
 	set color cyan
-	
+
+	#h4x
+	puts "move:$move, value:$value, remoteness: $remoteness, delta:$delta"
+
 	if {$moveType == "value"} {
 	    if {$value == "Tie"} {
 		set color yellow
@@ -476,10 +480,10 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set dir   [Unhasher_Direction $move]
 
 	$c raise arrow$index$dir
-	if {$moveType == "value"} {
-	    $c itemconfig arrow$index$dir -fill $color -outline black -width [expr 2*$delta]
+	if {$moveType == "value" && $delta > 0} {
+	    $c itemconfig arrow$index$dir -fill $color -outline black -width $delta
 	    #h4x
-	    #puts $delta
+
 	} else {
 	    $c itemconfig arrow$index$dir -fill $color
 	}
