@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.6 2006-04-11 01:38:35 vert84 Exp $
+// $Id: mquickchess.c,v 1.7 2006-04-11 04:19:45 vert84 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -27,6 +27,9 @@
 **                    in the format old i, old j, new i, new j
 ** 10 Apr 2006 Aaron: Converted generate moves function and helper functions
 **                    to use moves instead of helper struct from testing file
+**                    Remove BOARDSIZE constant and replaced with rows*cols
+**                    Fixed DoMove's use of generic hash by changing WHITE
+**                    and BLACK players constants to use 1,2 instead of 0,1
 **************************************************************************/
 
 /*************************************************************************
@@ -101,8 +104,8 @@ STRING   kHelpExample =
 **************************************************************************/
 #define rows 4
 #define cols 3 
-#define WHITE_TURN 1 
-#define BLACK_TURN 0 
+#define WHITE_TURN 2 
+#define BLACK_TURN 1 
 #define BLACK_PAWN 'p'
 #define BLACK_BISHOP 'b'
 #define BLACK_ROOK 'r'
@@ -115,8 +118,6 @@ STRING   kHelpExample =
 #define WHITE_KNIGHT 'N'
 #define WHITE_KING 'K'
 #define WHITE_QUEEN 'Q'
-
-#define BOARDSIZE 12
 
 // Constants specifying directions to "look" on the board 
 #define UP 0 
@@ -132,12 +133,7 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int currentPlayer, i;
-
-/* Create input board of characters */
-char* gameBoard;
-
-
+int currentPlayer;
 
 /*VARIANTS*/
 BOOLEAN normalVariant = TRUE;
@@ -178,6 +174,7 @@ void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void generateKingMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
+void printArray (char* boardArray);
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -189,13 +186,13 @@ void generateKingMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 
 void InitializeGame ()
 {
-  // int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
-  int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
-  gameBoard = (char*) malloc (rows*cols*sizeof(char));
-  setupPieces(gameBoard);
-  currentPlayer = WHITE_TURN;
-  gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
-  gInitialPosition = generic_hash(gameBoard, currentPlayer);
+	// int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
+	int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
+	char gameBoard[rows*cols];
+	setupPieces(gameBoard);
+	currentPlayer = WHITE_TURN;
+	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
+	gInitialPosition = generic_hash(gameBoard, currentPlayer);
 }
 
 
@@ -219,44 +216,43 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  printf("gm");
     MOVELIST *moves = NULL;
-  int currentPlayer, i,j; 
-  char piece; 
-  char boardArray[rows*cols]; 
-  generic_unhash(position, boardArray); 
-  for (i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      printf("move: i:%d, j:%d",i,j);
-      piece = boardArray[i*cols + j]; 
-      // check if piece belongs to the currentPlayer
-      if (isSameTeam(piece, currentPlayer)) {
-	switch (piece) { 
-	case WHITE_QUEEN: case BLACK_QUEEN:  
-	  generateQueenMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	case WHITE_BISHOP: case BLACK_BISHOP: 
-	  generateBishopMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	case WHITE_ROOK: case BLACK_ROOK:
-	  generateRookMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	case WHITE_KNIGHT: case BLACK_KNIGHT:
-	  generateKnightMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	case WHITE_PAWN: case BLACK_PAWN:
-	  generatePawnMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	case WHITE_KING: case BLACK_KING:
-	  generateKingMoves(boardArray, &moves, currentPlayer, i, j);
-	  break;
-	default:  
-	  break; 
+	int currentPlayer, i,j; 
+	char piece; 
+	char boardArray[rows*cols]; 
+	generic_unhash(position, boardArray); 
+	for (i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			printf("move: i:%d, j:%d",i,j);
+			piece = boardArray[i*cols + j]; 
+			// check if piece belongs to the currentPlayer
+			if (isSameTeam(piece, currentPlayer)) {
+				switch (piece) { 
+					case WHITE_QUEEN: case BLACK_QUEEN:  
+						generateQueenMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					case WHITE_BISHOP: case BLACK_BISHOP: 
+						generateBishopMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					case WHITE_ROOK: case BLACK_ROOK:
+						generateRookMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					case WHITE_KNIGHT: case BLACK_KNIGHT:
+						generateKnightMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					case WHITE_PAWN: case BLACK_PAWN:
+						generatePawnMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					case WHITE_KING: case BLACK_KING:
+						generateKingMoves(boardArray, &moves, currentPlayer, i, j);
+						break;
+					default:  
+						break; 
+				} 
+			}
+		} 
 	} 
-      }
-    } 
-  } 
-   
+	
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
     
     return moves;
@@ -281,39 +277,34 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  printf("domove");
-  char* boardArray;
-  boardArray = (char*) malloc (rows*cols*sizeof(char));
-  char tempPiece;
-  int rowi, coli, rowf, colf;
-  
-  rowf = move & 15; 
-  colf = (move >> 4) & 15; 
-  rowi = (move >> 8) & 15; 
-  coli = (move >> 12) & 15; 
-
-  generic_unhash(position, boardArray);
-
-  PrintPosition(generic_hash(boardArray, currentPlayer), "me", TRUE);
-  tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
-  boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
-  boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
-  if(tempPiece == WHITE_PAWN) {
-    if(rowf == 1){
-      substitutePawn(boardArray, rows-rowf, colf-10);
-    } 
-  } else if(tempPiece == BLACK_PAWN) {
-    if(rowf == rows) {
-      substitutePawn(boardArray, rows-rowf, colf-10);
-    }
-  }
-  if(currentPlayer == WHITE_TURN) {
-    currentPlayer = BLACK_TURN;
-  } else currentPlayer = WHITE_TURN;
-  PrintPosition(generic_hash(boardArray, currentPlayer), "me", TRUE);
-  return generic_hash(boardArray, currentPlayer);
- 
+	printf("domove");
+	char boardArray[rows*cols];
+	char tempPiece;
+	int rowi, coli, rowf, colf;
+	rowf = move & 15; 
+	colf = (move >> 4) & 15; 
+	rowi = (move >> 8) & 15; 
+	coli = (move >> 12) & 15; 
+	generic_unhash(position, boardArray);
+	tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
+	boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
+	boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
+	if(tempPiece == WHITE_PAWN) {
+		if(rowf == 1){
+			substitutePawn(boardArray, rows-rowf, colf-10);
+		} 
+	} else if(tempPiece == BLACK_PAWN) {
+		if(rowf == rows) {
+			substitutePawn(boardArray, rows-rowf, colf-10);
+		}
+	}
+	if(currentPlayer == WHITE_TURN) {
+		currentPlayer = BLACK_TURN;
+	} else currentPlayer = WHITE_TURN;
+	PrintPosition(generic_hash(boardArray, currentPlayer), "me", TRUE);
+	return generic_hash(boardArray, currentPlayer);	
 }
+
 void substitutePawn(char *boardArray, int x, int y){
   char piece;
   printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!): ");
@@ -414,35 +405,35 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  int x, y;
+	int x, y;
 	char boardArray[rows*cols];
-  generic_unhash(position, boardArray);
-
-  printf("\n"); 
-  for(x = 0; x < rows; x++){ 
-    printf("    +"); 
-    for(y = 0; y < cols; y++){ 
-      printf("---+"); 
-    } 
-    printf("\n"); 
-    printf("  %d |", rows - x); 
-    for(y = 0; y < cols; y++){ 
-      printf(" %c |", boardArray[x*cols + y]); 
-    } 
-    printf("\n"); 
-  } 
-  printf("    +"); 
-  for(y = 0; y < cols; y++){ 
-    printf("---+"); 
-  } 
-  printf("\n"); 
-  printf("     "); 
-  for(y = 0; y < cols; y++){ 
-    printf(" %c  ", 97+y); 
-  } 
-  printf("\n"); 
-  //printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
-  // printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase"); 
+	generic_unhash(position, boardArray);
+	
+	printf("\n"); 
+	for(x = 0; x < rows; x++){ 
+		printf("    +"); 
+		for(y = 0; y < cols; y++){ 
+			printf("---+"); 
+		} 
+		printf("\n"); 
+		printf("  %d |", rows - x); 
+		for(y = 0; y < cols; y++){ 
+			printf(" %c |", boardArray[x*cols + y]); 
+		} 
+		printf("\n"); 
+	} 
+	printf("    +"); 
+	for(y = 0; y < cols; y++){ 
+		printf("---+"); 
+	} 
+	printf("\n"); 
+	printf("     "); 
+	for(y = 0; y < cols; y++){ 
+		printf(" %c  ", 97+y); 
+	} 
+	printf("\n"); 
+	//printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
+	// printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase"); 
 }
 
 
@@ -775,19 +766,20 @@ void setOption (int option)
 
 void DebugMenu ()
 {
-  MOVE m;
-  int coli, rowi, colf, rowf;
-  coli = 10;
-  colf = 10;
-  rowi = 4;
-  rowf = 3;
-  m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-  PrintMove(m);
-  PrintPosition(gInitialPosition, "me", TRUE);
-  //PrintMove(m);
-  //GenerateMoves(gInitialPosition);
-  //DoMove(gInitialPosition, m);
-  // PrintPosition(DoMove(gInitialPosition, m), "me", TRUE);
+	MOVE m;
+	int coli, rowi, colf, rowf;
+	coli = 10;
+	colf = 10;
+	rowi = 4;
+	rowf = 3;
+	m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+	PrintMove(m);
+	PrintPosition(gInitialPosition, "me", TRUE);
+    POSITION newPos = DoMove(gInitialPosition, m);
+	PrintPosition(newPos, "me", TRUE);
+	//PrintMove(m);
+	//GenerateMoves(gInitialPosition);
+	// PrintPosition(DoMove(gInitialPosition, m), "me", TRUE);
 }
 
 
@@ -1494,7 +1486,44 @@ BOOLEAN isSameTeam(char piece, int currentPlayer) {
 	else  
 		return FALSE; 
 } 
+
+/* Used for testing.  this function will print an array, not a hash position
+like PrintPosition(); */
+void printArray (char* boardArray)
+{	
+	int x, y;	
+	printf("\n"); 
+	for(x = 0; x < rows; x++){ 
+		printf("    +"); 
+		for(y = 0; y < cols; y++){ 
+			printf("---+"); 
+		} 
+		printf("\n"); 
+		printf("  %d |", x); 
+		for(y = 0; y < cols; y++){ 
+			printf(" %c |", boardArray[x*cols + y]); 
+		} 
+		printf("\n"); 
+	} 
+	printf("    +"); 
+	for(y = 0; y < cols; y++){ 
+		printf("---+"); 
+	} 
+	printf("\n"); 
+	printf("     "); 
+	for(y = 0; y < cols; y++){ 
+		printf(" %d  ", y); 
+	}
+	printf("\n"); 
+	printf("\n");
+	
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2006/04/11 01:38:35  vert84
+// *** empty log message ***
+//
 // Revision 1.5  2006/04/11 00:39:47  runner139
 // *** empty log message ***
 //
