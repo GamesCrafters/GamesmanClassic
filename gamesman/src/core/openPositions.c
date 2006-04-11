@@ -6,8 +6,10 @@
 #include <stdio.h>
 #include "openPositions.h"
 #include "solveloopy.h"
+#include "gameplay.h"
+#include "misc.h"
 
-OPEN_POS_DATA* openPosData;
+OPEN_POS_DATA* openPosData=0;
 POSITION openPosArrLen;
 POSITIONLIST* headNodeDP;
 POSITIONLIST* tailNodeDP;
@@ -46,21 +48,28 @@ void InitializeOpenPositions(int numPossiblePositions)
 	while(headNodeDP) DequeueDP();
 	return;
 }
+int OpenIsInitialized(void)
+{
+	return openPosData?1:0;
+}
 void CleanupOpenPositions(void)
 {
-	if(!openPosData) return;
-	//printf("HERE!!!!!\n");
-	SafeFree(openPosData);
 	//printf("HERE!!!!!\n");
 	SafeFree(corruptedPositions);
 	//printf("HERE!!!!!\n");
 	SafeFree(fringePositions);
-	openPosData=NULL;
 	//printf("HERE!!!!!\n");
 	while(headNodeDP) DequeueDP();
 	//printf("HERE!!!!!\n");
 	tailNodeDP=NULL;
 	return;
+}
+void FreeOpenPositions(void)
+{
+	if(!openPosData) return;
+	//printf("HERE!!!!!\n");
+	SafeFree(openPosData);
+	openPosData=NULL;
 }
 
 void RegisterDrawPosition(POSITION pos)
@@ -191,7 +200,7 @@ void ComputeOpenPositions()
 	POSITIONLIST* ptr;
 	int curLevel=1;
 	POSITION iter;
-
+	InitializeOpenPositions(gNumberOfPositions);
 	if(!openPosData) return;
 	//PrintChildrenCounts();
 
@@ -430,6 +439,7 @@ void ComputeOpenPositions()
 			}
 		}
 		//PrintChildrenCounts();
+		CleanupOpenPositions();
 		curLevel++;
 	}
 	/* finally, everything that is still unmarked is a drawdraw */
@@ -454,7 +464,7 @@ void ComputeOpenPositions()
 		for(;moves;moves=moves->next)
 		{
 			POSITION child=DoMove(iter,moves->move);
-			OPEN_POS_DATA cdat=GetOpenData(iter);
+			OPEN_POS_DATA cdat=GetOpenData(child);
 			if(!GetFringe(cdat) && GetLevelNumber(cdat)==GetLevelNumber(dat) && GetFremoteness(cdat)>maxFremote)
 				maxFremote=GetFremoteness(cdat);
 		}
@@ -481,27 +491,31 @@ void PrintOpenDataFormatted(void)
 	POSITION i;
 	for(i=0;i<openPosArrLen;i++)
 	{
-		OPEN_POS_DATA dat=GetOpenData(i);
-		if(GetDrawValue(dat)==undecided) continue;
-		PrintPosition(i, "", 0);
-		printf("Level number: %d\n",GetLevelNumber(dat));
-		printf("OpenPosition value: ");
-		switch(GetDrawValue(dat))
-		{
-		case win:
-			printf("win");
-			break;
-		case lose:
-			printf("lose");
-			break;
-		case tie:
-			printf("tie");
-			break;
-		}
-		printf("\nCorruption level: %d\n",GetCorruptionLevel(dat));
-		printf("Fremoteness: %d\n",GetFremoteness(dat));
-		printf("Fringe?: %s\n",GetFringe(dat)?"yes":"no");
+		PrintSingleOpenData(i);
 	}
+}
+void PrintSingleOpenData(POSITION p)
+{
+	OPEN_POS_DATA dat=GetOpenData(p);
+	if(GetDrawValue(dat)==undecided) return;
+	PrintPosition(p, "", 0);
+	printf("Level number: %d\n",GetLevelNumber(dat));
+	printf("OpenPosition value: ");
+	switch(GetDrawValue(dat))
+	{
+	case win:
+		printf("win");
+		break;
+	case lose:
+		printf("lose");
+		break;
+	case tie:
+		printf("tie");
+		break;
+	}
+	printf("\nCorruption level: %d\n",GetCorruptionLevel(dat));
+	printf("Fremoteness: %d\n",GetFremoteness(dat));
+	printf("Fringe?: %s\n",GetFringe(dat)?"yes":"no");
 }
 void PrintOpenAnalysis(void)
 {
@@ -526,4 +540,76 @@ void PrintOpenAnalysis(void)
 	}
 	printf("Draw Wins: %d Draw Loses: %d Draw Ties: %d\n",wins,losses,ties);
 }
-
+MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * remotenesses)
+{
+	MOVE m;
+	MOVELIST *wM, *lM, *dM;
+	REMOTENESSLIST *wF, *lF, *dF;
+	int winCorrMax=0, loseCorrMin=CORRUPTION_MAX;
+	wM=lM=dM=NULL;wF=lF=dF=NULL;
+	/* If I'm not at a draw position, don't try to handle it like it is, just default */
+	if(!(GetValueOfPosition(from)==tie && Remoteness(from)==REMOTENESS_MAX) || !OpenIsInitialized())
+		return RandomSmallestRemotenessMove(moves, remotenesses);
+	printf("\n\n\nChoosing From:\n");
+	for(;moves;moves=moves->next)
+	{
+		POSITION child=DoMove(from,moves->move);
+		OPEN_POS_DATA cdat=GetOpenData(child);
+		if(GetDrawValue(cdat)==undecided || GetLevelNumber(cdat)<GetLevelNumber(GetOpenData(from))) continue;
+		PrintSingleOpenData(child);
+		switch(GetDrawValue(cdat))
+		{
+		case win:
+			if(GetCorruptionLevel(cdat)>winCorrMax)
+			{
+				FreeMoveList(wM);
+				FreeRemotenessList(wF);
+				winCorrMax=GetCorruptionLevel(cdat);
+				wM=NULL;
+				wF=NULL;
+			}
+			wM=CreateMovelistNode(moves->move,wM);
+			wF=CreateRemotenesslistNode(GetFremoteness(cdat),wF);
+			break;
+		case lose:
+			if(GetCorruptionLevel(cdat)<loseCorrMin)
+			{
+				FreeMoveList(lM);
+				FreeRemotenessList(lF);
+				winCorrMax=GetCorruptionLevel(cdat);
+				lM=NULL;
+				lF=NULL;
+			}
+			lM=CreateMovelistNode(moves->move,lM);
+			lF=CreateRemotenesslistNode(GetFringe(cdat)?0:GetFremoteness(cdat),lF);
+			break;
+		case tie:
+			dM=CreateMovelistNode(moves->move,dM);
+			dF=CreateRemotenesslistNode(GetFremoteness(cdat),dF);
+			break;
+		}
+	}
+	if(lM)
+	{
+		m=RandomSmallestRemotenessMove(lM,lF);
+	}
+	else if(dM)
+	{
+		m=RandomSmallestRemotenessMove(dM,dF);
+	}
+	else if(wM)
+	{
+		m=RandomLargestRemotenessMove(wM,wF);
+	}
+	else
+		BadElse("GetSmartComputerMove");
+	FreeMoveList(lM);
+	FreeMoveList(wM);
+	FreeMoveList(dM);
+	FreeRemotenessList(lF);
+	FreeRemotenessList(wF);
+	FreeRemotenessList(dF);
+	printf("\n\n\nChoosing...\n\n\n");
+	PrintSingleOpenData(DoMove(from,m));
+	return m;
+}

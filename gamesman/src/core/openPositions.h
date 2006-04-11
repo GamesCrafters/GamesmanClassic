@@ -104,6 +104,7 @@ void InitializeOpenPositions(int numPossiblePositions);
 /* call when you want to free up the massive amounts of memory this analysis will do.
    make sure you're done with all openPositions data first! */
 void CleanupOpenPositions(void);
+void FreeOpenPositions(void);
 /* do the actual work! */
 void ComputeOpenPositions();
 /* call this with each draw position before calling computeOpenPositions.  This keeps us from having
@@ -119,6 +120,9 @@ OPEN_POS_DATA GetOpenData(POSITION pos);
    and getting a point across */
 void PrintOpenDataFormatted(void);
 void PrintOpenAnalysis(void);
+void PrintSingleOpenData(POSITION p);
+/* this is to allow the computer to choose where to go using openPositions */
+MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * remotenesses);
 
 /* These are the "private" functions for openPositions' consumption only */
 void EnqueueDP(POSITION pos);
@@ -126,6 +130,7 @@ POSITION DequeueDP(void);
 void CleanUpBeneathCL(int cl);
 void PropogateFreAndCorUp(POSITION p);
 void PropogateFreAndCorUpFringe(POSITION p, char fringe);
+int OpenIsInitialized(void);
 
 
 /* globals */
