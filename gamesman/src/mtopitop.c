@@ -335,7 +335,8 @@ void InitializeGame ()
     if (DEBUG_G) { printf("maxL = %d\n", maxL = generic_hash_init(boardSize, LpiecesArray, NULL)); }
     if (DEBUG_G) { printf("maxS = %d\n", maxS = generic_hash_init(boardSize, SpiecesArray, NULL)); }
     if (DEBUG_G) { printf("maxB = %d\n", maxB = generic_hash_init(boardSize, BpiecesArray, NULL)); }
-    
+
+    /* init the hash values */
     maxL = generic_hash_init(boardSize, LpiecesArray, NULL);
     maxS = generic_hash_init(boardSize, SpiecesArray, NULL);
     maxB = generic_hash_init(boardSize, BpiecesArray, NULL);
@@ -343,6 +344,7 @@ void InitializeGame ()
     gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
     gWhosTurn = boardArray->theTurn = Blue;
     
+    /* begin with the default board, all blanks */
     for (i = 0; i < boardSize; i++) {
     	boardArray->theBoard[i] = BLANKPIECE;
     }
@@ -384,9 +386,12 @@ MOVELIST *GenerateMoves (POSITION position)
     int i, j;
    	
     if (DEBUG_GM) { printf("\n***** GENERATE MOVES *****\n\n"); }
-    
+
     newMove->fromPos = 0;
+
     if (DEBUG_GM) { printf("---- Place Moves ----\n"); }
+
+    /* loop through the board and determine the dartboard moves that can be made */
     for (i = 0; i < boardSize; i++) {
     	if (board->theBoard[i] == BLANKPIECE) {
 	    	newMove->toPos = i;
@@ -396,9 +401,9 @@ MOVELIST *GenerateMoves (POSITION position)
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
     			}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
@@ -408,10 +413,10 @@ MOVELIST *GenerateMoves (POSITION position)
     			if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
     			moves = CreateMovelistNode(tempMove, moves);
 	    	}
 	    	if ((gWhosTurn == Blue) && (board->data->blueBuckets > 0)) {
@@ -420,11 +425,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
-				moves = CreateMovelistNode(tempMove, moves);
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
+			moves = CreateMovelistNode(tempMove, moves);
 	    	}
 	    	if ((gWhosTurn == Red) && (board->data->redBuckets > 0)) {
 	    		newMove->movePiece = hRedBucket;
@@ -432,17 +437,18 @@ MOVELIST *GenerateMoves (POSITION position)
 	    		if (DEBUG_GM) { 
     				printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     				printMove(newMove);
-					printf("\n");
-					printMove(unhashMove(tempMove));
-					printf("\n");
-				}
-				moves = CreateMovelistNode(tempMove, moves);
+				printf("\n");
+				printMove(unhashMove(tempMove));
+				printf("\n");
+			}
+			moves = CreateMovelistNode(tempMove, moves);
 	    	}
     	}
     }
     
     if (DEBUG_GM) { printf("---- Piece Moves ----\n"); }
     
+    /* loop through the board and determine the moves from one square to another that can be made */
     for (i = 0; i < boardSize; i++) {
     	for (j = 0; j < boardSize; j++) {
 	    	newMove->fromPos = i + 1;
@@ -450,7 +456,6 @@ MOVELIST *GenerateMoves (POSITION position)
     		newMove->movePiece = hUnknownPiece;
     		if ((((int) (tempMove = hashMove(newMove))) != ((int) undoMove)) && 
     			(validPieceMove(i, j))) {
-			
     			if (((board->theBoard[i] == BLUEBUCKETPIECE) && (gWhosTurn == Blue)) || 
     	 			((board->theBoard[i] == REDBUCKETPIECE) && (gWhosTurn == Red))) {
     				if ((board->theBoard[j] == BLANKPIECE) || (board->theBoard[j] == SMALLPIECE) ||
@@ -458,11 +463,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove);
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUESMALLPIECE) && (gWhosTurn == Blue)) || 
     	 			((board->theBoard[i] == REDSMALLPIECE) && (gWhosTurn == Red)) ||
@@ -471,11 +476,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		} else if (((board->theBoard[i] == BLUECASTLEPIECE) && (gWhosTurn == Blue)) || 
     	 			((board->theBoard[i] == REDCASTLEPIECE) && (gWhosTurn == Red)) ||
@@ -484,11 +489,11 @@ MOVELIST *GenerateMoves (POSITION position)
     					if (DEBUG_GM) { 
     						printf("NEWMOVE %d %x\n", (int) tempMove, (int) tempMove); 
     						printMove(newMove);
-							printf("\n");
-							printMove(unhashMove(tempMove));
-							printf("\n");
-						}
-						moves = CreateMovelistNode(tempMove, moves);
+						printf("\n");
+						printMove(unhashMove(tempMove));
+						printf("\n");
+					}
+					moves = CreateMovelistNode(tempMove, moves);
     				}
     	 		}
     		}
@@ -778,14 +783,17 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-	if ( DEBUG_PM ) { printf("\n***** PRINT MOVE *****\n\n"); }
+    if ( DEBUG_PM ) { printf("\n***** PRINT MOVE *****\n\n"); }
+
     GMove newMove = unhashMove(move);
     char toPrint;
     
     if (newMove->fromPos == 0) {
-    	if ((newMove->movePiece == hBlueBucket) || (newMove->movePiece == hRedBucket)) {
+    	if (newMove->movePiece == hBlueBucket) { 
     		toPrint = 'b';
-    	} else if (newMove->movePiece == hSmallSand) {
+    	} else if (newMove->movePiece == hRedBucket) {
+	        toPrint = 'r';
+	} else if (newMove->movePiece == hSmallSand) {
     		toPrint = 's';
     	} else if (newMove->movePiece == hLargeSand) {
     		toPrint = 'l';
@@ -844,8 +852,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
         //printf("Move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
-		printf("%s's (%s) move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
-		       playersName, playerColor, boardSize, boardSize, boardSize);
+      if (gWhosTurn == Blue) {
+	printf("%s's (%s) move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
+	       playersName, playerColor, boardSize, boardSize, boardSize);
+      }
+      else {
+	printf("%s's (%s) move [(u)ndo/([l,s,r][1-%d] OR [1-%d][1-%d])] : ", 
+	       playersName, playerColor, boardSize, boardSize, boardSize);
+      }
 	
 		input = HandleDefaultTextInput(position, move, playersName);
 		
@@ -900,7 +914,7 @@ BOOLEAN ValidTextInput (STRING input)
     }
     
     if (((input[0] >= '1') && (input[0] <= '9')) ||
-    	(input[0] == 'l') || (input[0] == 's') || (input[0] == 'b')) {
+    	(input[0] == 'l') || (input[0] == 's') || (input[0] == 'b') || (input[0] == 'r')) {
     	if ((input[1] >= '1') && (input[1] <= '9')) {
     		if (DEBUG_CTITM) { printf("\n***** END VALID TEXT INPUT *****\n"); }
     		return TRUE;
@@ -945,11 +959,9 @@ MOVE ConvertTextInputToMove (STRING input)
     } else if (first == 's') {
     	newMove->movePiece = hSmallSand;
     } else if (first == 'b') {
-    	if (gWhosTurn == Blue) {
-    		newMove->movePiece = hBlueBucket;
-    	} else {
-    		newMove->movePiece = hRedBucket;
-    	}
+        newMove->movePiece = hBlueBucket;
+    } else if (first == 'r') {
+        newMove->movePiece = hRedBucket;
     } else {
     	newMove->fromPos = (int) (first - '0');
     	newMove->movePiece = hUnknownPiece;
@@ -1671,6 +1683,9 @@ void printBoard(BoardAndTurn board) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.34  2006/04/11 00:54:26  mikehamada
+// Testing Hash
+//
 // Revision 1.33  2006/04/10 06:43:19  mikehamada
 // WORKING TOPITOP!!!!
 //
