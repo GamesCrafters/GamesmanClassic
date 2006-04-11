@@ -10,7 +10,8 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.31 2006-03-21 18:24:45 ogren Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.32 2006-04-11 15:59:48 ogren Exp $
+**
 **************************************************************************/
 
 #include "tk.h"
@@ -607,22 +608,22 @@ GetValueMovesCmd(dummy, interp, argc, argv)
       remote = Remoteness(temp);
       vMoves = GetValueMoves(position);
 
-      //Flip values since moving to a winning position is a losing move, etc.
-      if (value == win) {
-	j_value = LOSEMOVE;
-	m_value = lose;
+      //Flip values since moving to a winning position is a losing move
+      if (value == lose) {
+	j_value = WINMOVE;
+	m_value = win;
       } else if (value == tie) {
 	j_value = TIEMOVE;
 	m_value = tie;
-      } else if (value == lose) {
-	j_value = WINMOVE;
-	m_value = win;
+      } else if (value == win) {
+	j_value = LOSEMOVE;
+	m_value = lose;
       } else {
 	j_value = -1;
 	m_value = -1;
       }
 
-      delta = FindDelta(remote, vMoves->remotenessList[j_value], value);
+      delta = FindDelta(remote, vMoves->remotenessList[j_value], m_value);
 
       if (gGoAgain(position,ptr->move)) {
 	switch(value) {
