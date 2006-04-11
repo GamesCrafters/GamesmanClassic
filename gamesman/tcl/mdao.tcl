@@ -5,7 +5,7 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 # Dao-specific code by Dan Garcia and GamesCrafters2005Fa
 #
-# LAST CHANGE: $Id: mdao.tcl,v 1.5 2006-04-11 01:44:56 ogren Exp $
+# LAST CHANGE: $Id: mdao.tcl,v 1.6 2006-04-11 01:50:33 ogren Exp $
 #
 ####################################################
 
@@ -477,7 +477,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 	$c raise arrow$index$dir
 	if {$moveType == "value"} {
-	    $c itemconfig arrow$index$dir -fill $color -outline black -width $delta
+	    $c itemconfig arrow$index$dir -fill $color -outline black -width [expr 2*$delta]
 	    #h4x
 	    #puts $delta
 	} else {
