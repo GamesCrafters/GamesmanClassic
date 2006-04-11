@@ -70,11 +70,15 @@ BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if i
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  747521822; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
+
+BOOLEAN  kSupportsHeuristic  = TRUE;
+BOOLEAN  kSupportsSymmetries = TRUE;
+BOOLEAN  kSupportsGraphics   = FALSE;
 
 void*	 gGameSpecificTclInit = NULL;
 
@@ -248,6 +252,7 @@ int DEBUG_CTITM = 0;
 int DEBUG_VPM = 0;
 int DEBUG_IM = 0;
 int DEBUG_GAPPM = 0;
+int DEBUG_TEST = 0;
 
 int gameType;
 int maxL, maxS, maxB = 0;
@@ -304,7 +309,8 @@ GMove					unhashMove(MOVE newMove);
 MOVE 					inverseMove(MOVE move);
 void 					printMove(GMove move);
 int						validPieceMove(int fromPos, int toPos);
-
+void 					testHash();
+void					printBoard(BoardAndTurn board);
 
 /************************************************************************
 **
@@ -346,6 +352,7 @@ void InitializeGame ()
     SafeFree(boardArray);
     if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
     if (DEBUG_G) { printf("Init Pos: %d\n", (int) gInitialPosition); }
+    if (DEBUG_TEST) { testHash(); }
 }
 
 
@@ -1497,7 +1504,6 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   board->data->redCastles = redC;
   board->data->blueCastles = blueC;
   board->theTurn = whoseMove(hashNumber);
-  //gWhosTurn = 
 
   if (DEBUG_AU) { printf("\nwhoseMove(hashNumber) = %d\n", whoseMove(hashNumber)); }
   
@@ -1632,9 +1638,42 @@ int validPieceMove(int fromP, int toP) {
 	return valid;
 }
 
+void testHash() {
+	int i;
+	BoardAndTurn board;
 	
+	printf("\n***** TESTING HASH *****\n\n");
+	printf("gNumberOfPositions = %d\n\n", (int) gNumberOfPositions);
+	for (i = 0; i < gNumberOfPositions; i++) {
+		board = arrayUnhash((POSITION) i);
+		printf("POSITION = %d", i);
+		printBoard(board);
+		SafeFree(board->data);
+		SafeFree(board->theBoard);
+		SafeFree(board);
+		getchar();
+	}
+	
+	printf("\n***** FINISHED TESTING HASH *****\n");
+}
+
+void printBoard(BoardAndTurn board) {
+	printf("\n*-*-*-*\n");
+	printf("|%c|%c|%c|\n", board->theBoard[0], board->theBoard[1],
+			board->theBoard[2]);
+	printf("*-+-+-*\n");
+	printf("|%c|%c|%c|\n", board->theBoard[3], board->theBoard[4],
+			board->theBoard[5]);
+	printf("*-+-+-*\n");
+	printf("|%c|%c|%c|\n", board->theBoard[6], board->theBoard[7],
+			board->theBoard[8]);
+	printf("*-*-*-*\n");
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2006/04/10 06:43:19  mikehamada
+// WORKING TOPITOP!!!!
+//
 // Revision 1.32  2006/04/10 06:16:04  mikehamada
 // Removed needless comments and turned off all debugs
 //
