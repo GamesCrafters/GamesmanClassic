@@ -136,6 +136,8 @@ BOARD arraytoboard (POSITION);
 POSITION boardtoarray (BOARD);
 void ChangeBoardSize();
 void SetWinningCondition();
+
+STRING MoveToString(MOVE);
 /* Function declarations */
 
 
@@ -223,6 +225,8 @@ void InitializeGame () {
     kHelpStandardObjective = gStandard;
     kHelpReverseObjective = gStandardR;
   }
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -577,7 +581,27 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 void PrintMove (MOVE move) {
-  printf("%d", move);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(3);
+  sprintf(move, "%d", theMove);
+  return move;
 }
 
 /************************************************************************

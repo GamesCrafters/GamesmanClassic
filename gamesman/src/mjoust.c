@@ -182,6 +182,8 @@ BOOLEAN PossibleQueen(int, int, int, int, int, BlankBurntOX[]);
 /* Possible burn and helpers */
 BOOLEAN PieceBurn(int, POSITION, BlankBurntOX[]);
 
+STRING MoveToString(MOVE);
+
 char *gBlankBurntOXString[] = { "-", "*", "O", "X" };
 STRING kBBExplanation =
 "\nIn Burned Bridges, the spots you touch \
@@ -224,6 +226,8 @@ void InitializeGame()
   gInitialPosition = GenerateNewInitial();
   gMinimalPosition = gInitialPosition;
   gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1462,6 +1466,26 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING moveStr = (STRING) SafeMalloc(8);
+
   int burn;
   int move;
   burn = ExtractBurn(theMove);
@@ -1469,11 +1493,13 @@ void PrintMove(theMove)
 
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
   if (burnType==0) {
-    printf("[%d]", move + 1); 
+    sprintf(moveStr, "[%d]", move + 1); 
   }
   else {
-    printf("[%d %d]", move + 1, burn + 1); 
+    sprintf(moveStr, "[%d %d]", move + 1, burn + 1); 
   }
+
+  return moveStr;
 }
 
 int NumberOfOptions() {

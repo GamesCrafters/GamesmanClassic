@@ -319,6 +319,7 @@ int getDirection(MOVE);
 int getNumPieces(MOVE);
 MOVELIST* CreateMovelistNode(MOVE, MOVELIST*);
 
+STRING MoveToString(MOVE);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -366,6 +367,8 @@ void InitializeGame ()
     gInitialPosition = generic_hash(gBoard, gFirstToMove);
     positionInitialized = TRUE;
   }
+  
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -616,34 +619,50 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  if (detailedDebug) printf("PrintMove start\n");
-  char* pieceString = "";
-  char* dirString = "";
-  int numPieces = getNumPieces(move);
-  int direction = getDirection(move);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
 
-  if (numPieces == 1) {
-    pieceString = "piece";
-  } else {
-    pieceString = "pieces";
-  }
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(4);
+
+  if (detailedDebug) printf("MoveToString start\n");
+
+  char dirCh;
+
+  int numPieces = getNumPieces(theMove);
+  int direction = getDirection(theMove);
 
   if (direction == up) {
-    dirString = "i";
+    dirCh  = 'i';
   } else if (direction == down) {
-    dirString = "k";
+    dirCh = 'k';
   } else if (direction == left) {
-    dirString = "j";
+    dirCh = 'j';
   } else if (direction == right) {
-    dirString = "l";
+    dirCh = 'l';
   }
 
   if (multiplePieceMoves) {
-    printf("%s%d", dirString, numPieces);
+    sprintf( move, "%c%d", dirCh, numPieces );
   } else {
-    printf("%s", dirString);
+    sprintf( move, "%c", dirCh );
   }
-  if (detailedDebug) printf("PrintMove end\n");
+  if (detailedDebug) printf("MoveToString end\n");
+  return move;
 }
 
 

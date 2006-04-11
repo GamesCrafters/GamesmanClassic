@@ -147,10 +147,11 @@ int getDestFromMove(MOVE move);
 MOVE makeMove(int source, int dest);
 int neighbors(int x, int y);
 
+STRING MoveToString(MOVE);
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-
 
 /************************************************************************
 **
@@ -190,6 +191,7 @@ void InitializeGame ()
 
   gInitialPosition = generic_hash(gBoard, 1);
 
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -492,7 +494,27 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf("[%d %d]", getSourceFromMove(move)+1, getDestFromMove(move)+1);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(8);
+  sprintf(move, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
+  return move;
 }
 
 

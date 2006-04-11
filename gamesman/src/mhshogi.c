@@ -235,6 +235,7 @@ int BoardPosToArrayPos(int x, int y);
 MOVE hashMove(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY);
 sMove unhashMove(MOVE move);
 
+STRING MoveToString(MOVE);
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -269,6 +270,8 @@ void InitializeGame ()
   }
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
   gInitialPosition = generic_hash(theBlankOX, 1);
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -608,13 +611,32 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  struct cleanMove x;
-  x = unhashMove(move);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
 
-  printf("%c", x.fromX + 'a');
-  printf("%d", x.fromY + 1);
-  printf("%c", x.toX + 'a');
-  printf("%d", x.toY + 1);
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(5);
+
+  struct cleanMove x;
+  x = unhashMove(theMove);
+
+  sprintf( move, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
+
+  return move;
 }
 
 

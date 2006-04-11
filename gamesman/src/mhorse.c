@@ -126,6 +126,8 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot,int neighbor,BlankOX whosturn);
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -136,6 +138,7 @@ SLOT GetToSlot(SLOT fromSlot,int neighbor,BlankOX whosturn);
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -709,10 +712,31 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(11);
+
   SLOT fromSlot, toSlot;
   MoveToSlots(theMove,&fromSlot,&toSlot);
 
-  printf("[ %d %d ] ", fromSlot, toSlot);
+  sprintf(move, "[ %d %d ] ", fromSlot, toSlot);
+  return move;
 }
 
 
