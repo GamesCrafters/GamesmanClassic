@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.31 2006-04-05 11:42:00 arabani Exp $
+// $Id: machi.c,v 1.32 2006-04-11 02:10:52 kmowery Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -128,11 +128,13 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 STRING MoveToString (MOVE);
-
+STRING PositionToString(POSITION);
 
 void InitializeGame()
 {
   gMoveToStringFunPtr = &MoveToString;
+  gCustomUnhash = &PositionToString;
+
   gGetVarStringPtr = &GetVarString;
   InitializeHelpStrings();
 }
@@ -877,6 +879,33 @@ STRING MoveToString(theMove)
   }
 }
 
+STRING PositionToString( thePos )
+     POSITION thePos;
+{
+  BlankOX* turn = SafeMalloc( sizeof(BlankOX) );
+  BlankOX* board = SafeMalloc( sizeof(BlankOX)*BOARDSIZE );
+
+  char* str = (STRING) SafeMalloc(BOARDSIZE+1);
+
+  PositionToBlankOX( thePos, board, turn );
+
+  int i;
+  for( i = 0; i < BOARDSIZE; ++i ) {
+    if( board[i] == Blank ) {
+      str[i] = ' ';
+    } else if( board[i] == x ) {
+      str[i] = 'X';
+    } else if( board[i] == o ) {
+      str[i] = 'O';
+    }
+  }
+  str[BOARDSIZE] = '\0';
+
+  SafeFree( turn );
+  SafeFree( board );
+  return str;
+}
+
 /************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
@@ -925,7 +954,6 @@ void PositionToBlankOX(thePos,theBlankOX,whosTurn)
 	    BadElse("PositionToBlankOX");
     }
 }
-
 
 /************************************************************************
  **
@@ -1081,6 +1109,9 @@ void setOption(int option)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2006/04/05 11:42:00  arabani
+// Fixed XML file writing.
+//
 // Revision 1.30  2006/02/26 08:31:15  kmowery
 //
 // Changed MToS to MoveToString
