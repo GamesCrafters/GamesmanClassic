@@ -31,12 +31,16 @@ STRING   kHelpTieOccursWhen     = "A tie is not possible in this game" ;
 STRING   kHelpExample           = "some really long thing<-Actually play a game,then copy/paste" ;
 STRING   kAuthorName            = "Gamescrafters";
 
+STRING MoveToString(MOVE);
+
 void InitializeGame()
 {
 	// HERE, YOU SHOULD ASSIGN gNumberOfPositions and gInitialPosition
 	gNumberOfPositions =(1<<(rows*3)) * 2 ;
 	gInitialPosition = ((1<<(rows*3)) - 1) * 2;
 	gMinimalPosition = gInitialPosition ;
+
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 // SUNIL: NOT WRITING
@@ -212,7 +216,17 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE theMove)
 {
-	printf("%d", theMove) ;
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(4);
+  sprintf(move, "%d", theMove) ;
+  return move;
 }
 
 STRING kDBName = "nim" ;

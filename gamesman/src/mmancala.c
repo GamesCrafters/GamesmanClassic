@@ -182,6 +182,8 @@ void UpdateGameSpecs();
 void BadMenuChoice();
 int rearranger_hash_init(int, int, int);
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -215,6 +217,7 @@ void InitializeGame()
   
   SafeFree (arrayBoard);
 
+  gMoveToStringFunPtr = MoveToString;
 }
 
 
@@ -928,10 +931,30 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE theMove)
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(8);
   if(theMove > mancalaR) {
     theMove = boardSize - theMove + mancalaR;
   }
-  printf("%d", theMove);
+  sprintf(move, "%d", theMove);
+  return move;
 }
 
 

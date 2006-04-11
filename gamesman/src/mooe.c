@@ -121,6 +121,8 @@ int firstPlayerMatches(POSITION position);
 int secondPlayerMatches(POSITION position);
 int power(int number, int pow);
 
+STRING MoveToString(MOVE);
+
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
@@ -138,7 +140,7 @@ extern void		SafeFree ();
 
 void InitializeGame ()
 {
-    
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -354,8 +356,28 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    /* Not quitesure whether this is only for player's move, but... */
-	printf("[%d]", move % 100);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(5);
+  /* Not quitesure whether this is only for player's move, but... */
+  sprintf(move, "[%d]", theMove % 100);
+  return move;
 }
 
 

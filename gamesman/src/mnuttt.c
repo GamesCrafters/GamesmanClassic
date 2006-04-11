@@ -248,6 +248,7 @@ void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
 
+STRING			MoveToString(MOVE);
 
 /************************************************************************
  **
@@ -270,6 +271,8 @@ void InitializeGame ()
   gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
   gInitialPosition = generic_hash(board, PLAYER1_TURN);
   gCanonicalPosition = getCanonicalPosition;
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -522,11 +525,31 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  int position = Unhasher_Index(move);
-  int direction = Unhasher_Direction(move);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(5);
+  int position = Unhasher_Index(theMove);
+  int direction = Unhasher_Direction(theMove);
     
-  printf ("[%c%d %s]", Column (position)+ROW_START, BOARD_ROWS-Row (position),\
-	  directions[direction]);
+  sprintf (move, "[%c%d %s]", Column (position)+ROW_START, BOARD_ROWS-Row (position),\
+	   directions[direction]);
+  return move;
 }
 
 

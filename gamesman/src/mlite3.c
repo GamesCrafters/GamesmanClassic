@@ -159,6 +159,8 @@ void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX);
 /** Changing Variants **/
 void InitializeHelpStrings();
 
+STRING MoveToString(MOVE);
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -171,6 +173,8 @@ void InitializeGame()
 {
 
   InitializeHelpStrings();
+
+  gMoveToStringFunPtr = &MoveToString;
 
 }
 
@@ -866,8 +870,29 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d", theMove); 
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(2);
+
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  sprintf(move, "%d", theMove); 
+  return move;
 }
 
 /************************************************************************
