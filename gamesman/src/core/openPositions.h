@@ -131,6 +131,7 @@ void CleanUpBeneathCL(int cl);
 void PropogateFreAndCorUp(POSITION p);
 void PropogateFreAndCorUpFringe(POSITION p, char fringe);
 int OpenIsInitialized(void);
+OPEN_POS_DATA DetermineFreAndCorDown1LevelForWin(POSITION p);
 
 
 /* globals */
