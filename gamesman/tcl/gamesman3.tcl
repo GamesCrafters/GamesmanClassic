@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.43 2006-04-11 01:33:52 ogren Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.44 2006-04-11 16:02:50 ogren Exp $
 ##
 ############################################################################
 
@@ -101,7 +101,8 @@ proc ScaleUpAnimation { norm } {
 ## Arrows have to be polygons since arrowshape does not have a border
 ## and borders are needed for delta-remoteness
 ##
-## Assumes all points are in pixels (to allow arithmetic operations)
+## Assumes all points are in floating-point coordinates 
+## (to allow arithmetic operations)
 ##
 ## Arrow starts at (startx, starty) and points to (endx, endy)
 ##
