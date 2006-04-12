@@ -16,7 +16,8 @@
 **                         default output is now undecided if no win/lose/tie.
 **				2006-04-08 Added a lot of printfs for debugging. Gets bus error
 **						   with GetAndPrintPlayersMove
-**				2006-04-11 Fixed bus error and all warnings. DoMove needs rewrite.
+**				2006-04-11 Fixed bus error and all warnings. DoMove working
+**						   correctly now. Primitive needs rewrite.
 **************************************************************************/
 
 /*************************************************************************
@@ -173,7 +174,6 @@ int MyInitialPosition() {
 	for (i=1;i<=TNO_WIDTH;++i)
 		p = (p << (TNO_HEIGHT+1))+1;
 		
-	printf("%li", p);
 	 return p;
 }
 
@@ -296,8 +296,8 @@ void PositionToPieces(pos)
   Player1.o = (pos >> i) & 7;
   Player1.total = Player1.t + Player1.o;
   PiecesOnBoard(pos);
-  Player2.t = 6 - Board.t - (6 - Player1.t);
-  Player2.o = 6 - Board.o - (6 - Player1.o);
+  Player2.t = 6 - (Board.t - (6 - Player1.t));
+  Player2.o = 6 - (Board.o - (6 - Player1.o));
   Player2.total = Player2.t + Player2.o;
 }
 
@@ -319,8 +319,6 @@ int WhoseTurn(pos)
 POSITION pos;
 {
   PositionToPieces(pos);
-  printf("\n%i\n", Player1.total);
-  printf("\n%i\n", Player2.total);
   if(Player1.total == Player2.total) return 1;
   else return 2;
 }
@@ -402,70 +400,9 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  /*printf("start domove");
-  int player, col, bit, mask, i, x;
-  char piece;
-  i = (TNO_HEIGHT+1)*(TNO_WIDTH);
-  if(move - 10 > 0){
-	piece = 't';
-	col = move - 10;
-  }
-  else{
-	piece = 'o';
-	col = move;
-  }
-  player = WhoseTurn();
-  printf("beginning");
-  
-  //unsigned long int temppos = position;
-  //temppos >>= bit - (TNO_HEIGHT+1);
-  //temppos 
-  
-  for(bit = col*(TNO_HEIGHT+1); position >> bit == 0; bit--)
-  
-  printf("\n%i\n", bit);
-
-  mask = 1 << (bit+1);
-  position = position | mask;
-
-  mask = 0;
-  for(x = 1; x <= i; x++){
-	 mask <<= 1;
-	if(x != bit || piece == 't') mask += 1;
-  }
-  position = position & mask;
-
-  if(player == 1){
-	 if(piece == 't'){
-	  for(x = 1; x <= i + 3; x++){
-		 mask <<= 1;
-		mask += 1;
-	  }
-	  position = position & mask;
-	  mask = (Player1.t - 1) << (i + 3);
-	  position = position | mask;
-	}
-	else{
-	  for(x = 1; x <= i; x++){
-		 mask <<= 1;
-		mask += 1;
-	  }
-	  for(x = 1; x<=3; x++){
-		 mask <<= 1;
-	  }
-	  for(x = 1; x<=3; x++){
-		 mask <<= 1;
-		mask += 1;
-	  }
-	  position = position & mask;
-	  mask = (Player1.o - 1) << i;
-	  position = position | mask;
-	 }
-  }
-  printf("end domove");*/
-  
-	int h, col;
+	int h, col, n;
 	char piece;
+	unsigned long int mask = 0, p = 0, pos;
 	
 	if(move - 10 > 0){
 		piece = 't';
@@ -478,10 +415,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	col--;
 	
+	int player = WhoseTurn(position);
+	
 	
 	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--)
 	
-	printf("\n%i\n", h);
 	
 	if(piece == 'o'){
 		position = position | (1 << (h + 1));
@@ -492,12 +430,42 @@ POSITION DoMove (POSITION position, MOVE move)
 		position = position & (position - (1 << h));
 	}
 	
-	unsigned long int pos = position;
 	
-	printf("%li", pos);
+	if(player == 1){
+		
+		for(n = 1; n<TNO_WIDTH*(TNO_HEIGHT+1); n++){
+			mask++;
+			mask = mask << 1;
+		}
+		mask += 1;
+		
+		
+		if(piece == 't'){
+			p += Player1.t-1;
+			p = p << 3;
+			p += Player1.o;
+		}
+		else{
+			p += Player1.t;
+			p = p << 3;
+			p += Player1.o-1;
+		}
+		
+	
+		p = p << (TNO_WIDTH*(TNO_HEIGHT+1));
+		
+		pos = position;
+		position = position & mask;
+		pos = position;
+		position += p;
+	}
+	
+	pos = position;
+	
 	
 	
 	return position;
+
 }
 
 
@@ -528,7 +496,6 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
 
-  printf("start primitive");
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   int col,row, player1=1, t=1, blank=0, count=0;
   PositionToBoard(position, board); // Temporary storage.
