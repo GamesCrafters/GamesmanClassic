@@ -37,6 +37,7 @@
 #include "solvestd.h"
 #include "solvebottomup.h"
 #include "solveweakab.h"
+#include "solveretrograde.h"
 #include "hash.h"
 
 /*
@@ -89,6 +90,8 @@ void SetSolver()
         /* if solver set externally, leave alone */
         if (gSolver != NULL)
                 return;
+		else if (gRetrogradeTierValue != NULL)
+			gSolver = &DetermineRetrogradeValue;
         else if(kLoopy) {
                 if (gGoAgain == DefaultGoAgain)
                         gSolver = &DetermineLoopyValue;
@@ -107,22 +110,22 @@ void SetSolver()
 VALUE DetermineValue(POSITION position)
 {
 	gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
-	
+
 	if (gAnalyzing && !LoadAnalysis()) {
 		gLoadDatabase = FALSE;
 	}
-	
+
 	if(gLoadDatabase && LoadDatabase()) {
 		if (gPrintDatabaseInfo)
 			printf("\nLoading in Database for %s...",kGameName);
-		
+
 		if (GetValueOfPosition(position) == undecided) {
 			if (gPrintDatabaseInfo)
 				printf("\nRe-evaluating the value of %s...", kGameName);
 			gSolver(position);
 			AnalysisCollation();
 			printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
-			
+
 			if(gSaveDatabase) {
 				printf("\nWriting the values of %s into a database...", kGameName);
 				SaveDatabase();
@@ -137,17 +140,17 @@ VALUE DetermineValue(POSITION position)
 		showStatus(Clean);
 		AnalysisCollation();
 		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
-		
+
 		if(gSaveDatabase) {
 			SaveDatabase();
 			SaveAnalysis();
 		}
 	}
-	
+
 	gAnalysisLoaded = TRUE;
 	gUseGPS = FALSE;
 	gValue = GetValueOfPosition(position);
-	
+
 	return gValue;
 }
 

@@ -63,6 +63,7 @@ SOLVER_ZERO	= solvezero$(OBJSUFFIX)
 SOLVER_LOOPYUP	= solveloopyup$(OBJSUFFIX)
 SOLVER_BOTTOMUP = solvebottomup$(OBJSUFFIX)
 SOLVER_ALPHABETA = solveweakab$(OBJSUFFIX)
+SOLVER_RETROGRADE = solveretrograde$(OBJSUFFIX)
 
 ##############################################################################
 ### Files
@@ -73,14 +74,15 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(UNIVHT_OBJ) $(UNIVDB_OBJ) $(STRINGBUILDER_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
-	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA)
+	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
+	$(SOLVER_RETROGRADE)
 
 MODULES=$(CORE) $(SOLVERS) hash.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h twobitdb.h db.h \
-	 solvezero.h solveloopyup.h textui.h setup.h
+	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h
 
 
 ##############################################################################

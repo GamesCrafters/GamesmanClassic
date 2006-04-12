@@ -88,6 +88,9 @@ extern POSITIONLIST    *(*gEnumerateWithinStage)(int);
 /* Global position solver function pointer. */
 extern void 		(*gUndoMove)(MOVE move);
 
+/* Retrograde Solver function pointer. */
+extern int			(*gRetrogradeTierValue)(POSITION);
+
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*		gGameSpecificTclInit;
 

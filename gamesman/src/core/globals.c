@@ -38,6 +38,7 @@ POSITION (*gCanonicalPosition)(POSITION) = NULL;
 STRING (*gCustomUnhash)(POSITION) = NULL;
 POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
 void (*gUndoMove)(MOVE move) = NULL;
+int (*gRetrogradeTierValue)(POSITION) = NULL;
 STRING (*GetHelpTextInterface)() = NULL;
 STRING (*GetHelpOnYourTurn)() = NULL;
 STRING (*GetHelpObjective)() = NULL;
@@ -72,7 +73,7 @@ BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN gUseGPS = FALSE;
 BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enable for only win4 */
 BOOLEAN gZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
-BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant 
+BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 				   * solved, default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gSymmetries = FALSE;
@@ -92,4 +93,4 @@ MENU gMenuMode = BeforeEvaluation;
 BOOLEAN gPrintHints = TRUE;
 
 BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
-BOOLEAN gPlaying = FALSE; 
+BOOLEAN gPlaying = FALSE;
