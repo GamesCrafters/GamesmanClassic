@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.44 2006-04-11 16:02:50 ogren Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.45 2006-04-12 21:17:24 ogren Exp $
 ##
 ############################################################################
 
@@ -91,6 +91,29 @@ proc ScaleUpAnimation { norm } {
     set median 0
     global gAnimationSpeed
     return [expr $norm * pow($base, [expr $gAnimationSpeed - $median])]
+}
+
+#############################################################################
+##
+## DrawArrow
+##
+## This procedure is used to abstract away the drawing of polygonal arrows
+## even more.
+##
+## Input: canvas, starting coordinate, ending coordinate, arrow width
+##
+## Gamesman's arrow properties are defined in a 2:2:1 ratio to the width.
+##
+#############################################################################
+
+proc DrawArrow {canvas startx starty endx endy width} {
+    
+    set arrowTip [expr 2*$width]
+    set arrowBase [expr 2*$width]
+    set arrowSides [expr 1*$width]
+
+    return [PolyArrow $canvas $startx $starty $endx $endy $width $arrowTip $arrowBase $arrowSides]
+
 }
 
 #############################################################################
