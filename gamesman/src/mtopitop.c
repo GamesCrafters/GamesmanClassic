@@ -14,7 +14,7 @@
 ** AUTHOR:      Mike Hamada and Alex Choy
 **
 ** DATE:        BEGIN: 02/20/2006
-**	              END: ???
+**	              END: 04/09/2006
 **
 ** UPDATE HIST:
 **	
@@ -231,6 +231,11 @@ typedef struct cleanMove {
 	HashBoardPiece movePiece;
 } *GMove;
 
+typedef struct positionNode {
+	POSITION pos;
+	struct positionNode* next;
+} *PositionList;
+
 /*************************************************************************
 **
 ** Global Variables
@@ -258,6 +263,7 @@ int gameType;
 int maxL, maxS, maxB = 0;
 PlayerTurn gWhosTurn = Blue;
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
+PositionList allPositions = NULL;
 
 
 /*************************************************************************
@@ -311,6 +317,9 @@ void 					printMove(GMove move);
 int						validPieceMove(int fromPos, int toPos);
 void 					testHash();
 void					printBoard(BoardAndTurn board);
+void					addToAllPositions(POSITION newPos);
+POSITION				getFrontFromAllPositions();
+void					removeFrontFromAllPositions();
 
 /************************************************************************
 **
@@ -453,7 +462,7 @@ MOVELIST *GenerateMoves (POSITION position)
     	for (j = 0; j < boardSize; j++) {
 	    	newMove->fromPos = i + 1;
 	    	newMove->toPos = j;
-    		newMove->movePiece = hUnknownPiece;
+    		newMove->movePiece = CharToHashBoardPiece(board->theBoard[newMove->fromPos - 1]);
     		if ((((int) (tempMove = hashMove(newMove))) != ((int) undoMove)) && 
     			(validPieceMove(i, j))) {
     			if (((board->theBoard[i] == BLUEBUCKETPIECE) && (gWhosTurn == Blue)) || 
@@ -543,9 +552,9 @@ POSITION DoMove (POSITION position, MOVE move) {
   		printf("\n");
   	}
   
-  	if ((newMove->movePiece == hUnknownPiece) && (newMove->fromPos != 0)) {
+  	/*if ((newMove->movePiece == hUnknownPiece) && (newMove->fromPos != 0)) {
   		newMove->movePiece = board->theBoard[newMove->fromPos - 1];
-  	}
+  	}*/
   
   	if (newMove->fromPos == 0) {
   		if (DEBUG_DM) { printf("--- PLACE PIECE ---\n"); }
@@ -614,6 +623,8 @@ POSITION DoMove (POSITION position, MOVE move) {
     SafeFree(newMove);
     
     if (DEBUG_DM) { printf("\n***** END DO MOVE *****\n"); }
+
+	addToAllPositions(newPosition);
 
 	return newPosition;
 }
@@ -853,11 +864,11 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
          ***********************************************************/
         //printf("Move key: l = large sand pile, s = small sand pile, b = %s\n", playerColor);
       if (gWhosTurn == Blue) {
-	printf("%s's (%s) move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
+      	printf("%s's (%s) move [(u)ndo/([l,s,b][1-%d] OR [1-%d][1-%d])] : ", 
 	       playersName, playerColor, boardSize, boardSize, boardSize);
       }
       else {
-	printf("%s's (%s) move [(u)ndo/([l,s,r][1-%d] OR [1-%d][1-%d])] : ", 
+		printf("%s's (%s) move [(u)ndo/([l,s,r][1-%d] OR [1-%d][1-%d])] : ", 
 	       playersName, playerColor, boardSize, boardSize, boardSize);
       }
 	
@@ -869,6 +880,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 		    } else {
 		    	gWhosTurn = Blue;
 		    }
+		    
+		    removeFrontFromAllPositions();
 		}
 		
 		if (input != Continue)
@@ -947,6 +960,7 @@ MOVE ConvertTextInputToMove (STRING input)
     char first = input[0], second = input[1];
     MOVE thisMove;
     GMove newMove = (GMove) SafeMalloc(sizeof(struct cleanMove));
+    BoardAndTurn board = arrayUnhash(getFrontFromAllPositions());
     
     if (DEBUG_CTITM) { 
     	printf("First input = %c\nSecond input = %c\n", first, second);
@@ -964,7 +978,7 @@ MOVE ConvertTextInputToMove (STRING input)
         newMove->movePiece = hRedBucket;
     } else {
     	newMove->fromPos = (int) (first - '0');
-    	newMove->movePiece = hUnknownPiece;
+    	newMove->movePiece = CharToHashBoardPiece(board->theBoard[newMove->fromPos - 1]);
     }
     
     thisMove = hashMove(newMove);
@@ -976,6 +990,9 @@ MOVE ConvertTextInputToMove (STRING input)
     }
     
     SafeFree(newMove);
+    SafeFree(board->data);
+    SafeFree(board->theBoard);
+    SafeFree(board);
     
     if (DEBUG_CTITM) { printf("\n***** END CONVERT TEXT INPUT TO MOVE *****\n"); }
     
@@ -1682,7 +1699,36 @@ void printBoard(BoardAndTurn board) {
 	printf("*-*-*-*\n");
 }
 
+void addToAllPositions(POSITION newPos) {
+	PositionList newPosNode = (PositionList) SafeMalloc(sizeof(struct positionNode));
+	newPosNode->pos = newPos;
+	newPosNode->next = allPositions;
+	allPositions = newPosNode;
+}
+
+POSITION getFrontFromAllPositions() {
+	if (allPositions != NULL) {
+		return allPositions->pos;
+	}
+	
+	return kBadPosition;
+}
+
+void removeFrontFromAllPositions() {
+	PositionList posNode;
+	
+	if (allPositions != NULL) {
+		posNode = allPositions;
+		allPositions = allPositions->next;
+		posNode->next = NULL;
+		SafeFree(posNode);
+	}
+}
+
 // $Log: not supported by cvs2svn $
+// Revision 1.35  2006/04/11 03:03:36  alexchoy
+// added some comments and 'r' input
+//
 // Revision 1.34  2006/04/11 00:54:26  mikehamada
 // Testing Hash
 //
