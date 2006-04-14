@@ -1,0 +1,67 @@
+
+LIBSUFFIX = @LIBSUFFIX@
+CFLAGS = @CFLAGS@
+
+OBJSUFFIX = @OBJSUFFIX@
+EXESUFFIX = $EXESUFFIX@
+
+JAVAC = @JAVAC@
+JAVAH = @JAVAH@
+
+SRCDIR = main \
+	patterns \
+	renderers
+LIBDIR = lib
+
+GCDIR=../../
+CLASSES= main/CInterface.class \
+        main/GameXMLHandler.class \
+        main/Game.class \
+        main/GameDisplay.class \
+	game/Value.class\
+        game/Bin.class \
+        game/Position.class \
+        game/MoveType.class \
+        game/Move.class \
+        game/Board.class \
+        patterns/Match.class \
+        patterns/Pattern.class \
+        patterns/Place.class \
+        patterns/Remove.class \
+        patterns/Replace.class \
+        renderers/stdBRenderer.class \
+        renderers/stdMRenderer.class \
+        renderers/BoardRenderer.class \
+        renderers/MoveRenderer.class \
+	renderers/Arrow.class
+
+LIBOBJECTS = main/CInterface.o
+
+LIBDEPS = main/CInterface.h \
+	main/CInterface.o
+
+GAMELIBS = $(LIBDIR)/libmothello.so \
+	$(LIBDIR)/libmdao.so \
+	$(LIBDIR)/libmachi.so
+
+all: Makefile $(CLASSES) $(GAMELIBS)
+
+
+%.so : $(LIBDEPS)
+	gcc -shared -o $@ $(GCDIR)lib/$(@F) $(LIBOBJECTS)
+
+%.o : %.c %.h
+	gcc $(CFLAGS) -o $@ $<
+
+%.h : %.class
+	$(JAVAH) -jni -o $@ $(patsubst %.class,%,$(subst /,.,$<))
+
+%.class: %.java
+	$(JAVAC) $<
+
+
+clean:	
+	rm -f *~ main/*~ patterns/*~ renderers/*~ games/*~ main/*.class patterns/*.class renderers/*.class game/*.class $(LIBDEPS) $(GAMELIBS)
+
+dist-clean: clean
+	rm -rf Makefile configure config.status config.log *~
