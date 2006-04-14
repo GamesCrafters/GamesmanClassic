@@ -255,23 +255,6 @@ void PiecesOnBoard(pos)
   Board.o = 0;
   Board.total = 0;
   
-  /*
-  int col,row,h;
-  for (col=0; col<TNO_WIDTH;col++) {
-	 row=TNO_HEIGHT-1;
-	 for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (pos & (1 << h)) == 0; h--) {
-      row--;
-    }
-    h--;
-    while (row >=0) {
-      if ((pos & (1<<h)) != 0) Board.o++;
-      else Board.t++;
-      row--;
-		h--;
-    }
-  }
-  Board.total = Board.t + Board.o;
-  */
   int row, col;
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   PositionToBoard(pos,board);
@@ -280,10 +263,9 @@ void PiecesOnBoard(pos)
 		for (col=0;col<TNO_WIDTH;col++){
 			if(board[col][row] == 0) Board.t++;
 			else if(board[col][row] == 1) Board.o++;
-			Board.total++;
 		}
 	}
-  
+	Board.total = Board.t + Board.o;
 }
 
 
@@ -319,7 +301,8 @@ int WhoseTurn(pos)
 POSITION pos;
 {
   PositionToPieces(pos);
-  if(Player1.total == Player2.total) return 1;
+  if(Player1.total == Player2.total){ return 1;
+  }
   else return 2;
 }
 
@@ -402,7 +385,10 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 	int h, col, n;
 	char piece;
-	unsigned long int mask = 0, p = 0, pos;
+	unsigned long int mask, p = 0, pos;
+	
+	pos = position;
+	//printf("\ninitial position = %li\n", pos);
 	
 	if(move - 10 > 0){
 		piece = 't';
@@ -417,9 +403,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	int player = WhoseTurn(position);
 	
+	//printf("\nplayer = %i\n", player);
 	
-	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--)
+	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--){}
 	
+	//printf("h=%i\n", h);
 	
 	if(piece == 'o'){
 		position = position | (1 << (h + 1));
@@ -433,11 +421,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	
 	if(player == 1){
 		
+		mask = 1;
 		for(n = 1; n<TNO_WIDTH*(TNO_HEIGHT+1); n++){
-			mask++;
-			mask = mask << 1;
+			mask = (mask << 1) + 1;
 		}
-		mask += 1;
+		//printf("\nmask = %li\n", mask);
 		
 		
 		if(piece == 't'){
@@ -451,18 +439,18 @@ POSITION DoMove (POSITION position, MOVE move)
 			p += Player1.o-1;
 		}
 		
+		//printf("\np = %li\n", p);
 	
 		p = p << (TNO_WIDTH*(TNO_HEIGHT+1));
+		//printf("\np shifted = %li\n", p);
 		
-		pos = position;
 		position = position & mask;
-		pos = position;
 		position += p;
 	}
 	
 	pos = position;
 	
-	
+	//printf("\nreturned position = %li\n", pos);
 	
 	return position;
 
@@ -789,7 +777,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	printf("start validtextinput");
 	int column;
 	char piece;
 	sscanf(input, "%d%c", &column, &piece);
