@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<game>
+  <info>
+    <name>Achi</name>
+    <dbname>machi</dbname>
+  </info>
+  <board>
+    <type>grid</type>
+    <width>3</width>
+    <height>3</height>
+    <bgcolor>C8C8C8</bgcolor>
+  </board>
+  <hash>
+    custom
+  </hash>
+
+  <pieces>
+    <piece>
+      <charID>X</charID>
+      <shape>circle</shape>
+      <color>ff0000</color>
+    </piece>
+    <piece>
+      <charID>O</charID>
+      <shape>circle</shape>
+      <color>0000ff</color>
+    </piece>
+    <piece>
+      <charID>space</charID>
+      <shape>empty</shape>
+      <color>000000</color>
+    </piece>
+  </pieces>
+
+  <movetypes>
+    <move>
+      <type>slide</type>
+      <target>single</target>
+      <object>existing</object>
+    </move>
+    <move>
+      <type>position</type>
+      <target>single</target>
+      <object>empty</object>
+    </move>
+  </movetypes>
+
+  <variants>
+  </variants>
+    
+</game>
