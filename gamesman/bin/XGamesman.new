@@ -4,7 +4,7 @@ proc main {} {
     wm title . "GAMESMAN"
     wm geometry . =800x600
 
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame
 
     set theBitmapDir "../bitmaps"
     set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
@@ -17,6 +17,7 @@ proc main {} {
 			grey grey grey grey grey \
 			brown brown brown brown brown brown }
     set theNumberOfPrograms [llength $thePrograms]
+    set currentGame main
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
@@ -29,15 +30,18 @@ proc main {} {
     frame .leftSide
     frame .rightSide
 
-    canvas $menu -height [expr $theNumberOfPrograms * 50]
-    canvas $leftScroll -width 10 -background red
+    scrollbar $leftScroll -command "$menu yview"
+    canvas $menu -width 160 -scrollregion [list 0 0 120 [expr {2+$theNumberOfPrograms*60}]] \
+	-yscrollcommand "$leftScroll set"
     canvas $leftBottom -background blue
 
     canvas $home -background blue
     canvas $rightScroll -width 10 -background red
     canvas $rightBottom -background blue
 
-    pack .leftSide -fill y -side left 
+    pack .leftSide -fill y -side left
+    grid rowconfig    .leftSide 0 -weight 1 -minsize 0
+    grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
 
     pack $leftBottom -fill x -side bottom
@@ -45,13 +49,17 @@ proc main {} {
     pack $menu -fill y -side left
 
     pack $rightBottom -fill x -side bottom
-    pack $rightScroll -fill y -side right
+    #pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
     CreateGamePages $home
     CreateMenuButtons $menu $home
     CreateHomeButton $leftBottom $home $rightBottom.buttons
     CreateLaunchButtons $rightBottom.buttons
+
+    $menu bind all <Any-Enter> "scrollEnter $menu"
+    $menu bind all <Any-Leave> "scrollLeave $menu"
+    $menu bind all <1> "scrollButton $menu $home"
 }
 
 proc CreateMenuButtons { frame home } {
@@ -67,34 +75,35 @@ proc CreateMenuButtons { frame home } {
 	image create photo small$i
 	small$i copy image$i -subsample 2
 	set borderWidth 0
-	button $frame.gameBut$i \
-		-compound right \
-		-image small$i \
-		-text $theString \
-        	-bg $theColor \
-        	-borderwidth $borderWidth \
-		-width 120 \
-		-height 50 \
-		-anchor e \
-		-command "SetLaunchButtons .rightSide.rightBottom.buttons $i; \
-			pack forget $home.main; \
-			pack $home.$gameName -fill both -expand 1 -anchor nw; \
-			SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName; \
-			SetMenuButtons $frame $home $home.$gameName"
-	pack $frame.gameBut$i -side top -anchor ne
+	$frame create rect 0 [expr {1+$i*60}] 159 [expr {[expr 1+$i+1]*60}]  \
+	        -outline black \
+	        -fill $theColor \
+	        -tags rect
+	$frame create text 155 [expr {31+$i*60}] -text $theString \
+	        -anchor e
+	$frame create image 5 [expr {31+$i*60}] -image small$i \
+	        -anchor w
     }
 }
-proc SetMenuButtons { frame home empty } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set gameName [lindex $thePrograms $i]
-	$frame.gameBut$i configure \
-		-command "SetLaunchButtons .rightSide.rightBottom.buttons $i; \
-			pack forget $empty; \
-			pack $home.$gameName -fill both -expand 1 -anchor nw; \
-			SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName; \
-			SetMenuButtons $frame $home $home.$gameName"
-    }
+
+proc scrollEnter canvas {
+    
+}
+
+proc scrollLeave canvas {
+    
+}
+
+proc scrollButton { canvas home } {
+    global thePrograms homePage currentGame
+    set i [$canvas find withtag current]
+    set i [expr {($i-1)/3}]
+    set gameName [lindex $thePrograms $i]
+    pack forget $home.$currentGame
+    pack $home.$gameName -fill both -expand 1 -anchor nw
+    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName
+    SetLaunchButtons .rightSide.rightBottom.buttons $i
+    set currentGame $gameName
 }
 
 proc CreateLaunchButtons { rightBottom } {
@@ -136,19 +145,17 @@ proc SetLaunchButtons { rightBottom i } {
 		-command "pack forget $home.$gameName; \
 			SetLaunchButtons $rightBottom [expr $theNumberOfPrograms - 1]; \
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]; \
-			SetMenuButtons $frame $home $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]; \
 			pack $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]] -fill both -expand 1 -anchor nw"
     } else {
 	$rightBottom.prev configure -state normal \
 		-command "pack forget $home.$gameName; \
 			SetLaunchButtons $rightBottom [expr $i - 1]; \
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$prevGameName; \
-			SetMenuButtons $frame $home $home.$prevGameName; \
 			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
     }
 
     $rightBottom.playGui configure \
-	-command "exec @WISHLOC@ -f $theProgram &" -state normal
+	-command "exec /usr/bin/env wish -f $theProgram &" -state normal
 
     $rightBottom.playText configure -state disabled
 
@@ -157,14 +164,12 @@ proc SetLaunchButtons { rightBottom i } {
 		-command "pack forget $home.$gameName; \
 			SetLaunchButtons $rightBottom 0; \
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms 0]; \
-			SetMenuButtons $frame $home $home.[lindex $thePrograms 0]; \
 			pack $home.[lindex $thePrograms 0] -fill both -expand 1 -anchor nw"
     } else {
 	$rightBottom.next configure -state normal \
 		-command "pack forget $home.$gameName; \
 			SetLaunchButtons $rightBottom [expr $i + 1]; \
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$nextGameName; \
-			SetMenuButtons $frame $home $home.$nextGameName; \
 			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
     }
 }
@@ -172,7 +177,6 @@ proc SetLaunchButtons { rightBottom i } {
 proc CreateHomeButton { frame home rightBottom } {
     button $frame.home -text "Home" -bg gold \
 	-command "pack $home.main -fill both -expand 1 -anchor nw; \
-			SetMenuButtons .leftSide.menu $home $home.main; \
 			$rightBottom.prev configure -state disabled; \
 			$rightBottom.playGui configure -state disabled; \
 			$rightBottom.playText configure -state disabled; \
@@ -182,7 +186,6 @@ proc CreateHomeButton { frame home rightBottom } {
 proc SetHomeButton { frame home rightBottom empty } {
     $frame.home configure \
 	-command "pack forget $empty; \
-			SetMenuButtons .leftSide.menu $home $home.main; \
 			pack $home.main -fill both -expand 1 -anchor nw; \
 			$rightBottom.prev configure -state disabled; \
 			$rightBottom.playGui configure -state disabled; \
