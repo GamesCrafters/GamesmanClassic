@@ -854,7 +854,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf(" ");
 	}
 	printf("   |");
-	
+	d
 	/***********************LINE 10,11,12**************************/
 	printf("\n       |");
 	printTopRow(3, toHash);
@@ -1918,6 +1918,9 @@ void removeFrontFromAllPositions() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.37  2006/04/15 07:29:30  mikehamada
+// Updated PrintPosition() format and UI!
+//
 // Revision 1.36  2006/04/13 11:00:29  mikehamada
 // Fixed Undo!   Keeps a local, global list of all POSITIONS
 // and updates the list accordingly.
