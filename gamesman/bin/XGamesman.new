@@ -1,21 +1,37 @@
 #!/usr/bin/env wish
 
-proc main {} {
-    wm title . "GAMESMAN"
-    wm geometry . =800x600
+wm title . "GAMESMAN"
+set maxsize [wm maxsize .]
+set maxheight [expr int([expr 0.9 * [lindex $maxsize 1]])]
+wm geometry . =800x$maxheight
+update
 
+proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId oldFill
 
     set theBitmapDir "../bitmaps"
-    set thePrograms { achi nim rubix slideN ttt3 qx 1210 lite3 tactix ctoi \
-		win4 dodgem lgame sim 3spot con cmass dnb foxes stt }
-    set theStrings  { "Achi" "Nim" "Rubix Magic" "Slide-N" "Tic-Tac-Toe" \
-		"QuickCross" "1,2,...,10" "Lite-3" "Tac Tix" "Chung-Toi" \
-		"Connect 4" "Dodgem" "L Game" "Sim" "3-Dot" "Connections!" \
-		"Critical Mass" "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
-    set theGuiTypes { gold gold gold gold gold gold gold gold gold \
-			grey grey grey grey grey \
-			brown brown brown brown brown brown }
+
+    set thePrograms { 1210 abalone achi asalto change dao dinododgem hshogi \
+			  iceblocks lewth lite3 mancala tore nim ooe othello \
+			  qx rubix seega slideN snake tactix ttt3 wuzhi sim\
+			  ctoi win4 dodgem lgame \
+			  3spot con cmass dnb foxes stt }
+
+    set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" "Dao" \
+			  "Dino Dodgem" "Hasami Shogi" "Ice Blocks" \
+			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
+			  "Nim" "Odd or Even" "Othello" "QuickCross" \
+			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
+			  "Tic-Tac-Toe" "Wuzhi" "Sim" \
+			  "Chung-Toi" "Connect 4" "Dodgem" "L Game" \
+			  "3-Spot" "Connections!" "Critical Mass" \
+			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+    set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
+			  gold gold gold gold gold gold gold gold gold gold \
+			  gold gold gold gold \
+			  grey grey grey grey \
+			  brown brown brown brown brown brown }
+
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
     set currentId   -1
@@ -115,7 +131,7 @@ proc scrollButton { canvas home } {
     set gameName [lindex $thePrograms $i]
     pack forget $home.$currentGame
     pack $home.$gameName -fill both -expand 1 -anchor nw
-    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $home.$gameName
+    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $i
     SetLaunchButtons .rightSide.rightBottom.buttons $i
     if { $currentId > -1 } {
 	set theColor [lindex $theGuiTypes $currentId]
@@ -147,77 +163,87 @@ proc CreateLaunchButtons { rightBottom } {
 
     pack $rightBottom.prev -side left
     pack $rightBottom.playGui -side left
-    pack $rightBottom.playText -side left
+    #pack $rightBottom.playText -side left
     pack $rightBottom.next -side left
     pack $rightBottom -anchor center
 }
 
 proc SetLaunchButtons { rightBottom i } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId
     set theProgram "./Xm[lindex $thePrograms $i]"
     set gameName [lindex $thePrograms $i]
-    set prevGameName [lindex $thePrograms [expr $i - 1]]
-    set nextGameName [lindex $thePrograms [expr $i + 1]]
-    set home .rightSide.home
-    set frame .leftSide.menu
-    if { $i == 0 } {
-	$rightBottom.prev configure -state normal \
-		-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom [expr $theNumberOfPrograms - 1]; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]]; \
-			pack $home.[lindex $thePrograms [expr $theNumberOfPrograms - 1]] -fill both -expand 1 -anchor nw"
-    } else {
-	$rightBottom.prev configure -state normal \
-		-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom [expr $i - 1]; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$prevGameName; \
-			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
+    set prevGameId [expr $i - 1]
+    set nextGameId [expr $i + 1]
+    if {$i==0} {
+	set prevGameId [expr $theNumberOfPrograms - 1]
     }
+    if {$nextGameId==$theNumberOfPrograms} {
+	set nextGameId 0
+    }
+    set prevGameName [lindex $thePrograms $prevGameId]
+    set nextGameName [lindex $thePrograms $nextGameId]
+    set home .rightSide.home
+    set menu .leftSide.menu
+    set theOldColor [lindex $theGuiTypes $i]
+    
+    $rightBottom.prev configure -state normal \
+	-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom $prevGameId; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $prevGameId; \
+			set currentGame $prevGameName; \
+			set currentId $prevGameId; \
+			$menu itemconfigure [expr {1+$prevGameId*3}] -fill white; \
+			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
+			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
 
     $rightBottom.playGui configure \
 	-command "exec /usr/bin/env wish -f $theProgram &" -state normal
-
+    
     $rightBottom.playText configure -state disabled
-
-    if { $i == [expr $theNumberOfPrograms - 1] } {
-	$rightBottom.next configure -state normal \
-		-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom 0; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.[lindex $thePrograms 0]; \
-			pack $home.[lindex $thePrograms 0] -fill both -expand 1 -anchor nw"
-    } else {
-	$rightBottom.next configure -state normal \
-		-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom [expr $i + 1]; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $home.$nextGameName; \
+    
+    $rightBottom.next configure -state normal \
+	-command "pack forget $home.$gameName; \
+			SetLaunchButtons $rightBottom $nextGameId; \
+			SetHomeButton .leftSide.leftBottom $home $rightBottom $nextGameId; \
+			set currentGame $nextGameName; \
+			set currentId $nextGameId; \
+			$menu itemconfigure [expr {1+$nextGameId*3}] -fill white; \
+			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
 			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
-    }
 }
 
 proc CreateHomeButton { frame home rightBottom } {
+    global currentGame currentId
     button $frame.home -text "Home" -bg gold \
 	-command "pack $home.main -fill both -expand 1 -anchor nw; \
 			$rightBottom.prev configure -state disabled; \
 			$rightBottom.playGui configure -state disabled; \
 			$rightBottom.playText configure -state disabled; \
-			$rightBottom.next configure -state disabled"
+			$rightBottom.next configure -state disabled; \
+			set currentGame main; \
+			set currentId -1"
     pack $frame.home -anchor center
 }
-proc SetHomeButton { frame home rightBottom empty } {
+proc SetHomeButton { frame home rightBottom emptyId } {
+    global currentGame currentId thePrograms theGuiTypes
+    set menu .leftSide.menu
     $frame.home configure \
-	-command "pack forget $empty; \
+	-command "pack forget $home.[lindex $thePrograms $emptyId]; \
 			pack $home.main -fill both -expand 1 -anchor nw; \
 			$rightBottom.prev configure -state disabled; \
 			$rightBottom.playGui configure -state disabled; \
 			$rightBottom.playText configure -state disabled; \
-			$rightBottom.next configure -state disabled"
+			$rightBottom.next configure -state disabled; \
+			set currentGame main; \
+			$menu itemconfigure [expr {1+$emptyId*3}] -fill [lindex $theGuiTypes $emptyId]; \
+			set currentId -1"
 }
 
 proc CreateGamePages { frame } {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
 
-    set width [expr 800 - 164]
-    set height [expr 600 - 29]
+    set width [expr [winfo width .] - 185]
+    set height [expr [winfo height .] - 30]
 
     ##### Starting Page ########
     set bgcolor blue
@@ -228,9 +254,9 @@ proc CreateGamePages { frame } {
 	\n\nA Finite, Two-Person, Perfect-Information Game Generator.\
 	\n\n\tGamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\
 	\n\tSince 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\
-\n\nSelect a game from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor -width 615
+\n\nSelect one of the $theNumberOfPrograms games from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor -width [expr $width - 20]
 
-    pack $frame.main.title -expand 1 -fill both -anchor nw
+    pack $frame.main.title -expand 1 -anchor n -pady [list 10 0]
 
     pack $frame.main -expand 1 -fill both -anchor nw
     ## end start page ##
@@ -362,7 +388,6 @@ proc CreateGamePages { frame } {
 	set temp $gameName
 	set gameString [lindex $theStrings $i]
 	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-	set desc Desc
 	set bgcolor blue
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor
@@ -371,15 +396,21 @@ proc CreateGamePages { frame } {
 	image create photo image$gameName -file $theGif -width 100 -height 100
 	canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
 	$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
-	message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor -anchor nw
-	message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor -anchor nw
-
-	pack $frame.$gameName.title -fill both
+	
+	pack $frame.$gameName.title -pady [list 5 0]
 	pack $frame.$gameName.photo
-	pack $frame.$gameName.desc -anchor nw -fill both
-	pack $frame.$gameName.rules -anchor nw -fill both -expand 1
+
+	if { [info exists Desc($gameName)] } {
+	    message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
+		-foreground $fontcolor -background $bgcolor -anchor nw
+	    pack $frame.$gameName.desc
+	}
+
+	if { [info exists Rules($gameName)] } {
+	    message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
+		-foreground $fontcolor -background $bgcolor -anchor nw
+	    pack $frame.$gameName.rules -anchor n -expand 1
+	}
     }
 }
 
