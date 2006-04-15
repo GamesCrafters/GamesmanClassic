@@ -164,7 +164,7 @@ O's Turn        (Computer will Win in 5) Computer's move :  5   \n\n\
 **
 **************************************************************************/
 
-int DefaultN = 4;
+int DefaultN = 3;
 static int N;
 static int BoardSize;
 
@@ -178,6 +178,7 @@ BOOLEAN gDiagonalsWin = TRUE;
 BOOLEAN gDoubleGravity = FALSE;
 BOOLEAN gDiagonalLeftGravity = FALSE;
 BOOLEAN gDiagonalRightGravity = FALSE;
+BOOLEAN firstPass = TRUE;
 
 static int* g3Array;
 
@@ -185,8 +186,10 @@ static int* g3Array;
 void InitializeGame()
 {
   void InitializeGameVariables();
-  
-  InitializeGameVariables(DefaultN);
+  if(firstPass) {
+    InitializeGameVariables(DefaultN);
+    firstPass = FALSE;
+  }
 }
 
 void FreeGame()
@@ -214,6 +217,9 @@ void InitializeGameVariables(int length) {
   }
   gNumberOfPositions *= 2;
   
+  printf("positions: %lu\n",(long) gNumberOfPositions);
+  fflush(NULL);
+
   // calculate g3Array here
   if (g3Array != NULL) SafeFree(g3Array);
   g3Array = (int*) SafeMalloc ((BoardSize+1) * sizeof(int));
