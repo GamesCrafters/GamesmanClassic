@@ -162,6 +162,18 @@ STRING   kHelpExample =
 #define UNKNOWNPIECE '0'
 #define UNKNOWNBOARDPIECE -1
 
+#define BLANKPIECESTRING 		"     "
+#define SMALLPIECESTRING 		" /-\\ "
+#define SMALLPIECENUMSTRING		" /-\\ "
+#define LARGEPIECESTRING 		"/---\\"
+#define BLUEBUCKETPIECESTRING 	" |b| "
+#define REDBUCKETPIECESTRING	" |r| "
+#define UNKNOWNPIECESTRING 		"XXXXX"
+
+#define BLANKPIECENUMSTRING 	 "%d    "
+#define BLUEBUCKETPIECENUMSTRING "%d|b| "
+#define REDBUCKETPIECENUMSTRING	 "%d|r| "
+
 #define BLANKSTRING "Blank"
 #define SMALLSTRING "Small Sand Pile"
 #define LARGESTRING "Large Sand Pile"
@@ -298,6 +310,9 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
+void 					printTopRow(int rowNum, BoardRep toHash);
+void 					printMiddleRow(int rowNum, BoardRep toHash);
+void 					printBottomRow(int rowNum, BoardRep toHash);
 char					BoardPieceToChar(BoardPiece piece);
 char					HashBoardPieceToChar(HashBoardPiece piece);
 BoardPiece 	        	CharToBoardPiece(char piece);
@@ -308,6 +323,7 @@ ThreePiece 				BoardPieceToThreePiece(BoardPiece piece);
 ThreePiece 				CharToThreePiece(char piece);
 char* 					BoardPieceToString(BoardPiece piece);
 char* 					HashBoardPieceToString(HashBoardPiece piece);
+BoardRep 				splitBoardLSB(BoardAndTurn board);
 POSITION				arrayHash(BoardAndTurn board);
 BoardAndTurn			arrayUnhash(POSITION hashNumber);
 MOVE					hashMove(GMove newMove);
@@ -690,78 +706,246 @@ VALUE Primitive (POSITION position) {
 **
 ************************************************************************/
 
+//void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+//{
+//	BoardAndTurn board;
+// 	int i;
+//  
+//	board = arrayUnhash(position);
+//	
+//	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int) position); }
+//	
+//	/***********************LINE 1**************************/
+//	printf("\n\n\n       *-*-*-*");
+//	printf("                     ");
+//	printf("%c = Blank\n", BLANKPIECE);
+//	
+//	/***********************LINE 2**************************/
+//	printf("       |");
+//	for (i = 0; i < numCols; i++) {
+//		printf("%c|", board->theBoard[i]);
+//	}
+//
+//	printf("          ( 1 2 3 )");
+//	printf("  %c = Small Sand Pile\n", SMALLPIECE);
+//	
+//	/***********************LINE 3**************************/
+//	printf("       *-+-+-*");
+//	printf("                     ");
+//	printf("%c = Large Sand Pile\n", LARGEPIECE);
+//							
+//	/***********************LINE 4**************************/
+//	printf("BOARD: |");
+//	for (i = numCols; i < (numCols*2); i++) {
+//		printf("%c|", board->theBoard[i]);
+//	}
+//	
+//	printf("  LEGEND: ( 4 5 6 )");
+//	printf("  %c = Sand Castle\n", CASTLEPIECE);
+//	
+//	/***********************LINE 5**************************/
+//	printf("       *-+-+-*");
+//	printf("                     ");
+//	printf("%c = Blue Bucket\n", BLUEBUCKETPIECE);
+//	
+//	/***********************LINE 6**************************/
+//	printf("       |");
+//	for (i = numCols*2; i < (numCols*3); i++) {
+//		printf("%c|", board->theBoard[i]);
+//	}
+//	
+//	printf("          ( 7 8 9 )");
+//	printf("  %c = Red Bucket\n", REDBUCKETPIECE);
+//	
+//	/***********************LINE 7**************************/
+//	printf("       *-*-*-*");
+//	printf("                     ");
+//	printf("%c = Blue Small Piece\n", BLUESMALLPIECE);
+//	
+//	/***********************LINE 8, 9, 10, 11**************************/
+//	printf("                                   ");
+//	printf("%c = Red Small Piece\n", REDSMALLPIECE);
+//	printf("# Remaining:                       ");
+//	printf("%c = Blue Sand Castle\n", BLUECASTLEPIECE);
+//	printf("  Large = %d  |  Small = %d          ", 
+//			board->data->largeSandPiles, board->data->smallSandPiles);
+//	printf("%c = Red Sand Castle\n", REDCASTLEPIECE);
+//	printf("  RedB  = %d  |  BlueB = %d\n\n\n", 
+//			board->data->redBuckets, board->data->blueBuckets);
+//	//printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
+//	SafeFree(board->data);
+//	SafeFree(board->theBoard);
+//	SafeFree(board);
+//}
+
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	BoardAndTurn board;
- 	int i;
+	BoardRep toHash;
+	int i;
   
 	board = arrayUnhash(position);
+	toHash = splitBoardLSB(board);
 	
 	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int) position); }
 	
 	/***********************LINE 1**************************/
-	printf("\n\n\n       *-*-*-*");
-	printf("                     ");
-	printf("%c = Blank\n", BLANKPIECE);
+	printf("\n\n\n       *-----*-----*-----*\n");
 	
-	/***********************LINE 2**************************/
+	/***********************LINE 2,3,4**************************/
 	printf("       |");
-	for (i = 0; i < numCols; i++) {
-		printf("%c|", board->theBoard[i]);
-	}
-
-	printf("          ( 1 2 3 )");
-	printf("  %c = Small Sand Pile\n", SMALLPIECE);
+	printTopRow(1, toHash);
 	
-	/***********************LINE 3**************************/
-	printf("       *-+-+-*");
-	printf("                     ");
-	printf("%c = Large Sand Pile\n", LARGEPIECE);
-							
-	/***********************LINE 4**************************/
-	printf("BOARD: |");
-	for (i = numCols; i < (numCols*2); i++) {
-		printf("%c|", board->theBoard[i]);
-	}
+	printf("\n       |");
+	printMiddleRow(1, toHash);
+	printf("          +------------------------+");
 	
-	printf("  LEGEND: ( 4 5 6 )");
-	printf("  %c = Sand Castle\n", CASTLEPIECE);
+	printf("\n       |");
+	printBottomRow(1, toHash);
+	printf("          |    PIECES REMAINING    |");
+	printf("\n");
 	
 	/***********************LINE 5**************************/
-	printf("       *-+-+-*");
-	printf("                     ");
-	printf("%c = Blue Bucket\n", BLUEBUCKETPIECE);
-	
-	/***********************LINE 6**************************/
-	printf("       |");
-	for (i = numCols*2; i < (numCols*3); i++) {
-		printf("%c|", board->theBoard[i]);
+	printf("       *-----+-----+-----*");
+	printf("          |------------------------|");
+							
+	/***********************LINE 6,7,8**************************/
+	printf("\n       |");
+	printTopRow(2, toHash);
+	printf("          |Large Piles  [l]:  ");
+	for (i = 0; i < board->data->largeSandPiles; i++) {
+		printf("*");
 	}
+	for (i = 0; i < (4 - board->data->largeSandPiles); i++) {
+		printf(" ");
+	}
+	printf(" |");
 	
-	printf("          ( 7 8 9 )");
-	printf("  %c = Red Bucket\n", REDBUCKETPIECE);
+	printf("\nBOARD: |");
+	printMiddleRow(2, toHash);
+	printf("          |Small Piles  [s]:  ");
+	for (i = 0; i < board->data->smallSandPiles; i++) {
+		printf("*");
+	}
+	for (i = 0; i < (4 - board->data->smallSandPiles); i++) {
+		printf(" ");
+	}
+	printf(" |");
+	
+	printf("\n       |");
+	printBottomRow(2, toHash);
+	printf("          |Blue Buckets [b]:  ");
+	for (i = 0; i < board->data->blueBuckets; i++) {
+		printf("*");
+	}
+	for (i = 0; i < (2 - board->data->blueBuckets); i++) {
+		printf(" ");
+	}
+	printf("   |");
+	printf("\n");
+	
+	/***********************LINE 9**************************/
+	printf("       *-----+-----+-----*");
+	printf("          |Red Buckets  [r]:  ");
+	for (i = 0; i < board->data->redBuckets; i++) {
+		printf("*");
+	}
+	for (i = 0; i < (2 - board->data->redBuckets); i++) {
+		printf(" ");
+	}
+	printf("   |");
+	
+	/***********************LINE 10,11,12**************************/
+	printf("\n       |");
+	printTopRow(3, toHash);
+	printf("          +------------------------+");
+	
+	printf("\n       |");
+	printMiddleRow(3, toHash);
+	
+	printf("\n       |");
+	printBottomRow(3, toHash);
+	printf("\n");
 	
 	/***********************LINE 7**************************/
-	printf("       *-*-*-*");
-	printf("                     ");
-	printf("%c = Blue Small Piece\n", BLUESMALLPIECE);
+	printf("       *-----*-----*-----*\n");
 	
 	/***********************LINE 8, 9, 10, 11**************************/
-	printf("                                   ");
-	printf("%c = Red Small Piece\n", REDSMALLPIECE);
-	printf("# Remaining:                       ");
-	printf("%c = Blue Sand Castle\n", BLUECASTLEPIECE);
-	printf("  Large = %d  |  Small = %d          ", 
-			board->data->largeSandPiles, board->data->smallSandPiles);
-	printf("%c = Red Sand Castle\n", REDCASTLEPIECE);
-	printf("  RedB  = %d  |  BlueB = %d\n\n\n", 
-			board->data->redBuckets, board->data->blueBuckets);
+	
+	printf("\n\n\n");
+	
 	//printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
 	SafeFree(board->data);
 	SafeFree(board->theBoard);
 	SafeFree(board);
+	SafeFree(toHash->boardL);
+	SafeFree(toHash->boardS);
+	SafeFree(toHash->boardB);
+	SafeFree(toHash);
 }
 
+void printTopRow(int rowNum, BoardRep toHash) {
+	int i;
+	
+	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
+		if (toHash->boardL[i] && toHash->boardS[i]) {
+			if (toHash->boardB[i] == HASHBLUEBUCKET) {
+				printf(BLUEBUCKETPIECENUMSTRING, i + 1);
+			} else if (toHash->boardB[i] == HASHREDBUCKET) {
+				printf(REDBUCKETPIECENUMSTRING, i + 1);
+			} else {
+				printf(BLANKPIECENUMSTRING, i + 1);
+			}
+		} else {
+			printf(BLANKPIECENUMSTRING, i + 1);
+		} 
+		printf("|");
+	}
+}
+
+void printMiddleRow(int rowNum, BoardRep toHash) {
+	int i;
+	
+	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
+		if (toHash->boardL[i]) {
+			if (toHash->boardS[i]) {
+				printf(SMALLPIECESTRING);
+			} else {
+				printf(BLANKPIECESTRING);
+			}
+		} else if (toHash->boardS[i]) {
+			if (toHash->boardB[i] == HASHBLUEBUCKET) {
+				printf(BLUEBUCKETPIECESTRING);
+			} else if (toHash->boardB[i] == HASHREDBUCKET) {
+				printf(REDBUCKETPIECESTRING);
+			} else {
+				printf(BLANKPIECESTRING);
+			} 
+		} else {
+			printf(BLANKPIECESTRING);
+		}
+		printf("|");
+	}
+}
+
+void printBottomRow(int rowNum, BoardRep toHash) {
+	int i;
+	
+	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
+		if (toHash->boardL[i]) {
+			printf(LARGEPIECESTRING);
+		} else if (toHash->boardS[i]) {
+			printf(SMALLPIECESTRING);
+		} else if (toHash->boardB[i] == HASHBLUEBUCKET) {
+			printf(BLUEBUCKETPIECESTRING);
+		} else if (toHash->boardB[i] == HASHREDBUCKET) {
+			printf(REDBUCKETPIECESTRING);
+		} else {
+			printf(BLANKPIECESTRING);
+		}
+		printf("|");
+	}
+}
 
 /************************************************************************
 **
@@ -1422,20 +1606,13 @@ char* HashBoardPieceToString(HashBoardPiece piece) {
 	return pieceString;
 }
 
-/*
-  arrayHash - hashes the board to a number
-  Since there are 10 different pieces, this hash utilizes this fact and 
-*/
-POSITION arrayHash(BoardAndTurn board) {
+BoardRep splitBoardLSB(BoardAndTurn board) {
 	BoardRep toHash = (BoardRep) SafeMalloc(sizeof(struct tripleBoardRep));
 	toHash->boardL = (char *) SafeMalloc(boardSize * sizeof(char));
 	toHash->boardS = (char *) SafeMalloc(boardSize * sizeof(char));
 	toHash->boardB = (char *) SafeMalloc(boardSize * sizeof(char));
 	ThreePiece piece;
-	POSITION L, S, B;
 	int i;
-	
-	if (DEBUG_G) { printf("\n********** arrayHASH **********\n"); }
 	
 	for (i = 0; i < boardSize; i++) {
 		piece = CharToThreePiece(board->theBoard[i]);
@@ -1446,6 +1623,22 @@ POSITION arrayHash(BoardAndTurn board) {
 		//if (DEBUG_G) { printf("boardS[%d] = %d\n", i, toHash->boardS[i]); }
 		//if (DEBUG_G) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
 	}
+	
+	SafeFree(piece);
+	return toHash;
+}
+
+/*
+  arrayHash - hashes the board to a number
+  Since there are 10 different pieces, this hash utilizes this fact and 
+*/
+POSITION arrayHash(BoardAndTurn board) {
+	BoardRep toHash;
+	POSITION L, S, B;
+	
+	if (DEBUG_G) { printf("\n********** arrayHASH **********\n"); }
+	
+	toHash = splitBoardLSB(board);
 	
 	generic_hash_context_switch(0);
 	L = generic_hash(toHash->boardL, gWhosTurn);
@@ -1465,7 +1658,6 @@ POSITION arrayHash(BoardAndTurn board) {
 	SafeFree(toHash->boardS);
 	SafeFree(toHash->boardB);
 	SafeFree(toHash);
-	SafeFree(piece);
 	
 	return B + (S * maxB) + (L * maxS * maxB);
 }
@@ -1726,6 +1918,10 @@ void removeFrontFromAllPositions() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.36  2006/04/13 11:00:29  mikehamada
+// Fixed Undo!   Keeps a local, global list of all POSITIONS
+// and updates the list accordingly.
+//
 // Revision 1.35  2006/04/11 03:03:36  alexchoy
 // added some comments and 'r' input
 //
