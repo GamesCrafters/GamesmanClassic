@@ -9,6 +9,7 @@ package edu.berkeley.gamesman.server.registration;
  */
 public interface ErrorCode
 {
+	public static final int DEFAULT_CODE		=0;
 	public static final int UNKNOWN_REQUEST_TYPE = 300;
 	public static final int IO_EXCEPTION = 301;
 	public static final int INTERRUPT_EXCEPTION = 302;
@@ -42,6 +43,7 @@ public interface ErrorCode
 		public static final String IO_EXCEPTION = "IO exception";
 		public static final String INTERRUPT_EXCEPTION = "Interrupt exception";
 		public static final String HASHTABLE_COLLISION = "Hashtable collision";
+		public static final String INVALID_USER_NAME = "You've selected and invalid user name";
 
 	}
 }
