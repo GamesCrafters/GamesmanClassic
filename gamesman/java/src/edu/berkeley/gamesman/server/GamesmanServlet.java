@@ -101,36 +101,36 @@ public class GamesmanServlet extends HttpServlet
 		int counter = 0;
 		if (isServerAlive)
 		{
-			while (counter < modulesArray.length
-					&& !modulesArray[counter].typeSupported(mRequest.getHeader("type")))
+			try
 			{
-				counter++;
-			}
-			if (counter < modulesArray.length)
-			{
-				try
+				while (counter < modulesArray.length && !modulesArray[counter].typeSupported(mRequest.getHeader("type")))
+				{
+					counter++;
+				}
+				if (counter < modulesArray.length)
 				{
 					modulesArray[counter].handleRequest(mRequest, mResponse);
 					mResponse.setReturnCode(ErrorCode.VALID_REQUEST);
 				}
-				catch (ModuleException e)
+				else
 				{
-					// send back error code
-					mResponse.setReturnCode(e.getCode());
-					mResponse.setReturnMessage(e.getMessage() + (e.getCause() == null?"":" " + e.getCause().getMessage()));
+					mResponse.setReturnCode(ErrorCode.BAD_REQUEST_TYPE);
+					mResponse.setReturnMessage(ErrorCode.Msg.BAD_REQUEST_TYPE);
 				}
-				catch (Exception e)
-				{
-					// send back error code
-					mResponse.setReturnCode(ErrorCode.GENERAL_EXCEPTION);
-					mResponse.setReturnMessage(ErrorCode.Msg.GENERAL_EXCEPTION + " " + e.getMessage());
-				}				
 			}
-			else
+			catch (ModuleException e)
 			{
-				mResponse.setReturnCode(ErrorCode.BAD_REQUEST_TYPE);
-				mResponse.setReturnMessage(ErrorCode.Msg.BAD_REQUEST_TYPE);
+				// send back error code
+				mResponse.setReturnCode(e.getCode());
+				mResponse.setReturnMessage(e.getMessage() + (e.getCause() == null?"":" " + e.getCause().getMessage()));
 			}
+			catch (Exception e)
+			{
+				// send back error code and http 500 because this is unexpected
+				mResponse.setReturnCode(ErrorCode.GENERAL_EXCEPTION);
+				mResponse.setReturnMessage(ErrorCode.Msg.GENERAL_EXCEPTION + ": " + e.getMessage());
+				e.printStackTrace();
+			}				
 		}
 		else
 		{
