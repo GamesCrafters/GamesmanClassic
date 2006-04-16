@@ -1,7 +1,7 @@
-// $Id: mquickchess.c,v 1.7 2006-04-11 04:19:45 vert84 Exp $
+// $Id: mquickchess.c,v 1.8 2006-04-16 10:34:37 vert84 Exp $
 
 /*
- * The above lines will include the name and log of the last person
+* The above lines will include the name and log of the last person
  * to commit this file to CVS
  */
 
@@ -30,6 +30,12 @@
 **                    Remove BOARDSIZE constant and replaced with rows*cols
 **                    Fixed DoMove's use of generic hash by changing WHITE
 **                    and BLACK players constants to use 1,2 instead of 0,1
+** 15 Apr 2006 Aaron: Got rid of global currentPlayer to use generic hash player
+**                    Modified substitutePawn and other functions to use generic
+**                    hash player variable.
+**                    Fixed ConvertTextInputToMove
+**                    Fixed ValidTextInput by removing = sign in third char check
+**                    Added kingCheck function and case in inCheck
 **************************************************************************/
 
 /*************************************************************************
@@ -69,9 +75,9 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 void*	 gGameSpecificTclInit = NULL;
 
 /* 
- * Help strings that are pretty self-explanatory
- * Strings than span more than one line should have backslashes (\) at the end of the line.
- */
+* Help strings that are pretty self-explanatory
+* Strings than span more than one line should have backslashes (\) at the end of the line.
+*/
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -133,7 +139,6 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int currentPlayer;
 
 /*VARIANTS*/
 BOOLEAN normalVariant = TRUE;
@@ -158,7 +163,8 @@ BOOLEAN bishopCheck(char *Board, int row, int col, int currentPlayer, char curre
 BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
 BOOLEAN knightCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
 BOOLEAN pawnCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
-void substitutePawn(char *boardArray, int x, int y);
+BOOLEAN kingCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
+void substitutePawn(char *boardArray, int currentPlayer, int x, int y);
 BOOLEAN isWhiteReplacementValid(char piece, char *bA);
 BOOLEAN isBlackReplacementValid(char piece, char *bA);
 int atobi(char s[], int base);
@@ -175,6 +181,7 @@ void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
 void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void generateKingMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void printArray (char* boardArray);
+void printMoveList(MOVELIST *moves);
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -190,9 +197,8 @@ void InitializeGame ()
 	int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
 	char gameBoard[rows*cols];
 	setupPieces(gameBoard);
-	currentPlayer = WHITE_TURN;
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
-	gInitialPosition = generic_hash(gameBoard, currentPlayer);
+	gInitialPosition = generic_hash(gameBoard, WHITE_TURN);
 }
 
 
@@ -221,9 +227,10 @@ MOVELIST *GenerateMoves (POSITION position)
 	char piece; 
 	char boardArray[rows*cols]; 
 	generic_unhash(position, boardArray); 
+	currentPlayer = whoseMove(position);
 	for (i = 0; i < rows; i++) {
 		for(j = 0; j < cols; j++) {
-			printf("move: i:%d, j:%d",i,j);
+			//printf("move: i:%d, j:%d",i,j);
 			piece = boardArray[i*cols + j]; 
 			// check if piece belongs to the currentPlayer
 			if (isSameTeam(piece, currentPlayer)) {
@@ -277,7 +284,6 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-	printf("domove");
 	char boardArray[rows*cols];
 	char tempPiece;
 	int rowi, coli, rowf, colf;
@@ -286,62 +292,64 @@ POSITION DoMove (POSITION position, MOVE move)
 	rowi = (move >> 8) & 15; 
 	coli = (move >> 12) & 15; 
 	generic_unhash(position, boardArray);
+	int currentPlayer = whoseMove(position);
 	tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
 	boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
 	boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
 	if(tempPiece == WHITE_PAWN) {
 		if(rowf == 1){
-			substitutePawn(boardArray, rows-rowf, colf-10);
+			//substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
 		} 
 	} else if(tempPiece == BLACK_PAWN) {
 		if(rowf == rows) {
-			substitutePawn(boardArray, rows-rowf, colf-10);
+			//substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
 		}
 	}
 	if(currentPlayer == WHITE_TURN) {
 		currentPlayer = BLACK_TURN;
 	} else currentPlayer = WHITE_TURN;
-	PrintPosition(generic_hash(boardArray, currentPlayer), "me", TRUE);
 	return generic_hash(boardArray, currentPlayer);	
 }
 
-void substitutePawn(char *boardArray, int x, int y){
-  char piece;
-  printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!): ");
-  piece = getchar();
-  if(currentPlayer == WHITE_TURN) {
-    if(isWhiteReplacementValid(piece, boardArray)) {
-      boardArray[x*cols + y] = piece;
-    }
-  } else {
-    if(isBlackReplacementValid(piece, boardArray)) {
-      boardArray[x*cols + y] = piece;
-    }
-  }
+
+void substitutePawn(char *boardArray, int currentPlayer, int x, int y){
+	char piece;
+	printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!): ");
+	piece = getchar();
+	if(currentPlayer == WHITE_TURN) {
+		if(isWhiteReplacementValid(piece, boardArray)) {
+			boardArray[x*cols + y] = piece;
+		}
+	} else {
+		if(isBlackReplacementValid(piece, boardArray)) {
+			boardArray[x*cols + y] = piece;
+		}
+	}
 }
 
 
+
 BOOLEAN isWhiteReplacementValid(char piece, char *bA) {
-  int x, y;
-  for(x=0; x<rows; x++) {
-    for(y=0; y<cols; y++) {
-      if(bA[x*cols + y] == piece)
-	return TRUE;
-    }
-  }
-  return FALSE;
+	int x, y;
+	for(x=0; x<rows; x++) {
+		for(y=0; y<cols; y++) {
+			if(bA[x*cols + y] == piece)
+				return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 
 BOOLEAN isBlackReplacementValid(char piece, char *bA) {
-  int x, y;
-  for(x=0; x<rows; x++) {
-    for(y=0; y<cols; y++) {
-      if(bA[x*cols + y] == piece)
-	return TRUE;
-    }
-  }
-  return FALSE;
+	int x, y;
+	for(x=0; x<rows; x++) {
+		for(y=0; y<cols; y++) {
+			if(bA[x*cols + y] == piece)
+				return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 /************************************************************************
@@ -370,20 +378,20 @@ BOOLEAN isBlackReplacementValid(char piece, char *bA) {
 
 VALUE Primitive (POSITION position)
 {
-  printf("primitive");
-   MOVELIST *moves = NULL;
-   moves = GenerateMoves(position);
-   if (inCheck(position, currentPlayer) && moves == NULL) { 
-     // The king is checked and no moves can be made 
-    return (gStandardGame) ? lose : win; 
-  } 
-  else if (!inCheck(position, currentPlayer) && moves == NULL) { 
-    // King is not in check and no moves can be made - Stalemate 
-    return tie; 
-  } else { 
-    return undecided; 
-  } 
-
+	//printf("primitive");
+	MOVELIST *moves = NULL;
+	moves = GenerateMoves(position);
+	int currentPlayer = whoseMove(position);
+	if (inCheck(position, currentPlayer) && moves == NULL) { 
+		// The king is checked and no moves can be made 
+		return (gStandardGame) ? lose : win; 
+	} 
+	else if (!inCheck(position, currentPlayer) && moves == NULL) { 
+		// King is not in check and no moves can be made - Stalemate 
+		return tie; 
+	} else { 
+		return undecided; 
+	} 
 }
 
 
@@ -466,13 +474,13 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  char rowf, colf, rowi, coli;
-  rowf = (move & 15) + 48; 
-  colf = ((move >> 4) & 15) - 10 + 97; 
-  rowi = ((move >> 8) & 15) + 48; 
-  coli = ((move >> 12) & 15) - 10 + 97; 
-  
-  printf("%c%c%c%c\n", coli, rowi, colf, rowf);
+	char rowf, colf, rowi, coli;
+	rowf = (move & 15) + 48; 
+	colf = ((move >> 4) & 15) - 10 + 97; 
+	rowi = ((move >> 8) & 15) + 48; 
+	coli = ((move >> 12) & 15) - 10 + 97; 
+	
+	printf("%c%c%c%c\n", coli, rowi, colf, rowf);
 }
 
 
@@ -503,16 +511,16 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     
     for (;;) {
         /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/<coli><rowi><colf><rowf>] : ", playersName);
-	
-	input = HandleDefaultTextInput(position, move, playersName);
-	
-	if (input != Continue)
-		return input;
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's move [(undo)/<coli><rowi><colf><rowf>] : ", playersName);
+		
+		input = HandleDefaultTextInput(position, move, playersName);
+		
+		if (input != Continue)
+			return input;
     }
-
+	
     /* NOTREACHED */
     return Continue;
 }
@@ -545,23 +553,22 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  char c;
-  if(strlen(input)!=4) 
-    return FALSE; 
-  else{ 
-    
-    /* Make sure the row and column are within the bounds 
-       set by the current board size. */  
-    c = input[0];
-    if (c < 'a' || c >= 'a' + cols) return FALSE; 
-    c = input[2]; 
-    if (c < 'a' || c >= 'a' + cols) return FALSE; 
-    c = input[1]; 
-    if(c >= rows + '0' || c < '1') return FALSE; 
-    c = input[3]; 
-    if(c > rows + '0' || c < '1') return FALSE; 
-  } 
-  return TRUE; 
+	char c;
+	if(strlen(input)!=4) 
+		return FALSE; 
+	else{ 
+		/* Make sure the row and column are within the bounds 
+		set by the current board size. */  
+		c = input[0];
+		if (c < 'a' || c >= 'a' + cols) return FALSE; 
+		c = input[2]; 
+		if (c < 'a' || c >= 'a' + cols) return FALSE; 
+		c = input[1]; 
+		if(c > rows + '0' || c < '1') return FALSE; 
+		c = input[3]; 
+		if(c > rows + '0' || c < '1') return FALSE; 
+	} 
+	return TRUE; 
 } 
 
 
@@ -582,15 +589,14 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  printf("ctim");
-  MOVE m;
-  int rowi, coli, rowf, colf;
-  coli = input[0] - 87;
-  rowi = input[1] - 48;
-  colf = input[2] - 87;
-  rowf = input[3] - 48;
-  m = (coli << 12) | (rowi << 8) | (rowf << 4) | colf;
-  return m;
+	MOVE m;
+	int rowi, coli, rowf, colf;
+	coli = input[0] - 97;
+	rowi = input[1] - 48;
+	colf = input[2] - 97;
+	rowf = input[3] - 48;
+	m = createMove(rows - rowi, coli, rows - rowf, colf);
+	return m;
 }
 
 
@@ -613,33 +619,33 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-  printf("\n"); 
-  printf("Tile Chess Game Specific Menu\n\n"); 
-  printf("1) Normal QuickChess Play\n"); 
-  printf("2) Misere Variant\n"); 
-  printf("b) Back to previous menu\n\n"); 
-   
-  printf("Select an option: "); 
-   
-  switch(GetMyChar()) { 
-  case 'Q': case 'q': 
-    ExitStageRight(); 
-  case '1': 
-    normalVariant = TRUE; 
-    misereVariant = FALSE; 
-    break; 
-  case '2': 
-    misereVariant = TRUE; 
-    normalVariant = FALSE; 
-    break; 
-  case 'b': case 'B': 
-    return; 
-  default: 
-    printf("\nSorry, I don't know that option. Try another.\n"); 
-    HitAnyKeyToContinue(); 
-    GameSpecificMenu(); 
-    break; 
-  } 
+	printf("\n"); 
+	printf("Tile Chess Game Specific Menu\n\n"); 
+	printf("1) Normal QuickChess Play\n"); 
+	printf("2) Misere Variant\n"); 
+	printf("b) Back to previous menu\n\n"); 
+	
+	printf("Select an option: "); 
+	
+	switch(GetMyChar()) { 
+		case 'Q': case 'q': 
+			ExitStageRight(); 
+		case '1': 
+			normalVariant = TRUE; 
+			misereVariant = FALSE; 
+			break; 
+		case '2': 
+			misereVariant = TRUE; 
+			normalVariant = FALSE; 
+			break; 
+		case 'b': case 'B': 
+			return; 
+		default: 
+			printf("\nSorry, I don't know that option. Try another.\n"); 
+			HitAnyKeyToContinue(); 
+			GameSpecificMenu(); 
+			break; 
+	} 
 }
 
 
@@ -656,8 +662,8 @@ void SetTclCGameSpecificOptions (int options[])
 {
     
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -674,7 +680,7 @@ void SetTclCGameSpecificOptions (int options[])
 POSITION GetInitialPosition ()
 {
     return gInitialPosition;
-   
+	
 }
 
 
@@ -691,7 +697,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  
+	
     return 2;
 }
 
@@ -711,17 +717,17 @@ int NumberOfOptions ()
 int getOption ()
 {
     /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-  if (normalVariant) 
-    return 1; 
-  else if (misereVariant) 
-    return 2; 
-  else 
-    BadElse("getOption"); 
- 
-  return -1; 
- 
+	include the boolean variable gSymmetries in your
+	hash */
+	if (normalVariant) 
+		return 1; 
+	else if (misereVariant) 
+		return 2; 
+	else 
+		BadElse("getOption"); 
+	
+	return -1; 
+	
 }
 
 
@@ -739,15 +745,15 @@ int getOption ()
 void setOption (int option)
 {
     /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
- if (option == 1) { 
-    normalVariant = TRUE; 
-    misereVariant = FALSE; 
-  } else if (option == 2) { 
-    normalVariant = FALSE; 
-    misereVariant = TRUE; 
-  } 
+	include the boolean variable gSymmetries in your
+	hash */
+	if (option == 1) { 
+		normalVariant = TRUE; 
+		misereVariant = FALSE; 
+	} else if (option == 2) { 
+		normalVariant = FALSE; 
+		misereVariant = TRUE; 
+	} 
 }
 
 
@@ -756,7 +762,7 @@ void setOption (int option)
 ** NAME:        DebugMenu
 **
 ** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems.
+										  **              debug menu). Menu used to debug internal problems.
 **
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
@@ -767,18 +773,28 @@ void setOption (int option)
 void DebugMenu ()
 {
 	MOVE m;
+	/*
 	int coli, rowi, colf, rowf;
-	coli = 10;
-	colf = 10;
-	rowi = 4;
-	rowf = 3;
-	m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+	 coli = 10;
+	 colf = 10;
+	 rowi = 4;
+	 rowf = 3;
+	 m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+	 */
+	//	m = createMove(0,0,1,0);
+	printf("input move is %s\n", "a4a3");
+	m = ConvertTextInputToMove("a4a3");
 	PrintMove(m);
 	PrintPosition(gInitialPosition, "me", TRUE);
     POSITION newPos = DoMove(gInitialPosition, m);
 	PrintPosition(newPos, "me", TRUE);
-	//PrintMove(m);
-	//GenerateMoves(gInitialPosition);
+	MOVELIST *moves = GenerateMoves(newPos);
+	if(moves == NULL) {
+		printf("empty list\n");
+	} else {
+		printMoveList(moves);
+	}
+	//PrintMove(moves->move);
 	// PrintPosition(DoMove(gInitialPosition, m), "me", TRUE);
 }
 
@@ -796,344 +812,402 @@ void DebugMenu ()
 
 
 void setupPieces(char *Board) {
-  int x, y;
-  // setup empty spaces 
-  for(x = 0; x < rows; x++ ){
-    for(y = 0; y < cols; y++) {
-     Board[x*cols + y] = ' ';
-    }
-  }
-
+	int x, y;
+	// setup empty spaces 
+	for(x = 0; x < rows; x++ ){
+		for(y = 0; y < cols; y++) {
+			Board[x*cols + y] = ' ';
+		}
+	}
+	
   	
-  Board[0] = 'R';
-  Board[1] = 'K';
-  Board[2] = 'P';
-  Board[9] = 'r';
-  Board[10] = 'k';
-  Board[11] = 'p';
-  /*
-  // setup pawns 
-  for(y = 0; y < cols; y++ ){
-    Board[1*cols + y] = WHITE_PAWN;
-    Board[(rows-2)*cols + y] = BLACK_PAWN;
-  }
-  // setup black major pieces 
-  Board[(rows-1)*cols] = BLACK_ROOK;
-  Board[(rows-1)*cols + 1] = BLACK_BISHOP;
-  Board[(rows-1)*cols + 2] = BLACK_KING;
-  Board[(rows-1)*cols + 3] = BLACK_QUEEN;
-  Board[(rows-1)*cols + 4] = BLACK_KNIGHT;
-  // setup white major pieces 
-  Board[0] = WHITE_ROOK;
-  Board[1] = WHITE_BISHOP;
-  Board[2] = WHITE_KING;
-  Board[3] = WHITE_QUEEN;
-  Board[4] = WHITE_KNIGHT;
-  */
+	Board[0] = 'R';
+	Board[1] = 'K';
+	Board[2] = 'P';
+	Board[9] = 'r';
+	Board[10] = 'k';
+	Board[11] = 'p';
+	/*
+		// setup pawns 
+	 for(y = 0; y < cols; y++ ){
+		 Board[1*cols + y] = WHITE_PAWN;
+		 Board[(rows-2)*cols + y] = BLACK_PAWN;
+	 }
+	 // setup black major pieces 
+	 Board[(rows-1)*cols] = BLACK_ROOK;
+	 Board[(rows-1)*cols + 1] = BLACK_BISHOP;
+	 Board[(rows-1)*cols + 2] = BLACK_KING;
+	 Board[(rows-1)*cols + 3] = BLACK_QUEEN;
+	 Board[(rows-1)*cols + 4] = BLACK_KNIGHT;
+	 // setup white major pieces 
+	 Board[0] = WHITE_ROOK;
+	 Board[1] = WHITE_BISHOP;
+	 Board[2] = WHITE_KING;
+	 Board[3] = WHITE_QUEEN;
+	 Board[4] = WHITE_KNIGHT;
+	 */
 }
 
-
+/*  This function checks if the board is in check.
+*/
 BOOLEAN inCheck(POSITION N, int currentPlayer) { 
-  int i, j; 
-  char piece;  
-  char* bA;
- 
-  generic_unhash(N,bA);
-  for (i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      piece = bA[i*cols +j]; 
-	switch (piece) { 
-	case WHITE_QUEEN: case BLACK_QUEEN:  
-	  if (queenCheck(bA, i, j, currentPlayer,piece, WHITE_QUEEN , BLACK_QUEEN) == TRUE) { 
-	    return TRUE; 
-	  } else { 
-	    break;    				 
-	  } 
-	case WHITE_BISHOP: case BLACK_BISHOP: 
-	  if (bishopCheck(bA, i,j, currentPlayer, piece, WHITE_BISHOP , BLACK_BISHOP) == TRUE) { 
-	    return TRUE; 
-	  } else { 
-	    break; 
-	  } 
-	case WHITE_ROOK: case BLACK_ROOK:
-	  if (rookCheck(bA, i, j, currentPlayer, piece, WHITE_ROOK , BLACK_ROOK) == TRUE) { 
-	    return TRUE; 
-	  } else { 
-	    break; 
-	  } 
-	case WHITE_KNIGHT: case BLACK_KNIGHT:
-	  if (knightCheck(bA, i, j, currentPlayer, piece, WHITE_KNIGHT , BLACK_KNIGHT) == TRUE) { 
-	    return TRUE; 
-	  } else { 
-	    break; 
-	  } 
-	case WHITE_PAWN: case BLACK_PAWN:
-	   if (pawnCheck(bA, i,j, currentPlayer, piece, WHITE_PAWN , BLACK_PAWN) == TRUE) { 
-	    return TRUE; 
-	  } else { 
-	    break; 
-	  } 
-	default:  
-	  break; 
-	} 
-      } 
+	int i, j; 
+	char piece;  
+	char bA[rows*cols];
+	
+	generic_unhash(N,bA);
+	for (i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			piece = bA[i*cols +j]; 
+			switch (piece) { 
+				case WHITE_QUEEN: case BLACK_QUEEN:  
+					if (queenCheck(bA, i, j, currentPlayer,piece, WHITE_QUEEN , BLACK_QUEEN) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break;    				 
+					} 
+				case WHITE_BISHOP: case BLACK_BISHOP: 
+					if (bishopCheck(bA, i,j, currentPlayer, piece, WHITE_BISHOP , BLACK_BISHOP) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break; 
+					} 
+				case WHITE_ROOK: case BLACK_ROOK:
+					if (rookCheck(bA, i, j, currentPlayer, piece, WHITE_ROOK , BLACK_ROOK) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break; 
+					} 
+				case WHITE_KNIGHT: case BLACK_KNIGHT:
+					if (knightCheck(bA, i, j, currentPlayer, piece, WHITE_KNIGHT , BLACK_KNIGHT) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break; 
+					} 
+				case WHITE_PAWN: case BLACK_PAWN:
+					if (pawnCheck(bA, i,j, currentPlayer, piece, WHITE_PAWN , BLACK_PAWN) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break; 
+					} 
+				case WHITE_KING: case BLACK_KING:
+					if (kingCheck(bA, i,j, currentPlayer, piece, WHITE_KING , BLACK_KING) == TRUE) { 
+						return TRUE; 
+					} else { 
+						break; 
+					} 
+				default:  
+					break; 
+			} 
+		} 
     } 
     return FALSE; 
 } 
 
 BOOLEAN isKingCaptureWithBreak(int *breaks, char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  if(currentPlayer == WHITE_TURN) {
-      if(currentPiece == blackPiece) {
-	if(Board[row*cols + col] == WHITE_KING) {
-	  return TRUE;
-	} else if(Board[row*cols + col] != ' ') {
-	  *breaks = 1;
-	}
-      }
+	if(currentPlayer == WHITE_TURN) {
+		if(currentPiece == blackPiece) {
+			if(Board[row*cols + col] == WHITE_KING) {
+				return TRUE;
+			} else if(Board[row*cols + col] != ' ') {
+				*breaks = 1;
+			}
+		}
     } else {
-      if(currentPiece == whitePiece) {
-	if(Board[row*cols + col] == BLACK_KING) {
-	  return TRUE;
-	} else if(Board[row*cols + col] != ' ') {
-	  *breaks = 1;
-	}
-      }
+		if(currentPiece == whitePiece) {
+			if(Board[row*cols + col] == BLACK_KING) {
+				return TRUE;
+			} else if(Board[row*cols + col] != ' ') {
+				*breaks = 1;
+			}
+		}
     }
-  return FALSE;
+	return FALSE;
 }
 
 BOOLEAN isKingCaptureWithoutBreak(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  if(currentPlayer == WHITE_TURN) {
-      if(currentPiece == blackPiece) {
-	if(Board[row*cols + col] == WHITE_KING) {
-	  return TRUE;
-	} 
-      }
+	if(currentPlayer == WHITE_TURN) {
+		if(currentPiece == blackPiece) {
+			if(Board[row*cols + col] == WHITE_KING) {
+				return TRUE;
+			} 
+		}
     } else {
-      if(currentPiece == whitePiece) {
-	if(Board[row*cols + col] == BLACK_KING) {
-	  return TRUE;
-	} 
-      }
+		if(currentPiece == whitePiece) {
+			if(Board[row*cols + col] == BLACK_KING) {
+				return TRUE;
+			} 
+		}
     }
-  return FALSE;
+	return FALSE;
 }
 BOOLEAN queenCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-return (bishopCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece) || rookCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece));
+	return (bishopCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece) || rookCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece));
 }
 
 BOOLEAN bishopCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  int rowTemp, colTemp;
-  int *breaks = (int *) malloc(sizeof(int));
-  
-  *breaks = 0;
-  rowTemp = row;
-  colTemp = col;
-  // up and left
-  while(row-1 >= 0 && col-1 >= 0) {
-    row--;
-    col--;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-
-  *breaks = 0;
-  row = rowTemp;
-  col = colTemp; 
-  // up and right
-  while(row-1 >= 0 && col+1 < cols) {
-    row--;
-    col++;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-
-  *breaks = 0;
-  row = rowTemp;
-  col = colTemp;
-  // down and left
-  while(row+1 < rows && col-1 >= 0) {
-    row++;
-    col--;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-
-  *breaks = 0;
-  row = rowTemp;
-  col = colTemp;
-  // down and right
-  while(row+1 < rows && col+1 < cols) {
-    row++;
-    col++;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-
-  }
-  return FALSE;
+	int rowTemp, colTemp;
+	int *breaks = (int *) malloc(sizeof(int));
+	
+	*breaks = 0;
+	rowTemp = row;
+	colTemp = col;
+	// up and left
+	while(row-1 >= 0 && col-1 >= 0) {
+		row--;
+		col--;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	row = rowTemp;
+	col = colTemp; 
+	// up and right
+	while(row-1 >= 0 && col+1 < cols) {
+		row--;
+		col++;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	row = rowTemp;
+	col = colTemp;
+	// down and left
+	while(row+1 < rows && col-1 >= 0) {
+		row++;
+		col--;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	row = rowTemp;
+	col = colTemp;
+	// down and right
+	while(row+1 < rows && col+1 < cols) {
+		row++;
+		col++;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+		
+	}
+	return FALSE;
 }
 
 BOOLEAN knightCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  int rowTemp, colTemp;
-  
-  rowTemp = row;
-  colTemp = col;
-
-  // up two left one
-  if(row-2 >= 0 && col-1 >= 0) {
-     if(isKingCaptureWithoutBreak(Board, row-2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-
-  // up two right one
-  if(row-2 >= 0 && col+1 < cols) {
-     if(isKingCaptureWithoutBreak(Board, row-2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-
-  // right two up one
-  if(col+2 < cols && row-1 >= 0) {
-     if(isKingCaptureWithoutBreak(Board, row-1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-     }
-  }
-
-  // right two down one
-  if(col+2 < cols && row+1 < rows) {
-     if(isKingCaptureWithoutBreak(Board, row+1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-     }
-  }
-
-  // down two left one
-  if(row+2 < rows && col-1 >= 0) {
-     if(isKingCaptureWithoutBreak(Board, row+2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-
-  // down two right one
-  if(row+2 < rows && col+1 < cols) {
-     if(isKingCaptureWithoutBreak(Board, row+2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-
-  // left two up one
-  if(col-2 >= 0 && row-1 >= 0) {
-     if(isKingCaptureWithoutBreak(Board, row-1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-
-  // left two down one
-  if(col-2 >= 0 && row+1 < rows) {
-     if(isKingCaptureWithoutBreak(Board, row+1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-  }
-  return FALSE;
+	int rowTemp, colTemp;
+	
+	rowTemp = row;
+	colTemp = col;
+	
+	// up two left one
+	if(row-2 >= 0 && col-1 >= 0) {
+		if(isKingCaptureWithoutBreak(Board, row-2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// up two right one
+	if(row-2 >= 0 && col+1 < cols) {
+		if(isKingCaptureWithoutBreak(Board, row-2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// right two up one
+	if(col+2 < cols && row-1 >= 0) {
+		if(isKingCaptureWithoutBreak(Board, row-1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// right two down one
+	if(col+2 < cols && row+1 < rows) {
+		if(isKingCaptureWithoutBreak(Board, row+1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// down two left one
+	if(row+2 < rows && col-1 >= 0) {
+		if(isKingCaptureWithoutBreak(Board, row+2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// down two right one
+	if(row+2 < rows && col+1 < cols) {
+		if(isKingCaptureWithoutBreak(Board, row+2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// left two up one
+	if(col-2 >= 0 && row-1 >= 0) {
+		if(isKingCaptureWithoutBreak(Board, row-1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	
+	// left two down one
+	if(col-2 >= 0 && row+1 < rows) {
+		if(isKingCaptureWithoutBreak(Board, row+1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+	}
+	return FALSE;
 }
 
 BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  int rowTemp, colTemp;
-  int *breaks = (int *) malloc(sizeof(int));
-  
-  *breaks = 0;
-  rowTemp = row;
-  colTemp = col;
-  // up 
-  while(row-1 >= 0) {
-    row--;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-
-  *breaks = 0;
-  row = rowTemp; 
-  // right
-  while(col+1 < cols) {
-    col++;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-
-  *breaks = 0;
-  col = colTemp;
-  // left
-  while(col-1 >= 0) {
-    col--;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-  
-  *breaks = 0;
-  // down 
-  while(row+1 < rows) {
-    row++;
-    if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-      return TRUE;
-    }
-    if(*breaks == 1) break;
-  }
-  return FALSE;
+	int rowTemp, colTemp;
+	int *breaks = (int *) malloc(sizeof(int));
+	
+	*breaks = 0;
+	rowTemp = row;
+	colTemp = col;
+	// up 
+	while(row-1 >= 0) {
+		row--;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	row = rowTemp; 
+	// right
+	while(col+1 < cols) {
+		col++;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	col = colTemp;
+	// left
+	while(col-1 >= 0) {
+		col--;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	
+	*breaks = 0;
+	// down 
+	while(row+1 < rows) {
+		row++;
+		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+		if(*breaks == 1) break;
+	}
+	return FALSE;
 }
 BOOLEAN pawnCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
-  if(currentPlayer == WHITE_TURN) { 
-    if(col-1 >= 0) {
-      if(isKingCaptureWithoutBreak(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-	return TRUE;
-      }
-    }
-    if(col+1 < cols) {
-      if(isKingCaptureWithoutBreak(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-	return TRUE;
-      }
-    }
-  } else {
-    if(col-1 >= 0) {
-      if(isKingCaptureWithoutBreak(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-	return TRUE;
-      }
-    }
-    if(col+1 < cols) {
-      if(isKingCaptureWithoutBreak(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-	return TRUE;
-      }
-    }
-  }
-  return FALSE;
+	if(currentPlayer == WHITE_TURN) { 
+		if(col-1 >= 0) {
+			if(isKingCaptureWithoutBreak(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+				return TRUE;
+			}
+		}
+		if(col+1 < cols) {
+			if(isKingCaptureWithoutBreak(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+				return TRUE;
+			}
+		}
+	} else {
+		if(col-1 >= 0) {
+			if(isKingCaptureWithoutBreak(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+				return TRUE;
+			}
+		}
+		if(col+1 < cols) {
+			if(isKingCaptureWithoutBreak(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
 }
 
+BOOLEAN kingCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
+	// Left
+	if(col > 0) {
+		if(isKingCaptureWithoutBreak(Board, row, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}
+	// Right
+	if(col < cols-1) {
+		if(isKingCaptureWithoutBreak(Board, row, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}
+	// Up
+	if(row > 0) {
+		if(isKingCaptureWithoutBreak(Board, row-1, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}
+	// Down
+	if(row < rows-1) {
+		if(isKingCaptureWithoutBreak(Board, row+1, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}
+	// Up-left
+	if(row > 0 && col > 0) {
+		if(isKingCaptureWithoutBreak(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}	
+	// Up-right
+	if(row > 0 && col < cols-1) {
+		if(isKingCaptureWithoutBreak(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}	
+	// Down-left
+	if(row < rows-1 && col > 0) {
+		if(isKingCaptureWithoutBreak(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}
+	// Down-right
+	if(row < rows-1 && col < cols-1) {
+		if(isKingCaptureWithoutBreak(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
+			return TRUE;
+		}
+	}	
+	return FALSE;
+}
 
 /* Returns the string of base 'base' as an integer 
-   PRECONDITION: s must end in a null character, and contain only the digits 
-   0-9, and the letters a-f (hexadecimal) */ 
+PRECONDITION: s must end in a null character, and contain only the digits 
+0-9, and the letters a-f (hexadecimal) */ 
 int atobi(char s[], int base) { 
-  int i; 
-  int total = 0; 
-  char c; 
-  for (i = 0; s[i] != '\0'; i++) { 
-    c = s[i]; 
-    total = total*base + ((isalpha(c)) ? toupper(c)-'A'+10:c-'0'); 
-  } 
-  return total; 
+	int i; 
+	int total = 0; 
+	char c; 
+	for (i = 0; s[i] != '\0'; i++) { 
+		c = s[i]; 
+		total = total*base + ((isalpha(c)) ? toupper(c)-'A'+10:c-'0'); 
+	} 
+	return total; 
 } 
 
 void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, int i, int j){
@@ -1149,49 +1223,49 @@ void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, in
 	if (i != rows-1 && !isSameTeam(boardArray[(i+1)*cols + j], currentPlayer)) {
 		newMove = createMove(i, j, i+1, j);
 		if (testMove(boardArray, i,i+1,j,j, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}
 	//Left
 	if (j != 0 && !isSameTeam(boardArray[i*cols + j-1], currentPlayer)) {
 		newMove = createMove(i, j, i, j-1);
 		if (testMove(boardArray, i,i,j,j-1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}
 	//Right
 	if (j != cols-1 && !isSameTeam(boardArray[i*cols + j+1], currentPlayer)) {
 		newMove = createMove(i, j, i, j+1);
 		if (testMove(boardArray, i,i,j,j+1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);		
+			*moves = CreateMovelistNode(newMove, *moves);		
 		}
 	}
 	//Up-left
 	if (i != 0 && j != 0 && !isSameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
 		newMove = createMove(i, j, i-1, j-1);
 		if (testMove(boardArray, i,i-1,j,j-1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}
 	//Up-right
 	if (i != 0 && j != cols-1 && !isSameTeam(boardArray[(i-1)*cols + j+1], currentPlayer)) {
 		newMove = createMove(i, j, i-1, j+1);
 		if (testMove(boardArray, i,i-1,j,j+1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}
 	//Down-left
 	if (i != rows-1 && j != 0 && !isSameTeam(boardArray[(i+1)*cols + j-1], currentPlayer)) {
 		newMove = createMove(i, j, i+1, j-1);
 		if (testMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}	
 	//Down-right
 	if (i != rows-1 && j != cols-1 && !isSameTeam(boardArray[(i+1)*cols + j+1], currentPlayer)) {
 		newMove = createMove(i, j, i+1, j+1);
 		if (testMove(boardArray, i,i+1,j,j+1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}
 }
@@ -1215,9 +1289,9 @@ void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, 
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
-** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
-** the player in check.  Generates moves in the four diagonal directions until it hits a piece.
-*/
+ ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
+ ** the player in check.  Generates moves in the four diagonal directions until it hits a piece.
+ */
 void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UL);
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UR);
@@ -1227,9 +1301,9 @@ void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
-** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
-** the player in check.  Generates moves in 4 compass directions until it hits a piece.
-*/
+ ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
+ ** the player in check.  Generates moves in 4 compass directions until it hits a piece.
+ */
 void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UP);
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DOWN);
@@ -1239,76 +1313,76 @@ void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
-** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
-** the player in check.  There are 8 possible moves for a knight.  The first direction indicates
-** 2 blocks of move, the second direction is one block.
-*/
+ ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
+ ** the player in check.  There are 8 possible moves for a knight.  The first direction indicates
+ ** 2 blocks of move, the second direction is one block.
+ */
 void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	MOVE newMove;
 	//Left 2, Down 1
 	if (i != rows-1 && j > 1 && !isSameTeam(boardArray[(i+1)*cols + j-2], currentPlayer)) {
 		newMove = createMove(i, j, i+1, j-2);
 		if (testMove(boardArray, i,i+1,j,j-2, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);	
+			*moves = CreateMovelistNode(newMove, *moves);	
 		}
 	}	
 	//Right 2, Down 1
 	if (i != rows-1 && j < cols-1 && !isSameTeam(boardArray[(i+1)*cols + j+2], currentPlayer)) {
 		newMove = createMove(i, j, i+1, j+2);
 		if (testMove(boardArray, i,i+1,j,j+2, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}	
 	//Down 2, Left 1
 	if (i < rows-1 && j != 0 && !isSameTeam(boardArray[(i+2)*cols + j-1], currentPlayer)) {
 		newMove = createMove(i, j, i+2, j-1);
 		if (testMove(boardArray, i,i+2,j,j-1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}
 	//Down 2, Right 1
 	if (i < rows-1 && j != cols-1 && !isSameTeam(boardArray[(i+2)*cols + j+1], currentPlayer)) {
 		newMove = createMove(i, j, i+2, j+1);
 		if (testMove(boardArray, i,i+2,j,j+1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}	
 	//Left 2, Up 1
 	if (i != 0 && j > 1 && !isSameTeam(boardArray[(i-1)*cols + j-2], currentPlayer)) {
 		newMove = createMove(i, j, i-1, j-2);
 		if (testMove(boardArray, i,i-1,j,j-2, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}
 	//Right 2, Up 1
 	if (i != 0 && j < cols-1 && !isSameTeam(boardArray[(i-1)*cols + j+2], currentPlayer)) {
 		newMove = createMove(i, j, i-1, j+2);
 		if (testMove(boardArray, i,i-1,j,j+2, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}	
 	//Up 2, Left 1
 	if (i > 1 && j != 0 && !isSameTeam(boardArray[(i-2)*cols + j-1], currentPlayer)) {
 		newMove = createMove(i, j, i-2, j-1);
 		if (testMove(boardArray, i,i-2,j,j-1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}	
 	//Up 2, Right 1
 	if (i > 1 && j != cols-1 && !isSameTeam(boardArray[(i-2)*cols + j+1], currentPlayer)) {
 		newMove = createMove(i, j, i-2, j+1);
 		if (testMove(boardArray, i, i-2, j,j+1, currentPlayer)) {
-		  *moves = CreateMovelistNode(newMove, *moves);
+			*moves = CreateMovelistNode(newMove, *moves);
 		}
 	}		
 }
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
-** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
-** the player in check.  Calculates moves forward one piece if there is no piece there
-** or moves diagonal forward if there is an opposing player piece there.
-*/
+ ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
+ ** the player in check.  Calculates moves forward one piece if there is no piece there
+ ** or moves diagonal forward if there is an opposing player piece there.
+ */
 void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	
 	if (currentPlayer == WHITE_TURN){
@@ -1316,7 +1390,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		if (i != rows-1 && boardArray[(i+1)*cols + j] == ' ') {
 			MOVE newMove = createMove(i, j, i+1, j);
 			if (testMove(boardArray, i,i+1,j,j, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);	
+				*moves = CreateMovelistNode(newMove, *moves);	
 			}
 		}
 		//down 1, left 1.  Only a legal move if captures an enemy piece
@@ -1324,7 +1398,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 			!isSameTeam(boardArray[(i+1)*cols + j-1], currentPlayer)) {
 			MOVE newMove = createMove(i, j, i+1, j-1);
 			if (testMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}	
 		//down 1, right 1.  Only a legal move if it captures an enemy piece
@@ -1332,7 +1406,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 			!isSameTeam(boardArray[(i+1)*cols + j+1], currentPlayer)) {
 			MOVE newMove = createMove(i, j, i+1, j+1);
 			if (testMove(boardArray, i, i+1, j, j+1, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			} 
 		}
 	} else {
@@ -1340,7 +1414,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		if (i != 0 && boardArray[(i-1)*cols + j] == ' ') {
 			MOVE newMove = createMove(i, j, i-1, j);
 			if (testMove(boardArray, i, i-1, j, j, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}
 		//up 1, left 1.  Only a legal move if captures an enemy piece
@@ -1348,7 +1422,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 			!isSameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
 			MOVE newMove = createMove(i, j, i-1, j-1);
 			if (testMove(boardArray, i, i-1,j,j-1, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}
 		//up 1, right 1.  Only a legal move if captures an enemy piece
@@ -1356,7 +1430,7 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 			!isSameTeam(boardArray[(i-1)*cols + j+1], currentPlayer)) {
 			MOVE newMove = createMove(i, j, i-1, j+1);
 			if (testMove(boardArray, i, i-1, j, j+1, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}
 	}
@@ -1367,11 +1441,11 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 
 /*
 Given a board and a list of moves, this function will create all moves
-in that direction until it hits another piece.  This is for the queen, bishop,
-and rook.  These three pieces can move in directions any number of spaces until
-they hit another piece.  They can only take that piece if it is of the other team.
-POSTCONDITION: moves is updated with all of the legal moves.
-*/
+ in that direction until it hits another piece.  This is for the queen, bishop,
+ and rook.  These three pieces can move in directions any number of spaces until
+ they hit another piece.  They can only take that piece if it is of the other team.
+ POSTCONDITION: moves is updated with all of the legal moves.
+ */
 void generateMovesDirection(char* boardArray,  MOVELIST **moves, int currentPlayer, int i, int j, int direction) { 
 	int i_inc=0, j_inc=0,  new_i=i, new_j=j;
 	char piece; 
@@ -1413,7 +1487,7 @@ void generateMovesDirection(char* boardArray,  MOVELIST **moves, int currentPlay
 		if (!isSameTeam(piece, currentPlayer)) {
 			newMove = createMove(i, j, new_i, new_j);
 			if (testMove(boardArray, i, new_i, j, new_j, currentPlayer)) {
-			  *moves = CreateMovelistNode(newMove, *moves);
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}
 		if (piece != ' ') {
@@ -1425,13 +1499,13 @@ void generateMovesDirection(char* boardArray,  MOVELIST **moves, int currentPlay
 } 
 
 MOVE createMove(int rowi, int coli, int rowf, int colf){
-  MOVE m;
-  coli += 10;
-  colf += 10;
-  rowi = rows - rowi;
-  rowf = rows - rowf;
-  m = (coli << 12) | (rowi << 8) | (rowf << 4) | colf;
-  return m;
+	MOVE m;
+	coli += 10;
+	colf += 10;
+	rowi = rows - rowi;
+	rowf = rows - rowf;
+	m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+	return m;
 }
 
 
@@ -1440,28 +1514,28 @@ MOVE createMove(int rowi, int coli, int rowf, int colf){
 ** Returns false if the move puts the player in check.
 */
 BOOLEAN testMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer){
-  BOOLEAN boardInCheck;
-  char overwrittenPiece = boardArray[rowf*cols + colf];
-  testDoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
-  POSITION bP = generic_hash(boardArray, currentPlayer);
-  boardInCheck = inCheck(bP, currentPlayer);
-  UndoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
-  boardArray[rowf*cols + colf] = overwrittenPiece;
-  if (boardInCheck == FALSE) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
+	BOOLEAN boardInCheck;
+	char overwrittenPiece = boardArray[rowf*cols + colf];
+	testDoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
+	POSITION bP = generic_hash(boardArray, currentPlayer);
+	boardInCheck = inCheck(bP, currentPlayer);
+	UndoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
+	boardArray[rowf*cols + colf] = overwrittenPiece;
+	if (boardInCheck == FALSE) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 void testDoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer){
-  char tempPiece;
-  tempPiece = boardArray[rowi*cols + coli];
-  boardArray[rowi*cols + coli] = ' ';
-  boardArray[rowf*cols + colf] = tempPiece;
-  if(currentPlayer == WHITE_TURN) {
-    currentPlayer = BLACK_TURN;
-  } else currentPlayer = WHITE_TURN;
+	char tempPiece;
+	tempPiece = boardArray[rowi*cols + coli];
+	boardArray[rowi*cols + coli] = ' ';
+	boardArray[rowf*cols + colf] = tempPiece;
+	if(currentPlayer == WHITE_TURN) {
+		currentPlayer = BLACK_TURN;
+	} else currentPlayer = WHITE_TURN;
 }
 void UndoMove (char *boardArray,int rowi, int rowf, int coli, int colf, int currentPlayer)
 {
@@ -1470,7 +1544,7 @@ void UndoMove (char *boardArray,int rowi, int rowf, int coli, int colf, int curr
 	boardArray[rowf*cols + colf] = ' ';
 	boardArray[rowi*cols + coli] = tempPiece;
 	
-
+	
 	if(currentPlayer == WHITE_TURN) {
 		currentPlayer = BLACK_TURN;
 	} else currentPlayer = WHITE_TURN;
@@ -1519,8 +1593,20 @@ void printArray (char* boardArray)
 	
 }
 
+/* Used for testing.  This function will print a MOVELIST to show all the
+possible moves for the current Board and current player */
+void printMoveList(MOVELIST *moves) {
+	while(moves != NULL) {
+		PrintMove(moves->move);
+		moves = moves->next;
+	}
+}
+
 
 // $Log: not supported by cvs2svn $
+// Revision 1.7  2006/04/11 04:19:45  vert84
+// *** empty log message ***
+//
 // Revision 1.6  2006/04/11 01:38:35  vert84
 // *** empty log message ***
 //
