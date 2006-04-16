@@ -859,7 +859,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf(" ");
 	}
 	printf("   |");
-	d
+	
 	/***********************LINE 10,11,12**************************/
 	printf("\n       |");
 	printTopRow(3, toHash);
@@ -1923,6 +1923,10 @@ void removeFrontFromAllPositions() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.39  2006/04/16 07:05:37  mikehamada
+// Updated kHelpTextInterface & kHelpOnYourTurn
+// help strings.
+//
 // Revision 1.38  2006/04/15 07:32:41  mikehamada
 // *** empty log message ***
 //
