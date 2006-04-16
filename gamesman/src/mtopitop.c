@@ -91,34 +91,39 @@ STRING kHelpGraphicInterface =
 "Not written yet.";
 
 STRING   kHelpTextInterface    =
-"Use the LEGEND to determine which numbers to choose to\n\
+"Use the BOARD to determine which numbers to choose to\n\
 correspond to either a piece to place and a board slot where to place it\n\
 OR to the location of your piece or a neutral piece and the empty\n\
 adjacent position you wish to move that piece to.\n\
-Note that a player CANNOT undo an oppontent's move that was just made.\n\
+Note that a player CANNOT undo an oppontent's move that was just made.\n\n\
+A neutral piece is either:\n\
+   's': Small Sand Pile\n\
+   'l': Large Sand Pile\n\
+   'b': Blue Bucket\n\
+   'r': Red Bucket\n\n\
 Example: 's1' would place a Small Sand Pile in position 1\n\
 Example: '12' would move a piece in position 1 to position 2.";
 
 STRING   kHelpOnYourTurn =
 "Each player takes turns making one valid move, also noting\n\
 that player CANNOT reverse an opponent's move that was just made.\n\
-Use the LEGEND to determine which numbers to choose to\n\
+Use the BOARD to determine which numbers to choose to\n\
 correspond to either a piece to place and a board slot to place it\n\
 OR to the location of your piece or a neutral piece and the empty\n\
 adjacent position you wish to move that piece to.\n\
 \n\
 VALID MOVES:\n\
-1.) Place 1 of your Buckets or 1 of the Small or Big Sand Piles\n\
+1.) Place 1 of your Buckets or 1 of the Small or Large Sand Piles\n\
     on any free space of the board.\n\
-2.) Move 1 of your Buckets or any Small or Big Sand Pile already\n\
+2.) Move 1 of your Buckets or any Small or Large Sand Pile already\n\
     placed on the board from one square to another (one space at\n\
     a time in any direction).\n\
        a.) Any piece already on the board can be moved to an \n\
            adjacent free space.\n\
        b.) A Bucket can go on top of a Small Sand Pile.\n\
-       c.) A Small Sand Pile can go on top of a Big Sand Pile.\n\
+       c.) A Small Sand Pile can go on top of a Large Sand Pile.\n\
        d.) A Small Sand Pile with a Bucket on its top can go on\n\
-           top of a Big Sand Pile.\n\
+           top of a Large Sand Pile.\n\
        e.) A Bucket can go on top of a Sand Castle.\n\
     NOTE: You CANNOT place a piece on top of another piece.\n\
           Pieces must be MOVED on top of other pieces.\n\
@@ -128,7 +133,7 @@ VALID MOVES:\n\
 STRING   kHelpStandardObjective =
 "Be the first to have your 2 Buckets on top of 2 Sand Castles,\n\
 where a Sand Castle consists of 1 Small Sand Pile put on top\n\
-of 1 Big Sand Pile.";
+of 1 Large Sand Pile.";
 
 STRING   kHelpReverseObjective =
 "";	/* There exists no reverse objective */
@@ -1918,6 +1923,9 @@ void removeFrontFromAllPositions() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.38  2006/04/15 07:32:41  mikehamada
+// *** empty log message ***
+//
 // Revision 1.37  2006/04/15 07:29:30  mikehamada
 // Updated PrintPosition() format and UI!
 //
