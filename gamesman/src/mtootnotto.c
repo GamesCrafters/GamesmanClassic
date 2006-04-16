@@ -22,6 +22,9 @@
 **							work perfectly, but will solve and it's playable
 **							on a 4x4 board. Will not work for bigger boards.
 **							number of starting pieces is now a variable.
+**				2006-04-15	Fixed primitive, should be working correctly now.
+**							Found bug in primitive. Added #define for move
+**							hashing and unhashing. Debugging...
 **************************************************************************/
 
 /*************************************************************************
@@ -122,6 +125,10 @@ typedef enum possibleBoardPieces {
 } TOBlank;
 
 char *gBlankTOString[] = { "T", "O", "-" };
+
+#define moveUnhashPiece(move) move > 10 ? 't' : 'o' /*returns piece defined by hashed move*/
+#define moveUnhashCol(move) move > 10 ? move-10 : move /*returns column defined by hashed move*/
+#define hashMove(col, piece) piece == 't' || piece == 'T' ? col+10 : col /*hashes move*/
 
 /*************************************************************************
 **
@@ -245,6 +252,12 @@ void InitializeGame ()
 {
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition = MyInitialPosition();
+	
+	/*printf("col 3, piece 't' = %i\n", hashMove(3, 't'));
+	printf("col 2, piece 'T' = %i\n", hashMove(2, 'T'));
+	printf("col 1, piece 'o' = %i\n", hashMove(1, 'o'));
+	printf("move = 11 piece = %c col = %i\n", moveUnhashPiece(11), moveUnhashCol(11));
+	printf("move = 3 piece = %c col = %i\n", moveUnhashPiece(3), moveUnhashCol(3));*/
 
 }
 
@@ -391,14 +404,17 @@ POSITION DoMove (POSITION position, MOVE move)
 	pos = position;
 	//printf("\ninitial position = %li\n", pos);
 	
-	if(move - 10 > 0){
+	/*if(move - 10 > 0){
 		piece = 't';
 		col = move - 10;
 	}
 	else{
 		piece = 'o';
 		col = move;
-	}
+	}*/
+	
+	piece = moveUnhashPiece(move);		//replaces above if/else
+	col = moveUnhashCol(move);			//replaces above if/else
 	
 	col--;
 	
@@ -568,7 +584,7 @@ VALUE Primitive (POSITION position)
 	}
 }
 
-  for(row=4; row<TNO_HEIGHT; row++){
+  for(row=3; row<TNO_HEIGHT; row++){
 	 for(col=0; col<TNO_WIDTH; col++){
 		if(   (board[col][row]==board[col+3][row-3])
 			&& (board[col+1][row-1]==board[col+2][row-2])
@@ -631,7 +647,7 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
 	int i, row, playerTurn;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
@@ -666,7 +682,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("\n");
 	PositionToPieces(position);
 	playerTurn = WhoseTurn(position);
-	printf("%s's turn\n", playersName);
+	printf("%s's turn\n", playerName);
 	if(usersTurn){
 		if(playerTurn == 1)
 		{
@@ -683,8 +699,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf("    Player 1 (OTTO) has T:%i, O:%i.\n",Player1.t, Player1.o);
 		printf("    Player 2 (TOOT) has T:%i, O:%i.\n",Player2.t, Player2.o);
 	}
-	printf("\n");
-	//printf("	Prediction: %s", GetPrediction(position, playersName, usersTurn);
+
+	printf("\n%s\n", GetPrediction(position,playerName,usersTurn));
 
 }
 
@@ -702,11 +718,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName)
-{
-	if(computersMove-10<0)
-		printf("%8s's move              : %io", computersName, computersMove);
-	else
-		printf("%8s's move              : %it", computersName, (computersMove-10));
+{		
+	printf("%8s's move				:  %i%c",
+	computersName, moveUnhashCol(computersMove), moveUnhashPiece(computersMove));	//replaces above if/else
 }
 
 /************************************************************************
@@ -720,10 +734,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void PrintMove (MOVE move){
-	if(move-10<0)
-		printf("%io", move);
-	else
-		printf("%it", (move-10));
+	printf("%i%c", moveUnhashCol(move), moveUnhashPiece(move)); //replaces above if/else
 }
 
 /************************************************************************
@@ -752,7 +763,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	 USERINPUT ret;
 
 	do {
-		printf("%8s's move [(u)ndo/1-4 T or O] :  ", playersName);
+		printf("%8s's move [(u)ndo/1-4 T or O]	:  ", playersName);
     
 		ret = HandleDefaultTextInput(position, move, playersName);
 		if(ret != Continue)
@@ -820,14 +831,15 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-	int column, theMove=0;
+	int column;
 	char piece;
-	sscanf(input, "%d%c", &column, &piece);
+	sscanf(input, "%i%c", &column, &piece); //changed d to i
 	
-	if(piece=='t' || piece=='T')
+	/*if(piece=='t' || piece=='T')
 		theMove += 10;
-	theMove += column;
-	return theMove;
+	theMove += column;*/
+	
+	return hashMove(column, piece);
 }
 
 
