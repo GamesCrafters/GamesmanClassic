@@ -61,11 +61,11 @@ proc main {} {
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
 
-    pack $leftBottom -fill x -side bottom
+    pack $leftBottom -fill x -side top
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
-    pack $rightBottom -fill x -side bottom
+    pack $rightBottom -fill x -side top
     #pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
