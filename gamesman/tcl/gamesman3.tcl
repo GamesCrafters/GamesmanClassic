@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.45 2006-04-12 21:17:24 ogren Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.46 2006-04-17 08:52:47 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -1265,6 +1265,9 @@ proc main {kRootDir} {
 	set gSkinsDir OxySkin_HiRes/
     } else {
 	gets $fileptr gSkinsDir
+	if {![file isdirectory "$kRootDir/../tcl/skins/$gSkinsDir"]} {
+	    set gSkinsDir OxySkin_HiRes/
+	}
 	close $fileptr
     }
 

@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.103 2006-04-17 08:22:05 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.104 2006-04-17 08:52:47 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -776,8 +776,8 @@ proc InitWindow { kRootDir kExt } {
 
     pack propagate $skinsFrame 0
 
-    image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
-    image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
+    #image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
+    #image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
     image create photo oxyHiRes_screenshot -file "$gSkinsRootDir/OxySkin_HiRes/screenshot.ppm"
     image create photo earthFromSpace_HiRes_screenshot -file "$gSkinsRootDir/EarthFromSpace_HiRes/screenshot.ppm"
     image create photo spaceCloud_HiRes_screenshot -file "$gSkinsRootDir/SpaceCloud_HiRes/screenshot.ppm"
@@ -808,25 +808,6 @@ proc InitWindow { kRootDir kExt } {
 		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
 		TBaction4
 	    }
-
-    button $skinsFrame.content.right.mac\
-	    -compound top\
-	    -image mac_screenshot\
-	    -text "Mac Skin"\
-	    -command {
-		InitButtons $gSkinsRootDir MacSkin/ ppm
-		TBaction4
-	    }
-
-    button $skinsFrame.content.left.lily\
-	    -compound top\
-	    -image lily_screenshot\
-	    -text "Water Lily"\
-	    -command {
-		InitButtons $gSkinsRootDir LilySkin/ ppm
-		TBaction4
-	    }
-
 
     button $skinsFrame.buttons.bReturn -text "Return" \
 	-command {
