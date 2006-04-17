@@ -1,5 +1,10 @@
-// $Id: solveretrograde.c,v 1.2 2006-04-13 21:40:56 max817 Exp $
+// $Id: solveretrograde.c,v 1.3 2006-04-17 07:36:38 max817 Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2006/04/13 21:40:56  max817
+// A few changes to mbaghchal and the solver here and then, but mostly
+// submitting to fix a small bug with solveretrograde.h that didn't allow
+// some compilers/linkers to "make" properly. -Max
+//
 // Revision 1.1  2006/04/12 03:02:12  max817
 // This is the big update that moves the Retrograde Solver from mbaghchal.c
 // to its own set of new files, solveretrograde.c and solveretrograde.h.
@@ -18,9 +23,12 @@
 **		GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2006-04-11
+** DATE:	2006-04-16
 **
 ** UPDATE HIST: -2006.4.11 = Just added fully functional solver to Gamesman.
+**				-2006.4.16 = Most of the main features are now implemented.
+**					(i.e. working with files (zero-memory), saving progress).
+**					This also should work with ANY game, not just Bagh Chal.
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -41,9 +49,6 @@
 ** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 **************************************************************************/
-
-#include "gamesman.h"
-#include "solveretrograde.h"
 
 /*
 FOR GAMESCRAFTERS: Here's EXACTLY what I changed in the core:
@@ -90,12 +95,12 @@ up in a later update before Monday.
 
 -Max
 */
+
 /************************************************************************
 **
-** NAME:        RetrogradeTierValue
+** NAME:        RetrogradeTierValue (DOCUMENTATION)
 **
 ** DESCRIPTION: The ONE function the solver requires modules to code.
-**				I'll add documentation here... later.
 **
 **				RetrogradeTierValue(kBadPosition)
 **					--returns tierMax (highest tier number, >= 0)
@@ -104,20 +109,51 @@ up in a later update before Monday.
 **					--returns tier value of position (0 <= value <= tierMax)
 **					--if value == -1, the solver skips it (use for illegal positions)
 **
-**				As a side note, IF defined with the property that my
-**				tier number is less than or equal to ALL of my parent's
-**				tier values, then I think the solver is GUARANTEED to provide
-**				the correct tree, regardless of how "bad" the tiers are
-**				defined. Must prove?
-**				In the future (with Slice API) the solver will check this
-**				for you anyway.
+**				Remember, a "tier" value is defined such that for any position,
+**				all of its children have a tier value less than or equal to its
+**				own tier value. Currently the solver doesn't check that this holds,
+**				but a future release will (using Eric's Slice API).
+**				Thus there are MANY ways to define tiers (they are in no way unique).
+**				Module writers then should do their best to define tiers such that
+**				the total number of positions in each tier is minimized. If can,
+**				define non-loopy tiers (such that for a tier, all of its positions
+**				have children with tier values strictly less than the tier value),
+**				as that greatly speeds up the solving.
+**
+**				If there is no way to define "tiers" in your game, or if you simply
+**				don't WANT to exploit the retrograde solver's splitting of the data,
+**				RetrogradeTierValue can simply ALWAYS RETURN 0 for any argument,
+**				and the solver will correctly solve it (but will probably take forever).
+**
+**				For further details, talk to Max. I'll provide a more complete
+**				documentation later.
+**
+**				As a side note, IF the tiers are defined correctly
+**				(i.e. children's tier value is lower than or equal to parent)
+**				then I think the solver is GUARANTEED to provide the correct solve,
+**				regardless of how "bad" the tiers are defined. Must prove?
 **
 ************************************************************************/
 
+/* MAX'S SELF NOTES: What's next:
+	-Once Scott's filedb is up and running, this is (mostly) zero-memory.
+	-Fix up file usage:
+		In initFiles: Deal with C's file open limit more gracefully.
+		In SolveWithDAlg: Use BerkeleyDB instead of "piggy-back" files.
+	-Add a "cache"-like thing that holds position values in memory rather than
+		file, for a definite speed up
+	-Progress bars for initFiles, SolveTier, and SolveWithDAlg!
+	-Implement the loopy solver and compare run times with D Algorithm.
+		If D Algorithm faster, make it even better.
+*/
+
+#include "gamesman.h"
+#include "solveretrograde.h"
+
 /* Global variables */
-int tierMax;
+int tierMax, variant;
 char filename[80];
-POSITION positionsLeft;
+POSITION positionsLeft, *tierSize;
 POSITIONLIST* childlist;
 REMOTENESS maxUncorruptedWinRem;
 REMOTENESS minTieRem;
@@ -132,23 +168,13 @@ BOOLEAN seenDraw;
 **
 ************************************************************************/
 
-// HANDLE ERRORS BETTER!!
-// Make HandleErrorAndExit() take in a STRING error arg.
-// Add "ERROR!" to all string error args.
-// Add HandleErrorAndExit()s to fprintfs (if < 0, error).
-
-// LOOPY SOLVER!
-// Parent pointers instead of child pointers (how to do?)
-// Priority queues (just a file, one per REMOTENESS, since things
-//   with same remoteness it actually doesn't matter the order.
-// After this, pretty straightforward.
-
 VALUE DetermineRetrogradeValue(POSITION position) {
+	variant = getOption();
 	BOOLEAN cont = TRUE;
     int tier;
     char c;
-	printf("\n\nWelcome to the Retrograde Solver!\n");
-	printf("Currently solving game (%s) with variant (%d)\n", kGameName, getOption());
+	printf("\n\n=====Welcome to the Retrograde Solver!=====\n");
+	printf("Currently solving game (%s) with variant (%d)\n", kGameName, variant);
     printf("Current Initial Position:  \n");
     PrintPosition(position, "Initial", 0);
     tierMax = gRetrogradeTierValue(kBadPosition);
@@ -156,21 +182,61 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		printf("ERROR: gRetrogradeTierValue not correctly defined for kBadPosition argument.\n");
 		exit(1);
 	}
-	printf("Solving up to Tier %d, with %lld total positions.\n\n", tierMax, gNumberOfPositions);
+	printf("Solving up to Tier %d, with %lld total positions.\n", tierMax, gNumberOfPositions);
+	tierSize = (POSITION*) SafeMalloc((tierMax+1) * sizeof(POSITION));
 	tier = LoadProgressFromFile(); //sets positionsLeft
-	if (tier == -1) {
-		printf("Before retrograde solving can begin, the tier values for all\n"
-				"possible positions in the game must be calculated and stored\n"
-				"into files. This could take quite some time.\n"
-				"Press Enter to begin the process, or CTRL-C to quit without solving.\n");
-		HitAnyKeyToContinue();
-		initFiles(); //sets positionsLeft
+	if (tier == -1) { // no save, a mini-menu for initialization
 		tier = 0;
-	} // else tier is legal, continue solving.
+		while(cont) {
+			printf("\n\n===RETROGRADE SOLVER MENU for game: %s===\n", kGameName);
+			printf("Before retrograde solving can begin, the tier values for all\n"
+					"possible positions in the game must be calculated and stored\n"
+					"into files. This could take quite some time.\n");
+			printf("\tOptions:\n"
+				   "\ts)\t(S)tart tier value calculations.\n"
+				   "\ta)\t(A)utomate the entire solving procedure.\n"
+				   "\te)\t(E)xit the solver\n"
+				   "\th)\t(H)AXX Compare the two database files, a.txt and b.txt\n"
+				   "\nSelect an option:  ");
+			c = GetMyChar();
+		   	switch(c) {
+				case 's': case 'S':
+					printf("-Begin the process?\n");
+					if (!ConfirmAction('s')) break;
+					initFiles(); //sets positionsLeft
+					cont = FALSE;
+					break;
+				case 'a': case 'A':
+					printf("-You chose to automate solving all the way to Tier %d.\n"
+							"Keep in mind this process can take quite a long time and\n"
+							"CANNOT be interrupted. Are you sure?\n", tierMax);
+					if (!ConfirmAction('a')) break;
+					initFiles();
+					printf("\n Solving all the way to maximum Tier %d...\n\n",tierMax);
+					for (; tier <= tierMax; tier++)
+						SolveTier(tier);
+					printf("\n%s is now fully solved!\n", kGameName);
+					removeFiles();
+					printf("Exiting Retrograde Solver...\n\n");
+					return GetValueOfPosition(position);
+				case 'e': case 'E':
+					printf("-You chose to exit. Are you sure?\n");
+					if (!ConfirmAction('e')) break;
+					printf("Exiting Retrograde Solver (WITHOUT Solving)...\n");
+					exit(0);
+				case 'h': case 'H':
+					compareTwoFiles("./retrograde/a.txt", "./retrograde/b.txt");
+					break;
+				default:
+					printf("Invalid option!\n");
+			}
+		}
+		cont = TRUE;
+	} else HitAnyKeyToContinue(); // else tier is legal, continue solving.
     while(cont) {
-        printf("\n\nRETROGRADE SOLVER MENU for game: %s\n", kGameName);
-        printf("Ready to solve tier: %d\n", tier);
-        printf("There are %lld positions (in %d tiers) still left to solve.\n", positionsLeft, tierMax-tier+1);
+        printf("\n\n===RETROGRADE SOLVER MENU for game: %s===\n", kGameName);
+        printf("Ready to solve tier (%d), which contains (%lld) positions.\n", tier, tierSize[tier]);
+        printf("There are %lld total positions (in %d tiers) still left to solve.\n", positionsLeft, tierMax-tier+1);
         printf("\tOptions:\n"
                "\ts)\t(S)olve the next tier.\n"
                "\ta)\t(A)utomate the solving for all the tiers left.\n"
@@ -181,17 +247,17 @@ VALUE DetermineRetrogradeValue(POSITION position) {
         c = GetMyChar();
         switch(c) {
 			case 's': case 'S':
-				printf("Solve Tier %d?\n", tier);
+				printf("-Solve Tier %d?\n", tier);
 				if (!ConfirmAction('s')) break;
 	            SolveTier(tier);
 	            if (tier == tierMax) {
-	            	printf("%s is now fully solved!\n", kGameName);
+	            	printf("\n%s is now fully solved!\n", kGameName);
                 	removeFiles();
                 	cont = FALSE;
                 } else tier++;
                 break;
             case 'a': case 'A':
-            	printf("You chose to automate solving from Tier %d to Tier %d.\n"
+            	printf("-You chose to automate solving from Tier %d to Tier %d.\n"
             			"Keep in mind this process can take quite a long time and\n"
             			"CANNOT be interrupted without losing all progress up to\n"
             			"this point. Are you sure?\n", tier, tierMax);
@@ -199,23 +265,23 @@ VALUE DetermineRetrogradeValue(POSITION position) {
             	printf("Solving from Tier %d to maximum Tier %d...\n\n",tier,tierMax);
             	for (; tier <= tierMax; tier++)
             		SolveTier(tier);
-            	printf("%s is now fully solved!\n", kGameName);
+            	printf("\n%s is now fully solved!\n", kGameName);
                 removeFiles();
                 cont = FALSE;
                 break;
             case 'e': case 'E':
-            	printf("You chose to save ALL progress and exit. Are you sure?\n");
+            	printf("-You chose to save ALL progress and exit. Are you sure?\n");
            		if (!ConfirmAction('e')) break;
            		SaveProgressToFile(tier);
-           		printf("Exiting Retrograde Solver (WITHOUT Solving)...\n\n");
+           		printf("Exiting Retrograde Solver (WITHOUT Solving)...\n");
                 exit(0);
             case 'd': case 'D':
-            	printf("You chose to discard ALL progress and exit WITHOUT solving.\n"
+            	printf("-You chose to discard ALL progress and exit WITHOUT solving.\n"
             			"Keep in mind this will delete all files and you will lose\n"
             			"ALL progress completed up to this point. Are you sure?\n");
             	if (!ConfirmAction('d')) break;
             	removeFiles();
-            	printf("Exiting Retrograde Solver (WITHOUT Solving)...\n\n");
+            	printf("Exiting Retrograde Solver (WITHOUT Solving)...\n");
             	exit(0);
 			case 'h': case 'H':
 				compareTwoFiles("./retrograde/a.txt", "./retrograde/b.txt");
@@ -228,6 +294,17 @@ VALUE DetermineRetrogradeValue(POSITION position) {
     return GetValueOfPosition(position);
 }
 
+/************************************************************************
+**
+** ERROR HANDLING
+**
+************************************************************************/
+
+BOOLEAN ConfirmAction(char c) {
+	printf("Enter '%c' to confirm, or anything else to cancel\n > ", c);
+	return (GetMyChar() == c);
+}
+
 void HandleErrorAndExit() {
 	printf("\nIt appears one more files have been corrupted.\n"
 			"For safety, deleting all files...\n");
@@ -236,9 +313,25 @@ void HandleErrorAndExit() {
 	exit(1);
 }
 
-BOOLEAN ConfirmAction(char c) {
-	printf("Enter '%c' to confirm, or anything else to cancel\n > ", c);
-	return (GetMyChar() == c);
+// Subtypes of HandleErrorAndExit for files, using filename.
+void FileOpenError() {
+	printf("\n--ERROR: Couldn't open file: %s\n", filename);
+	HandleErrorAndExit();
+}
+
+void FileWriteError() {
+	printf("\n--ERROR: Couldn't write to file: %s\n", filename);
+	HandleErrorAndExit();
+}
+
+void FileSyntaxError() {
+	printf("\n--ERROR: File in incorrect format: %s\n", filename);
+	HandleErrorAndExit();
+}
+
+void FileCloseError() {
+	printf("\n--ERROR: Couldn't close file: %s\n", filename);
+	HandleErrorAndExit();
 }
 
 /************************************************************************
@@ -252,6 +345,7 @@ BOOLEAN ConfirmAction(char c) {
 **				in the end is ONLY Tier N values (where N is the tier
 **				we're working with). If the tier is non-loopy (i.e.
 **				all its children are lower tier), then it ends there.
+**				Otherwise, it calls the loopy algorithm.
 **				In the end, it marks unvisited children as draws.
 **
 ************************************************************************/
@@ -259,31 +353,25 @@ BOOLEAN ConfirmAction(char c) {
 void SolveTier(int tier) {
 	FILE *fileW, *fileR;
 	int fR = 1;
-	POSITION pos, child, tierSize = 0, numSolved = 0, numCorrupted = 0;
+	POSITION pos, child, numSolved = 0, numCorrupted = 0, sizeOfTier = tierSize[tier];
 	MOVELIST *moves, *children;
 	REMOTENESS remoteness, maxWinRem, minLoseRem;
 	VALUE value;
 	BOOLEAN seenLose;
 
-	printf("--Solving Tier %d...\n",tier);
+	printf("\n--Solving Tier %d...\n",tier);
+	printf("Size of tier: %lld\n",sizeOfTier);
 
 	printf("Reading/Writing appropriate files...\n");
 
-	sprintf(filename,"./retrograde/%s_%d.tier",kDBName,tier);
-	if ((fileR = fopen(filename, "r")) == NULL) {
-		printf("Couldn't open TIER file %s\n", filename);
-		HandleErrorAndExit();
-	}
-	sprintf(filename,"./retrograde/%s_1.solve",kDBName);
-	if ((fileW = fopen(filename, "w")) == NULL) {
-		printf("Couldn't open SOLVE file %s\n", filename);
-		HandleErrorAndExit();
-	}
+	sprintf(filename,"./retrograde/1.solve");
+	if ((fileW = fopen(filename, "w")) == NULL) FileOpenError();
+	sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,tier);
+	if ((fileR = fopen(filename, "r")) == NULL) FileOpenError();
 
 	printf("Doing an initial sweep, and creating child pointers (could take a WHILE)...\n");
 
 	while((pos = readPos(fileR)) != kBadPosition) {
-		tierSize++;
 		value = Primitive(pos);
 		if (value != undecided) { // check for primitive-ness
 			StoreValueOfPosition(pos,value);
@@ -354,19 +442,18 @@ void SolveTier(int tier) {
 			} else writeUnknownToFile(fileW, pos, childlist, maxWinRem, minTieRem, seenDraw);
 		}
 	}
-	fclose(fileR);
-	fclose(fileW);
-	printf("Size of tier: %lld\n",tierSize);
-	if (numSolved != tierSize) {
-		fR = SolveWithDelgadilloAlgorithm(tierSize, numSolved, numCorrupted);
+	if (fclose(fileR) == EOF) FileCloseError();
+	if (fclose(fileW) == EOF) {
+		sprintf(filename,"./retrograde/1.solve");
+		FileCloseError();
+	}
+	if (numSolved != sizeOfTier) {
+		fR = SolveWithDelgadilloAlgorithm(sizeOfTier, numSolved, numCorrupted);
 		printf("Setting undecided to DRAWs and correcting corruption...\n");
 	}
 	else printf("Tier is non-loopy! Setting undecided to DRAWs...\n");
-	sprintf(filename,"./retrograde/%s_%d.solve",kDBName,fR);
-	if ((fileR = fopen(filename, "r")) == NULL) {
-		printf("Couldn't open SOLVE file %s\n", filename);
-		HandleErrorAndExit();
-	}
+	sprintf(filename,"./retrograde/%d.solve",fR);
+	if ((fileR = fopen(filename, "r")) == NULL) FileOpenError();
 	while((pos = readPos(fileR)) != kBadPosition) {
 		skipLineSolveFile(fileR);
 		if (GetValueOfPosition(pos) == undecided) {
@@ -374,14 +461,20 @@ void SolveTier(int tier) {
 			SetRemoteness(pos,REMOTENESS_MAX);
 		} else if (Visited(pos)) UnMarkAsVisited(pos); // must've been corrupted, now TRUE
 	}
-	fclose(fileR);
-	sprintf(filename,"./retrograde/%s_1.solve",kDBName);
+	if (fclose(fileR) == EOF) FileCloseError();
+	sprintf(filename,"./retrograde/1.solve");
 	remove(filename);
-	sprintf(filename,"./retrograde/%s_2.solve",kDBName);
+	sprintf(filename,"./retrograde/2.solve");
 	remove(filename);
 	printf("Tier fully solved!...\n");
-	positionsLeft -= tierSize;
+	positionsLeft -= sizeOfTier;
 }
+
+// LOOPY SOLVER!
+// Parent pointers instead of child pointers (how to do?)
+// Priority queues (just a file, one per REMOTENESS, since things
+//   with same remoteness it actually doesn't matter the order.
+// After this, pretty straightforward.
 
 /************************************************************************
 **
@@ -419,7 +512,7 @@ void SolveTier(int tier) {
 **
 ************************************************************************/
 
-int SolveWithDelgadilloAlgorithm(POSITION tierSize, POSITION numSolved, POSITION numCorrupted) {
+int SolveWithDelgadilloAlgorithm(POSITION sizeOfTier, POSITION numSolved, POSITION numCorrupted) {
 	FILE *fileW, *fileR;
 	int numUnknownChildren, type, fW = 2, fR = 1;
 	POSITION pos, child;
@@ -428,22 +521,18 @@ int SolveWithDelgadilloAlgorithm(POSITION tierSize, POSITION numSolved, POSITION
 	VALUE value;
 	BOOLEAN change = TRUE, seenLose, corruptedWin, corruptedLose, update;
 
-	//Invariant: ALL that's left to check are corrupted(wins) and unknown Tier N positions.
+	//Invariant: ALL that's left to check are unknown Tier N positions.
 	while (change) {
 		change = FALSE;
-		if (numSolved == tierSize) continue; // if we're done, then stop the loop
-		printf("%lld Positions still unsolved ", tierSize-numSolved);
+		if (numSolved == sizeOfTier) continue; // if we're done, then stop the loop
+		printf("%lld Positions still unsolved ", sizeOfTier-numSolved);
 		printf("(%lld corrupted). Doing another sweep...\n", numCorrupted);
-		sprintf(filename,"./retrograde/%s_%d.solve",kDBName, fR);
-		if ((fileR = fopen(filename, "r")) == NULL) {
-			printf("Couldn't open SOLVE file %s\n", filename);
-			HandleErrorAndExit();
-		}
-		sprintf(filename,"./retrograde/%s_%d.solve",kDBName, fW);
-		if ((fileW = fopen(filename, "w")) == NULL) {
-			printf("Couldn't open SOLVE file %s\n", filename);
-			HandleErrorAndExit();
-		}
+
+		sprintf(filename,"./retrograde/%d.solve",fW);
+		if ((fileW = fopen(filename, "w")) == NULL) FileOpenError();
+		sprintf(filename,"./retrograde/%d.solve",fR);
+		if ((fileR = fopen(filename, "r")) == NULL) FileOpenError();
+
 		while((pos = readPos(fileR)) != kBadPosition) {
 			type = readSolveFile(fileR);
 			copy = childlist;
@@ -594,8 +683,11 @@ int SolveWithDelgadilloAlgorithm(POSITION tierSize, POSITION numSolved, POSITION
 			if (copy != NULL) // Should ALWAYS be the case
 				FreePositionList(copy);
 		}
-		fclose(fileR);
-		fclose(fileW);
+		if (fclose(fileR) == EOF) FileCloseError();
+		if (fclose(fileW) == EOF) {
+			sprintf(filename,"./retrograde/%d.solve",fW);
+			FileCloseError();
+		}
 		fR = (fR == 1 ? 2 : 1);
 		fW = (fW == 1 ? 2 : 1);
 	}
@@ -617,10 +709,8 @@ POSITION readPos(FILE* fp) {
 	while ((c = getc(fp)) != ' ') {
 		if (c == EOF || c == '\n')
 			return kBadPosition;
-		if (c < '0' || c > '9') { // SHOULDN'T be the case
-			printf("ERROR: file in incorrect format!\n");
-			HandleErrorAndExit();
-		}
+		if (c < '0' || c > '9') // SHOULDN'T be the case
+			FileSyntaxError();
 		integer[i] = c - 48;
 		i++;
 	}
@@ -640,25 +730,20 @@ int readSolveFile(FILE* fp) {
 	int type;
 	POSITION c, child;
 	type = getc(fp);
-	if (getc(fp) != ' ' && type != 'w' && type != 'l' && type != 'u') {
-		printf("ERROR: file in incorrect format!\n");
-		HandleErrorAndExit();
-	}
+	if (getc(fp) != ' ' && type != 'w' && type != 'l' && type != 'u')
+		FileSyntaxError();
 	switch(type) {
 		case 'u':
-			if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX) {
-				printf("ERROR: file in incorrect format!\n");
-				HandleErrorAndExit();
-			} minTieRem = c;
-			if ((c = readPos(fp)) == kBadPosition) {
-				printf("ERROR: file in incorrect format!\n");
-				HandleErrorAndExit();
-			} seenDraw = c;
+			if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX)
+				FileSyntaxError();
+			minTieRem = c;
+			if ((c = readPos(fp)) == kBadPosition)
+				FileSyntaxError();
+			seenDraw = c;
 		case 'l':
-			if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX) {
-				printf("ERROR: file in incorrect format!\n");
-				HandleErrorAndExit();
-			} maxUncorruptedWinRem = c;
+			if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX)
+				FileSyntaxError();
+			maxUncorruptedWinRem = c;
 	}
 	childlist = NULL;
 	while((child = readPos(fp)) != kBadPosition) {
@@ -671,10 +756,7 @@ int readSolveFile(FILE* fp) {
 void skipLineSolveFile(FILE* fp) {
 	int c;
 	while ((c = getc(fp)) != '\n') {
-		if (c == EOF) {
-			printf("ERROR: file in incorrect format!\n");
-			HandleErrorAndExit();
-		}
+		if (c == EOF) FileSyntaxError();
 	}
 }
 
@@ -688,26 +770,30 @@ void skipLineSolveFile(FILE* fp) {
 void writeChildrenToFile(FILE *fp, POSITIONLIST* children) {
 	POSITIONLIST *copy = children;
 	for (; children != NULL; children = children->next)
-		fprintf(fp, "%lld ", children->position);
-	fprintf(fp, "\n");
+		if (fprintf(fp, "%lld ", children->position) < 0)
+			FileWriteError();
+	if (fprintf(fp, "\n") < 0) FileWriteError();
 	if (copy != NULL) // Should ALWAYS be the case, but a safety check
 		FreePositionList(copy);
 }
 
 void writeCorruptedWinToFile(FILE* fp, POSITION position, POSITIONLIST *children) {
-	fprintf(fp, "%lld w ", position);
+	if (fprintf(fp, "%lld w ", position) < 0)
+		FileWriteError();
 	writeChildrenToFile(fp, children);
 }
 
 void writeCorruptedLoseToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 							REMOTENESS maxUncorruptedRem) {
-	fprintf(fp, "%lld l %d ", position, maxUncorruptedRem);
+	if (fprintf(fp, "%lld l %d ", position, maxUncorruptedRem) < 0)
+		FileWriteError();
 	writeChildrenToFile(fp, children);
 }
 
 void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 						REMOTENESS maxUncorruptedRem, REMOTENESS minTieRem, BOOLEAN seenDraw) {
-	fprintf(fp, "%lld u %d %d %d ", position, minTieRem, seenDraw, maxUncorruptedRem);
+	if (fprintf(fp, "%lld u %d %d %d ", position, minTieRem, seenDraw, maxUncorruptedRem) < 0)
+		FileWriteError();
 	writeChildrenToFile(fp, children);
 }
 
@@ -719,48 +805,65 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 
 // This initializes the tier files
 void initFiles() {
-	int f, tier;
+	int tier, lower, upper = 0;
 	FILE **files;
 	POSITION pos;
 
 	positionsLeft = gNumberOfPositions;
 	printf("We're going to make these many files: %d\n", tierMax+1);
 	printf("C says we can open this many files at once: %d\n", FOPEN_MAX);
-	if (tierMax+1 > FOPEN_MAX) {
-		printf("It looks like we can't open that many files! I'll deal with this later...\n");
-		exit(2);
-	}
+	printf("Thus, %d full iteration(s) will have to be done.\n", ((tierMax+1)/FOPEN_MAX)+1);
 	mkdir("retrograde", 0755);
 	// INITIALIZE ALL THE TIER FILES:
-	files = (FILE**) SafeMalloc(tierMax * sizeof(FILE*));
-	// Open all TierMax Files
-	printf("  Opening all the files...\n");
-	for (f = 0; f <= tierMax; f++) {
-		sprintf(filename,"./retrograde/%s_%d.tier",kDBName,f);
-		if ((files[f] = fopen(filename, "w")) == NULL) {
-			printf("ERROR: Couldn't open file %s\n", filename);
-			HandleErrorAndExit();
+	files = (FILE**) SafeMalloc((tierMax+1) * sizeof(FILE*));
+	while(upper != (tierMax+1)) {
+		lower = upper;
+		upper = ((tierMax+1) < upper+FOPEN_MAX ? tierMax+1 : upper+FOPEN_MAX);
+
+		// Open all TierMax Files
+		printf("  Opening all the files...\n");
+		for (tier = lower; tier < upper; tier++) {
+			sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,tier);
+			if ((files[tier] = fopen(filename, "w")) == NULL) FileOpenError();
+			tierSize[tier] = 0;
+		}
+		printf("  Writing all the files (could take FOREVER)...\n");
+		for (pos = 0; pos < gNumberOfPositions; pos++) {
+			tier = gRetrogradeTierValue(pos);
+			if (tier == -1) {
+				if (upper == (tierMax+1)) positionsLeft--;
+				continue;
+			}
+			if (tier < 0 || tier > tierMax) {
+				printf("\n--ERROR: gRetrogradeTierValue not correctly defined: returned %d for position %lld\n", tier, pos);
+				printf("  Closing all the files...\n");
+				for (tier = lower; tier < upper; tier++) {
+					if (fclose(files[tier]) == EOF) {
+						sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,tier);
+						FileCloseError();
+					}
+				}
+				HandleErrorAndExit();
+			}
+			if (tier >= upper || tier < lower) continue;
+			//FOR SLICE API: SetTier(pos, tier);
+			if (fprintf(files[tier], "%lld ", pos) < 0) {
+				sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,tier);
+				FileWriteError();
+			}
+			tierSize[tier] += 1;
+		}
+		// Close all the files
+		printf("  Closing all the files...\n");
+		for (tier = lower; tier < upper; tier++) {
+			if (fclose(files[tier]) == EOF) {
+				sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,tier);
+				FileCloseError();
+			}
 		}
 	}
-	printf("  Writing all the files (could take FOREVER)...\n");
-	for (pos = 0; pos < gNumberOfPositions; pos++) {
-		tier = gRetrogradeTierValue(pos);
-		if (tier == -1) {
-			positionsLeft--;
-			continue;
-		} if (tier < 0 || tier > tierMax) {
-			printf("ERROR: gRetrogradeTierValue not correctly defined: returned %d for position %lld\n", tier, pos);
-			HandleErrorAndExit();
-		}
-		//FOR SLICE API: SetTier(pos, tier);
-		fprintf(files[tier], "%lld ", pos);
-	}
-	// Close all the files
-	printf("  Closing all the files...\n");
-	for (f = 0; f <= tierMax; f++)
-		fclose(files[f]);
 	// Free the files pointer
-	//SafeFree(files); This is commented out because it causes a glitch!
+	SafeFree(files);
 }
 
 // This removes ALL files created by the solver (ignores errors)
@@ -769,19 +872,20 @@ void removeFiles() {
 	int f;
 	// Tier files
 	for (f = 0; f <= tierMax; f++) {
-		sprintf(filename,"./retrograde/%s_%d.tier",kDBName,f);
+		sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,f);
 		remove(filename);
 	}
 	// Solve files
-	sprintf(filename,"./retrograde/%s_1.solve",kDBName);
+	sprintf(filename,"./retrograde/1.solve");
 	remove(filename);
-	sprintf(filename,"./retrograde/%s_2.solve",kDBName);
+	sprintf(filename,"./retrograde/2.solve");
 	remove(filename);
 	// Save files
-	sprintf(filename,"./retrograde/%s_TIER.save",kDBName);
+	sprintf(filename,"./retrograde/%s_%d_TIER.save",kDBName,variant);
 	remove(filename);
-	sprintf(filename,"./retrograde/%s_DB.save",kDBName);
+	sprintf(filename,"./retrograde/%s_%d_DB.save",kDBName,variant);
 	remove(filename);
+	SafeFree(tierSize); // Frees the tierSize array
 }
 
 /************************************************************************
@@ -793,17 +897,21 @@ void removeFiles() {
 // This saves the current progress to a file.
 void SaveProgressToFile(int tier) {
 	FILE* fp;
-	printf(" -Creating Save File...\n");
-	sprintf(filename,"./retrograde/%s_TIER.save",kDBName);
-	if ((fp = fopen(filename, "w")) == NULL) {
-		printf("ERROR: Couldn't open file %s\n", filename);
-		HandleErrorAndExit();
-	}
-	fprintf(fp, "VARIANT=%d \nPROGRESS=%d \nPOSLEFT=%lld \n", getOption(), tier, positionsLeft);
-	printf(" -Save File created.\n");
-	fclose(fp);
+	int f;
+
+	printf("--Creating Save File...\n");
+	sprintf(filename,"./retrograde/%s_%d_TIER.save",kDBName,variant);
+	if ((fp = fopen(filename, "w")) == NULL) FileOpenError();
+	if (fprintf(fp, "PROGRESS=%d \nPOSLEFT=%lld \nTIERSIZES=", tier, positionsLeft) < 0)
+		FileWriteError();
+	for (f = 0; f <= tierMax; f++)
+		if (fprintf(fp, "%lld ", tierSize[f]) < 0)
+			FileWriteError();
+	SafeFree(tierSize);
+	printf("--Save File created.\n");
+	if (fclose(fp) == EOF) FileCloseError();
 	SaveDBToFile();
-	printf(" Progress properly saved.\n"
+	printf("--Progress properly saved.\n"
 			"To guarantee correct solving, make sure that the game code is not\n"
 			"modified before restarting the solving. Also make sure that the files\n"
 			"in the 'retrograde' directory are not tampered with.\n");
@@ -814,64 +922,50 @@ void SaveProgressToFile(int tier) {
 // Returns -1 if there is no save file..
 int LoadProgressFromFile() {
 	FILE* fp;
-	int f, variant, tier;
+	int f, tier;
 
-	sprintf(filename,"./retrograde/%s_TIER.save",kDBName);
+	sprintf(filename,"./retrograde/%s_%d_TIER.save",kDBName,variant);
 	if ((fp = fopen(filename, "r")) == NULL) // no savefile
 		return -1;
-	printf(" -Loading Save File...\n");
-	if ((getc(fp)) != 'V' || (getc(fp)) != 'A' || (getc(fp)) != 'R' ||
-		(getc(fp)) != 'I' || (getc(fp)) != 'A' || (getc(fp)) != 'N' ||
-		(getc(fp)) != 'T' || (getc(fp)) != '=') {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
-	if ((variant = readPos(fp)) == kBadPosition || variant != getOption()) {
-		printf("ERROR: Current variant: %d, but previously solving variant: %d\n", getOption(), variant);
-		printf("Please restart the game and solve with the correct variant selected.\n");
-		exit(1);
-	}
-	if ((getc(fp)) != '\n' || (getc(fp)) != 'P' || (getc(fp)) != 'R' ||
+	printf("--Loading Save File...\n");
+	if ((getc(fp)) != 'P' || (getc(fp)) != 'R' ||
 		(getc(fp)) != 'O' || (getc(fp)) != 'G' || (getc(fp)) != 'R' ||
 		(getc(fp)) != 'E' || (getc(fp)) != 'S' || (getc(fp)) != 'S' ||
-		(getc(fp)) != '=') {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
-	if ((tier = readPos(fp)) == kBadPosition || tier < 0 || tier > tierMax) {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
+		(getc(fp)) != '=')
+		FileSyntaxError();
+	if ((tier = readPos(fp)) == kBadPosition || tier < 0 || tier > tierMax)
+		FileSyntaxError();
 	if ((getc(fp)) != '\n' || (getc(fp)) != 'P' || (getc(fp)) != 'O' ||
 		(getc(fp)) != 'S' || (getc(fp)) != 'L' || (getc(fp)) != 'E' ||
-		(getc(fp)) != 'F' || (getc(fp)) != 'T' || (getc(fp)) != '=') {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
+		(getc(fp)) != 'F' || (getc(fp)) != 'T' || (getc(fp)) != '=')
+		FileSyntaxError();
 	if ((positionsLeft = readPos(fp)) == kBadPosition || positionsLeft < 0
-		|| positionsLeft > gNumberOfPositions) {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
-	if ((getc(fp)) != '\n' || (getc(fp)) != EOF) {
-		printf("Save File corrupted!\n");
-		HandleErrorAndExit();
-	}
-	printf(" Save File Loaded\n");
-	fclose(fp);
-	printf(" -Checking to make sure TIER files weren't deleted...\n");
+		|| positionsLeft > gNumberOfPositions)
+		FileSyntaxError();
+	if ((getc(fp)) != '\n' || (getc(fp)) != 'T' || (getc(fp)) != 'I' ||
+		(getc(fp)) != 'E' || (getc(fp)) != 'R' || (getc(fp)) != 'S' ||
+		(getc(fp)) != 'I' || (getc(fp)) != 'Z' || (getc(fp)) != 'E' ||
+		(getc(fp)) != 'S' || (getc(fp)) != '=')
+		FileSyntaxError();
 	for (f = 0; f <= tierMax; f++) {
-		sprintf(filename,"./retrograde/%s_%d.tier",kDBName,f);
-		if ((fp = fopen(filename, "r")) == NULL) {
-			printf("Couldn't open file %s\n", filename);
-			HandleErrorAndExit();
-		}
-		fclose(fp);
+		if ((tierSize[f] = readPos(fp)) == kBadPosition || tierSize[f] < 0
+			|| tierSize[f] > gNumberOfPositions)
+			FileSyntaxError();
+	}
+	if ((getc(fp)) != EOF)
+		FileSyntaxError();
+	printf("--Save File Loaded\n");
+	if (fclose(fp) == EOF) FileCloseError();
+	printf("--Checking to make sure TIER files weren't deleted...\n");
+	for (f = 0; f <= tierMax; f++) {
+		sprintf(filename,"./retrograde/%s_%d_%d.tier",kDBName,variant,f);
+		if ((fp = fopen(filename, "r")) == NULL) FileOpenError();
+		if (fclose(fp) == EOF) FileCloseError();
 	}
 	LoadDBFromFile();
-	sprintf(filename,"./retrograde/%s_TIER.save",kDBName);
+	sprintf(filename,"./retrograde/%s_%d_TIER.save",kDBName,variant);
 	remove(filename);
-	printf(" Save File Removed, everything properly loaded.\n");
+	printf("--Save File Removed, everything properly loaded.\n");
 	printf("To guarantee correct solving, make sure that the game code was not\n");
 	printf("modified after saving the progress of the previous solve.\n");
 	return tier;
@@ -884,19 +978,17 @@ void SaveDBToFile() {
 	POSITION pos;
 	VALUE value;
 
-	printf(" -Saving the Database to File...\n");
-	sprintf(filename,"./retrograde/%s_DB.save",kDBName);
-	if ((fp = fopen(filename, "w")) == NULL) {
-		printf("ERROR: Couldn't open file %s\n", filename);
-		HandleErrorAndExit();
-	}
+	printf("--Saving the Database to File...\n");
+	sprintf(filename,"./retrograde/%s_%d_DB.save",kDBName,variant);
+	if ((fp = fopen(filename, "w")) == NULL) FileOpenError();
 	for (pos = 0; pos < gNumberOfPositions; pos++) {
 		value = GetValueOfPosition(pos);
 		if (value != undecided)
-			fprintf(fp, "%lld %d %d \n", pos, value, Remoteness(pos));
+			if (fprintf(fp, "%lld %d %d \n", pos, value, Remoteness(pos)) < 0)
+				FileWriteError();
 	}
-	printf(" Database Saved\n");
-	fclose(fp);
+	printf("  Database Saved\n");
+	if (fclose(fp) == EOF) FileCloseError();
 }
 
 // This loads a saved DB file, and deletes the file. Will be replaced
@@ -906,38 +998,32 @@ void LoadDBFromFile() {
 	POSITION pos, c;
 	VALUE value; REMOTENESS remoteness;
 
-	printf(" -Loading the Database from File...\n");
-	sprintf(filename,"./retrograde/%s_DB.save",kDBName);
-	if ((fp = fopen(filename, "r")) == NULL) {
-		printf("Couldn't open file %s\n", filename);
-		HandleErrorAndExit();
-	}
+	printf("--Loading the Database from File...\n");
+	sprintf(filename,"./retrograde/%s_%d_DB.save",kDBName,variant);
+	if ((fp = fopen(filename, "r")) == NULL) FileOpenError();
 	while((pos = readPos(fp)) != kBadPosition) {
-		if ((c = readPos(fp)) == kBadPosition || c < 0 || c > 3) {
-			printf("ERROR!! DB Save file in incorrect format!\n");
-			HandleErrorAndExit();
-		}
+		if ((c = readPos(fp)) == kBadPosition || c < 0 || c > 3)
+			FileSyntaxError();
 		value = c;
 		StoreValueOfPosition(pos, value);
-		if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX) {
-			printf("ERROR!! DB Save file in incorrect format!\n");
-			HandleErrorAndExit();
-		}
+		if ((c = readPos(fp)) == kBadPosition || c < 0 || c > REMOTENESS_MAX)
+			FileSyntaxError();
 		remoteness = c;
 		SetRemoteness(pos, remoteness);
-		if ((getc(fp)) != '\n') {
-			printf("ERROR!! DB Save file in incorrect format!\n");
-			HandleErrorAndExit();
-		}
+		if ((getc(fp)) != '\n')
+			FileSyntaxError();
 	}
-	printf(" Database Loaded\n");
-	fclose(fp);
-	sprintf(filename,"./retrograde/%s_DB.save",kDBName);
+	printf("  Database Loaded\n");
+	if (fclose(fp) == EOF) FileCloseError();
+	sprintf(filename,"./retrograde/%s_%d_DB.save",kDBName,variant);
 	remove(filename);
-	printf(" DB Save File Removed\n");
+	printf("  DB Save File Removed\n");
 }
 
-/* HAXX that writes database to file */
+// The following are just helpers I use to check the correctness
+// of the solver, vs. the normal loopy solver.
+
+/* HAXX that writes database to file, usually copy-pasted to a module */
 void writeCurrentDBToFile() {
 	FILE *fp; POSITION p;
 	fp = fopen("./retrograde/db.txt","w");

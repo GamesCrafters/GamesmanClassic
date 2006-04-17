@@ -1,5 +1,11 @@
-// $Id: mbaghchal.c,v 1.12 2006-04-12 03:02:12 max817 Exp $
+// $Id: mbaghchal.c,v 1.13 2006-04-17 07:36:38 max817 Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/04/12 03:02:12  max817
+// This is the big update that moves the Retrograde Solver from mbaghchal.c
+// to its own set of new files, solveretrograde.c and solveretrograde.h.
+// Exact details on the exact changes I made to the core files can be found
+// in a comment on solveretrograde.c. -Max
+//
 
 /*
  * The above lines will include the name and log of the last person
@@ -16,7 +22,7 @@
 **              Max Delgadillo
 **              Deepa Mahajan
 **
-** DATE:        2006.4.11
+** DATE:        2006.4.16
 **
 ** UPDATE HIST: -2004.10.21 = Original (Dom's) Version
 **              -2006.3.2 = Updates + Fixes by Max and Deepa
@@ -26,9 +32,17 @@
 **					Also a few changes to the game, particular the board display.
 **				-2006.4.11 = Retrograde Solver now moved to its own file.
 **					Diagonals and Variants now implemented correctly.
+**					Fixed ALL the warnings.
 **					Fixed a few more little bugs, non 5x5 game is fully complete.
 **					Added RetrogradeTierValue function pointer implementation.
 **					Added CheckLegality code, but will implement in next update.
+**				-2006.4.16 = Slight bug fixes, like reading double-digit input.
+**					Variant number calculations fixed.
+**					Changed GOATS_MAX to 24 and upper-limit on goats from
+**					  "boardsize-tigers-1" to "boardsize-tigers".
+**					Now 4x4, No Diagonals, 12 Goats is "Dragons and Swans".
+**					Also lowered TIGERS_MAX to 9 to keep it single-digit.
+**					Got rid of any final debugging artifacts for the solver.
 **
 **
 **************************************************************************/
@@ -181,8 +195,8 @@ STRING   kHelpExample =
 #define LENGTH_MAX  5
 #define WIDTH_MIN   3
 #define LENGTH_MIN  3
-#define GOATS_MAX   20
-#define TIGERS_MAX  10
+#define GOATS_MAX   24
+#define TIGERS_MAX  9
 
 #define GOAT        'G'
 #define TIGER       'T'
@@ -213,7 +227,6 @@ int NumGoats   = 0;
 BOOLEAN phase1 = TRUE;
 BOOLEAN set    = FALSE;
 BOOLEAN diagonals = TRUE;
-BOOLEAN retrograde = TRUE;
 
 /*************************************************************************
 **
@@ -264,8 +277,7 @@ void InitializeGame ()
         set = TRUE;
         SetInitialPosition();
     }
-    if (retrograde) gRetrogradeTierValue = &RetrogradeTierValue;
-    else gRetrogradeTierValue = NULL;
+    gRetrogradeTierValue = &RetrogradeTierValue;
 }
 
 
@@ -711,7 +723,7 @@ BOOLEAN ValidTextInput (STRING input)
     if(size != 2 && size != 5)
         return FALSE;
     if (!isalpha(input[0]) || !isdigit(input[1]) ||
- 		(size == 2 || (input[2] != ' ' ||
+ 		(size == 5 && (input[2] != ' ' ||
  		!isalpha(input[3]) || !isdigit(input[4]))))
     	return FALSE;
     return TRUE;
@@ -813,7 +825,6 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-	char* initial;
     char c;
     BOOLEAN cont = TRUE;
     while(cont) {
@@ -827,14 +838,6 @@ void GameSpecificMenu ()
                "\ti)\tSet the (I)nitial position (starting position)\n"
                "\tr)\t(R)eset to default settings\n"
                "\tt)\t(T)est the hash function\n"
-               "\te)\tUse the (E)xperimental Retrograde Solver!\n"
-               "\t1)\tSetup Board (0) (3x3, Stage 2 Initial, MaxTier: 1)\n"
-        	   "\t1)\tSetup Board (1) (3x3, Stage 2 Initial, MaxTier: 4)\n"
-        	   "\t2)\tSetup Board (2) (4x4, Stage 2 Initial, MaxTier: 11)\n"
-        	   "\t3)\tSetup Board (3) (5x5, Stage 2 w/1 Goat, MaxTier: 1)\n"
-        	   "\t4)\tSetup Board (4) (5x5, Stage 2 w/2 Goat, MaxTier: 2)\n"
-        	   "\t5)\tSetup Board (5) (5x5, Stage 2 w/3 Goat, MaxTier: 3)\n"
-        	   "\tf)\t(F)reaking delete the current database (to re-solve)\n"
                "\tb)\t(B)ack to the main menu\n"
                "\nSelect an option:  ", width, goats, tigers, diagonals ? "off" : "on");
         c = GetMyChar();
@@ -865,65 +868,6 @@ void GameSpecificMenu ()
             case 'b': case 'B':
                 cont = FALSE;
                 break;
-            case 'e': case 'E':
-            	if (retrograde)
-					retrograde = FALSE;
-				else retrograde = TRUE;
-				printf("Using Retrograde Solver? = %d", retrograde);
-            	break;
-            case '0':
-				width = length = 3; boardSize = width*length; tigers = 4;
-				goats = 1; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"T+T+G+T+T");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_ONE);
-				break;
-            case '1':
-				width = length = 3; boardSize = width*length; tigers = 4;
-				goats = boardSize-tigers-1; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"TGTG+GTGT");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_TWO);
-				break;
-            case '2':
-				width = length = 4; boardSize = width*length; tigers = 4;
-				goats = boardSize-tigers-1; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"TGGTGG+GGGGGTGGT");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_ONE);
-				break;
-            case '3':
-				width = length = 5; boardSize = width*length; tigers = 4;
-				goats = 1; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"T+++T+++++++G+++++++T+++T");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_ONE);
-				break;
-            case '4':
-				width = length = 5; boardSize = width*length; tigers = 4;
-				goats = 2; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"T+++T++++++GG+++++++T+++T");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_ONE);
-				break;
-            case '5':
-				width = length = 5; boardSize = width*length; tigers = 4;
-				goats = 3; NumGoats = 0; phase1 = FALSE;
-				initial = SafeMalloc(boardSize * sizeof(char));
-				sprintf(initial,"T+++T++++++GGG++++++T+++T");
-				SetupHash();
-				gInitialPosition = hash(initial, PLAYER_ONE);
-				break;
-			case 'f': case 'F':
-				// HAXXX WARNING!! This clears the current databases for this game:
-				system("rm ./data/mbaghchal_*_memdb.dat.gz");
-				break;
             default:
                 printf("Invalid option!\n");
         }
@@ -962,7 +906,7 @@ void SetTclCGameSpecificOptions (int options[])
 POSITION GetInitialPosition ()
 {
     int i, j, turn, goatsLeft;
-    char line[width], first;
+    char line[width], in[2], first;
     for(i = 0; i < width; i++)
     	line[i] = SPACE;
     char* board = SafeMalloc(boardSize * sizeof(char));
@@ -992,7 +936,10 @@ POSITION GetInitialPosition ()
             }
         }
         printf("Enter how many goats are left to place: ");
-        goatsLeft = GetMyChar()-48;
+        scanf("%s", in);
+		if (strlen(in) == 1) {
+			goatsLeft = in[0]-48;
+		} else goatsLeft = ((in[0]-48)*10)+(in[1]-48);
         printf("Enter who you would like to go first: (g)oats or (t)igers: ");
         first = GetMyChar();
         if(first == 'g' || first == 'G')
@@ -1008,14 +955,14 @@ POSITION GetInitialPosition ()
             else if(board[i] == TIGER)
                 tigers++;
         }
-        goats += goatsLeft;
-        if (goatsLeft < 0 || goats > GOATS_MAX || tigers > TIGERS_MAX)
+        if (goats > GOATS_MAX || tigers > TIGERS_MAX || goats+goatsLeft > boardSize-tigers)
         	valid = FALSE;
         NumGoats = goatsLeft;
         if(NumGoats == 0)
             phase1 = FALSE;
         else
             phase1 = TRUE;
+        goats += goatsLeft;
         if(!valid)
             printf("\n\nInvalid board!!!\n\n");
     }
@@ -1037,8 +984,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-
-    return 0;
+    return 1280;
 }
 
 
@@ -1057,7 +1003,7 @@ int NumberOfOptions ()
 int getOption ()
 {
 	int option = 0;
-	option += ((length-3)*TIGERS_MAX*GOATS_MAX + tigers*GOATS_MAX + goats) *2;
+	option += ((length-3)*TIGERS_MAX*GOATS_MAX + (tigers-1)*GOATS_MAX + (goats-1)) *2;
 	if (diagonals == FALSE)
 		option +=1;
     return option;
@@ -1084,9 +1030,9 @@ void setOption (int option)
 	else
 		diagonals = TRUE;
 	option /= 2;
-	length = option / (TIGERS_MAX * GOATS_MAX);
-	tigers = (option % (TIGERS_MAX * GOATS_MAX)) / GOATS_MAX;
-	goats = (option % (TIGERS_MAX * GOATS_MAX)) % GOATS_MAX;
+	length = (option / (TIGERS_MAX * GOATS_MAX))+3;
+	tigers = ((option % (TIGERS_MAX * GOATS_MAX)) / GOATS_MAX)+1;
+	goats = ((option % (TIGERS_MAX * GOATS_MAX)) % GOATS_MAX)+1;
 }
 
 
@@ -1193,36 +1139,51 @@ void ChangeBoardSize ()
 
 void SetNumGoats ()
 {
-    int change;
+    int change, change2;
     BOOLEAN cont = TRUE;
+    char in[2];
     while (cont) {
-        cont = FALSE;
         printf("\n\nCurrent number of goats %d:\n\n", goats);
-        printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers-1);
-        change = GetMyChar()-48;
-        if(change > boardSize-tigers-1 || change < 1) {
+        printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers);
+		scanf("%s", in);
+		if (strlen(in) == 1) {
+			change = in[0]-48;
+		} else change = ((in[0]-48)*10)+(in[1]-48);
+        if(change > boardSize-tigers || change < 1) {
             printf("\nInvalid number of goats for this board!\n");
-            cont = TRUE;
+            break;
         }
-        else {
+        printf("\n\nEnter how many are yet to be placed (%d - %d):  ", 0, change);
+		scanf("%s", in);
+		if (strlen(in) == 1) {
+			change2 = in[0]-48;
+		} else change2 = ((in[0]-48)*10)+(in[1]-48);
+        if(change2 > change || change2 < 0) {
+            printf("\nInvalid number of goats for this board!\n");
+            break;
+        } else {
             goats = change;
-            NumGoats = goats;
+            NumGoats = change2;
+            if (change2 == 0)
+            	phase1 = FALSE;
+            else phase1 = TRUE;
             SetupHash();
             SetInitialPosition();
+            cont = FALSE;
         }
     }
 }
 
 void SetNumTigers ()
 {
-    int change;
+    int change, max = (boardSize-goats > TIGERS_MAX ? TIGERS_MAX : boardSize-goats);
     BOOLEAN cont = TRUE;
     while (cont) {
         cont = FALSE;
         printf("\n\nCurrent number of tigers %d:\n\n", tigers);
-        printf("\n\nEnter the new number of tigers (%d - %d):  ", 1, boardSize-goats-1);
+        printf("\n\nEnter the new number of tigers (%d - %d):  ", 1, max);
         change = GetMyChar()-48;
-        if(change > boardSize-tigers-1 || change < 1) {
+        if(change > max || change < 1) {
             printf("\nInvalid number of tigers for this board!\n");
             cont = TRUE;
         }

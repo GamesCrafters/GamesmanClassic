@@ -3,10 +3,16 @@
 
 /* Solver procs */
 VALUE DetermineRetrogradeValue(POSITION);
-void SolveTier(int tier);
+void SolveTier(int);
 int SolveWithDelgadilloAlgorithm(POSITION, POSITION, POSITION);
-void HandleErrorAndExit();
+
+/* Error handling */
 BOOLEAN ConfirmAction(char);
+void HandleErrorAndExit();
+void FileOpenError();
+void FileWriteError();
+void FileSyntaxError();
+void FileCloseError();
 
 /* Reading files */
 POSITION readPos(FILE*);
@@ -24,7 +30,7 @@ void initFiles();
 void removeFiles();
 
 /* Solver Progress files */
-void SaveProgressToFile(int tier);
+void SaveProgressToFile(int);
 int LoadProgressFromFile();
 void SaveDBToFile();
 void LoadDBFromFile();
