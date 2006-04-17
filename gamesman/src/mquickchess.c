@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.8 2006-04-16 10:34:37 vert84 Exp $
+// $Id: mquickchess.c,v 1.9 2006-04-17 09:17:55 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -548,8 +548,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
-**
-************************************************************************/
+**************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input)
 {
@@ -772,7 +771,7 @@ void setOption (int option)
 
 void DebugMenu ()
 {
-	MOVE m;
+  	MOVE m;
 	/*
 	int coli, rowi, colf, rowf;
 	 coli = 10;
@@ -782,20 +781,31 @@ void DebugMenu ()
 	 m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
 	 */
 	//	m = createMove(0,0,1,0);
-	printf("input move is %s\n", "a4a3");
-	m = ConvertTextInputToMove("a4a3");
+	/*
+	printf("input move is %s\n", "a4a1");
+	m = ConvertTextInputToMove("a4a1");
 	PrintMove(m);
-	PrintPosition(gInitialPosition, "me", TRUE);
-    POSITION newPos = DoMove(gInitialPosition, m);
+	*/
+	//PrintPosition(gInitialPosition, "me", TRUE);
+	/*POSITION newPos = DoMove(gInitialPosition,
 	PrintPosition(newPos, "me", TRUE);
-	MOVELIST *moves = GenerateMoves(newPos);
-	if(moves == NULL) {
-		printf("empty list\n");
-	} else {
-		printMoveList(moves);
+	m = ConvertTextInputToMove("b1a2");
+	newPos = DoMove(newPos, m);
+	PrintPosition(newPos, "me", TRUE);
+	*/
+	
+       	m = ConvertTextInputToMove("b1c1");
+	PrintPosition(gInitialPosition, "me", TRUE);
+	POSITION newPos = DoMove(gInitialPosition,m); 
+	PrintPosition(newPos, "me", TRUE);
+	if(inCheck(newPos, 1)) {
+	  printf("player 1 in check\n");
 	}
-	//PrintMove(moves->move);
-	// PrintPosition(DoMove(gInitialPosition, m), "me", TRUE);
+	if(inCheck(gInitialPosition, 2)) {
+	  printf("player 2 in check\n");
+	}
+	  
+     
 }
 
 
@@ -819,14 +829,14 @@ void setupPieces(char *Board) {
 			Board[x*cols + y] = ' ';
 		}
 	}
-	
-  	
+
 	Board[0] = 'R';
 	Board[1] = 'K';
 	Board[2] = 'P';
 	Board[9] = 'r';
 	Board[10] = 'k';
 	Board[11] = 'p';
+       
 	/*
 		// setup pawns 
 	 for(y = 0; y < cols; y++ ){
@@ -1078,6 +1088,7 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 	// up 
 	while(row-1 >= 0) {
 		row--;
+		
 		if(isKingCaptureWithBreak(breaks, Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece)){
 			return TRUE;
 		}
@@ -1085,7 +1096,8 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 	}
 	
 	*breaks = 0;
-	row = rowTemp; 
+	row = rowTemp;
+	col = colTemp;
 	// right
 	while(col+1 < cols) {
 		col++;
@@ -1097,6 +1109,7 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 	
 	*breaks = 0;
 	col = colTemp;
+	row = rowTemp;
 	// left
 	while(col-1 >= 0) {
 		col--;
@@ -1107,6 +1120,8 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 	}
 	
 	*breaks = 0;
+	col = colTemp;
+	row = rowTemp;
 	// down 
 	while(row+1 < rows) {
 		row++;
@@ -1604,6 +1619,9 @@ void printMoveList(MOVELIST *moves) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2006/04/16 10:34:37  vert84
+// *** empty log message ***
+//
 // Revision 1.7  2006/04/11 04:19:45  vert84
 // *** empty log message ***
 //
@@ -1659,3 +1677,5 @@ void printMoveList(MOVELIST *moves) {
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
+
+
