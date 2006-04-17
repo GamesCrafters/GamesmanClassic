@@ -37,6 +37,7 @@
 
 
 #include "gamesman.h"
+#include "bpdb.h"
 #include "memdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
@@ -117,9 +118,10 @@ void db_initialize(){
         twobitdb_init(db_functions);
 
     } else if(gCollDB){
-	colldb_init(db_functions);
-    }
-
+		colldb_init(db_functions);
+	} else if(gBitPerfectDB) {
+		bpdb_init(db_functions);
+	}
 #ifdef HAVE_GMP
     else if(gUnivDB) {
 	db_functions = univdb_init();
@@ -127,7 +129,7 @@ void db_initialize(){
 #endif
 
     else {
-	memdb_init(db_functions);
+		memdb_init(db_functions);
     }
     //printf("\nCalling hooking function\n");
     //db_analysis_hook();

@@ -209,6 +209,8 @@ void HandleArguments (int argc, char *argv[])
                                 } else
                                         setOption(option);
                         }
+				} else if(!strcasecmp(argv[i], "--bpdb")) {
+                        gBitPerfectDB = TRUE;
                 } else if(!strcasecmp(argv[i], "--2bit")) {
                         gTwoBits = TRUE;
                 } else if(!strcasecmp(argv[i], "--colldb")) {

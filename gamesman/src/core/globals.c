@@ -65,6 +65,7 @@ BOOLEAN gPrintDatabaseInfo = TRUE; /* Print to the console */
 BOOLEAN gJustSolving = FALSE;     /* Default is playing game, not just solving*/
 BOOLEAN gMessage = FALSE;         /* Default is no message */
 BOOLEAN gSolvingAll = FALSE;      /* Default is to not solve all */
+BOOLEAN gBitPerfectDB = FALSE;
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gUnivDB = FALSE;
