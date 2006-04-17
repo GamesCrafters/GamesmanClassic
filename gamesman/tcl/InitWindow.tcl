@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.102 2006-03-20 18:47:02 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.103 2006-04-17 08:22:05 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -182,14 +182,13 @@ proc InitWindow { kRootDir kExt } {
 
     set convertExists false
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
-	set convertExists true
+	file delete "$kRootDir/../bitmaps/convertTest.gif"
+    }
+    if { [catch {exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"}] } {
+	set convertExists false
     } else {
-	if { [catch {exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"}] } {
-	    set convertExists false
-	} else {
-	    if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
-		set convertExists true
-	    }
+	if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
+	    set convertExists true
 	}
     }
 
@@ -200,7 +199,7 @@ proc InitWindow { kRootDir kExt } {
 	set aspectRatioHeight 3
 	set maxsize [wm maxsize .]
 	set maxwidth [lindex $maxsize 0]
-	set maxheight [lindex $maxsize 1]
+	set maxheight 0.9*[lindex $maxsize 1]
 
 	set tempWidth [expr $maxheight * $aspectRatioWidth / $aspectRatioHeight]
 	set tempHeight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
@@ -214,8 +213,8 @@ proc InitWindow { kRootDir kExt } {
 		set maxheight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
 	    }
 	}
-	wm geometry . =[expr $maxwidth]x[expr $maxheight]
-	#wm geometry . =800x600
+	wm geometry . =[expr int($maxwidth)]x[expr int($maxheight)]
+	wm geometry . =800x600
     }
     update
 
@@ -358,6 +357,8 @@ proc InitWindow { kRootDir kExt } {
 		    set gGameSolved true
 		    . config -cursor {}
 		    set gReallyUnsolved false
+		    .cStatus raise rulesA
+		    .cStatus raise historyI
 		    .cStatus raise valueI
 		    .cStatus raise allA
 		    .cStatus raise predI
@@ -776,7 +777,6 @@ proc InitWindow { kRootDir kExt } {
     pack propagate $skinsFrame 0
 
     image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
-    image create photo oxy_screenshot -file "$gSkinsRootDir/OxySkin/screenshot.ppm"
     image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
     image create photo oxyHiRes_screenshot -file "$gSkinsRootDir/OxySkin_HiRes/screenshot.ppm"
     image create photo earthFromSpace_HiRes_screenshot -file "$gSkinsRootDir/EarthFromSpace_HiRes/screenshot.ppm"
@@ -791,7 +791,25 @@ proc InitWindow { kRootDir kExt } {
 		TBaction4
 	    }
 
-    button $skinsFrame.content.left.mac\
+    button $skinsFrame.content.right.earthFromSpace_HiRes\
+	    -compound top\
+	    -image earthFromSpace_HiRes_screenshot\
+	    -text "Earth From Space (HiRes)"\
+	    -command {
+		InitButtons $gSkinsRootDir EarthFromSpace_HiRes/ ppm
+		TBaction4
+	    }
+
+    button $skinsFrame.content.left.spaceCloud_HiRes\
+	    -compound top\
+	    -image spaceCloud_HiRes_screenshot\
+	    -text "Space Cloud (HiRes)"\
+	    -command {
+		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
+		TBaction4
+	    }
+
+    button $skinsFrame.content.right.mac\
 	    -compound top\
 	    -image mac_screenshot\
 	    -text "Mac Skin"\
@@ -806,25 +824,6 @@ proc InitWindow { kRootDir kExt } {
 	    -text "Water Lily"\
 	    -command {
 		InitButtons $gSkinsRootDir LilySkin/ ppm
-		TBaction4
-	    }
-
-
-    button $skinsFrame.content.right.earthFromSpace_HiRes\
-	    -compound top\
-	    -image earthFromSpace_HiRes_screenshot\
-	    -text "Earth From Space (HiRes)"\
-	    -command {
-		InitButtons $gSkinsRootDir EarthFromSpace_HiRes/ ppm
-		TBaction4
-	    }
-
-    button $skinsFrame.content.right.spaceCloud_HiRes\
-	    -compound top\
-	    -image spaceCloud_HiRes_screenshot\
-	    -text "Space Cloud (HiRes)"\
-	    -command {
-		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
 		TBaction4
 	    }
 
@@ -846,10 +845,10 @@ proc InitWindow { kRootDir kExt } {
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     pack $skinsFrame.content.left.oxyHiRes -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.left.mac -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.left.lily -ipadx 4 -ipady 4 -anchor n
     pack $skinsFrame.content.right.earthFromSpace_HiRes -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.right.spaceCloud_HiRes -ipadx 4 -ipady 4 -anchor n
+    pack $skinsFrame.content.left.spaceCloud_HiRes -ipadx 4 -ipady 4 -anchor n
+    #pack $skinsFrame.content.right.mac -ipadx 4 -ipady 4 -anchor n
+    #pack $skinsFrame.content.left.lily -ipadx 4 -ipady 4 -anchor n
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
@@ -1078,8 +1077,8 @@ proc InitWindow { kRootDir kExt } {
 	.middle.f1.cMLeft raise ToMove
 	.middle.f1.cMLeft lower moveHistory
 	set moveHistoryVisible false
-	.cStatus raise winA
-	.cStatus raise moveI
+	.cStatus raise rulesA
+	.cStatus raise historyI
 
 	.cToolbar raise iITB
 	
@@ -1094,10 +1093,14 @@ proc InitWindow { kRootDir kExt } {
 	set gGamePlayable true
 	NewGame
 	if {$gReallyUnsolved} {
+	    .cStatus raise rulesD
+	    .cStatus raise historyD
 	    .cStatus raise allD
 	    .cStatus raise valueD
 	    .cStatus raise predD
 	} else {
+	    .cStatus raise rulesA
+	    .cStatus raise historyI
 	    .cStatus raise valueI
 	    .cStatus raise allA
 	    .cStatus raise predI
@@ -1134,14 +1137,18 @@ proc InitWindow { kRootDir kExt } {
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
     .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
+    #create rules disabled
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iDBB3p -tags [list sbb iDBB iDBB3 rulesD]
     #create rules selected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 winA]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 rulesA]
     #create rules unselected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 winI def]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 rulesI def]
+    #create value history disabled
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iDBB4p -tags [list sbb iDBB iDBB4 historyD]
     #create value history selected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 moveA]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 historyA]
     #create value history unselected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 moveI def]
+    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 historyI def]
     
 
     ######
@@ -1192,34 +1199,34 @@ proc InitWindow { kRootDir kExt } {
     }
 
 
-    .cStatus bind winA <ButtonRelease-1> {
+    .cStatus bind rulesA <ButtonRelease-1> {
 	#.middle.f1.cMLeft raise iIMB1
 	#.middle.f1.cMLeft raise iIMB2
 	#.cStatus raise iIBB3
 	update
     }
 
-    .cStatus bind winI <ButtonRelease-1> {
+    .cStatus bind rulesI <ButtonRelease-1> {
 	.middle.f1.cMLeft raise iIMB1
 	.middle.f1.cMLeft raise iIMB2
 	.middle.f1.cMLeft raise ToWin
 	.middle.f1.cMLeft raise ToMove
 	.middle.f1.cMLeft lower moveHistory
 	set moveHistoryVisible false
-	.cStatus raise moveI
-	.cStatus raise winA
+	.cStatus raise historyI
+	.cStatus raise rulesA
 	#.cStatus raise iABB3
 	update
     }
 
-    .cStatus bind moveA <ButtonRelease-1> {
+    .cStatus bind historyA <ButtonRelease-1> {
 	#.middle.f1.cMLeft raise iIMB1
 	#.middle.f1.cMLeft raise iIMB2
-	#.cStatus raise moveI
+	#.cStatus raise historyI
 	update
     }
 
-    .cStatus bind moveI <ButtonRelease-1> {
+    .cStatus bind historyI <ButtonRelease-1> {
 	.middle.f1.cMLeft raise iIMB1
 	.middle.f1.cMLeft raise iIMB2
 	.middle.f1.cMLeft raise iIMB3
@@ -1232,8 +1239,8 @@ proc InitWindow { kRootDir kExt } {
         .middle.f1.cMLeft raise moveHistoryPlot
     }
 	set moveHistoryVisible true
-	.cStatus raise winI
-	.cStatus raise moveA
+	.cStatus raise rulesI
+	.cStatus raise historyA
 	#.cStatus raise iABB4
 	update
     }
@@ -1956,7 +1963,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {1 2 3 4 5 6 7 8} {
 	    set name [format i%sTB%s $mode $file]
 
-	    if { $convertExists && !$resolutionExists } {
+	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
 		exec convert -resize $scalePercent [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1975,7 +1982,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {1 2 3 4 5 6} {
 	    set name [format i%sMB%s $mode $file]
 
-	    if { $convertExists && !$resolutionExists } {
+	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
 		exec convert -resize $scalePercent [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
@@ -1984,6 +1991,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     }
 
     if { $convertExists && !$resolutionExists } {
+	#currently no check whether each of these images exists
 	exec convert -resize $scalePercent [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 	exec convert -resize $scalePercent [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 	exec convert -resize $scalePercent [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
@@ -2006,35 +2014,24 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	foreach file {2 9} {
 	    set name [format i%sBB%s $mode $file]
 
-	    if { $convertExists && !$resolutionExists } {
+	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
 		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	}
     }
-    foreach mode {A I IO ID AO AD} {
+    foreach mode {A I D IO ID AO AD} {
 	foreach file {3 4 6 7 8} {
 	    set name [format i%sBB%s $mode $file]
 
-	    if { $convertExists && !$resolutionExists } {
+	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
 		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	}
     }
-
-    foreach file {6 7 8} {
-	if { $convertExists && !$resolutionExists } {
-	    exec convert -resize $scalePercent [format %s%s/D_3_%s.%s $skinsRootDir $skinsDir $file $skinsExt] [format %s%s/%sD_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $file $skinsExt]
-	}
-
-	image create photo [format iDBB%sp $file] -file [format %s%s/%sD_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $file $skinsExt]
-	#image create photo iDBB7p -file [format %s%s/D_3_7.%s $skinsRootDir $skinsDir $skinsExt]
-	#image create photo iDBB8p -file [format %s%s/D_3_8.%s $skinsRootDir $skinsDir $skinsExt]
-    }
-
 
     #
     # Now Bind all the buttons
