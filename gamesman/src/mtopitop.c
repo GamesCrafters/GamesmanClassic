@@ -1922,7 +1922,32 @@ void removeFrontFromAllPositions() {
 	}
 }
 
+int checkValidBoardPositions() {
+  int l, s, b, cnt, allValid = 1;
+  BoardAndTurn boardTurn;
+
+  for (b = 0; l < maxB; l++) {
+    for (s = 0; s < maxS; s++) {
+      for (l = 0; b < maxL; b++) {
+	boardTurn = arrayUnhash(b + (s * maxB) + (l * maxS * maxB)); 
+	for (cnt = 0; cnt < boardSize; cnt++) {
+	  if (CharToThreePiece(boardTurn->theBoard[cnt]) == NULL) {
+	    // handle error case (add to an array, continue to generate list, etc)
+	    // will do this later
+	    allValid = 0;
+	  }
+	}
+      }
+    }
+  }
+  return allValid;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.40  2006/04/16 07:07:29  mikehamada
+// *** empty log message ***
+//
 // Revision 1.39  2006/04/16 07:05:37  mikehamada
 // Updated kHelpTextInterface & kHelpOnYourTurn
 // help strings.
