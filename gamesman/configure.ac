@@ -536,6 +536,6 @@ AC_SUBST(GMPLIBFLAGS, $OUTGMPLIBFLAGS)
 ### Do output
 ###
 
-AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile src/core/db/newdb/Makefile]) #$x_scripts])
+AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile src/core/db/newdb/Makefile src/core/filedb/Makefile]) #$x_scripts])
 #AC_CONFIG_COMMANDS([chmod-X-scripts],[./chmod-X-scripts])
 AC_OUTPUT
