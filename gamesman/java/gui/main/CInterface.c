@@ -1,3 +1,5 @@
+#define NO_GRAPHICS //Do not include TCL files. (This should be NO_TCLTK, rather than NO_GRAPHICS, probably.)
+
 #include "CInterface.h"
 #include "../../../src/gamesman.h"
 
