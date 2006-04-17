@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.104 2006-04-17 08:52:47 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.105 2006-04-17 10:25:45 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -214,7 +214,6 @@ proc InitWindow { kRootDir kExt } {
 	    }
 	}
 	wm geometry . =[expr int($maxwidth)]x[expr int($maxheight)]
-	wm geometry . =800x600
     }
     update
 
@@ -1503,7 +1502,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     global kValueHistoryLabelFont
     global gPredictionsOn
 
-    $moveHistoryCanvas delete moveHistoryValidMoves
+    $moveHistoryCanvas delete moveHistoryValidMoveLines
 
     set drawRemoteness 255
     set pieceRadius [expr 3.0 + $gWindowWidthRatio]
@@ -1742,14 +1741,14 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	$moveHistoryCanvas create line $x $y $moveX $nextY \
 	    -fill $lineColor \
 	    -width 1 \
-	    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves]
+	    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves moveHistoryValidMoveLines]
 
 	$moveHistoryCanvas create oval \
 	    [expr $moveX - $pieceRadius / 2] [expr $nextY - $pieceRadius / 2] \
 	    [expr $moveX + $pieceRadius / 2] [expr $nextY + $pieceRadius / 2] \
 	    -fill $color \
 	    -outline "" \
-	    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves]
+	    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves moveHistoryDots$y]
     }
 
     $moveHistoryCanvas raise moveHistoryPlot
@@ -1777,6 +1776,7 @@ proc unplotMove { numUndo } {
 	set y [lindex [$moveHistoryCanvas coords $end] 3]
 	$moveHistoryCanvas delete opposite$y
 	$moveHistoryCanvas delete moveString$y
+	$moveHistoryCanvas delete moveHistoryDots$y
 	$moveHistoryCanvas delete $end
     }
     #remove item from list
@@ -1825,6 +1825,23 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
 		set oldRemoteness 0
 	    } else {
 		set oldRemoteness [expr $oldXDistance / $oldDeltaX]
+	    }
+
+	    #handle validMove dots
+	    foreach dot [$moveHistoryCanvas find withtag moveHistoryDots$y] {
+		set dotCoords [$moveHistoryCanvas coords $dot]
+		set xCenter [expr ([lindex $dotCoords 0] + [lindex $dotCoords 2]) / 2]
+		if {$xCenter < $center} {
+		    set dotMult -1
+		} elseif {$xCenter > $center} {
+		    set dotMult 1
+		} else {
+		    set dotMult 0
+		}
+		set newX [expr $center + [expr ($xCenter - $center) * $newDeltaX / $oldDeltaX]]
+		lset dotCoords 0 [expr $newX-$pieceRadius/2]
+		lset dotCoords 2 [expr $newX+$pieceRadius/2]
+		$moveHistoryCanvas coords $dot $dotCoords
 	    }
 
 	    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
