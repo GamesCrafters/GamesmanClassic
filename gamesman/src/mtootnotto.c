@@ -407,32 +407,19 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 	int h, col, n;
 	char piece;
-	unsigned long int mask, p = 0, pos;
+	unsigned long int mask, p = 0;
 	
-	pos = position;
-	//printf("\ninitial position = %li\n", pos);
 	
-	/*if(move - 10 > 0){
-		piece = 't';
-		col = move - 10;
-	}
-	else{
-		piece = 'o';
-		col = move;
-	}*/
-	
-	piece = moveUnhashPiece(move);		//replaces above if/else
-	col = moveUnhashCol(move);			//replaces above if/else
+	piece = moveUnhashPiece(move);
+	col = moveUnhashCol(move);
 	
 	col--;
 	
 	int player = WhoseTurn(position);
 	
-	//printf("\nplayer = %i\n", player);
 	
 	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--){}
 	
-	//printf("h=%i\n", h);
 	
 	if(piece == 'o'){
 		position = position | (1 << (h + 1));
@@ -444,13 +431,12 @@ POSITION DoMove (POSITION position, MOVE move)
 	}
 	
 	
-	if(player == 1){
+	if(player == 1){			//change number of pieces (only if player 1 moved)
 		
 		mask = 1;
 		for(n = 1; n<TNO_WIDTH*(TNO_HEIGHT+1); n++){
 			mask = (mask << 1) + 1;
 		}
-		//printf("\nmask = %li\n", mask);
 		
 		
 		if(piece == 't'){
@@ -464,18 +450,12 @@ POSITION DoMove (POSITION position, MOVE move)
 			p += Player1.o-1;
 		}
 		
-		//printf("\np = %li\n", p);
 	
 		p = p << (TNO_WIDTH*(TNO_HEIGHT+1));
-		//printf("\np shifted = %li\n", p);
 		
 		position = position & mask;
 		position += p;
 	}
-	
-	pos = position;
-	
-	//printf("\nreturned position = %li\n", pos);
 	
 	return position;
 
@@ -506,135 +486,6 @@ POSITION DoMove (POSITION position, MOVE move)
 **
 ************************************************************************/
 
-/*VALUE Primitive (POSITION position)
-{
-
-  TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-  int col,row, player1=1, t=1, blank=2, count=0;
-  PositionToBoard(position, board); // Temporary storage.
-
-
-  // Check for toot/otto on the columns
-  for(col=0; col<TNO_WIDTH; col++){
-	 for(row=0; row<TNO_HEIGHT-(TNO_HEIGHT-1); row++){
-		if(    (board[col][row]==board[col][row+3])
-			&& (board[col][row+1]==board[col][row+2])
-			&& (board[col][row] != board[col][row+2])
-			&& (board[col][row]!=blank) //check blanks
-			&& (board[col][row+1]!=blank)) //check blanks
-		{
-			printf("Column Win [%i][%i]", col, row);
-			if(board[col][row]==t)                   //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			else                           //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-		}
-	}
-}
-
-
-  // Check for toot/otto on the rows
-  for(row=0; row<TNO_HEIGHT; row++){
-	 for(col=0; col<TNO_WIDTH-(TNO_WIDTH-1); col++){
-		if(    (board[col][row]==board[col+3][row])
-			&& (board[col+1][row]==board[col+2][row])
-			&& (board[col][row] != board[col+2][row]) 
-			&& (board[col][row]!=blank)
-			&& (board[col+1][row]!=blank))
-		  {
-			printf("Row Win [%i][%i]", col, row);
-			if(board[col][row]==t)                   //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			else                           //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-		} // if
-		
-	}
-}
-
-  // Check for toot/otto on the diagonals
-  for(row=0; row<TNO_HEIGHT-(TNO_HEIGHT-1); row++){
-	 for(col=0; col<TNO_WIDTH-(TNO_WIDTH-1); col++){
-		if(   (board[col][row]==board[col+3][row+3])
-			&& (board[col+1][row+1]==board[col+2][row+2])
-			&& (board[col][row] != board[col+2][row+2])
-            && (board[col][row]!=blank)
-			&& (board[col+1][row+1]!=blank))
-		{
-			printf("Diag A Win [%i][%i]", col, row);
-			if(board[col][row]==t)                   //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			else                           //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-		} // if
-		
-	}
-}
-
-  for(row=3; row<TNO_HEIGHT; row++){
-	 for(col=0; col<TNO_WIDTH-3; col++){
-		if(   (board[col][row]==board[col+3][row-3])
-			&& (board[col+1][row-1]==board[col+2][row-2])
-			&& (board[col][row] != board[col+2][row-2])
-			&& (board[col][row]!=blank)
-			&& (board[col+1][row-1]!=blank))
-		{
-			printf("Diag B Win [%i][%i]", col, row);
-			if(board[col][row]==t){                   //Checks if its toot or otto
-				if(WhoseTurn(position)==player1){      //then checks whose turns it
-					return win;
-				}                        //is to return right thing
-				else{                       //(WhoseTurn(position)==player2)
-					return lose;
-				}
-			}
-			else{                          //(board[col]row]==o)
-				if(WhoseTurn(position)==player1){
-					return lose;
-				}
-				else{                        //(WhoseTurn(position)==player2)
-					return win;
-				}
-			}
-		} // if
-	 }
-  }
-
-  // If board is filled and there is no winner, game is tie.
-  for (col=0;col<TNO_WIDTH;col++){
-	 for (row=0;row<TNO_HEIGHT;row++){
-		if (board[col][row]==0 || board[col][row]==1){
-			count++;
-		}
-	 }
-  }
-
-  if(count == (TNO_HEIGHT*TNO_WIDTH)){
-		return tie;
-	}
-  // If no win and board is not filled, its undecided
-  
-  return undecided;
-}*/
-
 
 VALUE Primitive (POSITION position)
 {
@@ -661,7 +512,7 @@ VALUE Primitive (POSITION position)
 			&& (board[col][row]   != blank) //check blanks
 			&& (board[col][row+1] != blank)) //check blanks
 		{
-			printf("Column Win [%i][%i]", col, row);
+			//printf("Column Win [%i][%i]", col, row);
 			if(board[col][row]==t)
 			{                                        //Checks if its toot or otto
 				if(WhoseTurn(position)==player1)      //then checks whose turns it
@@ -692,7 +543,7 @@ VALUE Primitive (POSITION position)
 			&& (board[col][row]   != blank)
 			&& (board[col+1][row] != blank))
 		{
-			printf("Row Win [%i][%i]", col, row);
+			//printf("Row Win [%i][%i]", col, row);
 			if(board[col][row]==t)
 			{                                        //Checks if its toot or otto
 				if(WhoseTurn(position)==player1)      //then checks whose turns it
@@ -722,7 +573,7 @@ VALUE Primitive (POSITION position)
 			&& (board[col][row]     != blank)
 			&& (board[col+1][row+1] != blank))
 		{
-			printf("Diag A Win [%i][%i]", col, row);
+			//printf("Diag A Win [%i][%i]", col, row);
 			if(board[col][row]==t)
 			{                                        //Checks if its toot or otto
 				if(WhoseTurn(position)==player1)      //then checks whose turns it
@@ -743,7 +594,7 @@ VALUE Primitive (POSITION position)
 
   for(col=0; col<(TNO_WIDTH-3); col++)
   {
-	 for(row=3; row<(TNO_HEIGHT-3); row++)
+	 for(row=3; row<TNO_HEIGHT; row++)
 	 {
 		if(   (board[col][row]     == board[col+3][row-3])
 			&& (board[col+1][row-1] == board[col+2][row-2])
@@ -751,7 +602,7 @@ VALUE Primitive (POSITION position)
 			&& (board[col][row]     != blank)
 			&& (board[col+1][row-1] != blank))
 		{
-			printf("Diag B Win [%i][%i]", col, row);
+			//printf("Diag B Win [%i][%i]", col, row);
 			if(board[col][row]==t)
 			{                                   //Checks if its toot or otto
 				if(WhoseTurn(position)==player1) //then checks whose turns it
@@ -825,14 +676,14 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 	printf("   |");
 	if(usersTurn){
 		if(playerTurn == 1){
-			printf("    You (TOOT) have T:%i, O:%i.",Player1.t, Player1.o);
+			printf("    You (OTTO) have T:%i, O:%i.",Player1.t, Player1.o);
 		}
 		else{
-			printf("    Player 1 (TOOT) has T:%i, O:%i.",Player1.t, Player1.o);
+			printf("    Player 1 (OTTO) has T:%i, O:%i.",Player1.t, Player1.o);
 		}
 	}
 	else{
-		printf("    Player 1 (TOOT) has T:%i, O:%i.",Player1.t, Player1.o);
+		printf("    Player 1 (OTTO) has T:%i, O:%i.",Player1.t, Player1.o);
 	}
 	printf("\n	|  ");
 	for(i=1; i<=TNO_WIDTH; i++)
@@ -840,14 +691,14 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 	printf("   |");
 	if(usersTurn){
 		if(playerTurn == 1){
-			printf("    Player 2 (OTTO) has T:%i, O:%i.",Player2.t, Player2.o);
+			printf("    Player 2 (TOOT) has T:%i, O:%i.",Player2.t, Player2.o);
 		}
 		else{
-			printf("    You (OTTO) have T:%i, O:%i.",Player2.t, Player2.o);
+			printf("    You (TOOT) have T:%i, O:%i.",Player2.t, Player2.o);
 		}
 	}
 	else{
-		printf("    Player 2 (OTTO) has T:%i, O:%i.",Player2.t, Player2.o);
+		printf("    Player 2 (TOOT) has T:%i, O:%i.",Player2.t, Player2.o);
 	}
 	printf("\n	|  ");
 	for(i=1; i<=TNO_WIDTH; i++)
