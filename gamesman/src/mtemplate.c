@@ -1,4 +1,4 @@
-// $Id: mtemplate.c,v 1.8 2006-03-04 15:22:26 ddgarcia Exp $
+// $Id: mtemplate.c,v 1.9 2006-04-18 02:00:35 kmowery Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -107,6 +107,7 @@ STRING   kHelpExample =
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+STRING                  MoveToString(MOVE move);
 
 /************************************************************************
 **
@@ -119,7 +120,7 @@ extern void		SafeFree ();
 
 void InitializeGame ()
 {
-    
+    gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -253,7 +254,25 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    
+    STRING str = MoveToString( move );
+    printf( "%s", str );
+    SafeFree( str );
+}
+
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (MOVE move)
+{
+    return NULL;
 }
 
 
@@ -496,6 +515,9 @@ void DebugMenu ()
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2006/03/04 15:22:26  ddgarcia
+// Removing src/Makefile src/core/Makefile -dan
+//
 // Revision 1.7  2006/01/29 09:59:47  ddgarcia
 // Removed "gDatabase" reference from comment in InitializeGame
 //
