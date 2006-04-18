@@ -254,6 +254,7 @@ proc GS_DrawPosition { c position } {
 
 #############################################################################
 proc GS_NewGame { c position } {
+    $c delete gameover
     GS_DrawPosition $c $position
 }
 
