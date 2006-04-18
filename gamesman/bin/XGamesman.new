@@ -163,14 +163,15 @@ proc CreateLaunchButtons { rightBottom } {
 
     pack $rightBottom.prev -side left
     pack $rightBottom.playGui -side left
-    #pack $rightBottom.playText -side left
+    pack $rightBottom.playText -side left
     pack $rightBottom.next -side left
     pack $rightBottom -anchor center
 }
 
 proc SetLaunchButtons { rightBottom i } {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId
-    set theProgram "./Xm[lindex $thePrograms $i]"
+    set theGUIProgram "./Xm[lindex $thePrograms $i]"
+    set theTextProgram "./m[lindex $thePrograms $i]"
     set gameName [lindex $thePrograms $i]
     set prevGameId [expr $i - 1]
     set nextGameId [expr $i + 1]
@@ -197,9 +198,10 @@ proc SetLaunchButtons { rightBottom i } {
 			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
 
     $rightBottom.playGui configure \
-	-command "exec /usr/bin/env wish -f $theProgram &" -state normal
-    
-    $rightBottom.playText configure -state disabled
+	-command "exec /usr/bin/env wish -f $theGUIProgram &" -state normal
+
+    $rightBottom.playText configure \
+	-command "exec /usr/bin/env xterm $theTextProgram &" -state normal
     
     $rightBottom.next configure -state normal \
 	-command "pack forget $home.$gameName; \
