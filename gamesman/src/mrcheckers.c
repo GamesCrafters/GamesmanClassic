@@ -1,3 +1,4 @@
+
 /*****************************************************************************
  **
  ** NAME:        mrcheckers.c
@@ -528,7 +529,7 @@ POSITION GetInitialPosition()
     while(i < boardSize && (c = getchar()) != EOF) {
         if ((c == P1MAN) || (c == P1KING) ||
             (c == P2MAN) || (c == P2KING) || (c == EMPTY)) {
-            initialPosition[boardSize - ++i] = c;  // fill from the top down
+            initialPosition[i++] = c;//initialPosition[boardSize - ++i] = c;  // fill from the top down
         } else {
             ;//initialPosition[i++] = EMPTY;
         }
@@ -536,9 +537,9 @@ POSITION GetInitialPosition()
     printf("Who's turn will this be? (1 or 2) ");
     //Prompt for turn
     getchar();
-    if((c = getchar()) == 1)
+    if((c = getchar()) == '1')
       currentTurn = P1;
-    else if(c == 2)
+    else if(c == '2')
       currentTurn = P2;
     else
       printf("invalid");
@@ -720,7 +721,8 @@ void PrintPosition(position,playerName,usersTurn)
     
     // Set the game state
     //curPlayer = player;
-    //curBoard = position;
+    currentTurn = player;
+    curBoard = position;
     
     printf("RUBIK'S CHECKERS\n\n  ");
     
