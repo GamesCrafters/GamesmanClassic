@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.105 2006-04-17 10:25:45 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.106 2006-04-18 01:03:26 eudean Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -17,13 +17,13 @@ proc TBaction1 {} {
 
     # Send initial game-specific options to C procs.
     if { $gGameSolved == "false"} {
+
 	.middle.f1.cMLeft raise iDMB
 	.middle.f3.cMRight raise play
 	.cToolbar raise iDTB
 #	.cStatus lower base
 	pack forget .middle.f2.fPlayOptions.fBot
 	SetupPlayOptions
-
 	global gLeftName gRightName gWindowWidth
 
 	# Let Left: and Right: fonts scale with gWindowWidth
@@ -119,7 +119,6 @@ proc TBaction8 {} {
 }
 
 proc SetupPlayOptions {} {
-
     global gWaitingForHuman
     set gWaitingForHuman true
 
@@ -1838,7 +1837,12 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
 		} else {
 		    set dotMult 0
 		}
-		set newX [expr $center + [expr ($xCenter - $center) * $newDeltaX / $oldDeltaX]]
+		if { $oldDeltaX == 0 } {
+		    set oldDotRemoteness 0
+		} else {
+		    set oldDotRemoteness [expr ($xCenter - $center) / $oldDeltaX]
+		}
+		set newX [expr $center + ($oldDotRemoteness * $dotMult * $newDeltaX)]
 		lset dotCoords 0 [expr $newX-$pieceRadius/2]
 		lset dotCoords 2 [expr $newX+$pieceRadius/2]
 		$moveHistoryCanvas coords $dot $dotCoords
