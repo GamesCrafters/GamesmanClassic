@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.9 2006-04-17 09:17:55 runner139 Exp $
+// $Id: mquickchess.c,v 1.10 2006-04-18 00:13:21 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -108,8 +108,8 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define rows 4
-#define cols 3 
+#define rows 5
+#define cols 3
 #define WHITE_TURN 2 
 #define BLACK_TURN 1 
 #define BLACK_PAWN 'p'
@@ -193,8 +193,9 @@ void printMoveList(MOVELIST *moves);
 
 void InitializeGame ()
 {
-	// int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
-	int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
+  //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
+	//int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
+  int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 1, 'r', 0, 1, 'k', 1, 1, 'p', 0, 1, 'b', 0, 1, ' ', 4, 18, -1};
 	char gameBoard[rows*cols];
 	setupPieces(gameBoard);
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
@@ -298,11 +299,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
 	if(tempPiece == WHITE_PAWN) {
 		if(rowf == 1){
-			//substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
+		  //	substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
 		} 
 	} else if(tempPiece == BLACK_PAWN) {
 		if(rowf == rows) {
-			//substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
+		  //	substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
 		}
 	}
 	if(currentPlayer == WHITE_TURN) {
@@ -313,8 +314,9 @@ POSITION DoMove (POSITION position, MOVE move)
 
 
 void substitutePawn(char *boardArray, int currentPlayer, int x, int y){
-	char piece;
-	printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!): ");
+
+  char piece;
+  printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!):");
 	piece = getchar();
 	if(currentPlayer == WHITE_TURN) {
 		if(isWhiteReplacementValid(piece, boardArray)) {
@@ -829,19 +831,19 @@ void setupPieces(char *Board) {
 			Board[x*cols + y] = ' ';
 		}
 	}
-
+	/*
 	Board[0] = 'R';
 	Board[1] = 'K';
 	Board[2] = 'P';
 	Board[9] = 'r';
 	Board[10] = 'k';
 	Board[11] = 'p';
-       
-	/*
-		// setup pawns 
+	*/
+	/*	
+	  // setup pawns 
 	 for(y = 0; y < cols; y++ ){
-		 Board[1*cols + y] = WHITE_PAWN;
-		 Board[(rows-2)*cols + y] = BLACK_PAWN;
+	   Board[1*cols + y] = WHITE_PAWN;
+	   Board[(rows-2)*cols + y] = BLACK_PAWN;
 	 }
 	 // setup black major pieces 
 	 Board[(rows-1)*cols] = BLACK_ROOK;
@@ -855,8 +857,24 @@ void setupPieces(char *Board) {
 	 Board[2] = WHITE_KING;
 	 Board[3] = WHITE_QUEEN;
 	 Board[4] = WHITE_KNIGHT;
-	 */
+	*/
+
+	  // setup pawns 
+       
+	Board[4] = WHITE_PAWN;
+	Board[10] = BLACK_PAWN;
+	
+	Board[0] = WHITE_BISHOP;
+	Board[1] = WHITE_KING;
+	Board[2] = WHITE_ROOK;
+	
+	Board[(rows-1)*cols] = BLACK_BISHOP;
+	Board[(rows-1)*cols + 1] = BLACK_KING;
+	Board[(rows-1)*cols + 2] = BLACK_ROOK;
+    
+	
 }
+
 
 /*  This function checks if the board is in check.
 */
