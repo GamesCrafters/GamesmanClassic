@@ -507,17 +507,8 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-    int maxPieces = startRows * cols;
     int i = 0;
     boardSize = rows * cols;
-    int pieces[] = { P1KING, 0, maxPieces,
-                     P1MAN,  0, maxPieces,
-                     P2KING, 0, maxPieces,
-                     P2MAN,  0, maxPieces,
-                     EMPTY,  boardSize-(maxPieces*2), boardSize-1,
-                     -1 };
-    generic_hash_init(boardSize, pieces, NULL);
-    
     char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
     char c;
     POSITION initialPositionHash;
@@ -534,18 +525,23 @@ POSITION GetInitialPosition()
             ;//initialPosition[i++] = EMPTY;
         }
     }
-    printf("Who's turn will this be? (1 or 2) ");
+    printf("Whose turn will this be? (1 or 2) ");
     //Prompt for turn
     getchar();
-    if((c = getchar()) == '1')
+    c = getchar();
+    if(c == '1') {
       currentTurn = P1;
-    else if(c == '2')
+      printf("Player 1 to play.\n");
+    } else if(c == '2') {
       currentTurn = P2;
-    else
+      printf("Player 2 to play.\n");
+    } else {
       printf("invalid");
+      currentTurn = P1;
+    }
       
     initialPositionHash = generic_hash(initialPosition, currentTurn);
-    generic_unhash(initialPositionHash,initialPosition);
+    //generic_unhash(initialPositionHash,initialPosition);
     SafeFree(initialPosition);
 
     gInitialPosition = initialPositionHash;
