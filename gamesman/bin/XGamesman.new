@@ -13,8 +13,8 @@ proc main {} {
 
     set thePrograms { 1210 abalone achi asalto change dao dinododgem hshogi \
 			  iceblocks lewth lite3 mancala tore nim ooe othello \
-			  qx rubix seega slideN snake tactix ttt3 wuzhi sim\
-			  ctoi win4 dodgem lgame \
+			  qx rubix seega slideN snake tactix ttt3 wuzhi sim win4 \
+			  ctoi dodgem lgame \
 			  3spot con cmass dnb foxes stt }
 
     set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" "Dao" \
@@ -22,14 +22,14 @@ proc main {} {
 			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
 			  "Nim" "Odd or Even" "Othello" "QuickCross" \
 			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
-			  "Tic-Tac-Toe" "Wuzhi" "Sim" \
-			  "Chung-Toi" "Connect 4" "Dodgem" "L Game" \
+			  "Tic-Tac-Toe" "Wuzhi" "Sim" "Connect-4" \
+			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
     set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold gold gold gold gold gold \
-			  gold gold gold gold \
-			  grey grey grey grey \
+			  gold gold gold gold gold \
+			  grey grey grey \
 			  brown brown brown brown brown brown }
 
     set theNumberOfPrograms [llength $thePrograms]
@@ -333,11 +333,6 @@ proc CreateGamePages { frame } {
 	\n\nTo move: Chung-toi has two phases of moves. In the first phase, each player alternates turns placing three pieces on the board. In the second phase, the pieces may be moved to different slots, rotated or both.\
 	\n\nTo win: To get three in a row, vertically, horizontally or diagonally.\
 	\n\nTo win misere: To force your opponent into getting three in a row. Variants: rotating piece, turn off one space hops, turn off two space hops, landing in different orientations, and trapped is a win/lose option."
-    set Rules(win4) "Rules:\
-	\n\nThe players take turns dropping pieces into the slots. These pieces fall to the bottom of the board and the game continues until one player has four in a row and wins or until the board fills up, which results in a tie.\
-	\n\nTo move: The player drops his or her piece into one of the open slots.\
-	\n\nTo win: To get three in a row, vertically, horizontally or diagonally.\
-	\n\nTo win misere: To force your opponent into getting three in a row."
     set Rules(dodgem) "Rules:\
 	\n\nThe pieces on the NxN Dodgem board are arranged at a right angle. Players alternate turns moving their pieces to an adjacent open space. The player with pieces lined up vertically may move to the north, east or south, while the player with pieces lined up horizontally may move north, east or west. Pieces lined up vertically leave the board by moving onto the right edge and pieces lined up horizontally move off the board when they reach the top row.\
 	\n\nTo move: Move your piece into an opened space.\
@@ -353,6 +348,11 @@ proc CreateGamePages { frame } {
 	\n\nTo move: The first player may either move one or two spaces on his or her turn.\
 	\n\nTo win: Force your opponent to complete a triangle.\
 	\n\nTo win misere: To complete a triangle before your opponent."
+    set Rules(win4) "Rules:\
+	\n\nThe players take turns dropping pieces into the slots. These pieces fall to the bottom of the board and the game continues until one player has four in a row and wins or until the board fills up, which results in a tie.\
+	\n\nTo move: The player drops his or her piece into one of the open slots.\
+	\n\nTo win: To get three in a row, vertically, horizontally or diagonally.\
+	\n\nTo win misere: To force your opponent into getting three in a row."
     set Rules(3spot) "Rules:\
 	\n\nMade up of nine squares, the board of 3 Spot has spots in three of the squares. Each player has one piece on the board (there is one neutral piece), which he must move during his turn. Play begins with one person moving his piece on the board. Afterwards, the player is required to move the neutral piece to a different position. Points are scored by each spot that is covered by the player's piece.\
 	\n\nTo move: Players first move their colored piece. Afterwards, they must move their neutral piece.\
