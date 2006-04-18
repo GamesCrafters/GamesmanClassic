@@ -276,6 +276,7 @@ int oppositeMove(int previousMove){
 POSITION unHashMove(POSITION myPosition, int theMove)
 {
   char thePosition[boardSize];
+  POSITION retValue;
   generic_unhash(myPosition, thePosition);
   int done = FALSE;
   unsigned int index = theMove >> (32-MVHASHACC), whosTurn = whoseMove(myPosition);
@@ -385,7 +386,8 @@ POSITION unHashMove(POSITION myPosition, int theMove)
       done = TRUE;
   }
   currentTurn = whosTurn = (whosTurn == P1 ? P2:P1);//switch players
-  return generic_hash(thePosition, whosTurn);
+  curBoard = retValue = generic_hash(thePosition, whosTurn);
+  return retValue;
 }
   
 void undoCapture(char *initialPosition, int whosTurn, int index, int previousMove){
@@ -1273,7 +1275,7 @@ void PrintMove(theMove)
         if ((currentMove == oppositeMove(previousMove)) && (i != 0)) {
             done = TRUE;
         } else {
-	  printf("%d", currentIndex);
+	  //printf("%d", currentIndex);
             switch (currentMove) {	  
                 case FORWARDLEFT:
 		  if(myBoard[forwardLeft(currentTurn, currentIndex)] == EMPTY){
@@ -1296,11 +1298,10 @@ void PrintMove(theMove)
 		    currentIndex = forwardRight(currentTurn, forwardRight(currentTurn, currentIndex));
 		  break;
                 case BACKWARDRIGHT:
-		  //printf("~%d%d%d~", currentTurn, currentIndex, backwardRight(currentTurn, currentIndex));
+		  //printf("~%d%d%c~", currentTurn, currentIndex, myBoard[backwardRight(currentTurn, currentIndex)]);
 		  if(myBoard[backwardRight(currentTurn, currentIndex)] == EMPTY){
                     currentIndex = backwardRight(currentTurn,currentIndex);
-		    done = TRUE;  
- 		    //printf("WTF?");
+		    done = TRUE;   		    
 		  }
 		  else jump = TRUE;
 
@@ -1321,7 +1322,7 @@ void PrintMove(theMove)
 		  BadElse("PrintMove");
             }
             getTextFromIndex(currentIndex, nextSq);
-            printf("%s%d", nextSq, currentIndex);
+            printf("%s", nextSq);
         }
         
         move = move << 2;
