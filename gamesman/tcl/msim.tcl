@@ -29,9 +29,13 @@ set bgColor2  grey
 set lineColor cyan
 set p1Color blue
 set p2Color red
+set hColor orange
 set vertices 6
 set CANVAS_HEIGHT 1
 set CANVAS_WIDTH 1
+set aval(0) false
+set gameover true
+set prevColor $hColor
 
 #############################################################################
 proc unhash {pos array} {
@@ -176,6 +180,23 @@ proc GS_SetOption { option } {
 }
 
 #############################################################################
+proc Highlight { c  i} {
+    global aval
+    global gameover
+    global hColor
+    global prevColor
+    if { $aval($i) && !$gameover } {
+	set color [$c itemcget base$i -fill]
+	if { $color == $hColor } {
+	    $c itemconfigure base$i -fill $prevColor
+	} else {
+	    set prevColor $color
+	    $c itemconfigure base$i -fill $hColor
+	}
+    }
+}
+
+#############################################################################
 proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
@@ -185,6 +206,9 @@ proc GS_Initialize { c } {
     global lineColor
     global edges
     global vertices
+    global aval
+    global gameover
+    global hColor
 
     global CANVAS_WIDTH CANVAS_HEIGHT
 
@@ -208,20 +232,15 @@ proc GS_Initialize { c } {
 		-width 15 -fill $lineColor -capstyle round \
 		-tag [list base base$i]
 
-	    $c create line \
-		[expr {$p+$q*cos($x*$pi/3)}] \
-		[expr {$p+$q*sin($x*$pi/3)}] \
-		[expr {$p+$q*cos($y*$pi/3)}] \
-		[expr {$p+$q*sin($y*$pi/3)}] \
-		-width 15 -fill $lineColor -capstyle round \
-		-tag [list vm vm-$i]
-
+	    $c bind base$i <Enter> "Highlight $c $i"
+	    $c bind base$i <Leave> "Highlight $c $i"
 	    $c bind base$i <ButtonRelease-1> "ReturnFromHumanMove $i"
-	    $c bind vm-$i <ButtonRelease-1> "ReturnFromHumanMove $i"
+	    set aval($i) true
 	    incr i
 	}
     }
 } 
+
 
 #############################################################################
 proc GS_Deinitialize { c } {
@@ -234,19 +253,20 @@ proc GS_DrawPosition { c position } {
     global lineColor
     global p1Color
     global p2Color
-    global valueMoves
-
-    set a(0) (0)
-
+    global aval
+    set a(0) 0
     unhash $position a
 
     for {set i 0} {$i < $edges} {incr i} {
+	set aval($i) false
+
 	if {$a($i) == "x"} {
 	    $c itemconfigure base$i -fill $p1Color
-	} elseif {$a($i) == "o"} {
+      	} elseif {$a($i) == "o"} {
 	    $c itemconfigure base$i -fill $p2Color
 	} else {
 	    $c itemconfigure base$i -fill $lineColor
+	    set aval($i) true
 	}
 	$c raise base$i
     }
@@ -254,7 +274,11 @@ proc GS_DrawPosition { c position } {
 
 #############################################################################
 proc GS_NewGame { c position } {
-    $c delete gameover
+    global gameover
+    if { $gameover == true } {
+	$c delete gameover
+	set gameover false
+    }
     GS_DrawPosition $c $position
 }
 
@@ -279,9 +303,65 @@ proc GS_WhoseMove { position } {
 	return $val
 }
 
+proc animateLine { c  i } {
+    global CANVAS_WIDTH
+    global vertices
+    global edges
+    set temp 0
+
+    for {set x 0} {$x < $vertices} {incr x} {
+	for {set y [expr {$x+1}]} {$y < $vertices} {incr y} {
+	    incr temp
+	    if { $i == $temp } {
+		break
+	    }
+	}
+	
+	if { $i == $temp } {
+	  break
+	}
+    }
+
+    puts "$x $y"
+    set p 1.0
+    set q 1.0
+    set p [expr {$CANVAS_WIDTH/2.0}]
+    set q [expr {($CANVAS_WIDTH*0.9)/2.0}]
+    set pi 3.14159265
+    
+    set xDiff  [expr [expr {$p+$q*sin($x*$pi/3)}] - [expr {$p+$q*sin($y*$pi/3)}]]
+    
+    set yDiff [expr [expr {$p+$q*cos($y*$pi/3)}] -[expr {$p+$q*cos($x*$pi/3)}]] 
+    puts "$xDiff $yDiff"
+}
+
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-    GS_DrawPosition $c $newPosition
+    global edges
+    global p1Color
+    global p2Color
+    global lineColor
+    global aval
+
+    set a(0) 0
+    set b(0) 0
+    unhash $oldPosition b
+    unhash $newPosition a
+   
+    for {set i 0} {$i < $edges} {incr i} {
+	if { $a($i) != $b($i) }  {
+	    set aval($i) false
+	    if {$a($i) == "x"} {
+		$c itemconfigure base$i -fill $p1Color
+		#animateLine $c $i
+	    } elseif {$a($i) == "o"} {
+		$c itemconfigure base$i -fill $p2Color
+	    } else {
+		$c itemconfigure base$i -fill $lineColor
+		set aval($i) true
+	    }
+	}
+    }
 }
 
 #############################################################################
@@ -291,8 +371,8 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set value [lindex $item 1]
 	set color cyan
 
-	$c raise vm-$move base
 	if {$moveType == "value"} {
+	    #$c raise vm base
 	    if {$value == "Tie"} {
 		set color yellow
 	    } elseif {$value == "Lose"} {
@@ -300,14 +380,15 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } else {
 		set color red4
 	    }
-	}
-	$c itemconfigure vm-$move -fill $color
+	$c itemconfigure base$move -fill $color	
+	}	
     }
 }
 
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-    $c lower vm base
+    #$c lower vm base
+    GS_DrawPosition $c $position
 }
 
 #############################################################################
@@ -324,6 +405,9 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     global CANVAS_WIDTH
     set size $CANVAS_WIDTH
     set fontsize [expr int($size / 20)]
+    global gameover
+
+    set gameover true
     
     # Tell us it's "Game Over!" and announce and winner
     $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
@@ -332,5 +416,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 
 #############################################################################
 proc GS_UndoGameOver { c position } {
+    global gameover
+    set gameover false
     $c delete gameover
 }
