@@ -263,12 +263,12 @@ proc GS_Initialize { c } {
     set canvasWidth [min $gFrameWidth $gFrameHeight]
     set margin [expr 0.2 * $canvasWidth]
     set dist [expr ($canvasWidth - 2 * $margin) / [expr $gBoardSize - 1]]
-    set r [expr 0.2 * $dist]
+    set r [expr 0.25 * $dist]
     set offset 0
     set boardwidth [expr $gBoardSize * $dist]
     set dot [expr 0.25 * $r]
-    set arrowwidth [expr 2 * $dot]
-    set arrowshape [list [expr 2 * $dot] [expr 2 * $dot] $dot]
+    set arrowwidth [expr 1.5 * $dot]
+    set arrowshape [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
     set linewidth [expr 0.5 * $dot]
     pack $c
 
@@ -695,8 +695,8 @@ proc drawArrows {c x y piece} {
 
     global dist arrowshape arrowwidth
 
-    set arrowLen [expr 0.49 * $dist]
-    set arrowLenD [expr 0.49 * $dist]
+    set arrowLen [expr 0.7 * $dist]
+    set arrowLenD [expr 0.7 * $dist]
     #up
     $c create line $x $y $x [expr $y - $arrowLen] \
     -width $arrowwidth -arrow last -arrowshape $arrowshape -fill lightblue \
