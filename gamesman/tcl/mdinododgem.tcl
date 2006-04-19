@@ -165,7 +165,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
     set gMisereGame 0
     
     global gBoardSizeOp
-    set gBoardSizeOp 0
+    set gBoardSizeOp 2
 
     global gToTrapIsToWin gForwardStart 
     set gToTrapIsToWin 1
@@ -264,6 +264,7 @@ proc GS_Initialize { c } {
     global boardWidth boardSize xbmLightGrey
     global gFrameWidth gFrameHeight numPieces
     global cell amount mySize yOffset numBars
+    global gForbidden
     set amount -1
     set winByBarSizePercent 0.90
     set mySize [expr [min $gFrameHeight $gFrameWidth] * $winByBarSizePercent] 
@@ -399,7 +400,10 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
     
-    global boardWidth boardSize numPieces amount cell mySize yOffset numBars
+    global boardWidth boardSize numPieces 
+    global amount cell mySize yOffset
+    global numBars whosTurnIndex
+
     set pieceString [string range [C_GenericUnhash $position $boardSize] 0 [expr $boardSize-1]]
     $c raise base
 
@@ -451,7 +455,7 @@ proc GS_DrawPosition { c position } {
 	} elseif {$i > $ocount} {
 	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] 1]
 	} else {
-	    $c itemconfig bar$i -fill black
+	    $c itemconfig bar$i -fill [lindex [GS_ColorOfPlayers] $whosTurnIndex]
 	}
 # 	if {$i < [expr $numPieces * $boardWidth]} {
 # 	    set x [expr $i * $cell]
@@ -476,6 +480,9 @@ proc GS_DrawPosition { c position } {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
+    global whosTurnIndex
+    set whosTurnIndex 0
+    puts $whosTurnIndex
     GS_DrawPosition $c $position
 }
 
@@ -503,8 +510,10 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    global whosTurnIndex
+    set whosTurnIndex [toggle $whosTurnIndex]
+    puts $whosTurnIndex
     GS_DrawPosition $c $newPosition
-    
 }
 
 
@@ -605,7 +614,9 @@ proc GS_HideMoves { c moveType position moveList} {
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-
+    global whosTurnIndex
+    set whosTurnIndex [toggle $whosTurnIndex]
+    puts $whosTurnIndex
     GS_DrawPosition $c $positionAfterUndo
 }
 
@@ -624,9 +635,12 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global gFrameWidth gFrameHeight
+    global whosTurnIndex
 
-	### TODO if needed
-	
+    puts $whosTurnIndex
+    $c create text [expr $gFrameWidth / 2] [expr $gFrameHeight/2] -width [expr $gFrameWidth * .9] \
+	-font {Helvetica 64 bold} -fill [lindex [GS_ColorOfPlayers] [toggle $whosTurnIndex]] -text "$nameOfWinner wins!" -tag winText
 }
 
 
@@ -641,9 +655,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
-	### TODO if needed
-
+    $c delete winText
 }
 
 
@@ -789,4 +801,14 @@ proc whosturn {theMove} {
 #Creating fonts for text
 font create GOALtext -family arial
 font create LEGENDtext -family Times
+
+proc toggle { n } {
+    if { $n == 0 } {
+	return 1
+    } elseif { $n == 1 } {
+	return 0
+    } else {
+	BadElse "toggle: n != 0/1"
+    }
+}
 
