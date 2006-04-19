@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.10 2006-04-18 00:13:21 runner139 Exp $
+// $Id: mquickchess.c,v 1.11 2006-04-19 00:48:21 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -36,6 +36,9 @@
 **                    Fixed ConvertTextInputToMove
 **                    Fixed ValidTextInput by removing = sign in third char check
 **                    Added kingCheck function and case in inCheck
+** 18 Apr 2006 Aaron: Removed return char in PrintMove
+**                    Moved setupPieces code into InitializeGame()
+**                    Downsized board to make it solve
 **************************************************************************/
 
 /*************************************************************************
@@ -154,7 +157,6 @@ BOOLEAN misereVariant = FALSE;
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
-void setupPieces(char *Board);
 BOOLEAN inCheck(POSITION N, int currentPlayer);
 BOOLEAN isKingCaptureWithBreak(int *breaks, char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
 BOOLEAN isKingCaptureWithoutBreak(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
@@ -193,13 +195,63 @@ void printMoveList(MOVELIST *moves);
 
 void InitializeGame ()
 {
-  //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
+	//int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
 	//int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
-  int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 1, 'r', 0, 1, 'k', 1, 1, 'p', 0, 1, 'b', 0, 1, ' ', 4, 18, -1};
+	//int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 1, 'r', 0, 1, 'k', 1, 1, 'p', 0, 1, 'b', 0, 1, ' ', 7, 13, -1};
+	int pieces_array[16] = {'R', 0, 1, 'K', 1, 1, 'r', 0, 1, 'k', 1, 1, ' ', 11, 13, -1};
 	char gameBoard[rows*cols];
-	setupPieces(gameBoard);
+
+	int x, y;
+	// setup empty spaces 
+	for(x = 0; x < rows; x++ ){
+		for(y = 0; y < cols; y++) {
+			gameBoard[x*cols + y] = ' ';
+		}
+	}
+	/*
+	gameBoard[0] = 'R';
+	gameBoard[1] = 'K';
+	gameBoard[2] = 'P';
+	gameBoard[9] = 'r';
+	gameBoard[10] = 'k';
+	gameBoard[11] = 'p';
+	 */
+	/*	
+		// setup pawns 
+	 for(y = 0; y < cols; y++ ){
+		gameBoard[1*cols + y] = WHITE_PAWN;
+		gameBoard[(rows-2)*cols + y] = BLACK_PAWN;
+	 }
+	 // setup black major pieces 
+	gameBoard[(rows-1)*cols] = BLACK_ROOK;
+	gameBoard[(rows-1)*cols + 1] = BLACK_BISHOP;
+	gameBoard[(rows-1)*cols + 2] = BLACK_KING;
+	gameBoard[(rows-1)*cols + 3] = BLACK_QUEEN;
+	gameBoard[(rows-1)*cols + 4] = BLACK_KNIGHT;
+	 // setup white major pieces 
+	gameBoard[0] = WHITE_ROOK;
+	gameBoard[1] = WHITE_BISHOP;
+	gameBoard[2] = WHITE_KING;
+	gameBoard[3] = WHITE_QUEEN;
+	gameBoard[4] = WHITE_KNIGHT;
+	 */
+	
+	// setup pawns 
+	
+	//gameBoard[4] = WHITE_PAWN;
+	//gameBoard[10] = BLACK_PAWN;
+	
+	//gameBoard[0] = WHITE_BISHOP;
+	gameBoard[1] = WHITE_KING;
+	gameBoard[0] = WHITE_ROOK;
+	
+	//gameBoard[(rows-1)*cols] = BLACK_BISHOP;
+	gameBoard[(rows-1)*cols + 1] = BLACK_KING;
+	gameBoard[(rows-1)*cols + 2] = BLACK_ROOK;
+	
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
 	gInitialPosition = generic_hash(gameBoard, WHITE_TURN);
+    
 }
 
 
@@ -380,7 +432,6 @@ BOOLEAN isBlackReplacementValid(char piece, char *bA) {
 
 VALUE Primitive (POSITION position)
 {
-	//printf("primitive");
 	MOVELIST *moves = NULL;
 	moves = GenerateMoves(position);
 	int currentPlayer = whoseMove(position);
@@ -442,8 +493,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf(" %c  ", 97+y); 
 	} 
 	printf("\n"); 
-	//printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
-	// printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase"); 
+	printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
+	printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase"); 
+	if (inCheck(position, whoseMove(position))) {
+		printf("%s is in Check\n", playersName);
+	}
 }
 
 
@@ -482,7 +536,7 @@ void PrintMove (MOVE move)
 	rowi = ((move >> 8) & 15) + 48; 
 	coli = ((move >> 12) & 15) - 10 + 97; 
 	
-	printf("%c%c%c%c\n", coli, rowi, colf, rowf);
+	printf("%c%c%c%c", coli, rowi, colf, rowf);
 }
 
 
@@ -823,59 +877,6 @@ void DebugMenu ()
 ************************************************************************/
 
 
-void setupPieces(char *Board) {
-	int x, y;
-	// setup empty spaces 
-	for(x = 0; x < rows; x++ ){
-		for(y = 0; y < cols; y++) {
-			Board[x*cols + y] = ' ';
-		}
-	}
-	/*
-	Board[0] = 'R';
-	Board[1] = 'K';
-	Board[2] = 'P';
-	Board[9] = 'r';
-	Board[10] = 'k';
-	Board[11] = 'p';
-	*/
-	/*	
-	  // setup pawns 
-	 for(y = 0; y < cols; y++ ){
-	   Board[1*cols + y] = WHITE_PAWN;
-	   Board[(rows-2)*cols + y] = BLACK_PAWN;
-	 }
-	 // setup black major pieces 
-	 Board[(rows-1)*cols] = BLACK_ROOK;
-	 Board[(rows-1)*cols + 1] = BLACK_BISHOP;
-	 Board[(rows-1)*cols + 2] = BLACK_KING;
-	 Board[(rows-1)*cols + 3] = BLACK_QUEEN;
-	 Board[(rows-1)*cols + 4] = BLACK_KNIGHT;
-	 // setup white major pieces 
-	 Board[0] = WHITE_ROOK;
-	 Board[1] = WHITE_BISHOP;
-	 Board[2] = WHITE_KING;
-	 Board[3] = WHITE_QUEEN;
-	 Board[4] = WHITE_KNIGHT;
-	*/
-
-	  // setup pawns 
-       
-	Board[4] = WHITE_PAWN;
-	Board[10] = BLACK_PAWN;
-	
-	Board[0] = WHITE_BISHOP;
-	Board[1] = WHITE_KING;
-	Board[2] = WHITE_ROOK;
-	
-	Board[(rows-1)*cols] = BLACK_BISHOP;
-	Board[(rows-1)*cols + 1] = BLACK_KING;
-	Board[(rows-1)*cols + 2] = BLACK_ROOK;
-    
-	
-}
-
-
 /*  This function checks if the board is in check.
 */
 BOOLEAN inCheck(POSITION N, int currentPlayer) { 
@@ -1150,6 +1151,7 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 	}
 	return FALSE;
 }
+
 BOOLEAN pawnCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
 	if(currentPlayer == WHITE_TURN) { 
 		if(col-1 >= 0) {
@@ -1243,6 +1245,11 @@ int atobi(char s[], int base) {
 	return total; 
 } 
 
+/*
+ ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
+ ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
+ ** the player in check.  Generates moves in all directions until it hits a piece.
+ */
 void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, int i, int j){
 	MOVE newMove;
 	//UP
@@ -1305,9 +1312,7 @@ void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, in
 
 
 /*
-** Generates the moves for a king piece.  First checks if the move is off the board.  Then
- ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
- ** the player in check.  Generates moves in all directions until it hits a piece.
+** Generates the moves for a Queen piece.  Uses the generate moves function in all 8 directions
  */
 void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UP);
@@ -1321,9 +1326,7 @@ void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, 
 }
 
 /*
-** Generates the moves for a king piece.  First checks if the move is off the board.  Then
- ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
- ** the player in check.  Generates moves in the four diagonal directions until it hits a piece.
+ ** Generates the moves for a Bishop.  Uses the generate moves function in 4 diagonal directions
  */
 void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UL);
@@ -1333,9 +1336,7 @@ void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
 }
 
 /*
-** Generates the moves for a king piece.  First checks if the move is off the board.  Then
- ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
- ** the player in check.  Generates moves in 4 compass directions until it hits a piece.
+ ** Generates the moves for a rook.  Uses the generate moves function in 4 compas directions
  */
 void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UP);
@@ -1345,7 +1346,7 @@ void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 }
 
 /*
-** Generates the moves for a king piece.  First checks if the move is off the board.  Then
+** Generates the moves for a knight piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  There are 8 possible moves for a knight.  The first direction indicates
  ** 2 blocks of move, the second direction is one block.
@@ -1411,7 +1412,7 @@ void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
 }
 
 /*
-** Generates the moves for a king piece.  First checks if the move is off the board.  Then
+** Generates the moves for a Pawn piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  Calculates moves forward one piece if there is no piece there
  ** or moves diagonal forward if there is an opposing player piece there.
@@ -1637,6 +1638,9 @@ void printMoveList(MOVELIST *moves) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2006/04/18 00:13:21  runner139
+// *** empty log message ***
+//
 // Revision 1.8  2006/04/16 10:34:37  vert84
 // *** empty log message ***
 //
