@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.1 2006-04-21 04:59:27 amitmatani Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.2 2006-04-21 05:05:00 amitmatani Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1404,14 +1404,13 @@ VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES
 		childValueArray = SafeMalloc(lengthOfMoveList*sizeof(VALUE));
 		remotenessArray = SafeMalloc(lengthOfMoveList*sizeof(REMOTENESS));
 		
-		for (i=0; (ptr != NULL); i++) {
+		for (i=0; (ptr != NULL); i++, ptr = ptr->next) {
 			childArray[i] = DoMove(thePosition, ptr->move);
-			ptr = ptr->next;
 		}
         
 		GetValueAndRemotenessOfPositionBulk(childArray, childValueArray, remotenessArray);
         
-		for (i=0; (ptr = ptr->next); i++) {
+		for (i=0; (ptr != NULL); i++, ptr = ptr->next) {
 			if (gGoAgain(thePosition, ptr->move)) {
 	                switch(childValueArray[i]) {
 	                case win:
