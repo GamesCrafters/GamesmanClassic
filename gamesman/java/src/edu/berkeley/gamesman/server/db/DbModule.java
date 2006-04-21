@@ -27,7 +27,7 @@ import java.util.zip.GZIPInputStream;
 
 public class DbModule implements IModule
 {
-	/** Header names */
+	/** Header names */ //test
 	public static final String HN_LENGTH = "length";
 	public static final String HN_GAME = "game";
 	public static final String HN_VARIANT = "variant";
@@ -65,7 +65,7 @@ public class DbModule implements IModule
 		for (byte i=0;i<4;i++){ // compiler better unroll this
 			ret <<= 8;
 			ret = ret | (((char)p_src[i])&0xFF);
-			System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
+			//System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
 		}
 		return ret;
 	}
@@ -79,7 +79,7 @@ public class DbModule implements IModule
 		for (byte i=0;i<8;i++){ // compiler better unroll this
 			ret = ret<< 8;
 			ret = ret | (((char)p_src[i])&0xFF);
-			System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
+		//	System.out.println("p_src " + i + " = " + p_src[i] + "ret is " + ret);
 		}
 		return ret;
 	}
@@ -127,8 +127,8 @@ public class DbModule implements IModule
 
 				try{
 				// available can be used to read stuff
-				if (gz.read(sbuf, 0, 2) == -1) // error log
-					continue;
+				readgz(gz, sbuf,2);
+				
 				s = makeShort(sbuf);
 				
 				if (s!=FILEVER){
@@ -136,8 +136,8 @@ public class DbModule implements IModule
 					continue;
 				}
 								
-				if (gz.read(ibuf, 0, ibuf.length) == -1) // error log					
-					continue;
+				readgz(gz, ibuf,ibuf.length);
+				
 				
 				// FIXME: I need a version number here!!
 				// actually we are ignoring this for now
@@ -145,29 +145,28 @@ public class DbModule implements IModule
 				num_pos = makeInt(ibuf);
 				
 				//only supports reading 32 bit files - who cares
-				System.out.println("num pos is " + num_pos);
+				//System.out.println("num pos is " + num_pos);
 				gz.skip(4); //4 bytes of 0's in broken format
 				buf = new short[num_pos];
 				// now load in the entire system
 				for (int j=0;j<num_pos;j++){
-					if (gz.read(sbuf, 0, 2) == -1){ // error log
-						System.out.println("gzip file wasn't large enough");
-						break;			
-					}
+					readgz(gz, sbuf,2);
+					
 					s = makeShort(sbuf); // this is the position
 					//if (j>=13400&&j<13410)
-					if (j>=2130&&j<2140){
+					/*if (j>=2130&&j<2140){
 					
 						System.out.println(j + " pos is " + s);
 						System.out.println("high byte is " + sbuf[0] +
 								"low is " + sbuf[1]);
-					}
+					}*/
 					buf[j]=s;
 				}
-				}
+			}
 				
-				catch (IOException e){
-					//throw module exception
+				catch (Exception e){
+					System.out.println("Initialization warning: Could not load " + 
+							baseDir + configArgs[i]);
 					continue;
 				}
 				//check if can save!
@@ -182,58 +181,90 @@ public class DbModule implements IModule
 		return requestTypeName.equalsIgnoreCase(RequestType.GET_VALUE_OF_POSITIONS);
 	}
 
+
+	//helper function
+	//Throws module exception if fails
+	void readgz(GZIPInputStream gz, byte[] data, int len)
+	throws ModuleException{
+		try{
+			int num_read;
+			int cnt = 0;
+			while (len>0){
+				num_read = gz.read(data,cnt,len);
+				if (num_read == -1)
+					throw new ModuleException(ErrorCode.INTERNAL_DB_ERROR,
+		    				ErrorCode.Msg.INTERNAL_DB_ERROR);
+				len -= num_read;
+				cnt += num_read;
+			}
+			
+		}
+		catch (IOException E){
+			throw new ModuleException(ErrorCode.INTERNAL_DB_ERROR,
+    				ErrorCode.Msg.INTERNAL_DB_ERROR);
+		}
+	}
+		
+	
 	// our request goes here
 	// must be mycmd as that is the only cmd supported
     public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException{
     	String hlen = req.getHeader(HN_LENGTH);
     	String gamename = req.getHeader(HN_GAME);
     	String gameop = req.getHeader(HN_VARIANT);
-    	if (hlen == null || gameop == null || gamename == null){
-    		// throw module error
-    		return;
-    	}
-    	short len = Short.decode(hlen).shortValue(); // the length of request 
+    	if (hlen == null)
+    		throw new ModuleException(ErrorCode.MISSING_LENGTH,
+    				ErrorCode.Msg.MISSING_LENGTH);    	
+    	if (gamename == null)
+    		throw new ModuleException(ErrorCode.MISSING_GAME,
+    				ErrorCode.Msg.MISSING_GAME);    	
+    	if (gameop == null)
+    		throw new ModuleException(ErrorCode.MISSING_VARIANT,
+    				ErrorCode.Msg.MISSING_VARIANT);    	
+    		
+    	short len = Short.decode(hlen).shortValue(); //number of batched requests 
     	//note: using short as we don't want to kill server w/ endless requests!
-    	if (len<0){
+    	if (len<=0){ //don't allow even 0
     		// malformed request error
-    		return;
+    		throw new ModuleException(ErrorCode.INVALID_LENGTH,
+    				ErrorCode.Msg.INVALID_LENGTH);
     	}
-    	System.out.println("len is " + len);
-    	if (len == 0) // just return
-    		return;
+    	//System.out.println("len is " + len);
     	// generate filename
-    	System.out.println("dbg: gamename is " + gamename);
+    	//System.out.println("dbg: gamename is " + gamename);
     	String fname = "m" + gamename + "_" + gameop + "_memdb.dat.gz";
-    	System.out.println("dbg: fname is " + fname);
+    	//System.out.println("dbg: fname is " + fname);
     	if (loadedData.containsKey(fname)){ // key logic
-    		System.out.println("key entered");
+    	//	System.out.println("key entered");
     		short [] htable = (short[])loadedData.get(fname);
     		byte[] lbuf = new byte[8]; // read buffer from input stream
  		    		   		
     		try{
     		DataInputStream w = new DataInputStream(req.getInputStream());
     		for (int i = 0;i<len;i++){
-    			//if (req.getInputStream().read(lbuf, 0, 8)==-1){ // must be aligned															
-    				//module exception
-    			//}
     			long l = w.readLong(); //64 bit, though we can only use 32
-    			System.out.println("accessing " + (int)l);
+    			//System.out.println("accessing " + (int)l);
     			//int l = (int)makeLong(lbuf); //only support 32 bit
+    			if (l>=htable.length)
+    				throw new ModuleException(ErrorCode.INVALID_POSITION,
+    	    				ErrorCode.Msg.INVALID_POSITION);
     			short s = htable[(int)l];    			
     			//write in Big Endian to stream
-    			System.out.println("Got " + s);
+    			//System.out.println("Got " + s);
     			res.getOutputStream().write((s>>8)&0xFF);
     			res.getOutputStream().write(s&0xFF);
     		}
     		}
     		catch (IOException e){
     			//throw module exception
+    			throw new ModuleException(ErrorCode.INTERNAL_DB_ERROR,
+        				ErrorCode.Msg.INTERNAL_DB_ERROR);
     		}
     		//done
     	}
     	
     	else{ // GZIP seek logic
-    		System.out.println("using gzip seek");
+    //		System.out.println("using gzip seek");
     		GZIPInputStream gz;
     		try {
 			File f = new File(baseDir + fname);
@@ -244,23 +275,24 @@ public class DbModule implements IModule
 			long[] inbuf = new long[len];
 			byte[] lbuf = new byte[8]; // read buffer from input stream
 			byte[] sbuf = new byte[2];
+			byte[] ibuf = new byte[4];
 			// check file version
-			if (gz.read(sbuf, 0, 2) == -1){ // error log
-				//throw module exception
-				return;
-			}
+			readgz(gz, sbuf, 2);			
 			short s = makeShort(sbuf);			
 			
 			if (s!=FILEVER){
-				//module exception
-				return;
+				throw new ModuleException(ErrorCode.INTERNAL_DB_ERROR,
+        				ErrorCode.Msg.INTERNAL_DB_ERROR);								
 			}
-			//gz.read(lbuf,0,8); //ignore this!
-			gz.skip(8); //ignore size (probably should check this!)
+			
+			readgz(gz, ibuf,ibuf.length);
+			int num_pos = makeInt(ibuf); //get legal number of positions
+			gz.skip(4); //skip bad data
 			//build list
 			for (int i = 0;i<len;i++){
 				if (req.getInputStream().read(lbuf, 0, 8)==-1){ // must be aligned															
-					//module exception
+		    		throw new ModuleException(ErrorCode.INVALID_LENGTH,
+		    				ErrorCode.Msg.INVALID_LENGTH);
 				}
 				long l = makeLong(lbuf); //only support 32 bit
 				inbuf[i] = l;
@@ -270,8 +302,12 @@ public class DbModule implements IModule
 			SortedMap insort = new TreeMap();
 			//insort.
 			//This is why I hate java:			
-			for (int q = 0;q<inbuf.length;q++)
-				insort.put(new Long(inbuf[q]), new Integer(q)); //sorted logic			
+			for (int q = 0;q<inbuf.length;q++){
+				if (inbuf[q]>=num_pos)
+					throw new ModuleException(ErrorCode.INVALID_POSITION,
+	        				ErrorCode.Msg.INVALID_POSITION);
+				insort.put(new Long(inbuf[q]), new Integer(q)); //sorted logic
+			}
 			short [] outbuf = new short[inbuf.length];
 			//again: only 32 bit (long limits)
 			long lastpos = 0;
@@ -282,18 +318,17 @@ public class DbModule implements IModule
 			for (Iterator p=insort.entrySet().iterator(); p.hasNext();){
 				Map.Entry v = (Map.Entry)p.next();
 				long vn = ((Long)(v.getKey())).longValue();
-				System.out.println("seeking by " + (2*vn-lastpos));
+				//System.out.println("seeking by " + (2*vn-lastpos));
 				gz.skip(2*vn-lastpos); //short array
 				lastpos = 2*vn+2;
 							//wiki this stuff
-				if (gz.read(sbuf, 0, 2) == -1) // error log
-					break;
+				readgz(gz,sbuf,2);
 				
 				s = makeShort(sbuf); // this is the position
 				
 				//use value as idx to store!
 				outbuf[((Integer)(v.getValue())).intValue()]=s;	
-				System.out.println("outbuf["+((Integer)(v.getValue())).intValue()+"]="+s);
+				//System.out.println("outbuf["+((Integer)(v.getValue())).intValue()+"]="+s);
 			}
 			//dump out to stream (correctly sorted!)
 			for (int i=0;i<outbuf.length;i++){
@@ -302,13 +337,12 @@ public class DbModule implements IModule
     			res.getOutputStream().write(outbuf[i]&0xFF);
 			}
 			gz.close();
-    	//fixme: gzip is fux0red
+    	//fixme: gzip is fux0red (fixed?)
     		}
-			catch (Exception e){
-					//throw module exception (who needs details?)
-				System.out.println("Some exception fired");
-				return;
-			}
+    		catch (IOException E){
+    			throw new ModuleException(ErrorCode.INTERNAL_DB_ERROR,
+    				ErrorCode.Msg.INTERNAL_DB_ERROR);
+    		}
 			//done!
 			
     	}

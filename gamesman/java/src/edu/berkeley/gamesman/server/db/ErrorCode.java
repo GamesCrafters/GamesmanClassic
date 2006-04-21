@@ -9,8 +9,15 @@ package edu.berkeley.gamesman.server.db;
  */
 public interface ErrorCode
 {
-	// Example error code
+	//error codes
 	public static final int INVALID_LENGTH = 100;
+	public static final int NO_DB = 101;
+	public static final int INVALID_POSITION = 102;
+	public static final int MISSING_GAME = 103;
+	public static final int MISSING_VARIANT = 104;
+	public static final int MISSING_LENGTH = 105;
+	public static final int INTERNAL_DB_ERROR = 106;
+	
 
 	/**
 	 * Contains the error messages for the DbModule.
@@ -28,6 +35,12 @@ public interface ErrorCode
 	public interface Msg
 	{
 		public static final String INVALID_LENGTH = "Invalid length value for request body.";
+		public static final String NO_DB = "Database not located on server for this game.";
+		public static final String INVALID_POSITION = "Position requested is invalid.";
+		public static final String MISSING_GAME = "HN_GAME not specified";
+		public static final String MISSING_VARIANT = "HN_VARIANT not specified";
+		public static final String MISSING_LENGTH = "HN_LENGTH not specified";
+		public static final String INTERNAL_DB_ERROR = "Internal database error";
 
 	}
 }
