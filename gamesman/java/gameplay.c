@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.3 2006-04-21 07:28:05 filipf Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.4 2006-04-21 09:28:47 filipf Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1385,16 +1385,6 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
         return valueMoves;
 }
 
-/*
-* void GetValueAndRemotenessOfPositionBulk(POSITION * positions, VALUE * ValueArray, REMOTENESS * remotenessArray, int length) {
-* 	POSITION *ptr = positions;
-* 	int i; 
-* 	for (i = 0; i < length; i++) {
-* 		ValueArray[i] = GetValueOfPosition(positions[i]);
-*		remotenessArray[i] = Remoteness(positions[i]); 
-* 	}
-*}
-*/
 
 /* GamesCrafters Network Team 4/20/06 */
 VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES* valueMoves)
