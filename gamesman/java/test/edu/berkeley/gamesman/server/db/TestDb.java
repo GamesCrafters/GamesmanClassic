@@ -1,16 +1,11 @@
-//breaks at 1502
-//pos is 768
-//given at 771
-//seek cannot read right!
-//help!
 
-package edu.berkeley.gamesman.server.db;
+package edu.berkeley.gamesman.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import edu.berkeley.gamesman.server.*;
+import edu.berkeley.gamesman.server.db.DbModule;
 
 public class TestDb {
 
@@ -50,10 +45,10 @@ public static void main(String[] args)
 		arg[0] = dir;
 		
 		//Use below 2 lines if preload
-/*
-		arg[1] = Integer.toString(1);
-		arg[2] = fname;
-	*/	
+
+//		arg[1] = Integer.toString(1);
+//		arg[2] = fname;
+	
 		//use below line if not preload
 		arg[1] = Integer.toString(0);
 		
@@ -61,7 +56,7 @@ public static void main(String[] args)
 		db.initialize(arg);
 		TestModuleRequest tm;
 		TestModuleResponse tres;
-		String [] headername = {"hash_length","game_name","game_option"};
+		String [] headername = {"length","game","variant"};
 		String [] headervalues = {"1",gamename,gameop};
 		while (true){ //loop forever
 			byte[] req = new byte[8*20]; //allow 20 requests
@@ -86,7 +81,7 @@ public static void main(String[] args)
 			tres = new TestModuleResponse(rc/4); //as much output as input
 			//tm.
 			db.handleRequest(tm, tres);
-			int f = Integer.parseInt((String)(tres.getHeadersWritten().get("hash_lengh"))); 
+			int f = Integer.parseInt((String)(tres.getHeadersWritten().get("length"))); 
 			System.out.println("length was " + f);
 			byte[] lb = tres.getOutputWritten();			
 			byte[] qv = new byte[2]; //I hate java..
