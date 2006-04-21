@@ -4,6 +4,7 @@
 /* FUNCTIONS */
 
 /* TEST FUNCTION ONLY */
+/*
 int main(int argc, char *argv[])
 {
 	httpreq *req;
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
     if (argc < 2) 
     {
        fprintf(stderr,"usage %s url\n", argv[0]);
-       exit(0);
+       exit(1);
     }
 
 	req = newrequest(argv[1]);
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
 	freeresponse(res);
 	return 0;
 }
-
+*/
 
 /**
  * Returns the value of the specified header as a char array. The returned
@@ -63,7 +64,7 @@ char* getheader(httpres *res, char name[])
 	if ((lname = malloc(strlen(name)+1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for header name comparision\n");
-		exit(0);
+		exit(1);
 	}
 	lcstrcpy(lname, name);
 	// Loop through the headers until we find one
@@ -73,7 +74,7 @@ char* getheader(httpres *res, char name[])
 		if ((lhname = malloc(strlen(currHdr->name)+1)) == NULL)
 		{
 			fprintf(stderr,"ERROR, could not allocate memory for header name comparision\n");
-			exit(0);
+			exit(1);
 		}
 		lcstrcpy(lhname, currHdr->name);
 		if (strcmp(lhname, lname) == 0)
@@ -158,21 +159,21 @@ httpres* post(httpreq *req, char body[], int bodyLength)
     int n;
 
 	// Add the content-length header
-	itoa(bodyLength, buffer);
+	net_itoa(bodyLength, buffer);
 	addheader(req, "Content-Length", buffer);
 	
 	// Create a socket
 	if ((sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
 		fprintf(stderr,"ERROR, opening socket\n");
-		exit(0);
+		exit(1);
 	}
 
 	// Connect to the socket
 	if (connect(sockFd, &(req->sock.res), sizeof(struct sockaddr_in)) < 0) 
 	{
 		fprintf(stderr,"ERROR, opening socket\n");
-		exit(0);
+		exit(1);
 	}
 
 	// Submit the http request   
@@ -199,7 +200,7 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	if ((res = malloc(sizeof(res))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http response\n");
-		exit(0);
+		exit(1);
 	}
 	// Read the response
 	readresponse(sockFd, res);
@@ -264,7 +265,7 @@ void readresponse(int sockFd, httpres *res)
 			if ((res->status = malloc(strlen(buffer)+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for http response status\n");
-				exit(0);
+				exit(1);
 			}
 			strcpy(res->status, buffer);
 		}
@@ -274,7 +275,7 @@ void readresponse(int sockFd, httpres *res)
 			if ((currHdr = malloc(sizeof(header))) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for http response header\n");
-				exit(0);
+				exit(1);
 			}
 
 			if (pos = strchr(buffer, ':'))
@@ -285,7 +286,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->name = malloc(p+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header name\n");
-					exit(0);
+					exit(1);
 				}
 				strcpy(currHdr->name, buffer);
 
@@ -301,7 +302,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->value = malloc(strlen(pos)+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header value\n");
-					exit(0);
+					exit(1);
 				}			
 				strcpy(currHdr->value, pos);
 			}
@@ -311,7 +312,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->name = malloc(strlen(buffer)+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header name\n");
-					exit(0);
+					exit(1);
 				}
 				strcpy(currHdr->name, buffer);
 			}
@@ -332,7 +333,7 @@ void readresponse(int sockFd, httpres *res)
 		if ((res->body = malloc(p)) == NULL)
 		{
 			fprintf(stderr,"ERROR, could not allocate memory for response body\n");
-			exit(0);
+			exit(1);
 		}
 		
 		res->bodyLength = read(sockFd, res->body, p);
@@ -347,7 +348,7 @@ void readresponse(int sockFd, httpres *res)
  * n - int to convert
  * s - char array that will hold the result of the conversion
  */
-void itoa(int n, char s[])
+void net_itoa(int n, char s[])
 {
 	int c, i, j;
 	if ((c = n) < 0)
@@ -402,18 +403,19 @@ void addheader(httpreq *req, char name[], char value[])
 	if ((hdr = malloc(sizeof(header))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header\n");
-		exit(0);
+		exit(1);
 	}
+	hdr->next = NULL;
 	if ((hdr->name = malloc(strlen(name) + 1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header name\n");
-		exit(0);
+		exit(1);
 	}
 	strcpy(hdr->name, name);
 	if ((hdr->value = malloc(strlen(value) + 1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header value\n");
-		exit(0);
+		exit(1);
 	}
 	strcpy(hdr->value, value);
 	
@@ -424,7 +426,7 @@ void addheader(httpreq *req, char name[], char value[])
 	}
 	else
 	{
-		currHdr = req->headers;
+		currHdr = req->headers;		
 		while (currHdr->next != NULL)
 			currHdr = currHdr->next;
 		currHdr->next = hdr;
@@ -445,7 +447,7 @@ httpreq* newrequest(char url[])
 	if ((req = malloc(sizeof(httpreq))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request\n");
-		exit(0);
+		exit(1);
 	}
 
     // Parse the url and add the info to the httpreq
@@ -455,7 +457,7 @@ httpreq* newrequest(char url[])
 	if ((req->serverAddr = gethostbyname(req->hostName)) == NULL)
 	{
 		fprintf(stderr,"ERROR, no such host: %s\n", req->hostName);
-		exit(0);
+		exit(1);
 	}
 	
 	// Setup the socket address    
@@ -496,7 +498,7 @@ void parse(char url[], httpreq *req)
 		if ((req->hostName = malloc(n+1)) == NULL)
 		{
 			fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-			exit(0);
+			exit(1);
 		}
 		strcpy(req->hostName, url);
 		// Move past the ':' char
@@ -513,7 +515,7 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(0);
+				exit(1);
 			}			
 			strcpy(req->path, pos2);
 		}
@@ -527,7 +529,7 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(1+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(0);
+				exit(1);
 			}
 			strcpy(req->path, "/");
 		}
@@ -544,7 +546,7 @@ void parse(char url[], httpreq *req)
 			if ((req->hostName = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(0);
+				exit(1);
 			}
 			strcpy(req->hostName, url);
 			// Now read from the '/' to the end
@@ -553,7 +555,7 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(0);
+				exit(1);
 			}			
 			strcpy(req->path, pos1);
 		}
@@ -566,14 +568,14 @@ void parse(char url[], httpreq *req)
 			if ((req->hostName = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(0);
+				exit(1);
 			}
 			strcpy(req->hostName, url);
 			// Default path to '/'
 			if ((req->path = malloc(1+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(0);
+				exit(1);
 			}
 			strcpy(req->path, "/");
 		}
