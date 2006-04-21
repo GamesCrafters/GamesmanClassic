@@ -130,7 +130,7 @@ void db_initialize(){
 #endif
 
     else if(gNetworkDB) {
-	//netdb_init(db_functions);
+	netdb_init(db_functions);
     }
 
     else {
