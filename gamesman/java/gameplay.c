@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.4 2006-04-21 09:28:47 filipf Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.5 2006-04-22 02:17:49 amitmatani Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -63,6 +63,7 @@ static int maxPossibleLineLength = 256;
 
 static	MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 static	MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+static VALUE_MOVES* 	NetworkSortMoves	(POSITION, MOVELIST*, VALUE_MOVES*);
 static	VALUE_MOVES*	SortMoves			(POSITION, MOVE, VALUE_MOVES*);
 static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
 static  moveList*       moveListHandleUndo              (moveList*);
@@ -1389,7 +1390,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 /* GamesCrafters Network Team 4/20/06 */
 VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES* valueMoves)
 {
-        POSITION *childArray;
+        POSITION *childValueArray;
         VALUE *childValueArray;
 		MOVELIST *ptr = head;
 		REMOTENESS *remotenessArray;
