@@ -1,10 +1,12 @@
 
-package edu.berkeley.gamesman.server;
+package edu.berkeley.gamesman.server.db;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import edu.berkeley.gamesman.server.TestModuleRequest;
+import edu.berkeley.gamesman.server.TestModuleResponse;
 import edu.berkeley.gamesman.server.db.DbModule;
 
 public class TestDb {
