@@ -37,9 +37,9 @@ public interface ErrorCode
 		public static final String INVALID_LENGTH = "Invalid length value for request body.";
 		public static final String NO_DB = "Database not located on server for this game.";
 		public static final String INVALID_POSITION = "Position requested is invalid.";
-		public static final String MISSING_GAME = "HN_GAME not specified";
-		public static final String MISSING_VARIANT = "HN_VARIANT not specified";
-		public static final String MISSING_LENGTH = "HN_LENGTH not specified";
+		public static final String MISSING_GAME = DbModule.HN_GAME + " not specified";
+		public static final String MISSING_VARIANT = DbModule.HN_VARIANT + " not specified";
+		public static final String MISSING_LENGTH = DbModule.HN_LENGTH + " not specified";
 		public static final String INTERNAL_DB_ERROR = "Internal database error";
 
 	}
