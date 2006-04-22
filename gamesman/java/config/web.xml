@@ -31,7 +31,7 @@
         </init-param>
         <init-param>
             <param-name>imodules.2.args</param-name>
-            <param-value>somepath,somenumber,db1.gz,db2.gz</param-value>
+            <param-value>path_to_gz_dbs,0</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
