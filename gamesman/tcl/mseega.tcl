@@ -14,6 +14,10 @@
 # At the very least, you must set the global variables kGameName
 # and gInitialPosition in this function.
 ############################################################################
+
+global initialized
+set initialized false
+
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -21,8 +25,11 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "Seega"
     
-    global Winner
-    font create Winner -family arial -size 50    
+    global Winner initialized
+    if { $initialized == false } {
+	font create Winner -family arial -size 50    
+    }
+    set initialized true
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
@@ -212,6 +219,7 @@ proc GS_Initialize { c } {
     
     global blockSize WIDTH BOARDSIZE boardWidth boardHeight gFrameWidth gFrameHeight
     global firstHalfAlreadyAnimated
+    global initialized
 
     set HEIGHT [expr $BOARDSIZE/$WIDTH]
     set firstHalfAlreadyAnimated 0

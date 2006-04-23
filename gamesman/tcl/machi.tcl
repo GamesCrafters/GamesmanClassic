@@ -44,6 +44,9 @@ global dotx0 dotx1 dotx2 doty0 doty1 doty2
 global px0 px1 px2 py0 py1 py2
 global diagArrows horizArrows vertArrows slideDelay goDelay animQuality
 global canvasWidth canvasHeight
+global initialized
+
+set initialized false
 
 # Authors Info
 global kRootDir
@@ -642,6 +645,7 @@ proc GS_Initialize { c } {
     global canvasWidth canvasHeight dotgap dotmid firstXCoord firstYCoord pieceSize pieceOutline
     global xColor oColor pieceOffset dotSize dotExpandAmount lineWidth slideDelay animQuality x0 x1 x2 x3 x4 x5 x6 x7 x8
     global y0 y1 y2 y3 y4 y5 y6 y7 y8 dotx0 dotx1 dotx2 doty0 doty1 doty2 px0 px1 px2 py0 py1 py2
+    global initialized
 
     # Set canvas size based on canvas given to us
     set canvasWidth [$c cget -width]
@@ -707,9 +711,12 @@ proc GS_Initialize { c } {
 
     makeBoard $c
     # create font for Winner text at end of game
-    font create Winner -family arial -size 50
+    if { $initialized == false } {
+	font create Winner -family arial -size 50
+    }
     #animationQualityQuery $c
 
+    set initialized true
     start_animation $c
 
 }

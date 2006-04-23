@@ -29,6 +29,9 @@
 # pos 3 == array[2]
 # and so on...
 
+global initialized
+set initialized false
+
 proc GS_InitGameSpecific {} {
     # puts "begin initgamespecific"
 
@@ -313,7 +316,10 @@ proc min { a b } {
 # This function is called after GS_InitGameSpecific
 
 proc GS_Initialize { c } {
-    font create Winner -family arial -size 80
+    global initialized
+    if { $initialized == false } {
+	font create Winner -family arial -size 80
+    }
     
     global CANVAS_WIDTH CANVAS_HEIGHT gFrameWidth gFrameHeight
 
@@ -325,6 +331,8 @@ proc GS_Initialize { c } {
     $c configure -width $CANVAS_WIDTH -height $CANVAS_HEIGHT
 
     MakeBoard $c
+
+    set initialized true
     # create font for Winner text at end of game
     #font create Winner -family arial -size 80
     #animationQualityQuery $c
