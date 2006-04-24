@@ -50,11 +50,11 @@ proc main {} {
     scrollbar $leftScroll -command "$menu yview"
     canvas $menu -width 160 -scrollregion [list 0 0 120 [expr {2+$theNumberOfPrograms*60}]] \
 	-yscrollcommand "$leftScroll set"
-    canvas $leftBottom -background blue
+    canvas $leftBottom -background #006
 
-    canvas $home -background blue
+    canvas $home -background #006
     canvas $rightScroll -width 10 -background red
-    canvas $rightBottom -background blue
+    canvas $rightBottom -background #006
 
     pack .leftSide -fill y -side left
     grid rowconfig    .leftSide 0 -weight 1 -minsize 0
@@ -110,7 +110,8 @@ proc scrollEnter canvas {
     set i [expr {1+$id*3}]
     if { $currentId != $id } {
 	set oldFill [lindex [$canvas itemconfig $i -fill] 4]
-	$canvas itemconfigure $i -fill SeaGreen1
+	$canvas itemconfigure $i -fill black
+	$canvas itemconfigure [expr $i+1] -fill white
     }
 }
 
@@ -121,6 +122,7 @@ proc scrollLeave canvas {
     set i [expr {1+$id*3}]
     if { $currentId != $id } {
 	$canvas itemconfigure $i -fill $oldFill
+	$canvas itemconfigure [expr $i+1] -fill black
     }
 }
 
@@ -136,8 +138,10 @@ proc scrollButton { canvas home } {
     if { $currentId > -1 } {
 	set theColor [lindex $theGuiTypes $currentId]
 	$canvas itemconfigure [expr {1+$currentId*3}] -fill $theColor
+	$canvas itemconfigure [expr {2+$currentId*3}] -fill black
     }
-    $canvas itemconfigure [expr {1+$i*3}] -fill white
+    $canvas itemconfigure [expr {1+$i*3}] -fill #006
+    $canvas itemconfigure [expr 2+$i*3] -fill white
     set currentGame $gameName
     set currentId $i
 }
@@ -249,7 +253,7 @@ proc CreateGamePages { frame } {
     set height [expr [winfo height .] - 30]
 
     ##### Starting Page ########
-    set bgcolor blue
+    set bgcolor #006
     set fontcolor white
     canvas $frame.main -background $bgcolor
     message $frame.main.title -text \
@@ -388,20 +392,31 @@ proc CreateGamePages { frame } {
     ### this loop creates default content for game specific pages
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set gameName [lindex $thePrograms $i]
+        set theGUIProgram "./Xm[lindex $thePrograms $i]"
 	set temp $gameName
 	set gameString [lindex $theStrings $i]
 	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-	set bgcolor blue
+	set theColor [lindex $theGuiTypes $i]
+        set borderWidth 5
+	set bgcolor #006
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor
 	message $frame.$gameName.title -text $gameString -anchor center -width 300 \
 		-foreground $fontcolor -background $bgcolor
 	image create photo image$gameName -file $theGif -width 100 -height 100
-	canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
-	$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
+
+	button $frame.$gameName.butBitmap$i \
+		-image image$gameName \
+	        -bg $theColor \
+	        -borderwidth $borderWidth \
+		-command "exec /usr/bin/env wish -f $theGUIProgram &"
+
+	#canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
+	#$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
 	
 	pack $frame.$gameName.title -pady [list 5 0]
-	pack $frame.$gameName.photo
+        pack $frame.$gameName.butBitmap$i -anchor center
+	#pack $frame.$gameName.photo
 
 	if { [info exists Desc($gameName)] } {
 	    message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
