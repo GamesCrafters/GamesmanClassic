@@ -28,6 +28,9 @@
 **				2006-04-16	Everything seems to be working correctly. Primitive
 **							needs to be changed so when a move causes both 
 **							players to win it returns tie. or draw?
+**				2006-04-21	Primitive now handles both players winning at
+**							the same time. It returns a tie. PrintPosition
+**							has improvements suggested. Added GameSpecificMenu.
 **************************************************************************/
 
 /*************************************************************************
@@ -53,17 +56,16 @@ STRING   kGameName            = "Toot and Otto"; /* The name of your game */
 STRING   kAuthorName          = "Kyler Murlas and Zach Wasserman"; /* Your name(s) */
 STRING   kDBName              = "mtootnotto"; /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN  kPartizan            = TRUE ; 
+BOOLEAN  kGameSpecificMenu    = TRUE ; 
+BOOLEAN  kTieIsPossible       = TRUE ; 
+BOOLEAN  kLoopy               = FALSE; 
+BOOLEAN  kDebugMenu           = TRUE ; 
+BOOLEAN  kDebugDetermineValue = TRUE ; 
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
-POSITION kBadPosition         = -1; /* A position that will never be used */
+POSITION gNumberOfPositions   =  0; 
+POSITION gInitialPosition     =  0; 
+POSITION kBadPosition         = -1;
 
 void*	 gGameSpecificTclInit = NULL;
 
@@ -197,8 +199,6 @@ int MyInitialPosition() {
 	for (i=1;i<=TNO_WIDTH;++i)
 		p = (p << (TNO_HEIGHT+1))+1;
 	
-	unsigned long print = p;
-	printf("initpos: %lu    ", print);
 		
 	return p;
 }
@@ -219,7 +219,6 @@ int MyNumberOfPos() {
   unsigned long size=1;
   for (i=0;i<(TNO_HEIGHT+1)*TNO_WIDTH+6;i++)
 	 size *= 2;
-	printf("numpos: %lu", size);
   return size;
 }
 
@@ -848,8 +847,12 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 	playerTurn = WhoseTurn(position);
 	PositionToPieces(position);
 	
-	printf("\n	+-------------+");
-	printf("\n	|             |");
+	printf("\n	+");
+	for(i=1; i<6+2*TNO_WIDTH; i++)printf("-");
+	printf("+");
+	printf("\n	|");
+	for(i=1; i<6+2*TNO_WIDTH; i++)printf(" ");
+	printf("|");
 	printf("\n	|  ");
 	for(i=1; i<=TNO_WIDTH; i++)
 		printf(" %i", i);
@@ -900,8 +903,12 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 		printf("   |");
 	}
 	printf("	   %s", GetPrediction(position,playerName,usersTurn));
-	printf("\n	|             |");
-	printf("\n	+-------------+");
+	printf("\n	|");
+	for(i=1; i<6+2*TNO_WIDTH; i++)printf(" ");
+	printf("|");
+	printf("\n	+");
+	for(i=1; i<6+2*TNO_WIDTH; i++)printf("-");
+	printf("+");
 	
 	printf("\n\n");
 
@@ -1061,7 +1068,50 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-	
+	int temp;  
+	do {
+		printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
+		printf("\tw)\tChoose the board (W)idth Currently: %d\n",TNO_WIDTH);
+		printf("\th)\tChoose the board (H)eight Currently: %d\n",TNO_HEIGHT);
+		printf("\t4x4 solves, 4x5 works player vs. player, 4x6 does not work\n\n");
+		printf("\tt)\tChoose the starting # of Ts Currently: %d\n", INIT_T);
+		printf("\to)\tChoose the starting # of Os Currently: %d\n", INIT_O);
+		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+		printf("\n\nSelect an option: ");
+		
+		switch(GetMyChar()) {
+		case 'Q': case 'q':
+			ExitStageRight();
+			break;
+		case 'W' : case 'w':
+			printf("Enter a width: ");
+			scanf("%d", &temp);
+			TNO_WIDTH = temp;
+			break;
+		case 'H': case 'h':
+			printf("Enter a height: ");
+			scanf("%d", &temp);
+			TNO_HEIGHT = temp;
+			break;
+		case 'T': case 't':
+			printf("Enter # of Ts (less than 7): ");
+			scanf("%d", &temp);
+			INIT_T = temp;
+			break;
+		case 'O': case 'o':
+			printf("Enter # of Os (less than 7): ");
+			scanf("%d", &temp);
+			INIT_O = temp;
+			break;
+		case 'b': case 'B':
+			return;
+		default:
+			printf("\nSorry, I don't know that option. Try another.\n");
+			HitAnyKeyToContinue();
+			break;
+		}
+	} while(TRUE);
+
     
 }
 
