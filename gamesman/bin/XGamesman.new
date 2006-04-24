@@ -198,8 +198,10 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $prevGameId; \
 			set currentGame $prevGameName; \
 			set currentId $prevGameId; \
-			$menu itemconfigure [expr {1+$prevGameId*3}] -fill white; \
+			$menu itemconfigure [expr {1+$prevGameId*3}] -fill #006; \
+			$menu itemconfigure [expr {2+$prevGameId*3}] -fill white; \
 			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
+			$menu itemconfigure [expr {2+$i*3}] -fill black; \
 			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
 
     $rightBottom.playGui configure \
@@ -214,8 +216,10 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $nextGameId; \
 			set currentGame $nextGameName; \
 			set currentId $nextGameId; \
-			$menu itemconfigure [expr {1+$nextGameId*3}] -fill white; \
+			$menu itemconfigure [expr {1+$nextGameId*3}] -fill #006; \
+			$menu itemconfigure [expr {2+$nextGameId*3}] -fill white; \
 			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
+			$menu itemconfigure [expr {2+$i*3}] -fill black; \
 			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
 }
 
