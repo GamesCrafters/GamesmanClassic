@@ -8,12 +8,16 @@ update
 
 
 bind . <Key> {
-    global currentId
-    if {$currentId > -1} {
+    global currentId theNumberOfPrograms
+    if {$currentId != -1} {
 	if {[string compare %K "Up"] == 0} {
-	    prevMenuButton .leftSide.menu .rightSide.home
+	    if {$currentId > 0} {
+		prevMenuButton .leftSide.menu .rightSide.home
+	    }
 	} elseif {[string compare %K "Down"] == 0} {
-	    nextMenuButton .leftSide.menu .rightSide.home
+	    if {$currentId < [expr $theNumberOfPrograms-1]} {
+		nextMenuButton .leftSide.menu .rightSide.home
+	    }
 	}
     }
 }
@@ -73,7 +77,7 @@ proc main {} {
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
 
-    pack $leftBottom -fill x -side top
+    pack $leftBottom -fill x -side bottom
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
