@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.23 2006-04-09 07:36:06 simontaotw Exp $
+// $Id: mcambio.c,v 1.24 2006-04-24 01:32:00 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -33,6 +33,7 @@
  **              4/05/2006 - Changed PrintMove.
  **              4/08/2006 - Changed PrintPosition, GetAndPrintPlayerMove, PrintMove, ValidTextInpu, and ConvertTextInputToMove
  **                          to accomodate for new text graphic. Fixed consecutive name display problem.
+ **              4/21/2006 - Changed input system for new double digit inputs.
  **
  **************************************************************************/
 
@@ -154,11 +155,12 @@ char aPiece = A_PIECE;
 char bPiece = B_PIECE;
 char unknown = UNKNOWN;
 
-int piecesArray[] = {'+', 0, 16, 'X', 0, 16, 'O', 0, 16, -1 };
-char alphaArray[] = { 'a', 'b', 'c', 'd', 
-		      'e', 'f', 'g', 'h',
-		      'i', 'j', 'k', 'l',
-		      'm', 'n', 'o', 'p' };
+int piecesArray[] = {'+', 4, 16, 'X', 0, 13, 'O', 0, 13, -1 };
+
+STRING alphaArray[] = { "a1", "a2", "a3", "a4", 
+		        "b1", "b2", "b3", "b4",
+		        "c1", "c2", "c3", "c4",
+		        "d1", "d2", "d3", "d4" };
 /* to convert, use alphaArray[i]
                     {  0,   1,   2,   3,
                        4,   5,   6,   7,
@@ -166,10 +168,10 @@ char alphaArray[] = { 'a', 'b', 'c', 'd',
                       12,  13,  14,  15  };
 */
 
-char shiftArray[] = { 'A', 'B', 'C', 'D', 
-		      'E', 'F', 'G', 'H',
-		      'I', 'J', 'K', 'L',
-		      'M', 'N', 'O', 'P' };
+STRING shiftArray[] = { "a", "b", "c", "d", 
+		        "5", "6", "7", "8",
+		        "h", "g", "f", "e",
+		        "4", "3", "2", "1" };
 /* to convert, use shiftArray[i-16]
                     { 16,  17,  18,  19,
                       20,  21,  22,  23,
@@ -558,6 +560,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   if(countB < 4 || countA < 3)
     {
       printf("\n");
+      printf("                1 2 3 4 \n");
       printf("               ---------\n");
 
       for(i = 0; i < boardSize; i++)
@@ -565,52 +568,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	  //indentation
 	  if((i % 4) == 0)
 	    {
-	      printf("               ");
-	    }
-
-	  if(gBoard[i] == bPiece)
-	    {
-	      printf("|%c", aPiece);
-	    }
-	  else if(gBoard[i] == aPiece)
-	    {
-	      printf("|%c", bPiece);
-	    }
-	  else if(gBoard[i] == neutral)
-	    {
-	      printf("|%c", alphaArray[i]);  //display the letter at this position
-	    }
-	  else
-	    {
-	      printf("Error in: PrintPosition Phase 1 Loop");
-	    }
-
-	  if((i != 0) && (((i+1) % 4) == 0))
-	    {
-	      printf("|\n");
-	    }
-	}
-
-      printf("               ---------\n");
-      printf("\n");
-      printf("                           A's Symbol = %c\n", aPiece);
-      printf("                           B's Symbol = %c\n", bPiece);
-      printf("                              Neutral = %c\n\n", neutral);
-      printf("\n");
-    }
-  /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= 4 && countA >= 3)
-    {
-      printf("\n");
-      printf("                A B C D \n");
-      printf("               ---------\n");
-
-      for(i = 0; i < boardSize; i++)
-	{
-	  //indentation
-	  if((i % 4) == 0)
-	    {
-	      printf("             %c ", ((char)80-(i/4)));
+	      printf("             %c ", (i/4)+97);
 	    }
 
 	  if(gBoard[i] == bPiece)
@@ -632,12 +590,57 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	  if((i != 0) && (((i+1) % 4) == 0))
 	    {
-	      printf("| %c\n", ((char)(i/4)+69));
+	      printf("| %c\n", (i/4)+97);
 	    }
 	}
 
       printf("               ---------\n");
-      printf("                L K J I \n");
+      printf("                1 2 3 4 \n");
+      printf("\n");
+      printf("                           A's Symbol = %c\n", aPiece);
+      printf("                           B's Symbol = %c\n", bPiece);
+      printf("                              Neutral = %c\n\n", neutral);
+    }
+  /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
+  else if(countB >= 4 && countA >= 3)
+    {
+      printf("\n");
+      printf("                a b c d \n");
+      printf("               ---------\n");
+
+      for(i = 0; i < boardSize; i++)
+	{
+	  //indentation
+	  if((i % 4) == 0)
+	    {
+	      printf("             %d ", (i/4)+1);
+	    }
+
+	  if(gBoard[i] == bPiece)
+	    {
+	      printf("|%c", aPiece);
+	    }
+	  else if(gBoard[i] == aPiece)
+	    {
+	      printf("|%c", bPiece);
+	    }
+	  else if(gBoard[i] == neutral)
+	    {
+	      printf("|%c", neutral);
+	    }
+	  else
+	    {
+	      printf("Error in: PrintPosition Phase 2 Loop");
+	    }
+
+	  if((i != 0) && (((i+1) % 4) == 0))
+	    {
+	      printf("| %d\n", (i/4)+5);
+	    }
+	}
+
+      printf("               ---------\n");
+      printf("                e f g h \n");
       printf("\n");
       printf("                           A's Symbol = %c\n", aPiece);
       printf("                           B's Symbol = %c\n", bPiece);
@@ -648,69 +651,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     {
       printf("Error in: PrintPosition Phase Conditional\n"); 
     }
-
-
-  /* old PrintPosition
-     int i = 0;
-     char *gBoard = (char *) malloc(boardSize*sizeof(char));
-  
-     generic_unhash(position, gBoard);
-  
-     //***********************LINE 1**************************
-     printf("       ---------");
-     printf("                16 17 18 19\n");
-
-     //***********************LINE 2**************************
-     printf("       |");
-     for (; i < colcount; i++) {
-     printf("%c|", gBoard[i]);
-     }
-     printf("           31 (  0  1  2  3) 20\n");
-
-     //***********************LINE 3**************************
-     printf("       ---------\n"); 
-                                 
-     //***********************LINE 4**************************
-     printf("       |");
-     for (; i < colcount*2; i++) {
-     printf("%c|", gBoard[i]);
-     }
-     printf("   LEGEND: 30 (  4  5  6  7) 21\n");
-
-     //***********************LINE 5**************************
-     printf("       ---------\n");                
-                                    
-
-     //***********************LINE 6**************************
-     printf("       |");
-     for (; i < colcount*3; i++) {
-     printf("%c|", gBoard[i]);
-     }
-     printf("           29 (  8  9 10 11) 22\n");
-
-     //***********************LINE 7**************************
-     printf("       ---------\n"); 
-                              
-     //***********************LINE 8**************************
-     printf("       |");
-     for (; i < colcount*4; i++) {
-     printf("%c|", gBoard[i]);
-     }
-     printf("           28 ( 12 13 14 15) 23\n");
-
-     //***********************LINE 9**************************
-     printf("       ---------");
-     printf("                27 26 25 24\n");
-  
-     //***********************LINE 11*************************
-     printf("\n");
-
-     //***********************LINE 10*************************
-     printf("                           A's Symbol = %c\n", aPiece);
-     printf("                           B's Symbol = %c\n", bPiece);
-     printf("                              Neutral = %c\n\n", neutral);
-     printf("\n%s\n\n", GetPrediction(position, playersName, usersTurn));
-     */
 
   free(gBoard);
 }
@@ -744,38 +684,17 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move) {
   /* must check all the math used for general case, such as 4x4 and on */
-  /*
-  if(move < boardSize)
-    printf("(%i) Place a piece at %i.", move, move);
-  else if (move < boardSize + colcount)
-    printf("(%i) Push on %i and discard %i", move, (move - boardSize), (move - colcount));
-  else if (move < boardSize + colcount + rowcount)
-    printf("(%i) Push on %i and discard %i", 
-	   move, 
-	   (move - boardSize - colcount + 1)*colcount - 1, 
-	   (move - boardSize - colcount)*colcount);
-  else if (move < boardSize + colcount + rowcount + colcount)
-    printf("(%i) Push on %i and discard %i", 
-	   move, 
-	   boardSize - (move - boardSize - colcount - rowcount + 1), 
-	   colcount - (move - boardSize - colcount - rowcount) - 1);
-  else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-    printf("(%i) Push on %i and discard %i", 
-	   move, 
-	   boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount, 
-	   boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1);
-  */
 
   if(move < boardSize)
-    printf("%c", alphaArray[move]);
+    printf("%s", alphaArray[move]);
   else if (move < boardSize + colcount)
-    printf("%c", shiftArray[move-16]);
+    printf("%s", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount)
-    printf("%c", shiftArray[move-16]);
+    printf("%s", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount + colcount)
-    printf("%c", shiftArray[move-16]);
+    printf("%s", shiftArray[move-16]);
   else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-    printf("%c", shiftArray[move-16]);  
+    printf("%s", shiftArray[move-16]);  
 
 }
 
@@ -802,13 +721,15 @@ void PrintMove (MOVE move) {
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
+  // use whoseMove(position) = turn to get whose turn it is
+
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
 
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
   generic_unhash(position, gBoard);
 
-  int countA = 0, countB = 0, i = 0;
+  int countA = 0, countB = 0, i = 0, turn = whoseMove(position);
 	
   /* count the number of pieces for each player */
   for(i = 0; i < boardSize; i++)
@@ -818,15 +739,30 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       else if(gBoard[i] == bPiece)
 	countB++;
     }
-  
+
   /* Phase 1: Less than 4 of PlayerB's pieces */
-  if(countB < 4)
+  if(countB < 4 && turn == playerA)
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("Challenger's move [(undo)/a-p] : ");
+	printf("    Player's move [(u)ndo/([a-d][1-4])] : ");
+	
+	input = HandleDefaultTextInput(position, move, "Player");
+	
+	if (input != Continue)
+	  return input;
+      }
+    }
+  /* Phase 2: Less than 3 of PlayerB's pieces on the board. */
+  else if(countB == 4 && countA < 3 && turn == playerB)
+    {
+      for (;;) {
+	/***********************************************************
+	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+	 ***********************************************************/
+	printf("Challenger's move [(u)ndo/([a-d][1-4])] : ");
 	
 	input = HandleDefaultTextInput(position, move, "Challenger");
 	
@@ -834,20 +770,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	  return input;
       }
     }
-  /* Phase 2: Less than 3 of PlayerB's pieces on the board. */
-  else if(countB == 4 && countA < 3) {
-    for (;;) {
-	/***********************************************************
-	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-	 ***********************************************************/
-	printf("    Player's move [(undo)/a-p] : ");
-	
-	input = HandleDefaultTextInput(position, move, "Player");
-	
-	if (input != Continue)
-	  return input;
-      }
-  }
   /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
   else if(countB >= 4 && countA >= 3)
     {
@@ -855,7 +777,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(undo)/A-P] : ", playersName);
+	printf("%8s's move [(u)ndo/([a-h or 1-8])]  : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -901,49 +823,47 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  int i;
+  BOOLEAN flag = TRUE;
+
+  if(strlen(input) > 3)
+    flag = FALSE;
 	
-  if(strlen(input) > 2)
-    return FALSE;
-	
-  for(i = 0; i < strlen(input); i++)
-    {
-      if(!((input[i] == 'A') ||
-	   (input[i] == 'B') ||
-	   (input[i] == 'C') ||
-	   (input[i] == 'D') ||
-	   (input[i] == 'E') ||
-	   (input[i] == 'F') ||
-	   (input[i] == 'G') ||
-	   (input[i] == 'H') ||
-	   (input[i] == 'I') ||
-	   (input[i] == 'J') ||
-	   (input[i] == 'K') ||
-	   (input[i] == 'L') ||
-	   (input[i] == 'M') ||
-	   (input[i] == 'N') ||
-	   (input[i] == 'O') ||
-	   (input[i] == 'P') ||
-	   (input[i] == 'a') ||
-	   (input[i] == 'b') ||
-	   (input[i] == 'c') ||
-	   (input[i] == 'd') ||
-	   (input[i] == 'e') ||
-	   (input[i] == 'f') ||
-	   (input[i] == 'g') ||
-	   (input[i] == 'h') ||
-	   (input[i] == 'i') ||
-	   (input[i] == 'j') ||
-	   (input[i] == 'k') ||
-	   (input[i] == 'l') ||
-	   (input[i] == 'm') ||
-	   (input[i] == 'n') ||
-	   (input[i] == 'o') ||
-	   (input[i] == 'p')))
-	return FALSE;
-    }
-	
-  return TRUE;
+  if(!(((input[0] == 'a') && (input[1] == '1')) ||
+       ((input[0] == 'a') && (input[1] == '2')) ||
+       ((input[0] == 'a') && (input[1] == '3')) ||
+       ((input[0] == 'a') && (input[1] == '4')) ||
+       ((input[0] == 'b') && (input[1] == '1')) ||
+       ((input[0] == 'b') && (input[1] == '2')) ||
+       ((input[0] == 'b') && (input[1] == '3')) ||
+       ((input[0] == 'b') && (input[1] == '4')) ||
+       ((input[0] == 'c') && (input[1] == '1')) ||
+       ((input[0] == 'c') && (input[1] == '2')) ||
+       ((input[0] == 'c') && (input[1] == '3')) ||
+       ((input[0] == 'c') && (input[1] == '4')) ||
+       ((input[0] == 'd') && (input[1] == '1')) ||
+       ((input[0] == 'd') && (input[1] == '2')) ||
+       ((input[0] == 'd') && (input[1] == '3')) ||
+       ((input[0] == 'd') && (input[1] == '4')) ||
+       (input[0] == 'a') ||
+       (input[0] == 'b') ||
+       (input[0] == 'c') ||
+       (input[0] == 'd') ||
+       (input[0] == 'e') ||
+       (input[0] == 'f') ||
+       (input[0] == 'g') ||
+       (input[0] == 'h') ||
+       (input[0] == '1') ||
+       (input[0] == '2') ||
+       (input[0] == '3') ||
+       (input[0] == '4') ||
+       (input[0] == '5') ||
+       (input[0] == '6') ||
+       (input[0] == '7') ||
+       (input[0] == '8')))
+    flag = FALSE;
+
+  
+  return flag;
 }
 
 
@@ -963,34 +883,30 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  int move = (int)input[0];
+  int move1 = (int)input[0];
+  int move2 = (int)input[1];
+  int move;
 
-  if((move >= 97) && (move <= 112)) {  // lower case; drop
-    move = move - 97;
-  }
-  else if((move >= 65) && (move <= 80)) { // upper case; shift
-    move = move - 49;
-  }
-  else {
+  if(move1 == 97 && move2 >= 49 && move2 <= 52)
+    move = move2 - 49;
+  else if(move1 == 98 && move2 >= 49 && move2 <= 52)
+    move = move2 - 45;
+  else if(move1 == 99 && move2 >= 49 && move2 <= 52)
+    move = move2 - 41;
+  else if(move1 == 100 && move2 >= 49 && move2 <= 52)
+    move = move2 - 37;
+  else if(move1 >= 97 && move1 <= 100)
+    move = move1 - 81;
+  else if(move1 >= 49 && move1 <= 52)
+    move = 80 - move1;
+  else if(move1 >= 101 && move1 <= 104)
+    move = 128 - move1;
+  else if(move1 >= 53 && move1 <= 56)
+    move = move1 - 33;
+  else
     printf("Error in: ConvertTextInputToMove");
-  }
-  
-  /*
-  int move, i, limit; // limit is part of a really ugly hack. fix this for reals later.
-	
-  move = 0;
-	
-  if(strlen(input) == 1)
-    limit = 1;
-  else limit = strlen(input) - 1;
-	
-  for(i = 0; i < limit; i++) //for some reason the last character gets duplicated??
-    {	
-      move = move * 10;
-      move = move + atoi(&input[i]);		
-    }
-  */
 
+  
   return (MOVE) move;
 }
 
@@ -1188,6 +1104,9 @@ BOOLEAN FourInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2006/04/09 07:36:06  simontaotw
+// Fixed consecutive name display problem.
+//
 // Revision 1.22  2006/04/09 06:44:53  simontaotw
 // Changed PrintPosition, GetAndPrintPlayerMove, PrintMove, ValidTextInpu, and
 // ConvertTextInputToMove to accomodate for new text graphic.
