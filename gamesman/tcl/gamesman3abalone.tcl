@@ -75,21 +75,7 @@ proc InitGlobals {} {
     global kSmallPiece
     set kSmallPiece 0
 
-    ### Set the color and font of the labels
-
-    global kLabelFont kPlayerLabelFont kToMoveToWinFont kDocumentFont
-    global tcl_platform
-    if { $tcl_platform(platform) == "windows" } {
-        set kLabelFont { Helvetica 10 bold }
-	set kDocumentFont { Helvetica 10 }
-	set kToMoveToWinFont { Helvetica 9 bold }
-	set kPlayerLabelFont { Helvetica 15 bold }
-    } else {
-        set kLabelFont { Helvetica 12 bold }
-	set kDocumentFont { Helvetica 12 }
-	set kToMoveToWinFont {Helvetica 12 bold }
-	set kPlayerLabelFont { Helvetica 18 bold }
-    }
+    ### Set the color and font of the labels (moved to InitWindow.tcl)
 
     global kLabelColor
     set kLabelColor grey40
@@ -731,7 +717,19 @@ proc main {kRootDir} {
     # Initialize generic top-level window
     source "$kRootDir/../tcl/InitWindow.tcl"
     InitGlobals
-    InitWindow $kRootDir OxySkin_HiRes ppm
+
+    global gSkinsDir
+    if {[catch {set fileptr [open skin.txt r]}]} {
+	set gSkinsDir OxySkin_HiRes/
+    } else {
+	gets $fileptr gSkinsDir
+	if {![file isdirectory "$kRootDir/../tcl/skins/$gSkinsDir"]} {
+	    set gSkinsDir OxySkin_HiRes/
+	}
+	close $fileptr
+    }
+
+    InitWindow $kRootDir ppm
 
     # Initialize game-specific globals and frame
     GS_InitGameSpecific
