@@ -6,6 +6,18 @@ set maxheight [expr int([expr 0.9 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
+
+bind . <Key> {
+    global currentId
+    if {$currentId > -1} {
+	if {[string compare %K "Up"] == 0} {
+	    prevMenuButton .leftSide.menu .rightSide.home
+	} elseif {[string compare %K "Down"] == 0} {
+	    nextMenuButton .leftSide.menu .rightSide.home
+	}
+    }
+}
+
 proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId oldFill
 
@@ -22,7 +34,7 @@ proc main {} {
 			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
 			  "Nim" "Odd or Even" "Othello" "QuickCross" \
 			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
-			  "Tic-Tac-Toe" "Wuzhi" "Sim" "Connect-4" \
+			  "Tic-Tac-Toe" "Sim" "Wuzhi" "Connect-4" \
 			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
@@ -34,7 +46,7 @@ proc main {} {
 
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
-    set currentId   -1
+    set currentId -1
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
@@ -65,7 +77,7 @@ proc main {} {
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
-    pack $rightBottom -fill x -side top
+    #pack $rightBottom -fill x -side top
     #pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
@@ -100,6 +112,53 @@ proc CreateMenuButtons { frame home } {
 	        -anchor e
 	$frame create image 5 [expr {31+$i*60}] -image small$i \
 	        -anchor w
+    }
+}
+
+proc prevMenuButton {menu home} {
+    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes
+    set i $currentId
+    set gameName [lindex $thePrograms $currentId]
+    set currentId [expr ($currentId - 1) % $theNumberOfPrograms]
+    set currentGame [lindex $thePrograms $currentId]
+
+    pack forget $home.$gameName
+    $menu itemconfigure [expr {1+$currentId*3}] -fill #006
+    $menu itemconfigure [expr {2+$currentId*3}] -fill white
+    $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
+    $menu itemconfigure [expr {2+$i*3}] -fill black
+    pack $home.$currentGame -fill both -expand 1 -anchor nw
+
+    set leftScroll .leftSide.leftScroll
+
+    set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
+    set first [lindex [$leftScroll get] 0]
+    set last [lindex [$leftScroll get] 1]
+    if {$percent < $first} {
+	$menu yview moveto [expr $first - 0.0285]
+    }
+}
+proc nextMenuButton {menu home} {
+    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes
+    set i $currentId
+    set gameName [lindex $thePrograms $currentId]
+    set currentId [expr ($currentId + 1) % $theNumberOfPrograms]
+    set currentGame [lindex $thePrograms $currentId]
+
+    pack forget $home.$gameName
+    $menu itemconfigure [expr {1+$currentId*3}] -fill #006
+    $menu itemconfigure [expr {2+$currentId*3}] -fill white
+    $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
+    $menu itemconfigure [expr {2+$i*3}] -fill black
+    pack $home.$currentGame -fill both -expand 1 -anchor nw
+
+    set leftScroll .leftSide.leftScroll
+
+    set percent [expr ($currentId+1.0) / $theNumberOfPrograms]
+    set first [lindex [$leftScroll get] 0]
+    set last [lindex [$leftScroll get] 1]
+    if {$percent > $last} {
+	$menu yview moveto [expr $first + 0.0285]
     }
 }
 
@@ -191,7 +250,8 @@ proc SetLaunchButtons { rightBottom i } {
     set home .rightSide.home
     set menu .leftSide.menu
     set theOldColor [lindex $theGuiTypes $i]
-    
+
+
     $rightBottom.prev configure -state normal \
 	-command "pack forget $home.$gameName; \
 			SetLaunchButtons $rightBottom $prevGameId; \
