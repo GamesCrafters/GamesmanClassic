@@ -567,9 +567,11 @@ proc CreateGamePages { frame } {
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set gameName [lindex $thePrograms $i]
         set theGUIProgram "./Xm[lindex $thePrograms $i]"
+	set theTextProgram "./m[lindex $thePrograms $i]"
 	set temp $gameName
 	set gameString [lindex $theStrings $i]
-	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+	set theGuiGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
+	set theTextGif "$theBitmapDir/[lindex $thePrograms $i]100text.gif"
 	set theColor [lindex $theGuiTypes $i]
         set borderWidth 5
 	set bgcolor $calBlue
@@ -577,19 +579,33 @@ proc CreateGamePages { frame } {
 	canvas $frame.$gameName -background $bgcolor
 	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
-	image create photo image$gameName -file $theGif -width 100 -height 100
 
-	button $frame.$gameName.butBitmap$i \
-		-image image$gameName \
-	        -bg $theColor \
-	        -borderwidth $borderWidth \
-		-command "exec /usr/bin/env wish -f $theGUIProgram &"
+	canvas $frame.$gameName.buttons -background $bgcolor
+	image create photo imageGui$gameName -file $theGuiGif -width 100 -height 100
+	image create photo imageText$gameName -file $theTextGif -width 100 -height 100
 
+	button $frame.$gameName.buttons.guiButton \
+	    -image imageGui$gameName \
+	    -text "Play GUI" \
+	    -compound top \
+	    -bg $theColor \
+	    -borderwidth $borderWidth \
+	    -command "exec /usr/bin/env wish -f $theGUIProgram &"
+	button $frame.$gameName.buttons.textButton \
+	    -image imageText$gameName \
+	    -text "Play Text" \
+	    -compound top \
+	    -bg black \
+	    -fg white \
+	    -borderwidth $borderWidth \
+	    -command "exec /usr/bin/env xterm -n $gameString -e $theTextProgram &"
 	#canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
 	#$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
 	
 	pack $frame.$gameName.title -pady [list 5 0]
-        pack $frame.$gameName.butBitmap$i -anchor center
+        pack $frame.$gameName.buttons
+        pack $frame.$gameName.buttons.guiButton -side left
+        pack $frame.$gameName.buttons.textButton -side left
 	#pack $frame.$gameName.photo
 
 	if { [info exists Desc($gameName)] } {
