@@ -1,10 +1,3 @@
-// $Id: mtemplate.c,v 1.9 2006-04-18 02:00:35 kmowery Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        NAME OF FILE
@@ -16,6 +9,8 @@
 ** DATE:        WHEN YOU START/FINISH
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+**
+** LAST CHANGE: $Id: mtemplate.c,v 1.10 2006-04-25 01:33:06 ogren Exp $
 **
 **************************************************************************/
 
@@ -56,31 +51,34 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
 
-/* 
+/**
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
- */
+ * These help strings should be updated and dynamically changed using 
+ * InitializeHelpStrings() 
+ **/
 
-STRING kHelpGraphicInterface =
-"Not written yet";
+STRING   kHelpGraphicInterface =
+"Help strings not initialized!";
 
-STRING   kHelpTextInterface    =
-""; 
+STRING   kHelpTextInterface =
+"Help strings not initialized!"; 
 
 STRING   kHelpOnYourTurn =
-"";
+"Help strings not initialized!";
 
 STRING   kHelpStandardObjective =
-"";
+"Help strings not initialized!";
 
 STRING   kHelpReverseObjective =
-"";
+"Help strings not initialized!";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+"Help strings not initialized!";
 
 STRING   kHelpExample =
-"";
+"Help strings not initialized!";
+
 
 
 /*************************************************************************
@@ -120,7 +118,46 @@ STRING                  MoveToString(MOVE move);
 
 void InitializeGame ()
 {
+  InitializeHelpStrings(); 
+}
+
+
+/************************************************************************
+**
+** NAME:        InitializeHelpStrings
+**
+** DESCRIPTION: Sets up the help strings based on chosen game options.
+**
+** NOTES:       Should be called whenever the game options are changed.
+**              (e.g., InitializeGame() and GameSpecificMenu())
+**
+************************************************************************/
+void InitializeHelpStrings ()
+{
+
+kHelpGraphicInterface =
+    "";
+
+kHelpTextInterface =
+   ""; 
+
+kHelpOnYourTurn =
+  "";
+
+kHelpStandardObjective =
+  "";
+
+kHelpReverseObjective =
+  ""; 
+
+kHelpTieOccursWhen = 
+  "A tie occurs when ...";
+
+kHelpExample = 
+  "";
+
     gMoveToStringFunPtr = &MoveToString;
+
 }
 
 
@@ -388,7 +425,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    
+  InitializeHelpStrings();
 }
 
 
@@ -514,39 +551,14 @@ void DebugMenu ()
 ************************************************************************/
 
 
-// $Log: not supported by cvs2svn $
-// Revision 1.8  2006/03/04 15:22:26  ddgarcia
-// Removing src/Makefile src/core/Makefile -dan
-//
-// Revision 1.7  2006/01/29 09:59:47  ddgarcia
-// Removed "gDatabase" reference from comment in InitializeGame
-//
-// Revision 1.6  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.5  2005/10/06 03:06:11  hevanm
-// Changed kDebugDetermineValue to be FALSE.
-//
-// Revision 1.4  2005/05/02 17:33:01  nizebulous
-// mtemplate.c: Added a comment letting people know to include gSymmetries
-// 	     in their getOption/setOption hash.
-// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
-//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
-// analysis.c: Changed initialization of option variable in analyze() to -1.
-// db.c: Changed check in the getter functions (GetValueOfPosition and
-//       getRemoteness) to check if gMenuMode is Evaluated.
-// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
-//             which is a generic version of the two that uses to PLAYER's.
-// gameplay.h: Created the necessary structs and types to have PLAYER's, both
-// 	    Human and Computer to be sent in to the PlayGame function.
-// gamesman.h: Really don't think I changed anything....
-// globals.h: Also don't think I changed anything....both these I just looked at
-//            and possibly made some format changes.
-// textui.c: Redid the portion of the menu that allows you to choose opponents
-// 	  and then play a game.  Added computer vs. computer play.  Also,
-//           changed the analysis part of the menu so that analysis should
-// 	  work properly with symmetries (if it is in getOption/setOption hash).
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
+
+
+
+
+
+/************************************************************************
+ ** Changelog
+ **
+ ** $Log: not supported by cvs2svn $
+ ************************************************************************/
+
