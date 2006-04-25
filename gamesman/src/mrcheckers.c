@@ -119,11 +119,11 @@ int initialized = FALSE;
 
 // How large the board is
 unsigned int rows           = 6;  // Rubik's: 6, Checkers: 8
-unsigned int cols           = 2;  // Rubik's: 4, Checkers: 4
+unsigned int cols           = 3;  // Rubik's: 4, Checkers: 4
 unsigned int boardSize;     /* initialized in InitializeGame */
 
 // How many rows closest to a player start out with pieces (< ROWS/2)
-unsigned int startRows      = 1;
+unsigned int startRows      = 2;
 
 // Rubik's Checkers specific options
 // You can change to regular checkers rules by changing these options
@@ -866,68 +866,80 @@ MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELI
 
 //traverse board recursively, adding moves to currentMove.  When cannot find more moves, add currentMove to MOVELIST
 //and then undo changes to initialPosition
-MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head, unsigned int currentMove, int offset){
+MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head, unsigned int currentMove, int offset, unsigned int currentMobility){
   unsigned int previousMove = (currentMove<<(MVHASHACC+offset-4))>>30;
-  int opposingMan, opposingKing, currentMobility;
+  int opposingMan, opposingKing;
   int myForwardRight = forwardRight(whosTurn, currentIndex), 
     myForwardLeft = forwardLeft(whosTurn, currentIndex),
     myBackwardRight = backwardRight(whosTurn, currentIndex),
     myBackwardLeft = backwardLeft(whosTurn, currentIndex);
 
+  char tmp[boardSize];
+
+  strncpy(tmp, initialPosition, boardSize);
+
   if(whosTurn == P1){
     opposingMan = P2MAN;
     opposingKing = P2KING;
   }
-  else{
+  else if(whosTurn == P2){
     opposingMan = P1MAN;
     opposingKing = P1KING;
   }
-
+  else
+    BadElse("makeCapture");
+  /*
   if(initialPosition[currentIndex] == P1KING || initialPosition[currentIndex] == P2KING)
     currentMobility = kingMobility;
   else if(initialPosition[currentIndex] == P1MAN || initialPosition[currentIndex] == P2MAN)
     currentMobility = manMobility;  
-  
+  */
   if((currentMobility&CAPTURE) == CAPTURE){
     if((currentMobility&FORWARD) == FORWARD){
       if(myForwardLeft!=-1 && ((initialPosition[myForwardLeft]==opposingMan)||(initialPosition[myForwardLeft]==opposingKing))){
-	if(forwardLeft(whosTurn, myForwardLeft)!=-1 && initialPosition[forwardLeft(whosTurn, myForwardLeft)]==EMPTY){
-	  head = makeCapture(initialPosition, whosTurn,
-			     forwardLeft(whosTurn, myForwardLeft),
-			     head, currentMove|(FORWARDLEFT<<(32-MVHASHACC-offset)),
-			     offset+2);
+	if(forwardLeft(whosTurn, myForwardLeft)!=-1 && initialPosition[forwardLeft(whosTurn, myForwardLeft)]==EMPTY){	  
+	  //add board changing: if(opposingMan), change to empty...
+	  if(previousMove != BACKWARDRIGHT)
+	    head = makeCapture(initialPosition, whosTurn,
+			       forwardLeft(whosTurn, myForwardLeft),
+			       head, currentMove|(FORWARDLEFT<<(32-MVHASHACC-offset)),
+			       offset+2, currentMobility);
 	}       
       }
       if(myForwardRight!=-1 && ((initialPosition[myForwardRight]==opposingMan)||(initialPosition[myForwardRight]==opposingKing))){
 	if(forwardRight(whosTurn, myForwardRight)!=-1 && initialPosition[forwardRight(whosTurn, myForwardRight)]==EMPTY){
-	  head = makeCapture(initialPosition, whosTurn,
-			     forwardRight(whosTurn, myForwardRight),
-			     head, currentMove|(FORWARDRIGHT<<(32-MVHASHACC-offset)),
-			     offset+2);		  
+	  if(previousMove != BACKWARDLEFT)
+	    head = makeCapture(initialPosition, whosTurn,
+			       forwardRight(whosTurn, myForwardRight),
+			       head, currentMove|(FORWARDRIGHT<<(32-MVHASHACC-offset)),
+			       offset+2, currentMobility);		  
 	}
       }
     }
     if((currentMobility&BACKWARD) == BACKWARD){
       if(myBackwardRight!=-1 && ((initialPosition[myBackwardRight]==opposingMan)||(initialPosition[myBackwardRight]==opposingKing))){
 	if(backwardRight(whosTurn, myBackwardRight)!=-1 && initialPosition[backwardRight(whosTurn, myBackwardRight)]==EMPTY){
-	  head = makeCapture(initialPosition, whosTurn,
-			     backwardRight(whosTurn, myBackwardRight),
-			     head, currentMove|(BACKWARDRIGHT<<(32-MVHASHACC-offset)),
-			     offset+2);
+	  if(previousMove != FORWARDLEFT)
+	    head = makeCapture(initialPosition, whosTurn,
+			       backwardRight(whosTurn, myBackwardRight),
+			       head, currentMove|(BACKWARDRIGHT<<(32-MVHASHACC-offset)),
+			       offset+2, currentMobility);
 	}
       }
       if(myBackwardLeft!=-1 && ((initialPosition[myBackwardLeft]==opposingMan)||(initialPosition[myBackwardLeft]==opposingKing))){
 	if(backwardLeft(whosTurn, myBackwardLeft)!=-1 && initialPosition[backwardLeft(whosTurn, myBackwardLeft)]==EMPTY){
-	  head = makeCapture(initialPosition, whosTurn,
-			     backwardLeft(whosTurn, myBackwardLeft),
-			     head, currentMove|(BACKWARDLEFT<<(32-MVHASHACC-offset)),
-			     offset+2);
+	  if(previousMove != FORWARDRIGHT)
+	    head = makeCapture(initialPosition, whosTurn,
+			       backwardLeft(whosTurn, myBackwardLeft),
+			       head, currentMove|(BACKWARDLEFT<<(32-MVHASHACC-offset)),
+			       offset+2, currentMobility);
 	}
       }
     }
   }
   if(offset>2){
-    undoCapture(initialPosition, whosTurn, currentIndex, previousMove); 
+    strncpy(initialPosition,tmp,boardSize);
+    //undoCapture(initialPosition, whosTurn, currentIndex, previousMove); 
     head = CreateMovelistNode(currentMove|(oppositeMove(previousMove)<<(32-MVHASHACC-offset)), head);
   }
   return head;
@@ -1001,16 +1013,19 @@ MOVELIST *GenerateMoves(position)
       currentMan = P2MAN;
     }
     for(i = 0; i < boardSize; i++){
-      if((initialPosition[i] == currentKing) || (initialPosition[i] == currentMan)){
+      if((initialPosition[i] == currentKing)){
 	head = makeMove(initialPosition, whosTurn, i, head);
 	head = makePromote(initialPosition, whosTurn, i, head);
-	head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC)), 2);
+	head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC)), 2, kingMobility);
       }
+      else if (initialPosition[i] == currentMan){
+	head = makeMove(initialPosition, whosTurn, i, head);
+	head = makePromote(initialPosition, whosTurn, i, head);
+	head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC)), 2, manMobility);	
+      }	
     }
-    return head;
-    
+    return head;   
 }
-    
 
 
 /************************************************************************
