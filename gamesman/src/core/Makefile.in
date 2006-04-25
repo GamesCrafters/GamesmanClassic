@@ -50,6 +50,8 @@ BPDB_OBJ	= bpdb$(OBJSUFFIX)
 BPDB_SCHEMES_OBJ= bpdb_schemes$(OBJSUFFIX)
 TWOBITDB_OBJ	= twobitdb$(OBJSUFFIX)
 COLLDB_OBJ	= colldb$(OBJSUFFIX)
+HTTPCLIENT_OBJ	= httpclient$(OBJSUFFIX)
+NETDB_OBJ	= netdb$(OBJSUFFIX)
 
 ifneq (@GMPCFLAGS@,)
 UNIVHT_OBJ	= univht$(OBJSUFFIX)
@@ -74,7 +76,7 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(MLIB_OBJ) $(TEXTUI_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(BPDB_OBJ) $(BPDB_SCHEMES_OBJ) \
      $(TWOBITDB_OBJ) $(COLLDB_OBJ) $(UNIVHT_OBJ) $(UNIVDB_OBJ) \
-     $(STRINGBUILDER_OBJ)
+     $(STRINGBUILDER_OBJ) $(HTTPCLIENT_OBJ) $(NETDB_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
@@ -85,7 +87,7 @@ MODULES=$(CORE) $(SOLVERS) hash.o
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h bpdb.h bpdb_schemes.h twobitdb.h db.h \
-	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h
+	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h httpclient.h netdb.h
 
 
 ##############################################################################
