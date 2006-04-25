@@ -11,7 +11,8 @@ set calBlue #006
 set calYellow #FFCC33
 
 bind . <Key> {
-    global currentId theNumberOfPrograms
+    global currentId theNumberOfPrograms thePrograms
+    #puts "Pressed %K"
     if {$currentId != -1} {
 	if {[string compare %K "Up"] == 0} {
 	    if {$currentId > 0} {
@@ -21,6 +22,9 @@ bind . <Key> {
 	    if {$currentId < [expr $theNumberOfPrograms-1]} {
 		nextMenuButton .leftSide.menu .rightSide.home
 	    }
+	} elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
+	    set theGUIProgram "./Xm[lindex $thePrograms $currentId]"	    
+	    exec /usr/bin/env wish -f $theGUIProgram &
 	}
     }
 }
@@ -59,8 +63,8 @@ proc main {} {
     set scrollDirection vertical
 
     menu .menu -tearoff 0
-    canvas .leftSide -bd -2
-    canvas .rightSide -bd -2
+    canvas .leftSide
+    canvas .rightSide
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
