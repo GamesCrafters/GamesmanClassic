@@ -13,16 +13,24 @@ set calYellow #FFCC33
 bind . <Key> {
     global currentId theNumberOfPrograms thePrograms
     #puts "Pressed %K"
-    if {$currentId != -1} {
-	if {[string compare %K "Up"] == 0} {
-	    if {$currentId > 0} {
-		prevMenuButton .leftSide.menu .rightSide.home
-	    }
-	} elseif {[string compare %K "Down"] == 0} {
-	    if {$currentId < [expr $theNumberOfPrograms-1]} {
-		nextMenuButton .leftSide.menu .rightSide.home
-	    }
-	} elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
+    set menu .leftSide.menu
+    set home .rightSide.home
+    if {[string compare %K "Up"] == 0} {
+	if {$currentId == -1} {
+	    pack forget $home.main
+	    nextGameButton $menu $home
+	} elseif {$currentId > 0} {
+	    prevGameButton $menu $home
+	}
+    } elseif {[string compare %K "Down"] == 0} {
+	if {$currentId == -1} {
+	    pack forget $home.main
+	    nextGameButton $menu $home
+	} elseif {$currentId < [expr $theNumberOfPrograms-1]} {
+	    nextGameButton .leftSide.menu .rightSide.home
+	}
+    } elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
+	if {$currentId != -1} {
 	    set theGUIProgram "./Xm[lindex $thePrograms $currentId]"	    
 	    exec /usr/bin/env wish -f $theGUIProgram &
 	}
@@ -87,7 +95,7 @@ proc main {} {
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
     
-    pack $leftBottom -fill x -side bottom
+    #pack $leftBottom -fill x -side bottom
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
@@ -161,7 +169,7 @@ proc CreateMenuButtons { frame home } {
     }
 }
 
-proc prevMenuButton {menu home} {
+proc prevGameButton {menu home} {
     global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
     set i $currentId
     set gameName [lindex $thePrograms $currentId]
@@ -185,7 +193,7 @@ proc prevMenuButton {menu home} {
 	$menu yview moveto [expr $first - 0.0285]
     }
 }
-proc nextMenuButton {menu home} {
+proc nextGameButton {menu home} {
     global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
     set i $currentId
     set gameName [lindex $thePrograms $currentId]
