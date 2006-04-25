@@ -72,6 +72,8 @@ typedef struct DB {
     BOOLEAN	(*save_database)	();
     BOOLEAN	(*load_database)	();
 
+    void	(*get_bulk)		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
+
 } DB_Table;
 
 typedef struct db_list_struct{
@@ -111,5 +113,8 @@ MEX		MexLoad			(POSITION pos);
 /* Persistence */
 BOOLEAN		SaveDatabase		();
 BOOLEAN		LoadDatabase		();
+
+//bulk
+void GetValueAndRemotenessOfPositionBulk(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
 
 #endif /* GMCORE_DB_H */

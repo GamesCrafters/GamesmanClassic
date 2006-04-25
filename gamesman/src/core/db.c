@@ -37,10 +37,10 @@
 
 
 #include "gamesman.h"
-#include "bpdb.h"
 #include "memdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
+#include "netdb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP
@@ -71,6 +71,7 @@ MEX	       	db_get_mex		(POSITION pos);
 void		db_put_mex		(POSITION pos, MEX theMex);
 BOOLEAN		db_save_database	();
 BOOLEAN		db_load_database	();
+void 		db_get_bulk		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
 
 /*internal variables*/
 
@@ -102,6 +103,7 @@ void db_create() {
     db_functions->save_database = db_save_database;
     db_functions->load_database = db_load_database;
     db_functions->free_db = db_free;
+    db_functions->get_bulk = db_get_bulk; 
 }
 
 void db_destroy() {
@@ -118,18 +120,21 @@ void db_initialize(){
         twobitdb_init(db_functions);
 
     } else if(gCollDB){
-		colldb_init(db_functions);
-	} else if(gBitPerfectDB) {
-		bpdb_init(db_functions);
-	}
+	colldb_init(db_functions);
+    }
+
 #ifdef HAVE_GMP
     else if(gUnivDB) {
 	db_functions = univdb_init();
     }
 #endif
 
+    else if(gNetworkDB) {
+	netdb_init(db_functions);
+    }
+
     else {
-		memdb_init(db_functions);
+	memdb_init(db_functions);
     }
     //printf("\nCalling hooking function\n");
     //db_analysis_hook();
@@ -202,6 +207,15 @@ BOOLEAN db_save_database(){
 BOOLEAN db_load_database(){
     //printf("NOTE: The database cannot be loaded.");
     return FALSE;
+}
+
+void db_get_bulk (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
+    POSITION *ptr = positions;
+    int i; 
+    for (i = 0; i < length; i++) {
+        ValueArray[i] = GetValueOfPosition(positions[i]);
+        remotenessArray[i] = Remoteness(positions[i]); 
+    }
 }
 
 void CreateDatabases()
@@ -312,4 +326,8 @@ BOOLEAN SaveDatabase() {
 
 BOOLEAN LoadDatabase() {
     return db_functions->load_database();
+}
+
+void GetValueAndRemotenessOfPositionBulk(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
+    db_functions->get_bulk(positions, ValueArray, remotenessArray, length); 
 }

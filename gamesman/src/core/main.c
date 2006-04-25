@@ -286,6 +286,10 @@ void HandleArguments (int argc, char *argv[])
                         printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
                         gMessage = TRUE;
                         i += argc;
+                } else if(!strcasecmp(argv[i], "--NetDB")) {
+                        gNetworkDB = TRUE;
+			ServerAddress = argv[i+1]; 
+                        i++;
                 } else {
                         fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
                         gMessage = TRUE;

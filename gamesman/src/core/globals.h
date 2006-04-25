@@ -107,7 +107,8 @@ extern STRING (*gGetVarStringPtr)();
 
 extern OPPONENT 	gOpponent;
 
+/* NetworkDB Globals */
+extern BOOLEAN 		gNetworkDB;
+extern STRING		ServerAddress;
+
 #endif /* GMCORE_GLOBALS_H */
-
-
-

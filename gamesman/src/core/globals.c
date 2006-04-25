@@ -95,3 +95,7 @@ BOOLEAN gPrintHints = TRUE;
 
 BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
 BOOLEAN gPlaying = FALSE;
+
+/* NetworkDB Globals */
+BOOLEAN gNetworkDB = FALSE; 
+STRING  ServerAddress = "";
