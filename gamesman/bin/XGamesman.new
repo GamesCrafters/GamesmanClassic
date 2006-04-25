@@ -2,7 +2,7 @@
 
 wm title . "GAMESMAN"
 set maxsize [wm maxsize .]
-set maxheight [expr int([expr 0.9 * [lindex $maxsize 1]])]
+set maxheight [expr int([expr 0.85 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
@@ -129,7 +129,7 @@ proc main {} {
 }
 
 proc CreateMenuItems menu {
-    global scrollDirection
+    global scrollDirection currentId currentGame
 
     set m $menu.file
     menu $m -tearoff 0
