@@ -242,7 +242,7 @@ proc scrollEnter canvas {
     set id [expr {($id-1)/3}]
     if { $currentId != $id } {
 	set oldFill [lindex [$canvas itemconfig listRect$id -fill] 4]
-	$canvas itemconfigure listRect$id -fill black
+	$canvas itemconfigure listRect$id -fill RoyalBlue
 	$canvas itemconfigure listText$id -fill white
     }
 }
