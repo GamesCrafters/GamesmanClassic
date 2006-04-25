@@ -288,12 +288,15 @@ proc Resize { } {
     global Desc Rules currentGame
     set home .rightSide.home
     set width [expr [winfo width .] - 185]
-    if { [info exists Desc($currentGame)] && [info exists Rules($currentGame)] } {
-	$home.$currentGame.title configure -width [expr $width - 20]
+    $home.$currentGame.title configure -width [expr $width - 20]
+    if { [info exists Desc($currentGame)] } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
+    }
+    if { [info exists Rules($currentGame)] } {
 	$home.$currentGame.rules configure -width [expr $width - 20]
-    } elseif { $currentGame == "main" } {
-	$home.main.title configure -width [expr $width - 20]
+    }
+    if { $currentGame == "main" } {
+	$home.main.desc configure -width [expr $width - 20]
     }
 }
 
@@ -417,14 +420,24 @@ proc CreateGamePages { frame } {
     set bgcolor $calBlue
     set fontcolor white
     canvas $frame.main -background $bgcolor
-    message $frame.main.title -text \
-	"GAMESMAN\
-	\n\nA Finite, Two-Person, Perfect-Information Game Generator.\
+    message $frame.main.title -text "GAMESMAN" \
+	-anchor center \
+	-background $bgcolor \
+	-foreground $fontcolor \
+	-width [expr $width - 20] \
+	-font "Helvetica 20 bold"
+    message $frame.main.desc -text \
+	"A Finite, Two-Person, Perfect-Information Game Generator.\
 	\n\n\tGamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\
 	\n\tSince 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\
-\n\nSelect one of the $theNumberOfPrograms games from the sidebar to learn more about it." -anchor nw -background $bgcolor -foreground $fontcolor -width [expr $width - 20]
+\n\nSelect one of the $theNumberOfPrograms games from the sidebar to learn more about it." \
+	-anchor nw \
+	-background $bgcolor \
+	-foreground $fontcolor \
+	-width [expr $width - 20]
 
-    pack $frame.main.title -expand 1 -anchor n -pady [list 10 0]
+    pack $frame.main.title -anchor n -pady [list 10 0]
+    pack $frame.main.desc -expand 1 -anchor n
 
     pack $frame.main -expand 1 -fill both -anchor nw
     ## end start page ##
@@ -563,7 +576,7 @@ proc CreateGamePages { frame } {
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor
 	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor
+		-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
 	image create photo image$gameName -file $theGif -width 100 -height 100
 
 	button $frame.$gameName.butBitmap$i \
