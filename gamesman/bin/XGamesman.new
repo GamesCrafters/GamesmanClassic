@@ -6,8 +6,9 @@ set maxheight [expr int([expr 0.9 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
-global calBlue
+global calBlue calYellow
 set calBlue #006
+set calYellow \#FFCC33
 
 bind . <Key> {
     global currentId theNumberOfPrograms
@@ -23,9 +24,11 @@ bind . <Key> {
 	}
     }
 }
+bind . <Configure> "Resize"
 
 proc main {} {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId oldFill calBlue
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms \
+	   currentGame currentId oldFill calBlue calYellow scrollDirection
 
     set theBitmapDir "../bitmaps"
 
@@ -53,7 +56,9 @@ proc main {} {
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
     set currentId -1
+    set scrollDirection vertical
 
+    menu .menu -tearoff 0
     canvas .leftSide
     canvas .rightSide
 
@@ -64,7 +69,7 @@ proc main {} {
     set home .rightSide.home
     set rightBottom .rightSide.rightBottom
 
-    scrollbar $leftScroll -command "$menu yview"
+    scrollbar $leftScroll -command "$menu yview" -troughcolor $calBlue -background gold
     canvas $menu -width 160 -scrollregion [list 0 0 120 [expr {2+$theNumberOfPrograms*60}]] \
 	-yscrollcommand "$leftScroll set" \
 	-background $calBlue
@@ -77,15 +82,16 @@ proc main {} {
     grid rowconfig    .leftSide 0 -weight 1 -minsize 0
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
-
+    
     pack $leftBottom -fill x -side bottom
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
     #pack $rightBottom -fill x -side top
-    pack $home -fill both -side right -expand 1
+    pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
     CreateGamePages $home
+    CreateMenuItems .menu
     CreateMenuButtons $menu $home
     CreateHomeButton $leftBottom $home $rightBottom.buttons
     CreateLaunchButtons $rightBottom.buttons
@@ -93,6 +99,44 @@ proc main {} {
     $menu bind all <Any-Enter> "scrollEnter $menu"
     $menu bind all <Any-Leave> "scrollLeave $menu"
     $menu bind all <1> "scrollButton $menu $home"
+
+    bind $menu <ButtonPress-4> {	
+	set leftScroll .leftSide.leftScroll
+	set menu .leftSide.menu
+	set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
+	set first [lindex [$leftScroll get] 0]
+	set last [lindex [$leftScroll get] 1]
+	if {$percent < $first} {
+	    $menu yview moveto [expr $first - 0.0285]
+	}
+    }
+    bind $menu <ButtonPress-5> {
+	set leftScroll .leftSide.leftScroll
+	set menu .leftSide.menu
+	set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
+	set first [lindex [$leftScroll get] 0]
+	set last [lindex [$leftScroll get] 1]
+	if {$percent < $first} {
+	    $menu yview moveto [expr $first + 0.0285]
+	}
+    }
+
+    . configure -menu .menu
+}
+
+proc CreateMenuItems menu {
+    global scrollDirection
+
+    set m $menu.file
+    menu $m -tearoff 0
+    $menu add cascade -label "File" -menu $m -underline 0
+    $m add command -label "Quit" -command exit -underline 0
+
+    set m $menu.view
+    menu $m -tearoff 0
+    $menu add cascade -label "View" -menu $m -underline 0
+    $m add radio -label "vertical scroll" -variable scrollDirection -value vertical
+    $m add radio -label "horizontal scroll" -variable scrollDirection -value horizontal
 }
 
 proc CreateMenuButtons { frame home } {
@@ -113,7 +157,8 @@ proc CreateMenuButtons { frame home } {
 	        -fill $theColor \
 	        -tags rect
 	$frame create text 155 [expr {31+$i*60}] -text $theString \
-	        -anchor e -width 100
+	        -anchor e \
+	        -width 100
 	$frame create image 5 [expr {31+$i*60}] -image small$i \
 	        -anchor w
     }
@@ -192,7 +237,7 @@ proc scrollLeave canvas {
 }
 
 proc scrollButton { canvas home } {
-    global thePrograms theGuiTypes homePage currentGame currentId calBlue
+    global thePrograms theGuiTypes homePage currentGame currentId calBlue Desc Rules
     set i [$canvas find withtag current]
     set i [expr {($i-1)/3}]
     set gameName [lindex $thePrograms $i]
@@ -207,8 +252,27 @@ proc scrollButton { canvas home } {
     }
     $canvas itemconfigure [expr {1+$i*3}] -fill $calBlue
     $canvas itemconfigure [expr 2+$i*3] -fill white
+
+    if { [info exists Desc($gameName)] && [info exists Rules($gameName)] } {
+	set width [expr [winfo width .] - 185]
+	$home.$gameName.desc configure -width [expr $width - 20]
+	$home.$gameName.rules configure -width [expr $width - 20]
+    }
+
     set currentGame $gameName
     set currentId $i
+}
+
+proc Resize { } {
+    global Desc Rules currentGame
+    set home .rightSide.home
+    set width [expr [winfo width .] - 185]
+    if { [info exists Desc($currentGame)] && [info exists Rules($currentGame)] } {
+	$home.$currentGame.desc configure -width [expr $width - 20]
+	$home.$currentGame.rules configure -width [expr $width - 20]
+    } elseif { $currentGame == "main" } {
+	$home.main.title configure -width [expr $width - 20]
+    }
 }
 
 proc CreateLaunchButtons { rightBottom } {
@@ -291,6 +355,7 @@ proc SetLaunchButtons { rightBottom i } {
 
 proc CreateHomeButton { frame home rightBottom } {
     global currentGame currentId
+    set width [expr [winfo width .] - 185]
     button $frame.home -text "Home" -bg gold \
 	-command "pack $home.main -fill both -expand 1 -anchor nw; \
 			$rightBottom.prev configure -state disabled; \
@@ -298,12 +363,14 @@ proc CreateHomeButton { frame home rightBottom } {
 			$rightBottom.playText configure -state disabled; \
 			$rightBottom.next configure -state disabled; \
 			set currentGame main; \
+	                $home.main.title configure -width [expr $width - 20]; \
 			set currentId -1"
     pack $frame.home -anchor center
 }
 proc SetHomeButton { frame home rightBottom emptyId } {
     global currentGame currentId thePrograms theGuiTypes
     set menu .leftSide.menu
+    set width [expr [winfo width .] - 185]
     $frame.home configure \
 	-command "pack forget $home.[lindex $thePrograms $emptyId]; \
 			pack $home.main -fill both -expand 1 -anchor nw; \
@@ -314,11 +381,12 @@ proc SetHomeButton { frame home rightBottom emptyId } {
 			set currentGame main; \
 			$menu itemconfigure [expr {1+$emptyId*3}] -fill [lindex $theGuiTypes $emptyId]; \
 			$menu itemconfigure [expr {2+$emptyId*3}] -fill black; \
+	                $home.main.title configure -width [expr $width - 20]; \
 			set currentId -1"
 }
 
 proc CreateGamePages { frame } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms calBlue
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms calBlue Desc Rules
 
     set width [expr [winfo width .] - 185]
     set height [expr [winfo height .] - 30]
