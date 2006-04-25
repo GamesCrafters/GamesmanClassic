@@ -6,6 +6,8 @@ set maxheight [expr int([expr 0.9 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
+global calBlue
+set calBlue #006
 
 bind . <Key> {
     global currentId theNumberOfPrograms
@@ -23,7 +25,7 @@ bind . <Key> {
 }
 
 proc main {} {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId oldFill
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId oldFill calBlue
 
     set theBitmapDir "../bitmaps"
 
@@ -52,25 +54,24 @@ proc main {} {
     set currentGame main
     set currentId -1
 
+    canvas .leftSide
+    canvas .rightSide
+
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
     set leftBottom .leftSide.leftBottom
 
     set home .rightSide.home
-    set rightScroll .rightSide.rightScroll
     set rightBottom .rightSide.rightBottom
-
-    frame .leftSide
-    frame .rightSide
 
     scrollbar $leftScroll -command "$menu yview"
     canvas $menu -width 160 -scrollregion [list 0 0 120 [expr {2+$theNumberOfPrograms*60}]] \
-	-yscrollcommand "$leftScroll set"
-    canvas $leftBottom -background #006
+	-yscrollcommand "$leftScroll set" \
+	-background $calBlue
+    canvas $leftBottom -background $calBlue
 
-    canvas $home -background #006
-    canvas $rightScroll -width 10 -background red
-    canvas $rightBottom -background #006
+    canvas $home -background $calBlue
+    canvas $rightBottom -background $calBlue
 
     pack .leftSide -fill y -side left
     grid rowconfig    .leftSide 0 -weight 1 -minsize 0
@@ -82,7 +83,6 @@ proc main {} {
     pack $menu -fill y -side left
 
     #pack $rightBottom -fill x -side top
-    #pack $rightScroll -fill y -side right
     pack $home -fill both -side right -expand 1
 
     CreateGamePages $home
@@ -120,14 +120,14 @@ proc CreateMenuButtons { frame home } {
 }
 
 proc prevMenuButton {menu home} {
-    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes
+    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
     set i $currentId
     set gameName [lindex $thePrograms $currentId]
     set currentId [expr ($currentId - 1) % $theNumberOfPrograms]
     set currentGame [lindex $thePrograms $currentId]
 
     pack forget $home.$gameName
-    $menu itemconfigure [expr {1+$currentId*3}] -fill #006
+    $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
     $menu itemconfigure [expr {2+$currentId*3}] -fill white
     $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
     $menu itemconfigure [expr {2+$i*3}] -fill black
@@ -143,14 +143,14 @@ proc prevMenuButton {menu home} {
     }
 }
 proc nextMenuButton {menu home} {
-    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes
+    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
     set i $currentId
     set gameName [lindex $thePrograms $currentId]
     set currentId [expr ($currentId + 1) % $theNumberOfPrograms]
     set currentGame [lindex $thePrograms $currentId]
 
     pack forget $home.$gameName
-    $menu itemconfigure [expr {1+$currentId*3}] -fill #006
+    $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
     $menu itemconfigure [expr {2+$currentId*3}] -fill white
     $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
     $menu itemconfigure [expr {2+$i*3}] -fill black
@@ -190,7 +190,7 @@ proc scrollLeave canvas {
 }
 
 proc scrollButton { canvas home } {
-    global thePrograms theGuiTypes homePage currentGame currentId
+    global thePrograms theGuiTypes homePage currentGame currentId calBlue
     set i [$canvas find withtag current]
     set i [expr {($i-1)/3}]
     set gameName [lindex $thePrograms $i]
@@ -203,7 +203,7 @@ proc scrollButton { canvas home } {
 	$canvas itemconfigure [expr {1+$currentId*3}] -fill $theColor
 	$canvas itemconfigure [expr {2+$currentId*3}] -fill black
     }
-    $canvas itemconfigure [expr {1+$i*3}] -fill #006
+    $canvas itemconfigure [expr {1+$i*3}] -fill $calBlue
     $canvas itemconfigure [expr 2+$i*3] -fill white
     set currentGame $gameName
     set currentId $i
@@ -236,7 +236,7 @@ proc CreateLaunchButtons { rightBottom } {
 }
 
 proc SetLaunchButtons { rightBottom i } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId calBlue
     set theGUIProgram "./Xm[lindex $thePrograms $i]"
     set theTextProgram "./m[lindex $thePrograms $i]"
     set gameString [lindex $theStrings $i]
@@ -262,7 +262,7 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $prevGameId; \
 			set currentGame $prevGameName; \
 			set currentId $prevGameId; \
-			$menu itemconfigure [expr {1+$prevGameId*3}] -fill #006; \
+			$menu itemconfigure [expr {1+$prevGameId*3}] -fill $calBlue; \
 			$menu itemconfigure [expr {2+$prevGameId*3}] -fill white; \
 			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
 			$menu itemconfigure [expr {2+$i*3}] -fill black; \
@@ -280,7 +280,7 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $nextGameId; \
 			set currentGame $nextGameName; \
 			set currentId $nextGameId; \
-			$menu itemconfigure [expr {1+$nextGameId*3}] -fill #006; \
+			$menu itemconfigure [expr {1+$nextGameId*3}] -fill $calBlue; \
 			$menu itemconfigure [expr {2+$nextGameId*3}] -fill white; \
 			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
 			$menu itemconfigure [expr {2+$i*3}] -fill black; \
@@ -315,13 +315,13 @@ proc SetHomeButton { frame home rightBottom emptyId } {
 }
 
 proc CreateGamePages { frame } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms calBlue
 
     set width [expr [winfo width .] - 185]
     set height [expr [winfo height .] - 30]
 
     ##### Starting Page ########
-    set bgcolor #006
+    set bgcolor $calBlue
     set fontcolor white
     canvas $frame.main -background $bgcolor
     message $frame.main.title -text \
@@ -466,7 +466,7 @@ proc CreateGamePages { frame } {
 	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
 	set theColor [lindex $theGuiTypes $i]
         set borderWidth 5
-	set bgcolor #006
+	set bgcolor $calBlue
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor
 	message $frame.$gameName.title -text $gameString -anchor center -width 300 \
