@@ -59,8 +59,8 @@ proc main {} {
     set scrollDirection vertical
 
     menu .menu -tearoff 0
-    canvas .leftSide
-    canvas .rightSide
+    canvas .leftSide -bd -2
+    canvas .rightSide -bd -2
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
