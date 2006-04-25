@@ -103,22 +103,14 @@ proc main {} {
     bind $menu <ButtonPress-4> {	
 	set leftScroll .leftSide.leftScroll
 	set menu .leftSide.menu
-	set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
 	set first [lindex [$leftScroll get] 0]
-	set last [lindex [$leftScroll get] 1]
-	if {$percent < $first} {
-	    $menu yview moveto [expr $first - 0.0285]
-	}
+	$menu yview moveto [expr $first - 0.0285]
     }
     bind $menu <ButtonPress-5> {
 	set leftScroll .leftSide.leftScroll
 	set menu .leftSide.menu
-	set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
 	set first [lindex [$leftScroll get] 0]
-	set last [lindex [$leftScroll get] 1]
-	if {$percent < $first} {
-	    $menu yview moveto [expr $first + 0.0285]
-	}
+	$menu yview moveto [expr $first + 0.0285]
     }
 
     . configure -menu .menu
