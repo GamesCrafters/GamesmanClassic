@@ -7,9 +7,6 @@
 # You must set the global variables kGameName, gInitialPosition,
 # kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
-global initialized
-set initialized false
-
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -207,7 +204,6 @@ proc min { a b } {
 proc GS_Initialize { c } {
     global backgroundImage
     global playareaImage gFrameWidth gFrameHeight size
-    global initialized
 
     set size [min $gFrameWidth $gFrameHeight]
 
