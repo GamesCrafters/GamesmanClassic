@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.39 2006-03-21 18:26:11 ogren Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.40 2006-04-25 01:34:19 ogren Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1707,17 +1707,17 @@ REMOTENESS FindDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr, VALUE val)
         case tie:
                 return FindTieingDelta(remote, remoteptr);
         default:
-	        //BadElse("FindDelta Given Unrecognized Move Value\n");
-	        //hack s.t. this is not displayed during GUI use
+	  /* BadElse("FindDelta Given Unrecognized Move Value\n"); */
+	  /* hack s.t. this is not displayed during GUI use */
 	        return kBadRemoteness;
         }
 
-        // reaching this is a bad, bad thing
+        /* reaching this is a bad, bad thing */
         return -1;
 
 }
 
-// FindWinningDelta - return the delta remoteness of a Winning Move
+/* FindWinningDelta - return the delta remoteness of a Winning Move */
 REMOTENESS FindWinningDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr)
 {
         REMOTENESS min_remoteness = findMinRemoteness(remoteptr);
@@ -1736,7 +1736,7 @@ REMOTENESS FindWinningDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr)
         return delta;
 }
 
-// FindLosingDelta - return the delta remoteness of a Losing Move
+/* FindLosingDelta - return the delta remoteness of a Losing Move */
 REMOTENESS FindLosingDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr)
 {
         REMOTENESS max_remoteness = findMaxRemoteness(remoteptr);
@@ -1755,7 +1755,7 @@ REMOTENESS FindLosingDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr)
         return delta;
 }
 
-// FindTieingDelta - return the delta remoteness of a Tieing Move
+/* FindTieingDelta - return the delta remoteness of a Tieing Move */
 REMOTENESS FindTieingDelta(REMOTENESS remote, REMOTENESSLIST* remoteptr)
 {
         REMOTENESS min_remoteness = findMinRemoteness(remoteptr);
