@@ -134,13 +134,30 @@ proc CreateMenuItems menu {
     set m $menu.file
     menu $m -tearoff 0
     $menu add cascade -label "File" -menu $m -underline 0
-    $m add command -label "Quit" -command exit -underline 0
-
+    $m add command -label "Home" -underline 0 \
+	-command {
+	    set home .rightSide.home
+	    set list .leftSide.menu
+	    set width [expr [winfo width .] - 185]
+	    pack forget $home.[lindex $thePrograms $currentId]
+	    pack $home.main -fill both -expand 1 -anchor nw
+	    set currentGame main
+	    $list itemconfigure listRect$currentId -fill [lindex $theGuiTypes $currentId]
+	    $list itemconfigure listText$currentId -fill black
+	    $home.main.title configure -width [expr $width - 20]
+	    set currentId -1
+	}
+    $m add command -label "Quit" -underline 0 -command exit
+    
     set m $menu.view
     menu $m -tearoff 0
     $menu add cascade -label "View" -menu $m -underline 0
-    $m add radio -label "vertical scroll" -variable scrollDirection -value vertical
-    $m add radio -label "horizontal scroll" -variable scrollDirection -value horizontal
+    $m add radio -label "vertical scroll" \
+	-variable scrollDirection \
+	-value vertical
+    $m add radio -label "horizontal scroll" \
+	-variable scrollDirection \
+	-value horizontal
 }
 
 proc CreateMenuButtons { frame home } {
