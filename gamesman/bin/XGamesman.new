@@ -136,6 +136,7 @@ proc CreateMenuItems menu {
     $menu add cascade -label "File" -menu $m -underline 0
     $m add command -label "Home" -underline 0 \
 	-command {
+	    global currentGame currentId
 	    set home .rightSide.home
 	    set list .leftSide.menu
 	    set width [expr [winfo width .] - 185]
