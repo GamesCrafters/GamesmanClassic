@@ -213,9 +213,6 @@ proc GS_Initialize { c } {
 
     $c create rect 0 0 $size $size -fill black -tag base
     $c create rect 0 [expr 0.6 * $size] $size $size -fill darkgrey -tag base
-    if { $initialized == false } {
-	font create Winner -family arial -size [expr int($size / 15)]
-    }
     
     global gRows
 
@@ -231,12 +228,10 @@ proc GS_Initialize { c } {
 	    $c bind move-$w$h <ButtonRelease-1> "MyReturnFromHumanMove $w $h"
 	}
     }
-    set initialized true
 }
 
 proc GS_Deinitialize { c } {
     $c delete all
-    font delete Winner
 }
 
 proc MyReturnFromHumanMove {w h} {
@@ -438,8 +433,11 @@ proc GS_GetGameSpecificOptions { } {
 
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove } {
     global size
-    $c create text [expr $size/2] [expr $size/2 - 90] -text "$nameOfWinner" -font Winner -fill orange -tags winner
-    $c create text [expr $size/2] [expr $size/2 + 20] -text "WINS!"         -font Winner -fill orange -tags winner
+    
+    set fontsize [expr int($size/15)]
+
+    $c create text [expr $size/2] [expr $size/2 - 90] -text "$nameOfWinner" -font "Arial $fontsize" -fill orange -tags winner
+    $c create text [expr $size/2] [expr $size/2 + 20] -text "WINS!"         -font "Arial $fontsize" -fill orange -tags winner
 }
 
 
