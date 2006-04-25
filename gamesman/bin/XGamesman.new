@@ -113,7 +113,7 @@ proc CreateMenuButtons { frame home } {
 	        -fill $theColor \
 	        -tags rect
 	$frame create text 155 [expr {31+$i*60}] -text $theString \
-	        -anchor e
+	        -anchor e -width 100
 	$frame create image 5 [expr {31+$i*60}] -image small$i \
 	        -anchor w
     }
@@ -127,6 +127,7 @@ proc prevMenuButton {menu home} {
     set currentGame [lindex $thePrograms $currentId]
 
     pack forget $home.$gameName
+    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
     $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
     $menu itemconfigure [expr {2+$currentId*3}] -fill white
     $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
@@ -150,6 +151,7 @@ proc nextMenuButton {menu home} {
     set currentGame [lindex $thePrograms $currentId]
 
     pack forget $home.$gameName
+    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
     $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
     $menu itemconfigure [expr {2+$currentId*3}] -fill white
     $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
@@ -311,6 +313,7 @@ proc SetHomeButton { frame home rightBottom emptyId } {
 			$rightBottom.next configure -state disabled; \
 			set currentGame main; \
 			$menu itemconfigure [expr {1+$emptyId*3}] -fill [lindex $theGuiTypes $emptyId]; \
+			$menu itemconfigure [expr {2+$emptyId*3}] -fill black; \
 			set currentId -1"
 }
 
