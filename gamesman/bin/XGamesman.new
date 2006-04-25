@@ -8,7 +8,7 @@ update
 
 global calBlue calYellow
 set calBlue #006
-set calYellow \#FFCC33
+set calYellow #FFCC33
 
 bind . <Key> {
     global currentId theNumberOfPrograms
@@ -145,14 +145,15 @@ proc CreateMenuButtons { frame home } {
 	small$i copy image$i -subsample 2
 	set borderWidth 0
 	$frame create rect 0 [expr {1+$i*60}] 159 [expr {[expr 1+$i+1]*60}]  \
-	        -outline black \
-	        -fill $theColor \
-	        -tags rect
+	    -outline black \
+	    -fill $theColor \
+	    -tags [list listRect$i]
 	$frame create text 155 [expr {31+$i*60}] -text $theString \
-	        -anchor e \
-	        -width 100
+	    -anchor e \
+	    -width 100 \
+	    -tags [list listText$i]
 	$frame create image 5 [expr {31+$i*60}] -image small$i \
-	        -anchor w
+	    -anchor w -tags [list listImage$i]
     }
 }
 
@@ -165,10 +166,10 @@ proc prevMenuButton {menu home} {
 
     pack forget $home.$gameName
     SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
-    $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
-    $menu itemconfigure [expr {2+$currentId*3}] -fill white
-    $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
-    $menu itemconfigure [expr {2+$i*3}] -fill black
+    $menu itemconfigure listRect$currentId -fill $calBlue
+    $menu itemconfigure listText$currentId -fill white
+    $menu itemconfigure listRect$i -fill [lindex $theGuiTypes $i]
+    $menu itemconfigure listText$i -fill black
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
     set leftScroll .leftSide.leftScroll
@@ -189,10 +190,10 @@ proc nextMenuButton {menu home} {
 
     pack forget $home.$gameName
     SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
-    $menu itemconfigure [expr {1+$currentId*3}] -fill $calBlue
-    $menu itemconfigure [expr {2+$currentId*3}] -fill white
-    $menu itemconfigure [expr {1+$i*3}] -fill [lindex $theGuiTypes $i]
-    $menu itemconfigure [expr {2+$i*3}] -fill black
+    $menu itemconfigure listRect$currentId -fill $calBlue
+    $menu itemconfigure listText$currentId -fill white
+    $menu itemconfigure listRect$i -fill [lindex $theGuiTypes $i]
+    $menu itemconfigure listText$i -fill black
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
     set leftScroll .leftSide.leftScroll
@@ -209,11 +210,10 @@ proc scrollEnter canvas {
     global oldFill currentId
     set id [$canvas find withtag current]
     set id [expr {($id-1)/3}]
-    set i [expr {1+$id*3}]
     if { $currentId != $id } {
-	set oldFill [lindex [$canvas itemconfig $i -fill] 4]
-	$canvas itemconfigure $i -fill black
-	$canvas itemconfigure [expr $i+1] -fill white
+	set oldFill [lindex [$canvas itemconfig listRect$id -fill] 4]
+	$canvas itemconfigure listRect$id -fill black
+	$canvas itemconfigure listText$id -fill white
     }
 }
 
@@ -221,10 +221,9 @@ proc scrollLeave canvas {
     global oldFill currentId
     set id [$canvas find withtag current]
     set id [expr {($id-1)/3}]
-    set i [expr {1+$id*3}]
     if { $currentId != $id } {
-	$canvas itemconfigure $i -fill $oldFill
-	$canvas itemconfigure [expr $i+1] -fill black
+	$canvas itemconfigure listRect$id -fill $oldFill
+	$canvas itemconfigure listText$id -fill black
     }
 }
 
@@ -239,11 +238,11 @@ proc scrollButton { canvas home } {
     SetLaunchButtons .rightSide.rightBottom.buttons $i
     if { $currentId > -1 } {
 	set theColor [lindex $theGuiTypes $currentId]
-	$canvas itemconfigure [expr {1+$currentId*3}] -fill $theColor
-	$canvas itemconfigure [expr {2+$currentId*3}] -fill black
+	$canvas itemconfigure listRect$currentId -fill $theColor
+	$canvas itemconfigure listText$currentId -fill black
     }
-    $canvas itemconfigure [expr {1+$i*3}] -fill $calBlue
-    $canvas itemconfigure [expr 2+$i*3] -fill white
+    $canvas itemconfigure listRect$i -fill $calBlue
+    $canvas itemconfigure listText$i -fill white
 
     if { [info exists Desc($gameName)] && [info exists Rules($gameName)] } {
 	set width [expr [winfo width .] - 185]
@@ -260,6 +259,7 @@ proc Resize { } {
     set home .rightSide.home
     set width [expr [winfo width .] - 185]
     if { [info exists Desc($currentGame)] && [info exists Rules($currentGame)] } {
+	$home.$currentGame.title configure -width [expr $width - 20]
 	$home.$currentGame.desc configure -width [expr $width - 20]
 	$home.$currentGame.rules configure -width [expr $width - 20]
     } elseif { $currentGame == "main" } {
@@ -320,10 +320,10 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $prevGameId; \
 			set currentGame $prevGameName; \
 			set currentId $prevGameId; \
-			$menu itemconfigure [expr {1+$prevGameId*3}] -fill $calBlue; \
-			$menu itemconfigure [expr {2+$prevGameId*3}] -fill white; \
-			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
-			$menu itemconfigure [expr {2+$i*3}] -fill black; \
+			$menu itemconfigure listRect$prevGameId -fill $calBlue; \
+			$menu itemconfigure listText$prevGameId -fill white; \
+			$menu itemconfigure listRect$i -fill $theOldColor; \
+			$menu itemconfigure listText$i -fill black; \
 			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
 
     $rightBottom.playGui configure \
@@ -338,10 +338,10 @@ proc SetLaunchButtons { rightBottom i } {
 			SetHomeButton .leftSide.leftBottom $home $rightBottom $nextGameId; \
 			set currentGame $nextGameName; \
 			set currentId $nextGameId; \
-			$menu itemconfigure [expr {1+$nextGameId*3}] -fill $calBlue; \
-			$menu itemconfigure [expr {2+$nextGameId*3}] -fill white; \
-			$menu itemconfigure [expr {1+$i*3}] -fill $theOldColor; \
-			$menu itemconfigure [expr {2+$i*3}] -fill black; \
+			$menu itemconfigure listRect$nextGameId -fill $calBlue; \
+			$menu itemconfigure listText$nextGameId -fill white; \
+			$menu itemconfigure listRect$i -fill $theOldColor; \
+			$menu itemconfigure listText$i -fill black; \
 			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
 }
 
@@ -371,8 +371,8 @@ proc SetHomeButton { frame home rightBottom emptyId } {
 			$rightBottom.playText configure -state disabled; \
 			$rightBottom.next configure -state disabled; \
 			set currentGame main; \
-			$menu itemconfigure [expr {1+$emptyId*3}] -fill [lindex $theGuiTypes $emptyId]; \
-			$menu itemconfigure [expr {2+$emptyId*3}] -fill black; \
+			$menu itemconfigure listRect$emptyId -fill [lindex $theGuiTypes $emptyId]; \
+			$menu itemconfigure listText$emptyId -fill black; \
 	                $home.main.title configure -width [expr $width - 20]; \
 			set currentId -1"
 }
@@ -532,7 +532,7 @@ proc CreateGamePages { frame } {
 	set bgcolor $calBlue
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor
-	message $frame.$gameName.title -text $gameString -anchor center -width 300 \
+	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor
 	image create photo image$gameName -file $theGif -width 100 -height 100
 
