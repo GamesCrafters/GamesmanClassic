@@ -362,8 +362,9 @@ void InitializeGame ()
   hash_array[7] = hash_array[8] = num_nodes - num_black - num_white;
   hash_array[9] = -1;
 
-  if(kDBName)
+  if (kDBName && strcmp(kDBName, "blocking") != 0)
     SafeFree(kDBName);
+
   kDBName = (STRING) SafeMalloc(sizeof(char)*100);
   sprintf(kDBName, "%.6s", g_name);
 
