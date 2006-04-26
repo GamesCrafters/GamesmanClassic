@@ -135,9 +135,9 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms { 1210 abalone achi asalto change dao dinododgem hshogi \
+    set thePrograms { 1210 abalone achi asalto change win4 dao dinododgem hshogi \
 			  iceblocks lewth lite3 mancala tore nim ooe othello \
-			  qx rubix seega slideN snake tactix ttt3 wuzhi sim win4 \
+			  qx rubix seega slideN snake tactix ttt3 wuzhi sim \
 			  \
 			  ctoi dodgem lgame \
 			  \
@@ -148,12 +148,13 @@ proc main {} {
 			  tilechess tootnotto ttc winkers xigua \
 		      }
 
-    set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" "Dao" \
+    set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" \
+			  "Connect-4" "Dao" \
 			  "Dino Dodgem" "Hasami Shogi" "Ice Blocks" \
 			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
 			  "Nim" "Odd or Even" "Othello" "QuickCross" \
 			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
-			  "Tic-Tac-Toe" "Sim" "Wuzhi" "Connect-4" \
+			  "Tic-Tac-Toe" "Sim" "Wuzhi" \
 			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
@@ -272,7 +273,7 @@ proc CreateMenuButtons { frame home } {
 	}
 	set borderWidth 0
 	$frame create rect 0 [expr 1+$i*60] 159 [expr 1+($i+1)*60]  \
-	    -outline black \
+	    -outline RoyalBlue \
 	    -fill [gameColor $i] \
 	    -tags [list listRect$i]
 	$frame create text 155 [expr {31+$i*60}] -text [gameString $i] \
