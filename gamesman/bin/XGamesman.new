@@ -7,8 +7,10 @@ wm geometry . =800x$maxheight
 update
 
 global calBlue calYellow
+global textGameColor
 set calBlue #006
 set calYellow #FFCC33
+set textGameColor black
 
 bind . <Key> {
     global currentId theNumberOfPrograms thePrograms
@@ -30,17 +32,107 @@ bind . <Key> {
 	    nextGameButton .leftSide.menu .rightSide.home
 	}
     } elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
-	if {$currentId != -1} {
-	    set theGUIProgram "./Xm[lindex $thePrograms $currentId]"	    
-	    exec /usr/bin/env wish -f $theGUIProgram &
+	if {[guiExists $currentId]} {
+	    runGui $currentId
+	} elseif {[isGame $currentId]} {
+	    runText $currentId
 	}
     }
 }
 bind . <Configure> "Resize"
 
+###GAME INFO HELPER FUNCTIONS###
+proc isGame {id} {
+    global theNumberOfPrograms
+    if {$id < 0 || $id >= $theNumberOfPrograms} {
+	return false
+    }
+    return true
+}
+proc gameName {id} {
+    global thePrograms
+    return [lindex $thePrograms $id]
+}
+proc gameColor {id} {
+    global theGuiTypes
+    return [lindex $theGuiTypes $id]
+}
+proc textColor {id} {
+    if {[guiExists $id]} {
+	return "black"
+    }
+    return "white"
+}
+proc gameString {id} {
+    global theStrings
+    return [lindex $theStrings $id]
+}
+proc guiExists {id} {
+    global textGameColor
+    if {[isGame $id] == false || [gameColor $id] == $textGameColor} {
+	return false
+    }
+    return true
+}
+#returns false if game $i does not have a GUI
+proc runGui {id} {
+    global thePrograms
+    set theGuiProgram "./Xm[lindex $thePrograms $id]"
+    exec /usr/bin/env wish -f $theGuiProgram &
+}
+proc runText {id} {
+    global thePrograms
+    set theTextProgram "./m[lindex $thePrograms $id]"
+    exec /usr/bin/env xterm -n [gameString $id] -e $theTextProgram &
+}
+proc guiImage { id scale } {
+    global theBitmapDir thePrograms
+    set theGif "$theBitmapDir/[lindex $thePrograms $id]100.gif"
+    catch { image delete guiImage$id }
+    image create photo guiImage$id -file $theGif
+    set imageName guiImage$id
+    if {$scale > 1} {
+	set scale [expr int($scale)]
+	set imageName [format guiImage%sZoom%s $id $scale]
+	catch { image delete $imageName }
+	image create photo $imageName
+	$imageName copy guiImage$id -zoom $scale
+    } elseif {$scale < 1} {
+	set scale [expr int(1/$scale)]
+	set imageName [format guiImage%sSubsample%s $id $scale]
+	catch { image delete $imageName }
+	image create photo $imageName
+	$imageName copy guiImage$id -subsample $scale
+    }
+
+    return $imageName
+}
+proc textImage {id scale} {
+    global theBitmapDir thePrograms
+    set theGif "$theBitmapDir/[lindex $thePrograms $id]100text.gif"
+    catch { image delete textImage$id }
+    image create photo textImage$id -file $theGif
+    set imageName textImage$id
+    if {$scale > 1} {
+	set scale [expr int($scale)]
+	set imageName [format textImage%sZoom%s $id $scale]
+	catch { image delete $imageName }
+	image create photo $imageName
+	$imageName copy textImage$id -zoom $scale
+    } elseif {$scale < 1} {
+	set scale [expr int(1/$scale)]
+	set imageName [format textImage%sSubsample%s $id $scale]
+	catch { image delete $imageName }
+	image create photo $imageName
+	$imageName copy textImage$id -subsample $scale
+    }
+
+    return $imageName
+}
+###END HELPER FUNCTIONS###
 proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms \
-	   currentGame currentId oldFill calBlue calYellow scrollDirection
+	   currentGame currentId calBlue calYellow scrollDirection
 
     set theBitmapDir "../bitmaps"
 
@@ -63,7 +155,7 @@ proc main {} {
 			  gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold \
 			  grey grey grey \
-			  brown brown brown brown brown brown }
+			  brown brown brown brown brown brown}
 
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
@@ -76,37 +168,29 @@ proc main {} {
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
-    set leftBottom .leftSide.leftBottom
 
     set home .rightSide.home
-    set rightBottom .rightSide.rightBottom
 
     scrollbar $leftScroll -command "$menu yview" -troughcolor $calBlue -background gold
-    canvas $menu -width 160 -scrollregion [list 0 0 120 [expr {2+$theNumberOfPrograms*60}]] \
+    canvas $menu -width 160 -scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
 	-background $calBlue
-    canvas $leftBottom -background $calBlue
 
     canvas $home -background $calBlue
-    canvas $rightBottom -background $calBlue
 
     pack .leftSide -fill y -side left
     grid rowconfig    .leftSide 0 -weight 1 -minsize 0
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
     
-    #pack $leftBottom -fill x -side bottom
     pack $leftScroll -fill y -side left
     pack $menu -fill y -side left
 
-    #pack $rightBottom -fill x -side top
     pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
     CreateGamePages $home
     CreateMenuItems .menu
     CreateMenuButtons $menu $home
-    CreateHomeButton $leftBottom $home $rightBottom.buttons
-    CreateLaunchButtons $rightBottom.buttons
 
     $menu bind all <Any-Enter> "scrollEnter $menu"
     $menu bind all <Any-Leave> "scrollLeave $menu"
@@ -140,10 +224,10 @@ proc CreateMenuItems menu {
 	    set home .rightSide.home
 	    set list .leftSide.menu
 	    set width [expr [winfo width .] - 185]
-	    pack forget $home.[lindex $thePrograms $currentId]
+	    pack forget $home.[gameName $currentId]
 	    pack $home.main -fill both -expand 1 -anchor nw
 	    set currentGame main
-	    $list itemconfigure listRect$currentId -fill [lindex $theGuiTypes $currentId]
+	    $list itemconfigure listRect$currentId -fill [gameColor $currentId]
 	    $list itemconfigure listText$currentId -fill black
 	    $home.main.title configure -width [expr $width - 20]
 	    set currentId -1
@@ -162,44 +246,40 @@ proc CreateMenuItems menu {
 }
 
 proc CreateMenuButtons { frame home } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms
+    global theNumberOfPrograms
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set gameName [lindex $thePrograms $i]
-	set theString [lindex $theStrings $i]
-	set theGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-	set theColor [lindex $theGuiTypes $i]
-	catch { image delete image$i }
-	catch { image delete small$i }
-	image create photo image$i -file $theGif
-	image create photo small$i
-	small$i copy image$i -subsample 2
+	if {[guiExists $i]} {
+	    set imageFn "guiImage"
+	} else {
+	    set imageFn "textImage"
+	}
 	set borderWidth 0
-	$frame create rect 0 [expr {1+$i*60}] 159 [expr {[expr 1+$i+1]*60}]  \
+	$frame create rect 0 [expr 1+$i*60] 159 [expr 1+($i+1)*60]  \
 	    -outline black \
-	    -fill $theColor \
+	    -fill [gameColor $i] \
 	    -tags [list listRect$i]
-	$frame create text 155 [expr {31+$i*60}] -text $theString \
+	$frame create text 155 [expr {31+$i*60}] -text [gameString $i] \
 	    -anchor e \
 	    -width 100 \
+	    -fill [textColor $i] \
 	    -tags [list listText$i]
-	$frame create image 5 [expr {31+$i*60}] -image small$i \
+	$frame create image 5 [expr {31+$i*60}] -image [$imageFn $i 0.5] \
 	    -anchor w -tags [list listImage$i]
     }
 }
 
 proc prevGameButton {menu home} {
-    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
+    global currentGame currentId theNumberOfPrograms calBlue
     set i $currentId
-    set gameName [lindex $thePrograms $currentId]
-    set currentId [expr ($currentId - 1) % $theNumberOfPrograms]
-    set currentGame [lindex $thePrograms $currentId]
+    set gameName [gameName $currentId]
+    set currentId [expr $currentId - 1]
+    set currentGame [gameName $currentId]
 
     pack forget $home.$gameName
-    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
     $menu itemconfigure listRect$currentId -fill $calBlue
     $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [lindex $theGuiTypes $i]
-    $menu itemconfigure listText$i -fill black
+    $menu itemconfigure listRect$i -fill [gameColor $i]
+    $menu itemconfigure listText$i -fill [textColor $i]
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
     set leftScroll .leftSide.leftScroll
@@ -212,18 +292,17 @@ proc prevGameButton {menu home} {
     }
 }
 proc nextGameButton {menu home} {
-    global currentGame currentId thePrograms theNumberOfPrograms theGuiTypes calBlue
+    global currentGame currentId theNumberOfPrograms calBlue
     set i $currentId
-    set gameName [lindex $thePrograms $currentId]
-    set currentId [expr ($currentId + 1) % $theNumberOfPrograms]
-    set currentGame [lindex $thePrograms $currentId]
+    set gameName [gameName $currentId]
+    set currentId [expr $currentId + 1]
+    set currentGame [gameName $currentId]
 
     pack forget $home.$gameName
-    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $currentId
     $menu itemconfigure listRect$currentId -fill $calBlue
     $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [lindex $theGuiTypes $i]
-    $menu itemconfigure listText$i -fill black
+    $menu itemconfigure listRect$i -fill [gameColor $i]
+    $menu itemconfigure listText$i -fill [textColor $i]
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
     set leftScroll .leftSide.leftScroll
@@ -237,39 +316,37 @@ proc nextGameButton {menu home} {
 }
 
 proc scrollEnter canvas {
-    global oldFill currentId
+    global oldFill oldTextColor currentId
     set id [$canvas find withtag current]
     set id [expr {($id-1)/3}]
     if { $currentId != $id } {
 	set oldFill [lindex [$canvas itemconfig listRect$id -fill] 4]
+	set oldTextColor [lindex [$canvas itemconfig listText$id -fill] 4]
 	$canvas itemconfigure listRect$id -fill RoyalBlue
 	$canvas itemconfigure listText$id -fill white
     }
 }
 
 proc scrollLeave canvas {
-    global oldFill currentId
+    global oldFill oldTextColor currentId
     set id [$canvas find withtag current]
     set id [expr {($id-1)/3}]
     if { $currentId != $id } {
 	$canvas itemconfigure listRect$id -fill $oldFill
-	$canvas itemconfigure listText$id -fill black
+	$canvas itemconfigure listText$id -fill $oldTextColor
     }
 }
 
 proc scrollButton { canvas home } {
-    global thePrograms theGuiTypes homePage currentGame currentId calBlue Desc Rules
+    global homePage currentGame currentId calBlue Desc Rules
     set i [$canvas find withtag current]
     set i [expr {($i-1)/3}]
-    set gameName [lindex $thePrograms $i]
+    set gameName [gameName $i]
     pack forget $home.$currentGame
     pack $home.$gameName -fill both -expand 1 -anchor nw
-    SetHomeButton .leftSide.leftBottom $home .rightSide.rightBottom.buttons $i
-    SetLaunchButtons .rightSide.rightBottom.buttons $i
     if { $currentId > -1 } {
-	set theColor [lindex $theGuiTypes $currentId]
-	$canvas itemconfigure listRect$currentId -fill $theColor
-	$canvas itemconfigure listText$currentId -fill black
+	$canvas itemconfigure listRect$currentId -fill [gameColor $currentId]
+	$canvas itemconfigure listText$currentId -fill [textColor $currentId]
     }
     $canvas itemconfigure listRect$i -fill $calBlue
     $canvas itemconfigure listText$i -fill white
@@ -300,118 +377,8 @@ proc Resize { } {
     }
 }
 
-proc CreateLaunchButtons { rightBottom } {
-    canvas $rightBottom
-    button $rightBottom.prev \
-	-text "Previous" \
-	-bg gold \
-	-state disabled
-    button $rightBottom.playGui \
-	-text "Play Gui" \
-	-bg gold \
-	-state disabled
-    button $rightBottom.playText \
-	-text "Play Text" \
-	-bg gold \
-	-state disabled
-    button $rightBottom.next \
-	-text "Next" \
-	-bg gold \
-	-state disabled
-
-    pack $rightBottom.prev -side left
-    pack $rightBottom.playGui -side left
-    pack $rightBottom.playText -side left
-    pack $rightBottom.next -side left
-    pack $rightBottom -anchor center
-}
-
-proc SetLaunchButtons { rightBottom i } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms currentGame currentId calBlue
-    set theGUIProgram "./Xm[lindex $thePrograms $i]"
-    set theTextProgram "./m[lindex $thePrograms $i]"
-    set gameString [lindex $theStrings $i]
-    set gameName [lindex $thePrograms $i]
-    set prevGameId [expr $i - 1]
-    set nextGameId [expr $i + 1]
-    if {$i==0} {
-	set prevGameId [expr $theNumberOfPrograms - 1]
-    }
-    if {$nextGameId==$theNumberOfPrograms} {
-	set nextGameId 0
-    }
-    set prevGameName [lindex $thePrograms $prevGameId]
-    set nextGameName [lindex $thePrograms $nextGameId]
-    set home .rightSide.home
-    set menu .leftSide.menu
-    set theOldColor [lindex $theGuiTypes $i]
-
-
-    $rightBottom.prev configure -state normal \
-	-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom $prevGameId; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $prevGameId; \
-			set currentGame $prevGameName; \
-			set currentId $prevGameId; \
-			$menu itemconfigure listRect$prevGameId -fill $calBlue; \
-			$menu itemconfigure listText$prevGameId -fill white; \
-			$menu itemconfigure listRect$i -fill $theOldColor; \
-			$menu itemconfigure listText$i -fill black; \
-			pack $home.$prevGameName -fill both -expand 1 -anchor nw"
-
-    $rightBottom.playGui configure \
-	-command "exec /usr/bin/env wish -f $theGUIProgram &" -state normal
-
-    $rightBottom.playText configure \
-	-command "exec /usr/bin/env xterm -n $gameString -e $theTextProgram &" -state normal
-    
-    $rightBottom.next configure -state normal \
-	-command "pack forget $home.$gameName; \
-			SetLaunchButtons $rightBottom $nextGameId; \
-			SetHomeButton .leftSide.leftBottom $home $rightBottom $nextGameId; \
-			set currentGame $nextGameName; \
-			set currentId $nextGameId; \
-			$menu itemconfigure listRect$nextGameId -fill $calBlue; \
-			$menu itemconfigure listText$nextGameId -fill white; \
-			$menu itemconfigure listRect$i -fill $theOldColor; \
-			$menu itemconfigure listText$i -fill black; \
-			pack $home.$nextGameName -fill both -expand 1 -anchor nw"
-}
-
-proc CreateHomeButton { frame home rightBottom } {
-    global currentGame currentId
-    set width [expr [winfo width .] - 185]
-    button $frame.home -text "Home" -bg gold \
-	-command "pack $home.main -fill both -expand 1 -anchor nw; \
-			$rightBottom.prev configure -state disabled; \
-			$rightBottom.playGui configure -state disabled; \
-			$rightBottom.playText configure -state disabled; \
-			$rightBottom.next configure -state disabled; \
-			set currentGame main; \
-	                $home.main.title configure -width [expr $width - 20]; \
-			set currentId -1"
-    pack $frame.home -anchor center
-}
-proc SetHomeButton { frame home rightBottom emptyId } {
-    global currentGame currentId thePrograms theGuiTypes
-    set menu .leftSide.menu
-    set width [expr [winfo width .] - 185]
-    $frame.home configure \
-	-command "pack forget $home.[lindex $thePrograms $emptyId]; \
-			pack $home.main -fill both -expand 1 -anchor nw; \
-			$rightBottom.prev configure -state disabled; \
-			$rightBottom.playGui configure -state disabled; \
-			$rightBottom.playText configure -state disabled; \
-			$rightBottom.next configure -state disabled; \
-			set currentGame main; \
-			$menu itemconfigure listRect$emptyId -fill [lindex $theGuiTypes $emptyId]; \
-			$menu itemconfigure listText$emptyId -fill black; \
-	                $home.main.title configure -width [expr $width - 20]; \
-			set currentId -1"
-}
-
 proc CreateGamePages { frame } {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms calBlue Desc Rules
+    global theNumberOfPrograms calBlue Desc Rules
 
     set width [expr [winfo width .] - 185]
     set height [expr [winfo height .] - 30]
@@ -565,14 +532,9 @@ proc CreateGamePages { frame } {
 
     ### this loop creates default content for game specific pages
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set gameName [lindex $thePrograms $i]
-        set theGUIProgram "./Xm[lindex $thePrograms $i]"
-	set theTextProgram "./m[lindex $thePrograms $i]"
-	set temp $gameName
-	set gameString [lindex $theStrings $i]
-	set theGuiGif "$theBitmapDir/[lindex $thePrograms $i]100.gif"
-	set theTextGif "$theBitmapDir/[lindex $thePrograms $i]100text.gif"
-	set theColor [lindex $theGuiTypes $i]
+	set gameName [gameName $i]
+	set gameString [gameString $i]
+	set theColor [gameColor $i]
         set borderWidth 5
 	set bgcolor $calBlue
 	set fontcolor white
@@ -581,32 +543,30 @@ proc CreateGamePages { frame } {
 		-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
 
 	canvas $frame.$gameName.buttons -background $bgcolor
-	image create photo imageGui$gameName -file $theGuiGif -width 100 -height 100
-	image create photo imageText$gameName -file $theTextGif -width 100 -height 100
 
-	button $frame.$gameName.buttons.guiButton \
-	    -image imageGui$gameName \
-	    -text "Play GUI" \
-	    -compound top \
-	    -bg $theColor \
-	    -borderwidth $borderWidth \
-	    -command "exec /usr/bin/env wish -f $theGUIProgram &"
+	pack $frame.$gameName.title -pady [list 5 0]
+        pack $frame.$gameName.buttons
+
+	if {[guiExists $i]} {
+	    button $frame.$gameName.buttons.guiButton \
+		-image [guiImage $i 1] \
+		-text "Play GUI" \
+		-compound top \
+		-bg $theColor \
+		-borderwidth $borderWidth \
+		-command "runGui $i"
+	    pack $frame.$gameName.buttons.guiButton -side left
+	}
+
 	button $frame.$gameName.buttons.textButton \
-	    -image imageText$gameName \
+	    -image [textImage $i 1] \
 	    -text "Play Text" \
 	    -compound top \
 	    -bg black \
 	    -fg white \
 	    -borderwidth $borderWidth \
-	    -command "exec /usr/bin/env xterm -n $gameString -e $theTextProgram &"
-	#canvas $frame.$gameName.photo -background $bgcolor -width 99 -height 99
-	#$frame.$gameName.photo create image 0 0 -image image$gameName -anchor nw
-	
-	pack $frame.$gameName.title -pady [list 5 0]
-        pack $frame.$gameName.buttons
-        pack $frame.$gameName.buttons.guiButton -side left
+	    -command "runText $i"
         pack $frame.$gameName.buttons.textButton -side left
-	#pack $frame.$gameName.photo
 
 	if { [info exists Desc($gameName)] } {
 	    message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
