@@ -17,6 +17,7 @@ bind . <Key> {
     #puts "Pressed %K"
     set menu .leftSide.menu
     set home .rightSide.home
+    
     if {[string compare %K "Up"] == 0} {
 	if {$currentId == -1} {
 	    pack forget $home.main
@@ -37,6 +38,12 @@ bind . <Key> {
 	} elseif {[isGame $currentId]} {
 	    runText $currentId
 	}
+    } elseif {[string compare %K "Prior"] == 0} {
+	#pageUp
+	$menu yview scroll -1 pages
+    } elseif {[string compare %K "Next"] == 0} {
+	#pageDown
+	$menu yview scroll 1 pages
     }
 }
 bind . <Configure> "Resize"
