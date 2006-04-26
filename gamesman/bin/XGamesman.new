@@ -20,17 +20,15 @@ bind . <Key> {
     
     if {[string compare %K "Up"] == 0} {
 	if {$currentId == -1} {
-	    pack forget $home.main
-	    nextGameButton $menu $home
+	    selectGame 0
 	} elseif {$currentId > 0} {
-	    prevGameButton $menu $home
+	    selectGame [expr $currentId - 1]
 	}
     } elseif {[string compare %K "Down"] == 0} {
 	if {$currentId == -1} {
-	    pack forget $home.main
-	    nextGameButton $menu $home
+	    selectGame 0
 	} elseif {$currentId < [expr $theNumberOfPrograms-1]} {
-	    nextGameButton .leftSide.menu .rightSide.home
+	    selectGame [expr $currentId + 1]
 	}
     } elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
 	if {[guiExists $currentId]} {
@@ -66,6 +64,12 @@ proc isGame {id} {
 proc gameName {id} {
     global thePrograms
     return [lindex $thePrograms $id]
+}
+proc pageName {id} {
+    if {$id == -1} {
+	return main
+    }
+    return [gameName $id]
 }
 proc gameColor {id} {
     global theGuiTypes
@@ -142,6 +146,50 @@ proc textImage {id scale} {
 
     return $imageName
 }
+proc selectGame id {
+    global currentGame currentId calBlue theNumberOfPrograms
+    set menu .leftSide.menu
+    set home .rightSide.home
+    set leftScroll .leftSide.leftScroll
+
+    pack forget $home.$currentGame
+    if {[isGame $currentId]} {
+	$menu itemconfigure listRect$currentId -fill [gameColor $currentId] -outline RoyalBlue
+	$menu itemconfigure listText$currentId -fill [textColor $currentId]
+    }
+
+    set currentId $id
+    set currentGame [pageName $id]
+    set width [expr [winfo width .] - 185]
+    $home.$currentGame.title configure -width [expr $width - 20]
+    if { [isGame $currentId] == false } {
+	$home.$currentGame.desc configure -width [expr $width - 20]
+    }
+    if { [info exists Desc($currentGame)] } {
+	$home.$currentGame.desc configure -width [expr $width - 20]
+    }
+    if { [info exists Rules($currentGame)] } {
+	$home.$currentGame.rules configure -width [expr $width - 20]
+    }
+    pack $home.$currentGame -fill both -expand 1 -anchor nw
+    if {[isGame $currentId]} {
+	$menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
+	$menu itemconfigure listText$currentId -fill white
+
+	set top [expr ($currentId+0.0) / $theNumberOfPrograms]
+	set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
+	set first [lindex [$leftScroll get] 0]
+	set last [lindex [$leftScroll get] 1]
+	set diff [expr $last - $first]
+	
+	if {$top < $first} {
+	    $menu yview moveto $top
+	}
+	if {$bottom > $last } {
+	    $menu yview moveto [max 0 [expr $bottom - $diff]]
+	}
+    }
+}
 ###END HELPER FUNCTIONS###
 proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms \
@@ -195,6 +243,7 @@ proc main {} {
     set scrollDirection vertical
 
     menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
+
     canvas .leftSide -highlightthickness 0
     canvas .rightSide -highlightthickness 0
 
@@ -234,7 +283,7 @@ proc main {} {
 
     $menu bind all <Any-Enter> "scrollEnter $menu"
     $menu bind all <Any-Leave> "scrollLeave $menu"
-    $menu bind all <1> "scrollButton $menu $home"
+    $menu bind all <1> "scrollButton $menu"
     $menu bind all <Double-1> "scrollDoubleClick $menu"
 
     bind $menu <ButtonPress-4> "mouseWheelUp"
@@ -253,20 +302,7 @@ proc CreateMenuItems menu {
     menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
     $menu add cascade -label "File" -menu $m -underline 0
     $m add command -label "Home" -underline 0 \
-	-command {
-	    global currentGame currentId
-	    set home .rightSide.home
-	    set list .leftSide.menu
-	    set width [expr [winfo width .] - 185]
-	    pack forget $home.[gameName $currentId]
-	    pack $home.main -fill both -expand 1 -anchor nw
-	    set currentGame main
-	    $list itemconfigure listRect$currentId -fill [gameColor $currentId] \
-		-outline RoyalBlue
-	    $list itemconfigure listText$currentId -fill black
-	    $home.main.title configure -width [expr $width - 20]
-	    set currentId -1
-	}
+	-command "selectGame -1"
     $m add command -label "Quit" -underline 0 -command exit
     
     set m $menu.view
@@ -303,63 +339,6 @@ proc CreateMenuButtons { frame home } {
     }
 }
 
-proc prevGameButton {menu home} {
-    global currentGame currentId theNumberOfPrograms calBlue
-    set i $currentId
-    set gameName [gameName $currentId]
-    set currentId [expr $currentId - 1]
-    set currentGame [gameName $currentId]
-
-    pack forget $home.$gameName
-    $menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
-    $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [gameColor $i] -outline RoyalBlue
-    $menu itemconfigure listText$i -fill [textColor $i]
-    pack $home.$currentGame -fill both -expand 1 -anchor nw
-
-    set leftScroll .leftSide.leftScroll
-
-    set top [expr ($currentId+0.0) / $theNumberOfPrograms]
-    set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
-    set first [lindex [$leftScroll get] 0]
-    set last [lindex [$leftScroll get] 1]
-    set diff [expr $last - $first]
-    if {$top < $first} {
-	$menu yview moveto [expr $top]
-    }
-    if {$bottom > $last} {
-	$menu yview moveto [max 0 [expr $bottom - $diff]]
-    }
-}
-proc nextGameButton {menu home} {
-    global currentGame currentId theNumberOfPrograms calBlue
-    set i $currentId
-    set gameName [gameName $currentId]
-    set currentId [expr $currentId + 1]
-    set currentGame [gameName $currentId]
-
-    pack forget $home.$gameName
-    $menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
-    $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [gameColor $i] -outline RoyalBlue
-    $menu itemconfigure listText$i -fill [textColor $i]
-    pack $home.$currentGame -fill both -expand 1 -anchor nw
-
-    set leftScroll .leftSide.leftScroll
-
-    set top [expr ($currentId+0.0) / $theNumberOfPrograms]
-    set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
-    set first [lindex [$leftScroll get] 0]
-    set last [lindex [$leftScroll get] 1]
-    set diff [expr $last - $first]
-    if {$bottom > $last} {
-	$menu yview moveto [expr $bottom - $diff]
-    }
-    if {$top < $first} {
-	$menu yview moveto [max 0 $top]
-    }
-}
-
 proc scrollEnter canvas {
     global oldFill oldTextColor currentId
     set id [$canvas find withtag current]
@@ -382,31 +361,10 @@ proc scrollLeave canvas {
     }
 }
 
-proc scrollButton { canvas home } {
-    global homePage currentGame currentId calBlue Desc Rules
+proc scrollButton { canvas } {
     set i [$canvas find withtag current]
     set i [expr {($i-1)/3}]
-    set gameName [gameName $i]
-    pack forget $home.$currentGame
-    pack $home.$gameName -fill both -expand 1 -anchor nw
-    if { $currentId > -1 } {
-	$canvas itemconfigure listRect$currentId -fill [gameColor $currentId] \
-	    -outline RoyalBlue
-	$canvas itemconfigure listText$currentId -fill [textColor $currentId]
-    }
-    $canvas itemconfigure listRect$i -fill $calBlue -outline $calBlue
-    $canvas itemconfigure listText$i -fill white
-
-    set width [expr [winfo width .] - 185]
-    if { [info exists Desc($gameName)] } {
-	$home.$gameName.desc configure -width [expr $width - 20]
-    }
-    if { [info exists Rules($gameName)] } {
-	$home.$gameName.rules configure -width [expr $width - 20]
-    }
-
-    set currentGame $gameName
-    set currentId $i
+    selectGame $i
 }
 
 proc scrollDoubleClick menu {
