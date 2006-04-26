@@ -146,11 +146,17 @@ proc textImage {id scale} {
 
     return $imageName
 }
-proc selectGame id {
+#pos can be "top","middle", or "bottom"
+proc selectGame {id args} {
     global currentGame currentId calBlue theNumberOfPrograms
     set menu .leftSide.menu
     set home .rightSide.home
     set leftScroll .leftSide.leftScroll
+
+    set pos ""
+    if {[llength $args] > 0} {
+	set pos [lindex $args 0]
+    }
 
     pack forget $home.$currentGame
     if {[isGame $currentId]} {
@@ -183,10 +189,18 @@ proc selectGame id {
 	set diff [expr $last - $first]
 	
 	if {$top < $first} {
-	    $menu yview moveto $top
+	    if {$pos == "middle"} {
+		$menu yview moveto [max 0 [expr $bottom - $diff/2]]
+	    } else {
+		$menu yview moveto $top
+	    }
 	}
 	if {$bottom > $last } {
-	    $menu yview moveto [max 0 [expr $bottom - $diff]]
+	    if {$pos == "middle"} {
+		$menu yview moveto [max 0 [expr $bottom - $diff/2]]
+	    } else {
+		$menu yview moveto [max 0 [expr $bottom - $diff]]
+	    }
 	}
     }
 }
@@ -304,6 +318,20 @@ proc CreateMenuItems menu {
     $m add command -label "Home" -underline 0 \
 	-command "selectGame -1"
     $m add command -label "Quit" -underline 0 -command exit
+
+    set m $menu.games
+    menu $m -tearoff 1 -borderwidth 0 -activeborderwidth 1
+    $menu add cascade -label "Games" -menu $m -underline 0
+    global theNumberOfPrograms
+    set height [winfo height .]
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set cBreak 0
+	if {[$m yposition $i] > [expr $height-40]} {
+	    set cBreak 1
+	}
+	$m add command -label [gameString $i] -underline 0 \
+	-command "selectGame $i middle" -columnbreak $cBreak
+    }
     
     set m $menu.view
     menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
