@@ -213,6 +213,7 @@ proc main {} {
     $menu bind all <Any-Enter> "scrollEnter $menu"
     $menu bind all <Any-Leave> "scrollLeave $menu"
     $menu bind all <1> "scrollButton $menu $home"
+    $menu bind all <Double-1> "scrollDoubleClick $menu"
 
     bind $menu <ButtonPress-4> {	
 	set leftScroll .leftSide.leftScroll
@@ -379,6 +380,16 @@ proc scrollButton { canvas home } {
 
     set currentGame $gameName
     set currentId $i
+}
+
+proc scrollDoubleClick menu {
+    set i [$menu find withtag current]
+    set i [expr {($i-1)/3}]
+    if { [guiExists $i] } {
+	runGui $i
+    } else {
+	runText $i
+    }
 }
 
 proc Resize { } {
