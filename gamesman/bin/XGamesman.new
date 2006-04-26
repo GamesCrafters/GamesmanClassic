@@ -181,8 +181,8 @@ proc main {} {
     set scrollDirection vertical
 
     menu .menu -tearoff 0
-    canvas .leftSide
-    canvas .rightSide
+    canvas .leftSide -highlightthickness 0
+    canvas .rightSide -highlightthickness 0
 
     set menu .leftSide.menu
     set leftScroll .leftSide.leftScroll
@@ -192,9 +192,9 @@ proc main {} {
     scrollbar $leftScroll -command "$menu yview" -troughcolor $calBlue -background gold
     canvas $menu -width 160 -scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
-	-background $calBlue
+	-background $calBlue -highlightthickness 0
 
-    canvas $home -background $calBlue
+    canvas $home -background $calBlue -highlightthickness 0
 
     pack .leftSide -fill y -side left
     grid rowconfig    .leftSide 0 -weight 1 -minsize 0
@@ -246,7 +246,8 @@ proc CreateMenuItems menu {
 	    pack forget $home.[gameName $currentId]
 	    pack $home.main -fill both -expand 1 -anchor nw
 	    set currentGame main
-	    $list itemconfigure listRect$currentId -fill [gameColor $currentId]
+	    $list itemconfigure listRect$currentId -fill [gameColor $currentId] \
+		-outline RoyalBlue
 	    $list itemconfigure listText$currentId -fill black
 	    $home.main.title configure -width [expr $width - 20]
 	    set currentId -1
@@ -273,7 +274,7 @@ proc CreateMenuButtons { frame home } {
 	    set imageFn "textImage"
 	}
 	set borderWidth 0
-	$frame create rect 0 [expr 1+$i*60] 159 [expr 1+($i+1)*60]  \
+	$frame create rect 0 [expr 1+$i*60] 159 [expr ($i+1)*60]  \
 	    -outline RoyalBlue \
 	    -fill [gameColor $i] \
 	    -tags [list listRect$i]
@@ -295,9 +296,9 @@ proc prevGameButton {menu home} {
     set currentGame [gameName $currentId]
 
     pack forget $home.$gameName
-    $menu itemconfigure listRect$currentId -fill $calBlue
+    $menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
     $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [gameColor $i]
+    $menu itemconfigure listRect$i -fill [gameColor $i] -outline RoyalBlue
     $menu itemconfigure listText$i -fill [textColor $i]
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
@@ -318,9 +319,9 @@ proc nextGameButton {menu home} {
     set currentGame [gameName $currentId]
 
     pack forget $home.$gameName
-    $menu itemconfigure listRect$currentId -fill $calBlue
+    $menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
     $menu itemconfigure listText$currentId -fill white
-    $menu itemconfigure listRect$i -fill [gameColor $i]
+    $menu itemconfigure listRect$i -fill [gameColor $i] -outline RoyalBlue
     $menu itemconfigure listText$i -fill [textColor $i]
     pack $home.$currentGame -fill both -expand 1 -anchor nw
 
@@ -364,10 +365,11 @@ proc scrollButton { canvas home } {
     pack forget $home.$currentGame
     pack $home.$gameName -fill both -expand 1 -anchor nw
     if { $currentId > -1 } {
-	$canvas itemconfigure listRect$currentId -fill [gameColor $currentId]
+	$canvas itemconfigure listRect$currentId -fill [gameColor $currentId] \
+	    -outline RoyalBlue
 	$canvas itemconfigure listText$currentId -fill [textColor $currentId]
     }
-    $canvas itemconfigure listRect$i -fill $calBlue
+    $canvas itemconfigure listRect$i -fill $calBlue -outline $calBlue
     $canvas itemconfigure listText$i -fill white
 
     set width [expr [winfo width .] - 185]
@@ -417,7 +419,7 @@ proc CreateGamePages { frame } {
     ##### Starting Page ########
     set bgcolor $calBlue
     set fontcolor white
-    canvas $frame.main -background $bgcolor
+    canvas $frame.main -background $bgcolor -highlightthickness 0
     message $frame.main.title -text "GAMESMAN" \
 	-anchor center \
 	-background $bgcolor \
@@ -569,11 +571,11 @@ proc CreateGamePages { frame } {
         set borderWidth 5
 	set bgcolor $calBlue
 	set fontcolor white
-	canvas $frame.$gameName -background $bgcolor
+	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
 	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
 
-	canvas $frame.$gameName.buttons -background $bgcolor
+	canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
 
 	pack $frame.$gameName.title -pady [list 5 0]
         pack $frame.$gameName.buttons
