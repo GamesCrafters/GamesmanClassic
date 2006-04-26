@@ -74,7 +74,6 @@ proc guiExists {id} {
     }
     return true
 }
-#returns false if game $i does not have a GUI
 proc runGui {id} {
     global thePrograms
     set theGuiProgram "./Xm[lindex $thePrograms $id]"
@@ -139,8 +138,15 @@ proc main {} {
     set thePrograms { 1210 abalone achi asalto change dao dinododgem hshogi \
 			  iceblocks lewth lite3 mancala tore nim ooe othello \
 			  qx rubix seega slideN snake tactix ttt3 wuzhi sim win4 \
+			  \
 			  ctoi dodgem lgame \
-			  3spot con cmass dnb foxes stt }
+			  \
+			  3spot con cmass dnb foxes stt \
+			  \
+			  1ton 9mm baghchal blocking fandan gobblet horse \
+			  joust nuttt pylos rcheckers rInfin2 squaredance swans \
+			  tilechess tootnotto ttc winkers xigua \
+		      }
 
     set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" "Dao" \
 			  "Dino Dodgem" "Hasami Shogi" "Ice Blocks" \
@@ -150,12 +156,23 @@ proc main {} {
 			  "Tic-Tac-Toe" "Sim" "Wuzhi" "Connect-4" \
 			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
-			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" }
+			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
+			  "1 TO N" "Nine Men's Morris" "Bagh Chal (Tigers Move)" \
+			  "Blocking" "Fandango" "Gobblet Jr" "Horseshoe" "Joust" \
+			  "Nu Tic-Tac-Toe" "Pylos" "Rubik's Checkers" \
+			  "Rubik's Infinity" "Square Dance" "Dragons & Swans" \
+			  "Tile Chess" "Toot and Otto" "Tic-Tac-Chec" "Winkers" \
+			  "XiGua" \
+		      }
     set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold \
 			  grey grey grey \
-			  brown brown brown brown brown brown}
+			  brown brown brown brown brown brown \
+			  black black black black black black black black \
+			  black black black black black black black black \
+			  black black black \
+		      }
 
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
@@ -351,9 +368,11 @@ proc scrollButton { canvas home } {
     $canvas itemconfigure listRect$i -fill $calBlue
     $canvas itemconfigure listText$i -fill white
 
-    if { [info exists Desc($gameName)] && [info exists Rules($gameName)] } {
-	set width [expr [winfo width .] - 185]
+    set width [expr [winfo width .] - 185]
+    if { [info exists Desc($gameName)] } {
 	$home.$gameName.desc configure -width [expr $width - 20]
+    }
+    if { [info exists Rules($gameName)] } {
 	$home.$gameName.rules configure -width [expr $width - 20]
     }
 
