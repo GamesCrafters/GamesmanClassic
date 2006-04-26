@@ -196,8 +196,16 @@ proc main {} {
 
     set home .rightSide.home
 
-    scrollbar $leftScroll -command "$menu yview" -troughcolor $calBlue -background gold
-    canvas $menu -width 160 -scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
+    scrollbar $leftScroll -command "$menu yview" \
+	-troughcolor $calBlue \
+	-background gold \
+	-borderwidth 0 \
+	-elementborderwidth 1 \
+	-highlightthickness 1 \
+	-highlightbackground RoyalBlue \
+	-width 13
+    canvas $menu -width 160 \
+	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
 	-background $calBlue -highlightthickness 0
 
@@ -222,18 +230,11 @@ proc main {} {
     $menu bind all <1> "scrollButton $menu $home"
     $menu bind all <Double-1> "scrollDoubleClick $menu"
 
-    bind $menu <ButtonPress-4> {	
-	set leftScroll .leftSide.leftScroll
-	set menu .leftSide.menu
-	set first [lindex [$leftScroll get] 0]
-	$menu yview moveto [expr $first - 0.0285]
-    }
-    bind $menu <ButtonPress-5> {
-	set leftScroll .leftSide.leftScroll
-	set menu .leftSide.menu
-	set first [lindex [$leftScroll get] 0]
-	$menu yview moveto [expr $first + 0.0285]
-    }
+    bind $menu <ButtonPress-4> "mouseWheelUp"
+    bind $menu <ButtonPress-5> "mouseWheelDown"
+
+    bind $leftScroll <ButtonPress-4> "mouseWheelUp"
+    bind $leftScroll <ButtonPress-5> "mouseWheelDown"
 
     . configure -menu .menu
 }
@@ -399,6 +400,20 @@ proc scrollDoubleClick menu {
     } else {
 	runText $i
     }
+}
+
+proc mouseWheelUp { } {
+    set leftScroll .leftSide.leftScroll
+    set menu .leftSide.menu
+    set first [lindex [$leftScroll get] 0]
+    $menu yview moveto [expr $first - 0.0285]
+}
+
+proc mouseWheelDown { } {
+    set leftScroll .leftSide.leftScroll
+    set menu .leftSide.menu
+    set first [lindex [$leftScroll get] 0]
+    $menu yview moveto [expr $first + 0.0285]
 }
 
 proc Resize { } {
