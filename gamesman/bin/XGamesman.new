@@ -48,7 +48,14 @@ bind . <Key> {
 }
 bind . <Configure> "Resize"
 
-###GAME INFO HELPER FUNCTIONS###
+###HELPER FUNCTIONS###
+proc max {x y} {
+    if {$x > $y} {
+	return $x
+    } else {
+	return $y
+    }
+}
 proc isGame {id} {
     global theNumberOfPrograms
     if {$id < 0 || $id >= $theNumberOfPrograms} {
@@ -312,11 +319,16 @@ proc prevGameButton {menu home} {
 
     set leftScroll .leftSide.leftScroll
 
-    set percent [expr ($currentId+0.0) / $theNumberOfPrograms]
+    set top [expr ($currentId+0.0) / $theNumberOfPrograms]
+    set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
     set first [lindex [$leftScroll get] 0]
     set last [lindex [$leftScroll get] 1]
-    if {$percent < $first} {
-	$menu yview moveto [expr $first - 0.0285]
+    set diff [expr $last - $first]
+    if {$top < $first} {
+	$menu yview moveto [expr $top]
+    }
+    if {$bottom > $last} {
+	$menu yview moveto [max 0 [expr $bottom - $diff]]
     }
 }
 proc nextGameButton {menu home} {
@@ -335,11 +347,16 @@ proc nextGameButton {menu home} {
 
     set leftScroll .leftSide.leftScroll
 
-    set percent [expr ($currentId+1.0) / $theNumberOfPrograms]
+    set top [expr ($currentId+0.0) / $theNumberOfPrograms]
+    set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
     set first [lindex [$leftScroll get] 0]
     set last [lindex [$leftScroll get] 1]
-    if {$percent > $last} {
-	$menu yview moveto [expr $first + 0.0285]
+    set diff [expr $last - $first]
+    if {$bottom > $last} {
+	$menu yview moveto [expr $bottom - $diff]
+    }
+    if {$top < $first} {
+	$menu yview moveto [max 0 $top]
     }
 }
 
