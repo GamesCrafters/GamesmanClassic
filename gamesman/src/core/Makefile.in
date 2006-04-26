@@ -69,7 +69,7 @@ SOLVER_LOOPYUP	= solveloopyup$(OBJSUFFIX)
 SOLVER_BOTTOMUP = solvebottomup$(OBJSUFFIX)
 SOLVER_ALPHABETA = solveweakab$(OBJSUFFIX)
 SOLVER_RETROGRADE = solveretrograde$(OBJSUFFIX)
-SOLVER_OPENPOSITIONS = openpositions$(OBJSUFFIX)
+SOLVER_OPENPOSITIONS = openPositions$(OBJSUFFIX)
 
 ##############################################################################
 ### Files

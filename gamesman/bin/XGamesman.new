@@ -44,6 +44,19 @@ bind . <Key> {
 	$menu yview scroll 1 pages
     }
 }
+
+bind . <Control-Key> {
+    global currentId theNumberOfPrograms thePrograms
+    set menu .leftSide.menu
+    set home .rightSide.home
+
+    if {[string compare %K "h"] == 0 || [string compare %K "H"] == 0} {
+	selectGame -1
+    } elseif {[string compare %K "q"] == 0 || [string compare %K "Q"] == 0} {
+	exit
+    }
+}
+
 bind . <Configure> "Resize"
 
 ###HELPER FUNCTIONS###
@@ -315,9 +328,14 @@ proc CreateMenuItems menu {
     set m $menu.file
     menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
     $menu add cascade -label "File" -menu $m -underline 0
-    $m add command -label "Home" -underline 0 \
-	-command "selectGame -1"
-    $m add command -label "Quit" -underline 0 -command exit
+    $m add command -label "Home" \
+	-underline 0 \
+	-command "selectGame -1" \
+	-accelerator <ctrl-h>
+    $m add command -label "Quit" \
+	-underline 0 \
+	-command exit \
+	-accelerator <ctrl-q>
 
     set m $menu.games
     menu $m -tearoff 1 -borderwidth 0 -activeborderwidth 1
