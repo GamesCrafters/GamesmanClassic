@@ -32,6 +32,7 @@
 #include "gamesman.h"
 #include "analysis.h"
 #include "db.h"
+#include "openPositions.h"
 
 
 /*
@@ -244,12 +245,85 @@ void PrintDetailedGameValueSummary()
    			gAnalysis.Draws, gAnalysis.TotalPositions);
    if (gAnalysis.Draws != 0) {
 	   printf("\tDraws = %llu\n\n", gAnalysis.Draws);
-	   printf("\tFringe0 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
+	   printf("\tFringe1 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
    }
    printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
    
-
+	PrintDetailedOpenSummary(); //ALAN
    return;
+}
+
+void PrintDetailedOpenSummary() 
+{
+	//if ganalysis.draws
+	REMOTENESS currentFRemoteness;
+	REMOTENESS currentCorruption;
+	REMOTENESS currentLevel;
+	
+	printf("\n\n\t                             ----- Detailed Summary of Open Position values -----\n\n");
+	printf("\tLevel     Corruption    FRemoteness        DrawWin       DrawLose        DrawTie       DrawDraw          Total\n");
+	printf("\t----------------------------------------------------------------------------------------------------------------\n");
+	
+	printf("\t  Inf          undef            Inf              0              0              0     %10llu     %10llu\n\n", 
+		   gAnalysis.DrawDraws,
+		   gAnalysis.DrawDraws);
+	 
+	
+	// have another array in ganalysis to save corruption/fremoteness max values at each level?
+	int printedstuff = 0;
+	   
+	for(currentLevel = gAnalysis.LargestFoundLevel; currentLevel >= 1 ; currentLevel-=1) {
+		// set largest corruption
+		for(currentCorruption = 10; currentCorruption >= 0; currentCorruption-=1) {
+			// set largest found fremoteness with for loop
+			for(currentFRemoteness = 10; currentFRemoteness >= 0; currentFRemoteness-=1) {
+				if(gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win] == 0 && 
+				   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose] == 0) continue;
+				
+				printedstuff = 1;
+				
+				printf("\t%5d     %10d     %10d     %10llu     %10llu     %10llu     %10llu     %10llu\n", 
+					   currentLevel,
+					   currentCorruption,
+					   currentFRemoteness,
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win],
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose],
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][tie],
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][undecided],
+					   
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win] +
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose] +
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][tie] + 
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][undecided]);
+			}
+			if (printedstuff && currentCorruption != 0) printf("\n");
+		}
+		if (printedstuff && currentLevel != 1) printf("\n");
+		printedstuff = 0;
+	}
+		
+	printf("\t----------------------------------------------------------------------------------------------------------------\n");
+	printf("\tTotals                                  %10llu     %10llu     %10llu     %10llu     %10llu\n", 
+		   gAnalysis.DrawWinCount, 
+		   gAnalysis.DrawLoseCount, 
+		   gAnalysis.DrawTieCount,
+		   gAnalysis.DrawDraws, 
+		   gAnalysis.TotalOpenPositions);
+	 
+	
+	printf("\tDraws = %llu\n\n", gAnalysis.Draws);
+	printf("\tFringe1 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
+	printf("\n\tLargestFoundLevel: %d\n", gAnalysis.LargestFoundLevel);
+	printf("\tLargestFoundCorruption: %d\n", gAnalysis.LargestFoundCorruption);
+	printf("\n\tTotal Draw Wins: %llu\n", gAnalysis.OpenSummary[win]);
+	printf("\tTotal Draw Loses: %llu\n", gAnalysis.OpenSummary[lose]);
+	printf("\tTotal Draw Draws: %llu\n", gAnalysis.DrawDraws);
+	//printf("\tTotal Open Positions: %llu\n", gAnalysis.TotalOpenPositions);
+	
+	printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
+
+	
+	return;
 }
 
 
@@ -302,6 +376,7 @@ void analyze() {
 	if(!gAnalysisLoaded) {
 		CreateDatabases();
 		InitializeDatabases();
+		InitializeOpenPositions(gNumberOfPositions);
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);\
         gSolver(gInitialPosition);
@@ -514,7 +589,7 @@ BOOLEAN LoadAnalysis() {
     }
    
     /* Check file version */
-    if((fread(&version, sizeof(char), 1, fp) != 1) || (version != 2)) {
+    if((fread(&version, sizeof(char), 1, fp) != 1) || (version != ANALYSIS_FILE_VER)) {
     	if(!gAnalyzing)
     		printf("Failed!");
     	Stopwatch();
@@ -591,7 +666,7 @@ BOOLEAN LoadAnalysis() {
 void SaveAnalysis() {
     char gameFileName[256];
     //int currentRemoteness;
-    char version = 2;
+    char version = ANALYSIS_FILE_VER;
     FILE *fp;
     
     Stopwatch();
@@ -607,14 +682,14 @@ void SaveAnalysis() {
         return;
     }
    
-    /* Check file version */
+    /* Write file version */
     if(fwrite(&version, sizeof(char), 1, fp) != 1) {
     	printf("Failed!");
     	Stopwatch();
         return;
     }
     
-    /* Read misc. info */
+    /* Write misc. info */
     /*
   	if((fwrite(&(gAnalysis.NumberOfPositions), sizeof(POSITION), 1, fp) != 1) ||
   		(fwrite(&(gAnalysis.TotalPositions), sizeof(POSITION), 1, fp) != 1) ||

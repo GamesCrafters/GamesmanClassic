@@ -11,6 +11,7 @@ VALUE   (*original_put_value) (POSITION pos, VALUE val);
 #endif
 */
 
+#define ANALYSIS_FILE_VER 3
 
 /* Functions to output sets of data */
 
@@ -21,6 +22,7 @@ void	PrintMexValues			(MEX value, int maxpos);
 void	PrintValuePositions		(char value, int maxPos);
 void	PrintGameValueSummary		();
 void    PrintDetailedGameValueSummary();
+void	PrintDetailedOpenSummary();
 
 /* Analysis output */
 
@@ -64,17 +66,21 @@ typedef struct analysis_info
   POSITION TotalPositions;
   POSITION TotalMoves;
   POSITION TotalPrimitives;
+  
   POSITION WinCount;
   POSITION LoseCount;
   POSITION TieCount;
-  POSITION UnknownCount;
   POSITION Draws;
+  
+  POSITION UnknownCount;
   POSITION PrimitiveWins;
   POSITION PrimitiveLoses;
   POSITION PrimitiveTies;
+  
   POSITION F0EdgeCount;
   POSITION F0NodeCount;
   POSITION F0DrawEdgeCount;
+  
   VALUE InitialPositionValue;
   REMOTENESS LargestFoundRemoteness;
   unsigned int  TimeToSolve;
@@ -82,7 +88,21 @@ typedef struct analysis_info
   float AverageFanout;
   float InitialPositionProbability;
   POSITION DetailedPositionSummary[REMOTENESS_MAX+1][4];		/* Table for counting wins(1) and losses(2) and ties(3) 
-															*at each remoteness between 0 and REMOTENESS_MAX-1   */
+															*at each remoteness between 0 and REMOTENESS_MAX-1.  Change back to 0,1,2, maybe rid of 4?   */
+  
+  POSITION DetailedOpenSummary[11][11][REMOTENESS_MAX+1][4]; /* [Level][Corruption][FRemoteness][drawvalue] */
+  POSITION OpenSummary[4];
+  
+  POSITION DrawWinCount;
+  POSITION DrawLoseCount;
+  POSITION DrawTieCount;
+  POSITION DrawDraws;
+  POSITION TotalOpenPositions;
+  
+  REMOTENESS LargestFoundLevel;
+  REMOTENESS LargestFoundFRemoteness;
+  REMOTENESS LargestFoundCorruption;
+  
 } ANALYSIS;
 
 extern ANALYSIS gAnalysis;

@@ -43,6 +43,7 @@
 #define DR_MASK 0x00007FC0
 #define IR_MASK 0x00FF8000
 #define OL_MASK 0xFF000000*/
+
 #define DV_MASK 0x3
 #define FB_MASK 0x4
 #define CL_MASK 0x00000FF8
@@ -57,6 +58,7 @@
 #define DR_SHIFT 6
 #define IR_SHIFT 15
 #define OL_SHIFT 24*/
+
 #define DV_SHIFT 0
 #define FB_SHIFT 2
 #define CL_SHIFT 3
@@ -82,6 +84,7 @@
 #define setDrawRemoteness(entry, newval)     (((entry)|DR_MASK)&(((newval)<<DR_SHIFT)|(~DR_MASK)))
 #define setInfiniteRemoteness(entry, newval) (((entry)|IR_MASK)&(((newval)<<IR_SHIFT)|(~IR_MASK)))
 #define setOpenPosLevel(entry, newval)       (((entry)|OL_MASK)&(((newval)<<OL_SHIFT)|(~OL_MASK)))*/
+
 #define GetDrawValue(entry)          (((entry)&DV_MASK)>>DV_SHIFT)
 #define GetCorruptionLevel(entry)    (((entry)&CL_MASK)>>CL_SHIFT)
 #define GetLevelNumber(entry)        (((entry)&LN_MASK)>>LN_SHIFT)
@@ -94,6 +97,7 @@
 #define SetFremoteness(entry, newval)        (((entry)|FR_MASK)&(((newval)<<FR_SHIFT)|(~FR_MASK)))
 #define SetFringe(entry, newval)             (((entry)|FB_MASK)&(((newval)<<FB_SHIFT)|(~FB_MASK)))
 
+#define OPEN_FILE_VER 1		/* Open positions DB file version */
 /* headers */
 
 /* These are the core library functions for use elsewhere */
@@ -101,28 +105,39 @@
 /* call before doing any other operations.  This is safe to call more than once, although
    it will wipe out any progress made if you do */
 void InitializeOpenPositions(int numPossiblePositions);
+
 /* call when you want to free up the massive amounts of memory this analysis will do.
    make sure you're done with all openPositions data first! */
 void CleanupOpenPositions(void);
 void FreeOpenPositions(void);
+
 /* do the actual work! */
 void ComputeOpenPositions();
+
 /* call this with each draw position before calling computeOpenPositions.  This keeps us from having
    search for draw positions before we can do work */
 void RegisterDrawPosition(POSITION pos);
+
 /* call to set the open positions value of a position.  Right now, this just makes an assignment to an array,
    but in the future this might access the value in the values database */
 void SetOpenData(POSITION pos, OPEN_POS_DATA value);
+
 /* call to get the open positions value of a position.  Right now, this just accesses an array,
    but in the future this might access the value in the values database */
 OPEN_POS_DATA GetOpenData(POSITION pos);
+
 /* call to print the drawvalues of positions.  This won't be useful for long, but it's great for debugging
    and getting a point across */
 void PrintOpenDataFormatted(void);
 void PrintOpenAnalysis(void);
 void PrintSingleOpenData(POSITION p);
+
 /* this is to allow the computer to choose where to go using openPositions */
 MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * remotenesses);
+
+/* Open positions DB save/load functions */
+BOOLEAN SaveOpenPositionsData();
+BOOLEAN LoadOpenPositionsData();
 
 /* These are the "private" functions for openPositions' consumption only */
 void EnqueueDP(POSITION pos);
@@ -137,5 +152,6 @@ OPEN_POS_DATA DetermineFreAndCorDown1LevelForWin(POSITION p);
 /* globals */
 extern OPEN_POS_DATA* openPosData;
 extern POSITION openPosArrLen;
+extern BOOLEAN gOpenDataLoaded;
 
 #endif

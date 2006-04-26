@@ -32,6 +32,7 @@
 #include "gamesman.h"
 #include "solveloopy.h"
 #include "analysis.h" // fix this?? -MATT  lol
+#include "openPositions.h"
 
 /*
 ** Globals
@@ -94,9 +95,11 @@ VALUE DetermineLoopyValue(POSITION position)
     //   InitializeVisitedArray();
     
     value = DetermineLoopyValue1(gInitialPosition);
-    
+	ComputeOpenPositions();
+	//printf("Got here\n");
+	//PrintOpenDataFormatted();
     /* free */
-    NumberChildrenFree();
+    //NumberChildrenFree();
     ParentFree();
     //FreeVisitedArray();
     

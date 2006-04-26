@@ -606,6 +606,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	fflush(stdout);
 	Stopwatch();
 	InitializeDatabases();
+	InitializeOpenPositions(gNumberOfPositions);
 	printf("done in %u seconds!", Stopwatch()); // for analysis bookkeeping
 	fflush(stdout);
 	Stopwatch();
@@ -946,6 +947,7 @@ void AnalysisMenu()
         printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
 
         printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
+        printf("\tg)\t(G)enerate visualization of game tree in DOT format\n");
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
 
         if(badWinPositions != NULL)
@@ -1036,6 +1038,9 @@ void AnalysisMenu()
 	    gPrintPredictions = tempPredictions;
 	    gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
 	    return;
+	case 'G': case 'g':
+		Visualize();
+		break;
 	default:
 	    BadMenuChoice();
 	    HitAnyKeyToContinue();

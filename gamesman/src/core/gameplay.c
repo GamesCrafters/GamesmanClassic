@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.41 2006-04-25 04:25:22 usaar33 Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.42 2006-04-26 14:59:49 arabani Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -33,6 +33,7 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include "openPositions.h"
 
 #define leftJustified 1
 #define rightJustified 2
@@ -61,13 +62,14 @@ static int maxPossibleLineLength = 256;
 ** Local function prototypes
 */
 
-static	MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
-static	MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 static	VALUE_MOVES*	SortMoves			(POSITION, MOVE, VALUE_MOVES*);
 static	VALUE_MOVES*	StoreMoveInList			(MOVE, REMOTENESS, VALUE_MOVES*, int);
 static  moveList*       moveListHandleUndo              (moveList*);
 static  moveList*       moveListHandleNewMove           (POSITION, MOVE, moveList*, MOVELIST*);
 static  void            moveListHandleGameOver             (moveList*);
+
+extern MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+extern MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 
 
 void             PrintMoveHistory                (POSITION);
@@ -1526,7 +1528,7 @@ MOVE GetComputersMove(POSITION thePosition)
                         theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else if (moveType == TIEMOVE) {
                         // TIEMOVE: Tie as quickly as possible when smart???
-                        theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+						theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else {
                         // LOSEMOVE: Prolong the game as much as possible (largest remoteness is best).
                         theMove = RandomLargestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);

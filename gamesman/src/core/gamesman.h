@@ -24,6 +24,8 @@
 #include "hash.h"
 #include "db.h"
 #include "analysis.h"
+#include "visualization.h"
+#include "openPositions.h"
 #include "constants.h"
 #include "globals.h"
 #include "debug.h"

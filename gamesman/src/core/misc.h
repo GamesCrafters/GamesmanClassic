@@ -18,6 +18,7 @@ void		ExitStageRight			();
 void		ExitStageRightErrorString	(STRING msg);
 
 GENERIC_PTR	SafeMalloc			(size_t amt);
+GENERIC_PTR	SafeRealloc			(GENERIC_PTR ptr, size_t amount);
 void		SafeFree			(GENERIC_PTR ptr);
 void		BadElse				(STRING function);
 

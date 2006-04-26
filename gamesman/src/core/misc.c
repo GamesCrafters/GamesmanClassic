@@ -193,6 +193,20 @@ GENERIC_PTR SafeMalloc(size_t amount)
         }
 }
 
+GENERIC_PTR SafeRealloc(GENERIC_PTR ptr, size_t amount)
+{
+	if(ptr == NULL) {
+		ExitStageRightErrorString("Error: SafeRealloc was handed a NULL ptr!\n");
+		exit(0);
+	} else if((ptr = realloc(ptr, amount)) == NULL) {
+		printf("Error: SafeRealloc could not allocate the requested %lu bytes\n", (long) amount);
+		ExitStageRight();
+		exit(0);
+	} else {
+		return(ptr);
+	}
+}
+
 void SafeFree(GENERIC_PTR ptr)
 {
         if(ptr == NULL)

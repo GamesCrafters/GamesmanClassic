@@ -73,7 +73,8 @@ GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h \
 			  core/gameplay.h core/misc.h core/memdb.h \
 			  core/bpdb.h core/bpdb_schemes.h \
 			  core/textui.h core/filedb.h core/main.h \
-			  core/solveloopyup.h core/setup.h
+			  core/solveloopyup.h core/setup.h core/visualization.h \
+			  core/openPositions.h
 
 GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
 

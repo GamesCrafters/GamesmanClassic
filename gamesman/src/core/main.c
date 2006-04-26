@@ -39,6 +39,8 @@
 #include "solveweakab.h"
 #include "solveretrograde.h"
 #include "hash.h"
+#include "visualization.h"
+#include "openPositions.h"
 
 /*
 ** Globals
@@ -115,7 +117,7 @@ VALUE DetermineValue(POSITION position)
 		gLoadDatabase = FALSE;
 	}
 
-	if(gLoadDatabase && LoadDatabase()) {
+	if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
 		if (gPrintDatabaseInfo)
 			printf("\nLoading in Database for %s...",kGameName);
 
@@ -124,11 +126,13 @@ VALUE DetermineValue(POSITION position)
 				printf("\nRe-evaluating the value of %s...", kGameName);
 			gSolver(position);
 			AnalysisCollation();
+			gAnalysisLoaded = TRUE;
 			printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 
 			if(gSaveDatabase) {
 				printf("\nWriting the values of %s into a database...", kGameName);
 				SaveDatabase();
+				SaveOpenPositionsData();
 				SaveAnalysis();
 			}
 		}
@@ -139,15 +143,15 @@ VALUE DetermineValue(POSITION position)
 		gSolver(position);
 		showStatus(Clean);
 		AnalysisCollation();
+		gAnalysisLoaded = TRUE;
 		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
 
 		if(gSaveDatabase) {
 			SaveDatabase();
+			SaveOpenPositionsData();
 			SaveAnalysis();
 		}
 	}
-
-	gAnalysisLoaded = TRUE;
 	gUseGPS = FALSE;
 	gValue = GetValueOfPosition(position);
 
@@ -166,6 +170,7 @@ void SolveAndStore()
 {
 		Initialize();
         InitializeDatabases();
+        InitializeOpenPositions(gNumberOfPositions);
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
         gAnalysis.TimeToSolve = Stopwatch();
@@ -177,6 +182,7 @@ void SolveAndStore()
                 writeXML(Save);
                 writeXML(SaveVar);
                 writeXML(CleanVar);
+                Visualize();
         }
 }
 

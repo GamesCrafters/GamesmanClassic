@@ -53,4 +53,8 @@ USERINPUT       ComputerMove                    (POSITION position,MOVE* move, S
 
 void            PlayGame                        (PLAYER playerOne,PLAYER playerTwo);
 
+/* Move-choosing logic */
+MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+
 #endif /* GMCORE_GAMEPLAY_H */
