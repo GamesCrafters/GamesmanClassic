@@ -194,7 +194,7 @@ proc main {} {
     set currentId -1
     set scrollDirection vertical
 
-    menu .menu -tearoff 0
+    menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
     canvas .leftSide -highlightthickness 0
     canvas .rightSide -highlightthickness 0
 
@@ -250,7 +250,7 @@ proc CreateMenuItems menu {
     global scrollDirection currentId currentGame
 
     set m $menu.file
-    menu $m -tearoff 0
+    menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
     $menu add cascade -label "File" -menu $m -underline 0
     $m add command -label "Home" -underline 0 \
 	-command {
@@ -270,7 +270,7 @@ proc CreateMenuItems menu {
     $m add command -label "Quit" -underline 0 -command exit
     
     set m $menu.view
-    menu $m -tearoff 0
+    menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
     $menu add cascade -label "View" -menu $m -underline 0
     $m add radio -label "vertical scroll" \
 	-variable scrollDirection \
