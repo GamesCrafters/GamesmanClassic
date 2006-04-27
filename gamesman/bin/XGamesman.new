@@ -15,10 +15,11 @@ set textGameColor black
 bind . <Key> {
     global currentId theNumberOfPrograms thePrograms
     #puts "Pressed %K"
-    set menu .leftSide.menu
+    set list .leftSide.list
     set home .rightSide.home
 
     switch %K {
+	Left -
 	Up {
 	    if {$currentId == -1} {
 		selectGame 0
@@ -26,6 +27,7 @@ bind . <Key> {
 		selectGame [expr $currentId - 1]
 	    }
 	}
+	Right -
 	Down {
 	    if {$currentId == -1} {
 		selectGame 0
@@ -41,8 +43,8 @@ bind . <Key> {
 		runText $currentId
 	    }
 	}
-	Prior {$menu yview scroll -1 pages}
-	Next {$menu yview scroll 1 pages}
+	Prior {$list [axisView] scroll -1 pages}
+	Next {$list [axisView] scroll 1 pages}
 	Home {selectGame 0}
 	End {selectGame [expr $theNumberOfPrograms -1]}
     }
@@ -50,7 +52,7 @@ bind . <Key> {
 
 bind . <Control-Key> {
     global currentId theNumberOfPrograms thePrograms
-    set menu .leftSide.menu
+    set list .leftSide.list
     set home .rightSide.home
 
     if {[string compare %K "h"] == 0 || [string compare %K "H"] == 0} {
@@ -75,10 +77,17 @@ proc getIdUnderMouse {canvas} {
     set i [string replace [lindex $tags [lsearch $tags list*]] 0 3]
     return $i
 }
+proc axisView {} {
+    global scrollDirection
+    if {$scrollDirection == "vertical"} {
+	return "yview"
+    }
+    return "xview"
+}
 proc verticalScroll {} {
     global scrollDirection theNumberOfPrograms
     set scrollDirection vertical
-    set list .leftSide.menu
+    set list .leftSide.list
     set leftScroll .leftSide.leftScroll
     pack forget .leftSide .rightSide $list $leftScroll
 
@@ -86,8 +95,7 @@ proc verticalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
     $list configure -height 60 \
-	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
-	-yscrollcommand "$leftScroll set"
+	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]]
 
     pack .leftSide -fill y -side left
     pack .rightSide -fill both -side left -expand 1
@@ -100,7 +108,7 @@ proc verticalScroll {} {
 proc horizontalScroll {} {
     global scrollDirection theNumberOfPrograms
     set scrollDirection horizontal
-    set list .leftSide.menu
+    set list .leftSide.list
     set leftScroll .leftSide.leftScroll
     pack forget .leftSide .rightSide $list $leftScroll
 
@@ -108,8 +116,7 @@ proc horizontalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list xview"
     $list configure -height 60 \
-	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60] \
-	-xscrollcommand "$leftScroll set"
+	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60]
 
     pack $list -fill x
     pack $leftScroll -fill x
@@ -223,7 +230,7 @@ proc textImage {id scale} {
 #pos can be "top","middle", or "bottom"
 proc selectGame {id args} {
     global currentGame currentId calBlue theNumberOfPrograms
-    set menu .leftSide.menu
+    set list .leftSide.list
     set home .rightSide.home
     set leftScroll .leftSide.leftScroll
 
@@ -234,8 +241,8 @@ proc selectGame {id args} {
 
     pack forget $home.$currentGame
     if {[isGame $currentId]} {
-	$menu itemconfigure rect$currentId -fill [gameColor $currentId] -outline RoyalBlue
-	$menu itemconfigure text$currentId -fill [textColor $currentId]
+	$list itemconfigure rect$currentId -fill [gameColor $currentId] -outline RoyalBlue
+	$list itemconfigure text$currentId -fill [textColor $currentId]
     }
 
     set currentId $id
@@ -253,27 +260,27 @@ proc selectGame {id args} {
     }
     pack $home.$currentGame -fill both -expand 1 -anchor nw
     if {[isGame $currentId]} {
-	$menu itemconfigure rect$currentId -fill $calBlue -outline $calBlue
-	$menu itemconfigure text$currentId -fill white
+	$list itemconfigure rect$currentId -fill $calBlue -outline $calBlue
+	$list itemconfigure text$currentId -fill white
 
 	set top [expr ($currentId+0.0) / $theNumberOfPrograms]
 	set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
 	set first [lindex [$leftScroll get] 0]
 	set last [lindex [$leftScroll get] 1]
 	set diff [expr $last - $first]
-	
+
 	if {$top < $first} {
 	    if {$pos == "middle"} {
-		$menu yview moveto [max 0 [expr $bottom - $diff/2]]
+		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
 	    } else {
-		$menu yview moveto $top
+		$list [axisView] moveto $top
 	    }
 	}
 	if {$bottom > $last } {
 	    if {$pos == "middle"} {
-		$menu yview moveto [max 0 [expr $bottom - $diff/2]]
+		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
 	    } else {
-		$menu yview moveto [max 0 [expr $bottom - $diff]]
+		$list [axisView] moveto [max 0 [expr $bottom - $diff]]
 	    }
 	}
     }
@@ -337,12 +344,12 @@ proc main {} {
     canvas .leftSide -highlightthickness 0
     canvas .rightSide -highlightthickness 0
 
-    set menu .leftSide.menu
+    set list .leftSide.list
     set leftScroll .leftSide.leftScroll
 
     set home .rightSide.home
 
-    scrollbar $leftScroll -command "$menu yview" \
+    scrollbar $leftScroll -command "$list yview" \
 	-troughcolor $calBlue \
 	-background gold \
 	-borderwidth 0 \
@@ -350,7 +357,7 @@ proc main {} {
 	-highlightthickness 1 \
 	-highlightbackground RoyalBlue \
 	-width 13
-    canvas $menu -width 160 \
+    canvas $list -width 160 \
 	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand "$leftScroll set" \
@@ -364,21 +371,21 @@ proc main {} {
     pack .rightSide -fill both -side left -expand 1
     
     pack $leftScroll -fill y -side left
-    pack $menu -fill y -side left
+    pack $list -fill y -side left
 
     pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
     CreateGamePages $home
     CreateMenuItems .menu
-    CreateListButtons $menu
+    CreateListButtons $list
 
-    $menu bind all <Any-Enter> "scrollEnter $menu"
-    $menu bind all <Any-Leave> "scrollLeave $menu"
-    $menu bind all <1> "scrollButton $menu"
-    $menu bind all <Double-1> "scrollDoubleClick $menu"
+    $list bind all <Any-Enter> "scrollEnter $list"
+    $list bind all <Any-Leave> "scrollLeave $list"
+    $list bind all <1> "scrollButton $list"
+    $list bind all <Double-1> "scrollDoubleClick $list"
 
-    bind $menu <ButtonPress-4> "mouseWheelUp"
-    bind $menu <ButtonPress-5> "mouseWheelDown"
+    bind $list <ButtonPress-4> "mouseWheelUp"
+    bind $list <ButtonPress-5> "mouseWheelDown"
 
     bind $leftScroll <ButtonPress-4> "mouseWheelUp"
     bind $leftScroll <ButtonPress-5> "mouseWheelDown"
@@ -440,7 +447,7 @@ proc CreateListButtons list {
 	set textCoords [list 155 [expr {31+$i*60}]]
 	set imageCoords [list 5 [expr {31+$i*60}]]
 	if {$scrollDirection == "horizontal"} {
-	    set rectCoords [list [expr 160*$i+1] 0 [expr ($i+1)*160] 60]
+	    set rectCoords [list [expr 160*$i+1] 0 [expr ($i+1)*160] 59]
 	    set textCoords [list [expr 160*($i+1)-5] 30]
 	    set imageCoords [list [expr 160*$i+5] 30]
 	}
@@ -495,25 +502,17 @@ proc scrollDoubleClick list {
 proc mouseWheelUp { } {
     global scrollDirection
     set leftScroll .leftSide.leftScroll
-    set menu .leftSide.menu
+    set list .leftSide.list
     set first [lindex [$leftScroll get] 0]
-    if {$scrollDirection == "vertical"} {
-	$menu yview moveto [expr $first - 0.0285]
-    } else {
-	$menu xview moveto [expr $first - 0.0285]
-    }
+    $list [axisView] scroll -1 units
 }
 
 proc mouseWheelDown { } {
     global scrollDirection
     set leftScroll .leftSide.leftScroll
-    set menu .leftSide.menu
+    set list .leftSide.list
     set first [lindex [$leftScroll get] 0]
-    if {$scrollDirection == "vertical"} {
-	$menu yview moveto [expr $first + 0.0285]
-    } else {
-	$menu xview moveto [expr $first + 0.0285]
-    }
+    $list [axisView] scroll 1 units
 }
 
 proc Resize { } {
