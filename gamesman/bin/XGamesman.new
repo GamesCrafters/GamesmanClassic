@@ -95,7 +95,9 @@ proc verticalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
     $list configure -height 60 \
-	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]]
+	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
+	-yscrollcommand "$leftScroll set" \
+	-xscrollcommand ""
 
     pack .leftSide -fill y -side left
     pack .rightSide -fill both -side left -expand 1
@@ -116,7 +118,9 @@ proc horizontalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list xview"
     $list configure -height 60 \
-	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60]
+	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60] \
+	-yscrollcommand "" \
+	-xscrollcommand "$leftScroll set"
 
     pack $list -fill x
     pack $leftScroll -fill x
@@ -447,7 +451,7 @@ proc CreateListButtons list {
 	set textCoords [list 155 [expr {31+$i*60}]]
 	set imageCoords [list 5 [expr {31+$i*60}]]
 	if {$scrollDirection == "horizontal"} {
-	    set rectCoords [list [expr 160*$i+1] 0 [expr ($i+1)*160] 59]
+	    set rectCoords [list [expr 160*$i] 0 [expr ($i+1)*160] 59]
 	    set textCoords [list [expr 160*($i+1)-5] 30]
 	    set imageCoords [list [expr 160*$i+5] 30]
 	}
