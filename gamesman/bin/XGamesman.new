@@ -17,31 +17,34 @@ bind . <Key> {
     #puts "Pressed %K"
     set menu .leftSide.menu
     set home .rightSide.home
-    
-    if {[string compare %K "Up"] == 0} {
-	if {$currentId == -1} {
-	    selectGame 0
-	} elseif {$currentId > 0} {
-	    selectGame [expr $currentId - 1]
+
+    switch %K {
+	Up {
+	    if {$currentId == -1} {
+		selectGame 0
+	    } elseif {$currentId > 0} {
+		selectGame [expr $currentId - 1]
+	    }
 	}
-    } elseif {[string compare %K "Down"] == 0} {
-	if {$currentId == -1} {
-	    selectGame 0
-	} elseif {$currentId < [expr $theNumberOfPrograms-1]} {
-	    selectGame [expr $currentId + 1]
+	Down {
+	    if {$currentId == -1} {
+		selectGame 0
+	    } elseif {$currentId < [expr $theNumberOfPrograms-1]} {
+		selectGame [expr $currentId + 1]
+	    }
 	}
-    } elseif {[string compare %K "Return"] == 0 || [string compare %K "KP_Enter"] == 0} {
-	if {[guiExists $currentId]} {
-	    runGui $currentId
-	} elseif {[isGame $currentId]} {
-	    runText $currentId
+	Return -
+	KP_Enter {
+	    if {[guiExists $currentId]} {
+		runGui $currentId
+	    } elseif {[isGame $currentId]} {
+		runText $currentId
+	    }
 	}
-    } elseif {[string compare %K "Prior"] == 0} {
-	#pageUp
-	$menu yview scroll -1 pages
-    } elseif {[string compare %K "Next"] == 0} {
-	#pageDown
-	$menu yview scroll 1 pages
+	Prior {$menu yview scroll -1 pages}
+	Next {$menu yview scroll 1 pages}
+	Home {selectGame 0}
+	End {selectGame [expr $theNumberOfPrograms -1]}
     }
 }
 
@@ -66,6 +69,64 @@ proc max {x y} {
     } else {
 	return $y
     }
+}
+proc getIdUnderMouse {canvas} {
+    set tags [$canvas gettags [$canvas find withtag current]]
+    set i [string replace [lindex $tags [lsearch $tags list*]] 0 3]
+    return $i
+}
+proc verticalScroll {} {
+    global scrollDirection theNumberOfPrograms
+    set scrollDirection vertical
+    set list .leftSide.menu
+    set leftScroll .leftSide.leftScroll
+    pack forget .leftSide .rightSide $list $leftScroll
+
+    CreateListButtons $list
+    $leftScroll configure -orient $scrollDirection \
+	-command "$list yview"
+    $list configure -height 60 \
+	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
+	-yscrollcommand "$leftScroll set"
+
+    pack .leftSide -fill y -side left
+    pack .rightSide -fill both -side left -expand 1
+    
+    pack $leftScroll -fill y -side left
+    pack $list -fill y -side left
+
+    Resize
+}
+proc horizontalScroll {} {
+    global scrollDirection theNumberOfPrograms
+    set scrollDirection horizontal
+    set list .leftSide.menu
+    set leftScroll .leftSide.leftScroll
+    pack forget .leftSide .rightSide $list $leftScroll
+
+    CreateListButtons $list
+    $leftScroll configure -orient $scrollDirection \
+	-command "$list xview"
+    $list configure -height 60 \
+	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60] \
+	-xscrollcommand "$leftScroll set"
+
+    pack $list -fill x
+    pack $leftScroll -fill x
+
+    pack .rightSide -fill both -expand 1
+    pack .leftSide -fill x
+    Resize
+}
+proc pageWidth {} {
+    global scrollDirection
+    if {$scrollDirection == "vertical"} {
+	return [expr [winfo width .] - [listWidth]]
+    }
+    return [winfo width .]
+}
+proc listWidth {} {
+    return 173
 }
 proc isGame {id} {
     global theNumberOfPrograms
@@ -173,13 +234,13 @@ proc selectGame {id args} {
 
     pack forget $home.$currentGame
     if {[isGame $currentId]} {
-	$menu itemconfigure listRect$currentId -fill [gameColor $currentId] -outline RoyalBlue
-	$menu itemconfigure listText$currentId -fill [textColor $currentId]
+	$menu itemconfigure rect$currentId -fill [gameColor $currentId] -outline RoyalBlue
+	$menu itemconfigure text$currentId -fill [textColor $currentId]
     }
 
     set currentId $id
     set currentGame [pageName $id]
-    set width [expr [winfo width .] - 185]
+    set width [pageWidth]
     $home.$currentGame.title configure -width [expr $width - 20]
     if { [isGame $currentId] == false } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
@@ -192,8 +253,8 @@ proc selectGame {id args} {
     }
     pack $home.$currentGame -fill both -expand 1 -anchor nw
     if {[isGame $currentId]} {
-	$menu itemconfigure listRect$currentId -fill $calBlue -outline $calBlue
-	$menu itemconfigure listText$currentId -fill white
+	$menu itemconfigure rect$currentId -fill $calBlue -outline $calBlue
+	$menu itemconfigure text$currentId -fill white
 
 	set top [expr ($currentId+0.0) / $theNumberOfPrograms]
 	set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
@@ -219,22 +280,24 @@ proc selectGame {id args} {
 }
 ###END HELPER FUNCTIONS###
 proc main {} {
-    global theBitmapDir thePrograms theStrings theGuiTypes theNumberOfPrograms \
-	   currentGame currentId calBlue calYellow scrollDirection
+    global theBitmapDir thePrograms theStrings theGuiTypes \
+	theNumberOfPrograms currentGame currentId \
+	calBlue calYellow scrollDirection
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms { 1210 abalone achi asalto change win4 dao dinododgem hshogi \
-			  iceblocks lewth lite3 mancala tore nim ooe othello \
-			  qx rubix seega slideN snake tactix ttt3 wuzhi sim \
+    set thePrograms { 1210 abalone achi asalto change win4 dao dinododgem \
+			  hshogi iceblocks lewth lite3 mancala tore nim ooe \
+			  othello qx rubix seega slideN snake tactix ttt3 \
+			  wuzhi sim \
 			  \
 			  ctoi dodgem lgame \
 			  \
 			  3spot con cmass dnb foxes stt \
 			  \
 			  1ton 9mm baghchal blocking fandan gobblet horse \
-			  joust nuttt pylos rcheckers rInfin2 squaredance swans \
-			  tilechess tootnotto ttc winkers xigua \
+			  joust nuttt pylos rcheckers rInfin2 squaredance \
+			  swans tilechess tootnotto ttc winkers xigua \
 		      }
 
     set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" \
@@ -247,12 +310,12 @@ proc main {} {
 			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
-			  "1 TO N" "Nine Men's Morris" "Bagh Chal (Tigers Move)" \
-			  "Blocking" "Fandango" "Gobblet Jr" "Horseshoe" "Joust" \
-			  "Nu Tic-Tac-Toe" "Pylos" "Rubik's Checkers" \
-			  "Rubik's Infinity" "Square Dance" "Dragons & Swans" \
-			  "Tile Chess" "Toot and Otto" "Tic-Tac-Chec" "Winkers" \
-			  "XiGua" \
+			  "1 TO N" "Nine Men's Morris" \
+			  "Bagh Chal (Tigers Move)" "Blocking" "Fandango" \
+			  "Gobblet Jr" "Horseshoe" "Joust" "Nu Tic-Tac-Toe" \
+			  "Pylos" "Rubik's Checkers" "Rubik's Infinity" \
+			  "Square Dance" "Dragons & Swans" "Tile Chess" \
+			  "Toot and Otto" "Tic-Tac-Chec" "Winkers" "XiGua" \
 		      }
     set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold gold gold gold gold gold \
@@ -290,6 +353,7 @@ proc main {} {
     canvas $menu -width 160 \
 	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
+	-xscrollcommand "$leftScroll set" \
 	-background $calBlue -highlightthickness 0
 
     canvas $home -background $calBlue -highlightthickness 0
@@ -306,7 +370,7 @@ proc main {} {
 
     CreateGamePages $home
     CreateMenuItems .menu
-    CreateMenuButtons $menu $home
+    CreateListButtons $menu
 
     $menu bind all <Any-Enter> "scrollEnter $menu"
     $menu bind all <Any-Leave> "scrollLeave $menu"
@@ -356,66 +420,71 @@ proc CreateMenuItems menu {
     $menu add cascade -label "View" -menu $m -underline 0
     $m add radio -label "vertical scroll" \
 	-variable scrollDirection \
-	-value vertical
+	-value vertical \
+	-command verticalScroll
     $m add radio -label "horizontal scroll" \
 	-variable scrollDirection \
-	-value horizontal
+	-value horizontal \
+	-command horizontalScroll
 }
 
-proc CreateMenuButtons { frame home } {
-    global theNumberOfPrograms
+proc CreateListButtons list {
+    global theNumberOfPrograms scrollDirection currentId
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	if {[guiExists $i]} {
 	    set imageFn "guiImage"
 	} else {
 	    set imageFn "textImage"
 	}
-	set borderWidth 0
-	$frame create rect 0 [expr 1+$i*60] 159 [expr ($i+1)*60]  \
+	set rectCoords [list 0 [expr 1+$i*60] 159 [expr ($i+1)*60]]
+	set textCoords [list 155 [expr {31+$i*60}]]
+	set imageCoords [list 5 [expr {31+$i*60}]]
+	if {$scrollDirection == "horizontal"} {
+	    set rectCoords [list [expr 160*$i+1] 0 [expr ($i+1)*160] 60]
+	    set textCoords [list [expr 160*($i+1)-5] 30]
+	    set imageCoords [list [expr 160*$i+5] 30]
+	}
+	$list create rect $rectCoords \
 	    -outline RoyalBlue \
 	    -fill [gameColor $i] \
-	    -tags [list listRect$i]
-	$frame create text 155 [expr {31+$i*60}] -text [gameString $i] \
+	    -tags [list rect$i list$i]
+	$list create text $textCoords -text [gameString $i] \
 	    -anchor e \
 	    -width 100 \
 	    -fill [textColor $i] \
-	    -tags [list listText$i]
-	$frame create image 5 [expr {31+$i*60}] -image [$imageFn $i 0.5] \
-	    -anchor w -tags [list listImage$i]
+	    -tags [list text$i list$i]
+	$list create image $imageCoords -image [$imageFn $i 0.5] \
+	    -anchor w -tags [list image$i list$i]
     }
+    selectGame $currentId
 }
 
 proc scrollEnter canvas {
     global oldFill oldTextColor currentId
-    set id [$canvas find withtag current]
-    set id [expr {($id-1)/3}]
+    set id [getIdUnderMouse $canvas]
     if { $currentId != $id } {
-	set oldFill [lindex [$canvas itemconfig listRect$id -fill] 4]
-	set oldTextColor [lindex [$canvas itemconfig listText$id -fill] 4]
-	$canvas itemconfigure listRect$id -fill RoyalBlue
-	$canvas itemconfigure listText$id -fill white
+	set oldFill [lindex [$canvas itemconfig rect$id -fill] 4]
+	set oldTextColor [lindex [$canvas itemconfig text$id -fill] 4]
+	$canvas itemconfigure rect$id -fill RoyalBlue
+	$canvas itemconfigure text$id -fill white
     }
 }
 
-proc scrollLeave canvas {
+proc scrollLeave list {
     global oldFill oldTextColor currentId
-    set id [$canvas find withtag current]
-    set id [expr {($id-1)/3}]
+    set id [getIdUnderMouse $list]
     if { $currentId != $id } {
-	$canvas itemconfigure listRect$id -fill $oldFill
-	$canvas itemconfigure listText$id -fill $oldTextColor
+	$list itemconfigure rect$id -fill $oldFill
+	$list itemconfigure text$id -fill $oldTextColor
     }
 }
 
-proc scrollButton { canvas } {
-    set i [$canvas find withtag current]
-    set i [expr {($i-1)/3}]
-    selectGame $i
+proc scrollButton list {
+    selectGame [getIdUnderMouse $list]
 }
 
-proc scrollDoubleClick menu {
-    set i [$menu find withtag current]
-    set i [expr {($i-1)/3}]
+proc scrollDoubleClick list {
+    set i [getIdUnderMouse $list]
     if { [guiExists $i] } {
 	runGui $i
     } else {
@@ -424,23 +493,33 @@ proc scrollDoubleClick menu {
 }
 
 proc mouseWheelUp { } {
+    global scrollDirection
     set leftScroll .leftSide.leftScroll
     set menu .leftSide.menu
     set first [lindex [$leftScroll get] 0]
-    $menu yview moveto [expr $first - 0.0285]
+    if {$scrollDirection == "vertical"} {
+	$menu yview moveto [expr $first - 0.0285]
+    } else {
+	$menu xview moveto [expr $first - 0.0285]
+    }
 }
 
 proc mouseWheelDown { } {
+    global scrollDirection
     set leftScroll .leftSide.leftScroll
     set menu .leftSide.menu
     set first [lindex [$leftScroll get] 0]
-    $menu yview moveto [expr $first + 0.0285]
+    if {$scrollDirection == "vertical"} {
+	$menu yview moveto [expr $first + 0.0285]
+    } else {
+	$menu xview moveto [expr $first + 0.0285]
+    }
 }
 
 proc Resize { } {
     global Desc Rules currentGame
     set home .rightSide.home
-    set width [expr [winfo width .] - 185]
+    set width [pageWidth]
     $home.$currentGame.title configure -width [expr $width - 20]
     if { [info exists Desc($currentGame)] } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
@@ -456,7 +535,7 @@ proc Resize { } {
 proc CreateGamePages { frame } {
     global theNumberOfPrograms calBlue Desc Rules
 
-    set width [expr [winfo width .] - 185]
+    set width [pageWidth]
     set height [expr [winfo height .] - 30]
 
     ##### Starting Page ########
