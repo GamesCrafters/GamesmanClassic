@@ -85,7 +85,7 @@ proc axisView {} {
     return "xview"
 }
 proc verticalScroll {} {
-    global scrollDirection theNumberOfPrograms
+    global scrollDirection theNumberOfPrograms currentId
     set scrollDirection vertical
     set list .leftSide.list
     set leftScroll .leftSide.leftScroll
@@ -94,7 +94,7 @@ proc verticalScroll {} {
     CreateListButtons $list
     $leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
-    $list configure -height 60 \
+    $list configure -width 160 \
 	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand ""
@@ -106,9 +106,16 @@ proc verticalScroll {} {
     pack $list -fill y -side left
 
     Resize
+    $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
+    update
+
+    #save preference to file
+    set fileptr [open scrollDirection.txt w+]
+    puts $fileptr $scrollDirection
+    close $fileptr
 }
 proc horizontalScroll {} {
-    global scrollDirection theNumberOfPrograms
+    global scrollDirection theNumberOfPrograms currentId
     set scrollDirection horizontal
     set list .leftSide.list
     set leftScroll .leftSide.leftScroll
@@ -128,6 +135,13 @@ proc horizontalScroll {} {
     pack .rightSide -fill both -expand 1
     pack .leftSide -fill x
     Resize
+    $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
+    update
+
+    #save preference to file
+    set fileptr [open scrollDirection.txt w+]
+    puts $fileptr $scrollDirection
+    close $fileptr
 }
 proc pageWidth {} {
     global scrollDirection
@@ -245,7 +259,8 @@ proc selectGame {id args} {
 
     pack forget $home.$currentGame
     if {[isGame $currentId]} {
-	$list itemconfigure rect$currentId -fill [gameColor $currentId] -outline RoyalBlue
+	$list itemconfigure rect$currentId -fill [gameColor $currentId] \
+	    -outline RoyalBlue
 	$list itemconfigure text$currentId -fill [textColor $currentId]
     }
 
@@ -353,7 +368,7 @@ proc main {} {
 
     set home .rightSide.home
 
-    scrollbar $leftScroll -command "$list yview" \
+    scrollbar $leftScroll \
 	-troughcolor $calBlue \
 	-background gold \
 	-borderwidth 0 \
@@ -361,11 +376,7 @@ proc main {} {
 	-highlightthickness 1 \
 	-highlightbackground RoyalBlue \
 	-width 13
-    canvas $list -width 160 \
-	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
-	-yscrollcommand "$leftScroll set" \
-	-xscrollcommand "$leftScroll set" \
-	-background $calBlue -highlightthickness 0
+    canvas $list -background $calBlue -highlightthickness 0
 
     canvas $home -background $calBlue -highlightthickness 0
 
@@ -374,14 +385,26 @@ proc main {} {
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
     
-    pack $leftScroll -fill y -side left
-    pack $list -fill y -side left
+    #pack $leftScroll -fill y -side left
+    #pack $list -fill y -side left
 
     pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
     CreateGamePages $home
     CreateMenuItems .menu
     CreateListButtons $list
+
+    if {[catch {set fileptr [open scrollDirection.txt r]}]} {
+	set scrollDirection vertical
+    } else {
+	gets $fileptr scrollDirection
+	close $fileptr
+    }
+    if {$scrollDirection == "vertical"} {
+	verticalScroll
+    } else {
+	horizontalScroll
+    }
 
     $list bind all <Any-Enter> "scrollEnter $list"
     $list bind all <Any-Leave> "scrollLeave $list"
@@ -555,7 +578,7 @@ proc CreateGamePages { frame } {
 	"A Finite, Two-Person, Perfect-Information Game Generator.\
 	\n\n\tGamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\
 	\n\tSince 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\
-\n\nSelect one of the $theNumberOfPrograms games from the sidebar to learn more about it." \
+\n\nSelect one of the $theNumberOfPrograms games from the list to learn more about it." \
 	-anchor nw \
 	-background $bgcolor \
 	-foreground $fontcolor \
