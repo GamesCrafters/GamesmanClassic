@@ -7,10 +7,11 @@ wm geometry . =800x$maxheight
 update
 
 global calBlue calYellow
-global textGameColor
+global textGameColor listFont
 set calBlue #006
 set calYellow #FFCC33
 set textGameColor black
+set listFont "Helvetica 10"
 
 bind . <Key> {
     global currentId theNumberOfPrograms thePrograms
@@ -77,6 +78,31 @@ proc getIdUnderMouse {canvas} {
     set i [string replace [lindex $tags [lsearch $tags list*]] 0 3]
     return $i
 }
+proc listItemWidth {} {
+    global scrollDirection listFont
+    if {$scrollDirection == "vertical"} {
+	return 160
+    }
+    return [expr [maxGameStringWidth $listFont] + 10]
+}
+proc listItemHeight {} {
+    global scrollDirection
+    if {$scrollDirection == "vertical"} {
+	return 60
+    }
+    return 80
+}
+proc maxGameStringWidth {font} {
+    global maxGameString theNumberOfPrograms
+    if {$maxGameString > 0} {
+	return $maxGameString
+    }
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	if {[font measure $font [gameString $i]] > $maxGameString} {
+	    set maxGameString [font measure $font [gameString $i]]
+	}
+    }
+}
 proc axisView {} {
     global scrollDirection
     if {$scrollDirection == "vertical"} {
@@ -94,8 +120,8 @@ proc verticalScroll {} {
     CreateListButtons $list
     $leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
-    $list configure -width 160 \
-	-scrollregion [list 0 1 160 [expr 2+$theNumberOfPrograms*60]] \
+    $list configure -width [listItemWidth] \
+	-scrollregion [list 0 1 [listItemWidth] [expr 2+$theNumberOfPrograms*[listItemHeight]]] \
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand ""
 
@@ -124,8 +150,8 @@ proc horizontalScroll {} {
     CreateListButtons $list
     $leftScroll configure -orient $scrollDirection \
 	-command "$list xview"
-    $list configure -height 60 \
-	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*160] 60] \
+    $list configure -height [listItemHeight] \
+	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*[listItemWidth]] [listItemHeight]] \
 	-yscrollcommand "" \
 	-xscrollcommand "$leftScroll set"
 
@@ -308,7 +334,7 @@ proc selectGame {id args} {
 proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
-	calBlue calYellow scrollDirection
+	calBlue calYellow scrollDirection maxGameString
 
     set theBitmapDir "../bitmaps"
 
@@ -337,7 +363,7 @@ proc main {} {
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
 			  "1 TO N" "Nine Men's Morris" \
-			  "Bagh Chal (Tigers Move)" "Blocking" "Fandango" \
+			  "Bagh Chal" "Blocking" "Fandango" \
 			  "Gobblet Jr" "Horseshoe" "Joust" "Nu Tic-Tac-Toe" \
 			  "Pylos" "Rubik's Checkers" "Rubik's Infinity" \
 			  "Square Dance" "Dragons & Swans" "Tile Chess" \
@@ -357,6 +383,7 @@ proc main {} {
     set currentGame main
     set currentId -1
     set scrollDirection vertical
+    set maxGameString 0
 
     menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
 
@@ -463,32 +490,49 @@ proc CreateMenuItems menu {
 }
 
 proc CreateListButtons list {
-    global theNumberOfPrograms scrollDirection currentId
+    global theNumberOfPrograms scrollDirection currentId listFont
+    set imageScale 0.5
+    set imageSize [expr 100 * $imageScale]
+    set textAnchor "e"
+    set imageAnchor "w"
+    set textWidth [expr [listItemWidth] - $imageSize - 10]
+    if {$scrollDirection == "horizontal"} {
+	set textAnchor "n"
+	set imageAnchor "n"
+	set textWidth [expr [listItemWidth] - 10]
+    }
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	if {[guiExists $i]} {
 	    set imageFn "guiImage"
 	} else {
 	    set imageFn "textImage"
 	}
-	set rectCoords [list 0 [expr 1+$i*60] 159 [expr ($i+1)*60]]
-	set textCoords [list 155 [expr {31+$i*60}]]
-	set imageCoords [list 5 [expr {31+$i*60}]]
+	set rectCoords [list 0 [expr 1+$i*[listItemHeight]] \
+			    [expr [listItemWidth] - 1] \
+			    [expr ($i+1)*[listItemHeight]]]
+	set textCoords [list [expr [listItemWidth]-5] \
+			    [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
+	set imageCoords [list 5 [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
 	if {$scrollDirection == "horizontal"} {
-	    set rectCoords [list [expr 160*$i] 0 [expr ($i+1)*160] 59]
-	    set textCoords [list [expr 160*($i+1)-5] 30]
-	    set imageCoords [list [expr 160*$i+5] 30]
+	    set rectCoords [list [expr [listItemWidth]*$i] 0 \
+				[expr ($i+1)*[listItemWidth]] \
+				[expr [listItemHeight]-1]]
+	    set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
+				[expr $imageSize+10]]
+	    set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
 	}
 	$list create rect $rectCoords \
 	    -outline RoyalBlue \
 	    -fill [gameColor $i] \
 	    -tags [list rect$i list$i]
 	$list create text $textCoords -text [gameString $i] \
-	    -anchor e \
-	    -width 100 \
+	    -anchor $textAnchor \
+	    -width $textWidth \
 	    -fill [textColor $i] \
+	    -font $listFont \
 	    -tags [list text$i list$i]
-	$list create image $imageCoords -image [$imageFn $i 0.5] \
-	    -anchor w -tags [list image$i list$i]
+	$list create image $imageCoords -image [$imageFn $i $imageScale] \
+	    -anchor $imageAnchor -tags [list image$i list$i]
     }
     selectGame $currentId
 }
