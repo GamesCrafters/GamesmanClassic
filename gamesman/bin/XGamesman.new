@@ -121,7 +121,7 @@ proc verticalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
     $list configure -width [listItemWidth] \
-	-scrollregion [list 0 1 [listItemWidth] [expr 2+$theNumberOfPrograms*[listItemHeight]]] \
+	-scrollregion [list 0 1 [listItemWidth] [expr 1+$theNumberOfPrograms*[listItemHeight]]] \
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand ""
 
@@ -151,7 +151,7 @@ proc horizontalScroll {} {
     $leftScroll configure -orient $scrollDirection \
 	-command "$list xview"
     $list configure -height [listItemHeight] \
-	-scrollregion [list 0 0 [expr 2+$theNumberOfPrograms*[listItemWidth]] [listItemHeight]] \
+	-scrollregion [list 0 0 [expr 1+$theNumberOfPrograms*[listItemWidth]] [listItemHeight]] \
 	-yscrollcommand "" \
 	-xscrollcommand "$leftScroll set"
 
@@ -507,7 +507,7 @@ proc CreateListButtons list {
 	} else {
 	    set imageFn "textImage"
 	}
-	set rectCoords [list 0 [expr 1+$i*[listItemHeight]] \
+	set rectCoords [list -1 [expr 1+$i*[listItemHeight]] \
 			    [expr [listItemWidth] - 1] \
 			    [expr ($i+1)*[listItemHeight]]]
 	set textCoords [list [expr [listItemWidth]-5] \
@@ -515,8 +515,8 @@ proc CreateListButtons list {
 	set imageCoords [list 5 [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
 	if {$scrollDirection == "horizontal"} {
 	    set rectCoords [list [expr [listItemWidth]*$i] 0 \
-				[expr ($i+1)*[listItemWidth]] \
-				[expr [listItemHeight]-1]]
+				[expr ($i+1)*[listItemWidth]-1] \
+				[expr [listItemHeight]-0]]
 	    set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
 				[expr $imageSize+10]]
 	    set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
