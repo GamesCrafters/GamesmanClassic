@@ -110,7 +110,16 @@ proc axisView {} {
     }
     return "xview"
 }
-proc verticalScroll {} {
+proc setListLocation location {
+    global listLocation
+    set listLocation $location
+    if {$listLocation == "top" || $listLocation == "bottom"} {
+	horizontalScroll $listLocation
+    } else {
+	verticalScroll $listLocation
+    }
+}
+proc verticalScroll location {
     global scrollDirection theNumberOfPrograms currentId
     set scrollDirection vertical
     set list .leftSide.list
@@ -125,22 +134,22 @@ proc verticalScroll {} {
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand ""
 
-    pack .leftSide -fill y -side left
-    pack .rightSide -fill both -side left -expand 1
+    pack .leftSide -fill y -side $location
+    pack .rightSide -fill both -side $location -expand 1
     
-    pack $leftScroll -fill y -side left
-    pack $list -fill y -side left
+    pack $leftScroll -fill y -side $location
+    pack $list -fill y -side $location
 
     Resize
     $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
     update
 
     #save preference to file
-    set fileptr [open scrollDirection.txt w+]
-    puts $fileptr $scrollDirection
+    set fileptr [open listLocation.txt w+]
+    puts $fileptr $location
     close $fileptr
 }
-proc horizontalScroll {} {
+proc horizontalScroll location {
     global scrollDirection theNumberOfPrograms currentId
     set scrollDirection horizontal
     set list .leftSide.list
@@ -155,18 +164,19 @@ proc horizontalScroll {} {
 	-yscrollcommand "" \
 	-xscrollcommand "$leftScroll set"
 
-    pack $list -fill x
-    pack $leftScroll -fill x
+    pack $leftScroll -fill x -side $location
+    pack $list -fill x -side $location
 
-    pack .rightSide -fill both -expand 1
-    pack .leftSide -fill x
+    pack .leftSide -fill x -side $location
+    pack .rightSide -fill both -expand 1 -side $location
+
     Resize
     $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
     update
 
     #save preference to file
-    set fileptr [open scrollDirection.txt w+]
-    puts $fileptr $scrollDirection
+    set fileptr [open listLocation.txt w+]
+    puts $fileptr $location
     close $fileptr
 }
 proc pageWidth {} {
@@ -334,7 +344,7 @@ proc selectGame {id args} {
 proc main {} {
     global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
-	calBlue calYellow scrollDirection maxGameString
+	calBlue calYellow scrollDirection listLocation maxGameString
 
     set theBitmapDir "../bitmaps"
 
@@ -382,7 +392,6 @@ proc main {} {
     set theNumberOfPrograms [llength $thePrograms]
     set currentGame main
     set currentId -1
-    set scrollDirection vertical
     set maxGameString 0
 
     menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
@@ -412,26 +421,21 @@ proc main {} {
     grid columnconfig .leftSide 0 -weight 1 -minsize 0
     pack .rightSide -fill both -side left -expand 1
     
-    #pack $leftScroll -fill y -side left
-    #pack $list -fill y -side left
-
     pack $home -fill both -side right -expand 1 -padx 0 -pady 0
+
+    set scrollDirection vertical
+    if {[catch {set fileptr [open listLocation.txt r]}]} {
+	set listLocation left
+    } else {
+	gets $fileptr listLocation
+	close $fileptr
+    }
 
     CreateGamePages $home
     CreateMenuItems .menu
     CreateListButtons $list
 
-    if {[catch {set fileptr [open scrollDirection.txt r]}]} {
-	set scrollDirection vertical
-    } else {
-	gets $fileptr scrollDirection
-	close $fileptr
-    }
-    if {$scrollDirection == "vertical"} {
-	verticalScroll
-    } else {
-	horizontalScroll
-    }
+    setListLocation $listLocation
 
     $list bind all <Any-Enter> "scrollEnter $list"
     $list bind all <Any-Leave> "scrollLeave $list"
@@ -448,7 +452,7 @@ proc main {} {
 }
 
 proc CreateMenuItems menu {
-    global scrollDirection currentId currentGame
+    global listLocation currentId currentGame
 
     set m $menu.file
     menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
@@ -479,14 +483,27 @@ proc CreateMenuItems menu {
     set m $menu.view
     menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
     $menu add cascade -label "View" -menu $m -underline 0
-    $m add radio -label "vertical scroll" \
-	-variable scrollDirection \
-	-value vertical \
-	-command verticalScroll
-    $m add radio -label "horizontal scroll" \
-	-variable scrollDirection \
-	-value horizontal \
-	-command horizontalScroll
+
+    set mList $menu.view.listPos
+    menu $mList -tearoff 0 -borderwidth 0  -activeborderwidth 1
+    $m add cascade -label "List Position" -menu $mList -underline 0
+
+    $mList add radio -label "Left" \
+	-variable listLocation \
+	-value "left" \
+	-command "setListLocation left"
+    $mList add radio -label "Right" \
+	-variable listLocation \
+	-value "right" \
+	-command "setListLocation right"
+    $mList add radio -label "Top" \
+	-variable listLocation \
+	-value  "top" \
+	-command "setListLocation top"
+    $mList add radio -label "Bottom" \
+	-variable listLocation \
+	-value  "bottom" \
+	-command "setListLocation bottom"
 }
 
 proc CreateListButtons list {
