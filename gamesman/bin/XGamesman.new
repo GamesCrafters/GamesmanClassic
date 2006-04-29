@@ -555,22 +555,20 @@ proc CreateListButtons list {
 }
 
 proc scrollEnter canvas {
-    global oldFill oldTextColor currentId
+    global currentId
     set id [getIdUnderMouse $canvas]
     if { $currentId != $id } {
-	set oldFill [lindex [$canvas itemconfig rect$id -fill] 4]
-	set oldTextColor [lindex [$canvas itemconfig text$id -fill] 4]
 	$canvas itemconfigure rect$id -fill RoyalBlue
 	$canvas itemconfigure text$id -fill white
     }
 }
 
 proc scrollLeave list {
-    global oldFill oldTextColor currentId
+    global currentId
     set id [getIdUnderMouse $list]
     if { $currentId != $id } {
-	$list itemconfigure rect$id -fill $oldFill
-	$list itemconfigure text$id -fill $oldTextColor
+	$list itemconfigure rect$id -fill [gameColor $id]
+	$list itemconfigure text$id -fill [textColor $id]
     }
 }
 
