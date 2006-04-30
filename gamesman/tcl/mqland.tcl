@@ -54,20 +54,21 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one of your pieces at each end. \
-		Whichever player sandwiches the most empty spaces in this way WINS."
+	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one \
+		of your pieces at each end. Whichever player sandwiches the most empty \
+		spaces in this way WINS."
     } else {
-	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one of your pieces at each end. \
-		Whichever player sandwiches the most empty spaces in this way LOSES."
+	SetToWinString "Form rows, columns, or diagonal lines of empty spaces with one \
+		of your pieces at each end. Whichever player sandwiches the most empty \
+		spaces in this way LOSES."
     }
     
     ### Edit this string
 
-    SetToMoveString "Each turn, you do two things.  First, if you have any pieces on the board, you may slide one \
-		to any other square in the same row, column, or diagonal that is seperated only by empty squares \
-		(like a Queen in Chess).  Slide a piece by clicking on an arrow leading from that piece to the square \
-		you wish to move it to.  If you wish, you may skip this step by clicking on the button below the board. \
-		Then, place a piece on any empty square by clicking on the dot in that square."
+    SetToMoveString "Each turn, you may slide a piece through any number of vacant squares \
+		along a row, column, or diagonal by clicking on the arrow along which you \
+		wish to move your piece.  Then, place a new piece in an empty square by \
+		clicking on the dot in that square."
 	    
     # Authors Info. Change if desired
     global kRootDir
@@ -327,15 +328,14 @@ proc GS_SetOption { option } {
     set gMisereGame $winConditionVal
     if {$moveStyleVal == 0} {
 	set gSlideRules 0
-    }
-    else {
+    } else {
 	set moveStyleVal [expr $moveStyleVal - 1]
 	set gSlideRules [expr ($moveStyleVal % 2) + 1]
 	set gMoveRules [expr ($moveStyleVal / 2) % 3]
     }
 
     set l 0
-    for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {inrc i} {
+    for {set i $MIN_WIDTH} {$i <= $MAX_WIDTH} {incr i} {
 	for {set j $MIN_PIECES} {$j <= $i} {incr j} {
 		for {set k $MIN_HEIGHT} {$k <= $MAX_HEIGHT} {incr k} {
 			if {$l == $boardSizeVal} {
@@ -387,7 +387,7 @@ proc GS_Initialize { c } {
     set megaCellPadding(h) [expr 5 * $cellPadding(h)]
     set arrowWidth [expr $slotSize(w) / 8]
     set mouseOverColor black
-    set passButtonHeight [expr $slotSize(h) / 2]
+    set passButtonHeight [expr $slotSize(h) / 4]
     set passButtonWidth $slotSize(w)
 
 
@@ -462,8 +462,7 @@ proc GS_Initialize { c } {
     }
 
     #draw the pass button at the bottom
-    set passButton [$c create rectangle [expr ([$c cget -width] / 2) - ($passButtonWidth / 2)] [expr [$c cget -height] - $passButtonHeight] \
-	[expr ([$c cget -width] / 2) + ($passButtonWidth / 2)] [$c cget -height] -fill $dummyDotColor]
+    set passButton [$c create text [expr [$c cget -width] / 2] [expr [$c cget -height] - ($passButtonHeight / 2)] -width [expr [$c cget -height] * .9] -font {Helvetica 18 bold} -fill $dummyDotColor -text "Click an arrow to slide a piece, or click here to pass."]
 
     #draw the background board and lines
     set background [$c create rectangle 0 0 [$c cget -width] [$c cget -height] -fill gray]
@@ -510,7 +509,7 @@ proc GS_DrawPosition { c position } {
     $c raise $background
     $c raise lines
 
-    puts "$board GS_DrawPosition"
+    #puts "$board GS_DrawPosition"
     for {set i 0} {$i < [string length $board]} {incr i} {
 	set w [expr $i % $width]
 	set h [expr $i / $width]
@@ -616,10 +615,12 @@ proc GS_ShowMoves { c moveType position moveList } {
 			set slideMoveVals($i,$j) "Win"
 		}
 	}
-	# Set the values of each slide component.  Since each slide component corresponds to a handful of
-	# actual moves (many moves can have the same slide component but different place components), the
-	# value that each slide component is given is the BEST of all the possible moves it can lead to.
-	# Think of this as a go-again, even though that's not how this is implemented in C.
+	# Set the values of each slide component.  Since each slide component
+	# corresponds to a handful of actual moves (many moves can have the same
+	# slide component but different place components), the value that each
+	# slide component is given is the BEST of all the possible moves it can
+	# lead to. Think of this as a go-again, even though that's not how this
+	# is implemented in C.
 	foreach move $moveList {
 		set theMove [UnhashMove [lindex $move 0]]
 		#[lindex $move 1] will be "Lose" if this move leads to a losing position - i.e. this move is a win.
@@ -674,6 +675,10 @@ proc GetMovePlace { move } {
 	return [expr $move % [expr $width * $height]]
 }
 proc DrawSlideMove { c theMove value moveType moveList currentPlayer position} {
+
+	# Draws a slide move arrow, sets the color, and binds clicking the arrow to
+	# the action of sliding a piece.
+
 	global width slideStartLocs arrows mouseOverColor
 	set fromrow [expr [lindex $theMove 0] % $width]
 	set fromcol [expr [lindex $theMove 0] / $width]
@@ -694,6 +699,11 @@ proc DrawSlideMove { c theMove value moveType moveList currentPlayer position} {
 	$c addtag "active" withtag $arrows($fromrow,$fromcol,$torow,$tocol)
 }
 proc SetSlideComponent {c source dest moveType moveList currentPlayer position} {
+	
+	# This is called when the player chooses a slide move.  It hides all slide
+	# arrows, moves the piece from source to dest, and draws all of the place
+	# moves that result from the chosen slide move.
+	
 	global xPieces oPieces width
 	GS_HideMoves $c $moveType $position $moveList
 	if {$currentPlayer == "x" && ($source != 0 || $dest != 0)} {
@@ -711,6 +721,13 @@ proc SetSlideComponent {c source dest moveType moveList currentPlayer position} 
 	}
 }
 proc DrawPlaceMove { c theMove value moveType source dest } {
+
+	# This is called for each place move.  It raises the dot for that place move
+	# and binds it to the action of placing a piece.  The parameters "source" and
+	# "dest" are the source and the destination of the slide move; this is necessary
+	# because we have to remember what slide move was chosen so that we can call
+	# ReturnFromHumanMove later.
+
 	global width placeMoves mouseOverColor
 	set row [expr [lindex $theMove 2] % $width]
 	set col [expr [lindex $theMove 2] / $width]
@@ -721,6 +738,10 @@ proc DrawPlaceMove { c theMove value moveType source dest } {
 	$c bind $placeMoves($row,$col) <ButtonRelease-1> "SetPlaceComponent $source $dest [expr $row + ($col * $width)]"
 }
 proc SetPlaceComponent {source dest place} {
+
+	# Now that we know the source, dest, and place components of the move, we can
+	# construct the hash of the move and return it.
+
 	global width height
 	set move [expr $source * $width * $width * $height * $height]
 	set move [expr $move + ($dest * $width * $height)]
@@ -735,7 +756,7 @@ proc GS_HideMoves { c moveType position moveList} {
 
     $c dtag "all" "active"
     # DrawPosition raises the board (therefore hiding all the moves) and raises all the pieces on it.
-    puts "[UnhashPosition $position] GS_HideMoves"
+    #puts "[UnhashPosition $position] GS_HideMoves"
     GS_DrawPosition $c $position
 
 # The block below is the naive way of doing this.  I wrote it because I was getting weird behavior
@@ -774,8 +795,15 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
 	### TODO if needed
-    puts "[UnhashPosition positionAfterUndo] GS_HandleUndo"
-    GS_DrawPosition $c positionAfterUndo
+
+    # If the player has already made a slide move but hasn't placed yet,
+    # then undo should only undo the slide move.  If he hasn't made a
+    # slide move yet, then the most recent move should be undone.
+
+    # Unfortunately, I haven't figured out how to not undo the last
+    # complete move when the undo button is clicked, so right now undos
+    # don't work properly.
+    GS_DrawPosition $c $positionAfterUndo
 }
 
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
