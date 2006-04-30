@@ -43,7 +43,7 @@ typedef struct main_buf_struct {
   db_buffer_page* buffers;
   boolean* dirty;
   int rec_size; //number of bytes in a record
-  //int buf_size; //number of records in a buffer
+  int buf_size; //number of records in a buffer
   int n_buf;
 }db_buffer;
 

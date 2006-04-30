@@ -34,7 +34,7 @@
 
 int main(int argc, char *argv[])
 {
-	Position totalrecs = 10000;
+	Position totalrecs = 100000;
 	size_t recsize = sizeof(short);
 	size_t buffers = 100;
 	char dbname[] = "testdb.dat\0";
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
 
 	for (i=0;i<totalrecs;i++) {
 		data = i % (1<<15);
-		db_put(testdb, &data, i);
-		db_get(testdb, &result, i);
+		db_put(testdb, (void*)&data, i);
+		db_get(testdb, (void*)&result, i);
 		if (data!=result) {
 			printf("ERROR: position %llu, saved %d, got %d\n", i, data, result);
 			break;

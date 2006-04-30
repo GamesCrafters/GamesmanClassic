@@ -36,70 +36,56 @@
 #include <stdio.h>
 #include <string.h>
 
-// a buffer contains at least one record. buf_size is the number of records in one buffer
+// a buffer contains at least one record.
 db_buffer* db_buf_init(int rec_size, page_id num_buf, db_store* filep){
   db_buffer* bufp = (db_buffer*) SafeMalloc(sizeof(db_buffer));
   
   bufp->filep = filep;
   bufp->n_buf = num_buf;
-  //a page contains as many records as possible, up to 4K bytes.
-  //records with a size of multiples of 2 will produce no wasted space
-  bufp->rec_size = rec_size;
+  
+  //a page contains as many records as possible, up to 4K-9 bytes.
+  //The 9 bytes are for book-keeping. One extra byte per record is used to denote whether it's
+  //been written to or not
+  //There will be wasted space in the mem array but shouldn't be too great if you have huge pages
+  bufp->rec_size = rec_size + 1; //one byte for use by the db code (valid bit, etc)
+  bufp->buf_size = MEM_ARRAY_SIZE / (rec_size+1);
   bufp->dirty = (boolean*) SafeMalloc (sizeof(boolean) * num_buf);
   bufp->buffers = (db_buffer_page*) SafeMalloc (sizeof(db_buffer_page) * num_buf);
   //bufp->buf_off = (db_offset*) SafeMalloc(sizeof(db_offset) * num_buf);
 
-	page_id i,j;					  
+	//zeroes out the boffers for use
+	page_id i,j;
+	db_buffer_page *buf;
   for(i=0;i<num_buf;i++){
 //    bufp->buffers[i]->mem = (char*) SafeMalloc(sizeof(char) * rec_size);
-	for (j=0; j<PAGE_SIZE; j++)
-		bufp->buffers[i].mem[j] = 0;
-    bufp->buffers[i].id = -1;
-    bufp->buffers[i].valid = FALSE;
+	buf = bufp->buffers+i;
+	for (j=0; j<MEM_ARRAY_SIZE; j++)
+		buf->mem[j] = 0;
+    buf->tag = 0;
+//    buf->valid = FALSE;
     bufp->dirty[i] = FALSE;
   }
 
   return bufp;
 }
 
-/*db_buf_head* db_buf_fileinit(db_store* filep){
-  //Not going to read from file yet ok? deal with it.
-  return NULL;
-}*/
-/*void db_buf_copyOut(db_buffer* bufp, char* mem,frame_id fid, int off, int amt){
-  memcpy(mem,bufp->buffers[fid].mem+off,amt);
-}
-
-void db_buf_copyIn(db_buffer* bufp, char* mem,frame_id fid, int off, int amt){
-  memcpy(bufp->buffers[fid].mem+off,mem,amt);
-}
-*/
-int db_buf_flush(db_buffer* bufp, page_id page){
-  //maybe we should write a flush all in here?
-  // What logic do we need to use for fast (all) flushing?
-  // --- see above
-//  db_offset off;
-  //get the frame
-  db_buffer_page* buf = bufp->buffers + page;
+int db_buf_flush(db_buffer* bufp, page_id bufpage){
+  //get the buffer page
+  db_buffer_page* buf = bufp->buffers + bufpage;
   
-  //we don't have to write the page if it's invalid or clean
-  if(buf->valid && bufp->dirty[page]){
+  //we don't have to write the page if it's clean
+  if(bufp->dirty[bufpage]){
     db_store* filep = bufp->filep;
-    
-//    off = buf->off;
-/*    if(buf->off == (db_offset) -1){
-    	//this buffer is not on the disk file
-      off = db_nextBlock(filep,(db_offset)bufp->buf_size);
-      bufp->buf_off[buf->id] = off;
-    }*/
 
-	//    db_seek(filep,off,SEEK_SET);//maybe a seek write would be nice?
 	//write will do the seek for you
-    buf->id = db_write(filep, page, buf);//error check not in.
-    //what if it isnt a forward seek?? rewrite seek to allow backwards
-    // seeking on open files. (i.e. close and reopen the file... but how?)
-    //seek will take care of this for you, no worries
-    bufp->dirty[page] = FALSE;
+	//disk page  =  concat ( tag, bufpage ) in base num_buf numbering 
+	//no error checks
+    db_write(filep, (buf->tag*bufp->n_buf) + bufpage, buf);
+
+    //int i;
+    //for(i = 0; i<mem_array_size; i++)
+    //	buf->mem[i] = 0;
+    bufp->dirty[bufpage] = FALSE;
     return 0;
 
   }else{
@@ -117,43 +103,79 @@ int db_buf_flush_all(db_buffer* bufp) {
 	return 0;
 }
 
+//TODO: fill in --maybe not
+int db_buf_slurp(db_buffer* bufp, page_id page) {
+	return 0;
+}
+
 //reads a record, value will be NULL if the db does not have the record
 
 int db_buf_read(db_buffer* bufp, Position spot, void *value){
-	page_id page = spot / (PAGE_SIZE / bufp->rec_size);
-	db_store* filep;
-
-    db_buf_flush(bufp,page);
-  
-	db_buffer_page* buf = bufp->buffers + page;
-	filep = bufp->filep;
-    db_read(filep, page ,buf);
-
-	if(bufp->buffers[page].valid) {
-		db_offset off = (spot & (PAGE_SIZE * bufp->rec_size)) * bufp->rec_size;
+	page_id page = spot / (bufp->buf_size); //the disk page index
+	//the buffer page index (can be changed to do different associativities)
+	page_id bufpage = page % bufp->n_buf;
+	page_id mytag = page / bufp->n_buf; //the page id (the tag to compare with)
 	
-		memcpy(value, bufp->buffers[page].mem+off, bufp->rec_size);
-	} else
-		value = NULL;
+	db_store* filep = bufp->filep;
+
+	db_buffer_page* buf = bufp->buffers + bufpage;
+
+	if (buf->tag != mytag) {//if this page is not the one I want
+		if (bufp->dirty[bufpage]) //if the page is dirty flush it
+		    db_buf_flush(bufp, bufpage);
+		//load in the new page
+		db_read(filep, page ,buf);
+		//set the tag where it is
+		if (buf->tag != mytag)
+		//the buffer is uninitialized, this means no record exists in the page
+			buf->tag = mytag;
+	}
+
+	//byte offset of the db record (the extra byte + the actual record)
+	db_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
 	
-  	return 0;
+	char valid;
+	//copy the first byte and see if it is valid
+	memcpy(&valid, buf->mem+off, 1);
+	
+	if(valid == TRUE) {
+		memcpy(value, buf->mem+off+1, bufp->rec_size-1);
+		return 0;
+	}
+	
+  	return -1;
 }
 
 int db_buf_write(db_buffer* bufp, Position spot, const void *value){
-	page_id page = spot / (PAGE_SIZE / bufp->rec_size);
-	db_store* filep;
-
-    db_buf_flush(bufp,page);
-	db_buffer_page* buf = bufp->buffers + page;
-	filep = bufp->filep;
-    db_read(filep, page ,buf);
-
-	db_offset off = (spot & (PAGE_SIZE * bufp->rec_size)) * bufp->rec_size;
+	page_id page = spot / (bufp->buf_size); //the disk page index
+	//the buffer page index (can be changed to do different associativities)
+	page_id bufpage = page % bufp->n_buf;
+	page_id mytag = page / bufp->n_buf; //the page id (the tag to compare with)
 	
-	memcpy(buf->mem+off, value, bufp->rec_size);
+	db_store* filep = bufp->filep;
+
+	db_buffer_page* buf = bufp->buffers + bufpage;
+
+	if (buf->tag != mytag) {//if this page is not the one I want
+		if (bufp->dirty[bufpage]) //if the page is dirty flush it
+		    db_buf_flush(bufp, bufpage);
+		//load in the new page
+		db_read(filep, page ,buf);
+		//set the tag where it is
+		if (buf->tag != mytag)
+		//the buffer is uninitialized, this means no record exists in the page
+			buf->tag = mytag;
+	}
+
+	//byte offset of the db record (the extra byte + the actual record)
+	db_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
 	
-	buf->valid = TRUE;
-	bufp->dirty[page] = TRUE;
+	//actually write the record
+	char valid = TRUE;
+	memcpy(buf->mem+off, &valid, 1);
+	memcpy(buf->mem+off+1, value, bufp->rec_size-1);
+	
+	bufp->dirty[bufpage] = TRUE;
 
   	return 0;
 }
@@ -165,10 +187,11 @@ int db_buf_destroy(db_buffer* bufp){
     SafeFree(bufp->buffers[i].mem);
   }
   */
+  db_buf_flush_all(bufp);
   SafeFree(bufp->dirty);
   SafeFree(bufp->buffers);
 //  SafeFree(bufp->buf_off);
-  db_close(bufp->filep);
+//  db_close(bufp->filep);
   SafeFree(bufp);
   return 0; // no error checking;
 }

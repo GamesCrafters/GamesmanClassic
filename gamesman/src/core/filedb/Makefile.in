@@ -46,7 +46,7 @@ endif
 
 CORE=$(DB_OBJ)
 
-INCLUDES=db_store.h db_malloc.h db.h db_buf.h
+#INCLUDES=db_store.h db_malloc.h db.h db_buf.h db_global.h
 #db_bman.h db_basichash.h
 
 
@@ -67,5 +67,6 @@ gamesdb.a: $(CORE)
 	$(AR) $@ $(CORE) ; $(RANLIB) $@
 	cp gamesdb.a ../gamesdb.a ; $(RANLIB) ../gamesdb.a
 
-$(CORE): %.o: %.c $(INCLUDES)
+$(CORE): %.o: %.c
+#$(INCLUDES)
 	$(CC) $(CFLAGS) -c -o $@ $<

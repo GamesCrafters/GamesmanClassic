@@ -44,14 +44,15 @@ typedef char boolean;
 #define FALSE 0
 
 //this is really arbitrary
-#define PAGE_SIZE 4088 // 4K bytes, minus 8 bytes for 64-bit page_id
+//BADBADBAD
+#define PAGE_SIZE 4096
+#define MEM_ARRAY_SIZE 256
+// 4K bytes, minus 9 bytes for 64-bit page_id, this is the max, there might be wasted space
+//extern const unsigned long mem_array_size;
 
 typedef struct buffer_page_struct {
-  char mem[PAGE_SIZE];
-  page_id id; //buffer id, id*rec_size = the index of the first record in this page
-  //frame_id rec_index; //the "index" (POSITION hash number) associated with the first record
-  //db_offset off;
-  boolean valid;
+  char mem[MEM_ARRAY_SIZE];
+  page_id tag;
 }db_buffer_page;
 
 #endif /* GMCORE_DB_GLOBALS_H */
