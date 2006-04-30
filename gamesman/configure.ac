@@ -129,6 +129,7 @@ OUTCFLAGS="$OUTCFLAGS -D$OS"
 AC_MSG_RESULT($MACHINE)
 
 
+
 ###
 ### Check programs
 ###
@@ -504,7 +505,8 @@ else  #added because cygwin gcc does not know about -pthread
   OUTPYTHONLIBFLAGS="-pthread $OUTPYTHONLIBFLAGS"
 fi
 
-
+#Macros:
+AC_C_BIGENDIAN
 
 ###
 ### Export some stuff
