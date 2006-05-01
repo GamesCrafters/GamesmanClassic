@@ -69,6 +69,8 @@ POSITION kBadPosition         = -1;
 
 void*	 gGameSpecificTclInit = NULL;
 
+BOOLEAN  gLibraries           = FALSE;
+
 /*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
@@ -639,11 +641,12 @@ VALUE Primitive (POSITION position)
 
 VALUE Primitive (POSITION position)
 {
+  
+  if (!gLibraries) {
 
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   int col,row, player1=1, t=1, blank=2, count=0, ottoWins=0, tootWins=0;
   PositionToBoard(position, board); // Temporary storage.
-
 
 /*  for (col=0;col<TNO_WIDTH;col++)
 	 board[col][TNO_HEIGHT]=2;
@@ -819,6 +822,43 @@ VALUE Primitive (POSITION position)
 	// If no win and board is not filled, its undecided
 
 	return undecided;
+  } else {
+
+      TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
+      int i,j;
+      BOOLEAN hasToot;
+      BOOLEAN hasOtto;
+      int blank = Blank;
+      TOBlank toot[4] = {t, o, o, t};
+      TOBlank otto[4] = {o, t, t, o};
+      TOBlank boardArray[TNO_WIDTH*TNO_HEIGHT];
+      PositionToBoard(position, board); // Temporary storage.
+
+      for(i=TNO_HEIGHT-1;i>=0;i--) { //copy board into 1D array. (too lazy to decypher unhash and always unhash to this)
+	for(j=0;j<TNO_WIDTH;j++) {
+	  boardArray[j + (TNO_HEIGHT - 1 - i)*TNO_WIDTH] = board[j][i];
+	}
+      }
+
+      hasToot = OneDMatch(boardArray,toot,0,TRUE,4);
+      hasOtto = OneDMatch(boardArray,otto,0,TRUE,4);
+
+      //printf("hasToot = %d and hasOtto = %d\n",hasToot,hasOtto);
+
+      if (hasToot && hasOtto) {
+	return tie;
+      } else if (hasToot) {
+	return ((WhoseTurn(position)==1) ? lose : win);
+      } else if (hasOtto) {
+	return ((WhoseTurn(position)==1) ? win : lose);
+      }
+
+      if (amountOfWhat(boardArray,&blank,1,TRUE)) {
+	return undecided;
+      } else {
+	return tie;
+      }
+  }
 }
 
 
@@ -1076,6 +1116,11 @@ void GameSpecificMenu ()
 		printf("\t4x4 solves, 4x5 works player vs. player, 4x6 does not work\n\n");
 		printf("\tt)\tChoose the starting # of Ts Currently: %d\n", INIT_T);
 		printf("\to)\tChoose the starting # of Os Currently: %d\n", INIT_O);
+		if (gLibraries) {
+		  printf("\tl)\tToggle use of game function libraries. Currently: On");
+		} else {
+		  printf("\tl)\tToggle use of game function libraries. Currently: Off");
+		}
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
 		
@@ -1103,6 +1148,15 @@ void GameSpecificMenu ()
 			scanf("%d", &temp);
 			INIT_O = temp;
 			break;
+		case 'L': case 'l':
+		  if (gLibraries) {
+		    gLibraries = FALSE;
+		  } else {
+		    gLibraries = TRUE;
+		    LibInitialize(4,TNO_HEIGHT,TNO_WIDTH,TRUE);
+		    Test();
+		  }
+		  break;
 		case 'b': case 'B':
 			return;
 		default:
