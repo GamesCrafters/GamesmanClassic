@@ -119,11 +119,11 @@ int initialized = FALSE;
 
 // How large the board is
 unsigned int rows           = 6;  // Rubik's: 6, Checkers: 8
-unsigned int cols           = 3;  // Rubik's: 4, Checkers: 4
+unsigned int cols           = 2;  // Rubik's: 4, Checkers: 4
 unsigned int boardSize;     /* initialized in InitializeGame */
 
 // How many rows closest to a player start out with pieces (< ROWS/2)
-unsigned int startRows      = 2;
+unsigned int startRows      = 1;
 
 // Rubik's Checkers specific options
 // You can change to regular checkers rules by changing these options
