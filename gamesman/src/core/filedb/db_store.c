@@ -69,7 +69,9 @@ db_store* db_open(char* filename){
   
   db->current_page = 0;
   
-  db->total_pages = 0;
+  //this is the last page of the chain
+  //it has not been written, so be sure to write it when expanding
+  db->last_page = 0;
   
   if(db->filep)
     return db;
@@ -100,42 +102,104 @@ int db_close(db_store* db){
 
 //writes a page into the database
 int db_write(db_store* db, page_id page, db_buffer_page* buf){
-	if (page != db->current_page)
-		db_seek(db, page);
-  return gzwrite(db->filep, buf, sizeof(db_buffer_page));
+	//grows the file on-demand
+	if (page >= db->last_page) {
+		//breakage of abstraction, beware
+		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
+		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
+		
+		while (db->last_page <= page) { //fill zeroes
+			gzwrite(db->filep, temp, sizeof(db_buffer_page));
+			gzflush(db->filep, Z_FULL_FLUSH); //flush it to allow random access
+			db->last_page++;
+		}
+		
+		free(temp);
+	}
+
+	//even if you are writing to the same page,
+	//you still have to seek back a page
+	db_seek(db, page);
+	
+	printf ("db_write: page = %llu, last_page = %llu\n", page, db->last_page);
+	//write data
+    gzwrite(db->filep, (void*)buf, sizeof(db_buffer_page));
+	//flush all data so that decompression can restart at this point    
+    gzflush(db->filep, Z_FULL_FLUSH);
+    return 0;
 }
 
 int db_read(db_store* db, page_id page, db_buffer_page* buf){
-	if (page != db->current_page)
-		db_seek(db, page);
-  return gzread(db->filep, buf, sizeof(db_buffer_page));
-}
+/*	if (page >= db->last_page) { // if we are reading past the file, just return 0's
+			memset((void*)buf, 0x00000000, sizeof(db_buffer_page));
+			db->current_page = page;
+			return 0;
+	}
+*/	
 
-void db_seek(db_store* db, page_id page){
-	db_offset new;
-	if(page != db->current_page) {
-		int from = SEEK_SET;
-		if(page > db->current_page) {
-		  	from = SEEK_CUR;
-		  	page -= db->current_page;
+	//grows the file on-demand
+	if (page >= db->last_page) {
+		//breakage of abstraction, beware
+		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
+		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
+		
+		while (db->last_page <= page) { //fill zeroes
+			gzwrite(db->filep, temp, sizeof(db_buffer_page));
+			gzflush(db->filep, Z_FULL_FLUSH); //flush it to allow random access
+			db->last_page++;
 		}
 		
-		new = (db_offset)gzseek(db->filep,page*sizeof(db_buffer_page),from);
-	
-		if (new == -1) {//this means we are rewinding in write mode
-		  	//close and reopen the zip file
-		  	gzclose(db->filep);
-		  	db->filep = gzopen(db->filename, "r+");
-		  	if (from == SEEK_CUR)
-		  		page += db->current_page;
-		  	new = (db_offset)gzseek(db->filep, page*sizeof(db_buffer_page), SEEK_SET);
-		}
-
-		//assert(new != -1);
+		free(temp);
 	}
+
+	db_seek(db, page);
+	printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
+	return gzread(db->filep, (void*)buf, sizeof(db_buffer_page));
+}
+
+//seeks in the file to the beginning of a given page.
+//the page must already exist in the file.
+//that is, page < last_page (because the page with index last_page is not written)
+void db_seek(db_store* db, page_id page){
+	db_offset new;
+	int from = SEEK_SET;
+	
+//	if(page != db->current_page) {
+//		from = SEEK_SET;
+		//if(page > db->current_page) {
+		  //	from = SEEK_CUR;
+		  //	page -= db->current_page;
+		//}
+		
+	  	//printf("db_seek: offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
+		//new = (db_offset)gzseek(db->filep,page*sizeof(db_buffer_page),from);
+	
+	if (page <= db->current_page) {//this means we are rewinding in write mode
+	  	//close and reopen the zip file
+	  	gzclose(db->filep);
+	  	db->filep = gzopen(db->filename, "r+");
+	  	//if (from == SEEK_CUR)
+	  	//	page += db->current_page;
+		printf("db_seek: BACKWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
+	} else {
+		printf("db_seek: FORWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
+	}
+	
+	page_id i;
+	
+	while(gztell(db->filep) < page*sizeof(db_buffer_page)) {
+		new = (db_offset)gzseek(db->filep, sizeof(db_buffer_page), SEEK_CUR);
+
+		//printf("%d\n", new);
+
+		assert(new != -1);
+	}
+//	}
   
-	if(page > db->total_pages)
-		db->total_pages = page;
+	//if(page > db->total_pages)
+	//	db->total_pages = page;
+	//if(from == SEEK_CUR)
+	//	page += db->current_page;
 		
 	db->current_page = page; //So bad. So lazy. 
 	

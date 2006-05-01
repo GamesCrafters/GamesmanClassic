@@ -45,7 +45,7 @@ typedef struct dbfile_struct{
  // page_id* pagemap;
   gzFile* filep;	//the disk file descriptor
   page_id current_page;  //the current page
-  page_id total_pages; //offset of the next page after the end
+  page_id last_page; //offset of the next page after the end
 }db_store;
 
 db_store* 	db_open		(char* filename);

@@ -29,6 +29,7 @@
 **
 **************************************************************************/
 
+#include <stdlib.h>
 #include <stdio.h>
 #include "db.h"
 
@@ -45,12 +46,39 @@ int main(int argc, char *argv[])
 	Position i;
 	short data = 0, result = 0;
 
+	//sequencial read/write
+
 	for (i=0;i<totalrecs;i++) {
-		data = i % (1<<15);
+		data = i % (1<<16);
+		printf("reading: %llu\n", i);
 		db_put(testdb, (void*)&data, i);
 		db_get(testdb, (void*)&result, i);
 		if (data!=result) {
-			printf("ERROR: position %llu, saved %d, got %d\n", i, data, result);
+			printf("ERROR in seq read: position %llu, saved %d, got %d\n", i, data, result);
+			break;
+		}
+	}
+	//random reads
+/*	for (i=0;i<totalrecs;i++) {
+		data = i % (1<<16);
+		if(i == 170)
+			printf("GAHHHHHH!\n");
+		printf("reading: %llu\n", i);
+		db_get(testdb, (void*)&result, i);
+		if (data!=result) {
+			printf("ERROR in seq read: position %llu, saved %d, got %d\n", i, data, result);
+			break;
+		}
+	}*/
+	Position val;
+	for (i=0;i<totalrecs;i++) {
+		while (totalrecs <= (val = rand() / (RAND_MAX/totalrecs)));\
+		printf("reading: %llu\n", val);
+		data = val % (1 << 16);
+		//db_put(testdb, (void*)&data, i);
+		db_get(testdb, (void*)&result, val);
+		if (data!=result) {
+			printf("ERROR in rand read: position %llu, saved %d, got %d\n", i, data, result);
 			break;
 		}
 	}

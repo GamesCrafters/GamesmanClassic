@@ -74,13 +74,12 @@ int db_buf_flush(db_buffer* bufp, page_id bufpage){
   db_buffer_page* buf = bufp->buffers + bufpage;
   
   //we don't have to write the page if it's clean
-  if(bufp->dirty[bufpage]){
+  if(bufp->dirty[bufpage] == TRUE){
     db_store* filep = bufp->filep;
 
 	//write will do the seek for you
-	//disk page  =  concat ( tag, bufpage ) in base num_buf numbering 
 	//no error checks
-    db_write(filep, (buf->tag*bufp->n_buf) + bufpage, buf);
+    db_write(filep, buf->tag, buf);
 
     //int i;
     //for(i = 0; i<mem_array_size; i++)
@@ -109,20 +108,18 @@ int db_buf_slurp(db_buffer* bufp, page_id page) {
 }
 
 //reads a record, value will be NULL if the db does not have the record
-
 int db_buf_read(db_buffer* bufp, Position spot, void *value){
+	//TODO: this should be in buf_mgr
 	page_id page = spot / (bufp->buf_size); //the disk page index
 	//the buffer page index (can be changed to do different associativities)
 	page_id bufpage = page % bufp->n_buf;
-	page_id mytag = page / bufp->n_buf; //the page id (the tag to compare with)
-	
+	page_id mytag = page; //the page id (the tag to compare with)
 	db_store* filep = bufp->filep;
-
 	db_buffer_page* buf = bufp->buffers + bufpage;
 
 	if (buf->tag != mytag) {//if this page is not the one I want
-		if (bufp->dirty[bufpage]) //if the page is dirty flush it
-		    db_buf_flush(bufp, bufpage);
+		//if (bufp->dirty[bufpage]) //if the page is dirty flush it
+		db_buf_flush(bufp, bufpage);
 		//load in the new page
 		db_read(filep, page ,buf);
 		//set the tag where it is
@@ -130,6 +127,8 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 		//the buffer is uninitialized, this means no record exists in the page
 			buf->tag = mytag;
 	}
+
+	printf("buf_read: spot = %llu, page = %llu, bufpage = %llu buf_tag = %llu, mytag = %llu\n", spot, page, bufpage, buf->tag, mytag);
 
 	//byte offset of the db record (the extra byte + the actual record)
 	db_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
@@ -140,10 +139,12 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 	
 	if(valid == TRUE) {
 		memcpy(value, buf->mem+off+1, bufp->rec_size-1);
-		return 0;
+	} else {
+		printf("ASHDFASDFAHSDFHASDF");
+		memset(value, 0x00000000, bufp->rec_size-1); // 0 is NULL
 	}
 	
-  	return -1;
+  	return 0;
 }
 
 int db_buf_write(db_buffer* bufp, Position spot, const void *value){
@@ -157,8 +158,8 @@ int db_buf_write(db_buffer* bufp, Position spot, const void *value){
 	db_buffer_page* buf = bufp->buffers + bufpage;
 
 	if (buf->tag != mytag) {//if this page is not the one I want
-		if (bufp->dirty[bufpage]) //if the page is dirty flush it
-		    db_buf_flush(bufp, bufpage);
+		//if (bufp->dirty[bufpage]) //if the page is dirty flush it
+		db_buf_flush(bufp, bufpage);
 		//load in the new page
 		db_read(filep, page ,buf);
 		//set the tag where it is
