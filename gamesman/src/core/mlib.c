@@ -1,4 +1,4 @@
-/************************************************************************
+ /************************************************************************
 **
 ** NAME:        mlib.c
 **
@@ -19,6 +19,13 @@
 **              3/18/06 - statelessNinaRow confirmed to work with mttt and
 **                       mwin4.
 **              3/19/06 - wrote amountOfWhat. Not thoroughly tested.
+**              4/04/06 - Functionality of stateful NinaRow confirmed.
+**              4/29/06 - Added OneDMatch, no support for transparencies.
+**              4/30/06 - OneDMatch confirmed to produce equivolent
+**                        database for 4x4 Toot & Otto. Attempt at creating
+**                        preprocessing to avoid board "overflow."
+**                        Currently implemented in OneDMatching, will be
+**                        soon in stateless Ninarow.
 **************************************************************************/
 #include <stdio.h>
 #include "gamesman.h"
@@ -26,6 +33,9 @@
 #include "string.h"
 
 #define MAXBOARDSIZE 64
+#define MAXPATTERN 16
+
+void overflowGuard(int);
 
 struct {
   int count;
@@ -35,31 +45,36 @@ struct {
   BOOLEAN diagonals;
   int directionMap[8];
   int scratchBoard[MAXBOARDSIZE];
-} LocalBoard;
+  int overflowBoards[MAXPATTERN][MAXBOARDSIZE];
+} lBoard;
 
 int powersOf2[] = {1,2,4,8};
 
 /*Set local variables for processing input arrays*/
 void LibInitialize(int eltSize, int rows, int cols, BOOLEAN diagonals) {
   int i;
-  LocalBoard.count = 0;
-  LocalBoard.eltSize = eltSize;
-  LocalBoard.rows = rows;
-  LocalBoard.cols = cols;
-  LocalBoard.diagonals = diagonals;
+  lBoard.count = 0;
+  lBoard.eltSize = eltSize;
+  lBoard.rows = rows;
+  lBoard.cols = cols;
+  lBoard.diagonals = diagonals;
 
-  LocalBoard.directionMap[0] = -cols - 1; //used in NinaRow
-  LocalBoard.directionMap[1] = -cols;
-  LocalBoard.directionMap[2] = -cols + 1;
-  LocalBoard.directionMap[3] = 1;
-  LocalBoard.directionMap[4] = cols + 1;
-  LocalBoard.directionMap[5] = cols;
-  LocalBoard.directionMap[6] = cols - 1;
-  LocalBoard.directionMap[7] = -1;
-
+  lBoard.directionMap[0] = -cols - 1; //used in NinaRow
+  lBoard.directionMap[1] = -cols;
+  lBoard.directionMap[2] = -cols + 1;
+  lBoard.directionMap[3] = 1;
+  lBoard.directionMap[4] = cols + 1;
+  lBoard.directionMap[5] = cols;
+  lBoard.directionMap[6] = cols - 1;
+  lBoard.directionMap[7] = -1;
+  
   for(i=0;i<MAXBOARDSIZE;i++) {
-    LocalBoard.scratchBoard[i] = 0;
+    lBoard.scratchBoard[i] = 0;
   }
+  for(i=0;i<MAXPATTERN;i++) {
+    overflowGuard(i);
+  }
+
 }
 
 
@@ -74,18 +89,18 @@ BOOLEAN NinaRow(void* boardArray,void* type, int indexOfLast, int n) {
   int i, direction,location,count;
   BOOLEAN soFar,overflow;
   
-  LocalBoard.count++;
-  //printf("NinaRow has been called with last index %d for the %dth time\n",indexOfLast,LocalBoard.count);
+  lBoard.count++;
+  //printf("NinaRow has been called with last index %d for the %dth time\n",indexOfLast,lBoard.count);
   
   if (indexOfLast<0) {  //No valid last index passed, call stateless NinaRow
     return statelessNinaRow(boardArray,type,n);
   }
 
-  if (memcmp(boardArray + LocalBoard.eltSize*indexOfLast, type, LocalBoard.eltSize)) { //piece at last index isn't desired type
+  if (memcmp(boardArray + lBoard.eltSize*indexOfLast, type, lBoard.eltSize)) { //piece at last index isn't desired type
     return FALSE;
   }
 
-  for(direction = (LocalBoard.diagonals ? 0 : 1);direction<4; direction+= (LocalBoard.diagonals ? 1 : 2)) {
+  for(direction = (lBoard.diagonals ? 0 : 1);direction<4; direction+= (lBoard.diagonals ? 1 : 2)) {
     count = 1; //we start with one piece in a row
     i = 1;
     soFar = TRUE;
@@ -93,17 +108,17 @@ BOOLEAN NinaRow(void* boardArray,void* type, int indexOfLast, int n) {
     while (i<n && count<n && soFar) {
       
       //expand search in the positive direction
-      location = indexOfLast + i*LocalBoard.directionMap[direction];
+      location = indexOfLast + i*lBoard.directionMap[direction];
       
-      overflow = (location%LocalBoard.rows - indexOfLast%LocalBoard.rows > 0); //true if location jumped edge 
+      overflow = (location%lBoard.cols - indexOfLast%lBoard.cols > 0); //true if location jumped edge 
       if (direction > 1) {
 	overflow = !(overflow); //adjust for other directions
       }
 
       if ( overflow ||  
 	   (location < 0) ||                                  //new location is out of bounds
-	   (location > LocalBoard.rows*LocalBoard.cols - 1) ||
-	   (memcmp(boardArray + LocalBoard.eltSize*location, type, LocalBoard.eltSize))) { //piece at location isn't a match
+	   (location > lBoard.rows*lBoard.cols - 1) ||
+	   (memcmp(boardArray + lBoard.eltSize*location, type, lBoard.eltSize))) { //piece at location isn't a match
 	soFar = FALSE;
       } else {	
 	count++;
@@ -114,7 +129,7 @@ BOOLEAN NinaRow(void* boardArray,void* type, int indexOfLast, int n) {
     }
 
     if (count>=n) {
-      printf("Positive edge N in a row found in direction %d\n",direction);
+      //printf("Positive edge N in a row found in direction %d\n",direction);
       return TRUE;
     }
     
@@ -124,17 +139,17 @@ BOOLEAN NinaRow(void* boardArray,void* type, int indexOfLast, int n) {
     while (i<n && count<n && soFar) {
       
       //expand search in the positive direction
-      location = indexOfLast + -1*i*LocalBoard.directionMap[direction];
+      location = indexOfLast + -1*i*lBoard.directionMap[direction];
       
-      overflow = (location%LocalBoard.rows - indexOfLast%LocalBoard.rows < 0); //sign reversed for opposite direction
+      overflow = (location%lBoard.cols - indexOfLast%lBoard.cols < 0); //sign reversed for opposite direction
       if (direction > 1) {
 	overflow = !(overflow); //adjust for other directions
       }
 
       if ( overflow || 
 	   (location < 0) ||                                  //new location is out of bounds
-	   (location > LocalBoard.rows*LocalBoard.cols - 1) ||
-	   (memcmp(boardArray + LocalBoard.eltSize*location, type, LocalBoard.eltSize))) { //piece at location isn't a match
+	   (location > lBoard.rows*lBoard.cols - 1) ||
+	   (memcmp(boardArray + lBoard.eltSize*location, type, lBoard.eltSize))) { //piece at location isn't a match
 	soFar = FALSE;
       } else {
 	count++;
@@ -145,7 +160,7 @@ BOOLEAN NinaRow(void* boardArray,void* type, int indexOfLast, int n) {
     }
     
     if (count >= n) {
-      printf("Negative edge or center N in a row found in direction %d\n",direction);
+      //printf("Negative edge or center N in a row found in direction %d\n",direction);
       return TRUE;
     }
   }
@@ -160,17 +175,17 @@ BOOLEAN statelessNinaRow(void* boardArray,void* type,int n) {
   int i, direction,location,count;
   BOOLEAN soFar,overflow;
 
-  for(i=0;i<LocalBoard.rows*LocalBoard.cols;i++) { //reset search for all positions
-    LocalBoard.scratchBoard[i] = 0;
+  for(i=0;i<lBoard.rows*lBoard.cols;i++) { //reset search for all positions
+    lBoard.scratchBoard[i] = 0;
   }
   
-  for(z=0;z<LocalBoard.rows*LocalBoard.cols;z++) { //for each board slot
+  for(z=0;z<lBoard.rows*lBoard.cols;z++) { //for each board slot
     
-    if (!memcmp(boardArray + LocalBoard.eltSize*z, type, LocalBoard.eltSize)) { //piece at slot is right type, continue search
-      for(direction = (LocalBoard.diagonals ? 0 : 1);direction<4; direction+= (LocalBoard.diagonals ? 1 : 2)) {
+    if (!memcmp(boardArray + lBoard.eltSize*z, type, lBoard.eltSize)) { //piece at slot is right type, continue search
+      for(direction = (lBoard.diagonals ? 0 : 1);direction<4; direction+= (lBoard.diagonals ? 1 : 2)) {
 	
 	//check if we should search in this direction
-	if (!(powersOf2[direction] & LocalBoard.scratchBoard[z])) {	
+	if (!(powersOf2[direction] & lBoard.scratchBoard[z])) {	
 	  
 	  count = 1; 
 	  i = 1;
@@ -179,9 +194,9 @@ BOOLEAN statelessNinaRow(void* boardArray,void* type,int n) {
 	  while (i<n && count<n && soFar) {
 	    
 	    //expand search
-	    location = z + i*LocalBoard.directionMap[direction+3]; //starting at upper left, search from directions 3 to 6
+	    location = z + i*lBoard.directionMap[direction+3]; //starting at upper left, search from directions 3 to 6
 	    
-	    overflow = (location%LocalBoard.rows - z%LocalBoard.rows < 0); //true if location jumped edge 
+	    overflow = (location%lBoard.cols - z%lBoard.cols < 0); //true if location jumped edge 
 	    if (direction > 2) {
 	      overflow = !(overflow); //adjust for other directions
 	    }
@@ -190,13 +205,13 @@ BOOLEAN statelessNinaRow(void* boardArray,void* type,int n) {
 	    
 	    //mark location as read in this direction
 	    if (!overflow) {
-	      LocalBoard.scratchBoard[location] += powersOf2[direction];
+	      lBoard.scratchBoard[location] += powersOf2[direction];
 	    }
 
 	    if ( overflow ||  
 		 (location < 0) ||                                  //new location is out of bounds
-		 (location > LocalBoard.rows*LocalBoard.cols - 1) ||
-		 (memcmp(boardArray + LocalBoard.eltSize*location, type, LocalBoard.eltSize))) { //piece at location isn't a match
+		 (location > lBoard.rows*lBoard.cols - 1) ||
+		 (memcmp(boardArray + lBoard.eltSize*location, type, lBoard.eltSize))) { //piece at location isn't a match
 	      soFar = FALSE;
 	    } else {	
 	      count++;
@@ -217,7 +232,8 @@ BOOLEAN statelessNinaRow(void* boardArray,void* type,int n) {
   return FALSE;
 }
 
-/*Returns whether the board contains amount of given item 'what'*/
+/*Returns whether the board contains amount of given item 'what'
+//if atLeast is true, function will short curcuit once amount is found*/
 BOOLEAN amountOfWhat(void* boardArray,void* what,int amount,BOOLEAN atLeast) {
   int i,count=0;
   
@@ -227,8 +243,8 @@ BOOLEAN amountOfWhat(void* boardArray,void* what,int amount,BOOLEAN atLeast) {
     }
   }
     
-  for(i=0;i<LocalBoard.rows*LocalBoard.cols;i++) {
-    if (!memcmp(boardArray + LocalBoard.eltSize*i,what,LocalBoard.eltSize)) { //element found
+  for(i=0;i<lBoard.rows*lBoard.cols;i++) {
+    if (!memcmp(boardArray + lBoard.eltSize*i,what,lBoard.eltSize)) { //element found
       count++;
       if (atLeast) {
 	if (count == amount) {
@@ -243,7 +259,67 @@ BOOLEAN amountOfWhat(void* boardArray,void* what,int amount,BOOLEAN atLeast) {
   }
   return FALSE;
 }
-  
+
+BOOLEAN OneDMatch(void* boardArray, void* pattern, BOOLEAN* transparencies, BOOLEAN symmetrical, int len) {
+  int z;
+  int direction,location,count;
+  BOOLEAN soFar; //overflow;
+
+  for(z=0;z<lBoard.rows*lBoard.cols;z++) { //for each board slot
+    
+    if (!memcmp(boardArray + lBoard.eltSize*z, pattern, lBoard.eltSize)) { //piece at slot is right type, continue search
+      for(direction = (symmetrical ? 3 : (lBoard.diagonals ? 0 : 1)); direction < (symmetrical ? 7 : 8); direction+= (lBoard.diagonals ? 1 : 2)) {	
+	count = 1; 
+	soFar = TRUE;
+	
+	if ( lBoard.overflowBoards[len][z] & (1 << direction) ) { //will not run into the boundries searching in this direction  
+	  while (count<len && soFar) {
+	    
+	    //expand search
+	    location = z + count*lBoard.directionMap[direction];
+	    
+	    if (memcmp(boardArray + lBoard.eltSize*location, pattern + lBoard.eltSize*count, lBoard.eltSize)) { //piece at location isn't a match
+	      soFar = FALSE;
+	    } else {	
+	      count++;
+	    }
+	  }
+	  
+	  if (count>=len) {
+	    //printf("N in a row found in direction %d\n",direction);
+	    return TRUE;
+	  }
+	}
+      }
+    }
+  }
+  return FALSE;
+}
+
+/*Computes, for each slot, which directions can be searched without exceeding board boundries*/
+void overflowGuard(int len) {
+  int z,upCheck, rightCheck, leftCheck, downCheck;
+
+  for(z=0;z<lBoard.rows*lBoard.cols;z++) { //for each board slot
+    lBoard.overflowBoards[len][z]=0;
+
+    upCheck = (z/lBoard.rows >= len-1);
+    leftCheck = (z%lBoard.cols >= len-1);
+    rightCheck = (lBoard.cols - z%lBoard.cols >= len);
+    downCheck = (lBoard.rows - z/lBoard.rows >= len);
+    
+    lBoard.overflowBoards[len][z] = 
+      (upCheck && leftCheck) + 
+      ((upCheck) << 1) +
+      ((upCheck && rightCheck) << 2) + 
+      ((rightCheck) << 3) +
+      ((rightCheck && downCheck) << 4) +
+      (downCheck << 5) + 
+      ((downCheck && leftCheck) << 6) +
+      (leftCheck << 7);
+  }
+}  
+
 //can I call functions from this module remotely?
 void Test() {
   printf("Now using game function libraries\n");
@@ -253,7 +329,7 @@ void Test() {
 Assuming BlankOX representation is used, prints the board*
 void printBoard(BlankOX* board) {
   int i;
-  for(i=0;i<LocalBoard.rows*LocalBoard.cols;i++) {
+  for(i=0;i<lBoard.rows*lBoard.cols;i++) {
     printf("%d ",board[i]);
   }
   printf("\n");
@@ -279,7 +355,7 @@ BOOLEAN mymemcmp(void* data1,void* data2,int amt) {
 
 
 //old broken code for NinaRow
-  /*  for(direction = (LocalBoard.diagonals ? 0 : 1);direction<8; direction+= (LocalBoard.diagonals ? 1 : 2)) { //test for each direction
+  /*  for(direction = (lBoard.diagonals ? 0 : 1);direction<8; direction+= (lBoard.diagonals ? 1 : 2)) { //test for each direction
     soFar = 1;
     i = 0;
 
@@ -287,11 +363,11 @@ BOOLEAN mymemcmp(void* data1,void* data2,int amt) {
 
       //printf("Solving %dth in a row\n",i);
 
-      location = indexOfLast + i*LocalBoard.directionMap[direction];
+      location = indexOfLast + i*lBoard.directionMap[direction];
       
-      if ( (indexOfLast != location % LocalBoard.rows) ||  //new location crossed the edge of the board
+      if ( (indexOfLast != location % lBoard.rows) ||  //new location crossed the edge of the board
 	   (location < 0) ||                                  //new location is out of bounds
-	   (location > LocalBoard.rows*LocalBoard.cols - 1)) {
+	   (location > lBoard.rows*lBoard.cols - 1)) {
 	soFar = 0;
       } else {	
 	soFar = (soFar && (boardArray[location] == type));
@@ -301,4 +377,28 @@ BOOLEAN mymemcmp(void* data1,void* data2,int amt) {
 
     found+=soFar;
   }
-  */
+
+//old inner loop for OneDMatch
+	while (count<len && soFar) {
+	  
+	  //expand search
+	  location = z + count*lBoard.directionMap[direction];
+	  
+	  overflow = (location%lBoard.cols - z%lBoard.cols > 0); //true if location jumped edge 
+	  if (direction > 1 && direction < 5) {
+	    overflow = !(overflow); //adjust for other directions
+	  }
+	  
+	  //printf("Searching location %d in directon %d, from slot %d\n",location,direction,z);
+	  //printf("Count is %d\n",count);
+	  
+           if ( //overflow ||  
+	       //(location < 0) ||                                  //new location is out of bounds
+	       //(location > lBoard.rows*lBoard.cols - 1) ||
+	       (memcmp(boardArray + lBoard.eltSize*location, pattern + lBoard.eltSize*count, lBoard.eltSize))) { //piece at location isn't a match
+	    soFar = FALSE;
+	  } else {	
+	    count++;
+	  }
+	}
+*/
