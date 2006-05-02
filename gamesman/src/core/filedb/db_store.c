@@ -50,14 +50,14 @@ db_store* db_open(char* filename){
   
   boolean olddb = TRUE;
 
-  db->filep = gzopen(filename,"r+");
+/*  db->filep = gzopen(filename,"r+");
   if(db->filep == NULL){
     db->filep = gzopen(filename,"w+");
     olddb = FALSE;
   }
   if(db->filep == NULL)
     return NULL;
-  
+  */
 //  get the magic number - the offset at which the pagemap begins
 // not used right now, we depend on zlib to minimize cost of gaps
 //	page_id magic = 0;
@@ -73,12 +73,12 @@ db_store* db_open(char* filename){
   //it has not been written, so be sure to write it when expanding
   db->last_page = 0;
   
-  if(db->filep)
+  /*if(db->filep)
     return db;
   
-  db_close(db);
+  db_close(db);*/
   
-  return NULL;
+  return db; //used to be NULL
 }
 
 //page_id getMagicNumber(gzFile* filep) {
@@ -93,8 +93,9 @@ db_store* db_open(char* filename){
 */
 int db_close(db_store* db){
   SafeFree(db->filename);
-  if(db->filep)
+/*  if(db->filep)
     gzclose(db->filep);
+*/
   SafeFree(db);
 
   return 0;
@@ -103,7 +104,7 @@ int db_close(db_store* db){
 //writes a page into the database
 int db_write(db_store* db, page_id page, db_buffer_page* buf){
 	//grows the file on-demand
-	if (page >= db->last_page) {
+/*	if (page >= db->last_page) {
 		//breakage of abstraction, beware
 		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
 		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
@@ -116,16 +117,23 @@ int db_write(db_store* db, page_id page, db_buffer_page* buf){
 		
 		free(temp);
 	}
+*/
+	char filename[80] = "";
+	
+	sprintf(filename, "%s%llu", db->filename, page);
 
+	gzFile pagefile = gzopen(filename, "w+");
+	
 	//even if you are writing to the same page,
 	//you still have to seek back a page
-	db_seek(db, page);
+	//db_seek(db, page);
 	
 	printf ("db_write: page = %llu, last_page = %llu\n", page, db->last_page);
 	//write data
-    gzwrite(db->filep, (void*)buf, sizeof(db_buffer_page));
+    gzwrite(pagefile/*db->filep*/, (void*)buf, sizeof(db_buffer_page));
 	//flush all data so that decompression can restart at this point    
-    gzflush(db->filep, Z_FULL_FLUSH);
+   // gzflush(db->filep, Z_FULL_FLUSH);
+    gzclose(pagefile);
     return 0;
 }
 
@@ -138,7 +146,7 @@ int db_read(db_store* db, page_id page, db_buffer_page* buf){
 */	
 
 	//grows the file on-demand
-	if (page >= db->last_page) {
+/*	if (page >= db->last_page) {
 		//breakage of abstraction, beware
 		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
 		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
@@ -155,6 +163,31 @@ int db_read(db_store* db, page_id page, db_buffer_page* buf){
 	db_seek(db, page);
 	printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
 	return gzread(db->filep, (void*)buf, sizeof(db_buffer_page));
+*/
+	char filename[80] = "";
+	
+	sprintf(filename, "%s%llu", db->filename, page);
+
+	gzFile pagefile = gzopen(filename, "r+");
+	
+	//even if you are writing to the same page,
+	//you still have to seek back a page
+	//db_seek(db, page);
+	
+	printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
+	if(pagefile != NULL) {
+		//write data
+	    gzread(pagefile/*db->filep*/, (void*)buf, sizeof(db_buffer_page));
+		//flush all data so that decompression can restart at this point    
+	   // gzflush(db->filep, Z_FULL_FLUSH);
+	} else { //page does not exist in disk
+		memset(buf, 0x00000000, sizeof(db_buffer_page));
+	}
+
+    gzclose(pagefile);
+
+    return 0;
+
 }
 
 //seeks in the file to the beginning of a given page.

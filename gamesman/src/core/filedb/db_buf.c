@@ -62,13 +62,14 @@ db_buffer* db_buf_init(int rec_size, page_id num_buf, db_store* filep){
 	for (j=0; j<MEM_ARRAY_SIZE; j++)
 		buf->mem[j] = 0;
     buf->tag = 0;
-//    buf->valid = FALSE;
+    buf->valid = FALSE;
     bufp->dirty[i] = FALSE;
   }
 
   return bufp;
 }
 
+//must be a valid page to enter this function
 int db_buf_flush(db_buffer* bufp, page_id bufpage){
   //get the buffer page
   db_buffer_page* buf = bufp->buffers + bufpage;
@@ -117,17 +118,28 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 	db_store* filep = bufp->filep;
 	db_buffer_page* buf = bufp->buffers + bufpage;
 
-	if (buf->tag != mytag) {//if this page is not the one I want
-		//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-		db_buf_flush(bufp, bufpage);
+	if (buf->valid == TRUE) {//if this page is not the one I want
+		if (buf->tag != mytag) { //buffer page is valid but not the one we want
+			//if (bufp->dirty[bufpage]) //if the page is dirty flush it
+			db_buf_flush(bufp, bufpage);
+			//load in the new page
+			db_read(filep, page ,buf);
+			//set the tag where it is
+			if (buf->tag != mytag)
+				//the buffer is uninitialized, this means no record exists in the page
+				buf->tag = mytag;
+			buf->valid = TRUE;
+		}
+	} else {
 		//load in the new page
 		db_read(filep, page ,buf);
 		//set the tag where it is
 		if (buf->tag != mytag)
-		//the buffer is uninitialized, this means no record exists in the page
+			//the buffer is uninitialized, this means no record exists in the page
 			buf->tag = mytag;
+		buf->valid = TRUE;
 	}
-
+	
 	printf("buf_read: spot = %llu, page = %llu, bufpage = %llu buf_tag = %llu, mytag = %llu\n", spot, page, bufpage, buf->tag, mytag);
 
 	//byte offset of the db record (the extra byte + the actual record)
@@ -157,15 +169,26 @@ int db_buf_write(db_buffer* bufp, Position spot, const void *value){
 
 	db_buffer_page* buf = bufp->buffers + bufpage;
 
-	if (buf->tag != mytag) {//if this page is not the one I want
-		//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-		db_buf_flush(bufp, bufpage);
+	if (buf->valid == TRUE) {//if this page is not the one I want
+		if (buf->tag != mytag) { //buffer page is valid but not the one we want
+			//if (bufp->dirty[bufpage]) //if the page is dirty flush it
+			db_buf_flush(bufp, bufpage);
+			//load in the new page
+			db_read(filep, page ,buf);
+			//set the tag where it is
+			if (buf->tag != mytag)
+				//the buffer is uninitialized, this means no record exists in the page
+				buf->tag = mytag;
+			buf->valid = TRUE;
+		}
+	} else {
 		//load in the new page
 		db_read(filep, page ,buf);
 		//set the tag where it is
 		if (buf->tag != mytag)
-		//the buffer is uninitialized, this means no record exists in the page
+			//the buffer is uninitialized, this means no record exists in the page
 			buf->tag = mytag;
+		buf->valid = TRUE;
 	}
 
 	//byte offset of the db record (the extra byte + the actual record)

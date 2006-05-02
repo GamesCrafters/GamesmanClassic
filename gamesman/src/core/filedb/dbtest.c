@@ -51,6 +51,8 @@ int main(int argc, char *argv[])
 	for (i=0;i<totalrecs;i++) {
 		data = i % (1<<16);
 		printf("reading: %llu\n", i);
+		if (i == 85)
+			printf("\n");
 		db_put(testdb, (void*)&data, i);
 		db_get(testdb, (void*)&result, i);
 		if (data!=result) {

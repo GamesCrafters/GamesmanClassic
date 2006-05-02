@@ -46,13 +46,14 @@ typedef char boolean;
 //this is really arbitrary
 //BADBADBAD
 #define PAGE_SIZE 4096
+// 1M bytes per page, minus 8 bytes for 64-bit page_id, this is the max, there might be wasted space
+//#define MEM_ARRAY_SIZE 1048568
 #define MEM_ARRAY_SIZE 256
-// 4K bytes, minus 9 bytes for 64-bit page_id, this is the max, there might be wasted space
-//extern const unsigned long mem_array_size;
 
 typedef struct buffer_page_struct {
   char mem[MEM_ARRAY_SIZE];
   page_id tag;
+  boolean valid;
 }db_buffer_page;
 
 #endif /* GMCORE_DB_GLOBALS_H */
