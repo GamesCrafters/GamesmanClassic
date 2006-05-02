@@ -78,6 +78,7 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 				   * solved, default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gSymmetries = FALSE;
+BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 
@@ -95,6 +96,11 @@ BOOLEAN gPrintHints = TRUE;
 
 BOOLEAN gSkipInputOnSingleMove = FALSE; /*prompt the user even when there is only one move to take*/
 BOOLEAN gPlaying = FALSE;
+
+/* Visualization Globals */
+BOOLEAN gDrawEdges = TRUE;
+BOOLEAN gRemotenessOrder = TRUE;
+BOOLEAN gGenerateNodeViz = FALSE;
 
 /* NetworkDB Globals */
 BOOLEAN gNetworkDB = FALSE; 

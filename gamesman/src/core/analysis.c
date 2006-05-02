@@ -304,11 +304,16 @@ void PrintDetailedOpenSummary()
 		
 	printf("\t----------------------------------------------------------------------------------------------------------------\n");
 	printf("\tTotals                                  %10llu     %10llu     %10llu     %10llu     %10llu\n", 
-		   gAnalysis.DrawWinCount, 
+		   /* gAnalysis.DrawWinCount, 
 		   gAnalysis.DrawLoseCount, 
 		   gAnalysis.DrawTieCount,
 		   gAnalysis.DrawDraws, 
-		   gAnalysis.TotalOpenPositions);
+		   gAnalysis.TotalOpenPositions); */
+		   gAnalysis.OpenSummary[win],
+		   gAnalysis.OpenSummary[lose],
+		   gAnalysis.OpenSummary[tie],
+		   gAnalysis.OpenSummary[undecided],
+		   gAnalysis.OpenSummary[win]+gAnalysis.OpenSummary[lose]+gAnalysis.OpenSummary[tie]+gAnalysis.OpenSummary[undecided]);
 	 
 	
 	printf("\tDraws = %llu\n\n", gAnalysis.Draws);

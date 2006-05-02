@@ -132,7 +132,9 @@ VALUE DetermineValue(POSITION position)
 			if(gSaveDatabase) {
 				printf("\nWriting the values of %s into a database...", kGameName);
 				SaveDatabase();
-				SaveOpenPositionsData();
+				if(gUseOpen) {
+					SaveOpenPositionsData();
+				}
 				SaveAnalysis();
 			}
 		}
@@ -148,7 +150,9 @@ VALUE DetermineValue(POSITION position)
 
 		if(gSaveDatabase) {
 			SaveDatabase();
-			SaveOpenPositionsData();
+			if(gUseOpen) {
+				SaveOpenPositionsData();
+			}
 			SaveAnalysis();
 		}
 	}
@@ -256,6 +260,8 @@ void HandleArguments (int argc, char *argv[])
                         createAnalysisGameDir();
                         //writeGameHTML(); DEPRECATED
                         //createVarTable(); DEPRECATED
+                } else if(!strcasecmp(argv[i], "--open")) {
+                		gUseOpen = TRUE;
                 } else if(!strcasecmp(argv[i], "--DoMove")) {
                         InitializeGame();
                         if(argc != 4)

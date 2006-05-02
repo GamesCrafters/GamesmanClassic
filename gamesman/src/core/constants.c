@@ -195,6 +195,7 @@ STRING kCommandSyntaxHelp =
 "--curroption\t\tPrints the current option.\n"
 "--option <n>\t\tStarts game with the n option configuration.\n"
 "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
+"--open\t\t\tStarts game with Open Positions solving enabled.\n"
 "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
 "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
 #ifdef HAVE_GMP

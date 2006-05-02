@@ -1,4 +1,4 @@
-// $Id: reserved.txt,v 1.1 2005-10-09 19:35:37 hevanm Exp $
+// $Id: reserved.txt,v 1.2 2006-05-02 05:17:45 arabani Exp $
 
 This lists all reserved characters used by the Gamesman core, ordered by menu.
 
@@ -107,11 +107,25 @@ l
 t
 
 p
+a
 f
 o
 d
+g
 
 c
+
+h
+
+b
+
+
+Visualization menu>
+e
+n
+r
+
+v
 
 h
 
@@ -144,6 +158,12 @@ b
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.1  2005/10/09 19:35:37  hevanm
+//Moved all documentation files into gamesman/doc
+//Combined howto.txt and the tcl README into newgame.txt
+//Renamed restrictions.txt to status.txt
+//Changed extensions for all files to txt
+//
 //Revision 1.2  2005/09/22 05:01:47  ogren
 //Should be raw text now. -Elmer
 //

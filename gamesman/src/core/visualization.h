@@ -23,6 +23,11 @@ typedef struct edge_list
 	POSITION *edgesPerLevel;
 	POSITION *nextEdgeInLevel;
 	int NumberOfLevels;
+	POSITION **nodeRanks;
+	POSITION *nextNodeInRank;
+	POSITION *nextRankInLevel;
+	POSITION *nodesPerRank;
+	REMOTENESS maxRank;
 } EDGELIST;
 
 /* Public functions */
@@ -40,5 +45,8 @@ STRING PositionValue(POSITION);
 STRING MoveColor(EDGE);
 void PopulateEdgelist(EDGELIST *);
 void WriteLevel(EDGELIST *, int);
-void WriteNode(FILE *, POSITION, int);
+void WriteNode(FILE *, POSITION, int, EDGELIST *);
+void WriteRanks(FILE *, EDGELIST *);
+void WriteBoards();
+void UpdateRankList(EDGELIST *, POSITION, REMOTENESS);
 #endif

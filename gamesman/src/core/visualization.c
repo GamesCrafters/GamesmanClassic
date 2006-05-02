@@ -57,10 +57,16 @@ EDGELIST GameTree;
 
 BOOLEAN PrepareTree(EDGELIST *tree) {
 	int level;
+	REMOTENESS currentRemoteness;
+	
 	tree->NumberOfLevels = 1;
+	tree->maxRank = 0;
 	tree->edges = (EDGE **) SafeMalloc(tree->NumberOfLevels*sizeof(EDGE *));
+	tree->nodeRanks = (POSITION **) SafeMalloc((REMOTENESS_MAX+2)*sizeof(POSITION *));
 	tree->edgesPerLevel = (POSITION *) SafeMalloc(tree->NumberOfLevels*sizeof(POSITION));
+	tree->nodesPerRank = (POSITION *) SafeMalloc((REMOTENESS_MAX+2)*sizeof(POSITION));
 	tree->nextEdgeInLevel = (POSITION *) SafeMalloc(tree->NumberOfLevels*sizeof(POSITION));
+	tree->nextNodeInRank = (POSITION *) SafeMalloc((REMOTENESS_MAX+2)*sizeof(POSITION));
 	
 	for(level = 0; level < tree->NumberOfLevels; level++) {
 		tree->edgesPerLevel[level] = INI_EDGES_PER_LEVEL;
@@ -68,18 +74,35 @@ BOOLEAN PrepareTree(EDGELIST *tree) {
 		tree->edges[level] = (EDGE *) SafeMalloc(INI_EDGES_PER_LEVEL*sizeof(EDGE));
 		memset((tree->edges)[level], 0, INI_EDGES_PER_LEVEL*sizeof(EDGE));
 	}
+	
+	for(currentRemoteness = 0; currentRemoteness < REMOTENESS_MAX+2; currentRemoteness++) {
+		tree->nodeRanks[currentRemoteness] = (POSITION *) SafeMalloc(1000*sizeof(POSITION));
+		tree->nodesPerRank[currentRemoteness] = 1000;
+		tree->nextNodeInRank[currentRemoteness] = 0;
+	}
+	
 	UnMarkAllAsVisited();
 	return TRUE;	
 }
 
 void CleanupTree(EDGELIST *tree) {
 	int level;
+	REMOTENESS currentRemoteness;
+	
 	SafeFree(tree->edgesPerLevel);
 	SafeFree(tree->nextEdgeInLevel);
+	SafeFree(tree->nodesPerRank);
+	SafeFree(tree->nextNodeInRank);
 	
 	for(level = 0; level < tree->NumberOfLevels; level++) {
 		SafeFree(tree->edges[level]);
 	}
+	
+	for(currentRemoteness = 0; currentRemoteness < REMOTENESS_MAX+2; currentRemoteness++) {
+		SafeFree(tree->nodeRanks[currentRemoteness]);
+	}
+	
+	SafeFree(tree->nodeRanks);
 	SafeFree(tree->edges);
 	UnMarkAllAsVisited();
 }
@@ -119,6 +142,7 @@ void Visualize() {
 	
 	printf("\nClosing file");
 	CloseDOTFile(DOTFile);
+	
 	printf("\nCleaning up tree");
 	CleanupTree(&GameTree);
 	
@@ -141,22 +165,18 @@ void PopulateEdgelist(EDGELIST *tree) {
 		level = 0;
 	
 	for(parent=0; parent < gNumberOfPositions; parent++) {
-		//printf("Getting value of parent %llu\n", parent);
 		if(GetValueOfPosition(parent) == undecided &&
 			Remoteness(parent) != REMOTENESS_MAX) {
 				continue;
 		}
 		
 		if(Primitive(parent) != undecided) {
-			//printf("Parent is primitive\n");
 			continue;
 		} else {
-			//printf("Generating moves on parent\n");
 			childMoves = GenerateMoves(parent);
 		}
 		
 		while(1) {
-			//printf("Doing move\n");
 			theMove = childMoves->move;
 			child = DoMove(parent, theMove);
 			
@@ -173,24 +193,16 @@ void PopulateEdgelist(EDGELIST *tree) {
 				ResizeTree(&GameTree, level);
 			}
 			
-			//printf("Setting edge values\n");
-			
 			(((GameTree.edges)[level])[(GameTree.nextEdgeInLevel)[level]]).Parent = parent;
 			(((GameTree.edges)[level])[(GameTree.nextEdgeInLevel)[level]]).Child = child;
 			(GameTree.nextEdgeInLevel)[level] += 1;
-			//printf("Next edge: %llu\n", GameTree.nextEdgeInLevel[level]);
-			//printf("Edges in level %d: %llu\n", level, GameTree.edgesPerLevel[level]);
 			
 			/* Resize an individual level if no room left */
 
 			if(((GameTree.edgesPerLevel)[level] - 2) <= (GameTree.nextEdgeInLevel)[level]) {
-				//printf("\nResizing level\n");
-				//printf("Max: %llu, Current: %llu\n", GameTree.edgesPerLevel[level], GameTree.nextEdgeInLevel[level]);
 				resizeLevelCount++;
 				(GameTree.edges)[level] = SafeRealloc((GameTree.edges)[level], (GameTree.edgesPerLevel)[level] * 2 * sizeof(EDGE));
 				(GameTree.edgesPerLevel)[level] = (GameTree.edgesPerLevel)[level] * 2;
-				//printf("Done resizing.\n");
-				//printf("Max: %llu, Current: %llu\n", GameTree.edgesPerLevel[level], GameTree.nextEdgeInLevel[level]);
 			}
 			
 			if((childMoves = childMoves->next) == NULL) {
@@ -207,6 +219,12 @@ void Write(FILE *fp, EDGELIST *tree) {
 	for(currentLevel = tree->NumberOfLevels - 1; currentLevel > -1; currentLevel--) {
 		WriteLevel(tree, currentLevel);
 	}
+	
+	/*
+	if(gGenerateNodeViz) {
+		WriteBoards();
+	}
+	*/
 }
 
 void WriteLevel(EDGELIST *tree, int currentLevel) {
@@ -224,6 +242,11 @@ void WriteLevel(EDGELIST *tree, int currentLevel) {
 	fprintf(fp, "\tlabelloc = \"top\"\n");
 	fprintf(fp, "\tranksep = 1\n");
 	fprintf(fp, "\tnode [fixedsize = \"true\", width = .75, height = .75]\n");
+	
+	/* Turn off edge drawing if gDrawEdges is FALSE */
+	if(!gDrawEdges) {
+		fprintf(fp, "\tsplines = \"\"\n");
+	}
 
 	fprintf(fp, "\tsubgraph cluster_%d {\n", currentLevel);
 	fprintf(fp, "\t\tlabel = \"Level %d\"\n", currentLevel);
@@ -235,7 +258,7 @@ void WriteLevel(EDGELIST *tree, int currentLevel) {
 	fprintf(fp, "\t\t\tlabel = \"Legend\"\n");
 	fprintf(fp, "\t\t\tcolor = \"blue\"\n");
 	
-	/* Meaning of shapes */
+	/* Legend: Meaning of shapes */
 	fprintf(fp, "\t\t\tsubgraph cluster_shape {\n");
 	fprintf(fp, "\t\t\t\trank = \"same\"\n");
 	fprintf(fp, "\t\t\t\tlabel = \"Position Shapes\"\n");
@@ -244,7 +267,7 @@ void WriteLevel(EDGELIST *tree, int currentLevel) {
 	fprintf(fp, "\t\t\t\tfringe [shape = \"%s\", label = \"Fringe\"]\n", FRINGE_SHAPE);
 	fprintf(fp, "\t\t\t}\n");
 	
-	/* Meaning of colors */
+	/* Legend: Meaning of colors */
 	fprintf(fp, "\t\t\tsubgraph cluster_color {\n");
 	fprintf(fp, "\t\t\t\trank = \"same\"\n");
 	fprintf(fp, "\t\t\t\tlabel = \"Position Colors\"\n");
@@ -257,20 +280,24 @@ void WriteLevel(EDGELIST *tree, int currentLevel) {
 	
 	for(currentEdge = 0; currentEdge < (tree->nextEdgeInLevel)[currentLevel]; currentEdge++) {
 		theEdge = (tree->edges)[currentLevel][currentEdge];
-		WriteNode(fp, theEdge.Parent, currentLevel);
-		WriteNode(fp, theEdge.Child, currentLevel);
+		WriteNode(fp, theEdge.Parent, currentLevel, tree);
+		WriteNode(fp, theEdge.Child, currentLevel, tree);
 				
 		fprintf(fp, "\t\t%llu -> %llu [color = \"%s\"]\n", theEdge.Parent, theEdge.Child, MoveColor(theEdge));
 	}
 	
+	if(gRemotenessOrder) {
+		WriteRanks(fp, tree);
+	}
 	fprintf(fp, "\t}\n");
 	fprintf(fp, "}\n");
 	fclose(fp);
 	UnMarkAllAsVisited();
 }
 
-void WriteNode(FILE *fp, POSITION node, int level) {
+void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 	OPEN_POS_DATA pdata;
+	REMOTENESS nodeRemoteness;
 	char label[50];
 	
 	pdata = GetOpenData(node);
@@ -301,13 +328,73 @@ void WriteNode(FILE *fp, POSITION node, int level) {
 		} else {
 			BadElse("WriteNode");
 		}
-		//fprintf(fp, "/* Value: %s, level: %d */\n", PositionValue(node), GetLevelNumber(pdata));
 		
 		if(level != GetLevelNumber(pdata) || node == gInitialPosition) {
 			fprintf(fp, "\n\t\t}\n");
 		} else {
 			fprintf(fp, "\n");
 		}
+		
+		/* Determine rank of node */
+		if(GetLevelNumber(pdata) == 0) {
+			nodeRemoteness = Remoteness(node);
+		} else {
+			nodeRemoteness = GetFremoteness(pdata);
+		}
+		
+		//0-REMOTENESS_MAX-1 regular nodes,
+		//REMOTENESS_MAX level below current level,
+		//REMOTENESS_MAX+1 level above current level
+		if(gRemotenessOrder) {
+			if(level == GetLevelNumber(pdata)) {
+				UpdateRankList(tree, node, nodeRemoteness);
+			} else if(level > GetLevelNumber(pdata)) {
+				UpdateRankList(tree, node, REMOTENESS_MAX+1);
+			} else if(level < GetLevelNumber(pdata)) {
+				UpdateRankList(tree, node, REMOTENESS_MAX);
+			} else {
+				BadElse("WriteNode");
+			}
+		}
+	}
+}
+
+void WriteRanks(FILE *fp, EDGELIST *tree) {
+	REMOTENESS currentRank;
+	POSITION currentNode;
+	
+	for(currentRank = 0; currentRank < tree->maxRank+1; currentRank++) {
+		fprintf(fp, "\t\t{ rank = \"same\"; ");
+		for(currentNode = 0; currentNode < tree->nextNodeInRank[currentRank]; currentNode++) {
+			fprintf(fp, "%llu; ", tree->nodeRanks[currentRank][currentNode]);
+		}
+		fprintf(fp, "\t\t}\n");
+	}
+	
+	fprintf(fp, "\t\t{ rank = \"min\"; ");
+	for(currentNode = 0; currentNode < tree->nextNodeInRank[REMOTENESS_MAX]; currentNode++) {
+		fprintf(fp, "%llu; ", tree->nodeRanks[REMOTENESS_MAX][currentNode]);
+	}
+	fprintf(fp, "\t\t}\n");
+	
+	fprintf(fp, "\t\t{ rank = \"max\"; ");
+	for(currentNode = 0; currentNode < tree->nextNodeInRank[REMOTENESS_MAX+1]; currentNode++) {
+		fprintf(fp, "%llu; ", tree->nodeRanks[REMOTENESS_MAX+1][currentNode]);
+	}
+	fprintf(fp, "\t\t}\n");
+}
+
+void UpdateRankList(EDGELIST *tree, POSITION node, REMOTENESS nodeRemoteness) {
+	tree->nodeRanks[nodeRemoteness][tree->nextNodeInRank[nodeRemoteness]] = node;
+	tree->nextNodeInRank[nodeRemoteness]++;
+	
+	if(tree->nextNodeInRank[nodeRemoteness] > tree->nodesPerRank[nodeRemoteness]) {
+		tree->nodeRanks[nodeRemoteness] = SafeRealloc(tree->nodeRanks[nodeRemoteness],tree->nodesPerRank[nodeRemoteness]*2*sizeof(POSITION));
+		tree->nodesPerRank[nodeRemoteness] = tree->nodesPerRank[nodeRemoteness]*2;
+	}
+	
+	if(nodeRemoteness > tree->maxRank && nodeRemoteness < REMOTENESS_MAX) {
+		tree->maxRank = nodeRemoteness;
 	}
 }
 
@@ -447,6 +534,38 @@ STRING MoveColor(EDGE theEdge) {
 		BadElse("MoveColor");
 		exit(0);
 	}
+}
+
+/* Not actually used until a way is found to print boards to string
+ * rather than stdout
+ */
+ 
+void WriteBoards() {
+	return;
+	
+	POSITION parent;
+	FILE *fp;
+	char fileName[256];
+	
+	sprintf(fileName, "visualization/m%s_%d_boards.txt", kDBName, getOption());
+	
+	if((fp = fopen(fileName, "w+")) == NULL) {
+		printf("\nFailed to open file for writing boards!");
+		exit(0);
+	}
+	
+	fprintf(fp, "Boards for %s, variant %d\n", kGameName, getOption());
+	fprintf(fp, "Position\tBoard\n\n");
+	
+	for(parent=0; parent < gNumberOfPositions; parent++) {
+		if(GetValueOfPosition(parent) == undecided &&
+			Remoteness(parent) != REMOTENESS_MAX) {
+				continue;
+		}
+		
+		//fprintf(fp, "%llu\t%s\n", parent, PrintPosition(parent, " ", TRUE));
+	}
+	fclose(fp);
 }
 
 FILE *PrepareDOTFile() {

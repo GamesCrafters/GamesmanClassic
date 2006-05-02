@@ -797,6 +797,10 @@ BOOLEAN LoadOpenPositionsData()
 	char version;
 	POSITION arraypos;
 	
+	if(!gUseOpen) {
+		return TRUE;
+	}
+	
 	if(gZeroMemPlayer)  //we don't load the db if playing on zero memory, but we will say that the db is loaded
 		return TRUE;
 	

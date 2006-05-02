@@ -95,7 +95,9 @@ VALUE DetermineLoopyValue(POSITION position)
     //   InitializeVisitedArray();
     
     value = DetermineLoopyValue1(gInitialPosition);
-	ComputeOpenPositions();
+	if(gUseOpen) {
+		ComputeOpenPositions();
+	}
 	//printf("Got here\n");
 	//PrintOpenDataFormatted();
     /* free */

@@ -46,6 +46,7 @@ static void	ParseEvaluatedMenuChoice	(char c);
 static void	ParseHelpMenuChoice		(char c);
 static void	AnalysisMenu			(void);
 static void     GamePrintMenu                   (POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input);
+static void VisualizationMenu(void);
 
 
 
@@ -1039,8 +1040,53 @@ void AnalysisMenu()
 	    gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
 	    return;
 	case 'G': case 'g':
-		Visualize();
+		VisualizationMenu();
 		break;
+	default:
+	    BadMenuChoice();
+	    HitAnyKeyToContinue();
+	    break;
+        }
+    } while(TRUE);
+}
+
+void VisualizationMenu()
+{
+    char c;
+	
+    do {
+        printf("\n\t----- Post-Evaluation VISUALIZATION menu for %s -----\n\n", kGameName);
+        printf("\n\te)\t Toggle (E)dge drawing (currently %s)", gDrawEdges ? "ON" : "OFF");
+        printf("\n\tn)\t Toggle writing text file with (N)ode visualization (currently %s)", gGenerateNodeViz ? "ON" : "OFF");
+        printf("\n\tr)\t Toggle ordering nodes by (R)emoteness (currently %s)", gRemotenessOrder ? "ON" : "OFF");
+        printf("\n\n\tv)\t Visualize game graph");
+        printf("\n\n\th)\t(H)elp\n");
+        printf("\n\tb)\t(B)ack = Return to previous activity\n");
+        printf("\n\nSelect an option: ");
+
+        switch(c = GetMyChar()) {
+	case 'Q': case 'q':
+	    ExitStageRight();
+	    exit(0);
+	case 'H': case 'h':
+	    HelpMenus();
+	    break;
+	case 'E': case 'e':
+	    gDrawEdges = !gDrawEdges;
+	    break;
+	case 'N': case 'n':
+		gGenerateNodeViz = !gGenerateNodeViz;
+		break;
+	case 'R': case 'r':
+		gRemotenessOrder = !gRemotenessOrder;
+		break;
+	case 'V': case 'v':
+		Visualize();
+		HitAnyKeyToContinue();
+		break;
+	case 'b': case 'B':
+	    gMenuMode = Evaluated; /* Return to simple 'Evaluated' mode/menu */
+	    return;
 	default:
 	    BadMenuChoice();
 	    HitAnyKeyToContinue();
