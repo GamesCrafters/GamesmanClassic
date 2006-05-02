@@ -368,7 +368,7 @@ proc main {} {
 			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
 			  "Nim" "Odd or Even" "Othello" "QuickCross" \
 			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
-			  "Tic-Tac-Toe" "Sim" "Wuzhi" \
+			  "Tic-Tac-Toe" "Wuzhi" "Sim" \
 			  "Chung-Toi" "Dodgem" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
 			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
