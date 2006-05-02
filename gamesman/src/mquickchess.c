@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.11 2006-04-19 00:48:21 vert84 Exp $
+// $Id: mquickchess.c,v 1.12 2006-05-02 23:49:05 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -39,6 +39,11 @@
 ** 18 Apr 2006 Aaron: Removed return char in PrintMove
 **                    Moved setupPieces code into InitializeGame()
 **                    Downsized board to make it solve
+** 25 Apr 2006 Adam:  Added substitute pawn functionality
+** 02 May 2006 Aaron: Added code to print and move functions to make work with
+**                    substitute pawn.  Substitute pawn only working with queens.
+**                    Changed way to display whose turn.  now based on WhoseMove instead of
+**                    is users turn.
 **************************************************************************/
 
 /*************************************************************************
@@ -111,7 +116,7 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define rows 5
+#define rows 4
 #define cols 3
 #define WHITE_TURN 2 
 #define BLACK_TURN 1 
@@ -175,6 +180,7 @@ BOOLEAN testMove(char *boardArray, int rowi, int rowf, int coli, int colf, int c
 void UndoMove(char *boardArray,int rowi, int rowf, int coli, int colf, int currentPlayer);
 void testDoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer);
 MOVE createMove(int rowi, int coli, int rowf, int colf);
+MOVE createPawnMove(int rowi, int coli, int rowf, int colf, char replacementPiece);
 void generateMovesDirection(char* boardArray,  MOVELIST **moves, int currentPlayer, int i, int j, int direction);
 void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
@@ -198,8 +204,9 @@ void InitializeGame ()
 	//int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
 	//int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
 	//int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 1, 'r', 0, 1, 'k', 1, 1, 'p', 0, 1, 'b', 0, 1, ' ', 7, 13, -1};
-	int pieces_array[16] = {'R', 0, 1, 'K', 1, 1, 'r', 0, 1, 'k', 1, 1, ' ', 11, 13, -1};
+	int pieces_array[22] = {'Q', 0, 1, 'R', 0, 1, 'K', 1, 1, 'q', 0, 1, 'r', 0, 1, 'k', 1, 1, ' ', 6, 10, -1};
 	char gameBoard[rows*cols];
+	
 
 	int x, y;
 	// setup empty spaces 
@@ -241,13 +248,14 @@ void InitializeGame ()
 	//gameBoard[4] = WHITE_PAWN;
 	//gameBoard[10] = BLACK_PAWN;
 	
-	//gameBoard[0] = WHITE_BISHOP;
+	gameBoard[2] = WHITE_QUEEN;
 	gameBoard[1] = WHITE_KING;
 	gameBoard[0] = WHITE_ROOK;
 	
-	//gameBoard[(rows-1)*cols] = BLACK_BISHOP;
+	gameBoard[(rows-1)*cols] = BLACK_QUEEN;
 	gameBoard[(rows-1)*cols + 1] = BLACK_KING;
 	gameBoard[(rows-1)*cols + 2] = BLACK_ROOK;
+//	gameBoard[(rows-2)*cols + 2] = WHITE_PAWN;
 	
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
 	gInitialPosition = generic_hash(gameBoard, WHITE_TURN);
@@ -338,12 +346,13 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
 	char boardArray[rows*cols];
-	char tempPiece;
+	char tempPiece, replacementPiece;
 	int rowi, coli, rowf, colf;
 	rowf = move & 15; 
 	colf = (move >> 4) & 15; 
 	rowi = (move >> 8) & 15; 
 	coli = (move >> 12) & 15; 
+	replacementPiece = (char) (move >> 16) & 255; 
 	generic_unhash(position, boardArray);
 	int currentPlayer = whoseMove(position);
 	tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
@@ -351,11 +360,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
 	if(tempPiece == WHITE_PAWN) {
 		if(rowf == 1){
-		  //	substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
+			boardArray[(rows - rowf)*cols + (colf - 10)] = replacementPiece;
 		} 
 	} else if(tempPiece == BLACK_PAWN) {
 		if(rowf == rows) {
-		  //	substitutePawn(boardArray, currentPlayer, rows-rowf, colf-10);
+			boardArray[(rows - rowf)*cols + (colf - 10)] = replacementPiece;
 		}
 	}
 	if(currentPlayer == WHITE_TURN) {
@@ -494,7 +503,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	} 
 	printf("\n"); 
 	printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
-	printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase"); 
+	printf("It is %s's turn (%s).\n",playersName,(whoseMove(position) == WHITE_TURN) ? "white/uppercase":"black/lowercase"); 
 	if (inCheck(position, whoseMove(position))) {
 		printf("%s is in Check\n", playersName);
 	}
@@ -530,13 +539,18 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-	char rowf, colf, rowi, coli;
+	char rowf, colf, rowi, coli, replacementPiece;
 	rowf = (move & 15) + 48; 
 	colf = ((move >> 4) & 15) - 10 + 97; 
 	rowi = ((move >> 8) & 15) + 48; 
 	coli = ((move >> 12) & 15) - 10 + 97; 
+	replacementPiece = move >> 16;
 	
-	printf("%c%c%c%c", coli, rowi, colf, rowf);
+	if (replacementPiece == 0) {
+		printf("%c%c%c%c", coli, rowi, colf, rowf);
+	} else {
+		printf("%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
+	}
 }
 
 
@@ -609,7 +623,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
 	char c;
-	if(strlen(input)!=4) 
+	int length = strlen(input);
+	if(length!=4 && length!=6 ) 
 		return FALSE; 
 	else{ 
 		/* Make sure the row and column are within the bounds 
@@ -622,6 +637,13 @@ BOOLEAN ValidTextInput (STRING input)
 		if(c > rows + '0' || c < '1') return FALSE; 
 		c = input[3]; 
 		if(c > rows + '0' || c < '1') return FALSE; 
+		if (length == 6) {  // pawn replacement move
+			c = input[4];
+			if (c != '=') return FALSE;
+			c = input [5];
+			if (c != 'Q' && c != 'q' && c != 'R' && c != 'r'
+				&& c != 'B' && c != 'b') return FALSE;
+		}
 	} 
 	return TRUE; 
 } 
@@ -650,7 +672,12 @@ MOVE ConvertTextInputToMove (STRING input)
 	rowi = input[1] - 48;
 	colf = input[2] - 97;
 	rowf = input[3] - 48;
-	m = createMove(rows - rowi, coli, rows - rowf, colf);
+	if (strlen(input) == 6) {
+		char replacement = input[5];
+		m = createPawnMove(rows - rowi, coli, rows - rowf, colf, replacement);
+	} else {
+		m = createMove(rows - rowi, coli, rows - rowf, colf);
+	}
 	return m;
 }
 
@@ -850,18 +877,11 @@ void DebugMenu ()
 	PrintPosition(newPos, "me", TRUE);
 	*/
 	
-       	m = ConvertTextInputToMove("b1c1");
+	m = ConvertTextInputToMove("c2b1=Q");
+	PrintMove(m);
 	PrintPosition(gInitialPosition, "me", TRUE);
 	POSITION newPos = DoMove(gInitialPosition,m); 
 	PrintPosition(newPos, "me", TRUE);
-	if(inCheck(newPos, 1)) {
-	  printf("player 1 in check\n");
-	}
-	if(inCheck(gInitialPosition, 2)) {
-	  printf("player 2 in check\n");
-	}
-	  
-     
 }
 
 
@@ -1422,7 +1442,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 	if (currentPlayer == WHITE_TURN){
 		//down 1.  Only a legal move if there is no piece there
 		if (i != rows-1 && boardArray[(i+1)*cols + j] == ' ') {
-			MOVE newMove = createMove(i, j, i+1, j);
+			MOVE newMove;
+			if (i == rows-2) {
+				newMove = createPawnMove(i, j, i+1, j, 'Q');
+			} else {
+				newMove = createMove(i, j, i+1, j);
+			}
 			if (testMove(boardArray, i,i+1,j,j, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);	
 			}
@@ -1430,7 +1455,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		//down 1, left 1.  Only a legal move if captures an enemy piece
 		if (i != rows-1 && j != 0 && boardArray[(i+1)*cols + j-1] != ' ' && 
 			!isSameTeam(boardArray[(i+1)*cols + j-1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i+1, j-1);
+			MOVE newMove;
+			if (i == rows-2) {
+				newMove = createPawnMove(i, j, i+1, j-1, 'Q');
+			} else {
+				newMove = createMove(i, j, i+1, j-1);
+			}			
 			if (testMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);
 			}
@@ -1438,7 +1468,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		//down 1, right 1.  Only a legal move if it captures an enemy piece
 		if (i != rows-1 && j != cols-1 && boardArray[(i+1)*cols + j+1] != ' ' && 
 			!isSameTeam(boardArray[(i+1)*cols + j+1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i+1, j+1);
+			MOVE newMove;
+			if (i == rows-2) {
+				newMove = createPawnMove(i, j, i+1, j+1, 'Q');
+			} else {
+				newMove = createMove(i, j, i+1, j+1);
+			}			
 			if (testMove(boardArray, i, i+1, j, j+1, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);
 			} 
@@ -1446,7 +1481,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 	} else {
 		//up 1.  Only a legal move if there is no piece there
 		if (i != 0 && boardArray[(i-1)*cols + j] == ' ') {
-			MOVE newMove = createMove(i, j, i-1, j);
+			MOVE newMove;
+			if (i == 1) {
+				newMove = createPawnMove(i, j, i-1, j, 'q');
+			} else {
+				newMove = createMove(i, j, i-1, j);
+			}			
 			if (testMove(boardArray, i, i-1, j, j, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);
 			}
@@ -1454,7 +1494,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		//up 1, left 1.  Only a legal move if captures an enemy piece
 		if (i != 0 && j != 0 && boardArray[(i-1)*cols + j-1] != ' ' && 
 			!isSameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i-1, j-1);
+			MOVE newMove;
+			if (i == 1) {
+				newMove = createPawnMove(i, j, i-1, j-1, 'q');
+			} else {
+				newMove = createMove(i, j, i-1, j-1);
+			}			
 			if (testMove(boardArray, i, i-1,j,j-1, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);
 			}
@@ -1462,7 +1507,12 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 		//up 1, right 1.  Only a legal move if captures an enemy piece
 		if (i != 0 && j != cols-1 && boardArray[(i-1)*cols + j+1] != ' ' && 
 			!isSameTeam(boardArray[(i-1)*cols + j+1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i-1, j+1);
+			MOVE newMove;
+			if (i == 1) {
+				newMove = createPawnMove(i, j, i-1, j+1, 'q');
+			} else {
+				newMove = createMove(i, j, i-1, j+1);
+			}				
 			if (testMove(boardArray, i, i-1, j, j+1, currentPlayer)) {
 				*moves = CreateMovelistNode(newMove, *moves);
 			}
@@ -1542,6 +1592,15 @@ MOVE createMove(int rowi, int coli, int rowf, int colf){
 	return m;
 }
 
+MOVE createPawnMove(int rowi, int coli, int rowf, int colf, char replacementPiece){
+	MOVE m;
+	coli += 10;
+	colf += 10;
+	rowi = rows - rowi;
+	rowf = rows - rowf;
+	m = (replacementPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+	return m;
+}
 
 /* 
 ** Tests to see if a move is valid by checking to see if the new board is in check
@@ -1599,6 +1658,7 @@ BOOLEAN isSameTeam(char piece, int currentPlayer) {
 like PrintPosition(); */
 void printArray (char* boardArray)
 {	
+	printf("print the array, non-hashed\n");
 	int x, y;	
 	printf("\n"); 
 	for(x = 0; x < rows; x++){ 
@@ -1638,6 +1698,9 @@ void printMoveList(MOVELIST *moves) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2006/04/19 00:48:21  vert84
+// *** empty log message ***
+//
 // Revision 1.10  2006/04/18 00:13:21  runner139
 // *** empty log message ***
 //
