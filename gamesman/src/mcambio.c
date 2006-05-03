@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.25 2006-04-29 01:40:56 simontaotw Exp $
+// $Id: mcambio.c,v 1.26 2006-05-03 20:15:50 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -30,6 +30,7 @@
 **              3/19/2006 - Changed the Legend so it looks less cramped.
 **	        4/16/2006 - Trying 3x3 board to see if it solves
 **              4/28/2006 - Added new input format with 3x3 board.
+**              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
 **
 **************************************************************************/
 
@@ -438,11 +439,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	}	
 
 	/* change turns */
-	if(countB == 2)
+	if((countB == 2) && (countA < 1))
 		turn = playerB;
-	else if(countA == 1)
+	else if((countB == 2) && (countA == 1))
 		turn = playerA;
-	else if((countB>=3) && (countA>=2))
+	else if((countB>=2) && (countA>=1))
 	{
 		if(turn == playerA)
 			turn = playerB;
@@ -720,8 +721,6 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    // use whoseMove(position) = turn to get whose turn it is
-
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
 
@@ -742,41 +741,51 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   /* Phase 1: Less than 2 of PlayerB's pieces */
   if(countB < 2 && turn == playerA)
     {
+      playersName = "Player";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("    Player's move [(u)ndo/([a-c][1-3])] : ");
-	
-	input = HandleDefaultTextInput(position, move, "Player");
-	
+	printf("    %8s's move [(u)ndo/([a-c][1-3])] : ", playersName);
+	  
+	input = HandleDefaultTextInput(position, move, playersName);
+	  
 	if (input != Continue)
 	  return input;
       }
     }
-  else if(countB == 2 && countA < 1 && turn == playerA)
+  else if(countB == 2 && turn == playerA)
     {
-      /* this is an intermediate phase */
       printf("Switching player...\n");
+      return Continue;
     }
-  /* Phase 2: Less than 1 of PlayerB's pieces on the board. */
+
+  /* Phase 2: Less than 1 of PlayerA's pieces on the board. */
   else if(countB == 2 && countA < 1 && turn == playerB)
     {
+      playersName = "Challenger";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("Challenger's move [(u)ndo/([a-c][1-3])] : ");
+	printf("%8s's move [(u)ndo/([a-c][1-3])] : ", playersName);
 	
-	input = HandleDefaultTextInput(position, move, "Challenger");
+	input = HandleDefaultTextInput(position, move, playersName);
 	
 	if (input != Continue)
 	  return input;
       }
     }
   /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= 2 && countA >= 1 && turn == playerA)
+  else if(countB >= 2 && countA >= 1)
     {
+      /*
+      if(playersName == "Player")
+	playersName = "Challenger";
+      else
+	playersName = "Player";
+      */
+
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -791,12 +800,11 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     }
   else
     {
-      printf("Error in: GetAndPrintPlayersMove Phase 2");
+      printf("Error in: GetAndPrintPlayersMove\n");
+      return Continue;
     }
 
-  /* NOTREACHED */
-  return Continue;
-}
+ }
 
 
 /************************************************************************
@@ -1092,6 +1100,9 @@ BOOLEAN ThreeInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.25  2006/04/29 01:40:56  simontaotw
+// Added new input format with 3x3 board.
+//
 // Revision 1.19  2006/03/19 20:39:15  simontaotw
 // Changed the legend so it looks less cramped.
 //
