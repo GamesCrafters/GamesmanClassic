@@ -55,7 +55,7 @@ STRING   kOpeningCredits =
 "perform analysis, & provide an interface to play it.      (A)nd             \n"
 "Usage: %37s --help       (N)avigation      \n"
 "\n"
-"You are playing %s, written by %s. Enjoy!\n";
+"You are playing %s,\nwritten by %s. Enjoy!\n";
 
 STRING   kHelpValueBeforeEvaluation =
 "At this point, the computer does not know the value of the game\n"
