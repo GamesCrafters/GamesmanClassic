@@ -1,5 +1,9 @@
-// $Id: mbaghchal.c,v 1.13 2006-04-17 07:36:38 max817 Exp $
+// $Id: mbaghchal.c,v 1.14 2006-05-03 06:13:24 ddgarcia Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/04/17 07:36:38  max817
+// mbaghchal.c now has no solver debug code left (i.e. it's independent of anything in solveretrograde.c) and has variants implemented correctly. Aside from the POSITION size stuff, it should be near its final version.
+// As for the solver, all of the main features I wanted to implement are now implemented: it is almost zero-memory (aside from memdb usage), and it's possible to stop and save progress in the middle of solving. Also, ANY game can use the solver now, not just Bagh Chal. All in all, it's close to the final version (for this semester). -Max
+//
 // Revision 1.12  2006/04/12 03:02:12  max817
 // This is the big update that moves the Retrograde Solver from mbaghchal.c
 // to its own set of new files, solveretrograde.c and solveretrograde.h.
@@ -613,7 +617,7 @@ void PrintMove (MOVE move)
     if(move < boardSize) { // This is just a goat being placed
         i = get_x(move);
         j = get_y(move);
-        printf("[%c%d]", i-1+'a', j);
+        printf("%c%d", i-1+'a', j);
     } else {
 		move -= boardSize;
         jump = move % 2;
@@ -643,7 +647,7 @@ void PrintMove (MOVE move)
                         else { y += 1; x += 1; } break;
 			}
         }
-        printf("[%c%d %c%d]", i-1+'a', j, x-1+'a', y);
+        printf("%c%d%c%d", i-1+'a', j, x-1+'a', y);
     }
 }
 
@@ -720,11 +724,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
     int size = strlen(input);
-    if(size != 2 && size != 5)
+    if(size != 2 && size != 4)
         return FALSE;
     if (!isalpha(input[0]) || !isdigit(input[1]) ||
- 		(size == 5 && (input[2] != ' ' ||
- 		!isalpha(input[3]) || !isdigit(input[4]))))
+ 		(size == 4 && (!isalpha(input[2]) || !isdigit(input[3]))))
     	return FALSE;
     return TRUE;
 }
@@ -754,8 +757,8 @@ MOVE ConvertTextInputToMove (STRING input)
         move = translate(x, y);
         return move;
     }
-    x1 = input[3] - 'a' + 1;
-    y1 = input[4] - '0';
+    x1 = input[2] - 'a' + 1;
+    y1 = input[3] - '0';
     if(x1 == x+2) {
         if(y1 == y+2 && diagonals) {
             move = (translate(x, y)*8+DOWN_RIGHT)*2+1 + boardSize;
