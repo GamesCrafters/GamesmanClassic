@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.26 2006-05-03 20:15:50 simontaotw Exp $
+// $Id: mcambio.c,v 1.27 2006-05-04 04:59:29 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -31,6 +31,7 @@
 **	        4/16/2006 - Trying 3x3 board to see if it solves
 **              4/28/2006 - Added new input format with 3x3 board.
 **              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
+**              5/03/2006 - Changed winning condition in DoMove.
 **
 **************************************************************************/
 
@@ -407,7 +408,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff-colcount];
 			gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
 			gBoard[pushoff-colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
+			gBoard[pushon] = opposymbol;
 		}
 		else if (move < boardSize + colcount + rowcount)
 		{
@@ -416,7 +417,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff+1];
 			gBoard[pushoff+1] = gBoard[pushoff+2];
 			gBoard[pushoff+2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
+			gBoard[pushon] = opposymbol;
 		}
 		else if (move < boardSize + colcount + rowcount + colcount)
 		{
@@ -425,7 +426,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff+colcount];
 			gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
 			gBoard[pushoff+colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
+			gBoard[pushon] = opposymbol;
 		}
 		else if (move < boardSize + colcount + rowcount + colcount + rowcount)
 		{
@@ -434,23 +435,30 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff-1];
 			gBoard[pushoff-1] = gBoard[pushoff-2];
 			gBoard[pushoff-2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
+			gBoard[pushon] = opposymbol;
 		}	
 	}	
 
 	/* change turns */
-	if((countB == 2) && (countA < 1))
-		turn = playerB;
-	else if((countB == 2) && (countA == 1))
-		turn = playerA;
-	else if((countB>=2) && (countA>=1))
-	{
-		if(turn == playerA)
-			turn = playerB;
-		else if(turn == playerB)
-			turn = playerA;
+	if(countB < 2) {
+	  turn = playerA;
+	  printf("%c\n", symbol);
 	}
-	
+	else if((countB == 2) && (countA < 1)) {
+	  turn = playerB;
+	  printf("%c\n", symbol);
+	}
+	else if((countB >= 2) && (countA >= 1)) {
+	  if(turn == playerA) {
+	      turn = playerB;
+	      printf("%c\n", symbol);
+	  }
+	  else {
+	    turn = playerA;
+	    printf("%c\n", symbol);
+	  }
+	}
+
 	positionAfterMove = generic_hash(gBoard, turn);
 	free(gBoard);
 	
@@ -510,9 +518,9 @@ VALUE Primitive (POSITION position)
   
   if (playerWin && oppoWin)
     return tie;
-  else if (oppoWin)
-    return gStandardGame ? lose : win;
   else if (playerWin)
+    return gStandardGame ? lose : win;
+  else if (oppoWin)
 	return gStandardGame ? win : lose;
   else
     return undecided;
@@ -754,7 +762,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	  return input;
       }
     }
-  else if(countB == 2 && turn == playerA)
+  else if(countB == 2 && countA == 1 && turn == playerA)
     {
       printf("Switching player...\n");
       return Continue;
@@ -777,15 +785,24 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       }
     }
   /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= 2 && countA >= 1)
+  else if(countB >= 2 && countA >= 1 && turn == playerB)
     {
-      /*
-      if(playersName == "Player")
-	playersName = "Challenger";
-      else
-	playersName = "Player";
-      */
-
+      playersName = "Player";
+      for (;;) {
+	/***********************************************************
+	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+	 ***********************************************************/
+	printf("%8s's move [(u)ndo/([a-f or 1-6])]  : ", playersName);
+	
+	input = HandleDefaultTextInput(position, move, playersName);
+	
+	if (input != Continue)
+	  return input;
+      }
+    }
+  else if(countB >= 2 && countA >= 1 && turn == playerA)
+    {
+      playersName = "Challenger";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -1100,6 +1117,9 @@ BOOLEAN ThreeInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2006/05/03 20:15:50  simontaotw
+// Fix small bug in DoMove, changed GetAndPrintPlayersMove.
+//
 // Revision 1.25  2006/04/29 01:40:56  simontaotw
 // Added new input format with 3x3 board.
 //
