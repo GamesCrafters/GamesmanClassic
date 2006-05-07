@@ -280,6 +280,9 @@ void PrintBinary(int integer);
 void PrintMoveGroup(MOVE move);
 void PrintMovePrompt(char *name);
 
+STRING MoveGroupToString(MOVE move);
+STRING MoveToString(MOVE);
+
 /**************************************************** ConvertTextInputToMove */
 MOVE ConvertTextInputToMove(STRING input) {
   int index;
@@ -504,6 +507,8 @@ void InitializeGame() {
 
  
   gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL);
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /*********************************************************** NumberOfOptions */
@@ -534,13 +539,24 @@ void PrintComputersMove(MOVE move, STRING name) {
 
 /***************************************************************** PrintMove */
 void PrintMove(MOVE move) {
-  if (move > UCHAR_MAX) /* Multi-step move */
-    putchar('[');
+  STRING s = MoveToString( move );
+  printf( "%s", s );
+  SafeFree(s);
+}
 
-  PrintMoveGroup(move);
+/***************************************************************** MoveToString */
+STRING MoveToString( MOVE move ) {
+  STRING s = (STRING) SafeMalloc( 10 );
 
-  if (move > UCHAR_MAX) /* Multi-step move */
-    putchar(']');
+  STRING temp = MoveGroupToString(move);
+  
+  if( move > UCHAR_MAX )
+    sprintf( s, "[%s]", temp );
+  else
+    sprintf( s, "%s", temp );
+
+  SafeFree( temp );
+  return s;
 }
 
 /************************************************************* PrintPosition */
@@ -865,17 +881,26 @@ void PrintBinary(int integer) {
 
 /************************************************************ PrintMoveGroup */
 void PrintMoveGroup(MOVE move) {
+  STRING s = MoveGroupToString( move );
+  printf( "%s", s );
+  SafeFree( s );
+}
+
+STRING MoveGroupToString(MOVE move) {
+  STRING s = (STRING) SafeMalloc( 10 );
   int index;
   MoveGroup moveGroup = *(MoveGroup*)&move;
 
   for (index = 0; index < MOVES_IN_GROUP; index++) {
     if (moveGroup.moves[index] != 0) {
       if (index > 0)
-        putchar(' ');
+        sprintf( s, " " );
 
-      printf("%d", moveGroup.moves[index]);
+      sprintf(s, "%d", moveGroup.moves[index]);
     }
   }
+
+  return s;
 }
 
 /*********************************************************** PrintMovePrompt */

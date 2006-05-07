@@ -374,6 +374,8 @@ char gBlankOXPosition[15][4] = { "---", // 0
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 
+STRING MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -383,6 +385,7 @@ int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 ************************************************************************/
 
 void InitializeGame() {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1606,9 +1609,29 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  // Our theMove is from 1-6, because of special pieces
-  printf("%d", theMove);
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 2 );
+
+  // Our theMove is from 1-6, because of special pieces
+  sprintf( m, "%d", theMove);
+  return m;
 }
 
 /*** Database Functions ***/

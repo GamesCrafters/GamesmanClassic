@@ -199,6 +199,8 @@ char *gBlankOXString[] = { "-", "o", "O", "x", "X"};
 /* 9 spots on the board */
 int g5Array[] = { 1, 5, 25, 125, 625, 3125, 15625, 78125, 390625};
 
+STRING MoveToString( MOVE );
+
 /***************************************************************************/
 
 
@@ -376,6 +378,8 @@ void InitializeGame()
 	primitiveSequence = temp;
       }
     }
+
+    gMoveToStringFunPtr = &MoveToString;
   }
 
 
@@ -1229,6 +1233,25 @@ MOVE ConvertTextInputToMove(STRING input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 10 );
   int initloc, newloc;
   int direction, orientation;
   
@@ -1237,10 +1260,8 @@ void PrintMove(theMove)
   orientation = *gBlankOXString[(theMove/(BOARDSIZE*DIRECTIONS*BOARDSIZE))%ORIENTATIONS];
 
   if (theMove/(BOARDSIZE*DIRECTIONS*BOARDSIZE*ORIENTATIONS)) { //can't flip
-    printf("[%d%c]",newloc,orientation);
-  }
-
-  else { //can flip
+    sprintf(m, "[%d%c]",newloc,orientation);
+  } else { //can flip
     
     initloc = (theMove%BOARDSIZE)+1;
 
@@ -1252,8 +1273,10 @@ void PrintMove(theMove)
     default: direction = 5; 
     }
 
-    printf("[%d%c %d%c]",initloc,direction,newloc,orientation);
-  } 
+    sprintf(m, "[%d%c %d%c]",initloc,direction,newloc,orientation);
+  }
+
+  return m;
 }
 
 /************************************************************************

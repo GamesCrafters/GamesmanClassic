@@ -291,6 +291,10 @@ void ChangeNumPieces();
 MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
 BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
 
+
+STRING MoveToString(MOVE);
+
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -314,6 +318,8 @@ void InitializeGame () {
 	}
 	gInitialPosition = generic_hash(board, 1);
 	getOption();
+
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -621,20 +627,43 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (move)
+     MOVE move;
+{
+    STRING m = (STRING) SafeMalloc( 14 );
     if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
-	printf("[%c%d]", 
-		get_x_coord(get_move_place(move)) + 'a', 
-		height - get_y_coord(get_move_place(move)));
+	sprintf( m,
+		 "[%c%d]", 
+		 get_x_coord(get_move_place(move)) + 'a', 
+		 height - get_y_coord(get_move_place(move)));
     }
     else {
-	printf("[%c%d %c%d %c%d]",
-		get_x_coord(get_move_source(move)) + 'a', 
-		height - get_y_coord(get_move_source(move)),
-		get_x_coord(get_move_dest(move)) + 'a', 
-		height - get_y_coord(get_move_dest(move)),
-		get_x_coord(get_move_place(move)) + 'a', 
-		height - get_y_coord(get_move_place(move)));
+        sprintf( m,
+		 "[%c%d %c%d %c%d]",
+		 get_x_coord(get_move_source(move)) + 'a', 
+		 height - get_y_coord(get_move_source(move)),
+		 get_x_coord(get_move_dest(move)) + 'a', 
+		 height - get_y_coord(get_move_dest(move)),
+		 get_x_coord(get_move_place(move)) + 'a', 
+		 height - get_y_coord(get_move_place(move)));
     }
+
+    return m;
 }
 
 

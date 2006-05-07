@@ -182,6 +182,7 @@ BOOLEAN firstPass = TRUE;
 
 static int* g3Array;
 
+STRING MoveToString( MOVE );
 
 void InitializeGame()
 {
@@ -190,6 +191,8 @@ void InitializeGame()
     InitializeGameVariables(DefaultN);
     firstPass = FALSE;
   }
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -843,7 +846,27 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-  printf("%d", theMove); 
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+    STRING m = (STRING) SafeMalloc( 3 );
+    sprintf(m, "%d", theMove); 
+    return m;
 }
 
 /************************************************************************

@@ -156,6 +156,8 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 
 
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 
+STRING MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -166,6 +168,7 @@ void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -666,8 +669,28 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d", gInternalToUserMove[theMove]); 
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+    STRING m = (STRING) SafeMalloc( 3 );
+    /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+    sprintf(m, "%d", gInternalToUserMove[theMove]); 
+    return m;
 }
 
 /************************************************************************

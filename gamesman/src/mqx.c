@@ -132,6 +132,7 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
 /** Function Prototypes **/
 void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV, BlankHV *whosTurn);
 
+STRING MoveToString(MOVE move);
 
 /*************************************************************************
 **
@@ -141,6 +142,7 @@ void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV, BlankHV *whosTurn);
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -760,6 +762,25 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 4 );
   int squareNum;
   char moveType;
 
@@ -772,7 +793,8 @@ void PrintMove(theMove)
   else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE)
     moveType = 'x';
 
-  printf("%c%d", moveType, squareNum);
+  sprintf(m, "%c%d", moveType, squareNum);
+  return m;
 }
 
 /************************************************************************
