@@ -289,6 +289,8 @@ MOVELIST *GenerateMovingMoves(Board b);
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
+STRING			MoveToString(MOVE);
+
 /************************************************************************
  **
  ** NAME:        InitializeGame
@@ -320,6 +322,8 @@ void InitializeGame () {
     gInitialPosition = hash(b);
     //printf ("init------------- %d",gInitialPosition);
   } while (FALSE);
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -1069,7 +1073,29 @@ MOVE ConvertTextInputToMove (STRING input) {
   }
 */
 void PrintMove(MOVE move) {
-  printf("[%d]", toWhere(&move));
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (move)
+     MOVE move;
+{
+    STRING m = (STRING) SafeMalloc( 5 );
+
+    sprintf(m, "[%d]", toWhere(&move));
+    
+    return m;
 }
 
 
