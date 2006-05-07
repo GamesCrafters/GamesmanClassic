@@ -32,6 +32,16 @@ proc GS_InitGameSpecific {} {
     set xColor blue
     set oColor red
 
+    # "Steal" the undo button to call my own game's version of the undo function
+    # (.cStatus is the canvas used by InitWindow.tcl to draw all of the buttons
+    # that sit by the side of the board.  undoO is the button that you click on
+    # to undo a move.  Yes, this is a really ugly hack and breaks the abstraction.
+    # If you can suggest a better way to get undos to work properly in Queensland,
+    # I'd be glad to hear your idea.)
+    #.cStatus bind undoO <ButtonRelease-1> {
+#	Queensland_Specific_Undo
+#    }
+
     ### Set the name of the game
     
     global kGameName
@@ -368,6 +378,7 @@ proc GS_Initialize { c } {
     global slideStartLocs arrows
     global passButton
     global background
+    global slideComponentFinished
 
     #These are global constants, but they can be changed in the play options menu.  4 is only the default value.
     set width [expr $gWidthRules + 3]
@@ -478,6 +489,11 @@ proc GS_Initialize { c } {
 	    $boardWidth [expr $j * $slotSize(h)] \
 	    -tags [list lines]
     }
+
+    #tracks whether the player is starting their move, or is halfway
+    #through and done with their slide component.  This is used for
+    #purposes of undo.
+    set slideComponentFinished false
     
     #raise the backround so that the pieces and moves aren't visible
     $c raise $background
@@ -569,6 +585,7 @@ proc GS_WhoseMove { position } {
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 	### TODO: Fill this in
+
 	GS_DrawPosition $c $newPosition
     
 }
@@ -607,6 +624,14 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # returns the correct color.
 
 proc GS_ShowMoves { c moveType position moveList } {
+	
+	if {[PlayerIsComputer]} {
+		# Showing the computer's moves slows down the game, makes the undo
+		# function harder, and doesn't seem to work anyway.  Let's disable
+		# it for now.
+		return
+	}
+
 	global width height passButton mouseOverColor
 	set foundSlideMove false
 	set currentPlayer [GS_WhoseMove $position]
@@ -703,7 +728,7 @@ proc SetSlideComponent {c source dest moveType moveList currentPlayer position} 
 	# This is called when the player chooses a slide move.  It hides all slide
 	# arrows, moves the piece from source to dest, and draws all of the place
 	# moves that result from the chosen slide move.
-	
+
 	global xPieces oPieces width
 	GS_HideMoves $c $moveType $position $moveList
 	if {$currentPlayer == "x" && ($source != 0 || $dest != 0)} {
@@ -719,6 +744,24 @@ proc SetSlideComponent {c source dest moveType moveList currentPlayer position} 
 			DrawPlaceMove $c $theMove [lindex $move 1] $moveType $source $dest
 		}
 	}
+	
+	# This is the ugliest hack I've ever written.  The problem is that the "undo"
+	# button is set to undo the last move that was returned by ReturnFromHumanMove,
+	# but that's not the behavior we want in Queensland.  We want it so that if the
+	# "undo" button is clicked right now (i.e. after the player has slid a piece,
+	# but before he has placed one) the first half of the current move will be
+	# undone rather than the entire previous move.
+	# The solution is to hijack the undo button on the canvas and set it to,
+	# in certain cases, call a different undo function that undoes the first half
+	# of a move rather than the complete move.  This requires breaking the abstraction
+	# and using .cStatus (which is the canvas drawn upon by InitWindow) and undoO
+	# (which is the specific button bound to the Undo function).
+	# One would think that this could be accomplished more cleanly by hijacking the
+	# undo button in GS_InitGameSpecific rather than on the fly as I am doing here.
+	# The problem with this is that Undo_Slide_Move requires parameters be passed to
+	# it, and these parameters are not available in GS_InitGameSpecific; thus, the
+	# bindings must be set here.  See what I mean it's ugly?
+	.cStatus bind undoO <ButtonRelease-1> "UndoSlideMove $c $moveType, $position, [list $moveList]"
 }
 proc DrawPlaceMove { c theMove value moveType source dest } {
 
@@ -746,6 +789,13 @@ proc SetPlaceComponent {source dest place} {
 	set move [expr $source * $width * $width * $height * $height]
 	set move [expr $move + ($dest * $width * $height)]
 	set move [expr $move + $place]
+	
+	# Remember that ugly hack above where I set the undo button to only undo the
+	# slide component of a move?  Well, now I have to set it back so that it
+	# works normally until a player makes another slide move.
+	.cStatus bind undoO <ButtonRelease-1> {
+		Undo
+        }
 	ReturnFromHumanMove $move
 }
 
@@ -804,6 +854,21 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
     # complete move when the undo button is clicked, so right now undos
     # don't work properly.
     GS_DrawPosition $c $positionAfterUndo
+}
+
+# This function is called when the player clicks the undo button after choosing
+# a slide component for their move, but before choosing a place component.  It
+# undoes to the beginning of their turn.
+proc UndoSlideMove {c moveType position moveList} {
+
+	GS_HideMoves $c $moveType $position $moveList
+	GS_ShowMoves $c $moveType $position $moveList
+	# If this got called, we just undid the slide component; now we set the
+	# undo button back to normal
+	.cStatus bind undoO <ButtonRelease-1> {
+		Undo
+        }
+
 }
 
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
