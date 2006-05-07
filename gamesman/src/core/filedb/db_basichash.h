@@ -33,30 +33,16 @@
 #define GMCORE_DB_BASICHASH_H
 
 #include  "db_buf.h"
+#include  "db_types.h"
 
-typedef struct db_bhashin_struct {
-  int num;
-  frame_id* loc;
-  page_id* id;
-  struct db_bhashin_struct* next;
-} db_bhashin;
-
-
-typedef struct db_bhash_struct {
-  int size;
-  db_bhashin* rows;
-
-} db_bhash;
-
-
-db_bhash* 	db_basichash_create		(int num_rows,int num_in);
-frame_id 	db_basichash_get		(db_bhash* hash, page_id id);
-frame_id 	db_basichash_remove		(db_bhash* hash, page_id id);
-int 		db_basichash_put		(db_bhash* hash, page_id, frame_id );
-void 		db_basichash_destroy	(db_bhash* hash);
+gamesdb_bhash* 	gamesdb_basichash_create		(int num_rows,int num_in);
+gamesdb_frameid 	gamesdb_basichash_get		(gamesdb_bhash* hash, gamesdb_pageid id);
+gamesdb_frameid 	gamesdb_basichash_remove		(gamesdb_bhash* hash, gamesdb_pageid id);
+int 		gamesdb_basichash_put		(gamesdb_bhash* hash, gamesdb_pageid, gamesdb_frameid );
+void 		gamesdb_basichash_destroy	(gamesdb_bhash* hash);
 
 //Helpers
-db_bhashin* db_basichash_getin(db_bhash* hash, page_id id);
+gamesdb_bhashin* gamesdb_basichash_getin(gamesdb_bhash* hash, gamesdb_pageid id);
 
 
 #endif /* GMCORE_DB_BASICHASH_H */

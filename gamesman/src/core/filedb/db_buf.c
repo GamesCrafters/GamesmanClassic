@@ -31,14 +31,16 @@
 
 //a direct-mapped cache of the db_store
 
+#include "db_types.h"
 #include "db_buf.h"
 #include "db_malloc.h"
+#include "db_store.h"
 #include <stdio.h>
 #include <string.h>
 
 // a buffer contains at least one record.
-db_buffer* db_buf_init(int rec_size, page_id num_buf, db_store* filep){
-  db_buffer* bufp = (db_buffer*) SafeMalloc(sizeof(db_buffer));
+gamesdb_buffer* gamesdb_buf_init(int rec_size, gamesdb_pageid num_buf, gamesdb_store* filep){
+  gamesdb_buffer* bufp = (gamesdb_buffer*) gamesdb_SafeMalloc(sizeof(gamesdb_buffer));
   
   bufp->filep = filep;
   bufp->n_buf = num_buf;
@@ -49,13 +51,13 @@ db_buffer* db_buf_init(int rec_size, page_id num_buf, db_store* filep){
   //There will be wasted space in the mem array but shouldn't be too great if you have huge pages
   bufp->rec_size = rec_size + 1; //one byte for use by the db code (valid bit, etc)
   bufp->buf_size = MEM_ARRAY_SIZE / (rec_size+1);
-  bufp->dirty = (boolean*) SafeMalloc (sizeof(boolean) * num_buf);
-  bufp->buffers = (db_buffer_page*) SafeMalloc (sizeof(db_buffer_page) * num_buf);
+  bufp->dirty = (boolean*) gamesdb_SafeMalloc (sizeof(boolean) * num_buf);
+  bufp->buffers = (gamesdb_bufferpage*) gamesdb_SafeMalloc (sizeof(gamesdb_bufferpage) * num_buf);
   //bufp->buf_off = (db_offset*) SafeMalloc(sizeof(db_offset) * num_buf);
 
 	//zeroes out the boffers for use
-	page_id i,j;
-	db_buffer_page *buf;
+	gamesdb_pageid i,j;
+	gamesdb_bufferpage *buf;
   for(i=0;i<num_buf;i++){
 //    bufp->buffers[i]->mem = (char*) SafeMalloc(sizeof(char) * rec_size);
 	buf = bufp->buffers+i;
@@ -70,17 +72,17 @@ db_buffer* db_buf_init(int rec_size, page_id num_buf, db_store* filep){
 }
 
 //must be a valid page to enter this function
-int db_buf_flush(db_buffer* bufp, page_id bufpage){
+int gamesdb_buf_flush(gamesdb_buffer* bufp, gamesdb_pageid bufpage){
   //get the buffer page
-  db_buffer_page* buf = bufp->buffers + bufpage;
+  gamesdb_bufferpage* buf = bufp->buffers + bufpage;
   
   //we don't have to write the page if it's clean
   if(bufp->dirty[bufpage] == TRUE){
-    db_store* filep = bufp->filep;
+    gamesdb_store* filep = bufp->filep;
 
 	//write will do the seek for you
 	//no error checks
-    db_write(filep, buf->tag, buf);
+    gamesdb_write(filep, buf->tag, buf);
 
     //int i;
     //for(i = 0; i<mem_array_size; i++)
@@ -93,37 +95,32 @@ int db_buf_flush(db_buffer* bufp, page_id bufpage){
   }
 }
 
-int db_buf_flush_all(db_buffer* bufp) {
+int gamesdb_buf_flush_all(gamesdb_buffer* bufp) {
 	//with the assumption that the db_store is clustered
 	//a straight squential scan will cause ordered forward access to the db_store
 	//this will be as fast as it gets
 	int i;
 	for (i = 0; i < bufp->n_buf; i++)
-		db_buf_flush(bufp, i);
-	return 0;
-}
-
-//TODO: fill in --maybe not
-int db_buf_slurp(db_buffer* bufp, page_id page) {
+		gamesdb_buf_flush(bufp, i);
 	return 0;
 }
 
 //reads a record, value will be NULL if the db does not have the record
-int db_buf_read(db_buffer* bufp, Position spot, void *value){
+int gamesdb_buf_read(gamesdb_buffer* bufp, gamesdb_position spot, void *value){
 	//TODO: this should be in buf_mgr
-	page_id page = spot / (bufp->buf_size); //the disk page index
+	gamesdb_pageid page = spot / (bufp->buf_size); //the disk page index
 	//the buffer page index (can be changed to do different associativities)
-	page_id bufpage = page % bufp->n_buf;
-	page_id mytag = page; //the page id (the tag to compare with)
-	db_store* filep = bufp->filep;
-	db_buffer_page* buf = bufp->buffers + bufpage;
+	gamesdb_pageid bufpage = page % bufp->n_buf;
+	gamesdb_pageid mytag = page; //the page id (the tag to compare with)
+	gamesdb_store* filep = bufp->filep;
+	gamesdb_bufferpage* buf = bufp->buffers + bufpage;
 
 	if (buf->valid == TRUE) {//if this page is not the one I want
 		if (buf->tag != mytag) { //buffer page is valid but not the one we want
 			//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-			db_buf_flush(bufp, bufpage);
+			gamesdb_buf_flush(bufp, bufpage);
 			//load in the new page
-			db_read(filep, page ,buf);
+			gamesdb_read(filep, page ,buf);
 			//set the tag where it is
 			if (buf->tag != mytag)
 				//the buffer is uninitialized, this means no record exists in the page
@@ -132,7 +129,7 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 		}
 	} else {
 		//load in the new page
-		db_read(filep, page ,buf);
+		gamesdb_read(filep, page ,buf);
 		//set the tag where it is
 		if (buf->tag != mytag)
 			//the buffer is uninitialized, this means no record exists in the page
@@ -140,10 +137,11 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 		buf->valid = TRUE;
 	}
 	
-	printf("buf_read: spot = %llu, page = %llu, bufpage = %llu buf_tag = %llu, mytag = %llu\n", spot, page, bufpage, buf->tag, mytag);
+	if (DEBUG)
+		printf("buf_read: spot = %llu, page = %llu, bufpage = %llu buf_tag = %llu, mytag = %llu\n", spot, page, bufpage, buf->tag, mytag);
 
 	//byte offset of the db record (the extra byte + the actual record)
-	db_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
+	gamesdb_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
 	
 	char valid;
 	//copy the first byte and see if it is valid
@@ -152,29 +150,30 @@ int db_buf_read(db_buffer* bufp, Position spot, void *value){
 	if(valid == TRUE) {
 		memcpy(value, buf->mem+off+1, bufp->rec_size-1);
 	} else {
-		printf("ASHDFASDFAHSDFHASDF");
-		memset(value, 0x00000000, bufp->rec_size-1); // 0 is NULL
+		if (DEBUG)
+			printf("gamesdb: buf_read missed.\n");
+		memset(value, 0x00000000, bufp->rec_size-1); // 4 is undecided... OMG THIS IS BAD!
 	}
 	
   	return 0;
 }
 
-int db_buf_write(db_buffer* bufp, Position spot, const void *value){
-	page_id page = spot / (bufp->buf_size); //the disk page index
+int gamesdb_buf_write(gamesdb_buffer* bufp, gamesdb_position spot, const void *value){
+	gamesdb_pageid page = spot / (bufp->buf_size); //the disk page index
 	//the buffer page index (can be changed to do different associativities)
-	page_id bufpage = page % bufp->n_buf;
-	page_id mytag = page / bufp->n_buf; //the page id (the tag to compare with)
+	gamesdb_pageid bufpage = page % bufp->n_buf;
+	gamesdb_pageid mytag = page; //the page id (the tag to compare with)
 	
-	db_store* filep = bufp->filep;
+	gamesdb_store* filep = bufp->filep;
 
-	db_buffer_page* buf = bufp->buffers + bufpage;
+	gamesdb_bufferpage* buf = bufp->buffers + bufpage;
 
 	if (buf->valid == TRUE) {//if this page is not the one I want
 		if (buf->tag != mytag) { //buffer page is valid but not the one we want
 			//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-			db_buf_flush(bufp, bufpage);
+			gamesdb_buf_flush(bufp, bufpage);
 			//load in the new page
-			db_read(filep, page ,buf);
+			gamesdb_read(filep, page ,buf);
 			//set the tag where it is
 			if (buf->tag != mytag)
 				//the buffer is uninitialized, this means no record exists in the page
@@ -183,7 +182,7 @@ int db_buf_write(db_buffer* bufp, Position spot, const void *value){
 		}
 	} else {
 		//load in the new page
-		db_read(filep, page ,buf);
+		gamesdb_read(filep, page ,buf);
 		//set the tag where it is
 		if (buf->tag != mytag)
 			//the buffer is uninitialized, this means no record exists in the page
@@ -192,7 +191,7 @@ int db_buf_write(db_buffer* bufp, Position spot, const void *value){
 	}
 
 	//byte offset of the db record (the extra byte + the actual record)
-	db_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
+	gamesdb_offset off = (spot % (bufp->buf_size)) * bufp->rec_size;
 	
 	//actually write the record
 	char valid = TRUE;
@@ -204,18 +203,18 @@ int db_buf_write(db_buffer* bufp, Position spot, const void *value){
   	return 0;
 }
 
-int db_buf_destroy(db_buffer* bufp){
+int gamesdb_buf_destroy(gamesdb_buffer* bufp){
 /*  frame_id i;
   
   for(i=0;i<bufp->n_buf;i++){
     SafeFree(bufp->buffers[i].mem);
   }
   */
-  db_buf_flush_all(bufp);
-  SafeFree(bufp->dirty);
-  SafeFree(bufp->buffers);
+  gamesdb_buf_flush_all(bufp);
+  gamesdb_SafeFree(bufp->dirty);
+  gamesdb_SafeFree(bufp->buffers);
 //  SafeFree(bufp->buf_off);
 //  db_close(bufp->filep);
-  SafeFree(bufp);
+  gamesdb_SafeFree(bufp);
   return 0; // no error checking;
 }

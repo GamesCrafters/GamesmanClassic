@@ -35,15 +35,15 @@
 
 int main(int argc, char *argv[])
 {
-	Position totalrecs = 100000;
+	gamesdb_position totalrecs = 84*200;
 	size_t recsize = sizeof(short);
 	size_t buffers = 100;
-	char dbname[] = "testdb.dat\0";
+	char dbname[] = "testdb\0";
 
-	games_db *testdb = db_create(recsize, buffers, dbname);
+	gamesdb *testdb = gamesdb_create(recsize, buffers, dbname);
 	printf("Starting DB test...\n");
 	
-	Position i;
+	gamesdb_position i;
 	short data = 0, result = 0;
 
 	//sequencial read/write
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 		printf("reading: %llu\n", i);
 		if (i == 85)
 			printf("\n");
-		db_put(testdb, (void*)&data, i);
-		db_get(testdb, (void*)&result, i);
+		gamesdb_put(testdb, (void*)&data, i);
+		gamesdb_get(testdb, (void*)&result, i);
 		if (data!=result) {
 			printf("ERROR in seq read: position %llu, saved %d, got %d\n", i, data, result);
 			break;
@@ -72,13 +72,13 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}*/
-	Position val;
+	gamesdb_position val;
 	for (i=0;i<totalrecs;i++) {
 		while (totalrecs <= (val = rand() / (RAND_MAX/totalrecs)));\
 		printf("reading: %llu\n", val);
 		data = val % (1 << 16);
 		//db_put(testdb, (void*)&data, i);
-		db_get(testdb, (void*)&result, val);
+		gamesdb_get(testdb, (void*)&result, val);
 		if (data!=result) {
 			printf("ERROR in rand read: position %llu, saved %d, got %d\n", i, data, result);
 			break;
@@ -86,6 +86,6 @@ int main(int argc, char *argv[])
 	}
 
 	printf("Ending DB test...\n");
-	db_destroy(testdb);
+	gamesdb_destroy(testdb);
 	return 0;
 }

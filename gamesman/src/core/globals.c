@@ -69,6 +69,7 @@ BOOLEAN gBitPerfectDB = FALSE;
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gUnivDB = FALSE;
+BOOLEAN gFileDB = FALSE;
 BOOLEAN gAlphaBeta = FALSE;
 BOOLEAN gGlobalPositionSolver = FALSE;
 BOOLEAN gUseGPS = FALSE;

@@ -29,6 +29,7 @@
 **
 **************************************************************************/
 
+#include "db_types.h"
 #include "db_bman.h"
 #include "db_basichash.h"
 #include "db_buf.h"
@@ -44,16 +45,16 @@
  */
 
 
-db_bman* bman_init(db_buf_head* bufp){
+gamesdb_bman* bman_init(db_buf_head* bufp){
      // frame_id (*r_fn) (db_bman*, void*)){
-  db_bman *new = (db_bman*) SafeMalloc(sizeof(db_bman));
+  gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
   new->bufp = bufp;
   //new->replace_fun = r_fn;
   // should initialize r_fn too... which will return an internal data pointer
   // which we then pass into r_fn on subsequent calls.
   // Nah... just make it deal with the first time it has been called and allow
   // it to setup its own internal state.
-  new->hash = db_basichash_create(1024,10);
+  new->hash = gamesdb_basichash_create(1024,10);
   return new;
 }
 
@@ -61,19 +62,19 @@ db_bman* bman_init(db_buf_head* bufp){
 /*Find's page_id and returns the location. Brings it in if the buffer is not
  *in memory.
  */
-frame_id bman_find(db_bman* dat, page_id id){
-  frame_id ret = db_basichash_get(dat->hash,id);
+gamesdb_frameid bman_find(gamesdb_bman* dat, gamesdb_pageid id){
+  gamesdb_frameid ret = gamesdb_basichash_get(dat->hash,id);
   if(ret == -1){
     // bring into buffers.
     //ret = dat->replace_fun(dat,null); //null is going to be used for db_tell()
     ret = 0;
-    db_buf_flush(dat->bufp,ret);
-    db_buf_read(dat->bufp,ret,id);
+    gamesdb_buf_flush(dat->bufp,ret);
+    gamesdb_buf_read(dat->bufp,ret,id);
   }
   return ret;
 }
 
-void bman_destroy(db_bman* bman){
-  db_basichash_destroy(bman->hash);
-  SafeFree(bman);
+void bman_destroy(gamesdb_bman* bman){
+  gamesdb_basichash_destroy(bman->hash);
+  gamesdb_SafeFree(bman);
 }

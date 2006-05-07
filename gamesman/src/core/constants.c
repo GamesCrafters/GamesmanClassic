@@ -174,12 +174,12 @@ STRING kPrintMenuEnd =
 
 char *gValueString[] =
     {
-	"Win", "Lose", "Tie", "Undecided",
+	"Undecided", "Win", "Lose", "Tie",
 	"Win-Visited", "Lose-Visited", 
 	"Tie-Visited", "Undecided-Visited"
     };
 
-char gValueLetter[] = { 'W', 'L', 'T', 'U' };
+char gValueLetter[] = { 'U', 'W', 'L', 'T' };
 
 STRING kSolveVersion = "2006.01.01" ;
 

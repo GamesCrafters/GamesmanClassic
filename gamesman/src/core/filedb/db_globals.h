@@ -32,28 +32,17 @@
 #ifndef GMCORE_DB_GLOBALS_H
 #define GMCORE_DB_GLOBALS_H
 
-typedef unsigned long long Position;
-
-typedef unsigned long long db_offset;
-
-typedef unsigned long long frame_id;
-typedef unsigned long long page_id;
-
-typedef char boolean;
 #define TRUE 1
 #define FALSE 0
 
 //this is really arbitrary
 //BADBADBAD
 #define PAGE_SIZE 4096
-// 1M bytes per page, minus 8 bytes for 64-bit page_id, this is the max, there might be wasted space
-//#define MEM_ARRAY_SIZE 1048568
-#define MEM_ARRAY_SIZE 256
+// 256K bytes per page, minus 8 bytes for 64-bit page_id, this is the max, there might be wasted space
+// the default in filedb has 1024 of these do you should be prepared to give up 256M
+#define MEM_ARRAY_SIZE 262136
+//#define MEM_ARRAY_SIZE 256
 
-typedef struct buffer_page_struct {
-  char mem[MEM_ARRAY_SIZE];
-  page_id tag;
-  boolean valid;
-}db_buffer_page;
+#define DEBUG 0
 
 #endif /* GMCORE_DB_GLOBALS_H */

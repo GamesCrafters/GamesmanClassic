@@ -74,9 +74,13 @@ GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h \
 			  core/bpdb.h core/bpdb_schemes.h \
 			  core/textui.h core/filedb.h core/main.h \
 			  core/solveloopyup.h core/setup.h core/visualization.h \
-			  core/openPositions.h
+			  core/openPositions.h core/filedb.h core/filedb/db.h
 
 GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
+
+GAMESDB_A 		= gamesdb.a
+
+GAMESDB_DEPS		:= $(shell ls core/filedb/*.c)
 
 #HASH_OBJ		= hash$(OBJSUFFIX)
 #HASH_INCLUDE		= hash.h
@@ -401,7 +405,7 @@ clean:		clean-bins
 		@$(MAKE) -w -C core clean
 		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
-		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A)
+		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A)
 
 clean-bins:
 		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
@@ -428,6 +432,9 @@ $(GAMELINE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
 $(GAMESMAN_A): $(GAMESMAN_DEPS)
 	@$(MAKE) -w -C core all
 
+$(GAMESDB_A): $(GAMESDB_DEPS)
+	@$(MAKE) -w -C core/filedb all
+
 $(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -450,48 +457,48 @@ $(LOOPYUPSOLVER_OBJ): %$(OBJSUFFIX): %.c $(LOOPYUPSOLVER_INCLUDE)
 $(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
 test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -Wall -c -o $@ $<
 
-test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS)
+test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS)
 
-$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GWISH_OBJ)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 $(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A)
-	$(CCC) -o $@ $< $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
 $(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GWISH_OBJ) 
-	$(CCC) -o $@ $< $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
 
-$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_A)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_A) $(ABALONE_TCL_OBJ)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(ABALONE_TCL_OBJ)
+	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(TTT_EXE): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A)
-	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(TTT_EXE): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 #$(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
 #	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
@@ -505,10 +512,10 @@ $(TTT_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GWISH_OBJ)
 $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_OBJ)
-	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-pygamesman: $(GAMESMAN_A)
+pygamesman: $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o pygamesman$(OBJSUFFIX) $(PYTHONCFLAGS) pygamesman.c
-	$(CC) -o pygamesman$(LIBSUFFIX) $(PYTHONLIBFLAGS) pygamesman$(OBJSUFFIX) $(GAMESMAN_A)
+	$(CC) -o pygamesman$(LIBSUFFIX) $(PYTHONLIBFLAGS) pygamesman$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
 

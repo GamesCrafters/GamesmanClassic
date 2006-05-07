@@ -29,12 +29,15 @@
 **
 **************************************************************************/
 
+#include "db_types.h"
 #include "db_store.h"
 #include "db_malloc.h"
 #include "assert.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
+#include <sys/stat.h>
 /*
 **Basic wrapper for the libz functions. wrapped so that future students
 **can implement it however they choose.
@@ -45,8 +48,8 @@
 ** returns db_store pointer on success (freed in db_close)
 ** null on failure. 
 */
-db_store* db_open(char* filename){
-  db_store* db = (db_store*) SafeMalloc(sizeof(db_store));
+gamesdb_store* gamesdb_open(char* filename){
+  gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
   boolean olddb = TRUE;
 
@@ -63,7 +66,7 @@ db_store* db_open(char* filename){
 //	page_id magic = 0;
 //  gzread(db->filep,
 
-  db->filename = (char*) SafeMalloc (sizeof(char)*strlen(filename));
+  db->filename = (char*) gamesdb_SafeMalloc (sizeof(char)*strlen(filename));
   
   strcpy(db->filename, filename);
   
@@ -78,6 +81,12 @@ db_store* db_open(char* filename){
   
   db_close(db);*/
   
+  //char dirname[80];
+  
+  //sprintf(dirname, "./data/%s", filename);
+  
+  mkdir("data", 0755);
+  
   return db; //used to be NULL
 }
 
@@ -91,18 +100,18 @@ db_store* db_open(char* filename){
 ** frees up allocated memory.
 ** returns 0 on success. Anything else on error.
 */
-int db_close(db_store* db){
-  SafeFree(db->filename);
+int gamesdb_close(gamesdb_store* db){
+  gamesdb_SafeFree(db->filename);
 /*  if(db->filep)
     gzclose(db->filep);
 */
-  SafeFree(db);
+  gamesdb_SafeFree(db);
 
   return 0;
 }
 
 //writes a page into the database
-int db_write(db_store* db, page_id page, db_buffer_page* buf){
+int gamesdb_write(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	//grows the file on-demand
 /*	if (page >= db->last_page) {
 		//breakage of abstraction, beware
@@ -120,24 +129,24 @@ int db_write(db_store* db, page_id page, db_buffer_page* buf){
 */
 	char filename[80] = "";
 	
-	sprintf(filename, "%s%llu", db->filename, page);
+	sprintf(filename, "./data/%s_%llu.dat", db->filename, page);
 
 	gzFile pagefile = gzopen(filename, "w+");
 	
 	//even if you are writing to the same page,
 	//you still have to seek back a page
 	//db_seek(db, page);
-	
-	printf ("db_write: page = %llu, last_page = %llu\n", page, db->last_page);
+	if (DEBUG)
+		printf ("db_write: page = %llu, last_page = %llu\n", page, db->last_page);
 	//write data
-    gzwrite(pagefile/*db->filep*/, (void*)buf, sizeof(db_buffer_page));
+    gzwrite(pagefile/*db->filep*/, (void*)buf, sizeof(gamesdb_bufferpage));
 	//flush all data so that decompression can restart at this point    
    // gzflush(db->filep, Z_FULL_FLUSH);
     gzclose(pagefile);
     return 0;
 }
 
-int db_read(db_store* db, page_id page, db_buffer_page* buf){
+int gamesdb_read(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 /*	if (page >= db->last_page) { // if we are reading past the file, just return 0's
 			memset((void*)buf, 0x00000000, sizeof(db_buffer_page));
 			db->current_page = page;
@@ -166,22 +175,22 @@ int db_read(db_store* db, page_id page, db_buffer_page* buf){
 */
 	char filename[80] = "";
 	
-	sprintf(filename, "%s%llu", db->filename, page);
+	sprintf(filename, "./data/%s_%llu.dat", db->filename, page);
 
 	gzFile pagefile = gzopen(filename, "r+");
 	
 	//even if you are writing to the same page,
 	//you still have to seek back a page
 	//db_seek(db, page);
-	
-	printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
+	if (DEBUG)
+		printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
 	if(pagefile != NULL) {
 		//write data
-	    gzread(pagefile/*db->filep*/, (void*)buf, sizeof(db_buffer_page));
+	    gzread(pagefile/*db->filep*/, (void*)buf, sizeof(gamesdb_bufferpage));
 		//flush all data so that decompression can restart at this point    
 	   // gzflush(db->filep, Z_FULL_FLUSH);
 	} else { //page does not exist in disk
-		memset(buf, 0x00000000, sizeof(db_buffer_page));
+		memset(buf, 0x00000000, sizeof(gamesdb_bufferpage));
 	}
 
     gzclose(pagefile);
@@ -193,8 +202,8 @@ int db_read(db_store* db, page_id page, db_buffer_page* buf){
 //seeks in the file to the beginning of a given page.
 //the page must already exist in the file.
 //that is, page < last_page (because the page with index last_page is not written)
-void db_seek(db_store* db, page_id page){
-	db_offset new;
+void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
+	gamesdb_offset new;
 	int from = SEEK_SET;
 	
 //	if(page != db->current_page) {
@@ -213,15 +222,15 @@ void db_seek(db_store* db, page_id page){
 	  	db->filep = gzopen(db->filename, "r+");
 	  	//if (from == SEEK_CUR)
 	  	//	page += db->current_page;
-		printf("db_seek: BACKWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
+		printf("db_seek: BACKWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(gamesdb_bufferpage), page, db->current_page, db->last_page);
 	} else {
-		printf("db_seek: FORWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
+		printf("db_seek: FORWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(gamesdb_bufferpage), page, db->current_page, db->last_page);
 	}
 	
-	page_id i;
+	gamesdb_pageid i;
 	
-	while(gztell(db->filep) < page*sizeof(db_buffer_page)) {
-		new = (db_offset)gzseek(db->filep, sizeof(db_buffer_page), SEEK_CUR);
+	while(gztell(db->filep) < page*sizeof(gamesdb_bufferpage)) {
+		new = (gamesdb_offset)gzseek(db->filep, sizeof(gamesdb_bufferpage), SEEK_CUR);
 
 		//printf("%d\n", new);
 
@@ -239,7 +248,7 @@ void db_seek(db_store* db, page_id page){
 	//return new;
 }
 
-page_id db_tell(db_store* db){
+gamesdb_pageid db_tell(gamesdb_store* db){
   return db->current_page;
 }
 

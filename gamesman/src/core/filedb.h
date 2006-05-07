@@ -2,10 +2,8 @@
 #ifndef GMCORE_FILEDB_H
 #define GMCORE_FILEDB_H
 
-#define	DBVER	1
+#include "gamesman.h"
 
-int	WriteDatabase	();
-int	ReadDatabase	();
-
+void		filedb_init				(DB_Table *new_db);
 
 #endif /* GMCORE_FILEDB_H */

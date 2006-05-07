@@ -41,6 +41,7 @@
 #include "twobitdb.h"
 #include "colldb.h"
 #include "netdb.h"
+#include "filedb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP
@@ -133,6 +134,10 @@ void db_initialize(){
 	netdb_init(db_functions);
     }
 
+	else if(gFileDB) {
+	filedb_init(db_functions);
+	}
+	
     else {
 	memdb_init(db_functions);
     }

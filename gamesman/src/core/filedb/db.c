@@ -28,29 +28,30 @@
 ** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
 **************************************************************************/
+
 #include "db.h"
 #include "db_globals.h"
 #include <stdio.h>
+
 /*
  * allocates memory and sets up a gamescrafters db. Must call destructive
  * function when done to free up memory.
  */
-games_db* db_create(int rec_size, page_id max_pages, char* db_name){
-  db_store* filep;
+gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_pages, char* db_name){
 //  db_bman* bman;
-  db_buffer* bufp;
-  games_db* data;
-  filep = db_open(db_name);
+  gamesdb_buffer* bufp;
+  gamesdb* data;
+  gamesdb_store* storep = gamesdb_open(db_name);
 
-    bufp = db_buf_init(rec_size, max_pages, filep);
+    bufp = gamesdb_buf_init(rec_size, max_pages, storep);
 
 //  bman = bman_init(bufp);
 
-  data = (games_db*) SafeMalloc(sizeof(games_db));
+  data = (gamesdb*) gamesdb_SafeMalloc(sizeof(gamesdb));
 
 //  data->buf_man = bman;
   data->buffers = bufp;
-  data->filep = filep;
+  data->store = storep;
   //data->rec_size = rec_size;
   //data->pg_size = RECS_PER_PAGE * rec_size;
   data->num_page = max_pages;
@@ -58,23 +59,23 @@ games_db* db_create(int rec_size, page_id max_pages, char* db_name){
   return data;
 } 
 
-void db_destroy(games_db* data){
+void gamesdb_destroy(gamesdb* data){
 
 //  bman_destroy(data->buf_man);
-  db_buf_destroy(data->buffers);
-  db_close(data->filep);
-  SafeFree(data);
+  gamesdb_buf_destroy(data->buffers);
+  gamesdb_close(data->store);
+  gamesdb_SafeFree(data);
 
 }
 
   
-void db_get(games_db* gdb, char* mem, Position pos){
+void gamesdb_get(gamesdb* gdb, char* mem, gamesdb_position pos){
 
-	db_buf_read(gdb->buffers, pos, mem);
+	gamesdb_buf_read(gdb->buffers, pos, mem);
 }
 
 
-void db_put(games_db* gdb, char* mem, Position pos){
+void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos){
 
-	db_buf_write(gdb->buffers, pos, mem);
+	gamesdb_buf_write(gdb->buffers, pos, mem);
 }
