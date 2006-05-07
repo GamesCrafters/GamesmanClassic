@@ -36,6 +36,8 @@ set CANVAS_WIDTH 1
 set aval(0) false
 set gameover true
 set prevColor $hColor
+set dashSize 1
+set lastMove 0
 
 #############################################################################
 proc unhash {pos array} {
@@ -180,23 +182,6 @@ proc GS_SetOption { option } {
 }
 
 #############################################################################
-proc Highlight { c  i} {
-    global aval
-    global gameover
-    global hColor
-    global prevColor
-    if { $aval($i) && !$gameover } {
-	set color [$c itemcget base$i -fill]
-	if { $color == $hColor } {
-	    $c itemconfigure base$i -fill $prevColor
-	} else {
-	    set prevColor $color
-	    $c itemconfigure base$i -fill $hColor
-	}
-    }
-}
-
-#############################################################################
 proc GS_Initialize { c } {
 
     # you may want to start by setting the size of the canvas; this line isn't cecessary
@@ -209,6 +194,7 @@ proc GS_Initialize { c } {
     global aval
     global gameover
     global hColor
+    global dashSize
 
     global CANVAS_WIDTH CANVAS_HEIGHT
 
@@ -229,11 +215,9 @@ proc GS_Initialize { c } {
 		[expr {$p+$q*sin($x*$pi/3)}] \
 		[expr {$p+$q*cos($y*$pi/3)}] \
 		[expr {$p+$q*sin($y*$pi/3)}] \
-		-width 15 -fill $lineColor -capstyle round \
+		-width 15 -disableddash $dashSize -activefill $hColor -fill $lineColor -capstyle round \
 		-tag [list base base$i]
 
-	    $c bind base$i <Enter> "Highlight $c $i"
-	    $c bind base$i <Leave> "Highlight $c $i"
 	    $c bind base$i <ButtonRelease-1> "ReturnFromHumanMove $i"
 	    set aval($i) true
 	    incr i
@@ -342,25 +326,35 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     global p2Color
     global lineColor
     global aval
+    global lastMove
+    global hColor
 
     set a(0) 0
     set b(0) 0
     unhash $oldPosition b
     unhash $newPosition a
-   
+
+    $c itemconfigure base$lastMove -state normal
+    set lastMove $theMove
+
     for {set i 0} {$i < $edges} {incr i} {
 	if { $a($i) != $b($i) }  {
 	    set aval($i) false
 	    if {$a($i) == "x"} {
-		$c itemconfigure base$i -fill $p1Color
+		$c itemconfigure base$i -fill $p1Color -activefill $p1Color -state normal
 		#animateLine $c $i
 	    } elseif {$a($i) == "o"} {
-		$c itemconfigure base$i -fill $p2Color
+		$c itemconfigure base$i -fill $p2Color -activefill $p2Color -state normal
 	    } else {
-		$c itemconfigure base$i -fill $lineColor
+		$c itemconfigure base$i -fill $lineColor -activefill $hColor -state normal
 		set aval($i) true
 	    }
 	}
+    }
+    if {[$c itemcget base$lastMove -fill] == $lineColor} {
+	$c itemconfigure base$lastMove -state normal
+    } else {
+	$c itemconfigure base$lastMove -state disabled
     }
 }
 
@@ -372,7 +366,6 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set color cyan
 
 	if {$moveType == "value"} {
-	    #$c raise vm base
 	    if {$value == "Tie"} {
 		set color yellow
 	    } elseif {$value == "Lose"} {
@@ -387,13 +380,12 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-    #$c lower vm base
     GS_DrawPosition $c $position
 }
 
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-    GS_DrawPosition $c $positionAfterUndo
+    GS_HandleMove $c $currentPosition $theMoveToUndo $positionAfterUndo
 }
 
 #############################################################################
