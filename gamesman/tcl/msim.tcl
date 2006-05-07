@@ -39,7 +39,7 @@ set prevColor $hColor
 set dashSize 1
 set lastMove 0
 
-#############################################################################
+##############################################################################
 proc unhash {pos array} {
     global edges
     global g3Array
