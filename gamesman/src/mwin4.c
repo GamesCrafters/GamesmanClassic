@@ -119,6 +119,8 @@ int  WIN4_HEIGHT = 4;
 #define DIRECTION_PAIRS 4
 #define NO_COLUMN -1
 
+BOOLEAN  gLibraries           = FALSE;
+
 typedef enum possibleBoardPieces {
 	x, o, Blank
 } XOBlank;
@@ -177,6 +179,9 @@ POSITIONLIST   *EnumerateWithinStage(int stage);
 int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 				      Direction verticalDirection);
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
+
+void            linearUnhash(POSITION pos, XOBlank* board);
+
 void 		UndoMove(MOVE move);
 
 STRING		MoveToString( MOVE );
@@ -255,6 +260,11 @@ void GameSpecificMenu() {
 		printf("\tw)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
 		printf("\th)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+		if (gLibraries) {
+		  printf("\tl)\tToggle use of game function libraries. Currently: On");
+		} else {
+		  printf("\tl)\tToggle use of game function libraries. Currently: Off");
+		}
 		printf("\n\nSelect an option: ");
 		
 		switch(GetMyChar()) {
@@ -289,7 +299,22 @@ void GameSpecificMenu() {
 			}
 			WIN4_HEIGHT = temp;
 			break;
+
+		case 'L': case 'l':
+		  if (gLibraries) {
+		    gLibraries = FALSE;
+		  } else {
+		    gLibraries = TRUE;
+		  }
+		  break;
+
 		case 'b': case 'B':
+		  
+		        if (gLibraries) {      
+			  LibInitialize(4,WIN4_HEIGHT,WIN4_WIDTH,TRUE);
+			  Test();
+			}
+		
 			return;
 		default:
 			printf("\nSorry, I don't know that option. Try another.\n");
@@ -403,6 +428,8 @@ void PrintComputersMove(MOVE computersMove,STRING computersName)
 
 VALUE Primitive(POSITION position)
 {
+  if (!gLibraries) {
+
 	if (gUseGPS) {
 		int count, index;
 		Direction horizontalDirection, verticalDirection;
@@ -540,6 +567,51 @@ VALUE Primitive(POSITION position)
 			if (board[col][row]==2) return(undecided);
 	
 	return(tie);
+  
+  } else {
+
+        int col, row, xx=0, oo=1, bb=2;
+	XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT], WhoseTurn();
+
+        if (gUseGPS) {
+	  int lastRow = gPosition.heights[gPosition.lastColumn];
+
+	  //copy the board into 1D representation
+	  for(row=WIN4_HEIGHT-1;row>=0;row--) {
+	    for(col=0;col<WIN4_WIDTH;col++) {
+	      linearBoard[col+WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = gPosition.board[col][row];
+	    }
+	  }	  
+	  
+	  if (gPosition.nextPiece == o) {
+	    if (NinaRow(linearBoard,&xx,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
+	      return gStandardGame ? lose : win;
+	    }
+	  } else { //nextPiece == x
+	    if (NinaRow(linearBoard,&oo,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
+	      return gStandardGame ? lose : win;
+	    }
+	  }
+	  
+	  return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+        }
+
+	linearUnhash(position, linearBoard); // Temporary storage.
+
+	if (WhoseTurn(position) == x) {
+	  if (statelessNinaRow(linearBoard,&oo,gContinuousPiecesGoal)) {
+	    return gStandardGame ? lose : win;
+	  }
+	} else { //o's turn
+	  if (statelessNinaRow(linearBoard,&xx,gContinuousPiecesGoal)) {
+	    return gStandardGame ? lose : win;
+	  }
+	}
+
+	return amountOfWhat(linearBoard,&bb,1,TRUE) ? undecided : tie;
+
+  }
+
 }
 
 
@@ -774,6 +846,30 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 			h--;
 		}
 	}
+}
+
+//Unhash the board into a one-dimensional representation
+void linearUnhash(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
+
+  int col,row,h;
+  for (col=0; col<WIN4_WIDTH;col++) {
+    row=WIN4_HEIGHT-1;
+    for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
+	 (pos & (1 << h)) == 0;
+	 h--) {
+      board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 2;
+      row--;
+    }
+    h--;
+    while (row >=0) {
+      if ((pos & (1<<h)) != 0) board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 1;
+      else board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 0;
+      row--;
+      h--;
+    }
+  }
+  
+
 }
 
 
