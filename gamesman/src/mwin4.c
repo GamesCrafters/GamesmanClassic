@@ -179,6 +179,8 @@ int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 void 		UndoMove(MOVE move);
 
+STRING		MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -226,6 +228,8 @@ void InitializeGame()
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
+
+	gMoveToStringFunPtr =  &MoveToString;
 }
 
 
@@ -712,8 +716,29 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE theMove)
 {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d", theMove + 1); 
+    STRING str = MoveToString( theMove );
+    printf( "%s", str );
+    SafeFree( str );
+}
+
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (MOVE theMove)
+{
+  STRING m = (STRING) SafeMalloc( 3 );
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  sprintf( m, "%d", theMove + 1); 
+
+  return m;
 }
 
 

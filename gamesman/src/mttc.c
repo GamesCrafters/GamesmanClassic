@@ -510,6 +510,8 @@ int numOnBoard(PIECE piece, BOARD board);
 int sizeOfPieceType(struct pieceType *pt);
 MOVE makeMove(PIECE piece, CELL source, CELL dest);
 
+STRING MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -571,6 +573,9 @@ void InitializeGame () {
     gInitialPosition = generic_hash(board,WHITE); // white goes first
     SafeFree(board);
   }
+
+  gMoveToStringFunPtr = &MoveToString;
+
   return;
 }
 
@@ -1132,18 +1137,53 @@ MOVE ConvertTextInputToMove (STRING input) {
 ************************************************************************/
 
 void PrintMove (MOVE move) {
+    STRING str = MoveToString( move );
+    printf( "%s", str );
+    SafeFree( str );
+}
+
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (MOVE move)
+{
+  STRING m = (STRING) SafeMalloc( 8 );
+  STRING m2 = (STRING) SafeMalloc( 8 );
+
+  //  sprintf( m, "" );
+  //  sprintf( m2, "" );
+
   PIECE piece;
   piece = move >> 2*CELL_LENGTH;
   if (piece != OFF) {
-    printf("%c",piece_strings[piece]);
+    sprintf( m, "%c", piece_strings[piece]);
+  } else {
+    *m = '\0';
   }
+
+  sprintf( m2, "%s", m );
+
   if (!offBoard(move)) {
-    printf("%c%d",getCol(getSource(move))+'a',
+    sprintf( m, "%s%c%d", m2, getCol(getSource(move))+'a',
 	   numRows - getRow(getSource(move)));
   }
-  printf("%c%d",getCol(getDest(move))+'a',
-	 numRows - getRow(getDest(move)));
-  return;
+
+  sprintf( m2, "%s", m );
+
+  sprintf( m, "%s%c%d", m2, getCol(getDest(move))+'a',
+	   numRows - getRow(getDest(move)));
+
+
+  SafeFree( m2 );
+  return m;
 }
 
 

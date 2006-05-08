@@ -104,6 +104,8 @@ typedef enum possibleBoardPieces {
 POSITION BlankOXToPosition(BlankOX* theBlankOX);
 void PositionToBlankOX(POSITION thePos,BlankOX  *theBlankOX);
 
+STRING MoveToString( MOVE );
+
 /* The position contains a last digit that records the turn, 1 - o's, 2 - x's*/ 
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
 
@@ -148,6 +150,7 @@ BOOLEAN gExtraSlider = FALSE; /*only the horizontal sliders by default*/
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -874,7 +877,27 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-	printf("%d", theMove+1); 
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+    STRING m = (STRING) SafeMalloc( 3 );
+    sprintf( m, "%d", theMove+1);
+    return m;
 }
 
 /************************************************************************

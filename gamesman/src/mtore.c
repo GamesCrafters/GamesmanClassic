@@ -318,6 +318,8 @@ extern int              whoseMove (POSITION hashed);
 
 POSITION getCanonicalPosition(POSITION position);
 
+STRING MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -352,6 +354,8 @@ void InitializeGame ()
   gInitialPosition = generic_hash(gBoard, 1);
 
   gCanonicalPosition = getCanonicalPosition;
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -586,8 +590,29 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 
 { 
-  printf("%d", move);    
+    STRING str = MoveToString( move );
+    printf( "%s", str );
+    SafeFree( str );
+}
 
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (MOVE move)
+{
+  STRING m = (STRING) SafeMalloc( 5 );
+
+  sprintf( m, "%d", move);
+
+  return m;
 }
 
 

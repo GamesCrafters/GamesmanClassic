@@ -161,7 +161,10 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
 POSITION SnakeHash(BlankBHT* theBlankBHT);
 MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 
+STRING MoveToString( MOVE );
+
 void InitializeGame() {
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1047,10 +1050,30 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 8 );
   SLOT fromSlot, toSlot;
   MoveToSlots(theMove, &fromSlot, &toSlot);
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  printf("[ %d %d ] ", fromSlot+1, toSlot+1);
+  sprintf( m, "[%d %d]", fromSlot+1, toSlot+1);
+  return m;
 }
 
 

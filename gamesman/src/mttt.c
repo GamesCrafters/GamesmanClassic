@@ -198,6 +198,8 @@ BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 void UndoMove(MOVE move);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 
+STRING MoveToString( MOVE );
+
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
@@ -267,6 +269,8 @@ void InitializeGame()
   gPosition.nextPiece = x;
   gPosition.piecesPlaced = 0;
   gUndoMove = UndoMove;
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -743,8 +747,29 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d", theMove + 1); 
+    STRING str = MoveToString( theMove );
+    printf( "%s", str );
+    SafeFree( str );
+}
+
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (MOVE theMove)
+{
+  STRING m = (STRING) SafeMalloc( 3 );
+  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+  sprintf( m, "%d", theMove + 1); 
+
+  return m;
 }
 
 /************************************************************************

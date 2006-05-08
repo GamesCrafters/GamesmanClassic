@@ -198,6 +198,7 @@ int FourInRow[k4InARow][4] = {	{0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15},
 /** Function Prototypes **/
 void PositionToBlankO(POSITION thePos,BlankO *theBlankO);
 
+STRING MoveToString( MOVE );
 
 /*
 0 1 2
@@ -223,6 +224,7 @@ void PositionToBlankO(POSITION thePos,BlankO *theBlankO);
 
 void InitializeGame()
 {
+  gMoveToStringFunPtr= &MoveToString;
 }
 
 void FreeGame()
@@ -684,13 +686,43 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 20 );
+  STRING temp = (STRING) SafeMalloc( 20 );
+
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
   int i;
-  printf("[ ");
-  for(i = 0 ; i < gBoardSize ; i++)
-    if(theMove & g2Array[i])
-      printf("%d ", i+1);
-  printf("] ");
+  sprintf( temp, "[ " );
+  sprintf( m, "%s", temp);
+
+  for(i = 0 ; i < gBoardSize ; i++) {
+    if(theMove & g2Array[i]) {
+      sprintf( temp, "%s%d ", m, i+1);
+      sprintf( m, "%s", temp );
+    }
+  }
+  
+  sprintf( temp, "%s]", m);
+
+  SafeFree( m );
+  return temp;
 }
 
 /************************************************************************

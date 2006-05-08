@@ -208,6 +208,7 @@ BOOLEAN isTerritory(char *, MOVE, char, BOOLEAN *);  /* helper for Primitive */
 void removeStones(char *, MOVE, char, BOOLEAN *); /* helper for DoMove */
 char getmovechar(MOVE);
 
+STRING MoveToString( MOVE );
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -645,6 +646,8 @@ void InitializeGame ()
 	  printf("We should never get here inside InitializeGame while creating the adjacency table information\n");
 	  break;
 	}
+
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 char * emptyboard(board)
@@ -1216,9 +1219,29 @@ void PrintComputersMove (computersMove, computersName)
 void PrintMove (move)
 	MOVE move;
 {
-        char movechar=getmovechar(move);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
 
-	printf("%c ",movechar);
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 2 );
+  char movechar=getmovechar(theMove);
+
+  sprintf( m, "%c",movechar);
+  return m;
 }
 
 char getmovechar(move)

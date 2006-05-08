@@ -319,6 +319,8 @@ BOOLEAN canmovedownright(int arraynum);
 BOOLEAN canmovedownleft(int arraynum); 
 BOOLEAN canmoveupright(int arraynum); 
 
+STRING MoveToString( MOVE );
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -349,7 +351,7 @@ void InitializeGame ()
   gInitialPosition = generic_hash(gBoard, 1);
   /* printf("This is the initialPosition:%d", gInitialPosition); */
     
-
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -883,11 +885,30 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 8 );
   int xcoord, ycoord, dir, Arraynum;
   STRING direction;
-  xcoord = GetXCoord(move);
-  ycoord = GetYCoord(move);
-  dir = GetDirection(move);
+  xcoord = GetXCoord(theMove);
+  ycoord = GetYCoord(theMove);
+  dir = GetDirection(theMove);
   Arraynum = getArraynum(xcoord, ycoord);
   if (dir == UP) 
     direction = "u";
@@ -906,7 +927,8 @@ void PrintMove (MOVE move)
     direction = "dr";
   else if (dir == DOWNLEFT) 
     direction = "dl";
-  printf("[%d %s]", Arraynum + 1, direction);
+  sprintf( m, "[%d %s]", Arraynum + 1, direction);
+  return m;
 }
 
 

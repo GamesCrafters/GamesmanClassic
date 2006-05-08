@@ -263,6 +263,7 @@ int RowNumber(int i);
 int ColPosition(int i);
 int RowWidth(int i);
 
+STRING MoveToString( MOVE );
 
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
@@ -322,6 +323,8 @@ void InitializeGame ()
     CP[i] = ColPosition(i);
     RW[i] = RowWidth(i);
   }
+
+  gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -971,11 +974,31 @@ MOVE ConvertTextInputToMove (input)
 void PrintMove (move)
 	MOVE move;
 {
-  if (move == PASSMOVE)
-    printf("pass");
-  else
-    printf("%d", move);
-    //    printf("%c", LegendKey[move-1]);
+  STRING m = MoveToString( move );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+    STRING m = (STRING) SafeMalloc( 5 );
+    
+    if (theMove == PASSMOVE)
+      sprintf( m, "pass");
+    else
+      sprintf( m, "%d", theMove);
+    return m;
 }
 
 /************************************************************************

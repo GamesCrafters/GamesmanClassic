@@ -231,6 +231,7 @@ void MoveToSlots(MOVE theMove,SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
 
+STRING MoveToString( MOVE );
 
 void InitializeGame()
 {
@@ -248,6 +249,8 @@ void InitializeGame()
     if (numDragons>3) initialBoard[12] = 'x';
 
     gInitialPosition = generic_hash2(initialBoard, 'o', 1, numSwans);
+
+    gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -879,17 +882,38 @@ MOVE ConvertTextInputToMove(input)
 void PrintMove(theMove)
      MOVE theMove;
 {
+  STRING m = MoveToString( theMove );
+  printf( "%s", m );
+  SafeFree( m );
+}
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING m = (STRING) SafeMalloc( 10 );
   SLOT fromSlot, toSlot;
   int phase;
   phase = theMove & 1;
   theMove = theMove >> 1;
   if(phase == 0)
-      printf("%d", theMove + 1);
+      sprintf( m, "%d", theMove + 1);
   else {
       MoveToSlots(theMove,&fromSlot,&toSlot);
       /* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
-      printf("[ %d %d ] ", fromSlot + 1, toSlot + 1);
+      sprintf( m, "[ %d %d ] ", fromSlot + 1, toSlot + 1);
   }
+
+  return m;
 }
 
 /************************************************************************
