@@ -51,7 +51,7 @@ gamesdb_buffer* gamesdb_buf_init(int rec_size, gamesdb_pageid num_buf, gamesdb_s
   //There will be wasted space in the mem array but shouldn't be too great if you have huge pages
   bufp->rec_size = rec_size + 1; //one byte for use by the db code (valid bit, etc)
   bufp->buf_size = MEM_ARRAY_SIZE / (rec_size+1);
-  bufp->dirty = (boolean*) gamesdb_SafeMalloc (sizeof(boolean) * num_buf);
+  bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
   bufp->buffers = (gamesdb_bufferpage*) gamesdb_SafeMalloc (sizeof(gamesdb_bufferpage) * num_buf);
   //bufp->buf_off = (db_offset*) SafeMalloc(sizeof(db_offset) * num_buf);
 

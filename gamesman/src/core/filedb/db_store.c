@@ -51,7 +51,7 @@
 gamesdb_store* gamesdb_open(char* filename){
   gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
-  boolean olddb = TRUE;
+  gamesdb_boolean olddb = TRUE;
 
 /*  db->filep = gzopen(filename,"r+");
   if(db->filep == NULL){

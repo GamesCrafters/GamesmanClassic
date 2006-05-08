@@ -12,7 +12,7 @@ typedef unsigned long long gamesdb_offset;
 typedef unsigned long long gamesdb_frameid;
 typedef unsigned long long gamesdb_pageid;
 
-typedef char boolean;
+typedef char gamesdb_boolean;
 
 //backing store
 typedef struct dbfile_struct{
@@ -42,14 +42,14 @@ typedef struct {
 typedef struct {
   char mem[MEM_ARRAY_SIZE];
   gamesdb_pageid tag;
-  boolean valid;
+  gamesdb_boolean valid;
 }gamesdb_bufferpage;
 
 typedef struct {
   gamesdb_store* filep;
 
   gamesdb_bufferpage* buffers;
-  boolean* dirty;
+  gamesdb_boolean* dirty;
   int rec_size; //number of bytes in a record
   int buf_size; //number of records in a buffer
   int n_buf;

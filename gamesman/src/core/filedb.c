@@ -84,7 +84,7 @@ void filedb_init(DB_Table *new_db)
         new_db->put_mex = filedb_set_mex;
         new_db->free_db = filedb_free;
         
-        mydb = gamesdb_create(sizeof(cellValue), 1024, kDBName);
+        mydb = gamesdb_create(sizeof(cellValue), 512, kDBName);
         
         start = FALSE;
         mypos = 0;

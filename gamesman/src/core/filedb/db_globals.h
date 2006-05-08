@@ -38,9 +38,10 @@
 //this is really arbitrary
 //BADBADBAD
 #define PAGE_SIZE 4096
-// 256K bytes per page, minus 8 bytes for 64-bit page_id, this is the max, there might be wasted space
+// 512K bytes per page, minus 8 bytes for 64-bit page_id and 1 byte for valid
+// this is the max, there might be wasted space
 // the default in filedb has 1024 of these do you should be prepared to give up 256M
-#define MEM_ARRAY_SIZE 262136
+#define MEM_ARRAY_SIZE 524279
 //#define MEM_ARRAY_SIZE 256
 
 #define DEBUG 0
