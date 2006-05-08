@@ -1,5 +1,13 @@
-// $Id: mbaghchal.c,v 1.14 2006-05-03 06:13:24 ddgarcia Exp $
+// $Id: mbaghchal.c,v 1.15 2006-05-08 08:13:07 deepamahajan Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/05/08 01:10:00 deepamahajan
+// Added MoveToString and changed board to follow standard chess conventions.
+// Revision 1.14  2006/05/03 06:13:24  ddgarcia
+// Removed the space (and the []s) from printmove and other corresponding
+// functions, so that the user's move is now "a1b1" instead of "a1 b1", which
+// means that the moves can now be printed [ a1b1 a2b2 ... ] instead of
+// [ [a1 b2] [a2 b2] ... ] (i.e., more compact) -dan 2006-05-02
+//
 // Revision 1.13  2006/04/17 07:36:38  max817
 // mbaghchal.c now has no solver debug code left (i.e. it's independent of anything in solveretrograde.c) and has variants implemented correctly. Aside from the POSITION size stuff, it should be near its final version.
 // As for the solver, all of the main features I wanted to implement are now implemented: it is almost zero-memory (aside from memdb usage), and it's possible to stop and save progress in the middle of solving. Also, ANY game can use the solver now, not just Bagh Chal. All in all, it's close to the final version (for this semester). -Max
@@ -12,9 +20,9 @@
 //
 
 /*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
+* The above lines will include the name and log of the last person
+* to commit this file to CVS
+*/
 
 /************************************************************************
 **
@@ -88,9 +96,9 @@ POSITION gInitialPosition     =  0; /* The initial hashed position for your star
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 /*
- * Help strings that are pretty self-explanatory
- * Strings than span more than one line should have backslashes (\) at the end of the line.
- */
+* Help strings that are pretty self-explanatory
+* Strings than span more than one line should have backslashes (\) at the end of the line.
+*/
 
 STRING kHelpGraphicInterface =
 "Not written yet";
@@ -253,6 +261,7 @@ void TestHash ();
 BOOLEAN CheckLegality (POSITION position);
 MOVELIST* GenerateUndoMoves ( POSITION position);
 int RetrogradeTierValue(POSITION position);
+STRING MoveToString(MOVE);
 
 /* External */
 extern GENERIC_PTR  SafeMalloc ();
@@ -269,19 +278,19 @@ extern void     SafeFree ();
 ************************************************************************/
 
 int vcfg_board(int* configuration) {
-    return 1;
+	return 1;
 }
 
 void InitializeGame ()
 {
-    if(!set)
-        Reset();
-    SetupHash();
-    if(!set) {
-        set = TRUE;
-        SetInitialPosition();
-    }
-    gRetrogradeTierValue = &RetrogradeTierValue;
+	if(!set)
+		Reset();
+	SetupHash();
+	if(!set) {
+		set = TRUE;
+		SetInitialPosition();
+	}
+	gRetrogradeTierValue = &RetrogradeTierValue;
 }
 
 
@@ -305,115 +314,115 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves    (POSITION position)
 {/*             UP
-				^
-		LEFT<---|--> RIGHT
-				v
-			   DOWN
-	(1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
+ ^
+ LEFT<---|--> RIGHT
+ v
+ DOWN
+ (1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
  */
-    char* board = unhash(position);
-    int turn = whoseTurn(position);
-    char animal;
+	char* board = unhash(position);
+	int turn = whoseTurn(position);
+	char animal;
 	int row = length, col = width;
-    MOVELIST *moves = NULL;
-    int i, j;
-    if(NumGoats != 0 && turn == PLAYER_ONE)    {
-    // Generates the list of all possible drop locations for Phase 1
-        for(i = 1; i <= row; i++) {
-            for(j = 1; j <= col; j++)    {
-                if(board[translate(i, j)] == SPACE)
-                    moves = CreateMovelistNode(translate(i, j), moves);
-            }
-        }
-    }
-    else {
-    // Generates the list of all possible jump/ move locations for Phase 2
-        if(PLAYER_ONE == turn)
-            animal = GOAT;
-        else
-            animal = TIGER;
+	MOVELIST *moves = NULL;
+	int i, j;
+	if(NumGoats != 0 && turn == PLAYER_ONE)    {
+		// Generates the list of all possible drop locations for Phase 1
+		for(i = 1; i <= row; i++) {
+			for(j = 1; j <= col; j++)    {
+				if(board[translate(i, j)] == SPACE)
+					moves = CreateMovelistNode(translate(i, j), moves);
+			}
+		}
+	}
+	else {
+		// Generates the list of all possible jump/ move locations for Phase 2
+		if(PLAYER_ONE == turn)
+			animal = GOAT;
+		else
+			animal = TIGER;
 
-        for(i = 1; i <= row; i++) {
-            for(j = 1; j <= col; j++)    {
-                if(board[translate(i, j)] == animal) {
-                    // Move Up
-                    if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
-                    // Move Right
-                    if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
-                    // Move Down
-                    if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
-                    // Move Left
-                    if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
-                    //DIAGONAL MOVES
+		for(i = 1; i <= row; i++) {
+			for(j = 1; j <= col; j++)    {
+				if(board[translate(i, j)] == animal) {
+					// Move Up
+					if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
+					// Move Right
+					if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
+					// Move Down
+					if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
+					// Move Left
+					if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
+					//DIAGONAL MOVES
 					if(diagonals){// Move NW
-                    if((i-1 > 0) && (j-1 > 0) && (((i + j) % 2) == 0)    &&
-                        (board[translate(i-1, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
-                    // Move NE
-                    if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-                        (board[translate(i-1, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
-                    // Move SE
-                    if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-                        (board[translate(i+1, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
-                    // Move SW
-                    if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
-                        (board[translate(i+1, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
+						if((i-1 > 0) && (j-1 > 0) && (((i + j) % 2) == 0)    &&
+							(board[translate(i-1, j-1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
+						// Move NE
+						if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
+							(board[translate(i-1, j+1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
+						// Move SE
+						if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
+							(board[translate(i+1, j+1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
+						// Move SW
+						if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
+							(board[translate(i+1, j-1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
 					}
-                    if(animal == TIGER)    {
-                        // tigers can jump
-                        // Jump Up
-                        if((i-1 > 1) && (board[translate(i-1, j)] == GOAT) &&
-                            (board[translate(i-2, j)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
-                        // Jump Right
-                        if((j+1 < width) && (board[translate(i, j+1)] == GOAT)    &&
-                            (board[translate(i, j+2)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
-                        // Jump Down
-                        if((i+1 < row) && (board[translate(i+1, j)] == GOAT) &&
-                            (board[translate(i+2, j)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
-                        // Jump Left
-                        if((j-1 > 1) && (board[translate(i, j-1)] == GOAT) &&
-                            (j-2 > 0) && (board[translate(i, j-2)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
+					if(animal == TIGER)    {
+						// tigers can jump
+						// Jump Up
+						if((i-1 > 1) && (board[translate(i-1, j)] == GOAT) &&
+							(board[translate(i-2, j)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
+						// Jump Right
+						if((j+1 < width) && (board[translate(i, j+1)] == GOAT)    &&
+							(board[translate(i, j+2)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
+						// Jump Down
+						if((i+1 < row) && (board[translate(i+1, j)] == GOAT) &&
+							(board[translate(i+2, j)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
+						// Jump Left
+						if((j-1 > 1) && (board[translate(i, j-1)] == GOAT) &&
+							(j-2 > 0) && (board[translate(i, j-2)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
 						if(diagonals){// Jump SW
-                        if((i+1 < length) && (j-1 > 1)    &&
-                            (board[translate(i+1, j-1)] == GOAT)    &&
-                            (((i + j) % 2) == 0)    &&
-                            (board[translate(i+2, j-2)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
-                        // Jump SE
-                        if((i+1 < length) && (j+1 < width) &&
-                            (board[translate(i+1, j+1)] == GOAT)    &&
-                            (((i + j) % 2) == 0)    &&
-                            (board[translate(i+2, j+2)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
-                        // Jump NE
-                        if((i-1 > 1) && (j+1 < width) &&
-							(board[translate(i-1, j+1)] == GOAT)&& (((i+j) %2) == 0) &&
-                            (board[translate(i-2, j+2)] == SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
-                        // Jump NW
-                        if((i-1 > 1) && (j-1 > 1) &&
-                            (board[translate(i-1, j-1)] == GOAT) &&
-							(i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  SPACE))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
-                    }
+							if((i+1 < length) && (j-1 > 1)    &&
+								(board[translate(i+1, j-1)] == GOAT)    &&
+								(((i + j) % 2) == 0)    &&
+								(board[translate(i+2, j-2)] == SPACE))
+								moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
+							// Jump SE
+							if((i+1 < length) && (j+1 < width) &&
+								(board[translate(i+1, j+1)] == GOAT)    &&
+								(((i + j) % 2) == 0)    &&
+								(board[translate(i+2, j+2)] == SPACE))
+								moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
+							// Jump NE
+							if((i-1 > 1) && (j+1 < width) &&
+								(board[translate(i-1, j+1)] == GOAT)&& (((i+j) %2) == 0) &&
+								(board[translate(i-2, j+2)] == SPACE))
+								moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
+							// Jump NW
+							if((i-1 > 1) && (j-1 > 1) &&
+								(board[translate(i-1, j-1)] == GOAT) &&
+								(i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  SPACE))
+								moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
+						}
 					}
-                }
-            }
-        }
-    }
-    SafeFree(board);
-    return moves;
+				}
+			}
+		}
+	}
+	SafeFree(board);
+	return moves;
 }
 
 
@@ -435,46 +444,46 @@ MOVELIST *GenerateMoves    (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    char* board = unhash(position);
-    char piece;
-    int turn = whoseTurn(position);
-    int jump, direction, i, j, jumpI, jumpJ;
-    if(move < boardSize) { // It's only a Goat being placed
-        board[move] = GOAT;
-        NumGoats--;
-        return hash(board, 2);
-    }
+	char* board = unhash(position);
+	char piece;
+	int turn = whoseTurn(position);
+	int jump, direction, i, j, jumpI, jumpJ;
+	if(move < boardSize) { // It's only a Goat being placed
+		board[move] = GOAT;
+		NumGoats--;
+		return hash(board, 2);
+	}
 	move -= boardSize;
-    jump = move % 2;
-    move /= 2;
-    direction = move % 8;
-    move /= 8;
-    i = jumpI = get_x(move);
-    j = jumpJ = get_y(move);
-    piece = board[move];
-    board[move] = SPACE; // clear the current location of the piece
-    switch(direction) { // find the appropriate modifiers to i and j
-        case UP: if (jump) { i -= 2; jumpI -= 1; }
-                    else i -= 1; break;
-        case DOWN: if (jump) { i += 2; jumpI += 1; }
-                    else i += 1; break;
-        case RIGHT: if (jump) { j += 2; jumpJ += 1; }
-                    else j += 1; break;
-        case LEFT: if (jump) { j -= 2; jumpJ -= 1; }
-                    else j -= 1; break;
-					if (diagonals){case UP_RIGHT: if (jump) { i -= 2; j += 2; jumpI -= 1; jumpJ += 1; }
-                    else { i -= 1; j += 1; }break;
-        case UP_LEFT: if (jump) { i -= 2; j -= 2; jumpI -= 1; jumpJ -= 1; }
-                    else { i -= 1; j -= 1; } break;
-        case DOWN_RIGHT: if (jump) { i += 2; j += 2; jumpI += 1; jumpJ += 1; }
-                    else { i += 1; j += 1; } break;
-        case DOWN_LEFT: if (jump) { i += 2; j -= 2; jumpI += 1; jumpJ -= 1; }
-                    else { i += 1; j -= 1; } break;
-					}
-    }
-    board[translate(i, j)] = piece; // place the piece in its new location
-    board[translate(jumpI, jumpJ)] = SPACE; // erase the piece jumped over
-    return hash(board, (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE));
+	jump = move % 2;
+	move /= 2;
+	direction = move % 8;
+	move /= 8;
+	i = jumpI = get_x(move);
+	j = jumpJ = get_y(move);
+	piece = board[move];
+	board[move] = SPACE; // clear the current location of the piece
+	switch(direction) { // find the appropriate modifiers to i and j
+		case UP: if (jump) { i -= 2; jumpI -= 1; }
+				 else i -= 1; break;
+		case DOWN: if (jump) { i += 2; jumpI += 1; }
+				   else i += 1; break;
+		case RIGHT: if (jump) { j += 2; jumpJ += 1; }
+					else j += 1; break;
+		case LEFT: if (jump) { j -= 2; jumpJ -= 1; }
+				   else j -= 1; break;
+				   if (diagonals){case UP_RIGHT: if (jump) { i -= 2; j += 2; jumpI -= 1; jumpJ += 1; }
+				   else { i -= 1; j += 1; }break;
+		case UP_LEFT: if (jump) { i -= 2; j -= 2; jumpI -= 1; jumpJ -= 1; }
+					  else { i -= 1; j -= 1; } break;
+		case DOWN_RIGHT: if (jump) { i += 2; j += 2; jumpI += 1; jumpJ += 1; }
+						 else { i += 1; j += 1; } break;
+		case DOWN_LEFT: if (jump) { i += 2; j -= 2; jumpI += 1; jumpJ -= 1; }
+						else { i += 1; j -= 1; } break;
+				   }
+	}
+	board[translate(i, j)] = piece; // place the piece in its new location
+	board[translate(jumpI, jumpJ)] = SPACE; // erase the piece jumped over
+	return hash(board, (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE));
 }
 
 
@@ -504,13 +513,13 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-    MOVELIST* moves = GenerateMoves(position);
-    if(NULL == moves) { // no legal moves left == lose
-        FreeMoveList(moves);
-        return lose;
-    }
-    FreeMoveList(moves);
-    return undecided;
+	MOVELIST* moves = GenerateMoves(position);
+	if(NULL == moves) { // no legal moves left == lose
+		FreeMoveList(moves);
+		return lose;
+	}
+	FreeMoveList(moves);
+	return undecided;
 }
 
 
@@ -532,53 +541,58 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-    char* board;
-    int i, j;
-    int turn = whoseTurn(position);
-    board = unhash(position);
-    if(turn == 1) { // if goat's turn
-        if(NumGoats != 0)
-            kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
-        else kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseTwo;
-    } else kHelpOnYourTurn = kHelpOnYourTurnTiger;
-    printf("\t%s's Turn (%s):\n\t  ",playersName,(turn==1?"Goat":"Tiger"));
-    for(j = 1; j <= width; j++) // print the column numbers
-        printf("%d ", j);
-    printf("\n");
-    for(i = 1; i <= length; i++) { // print the rows one by one
-        printf("\t%c ", i-1+'a'); // first, print the row with the pieces
-        for(j = 1; j <= width; j++) {
-            printf("%c", board[translate(i, j)]);
-            if(j < width)
-            printf("-");
-        }
-        printf("\n\t  ");
-        if(i < length) { // then, print the row with the lines (diagonals and such)
-            for(j = 1; j < width; j++) {
-				if(diagonals) {
-					if(j % 2 && i % 2)
-						printf("|\\");
-					else if(j % 2 && ((i % 2) == 0))
-						printf("|/");
-					else if(i % 2)
-						printf("|/");
-					else
-						printf("|\\");
-				}
-				else printf("| ");
+	char* board;
+	int i, j;
+	int turn = whoseTurn(position);
+	board = unhash(position);
+	if(turn == 1) { // if goat's turn
+		if(NumGoats != 0)
+			kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
+		else kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseTwo;
+	} else kHelpOnYourTurn = kHelpOnYourTurnTiger;
+	printf("\t%s's Turn (%s):\n  ",playersName,(turn==1?"Goat":"Tiger"));
+	for(i = 1; i <= length+1; i++) { // print the rows one by one
+		if(i <= length)
+		{
+			printf("\t%d ", length-i+1); // first, print the row with the pieces
+			for(j = 1; j <= width; j++) {
+				printf("%c", board[translate(i, j)]);
+				if(j < width)
+					printf("-");
+			}
+			printf("\n\t  ");
+			if(i < length) { // then, print the row with the lines (diagonals and such)
+				for(j = 1; j < width; j++) {
+					if(diagonals) {
+						if(j % 2 && i % 2)
+							printf("|\\");
+						else if(j % 2 && ((i % 2) == 0))
+							printf("|/");
+						else if(i % 2)
+							printf("|/");
+						else
+							printf("|\\");
+					}
+					else printf("| ");
 
-                if(j == width - 1)
-                    printf("|");
-            }
-        }
-        if(i == 1) {
-			if(NumGoats != 0) printf("  <STAGE 1> Goats to still be placed: %d", NumGoats);
-			else printf("  <STAGE 2>");
-		} else if (i == 2)
-			printf("    %s", GetPrediction(position, playersName, usersTurn));
-        printf("\n");
-    }
-    SafeFree(board);
+					if(j == width - 1)
+						printf("|");
+				}
+			}
+			if(i == 1) {
+				if(NumGoats != 0) printf("  <STAGE 1> Goats to still be placed: %d", NumGoats);
+				else printf("  <STAGE 2>");
+			} else if (i == 2)
+				printf("    %s", GetPrediction(position, playersName, usersTurn));
+			if(i<length)printf("\n");
+		}
+		else if(i > length){
+			for(j = 1; j <= width; j++) // print the column numbers
+				printf("%c ", j+'a'-1);
+		}
+	}
+	printf("\n");
+	SafeFree(board);
 }
 
 
@@ -595,9 +609,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    printf("%8s's move : ", computersName);
-    PrintMove(computersMove);
-    printf("\n\n");
+	printf("%8s's move : ", computersName);
+	PrintMove(computersMove);
+	printf("\n\n");
 }
 
 
@@ -613,42 +627,43 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    int jump, direction, i, j, x, y;
-    if(move < boardSize) { // This is just a goat being placed
-        i = get_x(move);
-        j = get_y(move);
-        printf("%c%d", i-1+'a', j);
-    } else {
+	int jump, direction, i, j, x, y;
+	MoveToString(move);
+	if(move < boardSize) { // This is just a goat being placed
+		i = get_x(move);
+		j = get_y(move);
+		printf("%c%d", j + 'a' - 1, length - i + 1);
+	} else {
 		move -= boardSize;
-        jump = move % 2;
-        move /= 2;
-        direction = move % 8;
-        move /= 8;
-        i = x = get_x(move);
-        j = y = get_y(move);
-        switch(direction) {
-            case UP: if(jump) x -= 2;
-                        else x -= 1; break;
-            case LEFT: if(jump) y -= 2;
-                        else y -= 1; break;
-            case RIGHT: if(jump) y += 2;
-                        else y += 1; break;
-            case DOWN: if(jump) x += 2;
-                        else x += 1; break;
-			if(diagonals){
+		jump = move % 2;
+		move /= 2;
+		direction = move % 8;
+		move /= 8;
+		i = x = get_x(move);
+		j = y = get_y(move);
+		switch(direction) {
+			case UP: if(jump) x -= 2;
+					 else x -= 1; break;
+			case LEFT: if(jump) y -= 2;
+					   else y -= 1; break;
+			case RIGHT: if(jump) y += 2;
+						else y += 1; break;
+			case DOWN: if(jump) x += 2;
+					   else x += 1; break;
+					   if(diagonals){
 
-            case UP_LEFT: if(jump) { y -= 2; x -= 2; }
-                        else { y -= 1; x -= 1; } break;
-            case UP_RIGHT: if(jump) { y += 2; x -= 2;  }
-                        else { y += 1; x -= 1; } break;
-            case DOWN_LEFT: if(jump) { y -= 2; x += 2; }
-                        else { y -= 1; x += 1; } break;
-            case DOWN_RIGHT: if(jump) { y += 2; x += 2; }
-                        else { y += 1; x += 1; } break;
-			}
-        }
-        printf("%c%d%c%d", i-1+'a', j, x-1+'a', y);
-    }
+			case UP_LEFT: if(jump) { y -= 2; x -= 2; }
+						  else { y -= 1; x -= 1; } break;
+			case UP_RIGHT: if(jump) { y += 2; x -= 2;  }
+						   else { y += 1; x -= 1; } break;
+			case DOWN_LEFT: if(jump) { y -= 2; x += 2; }
+							else { y -= 1; x += 1; } break;
+			case DOWN_RIGHT: if(jump) { y += 2; x += 2; }
+							 else { y += 1; x += 1; } break;
+					   }
+		}
+		printf("%c%d%c%d", i-1+'a', j, x-1+'a', y);
+	}
 }
 
 
@@ -674,25 +689,25 @@ void PrintMove (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-    if(NumGoats != 0)
-        printf("%8s's move [(undo)/([%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width);
-    else
-        printf("%8s's move [(undo)/([%c-%c][%d-%d] [%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width, 'a', length+'a', 1, width);
-    input = HandleDefaultTextInput(position, move, playersName);
+	for (;;) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		if(NumGoats != 0)
+			printf("%8s's move [(undo)/([%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width);
+		else
+			printf("%8s's move [(undo)/([%c-%c][%d-%d] [%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width, 'a', length+'a', 1, width);
+		input = HandleDefaultTextInput(position, move, playersName);
 
-    if (input != Continue)
-        return input;
-    }
+		if (input != Continue)
+			return input;
+	}
 
-    /* NOTREACHED */
-    return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -723,13 +738,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-    int size = strlen(input);
-    if(size != 2 && size != 4)
-        return FALSE;
-    if (!isalpha(input[0]) || !isdigit(input[1]) ||
- 		(size == 4 && (!isalpha(input[2]) || !isdigit(input[3]))))
-    	return FALSE;
-    return TRUE;
+	int size = strlen(input);
+	if(size != 2 && size != 4)
+		return FALSE;
+	if (!isalpha(input[0]) || !isdigit(input[1]) ||
+		(size == 4 && (!isalpha(input[2]) || !isdigit(input[3]))))
+		return FALSE;
+	return TRUE;
 }
 
 
@@ -749,63 +764,63 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    int x, y, x1, y1;
-    MOVE move;
-    x = input[0] - 'a' + 1;
-    y = input[1] - '0';
-    if(input[2] == '\0') {
-        move = translate(x, y);
-        return move;
-    }
-    x1 = input[2] - 'a' + 1;
-    y1 = input[3] - '0';
-    if(x1 == x+2) {
-        if(y1 == y+2 && diagonals) {
-            move = (translate(x, y)*8+DOWN_RIGHT)*2+1 + boardSize;
-            PrintMove(move);
-            return move;
-        }
-        else if(y1 == y)
-            return (MOVE) (translate(x, y)*8+DOWN)*2+1 + boardSize;
-        else if(diagonals)
-            return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2+1 + boardSize;
+	int x, y, x1, y1;
+	MOVE move;
+	y = input[0] - 'a' + 1;
+	x = length + 1 - (input[1] - '0');
+	if(input[2] == '\0') {
+		move = translate(x, y);
+		return move;
+	}
+	y1 = input[2] - 'a' + 1;
+	x1 = length + 1 - (input[3] - '0');
+	if(x1 == x+2) {
+		if(y1 == y+2 && diagonals) {
+			move = (translate(x, y)*8+DOWN_RIGHT)*2+1 + boardSize;
+			PrintMove(move);
+			return move;
+		}
+		else if(y1 == y)
+			return (MOVE) (translate(x, y)*8+DOWN)*2+1 + boardSize;
+		else if(diagonals)
+			return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2+1 + boardSize;
 		else return 0;
-    } else if(x1 == x+1) {
-        if(y1 == y+1 && diagonals)
-            return (MOVE) (translate(x, y)*8+DOWN_RIGHT)*2 + boardSize;
-        else if(y1 == y)
-            return (MOVE) (translate(x, y)*8+DOWN)*2 + boardSize;
-        else if(diagonals)
-            return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2 + boardSize;
+	} else if(x1 == x+1) {
+		if(y1 == y+1 && diagonals)
+			return (MOVE) (translate(x, y)*8+DOWN_RIGHT)*2 + boardSize;
+		else if(y1 == y)
+			return (MOVE) (translate(x, y)*8+DOWN)*2 + boardSize;
+		else if(diagonals)
+			return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2 + boardSize;
 		else
 			return 0;
-    } else if(x1 == x) {
-        if(y1 == y+2)
-            return (MOVE) (translate(x, y)*8+RIGHT)*2+1 + boardSize;
-        else if(y1 == y+1)
-            return (MOVE) (translate(x, y)*8+RIGHT)*2 + boardSize;
-        else if(y1 == y-1)
-            return (MOVE) (translate(x, y)*8+LEFT)*2 + boardSize;
-        else
-            return (MOVE) (translate(x, y)*8+LEFT)*2+1 + boardSize;
-    } else if(x1 == x-1) {
-        if(y1 == y+1 && diagonals)
-            return (MOVE) (translate(x, y)*8+UP_RIGHT)*2 + boardSize;
-        else if(y1 == y)
-            return (MOVE) (translate(x, y)*8+UP)*2 + boardSize;
-        else if (diagonals)
-            return (MOVE) (translate(x, y)*8+UP_LEFT)*2 + boardSize;
+	} else if(x1 == x) {
+		if(y1 == y+2)
+			return (MOVE) (translate(x, y)*8+RIGHT)*2+1 + boardSize;
+		else if(y1 == y+1)
+			return (MOVE) (translate(x, y)*8+RIGHT)*2 + boardSize;
+		else if(y1 == y-1)
+			return (MOVE) (translate(x, y)*8+LEFT)*2 + boardSize;
+		else
+			return (MOVE) (translate(x, y)*8+LEFT)*2+1 + boardSize;
+	} else if(x1 == x-1) {
+		if(y1 == y+1 && diagonals)
+			return (MOVE) (translate(x, y)*8+UP_RIGHT)*2 + boardSize;
+		else if(y1 == y)
+			return (MOVE) (translate(x, y)*8+UP)*2 + boardSize;
+		else if (diagonals)
+			return (MOVE) (translate(x, y)*8+UP_LEFT)*2 + boardSize;
 		else return 0;
-    } else {
-        if(y1 == y+2 && diagonals)
-            return (MOVE) (translate(x, y)*8+UP_RIGHT)*2+1 + boardSize;
-        else if(y1 == y)
-            return (MOVE) (translate(x, y)*8+UP)*2+1 + boardSize;
-        else if(diagonals)
-            return (MOVE) (translate(x, y)*8+UP_LEFT)*2+1 + boardSize;
+	} else {
+		if(y1 == y+2 && diagonals)
+			return (MOVE) (translate(x, y)*8+UP_RIGHT)*2+1 + boardSize;
+		else if(y1 == y)
+			return (MOVE) (translate(x, y)*8+UP)*2+1 + boardSize;
+		else if(diagonals)
+			return (MOVE) (translate(x, y)*8+UP_LEFT)*2+1 + boardSize;
 		else return 0;
-    }
-    return 0;
+	}
+	return 0;
 }
 
 
@@ -828,53 +843,53 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-    char c;
-    BOOLEAN cont = TRUE;
-    while(cont) {
-        printf("\n\nCurrent %dx%d board with %d goats:  \n", width, length, goats);
-        PrintPosition(gInitialPosition, "Fred", 0);
-        printf("\tGame Options:\n\n"
-               "\tc)\t(C)hange the board size (nxn), currently: %d\n"
-               "\ts)\t(S)et the number of goats on the board, currently: %d\n"
-               "\tn)\tSet the (N)umber of tigers on the board, currently: %d\n"
-			   "\td)\tTurn (D)iagonals %s\n"
-               "\ti)\tSet the (I)nitial position (starting position)\n"
-               "\tr)\t(R)eset to default settings\n"
-               "\tt)\t(T)est the hash function\n"
-               "\tb)\t(B)ack to the main menu\n"
-               "\nSelect an option:  ", width, goats, tigers, diagonals ? "off" : "on");
-        c = GetMyChar();
-        switch(c) {
-            case 'c': case 'C':
-                ChangeBoardSize();
-                break;
-            case 'n': case 'N':
-                SetNumTigers();
-                break;
-            case 's': case 'S':
-                SetNumGoats();
-                break;
+	char c;
+	BOOLEAN cont = TRUE;
+	while(cont) {
+		printf("\n\nCurrent %dx%d board with %d goats:  \n", width, length, goats);
+		PrintPosition(gInitialPosition, "Fred", 0);
+		printf("\tGame Options:\n\n"
+			"\tc)\t(C)hange the board size (nxn), currently: %d\n"
+			"\ts)\t(S)et the number of goats on the board, currently: %d\n"
+			"\tn)\tSet the (N)umber of tigers on the board, currently: %d\n"
+			"\td)\tTurn (D)iagonals %s\n"
+			"\ti)\tSet the (I)nitial position (starting position)\n"
+			"\tr)\t(R)eset to default settings\n"
+			"\tt)\t(T)est the hash function\n"
+			"\tb)\t(B)ack to the main menu\n"
+			"\nSelect an option:  ", width, goats, tigers, diagonals ? "off" : "on");
+		c = GetMyChar();
+		switch(c) {
+			case 'c': case 'C':
+				ChangeBoardSize();
+				break;
+			case 'n': case 'N':
+				SetNumTigers();
+				break;
+			case 's': case 'S':
+				SetNumGoats();
+				break;
 			case 'd': case 'D':
 				diagonals= !diagonals;
 				break;
-            case 'i': case 'I':
-                gInitialPosition = GetInitialPosition();
-                break;
-            case 'r': case 'R':
-                Reset();
-                SetupHash();
-                SetInitialPosition();
-                break;
-            case 't': case 'T':
-                TestHash();
-                break;
-            case 'b': case 'B':
-                cont = FALSE;
-                break;
-            default:
-                printf("Invalid option!\n");
-        }
-    }
+			case 'i': case 'I':
+				gInitialPosition = GetInitialPosition();
+				break;
+			case 'r': case 'R':
+				Reset();
+				SetupHash();
+				SetInitialPosition();
+				break;
+			case 't': case 'T':
+				TestHash();
+				break;
+			case 'b': case 'B':
+				cont = FALSE;
+				break;
+			default:
+				printf("Invalid option!\n");
+		}
+	}
 }
 
 
@@ -908,69 +923,69 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    int i, j, turn, goatsLeft;
-    char line[width], in[2], first;
-    for(i = 0; i < width; i++)
-    	line[i] = SPACE;
-    char* board = SafeMalloc(boardSize * sizeof(char));
-    BOOLEAN valid = FALSE;
-    while(!valid) {
-        valid = TRUE;
-        printf("\nCurrent Position: \n");
-        PrintPosition(gInitialPosition, "Fred", 0);
-        printf("Enter a character string to represent the position you want\n"
-               "%c for tiger, %c for goat, %c for a space.  Example:\n"
-               "For the initial position of a 5X5 board, the string is:\n"
-               "%c%c%c%c%c\n"
-               "%c%c%c%c%c\n"
-               "%c%c%c%c%c\n"
-               "%c%c%c%c%c\n"
-               "%c%c%c%c%c\n\n"
-               "Enter the character string: \n",TIGER,GOAT,SPACE,TIGER,SPACE,SPACE,SPACE,TIGER,
-               SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,
-               TIGER,SPACE,SPACE,SPACE,TIGER);
-        for(i = 1; i <= length; i++) {
-            printf(">");
-            scanf("%s", line);
-            for(j = 1; j <= width; j++) {
-                if(line[j-1] != SPACE && line[j-1] != GOAT && line[j-1] != TIGER)
-                    valid = FALSE;
-                board[translate(i,j)] = line[j-1];
-            }
-        }
-        printf("Enter how many goats are left to place: ");
-        scanf("%s", in);
+	int i, j, turn, goatsLeft;
+	char line[width], in[2], first;
+	for(i = 0; i < width; i++)
+		line[i] = SPACE;
+	char* board = SafeMalloc(boardSize * sizeof(char));
+	BOOLEAN valid = FALSE;
+	while(!valid) {
+		valid = TRUE;
+		printf("\nCurrent Position: \n");
+		PrintPosition(gInitialPosition, "Fred", 0);
+		printf("Enter a character string to represent the position you want\n"
+			"%c for tiger, %c for goat, %c for a space.  Example:\n"
+			"For the initial position of a 5X5 board, the string is:\n"
+			"%c%c%c%c%c\n"
+			"%c%c%c%c%c\n"
+			"%c%c%c%c%c\n"
+			"%c%c%c%c%c\n"
+			"%c%c%c%c%c\n\n"
+			"Enter the character string: \n",TIGER,GOAT,SPACE,TIGER,SPACE,SPACE,SPACE,TIGER,
+			SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,
+			TIGER,SPACE,SPACE,SPACE,TIGER);
+		for(i = 1; i <= length; i++) {
+			printf(">");
+			scanf("%s", line);
+			for(j = 1; j <= width; j++) {
+				if(line[j-1] != SPACE && line[j-1] != GOAT && line[j-1] != TIGER)
+					valid = FALSE;
+				board[translate(i,j)] = line[j-1];
+			}
+		}
+		printf("Enter how many goats are left to place: ");
+		scanf("%s", in);
 		if (strlen(in) == 1) {
 			goatsLeft = in[0]-48;
 		} else goatsLeft = ((in[0]-48)*10)+(in[1]-48);
-        printf("Enter who you would like to go first: (g)oats or (t)igers: ");
-        first = GetMyChar();
-        if(first == 'g' || first == 'G')
-            turn = PLAYER_ONE;
-        else if(first == 't' || first == 'G')
-            turn = PLAYER_TWO;
-        else valid = FALSE;
-        goats = 0;
-        tigers = 0;
-        for(i = 0; i < boardSize; i++) {
-            if(board[i] == GOAT)
-                goats++;
-            else if(board[i] == TIGER)
-                tigers++;
-        }
-        if (goats > GOATS_MAX || tigers > TIGERS_MAX || goats+goatsLeft > boardSize-tigers)
-        	valid = FALSE;
-        NumGoats = goatsLeft;
-        if(NumGoats == 0)
-            phase1 = FALSE;
-        else
-            phase1 = TRUE;
-        goats += goatsLeft;
-        if(!valid)
-            printf("\n\nInvalid board!!!\n\n");
-    }
-    SetupHash();
-    return hash(board, turn);
+		printf("Enter who you would like to go first: (g)oats or (t)igers: ");
+		first = GetMyChar();
+		if(first == 'g' || first == 'G')
+			turn = PLAYER_ONE;
+		else if(first == 't' || first == 'G')
+			turn = PLAYER_TWO;
+		else valid = FALSE;
+		goats = 0;
+		tigers = 0;
+		for(i = 0; i < boardSize; i++) {
+			if(board[i] == GOAT)
+				goats++;
+			else if(board[i] == TIGER)
+				tigers++;
+		}
+		if (goats > GOATS_MAX || tigers > TIGERS_MAX || goats+goatsLeft > boardSize-tigers)
+			valid = FALSE;
+		NumGoats = goatsLeft;
+		if(NumGoats == 0)
+			phase1 = FALSE;
+		else
+			phase1 = TRUE;
+		goats += goatsLeft;
+		if(!valid)
+			printf("\n\nInvalid board!!!\n\n");
+	}
+	SetupHash();
+	return hash(board, turn);
 }
 
 
@@ -987,7 +1002,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 1280;
+	return 1280;
 }
 
 
@@ -1009,7 +1024,7 @@ int getOption ()
 	option += ((length-3)*TIGERS_MAX*GOATS_MAX + (tigers-1)*GOATS_MAX + (goats-1)) *2;
 	if (diagonals == FALSE)
 		option +=1;
-    return option;
+	return option;
 }
 
 
@@ -1071,314 +1086,358 @@ void DebugMenu ()
 
 int translate (int x, int y)
 {
-    return (x-1)*width+(y-1);
+	return (x-1)*width+(y-1);
 }
 
 int get_x (int index)
 {
-    return index / length + 1;
+	return index / length + 1;
 }
 
 int get_y (int index)
 {
-    return index % length + 1;
+	return index % length + 1;
 }
 
 POSITION hash (char* board, int player)
 {
-    POSITION position = generic_hash(board, player);
-    if(board != NULL)
-        SafeFree(board);
-    if(phase1) {
-    	position *= (goats+1);
-    	position += NumGoats;
-    }
-    return position;
+	POSITION position = generic_hash(board, player);
+	if(board != NULL)
+		SafeFree(board);
+	if(phase1) {
+		position *= (goats+1);
+		position += NumGoats;
+	}
+	return position;
 }
 
 char* unhash (POSITION position)
 {
-    char* board = (char *) SafeMalloc(length * width * sizeof(char));
-    if(phase1) {
-        NumGoats = position % (goats+1);
-        position /= (goats+1);
-    }
-    return (char *) generic_unhash(position, board);
+	char* board = (char *) SafeMalloc(length * width * sizeof(char));
+	if(phase1) {
+		NumGoats = position % (goats+1);
+		position /= (goats+1);
+	}
+	return (char *) generic_unhash(position, board);
 }
 
 int whoseTurn (POSITION position)
 {
-    if(phase1)
-        position /= (goats+1);
-    return whoseMove(position);
+	if(phase1)
+		position /= (goats+1);
+	return whoseMove(position);
 }
 
 void ChangeBoardSize ()
 {
-    int change;
-    BOOLEAN cont = TRUE;
-    while (cont) {
-        cont = FALSE;
-        printf("\n\nCurrent board of size %d:\n\n", width);
-        PrintPosition(gInitialPosition, "Fred", 0);
-        printf("\n\nEnter the new board size (%d - %d):  ", WIDTH_MIN, WIDTH_MAX);
-        change = GetMyChar()-48;
-        if(change > WIDTH_MAX || change < WIDTH_MIN) {
-            printf("\nInvalid base length!\n");
-            cont = TRUE;
-        }
-        else {
-            width = length = change;
-            boardSize = width*length;
-            tigers = 4;
+	int change;
+	BOOLEAN cont = TRUE;
+	while (cont) {
+		cont = FALSE;
+		printf("\n\nCurrent board of size %d:\n\n", width);
+		PrintPosition(gInitialPosition, "Fred", 0);
+		printf("\n\nEnter the new board size (%d - %d):  ", WIDTH_MIN, WIDTH_MAX);
+		change = GetMyChar()-48;
+		if(change > WIDTH_MAX || change < WIDTH_MIN) {
+			printf("\nInvalid base length!\n");
+			cont = TRUE;
+		}
+		else {
+			width = length = change;
+			boardSize = width*length;
+			tigers = 4;
 			goats = boardSize-tigers-1;
 			NumGoats = goats;
 			phase1 = TRUE;
-            SetupHash();
-            SetInitialPosition();
-        }
-    }
+			SetupHash();
+			SetInitialPosition();
+		}
+	}
 }
 
 void SetNumGoats ()
 {
-    int change, change2;
-    BOOLEAN cont = TRUE;
-    char in[2];
-    while (cont) {
-        printf("\n\nCurrent number of goats %d:\n\n", goats);
-        printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers);
+	int change, change2;
+	BOOLEAN cont = TRUE;
+	char in[2];
+	while (cont) {
+		printf("\n\nCurrent number of goats %d:\n\n", goats);
+		printf("\n\nEnter the new number of goats (%d - %d):  ", 1, boardSize-tigers);
 		scanf("%s", in);
 		if (strlen(in) == 1) {
 			change = in[0]-48;
 		} else change = ((in[0]-48)*10)+(in[1]-48);
-        if(change > boardSize-tigers || change < 1) {
-            printf("\nInvalid number of goats for this board!\n");
-            break;
-        }
-        printf("\n\nEnter how many are yet to be placed (%d - %d):  ", 0, change);
+		if(change > boardSize-tigers || change < 1) {
+			printf("\nInvalid number of goats for this board!\n");
+			break;
+		}
+		printf("\n\nEnter how many are yet to be placed (%d - %d):  ", 0, change);
 		scanf("%s", in);
 		if (strlen(in) == 1) {
 			change2 = in[0]-48;
 		} else change2 = ((in[0]-48)*10)+(in[1]-48);
-        if(change2 > change || change2 < 0) {
-            printf("\nInvalid number of goats for this board!\n");
-            break;
-        } else {
-            goats = change;
-            NumGoats = change2;
-            if (change2 == 0)
-            	phase1 = FALSE;
-            else phase1 = TRUE;
-            SetupHash();
-            SetInitialPosition();
-            cont = FALSE;
-        }
-    }
+		if(change2 > change || change2 < 0) {
+			printf("\nInvalid number of goats for this board!\n");
+			break;
+		} else {
+			goats = change;
+			NumGoats = change2;
+			if (change2 == 0)
+				phase1 = FALSE;
+			else phase1 = TRUE;
+			SetupHash();
+			SetInitialPosition();
+			cont = FALSE;
+		}
+	}
 }
 
 void SetNumTigers ()
 {
-    int change, max = (boardSize-goats > TIGERS_MAX ? TIGERS_MAX : boardSize-goats);
-    BOOLEAN cont = TRUE;
-    while (cont) {
-        cont = FALSE;
-        printf("\n\nCurrent number of tigers %d:\n\n", tigers);
-        printf("\n\nEnter the new number of tigers (%d - %d):  ", 1, max);
-        change = GetMyChar()-48;
-        if(change > max || change < 1) {
-            printf("\nInvalid number of tigers for this board!\n");
-            cont = TRUE;
-        }
-        else {
-            tigers = change;
-            SetupHash();
-            SetInitialPosition();
-        }
-    }
+	int change, max = (boardSize-goats > TIGERS_MAX ? TIGERS_MAX : boardSize-goats);
+	BOOLEAN cont = TRUE;
+	while (cont) {
+		cont = FALSE;
+		printf("\n\nCurrent number of tigers %d:\n\n", tigers);
+		printf("\n\nEnter the new number of tigers (%d - %d):  ", 1, max);
+		change = GetMyChar()-48;
+		if(change > max || change < 1) {
+			printf("\nInvalid number of tigers for this board!\n");
+			cont = TRUE;
+		}
+		else {
+			tigers = change;
+			SetupHash();
+			SetInitialPosition();
+		}
+	}
 }
 
 void Reset ()
 {
-    width      = 3;
-    length     = 3;
-    boardSize  = width*length;
-    tigers     = 4;
-    goats      = 4;
-    NumGoats   = goats;
-    phase1     = TRUE;
-    diagonals  = TRUE;
-    kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
+	width      = 3;
+	length     = 3;
+	boardSize  = width*length;
+	tigers     = 4;
+	goats      = 4;
+	NumGoats   = goats;
+	phase1     = TRUE;
+	diagonals  = TRUE;
+	kHelpOnYourTurn = kHelpOnYourTurnGoatPhaseOne;
 }
 
 
 void SetupHash ()
 {
-    int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
-    gNumberOfPositions = generic_hash_init(boardSize, game, vcfg_board);
-    if(phase1)
+	int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
+	gNumberOfPositions = generic_hash_init(boardSize, game, vcfg_board);
+	if(phase1)
 		gNumberOfPositions *= (goats + 1);
-    printf("Number of positions: %lld\n", gNumberOfPositions);
+	printf("Number of positions: %lld\n", gNumberOfPositions);
 }
 
 void SetInitialPosition ()
 {
-    int i;
-    char* initial = SafeMalloc(width * length * sizeof(char));
-    for(i = 0; i < boardSize; i++)
-        initial[i] = SPACE;
-    initial[translate(1, 1)] = TIGER;
-    initial[translate(1, width)] = TIGER;
-    initial[translate(length, 1)] = TIGER;
-    initial[translate(length, width)] = TIGER;
-    gInitialPosition = hash(initial, 1);
+	int i;
+	char* initial = SafeMalloc(width * length * sizeof(char));
+	for(i = 0; i < boardSize; i++)
+		initial[i] = SPACE;
+	initial[translate(1, 1)] = TIGER;
+	initial[translate(1, width)] = TIGER;
+	initial[translate(length, 1)] = TIGER;
+	initial[translate(length, width)] = TIGER;
+	gInitialPosition = hash(initial, 1);
 }
 
 void TestHash ()
 {
-    POSITION i, turn;
-    BOOLEAN passed = TRUE;
-    for(i = 0; i < gNumberOfPositions; i++) {
-        turn = whoseTurn(i);
-        if(i != hash(unhash(i), turn))
-            passed = FALSE;
-    }
-    if(!passed)
-        printf("\n\nThe hash had some problems!\n\n");
+	POSITION i, turn;
+	BOOLEAN passed = TRUE;
+	for(i = 0; i < gNumberOfPositions; i++) {
+		turn = whoseTurn(i);
+		if(i != hash(unhash(i), turn))
+			passed = FALSE;
+	}
+	if(!passed)
+		printf("\n\nThe hash had some problems!\n\n");
 }
 
 
 BOOLEAN CheckLegality (POSITION position) {
-  char* board = unhash(position);
-  int goatsOnBoard = 0, i, j;
-  //determines the number of goats on the board
-  for (i = 1; i <= length; i++){
-	for (j = 1; j <= width; j++){
-		if (board[translate(i,j)] == GOAT) goatsOnBoard++;
+	char* board = unhash(position);
+	int goatsOnBoard = 0, i, j;
+	//determines the number of goats on the board
+	for (i = 1; i <= length; i++){
+		for (j = 1; j <= width; j++){
+			if (board[translate(i,j)] == GOAT) goatsOnBoard++;
+		}
 	}
-  }
-  if (phase1 == TRUE && (goatsOnBoard + NumGoats) != goats)
-    return FALSE;
-  MOVELIST* moves = GenerateUndoMoves(position);
-  if (moves == NULL)
-    return FALSE;
-  else return TRUE;
+	if (phase1 == TRUE && (goatsOnBoard + NumGoats) != goats)
+		return FALSE;
+	MOVELIST* moves = GenerateUndoMoves(position);
+	if (moves == NULL)
+		return FALSE;
+	else return TRUE;
 }
 
 MOVELIST* GenerateUndoMoves ( POSITION position){
 	/*             UP
-				^
-		LEFT<---|--> RIGHT
-				v
-			   DOWN
+	^
+	LEFT<---|--> RIGHT
+	v
+	DOWN
 	(1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
- */
-    char* board = unhash(position);
-    int turn = whoseTurn(position);
-    char animal;
-    int row = length, col = width;
-    MOVELIST *moves = NULL;
-    int i, j;
-    if(NumGoats != 0 && turn == PLAYER_ONE)    {
-    // Generates the list of all possible drop locations for Phase 1
-        for(i = 1; i <= row; i++) {
-            for(j = 1; j <= col; j++)    {
-                if(board[translate(i, j)] == GOAT)
-                    moves = CreateMovelistNode(translate(i, j), moves);
-            }
-        }
-    }
-    else {
-    // Generates the list of all possible jump/ move locations for Phase 2
-        if(PLAYER_ONE == turn)
-            animal = TIGER;//opposite of what it should be, means player 2, tiger, just moved
-        else
-            animal = GOAT; // means player 1 = goat just moved
+	*/
+	char* board = unhash(position);
+	int turn = whoseTurn(position);
+	char animal;
+	int row = length, col = width;
+	MOVELIST *moves = NULL;
+	int i, j;
+	if(NumGoats != 0 && turn == PLAYER_ONE)    {
+		// Generates the list of all possible drop locations for Phase 1
+		for(i = 1; i <= row; i++) {
+			for(j = 1; j <= col; j++)    {
+				if(board[translate(i, j)] == GOAT)
+					moves = CreateMovelistNode(translate(i, j), moves);
+			}
+		}
+	}
+	else {
+		// Generates the list of all possible jump/ move locations for Phase 2
+		if(PLAYER_ONE == turn)
+			animal = TIGER;//opposite of what it should be, means player 2, tiger, just moved
+		else
+			animal = GOAT; // means player 1 = goat just moved
 
-        for(i = 1; i <= row; i++) {
-            for(j = 1; j <= col; j++)    {
-                if(board[translate(i, j)] == animal) {
-                    // Move Up
-                    if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
-                    // Move Right
-                    if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
-                    // Move Down
-                    if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
-                    // Move Left
-                    if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
-                    //DIAGONAL MOVES
-                    // Move NW
+		for(i = 1; i <= row; i++) {
+			for(j = 1; j <= col; j++)    {
+				if(board[translate(i, j)] == animal) {
+					// Move Up
+					if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
+					// Move Right
+					if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
+					// Move Down
+					if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
+					// Move Left
+					if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
+						moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
+					//DIAGONAL MOVES
+					// Move NW
 					if(diagonals){
 						if((i-1 > 0) && (j-1 > 0) && (((i + j) % 2) == 0)    &&
-                        (board[translate(i-1, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
-                    // Move NE
-                    if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-                        (board[translate(i-1, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
-                    // Move SE
-                    if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-                        (board[translate(i+1, j+1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
-                    // Move SW
-                    if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
-                        (board[translate(i+1, j-1)] == SPACE))
-                        moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
+							(board[translate(i-1, j-1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
+						// Move NE
+						if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
+							(board[translate(i-1, j+1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
+						// Move SE
+						if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
+							(board[translate(i+1, j+1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
+						// Move SW
+						if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
+							(board[translate(i+1, j-1)] == SPACE))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
 					}
-                    if(animal == TIGER)    {
-                        // tigers can jump
-                        // Jump Up
-                        if((i-1 > 1) && (board[translate(i-1, j)] == SPACE) &&
-                            (board[translate(i-2, j)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
-                        // Jump Right
-                        if((j+1 < width) && (board[translate(i, j+1)] == SPACE)    &&
-                            (board[translate(i, j+2)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
-                        // Jump Down
-                        if((i+1 < row) && (board[translate(i+1, j)] == SPACE) &&
-                            (board[translate(i+2, j)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
-                        // Jump Left
-                        if((j-1 > 1) && (board[translate(i, j-1)] == SPACE) &&
-                            (j-2 > 0) && (board[translate(i, j-2)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
-                        // Jump SW
+					if(animal == TIGER)    {
+						// tigers can jump
+						// Jump Up
+						if((i-1 > 1) && (board[translate(i-1, j)] == SPACE) &&
+							(board[translate(i-2, j)] == GOAT))
+							moves = CreateMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
+						// Jump Right
+						if((j+1 < width) && (board[translate(i, j+1)] == SPACE)    &&
+							(board[translate(i, j+2)] == GOAT))
+							moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
+						// Jump Down
+						if((i+1 < row) && (board[translate(i+1, j)] == SPACE) &&
+							(board[translate(i+2, j)] == GOAT))
+							moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
+						// Jump Left
+						if((j-1 > 1) && (board[translate(i, j-1)] == SPACE) &&
+							(j-2 > 0) && (board[translate(i, j-2)] == GOAT))
+							moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
+						// Jump SW
 						if(diagonals){
-						if((i+1 < length) && (j-1 > 1)    &&
-                            (board[translate(i+1, j-1)] == SPACE)    &&
-                            (((i + j) % 2) == 0)    &&
-                            (board[translate(i+2, j-2)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
-                        // Jump SE
-                        if((i+1 < length) && (j+1 < width) &&
-                            (board[translate(i+1, j+1)] == SPACE)    &&
-                            (((i + j) % 2) == 0)    &&
-                            (board[translate(i+2, j+2)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
-                        // Jump NE
-                        if((i-1 > 1) && (j+1 < width) && (board[translate(i-1, j+1)] == SPACE)&& (((i+j) %2) == 0) &&
-                            (board[translate(i-2, j+2)] == GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
-                        // Jump NW
-                        if((i-1 > 1) && (j-1 > 1) &&
-                            (board[translate(i-1, j-1)] == SPACE) &&
-	                        (i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  GOAT))
-                            moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
+							if((i+1 < length) && (j-1 > 1)    &&
+								(board[translate(i+1, j-1)] == SPACE)    &&
+								(((i + j) % 2) == 0)    &&
+								(board[translate(i+2, j-2)] == GOAT))
+								moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
+							// Jump SE
+							if((i+1 < length) && (j+1 < width) &&
+								(board[translate(i+1, j+1)] == SPACE)    &&
+								(((i + j) % 2) == 0)    &&
+								(board[translate(i+2, j+2)] == GOAT))
+								moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
+							// Jump NE
+							if((i-1 > 1) && (j+1 < width) && (board[translate(i-1, j+1)] == SPACE)&& (((i+j) %2) == 0) &&
+								(board[translate(i-2, j+2)] == GOAT))
+								moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
+							// Jump NW
+							if((i-1 > 1) && (j-1 > 1) &&
+								(board[translate(i-1, j-1)] == SPACE) &&
+								(i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  GOAT))
+								moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
 						}
-                    }
-                }
-            }
-        }
-    }
-    SafeFree(board);
-    return moves;
+					}
+				}
+			}
+		}
+	}
+	SafeFree(board);
+	return moves;
 }
+STRING MoveToString(move)
+MOVE move;
+{
+	int jump, direction, i, j, x, y;
+	if(move < boardSize) { // This is just a goat being placed
+		i = get_x(move);
+		j = get_y(move);
+		STRING moveStr = (STRING) SafeMalloc(sizeof(char) + sizeof(int));
+		sprintf(moveStr, "%c%d", j + 'a' - 1, length - i + 1);
+		return moveStr;
+	} 
+	else {
+		move -= boardSize;
+		jump = move % 2;
+		move /= 2;
+		direction = move % 8;
+		move /= 8;
+		i = x = get_x(move);
+		j = y = get_y(move);
+		switch(direction) {
+			case UP: if(jump) x -= 2;
+					 else x -= 1; break;
+			case LEFT: if(jump) y -= 2;
+					   else y -= 1; break;
+			case RIGHT: if(jump) y += 2;
+						else y += 1; break;
+			case DOWN: if(jump) x += 2;
+					   else x += 1; break;
+					   if(diagonals){
 
+			case UP_LEFT: if(jump) { y -= 2; x -= 2; }
+						  else { y -= 1; x -= 1; } break;
+			case UP_RIGHT: if(jump) { y += 2; x -= 2;  }
+						   else { y += 1; x -= 1; } break;
+			case DOWN_LEFT: if(jump) { y -= 2; x += 2; }
+							else { y -= 1; x += 1; } break;
+			case DOWN_RIGHT: if(jump) { y += 2; x += 2; }
+							 else { y += 1; x += 1; } break;
+					   }
+		}
+		STRING moveStr = (STRING) SafeMalloc(sizeof(char)*2 + sizeof(int)*2);
+		sprintf(moveStr, "%c%d%c%d", i-1+'a', j, x-1+'a', y);
+		return moveStr;
+	}
+}
 
 /************************************************************************
 **
