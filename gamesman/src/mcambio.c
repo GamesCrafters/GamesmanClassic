@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.27 2006-05-04 04:59:29 simontaotw Exp $
+// $Id: mcambio.c,v 1.28 2006-05-08 07:15:41 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -32,6 +32,7 @@
 **              4/28/2006 - Added new input format with 3x3 board.
 **              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
 **              5/03/2006 - Changed winning condition in DoMove.
+**              5/08/2006 - Fixed some bugs. Game solves.
 **
 **************************************************************************/
 
@@ -283,18 +284,18 @@ MOVELIST *GenerateMoves (POSITION position)
 	
 	/* Assign pieces for each player */
 	if(turn == playerB) {
-		opposymbol = aPiece;
+	  opposymbol = aPiece;
 	}
 	else {
-		opposymbol = bPiece;
+	  opposymbol = bPiece;
 	}
 	
-	/* Phase 1: Less than 3 of PlayerB's pieces on the board. */
-	if(countB < 2)
+	/* Phase 1: Less than 1 of PlayerA's pieces on the board. */
+	if(countA < 1)
 	{
 		for(i = 0; i < boardSize; i++)
 		{
-			if((gBoard[i] != bPiece)  && 
+			if((gBoard[i] != aPiece)  && 
 			   ((i != 0)                      && (i != (colcount-1)) && 
 			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
 				{
@@ -302,12 +303,12 @@ MOVELIST *GenerateMoves (POSITION position)
 				}
 		}
 	}
-	/*.Phase 2: Less than 2 of PlayerA's pieces on the board. */
-	else if(countA < 1)
+	/*.Phase 2: Less than 1 of PlayerB's pieces on the board. */
+	else if(countB < 1)
 	{
 		for(i = 0; i < boardSize; i++)
 		{
-			if((gBoard[i] != bPiece)  && (gBoard[i] != aPiece) &&
+			if((gBoard[i] != aPiece)  && (gBoard[i] != bPiece) &&
 			   ((i != 0)                      && (i != (colcount-1)) && 
 			    (i != (boardSize - colcount)) && (i != (boardSize - 1))))
 				{
@@ -377,7 +378,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	turn = whoseMove(position);
 	countA = 0;
 	countB = 0;
-    
+
 	/* Assign pieces for each player */
 	if(turn == playerA) {
 		symbol = aPiece;
@@ -388,6 +389,9 @@ POSITION DoMove (POSITION position, MOVE move)
 		opposymbol = aPiece;
 	}
 	
+	//debug
+	//printf("%d, %c\n",turn, symbol);
+
 	/* count the number of pieces for each player */
 	for(i = 0; i < boardSize; i++)
 	{
@@ -398,7 +402,9 @@ POSITION DoMove (POSITION position, MOVE move)
 	}
 	
 	if(move < boardSize)
-		gBoard[move] = opposymbol;
+	  {
+	    gBoard[move] = symbol;
+	  }
 	else 
 	{
 		if (move < boardSize + colcount)
@@ -408,7 +414,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff-colcount];
 			gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
 			gBoard[pushoff-colcount*2] = gBoard[pushon];
-			gBoard[pushon] = opposymbol;
+			gBoard[pushon] = symbol;
 		}
 		else if (move < boardSize + colcount + rowcount)
 		{
@@ -417,7 +423,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff+1];
 			gBoard[pushoff+1] = gBoard[pushoff+2];
 			gBoard[pushoff+2] = gBoard[pushon];
-			gBoard[pushon] = opposymbol;
+			gBoard[pushon] = symbol;
 		}
 		else if (move < boardSize + colcount + rowcount + colcount)
 		{
@@ -426,7 +432,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff+colcount];
 			gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
 			gBoard[pushoff+colcount*2] = gBoard[pushon];
-			gBoard[pushon] = opposymbol;
+			gBoard[pushon] = symbol;
 		}
 		else if (move < boardSize + colcount + rowcount + colcount + rowcount)
 		{
@@ -435,29 +441,14 @@ POSITION DoMove (POSITION position, MOVE move)
 			gBoard[pushoff] = gBoard[pushoff-1];
 			gBoard[pushoff-1] = gBoard[pushoff-2];
 			gBoard[pushoff-2] = gBoard[pushon];
-			gBoard[pushon] = opposymbol;
+			gBoard[pushon] = symbol;
 		}	
 	}	
 
-	/* change turns */
-	if(countB < 2) {
-	  turn = playerA;
-	  printf("%c\n", symbol);
-	}
-	else if((countB == 2) && (countA < 1)) {
+	if(turn == playerA)
 	  turn = playerB;
-	  printf("%c\n", symbol);
-	}
-	else if((countB >= 2) && (countA >= 1)) {
-	  if(turn == playerA) {
-	      turn = playerB;
-	      printf("%c\n", symbol);
-	  }
-	  else {
-	    turn = playerA;
-	    printf("%c\n", symbol);
-	  }
-	}
+	else
+	  turn = playerA;
 
 	positionAfterMove = generic_hash(gBoard, turn);
 	free(gBoard);
@@ -518,9 +509,9 @@ VALUE Primitive (POSITION position)
   
   if (playerWin && oppoWin)
     return tie;
-  else if (playerWin)
-    return gStandardGame ? lose : win;
   else if (oppoWin)
+    return gStandardGame ? lose : win;
+  else if (playerWin)
 	return gStandardGame ? win : lose;
   else
     return undecided;
@@ -562,8 +553,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	countB++;
     }
 	
-  /* Phase 1: Less than 2 of PlayerB's pieces or less than 1 of PlayerB's pieces on the board. */
-  if(countB < 2 || countA < 1)
+  /* Phase 1: Less than 1 of PlayerB's pieces or less than 1 of PlayerB's pieces on the board. */
+  if(countA < 1 || countB < 1)
     {
       printf("\n");
       printf("                1 2 3 \n");
@@ -577,11 +568,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	      printf("             %c ", (i/3)+97);
 	    }
 
-	  if(gBoard[i] == bPiece)
+	  if(gBoard[i] == aPiece)
 	    {
 	      printf("|%c", aPiece);
 	    }
-	  else if(gBoard[i] == aPiece)
+	  else if(gBoard[i] == bPiece)
 	    {
 	      printf("|%c", bPiece);
 	    }
@@ -608,7 +599,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
       printf("                              Neutral = %c\n\n", neutral);
     }
   /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= 2 && countA >= 1)
+  else if(countA >= 1 && countB >= 1)
     {
       printf("\n");
       printf("                a b c \n");
@@ -622,11 +613,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	      printf("             %d ", (i/3)+1);
 	    }
 
-	  if(gBoard[i] == bPiece)
+	  if(gBoard[i] == aPiece)
 	    {
 	      printf("|%c", aPiece);
 	    }
-	  else if(gBoard[i] == aPiece)
+	  else if(gBoard[i] == bPiece)
 	    {
 	      printf("|%c", bPiece);
 	    }
@@ -735,7 +726,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
   generic_unhash(position, gBoard);
 
-  int countA = 0, countB = 0, i = 0, turn = whoseMove(position);
+  int countA = 0, countB = 0, i = 0;
 	
   /* count the number of pieces for each player */
   for(i = 0; i < boardSize; i++)
@@ -746,10 +737,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	countB++;
     }
 
-  /* Phase 1: Less than 2 of PlayerB's pieces */
-  if(countB < 2 && turn == playerA)
+  //debug
+  //printf("%d, %d, %d",countA, countB, turn);
+
+  /* Phase 1: Less than 1 of PlayerA's pieces */
+  if(countA < 1)
     {
-      playersName = "Player";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -762,16 +755,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	  return input;
       }
     }
-  else if(countB == 2 && countA == 1 && turn == playerA)
+  /* Phase 2: Less than 1 of PlayerB's pieces on the board. */
+  else if(countB < 1)
     {
-      printf("Switching player...\n");
-      return Continue;
-    }
-
-  /* Phase 2: Less than 1 of PlayerA's pieces on the board. */
-  else if(countB == 2 && countA < 1 && turn == playerB)
-    {
-      playersName = "Challenger";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -785,24 +771,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       }
     }
   /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= 2 && countA >= 1 && turn == playerB)
+  else if(countA >= 1 && countB >= 1)
     {
-      playersName = "Player";
-      for (;;) {
-	/***********************************************************
-	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-	 ***********************************************************/
-	printf("%8s's move [(u)ndo/([a-f or 1-6])]  : ", playersName);
-	
-	input = HandleDefaultTextInput(position, move, playersName);
-	
-	if (input != Continue)
-	  return input;
-      }
-    }
-  else if(countB >= 2 && countA >= 1 && turn == playerA)
-    {
-      playersName = "Challenger";
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -1117,6 +1087,9 @@ BOOLEAN ThreeInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2006/05/04 04:59:29  simontaotw
+// Changed winning condition in DoMove.
+//
 // Revision 1.26  2006/05/03 20:15:50  simontaotw
 // Fix small bug in DoMove, changed GetAndPrintPlayersMove.
 //
