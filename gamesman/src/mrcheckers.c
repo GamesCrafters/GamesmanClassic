@@ -41,7 +41,7 @@ STRING   kAuthorName          = "Johnny Tran and Steve Wu";
 STRING   kGameName            = "Rubik's Checkers";
 BOOLEAN  kPartizan            = TRUE;
 BOOLEAN  kDebugMenu           = TRUE;
-BOOLEAN  kGameSpecificMenu    = FALSE;
+BOOLEAN  kGameSpecificMenu    = TRUE;
 BOOLEAN  kTieIsPossible       = FALSE;  /* TODO: Can both players be locked? */
 BOOLEAN  kLoopy               = TRUE;
 BOOLEAN  kDebugDetermineValue = FALSE;
@@ -53,7 +53,7 @@ STRING   kHelpTextInterface    =
 "Play like checkers, except only kings can capture, men can only move backwards\n and cannot capture, and jumping a piece demotes a king to a man and captures a man.";
 
 STRING   kHelpOnYourTurn =
-"Select a piece and its destination(s). (i.e. a3-c5-e3 to double-capture; a1+\nto promote)";
+"Select a piece and its destination(s). (i.e. a2c4a6 to double-capture; a2\nto promote)";
 
 STRING   kHelpStandardObjective =
 "Eliminate all your opponent's pieces or block them from moving.";
@@ -86,6 +86,8 @@ extern POSITION         generic_hash(char* board, int player);
 extern char             *generic_unhash(POSITION hash_number, char *empty_board);
 extern int              whoseMove (POSITION hashed);
 
+STRING MoveToString(MOVE);
+
 
 
 // How a piece can move
@@ -105,16 +107,16 @@ extern int              whoseMove (POSITION hashed);
 
 // Piece representation
 #define EMPTY                 ' '
-#define P1KING                'G'
-#define P1MAN                 'g'
+#define P1KING                'X'
+#define P1MAN                 'x'
 #define P2KING                'O'
 #define P2MAN                 'o'
-#define P1NAME                "Green"
-#define P2NAME                "Orange"
+#define P1NAME                "X's"
+#define P2NAME                "O's"
 
 //POSSIBLY TEMPORARY:
-unsigned int currentTurn = P1;
-POSITION curBoard = 0;
+//unsigned int currentTurn = P1;
+//POSITION curBoard = 0;
 int initialized = FALSE;
 
 // How large the board is
@@ -143,11 +145,17 @@ typedef enum square {
 //number of bits to use to represent board index in move hash
 unsigned int MVHASHACC = 8;
 
-void InitializeOnce() {
-    if (initialized) return;
-    initialized = TRUE;
-    
-    int maxPieces = startRows * cols;
+int vcfg(int* pieces) {
+  int maxPieces = startRows * cols;
+
+  return (((pieces[0] + pieces[1]) <= maxPieces) &&
+	  ((pieces[2] + pieces[3]) <= maxPieces));
+}
+
+void ForceInitialize() {
+  initialized = TRUE;
+
+  int maxPieces = startRows * cols;
     boardSize = rows * cols;
     int pieces[] = { P1KING, 0, maxPieces,
         P1MAN,  0, maxPieces,
@@ -158,7 +166,7 @@ void InitializeOnce() {
         char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
         int i;
     
-        gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
+        gNumberOfPositions = generic_hash_init(boardSize, pieces, vcfg);
 
     // Create initial position
         for (i = 0; i < maxPieces; i++) {
@@ -169,8 +177,16 @@ void InitializeOnce() {
         for (i = maxPieces; i < (boardSize - maxPieces); i++) {
             initialPosition[i] = EMPTY;
         }       
-        curBoard = gInitialPosition = generic_hash(initialPosition, P1);
+        gInitialPosition = generic_hash(initialPosition, P1);
         SafeFree(initialPosition);
+	gMoveToStringFunPtr = &MoveToString;
+}
+
+void InitializeOnce() {
+    if (initialized) return;
+    initialized = TRUE;
+    
+    ForceInitialize();
 }
 
 void InitializeGame()
@@ -194,8 +210,8 @@ void InitializeGame()
 
     // Create initial position
     for (i = 0; i < maxPieces; i++) {
-        initialPosition[i] = (startPromoted ? P1KING : P1MAN);
-        initialPosition[boardSize-1 - i] = (startPromoted ? P2KING : P2MAN);
+        initialPosition[i] = (startPromoted ? P2KING : P2MAN);
+        initialPosition[boardSize-1 - i] = (startPromoted ? P1KING : P1MAN);
     }
     
     for (i = maxPieces; i < (boardSize - maxPieces); i++) {
@@ -209,190 +225,90 @@ void FreeGame()
 {
 }
 
-int forwardRight(int whosTurn, int currentIndex){
-   int isEvenRow = ((currentIndex/cols)%2 == 0),
-     isBegOfRow = ((currentIndex%cols) == 0),
-     isLastOfRow = ((currentIndex%cols) == cols-1),
-     isFirstRow = ((currentIndex/cols) == 0),
-     isLastRow = ((currentIndex/cols) == rows-1);
-
-   if(whosTurn == P1){
-     if(!isLastRow){
-       if(isEvenRow && !isBegOfRow)
-	 return currentIndex + cols-1;
-       else if(!isEvenRow)
-	 return currentIndex + cols;
-     }
-   }
-   else{ //P2
-     if(!isFirstRow){
-       if(!isEvenRow && !isLastOfRow)//odd row, not last column
-	 return currentIndex - cols+1;
-       else if(isEvenRow)
-
-	 return currentIndex - cols;
-     }
-   }
-   return -1;//forward-right DNE;
+//Switches the forward and backward mobility for P2 -
+//used for absolute movement directions
+int reverseMobility(int mobility){
+    if((mobility&FORWARD) == FORWARD && (mobility&BACKWARD) != BACKWARD)
+        return (mobility|BACKWARD)&(CAPTURE|BACKWARD);
+    else if ((mobility&BACKWARD) == BACKWARD && (mobility&FORWARD) != FORWARD)
+        return (mobility|FORWARD)&(CAPTURE|FORWARD);
+    else return mobility;
 }
 
-int forwardLeft(int whosTurn, int currentIndex){
-  int isEvenRow = ((currentIndex/cols)%2 == 0),
+//Absolute directions: forward is defined to be from
+//  P1 to P2, and right would be the right side while facing that direction
+int forwardRight(int currentIndex){
+    int isEvenRow = ((currentIndex/cols)%2 == 0),
     isBegOfRow = ((currentIndex%cols) == 0),
-    isLastOfRow = ((currentIndex%cols) == cols-1),
-    isFirstRow = ((currentIndex/cols) == 0),
     isLastRow = ((currentIndex/cols) == rows-1);
   
-  if(whosTurn == P1){
     if(!isLastRow){
-      if(!isEvenRow && !isLastOfRow)//odd row, not last column
-	return currentIndex + cols + 1;
-      else if(isEvenRow)
-	return currentIndex + cols;
+        if(isEvenRow && !isBegOfRow)
+            return currentIndex + cols-1;
+        else if(!isEvenRow)
+            return currentIndex + cols;
     }
-  }
-  else{ //P2
-    if(!isFirstRow){
-      if(isEvenRow && !isBegOfRow)
-	return currentIndex - cols - 1;
-      else if(!isEvenRow)
-	return currentIndex - cols;
-    }
-  }
-  return -1;//forward-left DNE;
-}
-
-int backwardLeft(int whosTurn, int currentIndex){
-  return forwardRight(whosTurn%2 + 1, currentIndex);
-}
-
-int backwardRight(int whosTurn, int currentIndex){
-  return forwardLeft(whosTurn%2 + 1, currentIndex);
-}
-
-int oppositeMove(int previousMove){
-  return (previousMove+2)%4;
-}
-
-POSITION unHashMove(POSITION myPosition, int theMove)
-{
-  char thePosition[boardSize];
-  POSITION retValue;
-  generic_unhash(myPosition, thePosition);
-  int done = FALSE;
-  unsigned int index = theMove >> (32-MVHASHACC), whosTurn = whoseMove(myPosition);
-  char myPiece = thePosition[index];
-  theMove = theMove << MVHASHACC;
-  unsigned int nextMove = (theMove >> 30)&0x00000003, previousMove = nextMove;
-  unsigned int myForwardRight = forwardRight(whosTurn, index), myForwardLeft = forwardLeft(whosTurn, index), myBackwardRight = backwardRight(whosTurn, index), myBackwardLeft = backwardLeft(whosTurn, index);
-  int opposingKing = (whosTurn == P1 ? P2KING:P1KING);
-  int opposingMan = (whosTurn == P1 ? P2MAN:P1MAN);
-  int isFirstRow = ((index/cols) == 0),
-    isLastRow = ((index/cols) == rows-1);  
-   
-  if(promoteRow == BACKWARD){
-    if(thePosition[index] == P1MAN){
-      if(isFirstRow){
-	thePosition[index] = P1KING;
-	done = TRUE;
-      }
-    }
-    else if(thePosition[index] == P2MAN){
-      if(isLastRow){
-	thePosition[index] = P2KING;
-	done = TRUE;
-      }
-    }
-  }
-  else if(promoteRow == FORWARD){
-    if(thePosition[index] == P1MAN){
-      if(isLastRow){
-	thePosition[index] = P1KING;
-	done = TRUE;
-      }
-    }
-    else if(thePosition[index] == P2MAN){
-      if(isFirstRow){
-	thePosition[index] = P2KING;
-	done = TRUE;
-      }
-    }
-  }
-  while(!done){
-    myForwardRight = forwardRight(whosTurn, index), myForwardLeft = forwardLeft(whosTurn, index), myBackwardRight = backwardRight(whosTurn, index), myBackwardLeft = backwardLeft(whosTurn, index);
-    thePosition[index] = EMPTY;
-    switch(nextMove){
-    case FORWARDRIGHT: 
-      if(thePosition[myForwardRight] == EMPTY){
-	index = myForwardRight;
-	done = TRUE;
-      }
-      else{
-	thePosition[forwardRight(whosTurn, myForwardRight)] = thePosition[index];
-	if(thePosition[myForwardRight] == opposingMan)
-	  thePosition[myForwardRight] = EMPTY;		    
-	else if (thePosition[myForwardRight] == opposingKing)
-	  thePosition[myForwardRight] = opposingMan; 
-	index = forwardRight(whosTurn, myForwardRight);     
-      }
-      break;
-    case FORWARDLEFT:
-      if(thePosition[myForwardLeft] == EMPTY){
-	index = myForwardLeft;
-	done = TRUE;	
-      }
-      else{
-	thePosition[forwardLeft(whosTurn, myForwardLeft)] = thePosition[index];
-	if(thePosition[myForwardLeft] == opposingMan)
-	  thePosition[myForwardLeft] = EMPTY;		    
-	else if (thePosition[myForwardLeft] == opposingKing)
-	  thePosition[myForwardLeft] = opposingMan;      
-	index = forwardLeft(whosTurn, myForwardLeft);
-      }
-      break;
-    case BACKWARDLEFT:
-      if(thePosition[myBackwardLeft] == EMPTY){
-	index = myBackwardLeft;
-	done = TRUE;
-      }	
-      else{
-	thePosition[backwardLeft(whosTurn, myBackwardLeft)] = thePosition[index];
-	if(thePosition[myBackwardLeft] == opposingMan)
-	  thePosition[myBackwardLeft] = EMPTY;		    
-	else if (thePosition[myBackwardLeft] == opposingKing)
-	  thePosition[myBackwardLeft] = opposingMan;      
-	index = backwardLeft(whosTurn, myBackwardLeft);
-      }
-      break;
-    case BACKWARDRIGHT:
-      if(thePosition[myBackwardRight] == EMPTY){
-	index = myBackwardRight;
-	done = TRUE;
-      }
-      else{
-	thePosition[backwardRight(whosTurn, backwardRight(whosTurn, index))] = thePosition[index];
-	if(thePosition[myBackwardRight] == opposingMan)
-	  thePosition[myBackwardRight] = EMPTY;		    
-	else if (thePosition[myBackwardRight] == opposingKing)
-	  thePosition[myBackwardRight] = opposingMan; 	
-	index = backwardRight(whosTurn, myBackwardRight);
-      }       
-      break;
-    }
-    thePosition[index] = myPiece;
-    previousMove = nextMove;
-    theMove = theMove << 2;
-    nextMove = (theMove >> 30)&0x00000003;
-    if(oppositeMove(previousMove)==nextMove)
-      done = TRUE;
-  }
-  currentTurn = whosTurn = (whosTurn == P1 ? P2:P1);//switch players
-  curBoard = retValue = generic_hash(thePosition, whosTurn);
-  return retValue;
-}
   
-void undoCapture(char *initialPosition, int whosTurn, int index, int previousMove){
-  int myForwardRight = forwardRight(whosTurn, index), myForwardLeft = forwardLeft(whosTurn, index), myBackwardRight = backwardRight(whosTurn, index), myBackwardLeft = backwardLeft(whosTurn, index);  
+    return -1;//forward-right DNE;
+}
+
+//Absolute directions: forward is defined to be from
+//  P1 to P2, and left would be the left side while facing that direction
+int forwardLeft(int currentIndex){
+    int isEvenRow = ((currentIndex/cols)%2 == 0),
+    isLastOfRow = ((currentIndex%cols) == cols-1),
+    isLastRow = ((currentIndex/cols) == rows-1);
+  
+    if(!isLastRow){
+        if(!isEvenRow && !isLastOfRow)//odd row, not last column
+            return currentIndex + cols + 1;
+        else if(isEvenRow)
+            return currentIndex + cols;
+    }
+  
+    return -1;//forward-left DNE;
+}
+
+//Absolute directions: backward  is defined to be from
+//  P2 to P1, and left would be the left side while facing that direction
+int backwardLeft(int currentIndex){
+    int isEvenRow = ((currentIndex/cols)%2 == 0),
+    isLastOfRow = ((currentIndex%cols) == cols-1),
+    isFirstRow = ((currentIndex/cols) == 0);
+    if(!isFirstRow){
+        if(!isEvenRow && !isLastOfRow)//odd row, not last column
+            return currentIndex - cols+1;
+        else if(isEvenRow)
+            return currentIndex - cols;
+    }
+    return -1;
+}
+
+//Absolute directions: backward is defined to be from
+//  P2 to P1, and right would be the right side while facing that direction
+int backwardRight(int currentIndex){
+    int isEvenRow = ((currentIndex/cols)%2 == 0),
+    isBegOfRow = ((currentIndex%cols) == 0),
+    isFirstRow = ((currentIndex/cols) == 0);
+    if(!isFirstRow){
+        if(isEvenRow && !isBegOfRow)
+            return currentIndex - cols - 1;
+        else if(!isEvenRow)
+            return currentIndex - cols;
+    }
+    return -1;
+}
+
+//returns the 180 degree rotation of the input
+//i.e.: forward-right returns backward-left
+int oppositeMove(int previousMove){
+    return (previousMove+2)%4;
+}
+
+
+  
+/*void undoCapture(char *initialPosition, int whosTurn, int index, int previousMove){
+  int myForwardRight = forwardRight(index), myForwardLeft = forwardLeft(index), myBackwardRight = backwardRight(index), myBackwardLeft = backwardLeft(index);  
   int opposingMan, opposingKing;
   if(whosTurn == P1){
     opposingMan = P2MAN;
@@ -408,31 +324,32 @@ void undoCapture(char *initialPosition, int whosTurn, int index, int previousMov
       initialPosition[myBackwardLeft] = opposingMan;
     else if(initialPosition[myBackwardLeft] == opposingMan)
       initialPosition[myBackwardLeft] = opposingKing;
-    initialPosition[backwardLeft(whosTurn, myBackwardLeft)] = initialPosition[index];
+    initialPosition[backwardLeft(myBackwardLeft)] = initialPosition[index];
     break;
   case FORWARDLEFT:
     if(initialPosition[myBackwardRight] == EMPTY)
       initialPosition[myBackwardRight] = opposingMan;
     else if(initialPosition[myBackwardRight] == opposingMan)
       initialPosition[myBackwardRight] = opposingKing;
-    initialPosition[backwardRight(whosTurn, myBackwardRight)] = initialPosition[index];
+    initialPosition[backwardRight(myBackwardRight)] = initialPosition[index];
     break;
   case BACKWARDRIGHT:
     if(initialPosition[myForwardLeft] == EMPTY)
       initialPosition[myForwardLeft] = opposingMan;
     else if(initialPosition[myForwardLeft] == opposingMan)
       initialPosition[myForwardLeft] = opposingKing;
-    initialPosition[forwardLeft(whosTurn, myForwardLeft)] = initialPosition[index];
+    initialPosition[forwardLeft(myForwardLeft)] = initialPosition[index];
     break;
   case BACKWARDLEFT:
     if(initialPosition[myForwardRight] == EMPTY)
       initialPosition[myForwardRight] = opposingMan;
     else if(initialPosition[myForwardRight] == opposingMan)
       initialPosition[myForwardRight] = opposingKing;
-    initialPosition[forwardRight(whosTurn, myForwardRight)] = initialPosition[index];
+    initialPosition[forwardRight(myForwardRight)] = initialPosition[index];
     break;
   }
 }
+*/
 
 /************************************************************************
 **
@@ -444,6 +361,51 @@ void undoCapture(char *initialPosition, int whosTurn, int index, int previousMov
 ************************************************************************/
 
 void DebugMenu() { }
+
+
+void setBoardSize() {
+
+  char c;
+
+  // Prompt for board size
+  printf("What is the board height? ");
+  getchar();
+  c = getchar();
+  rows = c - '0';
+  if ((rows <= 0) || (rows > 9)) rows = 9;
+
+  printf("What is the board width? ");
+  getchar();
+  c = getchar();
+  cols = c - '0';
+  if ((cols <= 0) || (cols > 9)) cols = 9;
+
+  printf("How many starting rows per player? ");
+  getchar();
+  c = getchar();
+  startRows = c - '0';
+  if ((startRows <= 0) || (startRows > rows/2)) startRows = 1;
+
+  ForceInitialize();
+}
+
+void changeRules() {
+  if (demote) {  // Switch to Checkers
+    demote = FALSE;
+    manMobility = FORWARD | CAPTURE;
+    forceCapture = TRUE;
+    startPromoted = FALSE;
+    promoteRow = FORWARD;
+  } else {  // Switch to Rubik's
+    demote = TRUE;
+    manMobility = BACKWARD;
+    forceCapture = FALSE;
+    startPromoted = TRUE;
+    promoteRow = BACKWARD;
+  }
+
+  ForceInitialize();
+}
 
 /************************************************************************
 **
@@ -457,6 +419,43 @@ void DebugMenu() { }
 
 void GameSpecificMenu() {
     // TODO: Allow changing of the board size and rules
+
+  do {
+	printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+	
+	printf("\t1)\tChoose (manually) the initial position\n");
+	printf("\t2)\tChange board size (the default position will be used)\n");
+	if (demote)
+	  printf("\t3)\tUse Checkers rules\n");
+	else
+	  printf("\t3)\tUse Rubik's Checkers rules\n");
+
+	printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+	printf("\n\nSelect an option: ");
+	
+	//scanf("%s", c);
+	
+	switch(GetMyChar()) {
+	case 'Q': case 'q':
+	    ExitStageRight();
+	case 'H': case 'h':
+	    HelpMenus();
+	    break;
+	case '1':
+	    gInitialPosition = GetInitialPosition();
+	    break;
+	case '2':
+	    setBoardSize();
+	    break;
+	case '3':
+	  changeRules();
+	  break;
+	case 'b': case 'B':
+	    return;
+	default:
+	    BadMenuChoice();
+	}
+    } while(TRUE);
 }
 
 /************************************************************************
@@ -488,10 +487,142 @@ int theOptions[];
 ************************************************************************/
 
 POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
+        POSITION thePosition;
      MOVE theMove;
 {
-  return unHashMove(thePosition, theMove);
+  //int myPosition = thePosition;
+    char myPosition[boardSize];
+    POSITION retValue;
+    generic_unhash(thePosition, myPosition);
+    int done = FALSE;
+    unsigned int index = theMove >> (32-MVHASHACC+1), whosTurn = whoseMove(thePosition);
+    char myPiece = myPosition[index];
+    theMove = theMove << MVHASHACC;
+    unsigned int nextMove = (theMove >> 30)&0x00000003, previousMove = nextMove;
+    unsigned int myForwardRight = forwardRight(index), myForwardLeft = forwardLeft(index), myBackwardRight = backwardRight(index), myBackwardLeft = backwardLeft(index);
+    int opposingKing = (whosTurn == P1 ? P2KING:P1KING);
+    int opposingMan = (whosTurn == P1 ? P2MAN:P1MAN);
+    int isFirstRow = ((index/cols) == 0),
+    isLastRow = ((index/cols) == rows-1);  
+   
+    if(promoteRow == BACKWARD){
+        if(myPosition[index] == P1MAN){
+            if(isFirstRow){
+                myPosition[index] = P1KING;
+                done = TRUE;
+            }
+        }
+        else if(myPosition[index] == P2MAN){
+            if(isLastRow){
+                myPosition[index] = P2KING;
+                done = TRUE;
+            }
+        }
+    }
+    else if(promoteRow == FORWARD){
+        if(myPosition[index] == P1MAN){
+            if(isLastRow){
+                myPosition[index] = P1KING;
+                done = TRUE;
+            }
+        }
+        else if(myPosition[index] == P2MAN){
+            if(isFirstRow){
+                myPosition[index] = P2KING;
+                done = TRUE;
+            }
+        }
+    }
+    while(!done){
+        myForwardRight = forwardRight(index), myForwardLeft = forwardLeft(index), myBackwardRight = backwardRight(index), myBackwardLeft = backwardLeft(index);
+        myPosition[index] = EMPTY;
+        switch(nextMove){
+            case FORWARDRIGHT: 
+                if(myPosition[myForwardRight] == EMPTY){
+                    index = myForwardRight;
+                    done = TRUE;
+                }
+                else{
+                    myPosition[forwardRight(myForwardRight)] = myPosition[index];
+                    if (!demote || (myPosition[myForwardRight] == opposingMan))
+                        myPosition[myForwardRight] = EMPTY;		    
+                    else if (myPosition[myForwardRight] == opposingKing)
+                        myPosition[myForwardRight] = opposingMan; 
+                    index = forwardRight(myForwardRight);     
+                }
+                break;
+            case FORWARDLEFT:
+                if(myPosition[myForwardLeft] == EMPTY){
+                    index = myForwardLeft;
+                    done = TRUE;	
+                }
+                else{
+                    myPosition[forwardLeft(myForwardLeft)] = myPosition[index];
+                    if (!demote || (myPosition[myForwardLeft] == opposingMan))
+                        myPosition[myForwardLeft] = EMPTY;		    
+                    else if (myPosition[myForwardLeft] == opposingKing)
+                        myPosition[myForwardLeft] = opposingMan;      
+                    index = forwardLeft(myForwardLeft);
+                }
+                break;
+            case BACKWARDLEFT:
+                if(myPosition[myBackwardLeft] == EMPTY){
+                    index = myBackwardLeft;
+                    done = TRUE;
+                }	
+                else{
+                    myPosition[backwardLeft(myBackwardLeft)] = myPosition[index];
+                    if (!demote || (myPosition[myBackwardLeft] == opposingMan))
+                        myPosition[myBackwardLeft] = EMPTY;		    
+                    else if (myPosition[myBackwardLeft] == opposingKing)
+                        myPosition[myBackwardLeft] = opposingMan;      
+                    index = backwardLeft(myBackwardLeft);
+                }
+                break;
+            case BACKWARDRIGHT:
+                if(myPosition[myBackwardRight] == EMPTY){
+                    index = myBackwardRight;
+                    done = TRUE;
+                }
+                else{
+                    myPosition[backwardRight(backwardRight(index))] = myPosition[index];
+                    if (!demote || (myPosition[myBackwardRight] == opposingMan))
+                        myPosition[myBackwardRight] = EMPTY;		    
+                    else if (myPosition[myBackwardRight] == opposingKing)
+                        myPosition[myBackwardRight] = opposingMan; 	
+                    index = backwardRight(myBackwardRight);
+                }       
+                break;
+        }
+        myPosition[index] = myPiece;
+        previousMove = nextMove;
+        theMove = theMove << 2;
+        nextMove = (theMove >> 30)&0x00000003;
+        if(oppositeMove(previousMove)==nextMove)
+            done = TRUE;
+    }
+
+    isFirstRow = ((index/cols) == 0);
+    isLastRow = ((index/cols) == rows-1);  
+
+    if(promoteRow == FORWARD){
+        if(myPosition[index] == P1MAN){
+            if(isLastRow){
+                myPosition[index] = P1KING;
+                done = TRUE;
+            }
+        }
+        else if(myPosition[index] == P2MAN){
+            if(isFirstRow){
+                myPosition[index] = P2KING;
+                done = TRUE;
+            }
+        }
+    }
+
+    whosTurn = (whosTurn == P1 ? P2:P1);//switch players
+    retValue = generic_hash(myPosition, whosTurn);
+    return retValue;
 }
 
 /************************************************************************
@@ -511,9 +642,10 @@ POSITION GetInitialPosition()
     boardSize = rows * cols;
     char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
     char c;
+    int currentTurn = -1;
     POSITION initialPositionHash;
     
-    printf("Type in a board representation, using spaces for blank squares and letters for pieces.\n(e.g. 'GOOg    oGoG'): ");
+    printf("Type in a board representation, using spaces for blank squares and letters for pieces.\n(e.g. 'XOOX    oXox'): ");
 
     // Prompt for initial position
     getchar();
@@ -529,15 +661,15 @@ POSITION GetInitialPosition()
     //Prompt for turn
     getchar();
     c = getchar();
-    if(c == '1') {
-      currentTurn = P1;
+    if(c == '1') {      
+      currentTurn = 1;
       printf("Player 1 to play.\n");
-    } else if(c == '2') {
-      currentTurn = P2;
+    } else if(c == '2') {     
+      currentTurn = 2;
       printf("Player 2 to play.\n");
     } else {
-      printf("invalid");
-      currentTurn = P1;
+      currentTurn = 1;
+      printf("invalid");     
     }
       
     initialPositionHash = generic_hash(initialPosition, currentTurn);
@@ -545,7 +677,6 @@ POSITION GetInitialPosition()
     SafeFree(initialPosition);
 
     gInitialPosition = initialPositionHash;
-    curBoard = gInitialPosition;
     return initialPositionHash;
     /*
     int i = 0;
@@ -711,24 +842,21 @@ void PrintPosition(position,playerName,usersTurn)
     int player;
     unsigned int i, j, k = 0;
     unsigned int p1Pieces, p2Pieces;
+    int swapRow = 0;
     
     generic_unhash(position, board);  // Obtain board state
     player = whoseMove(position);
     
-    // Set the game state
-    //curPlayer = player;
-    currentTurn = player;
-    curBoard = position;
     
-    printf("RUBIK'S CHECKERS\n\n  ");
+    printf("\nRUBIK'S CHECKERS\n");
     
     CountPieces(board, &p1Pieces, &p2Pieces);
 
     if (TRUE){//player == P1) {
         // Print column letters **POSSIBLE OVERFLOW**
-        for (i = 0; i < (cols*2); i++) {
-            printf("%c ", 'a' + i);
-        }
+        //for (i = 0; i < (cols*2); i++) {
+        //    printf("%c ", 'a' + i);
+        //}
     
         // Row separators
         printf("\n +");
@@ -738,28 +866,39 @@ void PrintPosition(position,playerName,usersTurn)
         k = 0;//boardSize;
         for (i = rows; i > 0; i--) {
             printf("%d|", i);  // Row number
-            if ((i % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
+            if ((swapRow % 2) != 0) printf("%c|", EMPTY);  // Shift alternating rows
             for (j = 0; j < cols; j++) {
                 // Print square plus a column separator
                 printf("%c|", board[k++]); //--k
     
                 // Print empty squares in between plus a column separator
-                if ((j != (cols-1)) || (i % 2) == 0) printf("%c|", EMPTY);
+                if ((j != (cols-1)) || (swapRow % 2) == 0) printf("%c|", EMPTY);
             }
     
             if (i == 1) {  // Print player 2's number of pieces
-                printf("    %8s: %d pieces", P2NAME, p2Pieces);
-                if (player == P2) printf(" (%s's turn)", P2NAME);
+                printf("    %4s: %d pieces", P2NAME, p2Pieces);
+                if (player == P2) printf(" (%s's turn)", playerName);
             } else if (i == rows) {  // Print player 1's number of pieces
-                printf("    %8s: %d pieces", P1NAME, p1Pieces);
-                if (player == P1) printf(" (%s's turn)", P1NAME);
+                printf("    %4s: %d pieces", P1NAME, p1Pieces);
+                if (player == P1) printf(" (%s's turn)", playerName);
             }
     
             // Row separators
             printf("\n +");
             for (j = 0; j < (cols*2); j++) printf("-+");
             printf("\n");
+	    
+	    swapRow++;
+            
         }
+        
+        // Print column letters **POSSIBLE OVERFLOW**
+        printf("  ");
+        for (i = 0; i < (cols*2); i++) {
+            printf("%c ", 'a' + i);
+        }
+        printf("\n");
+        
     } else if (player == P2) {  // Swap board
         // Print column letters **POSSIBLE OVERFLOW**
         for (i = 0; i < (cols*2); i++) {
@@ -830,32 +969,30 @@ void PrintPosition(position,playerName,usersTurn)
 ************************************************************************/
 //currentIndex
 MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head){
-  unsigned int myMove = (currentIndex << (32-MVHASHACC));
-  int whatIsForward, currentMobility;
-//int isEndOfRow, isBegOfRow, isEvenRow;
-  if(whosTurn == P1){
-    whatIsForward = 1;
-  }
-  else{
-    whatIsForward = -1;
-  }
+  unsigned int myMove = (currentIndex << (32-MVHASHACC+1));
+  int currentMobility;
 
-  if(initialPosition[currentIndex] == P1KING || initialPosition[currentIndex] == P2KING)
+  if(initialPosition[currentIndex] == P1KING)
     currentMobility = kingMobility;
-  else if(initialPosition[currentIndex] == P1MAN || initialPosition[currentIndex] == P2MAN)
+  else if(initialPosition[currentIndex] == P2KING)
+    currentMobility = reverseMobility(kingMobility);
+  else if(initialPosition[currentIndex] == P1MAN)
     currentMobility = manMobility;
+  else if(initialPosition[currentIndex] == P2MAN)
+    currentMobility = reverseMobility(manMobility);
+  else BadElse("makeMove");
 
   if((currentMobility&FORWARD) == FORWARD){
-    if(forwardLeft(whosTurn, currentIndex)!= -1 && initialPosition[forwardLeft(whosTurn, currentIndex)] == EMPTY)
-      head = CreateMovelistNode(myMove|(FORWARDLEFT<<(32-MVHASHACC-2))|(BACKWARDRIGHT<<(32-MVHASHACC-4)), head);
-    if(forwardRight(whosTurn, currentIndex)!= -1 && initialPosition[forwardRight(whosTurn, currentIndex)] == EMPTY)
-      head = CreateMovelistNode(myMove|(FORWARDRIGHT<<(32-MVHASHACC-2))|(BACKWARDLEFT<<(32-MVHASHACC-4)), head);
+    if(forwardLeft(currentIndex)!= -1 && initialPosition[forwardLeft(currentIndex)] == EMPTY)
+      head = CreateMovelistNode(myMove|(0<<(32-MVHASHACC))|(FORWARDLEFT<<(32-MVHASHACC-2))|(BACKWARDRIGHT<<(32-MVHASHACC-4)), head);
+    if(forwardRight(currentIndex)!= -1 && initialPosition[forwardRight(currentIndex)] == EMPTY)
+      head = CreateMovelistNode(myMove|(0<<(32-MVHASHACC))|(FORWARDRIGHT<<(32-MVHASHACC-2))|(BACKWARDLEFT<<(32-MVHASHACC-4)), head);
   }
   if((currentMobility&BACKWARD) == BACKWARD){
-    if(backwardLeft(whosTurn, currentIndex)!= -1 && initialPosition[backwardLeft(whosTurn, currentIndex)] == EMPTY)
-      head = CreateMovelistNode(myMove|(BACKWARDLEFT<<(32-MVHASHACC-2))|(FORWARDRIGHT<<(32-MVHASHACC-4)), head);
-    if(backwardRight(whosTurn, currentIndex)!= -1 && initialPosition[backwardRight(whosTurn, currentIndex)] == EMPTY)
-      head = CreateMovelistNode(myMove|(BACKWARDRIGHT<<(32-MVHASHACC-2))|(FORWARDLEFT<<(32-MVHASHACC-4)), head);
+    if(backwardLeft(currentIndex)!= -1 && initialPosition[backwardLeft(currentIndex)] == EMPTY)
+      head = CreateMovelistNode(myMove|(0<<(32-MVHASHACC))|(BACKWARDLEFT<<(32-MVHASHACC-2))|(FORWARDRIGHT<<(32-MVHASHACC-4)), head);
+    if(backwardRight(currentIndex)!= -1 && initialPosition[backwardRight(currentIndex)] == EMPTY)
+      head = CreateMovelistNode(myMove|(0<<(32-MVHASHACC))|(BACKWARDRIGHT<<(32-MVHASHACC-2))|(FORWARDLEFT<<(32-MVHASHACC-4)), head);
   }
   return head;
 }
@@ -867,14 +1004,21 @@ MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELI
 //traverse board recursively, adding moves to currentMove.  When cannot find more moves, add currentMove to MOVELIST
 //and then undo changes to initialPosition
 MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head, unsigned int currentMove, int offset, unsigned int currentMobility){
-  unsigned int previousMove = (currentMove<<(MVHASHACC+offset-4))>>30;
+  int previousMove;
   int opposingMan, opposingKing;
-  int myForwardRight = forwardRight(whosTurn, currentIndex), 
-    myForwardLeft = forwardLeft(whosTurn, currentIndex),
-    myBackwardRight = backwardRight(whosTurn, currentIndex),
-    myBackwardLeft = backwardLeft(whosTurn, currentIndex);
+  int myForwardRight = forwardRight(currentIndex), 
+    myForwardLeft = forwardLeft(currentIndex),
+    myBackwardRight = backwardRight(currentIndex),
+    myBackwardLeft = backwardLeft(currentIndex);
+  MOVELIST *oldHead = head;
 
   char tmp[boardSize];
+
+  if (offset == 2) {
+    previousMove = -1;
+  } else {
+    previousMove = (currentMove<<(MVHASHACC+offset-4))>>30;
+  }
 
   strncpy(tmp, initialPosition, boardSize);
 
@@ -888,59 +1032,85 @@ MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOV
   }
   else
     BadElse("makeCapture");
-  /*
-  if(initialPosition[currentIndex] == P1KING || initialPosition[currentIndex] == P2KING)
-    currentMobility = kingMobility;
-  else if(initialPosition[currentIndex] == P1MAN || initialPosition[currentIndex] == P2MAN)
-    currentMobility = manMobility;  
-  */
+
   if((currentMobility&CAPTURE) == CAPTURE){
     if((currentMobility&FORWARD) == FORWARD){
       if(myForwardLeft!=-1 && ((initialPosition[myForwardLeft]==opposingMan)||(initialPosition[myForwardLeft]==opposingKing))){
-	if(forwardLeft(whosTurn, myForwardLeft)!=-1 && initialPosition[forwardLeft(whosTurn, myForwardLeft)]==EMPTY){	  
+	if(forwardLeft(myForwardLeft)!=-1 && initialPosition[forwardLeft(myForwardLeft)]==EMPTY){	  
 	  //add board changing: if(opposingMan), change to empty...
+	  if(initialPosition[myForwardLeft] == opposingMan)
+	    initialPosition[myForwardLeft] = EMPTY;
+	  else if (initialPosition[myForwardLeft] == opposingKing)
+	    initialPosition[myForwardLeft] = opposingMan;
+	  else BadElse("makeCapture");
+
 	  if(previousMove != BACKWARDRIGHT)
 	    head = makeCapture(initialPosition, whosTurn,
-			       forwardLeft(whosTurn, myForwardLeft),
+			       forwardLeft(myForwardLeft),
 			       head, currentMove|(FORWARDLEFT<<(32-MVHASHACC-offset)),
 			       offset+2, currentMobility);
+	  strncpy(initialPosition, tmp, boardSize);
 	}       
       }
       if(myForwardRight!=-1 && ((initialPosition[myForwardRight]==opposingMan)||(initialPosition[myForwardRight]==opposingKing))){
-	if(forwardRight(whosTurn, myForwardRight)!=-1 && initialPosition[forwardRight(whosTurn, myForwardRight)]==EMPTY){
+	if(forwardRight(myForwardRight)!=-1 && initialPosition[forwardRight(myForwardRight)]==EMPTY){
+	  if(initialPosition[myForwardRight] == opposingMan)
+	    initialPosition[myForwardRight] = EMPTY;
+	  else if (initialPosition[myForwardRight] == opposingKing)
+	    initialPosition[myForwardRight] = opposingMan;
+	  else BadElse("makeCapture");
+
 	  if(previousMove != BACKWARDLEFT)
 	    head = makeCapture(initialPosition, whosTurn,
-			       forwardRight(whosTurn, myForwardRight),
+			       forwardRight(myForwardRight),
 			       head, currentMove|(FORWARDRIGHT<<(32-MVHASHACC-offset)),
-			       offset+2, currentMobility);		  
+			       offset+2, currentMobility);
+	  strncpy(initialPosition, tmp, boardSize);
 	}
       }
     }
     if((currentMobility&BACKWARD) == BACKWARD){
       if(myBackwardRight!=-1 && ((initialPosition[myBackwardRight]==opposingMan)||(initialPosition[myBackwardRight]==opposingKing))){
-	if(backwardRight(whosTurn, myBackwardRight)!=-1 && initialPosition[backwardRight(whosTurn, myBackwardRight)]==EMPTY){
+	if(backwardRight(myBackwardRight)!=-1 && initialPosition[backwardRight(myBackwardRight)]==EMPTY){
+	  if(initialPosition[myBackwardRight] == opposingMan)
+	    initialPosition[myBackwardRight] = EMPTY;
+	  else if (initialPosition[myBackwardRight] == opposingKing)
+	    initialPosition[myBackwardRight] = opposingMan;
+	  else BadElse("makeCapture");
+
 	  if(previousMove != FORWARDLEFT)
 	    head = makeCapture(initialPosition, whosTurn,
-			       backwardRight(whosTurn, myBackwardRight),
+			       backwardRight(myBackwardRight),
 			       head, currentMove|(BACKWARDRIGHT<<(32-MVHASHACC-offset)),
 			       offset+2, currentMobility);
+	  strncpy(initialPosition, tmp, boardSize);
 	}
       }
       if(myBackwardLeft!=-1 && ((initialPosition[myBackwardLeft]==opposingMan)||(initialPosition[myBackwardLeft]==opposingKing))){
-	if(backwardLeft(whosTurn, myBackwardLeft)!=-1 && initialPosition[backwardLeft(whosTurn, myBackwardLeft)]==EMPTY){
+	if(backwardLeft(myBackwardLeft)!=-1 && initialPosition[backwardLeft(myBackwardLeft)]==EMPTY){
+	  if(initialPosition[myBackwardLeft] == opposingMan)
+	    initialPosition[myBackwardLeft] = EMPTY;
+	  else if (initialPosition[myBackwardLeft] == opposingKing)
+	    initialPosition[myBackwardLeft] = opposingMan;
+	  else BadElse("makeCapture");
+
 	  if(previousMove != FORWARDRIGHT)
 	    head = makeCapture(initialPosition, whosTurn,
-			       backwardLeft(whosTurn, myBackwardLeft),
+			       backwardLeft(myBackwardLeft),
 			       head, currentMove|(BACKWARDLEFT<<(32-MVHASHACC-offset)),
 			       offset+2, currentMobility);
+	  strncpy(initialPosition, tmp, boardSize);
 	}
       }
     }
   }
-  if(offset>2){
-    strncpy(initialPosition,tmp,boardSize);
+  if (offset>2){
+    //strncpy(tmp, initialPosition,boardSize);
     //undoCapture(initialPosition, whosTurn, currentIndex, previousMove); 
-    head = CreateMovelistNode(currentMove|(oppositeMove(previousMove)<<(32-MVHASHACC-offset)), head);
+    if (!forceCapture || (head == oldHead)) {
+      head = CreateMovelistNode(currentMove|(1<<(32-MVHASHACC))|(oppositeMove(previousMove)<<(32-MVHASHACC-offset)), head);
+    }
+    //1 represents capture
   }
   return head;
 }
@@ -952,21 +1122,21 @@ MOVELIST *makePromote(char *initialPosition, int whosTurn, int currentIndex, MOV
   if(promoteRow == BACKWARD){
     if(initialPosition[currentIndex] == P1MAN){
       if(isFirstRow)
-	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC)), head);
+	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC+1))|(1<<(32-MVHASHACC)), head);
     }
     else if(initialPosition[currentIndex] == P2MAN){
       if(isLastRow)
-	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC)), head);
+	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC+1))|(1<<(32-MVHASHACC)), head);
     }
   }
   else if(promoteRow == FORWARD){
     if(initialPosition[currentIndex] == P1MAN){
       if(isLastRow)
-	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC)), head);
+	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC+1))|(1<<(32-MVHASHACC)), head);
     }
     else if(initialPosition[currentIndex] == P2MAN){
       if(isFirstRow)
-	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC)), head);
+	head = CreateMovelistNode((currentIndex<<(32-MVHASHACC+1))|(1<<(32-MVHASHACC)), head);
     }
   }
   return head;
@@ -994,7 +1164,7 @@ MOVELIST *makePromote(char *initialPosition, int whosTurn, int currentIndex, MOV
 MOVELIST *GenerateMoves(position)
      POSITION position;
 {
-    MOVELIST *head = NULL;
+    MOVELIST *head = NULL, *oldHead = NULL;
     MOVELIST *CreateMovelistNode();
     char initialPosition[boardSize];
     //char tempPositions[boardSize];
@@ -1002,6 +1172,7 @@ MOVELIST *GenerateMoves(position)
     int whosTurn = whoseMove(position);
     char currentKing, currentMan;
     int i;
+    int hasCaptures = 0;
   
     generic_unhash(position, initialPosition);
     if(whosTurn == P1){
@@ -1014,15 +1185,31 @@ MOVELIST *GenerateMoves(position)
     }
     for(i = 0; i < boardSize; i++){
       if((initialPosition[i] == currentKing)){
-	head = makeMove(initialPosition, whosTurn, i, head);
-	head = makePromote(initialPosition, whosTurn, i, head);
-	head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC)), 2, kingMobility);
+	if(whosTurn == P1)
+	  head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, kingMobility);
+	else if (whosTurn == P2)
+	  head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, reverseMobility(kingMobility));
+
+	if (head != oldHead) hasCaptures = 1;
+	if (!forceCapture || !hasCaptures) {
+	  head = makeMove(initialPosition, whosTurn, i, head);
+	  head = makePromote(initialPosition, whosTurn, i, head);
+	}
       }
       else if (initialPosition[i] == currentMan){
-	head = makeMove(initialPosition, whosTurn, i, head);
-	head = makePromote(initialPosition, whosTurn, i, head);
-	head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC)), 2, manMobility);	
-      }	
+	if(whosTurn == P1)
+	  head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, manMobility);	
+	else if(whosTurn == P2)
+	  head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, reverseMobility(manMobility));
+
+	if (head != oldHead) hasCaptures = 1;
+	if (!forceCapture || !hasCaptures) {
+	  head = makeMove(initialPosition, whosTurn, i, head);
+	  head = makePromote(initialPosition, whosTurn, i, head);
+	}
+      }
+
+      oldHead = head;	
     }
     return head;   
 }
@@ -1059,7 +1246,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   
   input[0] = '3';
   do{
-    printf("%8s's move [(u)ndo/1/2] : ", playerName);
+      printf("%8s's move [ (u)ndo/(a-%c)(1-%d)[(a-%c)(1-%d)]* ] : ", playerName, 'a' - 1 + cols*2, rows, 'a' - 1 + cols*2, rows);
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return(ret);
@@ -1069,16 +1256,17 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 }
 
 int getIndexFromText(char currentRow, char currentCol){
-  return -((currentRow-'0')-rows)*cols + (currentCol-'a')/2;
+  return (rows - (currentRow-'0'))*cols + (currentCol-'a')/2;
 }
+
 void getTextFromIndex(int index, char* pos) {
     int row = 0, col = 0;
     
-    row = rows - (index / cols);
+    row = rows -(index / cols);
     col = (index % cols) * 2;
     
     // Stagger each other row
-    if ((row % 2) == 1) col++;
+    if ((rows-row) % 2 == 1) col++;
     
     pos[0] = 'a' + col;
     pos[1] = '0' + row;
@@ -1103,27 +1291,46 @@ void getTextFromIndex(int index, char* pos) {
 ************************************************************************/
 
 BOOLEAN ValidTextInput(input)
-     STRING input;
+        STRING input;
 {
     // TODO
-  unsigned int myIndex, i = 0;
-  char currentRow = input[1], currentCol = input[0];
-  if(input[0] == 0)
-    return(FALSE);
-  if(input[0] == 'u')
-    currentTurn = (currentTurn == P1? P2:P1);
-  if(input[1] == 0)
-    return(FALSE);
-  while(input[i-1]!=0 && input[i]!=0){
-    currentRow = input[i+1];
-    currentCol = input[i];
+    unsigned int i = 1, myIndex;
+    char currentRow = input[1], currentCol = input[0];
     myIndex = getIndexFromText(currentRow, currentCol);
+    int isEvenRow = (((rows+'0'- currentRow))%2 == 0), 
+    isEvenCol = ((currentCol - 'a')%2 == 0);
+   
+  
+    if(currentCol == 0)
+        return(FALSE);
+    if(currentRow == 0)
+        return(FALSE);
+    if(!isEvenRow && isEvenCol)
+        return(FALSE);
+    if(isEvenRow && !isEvenCol)
+        return(FALSE);
+
+    while(input[i-1]!=0 && input[i]!=0){
+        currentRow = input[i];
+        currentCol = input[i-1];
+        myIndex = getIndexFromText(currentRow, currentCol);
+        isEvenRow = (((rows+'0')-currentRow)%2 == 0);
+        isEvenCol = ((currentCol - 'a')%2 == 0);
+
+        if(currentRow-'1'>rows || (currentCol-'a')/2>cols)
+            return(FALSE);
+        if(currentRow-'1'<0 || currentCol-'a'<0)
+            return(FALSE);
     //printf("%d\n", myIndex);
-    if(myIndex<0 || myIndex>boardSize)
-      return(FALSE);
-    i= i+2;
-  }
-  return(TRUE);
+        if(myIndex<0 || myIndex>boardSize)
+            return(FALSE);
+        i= i+2;
+        if(!isEvenRow && isEvenCol)
+            return(FALSE);
+        if(isEvenRow && !isEvenCol)
+            return(FALSE);
+    }
+    return(TRUE);
 }
 
 
@@ -1149,48 +1356,56 @@ MOVE ConvertTextInputToMove(input)
 {
   int i = 2;
   char currentRow = input[1], currentCol = input[0];
-  unsigned int myMove, previousMove = -1, currentIndex, nextIndex;
+  unsigned int myMove, currentIndex, nextIndex;
+  int previousMove = -1;
   myMove = currentIndex = getIndexFromText(currentRow, currentCol);
-  myMove = myMove<<(32-MVHASHACC);
+  myMove = myMove<<(32-MVHASHACC+1);
   currentCol = input[i];
   currentRow = input[i+1];
   nextIndex = getIndexFromText(currentRow, currentCol);
-  if(nextIndex == forwardRight(currentTurn, currentIndex)){
+  if(nextIndex == forwardRight(currentIndex)){
     myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
     previousMove = FORWARDRIGHT;
   }
-  else if(nextIndex == forwardLeft(currentTurn, currentIndex)){
+  else if(nextIndex == forwardLeft(currentIndex)){
     myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
     previousMove = FORWARDLEFT;
   }
-  else if(nextIndex == backwardLeft(currentTurn, currentIndex)){
+  else if(nextIndex == backwardLeft(currentIndex)){
     myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
     previousMove = BACKWARDLEFT;
   }
-  else if(nextIndex == backwardRight(currentTurn, currentIndex)){
+  else if(nextIndex == backwardRight(currentIndex)){
     myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
     previousMove = BACKWARDRIGHT;
   }
   i = i + 2;
+  if(previousMove != -1)
+    myMove = myMove|(0<<(32-MVHASHACC));
   if(previousMove == -1){
+    myMove = myMove|(1<<(32-MVHASHACC));
     i = 2;
     while(input[i]!=0){
       currentCol = input[i];
       currentRow = input[i+1];
-      nextIndex = getIndexFromText(currentRow, currentCol);
-      if(nextIndex == forwardRight(currentTurn, forwardRight(currentTurn, currentIndex))){
+      nextIndex = getIndexFromText(currentRow, currentCol);      
+      if(forwardRight(currentIndex)!=-1 &&
+	 nextIndex == forwardRight(forwardRight(currentIndex))){
 	myMove = myMove|(FORWARDRIGHT<<(32-MVHASHACC-i));
 	previousMove = FORWARDRIGHT;
       }
-      else if(nextIndex == forwardLeft(currentTurn, forwardLeft(currentTurn, currentIndex))){
+      else if(forwardLeft(currentIndex)!=-1 &&
+	      nextIndex == forwardLeft(forwardLeft(currentIndex))){
 	myMove = myMove|(FORWARDLEFT<<(32-MVHASHACC-i));
 	previousMove = FORWARDLEFT;
       }
-      else if(nextIndex == backwardLeft(currentTurn, backwardLeft(currentTurn, currentIndex))){
+      else if(backwardLeft(currentIndex)!=-1 &&
+	      nextIndex == backwardLeft(backwardLeft(currentIndex))){
 	myMove = myMove|(BACKWARDLEFT<<(32-MVHASHACC-i));
 	previousMove = BACKWARDLEFT;
       }
-      else if(nextIndex == backwardRight(currentTurn, backwardRight(currentTurn, currentIndex))){
+      else if(backwardRight(currentIndex)!=-1 &&
+	      nextIndex == backwardRight(backwardRight(currentIndex))){
 	myMove = myMove|(BACKWARDRIGHT<<(32-MVHASHACC-i));
 	previousMove = BACKWARDRIGHT;
       }		      
@@ -1201,7 +1416,7 @@ MOVE ConvertTextInputToMove(input)
   }
   if(previousMove != -1)
     myMove = myMove|(oppositeMove(previousMove)<<(32-MVHASHACC-(i)));
-    return(myMove);
+  return(myMove);
 }
 
 int canPromote(int index, POSITION position) {
@@ -1230,6 +1445,107 @@ int canPromote(int index, POSITION position) {
     
     return FALSE;
 }
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+        MOVE theMove;
+{
+    STRING s = (STRING) SafeMalloc(100);  // replace with exact #
+    s[0] = 0;  // Initialize string to null
+    
+    unsigned int move = theMove;
+    unsigned int startIndex = (move >> (32-MVHASHACC+1));
+    unsigned int currentIndex = startIndex;
+    unsigned int currentMove = 0, previousMove = 0;
+    char startSq[3], nextSq[3];
+    unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
+    int done = FALSE, jump = FALSE;
+    
+    //generic_unhash(curBoard, myBoard);
+    // Print initial square
+    getTextFromIndex(startIndex, startSq);
+    strcat(s, startSq);
+    move = move << MVHASHACC;
+    
+    if(((theMove>>(32-MVHASHACC))&0x00000001) == 1)
+        jump = TRUE;      
+    else{
+      //getTextFromIndex(currentIndex, nextSq);
+      //sprintf(s, "%s", nextSq);
+        currentMove = move>>30;
+        switch(currentMove){
+            case FORWARDLEFT:
+                currentIndex = forwardLeft(currentIndex);	
+                break;
+            case FORWARDRIGHT:
+                currentIndex = forwardRight(currentIndex);
+                break;
+            case BACKWARDLEFT:
+                currentIndex = backwardLeft(currentIndex);
+                break;
+            case BACKWARDRIGHT:
+                currentIndex = backwardRight(currentIndex);
+                break;
+            default:
+                BadElse("PrintMove");
+        }
+        getTextFromIndex(currentIndex, nextSq);
+        strcat(s, nextSq);
+    }
+    
+    //if (canPromote(startIndex, curBoard)) return;
+    
+    // Loop through jumps
+    if ((jump == TRUE) && (move != 0)) {
+        
+        for (i = 0; (i < maxJumps) && !done; i++) {
+            previousMove = currentMove;
+            currentMove = (move >> 30)&0x00000003;
+            if ((currentMove == oppositeMove(previousMove)) && (i != 0)) {
+                done = TRUE;	    
+            } else {
+	  //sprintf(s, "%d", currentIndex);
+                switch (currentMove) {	  
+                    case FORWARDLEFT:				  
+                        currentIndex = forwardLeft(forwardLeft(currentIndex));
+                        currentMove = FORWARDLEFT;
+                        break;
+                    case FORWARDRIGHT:
+                        currentIndex = forwardRight(forwardRight(currentIndex));
+                        currentMove = FORWARDRIGHT;
+                        break;
+                    case BACKWARDRIGHT:
+		  //sprintf(s, "~%d%d%c~", currentTurn, currentIndex, myBoard[backwardRight(currentTurn, currentIndex)]);
+                        currentIndex = backwardRight(backwardRight(currentIndex));
+                        currentMove = BACKWARDRIGHT;
+                        break;
+                    case BACKWARDLEFT:
+                        currentIndex = backwardLeft(backwardLeft(currentIndex));
+                        currentMove = BACKWARDLEFT;
+                        break;
+                    default:
+                        BadElse("PrintMove");
+                }
+                getTextFromIndex(currentIndex, nextSq);
+                strcat(s, nextSq);
+            }
+        
+            move = move << 2;
+        }
+    }
+    
+    return s;
+}
+
 /************************************************************************
 **
 ** NAME:        PrintMove
@@ -1263,73 +1579,77 @@ void PrintMove(theMove)
     printf("%s", myMove);
   printf(")");
   SafeFree(myMove);
-  */
+  */ /*
     unsigned int move = theMove;
-    unsigned int startIndex = (move >> (32-MVHASHACC));
+    unsigned int startIndex = (move >> (32-MVHASHACC+1));
     unsigned int currentIndex = startIndex;
     unsigned int currentMove = 0, previousMove = 0;
     char startSq[3], nextSq[3];
     unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
     int done = FALSE, jump = FALSE;
-    char myBoard[boardSize];
     
-    generic_unhash(curBoard, myBoard);
+    //generic_unhash(curBoard, myBoard);
     // Print initial square
     getTextFromIndex(startIndex, startSq);
     printf("%s", startSq);
     move = move << MVHASHACC;
     
-    if (canPromote(startIndex, curBoard)) return;
+    if(((theMove>>(32-MVHASHACC))&0x00000001) == 1)
+      jump = TRUE;      
+    else{
+      //getTextFromIndex(currentIndex, nextSq);
+      //printf("%s", nextSq);
+      currentMove = move>>30;
+      switch(currentMove){
+      case FORWARDLEFT:
+	currentIndex = forwardLeft(currentIndex);	
+	break;
+      case FORWARDRIGHT:
+	currentIndex = forwardRight(currentIndex);
+	break;
+      case BACKWARDLEFT:
+	currentIndex = backwardLeft(currentIndex);
+	break;
+      case BACKWARDRIGHT:
+	currentIndex = backwardRight(currentIndex);
+	break;
+      default:
+	BadElse("PrintMove");
+      }
+      getTextFromIndex(currentIndex, nextSq);
+      printf("%s", nextSq);
+    }
+    
+    //if (canPromote(startIndex, curBoard)) return;
     
     // Loop through jumps
+    if(jump == TRUE){
+        if (move == 0) return;
+        
     for (i = 0; (i < maxJumps) && !done; i++) {
         previousMove = currentMove;
-        currentMove = move >> 30;
+        currentMove = (move >> 30)&0x00000003;
         if ((currentMove == oppositeMove(previousMove)) && (i != 0)) {
-            done = TRUE;
+            done = TRUE;	    
         } else {
 	  //printf("%d", currentIndex);
             switch (currentMove) {	  
-                case FORWARDLEFT:
-		  if(myBoard[forwardLeft(currentTurn, currentIndex)] == EMPTY){
-                    currentIndex = forwardLeft(currentTurn,currentIndex);
-		    done = TRUE;                    
-		  }
-		  else jump = TRUE;
-
-		  if(jump == TRUE)
-		    currentIndex = forwardLeft(currentTurn, forwardLeft(currentTurn, currentIndex));
+                case FORWARDLEFT:				  
+		    currentIndex = forwardLeft(forwardLeft(currentIndex));
+		    currentMove = FORWARDLEFT;
 		  break;
                 case FORWARDRIGHT:
-		  if(myBoard[forwardRight(currentTurn, currentIndex)] == EMPTY){
-                    currentIndex = forwardRight(currentTurn,currentIndex);
-		    done = TRUE;                    
-		  }
-		  else jump = TRUE;
-
-		  if(jump == TRUE)
-		    currentIndex = forwardRight(currentTurn, forwardRight(currentTurn, currentIndex));
+		    currentIndex = forwardRight(forwardRight(currentIndex));
+		    currentMove = FORWARDRIGHT;
 		  break;
                 case BACKWARDRIGHT:
 		  //printf("~%d%d%c~", currentTurn, currentIndex, myBoard[backwardRight(currentTurn, currentIndex)]);
-		  if(myBoard[backwardRight(currentTurn, currentIndex)] == EMPTY){
-                    currentIndex = backwardRight(currentTurn,currentIndex);
-		    done = TRUE;   		    
-		  }
-		  else jump = TRUE;
-
-		  if(jump == TRUE)
-		    currentIndex = backwardRight(currentTurn, backwardRight(currentTurn, currentIndex));
+		    currentIndex = backwardRight(backwardRight(currentIndex));
+		    currentMove = BACKWARDRIGHT;
 		  break;
                 case BACKWARDLEFT:
-		  if(myBoard[backwardLeft(currentTurn, currentIndex)] == EMPTY){
-                    currentIndex = backwardLeft(currentTurn,currentIndex);
-		    done = TRUE;                    
-		  }
-		  else jump = TRUE;
-
-		  if(jump == TRUE)
-		    currentIndex = backwardLeft(currentTurn, backwardLeft(currentTurn, currentIndex));
+		    currentIndex = backwardLeft(backwardLeft(currentIndex));
+		    currentMove = BACKWARDLEFT;
 		  break;
 	    default:
 		  BadElse("PrintMove");
@@ -1339,8 +1659,13 @@ void PrintMove(theMove)
         }
         
         move = move << 2;
+	}
     }
-  // TODO
+    // TODO */
+    
+    STRING s = MoveToString(theMove);
+    printf("%s",s);
+    SafeFree(s);
 }
 
 
