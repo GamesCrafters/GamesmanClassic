@@ -201,8 +201,6 @@ void HandleArguments (int argc, char *argv[])
                         gLoadDatabase = FALSE;
                 } else if(!strcasecmp(argv[i], "--newdb"))
                         gLoadDatabase = FALSE;
-                else if(!strcasecmp(argv[i], "--filedb"))
-                		gFileDB = TRUE;
                 else if(!strcasecmp(argv[i], "--numoptions")) {
                         fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
                         gMessage = TRUE;

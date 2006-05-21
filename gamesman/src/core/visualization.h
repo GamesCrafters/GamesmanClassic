@@ -25,7 +25,6 @@ typedef struct edge_list
 	int NumberOfLevels;
 	POSITION **nodeRanks;
 	POSITION *nextNodeInRank;
-	POSITION *nextRankInLevel;
 	POSITION *nodesPerRank;
 	REMOTENESS maxRank;
 } EDGELIST;
@@ -38,6 +37,7 @@ void Write(FILE *, EDGELIST *);	// Write a string to a file
 
 /* Private functions */
 FILE *PrepareDOTFile();
+BOOLEAN PrepareRankList(EDGELIST *);
 void CloseDOTFile(FILE *);
 STRING PositionColor(POSITION);
 STRING PositionShape(POSITION);

@@ -29,17 +29,28 @@
 **
 **************************************************************************/
 
-
+//
 
 #ifndef GMCORE_DB_BUF_H
 #define GMCORE_DB_BUF_H
 
-#include "db_types.h"
+#include "db_globals.h"
+#include "db_store.h"
 
-gamesdb_buffer*	gamesdb_buf_init	(int rec_size, gamesdb_pageid num_buf, gamesdb_store* filep); 
-int 			gamesdb_buf_read	(gamesdb_buffer* bufp, gamesdb_position spot, void* value);
-int				gamesdb_buf_write	(gamesdb_buffer* bufp, gamesdb_position spot, const void* value);
-int 			gamesdb_buf_destroy	(gamesdb_buffer* bufp);
+typedef struct main_buf_struct {
+  db_store* filep;
+
+  db_buffer_page* buffers;
+  boolean* dirty;
+  int rec_size; //number of bytes in a record
+  //int buf_size; //number of records in a buffer
+  int n_buf;
+}db_buffer;
+
+db_buffer*	 	db_buf_init		(int rec_size, page_id num_buf, db_store* filep); 
+int 			db_buf_read		(db_buffer* bufp, Position spot, void* value);
+int				db_buf_write	(db_buffer* bufp, Position spot, const void* value);
+int 			db_buf_destroy	(db_buffer* bufp);
 
 #endif /* GMCORE_DB_BUF_H */
 

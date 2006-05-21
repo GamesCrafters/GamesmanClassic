@@ -53,7 +53,6 @@ TWOBITDB_OBJ	= twobitdb$(OBJSUFFIX)
 COLLDB_OBJ	= colldb$(OBJSUFFIX)
 HTTPCLIENT_OBJ	= httpclient$(OBJSUFFIX)
 NETDB_OBJ	= netdb$(OBJSUFFIX)
-FILEDB_OBJ  = filedb$(OBJSUFFIX)
 
 ifneq (@GMPCFLAGS@,)
 UNIVHT_OBJ	= univht$(OBJSUFFIX)
@@ -79,8 +78,7 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(MLIB_OBJ) $(TEXTUI_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(BPDB_OBJ) $(BPDB_SCHEMES_OBJ) \
      $(TWOBITDB_OBJ) $(COLLDB_OBJ) $(UNIVHT_OBJ) $(UNIVDB_OBJ) \
-     $(STRINGBUILDER_OBJ) $(HTTPCLIENT_OBJ) $(NETDB_OBJ) $(VISUALIZATION_OBJ) \
-     $(FILEDB_OBJ)
+     $(STRINGBUILDER_OBJ) $(HTTPCLIENT_OBJ) $(NETDB_OBJ) $(VISUALIZATION_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
@@ -92,7 +90,7 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h bpdb.h bpdb_schemes.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h httpclient.h netdb.h \
-	 openPositions.h visualization.h filedb.h filedb/db.h
+	 openPositions.h visualization.h
 
 
 
@@ -101,8 +99,7 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 
 all: gamesman.a
 clean:
-	@$(MAKE) -w -C filedb clean
-	rm -rf $(MODULES) *~ gamesman.a gamesdb.a
+	rm -rf $(MODULES) *~ gamesman.a
 
 gamesman.a: $(MODULES)
 	rm -f $@

@@ -29,19 +29,28 @@
 **
 **************************************************************************/
 
-#ifndef GMCORE_GAMESDB_H
-#define GMCORE_GAMESDB_H
+#ifndef GMCORE_DB_H
+#define GMCORE_DB_H
 
-#include "db_types.h"
+#include "db_globals.h"
+
 #include "db_store.h"
 #include "db_buf.h"
 //#include "db_bman.h"
 #include "db_malloc.h"
 //#include "db_basichash.h"
 
-gamesdb*	gamesdb_create	(int rec_size, gamesdb_pageid max_pages, char* db_name);
-void		gamesdb_destroy	(gamesdb* data);
-void		gamesdb_get		(gamesdb* gdb, char* mem, gamesdb_position pos);
-void		gamesdb_put		(gamesdb* gdb, char* mem, gamesdb_position pos);
 
-#endif /* GMCORE_GAMESDB_H */
+typedef struct {
+//  db_bman* buf_man;
+  db_buffer* buffers;
+  db_store* filep;
+  page_id num_page;
+} games_db;
+
+games_db*	db_create	(int rec_size, page_id max_pages, char* db_name);
+void		db_destroy	(games_db* data);
+void		db_get		(games_db* gdb, char* mem, Position pos);
+void		db_put		(games_db* gdb, char* mem, Position pos);
+
+#endif /* GMCORE_DB_H */

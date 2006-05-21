@@ -34,7 +34,7 @@
 #include "db_malloc.h"
 
 
-void* gamesdb_SafeMalloc(gamesdb_offset num_bytes){
+void* SafeMalloc(db_offset num_bytes){
   void* ret;
 
   ret = (void*) malloc(num_bytes);
@@ -45,7 +45,7 @@ void* gamesdb_SafeMalloc(gamesdb_offset num_bytes){
   return ret;
 }
 
-void gamesdb_SafeFree(void* mem){
+void SafeFree(void* mem){
   free(mem);
 }
 

@@ -29,7 +29,6 @@
 **
 **************************************************************************/
 
-#include "db_types.h"
 #include "db_basichash.h"
 #include "db_malloc.h"
 
@@ -37,17 +36,17 @@
  * the destructor frees all of the memory. Whatever calls this
  * must also call the destructor eventually.
  */
-gamesdb_bhash* gamesdb_basichash_create(int num_rows,int num_in){
+db_bhash* db_basichash_create(int num_rows,int num_in){
   int i,j;
-  gamesdb_bhash* new = (gamesdb_bhash*) gamesdb_SafeMalloc(sizeof(gamesdb_bhash));
+  db_bhash* new = (db_bhash*) SafeMalloc(sizeof(db_bhash));
   
   new->size = num_rows;
-  new->rows = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin) * num_rows);
+  new->rows = (db_bhashin*) SafeMalloc(sizeof(db_bhashin) * num_rows);
   
   for(i=0;i<num_rows;i++){
     (new->rows)[i].num = num_in;
-    (new->rows)[i].loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * num_in);
-    (new->rows)[i].id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * num_in);
+    (new->rows)[i].loc = (frame_id*) SafeMalloc(sizeof(frame_id) * num_in);
+    (new->rows)[i].id = (page_id*) SafeMalloc(sizeof(page_id) * num_in);
     (new->rows)[i].next = NULL;
     for(j=0;j<num_in;j++){
       (new->rows)[i].id[j] = -1;
@@ -58,10 +57,10 @@ gamesdb_bhash* gamesdb_basichash_create(int num_rows,int num_in){
 }
 
 //returns the frame_id assosiated with page_id. -1 if it does not exist
-gamesdb_frameid gamesdb_basichash_get(gamesdb_bhash* hash, gamesdb_pageid id){
+frame_id db_basichash_get(db_bhash* hash, page_id id){
   int i;
   int row = id % hash->size;
-  gamesdb_bhashin* place = (hash->rows) + row;
+  db_bhashin* place = (hash->rows) + row;
   while(place != NULL){
     for(i=0;i<place->num;i++){
       if(place->id[i] == id)
@@ -76,11 +75,11 @@ gamesdb_frameid gamesdb_basichash_get(gamesdb_bhash* hash, gamesdb_pageid id){
 
 
 //Assosciates an id with a loc. Only one id per table. returns 0 on success.
-int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_frameid loc){
-  gamesdb_bhashin* place;
+int db_basichash_put(db_bhash* hash, page_id id, frame_id loc){
+  db_bhashin* place;
   int i;
 
-  place = gamesdb_basichash_getin(hash,id);
+  place = db_basichash_getin(hash,id);
   for(i=0;i < place->num && place->id[i] != id;i++);
   
   if(place->id[i] != id){
@@ -88,11 +87,11 @@ int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_framei
     for(i=0;i < place->num && place->id[i] != -1;i++);
     if(place->id[i] != -1){
       //add another link in the list.
-      gamesdb_bhashin* new = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin));
+      db_bhashin* new = (db_bhashin*) SafeMalloc(sizeof(db_bhashin));
       new->num = place->num;
       new->next = place->next;
-      new->loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid)*new->num);
-      new->id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid)*new->num);
+      new->loc = (frame_id*) SafeMalloc(sizeof(frame_id)*new->num);
+      new->id = (page_id*) SafeMalloc(sizeof(page_id)*new->num);
       for(i=0;i < new->num;i++)
 	new->id[i] = -1;
       i = 0;
@@ -111,11 +110,11 @@ int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_framei
 
 /* removes id from the hash table. returns frame_id or -1 if id des nto exist
  */
-gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id){
+frame_id db_basichash_remove(db_bhash* hash, page_id id){
   int i;
-  gamesdb_bhashin* place;
+  db_bhashin* place;
 
-  place = gamesdb_basichash_getin(hash,id);
+  place = db_basichash_getin(hash,id);
   for(i=0;i < place->num && place->id[i] != id;i++);
   if(place->id[i] == id){
     place->id[i] = -1;
@@ -124,35 +123,35 @@ gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id)
   return -1;
 }
 
-void gamesdb_basichash_destroy(gamesdb_bhash* hash){
+void db_basichash_destroy(db_bhash* hash){
   int i;
-  gamesdb_bhashin *place,*next,*start;
+  db_bhashin *place,*next,*start;
 
   for(i=0;i < hash->size;i++){
     //once per row.
     place = hash->rows + i;
     start = place;
     while(place != NULL){
-      gamesdb_SafeFree(place->loc);
-      gamesdb_SafeFree(place->id);
+      SafeFree(place->loc);
+      SafeFree(place->id);
       next = place->next;
       if(place != start)
-	gamesdb_SafeFree(place);
+	SafeFree(place);
       place = next;
     }
   }
-  gamesdb_SafeFree(hash->rows);
-  gamesdb_SafeFree(hash);
+  SafeFree(hash->rows);
+  SafeFree(hash);
 }
     
 		      
 
 //Helper fucntion to return the internal pointer for easy modification.
-gamesdb_bhashin* gamesdb_basichash_getin(gamesdb_bhash* hash, gamesdb_pageid id){
+db_bhashin* db_basichash_getin(db_bhash* hash, page_id id){
   int i;
   int row = id % hash->size;
-  gamesdb_bhashin* prev = NULL,*firstempty = NULL;
-  gamesdb_bhashin* place = (hash->rows) + row;
+  db_bhashin* prev = NULL,*firstempty = NULL;
+  db_bhashin* place = (hash->rows) + row;
   while(place != NULL){
     for(i=0;i<place->num;i++){
       if(place->id[i] == id)

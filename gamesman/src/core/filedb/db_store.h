@@ -36,13 +36,23 @@
 #ifndef GMCORE_DB_FILE_H
 #define GMCORE_DB_FILE_H
 
-#include "db_types.h"
+#include "db_globals.h"
 
-gamesdb_store* 	gamesdb_open		(char* filename);
-int 		gamesdb_close	(gamesdb_store* db);
-void		gamesdb_seek		(gamesdb_store* db, gamesdb_pageid page);
-int 		gamesdb_read		(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
-int 		gamesdb_write	(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
+#include <zlib.h>
+
+typedef struct dbfile_struct{
+  char* filename;   //disk file name
+ // page_id* pagemap;
+  gzFile* filep;	//the disk file descriptor
+  page_id current_page;  //the current page
+  page_id total_pages; //offset of the next page after the end
+}db_store;
+
+db_store* 	db_open		(char* filename);
+int 		db_close	(db_store* db);
+void		db_seek		(db_store* db, page_id page);
+int 		db_read		(db_store* db, page_id page, db_buffer_page* buf);
+int 		db_write	(db_store* db, page_id page, db_buffer_page* buf);
 //page_id 	db_newPage  (db_store* db);
 
 #endif /* GMCORE_DB_FILE_H */

@@ -35,7 +35,7 @@ typedef int  			BOOLEAN;
 
 typedef enum value_enum
 {
-        undecided, win, lose, tie
+        win, lose, tie, undecided
 }
 VALUE;
 
