@@ -32,10 +32,10 @@
 #ifndef GMCORE_DB_MALLOC_H
 #define GMCORE_DB_MALLOC_H
 
-#include "db_globals.h"
+#include "db_types.h"
 
-void* SafeMalloc (db_offset num_bytes);
-void SafeFree(void* ptr);
+void* gamesdb_SafeMalloc (gamesdb_offset num_bytes);
+void gamesdb_SafeFree(void* ptr);
 
 
 #endif /* GMCORE_DB_MALLOC_H */
