@@ -16,7 +16,8 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2005-3-3     Added missing prototypes
+** UPDATE HIST: 2006-5-22	 Fixed getoption() and setoption()
+**				2005-3-3     Added missing prototypes
 **              2004-10-26   Changed PrintPosition to include layout of board
 **                           Wrote GetinitialPosition
 **              2004-10-22   Error still in ValidTextInput
@@ -818,7 +819,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2;
 }
 
 
@@ -836,10 +837,11 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-  if (gStandardGame)
-    return 0;
-  else
+  if (gStandardGame) {
+    return 2;
+  } else {
     return 1;
+  }
 }
 
 
@@ -856,10 +858,13 @@ int getOption ()
 
 void setOption (int option)
 {
-  if (option == 1)
+  if (option == 1) {
     gStandardGame = 0;
-  else
+  } else if (option == 2) {
     gStandardGame = 1;
+  } else {
+  	BadElse("setOption");
+  }
     
 }
 
