@@ -188,7 +188,8 @@ STRING kCommandSyntaxHelp =
 "%s  {--nodb | --newdb | --curroption | --numoptions |\n"
 "\t\t--option <n> | --solve [<n> | <all>] | --analyze [ <linkname> ] |\n"
 "\t\t--DoMove <args> <move> | --Primitive <args> | \n"
-"\t\t--PrintPosition <args> --GenerateMoves <args>} | --help}\n\n"
+"\t\t--PrintPosition <args> --GenerateMoves <args>} | --hashCounting |\n"
+"\t\t--help}\n\n"
 "--nodb\t\t\tStarts game without loading or saving to the database.\n"
 "--newdb\t\t\tStarts game and clobbers the old database.\n"
 "--numoptions\t\tPrints the number of options.\n"
@@ -215,4 +216,5 @@ STRING kCommandSyntaxHelp =
 "--DoMove <args>\n"
 "--Primitive <args>\n"
 "--PrintPosition <args>\n"
-"--GenerateMoves <args>\n\n";
+"--GenerateMoves <args>\n"
+"--hashCounting\t\tStarts the generic-hash counting tool instead of the game.\n\n";

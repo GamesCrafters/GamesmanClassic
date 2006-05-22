@@ -304,7 +304,10 @@ void HandleArguments (int argc, char *argv[])
                         gNetworkDB = TRUE;
 			ServerAddress = argv[i+1]; 
                         i++;
-                } else {
+                } else if(!strcasecmp(argv[i],"--hashCounting")) {
+						hashCounting();
+						return;
+				} else {
                         fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
                         gMessage = TRUE;
                         i += argc;

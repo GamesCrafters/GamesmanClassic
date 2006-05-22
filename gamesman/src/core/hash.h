@@ -61,6 +61,7 @@ POSITION generic_hash(char* board, int player);
 char* generic_unhash_tcl(POSITION pos);
 char* generic_unhash(POSITION hashed, char* dest);
 int whoseMove (POSITION hashed);
+void hashCounting(void);
 
 #endif /* GMCORE_HASH_H */
 

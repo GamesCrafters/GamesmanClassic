@@ -110,6 +110,51 @@ int* 		gPieceDist (int i);
 **
 *******************************/
 
+void hashCounting()
+{
+	char* buffer=(char*)malloc(1000*sizeof(char));
+	while(1)
+	{
+		int size=0;
+		int *piecesArray=(int*)malloc(sizeof(int));
+		int arrSize=1;
+		POSITION max=0;
+		piecesArray[0]=-1;
+		int cur=0;
+		char read=0;
+		printf("Boardsize:\t");
+		scanf("%d",&size);
+		while(1)
+		{
+			printf("\nEnter a piece character ('~' to stop):\t");
+			gets(buffer);
+			scanf("%c",&read);
+			cur=(int)read;
+			if(cur=='~') break;
+			piecesArray=realloc(piecesArray,(arrSize+3)*sizeof(int));
+			arrSize+=3;
+			piecesArray[arrSize-1]=-1;
+			piecesArray[arrSize-2]=0;
+			piecesArray[arrSize-3]=0;
+			piecesArray[arrSize-4]=cur;
+			printf("Enter the minimum number of this piece on the board:\t");
+			scanf("%d",piecesArray+arrSize-3);
+			printf("Enter the maximum number of this piece on the board:\t");
+			scanf("%d",piecesArray+arrSize-2);
+		}
+		printf("\n\nSummary:\n");
+		for(cur=0;cur<arrSize-1;cur+=3)
+		{
+			printf("\t%d\t<\t'%c'\t<\t%d\n",piecesArray[cur+1],piecesArray[cur],piecesArray[cur+2]);
+		}
+		generic_hash_destroy();
+		max=generic_hash_init(size,piecesArray,0);
+		printf("\nMaximum board positions:\t%llu\n\n\n",max);
+		free(piecesArray);
+	}
+	return;
+}
+
 /* initializes hash tables and critical values */
 POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 {
