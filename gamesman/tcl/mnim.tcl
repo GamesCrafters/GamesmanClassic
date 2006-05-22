@@ -7,6 +7,13 @@
 # You must set the global variables kGameName, gInitialPosition,
 # kCAuthors, kTclAuthors, and kGifAuthors in this function.
 
+# global var used, for hopefully scaling later
+# also to fix a graphical bug due to hardcoding
+# 5-23-06 David Chan
+# 
+set CANVAS_HEIGHT 0
+set CANVAS_WIDTH 0
+
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -33,6 +40,11 @@ proc GS_InitGameSpecific {} {
     set valueMoveColorWin green
     set valueMoveColorOff cyan
 
+    global gFrameWidth gFrameHeight CANVAS_WIDTH CANVAS_HEIGHT
+    
+    set CANVAS_WIDTH [min $gFrameWidth $gFrameHeight]
+    set CANVAS_HEIGHT $CANVAS_WIDTH
+    
 
     global kMinRows kMaxRows
     set kMinRows 1
@@ -266,7 +278,7 @@ proc unhash { position } {
 proc GS_DrawPosition { c position } {
     
     set l [unhash $position]
-    
+    global CANVAS_HEIGHT
     global gRows size
     for {set j 0} {$j<7} {incr j} {
 	for {set i 0} {$i<$gRows} {incr i} {
@@ -283,7 +295,9 @@ proc GS_DrawPosition { c position } {
     for {set i 1} {$i<=$gRows} {incr i} {
 	set height [lindex $l [expr $i-1]]
 	for {set j 7} {$j>$height} {incr j -1} {
-	    $c move move-$i$j 0 -400
+	    #changed to fix the undo graphical bug
+	    # used to be hardcoded value of -400
+	    $c move move-$i$j 0 -$CANVAS_HEIGHT
 	}
     }
 }
