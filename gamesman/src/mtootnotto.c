@@ -6,7 +6,7 @@
 **
 ** AUTHOR:      Kyler Murlas and Zach Wasserman
 **
-** DATE:        2006-04-14
+** DATE:        2006-05-09
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
@@ -31,6 +31,10 @@
 **				2006-04-21	Primitive now handles both players winning at
 **							the same time. It returns a tie. PrintPosition
 **							has improvements suggested. Added GameSpecificMenu.
+**				2006-05-09	Added MoveToString.
+**				2006-05-22	Edited help strings. Fixed primitive to return tie
+**							if both players are out of pieces and there is no
+**							win or lose.
 **************************************************************************/
 
 /*************************************************************************
@@ -69,8 +73,6 @@ POSITION kBadPosition         = -1;
 
 void*	 gGameSpecificTclInit = NULL;
 
-BOOLEAN  gLibraries           = FALSE;
-
 /*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
@@ -103,10 +105,79 @@ diagonally. First player to spell their name LOSES.\n\
 The first player is Toot, second player Otto.";
 
 STRING   kHelpTieOccursWhen =
-"A tie occurs when the board is filled and there is no winner.";
+"the board is filled and there is no winner\n\
+OR both players win with one move\n\
+OR both players run out of pieces.";
 
-STRING   kHelpExample =
-"";
+STRING   kHelpExample ="";
+/*"        +-------------+\n\
+        |             |												\n\
+        |   1 2 3 4   | You (OTTO) have:        TTTT    OOOO		\n\
+        |   | | | |   | Player 2 (TOOT) has:    TTTT    OOOO		\n\
+        |   V V V V   |         Player's turn						\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |    (Player should Tie in 16)				\n\
+        |             |												\n\
+        +-------------+												\n\n\
+
+  Player's move [(u)ndo/1-4 T or O]     :  1t						\n\n\
+
+        +-------------+												\n\
+        |             |												\n\
+        |   1 2 3 4   |    Player 1 (OTTO) has: TTT     OOOO		\n\
+        |   | | | |   | Player 2 (TOOT) has:    TTTT    OOOO		\n\
+        |   V V V V   |         Data's turn							\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   T - - -   |    (Data will Win in 13)					\n\
+        |             |												\n\
+        +-------------+												\n\n\
+
+    Data's move                         :  4t						\n\
+        +-------------+												\n\
+        |             |												\n\
+        |   1 2 3 4   | You (OTTO) have:        TTT     OOOO		\n\
+        |   | | | |   | Player 2 (TOOT) has:    TTT     OOOO		\n\
+        |   V V V V   |         Player's turn						\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   T - - T   |    (Player will Lose in 12)					\n\
+        |             |												\n\
+        +-------------+												\n\n\
+
+  Player's move [(u)ndo/1-4 T or O]     :  2o						\n\n\
+
+        +-------------+												\n\
+        |             |												\n\
+        |   1 2 3 4   |    Player 1 (OTTO) has: TTT     OOO			\n\
+        |   | | | |   | Player 2 (TOOT) has:    TTT     OOOO		\n\
+        |   V V V V   |         Data's turn							\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   T O - T   |    (Data will Win in 1)						\n\
+        |             |												\n\
+        +-------------+												\n\n\
+
+    Data's move                         :  3o						\n\
+        +-------------+												\n\
+        |             |												\n\
+        |   1 2 3 4   | You (OTTO) have:        TTT     OOO			\n\
+        |   | | | |   | Player 2 (TOOT) has:    TTT     OOO			\n\
+        |   V V V V   |         Player's turn						\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   - - - -   |												\n\
+        |   T O O T   |    (Player will Lose in 0)					\n\
+        |             |												\n\
+        +-------------+												\n\n\n\
+
+
+Data (player two) Wins!";*/
 
 
 
@@ -168,6 +239,7 @@ int INIT_O = 4;  //Cannot exceed 7
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
+STRING MoveToString(MOVE);
 
 
 /*************************************************************************
@@ -201,7 +273,6 @@ int MyInitialPosition() {
 	for (i=1;i<=TNO_WIDTH;++i)
 		p = (p << (TNO_HEIGHT+1))+1;
 	
-		
 	return p;
 }
 
@@ -272,6 +343,7 @@ void InitializeGame ()
 {
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition = MyInitialPosition();
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -299,7 +371,7 @@ void PiecesOnBoard(pos)
 void PositionToPieces(pos)
 	  POSITION pos;
 {
-  int i;
+  unsigned long i;
   i = (TNO_HEIGHT+1)*TNO_WIDTH;
   Player1.t = pos >> (i+3);
   Player1.o = (pos >> i) & 7;
@@ -491,168 +563,15 @@ POSITION DoMove (POSITION position, MOVE move)
 **
 ************************************************************************/
 
-/*
-VALUE Primitive (POSITION position)
-{
-
-  TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-  int col,row, player1=1, t=1, blank=2, count=0;
-  PositionToBoard(position, board); // Temporary storage.
-
-
-  // Check for toot/otto on the columns
-  for(col=0; col<TNO_WIDTH; col++)
-  {
-	 for(row=0; row<(TNO_HEIGHT-3); row++)
-	 {
-		if(   (board[col][row]   == board[col][row+3])
-			&& (board[col][row+1] == board[col][row+2])
-			&& (board[col][row]   != board[col][row+2])
-			&& (board[col][row]   != blank) //check blanks
-			&& (board[col][row+1] != blank)) //check blanks
-		{
-			//printf("Column Win [%i][%i]", col, row);
-			if(board[col][row]==t)
-			{                                        //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			} // if
-			else
-			{                              //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-			} // else
-		 } // if
-	  } // row for
-	}// col for
-
-
-  // Check for toot/otto on the rows
-  for(col=0; col<(TNO_WIDTH-3); col++)
-  {
-	 for(row=0; row<TNO_HEIGHT; row++)
-	 {
-		if(   (board[col][row]   == board[col+3][row])
-			&& (board[col+1][row] == board[col+2][row])
-			&& (board[col][row]   != board[col+2][row])
-			&& (board[col][row]   != blank)
-			&& (board[col+1][row] != blank))
-		{
-			//printf("Row Win [%i][%i]", col, row);
-			if(board[col][row]==t)
-			{                                        //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			} // if
-			else
-			{                              //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-			} // else
-		 } // if
-	  } // row for
-	} // col for
-
-  // Check for toot/otto on the diagonals
-  for(col=0; col<(TNO_WIDTH-3); col++)
-  {
-	 for(row=0; row<(TNO_HEIGHT-3); row++)
-	 {
-		if(   (board[col][row]     == board[col+3][row+3])
-			&& (board[col+1][row+1] == board[col+2][row+2])
-			&& (board[col][row]     != board[col+2][row+2])
-			&& (board[col][row]     != blank)
-			&& (board[col+1][row+1] != blank))
-		{
-			//printf("Diag A Win [%i][%i]", col, row);
-			if(board[col][row]==t)
-			{                                        //Checks if its toot or otto
-				if(WhoseTurn(position)==player1)      //then checks whose turns it
-					return win;                        //is to return right thing
-				else                        //(WhoseTurn(position)==player2)
-					return lose;
-			} // if
-			else                           //(board[col]row]==o)
-			{
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        //(WhoseTurn(position)==player2)
-					return win;
-			} // else
-		 } // if
-	  } // row for
-	} // col for
-
-  for(col=0; col<(TNO_WIDTH-3); col++)
-  {
-	 for(row=3; row<TNO_HEIGHT; row++)
-	 {
-		if(   (board[col][row]     == board[col+3][row-3])
-			&& (board[col+1][row-1] == board[col+2][row-2])
-			&& (board[col][row]     != board[col+2][row-2])
-			&& (board[col][row]     != blank)
-			&& (board[col+1][row-1] != blank))
-		{
-			//printf("Diag B Win [%i][%i]", col, row);
-			if(board[col][row]==t)
-			{                                   //Checks if its toot or otto
-				if(WhoseTurn(position)==player1) //then checks whose turns it
-				{
-					return win;
-				} //if                     //is to return right thing
-				else                       //(WhoseTurn(position)==player2)
-					return lose;
-			} // if
-			else
-			{                          //(board[col]row]==o)
-				if(WhoseTurn(position)==player1)
-					return lose;
-				else                        // then (WhoseTurn(position)==player2)
-					return win;
-			} // else
-		 } // if
-	  } // row for
-	} // col for
-
-  // If board is filled and there is no winner, game is tie.
-  for (col=0;col<TNO_WIDTH;col++){
-	 for (row=0;row<TNO_HEIGHT;row++){
-		if (board[col][row]==0 || board[col][row]==1){
-			count++;
-		} // if
-	 } // for
-  } // for
-
-  if(count == (TNO_HEIGHT*TNO_WIDTH)){
-		return tie;
-  } // if
-  // If no win and board is not filled, its undecided
-
-  return undecided;
-}*/
 
 VALUE Primitive (POSITION position)
 {
-  
-  if (!gLibraries) {
 
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   int col,row, player1=1, t=1, blank=2, count=0, ottoWins=0, tootWins=0;
   PositionToBoard(position, board); // Temporary storage.
 
-/*  for (col=0;col<TNO_WIDTH;col++)
-	 board[col][TNO_HEIGHT]=2;
-  for (col=0;col<TNO_WIDTH;col++)
-	 for (row=0;row<TNO_HEIGHT;row++)
-		board[col][row] = gPosition.board[col][row];*/
+
 
   // Check for toot/otto on the columns
   for(col=0; col<TNO_WIDTH; col++)
@@ -820,45 +739,11 @@ VALUE Primitive (POSITION position)
 		return tie;
 	} // if
 	// If no win and board is not filled, its undecided
+	
+	PiecesOnBoard(position);
+	if(Board.total == (INIT_T + INIT_O) * 2) return tie;
 
 	return undecided;
-  } else {
-
-      TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-      int i,j;
-      BOOLEAN hasToot;
-      BOOLEAN hasOtto;
-      int blank = Blank;
-      TOBlank toot[4] = {t, o, o, t};
-      TOBlank otto[4] = {o, t, t, o};
-      TOBlank boardArray[TNO_WIDTH*TNO_HEIGHT];
-      PositionToBoard(position, board); // Temporary storage.
-
-      for(i=TNO_HEIGHT-1;i>=0;i--) { //copy board into 1D array. (too lazy to decypher unhash and always unhash to this)
-	for(j=0;j<TNO_WIDTH;j++) {
-	  boardArray[j + (TNO_HEIGHT - 1 - i)*TNO_WIDTH] = board[j][i];
-	}
-      }
-
-      hasToot = OneDMatch(boardArray,toot,0,TRUE,4);
-      hasOtto = OneDMatch(boardArray,otto,0,TRUE,4);
-
-      //printf("hasToot = %d and hasOtto = %d\n",hasToot,hasOtto);
-
-      if (hasToot && hasOtto) {
-	return tie;
-      } else if (hasToot) {
-	return ((WhoseTurn(position)==1) ? lose : win);
-      } else if (hasOtto) {
-	return ((WhoseTurn(position)==1) ? win : lose);
-      }
-
-      if (amountOfWhat(boardArray,&blank,1,TRUE)) {
-	return undecided;
-      } else {
-	return tie;
-      }
-  }
 }
 
 
@@ -969,7 +854,7 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 
 void PrintComputersMove(MOVE computersMove, STRING computersName)
 {		
-	printf("%8s's move				:  %i%c",
+	printf("%8s's move				:  %i%c\n",
 	computersName, moveUnhashCol(computersMove), moveUnhashPiece(computersMove));
 }
 
@@ -1024,6 +909,25 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	return(Continue);
 }
 
+
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+** 
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+STRING MoveToString (theMove)
+     MOVE theMove;
+{
+  STRING move = (STRING) SafeMalloc(4);
+  
+  sprintf(move, "%d%c", moveUnhashCol(theMove), moveUnhashPiece(theMove)); 
+  return move;
+}
 
 
 /************************************************************************
@@ -1116,11 +1020,6 @@ void GameSpecificMenu ()
 		printf("\t4x4 solves, 4x5 works player vs. player, 4x6 does not work\n\n");
 		printf("\tt)\tChoose the starting # of Ts Currently: %d\n", INIT_T);
 		printf("\to)\tChoose the starting # of Os Currently: %d\n", INIT_O);
-		if (gLibraries) {
-		  printf("\tl)\tToggle use of game function libraries. Currently: On");
-		} else {
-		  printf("\tl)\tToggle use of game function libraries. Currently: Off");
-		}
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
 		
@@ -1148,15 +1047,6 @@ void GameSpecificMenu ()
 			scanf("%d", &temp);
 			INIT_O = temp;
 			break;
-		case 'L': case 'l':
-		  if (gLibraries) {
-		    gLibraries = FALSE;
-		  } else {
-		    gLibraries = TRUE;
-		    LibInitialize(4,TNO_HEIGHT,TNO_WIDTH,TRUE);
-		    Test();
-		  }
-		  break;
 		case 'b': case 'B':
 			return;
 		default:
