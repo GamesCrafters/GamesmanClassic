@@ -101,7 +101,8 @@ VALUE DetermineLoopyValue(POSITION position)
 	//printf("Got here\n");
 	//PrintOpenDataFormatted();
     /* free */
-    //NumberChildrenFree();
+    NumberChildrenFree();	// Not sure why this was commented out, but not making
+    						// this call was causing memory leaks
     ParentFree();
     //FreeVisitedArray();
     

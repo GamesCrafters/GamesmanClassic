@@ -11,7 +11,7 @@ VALUE   (*original_put_value) (POSITION pos, VALUE val);
 #endif
 */
 
-#define ANALYSIS_FILE_VER 3
+#define ANALYSIS_FILE_VER 4
 
 /* Functions to output sets of data */
 
@@ -47,6 +47,7 @@ void	writeVarHTML			();
 BOOLEAN	CorruptedValuesP		();
 
 float	PercentDone			(STATICMESSAGE msg);
+void	InitializeAnalysis();
 
 /* Analysis XML Support */
 
@@ -87,9 +88,9 @@ typedef struct analysis_info
   int HashEfficiency;
   float AverageFanout;
   float InitialPositionProbability;
-  POSITION DetailedPositionSummary[REMOTENESS_MAX+1][4];		/* Table for counting wins(1) and losses(2) and ties(3) 
-															*at each remoteness between 0 and REMOTENESS_MAX-1.  Change back to 0,1,2, maybe rid of 4?   */
   
+  POSITION DetailedPositionSummary[REMOTENESS_MAX+1][3];  // Table for counting wins(1) and losses(2) and ties(3) 
+															// at each remoteness between 0 and REMOTENESS_MAX-1.
   POSITION DetailedOpenSummary[11][11][REMOTENESS_MAX+1][4]; /* [Level][Corruption][FRemoteness][drawvalue] */
   POSITION OpenSummary[4];
   

@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.28 2006-05-08 07:15:41 simontaotw Exp $
+// $Id: mcambio.c,v 1.29 2006-05-25 04:39:03 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -264,7 +264,7 @@ MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST *moves = NULL;
 	MOVELIST *CreateMovelistNode();
-	char *gBoard = (char *) malloc(boardSize*sizeof(char));
+	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 	char opposymbol;
 	int countA, countB, turn, i;
 	
@@ -1087,6 +1087,9 @@ BOOLEAN ThreeInARow(char *board, char symbol)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2006/05/08 07:15:41  simontaotw
+// Fixed some bugs. Game solves.
+//
 // Revision 1.27  2006/05/04 04:59:29  simontaotw
 // Changed winning condition in DoMove.
 //

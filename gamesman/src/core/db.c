@@ -109,9 +109,9 @@ void db_create() {
 
 void db_destroy() {
     if(db_functions) {
-	if(db_functions->free_db)
-	    db_functions->free_db();
-	SafeFree(db_functions);
+		if(db_functions->free_db)
+	    	db_functions->free_db();
+		SafeFree(db_functions);
     }
 }
 

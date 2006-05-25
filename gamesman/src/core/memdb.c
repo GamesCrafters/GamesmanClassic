@@ -95,20 +95,20 @@ void memdb_init(DB_Table *new_db)
         BOOLEAN useFile = gZeroMemPlayer;
 
         if(useFile) {
-                //try openning the data file
-                sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
-                if((filep = gzopen(outfilename, "rb")) == NULL)
-                        useFile = FALSE;
-                else {
-                        goodDecompression = gzread(filep,dbVer,sizeof(short));
-                        goodDecompression = gzread(filep,numPos,sizeof(POSITION));
-                        *dbVer = ntohs(*dbVer);
-                        *numPos = ntohl(*numPos);
-                        if((*numPos != gNumberOfPositions) || (*dbVer != FILEVER)) {
-                                printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions or incorrect version\n\n");
-                                useFile = FALSE;
-                        }
-                }
+        	//try openning the data file
+        	sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
+        	if((filep = gzopen(outfilename, "rb")) == NULL) {
+        		useFile = FALSE;
+   		    } else {
+        		goodDecompression = gzread(filep,dbVer,sizeof(short));
+	        	goodDecompression = gzread(filep,numPos,sizeof(POSITION));
+    	    	*dbVer = ntohs(*dbVer);
+        		*numPos = ntohl(*numPos);
+        		if((*numPos != gNumberOfPositions) || (*dbVer != FILEVER)) {
+        			printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions or incorrect version\n\n");
+        			useFile = FALSE;
+        		}
+        	}
         }
         //set function pointers
         if(useFile) {
@@ -121,7 +121,7 @@ void memdb_init(DB_Table *new_db)
                 new_db->put_mex = NULL;
                 new_db->free_db = memdb_close_file;
 
-		dirty = TRUE;
+				dirty = TRUE;
         } else {
                 memdb_get_raw = memdb_get_raw_ptr;
 
@@ -145,8 +145,6 @@ void memdb_init(DB_Table *new_db)
         new_db->get_mex = memdb_get_mex;
         new_db->save_database = memdb_save_database;
         new_db->load_database = memdb_load_database;
-
-
 }
 
 void memdb_free()

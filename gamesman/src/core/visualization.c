@@ -244,7 +244,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 			}
 		}
 	}
-	printf("Levels resized: %d, tree resized: %d\n", resizeLevelCount, resizeCount);
+	//printf("Levels resized: %d, tree resized: %d\n", resizeLevelCount, resizeCount);
 }
 
 void Write(FILE *fp, EDGELIST *tree) {
@@ -626,6 +626,7 @@ FILE *PrepareDOTFile() {
 	char dirName[256];
 	
 	sprintf(dirName, "visualization/m%s", kDBName);
+	mkdir("visualization", 0755);
 	mkdir(dirName, 0755);
 	/*
 	sprintf(fileName, "visualization/m%s_%d_vis.dot", kDBName, getOption());

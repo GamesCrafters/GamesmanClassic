@@ -27,7 +27,7 @@ extern REMOTENESS 	gMaxRemoteness, gMinRemoteness;
 /*
 ** Visualization globals
 */
-extern BOOLEAN gDrawEdges, gRemotenessOrder, gGenerateNodeViz;
+extern BOOLEAN gDrawEdges, gRemotenessOrder, gGenerateNodeViz, gVisualizing;
 
 
 /*

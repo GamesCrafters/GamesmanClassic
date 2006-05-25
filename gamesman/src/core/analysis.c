@@ -63,6 +63,17 @@ char xmlDir[256];
 ** Code
 */
 
+void InitializeAnalysis() {
+	theLargestRemoteness = 0;
+	winCount = loseCount = tieCount = unknownCount = 0;	// CHANGED from UINT (change back if no worky)
+	primitiveWins = primitiveLoses = primitiveTies = 0;
+	reachablePositions = 0;
+	totalPositions = 0;
+	hashEfficiency = 0;
+	averageFanout = 0;
+	memset(&gAnalysis, 0, sizeof(gAnalysis));
+}
+
 void PrintRawGameValues(BOOLEAN toFile)
 {
     FILE *fp;
@@ -222,26 +233,26 @@ void PrintDetailedGameValueSummary()
    }
    printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
 
-   printf("\tRemoteness          Win         Lose         Tie         Draw        Total\n");
+   printf("\tRemoteness          Win         Lose          Tie         Draw        Total\n");
    printf("\t------------------------------------------------------------------------------\n");
-   printf("\t       Inf  %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0],
+   printf("\t       Inf   %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0],
    			gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][1], gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][2],
-       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3]-gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][2]-
-       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][1]-gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0], 
-       		gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3]);
+       		gAnalysis.Draws, 
+       		gAnalysis.Draws);
    for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness-=1) {
        if(gAnalysis.DetailedPositionSummary[currentRemoteness][0] == 0 && gAnalysis.DetailedPositionSummary[currentRemoteness][1] == 0
            && gAnalysis.DetailedPositionSummary[currentRemoteness][2] == 0) continue;
 
-          printf("\t%10d  %10llu   %10llu   %10llu   %10llu   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
+          printf("\t%10d   %10llu   %10llu   %10llu   %10d   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
    			gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2], 
-   			gAnalysis.DetailedPositionSummary[currentRemoteness][3]-gAnalysis.DetailedPositionSummary[currentRemoteness][2]-
-   			gAnalysis.DetailedPositionSummary[currentRemoteness][1]-gAnalysis.DetailedPositionSummary[currentRemoteness][0],
-       		gAnalysis.DetailedPositionSummary[currentRemoteness][3]);
+   			0,
+       		gAnalysis.DetailedPositionSummary[currentRemoteness][2]+
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][1]+
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][0]);
    }
 
    printf("\t------------------------------------------------------------------------------\n");
-   printf("\tTotals      %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount,
+   printf("\tTotals       %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.WinCount, gAnalysis.LoseCount, gAnalysis.TieCount,
    			gAnalysis.Draws, gAnalysis.TotalPositions);
    if (gAnalysis.Draws != 0) {
 	   printf("\tDraws = %llu\n\n", gAnalysis.Draws);
@@ -249,7 +260,8 @@ void PrintDetailedGameValueSummary()
    }
    printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
    
-	PrintDetailedOpenSummary(); //ALAN
+	if(gUseOpen && kLoopy)
+		PrintDetailedOpenSummary(); //ALAN
    return;
 }
 
@@ -455,7 +467,6 @@ void AnalysisCollation()
     gAnalysis.NumberOfPositions = gNumberOfPositions;
     gAnalysis.TotalPrimitives   = gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies;
 	gAnalysis.LargestFoundRemoteness = theLargestRemoteness;  //ADDED
-	gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][3] = gAnalysis.Draws;
 	
 	gAnalysisLoaded = TRUE;
 }
@@ -987,7 +998,7 @@ void writeXML(STATICMESSAGE msg)
                 writeXMLData();
                 //printf("\nSaving XML data for option %d", getOption());
             } else {
-            	//printf("\nCouldn't write XML data for option %d", getOption());
+            	printf("\nCouldn't write XML data for option %d", getOption());
             }
             break;
         case SaveVar:
@@ -996,7 +1007,7 @@ void writeXML(STATICMESSAGE msg)
                 writeXMLVarData();
                 //printf("\nSaving XML Var data for option %d", getOption());
             } else {
-            	//printf("\nCouldn't write XML Var data for option %d", getOption());
+            	printf("\nCouldn't write XML Var data for option %d", getOption());
             }
             break;
         case Clean:
@@ -1084,6 +1095,7 @@ void writeXMLData()
     fprintf(xmlFile,"\t\t\t<fanout>%2f</fanout>\n",gAnalysis.AverageFanout);
     fprintf(xmlFile,"\t\t</positionstats>\n");
     fprintf(xmlFile,"\t\t<time>%d</time>\n",gAnalysis.TimeToSolve);
+    fprintf(xmlFile,"\t\t<maxremoteness>%d</maxremoteness>\n",gAnalysis.LargestFoundRemoteness);
     fprintf(xmlFile,"\t</variant>\n");
     fflush(xmlFile);
 }
@@ -1102,17 +1114,20 @@ void writeXMLVarData()
     fprintf(xmlVarFile,"\t\t<positionstats>\n");
     fprintf(xmlVarFile,"\t\t\t<total>%llu</total>\n",gAnalysis.TotalPositions);
     fprintf(xmlVarFile,"\t\t</positionstats>\n");
-	fprintf(xmlVarFile,"\t\t<remotenessstats>\n");
+    fprintf(xmlVarFile,"\t</variant>\n");
+    
 	/* write array of remoteness stats */
 	for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness--) {
-		fprintf(xmlVarFile,"\t\t\t<remoteness level=\"%d\">\n", currentRemoteness);
-		fprintf(xmlVarFile,"\t\t\t\t<win>%llu</win>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][0]);
-		fprintf(xmlVarFile,"\t\t\t\t<lose>%llu</lose>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][1]);
-		fprintf(xmlVarFile,"\t\t\t\t<tie>%llu</tie>\n",gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
-		fprintf(xmlVarFile,"\t\t\t</remoteness>\n");
+		fprintf(xmlVarFile,"\t<remoteness level=\"%d\">\n", currentRemoteness);
+		fprintf(xmlVarFile,"\t\t<win>%llu</win>\n", gAnalysis.DetailedPositionSummary[currentRemoteness][0]);
+		fprintf(xmlVarFile,"\t\t<lose>%llu</lose>\n", gAnalysis.DetailedPositionSummary[currentRemoteness][1]);
+		fprintf(xmlVarFile,"\t\t<tie>%llu</tie>\n", gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+		fprintf(xmlVarFile,"\t\t<draw>0</draw>\n");
+		fprintf(xmlVarFile,"\t\t<total>%llu</total>\n", gAnalysis.DetailedPositionSummary[currentRemoteness][0]+
+														gAnalysis.DetailedPositionSummary[currentRemoteness][1]+
+														gAnalysis.DetailedPositionSummary[currentRemoteness][2]);
+		fprintf(xmlVarFile,"\t</remoteness>\n");
 	}
-	fprintf(xmlVarFile,"\t\t</remotenessstats>\n");
-	fprintf(xmlVarFile,"\t</variant>\n");
 	fflush(xmlVarFile);
 }
 

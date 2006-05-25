@@ -76,7 +76,9 @@ BOOLEAN gUseGPS = FALSE;
 BOOLEAN gBottomUp = FALSE;    	  /* Default is no bottom up solving, should enable for only win4 */
 BOOLEAN gZeroMemSolver = FALSE;	  /* Zero Memory Overhead Solver, default: FALSE */
 BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
-				   * solved, default: FALSE */
+				   				   * solved, default: FALSE */
+BOOLEAN gVisualizing = FALSE;	  /* Write visualization for each variant solved,
+									 default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gSymmetries = FALSE;
 BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */

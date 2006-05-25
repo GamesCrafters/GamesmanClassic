@@ -788,7 +788,7 @@ void GameSpecificMenu ()
   int *input;
   char option[2];
   STRING versionName;
-  input = (int *) malloc(1*sizeof(int));
+  input = (int *) SafeMalloc(1*sizeof(int));
 
   while(TRUE) {
     versionName = (captureVersion == VERSION_NO_CORNER ?

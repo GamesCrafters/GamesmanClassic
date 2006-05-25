@@ -179,6 +179,7 @@ void ExitStageRightErrorString(char errorMsg[])
         exit(1);
 }
 
+
 GENERIC_PTR SafeMalloc(size_t amount)
 {
         GENERIC_PTR ptr;

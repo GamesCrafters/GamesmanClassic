@@ -174,7 +174,7 @@ void SolveAndStore()
 {
 		Initialize();
         InitializeDatabases();
-        InitializeOpenPositions(gNumberOfPositions);
+        InitializeAnalysis();
         gAnalysis.TotalMoves = 0;
         DetermineValue(gInitialPosition);
         gAnalysis.TimeToSolve = Stopwatch();
@@ -186,7 +186,10 @@ void SolveAndStore()
                 writeXML(Save);
                 writeXML(SaveVar);
                 writeXML(CleanVar);
-                Visualize();
+        }
+        
+        if (gVisualizing) {
+        	Visualize();
         }
 }
 
@@ -258,12 +261,14 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--analyze")) {
                         gJustSolving = TRUE;
                         gAnalyzing = TRUE;
-                        gSolvingAll = TRUE;
+                        //gSolvingAll = TRUE;
                         createAnalysisGameDir();
                         //writeGameHTML(); DEPRECATED
                         //createVarTable(); DEPRECATED
                 } else if(!strcasecmp(argv[i], "--open")) {
                 		gUseOpen = TRUE;
+               	} else if(!strcasecmp(argv[i], "--visualize")) {
+                		gVisualizing = TRUE;
                 } else if(!strcasecmp(argv[i], "--DoMove")) {
                         InitializeGame();
                         if(argc != 4)
@@ -336,6 +341,10 @@ int gamesman_main(STRING executableName)
                 else if(!gSolvingAll) {
                         fprintf(stderr, "Solving \"%s\" option %u....", kGameName, getOption());
                         fflush(stderr);
+                        if (gAnalyzing) {
+                        	writeXML(Init);
+                        	writeXML(InitVar);
+                        }
                         SolveAndStore();
                         fprintf(stderr, "done.\n");
                 } else {

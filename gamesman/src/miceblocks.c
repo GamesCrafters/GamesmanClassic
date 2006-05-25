@@ -790,7 +790,7 @@ int vcfg (int *this_cfg) {
  ***********************************************************************/
 
 BOARD arraytoboard (POSITION position) {
-  char *theBoard = (char *) malloc(sumto(base) * sizeof(char));
+  char *theBoard = (char *) SafeMalloc(sumto(base) * sizeof(char));
   int i, j, k;
   BOARD board = (BOARD) SafeMalloc(sizeof(struct boardRep));
   board->spaces = (int **) SafeMalloc(base * sizeof(int *));
