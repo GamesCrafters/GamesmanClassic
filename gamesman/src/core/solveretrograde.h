@@ -17,7 +17,6 @@ void FileCloseError();
 /* Reading files */
 POSITION readPos(FILE*);
 int readSolveFile(FILE*);
-void skipLineSolveFile(FILE*);
 
 /* Writing files */
 void writeChildrenToFile(FILE*, POSITIONLIST*);

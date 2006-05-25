@@ -1,5 +1,8 @@
-// $Id: mbaghchal.c,v 1.15 2006-05-08 08:13:07 deepamahajan Exp $
+// $Id: mbaghchal.c,v 1.16 2006-05-25 04:22:51 max817 Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/05/08 08:13:07  deepamahajan
+// *** empty log message ***
+//
 // Revision 1.15  2006/05/08 01:10:00 deepamahajan
 // Added MoveToString and changed board to follow standard chess conventions.
 // Revision 1.14  2006/05/03 06:13:24  ddgarcia
@@ -1403,7 +1406,7 @@ MOVE move;
 		STRING moveStr = (STRING) SafeMalloc(sizeof(char) + sizeof(int));
 		sprintf(moveStr, "%c%d", j + 'a' - 1, length - i + 1);
 		return moveStr;
-	} 
+	}
 	else {
 		move -= boardSize;
 		jump = move % 2;
@@ -1466,6 +1469,29 @@ int RetrogradeTierValue(POSITION position) {
 		if (NumGoats+goat <= goats) //Check Legality
 			return goats+NumGoats;
 		else return -1; //a bad position
+		/*
+		int turn = whoseTurn(position);
+		if (turn == PLAYER_TWO) {// tiger's turn
+			if (NumGoats < 1 || NumGoats > GOATS_MAX-1 ||
+				goat < 1 || goat > GOATS_MAX-NumGoats)
+				return -1;
+			return sumFromAToB(GOATS_MAX-NumGoats+1, GOATS_MAX)*2+goat;
+		} else {// goat's turn
+			if (NumGoats < 1 || NumGoats > GOATS_MAX ||
+				goat < 0 || goat > GOATS_MAX-NumGoats)
+				return -1;
+			return sumFromAToB(GOATS_MAX-NumGoats+2, GOATS_MAX)*2+(GOATS_MAX-NumGoats+1)+goat+1;
+		}
+		*/
 	}
 	return goat;
 }
+
+/*
+int sumFromAToB(int a, int b) {
+	int sum = 0, i;
+	for (i = a; i <= b; i++)
+		sum += i;
+	return sum;
+}
+*/

@@ -1,5 +1,9 @@
-// $Id: solveretrograde.c,v 1.3 2006-04-17 07:36:38 max817 Exp $
+// $Id: solveretrograde.c,v 1.4 2006-05-25 04:22:51 max817 Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2006/04/17 07:36:38  max817
+// mbaghchal.c now has no solver debug code left (i.e. it's independent of anything in solveretrograde.c) and has variants implemented correctly. Aside from the POSITION size stuff, it should be near its final version.
+// As for the solver, all of the main features I wanted to implement are now implemented: it is almost zero-memory (aside from memdb usage), and it's possible to stop and save progress in the middle of solving. Also, ANY game can use the solver now, not just Bagh Chal. All in all, it's close to the final version (for this semester). -Max
+//
 // Revision 1.2  2006/04/13 21:40:56  max817
 // A few changes to mbaghchal and the solver here and then, but mostly
 // submitting to fix a small bug with solveretrograde.h that didn't allow
@@ -29,6 +33,8 @@
 **				-2006.4.16 = Most of the main features are now implemented.
 **					(i.e. working with files (zero-memory), saving progress).
 **					This also should work with ANY game, not just Bagh Chal.
+**				-2006.5.24 = Fixed a small bug that incorrectly labeled ties
+**					as draws.
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -455,11 +461,14 @@ void SolveTier(int tier) {
 	sprintf(filename,"./retrograde/%d.solve",fR);
 	if ((fileR = fopen(filename, "r")) == NULL) FileOpenError();
 	while((pos = readPos(fileR)) != kBadPosition) {
-		skipLineSolveFile(fileR);
-		if (GetValueOfPosition(pos) == undecided) {
+		if ((readSolveFile(fileR)) == 'u') { // non-corrupted position
 			StoreValueOfPosition(pos, tie);
-			SetRemoteness(pos,REMOTENESS_MAX);
-		} else if (Visited(pos)) UnMarkAsVisited(pos); // must've been corrupted, now TRUE
+			if (seenDraw) { // a tie
+				if (minTieRem == REMOTENESS_MAX)
+					SetRemoteness(pos,REMOTENESS_MAX);// a draw
+				else SetRemoteness(pos,minTieRem+1);// else a tie
+			} else SetRemoteness(pos,REMOTENESS_MAX); // a draw
+		} else UnMarkAsVisited(pos); // must've been corrupted, now TRUE
 	}
 	if (fclose(fileR) == EOF) FileCloseError();
 	sprintf(filename,"./retrograde/1.solve");
@@ -752,14 +761,6 @@ int readSolveFile(FILE* fp) {
 	return type;
 }
 
-// This just skips a line in the solve file
-void skipLineSolveFile(FILE* fp) {
-	int c;
-	while ((c = getc(fp)) != '\n') {
-		if (c == EOF) FileSyntaxError();
-	}
-}
-
 /************************************************************************
 **
 ** WRITING FILES
@@ -1045,7 +1046,7 @@ void compareTwoFiles(char *mine, char *theirs) {
 	}
 	int c, line = 1;
 	while ((c = getc(his)) != EOF) {
-		if (c == '3') {
+		if (c == '0') {
 			skipToNewline(his);
 			skipToNewline(my);
 		} else {
