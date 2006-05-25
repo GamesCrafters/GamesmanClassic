@@ -487,7 +487,7 @@ void setOption (int option)
   if      (option == 1)
     gStandardGame = TRUE;
   else if (option == 2)
-    gStandardGame = TRUE;
+    gStandardGame = FALSE;
   else
     BadElse("setOption\n");
 }
