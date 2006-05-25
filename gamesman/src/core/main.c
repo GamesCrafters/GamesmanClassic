@@ -176,8 +176,8 @@ void SolveAndStore()
         InitializeDatabases();
         InitializeAnalysis();
         gAnalysis.TotalMoves = 0;
+        Stopwatch();
         DetermineValue(gInitialPosition);
-        gAnalysis.TimeToSolve = Stopwatch();
 
         if (gAnalyzing) {
                 // Writing HTML Has Now Been Deprecated

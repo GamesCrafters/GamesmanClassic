@@ -441,5 +441,10 @@ MEX MexPrimitive(VALUE value)
 }
 
 STRING get_var_string() {
-	return "Not set";
+	char str[1024];
+	
+	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan)\\nHashcode: %d",
+			(gStandardGame) ? "Standard" : "Misère", (gSymmetries) ? " " : "out ",
+			(kLoopy) ? "(" : "(non-", (kPartizan) ? " " : " non-", getOption());
+	return str;
 }
