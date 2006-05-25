@@ -443,7 +443,7 @@ MEX MexPrimitive(VALUE value)
 STRING get_var_string() {
 	char str[1024];
 	
-	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan)\\nHashcode: %d",
+	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan) Hashcode: %d",
 			(gStandardGame) ? "Standard" : "Misère", (gSymmetries) ? " " : "out ",
 			(kLoopy) ? "(" : "(non-", (kPartizan) ? " " : " non-", getOption());
 	return str;
