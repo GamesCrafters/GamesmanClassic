@@ -438,9 +438,7 @@ VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
             unknownCount++;
         }
     }
-	gAnalysis.DetailedPositionSummary[theRemoteness][3] = gAnalysis.DetailedPositionSummary[theRemoteness][0] +
-														  gAnalysis.DetailedPositionSummary[theRemoteness][1] +
-														  gAnalysis.DetailedPositionSummary[theRemoteness][2];
+
     return(theValue);
 }
     
