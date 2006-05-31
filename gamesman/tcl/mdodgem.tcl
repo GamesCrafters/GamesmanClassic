@@ -200,6 +200,7 @@ proc GS_Initialize { c } {
     set size [min $gFrameWidth $gFrameHeight]
     set r [expr 0.4 * ($size / 4)]
     set goalfontsize [expr int(0.03 * $size)]
+    set smallr [expr 0.12 * ($size / 4)]
 
     # Draw a gray background
     $c create rect 0 0 [expr $size-1] [expr $size-1] -fill gray
@@ -224,8 +225,26 @@ proc GS_Initialize { c } {
     $c create text [expr $size * 7/8] [expr $size * 5/8] -text "Blue" -fill "White" -font "Arial $goalfontsize"
     $c create text [expr $size * 7/8] [expr $size * 7/8] -text "Goal" -fill "White" -font "Arial $goalfontsize"
 
-    # Block out upper right square (maybe add legend in the future)
+    # Block out upper right square
     $c create rect [expr $size * 3/4] 0 $size [expr $size * 1/4] -fill "\#555555"
+
+    # Legend
+    set redx [expr $size * 51/64]
+    set redy [expr $size / 8]
+    set bluex [expr $size * 7/8]
+    set bluey [expr $size * 13/64]
+    set arrowwidth [expr $smallr * 0.4]
+    set arrowhead [list [expr 2*$arrowwidth] [expr 2*$arrowwidth] $arrowwidth]
+    set legendfontsize [expr int(0.03 * $size)]
+    $c create line $redx $redy $redx [expr $redy + $size/13] -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create line $redx $redy $redx [expr $redy - $size/13] -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create line $redx $redy [expr $redx + $size/13] $redy -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create line $bluex $bluey $bluex [expr $bluey - $size/13] -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create line $bluex $bluey [expr $bluex + $size/13] $bluey -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create line $bluex $bluey [expr $bluex - $size/13] $bluey -arrow last -width $arrowwidth -arrowshape $arrowhead -fill cyan
+    $c create oval [expr $redx - $smallr] [expr $redy - $smallr] [expr $redx + $smallr] [expr $redy + $smallr] -fill red
+    $c create oval [expr $bluex - $smallr] [expr $bluey - $smallr] [expr $bluex + $smallr] [expr $bluey + $smallr] -fill blue
+    $c create text $bluex [expr $size * 3/64] -text "Legend" -fill "White" -font "Arial $legendfontsize"
 
     # Draw the Initial Position
     GS_DrawPosition $c $gInitialPosition
