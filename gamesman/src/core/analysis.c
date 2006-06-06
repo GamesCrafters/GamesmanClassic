@@ -34,7 +34,6 @@
 #include "db.h"
 #include "openPositions.h"
 
-
 /*
 ** Globals
 */
@@ -72,6 +71,7 @@ void InitializeAnalysis() {
 	hashEfficiency = 0;
 	averageFanout = 0;
 	memset(&gAnalysis, 0, sizeof(gAnalysis));
+	gAnalysisLoaded = FALSE;
 }
 
 void PrintRawGameValues(BOOLEAN toFile)
