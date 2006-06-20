@@ -1,3 +1,5 @@
+(this file is a bit deprecated and needs updating --Dan 2006-06-19)
+
 Report Created by / Person to blame:  Jonathan Tsai
 
 updated 2004.10.27
