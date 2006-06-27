@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.13 2006-06-27 05:18:18 runner139 Exp $
+// $Id: mquickchess.c,v 1.14 2006-06-27 05:38:14 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -55,8 +55,9 @@
 ** 23 Jun 2006 Adam:  Begin writing gTierValue 
 ** 24 Jun 2006 Adam:  Wrote gTierValue for tiers with 2 and 3 pieces, now need 4-20 YIKES! 
 **                    Also finished writing gUndoMove
-** 25 Jun 2006 Adam: Finished debugging getCanonical() and finished writing 
-**                   MoveToString()
+** 25 Jun 2006 Adam:  Finished debugging getCanonical() and finished writing 
+**                    MoveToString()
+** 26 Jun 2006 Adam:  Made comment of finalized 3x4 starting board
 
 
 **************************************************************************/
@@ -269,11 +270,24 @@ void InitializeGame ()
   
   gMoveToStringFunPtr = &MoveToString;
   gCanonicalPosition = GetCanonicalPosition;
+  /*
+  3x4 Initial Game 
+    +---+---+---+
+  4 | R | K | Q |
+    +---+---+---+
+  3 | B | N | P |
+    +---+---+---+
+  2 | b | n | p |
+    +---+---+---+
+  1 | r | k | q |
+    +---+---+---+
+      a   b   c  
+  */
 
   //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
   //     int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 7, 13, -1};
   // int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 3, 'r', 0, 1, 'k', 1, 1, 'p', 0, 3, 'b', 0, 1, ' ', 3, 13, -1};
-  int pieces_array[22] = {'K', 1, 1, 'R', 0, 1, 'B', 0, 1, 'k', 1, 1, 'r', 0, 1, 'b', 0, 1, ' ', 6, 10, -1};
+    int pieces_array[22] = {'K', 1, 1, 'R', 0, 1, 'B', 0, 1, 'k', 1, 1, 'r', 0, 1, 'b', 0, 1, ' ', 6, 10, -1};
 	char gameBoard[rows*cols];
 	setupPieces(gameBoard);
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
@@ -2181,6 +2195,9 @@ BOOLEAN isBlackReplacementValid(char piece, char *bA) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/06/27 05:18:18  runner139
+// *** empty log message ***
+//
 // Revision 1.8  2006/04/16 10:34:37  vert84
 // *** empty log message ***
 //
