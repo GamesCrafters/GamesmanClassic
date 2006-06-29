@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.15 2006-06-27 23:57:41 runner139 Exp $
+// $Id: mquickchess.c,v 1.16 2006-06-29 22:08:23 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -59,7 +59,7 @@
 **                    MoveToString()
 ** 26 Jun 2006 Adam:  Made comment of finalized 3x4 starting board
 ** 27 Jun 2006 Adam:  Wrote much of generateUndoMoves and accompanying helper functions
-
+** 28 Jun 2006 Adam:  Wrote more of generateUndoMoves: switched white to bottom and black to top
 **************************************************************************/
 
 /*************************************************************************
@@ -973,18 +973,18 @@ void setupPieces(char *Board) {
 	Board[(rows-1)*cols + 1] = BLACK_KING;
 	Board[(rows-1)*cols + 2] = BLACK_ROOK;
 	*/
-	Board[0] = WHITE_BISHOP;
-	Board[1] = WHITE_KING;
-	Board[2] = WHITE_ROOK;
+	Board[0] = BLACK_BISHOP;
+	Board[1] = BLACK_KING;
+	Board[2] = BLACK_ROOK;
 	//	Board[3] = WHITE_PAWN;
      
 	//     Board[5] = WHITE_PAWN;
 
 	//	Board[9] = BLACK_PAWN;
 	//	Board[11] = BLACK_PAWN;
-	Board[9] = BLACK_ROOK;
-	Board[10] = BLACK_KING;
-	Board[11] = BLACK_BISHOP;
+	Board[9] = WHITE_ROOK;
+	Board[10] = WHITE_KING;
+	Board[11] = WHITE_BISHOP;
 }
 
 
@@ -1529,7 +1529,7 @@ void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
  */
 void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
 	
-	if (currentPlayer == WHITE_TURN){
+	if (currentPlayer == BLACK_TURN){
 		//down 1.  Only a legal move if there is no piece there
 		if (i != rows-1 && boardArray[(i+1)*cols + j] == ' ') {
 			MOVE newMove = createMove(i, j, i+1, j);
@@ -1537,20 +1537,20 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				*moves = CreateMovelistNode(newMove, *moves);
 				// check if pawn is at the end
 				if(i + 1 == rows-1) {
-				  if(replacement(boardArray, WHITE_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
+				  if(replacement(boardArray, BLACK_QUEEN)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
+				  if(replacement(boardArray, BLACK_ROOK)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
+				  if(replacement(boardArray, BLACK_BISHOP)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
+				  if(replacement(boardArray, BLACK_KNIGHT)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
 				
@@ -1566,20 +1566,20 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				*moves = CreateMovelistNode(newMove, *moves);
 				// check if pawn is at the end
 				if(i + 1 == rows-1) {
-				  if(replacement(boardArray, WHITE_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
+				  if(replacement(boardArray, BLACK_QUEEN)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
+				  if(replacement(boardArray, BLACK_ROOK)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
+				  if(replacement(boardArray, BLACK_BISHOP)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, WHITE_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
+				  if(replacement(boardArray, BLACK_KNIGHT)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
 				}
@@ -1593,6 +1593,33 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				*moves = CreateMovelistNode(newMove, *moves);
 				// check if pawn is at the end
 				if(i + 1 == rows-1) {
+				  if(replacement(boardArray, BLACK_QUEEN)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
+				    *moves = CreateMovelistNode(newMove, *moves);
+				  }
+				  if(replacement(boardArray, BLACK_ROOK)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
+				    *moves = CreateMovelistNode(newMove, *moves);
+				  }
+				  if(replacement(boardArray, BLACK_BISHOP)) {
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
+				    *moves = CreateMovelistNode(newMove, *moves);
+				  }
+				  if(replacement(boardArray, BLACK_KNIGHT)){
+				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
+				    *moves = CreateMovelistNode(newMove, *moves);
+				  }
+				} 
+			}
+		}
+	} else {
+		//up 1.  Only a legal move if there is no piece there
+		if (i != 0 && boardArray[(i-1)*cols + j] == ' ') {
+			MOVE newMove = createMove(i, j, i-1, j);
+			if (testMove(boardArray, i, i-1, j, j, currentPlayer)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+				// check if pawn is at the end
+				if(i-1 == 0) {
 				  if(replacement(boardArray, WHITE_QUEEN)) {
 				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
 				    *moves = CreateMovelistNode(newMove, *moves);
@@ -1612,33 +1639,6 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				} 
 			}
 		}
-	} else {
-		//up 1.  Only a legal move if there is no piece there
-		if (i != 0 && boardArray[(i-1)*cols + j] == ' ') {
-			MOVE newMove = createMove(i, j, i-1, j);
-			if (testMove(boardArray, i, i-1, j, j, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i-1 == 0) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				} 
-			}
-		}
 		//up 1, left 1.  Only a legal move if captures an enemy piece
 		if (i != 0 && j != 0 && boardArray[(i-1)*cols + j-1] != ' ' && 
 			!isSameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
@@ -1647,20 +1647,20 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				*moves = CreateMovelistNode(newMove, *moves);
 				// check if pawn is at the end
 				if(i-1 == 0) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
+				  if(replacement(boardArray, WHITE_QUEEN)) {
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
+				  if(replacement(boardArray, WHITE_ROOK)){
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
+				  if(replacement(boardArray, WHITE_BISHOP)) {
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
+				  if(replacement(boardArray, WHITE_KNIGHT)){
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
 				} 
@@ -1674,20 +1674,20 @@ void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 				*moves = CreateMovelistNode(newMove, *moves);
 				// check if pawn is at the end
 				if(i-1 == 0) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
+				  if(replacement(boardArray, WHITE_QUEEN)) {
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
+				  if(replacement(boardArray, WHITE_ROOK)){
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
+				  if(replacement(boardArray, WHITE_BISHOP)) {
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
+				  if(replacement(boardArray, WHITE_KNIGHT)){
+				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
 				    *moves = CreateMovelistNode(newMove, *moves);
 				  }
 				} 
@@ -2119,79 +2119,184 @@ MOVE move;
   }
   return moveStr;
 }
-/*
-POSITION gUndoMove(POSITION position, UNDOMOVE umove) {
-  	char boardArray[rows*cols];
-	char tempPiece, isReplacementPiece, capturedPiece;
-	int rowi, coli, rowf, colf;
-	rowf = umove & 15; 
-	colf = (umove >> 4) & 15; 
-	rowi = (umove >> 8) & 15; 
-	coli = (umove >> 12) & 15; 
-	capturedPiece = (char) (umove >> 16) & 255;
-	isReplacementPiece = (char) (umove >> 24) & 1;
 
-	generic_unhash(position, boardArray);
-	int currentPlayer = whoseMove(position);
-	tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
-	boardArray[(rows - rowi)*cols + (coli - 10)] = capturedPiece;
-	if(isReplacementPiece == 1) {
-	  if(currentPlayer == WHITE_TURN) 
-	    boardArray[(rows - rowi)*cols + (coli - 10)] = BLACK_PAWN;
-	  else boardArray[(rows - rowi)*cols + (coli - 10)] = WHITE_PAWN;
-	} else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
-	
-	if(currentPlayer == WHITE_TURN) {
-	  currentPlayer = BLACK_TURN;
-	} else currentPlayer = WHITE_TURN;
-	return generic_hash(boardArray, currentPlayer);	
-	
+POSITION gUndoMove(POSITION position, UNDOMOVE umove) {
+  char boardArray[rows*cols];
+  char tempPiece, capturedPiece;
+  int rowi, coli, rowf, colf, isReplacementPiece;
+  rowf = umove & 15; 
+  colf = (umove >> 4) & 15; 
+  rowi = (umove >> 8) & 15; 
+  coli = (umove >> 12) & 15; 
+  capturedPiece = (char) (umove >> 16) & 255;
+  isReplacementPiece = (char) (umove >> 24) & 1;
+  
+  generic_unhash(position, boardArray);
+  int currentPlayer = whoseMove(position);
+  tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
+  boardArray[(rows - rowi)*cols + (coli - 10)] = capturedPiece;
+  if(isReplacementPiece == 1) {
+    if(currentPlayer == WHITE_TURN) 
+      boardArray[(rows - rowi)*cols + (coli - 10)] = BLACK_PAWN;
+    else boardArray[(rows - rowi)*cols + (coli - 10)] = WHITE_PAWN;
+  } else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
+  
+  if(currentPlayer == WHITE_TURN) {
+    currentPlayer = BLACK_TURN;
+  } else currentPlayer = WHITE_TURN;
+  return generic_hash(boardArray, currentPlayer);	
+  
 }
 
 
 UNDOMOVELIST *GenerateUndoMoves (POSITION position)
 {
-    UNDOMOVELIST *moves = NULL;
-    int currentPlayer, i,j; 
-    char piece; 
-    char boardArray[rows*cols]; 
-	generic_unhash(position, boardArray); 
-	currentPlayer = whoseMove(position);
-	for (i = 0; i < rows; i++) {
-	  for(j = 0; j < cols; j++) {
-	    //printf("move: i:%d, j:%d",i,j);
-	    piece = boardArray[i*cols + j]; 
-	    // check if piece belongs to the currentPlayer
-	    if (isSameTeam(piece, currentPlayer)) {
-	      switch (piece) { 
-	      case WHITE_QUEEN: case BLACK_QUEEN:  
-		generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      case WHITE_BISHOP: case BLACK_BISHOP: 
-		generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      case WHITE_ROOK: case BLACK_ROOK:
-		generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      case WHITE_KNIGHT: case BLACK_KNIGHT:
-		generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      case WHITE_PAWN: case BLACK_PAWN:
-		generatePawnUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      case WHITE_KING: case BLACK_KING:
-		generateKingUndoMoves(boardArray, &moves, currentPlayer, i, j);
-		break;
-	      default:  
-		break; 
-	      } 
-	    }
-	  } 
+  UNDOMOVELIST *moves = NULL;
+  int currentPlayer, i,j; 
+  char piece; 
+  char boardArray[rows*cols]; 
+  generic_unhash(position, boardArray); 
+  currentPlayer = whoseMove(position);
+  for (i = 0; i < rows; i++) {
+    for(j = 0; j < cols; j++) {
+      //printf("move: i:%d, j:%d",i,j);
+      piece = boardArray[i*cols + j]; 
+      // check if piece belongs to the currentPlayer
+      if (isSameTeam(piece, currentPlayer)) {
+	switch (piece) { 
+	case WHITE_QUEEN: case BLACK_QUEEN:  
+	  generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	case WHITE_BISHOP: case BLACK_BISHOP: 
+	  generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	case WHITE_ROOK: case BLACK_ROOK:
+	  generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	case WHITE_KNIGHT: case BLACK_KNIGHT:
+	  generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	case WHITE_PAWN: case BLACK_PAWN:
+	  generatePawnUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	case WHITE_KING: case BLACK_KING:
+	  generateKingUndoMoves(boardArray, &moves, currentPlayer, i, j);
+	  break;
+	default:  
+	  break; 
 	} 
+      }
+    } 
+  } 
+  
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+  
+  return moves;
+}
+
+void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, int i, int j){
+	MOVE newuMove;
+	//UP
+	if (i != 0 && boardArray[(i-1)*cols + j] == ' ') {
+		newuMove = createUndoMove(i, j, i-1, j);
+		if (testUndoMove(boardArray, i,i-1,j,j, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j);
+	}
+	//Down
+	if (i != rows-1 && boardArray[(i+1)*cols + j] == ' ') {
+		newuMove = createUndoMove(i, j, i+1, j);
+		if (testUndoMove(boardArray, i,i+1,j,j, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j);
+	}
+	//Left
+	if (j != 0 && boardArray[i*cols + j-1] == ' ') {
+		newuMove = createUndoMove(i, j, i, j-1 );
+		if (testUndoMove(boardArray, i,i,j,j-1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i, j-1);
+	}
+	//Right
+	if (j != cols-1 && boardArray[i*cols + j+1] == ' ') {
+		newuMove = createUndoMove(i, j, i, j+1 );
+		if (testUndoMove(boardArray, i,i,j,j+1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);		
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i, j+1);
+	}
+	//Up-left
+	if (i != 0 && j != 0 && boardArray[(i-1)*cols + j-1] == ' ') {
+		newuMove = createUndoMove(i, j, i-1, j-1 );
+		if (testUndoMove(boardArray, i,i-1,j,j-1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-1);
+	}
+	//Up-right
+	if (i != 0 && j != cols-1 && boardArray[(i-1)*cols + j+1] == ' ') {
+		newuMove = createUndoMove(i, j, i-1, j+1 );
+		if (testUndoMove(boardArray, i,i-1,j,j+1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+1);
+	}
+	//Down-left
+	if (i != rows-1 && j != 0 && boardArray[(i+1)*cols + j-1] == ' ') {
+		newuMove = createUndoMove(i, j, i+1, j-1 );
+		if (testUndoMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-1);
+	}	
+	//Down-right
+	if (i != rows-1 && j != cols-1 && boardArray[(i+1)*cols + j+1] == ' ') {
+		newuMove = createUndoMove(i, j, i+1, j+1 );
+		if (testUndoMove(boardArray, i,i+1,j,j+1, currentPlayer)) {
+			*moves = CreateMovelistNode(newuMove, *moves);	
+		}
+		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+1);
+	}
+}
+
+void generatePawnUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j){
 	
-	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-	
-	return moves;
+  if (currentPlayer == BLACK_TURN){
+    //down 1.  Only a legal move if there is no piece there
+    if (i < rows-2 && boardArray[(i+1)*cols + j] == ' ') {
+      UNDOMOVE newuMove = createUndoMove(i, j, i+1, j);
+      if (testUndoMove(boardArray, i,i+1,j,j, currentPlayer)) {
+	*moves = CreateMovelistNode(newMove, *moves);
+      }
+    }
+    //down 1, left 1.  Only a legal move if captures an enemy piece
+    if (i < rows-2 && j != 0 && boardArray[(i+1)*cols + j-1] != ' ') {
+      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-1);
+    }
+    //down 1, right 1.  Only a legal move if it captures an enemy piece
+    if (i < rows-2 && j != cols-1 && boardArray[(i+1)*cols + j+1] != ' ') {
+      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+1);
+    }
+  } else {
+    //up 1.  Only a legal move if there is no piece there
+    if (i > 1 && boardArray[(i-1)*cols + j] == ' ') {
+      UNDOMOVE newuMove = createMove(i, j, i-1, j);
+      if (testUndoMove(boardArray, i, i-1, j, j, currentPlayer)) {
+	*moves = CreateMovelistNode(newMove, *moves);
+      }
+    }
+    //up 1, left 1.  Only a legal move if captures an enemy piece
+    if (i > 1  && j != 0 && boardArray[(i-1)*cols + j-1] != ' ') {
+      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-1);
+    }
+    //up 1, right 1.  Only a legal move if captures an enemy piece
+    if (i > 1 && j != cols-1 && boardArray[(i-1)*cols + j+1] != ' ') {
+	generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+1);
+    }
+  }
 }
 
 void generateKnightUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j){
@@ -2414,8 +2519,102 @@ BOOLEAN isSpecificPiece(char* boardArray, char piece){
   }
   return FALSE;
 }
-*/
+
+UNDOMOVE createUndoMove(int rowi, int coli, int rowf, int colf) {
+  UNDOMOVE um;
+  coli += 10;
+  colf += 10;
+  rowi = rows - rowi;
+  rowf = rows - rowf;
+  um = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+  return um;
+}
+
+UNDOMOVE createCaptureUndoMove(int rowi, int coli, int rowf, int colf, char capturedPiece) {
+  UNDOMOVE um;
+  coli += 10;
+  colf += 10;
+  rowi = rows - rowi;
+  rowf = rows - rowf;
+  um = (capturedPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+  return um;
+}
+
+UNDOMOVE createReplaceCaptureUndoMove(int rowi, int coli, int rowf, int colf, char capturedPiece, int isReplacementPiece) {
+  UNDOMOVE um;
+  coli += 10;
+  colf += 10;
+  rowi = rows - rowi;
+  rowf = rows - rowf;
+  um = (isReplacementPiece << 24) | (capturedPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
+  return um;
+}
+
+BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer) {
+  BOOLEAN boardInCheck;
+  POSITION bP;
+  char piece = boardArray[rowi*cols + coli];
+  boardArray[rowf*cols + colf] = piece;
+  boardArray[rowi*cols + coli] = ' ';
+  bP = generic_hash(boardArray, opposingPlayer(currentPlayer));
+  boardInCheck = inCheck(bP, currentPlayer);
+  boardArray[rowi*cols + coli] = piece;
+  boardArray[rowf*cols + colf] = ' ';
+  if (boardInCheck == FALSE) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece) {
+  BOOLEAN boardInCheck;
+  POSITION bP;
+  char piece = boardArray[rowi*cols + coli];
+  boardArray[rowf*cols + colf] = piece;
+  boardArray[rowi*cols + coli] = capturedPiece;
+  bP = generic_hash(boardArray, opposingPlayer(currentPlayer));
+  boardInCheck = inCheck(bP, currentPlayer);
+  boardArray[rowi*cols + coli] = piece;
+  boardArray[rowf*cols + colf] = capturedPiece;
+  if (boardInCheck == FALSE) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece) {
+  BOOLEAN boardInCheck;
+  POSITION bP;
+  char piece = boardArray[rowi*cols + coli];
+  if(currentPlayer == WHITE_TURN)
+    boardArray[rowf*cols + colf] = BLACK_PAWN;
+  else boardArray[rowf*cols + colf] = WHITE_PAWN;
+  if(capturedPiece != 0) 
+    boardArray[rowi*cols + coli] = capturedPiece;
+  else boardArray[rowi*cols + coli] = ' ';
+  bP = generic_hash(boardArray, opposingPlayer(currentPlayer));
+  boardInCheck = inCheck(bP, currentPlayer);
+  boardArray[rowi*cols + coli] = piece;
+  boardArray[rowf*cols + colf] = ' ';
+  if (boardInCheck == FALSE) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
+int opposingPlayer(int player) {
+  if(player == WHITE_TURN) 
+    return BLACK_TURN;
+  else return WHITE_TURN;
+}
+
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/06/27 23:57:41  runner139
+// *** empty log message ***
+//
 // Revision 1.14  2006/06/27 05:38:14  runner139
 // *** empty log message ***
 //
