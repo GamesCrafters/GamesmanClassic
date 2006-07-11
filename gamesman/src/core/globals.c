@@ -106,5 +106,16 @@ BOOLEAN gRemotenessOrder = TRUE;
 BOOLEAN gGenerateNodeViz = FALSE;
 
 /* NetworkDB Globals */
-BOOLEAN gNetworkDB = FALSE; 
+BOOLEAN gNetworkDB = FALSE;
 STRING  ServerAddress = "";
+
+/* Tier Gamesman globals and function pointers */
+BOOLEAN 		gUsingTierGamesman = FALSE;
+TIER 			kBadTier = -1;
+TIERLIST*		gTierSolveListPtr = NULL;
+POSITION 		(*gInitializeHashWindowFunPtr)(TIER,POSITION) = NULL;
+TIERLIST* 		(*gTierChildrenFunPtr)(TIER) = NULL;
+TIER 			(*gPositionToTierFunPtr)(POSITION) = NULL;
+TIERPOSITION	(*gPositionToTierPositionFunPtr)(POSITION,TIER) = NULL;
+UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
+POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;

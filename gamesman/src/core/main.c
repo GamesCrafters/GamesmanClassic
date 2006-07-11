@@ -92,8 +92,8 @@ void SetSolver()
         /* if solver set externally, leave alone */
         if (gSolver != NULL)
                 return;
-		else if (gRetrogradeTierValue != NULL)
-			gSolver = &DetermineRetrogradeValue;
+		else if (gUsingTierGamesman)
+				gSolver = &DetermineRetrogradeValue;
         else if(kLoopy) {
                 if (gGoAgain == DefaultGoAgain)
                         gSolver = &DetermineLoopyValue;
@@ -187,7 +187,7 @@ void SolveAndStore()
                 writeXML(SaveVar);
                 writeXML(CleanVar);
         }
-        
+
         if (gVisualizing) {
         	Visualize();
         }
@@ -307,7 +307,7 @@ void HandleArguments (int argc, char *argv[])
                         i += argc;
                 } else if(!strcasecmp(argv[i], "--NetDB")) {
                         gNetworkDB = TRUE;
-			ServerAddress = argv[i+1]; 
+			ServerAddress = argv[i+1];
                         i++;
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();

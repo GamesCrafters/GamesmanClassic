@@ -25,6 +25,12 @@ typedef int   			REMOTENESS;
 typedef char* 			STRING;
 typedef void* 			GENERIC_PTR;
 
+// Tier Gamesman typedefs
+typedef unsigned int TIER;
+typedef POSITION TIERPOSITION; /* Used to differentiate "tier-specific" positions */
+typedef int UNDOMOVE; /* Just like MOVE but used specifically for undo-moves */
+
+
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
 #ifdef WIN32
 typedef unsigned char 		BOOLEAN;
@@ -100,6 +106,20 @@ typedef struct valuemoves_item
         REMOTENESSLIST* remotenessList[3];
 }
 VALUE_MOVES;
+
+typedef struct tierlist_item
+{
+        TIER tier;
+        struct tierlist_item *next;
+}
+TIERLIST;
+
+typedef struct undomovelist_item
+{
+        UNDOMOVE undomove;
+        struct undomovelist_item *next;
+}
+UNDOMOVELIST;
 
 typedef enum play_opponent
 {

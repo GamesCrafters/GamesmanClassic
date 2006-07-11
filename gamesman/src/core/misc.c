@@ -91,6 +91,26 @@ void FreeValueMoves(VALUE_MOVES *ptr)
         SafeFree((GENERIC_PTR)ptr);
 }
 
+void FreeTierList(TIERLIST* ptr)
+{
+        TIERLIST *last;
+        while (ptr != NULL) {
+                last = ptr;
+                ptr = ptr->next;
+                SafeFree((GENERIC_PTR)last);
+        }
+}
+
+void FreeUndoMoveList(UNDOMOVELIST* ptr)
+{
+        UNDOMOVELIST *last;
+        while (ptr != NULL) {
+                last = ptr;
+                ptr = ptr->next;
+                SafeFree((GENERIC_PTR)last);
+        }
+}
+
 BOOLEAN ValidMove(POSITION thePosition, MOVE theMove)
 {
         MOVELIST *ptr, *head;
@@ -332,6 +352,30 @@ POSITION RemovePositionFromQueue(POSITIONQUEUE** head)
         return result;
 }
 
+// list constructor functions for TierLists and UndoMoveLists:
+TIERLIST *CreateTierlistNode(TIER theTier, TIERLIST* theNextTier)
+{
+        TIERLIST *theHead;
+
+        theHead = (TIERLIST *) SafeMalloc (sizeof(TIERLIST));
+        theHead->tier = theTier;
+        theHead->next = theNextTier;
+
+        return(theHead);
+}
+
+
+UNDOMOVELIST *CreateUndoMovelistNode(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove)
+{
+        UNDOMOVELIST *theHead;
+
+        theHead = (UNDOMOVELIST *) SafeMalloc (sizeof(UNDOMOVELIST));
+        theHead->undomove = theUndoMove;
+        theHead->next = theNextUndoMove;
+
+        return(theHead);
+}
+
 void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
 {
 #ifdef dup2	/* Redirect stdout to stderr */
@@ -442,7 +486,7 @@ MEX MexPrimitive(VALUE value)
 
 STRING get_var_string() {
 	char str[1024];
-	
+
 	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan) Hashcode: %d",
 			(gStandardGame) ? "Standard" : "Misère", (gSymmetries) ? " " : "out ",
 			(kLoopy) ? "(" : "(non-", (kPartizan) ? " " : " non-", getOption());

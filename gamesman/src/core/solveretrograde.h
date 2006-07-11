@@ -3,6 +3,8 @@
 
 /* Solver procs */
 VALUE DetermineRetrogradeValue(POSITION);
+POSITION GetMyPosition();
+void debugMenu();
 void SolveTier(int);
 int SolveWithDelgadilloAlgorithm(POSITION, POSITION, POSITION);
 

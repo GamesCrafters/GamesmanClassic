@@ -6,6 +6,8 @@ void		FreeMoveList			(MOVELIST* ptr);
 void		FreeRemotenessList		(REMOTENESSLIST* ptr);
 void		FreePositionList		(POSITIONLIST* ptr);
 void		FreeValueMoves			(VALUE_MOVES* ptr);
+void		FreeTierList			(TIERLIST* ptr);
+void		FreeUndoMoveList		(UNDOMOVELIST* ptr);
 
 BOOLEAN		ValidMove			(POSITION pos, MOVE move);
 
@@ -31,8 +33,12 @@ POSITIONLIST*	CopyPositionList		(POSITIONLIST* list);
 void		AddPositionToQueue		(POSITION pos, POSITIONQUEUE** tail);
 POSITION	RemovePositionFromQueue		(POSITIONQUEUE** head);
 
-REMOTENESSLIST* CreateRemotenesslistNode        (REMOTENESS theRemoteness, REMOTENESSLIST* theNextRemoteness); 
+REMOTENESSLIST* CreateRemotenesslistNode        (REMOTENESS theRemoteness, REMOTENESSLIST* theNextRemoteness);
 REMOTENESSLIST* CopyRemotenesslist              (REMOTENESSLIST* theRemotenesslist);
+
+TIERLIST*	CreateTierlistNode		(TIER theTier, TIERLIST* theNextTier);
+
+UNDOMOVELIST*	CreateUndoMovelistNode		(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
 
 void		FoundBadPosition		(POSITION pos, POSITION parent, MOVE move);
 
