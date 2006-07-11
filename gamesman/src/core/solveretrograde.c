@@ -1,5 +1,13 @@
-// $Id: solveretrograde.c,v 1.5 2006-07-11 07:58:34 max817 Exp $
+// $Id: solveretrograde.c,v 1.6 2006-07-11 08:53:34 max817 Exp $
 // $Log: not supported by cvs2svn $
+// Revision 1.5  2006/07/11 07:58:34  max817
+// The first of many changes to implement the new "Tier-Gamesman".
+// Added tiergamesman.txt to the repository, which contains a wealth
+// of information on the new system.
+// Changed 7 core files to implement the new API that Tier-Gamesman modules
+// must fulfill, and added a rough debugger to the Retrograde Solver.
+// See doc/tiergamesman.txt for the full documentation.
+//
 // Revision 1.4  2006/05/25 04:22:51  max817
 // Just an update to fix a small bug in the solver's algorithm that incorrectly labeled some ties as draws. Also added the TRUE code for RetrogradeTierValue to baghchal.c, though it's commented for now (since the solver as it stands can't handle 421 tiers too well).
 //
@@ -269,7 +277,7 @@ void debugMenu() {
 	printf("gGenerateUndoMovesToTierFunPtr\t= %s\n", (GUMTT ? "YES" : "NO"));
 	printf("gUnDoMoveFunPtr\t\t\t= %s\n", (UDM ? "YES" : "NO"));
 
-	char c; POSITION p, p2; TIER t, t2; BOOLEAN check, check2;
+	char c; POSITION p, p2, p3; TIER t, t2; BOOLEAN check, check2;
 	TIERLIST *ptr, *list, *listptr; int index, i; TIERPOSITION tp;
 	UNDOMOVELIST *ulist, *ulistptr; MOVELIST *mlist, *mlistptr;
 	while(TRUE) {
@@ -298,23 +306,56 @@ void debugMenu() {
 						printf("\nCalling gPositionToTier...\n");
 						t = gPositionToTierFunPtr(p);
 						printf("gPositionToTier says this is in TIER %d\n", t);
+						if (PTTP) {
+							printf("\nCalling gPositionToTierPosition...\n");
+							tp = gPositionToTierPositionFunPtr(p, t);
+							printf("Resulting TIERPOSITION is: %llu\n", tp);
+						}
 						if (TC) {
 							printf("\nCalling gTierChildren...\n");
 							list = listptr = gTierChildrenFunPtr(t);
 							printf("Returned list:");
 							for (; listptr != NULL; listptr = listptr->next)
 								printf(" %d", listptr->tier);
-							FreeTierList(list);
 							printf("\n");
-						}
-						if (PTTP) {
-							printf("\nCalling gPositionToTierPosition...\n");
-							tp = gPositionToTierPositionFunPtr(p, t);
-							printf("Resulting TIERPOSITION is: %llu\n", tp);
-						}
-					}
-					if (PTT) {
+							if (!Primitive(p)) {
+								printf("\n-----GENERATE MOVE TESTS-----\n");
+								mlist = mlistptr = GenerateMoves(p);
+								for (; mlistptr != NULL; mlistptr = mlistptr->next) {
+									p2 = DoMove(p, mlistptr->move);
+									printf("\n\n-----\n\nCalling gPositionToTier on child: %llu\n", p2);
+									t2 = gPositionToTierFunPtr(p2);
+									listptr = list; check = FALSE;
+									for (; listptr != NULL; listptr = listptr->next) {
+										if (t2 == listptr->tier) {
+											check = TRUE;
+											break;
+										}
+									}
+									if (!check) printf("---ERROR FOUND: %llu has TIER: %d, which isn't in %llu's gTierChildren!\n", p2, t2, p);
+									else printf("%llu has TIER: %d, which is indeed in %llu's gTierChidren.\n", p2, t2, p);
 
+									if (GUMTT && UDM) {
+										printf("\nNow Calling gGenerateUndoMovesToTier to TIER: %d\n", t);
+										ulist = ulistptr = gGenerateUndoMovesToTierFunPtr(p2, t);
+										printf("\nNow calling gUnDoMove to exhaustively check the returned list:\n");
+										check = FALSE;
+										for (; ulistptr != NULL; ulistptr = ulistptr->next) {
+											p3 = gUnDoMoveFunPtr(p2, ulistptr->undomove);
+											if (p3 == p) {
+												check = TRUE;
+												break;
+											}
+										}
+										FreeUndoMoveList(ulist);
+										if (!check) printf("---ERROR FOUND: %llu isn't in %llu's gGenerateUndoMoves!\n", p, p2);
+										else printf("%llu is indeed in %llu's gGenerateUndoMoves.\n", p, p2);
+									}
+								}
+								FreeMoveList(mlist);
+							}
+							FreeTierList(list);
+						}
 					}
 				} break;
 			case 'g': case 'G':
@@ -360,37 +401,39 @@ void debugMenu() {
 						for (; ulistptr != NULL; ulistptr = ulistptr->next)
 							printf(" %d", ulistptr->undomove);
 						ulistptr = ulist;
-						printf("\n\nNow exhaustively checking the list:\n");
-						for (; ulistptr != NULL; ulistptr = ulistptr->next) {
-							printf("\n\n-----\n\nCalling gUnDoMove on UNDOMOVE: %d\n", ulistptr->undomove);
-							p2 = gUnDoMoveFunPtr(p, ulistptr->undomove);
-							printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p2);
-							PrintPosition (p2, "Debug", 0);
-							if (PTT) {
-								printf("Calling gPositionToTier to ensure correctness.\n");
-								t2 = gPositionToTierFunPtr(p2);
-								if (t == t2) printf("Returned tier confirms that this is in TIER: %d\n", t);
-								else printf("---ERROR FOUND: Returned TIER: %d, not %d!", t2, t);
-							}
-							if (!Primitive(p2)) {
-								mlist = mlistptr = GenerateMoves(p2);
-								check = FALSE;
-								for (; mlistptr != NULL; mlistptr = mlistptr->next) {
-									if (p == DoMove(p2, mlistptr->move)) {
-										check = TRUE;
-										break;
-									}
+						if (UDM) {
+							printf("\n\nNow exhaustively checking the list:\n");
+							for (; ulistptr != NULL; ulistptr = ulistptr->next) {
+								printf("\n\n-----\n\nCalling gUnDoMove on UNDOMOVE: %d\n", ulistptr->undomove);
+								p2 = gUnDoMoveFunPtr(p, ulistptr->undomove);
+								printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p2);
+								PrintPosition (p2, "Debug", 0);
+								if (PTT) {
+									printf("Calling gPositionToTier to ensure correctness.\n");
+									t2 = gPositionToTierFunPtr(p2);
+									if (t == t2) printf("Returned tier confirms that this is in TIER: %d\n", t);
+									else printf("---ERROR FOUND: Returned TIER: %d, not %d!", t2, t);
 								}
-								FreeMoveList(mlist);
-								if (!check) printf("---ERROR FOUND: %llu wasn't found in %llu's GenerateMoves!\n", p, p2);
-								else printf("%llu is indeed in %llu's GenerateMoves.\n", p, p2);
+								if (!Primitive(p2)) {
+									mlist = mlistptr = GenerateMoves(p2);
+									check = FALSE;
+									for (; mlistptr != NULL; mlistptr = mlistptr->next) {
+										if (p == DoMove(p2, mlistptr->move)) {
+											check = TRUE;
+											break;
+										}
+									}
+									FreeMoveList(mlist);
+									if (!check) printf("---ERROR FOUND: %llu wasn't found in %llu's GenerateMoves!\n", p, p2);
+									else printf("%llu is indeed in %llu's GenerateMoves.\n", p, p2);
+								}
 							}
 						}
 						FreeUndoMoveList(ulist);
 					}
 				} break;
 			case 'u': case 'U':
-				if (!GUMTT) {
+				if (!UDM) {
 					printf("gUnDoMove isn't written, so...\n");
 					break;
 				}
