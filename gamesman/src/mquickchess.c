@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.21 2006-07-17 02:40:19 max817 Exp $
+// $Id: mquickchess.c,v 1.22 2006-07-18 02:06:15 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -65,6 +65,10 @@
 ** 13 Jul 2006 Adam:  Finished writing and debugging gPositionToTie
 ** 14 Jul 2006 Adam:  Finished writing and debugging gTierChildren
 ** 15 Jul 2006 Adam:  Finished writing and gInitializeHashWindow
+** 16 Jul 2006 Adam:  Wrote gPositionToTierPosition by generating hash context everytime
+** 17 Jul 2006 Adam:  Used array "contextArray" in order to cache contexts for the various tiers. This makes 
+**                    the function call to gPositionToTierPosition much faster
+
 **************************************************************************/
 
 /*************************************************************************
@@ -158,6 +162,7 @@ STRING   kHelpExample =
 #define DISTINCT_PIECES 10
 #define WHITE 0
 #define BLACK 1
+#define MAX_TIERS 22015
 // Constants specifying directions to "look" on the board 
 #define UP 0 
 #define DOWN 1 
@@ -177,8 +182,20 @@ STRING   kHelpExample =
 BOOLEAN normalVariant = TRUE;
 BOOLEAN misereVariant = FALSE;
 
+
 //typedef unsigned int UNDOMOVE;
 //typedef MOVELIST UNDOMOVELIST;
+
+struct gameSpecificHashContext {
+  char valid;
+  int context;
+};
+
+struct gameSpecificHashContext contextArray[MAX_TIERS];
+
+//typedef unsigned int UNDOMOVE;
+//typedef MOVELIST UNDOMOVELIST;
+
 
 /*************************************************************************
 **
@@ -308,7 +325,7 @@ BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 void InitializeGame ()
 {
-  
+  int i;
   gMoveToStringFunPtr = &MoveToString;
   gCanonicalPosition = GetCanonicalPosition;
   //gUsingTierGamesman = TRUE;
@@ -332,6 +349,7 @@ void InitializeGame ()
     +---+---+---+
       a   b   c  
   */
+  
 
   //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
   //     int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 7, 13, -1};
@@ -343,6 +361,9 @@ void InitializeGame ()
   setupPieces(gameBoard);
   gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
   gInitialPosition = generic_hash(gameBoard, WHITE_TURN);
+  for(i = 0; i < MAX_TIERS; i++) {
+    contextArray[i].valid = 0;
+  }
 }
 
 
@@ -2195,17 +2216,40 @@ POSITION gInitializeHashWindow(TIER t, POSITION p) {
   minBlank = BOARDSIZE - 2 - maxWhitePawn - maxBlackPawn - maxWhiteQueen - maxBlackQueen - maxWhiteRook - maxBlackRook - maxWhiteBishop - maxBlackBishop - maxWhiteKnight - maxBlackKnight;
   maxBlank = BOARDSIZE - 2;
   /* initialize piecesArray for the new hash */
-  
   int pieces_array[40] = {'p', minBlackPawn, maxBlackPawn, 'b', minBlackBishop, maxBlackBishop, 'r', minBlackRook, maxBlackRook, 'n', minBlackKnight, maxBlackKnight, 'q', minBlackQueen, maxBlackQueen, 'k', 1, 1, 'P', minWhitePawn, maxWhitePawn, 'B', minWhiteBishop, maxWhiteBishop, 'R', minWhiteRook, maxWhiteRook, 'N', minWhiteKnight, maxWhiteKnight, 'Q', minWhiteQueen, maxWhiteQueen, 'K', 1, 1, ' ', minBlank, maxBlank, -1};
+ 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
   if(p != kBadPosition) 
     returnedPosition = generic_hash(boardArray, currentPlayer);
   else returnedPosition = 0;
   return returnedPosition;
 }
-TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) {
-  return 0;
+
+TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) { 
+  TIERPOSITION tierPosition;
+  char boardArray[BOARDSIZE];
+  int *piecesArray, hashWindowContext, currentPlayer, minBlank, maxBlank;
+  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray =  gTierToPiecesArray(t, piecesArray); 
+
+  hashWindowContext = generic_hash_cur_context();
+  generic_unhash(p, boardArray);
+  currentPlayer = whoseMove(p);
+  if(contextArray[t].valid == 0) {
+    minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
+    maxBlank = minBlank;
+    int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
+    gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
+    contextArray[t].valid = 1;
+    contextArray[t].context = generic_hash_cur_context();
+  } else {
+    generic_hash_context_switch(contextArray[t].context);
+  }
+  tierPosition = generic_hash(boardArray, currentPlayer);
+  generic_hash_context_switch(hashWindowContext);
+  return tierPosition;
 }
+
 TIER gPositionToTier(POSITION position) {
   int *piecesArray;
   TIER tier;
@@ -2228,6 +2272,7 @@ void printPiecesArray(int *piecesArray) {
 
 int* gPositionToPiecesArray(POSITION position, int *piecesArray){
   int i, j;
+
   char piece, boardArray[rows*cols];
   for(i = 0; i < DISTINCT_PIECES; i++){
     *(piecesArray + i) = 0;
@@ -2272,6 +2317,7 @@ int* gPositionToPiecesArray(POSITION position, int *piecesArray){
 	  break; 
 	} 
       }
+
       
     }
   }
@@ -2355,6 +2401,7 @@ int* gTierToPiecesArray(TIER t, int *piecesArray) {
   for(i = 0; i < DISTINCT_PIECES - 2; i++) {
     if(((t >> i) & 1) == 1) {
       *(piecesArray + i) = 1; 
+
     }
   }
   *(piecesArray + DISTINCT_PIECES-2) = (t >> (DISTINCT_PIECES-2)) & 15;
@@ -2362,6 +2409,8 @@ int* gTierToPiecesArray(TIER t, int *piecesArray) {
 
   return piecesArray;
 }
+
+
 
 TIER gPiecesArrayToTier(int *piecesArray) {
   TIER tier = 0;
@@ -2373,6 +2422,9 @@ TIER gPiecesArrayToTier(int *piecesArray) {
   tier = tier | ((*(piecesArray+DISTINCT_PIECES-1)) << (DISTINCT_PIECES+2));
   return tier;
 }
+
+
+
 STRING MoveToString(move)
 MOVE move;
 {
@@ -3132,6 +3184,10 @@ void printUndoMoveList(UNDOMOVELIST *moves) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2006/07/17 02:40:19  max817
+// Just CVS'ing this file in for Adam, since his CVS doesn't work right now.
+// Now the make is no longer broken! -Max
+//
 // Revision 1.20  2006/07/11 03:29:45  runner139
 // *** empty log message ***
 //

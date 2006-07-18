@@ -18,6 +18,7 @@
 //extern int hash_boardSize;
 //extern int hash_usefulSpace;
 //extern int hash_maxPos;
+/* Added in int generic_hash_cur_context() */
 
 struct hashContext
 {
@@ -55,6 +56,7 @@ struct hashContext
 int generic_hash_context_init();
 void generic_hash_context_switch(int context);
 void generic_hash_destroy();
+int generic_hash_cur_context();
 
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *));
 POSITION generic_hash(char* board, int player);

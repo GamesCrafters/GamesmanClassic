@@ -103,6 +103,7 @@ void 		nCr_init(int a);
 int* 		gpd (int n);
 int 		gpi (int n);
 int* 		gPieceDist (int i);
+int generic_hash_cur_context();
 
 /*******************************
 **
@@ -565,7 +566,18 @@ void generic_hash_context_switch(int context)
         //hash_maxPos = cCon->maxPos;
 }
 
+/******************************
+**
+** generic_hash_cur_context()
+**
+** Returns the current context value
+**
+******************************/
 
+
+int generic_hash_cur_context() {
+  return currentContext;
+}
 
 /*******************************
 **
