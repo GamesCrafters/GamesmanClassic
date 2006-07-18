@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.22 2006-07-18 02:06:15 runner139 Exp $
+// $Id: mquickchess.c,v 1.23 2006-07-18 07:47:26 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -67,7 +67,8 @@
 ** 15 Jul 2006 Adam:  Finished writing and gInitializeHashWindow
 ** 16 Jul 2006 Adam:  Wrote gPositionToTierPosition by generating hash context everytime
 ** 17 Jul 2006 Adam:  Used array "contextArray" in order to cache contexts for the various tiers. This makes 
-**                    the function call to gPositionToTierPosition much faster
+**                    the function call to gPositionToTierPosition much faster. Also wrote the order of 
+**                    tierlist, the order in which the game is solved. 
 
 **************************************************************************/
 
@@ -163,6 +164,7 @@ STRING   kHelpExample =
 #define WHITE 0
 #define BLACK 1
 #define MAX_TIERS 22015
+#define NUM_TIERS 256
 // Constants specifying directions to "look" on the board 
 #define UP 0 
 #define DOWN 1 
@@ -276,6 +278,8 @@ TIER gPiecesArrayToTier(int *piecesArray);
 void printTierList(TIERLIST* tl);
 TIERPOSITION gPositionToTierPosition(POSITION p, TIER t);
 POSITION gInitializeHashWindow(TIER t, POSITION p);
+int countBits(int i);
+void printTierArray(TIER tierArray[NUM_TIERS]);
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -325,7 +329,7 @@ BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 void InitializeGame ()
 {
-  int i;
+  int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   gMoveToStringFunPtr = &MoveToString;
   gCanonicalPosition = GetCanonicalPosition;
   //gUsingTierGamesman = TRUE;
@@ -349,8 +353,57 @@ void InitializeGame ()
     +---+---+---+
       a   b   c  
   */
+  /* 140 = 46*/
+  TIER tierlist[NUM_TIERS];
+  // Replace "NUM_TIERS" with how many total tiers your game has
+  for(i = 0; i < NUM_TIERS; i++) {
+    numBits = countBits(i);
+    switch(numBits) {
+    case 0:  
+      tierlist[zeroPiece] = i;
+      zeroPiece++;
+      break;
+    case 1:  
+      tierlist[onePiece] = i;
+      onePiece++;
+      break;
+    case 2:  
+      tierlist[twoPiece] = i;
+      twoPiece++;
+      break;
+    case 3:  
+      tierlist[threePiece] = i;
+      threePiece++;
+      break;
+    case 4:  
+      tierlist[fourPiece] = i;
+      fourPiece++;
+      break;
+    case 5:  
+      tierlist[fivePiece] = i;
+      fivePiece++;
+      break;
+    case 6:  
+      tierlist[sixPiece] = i;
+      sixPiece++;
+      break;
+    case 7:  
+      tierlist[sevenPiece] = i;
+      sevenPiece++;
+      break;
+    case 8:  
+      tierlist[eightPiece] = i;
+      eightPiece++;
+      break;
+      
+    }
+  }
   
-
+  // TIER tierlist[NUM_TIERS] = {0, 1, 2, 4, 8, 16, 32, 64, 128, 3, 6, 12, 24, 48, 96, 192, 5, 10, 20, 40, 80, 160, 9, 18, 36, 72, 144, 17, 34, 68, 136, 33, 66, 132, 65, 130, 129, 7, 14, 28, 56, 112, 224, 13, 26, 52, 104, 208, 11, 22, 44, 88, 176, 21, 42, 84, 168, 41, 82, 164, 37, 74, 148, 73, 146, 145, 137, 49, 98, 196, 25, 50, 100, 200, 97, 194, 193, 19, 38, 76, 152, 35, 70, 140, 67, 134};
+  gTierSolveListPtr = NULL;
+  for (i = NUM_TIERS-1; i >= 0; i--) {
+    gTierSolveListPtr = CreateTierlistNode(tierlist[i], gTierSolveListPtr);
+  }
   //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
   //     int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 7, 13, -1};
   // int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 3, 'r', 0, 1, 'k', 1, 1, 'p', 0, 3, 'b', 0, 1, ' ', 3, 13, -1};
@@ -983,6 +1036,7 @@ void DebugMenu ()
   PrintPosition(gTUndoMove(gInitialPosition, m), "me", TRUE);
   */
   //printUndoMoveList(gGenerateUndoMovesToTier(gInitialPosition, 0));
+  /*
   TIER t;
   int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int));
   t = gPositionToTier(gInitialPosition);
@@ -990,6 +1044,55 @@ void DebugMenu ()
   printTierList(gTierChildren(t));
   //printPiecesArray(gTierToPiecesArray(t, piecesArray));
   free(piecesArray);
+  */
+  int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
+  i = countBits(223);;
+  printf("numBits in i = %d\n", i);
+  TIER tierlist[NUM_TIERS];
+  // Replace "NUM_TIERS" with how many total tiers your game has
+  for(i = 0; i < NUM_TIERS; i++) {
+    numBits = countBits(i);
+    switch(numBits) {
+    case 0:  
+      tierlist[zeroPiece] = i;
+      zeroPiece++;
+      break;
+    case 1:  
+      tierlist[onePiece] = i;
+      onePiece++;
+      break;
+    case 2:  
+      tierlist[twoPiece] = i;
+      twoPiece++;
+      break;
+    case 3:  
+      tierlist[threePiece] = i;
+      threePiece++;
+      break;
+    case 4:  
+      tierlist[fourPiece] = i;
+      fourPiece++;
+      break;
+    case 5:  
+      tierlist[fivePiece] = i;
+      fivePiece++;
+      break;
+    case 6:  
+      tierlist[sixPiece] = i;
+      sixPiece++;
+      break;
+    case 7:  
+      tierlist[sevenPiece] = i;
+      sevenPiece++;
+      break;
+    case 8:  
+      tierlist[eightPiece] = i;
+      eightPiece++;
+      break;
+      
+    }
+  }
+  printTierArray(tierlist);
 }
 
 
@@ -2392,6 +2495,14 @@ void printTierList(TIERLIST* tl) {
   printf("]");
 }
 
+void printTierArray(TIER tierArray[NUM_TIERS]) {
+  int i;
+  printf("[ ");
+  for(i = 0; i < NUM_TIERS; i++) {
+    printf("%d ", tierArray[i]);
+  }
+  printf("]\n");
+}
 
 int* gTierToPiecesArray(TIER t, int *piecesArray) {
   int i;
@@ -3181,9 +3292,21 @@ void printUndoMoveList(UNDOMOVELIST *moves) {
 	}
 }
 
+int countBits(int i) {
+  int j, k = 1, counter = 0;
+  for (j = 0; j < 32; j++) {
+    if((((k << j) & i) != 0))
+      counter++;
+  }
+  return counter;
+}
+
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2006/07/18 02:06:15  runner139
+// *** empty log message ***
+//
 // Revision 1.21  2006/07/17 02:40:19  max817
 // Just CVS'ing this file in for Adam, since his CVS doesn't work right now.
 // Now the make is no longer broken! -Max
