@@ -334,6 +334,10 @@ So, without further ado:
 Now, the API. Probably the main reason to even be reading this large document.
 I've included a detailed explanation and some VERY basic pseudocode for each. I also included the "default" action of the functions, which translates to what the current Gamesman and modules would do, for reference.
 
+For examples for ALL of these, please look at gamesman/src/mtttier.c. It's a version of Tic-Tac-Toe that properly employs all of the API, and serves as a good example of what you should be doing. All the API is placed at the bottom of the file for easy reference.
+
+Finally, as a helpful note, note that proper use of the generic hash makes a LOT of these API functions very easy. So be sure to read gamesman/src/core/hash.c for details on how to use the generic hash.
+
 First, the two non-function parts which must be dealt with in your InitializeGame():
 
 --------------------
@@ -379,7 +383,7 @@ POSITION gInitializeHashWindow(TIER, POSITION);
 Note that with the proper usage of the Generic Hash and simple tier definitions, this might not be too hard to implement. For example, going back to the Tic-Tac-Toe example, the big global hash might call generic_hash_init with the following "pieces array":
 {'o', 0, 4, 'x', 0, 5, '-', 0, 9, -1}
 
-Well, now the Tier 0 array would look like this:
+Well, now the Tier 0 hash window array would look like this:
 {'o', 0, 0, 'x', 0, 1, '-', 8, 9, -1}
 
 And Tier 1 like this:
@@ -432,7 +436,10 @@ TIERPOSITION gPositionToTierPosition(POSITION, TIER);
 --------------------
 -Gives the TIER-SPECIFIC HASH position (NOT the hash window position) of the POSITION argument in that TIER argument. Obviously the POSITION argument IS in respect to the hash window - this function is a type of "translator" from the active hash window to the tier-specific hash level. Thus the returned TIERPOSITION should obviously be independent of the current hash window (a.k.a. the return value is the same given the same arguments regardless of what hash is active).
 An easy way to deal with tier-specific hashes is to literally have ALL (or at least SOME) of the tier-specific hashes already instantiated in other hash contexts that this function can switch to, but remember to switch back to the global hash window context before returning, obviously.
+And finally, Gamesman needs to know the size of your tier-specific hashes beforehand so it can create the databases in the right size. So, if gPositionToTierPosition is given kBadPosition as the POSITION argument, then this needs to return the size of the hash (think of it as the gNumberOfPositions if the hash window included ONLY the tier-specific hash) of the TIER argument.
 -PSEUDOCODE {
+  if (POSITION == kBadPosition)
+     return size of TIER hash
   BOARD = unhash(POSITION)
   if (using tier hash context for TIER) {
      switch to hash context of TIER
@@ -502,20 +509,16 @@ SOLVING: {
         if (Primitive(position) || GenerateMoves(position) returns an empty list) {
           tierPosition = gPositionToTierPosition(position, tier);
           save tierPosition's slice to tier's db
+        } else {
+          create a "Child Counter" for position
         }
-        //a MAYBE sanity check, though expensive
-        if (already a value in the database for this position)
-          Error()
-        MarkAsVisited(position);
       } else {
-        //another MAYBE sanity check, though less expensive
-        if (gPositionToTier(position) isn't in gTierChildren(tier))
-          Error()
         Add position to frontier (if it's not a DRAW of course)
       }
     }
     Solve tier using "loopy solver" algorithm and current frontier
     Use gGenerateUndoMovesForTier instead of parent pointers
+    And the "Child Counters" to determine loses.
     Also, use gPositionToTierPosition to know where in the db to save the slices
     At the end, set the visited, undecided positions to draws
     Finally, save results to the database specific to this tier
