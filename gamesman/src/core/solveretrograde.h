@@ -1,14 +1,15 @@
 #ifndef GMCORE_SOLVERETROGRADE_H
 #define GMCORE_SOLVERETROGRADE_H
 
-/* Solver procs */
+// Solver procs
 VALUE DetermineRetrogradeValue(POSITION);
 POSITION GetMyPosition();
 void debugMenu();
-void SolveTier(int);
-int SolveWithDelgadilloAlgorithm(POSITION, POSITION, POSITION);
+void SolveLoopyTier();
+void SolveWithLoopyAlgorithm();
+void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
 
-/* Error handling */
+// Error handling
 BOOLEAN ConfirmAction(char);
 void HandleErrorAndExit();
 void FileOpenError();
@@ -16,27 +17,27 @@ void FileWriteError();
 void FileSyntaxError();
 void FileCloseError();
 
-/* Reading files */
-POSITION readPos(FILE*);
-int readSolveFile(FILE*);
+// Solver ChildCounter and Hashtable functions
+void rInitFRStuff();
+void rFreeFRStuff();
+POSITIONLIST* rRemoveFRList(VALUE);
+void rInsertFR(VALUE, POSITION, REMOTENESS);
 
-/* Writing files */
+// Reading files
+POSITION readPos(FILE*);
+//int readSolveFile(FILE*);
+
+// Writing files
 void writeChildrenToFile(FILE*, POSITIONLIST*);
 void writeCorruptedWinToFile(FILE*, POSITION, POSITIONLIST*);
 void writeCorruptedLoseToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS);
 void writeUnknownToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS, REMOTENESS, BOOLEAN);
 
-/* Init and Cleanup for files */
-void initFiles();
-void removeFiles();
-
-/* Solver Progress files */
-void SaveProgressToFile(int);
-int LoadProgressFromFile();
+// DB Save files
 void SaveDBToFile();
 void LoadDBFromFile();
 
-/* HAXX for comparing two databases */
+// HAXX for comparing two databases
 void writeCurrentDBToFile();
 void compareTwoFiles(char*, char*);
 void skipToNewline(FILE*);
