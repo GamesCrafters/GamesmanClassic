@@ -103,7 +103,6 @@ void 		nCr_init(int a);
 int* 		gpd (int n);
 int 		gpi (int n);
 int* 		gPieceDist (int i);
-int generic_hash_cur_context();
 
 /*******************************
 **
@@ -487,7 +486,7 @@ void hash_uncruncher (POSITION hashed, char *dest)
 ** generic_hash_context_init()
 **
 **  Generates a new uninitialized
-**  hash context with a unique hash 
+**  hash context with a unique hash
 **  context identifier
 **
 ************************************/
@@ -539,7 +538,7 @@ int generic_hash_context_init()
 **
 ** generic_hash_context_switch(int context)
 **
-**  Switches the current hash context 
+**  Switches the current hash context
 **  to the indicated hash context. Set's global
 **  variables for speed improvements during solving
 **
@@ -577,6 +576,18 @@ void generic_hash_context_switch(int context)
 
 int generic_hash_cur_context() {
   return currentContext;
+}
+
+/******************************
+**
+** generic_hash_max_pos()
+**
+** returns the current context's gNumberOfPositions
+**
+******************************/
+
+POSITION generic_hash_max_pos() {
+	return (cCon->maxPos)*2;
 }
 
 /*******************************

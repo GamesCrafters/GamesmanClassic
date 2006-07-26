@@ -57,6 +57,7 @@ int generic_hash_context_init();
 void generic_hash_context_switch(int context);
 void generic_hash_destroy();
 int generic_hash_cur_context();
+POSITION generic_hash_max_pos();
 
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *));
 POSITION generic_hash(char* board, int player);
