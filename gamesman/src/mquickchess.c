@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.23 2006-07-18 07:47:26 runner139 Exp $
+// $Id: mquickchess.c,v 1.24 2006-07-28 01:58:14 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -340,6 +340,7 @@ void InitializeGame ()
   gPositionToTierPositionFunPtr = &gPositionToTierPosition;
   gInitializeHashWindowFunPtr = &gInitializeHashWindow;
   
+  gUsingTierGamesman = TRUE;
   /*
   3x4 Initial Game 
     +---+---+---+
@@ -401,15 +402,21 @@ void InitializeGame ()
   
   // TIER tierlist[NUM_TIERS] = {0, 1, 2, 4, 8, 16, 32, 64, 128, 3, 6, 12, 24, 48, 96, 192, 5, 10, 20, 40, 80, 160, 9, 18, 36, 72, 144, 17, 34, 68, 136, 33, 66, 132, 65, 130, 129, 7, 14, 28, 56, 112, 224, 13, 26, 52, 104, 208, 11, 22, 44, 88, 176, 21, 42, 84, 168, 41, 82, 164, 37, 74, 148, 73, 146, 145, 137, 49, 98, 196, 25, 50, 100, 200, 97, 194, 193, 19, 38, 76, 152, 35, 70, 140, 67, 134};
   gTierSolveListPtr = NULL;
-  for (i = NUM_TIERS-1; i >= 0; i--) {
-    gTierSolveListPtr = CreateTierlistNode(tierlist[i], gTierSolveListPtr);
+  gTierSolveListPtr = CreateTierlistNode(0, gTierSolveListPtr);
+  gTierSolveListPtr = CreateTierlistNode(1, gTierSolveListPtr);
+  gTierSolveListPtr = CreateTierlistNode(16, gTierSolveListPtr);
+  gTierSolveListPtr = CreateTierlistNode(17, gTierSolveListPtr);
+  /* 
+     for (i = NUM_TIERS-1; i >= 0; i--) {
+    gTierSolveListPtr = CreateTierlistNode((TIER) tierlist[i], gTierSolveListPtr);
   }
+  */
   //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
   //     int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 7, 13, -1};
   // int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 3, 'r', 0, 1, 'k', 1, 1, 'p', 0, 3, 'b', 0, 1, ' ', 3, 13, -1};
   //int pieces_array[28] = {'K', 1, 1, 'R', 0, 1, 'B', 0, 1, 'P', 0, 1, 'k', 1, 1, 'r', 0, 1, 'b', 0, 1,'p', 0, 1, ' ', 6, 10, -1};
-  // int pieces_array[16] = {'K', 1, 1, 'R', 0, 1, 'k', 1, 1, 'b', 0, 1, ' ', 8, 10, -1};
-  int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 5, 10, -1};
+   int pieces_array[16] = {'K', 1, 1, 'Q', 0, 1, 'k', 1, 1, 'q', 0, 1, ' ', 8, 10, -1};
+  //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 5, 10, -1};
   char gameBoard[rows*cols];
   setupPieces(gameBoard);
   gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
@@ -1162,7 +1169,7 @@ void setupPieces(char *Board) {
 	Board[(rows-1)*cols + 1] = BLACK_KING;
 	Board[(rows-1)*cols + 2] = BLACK_ROOK;
 	*/
-	Board[11] = BLACK_PAWN;
+	Board[2] = BLACK_QUEEN;
 	Board[1] = BLACK_KING;
 	//	Board[3] = WHITE_PAWN;
      
@@ -1170,9 +1177,9 @@ void setupPieces(char *Board) {
 
 	//	Board[9] = BLACK_PAWN;
 	//	Board[11] = BLACK_PAWN;
-	Board[10] = WHITE_PAWN;
-	Board[9] = WHITE_KING;
-	Board[6] = WHITE_BISHOP;
+	Board[10] = WHITE_KING;
+	Board[9] = WHITE_QUEEN;
+	// Board[6] = WHITE_BISHOP;
 }
 
 
@@ -2329,13 +2336,14 @@ POSITION gInitializeHashWindow(TIER t, POSITION p) {
 }
 
 TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) { 
-  TIERPOSITION tierPosition;
+  TIERPOSITION tierPosition, numOfPositions;
   char boardArray[BOARDSIZE];
   int *piecesArray, hashWindowContext, currentPlayer, minBlank, maxBlank;
   piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gTierToPiecesArray(t, piecesArray); 
 
   hashWindowContext = generic_hash_cur_context();
+  
   generic_unhash(p, boardArray);
   currentPlayer = whoseMove(p);
   if(contextArray[t].valid == 0) {
@@ -2346,12 +2354,19 @@ TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) {
     contextArray[t].valid = 1;
     contextArray[t].context = generic_hash_cur_context();
   } else {
-    generic_hash_context_switch(contextArray[t].context);
+      generic_hash_context_switch(contextArray[t].context);
   }
-  tierPosition = generic_hash(boardArray, currentPlayer);
-  generic_hash_context_switch(hashWindowContext);
-  return tierPosition;
+    if(p = kBadPosition){
+      numOfPositions = generic_hash_max_pos();
+      generic_hash_context_switch(hashWindowContext);
+      return numOfPositions;
+    } else {
+      tierPosition = generic_hash(boardArray, currentPlayer);
+      generic_hash_context_switch(hashWindowContext);
+      return tierPosition;
+    }
 }
+
 
 TIER gPositionToTier(POSITION position) {
   int *piecesArray;
@@ -3304,6 +3319,9 @@ int countBits(int i) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2006/07/18 07:47:26  runner139
+// *** empty log message ***
+//
 // Revision 1.22  2006/07/18 02:06:15  runner139
 // *** empty log message ***
 //
