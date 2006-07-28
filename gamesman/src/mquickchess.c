@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.24 2006-07-28 01:58:14 runner139 Exp $
+// $Id: mquickchess.c,v 1.25 2006-07-28 02:01:15 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -340,7 +340,7 @@ void InitializeGame ()
   gPositionToTierPositionFunPtr = &gPositionToTierPosition;
   gInitializeHashWindowFunPtr = &gInitializeHashWindow;
   
-  gUsingTierGamesman = TRUE;
+  //gUsingTierGamesman = TRUE;
   /*
   3x4 Initial Game 
     +---+---+---+
@@ -2356,7 +2356,7 @@ TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) {
   } else {
       generic_hash_context_switch(contextArray[t].context);
   }
-    if(p = kBadPosition){
+    if(p == kBadPosition){
       numOfPositions = generic_hash_max_pos();
       generic_hash_context_switch(hashWindowContext);
       return numOfPositions;
@@ -3319,6 +3319,9 @@ int countBits(int i) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.24  2006/07/28 01:58:14  runner139
+// *** empty log message ***
+//
 // Revision 1.23  2006/07/18 07:47:26  runner139
 // *** empty log message ***
 //
