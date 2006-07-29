@@ -3,8 +3,6 @@
 
 // Solver procs
 VALUE DetermineRetrogradeValue(POSITION);
-POSITION GetMyPosition();
-void debugMenu();
 void SolveLoopyTier();
 void SolveWithLoopyAlgorithm();
 void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
@@ -34,8 +32,13 @@ void writeCorruptedLoseToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS);
 void writeUnknownToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS, REMOTENESS, BOOLEAN);
 
 // DB Save files
-void SaveDBToFile();
-void LoadDBFromFile();
+void initDB();
+void StoreIntoTierDB(TIERPOSITION tierpos, VALUE value, REMOTENESS rem);
+void SaveTierDBToFile();
+
+// Debug
+POSITION GetMyPosition();
+void debugMenu();
 
 // HAXX for comparing two databases
 void writeCurrentDBToFile();
