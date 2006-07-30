@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.8 2006-07-29 08:35:33 max817 Exp $
+// $Id: solveretrograde.c,v 1.9 2006-07-30 20:00:26 max817 Exp $
 
 /************************************************************************
 **
@@ -130,7 +130,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		exit(0);
 	}
 	// Make the directory for this game's tierdb's
-	sprintf(filename,"data/%s_%d_tierdb",kDBName,variant);
+	sprintf(filename,"./data/%s_%d_tierdb",kDBName,variant);
 	mkdir(filename, 0755);
 	tierSolveList = gTierSolveListPtr;
 	tier = tierSolveList->tier;
@@ -693,7 +693,7 @@ void SaveTierDBToFile() {
 	TIERPOSITION tierpos;
 
 	printf("--Saving the Tier Database to File...\n");
-	sprintf(filename,"data/%s_%d_tierdb/%s_%d_%d.tierdb",kDBName,variant,kDBName,variant,tier);
+	sprintf(filename,"./data/%s_%d_tierdb/%s_%d_%d.tierdb",kDBName,variant,kDBName,variant,tier);
 	if ((fp = fopen(filename, "w")) == NULL) FileOpenError();
 	for (tierpos = 0; tierpos < tierSize; tierpos++) {
 		if (fprintf(fp, "%d %d\n", tierdb[tierpos]->value, tierdb[tierpos]->rem) < 0)
@@ -1637,6 +1637,12 @@ void LoadDBFromFile() {
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2006/07/29 08:35:33  max817
+// gPositionToTierPosition abilities added. Now the solver writes makeshift
+// tierdb files (to have the info to translate to ACTUAL db files later),
+// and Tic-Tac-Tier now correctly implements both gPosToTierPos and
+// gInitHashWindow. Also fixed plenty of bugs in both solver and game.
+//
 // Revision 1.7  2006/07/26 03:17:28  max817
 // The Retrograde Solver now handles the Tier-Gamesman API! It's very rough
 // draft for now, doesn't use tier-windows (gInitHashWindow) or tier-specific
