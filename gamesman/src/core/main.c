@@ -92,7 +92,7 @@ void SetSolver()
         /* if solver set externally, leave alone */
         if (gSolver != NULL)
                 return;
-		else if (gUsingTierGamesman)
+		else if (gUsingTierGamesman && gTierGamesman)
 				gSolver = &DetermineRetrogradeValue;
         else if(kLoopy) {
                 if (gGoAgain == DefaultGoAgain)

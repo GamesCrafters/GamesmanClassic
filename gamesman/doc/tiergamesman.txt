@@ -310,9 +310,10 @@ in the code, rather than
 -if (someFunctionPointer == NULL)
 
 and (c), probably most importantly, MODULES USING THIS SYSTEM WILL WORK WITH REGULAR GAMESMAN if they don't (or CAN'T) define a global hash!
-Thus, setting this to TRUE will make the "Use Tier Gamesman?" option appear on the pre-solve menu.
+Thus, setting this to TRUE will make the "Toggle Tier Gamesman Mode" option appear on the pre-solve menu.
 
-(Note: Okay, this is a lie for now. Setting it to true will actually override the original and ALWAYS use the new system, until I might the right changes to the core...)
+Thus, I've also added "gTierGamesman" as a boolean, set not by the game but by the actual player at run-time. If BOTH gTierGamesman (decided at run-time) AND gUsingTierGamesman (decided at build-time) turn out to be true, then the Retrograde Solver will be selected as the solver to use in main.c.
+(Thus I added the few minor changes necessary to textui.c to make this work.)
 
 I've also added this for the "Bad Tier":
 -TIER kBadTier = -1; (and its corresponding extern definition in globals.h)

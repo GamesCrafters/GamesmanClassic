@@ -79,7 +79,7 @@ void Menus(STRING executableName)
     HitAnyKeyToContinue();
 
     do {
-        if(gMenuMode == BeforeEvaluation) 
+        if(gMenuMode == BeforeEvaluation)
             MenusBeforeEvaluation();
         else if(gMenuMode == Evaluated)
             MenusEvaluated();
@@ -113,16 +113,18 @@ void MenusBeforeEvaluation()
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", gZeroMemSolver ? "ON" : "OFF");
     printf("\tm)\tToggle Sy(M)metries (currently %s)\n", gSymmetries ? "ON" : "OFF");
+    if (gUsingTierGamesman) // Only show/accept this choice if module supports Tier Gamesman
+    	printf("\tt)\tToggle (T)ier-Gamesman Mode (currently %s)\n", gTierGamesman ? "ON" : "OFF");
 }
 
 int max(int a, int b, int c) {
   if (a>=b) {
-    if (a>=c) 
+    if (a>=c)
       return a;
     if (c>=a)
       return c;
   } else {
-    if (b>=c) 
+    if (b>=c)
       return b;
     if (c>=b)
       return c;
@@ -171,9 +173,9 @@ void printPlayerConfig(STRING type1, STRING type2) {
   printCell("Player 1", max1);
   printCell("Player 2", max2);
   printf("|\n");
-  
+
   printGrid(maxs, 3);
-  
+
   printf("\n\t");
   printCell("Name", max0);
   sprintf(tmp, "1) %s", gPlayerName[kPlayerOneTurn]);
@@ -187,7 +189,7 @@ void printPlayerConfig(STRING type1, STRING type2) {
   printf("\n\t");
   printCell("Type", max0);
   if (gUnsolved) {
-    
+
     sprintf(tmp, "%s", type1);
     printCell(tmp, max1);
     sprintf(tmp, "%s", type2);
@@ -202,7 +204,7 @@ void printPlayerConfig(STRING type1, STRING type2) {
   printf("|\n");
 
   printGrid(maxs, 3);
- 
+
   printf("\n\n");
 }
 
@@ -270,7 +272,7 @@ USERINPUT ConfigurationMenu()
       printf("\t4)\tChange player type of %s (currently %s)\n", gPlayerName[0], type2);
       }
       printf("\n");
-      if(gOpponent == AgainstHuman) 
+      if(gOpponent == AgainstHuman)
 	printf("\tf)\t(F)lip board to swap players 1 and 2\n");
       if(gOpponent == AgainstComputer)
 	{
@@ -293,7 +295,7 @@ USERINPUT ConfigurationMenu()
 		     gHumanGoesFirst ? "only lose" : "win/lose");
 	    else
 	      BadElse("Menus");
-	  
+
 	  /*analysis taken out*/
 
 	  printf("\n\n\tAI Options:\n");
@@ -314,7 +316,7 @@ USERINPUT ConfigurationMenu()
 	  printf("\t\tr)\t(R)andomly always\n");
 	  printf("\t\tm)\t(M)isere-ly always (i.e., trying to lose!)\n\n");
 	  printf("\t\tg)\tChange the number of (G)ive-backs\n");
-	} 
+	}
 
 
       printf("\n\n\tPlaying Options:\n");
@@ -407,7 +409,7 @@ USERINPUT ConfigurationMenu()
 	}
 	/*result = Configure;*/
 	break;
-  
+
       case 'D': case 'd':
 	if(gUnsolved) {
 	  BadMenuChoice();
@@ -584,6 +586,13 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	else printf("Sorry, but the game does not seem to have support for symmetries.\n");
 	break;
     }
+    case 't': case 'T': {
+	if (gUsingTierGamesman) {
+		gTierGamesman = !gTierGamesman;
+		gSolver = NULL; // Because SetupGame() is called once BEFORE
+	} else BadMenuChoice();
+	break;
+	}
     case 'o': case 'O':
 	gStandardGame = !gStandardGame;
 	break;
@@ -627,7 +636,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gMenuMode = Evaluated;
 	if(gameValue == lose){
 	    gHumanGoesFirst = FALSE;
-	    
+
 	    sprintf(gPlayerName[kPlayerTwoTurn],"Player");
 	    sprintf(gPlayerName[kPlayerOneTurn],"Data");
 	}
@@ -929,7 +938,7 @@ void AnalysisMenu()
 			break;
 		}
 	} while(TRUE);
-	
+
     do {
         printf("\n\t----- Post-Evaluation ANALYSIS menu for %s -----\n\n", kGameName);
         printf("\ti)\tPrint the (I)nitial position\n");
@@ -1053,7 +1062,7 @@ void AnalysisMenu()
 void VisualizationMenu()
 {
     char c;
-	
+
     do {
         printf("\n\t----- Post-Evaluation VISUALIZATION menu for %s -----\n\n", kGameName);
         printf("\n\te)\t Toggle (E)dge drawing (currently %s)", gDrawEdges ? "ON" : "OFF");
@@ -1195,13 +1204,13 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
   char c;
 
   do {
-    
-    if (input == '\0') 
+
+    if (input == '\0')
       {
 
 	printf("\n\t----- Print Menu for %s -----\n", kGameName);
 	printf("%s", kPrintMenu);
-	
+
 	if (!gUnsolved)
 	  printf("%s", kPrintMenuWithSolving);
 	printf("%s", kPrintMenuEnd);
@@ -1308,7 +1317,7 @@ void showStatus(STATICMESSAGE msg)
         case Clean:
 	  /*if(gWriteDatabase)*/
 
-            if(gSaveDatabase) 
+            if(gSaveDatabase)
             {
                 print_length = fprintf(stderr,"Writing Database...\e[K");
                 fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */

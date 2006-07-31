@@ -110,6 +110,7 @@ BOOLEAN gNetworkDB = FALSE;
 STRING  ServerAddress = "";
 
 /* Tier Gamesman globals and function pointers */
+BOOLEAN 		gTierGamesman = TRUE;
 BOOLEAN 		gUsingTierGamesman = FALSE;
 TIER 			kBadTier = -1;
 TIERLIST*		gTierSolveListPtr = NULL;
