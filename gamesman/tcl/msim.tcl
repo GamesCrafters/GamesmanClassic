@@ -164,9 +164,8 @@ proc GS_NameOfPieces {} {
 #############################################################################
 
 proc GS_ColorOfPlayers {} {
-    global p1Color, p2Color
+    global p1Color p2Color
     return [list $p1Color $p2Color]
-    
 }
 
 #############################################################################
