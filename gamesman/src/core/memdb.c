@@ -292,7 +292,7 @@ MEX memdb_get_mex(POSITION pos)
 **	Outputs: none
 **
 **	Calls:	(In libz libraries)
-**		gzopen 
+**		gzopen
 **		gzclose
 **		gzwrite
 **		(In std libraries)
@@ -303,7 +303,7 @@ MEX memdb_get_mex(POSITION pos)
 **			gNumberOfPositions stores the correct number of positions in memdb_array
 **			kDBName is set correctly.
 **			getOption() returns the correct option number
-**					
+**
 */
 
 
@@ -323,6 +323,20 @@ BOOLEAN memdb_save_database ()
 
         mkdir("data", 0755) ;
         sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption());
+
+ 		// BEGIN TIER GAMESMAN HACK
+ 		POSITION tempMax;
+		if (gHashWindowInitialized) {// just change the file name
+			// Make the directory for this game's tierdb's
+			sprintf(outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
+			mkdir(outfilename, 0755);
+			sprintf(outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_memdb.dat.gz",
+				kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[1]);
+			tempMax = gNumberOfPositions; // then trick solver into only writing TIER part
+			gNumberOfPositions = gMaxPosOffset[1];
+		}
+		// END TIER GAMESMAN HACK
+
         if((filep = gzopen(outfilename, "wb")) == NULL) {
                 if(kDebugDetermineValue) {
                         printf("Unable to create compressed data file\n");
@@ -342,6 +356,10 @@ BOOLEAN memdb_save_database ()
                 //gzflush(filep,Z_FULL_FLUSH);
         }
         goodClose = gzclose(filep);
+ 		// BEGIN TIER GAMESMAN HACK
+		if (gHashWindowInitialized) //restore the old gNumberOfPositions
+			gNumberOfPositions = tempMax;
+		// END TIER GAMESMAN HACK
 
         if(goodCompression && (goodClose == 0)) {
                 if(kDebugDetermineValue && ! gJustSolving) {
@@ -369,7 +387,7 @@ BOOLEAN memdb_save_database ()
 **	Outputs: none
 **
 **	Calls:	(In libz libraries)
-**			gzopen 
+**			gzopen
 **			gzclose
 **			gzread
 **			(In std libraries)
@@ -397,6 +415,50 @@ BOOLEAN memdb_load_database()
                 return FALSE;
         else if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
                 return TRUE;
+
+		// BEGIN TIER GAMESMAN HACK
+		if (gHashWindowInitialized) {
+			int index;
+			// always load current tier at BOTTOM, thus it being first
+			for (index = 1; index < gNumTiersInHashWindow; index++) {
+				if (index == 1 && !gPlaying) { // if solving, DONT'T load from file
+					int i;
+					for(i = 0; i < gMaxPosOffset[1]; i++)
+						memdb_array[i] = undecided;
+					continue;
+				}
+				sprintf(outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_memdb.dat.gz",
+							kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[index]);
+				if((filep = gzopen(outfilename, "rb")) == NULL)
+					return FALSE;
+				goodDecompression = gzread(filep,dbVer,sizeof(short));
+				goodDecompression = gzread(filep,numPos,sizeof(POSITION));
+				*dbVer = ntohs(*dbVer);
+				*numPos = ntohl(*numPos);
+				if(*numPos != (gMaxPosOffset[index]-gMaxPosOffset[index-1])) {
+					if (kDebugDetermineValue)
+						printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
+					return FALSE;
+				}
+				correctDBVer = (*dbVer == FILEVER);
+				if (correctDBVer) {
+					for(i = gMaxPosOffset[index-1]; i < gMaxPosOffset[index] && goodDecompression; i++) {
+						goodDecompression = gzread(filep, memdb_array+i, sizeof(cellValue));
+						memdb_array[i] = ntohs(memdb_array[i]);
+					}
+				}
+				goodClose = gzclose(filep);
+				if(!(goodDecompression && (goodClose == 0) && correctDBVer)) {
+					if(kDebugDetermineValue)
+						printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\ndb version: %d\n",goodDecompression,goodClose,*dbVer);
+					return FALSE;
+				}
+			}
+			if(kDebugDetermineValue)
+				printf("Files Successfully Decompressed\n");
+			return TRUE;
+		}
+		// END TIER GAMESMAN HACK
 
         sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
         if((filep = gzopen(outfilename, "rb")) == NULL)

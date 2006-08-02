@@ -61,6 +61,7 @@ UNIVDB_OBJ	= univdb$(OBJSUFFIX)
 endif
 
 HASH_OBJ	= hash$(OBJSUFFIX)
+HASHWINDOW_OBJ	= hashwindow$(OBJSUFFIX)
 
 SOLVER_STD	= solvestd$(OBJSUFFIX)
 SOLVER_LOOPY	= solveloopy$(OBJSUFFIX)
@@ -80,7 +81,7 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(BPDB_OBJ) $(BPDB_SCHEMES_OBJ) \
      $(TWOBITDB_OBJ) $(COLLDB_OBJ) $(UNIVHT_OBJ) $(UNIVDB_OBJ) \
      $(STRINGBUILDER_OBJ) $(HTTPCLIENT_OBJ) $(NETDB_OBJ) $(VISUALIZATION_OBJ) \
-     $(FILEDB_OBJ)
+     $(FILEDB_OBJ) $(HASHWINDOW_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
@@ -92,7 +93,7 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h bpdb.h bpdb_schemes.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h httpclient.h netdb.h \
-	 openPositions.h visualization.h filedb.h filedb/db.h
+	 openPositions.h visualization.h filedb.h filedb/db.h hashwindow.h
 
 
 

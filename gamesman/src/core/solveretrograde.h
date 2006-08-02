@@ -33,7 +33,6 @@ void writeUnknownToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS, REMOTENESS, 
 
 // DB Save files
 void initDB();
-void StoreIntoTierDB(TIERPOSITION tierpos, VALUE value, REMOTENESS rem);
 void SaveTierDBToFile();
 
 // Debug

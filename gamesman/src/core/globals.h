@@ -94,9 +94,6 @@ extern POSITIONLIST    *(*gEnumerateWithinStage)(int);
 /* Global position solver function pointer. */
 extern void 		(*gUndoMove)(MOVE move);
 
-/* Retrograde Solver function pointer (DEPRECATED: Will be removed by next update). */
-extern int			(*gRetrogradeTierValue)(POSITION);
-
 /* tcl initialization function pointer (needs to be void* so games don't need tcl) */
 extern void*		gGameSpecificTclInit;
 
@@ -122,10 +119,9 @@ extern BOOLEAN			gTierGamesman;
 extern BOOLEAN			gUsingTierGamesman;
 extern TIER				kBadTier;
 extern TIERLIST*		gTierSolveListPtr;
-extern POSITION			(*gInitializeHashWindowFunPtr)(TIER,POSITION);
 extern TIERLIST*		(*gTierChildrenFunPtr)(TIER);
-extern TIER				(*gPositionToTierFunPtr)(POSITION);
-extern TIERPOSITION		(*gPositionToTierPositionFunPtr)(POSITION, TIER);
+extern TIERPOSITION		(*gNumberOfTierPositionsFunPtr)(TIER);
+extern BOOLEAN			(*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 

@@ -17,11 +17,12 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <sys/utsname.h>
-#include <sys/time.h> 
+#include <sys/time.h>
 #include <limits.h>
 
 #include "types.h"
 #include "hash.h"
+#include "hashwindow.h"
 #include "db.h"
 #include "analysis.h"
 #include "visualization.h"
