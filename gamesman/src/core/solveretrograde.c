@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.10 2006-08-02 07:12:11 max817 Exp $
+// $Id: solveretrograde.c,v 1.11 2006-08-04 06:47:53 max817 Exp $
 
 /************************************************************************
 **
@@ -40,6 +40,11 @@
 **					As far as I know, it still solves 100% correctly.
 **					There's still many more upgrades to come, espeicially with
 **					the debugger...
+**				-2006.8.03 = Aside from a few cosmetic changes, I changed the
+**					non-loopy solver to the faster version, but it is yet to be
+**					tested, so it's off for now. Also, coupled with changes in
+**					main.c, the save feature is now implemented, meaning the
+**					solver will skip solving a tier if it's database exists.
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -61,6 +66,8 @@
 **
 **************************************************************************/
 
+#include <zlib.h>
+#include <netinet/in.h>
 #include "gamesman.h"
 #include "solveretrograde.h"
 
@@ -78,6 +85,42 @@ char filename[80];
 TIER tier;
 POSITION tierSize;
 BOOLEAN sanityCheck;
+
+// Solver procs
+void PrepareToSolveTier(TIER tier);
+void SolveLoopyTier();
+void SolveWithLoopyAlgorithm();
+void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
+// Error handling
+BOOLEAN ConfirmAction(char);
+void HandleErrorAndExit();
+void FileOpenError();
+void FileWriteError();
+void FileSyntaxError();
+void FileCloseError();
+// Solver ChildCounter and Hashtable functions
+void rInitFRStuff();
+void rFreeFRStuff();
+POSITIONLIST* rRemoveFRList(VALUE);
+void rInsertFR(VALUE, POSITION, REMOTENESS);
+// Reading files
+POSITION readPos(FILE*);
+//int readSolveFile(FILE*);
+// Writing files
+void writeChildrenToFile(FILE*, POSITIONLIST*);
+void writeCorruptedWinToFile(FILE*, POSITION, POSITIONLIST*);
+void writeCorruptedLoseToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS);
+void writeUnknownToFile(FILE*, POSITION, POSITIONLIST*, REMOTENESS, REMOTENESS, BOOLEAN);
+// DB Save files
+void SaveTierDBToFile();
+// Debug
+POSITION GetMyPosition();
+void debugMenu();
+// HAXX for comparing two databases
+void writeCurrentDBToFile();
+void compareTwoFiles(char*, char*);
+void skipToNewline(FILE*);
+
 
 /************************************************************************
 **
@@ -98,7 +141,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	printf("\n\n=====Welcome to the Retrograde Solver!=====\n");
 	printf("Currently solving game (%s) with variant (%d)\n", kGameName, variant);
-    //printf("Current Initial Position:  \n");
+    printf("Initial Position: %llu, in Initial Tier: %d\n", gInitialTierPosition, gInitialTier);
     //PrintPosition(position, "Initial", 0);
 
 	printf("Checking to see how much of the API is given:\n\n");
@@ -134,9 +177,37 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		exit(0);
 	} else printf("API Functions Confirmed.\n");
 	tierSolveList = gTierSolveListPtr;
-	tier = tierSolveList->tier;
-	gInitializeHashWindow(tier);
-	tierSize = gMaxPosOffset[1];
+	// copied from memdb_init, checks to see which files are already solved
+	int FILEVER = 1;
+	gzFile* filep;
+	short dbVer[1];
+	POSITION numPos[1];
+	int	goodDecompression;
+	for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
+		sprintf(filename, "./data/m%s_%d_tierdb/m%s_%d_%d_memdb.dat.gz",
+					kDBName, variant, kDBName, variant, tierSolveList->tier);
+		if((filep = gzopen(filename, "rb")) == NULL) {
+			break;
+		} else {
+			goodDecompression = gzread(filep,dbVer,sizeof(short));
+			goodDecompression = gzread(filep,numPos,sizeof(POSITION));
+			*dbVer = ntohs(*dbVer);
+			*numPos = ntohl(*numPos);
+			if(!goodDecompression || (*numPos != gNumberOfTierPositionsFunPtr(tierSolveList->tier))
+				|| (*dbVer != FILEVER)) {
+				printf("--%d's Tier DB appears incorrect/corrupted. Re-solving...\n", tierSolveList->tier);
+				break;
+			}
+		}
+		gzclose(filep);
+		printf("  %d's Tier DB Found!\n", tierSolveList->tier);
+	}
+	if (tierSolveList == NULL) {
+		printf("Looks like the game is already fully solved! Enjoy the game!\n");
+		printf("Exiting Retrograde Solver...\n\n");
+		return undecided;
+	}
+	PrepareToSolveTier(tierSolveList->tier);
     while(cont) {
         printf("\n\n===RETROGRADE SOLVER MENU for game: %s===\n", kGameName);
         printf("Ready to solve %sLOOPY tier (%d), which contains (%lld) positions.\n",
@@ -166,11 +237,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	            if (tierSolveList == NULL) {
 	            	printf("\n%s is now fully solved!\n", kGameName);
                 	cont = FALSE;
-                } else {
-					tier = tierSolveList->tier;
-					gInitializeHashWindow(tier);
-					tierSize = gMaxPosOffset[1];
-				}
+                } else PrepareToSolveTier(tierSolveList->tier);
                 break;
             case 'a': case 'A':
             	printf("-You chose to automate solving starting from Tier %d.\n"
@@ -179,9 +246,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
             	if (!ConfirmAction('a')) break;
             	printf("Fully Solving starting from Tier %d...\n\n",tier);
             	for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
-            		tier = tierSolveList->tier;
-					gInitializeHashWindow(tier);
-					tierSize = gMaxPosOffset[1];
+					PrepareToSolveTier(tierSolveList->tier);
             		SolveLoopyTier();
 				}
             	printf("\n%s is now fully solved!\n", kGameName);
@@ -201,8 +266,17 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                 printf("Invalid option!\n");
         }
     }
-    printf("Exiting Retrograde Solver...\n\n");
-    return GetValueOfPosition(position);
+	printf("Exiting Retrograde Solver...\n\n");
+    return undecided; //just bitter at the fact that this is ignored
+}
+
+// Inits the hash window/database and prepares to solve tier
+void PrepareToSolveTier(TIER tierToSolve) {
+	printf("Preparing to solve tier: %d\n", tierToSolve);
+	tier = tierToSolve;
+	gInitializeHashWindow(tier, TRUE);
+	tierSize = gMaxPosOffset[1];
+	printf("  Done! Hash Window initialized and Database loaded and prepared!\n");
 }
 
 
@@ -373,80 +447,153 @@ void rInsertFR(VALUE value, POSITION position, REMOTENESS r) {
 POSITION numSolved, sizeOfTier;
 
 void SolveLoopyTier() {
-	numSolved = 0; sizeOfTier = 0;
+	sizeOfTier = 0;
 	POSITION pos;
 	MOVELIST *moves, *movesptr;
 	VALUE value;
 	REMOTENESS remoteness;
-	TIER t;
 
 	printf("\n--Solving Tier %d...\n",tier);
+	gCurrentTierIsLoopy = TRUE;
 
 	printf("Size of tier hash: %llu\n",tierSize);
 	printf("Size of hash window: %llu\n",gNumberOfPositions);
-	printf("Setting up Child Counters and Frontier Hashtables...\n");
-	rInitFRStuff();
-	printf("Setting up Tier-Specific DB...\n");
-	initDB();
-	printf("Doing an sweep of the tier, and setting up the frontier...\n");
-	for (pos = 0; pos < tierSize; pos++) { // SET UP PARENTS
-		childCounts[pos] = 0;
-		if (sanityCheck && !gIsLegalFunPtr(pos)) continue; //skip
-		//if (gSymmetries) {
-		//	canonPos = gCanonicalPosition(pos);
-		//	if (pos != canonPos) continue; // skip, since we'll do canon one later
-		//}
-		sizeOfTier++;
-		// should check in tierdb that this is all empty (undecided)
-		value = Primitive(pos);
-		if (value != undecided) { // check for primitive-ness
-			SetRemoteness(pos,0);
-			StoreValueOfPosition(pos,value);
-			numSolved++;
-			if (gCurrentTierIsLoopy) // if not loopy, no reason to put in frontier
-				rInsertFR(value, pos, 0);
-		} else {
-			moves = movesptr = GenerateMoves(pos);
-			if (moves == NULL) { // no chillins
+	if (gCurrentTierIsLoopy) {// LOOPY SOLVER
+		printf("---PREPARING LOOPY SOLVER---\n");
+		numSolved = 0;
+		printf("Setting up Child Counters and Frontier Hashtables...\n");
+		rInitFRStuff();
+		printf("Doing an sweep of the tier, and setting up the frontier...\n");
+		for (pos = 0; pos < tierSize; pos++) { // SET UP PARENTS
+			childCounts[pos] = 0;
+			if (sanityCheck && !gIsLegalFunPtr(pos)) continue; //skip
+			//if (gSymmetries) {
+			//	canonPos = gCanonicalPosition(pos);
+			//	if (pos != canonPos) continue; // skip, since we'll do canon one later
+			//}
+			sizeOfTier++;
+			// should check in tierdb that this is all empty (undecided)
+			value = Primitive(pos);
+			if (value != undecided) { // check for primitive-ness
 				SetRemoteness(pos,0);
-				StoreValueOfPosition(pos,lose);
+				StoreValueOfPosition(pos,value);
 				numSolved++;
-				if (gCurrentTierIsLoopy)
+				rInsertFR(value, pos, 0);
+			} else {
+				moves = movesptr = GenerateMoves(pos);
+				if (moves == NULL) { // no chillins
+					SetRemoteness(pos,0);
+					StoreValueOfPosition(pos,lose);
+					numSolved++;
 					rInsertFR(lose, pos, 0);
-			} else {// make a Child Counter for it
-				for (; movesptr != NULL; movesptr = movesptr->next)
-					childCounts[pos]++;
-				FreeMoveList(moves);
+				} else {// make a Child Counter for it
+					for (; movesptr != NULL; movesptr = movesptr->next)
+						childCounts[pos]++;
+					FreeMoveList(moves);
+				}
 			}
 		}
+		printf("True size of tier: %lld\n",sizeOfTier);
+		printf("Amount of those already solved (primitives): %lld\n",numSolved);
+		if (numSolved != sizeOfTier) { // SET UP FRONTIER! & ERROR CHECKING
+			printf("Doing an sweep of child tiers, and setting up the frontier...\n");
+			// go through all tiers, add them in one by one
+			// if a global hash, we have to make sure we only check the right tiers
+			int index;
+			for (index = 2; index < gNumTiersInHashWindow; index++) {
+				for (pos = gMaxPosOffset[index-1]; pos < gMaxPosOffset[index]; pos++) {
+					value = GetValueOfPosition(pos);
+					remoteness = Remoteness(pos);
+					if (!((value == tie && remoteness == REMOTENESS_MAX)
+							|| value == undecided))
+						rInsertFR(value, pos, remoteness);
+				}
+			}
+			SolveWithLoopyAlgorithm(); // LOOPY SOLVER!
+		} else printf("Tier is all primitives! No loopy algorithm needed!\n");
+		rFreeFRStuff();
+	} else {// NON-LOOPY SOLVER
+		printf("---PREPARING NON-LOOPY SOLVER---\n");
+		POSITION child;
+		REMOTENESS maxWinRem, minLoseRem, minTieRem;
+		BOOLEAN seenLose, seenTie;
+		printf("Doing an sweep of the tier, and setting up the frontier...\n");
+		for (pos = 0; pos < tierSize; pos++) { // Solve only parents
+			if (sanityCheck && !gIsLegalFunPtr(pos)) continue; //skip
+			//if (gSymmetries) {
+			//	canonPos = gCanonicalPosition(pos);
+			//	if (pos != canonPos) continue; // skip, since we'll do canon one later
+			//}
+			sizeOfTier++;
+			// should check in tierdb that this is all empty (undecided)
+			value = Primitive(pos);
+			if (value != undecided) { // check for primitive-ness
+				SetRemoteness(pos,0);
+				StoreValueOfPosition(pos,value);
+			} else {
+				moves = movesptr = GenerateMoves(pos);
+				if (moves == NULL) { // no chillins
+					SetRemoteness(pos,0);
+					StoreValueOfPosition(pos,lose);
+				} else {// else, solve me
+					maxWinRem = -1;
+					minLoseRem = minTieRem = REMOTENESS_MAX;
+					seenLose = seenTie = FALSE;
+					for (; movesptr != NULL; movesptr = movesptr->next) {
+						child = DoMove(pos, movesptr->move);
+						value = GetValueOfPosition(child);
+						if (value != undecided) {
+							remoteness = Remoteness(child);
+							if (value == tie) {
+								seenTie = TRUE;
+								if (remoteness < minTieRem)
+									minTieRem = remoteness;
+								continue;
+							} else if (value == lose) {
+								seenLose = TRUE;
+								if (remoteness < minLoseRem)
+									minLoseRem = remoteness;
+								continue;
+							} else if (remoteness > maxWinRem) //win
+								maxWinRem = remoteness;
+						} else {
+							printf("ERROR: GenerateMoves on %llu found undecided child, %llu!\n", pos, child);
+							exit(1);
+						}
+					}
+					FreeMoveList(moves);
+					if (seenLose) {
+						SetRemoteness(pos,minLoseRem+1);
+						StoreValueOfPosition(pos, win);
+					} else if (seenTie) {
+						if (minTieRem == REMOTENESS_MAX)
+							SetRemoteness(pos,REMOTENESS_MAX);// a draw
+						else SetRemoteness(pos,minTieRem+1);// else a tie
+						StoreValueOfPosition(pos, tie);
+					} else {
+						SetRemoteness(pos,maxWinRem+1);
+						StoreValueOfPosition(pos, lose);
+					}
+				}
+			}
+		}
+		printf("True size of tier: %lld\n",sizeOfTier);
 	}
-	printf("True size of tier: %lld\n",sizeOfTier);
-	printf("Amount of those already solved (primitives): %lld\n",numSolved);
-	if (numSolved != sizeOfTier) { // SET UP FRONTIER! & ERROR CHECKING
-		printf("Doing an sweep of child tiers, and setting up the frontier...\n");
-		// go through all tiers, add them in one by one
-		// if a global hash, we have to make sure we only check the right tiers
-		int index;
-		for (index = 2; index < gNumTiersInHashWindow; index++) {
-			t = gTierInHashWindow[index];
-			for (pos = gMaxPosOffset[index-1]; pos < gMaxPosOffset[index]; pos++) {
-				if (sanityCheck && !gIsLegalFunPtr(pos)) continue; //skip
-				//if (gSymmetries) {
-				//	canonPos = gCanonicalPosition(pos);
-				//	if (pos != canonPos) continue; // skip, since we'll do canon one later
-				//}
-				value = GetValueOfPosition(pos);
-				remoteness = Remoteness(pos);
-				if (!((value == tie && remoteness == REMOTENESS_MAX)
-						|| value == undecided))
-					rInsertFR(value, pos, remoteness);
-			}
-		}
-		SolveWithLoopyAlgorithm(); // LOOPY SOLVER!
-	} else printf("Tier is all primitives! No loopy algorithm needed!\n");
-	rFreeFRStuff();
-	printf("Tier fully solved! Saving to database...\n");
-	SaveTierDBToFile();
+	printf("Tier fully solved!\n--Saving the Tier Database to File...\n");
+	if (SaveDatabase())
+		printf ("  Database successfully saved!\n");
+	else {
+		printf("Couldn't save tierDB!\n");
+		exit(1);
+	}
+	/*
+	FILE *fp; POSITION p;
+	sprintf(filename, "./a%d.txt", tier);
+	fp = fopen(filename,"w");
+	for (p = 0; p < tierSize; p++)
+		fprintf (fp, "%d\t%lld\t%d\n", GetValueOfPosition(p), p, Remoteness(p));
+	fclose(fp);
+	*/
 }
 
 /************************************************************************
@@ -516,15 +663,13 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 				// Same with tie children.
 				if (valueParents == win || valueParents == tie) {
 					childCounts[parent] = 0; // reset child counter
-					if (gCurrentTierIsLoopy || parent >= tierSize) // parent's tier != tier
-						rInsertFR(valueParents, parent, remotenessChild+1);
+					rInsertFR(valueParents, parent, remotenessChild+1);
 				// With winning children, first decrement the child counter by one. If
 				// child counter reaches 0, put the parent not in the FR but in the miniFR.
 				} else if (valueParents == lose) {
 					childCounts[parent] -= 1;
 					if (childCounts[parent] != 0) continue;
-					if (gCurrentTierIsLoopy || parent >= tierSize)
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+					miniLoseFR = StorePositionInList(parent, miniLoseFR);
 				}
 				SetRemoteness(parent, remotenessChild+1);
 				StoreValueOfPosition(parent, valueParents);
@@ -639,42 +784,6 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 		FileWriteError();
 	writeChildrenToFile(fp, children);
 }
-
-/************************************************************************
-**
-** DB SAVE FILES
-**
-************************************************************************/
-
-void initDB() {
-	CreateDatabases();
-	InitializeDatabases();
-	if(LoadDatabase())
-		printf("Databases loaded successfully!\n");
-	else {
-		printf("Couldn't load tierDBs!\n");
-		exit(1);
-	}
-}
-
-// This creates a DB file to save the DB for later. Will be replaced
-// by TierDB when it works.
-void SaveTierDBToFile() {
-	printf("--Saving the Tier Database to File...\n");
-	if (SaveDatabase())
-		printf ("  Database successfully saved!\n");
-	else {
-		printf("Couldn't save tierDB!\n");
-		exit(1);
-	}
-	FILE *fp; POSITION p;
-	sprintf(filename, "./a%d.txt", tier);
-	fp = fopen(filename,"w");
-	for (p = 0; p < tierSize; p++)
-		fprintf (fp, "%d\t%lld\t%d\n", GetValueOfPosition(p), p, Remoteness(p));
-	fclose(fp);
-}
-
 
 /************************************************************************
 **
@@ -899,7 +1008,7 @@ void debugMenu() {
 				if (p == kBadPosition) break;
 				t = (TIER)p;
 				printf("Calling gInitializeHashWindow on TIER: %d\n", t);
-				gInitializeHashWindow(t);
+				gInitializeHashWindow(t, FALSE);
 				hashWindowTier = t;
 				break;
 			case 'd': case 'D':
@@ -1618,6 +1727,15 @@ void LoadDBFromFile() {
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2006/08/02 07:12:11  max817
+// This HUGE update has implemented the NEW Gamesman API. The most notable
+// things about it is the two new files, which effectively generalize hash
+// windows so that module writers only call 2 hash/unhash functions and
+// don't worry about handling the hash window. Also, due to a VERY much
+// hack way, now memdb is able to read and write tier-specific databases!
+// The solver is also changed to deal with all this.
+// Many more updates to come soon.
+//
 // Revision 1.9  2006/07/30 20:00:26  max817
 // Just fixed a small file-writing error.
 //

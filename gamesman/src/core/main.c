@@ -92,8 +92,6 @@ void SetSolver()
         /* if solver set externally, leave alone */
         if (gSolver != NULL)
                 return;
-		else if (gUsingTierGamesman && gTierGamesman)
-				gSolver = &DetermineRetrogradeValue;
         else if(kLoopy) {
                 if (gGoAgain == DefaultGoAgain)
                         gSolver = &DetermineLoopyValue;
@@ -117,7 +115,28 @@ VALUE DetermineValue(POSITION position)
 		gLoadDatabase = FALSE;
 	}
 
-	if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
+	if(gUsingTierGamesman && gTierGamesman) {//TIER GAMESMAN
+		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
+		gTwoBits = gZeroMemPlayer = FALSE; // make sure memdb behaves properly
+		if (gPrintDatabaseInfo)
+			printf("\nEvaluating the value of %s...", kGameName);
+		gSolver(position);
+		showStatus(Clean);
+		AnalysisCollation();
+		gAnalysisLoaded = TRUE;
+		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+		if(gSaveDatabase) {
+			if(gUseOpen) {
+				SaveOpenPositionsData();
+			}
+			SaveAnalysis();
+		}
+		gPlaying = TRUE; //Trick memdb into loading gInitialTier too
+		gInitializeHashWindow(gInitialTier, TRUE);
+		gPlaying = FALSE;
+		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+		gInitialPosition = position; // saves a LOT of little changes
+	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
 		if (gPrintDatabaseInfo)
 			printf("\nLoading in Database for %s...",kGameName);
 

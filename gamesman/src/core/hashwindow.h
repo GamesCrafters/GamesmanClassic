@@ -5,7 +5,8 @@
 
 void gUnhashToTierPosition(POSITION, TIERPOSITION*, TIER*);
 POSITION gHashToWindowPosition(TIERPOSITION, TIER);
-void gInitializeHashWindow(TIER);
+void gInitializeHashWindow(TIER, BOOLEAN);
+void gInitializeHashWindowToPosition(POSITION*);
 
 extern BOOLEAN			gHashWindowInitialized;
 extern BOOLEAN			gCurrentTierIsLoopy;
@@ -14,4 +15,3 @@ extern TIERPOSITION*	gMaxPosOffset;
 extern int				gNumTiersInHashWindow;
 
 #endif /* GMCORE_HASHWINDOW_H */
-

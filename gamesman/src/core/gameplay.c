@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.42 2006-04-26 14:59:49 arabani Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.43 2006-08-04 06:47:53 max817 Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -112,7 +112,11 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
         MOVELIST* generatedMoves = 0;
 
         position = gInitialPosition;
-        undo = InitializeUndo();
+        if (gHashWindowInitialized) { // TIER GAMESMAN
+			gInitializeHashWindow(gInitialTier, TRUE);
+			position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+		}
+		undo = InitializeUndo();
 
 #ifndef X
 
@@ -197,6 +201,8 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                                 generatedMoves = GenerateMoves(position);
                                 mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
                                 position = DoMove(position,move);
+								if (gHashWindowInitialized) // TIER GAMESMAN
+									gInitializeHashWindowToPosition(&position);
                                 undo = UpdateUndo(position,undo,&player_draw);
                                 undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
                                 if(!gGoAgain(position,move)) {
@@ -1396,26 +1402,26 @@ VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES
 		MOVELIST *ptr = head;
 		REMOTENESS *remotenessArray;
 		int lengthOfMoveList = 0, i;
-		
+
 		while (ptr != NULL) { //get length of the movelist
 			lengthOfMoveList++;
 			ptr = ptr->next;
 		}
-		
+
 		ptr = head;
-		
+
 		childArray = SafeMalloc(lengthOfMoveList*sizeof(POSITION));
 		childValueArray = SafeMalloc(lengthOfMoveList*sizeof(VALUE));
 		remotenessArray = SafeMalloc(lengthOfMoveList*sizeof(REMOTENESS));
-		
+
 		for (i=0; (ptr != NULL); i++, ptr = ptr->next) {
 			childArray[i] = DoMove(thePosition, ptr->move);
 		}
 
 		ptr = head;
-        
+
 		GetValueAndRemotenessOfPositionBulk(childArray, childValueArray, remotenessArray, lengthOfMoveList);
-        
+
 		for (i=0; (ptr != NULL); i++, ptr = ptr->next) {
 			if (gGoAgain(thePosition, ptr->move)) {
 	                switch(childValueArray[i]) {
@@ -1440,11 +1446,11 @@ VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES
 	                BadElse("SortMoves found a child with an unknown value and");
 	        }
 		}
-		
+
 		SafeFree(childArray);
 		SafeFree(childValueArray);
 		SafeFree(remotenessArray);
-		
+
         return valueMoves;
 }
 /* Jiong */
@@ -1647,7 +1653,7 @@ VALUE_MOVES* GetValueMoves(POSITION thePosition)
         else {                                    /* we are guaranteed it's win | tie now */
                 head = ptr = GenerateMoves(thePosition);
                 if (gNetworkDB) {
-                	valueMoves = NetworkSortMoves(thePosition, head, valueMoves);		
+                	valueMoves = NetworkSortMoves(thePosition, head, valueMoves);
                 }
                 else {
                 	while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */

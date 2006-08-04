@@ -109,6 +109,8 @@ BOOLEAN gNetworkDB = FALSE;
 STRING  ServerAddress = "";
 
 /* Tier Gamesman globals and function pointers */
+TIERPOSITION	gInitialTierPosition = 0;
+TIER			gInitialTier = 0;
 BOOLEAN 		gTierGamesman = TRUE;
 BOOLEAN 		gUsingTierGamesman = FALSE;
 TIER 			kBadTier = -1;

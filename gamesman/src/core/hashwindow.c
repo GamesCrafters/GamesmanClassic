@@ -110,15 +110,15 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 }
 
 /* FOR THE CORE (SOLVER/GAMESMAN) TO CALL */
-void gInitializeHashWindow(TIER tier) {
+void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
+	if (gHashWindowInitialized) {
+		if (gTierInHashWindow[1] == tier) //same hash window ALREADY initialized, so just return
+			return;
+		// Free old stuff
+		if (gMaxPosOffset != NULL) SafeFree(gMaxPosOffset);
+		if (gTierInHashWindow != NULL) SafeFree(gTierInHashWindow);
+	}
 	gHashWindowInitialized = TRUE;
-	TIERPOSITION tierpos; TIER tierOfTierpos;
-	POSITION position = kBadPosition; // get rid of
-	if (position != kBadPosition)
-		gUnhashToTierPosition(position, &tierpos, &tierOfTierpos);
-	// Free old stuff
-	if (gMaxPosOffset != NULL) SafeFree(gMaxPosOffset);
-	if (gTierInHashWindow != NULL) SafeFree(gTierInHashWindow);
 
 	// Start by seeing what children go here
 	TIERLIST *children, *ptr, *back;
@@ -151,7 +151,21 @@ void gInitializeHashWindow(TIER tier) {
 	// set gNumberOfPositions
 	gNumberOfPositions = gMaxPosOffset[gNumTiersInHashWindow-1];
 	FreeTierList(ptr);
-	if (position != kBadPosition)
-		position = gHashToWindowPosition(tierpos, tierOfTierpos);
-	position = kBadPosition;
+	// finally, load the databases to memory:
+	if (loadDB) {
+		CreateDatabases();
+		InitializeDatabases();
+		if(!LoadDatabase()) {
+			printf("ERROR: Couldn't load tierDBs!\n");
+			exit(1);
+		}
+	}
+}
+
+// FOR GAMEPLAY.C
+void gInitializeHashWindowToPosition(POSITION* position) {
+	TIERPOSITION tierpos; TIER tier;
+	gUnhashToTierPosition((*position), &tierpos, &tier);
+	gInitializeHashWindow(tier, TRUE);
+	(*position) = gHashToWindowPosition(tierpos, tier);
 }

@@ -33,6 +33,8 @@
 **				The last things left for this file is prettying up the
 **				code (particularly WhoseTurn) and settling on how to
 **				handle gInitialPosition.
+**	8/03/06:	Added support for game playing by adding gInitialTier
+**				and gInitialTierPosition.
 **
 **************************************************************************/
 
@@ -239,7 +241,6 @@ void InitializeGame()
   for (i = 0; i < BOARDSIZE; i++)
   	board[i] = Blank;
   gInitialPosition = BlankOXToPosition(board, x);
-  //gInitialPosition = 0;
 }
 
 void FreeGame()
@@ -777,6 +778,14 @@ void SetupTierStuff() {
 		if (tier == 0) // since we can't discard contexts, I use this:
 			Tier0Context = generic_hash_cur_context();
 	}
+	// initial tier
+	gInitialTier = BOARDSIZE;
+	// it's already in the final hash context, so set the position:
+	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
+	int i;
+	for (i = 0; i < BOARDSIZE; i++)
+		board[i] = Blank;
+	gInitialTierPosition = BlankOXToPosition(board, x);
 }
 
 // Tier = Pieces left to place. So a tier's child is always

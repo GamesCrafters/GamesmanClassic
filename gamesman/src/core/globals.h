@@ -115,8 +115,12 @@ extern BOOLEAN 		gNetworkDB;
 extern STRING		ServerAddress;
 
 /* Tier Gamesman globals and function pointers */
+extern TIERPOSITION		gInitialTierPosition;
+extern TIER				gInitialTier;
+
 extern BOOLEAN			gTierGamesman;
 extern BOOLEAN			gUsingTierGamesman;
+
 extern TIER				kBadTier;
 extern TIERLIST*		gTierSolveListPtr;
 extern TIERLIST*		(*gTierChildrenFunPtr)(TIER);
