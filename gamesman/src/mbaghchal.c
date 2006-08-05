@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.19 2006-08-04 20:50:47 max817 Exp $
+// $Id: mbaghchal.c,v 1.20 2006-08-05 19:03:36 deepamahajan Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -275,7 +275,20 @@ TIERPOSITION NumberOfTierPositions(TIER);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
 int Tier0Context;
+<<<<<<< mbaghchal.c
+int HashWindowContext;
+<<<<<<< mbaghchal.c
+void TestUndoMove();
 // Actual functions are at the end of this file
+
+
+
+
+=======
+=======
+>>>>>>> 1.19
+// Actual functions are at the end of this file
+>>>>>>> 1.18
 int sumFromAToB(int a, int b);
 int goatsFromTier(TIER children);
 
@@ -846,6 +859,9 @@ void GameSpecificMenu ()
 			case 'b': case 'B':
 				cont = FALSE;
 				break;
+			case 'u': case 'U':
+				TestUndoMove();
+				break;
 			default:
 				printf("Invalid option!\n");
 		}
@@ -976,7 +992,11 @@ int getOption ()
 	int option = 0;
 	option += ((length-3)*TIGERS_MAX*GOATS_MAX + (tigers-1)*GOATS_MAX + (goats-1)) *2;
 	if (diagonals == FALSE)
+	{
 		option +=1;
+	}
+	option *= 2;
+	option += gSymmetries;
 	return option;
 }
 
@@ -994,6 +1014,8 @@ int getOption ()
 
 void setOption (int option)
 {
+	gSymmetries = option %2;
+	option /= 2;
 	if(option%2==1){
 		diagonals = FALSE;
 		option-=1;
@@ -1557,9 +1579,58 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
 	}
 	SafeFree(board);
 	return moves;
+<<<<<<< mbaghchal.c
+<<<<<<< mbaghchal.c
+}//newest	
+
+void TestUndoMove()
+{
+	int i, j;
+	char* board = unhash(gInitialPosition);
+	POSITION position;
+	UNDOMOVELIST* undomoves;
+	for(i=1; i<=length; i++){
+		for(j=1; j<=length; j++){
+			board[translate(i,j)] = SPACE;
+		}
+	}
+	//case 1
+	board[translate(1,1)] = TIGER;
+	board[translate(1,length)] = TIGER;
+	board[translate(length,1)] = TIGER;
+	board[translate(length,length)] = TIGER;
+	NumGoats = 4;
+	position = hash(board, PLAYER_ONE);
+	InitializeHashWindow(20,position);
+	undomoves = GenerateUndoMovesToTier(position, PositionToTier(position));
+	while(undomoves != NULL){
+		PrintMove(undomoves->undomove);
+		undomoves = undomoves->next;
+	}
+}
+
+
+
+	
+	//case 2
+	//case 3
+	//create board at top tier, at tier 0, at stage 1 w/ tiger at stage 2, at stage 1 with goat at etc.
+	// call generate undomoves and output the moves
+	//they should equal those boards hashes
+=======
+}//newest
+>>>>>>> 1.18
+=======
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2006/08/04 20:50:47  max817
+// Cleaned up the code, completely revamped hashing and unhashing, and got
+// rid of ugly semi-state variables like phase1 and NumGoats. Now the
+// regular game is probably as close to final version as can be. Tier
+// Gamesman stuff is still in progress so it's disabled for now, but should
+// be finished by next update.
+//
 // Revision 1.18  2006/07/31 04:26:46  max817
 // Fixed a few (mostly hash-related) bugs in the Tier-Gamesman API functions.
 // More fixes to come.
@@ -1588,3 +1659,4 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
 // Exact details on the exact changes I made to the core files can be found
 // in a comment on solveretrograde.c. -Max
 //
+>>>>>>> 1.19
