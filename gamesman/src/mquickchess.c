@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.27 2006-08-05 06:48:51 runner139 Exp $
+// $Id: mquickchess.c,v 1.28 2006-08-05 08:02:44 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -73,6 +73,9 @@
 ** 2 Aug 2006 Adam: Wrote IsLegal and began add a feature to the game specific 
 **                  menus in order to change the board initially.
 ** 4 Aug 2006 Adam: Debug some of the game specific menu. Wrote hash and unhash functions.
+** 5 Aug 2006 Adam: A user can now enter a customizable board! Note: for now instructions must be 
+**                  followed closely. A simple mistake could make it error. This will be fixed soon so
+**                  that there is a high error tolerance.
 **************************************************************************/
 
 /*************************************************************************
@@ -184,7 +187,7 @@ STRING   kHelpExample =
 *************************************************************************/
 int rows = 4;
 int cols = 3;
-char *theBoard = " k       QK ";
+char *theBoard = " k       BK ";
 int theCurrentPlayer = WHITE_TURN;
 
 
@@ -285,7 +288,7 @@ int* gTierToPiecesArray(TIER t, int *piecesArray);
 TIER gPiecesArrayToTier(int *piecesArray);
 void printTierList(TIERLIST* tl);
 TIERPOSITION gPositionToTierPosition(POSITION p, TIER t);
-POSITION gInitializeHashWindow(TIER t, POSITION p);
+//POSITION gInitializeHashWindow(TIER t, POSITION p);
 int countBits(int i);
 void printTierArray(TIER tierArray[NUM_TIERS]);
 BOOLEAN IsLegal(POSITION position);
@@ -296,6 +299,9 @@ BOOLEAN isLegalBoard(char *Board);
 TIER BoardToTier(char *Board);
 TIERPOSITION NumberOfTierPositions(TIER t);
 BOOLEAN IsLegal(POSITION p);
+POSITION hash(char* board, int turn);
+char* unhash(POSITION position, char *board);
+
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
@@ -445,7 +451,7 @@ void InitializeGame ()
   minBlank = rows*cols - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
   maxBlank = rows*cols - 2;
   int pieces_array[40] = {'p', 0, *(piecesArray + DISTINCT_PIECES-1), 'b', 0, *(piecesArray + 5), 'r', 0, *(piecesArray + 6), 'n', 0, *(piecesArray + 7), 'q', 0, *(piecesArray + 4), 'k', 1, 1, 'P', 0, *(piecesArray + DISTINCT_PIECES-2), 'B', 0, *(piecesArray + 1), 'R', 0, *(piecesArray + 2), 'N', 0, *(piecesArray + 3), 'Q', 0, *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
-
+ 
   gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
   gInitialPosition = hash(theBoard,theCurrentPlayer);
   for(i = 0; i < MAX_TIERS; i++) {
@@ -900,7 +906,7 @@ lower-case letters indicate the pieces that belong to black:\n\n");
 	break;
       }
       printf("Enter Board Now\n\n");
-      //getchar();
+      getchar();
       theBoard = getBoard();
       do {
 	printf("Whose turn is it? (w/b): \n");
@@ -1267,7 +1273,7 @@ BOOLEAN inCheck(POSITION N, int checkedPlayer) {
 	char bA[rows*cols];
 	
 	//currentPlayer = whoseMove(N);
-	unhash(N,bA);
+	unhash(N, bA);
 	for (i = 0; i < rows; i++) {
 		for(j = 0; j < cols; j++) {
 			piece = bA[i*cols +j]; 
@@ -2241,27 +2247,26 @@ BOOLEAN isBishop(position)
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
   TIERPOSITION numOfPositions;
-  char boardArray[BOARDSIZE];
-  int *piecesArray, hashWindowContext, currentPlayer, minBlank, maxBlank;
+  int *piecesArray,minBlank, maxBlank;
   piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(t, piecesArray); 
+  piecesArray =  gTierToPiecesArray(tier, piecesArray); 
   
-  hashWindowContext = generic_hash_cur_context();
+  //hashWindowContext = generic_hash_cur_context();
   
-  unhash(p, boardArray);
-  currentPlayer = whoseMove(p);
-  if(contextArray[t].valid == 0) {
+  //unhash(p, boardArray);
+  //currentPlayer = whoseMove(p);
+  if(contextArray[tier].valid == 0) {
     minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
     maxBlank = minBlank;
     int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
     gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-    contextArray[t].valid = 1;
-    contextArray[t].context = generic_hash_cur_context();
+    contextArray[tier].valid = 1;
+    contextArray[tier].context = generic_hash_cur_context();
   } else {
-    generic_hash_context_switch(contextArray[t].context);
+    generic_hash_context_switch(contextArray[tier].context);
   }
   numOfPositions = generic_hash_max_pos();
-  generic_hash_context_switch(hashWindowContext);
+  //generic_hash_context_switch(hashWindowContext);
   return numOfPositions;
   
 }
@@ -3496,11 +3501,11 @@ char *getBoard() {
   int i = 0;
   char c, cPrev;
   while ((c = getchar())) {
-    if(c != '\n'){
-      i++;
+    if(c != '\n' && c != 0){
       if(c == '-')
 	boardArray[i] = ' ';
       else boardArray[i] = c;
+      i++;
     } else if (c == '\n' && cPrev == '\n') {
       break;
     }
@@ -3521,10 +3526,10 @@ BOOLEAN isLegalBoard(char *Board){
 
 /* Hashing and Unhashing */
 
-char* unhash(POSITION position)
+char* unhash(POSITION position, char* board)
 {
-  int *piecesArray, currentPlayer, minBlank, maxBlank;
-  char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
+  int *piecesArray,  minBlank, maxBlank;
+  //char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
   if (gHashWindowInitialized) {
     TIERPOSITION tierpos; 
     TIER tier;
@@ -3532,16 +3537,16 @@ char* unhash(POSITION position)
     
     if(contextArray[tier].valid == 0) {
       piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-      piecesArray =  gTierToPiecesArray(t, piecesArray); 
+      piecesArray =  gTierToPiecesArray(tier, piecesArray); 
       
       minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
       maxBlank = minBlank;
       int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
       gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-      contextArray[t].valid = 1;
-      contextArray[t].context = generic_hash_cur_context();
+      contextArray[tier].valid = 1;
+      contextArray[tier].context = generic_hash_cur_context();
     } else {
-      generic_hash_context_switch(contextArray[t].context);
+      generic_hash_context_switch(contextArray[tier].context);
     }
     return (char *) generic_unhash(tierpos, board);
   } else return (char *) generic_unhash(position, board);
@@ -3551,29 +3556,28 @@ char* unhash(POSITION position)
 POSITION hash(char* board, int turn)
 {
   POSITION position;
-  int *piecesArray, hashWindowContext, currentPlayer, minBlank, maxBlank;
+  int *piecesArray,  minBlank, maxBlank;
   
   if (gHashWindowInitialized) {
     TIER tier = BoardToTier(board);
     if(contextArray[tier].valid == 0) {
       piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-      piecesArray =  gTierToPiecesArray(t, piecesArray); 
+      piecesArray =  gTierToPiecesArray(tier, piecesArray); 
       minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
       maxBlank = minBlank;
       int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
       gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-      contextArray[t].valid = 1;
-      contextArray[t].context = generic_hash_cur_context();
+      contextArray[tier].valid = 1;
+      contextArray[tier].context = generic_hash_cur_context();
     } else {
-      generic_hash_context_switch(contextArray[t].context);
+      generic_hash_context_switch(contextArray[tier].context);
     }
     TIERPOSITION tierpos = generic_hash((char*)board, turn);
     position = gHashToWindowPosition(tierpos, tier);
   } else position = generic_hash((char*)board, turn);
-  if(board != NULL)
-     SafeFree(board);
   return position;
 }
+
 // $Log: not supported by cvs2svn $
 // Revision 1.24  2006/07/28 01:58:14  runner139
 // *** empty log message ***
