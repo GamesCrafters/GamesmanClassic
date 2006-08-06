@@ -176,6 +176,7 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
 
         cCon->numPieces = hash_countPieces(pieces_array);
         cCon->gfn = fn;
+        cCon->player = 0;
 
         cCon->pieces = (char*) SafeMalloc (sizeof(char) * cCon->numPieces);
         cCon->mins = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
@@ -237,6 +238,13 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
         return sofar*2;
 }
 
+/* initializes "single player" version of generic_hash */
+POSITION generic_hash_init_singleplayer(int boardsize, int *pieces_array, int (*fn)(int *), int player)
+{
+		POSITION maxPosX2 = generic_hash_init(boardsize, pieces_array, fn);
+		cCon->player = ((player-1) % 2) + 1; // ensures player is either 1 or 2
+		return maxPosX2 / 2;
+}
 
 /* initializes pascal's triangle and piece configuration tables */
 void nCr_init(int boardsize)
@@ -355,7 +363,9 @@ POSITION generic_hash(char* board, int player) //accomodates whoseMove
         }
         temp = cCon->hashOffset[searchIndices(sum)];
         temp += hash_cruncher(board);
-        return temp + (player-1)*(cCon->maxPos); //accomodates whoseMove
+        if (cCon->player != 0) // using single-player boards, ignore "player"
+        	return temp;
+        else return temp + (player-1)*(cCon->maxPos); //accomodates whoseMove
 }
 
 /* helper func from generic_unhash() computes lexicographic rank of *board
@@ -392,7 +402,9 @@ POSITION hash_cruncher (char* board)
 /* tells whose move it is, given a board's hash number */
 int whoseMove (POSITION hashed)
 {
-        return hashed >= cCon->maxPos ? 2 : 1;
+		if (cCon->player != 0) // using single-player boards
+			return cCon->player;
+        else return hashed >= cCon->maxPos ? 2 : 1;
 }
 
 
@@ -527,6 +539,7 @@ int generic_hash_context_init()
         newHashC->thisCount = NULL;
         newHashC->localMins = NULL;
         newHashC->gfn = NULL;
+        newHashC->player = 0;
         //newHashC->init = FALSE;
         //newHashC->contextNumber = hash_tot_context;
         contextList[hash_tot_context-1] = newHashC;
@@ -574,8 +587,9 @@ void generic_hash_context_switch(int context)
 ******************************/
 
 
-int generic_hash_cur_context() {
-  return currentContext;
+int generic_hash_cur_context()
+{
+		return currentContext;
 }
 
 /******************************
@@ -586,8 +600,11 @@ int generic_hash_cur_context() {
 **
 ******************************/
 
-POSITION generic_hash_max_pos() {
-	return (cCon->maxPos)*2;
+POSITION generic_hash_max_pos()
+{
+		if (cCon->player != 0) // using single-player boards
+			return cCon->maxPos;
+		else return (cCon->maxPos)*2;
 }
 
 /*******************************
