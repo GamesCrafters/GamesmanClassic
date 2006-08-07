@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.20 2006-08-05 19:03:36 deepamahajan Exp $
+// $Id: mbaghchal.c,v 1.21 2006-08-07 01:05:27 max817 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -275,20 +275,8 @@ TIERPOSITION NumberOfTierPositions(TIER);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
 int Tier0Context;
-<<<<<<< mbaghchal.c
-int HashWindowContext;
-<<<<<<< mbaghchal.c
 void TestUndoMove();
 // Actual functions are at the end of this file
-
-
-
-
-=======
-=======
->>>>>>> 1.19
-// Actual functions are at the end of this file
->>>>>>> 1.18
 int sumFromAToB(int a, int b);
 int goatsFromTier(TIER children);
 
@@ -971,7 +959,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-	return 1280;
+	return 1298;
 }
 
 
@@ -999,7 +987,6 @@ int getOption ()
 	option += gSymmetries;
 	return option;
 }
-
 
 /************************************************************************
 **
@@ -1579,16 +1566,15 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
 	}
 	SafeFree(board);
 	return moves;
-<<<<<<< mbaghchal.c
-<<<<<<< mbaghchal.c
-}//newest	
+}
 
 void TestUndoMove()
 {
 	int i, j;
-	char* board = unhash(gInitialPosition);
+	int turn, goatsLeft;
+	char* board = unhash(gInitialPosition, &turn, &goatsLeft);
 	POSITION position;
-	UNDOMOVELIST* undomoves;
+	//UNDOMOVELIST* undomoves;
 	for(i=1; i<=length; i++){
 		for(j=1; j<=length; j++){
 			board[translate(i,j)] = SPACE;
@@ -1599,31 +1585,20 @@ void TestUndoMove()
 	board[translate(1,length)] = TIGER;
 	board[translate(length,1)] = TIGER;
 	board[translate(length,length)] = TIGER;
-	NumGoats = 4;
-	position = hash(board, PLAYER_ONE);
-	InitializeHashWindow(20,position);
-	undomoves = GenerateUndoMovesToTier(position, PositionToTier(position));
-	while(undomoves != NULL){
-		PrintMove(undomoves->undomove);
-		undomoves = undomoves->next;
-	}
-}
-
-
-
-	
-	//case 2
-	//case 3
-	//create board at top tier, at tier 0, at stage 1 w/ tiger at stage 2, at stage 1 with goat at etc.
-	// call generate undomoves and output the moves
-	//they should equal those boards hashes
-=======
-}//newest
->>>>>>> 1.18
-=======
+	goatsLeft = 4;
+	position = hash(board, PLAYER_ONE, goatsLeft);
+	//InitializeHashWindow(20,position);
+	//undomoves = GenerateUndoMovesToTier(position, PositionToTier(position));
+	//while(undomoves != NULL){
+	//	PrintMove(undomoves->undomove);
+	//	undomoves = undomoves->next;
+	//}
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2006/08/05 19:03:36  deepamahajan
+// changes set/getOption to include symmetries
+//
 // Revision 1.19  2006/08/04 20:50:47  max817
 // Cleaned up the code, completely revamped hashing and unhashing, and got
 // rid of ugly semi-state variables like phase1 and NumGoats. Now the
@@ -1659,4 +1634,3 @@ void TestUndoMove()
 // Exact details on the exact changes I made to the core files can be found
 // in a comment on solveretrograde.c. -Max
 //
->>>>>>> 1.19
