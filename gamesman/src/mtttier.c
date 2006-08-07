@@ -35,6 +35,15 @@
 **				handle gInitialPosition.
 **	8/03/06:	Added support for game playing by adding gInitialTier
 **				and gInitialTierPosition.
+**	8/05/06:	Made the hashes 100% efficient. IsLegal is no longer
+**				required!
+**	8/07/06:	The global hash now uses singleplayer mode like the
+**				tier hashes. Also I realize the hashes aren't ACTUALLY
+**				100% efficient (and IsLegal is still needed) since there's
+**				some positions where a player has already won but more
+**				pieces are still placed. But... aside from that (if I ever
+**				choose to make that fix anyway), this is as close to the
+**				final version of the file as it gets.
 **
 **************************************************************************/
 
@@ -154,9 +163,9 @@ POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 
 // HASH/UNHASH
-POSITION BlankOXToPosition(BlankOX*,BlankOX);
+POSITION BlankOXToPosition(BlankOX*);
 BlankOX* PositionToBlankOX(POSITION);
-BlankOX WhoseTurn(POSITION);
+BlankOX WhoseTurn(BlankOX*);
 TIER BoardToTier(BlankOX*);
 
 //TIER GAMESMAN
@@ -166,7 +175,6 @@ TIERPOSITION NumberOfTierPositions(TIER);
 BOOLEAN IsLegal(POSITION);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
-// until I learn how to overwrite contexts:
 int Tier0Context;
 // Actual functions are at the end of this file
 
@@ -234,13 +242,13 @@ void InitializeGame()
 
   //have a GLOBAL HASH set up at outset:
   int game[10] = { o, 0, 4, x, 0, 5, Blank, 0, 9, -1 };
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, game, vcfg);
+  gNumberOfPositions = generic_hash_init_singleplayer(BOARDSIZE, game, vcfg, 1);
 
    // gInitialPosition
   BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
   for (i = 0; i < BOARDSIZE; i++)
   	board[i] = Blank;
-  gInitialPosition = BlankOXToPosition(board, x);
+  gInitialPosition = BlankOXToPosition(board);
 }
 
 void FreeGame()
@@ -300,8 +308,8 @@ int theOptions[];
 POSITION DoMove(POSITION position, MOVE move)
 {
     BlankOX* board = PositionToBlankOX(position);
-    board[move] = WhoseTurn(position);
-    return BlankOXToPosition(board, (WhoseTurn(position) == x ? o : x));
+    board[move] = WhoseTurn(board);
+    return BlankOXToPosition(board);
 }
 
 /************************************************************************
@@ -338,7 +346,7 @@ POSITION GetInitialPosition()
       ;   /* do nothing */
   }
 
-  return(BlankOXToPosition(board, (xcount == ycount ? x : o)));
+  return(BlankOXToPosition(board));
 }
 
 /************************************************************************
@@ -428,7 +436,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   BlankOX* board = PositionToBlankOX(position);
 
   printf("\n         ( 1 2 3 )           : %c %c %c (%c's Turn)\n",
-     board[0], board[1], board[2], WhoseTurn(position));
+     board[0], board[1], board[2], WhoseTurn(board));
   printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %c %c %c\n",
 	 board[3], board[4], board[5]);
   printf("         ( 7 8 9 )           : %c %c %c %s\n\n",
@@ -535,7 +543,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 
   if (board != NULL)
     SafeFree(board);
-  return(BlankOXToPosition(symmBoard, WhoseTurn(position)));
+  return(BlankOXToPosition(symmBoard));
 }
 
 /**************************************************/
@@ -673,7 +681,7 @@ BOOLEAN AllFilledIn(BlankOX* board)
 
 int NumberOfOptions()
 {
-  return 2 ;
+  return 4 ;
 }
 
 int getOption()
@@ -708,28 +716,34 @@ BlankOX* PositionToBlankOX(POSITION position)
 }
 
 // "Hash"
-POSITION BlankOXToPosition(BlankOX* board, BlankOX turn)
+POSITION BlankOXToPosition(BlankOX* board)
 {
 	POSITION position;
 	if (gHashWindowInitialized) {
 		TIER tier = BoardToTier(board); // find this board's tier
 		generic_hash_context_switch(Tier0Context+tier); // switch to that context
-		TIERPOSITION tierpos = generic_hash((char*)board, (turn == x ? 1 : 2)); //unhash
+		TIERPOSITION tierpos = generic_hash((char*)board, 1); //unhash
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-	} else position = generic_hash((char*)board, (turn == x ? 1 : 2));
+	} else position = generic_hash((char*)board, 1);
 	if(board != NULL)
 		SafeFree(board);
 	return position;
 }
 
-BlankOX WhoseTurn(POSITION position)
+BlankOX WhoseTurn(BlankOX* board)
 {
-	TIERPOSITION tierpos; TIER tier;
-	if (gHashWindowInitialized) {
-		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
-		generic_hash_context_switch(Tier0Context+tier); // switch to that tier's context
-	} else tierpos = position;
-	if (whoseMove(tierpos) == 1)
+	// This turns out to be equivalent to calling WhoseMove
+	// for the Tier-specific generic hashes.
+	int i, xcount = 0, ocount = 0;
+
+	for(i = 0 ; i < BOARDSIZE ; i++) {
+		if(board[i] == x)
+			xcount++;
+		else if(board[i] == o)
+			ocount++;
+	}
+
+	if(xcount == ocount)
 		return x;
 	else return o;
 }
@@ -754,12 +768,12 @@ void SetupTierStuff() {
 	gTierSolveListPtr = NULL;
 	int tier;
 	for (tier = BOARDSIZE; tier >= 0; tier--) { // 10 tiers, 0 through 9
-	  gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
+		gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
 	} // solve list = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
 	// All other function pointers
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
-	gIsLegalFunPtr					= &IsLegal;
+	//gIsLegalFunPtr				= &IsLegal;
 	gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier;
 	gUnDoMoveFunPtr					= &UnDoMove;
 	// Tier-Specific Hashes
@@ -774,7 +788,7 @@ void SetupTierStuff() {
 		// Blanks = tier
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
-		generic_hash_init(BOARDSIZE, piecesArray, NULL);
+		generic_hash_init_singleplayer(BOARDSIZE, piecesArray, NULL, (tier%2==0 ? 2 : 1));
 		if (tier == 0) // since we can't discard contexts, I use this:
 			Tier0Context = generic_hash_cur_context();
 	}
@@ -785,7 +799,7 @@ void SetupTierStuff() {
 	int i;
 	for (i = 0; i < BOARDSIZE; i++)
 		board[i] = Blank;
-	gInitialTierPosition = BlankOXToPosition(board, x);
+	gInitialTierPosition = BlankOXToPosition(board);
 }
 
 // Tier = Pieces left to place. So a tier's child is always
@@ -803,18 +817,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 	return generic_hash_max_pos();
 }
 
-// A little attempt at some efficiency:
-// Simply cancel out OTHER turn boards
+// Not used, since we deal with the double-hash problem already.
 BOOLEAN IsLegal(POSITION position) {
-	BlankOX* board = PositionToBlankOX(position);
-			BlankOX turn = WhoseTurn(position);
-	TIER tier = BoardToTier(board);
-	if (board != NULL)
-		SafeFree(board);
-	if (((BOARDSIZE-tier) % 2 == 0 && turn == x) ||
-		((BOARDSIZE-tier) % 2 == 1 && turn == o))
-		return TRUE;
-	return FALSE;
+	return TRUE;
 }
 
 // Basically the OPPOSITE of GenerateMoves: look for the
@@ -824,7 +829,7 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	BlankOX* board = PositionToBlankOX(position);
 	int i;
 	UNDOMOVELIST* undomoves = NULL;
-	BlankOX turn = (WhoseTurn(position) == x ? o : x);
+	BlankOX turn = (WhoseTurn(board) == x ? o : x);
 	for (i = BOARDSIZE-1; i >= 0; i--) {
 		if (board[i] == turn) //It's opposing player's turn
 			undomoves = CreateUndoMovelistNode(i, undomoves);
@@ -845,5 +850,5 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier) {
 POSITION UnDoMove(POSITION position, UNDOMOVE undomove) {
     BlankOX* board = PositionToBlankOX(position);
     board[undomove] = Blank;
-    return BlankOXToPosition(board, (WhoseTurn(position) == x ? o : x));
+    return BlankOXToPosition(board);
 }
