@@ -34,7 +34,6 @@
 
 /* VARIABLES */
 BOOLEAN	gHashWindowInitialized = FALSE;
-BOOLEAN gGlobalHashMode = FALSE;
 BOOLEAN gCurrentTierIsLoopy = FALSE;
 TIER* gTierInHashWindow;
 TIERPOSITION* gMaxPosOffset;
@@ -42,10 +41,18 @@ int gNumTiersInHashWindow;
 
 /*
 Hash Windows are set up like this:
-Say we are setting a window for Tier 0. Calling TierChildren on it returns
+First of all, Tier -1 (kBadTier) is ALWAYS in every Hash Window, and is
+ALWAYS the first tier in the list, and ALWAYS contains 0 positions.
+Don't ask why; just know that it makes things easier. :)
+
+Now, say we are setting a window for Tier 0. Calling TierChildren on it returns
 (1, 2, 3, 0). First, Tier 0 is placed in the front of the list, and if the
 list already contains 0, it is removed. So the result is (0, 1, 2, 3).
+
 Thus, TierInHashWindow becomes = { -1(kBadTier), 0, 1, 2, 3 }.
+gNumTierInHashWindow is 5, since there are 5 tiers in the hash window
+(including kBadTier).
+
 Now, say the MaxPositions of the tiers are as follows:
 0: 20 Positions (0 through 19)
 1: 30 Positions (0 through 29)
@@ -58,7 +65,7 @@ Now in this window, we know 0-19 is Tier 0, 20-49 is Tier 1, 50-64 is Tier 2,
 and 65-99 is Tier 3. Subtract the appropriate offsets and you get the original
 MaxPositions for the tiers.
 
-Booyakasha.
+w00t.
 -Max
 */
 
@@ -71,7 +78,10 @@ void gUnhashToTierPosition(POSITION position, TIERPOSITION* tierposition,
 		printf("ERROR: Hash Window is not initialized!\n");
 		ExitStageRight();
 	} if (position < 0 || position >= gNumberOfPositions) {
-		printf("ERROR: Hash Window function \"gUnhashToTierPosition\" called with illegal POSITION.\n");
+		printf("ERROR: Hash Window function \"gUnhashToTierPosition\" called with\n"
+				" illegal POSITION: %llu\n"
+				"(Current Hash Window's range is from 0 to %llu)\n",
+				position, gNumberOfPositions);
 		ExitStageRight();
 	}
 	// since we know position is legal, this works:
@@ -97,14 +107,22 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 		if (gTierInHashWindow[i] == tier) {
 			POSITION position = tierposition += gMaxPosOffset[i-1];
 			if (position < 0 || position > gMaxPosOffset[i]) {
-				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with illegal TIERPOSITION.\n");
+				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
+						"illegal TIERPOSITION: %llu\n"
+						"(Tier %d's reported range is from 0 to %llu)\n",
+						tierposition, tier, gMaxPosOffset[i]);
 				ExitStageRight();
 			}
 			return position;
 		}
 	}
 	// shouldn't be reached. So, error:
-	printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with illegal TIER.\n");
+	printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
+			"illegal TIER: %d\n"
+			"(Current Hash Window includes these tiers:", tier);
+	for (i = 1; i < gNumTiersInHashWindow; i++)
+		printf(" %d", gTierInHashWindow[i]);
+	printf(")\n");
 	ExitStageRight();
 	return 0;
 }
