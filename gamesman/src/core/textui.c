@@ -587,10 +587,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	break;
     }
     case 't': case 'T': {
-	if (gUsingTierGamesman) {
+	if (gUsingTierGamesman)
 		gTierGamesman = !gTierGamesman;
-		gSolver = NULL; // Because SetupGame() is called once BEFORE
-	} else BadMenuChoice();
+	else BadMenuChoice();
 	break;
 	}
     case 'o': case 'O':

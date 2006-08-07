@@ -421,7 +421,7 @@ BOOLEAN memdb_load_database()
 			int index;
 			// always load current tier at BOTTOM, thus it being first
 			for (index = 1; index < gNumTiersInHashWindow; index++) {
-				if (index == 1 && !gPlaying) { // if solving, DONT'T load from file
+				if (index == 1 && !gMemDBLoadMainTier) { // if solving, DONT'T load from file
 					int i;
 					for(i = 0; i < gMaxPosOffset[1]; i++)
 						memdb_array[i] = undecided;

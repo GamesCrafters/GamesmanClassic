@@ -120,6 +120,7 @@ extern TIER				gInitialTier;
 
 extern BOOLEAN			gTierGamesman;
 extern BOOLEAN			gUsingTierGamesman;
+extern BOOLEAN			gMemDBLoadMainTier;
 
 extern TIER				kBadTier;
 extern TIERLIST*		gTierSolveListPtr;

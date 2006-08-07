@@ -174,8 +174,12 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 		CreateDatabases();
 		InitializeDatabases();
 		if(!LoadDatabase()) {
-			printf("ERROR: Couldn't load tierDBs!\n");
-			exit(1);
+			printf("ERROR: Couldn't load tierDBs for Tier %d!\n"
+					"(Current Hash Window includes these tiers:", tier);
+			for (i = 1; i < gNumTiersInHashWindow; i++)
+				printf(" %d", gTierInHashWindow[i]);
+			printf(")\n");
+			ExitStageRight();
 		}
 	}
 }

@@ -113,6 +113,7 @@ TIERPOSITION	gInitialTierPosition = 0;
 TIER			gInitialTier = 0;
 BOOLEAN 		gTierGamesman = TRUE;
 BOOLEAN 		gUsingTierGamesman = FALSE;
+BOOLEAN			gMemDBLoadMainTier = FALSE;
 TIER 			kBadTier = -1;
 TIERLIST*		gTierSolveListPtr = NULL;
 TIERLIST* 		(*gTierChildrenFunPtr)(TIER) = NULL;

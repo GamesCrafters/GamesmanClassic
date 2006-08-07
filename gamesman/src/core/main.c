@@ -120,7 +120,9 @@ VALUE DetermineValue(POSITION position)
 		gTwoBits = gZeroMemPlayer = FALSE; // make sure memdb behaves properly
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);
+		gMemDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
 		gSolver(position);
+		gMemDBLoadMainTier = TRUE; // from now on, memdb loads main tier too
 		showStatus(Clean);
 		AnalysisCollation();
 		gAnalysisLoaded = TRUE;
@@ -131,9 +133,7 @@ VALUE DetermineValue(POSITION position)
 			}
 			SaveAnalysis();
 		}
-		gPlaying = TRUE; //Trick memdb into loading gInitialTier too
 		gInitializeHashWindow(gInitialTier, TRUE);
-		gPlaying = FALSE;
 		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 		gInitialPosition = position; // saves a LOT of little changes
 	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
