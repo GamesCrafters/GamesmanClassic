@@ -105,15 +105,14 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 	int i;
 	for(i = 1; i < gNumTiersInHashWindow; i++) {
 		if (gTierInHashWindow[i] == tier) {
-			POSITION position = tierposition += gMaxPosOffset[i-1];
-			if (position < 0 || position > gMaxPosOffset[i]) {
+			if (tierposition < 0 || tierposition > gMaxPosOffset[i]) {
 				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
 						"illegal TIERPOSITION: %llu\n"
 						"(Tier %d's reported range is from 0 to %llu)\n",
 						tierposition, tier, gMaxPosOffset[i]);
 				ExitStageRight();
 			}
-			return position;
+			return tierposition + gMaxPosOffset[i-1];
 		}
 	}
 	// shouldn't be reached. So, error:
