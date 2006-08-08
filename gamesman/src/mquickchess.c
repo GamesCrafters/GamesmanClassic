@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.29 2006-08-08 07:36:32 runner139 Exp $
+// $Id: mquickchess.c,v 1.30 2006-08-08 21:58:39 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -363,7 +363,7 @@ void InitializeGame ()
   gTierChildrenFunPtr = &gTierChildren;
   //gPositionToTierPositionFunPtr = &gPositionToTierPosition;
   //gInitializeHashWindowFunPtr = &gInitializeHashWindow;
-  //  gIsLegalFunPtr					= &IsLegal;
+  gIsLegalFunPtr					= &IsLegal;
   gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
   gUsingTierGamesman = TRUE;
   /*
@@ -3566,6 +3566,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2006/08/08 07:36:32  runner139
+// *** empty log message ***
+//
 // Revision 1.28  2006/08/05 08:02:44  runner139
 // *** empty log message ***
 //
