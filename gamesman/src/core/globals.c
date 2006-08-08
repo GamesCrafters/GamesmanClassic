@@ -121,3 +121,4 @@ TIERPOSITION	(*gNumberOfTierPositionsFunPtr)(TIER) = NULL;
 BOOLEAN			(*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
+STRING			(*gTierToStringFunPtr)(TIER) = NULL;

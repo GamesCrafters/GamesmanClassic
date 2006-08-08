@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.13 2006-08-08 01:57:22 max817 Exp $
+// $Id: solveretrograde.c,v 1.14 2006-08-08 20:35:19 max817 Exp $
 
 /************************************************************************
 **
@@ -83,7 +83,7 @@ int variant;
 char filename[80];
 TIER tierToSolve;
 POSITION tierSize;
-BOOLEAN checkLegality, useUndo, forceLoopy;
+BOOLEAN tierNames, checkLegality, useUndo, forceLoopy;
 TIERLIST* tierSolveList;
 
 // Solver procs
@@ -119,11 +119,13 @@ void skipToNewline(FILE*);
 
 VALUE DetermineRetrogradeValue(POSITION position) {
 	variant = getOption();
+	STRING tierStr;
 	BOOLEAN cont = TRUE, isLegalGiven = TRUE, undoGiven = TRUE;
 	TIER numTiers;
     char c;
     checkLegality = useUndo = TRUE;
     forceLoopy = FALSE;
+    tierNames = (gTierToStringFunPtr != NULL);
 
 	printf("\n\n=====Welcome to the TIER-GAMESMAN Retrograde Solver!=====\n");
 	printf("Currently solving game (%s) with variant (%d)\n", kGameName, variant);
@@ -134,11 +136,16 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		printf("gTierSolveListPtr NOT GIVEN\n");
 		cont = FALSE;
 	} else {
-		printf("-Tier Solve Order: ");
+		printf("-Tier Solve Order:\n");
 		tierSolveList = gTierSolveListPtr;
 		numTiers = 0;
 		for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
 			printf("%d ", tierSolveList->tier);
+			if (tierNames) {
+				tierStr = gTierToStringFunPtr(tierSolveList->tier);
+				printf(": %s\n", tierStr);
+				if (tierStr != NULL) SafeFree(tierStr);
+			}
 			numTiers++;
 		}
 		printf("\n   %d Tiers are confirmed to be solved.\n", numTiers);
@@ -172,6 +179,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		printf("-UnDoMove NOT GIVEN\nUndoMove Use Disabled\n");
 		undoGiven = useUndo = FALSE;
 	}
+	if (gTierToStringFunPtr == NULL) {
+		printf("-TierToString NOT GIVEN\nTier Name Printing Disabled\n");
+	}
 
 	printf("\n-----Checking for existing Tier DBs:-----\n\n");
 	tierSolveList = gTierSolveListPtr;
@@ -184,18 +194,22 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	PrepareToSolveNextTier();
     while(cont) {
-        printf("\n\n===RETROGRADE SOLVER MENU for game: %s===\n", kGameName);
-        printf("Ready to solve %sLOOPY tier (%d), which contains (%lld) positions.\n",
-        		(gCurrentTierIsLoopy ? "" : "NON-"), tierToSolve, tierSize);
-        printf("\tOptions:\n"
-        	   "\td)\t(D)ebug API Functions!\n"
+        printf("\n\n\t----- RETROGRADE SOLVER MENU for game: %s -----\n", kGameName);
+        printf("\tReady to solve %sLOOPY tier %d", (gCurrentTierIsLoopy ? "" : "NON-"), tierToSolve);
+        if (tierNames) {
+			tierStr = gTierToStringFunPtr(tierToSolve);
+			printf(" (%s)", tierStr);
+			if (tierStr != NULL) SafeFree(tierStr);
+		}
+        printf("\n\The tier hash contains (%lld) positions.\n\n", tierSize);
+        printf("\td)\t(D)ebug API Functions!\n\n"
                "\tc)\t(C)heck Legality using IsLegal? Currently: %s.\n"
         	   "\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s.\n"
-        	   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n"
+        	   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
         	   "\ts)\t(S)olve the next tier.\n"
-               "\ta)\t(A)utomate the solving for all the tiers left.\n"
-               "\tb)\t(B)egin the Game before fully solving!\n"
-               "\te)\t(E)xit the Retrograde Solver.\n"
+               "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+               "\tb)\t(B)egin the Game before fully solving!\n\n"
+               "\tq)\t(Q)uit the Retrograde Solver.\n"
                "\nSelect an option:  ", (checkLegality ? "YES" : "NO"),
                		(useUndo ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
         c = GetMyChar();
@@ -217,8 +231,6 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				forceLoopy = !forceLoopy;
 				break;
 			case 's': case 'S':
-				printf("-Solve Tier %d?\n", tierToSolve);
-				if (!ConfirmAction('s')) break;
 	            SolveTier();
 	            tierSolveList = tierSolveList->next;
 	            if (tierSolveList == NULL) {
@@ -227,10 +239,6 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                 } else PrepareToSolveNextTier();
                 break;
             case 'a': case 'A':
-            	printf("-You chose to automate solving starting from Tier %d.\n"
-            			"Keep in mind this process can take quite a long time and\n"
-            			"CANNOT be interrupted. Are you sure?\n", tierToSolve);
-            	if (!ConfirmAction('a')) break;
             	printf("Fully Solving starting from Tier %d...\n\n",tierToSolve);
             	for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
 					PrepareToSolveNextTier();
@@ -243,12 +251,10 @@ VALUE DetermineRetrogradeValue(POSITION position) {
             	if (setInitialTierPosition()) {
                 	cont = FALSE;
 				} break;
-            case 'e': case 'E':
-            	printf("Exit WITHOUT solving the whole game?\n"
-            			"Keep in mind that next time you start the solve, you will\n"
-            			"continue from this exact point. Are you sure?\n");
-            	if (!ConfirmAction('e')) break;
+            case 'q': case 'Q':
             	printf("Exiting Retrograde Solver (WITHOUT Fully Solving)...\n"
+            			"Keep in mind that next time you start the solve, you will\n"
+            			"continue from this exact point, if all the databases are there.\n"
             			"To ensure correct solving, make sure that the already-written\n"
             			"databases (in your data/m%s_%d_tierdb directory) are not altered,\n"
             			"and the API functions are unchanged from their current state.\n", kDBName, variant);
@@ -1138,6 +1144,49 @@ void writeCurrentDBToTierFiles() {
 	} else writeCurrentDBToFile();
 }*/
 
+/* Here's the Bagh Chal version:
+void writeCurrentDBToTierFiles() {
+	if (gHashWindowInitialized) {
+		FILE *fp; POSITION p, p2;
+
+		int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
+		genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board);
+		POSITION globalPos = genericHashMaxPos * (goats + 1);
+
+		VALUE* dbv = (VALUE*) SafeMalloc(globalPos * sizeof(VALUE));
+		REMOTENESS* dbr = (REMOTENESS*) SafeMalloc(globalPos * sizeof(REMOTENESS));
+		for (p = 0; p < globalPos; p++)
+			dbv[p] = dbr[p] = 0;
+		int i, GlobalContext = generic_hash_cur_context();
+
+		TIERLIST* list = gTierSolveListPtr;
+		for (; list != NULL; list = list->next) {
+			i = list->tier;
+			int goatsOnBoard, gL, t;
+			unhashTier(i, &goatsOnBoard, &gL, &t);
+			char *board;
+			printf("Tier %d, with %llu...\n", i, gNumberOfTierPositionsFunPtr(i));
+			gInitializeHashWindow(i, TRUE);
+			for (p = 0; p < gNumberOfTierPositionsFunPtr(i); p++) {
+				generic_hash_context_switch(Tier0Context+goatsOnBoard);
+				int turn, goatsLeft;
+				board = unhash(p, &turn, &goatsLeft);
+				generic_hash_context_switch(GlobalContext);
+				gHashWindowInitialized = FALSE;
+				p2 = hash(board, turn, goatsLeft);
+				gHashWindowInitialized = TRUE;
+				dbv[p2] = GetValueOfPosition(p);
+				dbr[p2] = Remoteness(p);
+			}
+		}
+		fp = fopen("./a.txt","w");
+		for (p = 0; p < globalPos; p++)
+			fprintf (fp, "%d\t%lld\t%d\n", dbv[p], p, dbr[p]);
+		fclose(fp);
+		SafeFree(dbv); SafeFree(dbr);
+	} else writeCurrentDBToFile();
+}*/
+
 // a helper that compares two database outfiles
 void compareTwoFiles(char *mine, char *theirs) {
 	FILE *my, *his;
@@ -1899,6 +1948,12 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/08/08 01:57:22  max817
+// Added the parent pointers version of the loopy solver for the Retrograde
+// Solver. Also added most of the API for Bagh Chal so that it uses this
+// version. The UndoMove functions are yet to be implemented correctly,
+// however.
+//
 // Revision 1.12  2006/08/07 21:49:19  max817
 // A HUGE set of changes to the Retrograde Solver. It now supports both
 // loopy and non-loopy solving, as well as symmetries for both. It can

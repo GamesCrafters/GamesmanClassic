@@ -44,6 +44,8 @@
 **				pieces are still placed. But... aside from that (if I ever
 **				choose to make that fix anyway), this is as close to the
 **				final version of the file as it gets.
+**	8/08/06:	Added TierToString.
+**
 **
 **************************************************************************/
 
@@ -174,6 +176,7 @@ TIERLIST* TierChildren(TIER);
 TIERPOSITION NumberOfTierPositions(TIER);
 BOOLEAN IsLegal(POSITION);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
+STRING TierToString(TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
 int Tier0Context;
 // Actual functions are at the end of this file
@@ -776,6 +779,7 @@ void SetupTierStuff() {
 	//gIsLegalFunPtr				= &IsLegal;
 	gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier;
 	gUnDoMoveFunPtr					= &UnDoMove;
+	gTierToStringFunPtr				= &TierToString;
 	// Tier-Specific Hashes
 	int piecesArray[10] = { o, 0, 0, x, 0, 0, Blank, 0, 0, -1 };
 	int piecesOnBoard;
@@ -851,4 +855,11 @@ POSITION UnDoMove(POSITION position, UNDOMOVE undomove) {
     BlankOX* board = PositionToBlankOX(position);
     board[undomove] = Blank;
     return BlankOXToPosition(board);
+}
+
+// Tier = Number of pieces left to place.
+STRING TierToString(TIER tier) {
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*15);
+	sprintf(tierStr, "%d Pieces Placed", BOARDSIZE-tier);
+	return tierStr;
 }

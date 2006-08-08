@@ -129,5 +129,6 @@ extern TIERPOSITION		(*gNumberOfTierPositionsFunPtr)(TIER);
 extern BOOLEAN			(*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
+extern STRING			(*gTierToStringFunPtr)(TIER);
 
 #endif /* GMCORE_GLOBALS_H */
