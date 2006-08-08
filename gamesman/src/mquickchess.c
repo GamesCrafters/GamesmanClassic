@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.30 2006-08-08 21:58:39 runner139 Exp $
+// $Id: mquickchess.c,v 1.31 2006-08-08 23:03:11 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -77,6 +77,8 @@
 **                  followed closely. A simple mistake could make it error. This will be fixed soon so
 **                  that there is a high error tolerance.
 ** 6-7 Aug 2006 Adam: Debugged Tier Gamesman. Can now solve all 3-piece game tiers. 
+** 8 Aug  2006 Adam: Wrote TierToString. Changed incheck to take in board instead of position. Debugging Tier
+**                   Gamesman.
 **************************************************************************/
 
 /*************************************************************************
@@ -223,7 +225,7 @@ extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void setupPieces(char *Board);
-BOOLEAN inCheck(POSITION N, int currentPlayer);
+BOOLEAN inCheck(char *bA, int currentPlayer);
 BOOLEAN isDirectionCheck(char *Board, int i, int j, int currentPlayer, char currentPiece, char whitePiece, char blackPiece, int direction);
 BOOLEAN isKingCaptureable(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
 BOOLEAN queenCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece);
@@ -294,7 +296,7 @@ TIERPOSITION gPositionToTierPosition(POSITION p, TIER t);
 int countBits(int i);
 void printTierArray(TIER tierArray[NUM_TIERS]);
 BOOLEAN IsLegal(POSITION position);
-BOOLEAN areKingsAdjacent(POSITION position);
+BOOLEAN areKingsAdjacent(char* boardArray);
 char *getBoard();
 int* gBoardToPiecesArray(char *boardArray, int *piecesArray);
 BOOLEAN isLegalBoard(char *Board);
@@ -303,7 +305,8 @@ TIERPOSITION NumberOfTierPositions(TIER t);
 BOOLEAN IsLegal(POSITION p);
 POSITION hash(char* board, int turn);
 char* unhash(POSITION position, char *board);
-
+STRING TierToString(TIER);
+int getNumPieces(int* piecesArray);
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
@@ -365,6 +368,7 @@ void InitializeGame ()
   //gInitializeHashWindowFunPtr = &gInitializeHashWindow;
   gIsLegalFunPtr					= &IsLegal;
   gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
+  gTierToStringFunPtr				= &TierToString;
   gUsingTierGamesman = TRUE;
   /*
   3x4 Initial Game 
@@ -614,11 +618,13 @@ VALUE Primitive (POSITION position)
 	MOVELIST *moves = NULL;
 	moves = GenerateMoves(position);
 	int currentPlayer = whoseMove(position);
-	if (inCheck(position, currentPlayer) && moves == NULL) { 
+	char bA[rows*cols];
+	unhash(position, bA);
+	if (inCheck(bA, currentPlayer) && moves == NULL) { 
 		// The king is checked and no moves can be made 
 		return (gStandardGame) ? lose : win; 
 	} 
-	else if (!inCheck(position, currentPlayer) && moves == NULL) { 
+	else if (!inCheck(bA, currentPlayer) && moves == NULL) { 
 		// King is not in check and no moves can be made - Stalemate 
 		return tie; 
 	} else { 
@@ -1144,12 +1150,13 @@ void DebugMenu ()
   t = gPositionToTier(gInitialPosition);
   printf("%d\n", t);
   PrintPosition(gInitialPosition, "me", TRUE);
+  printf("%s %s", TierToString(19),  TierToString(3));
   //printf("the tier value is %d in decimal and %x in hex\n", t, t);
   //printTierList(gTierChildren(t));
   //printPiecesArray(gTierToPiecesArray(257, piecesArray));
   //free(piecesArray);
   
-  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 256));
+  //printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 256));
   /* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   i = countBits(223);;
   printf("numBits in i = %d\n", i);
@@ -1285,13 +1292,11 @@ void setupPieces(char *Board) {
 
 /*  This function checks if the board is in check.
 */
-BOOLEAN inCheck(POSITION N, int checkedPlayer) { 
+BOOLEAN inCheck(char* bA, int checkedPlayer) { 
 	int i, j; 
 	char piece;  
-	char bA[rows*cols];
 	
 	//currentPlayer = whoseMove(N);
-	unhash(N, bA);
 	for (i = 0; i < rows; i++) {
 		for(j = 0; j < cols; j++) {
 			piece = bA[i*cols +j]; 
@@ -2022,8 +2027,7 @@ BOOLEAN testMove(char *boardArray, int rowi, int rowf, int coli, int colf, int c
 	BOOLEAN boardInCheck;
 	char overwrittenPiece = boardArray[rowf*cols + colf];
 	testDoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
-	POSITION bP = hash(boardArray, currentPlayer);
-	boardInCheck = inCheck(bP, currentPlayer);
+	boardInCheck = inCheck(boardArray, currentPlayer);
 	UndoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
 	boardArray[rowf*cols + colf] = overwrittenPiece;
 	if (boardInCheck == FALSE) {
@@ -2417,18 +2421,18 @@ TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) {
 */
 BOOLEAN IsLegal(POSITION position) {
   int currentPlayer = whoseMove(position);
-  
-  if(inCheck(position, opposingPlayer(currentPlayer)) || areKingsAdjacent(position))  
+  char boardArray[rows*cols];
+  unhash(position, boardArray);
+  if(inCheck(boardArray, opposingPlayer(currentPlayer)) || areKingsAdjacent(boardArray))  
     return FALSE;
   else return TRUE;
 
   
 }
 
-BOOLEAN areKingsAdjacent(POSITION position) {
-  char boardArray[rows*cols], piece;
+BOOLEAN areKingsAdjacent(char* boardArray) {
+  char piece;
   int i, j;
-  unhash(position, boardArray);
 
   for(i = 0; i < rows; i++) {
     for(j = 0; j < cols; j++) {
@@ -2735,7 +2739,7 @@ MOVE move;
   if (replacementPiece == 0) {
     sprintf(moveStr, "%c%c%c%c", coli, rowi, colf, rowf);
   } else {
-    printf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
+    sprintf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
   }
   return moveStr;
 }
@@ -3381,18 +3385,16 @@ UNDOMOVE createReplaceCaptureUndoMove(int rowi, int coli, int rowf, int colf, ch
 BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, TIER t) {
   TIER thisTier;
   BOOLEAN boardInCheck;
-  POSITION bP;
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = ' ';
-  if(t != BoardToTier(boardArray))
+  thisTier = BoardToTier(boardArray);
+  if(t != thisTier)
     return FALSE;
-  bP = hash(boardArray, opposingPlayer(currentPlayer));
-  thisTier = gPositionToTier(bP);
-  boardInCheck = inCheck(bP, currentPlayer);
+  boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
-  if (boardInCheck == FALSE && t == thisTier) {
+  if (boardInCheck == FALSE) {
     //printf("The move is ri=%d ci=%d to rf%d cf=%d, isInCheck = %d\n", rowi, coli, rowf, colf, boardInCheck);
     return TRUE;
   } else {
@@ -3402,20 +3404,17 @@ BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, i
 
 
 BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
-  TIER thisTier;
+  TIER thisTier = BoardToTier(boardArray);
   BOOLEAN boardInCheck;
-  POSITION bP;
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = capturedPiece;
-  if(t != BoardToTier(boardArray))
+  if(t != thisTier)
     return FALSE;
-  bP = hash(boardArray, opposingPlayer(currentPlayer));
-  thisTier = gPositionToTier(bP);
-  boardInCheck = inCheck(bP, currentPlayer);
+  boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
-  printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
+  //printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
   if (boardInCheck == FALSE && t == thisTier) {
     return TRUE;
   } else {
@@ -3426,9 +3425,8 @@ BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int 
 
 BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
 
-  TIER thisTier;
+  TIER thisTier = BoardToTier(boardArray);
   BOOLEAN boardInCheck;
-  POSITION bP;
   char piece = boardArray[rowi*cols + coli];
   if(currentPlayer == WHITE_TURN)
     boardArray[rowf*cols + colf] = BLACK_PAWN;
@@ -3437,11 +3435,9 @@ BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int col
   if(capturedPiece != 0 && capturedPiece != ' ') 
     boardArray[rowi*cols + coli] = capturedPiece;
   else boardArray[rowi*cols + coli] = ' ';
-  if(t != BoardToTier(boardArray))
+  if(t != thisTier)
     return FALSE;
-  bP = hash(boardArray, opposingPlayer(currentPlayer));
-  thisTier = gPositionToTier(bP);
-  boardInCheck = inCheck(bP, currentPlayer);
+  boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
   //printf("boardInCheck=%d, t=%d, thisTier=%d", boardInCheck, t, thisTier);
@@ -3533,6 +3529,61 @@ BOOLEAN isLegalBoard(char *Board){
   return TRUE;
 }
 
+STRING TierToString(TIER tier) {
+	
+	int i = 2;
+	int* piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+	piecesArray =  gTierToPiecesArray(tier, piecesArray);
+	int numPieces = getNumPieces(piecesArray);
+	printf("%d\n", numPieces);
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*(numPieces +1));
+	
+	tierStr[0] = WHITE_KING;
+	tierStr[1] = BLACK_KING;
+	if(*(piecesArray) == 1) {
+	  tierStr[i] = WHITE_QUEEN;
+	  i++;
+	}
+	if(*(piecesArray+1) == 1) {
+	  tierStr[i] = WHITE_BISHOP;
+	  i++;
+	}
+	if(*(piecesArray+2) == 1) {
+	  tierStr[i] = WHITE_ROOK;
+	  i++;
+	}
+	if(*(piecesArray+3) == 1) {
+	  tierStr[i] = WHITE_KNIGHT;
+	  i++;
+	}
+	if(*(piecesArray+4) == 1) {
+	  tierStr[i] = BLACK_QUEEN;
+	  i++;
+	}
+	if(*(piecesArray+5) == 1) {
+	  tierStr[i] = BLACK_BISHOP;
+	  i++;
+	}
+	if(*(piecesArray+6) == 1) {
+	  tierStr[i] = BLACK_ROOK;
+	  i++;
+	}
+	if(*(piecesArray+7) == 1) {
+	  tierStr[i] = BLACK_KNIGHT;
+	  i++;
+	}
+	tierStr[i] = '\0';
+
+	return tierStr;
+}
+int getNumPieces(int* piecesArray) {
+  int numPieces = 0, i;
+  for(i = 0; i < DISTINCT_PIECES-2; i++) {
+    if(*(piecesArray+i) == 1) 
+      numPieces++;
+  }
+  return numPieces;
+}
 /* Hashing and Unhashing */
 
 char* unhash(POSITION position, char* board)
@@ -3566,6 +3617,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2006/08/08 21:58:39  runner139
+// *** empty log message ***
+//
 // Revision 1.29  2006/08/08 07:36:32  runner139
 // *** empty log message ***
 //
