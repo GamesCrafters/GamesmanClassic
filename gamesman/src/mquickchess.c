@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.28 2006-08-05 08:02:44 runner139 Exp $
+// $Id: mquickchess.c,v 1.29 2006-08-08 07:36:32 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -76,6 +76,7 @@
 ** 5 Aug 2006 Adam: A user can now enter a customizable board! Note: for now instructions must be 
 **                  followed closely. A simple mistake could make it error. This will be fixed soon so
 **                  that there is a high error tolerance.
+** 6-7 Aug 2006 Adam: Debugged Tier Gamesman. Can now solve all 3-piece game tiers. 
 **************************************************************************/
 
 /*************************************************************************
@@ -198,14 +199,15 @@ BOOLEAN misereVariant = FALSE;
 
 //typedef unsigned int UNDOMOVE;
 //typedef MOVELIST UNDOMOVELIST;
-
+/*
 struct gameSpecificHashContext {
   char valid;
   int context;
 };
 
 struct gameSpecificHashContext contextArray[MAX_TIERS];
-
+*/
+int Tier0Context;
 //typedef unsigned int UNDOMOVE;
 //typedef MOVELIST UNDOMOVELIST;
 
@@ -361,7 +363,7 @@ void InitializeGame ()
   gTierChildrenFunPtr = &gTierChildren;
   //gPositionToTierPositionFunPtr = &gPositionToTierPosition;
   //gInitializeHashWindowFunPtr = &gInitializeHashWindow;
-  gIsLegalFunPtr					= &IsLegal;
+  //  gIsLegalFunPtr					= &IsLegal;
   gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
   gUsingTierGamesman = TRUE;
   /*
@@ -378,6 +380,22 @@ void InitializeGame ()
       a   b   c  
   */
   /* 140 = 46*/
+  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  for(i = 0; i < NUM_TIERS; i++) {
+   
+  piecesArray =  gTierToPiecesArray((TIER) i, piecesArray); 
+  
+  minBlank = rows*cols - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
+  maxBlank = rows*cols - 2;
+  int pieces_array[40] = {'p', 0, *(piecesArray + DISTINCT_PIECES-1), 'b', 0, *(piecesArray + 5), 'r', 0, *(piecesArray + 6), 'n', 0, *(piecesArray + 7), 'q', 0, *(piecesArray + 4), 'k', 1, 1, 'P', 0, *(piecesArray + DISTINCT_PIECES-2), 'B', 0, *(piecesArray + 1), 'R', 0, *(piecesArray + 2), 'N', 0, *(piecesArray + 3), 'Q', 0, *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
+  
+  generic_hash_init(BOARDSIZE, pieces_array, NULL);
+  
+  if (i == 0) // since we can't discard contexts, I use this:
+      Tier0Context = generic_hash_cur_context();
+  }
+   
+ 
   TIER tierlist[NUM_TIERS];
   // Replace "NUM_TIERS" with how many total tiers your game has
   for(i = 0; i < NUM_TIERS; i++) {
@@ -431,13 +449,13 @@ void InitializeGame ()
   //gTierSolveListPtr = CreateTierlistNode(16, gTierSolveListPtr);
   
   
-  gTierSolveListPtr = CreateTierlistNode(2, gTierSolveListPtr);
-  gTierSolveListPtr = CreateTierlistNode(0, gTierSolveListPtr);
-  /* 
-     for (i = NUM_TIERS-1; i >= 0; i--) {
+  //gTierSolveListPtr = CreateTierlistNode(2, gTierSolveListPtr);
+  // gTierSolveListPtr = CreateTierlistNode(0, gTierSolveListPtr);
+  
+  for (i = NUM_TIERS-1; i >= 0; i--) {
     gTierSolveListPtr = CreateTierlistNode((TIER) tierlist[i], gTierSolveListPtr);
   }
-  */
+  
   //int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
   //     int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 7, 13, -1};
   // int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 3, 'r', 0, 1, 'k', 1, 1, 'p', 0, 3, 'b', 0, 1, ' ', 3, 13, -1};
@@ -445,18 +463,15 @@ void InitializeGame ()
   //int pieces_array[16] = {'K', 1, 1, 'B', 0, 1, 'k', 1, 1, ' ', 8, 10, -1};
   // int pieces_array[34] = {'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 8, 10, -1};
   //int pieces_array[10] = {'K', 1, 1,'k', 1, 1, ' ', 10, 10, -1};
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  //piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gBoardToPiecesArray(theBoard, piecesArray); 
   
   minBlank = rows*cols - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
   maxBlank = rows*cols - 2;
-  int pieces_array[40] = {'p', 0, *(piecesArray + DISTINCT_PIECES-1), 'b', 0, *(piecesArray + 5), 'r', 0, *(piecesArray + 6), 'n', 0, *(piecesArray + 7), 'q', 0, *(piecesArray + 4), 'k', 1, 1, 'P', 0, *(piecesArray + DISTINCT_PIECES-2), 'B', 0, *(piecesArray + 1), 'R', 0, *(piecesArray + 2), 'N', 0, *(piecesArray + 3), 'Q', 0, *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
- 
+  //int pieces_array[40] = {'p', 0, *(piecesArray + DISTINCT_PIECES-1), 'b', 0, *(piecesArray + 5), 'r', 0, *(piecesArray + 6), 'n', 0, *(piecesArray + 7), 'q', 0, *(piecesArray + 4), 'k', 1, 1, 'P', 0, *(piecesArray + DISTINCT_PIECES-2), 'B', 0, *(piecesArray + 1), 'R', 0, *(piecesArray + 2), 'N', 0, *(piecesArray + 3), 'Q', 0, *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
+ int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 6, maxBlank, -1};
   gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
   gInitialPosition = hash(theBoard,theCurrentPlayer);
-  for(i = 0; i < MAX_TIERS; i++) {
-    contextArray[i].valid = 0;
-  }
 }
 
 
@@ -1120,18 +1135,21 @@ void DebugMenu ()
   PrintPosition(gInitialPosition, "me", TRUE);
   PrintPosition(gTUndoMove(gInitialPosition, m), "me", TRUE);
   */
-  PrintPosition(gInitialPosition, "me", TRUE);
+  // PrintPosition(gInitialPosition, "me", TRUE);
   //printf("yes\n");
-  printUndoMoveList(gGenerateUndoMovesToTier(gInitialPosition, 2));
-  /*
+  //printUndoMoveList(gGenerateUndoMovesToTier(gInitialPosition, 2));
+  
   TIER t;
-  int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int));
+  //int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int));
   t = gPositionToTier(gInitialPosition);
-  printf("the tier value is %d in decimal and %x in hex\n", t, t);
-  printTierList(gTierChildren(t));
-  //printPiecesArray(gTierToPiecesArray(t, piecesArray));
-  free(piecesArray);
-  */
+  printf("%d\n", t);
+  PrintPosition(gInitialPosition, "me", TRUE);
+  //printf("the tier value is %d in decimal and %x in hex\n", t, t);
+  //printTierList(gTierChildren(t));
+  //printPiecesArray(gTierToPiecesArray(257, piecesArray));
+  //free(piecesArray);
+  
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 256));
   /* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   i = countBits(223);;
   printf("numBits in i = %d\n", i);
@@ -2246,29 +2264,8 @@ BOOLEAN isBishop(position)
  }
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-  TIERPOSITION numOfPositions;
-  int *piecesArray,minBlank, maxBlank;
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(tier, piecesArray); 
-  
-  //hashWindowContext = generic_hash_cur_context();
-  
-  //unhash(p, boardArray);
-  //currentPlayer = whoseMove(p);
-  if(contextArray[tier].valid == 0) {
-    minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-    maxBlank = minBlank;
-    int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-    contextArray[tier].valid = 1;
-    contextArray[tier].context = generic_hash_cur_context();
-  } else {
-    generic_hash_context_switch(contextArray[tier].context);
-  }
-  numOfPositions = generic_hash_max_pos();
-  //generic_hash_context_switch(hashWindowContext);
-  return numOfPositions;
-  
+  generic_hash_context_switch(Tier0Context+tier);
+  return generic_hash_max_pos();
 }
 
 /*
@@ -2616,19 +2613,19 @@ TIER BoardToTier(char *Board) {
 }
 
 TIERLIST* gTierChildren(TIER t){
-  TIERLIST *tiers = NULL;
+  TIERLIST* tiers = NULL;
   int *piecesArray;
   int i;
   TIER tempTier;
   piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gTierToPiecesArray(t, piecesArray);
-  CreateTierlistNode(t, tiers);
+  tiers = CreateTierlistNode(t, tiers);
   /* creating capture children tiers (NON-PAWNS) */
   for(i = 0; i < DISTINCT_PIECES - 2; i++) {
     if(*(piecesArray + i) == 1) {
       *(piecesArray + i) = 0;
       tempTier = gPiecesArrayToTier(piecesArray);
-      CreateTierlistNode(tempTier, tiers);
+      tiers = CreateTierlistNode(tempTier, tiers);
       //printTierList(tiers);
       *(piecesArray + i) = 1;
     }
@@ -2643,14 +2640,14 @@ TIERLIST* gTierChildren(TIER t){
 	*(piecesArray + i) = 1;
 	*(piecesArray + DISTINCT_PIECES-2) -= 1;
 	tempTier = gPiecesArrayToTier(piecesArray);
-	CreateTierlistNode(tempTier, tiers);
+	tiers = CreateTierlistNode(tempTier, tiers);
 	*(piecesArray + i) = 0;
 	*(piecesArray + DISTINCT_PIECES-2) += 1;
       }
     }
     *(piecesArray + DISTINCT_PIECES-2) -= 1;
     tempTier = gPiecesArrayToTier(piecesArray);
-    CreateTierlistNode(tempTier, tiers);
+    tiers = CreateTierlistNode(tempTier, tiers);
     *(piecesArray + DISTINCT_PIECES-2) += 1;
   }
 
@@ -2661,14 +2658,14 @@ TIERLIST* gTierChildren(TIER t){
 	*(piecesArray + i) = 1;
 	*(piecesArray + DISTINCT_PIECES-1) -= 1;
 	tempTier = gPiecesArrayToTier(piecesArray);
-	CreateTierlistNode(tempTier, tiers);
+	tiers = CreateTierlistNode(tempTier, tiers);
 	*(piecesArray + i) = 0;
 	*(piecesArray + DISTINCT_PIECES-1) += 1;
       }
     }
     *(piecesArray + DISTINCT_PIECES-1) -= 1;
     tempTier = gPiecesArrayToTier(piecesArray);
-    CreateTierlistNode(tempTier, tiers);
+    tiers = CreateTierlistNode(tempTier, tiers);
     *(piecesArray + DISTINCT_PIECES-1) += 1;
   }
 
@@ -2766,7 +2763,8 @@ POSITION gUnDoMove(POSITION position, UNDOMOVE umove) {
       boardArray[(rows - rowf)*cols + (colf - 10)] = BLACK_PAWN;
     else boardArray[(rows - rowf)*cols + (colf - 10)] = WHITE_PAWN;
   } else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
-  
+  if(BoardToTier(boardArray) == 256)
+    printArray(boardArray);
   return hash(boardArray, opposingPlayer(currentPlayer));	
   
   }
@@ -2790,27 +2788,33 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 	//printf("move: i:%d, j:%d",i,j);
 	switch (piece) { 
 	case WHITE_QUEEN: case BLACK_QUEEN:  
+	  
 	  if (i == 0 && piece == WHITE_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
 	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
 	  }
+	  
 	  generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 	  break;
-	case WHITE_BISHOP: case BLACK_BISHOP: 
+	case WHITE_BISHOP: case BLACK_BISHOP:
+	 
 	  if (i == 0 && piece == WHITE_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
 	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
 	  }
+	  
 	  generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 	  break;
 	case WHITE_ROOK: case BLACK_ROOK:
+	 
 	  if (i == 0 && piece == WHITE_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
 	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
 	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
 	  }
+	 
 	  generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 	  break;
 	case WHITE_KNIGHT: case BLACK_KNIGHT:
@@ -3177,7 +3181,7 @@ void generateUndoMovesDirection(char* boardArray,  UNDOMOVELIST **moves, int cur
 void generateCaptureUndoMoves(char* boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, int new_i, int new_j, int isReplacement, TIER t){
   UNDOMOVE newuMove;
   if(currentPlayer == WHITE_TURN) {
-    if(specificPawnCount(boardArray, WHITE) < 5 && i != rows-1 && i != 0) {
+    if(specificPawnCount(boardArray, WHITE) < 5 && new_i != rows-1 && new_i != 0) {
       if(isReplacement == 0) {
 	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_PAWN, t)) {
 	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_PAWN);
@@ -3244,7 +3248,7 @@ void generateCaptureUndoMoves(char* boardArray, UNDOMOVELIST **moves, int curren
       }
     }
   } else {
-    if(specificPawnCount(boardArray, BLACK) < 5 && i != rows-1 && i != 0 ) {
+    if(specificPawnCount(boardArray, BLACK) < 5 && new_i != rows-1 && new_i != 0 ) {
       if(isReplacement == 0) {
 	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_PAWN, t)) {
 	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_PAWN);
@@ -3381,16 +3385,15 @@ BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, i
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = ' ';
+  if(t != BoardToTier(boardArray))
+    return FALSE;
   bP = hash(boardArray, opposingPlayer(currentPlayer));
   thisTier = gPositionToTier(bP);
   boardInCheck = inCheck(bP, currentPlayer);
-  if(rowf == 1 && colf == 2) {
-    PrintPosition(bP, "me", TRUE);
-  }
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
   if (boardInCheck == FALSE && t == thisTier) {
-    printf("The move is ri=%d ci=%d to rf%d cf=%d, isInCheck = %d\n", rowi, coli, rowf, colf, boardInCheck);
+    //printf("The move is ri=%d ci=%d to rf%d cf=%d, isInCheck = %d\n", rowi, coli, rowf, colf, boardInCheck);
     return TRUE;
   } else {
     return FALSE;
@@ -3405,11 +3408,14 @@ BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int 
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = capturedPiece;
+  if(t != BoardToTier(boardArray))
+    return FALSE;
   bP = hash(boardArray, opposingPlayer(currentPlayer));
   thisTier = gPositionToTier(bP);
   boardInCheck = inCheck(bP, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
+  printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
   if (boardInCheck == FALSE && t == thisTier) {
     return TRUE;
   } else {
@@ -3419,6 +3425,7 @@ BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int 
 
 
 BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
+
   TIER thisTier;
   BOOLEAN boardInCheck;
   POSITION bP;
@@ -3430,13 +3437,15 @@ BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int col
   if(capturedPiece != 0 && capturedPiece != ' ') 
     boardArray[rowi*cols + coli] = capturedPiece;
   else boardArray[rowi*cols + coli] = ' ';
+  if(t != BoardToTier(boardArray))
+    return FALSE;
   bP = hash(boardArray, opposingPlayer(currentPlayer));
   thisTier = gPositionToTier(bP);
   boardInCheck = inCheck(bP, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
-
-  if (boardInCheck == FALSE && t == thisTier) {
+  //printf("boardInCheck=%d, t=%d, thisTier=%d", boardInCheck, t, thisTier);
+  if (boardInCheck == FALSE) {
     return TRUE;
   } else {
     return FALSE;
@@ -3528,26 +3537,12 @@ BOOLEAN isLegalBoard(char *Board){
 
 char* unhash(POSITION position, char* board)
 {
-  int *piecesArray,  minBlank, maxBlank;
   //char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
   if (gHashWindowInitialized) {
     TIERPOSITION tierpos; 
     TIER tier;
     gUnhashToTierPosition(position, &tierpos, &tier);
-    
-    if(contextArray[tier].valid == 0) {
-      piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-      piecesArray =  gTierToPiecesArray(tier, piecesArray); 
-      
-      minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-      maxBlank = minBlank;
-      int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
-      gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-      contextArray[tier].valid = 1;
-      contextArray[tier].context = generic_hash_cur_context();
-    } else {
-      generic_hash_context_switch(contextArray[tier].context);
-    }
+    generic_hash_context_switch(Tier0Context+tier);
     return (char *) generic_unhash(tierpos, board);
   } else return (char *) generic_unhash(position, board);
 }
@@ -3556,29 +3551,24 @@ char* unhash(POSITION position, char* board)
 POSITION hash(char* board, int turn)
 {
   POSITION position;
-  int *piecesArray,  minBlank, maxBlank;
   
   if (gHashWindowInitialized) {
     TIER tier = BoardToTier(board);
-    if(contextArray[tier].valid == 0) {
-      piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-      piecesArray =  gTierToPiecesArray(tier, piecesArray); 
-      minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-      maxBlank = minBlank;
-      int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
-      gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-      contextArray[tier].valid = 1;
-      contextArray[tier].context = generic_hash_cur_context();
-    } else {
-      generic_hash_context_switch(contextArray[tier].context);
-    }
+    generic_hash_context_switch(Tier0Context+tier);
     TIERPOSITION tierpos = generic_hash((char*)board, turn);
+    if(tier == 256) {
+      printf("tier 256 called\n");
+      printArray(board);
+    }
     position = gHashToWindowPosition(tierpos, tier);
   } else position = generic_hash((char*)board, turn);
   return position;
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2006/08/05 08:02:44  runner139
+// *** empty log message ***
+//
 // Revision 1.24  2006/07/28 01:58:14  runner139
 // *** empty log message ***
 //
