@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.31 2006-08-08 23:03:11 runner139 Exp $
+// $Id: mquickchess.c,v 1.32 2006-08-08 23:55:30 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -1150,13 +1150,17 @@ void DebugMenu ()
   t = gPositionToTier(gInitialPosition);
   printf("%d\n", t);
   PrintPosition(gInitialPosition, "me", TRUE);
-  printf("%s %s", TierToString(19),  TierToString(3));
+  //printf("%s %s", TierToString(19),  TierToString(3));
   //printf("the tier value is %d in decimal and %x in hex\n", t, t);
   //printTierList(gTierChildren(t));
   //printPiecesArray(gTierToPiecesArray(257, piecesArray));
   //free(piecesArray);
-  
-  //printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 256));
+  printf("The KkBR tier moves\n");
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 6));
+  printf("The KkR tier moves\n");
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 4));
+  printf("The KkB tier moves\n");
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 2));
   /* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   i = countBits(223);;
   printf("numBits in i = %d\n", i);
@@ -3383,12 +3387,12 @@ UNDOMOVE createReplaceCaptureUndoMove(int rowi, int coli, int rowf, int colf, ch
 
 
 BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, TIER t) {
-  TIER thisTier;
+  
   BOOLEAN boardInCheck;
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = ' ';
-  thisTier = BoardToTier(boardArray);
+  TIER thisTier =  BoardToTier(boardArray);
   if(t != thisTier)
     return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
@@ -3404,18 +3408,19 @@ BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, i
 
 
 BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
-  TIER thisTier = BoardToTier(boardArray);
+  
   BOOLEAN boardInCheck;
   char piece = boardArray[rowi*cols + coli];
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = capturedPiece;
+  TIER thisTier = BoardToTier(boardArray);
   if(t != thisTier)
     return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
   //printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
-  if (boardInCheck == FALSE && t == thisTier) {
+  if (boardInCheck == FALSE) {
     return TRUE;
   } else {
     return FALSE;
@@ -3424,8 +3429,6 @@ BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int 
 
 
 BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
-
-  TIER thisTier = BoardToTier(boardArray);
   BOOLEAN boardInCheck;
   char piece = boardArray[rowi*cols + coli];
   if(currentPlayer == WHITE_TURN)
@@ -3435,6 +3438,7 @@ BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int col
   if(capturedPiece != 0 && capturedPiece != ' ') 
     boardArray[rowi*cols + coli] = capturedPiece;
   else boardArray[rowi*cols + coli] = ' ';
+  TIER thisTier = BoardToTier(boardArray);
   if(t != thisTier)
     return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
@@ -3535,7 +3539,6 @@ STRING TierToString(TIER tier) {
 	int* piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
 	piecesArray =  gTierToPiecesArray(tier, piecesArray);
 	int numPieces = getNumPieces(piecesArray);
-	printf("%d\n", numPieces);
 	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*(numPieces +1));
 	
 	tierStr[0] = WHITE_KING;
