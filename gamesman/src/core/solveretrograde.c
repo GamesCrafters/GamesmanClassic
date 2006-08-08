@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.14 2006-08-08 20:35:19 max817 Exp $
+// $Id: solveretrograde.c,v 1.15 2006-08-08 20:49:16 max817 Exp $
 
 /************************************************************************
 **
@@ -201,7 +201,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 			printf(" (%s)", tierStr);
 			if (tierStr != NULL) SafeFree(tierStr);
 		}
-        printf("\n\The tier hash contains (%lld) positions.\n\n", tierSize);
+        printf("\n\tThe tier hash contains (%lld) positions.\n\n", tierSize);
         printf("\td)\t(D)ebug API Functions!\n\n"
                "\tc)\t(C)heck Legality using IsLegal? Currently: %s.\n"
         	   "\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s.\n"
@@ -1948,6 +1948,9 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2006/08/08 20:35:19  max817
+// Added gTierToStringFunPtr implementation, and an example of it in mtttier.c.
+//
 // Revision 1.13  2006/08/08 01:57:22  max817
 // Added the parent pointers version of the loopy solver for the Retrograde
 // Solver. Also added most of the API for Bagh Chal so that it uses this
