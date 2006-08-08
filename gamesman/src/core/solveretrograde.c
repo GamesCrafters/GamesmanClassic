@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.12 2006-08-07 21:49:19 max817 Exp $
+// $Id: solveretrograde.c,v 1.13 2006-08-08 01:57:22 max817 Exp $
 
 /************************************************************************
 **
@@ -45,6 +45,13 @@
 **					tested, so it's off for now. Also, coupled with changes in
 **					main.c, the save feature is now implemented, meaning the
 **					solver will skip solving a tier if it's database exists.
+**				-2006.8.07 = LOADS of changes. A few graphical changes here and
+**					there. Loopy and Non-loopy solvers are both working, as well
+**					as symmetries for both. A few extra options are available,
+**					from using IsLegal to even using parent pointers instead of
+**					the UndoMove functions. Finally, the game can now be started
+**					mid-solve, so that gameplay can begin from any tier that has
+**					already been solved.
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -395,6 +402,9 @@ BOOLEAN ConfirmAction(char c) {
 typedef unsigned char CHILDCOUNT;
 CHILDCOUNT* childCounts;
 
+//The Parent Pointers
+POSITIONLIST** rParents;
+
 /* Rather than a Frontier Queue, this uses a sort of hashtable,
 with a POSITIONLIST for every REMOTENESS from 0 to REMOTENESS_MAX-1.
 It's constant time insert and remove, so it works just fine. */
@@ -434,8 +444,15 @@ equal to lowestList or currentList.
 */
 
 void rInitFRStuff() {
-	//gNumOfPoss bytes = (gNumOfPos / 1,028) KB = (gNumOfPos / 1,056,784) GB
+	//tierSize bytes = (tierSize / 1,028) KB = (tierSize / 1,056,784) GB
 	childCounts = (CHILDCOUNT*) SafeMalloc (tierSize * sizeof(CHILDCOUNT));
+	//gNumOfPoss bytes = (gNumOfPos / 1,028) KB = (gNumOfPos / 1,056,784) GB <-- this isn't right yet...
+	if (!useUndo) {
+		rParents = (POSITIONLIST**) SafeMalloc (gNumberOfPositions * sizeof(POSITIONLIST*));
+		int i;
+		for (i = 0; i < gNumberOfPositions; i++)
+			rParents[i] = NULL;
+	}
 	// 255 * 4 bytes = 1,020 bytes = ~1 KB
 	rWinFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*));
 	rLoseFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
@@ -448,6 +465,13 @@ void rInitFRStuff() {
 
 void rFreeFRStuff() {
 	if (childCounts != NULL) SafeFree(childCounts);
+	if (!useUndo) {
+		// Free the Position Lists
+		int i;
+		for (i = 0; i < gNumberOfPositions; i++)
+			FreePositionList(rParents[i]);
+		if (rParents != NULL) SafeFree(rParents);
+	}
 	int r;
 	// Free the Position Lists
 	for (r = 0; r < REMOTENESS_MAX; r++) {
@@ -523,11 +547,6 @@ void SolveTier() {
 	printf("Checking Legality (using IsLegal): %s\n",(checkLegality ? "YES" : "NO"));
 	if (forceLoopy || gCurrentTierIsLoopy) {// LOOPY SOLVER
 		printf("Using UndoMove Functions: %s\n",(useUndo ? "YES" : "NO"));
-		// temp
-		if (!useUndo) {
-			printf("Sorry, the non-UndoMove Loopy Solver doesn't work yet!\n");
-			ExitStageRight();
-		}
 		SolveWithLoopyAlgorithm();
 		printf("--Freeing Child Counters and Frontier Hashtables...\n");
 		rFreeFRStuff();
@@ -627,7 +646,7 @@ void SolveWithNonLoopyAlgorithm() {
 
 void SolveWithLoopyAlgorithm() {
 	printf("\n-----PREPARING LOOPY SOLVER-----\n");
-	POSITION pos, canonPos;
+	POSITION pos, canonPos, child;
 	MOVELIST *moves, *movesptr;
 	VALUE value;
 	REMOTENESS remoteness;
@@ -655,8 +674,13 @@ void SolveWithLoopyAlgorithm() {
 				numSolved++;
 				rInsertFR(lose, pos, 0);
 			} else {// make a Child Counter for it
-				for (; movesptr != NULL; movesptr = movesptr->next)
+				for (; movesptr != NULL; movesptr = movesptr->next) {
 					childCounts[pos]++;
+					if (!useUndo) {// if parent pointers, add to parent pointer list
+						child = DoMove(pos, movesptr->move);
+						rParents[child] = StorePositionInList(pos, rParents[child]);
+					}
+				}
 				FreeMoveList(moves);
 			}
 		}
@@ -721,39 +745,60 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 	POSITION child, parent;
 	FRnode *miniLoseFR = NULL;
 	UNDOMOVELIST *parents, *parentsPtr;
+	POSITIONLIST *parentList;
 	for (; list != NULL; list = list->next) {
 		child = list->position;
-		parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, tierToSolve);
-		// If no parents, just go on to the next:
-		//if (parents == NULL) continue;
-		for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
-			parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
-			if (parent < 0 || parent >= tierSize) {
-				printf("ERROR: %llu generated an undo-parent not in current tier!\n", child);
-				exit(1);
-			}
-			// if childCounts is already 0, we don't mess with this parent
-			// (already dealt with OR illegal)
-			if (childCounts[parent] != 0) {
-				// With losing children, every parent is winning, so we just go through
-				// all the parents and declare them winning.
-				// Same with tie children.
-				if (valueParents == win || valueParents == tie) {
-					childCounts[parent] = 0; // reset child counter
-					rInsertFR(valueParents, parent, remotenessChild+1);
-				// With winning children, first decrement the child counter by one. If
-				// child counter reaches 0, put the parent not in the FR but in the miniFR.
-				} else if (valueParents == lose) {
-					childCounts[parent] -= 1;
-					if (childCounts[parent] != 0) continue;
-					miniLoseFR = StorePositionInList(parent, miniLoseFR);
+		if (useUndo) { // use the UndoMove lists
+			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, tierToSolve);
+			// If no parents, just go on to the next:
+			//if (parents == NULL) continue;
+			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
+				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				if (parent < 0 || parent >= tierSize) {
+					printf("ERROR: %llu generated an undo-parent not in current tier!\n", child);
+					exit(1);
 				}
-				SetRemoteness(parent, remotenessChild+1);
-				StoreValueOfPosition(parent, valueParents);
-				numSolved++;
+				// if childCounts is already 0, we don't mess with this parent
+				// (already dealt with OR illegal)
+				if (childCounts[parent] != 0) {
+					// With losing children, every parent is winning, so we just go through
+					// all the parents and declare them winning.
+					// Same with tie children.
+					if (valueParents == win || valueParents == tie) {
+						childCounts[parent] = 0; // reset child counter
+						rInsertFR(valueParents, parent, remotenessChild+1);
+					// With winning children, first decrement the child counter by one. If
+					// child counter reaches 0, put the parent not in the FR but in the miniFR.
+					} else if (valueParents == lose) {
+						childCounts[parent] -= 1;
+						if (childCounts[parent] != 0) continue;
+						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+					}
+					SetRemoteness(parent, remotenessChild+1);
+					StoreValueOfPosition(parent, valueParents);
+					numSolved++;
+				}
+			}
+			FreeUndoMoveList(parents);
+		} else { // use the parents pointers
+			parentList = rParents[child];
+			for (; parentList != NULL; parentList = parentList->next) {
+				parent = parentList->position;
+				if (childCounts[parent] != 0) {
+					if (valueParents == win || valueParents == tie) {
+						childCounts[parent] = 0;
+						rInsertFR(valueParents, parent, remotenessChild+1);
+					} else if (valueParents == lose) {
+						childCounts[parent] -= 1;
+						if (childCounts[parent] != 0) continue;
+						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+					}
+					SetRemoteness(parent, remotenessChild+1);
+					StoreValueOfPosition(parent, valueParents);
+					numSolved++;
+				}
 			}
 		}
-		FreeUndoMoveList(parents);
 		// if we inserted into LOSE, deal with them now
 		if (valueParents == lose && miniLoseFR != NULL) {
 			LoopyParentsHelper(miniLoseFR, win, remotenessChild+1);
@@ -1854,6 +1899,14 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/08/07 21:49:19  max817
+// A HUGE set of changes to the Retrograde Solver. It now supports both
+// loopy and non-loopy solving, as well as symmetries for both. It can
+// also begin play from ANY tier that has already been solved, as opposed
+// to waiting until the game is finished solving.
+// Also added a variable to facilitate memdb loading (it used to rely
+// on gPlaying, but now it relies on a new variable, gMemDBLoadMainTier).
+//
 // Revision 1.11  2006/08/04 06:47:53  max817
 // Aside from a few cosmetic changes to the solver, Gamesman is now able
 // to actually PLAY Tier-Gamesman games, albeit at a very primitive stage
