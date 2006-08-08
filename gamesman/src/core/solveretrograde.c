@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.15 2006-08-08 20:49:16 max817 Exp $
+// $Id: solveretrograde.c,v 1.16 2006-08-08 23:47:23 max817 Exp $
 
 /************************************************************************
 **
@@ -684,6 +684,12 @@ void SolveWithLoopyAlgorithm() {
 					childCounts[pos]++;
 					if (!useUndo) {// if parent pointers, add to parent pointer list
 						child = DoMove(pos, movesptr->move);
+						/*
+if(tierToSolve == 3 && pos == 1341) {
+	printf("\n\nAdding this here child: %llu", child);
+	printf("\nCoincidink, VALUE: %d and REM: %d\n\n", GetValueOfPosition(child), Remoteness(child));
+}
+*/
 						rParents[child] = StorePositionInList(pos, rParents[child]);
 					}
 				}
@@ -702,19 +708,15 @@ void SolveWithLoopyAlgorithm() {
 	}
 	// SET UP FRONTIER!
 	printf("--Doing an sweep of child tiers, and setting up the frontier...\n");
-	// go through all tiers, add them in one by one
-	int index;
-	for (index = 2; index < gNumTiersInHashWindow; index++) {
-		for (pos = gMaxPosOffset[index-1]; pos < gMaxPosOffset[index]; pos++) {
-			if (gSymmetries) // use the canonical position's values
-				canonPos = gCanonicalPosition(pos); //to tell where i go!
-			else canonPos = pos; // else ignore
-			value = GetValueOfPosition(canonPos);
-			remoteness = Remoteness(canonPos);
-			if (!((value == tie && remoteness == REMOTENESS_MAX)
-					|| value == undecided))
-				rInsertFR(value, pos, remoteness);
-		}
+	for (pos = tierSize; pos < gNumberOfPositions; pos++) {
+		if (gSymmetries) // use the canonical position's values
+			canonPos = gCanonicalPosition(pos); //to tell where i go!
+		else canonPos = pos; // else ignore
+		value = GetValueOfPosition(canonPos);
+		remoteness = Remoteness(canonPos);
+		if (!((value == tie && remoteness == REMOTENESS_MAX)
+				|| value == undecided))
+			rInsertFR(value, pos, remoteness);
 	}
 	printf("\n--Beginning the loopy algorithm...\n");
 	POSITIONLIST *FRptr;
@@ -756,12 +758,13 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 		child = list->position;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, tierToSolve);
-			// If no parents, just go on to the next:
-			//if (parents == NULL) continue;
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
 				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
 				if (parent < 0 || parent >= tierSize) {
-					printf("ERROR: %llu generated an undo-parent not in current tier!\n", child);
+					TIERPOSITION tp; TIER t;
+					gUnhashToTierPosition(parent, &tp, &t);
+					printf("ERROR: %llu generated undo-parent %llu (Tier: %d, TierPosition: %llu),\n"
+							"which is not in the current tier being solved!\n", child, parent, t, tp);
 					exit(1);
 				}
 				// if childCounts is already 0, we don't mess with this parent
@@ -790,6 +793,13 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			parentList = rParents[child];
 			for (; parentList != NULL; parentList = parentList->next) {
 				parent = parentList->position;
+/*
+if(tierToSolve == 3 && parent == 1341) {
+	printf("\n\nThis is ME: %llu", child);
+	printf("\nCoincidink, I'm assiging %d and %d to parent\n", valueParents, remotenessChild);
+	printf("Parent's childCounts: %d\n\n", childCounts[parent]);
+}
+*/
 				if (childCounts[parent] != 0) {
 					if (valueParents == win || valueParents == tie) {
 						childCounts[parent] = 0;
@@ -1948,6 +1958,9 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/08/08 20:49:16  max817
+// *** empty log message ***
+//
 // Revision 1.14  2006/08/08 20:35:19  max817
 // Added gTierToStringFunPtr implementation, and an example of it in mtttier.c.
 //
