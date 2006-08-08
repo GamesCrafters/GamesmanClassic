@@ -88,11 +88,10 @@ void gUnhashToTierPosition(POSITION position, TIERPOSITION* tierposition,
 	int i;
 	for(i = 1; i < gNumTiersInHashWindow; i++) {
 		if (position < gMaxPosOffset[i]) {//in THIS tier
-			(*tierposition) = position;
+			(*tierposition) = position - gMaxPosOffset[i-1];
 			(*tier) = gTierInHashWindow[i];
 			return;
 		}
-		position -= gMaxPosOffset[i];
 	}
 }
 
