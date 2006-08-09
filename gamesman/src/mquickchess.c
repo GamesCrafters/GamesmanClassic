@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.32 2006-08-08 23:55:30 runner139 Exp $
+// $Id: mquickchess.c,v 1.33 2006-08-09 02:10:49 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -190,8 +190,8 @@ STRING   kHelpExample =
 *************************************************************************/
 int rows = 4;
 int cols = 3;
-char *theBoard = " k       BK ";
-int theCurrentPlayer = WHITE_TURN;
+char *theBoard = "k    QN  K  ";
+int theCurrentPlayer = BLACK_TURN;
 
 
 /*VARIANTS*/
@@ -476,6 +476,7 @@ void InitializeGame ()
  int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 6, maxBlank, -1};
   gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
   gInitialPosition = hash(theBoard,theCurrentPlayer);
+  SafeFree(piecesArray);
 }
 
 
@@ -1156,11 +1157,11 @@ void DebugMenu ()
   //printPiecesArray(gTierToPiecesArray(257, piecesArray));
   //free(piecesArray);
   printf("The KkBR tier moves\n");
-  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 6));
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 9));
   printf("The KkR tier moves\n");
-  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 4));
+  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 137));
   printf("The KkB tier moves\n");
-  printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 2));
+  //printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 2));
   /* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   i = countBits(223);;
   printf("numBits in i = %d\n", i);
@@ -2056,8 +2057,6 @@ void UndoMove (char *boardArray,int rowi, int rowf, int coli, int colf, int curr
 	tempPiece = boardArray[rowf*cols + colf];
 	boardArray[rowf*cols + colf] = ' ';
 	boardArray[rowi*cols + coli] = tempPiece;
-	
-	
 	if(currentPlayer == WHITE_TURN) {
 		currentPlayer = BLACK_TURN;
 	} else currentPlayer = WHITE_TURN;
@@ -2490,7 +2489,7 @@ TIER gPositionToTier(POSITION position) {
   piecesArray =  gPositionToPiecesArray(position, piecesArray);
   //printPiecesArray(piecesArray);
   tier = gPiecesArrayToTier(piecesArray);
-  free(piecesArray);
+  SafeFree(piecesArray);
   return tier;
   
 }
@@ -2617,6 +2616,7 @@ TIER BoardToTier(char *Board) {
   int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gBoardToPiecesArray(Board, piecesArray);
   t = gPiecesArrayToTier(piecesArray);
+  SafeFree(piecesArray);
   return t;
 }
 
@@ -2676,7 +2676,7 @@ TIERLIST* gTierChildren(TIER t){
     tiers = CreateTierlistNode(tempTier, tiers);
     *(piecesArray + DISTINCT_PIECES-1) += 1;
   }
-
+  SafeFree(piecesArray);
   return tiers;
 }
 
@@ -3181,6 +3181,7 @@ void generateUndoMovesDirection(char* boardArray,  UNDOMOVELIST **moves, int cur
 	  } else return;
 	  
 	  new_i += i_inc; 
+
 	  new_j += j_inc;
 	} 
 } 
@@ -3393,12 +3394,10 @@ BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, i
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = ' ';
   TIER thisTier =  BoardToTier(boardArray);
-  if(t != thisTier)
-    return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
-  if (boardInCheck == FALSE) {
+  if (boardInCheck == FALSE && t == thisTier) {
     //printf("The move is ri=%d ci=%d to rf%d cf=%d, isInCheck = %d\n", rowi, coli, rowf, colf, boardInCheck);
     return TRUE;
   } else {
@@ -3414,13 +3413,11 @@ BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int 
   boardArray[rowf*cols + colf] = piece;
   boardArray[rowi*cols + coli] = capturedPiece;
   TIER thisTier = BoardToTier(boardArray);
-  if(t != thisTier)
-    return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
   //printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
-  if (boardInCheck == FALSE) {
+  if (boardInCheck == FALSE && t == thisTier) {
     return TRUE;
   } else {
     return FALSE;
@@ -3439,13 +3436,11 @@ BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int col
     boardArray[rowi*cols + coli] = capturedPiece;
   else boardArray[rowi*cols + coli] = ' ';
   TIER thisTier = BoardToTier(boardArray);
-  if(t != thisTier)
-    return FALSE;
   boardInCheck = inCheck(boardArray, currentPlayer);
   boardArray[rowi*cols + coli] = piece;
   boardArray[rowf*cols + colf] = ' ';
   //printf("boardInCheck=%d, t=%d, thisTier=%d", boardInCheck, t, thisTier);
-  if (boardInCheck == FALSE) {
+  if (boardInCheck == FALSE && t == thisTier) {
     return TRUE;
   } else {
     return FALSE;
@@ -3520,7 +3515,6 @@ char *getBoard() {
     }
     cPrev = c;
   }
-  printArray(boardArray);
   return boardArray;
 }
 
@@ -3576,7 +3570,7 @@ STRING TierToString(TIER tier) {
 	  i++;
 	}
 	tierStr[i] = '\0';
-
+	SafeFree(piecesArray);
 	return tierStr;
 }
 int getNumPieces(int* piecesArray) {
