@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.33 2006-08-09 02:10:49 runner139 Exp $
+// $Id: mquickchess.c,v 1.34 2006-08-09 17:23:17 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -78,7 +78,7 @@
 **                  that there is a high error tolerance.
 ** 6-7 Aug 2006 Adam: Debugged Tier Gamesman. Can now solve all 3-piece game tiers. 
 ** 8 Aug  2006 Adam: Wrote TierToString. Changed incheck to take in board instead of position. Debugging Tier
-**                   Gamesman.
+**                   Gamesman.Prevented memory leaks. Got game to solve up the 3 major pieces stuck on tier 14
 **************************************************************************/
 
 /*************************************************************************
@@ -384,7 +384,7 @@ void InitializeGame ()
       a   b   c  
   */
   /* 140 = 46*/
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
   for(i = 0; i < NUM_TIERS; i++) {
    
   piecesArray =  gTierToPiecesArray((TIER) i, piecesArray); 
@@ -713,6 +713,12 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
+
+  STRING str = MoveToString(move);
+  printf( "%s", str );
+  SafeFree( str );
+
+  /*
 	char rowf, colf, rowi, coli, replacementPiece;
 	rowf = (move & 15) + 48; 
 	colf = ((move >> 4) & 15) - 10 + 97; 
@@ -724,7 +730,7 @@ void PrintMove (MOVE move)
 	} else {
 	  printf("%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
 	}
-
+  */
 }
 
 
@@ -2485,7 +2491,7 @@ BOOLEAN areKingsAdjacent(char* boardArray) {
 TIER gPositionToTier(POSITION position) {
   int *piecesArray;
   TIER tier;
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gPositionToPiecesArray(position, piecesArray);
   //printPiecesArray(piecesArray);
   tier = gPiecesArrayToTier(piecesArray);
@@ -2613,7 +2619,7 @@ int* gPositionToPiecesArray(POSITION position, int *piecesArray){
 
 TIER BoardToTier(char *Board) {
   TIER t;
-  int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  int *piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gBoardToPiecesArray(Board, piecesArray);
   t = gPiecesArrayToTier(piecesArray);
   SafeFree(piecesArray);
@@ -2625,7 +2631,7 @@ TIERLIST* gTierChildren(TIER t){
   int *piecesArray;
   int i;
   TIER tempTier;
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
   piecesArray =  gTierToPiecesArray(t, piecesArray);
   tiers = CreateTierlistNode(t, tiers);
   /* creating capture children tiers (NON-PAWNS) */
@@ -2734,15 +2740,17 @@ STRING MoveToString(move)
 MOVE move;
 {
   char rowf, colf, rowi, coli, replacementPiece;
-  STRING moveStr = (STRING) SafeMalloc(sizeof(char)*4);
+  STRING moveStr;
   rowf = (move & 15) + 48; 
   colf = ((move >> 4) & 15) - 10 + 97; 
   rowi = ((move >> 8) & 15) + 48; 
   coli = ((move >> 12) & 15) - 10 + 97; 
   replacementPiece =  move >> 16;
   if (replacementPiece == 0) {
+    moveStr = (STRING) SafeMalloc(sizeof(char)*4);
     sprintf(moveStr, "%c%c%c%c", coli, rowi, colf, rowf);
   } else {
+    moveStr = (STRING) SafeMalloc(sizeof(char)*6);
     sprintf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
   }
   return moveStr;
@@ -3530,7 +3538,7 @@ BOOLEAN isLegalBoard(char *Board){
 STRING TierToString(TIER tier) {
 	
 	int i = 2;
-	int* piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
+	int* piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
 	piecesArray =  gTierToPiecesArray(tier, piecesArray);
 	int numPieces = getNumPieces(piecesArray);
 	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*(numPieces +1));
@@ -3614,6 +3622,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2006/08/09 02:10:49  runner139
+// *** empty log message ***
+//
 // Revision 1.30  2006/08/08 21:58:39  runner139
 // *** empty log message ***
 //
