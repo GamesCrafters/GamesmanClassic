@@ -61,6 +61,9 @@ static void	SetSolver ();
 
 void Initialize()
 {
+		/* For TIER GAMESMAN */
+		gHashWindowInitialized = FALSE;
+
 		gGetVarStringPtr = &get_var_string;
         srand(time(NULL));
 
@@ -78,7 +81,8 @@ void Initialize()
         //generic_hash_context_init();
 
         /* get the DB function table with all pointers to default */
-        CreateDatabases();
+        if(!(gUsingTierGamesman && gTierGamesman)) //If no TIER GAMESMAN
+        	CreateDatabases();
 
         /* game-specific variabless */
         InitializeGame();
@@ -123,19 +127,21 @@ VALUE DetermineValue(POSITION position)
 		gMemDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
 		gSolver(position);
 		gMemDBLoadMainTier = TRUE; // from now on, memdb loads main tier too
+		gInitializeHashWindow(gInitialTier, TRUE);
+		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+		gInitialPosition = position; // saves a LOT of little changes
+
 		showStatus(Clean);
 		AnalysisCollation();
 		gAnalysisLoaded = TRUE;
 		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
-		if(gSaveDatabase) {
-			if(gUseOpen) {
-				SaveOpenPositionsData();
-			}
-			SaveAnalysis();
-		}
-		gInitializeHashWindow(gInitialTier, TRUE);
-		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
-		gInitialPosition = position; // saves a LOT of little changes
+		//if(gSaveDatabase) {
+		//	if(gUseOpen) {
+		//		SaveOpenPositionsData();
+		//	}
+		//	SaveAnalysis();
+		//}
+
 	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
 		if (gPrintDatabaseInfo)
 			printf("\nLoading in Database for %s...",kGameName);

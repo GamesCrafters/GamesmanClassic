@@ -614,8 +614,10 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
 	Stopwatch();
-	InitializeDatabases();
-	InitializeOpenPositions(gNumberOfPositions);
+	if(!(gUsingTierGamesman && gTierGamesman)) { //If no TIER GAMESMAN
+		InitializeDatabases();
+		InitializeOpenPositions(gNumberOfPositions);
+	}
 	printf("done in %u seconds!", Stopwatch()); // for analysis bookkeeping
 	fflush(stdout);
 	Stopwatch();
