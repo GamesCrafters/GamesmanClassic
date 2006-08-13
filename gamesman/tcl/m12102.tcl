@@ -1,11 +1,13 @@
+#	8/12/06		hacked to get automove at end to display correct color
+#			need to find better way to do it aside from breaking
+#			abstraction with use of gWhoseTurn - dchan
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
 # to initialize data structures, but not to present any graphics.
 # It is called FIRST, ONCE, only when the player
 # starts playing your game, and before the player hits "New Game"
 # At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
-
+# and gInitialPosition in this function.
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -230,6 +232,12 @@ proc GS_Initialize { c } {
     $c raise base
     $c raise tagText
 
+    global curPlayer gWhoseTurn
+    if {$gWhoseTurn == "Left"} {
+	set curPlayer blue;
+    } else {
+	set curPlayer red;
+    }
 } 
 
 proc GS_Deinitialize { c } {
@@ -251,14 +259,14 @@ proc GS_Deinitialize { c } {
 
 
 proc GS_DrawPosition { c position } {
-    global gWhoseTurn
-    
+    global curPlayer    
     # BTW too: don't make any assumptions about the state of the board.
 
-    if { $gWhoseTurn == "Left" } {
-		set newcolor blue
+    set newcolor $curPlayer
+    if {$curPlayer == "blue"} {
+	set curPlayer red
     } else {
-		set newcolor red
+	set curPlayer blue
     }
 
     $c itemconfigure piece-$position -fill $newcolor
@@ -307,13 +315,13 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #    $c lower pieces base
     $c itemconfigure base$newPosition -fill white
     $c itemconfigure tagTextSlot$newPosition -fill black
-    
-    global gWhoseTurn
-    
-    if { $gWhoseTurn == "Left" } {
-		set newcolor blue
+    global curPlayer
+
+    set newcolor $curPlayer
+    if {$curPlayer == "blue"} {
+	set curPlayer red
     } else {
-		set newcolor red
+	set curPlayer blue
     }
 
     $c itemconfigure piece-$newPosition -fill $newcolor
