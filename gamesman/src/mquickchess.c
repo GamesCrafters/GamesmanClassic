@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.34 2006-08-09 17:23:17 runner139 Exp $
+// $Id: mquickchess.c,v 1.35 2006-08-14 00:46:01 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -1232,77 +1232,22 @@ void DebugMenu ()
 ************************************************************************/
 
 
-void setupPieces(char *Board) {
-	int x, y;
-	// setup empty spaces 
-	for(x = 0; x < rows; x++ ){
-		for(y = 0; y < cols; y++) {
-			Board[x*cols + y] = ' ';
-		}
-	}
-	/*
-	Board[0] = 'R';
-	Board[1] = 'K';
-	Board[2] = 'P';
-	Board[9] = 'r';
-	Board[10] = 'k';
-	Board[11] = 'p';
-	*/
-	/*	
-	  // setup pawns 
-	 for(y = 0; y < cols; y++ ){
-	   Board[1*cols + y] = WHITE_PAWN;
-	   Board[(rows-2)*cols + y] = BLACK_PAWN;
-	 }
-	 // setup black major pieces 
-	 Board[(rows-1)*cols] = BLACK_ROOK;
-	 Board[(rows-1)*cols + 1] = BLACK_BISHOP;
-	 Board[(rows-1)*cols + 2] = BLACK_KING;
-	 Board[(rows-1)*cols + 3] = BLACK_QUEEN;
-	 Board[(rows-1)*cols + 4] = BLACK_KNIGHT;
-	 // setup white major pieces 
-	 Board[0] = WHITE_ROOK;
-	 Board[1] = WHITE_BISHOP;
-	 Board[2] = WHITE_KING;
-	 Board[3] = WHITE_QUEEN;
-	 Board[4] = WHITE_KNIGHT;
-	*/
-
-	  // setup pawns 
-	/*
-	Board[4] = WHITE_PAWN;
-	Board[10] = BLACK_PAWN;
-	*/
-	/*
-	for(y = 0; y < cols; y++ ){
-	  Board[1*cols + y] = WHITE_PAWN;
-	  Board[(rows-2)*cols + y] = BLACK_PAWN;
-	}
-	Board[0] = WHITE_BISHOP;
-	Board[1] = WHITE_KING;
-	Board[2] = WHITE_ROOK;
-	
-	Board[(rows-1)*cols] = BLACK_BISHOP;
-	Board[(rows-1)*cols + 1] = BLACK_KING;
-	Board[(rows-1)*cols + 2] = BLACK_ROOK;
-	*/
-	//Board[2] = BLACK_QUEEN;
-	Board[1] = BLACK_KING;
-	//	Board[3] = WHITE_PAWN;
-     
-	//     Board[5] = WHITE_PAWN;
-
-	//	Board[9] = BLACK_PAWN;
-	//	Board[11] = BLACK_PAWN;
-	Board[10] = WHITE_KING;
-	Board[9] = WHITE_BISHOP;
-	// Board[6] = WHITE_BISHOP;
-	
-}
 
 
-/*  This function checks if the board is in check.
-*/
+/************************************************************************
+**
+** NAME:        inCheck
+**
+** DESCRIPTION: inCheck determines whether the given player is Checked on the 
+**              current Board.
+** 
+** INPUTS:      char* bA   : The current Board.
+**              int player : The current player.
+**
+** OUTPUTS:     BOOLEAN    : Whether or not the current player is in check. 
+**
+************************************************************************/
+
 BOOLEAN inCheck(char* bA, int checkedPlayer) { 
 	int i, j; 
 	char piece;  
@@ -1593,19 +1538,18 @@ BOOLEAN kingCheck(char *Board, int row, int col, int currentPlayer, char current
 	return FALSE;
 }
 
-/* Returns the string of base 'base' as an integer 
-PRECONDITION: s must end in a null character, and contain only the digits 
-0-9, and the letters a-f (hexadecimal) */ 
-int atobi(char s[], int base) { 
-	int i; 
-	int total = 0; 
-	char c; 
-	for (i = 0; s[i] != '\0'; i++) { 
-		c = s[i]; 
-		total = total*base + ((isalpha(c)) ? toupper(c)-'A'+10:c-'0'); 
-	} 
-	return total; 
-} 
+/************************************************************************
+**
+** NAMES:       generate"Piece"Moves
+**
+** DESCRIPTION: Generates all the legal moves and puts them into the movelist
+**              for the given board and player
+** 
+** INPUTS:      char* bA   : The current Board.
+**              int player : The current player.
+**              int i, j   : coordinates of spot on board being examined
+**
+************************************************************************/
 
 void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, int i, int j){
 	MOVE newMove;
@@ -2276,158 +2220,283 @@ BOOLEAN isBishop(position)
    return FALSE;	
  }
 
+/************************************************************************
+**
+** TIER GAMESMAN API
+**
+************************************************************************/
+
+
+
+
+
+/************************************************************************
+**
+** NAME:        NumberOfTierPositions
+**
+** DESCRIPTION: Given a tier, determine the maximum number of positions 
+**              that are exclusive to that tier.
+** 
+** INPUTS:      TIER tier : the given tier
+**
+** OUTPUTS:     TIERPOSITION : The max number position in the set of positions
+**                             of the given tier
+**
+************************************************************************/
+
 TIERPOSITION NumberOfTierPositions(TIER tier) {
   generic_hash_context_switch(Tier0Context+tier);
   return generic_hash_max_pos();
 }
 
-/*
-  TIER gTierValue(position)
-  POSITION position;
-  {
-  int i,j, numPieces, piecesArray[DISTINCT_PIECES];
+
+/************************************************************************
+**
+** NAME:        gPositionToTier
+**
+** DESCRIPTION: Takes a given position and determines which tier it belongs to.
+** 
+** INPUTS:      POSITION position : The given position
+**
+** OUTPUTS:     TIER              : The tier the position translates to. 
+**
+************************************************************************/
+
+TIER gPositionToTier(POSITION position) {
+  int *piecesArray;
+  TIER tier;
+  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray =  gPositionToPiecesArray(position, piecesArray);
+  //printPiecesArray(piecesArray);
+  tier = gPiecesArrayToTier(piecesArray);
+  SafeFree(piecesArray);
+  return tier;
   
-  piecesArray = gPiecesArray(position);
-  for(i = 0; i < DISTINCT_PIECES; i++) {
-  numPieces += piecesArray[i];
-  }
-  switch (numPieces) { 
-  case 2:  
-  return 0;
-  break;
-  case 3:  
-  for(i = 1; i <= DISTINCT_PIECES; i++) {
-  if(piecesArray[i - 1] > 0) {
-	return i;
-      }
-		  }
-    break;
-  case 4:
-    for(i = 0; i < DISTINCT_PIECES - 2; i++) {
-      if(piecesArray[i] > 0) {
-	for(j = i + 1; i < DISTINCT_PIECES - 2; i++) {
-	  if(piecesArray[j] > 0) 
-	    return 11;
-	}
-      }
-    }
-    break;
-  }
 }
-*/
 
-/*
+/************************************************************************
+**
+** NAME:        gTierChildren
+**
+** DESCRIPTION: Given a tier, this function determines all the tiers that can be 
+**              reached from this position by a move made, including the self tier and
+**              returns all these tier in a tierlist
+** 
+** INPUTS:      TIER t    : The given tier.
+**
+** OUTPUTS:     TIERLIST  : The children of the given tier 
+**
+************************************************************************/
 
-RETROGRADE API FUNCTIONS
 
-*/
-
-/*
-POSITION gInitializeHashWindow(TIER t, POSITION p) {  
-  POSITION returnedPosition;
-  char boardArray[BOARDSIZE];
-  int *piecesArray, minBlackPawn, maxBlackPawn, minBlackBishop, maxBlackBishop,minBlackRook, maxBlackRook,minBlackKnight, maxBlackKnight,minBlackQueen, maxBlackQueen, minWhitePawn, maxWhitePawn,minWhiteBishop, maxWhiteBishop,minWhiteRook, maxWhiteRook,minWhiteKnight, maxWhiteKnight,minWhiteQueen, maxWhiteQueen,minBlank, maxBlank, currentPlayer;
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(t, piecesArray); 
-  if(p != kBadPosition) {
-    unhash(p, boardArray);
-    currentPlayer = whoseMove(p);
+TIERLIST* gTierChildren(TIER t){
+  TIERLIST* tiers = NULL;
+  int *piecesArray;
+  int i;
+  TIER tempTier;
+  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
+  piecesArray =  gTierToPiecesArray(t, piecesArray);
+  tiers = CreateTierlistNode(t, tiers);
+  /* creating capture children tiers (NON-PAWNS) */
+  for(i = 0; i < DISTINCT_PIECES - 2; i++) {
+    if(*(piecesArray + i) == 1) {
+      *(piecesArray + i) = 0;
+      tempTier = gPiecesArrayToTier(piecesArray);
+      tiers = CreateTierlistNode(tempTier, tiers);
+      //printTierList(tiers);
+      *(piecesArray + i) = 1;
+    }
   }
-  //go through pieces Array to set min and max number of pieces for hash 
+
+  /* handling white pawns */
+
+  /* are there any white pawns */ 
   if(*(piecesArray + DISTINCT_PIECES-2) > 0) {
-  minWhiteQueen = 0;
-  maxWhiteQueen = 1;
-  minWhiteBishop = 0;
-  maxWhiteBishop = 1;
-  minWhiteRook = 0;
-  maxWhiteRook = 1;
-  minWhiteKnight = 0;
-  maxWhiteKnight = 1;
-  minWhitePawn = *(piecesArray + DISTINCT_PIECES-2) - 1;
-    maxWhitePawn = *(piecesArray + DISTINCT_PIECES-2);
-    } else {
-    minWhiteQueen = 0;
-    maxWhiteQueen = *(piecesArray);
-    minWhiteBishop = 0;
-    maxWhiteBishop = *(piecesArray + 1);
-    minWhiteRook = 0;
-    maxWhiteRook = *(piecesArray + 2);
-    minWhiteKnight = 0;
-    maxWhiteKnight = *(piecesArray + 3);
-    minWhitePawn = 0;
-    maxWhitePawn = 0;
+    for(i = 0; i < 4; i++) {
+      if(*(piecesArray + i) == 0) {
+	*(piecesArray + i) = 1;
+	*(piecesArray + DISTINCT_PIECES-2) -= 1;
+	tempTier = gPiecesArrayToTier(piecesArray);
+	tiers = CreateTierlistNode(tempTier, tiers);
+	*(piecesArray + i) = 0;
+	*(piecesArray + DISTINCT_PIECES-2) += 1;
+      }
+    }
+    *(piecesArray + DISTINCT_PIECES-2) -= 1;
+    tempTier = gPiecesArrayToTier(piecesArray);
+    tiers = CreateTierlistNode(tempTier, tiers);
+    *(piecesArray + DISTINCT_PIECES-2) += 1;
   }
 
+  /* handling black pawns */
   if(*(piecesArray + DISTINCT_PIECES-1) > 0) {
-    minBlackQueen = 0;
-    maxBlackQueen = 1;
-    minBlackBishop = 0;
-    maxBlackBishop = 1;
-    minBlackRook = 0;
-    maxBlackRook = 1;
-    minBlackKnight = 0;
-    maxBlackKnight = 1;
-    minBlackPawn = *(piecesArray + DISTINCT_PIECES-1) - 1;
-    maxBlackPawn = *(piecesArray + DISTINCT_PIECES-1);
-  } else {
-    minBlackQueen = 0;
-    maxBlackQueen = *(piecesArray + 4);
-    minBlackBishop = 0;
-    maxBlackBishop = *(piecesArray + 5);
-    minBlackRook = 0;
-    maxBlackRook = *(piecesArray + 6);
-    minBlackKnight = 0;
-    maxBlackKnight = *(piecesArray + 7);
-    minBlackPawn = 0;
-    maxBlackPawn = 0;
-  }
-  
-  minBlank = BOARDSIZE - 2 - maxWhitePawn - maxBlackPawn - maxWhiteQueen - maxBlackQueen - maxWhiteRook - maxBlackRook - maxWhiteBishop - maxBlackBishop - maxWhiteKnight - maxBlackKnight;
-  maxBlank = BOARDSIZE - 2;
-  // initialize piecesArray for the new hash 
-  int pieces_array[40] = {'p', minBlackPawn, maxBlackPawn, 'b', minBlackBishop, maxBlackBishop, 'r', minBlackRook, maxBlackRook, 'n', minBlackKnight, maxBlackKnight, 'q', minBlackQueen, maxBlackQueen, 'k', 1, 1, 'P', minWhitePawn, maxWhitePawn, 'B', minWhiteBishop, maxWhiteBishop, 'R', minWhiteRook, maxWhiteRook, 'N', minWhiteKnight, maxWhiteKnight, 'Q', minWhiteQueen, maxWhiteQueen, 'K', 1, 1, ' ', minBlank, maxBlank, -1};
- 
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-if(p != kBadPosition) 
-     returnedPosition = hash(boardArray, currentPlayer);
-    else returnedPosition = 0;
-    return returnedPosition;
+     for(i = 4; i < DISTINCT_PIECES - 2; i++) {
+      if(*(piecesArray + i) == 0) {
+	*(piecesArray + i) = 1;
+	*(piecesArray + DISTINCT_PIECES-1) -= 1;
+	tempTier = gPiecesArrayToTier(piecesArray);
+	tiers = CreateTierlistNode(tempTier, tiers);
+	*(piecesArray + i) = 0;
+	*(piecesArray + DISTINCT_PIECES-1) += 1;
+      }
     }
-*/
-/*
-TIERPOSITION gPositionToTierPosition(POSITION p, TIER t) { 
-  TIERPOSITION tierPosition, numOfPositions;
-  char boardArray[BOARDSIZE];
-  int *piecesArray, hashWindowContext, currentPlayer, minBlank, maxBlank;
-  piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(t, piecesArray); 
-
-  hashWindowContext = generic_hash_cur_context();
-  
-  unhash(p, boardArray);
-  currentPlayer = whoseMove(p);
-  if(contextArray[t].valid == 0) {
-    minBlank = BOARDSIZE - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-    maxBlank = minBlank;
-    int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL);
-    contextArray[t].valid = 1;
-    contextArray[t].context = generic_hash_cur_context();
-  } else {
-      generic_hash_context_switch(contextArray[t].context);
+    *(piecesArray + DISTINCT_PIECES-1) -= 1;
+    tempTier = gPiecesArrayToTier(piecesArray);
+    tiers = CreateTierlistNode(tempTier, tiers);
+    *(piecesArray + DISTINCT_PIECES-1) += 1;
   }
-    if(p == kBadPosition){
-      numOfPositions = generic_hash_max_pos();
-      generic_hash_context_switch(hashWindowContext);
-      return numOfPositions;
-    } else {
-      tierPosition = hash(boardArray, currentPlayer);
-      generic_hash_context_switch(hashWindowContext);
-      return tierPosition;
-    }
+  SafeFree(piecesArray);
+  return tiers;
 }
 
-*/
+/************************************************************************
+**
+** NAME:        gUnDoMove
+**
+** DESCRIPTION: Given a position and an undomove, it does the undomove on the 
+**              position and returns the resulting position
+**              
+** 
+** INPUTS:      UNDOMOVE umove    : The given undomove.
+**              POSITION position : the given position
+**
+** OUTPUTS:     POSITION          : The resulting position from the undomove  
+**
+************************************************************************/
+
+POSITION gUnDoMove(POSITION position, UNDOMOVE umove) {
+  char boardArray[rows*cols];
+  char tempPiece, capturedPiece;
+  int rowi, coli, rowf, colf, isReplacementPiece;
+  rowf = umove & 15; 
+  colf = (umove >> 4) & 15; 
+  rowi = (umove >> 8) & 15; 
+  coli = (umove >> 12) & 15; 
+  capturedPiece = (char) (umove >> 16) & 255;
+  isReplacementPiece = (char) (umove >> 24) & 1;
+  
+  unhash(position, boardArray);
+  int currentPlayer = whoseMove(position);
+  tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
+  if(capturedPiece == 0 || capturedPiece == ' ') 
+    boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
+  else boardArray[(rows - rowi)*cols + (coli - 10)] = capturedPiece;
+  
+  if(isReplacementPiece == 1) {
+    if(currentPlayer == WHITE_TURN) 
+      boardArray[(rows - rowf)*cols + (colf - 10)] = BLACK_PAWN;
+    else boardArray[(rows - rowf)*cols + (colf - 10)] = WHITE_PAWN;
+  } else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
+  if(BoardToTier(boardArray) == 256)
+    printArray(boardArray);
+  return hash(boardArray, opposingPlayer(currentPlayer));	
+  
+  }
+
+
+
+/************************************************************************
+**
+** NAME:        gGenerateUndoMovesToTier
+**
+** DESCRIPTION: Generates all the undomoves of the current position that lead into
+**              the given tier and puts them into a list.
+**              
+** 
+** INPUTS:      TIER t            : The given tier.
+**              POSITION position : the given position
+**
+** OUTPUTS:     UNDOMOVELIST  : The list of undomoves that lead from the given position
+**                              into the given tier.  
+**
+************************************************************************/
+
+  
+UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
+{
+  UNDOMOVELIST *moves = NULL;
+  int currentPlayer, i,j; 
+  char piece; 
+  char boardArray[rows*cols]; 
+  unhash(position, boardArray); 
+  currentPlayer = whoseMove(position);
+  for (i = 0; i < rows; i++) {
+    for(j = 0; j < cols; j++) {
+      
+      piece = boardArray[i*cols + j]; 
+      // check if piece belongs to the currentPlayer
+      if (isNotSameTeam(piece, currentPlayer)) {
+	//printf("move: i:%d, j:%d",i,j);
+	switch (piece) { 
+	case WHITE_QUEEN: case BLACK_QUEEN:  
+	  
+	  if (i == 0 && piece == WHITE_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+	  }
+	  
+	  generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	case WHITE_BISHOP: case BLACK_BISHOP:
+	 
+	  if (i == 0 && piece == WHITE_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+	  }
+	  
+	  generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	case WHITE_ROOK: case BLACK_ROOK:
+	 
+	  if (i == 0 && piece == WHITE_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+	  }
+	 
+	  generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	case WHITE_KNIGHT: case BLACK_KNIGHT:
+	  if (i == 0 && piece == WHITE_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
+	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+	  }
+	  generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	case WHITE_PAWN: case BLACK_PAWN:
+	  generatePawnUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	case WHITE_KING: case BLACK_KING:
+	  generateKingUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
+	  break;
+	default:  
+	  break; 
+	} 
+      } 
+     
+    } 
+  } 
+      
+  // Use CreateUndoMovelistNode(move, next) to 'cons' together a linked list 
+  
+      return moves;
+}
+
+/************************************************************************
+**
+** NAME:        IsLegal
+**
+** DESCRIPTION: determines if the given position is reachable through gameplay
+** 
+** INPUTS:      POSITION position : The given position.
+**
+** OUTPUTS:     BOOLEAN           : Whether or not the position is reachable. 
+**
+************************************************************************/
+
 BOOLEAN IsLegal(POSITION position) {
   int currentPlayer = whoseMove(position);
   char boardArray[rows*cols];
@@ -2438,6 +2507,12 @@ BOOLEAN IsLegal(POSITION position) {
 
   
 }
+
+/************************************************************************
+**
+** IsLegal Helper Functions
+**
+************************************************************************/
 
 BOOLEAN areKingsAdjacent(char* boardArray) {
   char piece;
@@ -2488,18 +2563,12 @@ BOOLEAN areKingsAdjacent(char* boardArray) {
   }
   return FALSE;
 }
-TIER gPositionToTier(POSITION position) {
-  int *piecesArray;
-  TIER tier;
-  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gPositionToPiecesArray(position, piecesArray);
-  //printPiecesArray(piecesArray);
-  tier = gPiecesArrayToTier(piecesArray);
-  SafeFree(piecesArray);
-  return tier;
-  
-}
 
+/************************************************************************
+**
+** TIER GAMESMAN API Helper Functions 
+**
+************************************************************************/
 
 void printPiecesArray(int *piecesArray) {
   int i;
@@ -2509,6 +2578,8 @@ void printPiecesArray(int *piecesArray) {
   }
   printf("]\n");
 }
+
+
 int* gBoardToPiecesArray(char *boardArray, int *piecesArray) {
   int i, j;
   
@@ -2626,65 +2697,7 @@ TIER BoardToTier(char *Board) {
   return t;
 }
 
-TIERLIST* gTierChildren(TIER t){
-  TIERLIST* tiers = NULL;
-  int *piecesArray;
-  int i;
-  TIER tempTier;
-  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(t, piecesArray);
-  tiers = CreateTierlistNode(t, tiers);
-  /* creating capture children tiers (NON-PAWNS) */
-  for(i = 0; i < DISTINCT_PIECES - 2; i++) {
-    if(*(piecesArray + i) == 1) {
-      *(piecesArray + i) = 0;
-      tempTier = gPiecesArrayToTier(piecesArray);
-      tiers = CreateTierlistNode(tempTier, tiers);
-      //printTierList(tiers);
-      *(piecesArray + i) = 1;
-    }
-  }
 
-  /* handling white pawns */
-
-  /* are there any white pawns */ 
-  if(*(piecesArray + DISTINCT_PIECES-2) > 0) {
-    for(i = 0; i < 4; i++) {
-      if(*(piecesArray + i) == 0) {
-	*(piecesArray + i) = 1;
-	*(piecesArray + DISTINCT_PIECES-2) -= 1;
-	tempTier = gPiecesArrayToTier(piecesArray);
-	tiers = CreateTierlistNode(tempTier, tiers);
-	*(piecesArray + i) = 0;
-	*(piecesArray + DISTINCT_PIECES-2) += 1;
-      }
-    }
-    *(piecesArray + DISTINCT_PIECES-2) -= 1;
-    tempTier = gPiecesArrayToTier(piecesArray);
-    tiers = CreateTierlistNode(tempTier, tiers);
-    *(piecesArray + DISTINCT_PIECES-2) += 1;
-  }
-
-  /* handling black pawns */
-  if(*(piecesArray + DISTINCT_PIECES-1) > 0) {
-     for(i = 4; i < DISTINCT_PIECES - 2; i++) {
-      if(*(piecesArray + i) == 0) {
-	*(piecesArray + i) = 1;
-	*(piecesArray + DISTINCT_PIECES-1) -= 1;
-	tempTier = gPiecesArrayToTier(piecesArray);
-	tiers = CreateTierlistNode(tempTier, tiers);
-	*(piecesArray + i) = 0;
-	*(piecesArray + DISTINCT_PIECES-1) += 1;
-      }
-    }
-    *(piecesArray + DISTINCT_PIECES-1) -= 1;
-    tempTier = gPiecesArrayToTier(piecesArray);
-    tiers = CreateTierlistNode(tempTier, tiers);
-    *(piecesArray + DISTINCT_PIECES-1) += 1;
-  }
-  SafeFree(piecesArray);
-  return tiers;
-}
 
 void printTierList(TIERLIST* tl) {
   printf("[ ");
@@ -2756,109 +2769,6 @@ MOVE move;
   return moveStr;
 }
 
-POSITION gUnDoMove(POSITION position, UNDOMOVE umove) {
-  char boardArray[rows*cols];
-  char tempPiece, capturedPiece;
-  int rowi, coli, rowf, colf, isReplacementPiece;
-  rowf = umove & 15; 
-  colf = (umove >> 4) & 15; 
-  rowi = (umove >> 8) & 15; 
-  coli = (umove >> 12) & 15; 
-  capturedPiece = (char) (umove >> 16) & 255;
-  isReplacementPiece = (char) (umove >> 24) & 1;
-  
-  unhash(position, boardArray);
-  int currentPlayer = whoseMove(position);
-  tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
-  if(capturedPiece == 0 || capturedPiece == ' ') 
-    boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
-  else boardArray[(rows - rowi)*cols + (coli - 10)] = capturedPiece;
-  
-  if(isReplacementPiece == 1) {
-    if(currentPlayer == WHITE_TURN) 
-      boardArray[(rows - rowf)*cols + (colf - 10)] = BLACK_PAWN;
-    else boardArray[(rows - rowf)*cols + (colf - 10)] = WHITE_PAWN;
-  } else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
-  if(BoardToTier(boardArray) == 256)
-    printArray(boardArray);
-  return hash(boardArray, opposingPlayer(currentPlayer));	
-  
-  }
-
-
-  
-UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
-{
-  UNDOMOVELIST *moves = NULL;
-  int currentPlayer, i,j; 
-  char piece; 
-  char boardArray[rows*cols]; 
-  unhash(position, boardArray); 
-  currentPlayer = whoseMove(position);
-  for (i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      
-      piece = boardArray[i*cols + j]; 
-      // check if piece belongs to the currentPlayer
-      if (isNotSameTeam(piece, currentPlayer)) {
-	//printf("move: i:%d, j:%d",i,j);
-	switch (piece) { 
-	case WHITE_QUEEN: case BLACK_QUEEN:  
-	  
-	  if (i == 0 && piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  
-	  generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_BISHOP: case BLACK_BISHOP:
-	 
-	  if (i == 0 && piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  
-	  generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_ROOK: case BLACK_ROOK:
-	 
-	  if (i == 0 && piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	 
-	  generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_KNIGHT: case BLACK_KNIGHT:
-	  if (i == 0 && piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 && piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_PAWN: case BLACK_PAWN:
-	  generatePawnUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_KING: case BLACK_KING:
-	  generateKingUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	default:  
-	  break; 
-	} 
-      } 
-     
-    } 
-  } 
-      
-  // Use CreateUndoMovelistNode(move, next) to 'cons' together a linked list 
-  
-      return moves;
-}
 
 
 void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, char replacementPiece, TIER t){
@@ -3581,6 +3491,7 @@ STRING TierToString(TIER tier) {
 	SafeFree(piecesArray);
 	return tierStr;
 }
+
 int getNumPieces(int* piecesArray) {
   int numPieces = 0, i;
   for(i = 0; i < DISTINCT_PIECES-2; i++) {
@@ -3589,7 +3500,14 @@ int getNumPieces(int* piecesArray) {
   }
   return numPieces;
 }
-/* Hashing and Unhashing */
+
+
+/************************************************************************
+**
+**  Hashing and Unhashing 
+**
+************************************************************************/
+
 
 char* unhash(POSITION position, char* board)
 {
@@ -3622,6 +3540,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.34  2006/08/09 17:23:17  runner139
+// *** empty log message ***
+//
 // Revision 1.33  2006/08/09 02:10:49  runner139
 // *** empty log message ***
 //
