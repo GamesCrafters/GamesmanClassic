@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.17 2006-08-13 02:41:10 max817 Exp $
+// $Id: solveretrograde.c,v 1.18 2006-08-14 07:13:14 max817 Exp $
 
 /************************************************************************
 **
@@ -189,7 +189,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	}
 	if (gTierToStringFunPtr == NULL)
 		printf("-TierToString NOT GIVEN\nTier Name Printing Disabled\n");
-	if (IsLegalGiven && useUndo && tierNames)
+	if (isLegalGiven && useUndo && tierNames)
 		printf("API Optional Functions Confirmed.\n");
 
 	printf("\n-----Checking for existing Tier DBs:-----\n\n");
@@ -2128,6 +2128,10 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.17  2006/08/13 02:41:10  max817
+// Updates galore, both big and small. Added corruption and tier tree checking,
+// as well as a tier "progress percentage". Also a few GUI changes.
+//
 // Revision 1.16  2006/08/08 23:47:23  max817
 // *** empty log message ***
 //
