@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.35 2006-08-14 00:46:01 runner139 Exp $
+// $Id: mquickchess.c,v 1.36 2006-08-16 03:46:28 runner139 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -79,6 +79,7 @@
 ** 6-7 Aug 2006 Adam: Debugged Tier Gamesman. Can now solve all 3-piece game tiers. 
 ** 8 Aug  2006 Adam: Wrote TierToString. Changed incheck to take in board instead of position. Debugging Tier
 **                   Gamesman.Prevented memory leaks. Got game to solve up the 3 major pieces stuck on tier 14
+** 15 Aug 2006 Adam: Debugged hash contexts
 **************************************************************************/
 
 /*************************************************************************
@@ -390,11 +391,10 @@ void InitializeGame ()
   piecesArray =  gTierToPiecesArray((TIER) i, piecesArray); 
   
   minBlank = rows*cols - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-  maxBlank = rows*cols - 2;
-  int pieces_array[40] = {'p', 0, *(piecesArray + DISTINCT_PIECES-1), 'b', 0, *(piecesArray + 5), 'r', 0, *(piecesArray + 6), 'n', 0, *(piecesArray + 7), 'q', 0, *(piecesArray + 4), 'k', 1, 1, 'P', 0, *(piecesArray + DISTINCT_PIECES-2), 'B', 0, *(piecesArray + 1), 'R', 0, *(piecesArray + 2), 'N', 0, *(piecesArray + 3), 'Q', 0, *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
+  maxBlank = minBlank;
+  int pieces_array[40] = {'p', *(piecesArray + DISTINCT_PIECES-1), *(piecesArray + DISTINCT_PIECES-1), 'b', *(piecesArray + 5), *(piecesArray + 5), 'r', *(piecesArray + 6), *(piecesArray + 6), 'n', *(piecesArray + 7), *(piecesArray + 7), 'q', *(piecesArray + 4), *(piecesArray + 4), 'k', 1, 1, 'P', *(piecesArray + DISTINCT_PIECES-2), *(piecesArray + DISTINCT_PIECES-2), 'B', *(piecesArray + 1), *(piecesArray + 1), 'R', *(piecesArray + 2), *(piecesArray + 2), 'N', *(piecesArray + 3), *(piecesArray + 3), 'Q', *(piecesArray), *(piecesArray), 'K', 1, 1, ' ', minBlank, maxBlank, -1};
   
   generic_hash_init(BOARDSIZE, pieces_array, NULL);
-  
   if (i == 0) // since we can't discard contexts, I use this:
       Tier0Context = generic_hash_cur_context();
   }
@@ -1141,6 +1141,11 @@ void DebugMenu ()
   SafeFree(s1);
   SafeFree(s2);
   */
+  //int i;
+  //printf("Islegal returns %d for this board\nThe number of positions in tier 3 is %d", IsLegal(gInitialPosition), NumberOfTierPositions((TIER)4));
+  //for(i = 0; i < 40; i++) {
+  //printf("tier %d has %d positions\n", i, NumberOfTierPositions((TIER)i));
+  //}
   /*
   UNDOMOVE m;
   m = createReplaceCaptureUndoMove(0, 0, 1, 1, 0);
@@ -1152,7 +1157,8 @@ void DebugMenu ()
   //printf("yes\n");
   //printUndoMoveList(gGenerateUndoMovesToTier(gInitialPosition, 2));
   
-  TIER t;
+  /* TIER t;
+
   //int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int));
   t = gPositionToTier(gInitialPosition);
   printf("%d\n", t);
@@ -1167,6 +1173,7 @@ void DebugMenu ()
   printf("The KkR tier moves\n");
   printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 137));
   printf("The KkB tier moves\n");
+  */
   //printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 2));
   /* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
   i = countBits(223);;
@@ -1287,12 +1294,14 @@ BOOLEAN inCheck(char* bA, int checkedPlayer) {
 					} else { 
 						break; 
 					} 
-				case WHITE_KING: case BLACK_KING:
-					if (kingCheck(bA, i,j, checkedPlayer, piece, WHITE_KING , BLACK_KING) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break; 
-					} 
+					
+			case WHITE_KING: case BLACK_KING:
+			  if (kingCheck(bA, i,j, checkedPlayer, piece, WHITE_KING , BLACK_KING) == TRUE) { 
+			    return TRUE; 
+			  } else { 
+			    break; 
+			  } 
+			  
 				default:  
 					break; 
 			} 
@@ -2498,10 +2507,9 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 ************************************************************************/
 
 BOOLEAN IsLegal(POSITION position) {
-  int currentPlayer = whoseMove(position);
   char boardArray[rows*cols];
   unhash(position, boardArray);
-  if(inCheck(boardArray, opposingPlayer(currentPlayer)) || areKingsAdjacent(boardArray))  
+  if(areKingsAdjacent(boardArray))  
     return FALSE;
   else return TRUE;
 
@@ -3540,6 +3548,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.35  2006/08/14 00:46:01  runner139
+// *** empty log message ***
+//
 // Revision 1.34  2006/08/09 17:23:17  runner139
 // *** empty log message ***
 //
