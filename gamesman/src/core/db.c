@@ -116,8 +116,9 @@ void db_destroy() {
 }
 
 void db_initialize(){
-
-    if (gTwoBits) {
+    if (gBitPerfectDB) {
+	bpdb_init(db_functions);
+    } else if(gTwoBits) {
         twobitdb_init(db_functions);
 
     } else if(gCollDB){

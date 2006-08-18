@@ -1,18 +1,13 @@
 #ifndef GMCORE_BPDB_SCHEMES_H
 #define GMCORE_BPDB_SCHEMES_H
 
-#include <zlib.h>
+#include "bpdb_misc.h"
+#include "bpdb.h"
 
-BOOLEAN	bpdb_save_database_mem( int schemeversion, char *outfilename );
-BOOLEAN	bpdb_load_database_mem( gzFile *filep );
+UINT64		bpdb_mem_read_varnum		( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
+BOOLEAN		bpdb_mem_write_varnum		( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
 
-BOOLEAN bpdb_save_database_dan( int schemeversion, char *outfilename );
-BOOLEAN bpdb_load_database_dan( gzFile *inFile );
-
-BOOLEAN bpdb_save_database_scott( int schemeversion, char *outfilename );
-BOOLEAN bpdb_load_database_scott( gzFile *inFile );
-
-BOOLEAN bpdb_save_database_ken( int schemeversion, char *outfilename );
-BOOLEAN bpdb_load_database_ken( gzFile *inFile );
+UINT64		bpdb_scott_read_varnum		( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
+BOOLEAN		bpdb_scott_write_varnum		( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
 
 #endif /* GMCORE_BPDB_SCHEME_H */

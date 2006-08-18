@@ -71,7 +71,7 @@ GAMESMAN_A		= gamesman.a
 GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h \
 			  core/constants.h core/globals.h core/debug.h \
 			  core/gameplay.h core/misc.h core/memdb.h \
-			  core/bpdb.h core/bpdb_schemes.h \
+			  core/bpdb.h core/bpdb_bitlib.h core/bpdb_schemes.h core/bpdb_misc.h \
 			  core/textui.h core/filedb.h core/main.h \
 			  core/solveloopyup.h core/setup.h core/visualization.h \
 			  core/openPositions.h core/filedb.h core/filedb/db.h
