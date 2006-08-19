@@ -35,6 +35,7 @@
 **				2006-05-22	Edited help strings. Fixed primitive to return tie
 **							if both players are out of pieces and there is no
 **							win or lose.
+**				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
 **************************************************************************/
 
 /*************************************************************************
@@ -1012,7 +1013,6 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-	int temp;  
 	do {
 		printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
 		printf("\tw)\tChoose the board (W)idth Currently: %d\n",TNO_WIDTH);
@@ -1029,13 +1029,11 @@ void GameSpecificMenu ()
 			break;
 		case 'W' : case 'w':
 			printf("Enter a width: ");
-			scanf("%d", &temp);
-			TNO_WIDTH = temp;
+			TNO_WIDTH = GetMyInt();
 			break;
 		case 'H': case 'h':
 			printf("Enter a height: ");
-			scanf("%d", &temp);
-			TNO_HEIGHT = temp;
+			TNO_HEIGHT = GetMyInt();
 			break;
 		case 'T': case 't':
 			printf("Enter # of Ts (less than 7): ");
@@ -1044,8 +1042,7 @@ void GameSpecificMenu ()
 			break;
 		case 'O': case 'o':
 			printf("Enter # of Os (less than 7): ");
-			scanf("%d", &temp);
-			INIT_O = temp;
+			INIT_O = GetMyInt();
 			break;
 		case 'b': case 'B':
 			return;
