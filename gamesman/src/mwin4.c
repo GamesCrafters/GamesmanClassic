@@ -26,6 +26,7 @@
 **                  unsigned long int
 **                - Graphical Module mwin4.tcl done
 **
+** 08-19-06	: change to GetMyInt();
 **************************************************************************/
 
 /* a position seem to be made with this: (4x4)
@@ -273,11 +274,11 @@ void GameSpecificMenu() {
 			break;
 		case 'P': case 'p':
 			printf("Enter continuous pieces goal: ");
-			scanf("%d", &gContinuousPiecesGoal);
+			gContinuousPiecesGoal = GetMyInt();
 			break;
 		case 'W' : case 'w':
 			printf("Enter a width (%d through %d): ",MINW,MAXW);
-			scanf("%d", &temp);
+			temp = GetMyInt();
 			
 			while(temp > MAXW || temp < MINW){
 				printf("Out of range\n");
@@ -289,7 +290,7 @@ void GameSpecificMenu() {
 			break;
 		case 'H': case 'h':
 			printf("Enter a height (%d through %d): ",MINH,MAXH);
-			scanf("%d", &temp);
+			temp = GetMyInt();
 			
 			while(temp > MAXH || temp < MINH){
 				printf("Out of range\n");
