@@ -1037,8 +1037,7 @@ void GameSpecificMenu ()
 			break;
 		case 'T': case 't':
 			printf("Enter # of Ts (less than 7): ");
-			scanf("%d", &temp);
-			INIT_T = temp;
+			INIT_T = GetMyInt();
 			break;
 		case 'O': case 'o':
 			printf("Enter # of Os (less than 7): ");
