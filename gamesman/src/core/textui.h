@@ -4,6 +4,9 @@
 
 void		HitAnyKeyToContinue	();
 char		GetMyChar		();
+int		GetMyInt		();
+void		GetMyHelper		(char *format, GENERIC_PTR target);
+void		GetMy			(char *format, GENERIC_PTR target, int length);
 void		BadMenuChoice		();
 
 void		Menus			();
