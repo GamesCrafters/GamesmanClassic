@@ -56,23 +56,20 @@ void DebugMenu()
 // SUNIL: NOT WRITING
 void GameSpecificMenu()
 {
-	char option ;
-	int newrows ;
-
+	char option;
+	int newrows;
 	do
 	{
 		printf("Currently you have %d rows. Rows can range between %d and %d\n", rows, MIN_ROWS, MAX_ROWS) ;
-		printf("Would you like to change it? ") ;
-		fflush(stdin) ;
+		printf("Would you like to change it [y/n]? ") ;
 		option = GetMyChar();
-		fflush(stdin) ;
-		option = toupper(option) ;
+		option = toupper(option);
 		if(option == 'Y')
 		{
 			do
 			{
 				printf("Enter new number of rows [%d-%d] : ", MIN_ROWS, MAX_ROWS) ;
-				scanf("%d", &newrows) ;
+				newrows = GetMyInt();
 			}while(newrows > MAX_ROWS || newrows < MIN_ROWS) ;
 			rows = newrows ;
 		}
