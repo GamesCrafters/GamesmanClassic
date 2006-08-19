@@ -33,6 +33,7 @@
 #include "gamesman.h"
 #include <time.h>
 
+#define DEFAULTLENGTH MAXINPUTLENGTH
 /*
 ** Local function prototypes
 */
@@ -63,13 +64,63 @@ void HitAnyKeyToContinue()
     while(getchar() != '\n');
 }
 
-char GetMyChar()
+/*
+	Functions to read input from stdin
+	After calling, out will contain data of format type
+	also input buffer will be flushed
+	fflush(stdin) is not defined for input streams
+
+
+*/
+void GetMy(char *format, GENERIC_PTR out, int length) {
+	char buffer[length];
+
+	fgets(buffer, length, stdin);
+	int blen = strlen(buffer);
+	sscanf(buffer, format, out);
+
+
+	while (blen == length - 1) {
+		/* the buffer is full, possible there is extra input
+		*  so we need to clear that out
+		*/
+		ungetc(buffer[length - 2],stdin); /* unget the last non null 							     character, handles case
+						     when we have read exactly
+						     size - 1;
+						  */	
+		fgets(buffer,length, stdin);	  /* read stdin again
+						     repeat until stdin
+						     is empty
+						  */
+		blen = strlen(buffer);
+	}
+}
+
+void GetMyHelper(char *format, GENERIC_PTR out) {
+	GetMy(format, out, DEFAULTLENGTH);
+}
+
+/* get next int from stdin and return */
+int GetMyInt() {
+	int temp = 0;
+	GetMyHelper("%d", &temp);
+	return temp;
+}
+
+/* get next char from stdin and return */
+char GetMyChar() {
+	char temp = '\0';
+	GetMyHelper("%c", &temp);
+	return temp;
+}
+
+/*char GetMyChar()
 {
     char inString[MAXINPUTLENGTH], ans = '\0';
 	fgets(inString, MAXINPUTLENGTH, stdin);
     	sscanf(inString, "%c", &ans);
     return ans;
-}
+}*/
 
 
 void Menus(STRING executableName)
