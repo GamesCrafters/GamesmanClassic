@@ -65,10 +65,10 @@ void HitAnyKeyToContinue()
 
 char GetMyChar()
 {
-    char inString[MAXINPUTLENGTH], ans;
-    scanf("%s",inString);
-    ans = inString[0];
-    return(ans);
+    char inString[MAXINPUTLENGTH], ans = '\0';
+	fgets(inString, MAXINPUTLENGTH, stdin);
+    	sscanf(inString, "%c", &ans);
+    return ans;
 }
 
 
