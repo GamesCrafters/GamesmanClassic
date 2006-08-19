@@ -67,7 +67,7 @@
 #define combiHash(x,y,z) ((x*y)+z)
 #define combiUnM(x,y)  (x%y)
 #define combiUnD(x,y) (x/y)
-
+#define BUFFERSIZE 1000
 /* Global Variables */
 struct hashContext **contextList = NULL;
 int hash_tot_context = 0, currentContext = 0;
@@ -112,11 +112,11 @@ int* 		gPieceDist (int i);
 
 void hashCounting()
 {
-	char* buffer=(char*)malloc(1000*sizeof(char));
+	char* buffer=(char*)SafeMalloc(BUFFERSIZE*sizeof(char));
 	while(1)
 	{
 		int size=0;
-		int *piecesArray=(int*)malloc(sizeof(int));
+		int *piecesArray=(int*)SafeMalloc(sizeof(int));
 		int arrSize=1;
 		POSITION max=0;
 		piecesArray[0]=-1;
@@ -127,11 +127,11 @@ void hashCounting()
 		while(1)
 		{
 			printf("\nEnter a piece character ('~' to stop):\t");
-			gets(buffer);
+			fgets(buffer,BUFFERSIZE, stdin);
 			scanf("%c",&read);
 			cur=(int)read;
 			if(cur=='~') break;
-			piecesArray=realloc(piecesArray,(arrSize+3)*sizeof(int));
+			piecesArray=SafeRealloc(piecesArray,(arrSize+3)*sizeof(int));
 			arrSize+=3;
 			piecesArray[arrSize-1]=-1;
 			piecesArray[arrSize-2]=0;
@@ -150,8 +150,9 @@ void hashCounting()
 		generic_hash_destroy();
 		max=generic_hash_init(size,piecesArray,0);
 		printf("\nMaximum board positions:\t%llu\n\n\n",max);
-		free(piecesArray);
+		SafeFree(piecesArray);
 	}
+	SafeFree(buffer);
 	return;
 }
 
