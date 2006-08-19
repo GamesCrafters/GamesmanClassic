@@ -67,6 +67,9 @@
 **            -- 04.14.05 -- Added symmetries
 **                           changed most function declarations to old C-style
 **                           few minuteia such as SafeMallocs, other debugging
+**
+**		-- 8.19.06	commented out fflush and added in GetMyInt()
+**				seg fault in intialize game, someone fix
 **************************************************************************/
 
 
@@ -248,7 +251,7 @@ void InitializeGame ()
 	//if(numpieces==-1) numpieces=maxsize-1;
 	numpieces=maxsize-1;
 	int piecesarray[]={PLAYER1,0,numpieces,PLAYER2,0,numpieces,EMPTYSPACE,0,maxsize,-1};
-	
+
 	/* manually setting options right now */
 	gNumberOfPositions=hash_init(maxsize, piecesarray, NULL);    /* initialize the hash */
 	board = emptyboard(board);
@@ -317,6 +320,8 @@ void InitializeGame ()
 
 	  int i, j, temp; /* temp is used for debugging */
 
+	/* the following loop seg faults on first iteration for boardsize 
+		choice of 21, someone fix*/
 	  /* Initialize gSymmetryMatrix[][] */
 	  for(i = 0 ; i < maxsize ; i++) {
 	    temp = i;
@@ -330,7 +335,6 @@ void InitializeGame ()
 	    }
 	  }
 	}
-
 	/**************************************************/
 	/**************** SYMMETRY FUN END ****************/
 	/**************************************************/
@@ -1485,8 +1489,9 @@ void GameSpecificMenu ()
 	int boardsizechoice;
 
 	while(1) {
-		fflush(stdin);
-		choice=getc(stdin); /* dummy call to get the carrage return in the buffer */
+		/*
+		fflush(stdin);		fflush is undefined for input streams
+		choice=getc(stdin);  dummy call to get the carrage return in the buffer */
 		printf("\n\t----- mxigua Option Menu -----\n\n");
 		printf("\td)\tChange Boar(d) Size (Currently: %d)\n",maxsize);
 		printf("\tn)\tChange (N)umber of Pieces (Currently: %d)\n",numpieces);
@@ -1497,14 +1502,16 @@ void GameSpecificMenu ()
 		/* printf("w - Win Style (Territory/Captures/Both)\n"); */
 	
 		printf("Please enter a selection: "); 
-		choice=getc(stdin);
+		/*choice=getc(stdin);*/
+		choice = GetMyChar();
 		choice=toupper(choice);
 		switch(choice) {
 			case 'D':
-				fflush(stdin);
-				choice=getc(stdin);
+				/*fflush(stdin);
+				choice=getc(stdin);*/
 				printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
-				scanf("%d",&boardsizechoice);
+				/*scanf("%d",&boardsizechoice);*/
+				boardsizechoice = GetMyInt();
 				if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
 					boardsize=(boardsizechoice-5)/4;
 					// uncomment this to auto-reset numpieces
@@ -1515,10 +1522,11 @@ void GameSpecificMenu ()
 				}
 				break;
 			case 'N':
-				fflush(stdin);
-				choice=getc(stdin);
+				/*fflush(stdin);
+				choice=getc(stdin);*/
 				printf("Please enter the number of pieces you want to be in play [1-%d]",maxsize);
-				scanf("%d",&boardsizechoice);
+				/*scanf("%d",&boardsizechoice);*/
+				boardsizechoice = GetMyInt();
 				if(boardsizechoice>=1 && boardsizechoice <= maxsize) {
 					numpieces=boardsizechoice;
 					InitializeGame();
@@ -1606,9 +1614,10 @@ POSITION GetInitialPosition ()
 			exit(1);
 	}
 	printf("Please enter the pieces [X,*,O]\nin each position [%s] with one space between each position.\n",moves);
-	fflush(stdin);
-	getc(stdin);	/* kill the remaining \n in the buffer */
-	in=getc(stdin);
+	/*fflush(stdin);
+	getc(stdin);	 kill the remaining \n in the buffer 
+	in=getc(stdin);*/
+	in = GetMyChar();
 	while(in!='\n') {
 		if(count < maxsize) {
 			switch(toupper(in)) {
@@ -1630,9 +1639,11 @@ POSITION GetInitialPosition ()
 		count++;
 	}		
 	printf("Please enter the player whose turn it is [1,2]: ");
-	scanf("%d",&pnum);
+	/*scanf("%d",&pnum);*/
+	pnum = GetMyInt();
 	printf("Please enter the number of turns that have passed [0-%d]:",(numpieces));
-	scanf("%d",&turn);
+	/*scanf("%d",&turn);*/
+	turn = GetMyInt();
 	if(pnum<1 || pnum>2) pnum=1;
 	if(turn<0||turn>(numpieces)) turn=numpieces;
 				
