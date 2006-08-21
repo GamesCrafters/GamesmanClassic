@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.61 2006-02-03 06:08:39 hevanm Exp $
+// $Id: mquarto.c,v 1.62 2006-08-21 23:49:09 dmchan Exp $
 
 
 /*
@@ -143,6 +143,7 @@
 **                     cross checked and mutually agrees. Algorithms timed and
 **                     compared. Mario's is MUCH MUCH faster. 
 **
+** 21 Aug 2006 dmchan: changed to GetMyInt();
 **************************************************************************/
 
 
@@ -1298,7 +1299,8 @@ void GameSpecificMenu ()
 	switch(choice) {
 	case 'I':
 	    printf("Please enter the new GAMEDIMENSION (must be less than 4): ");
-	    scanf("%d",&GAMEDIMENSION);
+	    /*scanf("%d",&GAMEDIMENSION);*/
+		GAMEDIMENSION = GetMyInt();
 	    InitializeGame( );
 	    validInput = TRUE;
 	    break;
@@ -2773,6 +2775,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.61  2006/02/03 06:08:39  hevanm
+// fixed warnings. I will leave the real bugs to retro hehehehe.
+//
 // Revision 1.60  2006/01/28 10:40:51  yanpeichen
 //  28 Jan 2006 Yanpei: Canonicals fully debugged. Mario and Yanpei's canonicals
 //                      cross checked and mutually agrees. Algorithms timed and

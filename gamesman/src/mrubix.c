@@ -29,6 +29,7 @@
 ** 0.2.4 (10-03) Fixed an initialization bug in CombinationInit
 ** 0.2.5 (10-11) Added sanity check in GetInitialPosition
 **
+**	(8-21)	Changed to GetMyInt()/GetMyChar()
 **************************************************************************/
 
 /*************************************************************************
@@ -475,11 +476,11 @@ int GetIntegerValue(char* valueName, int lowerBound,
   int value = 0;
   BOOLEAN done = FALSE;
   int result;
-  char dummy;
+  /*char dummy;*/
 
   while (!done) {
     printf("Enter a %s (%d-%d): ", valueName, lowerBound, upperBound);
-    result = scanf("%d", &value);
+    result = GetMyInt();/*scanf("%d", &value);*/
     if (result==1) {
       if (value < lowerBound || value > upperBound) { 
 	printf("The %s must be between %d and %d.\n", valueName, lowerBound, upperBound);
@@ -492,9 +493,9 @@ int GetIntegerValue(char* valueName, int lowerBound,
       printf("The %s must be between %d and %d.\n", valueName, lowerBound, upperBound);
     }
 
-    do {
+    /*do {
       result = scanf("%c",&dummy);
-    } while (result!=EOF && dummy!='\n');
+    } while (result!=EOF && dummy!='\n');*/
   }
 
   return value;

@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.32 2006-02-26 08:31:15 kmowery Exp $
+// $Id: mabalone.c,v 1.33 2006-08-21 23:52:47 dmchan Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -11,6 +11,8 @@
 **              5/3/04 - Even better than before!
 **
 ** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
+**		8-21-06	commented out fflush and changed to use GetMyChar()/GetMyInt();
+**			dmchan
 **
 ** 
 **
@@ -409,7 +411,7 @@ void DebugMenu()
 
 void GameSpecificMenu() 
 {
-  fflush(stdin);
+  /*fflush(stdin);	no longer needed*/
   char selection;
   printf("\n\tn)\t Change the value of (N), the edge size of the hexagon board -- currently %d\n", N);
   if (MISERE == 0)
@@ -428,8 +430,8 @@ void GameSpecificMenu()
   /*fflush(stdin);
     (void) scanf("%c", &selection);*/
 
-  selection = (char) getchar();
-  selection = (char) getchar();
+  selection = GetMyChar();
+  /*selection = (char) getchar(); doesn't follow abstraction?*/
 
   if (selection == 'n' || selection == 'N') {
     changeBoard();
@@ -478,9 +480,10 @@ void GameSpecificMenu()
 
 void changeBoard()
 {
-  int size;
+  unsigned int size;
   printf("Enter the new N:  ");
-  (void) scanf("%u", &size);
+  /*(void) scanf("%u", &size);*/
+	size = (unsigned int) GetMyInt();
   if (size < 2) {
     printf("N must be at least 2\n");
     changeBoard();
@@ -500,12 +503,12 @@ void changeBoard()
 
 void changeKills()
 {
-  int kills;
+  unsigned int kills;
   printf("Enter the new number of pieces to capture:   ");
-  (void) scanf("%u", &kills);
-  /*kills = (int) getchar();
+  /*(void) scanf("%u", &kills);
+  kills = (int) getchar();
     kills = (int) getchar();*/
-
+	kills = (unsigned int) GetMyInt();
   if (PIECES - kills < 0) {
     printf("A player can only lose as many pieces as the game starts with\n");
     changeKills();
@@ -526,11 +529,11 @@ void changePieces()
 {
   int num;
   printf("Enter the new number of pieces:  ");
-  fflush(stdin);
+  /*fflush(stdin);
   (void) scanf("%u", &num);
-  /*num = getchar();
+  num = getchar();
     num = getchar();*/
-
+	num = (unsigned int) GetMyInt(); /* horrible... probably should implment getting unsigned ints*/
   if ((2 * num + (*rows[N-1]).size) > BOARDSIZE) {
     printf("Too many pieces for board\n");
     changePieces();
@@ -714,8 +717,9 @@ POSITION GetInitialPosition()
   
   while ((option < 0) || (option > maxPieces(N))){
     printf("Enter the maximum pieces per side: ");
-    fflush(stdin);
-    (void) scanf("%d", &option);
+    /*fflush(stdin);			no longer needed
+    (void) scanf("%d", &option);*/
+	option = GetMyInt();
     if ((option < 0) || (option > maxPieces(N)))
       printf("Please enter a valid number\n\n");
   }
@@ -724,8 +728,9 @@ POSITION GetInitialPosition()
 
   while ((option < 1) || (option > PIECES)) {
     printf("Enter the number of pieces to capture for victory: ");
-    fflush(stdin);
-    (void) scanf("%d", &option);
+    /*fflush(stdin);			no longer needed
+    (void) scanf("%d", &option);*/
+	option = GetMyInt();
     if ((option < 1) || (option > PIECES))
       printf("The number of eliminated pieces must be at least 1\nand no more than the total number of pieces\n\n");
   }
@@ -735,8 +740,9 @@ POSITION GetInitialPosition()
 
   for (count = 0; count < BOARDSIZE; count++) {
     printf("Enter the piece at position %d: ", count + 1);
-    fflush(stdin);
-    (void) scanf("%c", &selection);
+    /*fflush(stdin);			no longer needed
+    (void) scanf("%c", &selection);*/
+	selection = GetMyChar();
     if ((selection != 'x') && (selection != 'o') && (selection != 'b') && (selection != 'X') && (selection != 'O') && (selection != 'B')) {
       printf("\n\nPlease enter a valid piece\n\n");
       count--;
@@ -769,8 +775,9 @@ POSITION GetInitialPosition()
   player = 0;
   while (player == 0) {
     printf("\n\n Whose Turn is it?  ");
-    fflush(stdin);
-    (void) scanf("%c", &selection);
+    /*fflush(stdin);			no longer needed
+    (void) scanf("%c", &selection);*/
+	selection = GetMyChar();
     if ((selection == 'x') || (selection == 'X'))
       player = 2;
     else if ((selection == 'o') || (selection == 'O'))
@@ -2124,6 +2131,10 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.32  2006/02/26 08:31:15  kmowery
+//
+// Changed MToS to MoveToString
+//
 // Revision 1.31  2006/02/13 08:34:47  kmowery
 //
 // Added MoveToString and set gMoveToStringFunPtr (required for visual value history).
