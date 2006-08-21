@@ -418,8 +418,9 @@ void GameSpecificMenu()
 
       case 'T': case 't':
 	printf( "Enter #N bins/player (N > 0): " );
-	fflush(stdin);
-	scanf( "%d", &temp );
+	/*fflush(stdin);	no longer needed
+	scanf( "%d", &temp );*/
+	temp = GetMyInt();
 	temp2 = numOfPieces / (boardSize - 2);
 	temp2 *= (temp * 2);
 	temp *= 2;
@@ -436,8 +437,8 @@ void GameSpecificMenu()
 
       case 'P': case 'p':
 	printf( "Enter #N pieces/bin (N > 0): " );
-	fflush(stdin);
-	scanf( "%d", &temp );
+	/*fflush(stdin);		no longer needed
+	scanf( "%d", &temp );*/
 	temp *= (boardSize - 2);
 	if(temp + boardSize <= 32) {
 	  numOfPieces = temp;
@@ -456,7 +457,7 @@ void GameSpecificMenu()
       break;
     }
 
-    fflush(stdin);
+    /*fflush(stdin); no longer needed */
   } while(TRUE);
 }
 

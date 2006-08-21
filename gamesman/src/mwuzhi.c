@@ -31,6 +31,7 @@
 **                         when printing the board. 
 **              2005-3-3   Added missing prototypes
 **              2005-3-25  Added SetOptions and GetOptions to work with Diagonals
+**		2006-8-21  changed to GetMyInt() dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -1129,7 +1130,8 @@ void GameSpecificMenu ()
   case 'w':
   case 'W':
     printf("Please input desired board width[3-5]: ");
-    (void) scanf("%u", &intWidth);
+    intWidth = (unsigned int) GetMyInt(); 
+	/*(void) scanf("%u", &intWidth); no longer needed*/
     gBoardwidth = intWidth;
     gBoardlength = gBoardwidth*gBoardwidth;
     InitializeGame();

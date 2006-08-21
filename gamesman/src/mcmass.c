@@ -284,14 +284,15 @@ void GameSpecificMenu() {
 	
       case 'h':
 	printf( "Enter a board height (%d..%d) ->", MIN_HEIGHT, MAX_HEIGHT );
-	fflush(stdin);
-	scanf( "%d", &gBoardHeight );
+	/*fflush(stdin);		no longer needed
+	scanf( "%d", &gBoardHeight );*/
+	gBoardHeight = GetMyInt();
 	break;
 	
       case 'w':
 	printf( "Enter a board width (%d..%d) ->", MIN_WIDTH, MAX_WIDTH);
-	fflush(stdin);
-	scanf( "%d", &gBoardWidth );
+	/*fflush(stdin);		no longer needed
+	scanf( "%d", &gBoardWidth );*/
 	break;
       
     case 'B': case 'b':
@@ -302,7 +303,7 @@ void GameSpecificMenu() {
       break;
     }
 
-    fflush(stdin);
+    /*fflush(stdin);	no longer needed*/
   } while(TRUE);
   
 }

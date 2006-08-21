@@ -19,7 +19,7 @@
 ** UPDATE HIST: 
 **      Highest height 1 game solved: width 4
 **      Highest height 2 game solved: width 1
-**
+**	8-21-06 fflush(stdin) should no longer be needed - dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -358,7 +358,7 @@ void GameSpecificMenu ()
   void GetDimensions();
 
   do {
-    fflush(stdin);
+    /*fflush(stdin);*/
     
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
@@ -405,7 +405,7 @@ void GetDimensions() {
   int height, width;
 
   do {
-    fflush(stdin);
+    /*fflush(stdin);*/
     printf("\nEnter the horizontal dimension or get (h)elp:  ");
     
     if ((c = GetMyChar()) == 'h' || c == 'H') {
@@ -425,7 +425,7 @@ void GetDimensions() {
   } while(TRUE);
 
   do {
-    fflush(stdin);
+    /*fflush(stdin);*/
     printf("\nEnter the vertical dimension or get (h)elp:  ");
     if ((c = GetMyChar()) == 'h' || c == 'H') {
       printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
