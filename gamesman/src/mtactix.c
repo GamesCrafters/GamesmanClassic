@@ -45,6 +45,7 @@
 **     Time Loss : 3.723
 ** Space Savings : 6.279
 **
+**	8-21-06		changed to GetMyInt() dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -394,7 +395,8 @@ POSITION GetInitialPosition()
   printf("Keeping in mind that X always goes first...\n");
   printf("Please input a 9-element string of either 0,1, or 2.\n");
   printf("Where blank = 0, O = 1, X = 2. Example: 100010001\n");
-  scanf("%d",&initialPosition);
+  /*scanf("%d",&initialPosition);*/
+	initialPosition = GetMyInt();
   return initialPosition;
 }
 

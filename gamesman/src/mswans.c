@@ -9,6 +9,7 @@
 **
 ** DATE:        12/8/02
 **
+**	8-21-06		change to GetMyInt();
 **************************************************************************/
 
 /*************************************************************************
@@ -312,11 +313,13 @@ void GameSpecificMenu()
       break;
     case 'D': case 'd':
       printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS); 
-      scanf("%d", &gNumDragons);
+      /*scanf("%d", &gNumDragons);*/
+	gNumDragons = GetMyInt();
       while (gNumDragons > MAX_DRAGONS || gNumDragons < MIN_DRAGONS) {
 	printf("Invalid entry. Please try again\n");
 	printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS); 
-	scanf("%d", &gNumDragons);
+	/*scanf("%d", &gNumDragons);*/
+	gNumDragons = GetMyInt();
       }
       InitializeGame();
       break;
@@ -441,14 +444,16 @@ POSITION GetInitialPosition()
     
     getchar();
     printf("\nNow, whose turn is it? [O/X] : ");
-    scanf("%c",&c);
+    /*scanf("%c",&c);*/
+	c = GetMyChar();
     if(c == 'x' || c == 'X')
       whosTurn = 'x';
     else
       whosTurn = 'o';
     getchar();
     printf("\nHow many swans do you want to start with? [0-%d] : ", 12-numO);
-    scanf("%d", &numSwans);
+    /*scanf("%d", &numSwans);*/
+	numSwans = GetMyInt();
 
     if (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS)
       printf("\n\nInvalid board. Please try again\n\n");
