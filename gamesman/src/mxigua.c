@@ -1489,8 +1489,7 @@ void GameSpecificMenu ()
 	int boardsizechoice;
 
 	while(1) {
-		/*
-		fflush(stdin);		fflush is undefined for input streams
+		/*fflush(stdin);		fflush is undefined for input streams
 		choice=getc(stdin);  dummy call to get the carrage return in the buffer */
 		printf("\n\t----- mxigua Option Menu -----\n\n");
 		printf("\td)\tChange Boar(d) Size (Currently: %d)\n",maxsize);
@@ -1633,9 +1632,10 @@ POSITION GetInitialPosition ()
 					board[count]=EMPTYSPACE;
 					break;
 			}
-			in=getc(stdin);
+			/*in=getc(stdin);*/
+			in = GetMyChar();
 		}
-		if(in!='\n') in=getc(stdin);
+		/*if(in!='\n') in=getc(stdin);*/
 		count++;
 	}		
 	printf("Please enter the player whose turn it is [1,2]: ");
