@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.23 2006-08-09 02:19:04 max817 Exp $
+// $Id: mbaghchal.c,v 1.24 2006-08-23 03:28:40 max817 Exp $
 
 /************************************************************************
 **
@@ -229,7 +229,28 @@ BOOLEAN diagonals = TRUE;
 
 POSITION genericHashMaxPos = 0; //saves a function call
 
-int gSymmetryMatrix[NUMSYMMETRIES][WIDTH_MAX];
+int gSymmetryMatrix5[NUMSYMMETRIES][25];
+/* This is the array used for flipping along the N-S axis */
+int gFlipNewPosition5[] = {4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 14, 13, 12, 11, 10, 19, 18, 17, 16, 15, 24, 23, 22, 21, 20};
+
+/* This is the array used for rotating 90 degrees clockwise */
+int gRotate90CWNewPosition5[] = { 20, 15, 10, 5, 0, 21, 16, 11, 6, 1, 22, 17, 12, 7, 2, 23, 18, 13, 8, 3, 24, 19, 14, 9, 4};
+
+
+int gSymmetryMatrix4[NUMSYMMETRIES][16];
+/* This is the array used for flipping along the N-S axis */
+int gFlipNewPosition4[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12};
+
+/* This is the array used for rotating 90 degrees clockwise */
+int gRotate90CWNewPosition4[] = { 12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3};
+
+
+int gSymmetryMatrix3[NUMSYMMETRIES][9];
+/* This is the array used for flipping along the N-S axis */
+int gFlipNewPosition3[] = {2, 1, 0, 5, 4, 3, 8, 7, 6};
+
+/* This is the array used for rotating 90 degrees clockwise */
+int gRotate90CWNewPosition3[] = {6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 /* Proofs of correctness for the below arrays:
 **
@@ -719,8 +740,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input)
-{
-	/*if (gHashWindowInitialized) {
+{/*
+	if (gHashWindowInitialized) {
 		FILE *fp; POSITION p, p2;
 
 		int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
@@ -749,6 +770,17 @@ BOOLEAN ValidTextInput (STRING input)
 				gHashWindowInitialized = FALSE;
 				p2 = hash(board, turn, goatsLeft);
 				gHashWindowInitialized = TRUE;
+if (p2==4||p2==5||p2==7||p2==13||p2==15||p2==18||p2==19||p2==21||p2==23||p2==29){
+	printf("\n\n\n-----POSITION: %llu:\n",p2);
+	PrintPosition(p2,"Max",0);
+	MOVELIST* moves = GenerateMoves(p2);
+	POSITION child;
+	for (; moves != NULL; moves = moves->next) {
+		child = DoMove(p2, moves->move);
+		printf("---CHILD: %llu:\n", child);
+		PrintPosition(child,"Child",0);
+	}
+}
 				dbv[p2] = GetValueOfPosition(p);
 				dbr[p2] = Remoteness(p);
 			}
@@ -758,14 +790,8 @@ BOOLEAN ValidTextInput (STRING input)
 			fprintf (fp, "%d\t%lld\t%d\n", dbv[p], p, dbr[p]);
 		fclose(fp);
 		SafeFree(dbv); SafeFree(dbr);
-	} else writeCurrentDBToFile();*/
-// FOR 1341 in Tier 3:
-//1043, 3, lose in 4
-//483, 3, lose in 4
-//123, 3, lose in 4
-//73, 2, lose in 6
-//61, 3, lose in 10
-
+	} else writeCurrentDBToFile();
+*/
 	int size = strlen(input);
 	if(size != 2 && size != 4)
 		return FALSE;
@@ -1310,21 +1336,21 @@ MOVE move;
 ************************************************************************/
 
 POSITION GetCanonicalPosition(position)
-POSITION position;
+     POSITION position;
 {
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
+  POSITION newPosition, theCanonicalPosition, DoSymmetry();
+  int i;
 
-	theCanonicalPosition = position;
+  theCanonicalPosition = position;
+  //PrintPosition(position, "bob", 0);
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    newPosition = DoSymmetry(position, i);    /* get new */
+	    //PrintPosition(newPosition, "bob", 0);
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
 
-	for(i = 0 ; i < NUMSYMMETRIES ; i++) {
-
-		newPosition = DoSymmetry(position, i);    /* get new */
-		if(newPosition < theCanonicalPosition)    /* THIS is the one */
-			theCanonicalPosition = newPosition;     /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
+  return(theCanonicalPosition);
 }
 
 /************************************************************************
@@ -1347,40 +1373,29 @@ POSITION DoSymmetry(position, symmetry)
 POSITION position;
 int symmetry;
 {
-    int i, j, turning,k, l;
     int turn, goatsLeft;
     char* board = unhash(position, &turn, &goatsLeft);
     char* boardSymm = unhash(position, &turn, &goatsLeft);
-    if(symmetry >= 4)//Flips across NS axis
-    {
-        for(i=1;i<=width;i++){
-            for(j=1;j<=width; j++){
-                boardSymm[translate(i,j)] = board[translate(width + 1 - i, j)];
-            }
-        }
-        symmetry-=4;
-    }
+	int i;
 
-        for(k=1;k<=width;k++){
-            for(l=1;l<=width; l++){
-                board[translate(k,l)] = boardSymm[translate(k,l)];
-            }
-        }
+	/* Copy from the symmetry matrix */
 
-    for(turning = 0; turning < symmetry; turning++){// rotate either 0, 1, 2, 3 times
-        for(i=1;i<=width;i++){//rotation by 90 deg CW
-            for(j=1;j<=width; j++){
-                boardSymm[translate(j, width + 1 -i)] = board[translate(i,j)];
-            }
-        }
-        for(k=1;k<=width;k++){
-            for(l=1;l<=width; l++){
-                board[translate(k,l)] = boardSymm[translate(k,l)];
-            }
-        }
-    }
-    SafeFree(board);
-    return hash(boardSymm, turn, goatsLeft);
+	if(width == 5)
+	{
+		for(i = 0 ; i < boardSize; i++)
+			boardSymm[i] = board[gSymmetryMatrix5[symmetry][i]];
+	}
+	if(width == 4)
+	{
+		for(i = 0 ; i < boardSize; i++)
+			boardSymm[i] = board[gSymmetryMatrix4[symmetry][i]];
+	}
+	if(width == 3)
+	{
+		for(i = 0 ; i < boardSize; i++)
+			boardSymm[i] = board[gSymmetryMatrix3[symmetry][i]];
+	}
+	return(hash(boardSymm, turn, goatsLeft));
 }
 
 /***************************
@@ -1740,6 +1755,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2006/08/09 02:19:04  max817
+// Tier Gamesman API fully implemented! UndoMove fuctions now work.
+//
 // Revision 1.22  2006/08/08 01:57:21  max817
 // Added the parent pointers version of the loopy solver for the Retrograde
 // Solver. Also added most of the API for Bagh Chal so that it uses this
