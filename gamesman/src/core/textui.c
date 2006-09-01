@@ -57,11 +57,14 @@ static void VisualizationMenu(void);
 
 void HitAnyKeyToContinue()
 {
-    static BOOLEAN first = TRUE;
+/*
+    static BOOLEAN first = TRUE;*/
 
     printf("\n\t----- Hit <return> to continue -----");
-    first ? (first = FALSE) : getchar(); /* to make lint happy */
+/*  first ? (first = FALSE) : getchar();  to make lint happy
     while(getchar() != '\n');
+*/
+	GetMyChar();
 }
 
 /*
@@ -112,6 +115,14 @@ char GetMyChar() {
 	char temp = '\0';
 	GetMyHelper("%c", &temp);
 	return temp;
+}
+
+void GetMyStr(char *str, int len) {
+	if (len < 0) {
+		fprintf(stderr, "Error in GetMyStr(), expected nonnegative \
+				length but got %d\n", len);
+	}
+	GetMy("%s", str, len);	
 }
 
 /*char GetMyChar()
