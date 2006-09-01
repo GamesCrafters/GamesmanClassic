@@ -1028,7 +1028,6 @@ int NumberOfOptions ()
 
 void GameSpecificMenu ()
 {
-  char selection_command[80];
 	char selection = 'Z';
 	do
 	{
@@ -1045,8 +1044,8 @@ void GameSpecificMenu ()
 		    printf("OFF]\n");
 		  printf("\ts)\tChange Board (S)ize [Currently: %dx%d]\n", BOARD_COLS, BOARD_ROWS);
 		printf("\tb)\t(B)ack to previous screen\n\n");
-		printf("\tPlease select an option: "); scanf("%s", selection_command);
-		selection = toupper(selection_command[0]);
+		printf("\tPlease select an option: ");
+		selection = toupper(GetMyChar());
 		switch (selection)
 		  {
 		  case 'C':
@@ -1077,12 +1076,10 @@ void GameSpecificMenu ()
 
 int prompt_board_width()
 {
-  char selection_command[90];
   char selection = 'Z';
   while(1) {
     printf("Enter board width (From 1 to %d): ", MAX_BOARD_WIDTH);
-    scanf("%s", selection_command);
-    selection = toupper(selection_command[0]);
+    selection = toupper(GetMyChar());
     if(selection < '1' || selection > ('0' + MAX_BOARD_WIDTH))
      {
        printf("Invalid width.\n");
@@ -1098,12 +1095,10 @@ int prompt_board_width()
 
 int prompt_board_height()
 {
-  char selection_command[90];
   char selection = 'Z';
   while(1) {
     printf("Enter board height (From 1 to %d): ", MAX_BOARD_HEIGHT);
-    scanf("%s", selection_command);
-    selection = toupper(selection_command[0]);
+    selection = toupper(GetMyChar());
     if(selection < '1' || selection > '0' + MAX_BOARD_HEIGHT)
       {
 	printf("Invalid width.\n");

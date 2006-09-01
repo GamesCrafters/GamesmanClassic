@@ -686,7 +686,7 @@ MOVE ConvertTextInputToMove (STRING input)
 void GameSpecificMenu ()
 {
   /*int *input;*/
-  char option[2];
+  char option;
   STRING versionName;
   /*input = (int *) malloc(1*sizeof(int));?!?!?!?!?!!*/
 
@@ -710,12 +710,12 @@ void GameSpecificMenu ()
     printf("\n");
     printf("\tb)\t (B)ack\n\n");
     printf("  Select an option: ");
-    scanf("%s",option);
-    if (!strcmp(option,"b")) {
+    option = tolower(GetMyChar());
+    if ('b' == option) {
       /*SafeFree(input);*/
       return;
     }
-    if (!strcmp(option,"r")) {
+    if ('r' == option) {
       printf("Input the number of rows in the board: ");
       /*scanf("%d",input);*/
       numOfRows = GetMyInt();/*input[0];*/
@@ -727,29 +727,29 @@ void GameSpecificMenu ()
       numOfCols = GetMyInt();/*input[0];*/
       boardSize = numOfRows * numOfCols;
       InitializeGame();
-    } else if (!strcmp(option,"p")) {
+    } else if ('p' == option) {
       printf("Input the number of rows of pieces of one player: ");
       /*scanf("%d",input);*/
       rowsOfPieces = GetMyInt();/*input[0];*/
       InitializeGame();
-    } else if (!strcmp(option,"v")) {
+    } else if ('v' == option) {
       captureVersion = (captureVersion == VERSION_NO_CORNER?
 			VERSION_CAPTURE : VERSION_NO_CORNER);
-    } else if (!strcmp(option,"w")) {
+    } else if ('w' == option) {
       printf("\n  Winning conditions:\n");
       printf("\tl)\t (L)ine up your pieces - [%d] in a row\n", numInRow);
       printf("\tr)\t (R)educe enemy to 1 or no pieces\n");
       printf("\tb)\t (B)oth\n\n");
       printf("  Select the winning conditions: ");
-      scanf("%s",option);
-      if (!strcmp(option,"l")) {
+      option = tolower(GetMyChar());
+      if ('l' == option) {
 	winVersion = VERSION_LINE;
 	printf("Input the number of pieces in a row to win: ");
 	/*scanf("%d", input);*/
 	numInRow = GetMyInt();/*input[0];*/
-      } else if (!strcmp(option,"r")) {
+      } else if ('r' == option) {
 	winVersion = VERSION_CAPTURE;
-      } else if (!strcmp(option,"b")) {
+      } else if ('b' == option) {
 	winVersion = VERSION_BOTH;
 	printf("Input the number of pieces in a row to win: ");
 	/*scanf("%d", input);*/

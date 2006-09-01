@@ -525,7 +525,6 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
-	char selection_command[80];
 	char selection = 'Z';
 	POSITION GetInitialPosition();
 	do
@@ -564,9 +563,8 @@ void GameSpecificMenu ()
 		printf("\tn)\tChange (N)umber of Geese in Castle To Win (Currently %d)\n",GEESE_MIN);
 		
 		printf("\tb)\t(B)ack to previous menu\n\n");
-		printf("Select an option: "); scanf("%s", selection_command);
-		selection = selection_command[0];
-		selection = toupper(selection);
+		printf("Select an option: "); 
+		selection = toupper(GetMyChar());
 		switch (selection)
 		{
 			case 'M':
@@ -591,7 +589,7 @@ void GameSpecificMenu ()
 					{
 						char input[80];
 						
-						printf("How many geese are needed to win [(C)ancel]? "); scanf("%s",input);
+						printf("How many geese are needed to win [(C)ancel]? "); GetMyStr(input, 80);
 						input[0] = toupper(input[0]);
 						if (input[0] == 'C')
 						{
@@ -792,7 +790,6 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 POSITION GetInitialPosition()
 {
         int boardStats[2];
-	char selection_command[80];
 	char selection = 'Z';
 	
 	do
@@ -817,8 +814,8 @@ POSITION GetInitialPosition()
 			printf("\tf)\tAdd/Remove (F)oxes\n");
 			printf("\tb)\t(B)ack to previous menu\n\n");
 		}
-		printf("Select an option: "); scanf("%s", selection_command);
-		selection = toupper(selection_command[0]);
+		printf("Select an option: "); 
+		selection = toupper(GetMyChar());
 		switch (selection)
 		{
 			case 'G':
@@ -1847,7 +1844,6 @@ int diagonalConnect(int location)
 
 void AddRemoveFoxes(char board[])
 {
-	char selection_command[80];
 	char selection = 'Z';
 	int location = -1;
 	int coordinate[2] = {-1,-1};
@@ -1873,8 +1869,8 @@ void AddRemoveFoxes(char board[])
 		{
 			printf("\tB)\t(B)ack to Previous Menu\n\n");
 		}
-		printf("Select an option: "); scanf("%s", selection_command);
-		selection = toupper(selection_command[0]);
+		printf("Select an option: ");
+		selection = toupper(GetMyChar());
 		switch (selection)
 		{
 			case 'A':
@@ -1949,7 +1945,6 @@ void AddRemoveFoxes(char board[])
 
 void AddRemoveGeese(char board[])
 {
-	char selection_command[80];
 	char selection = 'Z';
 	int location = -1;
 	int coordinate[2] = {-1,-1};
@@ -1969,8 +1964,8 @@ void AddRemoveGeese(char board[])
 		printf("\ta)\t(A)dd a Goose\n");
 		printf("\tr)\t(R)emove a Goose\n");
 		printf("\tb)\t(B)ack To Previous Menu\n\n");
-		printf("Select an option: "); scanf("%s",selection_command);
-		selection = toupper(selection_command[0]);
+		printf("Select an option: ");
+		selection = toupper(GetMyChar());
 		switch (selection)
 		{
 			case 'A':
@@ -2152,6 +2147,11 @@ int validCoord(int coord[2])
 	return (coordToLocation(coord) != -1);
 }
 
+/*
+	unsafe....
+	
+*/
+
 void UserInput(char input[])
 {
 	scanf("%s",input);
@@ -2163,7 +2163,7 @@ void UserInputCoordinate(int coordinate[2])
 	char human[2];
 	do
 	{
-		printf("Enter a Coordinate: "); UserInput(input);
+		printf("Enter a Coordinate: "); GetMyStr(input, 80);
 		input[0] = toupper(input[0]);
 		if (input[0] == 'S')
 		{

@@ -408,8 +408,6 @@ void GameSpecificMenu() {
 
 /// 2nd menu ///
 void SetTargetScoresMenu() {
-  int new1;
-  int new2;
 #ifdef funcname
   printf("Func call: GameSpecificMenu\n");
 #endif
@@ -427,11 +425,9 @@ void SetTargetScoresMenu() {
 \tCurrent Score1 : %d\n\
 \tCurrent Score2 : %d\n\n\
 \tinput new Score1 (%d-%d) : ", winScore1, winScore2, MIN_SCORE, MAX_SCORE);
-    scanf("%d", &new1);
     printf("\n\tinput new Score2 (%d-%d) : ", MIN_SCORE, MAX_SCORE);
-    scanf("%d", &new2);
-    winScore1 = new1;
-    winScore2 = new2;
+    winScore1 = GetMyInt();
+    winScore2 = GetMyInt();
     return;
 
 }
@@ -466,7 +462,7 @@ void SetDotPositionMenu() {
        	 theInitialBoard[8]);
 
   //get the positions for the dots and set the initial board
-  scanf("%s",line);
+  GetMyStr(line, 20);
   printf("\n\nhello1%s", line);
   for (i = 0; i <= 8; i++){
     theInitialBoard[i] = ' ';

@@ -870,17 +870,17 @@ void GameSpecificMenu ()
 
     case 'D': case 'd':
       printf("\nPlease enter a new width (3 or 5): ");
-      scanf("%d", &boardWidth);
+      boardWidth = GetMyInt();
       while (boardWidth != 3 && boardWidth != 5) {
 	printf("Please enter a new width (3 or 5): ");
-	scanf("%d", &boardWidth);
+	boardWidth = GetMyInt();
       }
       
       printf("Please enter a new height (3 or 5): ");
-      scanf("%d", &boardHeight);
+      boardHeight = GetMyInt();
       while (boardHeight != 3 && boardHeight != 5) {
 	printf("Please enter a new height (3 or 5): ");
-	scanf("%d", &boardHeight);
+	boardHeight = GetMyInt();
       }	
 
       numOpieces = boardHeight*boardWidth/2;
@@ -950,7 +950,7 @@ POSITION GetInitialPosition ()
   printf("\n");
   while(i < boardHeight){
     printf("Please enter row %d without any spaces: ", i+1);
-    scanf("%s", row);
+    GetMyStr(row, boardSize);
     
     length = strlen(row);
 

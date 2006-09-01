@@ -785,11 +785,8 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-  int *input;
-  char option[2];
-  STRING versionName;
-  input = (int *) SafeMalloc(1*sizeof(int));
-
+  char option;
+  STRING versionName;
   while(TRUE) {
     versionName = (captureVersion == VERSION_NO_CORNER ?
 		      "no corner" : "corner");
@@ -810,50 +807,44 @@ void GameSpecificMenu ()
     printf("\n");
     printf("\tb)\t (B)ack\n\n");
     printf("  Select an option: ");
-    scanf("%s",option);
-    if (!strcmp(option,"b")) {
-      SafeFree(input);
+    option = tolower(GetMyChar());
+    if ('b' == option) {
       return;
     }
-    if (!strcmp(option,"r")) {
+    if ('r' == option) {
       printf("Input the number of rows in the board: ");
-      scanf("%d",input);
-      numOfRows = input[0];
+      numOfRows = GetMyInt();
       boardSize = numOfRows * numOfCols;
       InitializeGame();
-    } else if (!strcmp(option,"c")) {
+    } else if ('c' == option) {
       printf("Input the number of columns in the board: ");
-      scanf("%d",input);
-      numOfCols = input[0];
+      numOfCols = GetMyInt();
       boardSize = numOfRows * numOfCols;
       InitializeGame();
-    } else if (!strcmp(option,"p")) {
+    } else if ('p' == option) {
       printf("Input the number of rows of pieces of one player: ");
-      scanf("%d",input);
-      rowsOfPieces = input[0];
+      rowsOfPieces = GetMyInt();
       InitializeGame();
-    } else if (!strcmp(option,"v")) {
+    } else if ('v' == option) {
       captureVersion = (captureVersion == VERSION_NO_CORNER ?
 			VERSION_CORNER : VERSION_NO_CORNER);
-    } else if (!strcmp(option,"w")) {
+    } else if ('w' == option) {
       printf("\n  Winning conditions:\n");
       printf("\tl)\t (L)ine up your pieces - [%d] in a row\n", numInRow);
       printf("\tr)\t (R)educe enemy to 1 or no pieces\n");
       printf("\tb)\t (B)oth\n\n");
       printf("  Select the winning conditions: ");
-      scanf("%s",option);
-      if (!strcmp(option,"l")) {
+      option = tolower(GetMyChar());
+      if ('l' == option) {
 	winVersion = VERSION_LINE;
 	printf("Input the number of pieces in a row to win: ");
-	scanf("%d", input);
-	numInRow = input[0];
-      } else if (!strcmp(option,"r")) {
+	numInRow = GetMyInt();
+      } else if ('r' == option) {
 	winVersion = VERSION_CAPTURE;
-      } else if (!strcmp(option,"b")) {
+      } else if ('b' == option) {
 	winVersion = VERSION_BOTH;
 	printf("Input the number of pieces in a row to win: ");
-	scanf("%d", input);
-	numInRow = input[0];
+	numInRow = GetMyInt();
       } else {
 	printf("\nSorry, I don't know that option.\n");
       }
@@ -861,7 +852,6 @@ void GameSpecificMenu ()
       printf("\nSorry, I don't know that option. Try another.\n");
     }
   }
-  SafeFree(input);
   return;
 }
 
