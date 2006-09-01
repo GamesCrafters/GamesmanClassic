@@ -243,7 +243,7 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
-	char selection_command[80];
+	char selection_command;
 	char selection = 'Z';
 	//POSITION GetInitialPosition();
 	do
@@ -257,8 +257,9 @@ void GameSpecificMenu ()
 		else
 			printf("\tp)\tSwitch mode from 'Regular piece restrictions'\n\t\tto '(P)lace pieces anywhere'\n");
 		printf("\tb)\t(B)ack to previous screen\n\n");
-		printf("Please select an option: "); scanf("%s", selection_command);
-		selection = toupper(selection_command[0]);
+		printf("Please select an option: ");
+		selection_command = GetMyChar();
+		selection = toupper(selection_command);
 		switch (selection)
 		{
 			case 'M':
@@ -397,7 +398,7 @@ POSITION SetupInitialPosition()
 {
 	/*int coordinate[2];*/
 	/*int location = -1;*/
-	char selection_command[80];
+	char selection_command;
 	char selection = 'Z';
 	char* board;
 	int i, blacktally, whitetally, blanktally;
@@ -435,9 +436,9 @@ POSITION SetupInitialPosition()
 			printf("\tb)\t(B)ack to previous menu\n\n");
 		else
 			printf("\n\tWARNING: You must have at least 2 black pieces and\n\t2 white pieces to play Othello!\n\n");
-		printf("Selection: "); scanf("%s", selection_command);
-		selection_command[0] = toupper(selection_command[0]);
-		selection = selection_command[0];
+		printf("Selection: ");
+		selection_command = GetMyChar();
+		selection = toupper(selection_command);
 
 		switch (selection)
 		{
@@ -1236,13 +1237,11 @@ BOOLEAN IsPlayableBoard(char board[])
 
 void UserSelectRows()
 {
-    char selection_command[80];
     int row = -1;
 	
     do {
 	printf("\nPlease enter a row number between 2 and %d: ", MAXROWS + 1);
-	scanf("%s", selection_command);
-	row = (int) (selection_command[0] - '0');
+	row = GetMyInt();
 	if(row	> 2 && row <= MAXROWS)
 	{
 	    OthRows = row;
@@ -1257,13 +1256,11 @@ void UserSelectRows()
 
 void UserSelectCols()
 {
-    char selection_command[80];
     int col = -1;
 	
     do {
 	printf("\nPlease enter a column number between 2 and %d: ", MAXCOLS + 1);
-	scanf("%s", selection_command);
-	col = (int) (selection_command[0] - '0');
+	col = GetMyInt();
 	if(col	> 2 && col <= MAXCOLS)
 	{
 	    OthCols = col;
@@ -1414,8 +1411,8 @@ int AddRemovePieces(char board[], int tally, char ownpiece)
 	printf("\t=======================\n\n");
 	PrintBoard(board);
 	printf("\n\tPlease enter a coordinate. A coordinate with a %c on it will\n\tremove the piece, and a coordinate with a blank space on it\n\twill add a %c. Press 'B' when you are done to go back.\n\n", ownpiece, ownpiece);
-	printf("Coordinate: "); scanf("%s", selection_command);
-	
+	printf("Coordinate: "); 
+	GetMyStr(selection_command, 80);
 	if(strlen(selection_command) == 1)
 		selection = toupper(selection_command[0]);
 	
