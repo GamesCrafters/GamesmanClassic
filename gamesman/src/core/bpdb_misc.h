@@ -12,29 +12,43 @@
 //#define TRUE	1
 //#define FALSE	0
 
-#define BITSINBYTE 8
-#define BITSINPOS 64
-//#define BITSINPOS 32
-
-#define VALUESLOT 0
-#define MEXSLOT 1
-#define REMSLOT 2
-#define VISITEDSLOT 3
-
 //typedef char BOOLEAN;
 typedef gzFile dbFILE;
 
 typedef unsigned char BYTE;
 typedef unsigned char UINT8;
+typedef unsigned int UINT32;
 typedef long long int INT64;
 typedef unsigned long long int UINT64;
 //typedef unsigned int UINT64;
 
-/*typedef enum value_enum
-{
-	win, lose, tie, undecided
-}
-VALUE;*/
+typedef UINT32 GMSTATUS;
+
+#define BITSINBYTE 8
+#define BITSINPOS 64
+//#define BITSINPOS 32
+
+#define SAFE_FREE(ptr) { \
+		if((ptr) != NULL) \
+			free(ptr); \
+	}
+
+#define BPDB_TRACE(fnc, msg, err) { \
+		fprintf(stderr, "ERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg)); \
+	}
+
+#define STATUS_SUCCESS 0x0
+#define STATUS_NOT_ENOUGH_MEMORY 0x1
+
+#define GMSUCCESS(status) \
+		(STATUS_SUCCESS == (status))
+
+
+
+#define VALUESLOT 0
+#define MEXSLOT 1
+#define REMSLOT 2
+#define VISITEDSLOT 3
 
 /* List structure for schemes */
 typedef struct Schemelist {

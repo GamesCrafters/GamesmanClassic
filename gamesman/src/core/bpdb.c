@@ -34,9 +34,9 @@
 #include "bpdb_bitlib.h"
 #include "bpdb_schemes.h"
 
-/*
- * Global Variables
- */
+//
+// Global Variables
+//
 
 // in memory database
 BYTE		*bpdb_array;
@@ -60,7 +60,7 @@ char		**bpdb_slot_names;
 Scheme_List	bpdb_list;
 
 // size of scheme list
-int bpdb_list_size;
+int		bpdb_list_size;
 
 /*int main() {
 	BOOLEAN save = FALSE;
@@ -101,20 +101,22 @@ int bpdb_list_size;
  */
 //void bpdb_init( UINT64 slices, UINT64 bits_per_slice )
 void bpdb_init( DB_Table *new_db ) {
+	GMSTATUS status = STATUS_SUCCESS;
 	UINT64 i;
 
 	bpdb_slices = gNumberOfPositions;
 	bpdb_bits_per_slice = 16;
 
-	bpdb_array = (BYTE *) SafeMalloc( (size_t)ceil((size_t)(bpdb_slices/BITSINBYTE) * (size_t)(bpdb_bits_per_slice) ) * sizeof(BYTE));
-
-	// Maybe uneeded, depending on the capabilities of SafeMalloc
-	for(i = 0; i < ceil(bpdb_slices*bpdb_bits_per_slice/BITSINBYTE); i++) {
-		bpdb_array[i] = 0;
+	bpdb_array = (BYTE *) calloc( (size_t)ceil((size_t)(bpdb_slices/BITSINBYTE) * (size_t)(bpdb_bits_per_slice) ), sizeof(BYTE));
+	if(NULL == bpdb_array) {
+		status = STATUS_NOT_ENOUGH_MEMORY;
+		if(!GMSUCCESS(status)) {
+			BPDB_TRACE("bpdb_init()", "Could not allocate in memory db array", status);
+		}
 	}
 
 	bpdb_add_slot( 2, "VALUE" );		//slot 0
-	bpdb_add_slot( 5, "MEX" );			//slot 1
+	bpdb_add_slot( 5, "MEX" );		//slot 1
 	bpdb_add_slot( 8, "REMOTENESS" );	//slot 2
 	bpdb_add_slot( 1, "VISITED" );		//slot 3
 
@@ -122,19 +124,19 @@ void bpdb_init( DB_Table *new_db ) {
 		bpdb_set_slice_slot( i, VALUESLOT, undecided );
 	}
 
-    new_db->get_value = bpdb_get_value;
-    new_db->put_value = bpdb_set_value;
-    new_db->get_remoteness = bpdb_get_remoteness;
-    new_db->put_remoteness = bpdb_set_remoteness;
-    new_db->check_visited = bpdb_check_visited;
-    new_db->mark_visited = bpdb_mark_visited;
-    new_db->unmark_visited = bpdb_unmark_visited;
-    new_db->get_mex = bpdb_get_mex;
-    new_db->put_mex = bpdb_set_mex;
-    new_db->save_database = bpdb_save_database;
-    new_db->load_database = bpdb_load_database;
+	new_db->get_value = bpdb_get_value;
+	new_db->put_value = bpdb_set_value;
+	new_db->get_remoteness = bpdb_get_remoteness;
+	new_db->put_remoteness = bpdb_set_remoteness;
+	new_db->check_visited = bpdb_check_visited;
+	new_db->mark_visited = bpdb_mark_visited;
+	new_db->unmark_visited = bpdb_unmark_visited;
+	new_db->get_mex = bpdb_get_mex;
+	new_db->put_mex = bpdb_set_mex;
+	new_db->save_database = bpdb_save_database;
+	new_db->load_database = bpdb_load_database;
     
-    new_db->free_db = bpdb_free;
+	new_db->free_db = bpdb_free;
 
 	bpdb_list = scheme_list_add( bpdb_list, 0, NULL, bpdb_mem_write_varnum, FALSE ); bpdb_list_size++;
 	bpdb_list = scheme_list_add( bpdb_list, 1, bpdb_generic_read_varnum, bpdb_generic_varnum, TRUE ); bpdb_list_size++;
@@ -142,7 +144,7 @@ void bpdb_init( DB_Table *new_db ) {
 }
 
 void bpdb_free() {
-
+	SAFE_FREE(bpdb_array);
 }
 
 
@@ -150,12 +152,12 @@ VALUE bpdb_set_value(POSITION pos, VALUE val)
 {
 	bpdb_set_slice_slot( (UINT64)pos, VALUESLOT, (UINT64) val );
 	// bpdb_set_slice_slot needs to return val
-    return val;
+	return val;
 }
 
 VALUE bpdb_get_value(POSITION pos)
 {
-    return (VALUE) bpdb_get_slice_slot( (UINT64)pos, VALUESLOT );
+	return (VALUE) bpdb_get_slice_slot( (UINT64)pos, VALUESLOT );
 }
 
 REMOTENESS bpdb_get_remoteness(POSITION pos)
@@ -278,7 +280,7 @@ UINT64 bpdb_get_slice_slot( UINT64 position, UINT8 index ) {
 	return bitlib_read_bits( slice, bitOffset, length );
 }
 
-
+// add status codes here
 BOOLEAN bpdb_add_slot( UINT8 size, char *name ) {
 	int i;
 	UINT8 bitsUsed = 0;
@@ -357,6 +359,7 @@ BOOLEAN bpdb_save_database()
 	i = 0;
 	cur = bpdb_list;
 
+	// must free this
 	for(i = 0; i<bpdb_list_size; i++) {
 		outfilenames = (char **) malloc( bpdb_list_size*sizeof(char*) );
 	}
@@ -457,14 +460,14 @@ BOOLEAN bpdb_generic_save_database( Scheme_List scheme, char *outfilename )
 	UINT8 i, j;
 
 	// gzip file ptr
-    dbFILE *outFile;
+	dbFILE *outFile;
 
 	UINT64 slice;
 
-    mkdir("data", 0755) ;
-    if((outFile = bitlib_file_open(outfilename, "wb")) == NULL) {
+	mkdir("data", 0755) ;
+	if((outFile = bitlib_file_open(outfilename, "wb")) == NULL) {
 		printf("Unable to create compressed data file\n");
-    }
+	}
 
 	bitlib_value_to_buffer ( outFile, &outputBuffer, &offset, scheme->scheme, 8 );
 
@@ -538,7 +541,7 @@ BOOLEAN bpdb_load_database()
 	// filename
 	char outfilename[256];
 
-    //BOOLEAN correctDBVer = FALSE;
+	//BOOLEAN correctDBVer = FALSE;
 	BOOLEAN success = FALSE;
   
 	dbFILE *inFile;
@@ -578,7 +581,7 @@ BOOLEAN bpdb_load_database()
 BOOLEAN bpdb_generic_load_database( dbFILE *inFile, Scheme_List scheme ) {
 	UINT64 currentSlice = 0;
 
-    UINT64 numOfSlicesHeader;
+	UINT64 numOfSlicesHeader;
 	UINT8 bitsPerSliceHeader;
 	UINT8 numOfSlotsHeader;
 	BYTE inputBuffer = 0;
