@@ -28,14 +28,12 @@ typedef UINT32 GMSTATUS;
 #define BITSINPOS 64
 //#define BITSINPOS 32
 
-#define SAFE_FREE(ptr) { \
-		if((ptr) != NULL) \
-			free(ptr); \
-	}
+#define SAFE_FREE(ptr) \
+		if(NULL != ptr) \
+			free(ptr);
 
-#define BPDB_TRACE(fnc, msg, err) { \
-		fprintf(stderr, "ERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg)); \
-	}
+#define BPDB_TRACE(fnc, msg, err) \
+		fprintf(stderr, "ERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
 
 #define STATUS_SUCCESS 0x0
 #define STATUS_NOT_ENOUGH_MEMORY 0x1

@@ -5,12 +5,12 @@
 //}
 
 BOOLEAN bpdb_mem_write_varnum( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips ) {
-	int i;
+	/*int i;
 
 	for(i = 0; i<consecutiveSkips; i++) {
 		bitlib_value_to_buffer( outFile, outputBuffer, offset, undecided, bpdb_bits_per_slice );
 	}
-
+*/
 	return TRUE;
 }
 
