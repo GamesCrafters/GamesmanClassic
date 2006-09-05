@@ -38,3 +38,14 @@ Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)
 	// return pointer to start of list
 	return sl;
 }
+
+UINT8 scheme_list_size( Scheme_List sl ) {
+	UINT8 size = 0;
+
+	while(NULL != sl) {
+		size++;
+		sl = sl->next;
+	}
+
+	return size;
+}

@@ -24,12 +24,17 @@ void		bpdb_unmark_visited							(POSITION pos);
 MEX		bpdb_get_mex								(POSITION pos);
 void		bpdb_set_mex								(POSITION pos, MEX mex);
 
+//extern		UINT8	bpdb_bits_per_slice;
+
+//
+// functions for internal use
+//
 
 UINT64		bpdb_get_slice_slot							( UINT64 position, UINT8 index );
 UINT64		bpdb_get_slice_full							( UINT64 position );
 void		bpdb_set_slice_slot							( UINT64 position, UINT8 index, UINT64 value );
 void		bpdb_set_slice_full							( UINT64 position, UINT64 value );
-BOOLEAN		bpdb_add_slot								( UINT8 size, char *name, BOOLEAN write );
+GMSTATUS	bpdb_add_slot								( UINT8 size, char *name, BOOLEAN write );
 
 void		bpdb_print_database							( );
 
@@ -44,8 +49,5 @@ UINT64		bpdb_generic_varnum_implicit_amt					( UINT8 leftBits );
 
 UINT64		bpdb_generic_read_varnum						( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
 UINT8		bpdb_generic_read_varnum_consecutive_ones				( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-
-
-extern		UINT8	bpdb_bits_per_slice;
 
 #endif /* GMCORE_BPDB_H */

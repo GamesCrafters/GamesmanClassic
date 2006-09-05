@@ -37,11 +37,10 @@ typedef UINT32 GMSTATUS;
 
 #define STATUS_SUCCESS 0x0
 #define STATUS_NOT_ENOUGH_MEMORY 0x1
+#define STATUS_INVALID_INPUT_PARAMETER 0x2
 
 #define GMSUCCESS(status) \
 		(STATUS_SUCCESS == (status))
-
-
 
 #define VALUESLOT 0
 #define MEXSLOT 1
@@ -55,7 +54,7 @@ typedef struct Schemelist {
 
 	// pointers to load and save functions
 	UINT64		(*read_varnum)	( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-    BOOLEAN		(*write_varnum)	( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
+	BOOLEAN		(*write_varnum)	( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
 
 	BOOLEAN		indicator;
 
@@ -65,5 +64,6 @@ typedef struct Schemelist {
 
 Scheme_List scheme_list_new();
 Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit ), BOOLEAN (*write_varnum)( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips ), BOOLEAN indicator);
+UINT8 scheme_list_size( Scheme_List sl );
 
 #endif /* GMCORE_BPDB_MISC_H */
