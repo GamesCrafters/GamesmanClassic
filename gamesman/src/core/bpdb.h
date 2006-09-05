@@ -3,28 +3,47 @@
 
 #include "bpdb_misc.h"
 
+//
+// slice format
+//
+
+typedef struct sliceformat {
+	UINT8 *sizes;
+	UINT32 *offsets;
+	UINT64 *maxvalues;
+	char **names;
+	BOOLEAN *write;
+	UINT8 slots;
+	UINT32 bits;
+} *SLICE;
+
+
+//
+// functions for global use
+//
+
 //void		bpdb_init								( UINT64 slices, UINT64 bits_per_slice );
 void		bpdb_init								( DB_Table *new_db );
 void       	bpdb_free								( );
 
-/* Value */
+// get/set value
 VALUE		bpdb_get_value								(POSITION pos);
 VALUE		bpdb_set_value								(POSITION pos, VALUE val);
 
-/* Remoteness */
+// get/set remoteness
 REMOTENESS	bpdb_get_remoteness							(POSITION pos);
 void		bpdb_set_remoteness							(POSITION pos, REMOTENESS val);
 
-/* Visited */
+// get/set visited
 BOOLEAN		bpdb_check_visited							(POSITION pos);
 void		bpdb_mark_visited							(POSITION pos);
 void		bpdb_unmark_visited							(POSITION pos);
 
-/* Mex */
+// get/set mex
 MEX		bpdb_get_mex								(POSITION pos);
 void		bpdb_set_mex								(POSITION pos, MEX mex);
 
-//extern		UINT8	bpdb_bits_per_slice;
+
 
 //
 // functions for internal use

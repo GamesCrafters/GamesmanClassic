@@ -38,16 +38,10 @@
 // Global Variables
 //
 
-
-typedef struct sliceformat {
-	UINT8 *sizes;
-	UINT32 *offsets;
-	UINT64 *maxvalues;
-	char **names;
-	BOOLEAN *write;
-	UINT8 slots;
-	UINT32 bits;
-} *SLICE;
+//
+// stores the format of a slice; in particular the
+// names, sizes, and maxvalues of its slots
+//
 
 SLICE		bpdb_slice = NULL;
 
@@ -61,48 +55,23 @@ UINT64		bpdb_slices = 0;
 Scheme_List	bpdb_list = NULL;
 
 
-/*int main() {
-	BOOLEAN save = FALSE;
-	bpdb_init( 10, 19 );
-
-	if(save) {
-		bpdb_add_slot( 3, "VALUE" );
-		bpdb_add_slot( 15, "REMOTENESS" );
-		bpdb_add_slot( 1, "BIT" );
-
-		bpdb_set_slice_slot( 0, 0, undecided );
-		bpdb_set_slice_slot( 1, 0, 7 );
-		bpdb_set_slice_slot( 1, 1, 2048 );
-		bpdb_set_slice_slot( 1, 1, 432 );
-		bpdb_set_slice_slot( 1, 2, 1 );
-		bpdb_set_slice_slot( 3, 0, 3 );
-		bpdb_set_slice_slot( 3, 1, 3 );
-		bpdb_set_slice_slot( 4, 0, undecided );
-		bpdb_set_slice_slot( 9, 2, 1 );
-
-		//bitlib_print_bytes_in_bits( bpdb_array, 24 );
-
-		bpdb_save_database();
-	} else {
-		bpdb_load_database();
-	}
-
-	bpdb_print_database();
-
-	//bitlib_print_bytes_in_bits( bpdb_array, 24 );
-
-	return 0;
-}*/
-
 
 /*
  * bpdb_init
- */
-//void bpdb_init( UINT64 slices, UINT64 bits_per_slice )
+ */
 void bpdb_init( DB_Table *new_db ) {
 	GMSTATUS status = STATUS_SUCCESS;
 	UINT64 i;
 
+	if(NULL == new_db) {
+		status = STATUS_INVALID_INPUT_PARAMETER;
+		BPDB_TRACE("bpdb_init()", "Input parameter new_db is null", status);
+		goto _bailout;
+	}
+
+	//
+	// initialize global variables
+	//
 	bpdb_slices = gNumberOfPositions;
 
 	bpdb_slice = (SLICE) calloc( 1, sizeof(struct sliceformat) );
