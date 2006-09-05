@@ -12,7 +12,6 @@ typedef struct sliceformat {
 	UINT32 *offsets;
 	UINT64 *maxvalues;
 	char **names;
-	BOOLEAN *write;
 	UINT8 slots;
 	UINT32 bits;
 } *SLICE;
@@ -51,7 +50,7 @@ void		bpdb_set_mex								(POSITION pos, MEX mex);
 
 UINT64		bpdb_get_slice_slot							( UINT64 position, UINT8 index );
 UINT64		bpdb_get_slice_full							( UINT64 position );
-void		bpdb_set_slice_slot							( UINT64 position, UINT8 index, UINT64 value );
+inline void		bpdb_set_slice_slot							( UINT64 position, UINT8 index, UINT64 value );
 void		bpdb_set_slice_full							( UINT64 position, UINT64 value );
 GMSTATUS	bpdb_add_slot								( UINT8 size, char *name, BOOLEAN write );
 

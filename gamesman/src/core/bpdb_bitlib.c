@@ -1,6 +1,8 @@
 #include "bpdb_bitlib.h"
 
-UINT8 min8(UINT8 a, UINT8 b) {
+inline
+UINT8
+min8( UINT8 a, UINT8 b ) {
 	if(a < b) {
 		return a;
 	} else {
@@ -9,7 +11,8 @@ UINT8 min8(UINT8 a, UINT8 b) {
 	return a;
 }
 
-void bitlib_print_byte_in_bits( BYTE *b ) {
+void
+bitlib_print_byte_in_bits( BYTE *b ) {
 	UINT8 bits = BITSINBYTE;
 
 	while( bits > 0 ) {
@@ -19,7 +22,8 @@ void bitlib_print_byte_in_bits( BYTE *b ) {
 	printf("\n");
 }
 
-void bitlib_print_bytes_in_bits( BYTE *b, UINT8 bytes ) {
+void
+bitlib_print_bytes_in_bits( BYTE *b, UINT8 bytes ) {
 	UINT8 offset = 0;
 
 	while(bytes > 0) {
@@ -29,7 +33,9 @@ void bitlib_print_bytes_in_bits( BYTE *b, UINT8 bytes ) {
 	}
 }
 
-BOOLEAN bitlib_file_write_byte( dbFILE *file, BYTE *buffer ) {
+inline
+BOOLEAN
+bitlib_file_write_byte( dbFILE *file, BYTE *buffer ) {
 	/*if(fwrite(buffer, 1, 1, file) == 1) {
 		return TRUE;
 	} else {
@@ -45,7 +51,9 @@ BOOLEAN bitlib_file_write_byte( dbFILE *file, BYTE *buffer ) {
 	return TRUE;
 }
 
-BYTE bitlib_file_read_byte( dbFILE *file ) {
+inline
+BYTE
+bitlib_file_read_byte( dbFILE *file ) {
 	BYTE readbyte;
 	int ret;
 
@@ -59,12 +67,14 @@ BYTE bitlib_file_read_byte( dbFILE *file ) {
 	return readbyte;
 }
 
-dbFILE *bitlib_file_open( char *filename, char *mode ) {
+dbFILE *
+bitlib_file_open( char *filename, char *mode ) {
 	//return fopen(filename, mode);
 	return gzopen(filename, mode);
 }
 
-BOOLEAN bitlib_file_close( dbFILE *file ) {
+BOOLEAN
+bitlib_file_close( dbFILE *file ) {
 	//if(fclose(file) == 0) {
 	if(gzclose(file) == 0) {
 		return TRUE;
@@ -77,7 +87,9 @@ BOOLEAN bitlib_file_close( dbFILE *file ) {
  * offsetFromLeft = offset from the left indicating start of desired slice
  * bitsToOutput = Number of bits to output from value
  */
-void bitlib_insert_bits( BYTE *slice, UINT8 offsetFromLeft, UINT64 value, UINT8 bitsToOutput ) {
+inline
+void
+bitlib_insert_bits( BYTE *slice, UINT8 offsetFromLeft, UINT64 value, UINT8 bitsToOutput ) {
 	// offsetfromright
 	UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
 	BYTE mask = 0;
@@ -102,7 +114,9 @@ void bitlib_insert_bits( BYTE *slice, UINT8 offsetFromLeft, UINT64 value, UINT8 
 	}
 }
 
-BYTE bitlib_get_bits_range( UINT64 value, UINT8 offsetFromRight, UINT8 length ) {
+inline
+BYTE
+bitlib_get_bits_range( UINT64 value, UINT8 offsetFromRight, UINT8 length ) {
 	BYTE bitsinrange = 0;
 
 	value = value << (BITSINPOS - offsetFromRight);
@@ -113,7 +127,9 @@ BYTE bitlib_get_bits_range( UINT64 value, UINT8 offsetFromRight, UINT8 length ) 
 }
 
 // Supports masking between 0 and 8 bits
-BYTE bitlib_right_mask8( UINT8 maskbits ) {
+inline
+BYTE
+bitlib_right_mask8( UINT8 maskbits ) {
 	BYTE mask = 0;
 
 	while( maskbits > 0 ) {
@@ -126,7 +142,9 @@ BYTE bitlib_right_mask8( UINT8 maskbits ) {
 }
 
 // Supports masking between 0 and 64 bits
-UINT64 bitlib_right_mask64( UINT8 maskbits ) {
+inline
+UINT64
+bitlib_right_mask64( UINT8 maskbits ) {
 	UINT64 mask = 0;
 
 	while( maskbits > 0 ) {
@@ -139,7 +157,9 @@ UINT64 bitlib_right_mask64( UINT8 maskbits ) {
 }
 
 
-UINT64 bitlib_read_bits( BYTE *slice, UINT8 offsetFromLeft, UINT8 bitsToOutput ) {
+inline
+UINT64
+bitlib_read_bits( BYTE *slice, UINT8 offsetFromLeft, UINT8 bitsToOutput ) {
 	// offsetfromright
 	UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
 	UINT64 value = 0;
@@ -175,7 +195,9 @@ UINT64 bitlib_read_bits( BYTE *slice, UINT8 offsetFromLeft, UINT8 bitsToOutput )
 }
 
 
-void bitlib_value_to_buffer( dbFILE *file, BYTE *outputBuffer, UINT8 *offsetFromLeft, UINT64 value, UINT8 bitsToOutput ) {
+inline
+void
+bitlib_value_to_buffer( dbFILE *file, BYTE *outputBuffer, UINT8 *offsetFromLeft, UINT64 value, UINT8 bitsToOutput ) {
 	// offsetfromright
 	//BOOLEAN writeOut = FALSE;
 	UINT8 offsetFromRight = BITSINBYTE - *offsetFromLeft;
@@ -203,7 +225,9 @@ void bitlib_value_to_buffer( dbFILE *file, BYTE *outputBuffer, UINT8 *offsetFrom
 	}
 }
 
-UINT64 bitlib_read_from_buffer( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offsetFromLeft, UINT8 length ) {
+inline
+UINT64
+bitlib_read_from_buffer( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offsetFromLeft, UINT8 length ) {
 	UINT64 value = 0;
 	UINT8 offsetFromRight = BITSINBYTE - *offsetFromLeft;
 	UINT8 mask = 0;

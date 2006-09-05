@@ -43,9 +43,9 @@ typedef UINT32 GMSTATUS;
 		(STATUS_SUCCESS == (status))
 
 #define VALUESLOT 0
-#define MEXSLOT 1
-#define REMSLOT 2
-#define VISITEDSLOT 3
+#define MEXSLOT 2
+#define REMSLOT 4
+#define VISITEDSLOT 1
 
 /* List structure for schemes */
 typedef struct Schemelist {
