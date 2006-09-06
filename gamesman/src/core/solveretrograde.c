@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.18 2006-08-14 07:13:14 max817 Exp $
+// $Id: solveretrograde.c,v 1.19 2006-09-06 11:55:33 max817 Exp $
 
 /************************************************************************
 **
@@ -57,6 +57,11 @@
 **					as well to fit with the normal Gamesman menus. Also added
 **					corruption AND tier tree checkers. As of now, the Loopy
 **					Solver is STILL quite broken... repairs will come soon.
+**				-2006.9.5 = The Loopy Solver is now (as far as I can tell) 100%
+**					correct. The debugger is in the process of getting fixed up,
+**					and will be so by the next update. Sans the debugger, this is
+**					the *final* Summer version and the version that Fall '06
+**					GamesCrafters will use.
 **
 **
 ** LICENSE:	This file is part of GAMESMAN,
@@ -96,20 +101,22 @@ TIERLIST* tierSolveList;
 void checkExistingDB();
 void PrepareToSolveNextTier();
 BOOLEAN setInitialTierPosition();
+POSITION GetMyPosition();
+BOOLEAN ConfirmAction(char);
+// Solver Heart
 void SolveTier();
 void SolveWithNonLoopyAlgorithm();
 void SolveWithLoopyAlgorithm();
 void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
-BOOLEAN ConfirmAction(char);
 // Solver ChildCounter and Hashtable functions
 void rInitFRStuff();
 void rFreeFRStuff();
-POSITIONLIST* rRemoveFRList(VALUE);
+POSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
 void rInsertFR(VALUE, POSITION, REMOTENESS);
-// Debug
+// Sanity Checkers
 void checkForCorrectness();
-BOOLEAN checkTierTree(TIER);
-POSITION GetMyPosition();
+BOOLEAN checkTierTree();
+// Debug Stuff
 void debugMenu();
 // HAXX for comparing two databases
 void writeCurrentDBToFile();
@@ -168,11 +175,16 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	}
 	if (cont == FALSE) {
 		printf("\nOne or more required parts of the API not given...\n"
-				"Automatically redirecting to the Debug Menu...\n");
+				"Exiting Retrograde Solver (WITHOUT Solving)...\n");
+		exit(0);
+	} else printf("API Required Functions Confirmed.\n");
+
+	/*if (kDebugDetermineValue) {
+		printf("\nRedirecting to the Debug Menu...\n");
 		debugMenu();
 		printf("Exiting Retrograde Solver (WITHOUT Solving)...\n");
 		exit(0);
-	} else printf("API Required Functions Confirmed.\n");
+	}*/
 
 	printf("\n-----Checking the OPTIONAL API Functions:-----\n\n");
 	if (gIsLegalFunPtr == NULL) {
@@ -201,9 +213,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		printf("\nLooks like the game is already fully solved! Enjoy the game!\n");
 		printf("Exiting Retrograde Solver...\n\n");
 		return undecided;
-	} else if (tierSolveList == gTierSolveListPtr) {// No DBs loaded, a fresh solve
+	} else if (tiersSoFar == 0) {// No DBs loaded, a fresh solve
 		printf("No DBs Found! Starting a fresh solve...\n");
-		if (!checkTierTree(numTiers)) ExitStageRight(); // if tier tree incorrect, exit
+		if (!checkTierTree()) ExitStageRight(); // if tier tree incorrect, exit
 	}
 
 	PrepareToSolveNextTier();
@@ -217,8 +229,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		}
         printf("\n\tThe tier hash contains (%lld) positions.", tierSize);
         printf("\n\tTiers left: %d (%.1f%c Solved)\n\n", numTiers-tiersSoFar, 100*(double)tiersSoFar/numTiers, '%');
-        printf("\td)\t(D)ebug API Functions!\n\n"
-        	   "\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
+        printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
                "\tl)\tCheck (L)egality using IsLegal? Currently: %s\n"
         	   "\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s\n"
         	   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
@@ -230,9 +241,6 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                		(useUndo ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
         c = GetMyChar();
         switch(c) {
-			case 'd': case 'D':
-				debugMenu();
-				break;
 			case 'c': case 'C':
 				checkCorrectness = !checkCorrectness;
 				break;
@@ -440,7 +448,6 @@ It's constant time insert and remove, so it works just fine. */
 FRnode**	rWinFR = NULL;	// The FRontier Win Hashtable
 FRnode**	rLoseFR = NULL;	// The FRontier Lose Hashtable
 FRnode**	rTieFR = NULL;	// The FRontier Tie Hashtable
-REMOTENESS  currentWinList, currentLoseList, currentTieList;
 
 /*
 PROOFS OF CORRECTNESS.
@@ -489,7 +496,6 @@ void rInitFRStuff() {
 	int r;
 	for (r = 0; r < REMOTENESS_MAX; r++)
 		rWinFR[r] = rLoseFR[r] = rTieFR[r] = NULL;
-	currentWinList = currentLoseList = currentTieList = -1;
 }
 
 void rFreeFRStuff() {
@@ -513,29 +519,13 @@ void rFreeFRStuff() {
 	if (rTieFR != NULL) SafeFree(rTieFR);
 }
 
-POSITIONLIST* rRemoveFRList(VALUE value) {
-	if (value == win) {
-		currentWinList++;
-		while (currentWinList < REMOTENESS_MAX) {
-			if (rWinFR[currentWinList] != NULL)
-				return rWinFR[currentWinList];
-			else currentWinList++;
-		}
-	} else if (value == lose) {
-		currentLoseList++;
-		while (currentLoseList < REMOTENESS_MAX) {
-			if (rLoseFR[currentLoseList] != NULL)
-				return rLoseFR[currentLoseList];
-			else currentLoseList++;
-		}
-	} else if (value == tie) {
-		currentTieList++;
-		while (currentTieList < REMOTENESS_MAX) {
-			if (rTieFR[currentTieList] != NULL)
-				return rTieFR[currentTieList];
-			else currentTieList++;
-		}
-	}
+POSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
+	if (value == win)
+		return rWinFR[r];
+	else if (value == lose)
+		return rLoseFR[r];
+	else if (value == tie)
+		return rTieFR[r];
 	return NULL;
 }
 
@@ -748,21 +738,18 @@ void SolveWithLoopyAlgorithm() {
 			rInsertFR(value, pos, remoteness);
 	}
 	printf("\n--Beginning the loopy algorithm...\n");
-	POSITIONLIST *FRptr;
-	printf("--Processing Lose Frontier!\n");
-	while ((FRptr = rRemoveFRList(lose)) != NULL)
-		LoopyParentsHelper(FRptr, win, currentLoseList);
-
-	printf("--Processing Win/Lose Frontiers!\n");
-	while ((FRptr = rRemoveFRList(win)) != NULL)
-		LoopyParentsHelper(FRptr, lose, currentWinList);
-
+	REMOTENESS r;
+	printf("--Processing Lose/Win Frontiers!\n");
+	for (r = 0; r <= REMOTENESS_MAX; r++) {
+		if (r!=REMOTENESS_MAX) LoopyParentsHelper(rRemoveFRList(lose,r), win, r);
+		if (r!=0) LoopyParentsHelper(rRemoveFRList(win,r-1), lose, r-1);
+	}
 	printf("Amount now solved: %lld (%.1f%c)\n",numSolved, 100*(double)numSolved/trueSizeOfTier, '%');
 	if (numSolved == trueSizeOfTier)
 		return;// Else, we must process ties!
 	printf("--Processing Tie Frontier!\n");
-	while((FRptr = rRemoveFRList(tie)) != NULL)
-		LoopyParentsHelper(FRptr, tie, currentTieList);
+	for (r = 0; r < REMOTENESS_MAX; r++)
+		LoopyParentsHelper(rRemoveFRList(tie,r), tie, r);
 
 	printf("Amount now solved: %lld (%.1f%c)\n",numSolved, 100*(double)numSolved/trueSizeOfTier, '%');
 	if (numSolved == trueSizeOfTier)
@@ -794,7 +781,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					gUnhashToTierPosition(parent, &tp, &t);
 					printf("ERROR: %llu generated undo-parent %llu (Tier: %d, TierPosition: %llu),\n"
 							"which is not in the current tier being solved!\n", child, parent, t, tp);
-					exit(1);
+					ExitStageRight();
 				}
 				// if childCounts is already 0, we don't mess with this parent
 				// (already dealt with OR illegal)
@@ -822,30 +809,6 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			parentList = rParents[child];
 			for (; parentList != NULL; parentList = parentList->next) {
 				parent = parentList->position;
-
-/*if(tierToSolve == 3 && parent == 1341) {
-	printf("\n\nThis is ME: %llu", child);
-	printf("\nMy parent: %llu", parent);
-	printf("\nI'm primitive: %d", Primitive(child));
-	printf("\nCoincidink, I'm assiging %d and %d to parent\n", valueParents, remotenessChild);
-	printf("Parent's childCounts: %d\n\n", childCounts[parent]);
-}
-if(tierToSolve == 3 && (parent==123||parent==1043||parent==483||parent==61)) {
-	printf("\n\nAWW! This is ME: %llu", child);
-	printf("\nMy parent: %llu", parent);
-	printf("\nCoincidink, I'm assiging %d and %d to parent\n", valueParents, remotenessChild);
-	printf("Parent's childCounts: %d\n\n", childCounts[parent]);
-}
-if(tierToSolve == 3 && (parent==1749||parent==1744||parent==1623||parent==1384||
-						parent==1389||parent==1325||parent==1322||parent==1320||
-						parent==2309||parent==2304) && childCounts[parent] != 0) {
-	printf("\n\nHHHOLY FUCK! This is ME: %llu", child);
-	printf("\nMy parent: %llu", parent);
-	printf("\nI'm primitive: %d", Primitive(child));
-	printf("\nCoincidink, I'm assiging %d and %d to parent\n", valueParents, remotenessChild);
-	printf("Parent's childCounts: %d\n\n", childCounts[parent]);
-}*/
-
 				if (childCounts[parent] != 0) {
 					if (valueParents == win || valueParents == tie) {
 						childCounts[parent] = 0;
@@ -873,7 +836,7 @@ if(tierToSolve == 3 && (parent==1749||parent==1744||parent==1623||parent==1384||
 
 /************************************************************************
 **
-** DEBUG (TO HELP MODULE WRITERS)
+** SANITY CHECKERS
 **
 ************************************************************************/
 
@@ -901,6 +864,10 @@ void checkForCorrectness() {
 
 		if (remoteness == 0) {// better be a primitive!
 			if (valueP == undecided) {
+				// COULD have NULL GenerateMoves
+				moves = GenerateMoves(pos);
+				if (moves == NULL) continue;
+				SafeFree(moves);
 				printf("CORRUPTION: (%llu) is a non-Primitive with Remoteness 0!\n", pos);
 				check = FALSE;
 			} else if (value != valueP) {
@@ -989,10 +956,14 @@ void checkForCorrectness() {
 }
 
 // Check tier hierarchy
-BOOLEAN checkTierTree(TIER numTiers) {
+BOOLEAN checkTierTree() {
 	printf("\n-----Checking the Tier Tree for correctness:-----\n\n");
 	BOOLEAN check = TRUE, check2;
 	TIERLIST *ptr = gTierSolveListPtr, *list, *listptr;
+	TIER numTiers = 0;
+	for (; ptr != NULL; ptr = ptr->next)
+		numTiers++;
+	ptr = gTierSolveListPtr;
 	TIER tierArray[numTiers], tier, tier2;
 	int index = 0, i;
 	for (; ptr != NULL; ptr = ptr->next) {
@@ -1030,44 +1001,192 @@ BOOLEAN checkTierTree(TIER numTiers) {
 	return FALSE;
 }
 
-void debugMenu() {
-	TIER hashWindowTier = kBadTier;
-	TIER TiersToSolve = 0;
+/************************************************************************
+**
+** DEBUG (TO HELP MODULE WRITERS)
+**
+************************************************************************/
 
-	printf(	"\n\n=====Welcome to the Debug Menu!=====\n");
-	BOOLEAN TC, NOTP, IL, GUMTT, UDM;
-	if (gTierSolveListPtr != NULL) {
-		TIERLIST* tierSolveList = gTierSolveListPtr;
-		for (; tierSolveList != NULL; tierSolveList = tierSolveList->next)
-			TiersToSolve++;
+//when a user enters a tier number, this checks to make sure
+//that tier is in the current hash window (valid).
+BOOLEAN validTier(TIER tier, BOOLEAN global) {
+	if (global) {
+		TIERLIST* list = gTierSolveListPtr;
+		for (; list != NULL; list = list->next)
+			if (list->tier == tier)
+				return TRUE;
+	} else {
+		int i;
+		for (i = 1; i < gNumTiersInHashWindow; i++)
+			if (gTierInHashWindow[i] == tier)
+				return TRUE;
 	}
+	return FALSE;
+}
 
-	TC = !(gTierChildrenFunPtr == NULL);
-	NOTP = !(gNumberOfTierPositionsFunPtr == NULL);
+void debugMenu() {
+	printf(	"\n\n=====Welcome to the Debug Menu!=====\n"
+			"--Automatically initializing HASH WINDOW for Tier: %d\n", gTierSolveListPtr->tier);
+	gInitializeHashWindow(gTierSolveListPtr->tier, FALSE);
+
+	BOOLEAN IL, GUMTT, UDM, TTS;
+	STRING tierStr;
+
 	IL = !(gIsLegalFunPtr == NULL);
 	GUMTT = !(gGenerateUndoMovesToTierFunPtr == NULL);
 	UDM = !(gUnDoMoveFunPtr == NULL);
+	TTS = !(gTierToStringFunPtr == NULL);
 
 	char c; POSITION p, p2, p3; TIER t; BOOLEAN check;
-	TIERLIST *list, *listptr; TIERPOSITION tp;
-	UNDOMOVELIST *ulist, *ulistptr; MOVELIST *mlist, *mlistptr;
+	TIERLIST *list;//, *listptr; TIERPOSITION tp;
+	//UNDOMOVELIST *ulist, *ulistptr; MOVELIST *mlist, *mlistptr;
 
 	// keep compiler happy
-	p3 = 0; tp = 0;
+	p2=p3 = 0; check=FALSE;
+
 
 	while(TRUE) {
-		printf("\n\t-----Debug Options:-----\n"
-			"\t(Current Hash Window: %d)\n"
-			"\tp)\tGo to (P)OSITION-DEBUG screen (for current hash window)\n"
-			"\tg)\tTest g(G)enerateUndoMovesToTier (for current hash window)\n"
-			"\tu)\tTest g(U)nDoMove (for current hash window)\n"
-			"\tc)\t(C)hange current HASH WINDOW (gInitializeHashWindow)\n"
-			"\td)\t(D)raw and check Tier \"Tree\" (gTierSolveList, gTierChildren)\n"
+		printf("\n\t----- Debug Options: -----\n"
+			"\t(Current HASH WINDOW: Tier %d)\n"
+			"\tr)\t(R)eprint gTierSolveList Information\n"
+			"\td)\t(D)raw and Check Tier \"Tree\"\n\n"
+			"\tt)\tGo to g(T)ierChildren Menu\n"
+			"\tn)\tGo to g(N)umberOfTierPositions Menu\n"
+			"\ti)\tGo to g(I)sLegal Menu\n"
+			"\tg)\tGo to g(G)enerateUndoMovesToTier Menu\n"
+			"\tu)\tGo to g(U)nDoMove Menu\n\n"
+			"\tp)\tGo to (P)OSITION-DEBUG Menu\n\n"
+			"\tc)\t(C)hange current HASH WINDOW\n"
 			"\tb)\t(B)ack to main solver menu\n"
-			"\nSelect an option:  ", hashWindowTier);
+			"\nSelect an option:  ", gTierInHashWindow[1]);
 		c = GetMyChar();
 		switch(c) {
+			case 'r': case 'R':
+				printf("-Tier Solve Order:\n");
+				list = gTierSolveListPtr;
+				for (; list != NULL; list = list->next) {
+					printf("%d ", list->tier);
+					if (TTS) {
+						tierStr = gTierToStringFunPtr(list->tier);
+						printf(": %s\n", tierStr);
+						if (tierStr != NULL) SafeFree(tierStr);
+					}
+				}
+				break;
+			case 'd': case 'D':
+				checkTierTree();
+				break;
+
+			case 't': case 'T':
+				while(TRUE) {
+					printf("--gTierChildren TEST MENU--\n"
+							"Enter any TIER number to check, \"%llu\" to test all valid tiers,\n"
+							"or non-number to go back:\n> ", gNumberOfPositions);
+					p = GetMyPosition();
+					if (p == kBadPosition) break;
+					if (p == gNumberOfPositions) {
+						printf("-Results for ALL Valid Tiers:\n");
+						list = gTierSolveListPtr;
+						for (; list != NULL; list = list->next) {
+							printf("%d ", list->tier);
+							// print the kiddies
+						}
+						continue;
+					}
+					t = (TIER)p;
+					if (!validTier(t,TRUE)) {
+						printf("Tier (%d) isn't a valid tier! (It's not found in gTierSolveList)\n", t);
+						continue;
+					}
+					// print the kiddies
+				}
 			/*
+			case 'n': case 'N':
+			case 'i': case 'I':
+			case 'g': case 'G':
+				if (!GUMTT) {
+					printf("gGenerateUndoMovesToTier isn't written...\n");
+					break;
+				}
+				while (TRUE) {
+					printf("\nEnter a POSITION number to check, or non-number to go back:\n> ");
+					p = GetMyPosition();
+					if (p == kBadPosition) break;
+					printf("\nNow enter a TIER number (in current hash window!), or non-number to go back:\n> ");
+					p2 = GetMyPosition();
+					if (p2 == kBadPosition) break;
+					t = (TIER)p2;
+					if (TC && hashWindowTier != kBadTier) {
+						printf("Calling gTierChildren on hash window TIER %d for safety check:\n", hashWindowTier);
+						list = listptr = gTierChildrenFunPtr(t);
+						check = FALSE;
+						if (t == hashWindowTier) check = TRUE;
+						else {
+							for (; listptr != NULL; listptr = listptr->next) {
+								if (t == listptr->tier) {
+									check = TRUE;
+									break;
+								}
+							}
+						}
+						FreeTierList(list);
+						if (!check) {
+							printf("The TIER you gave isn't in the current hash window!\n");
+							break;
+						}
+					}
+					printf("\nCalling gGenerateUndoMovesToTier on POSITION %llu to TIER %d:\n", p, t);
+					ulist = ulistptr = gGenerateUndoMovesToTierFunPtr(p,t);
+					if (ulist == NULL) {
+						printf("Returned an empty list!\n");
+						continue;
+					} else {
+						printf("Returned the following list:");
+						for (; ulistptr != NULL; ulistptr = ulistptr->next)
+							printf(" %d", ulistptr->undomove);
+						ulistptr = ulist;
+						if (UDM) {
+							printf("\n\nNow exhaustively checking the list:\n");
+							for (; ulistptr != NULL; ulistptr = ulistptr->next) {
+								printf("\n\n-----\n\nCalling gUnDoMove on UNDOMOVE: %d\n", ulistptr->undomove);
+								p2 = gUnDoMoveFunPtr(p, ulistptr->undomove);
+								printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p2);
+								PrintPosition (p2, "Debug", 0);
+								if (!Primitive(p2)) {
+									mlist = mlistptr = GenerateMoves(p2);
+									check = FALSE;
+									for (; mlistptr != NULL; mlistptr = mlistptr->next) {
+										if (p == DoMove(p2, mlistptr->move)) {
+											check = TRUE;
+											break;
+										}
+									}
+									FreeMoveList(mlist);
+									if (!check) printf("---ERROR FOUND: %llu wasn't found in %llu's GenerateMoves!\n", p, p2);
+									else printf("%llu is indeed in %llu's GenerateMoves.\n", p, p2);
+								} else printf("---ERROR FOUND: %llu generated an undomove to %llu, a primitive!\n", p, p2);
+							}
+						}
+						FreeUndoMoveList(ulist);
+					}
+				} break;
+			case 'u': case 'U':
+				if (!UDM) {
+					printf("gUnDoMove isn't written, so...\n");
+					break;
+				}
+				while (TRUE) {
+					printf("\nEnter a POSITION number to check, or non-number to go back:\n> ");
+					p = GetMyPosition();
+					if (p == kBadPosition) break;
+					printf("\nEnter an UNDOMOVE number to check, or non-number to go back:\n> ");
+					p2 = GetMyPosition();
+					if (p2 == kBadPosition) break;
+					printf("Calling gUnDoMove on POSITION %llu, with UNDOMOVE: %d\n", p, (UNDOMOVE)p2);
+					p = gUnDoMoveFunPtr(p, (UNDOMOVE)p2);
+					printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p);
+					PrintPosition (p, "Debug", 0);
+				} break;
 			case 'p': case 'P': // TEST BY POSITION
 				while (TRUE) {
 					printf("\nEnter a POSITION number to check, or non-number to go back:\n> ");
@@ -1139,96 +1258,6 @@ void debugMenu() {
 					}
 				} break;
 				*/
-			case 'g': case 'G':
-				if (!GUMTT) {
-					printf("gGenerateUndoMovesToTier isn't written, so...\n");
-					break;
-				}
-				while (TRUE) {
-					printf("\nEnter a POSITION number to check, or non-number to go back:\n> ");
-					p = GetMyPosition();
-					if (p == kBadPosition) break;
-					printf("\nNow enter a TIER number (in current hash window!), or non-number to go back:\n> ");
-					p2 = GetMyPosition();
-					if (p2 == kBadPosition) break;
-					t = (TIER)p2;
-					if (TC && hashWindowTier != kBadTier) {
-						printf("Calling gTierChildren on hash window TIER %d for safety check:\n", hashWindowTier);
-						list = listptr = gTierChildrenFunPtr(t);
-						check = FALSE;
-						if (t == hashWindowTier) check = TRUE;
-						else {
-							for (; listptr != NULL; listptr = listptr->next) {
-								if (t == listptr->tier) {
-									check = TRUE;
-									break;
-								}
-							}
-						}
-						FreeTierList(list);
-						if (!check) {
-							printf("The TIER you gave isn't in the current hash window!\n");
-							break;
-						}
-					}
-					printf("\nCalling gGenerateUndoMovesToTier on POSITION %llu to TIER %d:\n", p, t);
-					ulist = ulistptr = gGenerateUndoMovesToTierFunPtr(p,t);
-					if (ulist == NULL) {
-						printf("Returned an empty list!\n");
-						continue;
-					} else {
-						printf("Returned the following list:");
-						for (; ulistptr != NULL; ulistptr = ulistptr->next)
-							printf(" %d", ulistptr->undomove);
-						ulistptr = ulist;
-						if (UDM) {
-							printf("\n\nNow exhaustively checking the list:\n");
-							for (; ulistptr != NULL; ulistptr = ulistptr->next) {
-								printf("\n\n-----\n\nCalling gUnDoMove on UNDOMOVE: %d\n", ulistptr->undomove);
-								p2 = gUnDoMoveFunPtr(p, ulistptr->undomove);
-								printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p2);
-								PrintPosition (p2, "Debug", 0);
-								/*if (PTT) {
-									printf("Calling gPositionToTier to ensure correctness.\n");
-									t2 = gPositionToTierFunPtr(p2);
-									if (t == t2) printf("Returned tier confirms that this is in TIER: %d\n", t);
-									else printf("---ERROR FOUND: Returned TIER: %d, not %d!", t2, t);
-								}*/
-								if (!Primitive(p2)) {
-									mlist = mlistptr = GenerateMoves(p2);
-									check = FALSE;
-									for (; mlistptr != NULL; mlistptr = mlistptr->next) {
-										if (p == DoMove(p2, mlistptr->move)) {
-											check = TRUE;
-											break;
-										}
-									}
-									FreeMoveList(mlist);
-									if (!check) printf("---ERROR FOUND: %llu wasn't found in %llu's GenerateMoves!\n", p, p2);
-									else printf("%llu is indeed in %llu's GenerateMoves.\n", p, p2);
-								} else printf("---ERROR FOUND: %llu generated an undomove to %llu, a primitive!\n", p, p2);
-							}
-						}
-						FreeUndoMoveList(ulist);
-					}
-				} break;
-			case 'u': case 'U':
-				if (!UDM) {
-					printf("gUnDoMove isn't written, so...\n");
-					break;
-				}
-				while (TRUE) {
-					printf("\nEnter a POSITION number to check, or non-number to go back:\n> ");
-					p = GetMyPosition();
-					if (p == kBadPosition) break;
-					printf("\nEnter an UNDOMOVE number to check, or non-number to go back:\n> ");
-					p2 = GetMyPosition();
-					if (p2 == kBadPosition) break;
-					printf("Calling gUnDoMove on POSITION %llu, with UNDOMOVE: %d\n", p, (UNDOMOVE)p2);
-					p = gUnDoMoveFunPtr(p, (UNDOMOVE)p2);
-					printf("This returned POSITION: %llu. Calling PrintPosition on it:\n", p);
-					PrintPosition (p, "Debug", 0);
-				} break;
 			case 'c': case 'C':
 				printf("\nEnter the TIER to change to, or non-number to go back:\n> ");
 				p = GetMyPosition();
@@ -1236,14 +1265,17 @@ void debugMenu() {
 				t = (TIER)p;
 				printf("Calling gInitializeHashWindow on TIER: %d\n", t);
 				gInitializeHashWindow(t, FALSE);
-				hashWindowTier = t;
-				break;
-			case 'd': case 'D':
-				if (!TC || gTierSolveListPtr == NULL) {
-					printf("gTierSolveList and/or gTierChildren isn't written, so...\n");
-					break;
+				printf("The hash window reported %d tiers in the hash window:\n", gNumTiersInHashWindow-1);
+				int i;
+				for (i = 1; i < gNumTiersInHashWindow; i++) {
+					if (i == 1)
+						printf("MAIN ");
+					else printf("CHILD ");
+					printf("TIER %d (%llu Positions)\n",
+						gTierInHashWindow[i], gMaxPosOffset[i]-gMaxPosOffset[i-1]);
 				}
-				checkTierTree(TiersToSolve);
+				printf("The current (main) tier is reported to be %s\n", (gCurrentTierIsLoopy ? "LOOPY" : "NON-LOOPY"));
+				printf("gNumberOfPositions has been set to: %llu\n", gNumberOfPositions);
 				break;
 			case 'b': case 'B':
 				return;
@@ -1262,21 +1294,6 @@ void debugMenu() {
 
 // The following are just helpers I use to check the correctness
 // of the solver, vs. the normal loopy solver.
-
-//to turn the WHOLE game Tier 0, overwrites the module's stuff
-/*
-TIERLIST* rTierChildren(TIER tier) {
-	return CreateTierlistNode(0, NULL);
-}
-
-TIERPOSITION rNumberOfTierPositions(TIER tier) {
-	return gNumberOfPositions;
-}
-
-BOOLEAN rIsLegal(POSITION position) {
-	return TRUE;
-}
-*/
 
 /* HAXX that writes database to file, usually placed in module's "ValidTextInput()" */
 void writeCurrentDBToFile() {
@@ -2128,6 +2145,9 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2006/08/14 07:13:14  max817
+// Fixed a typo that broke the build!
+//
 // Revision 1.17  2006/08/13 02:41:10  max817
 // Updates galore, both big and small. Added corruption and tier tree checking,
 // as well as a tier "progress percentage". Also a few GUI changes.
