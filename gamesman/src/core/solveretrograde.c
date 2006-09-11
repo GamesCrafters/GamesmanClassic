@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.19 2006-09-06 11:55:33 max817 Exp $
+// $Id: solveretrograde.c,v 1.20 2006-09-11 05:21:42 max817 Exp $
 
 /************************************************************************
 **
@@ -62,6 +62,11 @@
 **					and will be so by the next update. Sans the debugger, this is
 **					the *final* Summer version and the version that Fall '06
 **					GamesCrafters will use.
+**				-2006.9.10 = IsLegal usage, Undomove function usage, and Correctness
+**					checking are all OFF by default. The user must consciously
+**					turn them ON to use them. Since undomove stuff and IsLegal
+**					don't actually WORK for the current Tier-Gamesman games, this
+**					seems like a good way to go.
 **
 **
 ** LICENSE:	This file is part of GAMESMAN,
@@ -138,7 +143,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	BOOLEAN cont = TRUE, isLegalGiven = TRUE, undoGiven = TRUE;
 	TIER numTiers;
     char c;
-    checkLegality = useUndo = checkCorrectness = TRUE;
+    checkLegality = useUndo = checkCorrectness = FALSE;
     forceLoopy = FALSE;
     tierNames = (gTierToStringFunPtr != NULL);
 
@@ -189,19 +194,19 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	printf("\n-----Checking the OPTIONAL API Functions:-----\n\n");
 	if (gIsLegalFunPtr == NULL) {
 		printf("-IsLegal NOT GIVEN\nLegality Checking Disabled\n");
-		isLegalGiven = checkLegality = FALSE;
+		isLegalGiven = FALSE;
 	}
 	if (gGenerateUndoMovesToTierFunPtr == NULL) {
 		printf("-GenerateUndoMovesToTier NOT GIVEN\nUndoMove Use Disabled\n");
-		undoGiven = useUndo = FALSE;
+		undoGiven = FALSE;
 	}
 	if (gUnDoMoveFunPtr == NULL) {
 		printf("-UnDoMove NOT GIVEN\nUndoMove Use Disabled\n");
-		undoGiven = useUndo = FALSE;
+		undoGiven = FALSE;
 	}
 	if (gTierToStringFunPtr == NULL)
 		printf("-TierToString NOT GIVEN\nTier Name Printing Disabled\n");
-	if (isLegalGiven && useUndo && tierNames)
+	if (isLegalGiven && undoGiven && tierNames)
 		printf("API Optional Functions Confirmed.\n");
 
 	printf("\n-----Checking for existing Tier DBs:-----\n\n");
@@ -229,21 +234,21 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		}
         printf("\n\tThe tier hash contains (%lld) positions.", tierSize);
         printf("\n\tTiers left: %d (%.1f%c Solved)\n\n", numTiers-tiersSoFar, 100*(double)tiersSoFar/numTiers, '%');
+        if (isLegalGiven)
+       		printf("\tl)\tCheck (L)egality using IsLegal? Currently: %s\n", (checkLegality ? "YES" : "NO"));
+        else printf("\t\t(Legality Checking using IsLegal DISABLED)\n");
+        if (undoGiven)
+        	printf("\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s\n", (useUndo ? "YES" : "NO"));
+        else printf("\t\t(Undomove functions for Loopy Solve DISABLED)\n");
         printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
-               "\tl)\tCheck (L)egality using IsLegal? Currently: %s\n"
-        	   "\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s\n"
-        	   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
+			   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
         	   "\ts)\t(S)olve the next tier.\n"
                "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
                "\tb)\t(B)egin the Game before fully solving!\n\n"
                "\tq)\t(Q)uit the Retrograde Solver.\n"
-               "\nSelect an option:  ", (checkCorrectness ? "YES" : "NO"), (checkLegality ? "YES" : "NO"),
-               		(useUndo ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
+               "\nSelect an option:  ", (checkCorrectness ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
         c = GetMyChar();
         switch(c) {
-			case 'c': case 'C':
-				checkCorrectness = !checkCorrectness;
-				break;
 			case 'l': case 'L':
 				if (isLegalGiven) //IsLegal is given
 					checkLegality = !checkLegality;
@@ -253,6 +258,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				if (undoGiven) //Undo stuff is given
 					useUndo = !useUndo;
 				else printf("UndoMove function(s) not written! Thus, you can't use the UndoMove Algorithm!\n");
+				break;
+			case 'c': case 'C':
+				checkCorrectness = !checkCorrectness;
 				break;
 			case 'f': case 'F':
 				forceLoopy = !forceLoopy;
@@ -2145,6 +2153,9 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2006/09/06 11:55:33  max817
+// Fixed the loopy solver bug! w00t!
+//
 // Revision 1.18  2006/08/14 07:13:14  max817
 // Fixed a typo that broke the build!
 //
