@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.24 2006-08-23 03:28:40 max817 Exp $
+// $Id: mbaghchal.c,v 1.25 2006-09-11 05:20:36 max817 Exp $
 
 /************************************************************************
 **
@@ -42,6 +42,11 @@
 **				-2006.8.8 = UndoMove functions work perfectly! Now the Tier
 **					Gamesman API is fully implemented for Bagh Chal. It looks
 **					like symmetries are the only thing left to fix.
+**				-2006.9.10 = Fixed an unhash bug which returned the wrong
+**					person's turn in Stage 2 boards. Now it SHOULD be perfect,
+**					excluding IsLegal and Undomove functions of course.
+**					The Undomove functions will be fixed once the solver's
+**					debugger finally works and can help debug the problem.
 **
 **
 **************************************************************************/
@@ -740,58 +745,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input)
-{/*
-	if (gHashWindowInitialized) {
-		FILE *fp; POSITION p, p2;
-
-		int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
-		genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board);
-		POSITION globalPos = genericHashMaxPos * (goats + 1);
-
-		VALUE* dbv = (VALUE*) SafeMalloc(globalPos * sizeof(VALUE));
-		REMOTENESS* dbr = (REMOTENESS*) SafeMalloc(globalPos * sizeof(REMOTENESS));
-		for (p = 0; p < globalPos; p++)
-			dbv[p] = dbr[p] = 0;
-		int i, GlobalContext = generic_hash_cur_context();
-
-		TIERLIST* list = gTierSolveListPtr;
-		for (; list != NULL; list = list->next) {
-			i = list->tier;
-			int goatsOnBoard, gL, t;
-			unhashTier(i, &goatsOnBoard, &gL, &t);
-			char *board;
-			printf("Tier %d, with %llu...\n", i, gNumberOfTierPositionsFunPtr(i));
-			gInitializeHashWindow(i, TRUE);
-			for (p = 0; p < gNumberOfTierPositionsFunPtr(i); p++) {
-				generic_hash_context_switch(Tier0Context+goatsOnBoard);
-				int turn, goatsLeft;
-				board = unhash(p, &turn, &goatsLeft);
-				generic_hash_context_switch(GlobalContext);
-				gHashWindowInitialized = FALSE;
-				p2 = hash(board, turn, goatsLeft);
-				gHashWindowInitialized = TRUE;
-if (p2==4||p2==5||p2==7||p2==13||p2==15||p2==18||p2==19||p2==21||p2==23||p2==29){
-	printf("\n\n\n-----POSITION: %llu:\n",p2);
-	PrintPosition(p2,"Max",0);
-	MOVELIST* moves = GenerateMoves(p2);
-	POSITION child;
-	for (; moves != NULL; moves = moves->next) {
-		child = DoMove(p2, moves->move);
-		printf("---CHILD: %llu:\n", child);
-		PrintPosition(child,"Child",0);
-	}
-}
-				dbv[p2] = GetValueOfPosition(p);
-				dbr[p2] = Remoteness(p);
-			}
-		}
-		fp = fopen("./a.txt","w");
-		for (p = 0; p < globalPos; p++)
-			fprintf (fp, "%d\t%lld\t%d\n", dbv[p], p, dbr[p]);
-		fclose(fp);
-		SafeFree(dbv); SafeFree(dbr);
-	} else writeCurrentDBToFile();
-*/
+{
 	int size = strlen(input);
 	if(size != 2 && size != 4)
 		return FALSE;
@@ -1179,9 +1133,9 @@ char* unhash (POSITION position, int* turn, int* goatsLeft)
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		int goatsOnBoard;
 		unhashTier(tier, &goatsOnBoard, goatsLeft, turn); // this sets goatsLeft and turn
-		if (tier < s1GoatOffset) // stage 2
-			(*turn) = whoseMove(position); // hash tells the turn
 		generic_hash_context_switch(Tier0Context+goatsOnBoard); // switch to that tier's context
+		if (tier < s1GoatOffset) // stage 2
+			(*turn) = whoseMove(tierpos); // hash tells the turn
 		return (char *) generic_unhash(tierpos, board); // unhash in that tier
 	} else {
 		(*goatsLeft) = position / genericHashMaxPos;
@@ -1755,6 +1709,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.24  2006/08/23 03:28:40  max817
+// CVS'ing in Deepa's symmetries changes.
+//
 // Revision 1.23  2006/08/09 02:19:04  max817
 // Tier Gamesman API fully implemented! UndoMove fuctions now work.
 //
