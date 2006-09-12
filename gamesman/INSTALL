@@ -26,7 +26,7 @@ gcc, corresponding headers and libraries for C and C++ development
 if you are building GUI applications for the games, you will also need:
 
 tcl/tk development headers (version 8.4)
-X headers (latest version)
+X headers (latest version, xorg-x11-devel should be all you need)
 
 if you want to compile games with big integer support:
 
