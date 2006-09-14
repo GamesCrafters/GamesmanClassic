@@ -70,7 +70,10 @@ proc GS_InitGameSpecific {} {
     
     ### Set the initial position of the board
     global gInitialPosition gPosition
-    set gInitialPosition [expr int((pow(2, $gRows*3) - 1)) * 2]
+
+    # 7858 is 1, 3, 5, 7-piece columns
+    # set gInitialPosition [expr int((pow(2, $gRows*3) - 1)) * 2]
+    set gInitialPosition 7858
     set gPosition $gInitialPosition
 }
 
@@ -215,7 +218,7 @@ proc min { a b } {
 
 proc GS_Initialize { c } {
     global backgroundImage
-    global playareaImage gFrameWidth gFrameHeight size
+    global playareaImage gFrameWidth gFrameHeight size gInitialPosition
 
     set size [min $gFrameWidth $gFrameHeight]
 
@@ -236,6 +239,8 @@ proc GS_Initialize { c } {
 	    $c bind move-$w$h <ButtonRelease-1> "MyReturnFromHumanMove $w $h"
 	}
     }
+
+    GS_DrawPosition $c $gInitialPosition
 }
 
 proc GS_Deinitialize { c } {
