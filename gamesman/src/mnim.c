@@ -5,7 +5,7 @@
 #define MIN_ROWS 1
 #define MAX_ROWS 9
 
-int rows = 5 ;
+int rows = 4 ;
 
 POSITION gNumberOfPositions = 0 ;
 POSITION gInitialPosition = 0 ;
@@ -37,7 +37,9 @@ void InitializeGame()
 {
 	// HERE, YOU SHOULD ASSIGN gNumberOfPositions and gInitialPosition
 	gNumberOfPositions =(1<<(rows*3)) * 2 ;
-	gInitialPosition = ((1<<(rows*3)) - 1) * 2;
+	gInitialPosition = 7858; // 1, 3, 5, 7-piece rows
+
+	// gInitialPosition = ((1<<(rows*3)) - 1) * 2;
 	gMinimalPosition = gInitialPosition ;
 
 	gMoveToStringFunPtr = &MoveToString;
