@@ -30,12 +30,13 @@
 **
 **************************************************************************/
 
-//
-// 2 different storages for write and nowrite
-// fixed bugs with writing
-// changing functions to inline
-// added bpdb to db.h
-// clean up
+// TODO
+// allow variable buffer size
+// readjust database size
+// hardcode VALUE as slot? maybe...
+
+// NOTE
+// supports up to 256 slices each 64-bits in size
 
 #include "bpdb.h"
 #include "bpdb_bitlib.h"
@@ -63,6 +64,11 @@ UINT64      bpdb_slices = 0;
 // pointer to scheme list
 Scheme_List bpdb_scheme_list = NULL;
 
+// legacy slots
+UINT32 BPDB_VALUESLOT = 0;
+UINT32 BPDB_MEXSLOT = 0;
+UINT32 BPDB_REMSLOT = 0;
+UINT32 BPDB_VISITEDSLOT = 0;
 
 /*
  * bpdb_init
@@ -73,7 +79,6 @@ bpdb_init(
                 )
 {
     GMSTATUS status = STATUS_SUCCESS;
-    UINT64 i;
 
     if(NULL == new_db) {
         status = STATUS_INVALID_INPUT_PARAMETER;
@@ -89,46 +94,37 @@ bpdb_init(
     bpdb_write_slice = (SLICE) calloc( 1, sizeof(struct sliceformat) );
     bpdb_nowrite_slice = (SLICE) calloc( 1, sizeof(struct sliceformat) );
 
-    status = bpdb_add_slot( 2, "VALUE", TRUE );         //slot 0
-    if(!GMSUCCESS(status)) {
-        BPDB_TRACE("bpdb_init()", "Could not add value slot", status);
-        goto _bailout;
-    }
+    if(!gBitPerfectDBSolver) {
 
-    status = bpdb_add_slot( 5, "MEX", TRUE );           //slot 2
-    if(!GMSUCCESS(status)) {
-        BPDB_TRACE("bpdb_init()", "Could not add mex slot", status);
-        goto _bailout;
-    }
+        status = bpdb_add_slot( 2, "VALUE", TRUE, &BPDB_VALUESLOT );         //slot 0
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Could not add value slot", status);
+            goto _bailout;
+        }
+    
+        status = bpdb_add_slot( 5, "MEX", TRUE, &BPDB_MEXSLOT );           //slot 2
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Could not add mex slot", status);
+            goto _bailout;
+        }
+    
+        status = bpdb_add_slot( 8, "REMOTENESS", TRUE, &BPDB_REMSLOT );    //slot 4
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Could not add remoteness slot", status);
+            goto _bailout;
+        }
 
-    status = bpdb_add_slot( 8, "REMOTENESS", TRUE );    //slot 4
-    if(!GMSUCCESS(status)) {
-        BPDB_TRACE("bpdb_init()", "Could not add remoteness slot", status);
-        goto _bailout;
-    }
+        status = bpdb_add_slot( 1, "VISITED", FALSE, &BPDB_VISITEDSLOT );       //slot 1
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Could not add visited slot", status);
+            goto _bailout;
+        }
 
-    status = bpdb_add_slot( 1, "VISITED", FALSE );       //slot 1
-    if(!GMSUCCESS(status)) {
-        BPDB_TRACE("bpdb_init()", "Could not add visited slot", status);
-        goto _bailout;
-    }
-
-    // fixed heap corruption =p
-    bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
-    if(NULL == bpdb_write_array) {
-        status = STATUS_NOT_ENOUGH_MEMORY;
-        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_write_array in memory", status);
-    }
-
-    bpdb_nowrite_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_nowrite_slice->bits) ), sizeof(BYTE));
-    if(NULL == bpdb_write_array) {
-        status = STATUS_NOT_ENOUGH_MEMORY;
-        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_nowrite_array in memory", status);
-    }
-
-    // probably do not need this anymore
-    for(i = 0; i < bpdb_slices; i++) {
-        bpdb_set_slice_slot( i, VALUESLOT, undecided );
+        status = bpdb_allocate();
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Failed call to bpdb_allocate() to allocate bpdb arrays", status);
+            goto _bailout;
+        }
     }
 
     new_db->get_value = bpdb_get_value;
@@ -142,7 +138,10 @@ bpdb_init(
     new_db->put_mex = bpdb_set_mex;
     new_db->save_database = bpdb_save_database;
     new_db->load_database = bpdb_load_database;
-    
+    new_db->allocate = bpdb_allocate;
+    new_db->add_slot = bpdb_add_slot;
+    new_db->get_slice_slot = bpdb_get_slice_slot;
+    new_db->set_slice_slot = bpdb_set_slice_slot;    
     new_db->free_db = bpdb_free;
 
     bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, bpdb_mem_write_varnum, FALSE );
@@ -152,6 +151,36 @@ bpdb_init(
 _bailout:
     return;
     //return status;
+}
+
+GMSTATUS
+bpdb_allocate( )
+{
+    GMSTATUS status = STATUS_SUCCESS;
+    //UINT64 i = 0;
+
+    // fixed heap corruption =p
+    bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
+    if(NULL == bpdb_write_array) {
+        status = STATUS_NOT_ENOUGH_MEMORY;
+        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_write_array in memory", status);
+        goto _bailout;
+    }
+
+    bpdb_nowrite_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_nowrite_slice->bits) ), sizeof(BYTE));
+    if(NULL == bpdb_write_array) {
+        status = STATUS_NOT_ENOUGH_MEMORY;
+        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_nowrite_array in memory", status);
+        goto _bailout;
+    }
+
+    // probably do not need this anymore
+    //for(i = 0; i < bpdb_slices; i++) {
+    //    bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
+    //}
+
+_bailout:
+    return status;
 }
 
 void
@@ -167,7 +196,7 @@ bpdb_set_value(
                 VALUE val
                 )
 {
-    bpdb_set_slice_slot( (UINT64)pos, VALUESLOT, (UINT64) val );
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_VALUESLOT, (UINT64) val );
     // bpdb_set_slice_slot needs to return val
     return val;
 }
@@ -177,7 +206,7 @@ bpdb_get_value(
                 POSITION pos
                 )
 {
-    return (VALUE) bpdb_get_slice_slot( (UINT64)pos, VALUESLOT );
+    return (VALUE) bpdb_get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
 }
 
 REMOTENESS
@@ -185,7 +214,7 @@ bpdb_get_remoteness(
                     POSITION pos
                     )
 {
-    return (REMOTENESS) bpdb_get_slice_slot( (UINT64)pos, REMSLOT );
+    return (REMOTENESS) bpdb_get_slice_slot( (UINT64)pos, BPDB_REMSLOT );
 }
 
 void
@@ -194,7 +223,7 @@ bpdb_set_remoteness(
                     REMOTENESS val
                     )
 {
-    bpdb_set_slice_slot( (UINT64)pos, REMSLOT, (REMOTENESS) val );
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_REMSLOT, (REMOTENESS) val );
     
     /*
     if(val > REMOTENESS_MAX) {
@@ -210,7 +239,7 @@ bpdb_check_visited(
                 POSITION pos
                 )
 {
-    return (BOOLEAN) bpdb_get_slice_slot( (UINT64)pos, VISITEDSLOT );
+    return (BOOLEAN) bpdb_get_slice_slot( (UINT64)pos, BPDB_VISITEDSLOT );
 }
 
 void
@@ -218,7 +247,7 @@ bpdb_mark_visited(
                 POSITION pos
                 )
 {
-    bpdb_set_slice_slot( (UINT64)pos, VISITEDSLOT, (UINT64)1 );
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_VISITEDSLOT, (UINT64)1 );
 }
 
 void
@@ -226,7 +255,7 @@ bpdb_unmark_visited(
                 POSITION pos
                 )
 {
-    bpdb_set_slice_slot( (UINT64)pos, VISITEDSLOT, (UINT64)0 );
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_VISITEDSLOT, (UINT64)0 );
 }
 
 void
@@ -235,7 +264,7 @@ bpdb_set_mex(
                 MEX mex
                 )
 {
-    bpdb_set_slice_slot( (UINT64)pos, MEXSLOT, (UINT64)mex );
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_MEXSLOT, (UINT64)mex );
 }
 
 MEX
@@ -243,10 +272,10 @@ bpdb_get_mex(
                 POSITION pos
                 )
 {
-    return (MEX) bpdb_get_slice_slot( (UINT64)pos, MEXSLOT );
+    return (MEX) bpdb_get_slice_slot( (UINT64)pos, BPDB_MEXSLOT );
 }
 inline
-void
+UINT64
 bpdb_set_slice_slot(
                 UINT64 position,
                 UINT8 index,
@@ -267,14 +296,18 @@ bpdb_set_slice_slot(
     }
     index /= 2;
 
-    if(value > bpdb_slice->maxvalues[index]) {
-        value = bpdb_slice->maxvalues[index];
+    if(value > bpdb_slice->maxseen[index]) {
+        bpdb_slice->maxseen[index] = value;
+    }
+
+    if(value > bpdb_slice->maxvalue[index]) {
+        value = bpdb_slice->maxvalue[index];
         if(!bpdb_slice->overflowed[index]) {
             printf("\nWarning: Slot %s with bit size %u had to be rounded from %llu to its maxvalue %llu.\n",
-                                                                        bpdb_slice->names[index],
-                                                                        bpdb_slice->sizes[index],
+                                                                        bpdb_slice->name[index],
+                                                                        bpdb_slice->size[index],
                                                                         value,
-                                                                        bpdb_slice->maxvalues[index]
+                                                                        bpdb_slice->maxvalue[index]
                                                                         );
             bpdb_slice->overflowed[index] = TRUE;
         }
@@ -282,14 +315,16 @@ bpdb_set_slice_slot(
 
     byteOffset = (bpdb_slice->bits * position)/BITSINBYTE;
     bitOffset = ((UINT8)(bpdb_slice->bits % BITSINBYTE) * (UINT8)(position % BITSINBYTE)) % BITSINBYTE;
-    bitOffset += bpdb_slice->offsets[index];
+    bitOffset += bpdb_slice->offset[index];
     
     byteOffset += bitOffset / BITSINBYTE;
     bitOffset %= BITSINBYTE;
 
     //printf("byteoff: %d bitoff: %d value: %llu length: %d\n", byteOffset, bitOffset, value, length);
     //printf("value: %llu\n", value);
-    bitlib_insert_bits( bpdb_array + byteOffset, bitOffset, value, bpdb_slice->sizes[index] );
+    bitlib_insert_bits( bpdb_array + byteOffset, bitOffset, value, bpdb_slice->size[index] );
+
+    return value;
 }
 
 
@@ -316,23 +351,25 @@ bpdb_get_slice_slot(
 
     byteOffset = (bpdb_slice->bits * position)/BITSINBYTE;
     bitOffset = ((UINT8)(bpdb_slice->bits % BITSINBYTE) * (UINT8)(position % BITSINBYTE)) % BITSINBYTE;
-    bitOffset += bpdb_slice->offsets[index];
+    bitOffset += bpdb_slice->offset[index];
     
     byteOffset += bitOffset / BITSINBYTE;
     bitOffset %= BITSINBYTE;
 
-    return bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->sizes[index] );
+    return bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->size[index] );
 }
 
-
+// need to return the index of the slot
+// slotindex is an output
 GMSTATUS
 bpdb_add_slot(
                 UINT8 size,
                 char *name,
-                BOOLEAN write
+                BOOLEAN write,
+                UINT32 *slotindex
                 )
 {
-    GMSTATUS status = STATUS_SUCCESS;    
+    GMSTATUS status = STATUS_SUCCESS;
     SLICE bpdb_slice = NULL;
 
     if(NULL == name) {
@@ -355,35 +392,48 @@ bpdb_add_slot(
 
     if(write) {
         bpdb_slice = bpdb_write_slice;
+        *slotindex = 0;
     } else {
         bpdb_slice = bpdb_nowrite_slice;
+        *slotindex = 1;
     }
+
+    *slotindex += bpdb_slice->slots*2;
+
+    // for backwards compatibility
+    if(strcmp(name, "VALUE") == 0) BPDB_VALUESLOT = *slotindex;
+    else if(strcmp(name, "MEX") == 0) BPDB_MEXSLOT = *slotindex;
+    else if(strcmp(name, "REMOTENESS") == 0) BPDB_REMSLOT = *slotindex;
+    else if(strcmp(name, "VISITED") == 0) BPDB_VISITEDSLOT = *slotindex;
 
     bpdb_slice->slots++;
     if(bpdb_slice->slots == 1) {
-        bpdb_slice->sizes = (UINT8 *) calloc( 1, sizeof(UINT8) );
-        bpdb_slice->offsets = (UINT32 *) calloc( 1, sizeof(UINT32) );
-        bpdb_slice->maxvalues = (UINT64 *) calloc( 1, sizeof(UINT64) );
-        bpdb_slice->names = (char **) calloc( 1, sizeof(char **) );
+        bpdb_slice->size = (UINT8 *) calloc( 1, sizeof(UINT8) );
+        bpdb_slice->offset = (UINT32 *) calloc( 1, sizeof(UINT32) );
+        bpdb_slice->maxvalue = (UINT64 *) calloc( 1, sizeof(UINT64) );
+        bpdb_slice->maxseen = (UINT64 *) calloc( 1, sizeof(UINT64) );
+        bpdb_slice->name = (char **) calloc( 1, sizeof(char **) );
         bpdb_slice->overflowed = (BOOLEAN *) calloc( 1, sizeof(BOOLEAN) );
     } else {
-        bpdb_slice->sizes = (UINT8 *) realloc( bpdb_slice->sizes, bpdb_slice->slots*sizeof(UINT8) );
-        bpdb_slice->offsets = (UINT32 *) realloc( bpdb_slice->offsets, bpdb_slice->slots*sizeof(UINT32) );
-        bpdb_slice->maxvalues = (UINT64 *) realloc( bpdb_slice->maxvalues, bpdb_slice->slots*sizeof(UINT64) );
-        bpdb_slice->names = (char **) realloc( bpdb_slice->names, bpdb_slice->slots*sizeof(char **) );
+        bpdb_slice->size = (UINT8 *) realloc( bpdb_slice->size, bpdb_slice->slots*sizeof(UINT8) );
+        bpdb_slice->offset = (UINT32 *) realloc( bpdb_slice->offset, bpdb_slice->slots*sizeof(UINT32) );
+        bpdb_slice->maxvalue = (UINT64 *) realloc( bpdb_slice->maxvalue, bpdb_slice->slots*sizeof(UINT64) );
+        bpdb_slice->maxseen = (UINT64 *) realloc( bpdb_slice->maxseen, bpdb_slice->slots*sizeof(UINT64) );
+        bpdb_slice->name = (char **) realloc( bpdb_slice->name, bpdb_slice->slots*sizeof(char **) );
         bpdb_slice->overflowed = (BOOLEAN *) realloc( bpdb_slice->overflowed, bpdb_slice->slots*sizeof(BOOLEAN) );
     }
 
     bpdb_slice->bits += size;
-    bpdb_slice->sizes[bpdb_slice->slots-1] = size;
+    bpdb_slice->size[bpdb_slice->slots-1] = size;
     if(bpdb_slice->slots == 1) {
-        bpdb_slice->offsets[bpdb_slice->slots-1] = 0;
+        bpdb_slice->offset[bpdb_slice->slots-1] = 0;
     } else {
-        bpdb_slice->offsets[bpdb_slice->slots-1] = bpdb_slice->offsets[bpdb_slice->slots - 2] + bpdb_slice->sizes[bpdb_slice->slots - 2];
+        bpdb_slice->offset[bpdb_slice->slots-1] = bpdb_slice->offset[bpdb_slice->slots - 2] + bpdb_slice->size[bpdb_slice->slots - 2];
     }
-    bpdb_slice->maxvalues[bpdb_slice->slots-1] = (UINT64)pow(2, size) - 1;
-    bpdb_slice->names[bpdb_slice->slots-1] = (char *) malloc( strlen(name) + 1 );
-    strcpy( bpdb_slice->names[bpdb_slice->slots-1], name );
+    bpdb_slice->maxvalue[bpdb_slice->slots-1] = (UINT64)pow(2, size) - 1;
+    bpdb_slice->maxseen[bpdb_slice->slots-1] = 0;
+    bpdb_slice->name[bpdb_slice->slots-1] = (char *) malloc( strlen(name) + 1 );
+    strcpy( bpdb_slice->name[bpdb_slice->slots-1], name );
     bpdb_slice->overflowed[bpdb_slice->slots-1] = FALSE;
 
 _bailout:
@@ -405,11 +455,11 @@ bpdb_print_database()
     for(i = 0; i < bpdb_slices; i++) {
         printf("Slice %llu  (write) ", i);
         for(j=0; j < (bpdb_write_slice->slots); j++) {
-            printf("%s: %llu  ", bpdb_write_slice->names[j], bpdb_get_slice_slot(i, j*2));
+            printf("%s: %llu  ", bpdb_write_slice->name[j], bpdb_get_slice_slot(i, j*2));
         }
         printf("(no write) ");
         for(j=0; j < (bpdb_nowrite_slice->slots); j++) {
-            printf("%s: %llu  ", bpdb_nowrite_slice->names[j], bpdb_get_slice_slot(i, j*2+1));
+            printf("%s: %llu  ", bpdb_nowrite_slice->name[j], bpdb_get_slice_slot(i, j*2+1));
         }
         printf("\n");
     }
@@ -419,6 +469,9 @@ bpdb_print_database()
 BOOLEAN
 bpdb_save_database()
 {
+    // debug-temp
+    //bpdb_print_database();
+
     GMSTATUS status = STATUS_SUCCESS;
 
     // counter
@@ -450,11 +503,21 @@ bpdb_save_database()
         outfilenames[i] = (char *) malloc( 256*sizeof(char) );
     }
 
+/*
+    // debug-temp
+    // print out the status of the slots after solving
+    printf("\nNum slots: %u\n", bpdb_write_slice->slots);
+
+    for(i = 0; i<bpdb_write_slice->slots; i++) {
+        printf("%s: %llu\n", bpdb_write_slice->name[i], bpdb_write_slice->maxseen[i]);
+    }
+*/
+
     i = 0;
 
     printf("\n");
 
-    // save file under each encoding schemeset_
+    // save file under each encoding scheme
     while(cur != NULL) {
         // saves with encoding scheme and returns filename
         //sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", "test", 1, cur->scheme);
@@ -596,11 +659,11 @@ bpdb_generic_save_database(
     bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->slots );
 
     for(i = 0; i < (bpdb_write_slice->slots); i++) {
-        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->sizes[i] );
-        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, strlen(bpdb_write_slice->names[i]) );
+        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->size[i] );
+        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, strlen(bpdb_write_slice->name[i]) );
         
-        for(j = 0; j<strlen(bpdb_write_slice->names[i]); j++) {
-            bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_write_slice->names[i][j], 8 );
+        for(j = 0; j<strlen(bpdb_write_slice->name[i]); j++) {
+            bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_write_slice->name[i][j], 8 );
         }
 
         bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_write_slice->overflowed[i], 1 );
@@ -621,7 +684,7 @@ bpdb_generic_save_database(
                 }
                 bitlib_value_to_buffer( outFile, &outputBuffer, &offset, 0, 1 );
                 for(slot=0; slot < (bpdb_write_slice->slots); slot++) {
-                    bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->sizes[slot] );
+                    bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
                 }
 
             } else {
@@ -633,11 +696,10 @@ bpdb_generic_save_database(
         for(slice=0; slice<bpdb_slices; slice++) {
             //bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_full(slice), bpdb_slice->bits );
             for(slot=0; slot < (bpdb_write_slice->slots); slot++) {
-                bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->sizes[slot] );
+                bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
             }
         }
     }
-
 
     if(consecutiveSkips != 0) {
         scheme->write_varnum(outFile, &outputBuffer, &offset, consecutiveSkips);
@@ -693,8 +755,10 @@ bpdb_load_database( )
     // read file header
     fileFormat = bitlib_file_read_byte( inFile );
 
+    printf("\n\nDatabase Header Information\n");
+
     // print fileinfo
-    printf("\nEncoding Scheme: %d\n", fileFormat);
+    printf("Encoding Scheme: %d\n", fileFormat);
     
     cur = bpdb_scheme_list;
 
@@ -714,6 +778,9 @@ bpdb_load_database( )
         BPDB_TRACE("bpdb_load_database()", "call to bitlib to close file failed", status);
         goto _bailout;
     }
+
+    // debug-temp
+    //bpdb_print_database();
 
 _bailout:
     if(!GMSUCCESS(status)) {
@@ -743,8 +810,10 @@ bpdb_generic_load_database(
     UINT64 i, j;
     char tempchar;
     char * tempname;
-    UINT8 tempnamesize;
-    UINT8 tempsize;
+    UINT8 tempnamesize = 0;
+    UINT8 tempsize = 0;
+    UINT32 tempslotindex = 0;
+    BOOLEAN tempoverflowed;
     BOOLEAN slotsMade = FALSE;
 
     inputBuffer = bitlib_file_read_byte( inFile );
@@ -754,7 +823,7 @@ bpdb_generic_load_database(
     bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
     numOfSlotsHeader = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
 
-    printf("Slices: %llu, Bits per slice: %d, offset: %d\n", numOfSlicesHeader, bitsPerSliceHeader, offset);
+    printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, offset);
 
     if( bpdb_write_slice->slots ) {
         slotsMade = TRUE;
@@ -766,38 +835,54 @@ bpdb_generic_load_database(
     //
 
     for(i = 0; i<numOfSlotsHeader; i++) {
+        // read size slice in bits
         tempsize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
+        
+        // read size of slot name in bytes
         tempnamesize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
-        printf("Slot size %llu: %d\n", i, tempsize);
-        printf("\tString size %llu: %d\n", i, tempnamesize);
 
+        // allocate room for slot name
         tempname = (char *) malloc((tempnamesize + 1) * sizeof(char));
 
+        // read name
         for(j = 0; j<tempnamesize; j++) {
             tempchar = (char)bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 8 );
             *(tempname + j) = tempchar;
         }
         *(tempname + j) = '\0';
 
-        printf("\tString name: %s\n", tempname);
-        if( !slotsMade ) {
-            //bpdb_add_slot(tempsize, tempname);
+        // read overflowed bit
+        tempoverflowed = bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 1 );
+
+        // output information on each slot to the user
+        printf("Slot: %s (%u bytes)\n", tempname, tempnamesize);
+        printf("\tBit Width: %u\n", tempsize);
+
+        if(tempoverflowed) {
+            printf("\tWarning: Some values have been capped at %llu due to overflow.\n", (UINT64)pow(2, tempsize) - 1);
         }
 
-        // read overflowed bit
-        if(bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 1 )) {
-            printf("\tWarning: Slot contains values that have been capped due to overflow.\n");
+        if( !slotsMade ) {
+            status = bpdb_add_slot(tempsize, tempname, TRUE, &tempslotindex);
+            if(!GMSUCCESS(status)) {
+                BPDB_TRACE("bpdb_generic_load_database()", "call to bpdb_add_slot to add slot from database file failed", status);
+                goto _bailout;
+            }
         }
     }
 
-
+    status = bpdb_allocate();
+    if(!GMSUCCESS(status)) {
+        BPDB_TRACE("bpdb_generic_load_database()", "call to bpdb_allocate failed", status);
+        goto _bailout;
+    }
     if( scheme->indicator ) {
         while(currentSlice < numOfSlicesHeader) {
             if(bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 1 ) == 0) {
         
                 for(currentSlot = 0; currentSlot < (bpdb_write_slice->slots); currentSlot++) {
                     bpdb_set_slice_slot( currentSlice, 2*currentSlot,
-                                bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->sizes[currentSlot]) );
+                                bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->size[currentSlot]) );
                 }
 
                 currentSlice++;
@@ -814,11 +899,12 @@ bpdb_generic_load_database(
         for( currentSlice = 0; currentSlice < numOfSlicesHeader; currentSlice++ ) {
             for(currentSlot = 0; currentSlot < (bpdb_write_slice->slots); currentSlot++) {
                 bpdb_set_slice_slot( currentSlice, 2*currentSlot,
-                            bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->sizes[currentSlot]) );
+                            bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->size[currentSlot]) );
             }
         }
     }
 
+_bailout:
     return status;
 }
 

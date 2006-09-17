@@ -30,6 +30,14 @@ typedef unsigned int TIER;
 typedef POSITION TIERPOSITION; /* Used to differentiate "tier-specific" positions */
 typedef int UNDOMOVE; /* Just like MOVE but used specifically for undo-moves */
 
+// BPDB
+typedef unsigned char BYTE;
+typedef unsigned char UINT8;
+typedef unsigned int UINT32;
+typedef long long int INT64;
+typedef unsigned long long int UINT64;
+
+typedef UINT32 GMSTATUS;
 
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
 #ifdef WIN32

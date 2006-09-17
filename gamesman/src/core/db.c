@@ -105,7 +105,7 @@ void db_create() {
     db_functions->save_database = db_save_database;
     db_functions->load_database = db_load_database;
     db_functions->free_db = db_free;
-    db_functions->get_bulk = db_get_bulk; 
+    db_functions->get_bulk = db_get_bulk;
 }
 
 void db_destroy() {
@@ -118,12 +118,11 @@ void db_destroy() {
 
 void db_initialize(){
     if (gBitPerfectDB) {
-	bpdb_init(db_functions);
+        bpdb_init(db_functions);
     } else if(gTwoBits) {
         twobitdb_init(db_functions);
-
     } else if(gCollDB){
-	colldb_init(db_functions);
+        colldb_init(db_functions);
     }
 
 #ifdef HAVE_GMP
@@ -238,6 +237,46 @@ void InitializeDatabases()
 void DestroyDatabases()
 {
     db_destroy();
+}
+
+GMSTATUS
+Allocate ( )
+{
+    return db_functions->allocate();
+}
+
+UINT64
+GetSlot(
+                UINT64 position,
+                UINT8 index
+                )
+{
+    if(kLoopy && gSymmetries)
+	    position = gCanonicalPosition(position);
+    return db_functions->get_slice_slot(position, index);
+}
+
+UINT64
+SetSlot(
+                UINT64 position,
+                UINT8 index,
+                UINT64 value
+                )
+{
+    if(kLoopy && gSymmetries)
+	    position = gCanonicalPosition(position);
+    return db_functions->set_slice_slot(position, index, value);
+}
+
+GMSTATUS
+AddSlot(
+                UINT8 size,
+                char *name,
+                BOOLEAN write,
+                UINT32 *slotindex
+                )
+{
+    return db_functions->add_slot(size, name, write, slotindex);
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)

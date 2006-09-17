@@ -35,6 +35,7 @@
 #include "solveloopy.h"
 #include "solvezero.h"
 #include "solvestd.h"
+#include "solvebpdbstd.h"
 #include "solvebottomup.h"
 #include "solveweakab.h"
 #include "solveretrograde.h"
@@ -107,7 +108,10 @@ void SetSolver()
                 gSolver = &DetermineValueBU;
         else if(gAlphaBeta)
                 gSolver = &DetermineValueAlphaBeta;
-        else
+        else if(gBitPerfectDBSolver) {
+                printf("BIT PERFECT DB SOLVER!!!!!\n");
+                gSolver = &DetermineValueBPDBSTD;
+        } else
                 gSolver = &DetermineValueSTD;
 }
 
@@ -166,7 +170,10 @@ VALUE DetermineValue(POSITION position)
 	} else {
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);
-		StoreValueOfPosition(position, undecided);
+        // Ken Elkabany removed the line below, tell him if you want to undo it
+        // bpdb will not work with it since it doesn't allocate itself until gSolver(position)
+        // is called
+		//StoreValueOfPosition(position, undecided);
 		gSolver(position);
 		showStatus(Clean);
 		AnalysisCollation();
@@ -249,7 +256,7 @@ void HandleArguments (int argc, char *argv[])
                                 } else
                                         setOption(option);
                         }
-		} else if(!strcasecmp(argv[i], "--bpdb")) {
+		        } else if(!strcasecmp(argv[i], "--bpdb")) {
                         gBitPerfectDB = TRUE;
                 } else if(!strcasecmp(argv[i], "--2bit")) {
                         gTwoBits = TRUE;
@@ -273,6 +280,8 @@ void HandleArguments (int argc, char *argv[])
                         gAlphaBeta = TRUE;
                 } else if(!strcasecmp(argv[i], "--lowmem")) {
                         gZeroMemSolver = TRUE;
+                } else if(!strcasecmp(argv[i], "--slicessolver")) {
+                        gBitPerfectDBSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
                         gJustSolving = TRUE;
                         if((i + 1) < argc && !strcasecmp(argv[++i], "all"))

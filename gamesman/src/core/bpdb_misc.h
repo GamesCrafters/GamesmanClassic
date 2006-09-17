@@ -10,7 +10,7 @@
 #include "gamesman.h"
 
 typedef gzFile dbFILE;
-
+/*
 typedef unsigned char BYTE;
 typedef unsigned char UINT8;
 typedef unsigned int UINT32;
@@ -18,6 +18,7 @@ typedef long long int INT64;
 typedef unsigned long long int UINT64;
 
 typedef UINT32 GMSTATUS;
+*/
 
 #define BITSINBYTE 8
 #define BITSINPOS 64
@@ -27,22 +28,26 @@ typedef UINT32 GMSTATUS;
             free(ptr);
 
 #define BPDB_TRACE(fnc, msg, err) \
-        fprintf(stderr, "ERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
+        fprintf(stderr, "\nERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
 
-#define STATUS_SUCCESS 0x0
-#define STATUS_NOT_ENOUGH_MEMORY 0x1
-#define STATUS_INVALID_INPUT_PARAMETER 0x2
+#define STATUS_SUCCESS                  0x0
+#define STATUS_NOT_ENOUGH_MEMORY        0x1
+#define STATUS_INVALID_INPUT_PARAMETER  0x2
 
 #define STATUS_FILE_COULD_NOT_BE_OPENED 0x3
 #define STATUS_FILE_COULD_NOT_BE_CLOSED 0x4
 
+#define STATUS_MISSING_DEPENDENT_MODULE 0x5
+
 #define GMSUCCESS(status) \
         (STATUS_SUCCESS == (status))
 
+/*
 #define VALUESLOT 0
 #define MEXSLOT 2
 #define REMSLOT 4
 #define VISITEDSLOT 1
+*/
 
 /* List structure for schemes */
 typedef struct Schemelist {

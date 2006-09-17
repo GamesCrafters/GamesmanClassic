@@ -3,7 +3,6 @@
 
 /*This header file contains all the exported definitions and declarations of the DB class*/
 
-
 #define VISITED_MASK     	4          /* ...00000000000000100 */
 #define VALUE_MASK       	3          /* ...00000000000000011 */
 #define MEX_MAX	  		31	   /* 2^5-1 */
@@ -72,6 +71,12 @@ typedef struct DB {
     BOOLEAN	(*save_database)	();
     BOOLEAN	(*load_database)	();
 
+    // bpdb
+    UINT64      (*get_slice_slot)   (UINT64 position, UINT8 index);
+    UINT64      (*set_slice_slot)   (UINT64 position, UINT8 index, UINT64 value);
+    GMSTATUS    (*add_slot)         (UINT8 size, char *name, BOOLEAN write, UINT32 *slotindex);
+    GMSTATUS    (*allocate)         ();
+    
     void	(*get_bulk)		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
 
 } DB_Table;
@@ -89,7 +94,31 @@ VALUE       db_original_put_value(POSITION pos, VALUE data);
 /* General */
 void		CreateDatabases		();
 void		InitializeDatabases	();
-void		DestroyDatabases       	();
+void		DestroyDatabases    ();
+
+
+UINT64
+GetSlot(
+                UINT64 position,
+                UINT8 index
+                );
+UINT64
+SetSlot(
+                UINT64 position,
+                UINT8 index,
+                UINT64 value
+                );
+
+GMSTATUS
+AddSlot(
+                UINT8 size,
+                char *name,
+                BOOLEAN write,
+                UINT32 *slotindex
+                );
+
+GMSTATUS
+Allocate( );
 
 /* Since the solvers will These will be deprecated soon */
 /* Value */

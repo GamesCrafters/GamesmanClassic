@@ -74,6 +74,7 @@ SOLVER_BOTTOMUP = solvebottomup$(OBJSUFFIX)
 SOLVER_ALPHABETA = solveweakab$(OBJSUFFIX)
 SOLVER_RETROGRADE = solveretrograde$(OBJSUFFIX)
 SOLVER_OPENPOSITIONS = openPositions$(OBJSUFFIX)
+SOLVER_BPDB_STD = solvebpdbstd$(OBJSUFFIX)
 
 ##############################################################################
 ### Files
@@ -87,15 +88,16 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
-	$(SOLVER_RETROGRADE) $(SOLVER_OPENPOSITIONS)
+	$(SOLVER_RETROGRADE) $(SOLVER_OPENPOSITIONS) $(SOLVER_BPDB_STD)
 
 MODULES=$(CORE) $(SOLVERS) hash.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h \
 	 memdb.h bpdb.h bpdb_bitlib.h bpdb_schemes.h bpdb_misc.h twobitdb.h db.h \
-	 solvezero.h solveloopyup.h solveretrograde.h textui.h setup.h httpclient.h netdb.h \
-	 openPositions.h visualization.h filedb.h filedb/db.h hashwindow.h
+	 solvezero.h solveloopyup.h solveretrograde.h solvebpdbstd.h textui.h \
+	 setup.h httpclient.h netdb.h openPositions.h visualization.h filedb.h \
+	 filedb/db.h hashwindow.h
 
 
 
