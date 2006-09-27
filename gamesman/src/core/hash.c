@@ -633,6 +633,8 @@ void freeHashContext(int contextNum)
         SafeFree(contextList[contextNum]->thisCount);
         SafeFree(contextList[contextNum]->localMins);
 
+        SafeFree(contextList[contextNum]);
+
 }
 
 /* determines if a piece distribution is valid or not.
@@ -736,10 +738,13 @@ int nCr(int n, int r)
 
 void generic_hash_destroy()
 {
-        int i;
-        for (i=0; i < hash_tot_context; i++)
-                //if (contextList[i]->init)
-                freeHashContext(i);
-	if (contextList != NULL)
+    int i;
+    for (i=0; i < hash_tot_context; i++)
+            //if (contextList[i]->init)
+            freeHashContext(i);
+	if (contextList != NULL) {
 	        SafeFree(contextList);
+			contextList = NULL;
+	}
+	hash_tot_context = currentContext = 0;
 }
