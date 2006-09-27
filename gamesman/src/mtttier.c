@@ -11,7 +11,7 @@
 **              Copyright (C) Dan Garcia, 1995. All rights reserved.
 **				Copy-Pasted and Revised 2006 by Max Delgadillo
 **
-** DATE:        07/24/06
+** DATE:        09/27/06
 **
 ** UPDATE HIST:
 **
@@ -45,6 +45,8 @@
 **				choose to make that fix anyway), this is as close to the
 **				final version of the file as it gets.
 **	8/08/06:	Added TierToString.
+**	9/27/06:	Removed instances of "Tier0Context", and instead use the
+**				generic hash destructor (which works now!).
 **
 **
 **************************************************************************/
@@ -178,7 +180,6 @@ BOOLEAN IsLegal(POSITION);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 STRING TierToString(TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
-int Tier0Context;
 // Actual functions are at the end of this file
 
 //SYMMETRIES
@@ -239,6 +240,9 @@ void InitializeGame()
   }
 
   gMoveToStringFunPtr = &MoveToString;
+
+  //discard current hash
+  generic_hash_destroy();
 
   //Setup Tier Stuff (at bottom)
   SetupTierStuff();
@@ -713,7 +717,7 @@ BlankOX* PositionToBlankOX(POSITION position)
 	if (gHashWindowInitialized) {// using hash windows
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
-		generic_hash_context_switch(Tier0Context+tier); // switch to that tier's context
+		generic_hash_context_switch(tier); // switch to that tier's context
 		return (BlankOX *) generic_unhash(tierpos, board); // unhash in that tier
 	} else return (BlankOX *) generic_unhash(position, board);
 }
@@ -724,7 +728,7 @@ POSITION BlankOXToPosition(BlankOX* board)
 	POSITION position;
 	if (gHashWindowInitialized) {
 		TIER tier = BoardToTier(board); // find this board's tier
-		generic_hash_context_switch(Tier0Context+tier); // switch to that context
+		generic_hash_context_switch(tier); // switch to that context
 		TIERPOSITION tierpos = generic_hash((char*)board, 1); //unhash
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
 	} else position = generic_hash((char*)board, 1);
@@ -793,8 +797,6 @@ void SetupTierStuff() {
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
 		generic_hash_init_singleplayer(BOARDSIZE, piecesArray, NULL, (tier%2==0 ? 2 : 1));
-		if (tier == 0) // since we can't discard contexts, I use this:
-			Tier0Context = generic_hash_cur_context();
 	}
 	// initial tier
 	gInitialTier = BOARDSIZE;
@@ -817,7 +819,7 @@ TIERLIST* TierChildren(TIER tier) {
 
 // Switch to the correct hash and call generic_hash_max_pos.
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-	generic_hash_context_switch(Tier0Context+tier);
+	generic_hash_context_switch(tier);
 	return generic_hash_max_pos();
 }
 

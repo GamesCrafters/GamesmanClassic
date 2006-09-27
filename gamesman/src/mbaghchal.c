@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.25 2006-09-11 05:20:36 max817 Exp $
+// $Id: mbaghchal.c,v 1.26 2006-09-27 11:28:58 max817 Exp $
 
 /************************************************************************
 **
@@ -10,7 +10,7 @@
 **              Max Delgadillo
 **              Deepa Mahajan
 **
-** DATE:        2006.4.16
+** DATE:        2006.9.27
 **
 ** UPDATE HIST: -2004.10.21 = Original (Dom's) Version
 **              -2006.3.2 = Updates + Fixes by Max and Deepa
@@ -47,6 +47,10 @@
 **					excluding IsLegal and Undomove functions of course.
 **					The Undomove functions will be fixed once the solver's
 **					debugger finally works and can help debug the problem.
+**				-2006.9.27 = It turns out Undomove functions were actually
+**					fully correct! The solver's debugger will confirm for sure
+**					once it's finished. Also, got rid of "Tier0Context" since
+**					hash destruction now works.
 **
 **
 **************************************************************************/
@@ -308,7 +312,6 @@ TIER hashTier(int, int, int);
 int numGoatsOnBoard (char*);
 void generateTierList(int, int);
 int s1GoatOffset, s1TigerOffset;
-int Tier0Context;
 // Actual functions are at the end of this file
 
 //DEEPA BLUE
@@ -1110,7 +1113,7 @@ POSITION hash (char* board, int turn, int goatsLeft)
 	if (gHashWindowInitialized) {
 		int goatsOnBoard = numGoatsOnBoard(board);
 		TIER tier = hashTier(goatsOnBoard, goatsLeft, turn); // find this board's tier
-		generic_hash_context_switch(Tier0Context+goatsOnBoard); // switch to that context
+		generic_hash_context_switch(goatsOnBoard); // switch to that context
 		TIERPOSITION tierpos;
 		if (tier < s1GoatOffset) //stage 2
 			tierpos = generic_hash(board, turn); //hash normally
@@ -1133,7 +1136,7 @@ char* unhash (POSITION position, int* turn, int* goatsLeft)
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		int goatsOnBoard;
 		unhashTier(tier, &goatsOnBoard, goatsLeft, turn); // this sets goatsLeft and turn
-		generic_hash_context_switch(Tier0Context+goatsOnBoard); // switch to that tier's context
+		generic_hash_context_switch(goatsOnBoard); // switch to that tier's context
 		if (tier < s1GoatOffset) // stage 2
 			(*turn) = whoseMove(tierpos); // hash tells the turn
 		return (char *) generic_unhash(tierpos, board); // unhash in that tier
@@ -1182,6 +1185,9 @@ void Reset ()
 
 void SetupGame ()
 {
+	// destroy current hash
+	generic_hash_destroy();
+	// setup the tier hashes
 	SetupTierStuff();
 	// The GLOBAL Hash:
 	int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
@@ -1199,7 +1205,7 @@ void SetupGame ()
 	gInitialPosition = hash(initial, 1, goats);
 	// for gInitialTierPosition
 	int globalHashContext = generic_hash_cur_context();
-	generic_hash_context_switch(Tier0Context+0);
+	generic_hash_context_switch(0); //switch to hash with 0 goats
 	initial = SafeMalloc(width * length * sizeof(char));
 	for(i = 0; i < boardSize; i++)
 		initial[i] = SPACE;
@@ -1465,8 +1471,6 @@ void SetupTierStuff() {
 		piecesArray[7] = piecesArray[8] = boardSize - tigers - tier;
 		// make the hashes
 		generic_hash_init(boardSize, piecesArray, NULL);
-		if (tier == 0) // since we can't discard contexts, I use this:
-			Tier0Context = generic_hash_cur_context();
 	}
 	gInitialTier = goats*(goats+1);
 }
@@ -1511,7 +1515,7 @@ TIERLIST* TierChildren(TIER tier)
 TIERPOSITION NumberOfTierPositions(TIER tier) {
 	int goatsOnBoard, goatsLeft, turn;
 	unhashTier(tier, &goatsOnBoard, &goatsLeft, &turn);
-	generic_hash_context_switch(Tier0Context+goatsOnBoard);
+	generic_hash_context_switch(goatsOnBoard);
 	if (tier < s1GoatOffset) // stage 2
 		return generic_hash_max_pos();
 	else // stage 1, report only half the boards
@@ -1709,6 +1713,11 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.25  2006/09/11 05:20:36  max817
+// Fixed the bug with Tier-Gamesman unhash. Now, with the exception of the
+// undomove functions and the (lack of) IsLegal, the Tier-Gamesman version
+// of Bagh Chal is (hopefully) 100% correct, working, and ready to solve.
+//
 // Revision 1.24  2006/08/23 03:28:40  max817
 // CVS'ing in Deepa's symmetries changes.
 //
