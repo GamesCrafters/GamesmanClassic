@@ -404,14 +404,14 @@ USERINPUT ConfigurationMenu()
       case '1':
 	printf("\nEnter the name of player 1 (max. %d chars) [%s] : ",
 	       MAXNAME-1, gPlayerName[kPlayerOneTurn]);
-	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
+	GetMyStr(tmpName,MAXNAME);
 	if(strcmp(tmpName,""))
 	  (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",tmpName);
 	break;
       case '2':
 	printf("\nEnter the name of player 2 (max. %d chars) [%s] : ",
 	       MAXNAME-1, gPlayerName[kPlayerTwoTurn]);
-	GetMyString(tmpName,MAXNAME,TRUE,FALSE);
+	GetMyStr(tmpName,MAXNAME);
 	if(strcmp(tmpName,""))
 	  (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
 	break;
@@ -1187,7 +1187,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     }
     FreeMoveList(head);
 
-    GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
+    GetMyStr(input,MAXINPUTLENGTH);
 
     if(input[0] == '\0') {
       /* [DDG 2005-01-09] Check if there is only one move to be made.
@@ -1227,7 +1227,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    return(Undo);
 	case 'a': case 'A':
 	    printf("\nSure you want to Abort? [no] :  ");
-	    GetMyString(tmpAns,2,TRUE,TRUE);
+	    GetMyStr(tmpAns,2);
 	    printf("\n");
 	    if(tmpAns[0] == 'y' || tmpAns[0] == 'Y')
 		return(Abort);
@@ -1336,29 +1336,6 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
       break;
     }
   } while(TRUE);
-}
-
-void GetMyString(char* name, int size, BOOLEAN eatFirstChar, BOOLEAN putCarraigeReturnBack)
-{
-    int ctr = 0;
-    BOOLEAN seenFirstNonSpace = FALSE;
-    signed char c;
-
-    if(eatFirstChar)
-        (void) getchar();
-
-    while((c = getchar()) != '\n' && c != EOF) {
-
-        if(!seenFirstNonSpace && c != ' ')
-            seenFirstNonSpace = TRUE;
-
-        if(ctr < size - 1 && seenFirstNonSpace)
-            name[ctr++] = c;
-    }
-    name[ctr] = '\0';
-
-    if(putCarraigeReturnBack)
-        ungetc('\n',stdin);  /* Put the \n back on the input */
 }
 
 /* Status Meter */

@@ -14,8 +14,6 @@ void		Menus			();
 void		HelpMenus		();
 
 USERINPUT	HandleDefaultTextInput	(POSITION pos, MOVE* move, STRING name);
-void		GetMyString		(char* name, int size, BOOLEAN eatFirst, BOOLEAN preserveCR);
-
 void		showStatus		(STATICMESSAGE msg);
 
 

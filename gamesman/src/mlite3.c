@@ -760,7 +760,7 @@ USERINPUT HandleTextInput(thePosition, theMove, playerName)
   BOOLEAN ValidTextInput();
   char tmpAns[2], input[MAXINPUTLENGTH];
 
-  GetMyString(input,MAXINPUTLENGTH,TRUE,TRUE);
+  GetMyStr(input,MAXINPUTLENGTH);
 
   if(input[0] == '\0')
     PrintPossibleMoves(thePosition);
@@ -781,7 +781,7 @@ USERINPUT HandleTextInput(thePosition, theMove, playerName)
       return(Undo);
     case 'a': case 'A':
       printf("\nSure you want to Abort? [no] :  ");
-      GetMyString(tmpAns,2,TRUE,TRUE);
+      GetMyStr(tmpAns,2);
       printf("\n");
       if(tmpAns[0] == 'y' || tmpAns[0] == 'Y')
 	return(Abort);
