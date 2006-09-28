@@ -197,8 +197,9 @@ proc GS_Initialize { c } {
 	{set j [expr $j + ($canvasSize / 3)]} { 
 	if { $counter == [expr ($boardSize / 2) - 1] } {
 	    set counter $boardSize
-	} 
-	for {set i [expr $binSize * 2]} {$i <= [expr $binSize * ($boardSize / 2)]} \
+	}
+	#the '+ 0.01' was added because cygwin has a rounding error and exits out of the loop after only 2 columns
+	for {set i [expr $binSize * 2]} {$i <= [expr $binSize * ($boardSize / 2) + 0.01]} \
 	    {set i [expr $i + $binSize]} {
 	    if { $counter < [expr $boardSize / 2] } {
 		incr counter  
