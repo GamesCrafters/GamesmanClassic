@@ -650,6 +650,10 @@ proc CreateGamePages { frame } {
     ## end start page ##
 
     set Desc(achi) "\tAchi is one of the many traditional Morris type games that involve placing pieces on a board to connect three in a row. The game originated in Ghana where it is often played by children who use pebbles and sticks as pieces. Various versions of Achi are played all over the world from China, where it is known as Luk tsu k'i to France where the center point cannot be used as the first move. Large stones dating back to the third or fourth century AD have even been found in northern England."
+    set Desc(abalone) "\tIn 1988 Michel Lalet and Lauren Levi created Abalone. The idea for the game came when the two animation coordinators ran into the son of a French ambassador who was tired of following his father around on business trips. Lalet and Levi decided to help the bored youth, and so the idea of Abalone was conceived. Levi and Lalet tried to get publishers to back their game. However, they remained unsuccessful until a special encounter with Andre Jarno, the founder of Financial French Union Bank. Jarno, who happened to be the neighbor of Levi's family, decided to invest in and market Abalone. The Abalone Company was formed on January 29, 1988 with the goal of marketing Abalone, which had just won the Boulogne-Bllancourt game creator contest. In September of the same year Abalone was officially launched."
+    set Desc(asalto) "\tAsalto or Assault is a variation of the popular Fox games, where one player is a fox and the other is a geese or sheep. The game has its origins in Spain and England as well as France, where it is known as Assaut. "
+    set Desc(change) "\t"
+    set Desc(dao) "\tDao is a simple puzzle game that involves moving a counter one or two spaces. Due to the lack of documentation when Dao was created, there is currently no information as to how this game came into existence. The company that made the game was Reveal Entertainment, Inc."
     set Desc(nim) "\tInvented in China, Nim (meaning 'to take') is played by children on small pieces of paper or by adults using coins. In 1902 it was given the name Nim by Harvard mathematician Charles Bouton, who published a full analysis of the game."
     set Desc(rubix) "\tRubik's Magic was created by Erno Rubik."
     set Desc(slideN) "\t"
@@ -675,6 +679,40 @@ proc CreateGamePages { frame } {
 	\n\nTo move: There are two types of moves in Achi: place moves and slide moves. In a place move, you place three pieces on a board. Once all of your three pieces are on the board, you make a slide move by selecting a piece to a connected and unoccupied spot.\
 	\n\nTo win:  To get three in a row either horizontally, vertically or diagonally.\
 	\n\nTo win misere: Force your opponent to get three in a row."
+    set Rules(abalone) "Rules: \
+     \n\nTo move: A player may move either one, two or three pieces in any of the six directions as long as the space he or she is moving to is empty. There are several types of moves. In line is a move forwards or backwards from one point to the next with 2 or 3 marbles. A broadside move involves moving the marbles parallel to an open adjacent spot. \
+     \n\nTo win: The first player to push 6 of his or her opponent's pieces off the board. \
+     \nThe person with a black marble is first. Marbles may be moved either in line or braodside, as described above. When one player has numerical superiority over his opponent's pieces, he may push his opponent's pieces with an in line move. The term sumito means outnumbering your opponent. There are three types of sumitos possible: 3 against 1, 3 against 2, or 2 against 1. Players are allowed to be push in line only when they are in contact with the opponent's pieces and when there is a space behind the opponent's marble or marbles. Pushing is not a required move. If players have an equal number of pieces confronting each other, a pac is formed. In this situation, pushing is not allowed. The winner is the first player to push six of his opponent's pieces off the board. \
+    \n\nVariants: \
+\nStarting position: Pieces can be arranged in a different manner from the official game rules. The Abalone website lists among others, the Belgian Federation of Abalone, and Dutch Daisy, as alternate ways to start the game. \
+\nBoard size: Increase or decrease the size of the board. \
+\nNumber of marbles for ejection: Vary the number of pieces needed to eject a piece off the board."
+    set Rules(asalto) "Rules:\
+\n\nThe Pieces:\
+\nThere are 24 pieces of one color, which will be foot solidiers and 2 pieces of another color, which are officers or sharpshooters. \
+\n\nTo move: Officers may move in any direction, one space at a time along the lines. Foot soldiers can only move forward, diagonally or sideways. They cannot move backwards. While they cannot jump the officers, they must try to trap them in the battlefiled or the fortress to win. \
+\n\nCapturing: An officer can capture by jumping over the solider if the next available space is vacant. \
+\n\nTo win: The foot soldiers win by either occupying every point of the fortress or by trapping the soliders inside the fortress or on the battlfield. The officers, on the other hand, try to capture the soldiers on the battlefield or the fortress. In order to win they must capture at least 15 soldiers. \
+\n\nThe board is initially arranged so that the top nine holes in one arm of the cross contains the two officers or sharp shooters. They may be arranged anywhere within their fortress. The 24 soldiers are placed outside the fortress. The sharp shooter or officers go first in this game. They are allowed to move in any direction along the lines one space at a time. They can capture by jumping over the soldier into a vacant space. Soldiers are allowed to jump and capture as many times as they can on their turn as long as they are able to land in a vacant space after each capture. Play then alternates to the soldier, who are only allowed to move forward and diagonally. On their move, soldiers should attempt to trap officers inside the fortress or battlefield. They are not allowed to jump. A variation of game involves huffled where the officer is removed from the board if he does not capture a soldier when he is able to do so. \
+\n\nVariants: \
+\nHuffled: An officer is removed from the game if he does not capture a soldier if the move is available. \
+\nDiagonals: Variations of the game can be played without the diagonals. \
+\nMovement: Alter the rules so that the officers are not allowed to move backwards. \
+\nNumber of Officers: Change the number of officers from two to three in the fortress." 
+    set Rules(change) "Rules:\
+\n\nTo move: Players alternate turns by sliding one of their pieces along the line towards the opponent's starting position. Players, on their turn, may move one or two spaces to an open spot. They are not allowed to turn corners, jump or go backwards. \
+\n\nTo win: Occupy your opponent's initial spaces or trap your opponent's piece. \
+\n\nThe game is played on a diagonal board with each player starting out with three markers. The pieces are placed on opposite ends of the board and each player alternates turns moving one piece. \
+\n\nTo win misere: Force your opponent to occupy your initial starting positions or get trapped by the opponent. "
+    set Rules(dao) "Rules: \
+    \n\nTo move: Pieces have to move (one piece per turn) as many open positions that are available to them.\
+\n\nTo win: To win, the player can either form a straight line with 4 of their own pieces, occupy the four corners of the board, or forming a 2 x 2 square with their pieces anywhere on the playing board. \
+The beginning setup is that each player will form an X that is aligned diagonally from the corners of the board. Dao will be played on a 4 x 4 dimensional board where each player will take turns moving their colored pieces in a straight line towards any available, or open positions including diagonally. Players are not allowed to jump over their opponents pieces or enter a position that is already occupied. The objective of this game is for each player to move their pieces as far as possible during each turn, till their pieces reach the end of the board or till their pieces reach another one of own pieces. During each turn, players has to move as many spaces as there are open positions in their path (i.e. if there are 3 open spaces in Player 1 direction, Player 1 must move 3 spaces). 
+A player is declared the victor if any of these following conditions are met:\
+\n-Forming a straight line with all 4 of their pieces (diagonal lines do not count).\
+\n-Occupying all 4 corners of the board with their pieces.\
+\n-Forming a 2 x 2 square with their pieces."
+
     set Rules(nim) "Rules:\
 	\n\nIn this game counters are arranged randomly in several heaps. Each player on his or her turn removes at least one counter. The game continues until all the counters are removed. The person to remove the last counter is the winner.\
 	\n\nTo move:  Remove at least one counter on your turn.\
