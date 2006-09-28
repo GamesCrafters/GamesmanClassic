@@ -117,7 +117,7 @@ char GetMyChar() {
 	return temp;
 }
 
-void GetMyStr(char *str, int len) {
+void GetMyStr(STRING str, int len) {
 	if (len < 0) {
 		fprintf(stderr, "Error in GetMyStr(), expected nonnegative \
 				length but got %d\n", len);
