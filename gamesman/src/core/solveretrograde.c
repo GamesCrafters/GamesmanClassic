@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.20 2006-09-11 05:21:42 max817 Exp $
+// $Id: solveretrograde.c,v 1.21 2006-10-01 10:29:24 max817 Exp $
 
 /************************************************************************
 **
@@ -417,7 +417,7 @@ BOOLEAN setInitialTierPosition() {
 
 POSITION GetMyPosition() {
     char inString[MAXINPUTLENGTH];
-    scanf("%s",inString);
+    GetMyStr(inString, MAXINPUTLENGTH);
     POSITION p = 0;
     int i = 0;
 	while (inString[i] >= '0' && inString[i] <='9') {
@@ -2153,6 +2153,10 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2006/09/11 05:21:42  max817
+// Made legality checking, undomove usage, and correctness checking OFF by
+// default. Also cleaned up the UI for handling these when they're disabled.
+//
 // Revision 1.19  2006/09/06 11:55:33  max817
 // Fixed the loopy solver bug! w00t!
 //
