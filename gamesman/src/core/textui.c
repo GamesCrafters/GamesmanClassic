@@ -1174,10 +1174,14 @@ void VisualizationMenu()
 USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING playerName)
 {
     MOVE tmpMove;
-    char tmpAns[2], input[MAXINPUTLENGTH];
+    char tmpAns, input[MAXINPUTLENGTH];
     MOVELIST* head;
     int onlyOneMove;
+    int i = 0;
 
+    for (i = 0; i < MAXINPUTLENGTH; ++i) {
+      input[i] = '\0';
+    }
     /*to skip input we have to see what moves are available first, and since we
       are not solving there is esstially no performance issue here*/
     head = GenerateMoves(thePosition); /* What are all moves available? */
@@ -1191,7 +1195,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
     }
     FreeMoveList(head);
 
-    GetMyStr(input,MAXINPUTLENGTH);
+    GetMyStr(input, MAXINPUTLENGTH);
 
     if(input[0] == '\0') {
       /* [DDG 2005-01-09] Check if there is only one move to be made.
@@ -1231,9 +1235,9 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    return(Undo);
 	case 'a': case 'A':
 	    printf("\nSure you want to Abort? [no] :  ");
-	    GetMyStr(tmpAns,2);
+	    tmpAns = GetMyChar();
 	    printf("\n");
-	    if(tmpAns[0] == 'y' || tmpAns[0] == 'Y')
+	    if(tmpAns == 'y' || tmpAns == 'Y')
 		return(Abort);
 	    else{
 	      PrintPosition(thePosition, playerName, TRUE);
@@ -1295,7 +1299,7 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
       if (gUnsolved) {
 	BadMenuChoice();
 	HitAnyKeyToContinue();
-	break;
+	return;
       } else {
 	PrintValueMoves(thePosition);
 	PrintPosition(thePosition, playerName, TRUE);
@@ -1305,7 +1309,7 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
       if (gUnsolved) {
 	BadMenuChoice();
 	HitAnyKeyToContinue();
-	break;
+	return;
       } else {
 	PrintVisualValueHistory(thePosition, 0);
 	return;
@@ -1314,7 +1318,7 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
       if (gUnsolved) {
 	BadMenuChoice();
 	HitAnyKeyToContinue();
-	break;
+	return;
       } else {
 	PrintVisualValueHistory(thePosition, 1);
 	return;
