@@ -1133,6 +1133,8 @@ void writeXMLVarData()
 ** Percentage
 */
 
+
+
 float PercentDone (STATICMESSAGE msg)
 {
     static POSITION num_pos_seen = 0;
@@ -1141,6 +1143,9 @@ float PercentDone (STATICMESSAGE msg)
     {
         case Update:
             num_pos_seen++;
+	    if (gTclInterp != NULL && 0 == (num_pos_seen % ((int)gNumberOfPositions / 100))) {
+	      Tcl_Eval(gTclInterp, "advanceProgressBar 1");
+	    }
             break;
         case Clean:
             num_pos_seen = 0;

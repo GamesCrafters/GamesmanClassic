@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.106 2006-04-18 01:03:26 eudean Exp $
+# $Id: InitWindow.tcl,v 1.107 2006-10-01 00:18:33 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -993,6 +993,30 @@ proc InitWindow { kRootDir kExt } {
 	-anchor center \
 	-tags [list WhoseTurn textitem]
 
+    # Percent Solved Progress Bar
+    .middle.f1.cMLeft create rectangle \
+	10 [expr $gWindowHeightRatio * 60] 10 [expr $gWindowHeightRatio * 80] \
+	-fill black \
+	-outline "" \
+	-width 0 \
+	-fill $gFontColor \
+	-tags [list progressBarSlider progressBar]
+
+    .middle.f1.cMLeft create rectangle \
+	10 [expr $gWindowHeightRatio * 60] [expr $gWindowWidthRatio * 150 - 10] [expr $gWindowHeightRatio * 80] \
+	-fill "" \
+	-outline $gFontColor \
+	-tags [list progressBarBox progressBar]
+
+    .middle.f1.cMLeft create text \
+	10 [expr $gWindowHeightRatio * 10] \
+	-justify left \
+	-anchor nw \
+	-font $kLabelFont \
+	-fill $gFontColor \
+	-text "" \
+	-tags [list progressBarText progressBar textitem]
+
     # this is the left panel item "click to play"
     global gNewGame
     .middle.f1.cMLeft bind startupPic <Enter> {
@@ -1920,6 +1944,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
 	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
 	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
 	}
@@ -1931,6 +1958,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
 	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
+	    .middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
 	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
 	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
 	}
@@ -2092,5 +2122,19 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     # Deal with other mouse over images
     #
 
+}
+
+proc advanceProgressBar { percent } {
+    global gFrameHeight gWindowWidthRatio
+    set percentDelta [expr [expr $gWindowWidthRatio * 150 - 20] / 100.0]
+    set barCoords [.middle.f1.cMLeft coords progressBarSlider]
+    set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
+    set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
+    lset barCoords 2 $xCoord
+    .middle.f1.cMLeft coords progressBarSlider $barCoords
+    .middle.f1.cMLeft itemconfig progressBarText \
+	-text [format "Percent Solved:\n%s%%" $percentDone]
+    .middle.f1.cMLeft raise progressBar
+    update idletasks
 }
 

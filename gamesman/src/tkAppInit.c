@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.32 2006-04-11 15:59:48 ogren Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.33 2006-10-01 00:18:32 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -400,6 +400,8 @@ DetermineValueCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   VALUE DetermineValue(), DetermineLoopyValue();
+  gTclInterp = interp;
+  char script[50] = "advanceProgressBar 0";
 
   if (argc != 2) {
     interp->result = "wrong # args: DetermineValue (POSITION)Position";
@@ -409,9 +411,12 @@ DetermineValueCmd(dummy, interp, argc, argv)
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
 
+    Tcl_Eval(interp, script);
+
     gMenuMode = BeforeEvaluation; /* Some solvers use this for optimization */
     interp->result = gValueString[(int)DetermineValue(position)];
     gMenuMode = Evaluated;
+
 
     return TCL_OK;
   }

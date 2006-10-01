@@ -123,3 +123,8 @@ BOOLEAN			(*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING			(*gTierToStringFunPtr)(TIER) = NULL;
+
+/* Tcl interp for making calls to Tcl_Eval */
+Tcl_Interp *gTclInterp = NULL;
+
+

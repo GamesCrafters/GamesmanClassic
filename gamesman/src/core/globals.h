@@ -131,4 +131,7 @@ extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING			(*gTierToStringFunPtr)(TIER);
 
+/* Tcl interp for making calls to Tcl_Eval */
+extern Tcl_Interp*              gTclInterp;
+
 #endif /* GMCORE_GLOBALS_H */
