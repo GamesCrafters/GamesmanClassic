@@ -90,7 +90,7 @@ void GetMy(char *format, GENERIC_PTR out, int length) {
 		ungetc(buffer[length - 2],stdin); /* unget the last non null 							     character, handles case
 						     when we have read exactly
 						     size - 1;
-						  */	
+						  */
 		fgets(buffer,length, stdin);	  /* read stdin again
 						     repeat until stdin
 						     is empty
@@ -122,7 +122,7 @@ void GetMyStr(STRING str, int len) {
 		fprintf(stderr, "Error in GetMyStr(), expected nonnegative \
 				length but got %d\n", len);
 	}
-	GetMy("%s", str, len);	
+	GetMy("%s", str, len);
 }
 
 /*char GetMyChar()
@@ -715,6 +715,10 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
 	sprintf(gPlayerName[kPlayerTwoTurn],"Challenger");
 	printf("\n\nYou have chosen to play the game without solving.  Have fun!\n\n");
+	if(gUsingTierGamesman && gTierGamesman) {//TIER GAMESMAN
+		gInitializeHashWindow(gInitialTier, TRUE);
+		gInitialPosition = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+	}
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
 	break;

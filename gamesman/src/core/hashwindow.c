@@ -168,7 +168,7 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 	gNumberOfPositions = gMaxPosOffset[gNumTiersInHashWindow-1];
 	FreeTierList(ptr);
 	// finally, load the databases to memory:
-	if (loadDB) {
+	if (loadDB && !gUnsolved) { //a messy way to handle non-solve playing
 		CreateDatabases();
 		InitializeDatabases();
 		if(!LoadDatabase()) {
