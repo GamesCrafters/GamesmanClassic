@@ -74,7 +74,7 @@ typedef struct DB {
     // bpdb
     UINT64      (*get_slice_slot)   (UINT64 position, UINT8 index);
     UINT64      (*set_slice_slot)   (UINT64 position, UINT8 index, UINT64 value);
-    GMSTATUS    (*add_slot)         (UINT8 size, char *name, BOOLEAN write, UINT32 *slotindex);
+    GMSTATUS    (*add_slot)         (UINT8 size, char *name, BOOLEAN write, BOOLEAN adjust, UINT32 *slotindex);
     GMSTATUS    (*allocate)         ();
     
     void	(*get_bulk)		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
@@ -114,6 +114,7 @@ AddSlot(
                 UINT8 size,
                 char *name,
                 BOOLEAN write,
+                BOOLEAN adjust,
                 UINT32 *slotindex
                 );
 

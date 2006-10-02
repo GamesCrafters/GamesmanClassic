@@ -109,7 +109,6 @@ void SetSolver()
         else if(gAlphaBeta)
                 gSolver = &DetermineValueAlphaBeta;
         else if(gBitPerfectDBSolver) {
-                printf("BIT PERFECT DB SOLVER!!!!!\n");
                 gSolver = &DetermineValueBPDBSTD;
         } else
                 gSolver = &DetermineValueSTD;
@@ -281,6 +280,11 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--lowmem")) {
                         gZeroMemSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--slicessolver")) {
+                        if(kLoopy) {
+                            fprintf(stderr, "\nCannot use slices solver since this game is loopy\n\n");
+                            gMessage = TRUE;
+                            i += argc;
+                        }                        
                         gBitPerfectDBSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
                         gJustSolving = TRUE;

@@ -56,9 +56,9 @@ VALUE       db_original_put_value(POSITION pos, VALUE data);
 /* default functions common to all db's*/
 
 /*will make this return the function table later*/
-void		db_create();
-void            db_destroy();
-void            db_initialize();
+void        db_create();
+void        db_destroy();
+void        db_initialize();
 
 /* these are generic functions that will be executed when the database is uninitialized */
 void		db_free			();
@@ -273,10 +273,11 @@ AddSlot(
                 UINT8 size,
                 char *name,
                 BOOLEAN write,
+                BOOLEAN adjust,
                 UINT32 *slotindex
                 )
 {
-    return db_functions->add_slot(size, name, write, slotindex);
+    return db_functions->add_slot(size, name, write, adjust, slotindex);
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)

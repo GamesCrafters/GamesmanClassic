@@ -135,6 +135,8 @@ bitlib_insert_bits(
                 UINT8 bitsToOutput
                 )
 {
+    assert( offsetFromLeft < 64 );
+
     // offsetfromright
     UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
     BYTE mask = 0;
