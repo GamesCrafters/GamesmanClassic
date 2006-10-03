@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.34 2006-10-03 06:41:52 jerricality Exp $
+// $Id: mabalone.c,v 1.35 2006-10-03 08:17:20 jerricality Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -95,9 +95,9 @@ STRING   kHelpExample =
       / --------- \\       |\n\
      / /         \\ \\      |\n\
     / /  (x)-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
-   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+   / /   / \\ / \\   \\ \\  |      / \\ / \\          \\ /\n\
   | |  ( )-( )-( )  | |   |   (3)-(4)-(5)      W -*- E\n\
-   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+   \\ \\   \\ / \\ /   / /  |     \\ / \\ /          / \\\n\
     \\ \\  (o)-(o)  / /     |     (6)-(7)        SW   SE\n\
      \\ \\         / /      |\n\
       \\ --------- /       |\n\
@@ -112,9 +112,9 @@ STRING   kHelpExample =
       / --------- \\       |\n\
      / /         \\ \\      |\n\
     / /  (x)-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
-   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+   / /   / \\ / \\   \\ \\  |      / \\ / \\          \\ /\n\
   | |  ( )-(o)-(o)  | |   |   (3)-(4)-(5)      W -*- E\n\
-   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+   \\ \\   \\ / \\ /   / /  |      \\ / \\ /          / \\\n\
     \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
      \\ \\         / /      |\n\
       \\ --------- /       |\n\
@@ -129,9 +129,9 @@ Computer's move   : [1 SW]\n\
       / --------- \\       |\n\
      / /         \\ \\      |\n\
     / /  ( )-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
-   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+   / /   / \\ / \\   \\ \\  |      / \\ / \\          \\ /\n\
   | |  (x)-(o)-(o)  | |   |   (3)-(4)-(5)      W -*- E\n\
-   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+   \\ \\   \\ / \\ /   / /  |      \\ / \\ /          / \\\n\
     \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
      \\ \\         / /      |\n\
       \\ --------- /       |\n\
@@ -146,9 +146,9 @@ Player's move :  5 w\n\
       / --------- \\       |\n\
      / /         \\ \\      |\n\
     / /  ( )-(x)  \\ \\     |     (1)-(2)        NW   NE\n\
-   / /   / \\ / \\   \\ \\    |     / \\ / \\          \\ /\n\
+   / /   / \\ / \\   \\ \\  |      / \\ / \\          \\ /\n\
   | |  (o)-(o)-( )  | |   |   (3)-(4)-(5)      W -*- E\n\
-   \\ \\   \\ / \\ /   / /    |     \\ / \\ /          / \\\n\
+   \\ \\   \\ / \\ /   / /  |      \\ / \\ /          / \\\n\
     \\ \\  ( )-( )  / /     |     (6)-(7)        SW   SE\n\
      \\ \\         / /      |\n\
       \\ --------- /       |\n\
@@ -994,25 +994,27 @@ void PrintPosition(position, playerName, usersTurn)
 
     
   /*main board printing here*/
+  
   for (r = 0; r < (2 * N) - 1; r++) {
     if (N < 4){
       printf("  ");
       printrow(r, 0);
       printf("   |   ");
       printrow(r, 1);
-      
+     
       if (r == N - 2)
 	printf("     NW   NE");
       else if (r == N - 1)
 	printf("     W -*- E");
       else if (r == N)
 	printf("     SW   SE");
-      else
+ 
+	 else
 	printf("               ");
       if (r != 2 * N - 2) {
 	printf("\n ");
 	printlines(r, 0);
-	printf("   |   ");
+	printf("|   ");
 	printlines(r, 1);
 	printf("  ");
 	
@@ -1021,8 +1023,10 @@ void PrintPosition(position, playerName, usersTurn)
 	else if (r == N - 2)
 	  printf("     \\ /");
       }
+	  
       printf("\n");
     }
+	
     else {
       printf("  ");
       printrow(r, 0);
@@ -1034,7 +1038,7 @@ void PrintPosition(position, playerName, usersTurn)
       }
     }
   }
-    
+  
 /* edge of hex board */
   /*spacer*/
   printf("     ");
@@ -2132,6 +2136,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.34  2006/10/03 06:41:52  jerricality
+// *** empty log message ***
+//
 // Revision 1.33  2006/08/21 23:52:47  dmchan
 // commented out calls to fflush(stdin) and changed to GetMyInt() and GetMyChar() where appropriate
 //
