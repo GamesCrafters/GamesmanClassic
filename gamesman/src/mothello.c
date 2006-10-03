@@ -166,6 +166,7 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 
 STRING MoveToString(MOVE);
+POSITION ActualNumberOfPositions(int variant);
 
 /************************************************************************
 **
@@ -215,6 +216,7 @@ void InitializeGame ()
 	fflush( stdout );
 
 	gMoveToStringFunPtr = &MoveToString;
+	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 /************************************************************************
 **
@@ -1532,3 +1534,12 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 
 	return 0;
 }
+
+POSITION ActualNumberOfPositions(int variant) {
+  if (variant & 0x01)
+    return 1231897;
+  else
+    return 62789;
+  return -1;
+}
+
