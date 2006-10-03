@@ -1,13 +1,14 @@
-// $Id: mabalone.c,v 1.33 2006-08-21 23:52:47 dmchan Exp $
+// $Id: mabalone.c,v 1.34 2006-10-03 06:41:52 jerricality Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
 **
 ** DESCRIPTION: Abalone
 **
-** AUTHOR:      Michael Mottmann & Melinda Franco
+** AUTHOR:      Daniel Wei & Jerry Hong & Michael Mottmann & Melinda Franco
 **
-** DATE:        4/6/04 - Working and all nice and pretty and stuff
+** DATE:        10/2/06 - Attempted to tierify
+**              4/6/04 - Working and all nice and pretty and stuff
 **              5/3/04 - Even better than before!
 **
 ** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
@@ -40,7 +41,7 @@ POSITION gInitialPosition    = 9;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING   kAuthorName         = "Michael Mottmann and Melinda Franco";
+STRING   kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
 STRING   kGameName           = "Abalone";
 STRING   kDBName             = "Abalone";
 BOOLEAN  kPartizan           = TRUE; 
@@ -2131,6 +2132,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2006/08/21 23:52:47  dmchan
+// commented out calls to fflush(stdin) and changed to GetMyInt() and GetMyChar() where appropriate
+//
 // Revision 1.32  2006/02/26 08:31:15  kmowery
 //
 // Changed MToS to MoveToString
