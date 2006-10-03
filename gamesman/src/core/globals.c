@@ -45,6 +45,8 @@ STRING (*GetHelpTieOccursWhen)() = NULL;
 STRING (*gMoveToStringFunPtr)(MOVE) = NULL;
 STRING (*gGetVarStringPtr)() = NULL;
 
+POSITION (*gActualNumberOfPositionsOptFunPtr)(int variant) = NULL;
+
 VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
 BOOLEAN gHumanGoesFirst = TRUE;      /* TRUE iff the user goes first vs. computer */

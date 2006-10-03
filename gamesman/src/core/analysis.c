@@ -1139,11 +1139,17 @@ float PercentDone (STATICMESSAGE msg)
 {
     static POSITION num_pos_seen = 0;
     float percent = 0;
+    int total_positions = gNumberOfPositions;
+    if (gActualNumberOfPositionsOptFunPtr != NULL) {
+      total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
+      if (total_positions < 0)
+	total_positions = gNumberOfPositions;
+    }
     switch (msg)
     {
         case Update:
             num_pos_seen++;
-	    if (gTclInterp != NULL && 0 == (num_pos_seen % ((int)gNumberOfPositions / 100))) {
+	    if (gTclInterp != NULL && 0 == (num_pos_seen % ((int)total_positions / 100))) {
 	      Tcl_Eval(gTclInterp, "advanceProgressBar 1");
 	    }
             break;
@@ -1153,7 +1159,7 @@ float PercentDone (STATICMESSAGE msg)
         default:
             break;
     }
-    percent = (float)num_pos_seen/(float)gNumberOfPositions * 100.0;
+    percent = (float)num_pos_seen/(float)total_positions * 100.0;
 
     return percent;
 }

@@ -66,6 +66,7 @@ extern STRING   	kDBName;	       /* supposed to be the name of the DB?*/
 extern POSITION 	gInitialPosition;      /* The initial position of the game */
 extern POSITION 	gMinimalPosition;
 extern POSITION 	gNumberOfPositions;    /* The number of positions in the game */
+extern POSITION 	(*gActualNumberOfPositionsOptFunPtr)(int variant);    /* function pointer to function that returns the actual number of positions in the game, based on the variant */
 extern BOOLEAN  	gPrintHints;
 extern BOOLEAN  	kDebugDetermineValue;
 extern BOOLEAN  	kDebugMenu;	       /* whether to display the debug menu or not*/
