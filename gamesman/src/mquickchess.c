@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.37 2006-09-27 07:00:08 vert84 Exp $
+// $Id: mquickchess.c,v 1.38 2006-10-03 08:10:03 scarr2508 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -190,6 +190,7 @@ void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, 
 void generateKingMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j);
 void printArray (char* boardArray);
 void printMoveList(MOVELIST *moves);
+POSITION ActualNumberOfPositions(int variant);
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -259,6 +260,7 @@ void InitializeGame ()
 	
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL);
 	gInitialPosition = generic_hash(gameBoard, WHITE_TURN);
+	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
     
 }
 
@@ -1696,7 +1698,16 @@ void printMoveList(MOVELIST *moves) {
 	}
 }
 
+POSITION ActualNumberOfPositions(int variant) {
+  //Both variants reach the same number of positions
+  return 263112;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.37  2006/09/27 07:00:08  vert84
+// Reverting to version from May 2006
+//
 // Revision 1.36  2006/08/16 03:46:28  runner139
 // *** empty log message ***
 //

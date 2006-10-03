@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.32 2006-04-11 02:10:52 kmowery Exp $
+// $Id: machi.c,v 1.33 2006-10-03 08:10:02 scarr2508 Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -129,6 +129,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 STRING MoveToString (MOVE);
 STRING PositionToString(POSITION);
+POSITION ActualNumberOfPositions(int variant);
 
 void InitializeGame()
 {
@@ -136,6 +137,7 @@ void InitializeGame()
   gCustomUnhash = &PositionToString;
 
   gGetVarStringPtr = &GetVarString;
+  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
   InitializeHelpStrings();
 }
 
@@ -1108,7 +1110,17 @@ void setOption(int option)
 
 }
 
+POSITION ActualNumberOfPositions(int variant) {
+  return 5390;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.32  2006/04/11 02:10:52  kmowery
+//
+//
+// Added PositionToString and set gCustomUnhash (used in the java gui)
+//
 // Revision 1.31  2006/04/05 11:42:00  arabani
 // Fixed XML file writing.
 //

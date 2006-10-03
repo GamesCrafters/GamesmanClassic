@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.6 2006-03-04 15:22:26 ddgarcia Exp $
+// $Id: mdao.c,v 1.7 2006-10-03 08:10:03 scarr2508 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -185,6 +185,8 @@ void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
 
+POSITION                ActualNumberOfPositions(int variant);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -205,6 +207,7 @@ void InitializeGame ()
   gInitialPosition = generic_hash(board, PLAYER1_TURN);
 
   gMoveToStringFunPtr = &MoveToString;
+  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 
@@ -836,3 +839,8 @@ int Unhasher_Index(MOVE hashed_move) {
 int Unhasher_Direction(MOVE hashed_move) {
   return (hashed_move % NUM_OF_DIRS);
 }
+
+POSITION ActualNumberOfPositions(int variant) {
+  return 1768108;
+}
+
