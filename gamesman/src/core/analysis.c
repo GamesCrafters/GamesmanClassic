@@ -1149,8 +1149,8 @@ float PercentDone (STATICMESSAGE msg)
     {
         case Update:
             num_pos_seen++;
-	    if (gTclInterp != NULL && 0 == (num_pos_seen % ((int)total_positions / 100))) {
-	      Tcl_Eval(gTclInterp, "advanceProgressBar 1");
+	    if (gTclInterp != NULL && 0 == (num_pos_seen % ((int)total_positions / 1000))) {
+	      Tcl_Eval(gTclInterp, "advanceProgressBar 0.1");
 	    }
             break;
         case Clean:

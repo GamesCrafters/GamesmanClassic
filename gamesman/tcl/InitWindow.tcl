@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.107 2006-10-01 00:18:33 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.108 2006-10-04 19:48:26 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -2130,6 +2130,9 @@ proc advanceProgressBar { percent } {
     set barCoords [.middle.f1.cMLeft coords progressBarSlider]
     set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
     set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
+    if {$percentDone > 100.0} {
+	$percentDone = 100.0
+    }
     lset barCoords 2 $xCoord
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
