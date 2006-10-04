@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.1 2006-10-04 13:14:13 max817 Exp $
+// $Id: mataxx.c,v 1.2 2006-10-04 23:55:40 max817 Exp $
 
 /************************************************************************
 **
@@ -13,6 +13,8 @@
 ** UPDATE HIST: -2006.10.4 = First version, includes most functionality.
 **				Some things not implemented yet, and all functions not
 **				fully tested.
+**				-2006.10.4 = Added a quick implementation of Tiers for
+**				the demo. Basic functions only.
 **
 **************************************************************************/
 
@@ -124,6 +126,12 @@ int toIndex (int, int);
 int legalCoords (int, int);
 void countPieces (char*, int*, int*);
 void ChangeBoardSize();
+
+TIER BoardToTier(char* board);
+void SetupTierStuff();
+STRING TierToString(TIER tier);
+TIERLIST* TierChildren(TIER tier);
+TIERPOSITION NumberOfTierPositions(TIER tier);
 /* External */
 extern GENERIC_PTR SafeMalloc ();
 extern void	SafeFree ();
@@ -796,11 +804,97 @@ void Reset() {
 
 void SetupGame() {
 	generic_hash_destroy();
+	SetupTierStuff();
 	if (width <= 5 && length <= 5) {
 		int pieces_array[10] = {RED, 0, boardsize, BLUE, 0, boardsize, SPACE, 0, boardsize-4, -1};
 		gNumberOfPositions = generic_hash_init(boardsize, pieces_array, NULL);
+		// initial position
+		int i;
+		char* initial = (char *) SafeMalloc(boardsize * sizeof(char));
+		for(i = 0; i < boardsize; i++)
+			initial[i] = SPACE;
+		initial[toIndex(1, length)] = RED;
+		initial[toIndex(width, length)] = BLUE;
+		initial[toIndex(1, 1)] = BLUE;
+		initial[toIndex(width, 1)] = RED;
+		gInitialPosition = hash(initial, 1);
 	}
-	// initial position
+}
+
+char* unhash (POSITION position, int* turn)
+{
+	char* board = (char *) SafeMalloc(boardsize * sizeof(char));
+	if (gHashWindowInitialized) {
+		TIERPOSITION tierPos; TIER tier;
+		gUnhashToTierPosition(position, &tierPos, &tier);
+		generic_hash_context_switch(tier);
+		(*turn) = whoseMove(tierPos);
+		board = (char *) generic_unhash(tierPos, board);
+	} else {
+		(*turn) = whoseMove(position);
+		board = (char *) generic_unhash(position, board);
+	}
+	return board;
+}
+
+POSITION hash (char* board, int turn)
+{
+	POSITION position;
+	if (gHashWindowInitialized) {
+		TIER tier = BoardToTier(board);
+		generic_hash_context_switch(tier);
+		TIERPOSITION tierPos = generic_hash(board, turn);
+		position = gHashToWindowPosition(tierPos, tier);
+	} else position = generic_hash(board, turn);
+
+	if(board != NULL)
+		SafeFree(board);
+	return position;
+}
+
+/* TIERS: Number of pieces left to place. Alternately, number of spaces
+on the board.
+That gives tiers solvable from 0 to boardsize.
+Pieces on board = boardsize-tier
+*/
+
+TIER BoardToTier(char* board) {
+	int reds, blues;
+	countPieces(board, &reds, &blues);
+	int totalPieces = reds+blues;
+	return boardsize-totalPieces;
+}
+
+void SetupTierStuff() {
+	// gUsingTierGamesman
+	gUsingTierGamesman = TRUE;
+	// gTierSolveList
+	gTierSolveListPtr = NULL;
+	int tier;
+	for (tier = boardsize; tier >= 0; tier--) {
+		gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
+	} // solve list = { 0, 1, 2, ..., boardsize}
+	// function pointers
+	gTierChildrenFunPtr = &TierChildren;
+	gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+	gTierToStringFunPtr = &TierToString;
+	// hashes
+	// Tier-Specific Hashes
+	int piecesArray[10] = { RED, 0, 0, BLUE, 0, 0, SPACE, 0, 0, -1 };
+	int piecesOnBoard;
+	for (tier = 0; tier <= boardsize; tier++) {
+		piecesOnBoard = boardsize - tier;
+		// Reds AND Blues = from 0 to piecesOnBoard
+		piecesArray[1] = 0;
+		piecesArray[2] = piecesOnBoard;
+		piecesArray[4] = 0;
+		piecesArray[5] = piecesOnBoard;
+		// Blanks = tier
+		piecesArray[7] = piecesArray[8] = tier;
+		// make the hashes
+		generic_hash_init(boardsize, piecesArray, NULL);
+	}
+	// Initial
 	int i;
 	char* initial = (char *) SafeMalloc(boardsize * sizeof(char));
 	for(i = 0; i < boardsize; i++)
@@ -809,25 +903,36 @@ void SetupGame() {
 	initial[toIndex(width, length)] = BLUE;
 	initial[toIndex(1, 1)] = BLUE;
 	initial[toIndex(width, 1)] = RED;
-	gInitialPosition = hash(initial, 1);
+	// Initial Tier = boardsize-4 (so there's boardsize-4 spaces)
+	gInitialTier = boardsize-4;
+	generic_hash_context_switch(gInitialTier);
+	gInitialTierPosition = hash(initial, 1);
 }
 
-POSITION hash (char* board, int turn)
-{
-	POSITION position = generic_hash(board, turn);
-	if(board != NULL)
-		SafeFree(board);
-	return position;
+// children = always me and one below
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* list = NULL;
+	list = CreateTierlistNode(tier, list);
+	if (tier != 0)
+		list = CreateTierlistNode(tier-1, list);
+	return list;
 }
 
-char* unhash (POSITION position, int* turn)
-{
-	char* board = (char *) SafeMalloc(boardsize * sizeof(char));
-	(*turn) = whoseMove(position);
-	return (char *) generic_unhash(position, board);
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	generic_hash_context_switch(tier);
+	return generic_hash_max_pos();
 }
 
+// Tier = Number of pieces left to place.
+STRING TierToString(TIER tier) {
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*16);
+	sprintf(tierStr, "%d Pieces Placed", boardsize-tier);
+	return tierStr;
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2006/10/04 13:14:13  max817
+// Added in Ataxx in mataxx.c, and changed Makefile.in to include it.
+//
 // Revision 1.10  2006/04/25 01:33:06  ogren
 // Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
