@@ -11,7 +11,8 @@ extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
 
 extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-	gBitPerfectDB, gBitPerfectDBSolver, gTwoBits, gCollDB, gUnivDB, gFileDB,
+	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAdjust,
+    gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
 	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen;
 

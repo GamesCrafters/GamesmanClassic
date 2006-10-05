@@ -110,7 +110,7 @@ _bailout:
         }
 }
 
-VALUE DetermineValueBPDBSTDHelper(POSITION position)
+VALUE DetermineValueBPDBSTDHelper( POSITION position )
 {
     BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
     MOVELIST *ptr, *head;

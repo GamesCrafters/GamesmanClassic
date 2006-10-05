@@ -160,8 +160,10 @@ bpdb_init(
     new_db->free_db = bpdb_free;
 
     bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, bpdb_mem_write_varnum, FALSE );
-    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );
-//    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
+
+    if( gBitPerfectDBSchemes ) {
+        bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
+    }
 
 _bailout:
     return;
@@ -172,7 +174,7 @@ GMSTATUS
 bpdb_allocate( )
 {
     GMSTATUS status = STATUS_SUCCESS;
-    //UINT64 i = 0;
+    UINT64 i = 0;
 
     // fixed heap corruption =p
     bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
@@ -187,6 +189,17 @@ bpdb_allocate( )
         status = STATUS_NOT_ENOUGH_MEMORY;
         BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_nowrite_array in memory", status);
         goto _bailout;
+    }
+
+    // cannot put in init since bpdbsolver does not have any slots inputted
+    // at the time when init is called
+    if(!gBitPerfectDBAdjust) {
+        for(i = 0; i < (bpdb_write_slice->slots); i++) {
+            bpdb_write_slice->adjust[i] = FALSE;
+        }
+        for(i = 0; i < (bpdb_nowrite_slice->slots); i++) {
+            bpdb_nowrite_slice->adjust[i] = FALSE;
+        }
     }
 
     // probably do not need this anymore
@@ -663,7 +676,7 @@ bpdb_shrink_slice(
 
     // find difference between old size, and the new
     // size required for the slot
-    if(bitsToShrink == 0) bitsToShrink = 1;
+    //if(bitsToShrink == 0) bitsToShrink = 1;
     bitsToShrink = bpdb_slice->size[index] - bitsToShrink;
 
     // save old slice size
@@ -1029,20 +1042,22 @@ bpdb_save_database()
     }
 */
 
-    UINT8 temp = 0;
+    UINT64 temp = 0;
     UINT8 bitsNeeded = 0;
     for(i=0; i < (bpdb_write_slice->slots); i++) {
         temp = bpdb_write_slice->maxseen[i];
+        bitsNeeded = 0;
         while(0 != temp) {
             bitsNeeded++;
             temp = temp >> 1;
         }
+
         if(bitsNeeded < bpdb_write_slice->size[i] && bpdb_write_slice->adjust[i]) {
             bpdb_shrink_slice( bpdb_write_array, bpdb_write_slice, i );
         }
     }
-    // determine size of new largest value
 
+    // determine size of new largest value
     i = 0;
 
     printf("\n");
@@ -1189,7 +1204,7 @@ bpdb_generic_save_database(
     bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->slots );
 
     for(i = 0; i < (bpdb_write_slice->slots); i++) {
-        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->size[i] );
+        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->size[i]+1 );
         bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, strlen(bpdb_write_slice->name[i]) );
         
         for(j = 0; j<strlen(bpdb_write_slice->name[i]); j++) {
@@ -1372,6 +1387,7 @@ bpdb_generic_load_database(
     for(i = 0; i<numOfSlotsHeader; i++) {
         // read size slice in bits
         tempsize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
+        tempsize--;
         
         // read size of slot name in bytes
         tempnamesize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
