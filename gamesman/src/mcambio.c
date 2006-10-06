@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.29 2006-05-25 04:39:03 arabani Exp $
+// $Id: mcambio.c,v 1.30 2006-10-06 05:47:13 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,18 +21,24 @@
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **              3/06/2006 - Updated GetInitialPosition().
-**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
+**	            3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
 **                                    Removed blanks from the game.
 **              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
 **              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
 **              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
 **                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
 **              3/19/2006 - Changed the Legend so it looks less cramped.
-**	        4/16/2006 - Trying 3x3 board to see if it solves
+**	            4/16/2006 - Trying 3x3 board to see if it solves
 **              4/28/2006 - Added new input format with 3x3 board.
 **              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
 **              5/03/2006 - Changed winning condition in DoMove.
 **              5/08/2006 - Fixed some bugs. Game solves.
+**              5/09/2006 - Code cleanup.
+**              5/09/2006 - Added FourInARow, FiveInARow. Modified PrintPosition, ValidTextInput, ConvertTextInputToMove.
+**              5/10/2006 - Added NInARow. Modified PrintPosition, GenerateMove, Primitive, PrintMove, GetAndPrintPlayersMove.
+**              5/22/2006 - Added shiftXX functions to accommodate DoMove. Modified DoMove and GameSpecificMenu.
+**              5/24/2006 - Modified some hash calls. 5x5 does not work because 3^25 is too big.
+**              10/052006 - Deleted unnecessary functions. 5x5 player vs. player does not work... too big for hash...
 **
 **************************************************************************/
 
@@ -59,11 +65,11 @@ STRING   kAuthorName          = "Albert Chae and Simon Tao"; /* Your name(s) */
 STRING   kDBName              = "cambio"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
@@ -82,12 +88,18 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
+"Input the letter or number you wish to move to then press enter.\n\
+You may only push off neutral cubes, or cubes of your own symbol.\n\
+As the game progresses, you should have more and more of your own\n\
+cubes in play.\n";
+
+STRING   kHelpOnYourTurn =
 "BOARD SETUP:\n\
 1. The players each select a symbol to be their own, and decide\n\
    who will begin the game.\n\
 2. Fill the four corners with neutral symbols.\n\
-3. Player A creates a starting position for Player B by placing\n\
-   4 cubes into the tray, with player B's symbol.\n\
+3. Player A places a cube of its own symbol on the board, then player\n\
+   B places a cube of its own symbol on the board.\n\
    These cubes may be placed in any of the positions that a cube\n\
    may occupy when the tray is full.\n\
 4. Player B now places 3 of the first player A's symbol in any\n\
@@ -100,21 +112,15 @@ it from the board; then pushes all the pieces in that line along\n\
 one place. A player MAY NOT push cubes with your opponents symbol\n\
 showing OFF the board.\n"; 
 
-STRING   kHelpOnYourTurn =
-"You may only push off neutral cubes, or cubes of your own symbol.\n\
-As the game progresses, you should have more and more of your own\n\
-cubes in play.\n";
-
 STRING   kHelpStandardObjective =
-"To make a line composed of all 4 of your own symbol - \n\
+"To make a line composed of all 3 of your own symbol - \n\
 horizontally, vertically or diagonally.\n";
 
 STRING   kHelpReverseObjective =
 "";
 
 STRING   kHelpTieOccursWhen =
-"A tie is possible when a player's move causes two 4 in a rows \n\
-simultaneously.";
+"a player's move causes two 3 in a rows simultaneously.\n";
 
 STRING   kHelpExample =
 "";
@@ -154,28 +160,50 @@ char aPiece = A_PIECE;
 char bPiece = B_PIECE;
 char unknown = UNKNOWN;
 
-int piecesArray[] = {'+', 0, 9, 'X', 0, 9, 'O', 0, 9, -1 };
+int piecesArray3[] = {'+', 0, 9, 'X', 0, 9, 'O', 0, 9, -1 };
+int piecesArray4[] = {'+', 0, 16, 'X', 0, 16, 'O', 0, 16, -1 };
+int piecesArray5[] = {'+', 0, 25, 'X', 0, 20, 'O', 0, 20, -1 };
 
-STRING alphaArray[] = { "a1", "a2", "a3", 
-		        "b1", "b2", "b3",
-		        "c1", "c2", "c3" };
 /* to convert, use alphaArray[i]
-                      {   0,    1,    2,
-                          3,    4,    5,
-                          6,    7,    8 };
-*/
+                       {   0,    1,    2,
+                           3,    4,    5,
+                           6,    7,    8 }; */
 
-STRING shiftArray[] = { "a", "b", "c", 
-		        "4", "5", "6",
-		        "f", "e", "d",
-		        "3", "2", "1" };
-/* to convert, use shiftArray[i-16]
-                      {   9,  10,  11,
-                         12,  13,  14,
-                         15,  16,  17,
-                         18,  19,  20 };
+STRING alphaArray3[] = { "a1", "a2", "a3", 
+		                 "b1", "b2", "b3",
+		                 "c1", "c2", "c3" };
 
-*/
+STRING alphaArray4[] = { "a1", "a2", "a3", "a4",
+		                 "b1", "b2", "b3", "b4",
+		                 "c1", "c2", "c3", "c4",
+                         "d1", "d2", "d3", "d4" };
+
+STRING alphaArray5[] = { "a1", "a2", "a3", "a4", "a5",
+		                 "b1", "b2", "b3", "b4", "b5",
+		                 "c1", "c2", "c3", "c4", "c5",
+                         "d1", "d2", "d3", "d4", "d5",
+                         "e1", "e2", "e3", "e4", "e5" };
+
+/* to convert, use shiftArray[i-rowcount*colcount]
+                       {   9,  10,  11,
+                          12,  13,  14,
+                          15,  16,  17,
+                          18,  19,  20 }; */
+
+STRING shiftArray3[] = { "a", "b", "c", 
+		                 "3", "4", "5",
+		                 "d", "e", "f",
+		                 "0", "1", "2" };
+
+STRING shiftArray4[] = { "a", "b", "c", "d",
+		                 "4", "5", "6", "7",
+		                 "e", "f", "g", "h",
+		                 "0", "1", "2", "3" };
+
+STRING shiftArray5[] = { "a", "b", "c", "d", "e",
+		                 "5", "6", "7", "8", "9",
+		                 "f", "g", "h", "i", "j",
+		                 "0", "1", "2", "3", "4" };
 
 Player gWhosTurn; /* 1 for player A, 2 for player B */
 
@@ -213,7 +241,14 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
+void                    shiftColDown(char *board, char symbol, int pushon, int pushoff);
+void                    shiftColUp(char *board, char symbol, int pushon, int pushoff);
+void                    shiftRowRight(char *board, char symbol, int pushon, int pushoff);
+void                    shiftRowLeft(char *board, char symbol, int pushon, int pushoff);
+BOOLEAN                 NInARow(char *board, char symbol, int size);
 BOOLEAN                 ThreeInARow(char *board, char symbol);
+BOOLEAN                 FourInARow(char *board, char symbol);
+BOOLEAN                 FiveInARow(char *board, char symbol);
 
 /************************************************************************
 **
@@ -230,7 +265,16 @@ void InitializeGame ()
 
   char boardArray[boardSize];
 
-  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+  if(colcount == 3) {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray3, NULL);
+  }
+  else if(colcount == 4) {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray4, NULL);
+  }
+  else {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray5, NULL);
+  }
+
   gWhosTurn = playerA;
     
   /* filling up the board; with Neutrals */
@@ -238,6 +282,7 @@ void InitializeGame ()
     boardArray[i] = neutral;
 	
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
+  
 }
 
 
@@ -262,9 +307,9 @@ void InitializeGame ()
 MOVELIST *GenerateMoves (POSITION position)
 /* must check all the math used for general case, such as 5x5 and on */
 {
-    MOVELIST *moves = NULL;
+        MOVELIST *moves = NULL;
 	MOVELIST *CreateMovelistNode();
-	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
+	char *gBoard = (char *) malloc(boardSize*sizeof(char));
 	char opposymbol;
 	int countA, countB, turn, i;
 	
@@ -291,7 +336,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	}
 	
 	/* Phase 1: Less than 1 of PlayerA's pieces on the board. */
-	if(countA < 1)
+	if(countA < (colcount-2))
 	{
 		for(i = 0; i < boardSize; i++)
 		{
@@ -304,7 +349,7 @@ MOVELIST *GenerateMoves (POSITION position)
 		}
 	}
 	/*.Phase 2: Less than 1 of PlayerB's pieces on the board. */
-	else if(countB < 1)
+	else if(countB < (colcount-2))
 	{
 		for(i = 0; i < boardSize; i++)
 		{
@@ -375,6 +420,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	POSITION positionAfterMove;
 	
 	generic_unhash(position, gBoard);
+
 	turn = whoseMove(position);
 	countA = 0;
 	countB = 0;
@@ -407,42 +453,58 @@ POSITION DoMove (POSITION position, MOVE move)
 	  }
 	else 
 	{
-		if (move < boardSize + colcount)
-		{
-			pushon = (move - boardSize);
-			pushoff = (move - colcount);
-			gBoard[pushoff] = gBoard[pushoff-colcount];
-			gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
-			gBoard[pushoff-colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount)
-		{
-			pushon = (move - boardSize - colcount + 1)*colcount - 1;
-			pushoff = (move - boardSize - colcount)*colcount;
-			gBoard[pushoff] = gBoard[pushoff+1];
-			gBoard[pushoff+1] = gBoard[pushoff+2];
-			gBoard[pushoff+2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount + colcount)
-		{
-			pushon = boardSize - (move - boardSize - colcount - rowcount + 1);
-			pushoff = colcount - (move - boardSize - colcount - rowcount) - 1;
-			gBoard[pushoff] = gBoard[pushoff+colcount];
-			gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
-			gBoard[pushoff+colcount*2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}
-		else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-		{
-			pushon = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount;
-			pushoff = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1;
-			gBoard[pushoff] = gBoard[pushoff-1];
-			gBoard[pushoff-1] = gBoard[pushoff-2];
-			gBoard[pushoff-2] = gBoard[pushon];
-			gBoard[pushon] = symbol;
-		}	
+	  if (move < boardSize + colcount)  //push col down
+	    {
+	      pushon = (move - boardSize);
+	      pushoff = (move - colcount);
+
+	      shiftColDown(gBoard, symbol, pushon, pushoff);
+	      /*
+		gBoard[pushoff] = gBoard[pushoff-colcount];
+		gBoard[pushoff-colcount] = gBoard[pushoff-colcount*2];
+		gBoard[pushoff-colcount*2] = gBoard[pushon];
+		gBoard[pushon] = symbol;
+	      */
+	    }
+	  else if (move < boardSize + colcount + rowcount)  //push row left
+	    {
+	      pushon = (move - boardSize - colcount + 1)*colcount - 1;
+	      pushoff = (move - boardSize - colcount)*colcount;
+		
+	      shiftRowLeft(gBoard, symbol, pushon, pushoff);
+	      /*
+	      gBoard[pushoff] = gBoard[pushoff+1];
+	      gBoard[pushoff+1] = gBoard[pushoff+2];
+	      gBoard[pushoff+2] = gBoard[pushon];
+	      gBoard[pushon] = symbol;
+	      */
+	    }
+	  else if (move < boardSize + colcount + rowcount + colcount)  //push col up
+	    {
+	      pushon = boardSize - (move - boardSize - colcount - rowcount + 1);
+	      pushoff = colcount - (move - boardSize - colcount - rowcount) - 1;
+	      
+	      shiftColUp(gBoard, symbol, pushon, pushoff);
+	      /*
+	      gBoard[pushoff] = gBoard[pushoff+colcount];
+	      gBoard[pushoff+colcount] = gBoard[pushoff+colcount*2];
+	      gBoard[pushoff+colcount*2] = gBoard[pushon];
+	      gBoard[pushon] = symbol;
+	      */
+	    }
+	  else if (move < boardSize + colcount + rowcount + colcount + rowcount)  //push row right
+	    {	      
+          pushon = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount;
+	      pushoff = boardSize - (move - boardSize - colcount*2 - rowcount + 1)*colcount + colcount - 1;
+	    
+	      shiftRowRight(gBoard, symbol, pushon, pushoff);
+	      /*
+	      gBoard[pushoff] = gBoard[pushoff-1];
+	      gBoard[pushoff-1] = gBoard[pushoff-2];
+	      gBoard[pushoff-2] = gBoard[pushon];
+	      gBoard[pushon] = symbol;
+	      */
+	    }	
 	}	
 
 	if(turn == playerA)
@@ -465,7 +527,7 @@ POSITION DoMove (POSITION position, MOVE move)
 **              'primitive' constraints.
 **
 **              Example: Tic-tac-toe - Last piece already placed
-**
+**asciiascii
 **              Case                                  Return Value
 **              *********************************************************
 **              Current player sees three in a row    lose
@@ -488,7 +550,6 @@ VALUE Primitive (POSITION position)
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
   BOOLEAN playerWin, oppoWin;
   
-  
   generic_unhash(position, gBoard);
   
   if(turn == playerB) {
@@ -501,8 +562,8 @@ VALUE Primitive (POSITION position)
   }
 
   
-  playerWin = ThreeInARow(gBoard, symbol);
-  oppoWin = ThreeInARow(gBoard, opposymbol);
+  playerWin = NInARow(gBoard, symbol, colcount);
+  oppoWin = NInARow(gBoard, opposymbol, colcount);
 
   
   free(gBoard);
@@ -538,12 +599,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
-  int countA = 0, countB = 0, i = 0, turn;
-	
+  int countA = 0, countB = 0, i = 0;
+  
   generic_unhash(position, gBoard);
-	
-  turn = whoseMove(position);
-	
+    	
   /* count the number of pieces for each player */
   for(i = 0; i < boardSize; i++)
     {
@@ -553,19 +612,37 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	countB++;
     }
 	
-  /* Phase 1: Less than 1 of PlayerB's pieces or less than 1 of PlayerB's pieces on the board. */
-  if(countA < 1 || countB < 1)
+  
+  /* Phase 1: Less than 1 of PlayerA's pieces or less than 1 of PlayerB's pieces on the board. */
+  if(countA < (colcount-2) || countB < (colcount-2))
     {
       printf("\n");
-      printf("                1 2 3 \n");
-      printf("               -------\n");
+      if(colcount == 3) {
+	printf("A's Symbol = %c       1 2 3 \n", aPiece);
+	printf("B's Symbol = %c      -------\n", bPiece);
+      }
+      else if(colcount == 4) {
+	printf("A's Symbol = %c       1 2 3 4 \n", aPiece);
+	printf("B's Symbol = %c      ---------\n", bPiece);
+      }
+      else if(colcount == 5) {
+	printf("A's Symbol = %c       1 2 3 4 5 \n", aPiece);
+	printf("B's Symbol = %c      -----------\n", bPiece);
+      }
+      else {
+	printf("Error in: PrintPosition\n");
+      }
 
       for(i = 0; i < boardSize; i++)
 	{
 	  //indentation
-	  if((i % 3) == 0)
+	  if(i == 0)
 	    {
-	      printf("             %c ", (i/3)+97);
+	      printf("   Neutral = %c    %c ", neutral, (i/rowcount)+97);
+	    }
+	  if((i != 0) && ((i % rowcount) == 0))
+	    {
+	      printf("                  %c ", (i/rowcount)+97);
 	    }
 
 	  if(gBoard[i] == aPiece)
@@ -576,41 +653,73 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	    {
 	      printf("|%c", bPiece);
 	    }
-	  else if(gBoard[i] == neutral)
+	  else if((gBoard[i] == neutral) && 
+		  ((i == 0) || (i == colcount-1) || (i == (rowcount*colcount)-colcount) ||(i == (rowcount*colcount)-1)) )
 	    {
 	      printf("|%c", neutral);
 	    }
+	  else if(gBoard[i] == neutral)
+	    {
+	      printf("| ");
+	    }
 	  else
 	    {
-	      printf("Error in: PrintPosition Phase 1 Loop");
+	      printf("Error in: PrintPosition Phase 1 Loop\n");
 	    }
 
-	  if((i != 0) && (((i+1) % 3) == 0))
+	  if((i != 0) && (((i+1) % rowcount) == 0))
 	    {
-	      printf("| %c\n", (i/3)+97);
+	      printf("| %c\n", (i/rowcount)+97);
 	    }
 	}
-
-      printf("               -------\n");
-      printf("                1 2 3 \n");
+      
+      if(colcount == 3) {
+	printf("                    -------\n");
+	printf("                     1 2 3 \n");
+      }
+      else if(colcount == 4) {
+	printf("                    ---------\n");
+	printf("                     1 2 3 4 \n");
+      }
+      else if(colcount == 5) {
+	printf("                    -----------\n");
+	printf("                     1 2 3 4 5 \n");
+      }
+      else {
+	printf("Error in: PrintPosition\n");
+      }
       printf("\n");
-      printf("                           A's Symbol = %c\n", aPiece);
-      printf("                           B's Symbol = %c\n", bPiece);
-      printf("                              Neutral = %c\n\n", neutral);
     }
   /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countA >= 1 && countB >= 1)
+  else if(countA >= (colcount-2) && countB >= (colcount-2))
     {
       printf("\n");
-      printf("                a b c \n");
-      printf("               -------\n");
+      if(colcount == 3) {
+	printf("A's Symbol = %c       a b c \n", aPiece);
+	printf("B's Symbol = %c      -------\n", bPiece);
+      }
+      else if(colcount == 4) {
+	printf("A's Symbol = %c       a b c d  \n", aPiece);
+	printf("B's Symbol = %c      ---------\n", bPiece);
+      }
+      else if(colcount == 5) {
+	printf("A's Symbol = %c       a b c d e \n", aPiece);
+	printf("B's Symbol = %c      -----------\n", bPiece);
+      }
+      else {
+	printf("Error in: PrintPosition\n");
+      }
 
       for(i = 0; i < boardSize; i++)
 	{
 	  //indentation
-	  if((i % 3) == 0)
+	  if(i == 0)
 	    {
-	      printf("             %d ", (i/3)+1);
+	      printf("   Neutral = %c    %d ",neutral, rowcount-(i/rowcount)-1);
+	    }
+	  if((i != 0) && ((i % rowcount) == 0))
+	    {
+	      printf("                  %d ", rowcount-(i/rowcount)-1);
 	    }
 
 	  if(gBoard[i] == aPiece)
@@ -627,21 +736,31 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	    }
 	  else
 	    {
-	      printf("Error in: PrintPosition Phase 2 Loop");
+	      printf("Error in: PrintPosition Phase 2 Loop\n");
 	    }
 
-	  if((i != 0) && (((i+1) % 3) == 0))
+	  if((i != 0) && (((i+1) % rowcount) == 0))
 	    {
-	      printf("| %d\n", (i/3)+4);
+	      printf("| %d\n", (i/rowcount)+rowcount);
 	    }
 	}
 
-      printf("               -------\n");
-      printf("                d e f \n");
+      if(colcount == 3) {
+	printf("                    -------\n");
+	printf("                     f e d  \n");
+      }
+      else if(colcount == 4) {
+	printf("                    ---------\n");
+	printf("                     h g f e \n");
+      }
+      else if(colcount == 5) {
+	printf("                    -----------\n");
+	printf("                     j i h g f \n");
+      }
+      else {
+	printf("Error in: PrintPosition\n");
+      }
       printf("\n");
-      printf("                           A's Symbol = %c\n", aPiece);
-      printf("                           B's Symbol = %c\n", bPiece);
-      printf("                              Neutral = %c\n\n", neutral);
     }
   /* bad else */
   else
@@ -683,18 +802,45 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 /* must check all the math used for general case, such as 5x5 and on */
 {
-
-	if(move < boardSize)
-		printf("%s", alphaArray[move]);
-	else if (move < boardSize + colcount)
-		printf("%s", shiftArray[move-9]);
-	else if (move < boardSize + colcount + rowcount)
-		printf("%s", shiftArray[move-9]);
-	else if (move < boardSize + colcount + rowcount + colcount)
-		printf("%s", shiftArray[move-9]);
-	else if (move < boardSize + colcount + rowcount + colcount + rowcount)
-		printf("%s", shiftArray[move-9]);
-		
+  if(colcount == 3) {
+    if(move < boardSize)
+      printf("%s", alphaArray3[move]);
+    else if (move < boardSize + colcount)
+      printf("%s", shiftArray3[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount)
+      printf("%s", shiftArray3[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount)
+      printf("%s", shiftArray3[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+      printf("%s", shiftArray3[move-rowcount*colcount]);
+  }
+  else if(colcount == 4) {
+    if(move < boardSize)
+      printf("%s", alphaArray4[move]);
+    else if (move < boardSize + colcount)
+      printf("%s", shiftArray4[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount)
+      printf("%s", shiftArray4[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount)
+      printf("%s", shiftArray4[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+      printf("%s", shiftArray4[move-rowcount*colcount]);
+  }
+  else if(colcount == 5) {
+    if(move < boardSize)
+      printf("%s", alphaArray5[move]);
+    else if (move < boardSize + colcount)
+      printf("%s", shiftArray5[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount)
+      printf("%s", shiftArray5[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount)
+      printf("%s", shiftArray5[move-rowcount*colcount]);
+    else if (move < boardSize + colcount + rowcount + colcount + rowcount)
+      printf("%s", shiftArray5[move-rowcount*colcount]);
+  }
+  else {
+    printf("Error in: PrintMove\n");
+  }
 }
 
 
@@ -726,7 +872,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   char *gBoard = (char *) malloc(boardSize*sizeof(char));
   generic_unhash(position, gBoard);
 
-  int countA = 0, countB = 0, i = 0;
+  int countA = 0, countB = 0, i = 0,turn = whoseMove(position);
 	
   /* count the number of pieces for each player */
   for(i = 0; i < boardSize; i++)
@@ -740,14 +886,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
   //debug
   //printf("%d, %d, %d",countA, countB, turn);
 
-  /* Phase 1: Less than 1 of PlayerA's pieces */
-  if(countA < 1)
+  /* Phase 1: Less than 1 of PlayerA's pieces on the board*/
+  if(countA < (colcount-2) && turn == playerA)
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("    %8s's move [(u)ndo/([a-c][1-3])] : ", playersName);
+	printf("%8s's move [(u)ndo/([a-%c][1-%d])] : ", playersName, 97+(colcount-1), colcount);
 	  
 	input = HandleDefaultTextInput(position, move, playersName);
 	  
@@ -756,13 +902,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       }
     }
   /* Phase 2: Less than 1 of PlayerB's pieces on the board. */
-  else if(countB < 1)
+  else if(countB < (colcount-2) && turn == playerB)
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(u)ndo/([a-c][1-3])] : ", playersName);
+	printf("%8s's move [(u)ndo/([a-%c][1-%d])] : ", playersName, 97+(colcount-1), colcount);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -771,13 +917,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       }
     }
   /* Phase 3: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countA >= 1 && countB >= 1)
+  else if(countA >= (colcount-2) && countB >= (colcount-2))
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(u)ndo/([a-f or 1-6])]  : ", playersName);
+	printf("%8s's move [(u)ndo/([a-%c or 1-%d])]  : ", playersName, 97+(colcount*2-1), (colcount*2-1));
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -829,24 +975,48 @@ BOOLEAN ValidTextInput (STRING input)
   if(!(((input[0] == 'a') && (input[1] == '1')) ||
        ((input[0] == 'a') && (input[1] == '2')) ||
        ((input[0] == 'a') && (input[1] == '3')) ||
+       ((input[0] == 'a') && (input[1] == '4')) ||
+       ((input[0] == 'a') && (input[1] == '5')) ||
        ((input[0] == 'b') && (input[1] == '1')) ||
        ((input[0] == 'b') && (input[1] == '2')) ||
        ((input[0] == 'b') && (input[1] == '3')) ||
+       ((input[0] == 'b') && (input[1] == '4')) ||
+       ((input[0] == 'b') && (input[1] == '5')) ||
        ((input[0] == 'c') && (input[1] == '1')) ||
        ((input[0] == 'c') && (input[1] == '2')) ||
        ((input[0] == 'c') && (input[1] == '3')) ||
+       ((input[0] == 'c') && (input[1] == '4')) ||
+       ((input[0] == 'c') && (input[1] == '5')) ||
+       ((input[0] == 'd') && (input[1] == '1')) ||
+       ((input[0] == 'd') && (input[1] == '2')) ||
+       ((input[0] == 'd') && (input[1] == '3')) ||
+       ((input[0] == 'd') && (input[1] == '4')) ||
+       ((input[0] == 'd') && (input[1] == '5')) ||
+       ((input[0] == 'e') && (input[1] == '1')) ||
+       ((input[0] == 'e') && (input[1] == '2')) ||
+       ((input[0] == 'e') && (input[1] == '3')) ||
+       ((input[0] == 'e') && (input[1] == '4')) ||
+       ((input[0] == 'e') && (input[1] == '5')) ||
        (input[0] == 'a') ||
        (input[0] == 'b') ||
        (input[0] == 'c') ||
        (input[0] == 'd') ||
        (input[0] == 'e') ||
        (input[0] == 'f') ||
+       (input[0] == 'g') ||
+       (input[0] == 'h') ||
+       (input[0] == 'i') ||
+       (input[0] == 'j') ||
+       (input[0] == '0') ||
        (input[0] == '1') ||
        (input[0] == '2') ||
        (input[0] == '3') ||
        (input[0] == '4') ||
        (input[0] == '5') ||
-       (input[0] == '6') ))
+       (input[0] == '6') ||
+       (input[0] == '7') ||
+       (input[0] == '8') ||
+       (input[0] == '9') ))
     flag = FALSE;
 
   
@@ -874,23 +1044,29 @@ MOVE ConvertTextInputToMove (STRING input)
   int move2 = (int)input[1];
   int move;
 
-  if(move1 == 97 && move2 >= 49 && move2 <= 51)
+  // placement
+  if(move1 == 97 && move2 >= 49 && move2 <= (49+colcount-1))
     move = move2 - 49;
-  else if(move1 == 98 && move2 >= 49 && move2 <= 51)
-    move = move2 - 46;
-  else if(move1 == 99 && move2 >= 49 && move2 <= 51)
-    move = move2 - 43;
-  else if(move1 >= 97 && move1 <= 99)
-    move = move1 - 88;
-  else if(move1 >= 52 && move1 <= 54)
-    move = move1 - 40;
-  else if(move1 >= 100 && move1 <= 102)
-    move = 117 - move1;
-  else if(move1 >= 49 && move1 <= 51)
-    move = 69 - move1;
+  else if(move1 == 98 && move2 >= 49 && move2 <= (49+colcount-1))
+    move = move2 - (49-colcount);
+  else if(move1 == 99 && move2 >= 49 && move2 <= (49+colcount-1))
+    move = move2 - (49-colcount*2);
+  else if(move1 == 100 && move2 >= 49 && move2 <= (49+colcount-1))
+    move = move2 - (49-colcount*3);
+  else if(move1 == 101 && move2 >= 49 && move2 <= (49+colcount-1))
+    move = move2 - (49-colcount*4);
+
+  // shifting
+  else if(move1 >= 97 && move1 <= (97+colcount-1))
+    move = (colcount*rowcount) + (move1-97);
+  else if(move1 >= (48+rowcount) && move1 <= ((48+rowcount)+rowcount-1))
+    move = (colcount*rowcount) + (colcount) + (move1-(48+rowcount));  
+  else if(move1 >= (97+colcount) && move1 <= ((97+colcount)+colcount-1))
+    move = (colcount*rowcount) + (colcount+rowcount) + (move1-(97+colcount));
+  else if(move1 >= 48 && move1 <= (48+rowcount-1))
+    move = (colcount*rowcount) + (colcount+rowcount+colcount) + (move1-48);
   else
     printf("Error in: ConvertTextInputToMove");
-
   
   return (MOVE) move;
 }
@@ -915,7 +1091,34 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+  int temp;
+  do {
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\ts)\tChoose the board (S)ize. Currently: %dx%d\n", rowcount, colcount);
+    printf("\t\t3x3 solves and 4x4 works player vs. player\n\n");
+    printf("\tb)\t(B)ack = Return to previous activity.\n");
+    printf("\n\nSelect an option: ");
     
+    switch(GetMyChar()) {
+    case 'Q': case 'q':
+      ExitStageRight();
+      break;
+    case 'S' : case 's':
+      printf("Enter a size: ");
+      temp = GetMyChar();  //get as a char; must convert to int
+      rowcount = temp - 48;
+      colcount = temp - 48;
+      boardSize = rowcount*colcount;
+      break;
+    case 'b': case 'B':
+      return;
+    default:
+      printf("\nSorry, I don't know that option. Try another.\n");
+      HitAnyKeyToContinue();
+      break;
+    }
+  } while(TRUE);
+  
 }
 
 
@@ -974,7 +1177,16 @@ POSITION GetInitialPosition ()
 	}while((turn != '1') && (turn != '2')); 
   gWhosTurn = atoi(&turn);
 
-  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, NULL);
+  if(colcount == 3) {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray3, NULL);
+  }
+  else if(colcount == 4) {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray4, NULL);
+  }
+  else {
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray5, NULL);
+  }
+
   gInitialPosition = generic_hash(boardArray, gWhosTurn);
 
   free(boardArray);
@@ -1069,24 +1281,144 @@ void DebugMenu ()
 ** Any other function you deem necessary to help the ones above.
 ** 
 ************************************************************************/
-BOOLEAN ThreeInARow(char *board, char symbol)
-{
-  return (/* horizontal */
-         (board[0]  == symbol && board[1]  == symbol && board[2]  == symbol) ||
-         (board[3]  == symbol && board[4]  == symbol && board[5]  == symbol) ||
-         (board[6]  == symbol && board[7]  == symbol && board[8]  == symbol) ||
-         /* vertical */
-         (board[0]  == symbol && board[3] == symbol && board[6]  == symbol) ||
-         (board[1]  == symbol && board[4] == symbol && board[7]  == symbol) ||
-         (board[2]  == symbol && board[5] == symbol && board[8]  == symbol) ||
-         /* diagonal */
-         (board[0]  == symbol && board[4] == symbol && board[8]  == symbol) ||
-         (board[2]  == symbol && board[4] == symbol && board[6]  == symbol));
+void shiftColDown(char *board, char symbol, int pushon, int pushoff) {
+  int i;
+  char temp1, temp2;
+
+  for(i = pushon; i <= pushoff; i+=colcount) {
+    if(i == pushon) {
+      temp2 = board[i];
+      board[i] = symbol;
+    }
+    else {
+      temp1 = board[i];
+      board[i] = temp2;
+      temp2 = temp1;
+    }
+  }
+
+}
+
+void shiftColUp(char *board, char symbol, int pushon, int pushoff) {
+  int i;
+  char temp1, temp2;
+
+  for(i = pushon; i >= pushoff; i-=colcount) {
+    if(i == pushon) {
+      temp2 = board[i];
+      board[i] = symbol;
+    }
+    else {
+      temp1 = board[i];
+      board[i] = temp2;
+      temp2 = temp1;
+    }
+  }
+
+}
+
+void shiftRowRight(char *board, char symbol, int pushon, int pushoff) {
+  int i;
+  char temp1, temp2;
+
+  for(i = pushon; i <= pushoff; i++) {
+    if(i == pushon) {
+      temp2 = board[i];
+      board[i] = symbol;
+    }
+    else {
+      temp1 = board[i];
+      board[i] = temp2;
+      temp2 = temp1;
+    }
+  }
+
+}
+
+void shiftRowLeft(char *board, char symbol, int pushon, int pushoff) {
+  int i;
+  char temp1, temp2;
+
+  for(i = pushon; i >= pushoff; i--) {
+    if(i == pushon) {
+      temp2 = board[i];
+      board[i] = symbol;
+    }
+    else {
+      temp1 = board[i];
+      board[i] = temp2;
+      temp2 = temp1;
+    }
+  }
+
+}
+
+BOOLEAN NInARow(char *board, char symbol, int size) {
+  BOOLEAN nInARow = FALSE, flag = TRUE;
+  int i, j;
+
+  /* horizontal */
+  for(i = 0; i < size && !nInARow; i++) {
+    for(j = 0; j < size; j++) {
+      if(board[i*size+j] != symbol) {
+	flag = FALSE;
+      }
+    }
+    
+    if(flag) {
+      nInARow = TRUE;
+    }
+
+    flag = TRUE;
+  }
+
+  /* vertical */
+  for(i = 0; i < size && !nInARow; i++) {
+    for(j = 0; j < size; j++) {
+      if(board[j*size+i] != symbol) {
+	flag = FALSE;
+      }
+    }
+    
+    if(flag) {
+      nInARow = TRUE;
+    }
+
+    flag = TRUE;
+  }
+
+  /* diagonal */
+  for(i = 0; i < size; i++) {
+    if(board[i*size+i] != symbol) {
+      flag = FALSE;
+    }
+  }
+
+  if(flag) {
+    nInARow = TRUE;
+  }
+  
+  for(i = 0; i < size; i++) {
+    if(board[(size-1)*(i+1)] != symbol) {
+      flag = FALSE;
+    }
+  }
+
+  if(flag) {
+    nInARow = TRUE;
+  }
+
+  /* result */
+  return nInARow;
 }
 
 
 
+
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2006/05/08 19:09:49  simontaotw
+// Code cleanup.
+//
 // Revision 1.28  2006/05/08 07:15:41  simontaotw
 // Fixed some bugs. Game solves.
 //
