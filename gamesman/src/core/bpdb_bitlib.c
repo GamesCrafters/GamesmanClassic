@@ -48,7 +48,8 @@ inline
 BOOLEAN
 bitlib_file_write_byte(
                 dbFILE *file,
-                BYTE *buffer
+                BYTE *buffer,
+                UINT32 length
                 )
 {
     /*if(fwrite(buffer, 1, 1, file) == 1) {
@@ -57,8 +58,8 @@ bitlib_file_write_byte(
         return FALSE;
     }*/
     int ret = 0;
-    ret = gzwrite(file, buffer, 1);
-    if(ret != 1) {
+    ret = gzwrite(file, buffer, length);
+    if(ret != length) {
         printf("Most likely bad compression! %d\n", ret);
         //exit(0);
         return FALSE;
@@ -135,7 +136,7 @@ bitlib_insert_bits(
                 UINT8 bitsToOutput
                 )
 {
-    assert( offsetFromLeft < 64 );
+    //assert( offsetFromLeft < 64 );
 
     // offsetfromright
     UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
@@ -261,7 +262,10 @@ bitlib_read_bits(
 inline
 void
 bitlib_value_to_buffer(
-                dbFILE *file, BYTE *outputBuffer,
+                dbFILE *file,
+                BYTE **curBuffer,
+                BYTE *outputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offsetFromLeft,
                 UINT64 value,
                 UINT8 bitsToOutput
@@ -273,9 +277,9 @@ bitlib_value_to_buffer(
 
     while( bitsToOutput > 0 ) {
         if(offsetFromRight >= bitsToOutput) {
-            *outputBuffer = *outputBuffer | (bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput));
+            **curBuffer = **curBuffer | (bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput));
         } else {
-            *outputBuffer = *outputBuffer | bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) );
+            **curBuffer = **curBuffer | bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) );
         }
         
         *offsetFromLeft = (*offsetFromLeft + min8(bitsToOutput, offsetFromRight)) % BITSINBYTE;
@@ -288,8 +292,15 @@ bitlib_value_to_buffer(
 
         //if(writeOut) {
         if(*offsetFromLeft == 0) {
-            bitlib_file_write_byte(file, outputBuffer);
-            *outputBuffer = 0;
+            (*curBuffer)++;
+            if(*curBuffer == outputBuffer + bufferLength) {
+                bitlib_file_write_byte(file, outputBuffer, bufferLength);
+                *curBuffer = outputBuffer;
+                memset(outputBuffer, 0, bufferLength);
+                // maybe memset to 0
+            }
+            
+            //*outputBuffer = 0;
         }
     }
 }

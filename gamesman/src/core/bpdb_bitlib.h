@@ -3,6 +3,13 @@
 
 #include "bpdb_misc.h"
 
+//
+// for the record
+// bitlib_insert_bits and
+// bitlib_read_bits support numbers up to and including 64 bits
+// the limiter being UINT64
+//
+
 GMSTATUS
 bitlib_file_open(
                 char *filename,
@@ -19,7 +26,8 @@ inline
 BOOLEAN
 bitlib_file_write_byte(
                 dbFILE *file,
-                BYTE *buffer
+                BYTE *buffer,
+                UINT32 length
                 );
 
 inline
@@ -78,7 +86,9 @@ inline
 void
 bitlib_value_to_buffer(
                 dbFILE *file,
+                BYTE **curBuffer,
                 BYTE *outputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offsetFromLeft,
                 UINT64 value,
                 UINT8 bitsToOutput

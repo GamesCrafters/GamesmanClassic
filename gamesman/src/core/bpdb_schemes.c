@@ -26,12 +26,14 @@ BOOLEAN bpdb_scott_varnum( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, U
     leftBits = bpdb_scott_varnum_gap_bits( consecutiveSkips );
     rightBits = 2*leftBits;
 
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, bitlib_right_mask64( leftBits), leftBits );
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, 0, 1 );
+    // temp - ken change
+//    bitlib_value_to_buffer( outFile, outputBuffer, offset, bitlib_right_mask64( leftBits), leftBits );
+//    bitlib_value_to_buffer( outFile, outputBuffer, offset, 0, 1 );
 
     consecutiveSkips -= bpdb_scott_varnum_implicit_amt( leftBits );
 
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, consecutiveSkips, rightBits );
+    // temp - ken change
+    //bitlib_value_to_buffer( outFile, outputBuffer, offset, consecutiveSkips, rightBits );
 
     return TRUE;
 }

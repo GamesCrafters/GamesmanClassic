@@ -31,12 +31,15 @@
 **************************************************************************/
 
 // TODO
-// allow variable buffer size
-// readjust database size
+// allow variable buffer size (really really need this, but it's difficult)
+//    - it will require changes in the bitlib
 // hardcode VALUE as slot? maybe...
+// fix bit widths from shrinks and grows
+// SLOTS PER SLICE PRINTOUT ON LOAD IS WRONG
 
 // NOTE
 // supports up to 256 slices each 64-bits in size
+// this support is violated in the shrink and grow (should fix soon)
 
 #include "bpdb.h"
 #include "bpdb_bitlib.h"
@@ -73,7 +76,7 @@ UINT32 BPDB_VISITEDSLOT = 0;
 // graphical purposes
 BOOLEAN bpdb_have_printed = FALSE;
 
-
+UINT32 bpdb_buffer_length = 1000000;
 //
 // bpdb_init
 //
@@ -162,7 +165,7 @@ bpdb_init(
     bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, bpdb_mem_write_varnum, FALSE );
 
     if( gBitPerfectDBSchemes ) {
-        bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
+        //bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
     }
 
 _bailout:
@@ -1118,7 +1121,9 @@ bpdb_save_database()
 BOOLEAN
 bpdb_generic_write_varnum(
                 dbFILE *outFile,
+                BYTE **curBuffer,
                 BYTE *outputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offset,
                 UINT64 consecutiveSkips
                 )
@@ -1128,12 +1133,12 @@ bpdb_generic_write_varnum(
     leftBits = bpdb_generic_varnum_gap_bits( consecutiveSkips );
     rightBits = leftBits;
 
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, bitlib_right_mask64( leftBits), leftBits );
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, 0, 1 );
+    bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, bitlib_right_mask64( leftBits), leftBits );
+    bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, 0, 1 );
 
     consecutiveSkips -= bpdb_generic_varnum_implicit_amt( leftBits );
 
-    bitlib_value_to_buffer( outFile, outputBuffer, offset, consecutiveSkips, rightBits );
+    bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, consecutiveSkips, rightBits );
 
     return TRUE;
 }
@@ -1178,7 +1183,6 @@ bpdb_generic_save_database(
     GMSTATUS status = STATUS_SUCCESS;
 
     UINT64 consecutiveSkips = 0;
-    BYTE outputBuffer = 0;
     UINT8 offset = 0;
     UINT8 i, j;
 
@@ -1188,7 +1192,13 @@ bpdb_generic_save_database(
     UINT64 slice;
     UINT8 slot;
 
-    mkdir("data", 0755) ;
+    BYTE *outputBuffer = NULL;
+    BYTE *curBuffer = NULL;
+    outputBuffer = alloca( bpdb_buffer_length * sizeof(BYTE));
+    memset(outputBuffer, 0, bpdb_buffer_length);
+    curBuffer = outputBuffer;
+
+    mkdir("data", 0755);
 
     status = bitlib_file_open(outfilename, "wb", &outFile);
     if(!GMSUCCESS(status)) {
@@ -1196,22 +1206,22 @@ bpdb_generic_save_database(
         goto _bailout;
     }
 
-    bitlib_value_to_buffer ( outFile, &outputBuffer, &offset, scheme->scheme, 8 );
+    bitlib_value_to_buffer ( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, scheme->scheme, 8 );
 
-    bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_slices );
-    bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->bits );
+    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_slices );
+    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->bits );
 
-    bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->slots );
+    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->slots );
 
     for(i = 0; i < (bpdb_write_slice->slots); i++) {
-        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, bpdb_write_slice->size[i]+1 );
-        bpdb_generic_write_varnum( outFile, &outputBuffer, &offset, strlen(bpdb_write_slice->name[i]) );
+        bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[i]+1 );
+        bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, strlen(bpdb_write_slice->name[i]) );
         
         for(j = 0; j<strlen(bpdb_write_slice->name[i]); j++) {
-            bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_write_slice->name[i][j], 8 );
+            bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->name[i][j], 8 );
         }
 
-        bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_write_slice->overflowed[i], 1 );
+        bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->overflowed[i], 1 );
     }
 
     if(scheme->indicator) {
@@ -1223,13 +1233,13 @@ bpdb_generic_save_database(
                 // If so, then check to see if skips must be outputted
                 if(consecutiveSkips != 0) {
                     // Put skips into output buffer
-                    scheme->write_varnum(outFile, &outputBuffer, &offset, consecutiveSkips);
+                    scheme->write_varnum(outFile, outputBuffer, &offset, consecutiveSkips);
                     // Reset skip counter
                     consecutiveSkips = 0;
                 }
-                bitlib_value_to_buffer( outFile, &outputBuffer, &offset, 0, 1 );
+                bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, 0, 1 );
                 for(slot=0; slot < (bpdb_write_slice->slots); slot++) {
-                    bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
+                    bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
                 }
 
             } else {
@@ -1239,20 +1249,20 @@ bpdb_generic_save_database(
     } else {
         // Loop through all records
         for(slice=0; slice<bpdb_slices; slice++) {
-            //bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_full(slice), bpdb_slice->bits );
+            //bitlib_value_to_buffer( outFile, outputBuffer, &offset, bpdb_get_slice_full(slice), bpdb_slice->bits );
             for(slot=0; slot < (bpdb_write_slice->slots); slot++) {
-                bitlib_value_to_buffer( outFile, &outputBuffer, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
+                bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
             }
         }
     }
 
     if(consecutiveSkips != 0) {
-        scheme->write_varnum(outFile, &outputBuffer, &offset, consecutiveSkips);
+        scheme->write_varnum(outFile, outputBuffer, &offset, consecutiveSkips);
         consecutiveSkips = 0;
     }
 
-    if(offset != 0) {
-        bitlib_file_write_byte(outFile, &outputBuffer);
+    if(curBuffer != outputBuffer || offset != 0) {
+        bitlib_file_write_byte(outFile, outputBuffer, curBuffer-outputBuffer+1);
     }
 
     status = bitlib_file_close(outFile);

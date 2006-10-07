@@ -20,6 +20,9 @@ typedef unsigned long long int UINT64;
 typedef UINT32 GMSTATUS;
 */
 
+// new
+//#define BUFFERLENGTH 2
+
 #define BITSINBYTE 8
 #define BITSINPOS 64
 

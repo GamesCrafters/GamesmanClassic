@@ -172,7 +172,9 @@ bpdb_generic_load_database(
 BOOLEAN
 bpdb_generic_write_varnum(
                 dbFILE *outFile,
+                BYTE **curBuffer,
                 BYTE *outputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offset,
                 UINT64 consecutiveSkips
                 );
