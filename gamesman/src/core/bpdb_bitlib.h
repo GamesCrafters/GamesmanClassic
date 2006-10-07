@@ -31,9 +31,11 @@ bitlib_file_write_byte(
                 );
 
 inline
-BYTE
+BOOLEAN
 bitlib_file_read_byte(
-                dbFILE *file
+                dbFILE *file,
+                BYTE *buffer,
+                UINT32 length
                 );
 
 inline
@@ -98,7 +100,9 @@ inline
 UINT64
 bitlib_read_from_buffer(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offsetFromLeft,
                 UINT8 length
                 );

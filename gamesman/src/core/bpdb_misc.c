@@ -6,7 +6,7 @@ Scheme_List scheme_list_new() {
 }
 
 /* add scheme to list */
-Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit ), BOOLEAN (*write_varnum)( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips ), BOOLEAN indicator) {
+Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)( dbFILE *inFile, BYTE **curBuffer, BYTE *inputBuffer, UINT32 length, UINT8 *offset, BOOLEAN alreadyReadFirstBit ), BOOLEAN (*write_varnum)( dbFILE *outFile, BYTE **curBuffer, BYTE *outputBuffer, UINT32 length, UINT8 *offset, UINT64 consecutiveSkips ), BOOLEAN indicator) {
     Scheme_List cur = sl;
     Scheme_List temp;
 

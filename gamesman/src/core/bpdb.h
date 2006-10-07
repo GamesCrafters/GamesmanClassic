@@ -192,7 +192,9 @@ bpdb_generic_varnum_implicit_amt(
 UINT64
 bpdb_generic_read_varnum(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 length,
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 );
@@ -200,7 +202,9 @@ bpdb_generic_read_varnum(
 UINT8
 bpdb_generic_read_varnum_consecutive_ones(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 length,
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 );

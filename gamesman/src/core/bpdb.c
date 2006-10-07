@@ -76,7 +76,7 @@ UINT32 BPDB_VISITEDSLOT = 0;
 // graphical purposes
 BOOLEAN bpdb_have_printed = FALSE;
 
-UINT32 bpdb_buffer_length = 1000000;
+UINT32 bpdb_buffer_length = 1000;
 //
 // bpdb_init
 //
@@ -162,10 +162,10 @@ bpdb_init(
     new_db->set_slice_slot = bpdb_set_slice_slot;    
     new_db->free_db = bpdb_free;
 
-    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, bpdb_mem_write_varnum, FALSE );
+    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, NULL, FALSE );
 
     if( gBitPerfectDBSchemes ) {
-        //bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
+        bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
     }
 
 _bailout:
@@ -250,7 +250,6 @@ bpdb_set_value(
                 )
 {
     bpdb_set_slice_slot( (UINT64)pos, BPDB_VALUESLOT, (UINT64) val );
-    // bpdb_set_slice_slot needs to return val
     return val;
 }
 
@@ -277,14 +276,6 @@ bpdb_set_remoteness(
                     )
 {
     bpdb_set_slice_slot( (UINT64)pos, BPDB_REMSLOT, (REMOTENESS) val );
-    
-    /*
-    if(val > REMOTENESS_MAX) {
-        printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",val,pos,REMOTENESS_MAX);
-        ExitStageRight();
-        exit(0);
-    }
-    */
 }
 
 BOOLEAN
@@ -1233,7 +1224,7 @@ bpdb_generic_save_database(
                 // If so, then check to see if skips must be outputted
                 if(consecutiveSkips != 0) {
                     // Put skips into output buffer
-                    scheme->write_varnum(outFile, outputBuffer, &offset, consecutiveSkips);
+                    scheme->write_varnum(outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
                     // Reset skip counter
                     consecutiveSkips = 0;
                 }
@@ -1257,7 +1248,7 @@ bpdb_generic_save_database(
     }
 
     if(consecutiveSkips != 0) {
-        scheme->write_varnum(outFile, outputBuffer, &offset, consecutiveSkips);
+        scheme->write_varnum(outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
         consecutiveSkips = 0;
     }
 
@@ -1308,7 +1299,9 @@ bpdb_load_database( )
     }
     
     // read file header
-    fileFormat = bitlib_file_read_byte( inFile );
+
+    // TO DO: TEST IF BOOLEAN IS TRUE
+    bitlib_file_read_byte( inFile, &fileFormat, 1 );
 
     printf("\n\nDatabase Header Information\n");
 
@@ -1359,7 +1352,6 @@ bpdb_generic_load_database(
     UINT64 numOfSlicesHeader = 0;
     UINT8 bitsPerSliceHeader = 0;
     UINT8 numOfSlotsHeader = 0;
-    BYTE inputBuffer = 0;
     UINT8 offset = 0;
     UINT64 skips = 0;
     UINT64 i, j;
@@ -1371,12 +1363,22 @@ bpdb_generic_load_database(
     BOOLEAN tempoverflowed;
     //BOOLEAN slotsMade = FALSE;
 
-    inputBuffer = bitlib_file_read_byte( inFile );
+    BYTE *inputBuffer = NULL;
+    BYTE *curBuffer = NULL;
+    
+    inputBuffer = alloca( bpdb_buffer_length * sizeof(BYTE) );
+    memset( inputBuffer, 0, bpdb_buffer_length );
+    curBuffer = inputBuffer;
+
+    // TO DO - check return value
+    bitlib_file_read_byte( inFile, inputBuffer, bpdb_buffer_length );
+
+    //inputBuffer = bitlib_file_read_byte( inFile );
 
     // Read Header
-    numOfSlicesHeader = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
-    bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
-    numOfSlotsHeader = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
+    numOfSlicesHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+    bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+    numOfSlotsHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
     printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, offset);
 
@@ -1396,24 +1398,24 @@ bpdb_generic_load_database(
 
     for(i = 0; i<numOfSlotsHeader; i++) {
         // read size slice in bits
-        tempsize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
+        tempsize = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
         tempsize--;
         
         // read size of slot name in bytes
-        tempnamesize = bpdb_generic_read_varnum( inFile, &inputBuffer, &offset, FALSE );
+        tempnamesize = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
         // allocate room for slot name
         tempname = (char *) malloc((tempnamesize + 1) * sizeof(char));
 
         // read name
         for(j = 0; j<tempnamesize; j++) {
-            tempchar = (char)bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 8 );
+            tempchar = (char)bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 8 );
             *(tempname + j) = tempchar;
         }
         *(tempname + j) = '\0';
 
         // read overflowed bit
-        tempoverflowed = bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 1 );
+        tempoverflowed = bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 1 );
 
         // output information on each slot to the user
         printf("Slot: %s (%u bytes)\n", tempname, tempnamesize);
@@ -1439,17 +1441,17 @@ bpdb_generic_load_database(
     }
     if( scheme->indicator ) {
         while(currentSlice < numOfSlicesHeader) {
-            if(bitlib_read_from_buffer( inFile, &inputBuffer, &offset, 1 ) == 0) {
+            if(bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 1 ) == 0) {
         
                 for(currentSlot = 0; currentSlot < (bpdb_write_slice->slots); currentSlot++) {
                     bpdb_set_slice_slot( currentSlice, 2*currentSlot,
-                                bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->size[currentSlot]) );
+                                bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[currentSlot]) );
                 }
 
                 currentSlice++;
             } else {
                 
-                skips = scheme->read_varnum( inFile, &inputBuffer, &offset, TRUE );
+                skips = scheme->read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, TRUE );
 
                 for(i = 0; i < skips; i++, currentSlice++) {
                     bpdb_set_slice_slot( currentSlice, 0, undecided );
@@ -1460,7 +1462,7 @@ bpdb_generic_load_database(
         for( currentSlice = 0; currentSlice < numOfSlicesHeader; currentSlice++ ) {
             for(currentSlot = 0; currentSlot < (bpdb_write_slice->slots); currentSlot++) {
                 bpdb_set_slice_slot( currentSlice, 2*currentSlot,
-                            bitlib_read_from_buffer( inFile, &inputBuffer, &offset, bpdb_write_slice->size[currentSlot]) );
+                            bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[currentSlot]) );
             }
         }
     }
@@ -1472,21 +1474,32 @@ _bailout:
 UINT64
 bpdb_generic_read_varnum(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 length,
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 )
 {
     UINT8 i;
     UINT64 variableNumber = 0;
-    UINT8 leftBits, rightBits;
+    UINT8 leftBits = 0;
+    UINT8 rightBits = 0;
 
-    leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, inputBuffer, offset, alreadyReadFirstBit );
+    if(alreadyReadFirstBit) {
+        leftBits = 1;
+    }
+
+    while(bitlib_read_from_buffer( inFile, curBuffer, inputBuffer, length, offset, 1 )) {
+        leftBits++;
+    }
+
+    //leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, curBuffer, inputBuffer, length, offset, alreadyReadFirstBit );
     rightBits = leftBits;
 
     for(i = 0; i < rightBits; i++) {
         variableNumber = variableNumber << 1;
-        variableNumber = variableNumber | bitlib_read_from_buffer( inFile, inputBuffer, offset, 1 );
+        variableNumber = variableNumber | bitlib_read_from_buffer( inFile, curBuffer, inputBuffer, length, offset, 1 );
     }
 
     variableNumber += bpdb_generic_varnum_implicit_amt( leftBits );
@@ -1497,7 +1510,9 @@ bpdb_generic_read_varnum(
 UINT8
 bpdb_generic_read_varnum_consecutive_ones(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 length,
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 )
@@ -1510,7 +1525,7 @@ bpdb_generic_read_varnum_consecutive_ones(
         consecutiveOnes = 0;
     }
 
-    while(bitlib_read_from_buffer( inFile, inputBuffer, offset, 1 )) {
+    while(bitlib_read_from_buffer( inFile, curBuffer, inputBuffer, length, offset, 1 )) {
         consecutiveOnes++;
     }
 

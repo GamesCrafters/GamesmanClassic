@@ -68,22 +68,25 @@ bitlib_file_write_byte(
 }
 
 inline
-BYTE
+BOOLEAN
 bitlib_file_read_byte(
-                dbFILE *file
+                dbFILE *file,
+                BYTE *buffer,
+                UINT32 length
                 )
 {
-    BYTE readbyte;
     int ret;
 
-    ret = gzread(file, &readbyte,sizeof(BYTE));
+    // length in bytes (length * sizeof(BYTE))
+    ret = gzread(file, buffer, length);
     //readbyte = (BYTE) fgetc( file );
 
     if(ret <= 0) {
         printf("Warning: Most likely bad decompression.");
-        exit(0);
+        //exit(0);
+        return FALSE;
     }
-    return readbyte;
+    return TRUE;
 }
 
 GMSTATUS
@@ -309,7 +312,9 @@ inline
 UINT64
 bitlib_read_from_buffer(
                 dbFILE *inFile,
+                BYTE **curBuffer,
                 BYTE *inputBuffer,
+                UINT32 bufferLength,
                 UINT8 *offsetFromLeft,
                 UINT8 length
                 )
@@ -320,9 +325,19 @@ bitlib_read_from_buffer(
 
     while( length > 0 ) {
         if(*offsetFromLeft == 8 ) {
-            *inputBuffer = bitlib_file_read_byte(inFile);
-            *offsetFromLeft -= 8;
-            offsetFromRight = BITSINBYTE - *offsetFromLeft;
+            //*inputBuffer = bitlib_file_read_byte(inFile);
+            //*offsetFromLeft -= 8;
+            //offsetFromRight = BITSINBYTE - *offsetFromLeft;
+
+            (*curBuffer)++;
+            *offsetFromLeft = 0;
+            offsetFromRight = BITSINBYTE;
+            if(*curBuffer == inputBuffer + bufferLength) {
+                bitlib_file_read_byte(inFile, inputBuffer, bufferLength);
+                *curBuffer = inputBuffer;
+                //memset(outputBuffer, 0, bufferLength);
+                // maybe memset to 0
+            }
         }
 
         value = value << min8( length, offsetFromRight );
@@ -332,10 +347,10 @@ bitlib_read_from_buffer(
         
         if(length > offsetFromRight) {
             mask = bitlib_right_mask8( min8(length, offsetFromRight) );
-            value = value | (UINT64) (*inputBuffer & mask);
+            value = value | (UINT64) (**curBuffer & mask);
         } else {
             mask = bitlib_right_mask8( min8(length, offsetFromRight) );
-            value = value | (UINT64) (((mask << (offsetFromRight - length)) & *inputBuffer) >> (BITSINBYTE - *offsetFromLeft - length));
+            value = value | (UINT64) (((mask << (offsetFromRight - length)) & **curBuffer) >> (BITSINBYTE - *offsetFromLeft - length));
         }
 
         //printf("OFL: %d, OFR: %d, length: %d, value: %llu\n", *offsetFromLeft, offsetFromRight, length, value);

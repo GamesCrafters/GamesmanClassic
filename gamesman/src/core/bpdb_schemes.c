@@ -69,12 +69,14 @@ UINT64 bpdb_scott_read_varnum( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset,
     UINT64 variableNumber = 0;
     UINT8 leftBits, rightBits;
 
-    leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, inputBuffer, offset, alreadyReadFirstBit );
+    // KEN - TEMP
+    //leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, inputBuffer, offset, alreadyReadFirstBit );
     rightBits = 2*leftBits;
 
     for(i = 0; i < rightBits; i++) {
         variableNumber = variableNumber << 1;
-        variableNumber = variableNumber | bitlib_read_from_buffer( inFile, inputBuffer, offset, 1 );
+        // KEN - TEMP
+        //variableNumber = variableNumber | bitlib_read_from_buffer( inFile, inputBuffer, offset, 1 );
     }
 
     variableNumber += bpdb_scott_varnum_implicit_amt( leftBits );
