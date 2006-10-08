@@ -221,9 +221,9 @@ bpdb_allocate( )
     // everything will work without this for loop,
     // until someone changes the value of the undecided enum
     // which is at the time of writing this 0.
-    for(i = 0; i < bpdb_slices; i++) {
-        bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
-    }
+    //for(i = 0; i < bpdb_slices; i++) {
+    //    bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
+    //}
 
 _bailout:
     return status;
