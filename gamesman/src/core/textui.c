@@ -75,13 +75,19 @@ void HitAnyKeyToContinue()
 
 
 */
-void GetMy(char *format, GENERIC_PTR out, int length) {
+void GetMy(char *format, GENERIC_PTR out, int length, BOOLEAN keepSpaces) {
 	char buffer[length];
-
-	fgets(buffer, length, stdin);
-	int blen = strlen(buffer);
-	sscanf(buffer, format, out);
-
+	int blen = 0;
+	
+	if (keepSpaces) {
+	  fgets(out, length, stdin);
+	  blen = strlen(out);
+	}
+	else {
+	  fgets(buffer, length, stdin);
+	  blen = strlen(buffer);
+	  sscanf(buffer, format, out);
+	}
 
 	while (blen == length - 1) {
 		/* the buffer is full, possible there is extra input
@@ -100,7 +106,7 @@ void GetMy(char *format, GENERIC_PTR out, int length) {
 }
 
 void GetMyHelper(char *format, GENERIC_PTR out) {
-	GetMy(format, out, DEFAULTLENGTH);
+	GetMy(format, out, DEFAULTLENGTH, FALSE);
 }
 
 /* get next int from stdin and return */
@@ -122,7 +128,7 @@ void GetMyStr(STRING str, int len) {
 		fprintf(stderr, "Error in GetMyStr(), expected nonnegative \
 				length but got %d\n", len);
 	}
-	GetMy("%s", str, len);
+	GetMy("%s", str, len, TRUE);
 }
 
 /*char GetMyChar()
