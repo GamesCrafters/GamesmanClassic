@@ -31,8 +31,9 @@
 **************************************************************************/
 
 // TODO
-// allow variable buffer size (really really need this, but it's difficult)
-//    - it will require changes in the bitlib
+
+// SUPPORT tiers
+
 // hardcode VALUE as slot? maybe...
 // fix bit widths from shrinks and grows
 // SLOTS PER SLICE PRINTOUT ON LOAD IS WRONG
@@ -64,8 +65,9 @@ BYTE        *bpdb_nowrite_array = NULL;
 // numbers of slices
 UINT64      bpdb_slices = 0;
 
-// pointer to scheme list
-Scheme_List bpdb_scheme_list = NULL;
+// pointer to list of schemes
+SLIST       bpdb_schemes = NULL;
+SCHEME      bpdb_headerScheme = NULL;
 
 // legacy slots
 UINT32 BPDB_VALUESLOT = 0;
@@ -162,15 +164,23 @@ bpdb_init(
     new_db->set_slice_slot = bpdb_set_slice_slot;    
     new_db->free_db = bpdb_free;
 
-    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 0, NULL, NULL, FALSE );
+    bpdb_schemes = slist_new();
+
+    SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, FALSE );
+    SCHEME scheme1 = scheme_new( 1, bpdb_generic_varnum_gap_bits, bpdb_generic_varnum_size_bits, bpdb_generic_varnum_implicit_amt, TRUE );
+    SCHEME scheme2 = scheme_new( 2, bpdb_ken_varnum_gap_bits, bpdb_ken_varnum_size_bits, bpdb_ken_varnum_implicit_amt, TRUE );
+
+    bpdb_headerScheme = scheme1;
+
+    bpdb_schemes = slist_add( bpdb_schemes, scheme0 );
 
     if( gBitPerfectDBSchemes ) {
-        bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 1, bpdb_generic_read_varnum, bpdb_generic_write_varnum, TRUE );        //    bpdb_scheme_list = scheme_list_add( bpdb_scheme_list, 2, bpdb_scott_read_varnum, bpdb_scott_varnum, TRUE );
+        bpdb_schemes = slist_add( bpdb_schemes, scheme1 );
+        bpdb_schemes = slist_add( bpdb_schemes, scheme2 );
     }
 
 _bailout:
     return;
-    //return status;
 }
 
 GMSTATUS
@@ -205,10 +215,12 @@ bpdb_allocate( )
         }
     }
 
-    // probably do not need this anymore
-    //for(i = 0; i < bpdb_slices; i++) {
-    //    bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
-    //}
+    // everything will work without this for loop,
+    // until someone changes the value of the undecided enum
+    // which is at the time of writing this 0.
+    for(i = 0; i < bpdb_slices; i++) {
+        bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
+    }
 
 _bailout:
     return status;
@@ -236,6 +248,7 @@ bpdb_free_slice( SLICE sl )
 void
 bpdb_free( )
 {
+    // TODO: must free schemes list
     bpdb_free_slice( bpdb_write_slice );
     bpdb_free_slice( bpdb_nowrite_slice );
     SAFE_FREE( bpdb_nowrite_array );
@@ -999,7 +1012,7 @@ bpdb_save_database()
 
     // counter
     int i;
-    Scheme_List cur;
+    SLIST cur;
 
     // file names of saved files
     char **outfilenames;
@@ -1016,13 +1029,13 @@ bpdb_save_database()
 
     // set counters
     i = 0;
-    cur = bpdb_scheme_list;
+    cur = bpdb_schemes;
 
     // must free this
-    for(i = 0; i<scheme_list_size(bpdb_scheme_list); i++) {
-        outfilenames = (char **) malloc( scheme_list_size(bpdb_scheme_list)*sizeof(char*) );
+    for(i = 0; i<slist_size(bpdb_schemes); i++) {
+        outfilenames = (char **) malloc( slist_size(bpdb_schemes)*sizeof(char*) );
     }
-    for(i = 0; i<scheme_list_size(bpdb_scheme_list); i++) {
+    for(i = 0; i<slist_size(bpdb_schemes); i++) {
         outfilenames[i] = (char *) malloc( 256*sizeof(char) );
     }
 
@@ -1060,16 +1073,16 @@ bpdb_save_database()
     while(cur != NULL) {
         // saves with encoding scheme and returns filename
         //sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", "test", 1, cur->scheme);
-        sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", kDBName, getOption(), cur->scheme);
+        sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", kDBName, getOption(), ((SCHEME)cur->obj)->id);
 
-        status = bpdb_generic_save_database( cur, outfilenames[i] );
+        status = bpdb_generic_save_database( (SCHEME) cur->obj, outfilenames[i] );
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("bpdb_save_database()", "call to bpdb_generic_save_database with scheme failed", status);
         } else {
             // get size of file
             stat(outfilenames[i], &fileinfo);
 
-            printf("Scheme: %d. Wrote %s with size of %d\n", cur->scheme, outfilenames[i], (int)fileinfo.st_size);
+            printf("Scheme: %d. Wrote %s with size of %d\n", ((SCHEME)cur->obj)->id, outfilenames[i], (int)fileinfo.st_size);
 
             // if file is a smaller size, set min
             if(smallestsize == -1 || fileinfo.st_size < smallestsize) {
@@ -1085,7 +1098,7 @@ bpdb_save_database()
     
     // for each file, delete if not the smallest encoding,
     // and if it is, rename it to the final file name.
-    for(i = 0; i < scheme_list_size(bpdb_scheme_list); i++) {
+    for(i = 0; i < slist_size(bpdb_schemes); i++) {
         if(i == smallestscheme) {
 
             // rename smallest file to final file name
@@ -1112,6 +1125,7 @@ bpdb_save_database()
 BOOLEAN
 bpdb_generic_write_varnum(
                 dbFILE *outFile,
+                SCHEME scheme,
                 BYTE **curBuffer,
                 BYTE *outputBuffer,
                 UINT32 bufferLength,
@@ -1121,13 +1135,16 @@ bpdb_generic_write_varnum(
 {
     UINT8 leftBits, rightBits;
     
-    leftBits = bpdb_generic_varnum_gap_bits( consecutiveSkips );
-    rightBits = leftBits;
+    //leftBits = bpdb_generic_varnum_gap_bits( consecutiveSkips );
+    leftBits = scheme->varnum_gap_bits( consecutiveSkips );
+    //rightBits = leftBits;
+    rightBits = scheme->varnum_size_bits(leftBits);
 
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, bitlib_right_mask64( leftBits), leftBits );
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, 0, 1 );
 
-    consecutiveSkips -= bpdb_generic_varnum_implicit_amt( leftBits );
+    //consecutiveSkips -= bpdb_generic_varnum_implicit_amt( leftBits );
+    consecutiveSkips -= scheme->varnum_implicit_amt( leftBits );
 
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, consecutiveSkips, rightBits );
 
@@ -1158,16 +1175,20 @@ bpdb_generic_varnum_implicit_amt(
                 UINT8 leftBits
                 )
 {
-    if(64 == leftBits) {
-        return UINT64_MAX;
-    } else {
+    // for completeness we should have the 64 == leftBits
+    // check, but for all practical purposes, there is no need
+    // for it
+
+    //if(64 == leftBits) {
+    //    return UINT64_MAX;
+    //} else {
         return (1 << leftBits) - 1;
-    }
+    //}
 }
 
 GMSTATUS
 bpdb_generic_save_database(
-                Scheme_List scheme,
+                SCHEME scheme,
                 char *outfilename
                 )
 {
@@ -1185,6 +1206,7 @@ bpdb_generic_save_database(
 
     BYTE *outputBuffer = NULL;
     BYTE *curBuffer = NULL;
+
     outputBuffer = alloca( bpdb_buffer_length * sizeof(BYTE));
     memset(outputBuffer, 0, bpdb_buffer_length);
     curBuffer = outputBuffer;
@@ -1197,16 +1219,16 @@ bpdb_generic_save_database(
         goto _bailout;
     }
 
-    bitlib_value_to_buffer ( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, scheme->scheme, 8 );
+    bitlib_value_to_buffer ( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, scheme->id, 8 );
 
-    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_slices );
-    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->bits );
+    bpdb_generic_write_varnum( outFile, bpdb_headerScheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_slices );
+    bpdb_generic_write_varnum( outFile, bpdb_headerScheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->bits );
 
-    bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->slots );
+    bpdb_generic_write_varnum( outFile, bpdb_headerScheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->slots );
 
     for(i = 0; i < (bpdb_write_slice->slots); i++) {
-        bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[i]+1 );
-        bpdb_generic_write_varnum( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, strlen(bpdb_write_slice->name[i]) );
+        bpdb_generic_write_varnum( outFile, bpdb_headerScheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[i]+1 );
+        bpdb_generic_write_varnum( outFile, bpdb_headerScheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, strlen(bpdb_write_slice->name[i]) );
         
         for(j = 0; j<strlen(bpdb_write_slice->name[i]); j++) {
             bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->name[i][j], 8 );
@@ -1224,7 +1246,7 @@ bpdb_generic_save_database(
                 // If so, then check to see if skips must be outputted
                 if(consecutiveSkips != 0) {
                     // Put skips into output buffer
-                    scheme->write_varnum(outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
+                    bpdb_generic_write_varnum( outFile, scheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
                     // Reset skip counter
                     consecutiveSkips = 0;
                 }
@@ -1248,7 +1270,7 @@ bpdb_generic_save_database(
     }
 
     if(consecutiveSkips != 0) {
-        scheme->write_varnum(outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
+        bpdb_generic_write_varnum( outFile, scheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
         consecutiveSkips = 0;
     }
 
@@ -1272,7 +1294,7 @@ BOOLEAN
 bpdb_load_database( )
 {
     GMSTATUS status = STATUS_SUCCESS;
-    Scheme_List cur;
+    SLIST cur;
 
     // filename
     char outfilename[256];
@@ -1308,13 +1330,13 @@ bpdb_load_database( )
     // print fileinfo
     printf("Encoding Scheme: %d\n", fileFormat);
     
-    cur = bpdb_scheme_list;
+    cur = bpdb_schemes;
 
-    while(cur->scheme != fileFormat) {
+    while(((SCHEME)cur->obj)->id != fileFormat) {
         cur = cur->next;
     }
     
-    status = bpdb_generic_load_database( inFile, cur );
+    status = bpdb_generic_load_database( inFile, (SCHEME) cur->obj );
     if(!GMSUCCESS(status)) {
         BPDB_TRACE("bpdb_load_database()", "call to bpdb_generic_load_database to load db with recognized scheme failed", status);
         goto _bailout;
@@ -1341,7 +1363,7 @@ _bailout:
 GMSTATUS
 bpdb_generic_load_database(
                 dbFILE *inFile,
-                Scheme_List scheme
+                SCHEME scheme
                 )
 {
     GMSTATUS status = STATUS_SUCCESS;
@@ -1376,9 +1398,9 @@ bpdb_generic_load_database(
     //inputBuffer = bitlib_file_read_byte( inFile );
 
     // Read Header
-    numOfSlicesHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
-    bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
-    numOfSlotsHeader = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+    numOfSlicesHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+    bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+    numOfSlotsHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
     printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, offset);
 
@@ -1398,11 +1420,11 @@ bpdb_generic_load_database(
 
     for(i = 0; i<numOfSlotsHeader; i++) {
         // read size slice in bits
-        tempsize = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+        tempsize = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
         tempsize--;
         
         // read size of slot name in bytes
-        tempnamesize = bpdb_generic_read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
+        tempnamesize = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
         // allocate room for slot name
         tempname = (char *) malloc((tempnamesize + 1) * sizeof(char));
@@ -1451,7 +1473,7 @@ bpdb_generic_load_database(
                 currentSlice++;
             } else {
                 
-                skips = scheme->read_varnum( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, TRUE );
+                skips = bpdb_generic_read_varnum( inFile, scheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, TRUE );
 
                 for(i = 0; i < skips; i++, currentSlice++) {
                     bpdb_set_slice_slot( currentSlice, 0, undecided );
@@ -1471,9 +1493,15 @@ _bailout:
     return status;
 }
 
+UINT8
+bpdb_generic_varnum_size_bits( UINT8 leftBits ) {
+    return leftBits;
+}
+
 UINT64
 bpdb_generic_read_varnum(
                 dbFILE *inFile,
+                SCHEME scheme,
                 BYTE **curBuffer,
                 BYTE *inputBuffer,
                 UINT32 length,
@@ -1495,18 +1523,19 @@ bpdb_generic_read_varnum(
     }
 
     //leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, curBuffer, inputBuffer, length, offset, alreadyReadFirstBit );
-    rightBits = leftBits;
+    rightBits = scheme->varnum_size_bits(leftBits);
 
     for(i = 0; i < rightBits; i++) {
         variableNumber = variableNumber << 1;
         variableNumber = variableNumber | bitlib_read_from_buffer( inFile, curBuffer, inputBuffer, length, offset, 1 );
     }
 
-    variableNumber += bpdb_generic_varnum_implicit_amt( leftBits );
+    //variableNumber += bpdb_generic_varnum_implicit_amt( leftBits );
+    variableNumber += scheme->varnum_implicit_amt( leftBits );
 
     return variableNumber;
 }
-
+/*
 UINT8
 bpdb_generic_read_varnum_consecutive_ones(
                 dbFILE *inFile,
@@ -1531,3 +1560,4 @@ bpdb_generic_read_varnum_consecutive_ones(
 
     return consecutiveOnes;
 }
+*/

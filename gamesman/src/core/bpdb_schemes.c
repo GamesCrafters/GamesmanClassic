@@ -1,85 +1,43 @@
 #include "bpdb_schemes.h"
-#include "bpdb_bitlib.h"
+#include "bpdb_bitlib.h"
 
-//UINT64 bpdb_mem_read_varnum( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit ) {
-//}
-
-BOOLEAN bpdb_mem_write_varnum( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips ) {
-    /*int i;
-
-    for(i = 0; i<consecutiveSkips; i++) {
-        bitlib_value_to_buffer( outFile, outputBuffer, offset, undecided, bpdb_bits_per_slice );
-    }
-*/
-    return TRUE;
-}
-
-
-BOOLEAN bpdb_scott_varnum( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
-UINT8 bpdb_scott_varnum_gap_bits( UINT64 consecutiveSkips );
-UINT64 bpdb_scott_varnum_implicit_amt( UINT8 leftBits );
-UINT64 bpdb_scott_read_varnum( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-
-BOOLEAN bpdb_scott_varnum( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips ) {
-    UINT8 leftBits, rightBits;
+UINT8
+bpdb_ken_varnum_gap_bits(
+                UINT64 consecutiveSkips
+                )
+{
+    UINT8 leftBits = 1;
+    UINT8 powerTo = 4;
+    UINT64 skipsRepresented = 4;
     
-    leftBits = bpdb_scott_varnum_gap_bits( consecutiveSkips );
-    rightBits = 2*leftBits;
-
-    // temp - ken change
-//    bitlib_value_to_buffer( outFile, outputBuffer, offset, bitlib_right_mask64( leftBits), leftBits );
-//    bitlib_value_to_buffer( outFile, outputBuffer, offset, 0, 1 );
-
-    consecutiveSkips -= bpdb_scott_varnum_implicit_amt( leftBits );
-
-    // temp - ken change
-    //bitlib_value_to_buffer( outFile, outputBuffer, offset, consecutiveSkips, rightBits );
-
-    return TRUE;
-}
-
-UINT8 bpdb_scott_varnum_gap_bits( UINT64 consecutiveSkips ) {
-    UINT8 leftbits = 1;
-    
-    while(!(consecutiveSkips < bpdb_scott_varnum_implicit_amt(leftbits + 1)))
+    while(skipsRepresented < consecutiveSkips)
     {
-        leftbits++;
+        skipsRepresented += (UINT64)pow(2, powerTo);
+        leftBits++;
+        powerTo += 2;
     }
 
-    return leftbits;
+    return leftBits;
 }
 
-UINT64 bpdb_scott_varnum_implicit_amt( UINT8 leftBits ) {
-    UINT8 bits = 1;
-    UINT8 power = 2;
+UINT64
+bpdb_ken_varnum_implicit_amt(
+                UINT8 leftBits
+                )
+{
     UINT64 amt = 1;
-    
-    while(bits < leftBits) {
-        amt += (UINT64) pow(2, power);
-        power += 2;
-        bits++;
+    UINT64 bits = 2;
+
+    while(leftBits > 1) {
+        amt += (UINT64) pow(2, bits);
+        bits += 2;
+        leftBits--;
     }
 
     return amt;
 }
 
-
-UINT64 bpdb_scott_read_varnum( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit ) {
-    UINT8 i;
-    UINT64 variableNumber = 0;
-    UINT8 leftBits, rightBits;
-
-    // KEN - TEMP
-    //leftBits = bpdb_generic_read_varnum_consecutive_ones( inFile, inputBuffer, offset, alreadyReadFirstBit );
-    rightBits = 2*leftBits;
-
-    for(i = 0; i < rightBits; i++) {
-        variableNumber = variableNumber << 1;
-        // KEN - TEMP
-        //variableNumber = variableNumber | bitlib_read_from_buffer( inFile, inputBuffer, offset, 1 );
-    }
-
-    variableNumber += bpdb_scott_varnum_implicit_amt( leftBits );
-
-    return variableNumber;
+UINT8
+bpdb_ken_varnum_size_bits( UINT8 leftBits ) {
+    return leftBits*2;
 }

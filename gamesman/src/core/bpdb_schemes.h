@@ -4,10 +4,19 @@
 #include "bpdb_misc.h"
 #include "bpdb.h"
 
-UINT64          bpdb_mem_read_varnum        ( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-BOOLEAN         bpdb_mem_write_varnum       ( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
+UINT8
+bpdb_ken_varnum_gap_bits(
+                UINT64 consecutiveSkips
+                );
 
-UINT64          bpdb_scott_read_varnum      ( dbFILE *inFile, BYTE *inputBuffer, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-BOOLEAN         bpdb_scott_write_varnum     ( dbFILE *outFile, BYTE *outputBuffer, UINT8 *offset, UINT64 consecutiveSkips );
+UINT64
+bpdb_ken_varnum_implicit_amt(
+                UINT8 leftBits
+                );
+
+UINT8
+bpdb_ken_varnum_size_bits(
+                UINT8 leftBits 
+                );
 
 #endif /* GMCORE_BPDB_SCHEME_H */

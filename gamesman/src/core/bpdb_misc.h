@@ -45,6 +45,8 @@ typedef UINT32 GMSTATUS;
 #define GMSUCCESS(status) \
         (STATUS_SUCCESS == (status))
 
+#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+
 /*
 #define VALUESLOT 0
 #define MEXSLOT 2
@@ -52,23 +54,51 @@ typedef UINT32 GMSTATUS;
 #define VISITEDSLOT 1
 */
 
-/* List structure for schemes */
-typedef struct Schemelist {
+typedef struct  dbscheme {
     // numeric identifier
-    int            scheme;
+    UINT32          id;
 
     // pointers to load and save functions
-    UINT64        (*read_varnum)    ( dbFILE *inFile, BYTE **curBuffer, BYTE *inputBuffer, UINT32 length, UINT8 *offset, BOOLEAN alreadyReadFirstBit );
-    BOOLEAN        (*write_varnum)    ( dbFILE *outFile, BYTE **curBuffer, BYTE *outputBuffer, UINT32 length, UINT8 *offset, UINT64 consecutiveSkips );
+    UINT8           (*varnum_gap_bits)      ( UINT64 consecutiveSkips );
 
-    BOOLEAN        indicator;
+    UINT8           (*varnum_size_bits)     ( UINT8 leftBits );
+
+    UINT64          (*varnum_implicit_amt)  ( UINT8 leftBits );
+
+    BOOLEAN         indicator;
+
+} *SCHEME;
+
+/* List structure for schemes */
+typedef struct singlylinkedlist {
+
+    void            *obj;
 
     // next scheme
-    struct Schemelist *next;
-} *Scheme_List;
+    struct singlylinkedlist *next;
+} *SLIST;
 
-Scheme_List scheme_list_new();
-Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)( dbFILE *inFile, BYTE **curBuffer, BYTE *inputBuffer, UINT32 length, UINT8 *offset, BOOLEAN alreadyReadFirstBit ), BOOLEAN (*write_varnum)( dbFILE *outFile, BYTE **curBuffer, BYTE *outputBuffer, UINT32 length, UINT8 *offset, UINT64 consecutiveSkips ), BOOLEAN indicator);
-UINT8 scheme_list_size( Scheme_List sl );
+SCHEME scheme_new(
+                UINT32 id,
+                UINT8 (*varnum_gap_bits) ( UINT64 consecutiveSkips ),
+                UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
+                UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
+                BOOLEAN indicator
+                );
+
+void scheme_free(
+                SCHEME s;
+                );
+
+SLIST slist_new( );
+
+SLIST slist_add(
+                SLIST sl,
+                void *obj
+                );
+
+UINT32 slist_size(
+                SLIST sl
+                );
 
 #endif /* GMCORE_BPDB_MISC_H */

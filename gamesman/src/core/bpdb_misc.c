@@ -1,23 +1,47 @@
 #include "bpdb_misc.h"
 
-/* create new scheme list */
-Scheme_List scheme_list_new() {
+
+SCHEME scheme_new(
+                UINT32 id,
+                UINT8 (*varnum_gap_bits) ( UINT64 consecutiveSkips ),
+                UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
+                UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
+                BOOLEAN indicator
+                )
+{
+    SCHEME s = (SCHEME) malloc( sizeof(struct dbscheme) );
+    s->id = id;
+    s->varnum_gap_bits = varnum_gap_bits;
+    s->varnum_size_bits = varnum_size_bits;
+    s->varnum_implicit_amt = varnum_implicit_amt;
+    s->indicator = indicator;
+
+    return s;
+}
+
+void scheme_free( SCHEME s )
+{
+    SAFE_FREE( s );
+}
+
+// create new slist
+SLIST slist_new() {
     return NULL;
 }
 
-/* add scheme to list */
-Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)( dbFILE *inFile, BYTE **curBuffer, BYTE *inputBuffer, UINT32 length, UINT8 *offset, BOOLEAN alreadyReadFirstBit ), BOOLEAN (*write_varnum)( dbFILE *outFile, BYTE **curBuffer, BYTE *outputBuffer, UINT32 length, UINT8 *offset, UINT64 consecutiveSkips ), BOOLEAN indicator) {
-    Scheme_List cur = sl;
-    Scheme_List temp;
+SLIST slist_add(
+                SLIST sl,
+                void *obj
+                )
+{
+    SLIST cur = sl;
+    SLIST temp;
 
     if(sl == NULL) {
         // if no schemes, add first scheme
-        temp = (Scheme_List) malloc(sizeof(struct Schemelist));
+        temp = (SLIST) malloc(sizeof(struct dbscheme));
         temp->next = NULL;
-        temp->scheme = schemenum;
-        temp->read_varnum = read_varnum;
-        temp->write_varnum = write_varnum;
-        temp->indicator = indicator;
+        temp->obj = obj;
         return temp;
     } else {
         // find end of list
@@ -26,12 +50,9 @@ Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)
         }
 
         // add scheme
-        cur->next = (Scheme_List) malloc(sizeof(struct Schemelist));
+        cur->next = (SLIST) malloc(sizeof(struct dbscheme));
         cur->next->next = NULL;
-        cur->next->scheme = schemenum;
-        cur->next->read_varnum = read_varnum;
-        cur->next->write_varnum = write_varnum;
-        cur->next->indicator = indicator;
+        cur->next->obj = obj;
         return sl;
     }
     
@@ -39,8 +60,12 @@ Scheme_List scheme_list_add(Scheme_List sl, int schemenum, UINT64 (*read_varnum)
     return sl;
 }
 
-UINT8 scheme_list_size( Scheme_List sl ) {
-    UINT8 size = 0;
+
+UINT32 slist_size(
+                SLIST sl
+                )
+{
+    UINT32 size = 0;
 
     while(NULL != sl) {
         size++;

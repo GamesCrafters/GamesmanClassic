@@ -155,7 +155,7 @@ bpdb_save_database( );
 
 GMSTATUS
 bpdb_generic_save_database(
-                Scheme_List scheme,
+                SCHEME scheme,
                 char *outfilename
                 );
 
@@ -165,13 +165,14 @@ bpdb_load_database( );
 GMSTATUS
 bpdb_generic_load_database(
                 dbFILE *inFile,
-                Scheme_List scheme
+                SCHEME scheme
                 );
 
 
 BOOLEAN
 bpdb_generic_write_varnum(
                 dbFILE *outFile,
+                SCHEME scheme,
                 BYTE **curBuffer,
                 BYTE *outputBuffer,
                 UINT32 bufferLength,
@@ -189,16 +190,22 @@ bpdb_generic_varnum_implicit_amt(
                 UINT8 leftBits
                 );
 
+UINT8
+bpdb_generic_varnum_size_bits(
+                UINT8 leftBits
+                );
+
 UINT64
 bpdb_generic_read_varnum(
                 dbFILE *inFile,
+                SCHEME scheme,
                 BYTE **curBuffer,
                 BYTE *inputBuffer,
                 UINT32 length,
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 );
-
+/*
 UINT8
 bpdb_generic_read_varnum_consecutive_ones(
                 dbFILE *inFile,
@@ -208,5 +215,5 @@ bpdb_generic_read_varnum_consecutive_ones(
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 );
-
+*/
 #endif /* GMCORE_BPDB_H */
