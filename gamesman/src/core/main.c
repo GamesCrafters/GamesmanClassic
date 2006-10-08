@@ -288,6 +288,9 @@ void HandleArguments (int argc, char *argv[])
                         gBitPerfectDBSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--schemes")) {
                     gBitPerfectDBSchemes = TRUE;
+                } else if(!strcasecmp(argv[i], "--allschemes")) {
+                    gBitPerfectDBSchemes = TRUE;
+                    gBitPerfectDBAllSchemes = TRUE;
                 } else if(!strcasecmp(argv[i], "--adjust")) {
                     gBitPerfectDBAdjust = TRUE;
                 } else if(!strcasecmp(argv[i], "--solve")) {

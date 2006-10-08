@@ -176,6 +176,9 @@ bpdb_init(
 
     if( gBitPerfectDBSchemes ) {
         bpdb_schemes = slist_add( bpdb_schemes, scheme1 );
+    }
+
+    if( gBitPerfectDBAllSchemes) {
         bpdb_schemes = slist_add( bpdb_schemes, scheme2 );
     }
 
