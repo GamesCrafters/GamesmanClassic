@@ -7,7 +7,8 @@
 #include <string.h>
 #include <zlib.h>
 #include <sys/stat.h>
-#include "gamesman.h"
+#include "types.h"
+//#include "gamesman.h"
 
 typedef gzFile dbFILE;
 /*

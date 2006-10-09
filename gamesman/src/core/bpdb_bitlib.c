@@ -1,3 +1,4 @@
+#include "gamesman.h"
 #include "bpdb_bitlib.h"
 
 inline

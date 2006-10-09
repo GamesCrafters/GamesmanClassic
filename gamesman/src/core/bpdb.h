@@ -2,6 +2,7 @@
 #define GMCORE_BPDB_H
 
 #include "bpdb_misc.h"
+#include "db.h"
 
 //
 // slice format

@@ -43,8 +43,10 @@
 // this support is violated in the shrink and grow (should fix soon)
 
 #include "bpdb.h"
+#include "gamesman.h"
 #include "bpdb_bitlib.h"
 #include "bpdb_schemes.h"
+
 
 //
 // Global Variables
