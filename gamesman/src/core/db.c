@@ -35,10 +35,9 @@
 ** The existing functions abstract.
 */
 
-
+#include "bpdb.h"
 #include "gamesman.h"
 #include "memdb.h"
-#include "bpdb.h"
 #include "twobitdb.h"
 #include "colldb.h"
 #include "netdb.h"
