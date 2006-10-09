@@ -19,10 +19,10 @@ SCHEME scheme_new(
     return s;
 }
 
-void scheme_free( SCHEME s )
-{
-    SAFE_FREE( s );
-}
+//void scheme_free( SCHEME s )
+//{
+//    SAFE_FREE( s );
+//}
 
 // create new slist
 SLIST slist_new() {

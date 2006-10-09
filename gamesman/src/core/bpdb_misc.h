@@ -87,9 +87,9 @@ SCHEME scheme_new(
                 BOOLEAN indicator
                 );
 
-void scheme_free(
-                SCHEME s;
-                );
+//void scheme_free(
+//                SCHEME s;
+//                );
 
 SLIST slist_new( );
 
