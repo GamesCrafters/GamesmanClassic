@@ -158,6 +158,17 @@ Computer wins. Nice try, Dan Garcia.";
 
 /*************************************************************************
 **
+** Function Prototypes
+**
+*************************************************************************/
+
+/* External */
+extern GENERIC_PTR	SafeMalloc ();
+extern void		SafeFree ();
+STRING MoveToString(MOVE);
+
+/*************************************************************************
+**
 ** Everything above here must be in every game file
 **
 **************************************************************************/
@@ -293,7 +304,6 @@ static POSITION *hashBasePosition;
 void CombinationInit(int boardsize)
 {
   GENERIC_PTR SafeMalloc();
-  void SafeFree();
   int i, j;
   if (CArray != NULL) {
     SafeFree((GENERIC_PTR) CArray);
@@ -318,7 +328,6 @@ void InitializeGame()
 {
   PrimitiveSequence* temp;
   int i, j;
-  void SafeFree();
   GENERIC_PTR SafeMalloc();
 
   CombinationInit(BOARDSIZE);
