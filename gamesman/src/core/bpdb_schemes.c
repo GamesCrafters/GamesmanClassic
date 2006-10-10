@@ -1,5 +1,5 @@
 #include "bpdb_schemes.h"
-#include "bpdb_bitlib.h"
+#include "bpdb_bitlib.h"
 
 UINT8
 bpdb_ken_varnum_gap_bits(

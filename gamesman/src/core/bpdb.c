@@ -83,7 +83,7 @@ BOOLEAN bpdb_have_printed = FALSE;
 UINT32 bpdb_buffer_length = 1000;
 //
 // bpdb_init
-//
+//
 void
 bpdb_init(
                 DB_Table *new_db
@@ -335,7 +335,7 @@ bpdb_get_mex(
                 )
 {
     return (MEX) bpdb_get_slice_slot( (UINT64)pos, BPDB_MEXSLOT );
-}
+}
 inline
 UINT64
 bpdb_set_slice_slot(
@@ -1254,7 +1254,7 @@ bpdb_generic_save_database(
                     bpdb_generic_write_varnum( outFile, scheme, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, consecutiveSkips);
                     // Reset skip counter
                     consecutiveSkips = 0;
-                }
+                }
                 bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, 0, 1 );
                 for(slot=0; slot < (bpdb_write_slice->slots); slot++) {
                     bitlib_value_to_buffer( outFile, &curBuffer, outputBuffer, bpdb_buffer_length, &offset, bpdb_get_slice_slot(slice, 2*slot), bpdb_write_slice->size[slot] );
@@ -1465,7 +1465,7 @@ bpdb_generic_load_database(
     if(!GMSUCCESS(status)) {
         BPDB_TRACE("bpdb_generic_load_database()", "call to bpdb_allocate failed", status);
         goto _bailout;
-    }
+    }
     if( scheme->indicator ) {
         while(currentSlice < numOfSlicesHeader) {
             if(bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 1 ) == 0) {
