@@ -51,7 +51,7 @@
 gamesdb_store* gamesdb_open(char* filename){
   gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
-  gamesdb_boolean olddb = TRUE;
+  // gamesdb_boolean olddb = TRUE;  /* unused DDG 2006-10-10 */
 
 /*  db->filep = gzopen(filename,"r+");
   if(db->filep == NULL){
@@ -204,7 +204,7 @@ int gamesdb_read(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf
 //that is, page < last_page (because the page with index last_page is not written)
 void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
 	gamesdb_offset new;
-	int from = SEEK_SET;
+	// int from = SEEK_SET; /* DDG unused 2006-10-10 */
 	
 //	if(page != db->current_page) {
 //		from = SEEK_SET;
@@ -227,7 +227,7 @@ void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
 		printf("db_seek: FORWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(gamesdb_bufferpage), page, db->current_page, db->last_page);
 	}
 	
-	gamesdb_pageid i;
+	// gamesdb_pageid i; /* DDG Unused 2006-10-10 */
 	
 	while(gztell(db->filep) < page*sizeof(gamesdb_bufferpage)) {
 		new = (gamesdb_offset)gzseek(db->filep, sizeof(gamesdb_bufferpage), SEEK_CUR);
