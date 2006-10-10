@@ -950,7 +950,7 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	
-	if(DEBUG) printf("ValidTextInput Starting. Strlen = %d\n", strlen(input));
+	if(DEBUG) printf("ValidTextInput Starting. Strlen = %d\n", (int) strlen(input));
 	
 	if(strlen(input) == 1)
 	{
