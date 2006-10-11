@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.21 2006-10-01 10:29:24 max817 Exp $
+// $Id: solveretrograde.c,v 1.22 2006-10-11 07:03:31 max817 Exp $
 
 /************************************************************************
 **
@@ -7,66 +7,10 @@
 ** DESCRIPTION:	The Retrograde Solver.
 **
 ** AUTHOR:	Max Delgadillo
-**		(along with much help from Eric Siroker)
 **		GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2006-04-16
-**
-** UPDATE HIST: -2006.4.11 = Just added fully functional solver to Gamesman.
-**				-2006.4.16 = Most of the main features are now implemented.
-**					(i.e. working with files (zero-memory), saving progress).
-**					This also should work with ANY game, not just Bagh Chal.
-**				-2006.5.24 = Fixed a small bug that incorrectly labeled ties
-**					as draws.
-**				-2006.7.11 = First step in the MASSIVE amount of changes to
-**					follow in transitioning this solver into "Tier-Gamesman".
-**					For now, the solver is DISABLED, replaced with a rough-draft
-**					version of the Tier-Gamesman API debugger that will come
-**					for free with the solver, usable before solving.
-**				-2006.7.29 = Plenty of big changes. It now makes makeshift
-**					tierdb files, which are really largely huge and inefficient
-**					versions of the final tierdb. But at least we'll HAVE the
-**					files to be translated later. For this reason, it now reads
-**					and accepts gPositionToTierPosition. Also ChildCounter is
-**					much more memory-efficient, albeit less time-efficient.
-**					We're looking at gInitHashWindow use in the next update.
-**				-2006.8.01 = WAY too many changes to count... After my dramatic
-**					epiphany, the solver's algorithm now uses the NEW API
-**					functions, including the generic Hash Window initializing.
-**					Also has a non-loopy version, which solves much faster.
-**					But biggest of all is that this now calls memdb to make
-**					ACTUAL MEMDB TIER DATABASES! No more makeshift files!
-**					As far as I know, it still solves 100% correctly.
-**					There's still many more upgrades to come, espeicially with
-**					the debugger...
-**				-2006.8.03 = Aside from a few cosmetic changes, I changed the
-**					non-loopy solver to the faster version, but it is yet to be
-**					tested, so it's off for now. Also, coupled with changes in
-**					main.c, the save feature is now implemented, meaning the
-**					solver will skip solving a tier if it's database exists.
-**				-2006.8.07 = LOADS of changes. A few graphical changes here and
-**					there. Loopy and Non-loopy solvers are both working, as well
-**					as symmetries for both. A few extra options are available,
-**					from using IsLegal to even using parent pointers instead of
-**					the UndoMove functions. Finally, the game can now be started
-**					mid-solve, so that gameplay can begin from any tier that has
-**					already been solved.
-**				-2006.8.12 = Added a progress percentage display, as well as
-**					TierToString function capability. A few more graphical changes
-**					as well to fit with the normal Gamesman menus. Also added
-**					corruption AND tier tree checkers. As of now, the Loopy
-**					Solver is STILL quite broken... repairs will come soon.
-**				-2006.9.5 = The Loopy Solver is now (as far as I can tell) 100%
-**					correct. The debugger is in the process of getting fixed up,
-**					and will be so by the next update. Sans the debugger, this is
-**					the *final* Summer version and the version that Fall '06
-**					GamesCrafters will use.
-**				-2006.9.10 = IsLegal usage, Undomove function usage, and Correctness
-**					checking are all OFF by default. The user must consciously
-**					turn them ON to use them. Since undomove stuff and IsLegal
-**					don't actually WORK for the current Tier-Gamesman games, this
-**					seems like a good way to go.
+** DATE:	2006-10-11
 **
 **
 ** LICENSE:	This file is part of GAMESMAN,
@@ -100,7 +44,7 @@ char filename[80];
 TIER tierToSolve, tiersSoFar;
 POSITION tierSize;
 BOOLEAN tierNames, checkLegality, useUndo, forceLoopy, checkCorrectness;
-TIERLIST* tierSolveList;
+TIERLIST* tierSolveList = NULL;
 
 // Solver procs
 void checkExistingDB();
@@ -120,7 +64,9 @@ POSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
 void rInsertFR(VALUE, POSITION, REMOTENESS);
 // Sanity Checkers
 void checkForCorrectness();
-BOOLEAN checkTierTree();
+BOOLEAN checkAndDefineTierTree();
+void clearNodes();
+BOOLEAN tierDFS(TIER, BOOLEAN);
 // Debug Stuff
 void debugMenu();
 // HAXX for comparing two databases
@@ -151,26 +97,13 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	printf("Currently solving game (%s) with variant (%d)\n", kGameName, variant);
     printf("Initial Position: %llu, in Initial Tier: %d\n", gInitialTierPosition, gInitialTier);
 
-    printf("\n-----Checking the Tier Solve List-----\n\n");
-	if (gTierSolveListPtr == NULL) {
-		printf("gTierSolveListPtr NOT GIVEN\n");
-		cont = FALSE;
-	} else {
-		printf("-Tier Solve Order:\n");
-		tierSolveList = gTierSolveListPtr;
-		numTiers = 0;
-		for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
-			printf("%d ", tierSolveList->tier);
-			if (tierNames) {
-				tierStr = gTierToStringFunPtr(tierSolveList->tier);
-				printf(": %s\n", tierStr);
-				if (tierStr != NULL) SafeFree(tierStr);
-			}
-			numTiers++;
-		}
-		printf("\n   %d Tiers are confirmed to be solved.\n", numTiers);
-
 	printf("\n-----Checking the REQUIRED API Functions:-----\n\n");
+
+	if (gInitialTier == -1) {
+		printf("-gInitialTier NOT GIVEN\n"); cont = FALSE;
+	}
+	if (gInitialTierPosition == -1) {
+		printf("-gInitialTierPosition NOT GIVEN\n"); cont = FALSE;
 	}
 	if (gTierChildrenFunPtr == NULL) {
 		printf("-TierChildren NOT GIVEN\n"); cont = FALSE;
@@ -184,12 +117,34 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		exit(0);
 	} else printf("API Required Functions Confirmed.\n");
 
-	/*if (kDebugDetermineValue) {
+	/*if (kDebugTierMenu) {
 		printf("\nRedirecting to the Debug Menu...\n");
 		debugMenu();
 		printf("Exiting Retrograde Solver (WITHOUT Solving)...\n");
 		exit(0);
 	}*/
+
+	// make gTierSolveList
+	if (!checkAndDefineTierTree()) {
+		printf("\nPlease fix gTierChildren before attempting to solve!\n"
+				"Exiting Retrograde Solver (WITHOUT Solving)...\n");
+		exit(0);
+	} else {
+		printf("-Tier Solve Order:\n");
+		TIERLIST* ptr = tierSolveList;
+		numTiers = 0;
+		for (; ptr != NULL; ptr = ptr->next) {
+			printf("%d ", ptr->tier);
+			if (tierNames) {
+				tierStr = gTierToStringFunPtr(ptr->tier);
+				printf(": %s\n", tierStr);
+				if (tierStr != NULL) SafeFree(tierStr);
+			}
+			numTiers++;
+		}
+		printf("\n   %d Tiers are confirmed to be solved.\n", numTiers);
+	}
+
 
 	printf("\n-----Checking the OPTIONAL API Functions:-----\n\n");
 	if (gIsLegalFunPtr == NULL) {
@@ -209,8 +164,8 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	if (isLegalGiven && undoGiven && tierNames)
 		printf("API Optional Functions Confirmed.\n");
 
+
 	printf("\n-----Checking for existing Tier DBs:-----\n\n");
-	tierSolveList = gTierSolveListPtr;
 	tiersSoFar = 0;
 
 	checkExistingDB();
@@ -218,10 +173,8 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		printf("\nLooks like the game is already fully solved! Enjoy the game!\n");
 		printf("Exiting Retrograde Solver...\n\n");
 		return undecided;
-	} else if (tiersSoFar == 0) {// No DBs loaded, a fresh solve
+	} else if (tiersSoFar == 0) // No DBs loaded, a fresh solve
 		printf("No DBs Found! Starting a fresh solve...\n");
-		if (!checkTierTree()) ExitStageRight(); // if tier tree incorrect, exit
-	}
 
 	PrepareToSolveNextTier();
     while(cont) {
@@ -347,66 +300,46 @@ void PrepareToSolveNextTier() {
 	printf("  Done! Hash Window initialized and Database loaded and prepared!\n");
 }
 
+// Alters tierSolveList so that
+//solveFirst(TIER tier) {
+//	MoveToFrontOfTierlist(tier, tierSolveList);
+//}
+
 
 BOOLEAN setInitialTierPosition() {
 	gMemDBLoadMainTier = TRUE; // trick memdb into loading main tier temporarily
 	TIERPOSITION tp; TIER t;
-	TIERLIST* tierlist;
-	BOOLEAN check;
 	VALUE value; REMOTENESS remoteness;
-	printf("\nYou can choose to start from one of these tiers:\n   ");
+/*	printf("\nYou can choose to start from one of these tiers:\n   ");
 	for (tierlist = gTierSolveListPtr; tierlist != NULL; tierlist = tierlist->next) {
 		if (tierlist->tier == tierToSolve) {//can't play unsolved tier!
 			printf("\n");
 			break;
 		}
 		printf("%d ", tierlist->tier);
-	}
+	}*/
 	while (TRUE) {
-		printf("\nEnter a TIER for gInitialTier, or non-number to go back:\n> ");
-		if ((tp = GetMyPosition()) == kBadPosition) break;
-		t = (TIER)tp;
-		// check to make sure tier is valid!
-		check = FALSE;
-		for (tierlist = gTierSolveListPtr; tierlist != NULL; tierlist = tierlist->next) {
-			if (tierlist->tier == tierToSolve) break;
-			if (tierlist->tier == t) {
-				check = TRUE;
-				break;
-			}
-		} if (!check) {
-			printf("That TIER hasn't been solved yet!\n");
-			continue;
-		}
-		while (TRUE) {
-			printf("\nEnter a TIERPOSITION for gInitialTierPosition of Tier %d,\n", t);
-			printf("between 0 and %llu, or non-number to go back:\n> ", gNumberOfTierPositionsFunPtr(t)-1);
-			if ((tp = GetMyPosition()) == kBadPosition) break;
-			if (tp < 0 || tp >= gNumberOfTierPositionsFunPtr(t)) {
-				printf("That isn't a legal POSITION in the tier!\n");
+		gGetInitialTierPositionFunPtr(&t, &tp);
+		// switch to hash window, and final check:
+		gInitializeHashWindow(t, TRUE);
+		printf("\nYou chose: gInitialTierPosition = %llu, gInitialTier = %d:\n", tp, t);
+		PrintPosition(tp, "Gamesman", TRUE);
+		value = GetValueOfPosition(tp);
+		remoteness = Remoteness(tp);
+		if(remoteness == REMOTENESS_MAX)
+			printf("This Position has value: Draw\n");
+		else printf("This Position has value: %s in %d\n", gValueString[(int)value], remoteness);
+		if (remoteness == 0) {
+			if (value == undecided) {
+				printf("This is an UNSOLVED (undecided) position! Choose another one!\n");
 				continue;
-			}
-			// switch to hash window, and final check:
-			gInitializeHashWindow(t, TRUE);
-			printf("\nYou chose: gInitialTierPosition = %llu, gInitialTier = %d:\n", tp, t);
-			PrintPosition(tp, "Player", TRUE);
-			value = GetValueOfPosition(tp);
-			remoteness = Remoteness(tp);
-			if(remoteness == REMOTENESS_MAX)
-				printf("This Position has value: Draw\n");
-			else printf("This Position has value: %s in %d\n", gValueString[(int)value], remoteness);
-			if (remoteness == 0) {
-				if (value == undecided) {
-					printf("This is an UNSOLVED (undecided) position! Choose another one!\n");
-					continue;
-				} else printf("This is a Primitive Position! Are you SURE you wish to\n");
-			}
-			printf("Exit the solver and begin the game from this position?\n");
-			if (ConfirmAction('c')) {
-				gInitialTier = t;
-				gInitialTierPosition = tp;
-				return TRUE;
-			}
+			} else printf("This is a Primitive Position! Are you SURE you wish to\n");
+		}
+		printf("Exit the solver and begin the game from this position?\n");
+		if (ConfirmAction('c')) {
+			gInitialTier = t;
+			gInitialTierPosition = tp;
+			return TRUE;
 		}
 	}
 	// switch back to the current hash window:
@@ -433,6 +366,47 @@ POSITION GetMyPosition() {
 BOOLEAN ConfirmAction(char c) {
 	printf("Enter '%c' to confirm, or anything else to cancel\n > ", c);
 	return (GetMyChar() == c);
+}
+
+/************************************************************************
+**
+** NAME:        InitTierGamesman
+**
+** DESCRIPTION: Called by textui.c when NOT solving, just playing
+**
+************************************************************************/
+
+// ONLY check tier tree. Called by textui.c
+POSITION InitTierGamesman() {
+	printf("\n-----Checking the REQUIRED TIER GAMESMAN API Functions:-----\n\n");
+	BOOLEAN cont = TRUE;
+
+	if (gInitialTier == -1) {
+		printf("-gInitialTier NOT GIVEN\n"); cont = FALSE;
+	}
+	if (gInitialTierPosition == -1) {
+		printf("-gInitialTierPosition NOT GIVEN\n"); cont = FALSE;
+	}
+	if (gTierChildrenFunPtr == NULL) {
+		printf("-TierChildren NOT GIVEN\n"); cont = FALSE;
+	}
+	if (gNumberOfTierPositionsFunPtr == NULL) {
+		printf("-NumberOfTierPositions NOT GIVEN\n"); cont = FALSE;
+	}
+	if (cont == FALSE) {
+		printf("\nOne or more required parts of the API not given...\n");
+		ExitStageRight();
+	} else printf("API Required Functions Confirmed.\n");
+
+	printf("\n-----Checking the Tier Tree for correctness:-----\n\n");
+	BOOLEAN check = tierDFS(gInitialTier, FALSE);
+	clearNodes();
+	if (!check) {
+		printf("\nPlease fix gTierChildren before attempting to play!\n");
+		ExitStageRight();
+	} else printf("No Errors Found! Tier Tree correctness confirmed.\n");
+	gInitializeHashWindow(gInitialTier, TRUE);
+	return gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 }
 
 /************************************************************************
@@ -963,50 +937,93 @@ void checkForCorrectness() {
 	else printf("There appears to be some corruption...\n");
 }
 
-// Check tier hierarchy
-BOOLEAN checkTierTree() {
+/*
+to find others that can solve at same time: check which have ALL kids solved.
+*/
+// for my list work
+
+TIERLIST *nodes = NULL,
+		*preList = NULL, *postList = NULL; //I use TIER since there's no "BooleanList"
+
+// if tier's in list, returns TRUE and sets variables
+// else, return FALSE
+BOOLEAN getNode(TIER tier, BOOLEAN* postValue) {
+	TIERLIST *nodesPtr = nodes, *postPtr = postList;
+	for (; nodesPtr != NULL; nodesPtr = nodesPtr->next, postPtr = postPtr->next)
+		if (nodesPtr->tier == tier) {
+			(*postValue) = postPtr->tier;
+			return TRUE;
+		}
+	return FALSE;
+}
+
+// invariant: tier is not in list
+void previsit(TIER tier) {
+	nodes = CreateTierlistNode(tier, nodes);
+	preList = CreateTierlistNode(1, preList);
+	postList = CreateTierlistNode(0, postList);
+}
+
+// invariant: tier is already in list
+void postvisit(TIER tier) {
+	TIERLIST *nodesPtr = nodes, *postPtr = postList;
+	for (; nodesPtr != NULL; nodesPtr = nodesPtr->next, postPtr = postPtr->next)
+		if (nodesPtr->tier == tier) {
+			postPtr->tier = 1;
+			return;
+		}
+	BadElse("If you see this, be sure to bug Max about it! :)\n");
+	exit(1);
+}
+
+void clearNodes() {
+	FreeTierList(nodes); nodes = NULL;
+	FreeTierList(preList); preList = NULL;
+	FreeTierList(postList); postList = NULL;
+}
+
+// Check tier hierarchy AND define tierSolveList
+BOOLEAN checkAndDefineTierTree() {
 	printf("\n-----Checking the Tier Tree for correctness:-----\n\n");
-	BOOLEAN check = TRUE, check2;
-	TIERLIST *ptr = gTierSolveListPtr, *list, *listptr;
-	TIER numTiers = 0;
-	for (; ptr != NULL; ptr = ptr->next)
-		numTiers++;
-	ptr = gTierSolveListPtr;
-	TIER tierArray[numTiers], tier, tier2;
-	int index = 0, i;
-	for (; ptr != NULL; ptr = ptr->next) {
-		tier = ptr->tier;
-		for (i = 0; i < index; i++) {
-			if (tier == tierArray[i]) {
-				printf("ERROR FOUND: Duplicate Tier %d in List! (Indexes %d and %d)\n", tier, i, index);
-				check = FALSE;
-			}
-		}
-		list = listptr = gTierChildrenFunPtr(tier);
-		for (; listptr != NULL; listptr = listptr->next) {
-			tier2 = listptr->tier;
-			if (tier == tier2) continue;
-			check2 = FALSE;
-			for (i = 0; i < index; i++) {
-				if (tier2 == tierArray[i]) {
-					check2 = TRUE;
-					break;
-				}
-			} if (!check2) {
-				printf("ERROR FOUND: Tier %d's child, Tier %d, is not solved before it!\n", tier, tier2);
-				check = FALSE;
-			}
-		}
-		FreeTierList(list);
-		tierArray[index] = tier;
-		index++;
-	}
+	BOOLEAN check = tierDFS(gInitialTier, TRUE);
+	clearNodes();
 	if (check) {
 		printf("No Errors Found! Tier Tree correctness confirmed.\n");
+		printf("\n-----Generating the Tier Solve List:-----\n\n");
+		// The list is in reverse order, due to topological sort! reverse + return:
+		tierSolveList = ReverseTierlist(tierSolveList);
+		printf("Tier Solve List created.\n");
 		return TRUE;
+	} else return FALSE;
+}
+
+BOOLEAN tierDFS(TIER tier, BOOLEAN defineList) {
+	TIERLIST *children, *cptr;
+	TIER child;
+	BOOLEAN childPost;
+
+	previsit(tier);
+	children = cptr = gTierChildrenFunPtr(tier);
+	for (; cptr != NULL; cptr = cptr->next) {
+		child = cptr->tier;
+		if (tier == child) continue;
+
+		// if child not visited, DFS
+		if (!getNode(child, &childPost)) {
+			if (!tierDFS(child, defineList)) return FALSE;
+
+		// else check if there's a "back edge" == cycle
+		// back edge from (v,w) : post[w] false
+		} else if (!childPost) {
+			printf("ERROR! Tier %d leads back to higher Tier %d!\n", child, tier);
+			return FALSE;
+		}
 	}
-	printf("Error(s) Found! Be sure to fix them before trying to solve!\n");
-	return FALSE;
+	FreeTierList(children);
+	postvisit(tier);
+	if (defineList)
+		tierSolveList = CreateTierlistNode(tier, tierSolveList);
+	return TRUE;
 }
 
 /************************************************************************
@@ -1014,6 +1031,8 @@ BOOLEAN checkTierTree() {
 ** DEBUG (TO HELP MODULE WRITERS)
 **
 ************************************************************************/
+/*
+TIERLIST* gTierSolveListPtr; // have to get rid of this
 
 //when a user enters a tier number, this checks to make sure
 //that tier is in the current hash window (valid).
@@ -1108,7 +1127,6 @@ void debugMenu() {
 					}
 					// print the kiddies
 				}
-			/*
 			case 'n': case 'N':
 			case 'i': case 'I':
 			case 'g': case 'G':
@@ -1265,7 +1283,6 @@ void debugMenu() {
 						}
 					}
 				} break;
-				*/
 			case 'c': case 'C':
 				printf("\nEnter the TIER to change to, or non-number to go back:\n> ");
 				p = GetMyPosition();
@@ -1292,6 +1309,7 @@ void debugMenu() {
 		}
 	}
 }
+*/
 
 
 /************************************************************************
@@ -2153,6 +2171,9 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 */
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2006/10/01 10:29:24  max817
+// Just a small fix to GetMyPosition() (thanks David Chan!)
+//
 // Revision 1.20  2006/09/11 05:21:42  max817
 // Made legality checking, undomove usage, and correctness checking OFF by
 // default. Also cleaned up the UI for handling these when they're disabled.
