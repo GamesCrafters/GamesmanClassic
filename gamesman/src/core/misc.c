@@ -352,7 +352,7 @@ POSITION RemovePositionFromQueue(POSITIONQUEUE** head)
         return result;
 }
 
-// list constructor functions for TierLists and UndoMoveLists:
+// list constructor function for TierLists:
 TIERLIST *CreateTierlistNode(TIER theTier, TIERLIST* theNextTier)
 {
         TIERLIST *theHead;
@@ -364,7 +364,47 @@ TIERLIST *CreateTierlistNode(TIER theTier, TIERLIST* theNextTier)
         return(theHead);
 }
 
+// return the list REVERSED:
+TIERLIST *ReverseTierlist(TIERLIST* theTierlist)
+{
+        TIERLIST *ptr, *head = NULL;
 
+        ptr = theTierlist;
+        while (ptr != NULL) {
+                head = CreateTierlistNode(ptr->tier, head);
+                ptr = ptr->next;
+        }
+		FreeTierList(theTierlist);
+
+        return(head);
+}
+
+// move the tier to the TOP of the tierlist
+// if element not it list, does nothing
+TIERLIST *MoveToFrontOfTierlist(TIER theTier, TIERLIST* theTierlist)
+{
+        TIERLIST *ptr = NULL, *prev = NULL;
+
+        ptr = theTierlist;
+        while (ptr != NULL) {
+			if (ptr->tier == theTier) { //move ptr to the front
+				if(prev == NULL) //this IS the first element!
+					return theTierlist;
+				else {
+					prev->next = ptr->next;
+					ptr->next = theTierlist->next;
+					theTierlist->next = ptr;
+					return theTierlist;
+				}
+			}
+			prev = ptr;
+			ptr = ptr->next;
+        }
+
+        return(theTierlist);
+}
+
+// list constructor function for UndoMoveLists:
 UNDOMOVELIST *CreateUndoMovelistNode(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove)
 {
         UNDOMOVELIST *theHead;
