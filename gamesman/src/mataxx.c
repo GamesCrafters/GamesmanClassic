@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.2 2006-10-04 23:55:40 max817 Exp $
+// $Id: mataxx.c,v 1.3 2006-10-11 06:59:02 max817 Exp $
 
 /************************************************************************
 **
@@ -866,14 +866,8 @@ TIER BoardToTier(char* board) {
 }
 
 void SetupTierStuff() {
-	// gUsingTierGamesman
-	gUsingTierGamesman = TRUE;
-	// gTierSolveList
-	gTierSolveListPtr = NULL;
-	int tier;
-	for (tier = boardsize; tier >= 0; tier--) {
-		gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
-	} // solve list = { 0, 1, 2, ..., boardsize}
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
 	// function pointers
 	gTierChildrenFunPtr = &TierChildren;
 	gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
@@ -881,7 +875,7 @@ void SetupTierStuff() {
 	// hashes
 	// Tier-Specific Hashes
 	int piecesArray[10] = { RED, 0, 0, BLUE, 0, 0, SPACE, 0, 0, -1 };
-	int piecesOnBoard;
+	int piecesOnBoard, tier;
 	for (tier = 0; tier <= boardsize; tier++) {
 		piecesOnBoard = boardsize - tier;
 		// Reds AND Blues = from 0 to piecesOnBoard
@@ -931,6 +925,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.2  2006/10/04 23:55:40  max817
+// Added quick implementation of Tiers for the demo tonight.
+//
 // Revision 1.1  2006/10/04 13:14:13  max817
 // Added in Ataxx in mataxx.c, and changed Makefile.in to include it.
 //

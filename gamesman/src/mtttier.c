@@ -769,15 +769,9 @@ TIER BoardToTier(BlankOX* board) {
 //TIER GAMESMAN
 
 void SetupTierStuff() {
-	// gUsingTierGamesman
-	gUsingTierGamesman = TRUE;
-	// gTierSolveList
-	gTierSolveListPtr = NULL;
-	int tier;
-	for (tier = BOARDSIZE; tier >= 0; tier--) { // 10 tiers, 0 through 9
-		gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
-	} // solve list = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }
-	// All other function pointers
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
+	// All function pointers
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
 	//gIsLegalFunPtr				= &IsLegal;
@@ -786,7 +780,7 @@ void SetupTierStuff() {
 	gTierToStringFunPtr				= &TierToString;
 	// Tier-Specific Hashes
 	int piecesArray[10] = { o, 0, 0, x, 0, 0, Blank, 0, 0, -1 };
-	int piecesOnBoard;
+	int piecesOnBoard, tier;
 	for (tier = 0; tier <= BOARDSIZE; tier++) {
 		piecesOnBoard = BOARDSIZE - tier;
 		// Os = piecesOnBoard / 2

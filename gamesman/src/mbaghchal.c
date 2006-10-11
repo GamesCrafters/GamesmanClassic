@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.26 2006-09-27 11:28:58 max817 Exp $
+// $Id: mbaghchal.c,v 1.27 2006-10-11 06:59:02 max817 Exp $
 
 /************************************************************************
 **
@@ -310,7 +310,6 @@ STRING TierToString(TIER);
 void unhashTier(TIER, int*, int*, int*);
 TIER hashTier(int, int, int);
 int numGoatsOnBoard (char*);
-void generateTierList(int, int);
 int s1GoatOffset, s1TigerOffset;
 // Actual functions are at the end of this file
 
@@ -1433,27 +1432,11 @@ int numGoatsOnBoard (char* board) {
 
 void SetupTierStuff() {
 	// gUsingTierGamesman
-	gUsingTierGamesman = TRUE;
-
-	// gTierSolveList
-	gTierSolveListPtr = NULL;
+	kSupportsTierGamesman = TRUE;
 
 	// offsets for tiers
 	s1GoatOffset = goats+1;
 	s1TigerOffset = (goats+1)*(goats+1);
-
-	//first, start from the top, and work down
-	int goatsLeft;
-	for (goatsLeft = goats; goatsLeft > 0; goatsLeft--) {
-		generateTierList(goatsLeft, PLAYER_ONE); // generate Goat tiers
-		if ((goatsLeft-1) != 0) // if not stage 2
-			generateTierList(goatsLeft-1, PLAYER_TWO); //generate resulting Tiger tiers
-	}
-	// last, add all Stage 2's to the list:
-	int tier;
-	for (tier = goats; tier >= 0; tier--) {
-		gTierSolveListPtr = CreateTierlistNode(tier, gTierSolveListPtr);
-	}
 
 	// All other function pointers
 	gTierChildrenFunPtr				= &TierChildren;
@@ -1463,7 +1446,7 @@ void SetupTierStuff() {
 	gUnDoMoveFunPtr					= &UnDoMove;
 	gTierToStringFunPtr				= &TierToString;
 	// Tier-Specific Hashes (1 per Stage 2 board)
-	int piecesArray[10]= {TIGER, tigers, tigers, GOAT, 0, 0, SPACE, 0, 0, -1};
+	int tier, piecesArray[10]= {TIGER, tigers, tigers, GOAT, 0, 0, SPACE, 0, 0, -1};
 	for (tier = 0; tier <= goats; tier++) {
 		// Goats = tier
 		piecesArray[4] = piecesArray[5] = tier;
@@ -1473,21 +1456,6 @@ void SetupTierStuff() {
 		generic_hash_init(boardSize, piecesArray, NULL);
 	}
 	gInitialTier = goats*(goats+1);
-}
-
-// A helper that generates all the tiers given a goatsLeft and a Turn:
-// since they're independent, order doesn't matter
-void generateTierList(int goatsLeft, int turn) {
-	int goatsOnBoard;
-	if (turn == PLAYER_ONE) {// goats
-		for (goatsOnBoard = 0; goatsOnBoard+goatsLeft <= goats; goatsOnBoard++)
-			gTierSolveListPtr = CreateTierlistNode(
-				hashTier(goatsOnBoard, goatsLeft, turn), gTierSolveListPtr);
-	} else {//tigers
-		for (goatsOnBoard = 1; goatsOnBoard+goatsLeft <= goats; goatsOnBoard++)
-			gTierSolveListPtr = CreateTierlistNode(
-				hashTier(goatsOnBoard, goatsLeft, turn), gTierSolveListPtr);
-	}
 }
 
 // If Stage 2, children are tier and tier-1 (except 0, it's just 0)
@@ -1713,6 +1681,10 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2006/09/27 11:28:58  max817
+// Removed "Tier0Context" usage from both Tier-Gamesman games, now that hash
+// destruction works.
+//
 // Revision 1.25  2006/09/11 05:20:36  max817
 // Fixed the bug with Tier-Gamesman unhash. Now, with the exception of the
 // undomove functions and the (lack of) IsLegal, the Tier-Gamesman version
