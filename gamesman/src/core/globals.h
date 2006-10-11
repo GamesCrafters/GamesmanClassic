@@ -117,17 +117,25 @@ extern BOOLEAN 		gNetworkDB;
 extern STRING		ServerAddress;
 
 /* Tier Gamesman globals and function pointers */
+// For the core
+extern BOOLEAN			gTierGamesman;
+extern BOOLEAN			gMemDBLoadMainTier;
+extern TIER				kBadTier;
+// For the hash window
+extern BOOLEAN			gHashWindowInitialized;
+extern BOOLEAN			gCurrentTierIsLoopy;
+extern TIER*			gTierInHashWindow;
+extern TIERPOSITION*	gMaxPosOffset;
+extern int				gNumTiersInHashWindow;
+// For the modules
+extern BOOLEAN			kSupportsTierGamesman;
+extern BOOLEAN			kExclusivelyTierGamesman;
+extern BOOLEAN			kDebugTierMenu;
 extern TIERPOSITION		gInitialTierPosition;
 extern TIER				gInitialTier;
-
-extern BOOLEAN			gTierGamesman;
-extern BOOLEAN			gUsingTierGamesman;
-extern BOOLEAN			gMemDBLoadMainTier;
-
-extern TIER				kBadTier;
-extern TIERLIST*		gTierSolveListPtr;
 extern TIERLIST*		(*gTierChildrenFunPtr)(TIER);
 extern TIERPOSITION		(*gNumberOfTierPositionsFunPtr)(TIER);
+extern void				(*gGetInitialTierPositionFunPtr)(TIER*,TIERPOSITION*);
 extern BOOLEAN			(*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);

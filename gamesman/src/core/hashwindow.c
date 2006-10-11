@@ -32,14 +32,14 @@
 
 #include "gamesman.h"
 
-/* VARIABLES */
-BOOLEAN	gHashWindowInitialized = FALSE;
-BOOLEAN gCurrentTierIsLoopy = FALSE;
-TIER* gTierInHashWindow;
-TIERPOSITION* gMaxPosOffset;
-int gNumTiersInHashWindow;
-
 /*
+VARIABLES:
+BOOLEAN	gHashWindowInitialized : tells if the hash window is initialized
+BOOLEAN	gCurrentTierIsLoopy : tells if the current tier is loopy
+TIER* gTierInHashWindow : an array that tells what tiers are in the window
+TIERPOSITION* gMaxPosOffset : an array that tells the max_pos of that tier
+int	gNumTiersInHashWindow : the number of tiers in the hash window
+
 Hash Windows are set up like this:
 First of all, Tier -1 (kBadTier) is ALWAYS in every Hash Window, and is
 ALWAYS the first tier in the list, and ALWAYS contains 0 positions.

@@ -115,15 +115,25 @@ BOOLEAN gNetworkDB = FALSE;
 STRING  ServerAddress = "";
 
 /* Tier Gamesman globals and function pointers */
-TIERPOSITION	gInitialTierPosition = 0;
-TIER			gInitialTier = 0;
+// For the core
 BOOLEAN 		gTierGamesman = TRUE;
-BOOLEAN 		gUsingTierGamesman = FALSE;
 BOOLEAN			gMemDBLoadMainTier = FALSE;
 TIER 			kBadTier = -1;
-TIERLIST*		gTierSolveListPtr = NULL;
+// For the hash window
+BOOLEAN			gHashWindowInitialized = FALSE;
+BOOLEAN			gCurrentTierIsLoopy = FALSE;
+TIER*			gTierInHashWindow = NULL;
+TIERPOSITION*	gMaxPosOffset = NULL;
+int				gNumTiersInHashWindow = 0;
+// For the modules
+BOOLEAN 		kSupportsTierGamesman = FALSE;
+BOOLEAN			kExclusivelyTierGamesman = FALSE;
+BOOLEAN			kDebugTierMenu = FALSE;
+TIERPOSITION	gInitialTierPosition = -1;
+TIER			gInitialTier = -1;
 TIERLIST* 		(*gTierChildrenFunPtr)(TIER) = NULL;
 TIERPOSITION	(*gNumberOfTierPositionsFunPtr)(TIER) = NULL;
+void			(*gGetInitialTierPositionFunPtr)(TIER*,TIERPOSITION*) = NULL;
 BOOLEAN			(*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
