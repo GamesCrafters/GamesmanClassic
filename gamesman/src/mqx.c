@@ -134,6 +134,8 @@ void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV, BlankHV *whosTurn);
 
 STRING MoveToString(MOVE move);
 
+POSITION                ActualNumberOfPositions(int variant);
+
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -143,6 +145,7 @@ STRING MoveToString(MOVE move);
 void InitializeGame()
 {
   gMoveToStringFunPtr = &MoveToString;
+  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 void FreeGame()
@@ -992,4 +995,19 @@ void setOption(int option)
   }
 }
 
+POSITION ActualNumberOfPositions(int variant) {
+  switch(variant) {
+  case 1:
+  case 2: return 453831; break;
+  case 3:
+  case 4: return 18753; break;
+  case 5:
+  case 6: return gNumberOfPositions; break;
+  case 7:
+  case 8: return gNumberOfPositions; break;
+  case 9:
+  case 10: return gNumberOfPositions; break;
+  default: return gNumberOfPositions; break;
+  }
+}
 
