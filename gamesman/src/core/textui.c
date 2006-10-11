@@ -32,6 +32,7 @@
 
 #include "gamesman.h"
 #include <time.h>
+#include "solveretrograde.h" // for InitTierGamesman()
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
 /*
@@ -78,7 +79,7 @@ void HitAnyKeyToContinue()
 void GetMy(char *format, GENERIC_PTR out, int length, BOOLEAN keepSpaces) {
 	char buffer[length];
 	int blen = 0;
-	
+
 	if (keepSpaces) {
 	  fgets(out, length, stdin);
 	  blen = strlen(out);
@@ -170,6 +171,9 @@ void MenusBeforeEvaluation()
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
 
     printf("\n\tEvaluation Options:\n\n");
+    if (kSupportsTierGamesman && !kExclusivelyTierGamesman)
+    	// Only show/accept this choice if module supports Tier Gamesman, and can switch on/off
+    	printf("\tt)\tToggle (T)ier-Gamesman Mode (currently %s)\n", gTierGamesman ? "ON" : "OFF");
     printf("\to)\t(O)bjective toggle from %s to %s\n",
         gStandardGame ? "STANDARD" : "REVERSE ",
         gStandardGame ? "REVERSE " : "STANDARD");
@@ -181,8 +185,7 @@ void MenusBeforeEvaluation()
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", gZeroMemSolver ? "ON" : "OFF");
     printf("\tm)\tToggle Sy(M)metries (currently %s)\n", gSymmetries ? "ON" : "OFF");
-    if (gUsingTierGamesman) // Only show/accept this choice if module supports Tier Gamesman
-    	printf("\tt)\tToggle (T)ier-Gamesman Mode (currently %s)\n", gTierGamesman ? "ON" : "OFF");
+
 }
 
 int max(int a, int b, int c) {
@@ -655,7 +658,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	break;
     }
     case 't': case 'T': {
-	if (gUsingTierGamesman)
+	if (kSupportsTierGamesman && !kExclusivelyTierGamesman)
 		gTierGamesman = !gTierGamesman;
 	else BadMenuChoice();
 	break;
@@ -682,7 +685,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	printf("\nInitializing insides of %s...", kGameName);
 	fflush(stdout);
 	Stopwatch();
-	if(!(gUsingTierGamesman && gTierGamesman)) { //If no TIER GAMESMAN
+	if(!(kSupportsTierGamesman && gTierGamesman)) { //If no TIER GAMESMAN
 		InitializeDatabases();
 		InitializeOpenPositions(gNumberOfPositions);
 	}
@@ -720,11 +723,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gPrintPredictions = FALSE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
 	sprintf(gPlayerName[kPlayerTwoTurn],"Challenger");
+	if(kSupportsTierGamesman && gTierGamesman) //TIER GAMESMAN
+		gInitialPosition = InitTierGamesman();
 	printf("\n\nYou have chosen to play the game without solving.  Have fun!\n\n");
-	if(gUsingTierGamesman && gTierGamesman) {//TIER GAMESMAN
-		gInitializeHashWindow(gInitialTier, TRUE);
-		gInitialPosition = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
-	}
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
 	break;

@@ -82,7 +82,7 @@ void Initialize()
         //generic_hash_context_init();
 
         /* get the DB function table with all pointers to default */
-        if(!(gUsingTierGamesman && gTierGamesman)) //If no TIER GAMESMAN
+        if(!(kSupportsTierGamesman && gTierGamesman)) //If no TIER GAMESMAN
         	CreateDatabases();
 
         /* game-specific variabless */
@@ -122,7 +122,7 @@ VALUE DetermineValue(POSITION position)
 		gLoadDatabase = FALSE;
 	}
 
-	if(gUsingTierGamesman && gTierGamesman) {//TIER GAMESMAN
+	if(kSupportsTierGamesman && gTierGamesman) {//TIER GAMESMAN
 		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
 		gTwoBits = gZeroMemPlayer = FALSE; // make sure memdb behaves properly
 		if (gPrintDatabaseInfo)
@@ -284,7 +284,7 @@ void HandleArguments (int argc, char *argv[])
                             fprintf(stderr, "\nCannot use slices solver since this game is loopy\n\n");
                             gMessage = TRUE;
                             i += argc;
-                        }                        
+                        }
                         gBitPerfectDBSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--schemes")) {
                     gBitPerfectDBSchemes = TRUE;
