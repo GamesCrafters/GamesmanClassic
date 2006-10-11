@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.108 2006-10-04 19:48:26 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.109 2006-10-11 20:26:12 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1523,7 +1523,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     global gFontColor
     global maxRemoteness maxMoveString
     global kValueHistoryLabelFont
-    global gPredictionsOn
+    global gPredictionsOn gMovesSoFar
 
     $moveHistoryCanvas delete moveHistoryValidMoveLines
 
@@ -1535,6 +1535,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     set labelsY [expr $gWindowWidthRatio * 29]
 
     set numMoves [llength $moveHistoryList]
+    set numMovesSoFar [llength $gMovesSoFar]
     set moveStringWidth [font measure $kValueHistoryLabelFont $lastMove]
 
     #do actual plotting
@@ -1709,7 +1710,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	     [expr $x - $pieceRadius] [expr $y - $pieceRadius] [expr $x + $pieceRadius] [expr $y + $pieceRadius] \
 	     -fill $color \
 	     -outline "" \
-	     -tags [list moveHistory moveHistoryPlot]]
+	     -tags [list moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
 	set plottedLineOpposite \
@@ -1723,8 +1724,10 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 		 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
 		 -fill $color \
 		 -outline "" \
-		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y]]
+		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
     }
+    $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <ButtonRelease-1> \
+	"undoToPosition $numMovesSoFar;"
     
     #old moves deleted at begining of proc so they dont stick around during animation
     for {set i 0} {$i < [llength $theMoves]} {incr i} {
@@ -1804,6 +1807,19 @@ proc unplotMove { numUndo } {
     }
     #remove item from list
     set moveHistoryList [lrange $moveHistoryList 0 $newLast]
+}
+
+#undos to the nth position in the game, indexed at 0
+proc undoToPosition { positionIndex } {
+    global gMovesSoFar
+    set numMoves [llength $gMovesSoFar]
+    if { $positionIndex > $numMoves } {
+	#this is an invalid undo
+	puts "Invalid undo attempted."
+	return
+    }
+    set numUndo [expr $numMoves - $positionIndex]
+    UndoNMoves $numUndo
 }
 
 proc clearMoveHistory { } {

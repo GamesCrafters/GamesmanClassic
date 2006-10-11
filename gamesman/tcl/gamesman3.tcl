@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.46 2006-04-17 08:52:47 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.47 2006-10-11 20:26:12 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -1093,6 +1093,19 @@ proc Undo { } {
     set gJustUndone true
 
     DriverLoop
+}
+
+proc UndoNMoves { n } {
+    global gRightHumanOrComputer gLeftHumanOrComputer
+    set tempLeft $gLeftHumanOrComputer
+    set tempRight $gRightHumanOrComputer
+    set gLeftHumanOrComputer "Human"
+    set gRightHumanOrComputer "Human"
+    for {set i 0} {$i<$n} {incr i} {
+	Undo
+    }
+    set gLeftHumanOrComputer $tempLeft
+    set gRightHumanOrComputer $tempRight
 }
 
 proc UndoHelper { } {
