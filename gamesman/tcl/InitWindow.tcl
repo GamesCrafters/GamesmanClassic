@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.109 2006-10-11 20:26:12 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.110 2006-10-12 03:33:08 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -355,6 +355,7 @@ proc InitWindow { kRootDir kExt } {
 		    set gGameSolved true
 		    . config -cursor {}
 		    set gReallyUnsolved false
+		    .middle.f1.cMLeft lower progressBar
 		    .cStatus raise rulesA
 		    .cStatus raise historyI
 		    .cStatus raise valueI
@@ -709,6 +710,7 @@ proc InitWindow { kRootDir kExt } {
 	    # Solve this option
 	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 		set theValue [C_DetermineValue $gPosition]
+		.middle.f1.cMLeft lower progressBar
 	    }
 
 	    # New game
@@ -1061,6 +1063,7 @@ proc InitWindow { kRootDir kExt } {
 	    . config -cursor watch
 	    set theValue [C_DetermineValue $gPosition]
 	    set gGameSolved true
+	    .middle.f1.cMLeft lower progressBar
 	    . config -cursor {}
 	} else {
 	    set gReallyUnsolved true
@@ -1710,6 +1713,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	     [expr $x - $pieceRadius] [expr $y - $pieceRadius] [expr $x + $pieceRadius] [expr $y + $pieceRadius] \
 	     -fill $color \
 	     -outline "" \
+	     -width 3 \
 	     -tags [list moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
@@ -1728,6 +1732,10 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     }
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <ButtonRelease-1> \
 	"undoToPosition $numMovesSoFar;"
+    $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <Enter> \
+	"$moveHistoryCanvas itemconfigure moveHistoryPosition$numMovesSoFar -outline white;"
+    $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <Leave> \
+	"$moveHistoryCanvas itemconfigure moveHistoryPosition$numMovesSoFar -outline \"\";"
     
     #old moves deleted at begining of proc so they dont stick around during animation
     for {set i 0} {$i < [llength $theMoves]} {incr i} {
@@ -1954,32 +1962,24 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     if { $gSkinsDir == "EarthFromSpace_HiRes/" || \
 	     $gSkinsDir == "SpaceCloud_HiRes/"} {
 	set gFontColor "white"
-	if { [winfo exists .middle.f1.cMLeft] } {
-	    .middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
-	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
-	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
-	}
     } else {
 	set gFontColor "black"
-	if { [winfo exists .middle.f1.cMLeft] } {
-	    .middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig moveHistoryLine -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
-	    .middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
-	    .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
-	    .middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
-	}
+    }
+    if { [winfo exists .middle.f1.cMLeft] } {
+	.middle.f1.cMLeft itemconfig textitem -fill $gFontColor
+	.middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
+	.middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
+	.middle.f1.cMLeft itemconfig moveHistory1Line -fill $gFontColor
+	.middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
+	.middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+	.middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
+	.middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
+	.middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
+    }
+    if { [winfo exists .middle.f3.cMRight] } {
+	.middle.f3.cMRight itemconfig textitem -fill $gFontColor
+	.middle.f3.cMRight itemconfig Predictions -fill $gFontColor
+	.middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
     }
 
     ### Determine scaling of images ###

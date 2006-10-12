@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.47 2006-10-11 20:26:12 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.48 2006-10-12 03:33:08 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -1096,7 +1096,7 @@ proc Undo { } {
 }
 
 proc UndoNMoves { n } {
-    global gRightHumanOrComputer gLeftHumanOrComputer
+    global gRightHumanOrComputer gLeftHumanOrComputer gWhoseTurn
     set tempLeft $gLeftHumanOrComputer
     set tempRight $gRightHumanOrComputer
     set gLeftHumanOrComputer "Human"
@@ -1106,6 +1106,10 @@ proc UndoNMoves { n } {
     }
     set gLeftHumanOrComputer $tempLeft
     set gRightHumanOrComputer $tempRight
+    if { [PlayerIsComputer] } {
+	unplotMove 0
+	DriverLoop
+    }
 }
 
 proc UndoHelper { } {
