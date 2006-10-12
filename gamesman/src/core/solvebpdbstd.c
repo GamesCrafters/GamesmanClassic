@@ -68,7 +68,7 @@ VALUE DetermineValueBPDBSTD(POSITION position)
             goto _bailout;
         }
     
-        status = AddSlot( 3, "MEX", TRUE, TRUE, &MEXSLOT );           // slot 2
+        status = AddSlot( 1, "MEX", TRUE, TRUE, &MEXSLOT );           // slot 2
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueBPDBSTD()", "Could not add mex slot", status);
             goto _bailout;

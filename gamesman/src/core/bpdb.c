@@ -371,7 +371,6 @@ bpdb_set_slice_slot(
                 bpdb_array = bpdb_nowrite_array;
             }
         } else {
-            value = bpdb_slice->maxvalue[index];
             if(!bpdb_slice->overflowed[index]) {
                 if(!bpdb_have_printed) {
                     bpdb_have_printed = TRUE;
@@ -385,6 +384,7 @@ bpdb_set_slice_slot(
                                                                             );
                 bpdb_slice->overflowed[index] = TRUE;
             }
+            value = bpdb_slice->maxvalue[index];
         }
     }
 
@@ -1051,6 +1051,8 @@ bpdb_save_database()
         printf("%s: %llu\n", bpdb_write_slice->name[i], bpdb_write_slice->maxseen[i]);
     }
 */
+
+    bpdb_have_printed = FALSE;
 
     UINT64 temp = 0;
     UINT8 bitsNeeded = 0;
