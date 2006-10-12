@@ -197,7 +197,11 @@ STRING kCommandSyntaxHelp =
 "--option <n>\t\tStarts game with the n option configuration.\n"
 "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 "--open\t\t\tStarts game with Open Positions solving enabled.\n"
-"--visualize\t\t\tTurns on automatic visualization."
+"--visualize\t\tTurns on automatic visualization.\n"
+"--bpdb\t\t\tTurns on the Bit-Perfect DB\n"
+"--schemes\t\tWith bpdb turned on variable gaps compression will be used for saved dbs.\n"
+"--adjust\t\tWith bpdb turned on, slice sizes will be grow and shrink to best-fit data.\n"
+"--slicessolver\t\tWith bpdb turned on, the variable slice aware solver will be used (faster).\n"
 "--2bit\t\t\tStarts game with two-bit solving enabled.\n"
 "--colldb\t\tStarts game with Collision based Database. Currently Experimental. \n"
 #ifdef HAVE_GMP
