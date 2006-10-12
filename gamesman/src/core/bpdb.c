@@ -33,10 +33,8 @@
 // TODO
 
 // SUPPORT tiers
-
 // hardcode VALUE as slot? maybe...
 // fix bit widths from shrinks and grows
-// SLOTS PER SLICE PRINTOUT ON LOAD IS WRONG
 
 // NOTE
 // supports up to 256 slices each 64-bits in size
@@ -80,7 +78,7 @@ UINT32 BPDB_VISITEDSLOT = 0;
 // graphical purposes
 BOOLEAN bpdb_have_printed = FALSE;
 
-UINT32 bpdb_buffer_length = 1000;
+UINT32 bpdb_buffer_length = 10000;
 //
 // bpdb_init
 //
@@ -1407,7 +1405,7 @@ bpdb_generic_load_database(
     bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
     numOfSlotsHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
-    printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, offset);
+    printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, numOfSlotsHeader);
 
     bpdb_free_slice( bpdb_write_slice );
 
