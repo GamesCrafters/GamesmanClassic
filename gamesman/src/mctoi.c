@@ -80,6 +80,7 @@ void replace(char , char , char *);
 void unhashC2(char *, int , int , int , int );
 void replaceXS(char *, int , char *, int , char *, int );
 int countOX(char *board);
+STRING unhash(POSITION pos);
 
 static int nCrTable[BOARDSIZE+1][BOARDSIZE+1] = { 
   { 1, 0,  0,  0,   0,   0,  0,  0, 0, 0 },      
@@ -503,6 +504,7 @@ void InitializeGame(){
 
   InitializeHelpString();
 
+  gCustomUnhash = unhash;
   gMoveToStringFunPtr = &MoveToString;
 }
 
@@ -2415,4 +2417,24 @@ void setOption(int option)
 	InitializeHelpString();
 }
 
-
+/* unhasing function specifically for use with the tcl version */ 
+STRING unhash (POSITION pos) {
+  int i;
+  char* board = (char*) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
+  static BlankoxOX theBlankoxOX[BOARDSIZE];
+  PositionToBlankoxOX(pos, theBlankoxOX);
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (theBlankoxOX[i] == Blank) 
+      board[i] = '-';
+    else if (theBlankoxOX[i] == Rx)
+      board[i] = 'X';
+    else if (theBlankoxOX[i] == Wx)
+      board[i] = 'x';
+    else if (theBlankoxOX[i] == Rt)
+      board[i] = 'T';
+    else if (theBlankoxOX[i] == Wt)
+      board[i] = 't';
+  }
+  board[BOARDSIZE] = '\0';
+  return board;
+}
