@@ -2,22 +2,12 @@
 
 #############################################################################
 ##
-## NAME:         Xmctoi
+## NAME: Xmctoi 
 ##
-## DESCRIPTION:  The source code for the Tcl component of TicTacToe
-##               for the Master's project GAMESMAN
-##
-## AUTHOR:       Dan Garcia  -  University of California at Berkeley
-##               Copyright (C) Dan Garcia, 1995. All rights reserved.
-##
-## MODIFIED:     Farzad H. Eskafi
-##               Erwin  A. Vedar 
-## 
-## DATE:         05-12-95
-##
-## UPDATE HIST:
-##
-## 05-15-95 1.0    : Final release code for M.S.
+## DESCRIPTION:  
+## AUTHOR:       
+## DATE:         
+## UPDATE HISTORY:
 ##
 #############################################################################
 
@@ -40,14 +30,16 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmctoi[info sharedlibextension]" Gamesman
 
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman3.tcl"
+
 ### Now source our Game-specific code.
 
 source "$kRootDir/../tcl/mctoi.tcl"
 
-### Now source the rest of the game-playing interface code.
+main $kRootDir
 
-source "$kRootDir/../tcl/gamesman.tcl"
 
-## an extra file, containing many gamesman.tcl functions and 
-## some functions rewritten specifically for mctoi.tcl
-source "$kRootDir/../tcl/gamesmanmctoi.tcl"
+
+
