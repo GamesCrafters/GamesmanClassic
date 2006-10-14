@@ -18,11 +18,17 @@
 **              2006.10.07 Coded DoMove and debugged all previous functions
 **                         fixed piecesInLineOfAction, got rid of board
 **                         within functions in favor of gBoard everywhere
-**                         to get rid of seg faults, fixed Primitive since
-**                         everything was undecided 
+**                         to get rid of seg faults, fixed Primitive so that
+**                         result is not always undecided
+**              2006.10.12 Debugged Primitive and changed the way the board
+**                         is printed so it's like a chessboard.
+**              2006.10.13 Fixed Primitive to check for a tie. Fixed
+**                         MoveToString (forgot to add '\0' to the end of
+**                         strings)
+**              
 **                         
 **
-** LAST CHANGE: $Id: mloa.c,v 1.2 2006-10-08 05:14:59 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.3 2006-10-14 00:15:33 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -51,7 +57,7 @@ STRING   kDBName              = "loa"; /* The name to store the database under *
 
 BOOLEAN  kPartizan            = TRUE ;
 BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ;
 
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
@@ -129,8 +135,8 @@ int goInDirection[] = {-SIDELENGTH, -SIDELENGTH+1, 1, SIDELENGTH+1, SIDELENGTH,
 ** Function Prototypes
 **
 *************************************************************************/
-MOVELIST* addPieceMoves(int boardSquare, int PlayerTurn, MOVELIST* moves);
-MOVELIST* addMovesInDirection(Direction direction, int boardSquare, int PlayerTurn, MOVELIST* moves);
+void addPieceMoves(int boardSquare, int PlayerTurn, MOVELIST **moves);
+void addMovesInDirection(Direction direction, int boardSquare, int PlayerTurn, MOVELIST **moves);
 int piecesInLineOfAction(Direction direction, int boardSquare);
 BOOLEAN onEdge(Direction direction, int boardSquare);
 BOOLEAN isConnected(int boardSquare1, int boardSquare2);
@@ -138,6 +144,8 @@ BOOLEAN pieceIsolated(int boardSquare);
 Direction oppositeDirection(Direction direction);
 POSITION calcInitialPosition();
 int numPiecesLeft(char color);
+STRING moveUnhash(MOVE move);
+MOVE moveHash(STRING input);
 
 
 /* External */
@@ -162,7 +170,7 @@ void InitializeGame ()
 		  BLACK, 1, 2*(SIDELENGTH-2), WHITE, 1, 2*(SIDELENGTH-2), -1}; 
     
   gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL);
-  gBoard = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE+1));
+  gBoard = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE));
   gInitialPosition = calcInitialPosition();
 }
 
@@ -234,9 +242,10 @@ MOVELIST *GenerateMoves (POSITION position)
 
   for (i = 0; i < BOARDSIZE; i++) {
     if (gBoard[i] == playerColor)
-      moves = addPieceMoves(i, playerTurn, moves);
+      addPieceMoves(i, playerTurn, &moves);
   }
 
+  //printf("GenerateMoves ending ... \n");
   return moves;
 }
 
@@ -317,9 +326,9 @@ VALUE Primitive (POSITION position)
 {
   int i, j, blackChainLength, whiteChainLength, blackPiecesLeft, whitePiecesLeft;
   VALUE result;
-  BOOLEAN allWhiteConnected, allBlackConnected;
+  BOOLEAN allWhiteConnected, allBlackConnected, doneChecking;
   int playerTurn = whoseMove(position);
-  generic_unhash(position, gBoard);
+  char* board = generic_unhash(position, gBoard);
 
   blackPiecesLeft = numPiecesLeft(BLACK);
   whitePiecesLeft = numPiecesLeft(WHITE);
@@ -331,49 +340,59 @@ VALUE Primitive (POSITION position)
   // for chain[0], which is the first piece we see on the board 
   i = 0;
   //printf("initializing chains ... blacksleft = %d, whitesleft = %d \n", blackPiecesLeft, whitePiecesLeft);
-  while (gBoard[i] != BLACK) { i++;}
+  while (board[i] != BLACK) { i++;}
   chainOfBlacks[0] = i;
+  board[i] = BLANK;
   for (i = 1; i < blackPiecesLeft; i++) {
     chainOfBlacks[i] = -1;
   }
   blackChainLength = 1;
   i = 0;
-  while (gBoard[i] != WHITE) { i++;}
+  while (board[i] != WHITE) { i++;}
   chainOfWhites[0] = i;
+  board[i] = BLANK;
   for (i = 1; i < whitePiecesLeft; i++) {
     chainOfWhites[i] = -1;
   }
   whiteChainLength = 1;
   //printf("chains initialized \n");
 
-  // Check if pieces are not connected. Assume they are all connected
-  // until we find a piece that is isolated and not the only one left
-  allWhiteConnected = TRUE;
-  allBlackConnected = TRUE;
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (gBoard[i] == BLACK && blackPiecesLeft > 1) {
-      //printf("checking to see if square %d is connected to chain\n", i);
-      j = 0;
-      do {
-	if (isConnected(i, chainOfBlacks[j])) {
-	  //printf("connected to chain! square %d is connected to %d\n", i, chainOfBlacks[j]);
-	  chainOfBlacks[blackChainLength] = i;
-	  blackChainLength++;
-	  break;
+  /******************************************************************************
+   ** goes through the gameboard and adds pieces to their corresponding chains.
+   ** If it goes through the whole gameboard without adding a piece to the chain,
+   ** then we know we're done. Chain length variables point to the place in the 
+   ** array that new pieces should go. 
+   *****************************************************************************/
+  doneChecking = FALSE;
+  while (!doneChecking) {
+    doneChecking = TRUE;
+    for (i = 0; i < BOARDSIZE; i++) {
+      if (board[i] == BLACK && blackPiecesLeft > 1) {
+	//printf("checking to see if square %d is connected to chain\n", i);
+	for (j = 0; chainOfBlacks[j] != -1; j++) {
+	  if (isConnected(i, chainOfBlacks[j])) {
+	    //printf("connected to chain! square %d is connected to %d\n", i, chainOfBlacks[j]);
+	    chainOfBlacks[blackChainLength] = i;
+	    blackChainLength++;
+	    doneChecking = FALSE;
+	    board[i] = BLANK;                         // so we don't check it again
+	    break;
+	  }
 	}
-	j++;
-      } while (chainOfBlacks[j] != -1);
-    }     
-    else if (gBoard[i] == WHITE && whitePiecesLeft > 1) {
-      j = 0;
-      do {
-	if (isConnected(i, chainOfWhites[j])) {
-	  chainOfWhites[whiteChainLength] = i;
-	  whiteChainLength++;
-	  break;
-	}
-	j++;
-      } while (chainOfWhites[j] != -1);
+      }
+      else if (board[i] == WHITE && whitePiecesLeft > 1) {
+	j = 0;
+	do {
+	  if (isConnected(i, chainOfWhites[j])) {
+	    chainOfWhites[whiteChainLength] = i;
+	    whiteChainLength++;
+	    doneChecking = FALSE;
+	    board[i] = BLANK;                         // so we don't check it again
+	    break;
+	  }
+	  j++;
+	} while (chainOfWhites[j] != -1);
+      }
     }
   }
 
@@ -387,9 +406,11 @@ VALUE Primitive (POSITION position)
   for (i = 0; i < whitePiecesLeft; i++) {
     printf("| %d ", chainOfWhites[i]);
   }
+  printf("\n");
   */
 
-  // could do this in the big loop above.  Do it if you have time
+  allWhiteConnected = TRUE;
+  allBlackConnected = TRUE;
   for (i = 0; i < blackPiecesLeft; i++) {
     if (chainOfBlacks[i] == -1) {
       allBlackConnected = FALSE;
@@ -403,8 +424,9 @@ VALUE Primitive (POSITION position)
     }
   }
 
-   
-  if (allBlackConnected && !allWhiteConnected)
+  if (GenerateMoves == NULL)
+    result = tie;
+  else if (allBlackConnected && !allWhiteConnected)
     result = win;
   else if (allWhiteConnected && !allBlackConnected)
     result = lose;
@@ -444,34 +466,34 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   int j;
   generic_unhash(position, gBoard);
 
-  printf("\n         ");
-  for (i = 0; i < SIDELENGTH; i++) {
-    printf("  %d   ", i+1);
-  }
-  printf("\n         ");
+  printf("\n                   ");
   for (i = 1; i < SIDELENGTH; i++) {
     printf("______");
   }
   printf("_____\n");
 
   for (i = 0; i < SIDELENGTH; i++) {
-    printf("        |");
+    printf("                  |");
     for (j = 0; j < SIDELENGTH; j++) {
       printf("     |");
     }
     printf("\n");
-    printf("      %c |", i+65);
+    printf("                %d |", SIDELENGTH-i);
     for (j = 0; j < SIDELENGTH; j++) {
       printf("  %c  |", gBoard[SIDELENGTH*i+j]);
     }
     printf("\n");
-    printf("        |");
+    printf("                  |");
     for (j = 0; j < SIDELENGTH; j++) {
       printf("_____|");
     }
     printf("\n");
   }
-
+  printf("                   ");
+  for (i = 0; i < SIDELENGTH; i++) {
+    printf("  %c   ", 'a'+i);
+  }
+  printf("\n\n");
 }
 
 
@@ -488,7 +510,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+  STRING str = MoveToString(computersMove);
+  printf("%s's move: %s", computersName, str);
+  SafeFree(str);
 }
 
 
@@ -504,10 +528,10 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    STRING str = MoveToString( move );
-    printf( "%s", str );
-    SafeFree( str );
-}
+  STRING str = MoveToString(move);
+  printf("%s", str);
+  SafeFree(str);
+ }
 
 
 /************************************************************************
@@ -522,21 +546,7 @@ void PrintMove (MOVE move)
 
 STRING MoveToString (MOVE move)
 {
-  STRING moveString = (STRING) SafeMalloc(sizeof(char) * 4);
-  int startSquare, endSquare;
-  char letter, number;
-
-  endSquare = move % 100;
-  startSquare = (move - endSquare)/100;
-  number = (startSquare % SIDELENGTH) + 49;
-  letter = 65 + startSquare / SIDELENGTH;
-  moveString[0] = letter;
-  moveString[1] = number;
-  number = (endSquare % SIDELENGTH) + 49;
-  letter = 65 + endSquare / SIDELENGTH;
-  moveString[2] = letter;
-  moveString[3] = number;
-  
+  STRING moveString = moveUnhash(move);
   return moveString;
 }
 
@@ -570,7 +580,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(startingSquare endingSquare (ex: A2C2))] : ", playersName);
+	printf("%8s's move [(undo)/(startColumn startRow endColumn endRow (ex: a2c2))] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -610,13 +620,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  /* input should be like A2C2 */
+  /* input should be like a2c2 */
  
-  if ((input[0] > 'A'-1 && input[0] < 'A' + SIDELENGTH) &&
-      (input[1] < '1' + SIDELENGTH && input[1] > '0') &&
-      (input[2] > 'A'-1 && input[0] < 'A' + SIDELENGTH) &&
-      (input[3] < '1' + SIDELENGTH && input[1] > '0'))
+  if ((input[0] >= 'a' && input[0] < 'a' + SIDELENGTH) &&
+      (input[1] > '0' && input[1] < '1' + SIDELENGTH) &&
+      (input[2] >= 'a' && input[0] < 'a' + SIDELENGTH) &&
+      (input[3] > '0' && input[3] < '1' + SIDELENGTH))
     return TRUE;
+    
 
   return FALSE;
 }
@@ -638,14 +649,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  MOVE move;
-  int startSquare, endSquare;
-  
-  startSquare = input[1] - 49 + SIDELENGTH*(input[0] - 65);
-  endSquare = input[3] - 49 + SIDELENGTH*(input[2] - 65);
-  move = endSquare + startSquare*100;
-
-  return move;
+  return moveHash(input);
 }
 
 
@@ -831,23 +835,22 @@ BOOLEAN pieceIsolated(int boardSquare)
  ** piece on it. Called by GenerateMoves so assume position has been
  ** unhashed and is stored correctly in gPosition.
  ***********************************************************************/
-MOVELIST* addPieceMoves(int boardSquare, int playerTurn, MOVELIST* moves)
+void addPieceMoves(int boardSquare, int playerTurn, MOVELIST **moves)
 {
   //printf("starting addPieceMoves...\n");
   Direction d;
 
   for (d = UP; d <= UPLEFT; d++) {
     //printf(" checking to add move in direction = %d from boardSquare = %d\n", d, boardSquare);
-    moves = addMovesInDirection(d, boardSquare, playerTurn, moves);
+    addMovesInDirection(d, boardSquare, playerTurn, moves);
   }
-  return moves;
 }
 
 /************************************************************************
  ** Adds moves to the movelist when given the square that a piece is on
  ** and the direction you're looking in. Called by addPieceMoves
  ***********************************************************************/
-MOVELIST* addMovesInDirection(Direction direction, int boardSquare, int playerTurn, MOVELIST* moves) 
+void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, MOVELIST **moves) 
 {
   int moveLength, startSquare, endSquare, i;
   char otherPlayerColor = (playerTurn == PLAYERBLACK ? WHITE : BLACK);
@@ -872,11 +875,9 @@ MOVELIST* addMovesInDirection(Direction direction, int boardSquare, int playerTu
     }
   if (boardSquare == endSquare)
     {
-      //printf("direction = %d, startSquare = %d, moveLength = %d \n", direction, startSquare, moveLength);
-      moves = CreateMovelistNode(startSquare*100 + endSquare, moves);
+      //printf("   adding a piece to moves... direction = %d, startSquare = %d, moveLength = %d \n", direction, startSquare, moveLength);
+      *moves = CreateMovelistNode(startSquare*100 + endSquare, *moves);
     }
-
-  return moves;
 }
 
 /************************************************************************
@@ -999,25 +1000,25 @@ POSITION calcInitialPosition()
 {
   int i;
   POSITION initialPos = 0;
-  char* board = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE+1));
+  //char* board = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE+1));
 
   for (i = 0; i < BOARDSIZE; i++) {
     if ((i > 0 && i < SIDELENGTH-1) || (i < BOARDSIZE-1 && i > BOARDSIZE-SIDELENGTH))
-      board[i] = BLACK;
+      gBoard[i] = BLACK;
     else if ((i % SIDELENGTH == 0) || (i % SIDELENGTH == SIDELENGTH-1))
-      board[i] = WHITE;
+      gBoard[i] = WHITE;
     else
-      board[i] = BLANK;
+      gBoard[i] = BLANK;
   }
-  board[0] = BLANK;
-  board[SIDELENGTH-1] = BLANK;
-  board[BOARDSIZE-SIDELENGTH] = BLANK;
-  board[BOARDSIZE-1] = BLANK;
-  board[BOARDSIZE] = '\0';  
+  gBoard[0] = BLANK;
+  gBoard[SIDELENGTH-1] = BLANK;
+  gBoard[BOARDSIZE-SIDELENGTH] = BLANK;
+  gBoard[BOARDSIZE-1] = BLANK;
+  gBoard[BOARDSIZE] = '\0';  
 
-  initialPos = generic_hash(board, PLAYERBLACK);
+  initialPos = generic_hash(gBoard, PLAYERBLACK);
 
-  SafeFree(board);
+  //SafeFree(board);
   return initialPos;
 }
 
@@ -1038,11 +1039,50 @@ int numPiecesLeft(char color)
   return piecesSoFar;
 }
 
+MOVE moveHash(STRING input)
+{
+  MOVE move;
+  int startSquare, endSquare;
+  
+  // input[0] is the letter and input[1] is the number
+  startSquare = input[0] - 'a' + (SIDELENGTH - (input[1] - '0'))*SIDELENGTH;
+  endSquare = input[2] - 'a' + (SIDELENGTH - (input[3] - '0'))*SIDELENGTH;
+  move = endSquare + startSquare*100;
+  printf("startsquare = %d, endSquare = %d\n", startSquare, endSquare);
+  return move;
+}
+
+STRING moveUnhash(MOVE move)
+{
+  STRING moveString = (STRING) SafeMalloc(5);
+  int startSquare, endSquare;
+  char letter, number;
+
+  endSquare = move % 100;
+  startSquare = move/100;
+  number = '0' + (4 - startSquare / SIDELENGTH);
+  letter = (startSquare % SIDELENGTH) + 'a';
+  moveString[0] = letter;
+  moveString[1] = number;
+  number = '0' + (4 - endSquare / SIDELENGTH);
+  letter = (endSquare % SIDELENGTH) + 'a';
+  moveString[2] = letter;
+  moveString[3] = number;
+  moveString[4] = '\0';
+
+  return moveString;
+} 
+
 
 /************************************************************************
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.2  2006/10/08 05:14:59  alb_shau
+ ** 2006.10.07
+ ** Finished coding almost all of the essential functions.  Still some bugs.
+ ** For example, computer goes first for some reason.
+ **
  ** Revision 1.1  2006/09/26 23:01:28  alb_shau
  ** *** empty log message ***
  **
