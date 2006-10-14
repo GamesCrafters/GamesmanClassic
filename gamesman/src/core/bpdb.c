@@ -2,7 +2,7 @@
 **
 ** NAME:    bpdb.c
 **
-** DESCRIPTION:    Accessor functions for the bit-perfect database.
+** DESCRIPTION:    Implementation of the Bit-Perfect Database.
 **
 ** AUTHOR:    Ken Elkabany
 **        GamesCrafters Research Group, UC Berkeley
@@ -30,16 +30,18 @@
 **
 **************************************************************************/
 
-// TODO
+/*
+TODO:
 
-// SUPPORT tiers
-// hardcode VALUE as slot? maybe...
-// fix bit widths from shrinks and grows
+1. SUPPORT tiers
+2. possibly hardcode value as a slot?
+3. fix bit widths from shrinks and grows
 
-// NOTE
-// supports up to 256 slices each 64-bits in size
-// this support is violated in the shrink and grow (should fix soon)
+Note:
+1. supports up to 256 slices each 64-bits in size
+2. this support is violated in the shrink and grow (should fix soon)
 
+*/
 #include "bpdb.h"
 #include "gamesman.h"
 #include "bpdb_bitlib.h"
@@ -58,36 +60,99 @@
 SLICE       bpdb_write_slice = NULL;
 SLICE       bpdb_nowrite_slice = NULL;
 
-// in memory database
+//
+// in-memory database; write is for data that will
+// be written to file while nowrite is only temporary
+//
+
 BYTE        *bpdb_write_array = NULL;
 BYTE        *bpdb_nowrite_array = NULL;
 
+//
 // numbers of slices
+//
+
 UINT64      bpdb_slices = 0;
 
+//
 // pointer to list of schemes
+//
+
 SLIST       bpdb_schemes = NULL;
+
+//
+// pointer to the encoding scheme that will be used
+// for encoding variable numbers in the db file header
+//
+
 SCHEME      bpdb_headerScheme = NULL;
 
-// legacy slots
+//
+// these slots provide legacy support for non-slots
+// aware solvers
+//
+
 UINT32 BPDB_VALUESLOT = 0;
 UINT32 BPDB_MEXSLOT = 0;
 UINT32 BPDB_REMSLOT = 0;
 UINT32 BPDB_VISITEDSLOT = 0;
 
-// graphical purposes
+//
+// graphical purposes - used to test whether a new
+// line has been printed or not
+//
+
 BOOLEAN bpdb_have_printed = FALSE;
 
+//
+// the buffer size in bytes that the bpdb is allowed
+// to use when reading and writing data from a file
+//
+
 UINT32 bpdb_buffer_length = 10000;
-//
-// bpdb_init
-//
+
+
+
+/*++
+
+Routine Description:
+
+    bpdb_init initializes the Bit-Perfect database
+    pseudo-C object. This function must be called before
+    any other bpdb function. It allocates the bpdb write
+    and nowrite slices, which are the slice formats for data
+    that is written to file and not written, respectively.
+    Furthermore, if a variable slice aware solver is not
+    being used, the following default slots are added:
+    Value, visited, mex and remotness. Furthermore, the
+    DB_Table is populated with pointers to the bpdb
+    functions. Last, the available schemes are added to the
+    bpdb_schemes list for the purpose of encoding and decoding
+    databases saved to a file.
+    
+Arguments:
+
+    new_db - pointer to the database structure that contains
+            functional pointers that a database must
+            implement.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 void
 bpdb_init(
                 DB_Table *new_db
                 )
 {
     GMSTATUS status = STATUS_SUCCESS;
+
+    //
+    // check input parameter
+    //
 
     if(NULL == new_db) {
         status = STATUS_INVALID_INPUT_PARAMETER;
@@ -98,7 +163,12 @@ bpdb_init(
     //
     // initialize global variables
     //
+
     bpdb_slices = gNumberOfPositions;
+
+    //
+    // allocate space to store the format of a slice
+    //
 
     bpdb_write_slice = (SLICE) calloc( 1, sizeof(struct sliceformat) );
     if(NULL == bpdb_write_slice) {
@@ -113,6 +183,11 @@ bpdb_init(
         BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_nowrite_slice in memory", status);
         goto _bailout;
     }
+
+    //
+    // if the solver being used is not variable slices aware, then add the default slots
+    // that all old gamesman solvers use including value, mex, remoteness and visited
+    //
 
     if(!gBitPerfectDBSolver) {
 
@@ -140,12 +215,20 @@ bpdb_init(
             goto _bailout;
         }
 
+        //
+        // allocate the memory the db requires
+        //
+
         status = bpdb_allocate();
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("bpdb_init()", "Failed call to bpdb_allocate() to allocate bpdb arrays", status);
             goto _bailout;
         }
     }
+
+    //
+    // set functional pointers for generic DB_Table
+    //
 
     new_db->get_value = bpdb_get_value;
     new_db->put_value = bpdb_set_value;
@@ -164,12 +247,26 @@ bpdb_init(
     new_db->set_slice_slot = bpdb_set_slice_slot;    
     new_db->free_db = bpdb_free;
 
+    // create a new singly-linked list of schemes
     bpdb_schemes = slist_new();
 
+    // create the default no-compression scheme
     SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, NULL, FALSE );
-    SCHEME scheme1 = scheme_new( 1, bpdb_generic_varnum_gap_bits, bpdb_generic_varnum_size_bits, bpdb_generic_varnum_implicit_amt, bpdb_generic_varnum_init, TRUE );
 
+    // create the original variable skips compression scheme
+    SCHEME scheme1 = scheme_new( 1, bpdb_generic_varnum_gap_bits,
+                                    bpdb_generic_varnum_size_bits,
+                                    bpdb_generic_varnum_implicit_amt,
+                                    bpdb_generic_varnum_init,
+                                    TRUE );
+
+    // set the original variable skips compression scheme
+    // as the scheme that will be used to encode the db header
     bpdb_headerScheme = scheme1;
+
+    //
+    // add the schemes to the schemes list
+    //
 
     bpdb_schemes = slist_add( bpdb_schemes, scheme0 );
 
@@ -185,6 +282,8 @@ bpdb_init(
 _bailout:
     return;
 }
+
+
 
 GMSTATUS
 bpdb_allocate( )
