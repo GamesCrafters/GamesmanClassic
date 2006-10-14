@@ -181,20 +181,6 @@ bpdb_generic_write_varnum(
                 UINT64 consecutiveSkips
                 );
 
-UINT8
-bpdb_generic_varnum_gap_bits(
-                UINT64 consecutiveSkips
-                );
-
-UINT64
-bpdb_generic_varnum_implicit_amt(
-                UINT8 leftBits
-                );
-
-UINT8
-bpdb_generic_varnum_size_bits(
-                UINT8 leftBits
-                );
 
 UINT64
 bpdb_generic_read_varnum(
@@ -206,15 +192,5 @@ bpdb_generic_read_varnum(
                 UINT8 *offset,
                 BOOLEAN alreadyReadFirstBit
                 );
-/*
-UINT8
-bpdb_generic_read_varnum_consecutive_ones(
-                dbFILE *inFile,
-                BYTE **curBuffer,
-                BYTE *inputBuffer,
-                UINT32 length,
-                UINT8 *offset,
-                BOOLEAN alreadyReadFirstBit
-                );
-*/
+
 #endif /* GMCORE_BPDB_H */

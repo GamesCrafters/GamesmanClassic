@@ -84,6 +84,7 @@ SCHEME scheme_new(
                 UINT8 (*varnum_gap_bits) ( UINT64 consecutiveSkips ),
                 UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
                 UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
+                void (*varnum_init) ( ),
                 BOOLEAN indicator
                 );
 

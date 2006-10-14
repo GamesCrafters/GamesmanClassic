@@ -4,6 +4,27 @@
 #include "bpdb_misc.h"
 #include "bpdb.h"
 
+extern
+UINT64 *bpdb_generic_varnum_precomputed_gap_bits;
+
+void
+bpdb_generic_varnum_init( );
+
+UINT8
+bpdb_generic_varnum_gap_bits(
+                UINT64 consecutiveSkips
+                );
+
+UINT64
+bpdb_generic_varnum_implicit_amt(
+                UINT8 leftBits
+                );
+
+UINT8
+bpdb_generic_varnum_size_bits(
+                UINT8 leftBits
+                );
+
 UINT8
 bpdb_ken_varnum_gap_bits(
                 UINT64 consecutiveSkips
