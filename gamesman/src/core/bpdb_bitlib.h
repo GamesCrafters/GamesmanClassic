@@ -107,11 +107,4 @@ bitlib_read_from_buffer(
                 UINT8 length
                 );
 
-inline
-UINT8
-min8(
-                UINT8 a,
-                UINT8 b
-                );
-
 #endif /* GMCORE_BITLIB_H */

@@ -1,21 +1,6 @@
 #include "gamesman.h"
 #include "bpdb_bitlib.h"
 
-inline
-UINT8
-min8(
-                UINT8 a,
-                UINT8 b
-                )
-{
-    if(a < b) {
-        return a;
-    } else {
-        return b;
-    }
-    return a;
-}
-
 void
 bitlib_print_byte_in_bits(
                 BYTE *b
@@ -157,10 +142,10 @@ bitlib_insert_bits(
 
         *slice = *slice & mask;
 
-        *slice = *slice | (bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) ) << (offsetFromRight - min8(bitsToOutput, offsetFromRight)));
+        *slice = *slice | (bitlib_get_bits_range( value, bitsToOutput, MIN(bitsToOutput, offsetFromRight) ) << (offsetFromRight - MIN(bitsToOutput, offsetFromRight)));
         
-        offsetFromLeft = (offsetFromLeft + min8(bitsToOutput, offsetFromRight)) % BITSINBYTE;
-        bitsToOutput -= min8(bitsToOutput, offsetFromRight);
+        offsetFromLeft = (offsetFromLeft + MIN(bitsToOutput, offsetFromRight)) % BITSINBYTE;
+        bitsToOutput -= MIN(bitsToOutput, offsetFromRight);
         offsetFromRight = BITSINBYTE - offsetFromLeft;
         slice++;
     }
@@ -239,20 +224,20 @@ bitlib_read_bits(
     while( bitsToOutput > 0 ) {
         //if(offsetFromRight >= bitsToOutput) {
         if(  (BITSINBYTE - offsetFromLeft - bitsToOutput) > 0 ) {
-            mask = bitlib_right_mask8( min8(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput);
+            mask = bitlib_right_mask8( MIN(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput);
             slicecopy = (slicecopy & mask) >> (offsetFromRight - bitsToOutput);
         } else {
-            mask = bitlib_right_mask8( min8(bitsToOutput, offsetFromRight) );
+            mask = bitlib_right_mask8( MIN(bitsToOutput, offsetFromRight) );
             slicecopy = (slicecopy & mask);
         }
 
-        value = value << min8(bitsToOutput, offsetFromRight);
+        value = value << MIN(bitsToOutput, offsetFromRight);
         value = value | slicecopy;
         
         //printf("slice %u OL: %u, OR: %u, BTO: %u, value %llu\n", *slice, offsetFromLeft, offsetFromRight, bitsToOutput, value);
 
-        offsetFromLeft = (offsetFromLeft + min8(bitsToOutput, offsetFromRight)) % BITSINBYTE;
-        bitsToOutput -= min8(bitsToOutput, offsetFromRight);
+        offsetFromLeft = (offsetFromLeft + MIN(bitsToOutput, offsetFromRight)) % BITSINBYTE;
+        bitsToOutput -= MIN(bitsToOutput, offsetFromRight);
         offsetFromRight = BITSINBYTE - offsetFromLeft;
 
         slice++;
@@ -281,17 +266,17 @@ bitlib_value_to_buffer(
 
     while( bitsToOutput > 0 ) {
         if(offsetFromRight >= bitsToOutput) {
-            **curBuffer = **curBuffer | (bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput));
+            **curBuffer = **curBuffer | (bitlib_get_bits_range( value, bitsToOutput, MIN(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput));
         } else {
-            **curBuffer = **curBuffer | bitlib_get_bits_range( value, bitsToOutput, min8(bitsToOutput, offsetFromRight) );
+            **curBuffer = **curBuffer | bitlib_get_bits_range( value, bitsToOutput, MIN(bitsToOutput, offsetFromRight) );
         }
         
-        *offsetFromLeft = (*offsetFromLeft + min8(bitsToOutput, offsetFromRight)) % BITSINBYTE;
+        *offsetFromLeft = (*offsetFromLeft + MIN(bitsToOutput, offsetFromRight)) % BITSINBYTE;
         //if(*offsetFromLeft == 8 ) {
         //    writeOut = TRUE;
         //    *offsetFromLeft = *offsetFromLeft % BITSINBYTE;
         //}
-        bitsToOutput -= min8(bitsToOutput, offsetFromRight);
+        bitsToOutput -= MIN(bitsToOutput, offsetFromRight);
         offsetFromRight = BITSINBYTE - *offsetFromLeft;
 
         //if(writeOut) {
@@ -341,16 +326,16 @@ bitlib_read_from_buffer(
             }
         }
 
-        value = value << min8( length, offsetFromRight );
+        value = value << MIN( length, offsetFromRight );
 
         //printf("\n");
         //bitlib_print_byte_in_bits(inputBuffer);
         
         if(length > offsetFromRight) {
-            mask = bitlib_right_mask8( min8(length, offsetFromRight) );
+            mask = bitlib_right_mask8( MIN(length, offsetFromRight) );
             value = value | (UINT64) (**curBuffer & mask);
         } else {
-            mask = bitlib_right_mask8( min8(length, offsetFromRight) );
+            mask = bitlib_right_mask8( MIN(length, offsetFromRight) );
             value = value | (UINT64) (((mask << (offsetFromRight - length)) & **curBuffer) >> (BITSINBYTE - *offsetFromLeft - length));
         }
 
@@ -358,8 +343,8 @@ bitlib_read_from_buffer(
 
         //printf("value: %d\n", value);
 
-        *offsetFromLeft += min8( length, offsetFromRight );
-        length -= min8( length, offsetFromRight );
+        *offsetFromLeft += MIN( length, offsetFromRight );
+        length -= MIN( length, offsetFromRight );
         offsetFromRight = BITSINBYTE - *offsetFromLeft;
     }
 
