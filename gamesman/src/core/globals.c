@@ -117,7 +117,7 @@ STRING  ServerAddress = "";
 /* Tier Gamesman globals and function pointers */
 // For the core
 BOOLEAN 		gTierGamesman = TRUE;
-BOOLEAN			gMemDBLoadMainTier = FALSE;
+BOOLEAN			gDBLoadMainTier = FALSE;
 TIER 			kBadTier = -1;
 // For the hash window
 BOOLEAN			gHashWindowInitialized = FALSE;

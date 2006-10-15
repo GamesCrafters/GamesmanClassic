@@ -1,13 +1,13 @@
 /************************************************************************
 **
-** NAME:	memdb.c
+** NAME:	tierdb.c
 **
-** DESCRIPTION:	Accessor functions for the in-memory database.
+** DESCRIPTION:	Accessor functions for the tierified in-memory database.
 **
 ** AUTHOR:	GamesCrafters Research Group, UC Berkeley
 **		Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
 **
-** DATE:	2005-01-11
+** DATE:	2005-10-15
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -29,10 +29,18 @@
 **
 **************************************************************************/
 
+/*
+DISCLAIMER: This is basically a copy+paste of memdb.c, with saving and loading
+changed so that it handles many files (databases) instead of just one.
+Hence, even though the files are called "tierdb", they are EXACTLY like
+memdbs.
+-Max
+*/
+
 #include <zlib.h>
 #include <netinet/in.h>
 #include "gamesman.h"
-#include "memdb.h"
+#include "tierdb.h"
 
 /*internal declarations and definitions*/
 
@@ -44,40 +52,40 @@ BOOLEAN		dirty;
 POSITION	CurrentPosition;
 cellValue	CurrentValue;
 
-void       	memdb_free 			();
-void		memdb_close_file		();
+void       	tierdb_free 			();
+void		tierdb_close_file		();
 
 /* Value */
-VALUE		memdb_get_value	        	(POSITION pos);
-VALUE		memdb_get_value_file		(POSITION pos);
-VALUE		memdb_set_value	        	(POSITION pos, VALUE val);
+VALUE		tierdb_get_value	        	(POSITION pos);
+VALUE		tierdb_get_value_file		(POSITION pos);
+VALUE		tierdb_set_value	        	(POSITION pos, VALUE val);
 
 /* Remoteness */
-REMOTENESS	memdb_get_remoteness		(POSITION pos);
-REMOTENESS	memdb_get_remoteness_file	(POSITION pos);
-void		memdb_set_remoteness		(POSITION pos, REMOTENESS val);
+REMOTENESS	tierdb_get_remoteness		(POSITION pos);
+REMOTENESS	tierdb_get_remoteness_file	(POSITION pos);
+void		tierdb_set_remoteness		(POSITION pos, REMOTENESS val);
 
 /* Visited */
-BOOLEAN		memdb_check_visited		(POSITION pos);
-BOOLEAN		memdb_check_visited_file	(POSITION pos);
-void		memdb_mark_visited		(POSITION pos);
-void		memdb_unmark_visited		(POSITION pos);
+BOOLEAN		tierdb_check_visited		(POSITION pos);
+BOOLEAN		tierdb_check_visited_file	(POSITION pos);
+void		tierdb_mark_visited		(POSITION pos);
+void		tierdb_unmark_visited		(POSITION pos);
 
 /* Mex */
-MEX		memdb_get_mex			(POSITION pos);
-MEX		memdb_get_mex_file		(POSITION pos);
-void		memdb_set_mex			(POSITION pos, MEX mex);
+MEX		tierdb_get_mex			(POSITION pos);
+MEX		tierdb_get_mex_file		(POSITION pos);
+void		tierdb_set_mex			(POSITION pos, MEX mex);
 
 /* saving to/reading from a file */
-BOOLEAN		memdb_save_database		();
-BOOLEAN		memdb_load_database		();
+BOOLEAN		tierdb_save_database		();
+BOOLEAN		tierdb_load_database		();
 
-cellValue*	(*memdb_get_raw)		(POSITION pos);
+cellValue*	(*tierdb_get_raw)		(POSITION pos);
 
-cellValue* 	memdb_get_raw_ptr		(POSITION pos);
-cellValue*	memdb_get_raw_file		(POSITION pos);
+cellValue* 	tierdb_get_raw_ptr		(POSITION pos);
+cellValue*	tierdb_get_raw_file		(POSITION pos);
 
-cellValue*	memdb_array;
+cellValue*	tierdb_array;
 
 char		outfilename[80];
 gzFile* 	filep;
@@ -89,14 +97,14 @@ int		goodCompression, goodDecompression, goodClose;
 ** Code
 */
 
-void memdb_init(DB_Table *new_db)
+void tierdb_init(DB_Table *new_db)
 {
         POSITION i;
         BOOLEAN useFile = gZeroMemPlayer;
 
         if(useFile) {
         	//try openning the data file
-        	sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
+        	sprintf(outfilename, "./data/m%s_%d_tierdb.dat.gz", kDBName, getOption()) ;
         	if((filep = gzopen(outfilename, "rb")) == NULL) {
         		useFile = FALSE;
    		    } else {
@@ -112,58 +120,58 @@ void memdb_init(DB_Table *new_db)
         }
         //set function pointers
         if(useFile) {
-                memdb_get_raw = memdb_get_raw_file;
+                tierdb_get_raw = tierdb_get_raw_file;
 
                 new_db->put_value = NULL;
                 new_db->put_remoteness = NULL;
                 new_db->mark_visited = NULL;
                 new_db->unmark_visited = NULL;
                 new_db->put_mex = NULL;
-                new_db->free_db = memdb_close_file;
+                new_db->free_db = tierdb_close_file;
 
 				dirty = TRUE;
         } else {
-                memdb_get_raw = memdb_get_raw_ptr;
+                tierdb_get_raw = tierdb_get_raw_ptr;
 
                 //setup internal memory table
-                memdb_array = (cellValue *) SafeMalloc (gNumberOfPositions * sizeof(cellValue));
+                tierdb_array = (cellValue *) SafeMalloc (gNumberOfPositions * sizeof(cellValue));
 
                 for(i = 0; i< gNumberOfPositions; i++)
-                        memdb_array[i] = undecided;
+                        tierdb_array[i] = undecided;
 
-                new_db->put_value = memdb_set_value;
-                new_db->put_remoteness = memdb_set_remoteness;
-                new_db->mark_visited = memdb_mark_visited;
-                new_db->unmark_visited = memdb_unmark_visited;
-                new_db->put_mex = memdb_set_mex;
-                new_db->free_db = memdb_free;
+                new_db->put_value = tierdb_set_value;
+                new_db->put_remoteness = tierdb_set_remoteness;
+                new_db->mark_visited = tierdb_mark_visited;
+                new_db->unmark_visited = tierdb_unmark_visited;
+                new_db->put_mex = tierdb_set_mex;
+                new_db->free_db = tierdb_free;
         }
 
-        new_db->get_value = memdb_get_value;
-        new_db->get_remoteness = memdb_get_remoteness;
-        new_db->check_visited = memdb_check_visited;
-        new_db->get_mex = memdb_get_mex;
-        new_db->save_database = memdb_save_database;
-        new_db->load_database = memdb_load_database;
+        new_db->get_value = tierdb_get_value;
+        new_db->get_remoteness = tierdb_get_remoteness;
+        new_db->check_visited = tierdb_check_visited;
+        new_db->get_mex = tierdb_get_mex;
+        new_db->save_database = tierdb_save_database;
+        new_db->load_database = tierdb_load_database;
 }
 
-void memdb_free()
+void tierdb_free()
 {
-        if(memdb_array)
-                SafeFree(memdb_array);
+        if(tierdb_array)
+                SafeFree(tierdb_array);
 }
 
-void memdb_close_file()
+void tierdb_close_file()
 {
 	goodClose = gzclose(filep);
 }
 
-cellValue* memdb_get_raw_ptr(POSITION pos)
+cellValue* tierdb_get_raw_ptr(POSITION pos)
 {
-        return (&memdb_array[pos]);
+        return (&tierdb_array[pos]);
 }
 
-cellValue* memdb_get_raw_file(POSITION pos)
+cellValue* tierdb_get_raw_file(POSITION pos)
 {
         if(dirty || (pos != CurrentPosition)) {
 		dirty = FALSE;
@@ -182,40 +190,40 @@ cellValue* memdb_get_raw_file(POSITION pos)
         return &CurrentValue;
 }
 
-VALUE memdb_set_value(POSITION pos, VALUE val)
+VALUE tierdb_set_value(POSITION pos, VALUE val)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         /* put it in the right position, but we have to blank field and then
         ** add new value to right slot, keeping old slots */
         return (VALUE)((*ptr = (((int)*ptr & ~VALUE_MASK) | (val & VALUE_MASK))) & VALUE_MASK);
 }
 
-VALUE memdb_get_value(POSITION pos)
+VALUE tierdb_get_value(POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
 }
 
-REMOTENESS memdb_get_remoteness(POSITION pos)
+REMOTENESS tierdb_get_remoteness(POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         return (REMOTENESS)((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
 }
 
-void memdb_set_remoteness (POSITION pos, REMOTENESS val)
+void tierdb_set_remoteness (POSITION pos, REMOTENESS val)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         if(val > REMOTENESS_MAX) {
                 printf("Remoteness request (%d) for " POSITION_FORMAT  " larger than Max Remoteness (%d)\n",val,pos,REMOTENESS_MAX);
@@ -227,53 +235,53 @@ void memdb_set_remoteness (POSITION pos, REMOTENESS val)
         *ptr = (VALUE)(((int)*ptr & ~REMOTENESS_MASK) | (val << REMOTENESS_SHIFT));
 }
 
-BOOLEAN memdb_check_visited(POSITION pos)
+BOOLEAN tierdb_check_visited(POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         //printf("check pos: %llu\n", pos);
 
         return (BOOLEAN)((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
 }
 
-void memdb_mark_visited (POSITION pos)
+void tierdb_mark_visited (POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         //printf("mark pos: %llu\n", pos);
 
         *ptr = (VALUE)((int)*ptr | VISITED_MASK);       /* Turn bit on */
 }
 
-void memdb_unmark_visited (POSITION pos)
+void tierdb_unmark_visited (POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         //printf("unmark pos: %llu\n", pos);
 
         *ptr = (VALUE)((int)*ptr & ~VISITED_MASK);      /* Turn bit off */
 }
 
-void memdb_set_mex(POSITION pos, MEX mex)
+void tierdb_set_mex(POSITION pos, MEX mex)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         *ptr = (VALUE)(((int)*ptr & ~MEX_MASK) | (mex << MEX_SHIFT));
 }
 
-MEX memdb_get_mex(POSITION pos)
+MEX tierdb_get_mex(POSITION pos)
 {
         cellValue *ptr;
 
-        ptr = memdb_get_raw(pos);
+        ptr = tierdb_get_raw(pos);
 
         return (MEX)(((int)*ptr & MEX_MASK) >> MEX_SHIFT);
 }
@@ -285,7 +293,7 @@ MEX memdb_get_mex(POSITION pos)
 **
 **	Name: saveDatabase()
 **
-**	Description: writes memdb to a compressed file in gzip format.
+**	Description: writes tierdb to a compressed file in gzip format.
 **
 **	Inputs: none
 **
@@ -299,30 +307,36 @@ MEX memdb_get_mex(POSITION pos)
 **		htonl
 **		ntohl
 **
-**	Requirements:	memdb_array contains a valid database of positions
-**			gNumberOfPositions stores the correct number of positions in memdb_array
+**	Requirements:	tierdb_array contains a valid database of positions
+**			gNumberOfPositions stores the correct number of positions in tierdb_array
 **			kDBName is set correctly.
 **			getOption() returns the correct option number
+**			The Hash Window is initialized
 **
 */
 
 
-BOOLEAN memdb_save_database ()
+BOOLEAN tierdb_save_database ()
 {
+		if(!gHashWindowInitialized)
+				return FALSE;
+
         unsigned long i;
         goodCompression = 1;
         goodClose = 0;
-        POSITION tot = 0,sTot = gNumberOfPositions;
+        POSITION tot = 0,sTot = gMaxPosOffset[1];
 
-        if (gTwoBits)	/* TODO: Make db's compatible with 2-bits */
-                return FALSE;	/* 0 is error, because it means FALSE. -JJ */
-        if(!memdb_array)
+
+        if(!tierdb_array)
                 return FALSE;
         if(gZeroMemPlayer)  //we don't save the db if playing on zero memory, but we will say that the db is saved
                 return TRUE;
 
-        mkdir("data", 0755) ;
-        sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption());
+		// Make the directory for this game's tierdb's
+		sprintf(outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
+		mkdir(outfilename, 0755);
+		sprintf(outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
+			kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[1]);
 
         if((filep = gzopen(outfilename, "wb")) == NULL) {
                 if(kDebugDetermineValue) {
@@ -332,14 +346,14 @@ BOOLEAN memdb_save_database ()
         }
 
         dbVer[0] = htons(FILEVER);
-        numPos[0] = htonl(gNumberOfPositions);
+        numPos[0] = htonl(gMaxPosOffset[1]);
         goodCompression = gzwrite(filep, dbVer, sizeof(short));
         goodCompression = gzwrite(filep, numPos, sizeof(POSITION));
-        for(i=0; i<gNumberOfPositions && goodCompression; i++) { //convert to network byteorder for platform independence.
-                memdb_array[i] = htons(memdb_array[i]);
-                goodCompression = gzwrite(filep, memdb_array+i, sizeof(cellValue));
+        for(i=0; i<gMaxPosOffset[1] && goodCompression; i++) { //convert to network byteorder for platform independence.
+                tierdb_array[i] = htons(tierdb_array[i]);
+                goodCompression = gzwrite(filep, tierdb_array+i, sizeof(cellValue));
                 tot += goodCompression;
-                memdb_array[i] = ntohs(memdb_array[i]);
+                tierdb_array[i] = ntohs(tierdb_array[i]);
                 //gzflush(filep,Z_FULL_FLUSH);
         }
         goodClose = gzclose(filep);
@@ -363,7 +377,7 @@ BOOLEAN memdb_save_database ()
 /*
 **	Name: loadDatabase()
 **
-**	Description: loads the compressed file in gzip format into memdb_array.
+**	Description: loads the compressed file in gzip format into tierdb_array.
 **
 **	Inputs: none
 **
@@ -376,72 +390,69 @@ BOOLEAN memdb_save_database ()
 **			(In std libraries)
 **			ntohl
 **
-**	Requirements:	memdb_array has enough space malloced to store uncompressed database
-**			gNumberOfPositions stores the correct number of uncompressed positions in memdb_array
+**	Requirements:	tierdb_array has enough space malloced to store uncompressed database
+**			gNumberOfPositions stores the correct number of uncompressed positions in tierdb_array
 **			kDBName is set correctly.
 **		        getOption() returns the correct option number
+**			The Hash Window is initialized
 **
 **		~Scott
 ************
 ***********/
 
-BOOLEAN memdb_load_database()
+BOOLEAN tierdb_load_database()
 {
+		if(!gHashWindowInitialized)
+				return FALSE;
+
         POSITION i;
         goodDecompression = 1;
         goodClose = 1;
         BOOLEAN correctDBVer;
 
-        if (gTwoBits)	/* TODO: Same here */
-                return FALSE;
-        if(!memdb_array && !gZeroMemPlayer)
+        if(!tierdb_array && !gZeroMemPlayer)
                 return FALSE;
         else if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
                 return TRUE;
 
-        sprintf(outfilename, "./data/m%s_%d_memdb.dat.gz", kDBName, getOption()) ;
-        if((filep = gzopen(outfilename, "rb")) == NULL)
-                return FALSE;
-
-        goodDecompression = gzread(filep,dbVer,sizeof(short));
-        goodDecompression = gzread(filep,numPos,sizeof(POSITION));
-        *dbVer = ntohs(*dbVer);
-        *numPos = ntohl(*numPos);
-        if(*numPos != gNumberOfPositions && kDebugDetermineValue) {
-                printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
-                return FALSE;
-        }
-        /***
-         ** Database Ver. 1 Decompress
-         ***/
-        correctDBVer = (*dbVer == FILEVER);
-
-        if (correctDBVer) {
-                for(i = 0; i < gNumberOfPositions && goodDecompression; i++) {
-                        goodDecompression = gzread(filep, memdb_array+i, sizeof(cellValue));
-                        memdb_array[i] = ntohs(memdb_array[i]);
-                }
-        }
-        /***
-         ** End Ver. 1
-         ***/
-
-
-        goodClose = gzclose(filep);
-
-
-        if(goodDecompression && (goodClose == 0) && correctDBVer) {
-                if(kDebugDetermineValue) {
-                        printf("File Successfully Decompressed\n");
-                }
-                return TRUE;
-        } else {
-                for(i = 0 ; i < gNumberOfPositions ; i++)
-                        memdb_array[i] = undecided ;
-                if(kDebugDetermineValue) {
-                        printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\ndb version: %d\n",goodDecompression,goodClose,*dbVer);
-                }
-                return FALSE;
-        }
+		int index;
+		// always load current tier at BOTTOM, thus it being first
+		for (index = 1; index < gNumTiersInHashWindow; index++) {
+			if (index == 1 && !gDBLoadMainTier) { // if solving, DONT'T load from file
+				int i;
+				for(i = 0; i < gMaxPosOffset[1]; i++)
+					tierdb_array[i] = undecided;
+				continue;
+			}
+			sprintf(outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
+						kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[index]);
+			if((filep = gzopen(outfilename, "rb")) == NULL)
+				return FALSE;
+			goodDecompression = gzread(filep,dbVer,sizeof(short));
+			goodDecompression = gzread(filep,numPos,sizeof(POSITION));
+			*dbVer = ntohs(*dbVer);
+			*numPos = ntohl(*numPos);
+			if(*numPos != (gMaxPosOffset[index]-gMaxPosOffset[index-1])) {
+				if (kDebugDetermineValue)
+					printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
+				return FALSE;
+			}
+			correctDBVer = (*dbVer == FILEVER);
+			if (correctDBVer) {
+				for(i = gMaxPosOffset[index-1]; i < gMaxPosOffset[index] && goodDecompression; i++) {
+					goodDecompression = gzread(filep, tierdb_array+i, sizeof(cellValue));
+					tierdb_array[i] = ntohs(tierdb_array[i]);
+				}
+			}
+			goodClose = gzclose(filep);
+			if(!(goodDecompression && (goodClose == 0) && correctDBVer)) {
+				if(kDebugDetermineValue)
+					printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\ndb version: %d\n",goodDecompression,goodClose,*dbVer);
+				return FALSE;
+			}
+		}
+		if(kDebugDetermineValue)
+			printf("Files Successfully Decompressed\n");
+		return TRUE;
 
 }

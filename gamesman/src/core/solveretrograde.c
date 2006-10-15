@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.22 2006-10-11 07:03:31 max817 Exp $
+// $Id: solveretrograde.c,v 1.23 2006-10-15 10:30:50 max817 Exp $
 
 /************************************************************************
 **
@@ -270,7 +270,7 @@ void checkExistingDB() {
 	int	goodDecompression;
 
 	for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
-		sprintf(filename, "./data/m%s_%d_tierdb/m%s_%d_%d_memdb.dat.gz",
+		sprintf(filename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
 					kDBName, variant, kDBName, variant, tierSolveList->tier);
 		if((filep = gzopen(filename, "rb")) == NULL) {
 			break;
@@ -307,7 +307,7 @@ void PrepareToSolveNextTier() {
 
 
 BOOLEAN setInitialTierPosition() {
-	gMemDBLoadMainTier = TRUE; // trick memdb into loading main tier temporarily
+	gDBLoadMainTier = TRUE; // trick tierdb into loading main tier temporarily
 	TIERPOSITION tp; TIER t;
 	VALUE value; REMOTENESS remoteness;
 /*	printf("\nYou can choose to start from one of these tiers:\n   ");
@@ -343,7 +343,7 @@ BOOLEAN setInitialTierPosition() {
 		}
 	}
 	// switch back to the current hash window:
-	gMemDBLoadMainTier = FALSE;
+	gDBLoadMainTier = FALSE;
 	gInitializeHashWindow(tierToSolve, TRUE);
 	return FALSE;
 }
@@ -2169,108 +2169,3 @@ void writeUnknownToFile(FILE* fp, POSITION position, POSITIONLIST *children,
 	writeChildrenToFile(fp, children);
 }
 */
-
-// $Log: not supported by cvs2svn $
-// Revision 1.21  2006/10/01 10:29:24  max817
-// Just a small fix to GetMyPosition() (thanks David Chan!)
-//
-// Revision 1.20  2006/09/11 05:21:42  max817
-// Made legality checking, undomove usage, and correctness checking OFF by
-// default. Also cleaned up the UI for handling these when they're disabled.
-//
-// Revision 1.19  2006/09/06 11:55:33  max817
-// Fixed the loopy solver bug! w00t!
-//
-// Revision 1.18  2006/08/14 07:13:14  max817
-// Fixed a typo that broke the build!
-//
-// Revision 1.17  2006/08/13 02:41:10  max817
-// Updates galore, both big and small. Added corruption and tier tree checking,
-// as well as a tier "progress percentage". Also a few GUI changes.
-//
-// Revision 1.16  2006/08/08 23:47:23  max817
-// *** empty log message ***
-//
-// Revision 1.15  2006/08/08 20:49:16  max817
-// *** empty log message ***
-//
-// Revision 1.14  2006/08/08 20:35:19  max817
-// Added gTierToStringFunPtr implementation, and an example of it in mtttier.c.
-//
-// Revision 1.13  2006/08/08 01:57:22  max817
-// Added the parent pointers version of the loopy solver for the Retrograde
-// Solver. Also added most of the API for Bagh Chal so that it uses this
-// version. The UndoMove functions are yet to be implemented correctly,
-// however.
-//
-// Revision 1.12  2006/08/07 21:49:19  max817
-// A HUGE set of changes to the Retrograde Solver. It now supports both
-// loopy and non-loopy solving, as well as symmetries for both. It can
-// also begin play from ANY tier that has already been solved, as opposed
-// to waiting until the game is finished solving.
-// Also added a variable to facilitate memdb loading (it used to rely
-// on gPlaying, but now it relies on a new variable, gMemDBLoadMainTier).
-//
-// Revision 1.11  2006/08/04 06:47:53  max817
-// Aside from a few cosmetic changes to the solver, Gamesman is now able
-// to actually PLAY Tier-Gamesman games, albeit at a very primitive stage
-// (a.k.a. no undo, visual value history, etc.). The gInitialTierPosition
-// and gInitialTier variables were introduced to make this happen, and
-// to leave gInitialPosition as before. Also, added a few changes to main.c
-// to handle Tier Gamesman better, so it now displays the right game value
-// after solving.
-//
-// Revision 1.10  2006/08/02 07:12:11  max817
-// This HUGE update has implemented the NEW Gamesman API. The most notable
-// things about it is the two new files, which effectively generalize hash
-// windows so that module writers only call 2 hash/unhash functions and
-// don't worry about handling the hash window. Also, due to a VERY much
-// hack way, now memdb is able to read and write tier-specific databases!
-// The solver is also changed to deal with all this.
-// Many more updates to come soon.
-//
-// Revision 1.9  2006/07/30 20:00:26  max817
-// Just fixed a small file-writing error.
-//
-// Revision 1.8  2006/07/29 08:35:33  max817
-// gPositionToTierPosition abilities added. Now the solver writes makeshift
-// tierdb files (to have the info to translate to ACTUAL db files later),
-// and Tic-Tac-Tier now correctly implements both gPosToTierPos and
-// gInitHashWindow. Also fixed plenty of bugs in both solver and game.
-//
-// Revision 1.7  2006/07/26 03:17:28  max817
-// The Retrograde Solver now handles the Tier-Gamesman API! It's very rough
-// draft for now, doesn't use tier-windows (gInitHashWindow) or tier-specific
-// databases (gPositionToTierPosition) yet, but it will soon. As far as I
-// know it IS solving games correctly, at least compared to the regular
-// loopy solver. More updates coming soon.
-//
-// Revision 1.6  2006/07/11 08:53:34  max817
-// Just a few last-minute additions to the debugger.
-//
-// Revision 1.5  2006/07/11 07:58:34  max817
-// The first of many changes to implement the new "Tier-Gamesman".
-// Added tiergamesman.txt to the repository, which contains a wealth
-// of information on the new system.
-// Changed 7 core files to implement the new API that Tier-Gamesman modules
-// must fulfill, and added a rough debugger to the Retrograde Solver.
-// See doc/tiergamesman.txt for the full documentation.
-//
-// Revision 1.4  2006/05/25 04:22:51  max817
-// Just an update to fix a small bug in the solver's algorithm that incorrectly labeled some ties as draws. Also added the TRUE code for RetrogradeTierValue to baghchal.c, though it's commented for now (since the solver as it stands can't handle 421 tiers too well).
-//
-// Revision 1.3  2006/04/17 07:36:38  max817
-// mbaghchal.c now has no solver debug code left (i.e. it's independent of anything in solveretrograde.c) and has variants implemented correctly. Aside from the POSITION size stuff, it should be near its final version.
-// As for the solver, all of the main features I wanted to implement are now implemented: it is almost zero-memory (aside from memdb usage), and it's possible to stop and save progress in the middle of solving. Also, ANY game can use the solver now, not just Bagh Chal. All in all, it's close to the final version (for this semester). -Max
-//
-// Revision 1.2  2006/04/13 21:40:56  max817
-// A few changes to mbaghchal and the solver here and then, but mostly
-// submitting to fix a small bug with solveretrograde.h that didn't allow
-// some compilers/linkers to "make" properly. -Max
-//
-// Revision 1.1  2006/04/12 03:02:12  max817
-// This is the big update that moves the Retrograde Solver from mbaghchal.c
-// to its own set of new files, solveretrograde.c and solveretrograde.h.
-// Exact details on the exact changes I made to the core files can be found
-// in a comment on solveretrograde.c. -Max
-//

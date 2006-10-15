@@ -42,6 +42,7 @@
 #include "colldb.h"
 #include "netdb.h"
 #include "filedb.h"
+#include "tierdb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP
@@ -72,7 +73,7 @@ MEX	       	db_get_mex		(POSITION pos);
 void		db_put_mex		(POSITION pos, MEX theMex);
 BOOLEAN		db_save_database	();
 BOOLEAN		db_load_database	();
-void 		db_get_bulk		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
+void 		db_get_bulk		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
 
 /*internal variables*/
 
@@ -82,7 +83,7 @@ DB_Table *db_functions;
 ** function code
 */
 void db_create() {
-    
+
     /*if there is an old database table, get rid of it*/
     db_destroy();
 
@@ -91,7 +92,7 @@ void db_create() {
 
     /*set all function pointers to NULL, and each database can choose*/
     /*whatever ones they wanna implement and associate them*/
-    
+
     db_functions->get_value = db_get_value;
     db_functions->put_value = db_put_value;
     db_functions->get_remoteness = db_get_remoteness;
@@ -116,7 +117,9 @@ void db_destroy() {
 }
 
 void db_initialize(){
-    if (gBitPerfectDB) {
+	if (kSupportsTierGamesman && gTierGamesman) {
+		tierdb_init(db_functions);
+	} else if (gBitPerfectDB) {
         bpdb_init(db_functions);
     } else if(gTwoBits) {
         twobitdb_init(db_functions);
@@ -137,7 +140,7 @@ void db_initialize(){
 	else if(gFileDB) {
 	filedb_init(db_functions);
 	}
-	
+
     else {
 	memdb_init(db_functions);
     }
@@ -148,7 +151,7 @@ void db_initialize(){
 void db_analysis_hook() {
     db_functions->original_put_value = db_functions->put_value;
     db_functions->put_value = AnalyzePosition;
-    
+
     if (db_functions->put_value == NULL) {
         printf("Function hook failed\n");
     } else {
@@ -216,10 +219,10 @@ BOOLEAN db_load_database(){
 
 void db_get_bulk (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
     POSITION *ptr = positions;
-    int i; 
+    int i;
     for (i = 0; i < length; i++) {
         ValueArray[i] = GetValueOfPosition(positions[i]);
-        remotenessArray[i] = Remoteness(positions[i]); 
+        remotenessArray[i] = Remoteness(positions[i]);
     }
 }
 
@@ -304,7 +307,7 @@ REMOTENESS Remoteness(POSITION position)
 	position = gCanonicalPosition(position);
     return db_functions->get_remoteness(position);
 }
-    
+
 
 void SetRemoteness (POSITION position, REMOTENESS remoteness)
 {
@@ -312,7 +315,7 @@ void SetRemoteness (POSITION position, REMOTENESS remoteness)
 	position = gCanonicalPosition(position);
     db_functions->put_remoteness(position,remoteness);
 }
- 
+
 
 BOOLEAN Visited(POSITION position)
 {
@@ -367,7 +370,7 @@ MEX MexLoad(POSITION position)
 }
 
 BOOLEAN SaveDatabase() {
-    return db_functions->save_database();    
+    return db_functions->save_database();
 }
 
 BOOLEAN LoadDatabase() {
@@ -375,5 +378,5 @@ BOOLEAN LoadDatabase() {
 }
 
 void GetValueAndRemotenessOfPositionBulk(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
-    db_functions->get_bulk(positions, ValueArray, remotenessArray, length); 
+    db_functions->get_bulk(positions, ValueArray, remotenessArray, length);
 }

@@ -119,7 +119,7 @@ extern STRING		ServerAddress;
 /* Tier Gamesman globals and function pointers */
 // For the core
 extern BOOLEAN			gTierGamesman;
-extern BOOLEAN			gMemDBLoadMainTier;
+extern BOOLEAN			gDBLoadMainTier;
 extern TIER				kBadTier;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;

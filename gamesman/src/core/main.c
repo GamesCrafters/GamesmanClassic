@@ -124,12 +124,12 @@ VALUE DetermineValue(POSITION position)
 
 	if(kSupportsTierGamesman && gTierGamesman) {//TIER GAMESMAN
 		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
-		gTwoBits = gZeroMemPlayer = FALSE; // make sure memdb behaves properly
+		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);
-		gMemDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
+		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
 		gSolver(position);
-		gMemDBLoadMainTier = TRUE; // from now on, memdb loads main tier too
+		gDBLoadMainTier = TRUE; // from now on, tierdb loads main tier too
 		gInitializeHashWindow(gInitialTier, TRUE);
 		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 		gInitialPosition = position; // saves a LOT of little changes
