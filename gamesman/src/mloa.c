@@ -25,10 +25,12 @@
 **              2006.10.13 Fixed Primitive to check for a tie. Fixed
 **                         MoveToString (forgot to add '\0' to the end of
 **                         strings)
+**              2006.10.16 Fixed GenerateMoves to check that the destination
+**                         square is blank before adding to list of moves.
 **              
 **                         
 **
-** LAST CHANGE: $Id: mloa.c,v 1.3 2006-10-14 00:15:33 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.4 2006-10-16 20:58:42 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -873,7 +875,7 @@ void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, M
       else
 	break;
     }
-  if (boardSquare == endSquare)
+  if ((boardSquare == endSquare) && (gBoard[endSquare] == BLANK)) 
     {
       //printf("   adding a piece to moves... direction = %d, startSquare = %d, moveLength = %d \n", direction, startSquare, moveLength);
       *moves = CreateMovelistNode(startSquare*100 + endSquare, *moves);
@@ -1078,6 +1080,12 @@ STRING moveUnhash(MOVE move)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.3  2006/10/14 00:15:33  alb_shau
+ ** finished coding all essential functions.  Debugged Primitive and MoveToString.
+ **
+ ** Can play human vs. human and solve but solving adds problems.  Basicaly the
+ ** computer moves first but Primitive still acts as if the computer moves second.
+ **
  ** Revision 1.2  2006/10/08 05:14:59  alb_shau
  ** 2006.10.07
  ** Finished coding almost all of the essential functions.  Still some bugs.
