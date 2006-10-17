@@ -641,6 +641,8 @@ void generic_hash_custom_contexts_mode(BOOLEAN on)
 
 void generic_hash_set_context(int context)
 {
+	if (context < 0)
+		ErrorStageRightErrorString("Attempting to set a negative custom context");
 	cCon->contextNumber = context;
 }
 
@@ -784,4 +786,5 @@ void generic_hash_destroy()
 			contextList = NULL;
 	}
 	hash_tot_context = currentContext = 0;
+	custom_contexts_mode = FALSE;
 }
