@@ -71,6 +71,7 @@
 /* Global Variables */
 struct hashContext **contextList = NULL;
 int hash_tot_context = 0, currentContext = 0;
+BOOLEAN custom_contexts_mode = FALSE;
 
 /* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
 /* 2004-10-20 */
@@ -173,11 +174,10 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
 
         newcntxt = generic_hash_context_init();
 
-        generic_hash_context_switch(newcntxt);
+        currentContext = newcntxt; //context switch
 
         cCon->numPieces = hash_countPieces(pieces_array);
         cCon->gfn = fn;
-        cCon->player = 0;
 
         cCon->pieces = (char*) SafeMalloc (sizeof(char) * cCon->numPieces);
         cCon->mins = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
@@ -239,7 +239,7 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
 
 		cCon->player = player % 3; // ensures player is either 0, 1, or 2
 
-		if (cCon->player ! 0)
+		if (cCon->player != 0)
 			return sofar;
         else return sofar*2;
 }
@@ -539,7 +539,7 @@ int generic_hash_context_init()
         newHashC->gfn = NULL;
         newHashC->player = 0;
         //newHashC->init = FALSE;
-        //newHashC->contextNumber = hash_tot_context;
+        newHashC->contextNumber = hash_tot_context-1;
         contextList[hash_tot_context-1] = newHashC;
 
         return hash_tot_context-1;
@@ -557,10 +557,21 @@ int generic_hash_context_init()
 
 void generic_hash_context_switch(int context)
 {
+	if (custom_contexts_mode) {
+		int i;
+		for (i = 0; i < hash_tot_context; i++) {
+			if (contextList[i]->contextNumber == context) {
+				currentContext = i;
+				return;
+			}
+		}
+		ExitStageRightErrorString("Attempting to switch to non-existant hash context");
+	} else {
         if(context > hash_tot_context || context < 0)
                 ExitStageRightErrorString("Attempting to switch to non-existant hash context");
 
         currentContext = context;
+	}
 
         //hash_hashOffset = cCon->hashOffset;
         //hash_NCR = cCon->NCR;
@@ -587,7 +598,9 @@ void generic_hash_context_switch(int context)
 
 int generic_hash_cur_context()
 {
-		return currentContext;
+	if (custom_contexts_mode)
+		return cCon->contextNumber;
+	else return currentContext;
 }
 
 /******************************
@@ -604,6 +617,33 @@ POSITION generic_hash_max_pos()
 			return cCon->maxPos;
 		else return (cCon->maxPos)*2;
 }
+
+/******************************
+**
+** generic_hash_any_context_mode()
+**
+** toggles Custom Contexts Mode on/off.
+**
+******************************/
+
+void generic_hash_custom_contexts_mode(BOOLEAN on)
+{
+	custom_contexts_mode = on;
+}
+
+/******************************
+**
+** generic_hash_set_context(int context)
+**
+** Changes the custom context number of the current hash context.
+**
+******************************/
+
+void generic_hash_set_context(int context)
+{
+	cCon->contextNumber = context;
+}
+
 
 /*******************************
 **
