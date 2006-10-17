@@ -27,10 +27,10 @@
 **                         strings)
 **              2006.10.16 Fixed GenerateMoves to check that the destination
 **                         square is blank before adding to list of moves.
-**              
-**                         
 **
-** LAST CHANGE: $Id: mloa.c,v 1.4 2006-10-16 20:58:42 alb_shau Exp $
+**
+**
+** LAST CHANGE: $Id: mloa.c,v 1.5 2006-10-17 10:45:21 max817 Exp $
 **
 **************************************************************************/
 
@@ -74,15 +74,15 @@ void*	 gGameSpecificTclInit = NULL;
 /**
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
- * These help strings should be updated and dynamically changed using 
- * InitializeHelpStrings() 
+ * These help strings should be updated and dynamically changed using
+ * InitializeHelpStrings()
  **/
 
 STRING   kHelpGraphicInterface =
 "Help strings not initialized!";
 
 STRING   kHelpTextInterface =
-"Help strings not initialized!"; 
+"Help strings not initialized!";
 
 STRING   kHelpOnYourTurn =
 "Help strings not initialized!";
@@ -107,9 +107,9 @@ STRING   kHelpExample =
 **ccbb
 **************************************************************************/
 #define SIDELENGTH 4
-#define BOARDSIZE SIDELENGTH*SIDELENGTH                              
+#define BOARDSIZE SIDELENGTH*SIDELENGTH
 
-#define PLAYERBLACK 1                             
+#define PLAYERBLACK 1
 #define PLAYERWHITE 2
 
 #define BLANK ' '
@@ -128,7 +128,7 @@ typedef enum possibleDirections {
 *************************************************************************/
 
 char* gBoard;
-int goInDirection[] = {-SIDELENGTH, -SIDELENGTH+1, 1, SIDELENGTH+1, SIDELENGTH, 
+int goInDirection[] = {-SIDELENGTH, -SIDELENGTH+1, 1, SIDELENGTH+1, SIDELENGTH,
 			SIDELENGTH-1, -1, -SIDELENGTH-1, 0};
 
 
@@ -162,16 +162,16 @@ STRING                  MoveToString(MOVE move);
 **
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
 {
   //InitializeHelpStrings();
   int pieces[] = {BLANK, BOARDSIZE - 4*(SIDELENGTH-2), BOARDSIZE-2,
-		  BLACK, 1, 2*(SIDELENGTH-2), WHITE, 1, 2*(SIDELENGTH-2), -1}; 
-    
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL);
+		  BLACK, 1, 2*(SIDELENGTH-2), WHITE, 1, 2*(SIDELENGTH-2), -1};
+
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);
   gBoard = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE));
   gInitialPosition = calcInitialPosition();
 }
@@ -194,7 +194,7 @@ kHelpGraphicInterface =
     "";
 
 kHelpTextInterface =
-   ""; 
+   "";
 
 kHelpOnYourTurn =
   "";
@@ -203,12 +203,12 @@ kHelpStandardObjective =
   "";
 
 kHelpReverseObjective =
-  ""; 
+  "";
 
-kHelpTieOccursWhen = 
+kHelpTieOccursWhen =
   "A tie occurs when ...";
 
-kHelpExample = 
+kHelpExample =
   "";
 
     gMoveToStringFunPtr = &MoveToString;
@@ -223,7 +223,7 @@ kHelpExample =
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position to generate moves
 **
 ** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
@@ -237,10 +237,10 @@ MOVELIST *GenerateMoves (POSITION position)
 {
   //printf("generateMoves starting... \n");
   int i;
-  int playerTurn = whoseMove(position);
+  int playerTurn = generic_hash_turn(position);
   char playerColor = (playerTurn == PLAYERBLACK ? BLACK : WHITE);
   MOVELIST *moves = NULL;
-  generic_unhash(position, gBoard);
+  generic_hash_unhash(position, gBoard);
 
   for (i = 0; i < BOARDSIZE; i++) {
     if (gBoard[i] == playerColor)
@@ -257,7 +257,7 @@ MOVELIST *GenerateMoves (POSITION position)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -273,9 +273,9 @@ POSITION DoMove (POSITION position, MOVE move)
 
   //printf("doing move... \n");
   int start, end;
-  int playerTurn = whoseMove(position);
+  int playerTurn = generic_hash_turn(position);
   POSITION nextPosition;
-  generic_unhash(position, gBoard);
+  generic_hash_unhash(position, gBoard);
 
  /* MOVE is just an int. 4 digits, the first two are the starting position
     and the second two are the ending position.  For example, 1234 means
@@ -293,8 +293,8 @@ POSITION DoMove (POSITION position, MOVE move)
    playerTurn = PLAYERWHITE;
  else
    playerTurn = PLAYERBLACK;
- 
- nextPosition = generic_hash(gBoard, playerTurn);
+
+ nextPosition = generic_hash_hash(gBoard, playerTurn);
 
  return nextPosition;
 }
@@ -314,13 +314,13 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       None
 **
 ************************************************************************/
 
@@ -329,8 +329,8 @@ VALUE Primitive (POSITION position)
   int i, j, blackChainLength, whiteChainLength, blackPiecesLeft, whitePiecesLeft;
   VALUE result;
   BOOLEAN allWhiteConnected, allBlackConnected, doneChecking;
-  int playerTurn = whoseMove(position);
-  char* board = generic_unhash(position, gBoard);
+  int playerTurn = generic_hash_turn(position);
+  char* board = generic_hash_unhash(position, gBoard);
 
   blackPiecesLeft = numPiecesLeft(BLACK);
   whitePiecesLeft = numPiecesLeft(WHITE);
@@ -339,7 +339,7 @@ VALUE Primitive (POSITION position)
   //printf("primitive starting...\n");
   // chains keep track of the boardSquare of every piece connected to that
   // chain of a certain color.  Initialize so that it's full of -1's except
-  // for chain[0], which is the first piece we see on the board 
+  // for chain[0], which is the first piece we see on the board
   i = 0;
   //printf("initializing chains ... blacksleft = %d, whitesleft = %d \n", blackPiecesLeft, whitePiecesLeft);
   while (board[i] != BLACK) { i++;}
@@ -362,8 +362,8 @@ VALUE Primitive (POSITION position)
   /******************************************************************************
    ** goes through the gameboard and adds pieces to their corresponding chains.
    ** If it goes through the whole gameboard without adding a piece to the chain,
-   ** then we know we're done. Chain length variables point to the place in the 
-   ** array that new pieces should go. 
+   ** then we know we're done. Chain length variables point to the place in the
+   ** array that new pieces should go.
    *****************************************************************************/
   doneChecking = FALSE;
   while (!doneChecking) {
@@ -452,7 +452,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -466,7 +466,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   int i;
   int j;
-  generic_unhash(position, gBoard);
+  generic_hash_unhash(position, gBoard);
 
   printf("\n                   ");
   for (i = 1; i < SIDELENGTH; i++) {
@@ -504,9 +504,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -523,8 +523,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
@@ -541,7 +541,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *move         : The move to put into a string.
 **
 ************************************************************************/
@@ -559,10 +559,10 @@ STRING MoveToString (MOVE move)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -577,15 +577,15 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    
+
     for (;;) {
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
 	printf("%8s's move [(undo)/(startColumn startRow endColumn endRow (ex: a2c2))] : ", playersName);
-	
+
 	input = HandleDefaultTextInput(position, move, playersName);
-	
+
 	if (input != Continue)
 		return input;
     }
@@ -608,7 +608,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -623,13 +623,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
   /* input should be like a2c2 */
- 
+
   if ((input[0] >= 'a' && input[0] < 'a' + SIDELENGTH) &&
       (input[1] > '0' && input[1] < '1' + SIDELENGTH) &&
       (input[2] >= 'a' && input[0] < 'a' + SIDELENGTH) &&
       (input[3] > '0' && input[3] < '1' + SIDELENGTH))
     return TRUE;
-    
+
 
   return FALSE;
 }
@@ -642,7 +642,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -667,7 +667,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
@@ -684,15 +684,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -701,7 +701,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -779,12 +779,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 
@@ -796,7 +796,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 /************************************************************************
@@ -823,7 +823,7 @@ BOOLEAN isConnected(int boardSquare1, int boardSquare2)
 BOOLEAN pieceIsolated(int boardSquare)
 {
   Direction d;
-  
+
   for (d = UP; d <= UPLEFT; d++) {
     if ((!onEdge(d, boardSquare)) && (gBoard[boardSquare + goInDirection[d]] == gBoard[boardSquare])) {
       return FALSE;
@@ -833,7 +833,7 @@ BOOLEAN pieceIsolated(int boardSquare)
 }
 
 /************************************************************************
- ** adds moves to the movelist given a square on the board that has a 
+ ** adds moves to the movelist given a square on the board that has a
  ** piece on it. Called by GenerateMoves so assume position has been
  ** unhashed and is stored correctly in gPosition.
  ***********************************************************************/
@@ -852,18 +852,18 @@ void addPieceMoves(int boardSquare, int playerTurn, MOVELIST **moves)
  ** Adds moves to the movelist when given the square that a piece is on
  ** and the direction you're looking in. Called by addPieceMoves
  ***********************************************************************/
-void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, MOVELIST **moves) 
+void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, MOVELIST **moves)
 {
   int moveLength, startSquare, endSquare, i;
   char otherPlayerColor = (playerTurn == PLAYERBLACK ? WHITE : BLACK);
   //printf("starting addMovesInDirection...\n");
-  
+
 
   moveLength = piecesInLineOfAction(direction, boardSquare);
   startSquare = boardSquare;
   endSquare = boardSquare + moveLength*goInDirection[direction];
   i = 0;
-    
+
   /* go in that direction one step at a time.  If you hit an edge or a
      piece of the opposite color, you cannot move in this direction */
   while (i < moveLength && !onEdge(direction, boardSquare))
@@ -875,7 +875,7 @@ void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, M
       else
 	break;
     }
-  if ((boardSquare == endSquare) && (gBoard[endSquare] == BLANK)) 
+  if ((boardSquare == endSquare) && (gBoard[endSquare] == BLANK))
     {
       //printf("   adding a piece to moves... direction = %d, startSquare = %d, moveLength = %d \n", direction, startSquare, moveLength);
       *moves = CreateMovelistNode(startSquare*100 + endSquare, *moves);
@@ -887,7 +887,7 @@ void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, M
  ** specified by the direction.  Note that it's line of action and not
  ** direction.  This means this function will return the same thing
  ** if the direction is RIGHT or LEFT, Up or DOWN, UpLEFT or DOWNRIGHT,
- ** UPRIGHT or DOWNLEFT. 
+ ** UPRIGHT or DOWNLEFT.
  ***********************************************************************/
 int piecesInLineOfAction(Direction direction, int boardSquare)
 {
@@ -912,16 +912,16 @@ int piecesInLineOfAction(Direction direction, int boardSquare)
 }
 
 /*************************************************************************
- ** I'm defining an Edge a bit differently than normal.  An edge depends 
+ ** I'm defining an Edge a bit differently than normal.  An edge depends
  ** on which direction you're looking at.  For example, if you're looking
- ** right and you're on the top most row, you're still not on an edge.  
+ ** right and you're on the top most row, you're still not on an edge.
  ** You're only on an edge if you cannot go any further in the specified
  ** direction.  If you're going right, you're only on an edge if you're
  ** on the rightmost column of the board.
  ************************************************************************/
 BOOLEAN onEdge(Direction direction, int boardSquare)
 {
-  switch (direction) 
+  switch (direction)
     {
     case UP:
       if (boardSquare >= 0 && boardSquare < SIDELENGTH)
@@ -959,7 +959,7 @@ BOOLEAN onEdge(Direction direction, int boardSquare)
     case LEFT:
       if (boardSquare % SIDELENGTH == 0)
 	return TRUE;
-      else 
+      else
 	return FALSE;
     case UPLEFT:
       if ((boardSquare >= 0 && boardSquare < SIDELENGTH) ||
@@ -967,8 +967,8 @@ BOOLEAN onEdge(Direction direction, int boardSquare)
 	return TRUE;
       else
 	return FALSE;
-    }      
-  
+    }
+
   /* This return should never happen but I put this in to get rid of a warning */
   return FALSE;
 }
@@ -1016,9 +1016,9 @@ POSITION calcInitialPosition()
   gBoard[SIDELENGTH-1] = BLANK;
   gBoard[BOARDSIZE-SIDELENGTH] = BLANK;
   gBoard[BOARDSIZE-1] = BLANK;
-  gBoard[BOARDSIZE] = '\0';  
+  gBoard[BOARDSIZE] = '\0';
 
-  initialPos = generic_hash(gBoard, PLAYERBLACK);
+  initialPos = generic_hash_hash(gBoard, PLAYERBLACK);
 
   //SafeFree(board);
   return initialPos;
@@ -1045,7 +1045,7 @@ MOVE moveHash(STRING input)
 {
   MOVE move;
   int startSquare, endSquare;
-  
+
   // input[0] is the letter and input[1] is the number
   startSquare = input[0] - 'a' + (SIDELENGTH - (input[1] - '0'))*SIDELENGTH;
   endSquare = input[2] - 'a' + (SIDELENGTH - (input[3] - '0'))*SIDELENGTH;
@@ -1073,13 +1073,18 @@ STRING moveUnhash(MOVE move)
   moveString[4] = '\0';
 
   return moveString;
-} 
+}
 
 
 /************************************************************************
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.4  2006/10/16 20:58:42  alb_shau
+ ** Added half a line to make it ready to demo 2006.10.16.  GenerateMoves now
+ ** checks to make sure the move destination is blank before adding that move
+ ** to the list of moves
+ **
  ** Revision 1.3  2006/10/14 00:15:33  alb_shau
  ** finished coding all essential functions.  Debugged Primitive and MoveToString.
  **
@@ -1094,7 +1099,7 @@ STRING moveUnhash(MOVE move)
  ** Revision 1.1  2006/09/26 23:01:28  alb_shau
  ** *** empty log message ***
  **
- ** 
+ **
  **
  ************************************************************************/
 

@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.35 2006-10-03 08:17:20 jerricality Exp $
+// $Id: mabalone.c,v 1.36 2006-10-17 10:45:19 max817 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -15,7 +15,7 @@
 **		8-21-06	commented out fflush and changed to use GetMyChar()/GetMyInt();
 **			dmchan
 **
-** 
+**
 **
 **************************************************************************/
 
@@ -44,7 +44,7 @@ POSITION kBadPosition        = -1;
 STRING   kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
 STRING   kGameName           = "Abalone";
 STRING   kDBName             = "Abalone";
-BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
@@ -176,7 +176,7 @@ STRING MoveToString( MOVE );
 **
 *************************************************************************/
 
-#define NULLSLOT 99 
+#define NULLSLOT 99
 #define MAXN 3 /*the maximum n that the solver will solve for*/
 int N = 2;
 int MISERE = 0;
@@ -217,8 +217,8 @@ extern void		SafeFree ();
 int destination (int, int);
 int move_hash (int, int, int, int);
 struct row * makerow (int, int);
-int m_generic_hash(char *);
-void m_generic_unhash(int, char *);
+int m_generic_hash_hash(char *);
+void m_generic_hash_unhash(int, char *);
 void printrow (int, int);
 void printlines (int, int);
 void changeBoard ();
@@ -235,7 +235,7 @@ int sum(int, int);
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 int gMax;
 int init;
@@ -245,7 +245,7 @@ void InitializeGame()
   if (DEBUGGING) printf("start initialize game\n");
 
   rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
-  
+
   int rowsize = N, rownum, slot = 0;
   for (rownum = 0; rownum < N - 1; rownum++) {
     rows[rownum] = makerow(rowsize,slot);
@@ -257,10 +257,10 @@ void InitializeGame()
     slot += rowsize;
     rowsize--;
   }
-  
+
   BOARDSIZE = b_size(N);
 
- 
+
   /* long nasty thing to initialize n-sized board */
 
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
@@ -281,7 +281,7 @@ void InitializeGame()
     }
     else if (x_pieces_left > 0) {
       space = (size - x_pieces_left)/2;
-  
+
       for (count = start; count < start + (int)floor(space); count++) {
 	gBoard[count] = '*';
       }
@@ -320,13 +320,13 @@ void InitializeGame()
       }
     }
   }
-     
-  
+
+
   /*printf("testing...\n");
   for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, gBoard[count]);
     }*/
-  
+
   int init_array[10];
   init_array[0] = 'o';
   init_array[3] = 'x';
@@ -346,25 +346,25 @@ void InitializeGame()
     printf("%d: %d\n", count, init_array[count]);
     }*/
 
-  gMax = generic_hash_init(BOARDSIZE,init_array,NULL);
+  gMax = generic_hash_init(BOARDSIZE,init_array,NULL,0);
   /*printf("%d  # of hash positions!\n",gMax);*/
-  
-  
+
+
   /*printf("The Board before unhashing is:\n");
   for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, gBoard[count]);
     }*/
 
-  init = generic_hash(gBoard, 1);
+  init = generic_hash_hash(gBoard, 1);
   /*printf("%d  is the initial position\n",init);*/
-  
+
   /*
-  generic_unhash(init,gBoard);
+  generic_hash_unhash(init,gBoard);
   printf("The Board after unhashing is:\n");
     for (count = 0; count < BOARDSIZE; count++) {
     printf("%d: %c\n", count, gBoard[count]);
     }*/
-  
+
   gNumberOfPositions  = gMax;
   gInitialPosition    = init;
   gMinimalPosition    = init;
@@ -372,13 +372,13 @@ void InitializeGame()
   /*
   printf("mallocing %d positions\n", gNumberOfPositions);
   gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));*/
- 
+
   /*int hash;
   for (hash = 1; hash <= 32; hash++) {
     setOption(hash);
     printf("hash = %d:  N = %d, PIECES = %d, KILLS = %d, NSS = %d, MISERE = %d\n", hash, N, PIECES, XHITKILLS, NSS, MISERE);
   }
-  
+
   printf("the number of options is %d\n", NumberOfOptions());
   printf("current option is %d\n", getOption()); */
 
@@ -393,7 +393,7 @@ void InitializeGame()
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu()
@@ -407,10 +407,10 @@ void DebugMenu()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
-void GameSpecificMenu() 
+void GameSpecificMenu()
 {
   /*fflush(stdin);	no longer needed*/
   char selection;
@@ -443,7 +443,7 @@ void GameSpecificMenu()
       MISERE = 1;
     else
       MISERE = 0;
-    
+
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
@@ -454,18 +454,18 @@ void GameSpecificMenu()
       NSS = 1;
     else
       NSS = 0;
-    
+
     SafeFree(rows);
     SafeFree(gBoard);
     InitializeGame();
     printf("\n");
     GameSpecificMenu();
-  } 
+  }
   else if (selection == 'p' || selection == 'P') {
     changePieces();
     printf("\n");
     GameSpecificMenu();
-  } 
+  }
   else if (selection == 'c' || selection == 'C') {
     changeKills();
     printf("\n");
@@ -552,20 +552,20 @@ void changePieces()
   }
 }
 
-  
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(theOptions)
      int theOptions[];
 {
-	
+
 }
 
 /************************************************************************
@@ -573,7 +573,7 @@ void SetTclCGameSpecificOptions(theOptions)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -587,11 +587,11 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
-  if (DEBUGGING) 
+  if (DEBUGGING)
     printf("Starting Do Move with input: %d\n", theMove);
   int destination(int,int);
   int whoseTurn;
-  generic_unhash(thePosition, gBoard);
+  generic_hash_unhash(thePosition, gBoard);
   int direction;
   int slot1, slot2, slot3, dest1, dest2, dest3, pushee1, pushee2, pushdest1, pushdest2, doubpushdest;
   BOOLEAN twopieces = FALSE, threepieces = FALSE;
@@ -609,7 +609,7 @@ POSITION DoMove(thePosition, theMove)
   theMove = theMove/piece_shift;
   slot2 = theMove % piece_shift;
   slot3 = theMove/piece_shift;
-  
+
   /*one piece scenarios*/
   if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
     slot1 = slot3;
@@ -628,7 +628,7 @@ POSITION DoMove(thePosition, theMove)
   else {
     threepieces = TRUE;
   }
-  
+
   dest1 = destination(slot1, direction);
   dest2 = destination(slot2, direction);
   dest3 = destination(slot3, direction);
@@ -637,7 +637,7 @@ POSITION DoMove(thePosition, theMove)
   pushee2 = destination(pushee1, direction);
   pushdest1 = pushee2;
   pushdest2 = destination(pushee2, direction);
-  
+
   /* one piece move */
   if ((twopieces == FALSE) && (threepieces == FALSE)) {
     gBoard[dest1] = gBoard[slot1];
@@ -655,12 +655,12 @@ POSITION DoMove(thePosition, theMove)
     }
 
     /*printf("dest1 is %d:%c, dest2 is %d:%c\n", dest1, gBoard[dest1], dest2, gBoard[dest2]);*/
-    
+
     gBoard[dest2] = gBoard[slot2];
     gBoard[slot2] = '*';
     gBoard[dest1] = gBoard[slot1];
     gBoard[slot1] = '*';
-  
+
     /*printf("dest1 is %d:%c, dest2 is %d:%c\n", dest1, gBoard[dest1], dest2, gBoard[dest2]);*/
   }
 
@@ -688,8 +688,8 @@ POSITION DoMove(thePosition, theMove)
     gBoard[dest1] = gBoard[slot1];
     gBoard[slot1] = '*';
   }
-  
-  if (whoseMove(thePosition) == 1) {
+
+  if (generic_hash_turn(thePosition) == 1) {
     whoseTurn = 2;
   }
   else {
@@ -697,7 +697,7 @@ POSITION DoMove(thePosition, theMove)
   }
 
   if (DEBUGGING)  printf("finished do move\n");
-  return (generic_hash(gBoard,whoseTurn));
+  return (generic_hash_hash(gBoard,whoseTurn));
 }
 
 /************************************************************************
@@ -706,7 +706,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -715,7 +715,7 @@ POSITION GetInitialPosition()
 {
   int count, player, xs = 0, os = 0, option = -1;
   char selection;
-  
+
   while ((option < 0) || (option > maxPieces(N))){
     printf("Enter the maximum pieces per side: ");
     /*fflush(stdin);			no longer needed
@@ -771,7 +771,7 @@ POSITION GetInitialPosition()
     else {
       gBoard[count] = '*';
     }
-  }  
+  }
 
   player = 0;
   while (player == 0) {
@@ -787,7 +787,7 @@ POSITION GetInitialPosition()
       printf ("\n\n Please enter x or o\n\n");
   }
 
-  return generic_hash(gBoard,player);  
+  return generic_hash_hash(gBoard,player);
 }
 
 
@@ -795,9 +795,9 @@ POSITION GetInitialPosition()
 **
 ** NAME:        PrintComputersMove*
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -820,13 +820,13 @@ void PrintComputersMove(computersMove, computersName)
 **              three-in-a-row with Gobblet. Three in a row for the player
 **              whose turn it is a win, otherwise its a loss.
 **              Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS:       LIST FUNCTION CALLS
-**              
+**
 **
 ************************************************************************/
 
@@ -835,7 +835,7 @@ VALUE Primitive ( POSITION h )
   if (DEBUGGING) printf("prim\n");
   BOOLEAN game_over(char[]);
 
-  generic_unhash(h,gBoard);
+  generic_hash_unhash(h,gBoard);
 
   /*  printf("analyzing position %d\n", primcount);*/
   primcount++;
@@ -856,7 +856,7 @@ VALUE Primitive ( POSITION h )
 
 BOOLEAN game_over(char theBoard[]){
   int count, x = 0, o = 0, lose;
-  
+
   lose = PIECES - XHITKILLS;
 
   for (count = 0; count < BOARDSIZE; count++) {
@@ -879,7 +879,7 @@ BOOLEAN game_over(char theBoard[]){
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -896,14 +896,14 @@ void PrintPosition(position, playerName, usersTurn)
      BOOLEAN usersTurn;
 {
   char piece;
-  if (whoseMove(position) == 2)
+  if (generic_hash_turn(position) == 2)
     piece = 'x';
   else
     piece = 'y';
 
 
   if (N < 4) {
-    generic_unhash(position, gBoard);
+    generic_hash_unhash(position, gBoard);
   }
   int r, spacing;
 
@@ -918,24 +918,24 @@ void PrintPosition(position, playerName, usersTurn)
       printf (" ");
     if (spacing % 2 == 1)
       printf (" ");
-    
+
 
     if (N == 2)
       spacing = (4 * (*rows[N - 1]).size) + 2;
     else
       spacing = (5 * (*rows[N - 1]).size) + 2;
-    
+
     for (r = 0; r < spacing/2; r++)
-      printf (" "); 
+      printf (" ");
     printf("LEGEND");
     for (r = 0; r < spacing/2; r++)
       printf (" ");
     if (spacing % 2 == 1)
       printf (" ");
-    
+
     printf(" DIRECTIONS\n\n");
   }
-    
+
 
   /* edge of hex board */
   /*top edge*/
@@ -970,7 +970,7 @@ void PrintPosition(position, playerName, usersTurn)
   else {
     printf("\n");
   }
-  
+
   /*spacer*/
   printf("     ");
   for (r = 0; r < N - 2; r++) {
@@ -992,23 +992,23 @@ void PrintPosition(position, playerName, usersTurn)
     printf("\n");
   }
 
-    
+
   /*main board printing here*/
-  
+
   for (r = 0; r < (2 * N) - 1; r++) {
     if (N < 4){
       printf("  ");
       printrow(r, 0);
       printf("   |   ");
       printrow(r, 1);
-     
+
       if (r == N - 2)
 	printf("     NW   NE");
       else if (r == N - 1)
 	printf("     W -*- E");
       else if (r == N)
 	printf("     SW   SE");
- 
+
 	 else
 	printf("               ");
       if (r != 2 * N - 2) {
@@ -1017,16 +1017,16 @@ void PrintPosition(position, playerName, usersTurn)
 	printf("|   ");
 	printlines(r, 1);
 	printf("  ");
-	
+
 	if (r == N - 1)
 	  printf("     / \\");
 	else if (r == N - 2)
 	  printf("     \\ /");
       }
-	  
+
       printf("\n");
     }
-	
+
     else {
       printf("  ");
       printrow(r, 0);
@@ -1038,7 +1038,7 @@ void PrintPosition(position, playerName, usersTurn)
       }
     }
   }
-  
+
 /* edge of hex board */
   /*spacer*/
   printf("     ");
@@ -1091,7 +1091,7 @@ void PrintPosition(position, playerName, usersTurn)
   for (r = 0; r < N; r++){
     printf("----");
   }
-  
+
   for (r = 0; r < N - 2; r++) {
     printf("  ");
   }
@@ -1106,10 +1106,10 @@ void PrintPosition(position, playerName, usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
@@ -1128,8 +1128,8 @@ MOVELIST *GenerateMoves(position)
   int slot, direction, ssdir;
   int pusher2, pusher3, pushee1, pushee2, pushee3;
   char whoseTurn, opponent;
-  
-  if (whoseMove(position) == 2) {
+
+  if (generic_hash_turn(position) == 2) {
     whoseTurn = 'x';
     opponent = 'o';
   }
@@ -1137,7 +1137,7 @@ MOVELIST *GenerateMoves(position)
     whoseTurn = 'o';
     opponent = 'x';
   }
-  generic_unhash(position,gBoard);
+  generic_hash_unhash(position,gBoard);
 
   /*printf("the hash is %d\n", position);
     for (slot = 0; slot < BOARDSIZE; slot++)
@@ -1158,17 +1158,17 @@ MOVELIST *GenerateMoves(position)
 	  if (gBoard[pushee2] == '*') {
 	    head = CreateMovelistNode(move_hash(slot,NULLSLOT, NULLSLOT, (0 - direction)), head);
 	  }
-	  
+
 	  /*Multiple Piece Moves in positive directions*/
 	  pusher2 = destination(slot, direction);
 	  if ((pusher2 != NULLSLOT) && (gBoard[pusher2] == whoseTurn)) {
-	    
+
 	    /*Double Piece Moves in positive directions*/
 	    pushee1 = destination(pusher2,direction);
 	    pushee2 = destination(pushee1,direction);
 	    if ((pushee1 != NULLSLOT) &&
 		((gBoard[pushee1] == '*') ||
-		 ((gBoard[pushee1] == opponent) && 
+		 ((gBoard[pushee1] == opponent) &&
 		  ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*'))))) {
 	      head = CreateMovelistNode(move_hash(slot, pusher2, NULLSLOT, direction), head);
 	    }
@@ -1192,12 +1192,12 @@ MOVELIST *GenerateMoves(position)
 	    }
 	  }
 
-	  direction = 0 - direction; 
+	  direction = 0 - direction;
 
 	  /*Multiple Piece Moves in negative directions*/
 	  pusher2 = destination(slot, direction);
 	  if ((pusher2 != NULLSLOT) && (gBoard[pusher2] == whoseTurn)) {
-	    
+
 	    /*Double Piece Moves in negative direction*/
 	    pushee1 = destination(pusher2,direction);
 	    pushee2 = destination(pushee1,direction);
@@ -1205,7 +1205,7 @@ MOVELIST *GenerateMoves(position)
 		((gBoard[pushee1] == '*') ||
 		 ((gBoard[pushee1] == opponent) && ((pushee2 == NULLSLOT) || (gBoard[pushee2] == '*')))))
 	      head = CreateMovelistNode(move_hash(slot, pusher2, NULLSLOT, direction), head);
-	    
+
 
 	    /*Triple Piece Push in negative direction*/
 	    pusher3 = destination(pusher2, direction);
@@ -1227,8 +1227,8 @@ MOVELIST *GenerateMoves(position)
 	  }
 
 	  direction = 0 - direction;
-	      
-	  if (NSS == 0) { 
+
+	  if (NSS == 0) {
 	    /*Test for possible side steps*/
 	    for (ssdir = -3; ssdir <= 3; ssdir++) {
 	      if ((ssdir != 0) && (ssdir != direction) && (ssdir != 0 - direction)) {
@@ -1238,14 +1238,14 @@ MOVELIST *GenerateMoves(position)
 		pushee1 = destination(slot,ssdir);
 		pushee2 = destination(pusher2, ssdir);
 		pushee3 = destination(pusher3, ssdir);
-		
-		
-		if ((pusher2 != NULLSLOT) && (pushee1 != NULLSLOT) && (pushee2 != NULLSLOT) && 
+
+
+		if ((pusher2 != NULLSLOT) && (pushee1 != NULLSLOT) && (pushee2 != NULLSLOT) &&
 		    (gBoard[pusher2] == whoseTurn) && (gBoard[pushee1] == '*') && (gBoard[pushee2] == '*')) {
-		  
+
 		  /*two piece sidestep*/
 		  head = CreateMovelistNode(move_hash(slot,pusher2, NULLSLOT, ssdir), head);
-		  
+
 		  /*three piece sidestep*/
 		  if ((pusher3 != NULLSLOT) && (pushee3 != NULLSLOT) &&
 		      (gBoard[pusher3] == whoseTurn) && (gBoard[pushee3] == '*')) {
@@ -1254,10 +1254,10 @@ MOVELIST *GenerateMoves(position)
 		}
 	      }
 	    }
-	    
-	    
+
+
 	  }
-	} 
+	}
       }
     }
     if (DEBUGGING)
@@ -1269,7 +1269,7 @@ MOVELIST *GenerateMoves(position)
   return(NULL);
 }
 
- 
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -1277,9 +1277,9 @@ MOVELIST *GenerateMoves(position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -1293,11 +1293,11 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
      POSITION thePosition;
      MOVE *theMove;
      STRING playerName;
-  
+
 {
   USERINPUT ret;
   char whoseTurn;
-  if (whoseMove(thePosition) == 2) {
+  if (generic_hash_turn(thePosition) == 2) {
     whoseTurn = 'x';
   }
   else {
@@ -1308,11 +1308,11 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
   do {
     printf("for a list of valid moves, press ?\n\n");
     printf("%8s's move (%c):  ", playerName, whoseTurn);
-  
+
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue) 
+    if(ret != Continue)
       return(ret);
-   
+
   }
   while (TRUE);
   return(Continue); /* this is never reached, but lint is now happy */
@@ -1330,7 +1330,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -1451,7 +1451,7 @@ BOOLEAN ValidTextInput(input)
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -1469,7 +1469,7 @@ MOVE ConvertTextInputToMove(input)
   while ((input[n] == ' ') || (input[n] == '[')) {
     n++;
   }
-  
+
   /*get first piece*/
   if ((input[n] >= '0') && (input[n] <= '9')) {
     p1 = input[n] - '0';
@@ -1480,7 +1480,7 @@ MOVE ConvertTextInputToMove(input)
     }
     p1--;
   }
- 
+
   /*skip whitespace and commas*/
   while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
     n++;
@@ -1499,7 +1499,7 @@ MOVE ConvertTextInputToMove(input)
     p2 = NULLSLOT;
     p3 = NULLSLOT;
   }
-    
+
 
   /*skip whitespace and commas*/
   while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
@@ -1556,12 +1556,12 @@ MOVE ConvertTextInputToMove(input)
     pushee = destination (p1, dir);
     if ((pushee != NULLSLOT) && (gBoard[pushee] == gBoard[p1])) {
       p2 = pushee;
-      
+
       pushee = destination (p2, dir);
       if ((pushee != NULLSLOT) && (gBoard[pushee] == gBoard[p2]))
 	p3 = pushee;
     }
-  }   
+  }
 
   /*printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);*/
   int move = move_hash (p1, p2, p3, dir);
@@ -1574,8 +1574,8 @@ MOVE ConvertTextInputToMove(input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -1585,18 +1585,18 @@ void PrintMove(theMove)
   printf( "%s", MoveToString(theMove) );
 }
 
-STRING MoveToString( theMove ) 
+STRING MoveToString( theMove )
      MOVE theMove;
 {
   STRING move = (STRING) SafeMalloc(12);
 
-  if (DEBUGGING) 
+  if (DEBUGGING)
     printf("starting MoveToString w/move = %d\n", theMove);
   int direction, slot1, slot2, slot3;
   int dir_shift = 10;
   int piece_shift = 100;
   STRING dir;
- 
+
   direction = theMove % dir_shift;
   theMove = theMove/dir_shift;
 
@@ -1622,13 +1622,13 @@ STRING MoveToString( theMove )
     dir = "E";
   }
   else if (direction == -1) {
-    dir = "W"; 
+    dir = "W";
   }
   else if (direction == -3){
     dir = "NE";
   }
   else if (direction == -2) {
-    dir = "NW"; 
+    dir = "NW";
   }
   else if (direction == 3) {
     dir = "SW";
@@ -1657,7 +1657,7 @@ STRING MoveToString( theMove )
     else
       sprintf(move, "[%d %d %s]",slot1, slot2, dir);
   }
-  else if ((slot2 - 1) == destination((slot1 - 1), direction)) { 
+  else if ((slot2 - 1) == destination((slot1 - 1), direction)) {
      sprintf(move, "[%d %s]",slot1, dir);
   }
   else {
@@ -1738,7 +1738,7 @@ void setOption(int option)
   printf("Set Option has been called!\n");
   option--;
   int n = 2, pieces = 2, kills = 0, hash, mod;
-  
+
   for (hash = 0; hash <= option; hash += 4) {
     if ((pieces == maxPieces(n)) && (pieces == kills)) {
       pieces = 2;
@@ -1818,7 +1818,7 @@ int destination(int slot, int direction) {
       (direction == -3 && ((r == 0) || ((slot == start + size -1) && (*rows[r-1]).size < size)))) {
     return NULLSLOT;
   }
-  
+
   if (direction == 1 || direction == -1) {
     return (slot + direction);
   }
@@ -1867,7 +1867,7 @@ BOOLEAN member(int slot, int places[]) {
   }
   return FALSE;
 }
-  
+
 int move_hash(int slot1, int slot2, int slot3, int direction) {
   int bigger, smaller, middle;
   int small_shift = 10;
@@ -1920,7 +1920,7 @@ int move_hash(int slot1, int slot2, int slot3, int direction) {
   }
 }
 
-struct row * makerow (int size, int start) 
+struct row * makerow (int size, int start)
 {
   struct row *new;
   new = (struct row *) SafeMalloc(1 * sizeof(struct row));
@@ -1928,13 +1928,13 @@ struct row * makerow (int size, int start)
   (*new).start_slot = start;
   return new;
 }
- 
-int m_generic_hash(char* board) {
+
+int m_generic_hash_hash(char* board) {
   int size = 8;
   int val;
   int i, hashval= 0;
   for (i=0; i<size;i++) {
-    if (board[i] == '*') 
+    if (board[i] == '*')
       val = 0;
     if (board[i] == 'x')
       val = 1;
@@ -1945,7 +1945,7 @@ int m_generic_hash(char* board) {
   return hashval;
 }
 
-void m_generic_unhash(int val, char* board) {
+void m_generic_hash_unhash(int val, char* board) {
   int i;
   int size = 8;
   int temp;
@@ -1968,7 +1968,7 @@ void printrow (int line, int flag) {
     printf ("  ");
   }
   if (flag == 0) {
-	  if (line > N - 1) 
+	  if (line > N - 1)
 		  printf("\\ \\  ");
 	  else if (line == N - 1)
 		  printf("| |  ");
@@ -1978,7 +1978,7 @@ void printrow (int line, int flag) {
 
   for (s = 0; s < size; s++) {
 	  printf ("(");
-    
+
 	  if (flag == 0) {
 		  if (gBoard[start + s] == '*')
 			  printf(" ");
@@ -1995,14 +1995,14 @@ void printrow (int line, int flag) {
 			  printf("%d",start + s + 1);
 		  }
 	  }
-	  
+
 	  if (s != size - 1)
 		  printf(")-");
 	  else
 		  printf(") ");
   }
   if (flag == 0) {
-	  if (line > N - 1) 
+	  if (line > N - 1)
 		  printf(" / /");
 	  else if (line == N - 1)
 		  printf(" | |");
@@ -2010,7 +2010,7 @@ void printrow (int line, int flag) {
 		  printf(" \\ \\");
   }
 
-  
+
   for (s = 0; s < abs((N - 1) - line); s++) {
 	  if (flag == 0)
 		  printf ("  ");
@@ -2022,22 +2022,22 @@ void printrow (int line, int flag) {
 	  }
   }
 }
-    
+
 
 
 void printlines (int line, int flag) {
   int s, line_max;
- 
+
   for (s = 0; s < abs((N - 1) - line); s++) {
     printf ("  ");
   }
   if (flag == 0) {
-    if (line < N - 1) 
+    if (line < N - 1)
       printf("/ /   ");
     else
       printf("  \\ \\ ");
   }
- 
+
   if (line < N - 1) {
     s = 0;
   }
@@ -2067,13 +2067,13 @@ void printlines (int line, int flag) {
   }
 
   if (flag == 0) {
-    if (line < N -1) 
+    if (line < N -1)
       printf("  \\ \\");
     else
       printf("  / /");
   }
 
- 
+
   if (line < N - 1)
     s = 0;
   else
@@ -2089,7 +2089,7 @@ void printlines (int line, int flag) {
   }
   else
     line_max = abs((N - 1) - line);
- 
+
   for (; s < line_max; s++) {
     if (flag == 0)
       printf (" ");
@@ -2105,7 +2105,7 @@ void printlines (int line, int flag) {
 int b_size (int n) {
   if (n == 1)
     return 1;
-  
+
   return ((n - 1) * 6) + b_size (n - 1);
 }
 
@@ -2136,6 +2136,9 @@ int getInitialPosition() {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.35  2006/10/03 08:17:20  jerricality
+// *** empty log message ***
+//
 // Revision 1.34  2006/10/03 06:41:52  jerricality
 // *** empty log message ***
 //

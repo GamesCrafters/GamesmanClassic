@@ -23,10 +23,10 @@ extern int smartness;
 extern int scalelvl;
 
 /*prototypes from the game module and core that are used here*/
-extern char     *generic_unhash(POSITION hash_number, char *empty_board);
+extern char     *generic_hash_unhash(POSITION hash_number, char *empty_board);
 extern int       move_hash (int, int, int, int);
 extern POSITION  getInitialPosition();
-extern int       whoseMove (POSITION hashed);
+extern int       generic_hash_turn (POSITION hashed);
 extern int       destination (int, int);
 
 /*
@@ -101,8 +101,8 @@ static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 **
 ** NAME:        Gamesman_Init
 **
-** DESCRIPTION: This is the 
-** 
+** DESCRIPTION: This is the
+**
 ** INPUTS:      Tcl_Interp *interp : Interpreter for application
 **
 ** OUTPUTS:     TCL_OK : Confirmation that we exited successfully
@@ -129,7 +129,7 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_MoveHash", (Tcl_CmdProc*) MoveHashCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_WhoseMove", (Tcl_CmdProc*) WhoseMoveCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);    
+		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_Initialize", (Tcl_CmdProc*) InitializeCmd, (ClientData) mainWindow,
@@ -188,7 +188,7 @@ Gamesman_Init(interp)
 ** Begin commands invoked from the tcl command requests coming ni
 **
 **************************************************************************/
-static int 
+static int
 InitialPositionCmd(dummy, interp, argc, argv)
      ClientData dummy;
      Tcl_Interp *interp;
@@ -200,7 +200,7 @@ InitialPositionCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   sprintf(interp->result,"%d",(int)getInitialPosition());
-  return TCL_OK;  
+  return TCL_OK;
 }
 
 static int
@@ -217,7 +217,7 @@ GenericUnhashCmd(dummy, interp, argc, argv)
   }
   char *board;
   board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
-  generic_unhash(atoi(argv[1]),board);
+  generic_hash_unhash(atoi(argv[1]),board);
   sprintf(interp->result, "%s",board);
   return TCL_OK;
 }
@@ -256,9 +256,9 @@ MoveHashCmd(dummy, interp, argc, argv)
 
 static int
 PrintCmd(dummy, interp, argc, argv)
-     ClientData dummy;			
-     Tcl_Interp *interp;		      
-     int argc;		
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
      char **argv;
 {
   printf("%s\n",argv[1]);
@@ -268,16 +268,16 @@ PrintCmd(dummy, interp, argc, argv)
 
 static int
 WhoseMoveCmd(dummy, interp, argc, argv)
-     ClientData dummy;			
-     Tcl_Interp *interp;		      
-     int argc;		
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
      char **argv;
 {
   if (argc !=2) {
     interp->result = "wrong # args: should be one";
     return TCL_ERROR;
   }
-  sprintf(interp->result,"%d", whoseMove(atoi(argv[1])));
+  sprintf(interp->result,"%d", generic_hash_turn(atoi(argv[1])));
   return TCL_OK;
 }
 
@@ -385,7 +385,7 @@ SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
 {
   int i, theOptions[100];
   int standardGame = 0;
-  
+
   if (argc < 2) {
     interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
     return TCL_ERROR;
@@ -615,7 +615,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
       }
 
       sprintf(tmp,"{ %d %s } ",
-	      (ptr->move), 
+	      (ptr->move),
 	      gValueString[value]);
       /* If this barfs, change 'char' to 'const char' */
       strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
@@ -661,7 +661,7 @@ GetPredictionCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   STRING playerName, prediction;
-  
+
   if (argc != 3) {
     interp->result = "wrong # args: GetPrediction position playerName";
     return TCL_ERROR;
@@ -687,7 +687,7 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
 {
   int smartnessScale;
   STRING smartnessString;
-  
+
   if (argc > 3 || argc < 2) {
     interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
     return TCL_ERROR;
@@ -716,7 +716,7 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
     else {
       return TCL_ERROR;
     }
-      
+
     return TCL_OK;
   }
 }

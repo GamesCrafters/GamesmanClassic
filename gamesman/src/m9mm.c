@@ -1,4 +1,4 @@
-//$Id: m9mm.c,v 1.79 2006-02-26 08:31:15 kmowery Exp $
+//$Id: m9mm.c,v 1.80 2006-10-17 10:45:19 max817 Exp $
 /************************************************************************
 **
 ** NAME:        m9mm.c
@@ -42,14 +42,14 @@ POSITION kBadPosition        = -1;
  **      _o_                   ___
  **     _ _ _                 _ _ _
  **    o  _  x               o  o  o
- **                                
- **   x to move             x to move 
+ **
+ **   x to move             x to move
  **************************************************************************/
 
 STRING   kAuthorName         = "Erwin A. Vedar, Wei Tu, and Elmer Lee";
 STRING   kGameName           = "Nine Men's Morris";
 STRING   kDBName             = "9mm";
-BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
 BOOLEAN  kTieIsPossible      = FALSE;
@@ -61,16 +61,16 @@ STRING kHelpGraphicInterface =
 "Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
 STRING kHelpTextInterface =
-"The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
+"The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition.";
 
 STRING kHelpOnYourTurn;
 
 // default kHelpOnYourTurn
-STRING kHelpOnYourTurn0 = 
+STRING kHelpOnYourTurn0 =
 "If you still have pieces not on the board, place them in any open position.\nWhen all of your pieces have been placed on the board, you can choose any one of\nyour pieces and move it to an adjacent, open position.  If any of your moves\nresults in a 3-in-a-row, you can remove one of your opponent's pieces that is\nnot in a mill.  If your opponent only has 3 pieces remaining which happen to be\nin a mill, you can choose to remove any 1 of those 3 pieces.";
 
 // kHelpWithFlying appears only if gFlying is TRUE
-STRING kHelpWithFlying = 
+STRING kHelpWithFlying =
 "\n\nSpecial Rule: Flying\nIf you only have 3 pieces remaining, you may choose to move your piece to\nany open position in addition to the open positions adjacent to your piece.";
 
 STRING kHelpStandardObjective =
@@ -249,7 +249,7 @@ LEGEND: 9---10--11      12--13--14\t_---_---_       _---_---_\tTurn: x\n\
 Computer wins.  Nice try, Player.\n\
 ";
 
-STRING kHelpExample1 = 
+STRING kHelpExample1 =
 "\
         0-----------1-----------2\tx-----------_-----------o\n\
         |           |           |\t|           |           |\n\
@@ -361,7 +361,7 @@ Computer's move                         : 16 17\n\
 \n\n\
 ";
 
-STRING kHelpExample2 = 
+STRING kHelpExample2 =
 "\
         0-----------1-----------2\t_-----------x-----------_\n\
         |           |           |\t|           |           |\n\
@@ -616,7 +616,7 @@ void debugMiniBBoard(blankox *bboard);
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame()
@@ -626,9 +626,9 @@ void InitializeGame()
   //set mino, mninx to be 0
 
 
-  gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL);
+  gNumberOfPositions = generic_hash_init(b_size, pminmax, NULL, 0);
   //printf("numPos: %d\n", gNumberOfPositions);
-  
+
   setFlyingText();
 
   //gSolver = loopyup_DetermineValue;
@@ -642,7 +642,7 @@ void InitializeGame()
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu()
@@ -656,29 +656,29 @@ void DebugMenu()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
-void GameSpecificMenu() 
+void GameSpecificMenu()
 {
   char GetMyChar();
   POSITION GetInitialPosition();
-  
+
   do {
     printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
-    
+
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
-    
+
     printf("\n");
     printf("\ti)\tChoose the (I)nitial position\n");
-    printf("\tf)\tToggle (F)lying from %s to %s\n", 
+    printf("\tf)\tToggle (F)lying from %s to %s\n",
 	   gFlying ? "ON" : "OFF",
-	   !gFlying ? "ON" : "OFF"); 
-    
+	   !gFlying ? "ON" : "OFF");
+
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
-    
+
     switch(GetMyChar()) {
     case 'F': case 'f':
       gFlying = !gFlying;
@@ -700,7 +700,7 @@ void GameSpecificMenu()
       break;
     }
   } while(TRUE);
-	  
+
 }
 
 // Changes kHelpOnYourTurn depending on gFlying
@@ -712,10 +712,10 @@ void setFlyingText()
   if (kHelpOnYourTurn != NULL) {
    free(kHelpOnYourTurn);
   }
- 
+
   newHelp = (char*)SafeMalloc(newHelpSize*sizeof(char));
 
-  // debug 
+  // debug
   if (debug) {
 	 printf("gFlying = %d\n", gFlying);
 	 printf("The newHelpSize is %d\n", newHelpSize);
@@ -725,19 +725,19 @@ void setFlyingText()
   if (gFlying) {
 	 kHelpExample = kHelpExampleWithFlying;
     strcpy(newHelp, kHelpOnYourTurn0);
-    
+
     // debug
     if (debug) {
       printf("newHelp(%d) after strcpy: %s\n\n",strlen(newHelp), newHelp);
     }
-    
+
     strcat(newHelp, kHelpWithFlying);
-    
+
     //debug
     if (debug) {
       printf("newHelp(%d) after strcat: %s\n\n",strlen(newHelp), newHelp);
     }
-    
+
     kHelpOnYourTurn = newHelp;
   } else {
 	 kHelpExample = kHelpExample0;
@@ -758,13 +758,13 @@ void setFlyingText()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(theOptions)
      int theOptions[];
 {
-	
+
 }
 
 /************************************************************************
@@ -772,7 +772,7 @@ void SetTclCGameSpecificOptions(theOptions)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -786,27 +786,27 @@ POSITION DoMove(thePosition, theMove)
      POSITION thePosition;
      MOVE theMove;
 {
- 
+
   //debug
   char cboard[BOARDSIZE];
 
-  blankox board [BOARDSIZE];  
+  blankox board [BOARDSIZE];
   int from_slot = from(theMove);
   int to_slot = to(theMove);
   int remove_slot = remove_piece(theMove);
 
-  
+
   //debug
   if (debug) {
     printf("The move doMove got is: %d\n", theMove);
     printf("In doMove, the from, to, remove are: %d %d %d\n", from_slot, to_slot, remove_slot);
   }
- 
+
   unhash(thePosition, board);
   //debug
   if (debug) {
     printf("thePosition is: "POSITION_FORMAT"\n", thePosition);
-    printf("It is this person's turn: %d\n", whoseMove(thePosition));
+    printf("It is this person's turn: %d\n", generic_hash_turn(thePosition));
   }
 
   board[to_slot] = board[from_slot];
@@ -819,7 +819,7 @@ POSITION DoMove(thePosition, theMove)
     printf("The board after the move is: \n");
     debugBoard(board,cboard);
   }
-  
+
   return hash(board, whose_turn(thePosition) == x ? o : x);
 }
 
@@ -829,7 +829,7 @@ POSITION DoMove(thePosition, theMove)
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -840,10 +840,10 @@ POSITION GetInitialPosition()
   signed char c;
   blankox board[BOARDSIZE];
   blankox turn;
-  
+
   i = xOnBoard = oOnBoard = bOnBoard = 0;
-  turn = blank; 
-  
+  turn = blank;
+
   printf("\n\n\t----- Get Initial Position -----\n");
   printf("\n\tPlease input the position to begin with.\n");
   printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
@@ -865,7 +865,7 @@ POSITION GetInitialPosition()
   printf("        o-----------_-----------x\n");
   printf("Is input as \n\tx _ o\n\t_ _ _\n\t_ x _ \n\t_ _ _ _ _ _\n\t_ o _ \n\t_ _ _\n\to _ x\n\nYour board:\n");
 
-  getchar(); // dump a char 
+  getchar(); // dump a char
 
   while (i < BOARDSIZE && (c = getchar()) != EOF) {
     if (c == 'x' || c == 'X')
@@ -891,13 +891,13 @@ POSITION GetInitialPosition()
 
   // now get the turn
   getchar(); // dump another character
- 
+
   printf("\nWhose turn is it? (x/o) ");
   while (turn == blank) {
     scanf("%c",&c);
     turn = parse_char(c);
   }
-  
+
   return hash(board, turn);
 }
 
@@ -907,9 +907,9 @@ POSITION GetInitialPosition()
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -934,13 +934,13 @@ void PrintComputersMove(computersMove, computersName)
 **              2 pieces and the opponent either has only 2 pieces or
 **              cannot move, then this position is a win.  Otherwise,
 **              this position is undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS:       LIST FUNCTION CALLS
-**              
+**
 **
 ************************************************************************/
 
@@ -952,7 +952,7 @@ VALUE Primitive ( POSITION h )
   int numPlayer, minPlayer;
   int i;
   blankox turn = whose_turn(h);
-  
+
   unhash(h, dest);
 
   for (i = 0; i < BOARDSIZE; i++) {
@@ -987,7 +987,7 @@ VALUE Primitive ( POSITION h )
   else {
     return undecided;
   }
- 
+
 }
 
 
@@ -997,7 +997,7 @@ VALUE Primitive ( POSITION h )
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -1016,13 +1016,13 @@ void PrintPosition(position, playerName, usersTurn)
   blankox board[BOARDSIZE];
   blankox turn;
   char c_board[BOARDSIZE];
-  
+
   unhash(position, board);
 
   unparse_board(board, c_board);
   turn = whose_turn(position);
-  
-  
+
+
   printf("\n");
   printf("        0-----------1-----------2       %c-----------%c-----------%c\n", c_board[0], c_board[1], c_board[2] );
   printf("        |           |           |       |           |           |\n");
@@ -1066,10 +1066,10 @@ void PrintPosition(position, playerName, usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
@@ -1077,7 +1077,7 @@ void PrintPosition(position, playerName, usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(POSITION position)         
+MOVELIST *GenerateMoves(POSITION position)
 {
   int i, j, k, x_count, o_count, blank_count;
   int player_count, opponent_count, raw_move;
@@ -1097,9 +1097,9 @@ MOVELIST *GenerateMoves(POSITION position)
   int counter;
   blankox turn = whose_turn(position);
   x_count = o_count = blank_count = 0;
-  
+
   unhash(position, dest);
-  
+
   for (i = 0; i < BOARDSIZE; i++)
     {
       if (dest[i] == x)
@@ -1107,7 +1107,7 @@ MOVELIST *GenerateMoves(POSITION position)
       else if (dest[i] == o)
 	o_pieces[o_count++] = i;
     }
-  
+
   if (turn == x)
     {
       player_pieces = x_pieces;
@@ -1124,7 +1124,7 @@ MOVELIST *GenerateMoves(POSITION position)
       opponent_count = x_count;
       opponent_pieces = x_pieces;
     }
-  
+
   if (gFlying && player_count<=toFly) {
     blank_count = find_pieces(dest, blank, blanks);
   }
@@ -1139,7 +1139,7 @@ MOVELIST *GenerateMoves(POSITION position)
       }
     }
   }
-  
+
   for (i = 0; i < player_count; i++)
     {
       if(gFlying && player_count<=toFly) {
@@ -1158,12 +1158,12 @@ MOVELIST *GenerateMoves(POSITION position)
 	    raw_move = (player_pieces[i] * BOARDSIZE * BOARDSIZE) +
 	      (player_adj[i][j] * BOARDSIZE) + player_pieces[i];
 	  }
-	  
+
 	  //debug
 	  if (debug) {
 	    printf ("the raw_move is: %d\n", raw_move);
 	  }
-	  
+
 	  if (closes_mill(position, raw_move))
 	    {
 	      for (k = 0; k < opponent_count; k++)
@@ -1171,14 +1171,14 @@ MOVELIST *GenerateMoves(POSITION position)
 		  head = CreateMovelistNode((raw_move + opponent_pieces[k]-player_pieces[i]) , head);
 	    }
 	  else
-	    head = CreateMovelistNode(raw_move, head); 
+	    head = CreateMovelistNode(raw_move, head);
 	}
     }
-  
+
   return head;
 }
 
- 
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -1186,9 +1186,9 @@ MOVELIST *GenerateMoves(POSITION position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -1205,7 +1205,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 {
   BOOLEAN ValidMove();
   USERINPUT ret, HandleDefaultTextInput();
-  
+
   do {
     printf("%8s's move [(u)ndo/0-23 0-23 (0-23)] :  ", playerName);
 
@@ -1228,7 +1228,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -1239,13 +1239,13 @@ BOOLEAN ValidTextInput(input)
      STRING input;
 {
   // we could bulletproof this a lot more
-  
+
   int moveFrom, moveTo, moveRemove;
 
   BOOLEAN hasSpace, has2Space;
   STRING afterSpace;
   STRING after2Space;
-  
+
   //debug
   if (debug) {
     printf("ValidTextInput evaluating: %s \n", input);
@@ -1257,10 +1257,10 @@ BOOLEAN ValidTextInput(input)
   if (debug) {
     printf("moveFrom of input: %d", moveFrom);
   }
-  
+
   hasSpace = index(input, ' ') != NULL;
-  
-  
+
+
   if (hasSpace) {
     afterSpace = index(input, ' ');
     //debug
@@ -1270,7 +1270,7 @@ BOOLEAN ValidTextInput(input)
   } else {
     return FALSE;
   }
-    
+
   if (moveFrom < 0 || moveFrom >= BOARDSIZE){
     //debug
     if (debug) {
@@ -1278,14 +1278,14 @@ BOOLEAN ValidTextInput(input)
     }
     return FALSE;
   }
-  
+
   moveTo = atoi(afterSpace);
 
   //debug
   if (debug) {
     printf("moveTo of input: %d", moveTo);
   }
-  
+
   if (moveTo < 0 || moveTo >= BOARDSIZE) {
     // debug
     if (debug) {
@@ -1293,7 +1293,7 @@ BOOLEAN ValidTextInput(input)
     }
   	return FALSE;
   }
-  
+
   has2Space = index(++afterSpace, ' ') != NULL;
   if (has2Space) {
     after2Space = index(afterSpace, ' ');
@@ -1305,7 +1305,7 @@ BOOLEAN ValidTextInput(input)
     }
       return FALSE;
     }
-    else 
+    else
       return TRUE;
   } else {
     return TRUE;
@@ -1321,7 +1321,7 @@ BOOLEAN ValidTextInput(input)
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -1335,11 +1335,11 @@ MOVE ConvertTextInputToMove(input)
   STRING afterSpace;
   STRING after2Space;
   BOOLEAN hasSpace, has2Space;
-  
+
   from = atoi(input);
   remove = from;
   hasSpace = index(input, ' ') != NULL;
-  
+
   if (hasSpace) {
     afterSpace = index(input, ' ');
     to = atoi(afterSpace);
@@ -1349,12 +1349,12 @@ MOVE ConvertTextInputToMove(input)
     if (has2Space) {
       after2Space = index(afterSpace, ' ');
       remove = atoi(after2Space);
-    } 
-    
+    }
+
   } else {
     return 0; // Should be a bad else
   }
-      
+
   //debug
   if (debug) {
     printf ("in InputHandler, the from, to, remove is: %d %d %d\n", from, to, remove);
@@ -1368,8 +1368,8 @@ MOVE ConvertTextInputToMove(input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -1384,7 +1384,7 @@ void PrintMove(theMove)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -1437,7 +1437,7 @@ int getOption()
   int option = 1;
   option += (gStandardGame ? 0 : 1);
   option += 2* (gFlying ? 0 : 1);
-  
+
   return option;
 }
 
@@ -1478,27 +1478,27 @@ POSITION hash(blankox *b_board, blankox turn)
   char c_board[BOARDSIZE];
   int player;
 
-  if (turn == x) 
+  if (turn == x)
     player = 1;
-  else 
+  else
     player = 2;
 
   unparse_board(b_board, c_board);
-  
-  return generic_hash(c_board, player); 
+
+  return generic_hash_hash(c_board, player);
 }
 
 blankox *unhash(int hash_val, blankox *b_board)
 {
   char c_board [BOARDSIZE];
-  
-  generic_unhash(hash_val, c_board);
-  
+
+  generic_hash_unhash(hash_val, c_board);
+
   //debug
   if (debug) {
     printf("The hash value being unhashed is: %d\n", hash_val);
   }
-  
+
   parse_board(c_board, b_board);
 
   //debug
@@ -1515,8 +1515,8 @@ blankox *unhash(int hash_val, blankox *b_board)
 void parse_board(char *c_board, blankox *b_board)
 {
   int i;
-  for (i = 0; i < BOARDSIZE; i++) 
-    { 
+  for (i = 0; i < BOARDSIZE; i++)
+    {
       if (c_board[i] == 'o' || c_board[i] == 'O')
 	b_board[i] = o;
       else if (c_board[i] == 'x' || c_board[i] == 'X')
@@ -1558,7 +1558,7 @@ void unparse_board(blankox *b_board, char *c_board)
 
 blankox whose_turn(int hash_val)
 {
-  if (whoseMove (hash_val) == 1) 
+  if (generic_hash_turn (hash_val) == 1)
     return x;
   else return o;
 }
@@ -1614,7 +1614,7 @@ int find_adjacent(int slot, int *slots)
   int num = 0;
 
   switch (slot) {
-  case 0: 
+  case 0:
 	 // num = 2;
     slots[num++] = slot + 1;
     slots[num++] = slot + 9;
@@ -1867,7 +1867,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
   return (count_pieces(board, piece) < 4 ||
 			 !check_mill(board, slot) ||
 			 allMills);
-} 
+}
 
 
 // Given position, player, count # of mills for player on board
@@ -1892,7 +1892,7 @@ int count_mills(POSITION position, blankox player)
 
   return mills;
 }
-  
+
 BOOLEAN closes_mill_move(MOVE the_move) {
   return from(the_move) != remove_piece(the_move);
 }
@@ -1902,14 +1902,14 @@ BOOLEAN closes_mill(POSITION position, int raw_move)
 {
   blankox board[BOARDSIZE];
   unhash(DoMove(position, raw_move), board); //do the move onto board
-  return check_mill(board, to(raw_move)); 
+  return check_mill(board, to(raw_move));
 }
 
 // given new board, slot
 // return true if slot is member of mill
 BOOLEAN check_mill(blankox *board, int slot)
 {
-  
+
   //debug
   if (debug) {
     printf("check_mill checking:\n");
@@ -1969,12 +1969,12 @@ BOOLEAN all_mills(blankox *board, int slot)
 
   return allMills;
 }
-  
+
 
 /************ GenerateParents for Bryon's 9mm reverse solver ************/
 // Given POSITION
 // Return POSITIONLIST of Parents of give POSITION
-POSITIONLIST *GenerateParents (POSITION position) 
+POSITIONLIST *GenerateParents (POSITION position)
 {
   POSITIONLIST *head = NULL;
   blankox turn = opponent(whose_turn(position));
@@ -1998,7 +1998,7 @@ POSITIONLIST *GenerateParents (POSITION position)
 
 // Given the current board, slot of interest, POSITIONLIST
 // Append POSITIONLIST of Parents involving slot (with milling)
-POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist) 
+POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
 {
   blankox thisTurn = board[slot];
   blankox prevTurn = opponent(thisTurn);
@@ -2023,7 +2023,7 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
 		prevBlank = allBlanks[j];
 		if (prevBlank != slot && prevBlank != prevSlot) {
 		  board[prevBlank] = prevTurn;
-		  
+
 		  /* count pieces */
 		  countX = countO = 0;
 		  for (k=0; k<BOARDSIZE; k++) {
@@ -2041,13 +2041,13 @@ POSITIONLIST *AppendFormedMill (blankox *board, int slot, POSITIONLIST *plist)
 	 board[prevSlot] = blank;
 	 board[slot] = thisTurn;
   }
-  
+
   return plist;
 }
 
 // Given the current board, slot of interest, POSITIONLIST
 // Append POSITIONLIST of Parents involving slot (without milling)
-POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist) 
+POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
 {
   blankox thisTurn = board[slot];
   int blanks[maxb];
@@ -2063,10 +2063,10 @@ POSITIONLIST *AppendNeutralMove(blankox *board, int slot, POSITIONLIST *plist)
     /* transform position */
     blankSlot = blanks[i];
     board[blankSlot] = board[slot];
-    board[slot] = blank; 
+    board[slot] = blank;
 
     /* store position */
-    plist = StorePositionInList(hash(board, thisTurn), plist); 
+    plist = StorePositionInList(hash(board, thisTurn), plist);
 
     /* revert position */
     board[slot] = board[blankSlot];
@@ -2112,8 +2112,8 @@ BOOLEAN trapped(blankox board[], blankox turn, int playerCount) {
   }
   return TRUE;
 }
-  
-  
+
+
 
 /* typedef struct positionlist_item */
 /* { */
@@ -2135,11 +2135,11 @@ void debugBBoard(blankox *bboard)
   char cboard[BOARDSIZE];
 
   unparse_board(bboard, cboard);
-    
+
   debugBoard(bboard, cboard);
-  
+
 }
- 
+
 //Given c_board, print b_board and c_board
 void debugCBoard(char *cboard)
 {
@@ -2207,6 +2207,10 @@ void debugPosition(POSITION h)
 
 
 //$Log: not supported by cvs2svn $
+//Revision 1.79  2006/02/26 08:31:15  kmowery
+//
+//Changed MToS to MoveToString
+//
 //Revision 1.78  2006/02/12 08:30:48  kmowery
 //
 //Added MoveToString and gMoveToStringFunPtr (required for visual value history)

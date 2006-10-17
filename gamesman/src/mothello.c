@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 #include <stdlib.h>
-#include <unistd.h>	
+#include <unistd.h>
 #include <limits.h>
 #include "hash.h"
 
@@ -59,7 +59,7 @@ STRING   kHelpOnYourTurn =
 "You can place a piece on any blank spot such that it has at least\n\
 one of your opponent's pieces adjacent to that spot, and the line\n\
 from the blank spot and the opponent's piece has, at the end of it,\n\
-one of your own pieces, with all of your opponent's pieces in between."; 
+one of your own pieces, with all of your opponent's pieces in between.";
 
 STRING   kHelpStandardObjective =
 "When neither player can move (usually this means the entire board\n\
@@ -174,7 +174,7 @@ POSITION ActualNumberOfPositions(int variant);
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
@@ -184,26 +184,26 @@ void InitializeGame ()
 		            BLACKPIECE, 0, OthCols * OthRows, -1};
 	int max;
 	int init;
-	
+
 	if (DEBUG) { printf("InitializeGame() Running...\n"); }
 	/* Initialize Hash Function */
-	
-	if (DEBUG) { 
-	  printf("InitializeGame() --> generic_hash_init\n"); 
-	  max = generic_hash_init(OthCols * OthRows, hash_data, NULL);
+
+	if (DEBUG) {
+	  printf("InitializeGame() --> generic_hash_init\n");
+	  max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
 	}
-	if (SOLVERCOUNTER) solvercountermax = generic_hash_init(OthCols * OthRows, hash_data, NULL);
-		
+	if (SOLVERCOUNTER) solvercountermax = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
+
 	if (DEBUG) { printf("InitializeGame() <-- generic_hash_init: %d\n",max); }
-	
-	if (DEBUG) { printf("InitalizeGame() --> generic_hash\n"); init = generic_hash(start_standard_board,BLACK);}
-	
+
+	if (DEBUG) { printf("InitalizeGame() --> generic_hash_hash\n"); init = generic_hash_hash(start_standard_board,BLACK);}
+
 	if (DEBUG) { printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]); }
-			
+
 	if (DEBUG) { printf("InitializeGame() <-- generic_hash: %d\n",init); }
 
 	init_board_hash();
-	
+
 	if (DEBUG)
 	{
 		char* test_board;
@@ -211,7 +211,7 @@ void InitializeGame ()
 		test_board = getBoard(gInitialPosition);
 		printf("\nBoard is... %s\n", test_board);
 	}
-	
+
 	if (DEBUG) { printf("InitializeGame() Done\n"); }
 	fflush( stdout );
 
@@ -224,12 +224,12 @@ void InitializeGame ()
 **
 ** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-	
+
 }
 
 
@@ -240,7 +240,7 @@ void DebugMenu ()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 *******************************origin*****************************************/
 
 void GameSpecificMenu ()
@@ -278,19 +278,19 @@ void GameSpecificMenu ()
 				printf("Invalid Option.\n");
 				selection = 'Z';
 				break;
-			
+
 		}
 	} while (selection != 'B');
 
 }
-  
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (options)
@@ -304,7 +304,7 @@ void SetTclCGameSpecificOptions (options)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -321,12 +321,12 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	char ownpiece, opponentpiece;
 	char* board;
 	int MoveArrayNum = (int) theMove;
-	
+
 	if(DEBUG) printf("\nDoMove starting at Move %d\n", MoveArrayNum);
-		
+
 	board = getBoard(thePosition);
-	whoseturn = whoseMove(thePosition);		
-		
+	whoseturn = generic_hash_turn(thePosition);
+
 	//assigning opponent pieces and own pieces
 	if(whoseturn == 1)
 	{
@@ -339,17 +339,17 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 		ownpiece = 'W';
 		opponentpiece = 'B';
 		nextplayer = 1;
-	}	
+	}
 
 	if(MoveArrayNum == PASSMOVE)
-		return generic_hash(board, nextplayer);
-	
+		return generic_hash_hash(board, nextplayer);
+
 	board[MoveArrayNum] = ownpiece;
-	
+
 	for(j = 1; j < 9; j++)
 	{
 		CandidateArrayNum = MoveArrayNum;
-		ArrayNumtoCoord(CandidateArrayNum, candidatemove);	
+		ArrayNumtoCoord(CandidateArrayNum, candidatemove);
 		if(Check1Spot1Direc(MoveArrayNum, board, ownpiece, opponentpiece, j))
 		{
 			Go1Direction(candidatemove, j);
@@ -362,8 +362,8 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 			}
 		}
   	}
-	
-	return generic_hash(board, nextplayer);
+
+	return generic_hash_hash(board, nextplayer);
 }
 
 
@@ -390,7 +390,7 @@ POSITION GetInitialPosition()
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -404,7 +404,7 @@ POSITION SetupInitialPosition()
 	char selection = 'Z';
 	char* board;
 	int i, blacktally, whitetally, blanktally;
-	
+
 	do
 	{
 		board = getBoard(gInitialPosition);
@@ -423,7 +423,7 @@ POSITION SetupInitialPosition()
 				case 'B':
 					blacktally++;
 					break;
-			}	
+			}
 
 		printf("\n\t----- Othello Initial Position Setup ----- \n\n");
 		printf("\tCurrent Number of Maximum Positions: "POSITION_FORMAT, gNumberOfPositions);
@@ -466,12 +466,12 @@ POSITION SetupInitialPosition()
 				printf("Invalid option. Try again\n");
 				selection = -1;
 		}
-		
+
 	} while (selection != 'B');
 
 	init_board_hash();
 
-	gInitialPosition = generic_hash( board, BLACK );
+	gInitialPosition = generic_hash_hash( board, BLACK );
 
 	return(gInitialPosition);
 
@@ -487,11 +487,11 @@ void init_board_hash()
 	int init;
 	if(DEBUG) printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
 	if(DEBUG) printf("\ninit_board_hash starting...\n");
-	max = generic_hash_init(OthCols * OthRows, hash_data, NULL);
-	//init = generic_hash(start_standard_board, BLACK);
+	max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
+	//init = generic_hash_hash(start_standard_board, BLACK);
 	init = MakeInitialSquare();
-	if(DEBUG) printf("\nmax is %d\n", max); 
-	gInitialPosition = init;		
+	if(DEBUG) printf("\nmax is %d\n", max);
+	gInitialPosition = init;
 	gNumberOfPositions = max;
 }
 
@@ -500,9 +500,9 @@ void init_board_hash()
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -510,15 +510,15 @@ void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
 	int ArrayNum, move[2];
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-	
+
 	ArrayNum = (int) computersMove;
-	
+
 	if (ArrayNum == PASSMOVE)
 		printf("%s is unable to move. %s passes\n", computersName, computersName);
 	else
 	{
 		ArrayNumtoCoord(ArrayNum, move);
-			
+
 		printf("%s moved to %c%d\n\n", \
 			computersName, alphabet[move[1] - 1], InvertRow(move[0]));
 	}
@@ -534,13 +534,13 @@ void PrintComputersMove(MOVE computersMove, STRING computersName)
 **              three-in-a-row with Gobblet. Three in a row for the player
 **              whose turn it is a win, otherwise its a loss.
 **              Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS:       LIST FUNCTION CALLS
-**              
+**
 **
 ************************************************************************/
 
@@ -549,11 +549,11 @@ VALUE Primitive (POSITION pos)
 
 	int i, blanktally = 0, blacktally = 0, whitetally = 0, whoseturn;
 	char* board;
-	
+
 	if(DEBUG) { printf("Primitive Starting"); }
-	
+
 	board = getBoard(pos);
-	whoseturn = (int) whoseMove(pos);
+	whoseturn = (int) generic_hash_turn(pos);
 
 	for(i = 0; i < (OthRows * OthCols); i++)
 	{
@@ -568,9 +568,9 @@ VALUE Primitive (POSITION pos)
 			case 'B':
 				blacktally++;
 				break;
-		}		
+		}
 	}
-	
+
 	if(blanktally != 0) {
 		if(quickgeneratemoves(board, whoseturn))
 			return undecided;
@@ -582,7 +582,7 @@ VALUE Primitive (POSITION pos)
 	{
 		return tie;
 	}
-	
+
 	if(blacktally > whitetally) {
 		if(whoseturn == 1)
 			return (gStandardGame ? win : lose);//blackwin
@@ -608,7 +608,7 @@ VALUE Primitive (POSITION pos)
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -625,15 +625,15 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz", owncolor[6];
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
-	int whoseturn = whoseMove(position);
+	int whoseturn = generic_hash_turn(position);
 	/*int strlenname = strlen(playerName);*/
 	char turnString1[80], turnString2[80], prediction[80];
-	
+
 	//for loops inits
-	int i, j, alpha, hyphens; 
-	
+	int i, j, alpha, hyphens;
+
 	if(DEBUG) printf("\nPrintPosition starting\n");
-	
+
 
 	/*Information gathering*/
 	board = getBoard(position);
@@ -651,60 +651,60 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 			case 'B':
 				blacktally++;
 				break;
-		}		
+		}
 	}
-	
+
 	if(whoseturn == 1)
-	{	
+	{
 		sprintf(owncolor,"Black");
-	}	
+	}
 	else
 	{
 		sprintf(owncolor,"White");
 	}
-	
+
 	/*Start Printing Board*/
-	
-	
+
+
 	/*heading*/
 	printf("\t+");
 	for(hyphens = 0; hyphens < (2 * OthCols) + 23; hyphens++)
-		printf("-"); 
+		printf("-");
 	printf("+");
-	
+
 	printf("\n\t| GAMESMAN Othello");
 	for(hyphens = 0; hyphens < (2 * OthCols) + 6; hyphens++)
 		printf(" ");
-	
+
 	printf("|\n\t+");
-	
+
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf("-");
 	printf("+");
 	for(hyphens = 0; hyphens < 13; hyphens++)
 		printf("-");
 	printf("+\n\t|");
-	
+
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf(" ");
 	printf("|             |\n");
-	
+
 	//top Row Alphabet Legend
 	printf("\t|    ");
 	for(alpha = 0; alpha < OthCols; alpha++)
 	{
-		printf(" %c", alphabet[alpha]);	
+		printf(" %c", alphabet[alpha]);
 	}
 	printf("     |");
 	//End Alphabet Legend
 	for(hyphens = 0; hyphens < 13; hyphens++)
 		printf(" ");
 	printf("|\n");
-	
-	//Main Board Thingie	
+
+	//Main Board Thingie
 	for(i = 0; i < (2 * OthRows +1) ; i++)
 	{
-	
+
 		if(i % 2 == 0) //Even rows are hyphen-lines
 		{
 			printf("\t|    ");
@@ -712,7 +712,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 				printf("-");
 			printf("    |             |\n");//End Even rows
 		}
-		
+
 		else  //Start Odd Rows, the ones that matter
 		{
 			printf("\t|  %d ", InvertRow(PrintPositionRow(i)));
@@ -721,36 +721,36 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 				printf("|%c", board[CoordtoArrayNum( \
 							PrintPositionRow(i), (j + 1))]);
 			}
-			
+
 			if(InvertRow(PrintPositionRow(i)) == 1)
 				if(whitetally <= 9)
 					printf("| 1  |  White: 0%d  |\n", whitetally);
 				else
 					printf("| 1  |  White: %d  |\n", whitetally);
 			else if(InvertRow(PrintPositionRow(i)) == 2)
-					if(blacktally <= 9)						
+					if(blacktally <= 9)
 						printf("| 2  |  Black: 0%d  |\n", blacktally);
 					else
 						printf("| 2  |  Black: %d  |\n", blacktally);
 				else printf("| %d  |             |\n", InvertRow(PrintPositionRow(i)));
-			
+
 		}
 	}
-	
+
 	//Bottom Row Alphabet Legend
 	printf("\t|    ");
 	for(alpha = 0; alpha < OthCols; alpha++)
 	{
-		printf(" %c", alphabet[alpha]);	
+		printf(" %c", alphabet[alpha]);
 	}
 	printf("     |             |\n\t|");
 	//End Alphabet Legend
-	
+
 	//End stuff
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf(" ");
 	printf("|             |\n\t+");
-	
+
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf("-");
 	printf("+");
@@ -760,39 +760,39 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 	//Player Name, Predictions. Stolen directly from Asalto
 	sprintf(turnString1,"| It is %s's turn.", playerName);
-	printf("\t%s",turnString1); 
+	printf("\t%s",turnString1);
 	if(strlen(turnString1) < (2 * OthCols) + 24)
 		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(turnString1); hyphens++)
-			printf(" "); 
-	printf("|\n");
-
-	sprintf(turnString2,"| %s is playing %s", playerName, owncolor);
-	printf("\t%s",turnString2); 
-	if(strlen(turnString2) < (2 * OthCols) + 24)
-		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(turnString2); hyphens++) 
 			printf(" ");
 	printf("|\n");
 
-	
+	sprintf(turnString2,"| %s is playing %s", playerName, owncolor);
+	printf("\t%s",turnString2);
+	if(strlen(turnString2) < (2 * OthCols) + 24)
+		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(turnString2); hyphens++)
+			printf(" ");
+	printf("|\n");
+
+
 	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
 	if (prediction[2] == '(')
 	{
 		printf("\t%s", prediction);
 		if(strlen(prediction) < (2 * OthCols) + 24)
-			for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(prediction); hyphens++) 
+			for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(prediction); hyphens++)
 				printf(" ");
 		printf("|\n");
 	}
-	
+
 	//End
 	printf("\t+");
 	for(hyphens = 0; hyphens < (2 * OthCols) + 23; hyphens++)
-		printf("-"); 
+		printf("-");
 	printf("+\n\n");
 
 
 
-	
+
 	if(DEBUG) printf("\nEnd PrintPosition\n");
 }
 
@@ -805,10 +805,10 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
@@ -819,7 +819,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 MOVELIST *GenerateMoves(POSITION position)
 {
-	int i, j, whoseturn = whoseMove(position);
+	int i, j, whoseturn = generic_hash_turn(position);
 	char* board;
 	char ownpiece, opponentpiece;
 	int AnyMovesAtAll = 0;
@@ -827,9 +827,9 @@ MOVELIST *GenerateMoves(POSITION position)
 	int numsolvercounter;
 	MOVELIST *CreateMovelistNode(), *head = NULL;
 
-	
+
 	if(DEBUG) printf("\nGenerate Moves starting\n");
-	
+
 	if(SOLVERCOUNTER && (solvercounter != -1))
 	{
 		numsolvercounter = printf("%d / %d Positions Solved", solvercounter, solvercountermax);
@@ -842,7 +842,7 @@ MOVELIST *GenerateMoves(POSITION position)
 		  solvercounter = -1;
 		}
 	}
-	
+
 	board = getBoard(position);
 	/*assigning opponent pieces and own pieces*/
 	if(whoseturn == 1)
@@ -854,8 +854,8 @@ MOVELIST *GenerateMoves(POSITION position)
 	{
 		ownpiece = 'W';
 		opponentpiece = 'B';
-	}	
-	
+	}
+
 	for(i = 0; i < (OthRows * OthCols); i++)
 
 		if(board[i] == BLANKPIECE) {
@@ -865,23 +865,23 @@ MOVELIST *GenerateMoves(POSITION position)
 				head = CreateMovelistNode(i, head);
 				AnyMovesAtAll = 1;
 			}
-			else	
+			else
 				for(j = 1; j < 9; j++) /*Each spot has 8 directions*/
-		
+
 					if(Check1Spot1Direc(i, board, ownpiece, opponentpiece, j))
 					{/*check to see if it's a good move, then go in that direction to the opponent's piece*/
-						
+
 						AnyMovesAtAll = 1;
 						ArrayNumtoCoord(i, move);
 						head = CreateMovelistNode(i, head);
-						break;				
+						break;
 					}
 		}
 
 	if(!AnyMovesAtAll)
 		head = CreateMovelistNode(PASSMOVE, head);
-		
-	if(DEBUG) printf("\nEnd Generate Moves\n");		
+
+	if(DEBUG) printf("\nEnd Generate Moves\n");
 
 	return(head);
 }
@@ -894,9 +894,9 @@ MOVELIST *GenerateMoves(POSITION position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -911,14 +911,14 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 	BOOLEAN ValidMove();
 	USERINPUT ret, HandleDefaultTextInput();
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-	
+
 	if (DEBUG) {printf("GetAndPrintPlayersMove Start\n"); }
-	
+
 	do
 	{
 		printf("%8s's move [(u)ndo/([a-%c][1-%d])] :  ", \
 				playerName, alphabet[OthCols - 1], OthRows);
-		
+
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if (DEBUG) {printf("GetAndPrintPlayersMove Returning\n"); }
 		if(ret != Continue)
@@ -939,7 +939,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -949,35 +949,35 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 BOOLEAN ValidTextInput (STRING input)
 {
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	
+
 	if(DEBUG) printf("ValidTextInput Starting. Strlen = %d\n", (int) strlen(input));
-	
+
 	if(strlen(input) == 1)
 	{
 		input[0] = toupper(input[0]);
 		return (input[0] == USERINDICATESPASS);
 	}
-	
+
 	if(strlen(input) == 2)
 	{
 		input[0] = toupper(input[0]);
 		input[1] = toupper(input[1]);
 
-		
-		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1]) 
+
+		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1])
 		&& ('1' <= input[1] && input[1] <= '9'));
 	}
-	
+
 	if(strlen(input) == 3)
 	{
 		input[0] = toupper(input[0]);
 		input[1] = toupper(input[1]);
 		input[2] = toupper(input[2]);
-		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1]) 
+		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1])
 		&& ('1' <= input[1] && input[1] <= '9')
 		&& ('0' <= input[2] && input[2] <= '9'));
 	}
-	
+
 	return FALSE;
 }
 
@@ -988,7 +988,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -998,10 +998,10 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
 	int move[2];
-	
+
 	if(strlen(input) == 1)
 		return (MOVE) PASSMOVE;
-		
+
 	if(strlen(input) == 2)
 	{
 		input[0] = toupper(input[0]);
@@ -1009,12 +1009,12 @@ MOVE ConvertTextInputToMove (STRING input)
 		move[0] = InvertRow((int) (input[1] - '0'));
 		return (MOVE) CoordtoArrayNum(move[0], move[1]);
 	}
-	
+
 	if(strlen(input) == 3)
 	{
 		input[0] = toupper(input[0]);
 		move[1] = (int) (input[0] - 'A' + 1);
-		move[0] = InvertRow((((int) (input[1] - '0')) * 10 + 
+		move[0] = InvertRow((((int) (input[1] - '0')) * 10 +
 					((int) (input[2] - '0'))));
 		return (MOVE) CoordtoArrayNum(move[0], move[1]);
 	}
@@ -1028,8 +1028,8 @@ MOVE ConvertTextInputToMove (STRING input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -1037,9 +1037,9 @@ void PrintMove (MOVE move)
 {
 	int ArrayNum, mymove[2];
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-	
+
 	if(DEBUG) printf("PrintMove starting at %d\n", move);
-	
+
 	ArrayNum = (int) move;
 	if(ArrayNum == PASSMOVE)
 		printf("[No Available Moves. Please hit 'd' to pass.] ");
@@ -1055,7 +1055,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -1072,7 +1072,7 @@ STRING MoveToString (theMove)
   }
 
   return move;
-}	
+}
 
 /************************************************************************
 **
@@ -1149,29 +1149,29 @@ void setOption(int option)
 /*Stolen from mttc.c*/
 char* getBoard(POSITION pos) {
   int boardsize;
-  char * generic_unhash(POSITION,char *); /* ?????? */
+  char * generic_hash_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
   newBoard = SafeMalloc(boardsize*sizeof(char)+1);
-  newBoard = generic_unhash(pos,newBoard);
+  newBoard = generic_hash_unhash(pos,newBoard);
   newBoard[boardsize] = '\0';
   return newBoard;
 }
 
 char* getBlankBoard() {
   int boardsize;
-  char * generic_unhash(POSITION,char *); /* ?????? */
+  char * generic_hash_unhash(POSITION,char *); /* ?????? */
   char* newBoard;
   boardsize = OthCols * OthRows;
   newBoard = SafeMalloc(boardsize*sizeof(char));
-  newBoard = generic_unhash(BLANKBOARDPOSITION,newBoard);
+  newBoard = generic_hash_unhash(BLANKBOARDPOSITION,newBoard);
   return newBoard;
 }
 
 int PrintPositionRow(int i)
 {
 	return ((i + 1) / 2);
-	
+
 }
 
 int InvertRow(int i)
@@ -1187,17 +1187,17 @@ int CoordtoArrayNum(int row, int col)
 void ArrayNumtoCoord(int arraynum, int move[])
 { /*(row, col) order*/
 	if(DEBUGHELPERS) printf("\nArrayNumtoCoord starting\nArrayNum %d\n", arraynum);
-	
+
 	move[0] = (arraynum / OthCols) + 1;
 	move[1] = (arraynum % OthCols) + 1;
-	
+
 	if(DEBUGHELPERS) printf("Row: %d\nCol: %d\n\n", move[0], move[1]);
 
 }
 
 int oppositeturn(int turn){
 	return ((turn == 1) ? 2 : 1); }
-	
+
 int oppositedirection(int direction)
 {
 	switch(direction)
@@ -1219,14 +1219,14 @@ int oppositedirection(int direction)
 BOOLEAN ValidCoord(int coord[])
 {
 	return ((coord[0] > 0 && coord[0] <= OthRows) && \
-			(coord[1] > 0 && coord[1] <= OthCols));				
+			(coord[1] > 0 && coord[1] <= OthCols));
 }
 
 BOOLEAN IsPlayableBoard(char board[])
 {
 	int i, blacktally = 0, whitetally = 0;
 	for(i = 0; i < (OthCols * OthRows) ; i++)
-	{	
+	{
 		if(board[i] == 'W')
 			whitetally++;
 		if(board[i] == 'B')
@@ -1240,7 +1240,7 @@ BOOLEAN IsPlayableBoard(char board[])
 void UserSelectRows()
 {
     int row = -1;
-	
+
     do {
 	printf("\nPlease enter a row number between 2 and %d: ", MAXROWS + 1);
 	row = GetMyInt();
@@ -1249,7 +1249,7 @@ void UserSelectRows()
 	    OthRows = row;
 	}
     } while(row <= 2 || (row > MAXROWS));
-	
+
     printf("Rows have now been set to %d.\n", OthRows);
     init_board_hash();
 
@@ -1259,7 +1259,7 @@ void UserSelectRows()
 void UserSelectCols()
 {
     int col = -1;
-	
+
     do {
 	printf("\nPlease enter a column number between 2 and %d: ", MAXCOLS + 1);
 	col = GetMyInt();
@@ -1268,11 +1268,11 @@ void UserSelectCols()
 	    OthCols = col;
 	}
     } while(col <= 2 || (col > MAXCOLS));
-	
+
     printf("Columns have now been set to %d.\n", OthCols);
     init_board_hash();
 
-    gInitialPosition = MakeInitialSquare();	
+    gInitialPosition = MakeInitialSquare();
 }
 
 
@@ -1282,7 +1282,7 @@ void ChangeRows( int row )
     {
 	OthRows = row;
 	init_board_hash();
-  
+
 	gInitialPosition = MakeInitialSquare();
     }
     else
@@ -1298,7 +1298,7 @@ void ChangeCols( int cols )
     {
 	OthCols = cols;
 	init_board_hash();
-	
+
 	gInitialPosition = MakeInitialSquare();
     }
     else
@@ -1311,14 +1311,14 @@ POSITION MakeInitialSquare()
 {
 	char* board;
 	int ArrayNum, TopLeftOfSq[2];
-	
+
 	board = getBlankBoard();
 
 	if(OthRows % 2 == 0)
 		TopLeftOfSq[0] = OthRows / 2;
 	else
 		TopLeftOfSq[0] = (OthRows - 1) / 2;
-	
+
 	if(OthCols % 2 == 0)
 		TopLeftOfSq[1] = OthCols / 2;
 	else
@@ -1332,34 +1332,34 @@ POSITION MakeInitialSquare()
 	board[ArrayNum] = 'W';
 	ArrayNum = CoordtoArrayNum(TopLeftOfSq[0] + 1, TopLeftOfSq[1] + 1);
 	board[ArrayNum] = 'B';
-	
-	return generic_hash(board, BLACK);
+
+	return generic_hash_hash(board, BLACK);
 }
 
 void PrintBoard(char board[])
 {
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-	
+
 	//for loops inits
-	int i, j, alpha, hyphens; 
-	
+	int i, j, alpha, hyphens;
+
 	if(DEBUG) printf("\nPrintPosition starting\n");
-	
+
 
 	//Top Row Alphabet Legend
 	printf("\n\t   ");
 	for(alpha = 0; alpha < OthCols; alpha++)
 	{
-		printf(" %c", alphabet[alpha]);	
+		printf(" %c", alphabet[alpha]);
 	}
 	printf("\n");
 	//End Alphabet Legend
-	
-	
-	//Main Board Thingie	
+
+
+	//Main Board Thingie
 	for(i = 0; i < (2 * OthRows +1) ; i++)
 	{
-	
+
 		if(i % 2 == 0) //Even rows are hyphen-lines
 		{
 			printf("\t   ");
@@ -1369,7 +1369,7 @@ void PrintBoard(char board[])
 			}
 			printf("\n");//End Even rows
 		}
-		
+
 		else  //Start Odd Rows, the ones that matter
 		{
 			printf("\t %d ", InvertRow(PrintPositionRow(i)));
@@ -1379,20 +1379,20 @@ void PrintBoard(char board[])
 							PrintPositionRow(i), (j + 1))]);
 			}
 			printf("| %d\n", InvertRow(PrintPositionRow(i)));
-			
+
 		}
 	}
-	
+
 	//Top Bottom Row Alphabet Legend
 	printf("\t   ");
 	for(alpha = 0; alpha < OthCols; alpha++)
 	{
-		printf(" %c", alphabet[alpha]);	
+		printf(" %c", alphabet[alpha]);
 	}
 	printf("\n");
 	//End Alphabet Legend
-	
-	
+
+
 	if(DEBUG) printf("\nEnd Board\n");
 }
 
@@ -1401,46 +1401,46 @@ int AddRemovePieces(char board[], int tally, char ownpiece)
 	char blackorwhite[6];
 	char selection_command[80], selection = 'Z';
 	int ArrayNum;
-	
+
 	if(ownpiece == BLACKPIECE)
 		sprintf(blackorwhite, "Black");
 	else
 		sprintf(blackorwhite, "White");
 
 	do
-	{	
+	{
 	printf("\tAdd/Remove %s Pieces\n", blackorwhite);
 	printf("\t=======================\n\n");
 	PrintBoard(board);
 	printf("\n\tPlease enter a coordinate. A coordinate with a %c on it will\n\tremove the piece, and a coordinate with a blank space on it\n\twill add a %c. Press 'B' when you are done to go back.\n\n", ownpiece, ownpiece);
-	printf("Coordinate: "); 
+	printf("Coordinate: ");
 	GetMyStr(selection_command, 80);
 	if(strlen(selection_command) == 1)
 		selection = toupper(selection_command[0]);
-	
+
 	if(strlen(selection_command) == 2 || strlen(selection_command) == 3)
 		if(ValidTextInput(selection_command))
 			{
 			ArrayNum = ConvertTextInputToMove(selection_command);
 			if(board[ArrayNum] == ownpiece)	{
-				board[ArrayNum] = BLANKPIECE; tally--; } 
+				board[ArrayNum] = BLANKPIECE; tally--; }
 			else if(board[ArrayNum] == BLANKPIECE) {
 				board[ArrayNum] = ownpiece; tally++; }
-			else 
-				printf("Invalid Coordinate. Location has opponent's piece.\n\n");			
-			}	
- 
+			else
+				printf("Invalid Coordinate. Location has opponent's piece.\n\n");
+			}
+
 	} while(selection != 'B');
-			
-	gInitialPosition = generic_hash(board, 1);
-		
+
+	gInitialPosition = generic_hash_hash(board, 1);
+
 	return tally;
 }
 
 void Go1Direction(int move[], int direction)
 {
 	if(direction < 1 || direction > 8) printf("Go1Direction has a bad direction");
-	
+
 	/* 	Direction Legend
 		1 Up
 		2 Right
@@ -1452,16 +1452,16 @@ void Go1Direction(int move[], int direction)
 		8 Up Left
 		(Two circles counterclockwise)
 	*/
-	
+
 	if(direction == 1 || direction == 5 || direction == 8)
 		move[0] = move[0] - 1;//Up
-		
+
 	if(direction == 3 || direction == 6 || direction == 7)
 		move[0] = move[0] + 1;//Down
-		
+
 	if(direction == 2 || direction == 5 || direction == 6)
 		move[1] = move[1] + 1;//Right
-	
+
 	if(direction == 4 || direction == 7 || direction == 8)
 		move[1] = move[1] - 1;//Left
 }
@@ -1473,15 +1473,15 @@ BOOLEAN Check1Spot1Direc(int ArrayNum, char board[], char ownpiece, char opponen
 
 	if(DEBUGHELPERS) printf("\nCheck1Spot1Direc starting\nArrayNum: %d\nDirection: %d",\
 	    			ArrayNum, direction);
-	
+
 	ArrayNumtoCoord(ArrayNum, CandidateSpot);
-	
+
 	//check to see if the first move in this direction is the opposite piece
 	//Then, you can just keep going until it's your own piece
 	Go1Direction(CandidateSpot, direction);
 	if(ValidCoord(CandidateSpot))
 	{
-		CandidateArrayNum = CoordtoArrayNum(CandidateSpot[0], CandidateSpot[1]);	
+		CandidateArrayNum = CoordtoArrayNum(CandidateSpot[0], CandidateSpot[1]);
 		if(board[CandidateArrayNum] == opponentpiece)
 		{
 			checkatspot = board[CandidateArrayNum];
@@ -1489,13 +1489,13 @@ BOOLEAN Check1Spot1Direc(int ArrayNum, char board[], char ownpiece, char opponen
 			//First piece in direction is opponent's, now see if at end one is ours
 			while(checkatspot == opponentpiece && ValidCoord(CandidateSpot))
 			{
-			
-				CandidateArrayNum = CoordtoArrayNum(CandidateSpot[0], CandidateSpot[1]);						
+
+				CandidateArrayNum = CoordtoArrayNum(CandidateSpot[0], CandidateSpot[1]);
 				checkatspot = board[CandidateArrayNum];
 				Go1Direction(CandidateSpot, direction);
-				
-			} 
-			
+
+			}
+
 			if(checkatspot == ownpiece)
 				return 1;
 		}
@@ -1507,9 +1507,9 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 {
 	int i, j;
 	char ownpiece, opponentpiece;
-	
+
 	if(DEBUG) printf("\nQuick Generate Moves starting\n\n");
-	
+
 	//assigning opponent pieces and own pieces
 	if(whoseturn == 1)
 	{
@@ -1520,14 +1520,14 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 	{
 		ownpiece = 'W';
 		opponentpiece = 'B';
-	}	
-	
+	}
+
 	for(i = 0; i < (OthRows * OthCols); i++)
-		
+
 		if(board[i] == BLANKPIECE)
-			
+
 			for(j = 1; j < 9; j++) //Each spot has 8 directions
-	
+
 				if(Check1Spot1Direc(i, board, ownpiece, opponentpiece, j))
 
 					return 1;

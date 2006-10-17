@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.33 2006-10-01 00:18:32 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.34 2006-10-17 10:45:22 max817 Exp $
 **
 **************************************************************************/
 
@@ -103,8 +103,8 @@ static int      percentDoneCmd _ANSI_ARGS_((ClientData clientData,
 **
 ** NAME:        Gamesman_Init
 **
-** DESCRIPTION: This is the 
-** 
+** DESCRIPTION: This is the
+**
 ** INPUTS:      Tcl_Interp *interp : Interpreter for application
 **
 ** OUTPUTS:     TCL_OK : Confirmation that we exited successfully
@@ -175,7 +175,7 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_PercentDone", (Tcl_CmdProc*) percentDoneCmd, (ClientData) mainWindow,
               (Tcl_CmdDeleteProc*) NULL);
 
-    
+
     {
     int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int(*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
 
@@ -192,7 +192,7 @@ Gamesman_Init(interp)
 **
 **************************************************************************/
 
-static int 
+static int
 InitialPositionCmd(dummy, interp, argc, argv)
      ClientData dummy;
      Tcl_Interp *interp;
@@ -205,7 +205,7 @@ InitialPositionCmd(dummy, interp, argc, argv)
   }
   // Ported from tkAppInitHash, correct version tbd
   sprintf(interp->result,"%d",(int)gInitialPosition);
-  return TCL_OK;  
+  return TCL_OK;
 }
 
 static int
@@ -223,7 +223,7 @@ GenericUnhashCmd(dummy, interp, argc, argv)
   // Ported from tkAppInitHash, correct version tbd
   char *board;
   POSITION pos = atoi(argv[1]);
-  board = generic_unhash_tcl(pos);
+  board = generic_hash_unhash_tcl(pos);
   sprintf(interp->result, "%s",board);
   SafeFree(board);
   return TCL_OK;
@@ -231,7 +231,7 @@ GenericUnhashCmd(dummy, interp, argc, argv)
   char *board;
   int n;
   board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
-  generic_unhash(atoi(argv[1]),board);
+  generic_hash_unhash(atoi(argv[1]),board);
   sprintf(interp->result, "%s",board);
   return TCL_OK;
   */
@@ -366,7 +366,7 @@ SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
 {
   int i, theOptions[100];
   int standardGame = 0;
-  
+
   if (argc < 2) {
     interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
     return TCL_ERROR;
@@ -572,12 +572,12 @@ PrimitiveCmd(dummy, interp, argc, argv)
   }
 }
 
-/* [C_GetValueMoves $position] 
+/* [C_GetValueMoves $position]
  * returns {move value remoteness delta_remoteness}
  *
  * Caveat: C_GetValueMoves is the only way Tcl has to get moves.
  *  This means that C_GetValueMoves will be called regardless of whether
- *  the game is actually solved or not. 
+ *  the game is actually solved or not.
  *  Therefore, any piece of code required by GetValueMovesCmd can not
  *  have any type of error side effect due to an unsolved game.
  */
@@ -606,7 +606,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
-      
+
       POSITION temp = DoMove(position,ptr->move);
       value = GetValueOfPosition(temp);
       //value = GetValueOfPosition(DoMove(position,ptr->move));
@@ -637,7 +637,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 	default: value = value;
 	}
       }
-      
+
       /*
       sprintf(tmp,"{ %d %s } ",
 	      (ptr->move),
@@ -646,16 +646,16 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 
       /* save  move, value, remoteness, delta_remoteness */
       sprintf(tmp,"{ %d %s %d %d } ",
-	      (ptr->move), 
-	      gValueString[value], 
+	      (ptr->move),
+	      gValueString[value],
 	      (int) remote,
 	      (int) delta);
-      
+
       /*
-      printf("Move: %d, Value: %s, Remoteness: %d, Delta: %d \n", 
-	     (ptr->move), 
-	     gValueString[value], 
-	     (int)remote, 
+      printf("Move: %d, Value: %s, Remoteness: %d, Delta: %d \n",
+	     (ptr->move),
+	     gValueString[value],
+	     (int)remote,
 	     (int)delta);
       */
 
@@ -705,7 +705,7 @@ GetPredictionCmd(dummy, interp, argc, argv)
 {
   POSITION position;
   STRING playerName, prediction;
-  
+
   if (argc != 3) {
     interp->result = "wrong # args: GetPrediction position playerName";
     return TCL_ERROR;
@@ -731,7 +731,7 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
 {
   int smartnessScale;
   STRING smartnessString;
-  
+
   if (argc > 3 || argc < 2) {
     interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
     return TCL_ERROR;
@@ -760,7 +760,7 @@ SetSmarterComputerCmd(dummy, interp, argc, argv)
     else {
       return TCL_ERROR;
     }
-      
+
     return TCL_OK;
   }
 }

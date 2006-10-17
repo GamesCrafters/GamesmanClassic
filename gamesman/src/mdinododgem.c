@@ -146,7 +146,7 @@ typedef char DIRECTION;
 #define WEST 2
 #define NORTH 3
 #define INVALID (-1)
- 
+
 DIRECTION getDirection(int from, int to, BlankOX whosTurn) {
   if (to == boardsize) {
     if ((from%side) == (side-1) && whosTurn == o)
@@ -183,22 +183,22 @@ BOOLEAN initialized = FALSE;
 
 #define HAVEFORBS ( gForbidden && side > 4 )
 #define NUMPIECES ( HAVEFORBS ? side-2 : side-1 )
- 
+
 #define ISFORB(i) ( (i==0) || (i==1) || (i==side) )
 #define FORBIDDEN(i) ( (HAVEFORBS && ISFORB(i) ? TRUE : FALSE ) )
- 
+
 #define OSTART(i) ( ((i%side) == 0) && ((i/side) >= (HAVEFORBS?2:1)) )
 #define OSTART2(a,b) ( OSTART(a) && OSTART(b) )
- 
+
 #define XSTART(i) ( (i < side) && (i >= (HAVEFORBS?2:1)) )
 #define XSTART2(a,b) ( XSTART(a) && XSTART(b) )
- 
+
 #define STARTLR(from, to, piece) \
 ( (piece == x) ? XSTART2(from, to) : OSTART2(from, to) )
 
 #define OPPONENTS_SPACE(to, piece) \
 ( (piece == x) ? OSTART(to) : XSTART(to) )
- 
+
 #define DINO_COND(i, dir) \
 ( (gForwardStart ? !STARTLR(i, dir, theBlankOX[i]) : TRUE) && \
   (gOpponentsSpace ? TRUE : !OPPONENTS_SPACE(dir, theBlankOX[i])) && \
@@ -211,10 +211,10 @@ BOOLEAN initialized = FALSE;
 #define BUCKET_O(i) ((i-(side-1))/side)
 
 /*external function prototypes*/
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
-extern POSITION         generic_hash(char *board, int player);
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
-extern int              whoseMove (POSITION hashed);
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
+extern POSITION         generic_hash_hash(char *board, int player);
+extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
+extern int              generic_hash_turn (POSITION hashed);
 
 /* local function prototypes */
 POSITION BlankOXToPosition(BlankOX*, BlankOX);
@@ -253,7 +253,7 @@ void InitializeGame() {
   piecesArray[8] = side-1;
   piecesArray[9] = -1;
 
-  gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL);
+  gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL, 0);
   gWhosTurn = x;
 
   for (i = 0; i < NUM_BUCKETS; i++)
@@ -277,7 +277,7 @@ void InitializeGame() {
   gNumberOfPositions = (int) pow((double)3, (double)boardsize)*2;
   */
   gInitialPosition = DefaultInitialPosition();
-  generic_unhash(gInitialPosition, board);
+  generic_hash_unhash(gInitialPosition, board);
 
   gMoveToStringFunPtr = &MoveToString;
 }
@@ -297,16 +297,16 @@ void DebugMenu() { }
 ************************************************************************/
 void GameSpecificMenu() {
   int c; // My char for board size input.
-  
+
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
-    
+
     printf("\tCurrent Initial Position:\n");
     PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
-    
+
     /* printf("\tI)\tChoose the (I)nitial position\n"); */
     /*
-    printf("\tw)\tToggle Buckets at (W)in spots from %s to %s\n", 
+    printf("\tw)\tToggle Buckets at (W)in spots from %s to %s\n",
 	   gBuckets ? "ON" : "OFF",
 	   !gBuckets ? "ON" : "OFF");
     */
@@ -320,30 +320,30 @@ void GameSpecificMenu() {
     printf("\to)\tToggle allow entry of (o)pponent's start space from %s to %s\n",
 	   gOpponentsSpace ? "ON" : "OFF",
 	   !gOpponentsSpace ? "ON" : "OFF");
-    printf("\ts)\tSet board (s)ize.\n");    
+    printf("\ts)\tSet board (s)ize.\n");
     printf("\n");
 
     printf("\td)\tSet all above options to actual (D)inoDodgem\n");
     printf("\tl)\tSet all above options to C(l)assic DinoDodgem\n");
     printf("\n");
 
-    printf("\tt)\tToggle (t)rapping opponent from %s to %s\n", 
+    printf("\tt)\tToggle (t)rapping opponent from %s to %s\n",
 	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
     printf("\n");
 
-    printf("\td)\tToggle (c)hess moves interface from %s to %s\n", 
+    printf("\td)\tToggle (c)hess moves interface from %s to %s\n",
 	   gChessMoves ? "ON" : "OFF",
 	   !gChessMoves ? "ON" : "OFF");
-    printf("\tw)\tToggle (w)in-by bar interface from %s to %s\n", 
+    printf("\tw)\tToggle (w)in-by bar interface from %s to %s\n",
 	   gWinByBar ? "ON" : "OFF",
 	   !gWinByBar ? "ON" : "OFF");
     printf("\n");
 
     printf("\tb)\t(B)ack = Return to previous activity.\n");
-  
+
     printf("\nSelect an option: ");
-    
+
     switch(GetMyChar()) {
     case 'S': case 's': // Set board size game option.
       getchar();
@@ -419,7 +419,7 @@ void GameSpecificMenu() {
     }
   } while(TRUE);
 }
-  
+
 /************************************************************************
 ** NAME:        SetTclCGameSpecificOptions
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
@@ -438,8 +438,8 @@ int theOptions[];
 **              MOVE     theMove     : The move to apply.
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 ** CALLS:       MoveToSlots(MOVE,*SLOT,*SLOT)
-** Note:        A move is an int with first 8 bits from right 
-**              representing the TO position, and bits 8-16 from right 
+** Note:        A move is an int with first 8 bits from right
+**              representing the TO position, and bits 8-16 from right
 **              representing the FROM position.
 ************************************************************************/
 
@@ -486,7 +486,7 @@ void UndoMove(MOVE theMove)
   theMove = theMove >> 8;
   to = theMove & 255;
   from = (theMove >> 8) & 255;
-  
+
   if (to == boardsize && gBuckets) {
     if (gWhosTurn == o) /* changed from x */
       gBucketIndicator[0][BUCKET_O(from)] = FALSE;
@@ -515,7 +515,7 @@ POSITION GetInitialPosition()
   printf("EXAMPLE of a %d by %d board:\n", side, side);
   row = 0;
   col = 0;
- 
+
   while (row < side) {
     printf("\n\t");
     if (row != (side-1)) {
@@ -541,11 +541,11 @@ POSITION GetInitialPosition()
   do {
     numX = numO = 0;
     printf("\nNow enter a new board:\n");
-    
+
     /* Get inputted initial position. */
     i = 0;
     getchar();
-    
+
     row = side - 1;
     col = 0;
     while (row >= 0) {
@@ -571,7 +571,7 @@ POSITION GetInitialPosition()
       row--;
       col = 0;
     }
-    
+
     getchar();
     printf("\nNow, whose turn is it? [O/X] : ");
     scanf("%c",&c);
@@ -591,8 +591,8 @@ POSITION GetInitialPosition()
 /************************************************************************
 ** NAME:        PrintComputersMove
 ** DESCRIPTION: Nicely format the computers move.
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 ************************************************************************/
 void PrintComputersMove(computersMove,computersName)
      MOVE computersMove;
@@ -642,14 +642,14 @@ void PrintComputersMove(computersMove,computersName)
 **              PositionToBlankOX()
 **              BlankOX OnlyPlayerLeft(*BlankOX)
 ************************************************************************/
-VALUE Primitive(position) 
+VALUE Primitive(position)
      POSITION position;
 {
   BOOLEAN ThreeInARow(), AllFilledIn();
   BlankOX theBlankOX[boardsize],whosTurn,OnlyPlayerLeft();
 
   PositionToBlankOX(position,theBlankOX,&whosTurn);
-  
+
   if (OnlyPlayerLeft(theBlankOX) == whosTurn)
     return(gStandardGame ? lose : win);  /* cause you're the only one left */
   else if(CantMove(position)) /* the other player just won */
@@ -663,7 +663,7 @@ BOOLEAN CantMove(position)
 {
   MOVELIST *ptr, *GenerateMoves();
   BOOLEAN cantMove;
-  
+
   ptr = GenerateMoves(position);
   cantMove = (ptr == NULL);
   FreeMoveList(ptr);
@@ -724,7 +724,7 @@ void PrintPosition(position,playerName,usersTurn)
   // }
   // printf ("This is the stringboard: %s", theBlankOx);
 
-  /*  
+  /*
   if (!gHasClearedBuckets) {
     for (col = 0; col < MAX_SIDE; col++)
       gBucketIndicator[0][col] = gBucketIndicator[1][col] = FALSE;
@@ -774,19 +774,19 @@ void PrintPosition(position,playerName,usersTurn)
 	printf("  ");
       }
 	else if (!gOpponentsSpace && whosTurn == x) {
-		if (((side*row+col)%side == 0) && (((side*row+col)/side) >= (HAVEFORBS?2:1)) && theBlankOx[side*row+col] == Blank) 
+		if (((side*row+col)%side == 0) && (((side*row+col)/side) >= (HAVEFORBS?2:1)) && theBlankOx[side*row+col] == Blank)
 			printf("  ");
 		else printf("%c ", theBlankOx[((side*row)+col)]);
 	}
 	else if (!gOpponentsSpace && whosTurn == o) {
-		if (XSTART(side*row+col) && theBlankOx[side*row+col] == Blank) 
+		if (XSTART(side*row+col) && theBlankOx[side*row+col] == Blank)
 			printf("  ");
 		else printf("%c ", theBlankOx[((side*row)+col)]);
 	}
       else {
 	printf("%c ", theBlankOx[((side*row)+col)]);
       }
-	
+
       /*printf ("%s ", ((gForbidden && !(side*row+col)) || (HAVEFORBS && ISFORB(side*row+col))) ? " " : (char)theBlankOx[((side*row)+col)]); */
       if (col == side-1 && gBuckets) printf("%d ", gBucketIndicator[0][BUCKET_O(side*row+col)]);
     }
@@ -864,7 +864,7 @@ void PrintPosition(position,playerName,usersTurn)
     for (i = 1; i < NUMPIECES*side+1; i++)
       printf ("%d", i%10);
     printf ("\n");
-    
+
     printf ("        X ");
     for (i = -(NUMPIECES*side); i < (NUMPIECES*side)+1; i++) {
       // printf ("%d %d ", i, ocount);
@@ -879,11 +879,11 @@ void PrintPosition(position,playerName,usersTurn)
     for (col = 0; col < pbar_len-2; col++)
       printf(" ");
     printf("X\n");
-    
+
     printf("        X power: ", xcount);
     for (col = 0; col < xcount; col++)
       printf("X");
-    //if (gBlankOXString[(int)whosTurn] == "X") printf("x"); 
+    //if (gBlankOXString[(int)whosTurn] == "X") printf("x");
     if (whosTurn == x) printf("x");
     printf("\n");
 
@@ -913,8 +913,8 @@ void PrintPosition(position,playerName,usersTurn)
            |       ** and this is the move you can\n\
        l<- X ->r   ** perform on one of your pieces.\n\n");
   printf("  Move format: [from to] \n\n");
-  
-  
+
+
 //  PositionToBlankOX(position,theBlankOx,&whosTurn);
 //  for (row = side - 1; row >= 0; row--) {
 //    printf("\n\t");
@@ -947,7 +947,7 @@ void PrintPosition(position,playerName,usersTurn)
 **              from this position. Return a pointer to the head of the
 **              linked list.
 ** INPUTS:      POSITION position : The position to branch off of.
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
 ************************************************************************/
@@ -960,7 +960,7 @@ MOVELIST *GenerateMoves(position)
   BlankOX theBlankOX[boardsize], whosTurn;
   int i;     /* Values for J: 0=left,1=straight,2=right */
   int left, right, up, down; /* Board position relative to current piece. */
-  
+
   PositionToBlankOX(position,theBlankOX,&whosTurn);
   gWhosTurn = whosTurn;
 
@@ -1076,8 +1076,8 @@ MOVELIST *GenerateMoves(position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
 ** CALLS:       ValidMove(MOVE, POSITION)
@@ -1097,7 +1097,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
     if (gChessMoves)
       printf("%8s's move [(u)ndo/{{a-%c}{1-%c}{f,l,r}}] : ", playerName, side-1+'a', side-1+'1');
     else printf("%8s's move [(u)ndo/0-%d 0-%d] : ", playerName, boardsize-1, boardsize-1);
-    
+
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return(ret);
@@ -1157,12 +1157,12 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 
   if (gChessMoves) {
     ret = sscanf(input,"%c%c%c", &letter, &num, &dir);
-    
+
     l = letter-'a';
     n = (num - '1');
     fromSlot = side * n;
     fromSlot += l;
-    
+
     if (dir == 'f')
       theDirection = (gWhosTurn == x) ? NORTH : EAST;
     else if (dir == 'l')
@@ -1184,23 +1184,23 @@ MOVE ConvertTextInputToMove(input) STRING input; {
     else if (theDirection == SOUTH)
       toSlot = (fromSlot - side);
     else toSlot = -1;
-    
+
   } else ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-  
-  /* Encrypt from and to into a MOVE. */  
+
+  /* Encrypt from and to into a MOVE. */
   /*theMove = fromSlot;
   theMove = theMove << 8;
   theMove += toSlot;
   theMove = theMove << 8;
   theMove += gWhosTurn;*/
-  theMove = encodemove(fromSlot, toSlot, gWhosTurn); 
+  theMove = encodemove(fromSlot, toSlot, gWhosTurn);
   return(theMove);
 }
 
 /************************************************************************
 ** NAME:        PrintMove
 ** DESCRIPTION: Print the move in a nice format.
-** INPUTS:      MOVE *theMove         : The move to print. 
+** INPUTS:      MOVE *theMove         : The move to print.
 ************************************************************************/
 void PrintMove(theMove)
      MOVE theMove;
@@ -1213,7 +1213,7 @@ void PrintMove(theMove)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -1227,7 +1227,7 @@ STRING MoveToString (theMove)
   char letter, num, dir;
   BlankOX whosTurn;
   DIRECTION theDirection;
-  
+
   /* Un-encrypt the move. */
   whosTurn = getwhosTurnfromMove(theMove);
   to = getto(theMove);
@@ -1290,11 +1290,11 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
     player = 2;
   else if (whosTurn == o)
     player = 1;
-  return generic_hash(theBlankOX, player);
+  return generic_hash_hash(theBlankOX, player);
   /*
   int i;
   int position = 0;
-  
+
   for (i = 0; i < boardsize; i++) {
       position += (theBlankOX[i] * g3Array[i]);
   }
@@ -1313,8 +1313,8 @@ POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
 ************************************************************************/
 void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *theBlankOX, *whosTurn; {
   int player;
-  generic_unhash(thePos, theBlankOX);
-  player = whoseMove(thePos);
+  generic_hash_unhash(thePos, theBlankOX);
+  player = generic_hash_turn(thePos);
   *whosTurn = (player == 1 ? o : x);
   /*
   int i;
@@ -1361,7 +1361,7 @@ int NumberOfOptions () {
   return 2*2*2*2*2*2*(MAX_SIDE-MIN_SIDE+1);
 }
 /*************************************************
- **  Move Stuff 
+ **  Move Stuff
  ************************************************/
 MOVE encodemove( int from, int to,  BlankOX whosTurn) {
   MOVE theMove;
@@ -1369,7 +1369,7 @@ MOVE encodemove( int from, int to,  BlankOX whosTurn) {
   theMove = theMove << 8;
   theMove += to;
   theMove = theMove << 8;
-  if (whosTurn == x) 
+  if (whosTurn == x)
     return theMove;
   else if (whosTurn == o)
     return theMove + 1;

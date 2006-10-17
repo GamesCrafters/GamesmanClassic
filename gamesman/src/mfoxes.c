@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.13 2006-03-20 23:56:56 kmowery Exp $
+// $Id: mfoxes.c,v 1.14 2006-10-17 10:45:20 max817 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -57,7 +57,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
 
-/* 
+/*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
@@ -155,10 +155,10 @@ static int order[MAXBOARDSIZE];
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
-extern POSITION         generic_hash(char *board, int player);
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
-extern int              whoseMove (POSITION hashed);
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
+extern POSITION         generic_hash_hash(char *board, int player);
+extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
+extern int              generic_hash_turn (POSITION hashed);
 /* Internal */
 void                    InitializeGame();
 MOVELIST               *GenerateMoves(POSITION position);
@@ -195,7 +195,7 @@ STRING MoveToString(MOVE);
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
@@ -208,10 +208,10 @@ void InitializeGame ()
     InitializeAdjacency();
     InitializeOrder();
     theBlankFG = (char *) SafeMalloc( (BOARDSIZE) * sizeof(char) );
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, p_array, NULL);
+    gNumberOfPositions = generic_hash_init(BOARDSIZE, p_array, NULL, 0);
 
     /*  PositionToBlankFG(position,theBlankFg,&whosTurn);,)*/
-    
+
     for (j=0; j<FOXES; j++) {
 	theBlankFG[j] = FOXPIECE;
 	/*	printf("%d\n", j);*/
@@ -225,7 +225,7 @@ void InitializeGame ()
 	/*	printf("%d\n", l);*/
     }
 
-    gInitialPosition = generic_hash( theBlankFG, WhoGoesFirst );
+    gInitialPosition = generic_hash_hash( theBlankFG, WhoGoesFirst );
     SafeFree(theBlankFG);
 
     gMoveToStringFunPtr = &MoveToString;
@@ -239,7 +239,7 @@ void InitializeGame ()
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position for move
 **                                  generation.
 **
@@ -253,22 +253,22 @@ void InitializeGame ()
 MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST *moves = NULL;
-    
+
     /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 
     char theBlankFG[BOARDSIZE];
     int whosTurn, i,j;
-    
-    generic_unhash(position,theBlankFG);
-    whosTurn = whoseMove(position);
+
+    generic_hash_unhash(position,theBlankFG);
+    whosTurn = generic_hash_turn(position);
 
     for(i = 0 ; i < BOARDSIZE ; i++) {     /* enumerate over all FROM slots */
 	for(j = 0 ; j < BOARDSIZE ; j++) {   /* enumerate over all TO slots */
-	    if(OkMove(theBlankFG, whosTurn, (SLOT)i, (SLOT)j)) 
+	    if(OkMove(theBlankFG, whosTurn, (SLOT)i, (SLOT)j))
 		moves = CreateMovelistNode(SlotsToMove((SLOT)i,(SLOT)j),moves);
 	}
     }
-    
+
     return moves;
 }
 
@@ -293,7 +293,7 @@ BOOLEAN OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot, SLOT toSlot)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -305,19 +305,19 @@ BOOLEAN OkMove(char *theBlankFG, int whosTurn, SLOT fromSlot, SLOT toSlot)
 *************************************************************************/
 
 POSITION DoMove (POSITION position, MOVE move)
-{   
+{
     SLOT fromSlot, toSlot;
     char theBlankFG[BOARDSIZE];
     int whosTurn;
-    
-    generic_unhash(position, theBlankFG);
-    whosTurn = whoseMove(position);
+
+    generic_hash_unhash(position, theBlankFG);
+    whosTurn = generic_hash_turn(position);
 
     MoveToSlots(move, &fromSlot, &toSlot);
     theBlankFG[toSlot] = theBlankFG[fromSlot];
     theBlankFG[fromSlot] = BLANKPIECE;
-    
-    return(generic_hash(theBlankFG,(whosTurn == FOXTURN ? GOOSETURN : FOXTURN)));
+
+    return(generic_hash_hash(theBlankFG,(whosTurn == FOXTURN ? GOOSETURN : FOXTURN)));
 }
 
 
@@ -335,13 +335,13 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       None
 **
 ************************************************************************/
 
@@ -350,13 +350,13 @@ VALUE Primitive (POSITION position)
     char theBlankFG[BOARDSIZE];
     int whosTurn;
     int i, foxMax = 0, gooseMax = 0;
-    
-    generic_unhash(position,theBlankFG);
-    whosTurn = whoseMove(position);
+
+    generic_hash_unhash(position,theBlankFG);
+    whosTurn = generic_hash_turn(position);
 
     for ( i=0; i<BOARDSIZE; i++ ) {
 	if ( theBlankFG[i] == FOXPIECE) {
-	    if ( i/4 > foxMax ) 
+	    if ( i/4 > foxMax )
 		foxMax = i/4;
 	} else if ( theBlankFG[i] == GOOSEPIECE ) {
 	    if ( i/4 > gooseMax )
@@ -391,7 +391,7 @@ BOOLEAN CantMove(POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -406,15 +406,15 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     int i;
     char theBlankFg[BOARDSIZE];
     int whosTurn;
-  
-    generic_unhash(position,theBlankFg);
-    whosTurn = whoseMove(position);
-  
+
+    generic_hash_unhash(position,theBlankFg);
+    whosTurn = generic_hash_turn(position);
+
     printf("\t\tLEGEND:\t\t\tPLAYER %s, a.k.a %s's turn\n\n",
 	   playersName,
 	   whosTurn == FOXTURN? "FOX" : "GOOSE");
     for( i=0; i<(ROWS/2); i++ ){
-	
+
 	printf("         (   ");
 	if( 8*i<9 )
 	    printf(" %d  ", 8*i+1);
@@ -495,18 +495,18 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
     SLOT fromSlot,toSlot;
-    
+
     MoveToSlots(computersMove,&fromSlot,&toSlot);
-    printf("%8s's move              : %d %d\n", computersName, 
+    printf("%8s's move              : %d %d\n", computersName,
 	   fromSlot+1,toSlot+1);
 }
 
@@ -516,8 +516,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
@@ -533,7 +533,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -543,7 +543,7 @@ STRING MoveToString (theMove)
 {
   STRING move = (STRING) SafeMalloc(10);
   SLOT fromSlot, toSlot;
-  
+
   MoveToSlots(theMove,&fromSlot,&toSlot);
   /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
   sprintf( move, "[ %d %d ]", fromSlot + 1, toSlot + 1);
@@ -558,10 +558,10 @@ STRING MoveToString (theMove)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -576,15 +576,15 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    
+
     for (;;) {
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
 	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
-	
+
 	input = HandleDefaultTextInput(position, move, playersName);
-	
+
 	if (input != Continue)
 		return input;
     }
@@ -607,7 +607,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -623,7 +623,7 @@ BOOLEAN ValidTextInput (STRING input)
 {
     SLOT fromSlot, toSlot;
     int ret;
-    
+
     ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
     return(ret == 2 &&
 	   fromSlot <= BOARDSIZE && fromSlot >= 1 && toSlot <= BOARDSIZE && toSlot >= 1);
@@ -637,7 +637,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -648,12 +648,12 @@ MOVE ConvertTextInputToMove (STRING input)
 {
     SLOT fromSlot, toSlot;
     int ret;
-    
+
     ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-    
+
     fromSlot--;               /* user input is 1-16, our rep. is 0-15 */
     toSlot--;                 /* user input is 1-16, our rep. is 0-15 */
-    
+
     return(SlotsToMove(fromSlot,toSlot));
 }
 
@@ -670,7 +670,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
@@ -679,20 +679,20 @@ void GameSpecificMenu ()
 {
     do {
 	printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
-	
+
 	printf("\tCurrent Initial Position:\n");
 	/*    whosTurn = ((gInitialPosition>=POSITION_OFFSET)? g : f);*/
 	PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
-	
+
 	printf("\n\tCurrent Number of Foxes: %d\n", FOXES);
 	printf("\tCurrent Number of Geese: %d\n\n", GEESE);
 	printf("\t1)\tChoose (manually) the initial position\n");
 	printf("\t2)\tChange the number of pieces and size of the board (the default position will be used)\n");
 	printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 	printf("\n\nSelect an option: ");
-	
+
 	//scanf("%s", c);
-	
+
 	switch(GetMyChar()) {
 	case 'Q': case 'q':
 	    ExitStageRight();
@@ -713,7 +713,7 @@ void GameSpecificMenu ()
     } while(TRUE);
 }
 
-void ChangeBoard() 
+void ChangeBoard()
 {
     printf("\n\n\t----- Change Board -----\n");
     printf("\n\tPlease enter the new number of foxes (currently %d): ",FOXES);
@@ -745,33 +745,33 @@ void ChangeBoard()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
     char theBlankFG[BOARDSIZE];
     /*    int whosTurn;*/
-    
+
     gInitialPosition = options[4];
     if (options[0]) {
 	/* foxes go first */
 
-	generic_unhash(gInitialPosition, theBlankFG);
-	/*	whosTurn = whoseMove(gInitialPosition);*/
+	generic_hash_unhash(gInitialPosition, theBlankFG);
+	/*	whosTurn = generic_hash_turn(gInitialPosition);*/
 
-	gInitialPosition = generic_hash(theBlankFG, FOXTURN);
-	
+	gInitialPosition = generic_hash_hash(theBlankFG, FOXTURN);
+
     }
-    
+
     TOTALPIECES = options[1];
     FOXES = options[2];
     GEESE = TOTALPIECES - FOXES;
     BOARDSIZE = options[3];
     ROWS = BOARDSIZE/4;
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -780,7 +780,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -791,12 +791,12 @@ POSITION GetInitialPosition ()
     int whosTurn;
     signed char c;
     int i;
-    
+
     printf("\n\n\t----- Get Initial Position -----\n");
     printf("\n\tPlease input the position to begin with.\n");
     printf("\tNote that it should be in the following format:\n\n");
     printf(" - - F -\n- - - -             <----- EXAMPLE \n - - - -\nG G G G \n\n");
-    
+
     i = 0;
     getchar();
     while(i < BOARDSIZE && (c = getchar()) != EOF) {
@@ -809,7 +809,7 @@ POSITION GetInitialPosition ()
 	else
 	    ;   /* do nothing */
     }
-    
+
     getchar();
     printf("\nNow, whose turn is it? [G/F] : ");
     scanf("%c",&c);
@@ -817,8 +817,8 @@ POSITION GetInitialPosition ()
 	whosTurn = FOXTURN;
     else
 	whosTurn = GOOSETURN;
-    
-    return(generic_hash(theBlankFG, whosTurn));
+
+    return(generic_hash_hash(theBlankFG, whosTurn));
 }
 
 
@@ -874,7 +874,7 @@ void setOption (int option)
     if(option == 1)
 	gStandardGame = TRUE ;
     else
-	gStandardGame = FALSE ;    
+	gStandardGame = FALSE ;
 }
 
 
@@ -888,12 +888,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 
@@ -905,7 +905,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 /************************************************************************
@@ -913,8 +913,8 @@ void DebugMenu ()
 ** NAME:        MoveToSlots
 **
 ** DESCRIPTION: convert an internal move to that of two slots
-** 
-** INPUTS:      MOVE theMove    : The move input. 
+**
+** INPUTS:      MOVE theMove    : The move input.
 **              SLOT *fromSlot  : The slot the piece moves from (output)
 **              SLOT *toSlot    : The slot the piece moves to   (output)
 **
@@ -932,7 +932,7 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot)
 ** NAME:        SlotsToMove
 **
 ** DESCRIPTION: convert two slots (from and to) to an encoded MOVE
-** 
+**
 ** INPUT:       SLOT fromSlot   : The slot the piece moves from (0->BOARDSIZE)
 **              SLOT toSlot     : The slot the piece moves to   (0->BOARDSIZE)
 **
@@ -951,7 +951,7 @@ MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot)
 ** NAME:        InitializeAdjacency
 **
 ** DESCRIPTION: Initializes adjacency matrix 'conncted'.
-** 
+**
 ** INPUTS:      None
 **
 ** OUTPUTS:     None
@@ -960,7 +960,7 @@ MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot)
 
 void InitializeAdjacency () {
   int i, j;
-  
+
   for( i=0; i<MAXBOARDSIZE; i++ )
     for( j=i; j<MAXBOARDSIZE; j++ )
       if( ((j-i)==4) ||
@@ -982,7 +982,7 @@ void InitializeAdjacency () {
 ** NAME:        InitializeOrder
 **
 ** DESCRIPTION: Initializes order of the nodes (array order).
-** 
+**
 ** INPUTS:      None
 **
 ** OUTPUTS:     None
@@ -1003,6 +1003,10 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2006/03/20 23:56:56  kmowery
+//
+// Added MoveToString and set gMoveToStringFunPtr, required for Visual Value History.
+//
 // Revision 1.12  2006/01/11 22:55:03  hevanm
 // Hopefully really fixed twobitdb. Changed compiler flags for all platforms to "-Wall -g". Look at those warnings. They are not critical, but they are there. Removed the configure script. From now on please remember to (re)grenerate it yourself if/when configure.ac changes, by simply running autoconf.
 //

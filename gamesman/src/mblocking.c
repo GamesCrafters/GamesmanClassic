@@ -8,17 +8,17 @@
 **
 ** DATE:        Start: ~ Jan 28, 2004
 **
-** UPDATE HIST: 
+** UPDATE HIST:
 **              16 Mar, 04: Tentatively added structs, defines, globals,
-**                          DoMove, PrintComputersMove, 
+**                          DoMove, PrintComputersMove,
 **                          PrintPosition (depends on parser),
 **                          GetAndPrintPlayersMove, ConvertTextInputToMove,
 **                          and several auxillary functions.
 **              19 Mar, 04: Added parsing and printing code.
 **              06 Apr, 04: Added the rest of the functions, fixed
 **                          compiler errors.
-**              10 Apr, 04: Many bugfixes throughout the code, changes in 
-**                          output functions, and (untested) support for 
+**              10 Apr, 04: Many bugfixes throughout the code, changes in
+**                          output functions, and (untested) support for
 **                          node classes.
 **              11 Apr, 04: Changed handling of the image array to work
 **                          with changing the graph file.
@@ -28,7 +28,7 @@
 **              23 Apr, 04: Minor changes in primitive and output,
 **                          a little more error checking.
 **
-** 
+**
 **
 **************************************************************************/
 
@@ -57,7 +57,7 @@ POSITION kBadPosition        = -1;
 STRING   kAuthorName         = "Greg Bonin and Tanya Gordeeva";
 STRING   kGameName           = "Blocking";
 STRING   kDBName             = "blocking";
-BOOLEAN  kPartizan           = TRUE; 
+BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = FALSE;
 BOOLEAN  kSupportsSymmetries = FALSE;
 BOOLEAN  kSupportsGraphics   = FALSE;
@@ -90,7 +90,7 @@ STRING   kHelpReverseObjective =
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
 
-STRING   kHelpExample = 
+STRING   kHelpExample =
 "Black (B)'s turn:\n\n\
 BOARD                                   LEGEND\n\
 B   B                                   1   2\n\
@@ -217,7 +217,7 @@ struct GraphNode {
 };
 
 /* Generic piece, but the current game limits pieces to black
-   and white. Having more pieces complicates the 
+   and white. Having more pieces complicates the
    stringToBoard procedure and would require expansion
    of the parser grammar to provide additional rules for
    these pieces. */
@@ -274,7 +274,7 @@ void printBoard(nodes board, BOOLEAN reset);
 /* Starting here are the function prototypes for the parser: */
 
 /* Initialize all the entries to 0. */
-void nullInit(nodes board, pieces black_pieces, pieces white_pieces, 
+void nullInit(nodes board, pieces black_pieces, pieces white_pieces,
 	      classes node_classes);
 
 /* Processes the file. */
@@ -289,9 +289,9 @@ int handlePieceClass(char* token, int* pos, nodes board,
 int handleNodeDef(char* token, int* pos, nodes board);
 int handleImage(char* token, int* pos, nodes board);
 
-/* Retrieves one token, of the form (...), a number, or 
+/* Retrieves one token, of the form (...), a number, or
    plain text (all other cases).
-   The number of left facing and right facing parentheses must 
+   The number of left facing and right facing parentheses must
    be equal.
    Returns 0 if any errors occur, 1 otherwise. */
 int fileGetToken(FILE* graph_file, char* token);
@@ -311,7 +311,7 @@ char* stringGetLine(char* s);
 /* Returns a hash number for class or node names. */
 int nameHash(char* name, int hashsize);
 
-/* Adds a value to one of the hash tables. 
+/* Adds a value to one of the hash tables.
    0 for classes, 1 for nodes. */
 void addToHash(int val, int num_val, int table);
 int hashLookup(char* token, classes node_classes, nodes board);
@@ -331,12 +331,12 @@ extern void		SafeFree ();
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
 {
-  
+
   int hash_array[10];
   char string_board[MAX_NODES];
 
@@ -348,7 +348,7 @@ void InitializeGame ()
       ExitStageRight();
     }
     nullInit(global_board, global_black, global_white, global_classes);
-    procFile(g_file, global_board, global_black, global_white, 
+    procFile(g_file, global_board, global_black, global_white,
 	     global_classes);
   }
 
@@ -368,8 +368,8 @@ void InitializeGame ()
   kDBName = (STRING) SafeMalloc(sizeof(char)*100);
   sprintf(kDBName, "%.6s", g_name);
 
-  gNumberOfPositions = generic_hash_init(num_nodes, hash_array, NULL);
-  gInitialPosition = generic_hash(string_board, 1);
+  gNumberOfPositions = generic_hash_init(num_nodes, hash_array, NULL, 0);
+  gInitialPosition = generic_hash_hash(string_board, 1);
 
   return;
 }
@@ -381,7 +381,7 @@ void InitializeGame ()
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
@@ -396,7 +396,7 @@ void DebugMenu ()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void GameSpecificMenu ()
@@ -404,7 +404,7 @@ void GameSpecificMenu ()
   char file_name[100];
   char tmp[100];
   BOOLEAN no_errors;
-  
+
   use_default = TRUE;
 
   while(use_default) {
@@ -413,7 +413,7 @@ void GameSpecificMenu ()
     system("ls -C ../meta"); */
     printf("\nSpecify one of the following definition files:\n\n");
     PrettyPrintDir("../meta", ".blk");
-    
+
     printf("\nLoad Graph from : ");
     scanf("%s", tmp);
     (void) sprintf((char *)file_name, "../meta/%s.blk", tmp);
@@ -437,14 +437,14 @@ void GameSpecificMenu ()
   return;
 }
 
-  
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (options)
@@ -458,15 +458,15 @@ void SetTclCGameSpecificOptions (options)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
-** CALLS:       POSITION generic_hash ()
-**              void generic_unhash ()
-**	        int whoseMove ()
+** CALLS:       POSITION generic_hash_hash ()
+**              void generic_hash_unhash ()
+**	        int generic_hash_turn ()
 **
 *************************************************************************/
 
@@ -474,23 +474,23 @@ POSITION DoMove (thePosition, theMove)
 	POSITION thePosition;
 	MOVE theMove;
 {
-  
+
   int to, from;
   int player;
   char string_board[MAX_NODES];
 
-  generic_unhash(thePosition, string_board);
+  generic_hash_unhash(thePosition, string_board);
   string_board[num_nodes] = '\0';
   moveUnHash(theMove, &to, &from);
   string_board[to] = string_board[from];
   string_board[from] = '_';
 
-  if(whoseMove(thePosition) == BLACK_PLAYER)
+  if(generic_hash_turn(thePosition) == BLACK_PLAYER)
     player = WHITE_PLAYER;
   else
     player = BLACK_PLAYER;
 
-  return generic_hash(string_board, player);
+  return generic_hash_hash(string_board, player);
 }
 
 
@@ -500,7 +500,7 @@ POSITION DoMove (thePosition, theMove)
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -536,7 +536,7 @@ POSITION GetInitialPosition()
 
   string_board[num_nodes] = '\0';
 
-  initialPosition = generic_hash(string_board, player);
+  initialPosition = generic_hash_hash(string_board, player);
 
   free(string_board);
 
@@ -549,9 +549,9 @@ POSITION GetInitialPosition()
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -578,34 +578,34 @@ void PrintComputersMove(computersMove, computersName)
 **              three-in-a-row with Gobblet. Three in a row for the player
 **              whose turn it is a win, otherwise its a loss.
 **              Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       int whoseMove ()
-**              void generic_unhash ()
+** CALLS:       int generic_hash_turn ()
+**              void generic_hash_unhash ()
 **              stringToBoard ()
-**              
+**
 **
 ************************************************************************/
 
 VALUE Primitive (pos)
 	POSITION pos;
 {
-  int whoseMove();
+  int generic_hash_turn();
 
   char string_board[MAX_NODES];
-  int player = whoseMove(pos);
+  int player = generic_hash_turn(pos);
   struct Piece* pieces_ptr;
   struct GraphNode* current_node;
   int num, i, j;
 
-  generic_unhash(pos, string_board);
+  generic_hash_unhash(pos, string_board);
   string_board[num_nodes] = '\0';
   stringToBoard(string_board, global_board, global_black, global_white);
 
-  if(player == BLACK_PLAYER) { 
+  if(player == BLACK_PLAYER) {
     pieces_ptr = global_black;
     num = num_black;
   } else {
@@ -635,12 +635,12 @@ VALUE Primitive (pos)
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
 **
-** CALLS:       void generic_unhash()
+** CALLS:       void generic_hash_unhash()
 **              STRING GetPrediction()
 **              void stringToBoard()
 **
@@ -653,12 +653,12 @@ void PrintPosition (position, playerName, usersTurn)
 {
   char string_board[MAX_NODES];
 
-  generic_unhash(position, string_board);
+  generic_hash_unhash(position, string_board);
   string_board[num_nodes] = '\0';
   stringToBoard(string_board, global_board, global_black,
 		global_white);
 
-  if(whoseMove(position) == BLACK_PLAYER)
+  if(generic_hash_turn(position) == BLACK_PLAYER)
     printf("\nBlack (%c)'s turn:\n", global_black[0].pic);
   else
     printf("\nWhite (%c)'s turn:\n", global_white[0].pic);
@@ -677,10 +677,10 @@ void PrintPosition (position, playerName, usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
@@ -693,7 +693,7 @@ MOVELIST *GenerateMoves (position)
          POSITION position;
 {
   MOVELIST *CreateMovelistNode(), *head = NULL;
-  int whoseMove();
+  int generic_hash_turn();
   VALUE Primitive();
 
   char string_board[MAX_NODES];
@@ -702,7 +702,7 @@ MOVELIST *GenerateMoves (position)
   pieces* user_pieces;
 
   if(Primitive(position) == undecided) {
-    player = whoseMove(position);
+    player = generic_hash_turn(position);
     if(player == BLACK_PLAYER) {
       max_pieces = num_black;
       user_pieces = &global_black;
@@ -711,19 +711,19 @@ MOVELIST *GenerateMoves (position)
       user_pieces = &global_white;
     }
 
-    generic_unhash(position, string_board);
+    generic_hash_unhash(position, string_board);
     string_board[num_nodes] = '\0';
     stringToBoard(string_board, global_board, global_black, global_white);
     for(i = 0; i < max_pieces; i++) {
       for(j = 0; j < (num_nodes-1); j++) {
 	current_node = global_board[(*user_pieces)[i].node].adjacent[j];
-	if(checkNodeAndClass(current_node, 
+	if(checkNodeAndClass(current_node,
 			     &global_board[(*user_pieces)[i].node],
 			     player))
 	  head = CreateMovelistNode(
 		   moveHash(
-		     hashLookup(&current_node->name, NULL, global_board), 
-		     (*user_pieces)[i].node), 
+		     hashLookup(&current_node->name, NULL, global_board),
+		     (*user_pieces)[i].node),
 		   head);
       }
     }
@@ -755,9 +755,9 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
   current_class = global_classes[from_node->class].moveto[i];
   while(current_class &&
 	(current_class->player != INVALID) && (i < MAX_CLASSES)) {
-    if((!strcmp(global_classes[to_node->class].name, current_class->name)) 
+    if((!strcmp(global_classes[to_node->class].name, current_class->name))
        &&
-       ((current_class->player == global_classes[to_node->class].player) || 
+       ((current_class->player == global_classes[to_node->class].player) ||
 	(current_class->player == BOTH_PLAYERS)))
       return TRUE;
     i++;
@@ -767,7 +767,7 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
   return valid_move;
 }
 
- 
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -775,9 +775,9 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -796,9 +796,9 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
   USERINPUT ret, HandleDefaultTextInput();
 
   do {
-    printf("%s's move [1-%d 1-%d/u(undo)]: ", playerName, num_nodes, 
+    printf("%s's move [1-%d 1-%d/u(undo)]: ", playerName, num_nodes,
 	   num_nodes);
-    
+
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return (ret);
@@ -819,7 +819,7 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -847,7 +847,7 @@ BOOLEAN ValidTextInput (input)
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -872,8 +872,8 @@ MOVE ConvertTextInputToMove (input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -971,7 +971,7 @@ void moveUnHash(int move, int* to, int* from) {
   return;
 }
 
-char* boardToString(char* s, nodes board, pieces black_pieces, 
+char* boardToString(char* s, nodes board, pieces black_pieces,
 		    pieces white_pieces) {
   int i;
 
@@ -1023,7 +1023,7 @@ void printBoard(nodes board, BOOLEAN reset) {
       strcpy(board_numbers[i], image[i]);
     for(i = 0; i < num_nodes; i++) {
       temp = board_numbers[board[i].str_line][board[i].str_index+1];
-      num_written = 
+      num_written =
 	sprintf(&board_numbers[board[i].str_line][board[i].str_index],
 	      "%d", i+1);
       board_numbers[board[i].str_line][board[i].str_index+num_written] =
@@ -1036,7 +1036,7 @@ void printBoard(nodes board, BOOLEAN reset) {
 
   for(i = 0; i < num_nodes; i++) {
     if(board[i].game_piece)
-      image[board[i].str_line][board[i].str_index] = 
+      image[board[i].str_line][board[i].str_index] =
 	board[i].game_piece->pic;
     else
       image[board[i].str_line][board[i].str_index] = '_';
@@ -1121,7 +1121,7 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
       ret &= handleNodeClass(token, &token_pos, board, node_classes,
 			     FALSE);
     else if(!strcmp(arg1, "piece-class") || !strcmp(arg1, "pc"))
-      ret &= handlePieceClass(token, &token_pos, board, black_pieces, 
+      ret &= handlePieceClass(token, &token_pos, board, black_pieces,
 			     white_pieces);
     else if(!strcmp(arg1, "node") || !strcmp(arg1, "n"))
       ret &= handleNodeDef(token, &token_pos, board);
@@ -1154,7 +1154,7 @@ int procFile(FILE* graph_file, nodes board, pieces black_pieces,
 int handleGraph(char* token, int* pos) {
   version = atoi(stringGetToken(token, pos));
   char* graph_name = stringGetToken(token, pos);
-  
+
   if(graph_name)
     strcpy(g_name, graph_name);
   else {
@@ -1193,9 +1193,9 @@ int handleNodeClass(char* token, int* pos,
 
   strcpy(node_classes[class_num].name, name_temp);
 
-  addToHash(nameHash(name_temp, MAX_CLASSES), 
+  addToHash(nameHash(name_temp, MAX_CLASSES),
 	    class_num, CLASS_TABLE);
-  
+
   players = stringGetToken(token, pos);
 
   if(!players) {
@@ -1308,7 +1308,7 @@ int handlePieceClass(char* token, int* pos, nodes board,
     printf(" of type %s\n", name);
     return 0;
   }
-    
+
   (*current_class)[*counter].pic = pic_str[0];
 
   /* Process the list of nodes with this piece. */
@@ -1413,7 +1413,7 @@ int handleNodeDef(char* token, int* pos, nodes board) {
       while(board[current_neighbor].adjacent[j])
 	j++;
       board[current_neighbor].adjacent[j] = &board[node_num];
-      
+
       i++;
     }
   }
@@ -1440,7 +1440,7 @@ int handleImage(char* token, int* pos, nodes board) {
   while(c_line && (i < 20)) {
     sprintf(image[i], "%.35s", c_line);
     j = 0;
-    while(image[i][j] && (image[i][j] != '\n') 
+    while(image[i][j] && (image[i][j] != '\n')
 	  && (image[i][j] != EOF)) {
       name[0] = image[i][j];
       hash_lookup = hashLookup(name, NULL, board);
@@ -1470,15 +1470,15 @@ int fileGetToken(FILE* graph_file, char* token) {
   int is_plain_text = 0;
 
   /* Skip whitespace and any unprintable junk. */
-  do 
+  do
     current = fgetc(graph_file);
-  while(current && (current != EOF) && (current != '(') 
+  while(current && (current != EOF) && (current != '(')
 	&& !isgraph((int)current));
 
   if(feof(graph_file) || ferror(graph_file))
     return 0;
 
-  /* Determine the type of token. 
+  /* Determine the type of token.
      The plain text type is not currently used. */
   if(current == '(')
     unmatched_parens = 1;
@@ -1491,7 +1491,7 @@ int fileGetToken(FILE* graph_file, char* token) {
     i++;
     is_plain_text = 1;
   }
- 
+
   /* Increment through the file. */
   while(unmatched_parens || is_plain_text) {
     current = fgetc(graph_file);
@@ -1530,13 +1530,13 @@ int fileGetToken(FILE* graph_file, char* token) {
 
 char* stringGetToken(char* s, int* position) {
   char* start;
-  int unmatched_parens = 0; 
+  int unmatched_parens = 0;
   int is_plain_text = 0;
 
-  
+
   /* Place the position at the first open parentheses or
      alphanumeric character. */
-  while(s[*position] && (s[*position] != '(') && 
+  while(s[*position] && (s[*position] != '(') &&
 	!isalnum((int)s[*position]))
     (*position)++;
 
@@ -1563,12 +1563,12 @@ char* stringGetToken(char* s, int* position) {
       s[(*position)] = '\0';
       (*position)++;
     }
-  } else { 
+  } else {
     while(unmatched_parens && s[*position]) {
       if(s[*position] == ')')
 	  unmatched_parens--;
       else if(s[*position] == '(')
-	  unmatched_parens++;      
+	  unmatched_parens++;
       (*position)++;
     }
     if(s[*position - 1] == ')')
@@ -1582,12 +1582,12 @@ char* stringGetLine(char* s) {
   static int position;
   static char* str;
   char* start;
- 
+
   if(s) {
     position = 0;
     str = s;
   }
-  
+
   start = str + position;
 
   if(!str[position] || (str[position] == EOF))
@@ -1595,7 +1595,7 @@ char* stringGetLine(char* s) {
 
   while(str[position] && (str[position] != '\n'))
     position++;
-  
+
   if(str[position]) {
     str[position] = '\0';
     position++;
@@ -1643,12 +1643,12 @@ int hashLookup(char* token, classes node_classes, nodes board) {
 
   if(node_classes) {
     hash_val = nameHash(token, MAX_CLASSES);
-    
+
     while(CLASS_LOOKUP &&
 	  strcmp(node_classes[CLASS_LOOKUP-1].name, token) &&
 	  (collision_index < MAX_CLASSES))
       collision_index++;
-   
+
     if(collision_index >= MAX_CLASSES)
       return -1;
     if(collision_index)
@@ -1656,7 +1656,7 @@ int hashLookup(char* token, classes node_classes, nodes board) {
     return CLASS_LOOKUP-1;
   } else if(board) {
     hash_val = nameHash(token, MAX_NODES);
-    while(NODE_LOOKUP && 
+    while(NODE_LOOKUP &&
 	  (board[NODE_LOOKUP-1].name != token[0]) &&
 	  (collision_index < MAX_NODES))
       collision_index++;
@@ -1685,47 +1685,47 @@ void PrettyPrintDir (const char* dir, const char* extension)
   struct string_list**  ptr = &head;
   char*                 tmp;
   int                   i;
-  
+
   if (!(d = opendir(dir))) {
     printf("No such directory \"%s\"\n\n", dir);
     return;
   }
-  
+
   ext_sz = strlen(extension);
-  
+
   while ((de = readdir(d))) {
     size_t      sz;
     char*       s;
-    
+
     s = de -> d_name;
     sz = strlen(s);
     if (sz >= ext_sz && !strcasecmp(&s[sz - ext_sz], extension)) {
       char*     cpy;
-      
+
       cpy = strdup(s);
       cpy[sz - ext_sz] = 0;
       sz -= ext_sz;
-      
+
       if (sz > max_sz)
         max_sz = sz;
-      
+
       *ptr = (struct string_list*) SafeMalloc(sizeof(struct string_list));
       (*ptr) -> str = cpy;
       (*ptr) -> next = NULL;
       ptr = &(*ptr) -> next;
     }
   }
-  
+
   closedir(d);
-  
+
   max_sz += 4;  // How many spaces do you want?
   tmp = (char*) SafeMalloc(max_sz + 1);
   tmp[max_sz] = 0;
-  
+
   i = 0;
   while (head) {
     struct string_list* next;
-    
+
     memset(tmp, ' ', max_sz);
     memcpy(tmp, head -> str, strlen(head -> str));
     printf("%s", tmp);
@@ -1738,9 +1738,9 @@ void PrettyPrintDir (const char* dir, const char* extension)
     free(head);
     head = next;
   }
-  
+
   if (i)
     printf("\n");
-  
+
   SafeFree(tmp);
 }

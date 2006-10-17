@@ -249,7 +249,7 @@ void InitializeGame()
 
   //have a GLOBAL HASH set up at outset:
   int game[10] = { o, 0, 4, x, 0, 5, Blank, 0, 9, -1 };
-  gNumberOfPositions = generic_hash_init_singleplayer(BOARDSIZE, game, vcfg, 1);
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, game, vcfg, 1);
 
    // gInitialPosition
   BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
@@ -718,8 +718,8 @@ BlankOX* PositionToBlankOX(POSITION position)
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		generic_hash_context_switch(tier); // switch to that tier's context
-		return (BlankOX *) generic_unhash(tierpos, board); // unhash in that tier
-	} else return (BlankOX *) generic_unhash(position, board);
+		return (BlankOX *) generic_hash_unhash(tierpos, board); // unhash in that tier
+	} else return (BlankOX *) generic_hash_unhash(position, board);
 }
 
 // "Hash"
@@ -729,9 +729,9 @@ POSITION BlankOXToPosition(BlankOX* board)
 	if (gHashWindowInitialized) {
 		TIER tier = BoardToTier(board); // find this board's tier
 		generic_hash_context_switch(tier); // switch to that context
-		TIERPOSITION tierpos = generic_hash((char*)board, 1); //unhash
+		TIERPOSITION tierpos = generic_hash_hash((char*)board, 1); //unhash
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-	} else position = generic_hash((char*)board, 1);
+	} else position = generic_hash_hash((char*)board, 1);
 	if(board != NULL)
 		SafeFree(board);
 	return position;
@@ -790,7 +790,7 @@ void SetupTierStuff() {
 		// Blanks = tier
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
-		generic_hash_init_singleplayer(BOARDSIZE, piecesArray, NULL, (tier%2==0 ? 2 : 1));
+		generic_hash_init(BOARDSIZE, piecesArray, NULL, (tier%2==0 ? 2 : 1));
 	}
 	// initial tier
 	gInitialTier = BOARDSIZE;

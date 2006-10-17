@@ -12,7 +12,7 @@
 **              Minor debugging by Jonathon Tsai
 **
 ** 2004.3.30    First compilation of subroutines into mttc.c; this update
-**              basically includes all functions below except for 
+**              basically includes all functions below except for
 **              ttc_hash and ttc_unhash, which still needs to be written
 **                                                                -- rc
 ** 2004.3.31    Added row nums and letters to print position. Shall we
@@ -21,7 +21,7 @@
 **                                                                -- jt
 **
 ** 2004.4.6     Added in support for generic_hash; still have to add in
-**              modified ruleset as per discussion with Dom.  
+**              modified ruleset as per discussion with Dom.
 **                                                                -- rc
 **
 ** 2004.4.18    Fixed some stuff, found lots more to fix, etc. etc.
@@ -34,14 +34,14 @@
 **              Still need to rewrite GenerateMoves() and
 **              GameSpecificMenu().
 **                                                                 --rc
-** 
-** 2004.4.26    Added in GenerateMoves() for all pieces except for the 
-**              pawns (which present a problem because they have 
+**
+** 2004.4.26    Added in GenerateMoves() for all pieces except for the
+**              pawns (which present a problem because they have
 **              direction associated with their move).  Fixed some
-**              memory leaks. 
+**              memory leaks.
 **
 **              It turns out the original ruleset specified that moving
-**              pieces was only allowed after the third turn.  Since 
+**              pieces was only allowed after the third turn.  Since
 **              this would require me to add in extra state to an already
 **              jam packed position, I have no plans to implement this
 **              rule at this time.
@@ -52,12 +52,12 @@
 **
 **              Hmmm everything seems to be fine but....segfaults.
 **                                                                 --rc
-** 
-** 2004.4.27    It solves!  And better yet, it solves correctly (or so 
-**              it appears).  This looks to be an interesting game, 
-**              especially with the modifiability of all the game 
+**
+** 2004.4.27    It solves!  And better yet, it solves correctly (or so
+**              it appears).  This looks to be an interesting game,
+**              especially with the modifiability of all the game
 **              parameters.  I've only just now started testing the limits
-**              of hash and memory....so I'll probably be modifying 
+**              of hash and memory....so I'll probably be modifying
 **              initial starting positions in the near future (to find
 **              one more interesting than the current)
 **
@@ -68,7 +68,7 @@
 ** 2004.5.4     Fixed bug in moving pieces (ala knight thing)
 **              Fixed printMove bug
 **              Changed moves to 'a2a4' as opposed to 'qa2a4' format
-**              
+**
 **              Need to add in options, i.e. misere and diagonals off
 **                                                                --rc
 **
@@ -94,23 +94,23 @@
 
 extern STRING gValueString[];
 
-POSITION gNumberOfPositions  = 0; 
-POSITION gInitialPosition    = 0; 
-POSITION gMinimalPosition    = 0; 
+POSITION gNumberOfPositions  = 0;
+POSITION gInitialPosition    = 0;
+POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
 STRING   kAuthorName         = "Reman Child";
-STRING   kGameName           = "Tic-Tac-Chec"; 
-STRING   kDBName             = "ttc"; 
-BOOLEAN  kPartizan           = TRUE; 
-BOOLEAN  kDebugMenu          = FALSE; 
+STRING   kGameName           = "Tic-Tac-Chec";
+STRING   kDBName             = "ttc";
+BOOLEAN  kPartizan           = TRUE;
+BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE; 
-BOOLEAN  kLoopy              = TRUE; 
+BOOLEAN  kTieIsPossible      = FALSE;
+BOOLEAN  kLoopy              = TRUE;
 BOOLEAN  kDebugDetermineValue = TRUE;
 
-/* 
-   Help strings that are pretty self-explanatory 
+/*
+   Help strings that are pretty self-explanatory
 */
 
 STRING kHelpGraphicInterface =
@@ -434,7 +434,7 @@ Excellent! You won!\n";
 
 /* Used mainly for setting up/changing the board */
 struct pieceType {
-  int id;   // Piece ID 
+  int id;   // Piece ID
   int freq; // Number of occurrences
 };
 
@@ -490,10 +490,10 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
-extern POSITION         generic_hash(char *board, int player);
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
-extern int              whoseMove (POSITION hashed);
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
+extern POSITION         generic_hash_hash(char *board, int player);
+extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
+extern int              generic_hash_turn (POSITION hashed);
 BOOLEAN offBoard(MOVE);
 BOOLEAN isPlayer(PIECE,MPLAYER);
 
@@ -518,7 +518,7 @@ STRING MoveToString( MOVE );
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame () {
@@ -560,17 +560,17 @@ void InitializeGame () {
   }
   if (gNumberOfPositions == 0) {
     pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
-    gNumberOfPositions = generic_hash_init(getBoardSize(), pieceArray,NULL);
+    gNumberOfPositions = generic_hash_init(getBoardSize(), pieceArray,NULL,0);
     ////////////////////////////
     ////printf("gnumpositions (init) : %u\n",gNumberOfPositions);
     SafeFree(pieceArray);
   }
   if (gInitialPosition == 0) {
     /* define initial board as being all blank */
-    board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char)); 
+    board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
     for (i = 0; i < getBoardSize(); i++)
       board[i] = BLNK;
-    gInitialPosition = generic_hash(board,WHITE); // white goes first
+    gInitialPosition = generic_hash_hash(board,WHITE); // white goes first
     SafeFree(board);
   }
 
@@ -586,7 +586,7 @@ void InitializeGame () {
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 // Doesn't do anything at the moment
 void DebugMenu () {
@@ -608,7 +608,7 @@ void DebugMenu () {
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
 /* Notes: looks like I can reliably hash only up to a board area of 16
@@ -710,14 +710,14 @@ void GameSpecificMenu () {
   return;
 }
 
-  
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
@@ -730,7 +730,7 @@ void SetTclCGameSpecificOptions (int options[]) {
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -748,9 +748,9 @@ POSITION DoMove (POSITION pos, MOVE move) {
   newPlayer = (getPlayer(pos) == WHITE)? BLACK : WHITE;
   newBoard = getBoard(pos);
   newBoard[getDest(move)] = getPiece(move, newBoard);
-  if (!offBoard(move)) 
+  if (!offBoard(move))
     newBoard[getSource(move)] = BLNK;
-  newPos = makePosition(newBoard,newPlayer); 
+  newPos = makePosition(newBoard,newPlayer);
   SafeFree(newBoard);
   return newPos;
 }
@@ -762,7 +762,7 @@ POSITION DoMove (POSITION pos, MOVE move) {
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -802,7 +802,7 @@ POSITION GetInitialPosition () {
     if (!strcmp(command,"pl")) {
       if (!strcmp(inString,"BLACK"))
 	player = BLACK;
-      if (!strcmp(inString,"WHITE")) 
+      if (!strcmp(inString,"WHITE"))
 	player = WHITE;
       pos = switchPlayer(pos);
     }
@@ -816,9 +816,9 @@ POSITION GetInitialPosition () {
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -840,13 +840,13 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 **              three-in-a-row with Gobblet. Three in a row for the player
 **              whose turn it is a win, otherwise its a loss.
 **              Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS:       LIST FUNCTION CALLS
-**              
+**
 **
 ************************************************************************/
 
@@ -877,7 +877,7 @@ VALUE Primitive (POSITION position) {
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -898,7 +898,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   pt = piecesOffBoard(initPieces,board);
     //}
   printf("\n  %s",playerName);
-  for (i = 0; i < (numCols*5); i++) 
+  for (i = 0; i < (numCols*5); i++)
     printf(" ");
   printf("Win Condition: %d\n ",winCondition);
   for (i = 0; i < (numCols * 5) + 40;i++) {
@@ -964,10 +964,10 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeSafeMalloc(int)
@@ -986,7 +986,7 @@ MOVELIST *GenerateMoves (POSITION position) {
   MOVELIST *genPawnMoves(BOARD,MPLAYER,CELL,MOVELIST *);
   MOVELIST *genKingMoves(BOARD,MPLAYER,CELL,MOVELIST *);
   MOVELIST *head = NULL;
-  
+
   int i;
   board = getBoard(position);
   player = getPlayer(position);
@@ -999,31 +999,31 @@ MOVELIST *GenerateMoves (POSITION position) {
 	head = genBishopMoves(board,player,i,head);
 	break;
       case (B_QN): case (W_QN):
-	head = genQueenMoves(board,player,i,head);	
+	head = genQueenMoves(board,player,i,head);
 	break;
       case (B_RK): case (W_RK):
-	head = genRookMoves(board,player,i,head);	
+	head = genRookMoves(board,player,i,head);
 	break;
       case (B_PN): case (W_PN):
-	head = genPawnMoves(board,player,i,head);	
+	head = genPawnMoves(board,player,i,head);
 	break;
       case (B_KG): case (W_KG):
-	head = genKingMoves(board,player,i,head);	
+	head = genKingMoves(board,player,i,head);
 	break;
       case (B_KN): case (W_KN):
-	head = genKnightMoves(board,player,i,head);	
+	head = genKnightMoves(board,player,i,head);
 	break;
       }
     }
   }
-  
+
   /* Generate 'PLACING' moves */
   head = genPlacingMoves(board,head,player);
   SafeFree(board);
   return head;
 }
 
- 
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
@@ -1031,9 +1031,9 @@ MOVELIST *GenerateMoves (POSITION position) {
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -1051,7 +1051,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE* theMove, STRING pl
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
     if(ret != Continue)
       return(ret);
-    
+
   }
   while (TRUE);
   return(Continue); /* this is never reached, but lint is now happy */
@@ -1067,7 +1067,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE* theMove, STRING pl
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -1083,7 +1083,7 @@ BOOLEAN ValidTextInput (STRING input) {
   valid &= isPiece(input[0]);
   valid &= isRow(input[1]);
   valid &= isCol(input[2]);
-  if (input[3] == '\0') 
+  if (input[3] == '\0')
     return valid;
 
   // Case of moving: i.e. a2a4
@@ -1102,7 +1102,7 @@ BOOLEAN ValidTextInput (STRING input) {
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -1110,8 +1110,8 @@ BOOLEAN ValidTextInput (STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (STRING input) {
-  /* Move is represented by: lowest CELL_LENGTH bits is the dest, 
-     next CELL_LENGTH bits is the source, then the rest corresponds 
+  /* Move is represented by: lowest CELL_LENGTH bits is the dest,
+     next CELL_LENGTH bits is the source, then the rest corresponds
      to the piece itself */
   CELL strToCell(STRING);
   int i;
@@ -1131,8 +1131,8 @@ MOVE ConvertTextInputToMove (STRING input) {
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -1148,7 +1148,7 @@ void PrintMove (MOVE move) {
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *move         : The move to put into a string.
 **
 ************************************************************************/
@@ -1363,12 +1363,12 @@ void resetBoard() {
   int sizeOfPieceType(struct pieceType *);
   BOARD board;
   board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
-  for (i=0; i < getBoardSize(); i++) 
+  for (i=0; i < getBoardSize(); i++)
     board[i] = BLNK;
   pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
-  gNumberOfPositions = generic_hash_init(getBoardSize(),pieceArray,NULL);
+  gNumberOfPositions = generic_hash_init(getBoardSize(),pieceArray,NULL,0);
 
-  gInitialPosition = generic_hash(board,WHITE);
+  gInitialPosition = generic_hash_hash(board,WHITE);
   SafeFree(board);
 }
 
@@ -1399,7 +1399,7 @@ void addPieceToInit(PIECE piece) {
 /* Tests whether player has already specified an initial pieceset */
 BOOLEAN hadInitialPieces(MPLAYER player) {
   int i;
-  
+
   for (i = 0; i < sizeOfPieceType(initPieces); i++) {
     if (isPlayer(initPieces[i].id,player))
       return TRUE;
@@ -1410,7 +1410,7 @@ BOOLEAN hadInitialPieces(MPLAYER player) {
 PIECE stringToPiece(char piece) {
   int i;
   for (i = 0; i < BLNK; i++) {
-    if (piece_strings[i] == piece) 
+    if (piece_strings[i] == piece)
       return i;
   }
   return BLNK;
@@ -1476,7 +1476,7 @@ CELL strToCell(STRING str) {
 /** GenerateMoves Helper Functions *************************************/
 
 /* These set of functions calculate numbers to determine the boundaries */
-// *NOTE* the BOARD is inverse from what is expected - as in it goes 
+// *NOTE* the BOARD is inverse from what is expected - as in it goes
 //  0 -> end starting from **top left**
 int getSpaceLeft(CELL cell) {
   return getCol(cell);
@@ -1512,7 +1512,7 @@ BOOLEAN isAllied(CELL cell, BOARD board, MPLAYER player) {
    piece onto the board) */
 MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,MPLAYER player) {
   int i,j;
-  
+
   struct pieceType *pt;
   pt = piecesOffBoard(initPieces,board);
   for (i = 0; i < getBoardSize(); i++)
@@ -1584,9 +1584,9 @@ MOVELIST *genKnightMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head)
   spaceRight = getSpaceRight(cell);
   spaceUp = getSpaceUp(cell);
   spaceDown = getSpaceDown(cell);
-  
+
   //////////////////////////////
-  
+
   //  printf("\nSPACE left: %d right: %d up: %d down: %d\n",spaceLeft,spaceRight,spaceUp,spaceDown);
   //printf("numCols: %d numRows: %d ROW: %d COL: %d\n",numCols,numRows,getRow(cell),getCol(cell));
 
@@ -1595,28 +1595,28 @@ MOVELIST *genKnightMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head)
   piece = (player == BLACK)? B_KN : W_KN;
   test = cell - N_LLEG*numCols + N_SLEG;
   if (spaceUp >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell - N_SLEG*numCols + N_LLEG;
   if (spaceUp >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + N_SLEG*numCols + N_LLEG;
   if (spaceDown >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + N_LLEG*numCols + N_SLEG;
   if (spaceDown >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + N_LLEG*numCols - N_SLEG;
   if (spaceDown >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + N_SLEG*numCols - N_LLEG;
   if (spaceDown >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell - N_SLEG*numCols - N_LLEG;
   if (spaceUp >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell - N_LLEG*numCols - N_SLEG;
   if (spaceUp >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);    
+    head = CreateMovelistNode(makeMove(piece,cell,test),head);
   return head;
 }
 /* Generates the King moves - 8 max */
@@ -1630,28 +1630,28 @@ MOVELIST *genKingMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
   spaceDown = getSpaceDown(cell);
   piece = (player == BLACK)? B_KG : W_KG;
   test = cell - numCols;
-  if (spaceUp >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceUp >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell-numCols+K_LEG;
-  if (spaceUp >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceUp >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + K_LEG;
-  if (spaceRight >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceRight >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + numCols + K_LEG;
-  if (spaceDown >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceDown >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + numCols;
-  if (spaceDown >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceDown >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell + numCols - K_LEG;
-  if (spaceDown >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceDown >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell - K_LEG;
-  if (spaceLeft >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceLeft >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   test = cell - numCols - K_LEG;
-  if (spaceUp >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player)) 
+  if (spaceUp >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
     head = CreateMovelistNode(makeMove(piece,cell,test),head);
   //  printf("\nEXPECTED: 'K' RESULT: %c\n",piece_strings[getPiece(makeMove(piece,cell,test))]);
   return head;
@@ -1802,22 +1802,22 @@ BOARD getBoard(POSITION pos) {
   int getBoardSize();
   BOARD newBoard;
   newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
-  newBoard = generic_unhash(pos,newBoard);
+  newBoard = generic_hash_unhash(pos,newBoard);
   return newBoard;
 }
 
 /* Gets the Player from the hash position */
 
 MPLAYER getPlayer(POSITION pos) { // Note: WHITE is player 1
-  return (whoseMove(pos) == 1)? WHITE : BLACK;
+  return (generic_hash_turn(pos) == 1)? WHITE : BLACK;
 }
 
 POSITION makePosition(BOARD board, MPLAYER player) {
-  return generic_hash(board,(player == WHITE)? 1 : 2);
+  return generic_hash_hash(board,(player == WHITE)? 1 : 2);
 }
 
-/* Converts the pieceType array into one more palatable to the hash function 
- * Inputs are the pieceType array itself and the size of the pieceType Array 
+/* Converts the pieceType array into one more palatable to the hash function
+ * Inputs are the pieceType array itself and the size of the pieceType Array
  * REQUIRES: BLNK is the last piece in the pieceType array
  */
 int *getPieceArray(struct pieceType *types, int size) {

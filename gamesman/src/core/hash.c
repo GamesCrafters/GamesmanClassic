@@ -148,7 +148,7 @@ void hashCounting()
 			printf("\t%d\t<\t'%c'\t<\t%d\n",piecesArray[cur+1],piecesArray[cur],piecesArray[cur+2]);
 		}
 		generic_hash_destroy();
-		max=generic_hash_init(size,piecesArray,0);
+		max=generic_hash_init(size,piecesArray,0,0);
 		printf("\nMaximum board positions:\t%llu\n\n\n",max);
 		SafeFree(piecesArray);
 	}
@@ -157,7 +157,7 @@ void hashCounting()
 }
 
 /* initializes hash tables and critical values */
-POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
+POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), int player)
 {
         int i = -1, k;
         int newcntxt;
@@ -236,15 +236,12 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *))
         }
         cCon->hashOffset[cCon->usefulSpace + 1] = -1;
         cCon->maxPos = sofar;
-        return sofar*2;
-}
 
-/* initializes "single player" version of generic_hash */
-POSITION generic_hash_init_singleplayer(int boardsize, int *pieces_array, int (*fn)(int *), int player)
-{
-		POSITION maxPosX2 = generic_hash_init(boardsize, pieces_array, fn);
-		cCon->player = ((player-1) % 2) + 1; // ensures player is either 1 or 2
-		return maxPosX2 / 2;
+		cCon->player = player % 3; // ensures player is either 0, 1, or 2
+
+		if (cCon->player ! 0)
+			return sofar;
+        else return sofar*2;
 }
 
 /* initializes pascal's triangle and piece configuration tables */
@@ -335,7 +332,7 @@ void hash_combiCalc()
 ****************************************/
 
 /* hashes *board to an int */
-POSITION generic_hash(char* board, int player) //accomodates whoseMove
+POSITION generic_hash_hash(char* board, int player) //accomodates generic_hash_turn
 {
         int temp, i, j, sum;
         int boardSize = cCon->boardSize;/*hash_boardSize;*/
@@ -366,10 +363,10 @@ POSITION generic_hash(char* board, int player) //accomodates whoseMove
         temp += hash_cruncher(board);
         if (cCon->player != 0) // using single-player boards, ignore "player"
         	return temp;
-        else return temp + (player-1)*(cCon->maxPos); //accomodates whoseMove
+        else return temp + (player-1)*(cCon->maxPos); //accomodates generic_hash_turn
 }
 
-/* helper func from generic_unhash() computes lexicographic rank of *board
+/* helper func from generic_hash_unhash() computes lexicographic rank of *board
    among boards with the same configuration argument *thiscount */
 POSITION hash_cruncher (char* board)
 {
@@ -401,7 +398,7 @@ POSITION hash_cruncher (char* board)
 }
 
 /* tells whose move it is, given a board's hash number */
-int whoseMove (POSITION hashed)
+int generic_hash_turn (POSITION hashed)
 {
 		if (cCon->player != 0) // using single-player boards
 			return cCon->player;
@@ -416,20 +413,20 @@ int whoseMove (POSITION hashed)
 *************************************/
 
 
-char* generic_unhash_tcl(POSITION pos)
+char* generic_hash_unhash_tcl(POSITION pos)
 {
         char* ret = (char*) SafeMalloc (sizeof(char) * cCon->boardSize+1);
-        generic_unhash(pos,ret);
+        generic_hash_unhash(pos,ret);
         ret[cCon->boardSize] = '\0';
         return ret;
 }
 
 /* unhashes hashed to a board */
-char* generic_unhash(POSITION hashed, char* dest)
+char* generic_hash_unhash(POSITION hashed, char* dest)
 {
         POSITION offst;
         int i, j, boardSize;
-        hashed %= cCon->maxPos; //accomodates whoseMove
+        hashed %= cCon->maxPos; //accomodates generic_hash_turn
 
         boardSize = cCon->boardSize;
         j = searchOffset(hashed);
@@ -443,7 +440,7 @@ char* generic_unhash(POSITION hashed, char* dest)
         return dest;
 }
 
-/* helper func from generic_hash() computes a board, given its lexicographic rank hashed
+/* helper func from generic_hash_hash() computes a board, given its lexicographic rank hashed
    among boards with the same configuration argument *thiscount*/
 void hash_uncruncher (POSITION hashed, char *dest)
 {

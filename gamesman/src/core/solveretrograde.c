@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.23 2006-10-15 10:30:50 max817 Exp $
+// $Id: solveretrograde.c,v 1.24 2006-10-17 10:45:22 max817 Exp $
 
 /************************************************************************
 **
@@ -1336,7 +1336,7 @@ void writeCurrentDBToTierFiles() {
 		FILE *fp; POSITION p, p2;
 
   		int game[10] = { o, 0, 4, x, 0, 5, Blank, 0, 9, -1 };
-  		POSITION globalPos = generic_hash_init_singleplayer(BOARDSIZE, game, vcfg, 1);
+  		POSITION globalPos = generic_hash_init(BOARDSIZE, game, vcfg, 1);
 
 		VALUE* dbv = (VALUE*) SafeMalloc(globalPos * sizeof(VALUE));
 		REMOTENESS* dbr = (REMOTENESS*) SafeMalloc(globalPos * sizeof(REMOTENESS));
@@ -1373,7 +1373,7 @@ void writeCurrentDBToTierFiles() {
 		FILE *fp; POSITION p, p2;
 
 		int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
-		genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board);
+		genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board, 0);
 		POSITION globalPos = genericHashMaxPos * (goats + 1);
 
 		VALUE* dbv = (VALUE*) SafeMalloc(globalPos * sizeof(VALUE));

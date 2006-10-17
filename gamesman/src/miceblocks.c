@@ -63,7 +63,7 @@ STRING gTallyThrees =
 opponent.  If you have 4 in a row, it will be counted as two threes in a\n\
 row.  Same goes for any sequence of blocks greater than 4. Diagonals are\n\
 valid.";
-STRING gStandardR = 
+STRING gStandardR =
 "The objective of this game is to obtain less points than your opponent.\n\
 You get 3 points for getting 3 blocks in a row and two additional points\n\
 for every following block.\n\
@@ -90,7 +90,7 @@ STRING kHelpReverseObjective = NULL;
 STRING kHelpTieOccursWhen =
 "each player has accumulated an equal\n"
 "number of points by the end of the game.";
-STRING kHelpExample = 
+STRING kHelpExample =
 "      [10]\n"
 "    [08][09]\n"
 "  [05][06][07]\n"
@@ -150,7 +150,7 @@ STRING MoveToString(MOVE);
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu () {
@@ -163,7 +163,7 @@ void DebugMenu () {
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void GameSpecificMenu () {
@@ -210,17 +210,17 @@ void GameSpecificMenu () {
 **
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame () {
   int i, sum = sumto(base);
   char board[sum];
   int theBoard[10] = {'x', 0, ((sum / 2) + (sum % 2)), 'o', 0, (sum / 2), '-', 0, sum, -1};
-  gNumberOfPositions = generic_hash_init(sum, theBoard, vcfg);
+  gNumberOfPositions = generic_hash_init(sum, theBoard, vcfg, 0);
   for(i = 0; i < sum; i++)
     board[i] = '-';
-  gInitialPosition = generic_hash(board, 1);
+  gInitialPosition = generic_hash_hash(board, 1);
   if(!kHelpStandardObjective) {
     kHelpStandardObjective = gStandard;
     kHelpReverseObjective = gStandardR;
@@ -236,10 +236,10 @@ void InitializeGame () {
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       GENERIC_PTR SafeMalloc(int)
@@ -256,10 +256,10 @@ MOVELIST *GenerateMoves (POSITION position) {
     for (j = 0; j < (base - i); j++) {
       if ((i == 0) && (board->spaces[i][j] < 999))
 	head = CreateMovelistNode(j + 1, head);
-      else if((board->spaces[i][j] >= 999) && 
-	      ((j + 1) < (base - i)) && 
-	      (board->spaces[i][j+1] >= 999) && 
-	      ((i+1) < base) && 
+      else if((board->spaces[i][j] >= 999) &&
+	      ((j + 1) < (base - i)) &&
+	      (board->spaces[i][j+1] >= 999) &&
+	      ((i+1) < base) &&
 	      (board->spaces[i + 1][j] < 999))
 	head = CreateMovelistNode(((i + 1) * base - sumto(i) + j + 1), head);
     }
@@ -272,7 +272,7 @@ MOVELIST *GenerateMoves (POSITION position) {
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -285,7 +285,7 @@ MOVELIST *GenerateMoves (POSITION position) {
 
 POSITION DoMove (POSITION thePosition, MOVE theMove) {
   BOARD board = arraytoboard(thePosition);
-  int i; 
+  int i;
   for (i = 0; theMove - (base - i) > 0; theMove -= (base - i), i++);
   board->spaces[i][theMove - 1] = board->turn;
   if(board->turn == X)
@@ -304,13 +304,13 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 **              three-in-a-row with Gobblet. Three in a row for the player
 **              whose turn it is a win, otherwise its a loss.
 **              Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS:       LIST FUNCTION CALLS
-**              
+**
 **
 ************************************************************************/
 
@@ -331,11 +331,11 @@ VALUE Primitive (POSITION pos) {
       if(board->spaces[i][j] < 999)
 	return undecided;
       color = board->spaces[i][j];
-      for(k = i, m = j, count = 0; k < base && m >= 0 && 
+      for(k = i, m = j, count = 0; k < base && m >= 0 &&
 	    ((WinningCondition == tallythrees) ? TRUE : !dlvisited[k][m]) &&
 	    board->spaces[k][m] == color; k++, m--) {
-	count++; 
-	dlvisited[k][m] = 1; 
+	count++;
+	dlvisited[k][m] = 1;
       }
       if((count > countX) && (color == X))
 	countX = count;
@@ -350,7 +350,7 @@ VALUE Primitive (POSITION pos) {
 	threesO++;
       }
       for (k = i, m = j, count = 0; k < base && m < (base - k) &&
-	     ((WinningCondition == tallythrees) ? TRUE : !drvisited[k][m]) && 
+	     ((WinningCondition == tallythrees) ? TRUE : !drvisited[k][m]) &&
 	     board->spaces[k][m] == color; k++) {
 	count++;
 	drvisited[k][m] = 1;
@@ -367,9 +367,9 @@ VALUE Primitive (POSITION pos) {
 	pointsO += 3 + (count - 3) * 2;
 	threesO++;
       }
-      for (k = i, m = j, count = 0; m < (base - k) && 
-	     ((WinningCondition == tallythrees) ? TRUE : !hvisited[k][m]) && 
-	     board->spaces[k][m] == color; m++) { 
+      for (k = i, m = j, count = 0; m < (base - k) &&
+	     ((WinningCondition == tallythrees) ? TRUE : !hvisited[k][m]) &&
+	     board->spaces[k][m] == color; m++) {
 	count++;
 	hvisited[k][m] = 1;
       }
@@ -390,7 +390,7 @@ VALUE Primitive (POSITION pos) {
   switch (WinningCondition) {
   case standard:
     if(pointsX > pointsO) {
-      if(board->turn == X) 
+      if(board->turn == X)
 	return (gStandardGame ? win : lose);
       else
 	return (gStandardGame ? lose : win);
@@ -398,20 +398,20 @@ VALUE Primitive (POSITION pos) {
     else if(pointsO > pointsX) {
       if(board->turn == O)
 	return (gStandardGame ? win : lose);
-      else 
+      else
 	return (gStandardGame ? lose : win);
     }
     else
       return tie;
   case tallyblocks:
     if(countX > countO) {
-      if(board->turn == X) 
+      if(board->turn == X)
 	return (gStandardGame ? win : lose);
       else
 	return (gStandardGame ? lose : win);
     }
     else if(countO > countX) {
-      if(board->turn == O) 
+      if(board->turn == O)
 	return (gStandardGame ? win : lose);
       else
 	return (gStandardGame ? lose : win);
@@ -420,13 +420,13 @@ VALUE Primitive (POSITION pos) {
       return tie;
  case tallythrees:
    if(threesX > threesO) {
-      if(board->turn == X) 
+      if(board->turn == X)
 	return (gStandardGame ? win : lose);
       else
 	return (gStandardGame ? lose : win);
     }
     else if(threesO > threesX) {
-      if(board->turn == O) 
+      if(board->turn == O)
 	return (gStandardGame ? win : lose);
       else
 	return (gStandardGame ? lose : win);
@@ -445,7 +445,7 @@ VALUE Primitive (POSITION pos) {
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
@@ -474,7 +474,7 @@ POSITION GetInitialPosition() {
     else
       turn = 1;
   }
-  return generic_hash(input, turn);
+  return generic_hash_hash(input, turn);
 }
 
 /************************************************************************
@@ -483,7 +483,7 @@ POSITION GetInitialPosition() {
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -530,9 +530,9 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION thePosition : The position the user is at. 
-**              MOVE theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION thePosition : The position the user is at.
+**              MOVE theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -544,7 +544,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
   BOOLEAN ValidMove();
-  USERINPUT ret, HandleDefaultTextInput();  
+  USERINPUT ret, HandleDefaultTextInput();
   do {
     printf("%8s's move [(u)ndo/(1-%d)] :  ", playerName, sumto(base));
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -560,9 +560,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -575,8 +575,8 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
@@ -591,7 +591,7 @@ void PrintMove (MOVE move) {
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -614,7 +614,7 @@ STRING MoveToString (theMove)
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
@@ -634,7 +634,7 @@ BOOLEAN ValidTextInput (STRING input) {
 ** DESCRIPTION: Convert the string input to the internal move representation.
 **              No checking if the input is valid is needed as it has
 **              already been checked!
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -736,7 +736,7 @@ void setOption(int option) {
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
@@ -771,7 +771,7 @@ int sumto (int i) {
 
 /* Required function by Michel's hash for dartboard behavior from hash */
 int vcfg (int *this_cfg) {
-  return ((this_cfg[0] == this_cfg[1]) || (this_cfg[0] == (this_cfg[1] + 1))); 
+  return ((this_cfg[0] == this_cfg[1]) || (this_cfg[0] == (this_cfg[1] + 1)));
 }
 
 /************************************************************************
@@ -796,7 +796,7 @@ BOARD arraytoboard (POSITION position) {
   board->spaces = (int **) SafeMalloc(base * sizeof(int *));
   for(i = 0; i < base; i++)
     board->spaces[i] = (int *) SafeMalloc((base - i) * sizeof(int));
-  theBoard = generic_unhash(position, theBoard);
+  theBoard = generic_hash_unhash(position, theBoard);
   for(i = 0, k = 0; i < base; i++) {
     for(j = 0; j < (base - i); j++, k++) {
       if(theBoard[k] == '-')
@@ -807,7 +807,7 @@ BOARD arraytoboard (POSITION position) {
 	board->spaces[i][j] = O;
     }
   }
-  if(whoseMove(position) - 1)
+  if(generic_hash_turn(position) - 1)
     board->turn = O;
   else
     board->turn = X;
@@ -854,7 +854,7 @@ POSITION boardtoarray (BOARD board) {
     SafeFree(board->spaces[i]);
   SafeFree(board->spaces);
   SafeFree(board);
-  return generic_hash(theBoard, whoseTurn);
+  return generic_hash_hash(theBoard, whoseTurn);
 }
 
 /************************************************************************

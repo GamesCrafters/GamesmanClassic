@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.27 2006-10-11 06:59:02 max817 Exp $
+// $Id: mbaghchal.c,v 1.28 2006-10-17 10:45:20 max817 Exp $
 
 /************************************************************************
 **
@@ -1115,11 +1115,11 @@ POSITION hash (char* board, int turn, int goatsLeft)
 		generic_hash_context_switch(goatsOnBoard); // switch to that context
 		TIERPOSITION tierpos;
 		if (tier < s1GoatOffset) //stage 2
-			tierpos = generic_hash(board, turn); //hash normally
-		else tierpos = generic_hash(board, 1);//else hash only one player
+			tierpos = generic_hash_hash(board, turn); //hash normally
+		else tierpos = generic_hash_hash(board, 1);//else hash only one player
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
 	} else {
-		position = generic_hash(board, turn);
+		position = generic_hash_hash(board, turn);
 		position += (genericHashMaxPos * goatsLeft);
 	}
 	if(board != NULL)
@@ -1137,13 +1137,13 @@ char* unhash (POSITION position, int* turn, int* goatsLeft)
 		unhashTier(tier, &goatsOnBoard, goatsLeft, turn); // this sets goatsLeft and turn
 		generic_hash_context_switch(goatsOnBoard); // switch to that tier's context
 		if (tier < s1GoatOffset) // stage 2
-			(*turn) = whoseMove(tierpos); // hash tells the turn
-		return (char *) generic_unhash(tierpos, board); // unhash in that tier
+			(*turn) = generic_hash_turn(tierpos); // hash tells the turn
+		return (char *) generic_hash_unhash(tierpos, board); // unhash in that tier
 	} else {
 		(*goatsLeft) = position / genericHashMaxPos;
 		position %= genericHashMaxPos;
-		(*turn) = whoseMove(position);
-		return (char *) generic_unhash(position, board);
+		(*turn) = generic_hash_turn(position);
+		return (char *) generic_hash_unhash(position, board);
 	}
 }
 
@@ -1190,7 +1190,7 @@ void SetupGame ()
 	SetupTierStuff();
 	// The GLOBAL Hash:
 	int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
-	genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board);
+	genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board, 0);
 	gNumberOfPositions = genericHashMaxPos * (goats + 1);
 	// Set Initial Position
 	int i;
@@ -1453,7 +1453,7 @@ void SetupTierStuff() {
 		// Blanks = boardSize - tigers - goats(tier)
 		piecesArray[7] = piecesArray[8] = boardSize - tigers - tier;
 		// make the hashes
-		generic_hash_init(boardSize, piecesArray, NULL);
+		generic_hash_init(boardSize, piecesArray, NULL, 0);
 	}
 	gInitialTier = goats*(goats+1);
 }
@@ -1681,6 +1681,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2006/10/11 06:59:02  max817
+// A quick modification of the Tier Gamesman games to include the new changes.
+//
 // Revision 1.26  2006/09/27 11:28:58  max817
 // Removed "Tier0Context" usage from both Tier-Gamesman games, now that hash
 // destruction works.

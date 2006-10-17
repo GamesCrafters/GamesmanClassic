@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.7 2006-10-03 08:10:03 scarr2508 Exp $
+// $Id: mdao.c,v 1.8 2006-10-17 10:45:20 max817 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -56,7 +56,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
 
-/* 
+/*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
@@ -65,7 +65,7 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-""; 
+"";
 
 STRING   kHelpOnYourTurn =
 "";
@@ -136,7 +136,7 @@ STRING directions[NUM_OF_DIRS] = {
 int dir_increments[NUM_OF_DIRS][2] = {
   { -1,  1 } , { 0 , 1 } , { 1 , 1 } ,
   { -1,  0 } ,             { 1 , 0 } ,
-  { -1, -1 } , { 0, -1 } , { 1 ,-1 } 
+  { -1, -1 } , { 0, -1 } , { 1 ,-1 }
 };
 
 /*************************************************************************
@@ -148,10 +148,10 @@ int dir_increments[NUM_OF_DIRS][2] = {
 /* External */
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg));
-extern POSITION         generic_hash(char *board, int player);
-extern char            *generic_unhash(POSITION hash_number, char *empty_board);
-extern int              whoseMove (POSITION hashed);
+extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
+extern POSITION         generic_hash_hash(char *board, int player);
+extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
+extern int              generic_hash_turn (POSITION hashed);
 /*internal*/
 void                    InitializeGame();
 MOVELIST               *GenerateMoves(POSITION position);
@@ -194,17 +194,17 @@ POSITION                ActualNumberOfPositions(int variant);
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
 {
   int init_pieces[10];
   char board[] = "X  O XO  OX O  X";
-    
+
   initializePiecesArray(init_pieces);
-  gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL);
-  gInitialPosition = generic_hash(board, PLAYER1_TURN);
+  gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
+  gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
 
   gMoveToStringFunPtr = &MoveToString;
   gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
@@ -218,7 +218,7 @@ void InitializeGame ()
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position for move
 **                                  generation.
 **
@@ -234,10 +234,10 @@ MOVELIST *GenerateMoves (POSITION position)
   MOVELIST *moves = NULL;
   int i, j, k, di, dj;
   char board[BOARD_SIZE+1];
-  int player = whoseMove(position);
+  int player = generic_hash_turn(position);
   BOOLEAN canProcessDir = FALSE;
-    
-  generic_unhash (position, board);
+
+  generic_hash_unhash (position, board);
   /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
   for (i = 0; i < BOARD_ROWS; i++) {
     for (j = 0; j < BOARD_COLS; j++) {
@@ -266,7 +266,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	  }
 	}
     }
-  }    
+  }
   return moves;
 
 
@@ -278,7 +278,7 @@ MOVELIST *GenerateMoves (POSITION position)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -292,15 +292,15 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
   char board[BOARD_SIZE];
-  int current_player = whoseMove(position);
+  int current_player = generic_hash_turn(position);
   int move_position = Unhasher_Index(move);
   int row = Row (move_position);
   int col = Column (move_position);
   int direction = Unhasher_Direction(move);
   int new_position;
 
-  generic_unhash(position, board);
-  do { 
+  generic_hash_unhash(position, board);
+  do {
     row += dir_increments[direction][0];
     col += dir_increments[direction][1];
   } while ( (row >= 0) && (col >= 0) &&
@@ -309,11 +309,11 @@ POSITION DoMove (POSITION position, MOVE move)
 
   new_position = Index(row - dir_increments[direction][0],
 		       col - dir_increments[direction][1]);
-    
-  generic_unhash (position, board);
+
+  generic_hash_unhash (position, board);
   board[new_position] = board[move_position];
   board[move_position] = (char) EMPTY_PIECE;
-  return generic_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
+  return generic_hash_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
 }
 
 
@@ -331,13 +331,13 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       None
 **
 ************************************************************************/
 
@@ -349,9 +349,9 @@ VALUE Primitive (POSITION position)
    */
   char board[BOARD_SIZE];
   int r,c,d;
-    
-  generic_unhash(position, board);
-    
+
+  generic_hash_unhash(position, board);
+
   for (r = 0; r < BOARD_ROWS; r++) /*horizontal*/
     for (c = 0; c < BOARD_COLS+1-NUM_TO_WIN; c++)
       if (board[Index(r,c)] != EMPTY_PIECE) {
@@ -360,7 +360,7 @@ VALUE Primitive (POSITION position)
 	    break;
 	if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
       }
-    
+
   for (r = 0; r < BOARD_ROWS+1-NUM_TO_WIN; r++) /*vertical*/
     for (c = 0; c < BOARD_COLS; c++)
       if (board[Index(r,c)] != EMPTY_PIECE) {
@@ -369,13 +369,13 @@ VALUE Primitive (POSITION position)
 	    break;
 	if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
       }
-    
+
   for (r = 0; r < BOARD_ROWS-1; r++) /*square*/
     for (c = 0; c < BOARD_COLS-1; c++)
       if (board[Index(r,c)] != EMPTY_PIECE) {
 	if ( (board[Index(r,c)] == board[Index(r,c+1)]) &&
 	     (board[Index(r,c)] == board[Index(r+1,c)]) &&
-	     (board[Index(r,c)] == board[Index(r+1,c+1)]) ) 
+	     (board[Index(r,c)] == board[Index(r+1,c+1)]) )
 	return (gStandardGame ? lose : win);
      }
 
@@ -417,7 +417,7 @@ VALUE Primitive (POSITION position)
 	 (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,0)]) &&
 	 (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,1)])) )
 	return (gStandardGame ? win : lose);
-    
+
   return undecided;
 }
 
@@ -428,7 +428,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -441,21 +441,21 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   char board[BOARD_SIZE];
-    
-  generic_unhash (position, board);
+
+  generic_hash_unhash (position, board);
   printf (" The game board as %s sees it:\n", playersName);
   printBoard (board);
 }
 
 void printBoard (char *board) {
   int i,j;
-    
+
   for (i = 0; i < BOARD_ROWS; i++) {
     printf ("  +");
     for (j = 0; j < BOARD_COLS; j++)
       printf ("-+");
     printf ( "\n%d " , BOARD_ROWS-i );
-    for (j = 0; j < BOARD_COLS; j++) 
+    for (j = 0; j < BOARD_COLS; j++)
       printf ("|%c", board[Index(i,j)]);
     printf("|\n");
   }
@@ -474,9 +474,9 @@ void printBoard (char *board) {
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -484,7 +484,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
   int position = Unhasher_Index(computersMove);
   int direction = Unhasher_Direction(computersMove);
-    
+
   printf ("%s moves the piece %c%d%s\n", computersName, \
 	  Column(position)+ROW_START, BOARD_ROWS-Row (position), \
 	  directions[direction]);
@@ -496,8 +496,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
@@ -511,7 +511,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -523,10 +523,10 @@ STRING MoveToString (theMove)
 
   int position = Unhasher_Index(theMove);
   int direction = Unhasher_Direction(theMove);
-    
+
   sprintf (move, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
 	  directions[direction]);
-  
+
   return move;
 }
 
@@ -537,10 +537,10 @@ STRING MoveToString (theMove)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -555,20 +555,20 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
-  char player_char = (whoseMove(position) == PLAYER1_TURN)?PLAYER1_PIECE:PLAYER2_PIECE;
-    
+  char player_char = (generic_hash_turn(position) == PLAYER1_TURN)?PLAYER1_PIECE:PLAYER2_PIECE;
+
   for (;;) {
     /***********************************************************
      * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
      ***********************************************************/
     printf("%8s's (%c) move [(undo)/<row><col><dir>] : ", playersName, player_char);
-	
+
     input = HandleDefaultTextInput(position, move, playersName);
-	
+
     if (input != Continue)
       return input;
   }
-    
+
   /* NOTREACHED */
   return Continue;
 }
@@ -587,7 +587,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -623,7 +623,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -656,14 +656,14 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
 
 void GameSpecificMenu ()
 {
-    
+
 }
 
 
@@ -673,15 +673,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -690,7 +690,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -768,12 +768,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 
@@ -785,7 +785,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 void initializePiecesArray(int p_a[]) {
   /* {'X', 4, 4, 'O', 4, 4, '-', 8, 8, -1} */
@@ -801,7 +801,7 @@ void initializePiecesArray(int p_a[]) {
 void initializeBoard (char board[]) {
   int x,y;
   char piece;
-    
+
   for (x = 0; x < BOARD_COLS; x++) {
     for (y = 0; y < BOARD_ROWS; y++) {
       if (y == 0) {

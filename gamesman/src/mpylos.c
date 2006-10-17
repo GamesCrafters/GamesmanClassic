@@ -307,9 +307,9 @@ POSITION DoMove(POSITION position, MOVE move) {
   char board[gBoardSize];
   MoveGroup moveGroup = *(MoveGroup*)&move;
   int index = ConvertAddressToIndex(moveGroup.moves[0]);
-  Piece piece = whoseMove(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
+  Piece piece = generic_hash_turn(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
 
-  generic_unhash(position, board);
+  generic_hash_unhash(position, board);
 
   /* Hardcoded */
   if (gBoardDimension == 3 && index == 4 &&
@@ -319,7 +319,7 @@ POSITION DoMove(POSITION position, MOVE move) {
       board[12] != gPieceLabels[BLANK_PIECE])
     index = 13;
 
-  board[index] = gPieceLabels[whoseMove(position)];
+  board[index] = gPieceLabels[generic_hash_turn(position)];
 
   for (index = 1; index < MOVES_IN_GROUP; index++) {
     move = moveGroup.moves[index];
@@ -328,7 +328,7 @@ POSITION DoMove(POSITION position, MOVE move) {
       board[ConvertAddressToIndex(move)] = gPieceLabels[BLANK_PIECE];
   }
 
-  return generic_hash(board, piece);
+  return generic_hash_hash(board, piece);
 }
 
 /********************************************************** GameSpecificMenu */
@@ -401,7 +401,7 @@ MOVELIST *GenerateMoves(POSITION position) {
   Pyramid *pyramid, pyramids[gBoardAddresses];
   BOOLEAN stacked = FALSE;
 
-  generic_unhash(position, board);
+  generic_hash_unhash(position, board);
 
   if (gBoardDimension == 3)
     center = board[4]; /* Used for hardcoding */
@@ -421,13 +421,13 @@ MOVELIST *GenerateMoves(POSITION position) {
         board[4] == gPieceLabels[BLANK_PIECE])) {
       if (gAllowSquaring && !(gBoardDimension == 3 && /* Hardcoded */
           moveGroup.moves[0] == 7 && center != gPieceLabels[BLANK_PIECE]) &&
-          FormsSquare(pyramid, whoseMove(position))) {
+          FormsSquare(pyramid, generic_hash_turn(position))) {
         for (moveGroup.moves[1] = gBoardAddresses; moveGroup.moves[1] > 0;
              moveGroup.moves[1]--) {
           pyramid = &pyramids[moveGroup.moves[1] - 1];
 
           if (moveGroup.moves[1] == moveGroup.moves[0] ||
-              (pyramid->pieceLabel == gPieceLabels[whoseMove(position)] &&
+              (pyramid->pieceLabel == gPieceLabels[generic_hash_turn(position)] &&
 	       !IsSupportingPyramid(pyramid)))
             moveList = CreateMovelistNode(*(MOVE*)&moveGroup, moveList);
         }
@@ -440,7 +440,7 @@ MOVELIST *GenerateMoves(POSITION position) {
              moveGroup.moves[1]--) {
           pyramid = &pyramids[moveGroup.moves[1] - 1];
 
-          if (pyramid->pieceLabel == gPieceLabels[whoseMove(position)] &&
+          if (pyramid->pieceLabel == gPieceLabels[generic_hash_turn(position)] &&
               CalculatePyramidHeight(pyramid) < height &&
               !IsBasePyramid(pyramid, &pyramids[moveGroup.moves[0] - 1]) &&
               !IsSupportingPyramid(pyramid)) {
@@ -505,8 +505,8 @@ void InitializeGame() {
                        gPieceLabels[LIGHT_PIECE], 0, gBoardPieces,
                        gPieceLabels[DARK_PIECE], 0, gBoardPieces, -1};
 
- 
-  gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL);
+
+  gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL, 0);
 
   gMoveToStringFunPtr = &MoveToString;
 }
@@ -519,12 +519,12 @@ int NumberOfOptions() {
 /***************************************************************** Primitive */
 VALUE Primitive(POSITION position) {
   char board[gBoardSize];
-  Piece piece = whoseMove(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
+  Piece piece = generic_hash_turn(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
 
-  generic_unhash(position, board);
+  generic_hash_unhash(position, board);
 
   if (board[gBoardSize - 1] == gPieceLabels[piece] ||
-      CountPieces(board, whoseMove(position)) == gBoardPieces)
+      CountPieces(board, generic_hash_turn(position)) == gBoardPieces)
     return gStandardGame ? lose : win;
   else
     return undecided;
@@ -549,7 +549,7 @@ STRING MoveToString( MOVE move ) {
   STRING s = (STRING) SafeMalloc( 10 );
 
   STRING temp = MoveGroupToString(move);
-  
+
   if( move > UCHAR_MAX )
     sprintf( s, "[%s]", temp );
   else
@@ -567,14 +567,14 @@ void PrintPosition(POSITION position, STRING name, BOOLEAN isUsersTurn) {
                 strlen(BOARD_SPACE) + rows + 1; /* + 1 for '\n' */
   char board[gBoardSize], buffer[rows][columns], number[digits];
   char format[CalculateDigits(digits) + 2], *string; /* + 2 for %d */
-  Piece opponent = whoseMove(position) == LIGHT_PIECE ? DARK_PIECE :
+  Piece opponent = generic_hash_turn(position) == LIGHT_PIECE ? DARK_PIECE :
                    LIGHT_PIECE;
   char opponentPieceLabel = gPieceLabels[opponent];
-  char pieceLabel = gPieceLabels[whoseMove(position)];
+  char pieceLabel = gPieceLabels[generic_hash_turn(position)];
 
-  generic_unhash(position, board);
+  generic_hash_unhash(position, board);
   opponentPieces = gBoardPieces - CountPieces(board, opponent);
-  pieces = gBoardPieces - CountPieces(board, whoseMove(position));
+  pieces = gBoardPieces - CountPieces(board, generic_hash_turn(position));
   MakeAddressable(board);
 
   for (address = 1, count = 1, row = 0; row < rows; row++) {

@@ -60,7 +60,7 @@ POSITION gInitialPosition     =  2266758; /* The initial hashed position for you
 POSITION kBadPosition         = -1; /* A position that will never be used */
 BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
-/* 
+/*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
@@ -248,11 +248,11 @@ extern void		SafeFree ();
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
-{ 
+{
   BlankOX theBlankOX[boardSize];
   int i;
   int pieces[] = {Blank, boardSize - 2*rowsOfPieces*numOfCols, boardSize,
@@ -268,8 +268,8 @@ void InitializeGame ()
   for (; i < boardSize; i++) {
     theBlankOX[i] = O;
   }
-  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
-  gInitialPosition = generic_hash(theBlankOX, 1);
+  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL, 0);
+  gInitialPosition = generic_hash_hash(theBlankOX, 1);
 
   gMoveToStringFunPtr = &MoveToString;
 }
@@ -281,7 +281,7 @@ void InitializeGame ()
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position for move
 **                                  generation.
 **
@@ -297,53 +297,53 @@ MOVELIST *GenerateMoves(position)
 {
   BlankOX theBlankOX[boardSize];
   MOVELIST *head = NULL;
-  
-  char turn;  
+
+  char turn;
   int i, n, x, y, moveToX, moveToY;
 
-  generic_unhash(position, theBlankOX);
+  generic_hash_unhash(position, theBlankOX);
 
-  if (whoseMove(position) == 1)
+  if (generic_hash_turn(position) == 1)
     turn = X;
   else
     turn = O;
-	
+
   for(x = 0; x < numOfCols; x++){
     for (y = 0; y < numOfRows; y++){
       i = BoardPosToArrayPos(x, y);
       if (theBlankOX[i] == turn){
 	//check for jumps
 	//jump up
-	if (((n = BoardPosToArrayPos(x, y-1)) > -1) 
+	if (((n = BoardPosToArrayPos(x, y-1)) > -1)
 	    && theBlankOX[n] != Blank
 	    && ((n = BoardPosToArrayPos(x, y-2)) > -1)
 	    && theBlankOX[n] == Blank) {
 	  head = CreateMovelistNode(hashMove(x, y, x, y-2), head);
 	}
 	//jump right
-	if (((n = BoardPosToArrayPos(x+1, y)) > -1) 
+	if (((n = BoardPosToArrayPos(x+1, y)) > -1)
 	    && theBlankOX[n] != Blank
 	    && ((n = BoardPosToArrayPos(x+2, y)) > -1)
 	    && theBlankOX[n] == Blank) {
 	  head = CreateMovelistNode(hashMove(x, y, x+2, y), head);
 	}
 	//jump down
-	if (((n = BoardPosToArrayPos(x, y+1)) > -1) 
+	if (((n = BoardPosToArrayPos(x, y+1)) > -1)
 	    && theBlankOX[n] != Blank
 	    && ((n = BoardPosToArrayPos(x, y+2)) > -1)
 	    && theBlankOX[n] == Blank) {
 	  head = CreateMovelistNode(hashMove(x, y, x, y+2), head);
 	}
 	//jump left
-	if (((n = BoardPosToArrayPos(x-1, y)) > -1) 
+	if (((n = BoardPosToArrayPos(x-1, y)) > -1)
 	    && theBlankOX[n] != Blank
 	    && ((n = BoardPosToArrayPos(x-2, y)) > -1)
 	    && theBlankOX[n] == Blank) {
 	  head = CreateMovelistNode(hashMove(x, y, x-2, y), head);
 	}
- 
-				
-			
+
+
+
 	//check for lateral move left
 	moveToX = x-1;
 	while((moveToX >= 0) &&
@@ -351,7 +351,7 @@ MOVELIST *GenerateMoves(position)
 	  head = CreateMovelistNode(hashMove(x, y, moveToX, y), head);
 	  moveToX--;
 	}
-			
+
 	//check for lateral move right
 	moveToX = x+1;
 	while((moveToX < numOfCols) &&
@@ -386,7 +386,7 @@ MOVELIST *GenerateMoves(position)
 ** DESCRIPTION: Go through all of the positions that are symmetrically
 **              equivalent and return the SMALLEST, which will be used
 **              as the canonical element for the equivalence set.
-** 
+**
 ** INPUTS:      POSITION position : The position return the canonical elt. of.
 **
 ** OUTPUTS:     POSITION          : The canonical element of the set.
@@ -397,9 +397,9 @@ POSITION GetCanonicalPosition(POSITION position)
 {
   POSITION newPosition, theCanonicalPosition = position;
   int i;
-  
+
   for(i = 0 ; i < NUMSYMMETRIES ; i++) {
-    
+
     newPosition = DoSymmetry(position, i);    /* get new */
     if(newPosition < position)    /* THIS is the one */
       theCanonicalPosition = newPosition;     /* set it to the ans */
@@ -415,7 +415,7 @@ POSITION GetCanonicalPosition(POSITION position)
 ** DESCRIPTION: Perform the symmetry operation specified by the input
 **              on the position specified by the input and return the
 **              new position, even if it's the same as the input.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch the symmetry from.
 **              int      symmetry : The number of the symmetry operation.
 **
@@ -424,12 +424,12 @@ POSITION GetCanonicalPosition(POSITION position)
 ************************************************************************/
 
 POSITION DoSymmetry(POSITION position, int symmetry)
-{  
+{
   int row, col;
   char temp;
   BlankOX theBlankOX[boardSize];
-  
-  generic_unhash(position,theBlankOX);
+
+  generic_hash_unhash(position,theBlankOX);
   for (row = 0; row < numOfRows; row++) {
     for (col = 0; col < numOfCols/2; col++) {
       temp = theBlankOX[(row - 1) * numOfCols + col];
@@ -438,7 +438,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
       theBlankOX[(row - 1) * numOfCols + numOfCols - col - 1] = temp;
     }
   }
-  return(generic_hash(theBlankOX, whoseMove(position)));
+  return(generic_hash_hash(theBlankOX, generic_hash_turn(position)));
 }
 
 /************************************************************************
@@ -446,7 +446,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
  ** NAME:        DoMove
  **
  ** DESCRIPTION: Applies the move to the position.
- ** 
+ **
  ** INPUTS:      POSITION position : The old position
  **              MOVE     move     : The move to apply to the position
  **
@@ -462,9 +462,9 @@ POSITION DoMove (POSITION position, MOVE move)
   BlankOX theBlankOX[boardSize];
   BlankOX piece;
   sMove theMove = unhashMove(move);
-  int fromLoc, toLoc, turn = whoseMove(position);
+  int fromLoc, toLoc, turn = generic_hash_turn(position);
 
-  generic_unhash(position, theBlankOX);
+  generic_hash_unhash(position, theBlankOX);
   fromLoc = (theMove.fromY) * numOfCols + theMove.fromX;
   toLoc = (theMove.toY) * numOfCols + theMove.toX;
   piece = theBlankOX[fromLoc];
@@ -481,7 +481,7 @@ POSITION DoMove (POSITION position, MOVE move)
   if(captureVersion == VERSION_CORNER)
   captureCorner(theMove.toX, theMove.toY, piece, theBlankOX);
 
-  position = generic_hash(theBlankOX, turn);
+  position = generic_hash_hash(theBlankOX, turn);
   return position;
 }
 
@@ -500,7 +500,7 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
@@ -514,9 +514,9 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
   BlankOX theBlankOX[boardSize];
-  int turn = whoseMove(position);
+  int turn = generic_hash_turn(position);
 
-  generic_unhash(position, theBlankOX);
+  generic_hash_unhash(position, theBlankOX);
   BlankOX oppositePiece  = (turn == 1 ? 'o' : 'x');
 
   if((winVersion == VERSION_LINE || winVersion == VERSION_BOTH) &&
@@ -540,7 +540,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -554,7 +554,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   BlankOX theBlankOX[boardSize];
   int row, col;
-  generic_unhash(position, theBlankOX);
+  generic_hash_unhash(position, theBlankOX);
 
   printf("%s's turn\n  ", playersName);
   for (col = 0; col < numOfCols; col++) {
@@ -585,9 +585,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -604,8 +604,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
@@ -621,7 +621,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
@@ -646,10 +646,10 @@ STRING MoveToString (theMove)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -664,7 +664,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
   USERINPUT input;
   USERINPUT HandleDefaultTextInput();
-    
+
     for (;;) {
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
@@ -696,7 +696,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -712,7 +712,7 @@ BOOLEAN ValidTextInput (STRING input)
 {
   /******
    * Check for valid input based upon chess notation
-   * example a1b2 
+   * example a1b2
    */
   int strlen;
   for (strlen = 0; input[strlen] != -1; strlen++){
@@ -741,7 +741,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -750,7 +750,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
- 
+
   /*****
    * Example conversions:
    * a1c3 = 0022
@@ -762,7 +762,7 @@ MOVE ConvertTextInputToMove (STRING input)
   int toY = input[3] - '1';
 
   return hashMove(fromX, fromY, toX, toY);
-  
+
 }
 
 
@@ -778,7 +778,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
@@ -862,15 +862,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -879,7 +879,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -950,7 +950,7 @@ int getOption ()
 void setOption (int option)
 {
   int captureAll, inALine;
-  // nk = (N / Pi(i=0,k-1,di) % dk 
+  // nk = (N / Pi(i=0,k-1,di) % dk
 
   gStandardGame = (option % 2) == 1 ? 0 : 1;
   numOfCols = (option / 2) % BOARD_WIDTH;
@@ -982,12 +982,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 
@@ -999,7 +999,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 /************************************************************************
@@ -1009,7 +1009,7 @@ void DebugMenu ()
 ** DESCRIPTION: Return TRUE iff there are a given number of pieces in
 **              a row. None of the pieces may be in the player's original
 **              starting row(s).
-** 
+**
 ** INPUTS:      BlankOX theBlankOX[boardSize] : The BlankOX array.
 **
 ** OUTPUTS:     (BOOLEAN) TRUE iff there a given number of pieces in
@@ -1022,7 +1022,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
   int x, y, loc, xN, yN;
   int bad_row[2]; //row that the pieces cannot be in
 
-  
+
   if (piece == 'x') {
     bad_row[0] = 0;
     if (rowsOfPieces == 1) {
@@ -1038,28 +1038,28 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
       bad_row[1] = numOfRows-2;
     }
   }
-  
+
 
   for (y = 0; y < numOfRows; y++){
     if (y != bad_row[0] && y != bad_row[1]){
       for (x = 0; x < numOfCols; x++){
 	loc = y*numOfCols + x;
 	if(theBlankOX[loc] == piece){
-	  
-	  //check lateral row 
+
+	  //check lateral row
 	  //only need to check to the right because we are coming from the left
 	  for (xN = 0; x+xN < numOfCols; xN++){
-	  
+
 	    if(theBlankOX[loc+xN] != piece)
 	      break;
 	  }
 	  if (xN == numInRow)
 	    return TRUE;
-	  
+
 	  //check vertical
 	  //we are checking upwards
 	  for (yN = 0; (y+yN < numOfRows) && (y+yN != bad_row[0] && y+yN != bad_row[1]); yN++){
-	  
+
 	    if(theBlankOX[loc+yN*numOfCols] != piece)
 	      break;
 	  }
@@ -1068,7 +1068,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 
 	  //check diagonal left
 	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x-xN >= 0) && ( y+yN != bad_row[0] && y+yN != bad_row[1]); yN++, xN++){
-	  
+
 	    if(theBlankOX[(y+yN)*numOfCols + x-xN] != piece)
 	      break;
 	  }
@@ -1077,7 +1077,7 @@ BOOLEAN inARow(BlankOX theBlankOX[], BlankOX piece)
 
 	  //check diagonal right
 	  for (yN = 0, xN = 0; (y+yN < numOfRows) && (x+xN < numOfCols) && (y+yN != bad_row[0] && y+yN != bad_row[1]); yN++, xN++){
-	  
+
 	    if(theBlankOX[(y+yN)*numOfCols + x+xN] != piece)
 	      break;
 	  }
@@ -1440,7 +1440,7 @@ void clearColumn(int y1, int y2, int x, BlankOX theBlankOX[]){
 ** NAME:        oneOrNoPieces
 **
 ** DESCRIPTION: Return TRUE iff one player has one or no pieces.
-** 
+**
 ** INPUTS:      BlankOX theBlankOX[boardSize] : The BlankOX array.
 **
 ** OUTPUTS:     (BlankOX) x iff there is less than one x,
@@ -1453,7 +1453,7 @@ void clearColumn(int y1, int y2, int x, BlankOX theBlankOX[]){
 BlankOX oneOrNoPieces(BlankOX theBlankOX[])
 {
   int i, numOfX = 0, numOfO = 0;
-	
+
   for(i = 0; i < boardSize; i++) {
     if (theBlankOX[i] == X) {
       numOfX++;
@@ -1481,9 +1481,9 @@ BlankOX oneOrNoPieces(BlankOX theBlankOX[])
 int BoardPosToArrayPos(int x, int y){
   /**
    * The first spot in the array is really the top
-   * left corner, the last spot is bottom right corner  
+   * left corner, the last spot is bottom right corner
   */
-  
+
   if (x < 0 || x >= numOfCols)
     return -1;
   if (y < 0 || y >= numOfRows)
@@ -1493,10 +1493,10 @@ int BoardPosToArrayPos(int x, int y){
 
 /******
  * Unhash a shogi move
- * 
+ *
  * input: MOVE
  *
- * output: sMove  
+ * output: sMove
  ******/
 sMove unhashMove(MOVE move){
 	struct cleanMove m;
@@ -1504,24 +1504,24 @@ sMove unhashMove(MOVE move){
 	m.fromY = (move >> 16) & 0xff;
 	m.toX = (move >> 8) & 0xff;
 	m.toY = move & 0xff;
-	
+
 	return m;
 }
 
 /********
  * hash a shogi move
- * 
+ *
  * input: int fromX
  *        int fromY
  *        int toX
  *        int toY
  * return: void
  ********/
-MOVE hashMove(unsigned int fromX, 
-	unsigned int fromY, 
-	unsigned int toX, 
+MOVE hashMove(unsigned int fromX,
+	unsigned int fromY,
+	unsigned int toX,
 	unsigned int toY){
-	
+
 	MOVE move = 0;
 	move |= (fromX << 24);
 	move |= (fromY << 16);

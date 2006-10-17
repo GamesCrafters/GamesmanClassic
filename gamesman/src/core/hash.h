@@ -18,7 +18,6 @@
 //extern int hash_boardSize;
 //extern int hash_usefulSpace;
 //extern int hash_maxPos;
-/* Added in int generic_hash_cur_context() */
 
 struct hashContext
 {
@@ -51,7 +50,6 @@ struct hashContext
 
         int player;		// 0=Both Player boards (default), 1=1st Player only, 2=2nd only
 
-        //BOOLEAN init;  //indicates whether the context has been initialized true=yes
         //int contextNumber;
 };
 
@@ -61,12 +59,11 @@ void generic_hash_destroy();
 int generic_hash_cur_context();
 POSITION generic_hash_max_pos();
 
-POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *));
-POSITION generic_hash_init_singleplayer(int boardsize, int*, int (*fn)(int *), int player);
-POSITION generic_hash(char* board, int player);
-char* generic_unhash_tcl(POSITION pos);
-char* generic_unhash(POSITION hashed, char* dest);
-int whoseMove (POSITION hashed);
+POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *), int player);
+POSITION generic_hash_hash(char* board, int player);
+char* generic_hash_unhash_tcl(POSITION pos);
+char* generic_hash_unhash(POSITION hashed, char* dest);
+int generic_hash_turn (POSITION hashed);
 void hashCounting(void);
 
 #endif /* GMCORE_HASH_H */

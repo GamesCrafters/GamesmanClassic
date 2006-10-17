@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.22 2006-01-03 00:19:35 hevanm Exp $
+// $Id: mparadux.c,v 1.23 2006-10-17 10:45:21 max817 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -16,7 +16,7 @@
 **
 ** DATE:        09/13/03
 **
-** UPDATE HIST: 
+** UPDATE HIST:
 **
 ** 09/13/2005 David  - First Revision
 ** 09/14/2005 Yanpei - Fixed some typo in InitializeGame().
@@ -31,17 +31,17 @@
 **                     something out before the meeting.
 ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 **                     more tidy code. Proof read hashMove() unhashMove()
-** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged. 
-** 11/09/2005 Yanpei - DoMove proof read, reasonably confident, 
-**                     need to write getNeighbor, 
-**                     yanpeiTestNeighboringDir() written but yet to run. 
+** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged.
+** 11/09/2005 Yanpei - DoMove proof read, reasonably confident,
+**                     need to write getNeighbor,
+**                     yanpeiTestNeighboringDir() written but yet to run.
 **                     Primitive proof read, reasonably confident
 **                     Wrote PrintMove + PrintComputersMove
 **                     Still to do: GenerateMoves + test UI functions
 ** 11/10/2005 Yanpei - GenerateMoves proof read, reasonably confident
 **                     Need to write AddMovesPerPair to make it work
 **                     Need to check hash to see whether need to keep
-**                     track of turns. 
+**                     track of turns.
 ** 11/18/2005 David  - Got it compiling and running. Looks like there's a
 **                     memory leak somewhere when solving. Also, solving
 **                     is very slow. Anyways, this update plays. Next will
@@ -112,7 +112,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
 
-/* 
+/*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
@@ -132,7 +132,7 @@ the movement key, each separated by spaces.";
 
 STRING   kHelpOnYourTurn =
 "Choose one of your pieces and one of your opponent's pieces.\n\
-Then choose a direction to move in or SWAP to swap the pieces."; 
+Then choose a direction to move in or SWAP to swap the pieces.";
 
 STRING   kHelpStandardObjective =
 "On a board with side length N, to line N of your pieces in a row in any direction.";
@@ -171,10 +171,10 @@ STRING computerName = "Robbie";
 **
 **************************************************************************/
 
-/* Board Coordinates 
+/* Board Coordinates
 
           row,col format          el(ement) format
-   
+
           0,0  0,1  0,2              00  01  02
 
        1,0  1,1  1,2  1,3          03  04  05  06
@@ -188,7 +188,7 @@ STRING computerName = "Robbie";
 
 */
 
-/* Initial board - 
+/* Initial board -
 
          Paradux mini                  Paradux regular
 
@@ -216,7 +216,7 @@ STRING computerName = "Robbie";
 #define BLANK    0
 #define X        1
 #define O        2
-#define INVALID -1 
+#define INVALID -1
 
 #define NW       0
 #define NE       1
@@ -315,7 +315,7 @@ int*                    getNeighborCache;
 #define                 GET_NEIGHBOR(slot, dir) getNeighborCache[(slot) * NUM_DIRS + (dir)]
 
 /* Direction in which the neighbor neighbors slot:
-  returns one of 
+  returns one of
   0 NW
   1 NE
   2 E
@@ -352,7 +352,7 @@ void                    runTests();
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
@@ -407,7 +407,7 @@ void InitializeGame ()
   pieces[8] = numBlank;
   pieces[9] = -1;
 
-  //  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL);
+  //  gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL, 0);
   gNumberOfPositions = paraduxHashInit(boardSize, pieces, NULL);
 
   // Due to horrible performance, we cache all of the position lookup code
@@ -465,7 +465,7 @@ void initOddBoard() {
     }
   }
 
-  //  gInitialPosition = generic_hash(board, firstGo);
+  //  gInitialPosition = generic_hash_hash(board, firstGo);
   gInitialPosition = paraduxHash(board, lastMoveHash, firstGo);
   SafeFree(board);
 }
@@ -517,7 +517,7 @@ void initEvenBoard() {
     }
   }
 
-  //  gInitialPosition = generic_hash(board, firstGo);
+  //  gInitialPosition = generic_hash_hash(board, firstGo);
   gInitialPosition = paraduxHash(board, lastMoveHash, firstGo);
   SafeFree(board);
 }
@@ -591,7 +591,7 @@ void freeCaches ()
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position for move
 **                                  generation.
 **
@@ -637,7 +637,7 @@ MOVELIST *GenerateMovesFromBoard (char *board, MOVE lastMoveHash)
       }
 
       // No need to check W NE or NW because we start from slot = 0 forwards
-      // So any W NE or NW should have been found by E SW or SE earlier. 
+      // So any W NE or NW should have been found by E SW or SE earlier.
     }
   }
 
@@ -650,7 +650,7 @@ MOVELIST *GenerateMoves (POSITION position)
 
   MOVE lastMoveHash;
 
-  //  generic_unhash(position, board);
+  //  generic_hash_unhash(position, board);
   paraduxUnhash(position, board, &lastMoveHash);
   // if prevMoveAllowed then lastMoveHash = INVALID = -1
 
@@ -714,7 +714,7 @@ BOOLEAN isOpen(char* board, int direction, int slot1, int slot2) {
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -736,7 +736,7 @@ POSITION DoMove (POSITION position, MOVE move)
   char *board = SafeMalloc(sizeof(char) * boardSize);
 
   unhashMove(move, &type, &slot1, &slot2);
-  //  generic_unhash(position, board);
+  //  generic_hash_unhash(position, board);
   paraduxUnhash(position, board, &oppositeMove);
   // if prevMoveAllowed then oppositeMove = INVALID = -1
 
@@ -760,8 +760,8 @@ POSITION DoMove (POSITION position, MOVE move)
     if (!prevMoveAllowed) oppositeMove = hashMove(MAX_DIR - type, target1, target2);
   }
 
-  //  int hashVal = generic_hash(board, nextPlayer(whoseMove(position)));
-  hashVal = paraduxHash(board, oppositeMove, nextPlayer(whoseMove(position)));
+  //  int hashVal = generic_hash_hash(board, nextPlayer(generic_hash_turn(position)));
+  hashVal = paraduxHash(board, oppositeMove, nextPlayer(generic_hash_turn(position)));
 
   SafeFree(board);
 
@@ -783,13 +783,13 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       None
 **
 ************************************************************************/
 
@@ -797,12 +797,12 @@ VALUE Primitive (POSITION position)
 {
   char *board = SafeMalloc(sizeof(char) * boardSize);
   int slot, curSlot;
-  char piece, curPiece, playersPiece = valToChar[whoseMove(position % numGenericPositions)];
+  char piece, curPiece, playersPiece = valToChar[generic_hash_turn(position % numGenericPositions)];
   int i, j;
 
   MOVE lastMoveHash;
 
-  //  generic_unhash(position, board);
+  //  generic_hash_unhash(position, board);
   paraduxUnhash(position, board, &lastMoveHash);
 
   for (i = 0; i < boardSize; i++) {
@@ -858,7 +858,7 @@ VALUE Primitive (POSITION position)
 	  return playersPiece == piece ? win : lose;
 	}
       }
-      
+
       // Check southwest
       curSlot = slot;
 
@@ -883,7 +883,7 @@ VALUE Primitive (POSITION position)
       }
 
       // No need to check W NE or NW because we search from slot = 0 forwards
-      // So any W NE or NW should have been found by E SW or SE earlier. 
+      // So any W NE or NW should have been found by E SW or SE earlier.
     }
   }
 
@@ -898,7 +898,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -918,7 +918,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   MOVE lastMoveHash;
 
-  //  generic_unhash(position, board);
+  //  generic_hash_unhash(position, board);
   paraduxUnhash(position, board, &lastMoveHash);
 
   if (!prevMoveAllowed) {
@@ -931,7 +931,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   for (row = 0; row < boardSide * 2 - 1; row++, (row<boardSide ? totalCols++ : totalCols--)) {
     initEl = el;
-  
+
     // Leading spaces
     printf("     ");
 
@@ -949,7 +949,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
     printf("         ");
     el = initEl;
-    
+
     // Spaces between divider and legend; and legend
     if (boardSide < 6) {
       // less than 100 slots
@@ -966,12 +966,12 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
       }
       for (col = 0; col < totalCols; col++, el++) {
 	printf("%3d  ", el);
-      } 
+      }
     } // end lengend
-    
+
     printf("\n\n");
   } // end for (row = 0 ...)
-        
+
   printf("+---------------------------+------------------------------+\n");
   printf("|        MOVEMENT KEY       |          PREDICTION          |\n");
   printf("|                           |                              |\n");
@@ -982,7 +982,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("|   SW     SE               |                              |\n");
   printf("|                           |                              |\n");
   printf("+---------------------------+------------------------------+\n\n");
-       
+
   SafeFree(board);
 }
 
@@ -991,9 +991,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 void PrintComputersMove (MOVE computersMove, STRING computersName)
@@ -1002,7 +1002,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
   unhashMove(computersMove, &type, &slot1, &slot2);
 
   switch (type) {
-  case NW: 
+  case NW:
     printf("Computer %s moves %d %d NW",computersName,slot1,slot2);
   case NE:
     printf("Computer %s moves %d %d NE",computersName,slot1,slot2);
@@ -1015,8 +1015,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
   case W:
     printf("Computer %s moves %d %d W", computersName,slot1,slot2);
   case SWAP:
-    printf("Computer %s SWAP %d %d",    computersName,slot1,slot2); 
-  }   
+    printf("Computer %s SWAP %d %d",    computersName,slot1,slot2);
+  }
 }
 
 /************************************************************************
@@ -1024,8 +1024,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
@@ -1035,7 +1035,7 @@ void PrintMove (MOVE move)
   unhashMove(move, &type, &slot1, &slot2);
 
   switch (type) {
-  case NW: 
+  case NW:
     printf("[%d %d NW]",slot1,slot2);
     break;
   case NE:
@@ -1065,10 +1065,10 @@ void PrintMove (MOVE move)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -1083,12 +1083,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    
+
     for (;;) {
 	printf("%8s's move [(undo)/slot1 slot2 [type]] : ", playersName);
-	
+
 	input = HandleDefaultTextInput(position, move, playersName);
-	
+
 	if (input != Continue)
 		return input;
     }
@@ -1105,13 +1105,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ** DESCRIPTION: Rudimentary check to check if input is in the move form
 **              you are expecting. Does not check if it is a valid move.
 **              Only checks if it fits the move form.
-**  POSITION 
+**  POSITION
 **              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
 **                                          COMMANDS IN YOUR GAME
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -1125,7 +1125,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  
+
   int i = 0, slot1, slot2;
   char *slot2s, *moveTypes = NULL;
   BOOLEAN toReturn = TRUE;
@@ -1159,7 +1159,7 @@ BOOLEAN ValidTextInput (STRING input)
     i++;
   }
 
-  toReturn = toReturn && 
+  toReturn = toReturn &&
     //    (strstr(moveTypes, "swap") ||
     (moveTypes[0] == '\0' ||
      strstr(moveTypes, "sw")   || strstr(moveTypes, "se") ||
@@ -1177,7 +1177,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -1186,7 +1186,7 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  
+
   int i = 0, slot1, slot2, moveType = INVALID, temp;
   char *slot2s, *moveTypes = NULL;
 
@@ -1260,7 +1260,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
@@ -1273,7 +1273,7 @@ void GameSpecificMenu ()
     while (!validInput) {
 	printf("\t---- mparadux Option Menu ---- \n\n");
 	printf("\tU)\tToggle Allow (U)ndoing Previous Move: Currently %s\n\n", prevMoveAllowed ? "ALLOWED" : "DISALLOWED");
-    
+
 	printf("Select an option: ");
 	//fflush(stdin); // This should only work on windows, flushing input is an ambiguous concept
 	//flush();
@@ -1292,7 +1292,7 @@ void GameSpecificMenu ()
 	    break;
 	}
     }
-    
+
 }
 
 
@@ -1302,15 +1302,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -1319,7 +1319,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -1396,12 +1396,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 /************************************************************************
@@ -1412,7 +1412,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 // Have to rewrite un/hashMove so that it doesn't take up so much space
@@ -1430,7 +1430,7 @@ void unhashMove (MOVE move, int* type, int* slot1, int* slot2) {
 }
 
 POSITION paraduxHashInit(int boardSize, int* pieces_array, int (*fn)(int *)) {
-  numGenericPositions = generic_hash_init(boardSize, pieces_array, fn);
+  numGenericPositions = generic_hash_init(boardSize, pieces_array, fn, 0);
 
   if (prevMoveAllowed) {
     return numGenericPositions;
@@ -1443,7 +1443,7 @@ POSITION paraduxHashInit(int boardSize, int* pieces_array, int (*fn)(int *)) {
 
 POSITION paraduxHash(char* board, MOVE lastMoveHash, int player) {
   // First, get the generic hash
-  POSITION genericPart = generic_hash(board, player);
+  POSITION genericPart = generic_hash_hash(board, player);
 
   if (!prevMoveAllowed) {
     // Then, enumerate the moves
@@ -1475,11 +1475,11 @@ char* paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash) {
   int index = hashed / numGenericPositions;
 
   // Get the board that corresponds to the generic part of the position
-  generic_unhash(hashed % numGenericPositions, dest);
+  generic_hash_unhash(hashed % numGenericPositions, dest);
 
   if (!prevMoveAllowed) {
 
-    // Then, enumerate the moves from the board 
+    // Then, enumerate the moves from the board
     MOVELIST *moves = GenerateMovesFromBoard(dest, INVALID);
     MOVELIST *movesCopy = moves;
 
@@ -1497,11 +1497,11 @@ char* paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash) {
 
     SafeFree(movesCopy);
     //  *lastMoveHash = hashed / numGenericPositions;
-    
-    //  generic_unhash(hashed % numGenericPositions, dest);
-    
+
+    //  generic_hash_unhash(hashed % numGenericPositions, dest);
+
     //  *lastMoveHash = -1;
-    //  generic_unhash(hashed, dest);
+    //  generic_hash_unhash(hashed, dest);
 
   } else { // prevMoveAllowed
     *lastMoveHash = INVALID;
@@ -1517,10 +1517,10 @@ char* paraduxUnhash(POSITION hashed, char* dest, MOVE* lastMoveHash) {
 ************************************************************************/
 
 char readchar( ) {
-	
+
     while( getchar( ) != '\n' );
     return getchar( );
-	
+
 }
 
 
@@ -1597,7 +1597,7 @@ int getNeighbor(int slot, int direction) {
 }
 
 /* Direction in which the neighbor neighbors slot:
-  returns one of 
+  returns one of
   0 NW
   1 NE
   2 E
@@ -1741,12 +1741,12 @@ BOOLEAN neighbor(int u, int v, int x, int y) {
     // valid rows
     (u>=0 && u<(2*boardSide-1) && x>=0 && x<(2*boardSide-1)) &&
     // valid columns
-    (v>=0 && v<(u<boardSide ? boardSide+u : 2*boardSide - u%boardSide - 2)) &&    
+    (v>=0 && v<(u<boardSide ? boardSide+u : 2*boardSide - u%boardSide - 2)) &&
     (y>=0 && y<(x<boardSide ? boardSide+x : 2*boardSide - x%boardSide - 2)) &&
     // neighbor same row, two possible neighbors, two cases
     (((u==x) && ((v==y-1) || (v==y+1))) ||
      // neighbor different rows, four possible neighbors, four cases
-     (((u==x-1) || (u==x+1)) && 
+     (((u==x-1) || (u==x+1)) &&
       ((v==y) ||
        (x<(boardSide-1) ? ((u==x-1) && (v==y-1)) : ((u==x+1) && (v==y+1))) ||
        (x>(boardSide-1) ? ((u==x-1) && (v==y+1)) : ((u==x+1) && (v==y-1))) ||
@@ -1762,14 +1762,14 @@ BOOLEAN neighbor(int u, int v, int x, int y) {
 // returns -1 when given invalid coordinates
 int rcToSlot(int r, int c) {
   int x, y = boardSide, toReturn = 0;
-  
-  if (    
+
+  if (
       // valid r
       (r>=0 && r<(2*boardSide-1)) &&
       // valid columns
       (c>=0 && c<(r<boardSide ? boardSide+r : 2*boardSide - r%boardSide - 2))
       ) {
-    
+
     // for rows before r w/ increasing length
     for (x=0; x<min(boardSide-1,r); x++, toReturn += y++);
     // for rows before r w/ decreasing length
@@ -1798,7 +1798,7 @@ void slotToRC(int slot, int* pRow, int* pCol) {
   *pCol = slot - numEls;
 }
 
-int whoseMoveF(POSITION p) {
+int generic_hash_turnF(POSITION p) {
   return p;
 }
 
@@ -1860,6 +1860,9 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2006/01/03 00:19:35  hevanm
+// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
+//
 // Revision 1.21  2005/12/19 10:06:23  trikeizo
 // Fixed first player always wins.
 //
@@ -1911,7 +1914,7 @@ void runTests() {
 // Revision 1.8  2005/10/18 08:34:01  yanpeichen
 // ** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
 // **                     more tidy code. Proof read hashMove() unhashMove()
-// **final fantasy ix 
+// **final fantasy ix
 //
 // Revision 1.7  2005/10/05 03:23:55  trikeizo
 // Added a bunch of small functions, untested.

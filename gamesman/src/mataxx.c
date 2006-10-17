@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.3 2006-10-11 06:59:02 max817 Exp $
+// $Id: mataxx.c,v 1.4 2006-10-17 10:45:20 max817 Exp $
 
 /************************************************************************
 **
@@ -807,7 +807,7 @@ void SetupGame() {
 	SetupTierStuff();
 	if (width <= 5 && length <= 5) {
 		int pieces_array[10] = {RED, 0, boardsize, BLUE, 0, boardsize, SPACE, 0, boardsize-4, -1};
-		gNumberOfPositions = generic_hash_init(boardsize, pieces_array, NULL);
+		gNumberOfPositions = generic_hash_init(boardsize, pieces_array, NULL, 0);
 		// initial position
 		int i;
 		char* initial = (char *) SafeMalloc(boardsize * sizeof(char));
@@ -828,11 +828,11 @@ char* unhash (POSITION position, int* turn)
 		TIERPOSITION tierPos; TIER tier;
 		gUnhashToTierPosition(position, &tierPos, &tier);
 		generic_hash_context_switch(tier);
-		(*turn) = whoseMove(tierPos);
-		board = (char *) generic_unhash(tierPos, board);
+		(*turn) = generic_hash_turn(tierPos);
+		board = (char *) generic_hash_unhash(tierPos, board);
 	} else {
-		(*turn) = whoseMove(position);
-		board = (char *) generic_unhash(position, board);
+		(*turn) = generic_hash_turn(position);
+		board = (char *) generic_hash_unhash(position, board);
 	}
 	return board;
 }
@@ -843,9 +843,9 @@ POSITION hash (char* board, int turn)
 	if (gHashWindowInitialized) {
 		TIER tier = BoardToTier(board);
 		generic_hash_context_switch(tier);
-		TIERPOSITION tierPos = generic_hash(board, turn);
+		TIERPOSITION tierPos = generic_hash_hash(board, turn);
 		position = gHashToWindowPosition(tierPos, tier);
-	} else position = generic_hash(board, turn);
+	} else position = generic_hash_hash(board, turn);
 
 	if(board != NULL)
 		SafeFree(board);
@@ -886,7 +886,7 @@ void SetupTierStuff() {
 		// Blanks = tier
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
-		generic_hash_init(boardsize, piecesArray, NULL);
+		generic_hash_init(boardsize, piecesArray, NULL, 0);
 	}
 	// Initial
 	int i;
@@ -925,6 +925,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.3  2006/10/11 06:59:02  max817
+// A quick modification of the Tier Gamesman games to include the new changes.
+//
 // Revision 1.2  2006/10/04 23:55:40  max817
 // Added quick implementation of Tiers for the demo tonight.
 //
