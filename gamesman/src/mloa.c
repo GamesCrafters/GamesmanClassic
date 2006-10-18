@@ -27,10 +27,18 @@
 **                         strings)
 **              2006.10.16 Fixed GenerateMoves to check that the destination
 **                         square is blank before adding to list of moves.
+**              2006.10.17 Fixed GenerateMoves to check that the destination
+**                         square does not have a piece of your own color.
+**                         Fixed moveHash hardcoding 4 instead of SIDELENGTH
+**                         Wrote my own hash, unhash and turn functions since
+**                         generic_hash stuff was acting up and didn't let me
+**                         go over a 4x4 board. Fixed Primitive so it doesn't
+**                         think win means Black won.  Instead, win means the
+**                         player whose turn it is has won.
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.5 2006-10-17 10:45:21 max817 Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.6 2006-10-18 09:09:39 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -106,7 +114,7 @@ STRING   kHelpExample =
 ** #defines and structs
 **ccbb
 **************************************************************************/
-#define SIDELENGTH 4
+#define SIDELENGTH 6
 #define BOARDSIZE SIDELENGTH*SIDELENGTH
 
 #define PLAYERBLACK 1
@@ -148,6 +156,10 @@ POSITION calcInitialPosition();
 int numPiecesLeft(char color);
 STRING moveUnhash(MOVE move);
 MOVE moveHash(STRING input);
+char* boardUnhash(POSITION pos, char* board);
+POSITION boardHash(char* board, int player);
+POSITION power(POSITION base, int exponent);
+int boardHash_turn(POSITION pos);
 
 
 /* External */
@@ -168,12 +180,18 @@ STRING                  MoveToString(MOVE move);
 void InitializeGame ()
 {
   //InitializeHelpStrings();
+  printf("initializing game...\n");
+  
   int pieces[] = {BLANK, BOARDSIZE - 4*(SIDELENGTH-2), BOARDSIZE-2,
 		  BLACK, 1, 2*(SIDELENGTH-2), WHITE, 1, 2*(SIDELENGTH-2), -1};
-
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);
+  
+  //gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);
+  gNumberOfPositions = power(3, BOARDSIZE+1);
   gBoard = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE));
   gInitialPosition = calcInitialPosition();
+
+  printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
+  printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
 }
 
 
@@ -237,10 +255,12 @@ MOVELIST *GenerateMoves (POSITION position)
 {
   //printf("generateMoves starting... \n");
   int i;
-  int playerTurn = generic_hash_turn(position);
+  //int playerTurn = generic_hash_turn(position);
+  int playerTurn = boardHash_turn(position);
   char playerColor = (playerTurn == PLAYERBLACK ? BLACK : WHITE);
   MOVELIST *moves = NULL;
-  generic_hash_unhash(position, gBoard);
+  //generic_hash_unhash(position, gBoard);
+  boardUnhash(position, gBoard);
 
   for (i = 0; i < BOARDSIZE; i++) {
     if (gBoard[i] == playerColor)
@@ -270,12 +290,13 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-
   //printf("doing move... \n");
   int start, end;
-  int playerTurn = generic_hash_turn(position);
+  //int playerTurn = generic_hash_turn(position);
+  int playerTurn = boardHash_turn(position);
   POSITION nextPosition;
-  generic_hash_unhash(position, gBoard);
+  //generic_hash_unhash(position, gBoard);
+  boardUnhash(position, gBoard);
 
  /* MOVE is just an int. 4 digits, the first two are the starting position
     and the second two are the ending position.  For example, 1234 means
@@ -294,7 +315,8 @@ POSITION DoMove (POSITION position, MOVE move)
  else
    playerTurn = PLAYERBLACK;
 
- nextPosition = generic_hash_hash(gBoard, playerTurn);
+ //nextPosition = generic_hash_hash(gBoard, playerTurn);
+ nextPosition = boardHash(gBoard, playerTurn);
 
  return nextPosition;
 }
@@ -329,8 +351,10 @@ VALUE Primitive (POSITION position)
   int i, j, blackChainLength, whiteChainLength, blackPiecesLeft, whitePiecesLeft;
   VALUE result;
   BOOLEAN allWhiteConnected, allBlackConnected, doneChecking;
-  int playerTurn = generic_hash_turn(position);
-  char* board = generic_hash_unhash(position, gBoard);
+  //int playerTurn = generic_hash_turn(position);
+  int playerTurn = boardHash_turn(position);
+  //char* board = generic_hash_unhash(position, gBoard);
+  char* board = boardUnhash(position, gBoard);
 
   blackPiecesLeft = numPiecesLeft(BLACK);
   whitePiecesLeft = numPiecesLeft(WHITE);
@@ -429,9 +453,19 @@ VALUE Primitive (POSITION position)
   if (GenerateMoves == NULL)
     result = tie;
   else if (allBlackConnected && !allWhiteConnected)
-    result = win;
+    {
+      if (playerTurn == PLAYERBLACK)
+	result = win;
+      else
+	result = lose;
+    }
   else if (allWhiteConnected && !allBlackConnected)
-    result = lose;
+    {
+      if (playerTurn == PLAYERBLACK)
+	result = lose;
+      else 
+	result = win;
+    }
   else if (allWhiteConnected && allBlackConnected)
     {
       if (playerTurn == PLAYERBLACK)
@@ -466,7 +500,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
   int i;
   int j;
-  generic_hash_unhash(position, gBoard);
+  //generic_hash_unhash(position, gBoard);
+  boardUnhash(position, gBoard);
 
   printf("\n                   ");
   for (i = 1; i < SIDELENGTH; i++) {
@@ -855,6 +890,7 @@ void addPieceMoves(int boardSquare, int playerTurn, MOVELIST **moves)
 void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, MOVELIST **moves)
 {
   int moveLength, startSquare, endSquare, i;
+  char playerColor = (playerTurn == PLAYERBLACK ? BLACK : WHITE);
   char otherPlayerColor = (playerTurn == PLAYERBLACK ? WHITE : BLACK);
   //printf("starting addMovesInDirection...\n");
 
@@ -875,7 +911,7 @@ void addMovesInDirection(Direction direction, int boardSquare, int playerTurn, M
       else
 	break;
     }
-  if ((boardSquare == endSquare) && (gBoard[endSquare] == BLANK))
+  if ((boardSquare == endSquare) && (gBoard[endSquare] != playerColor))
     {
       //printf("   adding a piece to moves... direction = %d, startSquare = %d, moveLength = %d \n", direction, startSquare, moveLength);
       *moves = CreateMovelistNode(startSquare*100 + endSquare, *moves);
@@ -1001,9 +1037,10 @@ Direction oppositeDirection(Direction direction)
 POSITION calcInitialPosition()
 {
   int i;
-  POSITION initialPos = 0;
+  POSITION initialPos;
   //char* board = (char*)SafeMalloc(sizeof(char) * (BOARDSIZE+1));
 
+  
   for (i = 0; i < BOARDSIZE; i++) {
     if ((i > 0 && i < SIDELENGTH-1) || (i < BOARDSIZE-1 && i > BOARDSIZE-SIDELENGTH))
       gBoard[i] = BLACK;
@@ -1016,10 +1053,11 @@ POSITION calcInitialPosition()
   gBoard[SIDELENGTH-1] = BLANK;
   gBoard[BOARDSIZE-SIDELENGTH] = BLANK;
   gBoard[BOARDSIZE-1] = BLANK;
-  gBoard[BOARDSIZE] = '\0';
-
-  initialPos = generic_hash_hash(gBoard, PLAYERBLACK);
-
+  //gBoard[BOARDSIZE] = '\0';
+  
+  //initialPos = generic_hash_hash(gBoard, PLAYERBLACK);
+  initialPos = boardHash(gBoard, PLAYERBLACK);
+  
   //SafeFree(board);
   return initialPos;
 }
@@ -1050,7 +1088,7 @@ MOVE moveHash(STRING input)
   startSquare = input[0] - 'a' + (SIDELENGTH - (input[1] - '0'))*SIDELENGTH;
   endSquare = input[2] - 'a' + (SIDELENGTH - (input[3] - '0'))*SIDELENGTH;
   move = endSquare + startSquare*100;
-  printf("startsquare = %d, endSquare = %d\n", startSquare, endSquare);
+  //printf("startsquare = %d, endSquare = %d\n", startSquare, endSquare);
   return move;
 }
 
@@ -1062,11 +1100,11 @@ STRING moveUnhash(MOVE move)
 
   endSquare = move % 100;
   startSquare = move/100;
-  number = '0' + (4 - startSquare / SIDELENGTH);
+  number = '0' + (SIDELENGTH - startSquare / SIDELENGTH);
   letter = (startSquare % SIDELENGTH) + 'a';
   moveString[0] = letter;
   moveString[1] = number;
-  number = '0' + (4 - endSquare / SIDELENGTH);
+  number = '0' + (SIDELENGTH - endSquare / SIDELENGTH);
   letter = (endSquare % SIDELENGTH) + 'a';
   moveString[2] = letter;
   moveString[3] = number;
@@ -1076,10 +1114,65 @@ STRING moveUnhash(MOVE move)
 }
 
 
+char* boardUnhash(POSITION pos, char* board)
+{
+  int i;
+  pos = (pos - (pos % 3))/3;
+
+  for (i = 0; i < BOARDSIZE; i++) {
+    pos = (pos - (pos % 3))/3;
+
+    if (pos % 3 == 0)
+      board[i] = BLANK;
+    else if (pos % 3 == 1)
+      board[i] = BLACK;
+    else if (pos % 3 == 2)
+      board[i] = WHITE;
+  }
+  return board;
+}
+
+POSITION boardHash(char* board, int player)
+{
+  int i;
+  POSITION result;
+
+  result = player;
+  
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (gBoard[i] == BLACK)
+      result += power(3, i+2);
+    else if (gBoard[i] == WHITE)
+      result += 2*power(3, i+2);
+  }
+  return result;
+}
+
+int boardHash_turn(POSITION pos)
+{
+  return (int) (pos % 3);
+}
+
+// really stupidly done but whatever
+POSITION power(POSITION base, int exponent)
+{
+  int i;
+  POSITION result = 1;
+  
+  for (i = 0; i < exponent; i++) {
+    result *= base;
+  }
+  return result;
+}
+
 /************************************************************************
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.5  2006/10/17 10:45:21  max817
+ ** HUGE amount of changes to all generic_hash games, so that they call the
+ ** new versions of the functions.
+ **
  ** Revision 1.4  2006/10/16 20:58:42  alb_shau
  ** Added half a line to make it ready to demo 2006.10.16.  GenerateMoves now
  ** checks to make sure the move destination is blank before adding that move
