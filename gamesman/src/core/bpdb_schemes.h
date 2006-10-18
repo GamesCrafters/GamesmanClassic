@@ -69,7 +69,7 @@ scheme_new(
                 );
 
 void scheme_free(
-                SCHEME scheme;
+                SCHEME s
                 );
 
 extern
