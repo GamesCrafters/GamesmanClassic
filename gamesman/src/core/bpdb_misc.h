@@ -1,3 +1,36 @@
+/************************************************************************
+**
+** NAME:    bpdb_misc.h
+**
+** DESCRIPTION:    Accessor functions for miscellaneous functions used in
+**                 the Bit-Perfect Database
+**
+** AUTHOR:    Ken Elkabany
+**        GamesCrafters Research Group, UC Berkeley
+**        Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+**
+** DATE:    2006-05-01
+**
+** LICENSE:    This file is part of GAMESMAN,
+**        The Finite, Two-person Perfect-Information Game Generator
+**        Released under the GPL:
+**
+** This program is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2 of the License, or
+** (at your option) any later version.
+**
+** This program is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with this program, in COPYING; if not, write to the Free Software
+** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+**
+**************************************************************************/
+
 #ifndef GMCORE_BPDB_MISC_H
 #define GMCORE_BPDB_MISC_H
 
@@ -34,72 +67,52 @@ typedef UINT32 GMSTATUS;
 #define BPDB_TRACE(fnc, msg, err) \
         fprintf(stderr, "\nERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
 
-#define STATUS_SUCCESS                  0x0
-#define STATUS_NOT_ENOUGH_MEMORY        0x1
-#define STATUS_INVALID_INPUT_PARAMETER  0x2
+#define STATUS_SUCCESS                      0x0
+#define STATUS_NOT_ENOUGH_MEMORY            0x1
+#define STATUS_INVALID_INPUT_PARAMETER      0x2
 
-#define STATUS_FILE_COULD_NOT_BE_OPENED 0x3
-#define STATUS_FILE_COULD_NOT_BE_CLOSED 0x4
+#define STATUS_FILE_COULD_NOT_BE_OPENED     0x3
+#define STATUS_FILE_COULD_NOT_BE_CLOSED     0x4
 
-#define STATUS_MISSING_DEPENDENT_MODULE 0x5
+#define STATUS_MISSING_DEPENDENT_MODULE     0x5
+#define STATUS_NO_SCHEMES_INSTALLED         0x6
+#define STATUS_SLICE_FORMAT_NOT_SET         0x7
 
 #define GMSUCCESS(status) \
         (STATUS_SUCCESS == (status))
 
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
-/*
-#define VALUESLOT 0
-#define MEXSLOT 2
-#define REMSLOT 4
-#define VISITEDSLOT 1
-*/
 
-typedef struct  dbscheme {
-    // numeric identifier
-    UINT32          id;
+//
+// structure of a singly-linked list
+//
 
-    // pointers to load and save functions
-    UINT8           (*varnum_gap_bits)      ( UINT64 consecutiveSkips );
-
-    UINT8           (*varnum_size_bits)     ( UINT8 leftBits );
-
-    UINT64          (*varnum_implicit_amt)  ( UINT8 leftBits );
-
-    BOOLEAN         indicator;
-
-} *SCHEME;
-
-/* List structure for schemes */
 typedef struct singlylinkedlist {
 
+    // object stored in the linked list
     void            *obj;
 
-    // next scheme
+    // pointer to the next node
     struct singlylinkedlist *next;
 } *SLIST;
 
-SCHEME scheme_new(
-                UINT32 id,
-                UINT8 (*varnum_gap_bits) ( UINT64 consecutiveSkips ),
-                UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
-                UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
-                void (*varnum_init) ( ),
-                BOOLEAN indicator
-                );
+SLIST
+slist_new( );
 
-//void scheme_free(
-//                SCHEME s;
-//                );
-
-SLIST slist_new( );
-
-SLIST slist_add(
+SLIST
+slist_add(
                 SLIST sl,
                 void *obj
                 );
 
-UINT32 slist_size(
+UINT32
+slist_size(
+                SLIST sl
+                );
+
+void
+slist_free(
                 SLIST sl
                 );
 

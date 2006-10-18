@@ -116,11 +116,17 @@ void db_destroy() {
     }
 }
 
-void db_initialize(){
+void db_initialize() {
+    GMSTATUS status = STATUS_SUCCESS;
+
 	if (kSupportsTierGamesman && gTierGamesman) {
 		tierdb_init(db_functions);
 	} else if (gBitPerfectDB) {
-        bpdb_init(db_functions);
+        status = bpdb_init(db_functions);
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("db_initialize()", "Attempt to initialize the bpdb by calling bpdb_init failed", status);
+            goto _bailout;
+        }
     } else if(gTwoBits) {
         twobitdb_init(db_functions);
     } else if(gCollDB){
@@ -146,6 +152,8 @@ void db_initialize(){
     }
     //printf("\nCalling hooking function\n");
     //db_analysis_hook();
+_bailout:
+    return;
 }
 
 void db_analysis_hook() {
@@ -218,7 +226,6 @@ BOOLEAN db_load_database(){
 }
 
 void db_get_bulk (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
-    POSITION *ptr = positions;
     int i;
     for (i = 0; i < length; i++) {
         ValueArray[i] = GetValueOfPosition(positions[i]);

@@ -46,6 +46,7 @@ Note:
 #include "gamesman.h"
 #include "bpdb_bitlib.h"
 #include "bpdb_schemes.h"
+#include "bpdb_misc.h"
 
 
 //
@@ -117,7 +118,7 @@ UINT32 bpdb_buffer_length = 10000;
 
 Routine Description:
 
-    bpdb_init initializes the Bit-Perfect database
+    bpdb_init initializes the Bit-Perfect Database
     pseudo-C object. This function must be called before
     any other bpdb function. It allocates the bpdb write
     and nowrite slices, which are the slice formats for data
@@ -143,7 +144,7 @@ Return value:
 
 --*/
 
-void
+GMSTATUS
 bpdb_init(
                 DB_Table *new_db
                 )
@@ -157,6 +158,12 @@ bpdb_init(
     if(NULL == new_db) {
         status = STATUS_INVALID_INPUT_PARAMETER;
         BPDB_TRACE("bpdb_init()", "Input parameter new_db is null", status);
+        goto _bailout;
+    }
+
+    if(0 == gNumberOfPositions) {
+        status = STATUS_INVALID_INPUT_PARAMETER;
+        BPDB_TRACE("bpdb_init()", "Invalid gNumberOfPositions value(0)", status);
         goto _bailout;
     }
 
@@ -280,10 +287,28 @@ bpdb_init(
     }
 
 _bailout:
-    return;
+    return status;
 }
 
 
+/*++
+
+Routine Description:
+
+    bpdb_allocate allocates the space required by the database
+    to save data for each potential slice. The function requires
+    that the slice format information has been defined.
+    
+Arguments:
+
+    None
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 
 GMSTATUS
 bpdb_allocate( )
@@ -291,18 +316,26 @@ bpdb_allocate( )
     GMSTATUS status = STATUS_SUCCESS;
     UINT64 i = 0;
 
-    // fixed heap corruption =p
-    bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
-    if(NULL == bpdb_write_array) {
-        status = STATUS_NOT_ENOUGH_MEMORY;
-        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_write_array in memory", status);
+    // check whether slice formats have been set
+    if(0 == bpdb_write_slice->bits && 0 == bpdb_nowrite_slice->bits) {
+        status = STATUS_SLICE_FORMAT_NOT_SET;
+        BPDB_TRACE("bpdb_allocate()", "Slices are width 0 which indicates that they have not been formatted yet", status);
         goto _bailout;
     }
 
+    // allocate room for data that will be written out to file
+    bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
+    if(NULL == bpdb_write_array) {
+        status = STATUS_NOT_ENOUGH_MEMORY;
+        BPDB_TRACE("bpdb_allocate()", "Could not allocate bpdb_write_array in memory", status);
+        goto _bailout;
+    }
+
+    // allocate room for transient data that will only be stored in memory
     bpdb_nowrite_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_nowrite_slice->bits) ), sizeof(BYTE));
     if(NULL == bpdb_write_array) {
         status = STATUS_NOT_ENOUGH_MEMORY;
-        BPDB_TRACE("bpdb_init()", "Could not allocate bpdb_nowrite_array in memory", status);
+        BPDB_TRACE("bpdb_allocate()", "Could not allocate bpdb_nowrite_array in memory", status);
         goto _bailout;
     }
 
@@ -320,6 +353,7 @@ bpdb_allocate( )
     // everything will work without this for loop,
     // until someone changes the value of the undecided enum
     // which is at the time of writing this 0.
+
     //for(i = 0; i < bpdb_slices; i++) {
     //    bpdb_set_slice_slot( i, BPDB_VALUESLOT, undecided );
     //}
@@ -328,10 +362,36 @@ _bailout:
     return status;
 }
 
-void
+
+/*++
+
+Routine Description:
+
+    bpdb_free_slice frees the resources used by the slice format
+    description structure.
+    
+Arguments:
+
+    sl - slice to be freed.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
+GMSTATUS
 bpdb_free_slice( SLICE sl )
 {
+    GMSTATUS status = STATUS_SUCCESS;
     int i = 0;
+
+    if(NULL == sl) {
+        status = STATUS_INVALID_INPUT_PARAMETER;
+        BPDB_TRACE("bpdb_free_slice()", "Input parameter sl is null", status);
+        goto _bailout;
+    }
 
     SAFE_FREE( sl->size );
     SAFE_FREE( sl->offset );
@@ -345,16 +405,69 @@ bpdb_free_slice( SLICE sl )
     SAFE_FREE( sl->name );
     SAFE_FREE( sl->overflowed );
     SAFE_FREE( sl->adjust );
+
+_bailout:
+    return status;
 }
+
+/*++
+
+Routine Description:
+
+    bpdb_free frees the resources used by th bpdb. This includes
+    freeing both in-memory and to-be-written data, as well as
+    slice formats. Schemes, as well as the list that contains them,
+    are also freed.
+    
+Arguments:
+
+    None
+    
+Return value:
+
+    None
+
+--*/
 
 void
 bpdb_free( )
 {
-    // TODO: must free schemes list
-    bpdb_free_slice( bpdb_write_slice );
-    bpdb_free_slice( bpdb_nowrite_slice );
+    GMSTATUS status = STATUS_SUCCESS;
+    SLIST cur = NULL;
+
+    // free write slice format
+    status = bpdb_free_slice( bpdb_write_slice );
+    if(!GMSUCCESS(status)) {
+        BPDB_TRACE("bpdb_free()", "Call to free bpdb_write_slice failed", status);
+        goto _bailout;
+    }
+
+    // free nowrite slice format
+    status = bpdb_free_slice( bpdb_nowrite_slice );
+    if(!GMSUCCESS(status)) {
+        BPDB_TRACE("bpdb_free()", "Call to free bpdb_nowrite_slice failed", status);
+        goto _bailout;
+    }
+
+    // free in-memory database
     SAFE_FREE( bpdb_nowrite_array );
+
+    // free database to be written
     SAFE_FREE( bpdb_write_array );
+
+    // free each scheme
+    cur = bpdb_schemes;
+    while( NULL != cur ) {
+        free(cur->obj);
+        cur = cur->next;
+    }
+
+    // free the list that contained the schemes
+    slist_free( bpdb_schemes );
+
+_bailout:
+//    return status;
+return;
 }
 
 
@@ -1129,6 +1242,12 @@ bpdb_save_database()
     // struct for fileinfo
     struct stat fileinfo;
 
+    if(0 == slist_size(bpdb_schemes)) {
+        status = STATUS_NO_SCHEMES_INSTALLED;
+        BPDB_TRACE("bpdb_save_database()", "no encoding schemes installed to save db file", status);
+        goto _bailout;
+    }
+
     // set counters
     i = 0;
     cur = bpdb_schemes;
@@ -1155,7 +1274,7 @@ bpdb_save_database()
 
     UINT64 temp = 0;
     UINT8 bitsNeeded = 0;
-    for(i=0; i < (bpdb_write_slice->slots); i++) {
+    for(i = 0; i < (bpdb_write_slice->slots); i++) {
         temp = bpdb_write_slice->maxseen[i];
         bitsNeeded = 0;
         while(0 != temp) {
@@ -1168,15 +1287,13 @@ bpdb_save_database()
         }
     }
 
-    // determine size of new largest value
-    i = 0;
-
     printf("\n");
+
+    i = 0;
 
     // save file under each encoding scheme
     while(cur != NULL) {
         // saves with encoding scheme and returns filename
-        //sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", "test", 1, cur->scheme);
         sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", kDBName, getOption(), ((SCHEME)cur->obj)->id);
 
         status = bpdb_generic_save_database( (SCHEME) cur->obj, outfilenames[i] );
@@ -1190,8 +1307,15 @@ bpdb_save_database()
 
             // if file is a smaller size, set min
             if(smallestsize == -1 || fileinfo.st_size < smallestsize) {
+                if(smallestsize != -1) {
+                    printf("Removing %s\n", outfilenames[smallestscheme]);
+                    remove(outfilenames[smallestscheme]);
+                }
                 smallestscheme = i;
-                smallestsize  = fileinfo.st_size;
+                smallestsize = fileinfo.st_size;
+            } else {
+                printf("Removing %s\n", outfilenames[i]);
+                remove(outfilenames[i]);
             }
         }
         cur = cur->next;
@@ -1199,25 +1323,13 @@ bpdb_save_database()
     }
 
     printf("Choosing scheme: %d\n", smallestscheme);
+
+    // rename smallest file to final file name
+    sprintf(outfilename, "./data/m%s_%d_bpdb.dat.gz", kDBName, getOption());
+    printf("Renaming %s to %s\n", outfilenames[smallestscheme], outfilename);
+    rename(outfilenames[smallestscheme], outfilename);
     
-    // for each file, delete if not the smallest encoding,
-    // and if it is, rename it to the final file name.
-    for(i = 0; i < slist_size(bpdb_schemes); i++) {
-        if(i == smallestscheme) {
-
-            // rename smallest file to final file name
-            sprintf(outfilename, "./data/m%s_%d_bpdb.dat.gz", kDBName, getOption());
-            //sprintf(outfilename, "./data/m%s_%d_bpdb.dat.gz", "test", 1);
-            printf("Renaming %s to %s\n", outfilenames[i], outfilename);
-            rename(outfilenames[i], outfilename);
-        } else {
-
-            // delete files that are not the smallest
-            printf("Removing %s\n", outfilenames[i]);
-            remove(outfilenames[i]);
-        }
-    }
-
+_bailout:
     if(!GMSUCCESS(status)) {
         return TRUE;
     } else {

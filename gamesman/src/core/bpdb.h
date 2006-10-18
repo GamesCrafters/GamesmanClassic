@@ -2,7 +2,7 @@
 **
 ** NAME:    bpdb.h
 **
-** DESCRIPTION:    Accessor functions for the bit-perfect database.
+** DESCRIPTION:    Accessor functions for the Bit-Perfect Database.
 **
 ** AUTHOR:    Ken Elkabany
 **        GamesCrafters Research Group, UC Berkeley
@@ -33,7 +33,7 @@
 #ifndef GMCORE_BPDB_H
 #define GMCORE_BPDB_H
 
-#include "bpdb_misc.h"
+#include "bpdb_schemes.h"
 #include "db.h"
 
 //
@@ -57,7 +57,7 @@ typedef struct sliceformat {
 // functions for global use
 //
 
-void
+GMSTATUS
 bpdb_init(
                 DB_Table *new_db
                 );
@@ -65,7 +65,7 @@ bpdb_init(
 void
 bpdb_free( );
 
-void
+GMSTATUS
 bpdb_free_slice( );
 
 // get/set value
