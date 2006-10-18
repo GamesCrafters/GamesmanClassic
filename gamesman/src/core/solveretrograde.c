@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.24 2006-10-17 10:45:22 max817 Exp $
+// $Id: solveretrograde.c,v 1.25 2006-10-18 13:32:52 max817 Exp $
 
 /************************************************************************
 **
@@ -49,6 +49,8 @@ TIERLIST* tierSolveList = NULL;
 // Solver procs
 void checkExistingDB();
 void PrepareToSolveNextTier();
+void solveFirst(TIER);
+void changeTierSolveList();
 BOOLEAN setInitialTierPosition();
 POSITION GetMyPosition();
 BOOLEAN ConfirmAction(char);
@@ -197,6 +199,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 			   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
         	   "\ts)\t(S)olve the next tier.\n"
                "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+               "\tt)\tChange the (T)ier Solve Order.\n\n"
                "\tb)\t(B)egin the Game before fully solving!\n\n"
                "\tq)\t(Q)uit the Retrograde Solver.\n"
                "\nSelect an option:  ", (checkCorrectness ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
@@ -238,6 +241,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
             	printf("\n%s is now fully solved!\n", kGameName);
                 cont = FALSE;
                 break;
+            case 't': case 'T':
+				changeTierSolveList();
+				break;
             case 'b': case 'B':
             	if (setInitialTierPosition()) {
                 	cont = FALSE;
@@ -269,24 +275,36 @@ void checkExistingDB() {
 	POSITION numPos[1];
 	int	goodDecompression;
 
-	for (; tierSolveList != NULL; tierSolveList = tierSolveList->next) {
+	TIERLIST* solveList = tierSolveList;
+
+	while(solveList != NULL) {
 		sprintf(filename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
-					kDBName, variant, kDBName, variant, tierSolveList->tier);
+					kDBName, variant, kDBName, variant, solveList->tier);
 		if((filep = gzopen(filename, "rb")) == NULL) {
-			break;
+			solveList = solveList->next;
+			continue;
 		} else {
 			goodDecompression = gzread(filep,dbVer,sizeof(short));
 			goodDecompression = gzread(filep,numPos,sizeof(POSITION));
 			*dbVer = ntohs(*dbVer);
 			*numPos = ntohl(*numPos);
-			if(!goodDecompression || (*numPos != gNumberOfTierPositionsFunPtr(tierSolveList->tier))
+			if(!goodDecompression || (*numPos != gNumberOfTierPositionsFunPtr(solveList->tier))
 				|| (*dbVer != FILEVER)) {
-				printf("--%d's Tier DB appears incorrect/corrupted. Re-solving...\n", tierSolveList->tier);
-				break;
+				printf("--%d's Tier DB appears incorrect/corrupted. Re-solving...\n", solveList->tier);
+				solveList = solveList->next;
+				continue;
 			}
 		}
 		gzclose(filep);
-		printf("  %d's Tier DB Found!\n", tierSolveList->tier);
+		printf("  %d's Tier DB Found!\n", solveList->tier);
+		if (solveList->tier != tierSolveList->tier) {// if this isn't next to solve!
+			solveFirst(solveList->tier);
+			tierSolveList = tierSolveList->next;
+			solveList = solveList->next;
+		} else {//this is first on the list
+			tierSolveList = tierSolveList->next;
+			solveList = tierSolveList;
+		}
 		tiersSoFar++;
 	}
 }
@@ -297,13 +315,66 @@ void PrepareToSolveNextTier() {
 	printf("\n------Preparing to solve tier: %d\n", tierToSolve);
 	gInitializeHashWindow(tierToSolve, TRUE);
 	tierSize = gMaxPosOffset[1];
+	PercentDone(Clean); //reset percentage bar
 	printf("  Done! Hash Window initialized and Database loaded and prepared!\n");
 }
 
-// Alters tierSolveList so that
-//solveFirst(TIER tier) {
-//	MoveToFrontOfTierlist(tier, tierSolveList);
-//}
+// Alters tierSolveList so that tier goes on Front of list
+void solveFirst(TIER tier) {
+	tierSolveList = MoveToFrontOfTierlist(tier, tierSolveList);
+}
+
+// A helper which tells what tiers CAN be set to be solved next
+TIERLIST* possibleNextTiers() {
+	TIERLIST* nexts = NULL, *ptr = tierSolveList, *children, *childptr;
+	TIER t, ct;
+	for (; ptr != NULL; ptr = ptr->next) {
+		t = ptr->tier;
+		children = childptr = gTierChildrenFunPtr(t);
+		for (; childptr != NULL; childptr = childptr->next) {
+			ct = childptr->tier;
+			if (TierInList(ct, tierSolveList) && ct != t)
+				break;
+		}
+		if (childptr == NULL) //all children solved!
+			nexts = CreateTierlistNode(t, nexts);
+		FreeTierList(children);
+	}
+	return nexts;
+}
+
+// A menu with which to change TierSolveList
+void changeTierSolveList() {
+	TIERLIST* nexts = possibleNextTiers();
+	if (nexts->next == NULL) {
+		printf("There's only that one tier to choose from!\n");
+		FreeTierList(nexts);
+		return;
+	}
+	STRING tierStr;
+	while (TRUE) {
+		TIERLIST* ptr = nexts;
+		printf("You can choose from these tiers which to solve next:\n");
+		for (; ptr != NULL; ptr = ptr->next) {
+			printf("  %d", ptr->tier);
+			if (tierNames) {
+				tierStr = gTierToStringFunPtr(ptr->tier);
+				printf(" (%s)\n", tierStr);
+				if (tierStr != NULL) SafeFree(tierStr);
+			}
+		}
+		printf("\nEnter a TIER number to solve next, or non-number to go back:\n> ");
+		POSITION p = GetMyPosition();
+		if (p == kBadPosition) break;
+		TIER t = (TIER)p;
+		if (TierInList(t, nexts)) {
+			solveFirst(t);
+			PrepareToSolveNextTier();
+			break;
+		} else printf("That's not a tier to be solved next! Try again...\n\n");
+	}
+	FreeTierList(nexts);
+}
 
 
 BOOLEAN setInitialTierPosition() {
@@ -357,7 +428,7 @@ POSITION GetMyPosition() {
 		p = (p*10) + (inString[i]-'0');
 		i++;
 	}
-	if (inString[i] != '\0') {
+	if (inString[i] != '\0' && inString[i] != '\n') {
 		return kBadPosition;
 	}
 	return p;

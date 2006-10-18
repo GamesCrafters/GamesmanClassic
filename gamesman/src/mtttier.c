@@ -176,6 +176,7 @@ TIER BoardToTier(BlankOX*);
 void SetupTierStuff();
 TIERLIST* TierChildren(TIER);
 TIERPOSITION NumberOfTierPositions(TIER);
+void GetInitialTierPosition(TIER*, TIERPOSITION*);
 BOOLEAN IsLegal(POSITION);
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 STRING TierToString(TIER);
@@ -774,6 +775,7 @@ void SetupTierStuff() {
 	// All function pointers
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
+	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
 	//gIsLegalFunPtr				= &IsLegal;
 	gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier;
 	gUnDoMoveFunPtr					= &UnDoMove;
@@ -815,6 +817,32 @@ TIERLIST* TierChildren(TIER tier) {
 TIERPOSITION NumberOfTierPositions(TIER tier) {
 	generic_hash_context_switch(tier);
 	return generic_hash_max_pos();
+}
+
+void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
+	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
+	signed char c;
+	int i = 0, xcount = 0, ycount = 0;
+
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
+
+	while(i < BOARDSIZE && (c = GetMyChar()) != EOF) {
+	if(c == 'x' || c == 'X') {
+		board[i++] = x; xcount++;
+	} else if(c == 'o' || c == 'O' || c == '0') {
+		board[i++] = o; ycount++;
+	} else if(c == '-')
+		board[i++] = Blank;
+	else
+		;   /* do nothing */
+	}
+
+	(*tier) = BoardToTier(board);
+	generic_hash_context_switch(*tier);
+	(*tierposition) = generic_hash_hash(board,1);
 }
 
 // Not used, since we deal with the double-hash problem already.

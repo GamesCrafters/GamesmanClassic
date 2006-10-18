@@ -80,11 +80,11 @@ void PrintRawGameValues(BOOLEAN toFile)
     char filename[80];
     POSITION i;
     VALUE value;
-    
+
     if(toFile) {
         printf("File to save to: ");
         scanf("%s",filename);
-	
+
         if((fp = fopen(filename, "w")) == NULL) {
             ExitStageRightErrorString("Couldn't open file, sorry.");
             exit(0);
@@ -93,12 +93,12 @@ void PrintRawGameValues(BOOLEAN toFile)
 	fflush(stdout);
     } else
         fp = stdout;
-    
+
     if (!toFile) printf("\n");
     fprintf(fp,"%s\n", kGameName);
     fprintf(fp,"Position,Value,Remoteness%s\n",
 	    (!kPartizan && !gTwoBits) ? ",MexValue" : "");
-    
+
     for(i=0 ; i<gNumberOfPositions ; i++)
       if((value = GetValueOfPosition((POSITION)i)) != undecided) {
             fprintf(fp,POSITION_FORMAT ",%c,%d",
@@ -110,7 +110,7 @@ void PrintRawGameValues(BOOLEAN toFile)
 	    else
 	      fprintf(fp,"\n");
       }
-    
+
     if(toFile) {
       fclose(fp);
       printf("done\n");
@@ -124,12 +124,12 @@ void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, P
     POSITION thePosition;
     int j;
     char yesOrNo;
-    
+
     if     (c == '1') ptr = badWinPositions;
     else if(c == '2') ptr = badTiePositions;
     else if(c == '3') ptr = badLosePositions;
     else BadElse("PrintBadPositions");
-    
+
     j = 0;
     continueSearching = TRUE;
     do {
@@ -156,7 +156,7 @@ void PrintMexValues(MEX mexValue, int maxPositions)
     POSITION thePosition;
     int j;
     char yesOrNo;
-    
+
     j = 0;
     continueSearching = TRUE;
     do {
@@ -180,19 +180,19 @@ void PrintMexValues(MEX mexValue, int maxPositions)
 }
 
 void PrintValuePositions(char c, int maxPositions)
-{   
+{
     BOOLEAN continueSearching = TRUE;
     POSITION thePosition;
     VALUE theValue;
     int j;
     char yesOrNo;
-    
+
     j = 0;
     continueSearching = TRUE;
     do {
         for(j = 0 ; ((thePosition = GetNextPosition()) != kBadPosition) && j < maxPositions ;) {
             theValue = GetValueOfPosition(thePosition);
-            if((theValue == win  && (c == 'w' || c == 'W')) || 
+            if((theValue == win  && (c == 'w' || c == 'W')) ||
 	       (theValue == lose && (c == 'l' || c == 'L')) ||
 	       (theValue == tie  && (c == 't' || c == 'T'))) {
 		PrintPosition(thePosition, "Nobody", TRUE);
@@ -237,14 +237,14 @@ void PrintDetailedGameValueSummary()
    printf("\t------------------------------------------------------------------------------\n");
    printf("\t       Inf   %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0],
    			gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][1], gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][2],
-       		gAnalysis.Draws, 
+       		gAnalysis.Draws,
        		gAnalysis.Draws);
    for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness-=1) {
        if(gAnalysis.DetailedPositionSummary[currentRemoteness][0] == 0 && gAnalysis.DetailedPositionSummary[currentRemoteness][1] == 0
            && gAnalysis.DetailedPositionSummary[currentRemoteness][2] == 0) continue;
 
           printf("\t%10d   %10llu   %10llu   %10llu   %10d   %10llu\n", currentRemoteness, gAnalysis.DetailedPositionSummary[currentRemoteness][0],
-   			gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2], 
+   			gAnalysis.DetailedPositionSummary[currentRemoteness][1], gAnalysis.DetailedPositionSummary[currentRemoteness][2],
    			0,
        		gAnalysis.DetailedPositionSummary[currentRemoteness][2]+
    			gAnalysis.DetailedPositionSummary[currentRemoteness][1]+
@@ -259,42 +259,42 @@ void PrintDetailedGameValueSummary()
 	   printf("\tFringe1 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
    }
    printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
-   
+
 	if(gUseOpen && kLoopy)
 		PrintDetailedOpenSummary(); //ALAN
    return;
 }
 
-void PrintDetailedOpenSummary() 
+void PrintDetailedOpenSummary()
 {
 	//if ganalysis.draws
 	REMOTENESS currentFRemoteness;
 	REMOTENESS currentCorruption;
 	REMOTENESS currentLevel;
-	
+
 	printf("\n\n\t                             ----- Detailed Summary of Open Position values -----\n\n");
 	printf("\tLevel     Corruption    FRemoteness        DrawWin       DrawLose        DrawTie       DrawDraw          Total\n");
 	printf("\t----------------------------------------------------------------------------------------------------------------\n");
-	
-	printf("\t  Inf          undef            Inf              0              0              0     %10llu     %10llu\n\n", 
+
+	printf("\t  Inf          undef            Inf              0              0              0     %10llu     %10llu\n\n",
 		   gAnalysis.DrawDraws,
 		   gAnalysis.DrawDraws);
-	 
-	
+
+
 	// have another array in ganalysis to save corruption/fremoteness max values at each level?
 	int printedstuff = 0;
-	   
+
 	for(currentLevel = gAnalysis.LargestFoundLevel; currentLevel >= 1 ; currentLevel-=1) {
 		// set largest corruption
 		for(currentCorruption = 10; currentCorruption >= 0; currentCorruption-=1) {
 			// set largest found fremoteness with for loop
 			for(currentFRemoteness = 10; currentFRemoteness >= 0; currentFRemoteness-=1) {
-				if(gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win] == 0 && 
+				if(gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win] == 0 &&
 				   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose] == 0) continue;
-				
+
 				printedstuff = 1;
-				
-				printf("\t%5d     %10d     %10d     %10llu     %10llu     %10llu     %10llu     %10llu\n", 
+
+				printf("\t%5d     %10d     %10d     %10llu     %10llu     %10llu     %10llu     %10llu\n",
 					   currentLevel,
 					   currentCorruption,
 					   currentFRemoteness,
@@ -302,10 +302,10 @@ void PrintDetailedOpenSummary()
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose],
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][tie],
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][undecided],
-					   
+
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][win] +
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][lose] +
-					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][tie] + 
+					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][tie] +
 					   gAnalysis.DetailedOpenSummary[currentLevel][currentCorruption][currentFRemoteness][undecided]);
 			}
 			if (printedstuff && currentCorruption != 0) printf("\n");
@@ -313,21 +313,21 @@ void PrintDetailedOpenSummary()
 		if (printedstuff && currentLevel != 1) printf("\n");
 		printedstuff = 0;
 	}
-		
+
 	printf("\t----------------------------------------------------------------------------------------------------------------\n");
-	printf("\tTotals                                  %10llu     %10llu     %10llu     %10llu     %10llu\n", 
-		   /* gAnalysis.DrawWinCount, 
-		   gAnalysis.DrawLoseCount, 
+	printf("\tTotals                                  %10llu     %10llu     %10llu     %10llu     %10llu\n",
+		   /* gAnalysis.DrawWinCount,
+		   gAnalysis.DrawLoseCount,
 		   gAnalysis.DrawTieCount,
-		   gAnalysis.DrawDraws, 
+		   gAnalysis.DrawDraws,
 		   gAnalysis.TotalOpenPositions); */
 		   gAnalysis.OpenSummary[win],
 		   gAnalysis.OpenSummary[lose],
 		   gAnalysis.OpenSummary[tie],
 		   gAnalysis.OpenSummary[undecided],
 		   gAnalysis.OpenSummary[win]+gAnalysis.OpenSummary[lose]+gAnalysis.OpenSummary[tie]+gAnalysis.OpenSummary[undecided]);
-	 
-	
+
+
 	printf("\tDraws = %llu\n\n", gAnalysis.Draws);
 	printf("\tFringe1 Nodes = %llu\n\tAverage Win/Draw Child Ratio = %f\n\tAvg No. Winning Children = %f\n",gAnalysis.F0NodeCount, ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0DrawEdgeCount), ((float) gAnalysis.F0EdgeCount) / ((float) gAnalysis.F0NodeCount));
 	printf("\n\tLargestFoundLevel: %d\n", gAnalysis.LargestFoundLevel);
@@ -336,10 +336,10 @@ void PrintDetailedOpenSummary()
 	printf("\tTotal Draw Loses: %llu\n", gAnalysis.OpenSummary[lose]);
 	printf("\tTotal Draw Draws: %llu\n", gAnalysis.DrawDraws);
 	//printf("\tTotal Open Positions: %llu\n", gAnalysis.TotalOpenPositions);
-	
+
 	printf("\n\tTotal Positions Visited: %llu\n", gAnalysis.TotalPositions);
 
-	
+
 	return;
 }
 
@@ -362,7 +362,7 @@ void PrintGameValueSummary()
             BadElse("PrintGameValueSummary [InitialPositionValue]");
     }
     printf("\n\n\t----- Summary of Game values -----\n\n");
-    
+
     printf("\tValue       Number       Total\n");
     printf("\t------------------------------\n");
     printf("\tLose      = %5llu out of %llu (%5llu primitive)\n",gAnalysis.LoseCount,gAnalysis.TotalPositions,gAnalysis.PrimitiveLoses);
@@ -371,17 +371,17 @@ void PrintGameValueSummary()
 	printf("\tDraw      = %5llu out of %llu\n",
 		gAnalysis.Draws,  // ADDED to count draws
 		gAnalysis.TotalPositions);
-    printf("\tUnknown   = %5llu out of %llu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);  
+    printf("\tUnknown   = %5llu out of %llu (Sanity-check...should always be 0)\n",gAnalysis.UnknownCount,gAnalysis.TotalPositions);
     printf("\tTOTAL     = %5llu out of %llu allocated (%5llu primitive)\n",
        gAnalysis.TotalPositions,
        gNumberOfPositions,
        gAnalysis.TotalPrimitives);
-    
+
     printf("\tHash Efficiency                   = %6d\%%\n",gAnalysis.HashEfficiency);
     printf("\tTotal Moves                       = %5llu\n",gAnalysis.TotalMoves);
     printf("\tAvg. number of moves per position = %2f\n", gAnalysis.AverageFanout);
     printf("\tProbability of maintaining a %-5s= %2f\n", initialPositionValue,gAnalysis.InitialPositionProbability);
-    
+
     return;
 }
 
@@ -399,7 +399,7 @@ void analyze() {
         gSolver(gInitialPosition);
         showStatus(Clean);
         AnalysisCollation();
-        	
+
         if(gSaveDatabase) {
         	SaveDatabase();
         	SaveAnalysis();
@@ -426,7 +426,7 @@ VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
             gAnalysis.DetailedPositionSummary[theRemoteness][1] += 1;
             if (theRemoteness > theLargestRemoteness) theLargestRemoteness = theRemoteness;
         } else if(theValue == tie) {
-            if ((theRemoteness = Remoteness(thePosition)) < REMOTENESS_MAX) 
+            if ((theRemoteness = Remoteness(thePosition)) < REMOTENESS_MAX)
             {
                 tieCount++;
                 gAnalysis.DetailedPositionSummary[theRemoteness][2] += 1;
@@ -441,16 +441,16 @@ VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
 
     return(theValue);
 }
-    
+
 void AnalysisCollation()
-{   
-    hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0); 
+{
+    hashEfficiency = (int)((((float)reachablePositions ) / (float)gNumberOfPositions) * 100.0);
     averageFanout = (float)((float)gAnalysis.TotalMoves/(float)(reachablePositions - primitiveWins - primitiveLoses - primitiveTies));
-    
+
     gAnalysis.InitialPositionValue = GetValueOfPosition(gInitialPosition);
-    
+
     //gAnalysis.InitialPositionProbability = DetermineProbability(gInitialPosition,gAnalysis.InitialPositionValue);
-    
+
     gAnalysis.HashEfficiency    = hashEfficiency;
     gAnalysis.AverageFanout     = averageFanout;
     gAnalysis.TotalPositions    = totalPositions;
@@ -465,7 +465,7 @@ void AnalysisCollation()
     gAnalysis.NumberOfPositions = gNumberOfPositions;
     gAnalysis.TotalPrimitives   = gAnalysis.PrimitiveWins+gAnalysis.PrimitiveLoses+gAnalysis.PrimitiveTies;
 	gAnalysis.LargestFoundRemoteness = theLargestRemoteness;  //ADDED
-	
+
 	gAnalysisLoaded = TRUE;
 }
 
@@ -479,7 +479,7 @@ float DetermineProbability(POSITION position, VALUE value)
     POSITION child;
     POSITION numChildren = 0;
     float probabilitySum = 0.0;
-    
+
     switch(value)
     {
         case win:
@@ -494,8 +494,8 @@ float DetermineProbability(POSITION position, VALUE value)
         default:
             BadElse("DetermineProbability [next_level_value]");
     }
-    
-    
+
+
     if(primitive == value)
     {
         return 1.000;
@@ -511,25 +511,25 @@ float DetermineProbability(POSITION position, VALUE value)
     else
     {
         MarkAsVisited(position);
-        
+
         head = ptr = GenerateMoves(position);
         if(ptr == NULL) {return 0.0;}
         while(ptr != NULL)
         {
             child = DoMove(position, ptr->move);
-           
+
             probabilitySum += DetermineProbability(child, opposite_value);
-            
+
             numChildren++;
             ptr = ptr->next;
         }
         FreeMoveList(head);
-       
+
         return (float)((float) probabilitySum / (float)numChildren);
-       
+
 
     }
-    
+
 }
 
 
@@ -539,33 +539,33 @@ void writeVarStat(char * statName, char * text, FILE *rowp)
     FILE * filep;
     //FILE * rawfilep ;
     char outFileName[256];
-    
+
     sprintf(outFileName, "analysis/%s/var%d/%s", kDBName,getOption(),statName) ;
-    
+
     filep = fopen(outFileName, "w");
-    
-    
+
+
     fprintf(filep,"<!-- AUTO CREATED, do //not modify-->\n");
     fprintf(filep,text);
     fprintf(filep,"\n");
-    
-    
+
+
     fprintf(rowp,"<td ALIGN = ""center""><!--#include virtual=\"%s\"--></td>\n",statName);
-    
-    
+
+
     fclose(filep);
-    
-    
+
+
 }
 
 void createAnalysisGameDir()
 {
     char gameDirName[256];
     sprintf(gameDirName, "analysis/%s", kDBName);
-    
+
     mkdir("analysis", 0755);
     mkdir(gameDirName, 0755);
-    
+
 }
 
 void createAnalysisVarDir()
@@ -580,20 +580,20 @@ BOOLEAN LoadAnalysis() {
     //int currentRemoteness;
     char version;
     FILE *fp;
-    
+
     Stopwatch();
     createAnalysisGameDir();
     sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
-    
+
     if(!gAnalyzing)
     	printf("\nLoading Analysis DB for %s...", kGameName);
-    	
+
     if(gAnalysisLoaded) {
     	if(!gAnalyzing)
     		printf("done in %u seconds!", Stopwatch());
     	return TRUE;
     }
-    
+
     /* Open file for reading */
     if((fp = fopen(gameFileName, "rb")) == NULL) {
     	if(!gAnalyzing)
@@ -601,7 +601,7 @@ BOOLEAN LoadAnalysis() {
     	Stopwatch();
         return FALSE;
     }
-   
+
     /* Check file version */
     if((fread(&version, sizeof(char), 1, fp) != 1) || (version != ANALYSIS_FILE_VER)) {
     	if(!gAnalyzing)
@@ -609,7 +609,7 @@ BOOLEAN LoadAnalysis() {
     	Stopwatch();
         return FALSE;
     }
-    
+
     /* Read misc. info */
     /*
   	if((fread(&(gAnalysis.NumberOfPositions), sizeof(POSITION), 1, fp) != 1) ||
@@ -638,7 +638,7 @@ BOOLEAN LoadAnalysis() {
 		return FALSE;
 	}
 
-    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) 
+    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++)
     {
         if((fread(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1) ||
         	(fread(&(gAnalysis.DetailedPositionSummary[currentRemoteness][1]), sizeof(POSITION), 1, fp) != 1) ||
@@ -649,14 +649,14 @@ BOOLEAN LoadAnalysis() {
     	}
     }
     */
-    
+
     if(fread(&gAnalysis, sizeof(ANALYSIS), 1, fp) != 1) {
     	if(!gAnalyzing)
     		printf("Failed!");
     	Stopwatch();
     	return FALSE;
     }
-    
+
     fclose(fp);
     gAnalysisLoaded = TRUE;
     if(!gAnalyzing)
@@ -682,27 +682,27 @@ void SaveAnalysis() {
     //int currentRemoteness;
     char version = ANALYSIS_FILE_VER;
     FILE *fp;
-    
+
     Stopwatch();
     createAnalysisGameDir();
 
     sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
     printf("\nSaving Analysis DB for %s...", kGameName);
-    
+
     /* Open file for reading */
     if((fp = fopen(gameFileName, "wb")) == NULL) {
     	printf("Failed!");
     	Stopwatch();
         return;
     }
-   
+
     /* Write file version */
     if(fwrite(&version, sizeof(char), 1, fp) != 1) {
     	printf("Failed!");
     	Stopwatch();
         return;
     }
-    
+
     /* Write misc. info */
     /*
   	if((fwrite(&(gAnalysis.NumberOfPositions), sizeof(POSITION), 1, fp) != 1) ||
@@ -731,8 +731,8 @@ void SaveAnalysis() {
 		return;
 	}
 
-    
-    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++) 
+
+    for(currentRemoteness = 0; currentRemoteness <= gAnalysis.LargestFoundRemoteness; currentRemoteness++)
     {
         if((fwrite(&(gAnalysis.DetailedPositionSummary[currentRemoteness][0]), sizeof(POSITION), 1, fp) != 1) ||
         	(fwrite(&(gAnalysis.DetailedPositionSummary[currentRemoteness][1]), sizeof(POSITION), 1, fp) != 1) ||
@@ -748,7 +748,7 @@ void SaveAnalysis() {
     	Stopwatch();
     	return;
     }
-    
+
     fclose(fp);
     gAnalysisLoaded = TRUE;
     printf("done in %u seconds!", Stopwatch());
@@ -759,29 +759,29 @@ void writeGameHTML()
 {
     char gameFileName[256];
     FILE *gamep;
-    
-    
+
+
     STRING bgColor = "#000066";
     STRING fontColor = "#FFFFFF";
     STRING fontFace = "verdana";
-    
+
     sprintf(gameFileName, "analysis/%s/%s.shtml", kDBName,kDBName);
     gamep = fopen(gameFileName, "w");
-    
+
     fprintf(gamep, "<html><head>\n");
     fprintf(gamep, "<style>a:link, a:visited {color: %s\ntext-decoration: none;}\n\n", bgColor);
     fprintf(gamep, "a:hover, a:active {color: %s; text-decoration: none;}\ntd {color: %s}\n</style>\n", bgColor, fontColor);
-    
+
     fprintf(gamep, "</head>\n");
     fprintf(gamep, "<body bgcolor=\"%s\">\n",bgColor);
     fprintf(gamep, "<font color = \"%s\" face = %s size = 2>", fontColor, fontFace);
-    
+
     // a picture of the game
     fprintf(gamep, "<center>\n");
     fprintf(gamep, "<img src=\"../images/%s.gif\" width = 100 height = 100>", kDBName);
     fprintf(gamep, "</br></br>\n");
     fprintf(gamep, "</center>\n");
-    
+
     // Game name, gamescrafter
     fprintf(gamep, "<center>");
     fprintf(gamep, "<h1><b>\n");
@@ -791,12 +791,12 @@ void writeGameHTML()
     fprintf(gamep, "Crafted by: %s", kAuthorName);
     fprintf(gamep, "</h2></b>\n");
     fprintf(gamep, "</center>");
-    
+
     fprintf(gamep, "<!--#include virtual=\"%s_table.shtml\"-->\n", kDBName);
-    
+
     fprintf(gamep, "</body>");
     fprintf(gamep, "</html>\n");
-    
+
     fclose(gamep);
 }
 
@@ -806,14 +806,14 @@ void createVarTable ()
     char tableFileName[256];
     FILE * tablep;
     int i;
-    
+
     sprintf(tableFileName, "analysis/%s/%s_table.shtml", kDBName, kDBName);
     tablep = fopen(tableFileName, "w");
-    
+
     fprintf(tablep,"<!-- AUTO CREATED, do not modify-->\n");
     fprintf(tablep,"<table align=""ABSCENTER"" BORDER =""1"" CELLSPACING=""0"" CELLPADDING=""5"">\n");
     fprintf(tablep,"<tr>\n");
-    
+
     fprintf(tablep,"<td><b>Variant</b></td>\n");
     fprintf(tablep,"<td><b>Value</b></td>\n");
     fprintf(tablep,"<td><b>Wins</b></td>\n");
@@ -827,83 +827,83 @@ void createVarTable ()
     fprintf(tablep,"<td><b>Hash Efficiency (%%)</b></td>\n");
     fprintf(tablep,"<td><b>Avg. Fanout</b></td>\n");
     fprintf(tablep,"<td><b>Timer(s)</b></td>\n");
-    
-    
+
+
     fprintf(tablep,"</tr>\n");
-    
+
     for (i = 1; i <= NumberOfOptions(); i++) {
         fprintf(tablep,"<tr>\n");
         fprintf(tablep,"<!--#include virtual=\"var%d/row.shtml\"-->\n", i);
         fprintf(tablep,"</tr>\n");
     }
-    
+
  fprintf(tablep,"</table>\n");
     fclose (tablep);
-    
+
 }
 
 void writeVarHTML ()
 {
-    
+
     char text[256];
     FILE * rowp;
     char rowFileName[256];
-    
+
     sprintf(rowFileName, "analysis/%s/var%d/row.shtml", kDBName,getOption());
-    
+
     rowp = fopen(rowFileName, "w");
-    
+
     /***********************************
     Variant Specific
     ************************************/
-    
-    
+
+
     fprintf(rowp,"<!-- AUTO CREATED, do not modify-->\n");
-    
+
     sprintf(text, "%d",getOption());
     writeVarStat("option",text,rowp);
-    
+
     writeVarStat("value", gValueString[(int)gValue], rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.WinCount);
     writeVarStat("WinCount", text, rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.LoseCount);
     writeVarStat("LoseCount", text, rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.TieCount);
     writeVarStat("TieCount", text, rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.PrimitiveWins);
     writeVarStat("Prim.WinCount", text, rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.PrimitiveLoses);
     writeVarStat("Prim.LoseCount", text, rowp);
-    
+
     sprintf(text, "%5llu", gAnalysis.PrimitiveTies);
     writeVarStat("Prim.TieCount", text, rowp);
-    
-    
+
+
     sprintf(text, "%5llu", gAnalysis.TotalPositions);
     writeVarStat("totalPositions", text , rowp);
-    
+
     sprintf(text, "%5llu", gNumberOfPositions);
     writeVarStat("NumberOfPositions", text, rowp);
-    
+
     sprintf(text, "%d", gAnalysis.HashEfficiency);
     writeVarStat("hashEfficiency", text, rowp);
-    
-    
+
+
     sprintf(text, "%2f", gAnalysis.AverageFanout);
     writeVarStat("AverageFanout", text, rowp);
-    
+
     sprintf(text, "%d", gAnalysis.TimeToSolve);
     writeVarStat("TimeToSolve", text, rowp);
-    
-    
-    
+
+
+
     fclose(rowp);
-    
+
 }
 
 
@@ -913,7 +913,7 @@ BOOLEAN CorruptedValuesP()
     VALUE parentValue, childValue;
     POSITION position, child;
     BOOLEAN parentIsWin, foundLosingChild, parentIsTie, foundTieingChild, corrupted;
-    
+
     corrupted = FALSE;
     for(position=0 ; position<gNumberOfPositions ; position++) { /* for all positions */
         parentIsWin = FALSE;
@@ -926,7 +926,7 @@ BOOLEAN CorruptedValuesP()
                 while (ptr != NULL) {
                     child = DoMove(position,ptr->move);  /* Create the child */
                     childValue = GetValueOfPosition(child); /* Get its value */
-		    
+
                     if (gGoAgain(position, ptr->move)) {
                         switch(childValue) {
                             case win: childValue = lose; break;
@@ -934,7 +934,7 @@ BOOLEAN CorruptedValuesP()
                             default: break;
                         }
                     }
-		    
+
                     if(parentValue == lose) {
                         if(childValue != win) {
                             corrupted = TRUE;
@@ -951,7 +951,7 @@ BOOLEAN CorruptedValuesP()
                             printf("Corruption: Tieing Parent " POSITION_FORMAT " has Lose child " POSITION_FORMAT ", should be win\n",position,child);
                         } else if (childValue == tie)
                             foundTieingChild = TRUE;
-                    } else 
+                    } else
                         BadElse("CorruptedValuesP");
                     ptr = ptr->next;                     /* Go to the next child */
                 } /* while ptr != NULL (for all children) */
@@ -977,7 +977,7 @@ BOOLEAN CorruptedValuesP()
 void writeXML(STATICMESSAGE msg)
 {
 	char xmlPath[512];
-	
+
     switch(msg)
     {
         case Init:
@@ -1031,10 +1031,10 @@ void writeXML(STATICMESSAGE msg)
 void prepareXMLFile()
 {
   char xmlPath[512];
-  
+
   sprintf(xmlDir, "analysis/%s/xml", kDBName);
   mkdir(xmlDir,0755);
-  
+
   sprintf(xmlPath, "%s/m%s.xml", xmlDir, kDBName);
   xmlFile = fopen(xmlPath,"w+");
   fprintf(xmlFile,"<?xml version=\"1.0\"?>\n");
@@ -1045,10 +1045,10 @@ void prepareXMLFile()
 void prepareXMLVarFile()
 {
   char xmlPath[512];
-  
+
   sprintf(xmlDir, "analysis/%s/xml", kDBName);
   mkdir(xmlDir,0755);
-  
+
   sprintf(xmlPath, "%s/m%s_%d.xml", xmlDir, kDBName, getOption());
   xmlVarFile = fopen(xmlPath, "w+");
   fprintf(xmlVarFile,"<?xml version=\"1.0\"?>\n");
@@ -1113,7 +1113,7 @@ void writeXMLVarData()
     fprintf(xmlVarFile,"\t\t\t<total>%llu</total>\n",gAnalysis.TotalPositions);
     fprintf(xmlVarFile,"\t\t</positionstats>\n");
     fprintf(xmlVarFile,"\t</variant>\n");
-    
+
 	/* write array of remoteness stats */
 	for(currentRemoteness = gAnalysis.LargestFoundRemoteness; currentRemoteness >= 0; currentRemoteness--) {
 		fprintf(xmlVarFile,"\t<remoteness level=\"%d\">\n", currentRemoteness);
@@ -1140,7 +1140,9 @@ float PercentDone (STATICMESSAGE msg)
     static POSITION num_pos_seen = 0;
     float percent = 0;
     int total_positions = gNumberOfPositions;
-    if (gActualNumberOfPositionsOptFunPtr != NULL) {
+    if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
+    	total_positions = gMaxPosOffset[1];
+	} else if (gActualNumberOfPositionsOptFunPtr != NULL) {
       total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
       if (total_positions < 0)
 	total_positions = gNumberOfPositions;
@@ -1172,7 +1174,7 @@ float PercentDone (STATICMESSAGE msg)
 ** DESCRIPTION: Print to stdout the Comb Visualization (described below)
 **              which is essentially all the positions and holes of the DB,
 **              encoded as positive and negative numbers respectively.
-** 
+**
 ** INPUTS:      none
 **
 ************************************************************************/
@@ -1195,7 +1197,7 @@ void DatabaseCombVisualization()
   printf("---------------------------------------------------------------------------\n");
 
   lastUndecided = (GetValueOfPosition(0) == undecided); /* Handles 1st case */
-  
+
   /* Can you say DAV? We should write an enumerator someday... */
   for(thePosition = 0; thePosition < gNumberOfPositions ; thePosition++) {
 
@@ -1214,7 +1216,7 @@ void DatabaseCombVisualization()
     }
     lastUndecided = thisUndecided;
   }
-  
+
   /* Must flush the last bookend one too */
   printf("%s%lu\n", (lastUndecided ? "-" : ""), streak);
 

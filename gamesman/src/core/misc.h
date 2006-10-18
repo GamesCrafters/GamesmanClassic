@@ -39,6 +39,7 @@ REMOTENESSLIST* CopyRemotenesslist              (REMOTENESSLIST* theRemotenessli
 TIERLIST*	CreateTierlistNode		(TIER theTier, TIERLIST* theNextTier);
 TIERLIST*	ReverseTierlist			(TIERLIST* theTierlist);
 TIERLIST*	MoveToFrontOfTierlist	(TIER theTier, TIERLIST* theTierlist);
+BOOLEAN		TierInList				(TIER theTier, TIERLIST* theTierlist);
 
 UNDOMOVELIST*	CreateUndoMovelistNode		(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
 

@@ -392,9 +392,8 @@ TIERLIST *MoveToFrontOfTierlist(TIER theTier, TIERLIST* theTierlist)
 					return theTierlist;
 				else {
 					prev->next = ptr->next;
-					ptr->next = theTierlist->next;
-					theTierlist->next = ptr;
-					return theTierlist;
+					ptr->next = theTierlist;
+					return ptr;
 				}
 			}
 			prev = ptr;
@@ -402,6 +401,18 @@ TIERLIST *MoveToFrontOfTierlist(TIER theTier, TIERLIST* theTierlist)
         }
 
         return(theTierlist);
+}
+
+// check whether the TIER is in TIERLIST
+// true if so, false otherwise
+BOOLEAN	TierInList(TIER theTier, TIERLIST* theTierlist)
+{
+		TIERLIST *ptr = theTierlist;
+
+		for (; ptr != NULL; ptr = ptr->next)
+			if (ptr->tier == theTier)
+				return TRUE;
+		return FALSE;
 }
 
 // list constructor function for UndoMoveLists:
