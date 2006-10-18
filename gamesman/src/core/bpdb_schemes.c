@@ -58,10 +58,10 @@ SCHEME scheme_new(
 }
 
 void scheme_free(
-                SCHEME s
+                SCHEME scheme
                 )
 {
-    SAFE_FREE( s );
+    SAFE_FREE( scheme );
 }
 
 // possible limitation on the number of skips that can be encoded
