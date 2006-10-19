@@ -283,10 +283,11 @@ AddSlot(
                 char *name,
                 BOOLEAN write,
                 BOOLEAN adjust,
+                BOOLEAN reservemax,
                 UINT32 *slotindex
                 )
 {
-    return db_functions->add_slot(size, name, write, adjust, slotindex);
+    return db_functions->add_slot(size, name, write, adjust, reservemax, slotindex);
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)

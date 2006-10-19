@@ -55,28 +55,30 @@ bitlib_file_close(
                 );
 
 inline
-BOOLEAN
-bitlib_file_write_byte(
+GMSTATUS
+bitlib_file_write_bytes(
                 dbFILE *file,
                 BYTE *buffer,
                 UINT32 length
                 );
 
 inline
-BOOLEAN
-bitlib_file_read_byte(
+GMSTATUS
+bitlib_file_read_bytes(
                 dbFILE *file,
                 BYTE *buffer,
                 UINT32 length
                 );
 
 inline
-BYTE bitlib_right_mask8(
+BYTE
+bitlib_right_mask8(
                 UINT8 maskbits
                 );
 
 inline
-UINT64 bitlib_right_mask64(
+UINT64
+bitlib_right_mask64(
                 UINT8 maskbits
                 );
 

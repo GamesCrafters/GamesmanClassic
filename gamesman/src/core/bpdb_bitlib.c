@@ -63,48 +63,40 @@ bitlib_print_bytes_in_bits(
 }
 
 inline
-BOOLEAN
-bitlib_file_write_byte(
+GMSTATUS
+bitlib_file_write_bytes(
                 dbFILE *file,
                 BYTE *buffer,
                 UINT32 length
                 )
 {
-    /*if(fwrite(buffer, 1, 1, file) == 1) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }*/
-    int ret = 0;
-    ret = gzwrite(file, buffer, length);
-    if(ret != length) {
-        printf("Most likely bad compression! %d\n", ret);
-        //exit(0);
-        return FALSE;
+    GMSTATUS status = STATUS_SUCCESS;
+
+    if(gzwrite(file, buffer, length) != length) {
+        status = STATUS_BAD_COMPRESSION;
+        BPDB_TRACE("bitlib_file_write_bytes()", "call to gzwrite returned an improper value", status);
     }
-    return TRUE;
+
+    return status;
 }
 
 inline
-BOOLEAN
-bitlib_file_read_byte(
+GMSTATUS
+bitlib_file_read_bytes(
                 dbFILE *file,
                 BYTE *buffer,
                 UINT32 length
                 )
 {
-    int ret;
+    GMSTATUS status = STATUS_SUCCESS;
 
     // length in bytes (length * sizeof(BYTE))
-    ret = gzread(file, buffer, length);
-    //readbyte = (BYTE) fgetc( file );
-
-    if(ret <= 0) {
-        printf("Warning: Most likely bad decompression.");
-        //exit(0);
-        return FALSE;
+    if(gzread(file, buffer, length) <= 0) {
+        status = STATUS_BAD_DECOMPRESSION;
+        BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
     }
-    return TRUE;
+    
+    return status;
 }
 
 GMSTATUS
@@ -292,8 +284,6 @@ bitlib_value_to_buffer(
                 UINT8 bitsToOutput
                 )
 {
-    // offsetfromright
-    //BOOLEAN writeOut = FALSE;
     UINT8 offsetFromRight = BITSINBYTE - *offsetFromLeft;
 
     while( bitsToOutput > 0 ) {
@@ -304,24 +294,16 @@ bitlib_value_to_buffer(
         }
         
         *offsetFromLeft = (*offsetFromLeft + MIN(bitsToOutput, offsetFromRight)) % BITSINBYTE;
-        //if(*offsetFromLeft == 8 ) {
-        //    writeOut = TRUE;
-        //    *offsetFromLeft = *offsetFromLeft % BITSINBYTE;
-        //}
         bitsToOutput -= MIN(bitsToOutput, offsetFromRight);
         offsetFromRight = BITSINBYTE - *offsetFromLeft;
 
-        //if(writeOut) {
         if(*offsetFromLeft == 0) {
             (*curBuffer)++;
             if(*curBuffer == outputBuffer + bufferLength) {
-                bitlib_file_write_byte(file, outputBuffer, bufferLength);
+                bitlib_file_write_bytes(file, outputBuffer, bufferLength);
                 *curBuffer = outputBuffer;
                 memset(outputBuffer, 0, bufferLength);
-                // maybe memset to 0
             }
-            
-            //*outputBuffer = 0;
         }
     }
 }
@@ -351,10 +333,8 @@ bitlib_read_from_buffer(
             *offsetFromLeft = 0;
             offsetFromRight = BITSINBYTE;
             if(*curBuffer == inputBuffer + bufferLength) {
-                bitlib_file_read_byte(inFile, inputBuffer, bufferLength);
+                bitlib_file_read_bytes(inFile, inputBuffer, bufferLength);
                 *curBuffer = inputBuffer;
-                //memset(outputBuffer, 0, bufferLength);
-                // maybe memset to 0
             }
         }
 

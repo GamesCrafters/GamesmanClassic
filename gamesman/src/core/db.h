@@ -54,28 +54,29 @@ typedef struct DB {
 
     void        (*free_db)       	();
 
-    VALUE	(*get_value)		(POSITION pos);
-    VALUE	(*put_value)		(POSITION pos, VALUE val);
-    VALUE   (*original_put_value) (POSITION pos, VALUE val);
+    VALUE	    (*get_value)		(POSITION pos);
+    VALUE	    (*put_value)		(POSITION pos, VALUE val);
+    VALUE       (*original_put_value) (POSITION pos, VALUE val);
 
     REMOTENESS  (*get_remoteness)	(POSITION pos);
-    void	(*put_remoteness)	(POSITION pos, REMOTENESS val);
+    void	    (*put_remoteness)	(POSITION pos, REMOTENESS val);
 
     BOOLEAN     (*check_visited)	(POSITION pos);
-    void	(*mark_visited)		(POSITION pos);
+    void	    (*mark_visited)		(POSITION pos);
     void     	(*unmark_visited)	(POSITION pos);
 
-    MEX		(*get_mex)		(POSITION pos);
-    void	(*put_mex)		(POSITION pos, MEX mex);
+    MEX		    (*get_mex)		(POSITION pos);
+    void	    (*put_mex)		(POSITION pos, MEX mex);
 
-    BOOLEAN	(*save_database)	();
-    BOOLEAN	(*load_database)	();
+    BOOLEAN	    (*save_database)	();
+    BOOLEAN	    (*load_database)	();
 
     // bpdb
-    UINT64      (*get_slice_slot)   (UINT64 position, UINT8 index);
-    UINT64      (*set_slice_slot)   (UINT64 position, UINT8 index, UINT64 value);
-    GMSTATUS    (*add_slot)         (UINT8 size, char *name, BOOLEAN write, BOOLEAN adjust, UINT32 *slotindex);
-    GMSTATUS    (*allocate)         ();
+    UINT64      (*get_slice_slot)       (UINT64 position, UINT8 index);
+    UINT64      (*set_slice_slot)       (UINT64 position, UINT8 index, UINT64 value);
+    UINT64      (*set_slice_slot_max)   (UINT64 position, UINT8 index);
+    GMSTATUS    (*add_slot)             (UINT8 size, char *name, BOOLEAN write, BOOLEAN adjust, BOOLEAN reservemax, UINT32 *slotindex);
+    GMSTATUS    (*allocate)             ();
     
     void	(*get_bulk)		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length); 
 
@@ -115,6 +116,7 @@ AddSlot(
                 char *name,
                 BOOLEAN write,
                 BOOLEAN adjust,
+                BOOLEAN reservemax,
                 UINT32 *slotindex
                 );
 

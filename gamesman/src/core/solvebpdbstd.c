@@ -62,25 +62,25 @@ VALUE DetermineValueBPDBSTD(POSITION position)
         // add slots to database slices
         //
 
-        status = AddSlot( 2, "VALUE", TRUE, FALSE, &VALUESLOT );       // slot 0
+        status = AddSlot( 2, "VALUE", TRUE, FALSE, FALSE, &VALUESLOT );         // slot 0
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueBPDBSTD()", "Could not add value slot", status);
             goto _bailout;
         }
     
-        status = AddSlot( 1, "MEX", TRUE, TRUE, &MEXSLOT );           // slot 2
+        status = AddSlot( 1, "MEX", TRUE, TRUE, FALSE, &MEXSLOT );              // slot 2
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueBPDBSTD()", "Could not add mex slot", status);
             goto _bailout;
         }
     
-        status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, &REMSLOT );    // slot 4
+        status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, TRUE, &REMSLOT );        // slot 4
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueBPDBSTD()", "Could not add remoteness slot", status);
             goto _bailout;
         }
 
-        status = AddSlot( 1, "VISITED", FALSE, FALSE, &VISITEDSLOT );  // slot 1
+        status = AddSlot( 1, "VISITED", FALSE, FALSE, FALSE, &VISITEDSLOT );    // slot 1
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueBPDBSTD()", "Could not add visited slot", status);
             goto _bailout;

@@ -50,6 +50,7 @@ typedef struct sliceformat {
     UINT32 bits;
     BOOLEAN *overflowed;
     BOOLEAN *adjust;
+    BOOLEAN *reservemax;
 } *SLICE;
 
 
@@ -140,12 +141,20 @@ bpdb_set_slice_slot(
                 UINT64 value
                 );
 
+inline
+UINT64
+bpdb_set_slice_slot_max(
+                UINT64 position,
+                UINT8 index
+                );
+
 GMSTATUS
 bpdb_add_slot(
                 UINT8 size,
                 char *name,
                 BOOLEAN write,
                 BOOLEAN adjust,
+                BOOLEAN reservemax,
                 UINT32 *slotindex
                 );
 
@@ -166,7 +175,7 @@ bpdb_shrink_slice(
 
 GMSTATUS
 bpdb_allocate(
-        );
+                );
 
 
 //
