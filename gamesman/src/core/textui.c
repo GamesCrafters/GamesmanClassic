@@ -80,13 +80,18 @@ void GetMy(char *format, GENERIC_PTR out, int length, BOOLEAN keepSpaces) {
 	char buffer[length];
 	int blen = 0;
 
+	fgets(buffer, length, stdin);
+	blen = strlen(buffer);
+
 	if (keepSpaces) {
-	  fgets(out, length, stdin);
-	  blen = strlen(out);
+	  if (blen > 0 && buffer[blen - 1] == '\n') {
+	    buffer[blen - 1] = '\0';
+	    blen--;
+	  }
+
+	  memcpy(out, buffer, blen + 1);
 	}
 	else {
-	  fgets(buffer, length, stdin);
-	  blen = strlen(buffer);
 	  sscanf(buffer, format, out);
 	}
 
