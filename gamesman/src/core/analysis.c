@@ -687,7 +687,7 @@ void SaveAnalysis() {
     createAnalysisGameDir();
 
     sprintf(gameFileName, "analysis/%s/m%s_%d_analysis.dat", kDBName, kDBName, getOption());
-    printf("\nSaving Analysis DB for %s...", kGameName);
+    printf("\nSaving Analysis DB with %s...", kGameName);
 
     /* Open file for reading */
     if((fp = fopen(gameFileName, "wb")) == NULL) {
