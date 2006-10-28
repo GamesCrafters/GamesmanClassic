@@ -11,7 +11,8 @@
 **
 ** UPDATE HIST: 
 **
-** LAST CHANGE: $Id$
+** LAST CHANGE: 2006/10/28 Tweaked around with Printing and Board representation
+**              $Id$
 **
 **************************************************************************/
 
@@ -43,8 +44,8 @@ BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  430467321; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -87,12 +88,10 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-//#define ROWSIZE 4  /* This should be an even number greater than 2 */
-
-//#define NthInARow 3 /*          1 < n < ROWSIZE          */
+#define DEBUG 1
 
 typedef enum {
-  EMPTY, o, x
+  EMPTY, O, X
 }possibleBoardPieces;
 
 /*************************************************************************
@@ -100,14 +99,15 @@ typedef enum {
 ** Global Variables
 **
 *************************************************************************/
-int ROWSIZE = 4;
-int NthInARow = 3;
+int ROWSIZE = 4; /* This should be an even number greater than 2 */
+int NthInARow = 3; /*               1 < n < ROWSIZE                */
 
-int TOTALPOSITIONS;  /* ROWSIZE * ROWSIZE */
-int POSITIONSPLAYED = 0; /* This will be used to determine if there is a draw */
+int BOARDSIZE;  /* ROWSIZE * ROWSIZE */
 
+//int POSITIONSPLAYED = 0; /* This will be used to determine if there is a draw */
+
+//psh, who needs a board when everything is unhashed!?
 char* BOARD;  /* Board Representation is a 1D char array */
-                 /* TOTALPOSITIONS + 1 FOR NULL TERMINATOR */
 
 
 /*************************************************************************
@@ -123,7 +123,7 @@ extern void		SafeFree ();
 STRING                  MoveToString(MOVE move);
 
 /* Mine */
-BOOLEAN isOnBoard(POSITION position);
+//BOOLEAN isOnBoard(POSITION position);
 BOOLEAN nInARow(POSITION position);
 void rotate();
 BOOLEAN AllFilledIn();
@@ -144,10 +144,27 @@ BOOLEAN isRotateClockwise(MOVE);
 
 void InitializeGame ()
 {
-  //  InitializeHelpStrings(); 
-  TOTALPOSITIONS = ROWSIZE * ROWSIZE;
-  BOARD = (char *) SafeMalloc((TOTALPOSITIONS + 1) * sizeof(char));
+  if (DEBUG) {
+    printf("InitializeGame Start \n");
+  }
+    //    InitializeHelpStrings(); 
+  BOARDSIZE = ROWSIZE * ROWSIZE;
+  BOARD = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
   InitializeBoard();
+
+  /*
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+    printf(" %d ", BOARD[i]);
+    if ((i + 1) % ROWSIZE == 0) {
+      printf("\n");
+    }
+  }
+  */
+
+  if (DEBUG) {
+    printf("InitializeGame End \n");
+  }
 }
 
 
@@ -163,6 +180,9 @@ void InitializeGame ()
 ************************************************************************/
 void InitializeHelpStrings ()
 {
+  if (DEBUG) {
+    printf("InitializingHelpStrings Start\n");
+  }
 
 kHelpGraphicInterface =
     "";
@@ -187,6 +207,9 @@ kHelpExample =
 
     gMoveToStringFunPtr = &MoveToString;
 
+  if (DEBUG) {
+    printf("InitializingHelpStrings End\n");
+  }
 }
 
 
@@ -209,25 +232,34 @@ kHelpExample =
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL;
-    MOVE move = 0;
-    generic_hash_unhash(position, BOARD);
-    int col, row, board, i;
+  if (DEBUG) {
+    printf("GenerateMoves Start..\n");
+  }
 
-    for (i = 0; i < TOTALPOSITIONS; i++) {
-      if (BOARD[i] == EMPTY) {
-	col = (i % ROWSIZE) * 10;
-	row = i / ROWSIZE;
-	for (board = 0; board <= 4; board++) { //used to include all boards in possible rotations	  
-	  move = col + row + (100 * board);
-	  moves = CreateMovelistNode(move, moves);
-	  move *= -1;
-	  moves = CreateMovelistNode(move, moves);
-	}
+  MOVELIST *moves = NULL;
+  generic_hash_unhash(position, BOARD);
+
+  MOVE move = 0;
+  int col, row, board, i;
+  
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (BOARD[i] == EMPTY) {
+      col = (i % ROWSIZE) * 10;
+      row = i / ROWSIZE;
+      for (board = 0; board <= 4; board++) { //used to include all boards in possible rotations	  
+	move = col + row + (100 * board);
+	moves = CreateMovelistNode(move, moves);
+	move *= -1;
+	moves = CreateMovelistNode(move, moves);
       }
     }
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */    
-    return moves;
+  }
+  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */    
+
+  if (DEBUG) {
+    printf("GenerateMoves End..\n");
+  }
+  return moves;
 }
 
 
@@ -249,7 +281,10 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  //  int MallocSize = TOTALPOSITIONS + 1;
+  if (DEBUG) {
+    printf("DoMove Start..\n");
+  }
+  //  int MallocSize = BOARDSIZE + 1;
   //  char * UnhashedBoard = (char *) SafeMalloc(MallocSize * sizeof(char));
   generic_hash_unhash(position, BOARD);
   int turn = generic_hash_turn(position);
@@ -271,6 +306,10 @@ POSITION DoMove (POSITION position, MOVE move)
 
   int newMove = ((row * ROWSIZE) + col);
   //  BOARD[move] = turn ==PlayerX? 'x'='o';   //check to see if spot is free
+
+  if (DEBUG) {
+    printf("DoMove End..\n");
+  }
   return generic_hash_hash(BOARD, turn = 'x' ? 'o' :'x');
 }
 
@@ -301,8 +340,14 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+  if (DEBUG) {
+    printf("Primitive Start..\n");
+  }
   //waiting, waiting..
     return undecided;
+  if (DEBUG) {
+    printf("Primitive End..\n");
+  }
 }
 
 
@@ -324,8 +369,17 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  //  char * BOARD = (char *) SafeMalloc((TOTALPOSITIONS + 1) * sizeof(char));
-  generic_hash_unhash(position, BOARD);
+  if (DEBUG) {
+    printf("PrintPosition Start..\n");
+  }
+
+  char * currBOARD = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
+
+
+  printf("hash start\n");
+  generic_hash_unhash(position, currBOARD);
+  printf("hash end\n");
+  
   int i;
   int j;
 
@@ -341,30 +395,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("\n");
 
 
-
-
-  //printf("|");
-  for (i = 0; i < TOTALPOSITIONS; i++) {
+  for (i = 0; i < BOARDSIZE; i++) {
     if ((i % ROWSIZE) == 0) {
       printf("|");
     }
     if ((i + 1) % ROWSIZE != 0 && (i % ROWSIZE) != ((ROWSIZE / 2) - 1)) {      
-      printf(" %c  ", BOARD[i]);
+      printf(" %c  ", currBOARD[i]);
     } else {
-      printf(" %c |", BOARD[i]);
+      printf(" %c |", currBOARD[i]);
     }
   
-    /*
-    if (i % (ROWSIZE - 1) == 0) {
-      printf("|");
-      printf("   ");
-      printf("|");
-      for (j = 0; j < ROWSIZE; j++) {
-	printf("   |");
-      }
-      printf("\n");
-    }
-    */
   
     if ((i + 1) % ROWSIZE == 0) {
       printf("   ");
@@ -425,8 +465,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf("---+");
   }
   printf("\n");
-
-
+  
+  if (DEBUG) {
+    printf("PrintPosition End..\n");
+  }
 }
 
 
@@ -443,7 +485,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+  printf("PrintComputersMove Start..\n");    
+
+  printf("PrintComputersMove End..\n");    
 }
 
 
@@ -459,9 +503,17 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
+  if (DEBUG) {
+    printf("PrintMove Start..\n");    
+  }
+
     STRING str = MoveToString( move );
     printf( "%s", str );
     SafeFree( str );
+
+  if (DEBUG) {
+    printf("PrintMove End..\n");    
+  }
 }
 
 
@@ -477,7 +529,9 @@ void PrintMove (MOVE move)
 
 STRING MoveToString (MOVE move)
 {
+  printf("MoveToString Start..\n");    
     return NULL;
+  printf("MoveToString End..\n");    
 }
 
 
@@ -519,6 +573,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     }
 
     /* NOTREACHED */
+    
     return Continue;
 }
 
@@ -550,6 +605,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+  if (DEBUG) {
+    printf("ValidTextInput Start..\n");    
+  }
+
+  if (DEBUG) {
+    printf("ValidTextInput End..\n");    
+  }
     return FALSE;
 }
 
@@ -570,7 +632,15 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return 0;
+  if (DEBUG) {
+    printf("ConvertTextInputToMove Start..\n");    
+  }
+
+
+  if (DEBUG) {
+    printf("ConvertTextInputToMove End..\n");    
+  }
+  return 0;
 }
 
 
@@ -732,11 +802,19 @@ void DebugMenu ()
 **
 ************************************************************************/
 void InitializeBoard() {
-  int i;
-  for (i = 0; i < TOTALPOSITIONS; i++) {
-      BOARD[i] = EMPTY;
+  if (DEBUG) {
+    printf("InitializeBoard Start..\n");    
   }
-  BOARD[TOTALPOSITIONS] = '\0';    //null termination
+
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+      BOARD[i] = X;
+  }
+
+
+  if (DEBUG) {
+    printf("InitializeBoard End..\n");    
+  }
 }
 
 
@@ -753,20 +831,22 @@ void InitializeBoard() {
 ** OUTPUTS:     BOOLEAN
 **
 ************************************************************************/
+/*
 BOOLEAN isOnBoard(POSITION position) {
-  if (position >= 0 && position < TOTALPOSITIONS) {
+  if (position >= 0 && position < BOARDSIZE) {
     return TRUE;
   } else {
     return FALSE;
   }
 }
+*/
 
 /*
 void 1Dto2D(char ** to, char * from) {
   int i = 0;
   int j = 0;
   int k = 0;
-  for (k = 0; k < TOTALPOSITIONS ; k++) {
+  for (k = 0; k < BOARDSIZE ; k++) {
     if (i == ROWSIZE) {
       i = 0;
       j++;
@@ -812,6 +892,9 @@ BOOLEAN isRotateClockwise(MOVE move) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.1  2006/10/23 07:15:54  davidcwu
+ ** *** empty log message ***
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **
