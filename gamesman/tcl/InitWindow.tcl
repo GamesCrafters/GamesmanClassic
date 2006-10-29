@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.112 2006-10-29 10:10:17 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.113 2006-10-29 18:35:02 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -90,6 +90,7 @@ proc TBaction5 {} {
     global gMoveSoFar gRightHumanOrComputer gLeftHumanOrComputer gPlaysFirst gGameSolved
     global gMoveDelay gGameDelay gLeftName gRightName kGameName kSavedFileTypes
     global gNewGame kRules kScriptName
+    global gWhoseTurn
    
     set savedFile [tk_getOpenFile -filetypes $kSavedFileTypes]
     if {$savedFile eq ""} {
@@ -116,6 +117,8 @@ proc TBaction5 {} {
 
     set gRightHumanOrComputer "Human"
     set gLeftHumanOrComputer "Human"
+
+    set gWhoseTurn $gPlaysFirst
 
     for { set i [expr [llength $sMoveList] - 1] } { $i >= 0 } { incr  i -1 } {
     	ReturnFromHumanMoveHelper [lindex $sMoveList $i]
@@ -229,7 +232,7 @@ proc InitWindow { kRootDir kExt } {
     set gReallyUnsolved false
     set gMoveDelay 0
     set gGameDelay 1
-    set gWhoseTurn "Jesse"
+    set gWhoseTurn "Left"
     set gPredString ""
 
     set gSkinsRootDir "$kRootDir/../tcl/skins/"
@@ -1421,7 +1424,7 @@ proc switchRules { rules } {
     .middle.f2.cMain delete {!background}
     update
 
-    # Set C option and re-initialize 
+    # Set C option and re-initialize
     eval [concat C_SetOption $rules]
     C_InitializeGame
     C_InitializeDatabases

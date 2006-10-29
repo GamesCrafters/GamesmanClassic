@@ -7,7 +7,7 @@
 # It is called FIRST, ONCE, only when the player
 # starts playing your game, and before the player hits "New Game"
 # At the very least, you must set the global variables kGameName
-# and gInitialPosition in this function.
+# and gInitialPosition in this function.
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
@@ -263,11 +263,6 @@ proc GS_DrawPosition { c position } {
     # BTW too: don't make any assumptions about the state of the board.
 
     set newcolor $curPlayer
-    if {$curPlayer == "blue"} {
-	set curPlayer red
-    } else {
-	set curPlayer blue
-    }
 
     $c itemconfigure piece-$position -fill $newcolor
 
