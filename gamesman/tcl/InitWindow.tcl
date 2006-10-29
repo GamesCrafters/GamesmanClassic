@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.111 2006-10-29 07:43:06 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.112 2006-10-29 10:10:17 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1431,6 +1431,7 @@ proc switchRules { rules } {
     # Solve this option
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	set theValue [C_DetermineValue $gPosition]
+	.middle.f1.cMLeft lower progressBar
     }
 
     # New game
@@ -1444,6 +1445,7 @@ proc clickedPlayNow {} {
 	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
 	    . config -cursor watch
 	    set theValue [C_DetermineValue $gPosition]
+	    .middle.f1.cMLeft lower progressBar
 	    set gGameSolved true
 	    . config -cursor {}
 	} else {
