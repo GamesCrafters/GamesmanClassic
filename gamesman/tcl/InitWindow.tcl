@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.110 2006-10-12 03:33:08 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.111 2006-10-29 07:43:06 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -43,6 +43,7 @@ proc TBaction1 {} {
 	set gGamePlayable false
 	.middle.f3.cMRight lower play
 	.cToolbar raise iITB
+	.cToolbar raise iDTB6
 	.cStatus lower base
 	update idletasks
 	set gGamePlayable true
@@ -84,13 +85,73 @@ proc TBaction4 {} {
 	pack .middle.f2.fSkins -side bottom
 }
 
-# Unmapped
+# Load Game
 proc TBaction5 {} {
+    global gMoveSoFar gRightHumanOrComputer gLeftHumanOrComputer gPlaysFirst gGameSolved
+    global gMoveDelay gGameDelay gLeftName gRightName kGameName kSavedFileTypes
+    global gNewGame kRules kScriptName
+   
+    set savedFile [tk_getOpenFile -filetypes $kSavedFileTypes]
+    if {$savedFile eq ""} {
+	return
+    }
+    set fileptr [open $savedFile r]
+    gets $fileptr kScriptName
+    gets $fileptr kGameName
+    gets $fileptr sMoveList
+    gets $fileptr kRules
+    gets $fileptr gLeftName
+    gets $fileptr sLeftHumanOrComputer
+    gets $fileptr gRightName  
+    gets $fileptr sRightHumanOrComputer 
+    gets $fileptr gPlaysFirst
+    close $fileptr
+    
 
+    set gNewGame "true"
+    switchRules $kRules
+     if { $gGameSolved == "false" } {
+ 	clickedPlayNow
+     }
+
+    set gRightHumanOrComputer "Human"
+    set gLeftHumanOrComputer "Human"
+
+    for { set i [expr [llength $sMoveList] - 1] } { $i >= 0 } { incr  i -1 } {
+    	ReturnFromHumanMoveHelper [lindex $sMoveList $i]
+    }
+
+    set gRightHumanOrComputer $sRightHumanOrComputer
+    set gLeftHumanOrComputer $sLeftHumanOrComputer
+
+    RaiseStatusBarIfGameStarted
 }
-# Unmapped
-proc TBaction6 {} {
 
+# Save Game
+proc TBaction6 {} {
+    global gMovesSoFar gRightHumanOrComputer gLeftHumanOrComputer gPlaysFirst
+    global gMoveDelay gGameDelay gLeftName gRightName kGameName kSavedFileTypes
+    global kScriptName
+
+    set savedFile [tk_getSaveFile -filetypes $kSavedFileTypes  -defaultextension ".gcs"]
+    if {$savedFile eq ""} {
+	return
+    }
+    set fileptr [open $savedFile w+]
+    puts $fileptr $kScriptName
+    puts $fileptr $kGameName
+    puts $fileptr $gMovesSoFar
+    puts $fileptr [GS_GetOption]
+    puts $fileptr $gLeftName
+    puts $fileptr $gLeftHumanOrComputer
+    puts $fileptr $gRightName
+    puts $fileptr $gRightHumanOrComputer
+    puts $fileptr $gPlaysFirst
+    close $fileptr
+
+    puts [info script]
+
+    RaiseStatusBarIfGameStarted
 }
 
 # Help button
@@ -157,6 +218,10 @@ proc InitWindow { kRootDir kExt } {
     global moveHistoryList moveHistoryCanvas moveHistoryVisible gPredictionsOn
     global gameMenuToDriverLoop
     global maxRemoteness maxMoveString
+    #save filetypes
+    global kSavedFileTypes
+    #Redo
+    global gRedoList
 
     #
     # Initialize the constants
@@ -178,6 +243,15 @@ proc InitWindow { kRootDir kExt } {
     set gPredictionsOn false
     set gameMenuToDriverLoop false
     set maxRemoteness 0
+
+    set kSavedFileTypes {
+	{{All Save Files}             {.gcs}}
+	{{GamesCrafters Save File}    {.gcs}          }
+    }
+    #	{{Smart Game Format}          {.sgf}          }
+    #	{{Portable Game Notation}     {.pgn}          }
+
+    set gRedoList [list]
 
     set convertExists false
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
@@ -695,6 +769,7 @@ proc InitWindow { kRootDir kExt } {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
+	    .cToolbar raise iDTB6
 
 	    # Delete old board
 	    .middle.f2.cMain delete {!background}
@@ -1059,62 +1134,7 @@ proc InitWindow { kRootDir kExt } {
 	update idletasks
     }
     .middle.f3.cMRight bind playOver <ButtonPress-1> {
-	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-	    . config -cursor watch
-	    set theValue [C_DetermineValue $gPosition]
-	    set gGameSolved true
-	    .middle.f1.cMLeft lower progressBar
-	    . config -cursor {}
-	} else {
-	    set gReallyUnsolved true
-	    set gGameSolved true
-	}
-	pack forget .middle.f2.fPlayOptions
-	global gSmartness gSmartnessScale
-	C_SetSmarterComputer $gSmartness $gSmartnessScale
-	pack .middle.f2.cMain -expand 1
-	pack .middle.f2.fPlayOptions.fBot -side bottom
-	.middle.f3.cMRight lower play
-	.middle.f1.cMLeft lower startupPic
-	.middle.f1.cMLeft raise iIMB
-	.middle.f3.cMRight raise iIMB
-	.middle.f2.cMain lower base
-	.middle.f1.cMLeft raise ToWin
-	.middle.f1.cMLeft raise ToMove
-	.middle.f1.cMLeft lower moveHistory
-	set moveHistoryVisible false
-	.cStatus raise rulesA
-	.cStatus raise historyI
-
-	.cToolbar raise iITB
-	
-	pack .middle.f2.fPlayOptions.fBot -side bottom
-	.cToolbar bind iOTB1 <Any-Leave> {
-	    .cToolbar raise iITB1
-	    .middle.f1.cMLeft lower startupPicOver
-	}
-	
-	.cStatus lower base
-	global gGamePlayable
-	set gGamePlayable true
-	NewGame
-	if {$gReallyUnsolved} {
-	    .cStatus raise rulesD
-	    .cStatus raise historyD
-	    .cStatus raise allD
-	    .cStatus raise valueD
-	    .cStatus raise predD
-	} else {
-	    .cStatus raise rulesA
-	    .cStatus raise historyI
-	    .cStatus raise valueI
-	    .cStatus raise allA
-	    .cStatus raise predI
-	}
-	.middle.f3.cMRight raise WhoseTurn
-	.middle.f1.cMLeft raise LeftName
-	.middle.f3.cMRight raise RightName
-	.cStatus raise undoD
+	clickedPlayNow
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
@@ -1178,13 +1198,20 @@ proc InitWindow { kRootDir kExt } {
     .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
     .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    #predictions
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iABB8p -tags [list sbb iABB iABB8 predA]
     .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iABB9p -tags [list sbb iABB iABB9 undoA]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+    #undo
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iABB9p -tags [list sbb iABB iABB9 undoA]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
+    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+    #redo
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iABB10p -tags [list sbb iABB iABB10 redoA]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iIBB10p -tags [list sbb iIBB iIBB10 redoI]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iOBB10p -tags [list sbb iOBB iOBB10 redoO]
+    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iDBB10p -tags [list sbb iDBB iDBB10 redoD def]
 
     .middle.f2.cMain create image 0 0 -anchor nw -image iAMM1p -tags [list base iAMM iAMM1]
 
@@ -1334,6 +1361,30 @@ proc InitWindow { kRootDir kExt } {
 	}
     }
 
+    # Redo Button
+    global gRedoList
+    .cStatus bind redoI <Any-Enter> {
+	.cStatus raise redoO; update idletasks;
+    }
+    .cStatus bind redoO <ButtonRelease-1> {
+	global gRedoList
+	Redo 1
+	if { 0 == [llength $gRedoList]} {
+	    .cStatus raise redoD; update idletasks;
+	}
+    }
+    .cStatus bind redoO <Any-Leave> {
+	global gRedoList
+	if { 0 == [llength $gRedoList]} {
+	    .cStatus raise redoD; update idletasks;
+	} else {
+	    .cStatus raise redoI; update idletasks;
+	}
+    }
+    .cStatus bind redoO <ButtonPress-1> {
+	.cStatus raise redoA; update idletasks;
+    }
+
     .cStatus raise sbb
     .cStatus raise def
     .cStatus raise base
@@ -1357,6 +1408,98 @@ proc RaiseStatusBarIfGameStarted {} {
 	.cStatus lower base
     }
 }
+
+
+proc switchRules { rules } {
+    global gLeftHumanOrComputer gRightHumanOrComputer gPosition
+    # Hide rules frame
+    pack forget .middle.f2.fRules
+    pack .middle.f2.cMain -expand 1
+    .cToolbar raise iITB
+
+    # Delete old board
+    .middle.f2.cMain delete {!background}
+    update
+
+    # Set C option and re-initialize 
+    eval [concat C_SetOption $rules]
+    C_InitializeGame
+    C_InitializeDatabases
+    GS_InitGameSpecific
+    GS_Initialize .middle.f2.cMain
+    
+    # Solve this option
+    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+	set theValue [C_DetermineValue $gPosition]
+    }
+
+    # New game
+    TBaction1
+}
+
+
+proc clickedPlayNow {} {
+    global gLeftHumanOrComputer gRightHumanOrComputer 
+    global theValue gGameSolved gReallyUnsolved gPosition
+	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+	    . config -cursor watch
+	    set theValue [C_DetermineValue $gPosition]
+	    set gGameSolved true
+	    . config -cursor {}
+	} else {
+	    set gReallyUnsolved true
+	    set gGameSolved true
+	}
+	pack forget .middle.f2.fPlayOptions
+	global gSmartness gSmartnessScale
+	C_SetSmarterComputer $gSmartness $gSmartnessScale
+	pack .middle.f2.cMain -expand 1
+	pack .middle.f2.fPlayOptions.fBot -side bottom
+	.middle.f3.cMRight lower play
+	.middle.f1.cMLeft lower startupPic
+	.middle.f1.cMLeft raise iIMB
+	.middle.f3.cMRight raise iIMB
+	.middle.f2.cMain lower base
+	.middle.f1.cMLeft raise ToWin
+	.middle.f1.cMLeft raise ToMove
+	.middle.f1.cMLeft lower moveHistory
+	set moveHistoryVisible false
+	.cStatus raise rulesA
+    .cStatus raise historyI
+
+    .cToolbar raise iITB
+    .cToolbar raise iDTB6
+	
+	pack .middle.f2.fPlayOptions.fBot -side bottom
+	.cToolbar bind iOTB1 <Any-Leave> {
+	    .cToolbar raise iITB1
+	    .middle.f1.cMLeft lower startupPicOver
+	}
+	
+	.cStatus lower base
+	global gGamePlayable
+	set gGamePlayable true
+	NewGame
+	if {$gReallyUnsolved} {
+	    .cStatus raise rulesD
+	    .cStatus raise historyD
+	    .cStatus raise allD
+	    .cStatus raise valueD
+	    .cStatus raise predD
+	} else {
+	    .cStatus raise rulesA
+	    .cStatus raise historyI
+	    .cStatus raise valueI
+	    .cStatus raise allA
+	    .cStatus raise predI
+	}
+	.middle.f3.cMRight raise WhoseTurn
+	.middle.f1.cMLeft raise LeftName
+	.middle.f3.cMRight raise RightName
+	.cStatus raise undoD
+}
+
+
 
 proc DisableSmarterComputerInterface {} {
     .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure -foreground grey
@@ -2059,7 +2202,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     image create photo iBBB1p -file [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 
     foreach mode {A I O D} {
-	foreach file {2 9} {
+	foreach file {2 9 10} {
 	    set name [format i%sBB%s $mode $file]
 
 	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
@@ -2091,7 +2234,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     #
     # set the inactive action of each button (mouse not over)
     set mode I
-    foreach file {1 2 3 4 7 8} {#5 6 removed because not used
+    foreach file {1 2 3 4 5 6 7 8} {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
 	.cToolbar bind $name <Enter> \
@@ -2099,13 +2242,18 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     }
     # bind the action of the mouse-Over images (mouse over)
     set mode O
-    foreach file {1 2 3 4 7 8} {#5 6 removed because not used
+    foreach file {1 2 3 4 5 6 7 8} {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
-	.cToolbar bind $name <ButtonRelease-1> \
-	    ".cStatus raise base; \
+	if { $file == 5 || $file == 6 } {
+	    .cToolbar bind $name <ButtonRelease-1> \
+		"TBaction$file;"
+	} else {
+	    .cToolbar bind $name <ButtonRelease-1> \
+		".cStatus raise base; \
              update idletasks; \
              TBaction$file;"
+	}
 	.cToolbar bind $name <Leave> \
 	    ".cToolbar raise iITB$file; update idletasks"
 	.cToolbar bind $name <ButtonPress-1> \
@@ -2133,6 +2281,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
     .cToolbar raise iITB
+    .cToolbar raise iDTB6
 
     #
     # Deal with other mouse over images

@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.48 2006-10-12 03:33:08 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.49 2006-10-29 07:43:06 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -653,6 +653,7 @@ proc NewGame { } {
     set gMovesSoFar [list]
     GS_NewGame .middle.f2.cMain $gPosition
     .cStatus raise undoD
+    .cToolbar raise iDTB6
     EnableMoves
     
     clearMoveHistory
@@ -803,6 +804,7 @@ proc DoComputerMove { } {
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
     .cStatus raise undoI
+    .cToolbar raise iITB6
 
     if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	SwitchWhoseTurn
@@ -864,6 +866,7 @@ proc DoHumanMove { } {
 
 proc ReturnFromHumanMove { theMove } {
     global gGamePlayable
+    .cStatus raise redoD
     if {$gGamePlayable && ![PlayerIsComputer]} {
         ReturnFromHumanMoveHelper $theMove
     }
@@ -891,6 +894,7 @@ proc ReturnFromHumanMoveHelper { theMove } {
         set gMovesSoFar [push $gMovesSoFar $theMove]
         
 	.cStatus raise undoI
+	.cToolbar raise iITB6
         
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
@@ -1114,7 +1118,7 @@ proc UndoNMoves { n } {
 
 proc UndoHelper { } {
     
-    global gPosition gMovesSoFar gGameSoFar gMoveType
+    global gPosition gMovesSoFar gGameSoFar gMoveType gRedoList
     
     if { [llength $gGameSoFar] != 1 } {
         
@@ -1143,12 +1147,16 @@ proc UndoHelper { } {
 
 	if { 0 == [llength $gMovesSoFar]} {
 	    .cStatus raise undoD
+	    .cToolbar raise iDTB6
 	}
 
 	if { [expr ![C_GoAgain $gPosition $undoneMove]] } {
 	    SwitchWhoseTurn
 	}
         
+	set gRedoList [push $gRedoList $undoneMove]
+	.cStatus raise redoI
+
         if { [PlayerIsComputer] } {
 
             unplotMove 0
@@ -1156,8 +1164,33 @@ proc UndoHelper { } {
             UndoHelper
 
 	}
-        
+
     }
+
+}
+
+
+proc Redo { n } {
+    global gRedoList gRightHumanOrComputer gLeftHumanOrComputer gWhoseTurn
+    set tempLeft $gLeftHumanOrComputer
+    set tempRight $gRightHumanOrComputer
+
+    set gLeftHumanOrComputer "Human"
+    set gRightHumanOrComputer "Human"
+    for {set i 0} {$i < $n} {incr i} {
+	if { [llength $gRedoList] > 0 } {
+	    set redoMove [peek $gRedoList]
+	    ReturnFromHumanMoveHelper $redoMove
+	    set gRedoList [pop $gRedoList]
+	    if { $gWhoseTurn == "Left" && $tempLeft == "Computer"} {
+		set i [expr $i - 1]
+	    } elseif {$gWhoseTurn == "Right" && $tempRight == "Computer"} {
+		set i [expr $i - 1]
+	    }
+	}
+    }
+    set gLeftHumanOrComputer $tempLeft
+    set gRightHumanOrComputer $tempRight
 
 }
 
@@ -1303,7 +1336,8 @@ proc main {kRootDir} {
     GS_Initialize .middle.f2.cMain
 
     # Set the window title
-    global kGameName
+    global kGameName kScriptName
+    set kScriptName [info script]
     wm title . "$kGameName - GAMESMAN"
 
     # Generate game-specific About, Help, and Skins frames
