@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.113 2006-10-29 18:35:02 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.114 2006-10-29 18:50:34 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -108,6 +108,8 @@ proc TBaction5 {} {
     gets $fileptr gPlaysFirst
     close $fileptr
     
+    set gRightHumanOrComputer $sRightHumanOrComputer
+    set gLeftHumanOrComputer $sLeftHumanOrComputer
 
     set gNewGame "true"
     switchRules $kRules
@@ -118,7 +120,11 @@ proc TBaction5 {} {
     set gRightHumanOrComputer "Human"
     set gLeftHumanOrComputer "Human"
 
-    set gWhoseTurn $gPlaysFirst
+    if { $gPlaysFirst == 0 } {
+	set gWhoseTurn "Left"
+    } else {
+	set gWhoseTurn "Right"
+    }
 
     for { set i [expr [llength $sMoveList] - 1] } { $i >= 0 } { incr  i -1 } {
     	ReturnFromHumanMoveHelper [lindex $sMoveList $i]
@@ -151,8 +157,6 @@ proc TBaction6 {} {
     puts $fileptr $gRightHumanOrComputer
     puts $fileptr $gPlaysFirst
     close $fileptr
-
-    puts [info script]
 
     RaiseStatusBarIfGameStarted
 }
