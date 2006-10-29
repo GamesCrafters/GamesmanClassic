@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.49 2006-10-29 07:43:06 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.50 2006-10-29 09:45:12 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -865,8 +865,9 @@ proc DoHumanMove { } {
 #############################################################################
 
 proc ReturnFromHumanMove { theMove } {
-    global gGamePlayable
+    global gGamePlayable gRedoList
     .cStatus raise redoD
+    set gRedoList [list]
     if {$gGamePlayable && ![PlayerIsComputer]} {
         ReturnFromHumanMoveHelper $theMove
     }
