@@ -58,7 +58,7 @@ void generic_hash_context_switch(int context);
 void generic_hash_destroy();
 int generic_hash_cur_context();
 POSITION generic_hash_max_pos();
-void generic_hash_custom_contexts_mode(BOOLEAN on);
+void generic_hash_custom_context_mode(BOOLEAN on);
 void generic_hash_set_context(int context);
 
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *), int player);

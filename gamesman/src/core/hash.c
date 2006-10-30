@@ -626,7 +626,7 @@ POSITION generic_hash_max_pos()
 **
 ******************************/
 
-void generic_hash_custom_contexts_mode(BOOLEAN on)
+void generic_hash_custom_context_mode(BOOLEAN on)
 {
 	custom_contexts_mode = on;
 }
