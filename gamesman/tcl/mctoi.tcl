@@ -323,6 +323,12 @@ proc GS_Initialize { c } {
     #hide all the pieces
     $c raise base
 
+    # Create welcome sign.
+    set MinFrameLength [Min [expr $gFrameWidth - 1] [expr $gFrameHeight - 1]]
+    $c create rectangle 0 [expr $gFrameWidth/2 - 80] $MinFrameLength [expr $gFrameWidth/2 + 80] -fill white -width 1 -outline black -tag welcome
+    $c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2] -text "Welcome to Chung Toi!" -font "Arial 50" -anchor center -fill black -width $gFrameWidth -justify center -tag welcome
+    # Move welcome sign to the center of the frame.
+    $c move welcome [expr ($gFrameWidth - 1 - $MinFrameLength) / 2] [expr ($gFrameHeight - 1 - $MinFrameLength) / 2]
 } 
 
 
@@ -386,6 +392,9 @@ proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     global gPlayerOneTurn
+    GS_Deinitialize $c
+    GS_Initialize $c
+    $c delete welcome
     set gPlayerOneTurn 1
     GS_DrawPosition $c $position
 }
@@ -620,8 +629,10 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-
+ global gFrameWidth gFrameHeight
 	### TODO if needed
+  $c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 - 40] -text "$nameOfWinner" -font Winner -fill orange -tags winner
+    $c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 + 40] -text "WINS!"        -font Winner -fill orange -tags winner
 	
 }
 
@@ -638,7 +649,8 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 #############################################################################
 proc GS_UndoGameOver { c position } {
 
-	### TODO if needed
+    ### TODO if needed
+    $c delete winner
 
 }
 
@@ -1141,3 +1153,5 @@ proc Min { x y } {
 	return $y
     }
 }
+
+font create Winner -family arial -size 50
