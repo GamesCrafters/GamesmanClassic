@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.39 2006-10-17 10:45:21 max817 Exp $
+// $Id: mquickchess.c,v 1.40 2006-11-02 02:57:51 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -11,7 +11,7 @@
 **
 ** DESCRIPTION: Quick Chess
 **
-** AUTHOR:      Adam Abed, Aaron Levitan
+** AUTHOR:      Adam Abed, Aaron Levitan, Glenn Kim
 **
 ** DATE:        Start Spring 2006
 **
@@ -1705,6 +1705,10 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.39  2006/10/17 10:45:21  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.38  2006/10/03 08:10:03  scarr2508
 // added ActualNumberOfPositions
 // -sean
