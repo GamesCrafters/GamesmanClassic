@@ -88,7 +88,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDROWS 5
+#define BOARDROWS 4
 #define BOARDCOLS BOARDROWS
 #define BOARDSIZE BOARDROWS * BOARDCOLS
 
@@ -138,7 +138,7 @@ void InitializeGame ()
 {
   int i;
   char* initialBoard;
-  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE/2, WHITECHAR, 0, (BOARDSIZE/2)-1};
+  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE/2, WHITECHAR, 0, (BOARDSIZE/2), -1};
 
   InitializeHelpStrings();
   
@@ -341,23 +341,33 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   
   generic_hash_unhash(position, board);
+
+
+
   
   // printf("Prediction: %s", getPrediction());
-  printf("%s's turn:", playersName);
+  printf("%s's turn:\n", playersName);
   
   printf("  ");
-  
-  for(n = 0; n < BOARDROWS; n++)
-    printf("  %d ", n);
+
+  printf("\n");
   
   for(row = 0; row < BOARDROWS; row++) {
-    printf("%c", row+'a');
     for(i = 0; i < row; i++)
 	  printf("   ");
-    for(col = 0; col < BOARDCOLS; col++);
+    printf(" %c ", '0'+row);
+    for(col = 0; col < BOARDCOLS; col++)
 	  printf("[  %c ]", board[row*BOARDROWS+col]);
-	printf("\n");
+	printf("\n\n");
   }
+
+  for(col = 0; col < BOARDCOLS; col++)
+    printf("    ");
+
+  for(n = 0; n < BOARDCOLS; n++)
+    printf("%c     ", 'a'+n);
+
+  printf("\n");
   
   SafeFree(board);
 
@@ -415,8 +425,8 @@ STRING MoveToString (MOVE move)
 {
   STRING movestring = (char*)SafeMalloc(20*sizeof(char));
   
-  movestring[0] = '0' + (int)(move/BOARDROWS);
-  movestring[1] = 'a' + (move - (movestring[0] + '0'));
+  movestring[0] = 'a' + (int)(move % BOARDCOLS);
+  movestring[1] = '0' + (int)(move / BOARDROWS);
   movestring[2] = '\0';
   return movestring;
   SafeFree(movestring);
@@ -452,7 +462,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
          * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
          ***********************************************************/
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
+	printf("%8s's move [(undo)/#l] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -521,7 +531,7 @@ BOOLEAN ValidTextInput (STRING input) {
 MOVE ConvertTextInputToMove (STRING input)
 {
     
-    return((input[0]-'a')*BOARDROWS+input[1]);
+    return((input[0]-'a')+input[1]*BOARDROWS);
 }
 
 
@@ -685,7 +695,7 @@ MOVELIST* getNextBlank(STRING board, int index) {
     if(index==BOARDSIZE) {
     	validMoves = NULL;
     } else {
-        validMoves = CreateMovelistNode(index, getNextBlank(board, index));
+        validMoves = CreateMovelistNode(index, getNextBlank(board, index+1));
     }
     return validMoves;
 }
@@ -727,8 +737,18 @@ int ColMaskBoard(char* board, int col, char piece) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.1  2006/10/22 22:26:45  and-qso
+ ** *** empty log message ***
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
- **
+initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+  
+  for(i = 0; i < BOARDSIZE; i++)
+	initialBoard[i] = BLANKCHAR;
+  initialBoard[BOARDSIZE] = '\0';
+	
+  
+  gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER); **
  ************************************************************************/
 
