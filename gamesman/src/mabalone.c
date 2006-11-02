@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.36 2006-10-17 10:45:19 max817 Exp $
+// $Id: mabalone.c,v 1.37 2006-11-02 02:18:25 koolswim88 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -228,6 +228,11 @@ void changePieces();
 void changeKills();
 int maxPieces(int);
 int sum(int, int);
+BOOLEAN ValidTextInputHelper(STRING, int);
+BOOLEAN validCoordinate(int, int);
+int intToCoordinateX(int);
+int intToCoordinateY(int);
+int coordinateToInt(int, int);
 
 /************************************************************************
 **
@@ -1337,111 +1342,48 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-     STRING input;
+BOOLEAN ValidTextInput (STRING input)
 {
-  int n=0, p1, p2, p3;
-
-  /*skip whitespace*/
-  while ((input[n] == ' ') || (input[n] == '[')) {
-    n++;
-  }
-
-  /*get first piece*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p1 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p1 = p1 * 10 + (input[n] - '0');
-      n++;
-    }
-    p1--;
-    if (p1 >= BOARDSIZE || p1 < 0) {
-      return FALSE;
-    }
-  }
-  else {
-    return FALSE;
-  }
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
-  }
-
-  /*get second piece, if it exists*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p2 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p2 = p2 * 10 + (input[n] - '0');
-    }
-    n++;
-    p2--;
-    if (p2 >= BOARDSIZE || p2 < 0) {
-      return FALSE;
-    }
-  }
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
-  }
-
-  /*get third piece, if it exists*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p3 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p3 = p3 * 10 + (input[n] - '0');
-    }
-    n++;
-    p3--;
-    if (p3 >= BOARDSIZE || p3 < 0) {
-      return FALSE;
-    }
-  }
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
-  }
-
-  /*get direction*/
-  if ((input[n] == 'N') || (input[n] == 'n')) {
-    n++;
-    if ((input [n] == 'W') || (input[n] == 'w')) {
-      return TRUE;
-    }
-    else if ((input[n] == 'E') ||(input [n] == 'e')) {
-     return TRUE;
-    }
-    else {
-      return FALSE;
-    }
-  }
-  else if (input[n] == 'S' || input[n] == 's') {
-    n++;
-    if (input [n] == 'W' || input[n] == 'w') {
-      return TRUE;
-    }
-    else if (input[n] == 'E' || input [n] == 'e') {
-      return TRUE;
-    }
-    else {
-      return FALSE;
-    }
-  }
-  else if (input[n] == 'W' || input[n] == 'w') {
-    return TRUE;
-  }
-  else if (input[n] == 'E' || input[n] == 'e') {
-    return TRUE;
-  }
-  else {
-    return FALSE;
-  }
+        int length = strlen(input), i = 0;
+        
+        if((length == 4) || (length == 5)) /* one piece case */
+        {
+            if(!ValidTextInputHelper(input, i))
+                 return FALSE;
+            
+            i += 3;
+        }
+        else if((length == 7) || (length == 8)) /* two piece case */
+        {
+            if(!(ValidTextInputHelper(input, i) && ValidTextInputHelper(input, i+3)))
+                 return FALSE;
+             
+            i += 6;
+        }
+        else if((length == 10) || (length == 11)) /* three piece case */
+        {
+            if(!(ValidTextInputHelper(input, i)  && ValidTextInputHelper(input, i+3) 
+                && ValidTextInputHelper(input, i+6)))
+                 return FALSE;
+                 
+            i += 9;
+        }
+        else
+            return FALSE;
+        
+        /* check direction */
+        
+        if((((input[i] == 'W') || (input[i] == 'w')) && (input[i+1] == '\0')) ||
+           (((input[i] == 'E') || (input[i] == 'e')) && (input[i+1] == '\0')) ||
+           (((input[i] == 'N') || (input[i] == 'n')) && ((input[i+1] == 'W') || (input[i+1] == 'w'))) ||
+           (((input[i] == 'N') || (input[i] == 'n')) && ((input[i+1] == 'E') || (input[i+1] == 'e'))) ||
+           (((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'W') || (input[i+1] == 'w'))) ||
+           (((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'E') || (input[i+1] == 'e'))))
+            return TRUE;
+        else
+            return FALSE;     
 }
+
 
 
 /************************************************************************
@@ -1463,94 +1405,61 @@ MOVE ConvertTextInputToMove(input)
 {
   if (DEBUGGING)
   printf("Starting conversion\n");
-  int n=0, dir, p1, p2, p3, pushee;
+  int dir, p1, p2, p3, pushee;
 
-  /*skip whitespace*/
-  while ((input[n] == ' ') || (input[n] == '[')) {
-    n++;
+  int length = strlen(input), i = 0;
+  
+  if((length == 4) || (length == 5)) /* one piece case */
+  {
+      p1 = coordinateToInt(input[0], input[1]) - 1;
+      p2 = NULLSLOT;
+      p3 = NULLSLOT;
+      i = 3;
+      //printf("p1 is %d", p1);
   }
-
-  /*get first piece*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p1 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p1 = p1 * 10 + (input[n] - '0');
-      n++;
-    }
-    p1--;
+  else if((length == 7) || (length == 8)) /* two piece case */
+  {
+      p1 = coordinateToInt(input[0], input[1]) - 1;
+      p2 = coordinateToInt(input[3], input[4]) - 1;
+      p3 = NULLSLOT;
+      i = 6;
   }
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
+  else if((length == 10) || (length == 11)) /* three piece case */
+  {
+      p1 = coordinateToInt(input[0], input[1]) - 1;
+      p2 = coordinateToInt(input[3], input[4]) - 1;
+      p3 = coordinateToInt(input[6], input[7]) - 1;
+      i = 9;
   }
-
-  /*get second piece, if it exists*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p2 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p2 = p2 * 10 + (input[n] - '0');
-    }
-    n++;
-    p2--;
-  } else {
-    p2 = NULLSLOT;
-    p3 = NULLSLOT;
+  
+  /* check direction */
+  //printf("input 1 and 2 is %c %c", input[i], input[i+1]);
+  if((input[i] == 'W') || (input[i] == 'w'))
+  {
+       dir = -1;             
   }
-
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
+  else if((input[i] == 'E') || (input[i] == 'e'))
+  {
+       dir = 1;     
   }
-
-  /*get third piece, if it exists*/
-  if ((input[n] >= '0') && (input[n] <= '9')) {
-    p3 = input[n] - '0';
-    n++;
-    if ((input[n] >= '0') && (input[n] <= '9')) {
-      p3 = p3 * 10 + (input[n] - '0');
-    }
-    n++;
-    p3--;
-  } else {
-    p3 = NULLSLOT;
+  else if(((input[i] == 'N') || (input[i] == 'n')) && ((input[i+1] == 'W') || (input[i+1] == 'w')))
+  {
+       dir = -2;     
   }
-
-  /*skip whitespace and commas*/
-  while ((input[n] == ' ') || (input[n] == ',') || (input[n] == ']')) {
-    n++;
+  else if(((input[i] == 'N') || (input[i] == 'n')) && ((input[i+1] == 'E') || (input[i+1] == 'e')))
+  {
+       dir = -3;  
+       printf("NE");   
   }
-
-
-  /*get direction*/
-  if ((input[n] == 'N') || (input[n] == 'n')) {
-    n++;
-    if ((input [n] == 'W') || (input[n] == 'w')) {
-      dir = -2;
-    }
-    else if ((input[n] == 'E') ||(input [n] == 'e')) {
-      dir = -3;
-    }
+  else if(((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'W') || (input[i+1] == 'w')))
+  {
+       dir = 3;     
   }
-  else if ((input[n] == 'S') || (input[n] == 's')) {
-    n++;
-    if (input [n] == 'W' || input[n] == 'w') {
-      dir = 3;
-    }
-    else if (input[n] == 'E' || input [n] == 'e') {
-      dir = 2;
-    }
+  else if(((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'E') || (input[i+1] == 'e')))
+  {
+       dir = 2;     
   }
-  else if (input[n] == 'E' || input [n] == 'e') {
-    dir = 1;
-  }
-  else if (input[n] == 'W' || input [n] == 'w') {
-    dir = -1;
-  }
-
+  
   /*fill in implicit push moves*/
   if ((p2 == NULLSLOT) && (p3 == NULLSLOT)) {
     pushee = destination (p1, dir);
@@ -1563,7 +1472,7 @@ MOVE ConvertTextInputToMove(input)
     }
   }
 
-  /*printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);*/
+  //printf("p1 = %d, p2 = %d, p3 = %d, dir = %d\n", p1, p2, p3, dir);
   int move = move_hash (p1, p2, p3, dir);
   if (DEBUGGING) printf("finished conversion: move is %d\n", move);
   return move;
@@ -1640,28 +1549,32 @@ STRING MoveToString( theMove )
   /*printf("slot1 = %d, slot2 = %d, slot3 = %d, direction = %d\n", slot1, slot2, slot3, direction);*/
 
   if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
-    sprintf(move, "[%d %s]", slot3, dir);
+    sprintf(move, "[%c%c %s]", intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
   }
   else if ((slot3 == NULLSLOT) && (slot2 == NULLSLOT)) {
-    sprintf(move, "[%d %s]", slot1, dir);
+    sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
   }
   else if (slot1 == NULLSLOT) {
     if ((slot3 - 1 ) == destination ((slot2 - 1), direction))
-      sprintf(move, "[%d %s]", slot2, dir);
+      sprintf(move, "[%c%c %s]", intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
     else
-      sprintf(move, "[%d %d %s]",slot2, slot3, dir);
+      sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot2), intToCoordinateY(slot2), 
+              intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
   }
   else if (slot3 == NULLSLOT) {
     if ((slot2 - 1) == destination ((slot1 - 1), direction))
-      sprintf(move, "[%d %s]", slot1, dir);
+      sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
     else
-      sprintf(move, "[%d %d %s]",slot1, slot2, dir);
+      sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), 
+              intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
   }
   else if ((slot2 - 1) == destination((slot1 - 1), direction)) {
-     sprintf(move, "[%d %s]",slot1, dir);
+     sprintf(move, "[%c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
   }
   else {
-    sprintf(move, "[%d %d %d %s]",slot1,slot2,slot3, dir);
+    sprintf(move, "[%c%c %c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
+            intToCoordinateX(slot2), intToCoordinateY(slot2), intToCoordinateX(slot3), 
+            intToCoordinateY(slot3), dir);
   }
   if (DEBUGGING) printf("finished MoveToString\n");
 
@@ -1975,6 +1888,8 @@ void printrow (int line, int flag) {
 	  else
 		  printf("/ /  ");
   }
+  
+  printf("%c", 2*N - 2 - line + 'A');
 
   for (s = 0; s < size; s++) {
 	  printf ("(");
@@ -1986,14 +1901,7 @@ void printrow (int line, int flag) {
 			  printf ("%c", gBoard[start + s]);
 	  }
 	  if (flag == 1) {
-		  if (N == 2) {
-			  printf("%d", start + s + 1);
-		  }
-		  else {
-			  if (start + s < 9)
-				  printf("0");
-			  printf("%d",start + s + 1);
-		  }
+			  printf("%c%c", intToCoordinateX(start + s + 1), intToCoordinateY(start + s + 1));
 	  }
 
 	  if (s != size - 1)
@@ -2134,8 +2042,196 @@ int getInitialPosition() {
   return ((int)gInitialPosition);
 }
 
+/************************************************************************
+**
+** NAME:        ValidTextInputHelper
+**
+** DESCRIPTION: helps with ValidTextInput
+** 
+************************************************************************/
+BOOLEAN ValidTextInputHelper (STRING input, int i)
+{
+        if((input[i] >= 'a' && input[i] <= 'z') || (input[i] >= 'A' && input[i] <= 'Z'))
+        {            
+            i++;
+            
+            if(input[i] >= '1' && input[i] <= '9')
+            {
+                if(validCoordinate(input[i-1], input[i]))
+                    return TRUE;
+                else
+                    return FALSE;         
+            }
+            else
+                return FALSE;                        
+        }
+        else
+            return FALSE;         
+}
+
+/************************************************************************
+**
+** NAME:        coordinateToInt
+**
+** DESCRIPTION: Changes a move representation from coordinates (eg. A1) to an integer (eg. 11)
+**
+************************************************************************/
+int coordinateToInt(int x, int y)
+{
+    int i, position = 0;
+    
+    if((x - 'a') >= 0)
+         x = x - 'a' + 1;
+    else
+         x = x - 'A' + 1;
+         
+    y = y - '0';
+    
+    for(i = 0; i < (2*N-x-1); i++) /* count full rows from top down */
+    {
+         if(i < N)
+         {
+              position = position + N + i; 
+              //printf("if pos is %d i is %d\n", position, i);
+         }
+         else 
+         {
+              position = position + 3*N - 2 - i; 
+              //printf("else pos is %d i is %d\n", position, i);             
+         }
+    } 
+    
+    //printf("donepos is %d i is %d\n", position, i);
+    /* count the last partial row */
+    if(i < N-1)
+    {
+        position = position + y - N + 1 + i; 
+        //printf("i is %d", i);
+    }
+    else
+        position = position + y; 
+    
+    return position; 
+}
+
+/************************************************************************
+**
+** NAME:        intToCoordinateX
+**
+** DESCRIPTION: Changes a move representation from integers (eg. 11) to its X coordinate (A)
+** 
+************************************************************************/
+int intToCoordinateX(int position)
+{
+    int i;
+    
+    for(i = 0; i < N; i++)
+    {
+         if(position - (N+i) > 0)
+         {
+             position = position - (N+i);   
+             //printf("i is %d, position is %d\n", i, position);          
+         }     
+         else
+             return 2*N -1 - i - 1 + 'A';
+    }    
+    
+    for(; i < (2*N - 1); i++)
+    {
+         if((position - (3*N - i - 2)) > 0)
+         {
+              position = position - (3*N - i - 2);
+              //printf("second loop i is %d, position is %d\n", i, position);             
+         }     
+         else
+             return 2*N -1 - i -1 + 'A'; 
+    }
+    
+    return -1;
+}
+
+/************************************************************************
+**
+** NAME:        intToCoordinateY
+**
+** DESCRIPTION: Changes a move representation from integers (eg. 11) to coordinates (eg. A1)
+** 
+************************************************************************/
+int intToCoordinateY(int position)
+{
+    int i;
+    
+    for(i = 0; i < N; i++)
+    {
+         if(position - (N+i) > 0)
+         {
+             position = position - (N+i);   
+             //printf("yi is %d, position is %d\n", i, position);          
+         }
+         else  
+             return position + N - i - 1 + '0';    
+    }    
+    
+    for(; i < (2*N - 1); i++)
+    {
+         if((position - (3*N - i - 2)) > 0)
+         {
+             position = position - (3*N - i - 2);
+             //printf("ysecond loop i is %d, position is %d\n", i, position);             
+         }     
+         else
+             return position + '0';
+    }
+    
+    return -1;
+}
+
+
+/************************************************************************
+**
+** NAME:        validCoordinate
+**
+** DESCRIPTION: Determines if a given coordinate is valid
+**   
+************************************************************************/
+BOOLEAN validCoordinate(int x, int y)
+{
+    if((x - 'a') >= 0)
+         x = x - 'a' + 1;
+    else
+         x = x - 'A' + 1;
+         
+    y = y - '0';
+    
+    if(y <= (x-N))
+    {
+         //printf("invalid topleft coordinate %d,%d\n", x, y);
+         return FALSE;     
+    }
+    else if(x <= (y-N))
+    {
+         //printf("invalid bottomright coordinate %d,%d\n", x, y);
+         return FALSE;
+    }
+    else if((x > (2*N - 1)) || (y > (2*N - 1)))
+    {
+         //printf("invalid topright coordinate %d,%d\n", x, y);
+         return FALSE;     
+    }
+    else if((x < 1) || (y < 1))
+    {
+         //printf("invalid bottomleft coordinate %d,%d\n", x, y);
+         return FALSE;     
+    }
+    else
+        return TRUE;     
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.36  2006/10/17 10:45:19  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.35  2006/10/03 08:17:20  jerricality
 // *** empty log message ***
 //
