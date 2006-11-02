@@ -10,11 +10,10 @@ import game.*;
 import renderers.BoardRenderer;
 import renderers.stdBRenderer;
 
-public class GameDisplay
+public class GameDisplay extends JFrame
 {
     private JPanel myBoardPanel;
 	
-    private JFrame myFrame;
     private BoardRenderer myBoardRenderer;
 	
     private Board myBoard;
@@ -22,17 +21,20 @@ public class GameDisplay
     public GameDisplay(Board board, int width, int height)
     {
 	myBoard = board;
-	myFrame = new JFrame();
-	myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	myFrame.setSize(width, height);
+
+	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	setSize(width, height);
+
 	myBoardRenderer = new stdBRenderer(500,500,board);
 	myBoardPanel = myBoardRenderer.getPanel();
-	myFrame.getContentPane().add(BorderLayout.CENTER,myBoardPanel);
+	
+	getContentPane().add(BorderLayout.CENTER,myBoardPanel);
+
 	JMenuBar mBar = new JMenuBar();
 		
 	JMenu fileMenu = new JMenu("File");			
 	JMenuItem exitItem = new JMenuItem("Exit");
-	exitItem.addActionListener(new exitListener());
+	exitItem.addActionListener(new GameDisplayActionListener( GameDisplayActionListener.EXIT ) );
 	fileMenu.add(exitItem);
 	mBar.add(fileMenu);
 	/*	
@@ -44,14 +46,15 @@ public class GameDisplay
 	*/
 	JMenu gameMenu = new JMenu("Game");
 	JMenuItem undoMoveItem = new JMenuItem("Undo last move");
-	undoMoveItem.addActionListener(new undoMoveListener());
+	undoMoveItem.addActionListener( new GameDisplayActionListener(GameDisplayActionListener.UNDO_MOVE));
 	gameMenu.add(undoMoveItem);
+
 	JMenuItem colorMovesItem = new JMenuItem("Show Move Values");
-	colorMovesItem.addActionListener(new colorMovesListener());
+	colorMovesItem.addActionListener( new GameDisplayActionListener(GameDisplayActionListener.TOGGLE_SHOW_VALUES));
 	gameMenu.add(colorMovesItem);
 	mBar.add(gameMenu);
 	
-	myFrame.setJMenuBar(mBar);
+	setJMenuBar(mBar);
     }
 	
 
@@ -66,9 +69,9 @@ public class GameDisplay
      */
     public int draw()
     {
-	myFrame.setVisible(true);
-	myFrame.validate();
-	myFrame.pack();
+	setVisible(true);
+	validate();
+	pack();
 	//myFrame.pack();
 	/*for(int i=0;i<500;i++)
 	  {
@@ -83,16 +86,49 @@ public class GameDisplay
 	return 0;
     }
 	
-    private class exitListener implements ActionListener
+    private class GameDisplayActionListener implements ActionListener
     {
-	public void actionPerformed(ActionEvent Event)
+	int action;
+	
+	public static final int EXIT = 0;
+	public static final int UNDO_MOVE = 1;
+	public static final int TOGGLE_SHOW_VALUES = 2;
+
+	GameDisplayActionListener( int action ) {
+	    this.action = action;
+	}
+
+	public void actionPerformed( ActionEvent e )
 	{
-	    myFrame.dispose();
-	    myFrame.setVisible(false);
+	    switch( action ) {
+		case EXIT: 			do_exit(); break;
+		case UNDO_MOVE:			do_undo_move(); break;
+		case TOGGLE_SHOW_VALUES:	do_toggle_show_values(); break;
+		default:
+		    System.out.println( "Unknown action in GameDisplay" );
+		    break;
+	    }
+	}
+
+	private void do_exit()
+	{
+	    dispose();
+	    setVisible(false);
 	    System.exit(0);
 	}
+
+	private void do_undo_move()
+	{
+	    Move lastMove = myBoard.undoMove();
+	    myBoardRenderer.undoMove(lastMove);   
+	}
+
+	private void do_toggle_show_values()
+	{
+	    myBoardRenderer.displayMoves(true);
+	}
     }
-	
+
     /*
     private class changeRendererListener implements ActionListener
     {
@@ -126,25 +162,6 @@ public class GameDisplay
 	}
     }
     */
-
-    private class undoMoveListener implements ActionListener
-    {
-	public void actionPerformed(ActionEvent e)
-	{
-	    Move lastMove = myBoard.undoMove();
-	    myBoardRenderer.undoMove(lastMove);
-	}
-    }
-
-    private class colorMovesListener implements ActionListener
-    {
-	public void actionPerformed(ActionEvent e)
-	{
-	    myBoardRenderer.displayMoves(true);
-	}
-    }
-
-
 }
 	
 	

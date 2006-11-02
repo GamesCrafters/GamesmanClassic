@@ -2,7 +2,7 @@ package main;
 
 import game.*;
 
-public class CInterface {
+public class CInterface implements GameInterface {
     static {
 	System.out.println( "CInterface loading..." );
 
@@ -36,55 +36,116 @@ public class CInterface {
 	}
     }
 
-    public static native void InitializeGame();
+
+    CInterface() {}
 
 
-    public static Position DoMove( Position thePosition, Move theMove ) {
-	return DoMove( thePosition, theMove.GetHashedMove() );
+    /* Entry functions.
+       These just serve as wrappers for the native and workhorse methods below. */
+    
+    public Position InitialPosition() {
+	return NativeInitialPosition();
     }
-    public static native Position DoMove( Position thePosition, int hashedMove );
 
-
-    public static native Position InitialPosition();
-
-    public static native Value Primitive( Position thePosition );
-
-    public static Value GetValueOfMove( Move theMove ) {
-	return GetValueOfMove( theMove.GetPositionBeforeMove().GetHashedPosition(), theMove.GetHashedMove() );
+    public Value Primitive( Position thePosition ) {
+	return NativePrimitive( thePosition );
     }
-    public static native Value GetValueOfMove( long hashedPosition, int hashedMove );
 
-    public static Move[] GenerateMoves( Position thePosition ) {
-	int[] moveInts = GenerateMovesAsInts( thePosition );
+    public Move GetComputersMove( Position thePosition ) {
+	return NativeGetComputersMove( thePosition );
+    }
+    public Value DetermineValue( Position thePosition ) {
+	return NativeDetermineValue( thePosition );
+    }
+
+    public int Remoteness( Position thePosition ) {
+	return NativeRemoteness( thePosition );
+    }
+    public int Mex( Position thePosition ) {
+	return NativeMex( thePosition );
+    }
+
+    public Position DoMove( Position thePosition, Move theMove ) {
+	return NativeDoMove( thePosition, theMove.GetHashedMove() );
+    }
+    public Position DoMove( Position thePosition, int hashedMove ) {
+	return NativeDoMove( thePosition, hashedMove );
+    }
+
+    public Value GetValueOfMove( Move theMove ) {
+	return NativeGetValueOfMove( theMove.GetPositionBeforeMove().GetHashedPosition(), theMove.GetHashedMove() );
+    }
+
+    public String Unhash( Position thePosition ) {
+	return Unhash( thePosition.GetHashedPosition() );
+    }
+    public String Unhash( long hashedPosition ) {
+	if( Game.UsingGenericHash ) {
+	    return NativeGenericUnhash( hashedPosition );
+	} else {
+	    return NativeCustomUnhash( hashedPosition );
+	}
+    }
+
+    public void InitializeGame() {
+	NativeInitializeGame();
+    }
+    public void Initialize() {
+	NativeInitialize();
+    }
+    public void InitializeDatabases() {
+	NativeInitializeDatabases();
+    }
+
+
+    public void InitializeAll() {
+	NativeInitialize();
+	NativeInitializeDatabases();
+
+	NativeInitializeGame();
+    }
+
+
+
+
+    /** Code that actually does stuff. **/
+
+    public Move[] GenerateMoves( Position thePosition ) {
+	int[] moveInts = NativeGenerateMovesAsInts( thePosition );
 	Move[] moves = new Move[moveInts.length];
 
 	for( int i = 0; i < moveInts.length; ++i ) {
 	    moves[i] = new Move( thePosition, moveInts[i], 
-				 GetValueOfMove( thePosition.GetHashedPosition(), moveInts[i] ) );
+				 NativeGetValueOfMove( thePosition.GetHashedPosition(), moveInts[i] ) );
 	}
 	return moves;
     }
 
-    public static String Unhash( Position thePosition ) {
-	return Unhash( thePosition.GetHashedPosition() ); }
-    public static String Unhash( long hashedPosition ) {
-	if( Game.UsingGenericHash ) {
-	    return GenericUnhash( hashedPosition );
-	} else {
-	    return CustomUnhash( hashedPosition );
-	}
-    }
-    public static native String GenericUnhash( long hashedPosition );
-    public static native String CustomUnhash( long hashedPosition );
+    public static native void NativeInitializeGame();
 
-    public static native void Initialize();
-    public static native void InitializeDatabases();
+    public static native Position NativeDoMove( Position thePosition, int hashedMove );
 
-    public static native Move GetComputersMove( Position thePosition );
-    public static native Value DetermineValue( Position thePosition );
+    private static native int[] NativeGenerateMovesAsInts( Position thePosition );
 
-    public static native int Remoteness( Position thePosition );
-    public static native int Mex( Position thePosition );
+    public static native Position NativeInitialPosition();
+
+    public static native Value NativePrimitive( Position thePosition );
+
+    public static native Value NativeGetValueOfMove( long hashedPosition, int hashedMove );
+
+
+
+    public static native String NativeGenericUnhash( long hashedPosition );
+    public static native String NativeCustomUnhash( long hashedPosition );
+
+    public static native void NativeInitialize();
+    public static native void NativeInitializeDatabases();
+
+    public static native Move NativeGetComputersMove( Position thePosition );
+    public static native Value NativeDetermineValue( Position thePosition );
+
+    public static native int NativeRemoteness( Position thePosition );
+    public static native int NativeMex( Position thePosition );
 
     /** TODO:
 
@@ -108,22 +169,12 @@ public class CInterface {
 
     */
 
-    public static void InitializeAll() {
-	Initialize();
-	InitializeDatabases();
-
-	InitializeGame();
-    }
-
-    private static native int[] GenerateMovesAsInts( Position thePosition );
-
 
     public static void InitLibraries( String game ) {
     }
 
-    public static void main(String[] args) {
-
+    /*    public static void main(String[] args) {
 	System.out.println( InitialPosition() );
-    }
+	}*/
 }
 

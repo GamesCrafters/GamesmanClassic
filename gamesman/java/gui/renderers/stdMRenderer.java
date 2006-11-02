@@ -12,9 +12,10 @@ import game.Board;
 import game.Move;
 import game.Value;
 
-import main.CInterface;
+import main.Game;
+import main.GameInterface;
 
-import patterns.Match;
+import patterns.SimplePattern;
 
 public class stdMRenderer implements MoveRenderer
 {
@@ -46,7 +47,7 @@ public class stdMRenderer implements MoveRenderer
 	}
 	else
 	{
-	    moveList = CInterface.GenerateMoves(myBoard.getPosition());
+	    moveList = Game.gameInterface.GenerateMoves(myBoard.getPosition());
 	    moveShapeList = new Shape[moveList.length];
 	    for(int i=0;i<moveList.length;i++)
 	    {
@@ -143,22 +144,35 @@ public class stdMRenderer implements MoveRenderer
 
     private Shape MoveToShape(Move mv)
     {
-	Match match = mv.getPrimaryMatch();
+	SimplePattern pattern = mv.getPattern();
+	Point source = pattern.getSourceLocation();
+	Point dest = pattern.getDestLocation();
+
 	int squareW = brender.getWidth()/myBoard.getWidth();
 	int squareH = brender.getHeight()/myBoard.getHeight();
 	int smalldim;
 	if(squareW>squareH)
 	    smalldim = squareH;
 	else
-	    smalldim = squareW;
-	if(match.getType().equals("Slide"))
-	{
-	    return (new Arrow(match.getFromCol()*squareW+squareW/2,match.getFromRow()*squareH+squareH/2,match.getToCol()*squareW+squareW/2,match.getToRow()*squareH+squareH/2, smalldim/8)).getPoly();
-	}
-	if(match.getType().equals("Place"))
-	{
+	smalldim = squareW;
+
+	if( pattern.toString().equals( "slide" ) ) {
+	    return (new Arrow( source.y*squareW+squareW/2,
+			       source.x*squareH+squareH/2,
+			       dest.y*squareW+squareW/2,
+			       dest.x*squareW+squareW/2,
+			       smalldim/8)).getPoly();
+
+	} else if( pattern.toString().equals( "place" ) ||
+		   pattern.toString().equals( "remove" ) ||
+		   pattern.toString().equals( "replace" ) ) {
+
 	    double w = smalldim*.4;
-	    return new Ellipse2D.Double(match.getFromCol()*squareW+squareW/2-w/2,match.getFromRow()*squareH+squareH/2-w/2,w,w);
+
+	    return new Ellipse2D.Double( dest.y*squareW+squareW/2-w/2,
+					 dest.x*squareH+squareH/2-w/2,
+					 w,
+					 w);
 	}
 	else
 	{
@@ -178,7 +192,7 @@ public class stdMRenderer implements MoveRenderer
 	    selectedMove=null;
 	    selectedShape=null;
 	}
-	    
+	
 	brender.repaint();
     }
 
@@ -192,7 +206,7 @@ public class stdMRenderer implements MoveRenderer
 		onShape=true;
 		selectedShape = moveShapeList[i];
 		selectedMove = moveList[i];
-		brender.repaint();
+		//brender.repaint();
 
 	    }
 	}

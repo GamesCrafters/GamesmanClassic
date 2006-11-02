@@ -3824,40 +3824,30 @@ test "x$_ACJNI_JAVAC" = xno && { { echo "$as_me:$LINENO: error: $JAVAC could not
 echo "$as_me: error: $JAVAC could not be found in path" >&2;}
    { (exit 1); exit 1; }; }
 
-
-# find the include directory relative to the javac executable
-_cur=""$_ACJNI_JAVAC""
-while ls -ld "$_cur" 2>/dev/null | grep " -> " >/dev/null; do
-        echo "$as_me:$LINENO: checking symlink for $_cur" >&5
-echo $ECHO_N "checking symlink for $_cur... $ECHO_C" >&6
-        _slink=`ls -ld "$_cur" | sed 's/.* -> //'`
-        case "$_slink" in
-        /*) _cur="$_slink";;
-        # 'X' avoids triggering unwanted echo options.
-        *) _cur=`echo "X$_cur" | sed -e 's/^X//' -e 's:[^/]*$::'`"$_slink";;
-        esac
-        echo "$as_me:$LINENO: result: $_cur" >&5
-echo "${ECHO_T}$_cur" >&6
-done
-_ACJNI_FOLLOWED="$_cur"
-
-_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[^/]*$::'`
+#_ACJNI_FOLLOW_SYMLINKS("$_ACJNI_JAVAC")
+#_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[[^/]]*$::'`
+_JTOPDIR=$JAVA_HOME
+_JHOME=$JAVA_HOME
 case "$host_os" in
         darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
-                        _JINC="$_JTOPDIR/Headers";;
-        *)              _JINC="$_JTOPDIR/include";;
+                        _JINC="$_JTOPDIR/Headers"
+			_JHOME_INC="$_JHOME/Headers";;
+
+        *)              _JINC="$_JTOPDIR/include"
+			_JHOME_INC="$_JHOME/include";;
 esac
+
 if test -f "$_JINC/jni.h"; then
         JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JINC"
 else
-        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
-        if test -f "$_JTOPDIR/include/jni.h"; then
-                JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include"
-        else
-                { { echo "$as_me:$LINENO: error: cannot find java include files" >&5
+	_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
+	if test	-f "$_JTOPDIR/include/jni.h"; then
+	JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include"
+		else
+				{ { echo "$as_me:$LINENO: error: cannot find java include files" >&5
 echo "$as_me: error: cannot find java include files" >&2;}
    { (exit 1); exit 1; }; }
-        fi
+		fi
 fi
 
 # get the likely subdirectories for system specific java includes

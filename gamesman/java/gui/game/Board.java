@@ -4,12 +4,13 @@ package game;
 import java.awt.Color;
 import java.util.Stack;
 
-import main.CInterface;
+import main.Game;
+import main.GameInterface;
 
 public class Board {
 
-    public static int PIECE_ON_VERTEX = 0;
-    public static int PIECE_IN_BIN = 1;
+    //    public static int PIECE_ON_VERTEX = 0;
+    //    public static int PIECE_IN_BIN = 1;
 
     private static int width;
     private static int height;
@@ -59,7 +60,8 @@ public class Board {
     private Position currentPosition;
 
     public Board() {
-	this.currentPosition = CInterface.InitialPosition();
+	this.currentPosition = Game.gameInterface.InitialPosition();
+
 	pastMoves = new Stack<Move>();
 	pastPositions = new Stack<Position>();
     }
@@ -71,7 +73,7 @@ public class Board {
     public void DoMove( Move m ) {
 	pastMoves.add(m);
 	pastPositions.add(currentPosition);
-	currentPosition = CInterface.DoMove(currentPosition, m);
+	currentPosition = Game.gameInterface.DoMove(currentPosition, m);
     }
 
     public Move lastMove()
@@ -88,6 +90,5 @@ public class Board {
 	currentPosition = pastPositions.pop();
 	return pastMoves.pop();
     }
-
 
 }

@@ -1,43 +1,15 @@
 <?xml version="1.0"?>
-<game>
-  <info>
-    <name>Dao</name>
-    <dbname>mdao</dbname>
-  </info>
-  <board>
-    <type>grid</type>
-    <width>4</width>
-    <height>4</height>
-    <bgcolor>C8C8C8</bgcolor>
-  </board>
-  <hash>
-    generic
-  </hash>
+<game name="Dao" dbname="mdao" hashtype="generic">
+  <board type="grid" width="4" height="4" bgcolor="C8C8C8" />
 
   <pieces>
-    <piece>
-      <charID>X</charID>
-      <shape>circle</shape>
-      <color>ff0000</color>
-    </piece>
-    <piece>
-      <charID>O</charID>
-      <shape>circle</shape>
-      <color>0000ff</color>
-    </piece>
-    <piece>
-      <charID>space</charID>
-      <shape>empty</shape>
-      <color>000000</color>
-    </piece>
+    <piece charID="X" shape="circle" color="ff0000" />
+    <piece charID="O" shape="circle" color="0000ff" />
+    <piece charID="space" shape="empty" color="000000" />
   </pieces>
 
   <movetypes>
-    <move>
-      <type>slide</type>
-      <target>single</target>
-      <object>existing</object>
-    </move>
+    <move type="slide" target="single" object="existing" />
   </movetypes>
 
   <variants>

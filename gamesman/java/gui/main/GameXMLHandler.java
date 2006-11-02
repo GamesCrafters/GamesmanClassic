@@ -9,6 +9,7 @@ import org.xml.sax.Locator;
 import java.util.Stack;
 import java.awt.Color;
 
+import patterns.*;
 import game.*;
 
 public class GameXMLHandler extends DefaultHandler {
@@ -24,7 +25,7 @@ public class GameXMLHandler extends DefaultHandler {
 
 
     public void characters( char[] ch, int start, int length ) {
-	try {
+	/*try {
 	    String s = new String( ch, start, length );
 	    s = s.trim();
 
@@ -114,7 +115,7 @@ public class GameXMLHandler extends DefaultHandler {
 	catch( NumberFormatException e ) {
 	    System.out.println( "Error reading number" );
 	    System.out.println( e.getMessage() );
-	}
+	    }*/
     }
 
     public void endDocument() {
@@ -126,22 +127,109 @@ public class GameXMLHandler extends DefaultHandler {
     }
 
     public void startElement( String uri, String localName, String qName, Attributes attributes ) {
+	String value;
 	if( !currentNode.equals( "" ) ) {
 	    tree.push( currentNode );
 	}
 
-	currentNode = localName.toUpperCase();;
+	try {
+
+	    if( localName.equals( "game" ) ) {
+		Game.Name = getAttribute( localName, "name", attributes, true );
+		Game.DBName = getAttribute( localName, "dbname", attributes, true );
+
+		value = getAttribute( localName, "hashtype", attributes, true );
+		Game.UsingGenericHash = value.equals( "generic" );
+
+	    } else if( localName.equals( "board" ) ) {
+		value = getAttribute( localName, "type", attributes, true );
+		// do something with this in the future
+
+		value = getAttribute( localName, "width", attributes, true );
+		Board.setWidth( Integer.parseInt( value ) );
+
+		value = getAttribute( localName, "height", attributes, true );
+		Board.setHeight( Integer.parseInt( value ) );
+
+		value = getAttribute( localName, "bgcolor", attributes, false );
+		if( value != null ) {
+		    int color = Integer.parseInt( value, 16 );
+		    Board.setColor( new Color( color ) );
+		}
+	    
+	    } else if( localName.equals( "piece" ) ) {
+		char charID;
+		int pieceShape;
+		int raw_color;
+		Color color;
+
+		value = getAttribute( localName, "charID", attributes, true );
+		if( value.toLowerCase().equals( "space" ) ) 
+		    charID = ' ';
+		else
+		    charID = value.charAt(0);
+
+		value = getAttribute( localName, "shape", attributes, true );
+		if( value.toUpperCase().equals( "EMPTY" ) )
+		    pieceShape = Bin.SHAPE_EMPTY;
+		else if ( value.toUpperCase().equals( "X" ) )
+		    pieceShape = Bin.SHAPE_X;
+		else if ( value.toUpperCase().equals( "O" ) )
+		    pieceShape = Bin.SHAPE_O;
+		else if ( value.toUpperCase().equals( "CIRCLE" ) )
+		    pieceShape = Bin.SHAPE_CIRCLE;
+		else if ( value.toUpperCase().equals( "PLUS" ) )
+		    pieceShape = Bin.SHAPE_PLUS;
+		else if ( value.toUpperCase().equals( "CUSTOM" ) )
+		    pieceShape = Bin.SHAPE_CUSTOM;
+		else {
+		    System.out.println( "Invalid piece shape: \"" + value + "\"" );
+		    pieceShape = Bin.SHAPE_EMPTY;
+		}
+
+		value = getAttribute( localName, "color", attributes, true );
+		raw_color = Integer.parseInt( value, 16 );
+		color = new Color( raw_color );
+
+		Bin.addArchetype( new Bin( charID, color, pieceShape ) );
+		
+
+	    } else if( localName.equals( "move" ) ) {
+		String typeStr = getAttribute( localName, "type", attributes, true );
+		String targetStr = getAttribute( localName, "target", attributes, true );
+		String objectStr = getAttribute( localName, "object", attributes, true );
+
+		SimplePattern.addType( new MoveType( typeStr, targetStr, objectStr ) );
+		//SimplePattern.printActivePatterns();
+		    
+		
+
+		// ignore this for now
+		//	    value = getAttribute( localName, "type", attributes, true );
+
+	    }
+	} catch( NumberFormatException e ) {
+	    System.out.println( "Error parsing number" );
+	    System.out.println( e.getMessage() );
+	}
+	catch( Exception e ) {
+	    System.out.println( "Unknown exception" );
+	    System.out.println( e.getMessage() );
+	}
+
+	currentNode = localName.toUpperCase();
+	//	currentNode = localName.toLowerCase();
     }
 
     public void endElement( String uri, String localName, String qName ) {
-	if( ! currentNode.equals( localName.toUpperCase() ) ) {
+	if( ! currentNode.toLowerCase().equals( localName.toLowerCase() ) ) {
 	    System.out.println( "\"" + currentNode + "\" and \"" 
-				+ localName.toUpperCase() + "\" don't match..." );
+				+ localName.toLowerCase() + "\" don't match..." );
 	}
 
-	if( currentNode.equals( "PIECE" ) ) {
+	/*	if( currentNode.equals( "PIECE" ) ) {
 	    Bin.addArchetype( new Bin( bin_charID, bin_pieceColor, bin_pieceShape ) );
-	}
+	    }*/
 
 
 	if( tree.empty() )
@@ -177,4 +265,16 @@ public class GameXMLHandler extends DefaultHandler {
 	}*/
 
 
+    private String getAttribute( String node, String attributeName, Attributes attributes, boolean required ) {
+	String s = attributes.getValue( attributeName  );
+
+	if( s == null && required ) {
+	    System.out.println( "Required attribute not found." );
+	    System.out.println( "Node name:  \"" + node + "\"" );
+	    System.out.println( "Attribute name:  \"" + attributeName + "\"" );
+	    System.exit( 1 );
+	}
+
+	return s;
+    }
 }

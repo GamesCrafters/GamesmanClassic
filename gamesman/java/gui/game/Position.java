@@ -1,15 +1,20 @@
 package game;
 
-import main.CInterface;
+import main.Game;
+import main.GameInterface;
 import patterns.*;
+
+import java.awt.Point;
 
 public class Position {
     private long hashedPosition;
+    private String unhashedPosition;
     
     Bin[][] currentPosition;
 
     public Position() {
 	hashedPosition = 0;
+	unhashedPosition = "";
     }
 
     public Position( long hashedPosition ) {
@@ -23,7 +28,7 @@ public class Position {
     public void SetHashedPosition( long hashedPosition ) {
 	this.hashedPosition = hashedPosition;
 
-	String unhashedPosition = CInterface.Unhash( hashedPosition );
+	unhashedPosition = Game.gameInterface.Unhash( hashedPosition );
 
 	currentPosition = new Bin[ Board.getHeight() ][ Board.getWidth() ];
 
@@ -39,9 +44,13 @@ public class Position {
 	return currentPosition[height][width];
     }
 
+    public Point getLocationCoords( int indexInUnhashed ) {
+	return new Point( indexInUnhashed / Board.getWidth(), 
+			  indexInUnhashed % Board.getWidth() );
+    }
 
     public Move[] getMoves() {
-	return CInterface.GenerateMoves(this);
+	return Game.gameInterface.GenerateMoves(this);
     }
 
 
@@ -64,11 +73,16 @@ public class Position {
     }
 
     public String toString() {
-	return String.format( "%d", hashedPosition );
+	//	return String.format( "%d", hashedPosition );
+	return unhashedPosition;
+    }
+
+    public String getUnhashedPosition() {
+	return unhashedPosition;
     }
 
     public boolean isPrimitive()
     {
-	return !CInterface.Primitive(this).isUndecided();
+	return !Game.gameInterface.Primitive(this).isUndecided();
     }
 }

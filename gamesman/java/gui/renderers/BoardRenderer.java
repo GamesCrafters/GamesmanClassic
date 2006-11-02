@@ -7,7 +7,6 @@ import game.Move;
 
 public interface BoardRenderer
 {
-    
     public JPanel getPanel();
     public void reSize(int width, int height);
     public void repaint();
@@ -17,8 +16,8 @@ public interface BoardRenderer
     
     public void MakeMove(Move m);
     public Board getBoard();
-    public	int getWidth();
-    public	int getHeight();
+    public int getWidth();
+    public int getHeight();
 
     public void undoMove(Move m);
 }

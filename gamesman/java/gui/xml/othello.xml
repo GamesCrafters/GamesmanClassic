@@ -1,43 +1,15 @@
 <?xml version="1.0"?>
-<game>
-  <info>
-    <name>Othello</name>
-    <dbname>mothello</dbname>
-  </info>
-
-  <board>
-    <type>grid</type>
-    <width>4</width>
-    <height>4</height>
-    <bgcolor>009600</bgcolor>
-  </board>
-
-  <hash>generic</hash>
+<game name="Othello" dbname="mothello" hashtype="generic">
+  <board type="grid" width="4" height="4" bgcolor="009600" />
 
   <pieces>
-    <piece>
-      <charID>B</charID>
-      <shape>circle</shape>
-      <color>000000</color>
-    </piece>
-    <piece>
-      <charID>W</charID>
-      <shape>circle</shape>
-      <color>ffffff</color>
-    </piece>
-    <piece>
-      <charID>space</charID>
-      <shape>empty</shape>
-      <color>000000</color>
-    </piece>
+    <piece charID="B" shape="circle" color="000000" />
+    <piece charID="W" shape="circle" color="ffffff" />
+    <piece charID="space" shape="empty" color="000000" />
   </pieces>
 
   <movetypes>
-    <move>
-      <type>position</type>
-      <target>single</target>
-      <object>empty</object>
-    </move>
+    <move type="position" target="single" object="empty" />
   </movetypes>
 
   <variants>

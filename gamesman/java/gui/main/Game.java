@@ -14,6 +14,7 @@ public class Game {
     public static String Name = null;
     public static String DBName = null;
     public static boolean UsingGenericHash = true;
+    public static GameInterface gameInterface = null;
 
     public static void main( String[] args ) throws Exception {
 	try {
@@ -24,16 +25,21 @@ public class Game {
 
 	    ReadXML( args[0] );
 
-	    CInterface.InitializeAll();
+	    gameInterface = new CInterface();
 
+	    gameInterface.InitializeAll();
+	    
 	    Board b = new Board();
-
 	    b.getPosition().print();
+
+	    Position p = b.getPosition();
+	    System.out.println( p.getLocationCoords( 0 ) );
+	    System.out.println( p.getLocationCoords( 2 ) );
+	    System.out.println( p.getLocationCoords( 3 ) );
 
 	    GameDisplay disp = new GameDisplay(b,500,500);
 
 	    disp.draw();
-
 	    
 	}
 	catch( Exception e ) {

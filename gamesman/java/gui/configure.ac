@@ -21,21 +21,25 @@ test "x$_ACJNI_JAVAC" = xno && AC_MSG_ERROR([$JAVAC could not be found in path])
 #_ACJNI_FOLLOW_SYMLINKS("$_ACJNI_JAVAC")
 #_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[[^/]]*$::'`
 _JTOPDIR=$JAVA_HOME
+_JHOME=$JAVA_HOME
 case "$host_os" in
         darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
-                        _JINC="$_JTOPDIR/Headers";;
-        *)              _JINC="$_JTOPDIR/include";;
+                        _JINC="$_JTOPDIR/Headers"
+			_JHOME_INC="$_JHOME/Headers";;
+
+        *)              _JINC="$_JTOPDIR/include"
+			_JHOME_INC="$_JHOME/include";;
 esac
 
 if test -f "$_JINC/jni.h"; then
         JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JINC"
-	else
+else
 	_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
-	if test -f "$_JTOPDIR/include/jni.h"; then
-	        JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include"
+	if test	-f "$_JTOPDIR/include/jni.h"; then
+	JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include"
 		else
-		AC_MSG_ERROR([cannot find java include files])
-	fi
+				AC_MSG_ERROR([cannot find java include files])
+		fi
 fi
 
 # get the likely subdirectories for system specific java includes

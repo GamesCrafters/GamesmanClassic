@@ -1,51 +1,38 @@
 <?xml version="1.0"?>
-<game>
-  <info>
-    <name>Achi</name>
-    <dbname>machi</dbname>
-  </info>
-  <board>
-    <type>grid</type>
-    <width>3</width>
-    <height>3</height>
-    <bgcolor>C8C8C8</bgcolor>
+<game name="Achi" dbname="machi" hashtype="custom">
+  <board type="grid" width="3" height="3" bgcolor="C8C8C8">
+    <decorations>
+      <!-- Default settings: repeat-every = 1, offset = 0, size 10% -->
+      <line direction="horizontal" />
+      <line direction="vertical" />
+      
+      <!-- These are the same direction as forward slashes and backslashes, i.e. slant-forward goes
+           from southwest to northeast.  slant-backward goes from northwest to southeast. 
+	   The offsets are always based off the upper-left corner of the grid. -->
+      <line direction="slant-forward" repeat-every="2" offset="0" />
+      <line direction="slant-backward" repeat-every="2" offset="0" />
+
+      <circle location="center" frequency="1" size="10%" />
+    </decorations>
   </board>
-  <hash>
-    custom
-  </hash>
 
   <pieces>
-    <piece>
-      <charID>X</charID>
-      <shape>circle</shape>
-      <color>ff0000</color>
-    </piece>
-    <piece>
-      <charID>O</charID>
-      <shape>circle</shape>
-      <color>0000ff</color>
-    </piece>
-    <piece>
-      <charID>space</charID>
-      <shape>empty</shape>
-      <color>000000</color>
-    </piece>
+    <piece charID="X" shape="circle" color="ff0000" />
+    <piece charID="O" shape="circle" color="0000ff" />
+    <piece charID="space" shape="empty" color="000000" />
   </pieces>
 
   <movetypes>
-    <move>
-      <type>slide</type>
-      <target>single</target>
-      <object>existing</object>
-    </move>
-    <move>
-      <type>position</type>
-      <target>single</target>
-      <object>empty</object>
-    </move>
+    <move type="slide" target="single" object="existing" />
+    <move type="position" target="single" object="empty" />
   </movetypes>
 
   <variants>
+     <variant name="Misere">
+       <desc>Plays the game backwards.</desc>
+       <!-- This is game specific.  This is the number in hex that will be added 
+            to the variant number if this variant is turned on.  Maybe a number-off as well? -->
+       <number>1</number>
+     </variant>
   </variants>
-    
 </game>

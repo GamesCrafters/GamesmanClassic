@@ -24,16 +24,16 @@ CLASSES= main/CInterface.class \
         game/MoveType.class \
         game/Move.class \
         game/Board.class \
-        patterns/Match.class \
-        patterns/Pattern.class \
+	patterns/SimplePattern.class \
         patterns/Place.class \
         patterns/Remove.class \
         patterns/Replace.class \
+	renderers/Arrow.class \
         renderers/stdBRenderer.class \
         renderers/stdMRenderer.class \
         renderers/BoardRenderer.class \
-        renderers/MoveRenderer.class \
-	renderers/Arrow.class
+        renderers/MoveRenderer.class
+
 
 LIBOBJECTS = main/CInterface.o
 
@@ -47,7 +47,7 @@ GAMELIBS = $(LIBDIR)/libmothello.so \
 all: Makefile $(CLASSES) $(GAMELIBS)
 
 
-%.so : $(LIBDEPS)
+%.so : $(LIBDIR) $(LIBDEPS)
 	gcc -shared -o $@ $(GCDIR)lib/$(@F) $(LIBOBJECTS)
 
 %.o : %.c %.h
@@ -65,3 +65,6 @@ clean:
 
 dist-clean: clean
 	rm -rf Makefile configure config.status config.log *~
+
+$(LIBDIR):
+	mkdir -p lib

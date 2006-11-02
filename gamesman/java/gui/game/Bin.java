@@ -155,7 +155,12 @@ public class Bin {
     }
 
     public static Bin getArchetype( char desc ) {
-	return possibleBins.get( desc );
+	Bin b = possibleBins.get( desc );
+
+	if( b == null )
+	    System.out.println( "No archetype available" );
+
+	return b;
     }
 
     public static Iterator<Character> ArchetypeIDIterator() {

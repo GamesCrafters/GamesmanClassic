@@ -19,7 +19,7 @@ jobject newPosition( JNIEnv *env, jlong value ) {
 
   if( methodID == NULL )
     printf( "methodID is bad\n" );
-  
+
   return (*env)->NewObject( env, positionClass, methodID, value );
 }
 jlong getPosition( JNIEnv *env, jobject thePosition ) {
@@ -112,7 +112,7 @@ jstring newString(JNIEnv *env, const char *str)
 
 
 
-void Java_main_CInterface_InitializeGame( JNIEnv *env, jobject this )
+void Java_main_CInterface_NativeInitializeGame( JNIEnv *env, jobject this )
 {
   InitializeGame();
   DetermineValue( gInitialPosition );
@@ -120,7 +120,7 @@ void Java_main_CInterface_InitializeGame( JNIEnv *env, jobject this )
   fflush( stdout );
 }
 
-jobject Java_main_CInterface_DoMove( JNIEnv *env, jobject this, jobject thePosition, jint hashedMove ) {
+jobject Java_main_CInterface_NativeDoMove( JNIEnv *env, jobject this, jobject thePosition, jint hashedMove ) {
   jlong position = getPosition( env, thePosition );
 
   jlong result = DoMove( position, hashedMove );
@@ -128,14 +128,15 @@ jobject Java_main_CInterface_DoMove( JNIEnv *env, jobject this, jobject thePosit
   return newPosition( env, result );
 }
 
-jobject Java_main_CInterface_InitialPosition( JNIEnv *env, jobject this )
+jobject Java_main_CInterface_NativeInitialPosition( JNIEnv *env, jobject this )
 {
   jobject pos = newPosition( env, gInitialPosition );
+
   return pos;
 }
 
 
-jobject Java_main_CInterface_Primitive( JNIEnv* env, jclass this, jobject thePosition )
+jobject Java_main_CInterface_NativePrimitive( JNIEnv* env, jclass this, jobject thePosition )
 {
   long position = getPosition( env, thePosition );
 
@@ -144,7 +145,7 @@ jobject Java_main_CInterface_Primitive( JNIEnv* env, jclass this, jobject thePos
   return newValue( env, result );
 }
 
-jobject Java_main_CInterface_GetValueOfMove( JNIEnv* env, jclass this, jlong hashedPosition, jint hashedMove )
+jobject Java_main_CInterface_NativeGetValueOfMove( JNIEnv* env, jclass this, jlong hashedPosition, jint hashedMove )
 {
   POSITION pos;
   VALUE value;
@@ -164,7 +165,7 @@ jobject Java_main_CInterface_GetValueOfMove( JNIEnv* env, jclass this, jlong has
   return newValue( env, value );
 }
 
-jintArray Java_main_CInterface_GenerateMovesAsInts( JNIEnv* env, jclass this, jobject thePosition )
+jintArray Java_main_CInterface_NativeGenerateMovesAsInts( JNIEnv* env, jclass this, jobject thePosition )
 {
   int count = 0;
   long pos = getPosition( env, thePosition );
@@ -205,14 +206,14 @@ jintArray Java_main_CInterface_GenerateMovesAsInts( JNIEnv* env, jclass this, jo
 }
 
 
-jstring Java_main_CInterface_GenericUnhash( JNIEnv* env, jclass this, jlong hashedPosition ) {
-  char* str = generic_unhash_tcl( hashedPosition );
+jstring Java_main_CInterface_NativeGenericUnhash( JNIEnv* env, jclass this, jlong hashedPosition ) {
+  char* str = generic_hash_unhash_tcl( hashedPosition );
   jstring jstr = newString( env, str );
   SafeFree( str );
   return jstr;
 }
 
-jstring Java_main_CInterface_CustomUnhash( JNIEnv* env, jclass this, jlong hashedPosition ) {
+jstring Java_main_CInterface_NativeCustomUnhash( JNIEnv* env, jclass this, jlong hashedPosition ) {
   //ported from tkAppInit.c
 
   if (gCustomUnhash == NULL) {
@@ -231,23 +232,23 @@ jstring Java_main_CInterface_CustomUnhash( JNIEnv* env, jclass this, jlong hashe
 
 
 
-void Java_main_CInterface_Initialize(JNIEnv* env, jclass this)
+void Java_main_CInterface_NativeInitialize(JNIEnv* env, jclass this)
 {
   Initialize();
 }
 
-void Java_main_CInterface_InitializeDatabases(JNIEnv * env, jclass this)
+void Java_main_CInterface_NativeInitializeDatabases(JNIEnv * env, jclass this)
 {
   InitializeDatabases();
 }
 
 
 
-jobject Java_main_CInterface_GetComputersMove (JNIEnv * env, jclass this, jobject thePosition) {
+jobject Java_main_CInterface_NativeGetComputersMove (JNIEnv * env, jclass this, jobject thePosition) {
   return newMove( env, thePosition, GetComputersMove( getPosition(env, thePosition) ) );
 }
 
-jobject Java_main_CInterface_DetermineValue(JNIEnv * env, jclass this, jobject thePosition ) {
+jobject Java_main_CInterface_NativeDetermineValue(JNIEnv * env, jclass this, jobject thePosition ) {
   jobject obj;
 
   gMenuMode = BeforeEvaluation; /*some solvers use this for optimization*/
@@ -257,11 +258,11 @@ jobject Java_main_CInterface_DetermineValue(JNIEnv * env, jclass this, jobject t
   return obj;
 }
 
-jint Java_main_CInterface_Remoteness(JNIEnv * env, jclass this, jobject thePosition) {
+jint Java_main_CInterface_NativeRemoteness(JNIEnv * env, jclass this, jobject thePosition) {
   return Remoteness( getPosition( env, thePosition ) );
 }
 
-int Java_main_CInterface_Mex(JNIEnv * env, jclass this, jobject thePosition){
+int Java_main_CInterface_NativeMex(JNIEnv * env, jclass this, jobject thePosition){
   //return Mex( getPosition( env, thePosition ) );
   return 0;
 }
