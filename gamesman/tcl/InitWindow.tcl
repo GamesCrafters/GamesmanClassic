@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.114 2006-10-29 18:50:34 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.115 2006-11-08 10:14:35 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -108,8 +108,11 @@ proc TBaction5 {} {
     gets $fileptr gPlaysFirst
     close $fileptr
     
-    set gRightHumanOrComputer $sRightHumanOrComputer
     set gLeftHumanOrComputer $sLeftHumanOrComputer
+    set gRightHumanOrComputer $sRightHumanOrComputer
+    set gLeftHumanOrComputer "Human"
+    set gRightHumanOrComputer "Computer"
+    set gWhoseTurn "Left"
 
     set gNewGame "true"
     switchRules $kRules
@@ -117,8 +120,8 @@ proc TBaction5 {} {
  	clickedPlayNow
      }
 
-    set gRightHumanOrComputer "Human"
     set gLeftHumanOrComputer "Human"
+    set gRightHumanOrComputer "Human"
 
     if { $gPlaysFirst == 0 } {
 	set gWhoseTurn "Left"
@@ -1428,6 +1431,7 @@ proc switchRules { rules } {
     .middle.f2.cMain delete {!background}
     update
 
+    GS_SetOption $rules
     # Set C option and re-initialize
     eval [concat C_SetOption $rules]
     C_InitializeGame
