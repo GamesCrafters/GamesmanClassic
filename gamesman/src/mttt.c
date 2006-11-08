@@ -199,6 +199,7 @@ void UndoMove(MOVE move);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 
 STRING MoveToString( MOVE );
+POSITION ActualNumberOfPositions(int variant);
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -271,6 +272,7 @@ void InitializeGame()
   gUndoMove = UndoMove;
 
   gMoveToStringFunPtr = &MoveToString;
+  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 void FreeGame()
@@ -945,5 +947,9 @@ void setOption(int option)
     gSymmetries = option % 2;
     option /= 2;
     gStandardGame = option;
+}
+
+POSITION ActualNumberOfPositions(int variant) {
+  return 5478;
 }
 
