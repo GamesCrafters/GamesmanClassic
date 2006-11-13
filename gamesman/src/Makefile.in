@@ -391,7 +391,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
-        $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO)
+        $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
