@@ -92,9 +92,9 @@ STRING   kHelpExample =
 #define BOARDCOLS BOARDROWS
 #define BOARDSIZE BOARDROWS * BOARDCOLS
 
-#define BLACKCHAR '#'
-#define WHITECHAR '0'
-#define BLANKCHAR ' '
+#define BLACKCHAR 'X'
+#define WHITECHAR 'O'
+#define BLANKCHAR '*'
 
 #define WHITEPLAYER 1
 #define BLACKPLAYER 2
@@ -124,6 +124,7 @@ MOVELIST*               getNextBlank(STRING board, int index);
 STRING                  MoveToString(MOVE move);
 int                     ColMaskBoard(char* board, int col, char piece);
 int                     RowMaskBoard(char* board, int row, char piece);
+void			PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 
 /************************************************************************
 **
@@ -138,7 +139,7 @@ void InitializeGame ()
 {
   int i;
   char* initialBoard;
-  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE/2, WHITECHAR, 0, (BOARDSIZE/2), -1};
+  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, (BOARDSIZE/2), WHITECHAR, 0, (BOARDSIZE/2), -1};
 
   InitializeHelpStrings();
   
@@ -162,7 +163,7 @@ void InitializeGame ()
 ** DESCRIPTION: Sets up the help strings based on chosen game options.
 **
 ** NOTES:       Should be called whenever the game options are changed.
-**              (e.g., InitializeGame() and GameSpecificMenu())
+**              (e.g., InitializeGame()p and GameSpecificMenu())
 **
 ************************************************************************/
 void InitializeHelpStrings ()
@@ -244,18 +245,31 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
+
   char* board;
+  char* toard;
   POSITION newPosition;
   
   board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+  toard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   generic_hash_unhash(position, board);
+
+  printf("Board before move: %s\n", board);
   
-  board[move] = (generic_hash_turn(position) == 1) ? WHITECHAR : BLACKCHAR;
+  board[move] = ((generic_hash_turn(position) == 1) ? WHITECHAR : BLACKCHAR);
+
+  printf("Board after move: %s\n", board);
   
   newPosition = generic_hash_hash(board, generic_hash_turn(position));
-  SafeFree(board);
   
-  return newPosition;  
+  generic_hash_unhash(newPosition, toard);
+  printf("Board after hash: %s\n", toard);
+
+  SafeFree(board);
+  SafeFree(toard);
+
+  
+  return newPosition;
 }
 
 
@@ -345,7 +359,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 
   
-  // printf("Prediction: %s", getPrediction());
+  //printf("Prediction: %s", getPrediction());
   printf("%s's turn:\n", playersName);
   
   printf("  ");
@@ -530,8 +544,7 @@ BOOLEAN ValidTextInput (STRING input) {
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    
-    return((input[0]-'a')+input[1]*BOARDROWS);
+    return(((int)(input[0]-'a')+(int)(input[1]-'0')*BOARDROWS));
 }
 
 
@@ -737,6 +750,9 @@ int ColMaskBoard(char* board, int col, char piece) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.2  2006/11/02 02:46:32  brianzimmer
+ ** Fixed seg fault related to generic_hash_init
+ **
  ** Revision 1.1  2006/10/22 22:26:45  and-qso
  ** *** empty log message ***
  **
@@ -751,4 +767,3 @@ initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   
   gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER); **
  ************************************************************************/
-
