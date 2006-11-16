@@ -563,11 +563,11 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
     
-    global size fontsize
+    global size fontsize piecespace
     
     # Tell us it's "Game Over!" and announce and winner
-    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
-    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
+    $c create rectangle 0 [expr ($size - $piecespace)/2 - 15] $size [expr ($size - $piecespace)/2 + 15] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr ($size - $piecespace)/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 	
 }
 
