@@ -93,7 +93,7 @@ proc GS_NameOfPieces {} {
 #############################################################################
 proc GS_ColorOfPlayers {} {
 
-    return [list green green]
+    return [list red blue]
 	### FILL THIS IN
     
 }
@@ -291,18 +291,6 @@ proc DrawPieces { c position } {
     }
 }
 
-proc BoxOwner { i j position } {
-    global boardWidth boardHeight
-    return [expr (1<<[ScoreBit $i $j])&$position]
-}
-
-proc ScoreBit { i j } {
-    global boardWidth boardHeight
-    set moveBits [expr $boardWidth*($boardHeight+1) + $boardHeight*($boardWidth+1)]
-    return [expr $moveBits+$i+$j*$boardWidth]
-}
-    
-    
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
 # is here, so whoever put this here should update this.  -Jeff
@@ -332,40 +320,18 @@ proc GS_DrawPosition { c position } {
     $c delete pieces
     DrawPieces $c $position
 
-#   for {set i 0} {$i < $boardHeight} {incr i} {
-#	for {set j 0} {$j < $boardWidth} {incr j} {
-#	    if {[BoxDone $i $j $position]} {
-#		LabelBox $c $i $j [BoxOwner $i $j $position]
-#	    }
-#	}
-#    }
-}
-
-proc BoxDone { i j position } {
-    global boardWidth boardHeight
-    # Returns true if the i,jth box is done
-    # 0,0 is the top left box
-    # Conversion scheme:
-    #   Top: cols*i+j
-    #   Bot: cols*(i+1)+j
-    #   Lef: [(rows+1)*cols]+rows*j+i
-    #   Rig: [(rows+1)*cols]+rows*(j+1)+i
-    set board [unhash $position]
-    set top [expr $boardWidth*$i+$j]
-    set bot [expr $boardWidth*($i+1)+$j]
-    set lef [expr ($boardHeight+1)*$boardWidth+$boardHeight*$j+$i]
-    set rig [expr ($boardHeight+1)*$boardWidth+$boardHeight*($j+1)+$i]
-    foreach side [list $top $bot $lef $rig] {
-	if {[string index $board $side] ne 1} {
-	    return 0
+   for {set i 0} {$i < $boardHeight} {incr i} {
+	for {set j 0} {$j < $boardWidth} {incr j} {
+	    LabelBox $c $i $j [C_Scored $position $j $i]
 	}
     }
-    return 1
 }
 
 proc LabelBox { c i j flag } {
     global margin square
-    if {$flag == 0} {
+    if {$flag == -1} {
+	return
+    } elseif {$flag == 0} {
 	set color "blue"
     } else {
 	set color "red"
@@ -442,8 +408,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 proc DrawMove { c move moveType type } {
 
-    global margin square boardWidth boardHeight
-    set r 10
+    global margin square boardWidth boardHeight r
 
     switch $moveType {
 	value {
@@ -467,19 +432,19 @@ proc DrawMove { c move moveType type } {
     # If 0 <= index <= 6, horizontal line
     # If 7 <= index <= 12, vertical line
     if {$move < [expr ($boardHeight+1)*$boardWidth]} {
-	set tmp [$c create oval \
-		     [expr $margin+($move%$boardWidth+0.5)*$square-$r] \
-		     [expr $margin+($move/$boardWidth)*$square-$r] \
-		     [expr $margin+($move%$boardWidth+0.5)*$square+$r] \
-		     [expr $margin+($move/$boardWidth)*$square+$r] \
-		     -fill $color -tag "moves"]
+	set tmp [$c create line \
+		     [expr $margin+($move%$boardWidth)*$square+$r] \
+		     [expr $margin+($move/$boardWidth)*$square] \
+		     [expr $margin+($move%$boardWidth+1)*$square-$r] \
+		     [expr $margin+($move/$boardWidth)*$square] \
+		     -fill $color -width $r -tag "moves"]
     } else {
-	set tmp [$c create oval \
-		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)/$boardHeight)*$square-$r] \
-		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)%$boardHeight+0.5)*$square-$r] \
-		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)/$boardHeight)*$square+$r] \
-		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)%$boardHeight+0.5)*$square+$r] \
-		     -fill $color -tag "moves"]
+	set tmp [$c create line \
+		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)/$boardHeight)*$square] \
+		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)%$boardHeight)*$square+$r] \
+		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)/$boardHeight)*$square] \
+		     [expr $margin+(($move-($boardHeight+1)*$boardWidth)%$boardHeight+1)*$square-$r] \
+		     -fill $color -width $r -tag "moves"]
     }
 
     $c bind $tmp <Enter> "$c itemconfigure $tmp -fill black"
