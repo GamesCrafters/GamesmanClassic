@@ -348,14 +348,14 @@ proc main {} {
 
     set theBitmapDir "../bitmaps"
 
-    set thePrograms { 1210 abalone achi asalto change win4 dao dinododgem \
+    set thePrograms { 1210 abalone achi asalto change win4 dao dinododgem dodgem dnb \
 			  hshogi iceblocks lewth lite3 mancala tore nim ooe \
 			  othello qx rubix seega slideN snake tactix ttt3 \
 			  wuzhi sim \
 			  \
-			  ctoi dodgem lgame \
+			  ctoi lgame \
 			  \
-			  3spot con cmass dnb foxes stt \
+			  3spot con cmass foxes stt \
 			  \
 			  1ton 9mm baghchal blocking fandan gobblet horse \
 			  joust nuttt pylos rcheckers rInfin2 squaredance \
@@ -364,14 +364,14 @@ proc main {} {
 
     set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" \
 			  "Connect-4" "Dao" \
-			  "Dino Dodgem" "Hasami Shogi" "Ice Blocks" \
+			  "Dino Dodgem" "Dodgem" "Dots and Boxes" "Hasami Shogi" "Ice Blocks" \
 			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
 			  "Nim" "Odd or Even" "Othello" "QuickCross" \
 			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
 			  "Tic-Tac-Toe" "Wuzhi" "Sim" \
-			  "Chung-Toi" "Dodgem" "L Game" \
+			  "Chung-Toi" "L Game" \
 			  "3-Spot" "Connections!" "Critical Mass" \
-			  "Dots and Boxes" "Foxes and Geese" "Shift-Tac-Toe" \
+			  "Foxes and Geese" "Shift-Tac-Toe" \
 			  "1 TO N" "Nine Men's Morris" \
 			  "Bagh Chal" "Blocking" "Fandango" \
 			  "Gobblet Jr" "Horseshoe" "Joust" "Nu Tic-Tac-Toe" \
@@ -381,9 +381,9 @@ proc main {} {
 		      }
     set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
 			  gold gold gold gold gold gold gold gold gold gold \
-			  gold gold gold gold gold \
-			  grey grey grey \
-			  brown brown brown brown brown brown \
+			  gold gold gold gold gold gold gold \
+			  grey grey \
+			  brown brown brown brown brown \
 			  black black black black black black black black \
 			  black black black black black black black black \
 			  black black black \
