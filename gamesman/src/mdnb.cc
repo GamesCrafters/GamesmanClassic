@@ -394,7 +394,7 @@ void DoPrivateSolve() {
 EXTERNC void InitializeGame()
 {
   if (BoardSizeX*BoardSizeY>=6) {
-    TrackBoxOwners=false;
+    //TrackBoxOwners=false;
     //CompressDatabase=true;
     //SolvePrivately=true;
   }
