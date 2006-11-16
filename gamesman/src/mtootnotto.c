@@ -715,16 +715,36 @@ VALUE Primitive (POSITION position)
 	else if((tootWins > ottoWins))
 	{
 		if(WhoseTurn(position)==player1)
-			return win;
-		else                        // then (WhoseTurn(position)==player2)
-			return lose;
+		{
+			if(gStandardGame)
+				return win;
+			else
+				return lose;
+		}
+		else
+		{                        // then (WhoseTurn(position)==player2)
+			if(gStandardGame)
+				return lose;
+			else
+				return win;
+		}
 	}
 	else if((ottoWins > tootWins))
 	{
 		if(WhoseTurn(position)==player1)
+		{
+				if(gStandardGame)
+					return lose;
+				else
+					return win;
+		}
+		else                       // then (WhoseTurn(position)==player2)
+		{
+			if(gStandardGame)
+				return win;
+			else
 			return lose;
-		else                        // then (WhoseTurn(position)==player2)
-			return win;
+		}
 	}
 
 	// If board is filled and there is no winner, game is tie.
