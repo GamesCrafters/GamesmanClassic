@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.37 2006-11-02 02:18:25 koolswim88 Exp $
+// $Id: mabalone.c,v 1.38 2006-11-19 00:22:24 jerricality Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -203,11 +203,17 @@ struct row **rows;
 **
 *************************************************************************/
 
-/*
-** Function Prototypes:
-*/
-
 //Function prototypes here.
+void SetupGame();
+TIER BoardToTier(char* board);
+TIER PiecesToTier(int, int);
+void TierToPieces(TIER, int *, int *);
+void SetupTierStuff();
+STRING TierToString(TIER tier);
+TIERLIST* TierChildren(TIER tier);
+TIERPOSITION NumberOfTierPositions(TIER tier);
+POSITION hash(int);
+void unhash(POSITION, int*);
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -217,8 +223,6 @@ extern void		SafeFree ();
 int destination (int, int);
 int move_hash (int, int, int, int);
 struct row * makerow (int, int);
-int m_generic_hash_hash(char *);
-void m_generic_hash_unhash(int, char *);
 void printrow (int, int);
 void printlines (int, int);
 void changeBoard ();
@@ -234,6 +238,7 @@ int intToCoordinateX(int);
 int intToCoordinateY(int);
 int coordinateToInt(int, int);
 
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -248,147 +253,11 @@ int init;
 void InitializeGame()
 {
   if (DEBUGGING) printf("start initialize game\n");
-
-  rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
-
-  int rowsize = N, rownum, slot = 0;
-  for (rownum = 0; rownum < N - 1; rownum++) {
-    rows[rownum] = makerow(rowsize,slot);
-    slot += rowsize;
-    rowsize++;
-  }
-  for (rownum = N - 1; rownum <= 2*N - 2; rownum++) {
-    rows[rownum] = makerow(rowsize,slot);
-    slot += rowsize;
-    rowsize--;
-  }
-
-  BOARDSIZE = b_size(N);
-
-
-  /* long nasty thing to initialize n-sized board */
-
-  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
-
-  int count, x_pieces_left = PIECES, o_pieces_left = PIECES, start, size, stop;
-  double space;
-
-  for (rownum = 0; rownum < 2 * N - 1; rownum++) {
-    start = (*rows[rownum]).start_slot;
-    size = (*rows[rownum]).size;
-
-    if (x_pieces_left >= size) {
-      for (count = start; count < start + size; count++)
-	{
-	  gBoard[count] = 'x';
-	  x_pieces_left--;
-	}
-    }
-    else if (x_pieces_left > 0) {
-      space = (size - x_pieces_left)/2;
-
-      for (count = start; count < start + (int)floor(space); count++) {
-	gBoard[count] = '*';
-      }
-      stop = start + (int)floor(space) + x_pieces_left;
-      for (; count < stop; count++) {
-	gBoard[count] = 'x';
-	x_pieces_left--;
-      }
-      for (;count < start + size; count++) {
-	gBoard[count] = '*';
-      }
-    }
-    else if (o_pieces_left <= (BOARDSIZE - start - size)) {
-      for (count = start; count < start + size; count++) {
-	gBoard[count] = '*';
-      }
-    }
-    else if (o_pieces_left > BOARDSIZE - start - size) {
-      space = ((double)(size - (o_pieces_left - (BOARDSIZE - start - size))))/2;
-      for (count = start; count < start + (int)ceil(space); count++) {
-	gBoard[count] = '*';
-      }
-      stop = start + (int)ceil(space) + (o_pieces_left - (BOARDSIZE - start - size));
-      for (;count < stop; count++) {
-	gBoard[count] = 'o';
-	o_pieces_left--;
-      }
-      for (;count < start + size; count++) {
-	gBoard[count] = '*';
-      }
-    }
-    else {
-      for (count = start; count < start + size; count++) {
-	gBoard[count] = 'o';
-	o_pieces_left--;
-      }
-    }
-  }
-
-
-  /*printf("testing...\n");
-  for (count = 0; count < BOARDSIZE; count++) {
-    printf("%d: %c\n", count, gBoard[count]);
-    }*/
-
-  int init_array[10];
-  init_array[0] = 'o';
-  init_array[3] = 'x';
-  init_array[6] = '*';
-  init_array[9] = -1;
-
-  init_array[1] = PIECES - XHITKILLS;
-  init_array[2] = PIECES;
-  init_array[4] = PIECES - XHITKILLS;
-  init_array[5] = PIECES;
-  init_array[7] = BOARDSIZE - 2 * init_array[2];
-  init_array[8] = BOARDSIZE - 2 * init_array[1];
-
-  /*
-  printf("init array:\n");
-  for (count = 0; count < 10; count++) {
-    printf("%d: %d\n", count, init_array[count]);
-    }*/
-
-  gMax = generic_hash_init(BOARDSIZE,init_array,NULL,0);
-  /*printf("%d  # of hash positions!\n",gMax);*/
-
-
-  /*printf("The Board before unhashing is:\n");
-  for (count = 0; count < BOARDSIZE; count++) {
-    printf("%d: %c\n", count, gBoard[count]);
-    }*/
-
-  init = generic_hash_hash(gBoard, 1);
-  /*printf("%d  is the initial position\n",init);*/
-
-  /*
-  generic_hash_unhash(init,gBoard);
-  printf("The Board after unhashing is:\n");
-    for (count = 0; count < BOARDSIZE; count++) {
-    printf("%d: %c\n", count, gBoard[count]);
-    }*/
-
-  gNumberOfPositions  = gMax;
-  gInitialPosition    = init;
-  gMinimalPosition    = init;
-
-  /*
-  printf("mallocing %d positions\n", gNumberOfPositions);
-  gDatabase = (VALUE *) SafeMalloc(gNumberOfPositions * sizeof(VALUE));*/
-
-  /*int hash;
-  for (hash = 1; hash <= 32; hash++) {
-    setOption(hash);
-    printf("hash = %d:  N = %d, PIECES = %d, KILLS = %d, NSS = %d, MISERE = %d\n", hash, N, PIECES, XHITKILLS, NSS, MISERE);
-  }
-
-  printf("the number of options is %d\n", NumberOfOptions());
-  printf("current option is %d\n", getOption()); */
+	
+  SetupGame();
 
   gMoveToStringFunPtr = &MoveToString;
-
+  
   if (DEBUGGING) printf("end initializegame\n");
 }
 
@@ -596,7 +465,7 @@ POSITION DoMove(thePosition, theMove)
     printf("Starting Do Move with input: %d\n", theMove);
   int destination(int,int);
   int whoseTurn;
-  generic_hash_unhash(thePosition, gBoard);
+  unhash(thePosition, &whoseTurn);
   int direction;
   int slot1, slot2, slot3, dest1, dest2, dest3, pushee1, pushee2, pushdest1, pushdest2, doubpushdest;
   BOOLEAN twopieces = FALSE, threepieces = FALSE;
@@ -694,15 +563,8 @@ POSITION DoMove(thePosition, theMove)
     gBoard[slot1] = '*';
   }
 
-  if (generic_hash_turn(thePosition) == 1) {
-    whoseTurn = 2;
-  }
-  else {
-    whoseTurn = 1;
-  }
-
   if (DEBUGGING)  printf("finished do move\n");
-  return (generic_hash_hash(gBoard,whoseTurn));
+  return (hash((whoseTurn == 1 ? 2 : 1)));
 }
 
 /************************************************************************
@@ -792,7 +654,7 @@ POSITION GetInitialPosition()
       printf ("\n\n Please enter x or o\n\n");
   }
 
-  return generic_hash_hash(gBoard,player);
+  return hash(player);
 }
 
 
@@ -840,7 +702,8 @@ VALUE Primitive ( POSITION h )
   if (DEBUGGING) printf("prim\n");
   BOOLEAN game_over(char[]);
 
-  generic_hash_unhash(h,gBoard);
+  int whoseTurn;
+  unhash(h,&whoseTurn);
 
   /*  printf("analyzing position %d\n", primcount);*/
   primcount++;
@@ -900,17 +763,15 @@ void PrintPosition(position, playerName, usersTurn)
      STRING playerName;
      BOOLEAN usersTurn;
 {
+  int whoseMove;
+  unhash(position, &whoseMove);
+  int r, spacing;
+  
   char piece;
-  if (generic_hash_turn(position) == 2)
+  if (whoseMove == 2)
     piece = 'x';
   else
-    piece = 'y';
-
-
-  if (N < 4) {
-    generic_hash_unhash(position, gBoard);
-  }
-  int r, spacing;
+    piece = 'y';  
 
   if (N < 4) {
     /* messy centering spacing issues for sizeable first line*/
@@ -1133,8 +994,11 @@ MOVELIST *GenerateMoves(position)
   int slot, direction, ssdir;
   int pusher2, pusher3, pushee1, pushee2, pushee3;
   char whoseTurn, opponent;
-
-  if (generic_hash_turn(position) == 2) {
+  int whoTurn;
+  
+  unhash(position,&whoTurn);
+  
+  if (whoTurn == 2) {
     whoseTurn = 'x';
     opponent = 'o';
   }
@@ -1142,7 +1006,7 @@ MOVELIST *GenerateMoves(position)
     whoseTurn = 'o';
     opponent = 'x';
   }
-  generic_hash_unhash(position,gBoard);
+  
 
   /*printf("the hash is %d\n", position);
     for (slot = 0; slot < BOARDSIZE; slot++)
@@ -1842,34 +1706,6 @@ struct row * makerow (int size, int start)
   return new;
 }
 
-int m_generic_hash_hash(char* board) {
-  int size = 8;
-  int val;
-  int i, hashval= 0;
-  for (i=0; i<size;i++) {
-    if (board[i] == '*')
-      val = 0;
-    if (board[i] == 'x')
-      val = 1;
-    if (board[i] == 'o')
-      val = 2;
-    hashval = hashval + val*pow(10,i);
-  }
-  return hashval;
-}
-
-void m_generic_hash_unhash(int val, char* board) {
-  int i;
-  int size = 8;
-  int temp;
-  for (i = 0; i<size;i++) {
-    temp = val %10;
-    if (temp == 0) board[i] = '*';
-    if (temp == 1) board[i] = 'x';
-    if (temp == 2) board[i] = 'o';
-    val = val/10;
-  }
-}
 
 void printrow (int line, int flag) {
   int s, size, start;
@@ -2227,7 +2063,250 @@ BOOLEAN validCoordinate(int x, int y)
         return TRUE;     
 }
 
+//Time to terify
+
+void SetupGame() {
+	generic_hash_destroy();
+	
+	
+  rows = (struct row **) SafeMalloc ((2*N - 1) * sizeof(struct row *));
+
+  int rowsize = N, rownum, slot = 0;
+  for (rownum = 0; rownum < N - 1; rownum++) {
+    rows[rownum] = makerow(rowsize,slot);
+    slot += rowsize;
+    rowsize++;
+  }
+  for (rownum = N - 1; rownum <= 2*N - 2; rownum++) {
+    rows[rownum] = makerow(rowsize,slot);
+    slot += rowsize;
+    rowsize--;
+  }
+
+  BOARDSIZE = b_size(N);
+
+
+  /* long nasty thing to initialize n-sized board */
+
+  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+
+  int count, x_pieces_left = PIECES, o_pieces_left = PIECES, start, size, stop;
+  double space;
+
+  for (rownum = 0; rownum < 2 * N - 1; rownum++) {
+    start = (*rows[rownum]).start_slot;
+    size = (*rows[rownum]).size;
+
+    if (x_pieces_left >= size) {
+      for (count = start; count < start + size; count++)
+	{
+	  gBoard[count] = 'x';
+	  x_pieces_left--;
+	}
+    }
+    else if (x_pieces_left > 0) {
+      space = (size - x_pieces_left)/2;
+
+      for (count = start; count < start + (int)floor(space); count++) {
+	gBoard[count] = '*';
+      }
+      stop = start + (int)floor(space) + x_pieces_left;
+      for (; count < stop; count++) {
+	gBoard[count] = 'x';
+	x_pieces_left--;
+      }
+      for (;count < start + size; count++) {
+	gBoard[count] = '*';
+      }
+    }
+    else if (o_pieces_left <= (BOARDSIZE - start - size)) {
+      for (count = start; count < start + size; count++) {
+	gBoard[count] = '*';
+      }
+    }
+    else if (o_pieces_left > BOARDSIZE - start - size) {
+      space = ((double)(size - (o_pieces_left - (BOARDSIZE - start - size))))/2;
+      for (count = start; count < start + (int)ceil(space); count++) {
+	gBoard[count] = '*';
+      }
+      stop = start + (int)ceil(space) + (o_pieces_left - (BOARDSIZE - start - size));
+      for (;count < stop; count++) {
+	gBoard[count] = 'o';
+	o_pieces_left--;
+      }
+      for (;count < start + size; count++) {
+	gBoard[count] = '*';
+      }
+    }
+    else {
+      for (count = start; count < start + size; count++) {
+	gBoard[count] = 'o';
+	o_pieces_left--;
+      }
+    }
+  }
+
+  SetupTierStuff();
+
+  int init_array[10];
+  init_array[0] = 'o';
+  init_array[3] = 'x';
+  init_array[6] = '*';
+  init_array[9] = -1;
+
+  init_array[1] = PIECES - XHITKILLS;
+  init_array[2] = PIECES;
+  init_array[4] = PIECES - XHITKILLS;
+  init_array[5] = PIECES;
+  init_array[7] = BOARDSIZE - 2 * init_array[2];
+  init_array[8] = BOARDSIZE - 2 * init_array[1];
+
+  gMax = generic_hash_init(BOARDSIZE,init_array,NULL,0);
+  generic_hash_set_context( PiecesToTier(PIECES+1, PIECES+1) );
+
+  init = hash( 1);
+
+  gNumberOfPositions  = gMax;
+  gInitialPosition    = init;
+  gMinimalPosition    = init;
+}
+
+/* TIERS: x*(PIECES+1) + o = T
+          T % (PIECES+1)  = 0
+            / (PIECES+1) = x
+*/
+
+TIER BoardToTier(char* board) {
+	int x = 0, o = 0, count;
+	
+    for (count = 0; count < BOARDSIZE; count++) {
+    if (board[count] == 'x') 
+	{
+      x++;
+    }
+    else if (board[count] == 'o') 
+	{
+      o++;
+    }
+	}
+	return PiecesToTier(x, o);
+}
+
+
+void TierToPieces(TIER tierNum, int *xCount, int *oCount)
+{
+    int x, o;
+    
+    o = tierNum % (PIECES + 1);
+    x = tierNum / (PIECES + 1);
+    
+    *(xCount) = x;
+    *(oCount) = o;
+}
+
+
+TIER PiecesToTier( int xCount, int oCount)
+{
+   return xCount*(PIECES+1)+oCount;
+}
+
+void SetupTierStuff() {
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
+	// function pointers
+	gTierChildrenFunPtr = &TierChildren;
+	gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+	gTierToStringFunPtr = &TierToString;
+	// hashes
+	// Tier-Specific Hashes
+	int piecesArray[10] = { 'x', 0, 0, 'o', 0, 0, '*', 0, 0, -1 };
+	int x,o;
+	
+	generic_hash_custom_context_mode(TRUE);
+	for (x =0; x <= PIECES; x++)
+	{
+        for(o=0; o<=PIECES; o++)
+        {
+        
+		piecesArray[1] = x;
+		piecesArray[2] = x;
+		piecesArray[4] = o;
+		piecesArray[5] = o;
+		// Blanks = tier
+		piecesArray[7] = piecesArray[8] = BOARDSIZE - (x+o);
+		// make the hashes
+		generic_hash_init(BOARDSIZE, piecesArray, NULL, 0);
+		generic_hash_set_context ( PiecesToTier(x, o) );
+        }
+    }
+
+	// Initial
+	// Initial Tier = boardsize-4 (so there's boardsize-4 spaces)
+	gInitialTier = BoardToTier(gBoard);
+	generic_hash_context_switch(gInitialTier);
+	gInitialTierPosition = hash(1);
+}
+
+// children = always me and one below
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* list = NULL;
+	int x, o;
+	TierToPieces(tier, &x, &o); 
+	
+	list = CreateTierlistNode(tier, list);
+	if(x > (PIECES - XHITKILLS))
+	       list = CreateTierlistNode(PiecesToTier(x-1, o), list);
+    if(o > (PIECES - XHITKILLS))
+	       list = CreateTierlistNode(PiecesToTier(x, o-1), list);
+		
+	return list;
+}
+
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	generic_hash_context_switch(tier);
+	return generic_hash_max_pos();
+}
+
+
+void unhash (POSITION position, int* turn)
+{
+	if (gHashWindowInitialized) {
+		TIERPOSITION tierPos; TIER tier;
+		gUnhashToTierPosition(position, &tierPos, &tier);
+		generic_hash_context_switch(tier);
+		(*turn) = generic_hash_turn(tierPos);
+		generic_hash_unhash(tierPos, gBoard);
+	} else {
+		(*turn) = generic_hash_turn(position);
+		generic_hash_unhash(position, gBoard);
+	}
+}
+
+POSITION hash (int turn)
+{
+	if (gHashWindowInitialized) {
+		TIER tier = BoardToTier(gBoard);
+		generic_hash_context_switch(tier);
+		TIERPOSITION tierPos = generic_hash_hash(gBoard, turn);
+		return gHashToWindowPosition(tierPos, tier);
+	} else return generic_hash_hash(gBoard, turn);
+}
+
+
+// Tier = Number of pieces left to place.
+STRING TierToString(TIER tier) {
+	int x, o;
+	TierToPieces(tier, &x, &o);
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*16);
+	sprintf(tierStr, "x = %d; o = %d", x, o);
+	return tierStr;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.37  2006/11/02 02:18:25  koolswim88
+// *** empty log message ***
+//
 // Revision 1.36  2006/10/17 10:45:19  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
