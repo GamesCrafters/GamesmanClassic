@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.38 2006-11-19 00:22:24 jerricality Exp $
+// $Id: mabalone.c,v 1.39 2006-11-21 03:01:17 jerricality Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -705,6 +705,18 @@ VALUE Primitive ( POSITION h )
   int whoseTurn;
   unhash(h,&whoseTurn);
 
+  /*
+  int i;
+  for(i=0; i<BOARDSIZE; i++)
+  {
+    printf("%c", gBoard[i]);
+  }
+  printf("\n");
+*/
+	
+  
+  
+  
   /*  printf("analyzing position %d\n", primcount);*/
   primcount++;
 
@@ -2241,7 +2253,6 @@ void SetupTierStuff() {
     }
 
 	// Initial
-	// Initial Tier = boardsize-4 (so there's boardsize-4 spaces)
 	gInitialTier = BoardToTier(gBoard);
 	generic_hash_context_switch(gInitialTier);
 	gInitialTierPosition = hash(1);
@@ -2254,9 +2265,9 @@ TIERLIST* TierChildren(TIER tier) {
 	TierToPieces(tier, &x, &o); 
 	
 	list = CreateTierlistNode(tier, list);
-	if(x > (PIECES - XHITKILLS))
+	if((x > (PIECES - XHITKILLS)) && !(o == (PIECES - XHITKILLS)))
 	       list = CreateTierlistNode(PiecesToTier(x-1, o), list);
-    if(o > (PIECES - XHITKILLS))
+    if((o > (PIECES - XHITKILLS)) && !(x == (PIECES - XHITKILLS)))
 	       list = CreateTierlistNode(PiecesToTier(x, o-1), list);
 		
 	return list;
@@ -2270,6 +2281,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 void unhash (POSITION position, int* turn)
 {
+
+	
+	
 	if (gHashWindowInitialized) {
 		TIERPOSITION tierPos; TIER tier;
 		gUnhashToTierPosition(position, &tierPos, &tier);
@@ -2280,6 +2294,7 @@ void unhash (POSITION position, int* turn)
 		(*turn) = generic_hash_turn(position);
 		generic_hash_unhash(position, gBoard);
 	}
+	
 }
 
 POSITION hash (int turn)
@@ -2304,6 +2319,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.38  2006/11/19 00:22:24  jerricality
+// Tierization is complete - Jerry
+//
 // Revision 1.37  2006/11/02 02:18:25  koolswim88
 // *** empty log message ***
 //
