@@ -81,7 +81,7 @@ void gUnhashToTierPosition(POSITION position, TIERPOSITION* tierposition,
 		printf("ERROR: Hash Window function \"gUnhashToTierPosition\" called with\n"
 				" illegal POSITION: %llu\n"
 				"(Current Hash Window's range is from 0 to %llu)\n",
-				position, gNumberOfPositions);
+				position, gNumberOfPositions-1);
 		ExitStageRight();
 	}
 	// since we know position is legal, this works:
@@ -108,7 +108,7 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
 						"illegal TIERPOSITION: %llu\n"
 						"(Tier %d's reported range is from 0 to %llu)\n",
-						tierposition, tier, gMaxPosOffset[i]);
+						tierposition, tier, gMaxPosOffset[i]-1);
 				ExitStageRight();
 			}
 			return tierposition + gMaxPosOffset[i-1];
