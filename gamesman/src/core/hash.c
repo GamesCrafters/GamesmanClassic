@@ -72,6 +72,14 @@
 struct hashContext **contextList = NULL;
 int hash_tot_context = 0, currentContext = 0;
 BOOLEAN custom_contexts_mode = FALSE;
+/* Hashtable Stuff */
+// Using a MOVELIST just to get ints
+MOVELIST** generic_hash_hashtable = NULL;
+// A hash table from "custom context" => "index in contextList of that context"
+BOOLEAN hashtableInitialized = FALSE;
+// 50 buckets seems pretty good, can always adjust later
+int HASHTABLE_BUCKETS = 50;
+
 
 /* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
 /* 2004-10-20 */
@@ -104,6 +112,10 @@ void 		nCr_init(int a);
 int* 		gpd (int n);
 int 		gpi (int n);
 int* 		gPieceDist (int i);
+void		initializeHashtable();
+void		hashtablePut(int, int, BOOLEAN);
+int			hashtableGet(int);
+void		freeHashtable();
 
 /*******************************
 **
@@ -502,10 +514,15 @@ void hash_uncruncher (POSITION hashed, char *dest)
 ************************************/
 int generic_hash_context_init()
 {
+		// initializes the context hashtable if it isn't already
+		if (!hashtableInitialized)
+			initializeHashtable();
+
         int i;
         struct hashContext **temp;
         struct hashContext *newHashC;
 
+		int myContext = hash_tot_context;
         hash_tot_context++;
 
         temp = (struct hashContext **) SafeMalloc (sizeof(struct hashContext*)*(hash_tot_context));
@@ -539,10 +556,12 @@ int generic_hash_context_init()
         newHashC->gfn = NULL;
         newHashC->player = 0;
         //newHashC->init = FALSE;
-        newHashC->contextNumber = hash_tot_context-1;
+        newHashC->contextNumber = myContext;
         contextList[hash_tot_context-1] = newHashC;
 
-        return hash_tot_context-1;
+		hashtablePut(myContext, myContext, FALSE);//put into hashtable
+
+        return myContext;
 }
 
 /******************************
@@ -558,14 +577,9 @@ int generic_hash_context_init()
 void generic_hash_context_switch(int context)
 {
 	if (custom_contexts_mode) {
-		int i;
-		for (i = 0; i < hash_tot_context; i++) {
-			if (contextList[i]->contextNumber == context) {
-				currentContext = i;
-				return;
-			}
-		}
-		ExitStageRightErrorString("Attempting to switch to non-existant hash context");
+		currentContext = hashtableGet(context);
+		if (currentContext == -1)
+			ExitStageRightErrorString("ERROR: Attempting to switch to non-existant hash context");
 	} else {
         if(context > hash_tot_context || context < 0)
                 ExitStageRightErrorString("Attempting to switch to non-existant hash context");
@@ -642,8 +656,10 @@ void generic_hash_custom_context_mode(BOOLEAN on)
 void generic_hash_set_context(int context)
 {
 	if (context < 0)
-		ExitStageRightErrorString("Attempting to set a negative custom context");
+		ExitStageRightErrorString("ERROR: Attempting to set a negative custom context");
+	hashtablePut(context, currentContext, TRUE); // change its entry in the hashtable
 	cCon->contextNumber = context;
+
 }
 
 
@@ -779,12 +795,95 @@ void generic_hash_destroy()
 {
     int i;
     for (i=0; i < hash_tot_context; i++)
-            //if (contextList[i]->init)
-            freeHashContext(i);
+        //if (contextList[i]->init)
+        freeHashContext(i);
 	if (contextList != NULL) {
-	        SafeFree(contextList);
-			contextList = NULL;
+	    SafeFree(contextList);
+		contextList = NULL;
+	}
+	if (generic_hash_hashtable != NULL) {
+		freeHashtable();
 	}
 	hash_tot_context = currentContext = 0;
 	custom_contexts_mode = FALSE;
+}
+
+
+
+/* Code for the Hashtable of contexts. */
+
+void initializeHashtable() {
+	generic_hash_hashtable = (MOVELIST**) SafeMalloc(HASHTABLE_BUCKETS * sizeof(MOVELIST*));
+	int i;
+	for (i = 0; i < HASHTABLE_BUCKETS; i++)
+		generic_hash_hashtable[i] = NULL;
+	hashtableInitialized = TRUE;
+}
+
+void hashtablePut(int context, int index, BOOLEAN replace) {
+	MOVELIST* bucket; BOOLEAN found;
+	int contextBucket = context % HASHTABLE_BUCKETS;
+
+	if (replace) {
+		// first, remove old context!
+		int oldContextBucket = contextList[index]->contextNumber % HASHTABLE_BUCKETS;
+		bucket = generic_hash_hashtable[oldContextBucket];
+		MOVELIST* pre = NULL;
+		found = FALSE;
+		for (; bucket != NULL; bucket = bucket->next) {
+			if (bucket->move == index) { // remove from list
+				if (pre == NULL) {// first one on list!
+					generic_hash_hashtable[oldContextBucket] = bucket->next;
+				} else {
+					pre->next = bucket->next;
+				}
+				SafeFree(bucket);
+				found = TRUE;
+				break;
+			}
+			pre = bucket;
+		}
+		if (!found) // if we DIDN'T find old hash context... big problem
+			ExitStageRightErrorString("Congratulations! You BROKE Gamesman! YAY!!!!!\n");
+	}
+	// Now, we can place the context
+	bucket = generic_hash_hashtable[contextBucket];
+	found = FALSE;
+	// let's make sure it's not already in there...
+	for (; bucket != NULL; bucket = bucket->next) {
+		if (contextList[bucket->move]->contextNumber == context) {
+			found = TRUE;
+			break;
+		}
+	}
+	if (found) {// duplicate context, error out.
+		printf("ERROR: Assigning hash context number %d, but it already exists!\n", context);
+		exit(1);
+	}
+	// FINALLY, we can place the context in the hashtable
+	generic_hash_hashtable[contextBucket] =
+		CreateMovelistNode(index, generic_hash_hashtable[contextBucket]);
+}
+
+int hashtableGet(int context) {
+	MOVELIST* bucket = generic_hash_hashtable[context % HASHTABLE_BUCKETS];
+	int index;
+	// find the index and return it
+	for (; bucket != NULL; bucket = bucket->next) {
+		index = bucket->move;
+		if (contextList[index]->contextNumber == context) {
+			return index;
+		}
+	}
+	// if got here, error
+	return -1;
+}
+
+void freeHashtable() {
+	int i;
+	for (i = 0; i < HASHTABLE_BUCKETS; i++)
+		FreeMoveList(generic_hash_hashtable[i]);
+	if (generic_hash_hashtable != NULL)
+		SafeFree(generic_hash_hashtable);
+	hashtableInitialized = FALSE;
 }
