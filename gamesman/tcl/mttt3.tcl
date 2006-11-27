@@ -694,14 +694,14 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     
     if { $gameValue != "Tie" } {
                 
-        if {$a(0) == $a(1) && $a(1) == $a(2)} {set p {0 2}}
-        if {$a(3) == $a(4) && $a(4) == $a(5)} {set p {3 5}}
-        if {$a(6) == $a(7) && $a(7) == $a(8)} {set p {6 8}}
-        if {$a(0) == $a(3) && $a(3) == $a(6)} {set p {0 6}}
-        if {$a(1) == $a(4) && $a(4) == $a(7)} {set p {1 7}}
-        if {$a(2) == $a(5) && $a(5) == $a(8)} {set p {2 8}}
-        if {$a(0) == $a(4) && $a(4) == $a(8)} {set p {0 8}}
-        if {$a(2) == $a(4) && $a(4) == $a(6)} {set p {2 6}}
+        if {$a(0) != "-" && $a(0) == $a(1) && $a(1) == $a(2)} {set p {0 2}}
+        if {$a(3) != "-" && $a(3) == $a(4) && $a(4) == $a(5)} {set p {3 5}}
+        if {$a(6) != "-" && $a(6) == $a(7) && $a(7) == $a(8)} {set p {6 8}}
+        if {$a(0) != "-" && $a(0) == $a(3) && $a(3) == $a(6)} {set p {0 6}}
+        if {$a(1) != "-" && $a(1) == $a(4) && $a(4) == $a(7)} {set p {1 7}}
+        if {$a(2) != "-" && $a(2) == $a(5) && $a(5) == $a(8)} {set p {2 8}}
+        if {$a(0) != "-" && $a(0) == $a(4) && $a(4) == $a(8)} {set p {0 8}}
+        if {$a(2) != "-" && $a(2) == $a(4) && $a(4) == $a(6)} {set p {2 6}}
                 
         set fromx [expr ([lindex $p 0] % 3 + .5)*$squareSize + $leftBuffer]
         set fromy [expr ([lindex $p 0] / 3 + .5)*$squareSize + $topBuffer]
