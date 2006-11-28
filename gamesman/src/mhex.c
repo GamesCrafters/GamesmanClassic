@@ -143,7 +143,7 @@ void InitializeGame ()
 
   InitializeHelpStrings();
   
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, vcfg, 0);  // ***
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);  // ***
   
   initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   
@@ -750,6 +750,12 @@ int ColMaskBoard(char* board, int col, char piece) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.3  2006/11/15 20:49:36  and-qso
+ **
+ **
+ ** Fixed character reading, cleaned up move handling a bit.
+ ** Generic hash appears to be unhashing incorrectly.
+ **
  ** Revision 1.2  2006/11/02 02:46:32  brianzimmer
  ** Fixed seg fault related to generic_hash_init
  **
