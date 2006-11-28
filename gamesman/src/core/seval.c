@@ -12,20 +12,19 @@
 ** UPDATE HIST: 
 **              9/19/06- Initial draft of seval.
 **              10/8/06- (Michael) Implemented 4 trait functions.
-**              11/10/06- (Michael) Implemented skeleton of data structures
-**                        and core functions.
 **              
 **************************************************************************/
+
+#include <scew/scew.h> // Include the XML Parser
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include gamesman.h
+#include "gamesman.h"
 
 /*lBoard will contain board processing data. Requires call
   of LibInitialize by the module. For information see mlib.c and mlib.h.*/
-#include mlib.h
-
-
+#include "mlib.h"
+#include "seval.h"
 
 #define compare(slot,piece) !memcmp(lBoard+slot*lBoard.eltSize,piece,lBoard.eltSize)
 #define getSlot(row,col) (row*lBoard.cols+cols)
@@ -33,96 +32,206 @@
 #define getCol(slot) (slot%lBoard.numRows)
 #define min(a,b) (a<=b ? a : b)
 
-#define NUMTRAITS 4
-#define ERROR -2
+fList featureList;
 
-int fuck = 1;
-
-int AdditionalParamList[NUMTRAITS] = {1, 2, 1, 3};
-char* TraitNames[NUMTRAITS] = {"Number of Pieces","Localization","Clustering","Connections"};
-
-/**************************************************************************
+/************************************************************************
 **
-** Core functions
-**              
-**************************************************************************/
+** Initialization
+** 
+** -Read in the xml document for the game
+** -Query the game for the function pointers for custom traits.
+** -Set up array for trait weights, scaling, etc
+** 
+** Returns FALSE if the initialization failed
+** 
+************************************************************************/
 
-void SEvalInitialize() {
-  
+featureEvaluator getSEvalLibFnPtr(STRING fnName){
+  return NULL;
 }
 
-//Applies the given static evaluator instance to the given board
-int Evaluate(EVALUATOR e, void* board) {
-  double sum=0.0;
-  double raw, scaled;
-  int i,a,b,weightSum=0;
-  TRAITLIST traits = e->myTraits;
-  TRAIT current;
-
-  if (e->numTraits==0) {
-    printf("ERROR, static evaluator has no defined traits");
-    return ERROR;
-  }
-  
-  for(i=0;i< e->numTraits ,i++) {
-    current = traits;
-
-    //This part should be implemented later with function pointers
-    switch(current->id) {
-    case 0:
-      raw = (double) numPieces(board,(current->additionalParams)[0]);
-      break;
-    case 1:
-      raw = (double) numFromEdge(board,(current->additionalParams)[0],(current->additionalParams)[1]);
-      break;
-    case 2:
-      raw = clustering(board,(current->additionalParams)[0]);
-      break;
-    case 3:
-      raw = connections(board,(current->additionalParams)[0],(current->additionalParams)[1],(current->additionalParams)[2]);
-      break;
-    default:
-      printf("ERROR, unrecognized trait");
-      return ERROR;
-    }
-
-    switch(current->scaleType) {
-    case Linear:
-      a = current->scaleParams[0];
-      b = current->scaleParams[1];
-
-      if (raw < current->scaleParams[0]) {
-	scaled = -1;
-      } else if (raw > current->scaleParams[1]) {
-	scaled = 1;
-      } else {
-	scaled = (2 / (b-a)) * (raw - a);
-      }
-	
-      break;
-    case Logistic:
-      shift = current->scaleParams[0];
-      scale = current->scaleParams[1];
-
-      scaled = (1 / (1 + Math.exp(-scale(raw - shift) ) ) );
-      
-      break;
-    default:
-      printf("ERROR, unrecognized scaling type");
+fList parse_element(scew_element* element, fList tempList){
+    scew_element* child = NULL;
+    fList currFeature = NULL;
+    fList head = tempList;
+    
+    printf("Parsing...\n");
+    
+    if (element == NULL)
+    {
+        return NULL;
     }
     
-    weightSum += current->weight;
-    sum += scaled * current->weight;
-    current = current->next;
-  }
+    if(strcmp(scew_element_name(element),"feature")==0){
+      STRING type = NULL;
+      currFeature = SafeMalloc(sizeof(struct fNode));
+      //contents = scew_element_contents(element);
+      scew_attribute* attribute = NULL;
+      
+      printf("Parsing a feature...\n");
+      
+      
+      // Default values for feature:
+      currFeature->scale = &logistic;    
+      currFeature->weight = 1;
+      currFeature->perfect = FALSE;
 
-  sum /= weightSum;
-  
-  return sum;
+      /**
+       * Iterates through the element's attribute list
+       */
+      attribute = NULL;
+      while ((attribute = scew_attribute_next(element, attribute)) != NULL)
+      {
+      
+	printf("Parsing attributes...\n");
+      
+	if(strcmp(scew_attribute_name(attribute),"name")==0)
+	  currFeature->name = (char *)scew_attribute_value(attribute);
+	else if(strcmp(scew_attribute_name(attribute),"type")==0)
+	  type = (char *)scew_attribute_value(attribute); // Not sure if we have the name yet
+	else if(strcmp(scew_attribute_name(attribute),"weight")==0)
+	  currFeature->weight = strtod(scew_attribute_value(attribute),NULL);
+	else if(strcmp(scew_attribute_name(attribute),"scaling")==0){
+	  if(strcmp(scew_attribute_name(attribute),"linear")==0)
+	    currFeature->scale = &linear;
+	  else if(strcmp(scew_attribute_name(attribute),"logarithmic")==0)
+	    currFeature->scale = &logarithmic;
+	  else if(strcmp(scew_attribute_name(attribute),"logistic")==0)
+	    currFeature->scale = &logistic;
+	  else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
+	    currFeature->scale = &quadratic;
+	}
+	else if(strcmp(scew_attribute_name(attribute),"perfect")==0)
+	  currFeature->perfect = (strcmp(scew_attribute_name(attribute),"true")==0)?TRUE:FALSE;
+      }
+      
+      
+      printf("Done Parsing attributes...");
+      
+      // Now we should have the name
+      if( strcmp(type, "custom")==0 )
+	currFeature->evalFn = (featureEvaluator)getSEvalCustomFnPtr(currFeature->name);
+      else
+	currFeature->evalFn = (featureEvaluator)getSEvalLibFnPtr(currFeature->name);
+      
+      if(currFeature->evalFn == NULL){
+	printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
+	return NULL;
+      }
+      
+      if(tempList!=NULL)
+	tempList->next = currFeature;
+      else
+	head = tempList = currFeature;
+      //contents = scew_element_contents(element);
+    }
+    
+    /**
+     * Call parse_element function again for each child of the
+     * current element.
+     */
+    child = NULL;
+    while ((child = scew_element_next(element, child)) != NULL)
+    {
+      if( head==NULL )
+	head = parse_element(child, tempList);
+      else
+	parse_element(child, tempList);
+      
+      // If we got a feature, advance the feature list
+      if(tempList!=NULL && tempList->next!=NULL)
+	tempList = tempList->next;
+    }
+    
+    return head;
 }
 
-void 
+fList loadDataFromXML(STRING fileName){
+  scew_tree* tree = NULL;
+  scew_parser* parser = NULL;
+  fList tempList = NULL;
+  /**
+   * Creates an SCEW parser. This is the first function to call.
+   */
+  parser = scew_parser_create();
+  
+  scew_parser_ignore_whitespaces(parser, 1);
+  
+  /* Loads an XML file */
+  if (!scew_parser_load_file(parser, fileName))
+  {
+    scew_error code = scew_error_code();
+    printf("Unable to load file (error #%d: %s)\n", code,
+	   scew_error_string(code));
+    if (code == scew_error_expat)
+    {
+      enum XML_Error expat_code = scew_error_expat_code(parser);
+      printf("Expat error #%d (line %d, column %d): %s\n", expat_code,
+	     scew_error_expat_line(parser),
+	     scew_error_expat_column(parser),
+	     scew_error_expat_string(expat_code));
+    }
+    return FALSE;
+  }
+  
+  tree = scew_parser_tree(parser);
+  
+  /* Actually get the information */
+  tempList = parse_element(scew_tree_root(tree), NULL);
+  
+  /* Remember to free tree (scew_parser_free does not free it) */
+  scew_tree_free(tree);
+  
+  /* Frees the SCEW parser */
+  scew_parser_free(parser);
+  
+  return tempList;
 
+}
+
+BOOLEAN initializeStaticEvaluator(STRING fileName){
+  printf("Reading XML data from: %s\n", fileName);
+  featureList = loadDataFromXML(fileName);
+  return (featureList==NULL);
+}
+
+/************************************************************************
+**
+** The Evaluator
+**
+************************************************************************/
+
+VALUE evaluatePosition(POSITION p){
+  fList features = featureList;
+  float valueSum = 0;
+  float weightSum = 0;
+  
+  features->next = NULL;
+
+  while(features!=NULL){
+    valueSum += features->weight * (*(features->evalFn))(p);
+    weightSum += features->weight;
+    features = features->next;
+  }
+  
+  return ( (valueSum/weightSum)>0.5 );
+}
+
+float linear(float value){
+  return value;
+}
+
+float logarithmic(float value){
+  return value;
+}
+
+float logistic(float value){
+  return value;
+}
+
+float quadratic(float value){
+  return value;
+}
 
 /************************************************************************
 **
@@ -148,20 +257,21 @@ void
 
 //Returns the number of the given piece on the board.
 int NumPieces(void* board,void* piece) {
-  int count=0;i;
+  /*  int i, count=0;
   for(i=0;i<lBoard.size;i++) {
     if (compare(i,piece)) {
       count++;
     }
   }
-  return count;
+  return count;*/
+  return 0;
 }
 
 /*Returns the sum of the distance of each piece from the given edge of
 **the board. 0 = top, 1 = right, 2 = bottom, 3 = left.
 */
 int NumFromEdge(void* board,void* piece,int edge) {
-  int count=0,i;
+  /*int count=0,i;
   for(i=0;i<lBoard.size;i++) {
     if(compare(i,piece)) {
       if (edge==0) {
@@ -177,7 +287,8 @@ int NumFromEdge(void* board,void* piece,int edge) {
       }
     }
   }
-  return count;
+  return count;*/
+  return 0;
 }
 
 /*Returns a measurement of the clustering of pieces on the board. First
@@ -185,7 +296,7 @@ int NumFromEdge(void* board,void* piece,int edge) {
 **pieces from the centroid.
 */
 double Clustering(void* board,void* piece) {
-  int rowAverage=0,colAverage=0,numPieces=0,i=0;
+  /*int rowAverage=0,colAverage=0,numPieces=0,i=0;
   double value=0;
   for(i=0;i<lBoard.size;i++) {
     if(compare(i,piece)) {
@@ -204,15 +315,16 @@ double Clustering(void* board,void* piece) {
     }
   }
   value /= numPieces;
-  return value;
+  return value;*/
+  return 0;
 }
 
 /*Returns the number of connections between pieces on the board.
 **A connection is defined as a string of blank spaces, possibly
 **diagonal, between two of the given piece.
 */
-int Connections(void* board,void* piece,void* blank,boolean diagonal) {
-  int count=0,i,j,pathLength,loc;
+int Connections(void* board,void* piece,void* blank, BOOLEAN diagonal) {
+  /*int count=0,i,j,pathLength,loc;
   for(i=0;i<lBoard.size;i++) {
     if (compare(i,piece)) {
       for(direction = 3;direction<7; direction+= (lBoard.diagonals ? 1 : 2)) {	
@@ -238,13 +350,10 @@ int Connections(void* board,void* piece,void* blank,boolean diagonal) {
 	    break;
 	  }
 	}
+	
       }
     }
   }
-  return count;
+  return count;*/
+  return 0;
 }
-
-	  
-	  
-	  
-   
