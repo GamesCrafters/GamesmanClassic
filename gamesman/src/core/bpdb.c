@@ -32,14 +32,17 @@
 
 /*
 TODO:
-
+1. set better init sizes
+2. go again support
+3. load all schemes so that all dbs can be loaded, but don't use all schemes
+   for saving
 1. SUPPORT tiers
 2. possibly hardcode value as a slot?
-3. fix bit widths from shrinks and grows
+3. **fix bit widths from shrinks and grows
 
 Note:
 1. supports up to 256 slices each 64-bits in size
-2. this support is violated in the shrink and grow (should fix soon)
+2. **this support is violated in the shrink and grow (should fix soon)
 
 */
 #include "bpdb.h"
@@ -68,6 +71,9 @@ SLICE       bpdb_nowrite_slice = NULL;
 
 BYTE        *bpdb_write_array = NULL;
 BYTE        *bpdb_nowrite_array = NULL;
+
+size_t      bpdb_write_array_length = 0;
+size_t      bpdb_nowrite_array_length = 0;
 
 //
 // numbers of slices
@@ -328,8 +334,11 @@ bpdb_allocate( )
         goto _bailout;
     }
 
+    bpdb_write_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits));
+    bpdb_nowrite_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_nowrite_slice->bits));
+
     // allocate room for data that will be written out to file
-    bpdb_write_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits) ), sizeof(BYTE));
+    bpdb_write_array = (BYTE *) calloc( bpdb_write_array_length, sizeof(BYTE) );
     if(NULL == bpdb_write_array) {
         status = STATUS_NOT_ENOUGH_MEMORY;
         BPDB_TRACE("bpdb_allocate()", "Could not allocate bpdb_write_array in memory", status);
@@ -337,7 +346,7 @@ bpdb_allocate( )
     }
 
     // allocate room for transient data that will only be stored in memory
-    bpdb_nowrite_array = (BYTE *) calloc( (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_nowrite_slice->bits) ), sizeof(BYTE));
+    bpdb_nowrite_array = (BYTE *) calloc( bpdb_nowrite_array_length, sizeof(BYTE));
     if(NULL == bpdb_write_array) {
         status = STATUS_NOT_ENOUGH_MEMORY;
         BPDB_TRACE("bpdb_allocate()", "Could not allocate bpdb_nowrite_array in memory", status);
@@ -500,7 +509,12 @@ bpdb_get_remoteness(
                     POSITION pos
                     )
 {
-    return (REMOTENESS) bpdb_get_slice_slot( (UINT64)pos, BPDB_REMSLOT );
+    REMOTENESS rem = (REMOTENESS) bpdb_get_slice_slot( (UINT64)pos, BPDB_REMSLOT );
+    if(bpdb_write_slice->maxvalue[BPDB_REMSLOT/2]+1 == rem) {
+        return REMOTENESS_MAX;
+    } else {
+        return rem;
+    }
 }
 
 void
@@ -633,15 +647,26 @@ bpdb_set_slice_slot_max(
     BYTE *bpdb_array = NULL;
     SLICE bpdb_slice = NULL;
 
+    //return bpdb_set_slice_slot(position, index, 255);
+
+    if(index % 2) {
+        bpdb_array = bpdb_nowrite_array;
+        bpdb_slice = bpdb_nowrite_slice;
+    } else {
+        bpdb_array = bpdb_write_array;
+        bpdb_slice = bpdb_write_slice;
+    }
+    index /= 2;
+
     byteOffset = (bpdb_slice->bits * position)/BITSINBYTE;
     bitOffset = ((UINT8)(bpdb_slice->bits % BITSINBYTE) * (UINT8)(position % BITSINBYTE)) % BITSINBYTE;
     bitOffset += bpdb_slice->offset[index];
     
     byteOffset += bitOffset / BITSINBYTE;
     bitOffset %= BITSINBYTE;
-
+//    printf("ENTER\n");
     bitlib_insert_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->maxvalue[index]+1, bpdb_slice->size[index] );
-
+//    printf("LEAVE\n");
     return bpdb_slice->maxvalue[index]+1;
 }
 
@@ -752,8 +777,10 @@ bpdb_grow_slice(
     // array or the nowrite array
     if(bpdb_array == bpdb_write_array) {
         bpdb_write_array = bpdb_new_array;
+        bpdb_write_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(newSliceSize) );
     } else {
         bpdb_nowrite_array = bpdb_new_array;
+        bpdb_nowrite_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(newSliceSize) );
     }
 
     // debug-temp
@@ -1063,8 +1090,10 @@ bpdb_shrink_slice(
     // array or the nowrite array
     if(bpdb_array == bpdb_write_array) {
         bpdb_write_array = bpdb_new_array;
+        bpdb_write_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(newSliceSize) );
     } else {
         bpdb_nowrite_array = bpdb_new_array;
+        bpdb_nowrite_array_length = (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(newSliceSize) );
     }
 
     /*
@@ -1276,11 +1305,69 @@ bpdb_dump_database( int num )
 }
 
 
+void
+bpdb_analyze_database( int num )
+{
+    char filename[256];
+    UINT64 i = 0;
+    UINT8 j = 0;
+    UINT32 currentSlot = 0;
+
+    mkdir("dumps", 0755) ;
+
+    sprintf(filename, "./dumps/m%s_%d_bpdb_analyze_%d.dump", kDBName, getOption(), num);
+
+    FILE *f = fopen( filename, "wb");
+
+    HTABLE ht = htable_new( 1000 );
+
+    //printf("Num of write array length: %u\n", bpdb_write_array_length);
+
+    for(i=0; i < bpdb_write_array_length; i++) {
+        UINT32 val = htable_get( ht, bpdb_write_array[i] );
+        htable_set( ht, bpdb_write_array[i], val + 1 );
+    }
+
+    HTABLE_SLIST hs = NULL;
+    for(i = 0; i< ht->size; i++) {
+        hs = ht->buckets[i];
+        while( NULL != hs ) {
+            fprintf(f, "%x: %u\n", hs->key, hs->value);
+            hs = hs->next;
+        }
+    }
+
+/*
+    fprintf(f, "\nDatabase Printout\n");
+
+    fprintf(f, "Offsets: ");
+    for(currentSlot = 0; currentSlot < bpdb_write_slice->slots; currentSlot++) {
+        fprintf(f, " %u(%u)", bpdb_write_slice->offset[currentSlot], currentSlot);
+    }
+    fprintf(f, "\n");
+
+    for(i = 0; i < bpdb_slices; i++) {
+        fprintf(f, "Slice %llu  (write) ", i);
+        for(j=0; j < (bpdb_write_slice->slots); j++) {
+            fprintf(f, "%s: %llu  ", bpdb_write_slice->name[j], bpdb_get_slice_slot(i, j*2));
+        }
+        fprintf(f, "(no write) ");
+        for(j=0; j < (bpdb_nowrite_slice->slots); j++) {
+            fprintf(f, "%s: %llu  ", bpdb_nowrite_slice->name[j], bpdb_get_slice_slot(i, j*2+1));
+        }
+        fprintf(f, "\n");
+    }
+*/
+    fclose(f);
+}
+
+
 BOOLEAN
 bpdb_save_database()
 {
     // debug-temp
     //bpdb_print_database();
+    bpdb_analyze_database(1);
 
     GMSTATUS status = STATUS_SUCCESS;
 
@@ -1502,6 +1589,7 @@ bpdb_generic_save_database(
             }
         }
     } else {
+
         if(curBuffer != outputBuffer || offset != 0) {
             if(offset == 0) {
                 bitlib_file_write_bytes(outFile, outputBuffer, curBuffer-outputBuffer);
@@ -1509,7 +1597,8 @@ bpdb_generic_save_database(
                 bitlib_file_write_bytes(outFile, outputBuffer, curBuffer-outputBuffer+1);
             }
         }
-        bitlib_file_write_bytes(outFile, bpdb_write_array, (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits)));
+
+        bitlib_file_write_bytes(outFile, bpdb_write_array, bpdb_write_array_length);
     }
 
     if(consecutiveSkips != 0) {
@@ -1726,7 +1815,7 @@ bpdb_generic_load_database(
     } else {
         bitlib_file_read_bytes( inFile,
                 bpdb_write_array,
-                (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(bpdb_write_slice->bits))
+                bpdb_write_array_length
                 );
     }
 

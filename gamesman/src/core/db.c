@@ -277,6 +277,17 @@ SetSlot(
     return db_functions->set_slice_slot(position, index, value);
 }
 
+UINT64
+SetSlotMax(
+                UINT64 position,
+                UINT8 index
+                )
+{
+    if(kLoopy && gSymmetries)
+	    position = gCanonicalPosition(position);
+    return db_functions->set_slice_slot_max(position, index);
+}
+
 GMSTATUS
 AddSlot(
                 UINT8 size,

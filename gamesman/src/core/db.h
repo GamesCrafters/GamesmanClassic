@@ -110,6 +110,12 @@ SetSlot(
                 UINT64 value
                 );
 
+UINT64
+SetSlotMax(
+                UINT64 position,
+                UINT8 index
+                );
+
 GMSTATUS
 AddSlot(
                 UINT8 size,

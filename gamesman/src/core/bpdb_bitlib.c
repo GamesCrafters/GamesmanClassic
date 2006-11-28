@@ -33,6 +33,24 @@
 #include "gamesman.h"
 #include "bpdb_bitlib.h"
 
+
+/*++
+
+Routine Description:
+
+    bitlib_print_byte_in_bits is a utility function
+    used to print out the contents of a byte in bits
+    
+Arguments:
+
+    b - pointer to the byte to print out in bits
+    
+Return value:
+
+    None
+
+--*/
+
 void
 bitlib_print_byte_in_bits(
                 BYTE *b
@@ -46,6 +64,25 @@ bitlib_print_byte_in_bits(
     }
     printf("\n");
 }
+
+
+/*++
+
+Routine Description:
+
+    bitlib_print_bytes_in_bits is a utility function
+    used to print out the contents of multiple bytes
+    in bits directly to stdout.
+
+Arguments:
+
+    b - pointer to the byte to print out in bits
+    
+Return value:
+
+    None
+
+--*/
 
 void
 bitlib_print_bytes_in_bits(
@@ -61,6 +98,28 @@ bitlib_print_bytes_in_bits(
         bytes--;
     }
 }
+
+/*++
+
+Routine Description:
+
+    bitlib_file_write_bytes writes the requested number of
+    bytes from the buffer into a FILE.
+    
+Arguments:
+
+    dbFile - pointer to the FILE object.
+    buffer - pointer to the buffer that contains the data to
+            be written.
+    length - the number of bytes to be written; the buffer MUST
+            have at least length bytes available.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 
 inline
 GMSTATUS
@@ -80,6 +139,29 @@ bitlib_file_write_bytes(
     return status;
 }
 
+
+/*++
+
+Routine Description:
+
+    bitlib_file_read_bytes reads the requested number of
+    bytes from a FILE pointer into a passed in buffer.
+    
+Arguments:
+
+    dbFile - pointer to the FILE object.
+    buffer - pointer to the buffer that data should be
+            read into.
+    length - the number of bytes to be read; the buffer MUST
+            have at least length bytes available.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 inline
 GMSTATUS
 bitlib_file_read_bytes(
@@ -90,7 +172,6 @@ bitlib_file_read_bytes(
 {
     GMSTATUS status = STATUS_SUCCESS;
 
-    // length in bytes (length * sizeof(BYTE))
     if(gzread(file, buffer, length) <= 0) {
         status = STATUS_BAD_DECOMPRESSION;
         BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
@@ -98,6 +179,27 @@ bitlib_file_read_bytes(
     
     return status;
 }
+
+/*++
+
+Routine Description:
+
+    bitlib_file_open opens a given file.
+    
+Arguments:
+
+    filename - name of file
+    mode - mode to open file; for example, "wb" is to write
+        and "rb" is to read.
+    file - handle to dbFILE; input a null dbFILE that will
+        be assigned dbFILE at the completion of the function.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 
 GMSTATUS
 bitlib_file_open(
@@ -119,6 +221,22 @@ _bailout:
     return status;
 }
 
+/*++
+
+Routine Description:
+
+    bitlib_file_close closes a given file.
+    
+Arguments:
+
+    file - pointer to the file object to be closed.
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 GMSTATUS
 bitlib_file_close(
                 dbFILE *file
@@ -136,10 +254,30 @@ _bailout:
     return status;
 }
 
-/*
- * offsetFromLeft = offset from the left indicating start of desired slice
- * bitsToOutput = Number of bits to output from value
- */
+
+/*++
+
+Routine Description:
+
+    bitlib_insert_bits writes a variable length set of bits
+    into a byte array beginning at an arbitrary bit offset.
+
+Arguments:
+
+    slice - byte array to write the set of bits into.
+    offsetFromLeft - offset from the left(most significant bit)
+        of the slice byte indicating where to start writing
+        the set of bits.
+    value - contains the sequential set of bits to write.
+    bitsToOutput - the number of bits from value to output,
+        starting from the least significant bit(0).
+    
+Return value:
+
+    None.
+
+--*/
+
 inline
 void
 bitlib_insert_bits(
@@ -149,13 +287,8 @@ bitlib_insert_bits(
                 UINT8 bitsToOutput
                 )
 {
-    //assert( offsetFromLeft < 64 );
-
-    // offsetfromright
     UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
     BYTE mask = 0;
-
-    //printf("value %llu, bitstooutput %d\n", value, bitsToOutput);
 
     while( bitsToOutput > 0 ) {
         mask = bitlib_right_mask8( offsetFromLeft ) << offsetFromRight;
@@ -175,6 +308,32 @@ bitlib_insert_bits(
     }
 }
 
+
+/*++
+
+Routine Description:
+
+    bitlib_get_bits_range returns the desired subset of the
+    value input. The desired subset is defined as the subset
+    of input value. The subset is of size length bits. The
+    range of the subset is defined by [most significant bit:
+    least significant bit] = [length+offsetFromRight:
+    offsetFromRight].
+
+Arguments:
+
+    value - data to retrieve bit subsets from
+    offsetFromRight - offset from the least significant bit
+        of value to create subset from.
+    length - number of bits from the offset to create new
+        subset from.
+    
+Return value:
+
+    Desired subset of value.
+
+--*/
+
 inline
 BYTE
 bitlib_get_bits_range(
@@ -192,7 +351,25 @@ bitlib_get_bits_range(
     return bitsinrange;
 }
 
-// Supports masking between 0 and 8 bits
+
+/*++
+
+Routine Description:
+
+    bitlib_right_mask8 returns a bit level mask.
+    For example, bitlib_right_mask8(5) returns
+    00011111.
+
+Arguments:
+
+    maskbits - number of bits to mask
+    
+Return value:
+
+    8-bit Mask
+
+--*/
+
 inline
 BYTE
 bitlib_right_mask8(
@@ -210,7 +387,24 @@ bitlib_right_mask8(
     return mask;
 }
 
-// Supports masking between 0 and 64 bits
+
+/*++
+
+Routine Description:
+
+    bitlib_right_mask64 returns a bit level mask.
+    It is a 64-bit version of bitlib_right_mask8.
+
+Arguments:
+
+    maskbits - number of bits to mask
+    
+Return value:
+
+    64-bit Mask
+
+--*/
+
 inline
 UINT64
 bitlib_right_mask64(
@@ -229,13 +423,33 @@ bitlib_right_mask64(
 }
 
 
+/*++
+
+Routine Description:
+
+    bitlib_read_bits returns a subset of bits from
+    a byte array.
+
+Arguments:
+
+    slice - byte array to read bits from.
+    offsetFromLeft - offset from the most significant bit
+        of the byte to begin reading from.
+    bitsToOutput - number of bits to read
+    
+Return value:
+
+    Subset of byte array that was read
+
+--*/
+
 inline
 UINT64
 bitlib_read_bits(
                 BYTE *slice,
                 UINT8 offsetFromLeft,
                 UINT8 bitsToOutput
-)
+                )
 {
     // offsetfromright
     UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;

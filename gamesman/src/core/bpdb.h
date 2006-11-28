@@ -188,6 +188,9 @@ bpdb_print_database( );
 void
 bpdb_dump_database( int num );
 
+void
+bpdb_analyze_database( int num );
+
 //
 //
 //

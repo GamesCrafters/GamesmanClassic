@@ -41,7 +41,7 @@
 #include <zlib.h>
 #include <sys/stat.h>
 #include "types.h"
-//#include "gamesman.h"
+#include "gamesman.h"
 
 typedef gzFile dbFILE;
 /*
@@ -116,6 +116,82 @@ slist_size(
 void
 slist_free(
                 SLIST sl
+                );
+
+
+//
+// structure of a singly-linked list
+//
+
+typedef struct hashtable_singlylinkedlist {
+
+    UINT32 key;
+    UINT32 value;
+
+    // pointer to the next node
+    struct hashtable_singlylinkedlist *next;
+} *HTABLE_SLIST;
+
+HTABLE_SLIST
+htable_slist_new( );
+
+HTABLE_SLIST
+htable_slist_add(
+                HTABLE_SLIST sl,
+                UINT32 key,
+                UINT32 value
+                );
+
+UINT32
+htable_slist_size(
+                HTABLE_SLIST sl
+                );
+
+void
+htable_slist_free(
+                HTABLE_SLIST sl
+                );
+
+
+typedef struct hashtable {
+    UINT32 size;
+    HTABLE_SLIST *buckets;
+} *HTABLE;
+
+HTABLE
+htable_new(
+                UINT32 size
+                );
+
+void
+htable_add(
+                HTABLE ht,
+                UINT32 key,
+                UINT32 value
+                );
+
+void
+htable_set(
+                HTABLE ht,
+                UINT32 key,
+                UINT32 value
+                );
+
+BOOLEAN
+htable_contains(
+                HTABLE ht,
+                UINT32 key
+                );
+
+UINT32
+htable_get(
+                HTABLE ht,
+                UINT32 key
+                );
+
+void
+htable_free(
+                HTABLE ht
                 );
 
 #endif /* GMCORE_BPDB_MISC_H */

@@ -54,7 +54,7 @@ char*       gNumberChildrenOriginal = NULL; //MATT
 */
 
 static void		ParentInitialize		(void);
-static VALUE		DetermineLoopyValue1		(POSITION pos);
+static VALUE	DetermineLoopyValue1		(POSITION pos);
 static void		ParentFree			(void);
 static void		SetParents			(POSITION bad, POSITION root);
 

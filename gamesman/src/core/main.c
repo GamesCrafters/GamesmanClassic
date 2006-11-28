@@ -35,7 +35,8 @@
 #include "solveloopy.h"
 #include "solvezero.h"
 #include "solvestd.h"
-#include "solvebpdbstd.h"
+#include "solvevsstd.h"
+#include "solvevsloopy.h"
 #include "solvebottomup.h"
 #include "solveweakab.h"
 #include "solveretrograde.h"
@@ -98,10 +99,16 @@ void SetSolver()
         if (gSolver != NULL)
                 return;
         else if(kLoopy) {
-                if (gGoAgain == DefaultGoAgain)
-                        gSolver = &DetermineLoopyValue;
-                else
+                if (gGoAgain == DefaultGoAgain) {
+                        if(gBitPerfectDBSolver) {
+                            gSolver = &VSDetermineLoopyValue;
+                        } else {
+                            gSolver = &DetermineLoopyValue;
+                        }
+                } else {
+                        gBitPerfectDBSolver = FALSE;
                         gSolver = &lgas_DetermineValue;
+                }
         } else if(gZeroMemSolver)
                 gSolver = &DetermineZeroValue;
         else if(gBottomUp)
@@ -109,7 +116,7 @@ void SetSolver()
         else if(gAlphaBeta)
                 gSolver = &DetermineValueAlphaBeta;
         else if(gBitPerfectDBSolver) {
-                gSolver = &DetermineValueBPDBSTD;
+                gSolver = &DetermineValueVSSTD;
         } else
                 gSolver = &DetermineValueSTD;
 }
@@ -257,6 +264,9 @@ void HandleArguments (int argc, char *argv[])
                         }
 		        } else if(!strcasecmp(argv[i], "--bpdb")) {
                         gBitPerfectDB = TRUE;
+                } else if(!strcasecmp(argv[i], "--nobpdb")) {
+                        gBitPerfectDB = FALSE;
+                        gBitPerfectDBSolver = FALSE;
                 } else if(!strcasecmp(argv[i], "--2bit")) {
                         gTwoBits = TRUE;
                 } else if(!strcasecmp(argv[i], "--colldb")) {
@@ -280,11 +290,11 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--lowmem")) {
                         gZeroMemSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--slicessolver")) {
-                        if(kLoopy) {
+                        /*if(kLoopy) {
                             fprintf(stderr, "\nCannot use slices solver since this game is loopy\n\n");
                             gMessage = TRUE;
                             i += argc;
-                        }
+                        }*/
                         gBitPerfectDBSolver = TRUE;
                 } else if(!strcasecmp(argv[i], "--schemes")) {
                     gBitPerfectDBSchemes = TRUE;
@@ -293,6 +303,8 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBAllSchemes = TRUE;
                 } else if(!strcasecmp(argv[i], "--adjust")) {
                     gBitPerfectDBAdjust = TRUE;
+                } else if(!strcasecmp(argv[i], "--noadjust")) {
+                    gBitPerfectDBAdjust = FALSE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
                         gJustSolving = TRUE;
                         if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
