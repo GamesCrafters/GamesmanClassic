@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.50 2006-10-29 09:45:12 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.51 2006-11-28 16:18:01 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -653,7 +653,7 @@ proc NewGame { } {
     set gMovesSoFar [list]
     GS_NewGame .middle.f2.cMain $gPosition
     .cStatus raise undoD
-    .cToolbar raise iDTB6
+    .cToolbar raise iDTB3
     EnableMoves
     
     clearMoveHistory
@@ -804,7 +804,7 @@ proc DoComputerMove { } {
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
     .cStatus raise undoI
-    .cToolbar raise iITB6
+    .cToolbar raise iITB3
 
     if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	SwitchWhoseTurn
@@ -895,7 +895,7 @@ proc ReturnFromHumanMoveHelper { theMove } {
         set gMovesSoFar [push $gMovesSoFar $theMove]
         
 	.cStatus raise undoI
-	.cToolbar raise iITB6
+	.cToolbar raise iITB3
         
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
@@ -1148,7 +1148,7 @@ proc UndoHelper { } {
 
 	if { 0 == [llength $gMovesSoFar]} {
 	    .cStatus raise undoD
-	    .cToolbar raise iDTB6
+	    .cToolbar raise iDTB3
 	}
 
 	if { [expr ![C_GoAgain $gPosition $undoneMove]] } {

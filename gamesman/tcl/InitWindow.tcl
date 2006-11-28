@@ -1,10 +1,10 @@
-# $Id: InitWindow.tcl,v 1.115 2006-11-08 10:14:35 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.116 2006-11-28 16:18:01 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
 
 proc TBaction1 {} {
-
+    
     # solve the game, 
     global kGameName varObjective gPosition gInitialPosition
     global gGameSolved gGamePlayable
@@ -43,7 +43,7 @@ proc TBaction1 {} {
 	set gGamePlayable false
 	.middle.f3.cMRight lower play
 	.cToolbar raise iITB
-	.cToolbar raise iDTB6
+	.cToolbar raise iDTB3
 	.cStatus lower base
 	update idletasks
 	set gGamePlayable true
@@ -56,37 +56,8 @@ proc TBaction1 {} {
     }
 }
 
-# Rules button
+# Load button
 proc TBaction2 {} {
-    .cToolbar raise iDTB
-    global gWaitingForHuman
-    set gWaitingForHuman true
-    pack forget .middle.f2.cMain
-    global gOldRules
-    set gOldRules [GS_GetOption]
-    pack .middle.f2.fRules -side bottom -fill both -expand 1
-}
-
-# About button
-proc TBaction3 {} {
-    .cToolbar raise iDTB
-    global gWaitingForHuman
-    set gWaitingForHuman true
-    pack forget .middle.f2.cMain
-    pack .middle.f2.fAbout -side bottom -fill both -expand 1
-}
-
-# Skins
-proc TBaction4 {} {
-	.cToolbar raise iDTB
-	global gWaitingForHuman
-	set gWaitingForHuman true
-	pack forget .middle.f2.cMain   
-	pack .middle.f2.fSkins -side bottom
-}
-
-# Load Game
-proc TBaction5 {} {
     global gMoveSoFar gRightHumanOrComputer gLeftHumanOrComputer gPlaysFirst gGameSolved
     global gMoveDelay gGameDelay gLeftName gRightName kGameName kSavedFileTypes
     global gNewGame kRules kScriptName
@@ -139,8 +110,8 @@ proc TBaction5 {} {
     RaiseStatusBarIfGameStarted
 }
 
-# Save Game
-proc TBaction6 {} {
+# Save button
+proc TBaction3 {} {
     global gMovesSoFar gRightHumanOrComputer gLeftHumanOrComputer gPlaysFirst
     global gMoveDelay gGameDelay gLeftName gRightName kGameName kSavedFileTypes
     global kScriptName
@@ -162,6 +133,35 @@ proc TBaction6 {} {
     close $fileptr
 
     RaiseStatusBarIfGameStarted
+}
+
+# Rules
+proc TBaction4 {} {
+    .cToolbar raise iDTB
+    global gWaitingForHuman
+    set gWaitingForHuman true
+    pack forget .middle.f2.cMain
+    global gOldRules
+    set gOldRules [GS_GetOption]
+    pack .middle.f2.fRules -side bottom -fill both -expand 1
+}
+
+# About
+proc TBaction5 {} {
+    .cToolbar raise iDTB
+    global gWaitingForHuman
+    set gWaitingForHuman true
+    pack forget .middle.f2.cMain
+    pack .middle.f2.fAbout -side bottom -fill both -expand 1
+}
+
+# Skins
+proc TBaction6 {} {
+    .cToolbar raise iDTB
+    global gWaitingForHuman
+    set gWaitingForHuman true
+    pack forget .middle.f2.cMain   
+    pack .middle.f2.fSkins -side bottom
 }
 
 # Help button
@@ -403,8 +403,8 @@ proc InitWindow { kRootDir kExt } {
     # this is not packed now <- you cannot cancel
     button .middle.f2.fPlayOptions.fBot.bCancel -text "Cancel" \
 	-command {
-            .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iITB2"
+            .cToolbar bind iOTB4 <Any-Leave> \
+		    ".cToolbar raise iITB4"
 	    pack forget .middle.f2.fPlayOptions   
 	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
@@ -414,8 +414,8 @@ proc InitWindow { kRootDir kExt } {
     # clicking OK in the in game play options
     button .middle.f2.fPlayOptions.fBot.bOk -text "OK" \
 	-command {
-            .cToolbar bind iOTB2 <Any-Leave> \
-		    ".cToolbar raise iITB2"
+            .cToolbar bind iOTB4 <Any-Leave> \
+		    ".cToolbar raise iITB4"
 	    pack forget .middle.f2.fPlayOptions   
 	    pack .middle.f2.cMain -expand 1
             .cStatus lower base
@@ -779,7 +779,7 @@ proc InitWindow { kRootDir kExt } {
 	    pack forget .middle.f2.fRules
 	    pack .middle.f2.cMain -expand 1
 	    .cToolbar raise iITB
-	    .cToolbar raise iDTB6
+	    .cToolbar raise iDTB3
 
 	    # Delete old board
 	    .middle.f2.cMain delete {!background}
@@ -873,7 +873,7 @@ proc InitWindow { kRootDir kExt } {
 	    -text "Official Skin (HiRes)"\
 	    -command {
 		InitButtons $gSkinsRootDir OxySkin_HiRes/ ppm
-		TBaction4
+		TBaction6
 	    }
 
     button $skinsFrame.content.right.earthFromSpace_HiRes\
@@ -882,7 +882,7 @@ proc InitWindow { kRootDir kExt } {
 	    -text "Earth From Space (HiRes)"\
 	    -command {
 		InitButtons $gSkinsRootDir EarthFromSpace_HiRes/ ppm
-		TBaction4
+		TBaction6
 	    }
 
     button $skinsFrame.content.left.spaceCloud_HiRes\
@@ -891,7 +891,7 @@ proc InitWindow { kRootDir kExt } {
 	    -text "Space Cloud (HiRes)"\
 	    -command {
 		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
-		TBaction4
+		TBaction6
 	    }
 
     button $skinsFrame.buttons.bReturn -text "Return" \
@@ -1481,7 +1481,7 @@ proc clickedPlayNow {} {
     .cStatus raise historyI
 
     .cToolbar raise iITB
-    .cToolbar raise iDTB6
+    .cToolbar raise iDTB3
 	
 	pack .middle.f2.fPlayOptions.fBot -side bottom
 	.cToolbar bind iOTB1 <Any-Leave> {
@@ -2258,7 +2258,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     foreach file {1 2 3 4 5 6 7 8} {
 	set name [format i%sTB%s $mode $file]
 	set type [format i%sTB $mode]
-	if { $file == 5 || $file == 6 } {
+	if { $file == 2 || $file == 3 } {
 	    .cToolbar bind $name <ButtonRelease-1> \
 		"TBaction$file;"
 	} else {
@@ -2294,7 +2294,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
     .cToolbar raise iITB
-    .cToolbar raise iDTB6
+    .cToolbar raise iDTB3
 
     #
     # Deal with other mouse over images
