@@ -456,3 +456,23 @@ BOOLEAN tierdb_load_database()
 		return TRUE;
 
 }
+
+/* A helper to solveretrograde which simply checks for the existance of a DB.
+ * Error Codes: 0 = Doesn't exist, -1 = Incorrect/corrupted, 1 = Exists. */
+int CheckTierDB(TIER tier, int variant) {
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
+				kDBName, variant, kDBName, variant, tier);
+	if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL) {
+		return 0;
+	}
+	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
+	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
+	*tierdb_dbVer = ntohs(*tierdb_dbVer);
+	*tierdb_numPos = ntohl(*tierdb_numPos);
+	tierdb_goodClose = gzclose(tierdb_filep);
+	if(!tierdb_goodDecompression || (*tierdb_numPos != gNumberOfTierPositionsFunPtr(tier))
+		|| (*tierdb_dbVer != tierdb_FILEVER) || (tierdb_goodClose != 0)) {
+		return -1;
+	}
+	return 1;
+}

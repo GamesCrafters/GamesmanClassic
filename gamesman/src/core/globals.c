@@ -125,6 +125,8 @@ BOOLEAN			gCurrentTierIsLoopy = FALSE;
 TIER*			gTierInHashWindow = NULL;
 TIERPOSITION*	gMaxPosOffset = NULL;
 int				gNumTiersInHashWindow = 0;
+TIER			gCurrentTier = -1;
+TIERPOSITION	gCurrentTierSize = 0;
 // For the modules
 BOOLEAN 		kSupportsTierGamesman = FALSE;
 BOOLEAN			kExclusivelyTierGamesman = FALSE;
@@ -138,6 +140,9 @@ BOOLEAN			(*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING			(*gTierToStringFunPtr)(TIER) = NULL;
+
+/* Variables for the parallelized solver */
+BOOLEAN			gParallelizing = FALSE;
 
 /* Tcl interp for making calls to Tcl_Eval */
 Tcl_Interp *gTclInterp = NULL;

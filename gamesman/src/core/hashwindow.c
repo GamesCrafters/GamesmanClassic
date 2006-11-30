@@ -180,6 +180,9 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 			ExitStageRight();
 		}
 	}
+	// just a few helper variables for the solver
+	gCurrentTier = gTierInHashWindow[1];
+	gCurrentTierSize = gMaxPosOffset[1];
 }
 
 // FOR GAMEPLAY.C

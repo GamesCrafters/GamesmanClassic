@@ -364,8 +364,8 @@ TIERLIST *CreateTierlistNode(TIER theTier, TIERLIST* theNextTier)
         return(theHead);
 }
 
-// return the list REVERSED:
-TIERLIST *ReverseTierlist(TIERLIST* theTierlist)
+// return a complete copy of the list, reversed
+TIERLIST *CopyTierlist(TIERLIST* theTierlist)
 {
         TIERLIST *ptr, *head = NULL;
 
@@ -374,7 +374,6 @@ TIERLIST *ReverseTierlist(TIERLIST* theTierlist)
                 head = CreateTierlistNode(ptr->tier, head);
                 ptr = ptr->next;
         }
-		FreeTierList(theTierlist);
 
         return(head);
 }

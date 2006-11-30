@@ -37,7 +37,7 @@ REMOTENESSLIST* CreateRemotenesslistNode        (REMOTENESS theRemoteness, REMOT
 REMOTENESSLIST* CopyRemotenesslist              (REMOTENESSLIST* theRemotenesslist);
 
 TIERLIST*	CreateTierlistNode		(TIER theTier, TIERLIST* theNextTier);
-TIERLIST*	ReverseTierlist			(TIERLIST* theTierlist);
+TIERLIST*	CopyTierlist			(TIERLIST* theTierlist);
 TIERLIST*	MoveToFrontOfTierlist	(TIER theTier, TIERLIST* theTierlist);
 BOOLEAN		TierInList				(TIER theTier, TIERLIST* theTierlist);
 

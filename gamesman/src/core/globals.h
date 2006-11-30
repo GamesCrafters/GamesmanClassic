@@ -127,6 +127,8 @@ extern BOOLEAN			gCurrentTierIsLoopy;
 extern TIER*			gTierInHashWindow;
 extern TIERPOSITION*	gMaxPosOffset;
 extern int				gNumTiersInHashWindow;
+extern TIER				gCurrentTier;
+extern TIERPOSITION		gCurrentTierSize;
 // For the modules
 extern BOOLEAN			kSupportsTierGamesman;
 extern BOOLEAN			kExclusivelyTierGamesman;
@@ -140,6 +142,9 @@ extern BOOLEAN			(*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING			(*gTierToStringFunPtr)(TIER);
+
+/* Variables for the parallelized solver */
+extern BOOLEAN			gParallelizing;
 
 /* Tcl interp for making calls to Tcl_Eval */
 extern Tcl_Interp*              gTclInterp;
