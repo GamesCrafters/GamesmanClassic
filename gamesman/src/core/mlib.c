@@ -28,26 +28,18 @@
 **                        OneDMatch.
 **              5/07/06 - Implemented and confirmed functionality of
 **                        transparencies in OneDMatch.
+**              TO DO- Revise structure of functions to make them 
+**                        more general (for use in seval.c). NinaRow,
+**                        statelessNinaRow, and OneDMatch should count
+**                        instances of a pattern and have the option to
+**                        return immediately if one is detected.
 **************************************************************************/
 #include <stdio.h>
 #include "gamesman.h"
 #include "mlib.h"
 #include "string.h"
 
-#define MAXBOARDSIZE 64
-#define MAXPATTERN 16
-
 void overflowGuard(int);
-
-struct {
-  int eltSize;
-  int rows;
-  int cols;
-  BOOLEAN diagonals;
-  int directionMap[8];
-  int scratchBoard[MAXBOARDSIZE];
-  int overflowBoards[MAXPATTERN][MAXBOARDSIZE];
-} lBoard;
 
 int bSize;
 
@@ -58,6 +50,7 @@ void LibInitialize(int eltSize, int rows, int cols, BOOLEAN diagonals) {
 
   lBoard.rows = rows;
   lBoard.cols = cols;
+  lBoard.size = rows*cols;
 
   lBoard.diagonals = diagonals;
 
