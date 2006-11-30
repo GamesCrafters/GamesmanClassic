@@ -40,7 +40,8 @@ SCHEME scheme_new(
                 UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
                 UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
                 void (*varnum_init) ( ),
-                BOOLEAN indicator
+                BOOLEAN indicator,
+                BOOLEAN save
                 )
 {
     SCHEME s = (SCHEME) malloc( sizeof(struct dbscheme) );
@@ -49,6 +50,7 @@ SCHEME scheme_new(
     s->varnum_size_bits = varnum_size_bits;
     s->varnum_implicit_amt = varnum_implicit_amt;
     s->indicator = indicator;
+    s->save = save;
 
     if(NULL != varnum_init) {
         varnum_init();

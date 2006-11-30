@@ -79,6 +79,7 @@ typedef UINT32 GMSTATUS;
 #define STATUS_MISSING_DEPENDENT_MODULE     0x10
 #define STATUS_NO_SCHEMES_INSTALLED         0x11
 #define STATUS_SLICE_FORMAT_NOT_SET         0x12
+#define STATUS_SCHEME_NOT_FOUND             0x13
 
 #define GMSUCCESS(status) \
         (STATUS_SUCCESS == (status))

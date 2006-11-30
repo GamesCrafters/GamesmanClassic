@@ -122,13 +122,13 @@ VALUE VSDetermineLoopyValue(POSITION position)
             goto _bailout;
         }
     
-        status = AddSlot( 1, "MEX", TRUE, TRUE, FALSE, &SL_MEXSLOT );              // slot 2
+        status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &SL_MEXSLOT );              // slot 2
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
             goto _bailout;
         }
 
-        status = AddSlot( 8, "REMOTENESS", TRUE, TRUE, TRUE, &SL_REMSLOT );        // slot 4
+        status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, TRUE, &SL_REMSLOT );        // slot 4
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("DetermineValueVSSTD()", "Could not add remoteness slot", status);
             goto _bailout;

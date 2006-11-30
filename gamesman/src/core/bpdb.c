@@ -269,14 +269,21 @@ bpdb_init(
     bpdb_schemes = slist_new();
 
     // create the default no-compression scheme
-    SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, NULL, FALSE );
+    SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, NULL, FALSE, TRUE );
 
     // create the original variable skips compression scheme
     SCHEME scheme1 = scheme_new( 1, bpdb_generic_varnum_gap_bits,
                                     bpdb_generic_varnum_size_bits,
                                     bpdb_generic_varnum_implicit_amt,
                                     bpdb_generic_varnum_init,
-                                    TRUE );
+                                    TRUE, gBitPerfectDBSchemes );
+
+    SCHEME scheme2 = scheme_new( 2, bpdb_ken_varnum_gap_bits,
+                                    bpdb_ken_varnum_size_bits,
+                                    bpdb_ken_varnum_implicit_amt,
+                                    NULL,
+                                    TRUE,
+                                    gBitPerfectDBAllSchemes );
 
     // set the original variable skips compression scheme
     // as the scheme that will be used to encode the db header
@@ -287,15 +294,8 @@ bpdb_init(
     //
 
     bpdb_schemes = slist_add( bpdb_schemes, scheme0 );
-
-    if( gBitPerfectDBSchemes ) {
-        bpdb_schemes = slist_add( bpdb_schemes, scheme1 );
-    }
-
-    if( gBitPerfectDBAllSchemes) {
-        SCHEME scheme2 = scheme_new( 2, bpdb_ken_varnum_gap_bits, bpdb_ken_varnum_size_bits, bpdb_ken_varnum_implicit_amt, NULL, TRUE );
-        bpdb_schemes = slist_add( bpdb_schemes, scheme2 );
-    }
+    bpdb_schemes = slist_add( bpdb_schemes, scheme1 );
+    bpdb_schemes = slist_add( bpdb_schemes, scheme2 );
 
 _bailout:
     return status;
@@ -1310,8 +1310,8 @@ bpdb_analyze_database( int num )
 {
     char filename[256];
     UINT64 i = 0;
-    UINT8 j = 0;
-    UINT32 currentSlot = 0;
+//    UINT8 j = 0;
+//    UINT32 currentSlot = 0;
 
     mkdir("dumps", 0755) ;
 
@@ -1367,7 +1367,7 @@ bpdb_save_database()
 {
     // debug-temp
     //bpdb_print_database();
-    bpdb_analyze_database(1);
+    //bpdb_analyze_database(1);
 
     GMSTATUS status = STATUS_SUCCESS;
 
@@ -1438,7 +1438,15 @@ bpdb_save_database()
     i = 0;
 
     // save file under each encoding scheme
-    while(cur != NULL) {
+    while(NULL != cur) {
+        // if we are not intending to use this scheme for saving, then
+        // skip it
+        if(!(((SCHEME)cur->obj)->save)) {
+            cur = cur->next;
+            i++;
+            continue;
+        }
+
         // saves with encoding scheme and returns filename
         sprintf(outfilenames[i], "./data/m%s_%d_bpdb_%d.dat.gz", kDBName, getOption(), ((SCHEME)cur->obj)->id);
 
@@ -1665,6 +1673,12 @@ bpdb_load_database( )
     cur = bpdb_schemes;
 
     while(((SCHEME)cur->obj)->id != fileFormat) {
+        if( NULL == cur || NULL == cur->next) {
+            status = STATUS_SCHEME_NOT_FOUND;
+            BPDB_TRACE("bpdb_load_database()", "cannot find scheme to decode and decompress database", status);
+            goto _bailout;
+        }
+
         cur = cur->next;
     }
     

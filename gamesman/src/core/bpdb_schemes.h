@@ -56,6 +56,9 @@ typedef struct  dbscheme {
     // whether or not this scheme performs variable-skips encoding
     BOOLEAN         indicator;
 
+    // whether or not this scheme should be used for encoding dbs
+    BOOLEAN         save;
+
 } *SCHEME;
 
 SCHEME
@@ -65,7 +68,8 @@ scheme_new(
                 UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
                 UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
                 void (*varnum_init) ( ),
-                BOOLEAN indicator
+                BOOLEAN indicator,
+                BOOLEAN save
                 );
 
 void scheme_free(
