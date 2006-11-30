@@ -26,10 +26,10 @@
 #include "mlib.h"
 #include "seval.h"
 
-#define compare(slot,piece) !memcmp(lBoard+slot*lBoard.eltSize,piece,lBoard.eltSize)
+#define compare(slot,piece,board) !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)
 #define getSlot(row,col) (row*lBoard.cols+cols)
-#define getRow(slot) (slot/lBoard.numCols)
-#define getCol(slot) (slot%lBoard.numRows)
+#define getRow(slot) (slot/lBoard.cols)
+#define getCol(slot) (slot%lBoard.rows)
 #define min(a,b) (a<=b ? a : b)
 
 fList featureList;
@@ -257,29 +257,28 @@ float quadratic(float value){
 
 //Returns the number of the given piece on the board.
 int NumPieces(void* board,void* piece) {
-  /*  int i, count=0;
+  int i, count=0;
   for(i=0;i<lBoard.size;i++) {
-    if (compare(i,piece)) {
+    if (compare(i,piece,board)) {
       count++;
     }
   }
-  return count;*/
-  return 0;
+  return count;
 }
 
 /*Returns the sum of the distance of each piece from the given edge of
 **the board. 0 = top, 1 = right, 2 = bottom, 3 = left.
 */
 int NumFromEdge(void* board,void* piece,int edge) {
-  /*int count=0,i;
+  int count=0,i;
   for(i=0;i<lBoard.size;i++) {
-    if(compare(i,piece)) {
+    if(compare(i,piece,board)) {
       if (edge==0) {
 	count+= (i/lBoard.cols);
       } else if (edge==1) {
 	count+= (lBoard.cols-(i%lBoard.cols));
       } else if (edge==2) {
-	connt+= (lBoard.rows-(i/lBoard.cols));
+	count+= (lBoard.rows-(i/lBoard.cols));
       } else if (edge==3) {
 	count+= (i%lBoard.cols);
       } else {
@@ -287,8 +286,7 @@ int NumFromEdge(void* board,void* piece,int edge) {
       }
     }
   }
-  return count;*/
-  return 0;
+  return count;
 }
 
 /*Returns a measurement of the clustering of pieces on the board. First
@@ -296,10 +294,10 @@ int NumFromEdge(void* board,void* piece,int edge) {
 **pieces from the centroid.
 */
 double Clustering(void* board,void* piece) {
-  /*int rowAverage=0,colAverage=0,numPieces=0,i=0;
+  int rowAverage=0,colAverage=0,numPieces=0,i=0;
   double value=0;
   for(i=0;i<lBoard.size;i++) {
-    if(compare(i,piece)) {
+    if(compare(i,piece,board)) {
       rowAverage+=getRow(i);
       colAverage+=getCol(i);
       numPieces++;
@@ -310,12 +308,12 @@ double Clustering(void* board,void* piece) {
   colAverage = colAverage/numPieces;
   
   for(i=0;i<lBoard.size;i++) {
-    if(compare(i,piece)) {
+    if(compare(i,piece,board)) {
       value = (getRow(i)-rowAverage)*(getRow(i)-rowAverage) + (getCol(i)-colAverage)*(getCol(i)-colAverage);
     }
   }
   value /= numPieces;
-  return value;*/
+  return value;
   return 0;
 }
 
@@ -324,9 +322,9 @@ double Clustering(void* board,void* piece) {
 **diagonal, between two of the given piece.
 */
 int Connections(void* board,void* piece,void* blank, BOOLEAN diagonal) {
-  /*int count=0,i,j,pathLength,loc;
+  int count=0,i,j,pathLength,loc,direction;
   for(i=0;i<lBoard.size;i++) {
-    if (compare(i,piece)) {
+    if (compare(i,piece,board)) {
       for(direction = 3;direction<7; direction+= (lBoard.diagonals ? 1 : 2)) {	
 
 	//compute distance to edge of board along direction
@@ -342,11 +340,11 @@ int Connections(void* board,void* piece,void* blank, BOOLEAN diagonal) {
 	
 	loc =i;
 	for(j=0;j<pathLength;j++) {
-	  loc+=lBoard.directionMap(direction);
-	  if (compare(loc,piece)) {
+	  loc+=lBoard.directionMap[direction];
+	  if (compare(loc,piece,board)) {
 	    count++;
 	    break;
-	  } else if (!compare(loc,blank)) {
+	  } else if (!compare(loc,blank,board)) {
 	    break;
 	  }
 	}
@@ -354,6 +352,6 @@ int Connections(void* board,void* piece,void* blank, BOOLEAN diagonal) {
       }
     }
   }
-  return count;*/
+  return count;
   return 0;
 }
