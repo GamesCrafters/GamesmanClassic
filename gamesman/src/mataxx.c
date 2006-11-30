@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.4 2006-10-17 10:45:20 max817 Exp $
+// $Id: mataxx.c,v 1.5 2006-11-30 10:30:25 max817 Exp $
 
 /************************************************************************
 **
@@ -334,9 +334,14 @@ VALUE Primitive (POSITION position)
 		else return tie; // tie
 	} else return undecided;
 
+	VALUE value;
 	if (redWon) //for cleaner code
-		return (turn==PLAYER_ONE ? win : lose);
-	else return (turn==PLAYER_ONE ? lose : win);
+		value = (turn==PLAYER_ONE ? win : lose);
+	else value = (turn==PLAYER_ONE ? lose : win);
+
+	if (value == win)
+		return (gStandardGame ? win : lose);
+	else return (gStandardGame ? lose : win);
 }
 
 
@@ -644,7 +649,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2;
 }
 
 
@@ -662,10 +667,9 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+	if (gStandardGame)
+		return 1;
+	else return 2;
 }
 
 
@@ -682,9 +686,9 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+    if (option == 1)
+    	gStandardGame = TRUE;
+    else gStandardGame = FALSE;
 }
 
 
@@ -925,6 +929,10 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.4  2006/10/17 10:45:20  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.3  2006/10/11 06:59:02  max817
 // A quick modification of the Tier Gamesman games to include the new changes.
 //
