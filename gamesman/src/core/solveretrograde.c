@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.26 2006-11-30 10:31:00 max817 Exp $
+// $Id: solveretrograde.c,v 1.27 2006-12-03 06:30:23 max817 Exp $
 
 /************************************************************************
 **
@@ -393,37 +393,127 @@ void changeTierSolveList() {
 BOOLEAN setInitialTierPosition() {
 	gDBLoadMainTier = TRUE; // trick tierdb into loading main tier temporarily
 	TIERPOSITION tp; TIER t;
+	POSITION p, max;
 	VALUE value; REMOTENESS remoteness;
-/*	printf("\nYou can choose to start from one of these tiers:\n   ");
-	for (tierlist = gTierSolveListPtr; tierlist != NULL; tierlist = tierlist->next) {
-		if (tierlist->tier == gCurrentTier) {//can't play unsolved tier!
-			printf("\n");
-			break;
-		}
-		printf("%d ", tierlist->tier);
-	}*/
-	while (TRUE) {
-		gGetInitialTierPositionFunPtr(&t, &tp);
-		// switch to hash window, and final check:
-		gInitializeHashWindow(t, TRUE);
-		printf("\nYou chose: gInitialTierPosition = %llu, gInitialTier = %d:\n", tp, t);
-		PrintPosition(tp, "Gamesman", TRUE);
-		value = GetValueOfPosition(tp);
-		remoteness = Remoteness(tp);
-		if(remoteness == REMOTENESS_MAX)
-			printf("This Position has value: Draw\n");
-		else printf("This Position has value: %s in %d\n", gValueString[(int)value], remoteness);
-		if (remoteness == 0) {
-			if (value == undecided) {
-				printf("This is an UNSOLVED (undecided) position! Choose another one!\n");
+
+	if (gGetInitialTierPositionFunPtr != NULL) {
+		while (TRUE) {
+			gGetInitialTierPositionFunPtr(&t, &tp);
+			// check that tier is solved, and tierpos in range
+			if (TierInList(t, solvedList) == FALSE) {
+				printf("Tier %d either isn't solved yet, or is an illegal tier!\n", t);
 				continue;
-			} else printf("This is a Primitive Position! Are you SURE you wish to\n");
+			}
+			if (tp < 0 || tp >= gNumberOfTierPositionsFunPtr(t)) {
+				printf("Tierposition %llu isn't a valid position in tier %d!\n", tp, t);
+				continue;
+			}
+			// switch to hash window, and final check:
+			gInitializeHashWindow(t, TRUE);
+			printf("\nYou chose: gInitialTierPosition = %llu, gInitialTier = %d:\n", tp, t);
+			PrintPosition(tp, "Gamesman", TRUE);
+			value = GetValueOfPosition(tp);
+			remoteness = Remoteness(tp);
+			if(remoteness == REMOTENESS_MAX)
+				printf("This Position has value: Draw\n");
+			else printf("This Position has value: %s in %d\n", gValueString[(int)value], remoteness);
+			if (remoteness == 0) {
+				if (value == undecided) {
+					printf("This is an UNSOLVED (undecided) position! Choose another one!\n");
+					continue;
+				} else printf("This is a Primitive Position! Are you SURE you wish to\n");
+			}
+			printf("Exit the solver and begin the game from this position?\n");
+			if (ConfirmAction('c')) {
+				gInitialTier = t;
+				gInitialTierPosition = tp;
+				return TRUE;
+			}
 		}
-		printf("Exit the solver and begin the game from this position?\n");
-		if (ConfirmAction('c')) {
-			gInitialTier = t;
-			gInitialTierPosition = tp;
-			return TRUE;
+	} else {
+		TIERPOSITION tps[10];
+		VALUE tpValues[10];
+		REMOTENESS tpRems[10];
+
+		int i; POSITION ptr;
+		while(TRUE) {
+			printf("\n--You can choose to start from one of these tiers:\n");
+			TIERLIST* list;
+			for (list = solvedList; list != NULL; list = list->next) {
+				printf("%d ", list->tier);
+				if (tierNames) {
+					tierStr = gTierToStringFunPtr(list->tier);
+					printf(": %s\n", tierStr);
+					if (tierStr != NULL) SafeFree(tierStr);
+				}
+			}
+			printf("\n");
+
+			// get the tier
+			while(TRUE) {
+				printf("\nNow enter a TIER number, or non-number to go back:\n> ");
+				p = GetMyPosition();
+				if (p == kBadPosition) break;
+				t = (TIER)p;
+				if (TierInList(t,solvedList) == TRUE) // found it
+					break;
+				printf("Tier %d wasn't in the list!\n", t);
+			}
+			if (p == kBadPosition) break;
+
+			// switch to hash window
+			gInitializeHashWindow(t, TRUE);
+			// now the tierposition, and confirm
+			max = gNumberOfTierPositionsFunPtr(t);
+			ptr = 0;
+			while (TRUE) {
+				printf("\nNow finding 10 playable positions...\n");
+				/*
+				  MAX'S NOTE: Yes, this infinite loops for a Tier that doesn't
+				  have at least 10 non-undecided or Primitive positions. But then
+				  again, it's the user's fault for picking such a boring tier, so ha.
+				*/
+				i = 0;
+				while (i < 10) {
+					value = GetValueOfPosition(ptr);
+					if (value != undecided) {
+						remoteness = Remoteness(ptr);
+						if (remoteness > 0) {//store it
+							tps[i] = ptr;
+							tpValues[i] = value;
+							tpRems[i] = remoteness;
+							i++;
+						}
+					}
+					ptr++;
+					if (ptr >= max)
+						ptr = 0;
+				}
+				printf("Found these positions:\n");
+				for (i = 0; i < 10; i++) {
+					if (tpRems[i] == REMOTENESS_MAX)
+						printf("%d = Draw\n", i+1);
+					else printf("%d = %s in %d\n", i+1, gValueString[(int)tpValues[i]], tpRems[i]);
+				}
+				printf("11 = See more positions");
+				printf("\nNow pick a number above, or anything else to go back:\n> ");
+				p = GetMyPosition();
+				if (p == kBadPosition || p < 1 || p > 11) break;
+				if (p == 11) continue;
+				i = p-1;
+				tp = tps[i]; value = tpValues[i]; remoteness = tpRems[i];
+				printf("\nYou chose: gInitialTierPosition = %llu, gInitialTier = %d:\n", tp, t);
+				PrintPosition(tp, "Gamesman", TRUE);
+				if(remoteness == REMOTENESS_MAX)
+					printf("This Position has value: Draw\n");
+				else printf("This Position has value: %s in %d\n", gValueString[(int)value], remoteness);
+				printf("Exit the solver and begin the game from this position?\n");
+				if (ConfirmAction('c')) {
+					gInitialTier = t;
+					gInitialTierPosition = tp;
+					return TRUE;
+				}
+			}
 		}
 	}
 	// switch back to the current hash window:
@@ -434,17 +524,21 @@ BOOLEAN setInitialTierPosition() {
 
 POSITION GetMyPosition() {
     char inString[MAXINPUTLENGTH];
-    GetMyStr(inString, MAXINPUTLENGTH);
-    POSITION p = 0;
-    int i = 0;
-	while (inString[i] >= '0' && inString[i] <='9') {
-		p = (p*10) + (inString[i]-'0');
-		i++;
+    POSITION p; int i;
+    while(TRUE) {
+		GetMyStr(inString, MAXINPUTLENGTH);
+		if (inString[0] == '\0') continue;
+		p = 0;
+		i = 0;
+		while (inString[i] >= '0' && inString[i] <='9') {
+			p = (p*10) + (inString[i]-'0');
+			i++;
+		}
+		if (inString[i] != '\0' && inString[i] != '\n') {
+			return kBadPosition;
+		}
+		return p;
 	}
-	if (inString[i] != '\0' && inString[i] != '\n') {
-		return kBadPosition;
-	}
-	return p;
 }
 
 BOOLEAN ConfirmAction(char c) {
