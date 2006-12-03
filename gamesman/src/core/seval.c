@@ -53,7 +53,6 @@ featureEvaluatorLibrary getSEvalLibFnPtr(STRING fnName){
 fList parse_element(scew_element* element, fList tempList){
     scew_element* child = NULL;
     fList currFeature = NULL;
-    fList head = tempList;
     
     printf("Parsing...\n");
     
@@ -63,7 +62,6 @@ fList parse_element(scew_element* element, fList tempList){
     }
     
     if(strcmp(scew_element_name(element),"feature")==0){
-      STRING type = NULL;
       currFeature = SafeMalloc(sizeof(struct fNode));
       //contents = scew_element_contents(element);
       scew_attribute* attribute = NULL;
@@ -83,46 +81,57 @@ fList parse_element(scew_element* element, fList tempList){
       while ((attribute = scew_attribute_next(element, attribute)) != NULL)
       {
       
-	printf("Parsing attributes...\n");
+	        printf("Parsing attributes...\n");
       
-	if(strcmp(scew_attribute_name(attribute),"name")==0)
-	  currFeature->name = (char *)scew_attribute_value(attribute);
-	else if(strcmp(scew_attribute_name(attribute),"type")==0)
-	  type = (char *)scew_attribute_value(attribute); // Not sure if we have the name yet
-	else if(strcmp(scew_attribute_name(attribute),"weight")==0)
-	  currFeature->weight = strtod(scew_attribute_value(attribute),NULL);
-	else if(strcmp(scew_attribute_name(attribute),"scaling")==0){
-	  if(strcmp(scew_attribute_name(attribute),"linear")==0)
-	    currFeature->scale = &linear;
-	  else if(strcmp(scew_attribute_name(attribute),"logarithmic")==0)
-	    currFeature->scale = &logarithmic;
-	  else if(strcmp(scew_attribute_name(attribute),"logistic")==0)
-	    currFeature->scale = &logistic;
-	  else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
-	    currFeature->scale = &quadratic;
-	}
-	else if(strcmp(scew_attribute_name(attribute),"perfect")==0)
-	  currFeature->perfect = (strcmp(scew_attribute_name(attribute),"true")==0)?TRUE:FALSE;
+	        if(strcmp(scew_attribute_name(attribute),"name")==0){
+	          currFeature->name = (char *)SafeMalloc( (strlen(scew_attribute_value(attribute))+1) * sizeof(char));
+	          strcpy(currFeature->name, scew_attribute_value(attribute));	  
+	        }
+	        else if(strcmp(scew_attribute_name(attribute),"type")==0)
+	          currFeature->type = strcmp((char *)scew_attribute_value(attribute),"custom")==0? custom : library;
+	        else if(strcmp(scew_attribute_name(attribute),"weight")==0)
+	          currFeature->weight = strtod(scew_attribute_value(attribute),NULL);
+	        else if(strcmp(scew_attribute_name(attribute),"scaling")==0){
+	            if(strcmp(scew_attribute_name(attribute),"linear")==0)
+	              currFeature->scale = &linear;
+	            else if(strcmp(scew_attribute_name(attribute),"logarithmic")==0)
+	              currFeature->scale = &logarithmic;
+	            else if(strcmp(scew_attribute_name(attribute),"logistic")==0)
+	              currFeature->scale = &logistic;
+	            else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
+	              currFeature->scale = &quadratic;
+	        }
+	        else if(strcmp(scew_attribute_name(attribute),"perfect")==0)
+	          currFeature->perfect = (strcmp(scew_attribute_name(attribute),"true")==0)?TRUE:FALSE;
+	        else if(strcmp(scew_attribute_name(attribute),"piece")==0){
+	          if( (char *)scew_attribute_value(attribute)!=NULL && strlen((char *)scew_attribute_value(attribute))==1 )
+	            currFeature->piece = ((char *)scew_attribute_value(attribute))[0];
+	          else{
+	            BadElse("parse_element");
+	            printf("Piece must be one char long. Bad piece='%s'", (char *)scew_attribute_value(attribute));
+	          }
+	        }
+	        else{
+	          BadElse("parse_element");
+	          printf("Bad attribute=\"%s\"",(char *)scew_attribute_value(attribute));
+	        }
       }
-      
       
       printf("Done Parsing attributes...");
       
       // Now we should have the name
-      if( strcmp(type, "custom")==0 )
-	currFeature->fEvalC = (featureEvaluatorCustom)getSEvalCustomFnPtr(currFeature->name);
+      if( currFeature->type == custom )
+	      currFeature->fEvalC = (featureEvaluatorCustom)getSEvalCustomFnPtr(currFeature->name);
       else
-	currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
+	      currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
       
       if((currFeature->fEvalC == NULL) && (currFeature->fEvalL == NULL)){
-	printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
-	return NULL;
+	      printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
+	      return NULL;
       }
       
-      if(tempList!=NULL)
-	tempList->next = currFeature;
-      else
-	head = tempList = currFeature;
+      currFeature->next = tempList;
+      tempList = currFeature;
       //contents = scew_element_contents(element);
     }
     
@@ -133,17 +142,10 @@ fList parse_element(scew_element* element, fList tempList){
     child = NULL;
     while ((child = scew_element_next(element, child)) != NULL)
     {
-      if( head==NULL )
-	head = parse_element(child, tempList);
-      else
-	parse_element(child, tempList);
-      
-      // If we got a feature, advance the feature list
-      if(tempList!=NULL && tempList->next!=NULL)
-	tempList = tempList->next;
+      tempList = parse_element(child, tempList);
     }
     
-    return head;
+    return tempList;
 }
 
 fList loadDataFromXML(STRING fileName){
@@ -205,11 +207,10 @@ float evaluatePosition(POSITION p){
   fList features = featureList;
   float valueSum = 0;
   float weightSum = 0;
-  
-  void* board = (void*) genericUnhash(p); //temporary hack
 
   while(features!=NULL){
     if(features->type == library) {
+      void* board = (void*) gCustomUnhash(p); //temporary hack
       valueSum += features->weight * features->scale((*(features->fEvalL))(board,features->piece,features->evalParams),
 						     features->scaleParams);  
     } else if(features->type == custom) {
@@ -231,14 +232,18 @@ float linear(float value,int params[]){
   return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
 }
 
-//???
+//Params are {value*10 where y==1 for log10(abs(value*9)+1) (Default=1)}
 float logarithmic(float value, int params[]){
-  return value;
+  float absValue = abs(value);
+  int sign = (int) value / absValue;
+  float scaleFactor = (params==NULL || params[0]==0)? 1 : params[0];
+  float ans = log10( (absValue*9+1) / scaleFactor );
+  return sign * (absValue>1 || ans>1)? 1 : ans;
 }
 
 //Params are {shift,time scale} of sigmoid function
 float logistic(float value, int params[]){
-  float ans = (1/(1+Math.exp(-params[1]*(value-params[0]))));
+  float ans = (1/(1+exp(-params[1]*(value-params[0]))));
   return ans;
 }
 
