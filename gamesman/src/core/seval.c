@@ -27,7 +27,7 @@
 #include "seval.h"
 
 #define compare(slot,piece,board) !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)
-#define getSlot(row,col) (row*lBoard.cols+cols)
+#define getSlot(row,col) (row*lBoard.cols+col)
 #define getRow(slot) (slot/lBoard.cols)
 #define getCol(slot) (slot%lBoard.rows)
 #define min(a,b) (a<=b ? a : b)
@@ -46,7 +46,7 @@ fList featureList;
 ** 
 ************************************************************************/
 
-featureEvaluator getSEvalLibFnPtr(STRING fnName){
+featureEvaluatorLibrary getSEvalLibFnPtr(STRING fnName){
   return NULL;
 }
 
@@ -110,11 +110,11 @@ fList parse_element(scew_element* element, fList tempList){
       
       // Now we should have the name
       if( strcmp(type, "custom")==0 )
-	currFeature->evalFn = (featureEvaluator)getSEvalCustomFnPtr(currFeature->name);
+	currFeature->fEvalC = (featureEvaluatorCustom)getSEvalCustomFnPtr(currFeature->name);
       else
-	currFeature->evalFn = (featureEvaluator)getSEvalLibFnPtr(currFeature->name);
+	currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
       
-      if(currFeature->evalFn == NULL){
+      if((currFeature->fEvalC == NULL) && (currFeature->fEvalL == NULL)){
 	printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
 	return NULL;
       }
@@ -201,36 +201,60 @@ BOOLEAN initializeStaticEvaluator(STRING fileName){
 **
 ************************************************************************/
 
-VALUE evaluatePosition(POSITION p){
+float evaluatePosition(POSITION p){
   fList features = featureList;
   float valueSum = 0;
   float weightSum = 0;
   
-  features->next = NULL;
+  void* board = (void*) genericUnhash(p); //temporary hack
 
   while(features!=NULL){
-    valueSum += features->weight * (*(features->evalFn))(p);
+    if(features->type == library) {
+      valueSum += features->weight * features->scale((*(features->fEvalL))(board,features->piece,features->evalParams),
+						     features->scaleParams);  
+    } else if(features->type == custom) {
+      valueSum += features->weight * features->scale((*(features->fEvalC))(p),
+						     features->scaleParams);
+    } else {
+      printf("ERROR, unknown feature type");
+    }
+
     weightSum += features->weight;
     features = features->next;
   }
   
-  return ( (valueSum/weightSum)>0.5 );
+  return (valueSum/weightSum);
 }
 
-float linear(float value){
+//Params are {-1 intersect, 1 intersect}
+float linear(float value,int params[]){
+  return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
+}
+
+//???
+float logarithmic(float value, int params[]){
   return value;
 }
 
-float logarithmic(float value){
-  return value;
+//Params are {shift,time scale} of sigmoid function
+float logistic(float value, int params[]){
+  float ans = (1/(1+Math.exp(-params[1]*(value-params[0]))));
+  return ans;
 }
 
-float logistic(float value){
-  return value;
-}
-
-float quadratic(float value){
-  return value;
+//Params are {isConcaveDown,-1 intersect,1 intersect}
+float quadratic(float value, int params[]){
+  float ans;
+  float width = params[2] - params[1];
+  if(params[0]==0) {
+    ans = (2/(width*width))*((value - params[1]) * (value - params[1]));
+  } else {
+    ans = 1 - (2/(width*width))*((params[2] - value) * (params[2] - value));
+  }
+  
+  ans = (value < params[1]) ? -1 : ((value > params[2]) ? 1 : ans);
+  
+  return ans;
 }
 
 /************************************************************************
