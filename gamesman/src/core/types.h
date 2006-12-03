@@ -82,6 +82,8 @@ POSITIONLIST, FRnode, POSITIONQUEUE;
 typedef struct undolist_item
 {
         POSITION position;
+        TIERPOSITION tierposition; //Added for
+        TIER tier; //Tier-Gamesman undo
         BOOLEAN givebackUsed;
         struct undolist_item *next;
 }

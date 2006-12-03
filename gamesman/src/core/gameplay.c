@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.43 2006-08-04 06:47:53 max817 Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.44 2006-12-03 05:08:15 max817 Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -42,6 +42,8 @@ typedef struct moveList
 {
         MOVE move;
         POSITION position;
+        TIERPOSITION tierposition; // Added for
+        TIER tier; // Tier-Gamesman moves
         MOVELIST* generatedMoves;
         struct moveList* next;
         struct moveList* prev;
@@ -347,6 +349,10 @@ moveList* moveListHandleNewMove(POSITION position, MOVE move,
         newmlist->move = move;
         newmlist->generatedMoves = generatedMoves;
         newmlist->position = position;
+        if (gHashWindowInitialized) {// Tier-Gamesman
+    	   	gUnhashToTierPosition(position, &newmlist->tierposition,
+    	   							&newmlist->tier);
+		}
         newmlist->next = 0;
         newmlist->prev = lastEntry;
         if (lastEntry == 0) {
@@ -463,7 +469,12 @@ void PrintHeader(int maxMoveLength, int maxRemoteness,
                kGameName);
         printf("%s\n", line);
 
-        PrintPosition(gInitialPosition, gPlayerName[whoseTurn], whoseTurn);
+		POSITION tmp = gInitialPosition;
+		if (gHashWindowInitialized) { //Tier-Gamesman
+			gInitializeHashWindow(gInitialTier, TRUE);
+			tmp = gInitialTierPosition;
+		}
+        PrintPosition(tmp, gPlayerName[whoseTurn], whoseTurn);
         printf("\n");
 
         addSpacePadding(strcpy(line,"LEFT"),maxMoveLength-strlen("LEFT"));
@@ -763,6 +774,12 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
                int maxR, int maxTR, int showAllMoves)
 {
 
+		POSITION position = moveInfo->position;
+		if (gHashWindowInitialized) { //Tier-Gamesman
+			gInitializeHashWindow(moveInfo->tier, TRUE);
+			position = moveInfo->tierposition;
+		}
+
         int drawDash = 1;
 
         int comment;
@@ -779,7 +796,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 
         // ADD DASHES
         if (drawDash) {
-                drawDashes(line, DoMove(moveInfo->position, moveInfo->move),
+                drawDashes(line, DoMove(position, moveInfo->move),
                            whoseTurn, maxR, maxTR);
         }
 
@@ -787,18 +804,18 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
         if (showAllMoves == 1) {
                 MOVELIST* generatedMoves = moveInfo->generatedMoves;
                 while(generatedMoves) {
-                        addMove(line, DoMove(moveInfo->position, generatedMoves->move), whoseTurn,
+                        addMove(line, DoMove(position, generatedMoves->move), whoseTurn,
                                 '.', maxR, maxTR);
                         generatedMoves = generatedMoves->next;
                 }
         }
 
         // ADD MOVE
-        addMove(line, DoMove(moveInfo->position, moveInfo->move), whoseTurn,
+        addMove(line, DoMove(position, moveInfo->move), whoseTurn,
                 '*', maxR, maxTR);
 
-        comment = getComment(DoMove(moveInfo->position, moveInfo->move),
-                             moveInfo->position);
+        comment = getComment(DoMove(position, moveInfo->move),
+                             position);
 
         if (whoseTurn == playerOne) {
                 if (gMoveToStringFunPtr == NULL) {
@@ -915,6 +932,12 @@ void updateRemoteness(int* maxR, int* maxTR,
 
 void PrintVisualValueHistory(POSITION position, int showAllMoves)
 {
+		// if using Tier-Gamesman, save the current tier
+		TIERPOSITION currentTP; TIER currentTier;
+		if (gHashWindowInitialized && position != -1) {
+			gUnhashToTierPosition(position, &currentTP, &currentTier);
+		}
+
         int maxR = 8;
         int maxTR = 8;
 
@@ -931,6 +954,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
         char* playerTwoName = gPlayerName[kPlayerTwoTurn];
 
         POSITION lastPosition = gInitialPosition;
+        POSITION tmp;
         MOVELIST* generatedMoves;
 
         int maxMoveLength = getMaxMoveLength();
@@ -944,16 +968,29 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
         // Determine maximum remotenesses
 
-        updateRemoteness(&maxR, &maxTR, gInitialPosition, 0, 0);
+		tmp = gInitialPosition;
+		if (gHashWindowInitialized) { //Tier-Gamesman
+			gInitializeHashWindow(gInitialTier, TRUE);
+			tmp = gInitialTierPosition;
+		}
+        updateRemoteness(&maxR, &maxTR, tmp, 0, 0);
 
         while(mlist != 0) {
-                updateRemoteness(&maxR, &maxTR, mlist->position, mlist->move, 1);
-                lastPosition = DoMove(mlist->position, mlist->move);
+				tmp = mlist->position;
+				if (gHashWindowInitialized) { //Tier-Gamesman
+					gInitializeHashWindow(mlist->tier, TRUE);
+					tmp = mlist->tierposition;
+				}
+                updateRemoteness(&maxR, &maxTR, tmp, mlist->move, 1);
+                lastPosition = DoMove(tmp, mlist->move);
                 mlist = mlist->next;
         }
         mlist = mList;
 
         if (gPrintPredictions) {
+				if (gHashWindowInitialized) { //Tier-Gamesman
+					gInitializeHashWindowToPosition(&lastPosition);
+				}
                 generatedMoves = GenerateMoves(lastPosition);
                 while(generatedMoves) {
                         updateRemoteness(&maxR, &maxTR, lastPosition, generatedMoves->move, 1);
@@ -973,8 +1010,14 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
         // Print line for initial position
 
+		tmp = gInitialPosition;
+		if (gHashWindowInitialized) { //Tier-Gamesman
+			gInitializeHashWindow(gInitialTier, TRUE);
+			tmp = gInitialTierPosition;
+		}
+
         createBlankLine(line, maxR, maxTR);
-        addMove(line, gInitialPosition, playerTwo, '*', maxR, maxTR);
+        addMove(line, tmp, playerTwo, '*', maxR, maxTR);
         printf("%s", justify(playerOneName, playerName, maxMoveLength, leftJustified));
         printf("%s%s\n", line, justify(playerTwoName, playerName, maxMoveLength, rightJustified));
 
@@ -1000,6 +1043,9 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
         // If predictions are on, print values for possible moves
 
         if (gPrintPredictions) {
+				if (gHashWindowInitialized) { //Tier-Gamesman
+					gInitializeHashWindowToPosition(&lastPosition);
+				}
 
                 generatedMoves = GenerateMoves(lastPosition);
                 if (generatedMoves) {
@@ -1016,9 +1062,12 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
         }
 
         // Print footer
-
-        PrintFooter(maxMoveLength, maxR, maxTR, position, whoseTurn);
-
+		tmp = position;
+		if (gHashWindowInitialized && position != -1) { //Tier-Gamesman
+			gInitializeHashWindow(currentTier, TRUE); // If playing Tier-Gamesman,
+			tmp = currentTP; // this returns to current hash window before exiting
+		}
+        PrintFooter(maxMoveLength, maxR, maxTR, tmp, whoseTurn);
 
 }
 
@@ -1068,6 +1117,11 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
                 *thePosition = undo->position;
         }
 
+		if (gHashWindowInitialized) { //Tier-Gamesman
+			gInitializeHashWindow(undo->tier, TRUE);
+			*thePosition = undo->tierposition;
+		}
+
         return(undo);
 }
 
@@ -1076,8 +1130,17 @@ UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
         UNDO *tmp, *index = undo;
         BOOLEAN inList = FALSE;
 
+		TIERPOSITION curTP; TIER curT;
+		if (gHashWindowInitialized) {
+			gUnhashToTierPosition(thePosition, &curTP, &curT);
+		}
+
         while(index != NULL) {
-                if(index->position == thePosition) {
+				// if Tier-Gamesman, need some additional checks
+                if(index->position == thePosition
+                	&& (!gHashWindowInitialized
+                	|| (index->tierposition == curTP && index->tier == curT)))
+                {
                         undo = Stalemate(undo,thePosition,abort);
                         inList = TRUE;
                 }
@@ -1087,6 +1150,10 @@ UNDO *UpdateUndo(POSITION thePosition, UNDO* undo, BOOLEAN* abort)
                 tmp = undo;
                 undo = (UNDO *) SafeMalloc (sizeof(UNDO));
                 undo->position = thePosition;
+                if (gHashWindowInitialized) { //Tier-Gamesman
+                	undo->tierposition = curTP;
+                	undo->tier = curT;
+				}
                 undo->givebackUsed = FALSE; /* set this in PlayAgainstComputer */
                 undo->next = tmp;
 
@@ -1101,6 +1168,10 @@ UNDO *InitializeUndo()
 
         undo = (UNDO *) SafeMalloc (sizeof(UNDO));    /* Initialize the undo list */
         undo->position = gInitialPosition;
+        if (gHashWindowInitialized) {// Tier-Gamesman
+    	   	gUnhashToTierPosition(gInitialPosition, &undo->tierposition,
+    	   							&undo->tier);
+		}
         undo->givebackUsed = FALSE;
         undo->next = NULL;
         return(undo);
@@ -1166,6 +1237,11 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
 {
         UNDO *tmp;
 
+		TIERPOSITION curTP; TIER curT;
+		if (gHashWindowInitialized) {
+			gUnhashToTierPosition(stalematePosition, &curTP, &curT);
+		}
+
         printf("\nWe have reached a position we have already encountered. We have\n");
         printf("achieved a STALEMATE. Now, we could go on forever playing like this\n");
         printf("or we could just stop now. Should we continue (y/n) ? ");
@@ -1173,7 +1249,11 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
         if(GetMyChar() != 'y') {      /* quit */
                 *abort = TRUE;
         } else {
-                while(undo->next != NULL && undo->position != stalematePosition) {
+				// if Tier-Gamesman, need some additional checks
+                while(undo->next != NULL && undo->position != stalematePosition
+						&& (!gHashWindowInitialized
+                		|| (undo->tierposition == curTP && undo->tier == curT)))
+                {
                         /* don't return givebacks to user when rolling back stalemates */
                         tmp = undo;
                         undo = undo->next;
