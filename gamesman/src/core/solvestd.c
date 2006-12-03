@@ -45,6 +45,7 @@ VALUE DetermineValueSTD(POSITION position)
     REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
     REMOTENESS minTieRemoteness = MAXINT2, remoteness;
     MEXCALC theMexCalc = 0; /* default to satisfy compiler */
+    int winByValue = 0, minWinByValue = ((1 << (MEX_BITS-1))-1), maxWinByValue = -(1 << (MEX_BITS-1));
     
     if(Visited(position)) { /* Cycle! */
         printf("Sorry, but I think this is a loopy game. I give up.");
@@ -59,6 +60,8 @@ VALUE DetermineValueSTD(POSITION position)
         SetRemoteness(position,0); /* terminal positions have 0 remoteness */
         if(!kPartizan && !gTwoBits)
             MexStore(position,MexPrimitive(value)); /* lose=0, win=* */
+	else if (kPartizan && gPutWinBy && !gTwoBits)
+	  WinByStore(position,gPutWinBy(position));
         return(StoreValueOfPosition(position,value));
         /* first time, need to recursively determine value */
     } else { 
@@ -78,6 +81,14 @@ VALUE DetermineValueSTD(POSITION position)
                 FoundBadPosition(child, position, move);
 
             value = DetermineValueSTD(child);       /* DFS call */
+
+	    if (kPartizan && gPutWinBy && !gTwoBits) {
+	      int childWinByValue = WinByLoad(child);
+	      if (childWinByValue < minWinByValue)
+		minWinByValue = childWinByValue;
+	      if (childWinByValue > maxWinByValue)
+		maxWinByValue = childWinByValue;
+	    }
 	    
             if (gGoAgain(position,move))
                 switch(value)
@@ -114,6 +125,15 @@ VALUE DetermineValueSTD(POSITION position)
         UnMarkAsVisited(position);
         if(!kPartizan && !gTwoBits)
             MexStore(position,MexCompute(theMexCalc));
+	else if (kPartizan && gPutWinBy && !gTwoBits) {
+	  int turn = generic_hash_turn(position);
+	  if (turn == 1)
+	    winByValue = maxWinByValue;
+	  else if (turn == 2)
+	    winByValue = minWinByValue;
+	  else BadElse("Bad generic_hash_turn(position)");
+	  WinByStore(position,winByValue);
+	}
         if(foundLose) {
             SetRemoteness(position,minRemoteness+1); /* Winners want to mate soon! */
             return(StoreValueOfPosition(position,win));

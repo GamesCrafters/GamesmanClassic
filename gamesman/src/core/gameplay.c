@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.44 2006-12-03 05:08:15 max817 Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.45 2006-12-03 07:38:16 zwizeguy Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -72,6 +72,8 @@ static  void            moveListHandleGameOver             (moveList*);
 
 extern MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 extern MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+
+extern MOVE             GetWinByMove                    (POSITION, MOVELIST*);
 
 
 void             PrintMoveHistory                (POSITION);
@@ -1440,6 +1442,20 @@ MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenes
         return (moveList->move);
 }
 
+MOVE GetWinByMove (POSITION position, MOVELIST* genMoves)
+{
+  POSITION child;
+  int childWinBy;
+  int currWinBy = WinByLoad(position);
+  for (; genMoves != NULL; genMoves = genMoves->next) {
+    child = DoMove(position, genMoves->move);
+    childWinBy = WinByLoad(child);
+    if (currWinBy == childWinBy)
+      return genMoves->move;
+  }
+  return -1;
+}
+
 /* Jiong */
 VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves)
 {
@@ -1610,14 +1626,24 @@ MOVE GetComputersMove(POSITION thePosition)
                 }
 
                 if (moveType == WINMOVE) {
+		  if (gPutWinBy) {
+		    ptr = head;
+		    theMove = GetWinByMove(thePosition,ptr);
+		  } else {
                         // WINMOVE: Win as quickly as possible (smallest remoteness best)
                         theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+		  }
                 } else if (moveType == TIEMOVE) {
                         // TIEMOVE: Tie as quickly as possible when smart???
 						theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else {
+		  if (gPutWinBy) {
+		    ptr = head;
+		    theMove = GetWinByMove(thePosition,ptr);
+		  } else {
                         // LOSEMOVE: Prolong the game as much as possible (largest remoteness is best).
                         theMove = RandomLargestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+		  }
                 }
                 FreeValueMoves(moves);
                 return (theMove);

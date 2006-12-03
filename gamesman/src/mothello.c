@@ -135,6 +135,7 @@ void PrintBoard(char[]);
 
 POSITION SetupInitialPosition();
 
+signed char computeWinBy(POSITION);
 int AddRemovePieces(char[], int, char);
 void UserSelectRows();
 void UserSelectCols();
@@ -216,6 +217,7 @@ void InitializeGame ()
 	fflush( stdout );
 
 	gMoveToStringFunPtr = &MoveToString;
+	gPutWinBy = &computeWinBy;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 /************************************************************************
@@ -626,8 +628,9 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
 	int whoseturn = generic_hash_turn(position);
+	int winBy = WinByLoad(position);
 	/*int strlenname = strlen(playerName);*/
-	char turnString1[80], turnString2[80], prediction[80];
+	char turnString1[80], turnString2[80], prediction[80], winByStr[80];
 
 	//for loops inits
 	int i, j, alpha, hyphens;
@@ -773,10 +776,15 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 			printf(" ");
 	printf("|\n");
 
-
 	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
 	if (prediction[2] == '(')
 	{
+	        sprintf(winByStr,"| %s can %s by %d", playerName, ((winBy < 0 && whoseturn == 1) || (winBy > 0 && whoseturn == 2)) ? "lose" : "win", (winBy < 0) ? -winBy : winBy);
+        	printf("\t%s",winByStr);
+		if(strlen(turnString2) < (2 * OthCols) + 24)
+		  for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(winByStr); hyphens++)
+		    printf(" ");
+		printf("|\n");	
 		printf("\t%s", prediction);
 		if(strlen(prediction) < (2 * OthCols) + 24)
 			for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(prediction); hyphens++)
@@ -1541,5 +1549,18 @@ POSITION ActualNumberOfPositions(int variant) {
   else
     return 62789;
   return -1;
+}
+
+signed char computeWinBy(POSITION position) {
+  int i;
+  signed char whitetally = 0, blacktally = 0;
+  char *board = getBoard(position);  
+  for(i = 0; i < (OthCols * OthRows); i++) {
+    if(board[i] == WHITEPIECE)
+      whitetally++;
+    if(board[i] == BLACKPIECE)
+      blacktally++;
+  }
+  return blacktally - whitetally;
 }
 

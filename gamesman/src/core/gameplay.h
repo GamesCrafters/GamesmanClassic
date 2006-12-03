@@ -57,4 +57,7 @@ void            PlayGame                        (PLAYER playerOne,PLAYER playerT
 MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 
+/* WinBy-choosing logic */
+MOVE     GetWinByMove                           (POSITION, MOVELIST*);
+
 #endif /* GMCORE_GAMEPLAY_H */

@@ -5,6 +5,7 @@
 
 #define VISITED_MASK     	4          /* ...00000000000000100 */
 #define VALUE_MASK       	3          /* ...00000000000000011 */
+#define MEX_BITS                5          /* 5-bit MEX storage in the db */
 #define MEX_MAX	  		31	   /* 2^5-1 */
 #define MEX_SHIFT		3	   /* ...00000000011111000 */
 #define MEX_MASK		(MEX_MAX << MEX_SHIFT)
@@ -147,6 +148,10 @@ void	        UnMarkAllAsVisited  	();
 /* Mex */
 void		MexStore		(POSITION pos, MEX mex);
 MEX		MexLoad			(POSITION pos);
+
+/* WinBy */
+void            WinByStore              (POSITION pos, signed char winBy);
+int             WinByLoad               (POSITION pos);
 
 /* Persistence */
 BOOLEAN		SaveDatabase		();

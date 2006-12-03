@@ -119,6 +119,7 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
     REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
     REMOTENESS minTieRemoteness = MAXINT2, remoteness;
     MEXCALC theMexCalc = 0; /* default to satisfy compiler */
+    int winByValue = 0, minWinByValue = ((1 << (MEX_BITS-1))-1), maxWinByValue = -(1 << (MEX_BITS-1));
     
     if(GetSlot(position, VISITEDSLOT)) { /* Cycle! */
         printf("Sorry, but I think this is a loopy game. I give up.");
@@ -133,6 +134,8 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
         SetSlot(position, REMSLOT, 0); /* terminal positions have 0 remoteness */
         if(!kPartizan && !gTwoBits)
             SetSlot(position, MEXSLOT, MexPrimitive(value)); /* lose=0, win=* */
+	else if (kPartizan && gPutWinBy && !gTwoBits)
+	    SetSlot(position, MEXSLOT, (gPutWinBy(position) & (MEX_MASK >> MEX_SHIFT)));
         return(SetSlot(position, VALUESLOT, value));
         /* first time, need to recursively determine value */
     } else { 
@@ -154,6 +157,14 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
 
             value = DetermineValueVSSTDHelper(child);       /* DFS call */
 	    
+	    if (kPartizan && gPutWinBy && !gTwoBits) {
+	      int childWinByValue = WinByLoad(child);
+	      if (childWinByValue < minWinByValue)
+		minWinByValue = childWinByValue;
+	      if (childWinByValue > maxWinByValue)
+		maxWinByValue = childWinByValue;
+	    }
+
             if (gGoAgain(position,move))
                 switch(value)
 		{
@@ -191,6 +202,15 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
 
         if(!kPartizan && !gTwoBits)
             SetSlot(position, MEXSLOT, MexCompute(theMexCalc));
+	else if (kPartizan && gPutWinBy && !gTwoBits) {
+	  int turn = generic_hash_turn(position);
+	  if (turn == 1)
+	    winByValue = maxWinByValue;
+	  else if (turn == 2)
+	    winByValue = minWinByValue;
+	  else BadElse("Bad generic_hash_turn(position)");
+	  SetSlot(position, MEXSLOT, (winByValue & (MEX_MASK >> MEX_SHIFT)));
+	}
         if(foundLose) {
             SetSlot(position, REMSLOT, minRemoteness+1);
             return (SetSlot(position, VALUESLOT, win));

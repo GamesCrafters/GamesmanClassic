@@ -388,6 +388,28 @@ MEX MexLoad(POSITION position)
     return db_functions->get_mex(position);
 }
 
+void WinByStore(POSITION position, signed char winBy)
+{
+    /* do we need this?? */
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
+
+    db_functions->put_mex(position, winBy);
+}
+
+int WinByLoad(POSITION position)
+{
+  int result;
+  /* do we need this?? */
+    if(kLoopy && gSymmetries)
+	position = gCanonicalPosition(position);
+
+    result = db_functions->get_mex(position);
+    if (result > ((1 << (MEX_BITS-1))-1))
+      result |= ~MEX_MAX;
+    return result;
+}
+
 BOOLEAN SaveDatabase() {
     return db_functions->save_database();
 }

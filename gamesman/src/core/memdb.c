@@ -266,7 +266,8 @@ void memdb_set_mex(POSITION pos, MEX mex)
 
         ptr = memdb_get_raw(pos);
 
-        *ptr = (VALUE)(((int)*ptr & ~MEX_MASK) | (mex << MEX_SHIFT));
+	*ptr = (VALUE)(((int)*ptr & ~MEX_MASK) | ((mex & (MEX_MASK >> MEX_SHIFT)) << MEX_SHIFT));
+
 }
 
 MEX memdb_get_mex(POSITION pos)

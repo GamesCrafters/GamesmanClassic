@@ -25,6 +25,9 @@ extern MENU		gMenuMode;
 
 extern REMOTENESS 	gMaxRemoteness, gMinRemoteness;
 
+extern int              (*gGetWinBy)(POSITION);
+extern signed char	(*gPutWinBy)(POSITION);
+
 /*
 ** Visualization globals
 */
