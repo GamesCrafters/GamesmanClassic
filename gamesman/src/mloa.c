@@ -41,7 +41,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.8 2006-12-04 19:26:41 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.9 2006-12-04 22:02:00 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -675,8 +675,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   }
   printf("+\n");
 
-  for (i = 0; i < gBoardLength; i++) {
-    printf("   %d |", gBoardLength-i);
+  for (i = 0; i < gBoardHeight; i++) {
+    printf("   %d |", gBoardHeight-i);
     for (j = 0; j < gBoardLength; j++) {
       printf(" %c |", gBoard[gBoardLength*i+j]);
     }
@@ -1316,8 +1316,8 @@ MOVE moveHash(STRING input)
   int startSquare, endSquare;
 
   // input[0] is the letter and input[1] is the number
-  startSquare = input[0] - 'a' + (gBoardLength - (input[1] - '0'))*gBoardLength;
-  endSquare = input[2] - 'a' + (gBoardLength - (input[3] - '0'))*gBoardLength;
+  startSquare = input[0] - 'a' + (gBoardHeight - (input[1] - '0'))*gBoardLength;
+  endSquare = input[2] - 'a' + (gBoardHeight - (input[3] - '0'))*gBoardLength;
   move = endSquare + startSquare*100;
   //printf("startsquare = %d, endSquare = %d\n", startSquare, endSquare);
   return move;
@@ -1331,11 +1331,11 @@ STRING moveUnhash(MOVE move)
 
   endSquare = move % 100;
   startSquare = move/100;
-  number = '0' + (gBoardLength - startSquare / gBoardLength);
+  number = '0' + (gBoardHeight - startSquare / gBoardLength);
   letter = (startSquare % gBoardLength) + 'a';
   moveString[0] = letter;
   moveString[1] = number;
-  number = '0' + (gBoardLength - endSquare / gBoardLength);
+  number = '0' + (gBoardHeight - endSquare / gBoardLength);
   letter = (endSquare % gBoardLength) + 'a';
   moveString[2] = letter;
   moveString[3] = number;
@@ -1400,6 +1400,12 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.8  2006/12/04 19:26:41  alb_shau
+ ** allowed resizing board to a rectangular board.  The "bug" about the computer
+ ** going first was not a bug.  That is what Gamesman does to give people a chance
+ ** to win.  Also, previous version (s) had the wrong date ... about a month
+ ** ahead.
+ **
  ** Revision 1.7  2006/11/29 06:43:06  alb_shau
  ** Added a game specific menu, added ability to resize the board, added help
  ** strings and misere support
