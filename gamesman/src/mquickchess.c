@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.40 2006-11-02 02:57:51 vert84 Exp $
+// $Id: mquickchess.c,v 1.41 2006-12-04 00:47:09 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -116,8 +116,7 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define rows 4
-#define cols 3
+#define BOARDSIZE rows*cols
 #define WHITE_TURN 2
 #define BLACK_TURN 1
 #define BLACK_PAWN 'p'
@@ -132,7 +131,8 @@ STRING   kHelpExample =
 #define WHITE_KNIGHT 'N'
 #define WHITE_KING 'K'
 #define WHITE_QUEEN 'Q'
-
+#define BLANK_PIECE ' '
+#define DISTINCT_PIECES 10
 // Constants specifying directions to "look" on the board
 #define UP 0
 #define DOWN 1
@@ -147,10 +147,16 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
+int rows = 4;
+int cols = 3;
+char *theBoard = "rkq      QKR";
+int theCurrentPlayer = WHITE_TURN;
 
 /*VARIANTS*/
 BOOLEAN normalVariant = TRUE;
 BOOLEAN misereVariant = FALSE;
+
+int Tier0Context;
 
 /*************************************************************************
 **
@@ -202,9 +208,6 @@ POSITION ActualNumberOfPositions(int variant);
 
 void InitializeGame ()
 {
-	//int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ',10, 28, -1};
-	//int pieces_array[22] = {'R', 0, 1, 'K', 0, 1, 'P', 0, 1, 'r', 0, 1, 'k', 0, 1, 'p', 0, 1, ' ', 6, 10, -1};
-	//int pieces_array[28] = {'B', 0, 1, 'R', 0, 1, 'K', 1, 1, 'P', 0, 1, 'r', 0, 1, 'k', 1, 1, 'p', 0, 1, 'b', 0, 1, ' ', 7, 13, -1};
 	int pieces_array[22] = {'Q', 0, 1, 'R', 0, 1, 'K', 1, 1, 'q', 0, 1, 'r', 0, 1, 'k', 1, 1, ' ', 6, 10, -1};
 	char gameBoard[rows*cols];
 
@@ -216,38 +219,6 @@ void InitializeGame ()
 			gameBoard[x*cols + y] = ' ';
 		}
 	}
-	/*
-	 gameBoard[0] = 'R';
-	 gameBoard[1] = 'K';
-	 gameBoard[2] = 'P';
-	 gameBoard[9] = 'r';
-	 gameBoard[10] = 'k';
-	 gameBoard[11] = 'p';
-	 */
-	/*
-		// setup pawns
-	 for(y = 0; y < cols; y++ ){
-		 gameBoard[1*cols + y] = WHITE_PAWN;
-		 gameBoard[(rows-2)*cols + y] = BLACK_PAWN;
-	 }
-	 // setup black major pieces
-	 gameBoard[(rows-1)*cols] = BLACK_ROOK;
-	 gameBoard[(rows-1)*cols + 1] = BLACK_BISHOP;
-	 gameBoard[(rows-1)*cols + 2] = BLACK_KING;
-	 gameBoard[(rows-1)*cols + 3] = BLACK_QUEEN;
-	 gameBoard[(rows-1)*cols + 4] = BLACK_KNIGHT;
-	 // setup white major pieces
-	 gameBoard[0] = WHITE_ROOK;
-	 gameBoard[1] = WHITE_BISHOP;
-	 gameBoard[2] = WHITE_KING;
-	 gameBoard[3] = WHITE_QUEEN;
-	 gameBoard[4] = WHITE_KNIGHT;
-	 */
-
-	// setup pawns
-
-	//gameBoard[4] = WHITE_PAWN;
-	//gameBoard[10] = BLACK_PAWN;
 
 	gameBoard[2] = BLACK_QUEEN;
 	gameBoard[1] = BLACK_KING;
@@ -256,7 +227,6 @@ void InitializeGame ()
 	gameBoard[(rows-1)*cols] = WHITE_QUEEN;
 	gameBoard[(rows-1)*cols + 1] = WHITE_KING;
 	gameBoard[(rows-1)*cols + 2] = WHITE_ROOK;
-	//	gameBoard[(rows-2)*cols + 2] = WHITE_PAWN;
 
 	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL, 0);
 	gInitialPosition = generic_hash_hash(gameBoard, WHITE_TURN);
@@ -1705,6 +1675,9 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.40  2006/11/02 02:57:51  vert84
+// *** empty log message ***
+//
 // Revision 1.39  2006/10/17 10:45:21  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
