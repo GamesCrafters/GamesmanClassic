@@ -15,7 +15,7 @@
 **              
 **************************************************************************/
 
-#include <scew/scew.h> // Include the XML Parser
+//#include <scew/scew.h> // Include the XML Parser
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -25,8 +25,7 @@
   of LibInitialize by the module. For information see mlib.c and mlib.h.*/
 #include "mlib.h"
 #include "seval.h"
-#include <scew/scew.h>
-
+//#include <scew/scew.h>
 
 #define compare(slot,piece,board) !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)
 #define getSlot(row,col) (row*lBoard.cols+col)
@@ -70,14 +69,15 @@ void* getBlankPiece() {
   return &BlankPiece;
 }
 
-int main() {
+int main(int argc,char* argv[]) {
   float value;
-  int board[9];
   int i;
 
   NewTraitMenu();
 
   printf("Static evaluator parameterized\n");
+  
+  board = malloc(sizeof(int) * 9);
 
   while(TRUE) {
     
@@ -139,6 +139,7 @@ fList parse_element(scew_element* element, fList tempList){
       /**
        * Iterates through the element's attribute list
        */
+
       attribute = NULL;
       while ((attribute = scew_attribute_next(element, attribute)) != NULL)
       {
@@ -190,6 +191,7 @@ fList parse_element(scew_element* element, fList tempList){
      * Call parse_element function again for each child of the
      * current element.
      */
+
     child = NULL;
     while ((child = scew_element_next(element, child)) != NULL)
     {
@@ -254,7 +256,7 @@ BOOLEAN initializeStaticEvaluator(STRING fileName){
   featureList = loadDataFromXML(fileName);
   return (featureList==NULL);
 }
-
+*/
 /************************************************************************
 **
 ** The Evaluator
@@ -270,11 +272,9 @@ float evaluatePosition(POSITION p){
 
   while(features!=NULL){
     if(features->type == library) {
-      valueSum += features->weight * features->scale((*(features->fEvalL))(board,features->piece,features->evalParams),
-						     features->scaleParams);  
+      valueSum += features->weight * features->scale((*(features->fEvalL))(board,features->piece,features->evalParams),features->scaleParams);  
     } else if(features->type == custom) {
-      valueSum += features->weight * features->scale((*(features->fEvalC))(p),
-						     features->scaleParams);
+      valueSum += features->weight * features->scale((*(features->fEvalC))(p),features->scaleParams);
     } else {
       printf("ERROR, unknown feature type");
     }
@@ -287,12 +287,12 @@ float evaluatePosition(POSITION p){
 }
 
 //Params are {-1 intersect, 1 intersect}
-float linear(float value,int params[]){
+float linear(float value,float params[]){
   return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
 }
 
 //Params are {value*10 where y==1 for log10(abs(value*9)+1) (Default=1)}
-float logarithmic(float value, int params[]){
+float logarithmic(float value,float params[]){
   float absValue = abs(value);
   int sign = (int) value / absValue;
   float scaleFactor = (params==NULL || params[0]==0)? 1 : params[0];
@@ -301,13 +301,13 @@ float logarithmic(float value, int params[]){
 }
 
 //Params are {shift,time scale} of sigmoid function
-float logistic(float value, int params[]){
+float logistic(float value,float params[]){
   float ans = (1/(1+exp(-params[1]*(value-params[0]))));
   return ans;
 }
 
 //Params are {isConcaveDown,-1 intersect,1 intersect}
-float quadratic(float value, int params[]){
+float quadratic(float value,float params[]){
   float ans;
   float width = params[2] - params[1];
   if(params[0]==0) {
@@ -370,7 +370,7 @@ fList ParameterizeTrait(int traitNum) {
     break;
   case 1:
     RequestPiece(currFeature);
-    RequestValue("\nWhich edge should this pertain to?\n\n0) Top\n1) Right\n2) Bottom\nAnything else) Left",0,currFeature);
+    RequestValue("\nWhich edge should this pertain to?\n\n0) Top\n1) Right\n2) Bottom\nAnything else) Left\n",0,0,currFeature);
     break;
   case 2:
     RequestPiece(currFeature);
@@ -385,7 +385,7 @@ fList ParameterizeTrait(int traitNum) {
     currFeature->type = custom;
     currFeature->name = CustomTraits[traitNum-numLibraryTraits];
   } else {
-    currFeature->type = libary;
+    currFeature->type = library;
     currFeature->name = LibraryTraits[traitNum];
   }
 
@@ -414,17 +414,17 @@ void ParameterizeScalingFunction(fList currFeature) {
 
   switch(choice) {
   case 'a':
-    currFeature->scalingFunction = &linear;
+    currFeature->scale = &linear;
     RequestValue("\nEnter value under which the evaluator will assign -1\n",0,1,currFeature);
     RequestValue("\nEnter value above which the evaluator will assign 1\n",1,1,currFeature);
     break;
   case 'b':
-    currFeature->scalingFunction = &logistic;
+    currFeature->scale = &logistic;
     RequestValue("\nEnter time shift of sigmoid function\n",0,1,currFeature);
     RequestValue("\nEnter time scale of sigmoid function\n",1,1,currFeature);
     break;
   case 'c':
-    currFeature->scalingFunction = &quadratic;
+    currFeature->scale = &quadratic;
     RequestValue("\nEnter 0 for a concave down function, otherwise function will be concave up\n",0,1,currFeature);
     RequestValue("\nEnter value under which evaluator will assign -1\n",1,1,currFeature);
     RequestValue("\nEnter value above which evaluator will assign 1\n",2,1,currFeature);  
@@ -543,20 +543,20 @@ void RequestValue(STRING title,int paramNum,int paramType,fList currFeature) {
 ************************************************************************/
 
 //Returns the number of the given piece on the board.
-int NumPieces(void* board,void* piece, int params[]) {
+float NumPieces(void* board,void* piece, int params[]) {
   int i, count=0;
   for(i=0;i<lBoard.size;i++) {
     if (compare(i,piece,board)) {
       count++;
     }
   }
-  return count;
+  return (float) count;
 }
 
 /*Returns the sum of the distance of each piece from the given edge of
 **the board. 0 = top, 1 = right, 2 = bottom, 3 = left.
 */
-int NumFromEdge(void* board,void* piece,int params[]) {
+float NumFromEdge(void* board,void* piece,int params[]) {
   int count=0,i;
   int edge = params[0];
 
@@ -575,16 +575,16 @@ int NumFromEdge(void* board,void* piece,int params[]) {
       }
     }
   }
-  return count;
+  return (float)count;
 }
 
 /*Returns a measurement of the clustering of pieces on the board. First
 **calculates the centroid, then measures the mean squared distance of all
 **pieces from the centroid.
 */
-double Clustering(void* board,void* piece,int params[]) {
+float Clustering(void* board,void* piece,int params[]) {
   int rowAverage=0,colAverage=0,numPieces=0,i=0;
-  double value=0;
+  float value=0;
   for(i=0;i<lBoard.size;i++) {
     if(compare(i,piece,board)) {
       rowAverage+=getRow(i);
@@ -603,14 +603,13 @@ double Clustering(void* board,void* piece,int params[]) {
   }
   value /= numPieces;
   return value;
-  return 0;
 }
 
 /*Returns the number of connections between pieces on the board.
 **A connection is defined as a string of blank spaces, possibly
 **diagonal, between two of the given piece.
 */
-int Connections(void* board,void* piece,int params[]) {
+float Connections(void* board,void* piece,int params[]) {
   int count=0,i,j,pathLength,loc,direction;
   BOOLEAN diagonals = params[0];
   void* blank = getBlankPiece();
@@ -646,6 +645,5 @@ int Connections(void* board,void* piece,int params[]) {
       }
     }
   }
-  return count;
-  return 0;
+  return (float) count;
 }
