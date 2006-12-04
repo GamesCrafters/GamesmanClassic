@@ -41,7 +41,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.7 2006-11-29 06:43:06 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.8 2006-12-04 19:26:41 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -73,7 +73,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ;
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
@@ -189,14 +189,12 @@ Player 1 wins!";
 ** #defines and structs
 **ccbb
 **************************************************************************/
-#define SIDELENGTH 4
-#define BOARDSIZE SIDELENGTH*SIDELENGTH
 #define PLAYERBLACK 1
 #define PLAYERWHITE 2
 
 #define BLANK ' '
 #define BLACK 'X'
-#define WHITE 'O'
+#define WHITE 'o'
 
 typedef enum possibleDirections {
   UP, UPRIGHT, RIGHT, DOWNRIGHT, DOWN, DOWNLEFT, LEFT, UPLEFT
@@ -208,8 +206,10 @@ typedef enum possibleDirections {
 ** Global Variables
 **
 *************************************************************************/
-int gSideLength = SIDELENGTH;
-int gBoardSize = BOARDSIZE;
+// length is left to right, height is up to down
+int gBoardLength = 4;
+int gBoardHeight = 4;
+int gBoardSize = 16;
 char* gBoard;
 
 
@@ -225,7 +225,7 @@ BOOLEAN onEdge(Direction direction, int boardSquare);
 BOOLEAN isConnected(int boardSquare1, int boardSquare2);
 BOOLEAN pieceIsolated(int boardSquare);
 Direction oppositeDirection(Direction direction);
-POSITION calcInitialPosition();
+POSITION setInitialPosition();
 int numPiecesLeft(char color);
 STRING moveUnhash(MOVE move);
 MOVE moveHash(STRING input);
@@ -255,15 +255,14 @@ STRING                  MoveToString(MOVE move);
 void InitializeGame ()
 {
   InitializeHelpStrings();
-  //printf("initializing game...\n");
 
-  int pieces[] = {BLANK, gBoardSize - 4*(gSideLength-2), gBoardSize-2,
-		  BLACK, 1, 2*(gSideLength-2), WHITE, 1, 2*(gSideLength-2), -1};
+  int pieces[] = {BLANK, gBoardSize - 4*(gBoardLength-2), gBoardSize-2,
+		  BLACK, 1, 2*(gBoardLength-2), WHITE, 1, 2*(gBoardLength-2), -1};
   
   gNumberOfPositions = generic_hash_init(gBoardSize, pieces, NULL, 0);
   //gNumberOfPositions = power(3, gBoardSize+1);
-  gBoard = (char*)SafeMalloc(sizeof(char) * (gBoardSize));
-  gInitialPosition = calcInitialPosition();
+  gBoard = (char*)SafeMalloc(sizeof(char) * (gBoardSize+1));
+  gInitialPosition = setInitialPosition();
 
   //printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
   //printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
@@ -282,8 +281,6 @@ void InitializeGame ()
 ************************************************************************/
 void InitializeHelpStrings ()
 {
-
-
 
   kHelpGraphicInterface =
     "No graphic interface yet.";
@@ -423,7 +420,6 @@ kHelpExample =
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  //printf("generateMoves starting... \n");
   int i;
   int playerTurn = generic_hash_turn(position);
   //int playerTurn = boardHash_turn(position);
@@ -519,6 +515,7 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
   int i, j, blackChainLength, whiteChainLength, blackPiecesLeft, whitePiecesLeft;
+  VALUE result;
   BOOLEAN allWhiteConnected, allBlackConnected, doneChecking;
   int playerTurn = generic_hash_turn(position);
   //int playerTurn = boardHash_turn(position);
@@ -620,30 +617,32 @@ VALUE Primitive (POSITION position)
   }
 
   if (GenerateMoves == NULL)
-    return tie;
+    result = tie;
   else if (allBlackConnected && !allWhiteConnected)
     {
       if (playerTurn == PLAYERBLACK)
-	return gStandardGame ? win : lose;
+	result = gStandardGame ? win : lose;
       else
-	return gStandardGame ? lose : win;
+	result = gStandardGame ? lose : win;
     }
   else if (allWhiteConnected && !allBlackConnected)
     {
       if (playerTurn == PLAYERBLACK)
-	return gStandardGame ? lose : win;
+	result = gStandardGame ? lose : win;
       else 
-	return gStandardGame ? win : lose;
+	result = gStandardGame ? win : lose;
     }
   else if (allWhiteConnected && allBlackConnected)
     {
       if (playerTurn == PLAYERBLACK)
-	return gStandardGame ? lose : win;
+	result = gStandardGame ? lose : win;
       else
-	return gStandardGame ? win : lose;
+	result = gStandardGame ? win : lose;
     }
   else
-    return undecided;
+    result = undecided;
+
+  return result;
 }
 
 
@@ -671,29 +670,31 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   //boardUnhash(position, gBoard);
 
   printf("\n     ");
-  for (i = 0; i < gSideLength; i++) {
+  for (i = 0; i < gBoardLength; i++) {
     printf("+---");
   }
   printf("+\n");
 
-  for (i = 0; i < gSideLength; i++) {
-    printf("   %d |", gSideLength-i);
-    for (j = 0; j < gSideLength; j++) {
-      printf(" %c |", gBoard[gSideLength*i+j]);
+  for (i = 0; i < gBoardLength; i++) {
+    printf("   %d |", gBoardLength-i);
+    for (j = 0; j < gBoardLength; j++) {
+      printf(" %c |", gBoard[gBoardLength*i+j]);
     }
     printf("\n");
     printf("     ");
-    for (j = 0; j < gSideLength; j++) {
+    for (j = 0; j < gBoardLength; j++) {
       printf("+---");
     }
     printf("+");
     printf("\n");
   }
   printf("      ");
-  for (i = 0; i < gSideLength; i++) {
+  for (i = 0; i < gBoardLength; i++) {
     printf(" %c  ", 'a'+i);
   }
   printf("\n\n");
+  printf("%s\n\n", GetPrediction(position,playersName,usersTurn));
+
 }
 
 
@@ -822,10 +823,10 @@ BOOLEAN ValidTextInput (STRING input)
 {
   /* input should be like a2c2 */
 
-  if ((input[0] >= 'a' && input[0] < 'a' + gSideLength) &&
-      (input[1] > '0' && input[1] < '1' + gSideLength) &&
-      (input[2] >= 'a' && input[0] < 'a' + gSideLength) &&
-      (input[3] > '0' && input[3] < '1' + gSideLength))
+  if ((input[0] >= 'a' && input[0] < 'a' + gBoardLength) &&
+      (input[1] > '0' && input[1] < '1' + gBoardHeight) &&
+      (input[2] >= 'a' && input[0] < 'a' + gBoardLength) &&
+      (input[3] > '0' && input[3] < '1' + gBoardHeight))
     return TRUE;
 
 
@@ -872,43 +873,50 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-  int newLength;
-
-  printf("\n");
-  printf("\t----- Game Specific Options for Lines of Action -----\n\n");
-  printf("\tr) \t(R)esize board. Current board is %dx%d.\n", gSideLength, gSideLength);
-  printf("\tb) \t(B)ack to previous menu\n");
-  printf("\n\tq) \t(Q)uit\n\n");
-  printf("Select an option: ");
-
-  switch(GetMyChar()) {
-  case 'r':
-  case 'R':
-    printf("Input desired board length[3-6]: ");
-    newLength = (unsigned int) GetMyInt();
-    while(newLength < 3 || newLength > 6) {
-      printf("Invalid length.  Please enter a length from 3 to 6.\n");
-      newLength = (unsigned int) GetMyInt();
-    }
-    gSideLength = newLength;
-    gBoardSize = gSideLength*gSideLength;
-    InitializeGame();
-    GameSpecificMenu();
-    break;
-  case 'q':
-  case 'Q':
+  int temp;
+  
+  while(TRUE) {
     printf("\n");
-    ExitStageRight();
-    break;
-  case 'b':
-  case 'B':
-    return;
-  default:
-    printf("Not a valid option.\n");
-    GameSpecificMenu();
-    break;
-  }
+    printf("\t----- Game Specific Options for Lines of Action -----\n\n");
+    printf("\tr) \t(R)esize board. Current board is %dx%d.\n", gBoardLength, gBoardHeight);
+    printf("\tb) \t(B)ack to previous menu\n");
+    printf("\n\tq) \t(Q)uit\n\n");
+    printf("Select an option: ");
 
+    switch(GetMyChar()) {
+    case 'r':
+    case 'R':
+      printf("Input desired board length[3-6]: ");
+      temp = (unsigned int) GetMyInt();
+      while(temp < 3 || temp > 6) {
+	printf("Invalid length.  Please enter a length from 3 to 6.\n");
+	temp = (unsigned int) GetMyInt();
+      }
+      gBoardLength = temp;
+      printf("Input desired board height[3-6]: ");
+      temp = (unsigned int) GetMyInt();
+      while(temp < 3 || temp > 6) {
+	printf("Invalid length.  Please enter a length from 3 to 6.\n");
+	temp = (unsigned int) GetMyInt();
+      }
+      gBoardHeight = temp;
+      gBoardSize = gBoardLength*gBoardHeight;
+      SafeFree(gBoard);
+      break;
+    case 'q':
+    case 'Q':
+      printf("\n");
+      ExitStageRight();
+      break;
+    case 'b':
+    case 'B':
+      return;
+    default:
+      printf("Sorry, I don't know that option.  Try another.\n");
+      break;
+    }
+  }
+    
   InitializeHelpStrings();
 }
 
@@ -981,7 +989,10 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+  if (gStandardGame) 
     return 0;
+  else
+    return 1;
 }
 
 
@@ -1160,46 +1171,46 @@ BOOLEAN onEdge(Direction direction, int boardSquare)
   switch (direction)
     {
     case UP:
-      if (boardSquare >= 0 && boardSquare < gSideLength)
+      if (boardSquare >= 0 && boardSquare < gBoardLength)
 	return TRUE;
       else
 	return FALSE;
     case UPRIGHT:
-      if ((boardSquare >= 0 && boardSquare < gSideLength) ||
-	  (boardSquare % gSideLength == gSideLength-1))
+      if ((boardSquare >= 0 && boardSquare < gBoardLength) ||
+	  (boardSquare % gBoardLength == gBoardLength-1))
 	return TRUE;
       else
 	return FALSE;
     case RIGHT:
-      if (boardSquare % gSideLength == gSideLength-1)
+      if (boardSquare % gBoardLength == gBoardLength-1)
 	return TRUE;
       else
 	return FALSE;
     case DOWNRIGHT:
-      if ((boardSquare % gSideLength == gSideLength-1) ||
-	  (boardSquare >= gBoardSize-gSideLength && boardSquare < gBoardSize))
+      if ((boardSquare % gBoardLength == gBoardLength-1) ||
+	  (boardSquare >= gBoardSize-gBoardLength && boardSquare < gBoardSize))
 	return TRUE;
       else
 	return FALSE;
     case DOWN:
-      if (boardSquare >= gBoardSize-gSideLength && boardSquare < gBoardSize)
+      if (boardSquare >= gBoardSize-gBoardLength && boardSquare < gBoardSize)
 	return TRUE;
       else
 	return FALSE;
     case DOWNLEFT:
-      if ((boardSquare >= gBoardSize-gSideLength && boardSquare < gBoardSize) ||
-	  (boardSquare % gSideLength == 0))
+      if ((boardSquare >= gBoardSize-gBoardLength && boardSquare < gBoardSize) ||
+	  (boardSquare % gBoardLength == 0))
 	return TRUE;
       else
 	return FALSE;
     case LEFT:
-      if (boardSquare % gSideLength == 0)
+      if (boardSquare % gBoardLength == 0)
 	return TRUE;
       else
 	return FALSE;
     case UPLEFT:
-      if ((boardSquare >= 0 && boardSquare < gSideLength) ||
-	  (boardSquare % gSideLength == 0))
+      if ((boardSquare >= 0 && boardSquare < gBoardLength) ||
+	  (boardSquare % gBoardLength == 0))
 	return TRUE;
       else
 	return FALSE;
@@ -1231,29 +1242,28 @@ Direction oppositeDirection(Direction direction)
 
 
 /**************************************************************************
- ** returns initial position using gBoardSize and gSideLength.  Called from
+ ** returns initial position using gBoardSize and gBoardLength.  Called from
  ** InitializeGame().
  *************************************************************************/
-POSITION calcInitialPosition()
+POSITION setInitialPosition()
 {
   int i;
   POSITION initialPos;
   //char* board = (char*)SafeMalloc(sizeof(char) * (gBoardSize+1));
-
   
   for (i = 0; i < gBoardSize; i++) {
-    if ((i > 0 && i < gSideLength-1) || (i < gBoardSize-1 && i > gBoardSize-gSideLength))
+    if ((i > 0 && i < gBoardLength-1) || (i < gBoardSize-1 && i > gBoardSize-gBoardLength))
       gBoard[i] = BLACK;
-    else if ((i % gSideLength == 0) || (i % gSideLength == gSideLength-1))
+    else if ((i % gBoardLength == 0) || (i % gBoardLength == gBoardLength-1))
       gBoard[i] = WHITE;
     else
       gBoard[i] = BLANK;
   }
   gBoard[0] = BLANK;
-  gBoard[gSideLength-1] = BLANK;
-  gBoard[gBoardSize-gSideLength] = BLANK;
+  gBoard[gBoardLength-1] = BLANK;
+  gBoard[gBoardSize-gBoardLength] = BLANK;
   gBoard[gBoardSize-1] = BLANK;
-  //gBoard[gBoardSize] = '\0';
+  gBoard[gBoardSize] = '\0';
   
   initialPos = generic_hash_hash(gBoard, PLAYERBLACK);
   //initialPos = boardHash(gBoard, PLAYERBLACK);
@@ -1288,14 +1298,14 @@ int goInDirection(Direction direction)
 {
   
   switch(direction) {
-  case UP: return -gSideLength;
-  case UPRIGHT: return -gSideLength+1;
+  case UP: return -gBoardLength;
+  case UPRIGHT: return -gBoardLength+1;
   case RIGHT: return 1;
-  case DOWNRIGHT: return gSideLength+1;
-  case DOWN: return gSideLength;
-  case DOWNLEFT: return gSideLength-1;
+  case DOWNRIGHT: return gBoardLength+1;
+  case DOWN: return gBoardLength;
+  case DOWNLEFT: return gBoardLength-1;
   case LEFT: return -1;
-  case UPLEFT: return -gSideLength-1;
+  case UPLEFT: return -gBoardLength-1;
   default: return 0;
   }
 }
@@ -1306,8 +1316,8 @@ MOVE moveHash(STRING input)
   int startSquare, endSquare;
 
   // input[0] is the letter and input[1] is the number
-  startSquare = input[0] - 'a' + (gSideLength - (input[1] - '0'))*gSideLength;
-  endSquare = input[2] - 'a' + (gSideLength - (input[3] - '0'))*gSideLength;
+  startSquare = input[0] - 'a' + (gBoardLength - (input[1] - '0'))*gBoardLength;
+  endSquare = input[2] - 'a' + (gBoardLength - (input[3] - '0'))*gBoardLength;
   move = endSquare + startSquare*100;
   //printf("startsquare = %d, endSquare = %d\n", startSquare, endSquare);
   return move;
@@ -1321,12 +1331,12 @@ STRING moveUnhash(MOVE move)
 
   endSquare = move % 100;
   startSquare = move/100;
-  number = '0' + (gSideLength - startSquare / gSideLength);
-  letter = (startSquare % gSideLength) + 'a';
+  number = '0' + (gBoardLength - startSquare / gBoardLength);
+  letter = (startSquare % gBoardLength) + 'a';
   moveString[0] = letter;
   moveString[1] = number;
-  number = '0' + (gSideLength - endSquare / gSideLength);
-  letter = (endSquare % gSideLength) + 'a';
+  number = '0' + (gBoardLength - endSquare / gBoardLength);
+  letter = (endSquare % gBoardLength) + 'a';
   moveString[2] = letter;
   moveString[3] = number;
   moveString[4] = '\0';
@@ -1390,6 +1400,10 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.7  2006/11/29 06:43:06  alb_shau
+ ** Added a game specific menu, added ability to resize the board, added help
+ ** strings and misere support
+ **
  ** Revision 1.6  2006/10/18 09:09:39  alb_shau
  ** Fixed some bugs with Primitive, GenerateMoves, and moveHash.  Going to demo
  ** soon and generic hash wasn't letting me use boards bigger than 4x4 so I wrote
