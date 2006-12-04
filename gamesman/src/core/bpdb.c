@@ -32,13 +32,12 @@
 
 /*
 TODO:
-1. set better init sizes
+*1. set better init sizes
 2. go again support
-3. load all schemes so that all dbs can be loaded, but don't use all schemes
+*3. load all schemes so that all dbs can be loaded, but don't use all schemes
    for saving
 1. SUPPORT tiers
-2. possibly hardcode value as a slot?
-3. **fix bit widths from shrinks and grows
+2. **fix bit widths from shrinks and grows
 
 Note:
 1. supports up to 256 slices each 64-bits in size
@@ -399,7 +398,7 @@ GMSTATUS
 bpdb_free_slice( SLICE sl )
 {
     GMSTATUS status = STATUS_SUCCESS;
-    int i = 0;
+              int i = 0;
 
     if(NULL == sl) {
         status = STATUS_INVALID_INPUT_PARAMETER;
@@ -664,9 +663,9 @@ bpdb_set_slice_slot_max(
     
     byteOffset += bitOffset / BITSINBYTE;
     bitOffset %= BITSINBYTE;
-//    printf("ENTER\n");
+
     bitlib_insert_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->maxvalue[index]+1, bpdb_slice->size[index] );
-//    printf("LEAVE\n");
+
     return bpdb_slice->maxvalue[index]+1;
 }
 

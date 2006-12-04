@@ -76,7 +76,7 @@ bpdb_generic_varnum_init( ) {
 
     bpdb_generic_varnum_precomputed_gap_bits[0] = 3;
 
-    for(i=1; i<64; i++) {
+    for(i=1; i<32; i++) {
         bpdb_generic_varnum_precomputed_gap_bits[i] = bpdb_generic_varnum_precomputed_gap_bits[i-1] + (1<<(i+1));
         //printf("%d %llu\n", i, bpdb_generic_varnum_precomputed_gap_bits[i]);
     }
