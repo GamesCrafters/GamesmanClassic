@@ -3,10 +3,12 @@
 
 // Type Declarations
 
-typedef float(*scalingFunction)(float,int[]);
+
+typedef float(*scalingFunction)(float,float[]);
 
 typedef float(*featureEvaluatorCustom)(POSITION);
 typedef float(*featureEvaluatorLibrary)(void*,void*,int[]);
+
 
 typedef enum f_type {
   library, custom
@@ -23,7 +25,7 @@ typedef struct fNode{
   BOOLEAN perfect;
   TYPE type; //custom or library
   void* piece; //the piece that this trait centers on
-  int scaleParams[4];
+  float scaleParams[4];
   int evalParams[4];
   scalingFunction scale;
   featureEvaluatorCustom fEvalC;
@@ -33,19 +35,34 @@ typedef struct fNode{
 
 // Function Prototypes
 
-int numPieces(void*,void*);
-int numFromEdge(void*,void*,int);
-double clustering(void*,void*);
-int connections(void*,void*,void*,BOOLEAN);
-fList loadDataFromXML(STRING);
-fList parse_element(scew_element*, fList);
-featureEvaluatorLibrary getSEvalLibFnPtr(STRING);
-featureEvaluatorCustom getSEvalCustomFnPtr(STRING);
-BOOLEAN initializeStaticEvaluator(STRING);
-float evaluatePosition(POSITION p);
-float linear(float,int[]);
-float logarithmic(float,int[]);
-float logistic(float,int[]);
-float quadratic(float,int[]);
+//test
+void* linearUnhash(int);
+void* getInitialPlayerPiece();
+void* getOpponentPlayerPiece();
+void* getBlankPiece();
+//end test
 
+int numPieces(void*,void*,int[]);
+int numFromEdge(void*,void*,int[]);
+float clustering(void*,void*,int[]);
+int connections(void*,void*,int[]);
+//fList loadDataFromXML(STRING);
+//fList parse_element(scew_element*, fList);
+//featureEvaluatorLibrary getSEvalLibFnPtr(STRING);
+//featureEvaluatorCustom getSEvalCustomFnPtr(STRING);
+//BOOLEAN initializeStaticEvaluator(STRING);
+float evaluatePosition(POSITION p);
+float linear(float,float[]);
+float logarithmic(float,float[]);
+float logistic(float,float[]);
+float quadratic(float,float[]);
+
+void NewTraitMenu();
+fList ParameterizeTrait(int);
+void ParameterizeScalingFunction(fList);
+void ParameterizeWeightingFunction(fList);
+char printList(STRING[],int,char);
+void RequestPiece(fList);
+void RequestBoolean(STRING,int,fList);
+void RequestValue(STRING,int,int,fList);
 #endif
