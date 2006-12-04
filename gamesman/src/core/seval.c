@@ -25,6 +25,8 @@
   of LibInitialize by the module. For information see mlib.c and mlib.h.*/
 #include "mlib.h"
 #include "seval.h"
+#include <scew/scew.h>
+
 
 #define compare(slot,piece,board) !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)
 #define getSlot(row,col) (row*lBoard.cols+col)
@@ -33,6 +35,64 @@
 #define min(a,b) (a<=b ? a : b)
 
 fList featureList;
+char* LibraryTraits[] = {"Number of pieces","Distance from edge","Clustering","Connections"};
+int numLibraryTraits = 4;
+
+/************************************************************************
+**
+** TEST
+**
+************************************************************************/
+int numCustomTraits = 2;
+char* CustomTraits[] = {"Hell","Yeah"};
+
+int* board;
+
+void* linearUnhash(int p) {
+  return (void*) board;
+}
+
+//Try something like BlankOX
+
+int XPiece = 2;
+int OPiece = 1;
+int BlankPiece = 0;
+
+void* getInitialPlayerPiece() {
+  return &XPiece;
+}
+
+void* getOpponentPlayerPiece() {
+  return &OPiece;
+}
+
+void* getBlankPiece() {
+  return &BlankPiece;
+}
+
+int main() {
+  float value;
+  int board[9];
+  int i;
+
+  NewTraitMenu();
+
+  printf("Static evaluator parameterized\n");
+
+  while(TRUE) {
+    
+    for(i=0;i<9;i++) {
+      scanf("%d",board+i);
+    }
+    
+    value = evaluatePosition(0);
+  
+  }
+
+  return 0;
+}
+
+
 
 /************************************************************************
 **
@@ -53,6 +113,7 @@ featureEvaluatorLibrary getSEvalLibFnPtr(STRING fnName){
 fList parse_element(scew_element* element, fList tempList){
     scew_element* child = NULL;
     fList currFeature = NULL;
+    fList head = tempList;
     
     printf("Parsing...\n");
     
@@ -62,6 +123,7 @@ fList parse_element(scew_element* element, fList tempList){
     }
     
     if(strcmp(scew_element_name(element),"feature")==0){
+      STRING type = NULL;
       currFeature = SafeMalloc(sizeof(struct fNode));
       //contents = scew_element_contents(element);
       scew_attribute* attribute = NULL;
@@ -81,57 +143,46 @@ fList parse_element(scew_element* element, fList tempList){
       while ((attribute = scew_attribute_next(element, attribute)) != NULL)
       {
       
-	        printf("Parsing attributes...\n");
+	printf("Parsing attributes...\n");
       
-	        if(strcmp(scew_attribute_name(attribute),"name")==0){
-	          currFeature->name = (char *)SafeMalloc( (strlen(scew_attribute_value(attribute))+1) * sizeof(char));
-	          strcpy(currFeature->name, scew_attribute_value(attribute));	  
-	        }
-	        else if(strcmp(scew_attribute_name(attribute),"type")==0)
-	          currFeature->type = strcmp((char *)scew_attribute_value(attribute),"custom")==0? custom : library;
-	        else if(strcmp(scew_attribute_name(attribute),"weight")==0)
-	          currFeature->weight = strtod(scew_attribute_value(attribute),NULL);
-	        else if(strcmp(scew_attribute_name(attribute),"scaling")==0){
-	            if(strcmp(scew_attribute_name(attribute),"linear")==0)
-	              currFeature->scale = &linear;
-	            else if(strcmp(scew_attribute_name(attribute),"logarithmic")==0)
-	              currFeature->scale = &logarithmic;
-	            else if(strcmp(scew_attribute_name(attribute),"logistic")==0)
-	              currFeature->scale = &logistic;
-	            else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
-	              currFeature->scale = &quadratic;
-	        }
-	        else if(strcmp(scew_attribute_name(attribute),"perfect")==0)
-	          currFeature->perfect = (strcmp(scew_attribute_name(attribute),"true")==0)?TRUE:FALSE;
-	        else if(strcmp(scew_attribute_name(attribute),"piece")==0){
-	          if( (char *)scew_attribute_value(attribute)!=NULL && strlen((char *)scew_attribute_value(attribute))==1 )
-	            currFeature->piece = ((char *)scew_attribute_value(attribute))[0];
-	          else{
-	            BadElse("parse_element");
-	            printf("Piece must be one char long. Bad piece='%s'", (char *)scew_attribute_value(attribute));
-	          }
-	        }
-	        else{
-	          BadElse("parse_element");
-	          printf("Bad attribute=\"%s\"",(char *)scew_attribute_value(attribute));
-	        }
+	if(strcmp(scew_attribute_name(attribute),"name")==0)
+	  currFeature->name = (char *)scew_attribute_value(attribute);
+	else if(strcmp(scew_attribute_name(attribute),"type")==0)
+	  type = (char *)scew_attribute_value(attribute); // Not sure if we have the name yet
+	else if(strcmp(scew_attribute_name(attribute),"weight")==0)
+	  currFeature->weight = strtod(scew_attribute_value(attribute),NULL);
+	else if(strcmp(scew_attribute_name(attribute),"scaling")==0){
+	  if(strcmp(scew_attribute_name(attribute),"linear")==0)
+	    currFeature->scale = &linear;
+	  else if(strcmp(scew_attribute_name(attribute),"logarithmic")==0)
+	    currFeature->scale = &logarithmic;
+	  else if(strcmp(scew_attribute_name(attribute),"logistic")==0)
+	    currFeature->scale = &logistic;
+	  else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
+	    currFeature->scale = &quadratic;
+	}
+	else if(strcmp(scew_attribute_name(attribute),"perfect")==0)
+	  currFeature->perfect = (strcmp(scew_attribute_name(attribute),"true")==0)?TRUE:FALSE;
       }
+      
       
       printf("Done Parsing attributes...");
       
       // Now we should have the name
-      if( currFeature->type == custom )
-	      currFeature->fEvalC = (featureEvaluatorCustom)getSEvalCustomFnPtr(currFeature->name);
+      if( strcmp(type, "custom")==0 )
+	currFeature->fEvalC = (featureEvaluatorCustom)getSEvalCustomFnPtr(currFeature->name);
       else
-	      currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
+	currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
       
       if((currFeature->fEvalC == NULL) && (currFeature->fEvalL == NULL)){
-	      printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
-	      return NULL;
+	printf("A function for feature \"%s\" could not be found!\n",currFeature->name);
+	return NULL;
       }
       
-      currFeature->next = tempList;
-      tempList = currFeature;
+      if(tempList!=NULL)
+	tempList->next = currFeature;
+      else
+	head = tempList = currFeature;
       //contents = scew_element_contents(element);
     }
     
@@ -142,10 +193,17 @@ fList parse_element(scew_element* element, fList tempList){
     child = NULL;
     while ((child = scew_element_next(element, child)) != NULL)
     {
-      tempList = parse_element(child, tempList);
+      if( head==NULL )
+	head = parse_element(child, tempList);
+      else
+	parse_element(child, tempList);
+      
+      // If we got a feature, advance the feature list
+      if(tempList!=NULL && tempList->next!=NULL)
+	tempList = tempList->next;
     }
     
-    return tempList;
+    return head;
 }
 
 fList loadDataFromXML(STRING fileName){
@@ -207,10 +265,11 @@ float evaluatePosition(POSITION p){
   fList features = featureList;
   float valueSum = 0;
   float weightSum = 0;
+  
+  void* board = (void*) linearUnhash(p); //temporary hack
 
   while(features!=NULL){
     if(features->type == library) {
-      void* board = (void*) gCustomUnhash(p); //temporary hack
       valueSum += features->weight * features->scale((*(features->fEvalL))(board,features->piece,features->evalParams),
 						     features->scaleParams);  
     } else if(features->type == custom) {
@@ -264,6 +323,205 @@ float quadratic(float value, int params[]){
 
 /************************************************************************
 **
+** Text interface
+**
+************************************************************************/
+
+void NewTraitMenu() {
+  char nextItem;
+  char choice;
+  int traitNum;
+
+  while(TRUE) {
+
+    printf("\nSelect a new trait to add to the static evaluator\n");
+  
+    nextItem = printList(LibraryTraits,numLibraryTraits,'a');
+    nextItem = printList(CustomTraits,numCustomTraits,nextItem);
+
+    printf("%c) Done\n",nextItem);
+    
+    while(TRUE) {
+      choice = getMyChar();
+      traitNum = (int) (choice-97);
+
+      if(choice < 97 || choice > nextItem+1) {
+	printf("\nInvalid menu option, select again\n");
+      } else {
+	break;
+      }
+    }
+
+    if(choice = nextItem) { //Done
+      break;
+    } else {
+      ParameterizeTrait(traitNum);
+    }
+  } 
+}
+
+fList ParameterizeTrait(int traitNum) {
+  fList currFeature = SafeMalloc(sizeof(struct fNode));
+  char choice;
+
+  switch(traitNum) {
+  case 0:
+    RequestPiece(currFeature);
+    break;
+  case 1:
+    RequestPiece(currFeature);
+    RequestValue("\nWhich edge should this pertain to?\n\n0) Top\n1) Right\n2) Bottom\nAnything else) Left",0,currFeature);
+    break;
+  case 2:
+    RequestPiece(currFeature);
+    break;
+  case 3:
+    RequestPiece(currFeature);
+    RequestBoolean("Should diagonals be considered?\n",0,currFeature);
+    break;
+  }    
+
+  if(traitNum > numLibraryTraits-1) {
+    currFeature->type = custom;
+    currFeature->name = CustomTraits[traitNum-numLibraryTraits];
+  } else {
+    currFeature->type = libary;
+    currFeature->name = LibraryTraits[traitNum];
+  }
+
+  ParameterizeScalingFunction(currFeature);
+  ParameterizeWeightingFunction(currFeature);
+
+  return currFeature;
+}
+
+void ParameterizeScalingFunction(fList currFeature) {
+  STRING valueChoice;
+  char choice;
+  
+  printf("\nWhat type of scaling function should be used for this trait?\n");
+  printf("A scaling function is a function that maps raw trait values to the range [-1,1]");
+  printf("\na) Linear - A line clipped at y=1 and y=-1\nb)Logistic - A shifted and scaled sigmoid function\nc)Quadratic - A parabola with vertex at either y=-1 (concave up) or y=1 (concave down)\n");
+  
+  while(TRUE) {
+    choice = getMyChar();
+    if(choice < 'a' || choice > 'c') {
+      printf("Invalid menu option, select again\n");
+    } else {
+      break;
+    }
+  }
+
+  switch(choice) {
+  case 'a':
+    currFeature->scalingFunction = &linear;
+    RequestValue("\nEnter value under which the evaluator will assign -1\n",0,1,currFeature);
+    RequestValue("\nEnter value above which the evaluator will assign 1\n",1,1,currFeature);
+    break;
+  case 'b':
+    currFeature->scalingFunction = &logistic;
+    RequestValue("\nEnter time shift of sigmoid function\n",0,1,currFeature);
+    RequestValue("\nEnter time scale of sigmoid function\n",1,1,currFeature);
+    break;
+  case 'c':
+    currFeature->scalingFunction = &quadratic;
+    RequestValue("\nEnter 0 for a concave down function, otherwise function will be concave up\n",0,1,currFeature);
+    RequestValue("\nEnter value under which evaluator will assign -1\n",1,1,currFeature);
+    RequestValue("\nEnter value above which evaluator will assign 1\n",2,1,currFeature);  
+    break;
+  }
+
+}
+
+void ParameterizeWeightingFunction(fList currFeature) {
+  float choice;
+  char temp[80];
+
+  printf("\nEnter the weighting of this trait to be used in calculating the final result\n");
+  
+  getMyStr(temp,80);
+  choice = atof(temp);
+
+  currFeature->weight = choice;
+}
+
+char printList(STRING list[],int length, char start) {
+  int i;
+
+  for(i=0;i<length;i++) {
+    printf("%c) %s",start,list[i]);
+    start++;
+  }
+  return start;
+}
+
+void RequestPiece(fList currFeature) {
+  char choice;
+
+  printf("\nDoes this pertain to the initial player's piece or opponent player's piece?\n");
+  printf("(Type 'o' for opponent, anything else for initial player)\n");
+
+  choice = getMyChar();
+
+  if (choice == 'o') {
+    currFeature->piece = getOpponentPlayerPiece();
+  } else {
+    currFeature->piece = getInitialPlayerPiece();
+  }
+}
+
+void RequestBoolean(STRING title,int paramNum,fList currFeature) {
+  char choice;
+
+  printf(title);
+  printf("(0 for false, 1 for true)\n");
+ 
+  while(TRUE) {
+    choice = getMyChar();
+    if(choice!='0' && choice!='1') {
+      printf("Invalid menu option, select again\n");
+    } else {
+      if(choice=='0') {
+	currFeature->evalParams[paramNum] = FALSE;
+      } else {
+	currFeature->evalParams[paramNum] = TRUE;
+      }
+      break;
+    }
+  }   
+}
+
+/**
+ *Retrieves int input from user.
+ *paramType=0 refers to evalParams, paramType=1 refers to scaleParams
+ */
+void RequestValue(STRING title,int paramNum,int paramType,fList currFeature) {
+  int choice;
+  float scaleChoice;
+  char temp[80];
+
+  printf(title);
+ 
+ 
+  if(paramType==0) {
+    choice = getMyInt();
+  } else {
+    getMyStr(temp,80);
+    scaleChoice = atof(temp);
+  }
+
+  if(paramType==0) {
+    currFeature->evalParams[paramNum] = choice;
+  } else if(paramType==1) {
+    currFeature->scaleParams[paramNum] = choice;
+  } else {
+    printf("ERROR, unknown param type\n");
+  }
+  
+}   
+
+/************************************************************************
+**
 ** Implementation of traits starts here.
 **
 ** Current list:
@@ -285,7 +543,7 @@ float quadratic(float value, int params[]){
 ************************************************************************/
 
 //Returns the number of the given piece on the board.
-int NumPieces(void* board,void* piece) {
+int NumPieces(void* board,void* piece, int params[]) {
   int i, count=0;
   for(i=0;i<lBoard.size;i++) {
     if (compare(i,piece,board)) {
@@ -298,8 +556,10 @@ int NumPieces(void* board,void* piece) {
 /*Returns the sum of the distance of each piece from the given edge of
 **the board. 0 = top, 1 = right, 2 = bottom, 3 = left.
 */
-int NumFromEdge(void* board,void* piece,int edge) {
+int NumFromEdge(void* board,void* piece,int params[]) {
   int count=0,i;
+  int edge = params[0];
+
   for(i=0;i<lBoard.size;i++) {
     if(compare(i,piece,board)) {
       if (edge==0) {
@@ -322,7 +582,7 @@ int NumFromEdge(void* board,void* piece,int edge) {
 **calculates the centroid, then measures the mean squared distance of all
 **pieces from the centroid.
 */
-double Clustering(void* board,void* piece) {
+double Clustering(void* board,void* piece,int params[]) {
   int rowAverage=0,colAverage=0,numPieces=0,i=0;
   double value=0;
   for(i=0;i<lBoard.size;i++) {
@@ -350,8 +610,13 @@ double Clustering(void* board,void* piece) {
 **A connection is defined as a string of blank spaces, possibly
 **diagonal, between two of the given piece.
 */
-int Connections(void* board,void* piece,void* blank, BOOLEAN diagonal) {
+int Connections(void* board,void* piece,int params[]) {
   int count=0,i,j,pathLength,loc,direction;
+  BOOLEAN diagonals = params[0];
+  void* blank = getBlankPiece();
+  
+  
+
   for(i=0;i<lBoard.size;i++) {
     if (compare(i,piece,board)) {
       for(direction = 3;direction<7; direction+= (lBoard.diagonals ? 1 : 2)) {	
