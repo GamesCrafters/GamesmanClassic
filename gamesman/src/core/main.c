@@ -231,6 +231,26 @@ void SolveAndStore()
         }
 }
 
+void SolveAndStoreTier(TIER tier) {
+		Initialize();
+        InitializeDatabases();
+        InitializeAnalysis();
+        gAnalysis.TotalMoves = 0;
+        Stopwatch();
+
+		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
+		if (gPrintDatabaseInfo)
+			printf("\nEvaluating the value of %s...", kGameName);
+		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
+		// MPI_SEND here?
+		RemoteSolveTier(tier);
+
+		showStatus(Clean);
+		AnalysisCollation();
+		gAnalysisLoaded = TRUE;
+		printf("done in %u seconds!\e[K", gAnalysis.TimeToSolve = Stopwatch()); /* Extra Spacing to Clear Status Printing */
+}
+
 /* Handles the command line arguments by setting flags and options
    declared in in globals.h */
 void HandleArguments (int argc, char *argv[])
@@ -368,6 +388,13 @@ void HandleArguments (int argc, char *argv[])
                         i++;
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();
+						return;
+				} else if(!strcasecmp(argv[i],"--solveTier")) {
+						if (argc < 3)
+							fprintf(stderr, "\nNeed a Tier to solve!\n\n");
+						else
+							SolveAndStoreTier(atoi(argv[2]));
+						gMessage = TRUE;
 						return;
 				} else {
                         fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);

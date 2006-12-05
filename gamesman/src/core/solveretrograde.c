@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.27 2006-12-03 06:30:23 max817 Exp $
+// $Id: solveretrograde.c,v 1.28 2006-12-05 19:05:24 max817 Exp $
 
 /************************************************************************
 **
@@ -1641,13 +1641,20 @@ void skipToNewline(FILE* fp) {
 
 
 
-/* ALL THE PARALLELIZATION STUFF *
+/* ALL THE PARALLELIZATION STUFF */
+
+// get the tierlist, in proper solve order:
+TIERLIST* RemoteGetTierSolveOrder() {
+	return CopyTierlist(checkAndDefineTierTree());
+}
 
 // new DetermineRetrogradeValue
-VALUE DetermineRetrogradeValue(TIER tier) {
+void RemoteSolveTier(TIER tier) {
 	variant = getOption();
+	tierSolveList = solveList = solvedList = NULL;
+	numTiers = 1; numSolved = 0;
 	tierNames = checkLegality = forceLoopy = checkCorrectness = FALSE;
-	useUndo = TRUE;
+	useUndo = FALSE; //should be TRUE?
 
 	if (gGenerateUndoMovesToTierFunPtr == NULL || gUnDoMoveFunPtr == NULL) {
 		printf("-UnDoMove NOT GIVEN\nUndoMove Use Disabled\n");
@@ -1660,10 +1667,9 @@ VALUE DetermineRetrogradeValue(TIER tier) {
 	SolveTier();
 
 	printf("Exiting Retrograde Solver...\n\n");
-    return undecided; //just bitter at the fact that this is ignored
 }
 
-
+/*
 // new SolveTier
 void SolveTier() {
 	numSolved = trueSizeOfTier = 0;
@@ -1847,4 +1853,5 @@ void SolveWithLoopyAlgorithm() {
 	}
 	assert(numSolved == trueSizeOfTier);
 }
+
 */
