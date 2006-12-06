@@ -414,6 +414,17 @@ BOOLEAN	TierInList(TIER theTier, TIERLIST* theTierlist)
 		return FALSE;
 }
 
+// removes the tier from the list
+BOOLEAN	RemoveTierFromList (TIER theTier, TIERLIST* theTierlist) {
+	if (!TierInList(theTier, theTierlist))
+		return FALSE;
+	theTierlist = MoveToFrontOfTierlist(theTier, theTierlist);
+	TIERLIST* temp = theTierlist;
+	theTierlist = theTierlist->next;
+	SafeFree(temp);
+	return TRUE;
+}
+
 // list constructor function for UndoMoveLists:
 UNDOMOVELIST *CreateUndoMovelistNode(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove)
 {

@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.29 2006-12-06 02:24:04 max817 Exp $
+// $Id: solveretrograde.c,v 1.30 2006-12-06 03:00:42 max817 Exp $
 
 /************************************************************************
 **
@@ -297,6 +297,7 @@ void PrepareToSolveNextTier() {
 // we just solved the current tier, now go to the next
 // returns TRUE if there's more tiers to solve, false otherwise
 BOOLEAN gotoNextTier() {
+	// NOTE: should change to use RemoveTierFromList
 	TIERLIST* temp = solveList;
 	solveList = solveList->next;
 	solvedList = CreateTierlistNode(temp->tier, solvedList);
@@ -1706,10 +1707,17 @@ int RemoteGetTierDependencies(TIER tier) {
 void RemoteSolveTier(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 	gInitializeHashWindow(tier, TRUE);
 	PercentDone(Clean); //reset percentage bar
-
 	SolveTier();
+}
 
-	printf("Exiting Retrograde Solver...\n\n");
+BOOLEAN RemoteIsTierReadyToMerge(TIER tier) {
+	// this checks through all the mini-files.
+	// for now it's hacked so it just checks for the main DB
+	return (CheckTierDB(tier, variant) == 1);
+}
+
+void RemoteMergeToMakeTierDB(TIER tier) {
+	// for now this does nothing, since the tierdb IS there
 }
 
 /*
