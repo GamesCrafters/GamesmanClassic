@@ -1,0 +1,13 @@
+[Description]
+	Achi is one of the many traditional Morris type games that involve placing pieceson a board to connect three in a row. The game originated in Ghana where it is often played by children who use pebbles and sticks as pieces. Various versions of Achi are played all over the world from China, where it is known as Luk tsu k'i to France where the center point cannot be used as the first move. Large stones dating back to the third or fourth century AD have even been found in northern England.
+
+[Rules]
+Rules:
+
+The game is played on the nine points of intersection. Players start out with three pieces and alternate turns placing their pieces on any unoccupied point. The process is repeated until all counters are placed on a board. In the second phase, the first player slides his or her piece to an adjacent, vacant intersection point. The first player to get three in a row is the winner.
+
+To move: There are two types of moves in Achi: place moves and slide moves. In a place move, you place three pieces on a board. Once all of your three pieces are on the board, you make a slide move by selecting a piece to a connected and unoccupied spot.
+
+To win:  To get three in a row either horizontally, vertically or diagonally.
+
+To win misere: Force your opponent to get three in a row.

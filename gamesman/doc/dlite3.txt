@@ -1,0 +1,12 @@
+[Rules]
+Rules:
+
+Lite 3 is a game very similar to Tic Tac Toe. The game is for two players. The only rule added to this game is that when a player has four of the squares selected on the board, the first square that the player selected becomes neutral again.
+
+To move: Select an open slot.
+
+To win: Be the first player to get three of your pieces in a row either horizontally, vertically or diagonally.
+
+To win misere: Force your opponent to connect three of his pieces in a row either horizontally, vertically or diagonally.
+
+Variants: Surround and three in a row surround.

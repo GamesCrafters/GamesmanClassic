@@ -1,0 +1,22 @@
+[Description]
+	Asalto or Assault is a variation of the popular Fox games, where one player is a fox and the other is a geese or sheep. The game has its origins in Spain and England as well as France, where it is known as Assaut. "
+
+[Rules]
+Rules:
+
+The Pieces:
+There are 24 pieces of one color, which will be foot solidiers and 2 pieces of another color, which are officers or sharpshooters.
+
+To move: Officers may move in any direction, one space at a time along the lines. Foot soldiers can only move forward, diagonally or sideways. They cannot move backwards. While they cannot jump the officers, they must try to trap them in the battlefiled or the fortress to win.
+
+Capturing: An officer can capture by jumping over the solider if the next available space is vacant.
+
+To win: The foot soldiers win by either occupying every point of the fortress or by trapping the soliders inside the fortress or on the battlfield. The officers, on the other hand, try to capture the soldiers on the battlefield or the fortress. In order to win they must capture at least 15 soldiers.
+
+The board is initially arranged so that the top nine holes in one arm of the cross contains the two officers or sharp shooters. They may be arranged anywhere within their fortress. The 24 soldiers are placed outside the fortress. The sharp shooter or officers go first in this game. They are allowed to move in any direction along the lines one space at a time. They can capture by jumping over the soldier into a vacant space. Soldiers are allowed to jump and capture as many times as they can on their turn as long as they are able to land in a vacant space after each capture. Play then alternates to the soldier, who are only allowed to move forward and diagonally. On their move, soldiers should attempt to trap officers inside the fortress or battlefield. They are not allowed to jump. A variation of game involves huffled where the officer is removed from the board if he does not capture a soldier when he is able to do so.
+
+Variants:
+Huffled: An officer is removed from the game if he does not capture a soldier if the move is available.
+Diagonals: Variations of the game can be played without the diagonals.
+Movement: Alter the rules so that the officers are not allowed to move backwards.
+Number of Officers: Change the number of officers from two to three in the fortress.

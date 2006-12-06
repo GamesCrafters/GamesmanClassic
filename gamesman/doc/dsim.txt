@@ -1,0 +1,10 @@
+[Rules]
+Rules:
+
+Also known as Honeycomb, Sim can be finished in less than 15 moves. The game starts out with six dots. Players take turns connecting 2 of these dots with a line. A line cannot be drawn twice and lines of the same color cannot form a triangle of if its end points are part of the outer dots.
+
+To move: The first player may either move one or two spaces on his or her turn.
+
+To win: Force your opponent to complete a triangle.
+
+To win misere: To complete a triangle before your opponent.

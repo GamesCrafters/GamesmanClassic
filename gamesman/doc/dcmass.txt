@@ -1,0 +1,8 @@
+[Rules]
+Rules:
+
+Players alternate turns placing pieces into any box that does not contain the opponent's color. If the box fills up it explodes and all the pieces in the box are removed except for one. The remaining pieces are distributed to each adjacent box and each box becomes the color of the player whose caused the explosion.
+
+To move: Place a piece into an open box that does not have the opponent's color.
+
+To win: Completeley remove all of your opponent's pieces.

@@ -1,0 +1,14 @@
+[Description]
+	Dao is a simple puzzle game that involves moving a counter one or two spaces. Due to the lack of documentation when Dao was created, there is currently no information as to how this game came into existence. The company that made the game was Reveal Entertainment, Inc.
+
+[Rules]
+Rules:
+
+To move: Pieces have to move (one piece per turn) as many open positions that are available to them.
+
+To win: To win, the player can either form a straight line with 4 of their own pieces, occupy the four corners of the board, or forming a 2 x 2 square with their pieces anywhere on the playing board.
+The beginning setup is that each player will form an X that is aligned diagonally from the corners of the board. Dao will be played on a 4 x 4 dimensional board where each player will take turns moving their colored pieces in a straight line towards any available, or open positions including diagonally. Players are not allowed to jump over their opponents pieces or enter a position that is already occupied. The objective of this game is for each player to move their pieces as far as possible during each turn, till their pieces reach the end of the board or till their pieces reach another one of own pieces. During each turn, players has to move as many spaces as there are open positions in their path (i.e. if there are 3 open spaces in Player 1 direction, Player 1 must move 3 spaces).
+A player is declared the victor if any of these following conditions are met:
+-Forming a straight line with all 4 of their pieces (diagonal lines do not count).
+-Occupying all 4 corners of the board with their pieces.
+-Forming a 2 x 2 square with their pieces.

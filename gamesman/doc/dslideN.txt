@@ -1,0 +1,8 @@
+[Rules]
+Rules:
+
+The first player places his piece into the first slot on the diamond shaped board from either the right or left side. The next player may slide his piece into a top open slot or slide his opponent's piece to the adjacent square. When the row is filled players are not allowed to place any more pieces.
+
+To move: The first player may either move one or two spaces on his or her turn.
+
+To win: Connect three in a row in any direction.

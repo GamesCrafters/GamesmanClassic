@@ -1,0 +1,10 @@
+[Rules]
+Rules:
+
+Players alternate turns flipping the bars either horizontally or vertically. Play continues until one person gets all three horizontal or all three vertical pieces in a row.
+
+To move: Select a think vertical or horizontal bar to place it in the square. Once a piece is placed, players may flip the piece horizontally or vertically.
+
+To win: Be the first player to get three horizontal or vertical pieces in a row.
+
+To win misere: To force your opponent to get three horizontal or vertical pieces in a row.

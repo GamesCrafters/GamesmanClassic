@@ -1,0 +1,13 @@
+[Description]
+	The game of Dots and Boxes was studied extensively by Elwyn Berlekamp, who in the late 1960s presented the Dots and Boxes theorem at the University of Calgary.
+
+[Rules]
+Rules:
+
+Players take turns connecting horizontal or vertical lines between dots. After winning one or more boxes, the player places another line. The player's turn ends when he or she cannot make a box.
+
+To move: Connect any vertical or horizontal line between the dots.
+
+To win: To create the most boxes.
+
+To win misere: Force your opponent into creating the most boxes.

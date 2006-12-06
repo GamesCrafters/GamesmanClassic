@@ -1,0 +1,13 @@
+[Description]
+	Four-In-A-Row has its roots in Tic-Tac-Toe, a simple three in a row pencil and paper game. The object of the game is to get four pieces in a row. Four-In-A-Row, also, adds the element of restricted placement by requiring the players to 'drop' the pieces vertically down the board. In America, this game was popularized under the name Connect Four.
+
+[Rules]
+Rules:
+
+The players take turns dropping pieces into the slots. These pieces fall to the bottom of the board and the game continues until one player has four in a row and wins or until the board fills up, which results in a tie.
+
+To move: The player drops his or her piece into one of the open slots.
+
+To win: To get three in a row, vertically, horizontally or diagonally.
+
+To win misere: To force your opponent into getting three in a row.
