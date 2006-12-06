@@ -14,307 +14,307 @@ set textGameColor black
 set listFont "Helvetica 10"
 
 bind . <Key> {
-    global currentId theNumberOfPrograms thePrograms
-    #puts "Pressed %K"
-    set list .leftSide.list
-    set home .rightSide.home
+	global currentId theNumberOfPrograms thePrograms
+	#puts "Pressed %K"
+	set list .leftSide.list
+	set home .rightSide.home
 
-    switch %K {
+	switch %K {
 	Left -
 	Up {
-	    if {$currentId == -1} {
+		if {$currentId == -1} {
 		selectGame 0
-	    } elseif {$currentId > 0} {
+		} elseif {$currentId > 0} {
 		selectGame [expr $currentId - 1]
-	    }
+		}
 	}
 	Right -
 	Down {
-	    if {$currentId == -1} {
+		if {$currentId == -1} {
 		selectGame 0
-	    } elseif {$currentId < [expr $theNumberOfPrograms-1]} {
+		} elseif {$currentId < [expr $theNumberOfPrograms-1]} {
 		selectGame [expr $currentId + 1]
-	    }
+		}
 	}
 	Return -
 	KP_Enter {
-	    if {[guiExists $currentId]} {
+		if {[guiExists $currentId]} {
 		runGui $currentId
-	    } elseif {[isGame $currentId]} {
+		} elseif {[isGame $currentId]} {
 		runText $currentId
-	    }
+		}
 	}
 	Prior {$list [axisView] scroll -1 pages}
 	Next {$list [axisView] scroll 1 pages}
 	Home {selectGame 0}
 	End {selectGame [expr $theNumberOfPrograms -1]}
-    }
+	}
 }
 
 bind . <Control-Key> {
-    global currentId theNumberOfPrograms thePrograms
-    set list .leftSide.list
-    set home .rightSide.home
+	global currentId theNumberOfPrograms thePrograms
+	set list .leftSide.list
+	set home .rightSide.home
 
-    if {[string compare %K "h"] == 0 || [string compare %K "H"] == 0} {
+	if {[string compare %K "h"] == 0 || [string compare %K "H"] == 0} {
 	selectGame -1
-    } elseif {[string compare %K "q"] == 0 || [string compare %K "Q"] == 0} {
+	} elseif {[string compare %K "q"] == 0 || [string compare %K "Q"] == 0} {
 	exit
-    }
+	}
 }
 
 bind . <Configure> "Resize"
 
 ###HELPER FUNCTIONS###
 proc max {x y} {
-    if {$x > $y} {
+	if {$x > $y} {
 	return $x
-    } else {
+	} else {
 	return $y
-    }
+	}
 }
 proc getIdUnderMouse {canvas} {
-    set tags [$canvas gettags [$canvas find withtag current]]
-    set i [string replace [lindex $tags [lsearch $tags list*]] 0 3]
-    return $i
+	set tags [$canvas gettags [$canvas find withtag current]]
+	set i [string replace [lindex $tags [lsearch $tags list*]] 0 3]
+	return $i
 }
 proc listItemWidth {} {
-    global scrollDirection listFont
-    if {$scrollDirection == "vertical"} {
+	global scrollDirection listFont
+	if {$scrollDirection == "vertical"} {
 	return 160
-    }
-    return [expr [maxGameStringWidth $listFont] + 10]
+	}
+	return [expr [maxGameStringWidth $listFont] + 10]
 }
 proc listItemHeight {} {
-    global scrollDirection
-    if {$scrollDirection == "vertical"} {
+	global scrollDirection
+	if {$scrollDirection == "vertical"} {
 	return 60
-    }
-    return 80
+	}
+	return 80
 }
 proc maxGameStringWidth {font} {
-    global maxGameString theNumberOfPrograms
-    if {$maxGameString > 0} {
+	global maxGameString theNumberOfPrograms
+	if {$maxGameString > 0} {
 	return $maxGameString
-    }
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	if {[font measure $font [gameString $i]] > $maxGameString} {
-	    set maxGameString [font measure $font [gameString $i]]
 	}
-    }
+	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	if {[font measure $font [gameString $i]] > $maxGameString} {
+		set maxGameString [font measure $font [gameString $i]]
+	}
+	}
 }
 proc axisView {} {
-    global scrollDirection
-    if {$scrollDirection == "vertical"} {
+	global scrollDirection
+	if {$scrollDirection == "vertical"} {
 	return "yview"
-    }
-    return "xview"
+	}
+	return "xview"
 }
 proc setListLocation location {
-    global listLocation
-    set listLocation $location
-    if {$listLocation == "top" || $listLocation == "bottom"} {
+	global listLocation
+	set listLocation $location
+	if {$listLocation == "top" || $listLocation == "bottom"} {
 	horizontalScroll $listLocation
-    } else {
+	} else {
 	verticalScroll $listLocation
-    }
+	}
 }
 proc verticalScroll location {
-    global scrollDirection theNumberOfPrograms currentId
-    set scrollDirection vertical
-    set list .leftSide.list
-    set leftScroll .leftSide.leftScroll
-    pack forget .leftSide .rightSide $list $leftScroll
+	global scrollDirection theNumberOfPrograms currentId
+	set scrollDirection vertical
+	set list .leftSide.list
+	set leftScroll .leftSide.leftScroll
+	pack forget .leftSide .rightSide $list $leftScroll
 
-    CreateListButtons $list
-    $leftScroll configure -orient $scrollDirection \
+	CreateListButtons $list
+	$leftScroll configure -orient $scrollDirection \
 	-command "$list yview"
-    $list configure -width [listItemWidth] \
+	$list configure -width [listItemWidth] \
 	-scrollregion [list 0 1 [listItemWidth] [expr 1+$theNumberOfPrograms*[listItemHeight]]] \
 	-yscrollcommand "$leftScroll set" \
 	-xscrollcommand ""
 
-    pack .leftSide -fill y -side $location
-    pack .rightSide -fill both -side $location -expand 1
-    
-    pack $leftScroll -fill y -side $location
-    pack $list -fill y -side $location
+	pack .leftSide -fill y -side $location
+	pack .rightSide -fill both -side $location -expand 1
+	
+	pack $leftScroll -fill y -side $location
+	pack $list -fill y -side $location
 
-    Resize
-    $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
-    update
+	Resize
+	$list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
+	update
 
-    #save preference to file
-    set fileptr [open listLocation.txt w+]
-    puts $fileptr $location
-    close $fileptr
+	#save preference to file
+	set fileptr [open listLocation.txt w+]
+	puts $fileptr $location
+	close $fileptr
 }
 proc horizontalScroll location {
-    global scrollDirection theNumberOfPrograms currentId
-    set scrollDirection horizontal
-    set list .leftSide.list
-    set leftScroll .leftSide.leftScroll
-    pack forget .leftSide .rightSide $list $leftScroll
+	global scrollDirection theNumberOfPrograms currentId
+	set scrollDirection horizontal
+	set list .leftSide.list
+	set leftScroll .leftSide.leftScroll
+	pack forget .leftSide .rightSide $list $leftScroll
 
-    CreateListButtons $list
-    $leftScroll configure -orient $scrollDirection \
+	CreateListButtons $list
+	$leftScroll configure -orient $scrollDirection \
 	-command "$list xview"
-    $list configure -height [listItemHeight] \
+	$list configure -height [listItemHeight] \
 	-scrollregion [list 0 0 [expr 1+$theNumberOfPrograms*[listItemWidth]] [listItemHeight]] \
 	-yscrollcommand "" \
 	-xscrollcommand "$leftScroll set"
 
-    pack $leftScroll -fill x -side $location
-    pack $list -fill x -side $location
+	pack $leftScroll -fill x -side $location
+	pack $list -fill x -side $location
 
-    pack .leftSide -fill x -side $location
-    pack .rightSide -fill both -expand 1 -side $location
+	pack .leftSide -fill x -side $location
+	pack .rightSide -fill both -expand 1 -side $location
 
-    Resize
-    $list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
-    update
+	Resize
+	$list [axisView] moveto [max 0 [expr ($currentId-1.0)/$theNumberOfPrograms]]
+	update
 
-    #save preference to file
-    set fileptr [open listLocation.txt w+]
-    puts $fileptr $location
-    close $fileptr
+	#save preference to file
+	set fileptr [open listLocation.txt w+]
+	puts $fileptr $location
+	close $fileptr
 }
 proc pageWidth {} {
-    global scrollDirection
-    if {$scrollDirection == "vertical"} {
+	global scrollDirection
+	if {$scrollDirection == "vertical"} {
 	return [expr [winfo width .] - [listWidth]]
-    }
-    return [winfo width .]
+	}
+	return [winfo width .]
 }
 proc listWidth {} {
-    return 173
+	return 173
 }
 proc isGame {id} {
-    global theNumberOfPrograms
-    if {$id < 0 || $id >= $theNumberOfPrograms} {
+	global theNumberOfPrograms
+	if {$id < 0 || $id >= $theNumberOfPrograms} {
 	return false
-    }
-    return true
+	}
+	return true
 }
 proc gameName {id} {
-    global thePrograms
-    return [lindex $thePrograms $id]
+	global thePrograms
+	return [lindex $thePrograms $id]
 }
 proc pageName {id} {
-    if {$id == -1} {
+	if {$id == -1} {
 	return main
-    }
-    return [gameName $id]
+	}
+	return [gameName $id]
 }
 proc gameColor {id} {
-    global theGuiTypes
-    return [lindex $theGuiTypes $id]
+	global theGuiTypes
+	return [lindex $theGuiTypes $id]
 }
 proc textColor {id} {
-    if {[guiExists $id]} {
+	if {[guiExists $id]} {
 	return "black"
-    }
-    return "white"
+	}
+	return "white"
 }
 proc gameString {id} {
-    global theStrings
-    return [lindex $theStrings $id]
+	global theStrings
+	return [lindex $theStrings $id]
 }
 proc guiExists {id} {
-    global textGameColor
-    if {[isGame $id] == false || [gameColor $id] == $textGameColor} {
+	global textGameColor
+	if {[isGame $id] == false || [gameColor $id] == $textGameColor} {
 	return false
-    }
-    return true
+	}
+	return true
 }
 proc runGui {id} {
-    global thePrograms
-    set theGuiProgram "./Xm[lindex $thePrograms $id]"
-    exec /usr/bin/env wish -f $theGuiProgram &
+	global thePrograms
+	set theGuiProgram "./Xm[lindex $thePrograms $id]"
+	exec /usr/bin/env wish -f $theGuiProgram &
 }
 proc runText {id} {
-    global thePrograms
-    set theTextProgram "./m[lindex $thePrograms $id]"
-    exec /usr/bin/env xterm -n [gameString $id] -e $theTextProgram &
+	global thePrograms
+	set theTextProgram "./m[lindex $thePrograms $id]"
+	exec /usr/bin/env xterm -n [gameString $id] -e $theTextProgram &
 }
 proc guiImage { id scale } {
-    global theBitmapDir thePrograms
-    set theGif "$theBitmapDir/[lindex $thePrograms $id]100.gif"
-    catch { image delete guiImage$id }
-    image create photo guiImage$id -file $theGif
-    set imageName guiImage$id
-    if {$scale > 1} {
+	global theBitmapDir thePrograms
+	set theGif "$theBitmapDir/[lindex $thePrograms $id]100.gif"
+	catch { image delete guiImage$id }
+	image create photo guiImage$id -file $theGif
+	set imageName guiImage$id
+	if {$scale > 1} {
 	set scale [expr int($scale)]
 	set imageName [format guiImage%sZoom%s $id $scale]
 	catch { image delete $imageName }
 	image create photo $imageName
 	$imageName copy guiImage$id -zoom $scale
-    } elseif {$scale < 1} {
+	} elseif {$scale < 1} {
 	set scale [expr int(1/$scale)]
 	set imageName [format guiImage%sSubsample%s $id $scale]
 	catch { image delete $imageName }
 	image create photo $imageName
 	$imageName copy guiImage$id -subsample $scale
-    }
+	}
 
-    return $imageName
+	return $imageName
 }
 proc textImage {id scale} {
-    global theBitmapDir thePrograms
-    set theGif "$theBitmapDir/[lindex $thePrograms $id]100text.gif"
-    catch { image delete textImage$id }
-    image create photo textImage$id -file $theGif
-    set imageName textImage$id
-    if {$scale > 1} {
+	global theBitmapDir thePrograms
+	set theGif "$theBitmapDir/[lindex $thePrograms $id]100text.gif"
+	catch { image delete textImage$id }
+	image create photo textImage$id -file $theGif
+	set imageName textImage$id
+	if {$scale > 1} {
 	set scale [expr int($scale)]
 	set imageName [format textImage%sZoom%s $id $scale]
 	catch { image delete $imageName }
 	image create photo $imageName
 	$imageName copy textImage$id -zoom $scale
-    } elseif {$scale < 1} {
+	} elseif {$scale < 1} {
 	set scale [expr int(1/$scale)]
 	set imageName [format textImage%sSubsample%s $id $scale]
 	catch { image delete $imageName }
 	image create photo $imageName
 	$imageName copy textImage$id -subsample $scale
-    }
+	}
 
-    return $imageName
+	return $imageName
 }
 #pos can be "top","middle", or "bottom"
 proc selectGame {id args} {
-    global currentGame currentId calBlue theNumberOfPrograms
-    set list .leftSide.list
-    set home .rightSide.home
-    set leftScroll .leftSide.leftScroll
+	global currentGame currentId calBlue theNumberOfPrograms
+	set list .leftSide.list
+	set home .rightSide.home
+	set leftScroll .leftSide.leftScroll
 
-    set pos ""
-    if {[llength $args] > 0} {
+	set pos ""
+	if {[llength $args] > 0} {
 	set pos [lindex $args 0]
-    }
+	}
 
-    pack forget $home.$currentGame
-    if {[isGame $currentId]} {
+	pack forget $home.$currentGame
+	if {[isGame $currentId]} {
 	$list itemconfigure rect$currentId -fill [gameColor $currentId] \
-	    -outline RoyalBlue
+		-outline RoyalBlue
 	$list itemconfigure text$currentId -fill [textColor $currentId]
-    }
+	}
 
-    set currentId $id
-    set currentGame [pageName $id]
-    set width [pageWidth]
-    $home.$currentGame.title configure -width [expr $width - 20]
-    if { [isGame $currentId] == false } {
+	set currentId $id
+	set currentGame [pageName $id]
+	set width [pageWidth]
+	$home.$currentGame.title configure -width [expr $width - 20]
+	if { [isGame $currentId] == false } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
-    }
-    if { [info exists Desc($currentGame)] } {
+	}
+	if { [info exists Desc($currentGame)] } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
-    }
-    if { [info exists Rules($currentGame)] } {
+	}
+	if { [info exists Rules($currentGame)] } {
 	$home.$currentGame.rules configure -width [expr $width - 20]
-    }
-    pack $home.$currentGame -fill both -expand 1 -anchor nw
-    if {[isGame $currentId]} {
+	}
+	pack $home.$currentGame -fill both -expand 1 -anchor nw
+	if {[isGame $currentId]} {
 	$list itemconfigure rect$currentId -fill $calBlue -outline $calBlue
 	$list itemconfigure text$currentId -fill white
 
@@ -325,86 +325,157 @@ proc selectGame {id args} {
 	set diff [expr $last - $first]
 
 	if {$top < $first} {
-	    if {$pos == "middle"} {
+		if {$pos == "middle"} {
 		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
-	    } else {
+		} else {
 		$list [axisView] moveto $top
-	    }
+		}
 	}
 	if {$bottom > $last } {
-	    if {$pos == "middle"} {
+		if {$pos == "middle"} {
 		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
-	    } else {
+		} else {
 		$list [axisView] moveto [max 0 [expr $bottom - $diff]]
-	    }
+		}
 	}
-    }
+	}
 }
+
+proc parseCfg { in } {
+	set delim {\[(.+?)]}
+	set fieldDelim {=}
+	global thePrograms theStrings theGuiTypes
+	
+	if [catch {open "$in" {RDWR}} fin] {
+		return
+	}
+
+	set cfgName "Config"
+	set colorsName "Colors"
+	set gameName "game"
+	set colorField "color"
+	set nameField "basename"
+	set colors(0) "-1"
+	set cfgType 0
+	
+	while {![eof $fin]} {
+		gets $fin line
+				
+		if {[regexp $delim $line -> title] > 0} {
+			if {$title == $cfgName} {
+				set cfgType $cfgName
+			} elseif {$title == $colorsName} {
+				set cfgType $colorsName
+			} else {
+				set cfgType $gameName
+				lappend theStrings $title
+			}
+		}
+		
+		if {$cfgType == $cfgName} {
+			
+		} elseif {$cfgType == $colorsName} {
+			set parts [split $line $fieldDelim]
+			
+			if {[llength $parts] > 0} {
+				set field [lindex $parts 0]
+				set val [lindex $parts 1]
+				set colors($val) $field
+			}
+		} elseif {$cfgType == $gameName} {
+			set parts [split $line $fieldDelim]
+			
+			if {[llength $parts] > 0} {
+				set field [lindex $parts 0]
+				set val [lindex $parts 1]
+				
+				if {$field == $colorField} {
+					lappend theGuiTypes $colors($val)
+				} elseif {$field == $nameField} {
+					lappend thePrograms $val
+				}
+			}
+		}	
+	}
+	
+	close $fin
+}
+
+proc parseInfo { in } {
+	set delim {\[(.+?)]}
+	global Desc Rules
+	
+	if [catch {open "$in" {RDWR}} fin] {
+		return
+	}
+
+	set file [file tail $in]
+	set file [file rootname $file]
+	set file [string range $file 1 [expr [string length $file] - 1]]
+	#puts $file
+	set rulesName "Rules"
+	set descName "Description"
+	set cfgType 0
+	set buffer ""
+	while {![eof $fin]} {
+		gets $fin line
+				
+		if {[regexp $delim $line -> title] > 0} {
+			if {$cfgType == $rulesName} {
+				set Rules($file) $buffer
+			} elseif {$cfgType == $descName} {
+				set Desc($file) $buffer
+			}
+			
+			set buffer ""
+			if {$title == $rulesName} {
+				set cfgType $rulesName
+			} elseif {$title == $descName} {
+				set cfgType $descName
+			}
+		} else {
+			set buffer $buffer$line\n
+		}
+	}
+	
+	if {$cfgType == $rulesName} {
+		set Rules($file) $buffer
+	} elseif {$cfgType == $descName} {
+		set Desc($file) $buffer
+	}
+	
+	close $fin
+}
+
 ###END HELPER FUNCTIONS###
 proc main {} {
-    global theBitmapDir thePrograms theStrings theGuiTypes \
+	global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
 	calBlue calYellow scrollDirection listLocation maxGameString
 
-    set theBitmapDir "../bitmaps"
+	set theBitmapDir "../bitmaps"
+	
+	set thePrograms {}
+	set theStrings {}
+	set theGuiTypes {}
+	parseCfg "./games.txt"
+	
+	set theNumberOfPrograms [llength $thePrograms]
+	set currentGame main
+	set currentId -1
+	set maxGameString 0
 
-    set thePrograms { 1210 abalone achi asalto change ctoi win4 dao dinododgem dodgem dnb \
-			  hshogi iceblocks lewth lite3 mancala tore nim ooe \
-			  othello qx rubix seega slideN snake tactix ttt3 \
-			  wuzhi sim \
-			  \
-			  lgame \
-			  \
-			  3spot con cmass foxes stt \
-			  \
-			  1ton 9mm baghchal blocking fandan gobblet horse \
-			  joust nuttt pylos rcheckers rInfin2 squaredance \
-			  swans tilechess tootnotto ttc winkers xigua \
-		      }
+	menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
 
-    set theStrings  { "1,2,...,10" "Abalone" "Achi" "Asalto" "Change!" \
-			  "Chung-Toi" "Connect-4" "Dao" \
-			  "Dino Dodgem" "Dodgem" "Dots and Boxes" "Hasami Shogi" "Ice Blocks" \
-			  "Lewthwaite's Game" "Lite-3" "Mancala" "Mu Torere" \
-			  "Nim" "Odd or Even" "Othello" "QuickCross" \
-			  "Rubix Magic" "Seega" "Slide-N" "Snake" "Tac Tix" \
-			  "Tic-Tac-Toe" "Wuzhi" "Sim" \
-			  "L Game" \
-			  "3-Spot" "Connections!" "Critical Mass" \
-			  "Foxes and Geese" "Shift-Tac-Toe" \
-			  "1 TO N" "Nine Men's Morris" \
-			  "Bagh Chal" "Blocking" "Fandango" \
-			  "Gobblet Jr" "Horseshoe" "Joust" "Nu Tic-Tac-Toe" \
-			  "Pylos" "Rubik's Checkers" "Rubik's Infinity" \
-			  "Square Dance" "Dragons & Swans" "Tile Chess" \
-			  "Toot and Otto" "Tic-Tac-Chec" "Winkers" "XiGua" \
-		      }
-    set theGuiTypes { gold gold gold gold gold gold gold gold gold gold gold \
-			  gold gold gold gold gold gold gold gold gold gold \
-			  gold gold gold gold gold gold gold \
-			  gold grey \
-			  brown brown brown brown brown \
-			  black black black black black black black black \
-			  black black black black black black black black \
-			  black black black \
-		      }
+	canvas .leftSide -highlightthickness 0
+	canvas .rightSide -highlightthickness 0
 
-    set theNumberOfPrograms [llength $thePrograms]
-    set currentGame main
-    set currentId -1
-    set maxGameString 0
+	set list .leftSide.list
+	set leftScroll .leftSide.leftScroll
 
-    menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
+	set home .rightSide.home
 
-    canvas .leftSide -highlightthickness 0
-    canvas .rightSide -highlightthickness 0
-
-    set list .leftSide.list
-    set leftScroll .leftSide.leftScroll
-
-    set home .rightSide.home
-
-    scrollbar $leftScroll \
+	scrollbar $leftScroll \
 	-troughcolor $calBlue \
 	-background gold \
 	-borderwidth 0 \
@@ -412,228 +483,228 @@ proc main {} {
 	-highlightthickness 1 \
 	-highlightbackground RoyalBlue \
 	-width 13
-    canvas $list -background $calBlue -highlightthickness 0
+	canvas $list -background $calBlue -highlightthickness 0
 
-    canvas $home -background $calBlue -highlightthickness 0
+	canvas $home -background $calBlue -highlightthickness 0
 
-    pack .leftSide -fill y -side left
-    grid rowconfig    .leftSide 0 -weight 1 -minsize 0
-    grid columnconfig .leftSide 0 -weight 1 -minsize 0
-    pack .rightSide -fill both -side left -expand 1
-    
-    pack $home -fill both -side right -expand 1 -padx 0 -pady 0
+	pack .leftSide -fill y -side left
+	grid rowconfig    .leftSide 0 -weight 1 -minsize 0
+	grid columnconfig .leftSide 0 -weight 1 -minsize 0
+	pack .rightSide -fill both -side left -expand 1
+	
+	pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
-    set scrollDirection vertical
-    if {[catch {set fileptr [open listLocation.txt r]}]} {
+	set scrollDirection vertical
+	if {[catch {set fileptr [open listLocation.txt r]}]} {
 	set listLocation left
-    } else {
+	} else {
 	gets $fileptr listLocation
 	close $fileptr
-    }
+	}
 
-    CreateGamePages $home
-    CreateMenuItems .menu
-    CreateListButtons $list
+	CreateGamePages $home
+	CreateMenuItems .menu
+	CreateListButtons $list
 
-    setListLocation $listLocation
+	setListLocation $listLocation
 
-    $list bind all <Any-Enter> "scrollEnter $list"
-    $list bind all <Any-Leave> "scrollLeave $list"
-    $list bind all <1> "scrollButton $list"
-    $list bind all <Double-1> "scrollDoubleClick $list"
+	$list bind all <Any-Enter> "scrollEnter $list"
+	$list bind all <Any-Leave> "scrollLeave $list"
+	$list bind all <1> "scrollButton $list"
+	$list bind all <Double-1> "scrollDoubleClick $list"
 
-    bind $list <ButtonPress-4> "mouseWheelUp"
-    bind $list <ButtonPress-5> "mouseWheelDown"
+	bind $list <ButtonPress-4> "mouseWheelUp"
+	bind $list <ButtonPress-5> "mouseWheelDown"
 
-    bind $leftScroll <ButtonPress-4> "mouseWheelUp"
-    bind $leftScroll <ButtonPress-5> "mouseWheelDown"
+	bind $leftScroll <ButtonPress-4> "mouseWheelUp"
+	bind $leftScroll <ButtonPress-5> "mouseWheelDown"
 
-    . configure -menu .menu
+	. configure -menu .menu
 }
 
 proc CreateMenuItems menu {
-    global listLocation currentId currentGame
+	global listLocation currentId currentGame
 
-    set m $menu.file
-    menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
-    $menu add cascade -label "File" -menu $m -underline 0
-    $m add command -label "Home" \
+	set m $menu.file
+	menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
+	$menu add cascade -label "File" -menu $m -underline 0
+	$m add command -label "Home" \
 	-underline 0 \
 	-command "selectGame -1" \
 	-accelerator <ctrl-h>
-    $m add command -label "Quit" \
+	$m add command -label "Quit" \
 	-underline 0 \
 	-command exit \
 	-accelerator <ctrl-q>
 
-    set m $menu.games
-    menu $m -tearoff 1 -borderwidth 0 -activeborderwidth 1
-    $menu add cascade -label "Games" -menu $m -underline 0
-    global theNumberOfPrograms
-    set height [winfo height .]
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set m $menu.games
+	menu $m -tearoff 1 -borderwidth 0 -activeborderwidth 1
+	$menu add cascade -label "Games" -menu $m -underline 0
+	global theNumberOfPrograms
+	set height [winfo height .]
+	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set cBreak 0
 	if {[$m yposition $i] > [expr $height-40]} {
-	    set cBreak 1
+		set cBreak 1
 	}
 	$m add command -label [gameString $i] -underline 0 \
 	-command "selectGame $i middle" -columnbreak $cBreak
-    }
-    
-    set m $menu.view
-    menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
-    $menu add cascade -label "View" -menu $m -underline 0
+	}
+	
+	set m $menu.view
+	menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
+	$menu add cascade -label "View" -menu $m -underline 0
 
-    set mList $menu.view.listPos
-    menu $mList -tearoff 0 -borderwidth 0  -activeborderwidth 1
-    $m add cascade -label "List Position" -menu $mList -underline 0
+	set mList $menu.view.listPos
+	menu $mList -tearoff 0 -borderwidth 0  -activeborderwidth 1
+	$m add cascade -label "List Position" -menu $mList -underline 0
 
-    $mList add radio -label "Left" \
+	$mList add radio -label "Left" \
 	-variable listLocation \
 	-value "left" \
 	-command "setListLocation left"
-    $mList add radio -label "Right" \
+	$mList add radio -label "Right" \
 	-variable listLocation \
 	-value "right" \
 	-command "setListLocation right"
-    $mList add radio -label "Top" \
+	$mList add radio -label "Top" \
 	-variable listLocation \
 	-value  "top" \
 	-command "setListLocation top"
-    $mList add radio -label "Bottom" \
+	$mList add radio -label "Bottom" \
 	-variable listLocation \
 	-value  "bottom" \
 	-command "setListLocation bottom"
 }
 
 proc CreateListButtons list {
-    global theNumberOfPrograms scrollDirection currentId listFont
-    set imageScale 0.5
-    set imageSize [expr 100 * $imageScale]
-    set textAnchor "e"
-    set imageAnchor "w"
-    set textWidth [expr [listItemWidth] - $imageSize - 10]
-    if {$scrollDirection == "horizontal"} {
+	global theNumberOfPrograms scrollDirection currentId listFont
+	set imageScale 0.5
+	set imageSize [expr 100 * $imageScale]
+	set textAnchor "e"
+	set imageAnchor "w"
+	set textWidth [expr [listItemWidth] - $imageSize - 10]
+	if {$scrollDirection == "horizontal"} {
 	set textAnchor "n"
 	set imageAnchor "n"
 	set textWidth [expr [listItemWidth] - 10]
-    }
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	}
+	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	if {[guiExists $i]} {
-	    set imageFn "guiImage"
+		set imageFn "guiImage"
 	} else {
-	    set imageFn "textImage"
+		set imageFn "textImage"
 	}
 	set rectCoords [list -1 [expr 1+$i*[listItemHeight]] \
-			    [expr [listItemWidth] - 1] \
-			    [expr ($i+1)*[listItemHeight]]]
+				[expr [listItemWidth] - 1] \
+				[expr ($i+1)*[listItemHeight]]]
 	set textCoords [list [expr [listItemWidth]-5] \
-			    [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
+				[expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
 	set imageCoords [list 5 [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
 	if {$scrollDirection == "horizontal"} {
-	    set rectCoords [list [expr [listItemWidth]*$i] 0 \
+		set rectCoords [list [expr [listItemWidth]*$i] 0 \
 				[expr ($i+1)*[listItemWidth]-1] \
 				[expr [listItemHeight]-0]]
-	    set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
+		set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
 				[expr $imageSize+10]]
-	    set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
+		set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
 	}
 	$list create rect $rectCoords \
-	    -outline RoyalBlue \
-	    -fill [gameColor $i] \
-	    -tags [list rect$i list$i]
+		-outline RoyalBlue \
+		-fill [gameColor $i] \
+		-tags [list rect$i list$i]
 	$list create text $textCoords -text [gameString $i] \
-	    -anchor $textAnchor \
-	    -width $textWidth \
-	    -fill [textColor $i] \
-	    -font $listFont \
-	    -tags [list text$i list$i]
+		-anchor $textAnchor \
+		-width $textWidth \
+		-fill [textColor $i] \
+		-font $listFont \
+		-tags [list text$i list$i]
 	$list create image $imageCoords -image [$imageFn $i $imageScale] \
-	    -anchor $imageAnchor -tags [list image$i list$i]
-    }
-    selectGame $currentId
+		-anchor $imageAnchor -tags [list image$i list$i]
+	}
+	selectGame $currentId
 }
 
 proc scrollEnter canvas {
-    global currentId
-    set id [getIdUnderMouse $canvas]
-    if { $currentId != $id } {
+	global currentId
+	set id [getIdUnderMouse $canvas]
+	if { $currentId != $id } {
 	$canvas itemconfigure rect$id -fill RoyalBlue
 	$canvas itemconfigure text$id -fill white
-    }
+	}
 }
 
 proc scrollLeave list {
-    global currentId
-    set id [getIdUnderMouse $list]
-    if { $currentId != $id } {
+	global currentId
+	set id [getIdUnderMouse $list]
+	if { $currentId != $id } {
 	$list itemconfigure rect$id -fill [gameColor $id]
 	$list itemconfigure text$id -fill [textColor $id]
-    }
+	}
 }
 
 proc scrollButton list {
-    selectGame [getIdUnderMouse $list]
+	selectGame [getIdUnderMouse $list]
 }
 
 proc scrollDoubleClick list {
-    set i [getIdUnderMouse $list]
-    if { [guiExists $i] } {
+	set i [getIdUnderMouse $list]
+	if { [guiExists $i] } {
 	runGui $i
-    } else {
+	} else {
 	runText $i
-    }
+	}
 }
 
 proc mouseWheelUp { } {
-    global scrollDirection
-    set leftScroll .leftSide.leftScroll
-    set list .leftSide.list
-    set first [lindex [$leftScroll get] 0]
-    $list [axisView] scroll -1 units
+	global scrollDirection
+	set leftScroll .leftSide.leftScroll
+	set list .leftSide.list
+	set first [lindex [$leftScroll get] 0]
+	$list [axisView] scroll -1 units
 }
 
 proc mouseWheelDown { } {
-    global scrollDirection
-    set leftScroll .leftSide.leftScroll
-    set list .leftSide.list
-    set first [lindex [$leftScroll get] 0]
-    $list [axisView] scroll 1 units
+	global scrollDirection
+	set leftScroll .leftSide.leftScroll
+	set list .leftSide.list
+	set first [lindex [$leftScroll get] 0]
+	$list [axisView] scroll 1 units
 }
 
 proc Resize { } {
-    global Desc Rules currentGame
-    set home .rightSide.home
-    set width [pageWidth]
-    $home.$currentGame.title configure -width [expr $width - 20]
-    if { [info exists Desc($currentGame)] } {
+	global Desc Rules currentGame
+	set home .rightSide.home
+	set width [pageWidth]
+	$home.$currentGame.title configure -width [expr $width - 20]
+	if { [info exists Desc($currentGame)] } {
 	$home.$currentGame.desc configure -width [expr $width - 20]
-    }
-    if { [info exists Rules($currentGame)] } {
+	}
+	if { [info exists Rules($currentGame)] } {
 	$home.$currentGame.rules configure -width [expr $width - 20]
-    }
-    if { $currentGame == "main" } {
+	}
+	if { $currentGame == "main" } {
 	$home.main.desc configure -width [expr $width - 20]
-    }
+	}
 }
 
 proc CreateGamePages { frame } {
-    global theNumberOfPrograms calBlue Desc Rules
+	global theNumberOfPrograms calBlue Desc Rules
 
-    set width [pageWidth]
-    set height [expr [winfo height .] - 30]
+	set width [pageWidth]
+	set height [expr [winfo height .] - 30]
 
-    ##### Starting Page ########
-    set bgcolor $calBlue
-    set fontcolor white
-    canvas $frame.main -background $bgcolor -highlightthickness 0
-    message $frame.main.title -text "GAMESMAN" \
+	##### Starting Page ########
+	set bgcolor $calBlue
+	set fontcolor white
+	canvas $frame.main -background $bgcolor -highlightthickness 0
+	message $frame.main.title -text "GAMESMAN" \
 	-anchor center \
 	-background $bgcolor \
 	-foreground $fontcolor \
 	-width [expr $width - 20] \
 	-font "Helvetica 20 bold"
-    message $frame.main.desc -text \
+	message $frame.main.desc -text \
 	"A Finite, Two-Person, Perfect-Information Game Generator.\
 	\n\n\tGamesman, which stands for Game-independent Automatic Move/position-tree Exhaustive-Search, Manipulation And Navigation, takes in the description of any game as an input and generates an application that will play the given game perfectly. Unlike any other toolkit, GAMESMAN allows the users to modify the rules of the game, play against a perfect opponent, receive a hint for the best move by a perfect player, and easily prototype a new game. It uses an exhaustive search tree to quantify the value of various playing strategies against a perfect player that knows the complete game tree. Therefore, at any stage in the game, the program knows all possible moves and their values, either a win, lose, or tie. This program, unlike other combinatorial and computational game theory toolkits (e.g. games and cgsuite), allows you to play the game graphically.\
 	\n\tSince 2000, we have been modifying GAMESMAN's core to make it faster and more efficient, a friendlier user interface has been developed, more games have been added, and new games have been analyzed.\
@@ -643,177 +714,19 @@ proc CreateGamePages { frame } {
 	-foreground $fontcolor \
 	-width [expr $width - 20]
 
-    pack $frame.main.title -anchor n -pady [list 10 0]
-    pack $frame.main.desc -expand 1 -anchor n
+	pack $frame.main.title -anchor n -pady [list 10 0]
+	pack $frame.main.desc -expand 1 -anchor n
 
-    pack $frame.main -expand 1 -fill both -anchor nw
-    ## end start page ##
+	pack $frame.main -expand 1 -fill both -anchor nw
+	## end start page ##
 
-    set Desc(achi) "\tAchi is one of the many traditional Morris type games that involve placing pieces on a board to connect three in a row. The game originated in Ghana where it is often played by children who use pebbles and sticks as pieces. Various versions of Achi are played all over the world from China, where it is known as Luk tsu k'i to France where the center point cannot be used as the first move. Large stones dating back to the third or fourth century AD have even been found in northern England."
-    set Desc(abalone) "\tIn 1988 Michel Lalet and Lauren Levi created Abalone. The idea for the game came when the two animation coordinators ran into the son of a French ambassador who was tired of following his father around on business trips. Lalet and Levi decided to help the bored youth, and so the idea of Abalone was conceived. Levi and Lalet tried to get publishers to back their game. However, they remained unsuccessful until a special encounter with Andre Jarno, the founder of Financial French Union Bank. Jarno, who happened to be the neighbor of Levi's family, decided to invest in and market Abalone. The Abalone Company was formed on January 29, 1988 with the goal of marketing Abalone, which had just won the Boulogne-Bllancourt game creator contest. In September of the same year Abalone was officially launched."
-    set Desc(asalto) "\tAsalto or Assault is a variation of the popular Fox games, where one player is a fox and the other is a geese or sheep. The game has its origins in Spain and England as well as France, where it is known as Assaut. "
-    set Desc(change) "\t"
-    set Desc(dao) "\tDao is a simple puzzle game that involves moving a counter one or two spaces. Due to the lack of documentation when Dao was created, there is currently no information as to how this game came into existence. The company that made the game was Reveal Entertainment, Inc."
-    set Desc(nim) "\tInvented in China, Nim (meaning 'to take') is played by children on small pieces of paper or by adults using coins. In 1902 it was given the name Nim by Harvard mathematician Charles Bouton, who published a full analysis of the game."
-    set Desc(rubix) "\tRubik's Magic was created by Erno Rubik."
-    set Desc(slideN) "\t"
-    set Desc(ttt3) "\tTic-tac-toe, also know as Naughts and Crosses, is one of the most widely known games. Found everywhere from the temples of ancient Egypt to the medieval cathedrals of England, tic-tac-toe has entertained people for centuries. While tic-tac-toe is now considered to be a child's game, it was not always the case. In the past, the game was linked to pagan rituals and was occasionally banned. Recent fame for tic-tac-toe came during a sequence in the Hollywood film Wargames, where tic-tac-toe was used to teach a super-computer about no-win situations."
-    set Desc(qx) "\t"
-    set Desc(1210) "\t1,2,....10 is a simple puzzle game that involves moving a counter one or two spaces. 1,2,....10 has several variants, including the 1,2,...4 and Henry Ernest Dudeney's 37 Puzzle Game."
-    set Desc(lite3) "\t"
-    set Desc(tactix) "\t"
-    set Desc(ctoi) "\tChung-toi was created by Reginald Chung and is based off of tic-tac-toe."
-    set Desc(win4) "\tFour-In-A-Row has its roots in Tic-Tac-Toe, a simple three in a row pencil and paper game. The object of the game is to get four pieces in a row. Four-In-A-Row, also, adds the element of restricted placement by requiring the players to 'drop' the pieces vertically down the board. In America, this game was popularized under the name Connect Four."
-    set Desc(dodgem) "\tDodgem was created in 1972 by Colin Vout, then a mathematics student at the University of Cambridge. The original game was devised with two red cars and two blue cars on a 3x3 board. Players alternate turns moving their cars, with the red player moving either North, East or South, and the red player moving either North, East or West."
-    set Desc(lgame) "\tL Games humble beginnings started during a dinner conversation between   Edward de Bono and mathematician Professor Littlewood. Both agreed that, while chess was difficult, it was also very complex because of its many pieces. De Bono took up the challenge to create a game that required skill, yet was also simple to play. The result was L Game."
-    set Desc(sim) "\t"
-    set Desc(3spot) "\tSimilar to the L Game, Three Spot is called by its creator Edward de Bono the  'Social Justice Game.' De Bono created L Game with the intention of creating a simple game that still required great skill."
-    set Desc(con) "\t"
-    set Desc(cmass) "\t"
-    set Desc(dnb) "\tThe game of Dots and Boxes was studied extensively by Elwyn Berlekamp, who in the late 1960s presented the Dots and Boxes theorem at the University of Calgary."
-    set Desc(foxes) "\t"
-    set Desc(stt) "\tShift Tac Toe was first released in 1988 by Pressman games."
 
-    set Rules(achi) "Rules:\
-	\n\nThe game is played on the nine points of intersection. Players start out with three pieces and alternate turns placing their pieces on any unoccupied point. The process is repeated until all counters are placed on a board. In the second phase, the first player slides his or her piece to an adjacent, vacant intersection point. The first player to get three in a row is the winner.\
-	\n\nTo move: There are two types of moves in Achi: place moves and slide moves. In a place move, you place three pieces on a board. Once all of your three pieces are on the board, you make a slide move by selecting a piece to a connected and unoccupied spot.\
-	\n\nTo win:  To get three in a row either horizontally, vertically or diagonally.\
-	\n\nTo win misere: Force your opponent to get three in a row."
-    set Rules(abalone) "Rules: \
-     \n\nTo move: A player may move either one, two or three pieces in any of the six directions as long as the space he or she is moving to is empty. There are several types of moves. In line is a move forwards or backwards from one point to the next with 2 or 3 marbles. A broadside move involves moving the marbles parallel to an open adjacent spot. \
-     \n\nTo win: The first player to push 6 of his or her opponent's pieces off the board. \
-     \nThe person with a black marble is first. Marbles may be moved either in line or braodside, as described above. When one player has numerical superiority over his opponent's pieces, he may push his opponent's pieces with an in line move. The term sumito means outnumbering your opponent. There are three types of sumitos possible: 3 against 1, 3 against 2, or 2 against 1. Players are allowed to be push in line only when they are in contact with the opponent's pieces and when there is a space behind the opponent's marble or marbles. Pushing is not a required move. If players have an equal number of pieces confronting each other, a pac is formed. In this situation, pushing is not allowed. The winner is the first player to push six of his opponent's pieces off the board. \
-    \n\nVariants: \
-\nStarting position: Pieces can be arranged in a different manner from the official game rules. The Abalone website lists among others, the Belgian Federation of Abalone, and Dutch Daisy, as alternate ways to start the game. \
-\nBoard size: Increase or decrease the size of the board. \
-\nNumber of marbles for ejection: Vary the number of pieces needed to eject a piece off the board."
-    set Rules(asalto) "Rules:\
-\n\nThe Pieces:\
-\nThere are 24 pieces of one color, which will be foot solidiers and 2 pieces of another color, which are officers or sharpshooters. \
-\n\nTo move: Officers may move in any direction, one space at a time along the lines. Foot soldiers can only move forward, diagonally or sideways. They cannot move backwards. While they cannot jump the officers, they must try to trap them in the battlefiled or the fortress to win. \
-\n\nCapturing: An officer can capture by jumping over the solider if the next available space is vacant. \
-\n\nTo win: The foot soldiers win by either occupying every point of the fortress or by trapping the soliders inside the fortress or on the battlfield. The officers, on the other hand, try to capture the soldiers on the battlefield or the fortress. In order to win they must capture at least 15 soldiers. \
-\n\nThe board is initially arranged so that the top nine holes in one arm of the cross contains the two officers or sharp shooters. They may be arranged anywhere within their fortress. The 24 soldiers are placed outside the fortress. The sharp shooter or officers go first in this game. They are allowed to move in any direction along the lines one space at a time. They can capture by jumping over the soldier into a vacant space. Soldiers are allowed to jump and capture as many times as they can on their turn as long as they are able to land in a vacant space after each capture. Play then alternates to the soldier, who are only allowed to move forward and diagonally. On their move, soldiers should attempt to trap officers inside the fortress or battlefield. They are not allowed to jump. A variation of game involves huffled where the officer is removed from the board if he does not capture a soldier when he is able to do so. \
-\n\nVariants: \
-\nHuffled: An officer is removed from the game if he does not capture a soldier if the move is available. \
-\nDiagonals: Variations of the game can be played without the diagonals. \
-\nMovement: Alter the rules so that the officers are not allowed to move backwards. \
-\nNumber of Officers: Change the number of officers from two to three in the fortress." 
-    set Rules(change) "Rules:\
-\n\nTo move: Players alternate turns by sliding one of their pieces along the line towards the opponent's starting position. Players, on their turn, may move one or two spaces to an open spot. They are not allowed to turn corners, jump or go backwards. \
-\n\nTo win: Occupy your opponent's initial spaces or trap your opponent's piece. \
-\n\nThe game is played on a diagonal board with each player starting out with three markers. The pieces are placed on opposite ends of the board and each player alternates turns moving one piece. \
-\n\nTo win misere: Force your opponent to occupy your initial starting positions or get trapped by the opponent. "
-    set Rules(dao) "Rules: \
-    \n\nTo move: Pieces have to move (one piece per turn) as many open positions that are available to them.\
-\n\nTo win: To win, the player can either form a straight line with 4 of their own pieces, occupy the four corners of the board, or forming a 2 x 2 square with their pieces anywhere on the playing board. \
-The beginning setup is that each player will form an X that is aligned diagonally from the corners of the board. Dao will be played on a 4 x 4 dimensional board where each player will take turns moving their colored pieces in a straight line towards any available, or open positions including diagonally. Players are not allowed to jump over their opponents pieces or enter a position that is already occupied. The objective of this game is for each player to move their pieces as far as possible during each turn, till their pieces reach the end of the board or till their pieces reach another one of own pieces. During each turn, players has to move as many spaces as there are open positions in their path (i.e. if there are 3 open spaces in Player 1 direction, Player 1 must move 3 spaces). 
-A player is declared the victor if any of these following conditions are met:\
-\n-Forming a straight line with all 4 of their pieces (diagonal lines do not count).\
-\n-Occupying all 4 corners of the board with their pieces.\
-\n-Forming a 2 x 2 square with their pieces."
-
-    set Rules(nim) "Rules:\
-	\n\nIn this game counters are arranged randomly in several heaps. Each player on his or her turn removes at least one counter. The game continues until all the counters are removed. The person to remove the last counter is the winner.\
-	\n\nTo move:  Remove at least one counter on your turn.\
-	\n\nTo win:  To remove the last counter.\
-	\n\nTo win misere: Force your opponent into removing the last counter."
-    set Rules(rubix) "Rules:\
-	\n\nThe playing pieces consist of Xs and Os that are colored black or white. On the first move, the first player places his X on the board, with either the white or black side up. Play then continues with two types of moves. The second player moves one of the opponent's pieces to an adjacent open slot by 'flipping' the piece. This will change the position of the piece as well as the color. The player then places his second piece in any vacant square, whichever color facing up. The play then goes to the first player who has the same options of moves as the second player. The players continue until one person has 3 pieces in a row of the same color (black or white).\
-	\n\nNote: the game can be modified so that you need a different amount in a row to win.\
-	\n\nTo move: On your turn, either flip an opponent's piece to an adjacent space or place a black or white piece in an empty space.\
-	\n\nTo win: Complete a vertical, horizontal, or diagonal line with three of your pieces. The pieces must be of the same background color and cannot be broken by your opponent on his turn.\
-	\n\nTo win misere: Force your opponent into getting three in a row at the end of the game.\
-	\n\nVariants: Two in a row"
-    set Rules(slideN) "Rules:\
-	\n\nThe first player places his piece into the first slot on the diamond shaped board from either the right or left side. The next player may slide his piece into a top open slot or slide his opponent's piece to the adjacent square. When the row is filled players are not allowed to place any more pieces.\
-	\n\nTo move: The first player may either move one or two spaces on his or her turn.\
-	\n\nTo win: Connect three in a row in any direction."
-    set Rules(ttt3) "Rules:\
-	\n\nStarting with a board of nine empty squares, two players alternate turns placing X's and O's in the empty squares. The first player to connect three in a row, either horizontally, vertically or diagonally wins. If there is no more room on the board and neither player has obtained three in a row, the game is a tie.\
-	\n\nTo move: Place your piece in an open square. To win: Connect three in a row either horizontally, vertically or diagonally.\
-	\n\nTo win misere: Force your opponent to connect three in a row either horizontally, vertically or diagonally."
-    set Rules(qx) "Rules:\
-	\n\nPlayers alternate turns flipping the bars either horizontally or vertically. Play continues until one person gets all three horizontal or all three vertical pieces in a row.\
-	\n\nTo move: Select a think vertical or horizontal bar to place it in the square. Once a piece is placed, players may flip the piece horizontally or vertically.\
-	\n\nTo win: Be the first player to get three horizontal or vertical pieces in a row.\
-	\n\nTo win misere: To force your opponent to get three horizontal or vertical pieces in a row."
-    set Rules(1210) "Rules:\
-	\n\nThe number starts out at one and the players take turns increasing it by either one or two. Eventually, one player will be within two of 10 and they will be able to increase the number to 10, winning the game.\
-	\n\nTo move: The first player may either move one or two spaces on his or her turn.\
-	\n\nTo win: To be the first player to raise the total above ten.\
-	\n\nTo win misere: To force your opponent into raising the total above ten."
-    set Rules(lite3) "Rules:\
-	\n\nLite 3 is a game very similar to Tic Tac Toe. The game is for two players. The only rule added to this game is that when a player has four of the squares selected on the board, the first square that the player selected becomes neutral again.\
-	\n\nTo move: Select an open slot.\
-	\n\nTo win: Be the first player to get three of your pieces in a row either horizontally, vertically or diagonally.\
-	\n\nTo win misere: Force your opponent to connect three of his pieces in a row either horizontally, vertically or diagonally.\
-	\n\nVariants: Surround and three in a row surround."
-    set Rules(tactix) "Rules:\
-	\n\nTacTix is a two-player game in which the players take turns removing pieces from the board. On a player's turn, he/she can remove adjacent pieces from a single row or column of the board. The pieces must be touching in order to be removed together. The player who is forced to make the last move loses.\
-	\n\nTo move: Select either a line/circle that you wish to remove\
-	\n\nTo win: To remove the last stone on the board.\
-	\n\nTo win misere: To force your opponent to remove the last piece from the board."
-    set Rules(ctoi) "Rules:\
-	\n\nThe players begin by taking turns placing their game pieces on the board until all the pieces are played. If neither player succeeds in getting three pieces in a row then the players continue by taking turns moving their pieces to other open spaces on the board. A piece can be moved to any open space as long as an arrow on that piece points in the direction of the desired space. A player may also change the direction of the arrows while moving. Additionally, a piece can just rotate in place or 'pass' (by spinning back to the original position). For a more detailed explanation of the rules, refer to Farzad Eskafi and Erwin Vedar's webpage.\
-	\n\nTo move: Chung-toi has two phases of moves. In the first phase, each player alternates turns placing three pieces on the board. In the second phase, the pieces may be moved to different slots, rotated or both.\
-	\n\nTo win: To get three in a row, vertically, horizontally or diagonally.\
-	\n\nTo win misere: To force your opponent into getting three in a row. Variants: rotating piece, turn off one space hops, turn off two space hops, landing in different orientations, and trapped is a win/lose option."
-    set Rules(dodgem) "Rules:\
-	\n\nThe pieces on the NxN Dodgem board are arranged at a right angle. Players alternate turns moving their pieces to an adjacent open space. The player with pieces lined up vertically may move to the north, east or south, while the player with pieces lined up horizontally may move north, east or west. Pieces lined up vertically leave the board by moving onto the right edge and pieces lined up horizontally move off the board when they reach the top row.\
-	\n\nTo move: Move your piece into an opened space.\
-	\n\nTo win: To be the first person to move all your pieces off the board.\
-	\n\nTo win misere: To force your opponent into moving his pieces off the board."
-    set Rules(lgame) "Rules:\
-	\n\nThe game is played on a 4 x 4 board with the two L-shaped pieces covering four squares. Each player takes turns placing his piece on the board in a different position as that prior to his turn. At the end of the turn, the player has the option to place the neutral circle piece on any open square. The game continues until one player cannot legally place his L-shaped piece on the board.\
-	\n\nTo move: First select the L that represents the position you want for the L piece. Next, you may move a neutral piece onto the board.\
-	\n\nTo win: To maneuver the opponent into a position where he cannot move his L piece.\
-	\n\nTo win misere: To be unable to move your L piece."
-    set Rules(sim) "Rules:\
-	\n\nAlso known as Honeycomb, Sim can be finished in less than 15 moves. The game starts out with six dots. Players take turns connecting 2 of these dots with a line. A line cannot be drawn twice and lines of the same color cannot form a triangle of if its end points are part of the outer dots.\
-	\n\nTo move: The first player may either move one or two spaces on his or her turn.\
-	\n\nTo win: Force your opponent to complete a triangle.\
-	\n\nTo win misere: To complete a triangle before your opponent."
-    set Rules(win4) "Rules:\
-	\n\nThe players take turns dropping pieces into the slots. These pieces fall to the bottom of the board and the game continues until one player has four in a row and wins or until the board fills up, which results in a tie.\
-	\n\nTo move: The player drops his or her piece into one of the open slots.\
-	\n\nTo win: To get three in a row, vertically, horizontally or diagonally.\
-	\n\nTo win misere: To force your opponent into getting three in a row."
-    set Rules(3spot) "Rules:\
-	\n\nMade up of nine squares, the board of 3 Spot has spots in three of the squares. Each player has one piece on the board (there is one neutral piece), which he must move during his turn. Play begins with one person moving his piece on the board. Afterwards, the player is required to move the neutral piece to a different position. Points are scored by each spot that is covered by the player's piece.\
-	\n\nTo move: Players first move their colored piece. Afterwards, they must move their neutral piece.\
-	\n\nTo win: To score 12 points when the other player has at least 6. If your opponent has less than 6 points, you lose.\
-	\n\nTo win misere: To force your opponent to score twelve points when you have at least six."
-    set Rules(con) "Rules:\
-	\n\nThe players take turns placing their pieces in the open slots until either one player has a connection across the board (that player wins) or until the board is full (resulting in a tie).\
-	\n\nTo move: Place a piece on an open space.\
-	\n\nTo win: To get your own colored pieces to be touching either above or to the side of each other all the way across the board (for one player that means vertically, the other horizontally).\
-	\n\nTo win misere: Force your opponent's colored pieces to connect across the board."
-    set Rules(cmass) "Rules:\
-	\n\nPlayers alternate turns placing pieces into any box that does not contain the opponent's color. If the box fills up it explodes and all the pieces in the box are removed except for one. The remaining pieces are distributed to each adjacent box and each box becomes the color of the player whose caused the explosion.\
-	\n\nTo move: Place a piece into an open box that does not have the opponent's color.\
-	\n\nTo win: Completeley remove all of your opponent's pieces."
-    set Rules(dnb) "Rules:\
-	\n\nPlayers take turns connecting horizontal or vertical lines between dots. After winning one or more boxes, the player places another line. The player's turn ends when he or she cannot make a box.\
-	\n\nTo move: Connect any vertical or horizontal line between the dots.\
-	\n\nTo win: To create the most boxes.\
-	\n\nTo win misere: Force your opponent into creating the most boxes."
-    set Rules(foxes) "Rules:\
-	\n\nThe game is initially set up with seventeen geese counters placed on the squares marked G and one fox counter placed on the square marked F. The first player is the geese and the second player is the fox. Players take turns moving a goose or fox to an adjacent spot. Geese are allowed to move one square left, right or down, while the fox can move either left, right, up, or down. The fox may also capture a goose on his turn by jumping over the goose that is in his immediate path.\
-	\n\nTo move: The geese may either move left, right or down, while the fox can move left, right, up or down. The fox captures by jumping over a goose into the vacant spot next to it.\
-	\n\nTo win: For the geese, the object is to surround the fox so that he is unable to move. For the fox to win, he must either capture all the geese or advance to the bottom of the board."
-    set Rules(stt) "Rules:\
-	\n\nShift Tac Toe is very similar to Tic Tac Toe, with the extra option to 'shift' on of the rows on your turn. The players take turns, and on each turn a player gets to choose either to drop a piece into the board or shift on of the rows. The game ends when one of the players gets three-in-a-row.\
-	\n\nTo move: The player either selects an open slot or shifts the game board.\
-	\n\nTo win: To be the first player to get three in a row either horizontally, vertically or diagonally.\
-	\n\nTo win misere: To force your opponent in getting three in a row either horizontally, vertically or diagonally."
-
-    ### this loop creates default content for game specific pages
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	### this loop creates default content for game specific pages
+	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set gameName [gameName $i]
 	set gameString [gameString $i]
 	set theColor [gameColor $i]
-        set borderWidth 5
+		set borderWidth 5
 	set bgcolor $calBlue
 	set fontcolor white
 	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
@@ -823,41 +736,46 @@ A player is declared the victor if any of these following conditions are met:\
 	canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
 
 	pack $frame.$gameName.title -pady [list 5 0]
-        pack $frame.$gameName.buttons
+		pack $frame.$gameName.buttons
 
+
+	set docPath "../doc/"
+	set fileName d$gameName.txt
+	parseInfo [file join $docPath $fileName]
+	
 	if {[guiExists $i]} {
-	    button $frame.$gameName.buttons.guiButton \
+		button $frame.$gameName.buttons.guiButton \
 		-image [guiImage $i 1] \
 		-text "Play GUI" \
 		-compound top \
 		-bg $theColor \
 		-borderwidth $borderWidth \
 		-command "runGui $i"
-	    pack $frame.$gameName.buttons.guiButton -side left
+		pack $frame.$gameName.buttons.guiButton -side left
 	}
 
 	button $frame.$gameName.buttons.textButton \
-	    -image [textImage $i 1] \
-	    -text "Play Text" \
-	    -compound top \
-	    -bg black \
-	    -fg white \
-	    -borderwidth $borderWidth \
-	    -command "runText $i"
-        pack $frame.$gameName.buttons.textButton -side left
+		-image [textImage $i 1] \
+		-text "Play Text" \
+		-compound top \
+		-bg black \
+		-fg white \
+		-borderwidth $borderWidth \
+		-command "runText $i"
+		pack $frame.$gameName.buttons.textButton -side left
 
 	if { [info exists Desc($gameName)] } {
-	    message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
+		message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -anchor nw
-	    pack $frame.$gameName.desc
+		pack $frame.$gameName.desc
 	}
 
 	if { [info exists Rules($gameName)] } {
-	    message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
+		message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
 		-foreground $fontcolor -background $bgcolor -anchor nw
-	    pack $frame.$gameName.rules -anchor n -expand 1
+		pack $frame.$gameName.rules -anchor n -expand 1
 	}
-    }
+	}
 }
 
 ### Call the main procedure.
