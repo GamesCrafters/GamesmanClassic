@@ -342,11 +342,10 @@ proc selectGame {id args} {
 }
 
 proc parseCfg { in } {
-	set delim {\[(.+?)]}
 	set fieldDelim {=}
-	global thePrograms theStrings theGuiTypes
+	global thePrograms theStrings theGuiTypes secDelim colors invColors
 	
-	if [catch {open "$in" {RDWR}} fin] {
+	if [catch {open "$in" {RDONLY}} fin] {
 		return
 	}
 
@@ -355,13 +354,12 @@ proc parseCfg { in } {
 	set gameName "game"
 	set colorField "color"
 	set nameField "basename"
-	set colors(0) "-1"
 	set cfgType 0
 	
 	while {![eof $fin]} {
-		gets $fin line
-				
-		if {[regexp $delim $line -> title] > 0} {
+		gets $fin line		
+		
+		if {[regexp $secDelim $line -> title] > 0} {
 			if {$title == $cfgName} {
 				set cfgType $cfgName
 			} elseif {$title == $colorsName} {
@@ -370,17 +368,16 @@ proc parseCfg { in } {
 				set cfgType $gameName
 				lappend theStrings $title
 			}
-		}
-		
-		if {$cfgType == $cfgName} {
+		} elseif {$cfgType == $cfgName} {
 			
 		} elseif {$cfgType == $colorsName} {
 			set parts [split $line $fieldDelim]
-			
+
 			if {[llength $parts] > 0} {
 				set field [lindex $parts 0]
 				set val [lindex $parts 1]
 				set colors($val) $field
+				set invColors($field) $val
 			}
 		} elseif {$cfgType == $gameName} {
 			set parts [split $line $fieldDelim]
@@ -398,14 +395,14 @@ proc parseCfg { in } {
 		}	
 	}
 	
+	bSort
 	close $fin
 }
 
 proc parseInfo { in } {
-	set delim {\[(.+?)]}
-	global Desc Rules
+	global Desc Rules secDelim
 	
-	if [catch {open "$in" {RDWR}} fin] {
+	if [catch {open "$in" {RDONLY}} fin] {
 		return
 	}
 
@@ -420,7 +417,7 @@ proc parseInfo { in } {
 	while {![eof $fin]} {
 		gets $fin line
 				
-		if {[regexp $delim $line -> title] > 0} {
+		if {[regexp $secDelim $line -> title] > 0} {
 			if {$cfgType == $rulesName} {
 				set Rules($file) $buffer
 			} elseif {$cfgType == $descName} {
@@ -447,26 +444,112 @@ proc parseInfo { in } {
 	close $fin
 }
 
+proc bSort { } {
+	global theStrings theGuiTypes invColors
+	set maxLen [llength $theStrings]
+	
+	for { set i 0 } { $i < $maxLen } { incr i } {
+		
+		for { set j [expr $i + 1] } { $j < $maxLen } { incr j } {
+			set jColor $invColors([lindex $theGuiTypes $j])
+			set iColor $invColors([lindex $theGuiTypes $i])
+			if {$jColor < $iColor} {
+				swap $i $j
+			} elseif {$jColor == $iColor && [lindex $theStrings $j] < [lindex $theStrings $i]} {
+				swap $i $j
+			}
+		}
+	}
+}
+
+proc swap { i j } {
+	global thePrograms theStrings theGuiTypes
+	set t1 [lindex $thePrograms $i]
+	set t2 [lindex $theStrings $i]
+	set t3 [lindex $theGuiTypes $i]
+	
+	set thePrograms [lreplace $thePrograms $i $i [lindex $thePrograms $j]]
+	set theStrings [lreplace $theStrings $i $i [lindex $theStrings $j]]
+	set theGuiTypes [lreplace $theGuiTypes $i $i [lindex $theGuiTypes $j]]
+	
+	set thePrograms [lreplace $thePrograms $j $j $t1]
+	set theStrings [lreplace $theStrings $j $j $t2]
+	set theGuiTypes [lreplace $theGuiTypes $j $j $t3]
+}
+
+proc addGame { } {
+
+}
+
+proc createGameList { } {
+	global thePrograms theStrings theGuiTypes
+}
+
+proc changeGameColor { color } {
+	global gamesFile secDelim invColors currentId
+	if {![isGame $currentId] || [catch {open "$gamesFile" {RDWR}} fin]} {
+		return
+	}
+	
+	set game [gameString $currentId]
+	set colorField "color"
+	set found 0
+	while {![eof $fin]} {
+		set offset [tell $fin]
+		gets $fin line
+		
+		if {$found == 1} {
+			set parts [split $line =]
+			
+			if {[llength $parts] > 0} {
+				if {[lindex $parts 0] == $colorField} {
+					seek $fin [expr $offset + 1 + [string length $colorField]]
+					puts $fin $invColors($color)
+					break
+				}
+			}	
+		} elseif {$found == 0 && [regexp $secDelim $line -> title] > 0} {
+			if {$title == $game} {
+				set found 1
+			}
+		}
+	}
+	
+	close $fin
+}
+
+proc addToGameList { value } {
+	global gamesFile
+	if [catch {open "$gamesFile" {RDONLY}} fin] {
+		return
+	}
+	
+	puts $fin $value
+	close $fin
+}
+
 ###END HELPER FUNCTIONS###
 proc main {} {
 	global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
-	calBlue calYellow scrollDirection listLocation maxGameString
+	calBlue calYellow scrollDirection listLocation maxGameString \
+	gamesFile secDelim colors invColors
 
+	set secDelim {\[(.+?)]}
 	set theBitmapDir "../bitmaps"
-	
+	set gamesFile "./games.txt"
 	set thePrograms {}
 	set theStrings {}
 	set theGuiTypes {}
-	parseCfg "./games.txt"
+	parseCfg $gamesFile
 	
 	set theNumberOfPrograms [llength $thePrograms]
 	set currentGame main
 	set currentId -1
 	set maxGameString 0
-
+	
 	menu .menu -tearoff 0 -borderwidth 0 -activeborderwidth 1
-
+	
 	canvas .leftSide -highlightthickness 0
 	canvas .rightSide -highlightthickness 0
 
@@ -520,10 +603,11 @@ proc main {} {
 	bind $leftScroll <ButtonPress-5> "mouseWheelDown"
 
 	. configure -menu .menu
+	
 }
 
 proc CreateMenuItems menu {
-	global listLocation currentId currentGame
+	global listLocation currentId currentGame colors
 
 	set m $menu.file
 	menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
@@ -542,13 +626,15 @@ proc CreateMenuItems menu {
 	$menu add cascade -label "Games" -menu $m -underline 0
 	global theNumberOfPrograms
 	set height [winfo height .]
+	
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set cBreak 0
-	if {[$m yposition $i] > [expr $height-40]} {
-		set cBreak 1
-	}
-	$m add command -label [gameString $i] -underline 0 \
-	-command "selectGame $i middle" -columnbreak $cBreak
+		set cBreak 0
+		if {[$m yposition $i] > [expr $height-40]} {
+			set cBreak 1
+		}
+		
+		$m add command -label [gameString $i] -underline 0 \
+		-command "selectGame $i middle" -columnbreak $cBreak
 	}
 	
 	set m $menu.view
@@ -575,6 +661,18 @@ proc CreateMenuItems menu {
 	-variable listLocation \
 	-value  "bottom" \
 	-command "setListLocation bottom"
+	
+	
+	set m $menu.cfg
+	menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
+	$menu add cascade -label "Set game color" -menu $m -underline 0
+
+	foreach idx [array names colors] {
+		$m add command -label $colors($idx) -underline 0 \
+		-command "changeGameColor $colors($idx)"
+	}
+	
+
 }
 
 proc CreateListButtons list {
@@ -693,7 +791,7 @@ proc CreateGamePages { frame } {
 
 	set width [pageWidth]
 	set height [expr [winfo height .] - 30]
-
+	
 	##### Starting Page ########
 	set bgcolor $calBlue
 	set fontcolor white
@@ -720,61 +818,60 @@ proc CreateGamePages { frame } {
 	pack $frame.main -expand 1 -fill both -anchor nw
 	## end start page ##
 
+	set docPath "../doc/"
 
 	### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	set gameName [gameName $i]
-	set gameString [gameString $i]
-	set theColor [gameColor $i]
+		set gameName [gameName $i]
+		set gameString [gameString $i]
+		set theColor [gameColor $i]
 		set borderWidth 5
-	set bgcolor $calBlue
-	set fontcolor white
-	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
-	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
-
-	canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
-
-	pack $frame.$gameName.title -pady [list 5 0]
-		pack $frame.$gameName.buttons
-
-
-	set docPath "../doc/"
-	set fileName d$gameName.txt
-	parseInfo [file join $docPath $fileName]
+		set bgcolor $calBlue
+		set fontcolor white
+		canvas $frame.$gameName -background $bgcolor -highlightthickness 0
+		message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
+			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
 	
-	if {[guiExists $i]} {
-		button $frame.$gameName.buttons.guiButton \
-		-image [guiImage $i 1] \
-		-text "Play GUI" \
-		-compound top \
-		-bg $theColor \
-		-borderwidth $borderWidth \
-		-command "runGui $i"
-		pack $frame.$gameName.buttons.guiButton -side left
-	}
-
-	button $frame.$gameName.buttons.textButton \
-		-image [textImage $i 1] \
-		-text "Play Text" \
-		-compound top \
-		-bg black \
-		-fg white \
-		-borderwidth $borderWidth \
-		-command "runText $i"
-		pack $frame.$gameName.buttons.textButton -side left
-
-	if { [info exists Desc($gameName)] } {
-		message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor -anchor nw
-		pack $frame.$gameName.desc
-	}
-
-	if { [info exists Rules($gameName)] } {
-		message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
-		-foreground $fontcolor -background $bgcolor -anchor nw
-		pack $frame.$gameName.rules -anchor n -expand 1
-	}
+		canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
+	
+		pack $frame.$gameName.title -pady [list 5 0]
+			pack $frame.$gameName.buttons
+	
+		set fileName d$gameName.txt
+		parseInfo [file join $docPath $fileName]
+		
+		if {[guiExists $i]} {
+			button $frame.$gameName.buttons.guiButton \
+			-image [guiImage $i 1] \
+			-text "Play GUI" \
+			-compound top \
+			-bg $theColor \
+			-borderwidth $borderWidth \
+			-command "runGui $i"
+			pack $frame.$gameName.buttons.guiButton -side left
+		}
+	
+		button $frame.$gameName.buttons.textButton \
+			-image [textImage $i 1] \
+			-text "Play Text" \
+			-compound top \
+			-bg black \
+			-fg white \
+			-borderwidth $borderWidth \
+			-command "runText $i"
+			pack $frame.$gameName.buttons.textButton -side left
+	
+		if { [info exists Desc($gameName)] } {
+			message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
+			-foreground $fontcolor -background $bgcolor -anchor nw
+			pack $frame.$gameName.desc
+		}
+	
+		if { [info exists Rules($gameName)] } {
+			message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
+			-foreground $fontcolor -background $bgcolor -anchor nw
+			pack $frame.$gameName.rules -anchor n -expand 1
+		}
 	}
 }
 
