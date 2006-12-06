@@ -3,6 +3,12 @@
 
 VALUE DetermineRetrogradeValue(POSITION);
 POSITION InitTierGamesman();
-void RemoteSolveTier(TIER);
+
+void RemoteInitialize();
+TIERLIST* RemoteGetTierSolveOrder();
+TIERPOSITION RemoteGetTierSize(TIER);
+int RemoteGetTierDependencies(TIER);
+BOOLEAN RemoteCanISolveTier(TIER);
+void RemoteSolveTier(TIER, TIERPOSITION, TIERPOSITION);
 
 #endif /* GMCORE_SOLVERETROGRADE_H */

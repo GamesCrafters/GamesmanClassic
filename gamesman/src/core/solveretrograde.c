@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.28 2006-12-05 19:05:24 max817 Exp $
+// $Id: solveretrograde.c,v 1.29 2006-12-06 02:24:04 max817 Exp $
 
 /************************************************************************
 **
@@ -1642,17 +1642,15 @@ void skipToNewline(FILE* fp) {
 
 
 /* ALL THE PARALLELIZATION STUFF */
+void RemoteInitialize() {
+	solveList = checkAndDefineTierTree();
+	tierSolveList = CopyTierlist(solveList); // this will actually never be changed
+	solvedList = NULL; // so this will stay null forever
+	tiersSolved = 0;
 
-// get the tierlist, in proper solve order:
-TIERLIST* RemoteGetTierSolveOrder() {
-	return CopyTierlist(checkAndDefineTierTree());
-}
-
-// new DetermineRetrogradeValue
-void RemoteSolveTier(TIER tier) {
 	variant = getOption();
 	tierSolveList = solveList = solvedList = NULL;
-	numTiers = 1; numSolved = 0;
+	numTiers = 1; tiersSolved = 0;
 	tierNames = checkLegality = forceLoopy = checkCorrectness = FALSE;
 	useUndo = FALSE; //should be TRUE?
 
@@ -1660,7 +1658,52 @@ void RemoteSolveTier(TIER tier) {
 		printf("-UnDoMove NOT GIVEN\nUndoMove Use Disabled\n");
 		useUndo = FALSE;
 	}
+}
 
+// get the tierlist, in proper solve order:
+TIERLIST* RemoteGetTierSolveOrder() {
+	return tierSolveList;
+}
+
+// this tells you, given the current files, if you can solve this tier:
+BOOLEAN RemoteCanISolveTier(TIER tier) {
+	TIERLIST* childs = gTierChildrenFunPtr(tier);
+	TIERLIST* ptr;
+	for (ptr = childs; ptr != NULL; ptr = ptr->next) {
+		if (ptr->tier == tier) continue;
+		else if (CheckTierDB(tier, variant) != 1) {
+			FreeTierList(childs);
+			return FALSE;
+		}
+	}
+	FreeTierList(childs);
+	return TRUE;
+}
+
+// get the number of positions in this tier
+TIERPOSITION RemoteGetTierSize(TIER tier) {
+	return gNumberOfTierPositionsFunPtr(tier);
+}
+
+// this tells the number of dependencies this tier has
+int RemoteGetTierDependencies(TIER tier) {
+	TIERLIST *ptr, *childs, *childPtr;
+	int dependencies = 0;
+	for (ptr = solveList; ptr != NULL; ptr = ptr->next) {
+		childs = gTierChildrenFunPtr(ptr->tier);
+		for (childPtr = childs; childPtr != NULL; childPtr = childPtr->next) {
+			if (childPtr->tier == tier) {
+				dependencies++;
+				break;
+			}
+		}
+		FreeTierList(childs);
+	}
+	return dependencies;
+}
+
+// new DetermineRetrogradeValue, solves [ start, finish )
+void RemoteSolveTier(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 	gInitializeHashWindow(tier, TRUE);
 	PercentDone(Clean); //reset percentage bar
 
