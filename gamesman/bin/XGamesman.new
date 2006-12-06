@@ -518,6 +518,10 @@ proc changeGameColor { color } {
 	close $fin
 }
 
+proc refreshGameList { } {
+
+}
+
 proc addToGameList { value } {
 	global gamesFile
 	if [catch {open "$gamesFile" {RDONLY}} fin] {
