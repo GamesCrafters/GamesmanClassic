@@ -24,6 +24,8 @@ public interface ErrorCode
 	public static final int INVALID_GAME_NUMBER = 310;
 	public static final int HOST_DECLINED = 311;
 	
+	public static final int USER_NOT_PLAYING_GAME = 312;
+	
 	/**
 	 * Contains the error messages for the RegistrationModule.
 	 * 

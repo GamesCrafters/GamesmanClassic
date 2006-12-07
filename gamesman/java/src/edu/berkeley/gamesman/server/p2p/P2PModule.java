@@ -6,19 +6,27 @@ import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
 import edu.berkeley.gamesman.server.RequestType;
-
+import edu.berkeley.gamesman.server.registration.*;
 import java.util.Hashtable;
 
 /**
  * IModule that handles message passing between two clients.
  * 
- * @author User
+ * @author Ramesh Sridharan
  * 
+ */
+
+/** TODO
+ * secret key check - just use func in regmod
+ * hash on serial number as well - includeded in header
+ * document everything
  */
 public class P2PModule implements IModule
 {
+	
+	/* A hash table mapping ActiveGames to GameInfoContainers. */
 	static Hashtable theGames = new Hashtable(200);
-
+	
 	/**
 	 * Registers a game between two players. Should be called by Registration module to
 	 * register a game between players.
@@ -26,9 +34,9 @@ public class P2PModule implements IModule
 	 * @param firstPlayer - Player who will move first
 	 * @param secondPlayer - Player who will move second
 	 */
-	public static void registerNewGame(String firstPlayer, String secondPlayer)
+	public static void registerNewGame(String firstPlayer, String secondPlayer, int gameID)
 	{
-		ActiveGame game = new ActiveGame(firstPlayer, secondPlayer);
+		ActiveGame game = new ActiveGame(firstPlayer, secondPlayer, gameID);
 		GameInfoContainer info = new GameInfoContainer(secondPlayer);
 		debugPrint("Going to add the game and its info to the hashtable");
 		synchronized (theGames)
@@ -37,7 +45,7 @@ public class P2PModule implements IModule
 		}
 		debugPrint("Registered new game!");
 	}
-
+	
 	/**
 	 * Simple method that prints if the debugging flag is true.
 	 * 
@@ -48,7 +56,7 @@ public class P2PModule implements IModule
 		if (Const.PRINT_DEBUGGING)
 			System.out.println("*** " + o.toString());
 	}
-
+	
 	private static void warn(Object o)
 	{
 		if (Const.PRINT_WARNINGS)
@@ -58,33 +66,39 @@ public class P2PModule implements IModule
 	}
 	/**
 	 * Class representing a game between two players. Holds two Strings representing
-	 * players.
+	 * players and a serial game ID representing the game they're playing.
 	 * 
-	 * @author ramesh
+	 * @author Ramesh Sridharan
 	 * 
 	 */
 	protected static class ActiveGame
 	{
 		protected String player1;
 		protected String player2;
-
+		protected int gameID;
+		
 		public String getPlayer1()
 		{
 			return player1;
 		}
-
+		
 		public String getPlayer2()
 		{
 			return player2;
 		}
-
-		public ActiveGame(String p1, String p2)
+		
+		public int getGameID() {
+			return gameID;
+		}
+		
+		public ActiveGame(String p1, String p2, int gameID)
 		{
-			debugPrint("Creating new active object between " + p1 + " and " + p2);
+			debugPrint("Creating new active object between " + p1 + " and " + p2+", playing #"+gameID);
 			player1 = p1;
 			player2 = p2;
+			this.gameID = gameID;
 		}
-
+		
 		public String toString()
 		{
 			String theString;
@@ -96,14 +110,15 @@ public class P2PModule implements IModule
 			{
 				theString = (player1 + "===with===" + player2);
 			}
+			theString+= " playing"+gameID;
 			return theString;
 		}
-
+		
 		public int hashCode()
 		{
 			return this.toString().hashCode();
 		}
-
+		
 		public boolean equals(Object o)
 		{
 			if (this.getClass() != o.getClass())
@@ -129,12 +144,12 @@ public class P2PModule implements IModule
 	{
 		protected String whoseTurn;
 		protected IModuleResponse pendingResponse;
-
+		
 		public String getWhoseTurn()
 		{
 			return whoseTurn;
 		}
-
+		
 		public GameInfoContainer(String whoseTurn)
 		{
 			debugPrint("Creating a new GameInfoContainer object");
@@ -142,7 +157,7 @@ public class P2PModule implements IModule
 			this.pendingResponse = null;
 			debugPrint("Okay, created");
 		}
-
+		
 		/**
 		 * Changes whose turn it is, assuming the game is between players specified in the
 		 * argument.
@@ -160,7 +175,7 @@ public class P2PModule implements IModule
 				this.whoseTurn = theGame.getPlayer1();
 			}
 		}
-
+		
 		/**
 		 * Sets a new pending response, and returns the response object for the currently
 		 * waiting player.
@@ -177,11 +192,11 @@ public class P2PModule implements IModule
 			return old;
 		}
 	}
-
+	
 	public void initialize(String[] configArgs) throws ModuleInitializationException
 	{
 	}
-
+	
 	public boolean typeSupported(String requestTypeName)
 	{
 		return (requestTypeName.equalsIgnoreCase(RequestType.GAME_OVER) ||
@@ -189,7 +204,7 @@ public class P2PModule implements IModule
 				requestTypeName.equalsIgnoreCase(RequestType.SEND_MOVE) || 
 				requestTypeName.equalsIgnoreCase(RequestType.RESIGN));
 	}
-
+	
 	/**
 	 * Handles requests passed between two players.
 	 * 
@@ -202,18 +217,27 @@ public class P2PModule implements IModule
 		String incomingMove = null;
 		String destPlayer = req.getHeader(Const.HN_DESTINATION_PLAYER);
 		String srcPlayer = req.getHeader(Const.HN_SOURCE_PLAYER);
-
-		ActiveGame theGame = new ActiveGame(destPlayer, srcPlayer);
+		String srcPlayerKey = req.getHeader(Const.HN_SOURCE_PLAYER_SECRET_KEY);
+		String gameIDString = req.getHeader(Const.HN_GAME_ID);
+		int gameID = Integer.parseInt(gameIDString);
+		
+		if(!RegistrationModule.isValidUserKey(srcPlayer, srcPlayerKey)) {
+			// invalid key!
+			warn("Incorrect secret key!");
+			return;
+		}
+		
+		ActiveGame theGame = new ActiveGame(destPlayer, srcPlayer, gameID);
 		GameInfoContainer gameStatus;
 		if (!theGames.containsKey(theGame))
 		{
 			throw new ModuleException(ErrorCode.NO_SUCH_GAME, "No game has been registered between "
 					+ srcPlayer + " and " + destPlayer);
 		}
-
+		
 		gameStatus = (GameInfoContainer) theGames.get(theGame);
 		IModuleResponse waitingResponse = gameStatus.changePendingResponse(res);
-
+		
 		// possibly clean this up to avoid code duplication
 		if (type.equalsIgnoreCase(RequestType.SEND_MOVE))
 		{
@@ -226,7 +250,7 @@ public class P2PModule implements IModule
 		else if (type.equalsIgnoreCase(RequestType.GAME_OVER))
 		{
 			debugPrint("Game over!");
-			waitingResponse.setHeader(Const.HN_TYPE, Const.HN_MOVE);
+			waitingResponse.setHeader(Const.HN_TYPE, RequestType.GAME_OVER);
 			waitingResponse.setHeader(Const.HN_MOVE, "null");
 			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
@@ -248,7 +272,7 @@ public class P2PModule implements IModule
 			res.setHeader("type", Const.ACK); // Still needed?
 			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
 			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-
+			
 			synchronized (gameStatus)
 			{
 				gameStatus.notifyAll();
@@ -297,22 +321,24 @@ public class P2PModule implements IModule
 			catch (InterruptedException e)
 			{
 				throw new ModuleException(ErrorCode.THREAD_INTERRUPTED, "Thread interrupted", e);
-
+				
 			}
 		}
-
 	}
-
+	
 	private void updateResponse(IModuleRequest data, IModuleResponse toBeUpdated)
 	{
 		String move = data.getHeader(Const.HN_MOVE);
 		String src = data.getHeader(Const.HN_SOURCE_PLAYER);
 		String dest = data.getHeader(Const.HN_DESTINATION_PLAYER);
-
+		String gameIDString = data.getHeader(Const.HN_GAME_ID);
+		
 		toBeUpdated.setHeader(Const.HN_TYPE, RequestType.SEND_MOVE);
+		
 		toBeUpdated.setHeader(Const.HN_MOVE, move);
 		toBeUpdated.setHeader(Const.HN_DESTINATION_PLAYER, dest);
 		toBeUpdated.setHeader(Const.HN_SOURCE_PLAYER, src);
+		toBeUpdated.setHeader(Const.HN_GAME_ID, gameIDString);
 	}
-
+	
 }

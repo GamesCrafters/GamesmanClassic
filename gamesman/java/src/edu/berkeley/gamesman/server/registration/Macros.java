@@ -3,7 +3,7 @@
  */
 package edu.berkeley.gamesman.server.registration;
 
-import java.util.Hashtable;
+
 
 /**
  * @author Victor Perez, Filip Furmanek, Ramesh Sridharan
@@ -26,7 +26,7 @@ public final class Macros {
 	public static final String HN_STATUS = "Status";
 	public static final String HN_ONLINE_USERS = "OnlineUsers";
 	public static final String HN_PASSWORD = "Password";
-	
+	public static final String HN_LENGTH = "length";
 	
 	/**
 	 * Header values

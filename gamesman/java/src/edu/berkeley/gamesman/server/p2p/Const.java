@@ -5,6 +5,8 @@ public final class Const {
 	// Header fields
 	public static final String HN_SOURCE_PLAYER = "SrcPlayer";
 	public static final String HN_DESTINATION_PLAYER = "DestPlayer";
+	public static final String HN_SOURCE_PLAYER_SECRET_KEY = "SrcPlayerKey";
+	public static final String HN_GAME_ID = "GameID";
 	public static final String HN_MOVE = "Move";
 	// P2P is probably the only module that needs to set "type" in the response
 	public static final String HN_TYPE = "Type"; 
