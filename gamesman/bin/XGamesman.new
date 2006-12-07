@@ -57,9 +57,11 @@ bind . <Control-Key> {
 	set home .rightSide.home
 
 	if {[string compare %K "h"] == 0 || [string compare %K "H"] == 0} {
-	selectGame -1
+		selectGame -1
 	} elseif {[string compare %K "q"] == 0 || [string compare %K "Q"] == 0} {
-	exit
+		exit
+	} elseif {[string compare %K "n"] == 0 || [string compare %K "N"] == 0} {
+		selectGame -2
 	}
 }
 
@@ -202,7 +204,9 @@ proc gameName {id} {
 }
 proc pageName {id} {
 	if {$id == -1} {
-	return main
+		return main
+	} elseif {$id == -2} {
+		return newGame
 	}
 	return [gameName $id]
 }
@@ -373,7 +377,7 @@ proc parseCfg { in } {
 		} elseif {$cfgType == $colorsName} {
 			set parts [split $line $fieldDelim]
 
-			if {[llength $parts] > 0} {
+			if {[llength $parts] > 1} {
 				set field [lindex $parts 0]
 				set val [lindex $parts 1]
 				set colors($val) $field
@@ -382,7 +386,7 @@ proc parseCfg { in } {
 		} elseif {$cfgType == $gameName} {
 			set parts [split $line $fieldDelim]
 			
-			if {[llength $parts] > 0} {
+			if {[llength $parts] > 1} {
 				set field [lindex $parts 0]
 				set val [lindex $parts 1]
 				
@@ -501,10 +505,12 @@ proc changeGameColor { color } {
 		if {$found == 1} {
 			set parts [split $line =]
 			
-			if {[llength $parts] > 0} {
+			if {[llength $parts] > 1} {
 				if {[lindex $parts 0] == $colorField} {
-					seek $fin [expr $offset + 1 + [string length $colorField]]
-					puts $fin $invColors($color)
+					if {[lindex $parts 1] != $invColors($color)} {
+						seek $fin [expr $offset + 1 + [string length $colorField]]
+						puts $fin $invColors($color)
+					}
 					break
 				}
 			}	
@@ -516,19 +522,35 @@ proc changeGameColor { color } {
 	}
 	
 	close $fin
+	refreshGameList
 }
 
 proc refreshGameList { } {
-
 }
 
-proc addToGameList { value } {
-	global gamesFile
-	if [catch {open "$gamesFile" {RDONLY}} fin] {
+proc setNewColor { color } {
+	global newColor
+	set newColor $color
+}
+
+proc addToGameList { frame } {
+	global gamesFile invColors newColor
+	if [catch {open "$gamesFile" {WRONLY CREAT APPEND}} fin] {
 		return
 	}
 	
-	puts $fin $value
+	set c $invColors($newColor)
+	set temp [$frame.newGame.nameText get 1.0 end]
+	set temp [string trimright $temp \n]
+	set buffer \n\[$temp]\n
+	set temp color=
+	set buffer $buffer$temp$c\n
+	set temp basename=
+	set temp $temp[$frame.newGame.baseText get 1.0 end]
+	set temp [string trimright $temp \n]
+	set buffer $buffer$temp
+	
+	puts $fin $buffer
 	close $fin
 }
 
@@ -537,8 +559,9 @@ proc main {} {
 	global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
 	calBlue calYellow scrollDirection listLocation maxGameString \
-	gamesFile secDelim colors invColors
+	gamesFile secDelim colors invColors newColor
 
+	set newColor black
 	set secDelim {\[(.+?)]}
 	set theBitmapDir "../bitmaps"
 	set gamesFile "./games.txt"
@@ -582,7 +605,7 @@ proc main {} {
 	pack $home -fill both -side right -expand 1 -padx 0 -pady 0
 
 	set scrollDirection vertical
-	if {[catch {set fileptr [open listLocation.txt r]}]} {
+	if {[catch {open listLocation.txt r} fileptr]} {
 	set listLocation left
 	} else {
 	gets $fileptr listLocation
@@ -607,7 +630,6 @@ proc main {} {
 	bind $leftScroll <ButtonPress-5> "mouseWheelDown"
 
 	. configure -menu .menu
-	
 }
 
 proc CreateMenuItems menu {
@@ -616,6 +638,9 @@ proc CreateMenuItems menu {
 	set m $menu.file
 	menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
 	$menu add cascade -label "File" -menu $m -underline 0
+	$m add command -label "Add a new game" -underline 0 \
+		-command "selectGame -2" \
+		-accelerator <ctrl-n>
 	$m add command -label "Home" \
 	-underline 0 \
 	-command "selectGame -1" \
@@ -625,6 +650,7 @@ proc CreateMenuItems menu {
 	-command exit \
 	-accelerator <ctrl-q>
 
+		
 	set m $menu.games
 	menu $m -tearoff 1 -borderwidth 0 -activeborderwidth 1
 	$menu add cascade -label "Games" -menu $m -underline 0
@@ -675,8 +701,6 @@ proc CreateMenuItems menu {
 		$m add command -label $colors($idx) -underline 0 \
 		-command "changeGameColor $colors($idx)"
 	}
-	
-
 }
 
 proc CreateListButtons list {
@@ -686,44 +710,47 @@ proc CreateListButtons list {
 	set textAnchor "e"
 	set imageAnchor "w"
 	set textWidth [expr [listItemWidth] - $imageSize - 10]
+	
 	if {$scrollDirection == "horizontal"} {
-	set textAnchor "n"
-	set imageAnchor "n"
-	set textWidth [expr [listItemWidth] - 10]
+		set textAnchor "n"
+		set imageAnchor "n"
+		set textWidth [expr [listItemWidth] - 10]
 	}
+	
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	if {[guiExists $i]} {
-		set imageFn "guiImage"
-	} else {
-		set imageFn "textImage"
+		if {[guiExists $i]} {
+			set imageFn "guiImage"
+		} else {
+			set imageFn "textImage"
+		}
+		set rectCoords [list -1 [expr 1+$i*[listItemHeight]] \
+					[expr [listItemWidth] - 1] \
+					[expr ($i+1)*[listItemHeight]]]
+		set textCoords [list [expr [listItemWidth]-5] \
+					[expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
+		set imageCoords [list 5 [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
+		if {$scrollDirection == "horizontal"} {
+			set rectCoords [list [expr [listItemWidth]*$i] 0 \
+					[expr ($i+1)*[listItemWidth]-1] \
+					[expr [listItemHeight]-0]]
+			set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
+					[expr $imageSize+10]]
+			set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
+		}
+		$list create rect $rectCoords \
+			-outline RoyalBlue \
+			-fill [gameColor $i] \
+			-tags [list rect$i list$i]
+		$list create text $textCoords -text [gameString $i] \
+			-anchor $textAnchor \
+			-width $textWidth \
+			-fill [textColor $i] \
+			-font $listFont \
+			-tags [list text$i list$i]
+		$list create image $imageCoords -image [$imageFn $i $imageScale] \
+			-anchor $imageAnchor -tags [list image$i list$i]
 	}
-	set rectCoords [list -1 [expr 1+$i*[listItemHeight]] \
-				[expr [listItemWidth] - 1] \
-				[expr ($i+1)*[listItemHeight]]]
-	set textCoords [list [expr [listItemWidth]-5] \
-				[expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
-	set imageCoords [list 5 [expr 1+[listItemHeight]/2+$i*[listItemHeight]]]
-	if {$scrollDirection == "horizontal"} {
-		set rectCoords [list [expr [listItemWidth]*$i] 0 \
-				[expr ($i+1)*[listItemWidth]-1] \
-				[expr [listItemHeight]-0]]
-		set textCoords [list [expr [listItemWidth]*($i+1)-[listItemWidth]/2] \
-				[expr $imageSize+10]]
-		set imageCoords [list [expr [listItemWidth]*$i+[listItemWidth]/2] 5]
-	}
-	$list create rect $rectCoords \
-		-outline RoyalBlue \
-		-fill [gameColor $i] \
-		-tags [list rect$i list$i]
-	$list create text $textCoords -text [gameString $i] \
-		-anchor $textAnchor \
-		-width $textWidth \
-		-fill [textColor $i] \
-		-font $listFont \
-		-tags [list text$i list$i]
-	$list create image $imageCoords -image [$imageFn $i $imageScale] \
-		-anchor $imageAnchor -tags [list image$i list$i]
-	}
+	
 	selectGame $currentId
 }
 
@@ -780,22 +807,25 @@ proc Resize { } {
 	set width [pageWidth]
 	$home.$currentGame.title configure -width [expr $width - 20]
 	if { [info exists Desc($currentGame)] } {
-	$home.$currentGame.desc configure -width [expr $width - 20]
+		$home.$currentGame.desc configure -width [expr $width - 20]
 	}
 	if { [info exists Rules($currentGame)] } {
-	$home.$currentGame.rules configure -width [expr $width - 20]
+		$home.$currentGame.rules configure -width [expr $width - 20]
 	}
-	if { $currentGame == "main" } {
-	$home.main.desc configure -width [expr $width - 20]
+	if { $currentGame == "main" || $currentGame == "newGame"} {
+		$home.main.desc configure -width [expr $width - 20]
 	}
 }
 
 proc CreateGamePages { frame } {
-	global theNumberOfPrograms calBlue Desc Rules
+	global theNumberOfPrograms calBlue Desc Rules invColors
 
 	set width [pageWidth]
 	set height [expr [winfo height .] - 30]
-	
+	set borderWidth 5
+	set bgcolor $calBlue
+	set fontcolor white
+			
 	##### Starting Page ########
 	set bgcolor $calBlue
 	set fontcolor white
@@ -821,7 +851,57 @@ proc CreateGamePages { frame } {
 
 	pack $frame.main -expand 1 -fill both -anchor nw
 	## end start page ##
+	
+	##### game adding page #####
+	canvas $frame.newGame -background $bgcolor -highlightthickness 0
+	message $frame.newGame.title -text "Add a new game" \
+	-anchor center \
+	-background $bgcolor \
+	-foreground $fontcolor \
+	-width [expr $width - 20] \
+	-font "Helvetica 20 bold"
+	message $frame.newGame.desc -text "Fill in the fields and choose a color. \
+		Then click Add to add the game." \
+	-anchor nw \
+	-background $bgcolor \
+	-foreground $fontcolor \
+	-width [expr $width - 20]
+	
+	canvas $frame.newGame.buttons -background $bgcolor -highlightthickness 0
+	text $frame.newGame.nameText -width 80 -height 1 -wrap none
+	text $frame.newGame.baseText -width 80 -height 1 -wrap none
+	
+	foreach idx [array names invColors] {
+		button $frame.newGame.buttons.button$idx \
+			-text $idx \
+			-compound top \
+			-bg $idx \
+			-borderwidth 0 \
+			-command "setNewColor $idx"
+		pack $frame.newGame.buttons.button$idx -side left
+	}
+	message $frame.newGame.dispName -text "Game name:"
+	message $frame.newGame.baseName -text "Base name:"
+	message $frame.newGame.colors -text "Click on a color to select it:"
+	
+	button $frame.newGame.add \
+		-text "Add" \
+		-bg "grey" \
+		-borderwidth $borderWidth \
+		-command "addToGameList $frame"
+	pack $frame.newGame.add -side top
+	
+	pack $frame.newGame.title -anchor n -pady [list 10 0]
+	pack $frame.newGame.desc -anchor n
+	pack $frame.newGame.dispName
+	pack $frame.newGame.nameText
+	pack $frame.newGame.baseName
+	pack $frame.newGame.baseText
+	pack $frame.newGame.colors
+	pack $frame.newGame.buttons
 
+	##### end game adding page #####
+	
 	set docPath "../doc/"
 
 	### this loop creates default content for game specific pages
@@ -829,9 +909,6 @@ proc CreateGamePages { frame } {
 		set gameName [gameName $i]
 		set gameString [gameString $i]
 		set theColor [gameColor $i]
-		set borderWidth 5
-		set bgcolor $calBlue
-		set fontcolor white
 		canvas $frame.$gameName -background $bgcolor -highlightthickness 0
 		message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
@@ -839,7 +916,7 @@ proc CreateGamePages { frame } {
 		canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
 	
 		pack $frame.$gameName.title -pady [list 5 0]
-			pack $frame.$gameName.buttons
+		pack $frame.$gameName.buttons
 	
 		set fileName d$gameName.txt
 		parseInfo [file join $docPath $fileName]
@@ -863,7 +940,7 @@ proc CreateGamePages { frame } {
 			-fg white \
 			-borderwidth $borderWidth \
 			-command "runText $i"
-			pack $frame.$gameName.buttons.textButton -side left
+		pack $frame.$gameName.buttons.textButton -side left
 	
 		if { [info exists Desc($gameName)] } {
 			message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
@@ -876,7 +953,7 @@ proc CreateGamePages { frame } {
 			-foreground $fontcolor -background $bgcolor -anchor nw
 			pack $frame.$gameName.rules -anchor n -expand 1
 		}
-	}
+	}	
 }
 
 ### Call the main procedure.
