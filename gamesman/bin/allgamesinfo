@@ -71,7 +71,8 @@ else
 			then
 				status=$Bronze
 			fi
-			echo ${Xmodule} $status >> analysis/allgamestatus.txt			
+			tclauthor=$(grep -h "AUTHOR" ${Xmodule} | sed -e 's/#\+ \+AUTHOR: \+//' -e 's/ \+- \+University of California at Berkeley//' -e 's/ /Ω/g')
+			echo ${Xmodule}^$status^$tclauthor >> analysis/allgamestatus.txt			
 		fi
 	done
 	echo "Done generating GUI status"
