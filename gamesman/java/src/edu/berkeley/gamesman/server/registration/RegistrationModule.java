@@ -28,13 +28,16 @@ public class RegistrationModule implements IModule
 	 */
 	public RegistrationModule() {
 		super();
-		usersOnline = new Hashtable();
+		//usersOnline = new Hashtable();
 		//this hashtable may need to be populated with a list of valid game names
-		openGames = new Hashtable();
+		//openGames = new Hashtable();
 	}
 	
-	private Hashtable openGames, usersOnline;
-	private static int gameID;
+	// fields revised
+	private static Hashtable<String, UserNode> usersOnline = new Hashtable<String, UserNode>();
+	private static Hashtable<String, Hashtable<Integer, TableNode>> openTables; //, usersOnline;
+	// wtf?
+	//private static int gameID;
 
 	/**
 	 * 
@@ -118,20 +121,25 @@ public class RegistrationModule implements IModule
 	 * @return
 	 */
 	private void registerUser(IModuleRequest req, IModuleResponse res) throws ModuleException {
-		String userName, gameName, secretKey;
+		String userName, gameName, secretKey, userPassword;
 		int checkStatus;
 		
 		//get userName and gameName from the request object
 		userName = req.getHeader(Macros.HN_NAME);
 		gameName = req.getHeader(Macros.HN_GAME);
+		userPassword = req.getHeader(Macros.HN_PASSWORD);
 		
-		//Name check successful
-		if ((checkStatus = checkName(userName)) == Macros.VALID_CODE) {
-			addUser(userName, gameName);
-			secretKey = (String)((PropertyBucket)getUser(userName)).getProperty(Macros.PROPERTY_SECRET_KEY);
+		// a newcomer
+		if ((checkStatus = checkName(userName)) == Macros.CHECK_NEW_USER) {
+			addNewUser(userName, gameName, userPassword);
+			secretKey = usersOnline.get(userName).getSecretKey();
+			
+			// ugly 1.4 hack:
+			//secretKey = (String)((PropertyBucket)getUser(userName)).getProperty(Macros.PROPERTY_SECRET_KEY);
 			res.setHeader(Macros.HN_SECRET_KEY, secretKey);
-		}
-		else {
+		} else if(checkStatus == Macros.CHECK_EXISTING_USER) { // user already registered with us
+			usersOnline.get(userName).addGameType(gameName);
+		} else {
 			res.setReturnCode(checkStatus);
 			res.setReturnMessage(ErrorCode.Msg.INVALID_USER_NAME);
 		}
@@ -139,17 +147,21 @@ public class RegistrationModule implements IModule
 	
 	/**
 	 * Request the list of players online, filtering based on the requested game
+	 * stores in datastream of res
 	 * @param req
 	 * @param res
 	 * @return
 	 * @modifies this
 	 */
+	//modded
 	private void getUsersOnline(IModuleRequest req, IModuleResponse res) throws ModuleException {
-		String gameName, onlineUser, onlineGame;
+		
+		String gameName, onlineUser;
+		LinkedList<String> onlineGames;
 		OutputStream outStream;
 		Enumeration users;
 		byte [] byteArr;
-		PropertyBucket propBucket;
+		UserNode u;
 		
 		try {
 			outStream = res.getOutputStream();
@@ -165,10 +177,11 @@ public class RegistrationModule implements IModule
 		gameName = req.getHeader(Macros.HN_GAME);
 		for (users = usersOnline.keys(); users.hasMoreElements();) {
 			onlineUser = (String)users.nextElement();
-			propBucket = (PropertyBucket) usersOnline.get(onlineUser);
-			onlineGame = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
+			u = usersOnline.get(onlineUser);
 			
-			if (onlineGame.equals(gameName)) {
+			onlineGames = u.getGameTypes();
+			
+			if (onlineGames.contains(gameName)) {
 				onlineUser += "\n";
 				byteArr = onlineUser.getBytes();
 				try {
@@ -196,20 +209,20 @@ public class RegistrationModule implements IModule
 		int index;
 		Hashtable gameSessions;
 		Enumeration gameSessionTable;
-		PropertyBucket propBucket;
 		
 		//filter for the game client is looking for
 		gameName = req.getHeader(Macros.HN_GAME);
 		
 		//get all sessions of that particular game
 		//Note that if gameName isn't being hosted, then an empty hashtable will be returned by getGameSessions
-		gameSessions = (Hashtable)getGameSessions(gameName);
+		gameSessions = getGameSessions(gameName);
 		
 		for (index = 0, gameSessionTable = gameSessions.keys(); 
 						gameSessionTable.hasMoreElements(); index++) {
 			
 			//list of properties descibing this game session instance
 			gameID = (Integer) gameSessionTable.nextElement();
+			
 			propBucket = (PropertyBucket)gameSessions.get(gameID);
 			host = (String)propBucket.getProperty(Macros.PROPERTY_HOST);
 			variationNumber = (String)propBucket.getProperty(Macros.PROPERTY_VARIATION);
@@ -485,7 +498,7 @@ public class RegistrationModule implements IModule
 				}
 				
 				//Inform the P2P module of this game
-				P2PModule.registerNewGame(userName, luckyUser);
+				P2PModule.registerNewGame(userName, luckyUser, 0);
 				
 				//TODO: the following line breaks the abstraction barrier. A cleaner solution
 				//should be employed to remove the game record
@@ -624,23 +637,24 @@ public class RegistrationModule implements IModule
 	 * @return a gameSessions data structure with all games of type gameName
 	 */
 	private Hashtable getGameSessions(String gameName) {
-		Hashtable gameSessions;
-		gameSessions = (Hashtable)openGames.get(gameName);
+		Hashtable<Integer, TableNode> gameSessions;
+		gameSessions = openTables.get(gameName);
 		if (gameSessions == null) {
-			addGameSessions(gameName);
-			gameSessions = (Hashtable) openGames.get(gameName);
+			gameSessions = new Hashtable<Integer, TableNode>();
 		}
 		return gameSessions;
 	}
 	
 	/**
 	 * Add a new data structure to store all game sessions of type gameName
+	 * 
+	 * obsolete
 	 * @param gameName
 	 * @return
 	 * @modifies this
 	 */
 	private void addGameSessions(String gameName) {
-		openGames.put(gameName, new Hashtable());
+		//openGames.put(gameName, new Hashtable());
 	}
 	
 	/**
@@ -725,13 +739,17 @@ public class RegistrationModule implements IModule
 	 * @return
 	 * @modifies this
 	 */
-	private void addUser(String userName, String gameName) throws ModuleException {
+	private void addNewUser(String userName, String firstGame, String userPassword) throws ModuleException {
 		/**
 		 * Modifying so that userOnline is now a Hashtable mapping userNames 
 		 * to PropertyBucket objects
 		 */
-		PropertyBucket propBucket = new PropertyBucket();
-		String secretKey;
+		
+		
+		//PropertyBucket propBucket = new PropertyBucket(); replaced by:
+		String secretKey = generateKeyString(userName);
+		UserNode u = new UserNode(userName, userPassword, secretKey, firstGame);
+		
 		/**
 		 * Check that we are not trying to add a user that's already in the table
 		 * This should have already been checked implicitly by the callee; this is only
@@ -739,22 +757,12 @@ public class RegistrationModule implements IModule
 		 */
 		if (Macros.REG_MOD_DEBUGGING && isUserOnline(userName)) 
 			throw new ModuleException(ErrorCode.HASHTABLE_COLLISION, ErrorCode.Msg.HASHTABLE_COLLISION);
-		
-		//store the game name
-		propBucket.setProperty(Macros.PROPERTY_GAME_NAME, gameName);
-		//in order to avoid using another data structure for user secret keys
-		//add it to the property bucket
-		secretKey = RegistrationModule.generateKeyString(userName);
-		propBucket.setProperty(Macros.PROPERTY_SECRET_KEY, secretKey);
-		
-		//new: add userName to the propertyBucket as well
-		propBucket.setProperty(Macros.PROPERTY_USER_NAME, userName);
-		
-		//map user name to corresponding property bucket
+		//map user name to corresponding user node
 		//this is a critical section so use a mutex
 		synchronized (usersOnline) {
-			usersOnline.put(userName, propBucket);
+			usersOnline.put(userName, u);
 		}
+		
 	}
 	
 	
@@ -773,10 +781,13 @@ public class RegistrationModule implements IModule
 	/**
 	 * Return the corresponding property bucket associated with userName
 	 * in the usersOnline hashtable or null if the mapping does not exist
+	 * 
+	 * deprecated!
+	 * 
 	 * @param userName
 	 * @return
 	 */
-	private PropertyBucket getUser(String userName) {
+	private static PropertyBucket getUser(String userName) {
 		return (PropertyBucket)usersOnline.get(userName);
 	}
 	
@@ -826,7 +837,7 @@ public class RegistrationModule implements IModule
 	 * @param secretKey
 	 * @return
 	 */
-	protected boolean isValidUserKey(String userName, String secretKey) {
+	static public boolean isValidUserKey(String userName, String secretKey) {
 		String key;
 		PropertyBucket propBucket;
 		/**
@@ -842,6 +853,10 @@ public class RegistrationModule implements IModule
 		return gameID;
 	}
 
+	static String getRegisteredKey(String registeredUser) {
+		
+		return "";
+	}
 	/**
 	 * For simulated testing purposes
 	 * @param userName
@@ -860,6 +875,87 @@ public class RegistrationModule implements IModule
 		notifyAll();
 	}
 
+	
+	
+	
+	/*
+	 * Class storing all kinds of info about a user: 
+	 * 
+	 * 
+	 */
+	private class UserNode {
+		String userName, userPassword, secretKey;
+		
+		// TODO do we want to use a linked list??
+		
+		LinkedList<String> gameTypes = new LinkedList<String>();
+		LinkedList<TableNode> myHostedGames = new LinkedList<TableNode>();
+	
+		UserNode(String name, String pass, String key, String gameName) {
+			userName = name;
+			userPassword = pass;
+			secretKey = key;
+			// TODO maybe not put this in constructor
+			synchronized(gameTypes) {
+				gameTypes.add(gameName);
+			}
+		}
+		LinkedList<String> getGameTypes() {
+			return gameTypes;
+		}
+		String getSecretKey() {
+			return secretKey;
+		}
+		String getPassword() {
+			return userPassword;
+		}
+		
+		void addTable(TableNode t) {
+			synchronized(myHostedGames) {
+				myHostedGames.add(t);
+			}
+		}
+		
+		void addGameType(String typeName) {
+			synchronized(gameTypes) {
+				gameTypes.add(typeName);
+			}
+		}
+	}
+
+	private static class TableNode {
+		static int globalGameCounter = 0;
+		
+		String gameName;
+		String host;
+		LinkedList<UserNode> interestedUsers = new LinkedList<UserNode>();
+		String variation;
+		String gameDescription; // is broadcasted 
+		
+		int gameID;
+		TableNode(String gameName, String host, String var, String gameD) {
+			gameID = globalGameCounter++;
+			this.gameName = gameName;
+			this.host = host;
+			this.variation = var;
+			this.gameDescription = gameD;
+		}
+		
+		String getGameName() {
+			return gameName;
+		}
+		String getHost() {
+			return host;
+		}
+		String getVariation() {
+			return variation;
+		}
+		void addInterestedUser(UserNode u) {
+			interestedUsers.add(u);
+		}
+		
+	}
+	
 	/**
 	 * 
 	 * @author Victor Perez
@@ -911,4 +1007,5 @@ public class RegistrationModule implements IModule
 			properties.remove(propertyName);
 		}
 	}
+	
 }
