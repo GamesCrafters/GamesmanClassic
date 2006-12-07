@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.43 2006-12-07 02:18:23 vert84 Exp $
+// $Id: mquickchess.c,v 1.44 2006-12-07 02:19:58 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -325,14 +325,6 @@ POSITION HashWithoutTiers(char* board) {
  **
  */
 char* UnhashWithoutTiers(POSITION pos) {
-	return 0;
-}
-
-void gUnhashToTierPosition(POSITION pos, TIERPOSITION* tp, TIER* tier) {
-	
-}
-
-POSITION gHashToWindowPosition(TIERPOSITION tp, TIER tier) {
 	return 0;
 }
 
@@ -1775,6 +1767,9 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.43  2006/12/07 02:18:23  vert84
+// *** empty log message ***
+//
 // Revision 1.42  2006/12/07 01:40:49  vert84
 // *** empty log message ***
 //
