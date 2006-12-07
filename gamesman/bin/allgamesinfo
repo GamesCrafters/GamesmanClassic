@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Will scan the CWD and generate a flat text file with
+# module name and default option
+# Must be run from [gamesman root dir]/bin
+
+moduleList=$(ls m*)
+
+if [ -z "${moduleList[*]}" ]
+then
+	echo "Build Gamesman first!"
+else
+	rm -rf analysis/allgamesinfo.txt
+	for module in $moduleList
+	do
+		option=$(./${module} --printdefault)
+
+		if [ -f "../src/${module}.cc" ]
+		then
+			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.cc | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
+		else
+			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.c | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
+		fi
+		echo $option^$cauthor >> analysis/allgamesinfo.txt
+	done
+fi
+
+echo "Done generating list of games and default options"
+
+# generate list with game statuses
+
+XmoduleList=$(ls Xm*)
+Blacklist=$(ls Xm*.silver)	# need to blacklist the .silver files
+
+Gold="Gold"
+Silver="Silver"
+Bronze="Bronze"
+
+if [ -z "${XmoduleList[*]}" ]
+then
+	echo "I believe you are missing GUI versions of the games"
+else
+	rm -rf analysis/allgamestatus.txt
+	for Xmodule in $XmoduleList
+	do
+		for blklstmod in ${Blacklist}
+		do
+			if [ "$blklstmod" == "$Xmodule" ]
+			then
+				blacklisted="True"
+				break
+			else
+				blacklisted="False"
+			fi
+		done
+
+		if [ "$Xmodule" == "Xmttt" ]
+		then
+			continue
+		fi
+	
+		if [ "$blacklisted" == "True" ]
+		then
+			continue
+		else
+			# have to use -m 1 because of Xmsim containing gamesman3 twice
+			status=$(grep -o -m 1 "gamesman." ${Xmodule} | sed -e 's/gamesman3/Gold/' -e 's/gamesman./Silver/')
+			temp=$(grep -o "gamesman." ${Xmodule}) # Just to clear out grep from using -m 1
+
+			if [ "$status" != "Gold" -a "$status" != "Silver" ]
+			then
+				status=$Bronze
+			fi
+			echo ${Xmodule} $status >> analysis/allgamestatus.txt			
+		fi
+	done
+	echo "Done generating GUI status"
+fi
+exit 0
+
