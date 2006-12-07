@@ -47,6 +47,7 @@ void	writeVarHTML			();
 BOOLEAN	CorruptedValuesP		();
 
 float	PercentDone			(STATICMESSAGE msg);
+float	PercentLoaded			(STATICMESSAGE msg);
 void	InitializeAnalysis();
 
 /* Analysis XML Support */

@@ -1397,3 +1397,45 @@ void showStatus(STATICMESSAGE msg)
         updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
     }
 }
+
+
+/* DB Loading Status Meter */
+void showDBLoadingStatus(STATICMESSAGE msg)
+{
+
+    static float timeDelayTicks = CLOCKS_PER_SEC / 10;
+    static clock_t updateTime = (clock_t) NULL;
+    int print_length=0;
+    if (!gPrintDatabaseInfo)
+      return;
+    float percent = PercentLoaded(msg);
+
+    if (updateTime == (clock_t) NULL)
+    {
+      updateTime = clock() + timeDelayTicks; /* Set Time for the First Time */
+    }
+
+    switch (msg)
+      {
+      case Clean:
+	if(gLoadDatabase)
+	  {
+	    printf("\nLoading in Database for %s...",kGameName);
+	  }
+	updateTime = (clock_t) NULL;
+	return;
+      default:
+	break;
+      }
+    
+    if (clock() > updateTime)
+      {
+	fflush(stdout);
+	fflush(stderr);
+	print_length = fprintf(stderr,"%2.1f%% Done \e[K",percent);
+	fprintf(stderr,"\e[%dD",print_length - 3); /* 3 Characters for the escape sequence */
+	updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
+      }
+}
+
+

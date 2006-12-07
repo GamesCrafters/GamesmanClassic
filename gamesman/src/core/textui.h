@@ -15,6 +15,7 @@ void		HelpMenus		();
 
 USERINPUT	HandleDefaultTextInput	(POSITION pos, MOVE* move, STRING name);
 void		showStatus		(STATICMESSAGE msg);
+void		showDBLoadingStatus	(STATICMESSAGE msg);
 
 
 

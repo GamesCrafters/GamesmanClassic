@@ -153,9 +153,6 @@ VALUE DetermineValue(POSITION position)
 		//}
 
 	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
-		if (gPrintDatabaseInfo)
-			printf("\nLoading in Database for %s...",kGameName);
-
 		if (GetValueOfPosition(position) == undecided) {
 			if (gPrintDatabaseInfo)
 				printf("\nRe-evaluating the value of %s...", kGameName);

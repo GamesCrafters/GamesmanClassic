@@ -418,9 +418,11 @@ BOOLEAN memdb_load_database()
         correctDBVer = (*dbVer == FILEVER);
 
         if (correctDBVer) {
+                showDBLoadingStatus (Clean);
                 for(i = 0; i < gNumberOfPositions && goodDecompression; i++) {
                         goodDecompression = gzread(filep, memdb_array+i, sizeof(cellValue));
                         memdb_array[i] = ntohs(memdb_array[i]);
+			showDBLoadingStatus (Update);
                 }
         }
         /***
