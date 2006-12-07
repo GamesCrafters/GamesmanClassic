@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.5 2006-11-30 10:30:25 max817 Exp $
+// $Id: mataxx.c,v 1.6 2006-12-07 02:52:50 max817 Exp $
 
 /************************************************************************
 **
@@ -95,8 +95,8 @@ STRING   kHelpExample =
 #define WIDTH_MIN	3
 #define LENGTH_MIN	3
 
-#define RED			'R'
-#define BLUE		'b'
+#define RED			'X'
+#define BLUE		'O'
 #define SPACE		' '
 #define PLAYER_ONE  1
 #define PLAYER_TWO  2
@@ -367,9 +367,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	int turn, x, y, reds, blues;
 	board = unhash(position, &turn);
 	countPieces(board, &reds, &blues);
-	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "RED" : "BLUE"));
+	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "X" : "O"));
 	printf("%s\n", GetPrediction(position, playersName, usersTurn));
-	printf("Red = %d\tBlue = %d\n  ", reds, blues);
+	printf("X = %d\tO = %d\n  ", reds, blues);
 	for (y = length; y >= 1; y--) {// for all the rows
 		for (x = 1; x <= width; x++)// for all the columns
 			printf("+-");
@@ -929,6 +929,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.5  2006/11/30 10:30:25  max817
+// Ataxx now correctly handles misere.
+//
 // Revision 1.4  2006/10/17 10:45:20  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
