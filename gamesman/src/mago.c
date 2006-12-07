@@ -95,8 +95,8 @@ STRING   kHelpExample =
 #define WIDTH_MIN	1
 #define LENGTH_MIN	1
 
-#define WHITE		'W'
-#define BLACK		'b'
+#define WHITE		'o'
+#define BLACK		'X'
 #define SPACE		' '
 #define PLAYER_ONE  1
 #define PLAYER_TWO  2
@@ -303,34 +303,34 @@ VALUE Primitive (POSITION position){
 	int turn; //, reds, blues;
 	//BOOLEAN redWon;
 	board = unhash(position, &turn);
-	
+
 	int x;
 	int y;
-	
+
 	BOOLEAN SELFKILL = FALSE;
-	
+
 	// These lists reduce the time down from theta(N^2) to theta(N)
-	
+
 	struct linked_list *whave_liberties = (struct linked_list *) SafeMalloc(sizeof(struct linked_list));
 	(*whave_liberties).x = -2;
 	(*whave_liberties).y = -2;
 	(*whave_liberties).next = NULL;
-	
+
 	struct linked_list *wno_liberties = (struct linked_list *) SafeMalloc(sizeof(struct linked_list));
 	(*wno_liberties).x = -2;
 	(*wno_liberties).y = -2;
 	(*wno_liberties).next = NULL;
-	
+
 	struct linked_list *bhave_liberties = (struct linked_list *) SafeMalloc(sizeof(struct linked_list));
 	(*bhave_liberties).x = -2;
 	(*bhave_liberties).y = -2;
 	(*bhave_liberties).next = NULL;
-	
+
 	struct linked_list *bno_liberties = (struct linked_list *) SafeMalloc(sizeof(struct linked_list));
 	(*bno_liberties).x = -2;
 	(*bno_liberties).y = -2;
 	(*bno_liberties).next = NULL;
-	
+
 	for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
 		for (x = 1; x <= width; x++) {// look through the columns, left-to-right
 			int result;
@@ -347,7 +347,7 @@ VALUE Primitive (POSITION position){
 			}
 
 			if (result == FALSE){
-				if (((turn == PLAYER_ONE) && (board[toIndex(x,y)] == BLACK)) 
+				if (((turn == PLAYER_ONE) && (board[toIndex(x,y)] == BLACK))
 					|| ((turn == PLAYER_TWO) && (board[toIndex(x,y)] == WHITE))){
 					SELFKILL = TRUE;
 				} else {
@@ -442,7 +442,7 @@ struct linked_list* listAdd(struct linked_list *lst, int x,  int y){
 		(*val).next = NULL;
 		return val;
 	}
-	(*val).next = (*lst).next; 
+	(*val).next = (*lst).next;
 	(*lst).next = val;
 	return lst;
 }
@@ -612,7 +612,7 @@ STRING MoveToString (MOVE move){
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName){
-	
+
 	USERINPUT input;
     USERINPUT HandleDefaultTextInput();
 
@@ -620,10 +620,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 		/***********************************************************
 		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 		***********************************************************/
-		
+
 		printf("%8s's move [(undo)/([%c-%c][%d-%d])] : ", playersName,'a', width+'a', 1, length);
 		input = HandleDefaultTextInput(position, move, playersName);
-		
+
 		if (input != Continue)
 			return input;
     }
