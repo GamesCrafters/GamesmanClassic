@@ -249,7 +249,8 @@ struct DNB {
       for (unsigned i = 0; i <= BoardSizeX; i++) {
 	printf("%c",EdgeV(i,j)?'|':ChoiceV(i,j));
 	if (i == BoardSizeX) break;
-	printf(" %c ",BoxCompleted(i,j)?!TrackBoxOwners?'?':Scored(i,j)?'O':'X':' ');
+	// printf(" %c ",BoxCompleted(i,j)?!TrackBoxOwners?'?':Scored(i,j)?'O':'X':' ');
+	printf(" %c ",BoxCompleted(i,j)?(!TrackBoxOwners?'?':Scored(i,j))?'O':'X':' ');
       }
       printf("\n");
 
@@ -394,7 +395,7 @@ void DoPrivateSolve() {
 EXTERNC void InitializeGame()
 {
   if (BoardSizeX*BoardSizeY>=6) {
-    //TrackBoxOwners=false;
+    TrackBoxOwners=false;
     //CompressDatabase=true;
     //SolvePrivately=true;
   }
