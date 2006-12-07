@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.39 2006-11-21 03:01:17 jerricality Exp $
+// $Id: mabalone.c,v 1.40 2006-12-07 02:10:30 koolswim88 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -214,6 +214,7 @@ TIERLIST* TierChildren(TIER tier);
 TIERPOSITION NumberOfTierPositions(TIER tier);
 POSITION hash(int);
 void unhash(POSITION, int*);
+void FreeHelper(struct row**);
 
 // External
 extern GENERIC_PTR	SafeMalloc ();
@@ -317,8 +318,10 @@ void GameSpecificMenu()
       MISERE = 1;
     else
       MISERE = 0;
-
-    SafeFree(rows);
+    
+    //SafeFree(rows);
+    //printf("calling safefree0\n");
+    FreeHelper(rows);
     SafeFree(gBoard);
     InitializeGame();
     printf("\n");
@@ -328,8 +331,10 @@ void GameSpecificMenu()
       NSS = 1;
     else
       NSS = 0;
-
-    SafeFree(rows);
+    
+    //SafeFree(rows);
+    //printf("calling safefree1\n");
+    FreeHelper(rows);
     SafeFree(gBoard);
     InitializeGame();
     printf("\n");
@@ -365,13 +370,15 @@ void changeBoard()
   }
   else {
     printf("Changing N to %d ...\n", size);
+    FreeHelper(rows);
+    SafeFree(gBoard);
     N = size;
     MISERE = 0;
     NSS = 0;
     XHITKILLS = 1;
     PIECES = def_start_pieces(N);
-    SafeFree(rows);
-    SafeFree(gBoard);
+    //SafeFree(rows);
+    //printf("calling safefree2\n");
     InitializeGame();
   }
 }
@@ -394,7 +401,9 @@ void changeKills()
   }
   else{
     XHITKILLS = kills;
-    SafeFree(rows);
+    //SafeFree(rows);
+    //printf("calling safefree3\n");
+    FreeHelper(rows);
     SafeFree(gBoard);
     InitializeGame();
   }
@@ -420,7 +429,9 @@ void changePieces()
   else {
     PIECES = num;
     XHITKILLS = 1;
-    SafeFree(rows);
+    //SafeFree(rows);
+    //printf("calling safefree4\n");
+    FreeHelper(rows);
     SafeFree(gBoard);
     InitializeGame();
   }
@@ -674,6 +685,7 @@ void PrintComputersMove(computersMove, computersName)
 {
   printf("%8s's move   : ", computersName);
   PrintMove(computersMove);
+  //SafeFree(computersMove);
   printf("\n");
 }
 
@@ -785,6 +797,7 @@ void PrintPosition(position, playerName, usersTurn)
   else
     piece = 'y';  
 
+	//printf("trying to print in PrintPosition");
   if (N < 4) {
     /* messy centering spacing issues for sizeable first line*/
     printf("\n");
@@ -805,13 +818,13 @@ void PrintPosition(position, playerName, usersTurn)
 
     for (r = 0; r < spacing/2; r++)
       printf (" ");
-    printf("LEGEND");
+    printf("  LEGEND");
     for (r = 0; r < spacing/2; r++)
       printf (" ");
     if (spacing % 2 == 1)
       printf (" ");
 
-    printf(" DIRECTIONS\n\n");
+    printf("   DIRECTIONS\n\n");
   }
 
 
@@ -843,7 +856,7 @@ void PrintPosition(position, playerName, usersTurn)
     for (r = 0; r < N - 2; r++) {
       printf("  ");
     }
-    printf(" |\n");
+    printf(" |\n");		//2nd row of |
   }
   else {
     printf("\n");
@@ -854,7 +867,7 @@ void PrintPosition(position, playerName, usersTurn)
   for (r = 0; r < N - 2; r++) {
     printf("  ");
   }
-  printf("/ /");
+  printf("/ /");	//First row with (//                   \\)
   for (r = 0; r < N; r++) {
     printf("    ");
   }
@@ -864,7 +877,7 @@ void PrintPosition(position, playerName, usersTurn)
     for (r = 0; r < N - 2; r++) {
       printf("  ");
     }
-    printf(" |\n");
+    printf(" |\n");		//3rd row of |
   }
   else {
     printf("\n");
@@ -877,34 +890,36 @@ void PrintPosition(position, playerName, usersTurn)
     if (N < 4){
       printf("  ");
       printrow(r, 0);
-      printf("   |   ");
+      printf("   |   ");	// this is for the rows with letters
       printrow(r, 1);
 
       if (r == N - 2)
-	printf("     NW   NE");
+	printf("      NW   NE");
       else if (r == N - 1)
 	printf("     W -*- E");
       else if (r == N)
-	printf("     SW   SE");
+	printf("      SW   SE");
 
 	 else
-	printf("               ");
-      if (r != 2 * N - 2) {
-	printf("\n ");
-	printlines(r, 0);
-	printf("|   ");
-	printlines(r, 1);
-	printf("  ");
+	printf("");
+		if (r != 2 * N - 2) 
+		{
+			printf("\n ");
+			printlines(r, 0);
+			printf("|   ");		//Print the | for the top and the bottom rows with /\ /\ /\ /\ with boardsize of 3 
+			printlines(r, 1);
+			printf("  ");
 
-	if (r == N - 1)
-	  printf("     / \\");
-	else if (r == N - 2)
-	  printf("     \\ /");
-      }
+		if (r == N - 1)
+			printf("       / \\");		//Direction's (/\)
+		else if (r == N - 2)
+			printf("       \\ /");		//Direction's(\/)
+		}
 
       printf("\n");
     }
 
+	
     else {
       printf("  ");
       printrow(r, 0);
@@ -915,6 +930,8 @@ void PrintPosition(position, playerName, usersTurn)
 	printf("\n");
       }
     }
+	
+	
   }
 
 /* edge of hex board */
@@ -927,13 +944,13 @@ void PrintPosition(position, playerName, usersTurn)
   for (r = 0; r < N; r++) {
     printf("    ");
   }
-  printf(" / /");
+  printf(" / /");		//Last rows with  (\\             //)
   if (N < 4) {
     printf("     ");
     for (r = 0; r < N - 2; r++) {
       printf("  ");
     }
-    printf(" |\n");
+    printf(" |\n");		// 2nd to last row with |
   }
   else {
     printf("\n");
@@ -1718,7 +1735,6 @@ struct row * makerow (int size, int start)
   return new;
 }
 
-
 void printrow (int line, int flag) {
   int s, size, start;
 
@@ -1730,14 +1746,14 @@ void printrow (int line, int flag) {
   }
   if (flag == 0) {
 	  if (line > N - 1)
-		  printf("\\ \\  ");
+		  printf("\\ \\  ");	//Controls the beginning of (\ \  A(o)-(o) ....
 	  else if (line == N - 1)
-		  printf("| |  ");
+		  printf("| |  ");		//Controls the beginning of Middle line with B
 	  else
 		  printf("/ /  ");
   }
   
-  printf("%c", 2*N - 2 - line + 'A');
+  //printf("%c", 2*N - 2 - line + 'A');
 
   for (s = 0; s < size; s++) {
 	  printf ("(");
@@ -1755,31 +1771,29 @@ void printrow (int line, int flag) {
 	  if (s != size - 1)
 		  printf(")-");
 	  else
-		  printf(") ");
+		  printf(")  ");
   }
   if (flag == 0) {
 	  if (line > N - 1)
-		  printf(" / /");
+		  printf("/ /"); //Controls the end of the bottom row with A(o) -(o)
 	  else if (line == N - 1)
-		  printf(" | |");
+		  printf("| |"); //Controls the end of the Middle row with B() -()-()
 	  else
-		  printf(" \\ \\");
+		  printf("\\ \\");
   }
 
 
   for (s = 0; s < abs((N - 1) - line); s++) {
 	  if (flag == 0)
-		  printf ("  ");
+		  printf ("  ");	//Controls the spaces between (\\   |)
 	  if (flag == 1) {
 		  if (N == 2)
 			  printf("  ");
 		  else
-			  printf ("   ");
+			  printf ("  ");
 	  }
   }
 }
-
-
 
 void printlines (int line, int flag) {
   int s, line_max;
@@ -1807,7 +1821,7 @@ void printlines (int line, int flag) {
 	printf("/ \\ ");
       else
 	if (N == 2)
-	  printf("/ \\ ");
+	  printf(" / \\ ");
 	else
 	  printf("/  \\ ");
     }
@@ -1816,7 +1830,7 @@ void printlines (int line, int flag) {
 	printf("\\ / ");
       else
 	if (N == 2)
-	  printf("\\ / ");
+	  printf(" \\ / ");
 	else
 	  printf("\\  / ");
     }
@@ -2099,8 +2113,9 @@ void SetupGame() {
 
 
   /* long nasty thing to initialize n-sized board */
-
+  
   gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+  //printf("gBoard is created.\n");
 
   int count, x_pieces_left = PIECES, o_pieces_left = PIECES, start, size, stop;
   double space;
@@ -2187,6 +2202,20 @@ void SetupGame() {
           T % (PIECES+1)  = 0
             / (PIECES+1) = x
 */
+
+void FreeHelper(struct row ** rows)
+{
+     int i;
+     //printf("in Freehelper");
+     
+     for(i=0; i < (2*N - 1); i++)
+     {
+          SafeFree(rows[i]);  
+          //printf("Freeing i = %d", i);       
+     }     
+     printf("end");
+     //SafeFree(rows);
+}
 
 TIER BoardToTier(char* board) {
 	int x = 0, o = 0, count;
@@ -2319,6 +2348,11 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.39  2006/11/21 03:01:17  jerricality
+// Fix some bugs on tierification
+//
+// -Now we no longer solve for the last tier that we can never get to.
+//
 // Revision 1.38  2006/11/19 00:22:24  jerricality
 // Tierization is complete - Jerry
 //
