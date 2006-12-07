@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.44 2006-12-07 02:19:58 vert84 Exp $
+// $Id: mquickchess.c,v 1.45 2006-12-07 04:51:00 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -216,6 +216,7 @@ POSITION gHashToWindowPosition(TIERPOSITION tp, TIER tier);
 
 void InitializeGame ()
 {
+	kSupportsTierGamesman = FALSE;
 	gHashWindowInitialized = FALSE; /* TRUE only when using tiers.  FALSE when on release, for now. */
 	
 	int pieces_array[22] = {'Q', 0, 1, 'R', 0, 1, 'K', 1, 1, 'q', 0, 1, 'r', 0, 1, 'k', 1, 1, ' ', 6, 10, -1};
@@ -237,6 +238,9 @@ void InitializeGame ()
 	gameBoard[(rows-1)*cols + 1] = WHITE_KING;
 	gameBoard[(rows-1)*cols + 2] = WHITE_ROOK;
 
+	//discard current hash
+	generic_hash_destroy();
+	
 	if (gHashWindowInitialized) {
 		// initialize tiers
 		
@@ -1767,6 +1771,9 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.44  2006/12/07 02:19:58  vert84
+// *** empty log message ***
+//
 // Revision 1.43  2006/12/07 02:18:23  vert84
 // *** empty log message ***
 //
