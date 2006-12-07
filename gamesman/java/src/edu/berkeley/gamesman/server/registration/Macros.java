@@ -3,8 +3,10 @@
  */
 package edu.berkeley.gamesman.server.registration;
 
+import java.util.Hashtable;
+
 /**
- * @author Victor Perez
+ * @author Victor Perez, Filip Furmanek, Ramesh Sridharan
  *	Commonly used header types and values
  */
 public final class Macros {
@@ -23,12 +25,16 @@ public final class Macros {
 	public static final String HN_CHALLENGE_ACCEPTED = "ChanllengeAccepted"; 
 	public static final String HN_STATUS = "Status";
 	public static final String HN_ONLINE_USERS = "OnlineUsers";
-
+	public static final String HN_PASSWORD = "Password";
+	
+	
 	/**
 	 * Header values
 	 */
 	public static final String ACCEPTED = "Accepted";
 	public static final int VALID_CODE = 0;
+	public static final int CHECK_NEW_USER = 1;
+	public static final int CHECK_EXISTING_USER = 2;
 	
 	// Need to get rid of these and convert over to use response.setReturnCode/setReturnMessage
 	public static final String ACK = "ACK";
@@ -57,4 +63,6 @@ public final class Macros {
 	 * Debugging Flags
 	 */
 	public static final boolean REG_MOD_DEBUGGING = true;
+
+
 }
