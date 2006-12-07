@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.47 2006-12-07 07:40:50 vert84 Exp $
+// $Id: mquickchess.c,v 1.48 2006-12-07 08:06:43 vert84 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -81,7 +81,7 @@
 **                   Gamesman.Prevented memory leaks. Got game to solve up the 3 major pieces stuck on tier 14
 ** 15 Aug 2006 Adam: Debugged hash contexts
 ** 06 Dec 2006 Aaron: Implementing big changes from the semester.  Fixed gamespecific menu changes of original
-**                    board and solving of tiers.
+**                    board and solving of tiers.  Changed default to 5x6 board.
 **************************************************************************/
 
 /*************************************************************************
@@ -189,9 +189,9 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int rows = 4;
-int cols = 3;
-char *theBoard = "rkq      QKR";
+int rows = 6;
+int cols = 5;
+char *theBoard = "rk                         QKR";
 int theCurrentPlayer = WHITE_TURN;
 
 /*VARIANTS*/
@@ -3512,6 +3512,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.47  2006/12/07 07:40:50  vert84
+// *** empty log message ***
+//
 // Revision 1.46  2006/12/07 05:55:35  vert84
 // *** empty log message ***
 //
