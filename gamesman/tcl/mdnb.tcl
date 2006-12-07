@@ -349,6 +349,7 @@ proc LabelBox { c i j flag } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    $c delete fill
     GS_DrawPosition $c $position
 }
 
@@ -390,17 +391,20 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	set box [BoxCompleted [unhash $newPosition] $i $theMove]
 
 	# Check if we've completed a box
-	if { $box == -1 } {
-	    # We have not completed a box
-	    # turn changes
-	    ChangeTurn
-	} else {
+	if { $box != -1 } {
 	    # We have completed a box
 	    # turn does not change
 	    # mark the box we completed according to whose turn it is
 	    LabelBox $c [lindex $box 0] [lindex $box 1] $turn
+
+	    # We're done, so go away
+	    return
 	}
     }
+
+    # If we got here, that means we didn't finish a box, so we must change turns
+    ChangeTurn
+    
 
 }
 
@@ -429,7 +433,6 @@ proc BoxCompleted { board index move } {
 
     # Is the move related to the box?
     if { $top != $move && $bot != $move && $lef != $move && $rig != $move } {
-	
 	return -1
     }
     if { [string index $board $top] == 1 && [string index $board $bot] == 1 && [string index $board $lef] == 1 && [string index $board $rig] == 1 } {
