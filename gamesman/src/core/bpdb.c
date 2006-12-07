@@ -1899,7 +1899,8 @@ bpdb_generic_load_database(
     }
 
     if( scheme->indicator ) {
-      showDBLoadingStatus (Clean);
+        showDBLoadingStatus (Clean);
+
         while(currentSlice < numOfSlicesHeader) {
             if(bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 1 ) == 0) {
 	      
@@ -1907,6 +1908,7 @@ bpdb_generic_load_database(
                     bpdb_set_slice_slot( currentSlice, 2*currentSlot,
                                 bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, bpdb_write_slice->size[currentSlot]) );
                 }
+                showDBLoadingStatus (Update);
                 currentSlice++;
             } else {
                 
@@ -1914,7 +1916,7 @@ bpdb_generic_load_database(
 
                 for(i = 0; i < skips; i++, currentSlice++) {
                     bpdb_set_slice_slot( currentSlice, 0, undecided );
-		    showDBLoadingStatus (Update);
+                    showDBLoadingStatus (Update);
                 }
             }
         }
