@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.49 2006-12-07 08:24:52 vert84 Exp $
+// $Id: mquickchess.c,v 1.50 2006-12-07 08:51:56 vert84 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -189,8 +189,8 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int rows = 3;
-int cols = 4;
+int rows = 4;
+int cols = 3;
 char *theBoard = "rkq      QKR";
 int theCurrentPlayer = WHITE_TURN;
 
@@ -3512,6 +3512,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.49  2006/12/07 08:24:52  vert84
+// *** empty log message ***
+//
 // Revision 1.48  2006/12/07 08:06:43  vert84
 // *** empty log message ***
 //
