@@ -12,6 +12,7 @@ set maxWidth    3
 set maxHeight   3
 set r           5
 set basespeed   50
+set turn        0
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -321,11 +322,6 @@ proc GS_DrawPosition { c position } {
     $c delete pieces
     DrawPieces $c $position
 
-   for {set i 0} {$i < $boardHeight} {incr i} {
-	for {set j 0} {$j < $boardWidth} {incr j} {
-	    LabelBox $c $i $j [C_Scored $position $j $i]
-	}
-    }
 }
 
 proc LabelBox { c i j flag } {
@@ -339,7 +335,7 @@ proc LabelBox { c i j flag } {
     }
     
     # Draw a diagonal line through the box with the appropriate color
-    $c create line [expr $margin+$j*($square)] [expr $margin+$i*($square)] [expr $margin+($j+1)*($square)] [expr $margin+($i+1)*($square)] -width 4 -fill $color -tag pieces
+    $c create line [expr $margin+$j*($square)] [expr $margin+$i*($square)] [expr $margin+($j+1)*($square)] [expr $margin+($i+1)*($square)] -width 4 -fill $color -tag fill
 }
 
 
@@ -380,8 +376,76 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+
+    global boardWidth boardHeight turn
+    
     AnimateMove $c $theMove
     GS_DrawPosition $c $newPosition
+
+    # Here, we implement tracking of box owners
+    # Namely, if theMove completes a box, note who won that box in a list
+    # Will have to keep track of who's move it is as well
+
+    for {set i 0} {$i < $boardWidth * $boardHeight} {incr i} {
+	set box [BoxCompleted [unhash $newPosition] $i $theMove]
+
+	# Check if we've completed a box
+	if { $box == -1 } {
+	    # We have not completed a box
+	    # turn changes
+	    ChangeTurn
+	} else {
+	    # We have completed a box
+	    # turn does not change
+	    # mark the box we completed according to whose turn it is
+	    LabelBox $c [lindex $box 0] [lindex $box 1] $turn
+	}
+    }
+
+}
+
+proc BoxCompleted { board index move } {
+    global boardWidth boardHeight
+    # we have boardWidth * boardHeight boxes
+    # for the nth box, check the following sides:
+    #
+    # row = n / boardWidth
+    # col = n % boardWidth
+    # half = boardWidth * (boardHeight + 1)
+    #
+    # sides are:
+    # top: row * boardWidth + col
+    # bot: (row+1) * boardWidth + col
+    # lef: half + col * boardHeight + row
+    # rig: half + (col+1) * boardHeight + row
+    set row [expr int($index/$boardWidth)]
+    set col [expr $index%$boardWidth]
+    set half [expr $boardWidth * ($boardHeight+1)]
+
+    set top [expr int($row * $boardWidth + $col)]
+    set bot [expr int(($row+1) * $boardWidth + $col)]
+    set lef [expr int($half + $col * $boardHeight + $row)]
+    set rig [expr int($half + ($col+1) * $boardHeight + $row)]
+
+    # Is the move related to the box?
+    if { $top != $move && $bot != $move && $lef != $move && $rig != $move } {
+	
+	return -1
+    }
+    if { [string index $board $top] == 1 && [string index $board $bot] == 1 && [string index $board $lef] == 1 && [string index $board $rig] == 1 } {
+	# We've completed a box! Return i, j
+	return [list $row $col]
+    }
+    return -1
+}
+
+proc ChangeTurn {} {
+    global turn
+    if { $turn == 0 } {
+	set turn 1
+    } else {
+	set turn 0
+    }
 }
 
 proc AnimateMove { c move } {
