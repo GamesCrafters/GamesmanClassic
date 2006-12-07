@@ -455,12 +455,11 @@ bitlib_read_bits(
     UINT8 offsetFromRight = BITSINBYTE - offsetFromLeft;
     UINT64 value = 0;
     BYTE mask = 0;
-
-    BYTE slicecopy;
-    slicecopy = *slice;
+    BYTE slicecopy = 0;
 
     while( bitsToOutput > 0 ) {
-        //if(offsetFromRight >= bitsToOutput) {
+        slicecopy = *slice;
+
         if(  (BITSINBYTE - offsetFromLeft - bitsToOutput) > 0 ) {
             mask = bitlib_right_mask8( MIN(bitsToOutput, offsetFromRight) ) << (offsetFromRight - bitsToOutput);
             slicecopy = (slicecopy & mask) >> (offsetFromRight - bitsToOutput);
@@ -471,15 +470,12 @@ bitlib_read_bits(
 
         value = value << MIN(bitsToOutput, offsetFromRight);
         value = value | slicecopy;
-        
-        //printf("slice %u OL: %u, OR: %u, BTO: %u, value %llu\n", *slice, offsetFromLeft, offsetFromRight, bitsToOutput, value);
 
         offsetFromLeft = (offsetFromLeft + MIN(bitsToOutput, offsetFromRight)) % BITSINBYTE;
         bitsToOutput -= MIN(bitsToOutput, offsetFromRight);
         offsetFromRight = BITSINBYTE - offsetFromLeft;
 
         slice++;
-        slicecopy =  *slice;
     }
 
     return value;
@@ -539,10 +535,6 @@ bitlib_read_from_buffer(
 
     while( length > 0 ) {
         if(*offsetFromLeft == 8 ) {
-            //*inputBuffer = bitlib_file_read_byte(inFile);
-            //*offsetFromLeft -= 8;
-            //offsetFromRight = BITSINBYTE - *offsetFromLeft;
-
             (*curBuffer)++;
             *offsetFromLeft = 0;
             offsetFromRight = BITSINBYTE;
@@ -553,9 +545,6 @@ bitlib_read_from_buffer(
         }
 
         value = value << MIN( length, offsetFromRight );
-
-        //printf("\n");
-        //bitlib_print_byte_in_bits(inputBuffer);
         
         if(length > offsetFromRight) {
             mask = bitlib_right_mask8( MIN(length, offsetFromRight) );
@@ -564,10 +553,6 @@ bitlib_read_from_buffer(
             mask = bitlib_right_mask8( MIN(length, offsetFromRight) );
             value = value | (UINT64) (((mask << (offsetFromRight - length)) & **curBuffer) >> (BITSINBYTE - *offsetFromLeft - length));
         }
-
-        //printf("OFL: %d, OFR: %d, length: %d, value: %llu\n", *offsetFromLeft, offsetFromRight, length, value);
-
-        //printf("value: %d\n", value);
 
         *offsetFromLeft += MIN( length, offsetFromRight );
         length -= MIN( length, offsetFromRight );

@@ -40,6 +40,7 @@ SCHEME scheme_new(
                 UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
                 UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
                 void (*varnum_init) ( ),
+                void (*varnum_free) ( ),
                 BOOLEAN indicator,
                 BOOLEAN save
                 )
@@ -49,6 +50,7 @@ SCHEME scheme_new(
     s->varnum_gap_bits = varnum_gap_bits;
     s->varnum_size_bits = varnum_size_bits;
     s->varnum_implicit_amt = varnum_implicit_amt;
+    s->varnum_free = varnum_free;
     s->indicator = indicator;
     s->save = save;
 
@@ -59,10 +61,14 @@ SCHEME scheme_new(
     return s;
 }
 
-void scheme_free(
+void
+scheme_free(
                 SCHEME s
                 )
 {
+    if( NULL != s->varnum_free) {
+        s->varnum_free();
+    }
     SAFE_FREE( s );
 }
 
@@ -72,14 +78,18 @@ UINT64 *bpdb_generic_varnum_precomputed_gap_bits;
 void
 bpdb_generic_varnum_init( ) {
     int i = 0;
-    bpdb_generic_varnum_precomputed_gap_bits = (UINT64 *) malloc( 31 * sizeof(UINT64) );
+    bpdb_generic_varnum_precomputed_gap_bits = (UINT64 *) malloc( 32 * sizeof(UINT64) );
 
     bpdb_generic_varnum_precomputed_gap_bits[0] = 3;
 
     for(i=1; i<32; i++) {
-        bpdb_generic_varnum_precomputed_gap_bits[i] = bpdb_generic_varnum_precomputed_gap_bits[i-1] + (1<<(i+1));
-        //printf("%d %llu\n", i, bpdb_generic_varnum_precomputed_gap_bits[i]);
+        bpdb_generic_varnum_precomputed_gap_bits[i] = (UINT64) bpdb_generic_varnum_precomputed_gap_bits[i-1] + ((UINT64)1<<(i+1));
     }
+}
+
+void
+bpdb_generic_varnum_free( ) {
+    SAFE_FREE(bpdb_generic_varnum_precomputed_gap_bits);
 }
 
 UINT8
@@ -117,7 +127,6 @@ bpdb_generic_varnum_implicit_amt(
 
 
 // possible limitation on the number of skips that can be encoded
-//UINT64 *bpdb_generic_varnum_precomputed_gap_bits;
 
 UINT8
 bpdb_ken_varnum_gap_bits(

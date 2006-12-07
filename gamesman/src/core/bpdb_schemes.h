@@ -53,6 +53,8 @@ typedef struct  dbscheme {
     // implicit in the number of bits used to encode the size of the gap
     UINT64          (*varnum_implicit_amt)  ( UINT8 leftBits );
 
+    void            (*varnum_free)          ( );
+
     // whether or not this scheme performs variable-skips encoding
     BOOLEAN         indicator;
 
@@ -68,11 +70,13 @@ scheme_new(
                 UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
                 UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
                 void (*varnum_init) ( ),
+                void (*varnum_free) ( ),
                 BOOLEAN indicator,
                 BOOLEAN save
                 );
 
-void scheme_free(
+void
+scheme_free(
                 SCHEME s
                 );
 
@@ -81,6 +85,9 @@ UINT64 *bpdb_generic_varnum_precomputed_gap_bits;
 
 void
 bpdb_generic_varnum_init( );
+
+void
+bpdb_generic_varnum_free( );
 
 UINT8
 bpdb_generic_varnum_gap_bits(

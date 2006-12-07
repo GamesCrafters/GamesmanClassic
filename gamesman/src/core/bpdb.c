@@ -268,18 +268,20 @@ bpdb_init(
     bpdb_schemes = slist_new();
 
     // create the default no-compression scheme
-    SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, NULL, FALSE, TRUE );
+    SCHEME scheme0 = scheme_new( 0, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE );
 
     // create the original variable skips compression scheme
     SCHEME scheme1 = scheme_new( 1, bpdb_generic_varnum_gap_bits,
                                     bpdb_generic_varnum_size_bits,
                                     bpdb_generic_varnum_implicit_amt,
                                     bpdb_generic_varnum_init,
+                                    bpdb_generic_varnum_free,
                                     TRUE, gBitPerfectDBSchemes );
 
     SCHEME scheme2 = scheme_new( 2, bpdb_ken_varnum_gap_bits,
                                     bpdb_ken_varnum_size_bits,
                                     bpdb_ken_varnum_implicit_amt,
+                                    NULL,
                                     NULL,
                                     TRUE,
                                     gBitPerfectDBAllSchemes );
@@ -420,6 +422,8 @@ bpdb_free_slice( SLICE sl )
     SAFE_FREE( sl->adjust );
     SAFE_FREE( sl->reservemax );
 
+    SAFE_FREE( sl );
+
 _bailout:
     return status;
 }
@@ -464,7 +468,7 @@ bpdb_free( )
     }
 
     // free in-memory database
-    //SAFE_FREE( bpdb_nowrite_array );
+    SAFE_FREE( bpdb_nowrite_array );
 
     // free database to be written
     SAFE_FREE( bpdb_write_array );
@@ -564,7 +568,37 @@ bpdb_get_mex(
                 )
 {
     return (MEX) bpdb_get_slice_slot( (UINT64)pos, BPDB_MEXSLOT );
-}
+}
+
+/*++
+
+Routine Description:
+
+    bpdb_set_slice_slot sets a specific slot of a given slice to the
+    passed in value.
+    
+    Flow:
+    1. Checks whether the write is being done to the nowrite array
+        or the write array
+    2. Checks whether this is the max value the slot has seen so far
+    3. If this value is larger than the slot capacity then either
+        1. The slot will be enlarged
+        2. An overflow warning is written
+    4. The proper offsets are calculated and the slot is updated
+
+Arguments:
+
+    position - the slice to be modified
+    index - the slot to be modified
+    value - the new value of the slot
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 inline
 UINT64
 bpdb_set_slice_slot(
@@ -634,6 +668,35 @@ bpdb_set_slice_slot(
 }
 
 
+/*++
+
+Routine Description:
+
+    bpdb_set_slice_slot_max sets a specific slot of a given slice to the
+    passed in value.
+    
+    Flow:
+    1. Checks whether the write is being done to the nowrite array
+        or the write array
+    2. Checks whether this is the max value the slot has seen so far
+    3. If this value is larger than the slot capacity then either
+        1. The slot will be enlarged
+        2. An overflow warning is written
+    4. The proper offsets are calculated and the slot is updated
+
+Arguments:
+
+    position - the slice to be modified
+    index - the slot to be modified
+    value - the new value of the slot
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 inline
 UINT64
 bpdb_set_slice_slot_max(
@@ -646,8 +709,6 @@ bpdb_set_slice_slot_max(
     BYTE *bpdb_array = NULL;
     SLICE bpdb_slice = NULL;
 
-    //return bpdb_set_slice_slot(position, index, 255);
-
     if(index % 2) {
         bpdb_array = bpdb_nowrite_array;
         bpdb_slice = bpdb_nowrite_slice;
@@ -656,6 +717,10 @@ bpdb_set_slice_slot_max(
         bpdb_slice = bpdb_write_slice;
     }
     index /= 2;
+
+    if(bpdb_slice->reservemax[index]) {
+        BPDB_TRACE("bpdb_set_slice_slot_max()", "slot without its maxvalue reserved is being set to max", STATUS_INVALID_OPERATION);
+    }
 
     byteOffset = (bpdb_slice->bits * position)/BITSINBYTE;
     bitOffset = ((UINT8)(bpdb_slice->bits % BITSINBYTE) * (UINT8)(position % BITSINBYTE)) % BITSINBYTE;
@@ -1115,8 +1180,27 @@ _bailout:
 }
 
 
+/*++
 
+Routine Description:
 
+    bpdb_get_slice_slot retrieves the value of a specific slot of a
+    given slice.
+
+    Flow:
+    1. 
+
+Arguments:
+
+    position - the slice to be read from
+    index - the slot to be read
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 
 inline
 UINT64
@@ -1397,10 +1481,9 @@ bpdb_save_database()
     i = 0;
     cur = bpdb_schemes;
 
-    // must free this
-    for(i = 0; i<slist_size(bpdb_schemes); i++) {
-        outfilenames = (char **) malloc( slist_size(bpdb_schemes)*sizeof(char*) );
-    }
+    // allocate room for db file names
+    outfilenames = (char **) malloc( slist_size(bpdb_schemes)*sizeof(char*) );
+
     for(i = 0; i<slist_size(bpdb_schemes); i++) {
         outfilenames[i] = (char *) malloc( 256*sizeof(char) );
     }
@@ -1481,8 +1564,16 @@ bpdb_save_database()
     sprintf(outfilename, "./data/m%s_%d_bpdb.dat.gz", kDBName, getOption());
     printf("Renaming %s to %s\n", outfilenames[smallestscheme], outfilename);
     rename(outfilenames[smallestscheme], outfilename);
-    
+
 _bailout:
+
+    for(i = 0; i<slist_size(bpdb_schemes); i++) {
+        SAFE_FREE(outfilenames[i]);
+    }
+
+    SAFE_FREE(outfilenames);
+
+
     if(!GMSUCCESS(status)) {
         return TRUE;
     } else {
@@ -1798,6 +1889,8 @@ bpdb_generic_load_database(
             BPDB_TRACE("bpdb_generic_load_database()", "call to bpdb_add_slot to add slot from database file failed", status);
             goto _bailout;
         }
+
+        SAFE_FREE( tempname );
     }
 
     status = bpdb_allocate();

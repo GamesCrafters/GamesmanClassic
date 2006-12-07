@@ -54,8 +54,6 @@ typedef unsigned long long int UINT64;
 typedef UINT32 GMSTATUS;
 */
 
-// new
-//#define BUFFERLENGTH 2
 
 #define BITSINBYTE 8
 #define BITSINPOS 64
@@ -80,6 +78,8 @@ typedef UINT32 GMSTATUS;
 #define STATUS_NO_SCHEMES_INSTALLED         0x11
 #define STATUS_SLICE_FORMAT_NOT_SET         0x12
 #define STATUS_SCHEME_NOT_FOUND             0x13
+
+#define STATUS_INVALID_OPERATION            0x99
 
 #define GMSUCCESS(status) \
         (STATUS_SUCCESS == (status))
