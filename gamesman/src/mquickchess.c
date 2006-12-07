@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.46 2006-12-07 05:55:35 vert84 Exp $
+// $Id: mquickchess.c,v 1.47 2006-12-07 07:40:50 vert84 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -80,6 +80,8 @@
 ** 8 Aug  2006 Adam: Wrote TierToString. Changed incheck to take in board instead of position. Debugging Tier
 **                   Gamesman.Prevented memory leaks. Got game to solve up the 3 major pieces stuck on tier 14
 ** 15 Aug 2006 Adam: Debugged hash contexts
+** 06 Dec 2006 Aaron: Implementing big changes from the semester.  Fixed gamespecific menu changes of original
+**                    board and solving of tiers.
 **************************************************************************/
 
 /*************************************************************************
@@ -426,9 +428,10 @@ void InitializeGame ()
   
   TIERLIST* gTierSolveListPtr = NULL;
   
-  // initial tier
-  gInitialTier = tierlist[20];
-  gInitialTierPosition = 1;
+  // initial tier.  Can be changed by gamespecific menu.
+  gInitialTier = BoardToTier(theBoard);
+  generic_hash_context_switch(gInitialTier);
+  gInitialTierPosition = generic_hash_hash(theBoard, theCurrentPlayer);
   
   for (i = NUM_TIERS-1; i >= 0; i--) {
     gTierSolveListPtr = CreateTierlistNode((TIER) tierlist[i], gTierSolveListPtr);
@@ -867,33 +870,35 @@ The valid pieces are:\n\
 K = king, P = pawn, Q = queen, B = bishop, R = rook, N = knight\n\
 Upper-case letters indicate the pieces that belong to white, and\n\
 lower-case letters indicate the pieces that belong to black:\n\n");
-    do {
+	do {
       if (board != NULL) {
-	printf("Illegal board, re-enter:\n");
+		  printf("Illegal board, re-enter:\n");
       }
       printf("Please Choose Board Size, 1=3x4, 2=5x6: ");
       switch(GetMyChar()) { 
       case '1':
-	break;
+		  break;
       case '2': 
-	rows = 6;
-	cols = 5;
-	break; 
+		  rows = 6;
+		  cols = 5;
+		  break; 
       default:
-	printf("Wrong Entry! Default will be 3x4 board\n\n");
-	break;
+		  printf("Wrong Entry! Default will be 3x4 board\n\n");
+		  break;
       }
       printf("Enter Board Now\n\n");
-      getchar();
       theBoard = getBoard();
       do {
-	printf("Whose turn is it? (w/b): \n");
-	c = GetMyChar();
+		  printf("Whose turn is it? (w/b): \n");
+		  c = GetMyChar();
       } while (c != 'w' && c != 'b');
       theCurrentPlayer = (c == 'w') ? WHITE_TURN : BLACK_TURN;
-    } while(theBoard == NULL);
-    break;
-  case 'b': case 'B': 
+	  gInitialTier = BoardToTier(theBoard);
+	  generic_hash_context_switch(gInitialTier);
+	  gInitialTierPosition = generic_hash_hash(theBoard, theCurrentPlayer);
+} while(theBoard == NULL);
+break;
+case 'b': case 'B': 
     return; 
   default: 
     printf("\nSorry, I don't know that option. Try another.\n"); 
@@ -1028,6 +1033,9 @@ void setOption (int option)
 
 void DebugMenu ()
 {
+	printf("theboard:%s\n", theBoard);
+	TIER t = BoardToTier(theBoard);
+	printf("%s\n", TierToString(t));
   //MOVE m;
 	/*
 	int coli, rowi, colf, rowf;
@@ -3385,10 +3393,13 @@ char *getBoard() {
   char c, cPrev;
   while ((c = getchar())) {
     if(c != '\n' && c != 0){
-      if(c == '-')
-	boardArray[i] = ' ';
-      else boardArray[i] = c;
-      i++;
+		if(c == '-'){
+			boardArray[i] = ' ';
+		}
+        else {
+			boardArray[i] = c;
+		}
+		i++;
     } else if (c == '\n' && cPrev == '\n') {
       break;
     }
@@ -3501,6 +3512,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.46  2006/12/07 05:55:35  vert84
+// *** empty log message ***
+//
 // Revision 1.45  2006/12/07 04:51:00  vert84
 // *** empty log message ***
 //
