@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.40 2006-12-07 02:10:30 koolswim88 Exp $
+// $Id: mabalone.c,v 1.41 2006-12-07 04:22:08 koolswim88 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -893,27 +893,51 @@ void PrintPosition(position, playerName, usersTurn)
       printf("   |   ");	// this is for the rows with letters
       printrow(r, 1);
 
-      if (r == N - 2)
+      if ( (r == N - 2) && (N==2))
 	printf("      NW   NE");
-      else if (r == N - 1)
+      else if ((r == N - 1) && (N==2))
 	printf("     W -*- E");
-      else if (r == N)
+      else if ((r == N) && (N==2))
 	printf("      SW   SE");
+	
+	  if ( (r == N - 2) && (N==3))
+	printf("         NW   NE");
+      else if ((r == N - 1) && (N==3))
+	printf("        W -*- E");
+      else if ((r == N) && (N==3))
+	printf("         SW   SE");
 
 	 else
 	printf("");
 		if (r != 2 * N - 2) 
 		{
-			printf("\n ");
-			printlines(r, 0);
-			printf("|   ");		//Print the | for the top and the bottom rows with /\ /\ /\ /\ with boardsize of 3 
-			printlines(r, 1);
-			printf("  ");
+			if(N==2)
+			{
+				printf("\n ");
+				printlines(r, 0);
+				printf("|   ");		//Print the | for the top and the bottom rows with /\ /\ /\ /\ with boardsize of 3 
+				printlines(r, 1);
+				printf("  ");
+			}
+			
+			if(N==3)
+			{
+				printf("\n ");
+				printlines(r, 0);
+				printf("|   ");		//Print the | for the top and the bottom rows with /\ /\ /\ /\ with boardsize of 3 
+				printlines(r, 1);
+				printf("  ");		//This controls the space for the directions
+			}
 
-		if (r == N - 1)
+		if ((r == N - 1) && (N==2))
 			printf("       / \\");		//Direction's (/\)
-		else if (r == N - 2)
+		else if ((r == N - 2) && (N==2))
 			printf("       \\ /");		//Direction's(\/)
+			
+		if ((r == N - 1) && (N==3))
+			printf("            / \\");		//Direction's (/\)
+		else if ((r == N - 2) && (N==3))
+			printf("            \\ /");		//Direction's(\/)		
 		}
 
       printf("\n");
@@ -950,7 +974,7 @@ void PrintPosition(position, playerName, usersTurn)
     for (r = 0; r < N - 2; r++) {
       printf("  ");
     }
-    printf(" |\n");		// 2nd to last row with |
+    printf(" |\n");		// 2nd to last row with 
   }
   else {
     printf("\n");
@@ -971,7 +995,7 @@ void PrintPosition(position, playerName, usersTurn)
     for (r = 0; r < N - 2; r++) {
       printf("  ");
     }
-    printf(" |\n");
+    printf(" |\n");		//used for making the last line ----------
   }
   else {
     printf ("\n");
@@ -1796,25 +1820,31 @@ void printrow (int line, int flag) {
 }
 
 void printlines (int line, int flag) {
-  int s, line_max;
+  int s, line_max, temp;
 
-  for (s = 0; s < abs((N - 1) - line); s++) {
+  for (s = 0; s < abs((N - 1) - line); s++) 
+  {
     printf ("  ");
   }
-  if (flag == 0) {
+  
+  if (flag == 0) 
+  {
     if (line < N - 1)
-      printf("/ /   ");
+	  printf("/ /   ");
     else
       printf("  \\ \\ ");
   }
 
-  if (line < N - 1) {
+  if (line < N - 1) 
+  {
     s = 0;
   }
-  else {
+  else 
+  {
     s = 1;
     printf("  ");
   }
+  
   for (; s < (*rows[line]).size; s++) {
     if (line < N - 1) {
       if (flag == 0)
@@ -1860,15 +1890,36 @@ void printlines (int line, int flag) {
   else
     line_max = abs((N - 1) - line);
 
-  for (; s < line_max; s++) {
+  temp = 1;	
+  for (; s < line_max; s++) 
+  {
     if (flag == 0)
       printf (" ");
-    if (flag == 1) {
+    if (flag == 1) 
+	{
       if (N == 2)
-	printf ("  ");
+		printf ("  ");
     }
-    else
+    
+	if(N == 2)
       printf ("   ");
+	else if((N==3) && (flag==0) && (s==-1 || s==0))
+	{
+		if((N==3) && (flag==0) && (s==-1) && (temp==1))
+		{
+			printf("   ");
+			temp++;
+			s++;
+		}
+		else
+			printf("   ");
+			
+		if(line>2)
+		{
+			printf(" ");
+		}
+	}
+	
   }
 }
 
@@ -2348,6 +2399,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.40  2006/12/07 02:10:30  koolswim88
+// *** empty log message ***
+//
 // Revision 1.39  2006/11/21 03:01:17  jerricality
 // Fix some bugs on tierification
 //
