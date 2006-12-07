@@ -674,8 +674,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
+#if 0
 	return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
 		&& input[1] >= 1 && input[1] <= 3);
+#else
+	return TRUE;
+#endif
 }
 
 
