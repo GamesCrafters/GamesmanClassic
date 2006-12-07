@@ -1,8 +1,8 @@
 /************************************************************************
 **
-** NAME:        m9mm.c
+** NAME:        m6mm.c
 **
-** DESCRIPTION: NINE MEN'S MORRIS
+** DESCRIPTION: SIX MEN'S MORRIS
 **
 ** AUTHOR:      Patricia Fong & Kevin Liu & Erwin A. Vedar, Wei Tu, Elmer Lee
 **
@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m9mm.c,v 1.81 2006-12-07 02:31:17 max817 Exp $
+** LAST CHANGE: $Id$
 **
 **************************************************************************/
 
@@ -35,7 +35,7 @@
 
 STRING   kGameName            = "Six Men's Morris"; /* The name of your game */
 STRING   kAuthorName          = "Patricia Fong, Kevin Liu"; /* Your name(s) */
-STRING   kDBName              = "9mm"; /* The name to store the database under */
+STRING   kDBName              = "6mm"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -93,11 +93,11 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-#define BOARDSIZE 24 //9mm 24
+#define BOARDSIZE 16 //9mm 24
 #define minx  2 
-#define maxx  9  //9mm 9
+#define maxx  6  //9mm 9
 #define mino  2 
-#define maxo  9  //9mm 9
+#define maxo  6  //9mm 9
 #define minb  BOARDSIZE - maxo - maxx
 #define maxb  BOARDSIZE - mino - minx
 #define toFly 3
@@ -110,7 +110,7 @@ STRING   kHelpExample =
 #define PLAYER_ONE 1
 #define PLAYER_TWO 2
 
-#define SIXMM 0
+#define SIXMM 1
 
 
 //TEMPORARY GLOBALS, UNTIL TIERS IMPLEMENTED
@@ -197,7 +197,7 @@ void InitializeGame ()
 	 gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
 
 	 InitializeHelpStrings(); 
-	 printf("initialize game done\n");
+	 //printf("initialize game done\n");
 }
 
 
@@ -399,7 +399,7 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 	char* board;
 	char turn;
-	int piecesLeft;
+		int piecesLeft;
 	int numx, numo;
 	POSITION temp;
 
@@ -527,8 +527,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	int numx, numo;
 	
 	//printf("PRINTPOSITION PLAYER: %d\n", generic_hash_turn(position));
-	char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	//printf("PRINTPOSITION PLAYER %d\n", turn);
+  char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
+  //printf("PRINTPOSITION PLAYER %d\n", turn);
   
 
   if (SIXMM == 1)
@@ -1126,7 +1126,7 @@ POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo)
 		generic_hash_context_switch(tier);
 		printBoard(board);
 		TIERPOSITION tierposition = generic_hash_hash(board, (turn == X ? PLAYER_ONE : PLAYER_TWO));
-		//printf("line 1129 tier: %d\ntierposition = %d\n", tier,tierposition);
+		//printf("line 1096 tierposition = %d\n", tierposition);
 		pos = gHashToWindowPosition(tierposition, tier);
 	}
 	else{
@@ -1154,7 +1154,7 @@ void SetupTierStuff(){
 	int pieces_array[] = {X, 0, 0, O, 0, 0, BLANK, 0, 0, -1  } ;
 	kExclusivelyTierGamesman = TRUE;
 
-	for(piecesLeft=0;piecesLeft<maxx+maxo+1;piecesLeft++){
+	for(piecesLeft=0;piecesLeft<13;piecesLeft++){
 		for(numx=0;numx<maxx+1;numx++){
 			for(numo=0;numo<maxo+1;numo++){
 				tier=piecesLeft*100+numx*10+numo;
@@ -1165,7 +1165,7 @@ void SetupTierStuff(){
 					generic_hash_init(BOARDSIZE, pieces_array, NULL, (piecesLeft%2)+1);
 				else generic_hash_init(BOARDSIZE, pieces_array, NULL, 0);
 				generic_hash_set_context(tier);
-				printf("tier %d\t", tier);
+				//printf("tier %d\t", tier);
 				//int j;
 				//for (j = 0; j < 10; j++)
 					//printf("%d ", pieces_array[j]);
@@ -1174,16 +1174,16 @@ void SetupTierStuff(){
 		}
 	}
 	
-	tier = (maxx+maxo)*100;
-	gInitialTier = tier;	//initial pieces on board
-	generic_hash_context_switch(tier);
+
+	gInitialTier = 1200;	//initial pieces on board
+	generic_hash_context_switch(1200);
 	
 	for(i = 0; i < BOARDSIZE; i++)
 	{
 		board[i] = BLANK; 
 	}
 	gInitialTierPosition = generic_hash_hash(board, PLAYER_ONE);
-	printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
+	//printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
 }
 
 TIERLIST* gTierChildren(TIER tier) {
@@ -1192,7 +1192,7 @@ TIERLIST* gTierChildren(TIER tier) {
 	piecesLeft=(tier/100);
 	numx=(tier/10)%10;
 	numo=tier%10;
-printf("tier = %d\t", tier);
+//printf("tier = %d\t", tier);
 	if (piecesLeft !=0){
 		if(piecesLeft%2==0){ //meaning it is X's turn
 			//if (((piecesLeft == 2) && (numo > 1) && (numx+1 > 1) ) || (piecesLeft > 1))
@@ -1302,7 +1302,7 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 	  or if the opponent only has mills */
 
   if (board[slot] == BLANK || board[slot] == turn) {
-	 SafeFree(board);
+	SafeFree(board);
 	 return FALSE;
   }
 
@@ -1424,14 +1424,14 @@ POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE mo
 	else{
 		return updatepieces(board, X, piecesLeft, numx, numo,move,position);
 	}
+		
+	
 }
 
 // given new board, slot
 // return true if slot is member of mill
 BOOLEAN check_mill(char *board, int slot, char turn)
 {
-	if (SIXMM == 1)
-	{
 		switch (slot) {
 		case 0:
 			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,6, 13, turn);
@@ -1484,87 +1484,8 @@ BOOLEAN check_mill(char *board, int slot, char turn)
 		default:
 			return FALSE;
 			break;
-		}
 	}
-	else if(SIXMM == 0){
-		switch (slot) {
-		case 0:
-			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,9, 21, turn);
-			break;
-		case 1: 
-			return three_in_a_row(board, 0, 2, turn) || three_in_a_row(board, 4, 7, turn);
-			break;
-		case 2:
-			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,14, 23, turn);
-			break;
-		case 3:
-			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,10, 18, turn);
-			break;
-		case 4:
-			return three_in_a_row(board, 1, 7, turn) || three_in_a_row(board, 3, 5, turn);
-			break;
-		case 5:
-			return three_in_a_row(board, 4, 3, turn)|| three_in_a_row(board,13, 20, turn);
-			break;
-		case 6:
-			return three_in_a_row(board, 7, 8, turn) || three_in_a_row(board, 11, 15, turn);
-			break;
-		case 7:
-			return three_in_a_row(board, 1, 4, turn) || three_in_a_row(board, 6, 8, turn);
-			break;
-		case 8:
-			return three_in_a_row(board, 7, 6, turn) || three_in_a_row(board, 12, 17, turn);
-			break;
-		case 9:
-			return three_in_a_row(board, 0, 21, turn) || three_in_a_row(board, 10, 11, turn);
-			break;
-		case 10:
-			return three_in_a_row(board, 9, 11, turn) || three_in_a_row(board,3,18, turn);
-			break;
-		case 11:
-			return three_in_a_row(board, 9, 10, turn) || three_in_a_row(board, 6, 15, turn);
-			break;
-		case 12:
-			return three_in_a_row(board, 8, 17, turn)|| three_in_a_row(board,13, 14, turn);
-			break;
-		case 13:
-			return three_in_a_row(board, 12, 14, turn)|| three_in_a_row(board,5, 20, turn);
-			break;
-		case 14:
-			return three_in_a_row(board, 12, 13, turn) || three_in_a_row(board, 2, 23, turn);
-			break;
-		case 15:
-			return three_in_a_row(board, 6, 11, turn)|| three_in_a_row(board,16, 17, turn);
-			break;
-		case 16:
-			return three_in_a_row(board, 15, 17, turn)|| three_in_a_row(board,19, 22, turn);
-			break;
-		case 17:
-			return three_in_a_row(board, 15, 16, turn)|| three_in_a_row(board,8, 12, turn);
-			break;
-		case 18:
-			return three_in_a_row(board, 3, 10, turn)|| three_in_a_row(board,19, 20, turn);
-			break;
-		case 19:
-			return three_in_a_row(board, 18, 20, turn)|| three_in_a_row(board,16, 22, turn);
-			break;
-		case 20:
-			return three_in_a_row(board, 18, 19, turn)|| three_in_a_row(board,5, 13, turn);
-			break;
-		case 21:
-			return three_in_a_row(board, 0, 9, turn)|| three_in_a_row(board,22, 23, turn);
-			break;
-		case 22:
-			return three_in_a_row(board, 16, 19, turn)|| three_in_a_row(board,21, 23, turn);
-			break;
-		case 23:
-			return three_in_a_row(board, 21, 22, turn)|| three_in_a_row(board,2, 14, turn);
-			break;
-		default:
-			return FALSE;
-			break;
-		}
-	}
+			
 }
 
 // given new board, slots to compare.  if slots all same, then it's a 3
@@ -1574,7 +1495,8 @@ BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn)
 	//printf("THREE IN A ROW TURN: %c\n", turn);
 	//printf("0: %c\t 1: %c\n", board[0], board[1]);
 	
-  return board[slot1] == turn && board[slot2] == turn;
+  return board[slot1] == turn &&
+    board[slot2] == turn ;
 }
 
 // Given slot, int array
@@ -1817,7 +1739,7 @@ int find_adjacent(int slot, int *slots)
 /************************************************************************
  ** Changelog
  **
- ** $Log: not supported by cvs2svn $
+ ** $Log$
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **
