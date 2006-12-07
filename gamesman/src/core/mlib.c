@@ -41,6 +41,7 @@
 
 void overflowGuard(int);
 
+LocalBoard lBoard;
 int bSize;
 
 /*Set local variables for processing input arrays*/

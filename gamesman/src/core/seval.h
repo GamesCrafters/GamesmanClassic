@@ -1,14 +1,12 @@
 #ifndef _SEVAL_H_
 #define _SEVAL_H_
 
-// Type Declarations
 
+// Type Declarations
 
 typedef float(*scalingFunction)(float,float[]);
 
-typedef float(*featureEvaluatorCustom)(POSITION);
 typedef float(*featureEvaluatorLibrary)(void*,void*,int[]);
-
 
 typedef enum f_type {
   library, custom
@@ -22,7 +20,6 @@ typedef enum f_type {
 typedef struct fNode{
   STRING name;
   float weight;
-  BOOLEAN perfect;
   TYPE type; //custom or library
   void* piece; //the piece that this trait centers on
   float scaleParams[4];
@@ -33,25 +30,43 @@ typedef struct fNode{
   struct fNode * next;
 } *fList;
 
+typedef struct seNode{
+  scew_element* element;
+  STRING name;
+  int variant;
+  BOOLEAN perfect;
+  fList featureList;
+  struct seNode * next;
+} *seList;
+
+extern seList evaluatorList;
+
 // Function Prototypes
 
-//test
-void* linearUnhash(int);
-void* getInitialPlayerPiece();
-void* getOpponentPlayerPiece();
-void* getBlankPiece();
-//end test
+extern BOOLEAN initializeStaticEvaluator(STRING);
+extern void chooseEvaluator(int);
+extern BOOLEAN evaluatorExistsForVariant(int);
+extern BOOLEAN createNewXMLFile(STRING);
 
-int numPieces(void*,void*,int[]);
-int numFromEdge(void*,void*,int[]);
+float numPieces(void*,void*,int[]);
+float numFromEdge(void*,void*,int[]);
 float clustering(void*,void*,int[]);
-int connections(void*,void*,int[]);
-//fList loadDataFromXML(STRING);
-//fList parse_element(scew_element*, fList);
-//featureEvaluatorLibrary getSEvalLibFnPtr(STRING);
-//featureEvaluatorCustom getSEvalCustomFnPtr(STRING);
-//BOOLEAN initializeStaticEvaluator(STRING);
-float evaluatePosition(POSITION p);
+float connections(void*,void*,int[]);
+
+void initializeStaticEvaluatorBoard(int,int,int,BOOLEAN,void*,void*,void*);
+
+void freeFeatureList(fList);
+void freeEvaluatorList(seList);
+STRING copyString(STRING);
+fList parseFeature(scew_element*);
+seList parseEvaluators(scew_element*, seList);
+scew_element* findEvaluatorNode(scew_element*, STRING);
+scew_element* createEvaluatorNode(seList);
+seList loadDataFromXML(STRING);
+BOOLEAN writeEvaluatorToXMLFile(seList, STRING);
+featureEvaluatorLibrary getSEvalLibFnPtr(STRING);
+float evaluatePosition(POSITION);
+VALUE evaluatePositionValue(POSITION);
 float linear(float,float[]);
 float logarithmic(float,float[]);
 float logistic(float,float[]);

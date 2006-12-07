@@ -16,15 +16,20 @@ BOOLEAN mymemcmp(void*,void*,int);
 #define MAXBOARDSIZE 64
 #define MAXPATTERN 16
 
-struct {
+typedef struct lb {
   int eltSize;
   int rows;
   int cols;
   int size;
   BOOLEAN diagonals;
+  void* blankPiece;
+  void* opponentPlayerPiece;
+  void* initialPlayerPiece;
   int directionMap[8];
   int scratchBoard[MAXBOARDSIZE];
   int overflowBoards[MAXPATTERN][MAXBOARDSIZE];
-} lBoard;
+} LocalBoard;
+
+extern LocalBoard lBoard;
 
 #endif
