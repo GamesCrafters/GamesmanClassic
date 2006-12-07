@@ -4,7 +4,7 @@
 #
 # Changes:
 # 2006-11-8 	Basic functions working correctly.
-#
+# 2006-12-6		New interface with arrows implemented.
 #############################################################################
 
 
@@ -193,13 +193,15 @@ proc GS_SetOption { option } {
 #############################################################################
 proc GS_Initialize { c } {
 
-    global gFrameWidth gFrameHeight boardwidth boardheight size r linewidth fontsize piecespace
+    global gFrameWidth gFrameHeight boardwidth boardheight size r linewidth fontsize piecespace movespace
     global p1t p1o p2t p2o
     set size [min $gFrameWidth $gFrameHeight]
     set linewidth 2
     set piecespace 100
     set r [expr 0.4 * ($size - $piecespace) / [max $boardwidth $boardheight]]
-    set fontsize [expr int($size / 25)] 
+    set fontsize [expr int($size / 25)]
+	set rmove [expr 0.025 * $size]
+	set movespace [expr (($size - $piecespace) / (2 * [max $boardwidth $boardheight]) - (0.025 * $size)) / 4 + $rmove * 2]
 	
 	#Give Players Pieces
 	set p1t [expr (($boardwidth * $boardheight) / 4) + (($boardwidth * $boardheight) % 4)]
@@ -405,13 +407,13 @@ proc animate { c piece text origin destination } {
 proc GS_ShowMoves { c moveType position moveList } {
     
     foreach move $moveList {
-	drawmove $c [lindex $move 0] [lindex $move 1] $moveType
+	drawmove $c [lindex $move 0] [lindex $move 1] $moveType $position
     }
     
 }
 
-proc drawmove { c move value moveType } {
-    global boardwidth boardheight size piecespace
+proc drawmove { c move value moveType position } {
+    global boardwidth boardheight size piecespace movespace
     set rmove [expr 0.025 * $size]
 
     switch $moveType {
@@ -434,7 +436,8 @@ proc drawmove { c move value moveType } {
     }
 	
     
-    set y [expr ($size - $piecespace) / (2 * [max $boardwidth $boardheight]) - $rmove]
+    ## set y [expr (($size - $piecespace) / (2 * [max $boardwidth $boardheight]) - $rmove) / 5]
+	set y [expr $movespace / 2 - $rmove - 1]
     set r [expr $rmove]
     
     ##puts "move = $move	y = $y	r = $r"
@@ -458,10 +461,34 @@ proc drawmove { c move value moveType } {
     } else {
     	set t [$c create text [expr $x + $rmove + 1] [expr $y + $rmove + 1]  -font "Arial [expr int($r * 1.5)]" -text $piece -anchor center -fill red -justify center]
     }
-
+	
+	##Find which row the piece will drop to:
+    
+    for { set i [expr $col * ($boardwidth + 1) - 1] } { $i >= [expr $col * ($boardwidth) - $boardheight] } { incr i -1} {
+    	##puts "i = $i index i = [expr $position & (1 << $i)]"
+    	if { [expr $position & (1 << $i)] != 0 } {
+    		break
+    	}
+    }
+    
+    set row [expr $boardheight - ($i - ($col - 1) * ($boardwidth + 1))]
+    
+    ##puts "pos = $position i = $i col = $col row = $row"
+    
+    set linX [expr (2 * (4 - $col) + 1) * $size / (2 * [max $boardwidth $boardheight]) - .5 * $rmove + 1]
+    set linY [expr $movespace + 1]
+    set endY [expr $movespace + ($row - 1) * (($size - ($piecespace + $movespace)) / $boardheight) + .5 * (($size - ($piecespace + $movespace)) / $boardheight)]
+	set arrowwidth [expr 1.5 * $rmove]
+	set arrowshape [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
+	
+    set a [$c create line $linX $linY $linX $endY -fill cyan -width $arrowwidth -arrow last -arrowshape $arrowshape]
+    
+	##if the mouse interacts with oval
     $c bind $m <Enter> "$c itemconfigure $m -fill black"
     $c bind $m <Leave> "$c itemconfigure $m -fill $color"
     $c bind $m <ButtonRelease-1> "ReturnFromHumanMove $move"
+	
+	##if the mouse interacts with the text
     $c bind $t <Enter> "$c itemconfigure $m -fill black"
     $c bind $t <Leave> "$c itemconfigure $m -fill $color"
     $c bind $t <ButtonRelease-1> "ReturnFromHumanMove $move"
@@ -566,8 +593,8 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
     global size fontsize piecespace
     
     # Tell us it's "Game Over!" and announce and winner
-    $c create rectangle 0 [expr ($size - $piecespace)/2 - 15] $size [expr ($size - $piecespace)/2 + 15] -fill gray -width 1 -outline black -tag "gameover"
-    $c create text [expr $size/2] [expr ($size - $piecespace)/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
+    $c create rectangle 0 [expr ($size - $piecespace)/2 - 10] $size [expr ($size - $piecespace)/2 + 20] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr ($size - $piecespace)/2 + 5] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 	
 }
 
@@ -630,7 +657,7 @@ proc reverse s {
 
 
 proc DrawBoard { c } {
-    global boardwidth boardheight linewidth size piecespace
+    global boardwidth boardheight linewidth size piecespace movespace
 
     $c delete {!background}
 
@@ -639,12 +666,12 @@ proc DrawBoard { c } {
 
     # Create grid of size boardwidth vs. boardheight
     for { set i 1 } { $i <= $boardwidth } { incr i } {
-	set x [expr $i * $size / [max $boardwidth $boardheight]]
-	$c create line $x 0 $x [expr $size - $piecespace] -width $linewidth
+		set x [expr $i * $size / [max $boardwidth $boardheight]]
+		$c create line $x 0 $x [expr $size - $piecespace] -width $linewidth
     }
-    for { set j 1 } { $j <= $boardheight } {incr j } {
-	set x [expr $j * ($size - $piecespace) / [max $boardwidth $boardheight]]
-	$c create line 0 $x $size $x -width $linewidth
+    for { set j 0 } { $j <= $boardheight } {incr j } {
+		set x [expr $j * ($size - $piecespace - $movespace) / [max $boardwidth $boardheight] + $movespace]
+		$c create line 0 $x $size $x -width $linewidth
     }
 	
 }
@@ -683,7 +710,7 @@ proc drawPlayerPieces { c } {
 	set color black
 	
 	
-	#############################  PLAYER 1  ##################################
+	#########################  PLAYER 1  ##############################
 	
 	$c create text [expr $size / 4] [expr $size - $piecespace / 2] -text "1st Player" -font "Arial 16" -anchor center -fill black -width [expr $size / 4]
 	
@@ -709,7 +736,7 @@ proc drawPlayerPieces { c } {
 	
 	
 	
-	#############################  PLAYER 2  ##################################
+	#########################  PLAYER 2  ##############################
 	
 	$c create text [expr $size / 4 * 3] [expr $size - $piecespace / 2] -text "2nd Player" -font "Arial 16" -anchor center -fill black -width [expr $size / 4]
 	
@@ -742,9 +769,9 @@ proc coord { index } {
 
 
 proc coords { i j } {
-    global size boardwidth boardheight piecespace
+    global size boardwidth boardheight piecespace movespace
     return [list [expr ($i + 0.5) * $size / [max $boardwidth $boardheight]] \
-		[expr ($j + 0.5) * ($size - $piecespace) / [max $boardwidth $boardheight]]]
+		[expr (($j + 0.5) * ($size - $piecespace - $movespace) / [max $boardwidth $boardheight]) + $movespace]]
 }
 
 proc index { i j } {
@@ -767,4 +794,5 @@ proc max { a b } {
     }
     return $b
 }
+
 
