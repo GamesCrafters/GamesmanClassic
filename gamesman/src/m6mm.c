@@ -789,66 +789,50 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	//DONE
 	// we could bulletproof this a lot more
-  return TRUE;
   int moveFrom, moveTo, moveRemove;
-
+	int spaces;
   BOOLEAN hasSpace, has2Space;
   STRING afterSpace;
   STRING after2Space;
-  
 
-
+	if(input[0]>57 || input[0]<48)
+		return FALSE;
+	else
+		return TRUE;
+	
+  /*
   moveFrom = atoi(input); //WRONG
-
-  /*debug
-  if (debug) {
-    From of input: %d", moveFrom);
-  }
-  */
-  
+  printf("moveFrom=%d\n", moveFrom);
   if (moveFrom < 0 || moveFrom >= BOARDSIZE){
-    /*debug
-    if (debug) {
-      printf("move check fails b/c of Moveto");
-    }
-	*/
-    return FALSE;
+    printf("returning false at 801\n");
+	return FALSE;
   }
-  
   
   hasSpace = index(input, ' ') != NULL;
   if (hasSpace) {
-    afterSpace = index(input, ' '); //SEE WHAT INDEX DOES
-
-  } else {
-    return FALSE;
-  }
-    
-  moveTo = atoi(afterSpace);
-
-  
-  if (moveTo < 0 || moveTo >= BOARDSIZE) {
-    
-  	return FALSE;
-  }
-  
-  has2Space = index(++afterSpace, ' ') != NULL;
-  if (has2Space) {
-    after2Space = index(afterSpace, ' ');
-    moveRemove = atoi(after2Space);
-    if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
-      
-      return FALSE;
-    }
-    else 
-      return TRUE;
-  } else {
-    return TRUE;
-  }
-
-  return FALSE; // should never be reached
+	    afterSpace = index(input, ' '); //SEE WHAT INDEX DOES
+		moveTo = atoi(afterSpace);
+		if (moveTo < 0 || moveTo >= BOARDSIZE) {
+			return FALSE;
+		}
+	  
+		has2Space = index(++afterSpace, ' ') != NULL;
+		if (has2Space) {
+			after2Space = index(afterSpace, ' ');
+			moveRemove = atoi(after2Space);
+			if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
+				return FALSE;
+			}
+			else 
+				return TRUE;
+		} 
+		else {
+			return TRUE;
+		}
+	}
+	return TRUE;
+*/
 }
-
 
 /************************************************************************
 **

@@ -559,7 +559,7 @@ int generic_hash_context_init()
         newHashC->contextNumber = myContext;
         contextList[hash_tot_context-1] = newHashC;
 
-		hashtablePut(myContext, myContext, FALSE);//put into hashtable
+		//hashtablePut(myContext, myContext, FALSE);//put into hashtable
 
         return myContext;
 }
@@ -577,7 +577,15 @@ int generic_hash_context_init()
 void generic_hash_context_switch(int context)
 {
 	if (custom_contexts_mode) {
-		currentContext = hashtableGet(context);
+		//currentContext = hashtableGet(context);
+		currentContext = -1;
+		int i;
+		for (i = 0; i < hash_tot_context; i++) {
+			if (contextList[i]->contextNumber == context) {
+				currentContext = i;
+				break;
+			}
+		}
 		if (currentContext == -1)
 			ExitStageRightErrorString("ERROR: Attempting to switch to non-existant hash context");
 	} else {
@@ -657,7 +665,7 @@ void generic_hash_set_context(int context)
 {
 	if (context < 0)
 		ExitStageRightErrorString("ERROR: Attempting to set a negative custom context");
-	hashtablePut(context, currentContext, TRUE); // change its entry in the hashtable
+	//hashtablePut(context, currentContext, TRUE); // change its entry in the hashtable
 	cCon->contextNumber = context;
 
 }
