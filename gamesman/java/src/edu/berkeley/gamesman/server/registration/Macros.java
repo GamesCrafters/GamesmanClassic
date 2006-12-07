@@ -35,6 +35,7 @@ public final class Macros {
 	public static final int VALID_CODE = 0;
 	public static final int CHECK_NEW_USER = 1;
 	public static final int CHECK_EXISTING_USER = 2;
+	public static final int CHECK_INVALID_USER = 3; 
 	
 	// Need to get rid of these and convert over to use response.setReturnCode/setReturnMessage
 	public static final String ACK = "ACK";

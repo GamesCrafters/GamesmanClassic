@@ -35,7 +35,7 @@ public class RegistrationModule implements IModule
 	
 	// fields revised
 	private static Hashtable<String, UserNode> usersOnline = new Hashtable<String, UserNode>();
-	private static Hashtable<String, Hashtable<Integer, TableNode>> openTables; //, usersOnline;
+	private static Hashtable<String, Hashtable<Integer, TableNode>> openTables = new Hashtable<String, Hashtable<Integer, TableNode>>(); //, usersOnline;
 	// wtf?
 	//private static int gameID;
 
@@ -130,7 +130,7 @@ public class RegistrationModule implements IModule
 		userPassword = req.getHeader(Macros.HN_PASSWORD);
 		
 		// a newcomer
-		if ((checkStatus = checkName(userName)) == Macros.CHECK_NEW_USER) {
+		if ((checkStatus = checkName(userName, userPassword)) == Macros.CHECK_NEW_USER) {
 			addNewUser(userName, gameName, userPassword);
 			secretKey = usersOnline.get(userName).getSecretKey();
 			
@@ -276,9 +276,11 @@ public class RegistrationModule implements IModule
 		//propBucket = getUser(userName);
 		if(u == null) {
 			res.setReturnCode(ErrorCode.INVALID_USER_NAME);
+			res.setReturnMessage(ErrorCode.INVALID_USER_NAME + userName);
 			return;
 		} else if(!u.getGameTypes().contains(gameName)) {
 			res.setReturnCode(ErrorCode.USER_NOT_PLAYING_GAME);
+			res.setReturnMessage(ErrorCode.USER_NOT_PLAYING_GAME+" "+userName+" "+gameName);
 			return;
 		} else if(!isValidUserKey(userName, secretKey)) {
 			res.setReturnCode(ErrorCode.INVALID_KEY);
@@ -343,14 +345,14 @@ public class RegistrationModule implements IModule
 	 */
 	private void joinGameNumber(IModuleRequest req, IModuleResponse res)  throws ModuleException {
 		//Variable Declarations
-		String userName, secretKey, gameName, gameID;
+		
 		Hashtable<Integer, TableNode> gameSessions;
 		
 		//extract header values
-		userName = req.getHeader(Macros.HN_NAME);
-		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
-		gameID = req.getHeader(Macros.HN_GAME_ID);
-		gameName = req.getHeader(Macros.HN_GAME);
+		String userName = req.getHeader(Macros.HN_NAME);
+		String secretKey = req.getHeader(Macros.HN_SECRET_KEY);
+		int gameID = Integer.parseInt(req.getHeader(Macros.HN_GAME_ID));
+		String gameName = req.getHeader(Macros.HN_GAME);
 		
 		
 		UserNode u = usersOnline.get(userName);
@@ -637,10 +639,14 @@ public class RegistrationModule implements IModule
 	
 	private Hashtable<Integer, TableNode> getGameSessions(String gameName) {
 		Hashtable<Integer, TableNode> gameSessions;
-		gameSessions = openTables.get(gameName);
-		if (gameSessions == null) {
+		System.out.println(openTables.keys() + "\n" + openTables.values()); 
+		if (openTables.containsKey(gameName)) {
+			gameSessions = openTables.get(gameName);
+		} else {
 			gameSessions = new Hashtable<Integer, TableNode>();
+			openTables.put(gameName, gameSessions);
 		}
+		
 		return gameSessions;
 	}
 	
@@ -721,12 +727,20 @@ public class RegistrationModule implements IModule
 	 * @param name
 	 * @return
 	 */
-	private int checkName(String name) {
-		/**
-		 * check that name is not being duplicated
-		 */
-		if (isUserOnline(name)) return ErrorCode.USER_ALREADY_EXISTS;
-		else return Macros.VALID_CODE;
+	 
+	private int checkName(String name, String passwd) {
+	 /**
+	 * check that name is not being duplicated
+	 */
+	 if(!usersOnline.containsKey(name)) 
+		 return Macros.CHECK_NEW_USER;
+	 else {
+		 UserNode u = usersOnline.get(name);
+		 if(u.getPassword().equals(passwd)) {
+			 return Macros.CHECK_EXISTING_USER;
+		 }
+	 }
+	 return Macros.CHECK_INVALID_USER;
 	}
 	
 	/**
