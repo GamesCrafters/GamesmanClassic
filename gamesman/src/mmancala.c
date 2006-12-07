@@ -53,6 +53,14 @@ STRING   kGameName            = "Mancala";
 STRING   kDBName              = "mancala";
 POSITION kBadPosition         = -1;
 
+TIER BoardToTier(int* board);
+void SetupTierStuff();
+STRING TierToString(TIER tier);
+TIERLIST* TierChildren(TIER tier);
+TIERPOSITION NumberOfTierPositions(TIER tier);
+int* ToTierArrayBoard(int *ArrayBoard);
+int* ToArrayBoard(int *TierArrayBoard, TIER tierNum);
+
 STRING   kHelpGraphicInterface = "" ;
 
 STRING   kHelpTextInterface    =
@@ -199,9 +207,9 @@ void InitializeGame()
 {
   int i, piecesPerBin, *arrayBoard;
   arrayBoard = (int *) SafeMalloc ((boardSize+1) * sizeof (int));
-
   UpdateGameSpecs();
-  
+  generic_hash_destroy();
+  SetupTierStuff();
   piecesPerBin = numOfPieces / (boardSize - 2);
   for(i = 0; i < boardSize; i += 1) {
     arrayBoard[i] = piecesPerBin;
@@ -213,12 +221,138 @@ void InitializeGame()
   /* this is the max number the rearrangerHash can generate
      given the limitations of the 32-bit cpu 2 * (31 my_nCr 15) */
   //gNumberOfPositions = 601080390;
-  gInitialPosition = array_unhash(arrayBoard);
   
+  gInitialPosition = array_unhash(arrayBoard);
+  //int z;
+  //  for(z = 0;z < boardSize + 1; z++) 
+  // printf("slot %d: %d\n",z,arrayBoard[z]);
+
   SafeFree (arrayBoard);
 
   gMoveToStringFunPtr = MoveToString;
+  
 }
+
+
+void SetupTierStuff() {
+  int mancL, mancR;
+  //TIERPOSITION tierPos, POSITION initialPos;
+  // kSupportsTierGamesman
+  kSupportsTierGamesman = TRUE;
+  // function pointers
+  gTierChildrenFunPtr = &TierChildren;
+  gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+  gTierToStringFunPtr = &TierToString;
+
+  // hashes
+  
+  generic_hash_custom_context_mode(TRUE);
+  // Tier-Specific Hashes
+  int piecesArray[] = {'o', numOfPieces, numOfPieces, 'x', boardSize-2-1, boardSize-2-1, -1};
+  //'o' is the pieces that are not in a mancala, 'x' is a bin excluding the two mancalas
+  for(mancL = 0; mancL <= numOfPieces; mancL++) {
+    for(mancR = 0; mancR <= (numOfPieces-mancL); mancR++) {
+      piecesArray[1] = numOfPieces-mancL-mancR;
+      piecesArray[2] = numOfPieces-mancL-mancR;
+      generic_hash_init(boardSize-2+numOfPieces-mancL-mancR-1, piecesArray, NULL, 0);
+      generic_hash_set_context(10000*mancL+mancR);
+    }
+  }
+  
+  int i, piecesPerBin, *arrayBoard;
+  arrayBoard = (int *) SafeMalloc ((boardSize+1) * sizeof (int));
+  piecesPerBin = numOfPieces / (boardSize - 2);
+  for(i = 0; i < boardSize; i += 1) {
+    arrayBoard[i] = piecesPerBin;
+  }
+  arrayBoard[mancalaL] = 0;
+  arrayBoard[mancalaR] = 0;
+  arrayBoard[turn] = 0;
+  
+  gInitialTier = 0;  //0 pieces in the mancala bins
+  generic_hash_context_switch(gInitialTier);
+
+  int array_size = boardSize - 2 + numOfPieces - 1;
+  int j = 0;
+  char *dest = (char *) SafeMalloc (array_size * sizeof(char));      
+  
+  for (i = 0; i < array_size; i++) {
+    if(j ==  mancalaL || j == mancalaR)
+      j++;
+    if (arrayBoard[j] > 0) {
+      dest[i] = 'o';
+      arrayBoard[j] -= 1;
+    }
+    else {
+      dest[i] = 'x';
+      j += 1;
+    }	
+  }
+  
+  gInitialTierPosition = generic_hash_hash(dest, 1);
+  /*generic_hash_context_switch(gInitialTier);
+	tierPos = generic_hash_hash(dest, hashed[turn]+1);
+    generic_hash_context_switch(tier);
+    result = gHashToWindowPosition(tierPos, tier);
+	*/
+
+  /*
+  for(i = 0;i < array_size; i ++)
+    printf("%c",dest[i]);
+  printf("above is arrray board before hash\n");
+  */
+  SafeFree(dest);
+  SafeFree(arrayBoard);
+  
+  
+  
+}
+
+TIERLIST* TierChildren(TIER tier)
+{
+  int i,j;
+  TIERLIST* list = NULL;  
+  list = CreateTierlistNode(tier, list);  
+  
+  for(i=0; i <= numOfPieces - (tier/10000)- (tier%10000); i++) {
+	for(j=0;j <= numOfPieces - (tier/10000) - (tier%10000) - i; j++) {
+		if(i != 0 || j!= 0)
+			list = CreateTierlistNode(tier+(10000*i)+j,list);
+	}
+  }
+  return list;
+  /*if(tier%100 + tier/100 == numOfPieces)
+    return list;
+  else {
+    for(i=1;i <=numOfPieces-(tier/100)-(tier%100); i++) {
+      list = CreateTierlistNode(tier+i, list);
+      list = CreateTierlistNode(tier+(100*i),list);
+    }
+    return list;
+  }*/
+}
+
+TIER BoardToTier(int* board) 
+{
+  return 10000*board[mancalaL] + board[mancalaR];
+}
+
+TIERPOSITION NumberOfTierPositions(TIER tier)
+{
+  generic_hash_context_switch(tier);
+  //restore old context?
+  return generic_hash_max_pos();
+}
+
+STRING TierToString(TIER tier) {
+  	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*100);
+	sprintf(tierStr, 
+		"%d Pieces In Left Mancala, %d Pieces in Right Mancala",
+		tier / 10000,
+		tier % 10000);
+	return tierStr;
+}
+
 
 
 /************************************************************************
@@ -501,7 +635,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
   if(theMove == 0) {
     arrayHashedBoard[turn] = ! arrayHashedBoard[turn];
     newPosition = array_unhash(arrayHashedBoard);
-    free(arrayHashedBoard);
+    SafeFree(arrayHashedBoard);
     return newPosition;
   }
 
@@ -594,7 +728,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
   arrayHashedBoard[turn] = ! arrayHashedBoard[turn];
   newPosition = array_unhash(arrayHashedBoard);
   
-  free(arrayHashedBoard);
+  SafeFree(arrayHashedBoard);
   return newPosition;
 }
 
@@ -647,7 +781,7 @@ POSITION GetInitialPosition()
   } else boardArray[turn] = 1;
 
   result = array_unhash(boardArray);
-  free (boardArray);
+  SafeFree (boardArray);
   return result;
 }
 
@@ -688,7 +822,7 @@ VALUE Primitive(POSITION position) {
   m2  = boardArray[mancalaR];
   t   = boardArray[turn];
   
-  free (boardArray);
+  SafeFree (boardArray);
 
   if(m1 + m2 == numOfPieces) {
 	  if(m1 == m2)
@@ -738,7 +872,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   
   printf("\n%s\n\n", GetPrediction(position, playerName, usersTurn));
   
-  free(arrayHashedBoard);
+  SafeFree(arrayHashedBoard);
 }
 
 
@@ -807,7 +941,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	}
       }
     }
-    free(arrayHashedBoard);
+    SafeFree(arrayHashedBoard);
     if (head == NULL) {
       head = CreateMovelistNode(0, head);
     }
@@ -815,7 +949,7 @@ MOVELIST *GenerateMoves(POSITION position) {
   }
 
   else {
-    free(arrayHashedBoard); 
+    SafeFree(arrayHashedBoard); 
     return NULL;
   }
 }
@@ -869,7 +1003,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE * theMove, STRING pl
     eb = boardSize - 1;
   }
 
-  free (boardArray);
+  SafeFree (boardArray);
 
   do {
     printf("%8s's move [%d-%d] :  ", playerName, sb, eb);
@@ -1067,6 +1201,56 @@ void setOption(int option)
 ************************************************************************/
 
 int *array_hash (POSITION position) {
+  if (gHashWindowInitialized) {
+    //printf("in array_hash position:%d \n",position);
+	TIER tier;
+    TIERPOSITION tierposition;
+    int array_size, unhash_turn, i, j=0;
+    gUnhashToTierPosition(position, &tierposition, &tier);
+    //printf("in array_hash tier: %d, tierposition:%d\n",tier,tierposition);
+    array_size = boardSize-2 + numOfPieces - tier/10000 - tier%10000 - 1;
+    char *board = (char *) SafeMalloc (array_size * sizeof(char));
+    int *result = (int *) SafeMalloc ((boardSize + 1) * sizeof (int));
+    
+    generic_hash_context_switch(tier);
+    generic_hash_unhash(tierposition, board);
+    
+    /****
+    printf("position:%d, tierposition:%d",position,tierposition);
+    
+    for(i = 0; i < array_size; i++)
+      printf("%c",board[i]);
+    printf(" above is board in array_hash\n");
+    ***/
+    unhash_turn = generic_hash_turn(tierposition)-1;
+    //printf("turn:%d\n",unhash_turn);
+    for (i = 0; i < boardSize; i++) {
+      result[i] = 0;
+    }
+
+    for (i = 0; i < array_size; i += 1) {
+      if (j == mancalaL || j == mancalaR) 
+	j++;
+      if (board[i] == 'o')
+	result [j]++;
+      else if (board[i] == 'x')
+	j++;
+    }
+    
+    result[mancalaL] = tier/10000;
+    result[mancalaR] = tier%10000;
+    result[turn] = unhash_turn;
+	//printf("in array_hash position:%d tierposition:%d tier:%d\n",position, tierposition, tier);
+    /*
+    for(i = 0; i < boardSize +1; i++)
+      printf("%d:%d ",i,result[i]);
+    printf("tier:%d tier/100:%d tier%%100:%d mancalaL:%d mancalaR: %d\n", tier,tier/100, tier%100, mancalaL, mancalaR);
+    ****/
+    SafeFree(board);
+    return result;
+
+  } else {
+
   int i, j = 0;
   char *board = (char *) SafeMalloc (rsize * sizeof(char));
   int *result = (int *) SafeMalloc ((boardSize + 1) * sizeof (int));
@@ -1076,7 +1260,8 @@ int *array_hash (POSITION position) {
       result[turn] = 1;
   } else result[turn] = 0;
   
-  rearranger_unhash (position, board);
+  
+  rearranger_unhash (position, board); //analogous to generic hash
 
   for (i = 0; i < boardSize; i++) {
     result[i] = 0;
@@ -1089,8 +1274,9 @@ int *array_hash (POSITION position) {
 	  j++;
   }
 
-  free (board);
+  SafeFree (board);
   return result;
+  }
 }
 
 
@@ -1107,10 +1293,59 @@ int *array_hash (POSITION position) {
 ************************************************************************/
 
 POSITION array_unhash (int *hashed) {
+  if(gHashWindowInitialized) {
+    TIER tier = 10000*hashed[mancalaL] + hashed[mancalaR];
+    int i = 0, j = 0;
+    /*
+    printf("in array_unhash tier:%d ",tier);
+    for(i=0;i<boardSize+1;i++)
+      printf("%d:%d ",i,hashed[i]);
+    */
+    TIERPOSITION tierPos;
+    POSITION result;
+    
+    int array_size = boardSize - 2 + numOfPieces - tier/10000 - tier%10000 - 1;
+    
+
+    char *dest = (char *) SafeMalloc (array_size * sizeof(char));
+        
+    //printf("mancalaL:%d, mancalaR:%d ",mancalaL, mancalaR);
+    for (i=0; i < array_size; i++) {
+      if(j ==  mancalaL || j == mancalaR){
+	//printf("skipping j=%d i=%d",j,i);
+	j++;
+      }
+      if (hashed[j] > 0) {
+	//printf("i:%d %d:%d pieces\n",i,j,hashed[j]);
+	dest[i] = 'o';
+	hashed[j] -= 1;
+      }
+      else {
+	dest[i] = 'x';
+	//printf("i:%d j:%d to %d\n",i,j,j+1);
+	j += 1;
+      }	
+
+    }
+    /*
+    for(i=0;i<array_size;i++)
+      printf("%c",dest[i]);
+    printf("\n");
+    */
+    generic_hash_context_switch(tier);
+    tierPos = generic_hash_hash(dest, hashed[turn]+1);
+    generic_hash_context_switch(tier);
+    result = gHashToWindowPosition(tierPos, tier);
+    //printf("result position in array_unhash= %d\n",result);
+    SafeFree(dest);
+    return result;
+  } else {
+
   int i = 0, j = 0, k = rsize;
   POSITION result = 0;
   char *dest = (char *) SafeMalloc (rsize * sizeof(char));
         
+
   for (; i < k; i++) {
     if (hashed[j] > 0) {
       dest[i] = 'o';
@@ -1127,8 +1362,9 @@ POSITION array_unhash (int *hashed) {
   if (hashed[turn] == 1) 
       result += turnOffset;
   
-  free (dest);
+  SafeFree (dest);
   return result;
+  }
 }
 
 // for atilla's hash code ...
@@ -1169,6 +1405,7 @@ int rearranger_hash(char* board)
 {
 	int temp, i, numxs,  numos;
 	int boardsize;
+	
 	numxs = my_gHashMinMax[3];
 	numos = my_gHashMinMax[1];
 	boardsize = my_gHashBoardSize;
@@ -1198,6 +1435,8 @@ int rearranger_hash(char* board)
 	    }
 	}
 	return temp;
+	
+
 }
 
 BOOLEAN rearranger_unhash(int hashed, char* dest)
