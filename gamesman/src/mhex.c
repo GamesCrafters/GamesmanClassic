@@ -6,9 +6,7 @@
 **
 ** AUTHOR:      Shah Bawany and Jacob Andreas
 **
-** DATE:        18 September 2006 / ...
-**
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** DATE:        2006-9-18 / 2006-11-29
 **
 ** LAST CHANGE: $Id$
 **
@@ -34,21 +32,21 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Hex"; /* The name of your game */
-STRING   kAuthorName          = "Shah Bawany and Jacob Andreas"; /* Your name(s) */
-STRING   kDBName              = "Hex"; /* The name to store the database under */
+STRING   kGameName            = "Hex";
+STRING   kAuthorName          = "Shah Bawany and Jacob Andreas";
+STRING   kDBName              = "Hex";
 
-BOOLEAN  kPartizan            = TRUE ;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN  kPartizan            = TRUE ;
+BOOLEAN  kGameSpecificMenu    = FALSE ;
+BOOLEAN  kTieIsPossible       = FALSE ;
+BOOLEAN  kLoopy               = FALSE ;
 
-BOOLEAN  kDebugMenu           = TRUE ;  /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ;  /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ;
+BOOLEAN  kDebugDetermineValue = FALSE ;
 
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
-POSITION kBadPosition         = -1; /* A position that will never be used */
+POSITION gNumberOfPositions   =  0; /* set in initializeGame */
+POSITION gInitialPosition     =  0; /* set in initializeGame */
+POSITION kBadPosition         = -1;
 
 void*	 gGameSpecificTclInit = NULL;
 
@@ -88,13 +86,13 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDROWS 4
+#define BOARDROWS 3
 #define BOARDCOLS BOARDROWS
 #define BOARDSIZE BOARDROWS * BOARDCOLS
 
 #define BLACKCHAR 'X'
 #define WHITECHAR 'O'
-#define BLANKCHAR '*'
+#define BLANKCHAR ' '
 
 #define WHITEPLAYER 1
 #define BLACKPLAYER 2
@@ -118,13 +116,14 @@ STRING   kHelpExample =
 extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree ();
 
-int                     vcfg(int *this_cfg);
+//int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
 MOVELIST*               getNextBlank(STRING board, int index);
 STRING                  MoveToString(MOVE move);
 int                     ColMaskBoard(char* board, int col, char piece);
 int                     RowMaskBoard(char* board, int row, char piece);
 void			PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
+int                     MaskExpand(int mask, int row);
 
 /************************************************************************
 **
@@ -139,7 +138,7 @@ void InitializeGame ()
 {
   int i;
   char* initialBoard;
-  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, (BOARDSIZE/2), WHITECHAR, 0, (BOARDSIZE/2), -1};
+  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE, WHITECHAR, 0, BOARDSIZE, -1};
 
   InitializeHelpStrings();
   
@@ -176,16 +175,16 @@ kHelpTextInterface =
    ""; 
 
 kHelpOnYourTurn =
-  "";
+  "Enter a move in the format [letter][number], where [letter] is the column of the cell you want to move into and [number] is its row.";
 
 kHelpStandardObjective =
-  "";
+  "To connect your two parallel sides of the board before the other player connects his or her sides.";
 
 kHelpReverseObjective =
-  ""; 
+  "To force your opponent to connect his or her sides of the board first"; 
 
 kHelpTieOccursWhen = 
-  "A tie occurs when ...";
+  "A tie is not possible in the game of Hex.";
 
 kHelpExample = 
   "";
@@ -208,7 +207,7 @@ kHelpExample =
 ** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
 **                                  the linked list of generated moves
 **
-** CALLS:       MOVELIST *CreateMovelistNode();
+** CALLS:       MOVELIST getNextBlank
 **
 ************************************************************************/
 
@@ -238,8 +237,7 @@ MOVELIST *GenerateMoves (POSITION position)
 **
 ** OUTPUTS:     (POSITION)        : The position that results from move
 **
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
+** CALLS:       generic_hash_hash, generic_hash_unhash
 **
 *************************************************************************/
 
@@ -247,28 +245,18 @@ POSITION DoMove (POSITION position, MOVE move)
 {
 
   char* board;
-  char* toard;
   POSITION newPosition;
+  int turn = generic_hash_turn(position);
   
   board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
-  toard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   generic_hash_unhash(position, board);
-
-  printf("Board before move: %s\n", board);
   
-  board[move] = ((generic_hash_turn(position) == 1) ? WHITECHAR : BLACKCHAR);
-
-  printf("Board after move: %s\n", board);
+  board[move] = ((turn == 1) ? WHITECHAR : BLACKCHAR);
   
-  newPosition = generic_hash_hash(board, generic_hash_turn(position));
-  
-  generic_hash_unhash(newPosition, toard);
-  printf("Board after hash: %s\n", toard);
+  newPosition = generic_hash_hash(board, ((turn % 2) + 1));
 
   SafeFree(board);
-  SafeFree(toard);
 
-  
   return newPosition;
 }
 
@@ -279,21 +267,19 @@ POSITION DoMove (POSITION position, MOVE move)
 **
 ** DESCRIPTION: Returns the value of a position if it fulfills certain
 **              'primitive' constraints.
-**
-**              Example: Tic-tac-toe - Last piece already placed
-**
+*
 **              Case                                  Return Value
 **              *********************************************************
-**              Current player sees three in a row    lose
-**              Entire board filled                   tie
-**              All other cases                       undecided
+**              Current player sees a path across board      lose
+**              Doubling back case (temporary fix)           tie
+**              All other cases                              undecided
 ** 
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       RowMaskBoard, ColMaskBoard       
 **
 ************************************************************************/
 
@@ -303,28 +289,31 @@ VALUE Primitive (POSITION position)
     int mask, nextmask, i;
 
     
-    board = (char*)SafeMalloc(BOARDSIZE*sizeof(char));
+    board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
 
     generic_hash_unhash(position, board);
 
     mask = RowMaskBoard(board, 0, BLACKCHAR);
     for(i = 1; i < BOARDROWS; i++) {
-        nextmask = 
-	(RowMaskBoard(board, i, BLACKCHAR)|(RowMaskBoard(board, i, BLACKCHAR) << 1));
-	mask = mask & nextmask;
+      nextmask = RowMaskBoard(board, i, BLACKCHAR);
+      mask = (mask | (mask << 1)) & nextmask;
+      mask = MaskExpand(mask, RowMaskBoard(board, i, BLACKCHAR));
     }
     if(mask != 0) {
-      return win;     // BLACK WINS
+      return gStandardGame ? lose : win;     // WHITE LOSES
     }
 
-    mask = RowMaskBoard(board, 0, WHITECHAR);
+    mask = ColMaskBoard(board, 0, WHITECHAR);
     for(i = 1; i < BOARDROWS; i++) {
-        nextmask = 
-	(RowMaskBoard(board, i, WHITECHAR)|(RowMaskBoard(board, i, WHITECHAR) << 1));
-	mask = mask & nextmask;
+      nextmask = ColMaskBoard(board, i, WHITECHAR);
+      mask = (mask | (mask << 1)) & nextmask;
+      mask = MaskExpand(mask, ColMaskBoard(board, i, WHITECHAR));
     }
     if(mask != 0) {
-      return lose;  // WHITE WINS
+      return gStandardGame ? lose : win;  // BLACK LOSES
+    }
+    if (GenerateMoves(position) == NULL) {
+      return tie;
     }
     return undecided;
 }
@@ -359,27 +348,47 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 
   
-  //printf("Prediction: %s", getPrediction());
+  // printf("Prediction: %s", getPrediction()); //check doc
   printf("%s's turn:\n", playersName);
-  
-  printf("  ");
 
+
+  printf("   _X_X_X_\n");
+  printf(" O \\      \\ O\n");
+  printf("  O \\      \\ O\n");
+  printf("   O \\______\\ O\n");
+  printf("        X X X\n\n");
+   
+
+  
+  printf("    ");
+
+  for(i = 0; i < BOARDCOLS; i++) {
+    printf("/ \\ ");
+  }
   printf("\n");
   
   for(row = 0; row < BOARDROWS; row++) {
     for(i = 0; i < row; i++)
-	  printf("   ");
-    printf(" %c ", '0'+row);
+	  printf("  ");
+    printf(" %c |", '0'+row);
     for(col = 0; col < BOARDCOLS; col++)
-	  printf("[  %c ]", board[row*BOARDROWS+col]);
-	printf("\n\n");
+	  printf(" %c |", board[row*BOARDROWS+col]);
+    printf("\n    ");
+    for(i = 0; i < row; i++) {
+        printf("  ");
+    } 
+    for(i = 0; i < BOARDCOLS; i++)
+      printf("\\ / ");
+    if(row != BOARDROWS-1) printf("\\");
+    printf("\n");
   }
-
+  printf("   ");
   for(col = 0; col < BOARDCOLS; col++)
-    printf("    ");
+    printf("  ");
 
+  printf(" ");
   for(n = 0; n < BOARDCOLS; n++)
-    printf("%c     ", 'a'+n);
+    printf("%c   ", 'a'+n);
 
   printf("\n");
   
@@ -401,7 +410,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+    printf("%s's move: %s", computersName, MoveToString(computersMove));
 }
 
 
@@ -473,10 +482,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     
     for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/#l] : ", playersName);
+
+	printf("%8s's move [ `undo' | {column}{row} ] : ", playersName);
 	
 	input = HandleDefaultTextInput(position, move, playersName);
 	
@@ -718,7 +725,7 @@ int RowMaskBoard(char* board, int row, char piece) {
 	mask = 0;
 
 	if(row > BOARDROWS) {
-		return -1;
+		return 0;
 	}
 	for(i = 0; i < BOARDROWS; i++) {
 		mask <<= 1;
@@ -732,7 +739,7 @@ int ColMaskBoard(char* board, int col, char piece) {
 	mask = 0;
 
 	if(col > BOARDROWS) {
-		return -1;
+		return 0;
 	}
 	for(i = 0; i < BOARDROWS; i++) {
 		mask <<= 1;
@@ -742,7 +749,14 @@ int ColMaskBoard(char* board, int col, char piece) {
 }
 
 
-
+int MaskExpand(int mask, int row) {
+  int maskrow;
+  maskrow = (((mask >> 1) | (mask << 1) | mask) & row);
+  if (maskrow != mask) {
+    return MaskExpand(maskrow, row);
+  }
+  return mask;
+}
 
 
 
@@ -750,6 +764,11 @@ int ColMaskBoard(char* board, int col, char piece) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.4  2006/11/28 00:47:04  and-qso
+ **
+ **
+ ** Changed vcfg pointer to NULL in initializeGame;
+ **
  ** Revision 1.3  2006/11/15 20:49:36  and-qso
  **
  **
