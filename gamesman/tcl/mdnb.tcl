@@ -386,7 +386,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     # Here, we implement tracking of box owners
     # Namely, if theMove completes a box, note who won that box in a list
     # Will have to keep track of who's move it is as well
-
+    set count 0
     for {set i 0} {$i < $boardWidth * $boardHeight} {incr i} {
 	set box [BoxCompleted [unhash $newPosition] $i $theMove]
 
@@ -396,14 +396,17 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	    # turn does not change
 	    # mark the box we completed according to whose turn it is
 	    LabelBox $c [lindex $box 0] [lindex $box 1] $turn
-
-	    # We're done, so go away
-	    return
+	    incr count
+	    if {$count == 2} {
+		break
+	    }
 	}
     }
 
-    # If we got here, that means we didn't finish a box, so we must change turns
-    ChangeTurn
+    # We went through and didn't find any new completed boxes
+    if { $count == 0 } {
+	ChangeTurn
+    }
     
 
 }
