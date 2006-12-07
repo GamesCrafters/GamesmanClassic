@@ -512,7 +512,7 @@ proc animate { c piece origin destination captured } {
 	$c move $piece $dx $dy
 	
 	if {$captured != 0} {
-	    if {$i == [expr $speed / 2]} {
+	    if {$i == [expr floor($speed / 2)]} {
 		$c delete $captured
 	    }
 	}
