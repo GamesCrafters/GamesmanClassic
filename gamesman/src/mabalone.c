@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.41 2006-12-07 04:22:08 koolswim88 Exp $
+// $Id: mabalone.c,v 1.42 2006-12-07 04:25:57 koolswim88 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -930,9 +930,9 @@ void PrintPosition(position, playerName, usersTurn)
 			}
 
 		if ((r == N - 1) && (N==2))
-			printf("       / \\");		//Direction's (/\)
+			printf("    / \\");		//Direction's (/\)
 		else if ((r == N - 2) && (N==2))
-			printf("       \\ /");		//Direction's(\/)
+			printf("    \\ /");		//Direction's(\/)
 			
 		if ((r == N - 1) && (N==3))
 			printf("            / \\");		//Direction's (/\)
