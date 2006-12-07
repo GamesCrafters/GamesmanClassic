@@ -502,7 +502,7 @@ VALUE Primitive (POSITION position)
 		? (gStandardGame ? win : lose)
 		: (gStandardGame ? lose : win);
 #else
-		result = lose;
+		result = gStandardGame ? lose : win;
 #endif
 	} else if (pos->passedOnce && pos->passedTwice) {
 		result = tie;
@@ -542,7 +542,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
  	printf("%s\n", stringifyGoPosition(unhashPosition(position)));
-	printf("       %s\n", GetPrediction(position,playersName,usersTurn));
+	printf("  %s\n", GetPrediction(position,playersName,usersTurn));
 }
 
 /************************************************************************
@@ -674,10 +674,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	BOOLEAN result = TRUE;
-
-/* FIXME:  No, really.  Validate.  */
-    return result;
+	return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
+		&& input[1] >= 1 && input[1] <= 3);
 }
 
 
