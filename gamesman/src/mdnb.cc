@@ -249,7 +249,6 @@ struct DNB {
       for (unsigned i = 0; i <= BoardSizeX; i++) {
 	printf("%c",EdgeV(i,j)?'|':ChoiceV(i,j));
 	if (i == BoardSizeX) break;
-	// printf(" %c ",BoxCompleted(i,j)?!TrackBoxOwners?'?':Scored(i,j)?'O':'X':' ');
 	printf(" %c ",BoxCompleted(i,j)?(!TrackBoxOwners?'?':Scored(i,j))?'O':'X':' ');
       }
       printf("\n");
@@ -402,9 +401,11 @@ EXTERNC void InitializeGame()
 
   DNB::PreCalc();
 
+  /*
   gInitialPosition = (1<<BoardSizeX)-1;
   gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+1));
   gInitialPosition |= 1<<(BoardSizeX*(BoardSizeY+2));
+  */
 
   gNumberOfPositions = DNB::NumberOfPositions();
 
