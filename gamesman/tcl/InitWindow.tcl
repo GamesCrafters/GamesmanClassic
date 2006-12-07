@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.116 2006-11-28 16:18:01 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.117 2006-12-07 06:25:02 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -48,7 +48,6 @@ proc TBaction1 {} {
 	update idletasks
 	set gGamePlayable true
 	NewGame
-	
 	.cToolbar bind iOTB1 <Any-Leave> {
 	    .cToolbar raise iITB1
 	    .middle.f1.cMLeft lower startupPicOver
@@ -195,7 +194,8 @@ proc SetupPlayOptions {} {
 
     global gMoveType gPosition
 
-    GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+    #why was this line ever here??
+    #GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
 
     pack forget .middle.f2.cMain   
     pack .middle.f2.fPlayOptions -side bottom
@@ -2311,7 +2311,12 @@ proc advanceProgressBar { percent } {
     if {$percentDone > 100.0} {
 	$percentDone = 100.0
     }
-    lset barCoords 2 $xCoord
+    if {$percent == 0} {
+	lset barCoords 2 [lindex $barCoords 0]
+	$percentDone = 0
+    } else {
+	lset barCoords 2 $xCoord
+    }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
 	-text [format "Percent Solved:\n%s%%" $percentDone]
