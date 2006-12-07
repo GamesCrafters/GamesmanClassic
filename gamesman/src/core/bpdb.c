@@ -718,7 +718,7 @@ bpdb_set_slice_slot_max(
     }
     index /= 2;
 
-    if(bpdb_slice->reservemax[index]) {
+    if(!bpdb_slice->reservemax[index]) {
         BPDB_TRACE("bpdb_set_slice_slot_max()", "slot without its maxvalue reserved is being set to max", STATUS_INVALID_OPERATION);
     }
 
@@ -1036,7 +1036,6 @@ bpdb_shrink_slice(
 
     // find difference between old size, and the new
     // size required for the slot
-    //if(bitsToShrink == 0) bitsToShrink = 1;
     bitsToShrink = bpdb_slice->size[index] - bitsToShrink;
 
     // save old slice size

@@ -53,6 +53,7 @@ char*       gVSNumberChildrenOriginal = NULL; //MATT
 // Data to be stored in each slice of the database
 UINT32 SL_VALUESLOT = 0;
 UINT32 SL_MEXSLOT = 0;
+UINT32 SL_WINBYSLOT = 0;
 UINT32 SL_REMSLOT = 0;
 UINT32 SL_VISITEDSLOT = 0;
 
@@ -122,10 +123,20 @@ VALUE VSDetermineLoopyValue(POSITION position)
             goto _bailout;
         }
     
-        status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &SL_MEXSLOT );              // slot 2
-        if(!GMSUCCESS(status)) {
-            BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
-            goto _bailout;
+        if(gPutWinBy) {
+            status = AddSlot( 3, "WINBY", TRUE, TRUE, FALSE, &SL_WINBYSLOT );              // slot 2
+            if(!GMSUCCESS(status)) {
+                BPDB_TRACE("DetermineValueVSSTD()", "Could not add winby slot", status);
+                goto _bailout;
+            }
+        } 
+
+        if(!kPartizan) {
+            status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &SL_MEXSLOT );              // slot 2
+            if(!GMSUCCESS(status)) {
+                BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
+                goto _bailout;
+            }
         }
 
         status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, TRUE, &SL_REMSLOT );        // slot 4

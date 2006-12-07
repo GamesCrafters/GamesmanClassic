@@ -41,6 +41,7 @@
 // Data to be stored in each slice of the database
 UINT32 VALUESLOT = 0;
 UINT32 MEXSLOT = 0;
+UINT32 WINBYSLOT = 0;
 UINT32 REMSLOT = 0;
 UINT32 VISITEDSLOT = 0;
 
@@ -68,10 +69,20 @@ VALUE DetermineValueVSSTD(POSITION position)
             goto _bailout;
         }
     
-        status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &MEXSLOT );              // slot 2
-        if(!GMSUCCESS(status)) {
-            BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
-            goto _bailout;
+        if(gPutWinBy) {
+            status = AddSlot( 3, "WINBY", TRUE, TRUE, FALSE, &WINBYSLOT );              // slot 2
+            if(!GMSUCCESS(status)) {
+                BPDB_TRACE("DetermineValueVSSTD()", "Could not add winby slot", status);
+                goto _bailout;
+            }
+        } 
+
+        if(!kPartizan) {
+            status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &MEXSLOT );              // slot 2
+            if(!GMSUCCESS(status)) {
+                BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
+                goto _bailout;
+            }
         }
     
         status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, TRUE, &REMSLOT );        // slot 4
@@ -135,7 +146,7 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
         if(!kPartizan && !gTwoBits)
             SetSlot(position, MEXSLOT, MexPrimitive(value)); /* lose=0, win=* */
 	else if (kPartizan && gPutWinBy && !gTwoBits)
-	    SetSlot(position, MEXSLOT, (gPutWinBy(position) & (MEX_MASK >> MEX_SHIFT)));
+	    SetSlot(position, WINBYSLOT, (gPutWinBy(position) & (MEX_MASK >> MEX_SHIFT)));
         return(SetSlot(position, VALUESLOT, value));
         /* first time, need to recursively determine value */
     } else { 
@@ -209,7 +220,7 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
 	  else if (turn == 2)
 	    winByValue = minWinByValue;
 	  else BadElse("Bad generic_hash_turn(position)");
-	  SetSlot(position, MEXSLOT, (winByValue & (MEX_MASK >> MEX_SHIFT)));
+	  SetSlot(position, WINBYSLOT, (winByValue & (MEX_MASK >> MEX_SHIFT)));
 	}
         if(foundLose) {
             SetSlot(position, REMSLOT, minRemoteness+1);
