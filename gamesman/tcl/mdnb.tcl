@@ -11,6 +11,7 @@ set margin      100
 set maxWidth    3
 set maxHeight   3
 set r           5
+set basespeed   50
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -379,8 +380,39 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-
+    AnimateMove $c $theMove
     GS_DrawPosition $c $newPosition
+}
+
+proc AnimateMove { c move } {
+    global square basespeed gAnimationSpeed margin boardHeight boardWidth
+    set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
+    set delta [expr $square / $speed]
+
+    set dir 0
+    set col [expr $move%$boardWidth]
+    set row [expr floor($move/$boardWidth)] 
+    if {$move >= [expr ($boardHeight+1)*$boardWidth]} {
+	set move [expr ($move-($boardHeight+1)*$boardWidth)]
+	set row [expr $move%$boardHeight]
+	set col [expr floor($move/$boardHeight)]
+	set dir 1
+    }
+
+    
+
+    for {set i 0} {$i < $square} {set i [expr $i+$delta]} {
+	$c delete tmp
+
+	if { $dir == 0 } {
+	    $c create line [expr $margin+$col*($square)] [expr $margin+$row*($square)] [expr $margin+$col*($square)+$i] [expr $margin+$row*($square)] -width 4 -fill black -tag tmp
+	} else {
+	    $c create line [expr $margin+$col*($square)] [expr $margin+$row*($square)] [expr $margin+$col*($square)] [expr $margin+$row*($square)+$i] -width 4 -fill black -tag tmp
+	}
+	after 1
+	update idletasks
+    }
+    $c delete tmp
 }
 
 
