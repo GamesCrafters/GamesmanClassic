@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.41 2006-12-04 00:47:09 vert84 Exp $
+// $Id: mquickchess.c,v 1.42 2006-12-07 01:40:49 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -131,8 +131,6 @@ STRING   kHelpExample =
 #define WHITE_KNIGHT 'N'
 #define WHITE_KING 'K'
 #define WHITE_QUEEN 'Q'
-#define BLANK_PIECE ' '
-#define DISTINCT_PIECES 10
 // Constants specifying directions to "look" on the board
 #define UP 0
 #define DOWN 1
@@ -208,9 +206,10 @@ POSITION ActualNumberOfPositions(int variant);
 
 void InitializeGame ()
 {
+	gHashWindowInitialized = FALSE; /* TRUE only when using tiers.  FALSE when on release, for now. */
+	
 	int pieces_array[22] = {'Q', 0, 1, 'R', 0, 1, 'K', 1, 1, 'q', 0, 1, 'r', 0, 1, 'k', 1, 1, ' ', 6, 10, -1};
 	char gameBoard[rows*cols];
-
 
 	int x, y;
 	// setup empty spaces
@@ -228,12 +227,69 @@ void InitializeGame ()
 	gameBoard[(rows-1)*cols + 1] = WHITE_KING;
 	gameBoard[(rows-1)*cols + 2] = WHITE_ROOK;
 
-	gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL, 0);
-	gInitialPosition = generic_hash_hash(gameBoard, WHITE_TURN);
-	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+	if (gHashWindowInitialized) {
+		// initialize tiers
+		
+	} else {
+		gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL, 0);
+		gInitialPosition = generic_hash_hash(gameBoard, WHITE_TURN);
+		gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+	}
 
 }
 
+/*
+ ** hash().  This method hashes a board.  This abstraction is neccessary to 
+ ** provide a hash call that works with or without using tiers.
+ ** input: char* board - the board to be hashed
+ ** return: the position on the board
+ */
+POSITION hash(char* board) {
+	POSITION position;
+	if (gHashWindowInitialized) {
+		TIER tier = GetTier(board);
+		// Switch tier hash context;
+		TIERPOSITION tierPos = TierHash(board);
+		position = gHashToWindowPosition(tierPos, tier);
+	} else position = HashWithoutTiers(board);
+	return position;
+}
+
+/*
+ ** unhash().  This method unhashes a position into a board array.  This 
+ ** abstraction is necessary to privide an unhash call that works with or without using tiers.
+ ** input: POSITION position - the position on the board
+ ** returns: char* board - the chracter array of the board
+ */
+char* unhash(POSITION position) {
+	if(gHashWindowInitialized) {
+		TIERPOSITION tierPos;
+		TIER tier;
+		gUnhashToTierPosition(position, &tierPos, &tier);
+		// Switch tier hash context;
+		return TierUnhash(tierPos);
+	} else {
+		return UnhashWithoutTiers(position);
+	}
+}
+
+/*
+ ** GetTier() takes in the game board and returns the tier associated with the board.
+ ** Input: char* board - the current board
+ ** Return: the tier which the board belongs to
+ */
+TIER GetTier(char* board) {
+	return 0;
+}
+
+/*
+ ** TierHash() translates a board to a tierposition.
+ ** input: char* board - the current board
+ ** return: the tierposition representing the board
+ */
+TIERPOSITION TierHash(char* board) {
+	return 0;
+}
 
 /************************************************************************
 **
@@ -347,7 +403,6 @@ POSITION DoMove (POSITION position, MOVE move)
 
 
 void substitutePawn(char *boardArray, int currentPlayer, int x, int y){
-
 	char piece;
 	printf("Choose a piece to replace your pawn with from your already captured pieces, (i.e.Q, B, R, etc.NO SPACES!):");
 	piece = getchar();
@@ -1675,6 +1730,9 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.41  2006/12/04 00:47:09  vert84
+// *** empty log message ***
+//
 // Revision 1.40  2006/11/02 02:57:51  vert84
 // *** empty log message ***
 //
