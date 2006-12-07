@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.42 2006-12-07 01:40:49 vert84 Exp $
+// $Id: mquickchess.c,v 1.43 2006-12-07 02:18:23 vert84 Exp $
 
 /*
 * The above lines will include the name and log of the last person
@@ -195,6 +195,16 @@ void generateKingMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
 void printArray (char* boardArray);
 void printMoveList(MOVELIST *moves);
 POSITION ActualNumberOfPositions(int variant);
+// Tier stuff
+POSITION hash(char* board);
+char* unhash(POSITION position);
+TIER GetTier(char* board);
+TIERPOSITION TierHash(char* board);
+char* TierUnhash(TIERPOSITION tierPos);
+POSITION HashWithoutTiers(char* board);
+char* UnhashWithoutTiers(POSITION pos);
+void gUnhashToTierPosition(POSITION pos, TIERPOSITION* tp, TIER* tier);
+POSITION gHashToWindowPosition(TIERPOSITION tp, TIER tier);
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -288,6 +298,41 @@ TIER GetTier(char* board) {
  ** return: the tierposition representing the board
  */
 TIERPOSITION TierHash(char* board) {
+	return 0;
+}
+
+/*
+ ** TierUnhash() translates a tierposition to a board
+ ** input: tierPos - the tier position
+ ** return: the 
+ */
+char* TierUnhash(TIERPOSITION tierPos) {
+	return 0;
+}
+
+/*
+ ** HashWithoutTiers() takes a board and creates the position without the tiers
+ ** 
+ **
+ */
+POSITION HashWithoutTiers(char* board) {
+	return 0;
+}
+
+/*
+ ** UnhashWithoutTiers() 
+ **
+ **
+ */
+char* UnhashWithoutTiers(POSITION pos) {
+	return 0;
+}
+
+void gUnhashToTierPosition(POSITION pos, TIERPOSITION* tp, TIER* tier) {
+	
+}
+
+POSITION gHashToWindowPosition(TIERPOSITION tp, TIER tier) {
 	return 0;
 }
 
@@ -1730,6 +1775,9 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.42  2006/12/07 01:40:49  vert84
+// *** empty log message ***
+//
 // Revision 1.41  2006/12/04 00:47:09  vert84
 // *** empty log message ***
 //
