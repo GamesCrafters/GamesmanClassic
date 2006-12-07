@@ -3,6 +3,7 @@ package edu.berkeley.gamesman.server.registration;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -206,9 +207,11 @@ public class RegistrationModule implements IModule
 	private void getOpenGames(IModuleRequest req, IModuleResponse res) {
 		String gameName, host, variationNumber; 
 		Integer gameID;
+		TableNode t;
+		Integer foo;
 		int index;
-		Hashtable gameSessions;
-		Enumeration gameSessionTable;
+		Hashtable<Integer, TableNode> gameSessions;
+		Enumeration<Integer> gameSessionTable;
 		
 		//filter for the game client is looking for
 		gameName = req.getHeader(Macros.HN_GAME);
@@ -221,11 +224,16 @@ public class RegistrationModule implements IModule
 						gameSessionTable.hasMoreElements(); index++) {
 			
 			//list of properties descibing this game session instance
-			gameID = (Integer) gameSessionTable.nextElement();
-			
+			foo = gameSessionTable.nextElement();
+			t = gameSessions.get(foo);
+			host = t.getHost();
+			gameID = t.getGameID();
+			variationNumber = t.getVariation();
+			/* get host and variation 
 			propBucket = (PropertyBucket)gameSessions.get(gameID);
 			host = (String)propBucket.getProperty(Macros.PROPERTY_HOST);
 			variationNumber = (String)propBucket.getProperty(Macros.PROPERTY_VARIATION);
+			*/
 			
 			//add headers to response
 			//note that index is necessary since there will be several game sessions
@@ -250,57 +258,42 @@ public class RegistrationModule implements IModule
 	 */
 	private void registerNewGame(IModuleRequest req, IModuleResponse res) {
 		String userName, secretKey, variation, gameMessage, gameName;
-		boolean validKey, notHostingGame, validVariant;
-		Integer gameID;
+		UserNode u;
 		//used to descibe the particular game session to be hosted
-		PropertyBucket propBucket;
+		//PropertyBucket propBucket;
 		
 		//extract request headers
 		userName = req.getHeader(Macros.HN_NAME);
 		secretKey= req.getHeader(Macros.HN_SECRET_KEY);
 		variation = req.getHeader(Macros.HN_VARIANT);
 		gameMessage = req.getHeader(Macros.HN_GAME_MESSAGE);
+		gameName = req.getHeader(Macros.HN_GAME);
+		u = usersOnline.get(userName);
 		
 		//Validity Checks
-		propBucket = getUser(userName);
-		/*
-		 * Because userName may not exist propBucket may be null and we have to check for that
-		 */
-		if (propBucket == null) gameName = null;
-		else gameName = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
-		
-		//Verify secretKey/userName
-		validKey = isValidUserKey(userName, secretKey);
-		//check that the user is not already hosting a game
-		notHostingGame = isNotHostingGame(userName);
-		//at the moment this condition is not actually being checked so validVariant is always true
-		//but we definitely need a way to verify
-		validVariant = isValidVariant(gameName, variation);
-		if (validKey && notHostingGame && validVariant) {
-			//client will now be hosting game
-			hostGame(userName, gameName);
+		//propBucket = getUser(userName);
+		if(u == null) {
+			res.setReturnCode(ErrorCode.INVALID_USER_NAME);
+			return;
+		} else if(!u.getGameTypes().contains(gameName)) {
+			res.setReturnCode(ErrorCode.USER_NOT_PLAYING_GAME);
+			return;
+		} else if(!isValidUserKey(userName, secretKey)) {
+			res.setReturnCode(ErrorCode.INVALID_KEY);
+			return;
+		} else if(!isValidVariant(gameName, variation)) {
+			res.setReturnCode(ErrorCode.INVALID_VARIANT);
+			return;
+		} else {
+			TableNode t = new TableNode(gameName, userName, variation, gameMessage);
+			UserNode host = usersOnline.get(userName);
 			
-			//populate property bucket
-			propBucket.setProperty(Macros.PROPERTY_HOST, userName);
-			propBucket.setProperty(Macros.PROPERTY_INTERESTED_USERS, new LinkedList());
-			propBucket.setProperty(Macros.PROPERTY_VARIATION, variation);
-			propBucket.setProperty(Macros.PROPERTY_GAME_MESSAGE, gameMessage);
+			host.addTable(t);
+			getGameSessions(gameName).put(t.getGameID(), t);
 			
-			//generate gameID and add the new game session to online games
-			gameID = new Integer (generateGameID());
-			//Nasty bug was killed here...I was forgetting to store the gameID in the property bucket
-			propBucket.setProperty(Macros.PROPERTY_GAME_ID, gameID);
-			addGameSession(gameName, gameID, propBucket);
-			
+			// TODO make sure this can stay out
 			//At this point the game has been registered successfully so respond with Macros.ACK
 			//res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
-		}
-		else {
-			//the request has failed
-			//res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
-			if (!validKey) res.setReturnCode(ErrorCode.INVALID_KEY);
-			else if (!notHostingGame) res.setReturnCode(ErrorCode.USER_ALREADY_HAS_OPEN_GAME);
-			else if (!validVariant) res.setReturnCode(ErrorCode.INVALID_VARIANT);	
 		}
 	}
 	
@@ -315,39 +308,25 @@ public class RegistrationModule implements IModule
 		String userName, secretKey, gameName;
 		boolean validKey, validGameHost;
 		Integer gameID;
-		PropertyBucket propBucket;
+		
 		
 		//extract header values
 		userName = req.getHeader(Macros.HN_NAME);
 		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
-		validKey = isValidUserKey(userName, secretKey);
-		validGameHost = isValidGameHost(userName);
-		if (validKey && validGameHost) {
-			//remove userName/game session records
-			propBucket = getUser(userName);
-			gameName = (String)propBucket.getProperty(Macros.PROPERTY_GAME_NAME);
-			gameID = (Integer)propBucket.getProperty(Macros.PROPERTY_GAME_ID);
-			
-			//remove all game host mappings
-			//TODO: do we want to remove the user from usersOnline or just from hosting
-			removeGameSession(gameName,gameID);
-			stopHostingGame(userName);
-			
-			//take out everything added to the bucket during game registration
-			propBucket.removeProperty(Macros.PROPERTY_HOST);
-			propBucket.removeProperty(Macros.PROPERTY_INTERESTED_USERS);
-			propBucket.removeProperty(Macros.PROPERTY_VARIATION);
-			propBucket.removeProperty(Macros.PROPERTY_GAME_MESSAGE);
-			propBucket.removeProperty(Macros.PROPERTY_GAME_ID);
-			
-			//request was successful
-			//res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
-		}
-		else {
-			//request has failed
-			//res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
-			//TODO: make the error code more specific
-			res.setReturnCode(ErrorCode.GENERIC_ERROR);
+		gameID = Integer.parseInt(req.getHeader(Macros.HN_GAME_ID));
+		gameName = req.getHeader(Macros.HN_GAME);
+		UserNode u = usersOnline.get(userName);
+		TableNode t = getGameSessions(gameName).get(gameID);
+
+		if(!isValidUserKey(userName, secretKey)) {
+			res.setReturnCode(ErrorCode.INVALID_KEY);
+			return;
+		} else if(!u.getHostedGames().contains(gameID)) {
+			res.setReturnCode(ErrorCode.INVALID_GAME_NUMBER);
+			return;
+		} else {
+			u.getHostedGames().remove(t);
+			getGameSessions(gameName).remove(gameID);
 		}
 	}
 	
@@ -365,46 +344,44 @@ public class RegistrationModule implements IModule
 		//Variable Declarations
 		String userName, secretKey, gameName, gameID;
 		boolean validKey;
-		LinkedList interestedUsers;
-		Hashtable gameSessions;
-		PropertyBucket hostPropBucket, userPropBucket;
+		Hashtable<Integer, TableNode> gameSessions;
 		boolean hostAccepted;
 		
 		//extract header values
 		userName = req.getHeader(Macros.HN_NAME);
 		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
 		gameID = req.getHeader(Macros.HN_GAME_ID);
+		gameName = req.getHeader(Macros.HN_GAME);
 		
-		validKey = isValidUserKey(userName, secretKey);
-		if (!validKey) {
-			res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
-			res.setReturnCode(ErrorCode.INVALID_KEY);
-			return;
-		}
 		
-		//get user's context game
-		userPropBucket = (PropertyBucket) getUser(userName);
-		gameName = (String) userPropBucket.getProperty(Macros.PROPERTY_GAME_NAME);
+		UserNode u = usersOnline.get(userName);
 		
 		//get all game sessions of gameName
 		gameSessions = getGameSessions(gameName);
 		
-		//get the property bucket corresponding to game number
-		hostPropBucket = (PropertyBucket)gameSessions.get(new Integer(gameID));
-		if (hostPropBucket == null) {
-			//an invalid game number has been requested
-			//res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
+		if(!isValidUserKey(userName, secretKey)) {
+			res.setReturnCode(ErrorCode.INVALID_KEY);
+			return;
+		} else if(!gameSessions.containsKey(gameID)) {
 			res.setReturnCode(ErrorCode.INVALID_GAME_NUMBER);
 			return;
-		}
-		else {
-			interestedUsers = (LinkedList) hostPropBucket.getProperty(Macros.PROPERTY_INTERESTED_USERS);
+		} else if(!u.getGameTypes().contains(gameName)) {
+			res.setReturnCode(ErrorCode.USER_NOT_PLAYING_GAME);
+			return;
+		} else {
+			TableNode t = gameSessions.get(gameID);
+			t.addInterestedUser(u);
+		// FIXME this is totally broken for multiple users!
+			LinkedList<UserNode> interestedUsers = t.getInterestedUsers();
+			int usersProcessedByHost = t.getUsersProcessed();
 			synchronized (interestedUsers) {
-				interestedUsers.add(userPropBucket);
+				interestedUsers.add(u);
 			}
 			try {
 				// A classic condition variable
-				while (userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED) == null) {
+				//while (userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED) == null) {
+				while(usersProcessedByHost == t.getUsersProcessed()) {
+					usersProcessedByHost = t.getUsersProcessed();
 					// go to sleep and wait for another thread to wake us up when they refresh
 					synchronized (this) {
 						wait();
@@ -414,38 +391,52 @@ public class RegistrationModule implements IModule
 			catch (InterruptedException ie) {
 				throw new ModuleException(ErrorCode.INTERRUPT_EXCEPTION, ErrorCode.Msg.INTERRUPT_EXCEPTION);
 			}
-			hostAccepted = userPropBucket.getProperty(Macros.PROPERTY_HOST_ACCEPTED).equals(Macros.HOST_ACCEPT);
+			String acceptedPlayer = t.getAcceptedPlayer();
+			
 			//if (hostAccepted) 
 				//res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
-			if (!hostAccepted) {
+			if (t==null || acceptedPlayer.equalsIgnoreCase(gameName)) {
 				//res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
 				res.setReturnCode(ErrorCode.HOST_DECLINED);
 			}
-			userPropBucket.removeProperty(Macros.PROPERTY_HOST_ACCEPTED);
 		}
 	}
-
+	if (t==null ||
 	/**
+	 * Unregisters a user from a particular game.
 	 * 
 	 * @param req
 	 * @param res
 	 */
 	private void unregisterUser(IModuleRequest req, IModuleResponse res) {
-		String userName, secretKey;
+		
 		boolean validKey; 
-		userName = req.getHeader(Macros.HN_NAME);
-		secretKey = req.getHeader(Macros.HN_SECRET_KEY);
-		validKey = isValidUserKey(userName, secretKey);
-		if (validKey) { 
-			if (isValidGameHost(userName)) {
-				unregisterGame(req, res); 
-			}
-			removeUser(userName); 
-			//res.setHeader(Macros.HN_STATUS, Macros.ACK); // Convert to use responseCode/responseMessage
-		} else {
-			//request has failed
-			//res.setHeader(Macros.HN_STATUS, Macros.DENY); // Convert to use responseCode/responseMessage
+		String userName = req.getHeader(Macros.HN_NAME);
+		String secretKey = req.getHeader(Macros.HN_SECRET_KEY);
+		String gameName = req.getHeader(Macros.HN_GAME);
+		
+		if(!isValidUserKey(userName, secretKey)) {
 			res.setReturnCode(ErrorCode.INVALID_KEY);
+			return;
+		} else {
+			UserNode u = usersOnline.get(userName);
+			if(!u.getGameTypes().contains(gameName)) {
+				res.setReturnCode(ErrorCode.USER_NOT_PLAYING_GAME);
+				return;
+			}
+			LinkedList<TableNode> tables = u.getHostedGames();
+			LinkedList<TableNode> toRemove = new LinkedList<TableNode>();
+			// silly concurrent modification exception...
+			// this is slightly inefficient...optimize?
+			for(TableNode t : tables) {
+				if(t.getGameName().equalsIgnoreCase(gameName)) {
+					toRemove.add(t);
+				}
+			}
+			for(TableNode t : toRemove) {
+				u.removeHostedGame(t);
+			}
+			u.removeGameType(gameName);
 		}
 	}
 	
@@ -604,31 +595,40 @@ public class RegistrationModule implements IModule
 	}
 	
 	/**
-	 * Add a new game session under gameName described by propBucket and gameID 
+	 * Add a new game session under gameName described by propBucket and gameID
+	 * 
+	 * deprecated 
+	 * 
 	 * @param gameName
 	 * @param gameID
 	 * @param propBucket
 	 * @return
 	 * @modifies this
 	 */
+	/*
 	private void addGameSession(String gameName, Integer gameID, PropertyBucket propBucket) {
-		Hashtable gameSessions;
-		gameSessions = getGameSessions(gameName);
-		gameSessions.put(gameID, propBucket);
+		//Hashtable gameSessions;
+		//gameSessions = getGameSessions(gameName);
+		//gameSessions.put(gameID, propBucket);
 	}
-	
+	*/
 	/**
 	 * Remove the current gameName session correponding to gameID
+	 * 
+	 * deprecated
+	 * 
 	 * @param gameName
 	 * @param gameID
 	 * @return
 	 * @modifies this
 	 */
+	/*
 	private void removeGameSession(String gameName, Integer gameID) {
-		Hashtable gameSessions;
-		gameSessions = getGameSessions(gameName);
-		gameSessions.remove(gameID);
+		//Hashtable gameSessions;
+		//gameSessions = getGameSessions(gameName);
+		//gameSessions.remove(gameID);
 	}
+	*/
 	
 	/**
 	 * Search open games for all game sessions of type gameName
@@ -636,7 +636,8 @@ public class RegistrationModule implements IModule
 	 * @param gameName
 	 * @return a gameSessions data structure with all games of type gameName
 	 */
-	private Hashtable getGameSessions(String gameName) {
+	
+	private Hashtable<Integer, TableNode> getGameSessions(String gameName) {
 		Hashtable<Integer, TableNode> gameSessions;
 		gameSessions = openTables.get(gameName);
 		if (gameSessions == null) {
@@ -682,16 +683,21 @@ public class RegistrationModule implements IModule
 	
 	/**
 	 * Check whether userName is hosting a game
+	 * 
+	 * deprecated
+	 * 
 	 * @param userName
 	 * @return whether or not userName is a game host
 	 */
+	/*
 	private boolean isValidGameHost(String userName) {
 		PropertyBucket propBucket = getUser(userName);
 		return propBucket.getProperty(Macros.PROPERTY_HOSTING_GAME) != null;
 	}
-	
+	*/
 	/**
 	 * Check that variation is a valid gameName type
+	 * AS OF YET UNWRITTEN
 	 * @param gameName
 	 * @param variation
 	 * @return whether or not variation is valid
@@ -859,16 +865,6 @@ public class RegistrationModule implements IModule
 	}
 	/**
 	 * For simulated testing purposes
-	 * @param userName
-	 * @param hostAccepted
-	 */
-	protected synchronized void acceptUser(String userName, Boolean hostAccepted) {
-		PropertyBucket propBucket = getUser(userName);
-		propBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, hostAccepted);
-	}
-
-	/**
-	 * For simulated testing purposes
 	 *
 	 */
 	protected synchronized void wakeThreads() {
@@ -900,6 +896,9 @@ public class RegistrationModule implements IModule
 				gameTypes.add(gameName);
 			}
 		}
+		LinkedList<TableNode> getHostedGames() {
+			return myHostedGames;
+		}
 		LinkedList<String> getGameTypes() {
 			return gameTypes;
 		}
@@ -910,6 +909,32 @@ public class RegistrationModule implements IModule
 			return userPassword;
 		}
 		
+		// nuke this user
+		void delete() {
+			LinkedList<TableNode> toRemove = new LinkedList<TableNode>();
+			synchronized(myHostedGames) {
+				for(TableNode t : myHostedGames) {
+					toRemove.add(t);
+				}
+				for(TableNode t : toRemove) {
+					myHostedGames.remove(t);
+				}
+			}
+		}
+		
+		void removeGameType(String type) {
+			synchronized(gameTypes) {
+				gameTypes.remove(type);
+				if(gameTypes.isEmpty()) {
+					this.delete();
+				}
+			}
+		}
+		void removeHostedGame(TableNode t) {
+			synchronized(myHostedGames) {
+				myHostedGames.remove(t);
+			}
+		}
 		void addTable(TableNode t) {
 			synchronized(myHostedGames) {
 				myHostedGames.add(t);
@@ -932,6 +957,10 @@ public class RegistrationModule implements IModule
 		String variation;
 		String gameDescription; // is broadcasted 
 		
+		String acceptedUser;
+		
+		int usersProcessed = 0;
+		
 		int gameID;
 		TableNode(String gameName, String host, String var, String gameD) {
 			gameID = globalGameCounter++;
@@ -940,7 +969,18 @@ public class RegistrationModule implements IModule
 			this.variation = var;
 			this.gameDescription = gameD;
 		}
-		
+		int getUsersProcessed() {
+			return usersProcessed;
+		}
+		String getAcceptedPlayer() {
+			return acceptedUser;
+		}
+		LinkedList<UserNode> getInterestedUsers() {
+			return interestedUsers;
+		}
+		int getGameID() {
+			return gameID;
+		}
 		String getGameName() {
 			return gameName;
 		}
@@ -953,59 +993,15 @@ public class RegistrationModule implements IModule
 		void addInterestedUser(UserNode u) {
 			interestedUsers.add(u);
 		}
+		/**
+		 * For simulated testing purposes
+		 * @param userName
+		 * @param hostAccepted
+		 */
+		protected synchronized void acceptUser(String userName, Boolean hostAccepted) {
+			PropertyBucket propBucket = getUser(userName);
+			propBucket.setProperty(Macros.PROPERTY_HOST_ACCEPTED, hostAccepted);
+		}
 		
 	}
-	
-	/**
-	 * 
-	 * @author Victor Perez
-	 *
-	 */
-	private class PropertyBucket {
-		
-		/**
-		 * 
-		 *
-		 */
-		public PropertyBucket() {
-			properties = new Hashtable();
-		}
-		
-		private Hashtable properties;
-
-		/**
-		 * 
-		 * @param propertyName
-		 * @param property
-		 */
-		public synchronized void setProperty(String propertyName, Object property) {
-			properties.put(propertyName, property);
-		}
-		
-		/**
-		 * 
-		 * @param propertyName
-		 * @return
-		 */
-		public synchronized Object getProperty(String propertyName) {
-			return properties.get(propertyName);
-		}
-		
-		/**
-		 * 
-		 *
-		 */
-		public synchronized void removeAllProperties() {
-			properties = new Hashtable();
-		}
-
-		/**
-		 * 
-		 * @param propertyName
-		 */
-		public synchronized void removeProperty(String propertyName) {
-			properties.remove(propertyName);
-		}
-	}
-	
 }
