@@ -1,5 +1,3 @@
-// $Id$
-
 /************************************************************************
 **
 ** NAME:        mago.c
@@ -10,11 +8,7 @@
 **
 ** DATE:        2006-11-10
 **
-** UPDATE HIST: -2006.10.4 = First version, includes most functionality.
-**				Some things not implemented yet, and all functions not
-**				fully tested.
-**				-2006.10.4 = Added a quick implementation of Tiers for
-**				the demo. Basic functions only.
+** UPDATE HIST: -2006.11.10 = First version, includes most functionality.
 **
 **************************************************************************/
 
@@ -46,7 +40,7 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
@@ -179,33 +173,32 @@ void InitializeGame (){
 **              (e.g., InitializeGame() and GameSpecificMenu())
 **
 ************************************************************************/
-/*void InitializeHelpStrings ()
-{
+void InitializeHelpStrings ()
+{		
+	kHelpGraphicInterface =
+  		"There is no graphic interface.";
 
-kHelpGraphicInterface =
-    "";
+	kHelpTextInterface =
+   		"";
 
-kHelpTextInterface =
-   "";
+	kHelpOnYourTurn =
+	 	"Place a piece into an empty space.";
 
-kHelpOnYourTurn =
-  "";
+	kHelpStandardObjective =
+	  	"To surround an opponents stone or group of stones completely.";
 
-kHelpStandardObjective =
-  "";
+	kHelpReverseObjective =
+	  	"Have one or more of your own stones be completely surrounded.";
 
-kHelpReverseObjective =
-  "";
+	kHelpTieOccursWhen =
+  		"A tie can never happen.";
 
-kHelpTieOccursWhen =
-  "A tie occurs when ...";
-
-kHelpExample =
-  "";
+	kHelpExample =
+  		"3   - o -   \n2 o - X - o \n1   - o -   \n\nHere X is completely surrounded.";
 
     gMoveToStringFunPtr = &MoveToString;
 
-}*/
+}
 
 
 /************************************************************************
@@ -303,7 +296,6 @@ VALUE Primitive (POSITION position){
 	int turn; //, reds, blues;
 	//BOOLEAN redWon;
 	board = unhash(position, &turn);
-
 	int x;
 	int y;
 
@@ -347,14 +339,16 @@ VALUE Primitive (POSITION position){
 			}
 
 			if (result == FALSE){
-				if (((turn == PLAYER_ONE) && (board[toIndex(x,y)] == BLACK))
-					|| ((turn == PLAYER_TWO) && (board[toIndex(x,y)] == WHITE))){
+				if (((turn == PLAYER_ONE) && (board[toIndex(x,y)] == WHITE))
+					|| ((turn == PLAYER_TWO) && (board[toIndex(x,y)] == BLACK))){
 					SELFKILL = TRUE;
 				} else {
 					listFree(&bhave_liberties);
 					listFree(&bno_liberties);
 					listFree(&whave_liberties);
 					listFree(&wno_liberties);
+					return lose;
+					/*
 					if (board[toIndex(x,y)] == BLACK){
 						if (turn == PLAYER_ONE){
 							return lose;
@@ -367,7 +361,7 @@ VALUE Primitive (POSITION position){
 						} else {
 							return lose;
 						}
-					}
+					}*/
 				}
 			}
 		}
@@ -377,7 +371,7 @@ VALUE Primitive (POSITION position){
 	listFree(&whave_liberties);
 	listFree(&wno_liberties);
 	if (SELFKILL == TRUE){
-		return lose;
+		return win;
 	}
 	return undecided;
 }
@@ -784,7 +778,7 @@ POSITION GetInitialPosition (){
 ************************************************************************/
 
 int NumberOfOptions (){
-    return 0;
+    return 19*19*2;
 }
 
 
@@ -804,7 +798,11 @@ int getOption (){
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-    return 0;
+    if (gStandardGame == TRUE){
+    	return width*100 + length;
+    } else {
+    	return (width*100 + length)*-1;
+    }
 }
 
 
@@ -823,6 +821,12 @@ void setOption (int option){
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+    if (option < 0){
+    	gStandardGame = FALSE;
+    	option = option * -1;	
+    }
+    width = option / 100;
+    length = option % 100;
 }
 
 
