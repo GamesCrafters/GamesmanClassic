@@ -71,6 +71,8 @@ void		db_mark_visited		(POSITION pos);
 void		db_unmark_visited	(POSITION pos);
 MEX	       	db_get_mex		(POSITION pos);
 void		db_put_mex		(POSITION pos, MEX theMex);
+WINBY           db_get_winby            (POSITION pos);
+void            db_put_winby            (POSITION pos, WINBY winBy);
 BOOLEAN		db_save_database	();
 BOOLEAN		db_load_database	();
 void 		db_get_bulk		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
@@ -102,6 +104,8 @@ void db_create() {
     db_functions->unmark_visited = db_unmark_visited;
     db_functions->get_mex = db_get_mex;
     db_functions->put_mex = db_put_mex;
+    db_functions->get_winby = db_get_winby;
+    db_functions->put_winby = db_put_winby;
     db_functions->save_database = db_save_database;
     db_functions->load_database = db_load_database;
     db_functions->free_db = db_free;
@@ -212,6 +216,14 @@ MEX db_get_mex(POSITION pos){
 }
 
 void db_put_mex(POSITION pos, MEX theMex){
+    return;
+}
+
+WINBY db_get_winby(POSITION pos) {
+    return 0;
+}
+
+void db_put_winby(POSITION pos, WINBY winBy) {
     return;
 }
 
@@ -388,23 +400,23 @@ MEX MexLoad(POSITION position)
     return db_functions->get_mex(position);
 }
 
-void WinByStore(POSITION position, signed char winBy)
+void WinByStore(POSITION position, WINBY winBy)
 {
     /* do we need this?? */
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
 
-    db_functions->put_mex(position, winBy);
+    db_functions->put_winby(position, winBy);
 }
 
-int WinByLoad(POSITION position)
+WINBY WinByLoad(POSITION position)
 {
-  int result;
+  WINBY result;
   /* do we need this?? */
     if(kLoopy && gSymmetries)
 	position = gCanonicalPosition(position);
 
-    result = db_functions->get_mex(position);
+    result = db_functions->get_winby(position);
     if (result > ((1 << (MEX_BITS-1))-1))
       result |= ~MEX_MAX;
     return result;

@@ -44,7 +44,7 @@ STRING (*GetHelpObjective)() = NULL;
 STRING (*GetHelpTieOccursWhen)() = NULL;
 STRING (*gMoveToStringFunPtr)(MOVE) = NULL;
 STRING (*gGetVarStringPtr)() = NULL;
-signed char (*gPutWinBy)(POSITION) = NULL;
+WINBY  (*gPutWinBy)(POSITION) = NULL;
 
 POSITION (*gActualNumberOfPositionsOptFunPtr)(int variant) = NULL;
 

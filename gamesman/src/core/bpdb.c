@@ -99,6 +99,7 @@ SCHEME      bpdb_headerScheme = NULL;
 //
 
 UINT32 BPDB_VALUESLOT = 0;
+UINT32 BPDB_WINBYSLOT = 0;
 UINT32 BPDB_MEXSLOT = 0;
 UINT32 BPDB_REMSLOT = 0;
 UINT32 BPDB_VISITEDSLOT = 0;
@@ -216,6 +217,13 @@ bpdb_init(
             BPDB_TRACE("bpdb_init()", "Could not add mex slot", status);
             goto _bailout;
         }
+
+	// add winby slot
+        status = bpdb_add_slot(5, "WINBY", TRUE, TRUE, FALSE, &BPDB_WINBYSLOT );            //slot 2
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_init()", "Could not add winby slot", status);
+            goto _bailout;
+        }
     
         // add remoteness slot
         status = bpdb_add_slot( 8, "REMOTENESS", TRUE, TRUE, TRUE, &BPDB_REMSLOT );     //slot 4
@@ -255,6 +263,8 @@ bpdb_init(
     new_db->unmark_visited = bpdb_unmark_visited;
     new_db->get_mex = bpdb_get_mex;
     new_db->put_mex = bpdb_set_mex;
+    new_db->get_winby = bpdb_get_winby;
+    new_db->put_winby = bpdb_set_winby;
     new_db->save_database = bpdb_save_database;
     new_db->load_database = bpdb_load_database;
     new_db->allocate = bpdb_allocate;
@@ -568,6 +578,23 @@ bpdb_get_mex(
                 )
 {
     return (MEX) bpdb_get_slice_slot( (UINT64)pos, BPDB_MEXSLOT );
+}
+
+void
+bpdb_set_winby(
+                POSITION pos,
+		WINBY winBy
+                )
+{
+    bpdb_set_slice_slot( (UINT64)pos, BPDB_WINBYSLOT, (UINT64)winBy );
+}
+
+WINBY
+bpdb_get_winby(
+                POSITION pos
+                )
+{
+    return (WINBY) bpdb_get_slice_slot( (UINT64)pos, BPDB_WINBYSLOT );
 }
 
 /*++
@@ -1278,6 +1305,7 @@ bpdb_add_slot(
     // for backwards compatibility
     if(strcmp(name, "VALUE") == 0) BPDB_VALUESLOT = *slotindex;
     else if(strcmp(name, "MEX") == 0) BPDB_MEXSLOT = *slotindex;
+    else if(strcmp(name, "WINBY") == 0) BPDB_WINBYSLOT = *slotindex;
     else if(strcmp(name, "REMOTENESS") == 0) BPDB_REMSLOT = *slotindex;
     else if(strcmp(name, "VISITED") == 0) BPDB_VISITEDSLOT = *slotindex;
 

@@ -15,6 +15,7 @@ typedef int ClientData;
 #endif
 
 typedef	signed char		MEX;     /* The max mex value is 31 */
+typedef int                     WINBY;   /* WinBy can be positive or negative */
 typedef unsigned long int	MEXCALC; /* ...since we use a long int here */
 
 typedef unsigned long long 	POSITION;      /* This used to be determined by mTempTypedef.h */

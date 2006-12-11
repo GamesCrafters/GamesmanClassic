@@ -69,6 +69,9 @@ typedef struct DB {
     MEX		    (*get_mex)		(POSITION pos);
     void	    (*put_mex)		(POSITION pos, MEX mex);
 
+    WINBY       (*get_winby)            (POSITION pos);
+    void        (*put_winby)            (POSITION pos, WINBY winBy);
+
     BOOLEAN	    (*save_database)	();
     BOOLEAN	    (*load_database)	();
 
@@ -150,8 +153,8 @@ void		MexStore		(POSITION pos, MEX mex);
 MEX		MexLoad			(POSITION pos);
 
 /* WinBy */
-void            WinByStore              (POSITION pos, signed char winBy);
-int             WinByLoad               (POSITION pos);
+void            WinByStore              (POSITION pos, WINBY winBy);
+WINBY           WinByLoad               (POSITION pos);
 
 /* Persistence */
 BOOLEAN		SaveDatabase		();

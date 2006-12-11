@@ -120,7 +120,16 @@ bpdb_set_mex(
                 POSITION pos,
                 MEX mex);
 
+// get/set winby
+WINBY
+bpdb_get_winby(
+                POSITION pos
+                );
 
+void
+bpdb_set_winby(
+                POSITION pos,
+                WINBY winBy);
 
 //
 // functions for internal use

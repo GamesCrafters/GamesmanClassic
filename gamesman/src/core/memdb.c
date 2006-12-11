@@ -136,6 +136,7 @@ void memdb_init(DB_Table *new_db)
                 new_db->mark_visited = memdb_mark_visited;
                 new_db->unmark_visited = memdb_unmark_visited;
                 new_db->put_mex = memdb_set_mex;
+		new_db->put_winby = memdb_set_mex;
                 new_db->free_db = memdb_free;
         }
 
@@ -143,6 +144,7 @@ void memdb_init(DB_Table *new_db)
         new_db->get_remoteness = memdb_get_remoteness;
         new_db->check_visited = memdb_check_visited;
         new_db->get_mex = memdb_get_mex;
+	new_db->get_winby = (WINBY) memdb_get_mex;
         new_db->save_database = memdb_save_database;
         new_db->load_database = memdb_load_database;
 }

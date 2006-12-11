@@ -135,7 +135,7 @@ void PrintBoard(char[]);
 
 POSITION SetupInitialPosition();
 
-signed char computeWinBy(POSITION);
+WINBY computeWinBy(POSITION);
 int AddRemovePieces(char[], int, char);
 void UserSelectRows();
 void UserSelectCols();
@@ -628,7 +628,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
 	int whoseturn = generic_hash_turn(position);
-	int winBy = WinByLoad(position);
+	WINBY winBy = WinByLoad(position);
 	/*int strlenname = strlen(playerName);*/
 	char turnString1[80], turnString2[80], prediction[80], winByStr[80];
 
@@ -1551,7 +1551,7 @@ POSITION ActualNumberOfPositions(int variant) {
   return -1;
 }
 
-signed char computeWinBy(POSITION position) {
+WINBY computeWinBy(POSITION position) {
   int i;
   signed char whitetally = 0, blacktally = 0;
   char *board = getBoard(position);  
