@@ -359,6 +359,8 @@ proc animate { c piece text origin destination } {
 
 
     global basespeed gAnimationSpeed
+    
+    $c raise board
 
     set x0 [lindex $origin 0]
     set x1 [lindex $destination 0]
@@ -481,7 +483,10 @@ proc drawmove { c move value moveType position } {
 	set arrowwidth [expr 1.5 * $rmove]
 	set arrowshape [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
 	
-    set a [$c create line $linX $linY $linX $endY -fill cyan -width $arrowwidth -arrow last -arrowshape $arrowshape]
+    set a [$c create line $linX $linY $linX $endY -fill darkgray -width $arrowwidth -arrow last -arrowshape $arrowshape]
+    
+    ##Make lines show up above arrows
+    $c raise board
     
 	##if the mouse interacts with oval
     $c bind $m <Enter> "$c itemconfigure $m -fill black"
@@ -667,12 +672,12 @@ proc DrawBoard { c } {
     # Create grid of size boardwidth vs. boardheight
     for { set i 1 } { $i <= $boardwidth } { incr i } {
 		set x [expr $i * $size / [max $boardwidth $boardheight]]
-		$c create line $x 0 $x [expr $size - $piecespace] -width $linewidth
+		$c create line $x 0 $x [expr $size - $piecespace] -width $linewidth -tag board
     }
     for { set j 0 } { $j <= $boardheight } {incr j } {
 		set x [expr $j * ($size - $piecespace - $movespace) / [max $boardwidth $boardheight] + $movespace]
-		$c create line 0 $x $size $x -width $linewidth
-    }
+		$c create line 0 $x $size $x -width $linewidth -tag board
+    } 
 	
 }
 
