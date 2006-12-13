@@ -1,8 +1,0 @@
-[Rules]
-Rules:
-
-The game is initially set up with seventeen geese counters placed on the squares marked G and one fox counter placed on the square marked F. The first player is the geese and the second player is the fox. Players take turns moving a goose or fox to an adjacent spot. Geese are allowed to move one square left, right or down, while the fox can move either left, right, up, or down. The fox may also capture a goose on his turn by jumping over the goose that is in his immediate path.
-
-To move: The geese may either move left, right or down, while the fox can move left, right, up or down. The fox captures by jumping over a goose into the vacant spot next to it.
-
-To win: For the geese, the object is to surround the fox so that he is unable to move. For the fox to win, he must either capture all the geese or advance to the bottom of the board.
