@@ -44,7 +44,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.10 2006-12-14 05:35:51 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.11 2006-12-14 06:23:55 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -618,8 +618,9 @@ VALUE Primitive (POSITION position)
       break;
     }
   }
-
-  if (GenerateMoves == NULL)
+  
+  MOVELIST* moves = GenerateMoves(position);
+  if (moves == NULL)
     result = tie;
   else if (allBlackConnected && !allWhiteConnected)
     {
@@ -645,6 +646,7 @@ VALUE Primitive (POSITION position)
   else
     result = undecided;
 
+  SafeFree(moves);
   return result;
 }
 
@@ -1417,6 +1419,10 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.10  2006/12/14 05:35:51  alb_shau
+ ** Made PrintPosition pretty
+ ** changed variants to be 1 based
+ **
  ** Revision 1.9  2006/12/04 22:02:00  alb_shau
  ** last version was not done correctly. Moves became wrong.  Updated the way
  ** user input is translated into a move to incorporate the board height
