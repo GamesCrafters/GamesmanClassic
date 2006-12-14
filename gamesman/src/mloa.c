@@ -38,10 +38,13 @@
 **              2006.11.28 Added game specific menu, allowing you to resize 
 **                         the board.  Added help strings and misere to 
 **                         Primitive.
+**              2006.12.13 Changed PrintPosition to also display info on 
+**                         whose turn it is and what piece that player is using.
+**                         Also changed to 1-based game variants.
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.9 2006-12-04 22:02:00 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.10 2006-12-14 05:35:51 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -667,9 +670,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   int i;
   int j;
   generic_hash_unhash(position, gBoard);
+  int playerTurn = generic_hash_turn(position);
   //boardUnhash(position, gBoard);
 
-  printf("\n     ");
+
+  printf("\n\n     ");
   for (i = 0; i < gBoardLength; i++) {
     printf("+---");
   }
@@ -693,6 +698,14 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf(" %c  ", 'a'+i);
   }
   printf("\n\n");
+
+  // This part stolen from Asalto.
+  printf("   It is %s's turn\n", playersName);
+  if (playerTurn == 1)
+    printf("   %s is playing X\n", playersName);
+  else
+    printf("   %s is playing o\n\n", playersName);
+
   printf("%s\n\n", GetPrediction(position,playersName,usersTurn));
 
 }
@@ -968,7 +981,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 1;
+    return 2;
 }
 
 
@@ -990,9 +1003,9 @@ int getOption ()
        include the boolean variable gSymmetries in your
        hash */
   if (gStandardGame) 
-    return 0;
-  else
     return 1;
+  else
+    return 2;
 }
 
 
@@ -1012,6 +1025,10 @@ void setOption (int option)
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+  if (option == 1)
+    gStandardGame = TRUE;
+  else if (option == 2)
+    gStandardGame = FALSE;
 }
 
 
@@ -1400,6 +1417,10 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.9  2006/12/04 22:02:00  alb_shau
+ ** last version was not done correctly. Moves became wrong.  Updated the way
+ ** user input is translated into a move to incorporate the board height
+ **
  ** Revision 1.8  2006/12/04 19:26:41  alb_shau
  ** allowed resizing board to a rectangular board.  The "bug" about the computer
  ** going first was not a bug.  That is what Gamesman does to give people a chance
