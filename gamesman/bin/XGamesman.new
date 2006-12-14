@@ -1,17 +1,82 @@
 #!/usr/bin/env wish
 
+
+
 wm title . "GAMESMAN"
 set maxsize [wm maxsize .]
 set maxheight [expr int([expr 0.85 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
-global calBlue calYellow
-global textGameColor listFont
+global calBlue calYellow admin cliAdd cliBase cliDisp cliColor
+global textGameColor listFont 
+
 set calBlue #006
 set calYellow #FFCC33
 set textGameColor black
 set listFont "Helvetica 10"
+set admin false
+set cliAdd false
+
+proc dispHelp {} {
+	puts "XGamesman.new command line arguments"
+	puts "\t--help"
+	puts "\t\tDisplays this help string"
+	puts "\t--admin"
+	puts "\t\tEnables administrative mode"
+	puts "\t--add [display name] [base name]"
+	puts "\t\tAdds a new game to the databased with [display name]"
+	puts "\t\tappearing in the gui and [base name] as the path"
+	puts "\t\tto the game"
+	puts "\t\ti.e. --add Hex hex"
+	puts "\t\tAdds hex to gamesman with display name Hex and base"
+	puts "\t\tname hex (mhex)
+}
+
+proc setAdmin {} {
+	global admin
+	puts "Administrative mode enabled"
+	set admin true
+}
+
+if {$argc > 0} {
+	global cliAdd cliBase cliDisp
+	global tAdd
+	set tAdd false
+	set invalid ""
+	set count 0
+	foreach arg $argv {
+		if {!$tAdd} {
+			switch -- $arg {
+				--add {
+					set cliAdd true
+					set tAdd true
+				}
+				--admin {
+					setAdmin
+				}
+				--help {
+					dispHelp
+				}
+				default {
+					set invalid "$invalid$arg "
+				}
+			}
+		} elseif {$count == 0} {
+			set cliDisp $arg
+			set count [expr $count + 1]
+		} else {
+			set cliBase $arg
+			set count 0
+			set tAdd false
+		}
+	}
+		
+	if {$invalid != ""} {
+		puts "Invalid arguments $invalid"
+		dispHelp
+	}
+}
 
 bind . <Key> {
 	global currentId theNumberOfPrograms thePrograms
@@ -52,7 +117,7 @@ bind . <Key> {
 }
 
 bind . <Control-Key> {
-	global currentId theNumberOfPrograms thePrograms
+	global currentId theNumberOfPrograms thePrograms admin
 	set list .leftSide.list
 	set home .rightSide.home
 
@@ -60,8 +125,10 @@ bind . <Control-Key> {
 		selectGame -1
 	} elseif {[string compare %K "q"] == 0 || [string compare %K "Q"] == 0} {
 		exit
-	} elseif {[string compare %K "n"] == 0 || [string compare %K "N"] == 0} {
-		selectGame -2
+	} elseif {$admin} {
+		if {[string compare %K "n"] == 0 || [string compare %K "N"] == 0} {
+			selectGame -2
+		}
 	}
 }
 
@@ -203,9 +270,10 @@ proc gameName {id} {
 	return [lindex $thePrograms $id]
 }
 proc pageName {id} {
+	global admin
 	if {$id == -1} {
 		return main
-	} elseif {$id == -2} {
+	} elseif {$admin && $id == -2} {
 		return newGame
 	}
 	return [gameName $id]
@@ -245,6 +313,11 @@ proc guiImage { id scale } {
 	global theBitmapDir thePrograms
 	set theGif "$theBitmapDir/[lindex $thePrograms $id]100.gif"
 	catch { image delete guiImage$id }
+
+	if {![file exists $theGif]} {
+		set theGif [file join $theBitmapDir default100.gif]
+	}
+	
 	image create photo guiImage$id -file $theGif
 	set imageName guiImage$id
 	if {$scale > 1} {
@@ -267,6 +340,11 @@ proc textImage {id scale} {
 	global theBitmapDir thePrograms
 	set theGif "$theBitmapDir/[lindex $thePrograms $id]100text.gif"
 	catch { image delete textImage$id }
+
+	if {![file exists $theGif]} {
+		set theGif [file join $theBitmapDir default100text.gif]
+	}
+	
 	image create photo textImage$id -file $theGif
 	set imageName textImage$id
 	if {$scale > 1} {
@@ -398,63 +476,14 @@ proc parseCfg { in } {
 			}
 		}	
 	}
-	
-	bSort
-	close $fin
-}
-
-proc parseInfo { in } {
-	global Desc Rules secDelim
-	
-	if [catch {open "$in" {RDONLY}} fin] {
-		return
-	}
-
-	set file [file tail $in]
-	set file [file rootname $file]
-	set file [string range $file 1 [expr [string length $file] - 1]]
-	#puts $file
-	set rulesName "Rules"
-	set descName "Description"
-	set cfgType 0
-	set buffer ""
-	while {![eof $fin]} {
-		gets $fin line
-				
-		if {[regexp $secDelim $line -> title] > 0} {
-			if {$cfgType == $rulesName} {
-				set Rules($file) $buffer
-			} elseif {$cfgType == $descName} {
-				set Desc($file) $buffer
-			}
-			
-			set buffer ""
-			if {$title == $rulesName} {
-				set cfgType $rulesName
-			} elseif {$title == $descName} {
-				set cfgType $descName
-			}
-		} else {
-			set buffer $buffer$line\n
-		}
-	}
-	
-	if {$cfgType == $rulesName} {
-		set Rules($file) $buffer
-	} elseif {$cfgType == $descName} {
-		set Desc($file) $buffer
-	}
-	
 	close $fin
 }
 
 proc bSort { } {
 	global theStrings theGuiTypes invColors
 	set maxLen [llength $theStrings]
-	
 	for { set i 0 } { $i < $maxLen } { incr i } {
-		
-		for { set j [expr $i + 1] } { $j < $maxLen } { incr j } {
+		for { set j [expr $i + 1]} { $j < $maxLen } { incr j } {
 			set jColor $invColors([lindex $theGuiTypes $j])
 			set iColor $invColors([lindex $theGuiTypes $i])
 			if {$jColor < $iColor} {
@@ -533,25 +562,58 @@ proc setNewColor { color } {
 	set newColor $color
 }
 
-proc addToGameList { frame } {
-	global gamesFile invColors newColor
-	if [catch {open "$gamesFile" {WRONLY CREAT APPEND}} fin] {
-		return
+proc addToGameList { disp base color } {
+	global cliAdd
+	
+	if {!$cliAdd} {
+		set disp [string trimright $disp \n]
+		set base [string trimright $base \n]
+		set msg "Are you sure you want to add?\n\n"
+		set temp "game:\t$disp\n"
+		set msg "$msg$temp"
+		set temp "base:\t$base\n"
+		set msg $msg$temp
+		set temp "color:\t$color\n"
+		set msg $msg$temp
+		set answer [tk_messageBox -message $msg -type yesno -icon question]
 	}
 	
-	set c $invColors($newColor)
-	set temp [$frame.newGame.nameText get 1.0 end]
-	set temp [string trimright $temp \n]
-	set buffer \n\[$temp]\n
-	set temp color=
-	set buffer $buffer$temp$c\n
-	set temp basename=
-	set temp $temp[$frame.newGame.baseText get 1.0 end]
-	set temp [string trimright $temp \n]
-	set buffer $buffer$temp
-	
-	puts $fin $buffer
-	close $fin
+	if {$cliAdd || $answer == "yes"} {
+		global gamesFile invColors thePrograms theStrings theGuiTypes \
+				theNumberOfPrograms
+		
+		if [catch {open "$gamesFile" {WRONLY CREAT APPEND}} fin] {
+			return
+		}
+		
+		lappend thePrograms $base
+		lappend theStrings $disp
+		lappend theGuiTypes $color
+		
+		set c $invColors($color)
+		set buffer \n\[$disp]\n
+		set temp color=
+		set buffer $buffer$temp$c\n
+		set temp basename=
+		set buffer $buffer$temp$base
+		
+		puts $fin $buffer
+		close $fin
+		
+		bSort
+		set cliAdd false
+		set theNumberOfPrograms [expr $theNumberOfPrograms + 1]
+	}
+}
+
+proc guiAddGame { frame } {
+	global newColor
+	addToGameList [$frame.newGame.nameText get 1.0 end] \
+					[$frame.newGame.baseText get 1.0 end] $newColor
+}
+
+proc cliAddGame { disp base color } {
+	addToGameList $disp $base $color
 }
 
 ###END HELPER FUNCTIONS###
@@ -559,7 +621,8 @@ proc main {} {
 	global theBitmapDir thePrograms theStrings theGuiTypes \
 	theNumberOfPrograms currentGame currentId \
 	calBlue calYellow scrollDirection listLocation maxGameString \
-	gamesFile secDelim colors invColors newColor
+	gamesFile secDelim colors invColors newColor cliAdd cliBase cliDisp \
+	textGameColor
 
 	set newColor black
 	set secDelim {\[(.+?)]}
@@ -569,8 +632,14 @@ proc main {} {
 	set theStrings {}
 	set theGuiTypes {}
 	parseCfg $gamesFile
-	
 	set theNumberOfPrograms [llength $thePrograms]
+	
+	if {$cliAdd} {
+		cliAddGame $cliDisp $cliBase $textGameColor
+	} else {
+		bSort
+	}
+	
 	set currentGame main
 	set currentId -1
 	set maxGameString 0
@@ -633,14 +702,11 @@ proc main {} {
 }
 
 proc CreateMenuItems menu {
-	global listLocation currentId currentGame colors
+	global listLocation currentId currentGame colors admin
 
 	set m $menu.file
 	menu $m -tearoff 0 -borderwidth 0 -activeborderwidth 1
 	$menu add cascade -label "File" -menu $m -underline 0
-	$m add command -label "Add a new game" -underline 0 \
-		-command "selectGame -2" \
-		-accelerator <ctrl-n>
 	$m add command -label "Home" \
 	-underline 0 \
 	-command "selectGame -1" \
@@ -692,14 +758,22 @@ proc CreateMenuItems menu {
 	-value  "bottom" \
 	-command "setListLocation bottom"
 	
-	
-	set m $menu.cfg
-	menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
-	$menu add cascade -label "Set game color" -menu $m -underline 0
-
-	foreach idx [array names colors] {
-		$m add command -label $colors($idx) -underline 0 \
-		-command "changeGameColor $colors($idx)"
+	if {$admin} {
+		set m $menu.cfg
+		menu $m -tearoff 0 -borderwidth 0  -activeborderwidth 1
+		$menu add cascade -label "Admin options" -menu $m -underline 0
+		$m add command -label "Add a new game" -underline 0 \
+		-command "selectGame -2" \
+		-accelerator <ctrl-n>
+		
+		set mList $menu.view.colors
+		menu $mList -tearoff 0 -borderwidth 0  -activeborderwidth 1
+		$m add cascade -label "Change game color" -menu $mList -underline 0
+		
+		foreach idx [array names colors] {
+			$mList add radio -label $colors($idx) \
+			-command "changeGameColor $colors($idx)"
+		}
 	}
 }
 
@@ -855,55 +929,71 @@ proc CreateGamePages { frame } {
 	##### game adding page #####
 	canvas $frame.newGame -background $bgcolor -highlightthickness 0
 	message $frame.newGame.title -text "Add a new game" \
-	-anchor center \
-	-background $bgcolor \
-	-foreground $fontcolor \
-	-width [expr $width - 20] \
-	-font "Helvetica 20 bold"
-	message $frame.newGame.desc -text "Fill in the fields and choose a color. \
-		Then click Add to add the game." \
-	-anchor nw \
-	-background $bgcolor \
-	-foreground $fontcolor \
-	-width [expr $width - 20]
-	
-	canvas $frame.newGame.buttons -background $bgcolor -highlightthickness 0
-	text $frame.newGame.nameText -width 80 -height 1 -wrap none
-	text $frame.newGame.baseText -width 80 -height 1 -wrap none
-	
+		-anchor center \
+		-background $bgcolor \
+		-foreground $fontcolor \
+		-width [expr $width - 20] \
+		-font "Helvetica 20 bold"
+
+	message $frame.newGame.desc -text "Choose a color and fill in the fields. \
+		Then click Add to add the game.\n\
+		A confirmation box will display information about the game. \
+		Make sure that this information is correct.\n\
+		i.e to add Hex as a text game\n\
+		1) Choose black as the color\n\
+		2) Type in the display name as Hex\n\
+		3) Type in the base name of the executable, hex in this case\n\
+		\t(Note that you do not need the m in front.)\n\
+		4) Click add, review the information and choose yes/no\n\
+		5) Restart gamesman to see the changes."\
+		-anchor nw \
+		-background $bgcolor \
+		-foreground $fontcolor \
+		-width [expr $width - 20]
+		
+	pack $frame.newGame.title -anchor n -pady [list 10 0]
+	pack $frame.newGame.desc -anchor n
+			
 	foreach idx [array names invColors] {
-		button $frame.newGame.buttons.button$idx \
+		button $frame.newGame.button$idx \
 			-text $idx \
-			-compound top \
 			-bg $idx \
-			-borderwidth 0 \
-			-command "setNewColor $idx"
-		pack $frame.newGame.buttons.button$idx -side left
+			-fg white \
+			-borderwidth $borderWidth \
+			-command "setNewColor $idx" \
+			-relief raised -overrelief flat
+		pack $frame.newGame.button$idx -anchor n -fill x
 	}
-	message $frame.newGame.dispName -text "Game name:"
-	message $frame.newGame.baseName -text "Base name:"
-	message $frame.newGame.colors -text "Click on a color to select it:"
+	
+	text $frame.newGame.nameText -width 80 -height 1 -wrap none
+	message $frame.newGame.name -text "\nDisplay name: " \
+		-background $bgcolor \
+		-foreground $fontcolor \
+		-width [expr $width - 20] \
+		-font "Helvetica 10"
+		
+	text $frame.newGame.baseText -width 80 -height 1 -wrap none		
+	message $frame.newGame.base -text "\nBase name: " \
+		-background $bgcolor \
+		-foreground $fontcolor \
+		-width [expr $width - 20] \
+		-font "Helvetica 10"
+	
+	pack $frame.newGame.name
+	pack $frame.newGame.nameText -fill x
+	pack $frame.newGame.base
+	pack $frame.newGame.baseText -fill x
 	
 	button $frame.newGame.add \
 		-text "Add" \
 		-bg "grey" \
 		-borderwidth $borderWidth \
-		-command "addToGameList $frame"
-	pack $frame.newGame.add -side top
-	
-	pack $frame.newGame.title -anchor n -pady [list 10 0]
-	pack $frame.newGame.desc -anchor n
-	pack $frame.newGame.dispName
-	pack $frame.newGame.nameText
-	pack $frame.newGame.baseName
-	pack $frame.newGame.baseText
-	pack $frame.newGame.colors
-	pack $frame.newGame.buttons
-
+		-command "guiAddGame $frame" \
+		-relief raised -overrelief flat
+		
+	pack $frame.newGame.add -anchor n
 	##### end game adding page #####
 	
-	set docPath "../doc/"
-
 	### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 		set gameName [gameName $i]
@@ -917,10 +1007,7 @@ proc CreateGamePages { frame } {
 	
 		pack $frame.$gameName.title -pady [list 5 0]
 		pack $frame.$gameName.buttons
-	
-		set fileName d$gameName.txt
-		parseInfo [file join $docPath $fileName]
-		
+			
 		if {[guiExists $i]} {
 			button $frame.$gameName.buttons.guiButton \
 			-image [guiImage $i 1] \
