@@ -18,10 +18,13 @@ else
 		if [ -f "../src/${module}.cc" ]
 		then
 			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.cc | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
+			debugflag=$(grep -h "BOOLEAN \+kDebugMenu \+= \+" ../src/${module}.cc | sed -e 's/BOOLEAN \+kDebugMenu \+= \+//' -e 's/;//' -e 's/TRUE/True/' -e 's/FALSE/False/')
+
 		else
+			debugflag=$(grep -h "BOOLEAN \+kDebugMenu \+= \+" ../src/${module}.c | sed -e 's/BOOLEAN \+kDebugMenu \+= \+//' -e 's/;//' -e 's/TRUE/True/' -e 's/FALSE/False/')
 			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.c | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
 		fi
-		echo $option^$cauthor >> analysis/allgamesinfo.txt
+		echo $option^$cauthor^$debugflag >> analysis/allgamesinfo.txt
 	done
 fi
 
@@ -72,7 +75,14 @@ else
 				status=$Bronze
 			fi
 			tclauthor=$(grep -h "AUTHOR" ${Xmodule} | sed -e 's/#\+ \+AUTHOR: \+//' -e 's/ \+- \+University of California at Berkeley//' -e 's/ /Ω/g')
-			echo ${Xmodule}^$status^$tclauthor >> analysis/allgamestatus.txt			
+			if [ "$Xmodule" == "Xmttt3" ]	# I hate Tic-Tac-Toe and it's bazillion  versions
+			then
+				cname=$(echo ${Xmodule} | tr -d X3)
+			else
+				cname=$(echo ${Xmodule} | tr -d X)
+			fi
+			name=$(./${cname} --printdefault | cut -d^ -f 1)
+			echo $name^$status^$tclauthor >> analysis/allgamestatus.txt			
 		fi
 	done
 	echo "Done generating GUI status"
