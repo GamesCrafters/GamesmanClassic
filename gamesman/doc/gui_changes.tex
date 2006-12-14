@@ -1,0 +1,62 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage[top=1in, bottom=1in, left=1in, right=1in]{geometry}
+\pagestyle{headings}
+\begin{document}
+\title{Gamescrafters Documentation\\
+GUI CHANGES}
+\author{David Chan}
+\date{}
+\maketitle
+
+\section*{Version History}
+2006.12.13 - Version 1.0 - First version created.
+
+\tableofcontents
+\newpage
+
+\section{Explanation of Changes}
+
+\subsection{Command Line arguments}
+\subsubsection{---help}
+Simply displays help string with explanation on how to use the command line arguments. Also displayed when an invalid argument is passed in
+
+\subsubsection{---admin}
+Enables administrative mode for the GUI. This allows adding of games and changing of game colors
+
+\subsubsection{---add}
+Command line interface for adding a game. By using this option, the changes to the game list are reflected immediatedly without having to start gamesman. Note that this method is limited to adding text games for now. Passing in invalid arguments still modify the games.txt file and cause errors on subsequent gamesman loads.
+
+\subsection{Administrative options}
+These options are on applicable when gamesman is started with the ---admin flag. They will not show up if administrative mode is not enabled. Changes made in admin mode will take effect when gamesman is restarted.
+\subsubsection{Changing color of a game}
+Allows you to change the current color of the game to any of the available colors
+\subsubsection{Adding a new game}
+This brings you to a page where you can add a new game to the GUI. Instructions are listed on the page. If for some reason you add the wrong information to and commit it to the file, you can fix this by manually editting games.txt found in the gamesman directory. Remove the offending entries and restart gamesman.
+
+\subsection{Core GUI changes}
+\subsubsection{Game loading}
+Game loading now occurs from a file, games.txt. This file contains the configuration that gamesman needs to create and populate the games lists/menu. An error in this file will most likely cause a tcl/tk error.
+\subsubsection{Game list}
+The games list is now always sorted. The sort is by color then by name. It is implemented using bubble sort, but can be improved later. Note that the game name strings are compared with \textless, and due to ASCII ordering, uppercase letters come before lowercase letters. This can be changed to a noncase sensitive comparison by converting all text strings to lowercase before comparing.
+
+\subsubsection{Configuration}
+Within games.txt are two additional non game sections. One is reserved for possible configuration options, i.e. changed default doc path or list position. Currently there is no functionality in the config section. The second section is the game color section. Games are sorted such that the more finished games have a lower numbered game color. To add new colors, additional lines just need to be placed in the color section. These games will then show up in the appropriate order in the game list, determined by their assigned number. 
+
+\subsubsection{Default images}
+Games are no longer dependedent on having a text/GUI image. If the required image is not found, the module falls back to default text and GUI images. The default text image is a black square and the default GUI image is tic-tac-toe.
+
+\section{To Do}
+\begin{itemize}
+\item Find a way to refresh game list without restarting gamesman
+\item Add in demand loading of game descriptions
+\item Add in more error checking
+\item Add functionality to look at current information for a game
+\item Add functionality to fix games.txt errors from within gamesman
+\item Add integrity checking for games.txt
+\item Make Add game page look better
+\item Add way to pass in command line arguments to text games
+
+\end{itemize}
+
+\end{document}
