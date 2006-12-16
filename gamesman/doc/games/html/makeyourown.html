@@ -1,0 +1,150 @@
+<html>
+<head>
+  <title>Make Your Own</title>
+
+<STYLE TYPE="text/css">
+<!--
+a:link, a:visited {color: yellow; text-decoration: underline;}
+a:hover, a:active {color: red; text-decoration: none;}
+pre, tt, li {color: #FFFFFF;}
+li.majorstep {font-size:16pt; font-weight:bold;}
+li.minorstep {font-size:12pt;}
+li {font-size:10pt; font-weight: normal}
+body {font-family: Verdana, Arial, Helvetica; color:#FFFFFF}
+-->
+</STYLE>
+<link rel="stylesheet" type="text/css" href="../../style.css">
+</head>
+
+<body bgcolor="000066">
+
+<h1>Creating Your Own Gamesman Module</h1>
+<ol>
+<li class="majorstep">Read About Gamesman
+	<ul>
+	<li class="minorstep">Explore this website a bit more.</li>
+	<li class="minorstep">Sign up for <a href="http://www.sf.net/">Sourceforge</a> and connect to us via CVS.</li>
+	<li class="minorstep">Learn how to use <a href="http://www.cvshome.org/">CVS</a> if you don't already know how to use 
+it</li>
+	</ul>
+</li>
+<li class="majorstep">Install Gamesman
+<ol>
+	<li>At your UNIX Compatible shell, run <br/><tt>% ./configure</tt></li>
+	<li>Next, run <br/><tt>% make</tt><br/> You're done!</li>
+</ol>
+</li>
+<li class="majorstep">Choose Your Game
+<ul>
+<li class="minorstep">Design What Game You Want To Code.</li>
+<li class="minorstep">Resources:
+    <ul>
+    <LI>Elwyn Berlekemp, John H. Conway, and Richard K. Guy. <I>Winning
+    Ways for Your Mathematical Plays, Volume 1,2</I>. Academic Press
+    Inc., 1982. (red and blue books)</li>
+    <LI>Franco Agostino and Nicola Alberto DeCarlo. <I>Intelligence
+    Games</I>. Simon and Schuster, 1985.</li>
+    <LI>Andrea Angiolino. <I>Super Sharp Pencil &amp; Paper Games</I>.
+    Sterling Publishing Co, Inc., 1995.</li>
+    <LI>John D. Beasley. <I>The Mathematics of Games</I>. Oxford
+    University Press, 1989.</li>
+    <LI>R. C. Bell. <I>Board and Table Games from Many Civilizations</I>.
+    Oxford University Press, 1979.</li>
+    <LI>R. C. Bell. <I>The Boardgame Book</I>. Exeter Books, 1983.</li>
+    <LI>Robbie Bell and MIchael Cornelius. <I>Board Games Round the
+    World: A Resourse Book for Mathematical Investigations</I>. Cambridge
+    University Press, 1988.</li>
+    <LI>Gyles Brandreth. <I>The World's Best Indoor Games</I>. Pantheon
+    Books, 1981.</li>
+    <LI>Matthew J. Costello. <I>The Greatest Games of All Time</I>.
+    John Wiley &amp; Sons, 1991.</li>
+    <LI>Jon Freeman. <I>The Playboy Winner's Guide to Board Games</I>.
+    Playboy Press, 1979.</li>
+    <LI>Frederic V. Grunfeld. <I>Games of the World : how to make
+    them, how to play them, how they came to be</I>. UNICEF, 1975.</li>
+    <LI>Karl-Heinz Koch. <I>Pencil &amp; Paper Games</I>. Sterling
+    Publishing Co., Inc., 1992.</li>
+    <LI>Pentagram. <I>Pentagames</I>. Simon and Schuster, Inc., 1990.</li>
+    <LI>David Pritchard. <I>Brain Games</I>. Penguin Books Ltd.,
+    1982.</li>
+    <LI>Eric Solomon. <I>Games with Pencil and Paper</I>. Dover,
+    1993.</li>
+	</ul>
+</li>
+</ul>
+</li>
+<li class="majorstep">Create Variants For Your Game
+<ul><li class="minorstep">Think of other rules for your game.</li></ul>
+</li>
+<li class="majorstep">Code Your Game</li>
+<ul><li class="minorstep">First, find a shortened version of your game name. Example: Tic-Tac-Toe - <tt>ttt</tt></li>
+<li class="minorstep">Take a look at modules already written for Gamesman to get a good idea on what you'll be 
+doing.</li>
+<li class="minorstep">Familiarize yourself with the Gamesman hashing facility in <tt>hash.c</tt> and <tt>hash.h</tt>. You 
+will be using these to generate <tt>POSITION</tt> data types.</li>
+<li class="minorstep">You must have these functions written at a minimum to run Gamesman on your game.
+<ol>
+	<li><tt>MOVELIST *GenerateMoves (POSITION position)</tt>
+		<ul>
+			<li>Returns a MOVELIST containing all the possible moves from the given position.</li>
+		</ul>
+	</li>
+	<li><tt>POSITION DoMove(POSITION position, MOVE move)</tt>
+		<ul><li>
+			Applies the move to the position and returns the new position.
+		</li></ul>
+	</li>
+	<li><tt>VALUE Primitive(POSITION position)</tt>
+		<ul><li>
+			Returns the value of the given position</li>
+		<li>A <tt>VALUE</tt> is one of <tt>win</tt>, <tt>lose</tt>, <tt>tie</tt>, or 
+<tt>undecided</tt>.
+		</li></ul>
+	</li>
+	<li><tt>void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)</tt>
+		<ul>
+			<li>Prints the board with all necessary information</li>
+		</ul>
+	</li>
+	<li><tt>void PrintComputersMove(MOVE computersMove, STRING computersName)</tt>
+		<ul><li>
+			Prints the computer's move nicely.
+		</li></ul>
+	</li>
+	<li><tt>void PrintMove(MOVE move)</tt>
+		<ul><li>
+			Prints the move in a human readable format.
+		</li></ul>
+	</li>
+	<li><tt>USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playersName)</tt>
+		<ul><li>
+			We actually wrote this one for you. You only need to change one line.
+		</li></ul>
+	</li>
+	<li><tt>MOVE ConvertTextInputToMove(STRING input)</tt>
+		<ul><li>
+			Converts a text move into your internally represented move.
+		</li></ul>
+	</li>
+
+
+
+</ol>
+</li></ul>
+<li class="majorstep">Design Your Graphics Interface
+<ul><li class="minorstep">Decide How You Will...<ul><li>Draw Your Pieces</li><li>Interact With Your 
+Pieces</li><li>Display All Of Your Moves At Once (Through value-moves)</li></ul</li></ul>
+
+</li>
+<li class="majorstep">Code Your Graphics Interface
+<ul>
+	<li class="minorstep">Learn Tcl/Tk. We use Tcl/Tk to run the Gamesman graphics interface.</li>
+	<li class="minorstep">Code Your Tcl file in the <tt>$GAMESMANROOT/tcl</tt> directory. Take a look at preexisting 
+files for ideas.</li>
+</ul>
+</li>
+</ol>
+<br/>
+You're done!
+</body>
+</html>

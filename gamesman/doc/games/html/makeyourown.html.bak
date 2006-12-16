@@ -1,0 +1,616 @@
+<html>
+  <title>Make Your Own</title>
+
+<STYLE TYPE="text/css">
+<!--
+
+
+a:link, a:visited {color: yellow; text-decoration: underline;}
+
+a:hover, a:active {color: red; text-decoration: none;}
+
+pre, tt, li {color: #FFFFFF;}
+-->
+</STYLE>
+
+</head>
+
+<body bgcolor="000066">
+
+
+<H1><CENTER><TABLE WIDTH="75%" BORDER="0" CELLSPACING="0" CELLPADDING="10">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#000000">
+
+      <H2><CENTER><FONT COLOR="#ffffff">How to create your own game
+      module in 10 easy steps</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H1>
+
+<H3><CENTER><A NAME="p0"></A><TABLE BORDER="0" CELLSPACING="0"
+CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999" >
+      <H2><CENTER><FONT COLOR="#ffffff">&nbsp;0 - Read about and install
+      Gamesman</FONT></CENTER></H2>
+
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal:</B> Read about and install Gamesman on their computer
+  <LI><B>Resources</B>:
+  <OL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman
+    WWW page</A>
+
+  </OL>
+  <LI><B>Bring with you to the meeting</B>
+  <UL>
+    <LI>Any questions you have about Gamesman or the install
+  </UL>
+  <LI><B>At the meeting we learned</B>
+  <UL>
+    <LI>Basics of game theory
+    <LI>Many different games from which to choose for the final project
+  </UL>
+
+</UL>
+
+<H3><CENTER><A NAME="p1"></A><TABLE BORDER="0" CELLSPACING="0"
+CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">1 - Choose your game &amp;
+      think of different rules</FONT></CENTER></H2>
+    </TD>
+  </TR>
+
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To choose your game and think of different rules
+  that would be possible for it
+  <LI><B>Resources (Game Theory Bible -- the ultimate reference!)</B>
+  <UL>
+    <LI>Elwyn Berlekemp, John H. Conway, and Richard K. Guy. <I>Winning
+    Ways for Your Mathematical Plays, Volume 1,2</I>. Academic Press
+    Inc., 1982. (red and blue books)
+  </UL>
+  <LI><B>Resources (Game Theory Books)</B>
+
+  <OL>
+    <LI>Franco Agostino and Nicola Alberto DeCarlo. <I>Intelligence
+    Games</I>. Simon and Schuster, 1985.
+    <LI>Andrea Angiolino. <I>Super Sharp Pencil &amp; Paper Games</I>.
+    Sterling Publishing Co, Inc., 1995.
+    <LI>John D. Beasley. <I>The Mathematics of Games</I>. Oxford
+    University Press, 1989.
+    <LI>R. C. Bell. <I>Board and Table Games from Many Civilizations</I>.
+    Oxford University Press, 1979.
+    <LI>R. C. Bell. <I>The Boardgame Book</I>. Exeter Books, 1983.
+    <LI>Robbie Bell and MIchael Cornelius. <I>Board Games Round the
+    World: A Resourse Book for Mathematical Investigations</I>. Cambridge
+    University Press, 1988.
+    <LI>Gyles Brandreth. <I>The World's Best Indoor Games</I>. Pantheon
+    Books, 1981.
+    <LI>Matthew J. Costello. <I>The Greatest Games of All Time</I>.
+    John Wiley &amp; Sons, 1991.
+    <LI>Jon Freeman. <I>The Playboy Winner's Guide to Board Games</I>.
+    Playboy Press, 1979.
+    <LI>Frederic V. Grunfeld. <I>Games of the World : how to make
+    them, how to play them, how they came to be</I>. UNICEF, 1975.
+    <LI>Karl-Heinz Koch. <I>Pencil &amp; Paper Games</I>. Sterling
+    Publishing Co., Inc., 1992.
+    <LI>Pentagram. <I>Pentagames</I>. Simon and Schuster, Inc., 1990.
+    <LI>David Pritchard. <I>Brain Games</I>. Penguin Books Ltd.,
+    1982.
+    <LI>Eric Solomon. <I>Games with Pencil and Paper</I>. Dover,
+    1993.
+  </OL>
+
+  <LI><B>At the meeting:</B> we learned about TicTacToe
+  <UL>
+    <LI>Two-way hash function for positions
+    <UL>
+      <LI>Position is represented as an integer
+      <LI>Each of the 9 slots is one of three values, Blank (0), O(1)
+      or X(2)
+      <LI>Thus, the position is considered a 9-digit ternary number,
+      from 0 to 3<sup>9</sup>-1
+    </UL>
+    <LI>Two-way hash function for moves
+    <UL>
+
+      <LI>Move is represented as an integer
+      <LI>A number from 0 to 8 for the particular move depending on
+      the slot chosen
+    </UL>
+    <LI>How <TT>Position = DoMove(Position, Move)</TT> is implemented
+    <UL>
+      <LI><TT>return(Position + WhoseTurn(Position) * 3<sup>Move</sup>)</TT>
+      <LI><TT>WhoseTurn(Position)</TT> returns 1 if it's O's turn and
+      2 if it's X's turn
+      <LI>This works because the position must have a blank in the
+      <TT>Move</TT> slot, we're just adding that particular digit to
+      the Position number
+    </UL>
+
+  </UL>
+</UL>
+
+<H3><CENTER><A NAME="p2"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">2 - Create hash function for
+      your game</FONT></CENTER></H2>
+    </TD>
+  </TR>
+
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To come up with the hash functions for positions
+  and moves for your game
+  <LI><B>Resources</B>:
+  <UL>
+    <LI>Dan's scheme and C libraries (coming soon)
+  </UL>
+  <LI><B>At the meeting we...</B>
+  <UL>
+
+    <LI>Analyzed the hash functions for several games
+    <OL>
+      <LI>Alex and Mike's <I>L-Game</I>
+      <LI>Farzad and Erwin's <I>Chung Toi</I>
+      <LI>Isaac and Dave's <I>Joust</I>
+    </OL>
+
+    <LI>Discussed the four types of optimized hash functions (chapter
+    6 of <A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/GAMESMAN.pdf">Dan's
+    Gamesman thesis</A>)
+    <UL>
+      <LI>Given <TT>C(n,k)</TT> is combination of <TT>n</TT> choose
+      <TT>k</TT> items
+      <LI>Given <TT>Sum(from,to,expression)</TT> is a summation of
+      <TT>expression</TT> with variables bound in <TT>from</TT> to
+      <TT>to</TT>.
+      <LI>Given <TT>Pi(from,to,expression)</TT> is a product of <TT>expression</TT>
+
+      with variables bound in <TT>from</TT> to <TT>to</TT>.
+    </UL>
+    <OL>
+      <LI>Rearranger
+      <UL>
+        <LI>Game in which <TT>O</TT> pieces are rearranged in <TT>slots</TT>
+
+        slots.
+        <LI><TT>n = Rearranger(slots, O)</TT>
+        <LI><TT>= C(slots,O)</TT>
+      </UL>
+      <LI>RearrangerOX (also known as RearrangerPartisan)
+      <UL>
+        <LI>Game in which <TT>O</TT> O-pieces and <TT>X</TT> X-pieces
+        are rearranged in <TT>slots</TT> slots.
+        <LI><TT>n = RearrangerOX(slots, O, X)</TT>
+
+        <LI><TT>= C(slots,O+X) * C(O+X,O)</TT>
+      </UL>
+      <LI>Dartboard
+      <UL>
+        <LI>Game in which players take turns putting pieces (up to a
+        maximum of MaxPieces) on the slots but don't move them.
+        <LI><TT>n = Dartboard(slots, MaxPieces)</TT>
+        <LI><TT>= Sum(i=0,i=MaxPieces,C(slots,i))</TT>
+        <LI><TT>= 2^slots </TT>(when <TT>MaxPieces = slots</TT>)
+      </UL>
+
+      <LI>DartboardOX (also known as DartboardPartisan)
+      <UL>
+        <LI>Game in which players take turns putting their own X or O
+        pieces (up to a maximum of MaxPieces) on the slots but don't
+        move them.
+        <LI><TT>n = DartboardOX(slots, MaxPieces)</TT>
+        <LI><TT>= Sum(i=0,i=MaxPieces,C(slots,i)*C(i,i/2))</TT>
+      </UL>
+    </OL>
+    <LI>Discussed how to encode &amp; decode a number with digits
+    of different bases to represent different independent components
+    of our game
+    <UL>
+
+      <LI>General idea
+      <UL>
+        <LI>What if you had bottles which could contain different integer
+        amounts of liquid, and you wanted to count all the possible ways
+        the bottles could be semi-filled with integer amounts of water?
+        <LI>Example: you have three bottles which can hold 2, 4 and 3
+        units of liquid. The first can hold 0 or 1 unit (remember, it
+        has to be semi-filled, being filled isn't allowed), the second
+        can hold 0, 1, 2 or 3 units, and the last can hold 0, 1 or 2
+        units.
+        <LI>Since they are all independent variables, the number of ways
+        they can be filled is 2 * 4 * 3 = 24 ways.
+        <LI>We'll number them from 0 to 23:
+      </UL>
+    </UL>
+  </UL>
+</UL>
+
+<PRE><CENTER><B><TT><FONT SIZE="-1">2 4 3 :  N</FONT></TT></B>
+
+<TT><FONT SIZE="-1">0 0 0 :  0</FONT></TT>
+<TT><FONT SIZE="-1">0 0 1 :  1</FONT></TT>
+<TT><FONT SIZE="-1">0 0 2 :  2</FONT></TT>
+<TT><FONT SIZE="-1">0 1 0 :  3</FONT></TT>
+<TT><FONT SIZE="-1">0 1 1 :  4</FONT></TT>
+<TT><FONT SIZE="-1">0 1 2 :  5</FONT></TT>
+<TT><FONT SIZE="-1">0 2 0 :  6</FONT></TT>
+<TT><FONT SIZE="-1">0 2 1 :  7</FONT></TT>
+<TT><FONT SIZE="-1">0 2 2 :  8</FONT></TT>
+
+<TT><FONT SIZE="-1">0 3 0 :  9</FONT></TT>
+<TT><FONT SIZE="-1">0 3 1 : 10</FONT></TT>
+<TT><FONT SIZE="-1">0 3 2 : 11</FONT></TT>
+<TT><FONT SIZE="-1">1 0 0 : 12</FONT></TT>
+<TT><FONT SIZE="-1">1 0 1 : 13</FONT></TT>
+<TT><FONT SIZE="-1">1 0 2 : 14</FONT></TT>
+<TT><FONT SIZE="-1">1 1 0 : 15</FONT></TT>
+<TT><FONT SIZE="-1">1 1 1 : 16</FONT></TT>
+<TT><FONT SIZE="-1">1 1 2 : 17</FONT></TT>
+
+<TT><FONT SIZE="-1">1 2 0 : 18</FONT></TT>
+<TT><FONT SIZE="-1">1 2 1 : 19</FONT></TT>
+<TT><FONT SIZE="-1">1 2 2 : 20</FONT></TT>
+<TT><FONT SIZE="-1">1 3 0 : 21</FONT></TT>
+<TT><FONT SIZE="-1">1 3 1 : 22</FONT></TT>
+<TT><FONT SIZE="-1">1 3 2 : 23</FONT></TT></CENTER></PRE>
+
+<UL>
+  <UL>
+    <UL>
+
+      <UL>
+        <LI>We can think of representing a particular filling as a set
+        of rational numbers - the numerator represents what is currently
+        in each bottle and the denominator represents what the bottle
+        can hold.
+        <LI>So, for example, if they are all as full as possible, they'd
+        contain: <TT>(1/2, 3/4, 2/3)</TT> units
+        <LI>We want to be able to go from the particular fillings to
+        a number (hash) and from a particular number to the fillings
+        (unhash)
+      </UL>
+      <LI>If the current digits, or <B>n</B>umerators are <TT>n<sub>0</sub>,
+      n<sub>1</sub>, ... n<sub>k</sub></TT>
+
+      <LI>...and the bases, or <B>d</B>enomenators are are <TT>d<sub>0</sub>,
+      d<sub>1</sub>, ... d<sub>k</sub></TT>
+      <LI>The <I>hash function</I> is
+      <UL>
+
+        <LI><TT>N = n<sub>0</sub> + d<sub>0</sub>n<sub>1</sub> + d<sub>0</sub>d<sub>1</sub>n<sub>2</sub>
+        + ... + d<sub>0</sub>d<sub>1</sub>*...*d<sub>k-1</sub>n<sub>k</sub></TT>
+
+        <LI><TT>N = Sum(i=0,i=k,Pi(j=0,j=i-1,d<sub>j</sub>)n<sub>i</sub>)</TT>
+        <LI><I>Example</I> hash function:
+        <UL>
+          <LI>Given (2,4,3) bases and values (1,3,2) [also represented
+          as (1/2,3/4,2/3)]- last one above, what is N?
+          <LI><TT>N = 2 + 3*3 + 1*4*3 = 23</TT>
+        </UL>
+
+      </UL>
+      <LI>The <I>unhash function</I> is
+      <UL>
+        <LI><TT>n<sub>0</sub> = N % d<sub>0</sub></TT>
+        <LI><TT>n<sub>1</sub> = (N / d<sub>0</sub>) % d<sub>1</sub></TT>
+
+        <LI><TT>n<sub>2</sub> = (N / d<sub>0</sub>d<sub>1</sub>) % d<sub>2</sub></TT>
+        <LI><TT>...</TT>
+        <LI><TT>n<sub>k</sub> = (N / Pi(i=0,k-1,d<sub>i</sub>) % d<sub>k</sub></TT>
+
+        <LI><I>Example</I> hash function:
+        <UL>
+          <LI>Bases are 2,4,3, N = 23, whare are <TT>n<sub>0</sub>, n<sub>1</sub>,
+          n<sub>2</sub></TT>?
+          <LI><TT>n<sub>0</sub> = 23 % 3 = 2</TT>
+
+          <LI><TT>n<sub>1</sub> = (23 / 3) % 4 = 3</TT>
+          <LI><TT>n<sub>2</sub> = (23 % 3 * 4) % 2 = 1</TT>
+          <LI>Thus the digits are (1,3,2), the last one in the table above!
+        </UL>
+      </UL>
+
+    </UL>
+  </UL>
+</UL>
+
+<H3><CENTER><A NAME="p3"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">3 - Start coding your text-based
+      game (in C)</FONT></CENTER></H2>
+    </TD>
+
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To start coding your text-based game (ignore
+  the graphics component for now)
+  <UL>
+    <LI>You should start coding your hash functions and the main
+    interface subroutines (here are the primary ones):
+    <UL>
+      <LI><B><TT>InitializeDatabases</TT></B><TT>()</TT>
+      <LI><TT>POSITION <B>DoMove</B>(thePosition, theMove)</TT>
+
+      <LI><B><TT>GetInitialPosition</TT></B><TT>(initialPosition)</TT>
+      <LI><B><TT>PrintComputersMove</TT></B><TT>(computersMove,computersName)</TT>
+      <LI><TT>VALUE <B>Primitive</B>(position)</TT>
+      <LI><B><TT>PrintPosition</TT></B><TT>(position,playerName,usersTurn)</TT>
+
+      <LI><TT>MOVELIST *<B>GenerateMoves</B>(position)</TT>
+      <LI><B><TT>PrintMove</TT></B><TT>(theMove)</TT>
+    </UL>
+    <LI>Roughly, here is how you should proceed
+    <OL>
+      <LI>Find a shortened name (&lt; 6 letters) for your game
+      <UL>
+
+        <LI>Example: <TT>ttt</TT> for Tic-Tac-Toe, <TT>chung</TT> for
+        Chung Toi, etc.
+      </UL>
+      <LI>Look at which of the 4 games already implemented most closely
+      approximates your own
+      <UL>
+        <LI>For most of you, this will be Tic-Tac-Toe
+      </UL>
+      <LI>Copy these files (<TT>ttt.c</TT> and <TT>ttt.h</TT> if you're
+      basing it on Tic-Tac-Toe)
+      <LI>Edit the <TT>Makefile</TT> to include your game (make an
+      entry for your game -- take the example from <TT>ttt</TT>)
+      <LI>Ignore delete all the code dealing with symmetry!
+      <LI>If your game is loopy, make sure you set <TT>BOOLEAN kLoopy
+      = TRUE;</TT>
+
+      <LI>Edit the rest of the C code to implement your game
+    </OL>
+    <LI>Read Chapter 5 of <A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/GAMESMAN.pdf">Dan's
+    Gamesman thesis</A>
+    <LI>Bring any questions you have about your implementation to
+    the meeting
+  </UL>
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+
+    source code examples: <TT>m1210.c</TT>, <TT>mdodgem.c</TT>, <TT>mttt.c</TT>,
+    <TT>mtactix.c</TT>
+    <LI>Chapter 5 of <A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/GAMESMAN.pdf">Dan's
+    Gamesman thesis</A>
+    <LI>Dan's scheme and C libraries (coming soon)
+  </UL>
+
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll address your implementation questions
+    <LI>We talked about the four big pieces of this project:
+    <UL>
+      <LI>Coding the text-based version
+      <LI>Coding the graphical version
+      <LI>Performing analysis of your game
+      <LI>Documenting everything -- code, www pages, analysis.
+    </UL>
+    <LI>We talked about how each game is going to represent moves
+    and positions in a text-based manner. Example for Tic-Tac-Toe:
+    <UL>
+
+      <LI>Moves = number from 1 to 9
+      <LI>Position as shown below (<TT>-</TT> = blank)
+    </UL>
+  </UL>
+</UL>
+
+<PRE>         ( 1 2 3 )           : X X O
+LEGEND:  ( 4 5 6 )  TOTAL:   : - O -
+         ( 7 8 9 )           : - O X (Dan should Tie in 3)</PRE>
+
+<H3><CENTER><A NAME="p4"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">4 - Finish coding your text-based
+      game (in C)</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>:
+  <UL>
+
+    <LI>To finish the implementation of your text-based game in C
+  </UL>
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+    source code: <TT>m1210.c</TT>, <TT>mdodgem.c</TT>, <TT>mttt.c</TT>,
+    <TT>mtactix.c</TT>
+
+  </UL>
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll demo all your programs!
+  </UL>
+</UL>
+
+<H3><CENTER><A NAME="p5"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+
+      <H2><CENTER><FONT COLOR="#ffffff">5 - Design your graphics interface</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To begin coding your game's graphic interface.
+  Think of how you'll...
+  <UL>
+    <LI>draw your pieces
+    <LI>interact with your pieces
+    <LI>display all of the moves at once (through value-moves)
+  </UL>
+
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+    graphic interface examples
+  </UL>
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll analyze your designs
+    <LI>We'll teach you how the Tcl/Tk code works
+  </UL>
+
+</UL>
+
+<H3><CENTER><A NAME="p6"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">6 - Start coding your graphics
+      game (in Tcl/Tk)</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To start coding your graphics game in Tcl/Tk
+  <UL>
+    <LI>Install <A HREF="http://www.scriptics.com/">Tcl/Tk</A> on
+    your Unix system if it isn't there already
+    <LI>Start from the basics: Tcl interactions first, then draw
+    the pieces
+  </UL>
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.scriptics.com/">Tcl/Tk</A> site to install
+    it to your system
+    <LI>Then, view a demo of all the widgets as follows (pay particular
+    attention to the <I>canvas</I> widget!)
+  </UL>
+
+</UL>
+
+<BLOCKQUOTE>
+  <PRE>unix% cd /usr/sww/lib/demos
+unix% wish -f widget</PRE>
+</BLOCKQUOTE>
+
+<UL>
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+    Tcl/Tk source code
+    <UL>
+
+      <LI><TT>Xmttt</TT> - Tcl/Tk Tic-Tac-Toe module
+      <LI><TT>gamesman.tcl</TT> - Tcl/Tk library code
+    </UL>
+  </UL>
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll answer any questions you have
+  </UL>
+
+</UL>
+
+<H3><CENTER><A NAME="p7"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">7 - Continue coding your graphics
+      game (in Tcl/Tk)</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal</B>: To continue coding your graphics game in Tcl/Tk
+  <UL>
+    <LI>You should be finished by next week
+  </UL>
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+    Tcl/Tk source code
+  </UL>
+
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll answer any questions you have
+  </UL>
+</UL>
+
+<H3><CENTER><A NAME="p8"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+      <H2><CENTER><FONT COLOR="#ffffff">8 - Finish coding your graphics
+      game (in Tcl/Tk)</FONT></CENTER></H2>
+
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal: </B>To finish coding your project
+  <LI><B>Resources</B>:
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman</A>
+    Tcl/Tk source code
+  </UL>
+
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll look at &amp; play your games!!
+  </UL>
+</UL>
+
+<H3><CENTER><A NAME="p9"></A><BR>
+<TABLE BORDER="0" CELLSPACING="0" CELLPADDING="0" WIDTH="75%">
+  <TR>
+    <TD WIDTH="100%" BGCOLOR="#999999">
+
+      <H2><CENTER><FONT COLOR="#ffffff">9 - Merge, WWW documentation,
+      writeup, analysis</FONT></CENTER></H2>
+    </TD>
+  </TR>
+</TABLE></CENTER></H3>
+
+<UL>
+  <LI><B>Goal:</B> To merge your code with Gamesman, and finish
+  up your writeup
+  <UL>
+    <LI>Your writeup should be put on your WWW site in HTML format
+  </UL>
+
+  <LI><B>Resources:</B>
+  <UL>
+    <LI><A HREF="http://www.cs.berkeley.edu/~ddgarcia/software/gamesman/">Gamesman
+    WWW page</A>
+  </UL>
+  <LI><B>At the meeting...</B>
+  <UL>
+    <LI>We'll discuss your analysis and writeup
+  </UL>
+
+</UL>
