@@ -1,5 +1,5 @@
 #!/usr/bin/env wish
-
+source ../tcl/htmldoc.tcl 
 
 
 wm title . "GAMESMAN"
@@ -30,7 +30,7 @@ proc dispHelp {} {
 	puts "\t\tto the game"
 	puts "\t\ti.e. --add Hex hex"
 	puts "\t\tAdds hex to gamesman with display name Hex and base"
-	puts "\t\tname hex (mhex)
+	puts "\t\tname hex (mhex)"
 }
 
 proc setAdmin {} {
@@ -180,14 +180,37 @@ proc axisView {} {
 	return "xview"
 }
 proc setListLocation location {
-	global listLocation
+        global listLocation
 	set listLocation $location
+        gameScroll $listLocation
 	if {$listLocation == "top" || $listLocation == "bottom"} {
 	horizontalScroll $listLocation
 	} else {
 	verticalScroll $listLocation
 	}
 }
+
+proc gameScroll location {
+    global theNumberOfPrograms listLocation
+    set frame .rightSide.home
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+	set gameName [gameName $i]
+	if { ($gameName == "con" && [file exists "../doc/games/html/connections.html"]) || ($gameName != "con" && [file exists "../doc/games/html/$gameName.html"])} {
+	    pack forget .scrollbar$gameName
+	    pack forget .text$gameName
+	    if {$listLocation == "left" || $listLocation == "top" || $listLocation == "bottom"} {
+		pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
+		pack .scrollbar$gameName -in $frame.$gameName -side right -expand 0 -fill y
+	    }
+	    if {$listLocation == "right"} {
+		pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
+		pack .text$gameName -in $frame.$gameName -side right -fill both -expand 1
+
+	    }
+	}
+    }
+}
+
 proc verticalScroll location {
 	global scrollDirection theNumberOfPrograms currentId
 	set scrollDirection vertical
@@ -994,7 +1017,12 @@ proc CreateGamePages { frame } {
 	pack $frame.newGame.add -anchor n
 	##### end game adding page #####
 	
-	### this loop creates default content for game specific pages
+    #Loading counter
+    canvas .tempc -height 50
+    pack .tempc -in .rightSide.home
+    .tempc create text 190 25 -text "Loading 1 out of $theNumberOfPrograms" -font "Arial 15" -tags loadingstatus 
+	
+    ### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 		set gameName [gameName $i]
 		set gameString [gameString $i]
@@ -1028,19 +1056,43 @@ proc CreateGamePages { frame } {
 			-borderwidth $borderWidth \
 			-command "runText $i"
 		pack $frame.$gameName.buttons.textButton -side left
-	
-		if { [info exists Desc($gameName)] } {
-			message $frame.$gameName.desc -text $Desc($gameName) -width [expr $width - 20]\
-			-foreground $fontcolor -background $bgcolor -anchor nw
-			pack $frame.$gameName.desc
+	    
+	    #Loading counter
+	    set sofar [expr $i + 1]
+	    .tempc itemconfig loadingstatus -text "Loading $sofar out of $theNumberOfPrograms"
+	    
+	    #Special case for connections because con is a reserved file name
+	    if { $gameName == "con"} {
+		if { [file exists "../doc/games/html/connections.html"]} {
+		    
+		    scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
+		    option add *Text.height 40 startup
+		    option add *Text.width 80 startup
+		    text .text$gameName  -yscrollcommand ".scrollbar$gameName set" -padx 3 -pady 3 -takefocus 0
+		    
+		    pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
+		    pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
+		    
+		    convert_html_tcl "../doc/games/html/connections.html" $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
+
+
 		}
-	
-		if { [info exists Rules($gameName)] } {
-			message $frame.$gameName.rules -text $Rules($gameName) -width [expr $width - 20]\
-			-foreground $fontcolor -background $bgcolor -anchor nw
-			pack $frame.$gameName.rules -anchor n -expand 1
-		}
-	}	
+	    } elseif { [file exists "../doc/games/html/$gameName.html"] } {
+		    
+		    scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
+		    option add *Text.height 40 startup
+		    option add *Text.width 80 startup
+		    text .text$gameName  -yscrollcommand ".scrollbar$gameName set" -padx 3 -pady 3 -takefocus 0
+		    
+		    pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
+		    pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
+		    
+		    convert_html_tcl "../doc/games/html/$gameName.html" $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
+		    
+	   	
+	}
+}
+    destroy .tempc	
 }
 
 ### Call the main procedure.
