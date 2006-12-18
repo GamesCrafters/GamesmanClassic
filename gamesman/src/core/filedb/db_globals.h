@@ -35,14 +35,14 @@
 #define TRUE 1
 #define FALSE 0
 
-//this is really arbitrary
-//BADBADBAD
-#define PAGE_SIZE 4096
-// 512K bytes per page, minus 8 bytes for 64-bit page_id and 1 byte for valid
-// this is the max, there might be wasted space
-// the default in filedb has 1024 of these do you should be prepared to give up 256M
-#define MEM_ARRAY_SIZE 524279
+// 512 bytes per page, minus 8 bytes for page_id and 1 byte for valid bit
+// the number of usable bytes inside is the maximum multiple of the record size,
+// so there might be wasted space.
+// the default constructor allocates 1024 of these do you should be prepared to give up 256M
+#define MEM_ARRAY_SIZE 503
 //#define MEM_ARRAY_SIZE 256
+
+#define MAX_CHANCES 15 //this is in accord to the length of elements in buffer->chances
 
 #define DEBUG 0
 

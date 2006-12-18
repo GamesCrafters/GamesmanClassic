@@ -29,6 +29,7 @@
 **
 **************************************************************************/
 
+#include <stdio.h>
 #include "db_types.h"
 #include "db_bman.h"
 #include "db_basichash.h"
@@ -37,44 +38,82 @@
 
 /* buffer replacement stratagy and replacement tools.
  * ask the buffer manager for a specific buffer to be brought into memory.
- * the buffer manager finds it, and returns the buffer_id of the corresponding
- * buffer.
+ * the buffer manager finds it, and returns the pageid of the corresponding
+ * page.
  */
 
-/* r_fn is the replacement stratagy function.
- */
-
-
-gamesdb_bman* bman_init(db_buf_head* bufp){
-     // frame_id (*r_fn) (db_bman*, void*)){
+gamesdb_bman* gamesdb_bman_init(){
+  // frame_id (*r_fn) (db_bman*, void*)){
   gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
-  new->bufp = bufp;
+  //new->bufp = bufp;
   //new->replace_fun = r_fn;
   // should initialize r_fn too... which will return an internal data pointer
   // which we then pass into r_fn on subsequent calls.
   // Nah... just make it deal with the first time it has been called and allow
   // it to setup its own internal state.
   new->hash = gamesdb_basichash_create(1024,10);
+  new->clock_hand = 0;
   return new;
 }
 
 
-/*Find's page_id and returns the location. Brings it in if the buffer is not
- *in memory.
+/*Find's page_id and returns the location. -1 if not found.
  */
-gamesdb_frameid bman_find(gamesdb_bman* dat, gamesdb_pageid id){
-  gamesdb_frameid ret = gamesdb_basichash_get(dat->hash,id);
-  if(ret == -1){
-    // bring into buffers.
-    //ret = dat->replace_fun(dat,null); //null is going to be used for db_tell()
-    ret = 0;
-    gamesdb_buf_flush(dat->bufp,ret);
-    gamesdb_buf_read(dat->bufp,ret,id);
-  }
-  return ret;
+gamesdb_frameid gamesdb_bman_find(gamesdb* db, gamesdb_pageid id){
+  return gamesdb_basichash_get(db->buf_man->hash,id);
 }
 
-void bman_destroy(gamesdb_bman* bman){
+/* this will be called to find space on physical memory for a page
+ * either a new unused one, or one to be brought in from disk
+ */
+gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
+	//find free space, if found make hash changes, return
+	int i;
+	gamesdb_bufferpage* startpage = db->buffers->buffers;
+	
+	for (i = 0; i < db->num_page; i++) {
+		if (startpage->valid == FALSE) {
+			gamesdb_basichash_put(db->buf_man->hash, vpn, i);
+			return i;
+		}
+		startpage ++;
+	}
+	//otherwise, pick one from n-chance, make hash changes, and return
+	if (DEBUG) {
+		printf("db_bufman: No more free pages in page table. Evicting one page using n-chance.\n");
+	}
+	
+	gamesdb_buffer* bufp = db->buffers;
+	startpage = bufp->buffers;
+	gamesdb_frameid ret = db->buf_man->clock_hand;
+	
+	while(TRUE) {
+		if (startpage->valid == TRUE && startpage->chances < MAX_CHANCES) {
+			startpage->chances++;
+		} else {
+			break;
+		}
+		if (ret < (db->num_page-1)) {
+			ret ++;
+			startpage++;
+		} else {
+			ret = 0;
+			startpage = bufp->buffers;
+		}
+	}
+	gamesdb_basichash_remove(db->buf_man->hash, (db->buffers->buffers+ret)->tag);
+	gamesdb_basichash_put(db->buf_man->hash, vpn, ret);
+	
+	db->buf_man->clock_hand = (ret + 1) % db->num_page;
+	
+	if (DEBUG) {
+		printf("db_bufman: evicted page %llu\n", ret);
+	}
+	
+	return ret;
+}
+
+void gamesdb_bman_destroy(gamesdb_bman* bman){
   gamesdb_basichash_destroy(bman->hash);
   gamesdb_SafeFree(bman);
 }

@@ -9,10 +9,13 @@ typedef unsigned long long gamesdb_position;
 
 typedef unsigned long long gamesdb_offset;
 
+//physical
 typedef unsigned long long gamesdb_frameid;
+//virtual
 typedef unsigned long long gamesdb_pageid;
 
 typedef char gamesdb_boolean;
+typedef char gamesdb_counter;
 
 //backing store
 typedef struct dbfile_struct{
@@ -43,13 +46,15 @@ typedef struct {
   char mem[MEM_ARRAY_SIZE];
   gamesdb_pageid tag;
   gamesdb_boolean valid;
+  gamesdb_counter chances;
 }gamesdb_bufferpage;
 
 typedef struct {
-  gamesdb_store* filep;
+//  gamesdb_store* filep;
 
   gamesdb_bufferpage* buffers;
   gamesdb_boolean* dirty;
+//  gamesdb_counter* chances;
   int rec_size; //number of bytes in a record
   int buf_size; //number of records in a buffer
   int n_buf;
@@ -57,14 +62,15 @@ typedef struct {
 
 //buffer manager
 typedef struct {
-  gamesdb_buffer* bufp;
+  //gamesdb_buffer* bufp;
   //frame_id (*replace_fun) (db_bman*);
   gamesdb_bhash *hash;
+  gamesdb_frameid clock_hand;
 } gamesdb_bman;
 
 //the db object, so to speak
 typedef struct {
-//  db_bman* buf_man;
+  gamesdb_bman* buf_man;
   gamesdb_buffer* buffers;
   gamesdb_store* store;
   gamesdb_pageid num_page;

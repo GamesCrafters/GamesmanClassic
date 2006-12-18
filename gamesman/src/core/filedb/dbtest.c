@@ -35,7 +35,7 @@
 
 int main(int argc, char *argv[])
 {
-	gamesdb_position totalrecs = 84*200;
+	gamesdb_position totalrecs = 0x1ffff;
 	size_t recsize = sizeof(short);
 	size_t buffers = 100;
 	char dbname[] = "testdb\0";

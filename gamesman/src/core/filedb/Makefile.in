@@ -33,8 +33,7 @@ EXESUFFIX	= @EXESUFFIX@
 ##############################################################################
 ### Files
 
-DB_OBJ		=  db_store$(OBJSUFFIX) db_malloc$(OBJSUFFIX) db_buf$(OBJSUFFIX) db$(OBJSUFFIX)
-#db_bman$(OBJSUFFIX) db_basichash$(OBJSUFFIX)
+DB_OBJ		=  db_store$(OBJSUFFIX) db_malloc$(OBJSUFFIX) db_buf$(OBJSUFFIX) db$(OBJSUFFIX) db_bman$(OBJSUFFIX) db_basichash$(OBJSUFFIX)
 
 #INCLUDES=db_store.h db_malloc.h db.h db_buf.h db_global.h \
 #db_bman.h db_basichash.h db_types.h
