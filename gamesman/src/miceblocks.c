@@ -136,6 +136,7 @@ BOARD arraytoboard (POSITION);
 POSITION boardtoarray (BOARD);
 void ChangeBoardSize();
 void SetWinningCondition();
+WINBY computeWinBy (POSITION);
 
 STRING MoveToString(MOVE);
 /* Function declarations */
@@ -227,6 +228,7 @@ void InitializeGame () {
   }
 
   gMoveToStringFunPtr = &MoveToString;
+  gPutWinBy = &computeWinBy;
 }
 
 /************************************************************************
@@ -929,6 +931,80 @@ void SetWinningCondition () {
       cont = TRUE;
     }
   }
+}
+
+WINBY computeWinBy(POSITION pos) {
+    BOARD board = arraytoboard(pos);
+  int i, j, countX = 0, countO = 0, color, k, m, count;
+  int pointsX = 0, pointsO = 0, threesX = 0, threesO = 0;
+  int dlvisited[base][base], drvisited[base][base], hvisited[base][base];
+  for(i = 0; i < base; i++) {
+    for(j = 0; j < base; j++) {
+      dlvisited[i][j] = 0;
+      drvisited[i][j] = 0;
+      hvisited[i][j] = 0;
+    }
+  }
+  for(i = 0; i < base; i++) {
+    for(j = 0; j < (base - i); j++) {
+      color = board->spaces[i][j];
+      for(k = i, m = j, count = 0; k < base && m >= 0 &&
+	    ((WinningCondition == tallythrees) ? TRUE : !dlvisited[k][m]) &&
+	    board->spaces[k][m] == color; k++, m--) {
+	count++;
+	dlvisited[k][m] = 1;
+      }
+      if((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
+      if((count > 2) && (color == X)) {
+	pointsX += 3 + (count - 3) * 2;
+	threesX++;
+      }
+      else if((count > 2) && (color == O)) {
+	pointsO += 3 + (count - 3) * 2;
+	threesO++;
+      }
+      for (k = i, m = j, count = 0; k < base && m < (base - k) &&
+	     ((WinningCondition == tallythrees) ? TRUE : !drvisited[k][m]) &&
+	     board->spaces[k][m] == color; k++) {
+	count++;
+	drvisited[k][m] = 1;
+      }
+      if ((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
+      if((count > 2) && (color == X)) {
+	pointsX += 3 + (count - 3) * 2;
+	threesX++;
+      }
+      else if((count > 2) && (color == O)) {
+	pointsO += 3 + (count - 3) * 2;
+	threesO++;
+      }
+      for (k = i, m = j, count = 0; m < (base - k) &&
+	     ((WinningCondition == tallythrees) ? TRUE : !hvisited[k][m]) &&
+	     board->spaces[k][m] == color; m++) {
+	count++;
+	hvisited[k][m] = 1;
+      }
+      if((count > countX) && (color == X))
+	countX = count;
+      else if ((count > countO) && (color == O))
+	countO = count;
+      if((count > 2) && (color == X)) {
+	pointsX += 3 + (count - 3) * 2;
+	threesX++;
+      }
+      else if((count > 2) && (color == O)) {
+	pointsO += 3 + (count - 3) * 2;
+	threesO++;
+      }
+    }
+  }
+  return pointsX - pointsO;
 }
 
 /* end of file. */
