@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.45 2006-12-03 07:38:16 zwizeguy Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.46 2006-12-19 09:39:32 zwizeguy Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1302,14 +1302,23 @@ void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 }
 
 // Overloaded; this one takes in the Value of the move
-void PrintMovesWithDelta(MOVELIST* ptr, REMOTENESSLIST* remoteptr, VALUE val)
+void PrintMovesWithDelta(POSITION thePosition, MOVELIST* ptr, REMOTENESSLIST* remoteptr, VALUE val)
 {
         REMOTENESSLIST* rl_copy = CopyRemotenesslist(remoteptr);
 
         while (ptr != NULL) {
+	        int winBy;
+	        MOVE theMove = ptr->move;
                 printf("\n\t\t");
-                PrintMove(ptr->move);
+                PrintMove(theMove);
                 printf(" \t");
+		if (gWinBy) {
+		  POSITION child = DoMove(thePosition, theMove);
+		  winBy = (int) WinByLoad(child);
+		  int whoseTurn = generic_hash_turn(thePosition);		  
+		  printf("%d", ((whoseTurn == 1) ? winBy : -winBy));
+		  printf(" \t");
+		}
                 if ((remoteptr->remoteness) == REMOTENESS_MAX)
                         printf("Draw");
                 else
@@ -1332,13 +1341,13 @@ void PrintValueMoves(POSITION thePosition)
         ptr = GetValueMoves(thePosition);
 
         printf("\nHere are the values of all possible moves: \n");
-        printf("\t\tMove \tRemoteness \tDelta\n");
+        printf("\t\tMove %s\tRemoteness \tDelta\n", (gWinBy ? "\tWinBy " : ""));
         printf("Winning Moves: \t");
-        PrintMovesWithDelta(ptr->moveList[WINMOVE], ptr->remotenessList[WINMOVE], win);
+        PrintMovesWithDelta(thePosition, ptr->moveList[WINMOVE], ptr->remotenessList[WINMOVE], win);
         printf("Tieing Moves: \t");
-        PrintMovesWithDelta(ptr->moveList[TIEMOVE], ptr->remotenessList[TIEMOVE], tie);
+        PrintMovesWithDelta(thePosition, ptr->moveList[TIEMOVE], ptr->remotenessList[TIEMOVE], tie);
         printf("Losing Moves: \t");
-        PrintMovesWithDelta(ptr->moveList[LOSEMOVE], ptr->remotenessList[LOSEMOVE], lose);
+        PrintMovesWithDelta(thePosition, ptr->moveList[LOSEMOVE], ptr->remotenessList[LOSEMOVE], lose);
         printf("\n");
 
         FreeValueMoves(ptr);
@@ -1348,12 +1357,16 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
         static char prediction[80];
         char mexString[20];
+	char winByString[20] = "";
         VALUE value;
 
         if(gPrintPredictions && (gMenuMode == Evaluated)) {
                 MexFormat(position,mexString);
                 value = GetValueOfPosition(position);
-
+		if (gWinBy && value != tie) {
+		  int winBy = (int) WinByLoad(position);
+		  sprintf(winByString, " by %d", ((winBy < 0) ? -winBy : winBy));
+		}
                 if (value == tie && Remoteness(position) == REMOTENESS_MAX) {
                         (void) sprintf(prediction, "(%s %s draw) %s",
                                        playerName,
@@ -1370,12 +1383,13 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
                                         "will" : "should",
                                         gValueString[(int)value]);
                         } else {
-                                sprintf(prediction, "(%s %s %s in %d) %s",
+                                sprintf(prediction, "(%s %s %s%s in %d) %s",
                                         playerName,
                                         ((value == lose && usersTurn && gOpponent == AgainstComputer) ||
                                          (value == win && !usersTurn && gOpponent == AgainstComputer)) ?
                                         "will" : "should",
                                         gValueString[(int)value],
+					winByString,
                                         Remoteness(position),
                                         mexString);
                         }
@@ -1626,7 +1640,7 @@ MOVE GetComputersMove(POSITION thePosition)
                 }
 
                 if (moveType == WINMOVE) {
-		  if (gPutWinBy) {
+		  if (gWinBy) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {
@@ -1637,7 +1651,7 @@ MOVE GetComputersMove(POSITION thePosition)
                         // TIEMOVE: Tie as quickly as possible when smart???
 						theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else {
-		  if (gPutWinBy) {
+		  if (gWinBy) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {

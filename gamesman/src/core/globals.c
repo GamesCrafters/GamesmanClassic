@@ -52,6 +52,7 @@ VALUE   gValue = undecided;          /* The value of the game */
 BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
 BOOLEAN gHumanGoesFirst = TRUE;      /* TRUE iff the user goes first vs. computer */
 BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
+BOOLEAN gWinBy = FALSE;               /* TRUE iff the computer is playing with WinBy */
 BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
 BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
 

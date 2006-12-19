@@ -14,7 +14,7 @@ extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAllSchemes, gBitPerfectDBAdjust,
     gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
-	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen;
+	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy;
 
 extern char		gPlayerName[2][MAXNAME];
 
@@ -25,7 +25,6 @@ extern MENU		gMenuMode;
 
 extern REMOTENESS 	gMaxRemoteness, gMinRemoteness;
 
-extern WINBY            (*gGetWinBy)(POSITION);
 extern WINBY	        (*gPutWinBy)(POSITION);
 
 /*

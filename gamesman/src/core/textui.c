@@ -391,6 +391,9 @@ USERINPUT ConfigurationMenu()
 	  printf("\t\ti)\t(I)mperfectly (Plays randomly at times)\n");
 	  printf("\t\tr)\t(R)andomly always\n");
 	  printf("\t\tm)\t(M)isere-ly always (i.e., trying to lose!)\n\n");
+	  if (gPutWinBy) {
+	    printf("\t\tw)\tToggle from %s\n", (gWinBy ? "(W)inBy to Remoteness" : "Remoteness to (W)inBy"));
+	  }
 	  printf("\t\tg)\tChange the number of (G)ive-backs\n");
 	}
 
@@ -542,6 +545,14 @@ USERINPUT ConfigurationMenu()
 	    break;
 	case 'M': case 'm':
 	    smartness = DUMB;
+	    HitAnyKeyToContinue();
+	    break;
+        case 'W': case 'w':
+	    if (!gPutWinBy) {
+	      BadMenuChoice();
+	    } else {
+	      gWinBy = !gWinBy;
+	    }
 	    HitAnyKeyToContinue();
 	    break;
 	case 'G': case 'g':

@@ -67,6 +67,9 @@ void Initialize()
 		gHashWindowInitialized = FALSE;
 
 		gGetVarStringPtr = &get_var_string;
+	if (gPutWinBy) {
+	  gWinBy = TRUE;
+	}
         srand(time(NULL));
 
         /* set default solver */
@@ -382,13 +385,10 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();
 						return;
-                } else if(!strcasecmp(argv[i], "--printdefault")) {
-                		printf("%s^%s^%d\n", kGameName, kDBName, getOption());
-                		exit(0);
-		} else if(!strcasecmp(argv[i],"--startAndWait")) {
+				} else if(!strcasecmp(argv[i],"--startAndWait")) {
 						StartAndWait();
 						ExitStageRight();
-		} else {
+				} else {
                         fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
                         gMessage = TRUE;
                         i += argc;
