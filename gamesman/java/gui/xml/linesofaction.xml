@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<game name="Lines of Action" dbname="mloa" hashtype="generic">
+  <board type="grid" width="4" height="4" bgcolor="C8C8C8">
+    <decorations>
+      <grid color="000000" />
+    </decorations>
+  </board>
+  
+  <pieces>
+    <piece charID="X" shape="circle" color="ff0000" />
+    <piece charID="o" shape="circle" color="0000ff" />
+    <piece charID="space" shape="empty" color="000000" />
+  </pieces>
+
+  <movetypes>
+    <move type="slide" target="single" object="existing" />
+  </movetypes>
+</game>
