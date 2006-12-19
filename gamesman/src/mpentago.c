@@ -218,8 +218,10 @@ int BOARDSIZE;  /* ROWSIZE * ROWSIZE */
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 STRING                  MoveToString(MOVE move);
 
@@ -1833,6 +1835,9 @@ BOOLEAN canGoDown(int location) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.3  2006/12/07 02:14:35  davidcwu
+ ** C
+ **
  ** Revision 1.2  2006/10/28 09:24:37  davidcwu
  ** *** empty log message ***
  **

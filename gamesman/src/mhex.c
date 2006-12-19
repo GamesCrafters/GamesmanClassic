@@ -113,8 +113,10 @@ STRING   kHelpExample =
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 //int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
@@ -764,6 +766,12 @@ int MaskExpand(int mask, int row) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.5  2006/12/07 02:25:07  shahbawany
+ **
+ ** Working version - BOARDCOLS = 3
+ **
+ ** Can solve 3x3, can play player v. player 4x4
+ **
  ** Revision 1.4  2006/11/28 00:47:04  and-qso
  **
  **

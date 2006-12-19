@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.31 2006-10-17 10:45:20 max817 Exp $
+// $Id: mcambio.c,v 1.32 2006-12-19 20:00:50 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -216,8 +216,10 @@ char *gBoard;
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
@@ -1416,6 +1418,10 @@ BOOLEAN NInARow(char *board, char symbol, int size) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2006/10/17 10:45:20  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.30  2006/10/06 05:47:13  simontaotw
 //
 // Deleted unnecessary functions. 5x5 player vs. player does not work...

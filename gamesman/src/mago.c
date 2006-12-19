@@ -132,8 +132,10 @@ STRING TierToString(TIER tier);
 TIERLIST* TierChildren(TIER tier);
 TIERPOSITION NumberOfTierPositions(TIER tier);
 /* External */
+#ifndef MEMWATCH
 extern GENERIC_PTR SafeMalloc ();
 extern void	SafeFree ();
+#endif
 
 STRING MoveToString(MOVE move);
 

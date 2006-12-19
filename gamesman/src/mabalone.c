@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.43 2006-12-19 09:03:17 koolswim88 Exp $
+// $Id: mabalone.c,v 1.44 2006-12-19 20:00:50 arabani Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -217,8 +217,10 @@ void unhash(POSITION, int*);
 void FreeHelper(struct row**);
 
 // External
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 // Internal
 int destination (int, int);
@@ -2399,6 +2401,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.43  2006/12/19 09:03:17  koolswim88
+// *** empty log message ***
+//
 // Revision 1.42  2006/12/07 04:25:57  koolswim88
 // *** empty log message ***
 //

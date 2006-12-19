@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.62 2006-08-21 23:49:09 dmchan Exp $
+// $Id: mquarto.c,v 1.63 2006-12-19 20:00:51 arabani Exp $
 
 
 /*
@@ -341,8 +341,10 @@ POSITION *offsetTable;
  *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 void* 			gGameSpecificTclInit = NULL;  /* newly added to tempalte */
 
 /* External */
@@ -2775,6 +2777,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.62  2006/08/21 23:49:09  dmchan
+// commented out calls to fflush(stdin) and changed to GetMyInt() and GetMyChar() where appropriate
+//
 // Revision 1.61  2006/02/03 06:08:39  hevanm
 // fixed warnings. I will leave the real bugs to retro hehehehe.
 //

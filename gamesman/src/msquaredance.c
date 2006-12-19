@@ -258,8 +258,10 @@ X wins!\n" ;
 #ifndef SQUAREDANCEDEBUG
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 #endif
 

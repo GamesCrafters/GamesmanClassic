@@ -310,8 +310,10 @@ char gBoard[9];
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);

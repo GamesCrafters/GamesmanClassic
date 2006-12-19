@@ -58,7 +58,8 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    # set gInitialPosition 0
+    set gInitialPosition 241001
     set gPosition $gInitialPosition
 
     ### Set the size of the canvas (can be changed)

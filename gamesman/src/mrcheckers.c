@@ -79,8 +79,10 @@ STRING   kHelpExample =           /* TODO */
 **************************************************************************/
 
 // External Functions
+#ifndef MEMWATCH
 extern GENERIC_PTR      SafeMalloc();
 extern void             SafeFree();
+#endif
 extern POSITION         generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), int player);
 extern POSITION         generic_hash_hash(char* board, int player);
 extern char             *generic_hash_unhash(POSITION hash_number, char *empty_board);

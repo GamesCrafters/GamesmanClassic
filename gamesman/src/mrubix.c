@@ -163,8 +163,10 @@ Computer wins. Nice try, Dan Garcia.";
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 STRING MoveToString(MOVE);
 
 /*************************************************************************
@@ -303,7 +305,9 @@ static POSITION *hashBasePosition;
 
 void CombinationInit(int boardsize)
 {
+  #ifndef MEMWATCH
   GENERIC_PTR SafeMalloc();
+  #endif
   int i, j;
   if (CArray != NULL) {
     SafeFree((GENERIC_PTR) CArray);
@@ -328,8 +332,9 @@ void InitializeGame()
 {
   PrimitiveSequence* temp;
   int i, j;
+  #ifndef MEMWATCH
   GENERIC_PTR SafeMalloc();
-
+  #endif
   CombinationInit(BOARDSIZE);
 
   if (hashSizes != NULL) {

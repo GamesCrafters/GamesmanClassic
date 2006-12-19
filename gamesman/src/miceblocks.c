@@ -26,8 +26,10 @@
 #define NUM_OPTIONS     3
 
 /* External Globals */
+#ifndef MEMWATCH
 extern GENERIC_PTR SafeMalloc ();
 extern void SafeFree ();
+#endif
 //extern VALUE *gDatabase;
 extern STRING gValueString[];
 /* External Globals */

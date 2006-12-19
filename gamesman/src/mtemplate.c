@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: mtemplate.c,v 1.10 2006-04-25 01:33:06 ogren Exp $
+** LAST CHANGE: $Id: mtemplate.c,v 1.11 2006-12-19 20:00:51 arabani Exp $
 **
 **************************************************************************/
 
@@ -102,8 +102,10 @@ STRING   kHelpExample =
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 STRING                  MoveToString(MOVE move);
 
@@ -560,5 +562,8 @@ void DebugMenu ()
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.10  2006/04/25 01:33:06  ogren
+ ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
+ **
  ************************************************************************/
 

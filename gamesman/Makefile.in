@@ -29,6 +29,9 @@ clean:
 	cd src && $(MAKE) clean
 	rm -rf *~ test-*
 
+memdebug:
+	@$(MAKE) -w -C src memdebug
+
 dist:
 	cd src && $(MAKE) dist
 

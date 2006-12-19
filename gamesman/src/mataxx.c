@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.6 2006-12-07 02:52:50 max817 Exp $
+// $Id: mataxx.c,v 1.7 2006-12-19 20:00:50 arabani Exp $
 
 /************************************************************************
 **
@@ -133,8 +133,10 @@ STRING TierToString(TIER tier);
 TIERLIST* TierChildren(TIER tier);
 TIERPOSITION NumberOfTierPositions(TIER tier);
 /* External */
+#ifndef MEMWATCH
 extern GENERIC_PTR SafeMalloc ();
 extern void	SafeFree ();
+#endif
 
 STRING MoveToString(MOVE move);
 
@@ -929,6 +931,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.6  2006/12/07 02:52:50  max817
+// TUI Changes to Ataxx.
+//
 // Revision 1.5  2006/11/30 10:30:25  max817
 // Ataxx now correctly handles misere.
 //

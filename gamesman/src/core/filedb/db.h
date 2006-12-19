@@ -39,6 +39,7 @@
 #include "db_malloc.h"
 //#include "db_basichash.h"
 
+
 gamesdb*	gamesdb_create	(int rec_size, gamesdb_pageid max_pages, char* db_name);
 void		gamesdb_destroy	(gamesdb* data);
 void		gamesdb_get		(gamesdb* gdb, char* mem, gamesdb_position pos);

@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.14 2006-10-17 10:45:20 max817 Exp $
+// $Id: mfoxes.c,v 1.15 2006-12-19 20:00:50 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -153,8 +153,10 @@ static int order[MAXBOARDSIZE];
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
@@ -1003,6 +1005,10 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2006/10/17 10:45:20  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.13  2006/03/20 23:56:56  kmowery
 //
 // Added MoveToString and set gMoveToStringFunPtr, required for Visual Value History.

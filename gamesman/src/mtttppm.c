@@ -12,7 +12,7 @@
 ** UPDATE HIST:
 **
 **
-** Last Updated: $Id: mtttppm.c,v 1.5 2006-02-03 06:08:39 hevanm Exp $
+** Last Updated: $Id: mtttppm.c,v 1.6 2006-12-19 20:00:51 arabani Exp $
 **************************************************************************/
 
 /*************************************************************************
@@ -483,7 +483,9 @@ int depth;
 PIXELBUFFER *CreatePixelBuffer(x,y)
 int x,y;
 {
+  #ifndef MEMWATCH
   GENERIC_PTR SafeMalloc();
+  #endif
   PIXELBUFFER *pixbuf;
   int i,j;
 
@@ -555,6 +557,9 @@ int i,j;
 
 /* Changelog:
 $Log: not supported by cvs2svn $
+Revision 1.5  2006/02/03 06:08:39  hevanm
+fixed warnings. I will leave the real bugs to retro hehehehe.
+
 Revision 1.4  2005/05/04 22:54:15  ogren
 prototyped void functions properly.  Fixed a call to PrintPPMBufferAscii(fp,pixbuf) -Elmer
 

@@ -19,9 +19,13 @@ unsigned int	Stopwatch			();
 void		ExitStageRight			();
 void		ExitStageRightErrorString	(STRING msg);
 
+/* We only want to define these if not using MEMWATCH */
+#ifndef MEMWATCH
 GENERIC_PTR	SafeMalloc			(size_t amt);
 GENERIC_PTR	SafeRealloc			(GENERIC_PTR ptr, size_t amount);
 void		SafeFree			(GENERIC_PTR ptr);
+#endif
+
 void		BadElse				(STRING function);
 
 MOVELIST*	CreateMovelistNode		(MOVE move, MOVELIST* tail);

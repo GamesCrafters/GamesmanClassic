@@ -94,7 +94,7 @@
 **
 **************************************************************************/
 
-char EMPTYSPACE ='·';
+char EMPTYSPACE ='ï¿½';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
@@ -138,7 +138,7 @@ STRING   kHelpTieOccursWhen =
 "A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
 STRING   kHelpExample =
-"Legend:    1         Current:      ·\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ·-·-·\n          \\|/                     \\|/\n           5                       ·\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      ·\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ·-·-·\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
+"Legend:    1         Current:      ï¿½\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ï¿½-ï¿½-ï¿½\n          \\|/                     \\|/\n           5                       ï¿½\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      ï¿½\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  ï¿½-ï¿½-ï¿½\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
 
 
 /*************************************************************************
@@ -185,8 +185,10 @@ adjacency *adjacent;
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 void* gGameSpecificTclInit = NULL;
 

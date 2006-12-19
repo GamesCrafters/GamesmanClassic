@@ -250,8 +250,10 @@ void			computeTables (void);
 void			PrintPosition (POSITION, STRING, BOOLEAN);
 
 // External
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 STRING MoveToString(MOVE);
 

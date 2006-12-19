@@ -150,8 +150,10 @@ int neighbors(int x, int y);
 STRING MoveToString(MOVE);
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 /************************************************************************
 **

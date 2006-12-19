@@ -166,7 +166,7 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    set gInitialPosition 244
     set gPosition $gInitialPosition
 
     ### Set toWin and toMove

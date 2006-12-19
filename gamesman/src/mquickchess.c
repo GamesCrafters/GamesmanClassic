@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.50 2006-12-07 08:51:56 vert84 Exp $
+// $Id: mquickchess.c,v 1.51 2006-12-19 20:00:51 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -207,8 +207,10 @@ int Tier0Context;
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void setupPieces(char *Board);
 BOOLEAN inCheck(char *bA, int currentPlayer);
@@ -3512,6 +3514,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.50  2006/12/07 08:51:56  vert84
+// *** empty log message ***
+//
 // Revision 1.49  2006/12/07 08:24:52  vert84
 // *** empty log message ***
 //

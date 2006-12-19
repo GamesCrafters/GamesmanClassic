@@ -24,7 +24,8 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+    # set gInitialPosition 0
+    set gInitialPosition 59330
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules

@@ -128,8 +128,10 @@ int totalPieces = maxx+maxo; //Remove when tiering
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 /*function prototypes*/
 void InitializeGame ();
@@ -1724,6 +1726,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.2  2006/12/07 03:37:20  max817
+ ** Hash and NMM changes.
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **

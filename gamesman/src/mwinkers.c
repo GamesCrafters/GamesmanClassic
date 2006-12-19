@@ -85,104 +85,104 @@ STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 getting three-in-a-row.";
 
 STRING   kHelpExample =
-"            1   2   3     :  · · · \n\
- LEGEND:  4   5   6   7   : · · · · \n\
-            8   9  10     :  · · · \n\
+"            1   2   3     :  ï¿½ ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : ï¿½ ï¿½ ï¿½ ï¿½ \n\
+            8   9  10     :  ï¿½ ï¿½ ï¿½ \n\
 \n\
 Player pieces left (O: 5, R: 5)\n\
 \n\
 \n\
   Player's move [1-10] : \n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : · · · · \n\
-            8   9  10     :  · · · \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : ï¿½ ï¿½ ï¿½ ï¿½ \n\
+            8   9  10     :  ï¿½ ï¿½ ï¿½ \n\
 \n\
 Computer pieces left (O: 5, B: 5)\n\
 \n\
 \n\
 Computer's move : 10\n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : · · · · \n\
-            8   9  10     :  · · O \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : ï¿½ ï¿½ ï¿½ ï¿½ \n\
+            8   9  10     :  ï¿½ ï¿½ O \n\
 \n\
 Player pieces left (O: 4, R: 5)\n\
 \n\
 \n\
   Player's move [1-10] : \n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : O · · · \n\
-            8   9  10     :  · · O \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O ï¿½ ï¿½ ï¿½ \n\
+            8   9  10     :  ï¿½ ï¿½ O \n\
 \n\
 Computer pieces left (O: 4, B: 5)\n\
 \n\
 \n\
 Computer's move : 6\n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : O · O · \n\
-            8   9  10     :  · · O \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O ï¿½ O ï¿½ \n\
+            8   9  10     :  ï¿½ ï¿½ O \n\
 \n\
 Player pieces left (O: 3, R: 5)\n\
 \n\
 \n\
   Player's move [1-10] : \n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : O · O · \n\
-            8   9  10     :  O · O \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O ï¿½ O ï¿½ \n\
+            8   9  10     :  O ï¿½ O \n\
 \n\
 Computer pieces left (O: 3, B: 5)\n\
 \n\
 \n\
 Computer's move : 5\n\
-            1   2   3     :  O · · \n\
- LEGEND:  4   5   6   7   : O O O · \n\
-            8   9  10     :  O · O \n\
+            1   2   3     :  O ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O O O ï¿½ \n\
+            8   9  10     :  O ï¿½ O \n\
 \n\
 Player pieces left (O: 2, R: 5)\n\
 \n\
 \n\
   Player's move [1-10] : \n\
-            1   2   3     :  R · · \n\
- LEGEND:  4   5   6   7   : O O O · \n\
-            8   9  10     :  O · O \n\
+            1   2   3     :  R ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O O O ï¿½ \n\
+            8   9  10     :  O ï¿½ O \n\
 \n\
 Computer pieces left (O: 2, B: 5)\n\
 \n\
 \n\
 Computer's move : 6\n\
-            1   2   3     :  R · · \n\
- LEGEND:  4   5   6   7   : O O B · \n\
-            8   9  10     :  O · O \n\
+            1   2   3     :  R ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O O B ï¿½ \n\
+            8   9  10     :  O ï¿½ O \n\
 \n\
 Player pieces left (O: 2, R: 4)\n\
 \n\
 \n\
   Player's move [1-10] : \n\
-            1   2   3     :  R · · \n\
- LEGEND:  4   5   6   7   : O O B · \n\
+            1   2   3     :  R ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O O B ï¿½ \n\
             8   9  10     :  O O O \n\
 \n\
 Computer pieces left (O: 2, B: 4)\n\
 \n\
 \n\
 Computer's move : 5\n\
-            1   2   3     :  R · · \n\
- LEGEND:  4   5   6   7   : O B B · \n\
+            1   2   3     :  R ï¿½ ï¿½ \n\
+ LEGEND:  4   5   6   7   : O B B ï¿½ \n\
             8   9  10     :  O O O \n\
 \n\
 Player pieces left (O: 1, R: 4)\n\
 \n\
 \n\
   Player's move [1-10] : 2\n\
-            1   2   3     :  R O · \n\
- LEGEND:  4   5   6   7   : O B B · \n\
+            1   2   3     :  R O ï¿½ \n\
+ LEGEND:  4   5   6   7   : O B B ï¿½ \n\
             8   9  10     :  O O O \n\
 \n\
 Computer pieces left (O: 2, B: 3)\n\
 \n\
 \n\
 Computer's move : 4\n\
-            1   2   3     :  R O · \n\
- LEGEND:  4   5   6   7   : B B B · \n\
+            1   2   3     :  R O ï¿½ \n\
+ LEGEND:  4   5   6   7   : B B B ï¿½ \n\
             8   9  10     :  O O O \n\
 \n\
 Player pieces left (O: 0, R: 4)\n\
@@ -215,7 +215,7 @@ typedef enum possibleBoardPieces {
   Blank, O, R, B
 } BlankORB;
 
-char *gBlankORBString[] = { "·", "O", "R", "B" };
+char *gBlankORBString[] = { "ï¿½", "O", "R", "B" };
 
 char *gBoard;
 // char *LegendKey;
@@ -266,8 +266,10 @@ int RowWidth(int i);
 STRING MoveToString( MOVE );
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 /************************************************************************
@@ -302,14 +304,14 @@ void InitializeGame ()
   int piece_array[] = {'B', 0, half,
 		       'R' , 0, half,
 		       'O', 0, BOARDSIZE,
-		       '·', 0, BOARDSIZE,
+		       'ï¿½', 0, BOARDSIZE,
 		       -1};
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0, 0);
 
   if (DEFAULT == TRUE) {
     for (i=0; i<BOARDSIZE; i++)
-      gBoard[i] = '·';
+      gBoard[i] = 'ï¿½';
 
     gInitialPosition = generic_hash_hash(gBoard, 1);
   }
@@ -513,7 +515,7 @@ POSITION DoMove (thePosition, theMove)
   generic_hash_unhash(thePosition, gBoard);
 
   if (theMove != PASSMOVE) {
-    if (gBoard[theMove-1] == '·')
+    if (gBoard[theMove-1] == 'ï¿½')
       gBoard[theMove-1] = 'O';
     else if (player == 1)
       gBoard[theMove-1] = 'R';
@@ -578,7 +580,7 @@ POSITION GetInitialPosition()
     else if(c == 'b' || c == 'B')
       gBoard[i++] = 'B';
     else if(c == '-')
-      gBoard[i++] = '·';
+      gBoard[i++] = 'ï¿½';
     else
       ;   /* do nothing */
   }
@@ -644,35 +646,35 @@ VALUE Primitive (pos)
   for (i = 0; i < BOARDSIZE; i++) {
     if (CP[i] < RW[i] - 2) {
       current = ThreeInARow(gBoard, i, i+1, i+2);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     }
 
     if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != 0) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] >=2) {
       current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     }
 
     if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != RW[i]-1) {
       current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] < RW[i] -2) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
-      if (current != '·')
+      if (current != 'ï¿½')
 	return EndGame(current, generic_hash_turn(pos));
     }
   }
@@ -835,7 +837,7 @@ MOVELIST *GenerateMoves (position)
     /*    //Generate checker moves
     if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
       for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == '·')
+	if (gBoard[i] == 'ï¿½')
 	  head = CreateMovelistNode(moveHash(0, i , O), head);
 
     //Generate winker moves
@@ -848,7 +850,7 @@ MOVELIST *GenerateMoves (position)
     for (i = BOARDSIZE - 1; i >= 0; i--) {
       if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
 	head = CreateMovelistNode(i+1, head);
-      else if (gBoard[i] == '·' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+      else if (gBoard[i] == 'ï¿½' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
 	head = CreateMovelistNode(i+1, head);
     }
 
@@ -1186,10 +1188,10 @@ char ThreeInARow(theBlankORB, a, b, c)
 {
   if (theBlankORB[a] == theBlankORB[b] &&
       theBlankORB[b] == theBlankORB[c] &&
-      (theBlankORB[c] != '·' || theBlankORB[c] != 'O'))
+      (theBlankORB[c] != 'ï¿½' || theBlankORB[c] != 'O'))
     return theBlankORB[a];
   else
-    return '·';
+    return 'ï¿½';
 }
 
 BOOLEAN AllFilledIn(theBlankORB)
@@ -1198,7 +1200,7 @@ BOOLEAN AllFilledIn(theBlankORB)
   int i;
 
   for (i = 0; i < BOARDSIZE; i++) {
-    if (theBlankORB[i]=='·' || theBlankORB[i]=='O')
+    if (theBlankORB[i]=='ï¿½' || theBlankORB[i]=='O')
       return FALSE;
   }
   return TRUE;

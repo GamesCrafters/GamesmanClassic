@@ -44,6 +44,7 @@ MLIB_OBJ	= mlib$(OBJSUFFIX)
 TEXTUI_OBJ	= textui$(OBJSUFFIX)
 STRINGBUILDER_OBJ = StringBuilder$(OBJSUFFIX)
 VISUALIZATION_OBJ = visualization$(OBJSUFFIX)
+MEMWATCH_OBJ = memwatch$(OBJSUFFIX)
 
 DB_OBJ		= db$(OBJSUFFIX)
 MEMDB_OBJ	= memdb$(OBJSUFFIX)
@@ -100,7 +101,7 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 memdb.h bpdb.h bpdb_bitlib.h bpdb_schemes.h bpdb_misc.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solveretrograde.h solvevsstd.h solvevsloopy.h \
 	 textui.h setup.h httpclient.h netdb.h openPositions.h visualization.h filedb.h \
-	 filedb/db.h hashwindow.h tierdb.h
+	 filedb/db.h hashwindow.h tierdb.h memwatch.h
 
 
 
@@ -108,6 +109,9 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 ### Rules
 
 all: gamesman.a
+
+memdebug: CFLAGS += -DMEMWATCH
+memdebug: all
 clean:
 	@$(MAKE) -w -C filedb clean
 	rm -rf $(MODULES) *~ gamesman.a gamesdb.a

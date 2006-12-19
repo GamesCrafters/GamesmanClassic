@@ -311,8 +311,10 @@ static const int DEFAULT_PIECES_ARRAY[] =
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
 extern void			SafeFree ();
+#endif
 
 STRING				MoveToString(MOVE move);
 
@@ -1335,6 +1337,9 @@ delGoStone(GoStone which) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.3  2006/12/07 03:20:52  darch
+ ** ValidTestInput was broken; fixed by breaking to a more usefully broken state.
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **

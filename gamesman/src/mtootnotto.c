@@ -238,8 +238,10 @@ int INIT_O = 4;  //Cannot exceed 7
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 STRING MoveToString(MOVE);
 
 

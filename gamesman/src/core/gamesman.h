@@ -36,6 +36,9 @@
 #include "mlib.h"
 #include "main.h"
 
+/* For memory debugging */
+#include "memwatch.h"
+
 /* function prototypes implemented in the module code */
 
 void			InitializeGame			(void);

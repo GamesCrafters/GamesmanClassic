@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m9mm.c,v 1.81 2006-12-07 02:31:17 max817 Exp $
+** LAST CHANGE: $Id: m9mm.c,v 1.82 2006-12-19 20:00:50 arabani Exp $
 **
 **************************************************************************/
 
@@ -128,8 +128,10 @@ int totalPieces = maxx+maxo; //Remove when tiering
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 /*function prototypes*/
 void InitializeGame ();
@@ -1818,6 +1820,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.81  2006/12/07 02:31:17  max817
+ ** Commiting for Nine Men's Morris.
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **

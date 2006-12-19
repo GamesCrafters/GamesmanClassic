@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.8 2006-10-17 10:45:20 max817 Exp $
+// $Id: mdao.c,v 1.9 2006-12-19 20:00:50 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -146,8 +146,10 @@ int dir_increments[NUM_OF_DIRS][2] = {
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);

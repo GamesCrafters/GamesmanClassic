@@ -1,4 +1,4 @@
-// $Id: mparadux.c,v 1.23 2006-10-17 10:45:21 max817 Exp $
+// $Id: mparadux.c,v 1.24 2006-12-19 20:00:51 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -280,8 +280,10 @@ BOOLEAN cachesInited = FALSE;
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 /* Support Functions */
 
@@ -1860,6 +1862,10 @@ void runTests() {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2006/10/17 10:45:21  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.22  2006/01/03 00:19:35  hevanm
 // Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
 //

@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.28 2006-10-17 10:45:20 max817 Exp $
+// $Id: mbaghchal.c,v 1.29 2006-12-19 20:00:50 arabani Exp $
 
 /************************************************************************
 **
@@ -316,9 +316,10 @@ int s1GoatOffset, s1TigerOffset;
 //DEEPA BLUE
 
 /* External */
+#ifndef MEMWATCH
 extern GENERIC_PTR  SafeMalloc ();
 extern void     SafeFree ();
-
+#endif
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -1681,6 +1682,10 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2006/10/17 10:45:20  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.27  2006/10/11 06:59:02  max817
 // A quick modification of the Tier Gamesman games to include the new changes.
 //

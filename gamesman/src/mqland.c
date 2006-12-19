@@ -277,8 +277,10 @@ BOOLEAN moveStraight = TRUE;
 *************************************************************************/
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 int vcfg(int* this_cfg);
 int next_player(POSITION position);

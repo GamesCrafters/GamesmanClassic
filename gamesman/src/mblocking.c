@@ -321,8 +321,10 @@ int hashLookup(char* token, classes node_classes, nodes board);
 void	PrettyPrintDir (const char*, const char*);
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 
 /************************************************************************

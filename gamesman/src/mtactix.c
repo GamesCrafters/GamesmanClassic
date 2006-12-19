@@ -479,8 +479,9 @@ void PrintPosition(position,playerName,usersTurn)
      BOOLEAN  usersTurn;
 {
   BlankO *theBlankO;
+  #ifndef MEMWATCH
   GENERIC_PTR SafeMalloc();
-
+  #endif
   theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
   PositionToBlankO(position,theBlankO);
 
@@ -538,7 +539,9 @@ MOVELIST *GenerateMoves(position)
   BOOLEAN Contiguous2(), Contiguous3(), Contiguous4();
   BlankO *theBlankO;
   int i, index1, index2, index3;
+  #ifndef MEMWATCH
   GENERIC_PTR SafeMalloc();
+  #endif
 
   theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
   PositionToBlankO(position,theBlankO);

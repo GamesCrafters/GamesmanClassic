@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.11 2006-10-17 10:45:21 max817 Exp $
+// $Id: mtilechess.c,v 1.12 2006-12-19 20:00:51 arabani Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -237,8 +237,10 @@ void fillMove(MOVE move, char *moveStr);
 MOVE getMove(STRING input);
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 /************************************************************************
 **
@@ -2208,6 +2210,10 @@ contextList *getContextNodeFromOffset(int offset) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2006/10/17 10:45:21  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.10  2006/05/22 00:44:07  zwizeguy
 // Implemented GameSpecific Menu, can play any game with 5 pieces.
 //

@@ -160,8 +160,10 @@ char* getBlankBoard();
 
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 

@@ -199,7 +199,12 @@ void ExitStageRightErrorString(char errorMsg[])
         exit(1);
 }
 
-
+/* We define these only if not using Memwatch for memory debugging.
+ * Otherwise, we replace all calls to these functions with calls to
+ * Memwatch equivalents.
+ */
+ 
+#ifndef MEMWATCH
 GENERIC_PTR SafeMalloc(size_t amount)
 {
         GENERIC_PTR ptr;
@@ -237,6 +242,7 @@ void SafeFree(GENERIC_PTR ptr)
                 ptr = NULL;
         }
 }
+#endif
 
 void BadElse(STRING function)
 {
@@ -549,7 +555,7 @@ STRING get_var_string() {
 	char str[1024];
 
 	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan) Hashcode: %d",
-			(gStandardGame) ? "Standard" : "Misère", (gSymmetries) ? " " : "out ",
+			(gStandardGame) ? "Standard" : "Misï¿½re", (gSymmetries) ? " " : "out ",
 			(kLoopy) ? "(" : "(non-", (kPartizan) ? " " : " non-", getOption());
 	return str;
 }

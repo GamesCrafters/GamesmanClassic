@@ -44,7 +44,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.11 2006-12-14 06:23:55 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.12 2006-12-19 20:00:51 arabani Exp $
 **
 **************************************************************************/
 
@@ -241,8 +241,10 @@ void InitializeHelpStrings();
 
 
 /* External */
+#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree ();
+extern void		SafeFree (); 
+#endif
 
 STRING                  MoveToString(MOVE move);
 
@@ -1419,6 +1421,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.11  2006/12/14 06:23:55  alb_shau
+ ** fixed a memory leak
+ **
  ** Revision 1.10  2006/12/14 05:35:51  alb_shau
  ** Made PrintPosition pretty
  ** changed variants to be 1 based
