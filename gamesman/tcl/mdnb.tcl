@@ -349,6 +349,7 @@ proc LabelBox { c i j flag } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    set turn 0
     $c delete fill
     GS_DrawPosition $c $position
 }
@@ -461,7 +462,7 @@ proc AnimateMove { c move } {
 
     set dir 0
     set col [expr $move%$boardWidth]
-    set row [expr floor($move/$boardWidth)] 
+    set row [expr floor($move/$boardWidth)]
     if {$move >= [expr ($boardHeight+1)*$boardWidth]} {
 	set move [expr ($move-($boardHeight+1)*$boardWidth)]
 	set row [expr $move%$boardHeight]
@@ -469,11 +470,7 @@ proc AnimateMove { c move } {
 	set dir 1
     }
 
-    
-
     for {set i 0} {$i < $square} {set i [expr $i+$delta]} {
-	$c delete tmp
-
 	if { $dir == 0 } {
 	    $c create line [expr $margin+$col*($square)] [expr $margin+$row*($square)] [expr $margin+$col*($square)+$i] [expr $margin+$row*($square)] -width 4 -fill black -tag tmp
 	} else {
@@ -481,8 +478,8 @@ proc AnimateMove { c move } {
 	}
 	after 1
 	update idletasks
+	$c delete tmp
     }
-    $c delete tmp
 }
 
 
