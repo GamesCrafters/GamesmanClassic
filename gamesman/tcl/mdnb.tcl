@@ -335,7 +335,7 @@ proc LabelBox { c i j flag } {
     }
     
     # Draw a diagonal line through the box with the appropriate color
-    $c create line [expr $margin+$j*($square)] [expr $margin+$i*($square)] [expr $margin+($j+1)*($square)] [expr $margin+($i+1)*($square)] -width 4 -fill $color -tag fill
+    $c create line [expr $margin+$j*($square)] [expr $margin+$i*($square)] [expr $margin+($j+1)*($square)] [expr $margin+($i+1)*($square)] -width 4 -fill $color -tags [list label "l$i$j"]
 }
 
 
@@ -350,7 +350,7 @@ proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
     set turn 0
-    $c delete fill
+    $c delete label
     GS_DrawPosition $c $position
 }
 
@@ -577,7 +577,30 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
+    global boardWidth boardHeight
+
+    set count 0
+    for {set i 0} {$i < $boardWidth * $boardHeight} {incr i} {
+	set box [BoxCompleted [unhash $currentPosition] $i $theMoveToUndo]
+
+	# Check if we've completed a box
+	if { $box != -1 } {
+	    # We have completed a box
+	    # turn does not change
+	    # mark the box we completed according to whose turn it is
+	    $c delete "l[lindex $box 0][lindex $box 1]"
+	    incr count
+	    if {$count == 2} {
+		break
+	    }
+	}
+    }
+
+    # We went through and didn't find any new completed boxes
+    if { $count == 0 } {
+	ChangeTurn
+    }
+
     GS_DrawPosition $c $positionAfterUndo
 }
 
