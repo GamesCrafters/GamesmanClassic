@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR CPP EGREP _ACJNI_JAVAC _ACJNI_JAVAH LIBOBJS LIBSUFFIX EXESUFFIX OBJSUFFIX JAVAC JAVAH LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CXX CXXFLAGS ac_ct_CXX RANLIB ac_ct_RANLIB AR ac_ct_AR CPP EGREP _ACJNI_JAVAC _ACJNI_JAVAH LIBOBJS LIBSUFFIX EXESUFFIX OBJSUFFIX LIBARGS JAVAC JAVAH LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -720,13 +720,13 @@ echo X"$0" |
   	  /^X\(\/\).*/{ s//\1/; q; }
   	  s/.*/./; q'`
   srcdir=$ac_confdir
-  if test ! -r "$srcdir/$ac_unique_file"; then
+  if test ! -r $srcdir/$ac_unique_file; then
     srcdir=..
   fi
 else
   ac_srcdir_defaulted=no
 fi
-if test ! -r "$srcdir/$ac_unique_file"; then
+if test ! -r $srcdir/$ac_unique_file; then
   if test "$ac_srcdir_defaulted" = yes; then
     { echo "$as_me: error: cannot find sources ($ac_unique_file) in $ac_confdir or .." >&2
    { (exit 1); exit 1; }; }
@@ -735,7 +735,7 @@ if test ! -r "$srcdir/$ac_unique_file"; then
    { (exit 1); exit 1; }; }
   fi
 fi
-(cd $srcdir && test -r "./$ac_unique_file") 2>/dev/null ||
+(cd $srcdir && test -r ./$ac_unique_file) 2>/dev/null ||
   { echo "$as_me: error: sources are in $srcdir, but \`cd $srcdir' does not work" >&2
    { (exit 1); exit 1; }; }
 srcdir=`echo "$srcdir" | sed 's%\([^\\/]\)[\\/]*$%\1%'`
@@ -1318,6 +1318,7 @@ OUTLIBSUFFIX=".so"							# Shared library extension
 OUTCFLAGS="$CFLAGS -Wall -g -fPIC -c"					# Compiler flags
 OUTEXESUFFIX=""								# Executable file extension
 OUTOBJSUFFIX=""								# Object file extension
+OUTLIBARGS="-shared"
 
 JAVAC=javac
 JAVAH=javah
@@ -1378,7 +1379,8 @@ case $os in
   CYGWIN*)
       machine=win32 ;;
   Darwin*)
-      machine=ppc ;;
+      machine=ix86; OUTLIBSUFFIX=.jnilib;
+       OUTLIBARGS="-bundle -framework JavaVM -lz -L/opt/local/lib -ltcl8.4 -ltk8.4" ;;
 esac
 
 MACHINE=$os-$version-$machine
@@ -1395,7 +1397,7 @@ case $MACHINE in
   IRIX-5*)   OS=IRIX5;;
   IRIX*-6*)  OS=IRIX5;;
   CYGWIN*)   OS=WIN32; OUTCFLAGS="$OUTCFLAGS -DCYGWIN32";;
-  Darwin*)   OS=MACOSX; OUTLIBSUFFIX=".dylib";;
+  Darwin*)   OS=MACOSX; OUTLIBSUFFIX=".jnilib";;
   *)         { { echo "$as_me:$LINENO: error: this operating system is not supported" >&5
 echo "$as_me: error: this operating system is not supported" >&2;}
    { (exit 1); exit 1; }; } ;;
@@ -3828,8 +3830,13 @@ echo "$as_me: error: $JAVAC could not be found in path" >&2;}
 #_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[[^/]]*$::'`
 _JTOPDIR=$JAVA_HOME
 _JHOME=$JAVA_HOME
-case "$host_os" in
-        darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
+
+
+
+case "$os" in
+        Darwin)        _JTOPDIR="/System/Library/Frameworks/JavaVM.framework"
+			_JHOME=$_JTOPDIR
+			#_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
                         _JINC="$_JTOPDIR/Headers"
 			_JHOME_INC="$_JHOME/Headers";;
 
@@ -3851,7 +3858,7 @@ echo "$as_me: error: cannot find java include files" >&2;}
 fi
 
 # get the likely subdirectories for system specific java includes
-case "$host_os" in
+case "$os" in
 bsdi*)          _JNI_INC_SUBDIRS="bsdos";;
 linux*)         _JNI_INC_SUBDIRS="linux genunix";;
 osf*)           _JNI_INC_SUBDIRS="alpha";;
@@ -4712,9 +4719,12 @@ EXESUFFIX=$OUTEXESUFFIX
 
 OBJSUFFIX=$OUTOBJSUFFIX
 
+LIBARGS=$OUTLIBARGS
+
 JAVAC=$JAVAC
 
 JAVAH=$JAVAH
+
 
 
 ###
@@ -5380,6 +5390,7 @@ s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LIBSUFFIX@,$LIBSUFFIX,;t t
 s,@EXESUFFIX@,$EXESUFFIX,;t t
 s,@OBJSUFFIX@,$OBJSUFFIX,;t t
+s,@LIBARGS@,$LIBARGS,;t t
 s,@JAVAC@,$JAVAC,;t t
 s,@JAVAH@,$JAVAH,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t

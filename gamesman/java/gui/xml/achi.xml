@@ -3,16 +3,16 @@
   <board type="grid" width="3" height="3" bgcolor="C8C8C8">
     <decorations>
       <!-- Default settings: repeat-every = 1, offset = 0, size 10% -->
-      <line direction="horizontal" />
-      <line direction="vertical" />
+      <line orientation="horizontal" size="5%"/>
+      <line orientation="vertical" size="5%" />
       
-      <!-- These are the same direction as forward slashes and backslashes, i.e. slant-forward goes
+      <!-- These are the same orientation as forward slashes and backslashes, i.e. slant-forward goes
            from southwest to northeast.  slant-backward goes from northwest to southeast. 
 	   The offsets are always based off the upper-left corner of the grid. -->
-      <line direction="slant-forward" repeat-every="2" offset="0" />
-      <line direction="slant-backward" repeat-every="2" offset="0" />
+      <line orientation="slant-forward" repeat-every="2" offset="0" size="5%" />
+      <line orientation="slant-backward" color="000000" repeat-every="2" offset="0" size="5%"/>
 
-      <circle location="center" frequency="1" size="10%" />
+      <circle repeat-every="1" size="20%" />
     </decorations>
   </board>
 
@@ -28,11 +28,10 @@
   </movetypes>
 
   <variants>
-     <variant name="Misere">
-       <desc>Plays the game backwards.</desc>
-       <!-- This is game specific.  This is the number in hex that will be added 
+     <variant name="Misere" number="1">
+       <!-- The number is game specific.  It is the number in hex that will be added 
             to the variant number if this variant is turned on.  Maybe a number-off as well? -->
-       <number>1</number>
+       <desc>Plays the game backwards.</desc>
      </variant>
   </variants>
 </game>

@@ -22,8 +22,13 @@ test "x$_ACJNI_JAVAC" = xno && AC_MSG_ERROR([$JAVAC could not be found in path])
 #_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[[^/]]*$::'`
 _JTOPDIR=$JAVA_HOME
 _JHOME=$JAVA_HOME
-case "$host_os" in
-        darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
+
+
+
+case "$os" in
+        Darwin)        _JTOPDIR="/System/Library/Frameworks/JavaVM.framework"
+			_JHOME=$_JTOPDIR
+			#_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
                         _JINC="$_JTOPDIR/Headers"
 			_JHOME_INC="$_JHOME/Headers";;
 
@@ -43,7 +48,7 @@ else
 fi
 
 # get the likely subdirectories for system specific java includes
-case "$host_os" in
+case "$os" in
 bsdi*)          _JNI_INC_SUBDIRS="bsdos";;
 linux*)         _JNI_INC_SUBDIRS="linux genunix";;
 osf*)           _JNI_INC_SUBDIRS="alpha";;
@@ -101,6 +106,7 @@ OUTLIBSUFFIX=".so"							# Shared library extension
 OUTCFLAGS="$CFLAGS -Wall -g -fPIC -c"					# Compiler flags
 OUTEXESUFFIX=""								# Executable file extension
 OUTOBJSUFFIX=""								# Object file extension
+OUTLIBARGS="-shared"
 
 JAVAC=javac
 JAVAH=javah
@@ -160,7 +166,8 @@ case $os in
   CYGWIN*)
       machine=win32 ;;
   Darwin*)
-      machine=ppc ;;
+      machine=ix86; OUTLIBSUFFIX=.jnilib;
+       OUTLIBARGS="-bundle -framework JavaVM -lz -L/opt/local/lib -ltcl8.4 -ltk8.4" ;;
 esac
 
 MACHINE=$os-$version-$machine
@@ -177,7 +184,7 @@ case $MACHINE in
   IRIX-5*)   OS=IRIX5;;
   IRIX*-6*)  OS=IRIX5;;
   CYGWIN*)   OS=WIN32; OUTCFLAGS="$OUTCFLAGS -DCYGWIN32";;
-  Darwin*)   OS=MACOSX; OUTLIBSUFFIX=".dylib";;
+  Darwin*)   OS=MACOSX; OUTLIBSUFFIX=".jnilib";;
   *)         AC_MSG_ERROR(this operating system is not supported) ;;
 esac
 
@@ -270,8 +277,10 @@ AC_SUBST(LIBSUFFIX, $OUTLIBSUFFIX)
 AC_SUBST(CFLAGS, $OUTCFLAGS)
 AC_SUBST(EXESUFFIX, $OUTEXESUFFIX)
 AC_SUBST(OBJSUFFIX, $OUTOBJSUFFIX)
+AC_SUBST(LIBARGS, $OUTLIBARGS)
 AC_SUBST(JAVAC, $JAVAC)
 AC_SUBST(JAVAH, $JAVAH)
+
 
 ###
 ### Do output

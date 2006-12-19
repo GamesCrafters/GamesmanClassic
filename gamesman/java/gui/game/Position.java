@@ -9,6 +9,8 @@ import java.awt.Point;
 public class Position {
     private long hashedPosition;
     private String unhashedPosition;
+
+    private int remoteness;
     
     Bin[][] currentPosition;
 
@@ -25,10 +27,16 @@ public class Position {
 	return hashedPosition;
     }
 
+    public int getRemoteness() {
+	return remoteness;
+    }
+
     public void SetHashedPosition( long hashedPosition ) {
 	this.hashedPosition = hashedPosition;
 
 	unhashedPosition = Game.gameInterface.Unhash( hashedPosition );
+
+	remoteness = Game.gameInterface.Remoteness( this );
 
 	currentPosition = new Bin[ Board.getHeight() ][ Board.getWidth() ];
 
@@ -45,8 +53,8 @@ public class Position {
     }
 
     public Point getLocationCoords( int indexInUnhashed ) {
-	return new Point( indexInUnhashed / Board.getWidth(), 
-			  indexInUnhashed % Board.getWidth() );
+	return new Point( indexInUnhashed % Board.getWidth(),
+			 indexInUnhashed / Board.getWidth() );
     }
 
     public Move[] getMoves() {

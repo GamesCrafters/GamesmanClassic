@@ -18,6 +18,10 @@ public class Remove extends SimplePattern
 	   
     }
 
+    public Remove() {
+	patternType = SimplePattern.PatternTypes.REMOVE;
+    }
+
     protected boolean matches( Move m ) {
 	String firstPos = m.GetPositionBeforeMove().toString();
 	String secondPos = m.GetPositionAfterMove().toString();

@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.event.*;
 
+import main.GameDisplay;
+
 import game.Board;
 import game.Move;
 import game.Value;
@@ -19,23 +21,30 @@ import patterns.SimplePattern;
 
 public class stdMRenderer implements MoveRenderer
 {
+    private GameDisplay gd;
+
     private Board myBoard;
     private BoardRenderer brender;
     private boolean displayEnabled;
-    private boolean showValue;
+    private boolean showValues;
     private Move[] moveList;
     private Shape[] moveShapeList;
     private Move selectedMove;
     private Shape selectedShape;
 
-    public stdMRenderer(Board b, BoardRenderer boardRender)
+    public stdMRenderer(GameDisplay gd, Board b, BoardRenderer boardRender)
     {
+	this.gd = gd;
 	myBoard = b;
 	brender = boardRender;
-	showValue = false;
+	showValues = false;
 	displayEnabled = true;
 	updateMoveList();
 	
+    }
+
+    public void setController( GameDisplay gd ) {
+	this.gd = gd;
     }
 
     public void updateMoveList()
@@ -61,13 +70,12 @@ public class stdMRenderer implements MoveRenderer
     }
     public void draw(Graphics2D g2d)
     {
-	
 	if(displayEnabled)
 	{
 	    for(int i=0;i<moveList.length;i++)
 	    {
 		Color moveColor;
-		if(!showValue)
+		if(!showValues)
 		   g2d.setColor(Color.cyan);
 		else
 		{
@@ -86,8 +94,19 @@ public class stdMRenderer implements MoveRenderer
 		//  g2d.setColor(Color.black);
 		g2d.fill(moveShapeList[i]);
 		g2d.setColor(Color.black);
-		g2d.draw(moveShapeList[i]);
- 
+
+		//int thickness = 2;
+		//Delta Remoteness
+		int thickness = 2;
+		if( showValues )
+		    thickness = Math.max( 0, 15-moveList[i].GetPositionAfterMove().getRemoteness());
+		
+		Stroke oldStroke = g2d.getStroke();
+		g2d.setStroke( new BasicStroke(thickness) );
+		g2d.draw( moveShapeList[i]);
+		g2d.setStroke( oldStroke );
+
+		//g2d.draw( (new BasicStroke(2)).createStrokedShape(moveShapeList[i]));
 	    }
 	    if(selectedShape!=null)
 	    {
@@ -98,11 +117,18 @@ public class stdMRenderer implements MoveRenderer
     }
     
     
-    public void enable(boolean showval)
+    public void enable(boolean show)
     {
-	displayEnabled = true;
-	showValue = showval;
+	displayEnabled = show;
 	brender.repaint();
+    }
+
+    public void showValues( boolean showValues ) {
+	this.showValues = showValues;
+    }
+
+    public void toggleShowValues() {
+	this.showValues = !this.showValues;
     }
 
     public void disable()
@@ -150,13 +176,35 @@ public class stdMRenderer implements MoveRenderer
 
 	int squareW = brender.getWidth()/myBoard.getWidth();
 	int squareH = brender.getHeight()/myBoard.getHeight();
-	int smalldim;
-	if(squareW>squareH)
+	int smalldim = Math.min( squareW, squareH );
+	/*if(squareW>squareH)
 	    smalldim = squareH;
 	else
-	smalldim = squareW;
+	smalldim = squareW;*/
 
-	if( pattern.toString().equals( "slide" ) ) {
+	switch( pattern.getPatternType() ) {
+	    case SLIDE:
+		return (new Arrow( source.x*squareW+squareW/2,
+				   source.y*squareH+squareH/2,
+				   dest.x*squareW+squareW/2,
+				   dest.y*squareW+squareW/2,
+				   smalldim/8)).getPoly();
+		//break;
+	    case PLACE:
+	    case REMOVE:
+	    case REPLACE:
+		double w = smalldim*.4;
+		
+		return new Ellipse2D.Double( dest.x*squareW+squareW/2-w/2,
+					     dest.y*squareH+squareH/2-w/2,
+					     w,
+					     w);
+		//break;
+	    default:
+		return null;
+		//break;
+	}
+	/*if( pattern.toString().equals( "slide" ) ) {
 	    return (new Arrow( source.y*squareW+squareW/2,
 			       source.x*squareH+squareH/2,
 			       dest.y*squareW+squareW/2,
@@ -178,7 +226,7 @@ public class stdMRenderer implements MoveRenderer
 	{
 	    //Should not be reached yet... unsupported, throw exception soon.
 	    return null;
-	}
+	    }*/
     }
 
     
@@ -186,9 +234,13 @@ public class stdMRenderer implements MoveRenderer
     {
 	if(selectedMove!=null)
 	{	
-	    animateMove(selectedMove);
-	    myBoard.DoMove(selectedMove);
-	    updateMoveList();
+	    //animateMove(selectedMove);
+	    
+	    //System.out.println( selectedMove );
+
+	    /*myBoard.DoMove(selectedMove);
+	      updateMoveList();*/
+	    gd.MakeMove( selectedMove );
 	    selectedMove=null;
 	    selectedShape=null;
 	}

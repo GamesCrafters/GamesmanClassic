@@ -27,15 +27,16 @@ public class Game {
 
 	    gameInterface = new CInterface();
 
-	    gameInterface.InitializeAll();
+	    //gameInterface.InitializeAll();
+	    gameInterface.Initialize();
 	    
 	    Board b = new Board();
 	    b.getPosition().print();
 
 	    Position p = b.getPosition();
-	    System.out.println( p.getLocationCoords( 0 ) );
+	    /*System.out.println( p.getLocationCoords( 0 ) );
 	    System.out.println( p.getLocationCoords( 2 ) );
-	    System.out.println( p.getLocationCoords( 3 ) );
+	    System.out.println( p.getLocationCoords( 3 ) );*/
 
 	    GameDisplay disp = new GameDisplay(b,500,500);
 
@@ -43,6 +44,7 @@ public class Game {
 	    
 	}
 	catch( Exception e ) {
+	    System.out.println( "Exception :(" );
 	    System.out.println( e.getMessage() );
 	    System.out.println( e.getStackTrace() );
 	}

@@ -27,6 +27,7 @@ public class CInterface implements GameInterface {
 
 
 	    //System.loadLibrary( "CInterface" );
+	    //System.out.println( System.getProperty("java.library.path") );
 	    System.loadLibrary( Game.DBName );
 	}
 	catch( Exception e ) {
@@ -87,7 +88,7 @@ public class CInterface implements GameInterface {
 	}
     }
 
-    public void InitializeGame() {
+    /*    public void InitializeGame() {
 	NativeInitializeGame();
     }
     public void Initialize() {
@@ -95,13 +96,13 @@ public class CInterface implements GameInterface {
     }
     public void InitializeDatabases() {
 	NativeInitializeDatabases();
-    }
+	}*/
 
 
-    public void InitializeAll() {
+    //    public void InitializeAll() {
+    public void Initialize() {
 	NativeInitialize();
 	NativeInitializeDatabases();
-
 	NativeInitializeGame();
     }
 
@@ -170,8 +171,8 @@ public class CInterface implements GameInterface {
     */
 
 
-    public static void InitLibraries( String game ) {
-    }
+    //public static void InitLibraries( String game ) {
+    //}
 
     /*    public static void main(String[] args) {
 	System.out.println( InitialPosition() );

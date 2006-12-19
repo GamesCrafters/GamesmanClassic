@@ -12,6 +12,10 @@
     <move type="slide" target="single" object="existing" />
   </movetypes>
 
+  <decorations>
+    <grid color="000000">
+  </decorations>
+
   <variants>
   </variants>
     

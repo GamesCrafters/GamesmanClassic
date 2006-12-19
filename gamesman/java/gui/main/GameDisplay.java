@@ -10,12 +10,16 @@ import game.*;
 import renderers.BoardRenderer;
 import renderers.stdBRenderer;
 
+import renderers.MoveRenderer;
+import renderers.PositionRenderer;
+import renderers.GridPositionRenderer;
+
 public class GameDisplay extends JFrame
 {
     private JPanel myBoardPanel;
 	
     private BoardRenderer myBoardRenderer;
-	
+
     private Board myBoard;
 	
     public GameDisplay(Board board, int width, int height)
@@ -25,7 +29,7 @@ public class GameDisplay extends JFrame
 	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	setSize(width, height);
 
-	myBoardRenderer = new stdBRenderer(500,500,board);
+	myBoardRenderer = new stdBRenderer(this, 500,500,board);
 	myBoardPanel = myBoardRenderer.getPanel();
 	
 	getContentPane().add(BorderLayout.CENTER,myBoardPanel);
@@ -58,11 +62,12 @@ public class GameDisplay extends JFrame
     }
 	
 
-    public void MakeMove(Board b, Move m)
+    public void MakeMove(Move m)
     {
-	b.DoMove(m);
+	myBoard.DoMove(m);
 	myBoardRenderer.MakeMove(m);
     }
+
     /* The draw method draws the current game display (including all menus,
      * the board, and other featues) and returns 0 if everything is successful,
      * or a nonzero value if something was unable to be drawn.
@@ -70,19 +75,9 @@ public class GameDisplay extends JFrame
     public int draw()
     {
 	setVisible(true);
-	validate();
+	///validate();
 	pack();
 	//myFrame.pack();
-	/*for(int i=0;i<500;i++)
-	  {
-	  //myFrame.repaint();
-	  try
-	  {
-	  Thread.sleep(10);
-	  }
-	  catch(Exception exc)
-	  {}
-	  }*/
 	return 0;
     }
 	
@@ -125,7 +120,8 @@ public class GameDisplay extends JFrame
 
 	private void do_toggle_show_values()
 	{
-	    myBoardRenderer.displayMoves(true);
+	    myBoardRenderer.toggleDisplayMoveValues();
+	    myBoardRenderer.repaint();
 	}
     }
 

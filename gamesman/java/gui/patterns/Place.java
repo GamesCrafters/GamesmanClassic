@@ -12,6 +12,9 @@ public class Place extends SimplePattern
 	//	return (oldPiece.isEmpty() && !newPiece.isEmpty());
     }
 
+    public Place() {
+	patternType = SimplePattern.PatternTypes.PLACE;
+    }
 
     protected boolean matches( Move m ) {
 	String firstPos = m.GetPositionBeforeMove().toString();

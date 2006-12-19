@@ -30,7 +30,7 @@ public class Move {
 	    this.positionAfterMove = Game.gameInterface.DoMove( originalPosition, hashedMove );
 	    this.value = new Value( Value.UNDECIDED );
 	    this.pattern = null;
-
+	    
 	    FindPattern();
 	} catch( Exception e ) { //do nothing, this exception comes from Value
 	}
@@ -71,10 +71,17 @@ public class Move {
 
     public String toString() {
 
-	String ret = "";
+	StringBuffer str = new StringBuffer();
+	str.append( "Before: \"" + positionBeforeMove +"\"\n");
+	str.append( "After:  \"" + positionAfterMove + "\"\n" );
+	str.append( "Hash: " + hashedMove + "\n" );
+	return str.toString();
+
+	/*	ret = "";
 	ret = ret + "Hash: " + hashedMove;
-	return ret;
+	return ret;*/
     }
+
 
     private void FindPattern() {
 	pattern = SimplePattern.bestMatch( this );

@@ -1,9 +1,14 @@
 
-LIBSUFFIX = @LIBSUFFIX@
+#old lib instruction
+# gcc -shared -o $@ $(GCDIR)/lib/$(@F) $(LIBOBJECTS)
+
+
 CFLAGS = @CFLAGS@
 
+LIBSUFFIX = @LIBSUFFIX@
 OBJSUFFIX = @OBJSUFFIX@
-EXESUFFIX = $EXESUFFIX@
+EXESUFFIX = @EXESUFFIX@
+LIBARGS = @LIBARGS@
 
 JAVAC = @JAVAC@
 JAVAH = @JAVAH@
@@ -13,7 +18,7 @@ SRCDIR = main \
 	renderers
 LIBDIR = lib
 
-GCDIR=../../
+GCDIR=../..
 CLASSES= main/CInterface.class \
         main/GameXMLHandler.class \
         main/Game.class \
@@ -25,32 +30,38 @@ CLASSES= main/CInterface.class \
         game/Move.class \
         game/Board.class \
 	patterns/SimplePattern.class \
+	patterns/Slide.class \
         patterns/Place.class \
         patterns/Remove.class \
         patterns/Replace.class \
 	renderers/Arrow.class \
         renderers/stdBRenderer.class \
         renderers/stdMRenderer.class \
+	renderers/GridPositionRenderer.class \
         renderers/BoardRenderer.class \
-        renderers/MoveRenderer.class
+        renderers/MoveRenderer.class \
+	renderers/PositionRenderer.class
 
 
-LIBOBJECTS = main/CInterface.o
+LIBOBJECTS = main/CInterface$(OBJSUFFIX)
 
 LIBDEPS = main/CInterface.h \
-	main/CInterface.o
+	main/CInterface$(OBJSUFFIX)
 
-GAMELIBS = $(LIBDIR)/libmothello.so \
-	$(LIBDIR)/libmdao.so \
-	$(LIBDIR)/libmachi.so
+GAMELIBS = $(LIBDIR)/libmothello$(LIBSUFFIX) \
+	$(LIBDIR)/libmdao$(LIBSUFFIX) \
+	$(LIBDIR)/libmachi$(LIBSUFFIX) \
+	$(LIBDIR)/libmloa$(LIBSUFFIX)
+
+GCFILES = $(GCDIR)/src/gamesman.a $(GCDIR)/src/gamesdb.a $(GCDIR)/src/tkAppInit.o $(GCDIR)/src/mtttppm.o
 
 all: Makefile $(CLASSES) $(GAMELIBS)
 
 
-%.so : $(LIBDIR) $(LIBDEPS)
-	gcc -shared -o $@ $(GCDIR)lib/$(@F) $(LIBOBJECTS)
+%$(LIBSUFFIX) : $(LIBDIR) $(LIBDEPS)
+	gcc $(LIBARGS) -o $@ $(GCFILES) $(LIBOBJECTS) $(GCDIR)/src/$(subst lib,,$(@F:$(LIBSUFFIX)=$(OBJSUFFIX)))
 
-%.o : %.c %.h
+%$(OBJSUFFIX) : %.c %.h
 	gcc $(CFLAGS) -o $@ $<
 
 %.h : %.class
@@ -59,12 +70,11 @@ all: Makefile $(CLASSES) $(GAMELIBS)
 %.class: %.java
 	$(JAVAC) $<
 
-
 clean:	
 	rm -f *~ main/*~ patterns/*~ renderers/*~ games/*~ main/*.class patterns/*.class renderers/*.class game/*.class $(LIBDEPS) $(GAMELIBS)
 
 dist-clean: clean
-	rm -rf Makefile configure config.status config.log *~
+	rm -rf Makefile configure config.status config.log autom4te.cache *~
 
 $(LIBDIR):
-	mkdir -p lib
+	mkdir -p $(LIBDIR)

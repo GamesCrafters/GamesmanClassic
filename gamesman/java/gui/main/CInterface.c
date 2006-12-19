@@ -262,7 +262,7 @@ jint Java_main_CInterface_NativeRemoteness(JNIEnv * env, jclass this, jobject th
   return Remoteness( getPosition( env, thePosition ) );
 }
 
-int Java_main_CInterface_NativeMex(JNIEnv * env, jclass this, jobject thePosition){
+jint Java_main_CInterface_NativeMex(JNIEnv * env, jclass this, jobject thePosition){
   //return Mex( getPosition( env, thePosition ) );
   return 0;
 }

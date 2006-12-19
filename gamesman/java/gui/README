@@ -1,3 +1,5 @@
+This file is now out of date.  I will write this up on the wiki, eventually...
+
 This file will describe the current format of the xml file describing a game.  The system currently only supports grid-style boards, like Achi or Othello.  Support for hexagonal and custom board shapes, such as the boards in Sim and Mancala, will be added in the future.  
 
 

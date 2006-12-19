@@ -6,6 +6,34 @@ public class Arrow
 {
     private Polygon myPoly;
 
+
+    public Arrow( Point locationFrom, Point locationTo, int squareW, int squareH ) {
+	int[] xlist = new int[7];
+	int[] ylist = new int[7];
+
+	// this is the change in x and y overall
+	int dx = (locationTo.x-locationFrom.x)*squareW;
+	int dy = (locationTo.y-locationFrom.y)*squareH;
+
+	int smalldim = Math.min( squareW, squareH );
+
+	// set up base of arrow, tilted
+	xlist[0] = locationFrom.x*squareW + dy/10;
+	ylist[0] = locationFrom.y*squareH + dx/10;
+	
+	xlist[1] = locationFrom.x*squareW - dy/10;
+	ylist[1] = locationFrom.y*squareH - dx/10;
+
+	xlist[2] = (locationFrom.x*squareW)+dx/2 -dy/10;
+	ylist[2] = (locationFrom.y*squareH)+dy/2 -dx/10;
+	
+	xlist[7] = (locationFrom.x*squareW)+dx/2 +dy/10;
+	ylist[7] = (locationFrom.y*squareH)+dy/2 +dx/10;
+	
+	// this is going to require MATHS!!! >:-O
+	
+    }
+
     public Arrow(int x1, int y1, int xe, int ye, int w)
     {
 	int[] xlist = new int[7];
@@ -13,14 +41,13 @@ public class Arrow
 	int dx = (xe-x1)/10;
 	int dy = (ye-y1)/10;
 	
-	
 
 	while(dx*dx+dy*dy<w*w)
 	{
 	    dx*=1.1;
 	    dy*=1.1;
 	}
-	 while(dx*dx+dy*dy>w*w)
+	while(dx*dx+dy*dy>w*w)
 	{
 	    dx*=.9;
 	    dy*=.9;
@@ -39,7 +66,7 @@ public class Arrow
 	xlist[1] = curx;
 	ylist[1] = cury;
 	
-	/*Triangle*/
+	//Triangle
 
 	curx = x2-2*dy;
 	cury = y2+2*dx;
@@ -56,7 +83,7 @@ public class Arrow
 	xlist[4] = curx;
 	ylist[4] = cury;
 
-	/*End triangle*/
+	//End triangle
 
 	curx = x2+dy;
 	cury = y2-dx;
