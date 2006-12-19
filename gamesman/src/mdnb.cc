@@ -383,6 +383,8 @@ void DoPrivateSolve() {
 }
 */
 
+POSITION ActualNumberOfPositions(int variant);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -430,6 +432,8 @@ EXTERNC void InitializeGame()
     else
       gGoAgain=DNBGoAgain;
   }
+  
+  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 #ifndef NO_GRAPHICS
@@ -835,6 +839,52 @@ EXTERNC void setOption(int option) {
   BoardSizeX = option/2 % MAX_X + 1;
   BoardSizeY = option/(2*MAX_X) % MAX_Y + 1;
 }
+
+
+POSITION ActualNumberOfPositions(int variant) {
+  switch (variant) {
+  case 1:
+  case 2:
+    return 2;
+    break;
+  case 3:
+  case 4:
+    return 9;
+    break;
+  case 5:
+  case 6:
+    return 51;
+    break;
+  case 7:
+  case 8:
+    return 20;
+    break;
+  case 9:
+  case 10:
+    return 602;
+    break;
+  case 11:
+  case 12:
+    return 9173;
+    break;
+  case 13:
+  case 14:
+    return 194;
+    break;
+  case 15:
+  case 16:
+    return 16391;
+    break;
+  case 17:
+  case 18:
+    return 1484294;
+    break;
+  default:
+    return gNumberOfPositions;
+  }
+  return -1;
+}
+
 
 /************************************************************************
 *************************************************************************
