@@ -628,9 +628,8 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
 	int whoseturn = generic_hash_turn(position);
-	WINBY winBy = WinByLoad(position);
 	/*int strlenname = strlen(playerName);*/
-	char turnString1[80], turnString2[80], prediction[80], winByStr[80];
+	char turnString1[80], turnString2[80], prediction[80];
 
 	//for loops inits
 	int i, j, alpha, hyphens;
@@ -671,12 +670,12 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 	/*heading*/
 	printf("\t+");
-	for(hyphens = 0; hyphens < (2 * OthCols) + 23; hyphens++)
+	for(hyphens = 0; hyphens < (2 * OthCols) + 25; hyphens++)
 		printf("-");
 	printf("+");
 
 	printf("\n\t| GAMESMAN Othello");
-	for(hyphens = 0; hyphens < (2 * OthCols) + 6; hyphens++)
+	for(hyphens = 0; hyphens < (2 * OthCols) + 8; hyphens++)
 		printf(" ");
 
 	printf("|\n\t+");
@@ -684,13 +683,13 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf("-");
 	printf("+");
-	for(hyphens = 0; hyphens < 13; hyphens++)
+	for(hyphens = 0; hyphens < 15; hyphens++)
 		printf("-");
 	printf("+\n\t|");
 
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf(" ");
-	printf("|             |\n");
+	printf("|               |\n");
 
 	//top Row Alphabet Legend
 	printf("\t|    ");
@@ -700,7 +699,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	}
 	printf("     |");
 	//End Alphabet Legend
-	for(hyphens = 0; hyphens < 13; hyphens++)
+	for(hyphens = 0; hyphens < 15; hyphens++)
 		printf(" ");
 	printf("|\n");
 
@@ -713,7 +712,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 			printf("\t|    ");
 			for(hyphens = 0; hyphens <= (2 * OthCols); hyphens++)
 				printf("-");
-			printf("    |             |\n");//End Even rows
+			printf("    |               |\n");//End Even rows
 		}
 
 		else  //Start Odd Rows, the ones that matter
@@ -727,15 +726,15 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 			if(InvertRow(PrintPositionRow(i)) == 1)
 				if(whitetally <= 9)
-					printf("| 1  |  White: 0%d  |\n", whitetally);
+					printf("| 1  |   White: 0%d   |\n", whitetally);
 				else
-					printf("| 1  |  White: %d  |\n", whitetally);
+					printf("| 1  |   White: %d   |\n", whitetally);
 			else if(InvertRow(PrintPositionRow(i)) == 2)
 					if(blacktally <= 9)
-						printf("| 2  |  Black: 0%d  |\n", blacktally);
+						printf("| 2  |   Black: 0%d   |\n", blacktally);
 					else
-						printf("| 2  |  Black: %d  |\n", blacktally);
-				else printf("| %d  |             |\n", InvertRow(PrintPositionRow(i)));
+						printf("| 2  |   Black: %d   |\n", blacktally);
+				else printf("| %d  |               |\n", InvertRow(PrintPositionRow(i)));
 
 		}
 	}
@@ -746,55 +745,49 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	{
 		printf(" %c", alphabet[alpha]);
 	}
-	printf("     |             |\n\t|");
+	printf("     |               |\n\t|");
 	//End Alphabet Legend
 
 	//End stuff
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf(" ");
-	printf("|             |\n\t+");
+	printf("|               |\n\t+");
 
 	for(hyphens = 0; hyphens < (2 * OthCols) + 9; hyphens++)
 		printf("-");
 	printf("+");
-	for(hyphens = 0; hyphens < 13; hyphens++)
+	for(hyphens = 0; hyphens < 15; hyphens++)
 		printf("-");
 	printf("+\n");
 
 	//Player Name, Predictions. Stolen directly from Asalto
 	sprintf(turnString1,"| It is %s's turn.", playerName);
 	printf("\t%s",turnString1);
-	if(strlen(turnString1) < (2 * OthCols) + 24)
-		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(turnString1); hyphens++)
+	if(strlen(turnString1) < (2 * OthCols) + 26)
+		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(turnString1); hyphens++)
 			printf(" ");
 	printf("|\n");
 
 	sprintf(turnString2,"| %s is playing %s", playerName, owncolor);
 	printf("\t%s",turnString2);
-	if(strlen(turnString2) < (2 * OthCols) + 24)
-		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(turnString2); hyphens++)
+	if(strlen(turnString2) < (2 * OthCols) + 26)
+		for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(turnString2); hyphens++)
 			printf(" ");
 	printf("|\n");
 
 	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
 	if (prediction[2] == '(')
 	{
-	        sprintf(winByStr,"| %s can %s by %d", playerName, ((winBy < 0 && whoseturn == 1) || (winBy > 0 && whoseturn == 2)) ? "lose" : "win", (winBy < 0) ? -winBy : winBy);
-        	printf("\t%s",winByStr);
-		if(strlen(turnString2) < (2 * OthCols) + 24)
-		  for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(winByStr); hyphens++)
-		    printf(" ");
-		printf("|\n");	
 		printf("\t%s", prediction);
-		if(strlen(prediction) < (2 * OthCols) + 24)
-			for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 24 - strlen(prediction); hyphens++)
+		if(strlen(prediction) < (2 * OthCols) + 26)
+			for(hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(prediction); hyphens++)
 				printf(" ");
 		printf("|\n");
 	}
 
 	//End
 	printf("\t+");
-	for(hyphens = 0; hyphens < (2 * OthCols) + 23; hyphens++)
+	for(hyphens = 0; hyphens < (2 * OthCols) + 25; hyphens++)
 		printf("-");
 	printf("+\n\n");
 
@@ -1553,7 +1546,7 @@ POSITION ActualNumberOfPositions(int variant) {
 
 WINBY computeWinBy(POSITION position) {
   int i;
-  signed char whitetally = 0, blacktally = 0;
+  int whitetally = 0, blacktally = 0;
   char *board = getBoard(position);  
   for(i = 0; i < (OthCols * OthRows); i++) {
     if(board[i] == WHITEPIECE)
