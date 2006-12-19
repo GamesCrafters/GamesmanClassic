@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.117 2006-12-07 06:25:02 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.118 2006-12-19 00:36:50 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1080,7 +1080,7 @@ proc InitWindow { kRootDir kExt } {
 	-anchor center \
 	-tags [list WhoseTurn textitem]
 
-    # Percent Solved Progress Bar
+    # Percent Solved/Loaded Progress Bar
     .middle.f1.cMLeft create rectangle \
 	10 [expr $gWindowHeightRatio * 60] 10 [expr $gWindowHeightRatio * 80] \
 	-fill black \
@@ -2319,7 +2319,30 @@ proc advanceProgressBar { percent } {
     }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
-	-text [format "Percent Solved:\n%s%%" $percentDone]
+	-text [format "Solving Game:\n%s%% Done" $percentDone]
+    .middle.f1.cMLeft raise progressBar
+    update idletasks
+}
+
+
+proc advanceLoadingProgressBar { percent } {
+    global gFrameHeight gWindowWidthRatio
+    set percentDelta [expr [expr $gWindowWidthRatio * 150 - 20] / 100.0]
+    set barCoords [.middle.f1.cMLeft coords progressBarSlider]
+    set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
+    set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
+    if {$percentDone > 100.0} {
+	$percentDone = 100.0
+    }
+    if {$percent == 0} {
+	lset barCoords 2 [lindex $barCoords 0]
+	$percentDone = 0
+    } else {
+	lset barCoords 2 $xCoord
+    }
+    .middle.f1.cMLeft coords progressBarSlider $barCoords
+    .middle.f1.cMLeft itemconfig progressBarText \
+	-text [format "Loading Database:\n%s%% Done" $percentDone]
     .middle.f1.cMLeft raise progressBar
     update idletasks
 }
