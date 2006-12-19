@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.42 2006-12-07 04:25:57 koolswim88 Exp $
+// $Id: mabalone.c,v 1.43 2006-12-19 09:03:17 koolswim88 Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -2264,7 +2264,7 @@ void FreeHelper(struct row ** rows)
           SafeFree(rows[i]);  
           //printf("Freeing i = %d", i);       
      }     
-     printf("end");
+    // printf("end");
      //SafeFree(rows);
 }
 
@@ -2399,6 +2399,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.42  2006/12/07 04:25:57  koolswim88
+// *** empty log message ***
+//
 // Revision 1.40  2006/12/07 02:10:30  koolswim88
 // *** empty log message ***
 //
