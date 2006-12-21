@@ -33,6 +33,7 @@
 #include "analysis.h"
 #include "db.h"
 #include "openPositions.h"
+#include <math.h>
 
 /*
 ** Globals
@@ -407,6 +408,196 @@ void analyze() {
 
 		gAnalysisLoaded = TRUE;
 	}
+}
+
+void DetermineInterestingness(POSITION position) {
+	int debugme = 0;
+	int count_max = 0;
+	float max_seen = 0.0;
+	POSITION i;
+	POSITION most_interesting = 0;
+	
+	if(!gInterestingness) {
+		return;
+	}
+	
+	printf("\nDetermining Interestingness...");
+	
+	DetermineInterestingnessDFS(position);
+	
+	// set most mostinteresting
+	for (i=0; i < gNumberOfPositions; i++) {
+		if (debugme && gAnalysis.Interestingness[i]) {
+			printf("%d\tNONZERO INTERESTINGNESS IN LOOP at %llu (%f)\n",GetValueOfPosition(i),i,gAnalysis.Interestingness[i]);
+		}
+		if (GetValueOfPosition(i) == win && gAnalysis.Interestingness[i] > max_seen) {
+			count_max = 0;
+			max_seen = gAnalysis.Interestingness[i];
+			most_interesting = i;
+		} else if (gAnalysis.Interestingness[i] == max_seen) {
+			count_max++;
+		}
+	}
+	
+	gAnalysis.MostInteresting = most_interesting;
+	gAnalysis.MaxInterestingness = max_seen = 100 * max_seen;
+	
+	SafeFree(gAnalysis.Interestingness);
+	gAnalysis.Interestingness = NULL;
+	
+	printf("%f\n",max_seen);
+}
+
+void DetermineInterestingnessDFS(POSITION position) {
+	int debugme = 0;
+	// for interestingness calculations
+	float interestingness, immediate_interestingness;
+	int wincount, losecount, tiecount, count;
+	// for generate moves
+	POSITION child;
+	MOVELIST *ptr, *head;
+	MOVE move;
+	// misc
+	VALUE value, childvalue;
+	
+	if (Visited(position)) {
+		if (debugme) {
+			printf("\tVISITED, returning\n");
+		}
+		// this position's interestingness has been determined
+		// gAnalysis.Interestingness[position] != 0
+		return;
+	}
+	if ((value = GetValueOfPosition(position)) == undecided) {
+		if(debugme) {
+			printf("\tUNDECIDED or TIE, returning\n");
+		}
+		
+		// interestingness defined as zero here
+		// gAnalysis.Interestingness[position] == 0
+		return;
+	}
+	// first time we've seen this position
+	if (debugme) {
+		printf("UNSEEN POSITION\n");
+	}
+	MarkAsVisited(position);
+	
+	if (Primitive(position) != undecided) {
+		// if this is primitive, we assign a default interestingness value
+		gAnalysis.Interestingness[position] = PRIMITIVE_INTERESTINGNESS;
+		if(debugme) {
+			printf("\tPRIMITIVE, set to %f\n",gAnalysis.Interestingness[position]);
+		}
+		
+		return;
+	} else {
+		if(debugme) {
+			printf("\tNOT PRIMITIVE, recursing on children\n");
+		}
+		// recurse on children
+		wincount = losecount = tiecount = 0;
+		head = ptr = GenerateMoves(position);
+		while(ptr != NULL) {
+			move = ptr->move;
+			
+			child = DoMove(position,move);
+			if ((childvalue = GetValueOfPosition(child)) != undecided) {
+				DetermineInterestingnessDFS(child);
+				switch(childvalue) {
+					case win:
+						// only non trivial wins are 'hard to see'
+						if (Remoteness(child) > 1) {
+							wincount++;
+						}
+						break;
+					case lose:
+						losecount++;
+						break;
+					case tie:
+						tiecount++;
+						break;
+					default:
+						BadElse("DetermineInterestingness");
+				}
+				
+			}
+			
+			ptr = ptr->next;
+		}
+		// set interestingness of this position by children values, immediate interestingness
+		switch(value) {
+			case win:
+				if (debugme) {
+					printf("\tTHIS IS A WIN\n");
+				}
+				// immediate interestingness
+				// higher W+T/W+L+T is better
+				immediate_interestingness = ((float) wincount + tiecount) / ((float) wincount + losecount + tiecount);
+				immediate_interestingness = (immediate_interestingness > PRIMITIVE_INTERESTINGNESS) ? immediate_interestingness : PRIMITIVE_INTERESTINGNESS;
+				// accumulate on loses
+				// form 1 - \prod_{lose_children} (1 - Interestingness[child])
+				interestingness = 0;
+				count = 0;
+				ptr = head;
+				while(ptr != NULL) {
+					move = ptr->move;
+					
+					child = DoMove(position,move);
+					// only include losing children
+					if ((childvalue = GetValueOfPosition(child)) == lose) {
+						interestingness += gAnalysis.Interestingness[child];
+						// interestingness *= 1.0 - gAnalysis.Interestingness[child];
+					}
+					
+					ptr = ptr->next;
+				}
+					// interestingness -= 1.0;
+					// gAnalysis.Interestingness[position] = 1.0 - sqrt((interestingness + (1.0 - immediate_interestingness))/2);
+					interestingness /= losecount;
+				gAnalysis.Interestingness[position] = 1.0 - sqrt((1.0 - interestingness)*(1.0 - immediate_interestingness));
+				if (debugme) {
+					printf("\tIMMEDIATE %f, RECURSIVE %f\n",immediate_interestingness,interestingness);
+				}
+					break;
+			case lose:
+				if (debugme) {
+					printf("\tTHIS IS A LOSE\n");
+				}
+				interestingness = 0;
+				// interestingness = 1;
+				count = 0;
+				ptr = head;
+				while(ptr != NULL) {
+					move = ptr->move;
+					
+					child = DoMove(position,move);
+					// all children should be win values
+					interestingness += gAnalysis.Interestingness[child];
+					count++;
+					// interestingness *= 1.0 - gAnalysis.Interestingness[child];
+					
+					ptr = ptr->next;
+				}
+					gAnalysis.Interestingness[position] = interestingness /= count;
+				// gAnalysis.Interestingness[position] = 1.0 - interestingness;
+				
+				break;
+			case tie:
+				// this interestingness is zero
+				// assert gAnalysis.Interestingness[position] = 0;
+				break;
+			default:
+				// should not get here
+				BadElse("DetermineInterestingness");
+		}
+		// clean up from GenerateMoves
+		FreeMoveList(head);
+	}
+	if(debugme) {
+		printf("Set interestingness of %f for %d\n",gAnalysis.Interestingness[position],value);
+	}
+	// assert gAnalysis.Interestingness[position] != 0
 }
 
 VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
