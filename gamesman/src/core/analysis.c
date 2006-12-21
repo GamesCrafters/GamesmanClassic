@@ -449,6 +449,10 @@ void DetermineInterestingness(POSITION position) {
 	gAnalysis.Interestingness = NULL;
 	
 	printf("%f\n",max_seen);
+	
+	printf("Re-saving analysis DB...");
+	SaveAnalysis();
+	
 }
 
 void DetermineInterestingnessDFS(POSITION position) {
