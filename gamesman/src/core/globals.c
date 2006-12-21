@@ -87,6 +87,7 @@ BOOLEAN gAnalyzing = FALSE;       /* Write analysis for each variant
 BOOLEAN gVisualizing = FALSE;	  /* Write visualization for each variant solved,
 									 default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
+BOOLEAN gInterestingness = FALSE;  /* use interestingness solver after regular solver */
 BOOLEAN gSymmetries = FALSE;
 BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */
 
