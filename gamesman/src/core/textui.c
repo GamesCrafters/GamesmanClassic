@@ -745,6 +745,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
 	break;
+	case 'i': case 'I':
+		gInterestingness = !gInterestingness;
+		break;
     default:
 	BadMenuChoice();
 	HitAnyKeyToContinue();
@@ -1140,6 +1143,18 @@ void AnalysisMenu()
 	    return;
 	case 'G': case 'g':
 		VisualizationMenu();
+		break;
+	case 'S': case's':
+		if (gAnalysis.MostInteresting != 0) {
+			gInitialPosition = gAnalysis.MostInteresting;
+			printf("Set to position %llu with interestingness %f\n\n",gInitialPosition,gAnalysis.MaxInterestingness);
+		} else {
+			printf("No interesting position set... left as initial position.\n");
+		}
+		
+		break;
+	case 'E': case 'e':
+		printf("\tNOT YET IMPLEMENTED\n\n");
 		break;
 	default:
 	    BadMenuChoice();
