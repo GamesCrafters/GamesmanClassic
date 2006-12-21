@@ -33,7 +33,7 @@
 #include "gamesman.h"
 #include "bpdb_misc.h"
 #include "solvevsloopy.h"
-#include "analysis.h" // fix this?? -MATT  lol
+#include "analysis.h" 
 #include "openPositions.h"
 
 /*
@@ -48,7 +48,7 @@ FRnode*		gVSHeadTieFR = NULL;	/* The FRontier Tie Queue */
 FRnode*		gVSTailTieFR = NULL;
 POSITIONLIST**	gVSParents = NULL;	/* The Parent of each node in a list */
 char*		gVSNumberChildren = NULL;	/* The Number of children (used for Loopy games) */
-char*       gVSNumberChildrenOriginal = NULL; //MATT
+char*       gVSNumberChildrenOriginal = NULL; /* Open Positions: for finding level1 frontier */
 
 // Data to be stored in each slice of the database
 UINT32 SL_VALUESLOT = 0;
@@ -237,7 +237,8 @@ VALUE VSDetermineLoopyValue1(POSITION position)
 			VSInsertWinFR(parent);
 			if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
             SetSlot(parent, SL_REMSLOT, remotenessChild + 1);
-            SetSlot(parent, SL_VALUESLOT, win);
+            SetSlot(parent, SL_VALUESLOT, win);
+
 		    } 
 		    else {
 			/* We already know the parent is a winning position. */
@@ -365,11 +366,18 @@ VALUE VSDetermineLoopyValue1(POSITION position)
         }
 	    UnMarkAsVisited((POSITION)i);
 	}
+	
+	if (gInterestingness) {
+		DetermineInterestingness(position);
+	}
+	
+		
     gAnalysis.F0EdgeCount = F0EdgeCount;
 	gAnalysis.F0NodeCount = F0NodeCount;
 	gAnalysis.F0DrawEdgeCount = F0DrawEdgeCount;
     return(GetSlot(position, SL_VALUESLOT));
 }
+
 
 /*
 ** Requires: the root has not been visited yet
@@ -411,7 +419,8 @@ void VSSetParents (POSITION parent, POSITION root)
     thisLevel = StorePositionInList(root, thisLevel);
     
     while (thisLevel != NULL) {
-        POSITIONLIST* next;
+        POSITIONLIST* next;
+
         for (posptr = thisLevel; posptr != NULL; posptr = next) {
             next = posptr -> next;
             pos = posptr -> position;
@@ -494,15 +503,28 @@ void VSNumberChildrenInitialize()
     POSITION i;
     
     gVSNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
-    gVSNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));         //MATT
-    for(i = 0; i < gNumberOfPositions; i++) {
-        gVSNumberChildren[i] = 0;
-        gVSNumberChildrenOriginal[i] = 0;
-    }
+    gVSNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));         /* Open Positions: for finding level1 frontier */
+    if (gInterestingness) {
+		gAnalysis.Interestingness = (float *) SafeMalloc (gNumberOfPositions * sizeof(float)); /* Interestingness */
+	}
+	
+	if (gInterestingness) {
+		for(i = 0; i < gNumberOfPositions; i++) {
+			gVSNumberChildren[i] = 0;
+			gVSNumberChildrenOriginal[i] = 0;
+			gAnalysis.Interestingness[i] = 0.0;
+		}
+	} else {
+		for(i = 0; i < gNumberOfPositions; i++) {
+			gVSNumberChildren[i] = 0;
+			gVSNumberChildrenOriginal[i] = 0;
+		}
+	}
+
 }
 
 void VSNumberChildrenFree()
-{                                                                                                      //MATT
+{                                                                                                      /* Open Positions: for finding level1 frontier */
     SafeFree(gVSNumberChildren);
     SafeFree(gVSNumberChildrenOriginal);
 }
