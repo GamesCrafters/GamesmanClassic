@@ -31,7 +31,7 @@
 
 #include "gamesman.h"
 #include "solveloopy.h"
-#include "analysis.h" // fix this?? -MATT  lol
+#include "analysis.h" 
 #include "openPositions.h"
 
 /*
@@ -46,7 +46,7 @@ FRnode*		gHeadTieFR = NULL;	/* The FRontier Tie Queue */
 FRnode*		gTailTieFR = NULL;
 POSITIONLIST**	gParents = NULL;	/* The Parent of each node in a list */
 char*		gNumberChildren = NULL;	/* The Number of children (used for Loopy games) */
-char*       gNumberChildrenOriginal = NULL; //MATT
+char*       gNumberChildrenOriginal = NULL;
 
 
 /*
@@ -292,6 +292,11 @@ VALUE DetermineLoopyValue1(POSITION position)
         }
 	    UnMarkAsVisited((POSITION)i);
 	}
+		
+	if (gInterestingness) {
+		DetermineInterestingness(position);
+	}
+		
     gAnalysis.F0EdgeCount = F0EdgeCount;
 	gAnalysis.F0NodeCount = F0NodeCount;
 	gAnalysis.F0DrawEdgeCount = F0DrawEdgeCount;
@@ -493,15 +498,26 @@ void NumberChildrenInitialize()
     POSITION i;
     
     gNumberChildren = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
-    gNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));         //MATT
-    for(i = 0; i < gNumberOfPositions; i++) {
-        gNumberChildren[i] = 0;
-        gNumberChildrenOriginal[i] = 0;
-        }
+    gNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char)); 
+	if (gInterestingness) {
+		gAnalysis.Interestingness = (float *) SafeMalloc (gNumberOfPositions * sizeof(float)); /* Interestingness */
+	}
+	if (gInterestingness) {
+		for(i = 0; i < gNumberOfPositions; i++) {
+			gNumberChildren[i] = 0;
+			gNumberChildrenOriginal[i] = 0;
+			gAnalysis.Interestingness[i] = 0.0;
+		}
+	} else {
+		for(i = 0; i < gNumberOfPositions; i++) {
+			gNumberChildren[i] = 0;
+			gNumberChildrenOriginal[i] = 0;
+		}
+	}
 }
 
 void NumberChildrenFree()
-{                                                                                                      //MATT
+{                                                                                                      
     SafeFree(gNumberChildren);
     SafeFree(gNumberChildrenOriginal);
 }
