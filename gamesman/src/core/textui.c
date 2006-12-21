@@ -745,9 +745,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
 	break;
-	case 'i': case 'I':
-		gInterestingness = !gInterestingness;
-		break;
     default:
 	BadMenuChoice();
 	HitAnyKeyToContinue();
@@ -1052,6 +1049,9 @@ void AnalysisMenu()
         printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
         printf("\tg)\t(G)enerate visualization of game tree in DOT format\n");
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
+		
+		printf("\ts)\t(S)olve for interestingness (takes some time)\n");
+		printf("\te)\tS(E)t initial position to the most interesting (only after interestingness solver)\n");
 
         if(badWinPositions != NULL)
             printf("\t1)\tPrint up to %d (W)inning INCORRECT positions\n",maxPositions);
@@ -1144,17 +1144,17 @@ void AnalysisMenu()
 	case 'G': case 'g':
 		VisualizationMenu();
 		break;
-	case 'S': case's':
+	case 'E': case'e':
 		if (gAnalysis.MostInteresting != 0) {
 			gInitialPosition = gAnalysis.MostInteresting;
-			printf("Set to position %llu with interestingness %f\n\n",gInitialPosition,gAnalysis.MaxInterestingness);
+			printf("\nSet to position %llu with interestingness %f\n\n",gInitialPosition,gAnalysis.MaxInterestingness);
 		} else {
-			printf("No interesting position set... left as initial position.\n");
+			printf("\nNo interesting position set... run interestingness solver first!.\n");
 		}
 		
 		break;
-	case 'E': case 'e':
-		printf("\tNOT YET IMPLEMENTED\n\n");
+	case 'S': case 's':
+		DetermineInterestingness(gInitialPosition);
 		break;
 	default:
 	    BadMenuChoice();
