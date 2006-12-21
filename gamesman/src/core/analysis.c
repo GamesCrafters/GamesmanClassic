@@ -417,8 +417,11 @@ void DetermineInterestingness(POSITION position) {
 	POSITION i;
 	POSITION most_interesting = 0;
 	
-	if(!gInterestingness) {
-		return;
+	
+	gAnalysis.Interestingness = (float *) SafeMalloc(gNumberOfPositions * sizeof(float));
+	
+	for (i=0; i < gNumberOfPositions; i++) {
+		gAnalysis.Interestingness[i] = 0.0;
 	}
 	
 	printf("\nDetermining Interestingness...");
