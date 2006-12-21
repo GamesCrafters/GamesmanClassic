@@ -12,6 +12,7 @@ VALUE   (*original_put_value) (POSITION pos, VALUE val);
 */
 
 #define ANALYSIS_FILE_VER 4
+#define PRIMITIVE_INTERESTINGNESS 0.01
 
 /* Functions to output sets of data */
 
@@ -60,6 +61,10 @@ void	closeXMLVarFile			();
 void	writeXMLData			();
 void	writeXMLVarData			();
 
+/* Interestingness */
+void DetermineInterestingness(POSITION position);
+void DetermineInterestingnessDFS(POSITION position);
+
 /* Analysis Data Structure */
 
 typedef struct analysis_info
@@ -104,6 +109,10 @@ typedef struct analysis_info
   REMOTENESS LargestFoundLevel;
   REMOTENESS LargestFoundFRemoteness;
   REMOTENESS LargestFoundCorruption;
+  
+  float* Interestingness;
+  float MaxInterestingness;
+  POSITION MostInteresting;
   
 } ANALYSIS;
 
