@@ -11,6 +11,7 @@ update
 global calBlue calYellow admin cliAdd cliBase cliDisp cliColor
 global textGameColor listFont 
 
+set docPath "../doc/games/html"
 set calBlue #006
 set calYellow #FFCC33
 set textGameColor black
@@ -191,20 +192,25 @@ proc setListLocation location {
 	}
 }
 
+proc makeDocPath { gameName } {
+	global docPath
+	
+	#Special case for connections because con is a reserved file name
+	if { $gameName == "con"} {
+	    return [file join $docPath "connections.html"]	
+	} else {
+	    set temp $gameName.html
+	  	return [file join $docPath $temp]
+	}
+}
+
 proc setGameScroll {i } {
 	global listLocation loadList
 	set frame .rightSide.home
 	set gameName [gameName $i]
-	set docPath "../doc/games/html"
+	set fullName [makeDocPath $gameName]
 	
-	if { $gameName == "con"} {
-	    set fullName [file join $docPath "connections.html"]	
-	} else {
-	    set temp $gameName.html
-	    set fullName [file join $docPath $temp]
-	}
-	
-	if {$loadList($i) == -1 && [file exists $fullName]} {
+	if {$loadList($i) == 1 && [file exists $fullName]} {
 	    pack forget .scrollbar$gameName
 	    pack forget .text$gameName
 	    
@@ -412,9 +418,9 @@ proc selectGame {id args} {
 	set home .rightSide.home
 	set leftScroll .leftSide.leftScroll
 
-	if {$id >= 0 && $loadList($id) != -1} {
+	if {$id >= 0 && $loadList($id) == 0} {
 		loadGame $home $id
-		set loadList($id) -1
+		set loadList($id) 1
 		setGameScroll $id
 	}
 	
@@ -1044,7 +1050,7 @@ proc CreateGamePages { frame } {
 	
     ### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-		set loadList($i) 1
+		set loadList($i) 0
 	}
 }
 
@@ -1060,7 +1066,6 @@ proc loadGame { frame i } {
 	##### Starting Page ########
 	set bgcolor $calBlue
 	set fontcolor white
-	set docPath "../doc/games/html"
 	set gameName [gameName $i]
 	set gameString [gameString $i]
 	set theColor [gameColor $i]
@@ -1094,16 +1099,9 @@ proc loadGame { frame i } {
 		-command "runText $i"
 	pack $frame.$gameName.buttons.textButton -side left
 	    
-	#Special case for connections because con is a reserved file name
-	if { $gameName == "con"} {
-	    set fullName [file join $docPath "connections.html"]	
-	} else {
-	    set temp $gameName.html
-	    set fullName [file join $docPath $temp]
-	}
+	set fullName [makeDocPath $gameName]
 
 	if { [file exists $fullName]} {
-			puts $fullName
 		scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
 		option add *Text.height 40 startup
 		option add *Text.width 80 startup
