@@ -17,6 +17,7 @@ set textGameColor black
 set listFont "Helvetica 10"
 set admin false
 set cliAdd false
+set loadList(0) -1
 
 proc dispHelp {} {
 	puts "XGamesman.new command line arguments"
@@ -191,7 +192,7 @@ proc setListLocation location {
 }
 
 proc gameScroll location {
-    global theNumberOfPrograms listLocation
+    global theNumberOfPrograms listLocation loadList
     set frame .rightSide.home
     for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
 	set gameName [gameName $i]
@@ -388,11 +389,16 @@ proc textImage {id scale} {
 }
 #pos can be "top","middle", or "bottom"
 proc selectGame {id args} {
-	global currentGame currentId calBlue theNumberOfPrograms
+	global currentGame currentId calBlue theNumberOfPrograms loadList
 	set list .leftSide.list
 	set home .rightSide.home
 	set leftScroll .leftSide.leftScroll
 
+	if {$id >= 0 && $loadList($id) != -1} {
+		loadGame $home $id
+		set loadList($id) -1
+	}
+	
 	set pos ""
 	if {[llength $args] > 0} {
 	set pos [lindex $args 0]
@@ -915,7 +921,7 @@ proc Resize { } {
 }
 
 proc CreateGamePages { frame } {
-	global theNumberOfPrograms calBlue Desc Rules invColors
+	global theNumberOfPrograms calBlue Desc Rules invColors loadList
 
 	set width [pageWidth]
 	set height [expr [winfo height .] - 30]
@@ -1017,82 +1023,77 @@ proc CreateGamePages { frame } {
 	pack $frame.newGame.add -anchor n
 	##### end game adding page #####
 	
-    #Loading counter
-    canvas .tempc -height 50
-    pack .tempc -in .rightSide.home
-    .tempc create text 190 25 -text "Loading 1 out of $theNumberOfPrograms" -font "Arial 15" -tags loadingstatus 
-	
     ### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-		set gameName [gameName $i]
-		set gameString [gameString $i]
-		set theColor [gameColor $i]
-		canvas $frame.$gameName -background $bgcolor -highlightthickness 0
-		message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
-			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
-	
-		canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
-	
-		pack $frame.$gameName.title -pady [list 5 0]
-		pack $frame.$gameName.buttons
-			
-		if {[guiExists $i]} {
-			button $frame.$gameName.buttons.guiButton \
-			-image [guiImage $i 1] \
-			-text "Play GUI" \
-			-compound top \
-			-bg $theColor \
-			-borderwidth $borderWidth \
-			-command "runGui $i"
-			pack $frame.$gameName.buttons.guiButton -side left
-		}
-	
-		button $frame.$gameName.buttons.textButton \
-			-image [textImage $i 1] \
-			-text "Play Text" \
-			-compound top \
-			-bg black \
-			-fg white \
-			-borderwidth $borderWidth \
-			-command "runText $i"
-		pack $frame.$gameName.buttons.textButton -side left
-	    
-	    #Loading counter
-	    set sofar [expr $i + 1]
-	    .tempc itemconfig loadingstatus -text "Loading $sofar out of $theNumberOfPrograms"
-	    
-	    #Special case for connections because con is a reserved file name
-	    if { $gameName == "con"} {
-		if { [file exists "../doc/games/html/connections.html"]} {
-		    
-		    scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
-		    option add *Text.height 40 startup
-		    option add *Text.width 80 startup
-		    text .text$gameName  -yscrollcommand ".scrollbar$gameName set" -padx 3 -pady 3 -takefocus 0
-		    
-		    pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
-		    pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
-		    
-		    convert_html_tcl "../doc/games/html/connections.html" $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
-
-
-		}
-	    } elseif { [file exists "../doc/games/html/$gameName.html"] } {
-		    
-		    scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
-		    option add *Text.height 40 startup
-		    option add *Text.width 80 startup
-		    text .text$gameName  -yscrollcommand ".scrollbar$gameName set" -padx 3 -pady 3 -takefocus 0
-		    
-		    pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
-		    pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
-		    
-		    convert_html_tcl "../doc/games/html/$gameName.html" $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
-		    
-	   	
+		set loadList($i) 1
 	}
 }
-    destroy .tempc	
+
+proc loadGame { frame i } {
+	global theNumberOfPrograms calBlue Desc Rules invColors
+
+	set width [pageWidth]
+	set height [expr [winfo height .] - 30]
+	set borderWidth 5
+	set bgcolor $calBlue
+	set fontcolor white
+			
+	##### Starting Page ########
+	set bgcolor $calBlue
+	set fontcolor white
+	set docPath "../docs/games/html"
+	set gameName [gameName $i]
+	set gameString [gameString $i]
+	set theColor [gameColor $i]
+	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
+	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
+			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
+	
+	canvas $frame.$gameName.buttons -background $bgcolor -highlightthickness 0
+	
+	pack $frame.$gameName.title -pady [list 5 0]
+	pack $frame.$gameName.buttons
+			
+	if {[guiExists $i]} {
+		button $frame.$gameName.buttons.guiButton \
+		-image [guiImage $i 1] \
+		-text "Play GUI" \
+		-compound top \
+		-bg $theColor \
+		-borderwidth $borderWidth \
+		-command "runGui $i"
+		pack $frame.$gameName.buttons.guiButton -side left
+	}
+	
+	button $frame.$gameName.buttons.textButton \
+		-image [textImage $i 1] \
+		-text "Play Text" \
+		-compound top \
+		-bg black \
+		-fg white \
+		-borderwidth $borderWidth \
+		-command "runText $i"
+	pack $frame.$gameName.buttons.textButton -side left
+	    
+	#Special case for connections because con is a reserved file name
+	if { $gameName == "con"} {
+	    set fullName [file join $docPath "connections.html"]	
+	} else {
+	    set temp $gameName.html
+	    set fullName [file join $docPath $temp]
+	}
+	    
+	if { [file exists $fullName]} {
+		scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
+		option add *Text.height 40 startup
+		option add *Text.width 80 startup
+		text .text$gameName  -yscrollcommand ".scrollbar$gameName set" -padx 3 -pady 3 -takefocus 0
+		    
+		pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
+		pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
+		    
+		convert_html_tcl $fullName $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
+	}
 }
 
 ### Call the main procedure.
