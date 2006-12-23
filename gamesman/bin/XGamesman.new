@@ -181,9 +181,9 @@ proc axisView {} {
 	return "xview"
 }
 proc setListLocation location {
-        global listLocation
+    global listLocation
 	set listLocation $location
-        gameScroll $listLocation
+    gameScroll $listLocation
 	if {$listLocation == "top" || $listLocation == "bottom"} {
 	horizontalScroll $listLocation
 	} else {
@@ -191,24 +191,41 @@ proc setListLocation location {
 	}
 }
 
-proc gameScroll location {
-    global theNumberOfPrograms listLocation loadList
-    set frame .rightSide.home
-    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+proc setGameScroll {i } {
+	global listLocation loadList
+	set frame .rightSide.home
 	set gameName [gameName $i]
-	if { ($gameName == "con" && [file exists "../doc/games/html/connections.html"]) || ($gameName != "con" && [file exists "../doc/games/html/$gameName.html"])} {
+	set docPath "../doc/games/html"
+	
+	if { $gameName == "con"} {
+	    set fullName [file join $docPath "connections.html"]	
+	} else {
+	    set temp $gameName.html
+	    set fullName [file join $docPath $temp]
+	}
+	
+	if {$loadList($i) == -1 && [file exists $fullName]} {
 	    pack forget .scrollbar$gameName
 	    pack forget .text$gameName
+	    
 	    if {$listLocation == "left" || $listLocation == "top" || $listLocation == "bottom"} {
-		pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
-		pack .scrollbar$gameName -in $frame.$gameName -side right -expand 0 -fill y
+			pack .text$gameName -in $frame.$gameName -side left -fill both -expand 1
+			pack .scrollbar$gameName -in $frame.$gameName -side right -expand 0 -fill y
 	    }
+	    
 	    if {$listLocation == "right"} {
-		pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
-		pack .text$gameName -in $frame.$gameName -side right -fill both -expand 1
+			pack .scrollbar$gameName -in $frame.$gameName -side left -expand 0 -fill y
+			pack .text$gameName -in $frame.$gameName -side right -fill both -expand 1
 
 	    }
 	}
+}
+
+proc gameScroll location {
+    global theNumberOfPrograms listLocation
+    set listLocation $location
+    for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
+		setGameScroll $i
     }
 }
 
@@ -389,15 +406,16 @@ proc textImage {id scale} {
 }
 #pos can be "top","middle", or "bottom"
 proc selectGame {id args} {
-	global currentGame currentId calBlue theNumberOfPrograms loadList
+	global currentGame currentId calBlue theNumberOfPrograms loadList \
+			listLocation
 	set list .leftSide.list
 	set home .rightSide.home
 	set leftScroll .leftSide.leftScroll
 
 	if {$id >= 0 && $loadList($id) != -1} {
-		puts "loading $id"
 		loadGame $home $id
 		set loadList($id) -1
+		setGameScroll $id
 	}
 	
 	set pos ""
@@ -1042,7 +1060,7 @@ proc loadGame { frame i } {
 	##### Starting Page ########
 	set bgcolor $calBlue
 	set fontcolor white
-	set docPath "../docs/games/html"
+	set docPath "../doc/games/html"
 	set gameName [gameName $i]
 	set gameString [gameString $i]
 	set theColor [gameColor $i]
@@ -1083,8 +1101,9 @@ proc loadGame { frame i } {
 	    set temp $gameName.html
 	    set fullName [file join $docPath $temp]
 	}
-	    
+
 	if { [file exists $fullName]} {
+			puts $fullName
 		scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
 		option add *Text.height 40 startup
 		option add *Text.width 80 startup
