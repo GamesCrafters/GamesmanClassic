@@ -395,6 +395,7 @@ proc selectGame {id args} {
 	set leftScroll .leftSide.leftScroll
 
 	if {$id >= 0 && $loadList($id) != -1} {
+		puts "loading $id"
 		loadGame $home $id
 		set loadList($id) -1
 	}
