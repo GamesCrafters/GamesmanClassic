@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: mtemplate.c,v 1.11 2006-12-19 20:00:51 arabani Exp $
+** LAST CHANGE: $Id: mtemplate.c,v 1.12 2006-12-27 23:51:23 arabani Exp $
 **
 **************************************************************************/
 
@@ -108,6 +108,7 @@ extern void		SafeFree ();
 #endif
 
 STRING                  MoveToString(MOVE move);
+STRING					GetVarString();
 
 /************************************************************************
 **
@@ -120,7 +121,12 @@ STRING                  MoveToString(MOVE move);
 
 void InitializeGame ()
 {
-  InitializeHelpStrings(); 
+  InitializeHelpStrings();
+  /* Once the functions MoveToString() and GetVarString() are written,
+   * uncomment the following two lines: */
+   
+  //gMoveToStringFunPtr = &MoveToString;
+  //gGetVarStringPtr = &GetVarString; 
 }
 
 
@@ -313,6 +319,21 @@ STRING MoveToString (MOVE move)
 {
     return NULL;
 }
+
+
+/************************************************************************
+**
+** NAME:        GetVarString
+**
+** DESCRIPTION: Returns English description of current option as a STRING
+**
+************************************************************************/
+
+STRING GetVarString ()
+{
+    return NULL;
+}
+
 
 
 /************************************************************************
@@ -562,6 +583,9 @@ void DebugMenu ()
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.11  2006/12/19 20:00:51  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **
