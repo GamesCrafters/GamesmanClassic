@@ -1279,6 +1279,10 @@ void writeXMLData()
     fprintf(xmlFile,"\t\t\t<tie>%llu</tie>\n",gAnalysis.TieCount);
     fprintf(xmlFile,"\t\t\t<draw>%llu</draw>\n",gAnalysis.Draws);
     fprintf(xmlFile,"\t\t</count>\n");
+    fprintf(xmlFile,"\t\t<interestingness>\n");
+    fprintf(xmlFile,"\t\t\t<mostInterestingPos>%llu</mostInterestingPos>\n",gAnalysis.MostInteresting);
+    fprintf(xmlFile,"\t\t\t<maxInterestingness>%f</maxInterestingness>\n",gAnalysis.MaxInterestingness);
+    fprintf(xmlFile,"\t\t</interestingness>\n");
     fprintf(xmlFile,"\t\t<primitive>\n");
     fprintf(xmlFile,"\t\t\t<win>%llu</win>\n",gAnalysis.PrimitiveWins);
     fprintf(xmlFile,"\t\t\t<lose>%llu</lose>\n",gAnalysis.PrimitiveLoses);
@@ -1307,6 +1311,10 @@ void writeXMLVarData()
     fprintf(xmlVarFile,"\t\t\t<tie>%llu</tie>\n",gAnalysis.TieCount);
     fprintf(xmlVarFile,"\t\t\t<draw>%llu</draw>\n",gAnalysis.Draws);
     fprintf(xmlVarFile,"\t\t</count>\n");
+    fprintf(xmlVarFile,"\t\t<interestingness>\n");
+    fprintf(xmlVarFile,"\t\t\t<mostInterestingPos>%llu</mostInterestingPos>\n",gAnalysis.MostInteresting);
+    fprintf(xmlVarFile,"\t\t\t<maxInterestingness>%f</maxInterestingness>\n",gAnalysis.MaxInterestingness);
+    fprintf(xmlVarFile,"\t\t</interestingness>\n");
     fprintf(xmlVarFile,"\t\t<positionstats>\n");
     fprintf(xmlVarFile,"\t\t\t<total>%llu</total>\n",gAnalysis.TotalPositions);
     fprintf(xmlVarFile,"\t\t</positionstats>\n");

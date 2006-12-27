@@ -68,8 +68,8 @@ proc GS_InitGameSpecific {} {
 
     # Authors Info
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Unsung Hero(s)"
-    set kTclAuthors "Unsung Hero(s)"
+    set kCAuthors "Brian Carnes"
+    set kTclAuthors "Brian Carnes"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
     ### Set the procedures that will draw the pieces

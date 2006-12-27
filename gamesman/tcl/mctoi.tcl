@@ -48,8 +48,8 @@ proc GS_InitGameSpecific {} {
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "(Fill this in)"
-    set kTclAuthors "(Fill this in)"
+    set kCAuthors "Farzad Eskafi and Erwin Vedar"
+    set kTclAuthors "Farzad Eskafi and Erwin Vedar"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 
 

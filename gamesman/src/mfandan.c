@@ -313,7 +313,7 @@ void InitHash() {
   myPieces_array[9]=-1;
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL, 0);  // pass null for function pointer
-  printf(POSITION_FORMAT"\n", gNumberOfPositions);
+  //printf(POSITION_FORMAT"\n", gNumberOfPositions);
 }
 
 void DefaultPieces(BlankOX* board) {

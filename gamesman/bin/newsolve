@@ -6,6 +6,9 @@
 if test "$1" = "all"
 then
 	options="--solve all"
+elif test "$1" = "analyze"
+then
+	options="--solve all --analyze"
 else
 	options="--solve"
 fi

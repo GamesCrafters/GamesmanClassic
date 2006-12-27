@@ -66,8 +66,8 @@ prevented from moving by your opponent's pieces"
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "John Lo and Diana Fang"
-    set kTclAuthors $kCAuthors
+    set kCAuthors "Ming Can Chang and Desmond Cheung"
+    set kTclAuthors "John Lo and Diana Fang"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 

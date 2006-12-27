@@ -220,7 +220,7 @@ void InitializeGameVariables(int length) {
   }
   gNumberOfPositions *= 2;
   
-  printf("positions: %lu\n",(long) gNumberOfPositions);
+  //printf("positions: %lu\n",(long) gNumberOfPositions);
   fflush(NULL);
 
   // calculate g3Array here

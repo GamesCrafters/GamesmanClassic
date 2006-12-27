@@ -40,6 +40,12 @@
 
 int   gTimer = 0;
 
+/*
+** Misc. variables
+*/
+
+char varstr[1024];
+char kHelpStar[1024];
 
 /*
 ** Code
@@ -552,10 +558,21 @@ MEX MexPrimitive(VALUE value)
 }
 
 STRING get_var_string() {
-	char str[1024];
-
-	sprintf(str,"%s game, with%ssymmetries %sloopy and%spartizan) Hashcode: %d",
+	sprintf(varstr,"%s game, with%ssymmetries %sloopy and%spartizan) Hashcode: %d",
 			(gStandardGame) ? "Standard" : "Mis�re", (gSymmetries) ? " " : "out ",
 			(kLoopy) ? "(" : "(non-", (kPartizan) ? " " : " non-", getOption());
-	return str;
+	return varstr;
+}
+
+/* Returns a string containing which kHelp* strings haven't been written */
+STRING kHelpStarWritten() {
+	sprintf(kHelpStar,"%s%s%s%s%s%s%s ",
+		strcmp(kHelpGraphicInterface, "Not written yet") ? "" : "GUI help not written, ",
+		strcmp(kHelpTextInterface, "Not written yet") ? "" : "CLI help not written, ",
+		strcmp(kHelpOnYourTurn, "Not written yet") ? "" : "Move help not written, ",
+		strcmp(kHelpStandardObjective, "Not written yet") ? "" : "Standard objective help not written, ",
+		strcmp(kHelpReverseObjective, "Not written yet") ? "" : "Mis�re objective help not written, ",
+		strcmp(kHelpTieOccursWhen, "Not written yet") ? "" : "Tie help not written, ",
+		strcmp(kHelpExample, "Not written yet") ? "" : "Example help not written");
+	return kHelpStar;
 }

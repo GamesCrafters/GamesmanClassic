@@ -61,5 +61,6 @@ void		MexFormat			(POSITION pos, STRING str);
 MEX		MexPrimitive			(VALUE value);
 
 STRING get_var_string();
+STRING kHelpStarWritten();
 
 #endif /* GMCORE_MISC_H */

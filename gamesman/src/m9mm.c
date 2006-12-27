@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m9mm.c,v 1.82 2006-12-19 20:00:50 arabani Exp $
+** LAST CHANGE: $Id: m9mm.c,v 1.83 2006-12-27 23:21:21 arabani Exp $
 **
 **************************************************************************/
 
@@ -199,7 +199,7 @@ void InitializeGame ()
 	 gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
 
 	 InitializeHelpStrings(); 
-	 printf("initialize game done\n");
+	 //printf("initialize game done\n");
 }
 
 
@@ -1167,7 +1167,7 @@ void SetupTierStuff(){
 					generic_hash_init(BOARDSIZE, pieces_array, NULL, (piecesLeft%2)+1);
 				else generic_hash_init(BOARDSIZE, pieces_array, NULL, 0);
 				generic_hash_set_context(tier);
-				printf("tier %d\t", tier);
+				//printf("tier %d\t", tier);
 				//int j;
 				//for (j = 0; j < 10; j++)
 					//printf("%d ", pieces_array[j]);
@@ -1185,7 +1185,7 @@ void SetupTierStuff(){
 		board[i] = BLANK; 
 	}
 	gInitialTierPosition = generic_hash_hash(board, PLAYER_ONE);
-	printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
+	//printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
 }
 
 TIERLIST* gTierChildren(TIER tier) {
@@ -1820,6 +1820,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.82  2006/12/19 20:00:50  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.81  2006/12/07 02:31:17  max817
  ** Commiting for Nine Men's Morris.
  **

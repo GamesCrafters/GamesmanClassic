@@ -20,11 +20,6 @@ proc GS_InitGameSpecific {} {
     global kGameName
     set kGameName "Tic-Tac-Toe"
 
-
-    global kCAuthors kTclAuthors
-    set kCAuthors "Dan Garcia"
-    set kTclAuthors "GamesCrafters"
-
     ### Set the initial position of the board in our representation
     global gInitialPosition gPosition
     set gInitialPosition 0

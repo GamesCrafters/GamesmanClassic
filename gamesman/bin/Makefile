@@ -11,6 +11,9 @@ clean:
 	@$(MAKE) -w -C ../src clean-bins
 	rm -rf *~
 
+memdebug:
+	@$(MAKE) -w -C ../src memdebug
+
 ../src/%.o:
 	@$(MAKE) -w -C ../src $@
 

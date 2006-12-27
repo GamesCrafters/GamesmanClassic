@@ -221,6 +221,7 @@ void SolveAndStore()
                 // Writing HTML Has Now Been Deprecated
                 // createAnalysisVarDir();
                 // writeVarHTML();
+                DetermineInterestingness(gInitialPosition);
                 writeXML(Save);
                 writeXML(SaveVar);
                 writeXML(CleanVar);
@@ -388,6 +389,19 @@ void HandleArguments (int argc, char *argv[])
 				} else if(!strcasecmp(argv[i],"--startAndWait")) {
 						StartAndWait();
 						ExitStageRight();
+				} else if(!strcasecmp(argv[i],"--printdefault")) {
+					/* Some games initialize help strings inside InitializeGame() */
+					 InitializeGame();
+					/* prints long name, short name, default option,
+					 * C author(s), and some k* values, delimited with ^ 
+					 * Current k* values are kDebugMenu. kDebugDetermineValue,
+					 * and any kHelp* that aren't written*/
+					printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),
+							kAuthorName,
+							kDebugMenu ? "True" : "False",
+							kDebugDetermineValue ? "True" : "False",
+							kHelpStarWritten());
+					gMessage = TRUE;
 				} else {
                         fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
                         gMessage = TRUE;

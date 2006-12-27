@@ -313,7 +313,7 @@ void InitializeGame()
   
   gMoveToStringFunPtr = &MoveToString;
 
-  printf("\nDone With Initalization\n\nDone With Initalization\n");
+  //printf("\nDone With Initalization\n\nDone With Initalization\n");
 }
 
 /************************************************************************

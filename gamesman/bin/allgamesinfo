@@ -13,18 +13,11 @@ else
 	rm -rf analysis/allgamesinfo.txt
 	for module in $moduleList
 	do
-		option=$(./${module} --printdefault)
-
-		if [ -f "../src/${module}.cc" ]
+		if [ "$module" == "mgraph" ]
 		then
-			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.cc | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
-			debugflag=$(grep -h "BOOLEAN \+kDebugMenu \+= \+" ../src/${module}.cc | sed -e 's/BOOLEAN \+kDebugMenu \+= \+//' -e 's/;//' -e 's/TRUE/True/' -e 's/FALSE/False/')
-
-		else
-			debugflag=$(grep -h "BOOLEAN \+kDebugMenu \+= \+" ../src/${module}.c | sed -e 's/BOOLEAN \+kDebugMenu \+= \+//' -e 's/;//' -e 's/TRUE/True/' -e 's/FALSE/False/')
-			cauthor=$(grep -h "STRING \+kAuthorName" ../src/${module}.c | sed -e 's/STRING \+kAuthorName \+= \"//' -e 's/\";//' -e 's/\/\* Your name(s) \*\///' -e 's/ /Ω/g')
+			continue
 		fi
-		echo $option^$cauthor^$debugflag >> analysis/allgamesinfo.txt
+		./${module} --printdefault | sed -e 's/, $//' -e 's/ /Ω/g' >> analysis/allgamesinfo.txt
 	done
 fi
 
@@ -68,20 +61,22 @@ else
 		else
 			# have to use -m 1 because of Xmsim containing gamesman3 twice
 			status=$(grep -o -m 1 "gamesman." ${Xmodule} | sed -e 's/gamesman3/Gold/' -e 's/gamesman./Silver/')
-			temp=$(grep -o "gamesman." ${Xmodule}) # Just to clear out grep from using -m 1
+			grep -o "gamesman." ${Xmodule} > /dev/null # Just to clear out grep after using -m 1
 
 			if [ "$status" != "Gold" -a "$status" != "Silver" ]
 			then
 				status=$Bronze
 			fi
-			tclauthor=$(grep -h "AUTHOR" ${Xmodule} | sed -e 's/#\+ \+AUTHOR: \+//' -e 's/ \+- \+University of California at Berkeley//' -e 's/ /Ω/g')
-			if [ "$Xmodule" == "Xmttt3" ]	# I hate Tic-Tac-Toe and it's bazillion  versions
+
+			if [ "$Xmodule" == "Xmttt3" ]	# I hate Tic-Tac-Toe and it's bazillion versions
 			then
 				cname=$(echo ${Xmodule} | tr -d X3)
 			else
 				cname=$(echo ${Xmodule} | tr -d X)
 			fi
-			name=$(./${cname} --printdefault | cut -d^ -f 1)
+			tclauthor=$(grep -h "set kTclAuthors" ../tcl/${cname}.tcl | sed -e 's/ \+set/set/' -e 's/set \+kTclAuthors \+//' -e 's/"//g' -e 's/ /Ω/g')
+
+			name=$(./${cname} --printdefault | cut -d^ -f 1 | sed -e 's/ /Ω/g')
 			echo $name^$status^$tclauthor >> analysis/allgamestatus.txt			
 		fi
 	done
