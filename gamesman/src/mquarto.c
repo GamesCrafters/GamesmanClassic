@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.63 2006-12-19 20:00:51 arabani Exp $
+// $Id: mquarto.c,v 1.64 2006-12-30 04:11:01 yanpeichen Exp $
 
 
 /*
@@ -283,7 +283,7 @@ Computer (player one) Wins!\n";
   x &= ~(1 << n);				\
   x |= (y & 1) << n
 
-int GAMEDIMENSION = 5;
+int GAMEDIMENSION = 3;
 
 int BOARDSIZE;
 int NUMPIECES;
@@ -541,7 +541,7 @@ void yanpeiInitializeGame() {
 
     /* calls to test functions */
     //yanpeiTestOffset();
-    //yanpeiTestHash();
+    yanpeiTestHash();
     //yanpeiTestCanonicalSupport();
     //yanpeiTestCanonical();
     //printLookupTable(lookupTable);
@@ -1038,8 +1038,8 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
     QTBPtr b = unhash(position);
     short i;
 
-    printf("  hashed " POSITION_FORMAT, position);
-    printf(" slots: ");
+    printf("  hash value " POSITION_FORMAT, position);
+    printf("; slots: ");
     for (i=0; i<BOARDSIZE+1; i++) {
 	if (b->slots[i] != EMPTYSLOT) {
 	    printf("%3d",b->slots[i]);
@@ -1880,22 +1880,22 @@ void setOffsetTable() {
 /* Creates move given slot and piece */
 MOVE CreateMove( MOVE slot, MOVE piece ) {
 	
-    return slot + ( piece << ( GAMEDIMENSION + 1 ) );
+    return piece + ( slot << ( GAMEDIMENSION ) );
 	
 	
 }
 
 /* Returns piece given move */
-MOVE GetMovePiece( MOVE move ) {
+MOVE GetMoveSlot( MOVE move ) {
 	
-    return move >> ( GAMEDIMENSION + 1 );
+    return move >> ( GAMEDIMENSION );
 	
 }
 
 /* Returns slot given move */
-MOVE GetMoveSlot( MOVE move ) {
+MOVE GetMovePiece( MOVE move ) {
 	
-    return move & maskseq( GAMEDIMENSION + 1 );
+    return move & maskseq( GAMEDIMENSION );
 	
 }
 
@@ -2023,8 +2023,10 @@ void yanpeiTestHash() {
 
     printPos = &yanpeiPrintSlots;
   
-    i=offsetTable[NUMPIECES];
-    while (i<offsetTable[NUMPIECES+1] && allPassed) {
+    //i=offsetTable[NUMPIECES];
+    //while (i<offsetTable[NUMPIECES+1] && allPassed) {
+    i = 0;
+    while (i<offsetTable[2]+50 && allPassed) {
         //printf("%8d\n",i);
 	if (i != (h=hash(unhash(i)))) {
 	    allPassed = FALSE;
@@ -2777,6 +2779,9 @@ char readchar( ) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.63  2006/12/19 20:00:51  arabani
+// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+//
 // Revision 1.62  2006/08/21 23:49:09  dmchan
 // commented out calls to fflush(stdin) and changed to GetMyInt() and GetMyChar() where appropriate
 //
