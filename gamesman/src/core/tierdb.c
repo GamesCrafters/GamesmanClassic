@@ -333,6 +333,7 @@ BOOLEAN tierdb_save_database ()
                 return TRUE;
 
 		// Make the directory for this game's tierdb's
+		mkdir("data", 0755);
 		sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
 		mkdir(tierdb_outfilename, 0755);
 		sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
