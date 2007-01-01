@@ -427,8 +427,14 @@ SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
 
 all: 		text_all @COMPILEGRAPHICS@
 
+all-memdebug:	CFLAGS+= -DMEMWATCH
+all-memdebug:	all
+
 memdebug:	CFLAGS += -DMEMWATCH
-memdebug:	all
+memdebug:
+		@$(MAKE) -w -C core memdebug
+		@$(MAKE) -w -C core/filedb memdebug
+		@$(MAKE) -w all-memdebug
 
 dist:		clean
 		rm -rf Makefile
@@ -462,18 +468,10 @@ $(GAMELINE_EXE): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX)
 #$(GAMESMAN_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 #	$(CC) $(CFLAGS) -c -o $@ $<
 $(GAMESMAN_A): $(GAMESMAN_DEPS)
-ifneq (,$(findstring -DMEMWATCH,$(CFLAGS)))
-	@$(MAKE) -w -C core memdebug
-else
 	@$(MAKE) -w -C core all
-endif
 
 $(GAMESDB_A): $(GAMESDB_DEPS)
-ifneq (,$(findstring -DMEMWATCH,$(CFLAGS)))
-	@$(MAKE) -w -C core/filedb memdebug
-else
 	@$(MAKE) -w -C core/filedb all
-endif
 
 $(GWISH_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) -c -o $@ $<
