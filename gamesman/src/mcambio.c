@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.33 2006-12-19 20:23:48 simontaotw Exp $
+// $Id: mcambio.c,v 1.34 2007-01-06 03:24:32 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,14 +21,14 @@
 **              3/04/2006 - Fixed compile errors.
 **              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
 **              3/06/2006 - Updated GetInitialPosition().
-**	            3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loo
-**                                    Removed blanks from the game.
+**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
+**                          Removed blanks from the game.
 **              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
 **              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
 **              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
-**                                    Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
+**                          Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
 **              3/19/2006 - Changed the Legend so it looks less cramped.
-**	            4/16/2006 - Trying 3x3 board to see if it solves
+**	        4/16/2006 - Trying 3x3 board to see if it solves
 **              4/28/2006 - Added new input format with 3x3 board.
 **              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
 **              5/03/2006 - Changed winning condition in DoMove.
@@ -40,6 +40,7 @@
 **              5/24/2006 - Modified some hash calls. 5x5 does not work because 3^25 is too big.
 **              10/05/2006 - Deleted unnecessary functions. 5x5 player vs. player does not work... too big for hash...
 **              12/19/2006 - Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
+**              1/5/2007 - Added variable number of placement invariant.
 **
 **************************************************************************/
 
@@ -150,6 +151,7 @@ typedef enum player {
 int rowcount = 3;
 int colcount = 3;
 int boardSize;
+int initialPlacement = 2;
 char neutral = NEUTRAL;
 char aPiece = A_PIECE;
 char bPiece = B_PIECE;
@@ -281,8 +283,6 @@ void InitializeGame ()
 
   gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
   
-  //printf("Before setting custom context\n");
-  
   // switch to custom context
   generic_hash_custom_context_mode(TRUE);
 
@@ -334,8 +334,6 @@ void InitializeGame ()
 MOVELIST *GenerateMoves (POSITION position)
 /* must check all the math used for general case, such as 5x5 and on */
 {
-        //printf("In GenerateMove\n");
-
         MOVELIST *moves = NULL;
 	MOVELIST *CreateMovelistNode();
 	
@@ -365,10 +363,9 @@ MOVELIST *GenerateMoves (POSITION position)
 	  opposymbol = bPiece;
 	}
 
-    //printf("turn: %d\n", turn);
 
 	/* Phase 1: Less than colcount-1 of PlayerB's and colcount-1 of PlayerA's pieces on the board. */
-	if(countB < (colcount-1) || countA < (colcount-1))
+	if(countB < initialPlacement || countA < initialPlacement)
 	{
 		//printf("phase 1\n");
 		for(i = 0; i < boardSize; i++)
@@ -435,8 +432,6 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-        //printf("In DoMove\n");
-
 	char symbol, opposymbol;
 	int turn;
 	int pushon, pushoff;
@@ -445,11 +440,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 
 	gBoard = PositionToBoard(position);
-//printf("DoMove: %s\n", gBoard);
+
 	//generic_hash_unhash(position, gBoard);
 
 	turn = generic_hash_turn(position);
-//printf("DoMove: %d\n", turn);
+
 	/* Assign pieces for each player */
 	if(turn == playerA) {
 	  symbol = aPiece;
@@ -463,7 +458,6 @@ POSITION DoMove (POSITION position, MOVE move)
 
 	if(move < boardSize)
 	  {
-//printf("symbol: %c\n", opposymbol);
 	    gBoard[move] = opposymbol;
 	  }
 	else
@@ -498,19 +492,12 @@ POSITION DoMove (POSITION position, MOVE move)
 	    }
 	}
 
-
-	//printf("In DoMove, turn: %d\n", turn);
-
 	if(turn == playerA)
 	  turn = playerB;
 	else
 	  turn = playerA;
-	  
-	//printf("In DoMove after switch, turn: %d\n", turn);
 
 	positionAfterMove = BoardToPosition(gBoard, turn); // generic_hash_hash(gBoard, turn);
-
-	//printf("In DoMove after hash, turn: %d\n", turn);
 
 	SafeFree(gBoard);
 
@@ -544,8 +531,6 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-  //printf("In Primitive\n");
-
   int turn = generic_hash_turn(position);
   char symbol, opposymbol;
   BOOLEAN playerWin, oppoWin;
@@ -614,7 +599,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 
   /* Phase 1: Less than colcount-1 of PlayerB's pieces or less than colcount-1 of PlayerA's pieces on the board. */
-  if(countB < (colcount-1) || countA < (colcount-1))
+  if(countB < initialPlacement || countA < initialPlacement)
     {
       printf("\n");
       if(colcount == 3) {
@@ -691,7 +676,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
       printf("\n");
     }
   /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= (colcount-1) && countA >= (colcount-1))
+  else if(countB >= initialPlacement && countA >= initialPlacement)
     {
       printf("\n");
       if(colcount == 3) {
@@ -888,7 +873,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 
   /* Phase 1: Less than colcount-1 of PlayerB's or colcount-1 of PlayerA's pieces on the board*/
-  if(countB < (colcount-1) || countA < (colcount-1))
+  if(countB < initialPlacement || countA < initialPlacement)
     {
       for (;;) {
 	/***********************************************************
@@ -903,13 +888,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
       }
     }
   /* Phase 2: The main phase of the game. Place your piece at the end of one row and push the piece at the other side off */
-  else if(countB >= (colcount-1) && countA >= (colcount-1))
+  else if(countB >= initialPlacement && countA >= initialPlacement)
     {
       for (;;) {
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(u)ndo/([a-%c or 1-%d])]  : ", playersName, 'a'+(colcount*2-1), (colcount*2-1));
+	printf("%8s's move [(u)ndo/([a-%c or 1-%d])] : ", playersName, 'a'+(colcount*2-1), (colcount*2-1));
 
 	input = HandleDefaultTextInput(position, move, playersName);
 
@@ -1081,7 +1066,12 @@ void GameSpecificMenu ()
   do {
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     printf("\ts)\tChoose the board (S)ize. Currently: %dx%d\n", rowcount, colcount);
-    printf("\t\t3x3 solves and 4x4 works player vs. player\n\n");
+    printf("\t\t3x3, 4x4, and 5x5 solve (4x4 and 5x5 take a\n");
+    printf("\t\tconsiderable amount of time)\n\n");
+
+    printf("\tp)\tChange the number of (P)ieces placed in the\n");
+    printf("\t\tinitial placement phase. Currently: %d\n\n", initialPlacement);
+
     printf("\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
 
@@ -1095,6 +1085,18 @@ void GameSpecificMenu ()
       rowcount = temp - 48;
       colcount = temp - 48;
       boardSize = rowcount*colcount;
+      break;
+    case 'p' : case 'P' :
+      do {
+        printf("Enter a number: ");
+        temp = GetMyChar();  //get as a char; must convert to int
+        temp = temp - 48;
+        if(temp*2 > boardSize-4) {
+          printf("\nThe number you have entered will exceed the\n");
+          printf("board size. Please try again.\n\n");
+        }
+      } while(temp*2 > boardSize-4);
+      initialPlacement = temp;
       break;
     case 'b': case 'B':
       return;
@@ -1417,8 +1419,6 @@ void SetupTier() {
   int i;
   int countA, countB;
 
-  //printf("Inside SetupTier\n");
-
   // Tier-Specific Hashes
   // Phase 1
   // X placement
@@ -1436,8 +1436,6 @@ void SetupTier() {
       generic_hash_init(boardSize, piecesArrayTier, NULL, 1);
       // set context; tier = # of X's + # of O's*boardSize^2
       generic_hash_set_context(countA + countB*boardSize*boardSize);
-      //printf("Finished X placement\n");
-      //printf("%d\n", countA + countB*boardSize*boardSize);
     }
     // O placement (includes initial board)
     else {
@@ -1453,8 +1451,6 @@ void SetupTier() {
       generic_hash_init(boardSize, piecesArrayTier, NULL, 2);
       // set context; tier = # of X's + # of O's*boardSize^2
       generic_hash_set_context(countA + countB*boardSize*boardSize);
-      //printf("Finished O placement\n");
-      //printf("%d\n", countA + countB*boardSize*boardSize);
     }
   }
   
@@ -1467,17 +1463,12 @@ void SetupTier() {
       piecesArrayTier[4] = piecesArrayTier[5] = countB;
       // Neutrals
       piecesArrayTier[7] = piecesArrayTier[8] = boardSize - countA - countB;
-      //printf("countA: %d\n", countA);
-      //printf("countB: %d\n", countB);
       // initialize hash
       generic_hash_init(boardSize, piecesArrayTier, NULL, 0);
       // set context; tier = # of X's + # of O's*boardSize^2
       generic_hash_set_context(countA + countB*boardSize*boardSize);
-      //printf("%d\n", countA + countB*boardSize*boardSize);
     }
   }
-
-  //printf("Finished shifting\n");
 
 
   // setup for initial board
@@ -1524,7 +1515,6 @@ TIERLIST *TierChildren(TIER tier) {
       if(i == 0) {
         if(tier == 0) {
           tierlist = CreateTierlistNode(1, tierlist);
-          printf("%d: %d\n", tier, 1);
           return tierlist;
         }
       }
@@ -1535,7 +1525,6 @@ TIERLIST *TierChildren(TIER tier) {
 
         if(tier == countA + countB*boardSize*boardSize) {
           tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
-	  printf("%d: %d\n", tier, tier+boardSize*boardSize);
           return tierlist;
         }
       }
@@ -1546,7 +1535,6 @@ TIERLIST *TierChildren(TIER tier) {
 
         if(tier == countA + countB*boardSize*boardSize) {
           tierlist = CreateTierlistNode(tier+1, tierlist);
-          printf("%d: %d\n", tier, tier+1);
           return tierlist;
         }
       }
@@ -1558,19 +1546,16 @@ TIERLIST *TierChildren(TIER tier) {
       for(countB = (rowcount - 1); countB <= boardSize - countA; countB++) {
         if(tier + 1 == countA + countB*boardSize*boardSize || 
            tier + boardSize*boardSize == countA + countB*boardSize*boardSize) {
-          //printf("tier with children: %d\n", tier);
           // self loop
           tierlist = CreateTierlistNode(tier, tierlist);
           // putting an X down
           tierlist = CreateTierlistNode(tier+1, tierlist);
           // putting an O down
           tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
-          //printf("%d: %d %d %d\n", tier, tier, tier+1, tier+boardSize*boardSize);
         }
         else if(tier == countA + countB*boardSize*boardSize) {
           // self loop
           tierlist = CreateTierlistNode(tier, tierlist);
-          //printf("%d: %d\n", tier, tier);
         }
       }
     }
@@ -1589,12 +1574,8 @@ POSITION BoardToPosition(char *board, int turn) {
   // if we use tier
   if(gHashWindowInitialized) {
     TIER tier = BoardToTier(board);
-    //printf("BoardToPosition\n");
-    //printf("tier: %d\n", tier);
-    //printf("%s\n",gBoard);
     generic_hash_context_switch(tier);
     TIERPOSITION tierpos = generic_hash_hash(board, turn);
-    //printf("tierpos: %d\n", tierpos);
     return gHashToWindowPosition(tierpos, tier);
   }
   // if we use generic hash
@@ -1613,12 +1594,8 @@ char *PositionToBoard(POSITION position) {
     TIERPOSITION tierpos;
     TIER tier;
     gUnhashToTierPosition(position, &tierpos, &tier);
-    //printf("PositionToBoard\n");
-    //printf("tier: %d\n", tier);
-    //printf("tierpos: %d\n", tierpos);
     generic_hash_context_switch(tier);
     generic_hash_unhash(tierpos, gBoard);
-    //printf("%s\n",gBoard);
     return (char *) generic_hash_unhash(tierpos, gBoard);
   }
   // if we use generic hash
@@ -1631,6 +1608,9 @@ char *PositionToBoard(POSITION position) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2006/12/19 20:23:48  simontaotw
+// Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
+//
 // Revision 1.31  2006/10/17 10:45:20  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
