@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m9mm.c,v 1.83 2006-12-27 23:21:21 arabani Exp $
+** LAST CHANGE: $Id: m9mm.c,v 1.84 2007-01-06 22:09:21 noafroboy Exp $
 **
 **************************************************************************/
 
@@ -33,8 +33,8 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Six Men's Morris"; /* The name of your game */
-STRING   kAuthorName          = "Patricia Fong, Kevin Liu"; /* Your name(s) */
+STRING   kGameName            = "Nine Men's Morris"; /* The name of your game */
+STRING   kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Wei Tu, Elmer Lee"; /* Your name(s) */
 STRING   kDBName              = "9mm"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -59,7 +59,7 @@ void*	 gGameSpecificTclInit = NULL;
  **/
 
 STRING   kHelpGraphicInterface =
-"Six Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+"Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
 STRING   kHelpTextInterface =
 "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
@@ -93,24 +93,24 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-#define BOARDSIZE 24 //9mm 24
-#define minx  2 
-#define maxx  9  //9mm 9
-#define mino  2 
-#define maxo  9  //9mm 9
-#define minb  BOARDSIZE - maxo - maxx
-#define maxb  BOARDSIZE - mino - minx
-#define toFly 3
+int BOARDSIZE = 24; //9mm 24
+int minx = 2; 
+int maxx = 9;  //9mm 9
+int mino = 2; 
+int maxo = 9;  //9mm 9
+int minb = 6;
+int maxb = 20;
+int toFly = 3;
 
 
-#define BLANK '_'
+#define BLANK '.'
 #define X 'X'
 #define O 'O'
 
 #define PLAYER_ONE 1
 #define PLAYER_TWO 2
 
-#define SIXMM 0
+int SIXMM = 0;
 
 
 //TEMPORARY GLOBALS, UNTIL TIERS IMPLEMENTED
@@ -118,7 +118,7 @@ STRING   kHelpExample =
 
 int NUMX=0;
 int NUMO=0;
-int totalPieces = maxx+maxo; //Remove when tiering
+int totalPieces = 18; //Remove when tiering
 
 
 /*************************************************************************
@@ -128,10 +128,8 @@ int totalPieces = maxx+maxo; //Remove when tiering
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH 
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
-#endif
+extern void		SafeFree ();
 
 /*function prototypes*/
 void InitializeGame ();
@@ -168,6 +166,8 @@ BOOLEAN check_mill(char *board, int slot, char turn);
 BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn);
 int find_adjacent(int slot, int *slots);
 POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position);
+void changetosix();
+void changetonine();
 
 
 
@@ -475,9 +475,6 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
 	char *board;
-	
-	
-	
 	char turn;
 	int piecesLeft;
 	int numx, numo;
@@ -586,10 +583,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		  printf("        |           |           |       |           |           |\n");
 		  printf("        21----------22----------23      %c-----------%c-----------%c\n", board[21], board[22], board[23] );
   
-		  if(piecesLeft !=0)
+		  /*if(piecesLeft !=0)
 		  {
-			printf("/n/nx pieces left: %d \to pieces left: %d\n", piecesLeft/2, piecesLeft/2+piecesLeft%2);
-		  }
+			printf("X pieces left: %d \tO pieces left: %d\n", piecesLeft/2, piecesLeft/2+piecesLeft%2);
+		  }*/
   
   /*
   0-----------1-----------2
@@ -667,8 +664,7 @@ STRING MoveToString (MOVE move)
 	int tier, piecesLeft;
 
 	STRING movestring;
-	//printf("MOVE TO STRING\n");
-	tier = generic_hash_cur_context(); //DOES THIS WORK??? - Kevin
+	tier = generic_hash_cur_context();
 	piecesLeft = tier/100;
 	if (piecesLeft == 0)
 	{
@@ -689,7 +685,7 @@ STRING MoveToString (MOVE move)
 		if (from == to) //if 1st == 2nd position in move formula
 		{
 			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", from);	
+			sprintf(movestring, "%d", from);	
 		}
 		else
 		{
@@ -791,64 +787,44 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	//DONE
 	// we could bulletproof this a lot more
-  return TRUE;
-  int moveFrom, moveTo, moveRemove;
 
-  BOOLEAN hasSpace, has2Space;
-  STRING afterSpace;
-  STRING after2Space;
-  
-
-
+	if(input[0]>57 || input[0]<48)
+		return FALSE;
+	else
+		return TRUE;
+	
+  /*
   moveFrom = atoi(input); //WRONG
-
-  /*debug
-  if (debug) {
-    From of input: %d", moveFrom);
-  }
-  */
-  
+  printf("moveFrom=%d\n", moveFrom);
   if (moveFrom < 0 || moveFrom >= BOARDSIZE){
-    /*debug
-    if (debug) {
-      printf("move check fails b/c of Moveto");
-    }
-	*/
-    return FALSE;
+    printf("returning false at 801\n");
+	return FALSE;
   }
-  
   
   hasSpace = index(input, ' ') != NULL;
   if (hasSpace) {
-    afterSpace = index(input, ' '); //SEE WHAT INDEX DOES
-
-  } else {
-    return FALSE;
-  }
-    
-  moveTo = atoi(afterSpace);
-
-  
-  if (moveTo < 0 || moveTo >= BOARDSIZE) {
-    
-  	return FALSE;
-  }
-  
-  has2Space = index(++afterSpace, ' ') != NULL;
-  if (has2Space) {
-    after2Space = index(afterSpace, ' ');
-    moveRemove = atoi(after2Space);
-    if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
-      
-      return FALSE;
-    }
-    else 
-      return TRUE;
-  } else {
-    return TRUE;
-  }
-
-  return FALSE; // should never be reached
+	    afterSpace = index(input, ' '); //SEE WHAT INDEX DOES
+		moveTo = atoi(afterSpace);
+		if (moveTo < 0 || moveTo >= BOARDSIZE) {
+			return FALSE;
+		}
+	  
+		has2Space = index(++afterSpace, ' ') != NULL;
+		if (has2Space) {
+			after2Space = index(afterSpace, ' ');
+			moveRemove = atoi(after2Space);
+			if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
+				return FALSE;
+			}
+			else 
+				return TRUE;
+		} 
+		else {
+			return TRUE;
+		}
+	}
+	return TRUE;
+*/
 }
 
 
@@ -933,10 +909,25 @@ void GameSpecificMenu ()
 	   gFlying ? "ON" : "OFF",
 	   !gFlying ? "ON" : "OFF"); 
    */ 
-    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+   
+	if (SIXMM == 1)
+		printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+   else
+		printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+   
+    printf("\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
+	
+	
+	
     
     switch(GetMyChar()) {
+	case 'S': case 's':
+	  changetosix();
+	  return;
+	case 'N': case'n':
+	  changetonine();
+	  return;
     case 'Q': case 'q':
       ExitStageRight();
     case 'H': case 'h':
@@ -1006,7 +997,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 1;
 }
 
 
@@ -1185,7 +1176,7 @@ void SetupTierStuff(){
 		board[i] = BLANK; 
 	}
 	gInitialTierPosition = generic_hash_hash(board, PLAYER_ONE);
-	//printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
+	//printf("line 1171 gInitialTierPosition = %d\n",  gInitialTierPosition);
 }
 
 TIERLIST* gTierChildren(TIER tier) {
@@ -1194,13 +1185,13 @@ TIERLIST* gTierChildren(TIER tier) {
 	piecesLeft=(tier/100);
 	numx=(tier/10)%10;
 	numo=tier%10;
-printf("tier = %d\t", tier);
+	//printf("tier = %d\t", tier);
 	if (piecesLeft !=0){
 		if(piecesLeft%2==0){ //meaning it is X's turn
 			//if (((piecesLeft == 2) && (numo > 1) && (numx+1 > 1) ) || (piecesLeft > 1))
 				list = CreateTierlistNode(tier-100+10, list); //adding piece
 			//}
-			//if (((piecesLeft > 1) &&(numx > 0)) || ((piecesLeft == 2) && (numo-1 > 1) && (numx+1 > 1)))  {
+			//if (((piecesLeft > 1) &&(numx > 0)) || ((piecesLeft == 2) && (numo-1 > 1) && (numx+1 > 1)))  {/
 			if (numx > 1) {
 				list = CreateTierlistNode(tier-100+9, list); //adding and removing
 			}
@@ -1815,17 +1806,38 @@ int find_adjacent(int slot, int *slots)
   return num;
 }
 
+void changetosix()
+{
+	SIXMM = 1;
+	BOARDSIZE = 16;
+	maxx = 6;
+	maxo = 6;
+	minb = BOARDSIZE - maxo - maxx;
+	maxb = BOARDSIZE - mino - minx;
+	totalPieces = maxx + maxo;
+	kDBName = "6mm";
+	kGameName = "Six Men's Morris";
+	kHelpGraphicInterface = "Six Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+}
+
+void changetonine()
+{
+	SIXMM = 0;
+	BOARDSIZE = 24;
+	maxx = 9;
+	maxo = 9;
+	minb = BOARDSIZE - maxo - maxx;
+	maxb = BOARDSIZE - mino - minx;
+	totalPieces = maxx + maxo;
+	kDBName = "9mm";
+	kGameName = "Nine Men's Morris";
+	kHelpGraphicInterface = "Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+}
 
 /************************************************************************
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
- ** Revision 1.82  2006/12/19 20:00:50  arabani
- ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
- **
- ** Revision 1.81  2006/12/07 02:31:17  max817
- ** Commiting for Nine Men's Morris.
- **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **
