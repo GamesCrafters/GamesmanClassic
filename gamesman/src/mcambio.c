@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.34 2007-01-06 03:24:32 simontaotw Exp $
+// $Id: mcambio.c,v 1.35 2007-01-08 02:53:03 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -40,7 +40,8 @@
 **              5/24/2006 - Modified some hash calls. 5x5 does not work because 3^25 is too big.
 **              10/05/2006 - Deleted unnecessary functions. 5x5 player vs. player does not work... too big for hash...
 **              12/19/2006 - Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
-**              1/5/2007 - Added variable number of placement invariant.
+**              1/5/2007 - Added variable number of placement variant.
+**              1/7/2007 - Fixed original gamesman; changed input so it does not conflict with system inputs.
 **
 **************************************************************************/
 
@@ -100,21 +101,23 @@ STRING   kHelpOnYourTurn =
 1. The players each select a symbol to be their own, and decide\n\
    who will begin the game.\n\
 2. Fill the four corners with neutral symbols.\n\
-3. Alternatively, Player A places two cubes of its symbol on the board,\n\
-   then player B places two cubes of its symbol on the board.\n\
+3. Alternatively, Player A places player B's symbol on the board,\n\
+   then player B places player A's symbol on the board.\n\
+   The number of initial placement depends on the board size \n\
+   (columns - 1) or can be specified in the game options menu.\n\
    These cubes may be placed in any of the positions that a cube\n\
-   may occupy when the tray is full.\n\
+   may occupy when the tray is full (except the four corners).\n\
 4. Fill in the rest of the positions with neutral symbols.\n\n\
 PLAY:\n\
 Each player in turn places a spare cube with his/her own symbol, at\n\
-the beginning of any row or column; SafeFrees the end cube by lifting\n\
+the beginning of any row or column; frees the end cube by lifting\n\
 it from the board; then pushes all the pieces in that line along\n\
 one place. A player MAY NOT push cubes with your opponents symbol\n\
 showing OFF the board.\n";
 
 STRING   kHelpStandardObjective =
-"To make a line composed of all 3 of your own symbol - \n\
-horizontally, vertically or diagonally.\n";
+"To make a line composed of all 3, 4, or 5 (depending on the board size)\n\
+of your own symbol - horizontally, vertically or diagonally.\n";
 
 STRING   kHelpReverseObjective =
 "";
@@ -194,21 +197,21 @@ STRING alphaArray5[] =
    18,  19,  20 }; */
 
 STRING shiftArray3[] = 
-{ "a", "b", "c",
+{ "i", "j", "k",
   "3", "4", "5",
-  "d", "e", "f",
+  "v", "w", "x",
   "0", "1", "2" };
 
 STRING shiftArray4[] = 
-{ "a", "b", "c", "d",
+{ "i", "j", "k", "l",
   "4", "5", "6", "7",
-  "e", "f", "g", "h",
+  "v", "x", "w", "y",
   "0", "1", "2", "3" };
 
 STRING shiftArray5[] = 
-{ "a", "b", "c", "d", "e",
+{ "i", "j", "k", "l", "m",
   "5", "6", "7", "8", "9",
-  "f", "g", "h", "i", "j",
+  "v", "w", "x", "y", "z",
   "0", "1", "2", "3", "4" };
 
 char *gBoard;
@@ -257,9 +260,9 @@ BOOLEAN                 NInARow(char *board, char symbol, int size);
 void 			SetupTier();
 TIER 			BoardToTier(char *board);
 POSITION 		BoardToPosition(char *board, int turn);
-char			*PositionToBoard(POSITION position);
+char		       *PositionToBoard(POSITION position);
 TIERPOSITION 		NumberOfTierPositions(TIER tier);
-TIERLIST		*TierChildren(TIER tier);
+TIERLIST	       *TierChildren(TIER tier);
 
 
 /************************************************************************
@@ -303,7 +306,7 @@ void InitializeGame ()
   for (i = 0; i < boardSize; i++)
     gBoard[i] = neutral;
 
-  gInitialPosition = generic_hash_hash(gBoard, playerA);
+  gInitialPosition = generic_hash_hash(gBoard, 2);
 
   SafeFree(gBoard);
 
@@ -603,16 +606,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     {
       printf("\n");
       if(colcount == 3) {
-	printf("A's Symbol = %c       1 2 3 \n", aPiece);
-	printf("B's Symbol = %c      -------\n", bPiece);
+	printf("One's Symbol = %c       1 2 3 \n", bPiece);
+	printf("Two's Symbol = %c      -------\n", aPiece);
       }
       else if(colcount == 4) {
-	printf("A's Symbol = %c       1 2 3 4 \n", aPiece);
-	printf("B's Symbol = %c      ---------\n", bPiece);
+	printf("One's Symbol = %c       1 2 3 4 \n", bPiece);
+	printf("Two's Symbol = %c      ---------\n", aPiece);
       }
       else if(colcount == 5) {
-	printf("A's Symbol = %c       1 2 3 4 5 \n", aPiece);
-	printf("B's Symbol = %c      -----------\n", bPiece);
+	printf("One's Symbol = %c       1 2 3 4 5 \n", bPiece);
+	printf("Two's Symbol = %c      -----------\n", aPiece);
       }
       else {
 	printf("Error in: PrintPosition\n");
@@ -623,11 +626,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	  //indentation
 	  if(i == 0)
 	    {
-	      printf("   Neutral = %c    %c ", neutral, (i/rowcount)+97);
+	      printf("     Neutral = %c    %c ", neutral, (i/rowcount)+97);
 	    }
 	  if((i != 0) && ((i % rowcount) == 0))
 	    {
-	      printf("                  %c ", (i/rowcount)+97);
+	      printf("                    %c ", (i/rowcount)+97);
 	    }
 
 	  if(gBoard[i] == aPiece)
@@ -659,16 +662,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 
       if(colcount == 3) {
-	printf("                    -------\n");
-	printf("                     1 2 3 \n");
+	printf("                      -------\n");
+	printf("                       1 2 3 \n");
       }
       else if(colcount == 4) {
-	printf("                    ---------\n");
-	printf("                     1 2 3 4 \n");
+	printf("                      ---------\n");
+	printf("                       1 2 3 4 \n");
       }
       else if(colcount == 5) {
-	printf("                    -----------\n");
-	printf("                     1 2 3 4 5 \n");
+	printf("                      -----------\n");
+	printf("                       1 2 3 4 5 \n");
       }
       else {
 	printf("Error in: PrintPosition\n");
@@ -680,16 +683,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     {
       printf("\n");
       if(colcount == 3) {
-	printf("A's Symbol = %c       a b c \n", aPiece);
-	printf("B's Symbol = %c      -------\n", bPiece);
+	printf("One's Symbol = %c       i j k \n", bPiece);
+	printf("Two's Symbol = %c      -------\n", aPiece);
       }
       else if(colcount == 4) {
-	printf("A's Symbol = %c       a b c d  \n", aPiece);
-	printf("B's Symbol = %c      ---------\n", bPiece);
+	printf("One's Symbol = %c       i j k l \n", bPiece);
+	printf("Two's Symbol = %c      ---------\n", aPiece);
       }
       else if(colcount == 5) {
-	printf("A's Symbol = %c       a b c d e \n", aPiece);
-	printf("B's Symbol = %c      -----------\n", bPiece);
+	printf("One's Symbol = %c       i j k l m \n", bPiece);
+	printf("Two's Symbol = %c      -----------\n", aPiece);
       }
       else {
 	printf("Error in: PrintPosition\n");
@@ -700,11 +703,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	  //indentation
 	  if(i == 0)
 	    {
-	      printf("   Neutral = %c    %d ",neutral, rowcount-(i/rowcount)-1);
+	      printf("     Neutral = %c    %d ",neutral, rowcount-(i/rowcount)-1);
 	    }
 	  if((i != 0) && ((i % rowcount) == 0))
 	    {
-	      printf("                  %d ", rowcount-(i/rowcount)-1);
+	      printf("                    %d ", rowcount-(i/rowcount)-1);
 	    }
 
 	  if(gBoard[i] == aPiece)
@@ -731,16 +734,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	}
 
       if(colcount == 3) {
-	printf("                    -------\n");
-	printf("                     f e d  \n");
+	printf("                      -------\n");
+	printf("                       x w v \n");
       }
       else if(colcount == 4) {
-	printf("                    ---------\n");
-	printf("                     h g f e \n");
+	printf("                      ---------\n");
+	printf("                       y x w v \n");
       }
       else if(colcount == 5) {
-	printf("                    -----------\n");
-	printf("                     j i h g f \n");
+	printf("                      -----------\n");
+	printf("                       z y x w v \n");
       }
       else {
 	printf("Error in: PrintPosition\n");
@@ -894,7 +897,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	/***********************************************************
 	 * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 	 ***********************************************************/
-	printf("%8s's move [(u)ndo/([a-%c or 1-%d])] : ", playersName, 'a'+(colcount*2-1), (colcount*2-1));
+	printf("%8s's move [(u)ndo/([i-%c or v-%c or 1-%d])] : ", playersName, 'i'+(colcount-1), 'v'+(colcount-1), (colcount*2-1));
 
 	input = HandleDefaultTextInput(position, move, playersName);
 
@@ -968,16 +971,16 @@ BOOLEAN ValidTextInput (STRING input)
        ((input[0] == 'e') && (input[1] == '3')) ||
        ((input[0] == 'e') && (input[1] == '4')) ||
        ((input[0] == 'e') && (input[1] == '5')) ||
-       (input[0] == 'a') ||
-       (input[0] == 'b') ||
-       (input[0] == 'c') ||
-       (input[0] == 'd') ||
-       (input[0] == 'e') ||
-       (input[0] == 'f') ||
-       (input[0] == 'g') ||
-       (input[0] == 'h') ||
        (input[0] == 'i') ||
        (input[0] == 'j') ||
+       (input[0] == 'k') ||
+       (input[0] == 'l') ||
+       (input[0] == 'm') ||
+       (input[0] == 'v') ||
+       (input[0] == 'w') ||
+       (input[0] == 'x') ||
+       (input[0] == 'y') ||
+       (input[0] == 'z') ||
        (input[0] == '0') ||
        (input[0] == '1') ||
        (input[0] == '2') ||
@@ -1028,12 +1031,12 @@ MOVE ConvertTextInputToMove (STRING input)
     move = move2 - ('1'-colcount*4);
 
   // shifting
-  else if(move1 >= 'a' && move1 <= ('a'+colcount-1))
-    move = (colcount*rowcount) + (move1-'a');
+  else if(move1 >= 'i' && move1 <= ('i'+colcount-1))
+    move = (colcount*rowcount) + (move1-'i');
   else if(move1 >= ('0'+rowcount) && move1 <= (('0'+rowcount)+rowcount-1))
     move = (colcount*rowcount) + (colcount) + (move1-('0'+rowcount));
-  else if(move1 >= ('a'+colcount) && move1 <= (('a'+colcount)+colcount-1))
-    move = (colcount*rowcount) + (colcount+rowcount) + (move1-('a'+colcount));
+  else if(move1 >= 'v' && move1 <= ('v'+colcount-1))
+    move = (colcount*rowcount) + (colcount+rowcount) + (move1-'v');
   else if(move1 >= '0' && move1 <= ('0'+rowcount-1))
     move = (colcount*rowcount) + (colcount+rowcount+colcount) + (move1-'0');
   else
@@ -1063,30 +1066,36 @@ MOVE ConvertTextInputToMove (STRING input)
 void GameSpecificMenu ()
 {
   int temp;
+  STRING misere;
   do {
+    if(gStandardGame) misere = "Off";
+    else misere = "On";
+
     printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
-    printf("\ts)\tChoose the board (S)ize. Currently: %dx%d\n", rowcount, colcount);
+    printf("\ts)\tChoose the board (s)ize. Currently: %dx%d\n", rowcount, colcount);
     printf("\t\t3x3, 4x4, and 5x5 solve (4x4 and 5x5 take a\n");
     printf("\t\tconsiderable amount of time)\n\n");
 
-    printf("\tp)\tChange the number of (P)ieces placed in the\n");
+    printf("\tp)\tChange the number of (p)ieces placed in the\n");
     printf("\t\tinitial placement phase. Currently: %d\n\n", initialPlacement);
+
+    printf("\tm)\tPlay (m)isere. Currently: %s.\n\n", misere);
 
     printf("\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
 
     switch(GetMyChar()) {
-    case 'Q': case 'q':
+    case 'q': case 'Q':
       ExitStageRight();
       break;
-    case 'S' : case 's':
+    case 's': case 'S':
       printf("Enter a size: ");
       temp = GetMyChar();  //get as a char; must convert to int
       rowcount = temp - 48;
       colcount = temp - 48;
       boardSize = rowcount*colcount;
       break;
-    case 'p' : case 'P' :
+    case 'p': case 'P':
       do {
         printf("Enter a number: ");
         temp = GetMyChar();  //get as a char; must convert to int
@@ -1097,6 +1106,14 @@ void GameSpecificMenu ()
         }
       } while(temp*2 > boardSize-4);
       initialPlacement = temp;
+      break;
+    case 'm': case 'M':
+      printf("Play misere? (y/n): ");
+      temp = GetMyChar();
+      if(temp == 'y' || temp == 'Y')
+        gStandardGame = 0;
+      else
+        gStandardGame = 1;
       break;
     case 'b': case 'B':
       return;
@@ -1388,6 +1405,9 @@ BOOLEAN NInARow(char *board, char symbol, int size) {
     nInARow = TRUE;
   }
 
+  // reinitialize flag
+  flag = TRUE;
+
   for(i = 0; i < size; i++) {
     if(board[(size-1)*(i+1)] != symbol) {
       flag = FALSE;
@@ -1421,8 +1441,8 @@ void SetupTier() {
 
   // Tier-Specific Hashes
   // Phase 1
-  // X placement
   for(i = 0; i < (rowcount - 1)*2; i++) {
+    // X placement
     if(i % 2 == 1) {
       countA = i/2 + 1;
       countB = i/2;
