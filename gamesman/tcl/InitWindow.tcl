@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.118 2006-12-19 00:36:50 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.119 2007-01-09 12:56:12 eudean Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -2168,7 +2168,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    set name [format i%sTB%s $mode $file]
 
 	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    #old way
@@ -2187,7 +2187,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    set name [format i%sMB%s $mode $file]
 
 	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    image create photo [subst $name]p -file [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
@@ -2196,13 +2196,13 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
     if { $convertExists && !$resolutionExists } {
 	#currently no check whether each of these images exists
-	exec convert -resize $scalePercent [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/O_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/O_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+	exec convert -resize $scalePercent -depth 8 [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
     }
 
     image create photo iAMB5p -file [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
@@ -2219,7 +2219,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    set name [format i%sBB%s $mode $file]
 
 	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
@@ -2230,7 +2230,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 	    set name [format i%sBB%s $mode $file]
 
 	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
 	    }
 
 	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
