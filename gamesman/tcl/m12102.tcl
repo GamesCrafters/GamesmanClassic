@@ -136,8 +136,13 @@ proc GS_SetupRulesFrame { rulesFrame } {
 proc GS_GetOption { } {
     global gMisereGame
     global kMinRows kMaxRows
-    set option 1
-    set option [expr $option + (1-$gMisereGame)]
+    if {$gMisereGame == 0} {
+	set option 1
+    } else {
+	set option 2
+    }
+    # set option 1
+    # set option [expr $option + (1-$gMisereGame)]
     return $option
 }
 
@@ -155,8 +160,13 @@ proc GS_GetOption { } {
 proc GS_SetOption { option } {
     global gMisereGame
     global kMaxRows kMinRows
-    set option [expr $option - 1]
-    set gMisereGame [expr 1-($option%2)]
+    if {$option == 1} {
+	set gMisereGame 0
+    } else {
+	set gMisereGame 1
+    }
+    # set option [expr $option - 1]
+    # set gMisereGame [expr 1-($option%2)]
 }
 
 # GS_Initialize is where you can start drawing graphics.  
@@ -339,6 +349,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # returns the correct color.
 
 proc GS_ShowMoves { c moveType position moveList } {
+    
     foreach item $moveList {
         set move  [expr [lindex $item 0] + $position]
         set value [lindex $item 1]
