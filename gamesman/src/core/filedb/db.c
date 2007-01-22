@@ -52,9 +52,9 @@ gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 			if (buf->tag != vpn) {
 				//buffer page is valid but not the one we want
 				//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-				gamesdb_buf_write(bufp, ppn, db->store);
+				gamesdb_buf_write(db, ppn);
 				//load in the new page
-				gamesdb_buf_read(bufp, ppn, db->store, vpn);
+				gamesdb_buf_read(db, ppn, vpn);
 				//set the tag where it is
 				if (buf->tag != vpn)
 					//the buffer is uninitialized, this means no records exists in the page
@@ -63,7 +63,7 @@ gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 			}
 		} else {
 			//load in the new page
-			gamesdb_buf_read(bufp, ppn , db->store, vpn);
+			gamesdb_buf_read(db, ppn , vpn);
 			//set the tag where it is
 			if (buf->tag != vpn)
 				//the buffer is uninitialized, this means no record exists in the page
@@ -83,13 +83,13 @@ gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
  * allocates memory and sets up a gamescrafters db. Must call destructive
  * function when done to free up memory.
  */
-gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_pages, char* db_name){
+gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_pages, int max_mem, char* db_name){
   gamesdb_bman* bman;
   gamesdb_buffer* bufp;
   gamesdb* data;
   gamesdb_store* storep = gamesdb_open(db_name);
 
-  bufp = gamesdb_buf_init(rec_size, max_pages);
+  bufp = gamesdb_buf_init(rec_size, max_pages, max_mem);
 
   bman = gamesdb_bman_init(bufp);
 

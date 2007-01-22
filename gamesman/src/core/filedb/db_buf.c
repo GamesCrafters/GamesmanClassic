@@ -35,33 +35,34 @@
 #include "db_store.h"
 #include <stdio.h>
 #include <string.h>
-
+#include <stdlib.h>
 // a buffer contains at least one record.
 //each record has rec_size bytes, along with one extra byte to keep track of valid bit
-gamesdb_buffer* gamesdb_buf_init(int rec_size, gamesdb_pageid num_buf){
+gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf, gamesdb_pageid max_mem){
   	gamesdb_buffer* bufp = (gamesdb_buffer*) gamesdb_SafeMalloc(sizeof(gamesdb_buffer));
   
   	//bufp->filep = filep;
   	bufp->n_buf = num_buf;
   
-  	//a page contains as many records as possible, up to 4K-9 bytes.
-  	//The 9 bytes are for book-keeping. One extra byte per record is used to denote whether it's
-  	//been written to or not
+  	//a page contains as many records as possible, minus overhead
+  	//There is few bytes in the front of the page for book-keeping.
   	//There will be wasted space in the mem array but shouldn't be too great if you have huge pages
+  	gamesdb_pageid mem_per_page = (max_mem << 20) / num_buf;
+
+	gamesdb_pageid mem_for_cells = mem_per_page - sizeof(gamesdb_pageid) - sizeof(gamesdb_boolean) - sizeof(gamesdb_counter);
+	   	
   	bufp->rec_size = rec_size + 1; //one byte for use by the db code (valid bit, etc)
-  	bufp->buf_size = MEM_ARRAY_SIZE / (rec_size+1); //this is how many records are in one page
+  	bufp->buf_size = mem_for_cells / (bufp->rec_size);
   	bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
   	//bufp->chances = (gamesdb_counter*) gamesdb_SafeMalloc (sizeof(gamesdb_counter) * num_buf);
   	bufp->buffers = (gamesdb_bufferpage*) gamesdb_SafeMalloc (sizeof(gamesdb_bufferpage) * num_buf);
  
-	//zeroes out the buffers for use
-	gamesdb_pageid i,j;
+	//allocate and zeroes out the buffers for use
+	gamesdb_pageid i;
 	gamesdb_bufferpage *buf;
 	for(i=0;i<num_buf;i++){
-//    bufp->buffers[i]->mem = (char*) SafeMalloc(sizeof(char) * rec_size);
-		buf = bufp->buffers+i;
-		for (j=0; j<MEM_ARRAY_SIZE; j++)
-			buf->mem[j] = 0;
+		buf = (bufp->buffers)+i;
+		buf->mem = (char *) gamesdb_SafeMalloc(sizeof(char) * bufp->buf_size * bufp->rec_size);
     	buf->tag = 0;
     	buf->valid = FALSE;
     	buf->chances = 0;
@@ -78,21 +79,22 @@ int gamesdb_buf_flush_all(gamesdb* db) {
 	//this will be as fast as it gets
 	int i;
 	gamesdb_buffer* bufp = db->buffers;
-	gamesdb_store* storep = db->store;
 	
 	for (i = 0; i < bufp->n_buf; i++) {
 		if (bufp->dirty[i] == TRUE) {
-			gamesdb_buf_write(bufp, i, storep);
+			gamesdb_buf_write(db, i);
 		}
 	}
 	return 0;
 }
 
 //reads a page from disk
-int gamesdb_buf_read(gamesdb_buffer* bufp, gamesdb_frameid spot, gamesdb_store* filep, gamesdb_pageid mytag) {
-	gamesdb_bufferpage* buf = bufp->buffers + spot;
+int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid mytag) {
+	
+	gamesdb_bufferpage* buf = db->buffers->buffers + spot;
+	
 	//load in the new page
-	gamesdb_read(filep, mytag, buf);
+	gamesdb_read(db, mytag, buf);
 
 	//validate the entire page first
 	buf->valid = TRUE;
@@ -108,17 +110,17 @@ int gamesdb_buf_read(gamesdb_buffer* bufp, gamesdb_frameid spot, gamesdb_store* 
 }
 
 //writes a page to disk
-int gamesdb_buf_write(gamesdb_buffer* bufp, gamesdb_frameid spot, gamesdb_store* filep){
-  //get the buffer page
+int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
+  
+  gamesdb_buffer* bufp = db->buffers;
+  
   gamesdb_bufferpage* buf = bufp->buffers + spot;
   
   //we don't have to write the page if it's clean
   if(bufp->dirty[spot] == TRUE){
-	//write will do the seek for you
-	//no error checks
     buf->chances = 0;
 
-    gamesdb_write(filep, buf->tag, buf);
+    gamesdb_write(db, buf->tag, buf);
 
     bufp->dirty[spot] = FALSE;
   }
@@ -131,15 +133,18 @@ int gamesdb_buf_write(gamesdb_buffer* bufp, gamesdb_frameid spot, gamesdb_store*
 }
 
 int gamesdb_buf_destroy(gamesdb* db){
-/*  frame_id i;
+
+  gamesdb_buf_flush_all(db);
+
+  gamesdb_frameid i;
+  
+  gamesdb_buffer *bufp = db->buffers;
   
   for(i=0;i<bufp->n_buf;i++){
-    SafeFree(bufp->buffers[i].mem);
+  	gamesdb_bufferpage *buf = (bufp->buffers) + i;
+    gamesdb_SafeFree(buf->mem);
   }
-  */
-  gamesdb_buffer* bufp = db->buffers;
   
-  gamesdb_buf_flush_all(db);
   gamesdb_SafeFree(bufp->dirty);
   //gamesdb_SafeFree(bufp->chances);
   gamesdb_SafeFree(bufp->buffers);

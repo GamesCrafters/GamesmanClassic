@@ -35,14 +35,11 @@
 #define TRUE 1
 #define FALSE 0
 
-// 512 bytes per page, minus 8 bytes for page_id and 1 byte for valid bit
-// the number of usable bytes inside is the maximum multiple of the record size,
-// so there might be wasted space.
-// the default constructor allocates 1024 of these do you should be prepared to give up 256M
-#define MEM_ARRAY_SIZE 503
-//#define MEM_ARRAY_SIZE 256
-
 #define MAX_CHANCES 15 //this is in accord to the length of elements in buffer->chances
+
+#define CLUSTER_SIZE 10 //10 bits cluster for directory hierarchy
+
+#define MAX_FILENAME_LEN 256
 
 #define DEBUG 0
 

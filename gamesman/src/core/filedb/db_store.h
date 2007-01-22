@@ -38,11 +38,11 @@
 
 #include "db_types.h"
 
-gamesdb_store* 	gamesdb_open		(char* filename);
-int 		gamesdb_close	(gamesdb_store* db);
+gamesdb_store* 	gamesdb_open	(char* filename);
+int 		gamesdb_close		(gamesdb_store* db);
 void		gamesdb_seek		(gamesdb_store* db, gamesdb_pageid page);
-int 		gamesdb_read		(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
-int 		gamesdb_write	(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
+int 		gamesdb_read		(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
+int 		gamesdb_write		(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf);
 //page_id 	db_newPage  (db_store* db);
 
 #endif /* GMCORE_DB_FILE_H */

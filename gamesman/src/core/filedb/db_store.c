@@ -54,7 +54,7 @@
 gamesdb_store* gamesdb_open(char* filename){
   gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
-  gamesdb_boolean olddb = TRUE;
+//  gamesdb_boolean olddb = TRUE;
 
 /*  db->filep = gzopen(filename,"r+");
   if(db->filep == NULL){
@@ -128,93 +128,117 @@ int gamesdb_close(gamesdb_store* db){
   return 0;
 }
 
-//writes a page into the database
-int gamesdb_write(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
-	//grows the file on-demand
-/*	if (page >= db->last_page) {
-		//breakage of abstraction, beware
-		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
-		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
-		
-		while (db->last_page <= page) { //fill zeroes
-			gzwrite(db->filep, temp, sizeof(db_buffer_page));
-			gzflush(db->filep, Z_FULL_FLUSH); //flush it to allow random access
-			db->last_page++;
-		}
-		
-		free(temp);
-	}
-*/
-	char filename[255] = "";
+//makes all directory levels necessary to house the page with tag page_no
+gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
 	
-	sprintf(filename, "./data/%s/%llu.dat", db->filename, page);
+	unsigned int current_pos = 0;
+	
+	while (base_path[current_pos] != 0 && current_pos < MAX_FILENAME_LEN) {
+		current_pos++;
+	}
+	
+	while (page_no > (1 << CLUSTER_SIZE)) {
+		
+		base_path[current_pos] = '/';
+		current_pos ++;
+		
+		gamesdb_pageid this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
+		
+		do {
+			base_path[current_pos] = this_cluster % 10 + '0';
+			this_cluster /= 10;
+			current_pos ++;
+		} while (this_cluster > 0);
+		
+		DIR *data_dir = opendir(base_path);
+  
+  		if (data_dir == NULL) {
+  			mkdir (base_path, 0755);
+  		}
+  
+  		closedir (data_dir);
+  		
+  		page_no >>= CLUSTER_SIZE;
+	}
+	
+	base_path[current_pos] = '/';
+	current_pos ++;
+		
+	gamesdb_pageid this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
+		
+	do {
+		base_path[current_pos] = this_cluster % 10 + '0';
+		this_cluster /= 10;
+		current_pos ++;
+	} while (this_cluster > 0);
+	
+	base_path[current_pos] = 0; //don't forget to terminate string
+	
+	printf("%s\n", base_path);
+	
+	return page_no;
+}
+
+//writes a page into the database
+int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
+
+	char filename[MAX_FILENAME_LEN] = "";
+	
+	gamesdb_store *dbfile = db->store;
+	
+	sprintf(filename, "./data/%s", dbfile->filename);
+	gamesdb_checkpath(filename, page);
 
 	gzFile pagefile = gzopen(filename, "w+");
 	
-	//even if you are writing to the same page,
-	//you still have to seek back a page
-	//db_seek(db, page);
 	if (DEBUG)
-		printf ("db_write: page = %llu, last_page = %llu\n", page, db->last_page);
+		printf ("db_write: page = %llu, last_page = %llu\n", page, dbfile->last_page);
+
 	//write data
-    gzwrite(pagefile/*db->filep*/, (void*)buf, sizeof(gamesdb_bufferpage));
-	//flush all data so that decompression can restart at this point    
-   // gzflush(db->filep, Z_FULL_FLUSH);
+	//Remember to write data in the same order and sizes as when you read it
+	gzwrite(pagefile, (void*)buf->mem, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+    gzwrite(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
+    gzwrite(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
+    gzwrite(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
+
     gzclose(pagefile);
     return 0;
 }
 
-int gamesdb_read(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
-/*	if (page >= db->last_page) { // if we are reading past the file, just return 0's
-			memset((void*)buf, 0x00000000, sizeof(db_buffer_page));
-			db->current_page = page;
-			return 0;
-	}
-*/	
+int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
-	//grows the file on-demand
-/*	if (page >= db->last_page) {
-		//breakage of abstraction, beware
-		void* temp = calloc(sizeof(db_buffer_page), sizeof(char));
-		gzseek(db->filep, db->last_page*sizeof(db_buffer_page), SEEK_SET); //go to the end of the file
-		
-		while (db->last_page <= page) { //fill zeroes
-			gzwrite(db->filep, temp, sizeof(db_buffer_page));
-			gzflush(db->filep, Z_FULL_FLUSH); //flush it to allow random access
-			db->last_page++;
-		}
-		
-		free(temp);
-	}
-
-	db_seek(db, page);
-	printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
-	return gzread(db->filep, (void*)buf, sizeof(db_buffer_page));
-*/
 	char filename[80] = "";
 	
-	sprintf(filename, "./data/%s/%llu.dat", db->filename, page);
+	gamesdb_store *dbfile = db->store;
+	
+	sprintf(filename, "./data/%s", dbfile->filename);
+	gamesdb_checkpath(filename, page);
 
 	gzFile pagefile = gzopen(filename, "r+");
 	
-	//even if you are writing to the same page,
-	//you still have to seek back a page
-	//db_seek(db, page);
 	if (DEBUG) {
-		printf ("db_read: page = %llu, last_page = %llu\n", page, db->last_page);
+		printf ("db_read: page = %llu, last_page = %llu\n", page, dbfile->last_page);
 	}
 	
 	if(pagefile != NULL) {
-		//write data
-	    gzread(pagefile/*db->filep*/, (void*)buf, sizeof(gamesdb_bufferpage));
-		//flush all data so that decompression can restart at this point    
-	   // gzflush(db->filep, Z_FULL_FLUSH);
+		//read data
+		//Remember to read data in the same order and sizes as when you wrote it
+        gzread(pagefile, (void*)buf->mem, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+	    gzread(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
+	    gzread(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
+	    gzread(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
+
 	} else { //page does not exist in disk
 		if (DEBUG) {
 			printf ("db_read: starting a fresh page.\n");
 		}
-		memset(buf, 0x00000000, sizeof(gamesdb_bufferpage));
+		memset(buf->mem, 0, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+		buf->chances = 0;
+		buf->tag = 0;
+		buf->valid = FALSE;
 	}
+
+	//the caller will take care of the dirty bit
 
     gzclose(pagefile);
 
@@ -225,9 +249,10 @@ int gamesdb_read(gamesdb_store* db, gamesdb_pageid page, gamesdb_bufferpage* buf
 //seeks in the file to the beginning of a given page.
 //the page must already exist in the file.
 //that is, page < last_page (because the page with index last_page is not written)
-void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
-	gamesdb_offset new;
-	int from = SEEK_SET;
+//NOT USED
+//void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
+//	gamesdb_offset new;
+//	int from = SEEK_SET;
 	
 //	if(page != db->current_page) {
 //		from = SEEK_SET;
@@ -238,7 +263,7 @@ void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
 		
 	  	//printf("db_seek: offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
 		//new = (db_offset)gzseek(db->filep,page*sizeof(db_buffer_page),from);
-	
+/*	
 	if (page <= db->current_page) {//this means we are rewinding in write mode
 	  	//close and reopen the zip file
 	  	gzclose(db->filep);
@@ -270,12 +295,12 @@ void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
 	
 	//return new;
 }
-
+//NOT USED
 gamesdb_pageid db_tell(gamesdb_store* db){
   return db->current_page;
 }
 
-/*//gives the position of a new page in the end of the fisk file, in bytes
+//gives the position of a new page in the end of the fisk file, in bytes
 db_offset db_nextBlock(db_store* db, db_offset inc){
   db_offset ret = db->next_off;
   db->next_off += inc;

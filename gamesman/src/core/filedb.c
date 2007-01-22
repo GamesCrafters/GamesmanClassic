@@ -84,7 +84,8 @@ void filedb_init(DB_Table *new_db)
         new_db->put_mex = filedb_set_mex;
         new_db->free_db = filedb_free;
         
-        mydb = gamesdb_create(sizeof(cellValue), 512, kDBName);
+        //create a db with 16-bit cells, using 512 pages, and 512MB of RAM (approx.)
+        mydb = gamesdb_create(sizeof(cellValue), 1048576, 512, kDBName);
         
         start = FALSE;
         mypos = 0;

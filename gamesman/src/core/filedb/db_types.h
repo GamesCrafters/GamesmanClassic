@@ -43,7 +43,7 @@ typedef struct {
 
 //buffer
 typedef struct {
-  char mem[MEM_ARRAY_SIZE];
+  char *mem;
   gamesdb_pageid tag;
   gamesdb_boolean valid;
   gamesdb_counter chances;
@@ -57,7 +57,7 @@ typedef struct {
 //  gamesdb_counter* chances;
   int rec_size; //number of bytes in a record
   int buf_size; //number of records in a buffer
-  int n_buf;
+  int n_buf;    //number of buffer pages
 }gamesdb_buffer;
 
 //buffer manager
