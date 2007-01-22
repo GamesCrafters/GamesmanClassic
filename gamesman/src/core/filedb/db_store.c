@@ -54,21 +54,6 @@
 gamesdb_store* gamesdb_open(char* filename){
   gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
-//  gamesdb_boolean olddb = TRUE;
-
-/*  db->filep = gzopen(filename,"r+");
-  if(db->filep == NULL){
-    db->filep = gzopen(filename,"w+");
-    olddb = FALSE;
-  }
-  if(db->filep == NULL)
-    return NULL;
-  */
-//  get the magic number - the offset at which the pagemap begins
-// not used right now, we depend on zlib to minimize cost of gaps
-//	page_id magic = 0;
-//  gzread(db->filep,
-
   db->filename = (char*) gamesdb_SafeMalloc (sizeof(char)*strlen(filename));
   
   strcpy(db->filename, filename);
@@ -79,12 +64,7 @@ gamesdb_store* gamesdb_open(char* filename){
   //it has not been written, so be sure to write it when expanding
   db->last_page = 0;
   
-  /*if(db->filep)
-    return db;
-  
-  db_close(db);*/
-  
-  char *dirname = (char *) malloc (sizeof(char) * (strlen(filename) + 10));
+  char *dirname = (char *) gamesdb_SafeMalloc (sizeof(char) * (strlen(filename) + 10));
   
   sprintf(dirname, "./data/%s", filename);
   
@@ -108,11 +88,6 @@ gamesdb_store* gamesdb_open(char* filename){
   return db; //used to be NULL
 }
 
-//page_id getMagicNumber(gzFile* filep) {
-//	return 
-//	
-//}
-
 /*
 ** Closes the db file handle.
 ** frees up allocated memory.
@@ -120,9 +95,6 @@ gamesdb_store* gamesdb_open(char* filename){
 */
 int gamesdb_close(gamesdb_store* db){
   gamesdb_SafeFree(db->filename);
-/*  if(db->filep)
-    gzclose(db->filep);
-*/
   gamesdb_SafeFree(db);
 
   return 0;
@@ -132,23 +104,26 @@ int gamesdb_close(gamesdb_store* db){
 gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
 	
 	unsigned int current_pos = 0;
+	gamesdb_pageid this_cluster = 0;
+	char temp[MAX_FILENAME_LEN] = "";
 	
-	while (base_path[current_pos] != 0 && current_pos < MAX_FILENAME_LEN) {
-		current_pos++;
-	}
+	//while (base_path[current_pos] != 0 && current_pos < MAX_FILENAME_LEN) {
+	//	current_pos++;
+	//}
 	
-	while (page_no > (1 << CLUSTER_SIZE)) {
+	while (page_no >= (1 << CLUSTER_SIZE)) {
 		
-		base_path[current_pos] = '/';
-		current_pos ++;
+//		base_path[current_pos] = '/';
+//		current_pos ++;
 		
-		gamesdb_pageid this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
+		this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
 		
-		do {
-			base_path[current_pos] = this_cluster % 10 + '0';
-			this_cluster /= 10;
-			current_pos ++;
-		} while (this_cluster > 0);
+//		do {
+		sprintf(temp, "/%llu", this_cluster);
+		strcat(base_path, temp);
+//		this_cluster /= 10;
+//			current_pos ++;
+//		} while (this_cluster > 0);
 		
 		DIR *data_dir = opendir(base_path);
   
@@ -161,20 +136,17 @@ gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
   		page_no >>= CLUSTER_SIZE;
 	}
 	
-	base_path[current_pos] = '/';
-	current_pos ++;
+	this_cluster = page_no;
 		
-	gamesdb_pageid this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
-		
-	do {
-		base_path[current_pos] = this_cluster % 10 + '0';
-		this_cluster /= 10;
-		current_pos ++;
-	} while (this_cluster > 0);
+//	do {
+		sprintf(temp, "/%llu", this_cluster);
+		strcat(base_path, temp);
+//		this_cluster /= 10;
+//	} while (this_cluster > 0);
 	
-	base_path[current_pos] = 0; //don't forget to terminate string
+//	base_path[current_pos] = 0; //don't forget to terminate string
 	
-	printf("%s\n", base_path);
+//	printf("%s\n", base_path);
 	
 	return page_no;
 }
@@ -207,7 +179,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
 int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
-	char filename[80] = "";
+	char filename[MAX_FILENAME_LEN] = "";
 	
 	gamesdb_store *dbfile = db->store;
 	
