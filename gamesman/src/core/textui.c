@@ -703,7 +703,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	Stopwatch();
 	if(!(kSupportsTierGamesman && gTierGamesman)) { //If no TIER GAMESMAN
 		InitializeDatabases();
-		InitializeOpenPositions(gNumberOfPositions);
+		if (gUseOpen) InitializeOpenPositions(gNumberOfPositions);
 	}
 	printf("done in %u seconds!", Stopwatch()); // for analysis bookkeeping
 	fflush(stdout);

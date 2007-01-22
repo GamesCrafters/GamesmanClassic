@@ -394,7 +394,7 @@ void analyze() {
 	if(!gAnalysisLoaded) {
 		CreateDatabases();
 		InitializeDatabases();
-		InitializeOpenPositions(gNumberOfPositions);
+		if (gUseOpen) InitializeOpenPositions(gNumberOfPositions);
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);\
         gSolver(gInitialPosition);
