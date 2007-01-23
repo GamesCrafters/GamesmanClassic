@@ -47,7 +47,7 @@ gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf
   	//a page contains as many records as possible, minus overhead
   	//There is few bytes in the front of the page for book-keeping.
   	//There will be wasted space in the mem array but shouldn't be too great if you have huge pages
-  	gamesdb_pageid mem_per_page = (max_mem << 20) / num_buf;
+  	gamesdb_pageid mem_per_page = (max_mem << 10) / num_buf;
 
 	gamesdb_pageid mem_for_cells = mem_per_page - sizeof(gamesdb_pageid) - sizeof(gamesdb_boolean) - sizeof(gamesdb_counter);
 	   	

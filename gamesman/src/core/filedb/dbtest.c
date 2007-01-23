@@ -37,8 +37,8 @@ int main(int argc, char *argv[])
 {
 	gamesdb_position totalrecs = 0x1ffff;
 	size_t recsize = sizeof(short);
-	size_t buffers = 512;
-	size_t mem_used = 512; //approx. 512MB of ram will be used
+	size_t buffers = 10;
+	size_t mem_used = 8; //approx. 8KB of ram will be used
 	char dbname[] = "testdb\0";
 
 	gamesdb *testdb = gamesdb_create(recsize, buffers, mem_used, dbname);

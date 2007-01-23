@@ -116,7 +116,7 @@ void gamesdb_destroy(gamesdb* data){
 void gamesdb_get(gamesdb* gdb, char* mem, gamesdb_position pos){
 	gamesdb_buffer* bufp = gdb->buffers;
 
-	gamesdb_pageid vpn = pos / (gdb->buffers->buf_size);
+	gamesdb_pageid vpn = pos / (bufp->buf_size);
 	
 	gamesdb_frameid ppn = gamesdb_translate(gdb, vpn);
 	
