@@ -1,717 +1,591 @@
-#!/usr/bin/wish -f
+####################################################
+# this is a template for tcl module creation
 #
-#############################################################################
-##
-## NAME:         XGfoxes
-##
-## DESCRIPTION:  The source code for the Tcl component of Dodgem
-##               for the Master's project GAMESMAN
-##
-## AUTHOR:       Dan Garcia  -  University of California at Berkeley
-##               Copyright (C) Dan Garcia, 1995. All rights reserved.
-##
-## DATE:         05-14-95
-##
-## UPDATE HIST:
-##
-## 05-15-95 1.0    : Final release code for M.S.
-##
-#############################################################################
+# created by Alex Kozlowski and Peterson Trethewey
+# Updated Fall 2004 by Jeffrey Chiang, and others
+####################################################
 
-### Load the Gamesman solver
-#load "../so/foxes.so" Gamesman
+set boardHeight 8
+set boardWidth 4
+set margin 1
+set basespeed 50
+
+# Piece radius (percentage of square in which it is located)
+set r 0.9
 
 #############################################################################
-##
-## GS_InitGameSpecific
-##
-## This initializes the game-specific variables.
-##
-#############################################################################
-
+# GS_InitGameSpecific sets characteristics of the game that
+# are inherent to the game, unalterable.  You can use this fucntion
+# to initialize data structures, but not to present any graphics.
+# It is called FIRST, ONCE, only when the player
+# starts playing your game, and before the player hits "New Game"
+# At the very least, you must set the global variables kGameName
+# and gInitialPosition in this function.
+############################################################################
 proc GS_InitGameSpecific {} {
-
+    
     ### Set the name of the game
-
     global kGameName
     set kGameName "Foxes and Geese"
-
-    # Authors Info
-    global kRootDir
-    global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "Sergey Kirshner, James Chung"
-    set kTclAuthors "Sergey Kirshner, James Chung"
-    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
-
-    ### Set the size of the slot in the window
-    ### This should be a multiple of 80, but 100 is ok
     
-    global gSlotSize
-    set gSlotSize 80
-    
+    ### Set the initial position of the board (default 0)
+
+    global gInitialPosition gPosition
+    C_Initialize
+    C_InitializeDatabases
+    C_InitializeGame
+    set gInitialPosition [C_InitialPosition]
+    set gPosition $gInitialPosition
+
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
     set kStandardString "If you're the geese, trapping the foxes first WINS. If you're the foxes, getting by the geese first WINS"
-    set kMisereString "If you're the geese, letting the foxes by first WINS. If you're the foxes, trapping your pieces first WINS"
+    set kMisereString "If you're the geese, trapping the foxes first LOSES. If you're the foxes, getting by the geese first LOSES"
 
     ### Set the strings to tell the user how to move and what the goal is.
+    ### If you have more options, you will need to edit this section
 
-    global kToMove kToWinStandard kToWinMisere
-    set kToMove "Click on the arrow that moves the piece in the direction you wish to move. Note that you can only move to an adjacent diagonal UNOCCUPIED square one row above."
-    set kToWinStandard  "Trap your opponent, i.e. leave your opponent no legal moves."
-    set kToWinMisere  "Leave your pieces no legal moves first, or trap your piece(s)."
-
-    ### Set the size of the board
-
-    global gSlotsX gSlotsY 
-    global gTrueSlotsX gTrueSlotsY
-    global gBoardSize
-    set gSlotsX 8
-    set gTrueSlotsX 4
-    set gSlotsY 8
-    set gTrueSlotsY 8
-    set gBoardSize [expr $gSlotsX*$gSlotsY]
-    
-    ### Set the initial position of the board in our representation    
-
-    ###  - - G -
-    ### - - - -
-    ###  - - - -
-    ### F F F F
-
-    ### In further version, the initial position would be uploaded
-    ### from a file
-
-    global gInitialPosition gPosition
-
-    set gInitialPosition 82620
-    set gPosition $gInitialPosition
-
-    ### Set what the cursors will look like. These can be the same because
-    ### they will be color-coded.
-
-    global xbmLeft xbmRight
-    set xbmLeft  "../bitmaps/circle.xbm"
-    set xbmRight "../bitmaps/circle.xbm"
-
-    ### Set the procedures that will draw the pieces
-
-    global kLeftDrawProc kRightDrawProc kBothDrawProc
-    set kLeftDrawProc  DrawCircle
-    set kRightDrawProc DrawCircle
-    set kBothDrawProc  DrawCircle
-
-    ### What type of interaction will it be, sir?
-
-    global kInteractionType
-    set kInteractionType Rearranger
-
-    ### Will you be needing moves to be on all the time, sir?
-    
-    global kMovesOnAllTheTime
-    set kMovesOnAllTheTime 1
-
-    ### Do you support editing of the initial position, sir?
-
-    global kEditInitialPosition
-    set kEditInitialPosition 1
-
-    global gInsideArray
-    set gInsideArray {}
-
-    global gRealBoardSize
-    set gRealBoardSize 32
-
-    global gNumberPieces
-    set gNumberPieces 5
-
-    global gNumberFoxes
-    set gNumberFoxes 1
-
-    ### What are the default game-specific options, sir?
-    global varGameSpecificOption1
-    set varGameSpecificOption1 butGeese
-    
+    global gMisereGame
+    if {!$gMisereGame} {
+	SetToWinString "To Win: Trap your opponent, i.e. leave your opponent no legal moves."
+    } else {
+	SetToWinString "To Win: Leave your pieces no legal moves first, or trap your piece(s)"
+    }
+    SetToMoveString "To Move: Click on the arrow that moves the piece in the direction you wish to move. Note that you can only move to an adjacent diagonal UNOCCUPIED square one row above."
+	    
+    # Authors Info. Change if desired
+    global kRootDir
+    global kCAuthors kTclAuthors kGifAuthors
+    set kCAuthors "Sergey Kirshner"
+    set kTclAuthors "Eudean Sun"
+    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
 
 #############################################################################
-##
-## GS_AddGameSpecificGUIOptions
-##
-## This initializes the game-specific variables.
-##
+# GS_NameOfPieces should return a list of 2 strings that represent
+# your names for the "pieces".  If your game is some pathalogical game
+# with no concept of a "piece", give a name to the game's sides.
+# if the game is tic tac toe, this might be a single line: return [list x o]
+# This function is called FIRST, ONCE, only when the player
+# starts playing the game, and before he hits "New Game"
 #############################################################################
-
-proc GS_AddGameSpecificGUIOptions { w } {
-
-    global kLabelFont kLabelColor varGameSpecificOption1
-    
-    frame $w.f1 \
-	    -borderwidth 2 \
-	    -relief raised
-    
-    message $w.f1.labTurn \
-	    -font $kLabelFont \
-	    -text "Who do you want to go first:" \
-	    -width 200 \
-	    -foreground $kLabelColor
-    
-    radiobutton $w.f1.butFoxes \
-	    -text "Foxes" \
-	    -font $kLabelFont \
-	    -variable varGameSpecificOption1 \
-	    -value butFoxes
-    
-    radiobutton $w.f1.butGeese \
-	    -text "Geese" \
-	    -font $kLabelFont \
-	    -variable varGameSpecificOption1 \
-	    -value butGeese
-
-    ### Pack it all in
-    
-    pack append $w.f1 \
-	    $w.f1.labTurn {left} \
-	    $w.f1.butFoxes {top expand fill} \
-	    $w.f1.butGeese {top expand fill} 
-    
-    pack append $w \
-	    $w.f1 {top expand fill}
+proc GS_NameOfPieces {} {
+    return [list "Geese" "Foxes"]
 }
 
-#############################################################################
-##
-## GS_GetGameSpecificOptions
-##
-## If you don't have any cool game specific options, then just return 
-## an empty list. Otherwise, return a list of 1s or 0s...
-##
-#############################################################################
 
-proc GS_GetGameSpecificOptions {} {
-    global varGameSpecificOption1
+#############################################################################
+# GS_ColorOfPlayers should return a list of two strings, 
+# each representing the color of a player.
+# If a specific color appears uniquely on one player's pieces,
+# it might be a good choice for that player's color.
+# In impartial games, both players may share the same color.
+# If the game is tic tac toe, this might be the line 
+# return [list blue red]
+# If the game is nim, this might be the line
+# return [list green green]
+# This function is called FIRST, ONCE, only when the player
+# starts playing the game, and before he clicks "New Game"
+# The left player's color should be the first item in the list.
+# The right player's color should be second.
+#############################################################################
+proc GS_ColorOfPlayers {} {
+    return [list blue red]
+}
+
+
+#############################################################################
+# GS_SetupRulesFrame sets up the rules frame;
+# Adds widgets to the rules frame that will allow the user to 
+# select the variant of this game to play. The options 
+# selected by the user should be stored in a set of global
+# variables.
+# This procedure must initialize the global variables to some
+# valid game variant.
+# The rules frame must include a standard/misere setting.
+# Args: rulesFrame (Frame) - The rules frame to which widgets
+# should be added
+# Modifies: the rules frame and its global variables
+# Returns: nothing
+#############################################################################
+proc GS_SetupRulesFrame { rulesFrame } {
+
+    set standardRule \
+	[list \
+	     "What would you like your winning condition to be:" \
+	     "Standard" \
+	     "Misere" \
+	    ]
+
+    # List of all rules, in some order
+    set ruleset [list $standardRule]
+
+    # Declare and initialize rule globals
+    global gMisereGame
+    set gMisereGame 0
+
+    # List of all rule globals, in same order as rule list
+    set ruleSettingGlobalNames [list "gMisereGame"]
+
+    global kLabelFont
+    set ruleNum 0
+    foreach rule $ruleset {
+	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+	pack $rulesFrame.rule$ruleNum.label -side left
+	set rulePartNum 0
+	foreach rulePart [lrange $rule 1 end] {
+	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+	    incr rulePartNum
+	}
+	incr ruleNum
+    } 
+}
+
+
+#############################################################################
+# GS_GetOption gets the game option specified by the rules frame
+# Returns the option of the variant of the game specified by the 
+# global variables used by the rules frame
+# Args: none
+# Modifies: nothing
+# Returns: option (Integer) - the option of the game as specified by 
+# getOption and setOption in the module's C code
+#############################################################################
+proc GS_GetOption { } {
+    # TODO: Needs to change with more variants
+    global gMisereGame
+    set option 1
+    set option [expr $option + (1-$gMisereGame)]
+    return $option
+}
+
+
+#############################################################################
+# GS_SetOption modifies the rules frame to match the given options
+# Modifies the global variables used by the rules frame to match the 
+# given game option.
+# This procedure only needs to support options that can be selected 
+# using the rules frame.
+# Args: option (Integer) -  the option of the game as specified by 
+# getOption and setOption in the module's C code
+# Modifies: the global variables used by the rules frame
+# Returns: nothing
+#############################################################################
+proc GS_SetOption { option } {
+    # TODO: Needs to change with more variants
+    global gMisereGame
+    set option [expr $option - 1]
+    set gMisereGame [expr 1-($option%2)]
+}
+
+
+#############################################################################
+# GS_Initialize is where you can start drawing graphics.  
+# Its argument, c, is a canvas.  Please draw only in this canvas.
+# You could put an opening animation in this function that introduces the game
+# or just draw an empty board.
+# This function is called ONCE after GS_InitGameSpecific, and before the
+# player hits "New Game"
+#############################################################################
+proc GS_Initialize { c } {
+
     global gInitialPosition
-    global gNumberPieces
-    global gNumberFoxes
-    global gRealBoardSize
-    
-    set position_offset [expr [C_ComputeC $gRealBoardSize $gNumberPieces]*[C_ComputeC $gNumberPieces [expr $gNumberPieces - $gNumberFoxes]]]
 
-    if { $varGameSpecificOption1 == "butFoxes" } {
-	set gInitialPosition [expr $gInitialPosition + $position_offset]
-    }
+    DrawBoard $c
+    DrawPieces $c [unhash $gInitialPosition]
 
-    return [list [expr {$varGameSpecificOption1 == "butFoxes"}] \
-	    $gNumberPieces \
-	    $gNumberFoxes \
-	    $gRealBoardSize \
-	    $gInitialPosition]
-}
+} 
 
-#############################################################################
-##
-## GS_EmbellishSlot
-##
-## This is where we embellish a slot if its necessary
-##
-#############################################################################
+proc DrawBoard { c } {
+    global gFrameWidth gFrameHeight boardHeight boardWidth margin square
 
-proc GS_EmbellishSlot { w slotX slotY slot } {
-    
-    global gPosition gSlotsX gSlotsY gTrueSlotsX gTrueSlotsY xbmLightGrey
-    global gAgainstComputer gHumanGoesFirst
-    global gInsideArray gRealBoardSize gNumberPieces gNumberFoxes
-    
-    ### Now we convert the position and put pieces there
-    if {[expr ($slotX+$slotY)%2==0]} {
-	$w itemconfig $slot -fill #a88
-    } else {
-	$w itemconfig $slot -fill #111
-    }
+    set square [expr ($gFrameWidth-2*$margin) / (2*$boardWidth)]
 
-    if {[llength $gInsideArray] == 0} {
-
-	set theHalfPositions [expr [C_ComputeC $gRealBoardSize $gNumberPieces]*\
-		[C_ComputeC $gNumberPieces $gNumberFoxes]]
-	set thePosition $gPosition
-	incr thePosition [expr ($gPosition > $theHalfPositions) ? -$theHalfPositions : 0]
-
-	set piecesPosition [expr $thePosition%[C_ComputeC $gRealBoardSize $gNumberPieces]]
-	set insidePosition [expr $thePosition/[C_ComputeC $gRealBoardSize $gNumberPieces]]
-	
-	set placesLeft $gRealBoardSize
-	set piecesLeft $gNumberPieces
-
-	for {set i 0} {$i < $gRealBoardSize} {incr i} {
-	    if { $placesLeft == 1 } {
-		if { $piecesLeft == 1 } {
-		    lappend gInsideArray 1
-		} else {
-		    lappend gInsideArray 0
-		}
-	    } elseif { $piecesLeft == 0 } {
-		lappend gInsideArray 0
-		incr placesLeft -1
-	    } elseif { $piecesPosition < \
-		    [C_ComputeC [expr $placesLeft-1] [expr $piecesLeft-1]]} {
-		lappend gInsideArray 1
-		incr placesLeft -1
-		incr piecesLeft -1
+    # Draw white first rows
+    for { set i 0 } { $i < $boardHeight } { incr i } {
+	for { set j 0 } { $j < 2*$boardWidth } { set j [expr $j+2] } {
+	    if { $i % 2 == 0 } {
+		set col1 gray
+		set col2 black
 	    } else {
-		lappend gInsideArray 0
-		incr placesLeft -1
-		incr piecesPosition -[C_ComputeC $placesLeft [expr $piecesLeft-1]]
+		set col1 black
+		set col2 gray
 	    }
-	}
-
-	set tempArray {}
-	set placesLeft $gNumberPieces
-	set piecesLeft $gNumberFoxes
-	
-	for {set i 0} {$i < $gNumberPieces} {incr i} {
-	    if { $placesLeft == 1 } {
-		if { $piecesLeft == 1 } {
-		    lappend tempArray 1
-		} else {
-		    lappend tempArray 0
-		}
-	    } elseif { $piecesLeft == 0 } {
-		lappend tempArray 0
-		incr placesLeft -1
-	    } elseif { $insidePosition < \
-		    [C_ComputeC [expr $placesLeft-1] [expr $piecesLeft-1]]} {
-		lappend tempArray 1
-		incr placesLeft -1
-		incr piecesLeft -1
-	    } else {
-		lappend tempArray 0
-		incr placesLeft -1
-		incr insidePosition -[C_ComputeC $placesLeft [expr $piecesLeft-1]]
-	    }
-	}
-	
-	set j 0
-	for { set i 0 } {$i < $gRealBoardSize} {incr i} {
-	    if { [lindex $gInsideArray $i] == 1 } {
-		if { [lindex $tempArray $j] == 1 } {
-		    set gInsideArray [lreplace $gInsideArray $i $i 2]
-		}	    
-		incr j
-	    }
+	    $c create rect [expr $margin+$square*$j] [expr $margin+$square*$i] [expr $margin+$square*($j+1)] [expr $margin+$square*($i+1)] -fill $col1 -tag board
+	    $c create rect [expr $margin+$square*($j+1)] [expr $margin+$square*$i] [expr $margin+$square*($j+2)] [expr $margin+$square*($i+1)] -fill $col2 -tag board
 	}
     }
-    ### Now we put the pieces on the board
+    
+}
 
-    if { [expr ($slotX==$gSlotsX-1) && ($slotY==$gSlotsY-1)] } {
-	for {set i 0} {$i < $gSlotsX} {incr i} {
-	    for {set j 0} {$j < $gSlotsY} {incr j} {
-		if { [expr (($i+$j) % 2) == 1] } {
-		    set trueX [expr $i / 2]
-		    set trueY $j
-		    set trueSlot [expr ($gTrueSlotsX*$trueY)+$trueX]
-		    set temp [lindex $gInsideArray $trueSlot]
-		    switch $temp {
-			0       {} ;# the space on the board is empty
-	  
-			1       {
-			    if { $gAgainstComputer && !$gHumanGoesFirst } {
-				### Swap
-				DrawPiece $i $j "O"
-			    } else {
-				### Normal
-				DrawPiece $i $j "X"
-			    }
-			}
-			
-			2       {
-			    if { $gAgainstComputer && !$gHumanGoesFirst } {
-				### Swap
-				DrawPiece $i $j "X"
-			    } else {
-				### Normal
-				DrawPiece $i $j "O"
-			    }
-			}
-	    
-			default {BadElse "GS_EmbellishSlot"}
-		    }
-		}
-	    }
-	}
+proc DrawPieces { c board } {
+    global boardWidth boardHeight
+
+    for { set i 0 } { $i < $boardWidth * $boardHeight } { incr i } {
+	DrawPiece $c $i [string index $board $i]
     }
-}    
-    
-
-#############################################################################
-##
-## GS_ConvertInteractionToMove
-##
-## This converts the user's interaction to a move to be passed to the C code.
-##
-#############################################################################
-
-proc GS_ConvertInteractionToMove { theMove } {
-
-    global gSlotsX gSlotsY gTrueSlotsX gRealBoardSize
-#    global testMove
-#    set testMove $theMove
-    
-    #puts stdout "gSlotsX: $gSlotsX   gSlotsY: $gSlotsY   gTrueSlotsX:$gTrueSlotsX" ;#tests
-
-    set fromSlot [lindex $theMove 0]
-    set fromX    [expr ($fromSlot % $gSlotsX)]
-    set fromY    [expr ($fromSlot / $gSlotsX)] 
-    #puts stdout "fromSlot: $fromSlot   fromX: $fromX   fromY: $fromY"  ;#tests 
-
-    # set trueFromX $fromX
-    set trueFromX [expr $fromX / 2]
-    # set trueFromY [expr ($gSlotsY-1)-$fromY]
-    set trueFromY $fromY
-    set trueFromSlot [expr ($gTrueSlotsX*$trueFromY)+$trueFromX]
-
-    #puts stdout "trueFromX: $trueFromX   trueFromY: $trueFromY"  ;#tests 
-
-    set toSlot    [lindex $theMove 1]
-    set toX [expr $toSlot % $gSlotsX]
-    set toY [expr $toSlot / $gSlotsX]
-
-    #puts stdout "toSlot: $toSlot   toX: $toX   toY: $toY" ;# test
-
-    # set trueToX $toX
-    set trueToX [expr $toX / 2]
-    # set trueToY [expr ($gSlotsY-1)-$toY]
-    set trueToY $toY
-    set trueToSlot [expr ($gTrueSlotsX*$trueToY)+$trueToX]
-
-    #puts stdout "trueToSlot: $trueToSlot   trueToX: $trueToX   trueToY: $trueToY" ;# test
-    
-
-    #puts stdout "The move for the C proc: [expr ($trueToSlot * $gRealBoardSize) + $trueFromSlot]" ;# test
-
-    return [expr ($trueToSlot * $gRealBoardSize) + $trueFromSlot]
 }
 
+proc DrawPiece { c index type } {
+    global square r
 
-#############################################################################
-##
-## GS_ConvertMoveToInteraction
-##
-## This converts the user's interaction to a move to be passed to the C code.
-##
-#############################################################################
-
-proc GS_ConvertMoveToInteraction { theMove } {
-#    global gRealBoardSize gSlotsX gSlotsY gBoardSize gTrueSlotsX
-
-#    set fromSlot [expr $theMove % $gRealBoardSize]
-#    set toSlot   [expr $theMove / $gRealBoardSize] 
-
-#    set fromX [expr $fromSlot % $gTrueSlotsX]
-#    set fromY [expr $fromSlot / $gTrueSlotsX]
-
-#    set trueFromX [expr 2*$fromX]
-
-#    set trueFromSlot [expr ($fromY*$gSlotsX)+$trueFromX]
-    
-#    set toX [expr $toSlot % $gTrueSlotsX]
-#    set toY [expr $toSlot / $gTrueSlotsX]
-
-#    set trueToX [expr 2*$toX]
-
-#    set trueToSlot [expr ($toY*$gSlotsX)+$trueToX]
-
-#    return [expr ($trueToSlot*$gBoardSize)+$trueFromSlot]
-
-    return $theMove
-}
-
-#############################################################################
-##
-## GS_PostProcessBoard
-##
-## This allows us to post-process the board in case we need something
-##
-#############################################################################
-
-proc GS_PostProcessBoard { w } {
-
-#    global gSlotSize kLabelFont gSlotsX gHumanGoesFirst gAgainstComputer
-
-    ### Here we need to raise the text items because they need raising,
-    ### otherwise they'll be under the slots the whole time...
-    
-#    $w raise tagPiece tagSlot
-
-    ### First I put labels there.
-
-#    set theSlotX { 0 1 2 3 3 3 }
-#    set theSlotY { 0 0 0 1 2 3 }
-
-#    if { $gAgainstComputer && !$gHumanGoesFirst } {
-	### Swap
-#	set theWords { "The" "Blue" "Goal" "The" "Red" "Goal" }
-#	set leftColor  red
-#	set rightColor blue
-#    } else {
-	### Normal
-#	set theWords { "The" "Red" "Goal" "The" "Blue" "Goal" }
-#	set leftColor  blue
-#	set rightColor red
-#    }
-
-#    set theSlotSizeHalf [expr $gSlotSize >> 1]
-
-#    for {set i 0} { $i < 6 } {incr i} {
-#	set theText [$w create text \
-#		[expr $gSlotSize * [lindex $theSlotX $i] + $theSlotSizeHalf] \
-#		[expr $gSlotSize * [lindex $theSlotY $i] + $theSlotSizeHalf] \
-#		-text [lindex $theWords $i] \
-#		-font $kLabelFont \
-#		-fill white \
-#		-tag tagText]
-#    }
-
-    ### Let's put a "LEGEND" up there
-
-#    $w create text [expr $gSlotSize * ($gSlotsX - .4)] [expr $gSlotSize * .25] \
-#	    -text "Legend" \
-#	    -font $kLabelFont \
-#	    -fill white    
-
-    ### First the pictures of the pieces
-
-#    set theSlotSize   [expr $gSlotSize / 3]
-#    set theOffsetX    [expr $gSlotSize * 3]
-#    set circleWidth   [expr $theSlotSize/10]
-#    set startCircle   [expr $theSlotSize/8]
-#    set endCircle     [expr $startCircle*7]
-
-#    set theCircle [$w create oval $startCircle $startCircle \
-#	    $endCircle $endCircle \
-#	    -outline $rightColor \
-#	    -fill $rightColor]
-#    $w move $theCircle [expr $gSlotSize * 3 + $theSlotSize] [expr $theSlotSize * 2]
-#    set theCircle [$w create oval $startCircle $startCircle \
-#	    $endCircle $endCircle \
-#	    -outline $leftColor \
-#	    -fill $leftColor]
-#    $w move $theCircle [expr $gSlotSize * 3] $theSlotSize
-	    
-
-    ### Then I put pictures there. First the lines.
-
-#    set theArrowList { { 3 0 } { 3 4 } { 3 6 } { 7 6 } { 7 4 } { 7 8 } }
-
-#    for {set i 0} { $i < 6 } {incr i} {
-#	set theMove [CreateArrow $w [lindex $theArrowList $i] $theSlotSize 3 3 cyan]
-#	$w move $theMove $theOffsetX 0
-#    }
-
-    ### Then I order then in 2.5-D so that things are above/behind correctly
-
-#    $w raise tagText tagPiece
-#    $w raise tagText tagPieceLabel
-
-    
-}
-
-#############################################################################
-##
-## GS_ConvertToAbsoluteMove
-##
-## Sometimes the move handed back by our C code is a relative move. We need
-## to convert this to an absolute move to indicate on the board.
-##
-#############################################################################
-
-proc GS_ConvertToAbsoluteMove { theMove } {
-    
-    global gSlotsX gSlotsY gRealBoardSize gTrueSlotsX gTrueSlotsY
-
-    #puts stdout "GS_ConvertToAbsoluteMove - theMove:$theMove" ;#test
-
-    set fromSlot    [expr $theMove % $gRealBoardSize]
-    set toSlot      [expr $theMove / $gRealBoardSize]
-
-    # find the trueFromSlot
-    set fromX    [expr $fromSlot % $gTrueSlotsX]
-    set fromY    [expr ($fromSlot / $gTrueSlotsX)]
-
-    #puts stdout "--- fromX:$fromX --- fromY:$fromY" ;#test
-
-    if { [expr ($fromY%2)==0] } {
-	set trueFromX [expr (2*$fromX)+1]
+    if { [string equal $type "F"] } {
+	set color "red"
+    } elseif { [string equal $type "G"] } {
+	set color "blue"
     } else {
-	# set trueFromX $fromX
-	set trueFromX [expr 2 * $fromX]
+	return
     }
-    # set trueFromY [expr ($gSlotsY-1)-$fromY]
-    set trueFromY $fromY
 
-    #puts stdout "--- trueFromX:$trueFromX --- trueFromY:$trueFromY" ;#test
-
-    set trueFromSlot [expr ($gSlotsX*$trueFromY)+$trueFromX]
-    
-    #puts stdout "--- trueFromSlot:$trueFromSlot" ;#test
-
-    # find the trueToSlot
-    set toX [expr $toSlot % $gTrueSlotsX]
-    set toY [expr $toSlot / $gTrueSlotsX]
-
-    #puts stdout "--- toX:$toX  toY:$toY" ;#test
-
-    if { [expr ($toY%2)==0] } {
-	set trueToX [expr (2*$toX)+1]
+    set row [row $index]
+    set col [col $index]
+    if { $row % 2 == 0 } {
+	set shift 1
     } else {
-	# set trueToX $toX
-	set trueToX [expr 2 * $toX]
+	set shift 0
     }
-    # set trueToY [expr ($gSlotsY-1)-$toY]
-    set trueToY $toY
-    
-    #puts stdout "--- trueToX:$trueToX --- trueToY:$trueToY" ;#test
 
-    set trueToSlot [expr ($gSlotsX*$trueToY)+$trueToX]
-
-    #puts stdout "--- trueToSlot:$trueToSlot" ;#test
-
-    return [list $trueFromSlot $trueToSlot]
+    $c create oval \
+	[expr (2*$col+$shift)*$square+(1-$r)*$square] \
+	[expr $row*$square+(1-$r)*$square] \
+	[expr (2*$col+1+$shift)*$square-(1-$r)*$square] \
+	[expr ($row+1)*$square-(1-$r)*$square] \
+	-fill $color -tags [list "pieces" "p$index"]
 }
 
+proc row { index } {
+    global boardWidth
+    return [expr int($index / $boardWidth)]
+}
+
+proc col { index } {
+    global boardWidth
+    return [expr int($index % $boardWidth)]
+}
+
+
 #############################################################################
-##
-## GS_HandleEnablesDisables
-##
-## At this point a move has been registered and we have to handle the 
-## enabling and disabling of slots
-##
+# GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
+# is here, so whoever put this here should update this.  -Jeff
 #############################################################################
+proc GS_Deinitialize { c } {
+    $c delete all
+}
 
-proc GS_HandleEnablesDisables { w theSlot theMove } {
-    global gSlotsX gSlotSize gAnimationSpeed
 
-    ### Here we remove all the old markers for the last move
+#############################################################################
+# GS_DrawPosition this draws the board in an arbitrary position.
+# It's arguments are a canvas, c, where you should draw and the
+# (hashed) position.  For example, if your game is a rearranger,
+# here is where you would draw pieces on the board in their correct positions.
+# Imagine that this function is called when the player
+# loads a saved game, and you must quickly return the board to its saved
+# state.  It probably shouldn't animate, but it can if you want.
+#
+# BY THE WAY: Before you go any further, I recommend writing a tcl function that 
+# UNhashes You'll thank yourself later.
+# Don't bother writing tcl that hashes, that's never necessary.
+#############################################################################
+proc GS_DrawPosition { c position } {
+    
+    $c delete pieces
+    DrawPieces $c [unhash $position]
+}
 
-    $w delete tagLastMove
 
-    set theAbsoluteMove [GS_ConvertToAbsoluteMove $theMove]
+#############################################################################
+# GS_NewGame should start playing the game. 
+# It's arguments are a canvas, c, where you should draw 
+# the hashed starting position of the game.
+# This is called just when the player hits "New Game"
+# and before any moves are made.
+#############################################################################
+proc GS_NewGame { c position } {
+    # TODO: The default behavior of this funciton is just to draw the position
+    # but if you want you can add a special behaivior here like an animation
+    GS_DrawPosition $c $position
+}
 
-    set fromSlot  [lindex $theAbsoluteMove 0]
-    set toSlot    [lindex $theAbsoluteMove 1]
-    set fromSlotX [expr $fromSlot % $gSlotsX]
-    set fromSlotY [expr $fromSlot / $gSlotsX]
-    set toSlotX   [expr $toSlot % $gSlotsX]
-    set toSlotY   [expr $toSlot / $gSlotsX]
 
-    ### Try a little animation
+#############################################################################
+# GS_WhoseMove takes a position and returns whose move it is.
+# Your return value should be one of the items in the list returned
+# by GS_NameOfPieces.
+# This function is called just before every move.
+#############################################################################
+proc GS_WhoseMove { position } {
+    # Optional Procedure
+    return ""    
+}
 
-    set timeSlices [expr int(($gSlotSize + 0.0) / ($gAnimationSpeed + 0.0))]
 
-    set theIncrementalMoveX [expr ($toSlotX - $fromSlotX) * (($gSlotSize + 0.0) / $timeSlices)]
-    set theIncrementalMoveY [expr ($toSlotY - $fromSlotY) * (($gSlotSize + 0.0) / $timeSlices)]
-    set theOverallMoveX [expr $timeSlices * $theIncrementalMoveX]
-    set theOverallMoveY [expr $timeSlices * $theIncrementalMoveY]
+#############################################################################
+# GS_HandleMove draws (animates) a move being made.
+# The user or the computer has just made a move, animate it or draw it
+# or whatever.  Draw the piece moving if your game is a rearranger, or
+# the piece appearing if it's a "dart board"
+#
+# By the way, if you animate, a function that will be useful for you is
+# update idletasks.  You can call this to force the canvas to update if
+# you make changes before tcl enters the event loop again.
+#############################################################################
+proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-    DeleteMoves
+    global square
+    
+    # Piece being animated
+    set move [unhashmove $theMove]
 
-    for {set i 1} { $i <= $timeSlices } {incr i} {
-	$w move tagPieceOnCoord$fromSlotX$fromSlotY \
-		$theIncrementalMoveX $theIncrementalMoveY
+    set from [lindex $move 0]
+    set to [lindex $move 1]
+    set row1 [row $from]
+    set row2 [row $to]
+    set col1 [col $from]
+    set col2 [col $to]
+
+    if { $row1 % 2 == 0 } {
+	set shift1 1
+    } else {
+	set shift1 0
+    }
+
+    if { $row2 % 2 == 0 } {
+	set shift2 1
+    } else {
+	set shift2 0
+    }    
+
+    set origin [list [expr (2*$col1+$shift1+0.5)*$square] [expr ($row1+0.5)*$square]]
+    set destination [list [expr (2*$col2+$shift2+0.5)*$square] [expr ($row2+0.5)*$square]]
+
+    animate $c "p$from" $origin $destination
+
+    GS_DrawPosition $c $newPosition
+    
+}
+
+####################################################
+# This animates a piece from origin to destination #
+####################################################
+proc animate { c piece origin destination } {
+
+    global basespeed gAnimationSpeed square
+
+    set x0 [lindex $origin 0]
+    set x1 [lindex $destination 0]
+    set y0 [lindex $origin 1]
+    set y1 [lindex $destination 1]
+
+    # Relative speed factor gotten from gAnimationSpeed
+    # speed should equal the amount of ms we take to run this whole thing
+    set speed [expr $basespeed / pow(2, $gAnimationSpeed)]
+    
+    # If things get too fast, just make it instant
+    if {$speed < 10} {
+	set speed 10
+    }
+
+    set dx [expr ($x1 - $x0) / $speed]
+    set dy [expr ($y1 - $y0) / $speed]
+
+    for {set i 0} {$i < $speed} {incr i} {
+	$c move $piece $dx $dy
+	
+	after 1
 	update idletasks
     }
-
-    ### Update our internal markers
-
-    $w addtag tagPieceOnCoord$toSlotX$toSlotY withtag tagPieceOnCoord$fromSlotX$fromSlotY
-    $w dtag tagPieceOnCoord$fromSlotX$fromSlotY
 }
 
 #############################################################################
-##
-## GS_EnableSlotEmbellishments
-##
-## If there are any slot embellishments that need to be enabled, now is the
-## time to do it.
-##
+# GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
+# player clicks to make the move)  It is also the function that handles coloring
+# of the moves according to value. It is called by gamesman just before the player
+# is prompted for a move.
+#
+# Arguments:
+# c = the canvas to draw in as usual
+# moveType = a string which is either value, moves or best according to which radio button is down
+# position = the current hashed position
+# moveList = a list of lists.  Each list contains a move and its value.
+# These moves are represented as numbers (same as in C)
+# The value will be either "Win" "Lose" or "Tie"
+# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
+proc GS_ShowMoves { c moveType position moveList } {
 
-proc GS_EnableSlotEmbellishments { w theSlot } {
-    ### No slot embellishents for the TacTix meister.
+    foreach move $moveList {
+	ShowMove $c $moveType [lindex $move 0] [lindex $move 1]
+    }
+
+    $c raise pieces
 }
 
-#############################################################################
-##
-## GS_DisbleSlotEmbellishments
-##
-## If there are any slot embellishments that need to be enabled, now is the
-## time to do it.
-##
-#############################################################################
+proc ShowMove { c moveType m value} {
+    global r square
 
-proc GS_DisableSlotEmbellishments { w theSlot } {
+    set move [unhashmove $m]
+    set from [lindex $move 0]
+    set to [lindex $move 1]
+    set row1 [row $from]
+    set row2 [row $to]
+    set col1 [col $from]
+    set col2 [col $to]
 
-    ### No slot embellishents for the TacTix meister.
-}
+    if { $row1 % 2 == 0 } {
+	set shift1 1
+    } else {
+	set shift1 0
+    }
 
-#############################################################################
-##
-## GS_NewGame
-##
-## "New Game" has just been clicked. We need to reset the slots
-##
-#############################################################################
+    if { $row2 % 2 == 0 } {
+	set shift2 1
+    } else {
+	set shift2 0
+    }
 
-proc GS_NewGame { w } {
-    global gAgainstComputer gHumanGoesFirst gSlotsX gSlotsY gTrueSlotsX gInsideArray
+    switch $moveType {
+	value {
 
-    $w delete tagPiece
-
-    for {set i 0} {$i < $gSlotsX} {incr i} {
-	for {set j 0} {$j < $gSlotsY} {incr j} {
-	    if { [expr (($i+$j) % 2) == 1] } {
-		set trueX [expr $i / 2]
-		set trueY $j
-		set trueSlot [expr ($gTrueSlotsX*$trueY)+$trueX]
-		set temp [lindex $gInsideArray $trueSlot]
-		switch $temp {
-		    0       {} ;# the space on the board is empty
-		    
-		    1       {
-			if { $gAgainstComputer && !$gHumanGoesFirst } {
-			    ### Swap
-			    DrawPiece $i $j "O"
-			} else {
-			    ### Normal
-			    DrawPiece $i $j "X"
-			}
-		    }
-		    
-		    2       {
-			if { $gAgainstComputer && !$gHumanGoesFirst } {
-			    ### Swap
-			    DrawPiece $i $j "X"
-			} else {
-			    ### Normal
-			    DrawPiece $i $j "O"
-			}
-		    }
-		    
-		    default {BadElse "GS_NewGame"}
-		}
+	    # If the move leads to a win, it is a losing move (RED)
+	    # If the move leads to a losing position, it is a winning move (GREEN)
+	    # If the move leads to a tieing position, it is a tieing move (YELLOW)
+	    switch $value {
+		Win { set color darkred }
+		Lose { set color green }
+		Tie { set color yellow }
+		default { set color cyan }
 	    }
 	}
+	default {
+	    set color cyan
+	}
     }
+
+    set arrowwidth [expr 0.20 * ($r * $square)]
+    set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
+
+    set tmp [$c create line \
+		 [expr (2*$col1+$shift1+0.5)*$square] \
+		 [expr ($row1+0.5)*$square] \
+		 [expr (2*$col2+$shift2+0.5)*$square] \
+		 [expr ($row2+0.5)*$square] \
+		 -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead -tag moves]
+
+    $c bind $tmp <Enter> "$c itemconfigure $tmp -fill lightgray"
+    $c bind $tmp <Leave> "$c itemconfigure $tmp -fill $color"
+    $c bind $tmp <ButtonRelease-1> "ReturnFromHumanMove $m"
 }
 
-### Now source the rest of the game-playing interface code.
-
-#source "../tcl/gamesman.tcl.foxes"
-
-
-
-
-
+proc unhashmove { move } {
+    # return [list from to]
+    global boardWidth boardHeight
+    set boardSize [expr $boardWidth * $boardHeight]
+    return [list [expr $move % $boardSize] [expr int($move / $boardSize)]]
+}
 
 
+#############################################################################
+# GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
+# same as GS_ShowMoves.
+# You might not use all the arguments, and that's okay.
+#############################################################################
+proc GS_HideMoves { c moveType position moveList} {
+
+    $c delete moves
+
+}
+
+
+#############################################################################
+# GS_HandleUndo handles undoing a move (possibly with animation)
+# Here's the undo logic
+# The game was in position A, a player makes move M bringing the game to position B
+# then an undo is called
+# currentPosition is the B
+# theMoveToUndo is the M
+# positionAfterUndo is the A
+#
+# By default this function just calls GS_DrawPosition, but you certainly don't 
+# need to keep that.
+#############################################################################
+proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
+
+    global square
+
+    # Piece being animated
+    set move [unhashmove $theMoveToUndo]
+
+    set to [lindex $move 0]
+    set from [lindex $move 1]
+    set row1 [row $from]
+    set row2 [row $to]
+    set col1 [col $from]
+    set col2 [col $to]
+
+    if { $row1 % 2 == 0 } {
+	set shift1 1
+    } else {
+	set shift1 0
+    }
+
+    if { $row2 % 2 == 0 } {
+	set shift2 1
+    } else {
+	set shift2 0
+    }    
+
+    set origin [list [expr (2*$col1+$shift1+0.5)*$square] [expr ($row1+0.5)*$square]]
+    set destination [list [expr (2*$col2+$shift2+0.5)*$square] [expr ($row2+0.5)*$square]]
+
+    animate $c "p$from" $origin $destination
+
+    GS_DrawPosition $c $positionAfterUndo
+}
+
+
+#############################################################################
+# GS_GetGameSpecificOptions is not quite ready, don't worry about it .
+#############################################################################
+proc GS_GetGameSpecificOptions { } {
+}
+
+
+#############################################################################
+# GS_GameOver is called the moment the game is finished ( won, lost or tied)
+# You could use this function to draw the line striking out the winning row in 
+# tic tac toe for instance.  Or, you could congratulate the winner.
+# Or, do nothing.
+#############################################################################
+proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+
+	### TODO if needed
+	
+}
+
+
+#############################################################################
+# GS_UndoGameOver is called when the player hits undo after the game is finished.
+# This is provided so that you may undo the drawing you did in GS_GameOver if you 
+# drew something.
+# For instance, if you drew a line crossing out the winning row in tic tac toe, 
+# this is where you sould delete the line.
+#
+# note: GS_HandleUndo is called regardless of whether the move undoes the end of the 
+# game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
+#############################################################################
+proc GS_UndoGameOver { c position } {
+
+	### TODO if needed
+
+}
+
+proc unhash { position } {
+    global boardWidth boardHeight
+
+    return [C_GenericUnhash $position [expr $boardWidth * $boardHeight]]
+}
