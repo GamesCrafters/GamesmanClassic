@@ -2,19 +2,12 @@
 
 #############################################################################
 ##
-## NAME:         Xmfoxes
+## NAME:
 ##
-## DESCRIPTION:  The source code for the Tcl component of the game 
-##		 Foxes and Geese
-##
-## AUTHOR:       Dan Garcia  -  University of California at Berkeley
-##               Copyright (C) Dan Garcia, 1995. All rights reserved.
-##
-## DATE:         05-12-95
-##
-## UPDATE HIST:
-##
-## 05-15-95 1.0    : Final release code for M.S.
+## DESCRIPTION:  
+## AUTHOR:       
+## DATE:         
+## UPDATE HISTORY:
 ##
 #############################################################################
 
@@ -37,16 +30,16 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmfoxes[info sharedlibextension]" Gamesman
 
+### Now source the rest of the game-playing interface code.
+
+source "$kRootDir/../tcl/gamesman3.tcl"
+
 ### Now source our Game-specific code.
 
 source "$kRootDir/../tcl/mfoxes.tcl"
 
-### This is specific to Foxes and Geese; we allow the user to edit the initial position
+main $kRootDir
 
-source "$kRootDir/../tcl/mfoxessubs.tcl"
 
-### Now source the rest of the game-playing interface code.
-
-source "$kRootDir/../tcl/gamesmanfoxes.tcl"
 
 
