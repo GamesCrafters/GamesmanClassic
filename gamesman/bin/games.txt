@@ -50,6 +50,10 @@ basename=dodgem
 color=1
 basename=dnb
 
+[Foxes and Geese]
+color=1
+basename=foxes
+
 [Hasami Shogi]
 color=1
 basename=hshogi
@@ -137,10 +141,6 @@ basename=con
 [Critical Mass]
 color=3
 basename=cmass
-
-[Foxes and Geese]
-color=3
-basename=foxes
 
 [Shift-Tac-Toe]
 color=3
