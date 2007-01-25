@@ -418,6 +418,8 @@ proc animate { c piece origin destination } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
+    $c delete moves
+
     foreach move $moveList {
 	ShowMove $c $moveType [lindex $move 0] [lindex $move 1]
     }

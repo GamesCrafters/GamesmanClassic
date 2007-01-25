@@ -444,6 +444,8 @@ proc animate { c piece origin destination } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
+    $c delete arrows
+
     foreach m $moveList {
 
 	if { [string equal $moveType "value"] } {
