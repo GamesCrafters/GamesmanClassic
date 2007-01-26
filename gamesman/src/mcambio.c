@@ -1,4 +1,4 @@
-// $Id: mcambio.c,v 1.35 2007-01-08 02:53:03 simontaotw Exp $
+// $Id: mcambio.c,v 1.36 2007-01-26 19:13:33 simontaotw Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -42,6 +42,7 @@
 **              12/19/2006 - Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
 **              1/5/2007 - Added variable number of placement variant.
 **              1/7/2007 - Fixed original gamesman; changed input so it does not conflict with system inputs.
+**		1/26/2007 - Fixed setOption
 **
 **************************************************************************/
 
@@ -1215,7 +1216,11 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    //boardSize: 3,4,5
+    //initial placement: 0,1,2 ; 0,1,2,3,4,5,6 ; 0,1,2,3,4,5,6,7,8,9,10
+    //misere: 1,2
+    //3*2 + 7*2 + 11*2 = 42
+    return 42;
 }
 
 
@@ -1236,7 +1241,8 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-    return 0;
+    //boardSize^3*(initialPlacement+1)*gStandardGame
+    return boardSize*boardSize*boardSize*(initialPlacement+1)*gStandardGame;
 }
 
 
@@ -1625,9 +1631,10 @@ char *PositionToBoard(POSITION position) {
   }
 }
 
-
-
 // $Log: not supported by cvs2svn $
+// Revision 1.35  2007/01/08 02:53:03  simontaotw
+// Fixed original gamesman; changed game inputs so they do not conflict with system inputs.
+//
 // Revision 1.33  2006/12/19 20:23:48  simontaotw
 // Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
 //
