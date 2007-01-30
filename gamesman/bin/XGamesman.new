@@ -1,24 +1,32 @@
 #!/usr/bin/env wish
 source ../tcl/htmldoc.tcl 
 
-
 wm title . "GAMESMAN"
 set maxsize [wm maxsize .]
 set maxheight [expr int([expr 0.85 * [lindex $maxsize 1]])]
 wm geometry . =800x$maxheight
 update
 
-global calBlue calYellow admin cliAdd cliBase cliDisp cliColor
-global textGameColor listFont 
+### GLOBAL VARIABLES ###
 
-set docPath "../doc/games/html"
-set calBlue #006
-set calYellow #FFCC33
-set textGameColor black
+global cliBase cliDisp
+global tlistFont
+
+set pathsArr("docPath") "../doc/games/html"
+set pathsArr("bitmapPath") "../bitmaps"
+set pathsArr("gamesListPath") "./games.txt"
+
+set colorsArr("calBlue") #006
+set colorsArr("calYellow") #FFCC33
+set colorsArr("textGameColor") black
+set colorsArr("newColor") black
+
 set listFont "Helvetica 10"
 set admin false
 set cliAdd false
-set loadList(0) -1
+set isLoaded(0) -1
+
+### END GLOBAL VARIABLES
 
 proc dispHelp {} {
 	puts "XGamesman.new command line arguments"
@@ -34,6 +42,8 @@ proc dispHelp {} {
 	puts "\t\tAdds hex to gamesman with display name Hex and base"
 	puts "\t\tname hex (mhex)"
 }
+
+### START ADMIN FUNCTIONS
 
 proc setAdmin {} {
 	global admin
@@ -79,6 +89,207 @@ if {$argc > 0} {
 		dispHelp
 	}
 }
+
+proc parseCfg { in } {
+	set fieldDelim {=}
+	global thePrograms theStrings theGuiTypes secDelim colors invColors
+	
+	if [catch {open "$in" {RDONLY}} fin] {
+		return
+	}
+
+	set cfgName "Config"
+	set colorsName "Colors"
+	set gameName "game"
+	set colorField "color"
+	set nameField "basename"
+	set cfgType 0
+	
+	while {![eof $fin]} {
+		gets $fin line		
+		
+		if {[regexp $secDelim $line -> title] > 0} {
+			if {$title == $cfgName} {
+				set cfgType $cfgName
+			} elseif {$title == $colorsName} {
+				set cfgType $colorsName
+			} else {
+				set cfgType $gameName
+				lappend theStrings $title
+			}
+		} elseif {$cfgType == $cfgName} {
+			
+		} elseif {$cfgType == $colorsName} {
+			set parts [split $line $fieldDelim]
+
+			if {[llength $parts] > 1} {
+				set field [lindex $parts 0]
+				set val [lindex $parts 1]
+				set colors($val) $field
+				set invColors($field) $val
+			}
+		} elseif {$cfgType == $gameName} {
+			set parts [split $line $fieldDelim]
+			
+			if {[llength $parts] > 1} {
+				set field [lindex $parts 0]
+				set val [lindex $parts 1]
+				
+				if {$field == $colorField} {
+					lappend theGuiTypes $colors($val)
+				} elseif {$field == $nameField} {
+					lappend thePrograms $val
+				}
+			}
+		}	
+	}
+	close $fin
+}
+
+### END ADMIN FUNCTIONS ###
+
+### START GAME ADD FUCNTIONS ###
+
+proc bSort { } {
+	global theStrings theGuiTypes invColors
+	set maxLen [llength $theStrings]
+	for { set i 0 } { $i < $maxLen } { incr i } {
+		for { set j [expr $i + 1]} { $j < $maxLen } { incr j } {
+			set jColor $invColors([lindex $theGuiTypes $j])
+			set iColor $invColors([lindex $theGuiTypes $i])
+			if {$jColor < $iColor} {
+				swap $i $j
+			} elseif {$jColor == $iColor && [lindex $theStrings $j] < [lindex $theStrings $i]} {
+				swap $i $j
+			}
+		}
+	}
+}
+
+proc swap { i j } {
+	global thePrograms theStrings theGuiTypes
+	set t1 [lindex $thePrograms $i]
+	set t2 [lindex $theStrings $i]
+	set t3 [lindex $theGuiTypes $i]
+	
+	set thePrograms [lreplace $thePrograms $i $i [lindex $thePrograms $j]]
+	set theStrings [lreplace $theStrings $i $i [lindex $theStrings $j]]
+	set theGuiTypes [lreplace $theGuiTypes $i $i [lindex $theGuiTypes $j]]
+	
+	set thePrograms [lreplace $thePrograms $j $j $t1]
+	set theStrings [lreplace $theStrings $j $j $t2]
+	set theGuiTypes [lreplace $theGuiTypes $j $j $t3]
+}
+
+proc addGame { } {
+}
+
+proc createGameList { } {
+	global thePrograms theStrings theGuiTypes
+}
+
+proc changeGameColor { color } {
+	global pathsArr secDelim invColors currentId
+	if {![isGame $currentId] || [catch {open "$pathsArr("gamesListPath")" {RDWR}} fin]} {
+		return
+	}
+	
+	set game [gameString $currentId]
+	set colorField "color"
+	set found 0
+	while {![eof $fin]} {
+		set offset [tell $fin]
+		gets $fin line
+		
+		if {$found == 1} {
+			set parts [split $line =]
+			
+			if {[llength $parts] > 1} {
+				if {[lindex $parts 0] == $colorField} {
+					if {[lindex $parts 1] != $invColors($color)} {
+						seek $fin [expr $offset + 1 + [string length $colorField]]
+						puts $fin $invColors($color)
+					}
+					break
+				}
+			}	
+		} elseif {$found == 0 && [regexp $secDelim $line -> title] > 0} {
+			if {$title == $game} {
+				set found 1
+			}
+		}
+	}
+	
+	close $fin
+	refreshGameList
+}
+
+proc refreshGameList { } {
+}
+
+proc setNewColor { color } {
+	global colorsArr
+	set colorsArr("newColor") $color
+}
+
+proc addToGameList { disp base color } {
+	global cliAdd
+	
+	if {!$cliAdd} {
+		set disp [string trimright $disp \n]
+		set base [string trimright $base \n]
+		set msg "Are you sure you want to add?\n\n"
+		set temp "game:\t$disp\n"
+		set msg "$msg$temp"
+		set temp "base:\t$base\n"
+		set msg $msg$temp
+		set temp "color:\t$color\n"
+		set msg $msg$temp
+		set answer [tk_messageBox -message $msg -type yesno -icon question]
+	}
+	
+	if {$cliAdd || $answer == "yes"} {
+		global pathsArr invColors thePrograms theStrings theGuiTypes \
+				theNumberOfPrograms
+		
+		if [catch {open "$pathsArr("gamesListPath")" {WRONLY CREAT APPEND}} fin] {
+			return
+		}
+		
+		lappend thePrograms $base
+		lappend theStrings $disp
+		lappend theGuiTypes $color
+		
+		set c $invColors($color)
+		set buffer \n\[$disp]\n
+		set temp color=
+		set buffer $buffer$temp$c\n
+		set temp basename=
+		set buffer $buffer$temp$base
+		
+		puts $fin $buffer
+		close $fin
+		
+		bSort
+		set cliAdd false
+		set theNumberOfPrograms [expr $theNumberOfPrograms + 1]
+		tk_messageBox -message "Game added. Restart Gamesman to see change" -type ok
+	}
+}
+
+proc guiAddGame { frame } {
+	global colorsArr
+	addToGameList [$frame.newGame.nameText get 1.0 end] \
+					[$frame.newGame.baseText get 1.0 end] $colorsArr("newColor")
+}
+
+proc cliAddGame { disp base color } {
+	addToGameList $disp $base $color
+}
+
+### END GAME ADD FUNCTIONS ###
+
+### KEY BINDS ###
 
 bind . <Key> {
 	global currentId theNumberOfPrograms thePrograms
@@ -136,12 +347,14 @@ bind . <Control-Key> {
 
 bind . <Configure> "Resize"
 
-###HELPER FUNCTIONS###
+### END KEY BINDS ###
+
+### HELPER FUNCTIONS ###
 proc max {x y} {
 	if {$x > $y} {
-	return $x
+		return $x
 	} else {
-	return $y
+		return $y
 	}
 }
 proc getIdUnderMouse {canvas} {
@@ -152,32 +365,32 @@ proc getIdUnderMouse {canvas} {
 proc listItemWidth {} {
 	global scrollDirection listFont
 	if {$scrollDirection == "vertical"} {
-	return 160
+		return 160
 	}
 	return [expr [maxGameStringWidth $listFont] + 10]
 }
 proc listItemHeight {} {
 	global scrollDirection
 	if {$scrollDirection == "vertical"} {
-	return 60
+		return 60
 	}
 	return 80
 }
 proc maxGameStringWidth {font} {
 	global maxGameString theNumberOfPrograms
 	if {$maxGameString > 0} {
-	return $maxGameString
+		return $maxGameString
 	}
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-	if {[font measure $font [gameString $i]] > $maxGameString} {
-		set maxGameString [font measure $font [gameString $i]]
-	}
+		if {[font measure $font [gameString $i]] > $maxGameString} {
+			set maxGameString [font measure $font [gameString $i]]
+		}
 	}
 }
 proc axisView {} {
 	global scrollDirection
 	if {$scrollDirection == "vertical"} {
-	return "yview"
+		return "yview"
 	}
 	return "xview"
 }
@@ -186,31 +399,94 @@ proc setListLocation location {
 	set listLocation $location
     gameScroll $listLocation
 	if {$listLocation == "top" || $listLocation == "bottom"} {
-	horizontalScroll $listLocation
+		horizontalScroll $listLocation
 	} else {
-	verticalScroll $listLocation
+		verticalScroll $listLocation
 	}
 }
 
-proc makeDocPath { gameName } {
-	global docPath
+proc pageWidth {} {
+	global scrollDirection
+	if {$scrollDirection == "vertical"} {
+		return [expr [winfo width .] - [listWidth]]
+	}
+	return [winfo width .]
+}
+
+proc listWidth {} {
+	return 173
+}
+
+proc isGame {id} {
+	global theNumberOfPrograms
+	if {$id < 0 || $id >= $theNumberOfPrograms} {
+		return false
+	}
+	return true
+}
+
+proc gameName {id} {
+	global thePrograms
+	return [lindex $thePrograms $id]
+}
+
+proc pageName {id} {
+	global admin
+	if {$id == -1} {
+		return main
+	} elseif {$admin && $id == -2} {
+		return newGame
+	}
+	return [gameName $id]
+}
+
+proc gameColor {id} {
+	global theGuiTypes
+	return [lindex $theGuiTypes $id]
+}
+
+proc textColor {id} {
+	if {[guiExists $id]} {
+		return "black"
+	}
+	return "white"
+}
+
+proc gameString {id} {
+	global theStrings
+	return [lindex $theStrings $id]
+}
+
+proc guiExists {id} {
+	global colorsArr
+	if {[isGame $id] == false || [gameColor $id] == $colorsArr("textGameColor")} {
+		return false
+	}
+	return true
+}
+
+proc Resize { } {
+	global currentGame
+	set home .rightSide.home
+	set width [pageWidth]
+	$home.$currentGame.title configure -width [expr $width - 20]
 	
-	#Special case for connections because con is a reserved file name
-	if { $gameName == "con"} {
-	    return [file join $docPath "connections.html"]	
-	} else {
-	    set temp $gameName.html
-	  	return [file join $docPath $temp]
+	if { $currentGame == "main" || $currentGame == "newGame"} {
+		$home.main.desc configure -width [expr $width - 20]
 	}
 }
+
+### END HELPER FUNCTIONS ###
+
+### START SCROLLING FUNCTIOSN ###
 
 proc setGameScroll {i } {
-	global listLocation loadList
+	global listLocation isLoaded
 	set frame .rightSide.home
 	set gameName [gameName $i]
 	set fullName [makeDocPath $gameName]
 	
-	if {$loadList($i) == 1 && [file exists $fullName]} {
+	if {$isLoaded($i) == 1 && [file exists $fullName]} {
 	    pack forget .scrollbar$gameName
 	    pack forget .text$gameName
 	    
@@ -295,401 +571,205 @@ proc horizontalScroll location {
 	puts $fileptr $location
 	close $fileptr
 }
-proc pageWidth {} {
+
+proc scrollEnter canvas {
+	global currentId
+	set id [getIdUnderMouse $canvas]
+	if { $currentId != $id } {
+	$canvas itemconfigure rect$id -fill RoyalBlue
+	$canvas itemconfigure text$id -fill white
+	}
+}
+
+proc scrollLeave list {
+	global currentId
+	set id [getIdUnderMouse $list]
+	if { $currentId != $id } {
+	$list itemconfigure rect$id -fill [gameColor $id]
+	$list itemconfigure text$id -fill [textColor $id]
+	}
+}
+
+proc scrollButton list {
+	selectGame [getIdUnderMouse $list]
+}
+
+proc scrollDoubleClick list {
+	set i [getIdUnderMouse $list]
+	if { [guiExists $i] } {
+	runGui $i
+	} else {
+	runText $i
+	}
+}
+
+proc mouseWheelUp { } {
 	global scrollDirection
-	if {$scrollDirection == "vertical"} {
-	return [expr [winfo width .] - [listWidth]]
-	}
-	return [winfo width .]
+	set leftScroll .leftSide.leftScroll
+	set list .leftSide.list
+	set first [lindex [$leftScroll get] 0]
+	$list [axisView] scroll -1 units
 }
-proc listWidth {} {
-	return 173
+
+proc mouseWheelDown { } {
+	global scrollDirection
+	set leftScroll .leftSide.leftScroll
+	set list .leftSide.list
+	set first [lindex [$leftScroll get] 0]
+	$list [axisView] scroll 1 units
 }
-proc isGame {id} {
-	global theNumberOfPrograms
-	if {$id < 0 || $id >= $theNumberOfPrograms} {
-	return false
-	}
-	return true
-}
-proc gameName {id} {
-	global thePrograms
-	return [lindex $thePrograms $id]
-}
-proc pageName {id} {
-	global admin
-	if {$id == -1} {
-		return main
-	} elseif {$admin && $id == -2} {
-		return newGame
-	}
-	return [gameName $id]
-}
-proc gameColor {id} {
-	global theGuiTypes
-	return [lindex $theGuiTypes $id]
-}
-proc textColor {id} {
-	if {[guiExists $id]} {
-	return "black"
-	}
-	return "white"
-}
-proc gameString {id} {
-	global theStrings
-	return [lindex $theStrings $id]
-}
-proc guiExists {id} {
-	global textGameColor
-	if {[isGame $id] == false || [gameColor $id] == $textGameColor} {
-	return false
-	}
-	return true
-}
+
+### END SCROLLING FUNCTIOSN ###
+
+### START GAME PAGE SPECIFIC FUNCTIONS ###
+
 proc runGui {id} {
 	global thePrograms
 	set theGuiProgram "./Xm[lindex $thePrograms $id]"
 	exec /usr/bin/env wish -f $theGuiProgram &
 }
+
 proc runText {id} {
 	global thePrograms
 	set theTextProgram "./m[lindex $thePrograms $id]"
 	exec /usr/bin/env xterm -n [gameString $id] -e $theTextProgram &
 }
+
 proc guiImage { id scale } {
-	global theBitmapDir thePrograms
-	set theGif "$theBitmapDir/[lindex $thePrograms $id]100.gif"
+	global pathsArr thePrograms
+	set theGif "$pathsArr("bitmapPath")/[lindex $thePrograms $id]100.gif"
 	catch { image delete guiImage$id }
 
 	if {![file exists $theGif]} {
-		set theGif [file join $theBitmapDir default100.gif]
+		set theGif [file join $pathsArr("bitmapPath") default100.gif]
 	}
 	
 	image create photo guiImage$id -file $theGif
 	set imageName guiImage$id
 	if {$scale > 1} {
-	set scale [expr int($scale)]
-	set imageName [format guiImage%sZoom%s $id $scale]
-	catch { image delete $imageName }
-	image create photo $imageName
-	$imageName copy guiImage$id -zoom $scale
+		set scale [expr int($scale)]
+		set imageName [format guiImage%sZoom%s $id $scale]
+		catch { image delete $imageName }
+		image create photo $imageName
+		$imageName copy guiImage$id -zoom $scale
 	} elseif {$scale < 1} {
-	set scale [expr int(1/$scale)]
-	set imageName [format guiImage%sSubsample%s $id $scale]
-	catch { image delete $imageName }
-	image create photo $imageName
-	$imageName copy guiImage$id -subsample $scale
+		set scale [expr int(1/$scale)]
+		set imageName [format guiImage%sSubsample%s $id $scale]
+		catch { image delete $imageName }
+		image create photo $imageName
+		$imageName copy guiImage$id -subsample $scale
 	}
 
 	return $imageName
 }
+
 proc textImage {id scale} {
-	global theBitmapDir thePrograms
-	set theGif "$theBitmapDir/[lindex $thePrograms $id]100text.gif"
+	global pathsArr thePrograms
+	set theGif "$pathsArr("bitmapPath")/[lindex $thePrograms $id]100text.gif"
 	catch { image delete textImage$id }
 
 	if {![file exists $theGif]} {
-		set theGif [file join $theBitmapDir default100text.gif]
+		set theGif [file join $pathsArr("bitmapPath") default100text.gif]
 	}
 	
 	image create photo textImage$id -file $theGif
 	set imageName textImage$id
 	if {$scale > 1} {
-	set scale [expr int($scale)]
-	set imageName [format textImage%sZoom%s $id $scale]
-	catch { image delete $imageName }
-	image create photo $imageName
-	$imageName copy textImage$id -zoom $scale
+		set scale [expr int($scale)]
+		set imageName [format textImage%sZoom%s $id $scale]
+		catch { image delete $imageName }
+		image create photo $imageName
+		$imageName copy textImage$id -zoom $scale
 	} elseif {$scale < 1} {
-	set scale [expr int(1/$scale)]
-	set imageName [format textImage%sSubsample%s $id $scale]
-	catch { image delete $imageName }
-	image create photo $imageName
-	$imageName copy textImage$id -subsample $scale
+		set scale [expr int(1/$scale)]
+		set imageName [format textImage%sSubsample%s $id $scale]
+		catch { image delete $imageName }
+		image create photo $imageName
+		$imageName copy textImage$id -subsample $scale
 	}
 
 	return $imageName
 }
+
 #pos can be "top","middle", or "bottom"
 proc selectGame {id args} {
-	global currentGame currentId calBlue theNumberOfPrograms loadList \
+	global currentGame currentId colorsArr theNumberOfPrograms isLoaded \
 			listLocation
 	set list .leftSide.list
 	set home .rightSide.home
 	set leftScroll .leftSide.leftScroll
 
-	if {$id >= 0 && $loadList($id) == 0} {
+	if {$id >= 0 && $isLoaded($id) == 0} {
 		loadGame $home $id
-		set loadList($id) 1
+		set isLoaded($id) 1
 		setGameScroll $id
 	}
 	
 	set pos ""
 	if {[llength $args] > 0} {
-	set pos [lindex $args 0]
+		set pos [lindex $args 0]
 	}
 
 	pack forget $home.$currentGame
 	if {[isGame $currentId]} {
-	$list itemconfigure rect$currentId -fill [gameColor $currentId] \
-		-outline RoyalBlue
-	$list itemconfigure text$currentId -fill [textColor $currentId]
+		$list itemconfigure rect$currentId -fill [gameColor $currentId] \
+			-outline RoyalBlue
+		$list itemconfigure text$currentId -fill [textColor $currentId]
 	}
 
 	set currentId $id
 	set currentGame [pageName $id]
 	set width [pageWidth]
 	$home.$currentGame.title configure -width [expr $width - 20]
-	if { [isGame $currentId] == false } {
-	$home.$currentGame.desc configure -width [expr $width - 20]
-	}
-	if { [info exists Desc($currentGame)] } {
-	$home.$currentGame.desc configure -width [expr $width - 20]
-	}
-	if { [info exists Rules($currentGame)] } {
-	$home.$currentGame.rules configure -width [expr $width - 20]
-	}
+
 	pack $home.$currentGame -fill both -expand 1 -anchor nw
 	if {[isGame $currentId]} {
-	$list itemconfigure rect$currentId -fill $calBlue -outline $calBlue
-	$list itemconfigure text$currentId -fill white
-
-	set top [expr ($currentId+0.0) / $theNumberOfPrograms]
-	set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
-	set first [lindex [$leftScroll get] 0]
-	set last [lindex [$leftScroll get] 1]
-	set diff [expr $last - $first]
-
-	if {$top < $first} {
-		if {$pos == "middle"} {
-		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
-		} else {
-		$list [axisView] moveto $top
-		}
-	}
-	if {$bottom > $last } {
-		if {$pos == "middle"} {
-		$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
-		} else {
-		$list [axisView] moveto [max 0 [expr $bottom - $diff]]
-		}
-	}
-	}
-}
-
-proc parseCfg { in } {
-	set fieldDelim {=}
-	global thePrograms theStrings theGuiTypes secDelim colors invColors
+		$list itemconfigure rect$currentId -fill $colorsArr("calBlue") -outline $colorsArr("calBlue")
+		$list itemconfigure text$currentId -fill white
 	
-	if [catch {open "$in" {RDONLY}} fin] {
-		return
-	}
-
-	set cfgName "Config"
-	set colorsName "Colors"
-	set gameName "game"
-	set colorField "color"
-	set nameField "basename"
-	set cfgType 0
+		set top [expr ($currentId+0.0) / $theNumberOfPrograms]
+		set bottom [expr ($currentId+1.0) / $theNumberOfPrograms]
+		set first [lindex [$leftScroll get] 0]
+		set last [lindex [$leftScroll get] 1]
+		set diff [expr $last - $first]
 	
-	while {![eof $fin]} {
-		gets $fin line		
-		
-		if {[regexp $secDelim $line -> title] > 0} {
-			if {$title == $cfgName} {
-				set cfgType $cfgName
-			} elseif {$title == $colorsName} {
-				set cfgType $colorsName
+		if {$top < $first} {
+			if {$pos == "middle"} {
+				$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
 			} else {
-				set cfgType $gameName
-				lappend theStrings $title
+				$list [axisView] moveto $top
 			}
-		} elseif {$cfgType == $cfgName} {
-			
-		} elseif {$cfgType == $colorsName} {
-			set parts [split $line $fieldDelim]
-
-			if {[llength $parts] > 1} {
-				set field [lindex $parts 0]
-				set val [lindex $parts 1]
-				set colors($val) $field
-				set invColors($field) $val
-			}
-		} elseif {$cfgType == $gameName} {
-			set parts [split $line $fieldDelim]
-			
-			if {[llength $parts] > 1} {
-				set field [lindex $parts 0]
-				set val [lindex $parts 1]
-				
-				if {$field == $colorField} {
-					lappend theGuiTypes $colors($val)
-				} elseif {$field == $nameField} {
-					lappend thePrograms $val
-				}
-			}
-		}	
-	}
-	close $fin
-}
-
-proc bSort { } {
-	global theStrings theGuiTypes invColors
-	set maxLen [llength $theStrings]
-	for { set i 0 } { $i < $maxLen } { incr i } {
-		for { set j [expr $i + 1]} { $j < $maxLen } { incr j } {
-			set jColor $invColors([lindex $theGuiTypes $j])
-			set iColor $invColors([lindex $theGuiTypes $i])
-			if {$jColor < $iColor} {
-				swap $i $j
-			} elseif {$jColor == $iColor && [lindex $theStrings $j] < [lindex $theStrings $i]} {
-				swap $i $j
+		}
+		if {$bottom > $last } {
+			if {$pos == "middle"} {
+				$list [axisView] moveto [max 0 [expr $bottom - $diff/2]]
+			} else {
+				$list [axisView] moveto [max 0 [expr $bottom - $diff]]
 			}
 		}
 	}
 }
 
-proc swap { i j } {
-	global thePrograms theStrings theGuiTypes
-	set t1 [lindex $thePrograms $i]
-	set t2 [lindex $theStrings $i]
-	set t3 [lindex $theGuiTypes $i]
-	
-	set thePrograms [lreplace $thePrograms $i $i [lindex $thePrograms $j]]
-	set theStrings [lreplace $theStrings $i $i [lindex $theStrings $j]]
-	set theGuiTypes [lreplace $theGuiTypes $i $i [lindex $theGuiTypes $j]]
-	
-	set thePrograms [lreplace $thePrograms $j $j $t1]
-	set theStrings [lreplace $theStrings $j $j $t2]
-	set theGuiTypes [lreplace $theGuiTypes $j $j $t3]
-}
+### END GAME PAGE SPECIFIC FUNCTIONS ###
 
-proc addGame { } {
-
-}
-
-proc createGameList { } {
-	global thePrograms theStrings theGuiTypes
-}
-
-proc changeGameColor { color } {
-	global gamesFile secDelim invColors currentId
-	if {![isGame $currentId] || [catch {open "$gamesFile" {RDWR}} fin]} {
-		return
-	}
-	
-	set game [gameString $currentId]
-	set colorField "color"
-	set found 0
-	while {![eof $fin]} {
-		set offset [tell $fin]
-		gets $fin line
-		
-		if {$found == 1} {
-			set parts [split $line =]
-			
-			if {[llength $parts] > 1} {
-				if {[lindex $parts 0] == $colorField} {
-					if {[lindex $parts 1] != $invColors($color)} {
-						seek $fin [expr $offset + 1 + [string length $colorField]]
-						puts $fin $invColors($color)
-					}
-					break
-				}
-			}	
-		} elseif {$found == 0 && [regexp $secDelim $line -> title] > 0} {
-			if {$title == $game} {
-				set found 1
-			}
-		}
-	}
-	
-	close $fin
-	refreshGameList
-}
-
-proc refreshGameList { } {
-}
-
-proc setNewColor { color } {
-	global newColor
-	set newColor $color
-}
-
-proc addToGameList { disp base color } {
-	global cliAdd
-	
-	if {!$cliAdd} {
-		set disp [string trimright $disp \n]
-		set base [string trimright $base \n]
-		set msg "Are you sure you want to add?\n\n"
-		set temp "game:\t$disp\n"
-		set msg "$msg$temp"
-		set temp "base:\t$base\n"
-		set msg $msg$temp
-		set temp "color:\t$color\n"
-		set msg $msg$temp
-		set answer [tk_messageBox -message $msg -type yesno -icon question]
-	}
-	
-	if {$cliAdd || $answer == "yes"} {
-		global gamesFile invColors thePrograms theStrings theGuiTypes \
-				theNumberOfPrograms
-		
-		if [catch {open "$gamesFile" {WRONLY CREAT APPEND}} fin] {
-			return
-		}
-		
-		lappend thePrograms $base
-		lappend theStrings $disp
-		lappend theGuiTypes $color
-		
-		set c $invColors($color)
-		set buffer \n\[$disp]\n
-		set temp color=
-		set buffer $buffer$temp$c\n
-		set temp basename=
-		set buffer $buffer$temp$base
-		
-		puts $fin $buffer
-		close $fin
-		
-		bSort
-		set cliAdd false
-		set theNumberOfPrograms [expr $theNumberOfPrograms + 1]
-	}
-}
-
-proc guiAddGame { frame } {
-	global newColor
-	addToGameList [$frame.newGame.nameText get 1.0 end] \
-					[$frame.newGame.baseText get 1.0 end] $newColor
-}
-
-proc cliAddGame { disp base color } {
-	addToGameList $disp $base $color
-}
-
-###END HELPER FUNCTIONS###
 proc main {} {
-	global theBitmapDir thePrograms theStrings theGuiTypes \
-	theNumberOfPrograms currentGame currentId \
-	calBlue calYellow scrollDirection listLocation maxGameString \
-	gamesFile secDelim colors invColors newColor cliAdd cliBase cliDisp \
-	textGameColor
-
-	set newColor black
+	global pathsArr thePrograms theStrings theGuiTypes \
+		theNumberOfPrograms currentGame currentId \
+		scrollDirection listLocation maxGameString \
+		secDelim colors invColors cliAdd cliBase cliDisp \
+		colorsArr
+	
 	set secDelim {\[(.+?)]}
-	set theBitmapDir "../bitmaps"
-	set gamesFile "./games.txt"
 	set thePrograms {}
 	set theStrings {}
 	set theGuiTypes {}
-	parseCfg $gamesFile
+	
+	parseCfg $pathsArr("gamesListPath")
+	
 	set theNumberOfPrograms [llength $thePrograms]
 	
 	if {$cliAdd} {
-		cliAddGame $cliDisp $cliBase $textGameColor
+		cliAddGame $cliDisp $cliBase $colorsArr("textGameColor")
 	} else {
 		bSort
 	}
@@ -709,16 +789,16 @@ proc main {} {
 	set home .rightSide.home
 
 	scrollbar $leftScroll \
-	-troughcolor $calBlue \
+	-troughcolor $colorsArr("calBlue") \
 	-background gold \
 	-borderwidth 0 \
 	-elementborderwidth 1 \
 	-highlightthickness 1 \
 	-highlightbackground RoyalBlue \
 	-width 13
-	canvas $list -background $calBlue -highlightthickness 0
+	canvas $list -background $colorsArr("calBlue") -highlightthickness 0
 
-	canvas $home -background $calBlue -highlightthickness 0
+	canvas $home -background $colorsArr("calBlue") -highlightthickness 0
 
 	pack .leftSide -fill y -side left
 	grid rowconfig    .leftSide 0 -weight 1 -minsize 0
@@ -729,10 +809,10 @@ proc main {} {
 
 	set scrollDirection vertical
 	if {[catch {open listLocation.txt r} fileptr]} {
-	set listLocation left
+		set listLocation left
 	} else {
-	gets $fileptr listLocation
-	close $fileptr
+		gets $fileptr listLocation
+		close $fileptr
 	}
 
 	CreateGamePages $home
@@ -753,6 +833,20 @@ proc main {} {
 	bind $leftScroll <ButtonPress-5> "mouseWheelDown"
 
 	. configure -menu .menu
+}
+
+### START PAGE CREATION FUNCTIONS ###
+
+proc makeDocPath { gameName } {
+	global pathsArr
+	
+	#Special case for connections because con is a reserved file name
+	if {$gameName == "con"} {
+	    return [file join $pathsArr("docPath") "connections.html"]	
+	} else {
+	    set temp $gameName.html
+	  	return [file join $pathsArr("docPath") $temp]
+	}
 }
 
 proc CreateMenuItems menu {
@@ -882,81 +976,16 @@ proc CreateListButtons list {
 	selectGame $currentId
 }
 
-proc scrollEnter canvas {
-	global currentId
-	set id [getIdUnderMouse $canvas]
-	if { $currentId != $id } {
-	$canvas itemconfigure rect$id -fill RoyalBlue
-	$canvas itemconfigure text$id -fill white
-	}
-}
-
-proc scrollLeave list {
-	global currentId
-	set id [getIdUnderMouse $list]
-	if { $currentId != $id } {
-	$list itemconfigure rect$id -fill [gameColor $id]
-	$list itemconfigure text$id -fill [textColor $id]
-	}
-}
-
-proc scrollButton list {
-	selectGame [getIdUnderMouse $list]
-}
-
-proc scrollDoubleClick list {
-	set i [getIdUnderMouse $list]
-	if { [guiExists $i] } {
-	runGui $i
-	} else {
-	runText $i
-	}
-}
-
-proc mouseWheelUp { } {
-	global scrollDirection
-	set leftScroll .leftSide.leftScroll
-	set list .leftSide.list
-	set first [lindex [$leftScroll get] 0]
-	$list [axisView] scroll -1 units
-}
-
-proc mouseWheelDown { } {
-	global scrollDirection
-	set leftScroll .leftSide.leftScroll
-	set list .leftSide.list
-	set first [lindex [$leftScroll get] 0]
-	$list [axisView] scroll 1 units
-}
-
-proc Resize { } {
-	global Desc Rules currentGame
-	set home .rightSide.home
-	set width [pageWidth]
-	$home.$currentGame.title configure -width [expr $width - 20]
-	if { [info exists Desc($currentGame)] } {
-		$home.$currentGame.desc configure -width [expr $width - 20]
-	}
-	if { [info exists Rules($currentGame)] } {
-		$home.$currentGame.rules configure -width [expr $width - 20]
-	}
-	if { $currentGame == "main" || $currentGame == "newGame"} {
-		$home.main.desc configure -width [expr $width - 20]
-	}
-}
-
 proc CreateGamePages { frame } {
-	global theNumberOfPrograms calBlue Desc Rules invColors loadList
+	global theNumberOfPrograms invColors isLoaded colorsArr
 
 	set width [pageWidth]
 	set height [expr [winfo height .] - 30]
 	set borderWidth 5
-	set bgcolor $calBlue
-	set fontcolor white
-			
-	##### Starting Page ########
-	set bgcolor $calBlue
-	set fontcolor white
+	set bgcolor $colorsArr("calBlue")
+	set fontcolor white		
+	
+	##### Starting Page #######
 	canvas $frame.main -background $bgcolor -highlightthickness 0
 	message $frame.main.title -text "GAMESMAN" \
 	-anchor center \
@@ -1050,25 +1079,23 @@ proc CreateGamePages { frame } {
 	
     ### this loop creates default content for game specific pages
 	for { set i 0 } { $i < $theNumberOfPrograms } { incr i } {
-		set loadList($i) 0
+		set isLoaded($i) 0
 	}
 }
 
 proc loadGame { frame i } {
-	global theNumberOfPrograms calBlue Desc Rules invColors
+	global theNumberOfPrograms colorsArr invColors
 
 	set width [pageWidth]
 	set height [expr [winfo height .] - 30]
 	set borderWidth 5
-	set bgcolor $calBlue
-	set fontcolor white
-			
-	##### Starting Page ########
-	set bgcolor $calBlue
+	set bgcolor $colorsArr("calBlue")
 	set fontcolor white
 	set gameName [gameName $i]
 	set gameString [gameString $i]
-	set theColor [gameColor $i]
+	set theColor [gameColor $i]		
+	
+	##### Game specific page #####
 	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
 	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
@@ -1101,7 +1128,7 @@ proc loadGame { frame i } {
 	    
 	set fullName [makeDocPath $gameName]
 
-	if { [file exists $fullName]} {
+	if {[file exists $fullName]} {
 		scrollbar .scrollbar$gameName  -command ".text$gameName yview"  -orient v
 		option add *Text.height 40 startup
 		option add *Text.width 80 startup
@@ -1113,6 +1140,8 @@ proc loadGame { frame i } {
 		convert_html_tcl $fullName $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
 	}
 }
+
+### END PAGE CREATION FUNCTIONS ###
 
 ### Call the main procedure.
 main
