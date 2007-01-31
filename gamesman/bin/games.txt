@@ -22,6 +22,10 @@ basename=achi
 color=1
 basename=asalto
 
+[Cambio]
+color=4
+basename=cambio
+
 [Change!]
 color=1
 basename=change
