@@ -116,7 +116,7 @@ gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
 //		base_path[current_pos] = '/';
 //		current_pos ++;
 		
-		this_cluster = page_no && ((1 << CLUSTER_SIZE) - 1);
+		this_cluster = page_no & ((1 << CLUSTER_SIZE) - 1);
 		
 //		do {
 		sprintf(temp, "/%llu", this_cluster);
@@ -164,7 +164,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	gzFile pagefile = gzopen(filename, "w+");
 	
 	if (DEBUG)
-		printf ("db_write: page = %llu, last_page = %llu\n", page, dbfile->last_page);
+		printf ("db_write: path = %s, page = %llu, last_page = %llu\n", filename, page, dbfile->last_page);
 
 	//write data
 	//Remember to write data in the same order and sizes as when you read it
@@ -189,7 +189,7 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	gzFile pagefile = gzopen(filename, "r+");
 	
 	if (DEBUG) {
-		printf ("db_read: page = %llu, last_page = %llu\n", page, dbfile->last_page);
+		printf ("db_read: path = %s, page = %llu, last_page = %llu\n", filename, page, dbfile->last_page);
 	}
 	
 	if(pagefile != NULL) {

@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	//sequencial read/write
 
 	for (i=0;i<totalrecs;i++) {
-		data = i % (1<<16);
+		data = i & ((1<<16) - 1);
 		printf("reading: %llu\n", i);
 		if (i == 85)
 			printf("\n");
@@ -75,12 +75,14 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}*/
+	printf("entering random tests...\n");
+	
 	gamesdb_position val;
 	for (i=0;i<totalrecs;i++) {
-		while (totalrecs <= (val = rand() / (RAND_MAX/totalrecs)));\
+		while (totalrecs <= (val = rand() / (RAND_MAX / totalrecs)));
 		printf("reading: %llu\n", val);
-		data = val % (1 << 16);
-		//db_put(testdb, (void*)&data, i);
+		data = val & ((1 << 16) - 1);
+		gamesdb_put(testdb, (void*)&data, i);
 		gamesdb_get(testdb, (void*)&result, val);
 		if (data!=result) {
 			printf("ERROR in rand read: position %llu, saved %d, got %d\n", i, data, result);
