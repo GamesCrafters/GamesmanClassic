@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.119 2007-01-09 12:56:12 eudean Exp $
+# $Id: InitWindow.tcl,v 1.120 2007-02-02 09:06:25 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -861,39 +861,6 @@ proc InitWindow { kRootDir kExt } {
 
     pack propagate $skinsFrame 0
 
-    #image create photo lily_screenshot -file "$gSkinsRootDir/LilySkin/screenshot.ppm"
-    #image create photo mac_screenshot -file "$gSkinsRootDir/MacSkin/screenshot.ppm"
-    image create photo oxyHiRes_screenshot -file "$gSkinsRootDir/OxySkin_HiRes/screenshot.ppm"
-    image create photo earthFromSpace_HiRes_screenshot -file "$gSkinsRootDir/EarthFromSpace_HiRes/screenshot.ppm"
-    image create photo spaceCloud_HiRes_screenshot -file "$gSkinsRootDir/SpaceCloud_HiRes/screenshot.ppm"
-
-    button $skinsFrame.content.left.oxyHiRes\
-	    -compound top\
-	    -image oxyHiRes_screenshot\
-	    -text "Official Skin (HiRes)"\
-	    -command {
-		InitButtons $gSkinsRootDir OxySkin_HiRes/ ppm
-		TBaction6
-	    }
-
-    button $skinsFrame.content.right.earthFromSpace_HiRes\
-	    -compound top\
-	    -image earthFromSpace_HiRes_screenshot\
-	    -text "Earth From Space (HiRes)"\
-	    -command {
-		InitButtons $gSkinsRootDir EarthFromSpace_HiRes/ ppm
-		TBaction6
-	    }
-
-    button $skinsFrame.content.left.spaceCloud_HiRes\
-	    -compound top\
-	    -image spaceCloud_HiRes_screenshot\
-	    -text "Space Cloud (HiRes)"\
-	    -command {
-		InitButtons $gSkinsRootDir SpaceCloud_HiRes/ ppm
-		TBaction6
-	    }
-
     button $skinsFrame.buttons.bReturn -text "Return" \
 	-command {
 	    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
@@ -910,11 +877,39 @@ proc InitWindow { kRootDir kExt } {
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
-    pack $skinsFrame.content.left.oxyHiRes -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.right.earthFromSpace_HiRes -ipadx 4 -ipady 4 -anchor n
-    pack $skinsFrame.content.left.spaceCloud_HiRes -ipadx 4 -ipady 4 -anchor n
-    #pack $skinsFrame.content.right.mac -ipadx 4 -ipady 4 -anchor n
-    #pack $skinsFrame.content.left.lily -ipadx 4 -ipady 4 -anchor n
+    set skins [list]
+    if { [file isdirectory $gSkinsRootDir] } {
+	set include "*HiRes*"
+	foreach dir [glob -directory  $gSkinsRootDir */] {
+	    if {[string match $include $dir]} {
+		lappend skins $dir
+	    }
+	}
+    }
+
+    set alignmentParity 0
+    foreach skin $skins {
+	set dirs [file split $skin]
+	set name [lindex $dirs [expr [llength $dirs] -1]]
+
+	image create photo [format %s_screenshot $name] -file [format %sscreenshot.ppm $skin]
+
+	if {0 == [expr $alignmentParity % 2]} {
+	    set align "left"
+	} else {
+	    set align "right"
+	}
+	button $skinsFrame.content.$align.b$name\
+	    -compound top\
+	    -image [format %s_screenshot $name]\
+	    -text $name\
+	    -command " \
+		InitButtons $gSkinsRootDir [format %s/ $name] ppm; \
+		TBaction6; \
+	    "
+	pack $skinsFrame.content.$align.b$name -ipadx 4 -ipady 4 -anchor n
+	incr alignmentParity 1
+    }
 
     pack $skinsFrame.buttons -side bottom -fill x
     pack $skinsFrame.content -side top -fill both -expand 1
