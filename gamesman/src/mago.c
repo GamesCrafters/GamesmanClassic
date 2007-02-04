@@ -349,21 +349,7 @@ VALUE Primitive (POSITION position){
 					listFree(&bno_liberties);
 					listFree(&whave_liberties);
 					listFree(&wno_liberties);
-					return lose;
-					/*
-					if (board[toIndex(x,y)] == BLACK){
-						if (turn == PLAYER_ONE){
-							return lose;
-						} else {
-							return win;
-						}
-					} else {
-						if (turn == PLAYER_ONE){
-							return win;
-						} else {
-							return lose;
-						}
-					}*/
+					return (gStandardGame ? lose : win);
 				}
 			}
 		}
@@ -373,7 +359,7 @@ VALUE Primitive (POSITION position){
 	listFree(&whave_liberties);
 	listFree(&wno_liberties);
 	if (SELFKILL == TRUE){
-		return win;
+		return (gStandardGame ? win : lose);
 	}
 	return undecided;
 }
