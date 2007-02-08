@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.44 2006-12-19 20:00:50 arabani Exp $
+// $Id: mabalone.c,v 1.45 2007-02-08 05:23:43 dmchan Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -364,8 +364,7 @@ void changeBoard()
 {
   unsigned int size;
   printf("Enter the new N:  ");
-  /*(void) scanf("%u", &size);*/
-	size = (unsigned int) GetMyInt();
+  size = GetMyUInt();
   if (size < 2) {
     printf("N must be at least 2\n");
     changeBoard();
@@ -389,10 +388,7 @@ void changeKills()
 {
   unsigned int kills;
   printf("Enter the new number of pieces to capture:   ");
-  /*(void) scanf("%u", &kills);
-  kills = (int) getchar();
-    kills = (int) getchar();*/
-	kills = (unsigned int) GetMyInt();
+  kills = GetMyUInt();
   if (PIECES - kills < 0) {
     printf("A player can only lose as many pieces as the game starts with\n");
     changeKills();
@@ -415,11 +411,7 @@ void changePieces()
 {
   int num;
   printf("Enter the new number of pieces:  ");
-  /*fflush(stdin);
-  (void) scanf("%u", &num);
-  num = getchar();
-    num = getchar();*/
-	num = (unsigned int) GetMyInt(); /* horrible... probably should implment getting unsigned ints*/
+  num = GetMyUInt();
   if ((2 * num + (*rows[N-1]).size) > BOARDSIZE) {
     printf("Too many pieces for board\n");
     changePieces();
@@ -2401,6 +2393,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.44  2006/12/19 20:00:50  arabani
+// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+//
 // Revision 1.43  2006/12/19 09:03:17  koolswim88
 // *** empty log message ***
 //

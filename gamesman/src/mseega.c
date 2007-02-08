@@ -401,8 +401,7 @@ void changeBoard()
   valid_cols = 0; //a flag
   valid_rows = 0; //another flag - not used
   printf("Enter the new number of rows (3-%d):  ", MAXROWS);
-  /*(void) scanf("%u", &n_rows);*/
-	n_rows = (unsigned int) GetMyInt();
+  n_rows = GetMyUInt();
   if ((n_rows < 3) || (n_rows > MAXROWS)) {
     printf("Number of rows must be between to 3 and %d\n", MAXROWS);
     changeBoard(); //optional - change to better style
@@ -412,8 +411,7 @@ void changeBoard()
   }
   printf("Enter the new number of columns (3-%d):  ", MAXCOLS);
   while (valid_cols == 0){
-    /*(void) scanf("%u", &n_cols);*/
-	n_cols = (unsigned int) GetMyInt();
+    n_cols = GetMyUInt();
     if ((n_cols < 3) || (n_cols > MAXCOLS)) {
       printf("Number of columns must be between to 3 and %d\n", MAXCOLS);
     } else {
@@ -434,8 +432,7 @@ void changeForbiddenSpots()
   int MAXNUM = 8; //TEMP
   printf("Enter the new forbidden spot (between -1 and %u),\n", MAXNUM);
   printf("-1 indicates that there are no forbidden spots:   ");
-  /*(void) scanf("%u", &changedForbidden);*/
-	changedForbidden = (unsigned int) GetMyInt();
+  changedForbidden = GetMyUInt();
   if ((changedForbidden < -1) || (changedForbidden > MAXNUM)) {
     printf("not a valid forbidden spot\n");
     changedForbidden = -1;

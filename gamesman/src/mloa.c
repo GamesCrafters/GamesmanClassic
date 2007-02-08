@@ -44,7 +44,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.12 2006-12-19 20:00:51 arabani Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.13 2007-02-08 05:23:46 dmchan Exp $
 **
 **************************************************************************/
 
@@ -904,17 +904,17 @@ void GameSpecificMenu ()
     case 'r':
     case 'R':
       printf("Input desired board length[3-6]: ");
-      temp = (unsigned int) GetMyInt();
+      temp = GetMyUInt();
       while(temp < 3 || temp > 6) {
 	printf("Invalid length.  Please enter a length from 3 to 6.\n");
-	temp = (unsigned int) GetMyInt();
+	temp = GetMyUInt();
       }
       gBoardLength = temp;
       printf("Input desired board height[3-6]: ");
-      temp = (unsigned int) GetMyInt();
+      temp = GetMyUInt();
       while(temp < 3 || temp > 6) {
 	printf("Invalid length.  Please enter a length from 3 to 6.\n");
-	temp = (unsigned int) GetMyInt();
+	temp = GetMyUInt();
       }
       gBoardHeight = temp;
       gBoardSize = gBoardLength*gBoardHeight;
@@ -1421,6 +1421,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.12  2006/12/19 20:00:51  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.11  2006/12/14 06:23:55  alb_shau
  ** fixed a memory leak
  **

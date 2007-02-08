@@ -1132,8 +1132,7 @@ void GameSpecificMenu ()
   case 'w':
   case 'W':
     printf("Please input desired board width[3-5]: ");
-    intWidth = (unsigned int) GetMyInt();
-	/*(void) scanf("%u", &intWidth); no longer needed*/
+    intWidth = GetMyUInt();
     gBoardwidth = intWidth;
     gBoardlength = gBoardwidth*gBoardwidth;
     InitializeGame();
