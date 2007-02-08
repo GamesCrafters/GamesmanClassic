@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.120 2007-02-02 09:06:25 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.121 2007-02-08 06:23:59 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -881,7 +881,7 @@ proc InitWindow { kRootDir kExt } {
     if { [file isdirectory $gSkinsRootDir] } {
 	set include "*HiRes*"
 	foreach dir [glob -directory  $gSkinsRootDir */] {
-	    if {[string match $include $dir]} {
+	    if {[string match $include $dir] && [file exists [format %s/screenshot.ppm $dir]]} {
 		lappend skins $dir
 	    }
 	}
