@@ -211,7 +211,7 @@ color=4
 basename=tilechess
 
 [Toot and Otto]
-color=4
+color=1
 basename=tootnotto
 
 [Tic-Tac-Chec]
