@@ -41,7 +41,8 @@
 #define BITSINPOS 64
 #define NUMOFTYPES 4
 #define LENGTHOFEXT 7 //.dat.gz
-
+// gcc levelfile_generator.c levelfile_generator.h bpdb_bitlib.h bpdb_bitlib.c levelfile_test.c -lZ
+// hexedit to view binary characters
 typedef unsigned char BITARRAY;
 
 
@@ -51,6 +52,17 @@ int ArrayToType0Write(BITARRAY *array, UINT64 minHashValue, UINT64 maxHashValue)
 int ArrayToType1Write(BITARRAY *array, UINT64 minHashValue, UINT64 maxHashValue, UINT8 bitsPerPosition, UINT64 offset);
 int ArrayToType2Write(BITARRAY *array, UINT64 minHashValue, UINT64 maxHashValue, UINT8 bitsPerPosition, UINT64 offset);
 int ArrayToType3Write(BITARRAY *array, UINT64 minHashValue, UINT64 maxHashValue);
+
+int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length);
+int getLevelFileType(char* compressed_filename);
+int getLevelFileMinHashValue(char* compressed_filename);
+int getLevelFileMaxHashValue(char* compressed_filename);
+int getLevelFileBitsPerPosition(char* compressed_filename);
+int isValidLevelFile(char* compressed_filename);
+int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length);
+int readLevelFileType1(char* compressed_filename, BITARRAY *array, int length);
+int readLevelFileType2(char* compressed_filename, BITARRAY *array, int length);
+int readLevelFileType3(char* compressed_filename, BITARRAY *array, int length);
 UINT8 getBitValue(BYTE currentByte, UINT8 bitnum);
 UINT64 findMinValueFromArray(BITARRAY* array, UINT64 length);
 UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length);
