@@ -115,6 +115,12 @@ void GetMyHelper(char *format, GENERIC_PTR out) {
 	GetMy(format, out, DEFAULTLENGTH, FALSE);
 }
 
+unsigned int GetMyUInt() {
+  unsigned int temp = 0;
+  GetMyHelper("%u", &temp);
+  return temp;
+}
+
 /* get next int from stdin and return */
 int GetMyInt() {
 	int temp = 0;

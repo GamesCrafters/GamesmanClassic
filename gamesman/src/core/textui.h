@@ -5,6 +5,7 @@
 void		HitAnyKeyToContinue	();
 char		GetMyChar		();
 int		GetMyInt		();
+unsigned int    GetMyUInt               ();
 void		GetMyHelper		(char *format, GENERIC_PTR target);
 void		GetMy			(char *format, GENERIC_PTR target, int length, BOOLEAN keepSpaces);
 void		GetMyStr		(STRING str, int len);
