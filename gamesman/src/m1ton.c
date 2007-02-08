@@ -129,7 +129,7 @@ void changeBoard()
 {
   unsigned int boardSize;
   printf("Enter the new N:  ");
-  (void) scanf("%u", &boardSize);
+  boardSize = GetMyUInt();
   N = boardSize;
   gNumberOfPositions = N + 1;
 }
@@ -138,7 +138,7 @@ void changeMove()
 {
   unsigned int turnSize;
   printf("Enter the new turn size:  ");
-  (void) scanf("%u", &turnSize);
+  turnSize = GetMyUInt();
   gTurn = turnSize;
 }
 
@@ -156,7 +156,7 @@ void GameSpecificMenu()
 {
   int selection;
   printf("%s", gGameSpecificMenu);
-  (void) scanf("%d", &selection);
+  selection = GetMyInt();
   if(selection == 1)
     changeBoard();
   else if(selection == 2)
@@ -405,7 +405,7 @@ BOOLEAN ValidTextInput(input)
 MOVE ConvertTextInputToMove(input)
      STRING input;
 {
-  return((MOVE) input[0] - '0'); /* user input is 1-9, our rep. is 0-8 */
+  return((MOVE) atoi(input)); /* user input is 1-9, our rep. is 0-8 */
 }
 
 /************************************************************************
