@@ -71,6 +71,7 @@ gamesdb*   mydb;
 void filedb_init(DB_Table *new_db)
 {
         POSITION i;
+		char dirname[80];
 
         //set function pointers
         new_db->get_value = filedb_get_value;
@@ -85,7 +86,9 @@ void filedb_init(DB_Table *new_db)
         new_db->free_db = filedb_free;
         
         //create a db with 16-bit cells, using 4096 pages, and 512MB of RAM (approx.)
-        mydb = gamesdb_create(sizeof(cellValue), 512, 512, kDBName);
+        sprintf(dirname, "m%s_%d_filedb", kDBName, getOption()) ;
+        
+        mydb = gamesdb_create(sizeof(cellValue), 4196, 256, dirname);
         
         start = FALSE;
         mypos = 0;

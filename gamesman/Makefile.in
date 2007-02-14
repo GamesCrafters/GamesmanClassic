@@ -36,4 +36,4 @@ dist:
 	cd src && $(MAKE) dist
 
 dist-clean: clean
-	rm -rf Makefile configure config.status config.log *~ bin/data bin/stages src/data autom4te.cache
+	rm -rf Makefile configure config.status config.log *~ autom4te.cache

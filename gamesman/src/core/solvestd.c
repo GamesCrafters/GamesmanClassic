@@ -49,8 +49,8 @@ VALUE DetermineValueSTD(POSITION position)
     
     if(Visited(position)) { /* Cycle! */
         printf("Sorry, but I think this is a loopy game. I give up.");
-	ExitStageRight();
-	exit(0);
+        ExitStageRight();
+        exit(0);
     }
     /* It's been seen before and value has been determined */
     else if((value = GetValueOfPosition(position)) != undecided) { 
@@ -60,10 +60,10 @@ VALUE DetermineValueSTD(POSITION position)
         SetRemoteness(position,0); /* terminal positions have 0 remoteness */
         if(!kPartizan && !gTwoBits)
             MexStore(position,MexPrimitive(value)); /* lose=0, win=* */
-	else if (kPartizan && gPutWinBy && !gTwoBits)
-	  WinByStore(position,gPutWinBy(position));
+	    else if (kPartizan && gPutWinBy && !gTwoBits)
+	       WinByStore(position,gPutWinBy(position));
         return(StoreValueOfPosition(position,value));
-        /* first time, need to recursively determine value */
+    /* first time, need to recursively determine value */
     } else { 
         MarkAsVisited(position);
         if(!kPartizan && !gTwoBits)
@@ -74,29 +74,29 @@ VALUE DetermineValueSTD(POSITION position)
             gAnalysis.TotalMoves++;
             child = DoMove(position,ptr->move);  /* Create the child */
 
-	    if(gSymmetries)
-		child = gCanonicalPosition(child);
+            if(gSymmetries)
+                child = gCanonicalPosition(child);
 
             if (child < 0 || child >= gNumberOfPositions)
                 FoundBadPosition(child, position, move);
 
             value = DetermineValueSTD(child);       /* DFS call */
 
-	    if (kPartizan && gPutWinBy && !gTwoBits) {
-	      int childWinByValue = WinByLoad(child);
-	      if (childWinByValue < minWinByValue)
-		minWinByValue = childWinByValue;
-	      if (childWinByValue > maxWinByValue)
-		maxWinByValue = childWinByValue;
-	    }
+            if (kPartizan && gPutWinBy && !gTwoBits) {
+                int childWinByValue = WinByLoad(child);
+                if (childWinByValue < minWinByValue)
+                    minWinByValue = childWinByValue;
+                    if (childWinByValue > maxWinByValue)
+                        maxWinByValue = childWinByValue;
+            }
 	    
             if (gGoAgain(position,move))
                 switch(value)
-		{
-		    case lose: value=win;break;
-		    case win: value=lose;break;
-		    default: break; /* value stays the same */
-		}
+                {
+                    case lose: value=win;break;
+                    case win: value=lose;break;
+                    default: break; /* value stays the same */
+                }
 	    
             remoteness = Remoteness(child);
             if(!kPartizan && !gTwoBits)
@@ -120,20 +120,20 @@ VALUE DetermineValueSTD(POSITION position)
               gUndoMove(move);
 
             ptr = ptr->next;
-        }
+        } //while
         FreeMoveList(head);
         UnMarkAsVisited(position);
         if(!kPartizan && !gTwoBits)
             MexStore(position,MexCompute(theMexCalc));
-	else if (kPartizan && gPutWinBy && !gTwoBits) {
-	  int turn = generic_hash_turn(position);
-	  if (turn == 1)
-	    winByValue = maxWinByValue;
-	  else if (turn == 2)
-	    winByValue = minWinByValue;
-	  else BadElse("Bad generic_hash_turn(position)");
-	  WinByStore(position,winByValue);
-	}
+        else if (kPartizan && gPutWinBy && !gTwoBits) {
+            int turn = generic_hash_turn(position);
+            if (turn == 1)
+                winByValue = maxWinByValue;
+            else if (turn == 2)
+                winByValue = minWinByValue;
+            else BadElse("Bad generic_hash_turn(position)");
+            WinByStore(position,winByValue);
+        }
         if(foundLose) {
             SetRemoteness(position,minRemoteness+1); /* Winners want to mate soon! */
             return(StoreValueOfPosition(position,win));
@@ -148,7 +148,7 @@ VALUE DetermineValueSTD(POSITION position)
         }
         else
             BadElse("DetermineValue[2]. GenereateMoves most likely didnt return anything.");
-    }
+    } // else
     BadElse("DetermineValue[3]");  /* This should NEVER be reached */
     return(undecided);          /* But has been added to satisty lint */
 }
