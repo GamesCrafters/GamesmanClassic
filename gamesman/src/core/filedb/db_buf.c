@@ -51,7 +51,7 @@ gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf
 
 	gamesdb_pageid mem_for_cells = mem_per_page - sizeof(gamesdb_pageid) - sizeof(gamesdb_boolean) - sizeof(gamesdb_counter);
 	   	
-  	bufp->rec_size = rec_size + 1; //one byte for use by the db code (valid bit, etc)
+  	bufp->rec_size = rec_size;
   	bufp->buf_size = mem_for_cells / (bufp->rec_size);
   	bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
   	//bufp->chances = (gamesdb_counter*) gamesdb_SafeMalloc (sizeof(gamesdb_counter) * num_buf);

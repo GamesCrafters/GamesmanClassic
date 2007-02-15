@@ -83,11 +83,11 @@ gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
  * allocates memory and sets up a gamescrafters db. Must call destructive
  * function when done to free up memory.
  */
-gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_pages, int max_mem, char* db_name){
+gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_pages, int max_mem, int cluster_size, char* db_name){
   gamesdb_bman* bman;
   gamesdb_buffer* bufp;
   gamesdb* data;
-  gamesdb_store* storep = gamesdb_open(db_name);
+  gamesdb_store* storep = gamesdb_open(db_name, cluster_size);
 
   bufp = gamesdb_buf_init(rec_size, max_pages, max_mem);
 
@@ -127,18 +127,20 @@ void gamesdb_get(gamesdb* gdb, char* mem, gamesdb_position pos){
 	//byte offset of the db record (the extra byte + the actual record)
 	gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
 	
-	char valid;
+	//char valid;
 	//copy the first byte and see if it is valid
-	memcpy(&valid, buf->mem+off, 1);
+	//memcpy(&valid, buf->mem+off, 1);
 	
-	if(valid == TRUE) {
-		memcpy(mem, buf->mem+off+1, bufp->rec_size-1);
+	memcpy(mem, buf->mem+off, bufp->rec_size);
+	
+/*	if(mem[0] == ) {
+		
 	} else {
 		if (DEBUG)
 			printf("gamesdb: get() missed.\n");
-		memset(mem, 0, bufp->rec_size-1);
+		memset(mem, 0, bufp->rec_size);
 	}
-	
+*/	
 }
 
 
@@ -156,9 +158,9 @@ void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos){
 	gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
 	
 	//actually write the record
-	char valid = TRUE;
-	memcpy(buf->mem+off, &valid, 1);
-	memcpy(buf->mem+off+1, mem, bufp->rec_size-1);
+	//char valid = TRUE;
+	//memcpy(buf->mem+off, &valid, 1);
+	memcpy(buf->mem+off, mem, bufp->rec_size);
 	
 	bufp->dirty[ppn] = TRUE;
 	buf->chances = 0; 

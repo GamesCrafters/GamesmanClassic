@@ -24,6 +24,7 @@ typedef struct dbfile_struct{
   gzFile* filep;	//the disk file descriptor
   gamesdb_pageid current_page;  //the current page
   gamesdb_pageid last_page; //offset of the next page after the end
+  int dir_size; //the number of bits grouped inside one directory of disk pages
 }gamesdb_store;
 
 //hash
@@ -57,7 +58,7 @@ typedef struct {
 //  gamesdb_counter* chances;
   int rec_size; //number of bytes in a record
   int buf_size; //number of records in a buffer
-  int n_buf;    //number of buffer pages
+  int n_buf;    //number of pages in memory
 }gamesdb_buffer;
 
 //buffer manager

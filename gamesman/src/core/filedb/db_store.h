@@ -38,7 +38,7 @@
 
 #include "db_types.h"
 
-gamesdb_store* 	gamesdb_open	(char* filename);
+gamesdb_store* 	gamesdb_open	(char* filename, int cluster_size);
 int 		gamesdb_close		(gamesdb_store* db);
 void		gamesdb_seek		(gamesdb_store* db, gamesdb_pageid page);
 int 		gamesdb_read		(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf);

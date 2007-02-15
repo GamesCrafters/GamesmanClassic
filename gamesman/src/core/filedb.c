@@ -88,7 +88,7 @@ void filedb_init(DB_Table *new_db)
         //create a db with 16-bit cells, using 4096 pages, and 512MB of RAM (approx.)
         sprintf(dirname, "m%s_%d_filedb", kDBName, getOption()) ;
         
-        mydb = gamesdb_create(sizeof(cellValue), 4196, 256, dirname);
+        mydb = gamesdb_create(sizeof(cellValue), 4196, 256, 10, dirname);
         
         start = FALSE;
         mypos = 0;

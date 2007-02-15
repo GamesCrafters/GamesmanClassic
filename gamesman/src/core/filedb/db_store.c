@@ -51,12 +51,14 @@
 ** returns db_store pointer on success (freed in db_close)
 ** null on failure. 
 */
-gamesdb_store* gamesdb_open(char* filename){
+gamesdb_store* gamesdb_open(char* filename, int cluster_size){
   gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
   db->filename = (char*) gamesdb_SafeMalloc (sizeof(char)*strlen(filename));
   
   strcpy(db->filename, filename);
+  
+  db->dir_size = cluster_size;
   
   db->current_page = 0;
   
@@ -101,7 +103,7 @@ int gamesdb_close(gamesdb_store* db){
 }
 
 //makes all directory levels necessary to house the page with tag page_no
-gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
+gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no, int dir_size) {
 	
 	unsigned int current_pos = 0;
 	gamesdb_pageid this_cluster = 0;
@@ -111,12 +113,12 @@ gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
 	//	current_pos++;
 	//}
 	
-	while (page_no >= (1 << CLUSTER_SIZE)) {
+	while (page_no >= (1 << dir_size)) {
 		
 //		base_path[current_pos] = '/';
 //		current_pos ++;
 		
-		this_cluster = page_no & ((1 << CLUSTER_SIZE) - 1);
+		this_cluster = page_no & ((1 << dir_size) - 1);
 		
 //		do {
 		sprintf(temp, "/%llu", this_cluster);
@@ -133,7 +135,7 @@ gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no) {
   
   		closedir (data_dir);
   		
-  		page_no >>= CLUSTER_SIZE;
+  		page_no >>= dir_size;
 	}
 	
 	this_cluster = page_no;
@@ -159,7 +161,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	gamesdb_store *dbfile = db->store;
 	
 	sprintf(filename, "./data/%s", dbfile->filename);
-	gamesdb_checkpath(filename, page);
+	gamesdb_checkpath(filename, page, dbfile->dir_size);
 
 	gzFile pagefile = gzopen(filename, "w+");
 	
@@ -184,7 +186,7 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	gamesdb_store *dbfile = db->store;
 	
 	sprintf(filename, "./data/%s", dbfile->filename);
-	gamesdb_checkpath(filename, page);
+	gamesdb_checkpath(filename, page, dbfile->dir_size);
 
 	gzFile pagefile = gzopen(filename, "r+");
 	
