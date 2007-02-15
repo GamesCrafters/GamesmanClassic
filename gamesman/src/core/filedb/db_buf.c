@@ -53,7 +53,7 @@ gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf
 	   	
   	bufp->rec_size = rec_size;
   	bufp->buf_size = mem_for_cells / (bufp->rec_size);
-  	bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
+  	//bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
   	//bufp->chances = (gamesdb_counter*) gamesdb_SafeMalloc (sizeof(gamesdb_counter) * num_buf);
   	bufp->buffers = (gamesdb_bufferpage*) gamesdb_SafeMalloc (sizeof(gamesdb_bufferpage) * num_buf);
  
@@ -66,7 +66,7 @@ gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf
     	buf->tag = 0;
     	buf->valid = FALSE;
     	buf->chances = 0;
-    	bufp->dirty[i] = FALSE;
+    	buf->dirty = FALSE;
     	//bufp->chances[i] = 0;
   	}
 
@@ -79,13 +79,15 @@ int gamesdb_buf_flush_all(gamesdb* db) {
 	//this will be as fast as it gets
 	int i;
 	gamesdb_buffer* bufp = db->buffers;
-	
+	gamesdb_bufferpage* buf;
+    
 	for (i = 0; i < bufp->n_buf; i++) {
-		if (bufp->dirty[i] == TRUE) {
-			gamesdb_buf_write(db, i);
-		}
-	}
-	return 0;
+        buf = db->buffers->buffers + i;
+        if (buf->dirty == TRUE) {
+            gamesdb_buf_write(db, i);
+        }
+    }
+    return 0;
 }
 
 //reads a page from disk
@@ -117,12 +119,12 @@ int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
   gamesdb_bufferpage* buf = bufp->buffers + spot;
   
   //we don't have to write the page if it's clean
-  if(bufp->dirty[spot] == TRUE){
+  if(buf->dirty == TRUE){
     buf->chances = 0;
 
     gamesdb_write(db, buf->tag, buf);
 
-    bufp->dirty[spot] = FALSE;
+    buf->dirty = FALSE;
   }
   
   if (DEBUG) {
@@ -145,7 +147,7 @@ int gamesdb_buf_destroy(gamesdb* db){
     gamesdb_SafeFree(buf->mem);
   }
   
-  gamesdb_SafeFree(bufp->dirty);
+  //gamesdb_SafeFree(bufp->dirty);
   //gamesdb_SafeFree(bufp->chances);
   gamesdb_SafeFree(bufp->buffers);
 //  SafeFree(bufp->buf_off);

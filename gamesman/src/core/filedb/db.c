@@ -162,6 +162,6 @@ void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos){
 	//memcpy(buf->mem+off, &valid, 1);
 	memcpy(buf->mem+off, mem, bufp->rec_size);
 	
-	bufp->dirty[ppn] = TRUE;
+	buf->dirty = TRUE;
 	buf->chances = 0; 
 }
