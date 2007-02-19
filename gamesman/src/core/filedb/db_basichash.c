@@ -70,7 +70,7 @@ gamesdb_frameid gamesdb_basichash_get(gamesdb_bhash* hash, gamesdb_pageid id){
     place = place->next;
   }
   
-  return -1;
+  return NULL;
 }
 
 
@@ -109,7 +109,7 @@ int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_framei
   }
 }
 
-/* removes id from the hash table. returns frame_id or -1 if id des nto exist
+/* removes id from the hash table. returns frame_id or -1 if id des not exist
  */
 gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id){
   int i;
@@ -121,7 +121,7 @@ gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id)
     place->id[i] = -1;
     return place->loc[i];
   }
-  return -1;
+  return NULL;
 }
 
 void gamesdb_basichash_destroy(gamesdb_bhash* hash){

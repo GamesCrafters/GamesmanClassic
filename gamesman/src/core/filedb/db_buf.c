@@ -38,39 +38,55 @@
 #include <stdlib.h>
 // a buffer contains at least one record.
 //each record has rec_size bytes, along with one extra byte to keep track of valid bit
-gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid num_buf, gamesdb_pageid max_mem){
+gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid max_recs, gamesdb_pageid num_buf){
   	gamesdb_buffer* bufp = (gamesdb_buffer*) gamesdb_SafeMalloc(sizeof(gamesdb_buffer));
   
-  	//bufp->filep = filep;
-  	bufp->n_buf = num_buf;
+  	bufp->num_pages = num_buf;
   
-  	//a page contains as many records as possible, minus overhead
-  	//There is few bytes in the front of the page for book-keeping.
-  	//There will be wasted space in the mem array but shouldn't be too great if you have huge pages
-  	gamesdb_pageid mem_per_page = (max_mem << 20) / num_buf;
-
-	gamesdb_pageid mem_for_cells = mem_per_page - sizeof(gamesdb_pageid) - sizeof(gamesdb_boolean) - sizeof(gamesdb_counter);
-	   	
   	bufp->rec_size = rec_size;
-  	bufp->buf_size = mem_for_cells / (bufp->rec_size);
-  	//bufp->dirty = (gamesdb_boolean*) gamesdb_SafeMalloc (sizeof(gamesdb_boolean) * num_buf);
-  	//bufp->chances = (gamesdb_counter*) gamesdb_SafeMalloc (sizeof(gamesdb_counter) * num_buf);
-  	bufp->buffers = (gamesdb_bufferpage*) gamesdb_SafeMalloc (sizeof(gamesdb_bufferpage) * num_buf);
+  	bufp->buf_size = max_recs;
+  	bufp->pages = NULL;
  
-	//allocate and zeroes out the buffers for use
-	gamesdb_pageid i;
-	gamesdb_bufferpage *buf;
-	for(i=0;i<num_buf;i++){
-		buf = (bufp->buffers)+i;
-		buf->mem = (char *) gamesdb_SafeMalloc(sizeof(char) * bufp->buf_size * bufp->rec_size);
-    	buf->tag = 0;
-    	buf->valid = FALSE;
-    	buf->chances = 0;
-    	buf->dirty = FALSE;
-    	//bufp->chances[i] = 0;
-  	}
-
 	return bufp;
+}
+
+gamesdb_bufferpage *gamesdb_buf_addpage(gamesdb* db) {
+    gamesdb_bufferpage *buf = (gamesdb_bufferpage *) gamesdb_SafeMalloc(sizeof(gamesdb_bufferpage));
+    if (buf == NULL) {
+        return buf;
+    }
+    gamesdb_buffer *bufp = db->buffer;
+    buf->mem = (char *) gamesdb_SafeMalloc(sizeof(char) * bufp->buf_size * bufp->rec_size);
+    if (buf->mem == NULL) {
+        gamesdb_SafeFree(buf);
+        return NULL;
+    }
+    buf->tag = 0;
+    buf->valid = FALSE;
+    buf->chances = 0;
+    buf->dirty = FALSE;
+    buf->next = bufp->pages;
+    bufp->pages = buf;
+    bufp->num_pages++;
+    return buf;
+}
+
+void gamesdb_buf_removepage(gamesdb *db) {
+    gamesdb_bufferpage *oldhead = db->buffer->pages; 
+    if (oldhead == NULL) {
+        printf("db_buf: There are no pages in the pool. WTF?");
+        return;
+    }
+    gamesdb_bufferpage *newhead = oldhead->next;
+    if (newhead == NULL) {
+        printf("db_buf: There is only one page in the pool. Cannot shrink anymore.");
+        return;
+    }
+    gamesdb_buf_write(db, oldhead);
+    gamesdb_SafeFree(oldhead->mem);
+    gamesdb_SafeFree(oldhead);
+    db->buffer->pages = newhead;
+    db->buffer->num_pages--;
 }
 
 int gamesdb_buf_flush_all(gamesdb* db) {
@@ -78,34 +94,37 @@ int gamesdb_buf_flush_all(gamesdb* db) {
 	//a straight squential scan will cause ordered forward access to the db_store
 	//this will be as fast as it gets
 	int i;
-	gamesdb_buffer* bufp = db->buffers;
+	gamesdb_buffer* bufp = db->buffer;
 	gamesdb_bufferpage* buf;
     
-	for (i = 0; i < bufp->n_buf; i++) {
-        buf = db->buffers->buffers + i;
+	for (buf = bufp->pages; buf != NULL; buf=buf->next) {
         if (buf->dirty == TRUE) {
-            gamesdb_buf_write(db, i);
+            gamesdb_buf_write(db, buf);
         }
     }
     return 0;
 }
 
+//lookup a page from the hash, since it is faster that way
+gamesdb_bufferpage *gamesdb_buf_lookup(gamesdb_pageid vpn) {
+    //TODO
+    return NULL;
+}
+
 //reads a page from disk
-int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid mytag) {
-	
-	gamesdb_bufferpage* buf = db->buffers->buffers + spot;
+int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid vpn) {
 	
 	//load in the new page
-	gamesdb_read(db, mytag, buf);
+	gamesdb_read(db, vpn, spot);
 
 	//validate the entire page first
-	buf->valid = TRUE;
-	if (buf->tag != mytag)
+	spot->valid = TRUE;
+	if (spot->tag != vpn)
 		//the buffer is uninitialized, this means no record exists in the page
-		buf->tag = mytag;
+		spot->tag = vpn;
 
 	if (DEBUG) {
-		printf("buf_read: spot = %llu, buf_tag = %llu, mytag = %llu\n", spot, buf->tag, mytag);
+		printf("buf_read: spot = %llu, buf_tag = %llu, mytag = %llu\n", spot, spot->tag, vpn);
 	}
 	
   	return 0;
@@ -114,21 +133,19 @@ int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid mytag) {
 //writes a page to disk
 int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
   
-  gamesdb_buffer* bufp = db->buffers;
-  
-  gamesdb_bufferpage* buf = bufp->buffers + spot;
+  gamesdb_buffer* bufp = db->buffer;
   
   //we don't have to write the page if it's clean
-  if(buf->dirty == TRUE){
-    buf->chances = 0;
+  if(spot->dirty == TRUE){
+    spot->chances = 0;
 
-    gamesdb_write(db, buf->tag, buf);
+    gamesdb_write(db, spot->tag, spot);
 
-    buf->dirty = FALSE;
+    spot->dirty = FALSE;
   }
   
   if (DEBUG) {
-		printf("buf_write: spot = %llu, buf_tag = %llu\n", spot, buf->tag);
+		printf("buf_write: spot = %llu, buf_tag = %llu\n", spot, spot->tag);
   }
   
   return 0;
@@ -140,18 +157,15 @@ int gamesdb_buf_destroy(gamesdb* db){
 
   gamesdb_frameid i;
   
-  gamesdb_buffer *bufp = db->buffers;
+  gamesdb_buffer *bufp = db->buffer;
   
-  for(i=0;i<bufp->n_buf;i++){
-  	gamesdb_bufferpage *buf = (bufp->buffers) + i;
-    gamesdb_SafeFree(buf->mem);
+  gamesdb_bufferpage *current, *nextp;
+  
+  for(current = bufp->pages, nextp = current->next; current != NULL; current = nextp, nextp = current->next){
+    gamesdb_SafeFree(current->mem);
+    gamesdb_SafeFree(current);
   }
   
-  //gamesdb_SafeFree(bufp->dirty);
-  //gamesdb_SafeFree(bufp->chances);
-  gamesdb_SafeFree(bufp->buffers);
-//  SafeFree(bufp->buf_off);
-//  db_close(bufp->filep);
   gamesdb_SafeFree(bufp);
   return 0; // no error checking;
 }

@@ -36,10 +36,12 @@
 
 #include "db_types.h"
 
-gamesdb_buffer*	gamesdb_buf_init	(gamesdb_pageid rec_size, gamesdb_pageid num_buf, gamesdb_pageid max_mem); 
-int 			gamesdb_buf_read	(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid mytag);
-int			gamesdb_buf_write	(gamesdb* db, gamesdb_frameid spot);
-int 			gamesdb_buf_destroy	(gamesdb* db);
+gamesdb_buffer*     gamesdb_buf_init        (gamesdb_pageid rec_size, gamesdb_pageid num_buf, gamesdb_pageid max_mem); 
+int                 gamesdb_buf_read        (gamesdb* db, gamesdb_frameid spot, gamesdb_pageid mytag);
+int                 gamesdb_buf_write       (gamesdb* db, gamesdb_frameid spot);
+int                 gamesdb_buf_destroy     (gamesdb* db);
+gamesdb_bufferpage *gamesdb_buf_addpage     (gamesdb* db);
+void                gamesdb_buf_removepage  (gamesdb* db);
 
 #endif /* GMCORE_DB_BUF_H */
 

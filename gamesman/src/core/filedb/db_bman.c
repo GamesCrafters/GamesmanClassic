@@ -43,16 +43,9 @@
  */
 
 gamesdb_bman* gamesdb_bman_init(){
-  // frame_id (*r_fn) (db_bman*, void*)){
   gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
-  //new->bufp = bufp;
-  //new->replace_fun = r_fn;
-  // should initialize r_fn too... which will return an internal data pointer
-  // which we then pass into r_fn on subsequent calls.
-  // Nah... just make it deal with the first time it has been called and allow
-  // it to setup its own internal state.
   new->hash = gamesdb_basichash_create(1024,10);
-  new->clock_hand = 0;
+  new->clock_hand = NULL;
   return new;
 }
 
@@ -67,47 +60,66 @@ gamesdb_frameid gamesdb_bman_find(gamesdb* db, gamesdb_pageid id){
  * either a new unused one, or one to be brought in from disk
  */
 gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
+    gamesdb_buffer* bufp = db->buffer;
+
 	//find free space, if found make hash changes, return
-	int i;
-	gamesdb_bufferpage* startpage = db->buffers->buffers;
+	gamesdb_bufferpage* page = bufp->pages;
 	
-	for (i = 0; i < db->num_page; i++) {
-		if (startpage->valid == FALSE) {
-			gamesdb_basichash_put(db->buf_man->hash, vpn, i);
-			return i;
+    gamesdb_bhash *bhash = db->buf_man->hash;
+    
+	for (; page!= NULL; page = page->next) {
+		if (page->valid == FALSE) {
+			gamesdb_basichash_put(bhash, vpn, page);
+			return page;
 		}
-		startpage ++;
 	}
-	//otherwise, pick one from n-chance, make hash changes, and return
+    
+    gamesdb_bufferpage *newpage;
+    
+    //see if we have space for more physical pages, if so grow the memory pool
+    if (bufp->num_pages < bufp->max_pages) {
+        if (newpage = gamesdb_buf_addpage(db) != NULL) {
+            gamesdb_basichash_put(bhash, vpn, newpage);
+            return newpage;
+        }
+    }
+    
+	//otherwise, pick one from n-chance, make page table changes, and return
 	if (DEBUG) {
 		printf("db_bufman: No more free pages in page table. Evicting one page using n-chance.\n");
 	}
 	
-	gamesdb_buffer* bufp = db->buffers;
-	startpage = bufp->buffers;
-	gamesdb_frameid ret = db->buf_man->clock_hand;
+    if (bufp->max_pages == 0) {
+        printf("db_bufman: max page limit reached zero.");
+    }
+    
+	page = bufp->pages;
+	gamesdb_bufferpage *ret = db->buf_man->clock_hand;
 	
 	while(TRUE) {
-		if (startpage->valid == TRUE && startpage->chances < MAX_CHANCES) {
-			startpage->chances++;
+		if (ret->valid == TRUE && ret->chances < MAX_CHANCES) {
+			ret->chances++;
 		} else {
 			break;
 		}
-		if (ret < (db->num_page-1)) {
-			ret ++;
-			startpage++;
-		} else {
-			ret = 0;
-			startpage = bufp->buffers;
-		}
+        if (ret == NULL) {
+            ret = bufp->pages;
+        } else {
+            ret = ret->next;
+        }
 	}
-	gamesdb_basichash_remove(db->buf_man->hash, (db->buffers->buffers+ret)->tag);
-	gamesdb_basichash_put(db->buf_man->hash, vpn, ret);
+	gamesdb_basichash_remove(bhash, vpn);
+	gamesdb_basichash_put(bhash, vpn, ret);
 	
-	db->buf_man->clock_hand = (ret + 1) % db->num_page;
+    ret = ret->next;
+    if (ret == NULL) {
+        ret = bufp->pages;
+    }
+    
+	db->buf_man->clock_hand = ret;
 	
 	if (DEBUG) {
-		printf("db_bufman: evicted page %llu\n", ret);
+		printf("db_bufman: evicted page at address %llu\n", ret);
 	}
 	
 	return ret;

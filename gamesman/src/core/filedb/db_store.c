@@ -170,7 +170,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
 	//write data
 	//Remember to write data in the same order and sizes as when you read it
-	gzwrite(pagefile, (void*)buf->mem, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+	gzwrite(pagefile, (void*)buf->mem, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
     gzwrite(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
     gzwrite(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
     gzwrite(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
@@ -197,7 +197,7 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	if(pagefile != NULL) {
 		//read data
 		//Remember to read data in the same order and sizes as when you wrote it
-        gzread(pagefile, (void*)buf->mem, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+        gzread(pagefile, (void*)buf->mem, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
 	    gzread(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
 	    gzread(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
 	    gzread(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
@@ -206,7 +206,7 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 		if (DEBUG) {
 			printf ("db_read: starting a fresh page.\n");
 		}
-		memset(buf->mem, 0, sizeof(char) * db->buffers->buf_size * db->buffers->rec_size);
+		memset(buf->mem, 0, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
 		buf->chances = 0;
 		buf->tag = 0;
 		buf->valid = FALSE;
