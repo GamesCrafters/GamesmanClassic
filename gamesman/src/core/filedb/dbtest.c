@@ -35,14 +35,14 @@
 
 int main(int argc, char *argv[])
 {
-	gamesdb_position totalrecs = 0x1ffff;
+	gamesdb_position totalrecs = 100;
 	size_t recsize = sizeof(short);
-	size_t buffers = 1024;
-	size_t mem_used = 8; //approx. 8MB of ram will be used
+	size_t recs = 10;
+	size_t pages_used = 8; //approx. 8MB of ram will be used
 	size_t dirsize = 3;
 	char dbname[] = "testdb\0";
 
-	gamesdb *testdb = gamesdb_create(recsize, buffers, mem_used, dirsize, dbname);
+	gamesdb *testdb = gamesdb_create(recsize, recs, pages_used, dirsize, dbname);
 	printf("Starting DB test...\n");
 	
 	//sleep(10);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 		//gamesdb_put(testdb, (void*)&data, val);
 		gamesdb_get(testdb, (void*)&result, val);
 		if (data!=result) {
-			printf("ERROR in rand read: position %llu, saved %d, got %d\n", i, data, result);
+			printf("ERROR in rand read: position %llu, saved %d, got %d\n", val, data, result);
 			break;
 		}
 	}

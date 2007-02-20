@@ -103,7 +103,7 @@ int gamesdb_close(gamesdb_store* db){
 }
 
 //makes all directory levels necessary to house the page with tag page_no
-gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no, int dir_size) {
+static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no, int dir_size) {
 	
 	unsigned int current_pos = 0;
 	gamesdb_pageid this_cluster = 0;
@@ -219,74 +219,3 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
     return 0;
 
 }
-
-//seeks in the file to the beginning of a given page.
-//the page must already exist in the file.
-//that is, page < last_page (because the page with index last_page is not written)
-//NOT USED
-//void gamesdb_seek(gamesdb_store* db, gamesdb_pageid page){
-//	gamesdb_offset new;
-//	int from = SEEK_SET;
-	
-//	if(page != db->current_page) {
-//		from = SEEK_SET;
-		//if(page > db->current_page) {
-		  //	from = SEEK_CUR;
-		  //	page -= db->current_page;
-		//}
-		
-	  	//printf("db_seek: offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(db_buffer_page), page, db->current_page, db->last_page);
-		//new = (db_offset)gzseek(db->filep,page*sizeof(db_buffer_page),from);
-/*	
-	if (page <= db->current_page) {//this means we are rewinding in write mode
-	  	//close and reopen the zip file
-	  	gzclose(db->filep);
-	  	db->filep = gzopen(db->filename, "r+");
-	  	//if (from == SEEK_CUR)
-	  	//	page += db->current_page;
-		printf("db_seek: BACKWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(gamesdb_bufferpage), page, db->current_page, db->last_page);
-	} else {
-		printf("db_seek: FORWARD offset = %llu, page = %llu, current_page = %llu, last page = %llu\n", page*sizeof(gamesdb_bufferpage), page, db->current_page, db->last_page);
-	}
-	
-	gamesdb_pageid i;
-	
-	while(gztell(db->filep) < page*sizeof(gamesdb_bufferpage)) {
-		new = (gamesdb_offset)gzseek(db->filep, sizeof(gamesdb_bufferpage), SEEK_CUR);
-
-		//printf("%d\n", new);
-
-		assert(new != -1);
-	}
-//	}
-  
-	//if(page > db->total_pages)
-	//	db->total_pages = page;
-	//if(from == SEEK_CUR)
-	//	page += db->current_page;
-		
-	db->current_page = page; //So bad. So lazy. 
-	
-	//return new;
-}
-//NOT USED
-gamesdb_pageid db_tell(gamesdb_store* db){
-  return db->current_page;
-}
-
-//gives the position of a new page in the end of the fisk file, in bytes
-db_offset db_nextBlock(db_store* db, db_offset inc){
-  db_offset ret = db->next_off;
-  db->next_off += inc;
-  return ret;
-}*/
-
-/*void db_store_hideMagic(db_store* filep){
-  //yeah... ill do this later. we can assume its right.
-  filep->next_off = 0;
-}
-
-void db_store_discoverMagic(db_store* filep){
-  //do it later.
-  filep->next_off = 0;
-}*/

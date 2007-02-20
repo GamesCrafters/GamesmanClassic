@@ -44,7 +44,7 @@
 
 gamesdb_bman* gamesdb_bman_init(){
   gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
-  new->hash = gamesdb_basichash_create(1024,10);
+  new->hash = gamesdb_basichash_create(10,10);
   new->clock_hand = NULL;
   return new;
 }
@@ -78,7 +78,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     
     //see if we have space for more physical pages, if so grow the memory pool
     if (bufp->num_pages < bufp->max_pages) {
-        if (newpage = gamesdb_buf_addpage(db) != NULL) {
+        if ((newpage = gamesdb_buf_addpage(db)) != NULL) {
             gamesdb_basichash_put(bhash, vpn, newpage);
             return newpage;
         }
@@ -102,22 +102,21 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
 		} else {
 			break;
 		}
+        ret = ret->next;
         if (ret == NULL) {
-            ret = bufp->pages;
-        } else {
-            ret = ret->next;
+            ret = page;
         }
 	}
-	gamesdb_basichash_remove(bhash, vpn);
+    //kick off the record for the old page from page table
+	gamesdb_basichash_remove(bhash, ret->tag);
 	gamesdb_basichash_put(bhash, vpn, ret);
+	    
+	db->buf_man->clock_hand = ret->next;
 	
-    ret = ret->next;
-    if (ret == NULL) {
-        ret = bufp->pages;
+    if (db->buf_man->clock_hand == NULL) {
+        db->buf_man->clock_hand = page;
     }
-    
-	db->buf_man->clock_hand = ret;
-	
+
 	if (DEBUG) {
 		printf("db_bufman: evicted page at address %llu\n", ret);
 	}

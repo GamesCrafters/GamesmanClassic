@@ -35,14 +35,10 @@
 #include  "db_buf.h"
 #include  "db_types.h"
 
-gamesdb_bhash* 	gamesdb_basichash_create		(int num_rows,int num_in);
-gamesdb_frameid 	gamesdb_basichash_get		(gamesdb_bhash* hash, gamesdb_pageid id);
-gamesdb_frameid 	gamesdb_basichash_remove		(gamesdb_bhash* hash, gamesdb_pageid id);
-int 		gamesdb_basichash_put		(gamesdb_bhash* hash, gamesdb_pageid, gamesdb_frameid );
-void 		gamesdb_basichash_destroy	(gamesdb_bhash* hash);
-
-//Helpers
-gamesdb_bhashin* gamesdb_basichash_getin(gamesdb_bhash* hash, gamesdb_pageid id);
-
+gamesdb_bhash*      gamesdb_basichash_create    (int ind_bits, int chk_size);
+gamesdb_frameid     gamesdb_basichash_get       (gamesdb_bhash* hash, gamesdb_pageid id);
+gamesdb_frameid     gamesdb_basichash_remove    (gamesdb_bhash* hash, gamesdb_pageid id);
+int                 gamesdb_basichash_put       (gamesdb_bhash* hash, gamesdb_pageid, gamesdb_frameid );
+void                gamesdb_basichash_destroy   (gamesdb_bhash* hash);
 
 #endif /* GMCORE_DB_BASICHASH_H */

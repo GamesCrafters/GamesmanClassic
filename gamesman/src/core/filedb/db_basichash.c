@@ -32,24 +32,70 @@
 #include "db_types.h"
 #include "db_basichash.h"
 #include "db_malloc.h"
+#include <assert.h>
+
+static gamesdb_bhashin* gamesdb_basichash_getrow(gamesdb_bhash* hash, gamesdb_pageid id) {
+    int row = id & (hash->index_size - 1);
+    return ((hash->rows) + row);
+}
+
+//returns the pointer to the chunk for easy modification.
+//when id is found, returns the pointer to the chunk that contains the loc
+//when id is not found, returns the pointer to the chunk with the first free spot, growing the row as necessary
+static gamesdb_bhashin* gamesdb_basichash_lookupchunk(gamesdb_bhash* hash, gamesdb_pageid id){
+    gamesdb_bhashin* place = gamesdb_basichash_getrow(hash, id);
+
+    int myid = id >> hash->index_bits;
+
+    int i;
+    gamesdb_bhashin *prev = NULL, *firstempty = NULL;
+
+    while(place != NULL){
+        for(i=0;i<hash->chunk_size;i++){
+            if(place->id[i] == myid)
+                return place;
+            if(place->id[i] == -1 && firstempty == NULL)
+                firstempty = place;
+        }
+        prev = place;
+        place = place->next;
+    }
+    if(firstempty != NULL)
+        return firstempty; // this fixes the fragmentation problem.
+        //new elements are added to the first empty slot instead of at the last place.
+    
+    //every row has one initial chunk, so we don't have to worry about modifying the root pointer here.
+    gamesdb_bhashin *new_chunk = (gamesdb_bhashin *) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin));
+    new_chunk->loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * hash->chunk_size);
+    new_chunk->id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * hash->chunk_size);
+    new_chunk->next = NULL;
+    for(i=0;i<hash->chunk_size;i++){
+       new_chunk->id[i] = -1;
+    }
+    prev->next = new_chunk;
+    
+    return new_chunk;
+}
 
 /*generates and returns a db_bhash pointer to newly malloced memory.
  * the destructor frees all of the memory. Whatever calls this
  * must also call the destructor eventually.
  */
-gamesdb_bhash* gamesdb_basichash_create(int num_rows,int num_in){
-  int i,j;
-  gamesdb_bhash* new = (gamesdb_bhash*) gamesdb_SafeMalloc(sizeof(gamesdb_bhash));
+gamesdb_bhash* gamesdb_basichash_create(int ind_bits, int chk_size){
+    int i,j;
+
+    gamesdb_bhash* new = (gamesdb_bhash*) gamesdb_SafeMalloc(sizeof(gamesdb_bhash));
   
-  new->size = num_rows;
-  new->rows = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin) * num_rows);
+    new->index_bits = ind_bits;
+    new->index_size = 1 << ind_bits;
+    new->chunk_size = chk_size;
+    new->rows = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin) * new->index_size);
   
-  for(i=0;i<num_rows;i++){
-    (new->rows)[i].num = num_in;
-    (new->rows)[i].loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * num_in);
-    (new->rows)[i].id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * num_in);
+  for(i=0;i<new->index_size;i++){
+    (new->rows)[i].loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * chk_size);
+    (new->rows)[i].id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * chk_size);
     (new->rows)[i].next = NULL;
-    for(j=0;j<num_in;j++){
+    for(j=0;j<chk_size;j++){
       (new->rows)[i].id[j] = -1;
     }
   }
@@ -59,65 +105,55 @@ gamesdb_bhash* gamesdb_basichash_create(int num_rows,int num_in){
 
 //returns the frame_id assosiated with page_id. -1 if it does not exist
 gamesdb_frameid gamesdb_basichash_get(gamesdb_bhash* hash, gamesdb_pageid id){
-  int i;
-  int row = id % hash->size;
-  gamesdb_bhashin* place = (hash->rows) + row;
-  while(place != NULL){
-    for(i=0;i<place->num;i++){
-      if(place->id[i] == id)
-	return place->loc[i];
+    gamesdb_bhashin* mychunk = gamesdb_basichash_lookupchunk(hash, id);
+    int i;
+    int myid = id >> hash->index_bits;
+    for(i=0;i<hash->chunk_size;i++){
+        if(mychunk->id[i] == myid)
+            return mychunk->loc[i];
     }
-    place = place->next;
-  }
-  
-  return NULL;
+
+    return NULL;
 }
-
-
 
 //Assosciates an id with a loc. Only one id per table. returns 0 on success.
 int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_frameid loc){
   gamesdb_bhashin* place;
   int i;
 
-  place = gamesdb_basichash_getin(hash,id);
-  for(i=0;i < place->num && place->id[i] != id;i++);
+  place = gamesdb_basichash_lookupchunk(hash,id);
   
-  if(place->id[i] != id){
-    //we need to insert into hash table.
-    for(i=0;i < place->num && place->id[i] != -1;i++);
-    if(place->id[i] != -1){
-      //add another link in the list.
-      gamesdb_bhashin* new = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin));
-      new->num = place->num;
-      new->next = place->next;
-      new->loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid)*new->num);
-      new->id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid)*new->num);
-      for(i=0;i < new->num;i++)
-	new->id[i] = -1;
-      i = 0;
-      place->next = new;
-      place = new;
+  int firstempty = -1;
+  
+    int myid = id >> hash->index_bits;
+  for(i=0;i < hash->chunk_size && place->id[i] != myid;i++) {
+    if (place->id[i] == -1 && firstempty == -1) {
+        firstempty = i;
     }
-    place->id[i] = id;
-    place->loc[i] = loc;
-    return 0;
+  };
+  
+  if(i == hash->chunk_size){ //firstempty must have something
+        assert(firstempty != -1);
+        place->id[firstempty] = myid;
+        place->loc[firstempty] = loc;
+        return 0;
   }else{
-    //updating existing entry
-    place->loc[i] = loc;
-    return 0;
+        //updating existing entry
+        place->loc[i] = loc;
+        return 0;
   }
 }
 
-/* removes id from the hash table. returns frame_id or -1 if id des not exist
+/* removes id from the hash table. returns frame_id or NULL if id does not exist
  */
 gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id){
   int i;
   gamesdb_bhashin* place;
 
-  place = gamesdb_basichash_getin(hash,id);
-  for(i=0;i < place->num && place->id[i] != id;i++);
-  if(place->id[i] == id){
+  place = gamesdb_basichash_lookupchunk(hash,id);
+    int myid = id >> hash->index_bits;
+  for(i=0;i < hash->chunk_size && place->id[i] != myid;i++);
+  if(i == hash->chunk_size){
     place->id[i] = -1;
     return place->loc[i];
   }
@@ -128,7 +164,7 @@ void gamesdb_basichash_destroy(gamesdb_bhash* hash){
   int i;
   gamesdb_bhashin *place,*next,*start;
 
-  for(i=0;i < hash->size;i++){
+  for(i=0;i < hash->index_size;i++){
     //once per row.
     place = hash->rows + i;
     start = place;
@@ -137,36 +173,10 @@ void gamesdb_basichash_destroy(gamesdb_bhash* hash){
       gamesdb_SafeFree(place->id);
       next = place->next;
       if(place != start)
-	gamesdb_SafeFree(place);
+	       gamesdb_SafeFree(place);
       place = next;
     }
   }
   gamesdb_SafeFree(hash->rows);
   gamesdb_SafeFree(hash);
 }
-    
-		      
-
-//Helper fucntion to return the internal pointer for easy modification.
-gamesdb_bhashin* gamesdb_basichash_getin(gamesdb_bhash* hash, gamesdb_pageid id){
-  int i;
-  int row = id % hash->size;
-  gamesdb_bhashin* prev = NULL,*firstempty = NULL;
-  gamesdb_bhashin* place = (hash->rows) + row;
-  while(place != NULL){
-    for(i=0;i<place->num;i++){
-      if(place->id[i] == id)
-	return place;
-      if(place->id[i] == -1 && firstempty == NULL)
-	firstempty = place;
-    }
-    prev = place;
-    place = place->next;
-  }
-  if(firstempty != NULL)
-    return firstempty; // this fixes the fragmentation problem.
-  //new elements are added to the first empty slot instead of at the last
-  // place.
-  return prev;
-}
-

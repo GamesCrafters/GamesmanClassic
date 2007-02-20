@@ -40,7 +40,6 @@ typedef struct dbfile_struct{
 
 //hash
 typedef struct db_bhashin_struct {
-  int num;
   gamesdb_frameid* loc;
   gamesdb_pageid* id;
   struct db_bhashin_struct* next;
@@ -48,7 +47,9 @@ typedef struct db_bhashin_struct {
 
 
 typedef struct {
-  int size;
+  int index_size;
+  int index_bits;
+  int chunk_size;
   gamesdb_bhashin* rows;
 
 } gamesdb_bhash;

@@ -41,8 +41,8 @@
 gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid max_recs, gamesdb_pageid num_buf){
   	gamesdb_buffer* bufp = (gamesdb_buffer*) gamesdb_SafeMalloc(sizeof(gamesdb_buffer));
   
-  	bufp->num_pages = num_buf;
-  
+  	bufp->num_pages = 0;
+    bufp->max_pages = num_buf;  
   	bufp->rec_size = rec_size;
   	bufp->buf_size = max_recs;
   	bufp->pages = NULL;
@@ -89,7 +89,7 @@ void gamesdb_buf_removepage(gamesdb *db) {
     db->buffer->num_pages--;
 }
 
-int gamesdb_buf_flush_all(gamesdb* db) {
+static int gamesdb_buf_flush_all(gamesdb* db) {
 	//with the assumption that the db_store is clustered
 	//a straight squential scan will cause ordered forward access to the db_store
 	//this will be as fast as it gets

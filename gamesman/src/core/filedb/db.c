@@ -36,8 +36,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
+static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 	//the thing it returns must be a frame identified by ppn in the physical buffer
 	gamesdb_frameid ppn = gamesdb_bman_find(db, vpn); //see if it is in physical memory
 	
@@ -53,10 +54,10 @@ gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 				//load in the new page
 				gamesdb_buf_read(db, ppn, vpn);
 				//set the tag where it is
-				if (ppn->tag != vpn)
+				assert(ppn->tag == vpn);
 					//the buffer is uninitialized, this means no records exists in the page
-					ppn->tag = vpn;
-				ppn->valid = TRUE;
+				//ppn->tag = vpn;
+				//ppn->valid = TRUE;
 			}
 		} else {
 			//load in the new page
