@@ -75,8 +75,10 @@ else
 <li><a href="othello.html">Othello</a></li>
 <li><a href="pylos.html">Pylos</a></li>
 <li><a href="quarto.html">Quarto</a></li>
-<li><a href="qland.html">QueensLand</a></li>    	    	    
+<li><a href="qland.html">QueensLand</a></li>
+<li><a href="quickchess.html">Quick Chess</a></li>    
 <li><a href="qx.html">Quick Cross</a></li>
+<li><a href="rcheckers.html">Rubik's Checkers</a></li>
 <li><a href="rInfin2.html">Rubik's Infinity</a></li>
 <li><a href="rubix.html">Rubix Magic</a></li>
 <li><a href="seega.html">Seega</a></li>
@@ -86,9 +88,11 @@ else
 <li><a href="snake.html">Snake</a></li>
 
 <li><a href="squaredance.html">Square Dance</a></li>
+<li><a href="swans.html">Swans (Dragons and Swans)</a></li>
 <li><a href="tactix.html">Tactix</a></li>
 <li><a href="3spot.html">Three Spot</a></li>
 <li><a href="ttc.html">Tic Tac Chec</a></li>
+<li><a href="tictactier.html">Tic Tac Tier!</a></li>
 <li><a href="ttt3.html">Tic Tac Toe</a></li>
 <li><a href="tilechess.html">Tile Chess</a></li>
 <li><a href="tootnotto.html">Toot and Otto</a></li>	
