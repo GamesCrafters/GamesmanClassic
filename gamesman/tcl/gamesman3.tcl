@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.51 2006-11-28 16:18:01 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.52 2007-02-21 18:49:39 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -13,6 +13,9 @@
 ##
 ##
 #############################################################################
+
+global command_line_args
+set command_line_args [concat $argv0 $argv]
 
 proc stack {} {
     return [list]
@@ -1348,7 +1351,8 @@ proc main {kRootDir} {
     SetupSkinsFrame .middle.f2.fSkins.content $gFrameWidth
 
     # Initialize the C backend
-    C_Initialize
+    global command_line_args
+    C_Initialize $command_line_args
     C_InitializeDatabases
 }
 

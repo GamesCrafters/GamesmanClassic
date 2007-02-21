@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.34 2006-10-17 10:45:22 max817 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.35 2007-02-21 18:49:38 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -287,11 +287,21 @@ InitializeCmd(dummy, interp, argc, argv)
     int argc;				/* Number of arguments. */
     char **argv;			/* Argument strings. */
 {
-  if (argc != 1) {
+  char **ap, *args[20];
+  int numArgs = 0;
+  if (argc != 2) {
     interp->result = "wrong # args: shouldn't have any args";
     return TCL_ERROR;
   }
   else {
+    for (ap = args; (*ap = strsep(&argv[1], " \t")) != NULL;)
+      if (**ap != '\0')
+	if (++ap >= &args[20])
+	  break;
+	else
+	  numArgs++;
+    
+    HandleArguments(numArgs, args);
     Initialize();
     interp->result = "System Initialized";
     return TCL_OK;
@@ -594,7 +604,6 @@ GetValueMovesCmd(dummy, interp, argc, argv)
   char theAnswer[10000], tmp[1000];
   VALUE_MOVES *vMoves;
   REMOTENESS remote, delta;
-
   if (argc != 2) {
     interp->result = "wrong # args: GetValueMoves (int)Position";
     return TCL_ERROR;
@@ -602,11 +611,9 @@ GetValueMovesCmd(dummy, interp, argc, argv)
   else {
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
-
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
-
       POSITION temp = DoMove(position,ptr->move);
       value = GetValueOfPosition(temp);
       //value = GetValueOfPosition(DoMove(position,ptr->move));
@@ -627,9 +634,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
 	j_value = -1;
 	m_value = -1;
       }
-
       delta = FindDelta(remote, vMoves->remotenessList[j_value], m_value);
-
       if (gGoAgain(position,ptr->move)) {
 	switch(value) {
 	case win: value = lose; break;
@@ -664,9 +669,7 @@ GetValueMovesCmd(dummy, interp, argc, argv)
       strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
       ptr = ptr->next;
     }
-
     Tcl_SetResult(interp,theAnswer,TCL_VOLATILE);
-
     FreeMoveList(head);
     return TCL_OK;
   }

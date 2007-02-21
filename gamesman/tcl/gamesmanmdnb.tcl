@@ -31,6 +31,9 @@
 ##
 #############################################################################
 
+global command_line_args
+set command_line_args [concat $argv0 $argv]
+
 #############################################################################
 ##
 ## SetHelpWindow
@@ -1023,7 +1026,7 @@ proc DoGameSpecificOptions {} {
     global tcl_platform
     if { $tcl_platform(platform) == "macintosh" } {
 	radiobutton .gameSpecificOptions.f0.butReverse  \
-		-text "$kMisereString (misŽre)"  \
+		-text "$kMisereString (misÂŽre)"  \
 		-font $kLabelFont \
 		-variable varObjective \
 		-value butReverse
@@ -2843,7 +2846,9 @@ proc main {} {
     InitConstants
     GS_InitGameSpecific
     InitWindow
-    C_Initialize
+    # Initialize the C backend
+    global command_line_args
+    C_Initialize $command_line_args
     C_InitializeDatabases
 }
 

@@ -788,7 +788,7 @@ BOOLEAN LoadAnalysis() {
 
     if(gAnalysisLoaded) {
     	if(!gAnalyzing)
-    		printf("done in %u seconds!", Stopwatch());
+    		printf("done in %u seconds!\n", Stopwatch());
     	return TRUE;
     }
 
@@ -949,7 +949,7 @@ void SaveAnalysis() {
 
     fclose(fp);
     gAnalysisLoaded = TRUE;
-    printf("done in %u seconds!", Stopwatch());
+    printf("done in %u seconds!\n", Stopwatch());
     return;
 }
 

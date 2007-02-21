@@ -13,6 +13,9 @@ set basespeed 50
 # Piece radius (percentage of square in which it is located)
 set r 0.9
 
+global command_line_args
+set command_line_args [concat $argv0 $argv]
+
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -31,7 +34,9 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    C_Initialize
+    # Initialize the C backend
+    global command_line_args
+    C_Initialize $command_line_args
     C_InitializeDatabases
     C_InitializeGame
     set gInitialPosition [C_InitialPosition]
