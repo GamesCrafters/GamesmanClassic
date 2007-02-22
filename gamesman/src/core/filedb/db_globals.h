@@ -41,6 +41,6 @@
 
 #define MAX_FILENAME_LEN 256
 
-#define DEBUG 1
+#define DEBUG 0
 
 #endif /* GMCORE_DB_GLOBALS_H */

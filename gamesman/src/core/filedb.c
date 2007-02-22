@@ -87,7 +87,7 @@ void filedb_init(DB_Table *new_db)
         
         sprintf(dirname, "m%s_%d_filedb", kDBName, getOption()) ;
         
-        mydb = gamesdb_create(sizeof(cellValue), 4196, 256, 10, dirname);
+        mydb = gamesdb_create(sizeof(cellValue), 4196, 0, 10, dirname);
         
         start = FALSE;
         mypos = 0;

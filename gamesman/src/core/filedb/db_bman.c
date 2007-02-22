@@ -81,7 +81,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     gamesdb_bufferpage *newpage;
     
     //see if we have space for more physical pages, if so grow the memory pool
-    if (bufp->num_pages < bufp->max_pages) {
+    if (bufp->num_pages < bufp->max_pages || bufp->max_pages == 0) {
         
         if (DEBUG) {
             printf("db_bufman: Growing the page pool.\n");
@@ -90,6 +90,14 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
         if ((newpage = gamesdb_buf_addpage(db)) != NULL) {
             gamesdb_basichash_put(bhash, vpn, newpage);
             return newpage;
+        } else { //shrink
+            gamesdb_pageid initial = bufp->num_pages >> 1;
+            if (initial = 0) {
+                initial = 1;
+            }
+            while (bufp->num_pages > initial) {
+                gamesdb_buf_removepage(db);
+            }
         }
     }
     
