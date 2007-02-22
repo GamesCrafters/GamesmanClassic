@@ -30,11 +30,15 @@
 **************************************************************************/
 
 #include <stdio.h>
+#include <assert.h>
 #include "db_types.h"
 #include "db_bman.h"
 #include "db_basichash.h"
 #include "db_buf.h"
 #include "db_malloc.h"
+
+#define INDEX_BITLENGTH 10
+#define INDEX_CHUNKSIZE 10
 
 /* buffer replacement stratagy and replacement tools.
  * ask the buffer manager for a specific buffer to be brought into memory.
@@ -44,7 +48,7 @@
 
 gamesdb_bman* gamesdb_bman_init(){
   gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
-  new->hash = gamesdb_basichash_create(10,10);
+  new->hash = gamesdb_basichash_create(INDEX_BITLENGTH, INDEX_CHUNKSIZE);
   new->clock_hand = NULL;
   return new;
 }
@@ -78,6 +82,11 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     
     //see if we have space for more physical pages, if so grow the memory pool
     if (bufp->num_pages < bufp->max_pages) {
+        
+        if (DEBUG) {
+            printf("db_bufman: Growing the page pool.\n");
+        }
+        
         if ((newpage = gamesdb_buf_addpage(db)) != NULL) {
             gamesdb_basichash_put(bhash, vpn, newpage);
             return newpage;

@@ -91,16 +91,16 @@ gamesdb_bhash* gamesdb_basichash_create(int ind_bits, int chk_size){
     new->chunk_size = chk_size;
     new->rows = (gamesdb_bhashin*) gamesdb_SafeMalloc(sizeof(gamesdb_bhashin) * new->index_size);
   
-  for(i=0;i<new->index_size;i++){
-    (new->rows)[i].loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * chk_size);
-    (new->rows)[i].id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * chk_size);
-    (new->rows)[i].next = NULL;
-    for(j=0;j<chk_size;j++){
-      (new->rows)[i].id[j] = -1;
+    for(i=0;i<new->index_size;i++){
+        (new->rows)[i].loc = (gamesdb_frameid*) gamesdb_SafeMalloc(sizeof(gamesdb_frameid) * chk_size);
+        (new->rows)[i].id = (gamesdb_pageid*) gamesdb_SafeMalloc(sizeof(gamesdb_pageid) * chk_size);
+        (new->rows)[i].next = NULL;
+        for(j=0;j<chk_size;j++){
+            (new->rows)[i].id[j] = -1;
+        }
     }
-  }
   
-  return new;
+    return new;
 }
 
 //returns the frame_id assosiated with page_id. -1 if it does not exist
@@ -153,7 +153,7 @@ gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id)
   place = gamesdb_basichash_lookupchunk(hash,id);
     int myid = id >> hash->index_bits;
   for(i=0;i < hash->chunk_size && place->id[i] != myid;i++);
-  if(i == hash->chunk_size){
+  if(i < hash->chunk_size){
     place->id[i] = -1;
     return place->loc[i];
   }

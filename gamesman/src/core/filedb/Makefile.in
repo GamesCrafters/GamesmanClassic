@@ -52,7 +52,7 @@ memdebug: CFLAGS += -DMEMWATCH
 memdebug: all
 
 clean:
-	rm -rf gamesdb.a *~ *.o dbtest dbtest.exe
+	rm -rf gamesdb.a *~ *.o dbtest dbtest.exe data
 
 gamesdb.a: $(DB_OBJ)
 	rm -f $@

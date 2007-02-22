@@ -32,6 +32,7 @@
 #include "db_types.h"
 #include "db_store.h"
 #include "db_malloc.h"
+#include "db_buf.h"
 #include "assert.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,6 +42,7 @@
 #include <sys/types.h>
 #include <stddef.h>
 #include <dirent.h>
+#include <assert.h>
 /*
 **Basic wrapper for the libz functions. wrapped so that future students
 **can implement it however they choose.
@@ -64,7 +66,7 @@ gamesdb_store* gamesdb_open(char* filename, int cluster_size){
   
   //this is the last page of the chain
   //it has not been written, so be sure to write it when expanding
-  db->last_page = 0;
+  //db->last_page = 0;
   
   char *dirname = (char *) gamesdb_SafeMalloc (sizeof(char) * (strlen(filename) + 10));
   
@@ -105,50 +107,34 @@ int gamesdb_close(gamesdb_store* db){
 //makes all directory levels necessary to house the page with tag page_no
 static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no, int dir_size) {
 	
-	unsigned int current_pos = 0;
+	//unsigned int current_pos = 0;
 	gamesdb_pageid this_cluster = 0;
 	char temp[MAX_FILENAME_LEN] = "";
-	
-	//while (base_path[current_pos] != 0 && current_pos < MAX_FILENAME_LEN) {
-	//	current_pos++;
-	//}
-	
+	//DIR *data_dir = NULL;
+    
 	while (page_no >= (1 << dir_size)) {
-		
-//		base_path[current_pos] = '/';
-//		current_pos ++;
 		
 		this_cluster = page_no & ((1 << dir_size) - 1);
 		
-//		do {
 		sprintf(temp, "/%llu", this_cluster);
 		strcat(base_path, temp);
-//		this_cluster /= 10;
-//			current_pos ++;
-//		} while (this_cluster > 0);
 		
-		DIR *data_dir = opendir(base_path);
+		//DIR *data_dir = opendir(base_path);
   
-  		if (data_dir == NULL) {
-  			mkdir (base_path, 0755);
-  		}
+  		//if (data_dir == NULL) {
+  		mkdir (base_path, 0755);
+  		//}
   
-  		closedir (data_dir);
-  		
+  		//closedir (data_dir);
+  		//data_dir = NULL;
+        
   		page_no >>= dir_size;
 	}
 	
 	this_cluster = page_no;
 		
-//	do {
-		sprintf(temp, "/%llu", this_cluster);
-		strcat(base_path, temp);
-//		this_cluster /= 10;
-//	} while (this_cluster > 0);
-	
-//	base_path[current_pos] = 0; //don't forget to terminate string
-	
-//	printf("%s\n", base_path);
+    sprintf(temp, "/%llu.dat", this_cluster);
+    strcat(base_path, temp);
 	
 	return page_no;
 }
@@ -156,24 +142,28 @@ static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no,
 //writes a page into the database
 int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
+    assert(buf->valid == TRUE);
+    assert(buf->tag == page);
+    
 	char filename[MAX_FILENAME_LEN] = "";
 	
 	gamesdb_store *dbfile = db->store;
-	
+	gamesdb_buffer *bufp = db->buffer;
+    
 	sprintf(filename, "./data/%s", dbfile->filename);
 	gamesdb_checkpath(filename, page, dbfile->dir_size);
 
 	gzFile pagefile = gzopen(filename, "w+");
 	
 	if (DEBUG)
-		printf ("db_write: path = %s, page = %llu, last_page = %llu\n", filename, page, dbfile->last_page);
+		printf ("db_write: path = %s, page = %llu\n", filename, page);
 
 	//write data
 	//Remember to write data in the same order and sizes as when you read it
-	gzwrite(pagefile, (void*)buf->mem, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
-    gzwrite(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
-    gzwrite(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
-    gzwrite(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
+	gzwrite(pagefile, (void*)(buf->mem), sizeof(char) * bufp->buf_size * bufp->rec_size);
+    gzwrite(pagefile, (void*)&(buf->chances), sizeof(gamesdb_counter));
+    gzwrite(pagefile, (void*)&(buf->tag), sizeof(gamesdb_pageid));
+    //gzwrite(pagefile, (void*)&(buf->valid), sizeof(gamesdb_boolean));
 
     gzclose(pagefile);
     return 0;
@@ -184,29 +174,32 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	char filename[MAX_FILENAME_LEN] = "";
 	
 	gamesdb_store *dbfile = db->store;
-	
+	gamesdb_buffer *bufp = db->buffer;
+    
 	sprintf(filename, "./data/%s", dbfile->filename);
 	gamesdb_checkpath(filename, page, dbfile->dir_size);
 
 	gzFile pagefile = gzopen(filename, "r+");
 	
 	if (DEBUG) {
-		printf ("db_read: path = %s, page = %llu, last_page = %llu\n", filename, page, dbfile->last_page);
+		printf ("db_read: path = %s, page = %llu\n", filename, page);
 	}
 	
 	if(pagefile != NULL) {
 		//read data
 		//Remember to read data in the same order and sizes as when you wrote it
-        gzread(pagefile, (void*)buf->mem, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
-	    gzread(pagefile, (void*)&buf->chances, sizeof(gamesdb_counter));
-	    gzread(pagefile, (void*)&buf->tag, sizeof(gamesdb_pageid));
-	    gzread(pagefile, (void*)&buf->valid, sizeof(gamesdb_boolean));
+        gzread(pagefile, (void*)(buf->mem), sizeof(char) * bufp->buf_size * bufp->rec_size);
+	    gzread(pagefile, (void*)&(buf->chances), sizeof(gamesdb_counter));
+	    gzread(pagefile, (void*)&(buf->tag), sizeof(gamesdb_pageid));
+	    //gzread(pagefile, (void*)&(buf->valid), sizeof(gamesdb_boolean));
+        buf->valid = TRUE;
+        //assert(buf->valid == TRUE);
 
 	} else { //page does not exist in disk
 		if (DEBUG) {
 			printf ("db_read: starting a fresh page.\n");
 		}
-		memset(buf->mem, 0, sizeof(char) * db->buffer->buf_size * db->buffer->rec_size);
+		memset(buf->mem, 0, sizeof(char) * bufp->buf_size * bufp->rec_size);
 		buf->chances = 0;
 		buf->tag = 0;
 		buf->valid = FALSE;

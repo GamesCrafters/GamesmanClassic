@@ -23,10 +23,12 @@ typedef struct gamesdb_bufferpage_struct {
   gamesdb_boolean dirty;
   gamesdb_counter chances;
   struct gamesdb_bufferpage_struct *next;
-}gamesdb_bufferpage;
+} gamesdb_bufferpage;
 
 //physical
-typedef gamesdb_bufferpage *gamesdb_frameid;
+//very hacky, will change soon
+//typedef struct gamesdb_bufferpage_struct * gamesdb_frameid;
+#define gamesdb_frameid struct gamesdb_bufferpage_struct*
 
 //backing store
 typedef struct dbfile_struct{

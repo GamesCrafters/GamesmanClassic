@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
+
 // a buffer contains at least one record.
 //each record has rec_size bytes, along with one extra byte to keep track of valid bit
 gamesdb_buffer* gamesdb_buf_init(gamesdb_pageid rec_size, gamesdb_pageid max_recs, gamesdb_pageid num_buf){
@@ -93,7 +95,7 @@ static int gamesdb_buf_flush_all(gamesdb* db) {
 	//with the assumption that the db_store is clustered
 	//a straight squential scan will cause ordered forward access to the db_store
 	//this will be as fast as it gets
-	int i;
+	//int i;
 	gamesdb_buffer* bufp = db->buffer;
 	gamesdb_bufferpage* buf;
     
@@ -105,26 +107,25 @@ static int gamesdb_buf_flush_all(gamesdb* db) {
     return 0;
 }
 
-//lookup a page from the hash, since it is faster that way
-gamesdb_bufferpage *gamesdb_buf_lookup(gamesdb_pageid vpn) {
-    //TODO
-    return NULL;
-}
-
 //reads a page from disk
 int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid vpn) {
 	
 	//load in the new page
 	gamesdb_read(db, vpn, spot);
 
+    assert(spot->tag == 0 || spot->tag == vpn);
+    assert(spot->dirty == FALSE);
+
 	//validate the entire page first
 	spot->valid = TRUE;
-	if (spot->tag != vpn)
+	if (spot->tag == 0)
 		//the buffer is uninitialized, this means no record exists in the page
 		spot->tag = vpn;
 
+    assert(spot->tag == vpn);
+
 	if (DEBUG) {
-		printf("buf_read: spot = %llu, buf_tag = %llu, mytag = %llu\n", spot, spot->tag, vpn);
+		printf("buf_read: spot = %d, buf_tag = %llu, mytag = %llu\n", spot, spot->tag, vpn);
 	}
 	
   	return 0;
@@ -133,38 +134,36 @@ int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid vpn) {
 //writes a page to disk
 int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
   
-  gamesdb_buffer* bufp = db->buffer;
+    //gamesdb_buffer* bufp = db->buffer;
   
-  //we don't have to write the page if it's clean
-  if(spot->dirty == TRUE){
-    spot->chances = 0;
-
-    gamesdb_write(db, spot->tag, spot);
-
-    spot->dirty = FALSE;
-  }
-  
-  if (DEBUG) {
-		printf("buf_write: spot = %llu, buf_tag = %llu\n", spot, spot->tag);
-  }
-  
-  return 0;
+    //we don't have to write the page if it's clean
+    if(spot->dirty == TRUE){
+        spot->chances = 0;
+        gamesdb_write(db, spot->tag, spot);
+        spot->dirty = FALSE;
+        if (DEBUG) {
+            printf("buf_write: spot = %d, buf_tag = %llu\n", spot, spot->tag);
+        }
+    }
+    
+    return 0;
 }
 
 int gamesdb_buf_destroy(gamesdb* db){
 
-  gamesdb_buf_flush_all(db);
+    gamesdb_buf_flush_all(db);
 
-  gamesdb_frameid i;
+    gamesdb_buffer *bufp = db->buffer;
   
-  gamesdb_buffer *bufp = db->buffer;
+    gamesdb_bufferpage *current = bufp->pages;
+    gamesdb_bufferpage *nextp;
   
-  gamesdb_bufferpage *current, *nextp;
-  
-  for(current = bufp->pages, nextp = current->next; current != NULL; current = nextp, nextp = current->next){
-    gamesdb_SafeFree(current->mem);
-    gamesdb_SafeFree(current);
-  }
+    assert(current != NULL);
+    for(; current != NULL; current = nextp){
+        nextp = current->next;
+        gamesdb_SafeFree(current->mem);
+        gamesdb_SafeFree(current);
+    }
   
   gamesdb_SafeFree(bufp);
   return 0; // no error checking;

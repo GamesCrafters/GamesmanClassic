@@ -35,9 +35,9 @@
 #include "db_types.h"
 #include "db_store.h"
 #include "db_buf.h"
-//#include "db_bman.h"
+#include "db_bman.h"
 #include "db_malloc.h"
-//#include "db_basichash.h"
+#include "db_basichash.h"
 
 
 gamesdb*	gamesdb_create	(int rec_size, gamesdb_pageid max_recs, gamesdb_pageid max_pages, int cluster_size, char* db_name);

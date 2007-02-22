@@ -41,39 +41,36 @@
 static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 	//the thing it returns must be a frame identified by ppn in the physical buffer
 	gamesdb_frameid ppn = gamesdb_bman_find(db, vpn); //see if it is in physical memory
-	
+    
 	if (ppn == NULL) { //the page is not present in physical memory
 		ppn = gamesdb_bman_replace(db, vpn); //get a replacement page, change page table in the process
-	
+	       
 		if (ppn->valid == TRUE) {
-			//if this page is not the one I want
+			//this page got kicked out by n-chance
+            printf("translate: replaced = %llu\n", ppn);
+            assert(ppn->tag != vpn);
 			if (ppn->tag != vpn) {
 				//buffer page is valid but not the one we want
 				//if (bufp->dirty[bufpage]) //if the page is dirty flush it
 				gamesdb_buf_write(db, ppn);
 				//load in the new page
 				gamesdb_buf_read(db, ppn, vpn);
-				//set the tag where it is
-				assert(ppn->tag == vpn);
-					//the buffer is uninitialized, this means no records exists in the page
-				//ppn->tag = vpn;
-				//ppn->valid = TRUE;
 			}
 		} else {
 			//load in the new page
-			gamesdb_buf_read(db, ppn , vpn);
+			gamesdb_buf_read(db, ppn, vpn);
 			//set the tag where it is
-			if (ppn->tag != vpn)
+			//if (ppn->tag != vpn)
 				//the buffer is uninitialized, this means no record exists in the page
-				ppn->tag = vpn;
-			ppn->valid = TRUE;
 		}
 	}
 	
 	if (DEBUG) {
-		printf("translate: vpn = %llu, ppn = %llu\n", vpn, ppn);
+		printf("translate: vpn = %llu, ppn = %d tag = %llu\n", vpn, ppn, ppn->tag);
 	}
 	
+    assert (ppn->tag == vpn);
+    assert (ppn->valid == TRUE);
 	return ppn;	
 }
 
