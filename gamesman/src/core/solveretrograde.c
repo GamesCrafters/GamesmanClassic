@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.30 2006-12-06 03:00:42 max817 Exp $
+// $Id: solveretrograde.c,v 1.31 2007-02-27 02:09:36 max817 Exp $
 
 /************************************************************************
 **
@@ -96,6 +96,9 @@ void skipToNewline(FILE*);
 ************************************************************************/
 
 VALUE DetermineRetrogradeValue(POSITION position) {
+    // for the experimental GenerateMoves
+    if (gGenerateMovesEfficientFunPtr != NULL)
+        gGenerateMovesArray = (MOVE*) SafeMalloc(MAXFANOUT * sizeof(MOVE));
 	// initialize global variables
 	variant = getOption();
 	tierNames = TRUE;
@@ -770,8 +773,8 @@ void SolveWithNonLoopyAlgorithm() {
 		} else {
 			moves = movesptr = GenerateMoves(pos);
 			if (moves == NULL) { // no chillins
-				SetRemoteness(pos,0);
-				StoreValueOfPosition(pos,lose);
+                printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
+                ExitStageRight();
 			} else {// else, solve me
 				maxWinRem = -1;
 				minLoseRem = minTieRem = REMOTENESS_MAX;
@@ -838,6 +841,7 @@ void SolveWithLoopyAlgorithm() {
 	MOVELIST *moves, *movesptr;
 	VALUE value;
 	REMOTENESS remoteness;
+    int i,numMoves;
 	printf("--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
 	printf("--Doing an sweep of the tier, and setting up the frontier...\n");
@@ -855,24 +859,39 @@ void SolveWithLoopyAlgorithm() {
 			numSolved++;
 			rInsertFR(value, pos, 0);
 		} else {
-			moves = movesptr = GenerateMoves(pos);
-			if (moves == NULL) { // no chillins
-				SetRemoteness(pos,0);
-				StoreValueOfPosition(pos,lose);
-				numSolved++;
-				rInsertFR(lose, pos, 0);
-			} else {
-				//otherwise, make a Child Counter for it
-				movesptr = moves;
-				for (; movesptr != NULL; movesptr = movesptr->next) {
-					childCounts[pos]++;
-					if (!useUndo) {// if parent pointers, add to parent pointer list
-						child = DoMove(pos, movesptr->move);
-						rParents[child] = StorePositionInList(pos, rParents[child]);
-					}
-				}
-				FreeMoveList(moves);
-			}
+            if (gGenerateMovesEfficientFunPtr == NULL) { // do the normal stuff
+                moves = movesptr = GenerateMoves(pos);
+                if (moves == NULL) { // no chillins
+                    printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
+                    ExitStageRight();
+                } else {
+                    //otherwise, make a Child Counter for it
+                    movesptr = moves;
+                    for (; movesptr != NULL; movesptr = movesptr->next) {
+                        childCounts[pos]++;
+                        if (!useUndo) {// if parent pointers, add to parent pointer list
+                            child = DoMove(pos, movesptr->move);
+                            rParents[child] = StorePositionInList(pos, rParents[child]);
+                        }
+                    }
+                    FreeMoveList(moves);
+                }
+            } else { // do the experimental stuff!
+                numMoves = gGenerateMovesEfficientFunPtr(pos);
+                if (numMoves == 0) { // no chillins
+                    printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
+                    ExitStageRight();
+                } else {
+                    //otherwise, make a Child Counter for it
+                    for (i = 0; i < numMoves; i++) {
+                        childCounts[pos]++;
+                        if (!useUndo) {// if parent pointers, add to parent pointer list
+                            child = DoMove(pos, gGenerateMovesArray[i]);
+                            rParents[child] = StorePositionInList(pos, rParents[child]);
+                        }
+                    }
+                }
+            }
 		}
 	}
 	if (checkLegality) {
@@ -1023,10 +1042,6 @@ void checkForCorrectness() {
 
 		if (remoteness == 0) {// better be a primitive!
 			if (valueP == undecided) {
-				// COULD have NULL GenerateMoves
-				moves = GenerateMoves(pos);
-				if (moves == NULL) continue;
-				SafeFree(moves);
 				printf("CORRUPTION: (%llu) is a non-Primitive with Remoteness 0!\n", pos);
 				check = FALSE;
 			} else if (value != valueP) {
@@ -1041,12 +1056,10 @@ void checkForCorrectness() {
 				check = FALSE;
 			} else {
 				moves = children = GenerateMoves(pos);
-				if (moves == NULL) { // no children, better be a LOSE!
-					if (value != lose || remoteness != 0) {
-						printf("CORRUPTION: (%llu) has no GenerateMoves, yet is a %s in %d!\n",
-								pos, gValueString[(int)value], remoteness);
-						check = FALSE;
-					}
+				if (moves == NULL) { // no children!
+					printf("CORRUPTION: (%llu) has no GenerateMoves, yet is a %s in %d!\n",
+							pos, gValueString[(int)value], remoteness);
+					check = FALSE;
 				} else { //the REALLY annoying part, actually checking the children:
 					minLoseRem = minTieRem = REMOTENESS_MAX;
 					maxWinRem = 0;

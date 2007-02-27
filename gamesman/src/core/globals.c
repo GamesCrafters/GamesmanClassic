@@ -143,6 +143,10 @@ BOOLEAN			(*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION 		(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING			(*gTierToStringFunPtr)(TIER) = NULL;
+// For the experimental GenerateMoves
+int             (*gGenerateMovesEfficientFunPtr)(POSITION) = NULL;
+MOVE*           gGenerateMovesArray = NULL;
+int             MAXFANOUT = 100;
 
 /* Variables for the parallelized solver */
 BOOLEAN			gParallelizing = FALSE;

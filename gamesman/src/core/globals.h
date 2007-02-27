@@ -144,6 +144,10 @@ extern BOOLEAN			(*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*	(*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION			(*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING			(*gTierToStringFunPtr)(TIER);
+// For the experimental GenerateMoves
+extern int              (*gGenerateMovesEfficientFunPtr)(POSITION);
+extern MOVE*            gGenerateMovesArray;
+extern int              MAXFANOUT;
 
 /* Variables for the parallelized solver */
 extern BOOLEAN			gParallelizing;
