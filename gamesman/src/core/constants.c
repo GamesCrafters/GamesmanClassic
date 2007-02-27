@@ -198,7 +198,6 @@ STRING kCommandSyntaxHelp =
 "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 "--open\t\t\tStarts game with Open Positions solving enabled.\n"
 "--visualize\t\tTurns on automatic visualization.\n"
-"--bpdb\t\t\tTurns on the Bit-Perfect DB\n"
 "--schemes\t\tWith bpdb turned on variable gaps compression will be used for saved dbs.\n"
 "--adjust\t\tWith bpdb turned on, slice sizes will be grow and shrink to best-fit data.\n"
 "--slicessolver\t\tWith bpdb turned on, the variable slice aware solver will be used (faster).\n"
@@ -207,6 +206,7 @@ STRING kCommandSyntaxHelp =
 #ifdef HAVE_GMP
 "--univdb\t\tStarts game with 2-Universal hash-based resizable database. \n"
 #endif
+"--filedb\t\tStarts game with file-based database.\n"
 "--alpha-beta\t\tStarts game with weak alpha-beta solver. \n"
 "--gps\t\t\tStarts game with global position solver enabled.\n"
 "--lowmem\t\tStarts game with low memory overhead solver enabled.\n"
