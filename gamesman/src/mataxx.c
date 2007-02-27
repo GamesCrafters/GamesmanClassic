@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.9 2007-02-27 01:29:45 max817 Exp $
+// $Id: mataxx.c,v 1.10 2007-02-27 02:08:18 max817 Exp $
 
 /************************************************************************
 **
@@ -144,6 +144,7 @@ extern void	SafeFree ();
 #endif
 
 STRING MoveToString(MOVE move);
+int GenerateMovesEfficient (POSITION);
 
 /************************************************************************
 **
@@ -164,6 +165,8 @@ void InitializeGame ()
 	SetupGame();
 
     gPutWinBy = &computeWinBy;
+
+    gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
 
 	gMoveToStringFunPtr = &MoveToString;
 }
@@ -335,7 +338,17 @@ VALUE Primitive (POSITION position)
 		else if (blues > reds) //blue won
 			redWon = FALSE;
 		else return tie; // tie
-	} else return undecided;
+	} else {
+        // now, we check to see if there's legal moves:
+        MOVELIST* moves = GenerateMoves(position);
+        if (moves == NULL) // a lose for current player!
+            redWon = (turn==PLAYER_ONE ? TRUE : FALSE);
+        else {
+            FreeMoveList(moves);
+            return undecided;
+        }
+    }
+
 
 	VALUE value;
 	if (redWon) //for cleaner code
@@ -925,7 +938,34 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
+
+// An experimental GenerateMoves that should be much faster
+int GenerateMovesEfficient (POSITION position)
+{
+    int x, y, i, j, index = 0;
+    unhash(position);
+    for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
+        for (x = 1; x <= width; x++) {// look through the columns, left-to-right
+            if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
+                continue; //not our piece, we can't move it
+            /* check the 5x5 grid around us, using i to modify x and j for y.
+               moves-wise, jumps are handled the same as slides
+               note that this DOES check its own square, but always fails
+               the test since it's not a SPACE. */
+            for (j = -2; j <= 2; j++) // rows, bottom-up
+                for (i = -2; i <= 2; i++) // columns, left-right
+                    if (legalCoords(x+i,y+j) && board[toIndex(x+i,y+j)] == SPACE)
+                        gGenerateMovesArray[index++] = (x*1000) + (y*100) + ((x+i)*10) + (y+j);
+        }
+    }
+    return index;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.9  2007/02/27 01:29:45  max817
+// Added Win-By for fun, even though it doesn't work thanks to tiers. -Max
+//
 // Revision 1.8  2007/02/27 01:02:39  max817
 // Made code more efficient with globals. -Max
 //
