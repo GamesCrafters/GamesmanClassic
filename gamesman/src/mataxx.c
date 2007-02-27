@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.10 2007-02-27 02:08:18 max817 Exp $
+// $Id: mataxx.c,v 1.11 2007-02-27 02:15:00 max817 Exp $
 
 /************************************************************************
 **
@@ -816,11 +816,12 @@ void Reset() {
 	length = 3;
 	width = 4;
 	boardsize = length*width;
-    if (board == NULL)
-        board = (char *) SafeMalloc(boardsize * sizeof(char));
 }
 
 void SetupGame() {
+    if (board != NULL)
+        SafeFree(board);
+    board = (char*) SafeMalloc(boardsize * sizeof(char));
 	generic_hash_destroy();
 	SetupTierStuff();
 	if (width <= 5 && length <= 5) {
@@ -963,6 +964,9 @@ int GenerateMovesEfficient (POSITION position)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.10  2007/02/27 02:08:18  max817
+// Fixed a bug in Primitive, and implemented a tester for GenerateMovesEfficient.
+//
 // Revision 1.9  2007/02/27 01:29:45  max817
 // Added Win-By for fun, even though it doesn't work thanks to tiers. -Max
 //

@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.30 2007-02-27 01:24:33 max817 Exp $
+// $Id: mbaghchal.c,v 1.31 2007-02-27 02:15:00 max817 Exp $
 
 /************************************************************************
 **
@@ -1177,13 +1177,14 @@ void Reset ()
 	tigers     = 4;
 	goats      = 4;
 	diagonals  = TRUE;
-    if (board == NULL)
-        board = (char*) SafeMalloc(boardSize * sizeof(char));
 }
 
 
 void SetupGame ()
 {
+    if (board != NULL)
+        SafeFree(board);
+    board = (char*) SafeMalloc(boardSize * sizeof(char));
 	// destroy current hash
 	generic_hash_destroy();
 	// setup the tier hashes
@@ -1680,6 +1681,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2007/02/27 01:24:33  max817
+// Made more efficient by adding globals. -Max
+//
 // Revision 1.29  2006/12/19 20:00:50  arabani
 // Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
 //
