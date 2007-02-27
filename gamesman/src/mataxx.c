@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.8 2007-02-27 01:02:39 max817 Exp $
+// $Id: mataxx.c,v 1.9 2007-02-27 01:29:45 max817 Exp $
 
 /************************************************************************
 **
@@ -130,6 +130,8 @@ int legalCoords (int, int);
 void countPieces (char*, int*, int*);
 void ChangeBoardSize();
 
+WINBY computeWinBy (POSITION);
+
 TIER BoardToTier(char* board);
 void SetupTierStuff();
 STRING TierToString(TIER tier);
@@ -160,6 +162,8 @@ void InitializeGame ()
 	}
 	//InitializeHelpStrings();
 	SetupGame();
+
+    gPutWinBy = &computeWinBy;
 
 	gMoveToStringFunPtr = &MoveToString;
 }
@@ -730,15 +734,14 @@ void countPieces (char* board, int* reds, int* blues) {
 }
 
 
-/* This is for Win-By when it's done
-int WinBy (POSITION position)
+// This is for Win-By
+WINBY computeWinBy (POSITION position)
 {
-	char* board;
-	int turn, reds, blues;
-	board = unhash(position, &turn);
+	int reds, blues;
+	unhash(position);
 	countPieces(board, &reds, &blues);
-	return (turn==PLAYER_ONE ? reds-blues : blues-reds);
-}*/
+	return reds-blues;
+}
 
 /*
 The BOARD the player sees is as follows:
@@ -923,6 +926,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.8  2007/02/27 01:02:39  max817
+// Made code more efficient with globals. -Max
+//
 // Revision 1.7  2006/12/19 20:00:50  arabani
 // Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
 //
