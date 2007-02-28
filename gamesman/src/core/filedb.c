@@ -62,6 +62,10 @@ void		filedb_set_mex			(POSITION pos, MEX mex);
 
 cellValue*	filedb_get_raw			(POSITION pos);
 
+/* saving to/reading from a file */
+BOOLEAN     filedb_save_database    ();
+BOOLEAN     filedb_load_database    ();
+
 gamesdb*   mydb;
 
 /*
@@ -83,6 +87,8 @@ void filedb_init(DB_Table *new_db)
         new_db->unmark_visited = filedb_unmark_visited;
         new_db->get_mex = filedb_get_mex;
         new_db->put_mex = filedb_set_mex;
+        new_db->save_database = filedb_save_database;
+        new_db->load_database = filedb_load_database;
         new_db->free_db = filedb_free;
         
         sprintf(dirname, "m%s_%d_filedb", kDBName, getOption()) ;
@@ -210,4 +216,15 @@ MEX filedb_get_mex(POSITION pos)
         ptr = filedb_get_raw(pos);
 
         return (MEX)(((int)*ptr & MEX_MASK) >> MEX_SHIFT);
+}
+
+BOOLEAN filedb_save_database()
+{
+    gamesdb_buf_flush_all(mydb);
+    return TRUE;
+}
+
+BOOLEAN filedb_load_database()
+{
+    return TRUE;
 }

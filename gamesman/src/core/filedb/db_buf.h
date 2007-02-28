@@ -42,6 +42,8 @@ int                 gamesdb_buf_write       (gamesdb* db, gamesdb_frameid spot);
 int                 gamesdb_buf_destroy     (gamesdb* db);
 gamesdb_bufferpage *gamesdb_buf_addpage     (gamesdb* db);
 void                gamesdb_buf_removepage  (gamesdb* db);
+int                 gamesdb_buf_flush_all   (gamesdb* db);
+
 
 #endif /* GMCORE_DB_BUF_H */
 

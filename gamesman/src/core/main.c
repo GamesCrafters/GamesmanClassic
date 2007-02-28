@@ -260,10 +260,10 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--newdb"))
                         gLoadDatabase = FALSE;
                 else if(!strcasecmp(argv[i], "--filedb")) {
-                	gFileDB = TRUE;
-                        gBitPerfectDB = FALSE;
-                        gBitPerfectDBSolver = FALSE;
-		}
+                    gFileDB = TRUE;
+                    gBitPerfectDB = FALSE;
+                    gBitPerfectDBSolver = FALSE;
+                }
                 else if(!strcasecmp(argv[i], "--numoptions")) {
                         fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
                         gMessage = TRUE;

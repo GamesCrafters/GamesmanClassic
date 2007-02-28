@@ -91,7 +91,7 @@ void gamesdb_buf_removepage(gamesdb *db) {
     db->buffer->num_pages--;
 }
 
-static int gamesdb_buf_flush_all(gamesdb* db) {
+int gamesdb_buf_flush_all(gamesdb* db) {
 	//with the assumption that the db_store is clustered
 	//a straight squential scan will cause ordered forward access to the db_store
 	//this will be as fast as it gets
