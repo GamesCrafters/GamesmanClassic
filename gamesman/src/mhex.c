@@ -53,15 +53,15 @@ void*	 gGameSpecificTclInit = NULL;
 /**
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
- * These help strings should be updated and dynamically changed using 
- * InitializeHelpStrings() 
+ * These help strings should be updated and dynamically changed using
+ * InitializeHelpStrings()
  **/
 
 STRING   kHelpGraphicInterface =
 "Help strings not initialized!";
 
 STRING   kHelpTextInterface =
-"Help strings not initialized!"; 
+"Help strings not initialized!";
 
 STRING   kHelpOnYourTurn =
 "Help strings not initialized!";
@@ -113,9 +113,9 @@ STRING   kHelpExample =
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH 
+#ifndef MEMWATCH
 extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+extern void		SafeFree ();
 #endif
 
 //int                   vcfg(int *this_cfg);
@@ -133,7 +133,7 @@ int                     MaskExpand(int mask, int row);
 **
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
@@ -143,17 +143,18 @@ void InitializeGame ()
   int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE, WHITECHAR, 0, BOARDSIZE, -1};
 
   InitializeHelpStrings();
-  
+
   gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);  // ***
-  
+
   initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
-  
+
   for(i = 0; i < BOARDSIZE; i++)
 	initialBoard[i] = BLANKCHAR;
   initialBoard[BOARDSIZE] = '\0';
-	
-  
+
+
   gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER);
+
 }
 
 
@@ -174,7 +175,7 @@ kHelpGraphicInterface =
     "";
 
 kHelpTextInterface =
-   ""; 
+   "";
 
 kHelpOnYourTurn =
   "Enter a move in the format [letter][number], where [letter] is the column of the cell you want to move into and [number] is its row.";
@@ -183,12 +184,12 @@ kHelpStandardObjective =
   "To connect your two parallel sides of the board before the other player connects his or her sides.";
 
 kHelpReverseObjective =
-  "To force your opponent to connect his or her sides of the board first"; 
+  "To force your opponent to connect his or her sides of the board first";
 
-kHelpTieOccursWhen = 
+kHelpTieOccursWhen =
   "A tie is not possible in the game of Hex.";
 
-kHelpExample = 
+kHelpExample =
   "";
 
     gMoveToStringFunPtr = &MoveToString;
@@ -203,7 +204,7 @@ kHelpExample =
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position to generate moves
 **
 ** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
@@ -216,13 +217,13 @@ kHelpExample =
 MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST* validMoves;
-    char* board;	
+    char* board;
 
     board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
 
-    generic_hash_unhash(position, board);	
-    
-    validMoves = getNextBlank(board, 0);	
+    generic_hash_unhash(position, board);
+
+    validMoves = getNextBlank(board, 0);
     SafeFree(board);
     return validMoves;
 }
@@ -233,7 +234,7 @@ MOVELIST *GenerateMoves (POSITION position)
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -249,12 +250,12 @@ POSITION DoMove (POSITION position, MOVE move)
   char* board;
   POSITION newPosition;
   int turn = generic_hash_turn(position);
-  
+
   board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
   generic_hash_unhash(position, board);
-  
+
   board[move] = ((turn == 1) ? WHITECHAR : BLACKCHAR);
-  
+
   newPosition = generic_hash_hash(board, ((turn % 2) + 1));
 
   SafeFree(board);
@@ -275,13 +276,13 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees a path across board      lose
 **              Doubling back case (temporary fix)           tie
 **              All other cases                              undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       RowMaskBoard, ColMaskBoard       
+** CALLS:       RowMaskBoard, ColMaskBoard
 **
 ************************************************************************/
 
@@ -290,7 +291,7 @@ VALUE Primitive (POSITION position)
     char* board;
     int mask, nextmask, i;
 
-    
+
     board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
 
     generic_hash_unhash(position, board);
@@ -327,7 +328,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -344,31 +345,25 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   char* board;
 
   board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
-  
+
   generic_hash_unhash(position, board);
 
 
 
-  
+
   // printf("Prediction: %s", getPrediction()); //check doc
   printf("%s's turn:\n", playersName);
 
+  printf("X: vertical");
+  printf("O: horizontal");
 
-  printf("   _X_X_X_\n");
-  printf(" O \\      \\ O\n");
-  printf("  O \\      \\ O\n");
-  printf("   O \\______\\ O\n");
-  printf("        X X X\n\n");
-   
-
-  
   printf("    ");
 
   for(i = 0; i < BOARDCOLS; i++) {
     printf("/ \\ ");
   }
   printf("\n");
-  
+
   for(row = 0; row < BOARDROWS; row++) {
     for(i = 0; i < row; i++)
 	  printf("  ");
@@ -378,7 +373,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf("\n    ");
     for(i = 0; i < row; i++) {
         printf("  ");
-    } 
+    }
     for(i = 0; i < BOARDCOLS; i++)
       printf("\\ / ");
     if(row != BOARDROWS-1) printf("\\");
@@ -393,7 +388,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     printf("%c   ", 'a'+n);
 
   printf("\n");
-  
+
   SafeFree(board);
 
 }
@@ -404,9 +399,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -421,14 +416,14 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
 void PrintMove (MOVE move)
 {
-  STRING str = (char*)SafeMalloc(20*sizeof(char)); 
+  STRING str = (char*)SafeMalloc(20*sizeof(char));
   str = MoveToString( move );
 
   printf( "%s", str );
@@ -441,7 +436,7 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *move         : The move to put into a string.
 **
 ************************************************************************/
@@ -449,7 +444,7 @@ void PrintMove (MOVE move)
 STRING MoveToString (MOVE move)
 {
   STRING movestring = (char*)SafeMalloc(20*sizeof(char));
-  
+
   movestring[0] = 'a' + (int)(move % BOARDCOLS);
   movestring[1] = '0' + (int)(move / BOARDROWS);
   movestring[2] = '\0';
@@ -464,10 +459,10 @@ STRING MoveToString (MOVE move)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -482,13 +477,13 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 {
     USERINPUT input;
     USERINPUT HandleDefaultTextInput();
-    
+
     for (;;) {
 
 	printf("%8s's move [ `undo' | {column}{row} ] : ", playersName);
-	
+
 	input = HandleDefaultTextInput(position, move, playersName);
-	
+
 	if (input != Continue)
 		return input;
     }
@@ -511,7 +506,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -529,11 +524,11 @@ BOOLEAN ValidTextInput (STRING input) {
            return FALSE;
       } else if((input[0] < 'a') || (input[0] > BOARDROWS+'a')) {
            return FALSE;
-      } else if((input[1] < '0') || (input[1] > BOARDROWS+'0')) { 
+      } else if((input[1] < '0') || (input[1] > BOARDROWS+'0')) {
            return FALSE;
-      } else { 
-           return TRUE; 
-      } 
+      } else {
+           return TRUE;
+      }
  }
 
 
@@ -544,7 +539,7 @@ BOOLEAN ValidTextInput (STRING input) {
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -569,7 +564,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
@@ -586,15 +581,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -603,7 +598,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -681,12 +676,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    
+
 }
 
 
@@ -698,7 +693,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 
@@ -766,6 +761,12 @@ int MaskExpand(int mask, int row) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.1.2.9  2007/02/18 08:32:41  hevanm
+ ** Changes from mainline.
+ **
+ ** Revision 1.6  2006/12/19 20:00:50  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.5  2006/12/07 02:25:07  shahbawany
  **
  ** Working version - BOARDCOLS = 3
@@ -791,12 +792,4 @@ int MaskExpand(int mask, int row) {
  **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
-initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
-  
-  for(i = 0; i < BOARDSIZE; i++)
-	initialBoard[i] = BLANKCHAR;
-  initialBoard[BOARDSIZE] = '\0';
-	
-  
-  gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER); **
  ************************************************************************/
