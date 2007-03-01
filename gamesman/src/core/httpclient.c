@@ -665,28 +665,16 @@ void connecterror(FILE *stream)
 		fprintf(stream, "Socket is already connected.\n");	
 	else if (errno == ENOTCONN)
 		fprintf(stream, "Socket is not connected.\n");		
-	else if (errno == ENOSHARE)
-		fprintf(stream, "No such host or network path.\n");	
 	else if (errno == ENOTSUP)
 		fprintf(stream, "Not supported.\n");	
-	else if (errno == EREMCHG)
-		fprintf(stream, "Remote address changed.\n");				
 	else if (errno == EMULTIHOP)
 		fprintf(stream, "Multihop attempted.\n");				
 	else if (errno == EPROTO)
 		fprintf(stream, "Protocol error.\n");				
-	else if (errno == ECOMM)
-		fprintf(stream, "Communication error on send.\n");										
-	else if (errno == EADV)
-		fprintf(stream, "Advertise errord.\n");										
 	else if (errno == ENOLINK)
 		fprintf(stream, "The link has been severed.\n");										
 	else if (errno == EREMOTE)
 		fprintf(stream, "The object is remote.\n");										
-	else if (errno == ENOPKG)
-		fprintf(stream, "Package not installed.\n");										
-	else if (errno == ENONET)
-		fprintf(stream, "Machine is not on the network.\n");										
 	else if (errno == ENOSR)
 		fprintf(stream, "Out of streams resources.\n");										
 	else if (errno == ETIME)
@@ -695,12 +683,6 @@ void connecterror(FILE *stream)
 		fprintf(stream, "No data (for no delay io).\n");										
 	else if (errno == ENOSTR)
 		fprintf(stream, "Device not a stream.\n");										
-	else if (errno == EUNATCH)
-		fprintf(stream, "Protocol driver not attached.\n");										
-	else if (errno == ELNRNG)
-		fprintf(stream, "Link number out of range.\n");										
-	else if (errno == ECHRNG)
-		fprintf(stream, "Channel number out of range.\n");										
 	else if (errno == EIDRM)
 		fprintf(stream, "Identifier removed.\n");										
 	else if (errno == ENOMSG)
