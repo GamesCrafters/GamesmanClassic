@@ -174,16 +174,16 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	// Create a socket
 	if ((sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		fprintf(stderr,"ERROR, opening socket part 1\n");
+		fprintf(stderr,"ERROR, creating socket: ");
+		connecterror(stderr);
 		exit(1);
 	}
 
 	// Connect to the socket
 	if (connect(sockFd, &(req->sock.res), sizeof(struct sockaddr_in)) < 0) 
 	{
-		fprintf(stderr,"ERROR, opening socket part 2\n");
-		fprintf(stderr,"error is %d\n",errno);
-		fprintf(stderr,"is connction failure? %d\n",errno==ECONNREFUSED);
+		fprintf(stderr,"ERROR, opening socket: ");
+		connecterror(stderr);
 		exit(1);
 	}
 
@@ -283,6 +283,14 @@ void readresponse(int sockFd, httpres *res)
 				exit(1);
 			}
 			strcpy(res->status, buffer);
+			
+			// Parse out the status code
+			pos = strtok(buffer, " ");
+			if (pos != NULL)
+			{
+				if ((pos = strtok(NULL, " ")) != NULL)
+					res->statusCode = atoi(pos);
+			}
 		}
 		else
 		{
@@ -598,5 +606,136 @@ void parse(char url[], httpreq *req)
 			strcpy(req->path, "/");
 		}
 	}
+}
+
+
+void connecterror(FILE *stream)
+{
+	if (errno == EOPNOTSUPP)
+		fprintf(stream, "Operation not supported on transport endpoint.\n");	
+	else if (errno == EPFNOSUPPORT)
+		fprintf(stream, "Protocol family not supported.\n");	
+	else if (errno == ECONNRESET)
+		fprintf(stream, "Connection reset by peer.\n");	
+	else if (errno == ENOBUFS)
+		fprintf(stream, "No buffer space available.\n");	
+	else if (errno == EAFNOSUPPORT)
+		fprintf(stream, "Address family not supported by protocol family.\n");	
+	else if (errno == EPROTOTYPE)
+		fprintf(stream, "Protocol wrong type for socket.\n");	
+	else if (errno == ENOTSOCK)
+		fprintf(stream, "Socket operation on non-socket.\n");	
+	else if (errno == ENOPROTOOPT)
+		fprintf(stream, "Protocol not available.\n");	
+	else if (errno == ESHUTDOWN)
+		fprintf(stream, "Can't send after socket shutdown.\n");	
+	else if (errno == ECONNREFUSED)
+		fprintf(stream, "Connection refused.\n");	
+	else if (errno == EADDRINUSE)
+		fprintf(stream, "Address already in use.\n");	
+	else if (errno == ECONNABORTED)
+		fprintf(stream, "Connection aborted.\n");	
+	else if (errno == ENETUNREACH)
+		fprintf(stream, "Network is unreachable.\n");	
+	else if (errno == ENETDOWN)
+		fprintf(stream, "Network interface is not configured.\n");	
+	else if (errno == ETIMEDOUT)
+		fprintf(stream, "Connection timed out.\n");	
+	else if (errno == EHOSTDOWN)
+		fprintf(stream, "Host is down.\n");	
+	else if (errno == EHOSTUNREACH)
+		fprintf(stream, "Host is unreachable.\n");	
+	else if (errno == EINPROGRESS)
+		fprintf(stream, "Connection already in progress.\n");	
+	else if (errno == EALREADY)
+		fprintf(stream, "Socket already connected.\n");	
+	else if (errno == EDESTADDRREQ)
+		fprintf(stream, "Destination address required.\n");	
+	else if (errno == EMSGSIZE)
+		fprintf(stream, "Message too long.\n");	
+	else if (errno == EPROTONOSUPPORT)
+		fprintf(stream, "Unknown protocol.\n");	
+	else if (errno == ESOCKTNOSUPPORT)
+		fprintf(stream, "Socket type not supported.\n");	
+	else if (errno == EADDRNOTAVAIL)
+		fprintf(stream, "Address not available.\n");	
+	else if (errno == ENETRESET)
+		fprintf(stream, "Network interface reset.\n");	
+	else if (errno == EISCONN)
+		fprintf(stream, "Socket is already connected.\n");	
+	else if (errno == ENOTCONN)
+		fprintf(stream, "Socket is not connected.\n");		
+	else if (errno == ENOSHARE)
+		fprintf(stream, "No such host or network path.\n");	
+	else if (errno == ENOTSUP)
+		fprintf(stream, "Not supported.\n");	
+	else if (errno == EREMCHG)
+		fprintf(stream, "Remote address changed.\n");				
+	else if (errno == EMULTIHOP)
+		fprintf(stream, "Multihop attempted.\n");				
+	else if (errno == EPROTO)
+		fprintf(stream, "Protocol error.\n");				
+	else if (errno == ECOMM)
+		fprintf(stream, "Communication error on send.\n");										
+	else if (errno == EADV)
+		fprintf(stream, "Advertise errord.\n");										
+	else if (errno == ENOLINK)
+		fprintf(stream, "The link has been severed.\n");										
+	else if (errno == EREMOTE)
+		fprintf(stream, "The object is remote.\n");										
+	else if (errno == ENOPKG)
+		fprintf(stream, "Package not installed.\n");										
+	else if (errno == ENONET)
+		fprintf(stream, "Machine is not on the network.\n");										
+	else if (errno == ENOSR)
+		fprintf(stream, "Out of streams resources.\n");										
+	else if (errno == ETIME)
+		fprintf(stream, "Timer expired.\n");										
+	else if (errno == ENODATA)
+		fprintf(stream, "No data (for no delay io).\n");										
+	else if (errno == ENOSTR)
+		fprintf(stream, "Device not a stream.\n");										
+	else if (errno == EUNATCH)
+		fprintf(stream, "Protocol driver not attached.\n");										
+	else if (errno == ELNRNG)
+		fprintf(stream, "Link number out of range.\n");										
+	else if (errno == ECHRNG)
+		fprintf(stream, "Channel number out of range.\n");										
+	else if (errno == EIDRM)
+		fprintf(stream, "Identifier removed.\n");										
+	else if (errno == ENOMSG)
+		fprintf(stream, "No message of desired type.\n");										
+	else if (errno == EPIPE)
+		fprintf(stream, "Broken pipe.\n");										
+	else if (errno == EMLINK)
+		fprintf(stream, "Too many links.\n");										
+	else if (errno == EMFILE)
+		fprintf(stream, "Too many open files.\n");										
+	else if (errno == ENFILE)
+		fprintf(stream, "Too many open files in system.\n");										
+	else if (errno == EINVAL)
+		fprintf(stream, "Invalid argument.\n");										
+	else if (errno == ENODEV)
+		fprintf(stream, "No such device.\n");										
+	else if (errno == EXDEV)
+		fprintf(stream, "Cross-device link.\n");										
+	else if (errno == ENOTBLK)
+		fprintf(stream, "Block device required.\n");										
+	else if (errno == EFAULT)
+		fprintf(stream, "Bad address.\n");										
+	else if (errno == EACCES)
+		fprintf(stream, "Permission denied.\n");										
+	else if (errno == EBADF)
+		fprintf(stream, "Bad file number.\n");										
+	else if (errno == ENXIO)
+		fprintf(stream, "No such device or address.\n");										
+	else if (errno == EIO)
+		fprintf(stream, "I/O error.\n");										
+	else if (errno == EINTR)
+		fprintf(stream, "Interrupted system call.\n");										
+	else if (errno == EPERM)
+		fprintf(stream, "Not super-user.\n");										
+	else
+		fprintf(stream, "Unknown error %d.\n", errno);																					
 }
 

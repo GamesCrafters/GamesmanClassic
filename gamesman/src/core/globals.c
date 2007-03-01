@@ -115,7 +115,7 @@ BOOLEAN gGenerateNodeViz = FALSE;
 
 /* NetworkDB Globals */
 BOOLEAN gNetworkDB = FALSE;
-STRING  ServerAddress = "";
+STRING  ServerAddress = "nyc.cs.berkeley.edu/GamesmanServlet";
 
 /* Tier Gamesman globals and function pointers */
 // For the core

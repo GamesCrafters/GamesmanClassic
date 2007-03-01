@@ -51,7 +51,8 @@
 #define HD_LENGTH "length"
 #define HD_GAME  "game"
 #define HD_VARIANT "variant"
-#define HD_TYPE "GetValueOfPositions"
+#define HD_GET_VALUE_OF_POSITIONS "GetValueOfPositions"
+#define HD_INIT_DATABASE "InitDatabase"
 #define HD_RETURN_CODE "ReturnCode"
 #define HD_RETURN_MESSAGE "ReturnMessage"
 
@@ -99,7 +100,7 @@ BOOLEAN get_position (POSITION pos, cellValue * outcell);
 //set cached position:
 void set_position (POSITION pos, cellValue cv);
 
-
+void checkResponseForErrors(httpres *res);
 
 /*
 ** Code
@@ -107,36 +108,36 @@ void set_position (POSITION pos, cellValue cv);
 
 void netdb_init(DB_Table *new_db)
 {
-
-        //set function pointers
-        
-        new_db->put_value = NULL;
-        new_db->put_remoteness = NULL;
-        new_db->mark_visited = NULL;
-        new_db->unmark_visited = NULL;
-        new_db->put_mex = NULL;
-        
+	//set function pointers
+	new_db->put_value = NULL;
+	new_db->put_remoteness = NULL;
+	new_db->mark_visited = NULL;
+	new_db->unmark_visited = NULL;
+	new_db->put_mex = NULL;
 	new_db->free_db = netdb_close;
-
-
-        new_db->get_value = netdb_get_value;
-        new_db->get_remoteness = netdb_get_remoteness;
-        new_db->check_visited = NULL;
-        new_db->get_mex = netdb_get_mex;
+	new_db->get_value = netdb_get_value;
+	new_db->get_remoteness = netdb_get_remoteness;
+	new_db->check_visited = NULL;
+	new_db->get_mex = netdb_get_mex;
 	new_db->get_bulk =  netdb_get_bulk; //bulk request
-        new_db->save_database = NULL;
-        new_db->load_database = netdb_load_database;
+	new_db->save_database = NULL;
+	new_db->load_database = netdb_load_database;
 }
 
 
 void error(char * reason, int code) /*fixme: handle better*/
 {
-  printf("\nCRITICAL NETDB ERROR:\n");
-  printf("%s\n",reason);
-  exit(1);
+	fprintf(stderr, "\nCRITICAL NETDB ERROR:\n");
+	fprintf(stderr, "%s\n",reason);
+	exit(1);
 }
 
-
+void badResponseCode(char * reason, int code)
+{
+	fprintf(stderr, "\nCRITICAL NETDB ERROR:\n");
+	fprintf(stderr, "Server responded with HTTP status code: %d\n", code);
+	exit(1);
+}
 
 //warning: syncronous net sending
 //will need to rewrite to be asynch
@@ -168,7 +169,7 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
   char length_str[32]; //length encoding
 	
   req = newrequest(url); //connect to the server
-  settype(req,HD_TYPE); //mr. jacobson: is type lowercase?
+  settype(req, HD_GET_VALUE_OF_POSITIONS);
   
   addheader(req, HD_GAME,  kDBName);
   
@@ -242,6 +243,60 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
     free(url);
     
 }
+
+void netdb_init_db()
+{
+	httpreq *req;
+	httpres *res;
+	char *url;
+	char option[32];	
+		
+	// Create a new request
+	url = malloc(strlen(ServerAddress)+1);
+	memcpy(url, ServerAddress, strlen(ServerAddress)+1);
+	req = newrequest(url);
+	settype(req, HD_INIT_DATABASE);
+	
+	// Set the gamename header  
+	addheader(req, HD_GAME,  kDBName);
+	
+	// Set the option header	
+	net_itoa(getOption(), option);
+	addheader(req, HD_VARIANT, option);
+	  
+	// Now post
+	res = post(req, NULL, (int)NULL);
+	
+	// Check for errors:
+	checkResponseForErrors(res);
+	
+	// Done - free memory
+	freeresponse(res);
+	free(url);
+}
+
+
+void checkResponseForErrors(httpres *res)
+{
+	char *ecode_str;
+	int ecode;
+	
+	// Check HTTP response code
+	if (!res->statusCode || res->statusCode != 200)
+	{
+		// Bad server response		
+		badResponseCode(res->status, res->statusCode);
+	}
+	
+	// Check GamesmanServlet return code/message
+	ecode_str = getheader(res, HD_RETURN_CODE);
+	if (ecode_str == NULL)
+		error("GamesmanServlet sent back invalid response. Missing return code.", 11);
+	ecode = atoi(ecode_str);
+	if (ecode != 0)
+		error(getheader(res, HD_RETURN_MESSAGE), ecode);
+}
+
 
 //cache support:
 //return False if not found
@@ -353,9 +408,9 @@ MEX netdb_get_mex(POSITION pos)
 
 BOOLEAN netdb_load_database()
 {
-	printf("\nNetwork Testing\n"); 
-	printf("Using URL: %s\n",ServerAddress);
-	//ping or something
+	printf("\nInitializing net-db for %s...", kGameName);
+	fflush(stdout);
+	netdb_init_db();
+	printf("done.\n");
 	return TRUE; 
 }
-	//g_Network_DB

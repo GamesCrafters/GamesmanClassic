@@ -380,9 +380,12 @@ void HandleArguments (int argc, char *argv[])
                         printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
                         gMessage = TRUE;
                         i += argc;
-                } else if(!strcasecmp(argv[i], "--NetDB")) {
+                } else if(!strcasecmp(argv[i], "--netDb")) {
                         gNetworkDB = TRUE;
-			ServerAddress = argv[i+1];
+                        gBitPerfectDB = FALSE;
+                        gBitPerfectDBSolver = FALSE;
+                        if ((i + 1) < argc)
+							ServerAddress = argv[i+1];
                         i++;
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();

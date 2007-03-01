@@ -53,6 +53,7 @@ struct httpres_struct
 {
 	char *status;
 	char *body;
+	int statusCode;
 	int bodyLength;
 	struct header_struct *headers;
 };
@@ -70,4 +71,5 @@ char* getheader(httpres *res, char name[]); //get header
 void freeresponse(httpres *res); //free response when done
 void readresponse(int sockFd, httpres *res); //read response (private)
 void lcstrcpy(char to[], char from[]);  //lower case copy
+void connecterror(FILE *stream); // prints the error message corresponding to the errno
 
