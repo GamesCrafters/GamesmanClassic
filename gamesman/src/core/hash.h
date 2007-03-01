@@ -19,6 +19,15 @@
 //extern int hash_usefulSpace;
 //extern int hash_maxPos;
 
+struct symEntry
+{
+        int type;
+        int angle;
+        int *sym; 
+        struct symEntry *next;
+};
+
+
 struct hashContext
 {
 
@@ -63,10 +72,14 @@ void generic_hash_set_context(int context);
 
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *), int player);
 POSITION generic_hash_hash(char* board, int player);
+POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symIndex);
 char* generic_hash_unhash_tcl(POSITION pos);
 char* generic_hash_unhash(POSITION hashed, char* dest);
 int generic_hash_turn (POSITION hashed);
 void hashCounting(void);
 
+void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots);
+POSITION generic_hash_canonicalPosition(POSITION pos);
+void generic_hash_add_sym(int* symToAdd);
 #endif /* GMCORE_HASH_H */
 
