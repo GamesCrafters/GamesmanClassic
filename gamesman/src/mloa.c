@@ -41,10 +41,12 @@
 **              2006.12.13 Changed PrintPosition to also display info on 
 **                         whose turn it is and what piece that player is using.
 **                         Also changed to 1-based game variants.
+**              2007.2.16  Fixed primitive so it didn't try and free a null pointer
+**              2007.2.19  Added symmetries using generic symmetries
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.13 2007-02-08 05:23:46 dmchan Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.14 2007-03-01 03:40:27 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -121,9 +123,9 @@ illustrates a game in which X has won.\n\
      +---+---+---+---+\n\
    4 |   |   | X |   |\n\
      +---+---+---+---+\n\
-   3 |   | X | O | X |\n\
+   3 |   | X | o | X |\n\
      +---+---+---+---+\n\
-   2 | O | X |   | O |\n\
+   2 | o | X |   | o |\n\
      +---+---+---+---+\n\
    1 |   |   |   |   |\n\
      +---+---+---+---+\n\
@@ -140,16 +142,16 @@ STRING   kHelpTieOccursWhen =
 "a player cannot move on his/her turn.";
 
 STRING   kHelpExample =
-"The following is an example game played on a 4x4 board. Player1 is X and Player2 is O. \n\
+"The following is an example game played on a 4x4 board. Player1 is X and Player2 is o. \n\
 \n\
 Starting Position:\n\
 \n\
      +---+---+---+---+\n\
    4 |   | X | X |   |\n\
      +---+---+---+---+\n\
-   3 | O |   |   | O |\n\
+   3 | o |   |   | o |\n\
      +---+---+---+---+\n\
-   2 | O |   |   | O |\n\
+   2 | o |   |   | o |\n\
      +---+---+---+---+\n\
    1 |   | X | X |   |\n\
      +---+---+---+---+\n\
@@ -160,9 +162,9 @@ Player1 moves: c1a3.\n\
      +---+---+---+---+\n\
    4 |   | X | X |   |\n\
      +---+---+---+---+\n\
-   3 | X |   |   | O |\n\
+   3 | X |   |   | o |\n\
      +---+---+---+---+\n\
-   2 | O |   |   | O |\n\
+   2 | o |   |   | o |\n\
      +---+---+---+---+\n\
    1 |   | X |   |   |\n\
      +---+---+---+---+\n\
@@ -171,11 +173,11 @@ Player1 moves: c1a3.\n\
 Player2 moves: d2b4.\n\
 \n\
      +---+---+---+---+\n\
-   4 |   | O | X |   |\n\
+   4 |   | o | X |   |\n\
      +---+---+---+---+\n\
-   3 | X |   |   | O |\n\
+   3 | X |   |   | o |\n\
      +---+---+---+---+\n\
-   2 | O |   |   |   |\n\
+   2 | o |   |   |   |\n\
      +---+---+---+---+\n\
    1 |   | X |   |   |\n\
      +---+---+---+---+\n\
@@ -268,6 +270,13 @@ void InitializeGame ()
   //gNumberOfPositions = power(3, gBoardSize+1);
   gBoard = (char*)SafeMalloc(sizeof(char) * (gBoardSize+1));
   gInitialPosition = setInitialPosition();
+
+  int rotations[1] = {90};
+  int reflections[1] = {90};
+  if (gBoardHeight == gBoardLength)
+    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, rotations, 1);
+  else
+    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, NULL, 0);
 
   //printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
   //printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
@@ -621,10 +630,10 @@ VALUE Primitive (POSITION position)
     }
   }
   
-  MOVELIST* moves = GenerateMoves(position);
-  if (moves == NULL)
-    result = tie;
-  else if (allBlackConnected && !allWhiteConnected)
+  //MOVELIST* moves = GenerateMoves(position);
+  //if (moves == NULL)
+  //  result = tie;
+  if (allBlackConnected && !allWhiteConnected)
     {
       if (playerTurn == PLAYERBLACK)
 	result = gStandardGame ? win : lose;
@@ -648,7 +657,8 @@ VALUE Primitive (POSITION position)
   else
     result = undecided;
 
-  SafeFree(moves);
+  //if (moves != NULL)
+  //SafeFree(moves);
   return result;
 }
 
@@ -985,7 +995,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 2;
+    return 4;
 }
 
 
@@ -1006,10 +1016,14 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-  if (gStandardGame) 
-    return 1;
-  else
-    return 2;
+
+  // option is like a binary number with gStandardGame as lowest bit
+  int option = 1;
+  option += (gStandardGame) ? 0 : 1;
+  option += (gSymmetries) ? 2: 0;
+
+  printf("option has been set to %d\n", option);
+  return option;
 }
 
 
@@ -1029,10 +1043,15 @@ void setOption (int option)
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+
+  printf(" option is %d\n", option);
   if (option == 1)
     gStandardGame = TRUE;
   else if (option == 2)
     gStandardGame = FALSE;
+  if (option > 2) {
+    gSymmetries = TRUE;
+  }
 }
 
 
@@ -1421,6 +1440,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.13  2007/02/08 05:23:46  dmchan
+ ** fixed unsigned int call
+ **
  ** Revision 1.12  2006/12/19 20:00:51  arabani
  ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
  **
