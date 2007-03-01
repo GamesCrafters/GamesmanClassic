@@ -42,7 +42,7 @@ public class RegistrationModule implements IModule
 	/**
 	 * 
 	 */
-	public void initialize(String[] configArgs) throws ModuleInitializationException {
+	public void initialize(String workingDir, String[] configArgs) throws ModuleInitializationException {
 		return;
 	}
 

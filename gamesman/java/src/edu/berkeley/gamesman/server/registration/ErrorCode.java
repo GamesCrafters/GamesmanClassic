@@ -7,7 +7,7 @@ package edu.berkeley.gamesman.server.registration;
  * @author Matt Jacobsen
  *
  */
-public interface ErrorCode
+public interface ErrorCode extends edu.berkeley.gamesman.server.ErrorCode
 {
 	public static final int DEFAULT_CODE		=0;
 	public static final int UNKNOWN_REQUEST_TYPE = 300;
@@ -39,7 +39,7 @@ public interface ErrorCode
 	 * @author Matt Jacobsen
 	 *
 	 */
-	public interface Msg
+	public interface Msg extends edu.berkeley.gamesman.server.ErrorCode.Msg
 	{
 		public static final String UNKNOWN_REQUEST_TYPE = "Unknown request type";
 		public static final String IO_EXCEPTION = "IO exception";

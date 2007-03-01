@@ -72,12 +72,12 @@ public class GamesmanServlet extends HttpServlet
 				try
 				{
 					System.out.println("init: " + modulesArray[i].getClass().getName() + " " + iModuleArgsList.length);
-					modulesArray[i].initialize(iModuleArgsList);
+					modulesArray[i].initialize(config.getServletContext().getRealPath("/") + "WEB-INF/", iModuleArgsList);
 				}
 				catch (ModuleInitializationException e)
 				{
-					System.out.println("Module Initialization Error:"
-							+ modulesArray.getClass().getName());
+					System.out.println("Module Initialization Error:");
+					e.printStackTrace();
 				}
 			}
 		}

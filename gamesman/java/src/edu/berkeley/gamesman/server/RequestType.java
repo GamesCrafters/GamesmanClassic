@@ -16,6 +16,7 @@ public interface RequestType
 {
 	/** DbModule request types */
 	public static final String GET_VALUE_OF_POSITIONS = "GetValueOfPositions";
+	public static final String INIT_DATABASE = "InitDatabase";
 
 	/** P2PModule request types */
 	public static final String INIT_GAME = "InitGame";

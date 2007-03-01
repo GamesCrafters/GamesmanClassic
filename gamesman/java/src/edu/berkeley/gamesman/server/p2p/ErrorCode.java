@@ -7,7 +7,7 @@ package edu.berkeley.gamesman.server.p2p;
  * @author Matt Jacobsen
  *
  */
-public interface ErrorCode
+public interface ErrorCode extends edu.berkeley.gamesman.server.ErrorCode
 {
 	public static final int NO_SUCH_GAME = 200;
 	public static final int THREAD_INTERRUPTED = 201;
@@ -30,7 +30,7 @@ public interface ErrorCode
 	 * @author Matt Jacobsen
 	 *
 	 */
-	public interface Msg
+	public interface Msg extends edu.berkeley.gamesman.server.ErrorCode.Msg
 	{
 		public static final String NO_SUCH_GAME = "No valid game found for specified users/players";
 		public static final String THREAD_INTERRUPTED = "Thread interrupted while waiting for players";

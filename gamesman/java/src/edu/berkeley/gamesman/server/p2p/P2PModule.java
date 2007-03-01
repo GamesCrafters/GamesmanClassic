@@ -193,7 +193,7 @@ public class P2PModule implements IModule
 		}
 	}
 	
-	public void initialize(String[] configArgs) throws ModuleInitializationException
+	public void initialize(String workingDir, String[] configArgs) throws ModuleInitializationException
 	{
 	}
 	

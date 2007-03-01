@@ -14,9 +14,10 @@ public interface IModule
 	 * application config file. The configArgs array may be of length 0, but 
 	 * never null.
 	 * 
+	 * @param workingDir current working directory
 	 * @param configArgs configuration arguments for the IModule
 	 */
-	public void initialize(String[] configArgs) throws ModuleInitializationException;
+	public void initialize(String workingDir, String[] configArgs) throws ModuleInitializationException;
 	
 	/**
 	 * Returns true if the specified request type name is supported by this 

@@ -7,7 +7,7 @@ package edu.berkeley.gamesman.server.db;
  * @author Matt Jacobsen
  *
  */
-public interface ErrorCode
+public interface ErrorCode extends edu.berkeley.gamesman.server.ErrorCode
 {
 	//error codes
 	public static final int INVALID_LENGTH = 100;
@@ -32,7 +32,7 @@ public interface ErrorCode
 	 * @author Matt Jacobsen
 	 *
 	 */
-	public interface Msg
+	public interface Msg extends edu.berkeley.gamesman.server.ErrorCode.Msg
 	{
 		public static final String INVALID_LENGTH = "Invalid length value for request body.";
 		public static final String NO_DB = "Database not located on server for this game.";
