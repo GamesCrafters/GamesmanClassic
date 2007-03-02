@@ -100,7 +100,7 @@ public class DbModule implements IModule
 		File f;
 		FileInputStream fis;
 		GZIPInputStream gz;
-		baseDir = workingDir;
+		baseDir = workingDir + "db/";
 		int len = configArgs.length;
 		short[] buf = null; // injected memory buffer
 		byte[] sbuf = new byte[2]; // memory buffer for reading in short
