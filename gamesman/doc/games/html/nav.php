@@ -73,6 +73,7 @@ else
 <li><a href="9mm.html">Nine Men's Morris</a></li>
 <li><a href="mooe.html">Odd or Even</a></li>	    
 <li><a href="othello.html">Othello</a></li>
+<li><a href="paradux.html">Paradux</a></li>
 <li><a href="pentago.html">Pentago</a></li>
 <li><a href="pylos.html">Pylos</a></li>
 <li><a href="quarto.html">Quarto</a></li>
