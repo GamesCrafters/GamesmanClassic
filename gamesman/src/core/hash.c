@@ -226,7 +226,6 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
         cCon->miniIndices = (int*) SafeMalloc (sizeof(int) * (cCon->numPieces+2));
 
 	// set identity symmetry in case generic_hash_init_sym not called
-	printf("initializing identity symmetry\n");
 	symmetriesList = (struct symEntry*) SafeMalloc (sizeof(struct symEntry));
 	symmetriesList->angle = 0;
 	symmetriesList->next = NULL;
@@ -235,7 +234,6 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
 	for (i = 0; i < boardsize; i++) {
 	  symmetriesList->sym[i] = i;
 	}
-	printf("done initializing identity\n");
 
         getPieceParams(pieces_array, cCon->pieces, cCon->mins,cCon->maxs);
         for (i = 0; i < cCon->numPieces;i++) {
@@ -393,8 +391,8 @@ POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symInde
 
 	hashTimes++;
 	// hashTimes = 20010098 for normal solve w/ 4x4 board
-	if (hashTimes % 10000000 == 0)
-	  printf("hashTimes = %d\n", hashTimes);
+	//if (hashTimes % 10000000 == 0)
+	//printf("hashTimes = %d\n", hashTimes);
 
 	if (symIndex == NULL)
 	  ExitStageRightErrorString("Invalid symmetry");
