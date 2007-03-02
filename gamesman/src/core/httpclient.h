@@ -4,24 +4,6 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include "gamesman.h"
-//#include <string.h>
-//#include <stdlib.h>
-
-//#include <endian.h>
-//#include <byteswap.h>
-
-
-//byte conversion for 64 bit integers
-#ifdef WORDS_BIGENDIAN
-#define ntohll(x) (x)
-#else
-
-#define ntohll(x) (((long long) ntohl((x) & 0xffffffff)) << 32 | (((long long) ntohl((x) >> 32))))
-#endif // WORDS_BIGENDIAN
-
-#define htonll ntohll 
-
-
 
 /* STRUCTS */
 union sock
@@ -61,6 +43,7 @@ typedef struct httpres_struct httpres;
 
 
 /* FUNCTION DECLARATIONS */
+unsigned long long htonll(unsigned long long n); // convert from host to network byte order for long longs
 void net_itoa(int n, char s[]); //convert int to char
 void parse(char url[], httpreq *req); //parse (private)
 httpreq* newrequest(char url[]); //insantiate a requesto with a url

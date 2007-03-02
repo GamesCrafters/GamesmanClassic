@@ -54,6 +54,22 @@ int main(int argc, char *argv[])
 */
 
 /**
+ * Converts an unsigned long long from host byte order to network byte order
+ * depending on the endian-ness of the host system.
+ * 
+ * n - unsigned long long (usually a POSITION) in host's byte order
+ * returns an unsigned long long in network byte order
+ */
+unsigned long long htonll(unsigned long long n) 
+{
+	short w = 0x4321;
+	if ((*(char *)& w) != 0x21 )
+		return n;
+	else
+		return (((unsigned long long)htonl(n)) << 32) + htonl(n >> 32);
+}
+
+/**
  * Returns the value of the specified header as a char array. The returned
  * value may be NULL if no header exists with the specified name.
  *
