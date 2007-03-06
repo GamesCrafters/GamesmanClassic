@@ -32,29 +32,6 @@
 
 #include "gamesman.h"
 
-
-/**
- ** generic_hash_context_init() : generates the req'd arrays for a game
- **                    returns an int that refers to this context.
- ** generic_hash_context_switch(int context) : switch to the indicated context
- **
- ** generic_hash_cur_context() : returns the current context
- **
- ** generic_hash_max_pos() : returns the current context's gNumberOfPositions.
- **      --possibly--
- ** use only one global array of a new struct that we are going to make to keep
- ** track of all of local arrays for each context.
- **
- ** things in struct: offset, memoized combinations, pieces, bookeeping for
- **  things such as "has g_h_init been called?"
- ** everything else can be local or not depending on speed.
- **
- ** get rid of global pointers.
- **
- **/
-
-
-
 /*********************************************************************************
 *** A *PERFECT* hash function -
 *** - Efficency, Readability, and Multiple Contexts by Scott Lindeneau
@@ -137,8 +114,8 @@ int* 		gpd (int n);
 int 		gpi (int n);
 int* 		gPieceDist (int i);
 void		initializeHashtable();
-void		hashtablePut(int, int, BOOLEAN);
-int		hashtableGet(int);
+void		hashtablePut(int, int, int);
+int         hashtableGet(int);
 void		freeHashtable();
 
 /*******************************
@@ -379,7 +356,7 @@ void hash_combiCalc()
 
 /* hashes *board to an int */
 POSITION generic_hash_hash(char* board, int player) {
-	// use the identity symmetry.  
+	// use the identity symmetry.
         return generic_hash_hash_sym(board, player, symmetriesList);
 }
 
@@ -605,10 +582,8 @@ int generic_hash_context_init()
         newHashC->gfn = NULL;
         newHashC->player = 0;
         //newHashC->init = FALSE;
-        newHashC->contextNumber = myContext;
+        newHashC->contextNumber = -1;
         contextList[hash_tot_context-1] = newHashC;
-
-		//hashtablePut(myContext, myContext, FALSE);//put into hashtable
 
         return myContext;
 }
@@ -626,15 +601,7 @@ int generic_hash_context_init()
 void generic_hash_context_switch(int context)
 {
 	if (custom_contexts_mode) {
-		//currentContext = hashtableGet(context);
-		currentContext = -1;
-		int i;
-		for (i = 0; i < hash_tot_context; i++) {
-			if (contextList[i]->contextNumber == context) {
-				currentContext = i;
-				break;
-			}
-		}
+		currentContext = hashtableGet(context);
 		if (currentContext == -1)
 			ExitStageRightErrorString("ERROR: Attempting to switch to non-existant hash context");
 	} else {
@@ -714,9 +681,8 @@ void generic_hash_set_context(int context)
 {
 	if (context < 0)
 		ExitStageRightErrorString("ERROR: Attempting to set a negative custom context");
-	//hashtablePut(context, currentContext, TRUE); // change its entry in the hashtable
+    hashtablePut(context, currentContext, cCon->contextNumber); // add/change its entry in the hashtable
 	cCon->contextNumber = context;
-
 }
 
 
@@ -877,11 +843,10 @@ void initializeHashtable() {
 	hashtableInitialized = TRUE;
 }
 
-void hashtablePut(int context, int index, BOOLEAN replace) {
+void hashtablePut(int context, int index, int old) {
 	MOVELIST* bucket; BOOLEAN found;
 	int contextBucket = context % HASHTABLE_BUCKETS;
-
-	if (replace) {
+    if (old != -1) {
 		// first, remove old context!
 		int oldContextBucket = contextList[index]->contextNumber % HASHTABLE_BUCKETS;
 		bucket = generic_hash_hashtable[oldContextBucket];
@@ -954,11 +919,11 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	struct symEntry *symIndex = symmetriesList;
 	BOOLEAN rectBoard = FALSE;
 	BOOLEAN hexBoard = FALSE;
-	
+
 	// 0 for a rectangular board, 1 for a hex board
 	if (boardType == RECT) {
 	  rectBoard = TRUE;
-	} 
+	}
 	else if (boardType == HEX) {
 	  hexBoard = TRUE;
 	  // FIGURE THIS OUT
@@ -978,16 +943,16 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	// + 1 is for identity.
 	numSymmetries = numRots + numReflects + 1;
 
-	// need an equilateral board for this	
+	// need an equilateral board for this
 	if ((rectBoard && numRows == numCols) || (hexBoard && numRows == numDiags)) {
 	  composeSymmetries();
 	}
 
 	symIndex = symmetriesList;
 	while (symIndex != NULL) {
-	  /* set the table of reflections.  Array passed in should specify the 
-	   * angle of the line over which the reflection will take place 
-	   * (think polar coordinates).  For example, if the first reflection 
+	  /* set the table of reflections.  Array passed in should specify the
+	   * angle of the line over which the reflection will take place
+	   * (think polar coordinates).  For example, if the first reflection
 	   * is over the N-S axis and the second is over the E-W axis then
 	   * reflections = {90, 0}.  This means we want the following transformations
 	   *
@@ -1025,7 +990,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		  // in same row, but opposite columns
 		  symIndex->sym[j*numCols + k] = j*numCols + (numCols-k-1);
 		  //symIndex->sym[j*numCols + (numCols-k-1)] = j*numCols + k;
-		}	       
+		}
 	      }
 	    }
 	    else if (rectBoard && (symIndex->angle == 135 || symIndex->angle == 225)) {
@@ -1067,7 +1032,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	    else if (hexBoard && (symIndex->angle == 60 || symIndex->angle == 240)) {
 	      for (j = 0; j < numRows; j++) {
 		for (k = 0; k < numCols; k++) {
-		  
+
 		}
 		if (j < numRows/2)
 		  numCols++;
@@ -1120,8 +1085,8 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	      }
 	    }
 	  }
-	  /* set the table of rotations.  Array passed in should specify the 
-	   * angle by which to rotate.  For example, if the first reflection 
+	  /* set the table of rotations.  Array passed in should specify the
+	   * angle by which to rotate.  For example, if the first reflection
 	   * is 90 degrees, the second is 180 degrees, and the third is 270 degrees,
 	   * rotations = {90,180,270}.  This means we want the following transformations
 	   *
@@ -1144,7 +1109,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		}
 	      }
 	    }
-	    // 180 degree rotations are simple.  Instead of going from 0 to boardSize-1, 
+	    // 180 degree rotations are simple.  Instead of going from 0 to boardSize-1,
 	    // go from boardSize-1 to 0
 	    else if (rectBoard && symIndex->angle == 180) {
 	      k = 0;
@@ -1173,8 +1138,8 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	        c d e f       h e a 6
 		 g h i         i f b
 	    */
-	    else if (hexBoard && (symIndex->angle == 60 || symIndex->angle == 120 || 
-		  symIndex->angle == 180 || symIndex->angle == 240 || symIndex->angle == 300)) {  
+	    else if (hexBoard && (symIndex->angle == 60 || symIndex->angle == 120 ||
+		  symIndex->angle == 180 || symIndex->angle == 240 || symIndex->angle == 300)) {
 
 	      hex60Rot = (int*) SafeMalloc(sizeof(int) * boardSize);
 	      tempSym = (int*) SafeMalloc(sizeof(int) * boardSize);
@@ -1184,7 +1149,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		for (k = 0; k < numCols; k++) {
 		  if (j <= numRows/2) {
 		    // i = number of rows below middle row
-		    if (numCols-k-1 > numRows/2) 
+		    if (numCols-k-1 > numRows/2)
 		      i = (numCols-k-1) - (numRows/2);
 		    else
 		      i = 0;
@@ -1193,7 +1158,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		  }
 		  else {
 		    // i = number of rows below middle row
-		    if (numRows-k-1 > numRows/2) 
+		    if (numRows-k-1 > numRows/2)
 		      i = (numRows-k-1) - (numRows/2);
 		    else
 		      i = 0;
@@ -1230,7 +1195,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	}
 
 	printSymmetries(boardType);
-	    
+
 	// set the function pointer.
 	gCanonicalPosition = generic_hash_canonicalPosition;
 }
@@ -1297,9 +1262,9 @@ POSITION generic_hash_canonicalPosition(POSITION pos) {
 	int player = generic_hash_turn(pos);
 	POSITION tempPos;
         POSITION minPos = generic_hash_hash_sym(board, player, symmetriesList);
-	
-	// try each symmetry, keeping the lowest position hash 
-	// returns as the canonical position.  
+
+	// try each symmetry, keeping the lowest position hash
+	// returns as the canonical position.
 	while (symIndex != NULL) {
 	  tempPos = generic_hash_hash_sym(board, player, symIndex);
 	  minPos = (tempPos < minPos) ? tempPos : minPos;
@@ -1312,7 +1277,7 @@ POSITION generic_hash_canonicalPosition(POSITION pos) {
 
 struct symEntry* new_sym_entry(int symType, int symAngle) {
         struct symEntry* newEntry = (struct symEntry*) SafeMalloc(sizeof(struct symEntry));
-	
+
 	newEntry->type = symType;
 	newEntry->angle = symAngle;
 	newEntry->sym = (int*) SafeMalloc(sizeof(int) * cCon->boardSize);
@@ -1338,7 +1303,7 @@ void generic_hash_add_sym(int* symToAdd) {
 	// advance pointer to end of the list
 	while (symIndex->next != NULL) {symIndex = symIndex->next;}
 
-	struct symEntry* newEntry = new_sym_entry(UNKNOWN, 0); 
+	struct symEntry* newEntry = new_sym_entry(UNKNOWN, 0);
 	for (i = 0; i < cCon->boardSize; i++) {
 	  newEntry->sym[i] = symToAdd[i];
 	}
@@ -1390,7 +1355,7 @@ void composeSymmetries() {
 	    }
 	    composition = (composition + 720) % 360;  // so it's not negative
 	    //printf("composition = %d and is of type %d\n", composition, symType);
-	    if (!sym_exists(symType, composition)) {     
+	    if (!sym_exists(symType, composition)) {
 	      tableEnd->next = new_sym_entry(symType, composition);
 	      tableEnd = tableEnd->next;
 	      numSymmetries++;
@@ -1414,9 +1379,9 @@ BOOLEAN sym_exists(int symType, int symAngle) {
 	  //printf("looking at angle %d and type %d\n", symIndex->angle, symIndex->type);
 	  // if it's the right type and angle or if it's a reflection and we see an
 	  // equivalent angle
-	  if (symIndex->type == symType && 
-	      ((symIndex->angle == symAngle) || 
-	       (symIndex->type == REFLECTION && 
+	  if (symIndex->type == symType &&
+	      ((symIndex->angle == symAngle) ||
+	       (symIndex->type == REFLECTION &&
 		(symIndex->angle == symAngle+180 || symIndex->angle == symAngle-180)))) {
 	    //printf("found it!\n");
 	    result = TRUE;
@@ -1434,11 +1399,11 @@ int generic_hash_hashTime() {
 }
 
 /* converts col'th element in a row into the corresponding number.
-   For example, row = 2, pos = 1 on the below board translates to 
+   For example, row = 2, pos = 1 on the below board translates to
                          the number 6.  Rows are 0-based, as are
-      0 1                columns.  Column refers to the col'th 
+      0 1                columns.  Column refers to the col'th
      2 3 4               element in a row so it changes as you change
-      5 6                rows.  
+      5 6                rows.
 */
 int convert(int row, int col, int boardType) {
   int i;
@@ -1449,9 +1414,9 @@ int convert(int row, int col, int boardType) {
     if (i == row)
       break;
     result += numCols;
-    if (boardType == HEX && i < symBoardRows/2) 
+    if (boardType == HEX && i < symBoardRows/2)
       numCols++;
-    else if (boardType == HEX && i >= symBoardRows/2 && i < symBoardRows-1) 
+    else if (boardType == HEX && i >= symBoardRows/2 && i < symBoardRows-1)
       numCols--;
   }
 

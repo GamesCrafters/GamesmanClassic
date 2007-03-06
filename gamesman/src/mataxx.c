@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.11 2007-02-27 02:15:00 max817 Exp $
+// $Id: mataxx.c,v 1.12 2007-03-06 02:16:40 max817 Exp $
 
 /************************************************************************
 **
@@ -164,7 +164,7 @@ void InitializeGame ()
 	//InitializeHelpStrings();
 	SetupGame();
 
-    gPutWinBy = &computeWinBy;
+    //gPutWinBy = &computeWinBy;
 
     gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
 
@@ -823,6 +823,7 @@ void SetupGame() {
         SafeFree(board);
     board = (char*) SafeMalloc(boardsize * sizeof(char));
 	generic_hash_destroy();
+    generic_hash_custom_context_mode(TRUE);
 	SetupTierStuff();
 	if (width <= 5 && length <= 5) {
 		int pieces_array[10] = {RED, 0, boardsize, BLUE, 0, boardsize, SPACE, 0, boardsize-4, -1};
@@ -902,6 +903,7 @@ void SetupTierStuff() {
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
 		generic_hash_init(boardsize, piecesArray, NULL, 0);
+        generic_hash_set_context(tier);
 	}
 	// Initial
 	int i;
@@ -964,6 +966,9 @@ int GenerateMovesEfficient (POSITION position)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.11  2007/02/27 02:15:00  max817
+// Fixed a bug with the global board inits. -Max
+//
 // Revision 1.10  2007/02/27 02:08:18  max817
 // Fixed a bug in Primitive, and implemented a tester for GenerateMovesEfficient.
 //
