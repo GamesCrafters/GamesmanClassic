@@ -19,7 +19,6 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <limits.h>
-#include <scew/scew.h>
 
 #include "types.h"
 #include "hash.h"
