@@ -64,9 +64,7 @@ UNIVHT_OBJ	= univht$(OBJSUFFIX)
 UNIVDB_OBJ	= univdb$(OBJSUFFIX)
 endif
 
-ifneq (@XMLCFLAGS@,)
 SEVAL_OBJ	= seval$(OBJSUFFIX)
-endif
 
 HASH_OBJ	= hash$(OBJSUFFIX)
 HASHWINDOW_OBJ	= hashwindow$(OBJSUFFIX)
