@@ -15,9 +15,9 @@
 **              
 **************************************************************************/
 
-//#include <scew/scew.h> // Include the XML Parser
 #include <stdio.h>
 #include <string.h>
+#include <dirent.h>
 #include <math.h>
 #include "gamesman.h"
 
@@ -25,7 +25,10 @@
   of LibInitialize by the module. For information see mlib.c and mlib.h.*/
 #include "mlib.h"
 #include "seval.h"
+
+#ifdef HAVE_XML
 #include <scew/scew.h>
+#endif
 
 #define compare(slot,piece,board) !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)
 #define getSlot(row,col) (row*lBoard.cols+col)
@@ -45,44 +48,6 @@ int numLibraryTraits = 4;
 ************************************************************************/
 int numCustomTraits = 2;
 char* CustomTraits[] = {"Hell","Yeah"};
-/*
-int* board;
-
-void* linearUnhash(int p) {
-  return (void*) board;
-}
-
-//Try something like BlankOX
-
-int XPiece = 2;
-int OPiece = 1;
-int BlankPiece = 0;
-
-int main(int argc,char* argv[]) {
-  float value;
-  int i;
-
-  InitializeStaticEvaluator(4,3,3,0,&XPiece,&OPiece,&BlankPiece);
-
-  NewTraitMenu();
-
-  printf("Static evaluator parameterized\n");
-  
-  board = malloc(sizeof(int) * 9);
-
-  while(TRUE) {
-    
-    for(i=0;i<9;i++) {
-      scanf("%d",board+i);
-    }
-    
-    value = evaluatePosition(0);
-  
-  }
-
-  return 0;
-}
-*/
 
 
 /************************************************************************
@@ -99,19 +64,18 @@ int main(int argc,char* argv[]) {
 
 featureEvaluatorLibrary getSEvalLibFnPtr(STRING fnName){
   
-  if(strcmp(fnName,"Number of Pieces")) {
+  if(strcmp(fnName,"Number of Pieces")==0) {
     return &numPieces;
-  } else if (strcmp(fnName,"Distance from Edge")) {
+  } else if (strcmp(fnName,"Distance from Edge")==0) {
     return &numFromEdge;
-  } else if (strcmp(fnName,"Clustering")) {
+  } else if (strcmp(fnName,"Clustering")==0) {
     return &(clustering);
-  } else if (strcmp(fnName,"Connections")) {
+  } else if (strcmp(fnName,"Connections")==0) {
     return &(connections);
   } else {
     printf("ERROR, unrecognized trait name in xml file");
     return NULL;
   }
-  
 }
 
 STRING copyString(STRING toCopy){
@@ -157,14 +121,24 @@ BOOLEAN evaluatorExistsForVariant(int variant) {
   return FALSE;
 }
 
+/************************************************************************
+**
+** SCEW Related Functions
+**
+************************************************************************/
+
+#ifdef HAVE_XML
+// DON'T COMPILE THIS
+// if XML not installed
+// return types & args
+// will create problems
+
 fList parseFeature(scew_element* sEvalNode){
     scew_element* element = NULL;
     fList tempList = NULL;
     while ((element = scew_element_next(sEvalNode, element)) != NULL){
       fList currFeature = SafeMalloc(sizeof(struct fNode));
       scew_attribute* attribute = NULL;
-      
-      //printf("Parsing a feature...\n");
       
       
       // Default values for feature:
@@ -178,9 +152,6 @@ fList parseFeature(scew_element* sEvalNode){
       attribute = NULL;
       while ((attribute = scew_attribute_next(element, attribute)) != NULL)
       {
-      
-	      //printf("Parsing attributes...\n");
-      
 	      if(strcmp(scew_attribute_name(attribute),"name")==0) 
       	  currFeature->name = copyString((char *)scew_attribute_value(attribute));
       	else if(strcmp(scew_attribute_name(attribute),"type")==0)
@@ -212,10 +183,6 @@ fList parseFeature(scew_element* sEvalNode){
       	  printf("Bad attribute=\"%s\"",(char *)scew_attribute_value(attribute));
       	}
     	}
-      
-      
-      //printf("Done Parsing attributes...");
-      
       // Now we should have the name
       if( currFeature->type == custom && gGetSEvalCustomFnPtr!=NULL)
 	      currFeature->fEvalC = (featureEvaluatorCustom)gGetSEvalCustomFnPtr(currFeature->name);
@@ -229,7 +196,6 @@ fList parseFeature(scew_element* sEvalNode){
       
       currFeature->next = tempList;
       tempList = currFeature;
-      //contents = scew_element_contents(element);
     }
     
     return tempList;
@@ -238,8 +204,6 @@ fList parseFeature(scew_element* sEvalNode){
 seList parseEvaluators(scew_element* element, seList tempList) {
     scew_element* child = NULL;
     seList currEvaluator = NULL;
-    
-    //printf("Parsing...\n");
     
     if (element == NULL)
     {
@@ -250,7 +214,7 @@ seList parseEvaluators(scew_element* element, seList tempList) {
       currEvaluator = SafeMalloc(sizeof(struct seNode));
       scew_attribute* attribute = NULL;
       currEvaluator->name = NULL;
-      currEvaluator->element = element;
+      //currEvaluator->element = element;
       currEvaluator->variant = -1;
       currEvaluator->perfect = FALSE;
       while ((attribute = scew_attribute_next(element, attribute)) != NULL)
@@ -292,76 +256,13 @@ seList parseEvaluators(scew_element* element, seList tempList) {
     return tempList;
 }
 
-seList loadDataFromXML(STRING fileName) {
-  scew_tree* tree = NULL;
-  scew_parser* parser = NULL;
-  seList tempList = NULL;
-  /**
-   * Creates an SCEW parser. This is the first function to call.
-   */
-  parser = scew_parser_create();
-  
-  scew_parser_ignore_whitespaces(parser, 1);
-  
-  /* Loads an XML file */
-  if (!scew_parser_load_file(parser, fileName))
-  {
-    scew_error code = scew_error_code();
-    printf("Unable to load file (error #%d: %s)\n", code,
-	   scew_error_string(code));
-    if (code == scew_error_expat)
-    {
-      enum XML_Error expat_code = scew_error_expat_code(parser);
-      printf("Expat error #%d (line %d, column %d): %s\n", expat_code,
-	     scew_error_expat_line(parser),
-	     scew_error_expat_column(parser),
-	     scew_error_expat_string(expat_code));
-    }
-    return FALSE;
-  }
-  
-  tree = scew_parser_tree(parser);
-  
-  /* Actually get the information */
-  tempList = parseEvaluators(scew_tree_root(tree), NULL);
-  
-  /* Remember to free tree (scew_parser_free does not free it) */
-  scew_tree_free(tree);
-  
-  /* Frees the SCEW parser */
-  scew_parser_free(parser);
-  
-  return tempList;
-
-}
-
-BOOLEAN createNewXMLFile(STRING fileName) { 
-  scew_tree* tree = scew_tree_create();
-  scew_element* root = scew_tree_add_root(tree, "game");
-  scew_element_add_attr_pair(root, "name", kDBName);
-  return scew_writer_tree_file(tree, fileName);
-}
-
-scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
-  scew_element* child = NULL;
-  scew_attribute* attribute = NULL;
-  while ((child = scew_element_next(root, child)) != NULL)
-  {
-    while ((attribute = scew_attribute_next(child, attribute)) != NULL)
-    {
-	    if(strcmp(scew_attribute_name(attribute),"name")==0) {
-    	  if(strcmp(scew_attribute_value(attribute), evaluatorName))
-    	    return child;
-    	}
-    }
-  }
-  return NULL;
-}
-
 scew_element* createEvaluatorNode(seList evaluator) {
   char placeHolderString[30];
   STRING scaleFnName=NULL;
   fList temp = evaluator->featureList;
+  
+  memset(placeHolderString,0,30);
+  
   scew_element* evaluatorNode = scew_element_create("seval");
   scew_element_add_attr_pair(evaluatorNode, "name", evaluator->name);
   sprintf(placeHolderString,"%d", evaluator->variant);
@@ -392,11 +293,89 @@ scew_element* createEvaluatorNode(seList evaluator) {
     scew_element_add_attr_pair(featureNode, "scalingParams", placeHolderString);
     
     scew_element_add_elem(evaluatorNode, featureNode);
+    
+    temp = temp->next;
   }
   return evaluatorNode;
 }
 
+scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
+  scew_element* child = NULL;
+  scew_attribute* attribute = NULL;
+  while ((child = scew_element_next(root, child)) != NULL)
+  {
+    while ((attribute = scew_attribute_next(child, attribute)) != NULL)
+    {
+	    if(strcmp(scew_attribute_name(attribute),"name")==0) {
+    	  if(strcmp(scew_attribute_value(attribute), evaluatorName))
+    	    return child;
+    	}
+    }
+  }
+  return NULL;
+}
+
+#endif
+
+BOOLEAN loadDataFromXML(STRING fileName) {
+  #ifdef HAVE_XML
+  scew_tree* tree = NULL;
+  scew_parser* parser = NULL;
+  /**
+   * Creates an SCEW parser. This is the first function to call.
+   */
+  parser = scew_parser_create();
+  
+  scew_parser_ignore_whitespaces(parser, 1);
+  
+  /* Loads an XML file */
+  if (!scew_parser_load_file(parser, fileName))
+  {
+    scew_error code = scew_error_code();
+    printf("Unable to load file (error #%d: %s)\n", code,
+	   scew_error_string(code));
+    if (code == scew_error_expat)
+    {
+      enum XML_Error expat_code = scew_error_expat_code(parser);
+      printf("Expat error #%d (line %d, column %d): %s\n", expat_code,
+	     scew_error_expat_line(parser),
+	     scew_error_expat_column(parser),
+	     scew_error_expat_string(expat_code));
+    }
+    return FALSE;
+  }
+  
+  tree = scew_parser_tree(parser);
+  
+  /* Actually get the information */
+  evaluatorList = parseEvaluators(scew_tree_root(tree), NULL);
+  
+  /* Remember to free tree (scew_parser_free does not free it) */
+  scew_tree_free(tree);
+  
+  /* Frees the SCEW parser */
+  scew_parser_free(parser);
+  
+  return TRUE;
+  #else
+  return FALSE;
+  #endif
+
+}
+
+BOOLEAN createNewXMLFile(STRING fileName) { 
+  #ifdef HAVE_XML
+  scew_tree* tree = scew_tree_create();
+  scew_element* root = scew_tree_add_root(tree, "game");
+  scew_element_add_attr_pair(root, "name", kDBName);
+  return scew_writer_tree_file(tree, fileName);
+  #else
+  return FALSE;
+  #endif
+}
+
 BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
+  #ifdef HAVE_XML
   scew_tree* tree = NULL;
   scew_parser* parser = NULL;
   BOOLEAN success = FALSE;
@@ -442,7 +421,16 @@ BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
   scew_parser_free(parser);
   
   return success;
+  #else
+  return FALSE;
+  #endif
 }
+
+/************************************************************************
+**
+** END SCEW Related Functions
+**
+************************************************************************/
 
 BOOLEAN initializeStaticEvaluator(STRING fileName){
   printf("Reading XML data from: %s\n", fileName);
@@ -453,8 +441,7 @@ BOOLEAN initializeStaticEvaluator(STRING fileName){
     freeFeatureList(featureList);
   featureList = NULL;
   
-  evaluatorList = loadDataFromXML(fileName);
-  return (evaluatorList!=NULL);
+  return loadDataFromXML(fileName);
 }
 
 
@@ -479,12 +466,12 @@ float evaluatePosition(POSITION p){
   float weightSum = 0;
   void* board = NULL;
   
-  if(linearUnhashPtr != NULL) 
-    board = (*linearUnhashPtr)(p);
+  if(linearUnhash != NULL) 
+    board = (*linearUnhash)(p);
 
   while(features!=NULL){
     if(features->type == library) {
-      if( linearUnhashPtr!=NULL )
+      if( linearUnhash!=NULL )
         valueSum += features->weight * features->scale(features->fEvalL(board,features->piece,features->evalParams),features->scaleParams);
 	    else{
 	      printf("linearUnhash MUST be set if library functions are used!");
@@ -500,7 +487,8 @@ float evaluatePosition(POSITION p){
     features = features->next;
   }
   
-  SafeFree(board);
+  if(board!=NULL)
+    SafeFree(board);
   
   return (valueSum/weightSum);
 }
@@ -512,7 +500,8 @@ VALUE evaluatePositionValue(POSITION p) {
 
 //Params are {-1 intersect, 1 intersect}
 float linear(float value,float params[]){
-  return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
+  //return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
+  return value;
 }
 
 //Params are {value*10 where y==1 for log10(abs(value*9)+1) (Default=1)}
@@ -551,12 +540,26 @@ float quadratic(float value,float params[]){
 **
 ************************************************************************/
 
-void NewTraitMenu() {
+void NewTraitMenu(STRING fileName) {
   char nextItem;
   char choice;
   int traitNum;
   fList currFeature;
-
+  char namePlaceHolder[30];
+  int variant = 0;
+  seList currEvaluator = NULL;
+  
+  printf("Enter a name for this evaluator ('' for 'default'): ");
+  scanf("%s", namePlaceHolder);
+  printf("Enter a variant for this evaluator (-1 for all): ");
+  scanf("%d", &variant);
+  
+  currEvaluator = SafeMalloc(sizeof(struct seNode));
+  currEvaluator->name = copyString(namePlaceHolder);
+  //currEvaluator->element = element;
+  currEvaluator->variant = variant;
+  currEvaluator->perfect = FALSE;
+  
   while(TRUE) {
 
     printf("\nSelect a new trait to add to the static evaluator\n\n");
@@ -570,26 +573,31 @@ void NewTraitMenu() {
       choice = GetMyChar();
       traitNum = (int) (choice-97);
 
-      if(choice < 97 || choice > nextItem+1) {
-	printf("\nInvalid menu option, select again\n");
-      } else {
-	break;
-      }
+      if(choice < 97 || choice > nextItem+1)
+	      printf("\nInvalid menu option, select again\n");
+      else
+	      break;
     }
 
-    if(choice == nextItem) { //Done
+    if(choice == nextItem) //Done
       break;
-    } else {
+    else {
       currFeature = ParameterizeTrait(traitNum);
       currFeature->next = featureList;
       featureList = currFeature;
     }
-  } 
+  }
+  
+  currEvaluator->featureList = featureList;
+  currEvaluator->next = evaluatorList;
+  evaluatorList = currEvaluator;
+  writeEvaluatorToXMLFile(evaluatorList, fileName);
 }
 
 fList ParameterizeTrait(int traitNum) {
   fList currFeature = SafeMalloc(sizeof(struct fNode));
-
+  memset(currFeature, 0, sizeof(struct fNode));
+  
   switch(traitNum) {
   case 0:
     RequestPiece(currFeature);
@@ -707,9 +715,9 @@ void RequestBoolean(STRING title,int paramNum,fList currFeature) {
       printf("Invalid menu option, select again\n");
     } else {
       if(choice=='0') {
-	currFeature->evalParams[paramNum] = FALSE;
+	      currFeature->evalParams[paramNum] = FALSE;
       } else {
-	currFeature->evalParams[paramNum] = TRUE;
+	      currFeature->evalParams[paramNum] = TRUE;
       }
       break;
     }
@@ -738,7 +746,7 @@ void RequestValue(STRING title,int paramNum,int paramType,fList currFeature) {
   if(paramType==0) {
     currFeature->evalParams[paramNum] = choice;
   } else if(paramType==1) {
-    currFeature->scaleParams[paramNum] = choice;
+    currFeature->scaleParams[paramNum] = scaleChoice;
   } else {
     printf("ERROR, unknown param type\n");
   }
@@ -871,4 +879,128 @@ float connections(void* board,void* piece,int params[]) {
     }
   }
   return (float) count;
+}
+
+USERINPUT StaticEvaluatorMenu()
+{
+  USERINPUT result = Configure;
+  char c;
+  char fileName[30];
+  sprintf(fileName, "xml/%s.xml", kDBName);
+  
+  if( !gSEvalLoaded ){
+    // Check for existence of the file
+    if(fopen(fileName, "r") == NULL){
+      // Make sure xml dir is there
+      DIR *xml_dir = opendir("./xml");
+      if (xml_dir == NULL) {
+        if(mkdir ("./xml", 0755)==-1){
+          printf("SEval: Cannot create xml folder. Please create it youself. Returning to menu.\n\n");
+          return result;
+        }
+      }
+      
+      closedir (xml_dir);
+      // If xml file doesn't already exist try to create it
+      if(!createNewXMLFile(fileName)){
+        printf("SEval: Cannot create xml file. Returning to menu.\n\n");
+        return result;  
+      }
+    }
+  }
+  
+  // By now, we at least have a file called kDBName.xml with a game element
+  //  ---> Enough for the parser to work with
+  // Regenerate list of defined Static Evaluators
+  // Base Menu Choices off of that
+  if(!initializeStaticEvaluator(fileName)){
+    printf("Sorry, the Static Evaluator failed to initialize.");
+    return result;
+  }
+  
+  do{
+      
+      // Now we have some sort of a list of evaluators (may be NULL)
+      
+      printf("\n\tStatic Evaluator Options:");
+      printf("\n\t-------------------------\n");
+      printf("\n\tn)\tCreate a (N)ew Static Evaluator\n");
+      //Need to implement
+      //printf("\te)\t(E)dit an existing Static Evaluator\n");
+      if(evaluatorList!=NULL)
+        printf("\ts)\t(S)elect a Static Evaluator available for this variant\n");
+      printf("\tb)\t(B)ack = Return to previous activity\n");
+      printf("\n\tq)\t(Q)uit\n");
+      printf("\n\nSelect an option: ");
+      
+      switch(c = GetMyChar()) {
+        case 'n': case 'N':
+          NewTraitMenu(fileName);
+          break;
+        case 'e': case 'E':
+          printf("Coming soon to a Gamesman near you!");
+          break;
+        case 's': case 'S':
+	        if(evaluatorList!=NULL){
+	          int variant = getOption();
+	          if( evaluatorExistsForVariant(variant) ){
+	            do{
+  	            seList temp = evaluatorList;
+  	            char optionMax, option = 'a';
+  	            printf("\n\tStatic Evaluators For This Variant:");
+                printf("\n\t-----------------------------------");
+                while( temp!=NULL ) {
+                  if(temp->variant==-1)
+                    printf("\n\t%c)\t%s - all variants", option++, temp->name);
+                  else if(temp->variant==variant)
+                    printf("\n\t%c) %s - variants #%d", option++, temp->name, temp->variant);
+                  temp = temp->next;
+                }
+                printf("\n\n\tb)\t(B)ack = Return to previous activity");
+                printf("\n\tq)\t(Q)uit\n");
+                
+                optionMax = option;
+                printf("\n\nSelect an option: ");
+                
+                option = GetMyChar();
+                if(option=='B')
+                  return result;
+                else if(option=='Q'){
+	                ExitStageRight();
+	                exit(0);
+                }
+                else if(option>=optionMax){
+                  BadMenuChoice();
+  	              HitAnyKeyToContinue();
+                }
+                else{
+                  chooseEvaluator(option-'a');
+                  if(gSEvalLoaded == TRUE)
+                    return result;
+                }
+  	          } while(TRUE);
+	          }
+  	        else{
+  	          BadMenuChoice();
+  	          HitAnyKeyToContinue();
+  	        }
+	        }
+	        else{
+	          BadMenuChoice();
+	          HitAnyKeyToContinue();
+	        }
+          break;
+        case 'B': case 'b':
+	        printf("\n\n");
+	        return result;
+        case 'Q': case 'q':
+	        ExitStageRight();
+	        exit(0);
+        default:
+	        BadMenuChoice();
+	        HitAnyKeyToContinue();
+	        break;
+      }
+    } while(TRUE); 
+  
 }

@@ -192,6 +192,9 @@ void MenusBeforeEvaluation()
         printf("\td)\t(D)ebug Module BEFORE Evaluation\n");
     if(kGameSpecificMenu)
         printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
+    #ifdef HAVE_XML
+    printf("\te)\tConfigure Static (E)valuator\n");
+    #endif
     printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", gZeroMemSolver ? "ON" : "OFF");
@@ -270,7 +273,7 @@ void printPlayerConfig(STRING type1, STRING type2) {
 
   printf("\n\t");
   printCell("Type", max0);
-  if (gUnsolved) {
+  if (gUnsolved && !gSEvalLoaded) {
 
     sprintf(tmp, "%s", type1);
     printCell(tmp, max1);
@@ -290,25 +293,147 @@ void printPlayerConfig(STRING type1, STRING type2) {
   printf("\n\n");
 }
 
-void setNames(int playerTurn, int isHuman) {
-  int other;
-  if (playerTurn)
-    other=kPlayerTwoTurn;
-  else
-    other=kPlayerOneTurn;
-  if(isHuman) {
-    if (gPlayerName[other][0] == 'p' || gPlayerName[other][0] == 'P')
-    sprintf(gPlayerName[playerTurn],"Challenger");
-    else
-    sprintf(gPlayerName[playerTurn],"Player");
-  } else {
-    if (gPlayerName[other][0] == 'd' ||
-	gPlayerName[other][0] == 'D')
-      sprintf(gPlayerName[playerTurn],"Lore");
-    else
-      sprintf(gPlayerName[playerTurn],"Data");
+void ChoosePlayerTypeMenu(int playerNum){
+  char c;
+  
+  if(playerNum==1 || playerNum==2){
+    BOOLEAN computerIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst))) || 
+                                  gOpponent == ComputerComputer );
+    BOOLEAN humanIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && gHumanGoesFirst) || (playerNum==2 && !gHumanGoesFirst))) || 
+                               gOpponent == AgainstHuman );
+    BOOLEAN evaluatorIsPlayer = (gOpponent == AgainstEvaluator && ((playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst)));
+    do{
+      printf("\n\tPlayer Options:\n");
+      printf("\t-----------------\n");
+      printf("\tUse the following characters to change the type for player %d:\n", playerNum);
+      if( !computerIsPlayer && !gUnsolved)
+        printf("\tc)\t(C)omputer\n");
+      if( !evaluatorIsPlayer && gSEvalLoaded )  
+        printf("\te)\tStatic (E)valuator\n");
+      if( !humanIsPlayer )
+        printf("\th)\t(H)uman\n");
+      printf("\n\tb)\t(B)ack = Return to previous activity");
+      printf("\n\tq)\t(Q)uit\n");
+      printf("\n\nSelect an option: ");
+      
+      switch(c = GetMyChar()) {
+        case 'c': case 'C':
+          if( gUnsolved ) {
+	          BadMenuChoice();
+	          HitAnyKeyToContinue();
+	          break;
+          }
+          if(gOpponent == AgainstComputer){
+            // Assume that they didn't choose computer again. If so, no change.
+            if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ){
+              gOpponent = ComputerComputer;
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;
+            }
+            else continue; // Do Nothing
+          }
+          else if(gOpponent == AgainstHuman){
+            gOpponent = AgainstComputer;
+            gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
+            printf("\nPlayer %d is now a computer.\n\n", playerNum);
+            return;
+          }
+          else if(gOpponent == ComputerComputer){
+            // Do nothing
+          }
+          else{ // gOpponent == Evaluator
+            if( (playerNum==1 && gHumanGoesFirst) || (playerNum==2 && !gHumanGoesFirst) )
+              printf("Can't have computer vs. evaluator yet. Try again.");
+            else{
+              gOpponent = AgainstComputer;
+              gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;  
+            }  
+          }
+          break;
+        case 'e': case 'E':
+          if( !gSEvalLoaded ) {
+	          BadMenuChoice();
+	          HitAnyKeyToContinue();
+	          break;
+          }
+          if(gOpponent == AgainstComputer){
+            if( (playerNum==1 && gHumanGoesFirst) || (playerNum==2 && !gHumanGoesFirst) )
+              printf("Can't have computer vs. evaluator yet. Try again.");
+            else{
+              gOpponent = AgainstEvaluator;
+              gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
+              printf("\nPlayer %d is now a static evaluator.\n\n", playerNum);
+              return;  
+            }  
+          }
+          else if(gOpponent == AgainstHuman){
+            gOpponent = AgainstEvaluator;
+            gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
+            printf("\nPlayer %d is now a static evaluator.\n\n", playerNum);
+            return;
+          }
+          else if(gOpponent == ComputerComputer){
+              printf("Can't have computer vs. evaluator yet. Try again.");
+          }
+          else{ // gOpponent == Evaluator
+            // Assume that they didn't choose computer again. If so, no change.
+            if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ){
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;
+            }
+            else continue; // Do Nothing
+          }
+          break;
+        case 'h': case 'H':
+	        if(gOpponent == AgainstComputer){
+	          // Assume that they didn't choose human again. If so, no change.
+	          if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ){
+              gOpponent = AgainstHuman;
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;
+            }
+            else continue; //Do nothing
+          }
+          else if(gOpponent == ComputerComputer){
+              gOpponent = AgainstHuman;
+              gHumanGoesFirst = (playerNum==1)?TRUE:FALSE;
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;
+          }
+          else if(gOpponent == AgainstHuman){
+            continue; //Do nothing
+          }
+          else{ // gOpponent == Evaluator
+            if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) )
+              printf("Can't have computer vs. evaluator yet. Try again.");
+            else{
+              gOpponent = AgainstComputer;
+              gHumanGoesFirst = (playerNum==1)?TRUE:FALSE;
+              printf("\nPlayer %d is now a computer.\n\n", playerNum);
+              return;  
+            }  
+          }
+          break;
+        case 'B': case 'b':
+	        printf("\n\n");
+	        return;
+        case 'Q': case 'q':
+	        ExitStageRight();
+	        exit(0);
+        default:
+	        BadMenuChoice();
+	        HitAnyKeyToContinue();
+	        break;
+      }
+    } while(TRUE); 
+  }
+  else{
+    BadElse("ChoosePlayerTypeMenu");
   }
 }
+
 USERINPUT ConfigurationMenu()
 {
   USERINPUT result = Configure;
@@ -337,26 +462,32 @@ USERINPUT ConfigurationMenu()
 	  type2 = type1;
 	  type1 = "Computer";
 	}
+      }else if(gOpponent == AgainstEvaluator) {
+  type2 = "Evaluator";
+	if(!gHumanGoesFirst) {
+	  type2 = type1;
+	  type1 = "Evaluator";
+	}
       }
 
       printPlayerConfig(type1, type2);
 
 
-      printf("\n\tPlayer Options:\n");
+      printf("\tPlayer Options:\n");
       printf("\t-----------------\n");
 
       printf("\tUse the numbers to change the corresponding name or type of players:\n");
       printf("\t1)\tChange the name of player 1 (currently %s)\n",gPlayerName[1]);
       printf("\t2)\tChange the name of player 2 (currently %s)\n",gPlayerName[0]);
 
-      if (!gUnsolved) {
+      if (!gUnsolved || gSEvalLoaded) {
       printf("\t3)\tChange player type of %s (currently %s)\n", gPlayerName[1], type1);
       printf("\t4)\tChange player type of %s (currently %s)\n", gPlayerName[0], type2);
       }
       printf("\n");
-      if(gOpponent == AgainstHuman)
-	printf("\tf)\t(F)lip board to swap players 1 and 2\n");
-      if(gOpponent == AgainstComputer)
+      if(gOpponent == AgainstHuman || gOpponent == AgainstEvaluator)
+	printf("\tf)\t(F)lip board to swap players 1 and 2");
+      else if(gOpponent == AgainstComputer)
 	{
 	  humanIndex = kPlayerOneTurn;
 	  compIndex = kPlayerTwoTurn;
@@ -368,11 +499,11 @@ USERINPUT ConfigurationMenu()
 	    if(gameValue == tie)
 	     printf("\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n");
 	    else if (gameValue == lose)
-	      printf("\t\tNOTE: First - can %s; Second - can %s\n",
+	      printf("\t\tNOTE: First - can %s; Second - can %s",
 	 	     gHumanGoesFirst ? "only lose" : "win/lose",
 		     gHumanGoesFirst ? "win/lose" : "only lose");
 	    else if (gameValue == win)
-	      printf("\t\tNOTE: First - can %s; Second - can %s\n",
+	      printf("\t\tNOTE: First - can %s; Second - can %s",
 		     gHumanGoesFirst ? "win/lose" : "only lose",
 		     gHumanGoesFirst ? "only lose" : "win/lose");
 	    else
@@ -404,7 +535,7 @@ USERINPUT ConfigurationMenu()
 	}
 
 
-      printf("\n\n\tPlaying Options:\n");
+      printf("\n\tPlaying Options:\n");
       printf("\t------------------\n");
       if(!gUnsolved) {
 
@@ -415,12 +546,19 @@ USERINPUT ConfigurationMenu()
 	       gHints ? "   " : "NO ",
 	       !gHints ? "   " : "NO ");
       }
+      
+      if(gSEvalLoaded) {
+
+	printf("\te)\tToggle from %s(E)VAL-PREDICTIONS to %sEVAL-PREDICTIONS\n",
+	       gPrintSEvalPredictions ? "   " : "NO ",
+	       !gPrintSEvalPredictions ? "   " : "NO ");
+      }
 
       printf("\ts)\tIf only one move is available, (S)kip user input (currently %s)\n\n",
 	     gSkipInputOnSingleMove? "ON" : "OFF");
-      printf("\th)\t(H)elp\n\n");
-      printf("\tb)\t(B)ack = Return to previous activity\n");
-      printf("\n\tq)\t(Q)uit\n");
+      printf("\th)\t(H)elp\n");
+      printf("\tb)\t(B)ack = Return to previous activity");
+      printf("\n\tq)\t(Q)uit");
       printf("\n\nSelect an option: ");
 
       switch(c = GetMyChar()) {
@@ -439,59 +577,21 @@ USERINPUT ConfigurationMenu()
 	  (void) sprintf(gPlayerName[kPlayerTwoTurn],"%s",tmpName);
 	break;
       case '3':
-	if(gUnsolved) {
+	if(gUnsolved && !gSEvalLoaded) {
 	  BadMenuChoice();
 	  HitAnyKeyToContinue();
 	  break;
 	}
-	if(gOpponent == AgainstHuman) {
-	  gOpponent = AgainstComputer;
-	  gHumanGoesFirst = FALSE;
-	  setNames(kPlayerOneTurn, 0);
-	} else if(gOpponent == AgainstComputer) {
-	  if(gHumanGoesFirst) {
-	    gOpponent = ComputerComputer;
-	    setNames(kPlayerOneTurn, 0);
-	  } else {
-	    gOpponent = AgainstHuman;
-	    setNames(kPlayerOneTurn, 1);
-	  }
-	} else if(gOpponent == ComputerComputer) {
-	  gOpponent = AgainstComputer;
-	  gHumanGoesFirst = TRUE;
-	  setNames(kPlayerOneTurn, 1);
-	} else {
-	  BadElse("Invalid Opponent!");
-	  break;
-	}
+	ChoosePlayerTypeMenu(1);
 	/*result = Configure;*/
 	break;
       case '4':
-	if(gUnsolved) {
+	if(gUnsolved && !gSEvalLoaded) {
 	  BadMenuChoice();
 	  HitAnyKeyToContinue();
 	  break;
 	}
-	if(gOpponent == AgainstHuman) {
-	  gOpponent = AgainstComputer;
-	  gHumanGoesFirst = TRUE;
-	  setNames(kPlayerTwoTurn, 0);
-	} else if(gOpponent == AgainstComputer) {
-	  if(gHumanGoesFirst) {
-	    gOpponent = AgainstHuman;
-	    setNames(kPlayerTwoTurn, 1);
-	  } else {
-	    gOpponent = ComputerComputer;
-	    setNames(kPlayerTwoTurn, 0);
-	  }
-	} else if(gOpponent == ComputerComputer) {
-	  gOpponent = AgainstComputer;
-	  gHumanGoesFirst = FALSE;
-	  setNames(kPlayerTwoTurn, 1);
-	} else {
-	  BadElse("Invalid Opponent!");
-	  break;
-	}
+	ChoosePlayerTypeMenu(2);
 	/*result = Configure;*/
 	break;
 
@@ -503,6 +603,14 @@ USERINPUT ConfigurationMenu()
 	}
 	gPrintPredictions = !gPrintPredictions;
 	break;
+	    case 'E': case 'e':
+	if(!gSEvalLoaded) {
+	  BadMenuChoice();
+	  HitAnyKeyToContinue();
+	  break;
+	}
+	gPrintSEvalPredictions = !gPrintSEvalPredictions;
+	break;
       case 'N': case 'n':
 	if(gUnsolved) {
 	  BadMenuChoice();
@@ -512,7 +620,7 @@ USERINPUT ConfigurationMenu()
 	gHints = !gHints;
 	break;
       case 'F': case 'f':
-	  if(gOpponent == AgainstComputer) {
+	  if(gOpponent == AgainstComputer || gOpponent==AgainstEvaluator) {
 	    gHumanGoesFirst = !gHumanGoesFirst;
 	    (void) sprintf(tmpName,"%s",gPlayerName[kPlayerOneTurn]);
 	    (void) sprintf(gPlayerName[kPlayerOneTurn],"%s",gPlayerName[kPlayerTwoTurn]);
@@ -673,6 +781,11 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'l': case 'L':
 	gZeroMemSolver = !gZeroMemSolver;
 	break;
+	#ifdef HAVE_XML
+    case 'e': case 'E':
+	StaticEvaluatorMenu();
+	break;
+	#endif
     case 'm': case 'M': {
 	if(gCanonicalPosition)
 	    gSymmetries = !gSymmetries;
@@ -808,6 +921,16 @@ void ParseEvaluatedMenuChoice(char c)
 	else if(gOpponent == ComputerComputer) {
 	    playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
 	    playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    PlayGame(playerOne,playerTwo);
+	}
+	else if(gOpponent == AgainstEvaluator) {
+	    if(gHumanGoesFirst) {
+		playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+		playerTwo = NewSEvalPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    } else {
+		playerOne = NewSEvalPlayer(gPlayerName[kPlayerOneTurn],0);
+		playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn],1);
+	    }
 	    PlayGame(playerOne,playerTwo);
 	}
 	else
@@ -1298,6 +1421,9 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	    break;
 	case 'p': case 'P':
 	  GamePrintMenu(thePosition, playerName, TRUE, input[1]);
+	  break;
+	case 'e': case 'E':
+	  printf("\n\nValue for this position: %.3f [-1,1]\n\n", evaluatePosition(thePosition));
 	  break;
 	case '?':
 	    printf("%s",kHandleDefaultTextInputHelp);

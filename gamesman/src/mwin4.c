@@ -181,7 +181,7 @@ int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 				      Direction verticalDirection);
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 
-void            linearUnhash(POSITION pos, XOBlank* board);
+void            linearUnhash2(POSITION pos, XOBlank* board);
 
 void 		UndoMove(MOVE move);
 
@@ -597,7 +597,7 @@ VALUE Primitive(POSITION position)
 	  return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
         }
 
-	linearUnhash(position, linearBoard); // Temporary storage.
+	linearUnhash2(position, linearBoard); // Temporary storage.
 
 	if (WhoseTurn(position) == x) {
 	  if (statelessNinaRow(linearBoard,&oo,gContinuousPiecesGoal)) {
@@ -850,7 +850,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 }
 
 //Unhash the board into a one-dimensional representation
-void linearUnhash(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
+void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
 
   int col,row,h;
   for (col=0; col<WIN4_WIDTH;col++) {

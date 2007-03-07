@@ -33,6 +33,37 @@ STRING   kAuthorName            = "Gamescrafters";
 
 STRING MoveToString(MOVE);
 
+float XORofColumns(POSITION p){
+	int i, xor=0;
+	p >>= 1;
+	for(i = 0 ; i < rows ; i++){
+		xor ^= p & 7;
+		p >>= 3;
+	}
+	return (float)(xor!=0?1:-1);
+}
+
+float MisereXORofColumns(POSITION p){
+	BOOLEAN oneColumnHasOne, lastMove;
+	int numColumns=0, i;
+	p >>= 1;
+	for(i = 0 ; i < rows ; i++){
+		numColumns += (p & 7)?0:1;
+		if(!oneColumnHasOne) oneColumnHasOne = ((p & 7)==1);
+		p >>= 3;
+	}
+	
+	lastMove = ( oneColumnHasOne && numColumns==2 );
+	
+	if( lastMove )
+	  return !XORofColumns(p);
+	  
+	return XORofColumns(p);
+}
+featureEvaluatorCustom getSEvalCustomFnPtr(STRING fnName){
+	return (strcmp(fnName,"MisereXORofColumns")==0)?&MisereXORofColumns:&XORofColumns;
+}
+
 void InitializeGame()
 {
 	// HERE, YOU SHOULD ASSIGN gNumberOfPositions and gInitialPosition
@@ -43,6 +74,7 @@ void InitializeGame()
 	gMinimalPosition = gInitialPosition ;
 
 	gMoveToStringFunPtr = &MoveToString;
+	gGetSEvalCustomFnPtr = &getSEvalCustomFnPtr;
 }
 
 // SUNIL: NOT WRITING
@@ -96,15 +128,15 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 	int i ;
 	int row ;	// the Row the move refers to (between 1 and ROWS)
 	int num ;	// the number to remove from row specified
-	int turnbit = thePosition % 2 ;
+	int turnbit = thePosition & 1 ;
 
-	thePosition /= 2 ;
+	thePosition >>= 1 ;
 
-	array = (int *)malloc(sizeof(int)*rows) ;
+	array = SafeMalloc(sizeof(int)*rows) ;
 
 	for(i = 0 ; i < rows ; i++)
 	{
-		array[i] = thePosition % 8 ;
+		array[i] = thePosition & 7 ;
 		thePosition = thePosition >> 3 ;
 	}
 	row = (theMove / 10) ;
@@ -120,7 +152,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 		thePosition += array[i] ;
 	}
 
-	free(array) ;
+	free(array);
 
 	return thePosition*2+(1-turnbit) ;
 }
@@ -159,7 +191,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 		printf("\n") ;
 		position = position >> 3 ;
 	}
-	printf("\n%s\n\n", GetPrediction(positionBak, playerName, usersTurn)) ;
+	printf("\n%s\n", GetPrediction(positionBak, playerName, usersTurn)) ;
+	printf("%s\n\n", GetSEvalPrediction(positionBak, playerName, usersTurn)) ;
 }
 
 MOVELIST *GenerateMoves(POSITION position)

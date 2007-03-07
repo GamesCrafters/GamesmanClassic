@@ -31,7 +31,7 @@ typedef struct fNode{
 } *fList;
 
 typedef struct seNode{
-  scew_element* element;
+  //scew_element* element;
   STRING name;
   int variant;
   BOOLEAN perfect;
@@ -43,10 +43,9 @@ extern seList evaluatorList;
 
 // Function Prototypes
 
-extern BOOLEAN initializeStaticEvaluator(STRING);
-extern void chooseEvaluator(int);
-extern BOOLEAN evaluatorExistsForVariant(int);
-extern BOOLEAN createNewXMLFile(STRING);
+extern USERINPUT StaticEvaluatorMenu();
+extern float evaluatePosition(POSITION);
+extern VALUE evaluatePositionValue(POSITION);
 
 float numPieces(void*,void*,int[]);
 float numFromEdge(void*,void*,int[]);
@@ -55,24 +54,28 @@ float connections(void*,void*,int[]);
 
 void initializeStaticEvaluatorBoard(int,int,int,BOOLEAN,void*,void*,void*);
 
+#ifdef HAVE_XML
+scew_element* findEvaluatorNode(scew_element*, STRING);
+scew_element* createEvaluatorNode(seList);
+seList parseEvaluators(scew_element*, seList);
+fList parseFeature(scew_element*);
+#endif
 void freeFeatureList(fList);
 void freeEvaluatorList(seList);
 STRING copyString(STRING);
-fList parseFeature(scew_element*);
-seList parseEvaluators(scew_element*, seList);
-scew_element* findEvaluatorNode(scew_element*, STRING);
-scew_element* createEvaluatorNode(seList);
-seList loadDataFromXML(STRING);
+BOOLEAN loadDataFromXML(STRING);
 BOOLEAN writeEvaluatorToXMLFile(seList, STRING);
+BOOLEAN initializeStaticEvaluator(STRING);
+void chooseEvaluator(int);
+BOOLEAN evaluatorExistsForVariant(int);
+BOOLEAN createNewXMLFile(STRING);
 featureEvaluatorLibrary getSEvalLibFnPtr(STRING);
-float evaluatePosition(POSITION);
-VALUE evaluatePositionValue(POSITION);
 float linear(float,float[]);
 float logarithmic(float,float[]);
 float logistic(float,float[]);
 float quadratic(float,float[]);
 
-void NewTraitMenu();
+void NewTraitMenu(STRING);
 fList ParameterizeTrait(int);
 void ParameterizeScalingFunction(fList);
 void ParameterizeWeightingFunction(fList);

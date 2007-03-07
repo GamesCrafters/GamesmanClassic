@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.46 2006-12-19 09:39:32 zwizeguy Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.47 2007-03-07 01:17:01 brianzimmer Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -34,6 +34,7 @@
 
 #include "gamesman.h"
 #include "openPositions.h"
+#include "globals.h"
 
 #define leftJustified 1
 #define rightJustified 2
@@ -166,6 +167,37 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                                         else
                                                 player = playerOne;
                                 }
+
+                        } else if (gOpponent == AgainstEvaluator) {
+                                /* Assume that it works for now
+                                   Not sure how to make this hack work
+                                if (userInput != Switch) {
+
+                                        if (strcmp(gPlayerName[kPlayerOneTurn],"Data") == 0 ||
+                                                        strcmp(gPlayerName[kPlayerOneTurn],"Lore") == 0) {
+                                                playerOne = NewSEvalPlayer(gPlayerName[kPlayerOneTurn],0);
+                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
+                                        } else {
+                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
+                                                playerTwo = NewSEvalPlayer(gPlayerName[kPlayerTwoTurn],1);
+                                        }
+                                        if (player->turn)
+                                                player = playerTwo;
+                                        else
+                                                player = playerOne;
+                                } else {
+                                        if (gHumanGoesFirst) {
+                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn], 0);
+                                                playerTwo = NewSEvalPlayer(gPlayerName[kPlayerTwoTurn], 1);
+                                        } else {
+                                                playerOne = NewSEvalPlayer(gPlayerName[kPlayerOneTurn], 0);
+                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
+                                        }
+                                        if (player->turn)
+                                                player = playerTwo;
+                                        else
+                                                player = playerOne;
+                                }*/
 
                         } else if (gOpponent == AgainstHuman) {
 
@@ -934,7 +966,7 @@ void updateRemoteness(int* maxR, int* maxTR,
 
 void PrintVisualValueHistory(POSITION position, int showAllMoves)
 {
-		// if using Tier-Gamesman, save the current tier
+		// if using TinumMoveser-Gamesman, save the current tier
 		TIERPOSITION currentTP; TIER currentTier;
 		if (gHashWindowInitialized && position != -1) {
 			gUnhashToTierPosition(position, &currentTP, &currentTier);
@@ -1400,6 +1432,30 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
         return(prediction);
 }
 
+STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
+{
+        #ifdef HAVE_XML
+        static char prediction[80];
+        VALUE value;
+
+        if(gPrintSEvalPredictions) {
+                value = evaluatePositionValue(position);
+                
+                sprintf(prediction, "(%s %s %s)",
+                        playerName,
+                        ((value == lose && usersTurn && gSEvalPerfect == TRUE) ||
+                        (value == win && !usersTurn && gSEvalPerfect == TRUE)) ?
+                        "will" : "should",
+                        gValueString[(int)value]);
+        } else
+                (void) sprintf(prediction," ");
+
+        return(prediction);
+        #else
+        return " ";
+        #endif
+}
+
 
 MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList)
 {
@@ -1454,6 +1510,70 @@ MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenes
                 moveList = moveList->next;
         }
         return (moveList->move);
+}
+
+MOVE RandomLargestSEvalMove(MOVELIST *moveList, POSITION position)
+{
+        MOVELIST *maxValueMoveList = NULL;
+        int numMoves, random;
+        float currValue, maxValue;
+
+        numMoves = 0;
+        maxValue = -1;
+        while(moveList != NULL) {
+                currValue = evaluatePosition(DoMove(position, moveList->move));
+                if ( currValue < maxValue) {
+                        numMoves = 1;
+                        maxValue = currValue;
+                        maxValueMoveList = moveList;
+                } else if (currValue == maxValue) {
+                        numMoves++;
+                }
+                moveList = moveList->next;
+        }
+
+        if (numMoves<=0) {
+                return -1;
+        }
+
+        random = GetRandomNumber(numMoves);
+        for (; random>0; random--) {
+                maxValueMoveList = maxValueMoveList->next;
+        }
+        return (maxValueMoveList->move);
+}
+
+MOVE LargestWinningSEvalMove(MOVELIST *moveList, POSITION thePosition)
+{
+        float currChildValue=0, bestValue=1.1; // Just slightly higher than 1
+        MOVE theMove;
+        int numMoves = 0;
+        
+        while(moveList != NULL) {
+                currChildValue = evaluatePosition(DoMove(thePosition, moveList->move));
+                // Choosing a child with a losing value (for the opponent) means we'll win
+                if ( currChildValue < bestValue) {
+                        numMoves=1;
+                        theMove = moveList->move;
+                        bestValue = currChildValue;
+                }
+                moveList = moveList->next;
+        }
+        
+        // If we can't find a winning move
+        
+        if (numMoves==0) {
+                return -1;
+        }
+        
+        return (theMove);
+}
+
+MOVE GetSEvalMove(POSITION thePosition) {
+  MOVELIST* moves = GenerateMoves(thePosition);
+  MOVE theMove = LargestWinningSEvalMove(moves, thePosition);
+  FreeMoveList(moves);
+  return theMove;
 }
 
 MOVE GetWinByMove (POSITION position, MOVELIST* genMoves)
@@ -1858,6 +1978,16 @@ PLAYER NewComputerPlayer(STRING name, int turn)
         return new;
 }
 
+PLAYER NewSEvalPlayer(STRING name, int turn)
+{
+        PLAYER new = (PLAYER)SafeMalloc(sizeof(struct Player));
+        new->name = name;
+        new->turn = turn;
+        new->type = Evaluator;
+        new->GetMove = SEvalMove;
+        return new;
+}
+
 USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)
 {
         *move = GetComputersMove(position);
@@ -1865,6 +1995,12 @@ USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)
         return Continue;
 }
 
+USERINPUT SEvalMove(POSITION position, MOVE* move, STRING name)
+{
+        *move = GetSEvalMove(position);
+        PrintComputersMove(*move,name);
+        return Continue;
+}
 
 /**
  * findDelta(REMOTENESS, REMOTENESSLIST, VALUE)

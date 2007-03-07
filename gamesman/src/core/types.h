@@ -38,6 +38,9 @@ typedef unsigned int UINT32;
 typedef long long int INT64;
 typedef unsigned long long int UINT64;
 
+// SEval
+typedef float(*featureEvaluatorCustom)(POSITION);
+
 typedef UINT32 GMSTATUS;
 
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
@@ -134,7 +137,7 @@ UNDOMOVELIST;
 
 typedef enum play_opponent
 {
-        AgainstComputer,AgainstHuman,ComputerComputer
+        AgainstComputer,AgainstHuman,ComputerComputer, AgainstEvaluator
 }
 OPPONENT;
 

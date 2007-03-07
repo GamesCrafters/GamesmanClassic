@@ -148,6 +148,7 @@ STRING  kHandleDefaultTextInputHelp =
 "?           : Brings up this list of Text Input Commands available\n"
 "p (or P)    : Brings up the (P)rint Menu\n"
 "c (or C)    : Brings up the (C)onfiguration Menu\n"
+"e (or E)    : Print Static (E)valuator value for this position\n"
 "u (or U)    : (U)ndo last move (not possible at beginning position)\n"
 "a (or A)    : (A)bort the game\n"
 "h (or H)    : (H)elp\n"

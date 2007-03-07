@@ -36,6 +36,8 @@ VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
 STRING (*gCustomUnhash)(POSITION) = NULL;
+void* (*linearUnhash)(POSITION) = NULL;
+featureEvaluatorCustom (*gGetSEvalCustomFnPtr)(STRING) = NULL;
 POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
 void (*gUndoMove)(MOVE move) = NULL;
 STRING (*GetHelpTextInterface)() = NULL;
@@ -48,13 +50,16 @@ WINBY  (*gPutWinBy)(POSITION) = NULL;
 
 POSITION (*gActualNumberOfPositionsOptFunPtr)(int variant) = NULL;
 
-VALUE   gValue = undecided;          /* The value of the game */
-BOOLEAN gAgainstComputer = TRUE;     /* TRUE iff the user is playing the computer */
-BOOLEAN gHumanGoesFirst = TRUE;      /* TRUE iff the user goes first vs. computer */
-BOOLEAN gPrintPredictions = TRUE;    /* TRUE iff the predictions should be printed */
+VALUE   gValue = undecided;             /* The value of the game */
+BOOLEAN gAgainstComputer = TRUE;        /* TRUE iff the user is playing the computer */
+BOOLEAN gHumanGoesFirst = TRUE;         /* TRUE iff the user goes first vs. computer */
+BOOLEAN gPrintPredictions = TRUE;       /* TRUE iff the predictions should be printed */
+BOOLEAN gPrintSEvalPredictions = FALSE; /* TRUE iff the seval predictions should be printed */
+BOOLEAN gSEvalLoaded = FALSE;           /* TRUE iff an evaluator is successfully loaded */
+BOOLEAN gSEvalPerfect = FALSE;          /* TRUE iff an evaluator is never wrong */
 BOOLEAN gWinBy = FALSE;               /* TRUE iff the computer is playing with WinBy */
-BOOLEAN gHints = FALSE;              /* TRUE iff possible moves should be printed */
-BOOLEAN gUnsolved = FALSE;           /* TRUE iff playing without solving */
+BOOLEAN gHints = FALSE;                 /* TRUE iff possible moves should be printed */
+BOOLEAN gUnsolved = FALSE;              /* TRUE iff playing without solving */
 
 BOOLEAN gStandardGame = TRUE;               /* TRUE iff game is STANDARD (not REVERSE) */
 BOOLEAN gZeroMemPlayer = FALSE;		/*TRUE if we are reading from the gzip file when using memdb*/

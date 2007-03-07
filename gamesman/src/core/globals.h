@@ -7,7 +7,8 @@
 */
 
 extern VALUE		gValue;
-extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gHints, gUnsolved;
+extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gPrintSEvalPredictions, 
+  gSEvalLoaded, gSEvalPerfect, gHints, gUnsolved;
 
 extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
@@ -90,6 +91,10 @@ extern POSITION 	(*gCanonicalPosition)(POSITION);
 
 /* Custom unhash into string function pointer (useful for TCL interoperability) */
 extern STRING 		(*gCustomUnhash)(POSITION);
+
+/* Custom unhash into void* function pointer (used in Static Evaluator) */
+extern void* 		(*linearUnhash)(POSITION);
+extern featureEvaluatorCustom (*gGetSEvalCustomFnPtr)(STRING);
 
 /* enumerate all positions that result from the same stage in a game */
 /* argument and return value will have their typedefs later */

@@ -166,6 +166,23 @@ AC_CHECK_LIB(gmp, __gmpz_init, [
 	OUTGMPLIBFLAGS="-lgmp"
 	OUTGMPCFLAGS="-DHAVE_GMP"
 	], [AC_MSG_WARN([GNU MP not found, univdb option will not be supported])])
+	
+# Make sure XML Parser is installed as it is required for Static Evaluator
+AC_CHECK_LIB(expat, XML_ParserCreate,
+    [expat_found=yes],
+    [AC_MSG_WARN([Expat (libexpat.org) not found, static evaluator will not be supported.])])
+AC_CHECK_LIB(scew, scew_attribute_create,
+    [scew_found=yes],
+	  [AC_MSG_WARN([Expat (libexpat.org) not found, static evaluator will not be supported.])])
+OUTXMLLIBFLAGS=
+OUTXMLCFLAGS=
+if test $expat_found = yes; then
+  if test $scew_found = yes; then
+	  OUTXMLLIBFLAGS="-lexpat -lscew"
+	  OUTXMLCFLAGS="-DHAVE_XML"
+  fi
+fi
+
 
 ###
 ### An attempt to detect python
@@ -529,6 +546,8 @@ AC_SUBST(PYTHONCFLAGS, $OUTPYTHONCFLAGS)
 AC_SUBST(PYTHONLIBFLAGS, $OUTPYTHONLIBFLAGS)
 AC_SUBST(GMPCFLAGS, $OUTGMPCFLAGS)
 AC_SUBST(GMPLIBFLAGS, $OUTGMPLIBFLAGS)
+AC_SUBST(XMLCFLAGS, $OUTXMLCFLAGS)
+AC_SUBST(XMLLIBFLAGS, $OUTXMLLIBFLAGS)
 
 ### get the file name for all the *.in files, not needed anymore
 #x_scripts=`ls bin/*.in | sed 's/\.in$//'`

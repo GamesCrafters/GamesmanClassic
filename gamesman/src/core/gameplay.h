@@ -33,29 +33,35 @@ REMOTENESS      FindDelta                       (REMOTENESS remote, REMOTENESSLI
 /* Brains of the gameplay */
 
 STRING		GetPrediction			(POSITION pos, STRING playerName, BOOLEAN usersTurn);
+STRING		GetSEvalPrediction			(POSITION pos, STRING playerName, BOOLEAN usersTurn);
 MOVE		GetComputersMove		(POSITION pos);
+MOVE    GetSEvalMove        (POSITION pos);
 VALUE_MOVES*	GetValueMoves			(POSITION pos);
 
 /* Player structure */
-typedef enum player_enum {Human, Computer} PTYPE;
+typedef enum {Human, Computer, Evaluator} PTYPE;
 
 typedef struct Player {
     int turn;
     char* name;
-    PTYPE type;
+    int type;
     USERINPUT (*GetMove)(POSITION,MOVE*,STRING);
 } *PLAYER;
 
 /* Player Constructors */
 PLAYER          NewHumanPlayer                  (STRING name,int turn);
 PLAYER          NewComputerPlayer               (STRING name,int turn);
+PLAYER          NewSEvalPlayer               (STRING name,int turn);
 USERINPUT       ComputerMove                    (POSITION position,MOVE* move, STRING name);
+USERINPUT       SEvalMove                    (POSITION position,MOVE* move, STRING name);
 
 void            PlayGame                        (PLAYER playerOne,PLAYER playerTwo);
 
 /* Move-choosing logic */
 MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
+MOVE		RandomLargestSEvalMove	(MOVELIST*, POSITION);
+MOVE		LargestWinningSEvalMove	(MOVELIST*, POSITION);
 
 /* WinBy-choosing logic */
 MOVE     GetWinByMove                           (POSITION, MOVELIST*);
