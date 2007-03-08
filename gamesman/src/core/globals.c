@@ -159,4 +159,6 @@ BOOLEAN			gParallelizing = FALSE;
 /* Tcl interp for making calls to Tcl_Eval */
 Tcl_Interp *gTclInterp = NULL;
 
+/* Static Evaluator list of custom trait function names */
+STRING  *gCustomTraits = NULL;
 

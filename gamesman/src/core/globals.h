@@ -28,6 +28,9 @@ extern REMOTENESS 	gMaxRemoteness, gMinRemoteness;
 
 extern WINBY	        (*gPutWinBy)(POSITION);
 
+// Array of custom static evaluator function names
+extern STRING *gCustomTraits;
+
 /*
 ** Visualization globals
 */

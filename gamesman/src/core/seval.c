@@ -37,17 +37,11 @@
 #define min(a,b) (a<=b ? a : b)
 
 seList evaluatorList;
+seList currEvaluator = NULL;
 fList featureList;
-char* LibraryTraits[] = {"Number of pieces","Distance from edge","Clustering","Connections"};
+char* LibraryTraits[] = {"Number of Pieces","Distance from Edge","Clustering","Connections"};
 int numLibraryTraits = 4;
-
-/************************************************************************
-**
-** TEST
-**
-************************************************************************/
-int numCustomTraits = 2;
-char* CustomTraits[] = {"Hell","Yeah"};
+int numCustomTraits = 0;
 
 
 /************************************************************************
@@ -73,7 +67,7 @@ featureEvaluatorLibrary getSEvalLibFnPtr(STRING fnName){
   } else if (strcmp(fnName,"Connections")==0) {
     return &(connections);
   } else {
-    printf("ERROR, unrecognized trait name in xml file");
+    printf("ERROR, unrecognized trait name in xml file: %s", fnName);
     return NULL;
   }
 }
@@ -95,7 +89,7 @@ void freeFeatureList(fList head){
 void freeEvaluatorList(seList head){
   if( head==NULL )
     return;
-  if( head->featureList!=NULL && head->featureList!=featureList )
+  if( head->featureList!=NULL ) // && head->featureList!=featureList
     freeFeatureList(head->featureList);
   SafeFree(head->name);
   freeEvaluatorList(head->next);
@@ -104,10 +98,53 @@ void freeEvaluatorList(seList head){
 
 void chooseEvaluator(int numInEvaluatorList){
   seList temp = evaluatorList;
-  while( numInEvaluatorList-- > 0 ) temp = temp->next;
-  featureList = temp->featureList;
-  printf("\nThe Evaluator has been set to %s\n", temp->name);
-  gSEvalLoaded = TRUE;
+  while( numInEvaluatorList-- > 0 && temp!=NULL) temp = temp->next;
+  
+  if(temp!=NULL){
+    if(currEvaluator!=NULL)
+      freeEvaluatorList(currEvaluator);
+    currEvaluator = SafeMalloc(sizeof(struct seNode));
+    memcpy(currEvaluator, temp, sizeof(struct seNode));
+    currEvaluator->name = copyString(temp->name);
+    currEvaluator->featureList = copyFeatureList(temp->featureList);
+    currEvaluator->next = NULL;
+    printf("\nThe Evaluator has been set to %s\n", currEvaluator->name);
+    gSEvalLoaded = TRUE;
+  }
+}
+
+seList findEvaluator(STRING name){
+  seList temp = evaluatorList;
+  while(temp!=NULL && strcmp(temp->name, name)!=0) temp = temp->next;
+  return temp;
+}
+
+fList copyFeatureList(fList srcFeatureList){
+    fList tempFeatureList=NULL;
+    if(srcFeatureList!=NULL){
+      tempFeatureList = SafeMalloc(sizeof(struct fNode));
+      memcpy(tempFeatureList, srcFeatureList, sizeof(struct fNode));
+      tempFeatureList->name = copyString(srcFeatureList->name);
+      tempFeatureList->next = copyFeatureList(srcFeatureList->next);
+    }
+    return tempFeatureList;
+}
+
+// Guaranteed upon entering that currEvaluator!=NULL
+void updateCurrentEvaluator(){
+  seList srcEvaluator = findEvaluator(currEvaluator->name);
+  if(srcEvaluator==NULL){
+    freeEvaluatorList(currEvaluator);
+    gSEvalLoaded = FALSE;
+  }
+  else{
+    currEvaluator->variant = srcEvaluator->variant;
+    currEvaluator->perfect = srcEvaluator->perfect;
+    currEvaluator->next = NULL;
+    if(currEvaluator->featureList!=NULL)
+      freeFeatureList(currEvaluator->featureList);
+    currEvaluator->featureList = copyFeatureList(srcEvaluator->featureList);
+  }
 }
 
 BOOLEAN evaluatorExistsForVariant(int variant) {
@@ -168,6 +205,10 @@ fList parseFeature(scew_element* sEvalNode){
 	        else if(strcmp(scew_attribute_name(attribute),"qaudratic")==0)
       	    currFeature->scale = &quadratic;
 	      }
+      	else if(strcmp(scew_attribute_name(attribute),"functionParameters")==0)
+      	  setArrayFromString(currFeature->evalParams, (char *)scew_attribute_value(attribute));
+      	else if(strcmp(scew_attribute_name(attribute),"scalingParams")==0)
+      	  setArrayFromString(currFeature->scaleParams, (char *)scew_attribute_value(attribute));
       	else if(strcmp(scew_attribute_name(attribute),"piece")==0) {
       	  if( (char *)scew_attribute_value(attribute)!=NULL && strlen((char *)scew_attribute_value(attribute))==1 ){
       	    STRING attrValue = (char *)scew_attribute_value(attribute);
@@ -183,6 +224,10 @@ fList parseFeature(scew_element* sEvalNode){
       	  printf("Bad attribute=\"%s\"",(char *)scew_attribute_value(attribute));
       	}
     	}
+    	
+    	currFeature->fEvalC = NULL;
+      currFeature->fEvalL = NULL;
+    	
       // Now we should have the name
       if( currFeature->type == custom && gGetSEvalCustomFnPtr!=NULL)
 	      currFeature->fEvalC = (featureEvaluatorCustom)gGetSEvalCustomFnPtr(currFeature->name);
@@ -199,6 +244,18 @@ fList parseFeature(scew_element* sEvalNode){
     }
     
     return tempList;
+}
+
+void setArrayFromString(float* array, STRING values){
+  int i=0;
+  char delims[] = ", ";
+  char *value = NULL;
+  value = strtok( values, delims );
+  while( value != NULL ) {
+    //printf( "value is \"%s\"\n", value );
+    array[i] = atof(value);
+    value = strtok( NULL, delims );
+  } 
 }
 
 seList parseEvaluators(scew_element* element, seList tempList) {
@@ -350,6 +407,10 @@ BOOLEAN loadDataFromXML(STRING fileName) {
   /* Actually get the information */
   evaluatorList = parseEvaluators(scew_tree_root(tree), NULL);
   
+  
+  if(currEvaluator!=NULL)
+    updateCurrentEvaluator();
+  
   /* Remember to free tree (scew_parser_free does not free it) */
   scew_tree_free(tree);
   
@@ -370,7 +431,8 @@ BOOLEAN createNewXMLFile(STRING fileName) {
   scew_element_add_attr_pair(root, "name", kDBName);
   return scew_writer_tree_file(tree, fileName);
   #else
-  return FALSE;
+  return F
+    numCustomTraits=0;ALSE;
   #endif
 }
 
@@ -437,9 +499,11 @@ BOOLEAN initializeStaticEvaluator(STRING fileName){
   if(evaluatorList!=NULL)
     freeEvaluatorList(evaluatorList);
   evaluatorList = NULL;
-  if(featureList!=NULL)
-    freeFeatureList(featureList);
-  featureList = NULL;
+  
+  numCustomTraits=0;
+  if(gCustomTraits!=NULL){
+    while(strcmp(gCustomTraits[numCustomTraits], "")!=0) numCustomTraits++;
+  }
   
   return loadDataFromXML(fileName);
 }
@@ -461,10 +525,17 @@ void initializeStaticEvaluatorBoard(int eltSize,int rows, int cols, BOOLEAN diag
 ************************************************************************/
 
 float evaluatePosition(POSITION p){
-  fList features = featureList;
+  fList features = NULL;
   float valueSum = 0;
   float weightSum = 0;
   void* board = NULL;
+  
+  if(currEvaluator!=NULL)
+    features = currEvaluator->featureList;
+  else{
+    BadElse("evaluatePosition");
+    printf("Tried to call evaluatePosition when currEvaluator==NULL");
+  }
   
   if(linearUnhash != NULL) 
     board = (*linearUnhash)(p);
@@ -474,7 +545,9 @@ float evaluatePosition(POSITION p){
       if( linearUnhash!=NULL )
         valueSum += features->weight * features->scale(features->fEvalL(board,features->piece,features->evalParams),features->scaleParams);
 	    else{
-	      printf("linearUnhash MUST be set if library functions are used!");
+        BadElse("evaluatePosition");
+	      printf("linearUnhash MUST be set if library functions are used!\n");
+	      printf("Results will be nondeterministic.\n");
 	      return -2;
 	    }
     } else if(features->type == custom) {
@@ -541,12 +614,12 @@ float quadratic(float value,float params[]){
 ************************************************************************/
 
 void NewTraitMenu(STRING fileName) {
-  char nextItem;
-  char choice;
+  char nextItem, libraryUpperBound;
   int traitNum;
   fList currFeature;
   char namePlaceHolder[30];
   int variant = 0;
+  char choice=0;
   seList currEvaluator = NULL;
   
   printf("Enter a name for this evaluator ('' for 'default'): ");
@@ -563,13 +636,17 @@ void NewTraitMenu(STRING fileName) {
   while(TRUE) {
 
     printf("\nSelect a new trait to add to the static evaluator\n\n");
-  
-    nextItem = printList(LibraryTraits,numLibraryTraits,'a');
-    nextItem = printList(CustomTraits,numCustomTraits,nextItem);
+    
+    nextItem = 'a';
+    if(linearUnhash!=NULL)
+      nextItem = printList(LibraryTraits,numLibraryTraits,nextItem);
+    libraryUpperBound = nextItem-1;
+    nextItem = printList(gCustomTraits,numCustomTraits,nextItem);
 
     printf("%c) Done\n",nextItem);
     
     while(TRUE) {
+      printf("\nTrait Choice: ");
       choice = GetMyChar();
       traitNum = (int) (choice-97);
 
@@ -582,22 +659,23 @@ void NewTraitMenu(STRING fileName) {
     if(choice == nextItem) //Done
       break;
     else {
-      currFeature = ParameterizeTrait(traitNum);
+      currFeature = ParameterizeTrait(traitNum, libraryUpperBound-97);
       currFeature->next = featureList;
       featureList = currFeature;
     }
   }
   
-  currEvaluator->featureList = featureList;
+  currEvaluator->featureList = copyFeatureList(featureList);
   currEvaluator->next = evaluatorList;
   evaluatorList = currEvaluator;
   writeEvaluatorToXMLFile(evaluatorList, fileName);
 }
 
-fList ParameterizeTrait(int traitNum) {
+fList ParameterizeTrait(int traitNum, int libraryUpperBound) {
   fList currFeature = SafeMalloc(sizeof(struct fNode));
   memset(currFeature, 0, sizeof(struct fNode));
   
+  if(traitNum<=libraryUpperBound){
   switch(traitNum) {
   case 0:
     RequestPiece(currFeature);
@@ -613,14 +691,16 @@ fList ParameterizeTrait(int traitNum) {
     RequestPiece(currFeature);
     RequestBoolean("Should diagonals be considered?\n",0,currFeature);
     break;
-  }    
-
-  if(traitNum > numLibraryTraits-1) {
+  }
+  }
+  printf("libraryUpperBound+1: %c\n",libraryUpperBound+1); 
+  if(traitNum > libraryUpperBound) {    
+    printf("custom!\n");
     currFeature->type = custom;
-    currFeature->name = CustomTraits[traitNum-numLibraryTraits];
+    currFeature->name = copyString(gCustomTraits[traitNum-libraryUpperBound]);
   } else {
     currFeature->type = library;
-    currFeature->name = LibraryTraits[traitNum];
+    currFeature->name = copyString(LibraryTraits[traitNum]);
   }
 
   ParameterizeScalingFunction(currFeature);
@@ -927,8 +1007,13 @@ USERINPUT StaticEvaluatorMenu()
       printf("\n\tn)\tCreate a (N)ew Static Evaluator\n");
       //Need to implement
       //printf("\te)\t(E)dit an existing Static Evaluator\n");
-      if(evaluatorList!=NULL)
+      if(evaluatorList!=NULL){
         printf("\ts)\t(S)elect a Static Evaluator available for this variant\n");
+        if(gSEvalLoaded)
+          printf("\t\t(Currently \"%s\")\n", currEvaluator->name);
+        else
+          printf("\t\t(Currently None)\n");
+      }
       printf("\tb)\t(B)ack = Return to previous activity\n");
       printf("\n\tq)\t(Q)uit\n");
       printf("\n\nSelect an option: ");
@@ -946,14 +1031,14 @@ USERINPUT StaticEvaluatorMenu()
 	          if( evaluatorExistsForVariant(variant) ){
 	            do{
   	            seList temp = evaluatorList;
-  	            char optionMax, option = 'a';
+  	            int optionMax, option = 1;
   	            printf("\n\tStatic Evaluators For This Variant:");
                 printf("\n\t-----------------------------------");
                 while( temp!=NULL ) {
                   if(temp->variant==-1)
-                    printf("\n\t%c)\t%s - all variants", option++, temp->name);
+                    printf("\n\t%d)\t%s - all variants", option++, temp->name);
                   else if(temp->variant==variant)
-                    printf("\n\t%c) %s - variants #%d", option++, temp->name, temp->variant);
+                    printf("\n\t%d) %s - variants #%d", option++, temp->name, temp->variant);
                   temp = temp->next;
                 }
                 printf("\n\n\tb)\t(B)ack = Return to previous activity");
@@ -963,18 +1048,18 @@ USERINPUT StaticEvaluatorMenu()
                 printf("\n\nSelect an option: ");
                 
                 option = GetMyChar();
-                if(option=='B')
-                  return result;
-                else if(option=='Q'){
+                if(option=='B' || option=='b')
+                  break;
+                else if(option=='Q' || option=='q'){
 	                ExitStageRight();
 	                exit(0);
                 }
-                else if(option>=optionMax){
+                else if(option>=optionMax+'0' || option<=0+'0'){
                   BadMenuChoice();
   	              HitAnyKeyToContinue();
                 }
                 else{
-                  chooseEvaluator(option-'a');
+                  chooseEvaluator(option-'1');
                   if(gSEvalLoaded == TRUE)
                     return result;
                 }

@@ -2,6 +2,10 @@
 #define _SEVAL_H_
 
 
+#ifdef HAVE_XML
+#include <scew/scew.h>
+#endif
+
 // Type Declarations
 
 typedef float(*scalingFunction)(float,float[]);
@@ -60,9 +64,12 @@ scew_element* createEvaluatorNode(seList);
 seList parseEvaluators(scew_element*, seList);
 fList parseFeature(scew_element*);
 #endif
+void setArrayFromString(float*, STRING);
 void freeFeatureList(fList);
 void freeEvaluatorList(seList);
 STRING copyString(STRING);
+fList copyFeatureList(fList);
+void updateCurrentEvaluator();
 BOOLEAN loadDataFromXML(STRING);
 BOOLEAN writeEvaluatorToXMLFile(seList, STRING);
 BOOLEAN initializeStaticEvaluator(STRING);
@@ -76,7 +83,7 @@ float logistic(float,float[]);
 float quadratic(float,float[]);
 
 void NewTraitMenu(STRING);
-fList ParameterizeTrait(int);
+fList ParameterizeTrait(int, int);
 void ParameterizeScalingFunction(fList);
 void ParameterizeWeightingFunction(fList);
 char printList(STRING[],int,char);

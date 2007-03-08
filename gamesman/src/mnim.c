@@ -31,6 +31,8 @@ STRING   kHelpTieOccursWhen     = "A tie is not possible in this game" ;
 STRING   kHelpExample           = "some really long thing<-Actually play a game,then copy/paste" ;
 STRING   kAuthorName            = "Gamescrafters";
 
+STRING   CUSTOM_TRAITS[3] = {"XORofColumns", "MisereXORofColumns", ""};
+
 STRING MoveToString(MOVE);
 
 float XORofColumns(POSITION p){
@@ -60,6 +62,7 @@ float MisereXORofColumns(POSITION p){
 	  
 	return XORofColumns(p);
 }
+
 featureEvaluatorCustom getSEvalCustomFnPtr(STRING fnName){
 	return (strcmp(fnName,"MisereXORofColumns")==0)?&MisereXORofColumns:&XORofColumns;
 }
@@ -75,6 +78,7 @@ void InitializeGame()
 
 	gMoveToStringFunPtr = &MoveToString;
 	gGetSEvalCustomFnPtr = &getSEvalCustomFnPtr;
+	gCustomTraits = CUSTOM_TRAITS;
 }
 
 // SUNIL: NOT WRITING
