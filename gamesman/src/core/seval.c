@@ -431,8 +431,7 @@ BOOLEAN createNewXMLFile(STRING fileName) {
   scew_element_add_attr_pair(root, "name", kDBName);
   return scew_writer_tree_file(tree, fileName);
   #else
-  return F
-    numCustomTraits=0;ALSE;
+  return FALSE;
   #endif
 }
 
