@@ -156,7 +156,7 @@ foreach (@bugIDlist)
 				{
 					print "Using wget \n";
 					my $url = $BUGZ_URL_FINAL . $CVSSUBMIT . "?ixBug=$ixBug&sFile=$sFile&sPrev=$sPrev&sNew=$sNew".$sTrialClause;
-					system("wget '$url' -q -O /dev/null");
+					system("wget '$url' -O /dev/null");
 				}
 				else
 				{
