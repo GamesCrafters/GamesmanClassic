@@ -11,3 +11,5 @@
 #	[<whitespace>]<filename><whitespace><error message><end-of-line>
 #
 # comment lines begin with '#'
+bugz.txt Error-bugz.txt
+logBugData.pl Error-logBugData.pl
