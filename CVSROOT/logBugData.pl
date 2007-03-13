@@ -8,7 +8,7 @@ my $IS_TRIAL = 0;
 #
 # Change to name of FogBugz server
 #
-my $BUGZ_SERVER = "nyc.cs.berkeley.edu:8080";
+my $BUGZ_SERVER = "nyc.cs.berkeley.edu";
 
 #
 # Change to top level URL for bugz server - must contain trailing slash
@@ -24,7 +24,7 @@ my $CVSSUBMIT = "cvsSubmit.php";
 #
 # Change only if you aren't running on normal port 80
 #
-my $BUGZ_PORT = "80";
+my $BUGZ_PORT = "8080";
 
 
 ######### That's all you have to do! ###########
