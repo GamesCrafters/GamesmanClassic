@@ -25,3 +25,5 @@
 *.gif -k 'b'
 *.ppm -k 'b'
 *.PPM -k 'b'
+*.JPG -k 'b'
+*.jpg -k 'b'
