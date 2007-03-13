@@ -23,3 +23,5 @@
 #*.gif -k 'b'
 *.GIF -k 'b'
 *.gif -k 'b'
+*.ppm -k 'b'
+*.PPM -k 'b'
