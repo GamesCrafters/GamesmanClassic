@@ -126,6 +126,8 @@ STRING  ServerAddress = "nyc.cs.berkeley.edu/GamesmanServlet";
 // For the core
 BOOLEAN 		gTierGamesman = TRUE;
 BOOLEAN			gDBLoadMainTier = FALSE;
+TIERPOSITION    gDBTierStart = -1;
+TIERPOSITION    gDBTierEnd = -1;
 TIER 			kBadTier = -1;
 // For the hash window
 BOOLEAN			gHashWindowInitialized = FALSE;

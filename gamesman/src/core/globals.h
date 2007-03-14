@@ -130,6 +130,8 @@ extern STRING		ServerAddress;
 // For the core
 extern BOOLEAN			gTierGamesman;
 extern BOOLEAN			gDBLoadMainTier;
+extern TIERPOSITION     gDBTierStart;
+extern TIERPOSITION     gDBTierEnd;
 extern TIER				kBadTier;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;
