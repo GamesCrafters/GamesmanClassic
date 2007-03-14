@@ -11,6 +11,6 @@ int RemoteGetTierDependencies(TIER);
 BOOLEAN RemoteCanISolveTier(TIER);
 void RemoteSolveTier(TIER, TIERPOSITION, TIERPOSITION);
 BOOLEAN RemoteIsTierReadyToMerge(TIER);
-void RemoteMergeToMakeTierDB(TIER);
+BOOLEAN RemoteMergeToMakeTierDB(TIER);
 
 #endif /* GMCORE_SOLVERETROGRADE_H */

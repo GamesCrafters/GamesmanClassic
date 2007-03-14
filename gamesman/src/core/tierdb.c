@@ -83,7 +83,6 @@ BOOLEAN		tierdb_load_database		();
 tierdb_cellValue*	(*tierdb_get_raw)		(POSITION pos);
 
 tierdb_cellValue* 	tierdb_get_raw_ptr		(POSITION pos);
-tierdb_cellValue*	tierdb_get_raw_file		(POSITION pos);
 
 tierdb_cellValue*	tierdb_array;
 
@@ -100,52 +99,20 @@ int		tierdb_goodCompression, tierdb_goodDecompression, tierdb_goodClose;
 void tierdb_init(DB_Table *new_db)
 {
         POSITION i;
-        BOOLEAN useFile = gZeroMemPlayer;
+        tierdb_get_raw = tierdb_get_raw_ptr;
 
-        if(useFile) {
-        	//try openning the data file
-        	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb.dat.gz", kDBName, getOption()) ;
-        	if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL) {
-        		useFile = FALSE;
-   		    } else {
-        		tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
-	        	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
-    	    	*tierdb_dbVer = ntohs(*tierdb_dbVer);
-        		*tierdb_numPos = ntohl(*tierdb_numPos);
-        		if((*tierdb_numPos != gNumberOfPositions) || (*tierdb_dbVer != tierdb_FILEVER)) {
-        			printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions or incorrect version\n\n");
-        			useFile = FALSE;
-        		}
-        	}
-        }
-        //set function pointers
-        if(useFile) {
-                tierdb_get_raw = tierdb_get_raw_file;
+        //setup internal memory table
+        tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
 
-                new_db->put_value = NULL;
-                new_db->put_remoteness = NULL;
-                new_db->mark_visited = NULL;
-                new_db->unmark_visited = NULL;
-                new_db->put_mex = NULL;
-                new_db->free_db = tierdb_close_file;
+        for(i = 0; i< gNumberOfPositions; i++)
+                tierdb_array[i] = undecided;
 
-				tierdb_dirty = TRUE;
-        } else {
-                tierdb_get_raw = tierdb_get_raw_ptr;
-
-                //setup internal memory table
-                tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
-
-                for(i = 0; i< gNumberOfPositions; i++)
-                        tierdb_array[i] = undecided;
-
-                new_db->put_value = tierdb_set_value;
-                new_db->put_remoteness = tierdb_set_remoteness;
-                new_db->mark_visited = tierdb_mark_visited;
-                new_db->unmark_visited = tierdb_unmark_visited;
-                new_db->put_mex = tierdb_set_mex;
-                new_db->free_db = tierdb_free;
-        }
+        new_db->put_value = tierdb_set_value;
+        new_db->put_remoteness = tierdb_set_remoteness;
+        new_db->mark_visited = tierdb_mark_visited;
+        new_db->unmark_visited = tierdb_unmark_visited;
+        new_db->put_mex = tierdb_set_mex;
+        new_db->free_db = tierdb_free;
 
         new_db->get_value = tierdb_get_value;
         new_db->get_remoteness = tierdb_get_remoteness;
@@ -169,25 +136,6 @@ void tierdb_close_file()
 tierdb_cellValue* tierdb_get_raw_ptr(POSITION pos)
 {
         return (&tierdb_array[pos]);
-}
-
-tierdb_cellValue* tierdb_get_raw_file(POSITION pos)
-{
-        if(tierdb_dirty || (pos != tierdb_CurrentPosition)) {
-		tierdb_dirty = FALSE;
-		tierdb_CurrentPosition = pos;
-                z_off_t offset = sizeof(short) + sizeof(POSITION) + sizeof(tierdb_cellValue)*pos;
-                z_off_t zoffset = gztell(tierdb_filep);
-                if(offset >= zoffset)
-                        gzseek(tierdb_filep, offset-zoffset, SEEK_CUR);
-                else
-                        gzseek(tierdb_filep, offset, SEEK_SET);
-                gzread(tierdb_filep, &tierdb_CurrentValue, sizeof(tierdb_cellValue));
-		tierdb_CurrentValue = ntohs(tierdb_CurrentValue);
-		//printf("reading pos = "POSITION_FORMAT", value = %u\n", pos, tierdb_CurrentValue);
-
-        }
-        return &tierdb_CurrentValue;
 }
 
 VALUE tierdb_set_value(POSITION pos, VALUE val)
@@ -324,20 +272,28 @@ BOOLEAN tierdb_save_database ()
         unsigned long i;
         tierdb_goodCompression = 1;
         tierdb_goodClose = 0;
-        POSITION tot = 0,sTot = gMaxPosOffset[1];
-
+        POSITION tot = 0,sTot = gCurrentTierSize;
+        
+        POSITION start = 0, finish = gCurrentTierSize;
 
         if(!tierdb_array)
                 return FALSE;
-        if(gZeroMemPlayer)  //we don't save the db if playing on zero memory, but we will say that the db is saved
-                return TRUE;
 
 		// Make the directory for this game's tierdb's
 		mkdir("data", 0755);
 		sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
 		mkdir(tierdb_outfilename, 0755);
-		sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
-			kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[1]);
+        if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
+            sprintf(tierdb_outfilename, "%s/m%s_%d_%d__%llu_%llu_minitierdb.dat.gz",
+			    tierdb_outfilename, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
+            start = gDBTierStart;
+            finish = gDBTierEnd;
+            // reset the vars
+            gDBTierStart = gDBTierEnd = -1;
+        } else {
+            sprintf(tierdb_outfilename, "%s/m%s_%d_%d_tierdb.dat.gz",
+			    tierdb_outfilename, kDBName, getOption(), gCurrentTier);
+        }
 
         if((tierdb_filep = gzopen(tierdb_outfilename, "wb")) == NULL) {
                 if(kDebugDetermineValue) {
@@ -350,7 +306,7 @@ BOOLEAN tierdb_save_database ()
         tierdb_numPos[0] = htonl(gMaxPosOffset[1]);
         tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_dbVer, sizeof(short));
         tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_numPos, sizeof(POSITION));
-        for(i=0; i<gMaxPosOffset[1] && tierdb_goodCompression; i++) { //convert to network byteorder for platform independence.
+        for(i=start; i<finish && tierdb_goodCompression; i++) { //convert to network byteorder for platform independence.
                 tierdb_array[i] = htons(tierdb_array[i]);
                 tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_array+i, sizeof(tierdb_cellValue));
                 tot += tierdb_goodCompression;
@@ -368,8 +324,7 @@ BOOLEAN tierdb_save_database ()
                 if(kDebugDetermineValue) {
                         fprintf(stderr, "\nError in file compression.\n Error codes:\ngzwrite error: %d\ngzclose error:%d\nBytes To Be Written: " POSITION_FORMAT "\nBytes Written: " POSITION_FORMAT "\n",tierdb_goodCompression, tierdb_goodClose,sTot*4,tot);
                 }
-                remove
-                        (tierdb_outfilename);
+                remove (tierdb_outfilename);
                 return FALSE;
         }
 
@@ -413,8 +368,6 @@ BOOLEAN tierdb_load_database()
 
         if(!tierdb_array && !gZeroMemPlayer)
                 return FALSE;
-        else if(gZeroMemPlayer)  // we don't load the db to memory, but still report that we have loaded the db
-                return TRUE;
 
 		int index;
 		// always load current tier at BOTTOM, thus it being first
@@ -455,7 +408,6 @@ BOOLEAN tierdb_load_database()
 		if(kDebugDetermineValue)
 			printf("Files Successfully Decompressed\n");
 		return TRUE;
-
 }
 
 /* A helper to solveretrograde which simply checks for the existance of a DB.
@@ -476,4 +428,39 @@ int CheckTierDB(TIER tier, int variant) {
 		return -1;
 	}
 	return 1;
+}
+
+/* Yet another helper. Overrides the positions between gDBTierStart and
+ * gDBTierEnd with the values from the minifile. */
+BOOLEAN tierdb_load_minifile(char* filename)
+{
+	if(!gHashWindowInitialized && !tierdb_array)
+			return FALSE;
+
+    POSITION i;
+    tierdb_goodDecompression = 1;
+    tierdb_goodClose = 1;
+    BOOLEAN correctDBVer;
+
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/%s",
+                kDBName, getOption(), filename);
+	if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL)
+		return FALSE;
+	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
+	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
+	*tierdb_dbVer = ntohs(*tierdb_dbVer);
+	*tierdb_numPos = ntohl(*tierdb_numPos);
+    if(*tierdb_numPos != gCurrentTierSize)
+		return FALSE;
+	correctDBVer = (*tierdb_dbVer == tierdb_FILEVER);
+	if (correctDBVer) {
+        for(i = gDBTierStart; i < gDBTierEnd && tierdb_goodDecompression; i++) {
+			tierdb_goodDecompression = gzread(tierdb_filep, tierdb_array+i, sizeof(tierdb_cellValue));
+			tierdb_array[i] = ntohs(tierdb_array[i]);
+		}
+	}
+	tierdb_goodClose = gzclose(tierdb_filep);
+	if(!(tierdb_goodDecompression && (tierdb_goodClose == 0) && correctDBVer))
+		return FALSE;
+	return TRUE;
 }
