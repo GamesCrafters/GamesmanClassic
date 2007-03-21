@@ -192,9 +192,7 @@ void MenusBeforeEvaluation()
         printf("\td)\t(D)ebug Module BEFORE Evaluation\n");
     if(kGameSpecificMenu)
         printf("\tg)\t(G)ame-specific options for %s\n",kGameName);
-    #ifdef HAVE_XML
     printf("\te)\tConfigure Static (E)valuator\n");
-    #endif
     printf("\t2)\tToggle (2)-bit solving (currently %s)\n", gTwoBits ? "ON" : "OFF");
     printf("\tp)\tToggle Global (P)osition solving (currently %s)\n", gGlobalPositionSolver ? "ON" : "OFF");
     printf("\tl)\tToggle (L)ow Mem solving (currently %s)\n", gZeroMemSolver ? "ON" : "OFF");

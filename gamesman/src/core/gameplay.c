@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.47 2007-03-07 01:17:01 brianzimmer Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.48 2007-03-21 16:35:11 brianzimmer Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1434,7 +1434,6 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
-        #ifdef HAVE_XML
         static char prediction[80];
         VALUE value;
 
@@ -1451,9 +1450,6 @@ STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTur
                 (void) sprintf(prediction," ");
 
         return(prediction);
-        #else
-        return " ";
-        #endif
 }
 
 

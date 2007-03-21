@@ -686,31 +686,33 @@ fList ParameterizeTrait(int traitNum, int libraryUpperBound) {
   memset(currFeature, 0, sizeof(struct fNode));
   
   if(traitNum<=libraryUpperBound){
-  switch(traitNum) {
-  case 0:
-    RequestPiece(currFeature);
-    break;
-  case 1:
-    RequestPiece(currFeature);
-    RequestValue("\nWhich edge should this pertain to?\n\n0) Top\n1) Right\n2) Bottom\nAnything else) Left\n",0,0,currFeature);
-    break;
-  case 2:
-    RequestPiece(currFeature);
-    break;
-  case 3:
-    RequestPiece(currFeature);
-    RequestBoolean("Should diagonals be considered?\n",0,currFeature);
-    break;
+    switch(traitNum) {
+    case 0:
+      RequestPiece(currFeature);
+      break;
+    case 1:
+      RequestPiece(currFeature);
+      RequestValue("\nWhich edge should this pertain to?\n\n0) Top\n1) Right\n2) Bottom\nAnything else) Left\n",0,0,currFeature);
+      break;
+    case 2:
+      RequestPiece(currFeature);
+      break;
+    case 3:
+      RequestPiece(currFeature);
+      RequestBoolean("Should diagonals be considered?\n",0,currFeature);
+      break;
+    }
   }
-  }
-  printf("libraryUpperBound+1: %c\n",libraryUpperBound+1); 
-  if(traitNum > libraryUpperBound) {    
-    printf("custom!\n");
+  
+  if(traitNum > libraryUpperBound) {
     currFeature->type = custom;
     currFeature->name = copyString(gCustomTraits[traitNum-libraryUpperBound]);
+    currFeature->fEvalC = (featureEvaluatorCustom)gGetSEvalCustomFnPtr(currFeature->name);
+	      
   } else {
     currFeature->type = library;
     currFeature->name = copyString(LibraryTraits[traitNum]);
+    currFeature->fEvalL = (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature->name);
   }
 
   ParameterizeScalingFunction(currFeature);
