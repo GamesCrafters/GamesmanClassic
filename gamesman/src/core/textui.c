@@ -781,11 +781,9 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'l': case 'L':
 	gZeroMemSolver = !gZeroMemSolver;
 	break;
-	#ifdef HAVE_XML
     case 'e': case 'E':
 	StaticEvaluatorMenu();
 	break;
-	#endif
     case 'm': case 'M': {
 	if(gCanonicalPosition)
 	    gSymmetries = !gSymmetries;

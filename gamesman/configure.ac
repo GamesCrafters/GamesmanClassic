@@ -170,15 +170,15 @@ AC_CHECK_LIB(gmp, __gmpz_init, [
 # Make sure XML Parser is installed as it is required for Static Evaluator
 AC_CHECK_LIB(expat, XML_ParserCreate,
     [expat_found=yes],
-    [AC_MSG_WARN([Expat (libexpat.org) not found, static evaluator will not be supported.])])
+    [AC_MSG_WARN([Expat (libexpat.org) not found, saving static evaluator will not be supported.])])
 AC_CHECK_LIB(scew, scew_attribute_create,
     [scew_found=yes],
-	  [AC_MSG_WARN([Expat (libexpat.org) not found, static evaluator will not be supported.])])
+	  [AC_MSG_WARN([SCEW (http://www.nongnu.org/scew/) not found, saving static evaluator will not be supported.])])
 OUTXMLLIBFLAGS=
 OUTXMLCFLAGS=
 if test $expat_found = yes; then
   if test $scew_found = yes; then
-	  OUTXMLLIBFLAGS="-lexpat -lscew"
+	  OUTXMLLIBFLAGS="-lscew -lexpat"
 	  OUTXMLCFLAGS="-DHAVE_XML"
   fi
 fi

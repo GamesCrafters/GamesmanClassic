@@ -364,7 +364,7 @@ scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
     while ((attribute = scew_attribute_next(child, attribute)) != NULL)
     {
 	    if(strcmp(scew_attribute_name(attribute),"name")==0) {
-    	  if(strcmp(scew_attribute_value(attribute), evaluatorName))
+    	  if(strcmp(scew_attribute_value(attribute), evaluatorName)==0)
     	    return child;
     	}
     }
@@ -469,6 +469,9 @@ BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
   evaluatorToReplace = findEvaluatorNode(scew_tree_root(tree), evaluator->name);
   
   if( evaluatorToReplace!=NULL )
+    printf("Evaluator to replace: %s", evaluatorToReplace);
+  
+  if( evaluatorToReplace!=NULL )
     scew_element_free(evaluatorToReplace);
   
   scew_element_add_elem(scew_tree_root(tree), createEvaluatorNode(evaluator));
@@ -494,17 +497,19 @@ BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
 ************************************************************************/
 
 BOOLEAN initializeStaticEvaluator(STRING fileName){
-  printf("Reading XML data from: %s\n", fileName);
-  if(evaluatorList!=NULL)
-    freeEvaluatorList(evaluatorList);
-  evaluatorList = NULL;
-  
   numCustomTraits=0;
   if(gCustomTraits!=NULL){
     while(strcmp(gCustomTraits[numCustomTraits], "")!=0) numCustomTraits++;
   }
-  
-  return loadDataFromXML(fileName);
+  #ifdef HAVE_XML
+    printf("Reading XML data from: %s\n", fileName);
+    if(evaluatorList!=NULL)
+      freeEvaluatorList(evaluatorList);
+    evaluatorList = NULL;
+    return loadDataFromXML(fileName);
+  #else
+    return TRUE;
+  #endif
 }
 
 
@@ -617,6 +622,7 @@ void NewTraitMenu(STRING fileName) {
   int traitNum;
   fList currFeature;
   char namePlaceHolder[30];
+  char defaultName = "default";
   int variant = 0;
   char choice=0;
   seList currEvaluator = NULL;
@@ -626,6 +632,8 @@ void NewTraitMenu(STRING fileName) {
   printf("Enter a variant for this evaluator (-1 for all): ");
   scanf("%d", &variant);
   
+  if(strcmp(namePlaceHolder, "")==0)
+    strcpy(namePlaceHolder,defaultName);
   currEvaluator = SafeMalloc(sizeof(struct seNode));
   currEvaluator->name = copyString(namePlaceHolder);
   //currEvaluator->element = element;
@@ -664,10 +672,13 @@ void NewTraitMenu(STRING fileName) {
     }
   }
   
+  
   currEvaluator->featureList = copyFeatureList(featureList);
   currEvaluator->next = evaluatorList;
   evaluatorList = currEvaluator;
-  writeEvaluatorToXMLFile(evaluatorList, fileName);
+  #ifdef HAVE_XML
+    writeEvaluatorToXMLFile(evaluatorList, fileName);
+  #endif
 }
 
 fList ParameterizeTrait(int traitNum, int libraryUpperBound) {
@@ -967,6 +978,7 @@ USERINPUT StaticEvaluatorMenu()
   char fileName[30];
   sprintf(fileName, "xml/%s.xml", kDBName);
   
+  #ifdef HAVE_XML
   if( !gSEvalLoaded ){
     // Check for existence of the file
     if(fopen(fileName, "r") == NULL){
@@ -992,6 +1004,9 @@ USERINPUT StaticEvaluatorMenu()
   //  ---> Enough for the parser to work with
   // Regenerate list of defined Static Evaluators
   // Base Menu Choices off of that
+  
+  #endif
+  
   if(!initializeStaticEvaluator(fileName)){
     printf("Sorry, the Static Evaluator failed to initialize.");
     return result;
