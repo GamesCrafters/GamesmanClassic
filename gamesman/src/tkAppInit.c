@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.35 2007-02-21 18:49:38 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.36 2007-03-23 15:13:34 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -427,7 +427,6 @@ DetermineValueCmd(dummy, interp, argc, argv)
     interp->result = gValueString[(int)DetermineValue(position)];
     gMenuMode = Evaluated;
 
-
     return TCL_OK;
   }
 }
@@ -449,7 +448,6 @@ GetValueOfPositionCmd(dummy, interp, argc, argv)
   else {
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
-
     interp->result = gValueString[(int)GetValueOfPosition(position)];
     return TCL_OK;
   }
@@ -473,7 +471,6 @@ RemotenessCmd(dummy, interp, argc, argv)
   else {
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
-
     sprintf(interp->result,"%d",(int)Remoteness(position));
     return TCL_OK;
   }
@@ -582,7 +579,7 @@ PrimitiveCmd(dummy, interp, argc, argv)
   }
 }
 
-/* [C_GetValueMoves $position]
+/* [C_GetValueMoves $position $gameSolved]
  * returns {move value remoteness delta_remoteness}
  *
  * Caveat: C_GetValueMoves is the only way Tcl has to get moves.
@@ -599,48 +596,58 @@ GetValueMovesCmd(dummy, interp, argc, argv)
     char **argv;			/* Argument strings. */
 {
   POSITION position;
+  BOOLEAN solved = TRUE;
   MOVELIST *ptr, *head;
   VALUE value, j_value, m_value;
   char theAnswer[10000], tmp[1000];
   VALUE_MOVES *vMoves;
   REMOTENESS remote, delta;
-  if (argc != 2) {
+  if (argc != 3) {
     interp->result = "wrong # args: GetValueMoves (int)Position";
     return TCL_ERROR;
   }
   else {
     if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
       return TCL_ERROR;
+    if (0 == strcmp("true", argv[2])) {
+      solved = FALSE;
+    }
     head = ptr = GenerateMoves(position);
     theAnswer[0] = '\0';
     while (ptr != NULL) {
       POSITION temp = DoMove(position,ptr->move);
-      value = GetValueOfPosition(temp);
-      //value = GetValueOfPosition(DoMove(position,ptr->move));
-      remote = Remoteness(temp);
-      vMoves = GetValueMoves(position);
+      if (solved) {
+	value = GetValueOfPosition(temp);
+	//value = GetValueOfPosition(DoMove(position,ptr->move));
+	remote = Remoteness(temp);
+	vMoves = GetValueMoves(position);
 
-      //Flip values since moving to a winning position is a losing move
-      if (value == lose) {
-	j_value = WINMOVE;
-	m_value = win;
-      } else if (value == tie) {
-	j_value = TIEMOVE;
-	m_value = tie;
-      } else if (value == win) {
-	j_value = LOSEMOVE;
-	m_value = lose;
-      } else {
-	j_value = -1;
-	m_value = -1;
-      }
-      delta = FindDelta(remote, vMoves->remotenessList[j_value], m_value);
-      if (gGoAgain(position,ptr->move)) {
-	switch(value) {
-	case win: value = lose; break;
-	case lose: value = win; break;
-	default: value = value;
+	//Flip values since moving to a winning position is a losing move
+	if (value == lose) {
+	  j_value = WINMOVE;
+	  m_value = win;
+	} else if (value == tie) {
+	  j_value = TIEMOVE;
+	  m_value = tie;
+	} else if (value == win) {
+	  j_value = LOSEMOVE;
+	  m_value = lose;
+	} else {
+	  j_value = -1;
+	  m_value = -1;
 	}
+	delta = FindDelta(remote, vMoves->remotenessList[j_value], m_value);
+	if (gGoAgain(position,ptr->move)) {
+	  switch(value) {
+	  case win: value = lose; break;
+	  case lose: value = win; break;
+	  default: value = value;
+	  }
+	}
+      } else {
+	value = lose;
+	remote = 0;
+	delta = 0;
       }
 
       /*

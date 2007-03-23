@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.52 2007-02-21 18:49:39 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.53 2007-03-23 15:13:34 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -681,11 +681,11 @@ proc DriverLoop { } {
    
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
-    global gMoveDelay gGameDelay gMoveType gGameSolved
+    global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved
     global gWhoseTurn gLeftName gRightName
     global gameMenuToDriverLoop
 
-    if { !$gGameSolved } {
+    if { [expr !$gGameSolved] } {
 	return
     }
 
@@ -700,11 +700,16 @@ proc DriverLoop { } {
 	    if { $primitive != "Undecided" } {
 		set theMoves  [list]
 	    } else {
-		set theMoves  [C_GetValueMoves $gPosition]
+		set theMoves  [C_GetValueMoves $gPosition $gReallyUnsolved]
 	    }
 	    set lastMove      [peek $gMovesSoFar]
-	    set theValue      [C_GetValueOfPosition $gPosition]
-	    set theRemoteness [C_Remoteness $gPosition]
+	    if {$gReallyUnsolved} {
+		set theValue "lose"
+		set theRemoteness 0
+	    } else {
+		set theValue      [C_GetValueOfPosition $gPosition]
+		set theRemoteness [C_Remoteness $gPosition]
+	    }
 	    
 	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
 	    update idletasks
@@ -732,15 +737,15 @@ proc DriverLoop { } {
 	    update idletasks
        	    
 	    if { [PlayerIsComputer] } {
-		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 		after [expr int($gMoveDelay * 1000)]
-		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+								     GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 		DoComputerMove
 		set gWaitingForHuman false
 		update
 	    } else {
 		global gSkipInputOnSingleMove gJustUndone
-		if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition]] == 1} {
+		if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition $gReallyUnsolved]] == 1} {
 		    SwitchWhoseTurn
 		    DoComputerMove
 		    SwitchWhoseTurn
@@ -848,9 +853,9 @@ proc HandleComputersMove { c oldPos theMove Position } {
 
 proc DoHumanMove { } {
 
-    global gPosition gMoveType
+    global gPosition gMoveType gReallyUnsolved
 
-    GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+    GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 
 }
 
@@ -878,16 +883,16 @@ proc ReturnFromHumanMove { theMove } {
 
 proc ReturnFromHumanMoveHelper { theMove } {
         
-    global gPosition gGameSoFar gMovesSoFar gMoveType
+    global gPosition gGameSoFar gMovesSoFar gMoveType gReallyUnsolved
 
     set primitive [C_Primitive $gPosition]
 
-    set PositionValueList [C_GetValueMoves $gPosition]
+    set PositionValueList [C_GetValueMoves $gPosition $gReallyUnsolved]
 
     if { $primitive == "Undecided" &&
          [containskey $theMove $PositionValueList] } {
         
-        GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+        GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
         
         set oldPosition $gPosition
                 
@@ -1041,9 +1046,9 @@ proc EnableMoves {} {
 
 proc ToggleMoves { moveType } {
 
-    global gMoveType gPosition
+    global gMoveType gPosition gReallyUnsolved
 
-    ChangeMoveType $gMoveType $moveType $gPosition [C_GetValueMoves $gPosition]
+    ChangeMoveType $gMoveType $moveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 
     set gMoveType $moveType
 
@@ -1122,7 +1127,7 @@ proc UndoNMoves { n } {
 
 proc UndoHelper { } {
     
-    global gPosition gMovesSoFar gGameSoFar gMoveType gRedoList
+    global gPosition gMovesSoFar gGameSoFar gMoveType gRedoList gReallyUnsolved
     
     if { [llength $gGameSoFar] != 1 } {
         
@@ -1130,7 +1135,7 @@ proc UndoHelper { } {
         
         if { $primitive == "Undecided" } {
             
-            GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition]
+            GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
             
         } else {
 
@@ -1258,17 +1263,24 @@ proc SendMessage { arg } {
 
 proc GetPredictions {} {
 
-    global gPosition gPredString gWhoseTurn
+    global gPosition gPredString gWhoseTurn gReallyUnsolved
     global gLeftName gRightName
 
     if { [C_Primitive $gPosition] != "Undecided" } {
 	set gPredString ""
     } else {
 
-	### Get the value, the player and set the prediction
-	set theValue      [C_GetValueOfPosition $gPosition]
-	set theRemoteness [C_Remoteness $gPosition]
-	set theMex        [C_Mex $gPosition]
+	if {$gReallyUnsolved} {
+	    ### Get the value, the player and set the prediction
+	    set theValue      "Lose"
+	    set theRemoteness 0
+	    set theMex        0
+	} else {
+	    ### Get the value, the player and set the prediction
+	    set theValue      [C_GetValueOfPosition $gPosition]
+	    set theRemoteness [C_Remoteness $gPosition]
+	    set theMex        [C_Mex $gPosition]
+	}
 	
 	if { $gWhoseTurn == "Left" } {
 	    set playersName $gLeftName
