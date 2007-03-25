@@ -86,18 +86,35 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDROWS 3
+#define BOARDROWS 4
 #define BOARDCOLS BOARDROWS
 #define BOARDSIZE BOARDROWS * BOARDCOLS
+
+#define HORIZPLAYER BOARDSIZE 
+#define SWAP_OFFERED BOARDSIZE + 1
 
 #define BLACKCHAR 'X'
 #define WHITECHAR 'O'
 #define BLANKCHAR ' '
 
+#define SWAP_NEXT BLACKCHAR
+#define SKIP_NEXT WHITECHAR
+#define NO_OFFER  BLANKCHAR
+
+#define SWAPMOVE -3
+#define SKIPMOVE -4
+
 #define WHITEPLAYER 1
 #define BLACKPLAYER 2
 
 #define FIRSTPLAYER WHITEPLAYER
+
+typedef struct INode {
+
+	int index;
+	struct INode* next;
+
+} lnode;
 
 /*************************************************************************
 **
@@ -105,6 +122,7 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
+BOOLEAN variant_swaprule = TRUE;
 
 /*************************************************************************
 **
@@ -125,7 +143,10 @@ STRING                  MoveToString(MOVE move);
 int                     ColMaskBoard(char* board, int col, char piece);
 int                     RowMaskBoard(char* board, int row, char piece);
 void			PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
-int                     MaskExpand(int mask, int row);
+void			push(lnode** stack, int index);
+int			pop(lnode** stack);
+void			stackfree(lnode* stack);
+BOOLEAN			inbounds(int r, int c);
 
 /************************************************************************
 **
@@ -144,14 +165,18 @@ void InitializeGame ()
 
   InitializeHelpStrings();
 
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces, NULL, 0);  // ***
+  gNumberOfPositions = generic_hash_init(BOARDSIZE+2, pieces, NULL, 0);  // ***
 
-  initialBoard = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+  initialBoard = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
 
   for(i = 0; i < BOARDSIZE; i++)
 	initialBoard[i] = BLANKCHAR;
-  initialBoard[BOARDSIZE] = '\0';
 
+  initialBoard[HORIZPLAYER] = (FIRSTPLAYER == WHITEPLAYER ? WHITECHAR : BLACKCHAR);
+  	// The next-to-last cell keeps track of who is trying to win horizontally. This is represented as a character
+	// to keep the hash efficient.
+	
+  initialBoard[SWAP_OFFERED] = SWAP_NEXT;
 
   gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER);
 
@@ -216,15 +241,24 @@ kHelpExample =
 
 MOVELIST *GenerateMoves (POSITION position)
 {
+
     MOVELIST* validMoves;
     char* board;
 
-    board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+    board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
 
     generic_hash_unhash(position, board);
 
-    validMoves = getNextBlank(board, 0);
+    if(board[SWAP_OFFERED] == SKIP_NEXT)
+    	validMoves = CreateMovelistNode(SKIPMOVE, NULL);
+    else
+    	validMoves = getNextBlank(board, 0);
+
+    if(board[SWAP_OFFERED] == SWAP_NEXT && generic_hash_turn(position) != FIRSTPLAYER)
+    	validMoves = CreateMovelistNode(SWAPMOVE, validMoves);
+
     SafeFree(board);
+
     return validMoves;
 }
 
@@ -251,16 +285,27 @@ POSITION DoMove (POSITION position, MOVE move)
   POSITION newPosition;
   int turn = generic_hash_turn(position);
 
-  board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+  board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
   generic_hash_unhash(position, board);
 
-  board[move] = ((turn == 1) ? WHITECHAR : BLACKCHAR);
+  if(move == SKIPMOVE) {
+    board[SWAP_OFFERED] = NO_OFFER;
 
-  newPosition = generic_hash_hash(board, ((turn % 2) + 1));
+  } else if (move == SWAPMOVE) {
+    board[HORIZPLAYER] = (board[HORIZPLAYER] == WHITECHAR ? BLACKCHAR : WHITECHAR);
+    board[SWAP_OFFERED] = SKIP_NEXT;
+
+  } else {
+    board[move] = ((turn == 1) ? WHITECHAR : BLACKCHAR);
+    if(turn == 2) board[SWAP_OFFERED] = NO_OFFER;
+  }
+ 
+  newPosition = generic_hash_hash(board, (turn % 2)+1);
 
   SafeFree(board);
 
   return newPosition;
+
 }
 
 
@@ -289,38 +334,108 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
     char* board;
-    int mask, nextmask, i;
+    char searchchar;
+    BOOLEAN* visited;
+    BOOLEAN search_horiz;
+    int i, current, r, c;
+    lnode* stack = NULL;
 
+    board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
+    visited = (BOOLEAN*)SafeMalloc((BOARDSIZE)*sizeof(BOOLEAN));
 
-    board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+    for(i = 0; i < BOARDSIZE; i++) visited[i] = FALSE;
 
     generic_hash_unhash(position, board);
 
-    mask = RowMaskBoard(board, 0, BLACKCHAR);
-    for(i = 1; i < BOARDROWS; i++) {
-      nextmask = RowMaskBoard(board, i, BLACKCHAR);
-      mask = (mask | (mask << 1)) & nextmask;
-      mask = MaskExpand(mask, RowMaskBoard(board, i, BLACKCHAR));
+    if(generic_hash_turn(position) == WHITEPLAYER)
+    	searchchar = BLACKCHAR; //remember that this gets called at the beginning of the turn:
+    else                        //we're seeing if the previous player won.
+    	searchchar = WHITECHAR;
+
+
+    if(board[HORIZPLAYER] == searchchar) { //we're looking for a horizontal connection;
+
+    	search_horiz = TRUE;
+    	
+	for(i = 0; i < BOARDROWS; i++) {
+		if(board[BOARDROWS*i] == searchchar) {
+			push(&stack, BOARDROWS*i);
+			visited[BOARDROWS*i] = TRUE;
+		}
+	}
+
+    } else {
+
+        search_horiz = FALSE;
+
+    	for(i = 0; i < BOARDCOLS; i++) {
+		if(board[i] == searchchar) {
+			push(&stack, i);
+			visited[i] = TRUE;
+		}
+	}
+
     }
-    if(mask != 0) {
-      return gStandardGame ? lose : win;     // WHITE LOSES
+	
+    while(stack != NULL) {
+	current = pop(&stack);
+	if((search_horiz && current % BOARDCOLS == BOARDCOLS - 1 && board[current] == searchchar) ||
+	   (!search_horiz && current / BOARDROWS == BOARDROWS - 1 && board[current] == searchchar)) {
+
+		stackfree(stack);
+		SafeFree(visited);
+		SafeFree(board);
+		return lose;
+
+	} else {
+
+		r = (int)(current / BOARDROWS);
+		c = (int)(current % BOARDCOLS);
+
+		
+		if(inbounds(r-1, c) && !(visited[c+(r-1)*BOARDROWS]) && board[c+(r-1)*BOARDROWS] == searchchar) {
+			push(&stack, c+(r-1)*BOARDROWS);
+			visited[c+(r-1)*BOARDROWS] = TRUE;
+		}
+
+		if(inbounds(r-1, c+1) && !(visited[(c+1)+(r-1)*BOARDROWS]) && board[(c+1)+(r-1)*BOARDROWS] == searchchar) {
+			push(&stack, (c+1) + (r-1)*BOARDROWS);
+			visited[(c+1)+(r-1)*BOARDROWS] = TRUE;
+		}
+
+		if(inbounds(r, c-1) && !(visited[(c-1) + r*BOARDROWS]) && board[(c-1) + r*BOARDROWS] == searchchar) {
+			push(&stack, (c-1) + r*BOARDROWS);
+			visited[(c-1) + r*BOARDROWS] = TRUE;
+		}
+
+		if(inbounds(r, c+1) && !(visited[(c+1) + r*BOARDROWS]) && board[(c+1) + r*BOARDROWS] == searchchar) {
+			push(&stack, (c+1) + r*BOARDROWS);
+			visited[(c+1) + r*BOARDROWS] = TRUE;
+		}
+
+		if(inbounds(r+1, c-1) && !(visited[(c-1) + (r+1)*BOARDROWS]) && board[(c-1) + (r+1)*BOARDROWS] == searchchar) {
+			push(&stack, (c-1) + (r+1)*BOARDROWS);
+			visited[(c-1) + (r+1)*BOARDROWS] = TRUE;
+		}
+
+		if(inbounds(r+1, c) && !(visited[c+(r+1)*BOARDROWS]) && board[c+(r+1)*BOARDROWS] == searchchar) {
+			push(&stack, c + (r+1)*BOARDROWS);
+			visited[(c + (r+1)*BOARDROWS)] = TRUE;
+		}
+
+	}
+		
+
     }
 
-    mask = ColMaskBoard(board, 0, WHITECHAR);
-    for(i = 1; i < BOARDROWS; i++) {
-      nextmask = ColMaskBoard(board, i, WHITECHAR);
-      mask = (mask | (mask << 1)) & nextmask;
-      mask = MaskExpand(mask, ColMaskBoard(board, i, WHITECHAR));
-    }
-    if(mask != 0) {
-      return gStandardGame ? lose : win;  // BLACK LOSES
-    }
-    if (GenerateMoves(position) == NULL) {
-      return tie;
-    }
+
+    stackfree(stack);
+    SafeFree(visited);
+    SafeFree(board);
+
     return undecided;
-}
 
+}
 
 /************************************************************************
 **
@@ -344,18 +459,18 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   int n, row, i, col;
   char* board;
 
-  board = (char*)SafeMalloc((BOARDSIZE+1)*sizeof(char));
+  board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
 
   generic_hash_unhash(position, board);
 
+  printf("\n\n\n\n");
 
 
+  //printf("Prediction: %s", GetPrediction(position)); //check doc
+  printf("  %s's turn (%c):\n\n", playersName, generic_hash_turn(position) == 1 ? WHITECHAR : BLACKCHAR);
 
-  // printf("Prediction: %s", getPrediction()); //check doc
-  printf("%s's turn:\n", playersName);
-
-  printf("X: vertical");
-  printf("O: horizontal");
+  printf("  %c: horizontal\n", board[HORIZPLAYER]);
+  printf("  %c: vertical\n\n", board[HORIZPLAYER] == 'O' ? 'X' : 'O');
 
   printf("    ");
 
@@ -387,7 +502,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   for(n = 0; n < BOARDCOLS; n++)
     printf("%c   ", 'a'+n);
 
-  printf("\n");
+  printf("\n\n");
 
   SafeFree(board);
 
@@ -445,11 +560,26 @@ STRING MoveToString (MOVE move)
 {
   STRING movestring = (char*)SafeMalloc(20*sizeof(char));
 
-  movestring[0] = 'a' + (int)(move % BOARDCOLS);
-  movestring[1] = '0' + (int)(move / BOARDROWS);
-  movestring[2] = '\0';
+  if(move == SKIPMOVE) {
+  
+  	movestring [0] = 'k';
+	movestring [1] = '\0';
+	
+  } else if(move == SWAPMOVE) {
+
+  	movestring [0] = 'w';
+	movestring [1] = '\0';
+
+  } else {
+
+  	movestring[0] = 'a' + (int)(move % BOARDCOLS);
+  	movestring[1] = '0' + (int)(move / BOARDROWS);
+  
+ 	movestring[2] = '\0';
+
+  }
+
   return movestring;
-  SafeFree(movestring);
 }
 
 
@@ -520,8 +650,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input) {
 
-      if(strlen(input) < 2) {
+      if(strlen(input) < 1) {
            return FALSE;
+      } else if(input[0] == 'w' || input[0] == 'k') {
+           return TRUE;
       } else if((input[0] < 'a') || (input[0] > BOARDROWS+'a')) {
            return FALSE;
       } else if((input[1] < '0') || (input[1] > BOARDROWS+'0')) {
@@ -548,7 +680,18 @@ BOOLEAN ValidTextInput (STRING input) {
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-    return(((int)(input[0]-'a')+(int)(input[1]-'0')*BOARDROWS));
+	int output;
+
+        if(input[0] == 'w')
+		output = SWAPMOVE;
+	else if(input[0] == 'k')
+		output = SKIPMOVE;
+	else
+		output = (int)(input[0]-'a')+(int)(input[1]-'0')*BOARDROWS;
+
+	
+	return output;
+
 }
 
 
@@ -557,7 +700,7 @@ MOVE ConvertTextInputToMove (STRING input)
 ** NAME:        GameSpecificMenu
 **
 ** DESCRIPTION: Prints, receives, and sets game-specific parameters.
-**
+***
 **              Examples
 **              Board Size, Board Type
 **
@@ -622,7 +765,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2;
 }
 
 
@@ -643,7 +786,7 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-    return 0;
+    return variant_swaprule ? 0 : 1;
 }
 
 
@@ -660,9 +803,7 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+    variant_swaprule = (option == 0);
 }
 
 
@@ -717,42 +858,40 @@ MOVELIST* getNextBlank(STRING board, int index) {
     return validMoves;
 }
 
-int RowMaskBoard(char* board, int row, char piece) {
-	int i, mask;
-	mask = 0;
 
-	if(row > BOARDROWS) {
-		return 0;
-	}
-	for(i = 0; i < BOARDROWS; i++) {
-		mask <<= 1;
-		mask += (board[row*BOARDROWS+i] == piece) ? 1 : 0;
-	}
-	return mask;
+void push(lnode** stack, int nindex) {
+
+	lnode* tmp = SafeMalloc(sizeof(*tmp));
+	tmp->index = nindex;
+	tmp->next = *stack;
+	*stack = tmp;
+
 }
 
-int ColMaskBoard(char* board, int col, char piece) {
-	int i, mask;
-	mask = 0;
+int pop(lnode** stack) {
 
-	if(col > BOARDROWS) {
-		return 0;
-	}
-	for(i = 0; i < BOARDROWS; i++) {
-		mask <<= 1;
-		mask += (board[i*BOARDROWS+col] == piece) ? 1 : 0;
-	}
-	return mask;
+	int reti = (*stack)->index;
+	lnode* next = (*stack)->next;
+	SafeFree(*stack);
+	*stack = next;
+
+	return reti;
+
 }
 
+void stackfree(lnode* stack) {
 
-int MaskExpand(int mask, int row) {
-  int maskrow;
-  maskrow = (((mask >> 1) | (mask << 1) | mask) & row);
-  if (maskrow != mask) {
-    return MaskExpand(maskrow, row);
-  }
-  return mask;
+	lnode* tmp;
+
+	while(stack != NULL) {
+		tmp = stack->next;
+		SafeFree(stack);
+		stack=tmp;
+	}
+}
+
+BOOLEAN inbounds(int row, int col) {
+	return row < BOARDROWS && row >= 0 && col < BOARDCOLS && col >= 0;
 }
 
 
@@ -761,6 +900,9 @@ int MaskExpand(int mask, int row) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.7  2007/02/28 23:13:40  and-qso
+ ** Fixed player direction representation from visual to text-based.
+ **
  ** Revision 1.1.2.9  2007/02/18 08:32:41  hevanm
  ** Changes from mainline.
  **
