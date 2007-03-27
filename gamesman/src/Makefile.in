@@ -425,7 +425,7 @@ CCTCL = $(CON_SO) $(DNB_SO)
 
 ### Games that need special attention
 SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE)
-SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO)
+SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(9MM_SO)
 
 
 ##############################################################################
@@ -558,6 +558,9 @@ $(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 
 $(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
+
+$(9MM_SO): $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+	$(CC) -o $@ $(TTT_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 pygamesman: $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o pygamesman$(OBJSUFFIX) $(PYTHONCFLAGS) pygamesman.c
