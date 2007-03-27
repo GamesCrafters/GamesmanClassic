@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.54 2007-03-27 01:51:26 dmchan Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.55 2007-03-27 18:53:13 dmchan Exp $
 ##
 ############################################################################
 
@@ -722,8 +722,8 @@ proc DriverLoop { } {
 		# capture position before move
 		# only do if printing is enabled
 		if { $printing == true } {
-			doCapture $gMoveType $gPosition $theMoves true
-			doCapture $gMoveType $gPosition $theMoves false
+			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
+			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
 		}
 
 	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
@@ -963,13 +963,13 @@ proc GameOver { position gameValue lastMove } {
         if { $gameValue == "Win" } {
             
             set WhoWon $gRightName
-	    set WhoLost $gLeftName
+	    	set WhoLost $gLeftName
             set WhichPieceWon $gRightPiece
 
         } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gLeftName
-	    set WhoLost $gRightName
+	    	set WhoLost $gRightName
             set WhichPieceWon $gLeftPiece
 
         }
@@ -979,13 +979,13 @@ proc GameOver { position gameValue lastMove } {
         if { $gameValue == "Win" } {
             
             set WhoWon $gLeftName
-	    set WhoLost $gRightName
+	    	set WhoLost $gRightName
             set WhichPieceWon $gLeftPiece
 
         } elseif { $gameValue == "Lose" } {
 
             set WhoWon $gRightName
-	    set WhoLost $gLeftName
+	    	set WhoLost $gLeftName
             set WhichPieceWon $gRightPiece
 
         }
@@ -1009,7 +1009,7 @@ proc GameOver { position gameValue lastMove } {
     update idletasks
 
 	if { $printing == true } {
-		doPrinting
+		doPrinting .middle.f2.cMain $gPosition $WhoWon
 	}
 	
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove
