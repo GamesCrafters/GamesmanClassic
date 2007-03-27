@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.121 2007-02-08 06:23:59 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.122 2007-03-27 01:51:26 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -232,7 +232,8 @@ proc InitWindow { kRootDir kExt } {
     global kSavedFileTypes
     #Redo
     global gRedoList
-
+	# mistakes
+	global gMistakeList
     #
     # Initialize the constants
     #
@@ -253,26 +254,27 @@ proc InitWindow { kRootDir kExt } {
     set gPredictionsOn false
     set gameMenuToDriverLoop false
     set maxRemoteness 0
-
+	
     set kSavedFileTypes {
-	{{All Save Files}             {.gcs}}
-	{{GamesCrafters Save File}    {.gcs}          }
+		{{All Save Files}             {.gcs}}
+		{{GamesCrafters Save File}    {.gcs}}
     }
     #	{{Smart Game Format}          {.sgf}          }
     #	{{Portable Game Notation}     {.pgn}          }
 
     set gRedoList [list]
-
+	set gMistakeList [list]
+	
     set convertExists false
     if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
-	file delete "$kRootDir/../bitmaps/convertTest.gif"
+		file delete "$kRootDir/../bitmaps/convertTest.gif"
     }
     if { [catch {exec convert -size 50x50 xc:black "$kRootDir/../bitmaps/convertTest.gif"}] } {
-	set convertExists false
-    } else {
-	if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
-	    set convertExists true
-	}
+		set convertExists false
+	} else {
+		if { [file exists "$kRootDir/../bitmaps/convertTest.gif"] } {
+		    set convertExists true
+		}
     }
 
     if { !$convertExists } {
@@ -292,8 +294,8 @@ proc InitWindow { kRootDir kExt } {
 	    set maxwidth [expr $maxheight * $aspectRatioWidth / $aspectRatioHeight]
 	} else {
 	    if { $tempWidth > $maxwidth } {
-		set maxwidth [expr [expr $maxwidth / $aspectRatioWidth] * $aspectRatioWidth]
-		set maxheight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
+			set maxwidth [expr [expr $maxwidth / $aspectRatioWidth] * $aspectRatioWidth]
+			set maxheight [expr $maxwidth * $aspectRatioHeight / $aspectRatioWidth]
 	    }
 	}
 	wm geometry . =[expr int($maxwidth)]x[expr int($maxheight)]
@@ -312,16 +314,16 @@ proc InitWindow { kRootDir kExt } {
 
     if { $tcl_platform(platform) == "windows" } {
         set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 10)] bold"
-	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 10)]"
-	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 9)] bold"
-	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 15)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -7)]"
+		set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 10)]"
+		set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 9)] bold"
+		set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 15)] bold"
+		set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -7)]"
     } else {
         set kLabelFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
-	set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 12)]"
-	set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
-	set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 18)] bold"
-	set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -8)]"
+		set kDocumentFont "Helvetica [expr int($gWindowWidthRatio * 12)]"
+		set kToMoveToWinFont "Helvetica [expr int($gWindowWidthRatio * 12)] bold"
+		set kPlayerLabelFont "Helvetica [expr int($gWindowWidthRatio * 18)] bold"
+		set kValueHistoryLabelFont "Helvetica [expr int($gWindowWidthRatio * -8)]"
     }
     set maxMoveString [font measure $kValueHistoryLabelFont "0"]
 
@@ -340,10 +342,10 @@ proc InitWindow { kRootDir kExt } {
     #
     
     canvas .cToolbar -highlightthickness 0 \
-	-bd 0 \
-	-width $gWindowWidth \
-	-height [expr $gWindowHeight / 30.0] \
-	-background black
+		-bd 0 \
+		-width $gWindowWidth \
+		-height [expr $gWindowHeight / 30.0] \
+		-background black
 
 	InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
 
@@ -357,14 +359,14 @@ proc InitWindow { kRootDir kExt } {
 
     # set the size of the frames and force them to stay that way
     frame .middle.f1 \
-	-width [expr $gWindowWidth * 3 / 16.0] \
-	-height $gFrameHeight
+		-width [expr $gWindowWidth * 3 / 16.0] \
+		-height $gFrameHeight
     frame .middle.f2 \
-	-width $gFrameWidth \
-	-height $gFrameHeight
+		-width $gFrameWidth \
+		-height $gFrameHeight
     frame .middle.f3 \
-	-width [expr $gWindowWidth * 3 / 16.0] \
-	-height $gFrameHeight
+		-width [expr $gWindowWidth * 3 / 16.0] \
+		-height $gFrameHeight
 
     pack propagate .middle.f1 0
     pack propagate .middle.f2 0
@@ -414,42 +416,42 @@ proc InitWindow { kRootDir kExt } {
     # clicking OK in the in game play options
     button .middle.f2.fPlayOptions.fBot.bOk -text "OK" \
 	-command {
-            .cToolbar bind iOTB4 <Any-Leave> \
+		.cToolbar bind iOTB4 <Any-Leave> \
 		    ".cToolbar raise iITB4"
 	    pack forget .middle.f2.fPlayOptions   
 	    pack .middle.f2.cMain -expand 1
-            .cStatus lower base
+        .cStatus lower base
 	    .cToolbar raise iITB
 	    global gSmartness gSmartnessScale
 	    C_SetSmarterComputer $gSmartness $gSmartnessScale
-            global gLeftName gRightName
-            .middle.f1.cMLeft itemconfigure LeftName \
+        global gLeftName gRightName
+        .middle.f1.cMLeft itemconfigure LeftName \
 		    -text [format "Left:\n%s" $gLeftName]
-            .middle.f3.cMRight itemconfigure RightName \
+        .middle.f3.cMRight itemconfigure RightName \
 		    -text [format "Right:\n%s" $gRightName]
-            .middle.f1.cMLeft itemconfigure moveHistoryLeftName \
+        .middle.f1.cMLeft itemconfigure moveHistoryLeftName \
 		    -text [format "<-- %s Winning" $gLeftName]
-            .middle.f1.cMLeft itemconfigure moveHistoryRightName \
+        .middle.f1.cMLeft itemconfigure moveHistoryRightName \
 		    -text [format "%s Winning -->" $gRightName]
 	    update
 	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-		if { $gReallyUnsolved == true } {
-		    . config -cursor watch
-		    set theValue [C_DetermineValue $gPosition]
-		    set gGameSolved true
-		    . config -cursor {}
-		    set gReallyUnsolved false
-		    .middle.f1.cMLeft lower progressBar
-		    .cStatus raise rulesA
-		    .cStatus raise historyI
-		    .cStatus raise valueI
-		    .cStatus raise allA
-		    .cStatus raise predI
-		}
+			if { $gReallyUnsolved == true } {
+			    . config -cursor watch
+			    set theValue [C_DetermineValue $gPosition]
+			    set gGameSolved true
+			    . config -cursor {}
+			    set gReallyUnsolved false
+			    .middle.f1.cMLeft lower progressBar
+			    .cStatus raise rulesA
+			    .cStatus raise historyI
+			    .cStatus raise valueI
+			    .cStatus raise allA
+			    .cStatus raise predI
+			}
 	    }
 	    set gameMenuToDriverLoop true
 	    DriverLoop
-        }
+	}
     frame .middle.f2.fPlayOptions.fMid \
 	-width $gFrameWidth \
 	-height [expr $gWindowHeight * 8 / 30.0] \
@@ -474,17 +476,17 @@ proc InitWindow { kRootDir kExt } {
 	    -font $kLabelFont \
 	    -variable gPlaysFirst\
 	    -value 0 \
-            -command {
-	         set gWhoseTurn "Left"
-            }
+        -command {
+	   		set gWhoseTurn "Left"
+        }
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rPlaysFirst \
 	    -text "Right Plays First" \
 	    -font $kLabelFont \
 	    -variable gPlaysFirst \
 	    -value 1 \
-            -command {
-	         set gWhoseTurn "Right"
-            }
+        -command {
+	    	set gWhoseTurn "Right"
+      	}
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rHuman \
 	    -text "Human" \
 	    -font $kLabelFont \
@@ -493,12 +495,12 @@ proc InitWindow { kRootDir kExt } {
 	-command { 
 	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
-	    if { $gRightHumanOrComputer == "Computer" } {
-		EnableSmarterComputerInterface
-		set gMoveDelay 0
-		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+		if { $gRightHumanOrComputer == "Computer" } {
+			EnableSmarterComputerInterface
+			set gMoveDelay 0
+			.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    } else {
-		DisableSmarterComputerInterface
+			DisableSmarterComputerInterface
 	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fLeft.rComputer \
@@ -508,10 +510,10 @@ proc InitWindow { kRootDir kExt } {
 	    -value Computer \
 	-command {
 	    if { $gRightHumanOrComputer == "Computer" } {
-		set gMoveDelay 1
-		.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
+			set gMoveDelay 1
+			.middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state active -fg black -troughcolor gold
 	    } else {
-		set gMoveDelay 0
+			set gMoveDelay 0
 	    }
 	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    EnableSmarterComputerInterface
@@ -533,11 +535,11 @@ proc InitWindow { kRootDir kExt } {
 	    .middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state disabled -fg gray -troughcolor gray
 	    .middle.f2.fPlayOptions.fTop.fRight.gameDelay configure -state disabled -fg gray -troughcolor gray
 	    if { $gLeftHumanOrComputer == "Computer" } {
-		EnableSmarterComputerInterface
-		set gMoveDelay 0
-		.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
+			EnableSmarterComputerInterface
+			set gMoveDelay 0
+			.middle.f2.fPlayOptions.fTop.fLeft.moveDelay configure -state active -fg black -troughcolor gold
 	    } else {
-		DisableSmarterComputerInterface
+			DisableSmarterComputerInterface
 	    }
 	}
     radiobutton .middle.f2.fPlayOptions.fTop.fRight.rComputer \
@@ -613,36 +615,36 @@ proc InitWindow { kRootDir kExt } {
     
     label .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -text "How should the computer play:" -font $kLabelFont
     radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly \
-	-text "Perfectly always" \
-	-font $kLabelFont \
-	-variable gSmartness \
-	-value Perfectly \
-	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+		-text "Perfectly always" \
+		-font $kLabelFont \
+		-variable gSmartness \
+		-value Perfectly \
+		-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
     radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly \
-	-text "Perfectly sometimes" \
-	-font $kLabelFont \
-	-variable gSmartness \
-	-value Imperfectly \
-	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state active -foreground black"
+		-text "Perfectly sometimes" \
+		-font $kLabelFont \
+		-variable gSmartness \
+		-value Imperfectly \
+		-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state active -foreground black"
     radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly \
-	-text "Randomly" \
-	-font $kLabelFont \
-	-variable gSmartness \
-	-value Randomly \
-	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+		-text "Randomly" \
+		-font $kLabelFont \
+		-variable gSmartness \
+		-value Randomly \
+		-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
     radiobutton .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely \
-	-text "Misere-ly" \
-	-font $kLabelFont \
-	-variable gSmartness \
-	-value Miserely \
-	-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
+		-text "Misere-ly" \
+		-font $kLabelFont \
+		-variable gSmartness \
+		-value Miserely \
+		-command ".middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray"
     
     scale .middle.f2.fPlayOptions.fMid.fRight.sPerfectness \
-	-label "Percent perfectly:" \
-	-from 0 \
-	-to 100 \
-	-variable gSmartnessScale \
-	-orient horizontal
+		-label "Percent perfectly:" \
+		-from 0 \
+		-to 100 \
+		-variable gSmartnessScale \
+		-orient horizontal
 
     global gAnimationSpeed
 
@@ -658,35 +660,34 @@ proc InitWindow { kRootDir kExt } {
 	    -text "Solving Options:" \
 	    -font $kLabelFont
     radiobutton .middle.f2.fPlayOptions.fMid.fRight.cFrontierSolver \
-	-text "Frontier Solver" \
-	-font $kLabelFont \
-	-variable gLowMem \
-	-value false \
-	-command {
-	    SetSolver
-	}
+		-text "Frontier Solver" \
+		-font $kLabelFont \
+		-variable gLowMem \
+		-value false \
+		-command {
+	    	SetSolver
+		}
     radiobutton .middle.f2.fPlayOptions.fMid.fRight.cLowMemSolver \
-	-text "Low Memory Solver" \
-	-font $kLabelFont \
-	-variable gLowMem \
-	-value true \
-	-command {
-	    SetSolver
-	}
+		-text "Low Memory Solver" \
+		-font $kLabelFont \
+		-variable gLowMem \
+		-value true \
+		-command {
+		    SetSolver
+		}
     radiobutton .middle.f2.fPlayOptions.fMid.fRight.cTwoBits \
-	-text "Two Bit Solving" \
-	-font $kLabelFont \
-	-variable gTwoBits \
-	-value true \
-	-command {
-	    SetSolver
-	}
+		-text "Two Bit Solving" \
+		-font $kLabelFont \
+		-variable gTwoBits \
+		-value true \
+		-command {
+		    SetSolver
+		}
     button .middle.f2.fPlayOptions.fMid.fRight.cSolve \
-	-text "Solve" \
-	-font $kLabelFont \
-	-command {
-
-	}
+		-text "Solve" \
+		-font $kLabelFont \
+		-command {	
+		}
 
     global gLeftHumanOrComputer gRightHumanOrComputer
     global gPlaysFirst
@@ -695,9 +696,9 @@ proc InitWindow { kRootDir kExt } {
     set gLowMem false
     set gTwoBits false
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-	EnableSmarterComputerInterface
+		EnableSmarterComputerInterface
     } else {
-	DisableSmarterComputerInterface
+		DisableSmarterComputerInterface
     }
     
     pack .middle.f2.fPlayOptions.fTop -side top
@@ -749,10 +750,8 @@ proc InitWindow { kRootDir kExt } {
     set rulesFrame .middle.f2.fRules
     
     frame $rulesFrame \
-	-width $gFrameWidth \
-	-height [expr $gWindowHeight * 2 / 30.0]
-
-    
+		-width $gFrameWidth \
+		-height [expr $gWindowHeight * 2 / 30.0]
 
     frame $rulesFrame.module
     frame $rulesFrame.buttons
@@ -760,47 +759,46 @@ proc InitWindow { kRootDir kExt } {
     pack propagate $rulesFrame 0
     
     button $rulesFrame.buttons.bCancel \
-	-text "Cancel" \
-	-command {
-	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain -expand 1
-	    .cToolbar raise iITB
-            RaiseStatusBarIfGameStarted
-	    update
-	    global gOldRules
-	    GS_SetOption $gOldRules
-	    set gameMenuToDriverLoop true
-	    DriverLoop
-	}
+		-text "Cancel" \
+		-command {
+		    pack forget .middle.f2.fRules
+		    pack .middle.f2.cMain -expand 1
+		    .cToolbar raise iITB
+	            RaiseStatusBarIfGameStarted
+		    update
+		    global gOldRules
+		    GS_SetOption $gOldRules
+		    set gameMenuToDriverLoop true
+		    DriverLoop
+		}
     button $rulesFrame.buttons.bOk \
-	-text "Start new game with above rule settings" \
+		-text "Start new game with above rule settings" \
         -command {
-	    # Hide rules frame
-	    pack forget .middle.f2.fRules
-	    pack .middle.f2.cMain -expand 1
-	    .cToolbar raise iITB
-	    .cToolbar raise iDTB3
-
-	    # Delete old board
-	    .middle.f2.cMain delete {!background}
-	    update
-
-	    # Set C option and re-initialize 
-	    eval [concat C_SetOption [GS_GetOption]]
-	    C_InitializeGame
-	    C_InitializeDatabases
-	    GS_InitGameSpecific
-	    GS_Initialize .middle.f2.cMain
-
-	    # Solve this option
-	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-		set theValue [C_DetermineValue $gPosition]
-		.middle.f1.cMLeft lower progressBar
-	    }
-
-	    # New game
-	    TBaction1
-	}
+		    # Hide rules frame
+		    pack forget .middle.f2.fRules
+		    pack .middle.f2.cMain -expand 1
+		    .cToolbar raise iITB
+		    .cToolbar raise iDTB3
+	
+		    # Delete old board
+		    .middle.f2.cMain delete {!background}
+		    update
+	
+		    # Set C option and re-initialize 
+		    eval [concat C_SetOption [GS_GetOption]]
+		    C_InitializeGame
+		    C_InitializeDatabases
+		    GS_InitGameSpecific
+		    GS_Initialize .middle.f2.cMain
+	
+		    # Solve this option
+		    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+				set theValue [C_DetermineValue $gPosition]
+				.middle.f1.cMLeft lower progressBar
+		    }
+	    	# New game
+	    	TBaction1
+		}
 
     pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
     pack $rulesFrame.buttons.bOk -side right -fill both -expand 1
@@ -816,8 +814,8 @@ proc InitWindow { kRootDir kExt } {
 
     set helpFrame .middle.f2.fHelp
     frame $helpFrame \
-	-width $gFrameWidth \
-	-height $gFrameHeight 
+		-width $gFrameWidth \
+		-height $gFrameHeight 
     #[expr $gWindowHeight * 25 / 30] 
 
     frame $helpFrame.buttons
@@ -826,17 +824,17 @@ proc InitWindow { kRootDir kExt } {
     pack propagate $helpFrame 0
 
     button $helpFrame.buttons.bReturn -text "Return" \
-	-command {
-	    pack forget .middle.f2.fHelp   
-	    pack .middle.f2.cMain -expand 1
-	    global gWaitingForHuman
-	    set gWaitingForHuman false
-	    .cToolbar raise iITB
-	    RaiseStatusBarIfGameStarted
-	    update
-	    set gameMenuToDriverLoop true
-	    DriverLoop
-	}
+		-command {
+		    pack forget .middle.f2.fHelp   
+		    pack .middle.f2.cMain -expand 1
+		    global gWaitingForHuman
+		    set gWaitingForHuman false
+		    .cToolbar raise iITB
+		    RaiseStatusBarIfGameStarted
+		    update
+		    set gameMenuToDriverLoop true
+		    DriverLoop
+		}
     
     pack $helpFrame.buttons.bReturn -fill both -expand 1
 
@@ -850,8 +848,8 @@ proc InitWindow { kRootDir kExt } {
 
     set skinsFrame .middle.f2.fSkins
     frame $skinsFrame \
-	-width $gFrameWidth \
-	-height $gFrameHeight
+		-width $gFrameWidth \
+		-height $gFrameHeight
     #[expr $gWindowHeight * 25 / 30] 
 
     frame $skinsFrame.buttons
@@ -862,29 +860,30 @@ proc InitWindow { kRootDir kExt } {
     pack propagate $skinsFrame 0
 
     button $skinsFrame.buttons.bReturn -text "Return" \
-	-command {
-	    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
-	    pack forget .middle.f2.fSkins  
-	    pack .middle.f2.cMain -expand 1
-	    global gWaitingForHuman
-	    set gWaitingForHuman false
-	    .cToolbar raise iITB
-	    RaiseStatusBarIfGameStarted
-	    update
-	    set gameMenuToDriverLoop true
-	    DriverLoop
-	}
+		-command {
+		    InitButtons $gSkinsRootDir $gSkinsDir $gSkinsExt
+		    pack forget .middle.f2.fSkins  
+		    pack .middle.f2.cMain -expand 1
+		    global gWaitingForHuman
+		    set gWaitingForHuman false
+		    .cToolbar raise iITB
+		    RaiseStatusBarIfGameStarted
+		    update
+		    set gameMenuToDriverLoop true
+		    DriverLoop
+		}
     
     pack $skinsFrame.buttons.bReturn -fill both -expand 1
 
     set skins [list]
     if { [file isdirectory $gSkinsRootDir] } {
-	set include "*HiRes*"
-	foreach dir [glob -directory  $gSkinsRootDir */] {
-	    if {[string match $include $dir] && [file exists [format %s/screenshot.ppm $dir]]} {
-		lappend skins $dir
-	    }
-	}
+		set include "*HiRes*"
+		foreach dir [glob -directory  $gSkinsRootDir */] {
+		    	if {[string match $include $dir] &&  \
+					[file exists [format %s/screenshot.ppm $dir]]} {
+				lappend skins $dir
+		    	}
+		}
     }
 
     set alignmentParity 0
@@ -892,7 +891,8 @@ proc InitWindow { kRootDir kExt } {
 	set dirs [file split $skin]
 	set name [lindex $dirs [expr [llength $dirs] -1]]
 
-	image create photo [format %s_screenshot $name] -file [format %sscreenshot.ppm $skin]
+	image create photo [format %s_screenshot $name] \
+		-file [format %sscreenshot.ppm $skin]
 
 	if {0 == [expr $alignmentParity % 2]} {
 	    set align "left"
@@ -923,8 +923,8 @@ proc InitWindow { kRootDir kExt } {
 
     set aboutFrame .middle.f2.fAbout
     frame $aboutFrame \
-	-width $gFrameWidth \
-	-height $gFrameWidth
+		-width $gFrameWidth \
+		-height $gFrameWidth
     #[expr $gWindowHeight * 25 / 30]
 
     frame $aboutFrame.buttons
@@ -933,17 +933,17 @@ proc InitWindow { kRootDir kExt } {
     pack propagate $aboutFrame 0
 
     button $aboutFrame.buttons.bReturn -text "Return" \
-	-command {
-	    pack forget .middle.f2.fAbout   
-	    pack .middle.f2.cMain -expand 1
-	    global gWaitingForHuman
-	    set gWaitingForHuman false
-	    .cToolbar raise iITB
-	    RaiseStatusBarIfGameStarted
-	    update
-	    set gameMenuToDriverLoop true
-	    DriverLoop
-	}
+		-command {
+		    pack forget .middle.f2.fAbout   
+		    pack .middle.f2.cMain -expand 1
+		    global gWaitingForHuman
+		    set gWaitingForHuman false
+		    .cToolbar raise iITB
+		    RaiseStatusBarIfGameStarted
+		    update
+		    set gameMenuToDriverLoop true
+		    DriverLoop
+		}
 
     pack $aboutFrame.buttons.bReturn -fill both -expand 1
 
@@ -954,30 +954,46 @@ proc InitWindow { kRootDir kExt } {
 
     # create the right hand frame
     canvas .middle.f3.cMRight -highlightthickness 0 \
-	-bd 0 \
-	-width [expr $gWindowWidth * 3 / 16.0] \
-	-height $gFrameHeight \
-	-background black
+		-bd 0 \
+		-width [expr $gWindowWidth * 3 / 16.0] \
+		-height $gFrameHeight \
+		-background black
 
-    .middle.f1.cMLeft create image 0 0 -anchor nw -image iIMB1p -tags [list  iIMB iIMB1]
-    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iIMB2p -tags [list  iIMB iIMB2]
-    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iIMB3p -tags [list  iIMB iIMB3]
-    .middle.f1.cMLeft create image 0 0 -anchor nw -image iDMB1p -tags [list  iDMB iDMB1]
-    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iDMB2p -tags [list  iDMB iDMB2]
-    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iDMB3p -tags [list  iDMB iDMB3]
-    .middle.f1.cMLeft create image 0 0 -anchor nw -image iAMB7p -tags [list startupPic]
-    .middle.f1.cMLeft create image 0 0 -anchor nw -image iOMB7p -tags [list startupPicOver]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iIMB1p \
+		-tags [list  iIMB iIMB1]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
+		-image iIMB2p -tags [list  iIMB iIMB2]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw \
+		-image iIMB3p -tags [list  iIMB iIMB3]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iDMB1p \
+		-tags [list  iDMB iDMB1]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
+		-image iDMB2p -tags [list  iDMB iDMB2]
+    .middle.f1.cMLeft create image 0 [expr $gWindowHeightRatio * 400] -anchor nw \
+		-image iDMB3p -tags [list  iDMB iDMB3]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iAMB7p \
+		-tags [list startupPic]
+    .middle.f1.cMLeft create image 0 0 -anchor nw -image iOMB7p \
+		-tags [list startupPicOver]
 	    	
-    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iAMB5p -tags [list  iAMB iAMB5]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
+		-image iAMB5p -tags [list  iAMB iAMB5]
 
-    .middle.f3.cMRight create image 0 0 -anchor nw -image iIMB4p -tags [list  iIMB iIMB4]
-    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iIMB5p -tags [list  iIMB iIMB5]
-    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iIMB6p -tags [list  iIMB iIMB6]
-    .middle.f3.cMRight create image 0 0 -anchor nw -image iDMB4p -tags [list  iDMB iDMB4]
-    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw -image iDMB5p -tags [list  iDMB iDMB5]
-    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw -image iDMB6p -tags [list  iDMB iDMB6]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iIMB4p \
+		-tags [list  iIMB iIMB4]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
+		-image iIMB5p -tags [list  iIMB iIMB5]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw \
+		-image iIMB6p -tags [list  iIMB iIMB6]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iDMB4p \
+		-tags [list  iDMB iDMB4]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
+		-image iDMB5p -tags [list  iDMB iDMB5]
+    .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 400] -anchor nw \
+		-image iDMB6p -tags [list  iDMB iDMB6]
     .middle.f3.cMRight create image 0 0 -anchor nw -image iAMB8p -tags [list play]
-    .middle.f3.cMRight create image 0 0 -anchor nw -image iOMB8p -tags [list playOver]
+    .middle.f3.cMRight create image 0 0 -anchor nw -image iOMB8p \
+		-tags [list playOver]
 
 
     ## MOVE HISTORY SIDEBAR ##
@@ -989,157 +1005,164 @@ proc InitWindow { kRootDir kExt } {
     set center [expr $gWindowWidthRatio * 75]
 
     .middle.f1.cMLeft create text $center $titleY \
-	-text "Value History:" \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kToMoveToWinFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list moveHistory moveHistoryTitle textitem]
+		-text "Value History:" \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kToMoveToWinFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list moveHistory moveHistoryTitle textitem]
 
     .middle.f1.cMLeft create text 0 $descY \
-	-text "<-- $gLeftName Winning" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor w \
-	-tags [list moveHistory moveHistoryDesc moveHistoryLeftName textitem]
+		-text "<-- $gLeftName Winning" \
+		-font $kValueHistoryLabelFont \
+		-fill $gFontColor \
+		-anchor w \
+		-tags [list moveHistory moveHistoryDesc moveHistoryLeftName textitem]
 
     .middle.f1.cMLeft create text [expr 2*$center] $descY \
-	-text "$gRightName Winning -->" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor e \
-	-tags [list moveHistory moveHistoryDesc moveHistoryRightName textitem]
+		-text "$gRightName Winning -->" \
+		-font $kValueHistoryLabelFont \
+		-fill $gFontColor \
+		-anchor e \
+		-tags [list moveHistory moveHistoryDesc moveHistoryRightName textitem]
 
 
     .middle.f1.cMLeft create line \
-	$center $graphTopY $center [expr $gWindowWidthRatio * 430] \
-	-fill $gFontColor \
-	-width 2 \
-	-tags [list moveHistory moveHistoryCenterLine]
+		$center $graphTopY $center [expr $gWindowWidthRatio * 430] \
+		-fill $gFontColor \
+		-width 2 \
+		-tags [list moveHistory moveHistoryCenterLine]
 
 
     ## END MOVE HISTORY SIDEBAR ##
 
-    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
-	-text "To Win:" \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kToMoveToWinFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list ToWin textitem]
+    .middle.f1.cMLeft create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 100] \
+		-text "To Win:" \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kToMoveToWinFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list ToWin textitem]
 
-    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 300] \
-	-text "To Move:" \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kToMoveToWinFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list ToMove textitem]
+    .middle.f1.cMLeft create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 300] \
+		-text "To Move:" \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kToMoveToWinFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list ToMove textitem]
 
-    .middle.f1.cMLeft create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
-	-text [format "Left:\n%s" $gLeftName] \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kPlayerLabelFont \
-	-anchor center \
-	-tags [list LeftName Names textitem] \
-	-fill $gLeftColor
+    .middle.f1.cMLeft create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
+		-text [format "Left:\n%s" $gLeftName] \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kPlayerLabelFont \
+		-anchor center \
+		-tags [list LeftName Names textitem] \
+		-fill $gLeftColor
 
-    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
-	-text [format "Right:\n%s" $gRightName] \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kPlayerLabelFont \
-	-anchor center \
-	-tags [list RightName Names textitem] \
-	-fill $gRightColor
+    .middle.f3.cMRight create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 450] \
+		-text [format "Right:\n%s" $gRightName] \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kPlayerLabelFont \
+		-anchor center \
+		-tags [list RightName Names textitem] \
+		-fill $gRightColor
 
-    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 150] \
-	-text [format "Predictions: %s" $gPredString] \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kLabelFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list Predictions textitem]
+    .middle.f3.cMRight create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 150] \
+		-text [format "Predictions: %s" $gPredString] \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kLabelFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list Predictions textitem]
 
-    .middle.f3.cMRight create text [expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 80]\
-	-text "" \
-	-width [expr $gWindowWidthRatio * 140] \
-	-justify center \
-	-font $kLabelFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list WhoseTurn textitem]
+    .middle.f3.cMRight create text \
+		[expr $gWindowWidthRatio * 75] [expr $gWindowHeightRatio * 80]\
+		-text "" \
+		-width [expr $gWindowWidthRatio * 140] \
+		-justify center \
+		-font $kLabelFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list WhoseTurn textitem]
 
     # Percent Solved/Loaded Progress Bar
     .middle.f1.cMLeft create rectangle \
-	10 [expr $gWindowHeightRatio * 60] 10 [expr $gWindowHeightRatio * 80] \
-	-fill black \
-	-outline "" \
-	-width 0 \
-	-fill $gFontColor \
-	-tags [list progressBarSlider progressBar]
+		10 [expr $gWindowHeightRatio * 60] 10 [expr $gWindowHeightRatio * 80] \
+		-fill black \
+		-outline "" \
+		-width 0 \
+		-fill $gFontColor \
+		-tags [list progressBarSlider progressBar]
 
     .middle.f1.cMLeft create rectangle \
-	10 [expr $gWindowHeightRatio * 60] [expr $gWindowWidthRatio * 150 - 10] [expr $gWindowHeightRatio * 80] \
-	-fill "" \
-	-outline $gFontColor \
-	-tags [list progressBarBox progressBar]
+		10 [expr $gWindowHeightRatio * 60] \
+		[expr $gWindowWidthRatio * 150 - 10] [expr $gWindowHeightRatio * 80] \
+		-fill "" \
+		-outline $gFontColor \
+		-tags [list progressBarBox progressBar]
 
     .middle.f1.cMLeft create text \
-	10 [expr $gWindowHeightRatio * 10] \
-	-justify left \
-	-anchor nw \
-	-font $kLabelFont \
-	-fill $gFontColor \
-	-text "" \
-	-tags [list progressBarText progressBar textitem]
+		10 [expr $gWindowHeightRatio * 10] \
+		-justify left \
+		-anchor nw \
+		-font $kLabelFont \
+		-fill $gFontColor \
+		-text "" \
+		-tags [list progressBarText progressBar textitem]
 
     # this is the left panel item "click to play"
     global gNewGame
     .middle.f1.cMLeft bind startupPic <Enter> {
-	.middle.f1.cMLeft raise startupPicOver
-	.cToolbar raise iOTB1
-	update idletasks
+		.middle.f1.cMLeft raise startupPicOver
+		.cToolbar raise iOTB1
+		update idletasks
     }
     .middle.f1.cMLeft bind startupPicOver <ButtonPress-1> {
-	TBaction1
-	set gNewGame true
-	.middle.f1.cMLeft raise iDMB
-	.cToolbar lower iOTB1
-	update idletasks
-    }
-    .middle.f1.cMLeft bind startupPicOver <Leave> {
-	if { $gNewGame == "false" } {
-	    .cToolbar lower iOTB1
-	    .middle.f1.cMLeft raise startupPic
-	} else {
-	    .middle.f1.cMLeft raise iDMB
-	    .cToolbar lower iOTB1
+		TBaction1
+		set gNewGame true
+		.middle.f1.cMLeft raise iDMB
+		.cToolbar lower iOTB1
+		update idletasks
 	}
-	update idletasks
-    }
+    .middle.f1.cMLeft bind startupPicOver <Leave> {
+		if { $gNewGame == "false" } {
+		    .cToolbar lower iOTB1
+		    .middle.f1.cMLeft raise startupPic
+		} else {
+		    .middle.f1.cMLeft raise iDMB
+		    .cToolbar lower iOTB1
+		}
+		update idletasks
+	}
 
 
     # this is the play now button
     .middle.f3.cMRight bind play <Enter> {
-	.middle.f3.cMRight raise playOver
-	update idletasks
+		.middle.f3.cMRight raise playOver
+		update idletasks
     }
     .middle.f3.cMRight bind playOver <Leave> {
-	if { $gGameSolved == "false" } {
-	    .middle.f3.cMRight raise play
-	} else {
-	    .middle.f3.cMRight raise iIMB
-	}
-	update idletasks
+		if { $gGameSolved == "false" } {
+		    .middle.f3.cMRight raise play
+		} else {
+		    .middle.f3.cMRight raise iIMB
+		}
+		update idletasks
     }
     .middle.f3.cMRight bind playOver <ButtonPress-1> {
-	clickedPlayNow
+		clickedPlayNow
     }
     .middle.f3.cMRight lower play
     .middle.f3.cMRight lower playOver
@@ -1157,29 +1180,46 @@ proc InitWindow { kRootDir kExt } {
     # Status Area
     #
     canvas .cStatus -highlightthickness 0 \
-	-bd 0 \
-	-width $gWindowWidth \
-	-height [expr $gWindowHeight * 4 / 30.0] \
-	-background black
+		-bd 0 \
+		-width $gWindowWidth \
+		-height [expr $gWindowHeight * 4 / 30.0] \
+		-background black
 
     #create bar border
-    .cStatus create image 0 0 -anchor nw -image iBBB1p -tags [list iABB iABB1 base]
-    .cStatus create image 0 [expr $gWindowHeightRatio * 40] -anchor w -image iABB2p -tags [list sbb iABB iABB2 playA]
-    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
-    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iOBB2p -tags [list sbb iOBB iOBB2 playO]
-    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w -image iDBB2p -tags [list sbb iDBB iDBB2 playD]
+    .cStatus create image 0 0 -anchor nw -image iBBB1p \
+		-tags [list iABB iABB1 base]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40] -anchor w \
+		-image iABB2p -tags [list sbb iABB iABB2 playA]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w \
+		-image iIBB2p -tags [list sbb iIBB iIBB2 playI def]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w \
+		-image iOBB2p -tags [list sbb iOBB iOBB2 playO]
+    .cStatus create image 0 [expr $gWindowHeightRatio * 40]  -anchor w \
+		-image iDBB2p -tags [list sbb iDBB iDBB2 playD]
     #create rules disabled
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iDBB3p -tags [list sbb iDBB iDBB3 rulesD]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] \
+		-image iDBB3p -tags [list sbb iDBB iDBB3 rulesD]
     #create rules selected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iABB3p -tags [list sbb iABB iABB3 rulesA]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] \
+		-image iABB3p -tags [list sbb iABB iABB3 rulesA]
     #create rules unselected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] -image iIBB3p -tags [list sbb iIBB iIBB3 rulesI def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 27] \
+		-image iIBB3p -tags [list sbb iIBB iIBB3 rulesI def]
     #create value history disabled
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iDBB4p -tags [list sbb iDBB iDBB4 historyD]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] \
+		-image iDBB4p -tags [list sbb iDBB iDBB4 historyD]
     #create value history selected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iABB4p -tags [list sbb iABB iABB4 historyA]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] \
+		-image iABB4p -tags [list sbb iABB iABB4 historyA]
     #create value history unselected
-    .cStatus create image [expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] -image iIBB4p -tags [list sbb iIBB iIBB4 historyI def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 290] [expr $gWindowHeightRatio * 52] \
+		-image iIBB4p -tags [list sbb iIBB iIBB4 historyI def]
     
 
     ######
@@ -1192,95 +1232,129 @@ proc InitWindow { kRootDir kExt } {
     #.cStatus create image 530 22.5 -image iIBB5p -tags [list sbb iIBB iIBB5 noneI def]
    
     #create the cover for the moves image
-    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iDBB6p -tags [list sbb iDBB iDBB6 allD]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] \
+		-image iDBB6p -tags [list sbb iDBB iDBB6 allD]
     #create all moves filled, old coords 470,22.5
-    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iABB6p -tags [list sbb iABB iABB6 allA def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] \
+		-image iABB6p -tags [list sbb iABB iABB6 allA def]
     #create all moves unfilled
-    .cStatus create image [expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] -image iIBB6p -tags [list sbb iIBB iIBB6 allI]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 425] [expr $gWindowHeightRatio * 25] \
+		-image iIBB6p -tags [list sbb iIBB iIBB6 allI]
     #create the cover for the values image
-    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iDBB7p -tags [list sbb iDBB iDBB7 valueD]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] \
+		-image iDBB7p -tags [list sbb iDBB iDBB7 valueD]
     #create value moves filled, old coords 530, 22.5
-    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iABB7p -tags [list sbb iABB iABB7 valueA]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] \
+		-image iABB7p -tags [list sbb iABB iABB7 valueA]
     #create value moves unfilled
-    .cStatus create image [expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] -image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 515] [expr $gWindowHeightRatio * 25] \
+		-image iIBB7p -tags [list sbb iIBB iIBB7 valueI def]
     #predictions
-    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iDBB8p -tags [list sbb iDBB iDBB8 predD]
-    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iABB8p -tags [list sbb iABB iABB8 predA]
-    .cStatus create image [expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] -image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] \
+		-image iDBB8p -tags [list sbb iDBB iDBB8 predD]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] \
+		-image iABB8p -tags [list sbb iABB iABB8 predA]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 470] [expr $gWindowHeightRatio * 52] \
+		-image iIBB8p -tags [list sbb iIBB iIBB8 predI def]
     #undo
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iABB9p -tags [list sbb iABB iABB9 undoA]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
-    .cStatus create image [expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] -anchor e -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iABB9p -tags [list sbb iABB iABB9 undoA]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iIBB9p -tags [list sbb iIBB iIBB9 undoI]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iOBB9p -tags [list sbb iOBB iOBB9 undoO]
+    .cStatus create image \
+		[expr $gWindowWidthRatio * 700] [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iDBB9p -tags [list sbb iDBB iDBB9 undoD def]
     #redo
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iABB10p -tags [list sbb iABB iABB10 redoA]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iIBB10p -tags [list sbb iIBB iIBB10 redoI]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iOBB10p -tags [list sbb iOBB iOBB10 redoO]
-    .cStatus create image $gWindowWidth [expr $gWindowHeightRatio * 40] -anchor e -image iDBB10p -tags [list sbb iDBB iDBB10 redoD def]
+    .cStatus create image \
+		$gWindowWidth [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iABB10p -tags [list sbb iABB iABB10 redoA]
+    .cStatus create image \
+		$gWindowWidth [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iIBB10p -tags [list sbb iIBB iIBB10 redoI]
+    .cStatus create image \
+		$gWindowWidth [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iOBB10p -tags [list sbb iOBB iOBB10 redoO]
+    .cStatus create image \
+		$gWindowWidth [expr $gWindowHeightRatio * 40] \
+		-anchor e -image iDBB10p -tags [list sbb iDBB iDBB10 redoD def]
 
     .middle.f2.cMain create image 0 0 -anchor nw -image iAMM1p -tags [list base iAMM iAMM1]
 
     #play options
     .cStatus bind playI <Any-Enter> {
-	.cStatus raise playO; update idletasks;
+		.cStatus raise playO; update idletasks;
     }
     .cStatus bind playO <ButtonRelease-1> {
-	.cToolbar raise iDTB
-	.cStatus raise base
-	SetupPlayOptions
+		.cToolbar raise iDTB
+		.cStatus raise base
+		SetupPlayOptions
     }
     .cStatus bind playO <Any-Leave> {
-	.cStatus raise playI; update idletasks;
+		.cStatus raise playI; update idletasks;
     }
     .cStatus bind playO <ButtonPress-1> {
-	.cStatus raise playA; update idletasks;
+		.cStatus raise playA; update idletasks;
     }
 
 
     .cStatus bind rulesA <ButtonRelease-1> {
-	#.middle.f1.cMLeft raise iIMB1
-	#.middle.f1.cMLeft raise iIMB2
-	#.cStatus raise iIBB3
-	update
+		#.middle.f1.cMLeft raise iIMB1
+		#.middle.f1.cMLeft raise iIMB2
+		#.cStatus raise iIBB3
+		update
     }
 
     .cStatus bind rulesI <ButtonRelease-1> {
-	.middle.f1.cMLeft raise iIMB1
-	.middle.f1.cMLeft raise iIMB2
-	.middle.f1.cMLeft raise ToWin
-	.middle.f1.cMLeft raise ToMove
-	.middle.f1.cMLeft lower moveHistory
-	set moveHistoryVisible false
-	.cStatus raise historyI
-	.cStatus raise rulesA
-	#.cStatus raise iABB3
-	update
+		.middle.f1.cMLeft raise iIMB1
+		.middle.f1.cMLeft raise iIMB2
+		.middle.f1.cMLeft raise ToWin
+		.middle.f1.cMLeft raise ToMove
+		.middle.f1.cMLeft lower moveHistory
+		set moveHistoryVisible false
+		.cStatus raise historyI
+		.cStatus raise rulesA
+		#.cStatus raise iABB3
+		update
     }
 
     .cStatus bind historyA <ButtonRelease-1> {
-	#.middle.f1.cMLeft raise iIMB1
-	#.middle.f1.cMLeft raise iIMB2
-	#.cStatus raise historyI
-	update
+		#.middle.f1.cMLeft raise iIMB1
+		#.middle.f1.cMLeft raise iIMB2
+		#.cStatus raise historyI
+		update
     }
 
     .cStatus bind historyI <ButtonRelease-1> {
-	.middle.f1.cMLeft raise iIMB1
-	.middle.f1.cMLeft raise iIMB2
-	.middle.f1.cMLeft raise iIMB3
-	.middle.f1.cMLeft raise moveHistory
-	.middle.f1.cMLeft raise LeftName
-	if { $gPredictionsOn == false } {
-	    .middle.f1.cMLeft lower moveHistoryValidMoves
-	} else {
-        .middle.f1.cMLeft raise moveHistoryLine
-        .middle.f1.cMLeft raise moveHistoryPlot
-    }
-	set moveHistoryVisible true
-	.cStatus raise rulesI
-	.cStatus raise historyA
-	#.cStatus raise iABB4
-	update
+		.middle.f1.cMLeft raise iIMB1
+		.middle.f1.cMLeft raise iIMB2
+		.middle.f1.cMLeft raise iIMB3
+		.middle.f1.cMLeft raise moveHistory
+		.middle.f1.cMLeft raise LeftName
+		if { $gPredictionsOn == false } {
+		    .middle.f1.cMLeft lower moveHistoryValidMoves
+		} else {
+	        .middle.f1.cMLeft raise moveHistoryLine
+	        .middle.f1.cMLeft raise moveHistoryPlot
+	    }
+		set moveHistoryVisible true
+		.cStatus raise rulesI
+		.cStatus raise historyA
+		#.cStatus raise iABB4
+		update
     }
 
     .cStatus bind noneA <ButtonRelease-1> {
@@ -1288,103 +1362,104 @@ proc InitWindow { kRootDir kExt } {
 
     # iTMB5 is the right frame picture that covers Value Moves Legend
     .cStatus bind noneI <ButtonRelease-1> {
-	.middle.f3.cMRight raise iIMB5 
-	.cStatus raise noneA 
-	.cStatus raise allI
-	.cStatus raise valueI
+		.middle.f3.cMRight raise iIMB5 
+		.cStatus raise noneA 
+		.cStatus raise allI
+		.cStatus raise valueI
     }
         
     .cStatus bind allA <ButtonRelease-1> {
     }
 
     .cStatus bind allI <ButtonRelease-1> {
-	global gMoveType
-	set gMoveType all
-	ToggleMoves all
-	.middle.f3.cMRight raise iIMB5
-	.cStatus raise valueI
-	.cStatus raise allA
-	.cStatus raise noneI
+		global gMoveType
+		set gMoveType all
+		ToggleMoves all
+		.middle.f3.cMRight raise iIMB5
+		.cStatus raise valueI
+		.cStatus raise allA
+		.cStatus raise noneI
     }
 
     .cStatus bind valueA <ButtonRelease-1> {
     }
 
     .cStatus bind valueI <ButtonRelease-1> {
-	global gMoveType
-	set gMoveType value
-	ToggleMoves value
-	.middle.f3.cMRight raise iAMB5
-	.cStatus raise valueA
-	.cStatus raise allI
-	.cStatus raise noneI
+		global gMoveType
+		set gMoveType value
+		ToggleMoves value
+		.middle.f3.cMRight raise iAMB5
+		.cStatus raise valueA
+		.cStatus raise allI
+		.cStatus raise noneI
     }
 
     .cStatus bind iABB8 <ButtonRelease-1> {
-	.middle.f3.cMRight raise iIMB4
-	.middle.f3.cMRight lower Predictions
-	$moveHistoryCanvas lower moveHistoryValidMoves
-	set gPredictionsOn false
-	.middle.f3.cMRight raise WhoseTurn
-	.cStatus raise iIBB8
+		.middle.f3.cMRight raise iIMB4
+		.middle.f3.cMRight lower Predictions
+		$moveHistoryCanvas lower moveHistoryValidMoves
+		set gPredictionsOn false
+		.middle.f3.cMRight raise WhoseTurn
+		.cStatus raise iIBB8
     }
 
     .cStatus bind iIBB8 <ButtonRelease-1> {
-	.middle.f3.cMRight raise iIMB4
-	.middle.f3.cMRight raise Predictions
-	if { $moveHistoryVisible == true } {
-	    $moveHistoryCanvas raise moveHistoryLine
-	    $moveHistoryCanvas raise moveHistoryPlot
-	}
-	set gPredictionsOn true
-	.middle.f3.cMRight raise WhoseTurn
-	#.cStatus
-	.cStatus raise iABB8
+		.middle.f3.cMRight raise iIMB4
+		.middle.f3.cMRight raise Predictions
+		if { $moveHistoryVisible == true } {
+		    $moveHistoryCanvas raise moveHistoryLine
+		    $moveHistoryCanvas raise moveHistoryPlot
+		}
+		set gPredictionsOn true
+		.middle.f3.cMRight raise WhoseTurn
+		#.cStatus
+		.cStatus raise iABB8
     }
 
     # Undo Button
     global gMovesSoFar
     #still need to start with disabled and switch to inactive when first move is made
     .cStatus bind undoI <Any-Enter> {
-	.cStatus raise undoO; update idletasks;
+		.cStatus raise undoO; update idletasks;
     }
     .cStatus bind undoO <ButtonRelease-1> {
-	Undo
+		Undo
     }
     .cStatus bind undoO <Any-Leave> {
-	global gMovesSoFar
-	if { 0 == [llength $gMovesSoFar]} {
-	} else {
-	    .cStatus raise undoI; update idletasks;
-	}
+		global gMovesSoFar
+		if { 0 == [llength $gMovesSoFar]} {
+		} else {
+		    .cStatus raise undoI; update idletasks;
+		}
     }
     .cStatus bind undoO <ButtonPress-1> {
-	if (1) {#moves made > 0
-	    .cStatus raise undoA; update idletasks;
-	} else {#moves made = 0
-	    .cStatus raise undoD; update idletasks;
-	}
+		if (1) {
+			#moves made > 0
+		    .cStatus raise undoA; update idletasks;
+		} else {#moves made = 0
+		    .cStatus raise undoD; update idletasks;
+		}
     }
 
     # Redo Button
     global gRedoList
     .cStatus bind redoI <Any-Enter> {
-	.cStatus raise redoO; update idletasks;
+		.cStatus raise redoO; update idletasks;
     }
     .cStatus bind redoO <ButtonRelease-1> {
-	global gRedoList
-	Redo 1
-	if { 0 == [llength $gRedoList]} {
-	    .cStatus raise redoD; update idletasks;
-	}
-    }
-    .cStatus bind redoO <Any-Leave> {
-	global gRedoList
-	if { 0 == [llength $gRedoList]} {
-	    .cStatus raise redoD; update idletasks;
-	} else {
-	    .cStatus raise redoI; update idletasks;
-	}
+		global gRedoList
+		Redo 1
+		if { 0 == [llength $gRedoList]} {
+		    .cStatus raise redoD; update idletasks;
+		}
+	    }
+	    .cStatus bind redoO <Any-Leave> {
+		global gRedoList
+		if { 0 == [llength $gRedoList]} {
+		    .cStatus raise redoD; update idletasks;
+		} else {
+		    .cStatus raise redoI; update idletasks;
+		}
     }
     .cStatus bind redoO <ButtonPress-1> {
 	.cStatus raise redoA; update idletasks;
@@ -1410,7 +1485,7 @@ proc InitWindow { kRootDir kExt } {
 proc RaiseStatusBarIfGameStarted {} {
     global gGameSolved
     if { $gGameSolved == "true" } {
-	.cStatus lower base
+		.cStatus lower base
     }
 }
 
@@ -1436,8 +1511,8 @@ proc switchRules { rules } {
     
     # Solve this option
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-	set theValue [C_DetermineValue $gPosition]
-	.middle.f1.cMLeft lower progressBar
+		set theValue [C_DetermineValue $gPosition]
+		.middle.f1.cMLeft lower progressBar
     }
 
     # New game
@@ -1510,23 +1585,35 @@ proc clickedPlayNow {} {
 
 
 proc DisableSmarterComputerInterface {} {
-    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure -foreground grey
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure -foreground grey -state disabled
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure -foreground grey -state disabled
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure -foreground grey -state disabled
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure -foreground grey -state disabled
-    .middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure \
+		-foreground grey
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure \
+		-foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure \
+		-foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure \
+		-foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure \
+		-foreground grey -state disabled
+    .middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure \
+		-foreground grey -state disabled
 }
 
 proc EnableSmarterComputerInterface {} {
-    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure -foreground black
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure -foreground black -state normal
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure -foreground black -state normal
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure -foreground black -state normal
-    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure -foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure \
+		-foreground black
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure \
+		-foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCImperfectly configure \
+		-foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly configure \
+		-foreground black -state normal
+    .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure \
+		-foreground black -state normal
     global gSmartness
     if { $gSmartness == "Imperfectly" } {
-	.middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -foreground black -state normal
+		.middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure \
+			-foreground black -state normal
     }
 }
 
@@ -1542,7 +1629,8 @@ proc SetupHelpFrame { f width } {
     global kDocumentFont kLabelFont
 
     ## Title Message (summary)
-    message $f.summary -width $width -font $kLabelFont -text "Welcome to GAMESMAN 3.0 (Gold)"
+    message $f.summary -width $width -font $kLabelFont \
+		-text "Welcome to GAMESMAN 3.0 (Gold)"
 	
     pack $f.summary -side top
 
@@ -1560,7 +1648,8 @@ proc SetupHelpFrame { f width } {
     ## Create Image of Skin in Scrollpane
     global kRootDir gSkinsExt gSkinsDir gSkinsRootDir
     
-    image create photo Screenshot -file [format %s%s/%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
+    image create photo Screenshot \
+		-file [format %s%s/%s.%s $gSkinsRootDir $gSkinsDir "screenshot" $gSkinsExt]
     $sp create image [expr $width / 2] 100 -image Screenshot
     
     ## Create Help messages in the Scrollpane
@@ -1599,13 +1688,22 @@ proc SetupAboutFrame { f width } {
     
     global kLabelFont kDocumentFont
     message $sp.title -text "About GamesCrafters" -font $kLabelFont -width $width
-    message $sp.web -text "http://gamescrafters.berkeley.edu" -font $kLabelFont -width $width
-    message $sp.summary -width $width -font $kDocumentFont -text "The GamesCrafters research group at UC Berkeley is dedicated to exploring multiple areas of game-theory and programming. At the core of the project lies GAMESMAN, a program developed to perfectly play finite, two-person board games. Every semester, we add new games to the system by coding a game's basic rules in C along with several possbile game variants. We also design custom graphical interfaces for each game using Tcl/Tk."
+    message $sp.web -text "http://gamescrafters.berkeley.edu" \
+		-font $kLabelFont -width $width
+    message $sp.summary -width $width -font $kDocumentFont \
+		-text "The GamesCrafters research group at UC Berkeley is dedicated \
+				to exploring multiple areas of game-theory and programming. \
+				At the core of the project lies GAMESMAN, a program developed \
+				to perfectly play finite, two-person board games. Every semester, \
+				we add new games to the system by coding a game's basic rules in \
+				C along with several possbile game variants. We also design \
+				custom graphical interfaces for each game using Tcl/Tk."
 
     message $sp.gamesman -width $width -font $kLabelFont \
-	-text "GAMESMAN Development Team"
+		-text "GAMESMAN Development Team"
 
-	message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia"
+	message $sp.coreAuthors -width $width -font $kDocumentFont \
+		-text "Advisor & Original Developer: Dr. Dan Garcia"
 
 ##### Old Development Team #####
 #    message $sp.coreAuthors -width $width -font $kDocumentFont -text "Advisor & Original Developer: Dr. Dan Garcia\nArchitecture: Albert Cheng, Attila Gyulassy, Damian Hites, JJ Jordan, Elmer Lee, Scott Lindeneau, Alex Perelman, Sunil Ramesh, Bryon Ross, Wei Tu, Peterson Tretheway, Jonathan Tsai, Tom Wang\nGraphics: Alice Chang, Eleen Chiang, Melinda Franco, Cassie Guy, Keith Ho, Kevin Ip, Heather Kwong\nMathematical Analysis: Michel D'sa, Farzad Eskafi, Erwin Vedar\nDocumenation: Cynthia Okita, Judy Tuan\nModule Retrofit: Jeffrey Chiang, Jennifer Lee, Rach Liu, Jesse Phillips"
@@ -1613,14 +1711,15 @@ proc SetupAboutFrame { f width } {
 
     global kGameName
     message $sp.moduleName -width $width -font $kLabelFont \
-	-text "$kGameName Development Team"
+		-text "$kGameName Development Team"
 
     global kCAuthors kTclAuthors
     message $sp.moduleAuthors -width $width -font $kDocumentFont \
-	-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
+		-text "C Authors: $kCAuthors\nTcl Authors: $kTclAuthors"
     
     global kRootDir
-    image create photo GamesCraftersImage -file "$kRootDir/../bitmaps/GamesCrafters2005FaNamesSmall.ppm"
+    image create photo GamesCraftersImage \
+		-file "$kRootDir/../bitmaps/GamesCrafters2005FaNamesSmall.ppm"
     canvas $sp.photo -height 360 -width 480
     $sp.photo create image 240 180 -image GamesCraftersImage
 
@@ -1647,16 +1746,16 @@ proc HandleScrolling { f whichOffset args } {
 
     set first [lindex $args 0]
     if { $first == "moveto" } {
-	set frac [lindex $args 1]
-	set $whichOffset [expr $frac * [subst $[subst $whichOffset]Max]]
-	place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
+		set frac [lindex $args 1]
+		set $whichOffset [expr $frac * [subst $[subst $whichOffset]Max]]
+		place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]y
     } else {
-	set direction [lindex $args 1]
-	set newOffset [expr [subst $[subst $whichOffset]] - 10*$direction]
-	if { $newOffset >=  [subst $[subst $whichOffset]Max] && $newOffset <= 0 } {
-	    set $whichOffset $newOffset
-	    place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
-	}
+		set direction [lindex $args 1]
+		set newOffset [expr [subst $[subst $whichOffset]] - 10*$direction]
+		if { $newOffset >=  [subst $[subst $whichOffset]Max] && $newOffset <= 0 } {
+		    set $whichOffset $newOffset
+		    place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
+		}
     }
 }
 
@@ -1665,6 +1764,75 @@ proc HandleScrollFeedback { bar whichOffset args } {
     
     set fraction [expr 1.0 * [subst $[subst $whichOffset]] / [subst $[subst $whichOffset]Max]]
     $bar set $fraction 0
+}
+
+proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
+	set pos [lindex $prevPossible 0]
+	set prev [lindex $prevPossible 1]
+	if { [llength $prev] < 1} {
+		return
+	}
+	global gMovesSoFar gPosition
+	# check the value of current move
+	# it should match up with the best of the prevPossible moves
+	set bestRemote $theRemoteness
+	set bestMove $lastMove
+	set bestType $theValue
+	set mistake false
+	global gMistakeList
+	if { $theValue == "Lose" } {
+		# note that the only possible mistakes that lead to a lose
+		# position are ones with lower remoteness
+		foreach item $prev {
+			set val [lindex $item 1]
+			if { $val == "Lose" && $bestRemote > [lindex $item 2] } {
+				# mistake
+				set mistake true
+				set bestMove [lindex $item 0]
+				set bestRemote [lindex $item 2]
+			}
+		}
+	} else {
+		# other player could have given away a losing position or tying one
+		foreach item $prev {
+			set val [lindex $item 1]
+			if { $val == "Tie" || $val == "Lose" } {
+				if { $bestType == $val } {
+					# if this move has a better remoteness
+					# update
+					if { $bestRemote > [lindex $item 2] } {
+						set bestRemote [lindex $item 2]
+						set mistake true
+					}
+				# they gave away a better move
+				# we want to keep Lose as those are the
+				# worst to give away
+				} elseif { $bestType != "Lose" } {
+					set mistake true
+					set bestMove [lindex $item 0]
+					set bestRemote [lindex $item 2]
+					set bestType $val
+				}
+			}
+		}
+	}
+	# if there was a mistake then added it to list
+	# we keep track of moves so far for undoing later to get positions
+	# append in the form of 
+	# { value theMove theRemoteness betterValue bestMove
+	#		bestRemoteness oldPosition}
+	if { $mistake } {
+		# whose turn is it
+		if { $turn == "Left" } {
+			set whoMade "Right"
+		} else {
+			set whoMade "Left"
+		}
+		lappend gMistakeList [list $whoMade $theValue $lastMove $theRemoteness $bestType $bestMove $bestRemote $pos]
+	} else {
+		# no mistake append an empty list
+		lappend gMistakeList [list]
+	}
 }
 
 #turn = "Left" or "Right"
@@ -1678,7 +1846,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     global maxRemoteness maxMoveString
     global kValueHistoryLabelFont
     global gPredictionsOn gMovesSoFar
-
+	global gMistakeList gPosition oldMoveList
     $moveHistoryCanvas delete moveHistoryValidMoveLines
 
     set drawRemoteness 255
@@ -1696,63 +1864,65 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     set mult 1.0
     set color grey
     if {$theValue == "Win" && $turn == "Left"} {
-	set mult -1.0
+		set mult -1.0
     } elseif {$theValue == "Win" && $turn == "Right"} {
-	set mult 1.0
+		set mult 1.0
     } elseif {$theValue == "Lose" && $turn == "Left"} {
-	set mult 1.0
+		set mult 1.0
     } elseif {$theValue == "Lose" && $turn == "Right"} {
-	set mult -1.0
+		set mult -1.0
     } elseif { $theRemoteness == $drawRemoteness } {
-	set mult 0.0
+		set mult 0.0
     }
 
     if { $theValue == "Win"} {
-	set color green
-	set lineColor red4
+		set color green
+		set lineColor red4
     } elseif { $theValue == "Lose"} {
-	set color red4
-	set lineColor green
+		set color red4
+		set lineColor green
     } else {
-	set color yellow
-	set lineColor yellow
+		set color yellow
+		set lineColor yellow
     }
 
     if { $maxRemoteness == 0 } {
-	set deltax 0
+		set deltax 0
     } else {
-	set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+		set deltax \
+			[expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
     }
     set oldDeltaX $deltax
 
     set nextMaxRemoteness 0
     for {set i 0} {$i < [llength $theMoves]} {incr i} {
-	set temp [lindex [lindex $theMoves $i] 2]
-	if { $nextMaxRemoteness < $temp && $temp < $drawRemoteness } {
-	    set nextMaxRemoteness $temp
-	}
+		set temp [lindex [lindex $theMoves $i] 2]
+		if { $nextMaxRemoteness < $temp && $temp < $drawRemoteness } {
+		    set nextMaxRemoteness $temp
+		}
     }
 
     if { $moveStringWidth > $maxMoveString || ($theRemoteness < $drawRemoteness && \
 	     ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness)) } {
-	if { $moveStringWidth > $maxMoveString } {
-	    set maxMoveString $moveStringWidth
-	}
-	if {$theRemoteness < $drawRemoteness && \
-		($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
-	    if { $theRemoteness >= $nextMaxRemoteness } {
-		set maxRemoteness [expr $theRemoteness + 1]
-	    } else {
-		set maxRemoteness [expr $nextMaxRemoteness + 1]
-	    }
-	}
-
-	if { $maxRemoteness == 0 } {
-	    set deltax 0
-	} else {
-	    set deltax [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
-	}
-	rescaleX $center $pieceRadius $oldDeltaX $deltax
+		if { $moveStringWidth > $maxMoveString } {
+		    set maxMoveString $moveStringWidth
+		}
+		if {$theRemoteness < $drawRemoteness && \
+			($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
+		    if { $theRemoteness >= $nextMaxRemoteness } {
+			set maxRemoteness [expr $theRemoteness + 1]
+		    } else {
+			set maxRemoteness [expr $nextMaxRemoteness + 1]
+		    }
+		}
+	
+		if { $maxRemoteness == 0 } {
+		    set deltax 0
+		} else {
+		    set deltax \
+				[expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+		}
+		rescaleX $center $pieceRadius $oldDeltaX $deltax
     }
     
     set y [expr $top + $pieceRadius * $numMoves]
@@ -1760,77 +1930,77 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
-	global tk_library
-
-	set labelBufferSpace 11.0; #in pixels
-
-	$moveHistoryCanvas delete moveHistory1Line
-	$moveHistoryCanvas delete moveHistoryLabelsRemoteness
-
-	for {set i 0} {$i <= $maxRemoteness} {incr i} {
-	    set reverse [expr $maxRemoteness - $i]
-	    set stipple @[file join $tk_library demos images gray25.bmp]
-	    set width 2
-	    if { [expr $reverse % 5] == 0 } {
-		set stipple ""
-		set width 1
-		if { $reverse == 0 } {
+		global tk_library
+	
+		set labelBufferSpace 11.0; #in pixels
+	
+		$moveHistoryCanvas delete moveHistory1Line
+		$moveHistoryCanvas delete moveHistoryLabelsRemoteness
+	
+		for {set i 0} {$i <= $maxRemoteness} {incr i} {
+		    set reverse [expr $maxRemoteness - $i]
+		    set stipple @[file join $tk_library demos images gray25.bmp]
 		    set width 2
+		    if { [expr $reverse % 5] == 0 } {
+				set stipple ""
+				set width 1
+				if { $reverse == 0 } {
+				    set width 2
+				}
+				if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels to close to center label
+				    .middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
+						-text $reverse \
+						-font $kValueHistoryLabelFont \
+						-fill $gFontColor \
+						-anchor center \
+						-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+					    .middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
+						-text $reverse \
+						-font $kValueHistoryLabelFont \
+						-fill $gFontColor \
+						-anchor center \
+						-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
+				}
+		    }
+		    $moveHistoryCanvas create line \
+				[expr $center - $i * $deltax] $top \
+				[expr $center - $i * $deltax] $bottom \
+				-fill $gFontColor \
+				-stipple $stipple \
+				-width $width \
+				-tags [list moveHistory moveHistory1Line moveHistory1LineLeft]
+			    $moveHistoryCanvas create line \
+				[expr $center + [expr $i * $deltax]] $top \
+				[expr $center + [expr $i * $deltax]] $bottom \
+				-fill $gFontColor \
+				-stipple $stipple \
+				-width $width \
+				-tags [list moveHistory moveHistory1Line moveHistory1LineRight]
 		}
-		if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels to close to center label
-		    .middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
-			-text $reverse \
-			-font $kValueHistoryLabelFont \
-			-fill $gFontColor \
-			-anchor center \
-			-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-		    .middle.f1.cMLeft create text [expr $center + $i * $deltax] $labelsY \
-			-text $reverse \
-			-font $kValueHistoryLabelFont \
-			-fill $gFontColor \
-			-anchor center \
-			-tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
-		}
-	    }
-	    $moveHistoryCanvas create line \
-		[expr $center - $i * $deltax] $top \
-		[expr $center - $i * $deltax] $bottom \
-		-fill $gFontColor \
-		-stipple $stipple \
-		-width $width \
-		-tags [list moveHistory moveHistory1Line moveHistory1LineLeft]
-	    $moveHistoryCanvas create line \
-		[expr $center + [expr $i * $deltax]] $top \
-		[expr $center + [expr $i * $deltax]] $bottom \
-		-fill $gFontColor \
-		-stipple $stipple \
-		-width $width \
-		-tags [list moveHistory moveHistory1Line moveHistory1LineRight]
-	}
     }
 
     #draw label
    .middle.f1.cMLeft create text $center $labelsY \
-	-text "D" \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor center \
-	-tags [list moveHistory moveHistoryLabels textitem]
+		-text "D" \
+		-font $kValueHistoryLabelFont \
+		-fill $gFontColor \
+		-anchor center \
+		-tags [list moveHistory moveHistoryLabels textitem]
 
     if { $turn == "Right" } {
-	set moveStringX 0
-	set anchor w
+		set moveStringX 0
+		set anchor w
     } else {
-	set moveStringX [expr 2 * $center]
-	set anchor e
+		set moveStringX [expr 2 * $center]
+		set anchor e
     }
 
     .middle.f1.cMLeft create text $moveStringX $y \
-	-text $lastMove \
-	-font $kValueHistoryLabelFont \
-	-fill $gFontColor \
-	-anchor $anchor \
-	-tags [list moveHistory moveHistoryMoveString moveString$y textitem]
+		-text $lastMove \
+		-font $kValueHistoryLabelFont \
+		-fill $gFontColor \
+		-anchor $anchor \
+		-tags [list moveHistory moveHistoryMoveString moveString$y textitem]
 
     set xDistance [expr [expr $maxRemoteness - $theRemoteness] * $deltax * $mult]
 
@@ -1838,19 +2008,19 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     set xOpposite [expr $center - $xDistance]
 
     if { $numMoves > 0} {
-	set prev [lindex $moveHistoryList [expr $numMoves - 1]]
-	set prevCoords [$moveHistoryCanvas coords $prev]
-	set prevX [expr [expr [lindex $prevCoords 0] + [lindex $prevCoords 2]] / 2]
-	set prevY [expr [expr [lindex $prevCoords 1] + [lindex $prevCoords 3]] / 2]
-	if { "" != [set prevCoordsOpposite [$moveHistoryCanvas coords oppositeLine$prevY]] } {
-	    set prevXOpposite [lindex $prevCoordsOpposite 2]
-	} else {
-	    set prevXOpposite $prevX
-	}
+		set prev [lindex $moveHistoryList [expr $numMoves - 1]]
+		set prevCoords [$moveHistoryCanvas coords $prev]
+		set prevX [expr [expr [lindex $prevCoords 0] + [lindex $prevCoords 2]] / 2]
+		set prevY [expr [expr [lindex $prevCoords 1] + [lindex $prevCoords 3]] / 2]
+		if { "" != [set prevCoordsOpposite [$moveHistoryCanvas coords oppositeLine$prevY]] } {
+		    set prevXOpposite [lindex $prevCoordsOpposite 2]
+		} else {
+		    set prevXOpposite $prevX
+		}
     } else {
-	set prevX $x
-	set prevY $y
-	set prevXOpposite $x
+		set prevX $x
+		set prevY $y
+		set prevXOpposite $x
     }
 
     set plottedLine \
@@ -1868,18 +2038,18 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	     -tags [list moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
-	set plottedLineOpposite \
-	    [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
-		 -fill $lineColor \
-		 -width 1 \
-		 -tags [list moveHistory moveHistoryLine opposite$y oppositeLine$y]]
-
-	set plottedMoveOpposite \
-	    [$moveHistoryCanvas create oval \
-		 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
-		 -fill $color \
-		 -outline "" \
-		 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
+		set plottedLineOpposite \
+		    [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
+			 -fill $lineColor \
+			 -width 1 \
+			 -tags [list moveHistory moveHistoryLine opposite$y oppositeLine$y]]
+	
+		set plottedMoveOpposite \
+		    [$moveHistoryCanvas create oval \
+			 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
+			 -fill $color \
+			 -outline "" \
+			 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
     }
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <ButtonRelease-1> \
 	"undoToPosition $numMovesSoFar;"
@@ -1890,82 +2060,88 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     
     #old moves deleted at begining of proc so they dont stick around during animation
     for {set i 0} {$i < [llength $theMoves]} {incr i} {
-	set moveRemoteness [lindex [lindex $theMoves $i] 2]
-	set moveValue [lindex [lindex $theMoves $i] 1]
-
-	set mult 1.0
-	set color grey
-	#multiplier is opposite of normal because it will be other players turn
-	if {$moveValue == "Win" && $turn == "Left"} {
-	    set mult 1.0
-	} elseif {$moveValue == "Win" && $turn == "Right"} {
-	    set mult -1.0
-	} elseif {$moveValue == "Lose" && $turn == "Left"} {
-	    set mult -1.0
-	} elseif {$moveValue == "Lose" && $turn == "Right"} {
-	    set mult 1.0
-	} elseif { $moveRemoteness == $drawRemoteness } {
-	    set mult 0.0
-	}
-
-	if { $moveValue == "Win"} {
-	    set color green
-	    set lineColor red4
-	} elseif { $moveValue == "Lose"} {
-	    set color red4
-	    set lineColor green
-	} else {
-	    set color yellow
-	    set lineColor yellow
-	}
-
-	set moveXDistance [expr [expr $maxRemoteness - $moveRemoteness] * $deltax * $mult]
+		set moveRemoteness [lindex [lindex $theMoves $i] 2]
+		set moveValue [lindex [lindex $theMoves $i] 1]
 	
-	set moveX [expr $center + $moveXDistance]
-	#set xOpposite [expr $center - $moveXDistance]
-	$moveHistoryCanvas create line $x $y $moveX $nextY \
-	    -fill $lineColor \
-	    -width 1 \
-	    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves moveHistoryValidMoveLines]
-
-	$moveHistoryCanvas create oval \
-	    [expr $moveX - $pieceRadius / 2] [expr $nextY - $pieceRadius / 2] \
-	    [expr $moveX + $pieceRadius / 2] [expr $nextY + $pieceRadius / 2] \
-	    -fill $color \
-	    -outline "" \
-	    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves moveHistoryDots$y]
+		set mult 1.0
+		set color grey
+		#multiplier is opposite of normal because it will be other players turn
+		if {$moveValue == "Win" && $turn == "Left"} {
+		    set mult 1.0
+		} elseif {$moveValue == "Win" && $turn == "Right"} {
+		    set mult -1.0
+		} elseif {$moveValue == "Lose" && $turn == "Left"} {
+		    set mult -1.0
+		} elseif {$moveValue == "Lose" && $turn == "Right"} {
+		    set mult 1.0
+		} elseif { $moveRemoteness == $drawRemoteness } {
+		    set mult 0.0
+		}
+	
+		if { $moveValue == "Win"} {
+		    set color green
+		    set lineColor red4
+		} elseif { $moveValue == "Lose"} {
+		    set color red4
+		    set lineColor green
+		} else {
+		    set color yellow
+		    set lineColor yellow
+		}
+	
+		set moveXDistance [expr [expr $maxRemoteness - $moveRemoteness] * $deltax * $mult]
+		
+		set moveX [expr $center + $moveXDistance]
+		#set xOpposite [expr $center - $moveXDistance]
+		$moveHistoryCanvas create line $x $y $moveX $nextY \
+		    -fill $lineColor \
+		    -width 1 \
+		    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves moveHistoryValidMoveLines]
+	
+		$moveHistoryCanvas create oval \
+		    [expr $moveX - $pieceRadius / 2] [expr $nextY - $pieceRadius / 2] \
+		    [expr $moveX + $pieceRadius / 2] [expr $nextY + $pieceRadius / 2] \
+		    -fill $color \
+		    -outline "" \
+		    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves moveHistoryDots$y]
     }
 
     $moveHistoryCanvas raise moveHistoryPlot
 
     if { $gPredictionsOn == false } {
-	$moveHistoryCanvas lower moveHistoryValidMoves
+		$moveHistoryCanvas lower moveHistoryValidMoves
     }
     if { $moveHistoryVisible == false } {
-	$moveHistoryCanvas lower moveHistory
+		$moveHistoryCanvas lower moveHistory
     }
     #done with plotting
+	if { [llength $oldMoveList] > 0 } {
+		bestMove $turn $theValue $theRemoteness [lindex $oldMoveList [expr [llength $oldMoveList] - 1]] $lastMove
+	}
 
     #add new move to list
     lappend moveHistoryList $plottedLine $plottedMove
+	lappend oldMoveList [list $gPosition $theMoves]
 }
 
 proc unplotMove { numUndo } {
-    global moveHistoryList moveHistoryCanvas
+    global moveHistoryList moveHistoryCanvas gMistakeList oldMoveList
     set moveBackNum [expr [expr $numUndo + 1] * 2]
     set len [llength $moveHistoryList]
     set newLast [expr $len - $moveBackNum - 1]
     #delete items
     for {set i 0} {$i<[expr $moveBackNum+1] && [expr $len - $i] >= 0} {incr i} {
-	set end [lindex $moveHistoryList [expr $len - $i]]
-	set y [lindex [$moveHistoryCanvas coords $end] 3]
-	$moveHistoryCanvas delete opposite$y
-	$moveHistoryCanvas delete moveString$y
-	$moveHistoryCanvas delete moveHistoryDots$y
-	$moveHistoryCanvas delete $end
+		set end [lindex $moveHistoryList [expr $len - $i]]
+		set y [lindex [$moveHistoryCanvas coords $end] 3]
+		$moveHistoryCanvas delete opposite$y
+		$moveHistoryCanvas delete moveString$y
+		$moveHistoryCanvas delete moveHistoryDots$y
+		$moveHistoryCanvas delete $end
     }
     #remove item from list
     set moveHistoryList [lrange $moveHistoryList 0 $newLast]
+	set gMistakeList [lrange $gMistakeList 0 $newLast]
+	set oldMoveList [lrange $oldMoveList 0 $newLast]
 }
 
 #undos to the nth position in the game, indexed at 0
@@ -1973,9 +2149,9 @@ proc undoToPosition { positionIndex } {
     global gMovesSoFar
     set numMoves [llength $gMovesSoFar]
     if { $positionIndex > $numMoves } {
-	#this is an invalid undo
-	puts "Invalid undo attempted."
-	return
+		#this is an invalid undo
+		puts "Invalid undo attempted."
+		return
     }
     set numUndo [expr $numMoves - $positionIndex]
     UndoNMoves $numUndo
@@ -1986,6 +2162,9 @@ proc clearMoveHistory { } {
     $moveHistoryCanvas delete moveHistoryPlot
     $moveHistoryCanvas delete moveHistoryLine
     $moveHistoryCanvas delete moveHistoryMoveString
+	global oldMoveList gMistakeList
+	set oldMoveList []
+	set gMistakeList []
     set moveHistoryList []
 }
 
@@ -1993,104 +2172,105 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
     global moveHistoryList moveHistoryCanvas
     global maxRemoteness
     for {set i 0} {$i<[llength $moveHistoryList]} {incr i} {
-	set current [lindex $moveHistoryList $i]
-	set currentCoords [$moveHistoryCanvas coords $current]
-	if { [$moveHistoryCanvas type $current] == "oval" } {
-	    set lineIn [lindex $moveHistoryList [expr $i - 1]]
-	    set lineInCoords [$moveHistoryCanvas coords $lineIn]
-	    if {$i < [expr [llength $moveHistoryList] - 1]} {
-		set lineOut [lindex $moveHistoryList [expr $i + 1]]
-		set lineOutCoords [$moveHistoryCanvas coords $lineOut]
-	    }
-	    set oldX [lindex $lineInCoords 2]
-	    set y [lindex $lineInCoords 3]
-
-	    #handle tie opposite pieces
-	    set isTie false
-	    if { [$moveHistoryCanvas type opposite$y] != "" } {
-		set isTie true
-	    }
-
-	    if {$oldX < $center} {
-		set mult -1
-	    } elseif {$oldX > $center} {
-		set mult 1
-	    } else {
-		set mult 0
-	    }
-	    set oldXDistance [expr [expr $oldX - $center] * $mult]
-	    if { $oldDeltaX == 0 } {
-		set oldRemoteness 0
-	    } else {
-		set oldRemoteness [expr $oldXDistance / $oldDeltaX]
-	    }
-
-	    #handle validMove dots
-	    foreach dot [$moveHistoryCanvas find withtag moveHistoryDots$y] {
-		set dotCoords [$moveHistoryCanvas coords $dot]
-		set xCenter [expr ([lindex $dotCoords 0] + [lindex $dotCoords 2]) / 2]
-		if {$xCenter < $center} {
-		    set dotMult -1
-		} elseif {$xCenter > $center} {
-		    set dotMult 1
-		} else {
-		    set dotMult 0
-		}
-		if { $oldDeltaX == 0 } {
-		    set oldDotRemoteness 0
-		} else {
-		    set oldDotRemoteness [expr ($xCenter - $center) / $oldDeltaX]
-		}
-		set newX [expr $center + ($oldDotRemoteness * $dotMult * $newDeltaX)]
-		lset dotCoords 0 [expr $newX-$pieceRadius/2]
-		lset dotCoords 2 [expr $newX+$pieceRadius/2]
-		$moveHistoryCanvas coords $dot $dotCoords
-	    }
-
-	    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
-	    set steps 5
-	    set shift [expr $newXDistance / $steps]
-	    global gAnimationSpeed
-	    #total time in ms for one piece to move to new location
-	    #range 0-100
-	    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
-	    if { $mult != 0 } {
-		for {set j 1} {$j<=$steps} {incr j} {
-		    set newX [expr $center + [expr $shift * $j]]
-		    set xOpposite [expr $center + $center - $newX]
-		    lset lineInCoords 2 $newX
-		    if {$i == 1} {
-			lset lineInCoords 0 $newX
-		    }
-		    $moveHistoryCanvas coords $lineIn $lineInCoords
-		    lset currentCoords 0 [expr $newX - $pieceRadius]
-		    lset currentCoords 2 [expr $newX + $pieceRadius]
-		    $moveHistoryCanvas coords $current $currentCoords
+		set current [lindex $moveHistoryList $i]
+		set currentCoords [$moveHistoryCanvas coords $current]
+		if { [$moveHistoryCanvas type $current] == "oval" } {
+		    set lineIn [lindex $moveHistoryList [expr $i - 1]]
+		    set lineInCoords [$moveHistoryCanvas coords $lineIn]
 		    if {$i < [expr [llength $moveHistoryList] - 1]} {
-			lset lineOutCoords 0 $newX
-			$moveHistoryCanvas coords $lineOut $lineOutCoords
+				set lineOut [lindex $moveHistoryList [expr $i + 1]]
+				set lineOutCoords [$moveHistoryCanvas coords $lineOut]
 		    }
-		    
-		    if { $isTie } {
-			set nextY [expr $y + 2 * $pieceRadius]
-			set oppLineInCoords [$moveHistoryCanvas coords oppositeLine$y]
-			set oppPieceCoords [$moveHistoryCanvas coords oppositePiece$y]
-			if {"" != [set oppLineOutCoords [$moveHistoryCanvas coords oppositeLine$nextY]]} {
-			    lset oppLineOutCoords 0 $xOpposite
-			    $moveHistoryCanvas coords oppositeLine$nextY $oppLineOutCoords
-			}
-			lset oppLineInCoords 2 $xOpposite
-			lset oppPieceCoords 0 [expr $xOpposite - $pieceRadius]
-			lset oppPieceCoords 2 [expr $xOpposite + $pieceRadius]
-			$moveHistoryCanvas coords oppositeLine$y $oppLineInCoords
-			$moveHistoryCanvas coords oppositePiece$y $oppPieceCoords
+		    set oldX [lindex $lineInCoords 2]
+		    set y [lindex $lineInCoords 3]
+	
+		    #handle tie opposite pieces
+		    set isTie false
+		    if { [$moveHistoryCanvas type opposite$y] != "" } {
+				set isTie true
 		    }
-		    
-		    update idletasks
-		    after [expr $delay / $steps]
+	
+		    if {$oldX < $center} {
+				set mult -1
+		    } elseif {$oldX > $center} {
+				set mult 1
+		    } else {
+				set mult 0
+		    }
+		    set oldXDistance [expr [expr $oldX - $center] * $mult]
+		    if { $oldDeltaX == 0 } {
+				set oldRemoteness 0
+		    } else {
+				set oldRemoteness [expr $oldXDistance / $oldDeltaX]
+		    }
+	
+		    #handle validMove dots
+		    foreach dot [$moveHistoryCanvas find withtag moveHistoryDots$y] {
+				set dotCoords [$moveHistoryCanvas coords $dot]
+				set xCenter [expr ([lindex $dotCoords 0] + [lindex $dotCoords 2]) / 2]
+				if {$xCenter < $center} {
+				    set dotMult -1
+				} elseif {$xCenter > $center} {
+				    set dotMult 1
+				} else {
+				    set dotMult 0
+				}
+				if { $oldDeltaX == 0 } {
+				    set oldDotRemoteness 0
+				} else {
+				    set oldDotRemoteness [expr ($xCenter - $center) / $oldDeltaX]
+				}
+				set newX [expr $center + ($oldDotRemoteness * $dotMult * $newDeltaX)]
+				lset dotCoords 0 [expr $newX-$pieceRadius/2]
+				lset dotCoords 2 [expr $newX+$pieceRadius/2]
+				$moveHistoryCanvas coords $dot $dotCoords
+		    }
+	
+		    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
+		    set steps 5
+		    set shift [expr $newXDistance / $steps]
+		    global gAnimationSpeed
+		    #total time in ms for one piece to move to new location
+		    #range 0-100
+		    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
+		    if { $mult != 0 } {
+				for {set j 1} {$j<=$steps} {incr j} {
+				    set newX [expr $center + [expr $shift * $j]]
+				    set xOpposite [expr $center + $center - $newX]
+				    lset lineInCoords 2 $newX
+				    if {$i == 1} {
+						lset lineInCoords 0 $newX
+				    }
+				    $moveHistoryCanvas coords $lineIn $lineInCoords
+				    lset currentCoords 0 [expr $newX - $pieceRadius]
+				    lset currentCoords 2 [expr $newX + $pieceRadius]
+				    $moveHistoryCanvas coords $current $currentCoords
+				    if {$i < [expr [llength $moveHistoryList] - 1]} {
+						lset lineOutCoords 0 $newX
+						$moveHistoryCanvas coords $lineOut $lineOutCoords
+				    }
+				    
+				    if { $isTie } {
+						set nextY [expr $y + 2 * $pieceRadius]
+						set oppLineInCoords \
+							[$moveHistoryCanvas coords oppositeLine$y]
+						set oppPieceCoords \
+							[$moveHistoryCanvas coords oppositePiece$y]
+						if {"" != [set oppLineOutCoords [$moveHistoryCanvas coords oppositeLine$nextY]]} {
+						    lset oppLineOutCoords 0 $xOpposite
+						    $moveHistoryCanvas coords oppositeLine$nextY $oppLineOutCoords
+						}
+						lset oppLineInCoords 2 $xOpposite
+						lset oppPieceCoords 0 [expr $xOpposite - $pieceRadius]
+						lset oppPieceCoords 2 [expr $xOpposite + $pieceRadius]
+						$moveHistoryCanvas coords oppositeLine$y $oppLineInCoords
+						$moveHistoryCanvas coords oppositePiece$y $oppPieceCoords
+				    }    
+				    update idletasks
+				    after [expr $delay / $steps]
+				}
+		    }
 		}
-	    }
-	}
     }
 }
 
@@ -2111,125 +2291,166 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
     ### Set FONT COLOR for each skin ###
     if { $gSkinsDir == "EarthFromSpace_HiRes/" || \
-	     $gSkinsDir == "SpaceCloud_HiRes/"} {
-	set gFontColor "white"
+	    $gSkinsDir == "SpaceCloud_HiRes/"} {
+		set gFontColor "white"
     } else {
-	set gFontColor "black"
+		set gFontColor "black"
     }
     if { [winfo exists .middle.f1.cMLeft] } {
-	.middle.f1.cMLeft itemconfig textitem -fill $gFontColor
-	.middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
-	.middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
-	.middle.f1.cMLeft itemconfig moveHistory1Line -fill $gFontColor
-	.middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
-	.middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
-	.middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
-	.middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
-	.middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
+		.middle.f1.cMLeft itemconfig textitem -fill $gFontColor
+		.middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
+		.middle.f1.cMLeft itemconfig moveHistoryCenterLine -fill $gFontColor
+		.middle.f1.cMLeft itemconfig moveHistory1Line -fill $gFontColor
+		.middle.f1.cMLeft itemconfig ToWin -fill $gFontColor
+		.middle.f1.cMLeft itemconfig ToMove -fill $gFontColor
+		.middle.f1.cMLeft itemconfig progressBarSlider -fill $gFontColor
+		.middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
+		.middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
     }
     if { [winfo exists .middle.f3.cMRight] } {
-	.middle.f3.cMRight itemconfig textitem -fill $gFontColor
-	.middle.f3.cMRight itemconfig Predictions -fill $gFontColor
-	.middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
+		.middle.f3.cMRight itemconfig textitem -fill $gFontColor
+		.middle.f3.cMRight itemconfig Predictions -fill $gFontColor
+		.middle.f3.cMRight itemconfig WhoseTurn -fill $gFontColor
     }
 
     ### Determine scaling of images ###
     ### gWindow*Ratio is based on the original 800x600 size,
     #### but HiRes skins are 2560x1920 so they must be scaled down by 3.2
     if { [string match *\H\i\R\e\s* $gSkinsDir] } {
-	set scalePercent [expr $gWindowWidthRatio * 100 / 3.2]x[expr $gWindowHeightRatio * 100 / 3.2]%!
+		set scalePercent \
+			[expr $gWindowWidthRatio * 100 / 3.2]x[expr $gWindowHeightRatio * 100 / 3.2]%!
     } else {
-	set scalePercent [expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
+		set scalePercent \
+			[expr $gWindowWidthRatio * 100]x[expr $gWindowHeightRatio * 100]%!
     }
 
     ### If system has the convert utility use the directory for the specified resolution
     #### otherwise use the 800x600 directory
     if { $convertExists } {
-	set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
+		set resolutionDir [format %sx%s/ $gWindowWidth $gWindowHeight]
     } else {
-	set resolutionDir "800x600/"
+		set resolutionDir "800x600/"
     }
     set resolutionExists true
 
-    if { ![file isdirectory [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] && $convertExists } {
-	file mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
-	set resolutionExists false
+    if { ![file isdirectory \
+	 	[format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]] && \
+		$convertExists } {
+		file mkdir [format %s%s/%s $skinsRootDir $skinsDir $resolutionDir]
+		set resolutionExists false
     }
 
 
     #Load top toolbar images
     foreach mode {A I O D} {
-	foreach file {1 2 3 4 5 6 7 8} {
-	    set name [format i%sTB%s $mode $file]
-
-	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	    }
-
-	    #old way
-	    #image create photo [subst $name]p -file [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
-	    #new way (images in directories by resolution)
-	    image create photo [subst $name]p -file [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-
-	    set type [format i%sTB $mode]
-	    .cToolbar create image [expr 100 * ($file - 1) * $gWindowWidthRatio] 0 \
-		-anchor nw -image [subst $name]p -tags [list tbb $type $name]
-	}
+		foreach file {1 2 3 4 5 6 7 8} {
+		    set name [format i%sTB%s $mode $file]
+	
+		    if { $convertExists && (!$resolutionExists || \
+			 	![file exists [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
+				exec convert -resize $scalePercent -depth 8 \
+					[format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] \
+					 [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		    }
+	
+		    #old way
+		    #image create photo [subst $name]p -file [format %s%s/%s_1_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt]
+		    #new way (images in directories by resolution)
+		    image create photo [subst $name]p \
+				-file [format %s%s/%s%s_1_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+	
+		    set type [format i%sTB $mode]
+		    .cToolbar create image \
+				[expr 100 * ($file - 1) * $gWindowWidthRatio] 0 \
+				-anchor nw -image [subst $name]p -tags [list tbb $type $name]
+		}
     }
     #Load images for middle section
     foreach mode {D I} {
-	foreach file {1 2 3 4 5 6} {
-	    set name [format i%sMB%s $mode $file]
-
-	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	    }
-
-	    image create photo [subst $name]p -file [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	}
+		foreach file {1 2 3 4 5 6} {
+		    set name [format i%sMB%s $mode $file]
+	
+		    if { $convertExists && (!$resolutionExists || \
+			 	![file exists [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
+				exec convert -resize $scalePercent -depth 8 \
+					 [format %s%s/%s_2_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] \
+					 [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		    }
+	
+		    image create photo [subst $name]p \
+				-file [format %s%s/%s%s_2_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		}	
     }
 
     if { $convertExists && !$resolutionExists } {
 	#currently no check whether each of these images exists
-	exec convert -resize $scalePercent -depth 8 [format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/O_8_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-	exec convert -resize $scalePercent -depth 8 [format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt] [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/A_2_5.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/A_2_7.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/O_2_7.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/A_8_1.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/O_8_1.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/A_4_1.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+		exec convert -resize $scalePercent -depth 8 \
+			[format %s%s/A_3_1.%s $skinsRootDir $skinsDir $skinsExt] \
+			[format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
     }
 
-    image create photo iAMB5p -file [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-    image create photo iAMB7p -file [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-    image create photo iOMB7p -file [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-    image create photo iAMB8p -file [format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-    image create photo iOMB8p -file [format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
-    image create photo iAMM1p -file [format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iAMB5p \
+		-file [format %s%s/%sA_2_5.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iAMB7p \
+		-file [format %s%s/%sA_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iOMB7p \
+		-file [format %s%s/%sO_2_7.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iAMB8p \
+		-file [format %s%s/%sA_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iOMB8p \
+		-file [format %s%s/%sO_8_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iAMM1p \
+		-file [format %s%s/%sA_4_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
     #Load images for bottom bar
-    image create photo iBBB1p -file [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
+    image create photo iBBB1p \
+		-file [format %s%s/%sA_3_1.%s $skinsRootDir $skinsDir $resolutionDir $skinsExt]
 
     foreach mode {A I O D} {
-	foreach file {2 9 10} {
-	    set name [format i%sBB%s $mode $file]
-
-	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	    }
-
-	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	}
+		foreach file {2 9 10} {
+		    set name [format i%sBB%s $mode $file]
+	
+		    if { $convertExists && (!$resolutionExists || \
+			 	![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
+				exec convert -resize $scalePercent -depth 8 \
+					[format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] \
+					[format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		    }
+	
+		    image create photo [subst $name]p \
+				-file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		}
     }
     foreach mode {A I D IO ID AO AD} {
-	foreach file {3 4 6 7 8} {
-	    set name [format i%sBB%s $mode $file]
-
-	    if { $convertExists && (!$resolutionExists || ![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
-		exec convert -resize $scalePercent -depth 8 [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	    }
-
-	    image create photo [subst $name]p -file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
-	}
+		foreach file {3 4 6 7 8} {
+		    set name [format i%sBB%s $mode $file]
+		    if { $convertExists && (!$resolutionExists || \
+			 	![file exists [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]])} {
+				exec convert -resize $scalePercent -depth 8 \
+					 [format %s%s/%s_3_%s.%s $skinsRootDir $skinsDir $mode $file $skinsExt] \
+					 [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		    }
+	
+		    image create photo [subst $name]p \
+				-file [format %s%s/%s%s_3_%s.%s $skinsRootDir $skinsDir $resolutionDir $mode $file $skinsExt]
+		}
     }
 
     #
@@ -2243,48 +2464,48 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     # set the inactive action of each button (mouse not over)
     set mode I
     foreach file {1 2 3 4 5 6 7 8} {
-	set name [format i%sTB%s $mode $file]
-	set type [format i%sTB $mode]
-	.cToolbar bind $name <Enter> \
-	    ".cToolbar raise {iOTB$file}; update idletasks"
+		set name [format i%sTB%s $mode $file]
+		set type [format i%sTB $mode]
+		.cToolbar bind $name <Enter> \
+		    ".cToolbar raise {iOTB$file}; update idletasks"
     }
     # bind the action of the mouse-Over images (mouse over)
     set mode O
     foreach file {1 2 3 4 5 6 7 8} {
-	set name [format i%sTB%s $mode $file]
-	set type [format i%sTB $mode]
-	if { $file == 2 || $file == 3 } {
-	    .cToolbar bind $name <ButtonRelease-1> \
-		"TBaction$file;"
-	} else {
-	    .cToolbar bind $name <ButtonRelease-1> \
-		".cStatus raise base; \
-             update idletasks; \
-             TBaction$file;"
-	}
-	.cToolbar bind $name <Leave> \
-	    ".cToolbar raise iITB$file; update idletasks"
-	.cToolbar bind $name <ButtonPress-1> \
-	    ".cToolbar raise iATB$file; update idletasks"
+		set name [format i%sTB%s $mode $file]
+		set type [format i%sTB $mode]
+		if { $file == 2 || $file == 3 } {
+		    .cToolbar bind $name <ButtonRelease-1> \
+				"TBaction$file;"
+		} else {
+		    .cToolbar bind $name <ButtonRelease-1> \
+				".cStatus raise base; \
+	            update idletasks; \
+	            TBaction$file;"
+		}
+		.cToolbar bind $name <Leave> \
+			".cToolbar raise iITB$file; update idletasks"
+		.cToolbar bind $name <ButtonPress-1> \
+		    ".cToolbar raise iATB$file; update idletasks"
     }
     #overwrite button bindings for new game button so it reacts with "click to play"
     .cToolbar bind iITB1 <Enter> {
-	.cToolbar raise iOTB1
-	if { $gNewGame == "false" } {
-	    .middle.f1.cMLeft raise startupPicOver
-	}
-	update idletasks
+		.cToolbar raise iOTB1
+		if { $gNewGame == "false" } {
+		    .middle.f1.cMLeft raise startupPicOver
+		}
+		update idletasks
     }
     .cToolbar bind iOTB1 <Leave> {
-	.cToolbar raise iITB1
-	.middle.f1.cMLeft lower startupPicOver
-	update idletasks
+		.cToolbar raise iITB1
+		.middle.f1.cMLeft lower startupPicOver
+		update idletasks
     }
     .cToolbar bind iOTB1 <ButtonRelease-1> {
-	.cStatus raise base
-	set gNewGame true
-	update idletasks
-	TBaction1
+		.cStatus raise base
+		set gNewGame true
+		update idletasks
+		TBaction1
     }
     .cToolbar dtag iDTB8 iDTB
     # Set up starting display with the inactive images on top
@@ -2304,17 +2525,17 @@ proc advanceProgressBar { percent } {
     set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
     set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
     if {$percentDone > 100.0} {
-	$percentDone = 100.0
+		$percentDone = 100.0
     }
     if {$percent == 0} {
-	lset barCoords 2 [lindex $barCoords 0]
-	$percentDone = 0
+		lset barCoords 2 [lindex $barCoords 0]
+		$percentDone = 0
     } else {
-	lset barCoords 2 $xCoord
+		lset barCoords 2 $xCoord
     }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
-	-text [format "Solving Game:\n%s%% Done" $percentDone]
+		-text [format "Solving Game:\n%s%% Done" $percentDone]
     .middle.f1.cMLeft raise progressBar
     update idletasks
 }
@@ -2327,17 +2548,17 @@ proc advanceLoadingProgressBar { percent } {
     set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
     set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
     if {$percentDone > 100.0} {
-	$percentDone = 100.0
+		$percentDone = 100.0
     }
     if {$percent == 0} {
-	lset barCoords 2 [lindex $barCoords 0]
-	$percentDone = 0
+		lset barCoords 2 [lindex $barCoords 0]
+		$percentDone = 0
     } else {
-	lset barCoords 2 $xCoord
+		lset barCoords 2 $xCoord
     }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
-	-text [format "Loading Database:\n%s%% Done" $percentDone]
+		-text [format "Loading Database:\n%s%% Done" $percentDone]
     .middle.f1.cMLeft raise progressBar
     update idletasks
 }

@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.53 2007-03-23 15:13:34 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.54 2007-03-27 01:51:26 dmchan Exp $
 ##
 ############################################################################
 
@@ -14,7 +14,16 @@
 ##
 #############################################################################
 
-global command_line_args
+global command_line_args printing
+# check first argument for --printing
+# if it is set, then enable printing end of game stats
+if {[llength $argv] > 0 && [lindex $argv 0] == "--printing"} {
+	set printing true
+	set argv [lrange $argv 1 [lindex [expr [llength $argv] - 1]]]
+} else {
+	set printing false
+}
+
 set command_line_args [concat $argv0 $argv]
 
 proc stack {} {
@@ -684,7 +693,7 @@ proc DriverLoop { } {
     global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved
     global gWhoseTurn gLeftName gRightName
     global gameMenuToDriverLoop
-
+	global printing
     if { [expr !$gGameSolved] } {
 	return
     }
@@ -710,7 +719,13 @@ proc DriverLoop { } {
 		set theValue      [C_GetValueOfPosition $gPosition]
 		set theRemoteness [C_Remoteness $gPosition]
 	    }
-	    
+		# capture position before move
+		# only do if printing is enabled
+		if { $printing == true } {
+			doCapture $gMoveType $gPosition $theMoves true
+			doCapture $gMoveType $gPosition $theMoves false
+		}
+
 	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
 	    update idletasks
 	    ##
@@ -935,7 +950,8 @@ proc GameOver { position gameValue lastMove } {
     global gPosition gGameSoFar gWhoseTurn gLeftName gRightName
     global gLeftPiece gRightPiece
     global gGameDelay gLeftHumanOrComputer gRightHumanOrComputer
-
+	global printing
+	
     set previousPos [peek [pop $gGameSoFar]]
 
     set WhoWon Nobody
@@ -978,11 +994,11 @@ proc GameOver { position gameValue lastMove } {
     if { $gameValue == "Tie" } {
         set message [concat GAME OVER: It's a TIE!]
         SendMessage $message
-	set loseMessage "Nobody wins!"
+		set loseMessage "Nobody wins!"
     } else {
         set message [concat GAME OVER: $WhoWon wins!]
-	SendMessage $message
-	set loseMessage [format "%s loses!" $WhoLost]
+		SendMessage $message
+		set loseMessage [format "%s loses!" $WhoLost]
     }
 
     .middle.f3.cMRight itemconfigure WhoseTurn \
@@ -992,6 +1008,10 @@ proc GameOver { position gameValue lastMove } {
 	-text [format "%s" $loseMessage] 
     update idletasks
 
+	if { $printing == true } {
+		doPrinting
+	}
+	
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove
     update idletasks
 
@@ -1326,7 +1346,10 @@ proc main {kRootDir} {
     source "$kRootDir/../tcl/InitWindow.tcl"
     InitGlobals
 
-    global gSkinsDir
+	# source the printing files
+	source "$kRootDir/../tcl/printing.tcl"
+    
+	global gSkinsDir
     if {[catch {set fileptr [open skin.txt r]}]} {
 	set gSkinsDir OxySkin_HiRes/
     } else {
