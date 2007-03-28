@@ -12,7 +12,8 @@ set outputs("output_merge") "ps/output_merge.ps"
 set outputs("outputPDF") "ps/output.pdf"
 set outputs("static_blank") "ps/static/static_blank.ps"
 set outputs("static_win_banner") "ps/static/static_win_banner.ps"
-set outputs("gsStr") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite -sOutputFile="
+set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
+	-sOutputFile="
 set outputs("left_name") "ps/left_name.ps"
 set outputs("right_name") "ps/right_name.ps"
 set outputs("vs") "ps/vs.ps"
@@ -20,11 +21,10 @@ canvas .printing -width 1000 -height 1000
 
 # do the printing
 proc doPrinting {c position winner} {
-	global outputs kGameName
+	global outputs
 	set path [makePathOnce $position false true]
 	# capture the last position
 	capture $c $position false true $path
-	makeTags
 	makeTop $c $position $winner
 	makeBottom
 	combine
@@ -34,13 +34,45 @@ proc doPrinting {c position winner} {
 	cleanTemp
 }
 
+# setup the top part
+proc makeTop { c position nameOfWinner} {
+	global outputs
+	# make the name tags
+	makeTags
+	# combine column major ones...
+	# then combine row major
+	# should have rotated way we want...
+	set winPath [makePath $position false true]
+	# combine vs and winning pos
+	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") \"$winPath\""
+	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") $outputs("top")
+	
+	# combine left name and possible history?
+	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $outputs(\"left_name\")"
+	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") \
+		$outputs("left_name")
+	
+	# combine right side
+	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $outputs(\"right_name\")"
+	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") \
+		$outputs("right_name")
+	
+	# make top
+	set topStr "$outputs(\"right_name\") $outputs(\"top\") $outputs(\"left_name\")"
+	
+	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
+	exec /usr/bin/psnup -d -q -3 -pletter $outputs("top_merge") $outputs("top")
+}
+
+# make the pages for the names
 proc makeTags { } {
 	global gLeftName gRightName outputs gFrameWidth
 
 	# pack the printing canvas
 	# do some creation and capturing
 	pack .printing
-	.printing create text [expr $gFrameWidth / 2] 75 -justify center -text $gLeftName -font {Helvetica 128} -tag __printing
+	.printing create text [expr $gFrameWidth / 2] 75 -justify center \
+		-text $gLeftName -font {Helvetica 128} -tag __printing
 	update idletasks
 	
 	# reconfigure the text and capture again
@@ -55,32 +87,6 @@ proc makeTags { } {
 	update
 }
 
-# setup the top part
-proc makeTop { c position nameOfWinner} {
-	global gFrameWidth outputs kGameName
-	# combine column major ones...
-	# then combine row major
-	# should have rotated way we want...
-	set winPath [makePath $position false true]
-	# combine vs and winning pos
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") \"$winPath\""
-	exec /usr/bin/psnup -q -2 -pletter $outputs("top_merge") $outputs("top")
-	
-	# combine left name and possible history?
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $outputs(\"left_name\")"
-	exec /usr/bin/psnup -q -2 -pletter $outputs("top_merge") $outputs("left_name")
-	
-	# combine right side
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $outputs(\"right_name\")"
-	exec /usr/bin/psnup -q -2 -pletter $outputs("top_merge") $outputs("right_name")
-	
-	# make top
-	set topStr "$outputs(\"right_name\") $outputs(\"top\") $outputs(\"left_name\")"
-	#set botStr "$outputs(\"static_blank\") $outputs(\"static_blank\") $outputs(\"static_blank\")"
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $topStr"
-	exec /usr/bin/psnup -q -3 -pletter $outputs("top_merge") $outputs("top")
-}
-
 # generate mistake lists for the bottom
 # then make the bottom
 proc makeBottom {} {
@@ -92,7 +98,8 @@ proc makeBottom {} {
 proc combine {} {
 	global outputs
 	
-	eval "$outputs(\"gsStr\")$outputs(\"output_merge\") $outputs(\"bot\") $outputs(\"top\")"
+	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"bot\") \
+		$outputs(\"top\")"
 	exec /usr/bin/psnup -q -2 -pletter $outputs("output_merge") $outputs("output")
 }
 
@@ -111,11 +118,10 @@ proc setMistakesLists { } {
 	}
 }
 
+# generate the mistake pages to display
 proc generateBottom { } {
 	global leftMistakes rightMistakes outputs
 
-	puts $leftMistakes
-	puts $rightMistakes
 	set maxErrors 4
 	set leftExec [makeExec $leftMistakes $maxErrors]
 	set rightExec [makeExec $rightMistakes $maxErrors]
@@ -123,26 +129,27 @@ proc generateBottom { } {
 
 	# if we added something then merge and psnup
 	# then combine the pages, else we point to a blank page
-	# do not erase spaces in mergeStr
 	# need to point to blank page to preserve ordering
 	if { $rightExec != "" } {
-		eval "$outputs(\"gsStr\")$outputs(\"right\") $rightExec"
-		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter $outputs("right") $outputs("right_merge")
+		eval "$outputs(\"gs_str\")$outputs(\"right\") $rightExec"
+		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter \
+			$outputs("right") $outputs("right_merge")
 		set mergeStr "$mergeStr $outputs(\"right_merge\")"
 	} else {
 		set mergeStr "$mergeStr $outputs(\"static_blank\")"
 	}
 	
 	if { $leftExec != "" } {
-		eval "$outputs(\"gsStr\")$outputs(\"left\") $leftExec"
-		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter $outputs("left") $outputs("left_merge")
+		eval "$outputs(\"gs_str\")$outputs(\"left\") $leftExec"
+		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter \
+			$outputs("left") $outputs("left_merge")
 		set mergeStr "$mergeStr $outputs(\"left_merge\")"
 	} else {
 		set mergeStr "$mergeStr $outputs(\"static_blank\")"
 	}
 	
 	# combine the left and right outputs to form the bottom
-	eval "$outputs(\"gsStr\")$outputs(\"bot_merge\") $mergeStr"
+	eval "$outputs(\"gs_str\")$outputs(\"bot_merge\") $mergeStr"
 	exec /usr/bin/psnup -q -2 -d -pletter $outputs("bot_merge") $outputs("bot")
 }
 
@@ -159,6 +166,9 @@ proc makeExec { mistakeList maxErrors} {
 		set mistakeList [lrange $mistakeList 0 3]
 	}
 	
+	# iterate over the mistake lists
+	# taking the old positions value moves
+	# and the actual in game result
 	foreach mistake $mistakeList {
 		set oldPos [lindex $mistake 6]
 		set badMove [lindex $mistake 1]
@@ -169,6 +179,14 @@ proc makeExec { mistakeList maxErrors} {
 	return $ret
 }
 
+# find the worst mistakes defined from worst to "best"
+# 1 possible lose -> win
+# 2 possible lose -> tie
+# 3 possible lose -> lose (lower remoteness)
+# 3 possible tie -> win
+# 4 possible tie -> tie
+# 5 possible win -> win (lower remoteness)
+# break mistakes on same level by remoteness
 proc findWorst { mistakeList } {
 	set worst $mistakeList
 	
@@ -229,7 +247,7 @@ proc makePathOnce { pos value rotate} {
 
 # make path with given arguments
 # do the folder checking in here, since other
-# functins should call this function to make the
+# functions should call this function to make the
 # path
 proc makePath { pos value rotate } {
 	global kGameName
@@ -249,9 +267,12 @@ proc makePath { pos value rotate } {
 	return $path
 }
 
+# delete temp files
+# technically not needed
+# since will be overwritted on next iteration
 proc cleanTemp {} {
 	global outputs
-	# delete temp files
+	
 	file delete $outputs("left")
 	file delete $outputs("right")
 	file delete $outputs("top")
@@ -266,7 +287,7 @@ proc cleanTemp {} {
 	file delete $outputs("vs")
 }
 
-# make string to use for eval
+# make string to use for pdf generation
 # then call it
 proc makePDF { input output} {
 	eval "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sOutputFile=$output \

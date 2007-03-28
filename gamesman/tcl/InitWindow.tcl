@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.123 2007-03-28 04:47:25 dmchan Exp $
+# $Id: InitWindow.tcl,v 1.124 2007-03-28 19:26:19 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1767,7 +1767,7 @@ proc HandleScrollFeedback { bar whichOffset args } {
 }
 
 proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
-	global gMovesSoFar gPosition gJustUndone
+	global gMovesSoFar gPosition gJustUndone gMistakeList
 	set pos [lindex $prevPossible 0]
 	set prev [lindex $prevPossible 1]
 	if { [llength $prev] < 1 || $gJustUndone == true} {
@@ -1780,50 +1780,60 @@ proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
 	set bestMove $lastMove
 	set bestType $theValue
 	set mistake false
-	global gMistakeList
-	if { $theValue == "Lose" } {
-		# note that the only possible mistakes that lead to a lose
-		# position are ones with lower remoteness
-		foreach item $prev {
-			set val [lindex $item 1]
-			if { $val == "Lose" && $bestRemote > [lindex $item 2] } {
-				# mistake
+
+	foreach item $prev {
+		set val [lindex $item 1]
+		
+		if { $bestType == "Win" } {
+			if { $val == "Tie" || $val == "Lose" } {
+				# we are at a winning position
+				# could they have given us a tying or losing
+				# position instead?
+				set mistake true
+				set bestMove [lindex $item 0]
+				set bestRemote [lindex $item 2]
+				set bestType $val
+			} elseif { $bestRemote > [lindex $item 2] } {
+				# else did they make a suboptimal "winning"
+				# position, ie which allows us to win faster
+				# under optimal play
 				set mistake true
 				set bestMove [lindex $item 0]
 				set bestRemote [lindex $item 2]
 			}
-		}
-	} else {
-		# other player could have given away a losing position or tying one
-		foreach item $prev {
-			set val [lindex $item 1]
-			if { $val == "Tie" || $val == "Lose" } {
-				if { $bestType == $val } {
-					# if this move has a better remoteness
-					# update
-					if { $bestRemote > [lindex $item 2] } {
-						set bestRemote [lindex $item 2]
-						set mistake true
-					}
-				# they gave away a better move
-				# we want to keep Lose as those are the
-				# worst to give away
-				} elseif { $bestType != "Lose" } {
-					set mistake true
-					set bestMove [lindex $item 0]
-					set bestRemote [lindex $item 2]
-					set bestType $val
-				}
+		} elseif { $bestType == "Tie" } {
+			# we are at a tie
+			# could they have given us a losing position?
+			if { $val == "Lose" } {
+				set mistake true
+				set bestMove [lindex $item 0]
+				set bestRemote [lindex $item 2]
+				set bestType $val
+			} elseif {$val == "Tie" && $bestRemote > [lindex $item 2] } {
+				# or did they choose a tying move that
+				# ties faster
+				set mistake true
+				set bestMove [lindex $item 0]
+				set bestRemote [lindex $item 2]
 			}
+		} elseif {$val == "Lose" && $bestRemote > [lindex $item 2] } {
+			# it is a losing position
+			# did they choose a losing position that
+			# gives us more opportunities to live
+			# check remoteness difference
+			set mistake true
+			set bestMove [lindex $item 0]
+			set bestRemote [lindex $item 2]
 		}
 	}
+	
 	# if there was a mistake then added it to list
 	# we keep track of moves so far for undoing later to get positions
 	# append in the form of 
 	# { value theMove theRemoteness betterValue bestMove
 	#		bestRemoteness oldPosition}
-	if { $mistake } {
-		# whose turn is it
+	# whose turn is it
+	if { $mistake == true } {
 		if { $turn == "Left" } {
 			set whoMade "Right"
 		} else {
