@@ -16,6 +16,7 @@ set outputs("gsStr") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite -sO
 set outputs("left_name") "ps/left_name.ps"
 set outputs("right_name") "ps/right_name.ps"
 set outputs("vs") "ps/vs.ps"
+canvas .printing -width 1000 -height 1000
 
 # do the printing
 proc doPrinting {c position winner} {
@@ -23,7 +24,7 @@ proc doPrinting {c position winner} {
 	set path [makePathOnce $position false true]
 	# capture the last position
 	capture $c $position false true $path
-	makeTags $c
+	makeTags
 	makeTop $c $position $winner
 	makeBottom
 	combine
@@ -33,28 +34,25 @@ proc doPrinting {c position winner} {
 	cleanTemp
 }
 
-proc makeTags { c } {
-	global gFrameWidth gLeftName gRightName outputs kGameName
-	# hide the base and background...
-	# speeds up capture and removes unwanted borders
-	$c itemconfigure base -state hidden
-	$c itemconfigure background -state hidden
-	$c create rectangle 0 0 $gFrameWidth $gFrameWidth -fill "white" -outline "" -tag __printing
-	$c raise __printing
-	$c create text [expr $gFrameWidth / 2] 75 -justify center -text $gLeftName -font {Helvetica 128} -tag __printing_text
+proc makeTags { } {
+	global gLeftName gRightName outputs gFrameWidth
+
+	# pack the printing canvas
+	# do some creation and capturing
+	pack .printing
+	.printing create text [expr $gFrameWidth / 2] 75 -justify center -text $gLeftName -font {Helvetica 128} -tag __printing
 	update idletasks
-	$c postscript -file $outputs("left_name") -pagewidth 8.0i -rotate true
-	$c itemconfigure __printing_text -text $gRightName
+	
+	# reconfigure the text and capture again
+	.printing postscript -file $outputs("left_name") -pagewidth 8.0i -rotate true
+	.printing itemconfigure __printing -text $gRightName
 	update idletasks
-	$c postscript -file $outputs("right_name") -pagewidth 8.0i -rotate true
-	#$c itemconfigure __printing_text -text "vs." -font {Helvetica 144}
-	#update idletasks
-	#$c postscript -file $outputs("vs") -pagewidth 8.0i -rotate true
-	$c delete __printing_text __printing 
-	# show it again
-	$c itemconfigure background -state normal
-	$c itemconfigure base -state normal
-	update idletasks
+	
+	# again
+	.printing postscript -file $outputs("right_name") -pagewidth 8.0i -rotate true
+	pack forget .printing
+	.printing delete __printing
+	update
 }
 
 # setup the top part
@@ -65,7 +63,7 @@ proc makeTop { c position nameOfWinner} {
 	# should have rotated way we want...
 	set winPath [makePath $position false true]
 	# combine vs and winning pos
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $winPath"
+	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") \"$winPath\""
 	exec /usr/bin/psnup -q -2 -pletter $outputs("top_merge") $outputs("top")
 	
 	# combine left name and possible history?
@@ -210,7 +208,7 @@ proc capture { c pos value rotate path} {
 	if { $path != "" } {
 		# hide background to reduce drawing time
 		$c itemconfigure background -state hidden
-		$c postscript -file $path -pagewidth 8.0i -rotate $rotate
+		$c postscript -file "$path" -pagewidth 8.0i -rotate $rotate
 		# show it again
 		$c itemconfigure background -state normal
 	}
@@ -248,7 +246,7 @@ proc makePath { pos value rotate } {
 		set path "$path.ps"
 	}
 	
-	return "\"$path\""
+	return $path
 }
 
 proc cleanTemp {} {
