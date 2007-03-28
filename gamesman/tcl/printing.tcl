@@ -41,15 +41,15 @@ proc makeTags { c } {
 	$c itemconfigure background -state hidden
 	$c create rectangle 0 0 $gFrameWidth $gFrameWidth -fill "white" -outline "" -tag __printing
 	$c raise __printing
-	$c create text [expr $gFrameWidth / 2] 125 -justify center -text $gLeftName -font {Helvetica 128} -tag __printing_text
+	$c create text [expr $gFrameWidth / 2] 75 -justify center -text $gLeftName -font {Helvetica 128} -tag __printing_text
 	update idletasks
 	$c postscript -file $outputs("left_name") -pagewidth 8.0i -rotate true
 	$c itemconfigure __printing_text -text $gRightName
 	update idletasks
 	$c postscript -file $outputs("right_name") -pagewidth 8.0i -rotate true
-	$c itemconfigure __printing_text -text "vs." -font {Helvetica 144}
-	update idletasks
-	$c postscript -file $outputs("vs") -pagewidth 8.0i -rotate true
+	#$c itemconfigure __printing_text -text "vs." -font {Helvetica 144}
+	#update idletasks
+	#$c postscript -file $outputs("vs") -pagewidth 8.0i -rotate true
 	$c delete __printing_text __printing 
 	# show it again
 	$c itemconfigure background -state normal
@@ -64,9 +64,8 @@ proc makeTop { c position nameOfWinner} {
 	# then combine row major
 	# should have rotated way we want...
 	set winPath [makePath $position false true]
-
 	# combine vs and winning pos
-	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $outputs(\"vs\") $winPath"
+	eval "$outputs(\"gsStr\")$outputs(\"top_merge\") $winPath"
 	exec /usr/bin/psnup -q -2 -pletter $outputs("top_merge") $outputs("top")
 	
 	# combine left name and possible history?
@@ -116,11 +115,14 @@ proc setMistakesLists { } {
 
 proc generateBottom { } {
 	global leftMistakes rightMistakes outputs
-	
+
+	puts $leftMistakes
+	puts $rightMistakes
 	set maxErrors 4
 	set leftExec [makeExec $leftMistakes $maxErrors]
 	set rightExec [makeExec $rightMistakes $maxErrors]
 	set mergeStr ""
+
 	# if we added something then merge and psnup
 	# then combine the pages, else we point to a blank page
 	# do not erase spaces in mergeStr
@@ -163,7 +165,7 @@ proc makeExec { mistakeList maxErrors} {
 		set oldPos [lindex $mistake 6]
 		set badMove [lindex $mistake 1]
 		set badPos [C_DoMove $oldPos $badMove]
-		set ret "$ret $pathStr\_$badPos.ps $pathStr\_$oldPos\_v.ps"
+		set ret "$ret \"$pathStr\_$badPos.ps\" \"$pathStr\_$oldPos\_v.ps\""
 	}
 	
 	return $ret
@@ -246,7 +248,7 @@ proc makePath { pos value rotate } {
 		set path "$path.ps"
 	}
 	
-	return $path
+	return "\"$path\""
 }
 
 proc cleanTemp {} {
